@@ -65,9 +65,9 @@ class DamageNumberComponent extends PositionComponent {
           color: _baseColor.withValues(alpha: alpha),
           fontSize: 15 * scale,
           fontWeight: FontWeight.w900,
-          shadows: const [
+          shadows: [
             Shadow(
-              color: Color(0xFF02070D),
+              color: const Color(0xFF02070D).withValues(alpha: alpha * 0.42),
               blurRadius: 3,
               offset: Offset(1, 1),
             ),

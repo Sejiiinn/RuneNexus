@@ -1499,7 +1499,7 @@ String _gemEffectText(GemType type, TurretDefinition turret) {
     GemType.explosion =>
       turret.splashRadius > 0 ? '폭발 반경 +8, 주변 피해 65%' : '반경 34 폭발, 주변 피해 35%',
     GemType.chain =>
-      turret.splashRadius > 0 ? '폭발 미적중 최대 2명에게 35% 연쇄' : '주변 최대 2명에게 35% 연쇄',
+      turret.splashRadius > 0 ? '폭발 미적중 최대 2명에게 50% 연쇄' : '주변 최대 2명에게 50% 연쇄',
   };
 }
 
@@ -1704,7 +1704,7 @@ String _rewardGemEffectText(GemType type) {
     GemType.heavyWeapon => '중화기 피해와 효과 범위 강화',
     GemType.damageOverTime => '지속피해와 지속시간 강화',
     GemType.explosion => '타격 지점 주변에 폭발 피해 추가',
-    GemType.chain => '주변 최대 2명에게 추가 투사체 발사',
+    GemType.chain => '주변 최대 2명에게 50% 피해 투사체 발사',
   };
 }
 

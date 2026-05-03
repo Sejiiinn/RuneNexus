@@ -114,6 +114,19 @@ void main() {
     expect(demoTurrets[TurretType.magic]!.projectileSpeed, 420);
   });
 
+  test('enemy movement speeds are tuned down for readable combat', () {
+    expect(demoEnemies[EnemyType.normal]!.speed, 31.5);
+    expect(demoEnemies[EnemyType.fast]!.speed, 54.6);
+    expect(demoEnemies[EnemyType.tank]!.speed, 21);
+    expect(demoEnemies[EnemyType.boss]!.speed, 16.8);
+  });
+
+  test('turret base ranges are reduced to tighten placement choices', () {
+    expect(demoTurrets[TurretType.arrow]!.range, 96);
+    expect(demoTurrets[TurretType.cannon]!.range, 84);
+    expect(demoTurrets[TurretType.magic]!.range, 108);
+  });
+
   test('turret fire rate is represented as shots per second', () {
     expect(demoTurrets[TurretType.arrow]!.attackRate, 2.27);
     expect(demoTurrets[TurretType.cannon]!.attackRate, 0.4);
@@ -135,7 +148,7 @@ void main() {
 
     expect(turret.level, 10);
     expect(turret.maxLevel, 10);
-    expect(turret.range, closeTo(140.25, 0.001));
+    expect(turret.range, closeTo(116.25, 0.001));
     expect(turret.damage, closeTo(19.6, 0.001));
     expect(turret.attackRate, closeTo(3.2915, 0.001));
   });
@@ -563,6 +576,32 @@ void main() {
     expect(enemy.hp, closeTo(90, 0.001));
   });
 
+  test('chain hit from fire turret applies scaled burn', () {
+    final game = RuneNexusGame();
+    final fireTurret = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: demoTurrets[TurretType.magic]!,
+      game: game,
+      center: Vector2.zero(),
+      tileSize: 32,
+    )..equipGem(GemType.chain, 0);
+    final enemy = EnemyComponent(
+      definition: demoEnemies[EnemyType.normal]!,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(100, 0)],
+      game: game,
+    );
+
+    game.resolveChainHit(
+      owner: fireTurret,
+      target: enemy,
+      damage: fireTurret.damage * 0.5,
+    );
+    enemy.update(1);
+
+    expect(enemy.hp, closeTo(89.2, 0.001));
+  });
+
   test('poison stacks as long low damage over time', () {
     final game = RuneNexusGame();
     final normal = demoEnemies[EnemyType.normal]!;
@@ -594,7 +633,7 @@ void main() {
     enemy.update(1);
     enemy.updatePath([Vector2.zero(), Vector2(200, 0), Vector2(200, 200)]);
 
-    expect(enemy.position.x, closeTo(90, 0.001));
+    expect(enemy.position.x, closeTo(63, 0.001));
     expect(enemy.position.y, closeTo(0, 0.001));
   });
 }

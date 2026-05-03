@@ -32,6 +32,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const int _baseInitialGold = 150;
   static const int _baseNexusHp = 20;
   static const int _maxProgressionLevel = 20;
+  static const double _chainDamageMultiplier = 0.5;
   static const double _minBoardZoom = 1;
   static const double _maxBoardZoom = 2.1;
 
@@ -686,6 +687,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }) {
     final multiplier = _damageMultiplier(owner, target);
     final adjustedDamage = damage * multiplier;
+    final statusScale = owner.damage <= 0 ? 0.0 : damage / owner.damage;
+    _applyGemStatuses(owner, target, damageScale: statusScale);
     showDamageNumber(
       position: target.position.clone(),
       damage: adjustedDamage,
@@ -748,7 +751,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
           origin: source.position.clone(),
           target: enemy,
           owner: owner,
-          damage: owner.damage * 0.35,
+          damage: owner.damage * _chainDamageMultiplier,
           game: this,
         ),
       );
@@ -1032,13 +1035,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return math.max(1, completedRounds * 2 + (success ? 40 : 0));
   }
 
-  void _applyGemStatuses(TurretComponent owner, EnemyComponent enemy) {
+  void _applyGemStatuses(
+    TurretComponent owner,
+    EnemyComponent enemy, {
+    double damageScale = 1,
+  }) {
     if (owner.definition.attackTags.contains(AttackTag.damageOverTime)) {
       final burnMultiplier = _damageMultiplier(owner, enemy);
       enemy.applyBurn(
         damagePerSecond:
             owner.damage *
             0.35 *
+            damageScale *
             burnMultiplier *
             owner.damageOverTimeDamageMultiplier,
         duration: 2 * owner.damageOverTimeDurationMultiplier,
