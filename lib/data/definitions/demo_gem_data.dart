@@ -1,0 +1,89 @@
+import 'package:flutter/material.dart';
+
+import '../../domain/gem/gem_definition.dart';
+import '../../domain/gem/gem_effect_type.dart';
+import '../../domain/gem/gem_type.dart';
+
+const demoGems = <GemType, GemDefinition>{
+  GemType.attackSpeed: GemDefinition(
+    type: GemType.attackSpeed,
+    name: '가속',
+    shortText: '공속 증가',
+    effectType: GemEffectType.attackSpeedMultiplier,
+    value: 1.4,
+    color: Color(0xFFFFD866),
+    icon: Icons.bolt,
+  ),
+  GemType.range: GemDefinition(
+    type: GemType.range,
+    name: '사거리',
+    shortText: '범위 증가',
+    effectType: GemEffectType.rangeBonus,
+    value: 32,
+    color: Color(0xFF69D7FF),
+    icon: Icons.radio_button_checked,
+  ),
+  GemType.physicalDamage: GemDefinition(
+    type: GemType.physicalDamage,
+    name: '물리 피해 증폭',
+    shortText: '물리 피해 증폭',
+    effectType: GemEffectType.damageFamilyMultiplier,
+    value: 1.4,
+    color: Color(0xFFF4F7FA),
+    icon: Icons.fitness_center,
+  ),
+  GemType.magicalDamage: GemDefinition(
+    type: GemType.magicalDamage,
+    name: '마법 피해 증폭',
+    shortText: '마법 피해 증폭',
+    effectType: GemEffectType.damageFamilyMultiplier,
+    value: 1.4,
+    color: Color(0xFF64D8FF),
+    icon: Icons.auto_awesome,
+  ),
+  GemType.lightWeapon: GemDefinition(
+    type: GemType.lightWeapon,
+    name: '경량화기 증폭',
+    shortText: '피해와 연사 강화',
+    effectType: GemEffectType.attackTagEnhancement,
+    value: 1.2,
+    color: Color(0xFFE7C66A),
+    icon: Icons.speed,
+  ),
+  GemType.heavyWeapon: GemDefinition(
+    type: GemType.heavyWeapon,
+    name: '중화기 증폭',
+    shortText: '피해와 범위 강화',
+    effectType: GemEffectType.attackTagEnhancement,
+    value: 1.3,
+    color: Color(0xFFFF8A2A),
+    icon: Icons.blur_circular,
+  ),
+  GemType.damageOverTime: GemDefinition(
+    type: GemType.damageOverTime,
+    name: '지속피해 증폭',
+    shortText: '화상 피해와 시간 강화',
+    effectType: GemEffectType.attackTagEnhancement,
+    value: 1.3,
+    color: Color(0xFF9DFF4A),
+    icon: Icons.whatshot,
+  ),
+  GemType.explosion: GemDefinition(
+    type: GemType.explosion,
+    name: '폭발',
+    shortText: '범위 피해',
+    effectType: GemEffectType.splashBonus,
+    value: 46,
+    color: Color(0xFFFF8A2A),
+    icon: Icons.local_fire_department,
+  ),
+  GemType.chain: GemDefinition(
+    type: GemType.chain,
+    name: '연쇄',
+    shortText: '추가 타격',
+    effectType: GemEffectType.chainHit,
+    value: 2,
+    color: Color(0xFFB98CFF),
+    icon: Icons.electric_bolt,
+  ),
+};

@@ -1,0 +1,49 @@
+import 'package:flutter/material.dart';
+
+import '../../domain/turret/attack_tag.dart';
+import '../../domain/turret/damage_family.dart';
+import '../../domain/turret/turret_definition.dart';
+import '../../domain/turret/turret_type.dart';
+
+const demoTurrets = <TurretType, TurretDefinition>{
+  TurretType.arrow: TurretDefinition(
+    type: TurretType.arrow,
+    name: '기관총',
+    cost: 60,
+    damage: 7,
+    range: 120,
+    attackRate: 2.27,
+    projectileSpeed: 620,
+    description: '빠른 연사로 앞선 적을 집중 공격하는 단일 대상 포탑입니다.',
+    damageFamily: DamageFamily.physical,
+    attackTags: {AttackTag.light},
+    color: Color(0xFFE7C66A),
+  ),
+  TurretType.cannon: TurretDefinition(
+    type: TurretType.cannon,
+    name: '대포',
+    cost: 90,
+    damage: 28,
+    range: 105,
+    attackRate: 0.4,
+    projectileSpeed: 340,
+    splashRadius: 42,
+    description: '느리지만 강한 포탄으로 주변 적까지 함께 타격합니다.',
+    damageFamily: DamageFamily.physical,
+    attackTags: {AttackTag.heavy},
+    color: Color(0xFFFF7B2F),
+  ),
+  TurretType.magic: TurretDefinition(
+    type: TurretType.magic,
+    name: '화염',
+    cost: 80,
+    damage: 16,
+    range: 135,
+    attackRate: 0.59,
+    projectileSpeed: 420,
+    description: '마법 화염으로 적을 태우는 지속피해 성향의 포탑입니다.',
+    damageFamily: DamageFamily.magical,
+    attackTags: {AttackTag.damageOverTime},
+    color: Color(0xFFFF5E3A),
+  ),
+};
