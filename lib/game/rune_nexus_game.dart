@@ -27,11 +27,11 @@ import 'components/impact_effect_component.dart';
 import 'components/projectile_component.dart';
 import 'components/turret_component.dart';
 import 'game_snapshot.dart';
+import 'systems/gem_reward_generator.dart';
+import 'systems/run_progression.dart';
+import 'systems/wave_spawner.dart';
 
 class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
-  static const int _baseInitialGold = 150;
-  static const int _baseNexusHp = 20;
-  static const int _maxProgressionLevel = 20;
   static const double _chainDamageMultiplier = 0.5;
   static const double _minBoardZoom = 1;
   static const double _maxBoardZoom = 2.1;
@@ -41,9 +41,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _waves = waves ?? demoWaves,
       snapshotNotifier = ValueNotifier(
         GameSnapshot(
-          gold: _baseInitialGold,
-          nexusHp: _baseNexusHp,
-          maxNexusHp: _baseNexusHp,
+          gold: RunProgression.baseInitialGold,
+          nexusHp: RunProgression.baseNexusHp,
+          maxNexusHp: RunProgression.baseNexusHp,
           round: 1,
           maxRound: (waves ?? demoWaves).length,
           phase: GamePhase.preparation,
@@ -76,16 +76,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
           lastRunRuneReward: 0,
           completedRounds: 0,
           startingGoldUpgradeLevel: 0,
-          startingGoldUpgradeCost: _startingGoldUpgradeBaseCost,
+          startingGoldUpgradeCost: RunProgression.startingGoldUpgradeBaseCost,
           canUpgradeStartingGold: false,
           nexusHpUpgradeLevel: 0,
-          nexusHpUpgradeCost: _nexusHpUpgradeBaseCost,
+          nexusHpUpgradeCost: RunProgression.nexusHpUpgradeBaseCost,
           canUpgradeNexusHp: false,
         ),
       );
-
-  static const int _startingGoldUpgradeBaseCost = 8;
-  static const int _nexusHpUpgradeBaseCost = 6;
 
   final MapDefinition _map;
   final List<WaveDefinition> _waves;
@@ -93,23 +90,20 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   final List<EnemyComponent> enemies = [];
   final Map<GridPoint, TurretComponent> _turrets = {};
-  final List<_SpawnRequest> _spawnQueue = [];
   final Map<GemType, int> _gemInventory = {};
   final List<GemType> _rewardOptions = [];
-  final math.Random _random = math.Random();
+  final WaveSpawner _waveSpawner = WaveSpawner();
+  final GemRewardGenerator _gemRewardGenerator = GemRewardGenerator();
+  final RunProgression _progression = RunProgression();
 
   late GridComponent _gridComponent;
   late Vector2 _origin;
   late double _tileSize;
   late List<Vector2> _worldPath;
 
-  int _gold = _baseInitialGold;
-  int _nexusHp = _baseNexusHp;
-  int _runes = 0;
-  int _lastRunRuneReward = 0;
+  int _gold = RunProgression.baseInitialGold;
+  int _nexusHp = RunProgression.baseNexusHp;
   int _completedRounds = 0;
-  int _startingGoldUpgradeLevel = 0;
-  int _nexusHpUpgradeLevel = 0;
   int _roundIndex = 0;
   GamePhase _phase = GamePhase.preparation;
   TurretType _selectedTurretType = TurretType.arrow;
@@ -128,18 +122,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   bool _suppressNextTap = false;
 
   bool get isWaveRunning => _phase == GamePhase.wave;
-  int get _initialGold => _baseInitialGold + _startingGoldUpgradeLevel * 10;
-  int get _maxNexusHp => _baseNexusHp + _nexusHpUpgradeLevel;
-  int get _startingGoldUpgradeCost =>
-      _startingGoldUpgradeBaseCost + _startingGoldUpgradeLevel * 5;
-  int get _nexusHpUpgradeCost =>
-      _nexusHpUpgradeBaseCost + _nexusHpUpgradeLevel * 4;
-  bool get _canUpgradeStartingGold =>
-      _startingGoldUpgradeLevel < _maxProgressionLevel &&
-      _runes >= _startingGoldUpgradeCost;
-  bool get _canUpgradeNexusHp =>
-      _nexusHpUpgradeLevel < _maxProgressionLevel &&
-      _runes >= _nexusHpUpgradeCost;
+  int get _initialGold => _progression.initialGold;
+  int get _maxNexusHp => _progression.maxNexusHp;
 
   @override
   Color backgroundColor() => const Color(0xFF07111D);
@@ -173,7 +157,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
 
-    _updateSpawns(dt * _speedMultiplier);
+    _updateWaveSpawns(dt * _speedMultiplier);
     _checkWaveClear();
   }
 
@@ -279,9 +263,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
     _selectedTurretGemSlotIndex = null;
-    _spawnQueue
-      ..clear()
-      ..addAll(_buildSpawnQueue(_waves[_roundIndex]));
+    _waveSpawner.start(_waves[_roundIndex]);
     _publish();
   }
 
@@ -299,7 +281,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _nexusHp = _maxNexusHp;
     _roundIndex = 0;
     _completedRounds = 0;
-    _lastRunRuneReward = 0;
+    _progression.resetLastRunReward();
     _phase = GamePhase.preparation;
     _selectedTurretType = TurretType.arrow;
     _selectedBuildTurretType = null;
@@ -310,12 +292,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void upgradeStartingGoldProgression() {
-    if (!_canUpgradeStartingGold) {
+    if (!_progression.upgradeStartingGold()) {
       return;
     }
 
-    _runes -= _startingGoldUpgradeCost;
-    _startingGoldUpgradeLevel++;
     if (_phase == GamePhase.preparation && _turrets.isEmpty) {
       _gold += 10;
     }
@@ -323,12 +303,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void upgradeNexusHpProgression() {
-    if (!_canUpgradeNexusHp) {
+    if (!_progression.upgradeNexusHp()) {
       return;
     }
 
-    _runes -= _nexusHpUpgradeCost;
-    _nexusHpUpgradeLevel++;
     if (_phase == GamePhase.preparation || _phase == GamePhase.success) {
       _nexusHp++;
     }
@@ -777,7 +755,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     enemy.removeFromParent();
 
     if (_nexusHp <= 0) {
-      _spawnQueue.clear();
+      _waveSpawner.clear();
       for (final activeEnemy in enemies.toList()) {
         activeEnemy.removeFromParent();
       }
@@ -831,7 +809,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       enemy.removeFromParent();
     }
     enemies.clear();
-    _spawnQueue.clear();
+    _waveSpawner.clear();
     _rewardOptions.clear();
 
     for (final component
@@ -935,40 +913,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
   }
 
-  List<_SpawnRequest> _buildSpawnQueue(WaveDefinition wave) {
-    final requests = <_SpawnRequest>[];
-    for (final group in wave.groups) {
-      for (var i = 0; i < group.count; i++) {
-        requests.add(
-          _SpawnRequest(
-            enemyType: group.enemyType,
-            delay: group.startDelay + group.interval * i,
-          ),
-        );
-      }
-    }
-    requests.sort((a, b) => a.delay.compareTo(b.delay));
-    const minSpawnGap = 0.18;
-    var previousDelay = -minSpawnGap;
-    for (final request in requests) {
-      if (request.delay < previousDelay + minSpawnGap) {
-        request.delay = previousDelay + minSpawnGap;
-      }
-      previousDelay = request.delay;
-    }
-    return requests;
-  }
-
-  void _updateSpawns(double dt) {
-    for (final request in _spawnQueue) {
-      request.delay -= dt;
-    }
-
-    final ready = _spawnQueue.where((request) => request.delay <= 0).toList();
-    _spawnQueue.removeWhere((request) => request.delay <= 0);
-
-    for (final request in ready) {
-      _spawnEnemy(request.enemyType);
+  void _updateWaveSpawns(double dt) {
+    for (final enemyType in _waveSpawner.update(dt)) {
+      _spawnEnemy(enemyType);
     }
   }
 
@@ -985,7 +932,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _checkWaveClear() {
-    if (_spawnQueue.isNotEmpty ||
+    if (!_waveSpawner.isEmpty ||
         enemies.isNotEmpty ||
         _phase != GamePhase.wave) {
       return;
@@ -998,25 +945,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_roundIndex >= _waves.length) {
       _rewardOptions.clear();
       _finishRun(GamePhase.success);
-    } else if (_shouldOfferGemReward(completedRound)) {
+    } else if (_gemRewardGenerator.shouldOfferReward(completedRound)) {
       _phase = GamePhase.reward;
       _rewardOptions
         ..clear()
-        ..addAll(_generateRewardOptions());
+        ..addAll(_gemRewardGenerator.generateOptions());
     } else {
       _phase = GamePhase.preparation;
       _rewardOptions.clear();
     }
     _publish();
-  }
-
-  bool _shouldOfferGemReward(int completedRound) {
-    return completedRound % 5 == 0;
-  }
-
-  List<GemType> _generateRewardOptions() {
-    final gems = GemType.values.toList()..shuffle(_random);
-    return gems.take(3).toList();
   }
 
   void _finishRun(GamePhase resultPhase) {
@@ -1026,13 +964,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     final success = resultPhase == GamePhase.success;
     _completedRounds = success ? _waves.length : _roundIndex;
-    _lastRunRuneReward = _runeRewardFor(_completedRounds, success: success);
-    _runes += _lastRunRuneReward;
+    _progression.finishRun(completedRounds: _completedRounds, success: success);
     _phase = resultPhase;
-  }
-
-  int _runeRewardFor(int completedRounds, {required bool success}) {
-    return math.max(1, completedRounds * 2 + (success ? 40 : 0));
   }
 
   void _applyGemStatuses(
@@ -1119,22 +1052,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretAttackRate: selectedTurret?.attackRate ?? 0,
       nextWaveEnemyTypes: List.unmodifiable(nextWaveEnemyTypes),
       speedMultiplier: _speedMultiplier,
-      runes: _runes,
-      lastRunRuneReward: _lastRunRuneReward,
+      runes: _progression.runes,
+      lastRunRuneReward: _progression.lastRunRuneReward,
       completedRounds: _completedRounds,
-      startingGoldUpgradeLevel: _startingGoldUpgradeLevel,
-      startingGoldUpgradeCost: _startingGoldUpgradeCost,
-      canUpgradeStartingGold: _canUpgradeStartingGold,
-      nexusHpUpgradeLevel: _nexusHpUpgradeLevel,
-      nexusHpUpgradeCost: _nexusHpUpgradeCost,
-      canUpgradeNexusHp: _canUpgradeNexusHp,
+      startingGoldUpgradeLevel: _progression.startingGoldUpgradeLevel,
+      startingGoldUpgradeCost: _progression.startingGoldUpgradeCost,
+      canUpgradeStartingGold: _progression.canUpgradeStartingGold,
+      nexusHpUpgradeLevel: _progression.nexusHpUpgradeLevel,
+      nexusHpUpgradeCost: _progression.nexusHpUpgradeCost,
+      canUpgradeNexusHp: _progression.canUpgradeNexusHp,
     );
   }
-}
-
-class _SpawnRequest {
-  _SpawnRequest({required this.enemyType, required this.delay});
-
-  final EnemyType enemyType;
-  double delay;
 }
