@@ -12,6 +12,7 @@ class GameSnapshot {
     required this.round,
     required this.maxRound,
     required this.phase,
+    required this.restoredPhase,
     required this.selectedTurretType,
     required this.previewText,
     required this.rewardOptions,
@@ -54,6 +55,7 @@ class GameSnapshot {
   final int round;
   final int maxRound;
   final GamePhase phase;
+  final GamePhase? restoredPhase;
   final TurretType selectedTurretType;
   final String previewText;
   final List<GemType> rewardOptions;

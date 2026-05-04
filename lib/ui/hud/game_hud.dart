@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
@@ -39,6 +41,23 @@ class GameHud extends StatefulWidget {
 class _GameHudState extends State<GameHud> {
   bool _showGemDebugPanel = false;
   EnemyType? _selectedPreviewEnemyType;
+  late final AppLifecycleListener _lifecycleListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycleListener = AppLifecycleListener(
+      onInactive: widget.game.saveNow,
+      onPause: widget.game.saveNow,
+      onDetach: widget.game.saveNow,
+    );
+  }
+
+  @override
+  void dispose() {
+    _lifecycleListener.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,6 +130,13 @@ class _GameHudState extends State<GameHud> {
                   if (snapshot.phase == GamePhase.reward)
                     Positioned.fill(
                       child: _RewardOverlay(
+                        game: widget.game,
+                        snapshot: snapshot,
+                      ),
+                    ),
+                  if (snapshot.phase == GamePhase.restored)
+                    Positioned.fill(
+                      child: _RestoreRunOverlay(
                         game: widget.game,
                         snapshot: snapshot,
                       ),

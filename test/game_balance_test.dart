@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/definitions/demo_enemy_data.dart';
 import 'package:rune_nexus/data/definitions/demo_stage_data.dart';
 import 'package:rune_nexus/data/definitions/demo_turret_data.dart';
+import 'package:rune_nexus/data/save/save_repository.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
 import 'package:rune_nexus/domain/enemy/enemy_scaling.dart';
 import 'package:rune_nexus/domain/enemy/enemy_type.dart';
@@ -635,5 +636,89 @@ void main() {
 
     expect(enemy.position.x, closeTo(63, 0.001));
     expect(enemy.position.y, closeTo(0, 0.001));
+  });
+
+  test('local save restores turret setup behind resume prompt', () async {
+    final repository = MemorySaveRepository();
+    final game = RuneNexusGame(saveRepository: repository);
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.tryBuildTurret(const GridPoint(2, 0));
+    game.grantGem(GemType.range);
+    game.equipSelectedTurret(GemType.range);
+    game.levelUpSelectedTurret();
+    game.upgradeSelectedTurretLink();
+    await game.saveNow();
+
+    final saved = repository.data;
+    expect(saved, isNotNull);
+    expect(saved!.turrets, hasLength(1));
+    expect(saved.turrets.single.level, 2);
+    expect(saved.turrets.single.slotLimit, 2);
+    expect(saved.turrets.single.equippedGems, [GemType.range]);
+
+    final restoredRepository = MemorySaveRepository()..data = saved;
+    final restored = RuneNexusGame(saveRepository: restoredRepository);
+    restored.onGameResize(Vector2(400, 800));
+    await restored.onLoad();
+
+    expect(restored.snapshotNotifier.value.phase, GamePhase.restored);
+    expect(
+      restored.snapshotNotifier.value.restoredPhase,
+      GamePhase.preparation,
+    );
+    expect(restored.snapshotNotifier.value.round, 1);
+
+    restored.continueRestoredRun();
+    await restored.saveNow();
+
+    final resumed = restoredRepository.data;
+    expect(restored.snapshotNotifier.value.phase, GamePhase.preparation);
+    expect(resumed!.turrets.single.level, 2);
+    expect(resumed.turrets.single.slotLimit, 2);
+  });
+
+  test('local save restores active enemy hp and path progress', () async {
+    final repository = MemorySaveRepository();
+    final game = RuneNexusGame(saveRepository: repository);
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+    game.update(0.25);
+    expect(game.enemies, isNotEmpty);
+
+    final enemy = game.enemies.first;
+    enemy.receiveDamage(5);
+    game.update(0.5);
+    await game.saveNow();
+
+    final saved = repository.data;
+    expect(saved, isNotNull);
+    expect(saved!.phase, GamePhase.wave);
+    expect(saved.enemies, isNotEmpty);
+    expect(saved.enemies.first.hp, lessThan(saved.enemies.first.maxHp));
+    expect(saved.enemies.first.distanceTravelled, greaterThan(0));
+    expect(saved.spawnQueue, isNotEmpty);
+
+    final restoredRepository = MemorySaveRepository()..data = saved;
+    final restored = RuneNexusGame(saveRepository: restoredRepository);
+    restored.onGameResize(Vector2(400, 800));
+    await restored.onLoad();
+
+    expect(restored.snapshotNotifier.value.phase, GamePhase.restored);
+    expect(restored.snapshotNotifier.value.restoredPhase, GamePhase.wave);
+    expect(restored.snapshotNotifier.value.round, 1);
+    restored.update(1);
+    await restored.saveNow();
+
+    expect(
+      restoredRepository.data!.enemies.first.distanceTravelled,
+      closeTo(saved.enemies.first.distanceTravelled, 0.001),
+    );
+
+    restored.continueRestoredRun();
+    expect(restored.snapshotNotifier.value.phase, GamePhase.wave);
   });
 }

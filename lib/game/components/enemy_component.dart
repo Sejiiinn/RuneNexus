@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 
+import '../../data/save/game_save_data.dart';
 import '../../domain/enemy/enemy_definition.dart';
 import '../rendering/enemy_shape_renderer.dart';
 import '../rune_nexus_game.dart';
@@ -45,6 +46,43 @@ class EnemyComponent extends PositionComponent {
   double _facingAngle = 0;
 
   bool get isDead => hp <= 0;
+
+  SavedEnemy toSaveData() {
+    return SavedEnemy(
+      type: definition.type,
+      maxHp: maxHp,
+      hp: hp,
+      distanceTravelled: distanceTravelled,
+      burnRemaining: _burnRemaining,
+      burnDamagePerSecond: _burnDamagePerSecond,
+      burnDamageMultiplier: _burnDamageMultiplier,
+      poisonRemaining: _poisonRemaining,
+      poisonDamagePerSecond: _poisonDamagePerSecond,
+      poisonDamageMultiplier: _poisonDamageMultiplier,
+      poisonStacks: _poisonStacks,
+      slowRemaining: _slowRemaining,
+      slowMultiplier: _slowMultiplier,
+    );
+  }
+
+  void restoreFromSaveData(SavedEnemy data) {
+    hp = data.hp.clamp(0, maxHp).toDouble();
+    distanceTravelled = math.max(0, data.distanceTravelled);
+    _burnRemaining = math.max(0, data.burnRemaining);
+    _burnDamagePerSecond = math.max(0, data.burnDamagePerSecond);
+    _burnDamageMultiplier = math.max(0, data.burnDamageMultiplier);
+    _burnNumberDamage = 0;
+    _burnNumberTimer = 0;
+    _poisonRemaining = math.max(0, data.poisonRemaining);
+    _poisonDamagePerSecond = math.max(0, data.poisonDamagePerSecond);
+    _poisonDamageMultiplier = math.max(0, data.poisonDamageMultiplier);
+    _poisonStacks = math.max(0, data.poisonStacks);
+    _poisonNumberDamage = 0;
+    _poisonNumberTimer = 0;
+    _slowRemaining = math.max(0, data.slowRemaining);
+    _slowMultiplier = data.slowMultiplier <= 0 ? 1 : data.slowMultiplier;
+    _placeAtDistance(distanceTravelled);
+  }
 
   void updatePath(List<Vector2> newPath) {
     if (newPath.length < 2) {

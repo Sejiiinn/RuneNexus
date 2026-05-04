@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flame/events.dart';
@@ -9,6 +10,10 @@ import '../data/definitions/demo_enemy_data.dart';
 import '../data/definitions/demo_gem_data.dart';
 import '../data/definitions/demo_stage_data.dart';
 import '../data/definitions/demo_turret_data.dart';
+import '../data/save/game_save_data.dart';
+import '../data/save/local_save_repository.dart';
+import '../data/save/online_save_repository.dart';
+import '../data/save/save_repository.dart';
 import '../domain/combat/game_phase.dart';
 import '../domain/enemy/enemy_scaling.dart';
 import '../domain/enemy/enemy_type.dart';
@@ -29,6 +34,7 @@ import 'components/turret_component.dart';
 import 'game_snapshot.dart';
 import 'systems/gem_reward_generator.dart';
 import 'systems/run_progression.dart';
+import 'systems/save_scheduler.dart';
 import 'systems/wave_spawner.dart';
 
 class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
@@ -36,56 +42,66 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _minBoardZoom = 1;
   static const double _maxBoardZoom = 2.1;
 
-  RuneNexusGame({MapDefinition map = demoMap, List<WaveDefinition>? waves})
-    : _map = map,
-      _waves = waves ?? demoWaves,
-      snapshotNotifier = ValueNotifier(
-        GameSnapshot(
-          gold: RunProgression.baseInitialGold,
-          nexusHp: RunProgression.baseNexusHp,
-          maxNexusHp: RunProgression.baseNexusHp,
-          round: 1,
-          maxRound: (waves ?? demoWaves).length,
-          phase: GamePhase.preparation,
-          selectedTurretType: TurretType.arrow,
-          previewText: (waves ?? demoWaves).first.previewText,
-          rewardOptions: const [],
-          gemInventory: const {},
-          selectedBuildPoint: null,
-          selectedBuildTurretType: null,
-          selectedTurretPoint: null,
-          selectedTurretName: null,
-          selectedTurretGems: const [],
-          selectedTurretGemSlotIndex: null,
-          selectedTurretSlotLimit: 0,
-          selectedTurretHasLinkUpgrade: false,
-          selectedTurretCanUpgradeLink: false,
-          selectedTurretLinkUpgradeCost: 0,
-          selectedTurretNextSlotLimit: 0,
-          selectedTurretLinkUpgradeRequiredLevel: 0,
-          selectedTurretLevel: 0,
-          selectedTurretMaxLevel: 0,
-          selectedTurretCanLevelUp: false,
-          selectedTurretLevelUpCost: 0,
-          selectedTurretDamage: 0,
-          selectedTurretRange: 0,
-          selectedTurretAttackRate: 0,
-          nextWaveEnemyTypes: const [],
-          speedMultiplier: 1,
-          runes: 0,
-          lastRunRuneReward: 0,
-          completedRounds: 0,
-          startingGoldUpgradeLevel: 0,
-          startingGoldUpgradeCost: RunProgression.startingGoldUpgradeBaseCost,
-          canUpgradeStartingGold: false,
-          nexusHpUpgradeLevel: 0,
-          nexusHpUpgradeCost: RunProgression.nexusHpUpgradeBaseCost,
-          canUpgradeNexusHp: false,
-        ),
-      );
+  RuneNexusGame({
+    MapDefinition map = demoMap,
+    List<WaveDefinition>? waves,
+    SaveRepository? saveRepository,
+    OnlineSaveRepository? onlineSaveRepository,
+  }) : _map = map,
+       _waves = waves ?? demoWaves,
+       _saveRepository = saveRepository ?? createDefaultSaveRepository(),
+       _onlineSaveRepository =
+           onlineSaveRepository ?? const NoopOnlineSaveRepository(),
+       snapshotNotifier = ValueNotifier(
+         GameSnapshot(
+           gold: RunProgression.baseInitialGold,
+           nexusHp: RunProgression.baseNexusHp,
+           maxNexusHp: RunProgression.baseNexusHp,
+           round: 1,
+           maxRound: (waves ?? demoWaves).length,
+           phase: GamePhase.preparation,
+           restoredPhase: null,
+           selectedTurretType: TurretType.arrow,
+           previewText: (waves ?? demoWaves).first.previewText,
+           rewardOptions: const [],
+           gemInventory: const {},
+           selectedBuildPoint: null,
+           selectedBuildTurretType: null,
+           selectedTurretPoint: null,
+           selectedTurretName: null,
+           selectedTurretGems: const [],
+           selectedTurretGemSlotIndex: null,
+           selectedTurretSlotLimit: 0,
+           selectedTurretHasLinkUpgrade: false,
+           selectedTurretCanUpgradeLink: false,
+           selectedTurretLinkUpgradeCost: 0,
+           selectedTurretNextSlotLimit: 0,
+           selectedTurretLinkUpgradeRequiredLevel: 0,
+           selectedTurretLevel: 0,
+           selectedTurretMaxLevel: 0,
+           selectedTurretCanLevelUp: false,
+           selectedTurretLevelUpCost: 0,
+           selectedTurretDamage: 0,
+           selectedTurretRange: 0,
+           selectedTurretAttackRate: 0,
+           nextWaveEnemyTypes: const [],
+           speedMultiplier: 1,
+           runes: 0,
+           lastRunRuneReward: 0,
+           completedRounds: 0,
+           startingGoldUpgradeLevel: 0,
+           startingGoldUpgradeCost: RunProgression.startingGoldUpgradeBaseCost,
+           canUpgradeStartingGold: false,
+           nexusHpUpgradeLevel: 0,
+           nexusHpUpgradeCost: RunProgression.nexusHpUpgradeBaseCost,
+           canUpgradeNexusHp: false,
+         ),
+       );
 
   final MapDefinition _map;
   final List<WaveDefinition> _waves;
+  final SaveRepository _saveRepository;
+  final OnlineSaveRepository _onlineSaveRepository;
   final ValueNotifier<GameSnapshot> snapshotNotifier;
 
   final List<EnemyComponent> enemies = [];
@@ -95,6 +111,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   final WaveSpawner _waveSpawner = WaveSpawner();
   final GemRewardGenerator _gemRewardGenerator = GemRewardGenerator();
   final RunProgression _progression = RunProgression();
+  late final SaveScheduler _saveScheduler = SaveScheduler(
+    saveNow: _writeLocalSave,
+  );
 
   late GridComponent _gridComponent;
   late Vector2 _origin;
@@ -106,6 +125,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   int _completedRounds = 0;
   int _roundIndex = 0;
   GamePhase _phase = GamePhase.preparation;
+  GamePhase? _restoredPhase;
   TurretType _selectedTurretType = TurretType.arrow;
   TurretType? _selectedBuildTurretType;
   GridPoint? _selectedBuildPoint;
@@ -138,7 +158,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       tileSize: _tileSize,
     );
     add(_gridComponent);
+    final savedData = await _saveRepository.load();
+    if (savedData != null) {
+      _restoreFromSaveData(savedData);
+    }
     _publish();
+  }
+
+  @override
+  void onRemove() {
+    _saveScheduler.dispose();
+    super.onRemove();
   }
 
   @override
@@ -152,6 +182,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void update(double dt) {
+    if (_phase == GamePhase.restored) {
+      super.update(0);
+      return;
+    }
     super.update(dt * _speedMultiplier);
     if (_phase != GamePhase.wave) {
       return;
@@ -159,6 +193,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _updateWaveSpawns(dt * _speedMultiplier);
     _checkWaveClear();
+    _requestLocalSave();
   }
 
   @override
@@ -183,6 +218,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   void onTapDown(TapDownEvent event) {
     if (_suppressNextTap) {
       _suppressNextTap = false;
+      return;
+    }
+    if (_phase == GamePhase.restored) {
       return;
     }
 
@@ -265,6 +303,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedTurretGemSlotIndex = null;
     _waveSpawner.start(_waves[_roundIndex]);
     _publish();
+    _requestLocalSave(immediate: true);
   }
 
   void restartDemo() {
@@ -288,7 +327,29 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedBuildPoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
+    _restoredPhase = null;
     _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void continueRestoredRun() {
+    if (_phase != GamePhase.restored) {
+      return;
+    }
+
+    _phase = _restoredPhase ?? GamePhase.preparation;
+    _restoredPhase = null;
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void discardRestoredRun() {
+    if (_phase != GamePhase.restored) {
+      return;
+    }
+
+    _restoredPhase = null;
+    restartDemo();
   }
 
   void upgradeStartingGoldProgression() {
@@ -300,6 +361,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _gold += 10;
     }
     _publish();
+    _requestLocalSave(immediate: true);
   }
 
   void upgradeNexusHpProgression() {
@@ -311,6 +373,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _nexusHp++;
     }
     _publish();
+    _requestLocalSave(immediate: true);
   }
 
   void debugSetRound(int round) {
@@ -323,6 +386,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
     _publish();
+    _requestLocalSave(immediate: true);
   }
 
   void debugAddGold(int amount) {
@@ -332,6 +396,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _gold += amount;
     _publish();
+    _requestLocalSave(immediate: true);
   }
 
   void tryBuildTurret(GridPoint point) {
@@ -362,6 +427,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedTurretGemSlotIndex = null;
     add(turret);
     _publish();
+    _requestLocalSave(immediate: true);
   }
 
   void selectRewardGem(GemType type) {
@@ -373,11 +439,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _rewardOptions.clear();
     _phase = GamePhase.preparation;
     _publish();
+    _requestLocalSave(immediate: true);
   }
 
   void grantGem(GemType type) {
     _gemInventory[type] = (_gemInventory[type] ?? 0) + 1;
     _publish();
+    _requestLocalSave(immediate: true);
   }
 
   void selectSelectedTurretGemSlot(int slotIndex) {
@@ -428,6 +496,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
     _selectedTurretGemSlotIndex = slotIndex;
     _publish();
+    _requestLocalSave(immediate: true);
   }
 
   void removeSelectedTurretGemSlot() {
@@ -459,6 +528,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         .clamp(0, math.max(0, turret.slotLimit - 1))
         .toInt();
     _publish();
+    _requestLocalSave(immediate: true);
   }
 
   void levelUpSelectedTurret() {
@@ -481,6 +551,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _gold -= turret.levelUpCost;
     turret.upgradeLevel();
     _publish();
+    _requestLocalSave(immediate: true);
   }
 
   void upgradeSelectedTurretLink() {
@@ -504,6 +575,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     turret.upgradeLink();
     _selectedTurretGemSlotIndex = null;
     _publish();
+    _requestLocalSave(immediate: true);
   }
 
   int _defaultGemSlotIndex(TurretComponent turret) {
@@ -761,6 +833,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       }
       enemies.clear();
       _finishRun(GamePhase.failure);
+      unawaited(_saveRoundCheckpoint());
     }
     _publish();
   }
@@ -945,14 +1018,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_roundIndex >= _waves.length) {
       _rewardOptions.clear();
       _finishRun(GamePhase.success);
+      unawaited(_saveRoundCheckpoint());
     } else if (_gemRewardGenerator.shouldOfferReward(completedRound)) {
       _phase = GamePhase.reward;
       _rewardOptions
         ..clear()
         ..addAll(_gemRewardGenerator.generateOptions());
+      unawaited(_saveRoundCheckpoint());
     } else {
       _phase = GamePhase.preparation;
       _rewardOptions.clear();
+      unawaited(_saveRoundCheckpoint());
     }
     _publish();
   }
@@ -966,6 +1042,140 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _completedRounds = success ? _waves.length : _roundIndex;
     _progression.finishRun(completedRounds: _completedRounds, success: success);
     _phase = resultPhase;
+  }
+
+  void _requestLocalSave({bool immediate = false}) {
+    _saveScheduler.requestSave(immediate: immediate);
+  }
+
+  Future<void> saveNow() async {
+    await _saveScheduler.flush();
+  }
+
+  Future<void> _saveRoundCheckpoint() async {
+    final data = _buildSaveData();
+    await _writeLocalSaveData(data);
+    try {
+      await _onlineSaveRepository.saveRoundCheckpoint(data);
+    } on Object {
+      // 온라인 저장은 아직 선택 기능이므로 게임 진행을 막지 않는다.
+    }
+  }
+
+  Future<void> _writeLocalSave() {
+    return _writeLocalSaveData(_buildSaveData());
+  }
+
+  Future<void> _writeLocalSaveData(GameSaveData data) async {
+    try {
+      await _saveRepository.save(data);
+    } on Object {
+      // 로컬 저장 실패는 다음 저장 기회에 재시도한다.
+    }
+  }
+
+  GameSaveData _buildSaveData() {
+    final savedPhase = _phase == GamePhase.restored
+        ? _restoredPhase ?? GamePhase.preparation
+        : _phase;
+    return GameSaveData(
+      version: GameSaveData.currentVersion,
+      savedAtMillis: DateTime.now().millisecondsSinceEpoch,
+      gold: _gold,
+      nexusHp: _nexusHp,
+      roundIndex: _roundIndex,
+      completedRounds: _completedRounds,
+      phase: savedPhase,
+      progression: _progression.toSaveData(),
+      gemInventory: Map.unmodifiable(_gemInventory),
+      rewardOptions: List.unmodifiable(_rewardOptions),
+      turrets: [for (final turret in _turrets.values) turret.toSaveData()],
+      enemies: [
+        for (final enemy in enemies)
+          if (!enemy.isDead) enemy.toSaveData(),
+      ],
+      spawnQueue: _waveSpawner.toSaveData(),
+    );
+  }
+
+  void _restoreFromSaveData(GameSaveData data) {
+    _progression.restoreFromSaveData(data.progression);
+    _clearActiveCombat();
+    for (final turret in _turrets.values.toList()) {
+      turret.removeFromParent();
+    }
+    _turrets.clear();
+    _gemInventory
+      ..clear()
+      ..addEntries(data.gemInventory.entries.where((entry) => entry.value > 0));
+    _rewardOptions
+      ..clear()
+      ..addAll(data.rewardOptions);
+
+    if (!data.hasActiveRun) {
+      _gold = _initialGold;
+      _nexusHp = _maxNexusHp;
+      _roundIndex = 0;
+      _completedRounds = 0;
+      _phase = GamePhase.preparation;
+      _restoredPhase = null;
+      return;
+    }
+
+    _gold = math.max(0, data.gold);
+    _nexusHp = data.nexusHp.clamp(0, _maxNexusHp).toInt();
+    _roundIndex = data.roundIndex.clamp(0, _waves.length - 1).toInt();
+    _completedRounds = data.completedRounds.clamp(0, _waves.length).toInt();
+    _selectedTurretType = TurretType.arrow;
+    _selectedBuildTurretType = null;
+    _selectedBuildPoint = null;
+    _selectedTurretPoint = null;
+    _selectedTurretGemSlotIndex = null;
+
+    for (final savedTurret in data.turrets) {
+      final definition = demoTurrets[savedTurret.type];
+      if (definition == null || !_map.contains(savedTurret.point)) {
+        continue;
+      }
+      final turret = TurretComponent(
+        gridPoint: savedTurret.point,
+        definition: definition,
+        game: this,
+        center: _centerOf(savedTurret.point),
+        tileSize: _tileSize,
+      )..restoreFromSaveData(savedTurret);
+      _turrets[savedTurret.point] = turret;
+      add(turret);
+    }
+
+    for (final savedEnemy in data.enemies) {
+      final definition = demoEnemies[savedEnemy.type];
+      if (definition == null || savedEnemy.hp <= 0) {
+        continue;
+      }
+      final enemy = EnemyComponent(
+        definition: definition,
+        maxHp: savedEnemy.maxHp > 0
+            ? savedEnemy.maxHp
+            : scaledEnemyMaxHp(definition, _waves[_roundIndex].round),
+        path: _worldPath,
+        game: this,
+      )..restoreFromSaveData(savedEnemy);
+      enemies.add(enemy);
+      add(enemy);
+    }
+    _waveSpawner.restoreFromSaveData(data.spawnQueue);
+
+    if (data.phase == GamePhase.success || data.phase == GamePhase.failure) {
+      _phase = data.phase;
+      _restoredPhase = null;
+      return;
+    }
+
+    _phase = GamePhase.restored;
+    _restoredPhase = data.phase == GamePhase.restored
+        ? GamePhase.preparation
+        : data.phase;
   }
 
   void _applyGemStatuses(
@@ -1019,6 +1229,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       round: math.min(_roundIndex + 1, _waves.length),
       maxRound: _waves.length,
       phase: _phase,
+      restoredPhase: _phase == GamePhase.restored ? _restoredPhase : null,
       selectedTurretType: _selectedTurretType,
       previewText: nextWave.previewText,
       rewardOptions: List.unmodifiable(_rewardOptions),

@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 
+import '../../data/save/game_save_data.dart';
 import '../../domain/gem/gem_type.dart';
 import '../../domain/map/grid_point.dart';
 import '../../domain/turret/attack_tag.dart';
@@ -45,6 +46,7 @@ class TurretComponent extends PositionComponent {
 
   int get level => _level;
   int get maxLevel => 10;
+  double get cooldown => _cooldown;
   int get levelUpCost =>
       (definition.cost * (70 + (_level - 1) * 45) + 50) ~/ 100;
   bool get canLevelUp => _level < maxLevel;
@@ -139,6 +141,27 @@ class TurretComponent extends PositionComponent {
   }
 
   bool hasGem(GemType type) => equippedGems.contains(type);
+
+  SavedTurret toSaveData() {
+    return SavedTurret(
+      x: gridPoint.x,
+      y: gridPoint.y,
+      type: definition.type,
+      level: _level,
+      slotLimit: _slotLimit,
+      cooldown: _cooldown,
+      equippedGems: List.unmodifiable(equippedGems),
+    );
+  }
+
+  void restoreFromSaveData(SavedTurret data) {
+    _level = data.level.clamp(1, maxLevel).toInt();
+    _slotLimit = data.slotLimit.clamp(1, maxSlotLimit).toInt();
+    _cooldown = math.max(0, data.cooldown);
+    equippedGems
+      ..clear()
+      ..addAll(data.equippedGems.take(_slotLimit));
+  }
 
   void updateLayout({required Vector2 center, required double tileSize}) {
     position = center;

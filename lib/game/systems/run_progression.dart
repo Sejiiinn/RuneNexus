@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import '../../data/save/game_save_data.dart';
+
 class RunProgression {
   static const int baseInitialGold = 150;
   static const int baseNexusHp = 20;
@@ -23,6 +25,26 @@ class RunProgression {
       runes >= startingGoldUpgradeCost;
   bool get canUpgradeNexusHp =>
       nexusHpUpgradeLevel < maxProgressionLevel && runes >= nexusHpUpgradeCost;
+
+  SavedProgression toSaveData() {
+    return SavedProgression(
+      runes: runes,
+      lastRunRuneReward: lastRunRuneReward,
+      startingGoldUpgradeLevel: startingGoldUpgradeLevel,
+      nexusHpUpgradeLevel: nexusHpUpgradeLevel,
+    );
+  }
+
+  void restoreFromSaveData(SavedProgression data) {
+    runes = math.max(0, data.runes);
+    lastRunRuneReward = math.max(0, data.lastRunRuneReward);
+    startingGoldUpgradeLevel = data.startingGoldUpgradeLevel
+        .clamp(0, maxProgressionLevel)
+        .toInt();
+    nexusHpUpgradeLevel = data.nexusHpUpgradeLevel
+        .clamp(0, maxProgressionLevel)
+        .toInt();
+  }
 
   bool upgradeStartingGold() {
     if (!canUpgradeStartingGold) {

@@ -1,3 +1,4 @@
+import '../../data/save/game_save_data.dart';
 import '../../domain/enemy/enemy_type.dart';
 import '../../domain/wave/wave_definition.dart';
 
@@ -14,6 +15,24 @@ class WaveSpawner {
 
   void clear() {
     _queue.clear();
+  }
+
+  List<SavedSpawnRequest> toSaveData() {
+    return [
+      for (final request in _queue)
+        SavedSpawnRequest(enemyType: request.enemyType, delay: request.delay),
+    ];
+  }
+
+  void restoreFromSaveData(List<SavedSpawnRequest> requests) {
+    _queue
+      ..clear()
+      ..addAll(
+        requests.map(
+          (request) =>
+              SpawnRequest(enemyType: request.enemyType, delay: request.delay),
+        ),
+      );
   }
 
   List<EnemyType> update(double dt) {

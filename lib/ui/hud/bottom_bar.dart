@@ -22,6 +22,7 @@ class _BottomBar extends StatelessWidget {
       GamePhase.reward => '젬 보상 선택 대기',
       GamePhase.success => '방어 성공',
       GamePhase.failure => '방어 실패',
+      GamePhase.restored => '저장된 진행 대기',
     };
 
     return Align(
