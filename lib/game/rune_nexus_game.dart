@@ -144,6 +144,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   bool get isWaveRunning => _phase == GamePhase.wave;
   int get _initialGold => _progression.initialGold;
   int get _maxNexusHp => _progression.maxNexusHp;
+  bool get _canEditBoard =>
+      _phase == GamePhase.preparation || _phase == GamePhase.wave;
 
   @override
   Color backgroundColor() => const Color(0xFF07111D);
@@ -238,7 +240,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _publish();
       return;
     }
-    if (_phase == GamePhase.preparation && _map.canBuildAt(point)) {
+    if (_canEditBoard && _map.canBuildAt(point)) {
       _selectedBuildPoint = point;
       _selectedBuildTurretType = null;
       _selectedTurretPoint = null;
@@ -400,7 +402,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void tryBuildTurret(GridPoint point) {
-    if (_phase != GamePhase.preparation) {
+    if (!_canEditBoard) {
       return;
     }
     if (!_map.canBuildAt(point) || _turrets.containsKey(point)) {
@@ -532,7 +534,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void levelUpSelectedTurret() {
-    if (_phase != GamePhase.preparation) {
+    if (!_canEditBoard) {
       return;
     }
 

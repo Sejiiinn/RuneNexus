@@ -721,4 +721,24 @@ void main() {
     restored.continueRestoredRun();
     expect(restored.snapshotNotifier.value.phase, GamePhase.wave);
   });
+
+  test('turrets can be built and leveled while a round is running', () async {
+    final repository = MemorySaveRepository();
+    final game = RuneNexusGame(saveRepository: repository);
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+
+    game.tryBuildTurret(const GridPoint(2, 0));
+    game.levelUpSelectedTurret();
+    await game.saveNow();
+
+    final saved = repository.data;
+    expect(game.snapshotNotifier.value.phase, GamePhase.wave);
+    expect(saved, isNotNull);
+    expect(saved!.phase, GamePhase.wave);
+    expect(saved.turrets, hasLength(1));
+    expect(saved.turrets.single.level, 2);
+  });
 }

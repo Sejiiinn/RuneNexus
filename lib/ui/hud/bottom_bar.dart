@@ -16,6 +16,9 @@ class _BottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canPrepare = snapshot.phase == GamePhase.preparation;
+    final canEditBoard =
+        snapshot.phase == GamePhase.preparation ||
+        snapshot.phase == GamePhase.wave;
     final statusText = switch (snapshot.phase) {
       GamePhase.preparation => '다음 라운드',
       GamePhase.wave => '전투 진행 중',
@@ -63,10 +66,10 @@ class _BottomBar extends StatelessWidget {
                 ),
               ],
             ),
-            if (snapshot.selectedTurretPoint != null && canPrepare) ...[
+            if (snapshot.selectedTurretPoint != null && canEditBoard) ...[
               const SizedBox(height: 8),
               _GemEquipPanel(game: game, snapshot: snapshot),
-            ] else if (snapshot.selectedBuildPoint != null && canPrepare) ...[
+            ] else if (snapshot.selectedBuildPoint != null && canEditBoard) ...[
               const SizedBox(height: 8),
               _BuildSelectionPanel(game: game, snapshot: snapshot),
             ],
@@ -84,7 +87,7 @@ class _BottomBar extends StatelessWidget {
                       color: definition.color,
                       selected: snapshot.selectedBuildTurretType == type,
                       enabled:
-                          canPrepare && snapshot.selectedBuildPoint != null,
+                          canEditBoard && snapshot.selectedBuildPoint != null,
                       onPressed: () => game.previewOrBuildSelectedTile(type),
                     ),
                   ),

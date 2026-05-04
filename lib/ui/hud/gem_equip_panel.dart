@@ -16,6 +16,10 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
   @override
   Widget build(BuildContext context) {
     final snapshot = widget.snapshot;
+    final canManageGems = snapshot.phase == GamePhase.preparation;
+    final canLevelUp =
+        snapshot.phase == GamePhase.preparation ||
+        snapshot.phase == GamePhase.wave;
     final slotText =
         '${snapshot.selectedTurretGems.length}/${snapshot.selectedTurretSlotLimit}';
     final definition = demoTurrets[snapshot.selectedTurretType]!;
@@ -76,6 +80,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                 child: OutlinedButton(
                   onPressed:
                       snapshot.selectedTurretCanLevelUp &&
+                          canLevelUp &&
                           snapshot.gold >= snapshot.selectedTurretLevelUpCost
                       ? widget.game.levelUpSelectedTurret
                       : null,
@@ -102,6 +107,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                   child: OutlinedButton(
                     onPressed:
                         snapshot.selectedTurretCanUpgradeLink &&
+                            canManageGems &&
                             snapshot.gold >=
                                 snapshot.selectedTurretLinkUpgradeCost
                         ? widget.game.upgradeSelectedTurretLink
@@ -158,8 +164,11 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                       return Padding(
                         padding: const EdgeInsets.only(right: 6),
                         child: OutlinedButton(
-                          onPressed: () =>
-                              widget.game.selectSelectedTurretGemSlot(index),
+                          onPressed: canManageGems
+                              ? () => widget.game.selectSelectedTurretGemSlot(
+                                  index,
+                                )
+                              : null,
                           style: OutlinedButton.styleFrom(
                             foregroundColor: Colors.white,
                             side: BorderSide(
@@ -197,7 +206,9 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
             _SelectedSlotGemActions(
               type: selectedSlotGem,
               turret: definition,
-              onRemove: widget.game.removeSelectedTurretGemSlot,
+              onRemove: canManageGems
+                  ? widget.game.removeSelectedTurretGemSlot
+                  : null,
             ),
           ],
           const SizedBox(height: 6),
@@ -231,7 +242,11 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                       selected: selected,
                       equipped: equipped,
                       blocked: blockReason != null,
+                      enabled: canManageGems,
                       onTap: () {
+                        if (!canManageGems) {
+                          return;
+                        }
                         if (selected && canInstall) {
                           widget.game.equipSelectedTurret(type);
                           setState(() {
@@ -257,6 +272,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                         ? '이미 이 포탑에 장착됨'
                         : selectedInventoryBlockReason,
                     canInstall: selectedInventoryCanInstall,
+                    enabled: canManageGems,
                     onInstall: () {
                       widget.game.equipSelectedTurret(selectedInventoryGem);
                       setState(() {
@@ -280,6 +296,7 @@ class _InventoryGemChip extends StatelessWidget {
     required this.selected,
     required this.equipped,
     required this.blocked,
+    required this.enabled,
     required this.onTap,
   });
 
@@ -288,6 +305,7 @@ class _InventoryGemChip extends StatelessWidget {
   final bool selected;
   final bool equipped;
   final bool blocked;
+  final bool enabled;
   final VoidCallback onTap;
 
   @override
@@ -299,7 +317,7 @@ class _InventoryGemChip extends StatelessWidget {
         width: 106,
         height: 34,
         child: OutlinedButton(
-          onPressed: onTap,
+          onPressed: enabled ? onTap : null,
           style: OutlinedButton.styleFrom(
             foregroundColor: Colors.white,
             side: BorderSide(
@@ -344,6 +362,7 @@ class _SelectedInventoryGemActions extends StatelessWidget {
     required this.gem,
     required this.blockReason,
     required this.canInstall,
+    required this.enabled,
     required this.onInstall,
   });
 
@@ -352,6 +371,7 @@ class _SelectedInventoryGemActions extends StatelessWidget {
   final GemDefinition gem;
   final String? blockReason;
   final bool canInstall;
+  final bool enabled;
   final VoidCallback onInstall;
 
   @override
@@ -400,7 +420,7 @@ class _SelectedInventoryGemActions extends StatelessWidget {
           SizedBox(
             height: 28,
             child: OutlinedButton(
-              onPressed: canInstall ? onInstall : null,
+              onPressed: enabled && canInstall ? onInstall : null,
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.white,
                 disabledForegroundColor: const Color(0xFF6D7F8F),
@@ -430,7 +450,7 @@ class _SelectedSlotGemActions extends StatelessWidget {
 
   final GemType type;
   final TurretDefinition turret;
-  final VoidCallback onRemove;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
