@@ -1168,16 +1168,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
     _waveSpawner.restoreFromSaveData(data.spawnQueue);
 
-    if (data.phase == GamePhase.success || data.phase == GamePhase.failure) {
-      _phase = data.phase;
+    final restoredPhase = data.phase == GamePhase.restored
+        ? GamePhase.preparation
+        : data.phase;
+    if (restoredPhase != GamePhase.wave) {
+      _phase = restoredPhase;
       _restoredPhase = null;
       return;
     }
 
     _phase = GamePhase.restored;
-    _restoredPhase = data.phase == GamePhase.restored
-        ? GamePhase.preparation
-        : data.phase;
+    _restoredPhase = restoredPhase;
   }
 
   void _applyGemStatuses(

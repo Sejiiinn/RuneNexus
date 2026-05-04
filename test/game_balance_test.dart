@@ -638,7 +638,7 @@ void main() {
     expect(enemy.position.y, closeTo(0, 0.001));
   });
 
-  test('local save restores turret setup behind resume prompt', () async {
+  test('local save restores preparation setup without resume prompt', () async {
     final repository = MemorySaveRepository();
     final game = RuneNexusGame(saveRepository: repository);
 
@@ -663,14 +663,9 @@ void main() {
     restored.onGameResize(Vector2(400, 800));
     await restored.onLoad();
 
-    expect(restored.snapshotNotifier.value.phase, GamePhase.restored);
-    expect(
-      restored.snapshotNotifier.value.restoredPhase,
-      GamePhase.preparation,
-    );
+    expect(restored.snapshotNotifier.value.phase, GamePhase.preparation);
+    expect(restored.snapshotNotifier.value.restoredPhase, isNull);
     expect(restored.snapshotNotifier.value.round, 1);
-
-    restored.continueRestoredRun();
     await restored.saveNow();
 
     final resumed = restoredRepository.data;
