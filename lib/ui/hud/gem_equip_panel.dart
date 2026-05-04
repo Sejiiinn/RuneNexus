@@ -33,7 +33,8 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
         ? snapshot.selectedTurretGems[selectedSlotIndex]
         : null;
     final selectedInventoryGem =
-        _selectedInventoryGem != null &&
+        selectedSlotIndex != null &&
+            _selectedInventoryGem != null &&
             inventory.contains(_selectedInventoryGem)
         ? _selectedInventoryGem
         : null;
@@ -50,6 +51,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
         selectedInventoryGem != null &&
         !selectedInventoryEquipped &&
         selectedInventoryBlockReason == null;
+    final showGemInventory = selectedSlotIndex != null && canManageGems;
 
     return Container(
       width: double.infinity,
@@ -201,7 +203,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
               ),
             ],
           ),
-          if (selectedSlotGem != null) ...[
+          if (showGemInventory && selectedSlotGem != null) ...[
             const SizedBox(height: 6),
             _SelectedSlotGemActions(
               type: selectedSlotGem,
@@ -211,78 +213,88 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                   : null,
             ),
           ],
-          const SizedBox(height: 6),
-          if (inventory.isEmpty)
-            const Text(
-              '보유 젬 없음',
-              style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
-            )
-          else
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  '보유 젬',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
-                ),
-                const SizedBox(height: 5),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: inventory.map((type) {
-                    final gem = demoGems[type]!;
-                    final count = snapshot.gemInventory[type]!;
-                    final equipped = snapshot.selectedTurretGems.contains(type);
-                    final selected = selectedInventoryGem == type;
-                    final blockReason = gemEquipBlockReason(type, definition);
-                    final canInstall = !equipped && blockReason == null;
-                    return _InventoryGemChip(
-                      gem: gem,
-                      count: count,
-                      selected: selected,
-                      equipped: equipped,
-                      blocked: blockReason != null,
-                      enabled: canManageGems,
-                      onTap: () {
-                        if (!canManageGems) {
-                          return;
-                        }
-                        if (selected && canInstall) {
-                          widget.game.equipSelectedTurret(type);
+          if (showGemInventory) ...[
+            const SizedBox(height: 6),
+            if (inventory.isEmpty)
+              const Text(
+                '보유 젬 없음',
+                style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
+              )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '보유 젬',
+                    style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
+                  ),
+                  const SizedBox(height: 5),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: inventory.map((type) {
+                      final gem = demoGems[type]!;
+                      final count = snapshot.gemInventory[type]!;
+                      final equipped = snapshot.selectedTurretGems.contains(
+                        type,
+                      );
+                      final selected = selectedInventoryGem == type;
+                      final blockReason = gemEquipBlockReason(type, definition);
+                      final canInstall = !equipped && blockReason == null;
+                      return _InventoryGemChip(
+                        gem: gem,
+                        count: count,
+                        selected: selected,
+                        equipped: equipped,
+                        blocked: blockReason != null,
+                        enabled: canManageGems,
+                        onTap: () {
+                          if (!canManageGems) {
+                            return;
+                          }
+                          if (selected && canInstall) {
+                            widget.game.equipSelectedTurret(type);
+                            setState(() {
+                              _selectedInventoryGem = null;
+                            });
+                            return;
+                          }
                           setState(() {
-                            _selectedInventoryGem = null;
+                            _selectedInventoryGem = type;
                           });
-                          return;
-                        }
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  if (selectedInventoryGem != null &&
+                      selectedInventoryGemDefinition != null) ...[
+                    const SizedBox(height: 6),
+                    _SelectedInventoryGemActions(
+                      type: selectedInventoryGem,
+                      turret: definition,
+                      gem: selectedInventoryGemDefinition,
+                      blockReason: selectedInventoryEquipped
+                          ? '이미 이 포탑에 장착됨'
+                          : selectedInventoryBlockReason,
+                      canInstall: selectedInventoryCanInstall,
+                      enabled: canManageGems,
+                      onInstall: () {
+                        widget.game.equipSelectedTurret(selectedInventoryGem);
                         setState(() {
-                          _selectedInventoryGem = type;
+                          _selectedInventoryGem = null;
                         });
                       },
-                    );
-                  }).toList(),
-                ),
-                if (selectedInventoryGem != null &&
-                    selectedInventoryGemDefinition != null) ...[
-                  const SizedBox(height: 6),
-                  _SelectedInventoryGemActions(
-                    type: selectedInventoryGem,
-                    turret: definition,
-                    gem: selectedInventoryGemDefinition,
-                    blockReason: selectedInventoryEquipped
-                        ? '이미 이 포탑에 장착됨'
-                        : selectedInventoryBlockReason,
-                    canInstall: selectedInventoryCanInstall,
-                    enabled: canManageGems,
-                    onInstall: () {
-                      widget.game.equipSelectedTurret(selectedInventoryGem);
-                      setState(() {
-                        _selectedInventoryGem = null;
-                      });
-                    },
-                  ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
+          ] else if (canManageGems) ...[
+            const SizedBox(height: 6),
+            const Text(
+              '링크를 선택하면 젬을 관리할 수 있습니다',
+              style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
             ),
+          ],
         ],
       ),
     );
