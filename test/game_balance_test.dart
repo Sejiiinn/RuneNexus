@@ -194,14 +194,14 @@ void main() {
       tileSize: 32,
     );
 
-    expect(machineGun.linkUpgradeCost, 42);
-    expect(cannon.linkUpgradeCost, 63);
+    expect(machineGun.linkUpgradeCost, 90);
+    expect(cannon.linkUpgradeCost, 135);
     expect(machineGun.upgradeLink(), isTrue);
     expect(cannon.upgradeLink(), isTrue);
     expect(machineGun.slotLimit, 2);
     expect(cannon.slotLimit, 2);
-    expect(machineGun.linkUpgradeCost, 96);
-    expect(cannon.linkUpgradeCost, 144);
+    expect(machineGun.linkUpgradeCost, 180);
+    expect(cannon.linkUpgradeCost, 270);
     expect(machineGun.canUpgradeLink, isFalse);
     expect(machineGun.linkUpgradeRequiredLevel, 5);
 
@@ -648,6 +648,7 @@ void main() {
     game.grantGem(GemType.range);
     game.equipSelectedTurret(GemType.range);
     game.levelUpSelectedTurret();
+    game.debugAddGold(100);
     game.upgradeSelectedTurretLink();
     await game.saveNow();
 

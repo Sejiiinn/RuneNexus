@@ -59,7 +59,7 @@ class TurretComponent extends PositionComponent {
     if (!hasNextLinkUpgrade) {
       return 0;
     }
-    final costPercent = nextSlotLimit == 2 ? 70 : 160;
+    final costPercent = nextSlotLimit == 2 ? 150 : 300;
     return (definition.cost * costPercent + 50) ~/ 100;
   }
 
