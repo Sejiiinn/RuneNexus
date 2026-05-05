@@ -142,6 +142,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       speedMultiplier: 1,
       runes: 0,
       lastRunRuneReward: 0,
+      projectedFailureRuneReward: 0,
       completedRounds: 0,
       startingGoldUpgradeLevel: 0,
       startingGoldUpgradeCost: RunProgression.startingGoldUpgradeBaseCost,
@@ -1638,6 +1639,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       speedMultiplier: _speedMultiplier,
       runes: _progression.runes,
       lastRunRuneReward: _progression.lastRunRuneReward,
+      projectedFailureRuneReward: hasStageProgress
+          ? _progression.runeRewardFor(_roundIndex, success: false)
+          : 0,
       completedRounds: _completedRounds,
       startingGoldUpgradeLevel: _progression.startingGoldUpgradeLevel,
       startingGoldUpgradeCost: _progression.startingGoldUpgradeCost,

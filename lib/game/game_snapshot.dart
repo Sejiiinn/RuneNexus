@@ -55,6 +55,7 @@ class GameSnapshot {
     required this.speedMultiplier,
     required this.runes,
     required this.lastRunRuneReward,
+    required this.projectedFailureRuneReward,
     required this.completedRounds,
     required this.startingGoldUpgradeLevel,
     required this.startingGoldUpgradeCost,
@@ -113,6 +114,7 @@ class GameSnapshot {
   final double speedMultiplier;
   final int runes;
   final int lastRunRuneReward;
+  final int projectedFailureRuneReward;
   final int completedRounds;
   final int startingGoldUpgradeLevel;
   final int startingGoldUpgradeCost;

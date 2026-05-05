@@ -104,12 +104,10 @@ class RuneNexusLocalizations {
   }) {
     if (_isEnglish) {
       return 'End Stage $currentStageNumber, settle runes based on cleared '
-          'rounds, then start Stage $nextStageNumber. Saved placement and '
-          'enemy progress will be deleted.';
+          'rounds, then start Stage $nextStageNumber.';
     }
     return '스테이지 $currentStageNumber 진행 상황을 종료하고 현재 클리어 라운드 '
-        '기준으로 룬을 정산한 뒤 스테이지 $nextStageNumber를 시작합니다. '
-        '저장된 배치와 적 진행도는 삭제됩니다.';
+        '기준으로 룬을 정산한 뒤 스테이지 $nextStageNumber를 시작합니다.';
   }
 }
 

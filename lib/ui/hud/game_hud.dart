@@ -68,6 +68,54 @@ class _GameHudState extends State<GameHud> {
     super.dispose();
   }
 
+  Future<void> _handleOpenMainMenu(GameSnapshot snapshot) async {
+    if (widget.onOpenStageSelect == null) {
+      return;
+    }
+
+    final pauseCombat = snapshot.phase == GamePhase.wave;
+    if (pauseCombat) {
+      widget.game.pauseEngine();
+    }
+    try {
+      final action = await showDialog<_StageMenuAction>(
+        context: context,
+        builder: (context) => _StageMenuDialog(snapshot: snapshot),
+      );
+      if (!mounted || action == null) {
+        return;
+      }
+
+      if (action == _StageMenuAction.openMainMenu) {
+        await widget.game.saveNow();
+        if (!mounted) {
+          return;
+        }
+        widget.onOpenStageSelect?.call();
+        return;
+      }
+
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => _StageEndConfirmDialog(snapshot: snapshot),
+      );
+      if (!mounted || confirmed != true) {
+        return;
+      }
+
+      await widget.game.settleCurrentRunAsFailure();
+      await widget.game.saveNow();
+      if (!mounted) {
+        return;
+      }
+      widget.onOpenStageSelect?.call();
+    } finally {
+      if (pauseCombat) {
+        widget.game.resumeEngine();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -110,7 +158,7 @@ class _GameHudState extends State<GameHud> {
                     game: widget.game,
                     snapshot: snapshot,
                     showGemDebugPanel: _showGemDebugPanel,
-                    onOpenMainMenu: widget.onOpenStageSelect,
+                    onOpenMainMenu: () => _handleOpenMainMenu(snapshot),
                     onToggleGemDebugPanel: () {
                       setState(() {
                         _showGemDebugPanel = !_showGemDebugPanel;

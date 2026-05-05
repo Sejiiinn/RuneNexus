@@ -85,6 +85,31 @@ void main() {
     expect(find.text('스테이지'), findsWidgets);
     expect(find.text('현재 스테이지 재도전'), findsOneWidget);
   });
+
+  testWidgets('home button opens stage menu with end confirmation', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const RuneNexusApp());
+    await tester.pump();
+
+    await tester.tap(find.text('스테이지 1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('시작'));
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.home_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.text('스테이지 메뉴'), findsOneWidget);
+    expect(find.text('메인화면으로 이동'), findsOneWidget);
+    expect(find.text('종료 시 보상'), findsOneWidget);
+    expect(find.text('+1 룬'), findsOneWidget);
+
+    await tester.tap(find.text('스테이지 종료'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('정말 종료할까요?'), findsOneWidget);
+    expect(find.textContaining('+1 룬'), findsOneWidget);
+  });
 }
 
 GameSnapshot _resultSnapshot({
@@ -147,6 +172,7 @@ GameSnapshot _resultSnapshot({
     speedMultiplier: 1,
     runes: runes,
     lastRunRuneReward: lastRunRuneReward,
+    projectedFailureRuneReward: completedRounds * 2,
     completedRounds: completedRounds,
     startingGoldUpgradeLevel: 0,
     startingGoldUpgradeCost: 8,
