@@ -564,17 +564,18 @@ void main() {
   });
 
   test(
-    'mixed waves delay later enemy groups until earlier groups are mostly out',
+    'mixed waves delay later enemy groups until earlier groups are fully spawned',
     () {
+      double lastSpawnDelay(SpawnGroup group) =>
+          group.startDelay + group.interval * (group.count - 1);
+
       final wave4 = demoWaves[3];
       final normal = wave4.groups[0];
       final fast = wave4.groups[1];
 
       expect(
         fast.startDelay,
-        greaterThanOrEqualTo(
-          normal.startDelay + normal.interval * (normal.count - 1),
-        ),
+        greaterThanOrEqualTo(lastSpawnDelay(normal) + 0.75),
       );
 
       final wave11 = demoWaves[10];
@@ -584,19 +585,45 @@ void main() {
 
       expect(
         wave11Fast.startDelay,
-        greaterThanOrEqualTo(
-          wave11Normal.startDelay +
-              wave11Normal.interval * (wave11Normal.count - 1),
-        ),
+        greaterThanOrEqualTo(lastSpawnDelay(wave11Normal) + 0.75),
       );
       expect(
         wave11Tank.startDelay,
-        greaterThanOrEqualTo(
-          wave11Fast.startDelay + wave11Fast.interval * (wave11Fast.count - 1),
-        ),
+        greaterThanOrEqualTo(lastSpawnDelay(wave11Fast) + 0.75),
+      );
+
+      final wave30 = demoWaves[29];
+      final wave30Boss = wave30.groups[0];
+      final wave30Tank = wave30.groups[1];
+      final wave30Fast = wave30.groups[2];
+
+      expect(
+        wave30Tank.startDelay,
+        greaterThanOrEqualTo(lastSpawnDelay(wave30Boss) + 1.5),
+      );
+      expect(
+        wave30Fast.startDelay,
+        greaterThanOrEqualTo(lastSpawnDelay(wave30Tank) + 0.75),
       );
     },
   );
+
+  test('normal enemy groups use a slower spawn cadence', () {
+    expect(demoWaves[0].groups.single.interval, greaterThanOrEqualTo(1.6));
+    expect(demoWaves[3].groups[0].interval, greaterThanOrEqualTo(1.35));
+    expect(demoWaves[10].groups[0].interval, greaterThanOrEqualTo(1.1));
+    expect(demoWaves[25].groups[0].interval, greaterThanOrEqualTo(1.0));
+    expect(demoWaves[4].groups[1].interval, greaterThanOrEqualTo(1.2));
+  });
+
+  test('special enemy groups keep readable spawn gaps', () {
+    expect(demoWaves[3].groups[1].interval, greaterThanOrEqualTo(0.75));
+    expect(demoWaves[10].groups[1].interval, greaterThanOrEqualTo(0.65));
+    expect(demoWaves[25].groups[1].interval, greaterThanOrEqualTo(0.6));
+    expect(demoWaves[4].groups[0].interval, greaterThanOrEqualTo(1.5));
+    expect(demoWaves[10].groups[2].interval, greaterThanOrEqualTo(1.5));
+    expect(demoWaves[29].groups[0].interval, greaterThanOrEqualTo(2.0));
+  });
 
   test('fire turret is tagged as damage over time', () {
     expect(

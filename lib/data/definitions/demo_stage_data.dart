@@ -150,6 +150,10 @@ final demoStages = List<StageDefinition>.unmodifiable([
   StageDefinition(id: 5, name: 'Stage 5', map: demoMap, waves: demoWaves),
 ]);
 
+const double _earlyGroupGap = 0.8;
+const double _standardGroupGap = 0.9;
+const double _bossGroupGap = 1.8;
+
 List<WaveDefinition> _buildDemoWaves() {
   return List<WaveDefinition>.generate(50, (index) {
     final round = index + 1;
@@ -199,13 +203,13 @@ List<SpawnGroup> _groupsFor(int round, int step) {
     final boss = SpawnGroup(
       enemyType: EnemyType.boss,
       count: bossCount,
-      interval: 1.6,
+      interval: 2.0,
     );
     final tank = SpawnGroup(
       enemyType: EnemyType.tank,
       count: 4 + step ~/ 4,
-      interval: 1.08,
-      startDelay: 1.8,
+      interval: 1.5,
+      startDelay: _nextGroupDelay(boss, gap: _bossGroupGap),
     );
     return [
       boss,
@@ -213,8 +217,8 @@ List<SpawnGroup> _groupsFor(int round, int step) {
       SpawnGroup(
         enemyType: EnemyType.fast,
         count: 9 + step ~/ 2,
-        interval: 0.46,
-        startDelay: _nextGroupDelay(tank, reserve: 1, gap: 0.55),
+        interval: 0.7,
+        startDelay: _nextGroupDelay(tank, gap: _standardGroupGap),
       ),
     ];
   }
@@ -223,15 +227,15 @@ List<SpawnGroup> _groupsFor(int round, int step) {
     final tank = SpawnGroup(
       enemyType: EnemyType.tank,
       count: 3 + step ~/ 4,
-      interval: 1.15,
+      interval: 1.55,
     );
     return [
       tank,
       SpawnGroup(
         enemyType: EnemyType.normal,
         count: 8 + step ~/ 2,
-        interval: 0.62,
-        startDelay: _nextGroupDelay(tank, reserve: 1, gap: 0.55),
+        interval: 1.24,
+        startDelay: _nextGroupDelay(tank, gap: _standardGroupGap),
       ),
     ];
   }
@@ -240,13 +244,13 @@ List<SpawnGroup> _groupsFor(int round, int step) {
     final normal = SpawnGroup(
       enemyType: EnemyType.normal,
       count: 12 + step ~/ 2,
-      interval: 0.52,
+      interval: 1.04,
     );
     final fast = SpawnGroup(
       enemyType: EnemyType.fast,
       count: 8 + step ~/ 2,
-      interval: 0.42,
-      startDelay: _nextGroupDelay(normal, reserve: 1, gap: 0.4),
+      interval: 0.64,
+      startDelay: _nextGroupDelay(normal, gap: _standardGroupGap),
     );
     return [
       normal,
@@ -254,8 +258,8 @@ List<SpawnGroup> _groupsFor(int round, int step) {
       SpawnGroup(
         enemyType: EnemyType.tank,
         count: 3 + step ~/ 6,
-        interval: 1.08,
-        startDelay: _nextGroupDelay(fast, reserve: 1, gap: 0.55),
+        interval: 1.5,
+        startDelay: _nextGroupDelay(fast, gap: _standardGroupGap),
       ),
     ];
   }
@@ -264,13 +268,13 @@ List<SpawnGroup> _groupsFor(int round, int step) {
     final normal = SpawnGroup(
       enemyType: EnemyType.normal,
       count: 9 + step ~/ 2,
-      interval: 0.56,
+      interval: 1.12,
     );
     final fast = SpawnGroup(
       enemyType: EnemyType.fast,
       count: 5 + step ~/ 3,
-      interval: 0.46,
-      startDelay: _nextGroupDelay(normal, reserve: 1, gap: 0.4),
+      interval: 0.7,
+      startDelay: _nextGroupDelay(normal, gap: _standardGroupGap),
     );
     return [
       normal,
@@ -278,8 +282,8 @@ List<SpawnGroup> _groupsFor(int round, int step) {
       SpawnGroup(
         enemyType: EnemyType.tank,
         count: 1 + step ~/ 8,
-        interval: 1.18,
-        startDelay: _nextGroupDelay(fast, reserve: 1, gap: 0.55),
+        interval: 1.6,
+        startDelay: _nextGroupDelay(fast, gap: _standardGroupGap),
       ),
     ];
   }
@@ -288,15 +292,15 @@ List<SpawnGroup> _groupsFor(int round, int step) {
     final normal = SpawnGroup(
       enemyType: EnemyType.normal,
       count: 6 + round,
-      interval: 0.7,
+      interval: 1.4,
     );
     return [
       normal,
       SpawnGroup(
         enemyType: EnemyType.fast,
         count: 3 + round,
-        interval: 0.52,
-        startDelay: _nextGroupDelay(normal, reserve: 1, gap: 0.45),
+        interval: 0.78,
+        startDelay: _nextGroupDelay(normal, gap: _earlyGroupGap),
       ),
     ];
   }
@@ -305,18 +309,12 @@ List<SpawnGroup> _groupsFor(int round, int step) {
     SpawnGroup(
       enemyType: EnemyType.normal,
       count: 5 + round * 2,
-      interval: 0.82,
+      interval: 1.64,
     ),
   ];
 }
 
-double _nextGroupDelay(
-  SpawnGroup previous, {
-  required int reserve,
-  required double gap,
-}) {
-  final almostFinishedCount = previous.count > reserve
-      ? previous.count - reserve
-      : 0;
-  return previous.startDelay + previous.interval * almostFinishedCount + gap;
+double _nextGroupDelay(SpawnGroup previous, {required double gap}) {
+  final lastSpawnIndex = previous.count > 0 ? previous.count - 1 : 0;
+  return previous.startDelay + previous.interval * lastSpawnIndex + gap;
 }
