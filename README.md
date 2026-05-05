@@ -72,3 +72,4 @@ flutter build web --pwa-strategy=none
 
 - [구현 현황](docs/implementation_status.md)
 - [데모 앱 작업 계획서](docs/demo_mvp_work_plan.md)
+- [다음 작업 우선순위](docs/next_work_priorities.md)
