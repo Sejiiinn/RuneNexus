@@ -30,10 +30,18 @@ part 'reward_overlay.dart';
 part 'hud_common.dart';
 
 class GameHud extends StatefulWidget {
-  const GameHud({required this.game, this.onOpenMainMenu, super.key});
+  const GameHud({
+    required this.game,
+    this.onOpenStageSelect,
+    this.onOpenPermanentUpgrades,
+    this.onStartStage,
+    super.key,
+  });
 
   final RuneNexusGame game;
-  final VoidCallback? onOpenMainMenu;
+  final VoidCallback? onOpenStageSelect;
+  final VoidCallback? onOpenPermanentUpgrades;
+  final ValueChanged<int>? onStartStage;
 
   @override
   State<GameHud> createState() => _GameHudState();
@@ -102,7 +110,7 @@ class _GameHudState extends State<GameHud> {
                     game: widget.game,
                     snapshot: snapshot,
                     showGemDebugPanel: _showGemDebugPanel,
-                    onOpenMainMenu: widget.onOpenMainMenu,
+                    onOpenMainMenu: widget.onOpenStageSelect,
                     onToggleGemDebugPanel: () {
                       setState(() {
                         _showGemDebugPanel = !_showGemDebugPanel;
@@ -149,7 +157,9 @@ class _GameHudState extends State<GameHud> {
                       child: ResultOverlay(
                         game: widget.game,
                         snapshot: snapshot,
-                        onOpenMainMenu: widget.onOpenMainMenu,
+                        onOpenStageSelect: widget.onOpenStageSelect,
+                        onOpenPermanentUpgrades: widget.onOpenPermanentUpgrades,
+                        onStartStage: widget.onStartStage,
                       ),
                     ),
                 ],

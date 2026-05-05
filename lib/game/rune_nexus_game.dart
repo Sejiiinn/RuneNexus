@@ -33,6 +33,7 @@ import 'components/impact_effect_component.dart';
 import 'components/projectile_component.dart';
 import 'components/turret_component.dart';
 import 'game_snapshot.dart';
+import 'rendering/turret_shape_renderer.dart';
 import 'systems/gem_reward_generator.dart';
 import 'systems/run_progression.dart';
 import 'systems/save_scheduler.dart';
@@ -1018,10 +1019,20 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     canvas.save();
     _applyBoardZoom(canvas);
     super.render(canvas);
+    _drawBuildSelection(canvas);
+    canvas.restore();
+  }
+
+  void _drawBuildSelection(Canvas canvas) {
     final point = _selectedBuildPoint;
     if (point == null) {
-      canvas.restore();
       return;
+    }
+
+    final center = _centerOf(point);
+    final selectedType = _selectedBuildTurretType;
+    if (selectedType != null) {
+      _drawBuildGhost(canvas, center, selectedType);
     }
 
     final rect = Rect.fromLTWH(
@@ -1036,6 +1047,39 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         ..color = const Color(0x668EE6FF)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3,
+    );
+  }
+
+  void _drawBuildGhost(Canvas canvas, Vector2 center, TurretType type) {
+    final definition = demoTurrets[type]!;
+    final ghostCenter = Offset(center.x, center.y);
+    final rangeFill = Paint()
+      ..color = definition.color.withValues(alpha: 0.09)
+      ..style = PaintingStyle.fill;
+    final rangeStroke = Paint()
+      ..color = definition.color.withValues(alpha: 0.42)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6;
+
+    canvas.drawCircle(ghostCenter, definition.range, rangeFill);
+    canvas.drawCircle(ghostCenter, definition.range, rangeStroke);
+
+    final ghostSize = _tileSize * 0.72;
+    final ghostBounds = Rect.fromCenter(
+      center: ghostCenter,
+      width: ghostSize,
+      height: ghostSize,
+    );
+    canvas.saveLayer(
+      ghostBounds.inflate(_tileSize * 0.16),
+      Paint()..color = const Color(0xAAFFFFFF),
+    );
+    canvas.translate(ghostBounds.left, ghostBounds.top);
+    drawTurretShape(
+      canvas,
+      size: Size(ghostSize, ghostSize),
+      type: type,
+      color: definition.color,
     );
     canvas.restore();
   }

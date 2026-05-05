@@ -119,7 +119,11 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
             if (_screen == _AppScreen.stage) {
               return GameHud(
                 game: game,
-                onOpenMainMenu: () => _openMainScreen(),
+                onOpenStageSelect: () => _openMainScreen(),
+                onOpenPermanentUpgrades: () =>
+                    _openMainScreen(tab: MainMenuTab.permanentUpgrades),
+                onStartStage: (stageNumber) =>
+                    _startStage(stageNumber, game.snapshotNotifier.value),
               );
             }
             return MainMenuScreen(
