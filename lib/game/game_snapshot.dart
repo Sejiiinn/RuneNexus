@@ -44,6 +44,13 @@ class GameSnapshot {
     required this.selectedTurretAttackRate,
     required this.selectedTurretBurnDamagePerSecond,
     required this.selectedTurretBurnDuration,
+    required this.selectedTurretDamageDealt,
+    required this.selectedTurretDirectDamageDealt,
+    required this.selectedTurretSplashDamageDealt,
+    required this.selectedTurretChainDamageDealt,
+    required this.selectedTurretBurnDamageDealt,
+    required this.topDamageTurretName,
+    required this.topDamageTurretDamageDealt,
     required this.nextWaveEnemyTypes,
     required this.speedMultiplier,
     required this.runes,
@@ -95,6 +102,13 @@ class GameSnapshot {
   final double selectedTurretAttackRate;
   final double selectedTurretBurnDamagePerSecond;
   final double selectedTurretBurnDuration;
+  final double selectedTurretDamageDealt;
+  final double selectedTurretDirectDamageDealt;
+  final double selectedTurretSplashDamageDealt;
+  final double selectedTurretChainDamageDealt;
+  final double selectedTurretBurnDamageDealt;
+  final String? topDamageTurretName;
+  final double topDamageTurretDamageDealt;
   final List<EnemyType> nextWaveEnemyTypes;
   final double speedMultiplier;
   final int runes;

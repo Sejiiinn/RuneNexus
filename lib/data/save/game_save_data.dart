@@ -157,6 +157,11 @@ class SavedTurret {
     required this.slotLimit,
     required this.cooldown,
     required this.equippedGems,
+    required this.damageDealt,
+    required this.directDamageDealt,
+    required this.splashDamageDealt,
+    required this.chainDamageDealt,
+    required this.burnDamageDealt,
   });
 
   final int x;
@@ -166,6 +171,11 @@ class SavedTurret {
   final int slotLimit;
   final double cooldown;
   final List<GemType> equippedGems;
+  final double damageDealt;
+  final double directDamageDealt;
+  final double splashDamageDealt;
+  final double chainDamageDealt;
+  final double burnDamageDealt;
 
   GridPoint get point => GridPoint(x, y);
 
@@ -178,6 +188,11 @@ class SavedTurret {
       'slotLimit': slotLimit,
       'cooldown': cooldown,
       'equippedGems': equippedGems.map((type) => type.name).toList(),
+      'damageDealt': damageDealt,
+      'directDamageDealt': directDamageDealt,
+      'splashDamageDealt': splashDamageDealt,
+      'chainDamageDealt': chainDamageDealt,
+      'burnDamageDealt': burnDamageDealt,
     };
   }
 
@@ -197,6 +212,61 @@ class SavedTurret {
       slotLimit: _intValue(json['slotLimit'], fallback: 1),
       cooldown: _doubleValue(json['cooldown']),
       equippedGems: _enumList(GemType.values, json['equippedGems']),
+      damageDealt: _doubleValue(json['damageDealt']),
+      directDamageDealt: _doubleValue(json['directDamageDealt']),
+      splashDamageDealt: _doubleValue(json['splashDamageDealt']),
+      chainDamageDealt: _doubleValue(json['chainDamageDealt']),
+      burnDamageDealt: _doubleValue(json['burnDamageDealt']),
+    );
+  }
+}
+
+class SavedBurnInstance {
+  const SavedBurnInstance({
+    required this.remaining,
+    required this.damagePerSecond,
+    required this.damageMultiplier,
+    required this.sourceX,
+    required this.sourceY,
+  });
+
+  final double remaining;
+  final double damagePerSecond;
+  final double damageMultiplier;
+  final int? sourceX;
+  final int? sourceY;
+
+  GridPoint? get sourcePoint {
+    final x = sourceX;
+    final y = sourceY;
+    return x == null || y == null ? null : GridPoint(x, y);
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'remaining': remaining,
+      'damagePerSecond': damagePerSecond,
+      'damageMultiplier': damageMultiplier,
+      'sourceX': sourceX,
+      'sourceY': sourceY,
+    };
+  }
+
+  static SavedBurnInstance? fromJson(Object? json) {
+    if (json is! Map<String, Object?>) {
+      return null;
+    }
+    final remaining = _doubleValue(json['remaining']);
+    final damagePerSecond = _doubleValue(json['damagePerSecond']);
+    if (remaining <= 0 || damagePerSecond <= 0) {
+      return null;
+    }
+    return SavedBurnInstance(
+      remaining: remaining,
+      damagePerSecond: damagePerSecond,
+      damageMultiplier: _doubleValue(json['damageMultiplier'], fallback: 1),
+      sourceX: _nullableIntValue(json['sourceX']),
+      sourceY: _nullableIntValue(json['sourceY']),
     );
   }
 }
@@ -210,6 +280,7 @@ class SavedEnemy {
     required this.burnRemaining,
     required this.burnDamagePerSecond,
     required this.burnDamageMultiplier,
+    required this.burnInstances,
     required this.poisonRemaining,
     required this.poisonDamagePerSecond,
     required this.poisonDamageMultiplier,
@@ -225,6 +296,7 @@ class SavedEnemy {
   final double burnRemaining;
   final double burnDamagePerSecond;
   final double burnDamageMultiplier;
+  final List<SavedBurnInstance> burnInstances;
   final double poisonRemaining;
   final double poisonDamagePerSecond;
   final double poisonDamageMultiplier;
@@ -241,6 +313,9 @@ class SavedEnemy {
       'burnRemaining': burnRemaining,
       'burnDamagePerSecond': burnDamagePerSecond,
       'burnDamageMultiplier': burnDamageMultiplier,
+      'burnInstances': burnInstances
+          .map((instance) => instance.toJson())
+          .toList(),
       'poisonRemaining': poisonRemaining,
       'poisonDamagePerSecond': poisonDamagePerSecond,
       'poisonDamageMultiplier': poisonDamageMultiplier,
@@ -258,17 +333,40 @@ class SavedEnemy {
     if (type == null) {
       return null;
     }
+    final burnInstances = _objectList(
+      json['burnInstances'],
+      SavedBurnInstance.fromJson,
+    );
+    final legacyBurnRemaining = _doubleValue(json['burnRemaining']);
+    final legacyBurnDamagePerSecond = _doubleValue(json['burnDamagePerSecond']);
+    if (burnInstances.isEmpty &&
+        legacyBurnRemaining > 0 &&
+        legacyBurnDamagePerSecond > 0) {
+      burnInstances.add(
+        SavedBurnInstance(
+          remaining: legacyBurnRemaining,
+          damagePerSecond: legacyBurnDamagePerSecond,
+          damageMultiplier: _doubleValue(
+            json['burnDamageMultiplier'],
+            fallback: 1,
+          ),
+          sourceX: null,
+          sourceY: null,
+        ),
+      );
+    }
     return SavedEnemy(
       type: type,
       maxHp: _doubleValue(json['maxHp']),
       hp: _doubleValue(json['hp']),
       distanceTravelled: _doubleValue(json['distanceTravelled']),
-      burnRemaining: _doubleValue(json['burnRemaining']),
-      burnDamagePerSecond: _doubleValue(json['burnDamagePerSecond']),
+      burnRemaining: legacyBurnRemaining,
+      burnDamagePerSecond: legacyBurnDamagePerSecond,
       burnDamageMultiplier: _doubleValue(
         json['burnDamageMultiplier'],
         fallback: 1,
       ),
+      burnInstances: List.unmodifiable(burnInstances),
       poisonRemaining: _doubleValue(json['poisonRemaining']),
       poisonDamagePerSecond: _doubleValue(json['poisonDamagePerSecond']),
       poisonDamageMultiplier: _doubleValue(
@@ -312,6 +410,14 @@ int _intValue(Object? value, {int fallback = 0}) {
     int() => value,
     double() => value.toInt(),
     _ => fallback,
+  };
+}
+
+int? _nullableIntValue(Object? value) {
+  return switch (value) {
+    int() => value,
+    double() => value.toInt(),
+    _ => null,
   };
 }
 

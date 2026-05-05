@@ -39,6 +39,10 @@ class TurretComponent extends PositionComponent {
   double _aimAngle = -math.pi / 2;
   int _slotLimit = 1;
   int _level = 1;
+  double _directDamageDealt = 0;
+  double _splashDamageDealt = 0;
+  double _chainDamageDealt = 0;
+  double _burnDamageDealt = 0;
 
   static const double _damageGrowthPerLevel = 0.2;
   static const double _rangeGrowthPerLevel = 2.25;
@@ -47,6 +51,15 @@ class TurretComponent extends PositionComponent {
   int get level => _level;
   int get maxLevel => 10;
   double get cooldown => _cooldown;
+  double get directDamageDealt => _directDamageDealt;
+  double get splashDamageDealt => _splashDamageDealt;
+  double get chainDamageDealt => _chainDamageDealt;
+  double get burnDamageDealt => _burnDamageDealt;
+  double get damageDealt =>
+      _directDamageDealt +
+      _splashDamageDealt +
+      _chainDamageDealt +
+      _burnDamageDealt;
   int get levelUpCost =>
       (definition.cost * (70 + (_level - 1) * 45) + 50) ~/ 100;
   bool get canLevelUp => _level < maxLevel;
@@ -151,6 +164,11 @@ class TurretComponent extends PositionComponent {
       slotLimit: _slotLimit,
       cooldown: _cooldown,
       equippedGems: List.unmodifiable(equippedGems),
+      damageDealt: damageDealt,
+      directDamageDealt: _directDamageDealt,
+      splashDamageDealt: _splashDamageDealt,
+      chainDamageDealt: _chainDamageDealt,
+      burnDamageDealt: _burnDamageDealt,
     );
   }
 
@@ -158,9 +176,32 @@ class TurretComponent extends PositionComponent {
     _level = data.level.clamp(1, maxLevel).toInt();
     _slotLimit = data.slotLimit.clamp(1, maxSlotLimit).toInt();
     _cooldown = math.max(0, data.cooldown);
+    _directDamageDealt = math.max(0, data.directDamageDealt);
+    _splashDamageDealt = math.max(0, data.splashDamageDealt);
+    _chainDamageDealt = math.max(0, data.chainDamageDealt);
+    _burnDamageDealt = math.max(0, data.burnDamageDealt);
+    if (damageDealt == 0 && data.damageDealt > 0) {
+      _directDamageDealt = math.max(0, data.damageDealt);
+    }
     equippedGems
       ..clear()
       ..addAll(data.equippedGems.take(_slotLimit));
+  }
+
+  void recordDamageDealt(double damage, TurretDamageKind kind) {
+    if (damage <= 0) {
+      return;
+    }
+    switch (kind) {
+      case TurretDamageKind.direct:
+        _directDamageDealt += damage;
+      case TurretDamageKind.splash:
+        _splashDamageDealt += damage;
+      case TurretDamageKind.chain:
+        _chainDamageDealt += damage;
+      case TurretDamageKind.burn:
+        _burnDamageDealt += damage;
+    }
   }
 
   void updateLayout({required Vector2 center, required double tileSize}) {
@@ -348,3 +389,5 @@ class TurretComponent extends PositionComponent {
     canvas.drawCircle(center, _tileSize * 0.32, innerPaint);
   }
 }
+
+enum TurretDamageKind { direct, splash, chain, burn }

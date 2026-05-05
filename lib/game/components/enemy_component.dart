@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 
 import '../../data/save/game_save_data.dart';
 import '../../domain/enemy/enemy_definition.dart';
+import '../../domain/map/grid_point.dart';
 import '../rendering/enemy_shape_renderer.dart';
 import '../rune_nexus_game.dart';
 import 'damage_number_component.dart';
@@ -30,9 +31,7 @@ class EnemyComponent extends PositionComponent {
 
   int _targetIndex = 1;
   double distanceTravelled = 0;
-  double _burnRemaining = 0;
-  double _burnDamagePerSecond = 0;
-  double _burnDamageMultiplier = 1;
+  final List<_BurnInstance> _burnInstances = [];
   double _burnNumberDamage = 0;
   double _burnNumberTimer = 0;
   double _poisonRemaining = 0;
@@ -46,16 +45,33 @@ class EnemyComponent extends PositionComponent {
   double _facingAngle = 0;
 
   bool get isDead => hp <= 0;
+  double get totalBurnDamagePerSecond => _burnInstances.fold(
+    0,
+    (total, instance) => total + instance.damagePerSecond,
+  );
+  double get maxBurnRemaining => _burnInstances.fold(
+    0,
+    (maxRemaining, instance) => math.max(maxRemaining, instance.remaining),
+  );
 
   SavedEnemy toSaveData() {
+    final burnRemaining = maxBurnRemaining;
+    final burnDamagePerSecond = totalBurnDamagePerSecond;
     return SavedEnemy(
       type: definition.type,
       maxHp: maxHp,
       hp: hp,
       distanceTravelled: distanceTravelled,
-      burnRemaining: _burnRemaining,
-      burnDamagePerSecond: _burnDamagePerSecond,
-      burnDamageMultiplier: _burnDamageMultiplier,
+      burnRemaining: burnRemaining,
+      burnDamagePerSecond: burnDamagePerSecond,
+      burnDamageMultiplier: _burnInstances.isEmpty
+          ? 1
+          : _burnInstances
+                .map((instance) => instance.damageMultiplier)
+                .reduce(math.max),
+      burnInstances: List.unmodifiable(
+        _burnInstances.map((instance) => instance.toSaveData()),
+      ),
       poisonRemaining: _poisonRemaining,
       poisonDamagePerSecond: _poisonDamagePerSecond,
       poisonDamageMultiplier: _poisonDamageMultiplier,
@@ -68,9 +84,13 @@ class EnemyComponent extends PositionComponent {
   void restoreFromSaveData(SavedEnemy data) {
     hp = data.hp.clamp(0, maxHp).toDouble();
     distanceTravelled = math.max(0, data.distanceTravelled);
-    _burnRemaining = math.max(0, data.burnRemaining);
-    _burnDamagePerSecond = math.max(0, data.burnDamagePerSecond);
-    _burnDamageMultiplier = math.max(0, data.burnDamageMultiplier);
+    _burnInstances
+      ..clear()
+      ..addAll(
+        data.burnInstances.map(
+          (instance) => _BurnInstance.fromSaveData(instance),
+        ),
+      );
     _burnNumberDamage = 0;
     _burnNumberTimer = 0;
     _poisonRemaining = math.max(0, data.poisonRemaining);
@@ -132,11 +152,17 @@ class EnemyComponent extends PositionComponent {
     distanceTravelled += step;
   }
 
-  void receiveDamage(double damage) {
+  double receiveDamage(double damage) {
+    if (damage <= 0 || isDead) {
+      return 0;
+    }
+    final previousHp = hp;
     hp = math.max(0, hp - damage);
+    final actualDamage = previousHp - hp;
     if (isDead) {
       game.enemyKilled(this);
     }
+    return actualDamage;
   }
 
   void applyPoison({
@@ -155,12 +181,19 @@ class EnemyComponent extends PositionComponent {
     required double damagePerSecond,
     required double duration,
     double damageMultiplier = 1,
+    GridPoint? sourceTurretPoint,
   }) {
-    _burnDamagePerSecond = math.max(_burnDamagePerSecond, damagePerSecond);
-    if (damagePerSecond >= _burnDamagePerSecond) {
-      _burnDamageMultiplier = damageMultiplier;
+    if (damagePerSecond <= 0 || duration <= 0) {
+      return;
     }
-    _burnRemaining = math.max(_burnRemaining, duration);
+    _burnInstances.add(
+      _BurnInstance(
+        remaining: duration,
+        damagePerSecond: damagePerSecond,
+        damageMultiplier: damageMultiplier,
+        sourceTurretPoint: sourceTurretPoint,
+      ),
+    );
   }
 
   void applySlow({required double multiplier, required double duration}) {
@@ -169,19 +202,28 @@ class EnemyComponent extends PositionComponent {
   }
 
   void _updateStatusEffects(double dt) {
-    if (_burnRemaining > 0) {
-      _burnRemaining = math.max(0, _burnRemaining - dt);
-      final damage = _burnDamagePerSecond * dt;
-      _burnNumberDamage += damage;
+    if (_burnInstances.isNotEmpty) {
       _burnNumberTimer += dt;
-      receiveDamage(damage);
-      if (!isDead && (_burnNumberTimer >= 0.5 || _burnRemaining == 0)) {
+      for (final instance in _burnInstances.toList()) {
+        instance.remaining = math.max(0, instance.remaining - dt);
+        final damage = instance.damagePerSecond * dt;
+        final actualDamage = receiveDamage(damage);
+        _burnNumberDamage += actualDamage;
+        game.recordTurretDamage(instance.sourceTurretPoint, actualDamage);
+        if (isDead) {
+          break;
+        }
+      }
+      _burnInstances.removeWhere((instance) => instance.remaining <= 0);
+      if (!isDead &&
+          (_burnNumberTimer >= 0.5 || _burnInstances.isEmpty) &&
+          _burnNumberDamage > 0) {
         game.showDamageNumber(
           position: position.clone(),
           damage: _burnNumberDamage,
           color: const Color(0xFFFF8A2A),
           motion: DamageNumberMotion.fallArc,
-          damageMultiplier: _burnDamageMultiplier,
+          damageMultiplier: _maxBurnDamageMultiplier,
         );
         _burnNumberDamage = 0;
         _burnNumberTimer = 0;
@@ -219,6 +261,15 @@ class EnemyComponent extends PositionComponent {
     }
   }
 
+  double get _maxBurnDamageMultiplier {
+    if (_burnInstances.isEmpty) {
+      return 1;
+    }
+    return _burnInstances
+        .map((instance) => instance.damageMultiplier)
+        .reduce(math.max);
+  }
+
   @override
   void render(Canvas canvas) {
     final body = Paint()..color = definition.color;
@@ -229,7 +280,7 @@ class EnemyComponent extends PositionComponent {
 
     _drawBody(canvas, body, outline);
 
-    if (_burnRemaining > 0) {
+    if (_burnInstances.isNotEmpty) {
       canvas.drawCircle(
         Offset(size.x / 2, size.y / 2),
         size.x * 0.5,
@@ -314,5 +365,38 @@ class EnemyComponent extends PositionComponent {
       length += points[i].distanceTo(points[i - 1]);
     }
     return length;
+  }
+}
+
+class _BurnInstance {
+  _BurnInstance({
+    required this.remaining,
+    required this.damagePerSecond,
+    required this.damageMultiplier,
+    required this.sourceTurretPoint,
+  });
+
+  double remaining;
+  final double damagePerSecond;
+  final double damageMultiplier;
+  final GridPoint? sourceTurretPoint;
+
+  SavedBurnInstance toSaveData() {
+    return SavedBurnInstance(
+      remaining: remaining,
+      damagePerSecond: damagePerSecond,
+      damageMultiplier: damageMultiplier,
+      sourceX: sourceTurretPoint?.x,
+      sourceY: sourceTurretPoint?.y,
+    );
+  }
+
+  static _BurnInstance fromSaveData(SavedBurnInstance data) {
+    return _BurnInstance(
+      remaining: math.max(0, data.remaining),
+      damagePerSecond: math.max(0, data.damagePerSecond),
+      damageMultiplier: math.max(0, data.damageMultiplier),
+      sourceTurretPoint: data.sourcePoint,
+    );
   }
 }

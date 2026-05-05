@@ -706,6 +706,21 @@ void main() {
     expect(enemy.hp, closeTo(97.5, 0.001));
   });
 
+  test('enemy damage returns actual hp loss', () {
+    final game = RuneNexusGame();
+    final normal = demoEnemies[EnemyType.normal]!;
+    final enemy = EnemyComponent(
+      definition: normal,
+      maxHp: 12,
+      path: [Vector2.zero(), Vector2(100, 0)],
+      game: game,
+    );
+
+    expect(enemy.receiveDamage(5), closeTo(5, 0.001));
+    expect(enemy.receiveDamage(20), closeTo(7, 0.001));
+    expect(enemy.receiveDamage(20), closeTo(0, 0.001));
+  });
+
   test(
     'fire turret exposes burn damage in the selected turret stats',
     () async {
@@ -720,25 +735,29 @@ void main() {
       expect(snapshot.selectedTurretDamage, closeTo(16, 0.001));
       expect(snapshot.selectedTurretBurnDamagePerSecond, closeTo(8, 0.001));
       expect(snapshot.selectedTurretBurnDuration, closeTo(2, 0.001));
+      expect(snapshot.selectedTurretDamageDealt, closeTo(0, 0.001));
     },
   );
 
-  test('burn keeps one active damage over time instance', () {
+  test('burn instances tick independently over their own durations', () {
     final game = RuneNexusGame();
     final normal = demoEnemies[EnemyType.normal]!;
-    final enemy =
-        EnemyComponent(
-            definition: normal,
-            maxHp: 100,
-            path: [Vector2.zero(), Vector2(100, 0)],
-            game: game,
-          )
-          ..applyBurn(damagePerSecond: 10, duration: 2)
-          ..applyBurn(damagePerSecond: 10, duration: 2);
+    final enemy = EnemyComponent(
+      definition: normal,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(100, 0)],
+      game: game,
+    )..applyBurn(damagePerSecond: 20, duration: 2);
+
+    enemy.update(1);
+    enemy.applyBurn(damagePerSecond: 8, duration: 2);
+    enemy.update(1);
+
+    expect(enemy.hp, closeTo(52, 0.001));
 
     enemy.update(1);
 
-    expect(enemy.hp, closeTo(90, 0.001));
+    expect(enemy.hp, closeTo(44, 0.001));
   });
 
   test('chain hit from fire turret applies scaled burn', () {
@@ -765,6 +784,74 @@ void main() {
     enemy.update(1);
 
     expect(enemy.hp, closeTo(88, 0.001));
+    expect(fireTurret.damageDealt, closeTo(8, 0.001));
+  });
+
+  test('burn damage is credited to its source turret', () async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.selectTurretType(TurretType.magic);
+    game.tryBuildTurret(const GridPoint(2, 0));
+    final fireTurret = game.children.whereType<TurretComponent>().single;
+    final enemy =
+        EnemyComponent(
+          definition: demoEnemies[EnemyType.normal]!,
+          maxHp: 100,
+          path: [Vector2.zero(), Vector2(100, 0)],
+          game: game,
+        )..applyBurn(
+          damagePerSecond: 10,
+          duration: 2,
+          sourceTurretPoint: fireTurret.gridPoint,
+        );
+
+    enemy.update(1);
+
+    expect(enemy.hp, closeTo(90, 0.001));
+    expect(fireTurret.damageDealt, closeTo(10, 0.001));
+    expect(fireTurret.burnDamageDealt, closeTo(10, 0.001));
+    expect(
+      game.snapshotNotifier.value.selectedTurretDamageDealt,
+      closeTo(10, 0.001),
+    );
+    expect(
+      game.snapshotNotifier.value.selectedTurretBurnDamageDealt,
+      closeTo(10, 0.001),
+    );
+  });
+
+  test('burn instances are saved with their source turret point', () {
+    final game = RuneNexusGame();
+    final enemy =
+        EnemyComponent(
+          definition: demoEnemies[EnemyType.normal]!,
+          maxHp: 100,
+          path: [Vector2.zero(), Vector2(100, 0)],
+          game: game,
+        )..applyBurn(
+          damagePerSecond: 12,
+          duration: 2.5,
+          damageMultiplier: 1.2,
+          sourceTurretPoint: const GridPoint(2, 0),
+        );
+
+    final saved = enemy.toSaveData();
+    expect(saved.burnInstances, hasLength(1));
+    expect(saved.burnInstances.single.sourcePoint, const GridPoint(2, 0));
+    expect(saved.burnInstances.single.damagePerSecond, closeTo(12, 0.001));
+
+    final restored = EnemyComponent(
+      definition: demoEnemies[EnemyType.normal]!,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(100, 0)],
+      game: game,
+    )..restoreFromSaveData(saved);
+
+    restored.update(1);
+
+    expect(restored.hp, closeTo(88, 0.001));
   });
 
   test('poison stacks as long low damage over time', () {
@@ -809,6 +896,8 @@ void main() {
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
     game.tryBuildTurret(const GridPoint(2, 0));
+    final turret = game.children.whereType<TurretComponent>().single;
+    turret.recordDamageDealt(123, TurretDamageKind.direct);
     game.grantGem(GemType.range);
     game.equipSelectedTurret(GemType.range);
     game.levelUpSelectedTurret();
@@ -822,6 +911,8 @@ void main() {
     expect(saved.turrets.single.level, 2);
     expect(saved.turrets.single.slotLimit, 2);
     expect(saved.turrets.single.equippedGems, [GemType.range]);
+    expect(saved.turrets.single.damageDealt, closeTo(123, 0.001));
+    expect(saved.turrets.single.directDamageDealt, closeTo(123, 0.001));
 
     final restoredRepository = MemorySaveRepository()..data = saved;
     final restored = RuneNexusGame(saveRepository: restoredRepository);
@@ -839,6 +930,14 @@ void main() {
     expect(restored.snapshotNotifier.value.phase, GamePhase.preparation);
     expect(resumed!.turrets.single.level, 2);
     expect(resumed.turrets.single.slotLimit, 2);
+    expect(
+      restored.children.whereType<TurretComponent>().single.damageDealt,
+      closeTo(123, 0.001),
+    );
+    expect(
+      restored.children.whereType<TurretComponent>().single.directDamageDealt,
+      closeTo(123, 0.001),
+    );
   });
 
   test(

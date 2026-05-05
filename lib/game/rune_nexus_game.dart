@@ -131,6 +131,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretAttackRate: 0,
       selectedTurretBurnDamagePerSecond: 0,
       selectedTurretBurnDuration: 0,
+      selectedTurretDamageDealt: 0,
+      selectedTurretDirectDamageDealt: 0,
+      selectedTurretSplashDamageDealt: 0,
+      selectedTurretChainDamageDealt: 0,
+      selectedTurretBurnDamageDealt: 0,
+      topDamageTurretName: null,
+      topDamageTurretDamageDealt: 0,
       nextWaveEnemyTypes: const [],
       speedMultiplier: 1,
       runes: 0,
@@ -834,7 +841,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         color: owner.definition.color,
         damageMultiplier: multiplier,
       );
-      enemy.receiveDamage(damage);
+      final actualDamage = enemy.receiveDamage(damage);
+      _recordTurretDamage(
+        owner,
+        actualDamage,
+        identical(enemy, target)
+            ? TurretDamageKind.direct
+            : TurretDamageKind.splash,
+      );
     }
 
     if (owner.hasGem(GemType.chain)) {
@@ -857,7 +871,39 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       color: chainColorFor(owner),
       damageMultiplier: multiplier,
     );
-    target.receiveDamage(adjustedDamage);
+    final actualDamage = target.receiveDamage(adjustedDamage);
+    _recordTurretDamage(owner, actualDamage, TurretDamageKind.chain);
+  }
+
+  void recordTurretDamage(GridPoint? sourceTurretPoint, double damage) {
+    if (sourceTurretPoint == null || damage <= 0) {
+      return;
+    }
+    TurretComponent? turret = _turrets[sourceTurretPoint];
+    if (turret == null) {
+      for (final child in children.whereType<TurretComponent>()) {
+        if (child.gridPoint == sourceTurretPoint) {
+          turret = child;
+          break;
+        }
+      }
+    }
+    if (turret == null) {
+      return;
+    }
+    _recordTurretDamage(turret, damage, TurretDamageKind.burn);
+  }
+
+  void _recordTurretDamage(
+    TurretComponent turret,
+    double damage,
+    TurretDamageKind kind,
+  ) {
+    if (damage <= 0) {
+      return;
+    }
+    turret.recordDamageDealt(damage, kind);
+    _publish();
   }
 
   Color chainColorFor(TurretComponent owner) {
@@ -1466,6 +1512,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
             owner.damageOverTimeDamageMultiplier,
         duration: _burnDurationSeconds * owner.damageOverTimeDurationMultiplier,
         damageMultiplier: burnMultiplier,
+        sourceTurretPoint: owner.gridPoint,
       );
     }
   }
@@ -1501,6 +1548,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         ? _burnDurationSeconds *
               selectedTurret!.damageOverTimeDurationMultiplier
         : 0.0;
+    final topDamageTurret = _turrets.values.fold<TurretComponent?>(null, (
+      current,
+      turret,
+    ) {
+      if (current == null || turret.damageDealt > current.damageDealt) {
+        return turret;
+      }
+      return current;
+    });
     final nextWaveEnemyTypes = <EnemyType>[];
     for (final group in nextWave.groups) {
       if (!nextWaveEnemyTypes.contains(group.enemyType)) {
@@ -1568,6 +1624,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretAttackRate: selectedTurret?.attackRate ?? 0,
       selectedTurretBurnDamagePerSecond: selectedTurretBurnDamagePerSecond,
       selectedTurretBurnDuration: selectedTurretBurnDuration,
+      selectedTurretDamageDealt: selectedTurret?.damageDealt ?? 0,
+      selectedTurretDirectDamageDealt: selectedTurret?.directDamageDealt ?? 0,
+      selectedTurretSplashDamageDealt: selectedTurret?.splashDamageDealt ?? 0,
+      selectedTurretChainDamageDealt: selectedTurret?.chainDamageDealt ?? 0,
+      selectedTurretBurnDamageDealt: selectedTurret?.burnDamageDealt ?? 0,
+      topDamageTurretName:
+          topDamageTurret == null || topDamageTurret.damageDealt <= 0
+          ? null
+          : topDamageTurret.definition.name,
+      topDamageTurretDamageDealt: topDamageTurret?.damageDealt ?? 0,
       nextWaveEnemyTypes: List.unmodifiable(nextWaveEnemyTypes),
       speedMultiplier: _speedMultiplier,
       runes: _progression.runes,

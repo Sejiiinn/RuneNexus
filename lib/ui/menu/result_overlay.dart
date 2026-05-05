@@ -39,6 +39,9 @@ class ResultOverlay extends StatelessWidget {
               ? '스테이지 $nextStageNumber 이용 가능'
               : '스테이지 ${snapshot.currentStageNumber} 클리어'
         : '기록 $recordText';
+    final topDamageText = snapshot.topDamageTurretName == null
+        ? '없음'
+        : '${snapshot.topDamageTurretName} ${_formatDamageValue(snapshot.topDamageTurretDamageDealt)}';
 
     return Container(
       color: const Color(0xAA02070D),
@@ -107,6 +110,7 @@ class ResultOverlay extends StatelessWidget {
                           label: '획득 룬',
                           value: '+${snapshot.lastRunRuneReward}',
                         ),
+                        _ResultMetric(label: '최고 피해', value: topDamageText),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -162,6 +166,16 @@ class ResultOverlay extends StatelessWidget {
       ),
     );
   }
+}
+
+String _formatDamageValue(double value) {
+  if (value >= 1000) {
+    return '${(value / 1000).toStringAsFixed(1)}K';
+  }
+  if (value >= 100) {
+    return value.round().toString();
+  }
+  return value.toStringAsFixed(1);
 }
 
 class _ResultMetric extends StatelessWidget {

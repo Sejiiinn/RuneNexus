@@ -133,6 +133,8 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
               ],
             ],
           ),
+          const SizedBox(height: 5),
+          _DamageSummaryRow(snapshot: snapshot),
           const SizedBox(height: 6),
           _TurretAttributeChips(definition: definition),
           const SizedBox(height: 6),
@@ -295,6 +297,138 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
               style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _DamageSummaryRow extends StatelessWidget {
+  const _DamageSummaryRow({required this.snapshot});
+
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showDamageDetailDialog(context, snapshot),
+          borderRadius: BorderRadius.circular(7),
+          child: Container(
+            height: 30,
+            padding: const EdgeInsets.only(left: 9, right: 4),
+            decoration: BoxDecoration(
+              color: const Color(0x9907111D),
+              border: Border.all(color: const Color(0x5533D8FF)),
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '누적 피해',
+                  style: TextStyle(fontSize: 10, color: Color(0xFF8AA6B8)),
+                ),
+                const SizedBox(width: 7),
+                Text(
+                  _formatDamageValue(snapshot.selectedTurretDamageDealt),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFFE8F8FF),
+                  ),
+                ),
+                const SizedBox(width: 3),
+                const Icon(
+                  Icons.more_horiz,
+                  size: 17,
+                  color: Color(0xFF8EE6FF),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDamageDetailDialog(BuildContext context, GameSnapshot snapshot) {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF091624),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: const BorderSide(color: Color(0x8833D8FF)),
+          ),
+          title: const Text('피해 기록', style: TextStyle(fontSize: 16)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _DamageDetailLine(
+                label: '총 피해',
+                value: snapshot.selectedTurretDamageDealt,
+              ),
+              _DamageDetailLine(
+                label: '직접 피해',
+                value: snapshot.selectedTurretDirectDamageDealt,
+              ),
+              _DamageDetailLine(
+                label: '범위 피해',
+                value: snapshot.selectedTurretSplashDamageDealt,
+              ),
+              _DamageDetailLine(
+                label: '연쇄 피해',
+                value: snapshot.selectedTurretChainDamageDealt,
+              ),
+              _DamageDetailLine(
+                label: '화상 피해',
+                value: snapshot.selectedTurretBurnDamageDealt,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('닫기'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _DamageDetailLine extends StatelessWidget {
+  const _DamageDetailLine({required this.label, required this.value});
+
+  final String label;
+  final double value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
+            ),
+          ),
+          Text(
+            _formatDamageValue(value),
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFFE8F8FF),
+            ),
+          ),
         ],
       ),
     );
@@ -590,6 +724,16 @@ class _TurretStats extends StatelessWidget {
       ],
     );
   }
+}
+
+String _formatDamageValue(double value) {
+  if (value >= 1000) {
+    return '${(value / 1000).toStringAsFixed(1)}K';
+  }
+  if (value >= 100) {
+    return value.round().toString();
+  }
+  return value.toStringAsFixed(1);
 }
 
 class _StatPill extends StatelessWidget {
