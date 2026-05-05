@@ -537,6 +537,7 @@ class _TurretStats extends StatelessWidget {
     final dps = snapshot.selectedTurretAttackRate <= 0
         ? 0
         : snapshot.selectedTurretDamage * snapshot.selectedTurretAttackRate;
+    final burnDps = snapshot.selectedTurretBurnDamagePerSecond;
 
     return Row(
       children: [
@@ -545,7 +546,37 @@ class _TurretStats extends StatelessWidget {
           value: snapshot.selectedTurretDamage.toStringAsFixed(1),
         ),
         const SizedBox(width: 5),
-        _StatPill(label: 'DPS', value: dps.toStringAsFixed(1)),
+        _StatPill(
+          label: 'DPS',
+          value: dps.toStringAsFixed(1),
+          valueChild: burnDps > 0
+              ? RichText(
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFE8F8FF),
+                    ),
+                    children: [
+                      TextSpan(text: dps.toStringAsFixed(1)),
+                      TextSpan(
+                        text: ' +${burnDps.toStringAsFixed(1)}',
+                        style: const TextStyle(color: Color(0xFFFFA24A)),
+                      ),
+                    ],
+                  ),
+                )
+              : null,
+        ),
+        if (burnDps > 0) ...[
+          const SizedBox(width: 5),
+          _StatPill(
+            label: '화상',
+            value: '${snapshot.selectedTurretBurnDuration.toStringAsFixed(1)}초',
+          ),
+        ],
         const SizedBox(width: 5),
         _StatPill(
           label: '사거리',
@@ -562,10 +593,11 @@ class _TurretStats extends StatelessWidget {
 }
 
 class _StatPill extends StatelessWidget {
-  const _StatPill({required this.label, required this.value});
+  const _StatPill({required this.label, required this.value, this.valueChild});
 
   final String label;
   final String value;
+  final Widget? valueChild;
 
   @override
   Widget build(BuildContext context) {
@@ -585,10 +617,18 @@ class _StatPill extends StatelessWidget {
               style: const TextStyle(fontSize: 10, color: Color(0xFF8AA6B8)),
               overflow: TextOverflow.ellipsis,
             ),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
-              overflow: TextOverflow.ellipsis,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child:
+                  valueChild ??
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
             ),
           ],
         ),

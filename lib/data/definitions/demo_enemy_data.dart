@@ -39,11 +39,7 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
     color: Color(0xFFA9856A),
     resistanceProfile: EnemyResistanceProfile(
       familyMultipliers: {DamageFamily.physical: 0.8},
-      tagMultipliers: {
-        AttackTag.light: 0.65,
-        AttackTag.heavy: 1.2,
-        AttackTag.damageOverTime: 0.9,
-      },
+      tagMultipliers: {AttackTag.light: 0.65, AttackTag.heavy: 1.2},
     ),
   ),
   EnemyType.boss: EnemyDefinition(

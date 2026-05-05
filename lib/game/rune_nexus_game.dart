@@ -40,6 +40,8 @@ import 'systems/wave_spawner.dart';
 
 class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _chainDamageMultiplier = 0.5;
+  static const double _burnDamagePerSecondScale = 0.5;
+  static const double _burnDurationSeconds = 2;
   static const double _minBoardZoom = 1;
   static const double _maxBoardZoom = 2.1;
 
@@ -124,6 +126,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretDamage: 0,
       selectedTurretRange: 0,
       selectedTurretAttackRate: 0,
+      selectedTurretBurnDamagePerSecond: 0,
+      selectedTurretBurnDuration: 0,
       nextWaveEnemyTypes: const [],
       speedMultiplier: 1,
       runes: 0,
@@ -1411,11 +1415,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       enemy.applyBurn(
         damagePerSecond:
             owner.damage *
-            0.35 *
+            _burnDamagePerSecondScale *
             damageScale *
             burnMultiplier *
             owner.damageOverTimeDamageMultiplier,
-        duration: 2 * owner.damageOverTimeDurationMultiplier,
+        duration: _burnDurationSeconds * owner.damageOverTimeDurationMultiplier,
         damageMultiplier: burnMultiplier,
       );
     }
@@ -1439,6 +1443,19 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final selectedTurret = _selectedTurretPoint == null
         ? null
         : _turrets[_selectedTurretPoint];
+    final selectedTurretBurnDamagePerSecond =
+        selectedTurret != null &&
+            selectedTurret.definition.attackTags.contains(
+              AttackTag.damageOverTime,
+            )
+        ? selectedTurret.damage *
+              _burnDamagePerSecondScale *
+              selectedTurret.damageOverTimeDamageMultiplier
+        : 0.0;
+    final selectedTurretBurnDuration = selectedTurretBurnDamagePerSecond > 0
+        ? _burnDurationSeconds *
+              selectedTurret!.damageOverTimeDurationMultiplier
+        : 0.0;
     final nextWaveEnemyTypes = <EnemyType>[];
     for (final group in nextWave.groups) {
       if (!nextWaveEnemyTypes.contains(group.enemyType)) {
@@ -1504,6 +1521,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretDamage: selectedTurret?.damage ?? 0,
       selectedTurretRange: selectedTurret?.range ?? 0,
       selectedTurretAttackRate: selectedTurret?.attackRate ?? 0,
+      selectedTurretBurnDamagePerSecond: selectedTurretBurnDamagePerSecond,
+      selectedTurretBurnDuration: selectedTurretBurnDuration,
       nextWaveEnemyTypes: List.unmodifiable(nextWaveEnemyTypes),
       speedMultiplier: _speedMultiplier,
       runes: _progression.runes,

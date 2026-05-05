@@ -614,6 +614,13 @@ void main() {
       ),
       closeTo(0.96, 0.001),
     );
+    expect(
+      tank.resistanceProfile.multiplierFor(
+        family: DamageFamily.magical,
+        tags: const {AttackTag.damageOverTime},
+      ),
+      closeTo(1, 0.001),
+    );
   });
 
   test('fast enemies strongly favor light weapons over heavy weapons', () {
@@ -657,6 +664,23 @@ void main() {
     expect(enemy.hp, closeTo(97.5, 0.001));
   });
 
+  test(
+    'fire turret exposes burn damage in the selected turret stats',
+    () async {
+      final game = RuneNexusGame();
+
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      game.selectTurretType(TurretType.magic);
+      game.tryBuildTurret(const GridPoint(2, 0));
+
+      final snapshot = game.snapshotNotifier.value;
+      expect(snapshot.selectedTurretDamage, closeTo(16, 0.001));
+      expect(snapshot.selectedTurretBurnDamagePerSecond, closeTo(8, 0.001));
+      expect(snapshot.selectedTurretBurnDuration, closeTo(2, 0.001));
+    },
+  );
+
   test('burn keeps one active damage over time instance', () {
     final game = RuneNexusGame();
     final normal = demoEnemies[EnemyType.normal]!;
@@ -698,7 +722,7 @@ void main() {
     );
     enemy.update(1);
 
-    expect(enemy.hp, closeTo(89.2, 0.001));
+    expect(enemy.hp, closeTo(88, 0.001));
   });
 
   test('poison stacks as long low damage over time', () {
