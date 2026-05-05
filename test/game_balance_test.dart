@@ -113,7 +113,7 @@ void main() {
     game.upgradeNexusHpProgression();
     game.restartDemo();
 
-    expect(game.snapshotNotifier.value.gold, 160);
+    expect(game.snapshotNotifier.value.gold, 155);
     expect(game.snapshotNotifier.value.nexusHp, 21);
     expect(game.snapshotNotifier.value.maxNexusHp, 21);
     expect(game.snapshotNotifier.value.unlockedStageCount, 2);

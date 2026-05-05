@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../game/game_snapshot.dart';
 import '../../game/rune_nexus_game.dart';
+import '../../game/systems/run_progression.dart';
 import '../../l10n/rune_nexus_localizations.dart';
 import '../widgets/rune_balance_card.dart';
 
@@ -584,7 +585,8 @@ class _PermanentUpgradeMenu extends StatelessWidget {
         _ProgressionUpgradeButton(
           title: l10n.startGold,
           level: snapshot.startingGoldUpgradeLevel,
-          valueText: '+${snapshot.startingGoldUpgradeLevel * 10}G',
+          valueText:
+              '+${snapshot.startingGoldUpgradeLevel * RunProgression.startingGoldPerUpgradeLevel}G',
           cost: snapshot.startingGoldUpgradeCost,
           enabled: snapshot.canUpgradeStartingGold,
           onPressed: game.upgradeStartingGoldProgression,

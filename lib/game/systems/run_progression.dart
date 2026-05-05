@@ -8,6 +8,7 @@ class RunProgression {
   static const int maxStageCount = 5;
   static const int maxProgressionLevel = 20;
   static const int startingGoldUpgradeBaseCost = 8;
+  static const int startingGoldPerUpgradeLevel = 5;
   static const int nexusHpUpgradeBaseCost = 6;
 
   int runes = 0;
@@ -18,7 +19,8 @@ class RunProgression {
   final Map<int, int> bestRoundsByStage = {};
   final Set<int> clearedStageNumbers = {};
 
-  int get initialGold => baseInitialGold + startingGoldUpgradeLevel * 10;
+  int get initialGold =>
+      baseInitialGold + startingGoldUpgradeLevel * startingGoldPerUpgradeLevel;
   int get maxNexusHp => baseNexusHp + nexusHpUpgradeLevel;
   int get startingGoldUpgradeCost =>
       startingGoldUpgradeBaseCost + startingGoldUpgradeLevel * 5;
