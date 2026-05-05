@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../game/game_snapshot.dart';
 import '../../game/rune_nexus_game.dart';
+import '../../l10n/rune_nexus_localizations.dart';
+import '../widgets/rune_balance_card.dart';
 
 enum MainMenuTab { stage, permanentUpgrades }
 
@@ -30,6 +32,11 @@ class MainMenuScreen extends StatelessWidget {
         child: Stack(
           children: [
             const Positioned.fill(child: _MainMenuBackdrop()),
+            Positioned(
+              top: 10,
+              right: 16,
+              child: RuneBalanceCard(runes: snapshot.runes),
+            ),
             Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
@@ -119,6 +126,7 @@ class _MenuHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Row(
       children: [
         Container(
@@ -136,10 +144,10 @@ class _MenuHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 10),
-        const Expanded(
+        Expanded(
           child: Text(
-            'Rune Nexus',
-            style: TextStyle(fontSize: 23, fontWeight: FontWeight.w900),
+            l10n.appTitle,
+            style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -156,12 +164,13 @@ class _MenuTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Row(
       children: [
         Expanded(
           child: _TabButton(
             icon: Icons.flag_outlined,
-            label: '스테이지',
+            label: l10n.stageTab,
             selected: selectedTab == MainMenuTab.stage,
             onPressed: () => onSelectTab(MainMenuTab.stage),
           ),
@@ -170,7 +179,7 @@ class _MenuTabs extends StatelessWidget {
         Expanded(
           child: _TabButton(
             icon: Icons.auto_awesome,
-            label: '영구 업그레이드',
+            label: l10n.permanentUpgradeTab,
             selected: selectedTab == MainMenuTab.permanentUpgrades,
             onPressed: () => onSelectTab(MainMenuTab.permanentUpgrades),
           ),
@@ -223,6 +232,7 @@ class _StageMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final activeRunInProgress =
         snapshot.hasStageProgress &&
         snapshot.phase != GamePhase.success &&
@@ -249,7 +259,9 @@ class _StageMenu extends StatelessWidget {
                 if (stage <= snapshot.unlockedStageCount)
                   _UnlockedStageCard(
                     stageNumber: stage,
-                    statusText: activeRunInProgress ? '종료 후 시작' : '해금됨',
+                    statusText: activeRunInProgress
+                        ? l10n.startAfterSettling
+                        : l10n.unlocked,
                     onPressed: () => onStartStage(stage),
                   )
                 else
@@ -274,22 +286,36 @@ class _StageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final phaseText = switch (snapshot.phase) {
-      GamePhase.success => '클리어',
-      GamePhase.failure => '정산 완료',
-      GamePhase.wave => '전투 진행 중',
-      GamePhase.reward => '보상 선택 대기',
-      GamePhase.restored => '저장된 전투',
-      GamePhase.preparation => snapshot.hasStageProgress ? '진행 중' : '새 진행',
+      GamePhase.success => l10n.cleared,
+      GamePhase.failure => l10n.settled,
+      GamePhase.wave => l10n.combatInProgress,
+      GamePhase.reward => l10n.rewardPending,
+      GamePhase.restored => l10n.savedCombat,
+      GamePhase.preparation =>
+        snapshot.hasStageProgress ? l10n.inProgress : l10n.newRun,
     };
     final actionText = switch (snapshot.phase) {
-      GamePhase.success || GamePhase.failure => '새 런 시작',
-      GamePhase.wave || GamePhase.reward || GamePhase.restored => '이어서 진행',
-      _ => snapshot.hasStageProgress ? '이어서 진행' : '스테이지 시작',
+      GamePhase.success || GamePhase.failure => l10n.restartRun,
+      GamePhase.wave ||
+      GamePhase.reward ||
+      GamePhase.restored => l10n.continueRun,
+      _ => snapshot.hasStageProgress ? l10n.continueRun : l10n.startStage,
     };
     final detailText = snapshot.hasStageProgress
-        ? '라운드 ${snapshot.round}/${snapshot.maxRound} · 포탑 ${snapshot.placedTurretCount} · 골드 ${snapshot.gold}'
-        : '라운드 ${snapshot.round}/${snapshot.maxRound} · Nexus ${snapshot.nexusHp}/${snapshot.maxNexusHp}';
+        ? l10n.stageProgressDetail(
+            round: snapshot.round,
+            maxRound: snapshot.maxRound,
+            turretCount: snapshot.placedTurretCount,
+            gold: snapshot.gold,
+          )
+        : l10n.stageFreshDetail(
+            round: snapshot.round,
+            maxRound: snapshot.maxRound,
+            nexusHp: snapshot.nexusHp,
+            maxNexusHp: snapshot.maxNexusHp,
+          );
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -310,7 +336,7 @@ class _StageCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '스테이지 $stageNumber',
+                      l10n.stageName(stageNumber),
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w900,
@@ -329,7 +355,6 @@ class _StageCard extends StatelessWidget {
                   ],
                 ),
               ),
-              _MenuMetric(label: '룬', value: '${snapshot.runes}'),
             ],
           ),
           const SizedBox(height: 10),
@@ -362,6 +387,7 @@ class _UnlockedStageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
@@ -381,7 +407,7 @@ class _UnlockedStageCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '스테이지 $stageNumber',
+                  l10n.stageName(stageNumber),
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
@@ -414,6 +440,7 @@ class _LockedStageCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
@@ -431,7 +458,7 @@ class _LockedStageCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '스테이지 $stageNumber',
+                  l10n.stageName(stageNumber),
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,
@@ -440,9 +467,12 @@ class _LockedStageCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
-                const Text(
-                  '잠김',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF667987)),
+                Text(
+                  l10n.locked,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF667987),
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -488,13 +518,12 @@ class _PermanentUpgradeMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _MenuMetric(label: '보유 룬', value: '${snapshot.runes}'),
-        const SizedBox(height: 10),
         _ProgressionUpgradeButton(
-          title: '시작 골드',
+          title: l10n.startGold,
           level: snapshot.startingGoldUpgradeLevel,
           valueText: '+${snapshot.startingGoldUpgradeLevel * 10}G',
           cost: snapshot.startingGoldUpgradeCost,
@@ -503,7 +532,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _ProgressionUpgradeButton(
-          title: '넥서스 체력',
+          title: l10n.nexusHp,
           level: snapshot.nexusHpUpgradeLevel,
           valueText: '+${snapshot.nexusHpUpgradeLevel}',
           cost: snapshot.nexusHpUpgradeCost,
@@ -511,40 +540,6 @@ class _PermanentUpgradeMenu extends StatelessWidget {
           onPressed: game.upgradeNexusHpProgression,
         ),
       ],
-    );
-  }
-}
-
-class _MenuMetric extends StatelessWidget {
-  const _MenuMetric({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xAA07111D),
-        border: Border.all(color: const Color(0x5533D8FF)),
-        borderRadius: BorderRadius.circular(7),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 10, color: Color(0xFF8AA6B8)),
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
     );
   }
 }
@@ -568,6 +563,7 @@ class _ProgressionUpgradeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return SizedBox(
       height: 44,
       child: OutlinedButton(
@@ -585,7 +581,7 @@ class _ProgressionUpgradeButton extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                '$title Lv.$level',
+                l10n.upgradeLevel(title, level),
                 style: const TextStyle(fontSize: 13),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -595,7 +591,7 @@ class _ProgressionUpgradeButton extends StatelessWidget {
               style: const TextStyle(fontSize: 12, color: Color(0xFFB9D6E4)),
             ),
             const SizedBox(width: 10),
-            Text('룬 $cost', style: const TextStyle(fontSize: 12)),
+            Text(l10n.runeCost(cost), style: const TextStyle(fontSize: 12)),
           ],
         ),
       ),

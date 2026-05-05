@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../domain/combat/game_phase.dart';
 import '../game/game_snapshot.dart';
 import '../game/rune_nexus_game.dart';
+import '../l10n/rune_nexus_localizations.dart';
 import '../ui/hud/game_hud.dart';
 import '../ui/menu/main_menu_screen.dart';
 
@@ -46,21 +48,23 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) {
+          final l10n = context.l10n;
           return AlertDialog(
-            title: const Text('진행 중인 스테이지 종료'),
+            title: Text(l10n.endActiveStageTitle),
             content: Text(
-              '스테이지 ${snapshot.currentStageNumber} 진행 상황을 종료하고 '
-              '현재 클리어 라운드 기준으로 룬을 정산한 뒤 '
-              '스테이지 $stageNumber를 시작합니다. 저장된 배치와 적 진행도는 삭제됩니다.',
+              l10n.endActiveStageBody(
+                currentStageNumber: snapshot.currentStageNumber,
+                nextStageNumber: stageNumber,
+              ),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('취소'),
+                child: Text(l10n.cancel),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('정산 후 시작'),
+                child: Text(l10n.settleAndStart),
               ),
             ],
           );
@@ -92,6 +96,14 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Rune Nexus',
+      locale: const Locale('ko'),
+      supportedLocales: RuneNexusLocalizations.supportedLocales,
+      localizationsDelegates: const [
+        RuneNexusLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF2ED3FF),

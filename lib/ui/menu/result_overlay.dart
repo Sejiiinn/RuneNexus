@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../game/game_snapshot.dart';
 import '../../game/rune_nexus_game.dart';
+import '../widgets/rune_balance_card.dart';
 
 class ResultOverlay extends StatelessWidget {
   const ResultOverlay({
@@ -77,9 +78,11 @@ class ResultOverlay extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: _ResultMetric(
-                      label: '보유 룬',
-                      value: '${snapshot.runes}',
+                    child: Center(
+                      child: RuneBalanceCard(
+                        runes: snapshot.runes,
+                        compact: true,
+                      ),
                     ),
                   ),
                 ],
