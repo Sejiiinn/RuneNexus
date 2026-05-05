@@ -48,6 +48,12 @@ class RuneNexusLocalizations {
   String get endActiveStageTitle =>
       _isEnglish ? 'End active stage' : '진행 중인 스테이지 종료';
 
+  String activeRunTitle(int stageNumber) {
+    return _isEnglish
+        ? 'Active run · Stage $stageNumber'
+        : '진행 중 · 스테이지 $stageNumber';
+  }
+
   String stageName(int stageNumber) {
     return _isEnglish ? 'Stage $stageNumber' : '스테이지 $stageNumber';
   }
@@ -76,6 +82,12 @@ class RuneNexusLocalizations {
     return _isEnglish
         ? 'Round $round/$maxRound · Nexus $nexusHp/$maxNexusHp'
         : '라운드 $round/$maxRound · Nexus $nexusHp/$maxNexusHp';
+  }
+
+  String stageUnlockRequirement(int previousStageNumber) {
+    return _isEnglish
+        ? 'Clear Stage $previousStageNumber'
+        : '스테이지 $previousStageNumber 클리어 필요';
   }
 
   String upgradeLevel(String title, int level) {

@@ -237,35 +237,48 @@ class _StageMenu extends StatelessWidget {
         snapshot.hasStageProgress &&
         snapshot.phase != GamePhase.success &&
         snapshot.phase != GamePhase.failure;
+    final stageCount = snapshot.unlockedStageCount.clamp(1, 5);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _StageCard(
-          stageNumber: snapshot.currentStageNumber,
-          snapshot: snapshot,
-          onPressed: () => onStartStage(snapshot.currentStageNumber),
-        ),
-        const SizedBox(height: 10),
+        if (activeRunInProgress) ...[
+          _ActiveRunSummary(
+            snapshot: snapshot,
+            onPressed: () => onStartStage(snapshot.currentStageNumber),
+          ),
+          const SizedBox(height: 10),
+        ],
         GridView.count(
           crossAxisCount: 2,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
-          childAspectRatio: 2.35,
+          childAspectRatio: 2.05,
           children: [
             for (var stage = 1; stage <= 5; stage++)
-              if (stage != snapshot.currentStageNumber)
-                if (stage <= snapshot.unlockedStageCount)
-                  _UnlockedStageCard(
-                    stageNumber: stage,
-                    statusText: activeRunInProgress
-                        ? l10n.startAfterSettling
-                        : _recordTextForStage(l10n, snapshot, stage),
-                    onPressed: () => onStartStage(stage),
-                  )
-                else
-                  _LockedStageCard(stageNumber: stage),
+              _StageSelectionCard(
+                stageNumber: stage,
+                unlocked: stage <= stageCount,
+                active:
+                    activeRunInProgress && stage == snapshot.currentStageNumber,
+                statusText: _stageStatusText(
+                  l10n: l10n,
+                  snapshot: snapshot,
+                  stageNumber: stage,
+                  activeRunInProgress: activeRunInProgress,
+                ),
+                detailText: _stageDetailText(
+                  l10n: l10n,
+                  snapshot: snapshot,
+                  stageNumber: stage,
+                  activeRunInProgress: activeRunInProgress,
+                ),
+                onPressed: stage <= stageCount
+                    ? () => onStartStage(stage)
+                    : null,
+              ),
           ],
         ),
       ],
@@ -273,112 +286,117 @@ class _StageMenu extends StatelessWidget {
   }
 }
 
-class _StageCard extends StatelessWidget {
-  const _StageCard({
-    required this.stageNumber,
-    required this.snapshot,
-    required this.onPressed,
-  });
+class _ActiveRunSummary extends StatelessWidget {
+  const _ActiveRunSummary({required this.snapshot, required this.onPressed});
 
-  final int stageNumber;
   final GameSnapshot snapshot;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final phaseText = switch (snapshot.phase) {
-      GamePhase.success => l10n.cleared,
-      GamePhase.failure => l10n.settled,
-      GamePhase.wave => l10n.combatInProgress,
-      GamePhase.reward => l10n.rewardPending,
-      GamePhase.restored => l10n.savedCombat,
-      GamePhase.preparation =>
-        snapshot.hasStageProgress ? l10n.inProgress : l10n.newRun,
-    };
-    final actionText = switch (snapshot.phase) {
-      GamePhase.success || GamePhase.failure => l10n.restartRun,
-      GamePhase.wave ||
-      GamePhase.reward ||
-      GamePhase.restored => l10n.continueRun,
-      _ => snapshot.hasStageProgress ? l10n.continueRun : l10n.startStage,
-    };
-    final detailText = snapshot.hasStageProgress
-        ? l10n.stageProgressDetail(
-            round: snapshot.round,
-            maxRound: snapshot.maxRound,
-            turretCount: snapshot.placedTurretCount,
-            gold: snapshot.gold,
-          )
-        : l10n.stageFreshDetail(
-            round: snapshot.round,
-            maxRound: snapshot.maxRound,
-            nexusHp: snapshot.nexusHp,
-            maxNexusHp: snapshot.maxNexusHp,
-          );
-    final recordText = _recordTextForStage(l10n, snapshot, stageNumber);
-
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xAA07111D),
-        border: Border.all(color: const Color(0xAA33D8FF)),
+        color: const Color(0xBB07111D),
+        border: Border.all(color: const Color(0xAAE7C66A)),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
         children: [
-          Row(
-            children: [
-              const _StageIcon(unlocked: true),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.stageName(stageNumber),
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w900,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      phaseText,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF8EE6FF),
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+          const _StageIcon(unlocked: true, active: true),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.activeRunTitle(snapshot.currentStageNumber),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFFE8F8FF),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+                const SizedBox(height: 3),
+                Text(
+                  l10n.stageProgressDetail(
+                    round: snapshot.round,
+                    maxRound: snapshot.maxRound,
+                    turretCount: snapshot.placedTurretCount,
+                    gold: snapshot.gold,
+                  ),
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFFB9D6E4),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            detailText,
-            style: const TextStyle(fontSize: 12, color: Color(0xFFB9D6E4)),
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            recordText,
-            style: const TextStyle(fontSize: 11, color: Color(0xFF8AA6B8)),
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 10),
+          const SizedBox(width: 8),
           SizedBox(
-            height: 42,
-            child: FilledButton(onPressed: onPressed, child: Text(actionText)),
+            height: 34,
+            child: FilledButton(
+              onPressed: onPressed,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+              ),
+              child: Text(
+                l10n.continueRun,
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+}
+
+String _stageStatusText({
+  required RuneNexusLocalizations l10n,
+  required GameSnapshot snapshot,
+  required int stageNumber,
+  required bool activeRunInProgress,
+}) {
+  if (stageNumber > snapshot.unlockedStageCount) {
+    return l10n.locked;
+  }
+  if (activeRunInProgress && stageNumber == snapshot.currentStageNumber) {
+    return switch (snapshot.phase) {
+      GamePhase.wave => l10n.combatInProgress,
+      GamePhase.reward => l10n.rewardPending,
+      GamePhase.restored => l10n.savedCombat,
+      _ => l10n.inProgress,
+    };
+  }
+  if (activeRunInProgress) {
+    return l10n.startAfterSettling;
+  }
+  return _recordTextForStage(l10n, snapshot, stageNumber);
+}
+
+String _stageDetailText({
+  required RuneNexusLocalizations l10n,
+  required GameSnapshot snapshot,
+  required int stageNumber,
+  required bool activeRunInProgress,
+}) {
+  if (stageNumber > snapshot.unlockedStageCount) {
+    return l10n.stageUnlockRequirement(stageNumber - 1);
+  }
+  if (activeRunInProgress && stageNumber == snapshot.currentStageNumber) {
+    return l10n.stageProgressDetail(
+      round: snapshot.round,
+      maxRound: snapshot.maxRound,
+      turretCount: snapshot.placedTurretCount,
+      gold: snapshot.gold,
+    );
+  }
+  return _recordTextForStage(l10n, snapshot, stageNumber);
 }
 
 String _recordTextForStage(
@@ -396,120 +414,102 @@ String _recordTextForStage(
   return l10n.recordNone;
 }
 
-class _UnlockedStageCard extends StatelessWidget {
-  const _UnlockedStageCard({
+class _StageSelectionCard extends StatelessWidget {
+  const _StageSelectionCard({
     required this.stageNumber,
+    required this.unlocked,
+    required this.active,
     required this.statusText,
+    required this.detailText,
     required this.onPressed,
   });
 
   final int stageNumber;
+  final bool unlocked;
+  final bool active;
   final String statusText;
-  final VoidCallback onPressed;
+  final String detailText;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final borderColor = active
+        ? const Color(0xFFE7C66A)
+        : unlocked
+        ? const Color(0x7733D8FF)
+        : const Color(0x33485B68);
+    final statusColor = active
+        ? const Color(0xFFE7C66A)
+        : unlocked
+        ? const Color(0xFF8EE6FF)
+        : const Color(0xFF667987);
+
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.white,
+        foregroundColor: unlocked ? Colors.white : const Color(0xFF7F93A1),
+        disabledForegroundColor: const Color(0xFF7F93A1),
         backgroundColor: const Color(0x6607111D),
-        side: const BorderSide(color: Color(0x7733D8FF)),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        side: BorderSide(color: borderColor, width: active ? 1.5 : 1),
+        padding: EdgeInsets.zero,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
-      child: Row(
-        children: [
-          const _StageIcon(unlocked: true),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(10, 12, 10, 9),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
               children: [
-                Text(
-                  l10n.stageName(stageNumber),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
+                _StageIcon(unlocked: unlocked, active: active),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.stageName(stageNumber),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: unlocked
+                          ? const Color(0xFFE8F8FF)
+                          : const Color(0xFF7F93A1),
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  statusText,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF8EE6FF),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LockedStageCard extends StatelessWidget {
-  const _LockedStageCard({required this.stageNumber});
-
-  final int stageNumber;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0x6607111D),
-        border: Border.all(color: const Color(0x33485B68)),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          const _StageIcon(unlocked: false),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.stageName(stageNumber),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF7F93A1),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  l10n.locked,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFF667987),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+            const SizedBox(height: 5),
+            Text(
+              statusText,
+              style: TextStyle(fontSize: 11, color: statusColor),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
-          ),
-        ],
+            const SizedBox(height: 2),
+            Text(
+              detailText,
+              style: TextStyle(
+                fontSize: 10,
+                color: unlocked
+                    ? const Color(0xFFB9D6E4)
+                    : const Color(0xFF667987),
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _StageIcon extends StatelessWidget {
-  const _StageIcon({required this.unlocked});
+  const _StageIcon({required this.unlocked, this.active = false});
 
   final bool unlocked;
+  final bool active;
 
   @override
   Widget build(BuildContext context) {
@@ -517,15 +517,27 @@ class _StageIcon extends StatelessWidget {
       width: 34,
       height: 34,
       decoration: BoxDecoration(
-        color: unlocked ? const Color(0x2233D8FF) : const Color(0x22485B68),
+        color: active
+            ? const Color(0x22E7C66A)
+            : unlocked
+            ? const Color(0x2233D8FF)
+            : const Color(0x22485B68),
         border: Border.all(
-          color: unlocked ? const Color(0xAA33D8FF) : const Color(0x55485B68),
+          color: active
+              ? const Color(0xAAE7C66A)
+              : unlocked
+              ? const Color(0xAA33D8FF)
+              : const Color(0x55485B68),
         ),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Icon(
         unlocked ? Icons.flag_outlined : Icons.lock_outline,
-        color: unlocked ? const Color(0xFF8EE6FF) : const Color(0xFF6D7F8F),
+        color: active
+            ? const Color(0xFFE7C66A)
+            : unlocked
+            ? const Color(0xFF8EE6FF)
+            : const Color(0xFF6D7F8F),
         size: 18,
       ),
     );
