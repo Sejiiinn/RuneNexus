@@ -60,9 +60,9 @@ class _BottomBar extends StatelessWidget {
                         ),
                 ),
                 const SizedBox(width: 8),
-                FilledButton(
-                  onPressed: canPrepare ? game.startNextWave : null,
-                  child: const Text('시작'),
+                _StartWaveButton(
+                  enabled: canPrepare,
+                  onPressed: game.startNextWave,
                 ),
               ],
             ),
@@ -378,17 +378,10 @@ class _BuildSelectionPanel extends StatelessWidget {
                       ),
                     ),
                     if (canInstall)
-                      SizedBox(
-                        height: 30,
-                        child: FilledButton(
-                          onPressed: snapshot.gold >= definition.cost
-                              ? game.confirmBuildSelectedTile
-                              : null,
-                          child: Text(
-                            '설치 ${definition.cost}G',
-                            style: const TextStyle(fontSize: 11),
-                          ),
-                        ),
+                      _InstallTurretButton(
+                        definition: definition,
+                        enabled: snapshot.gold >= definition.cost,
+                        onPressed: game.confirmBuildSelectedTile,
                       ),
                   ],
                 ),
@@ -408,6 +401,160 @@ class _BuildSelectionPanel extends StatelessWidget {
                 _BuildTurretStats(definition: definition),
               ],
             ),
+    );
+  }
+}
+
+class _StartWaveButton extends StatelessWidget {
+  const _StartWaveButton({required this.enabled, required this.onPressed});
+
+  final bool enabled;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = enabled
+        ? const Color(0xFF04121D)
+        : const Color(0xFF66798A);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? onPressed : null,
+        borderRadius: BorderRadius.circular(8),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          height: 40,
+          padding: const EdgeInsets.symmetric(horizontal: 13),
+          decoration: BoxDecoration(
+            gradient: enabled
+                ? const LinearGradient(
+                    colors: [Color(0xFF8EE6FF), Color(0xFF50E6FF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: enabled ? null : const Color(0x33223543),
+            border: Border.all(
+              color: enabled
+                  ? const Color(0xFFBFF4FF)
+                  : const Color(0x33485B68),
+            ),
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: enabled
+                ? const [
+                    BoxShadow(
+                      color: Color(0x4433D8FF),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.play_arrow_rounded, size: 20, color: foreground),
+              const SizedBox(width: 4),
+              Text(
+                '시작',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  color: foreground,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InstallTurretButton extends StatelessWidget {
+  const _InstallTurretButton({
+    required this.definition,
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  final TurretDefinition definition;
+  final bool enabled;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = definition.color;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: enabled ? onPressed : null,
+        borderRadius: BorderRadius.circular(8),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          height: 34,
+          padding: const EdgeInsets.only(left: 10, right: 7),
+          decoration: BoxDecoration(
+            color: enabled
+                ? accent.withValues(alpha: 0.22)
+                : const Color(0x33223543),
+            border: Border.all(
+              color: enabled
+                  ? accent.withValues(alpha: 0.9)
+                  : const Color(0x33485B68),
+            ),
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: enabled
+                ? [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.18),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.add_circle_outline,
+                size: 16,
+                color: enabled ? accent : const Color(0xFF66798A),
+              ),
+              const SizedBox(width: 5),
+              Text(
+                '설치',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: enabled
+                      ? const Color(0xFFE8F8FF)
+                      : const Color(0xFF66798A),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                decoration: BoxDecoration(
+                  color: enabled
+                      ? const Color(0xBB07111D)
+                      : const Color(0x44223543),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '${definition.cost}G',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: enabled ? accent : const Color(0xFF66798A),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
