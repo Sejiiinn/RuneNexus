@@ -43,6 +43,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _chainDamageMultiplier = 0.5;
   static const double _burnDamagePerSecondScale = 0.5;
   static const double _burnDurationSeconds = 2;
+  static const double burnDamagePerSecondScale = _burnDamagePerSecondScale;
+  static const double burnDurationSeconds = _burnDurationSeconds;
   static const double _minBoardZoom = 1;
   static const double _maxBoardZoom = 2.1;
 

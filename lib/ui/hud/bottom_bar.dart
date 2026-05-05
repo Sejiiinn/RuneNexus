@@ -420,11 +420,44 @@ class _BuildTurretStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dps = definition.damage * definition.attackRate;
+    final burnDps = definition.attackTags.contains(AttackTag.damageOverTime)
+        ? definition.damage * RuneNexusGame.burnDamagePerSecondScale
+        : 0.0;
     return Row(
       children: [
         _StatPill(label: '피해', value: definition.damage.toStringAsFixed(1)),
         const SizedBox(width: 5),
-        _StatPill(label: 'DPS', value: dps.toStringAsFixed(1)),
+        _StatPill(
+          label: 'DPS',
+          value: dps.toStringAsFixed(1),
+          valueChild: burnDps > 0
+              ? RichText(
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFE8F8FF),
+                    ),
+                    children: [
+                      TextSpan(text: dps.toStringAsFixed(1)),
+                      TextSpan(
+                        text: ' +${burnDps.toStringAsFixed(1)}',
+                        style: const TextStyle(color: Color(0xFFFFA24A)),
+                      ),
+                    ],
+                  ),
+                )
+              : null,
+        ),
+        if (burnDps > 0) ...[
+          const SizedBox(width: 5),
+          _StatPill(
+            label: '화상',
+            value: '${RuneNexusGame.burnDurationSeconds.toStringAsFixed(1)}초',
+          ),
+        ],
         const SizedBox(width: 5),
         _StatPill(label: '사거리', value: definition.range.round().toString()),
         const SizedBox(width: 5),
