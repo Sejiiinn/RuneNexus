@@ -29,6 +29,11 @@ part 'gem_equip_panel.dart';
 part 'reward_overlay.dart';
 part 'hud_common.dart';
 
+const _showDebugPanel = bool.fromEnvironment(
+  'RUNE_NEXUS_DEBUG_PANEL',
+  defaultValue: false,
+);
+
 class GameHud extends StatefulWidget {
   const GameHud({
     required this.game,
@@ -157,6 +162,7 @@ class _GameHudState extends State<GameHud> {
                   _TopBar(
                     game: widget.game,
                     snapshot: snapshot,
+                    showDebugButton: _showDebugPanel,
                     showGemDebugPanel: _showGemDebugPanel,
                     onOpenMainMenu: () => _handleOpenMainMenu(snapshot),
                     onToggleGemDebugPanel: () {
@@ -165,7 +171,7 @@ class _GameHudState extends State<GameHud> {
                       });
                     },
                   ),
-                  if (_showGemDebugPanel)
+                  if (_showDebugPanel && _showGemDebugPanel)
                     Positioned(
                       top: 78,
                       right: 12,

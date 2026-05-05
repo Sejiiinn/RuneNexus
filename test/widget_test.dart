@@ -42,6 +42,21 @@ void main() {
     expect(find.text('Rune Nexus'), findsOneWidget);
   });
 
+  testWidgets('stage cards fit on narrow menu width', (tester) async {
+    tester.view.physicalSize = const Size(360, 720);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(const RuneNexusApp());
+    await tester.pump();
+
+    expect(find.text('스테이지 1 클리어 필요'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('result overlay exposes next stage and growth actions', (
     tester,
   ) async {
@@ -137,6 +152,17 @@ void main() {
 
     expect(find.text('정말 종료할까요?'), findsOneWidget);
     expect(find.textContaining('+1 룬'), findsOneWidget);
+  });
+
+  testWidgets('debug panel button is hidden by default', (tester) async {
+    await tester.pumpWidget(const RuneNexusApp());
+    await tester.pump();
+
+    await tester.tap(find.text('스테이지 1'));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.diamond_outlined), findsNothing);
+    expect(find.text('테스트 라운드'), findsNothing);
   });
 }
 

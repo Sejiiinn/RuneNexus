@@ -275,37 +275,51 @@ class _StageMenu extends StatelessWidget {
           ),
           const SizedBox(height: 10),
         ],
-        GridView.count(
-          crossAxisCount: 2,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          childAspectRatio: 2.05,
-          children: [
-            for (var stage = 1; stage <= 5; stage++)
-              _StageSelectionCard(
-                stageNumber: stage,
-                unlocked: stage <= stageCount,
-                active:
-                    activeRunInProgress && stage == snapshot.currentStageNumber,
-                statusText: _stageStatusText(
-                  l10n: l10n,
-                  snapshot: snapshot,
-                  stageNumber: stage,
-                  activeRunInProgress: activeRunInProgress,
-                ),
-                detailText: _stageDetailText(
-                  l10n: l10n,
-                  snapshot: snapshot,
-                  stageNumber: stage,
-                  activeRunInProgress: activeRunInProgress,
-                ),
-                onPressed: stage <= stageCount
-                    ? () => onStartStage(stage)
-                    : null,
-              ),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final narrow = constraints.maxWidth < 380;
+            final singleColumn = constraints.maxWidth < 300;
+            final columnCount = singleColumn ? 1 : 2;
+            final aspectRatio = singleColumn
+                ? 2.7
+                : narrow
+                ? 1.45
+                : 2.05;
+
+            return GridView.count(
+              crossAxisCount: columnCount,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: aspectRatio,
+              children: [
+                for (var stage = 1; stage <= 5; stage++)
+                  _StageSelectionCard(
+                    stageNumber: stage,
+                    unlocked: stage <= stageCount,
+                    active:
+                        activeRunInProgress &&
+                        stage == snapshot.currentStageNumber,
+                    statusText: _stageStatusText(
+                      l10n: l10n,
+                      snapshot: snapshot,
+                      stageNumber: stage,
+                      activeRunInProgress: activeRunInProgress,
+                    ),
+                    detailText: _stageDetailText(
+                      l10n: l10n,
+                      snapshot: snapshot,
+                      stageNumber: stage,
+                      activeRunInProgress: activeRunInProgress,
+                    ),
+                    onPressed: stage <= stageCount
+                        ? () => onStartStage(stage)
+                        : null,
+                  ),
+              ],
+            );
+          },
         ),
       ],
     );

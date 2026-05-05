@@ -4,6 +4,7 @@ class _TopBar extends StatelessWidget {
   const _TopBar({
     required this.game,
     required this.snapshot,
+    required this.showDebugButton,
     required this.showGemDebugPanel,
     required this.onToggleGemDebugPanel,
     this.onOpenMainMenu,
@@ -11,6 +12,7 @@ class _TopBar extends StatelessWidget {
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
+  final bool showDebugButton;
   final bool showGemDebugPanel;
   final VoidCallback onToggleGemDebugPanel;
   final VoidCallback? onOpenMainMenu;
@@ -60,35 +62,37 @@ class _TopBar extends StatelessWidget {
                 icon: const Icon(Icons.home_outlined, size: 17),
               ),
             ),
-            const SizedBox(width: 6),
-            SizedBox(
-              width: 30,
-              height: 28,
-              child: IconButton(
-                onPressed: onToggleGemDebugPanel,
-                style: IconButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  backgroundColor: showGemDebugPanel
-                      ? const Color(0xFF8EE6FF)
-                      : Colors.transparent,
-                  side: BorderSide(
-                    color: showGemDebugPanel
+            if (showDebugButton) ...[
+              const SizedBox(width: 6),
+              SizedBox(
+                width: 30,
+                height: 28,
+                child: IconButton(
+                  onPressed: onToggleGemDebugPanel,
+                  style: IconButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    backgroundColor: showGemDebugPanel
                         ? const Color(0xFF8EE6FF)
-                        : const Color(0x5533D8FF),
+                        : Colors.transparent,
+                    side: BorderSide(
+                      color: showGemDebugPanel
+                          ? const Color(0xFF8EE6FF)
+                          : const Color(0x5533D8FF),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
+                  icon: Icon(
+                    Icons.diamond_outlined,
+                    size: 17,
+                    color: showGemDebugPanel
+                        ? const Color(0xFF07111D)
+                        : Colors.white,
                   ),
-                ),
-                icon: Icon(
-                  Icons.diamond_outlined,
-                  size: 17,
-                  color: showGemDebugPanel
-                      ? const Color(0xFF07111D)
-                      : Colors.white,
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),
