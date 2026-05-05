@@ -233,6 +233,37 @@ void main() {
     expect(demoTurrets[TurretType.magic]!.range, 108);
   });
 
+  test('runtime combat distances scale with board tile size', () async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.tryBuildTurret(const GridPoint(2, 0));
+    final turret = game.children.whereType<TurretComponent>().single;
+    final expectedScale = 40.7 / 48;
+
+    expect(game.boardDistanceScale, closeTo(expectedScale, 0.001));
+    expect(turret.range, closeTo(96 * expectedScale, 0.001));
+  });
+
+  test('enemy movement speed scales with board tile size', () async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    final normal = demoEnemies[EnemyType.normal]!;
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    final enemy = EnemyComponent(
+      definition: normal,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(200, 0)],
+      game: game,
+    );
+
+    enemy.update(1);
+
+    expect(enemy.position.x, closeTo(31.5 * game.boardDistanceScale, 0.001));
+  });
+
   test('turret fire rate is represented as shots per second', () {
     expect(demoTurrets[TurretType.arrow]!.attackRate, 2.27);
     expect(demoTurrets[TurretType.cannon]!.attackRate, 0.4);

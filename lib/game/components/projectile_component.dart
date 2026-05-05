@@ -14,7 +14,7 @@ class ProjectileComponent extends PositionComponent {
     required this.owner,
     required this.game,
   }) : _direction = _safeDirection(origin, targetPosition),
-       _maxDistance = owner.range + 64,
+       _maxDistance = owner.range + 64 * owner.game.boardDistanceScale,
        super(
          position: origin,
          size: Vector2.all(_visualSize(owner.definition.type)),

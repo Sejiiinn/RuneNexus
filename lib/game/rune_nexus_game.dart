@@ -45,6 +45,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _burnDurationSeconds = 2;
   static const double burnDamagePerSecondScale = _burnDamagePerSecondScale;
   static const double burnDurationSeconds = _burnDurationSeconds;
+  static const double _designTileSize = 48;
+  static const double _chainJumpRange = 88;
   static const double _minBoardZoom = 1;
   static const double _maxBoardZoom = 2.1;
 
@@ -203,6 +205,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   late Vector2 _origin;
   late double _tileSize;
   late List<Vector2> _worldPath;
+  bool _boardConfigured = false;
 
   int _gold = RunProgression.baseInitialGold;
   int _nexusHp = RunProgression.baseNexusHp;
@@ -234,6 +237,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   GameSaveData? _pendingFullSaveData;
 
   bool get isWaveRunning => _phase == GamePhase.wave;
+  double get boardDistanceScale =>
+      _boardConfigured ? _tileSize / _designTileSize : 1;
   bool isTurretSelected(GridPoint point) => _selectedTurretPoint == point;
 
   int get _initialGold => _progression.initialGold;
@@ -930,12 +935,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       TurretType.magic => ImpactEffectStyle.flame,
     };
     final radius = owner.splashRadius > 0
-        ? owner.splashRadius.clamp(18, 48).toDouble()
+        ? owner.splashRadius
+              .clamp(18 * boardDistanceScale, 48 * boardDistanceScale)
+              .toDouble()
         : switch (owner.definition.type) {
-            TurretType.arrow => 11.0,
-            TurretType.cannon => 22.0,
-            TurretType.magic => 16.0,
-          };
+                TurretType.arrow => 11.0,
+                TurretType.cannon => 22.0,
+                TurretType.magic => 16.0,
+              } *
+              boardDistanceScale;
     add(
       ImpactEffectComponent(
         position: position,
@@ -956,7 +964,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
           return enemy.isMounted &&
               !enemy.isDead &&
               !excluded.contains(enemy) &&
-              enemy.position.distanceTo(source.position) <= 88;
+              enemy.position.distanceTo(source.position) <=
+                  _chainJumpRange * boardDistanceScale;
         }).toList()..sort(
           (a, b) => a.position
               .distanceTo(source.position)
@@ -1018,6 +1027,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       12.0,
       math.min(availableWidth / _map.columns, availableHeight / _map.rows),
     );
+    _boardConfigured = true;
     final width = _tileSize * _map.columns;
     final height = _tileSize * _map.rows;
     _origin = Vector2(
@@ -1118,8 +1128,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.6;
 
-    canvas.drawCircle(ghostCenter, definition.range, rangeFill);
-    canvas.drawCircle(ghostCenter, definition.range, rangeStroke);
+    final range = definition.range * boardDistanceScale;
+    canvas.drawCircle(ghostCenter, range, rangeFill);
+    canvas.drawCircle(ghostCenter, range, rangeStroke);
 
     final ghostSize = _tileSize * 0.72;
     final ghostBounds = Rect.fromCenter(

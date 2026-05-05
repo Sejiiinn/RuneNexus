@@ -103,9 +103,10 @@ class TurretComponent extends PositionComponent {
   }
 
   double get range {
-    return definition.range +
-        (_level - 1) * _rangeGrowthPerLevel +
-        (hasGem(GemType.range) ? 32 : 0);
+    return (definition.range +
+            (_level - 1) * _rangeGrowthPerLevel +
+            (hasGem(GemType.range) ? 32 : 0)) *
+        game.boardDistanceScale;
   }
 
   double get attackRate {
@@ -119,7 +120,8 @@ class TurretComponent extends PositionComponent {
             : 1);
   }
 
-  double get projectileSpeed => definition.projectileSpeed;
+  double get projectileSpeed =>
+      definition.projectileSpeed * game.boardDistanceScale;
 
   double get damageOverTimeDamageMultiplier =>
       definition.attackTags.contains(AttackTag.damageOverTime) &&
@@ -148,9 +150,12 @@ class TurretComponent extends PositionComponent {
         : 1.0;
     if (definition.splashRadius > 0) {
       return (definition.splashRadius + (hasGem(GemType.explosion) ? 8 : 0)) *
-          heavyMultiplier;
+          heavyMultiplier *
+          game.boardDistanceScale;
     }
-    return (hasGem(GemType.explosion) ? 34 : 0) * heavyMultiplier;
+    return (hasGem(GemType.explosion) ? 34 : 0) *
+        heavyMultiplier *
+        game.boardDistanceScale;
   }
 
   bool hasGem(GemType type) => equippedGems.contains(type);

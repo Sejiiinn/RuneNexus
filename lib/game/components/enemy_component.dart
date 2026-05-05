@@ -135,7 +135,8 @@ class EnemyComponent extends PositionComponent {
       _facingAngle = math.atan2(direction.y, direction.x);
     }
     final speedMultiplier = _slowRemaining > 0 ? _slowMultiplier : 1;
-    final step = definition.speed * speedMultiplier * dt;
+    final step =
+        definition.speed * game.boardDistanceScale * speedMultiplier * dt;
 
     if (distance <= step) {
       distanceTravelled += distance;
