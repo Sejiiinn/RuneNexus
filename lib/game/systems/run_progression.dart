@@ -5,6 +5,7 @@ import '../../data/save/game_save_data.dart';
 class RunProgression {
   static const int baseInitialGold = 150;
   static const int baseNexusHp = 20;
+  static const int maxStageCount = 5;
   static const int maxProgressionLevel = 20;
   static const int startingGoldUpgradeBaseCost = 8;
   static const int nexusHpUpgradeBaseCost = 6;
@@ -13,6 +14,7 @@ class RunProgression {
   int lastRunRuneReward = 0;
   int startingGoldUpgradeLevel = 0;
   int nexusHpUpgradeLevel = 0;
+  int unlockedStageCount = 1;
 
   int get initialGold => baseInitialGold + startingGoldUpgradeLevel * 10;
   int get maxNexusHp => baseNexusHp + nexusHpUpgradeLevel;
@@ -32,6 +34,7 @@ class RunProgression {
       lastRunRuneReward: lastRunRuneReward,
       startingGoldUpgradeLevel: startingGoldUpgradeLevel,
       nexusHpUpgradeLevel: nexusHpUpgradeLevel,
+      unlockedStageCount: unlockedStageCount,
     );
   }
 
@@ -43,6 +46,9 @@ class RunProgression {
         .toInt();
     nexusHpUpgradeLevel = data.nexusHpUpgradeLevel
         .clamp(0, maxProgressionLevel)
+        .toInt();
+    unlockedStageCount = data.unlockedStageCount
+        .clamp(1, maxStageCount)
         .toInt();
   }
 
@@ -66,9 +72,18 @@ class RunProgression {
     return true;
   }
 
-  void finishRun({required int completedRounds, required bool success}) {
+  void finishRun({
+    required int completedRounds,
+    required bool success,
+    required int stageNumber,
+  }) {
     lastRunRuneReward = runeRewardFor(completedRounds, success: success);
     runes += lastRunRuneReward;
+    if (success &&
+        stageNumber >= unlockedStageCount &&
+        unlockedStageCount < maxStageCount) {
+      unlockedStageCount = math.min(maxStageCount, stageNumber + 1);
+    }
   }
 
   int runeRewardFor(int completedRounds, {required bool success}) {

@@ -6,12 +6,14 @@ class _TopBar extends StatelessWidget {
     required this.snapshot,
     required this.showGemDebugPanel,
     required this.onToggleGemDebugPanel,
+    this.onOpenMainMenu,
   });
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
   final bool showGemDebugPanel;
   final VoidCallback onToggleGemDebugPanel;
+  final VoidCallback? onOpenMainMenu;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +43,30 @@ class _TopBar extends StatelessWidget {
             ),
             const SizedBox(width: 14),
             _SpeedControl(snapshot: snapshot, game: game),
+            const SizedBox(width: 6),
+            SizedBox(
+              width: 30,
+              height: 28,
+              child: IconButton(
+                onPressed: snapshot.phase == GamePhase.preparation
+                    ? onOpenMainMenu
+                    : null,
+                style: IconButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  backgroundColor: Colors.transparent,
+                  disabledForegroundColor: const Color(0xFF506170),
+                  side: BorderSide(
+                    color: snapshot.phase == GamePhase.preparation
+                        ? const Color(0x5533D8FF)
+                        : const Color(0x33485B68),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+                icon: const Icon(Icons.home_outlined, size: 17),
+              ),
+            ),
             const SizedBox(width: 6),
             SizedBox(
               width: 30,

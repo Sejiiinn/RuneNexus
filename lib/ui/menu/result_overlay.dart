@@ -5,10 +5,16 @@ import '../../game/game_snapshot.dart';
 import '../../game/rune_nexus_game.dart';
 
 class ResultOverlay extends StatelessWidget {
-  const ResultOverlay({required this.game, required this.snapshot, super.key});
+  const ResultOverlay({
+    required this.game,
+    required this.snapshot,
+    this.onOpenMainMenu,
+    super.key,
+  });
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
+  final VoidCallback? onOpenMainMenu;
 
   @override
   Widget build(BuildContext context) {
@@ -78,28 +84,23 @@ class ResultOverlay extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-              _ProgressionUpgradeButton(
-                title: '시작 골드',
-                level: snapshot.startingGoldUpgradeLevel,
-                valueText: '+${snapshot.startingGoldUpgradeLevel * 10}G',
-                cost: snapshot.startingGoldUpgradeCost,
-                enabled: snapshot.canUpgradeStartingGold,
-                onPressed: game.upgradeStartingGoldProgression,
-              ),
-              const SizedBox(height: 6),
-              _ProgressionUpgradeButton(
-                title: '넥서스 체력',
-                level: snapshot.nexusHpUpgradeLevel,
-                valueText: '+${snapshot.nexusHpUpgradeLevel}',
-                cost: snapshot.nexusHpUpgradeCost,
-                enabled: snapshot.canUpgradeNexusHp,
-                onPressed: game.upgradeNexusHpProgression,
-              ),
               const SizedBox(height: 16),
-              FilledButton(
-                onPressed: game.restartDemo,
-                child: const Text('다시 시작'),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: onOpenMainMenu,
+                      child: const Text('메인으로'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: game.restartDemo,
+                      child: const Text('다시 시작'),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -138,61 +139,6 @@ class _ResultMetric extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ProgressionUpgradeButton extends StatelessWidget {
-  const _ProgressionUpgradeButton({
-    required this.title,
-    required this.level,
-    required this.valueText,
-    required this.cost,
-    required this.enabled,
-    required this.onPressed,
-  });
-
-  final String title;
-  final int level;
-  final String valueText;
-  final int cost;
-  final bool enabled;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 38,
-      child: OutlinedButton(
-        onPressed: enabled ? onPressed : null,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white,
-          disabledForegroundColor: const Color(0xFF6D7F8F),
-          side: BorderSide(
-            color: enabled ? const Color(0xFFE7C66A) : const Color(0x55485B68),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                '$title Lv.$level',
-                style: const TextStyle(fontSize: 12),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            Text(
-              valueText,
-              style: const TextStyle(fontSize: 11, color: Color(0xFFB9D6E4)),
-            ),
-            const SizedBox(width: 10),
-            Text('룬 $cost', style: const TextStyle(fontSize: 11)),
-          ],
-        ),
       ),
     );
   }

@@ -10,6 +10,7 @@ class GameSaveData {
     required this.savedAtMillis,
     required this.gold,
     required this.nexusHp,
+    required this.stageNumber,
     required this.roundIndex,
     required this.completedRounds,
     required this.phase,
@@ -27,6 +28,7 @@ class GameSaveData {
   final int savedAtMillis;
   final int gold;
   final int nexusHp;
+  final int stageNumber;
   final int roundIndex;
   final int completedRounds;
   final GamePhase phase;
@@ -55,6 +57,7 @@ class GameSaveData {
       'savedAtMillis': savedAtMillis,
       'gold': gold,
       'nexusHp': nexusHp,
+      'stageNumber': stageNumber,
       'roundIndex': roundIndex,
       'completedRounds': completedRounds,
       'phase': phase.name,
@@ -83,6 +86,7 @@ class GameSaveData {
       savedAtMillis: _intValue(json['savedAtMillis']),
       gold: _intValue(json['gold']),
       nexusHp: _intValue(json['nexusHp']),
+      stageNumber: _intValue(json['stageNumber'], fallback: 1),
       roundIndex: _intValue(json['roundIndex']),
       completedRounds: _intValue(json['completedRounds']),
       phase:
@@ -103,12 +107,14 @@ class SavedProgression {
     required this.lastRunRuneReward,
     required this.startingGoldUpgradeLevel,
     required this.nexusHpUpgradeLevel,
+    required this.unlockedStageCount,
   });
 
   final int runes;
   final int lastRunRuneReward;
   final int startingGoldUpgradeLevel;
   final int nexusHpUpgradeLevel;
+  final int unlockedStageCount;
 
   Map<String, Object?> toJson() {
     return {
@@ -116,6 +122,7 @@ class SavedProgression {
       'lastRunRuneReward': lastRunRuneReward,
       'startingGoldUpgradeLevel': startingGoldUpgradeLevel,
       'nexusHpUpgradeLevel': nexusHpUpgradeLevel,
+      'unlockedStageCount': unlockedStageCount,
     };
   }
 
@@ -126,6 +133,7 @@ class SavedProgression {
       lastRunRuneReward: _intValue(map['lastRunRuneReward']),
       startingGoldUpgradeLevel: _intValue(map['startingGoldUpgradeLevel']),
       nexusHpUpgradeLevel: _intValue(map['nexusHpUpgradeLevel']),
+      unlockedStageCount: _intValue(map['unlockedStageCount'], fallback: 1),
     );
   }
 }

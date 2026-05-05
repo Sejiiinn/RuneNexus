@@ -50,6 +50,7 @@ void main() {
     expect(game.snapshotNotifier.value.completedRounds, 1);
     expect(game.snapshotNotifier.value.lastRunRuneReward, 42);
     expect(game.snapshotNotifier.value.runes, 42);
+    expect(game.snapshotNotifier.value.unlockedStageCount, 2);
 
     game.upgradeStartingGoldProgression();
     game.upgradeNexusHpProgression();
@@ -58,6 +59,19 @@ void main() {
     expect(game.snapshotNotifier.value.gold, 160);
     expect(game.snapshotNotifier.value.nexusHp, 21);
     expect(game.snapshotNotifier.value.maxNexusHp, 21);
+    expect(game.snapshotNotifier.value.unlockedStageCount, 2);
+
+    game.startNextWave();
+    game.update(0.016);
+
+    expect(game.snapshotNotifier.value.unlockedStageCount, 2);
+
+    game.startStage(2);
+    game.startNextWave();
+    game.update(0.016);
+
+    expect(game.snapshotNotifier.value.currentStageNumber, 2);
+    expect(game.snapshotNotifier.value.unlockedStageCount, 3);
   });
 
   test('gem reward appears every five completed rounds', () {
@@ -91,6 +105,32 @@ void main() {
 
     expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
     expect(game.snapshotNotifier.value.gemInventory.values.single, 1);
+  });
+
+  test('abandoning an active run settles failure rewards', () async {
+    final game = RuneNexusGame(
+      waves: List<WaveDefinition>.generate(
+        3,
+        (index) => WaveDefinition(
+          round: index + 1,
+          previewText: 'test',
+          groups: const [],
+          clearRewardGold: 0,
+        ),
+      ),
+    );
+
+    game.startNextWave();
+    game.update(0.016);
+    expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+    expect(game.snapshotNotifier.value.completedRounds, 1);
+
+    await game.settleCurrentRunAsFailure();
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.failure);
+    expect(game.snapshotNotifier.value.completedRounds, 1);
+    expect(game.snapshotNotifier.value.lastRunRuneReward, 2);
+    expect(game.snapshotNotifier.value.runes, 2);
   });
 
   test('enemy hp scaling grows by round', () {
@@ -666,6 +706,8 @@ void main() {
 
     expect(restored.snapshotNotifier.value.phase, GamePhase.preparation);
     expect(restored.snapshotNotifier.value.restoredPhase, isNull);
+    expect(restored.snapshotNotifier.value.hasStageProgress, isTrue);
+    expect(restored.snapshotNotifier.value.placedTurretCount, 1);
     expect(restored.snapshotNotifier.value.round, 1);
     await restored.saveNow();
 
@@ -674,6 +716,30 @@ void main() {
     expect(resumed!.turrets.single.level, 2);
     expect(resumed.turrets.single.slotLimit, 2);
   });
+
+  test(
+    'menu preparation loads saved stage progress before game widget',
+    () async {
+      final repository = MemorySaveRepository();
+      final game = RuneNexusGame(saveRepository: repository);
+
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      game.tryBuildTurret(const GridPoint(2, 0));
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await game.saveNow();
+      expect(repository.data!.turrets, hasLength(1));
+
+      final restoredRepository = MemorySaveRepository()..data = repository.data;
+      final restored = RuneNexusGame(saveRepository: restoredRepository);
+      await restored.prepareSavedStateForMenu();
+
+      expect(restored.snapshotNotifier.value.phase, GamePhase.preparation);
+      expect(restored.snapshotNotifier.value.hasStageProgress, isTrue);
+      expect(restored.snapshotNotifier.value.placedTurretCount, 1);
+      expect(restored.snapshotNotifier.value.round, 1);
+    },
+  );
 
   test('local save restores active enemy hp and path progress', () async {
     final repository = MemorySaveRepository();

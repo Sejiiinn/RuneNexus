@@ -13,6 +13,10 @@ class GameSnapshot {
     required this.maxRound,
     required this.phase,
     required this.restoredPhase,
+    required this.hasStageProgress,
+    required this.placedTurretCount,
+    required this.currentStageNumber,
+    required this.unlockedStageCount,
     required this.selectedTurretType,
     required this.previewText,
     required this.rewardOptions,
@@ -56,6 +60,10 @@ class GameSnapshot {
   final int maxRound;
   final GamePhase phase;
   final GamePhase? restoredPhase;
+  final bool hasStageProgress;
+  final int placedTurretCount;
+  final int currentStageNumber;
+  final int unlockedStageCount;
   final TurretType selectedTurretType;
   final String previewText;
   final List<GemType> rewardOptions;

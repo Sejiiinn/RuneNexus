@@ -61,6 +61,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
            maxRound: (waves ?? demoWaves).length,
            phase: GamePhase.preparation,
            restoredPhase: null,
+           hasStageProgress: false,
+           placedTurretCount: 0,
+           currentStageNumber: 1,
+           unlockedStageCount: 1,
            selectedTurretType: TurretType.arrow,
            previewText: (waves ?? demoWaves).first.previewText,
            rewardOptions: const [],
@@ -122,6 +126,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   int _gold = RunProgression.baseInitialGold;
   int _nexusHp = RunProgression.baseNexusHp;
+  int _currentStageNumber = 1;
   int _completedRounds = 0;
   int _roundIndex = 0;
   GamePhase _phase = GamePhase.preparation;
@@ -140,6 +145,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   Vector2? _lastDragPosition;
   double _dragDistance = 0;
   bool _suppressNextTap = false;
+  bool _savedDataLoaded = false;
+  bool _menuSaveDataLoaded = false;
+  int _savedTurretCountForMenu = 0;
+  GameSaveData? _pendingFullSaveData;
 
   bool get isWaveRunning => _phase == GamePhase.wave;
   int get _initialGold => _progression.initialGold;
@@ -160,9 +169,20 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       tileSize: _tileSize,
     );
     add(_gridComponent);
+    await _restoreSavedDataIfNeeded();
+    _syncBoardComponents();
+    _publish();
+  }
+
+  Future<void> prepareSavedStateForMenu() async {
+    if (isLoaded || _savedDataLoaded || _menuSaveDataLoaded) {
+      return;
+    }
+    _menuSaveDataLoaded = true;
     final savedData = await _saveRepository.load();
+    _pendingFullSaveData = savedData;
     if (savedData != null) {
-      _restoreFromSaveData(savedData);
+      _restoreMenuStateFromSaveData(savedData);
     }
     _publish();
   }
@@ -308,7 +328,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
-  void restartDemo() {
+  void startStage(int stageNumber) {
+    restartDemo(stageNumber: stageNumber);
+  }
+
+  void restartDemo({int? stageNumber}) {
+    if (stageNumber != null) {
+      _currentStageNumber = _clampedStageNumber(stageNumber);
+    }
     _clearActiveCombat();
 
     for (final turret in _turrets.values.toList()) {
@@ -317,6 +344,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _turrets.clear();
     _gemInventory.clear();
     _rewardOptions.clear();
+    _pendingFullSaveData = null;
+    _savedTurretCountForMenu = 0;
+    _menuSaveDataLoaded = true;
 
     _gold = _initialGold;
     _nexusHp = _maxNexusHp;
@@ -332,6 +362,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _restoredPhase = null;
     _publish();
     _requestLocalSave(immediate: true);
+  }
+
+  Future<void> settleCurrentRunAsFailure() async {
+    if (_phase == GamePhase.success || _phase == GamePhase.failure) {
+      return;
+    }
+    _finishRun(GamePhase.failure);
+    _publish();
+    await _saveRoundCheckpoint();
   }
 
   void continueRestoredRun() {
@@ -1042,8 +1081,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     final success = resultPhase == GamePhase.success;
     _completedRounds = success ? _waves.length : _roundIndex;
-    _progression.finishRun(completedRounds: _completedRounds, success: success);
+    _progression.finishRun(
+      completedRounds: _completedRounds,
+      success: success,
+      stageNumber: _currentStageNumber,
+    );
     _phase = resultPhase;
+  }
+
+  int _clampedStageNumber(int stageNumber) {
+    return stageNumber.clamp(1, _progression.unlockedStageCount).toInt();
   }
 
   void _requestLocalSave({bool immediate = false}) {
@@ -1076,28 +1123,92 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
   }
 
+  Future<void> _restoreSavedDataIfNeeded() async {
+    if (_savedDataLoaded) {
+      return;
+    }
+    _savedDataLoaded = true;
+    final savedData = _pendingFullSaveData ?? await _saveRepository.load();
+    _pendingFullSaveData = null;
+    _savedTurretCountForMenu = 0;
+    if (savedData != null) {
+      _restoreFromSaveData(savedData);
+    }
+  }
+
   GameSaveData _buildSaveData() {
     final savedPhase = _phase == GamePhase.restored
         ? _restoredPhase ?? GamePhase.preparation
         : _phase;
+    final pendingSave = !_savedDataLoaded ? _pendingFullSaveData : null;
     return GameSaveData(
       version: GameSaveData.currentVersion,
       savedAtMillis: DateTime.now().millisecondsSinceEpoch,
       gold: _gold,
       nexusHp: _nexusHp,
+      stageNumber: _currentStageNumber,
       roundIndex: _roundIndex,
       completedRounds: _completedRounds,
       phase: savedPhase,
       progression: _progression.toSaveData(),
       gemInventory: Map.unmodifiable(_gemInventory),
       rewardOptions: List.unmodifiable(_rewardOptions),
-      turrets: [for (final turret in _turrets.values) turret.toSaveData()],
-      enemies: [
-        for (final enemy in enemies)
-          if (!enemy.isDead) enemy.toSaveData(),
-      ],
-      spawnQueue: _waveSpawner.toSaveData(),
+      turrets:
+          pendingSave?.turrets ??
+          [for (final turret in _turrets.values) turret.toSaveData()],
+      enemies:
+          pendingSave?.enemies ??
+          [
+            for (final enemy in enemies)
+              if (!enemy.isDead) enemy.toSaveData(),
+          ],
+      spawnQueue: pendingSave?.spawnQueue ?? _waveSpawner.toSaveData(),
     );
+  }
+
+  void _restoreMenuStateFromSaveData(GameSaveData data) {
+    _progression.restoreFromSaveData(data.progression);
+    _gemInventory
+      ..clear()
+      ..addEntries(data.gemInventory.entries.where((entry) => entry.value > 0));
+    _rewardOptions
+      ..clear()
+      ..addAll(data.rewardOptions);
+    _savedTurretCountForMenu = data.turrets.length;
+
+    if (!data.hasActiveRun) {
+      _savedTurretCountForMenu = 0;
+      _currentStageNumber = _clampedStageNumber(data.stageNumber);
+      _gold = _initialGold;
+      _nexusHp = _maxNexusHp;
+      _roundIndex = 0;
+      _completedRounds = 0;
+      _phase = GamePhase.preparation;
+      _restoredPhase = null;
+      return;
+    }
+    _gold = math.max(0, data.gold);
+    _currentStageNumber = _clampedStageNumber(data.stageNumber);
+    _nexusHp = data.nexusHp.clamp(0, _maxNexusHp).toInt();
+    _roundIndex = data.roundIndex.clamp(0, _waves.length - 1).toInt();
+    _completedRounds = data.completedRounds.clamp(0, _waves.length).toInt();
+    _selectedTurretType = TurretType.arrow;
+    _selectedBuildTurretType = null;
+    _selectedBuildPoint = null;
+    _selectedTurretPoint = null;
+    _selectedTurretGemSlotIndex = null;
+
+    final restoredPhase = data.phase == GamePhase.restored
+        ? GamePhase.preparation
+        : data.phase;
+    if (restoredPhase != GamePhase.wave) {
+      _phase = restoredPhase;
+      _restoredPhase = null;
+      return;
+    }
+
+    _phase = GamePhase.restored;
+    _restoredPhase = restoredPhase;
   }
 
   void _restoreFromSaveData(GameSaveData data) {
@@ -1115,6 +1226,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       ..addAll(data.rewardOptions);
 
     if (!data.hasActiveRun) {
+      _currentStageNumber = _clampedStageNumber(data.stageNumber);
       _gold = _initialGold;
       _nexusHp = _maxNexusHp;
       _roundIndex = 0;
@@ -1125,6 +1237,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     _gold = math.max(0, data.gold);
+    _currentStageNumber = _clampedStageNumber(data.stageNumber);
     _nexusHp = data.nexusHp.clamp(0, _maxNexusHp).toInt();
     _roundIndex = data.roundIndex.clamp(0, _waves.length - 1).toInt();
     _completedRounds = data.completedRounds.clamp(0, _waves.length).toInt();
@@ -1225,6 +1338,20 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         nextWaveEnemyTypes.add(group.enemyType);
       }
     }
+    final hasStageProgress =
+        _phase == GamePhase.wave ||
+        _phase == GamePhase.reward ||
+        _phase == GamePhase.restored ||
+        _roundIndex > 0 ||
+        _completedRounds > 0 ||
+        _turrets.isNotEmpty ||
+        _savedTurretCountForMenu > 0 ||
+        enemies.isNotEmpty ||
+        !_waveSpawner.isEmpty ||
+        _gemInventory.isNotEmpty ||
+        _rewardOptions.isNotEmpty ||
+        _gold != _initialGold ||
+        _nexusHp != _maxNexusHp;
     snapshotNotifier.value = GameSnapshot(
       gold: _gold,
       nexusHp: _nexusHp,
@@ -1233,6 +1360,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       maxRound: _waves.length,
       phase: _phase,
       restoredPhase: _phase == GamePhase.restored ? _restoredPhase : null,
+      hasStageProgress: hasStageProgress,
+      placedTurretCount: math.max(_turrets.length, _savedTurretCountForMenu),
+      currentStageNumber: _currentStageNumber,
+      unlockedStageCount: _progression.unlockedStageCount,
       selectedTurretType: _selectedTurretType,
       previewText: nextWave.previewText,
       rewardOptions: List.unmodifiable(_rewardOptions),
