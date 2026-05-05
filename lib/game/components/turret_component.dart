@@ -312,13 +312,21 @@ class TurretComponent extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
+    final selected = game.isTurretSelected(gridPoint);
+    final center = Offset(size.x / 2, size.y / 2);
     final rangePaint = Paint()
       ..color = definition.color.withValues(alpha: 0.08)
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(size.x / 2, size.y / 2), range, rangePaint);
+    canvas.drawCircle(center, range, rangePaint);
+    if (selected) {
+      final rangeStroke = Paint()
+        ..color = definition.color.withValues(alpha: 0.48)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.8;
+      canvas.drawCircle(center, range, rangeStroke);
+    }
 
-    final center = Offset(size.x / 2, size.y / 2);
-    if (game.isTurretSelected(gridPoint)) {
+    if (selected) {
       _drawSelectionHighlight(canvas, center);
     }
 
