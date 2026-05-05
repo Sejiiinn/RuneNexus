@@ -218,6 +218,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   GameSaveData? _pendingFullSaveData;
 
   bool get isWaveRunning => _phase == GamePhase.wave;
+  bool isTurretSelected(GridPoint point) => _selectedTurretPoint == point;
+
   int get _initialGold => _progression.initialGold;
   int get _maxNexusHp => _progression.maxNexusHp;
   bool get _canEditBoard =>
@@ -329,7 +331,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
     if (_canEditBoard && _map.canBuildAt(point)) {
       _selectedBuildPoint = point;
-      _selectedBuildTurretType = null;
       _selectedTurretPoint = null;
       _selectedTurretGemSlotIndex = null;
       _publish();
@@ -345,18 +346,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   void previewOrBuildSelectedTile(TurretType type) {
     _selectedTurretType = type;
+    _selectedBuildTurretType = type;
+    _selectedTurretPoint = null;
+    _selectedTurretGemSlotIndex = null;
     final point = _selectedBuildPoint;
     if (point == null) {
       _publish();
       return;
     }
 
-    if (_selectedBuildTurretType != type) {
-      _selectedBuildTurretType = type;
-      _publish();
-      return;
-    }
-    tryBuildTurret(point);
+    _publish();
   }
 
   void confirmBuildSelectedTile() {

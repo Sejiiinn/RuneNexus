@@ -272,6 +272,10 @@ class TurretComponent extends PositionComponent {
     canvas.drawCircle(Offset(size.x / 2, size.y / 2), range, rangePaint);
 
     final center = Offset(size.x / 2, size.y / 2);
+    if (game.isTurretSelected(gridPoint)) {
+      _drawSelectionHighlight(canvas, center);
+    }
+
     drawTurretShape(
       canvas,
       size: Size(size.x, size.y),
@@ -316,5 +320,31 @@ class TurretComponent extends PositionComponent {
         Paint()..color = game.colorForGem(equippedGems[i]),
       );
     }
+  }
+
+  void _drawSelectionHighlight(Canvas canvas, Offset center) {
+    final tileRect = Rect.fromCenter(
+      center: center,
+      width: _tileSize - 4,
+      height: _tileSize - 4,
+    );
+    final radius = Radius.circular(_tileSize * 0.09);
+    final outerPaint = Paint()
+      ..color = definition.color.withValues(alpha: 0.95)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.2;
+    final glowPaint = Paint()
+      ..color = definition.color.withValues(alpha: 0.2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8;
+    final innerPaint = Paint()
+      ..color = const Color(0xEEFFFFFF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4;
+
+    canvas.drawRRect(RRect.fromRectAndRadius(tileRect, radius), glowPaint);
+    canvas.drawRRect(RRect.fromRectAndRadius(tileRect, radius), outerPaint);
+    canvas.drawCircle(center, _tileSize * 0.42, outerPaint);
+    canvas.drawCircle(center, _tileSize * 0.32, innerPaint);
   }
 }

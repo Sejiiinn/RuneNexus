@@ -21,25 +21,59 @@ class _TurretButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: enabled ? onPressed : null,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.white,
-        side: BorderSide(
-          color: selected ? color : const Color(0x5533D8FF),
-          width: selected ? 2 : 1,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 120),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: selected
+            ? [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.34),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _TurretShapeIcon(type: type, color: color),
-          const SizedBox(height: 2),
-          Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
-          Text('$cost G', style: const TextStyle(fontSize: 11)),
-        ],
+      child: OutlinedButton(
+        onPressed: enabled ? onPressed : null,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.white,
+          backgroundColor: selected
+              ? color.withValues(alpha: 0.2)
+              : Colors.transparent,
+          side: BorderSide(
+            color: selected ? color : const Color(0x5533D8FF),
+            width: selected ? 2.4 : 1,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _TurretShapeIcon(type: type, color: color),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontWeight: selected ? FontWeight.w900 : FontWeight.w500,
+              ),
+            ),
+            Text(
+              selected ? '선택됨 · $cost G' : '$cost G',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w400,
+                color: selected ? color : null,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

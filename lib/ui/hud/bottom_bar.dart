@@ -69,7 +69,9 @@ class _BottomBar extends StatelessWidget {
             if (snapshot.selectedTurretPoint != null && canEditBoard) ...[
               const SizedBox(height: 8),
               _GemEquipPanel(game: game, snapshot: snapshot),
-            ] else if (snapshot.selectedBuildPoint != null && canEditBoard) ...[
+            ] else if ((snapshot.selectedBuildPoint != null ||
+                    snapshot.selectedBuildTurretType != null) &&
+                canEditBoard) ...[
               const SizedBox(height: 8),
               _BuildSelectionPanel(game: game, snapshot: snapshot),
             ],
@@ -86,8 +88,7 @@ class _BottomBar extends StatelessWidget {
                       cost: definition.cost,
                       color: definition.color,
                       selected: snapshot.selectedBuildTurretType == type,
-                      enabled:
-                          canEditBoard && snapshot.selectedBuildPoint != null,
+                      enabled: canEditBoard,
                       onPressed: () => game.previewOrBuildSelectedTile(type),
                     ),
                   ),
@@ -344,6 +345,7 @@ class _BuildSelectionPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final type = snapshot.selectedBuildTurretType;
     final definition = type == null ? null : demoTurrets[type]!;
+    final canInstall = snapshot.selectedBuildPoint != null;
 
     return Container(
       width: double.infinity,
@@ -375,18 +377,19 @@ class _BuildSelectionPanel extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    SizedBox(
-                      height: 30,
-                      child: FilledButton(
-                        onPressed: snapshot.gold >= definition.cost
-                            ? game.confirmBuildSelectedTile
-                            : null,
-                        child: Text(
-                          '설치 ${definition.cost}G',
-                          style: const TextStyle(fontSize: 11),
+                    if (canInstall)
+                      SizedBox(
+                        height: 30,
+                        child: FilledButton(
+                          onPressed: snapshot.gold >= definition.cost
+                              ? game.confirmBuildSelectedTile
+                              : null,
+                          child: Text(
+                            '설치 ${definition.cost}G',
+                            style: const TextStyle(fontSize: 11),
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 4),

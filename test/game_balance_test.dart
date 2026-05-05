@@ -350,6 +350,21 @@ void main() {
     expect(game.snapshotNotifier.value.gemInventory, isEmpty);
   });
 
+  test('turret buttons can select a preview without a build tile', () {
+    final game = RuneNexusGame();
+
+    game.previewOrBuildSelectedTile(TurretType.cannon);
+
+    expect(game.snapshotNotifier.value.selectedTurretType, TurretType.cannon);
+    expect(
+      game.snapshotNotifier.value.selectedBuildTurretType,
+      TurretType.cannon,
+    );
+    expect(game.snapshotNotifier.value.selectedBuildPoint, isNull);
+    expect(game.snapshotNotifier.value.placedTurretCount, 0);
+    expect(game.snapshotNotifier.value.gold, 150);
+  });
+
   test('status gems are removed from the reward pool', () {
     final gemNames = GemType.values.map((type) => type.name);
 
