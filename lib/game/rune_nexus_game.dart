@@ -21,6 +21,7 @@ import '../domain/gem/gem_equip_rules.dart';
 import '../domain/gem/gem_type.dart';
 import '../domain/map/grid_point.dart';
 import '../domain/map/map_definition.dart';
+import '../domain/stage/stage_definition.dart';
 import '../domain/turret/attack_tag.dart';
 import '../domain/turret/turret_type.dart';
 import '../domain/wave/wave_definition.dart';
@@ -42,71 +43,132 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _minBoardZoom = 1;
   static const double _maxBoardZoom = 2.1;
 
+  static List<StageDefinition> _buildInitialStages({
+    StageDefinition? stage,
+    List<StageDefinition>? stages,
+    MapDefinition? map,
+    List<WaveDefinition>? waves,
+  }) {
+    if (stages != null && stages.isNotEmpty) {
+      return stages;
+    }
+    if (stage != null) {
+      return [stage];
+    }
+    if (map != null || waves != null) {
+      final customMap = map ?? demoMap;
+      final customWaves = waves ?? demoWaves;
+      return List<StageDefinition>.generate(
+        RunProgression.maxStageCount,
+        (index) => StageDefinition(
+          id: index + 1,
+          name: 'Stage ${index + 1}',
+          map: customMap,
+          waves: customWaves,
+        ),
+      );
+    }
+    return demoStages;
+  }
+
+  static StageDefinition _initialStage({
+    StageDefinition? stage,
+    required List<StageDefinition> stages,
+    MapDefinition? map,
+    List<WaveDefinition>? waves,
+  }) {
+    if (stage != null) {
+      return stage;
+    }
+    if (map != null || waves != null) {
+      return stages.first;
+    }
+    return stages.first;
+  }
+
+  static GameSnapshot _initialSnapshot(StageDefinition stage) {
+    return GameSnapshot(
+      gold: RunProgression.baseInitialGold,
+      nexusHp: RunProgression.baseNexusHp,
+      maxNexusHp: RunProgression.baseNexusHp,
+      round: 1,
+      maxRound: stage.waves.length,
+      phase: GamePhase.preparation,
+      restoredPhase: null,
+      hasStageProgress: false,
+      placedTurretCount: 0,
+      currentStageNumber: stage.id,
+      unlockedStageCount: 1,
+      bestRoundsByStage: const {},
+      clearedStageNumbers: const {},
+      selectedTurretType: TurretType.arrow,
+      previewText: stage.waves.first.previewText,
+      rewardOptions: const [],
+      gemInventory: const {},
+      selectedBuildPoint: null,
+      selectedBuildTurretType: null,
+      selectedTurretPoint: null,
+      selectedTurretName: null,
+      selectedTurretGems: const [],
+      selectedTurretGemSlotIndex: null,
+      selectedTurretSlotLimit: 0,
+      selectedTurretHasLinkUpgrade: false,
+      selectedTurretCanUpgradeLink: false,
+      selectedTurretLinkUpgradeCost: 0,
+      selectedTurretNextSlotLimit: 0,
+      selectedTurretLinkUpgradeRequiredLevel: 0,
+      selectedTurretLevel: 0,
+      selectedTurretMaxLevel: 0,
+      selectedTurretCanLevelUp: false,
+      selectedTurretLevelUpCost: 0,
+      selectedTurretDamage: 0,
+      selectedTurretRange: 0,
+      selectedTurretAttackRate: 0,
+      nextWaveEnemyTypes: const [],
+      speedMultiplier: 1,
+      runes: 0,
+      lastRunRuneReward: 0,
+      completedRounds: 0,
+      startingGoldUpgradeLevel: 0,
+      startingGoldUpgradeCost: RunProgression.startingGoldUpgradeBaseCost,
+      canUpgradeStartingGold: false,
+      nexusHpUpgradeLevel: 0,
+      nexusHpUpgradeCost: RunProgression.nexusHpUpgradeBaseCost,
+      canUpgradeNexusHp: false,
+    );
+  }
+
   RuneNexusGame({
-    MapDefinition map = demoMap,
+    StageDefinition? stage,
+    List<StageDefinition>? stages,
+    MapDefinition? map,
     List<WaveDefinition>? waves,
     SaveRepository? saveRepository,
     OnlineSaveRepository? onlineSaveRepository,
-  }) : _map = map,
-       _waves = waves ?? demoWaves,
-       _saveRepository = saveRepository ?? createDefaultSaveRepository(),
+  }) : _saveRepository = saveRepository ?? createDefaultSaveRepository(),
        _onlineSaveRepository =
-           onlineSaveRepository ?? const NoopOnlineSaveRepository(),
-       snapshotNotifier = ValueNotifier(
-         GameSnapshot(
-           gold: RunProgression.baseInitialGold,
-           nexusHp: RunProgression.baseNexusHp,
-           maxNexusHp: RunProgression.baseNexusHp,
-           round: 1,
-           maxRound: (waves ?? demoWaves).length,
-           phase: GamePhase.preparation,
-           restoredPhase: null,
-           hasStageProgress: false,
-           placedTurretCount: 0,
-           currentStageNumber: 1,
-           unlockedStageCount: 1,
-           selectedTurretType: TurretType.arrow,
-           previewText: (waves ?? demoWaves).first.previewText,
-           rewardOptions: const [],
-           gemInventory: const {},
-           selectedBuildPoint: null,
-           selectedBuildTurretType: null,
-           selectedTurretPoint: null,
-           selectedTurretName: null,
-           selectedTurretGems: const [],
-           selectedTurretGemSlotIndex: null,
-           selectedTurretSlotLimit: 0,
-           selectedTurretHasLinkUpgrade: false,
-           selectedTurretCanUpgradeLink: false,
-           selectedTurretLinkUpgradeCost: 0,
-           selectedTurretNextSlotLimit: 0,
-           selectedTurretLinkUpgradeRequiredLevel: 0,
-           selectedTurretLevel: 0,
-           selectedTurretMaxLevel: 0,
-           selectedTurretCanLevelUp: false,
-           selectedTurretLevelUpCost: 0,
-           selectedTurretDamage: 0,
-           selectedTurretRange: 0,
-           selectedTurretAttackRate: 0,
-           nextWaveEnemyTypes: const [],
-           speedMultiplier: 1,
-           runes: 0,
-           lastRunRuneReward: 0,
-           completedRounds: 0,
-           startingGoldUpgradeLevel: 0,
-           startingGoldUpgradeCost: RunProgression.startingGoldUpgradeBaseCost,
-           canUpgradeStartingGold: false,
-           nexusHpUpgradeLevel: 0,
-           nexusHpUpgradeCost: RunProgression.nexusHpUpgradeBaseCost,
-           canUpgradeNexusHp: false,
-         ),
-       );
+           onlineSaveRepository ?? const NoopOnlineSaveRepository() {
+    _stages = List.unmodifiable(
+      _buildInitialStages(stage: stage, stages: stages, map: map, waves: waves),
+    );
+    _activeStage = _initialStage(
+      stage: stage,
+      stages: _stages,
+      map: map,
+      waves: waves,
+    );
+    _currentStageNumber = _activeStage.id;
+    snapshotNotifier = ValueNotifier(_initialSnapshot(_activeStage));
+  }
 
-  final MapDefinition _map;
-  final List<WaveDefinition> _waves;
+  late final List<StageDefinition> _stages;
+  late StageDefinition _activeStage;
   final SaveRepository _saveRepository;
   final OnlineSaveRepository _onlineSaveRepository;
-  final ValueNotifier<GameSnapshot> snapshotNotifier;
+  late final ValueNotifier<GameSnapshot> snapshotNotifier;
+
+  MapDefinition get _map => _activeStage.map;
+  List<WaveDefinition> get _waves => _activeStage.waves;
 
   final List<EnemyComponent> enemies = [];
   final Map<GridPoint, TurretComponent> _turrets = {};
@@ -126,7 +188,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   int _gold = RunProgression.baseInitialGold;
   int _nexusHp = RunProgression.baseNexusHp;
-  int _currentStageNumber = 1;
+  late int _currentStageNumber;
   int _completedRounds = 0;
   int _roundIndex = 0;
   GamePhase _phase = GamePhase.preparation;
@@ -333,15 +395,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void restartDemo({int? stageNumber}) {
-    if (stageNumber != null) {
-      _currentStageNumber = _clampedStageNumber(stageNumber);
-    }
+    final targetStageNumber = stageNumber == null
+        ? null
+        : _clampedStageNumber(stageNumber);
     _clearActiveCombat();
 
     for (final turret in _turrets.values.toList()) {
       turret.removeFromParent();
     }
     _turrets.clear();
+    if (targetStageNumber != null) {
+      _selectStage(targetStageNumber);
+    }
     _gemInventory.clear();
     _rewardOptions.clear();
     _pendingFullSaveData = null;
@@ -1090,7 +1155,49 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   int _clampedStageNumber(int stageNumber) {
-    return stageNumber.clamp(1, _progression.unlockedStageCount).toInt();
+    final maxConfiguredStage = _stages.fold<int>(
+      1,
+      (maxId, stage) => math.max(maxId, stage.id),
+    );
+    final maxSelectableStage = math.min(
+      _progression.unlockedStageCount,
+      maxConfiguredStage,
+    );
+    return stageNumber.clamp(1, maxSelectableStage).toInt();
+  }
+
+  StageDefinition _stageForNumber(int stageNumber) {
+    for (final stage in _stages) {
+      if (stage.id == stageNumber) {
+        return stage;
+      }
+    }
+    return _stages.first;
+  }
+
+  void _selectStage(int stageNumber) {
+    final nextStage = _stageForNumber(stageNumber);
+    if (_activeStage.id == nextStage.id) {
+      _currentStageNumber = nextStage.id;
+      return;
+    }
+    _activeStage = nextStage;
+    _currentStageNumber = nextStage.id;
+    if (isLoaded) {
+      _rebuildGridComponent();
+    }
+  }
+
+  void _rebuildGridComponent() {
+    _configureBoard();
+    _gridComponent.removeFromParent();
+    _gridComponent = GridComponent(
+      map: _map,
+      origin: _origin,
+      tileSize: _tileSize,
+    );
+    add(_gridComponent);
+    _syncBoardComponents();
   }
 
   void _requestLocalSave({bool immediate = false}) {
@@ -1178,7 +1285,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     if (!data.hasActiveRun) {
       _savedTurretCountForMenu = 0;
-      _currentStageNumber = _clampedStageNumber(data.stageNumber);
+      _selectStage(_clampedStageNumber(data.stageNumber));
       _gold = _initialGold;
       _nexusHp = _maxNexusHp;
       _roundIndex = 0;
@@ -1188,7 +1295,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
     _gold = math.max(0, data.gold);
-    _currentStageNumber = _clampedStageNumber(data.stageNumber);
+    _selectStage(_clampedStageNumber(data.stageNumber));
     _nexusHp = data.nexusHp.clamp(0, _maxNexusHp).toInt();
     _roundIndex = data.roundIndex.clamp(0, _waves.length - 1).toInt();
     _completedRounds = data.completedRounds.clamp(0, _waves.length).toInt();
@@ -1226,7 +1333,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       ..addAll(data.rewardOptions);
 
     if (!data.hasActiveRun) {
-      _currentStageNumber = _clampedStageNumber(data.stageNumber);
+      _selectStage(_clampedStageNumber(data.stageNumber));
       _gold = _initialGold;
       _nexusHp = _maxNexusHp;
       _roundIndex = 0;
@@ -1237,7 +1344,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     _gold = math.max(0, data.gold);
-    _currentStageNumber = _clampedStageNumber(data.stageNumber);
+    _selectStage(_clampedStageNumber(data.stageNumber));
     _nexusHp = data.nexusHp.clamp(0, _maxNexusHp).toInt();
     _roundIndex = data.roundIndex.clamp(0, _waves.length - 1).toInt();
     _completedRounds = data.completedRounds.clamp(0, _waves.length).toInt();
@@ -1364,6 +1471,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       placedTurretCount: math.max(_turrets.length, _savedTurretCountForMenu),
       currentStageNumber: _currentStageNumber,
       unlockedStageCount: _progression.unlockedStageCount,
+      bestRoundsByStage: Map.unmodifiable(_progression.bestRoundsByStage),
+      clearedStageNumbers: Set.unmodifiable(_progression.clearedStageNumbers),
       selectedTurretType: _selectedTurretType,
       previewText: nextWave.previewText,
       rewardOptions: List.unmodifiable(_rewardOptions),

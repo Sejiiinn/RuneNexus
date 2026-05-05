@@ -15,6 +15,8 @@ class RunProgression {
   int startingGoldUpgradeLevel = 0;
   int nexusHpUpgradeLevel = 0;
   int unlockedStageCount = 1;
+  final Map<int, int> bestRoundsByStage = {};
+  final Set<int> clearedStageNumbers = {};
 
   int get initialGold => baseInitialGold + startingGoldUpgradeLevel * 10;
   int get maxNexusHp => baseNexusHp + nexusHpUpgradeLevel;
@@ -35,6 +37,8 @@ class RunProgression {
       startingGoldUpgradeLevel: startingGoldUpgradeLevel,
       nexusHpUpgradeLevel: nexusHpUpgradeLevel,
       unlockedStageCount: unlockedStageCount,
+      bestRoundsByStage: Map.unmodifiable(bestRoundsByStage),
+      clearedStageNumbers: Set.unmodifiable(clearedStageNumbers),
     );
   }
 
@@ -50,6 +54,16 @@ class RunProgression {
     unlockedStageCount = data.unlockedStageCount
         .clamp(1, maxStageCount)
         .toInt();
+    bestRoundsByStage
+      ..clear()
+      ..addEntries(
+        data.bestRoundsByStage.entries
+            .where((entry) => entry.key > 0 && entry.value > 0)
+            .map((entry) => MapEntry(entry.key, entry.value)),
+      );
+    clearedStageNumbers
+      ..clear()
+      ..addAll(data.clearedStageNumbers.where((stage) => stage > 0));
   }
 
   bool upgradeStartingGold() {
@@ -79,10 +93,40 @@ class RunProgression {
   }) {
     lastRunRuneReward = runeRewardFor(completedRounds, success: success);
     runes += lastRunRuneReward;
+    _recordStageProgress(
+      stageNumber: stageNumber,
+      completedRounds: completedRounds,
+      success: success,
+    );
     if (success &&
         stageNumber >= unlockedStageCount &&
         unlockedStageCount < maxStageCount) {
       unlockedStageCount = math.min(maxStageCount, stageNumber + 1);
+    }
+  }
+
+  int bestRoundForStage(int stageNumber) {
+    return bestRoundsByStage[stageNumber] ?? 0;
+  }
+
+  bool isStageCleared(int stageNumber) {
+    return clearedStageNumbers.contains(stageNumber);
+  }
+
+  void _recordStageProgress({
+    required int stageNumber,
+    required int completedRounds,
+    required bool success,
+  }) {
+    if (stageNumber <= 0) {
+      return;
+    }
+    if (completedRounds > 0) {
+      final previousBest = bestRoundsByStage[stageNumber] ?? 0;
+      bestRoundsByStage[stageNumber] = math.max(previousBest, completedRounds);
+    }
+    if (success) {
+      clearedStageNumbers.add(stageNumber);
     }
   }
 

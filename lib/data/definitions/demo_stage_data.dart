@@ -2,6 +2,7 @@ import '../../domain/enemy/enemy_type.dart';
 import '../../domain/map/grid_point.dart';
 import '../../domain/map/map_definition.dart';
 import '../../domain/map/tile_type.dart';
+import '../../domain/stage/stage_definition.dart';
 import '../../domain/wave/wave_definition.dart';
 
 const demoMap = MapDefinition(
@@ -140,6 +141,14 @@ const demoMap = MapDefinition(
 );
 
 final demoWaves = List<WaveDefinition>.unmodifiable(_buildDemoWaves());
+
+final demoStages = List<StageDefinition>.unmodifiable([
+  StageDefinition(id: 1, name: 'Stage 1', map: demoMap, waves: demoWaves),
+  StageDefinition(id: 2, name: 'Stage 2', map: demoMap, waves: demoWaves),
+  StageDefinition(id: 3, name: 'Stage 3', map: demoMap, waves: demoWaves),
+  StageDefinition(id: 4, name: 'Stage 4', map: demoMap, waves: demoWaves),
+  StageDefinition(id: 5, name: 'Stage 5', map: demoMap, waves: demoWaves),
+]);
 
 List<WaveDefinition> _buildDemoWaves() {
   return List<WaveDefinition>.generate(50, (index) {

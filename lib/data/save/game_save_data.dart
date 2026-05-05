@@ -108,6 +108,8 @@ class SavedProgression {
     required this.startingGoldUpgradeLevel,
     required this.nexusHpUpgradeLevel,
     required this.unlockedStageCount,
+    required this.bestRoundsByStage,
+    required this.clearedStageNumbers,
   });
 
   final int runes;
@@ -115,6 +117,8 @@ class SavedProgression {
   final int startingGoldUpgradeLevel;
   final int nexusHpUpgradeLevel;
   final int unlockedStageCount;
+  final Map<int, int> bestRoundsByStage;
+  final Set<int> clearedStageNumbers;
 
   Map<String, Object?> toJson() {
     return {
@@ -123,6 +127,10 @@ class SavedProgression {
       'startingGoldUpgradeLevel': startingGoldUpgradeLevel,
       'nexusHpUpgradeLevel': nexusHpUpgradeLevel,
       'unlockedStageCount': unlockedStageCount,
+      'bestRoundsByStage': bestRoundsByStage.map(
+        (key, value) => MapEntry('$key', value),
+      ),
+      'clearedStageNumbers': clearedStageNumbers.toList(),
     };
   }
 
@@ -134,6 +142,8 @@ class SavedProgression {
       startingGoldUpgradeLevel: _intValue(map['startingGoldUpgradeLevel']),
       nexusHpUpgradeLevel: _intValue(map['nexusHpUpgradeLevel']),
       unlockedStageCount: _intValue(map['unlockedStageCount'], fallback: 1),
+      bestRoundsByStage: _intIntMap(map['bestRoundsByStage']),
+      clearedStageNumbers: _intSet(map['clearedStageNumbers']),
     );
   }
 }
@@ -334,6 +344,35 @@ Map<T, int> _enumIntMap<T extends Enum>(List<T> values, Object? json) {
     final key = _enumValue(values, entry.key);
     if (key != null) {
       result[key] = _intValue(entry.value);
+    }
+  }
+  return result;
+}
+
+Map<int, int> _intIntMap(Object? json) {
+  if (json is! Map<String, Object?>) {
+    return {};
+  }
+  final result = <int, int>{};
+  for (final entry in json.entries) {
+    final key = int.tryParse(entry.key);
+    final value = _intValue(entry.value);
+    if (key != null && key > 0 && value > 0) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
+Set<int> _intSet(Object? json) {
+  if (json is! List) {
+    return {};
+  }
+  final result = <int>{};
+  for (final item in json) {
+    final value = _intValue(item);
+    if (value > 0) {
+      result.add(value);
     }
   }
   return result;

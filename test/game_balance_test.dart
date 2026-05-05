@@ -10,6 +10,7 @@ import 'package:rune_nexus/domain/enemy/enemy_type.dart';
 import 'package:rune_nexus/domain/gem/gem_equip_rules.dart';
 import 'package:rune_nexus/domain/gem/gem_type.dart';
 import 'package:rune_nexus/domain/map/grid_point.dart';
+import 'package:rune_nexus/domain/stage/stage_definition.dart';
 import 'package:rune_nexus/domain/turret/attack_tag.dart';
 import 'package:rune_nexus/domain/turret/damage_family.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
@@ -20,9 +21,60 @@ import 'package:rune_nexus/game/rune_nexus_game.dart';
 
 void main() {
   test('demo stage uses 50 survival rounds', () {
+    expect(demoStages, hasLength(5));
+    expect(demoStages.first.id, 1);
+    expect(demoStages.last.id, 5);
     expect(demoWaves, hasLength(50));
     expect(demoWaves.first.round, 1);
     expect(demoWaves.last.round, 50);
+  });
+
+  test('stage definitions select their own wave data', () {
+    final stage1 = StageDefinition(
+      id: 1,
+      name: 'Stage 1',
+      map: demoMap,
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'stage one',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+    final stage2 = StageDefinition(
+      id: 2,
+      name: 'Stage 2',
+      map: demoMap,
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'stage two first',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+        WaveDefinition(
+          round: 2,
+          previewText: 'stage two second',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+    final game = RuneNexusGame(stages: [stage1, stage2]);
+
+    expect(game.snapshotNotifier.value.currentStageNumber, 1);
+    expect(game.snapshotNotifier.value.maxRound, 1);
+    expect(game.snapshotNotifier.value.previewText, 'stage one');
+
+    game.startNextWave();
+    game.update(0.016);
+    game.startStage(2);
+
+    expect(game.snapshotNotifier.value.currentStageNumber, 2);
+    expect(game.snapshotNotifier.value.maxRound, 2);
+    expect(game.snapshotNotifier.value.previewText, 'stage two first');
   });
 
   test('initial gold supports machine gun and cannon setup', () {
@@ -51,6 +103,8 @@ void main() {
     expect(game.snapshotNotifier.value.lastRunRuneReward, 42);
     expect(game.snapshotNotifier.value.runes, 42);
     expect(game.snapshotNotifier.value.unlockedStageCount, 2);
+    expect(game.snapshotNotifier.value.bestRoundsByStage[1], 1);
+    expect(game.snapshotNotifier.value.clearedStageNumbers, contains(1));
 
     game.upgradeStartingGoldProgression();
     game.upgradeNexusHpProgression();
@@ -72,6 +126,8 @@ void main() {
 
     expect(game.snapshotNotifier.value.currentStageNumber, 2);
     expect(game.snapshotNotifier.value.unlockedStageCount, 3);
+    expect(game.snapshotNotifier.value.bestRoundsByStage[2], 1);
+    expect(game.snapshotNotifier.value.clearedStageNumbers, contains(2));
   });
 
   test('gem reward appears every five completed rounds', () {
@@ -131,6 +187,8 @@ void main() {
     expect(game.snapshotNotifier.value.completedRounds, 1);
     expect(game.snapshotNotifier.value.lastRunRuneReward, 2);
     expect(game.snapshotNotifier.value.runes, 2);
+    expect(game.snapshotNotifier.value.bestRoundsByStage[1], 1);
+    expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(1)));
   });
 
   test('enemy hp scaling grows by round', () {

@@ -261,7 +261,7 @@ class _StageMenu extends StatelessWidget {
                     stageNumber: stage,
                     statusText: activeRunInProgress
                         ? l10n.startAfterSettling
-                        : l10n.unlocked,
+                        : _recordTextForStage(l10n, snapshot, stage),
                     onPressed: () => onStartStage(stage),
                   )
                 else
@@ -316,6 +316,7 @@ class _StageCard extends StatelessWidget {
             nexusHp: snapshot.nexusHp,
             maxNexusHp: snapshot.maxNexusHp,
           );
+    final recordText = _recordTextForStage(l10n, snapshot, stageNumber);
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -363,6 +364,12 @@ class _StageCard extends StatelessWidget {
             style: const TextStyle(fontSize: 12, color: Color(0xFFB9D6E4)),
             overflow: TextOverflow.ellipsis,
           ),
+          const SizedBox(height: 4),
+          Text(
+            recordText,
+            style: const TextStyle(fontSize: 11, color: Color(0xFF8AA6B8)),
+            overflow: TextOverflow.ellipsis,
+          ),
           const SizedBox(height: 10),
           SizedBox(
             height: 42,
@@ -372,6 +379,21 @@ class _StageCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String _recordTextForStage(
+  RuneNexusLocalizations l10n,
+  GameSnapshot snapshot,
+  int stageNumber,
+) {
+  if (snapshot.clearedStageNumbers.contains(stageNumber)) {
+    return l10n.recordCleared;
+  }
+  final bestRound = snapshot.bestRoundsByStage[stageNumber] ?? 0;
+  if (bestRound > 0) {
+    return l10n.stageBestRound(bestRound);
+  }
+  return l10n.recordNone;
 }
 
 class _UnlockedStageCard extends StatelessWidget {

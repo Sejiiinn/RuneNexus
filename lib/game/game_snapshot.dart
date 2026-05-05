@@ -17,6 +17,8 @@ class GameSnapshot {
     required this.placedTurretCount,
     required this.currentStageNumber,
     required this.unlockedStageCount,
+    required this.bestRoundsByStage,
+    required this.clearedStageNumbers,
     required this.selectedTurretType,
     required this.previewText,
     required this.rewardOptions,
@@ -64,6 +66,8 @@ class GameSnapshot {
   final int placedTurretCount;
   final int currentStageNumber;
   final int unlockedStageCount;
+  final Map<int, int> bestRoundsByStage;
+  final Set<int> clearedStageNumbers;
   final TurretType selectedTurretType;
   final String previewText;
   final List<GemType> rewardOptions;

@@ -41,6 +41,8 @@ class RuneNexusLocalizations {
       _isEnglish ? 'Start after settling' : '종료 후 시작';
   String get unlocked => _isEnglish ? 'Unlocked' : '해금됨';
   String get locked => _isEnglish ? 'Locked' : '잠김';
+  String get recordNone => _isEnglish ? 'No record' : '기록 없음';
+  String get recordCleared => _isEnglish ? 'Cleared' : '클리어';
   String get cancel => _isEnglish ? 'Cancel' : '취소';
   String get settleAndStart => _isEnglish ? 'Settle and start' : '정산 후 시작';
   String get endActiveStageTitle =>
@@ -48,6 +50,10 @@ class RuneNexusLocalizations {
 
   String stageName(int stageNumber) {
     return _isEnglish ? 'Stage $stageNumber' : '스테이지 $stageNumber';
+  }
+
+  String stageBestRound(int round) {
+    return _isEnglish ? 'Best ${round}R' : '최고 ${round}R';
   }
 
   String stageProgressDetail({
