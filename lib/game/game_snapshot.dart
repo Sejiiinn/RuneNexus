@@ -56,6 +56,9 @@ class GameSnapshot {
     required this.runes,
     required this.lastRunRuneReward,
     required this.projectedFailureRuneReward,
+    required this.lastRunPreviousBestRound,
+    required this.lastRunWasNewBestRound,
+    required this.lastRunUnlockedStageNumber,
     required this.completedRounds,
     required this.startingGoldUpgradeLevel,
     required this.startingGoldUpgradeCost,
@@ -115,6 +118,9 @@ class GameSnapshot {
   final int runes;
   final int lastRunRuneReward;
   final int projectedFailureRuneReward;
+  final int lastRunPreviousBestRound;
+  final bool lastRunWasNewBestRound;
+  final int? lastRunUnlockedStageNumber;
   final int completedRounds;
   final int startingGoldUpgradeLevel;
   final int startingGoldUpgradeCost;

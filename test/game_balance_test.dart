@@ -105,6 +105,9 @@ void main() {
     expect(game.snapshotNotifier.value.unlockedStageCount, 2);
     expect(game.snapshotNotifier.value.bestRoundsByStage[1], 1);
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(1));
+    expect(game.snapshotNotifier.value.lastRunPreviousBestRound, 0);
+    expect(game.snapshotNotifier.value.lastRunWasNewBestRound, isTrue);
+    expect(game.snapshotNotifier.value.lastRunUnlockedStageNumber, 2);
 
     game.upgradeStartingGoldProgression();
     game.upgradeNexusHpProgression();
@@ -119,6 +122,8 @@ void main() {
     game.update(0.016);
 
     expect(game.snapshotNotifier.value.unlockedStageCount, 2);
+    expect(game.snapshotNotifier.value.lastRunWasNewBestRound, isFalse);
+    expect(game.snapshotNotifier.value.lastRunUnlockedStageNumber, isNull);
 
     game.startStage(2);
     game.startNextWave();
@@ -128,6 +133,8 @@ void main() {
     expect(game.snapshotNotifier.value.unlockedStageCount, 3);
     expect(game.snapshotNotifier.value.bestRoundsByStage[2], 1);
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(2));
+    expect(game.snapshotNotifier.value.lastRunWasNewBestRound, isTrue);
+    expect(game.snapshotNotifier.value.lastRunUnlockedStageNumber, 3);
   });
 
   test('gem reward appears every five completed rounds', () {

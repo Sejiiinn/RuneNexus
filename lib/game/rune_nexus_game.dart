@@ -143,6 +143,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       runes: 0,
       lastRunRuneReward: 0,
       projectedFailureRuneReward: 0,
+      lastRunPreviousBestRound: 0,
+      lastRunWasNewBestRound: false,
+      lastRunUnlockedStageNumber: null,
       completedRounds: 0,
       startingGoldUpgradeLevel: 0,
       startingGoldUpgradeCost: RunProgression.startingGoldUpgradeBaseCost,
@@ -205,6 +208,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   int _nexusHp = RunProgression.baseNexusHp;
   late int _currentStageNumber;
   int _completedRounds = 0;
+  int _lastRunPreviousBestRound = 0;
+  bool _lastRunWasNewBestRound = false;
+  int? _lastRunUnlockedStageNumber;
   int _roundIndex = 0;
   GamePhase _phase = GamePhase.preparation;
   GamePhase? _restoredPhase;
@@ -431,6 +437,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _nexusHp = _maxNexusHp;
     _roundIndex = 0;
     _completedRounds = 0;
+    _lastRunPreviousBestRound = 0;
+    _lastRunWasNewBestRound = false;
+    _lastRunUnlockedStageNumber = null;
     _progression.resetLastRunReward();
     _phase = GamePhase.preparation;
     _selectedTurretType = TurretType.arrow;
@@ -1242,11 +1251,21 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     final success = resultPhase == GamePhase.success;
     _completedRounds = success ? _waves.length : _roundIndex;
+    final previousBestRound = _progression.bestRoundForStage(
+      _currentStageNumber,
+    );
+    final previousUnlockedStageCount = _progression.unlockedStageCount;
     _progression.finishRun(
       completedRounds: _completedRounds,
       success: success,
       stageNumber: _currentStageNumber,
     );
+    _lastRunPreviousBestRound = previousBestRound;
+    _lastRunWasNewBestRound = _completedRounds > previousBestRound;
+    _lastRunUnlockedStageNumber =
+        _progression.unlockedStageCount > previousUnlockedStageCount
+        ? _progression.unlockedStageCount
+        : null;
     _phase = resultPhase;
   }
 
@@ -1386,6 +1405,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _nexusHp = _maxNexusHp;
       _roundIndex = 0;
       _completedRounds = 0;
+      _lastRunPreviousBestRound = 0;
+      _lastRunWasNewBestRound = false;
+      _lastRunUnlockedStageNumber = null;
       _phase = GamePhase.preparation;
       _restoredPhase = null;
       return;
@@ -1395,6 +1417,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _nexusHp = data.nexusHp.clamp(0, _maxNexusHp).toInt();
     _roundIndex = data.roundIndex.clamp(0, _waves.length - 1).toInt();
     _completedRounds = data.completedRounds.clamp(0, _waves.length).toInt();
+    _lastRunPreviousBestRound = 0;
+    _lastRunWasNewBestRound = false;
+    _lastRunUnlockedStageNumber = null;
     _selectedTurretType = TurretType.arrow;
     _selectedBuildTurretType = null;
     _selectedBuildPoint = null;
@@ -1434,6 +1459,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _nexusHp = _maxNexusHp;
       _roundIndex = 0;
       _completedRounds = 0;
+      _lastRunPreviousBestRound = 0;
+      _lastRunWasNewBestRound = false;
+      _lastRunUnlockedStageNumber = null;
       _phase = GamePhase.preparation;
       _restoredPhase = null;
       return;
@@ -1444,6 +1472,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _nexusHp = data.nexusHp.clamp(0, _maxNexusHp).toInt();
     _roundIndex = data.roundIndex.clamp(0, _waves.length - 1).toInt();
     _completedRounds = data.completedRounds.clamp(0, _waves.length).toInt();
+    _lastRunPreviousBestRound = 0;
+    _lastRunWasNewBestRound = false;
+    _lastRunUnlockedStageNumber = null;
     _selectedTurretType = TurretType.arrow;
     _selectedBuildTurretType = null;
     _selectedBuildPoint = null;
@@ -1642,6 +1673,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       projectedFailureRuneReward: hasStageProgress
           ? _progression.runeRewardFor(_roundIndex, success: false)
           : 0,
+      lastRunPreviousBestRound: _lastRunPreviousBestRound,
+      lastRunWasNewBestRound: _lastRunWasNewBestRound,
+      lastRunUnlockedStageNumber: _lastRunUnlockedStageNumber,
       completedRounds: _completedRounds,
       startingGoldUpgradeLevel: _progression.startingGoldUpgradeLevel,
       startingGoldUpgradeCost: _progression.startingGoldUpgradeCost,

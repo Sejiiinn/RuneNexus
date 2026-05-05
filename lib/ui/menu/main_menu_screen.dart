@@ -39,7 +39,7 @@ class MainMenuScreen extends StatelessWidget {
             ),
             Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 430),
                   child: Container(
@@ -60,22 +60,32 @@ class MainMenuScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const _MenuHeader(),
-                        const SizedBox(height: 14),
-                        _MenuTabs(
-                          selectedTab: selectedTab,
-                          onSelectTab: onSelectTab,
-                        ),
-                        const SizedBox(height: 14),
-                        if (selectedTab == MainMenuTab.stage)
+                        if (selectedTab == MainMenuTab.stage) ...[
+                          const _MenuHeader(),
+                          const SizedBox(height: 14),
                           _StageMenu(
                             snapshot: snapshot,
                             onStartStage: onStartStage,
-                          )
-                        else
+                          ),
+                        ] else
                           _PermanentUpgradeMenu(game: game, snapshot: snapshot),
                       ],
                     ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 12,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 430),
+                  child: _MenuTabs(
+                    selectedTab: selectedTab,
+                    onSelectTab: onSelectTab,
                   ),
                 ),
               ),
@@ -165,26 +175,41 @@ class _MenuTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Row(
-      children: [
-        Expanded(
-          child: _TabButton(
-            icon: Icons.flag_outlined,
-            label: l10n.stageTab,
-            selected: selectedTab == MainMenuTab.stage,
-            onPressed: () => onSelectTab(MainMenuTab.stage),
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: const Color(0xF0091624),
+        border: Border.all(color: const Color(0x9933D8FF)),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 18,
+            offset: Offset(0, 10),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _TabButton(
-            icon: Icons.auto_awesome,
-            label: l10n.permanentUpgradeTab,
-            selected: selectedTab == MainMenuTab.permanentUpgrades,
-            onPressed: () => onSelectTab(MainMenuTab.permanentUpgrades),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _TabButton(
+              icon: Icons.flag_outlined,
+              label: l10n.stageTab,
+              selected: selectedTab == MainMenuTab.stage,
+              onPressed: () => onSelectTab(MainMenuTab.stage),
+            ),
           ),
-        ),
-      ],
+          const SizedBox(width: 8),
+          Expanded(
+            child: _TabButton(
+              icon: Icons.auto_awesome,
+              label: l10n.permanentUpgradeTab,
+              selected: selectedTab == MainMenuTab.permanentUpgrades,
+              onPressed: () => onSelectTab(MainMenuTab.permanentUpgrades),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

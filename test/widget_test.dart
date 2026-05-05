@@ -20,6 +20,28 @@ void main() {
     expect(find.text('영구 업그레이드'), findsOneWidget);
   });
 
+  testWidgets('main menu keeps tabs on bottom and hides logo on upgrades', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const RuneNexusApp());
+    await tester.pump();
+
+    expect(find.text('Rune Nexus'), findsOneWidget);
+
+    await tester.tap(find.text('영구 업그레이드'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rune Nexus'), findsNothing);
+    expect(find.text('시작 골드 Lv.0'), findsOneWidget);
+    expect(find.text('스테이지'), findsOneWidget);
+    expect(find.text('영구 업그레이드'), findsOneWidget);
+
+    await tester.tap(find.text('스테이지'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Rune Nexus'), findsOneWidget);
+  });
+
   testWidgets('result overlay exposes next stage and growth actions', (
     tester,
   ) async {
@@ -36,6 +58,9 @@ void main() {
             completedRounds: 50,
             runes: 140,
             lastRunRuneReward: 140,
+            lastRunPreviousBestRound: 20,
+            lastRunWasNewBestRound: true,
+            lastRunUnlockedStageNumber: 2,
             bestRoundsByStage: const {1: 50},
             clearedStageNumbers: const {1},
           ),
@@ -48,7 +73,10 @@ void main() {
       ),
     );
 
-    expect(find.text('스테이지 2 이용 가능'), findsOneWidget);
+    expect(find.text('스테이지 2 신규 해금'), findsOneWidget);
+    expect(find.text('신기록'), findsOneWidget);
+    expect(find.text('20R → 50R'), findsOneWidget);
+    expect(find.text('신규 해금'), findsOneWidget);
     expect(find.text('스테이지 2 시작'), findsOneWidget);
     expect(find.text('업그레이드'), findsOneWidget);
     expect(find.text('현재 스테이지 재도전'), findsOneWidget);
@@ -119,6 +147,9 @@ GameSnapshot _resultSnapshot({
   int completedRounds = 0,
   int runes = 0,
   int lastRunRuneReward = 0,
+  int lastRunPreviousBestRound = 0,
+  bool lastRunWasNewBestRound = false,
+  int? lastRunUnlockedStageNumber,
   Map<int, int> bestRoundsByStage = const {},
   Set<int> clearedStageNumbers = const {},
 }) {
@@ -173,6 +204,9 @@ GameSnapshot _resultSnapshot({
     runes: runes,
     lastRunRuneReward: lastRunRuneReward,
     projectedFailureRuneReward: completedRounds * 2,
+    lastRunPreviousBestRound: lastRunPreviousBestRound,
+    lastRunWasNewBestRound: lastRunWasNewBestRound,
+    lastRunUnlockedStageNumber: lastRunUnlockedStageNumber,
     completedRounds: completedRounds,
     startingGoldUpgradeLevel: 0,
     startingGoldUpgradeCost: 8,

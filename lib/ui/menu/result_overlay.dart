@@ -30,12 +30,15 @@ class ResultOverlay extends StatelessWidget {
     final bestRound =
         snapshot.bestRoundsByStage[snapshot.currentStageNumber] ??
         snapshot.completedRounds;
-    final recordText =
-        snapshot.clearedStageNumbers.contains(snapshot.currentStageNumber)
+    final recordText = snapshot.lastRunWasNewBestRound
+        ? '신기록 ${snapshot.completedRounds}R'
+        : snapshot.clearedStageNumbers.contains(snapshot.currentStageNumber)
         ? '클리어'
         : '최고 ${bestRound}R';
     final stageStatusText = success
-        ? canStartNextStage
+        ? snapshot.lastRunUnlockedStageNumber != null
+              ? '스테이지 ${snapshot.lastRunUnlockedStageNumber} 신규 해금'
+              : canStartNextStage
               ? '스테이지 $nextStageNumber 이용 가능'
               : '스테이지 ${snapshot.currentStageNumber} 클리어'
         : '기록 $recordText';
@@ -88,6 +91,32 @@ class ResultOverlay extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: const TextStyle(color: Color(0xFFC5DCE8)),
                     ),
+                    if (snapshot.lastRunWasNewBestRound ||
+                        snapshot.lastRunUnlockedStageNumber != null) ...[
+                      const SizedBox(height: 10),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          if (snapshot.lastRunWasNewBestRound)
+                            _ResultHighlight(
+                              icon: Icons.trending_up,
+                              label: '신기록',
+                              value: snapshot.lastRunPreviousBestRound > 0
+                                  ? '${snapshot.lastRunPreviousBestRound}R → ${snapshot.completedRounds}R'
+                                  : '${snapshot.completedRounds}R 첫 기록',
+                            ),
+                          if (snapshot.lastRunUnlockedStageNumber != null)
+                            _ResultHighlight(
+                              icon: Icons.lock_open,
+                              label: '신규 해금',
+                              value:
+                                  '스테이지 ${snapshot.lastRunUnlockedStageNumber}',
+                            ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     GridView.count(
                       crossAxisCount: 2,
@@ -176,6 +205,54 @@ String _formatDamageValue(double value) {
     return value.round().toString();
   }
   return value.toStringAsFixed(1);
+}
+
+class _ResultHighlight extends StatelessWidget {
+  const _ResultHighlight({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF102437),
+        border: Border.all(color: const Color(0xFFE7C66A)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: const Color(0xFFE7C66A)),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFFE7C66A),
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Color(0xFFE8F8FF),
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _ResultMetric extends StatelessWidget {
