@@ -260,5 +260,13 @@ GameSnapshot _resultSnapshot({
     nexusHpUpgradeLevel: 0,
     nexusHpUpgradeCost: 6,
     canUpgradeNexusHp: false,
+    supplyUpgradeLevel: 0,
+    supplyUpgradeCost: 12,
+    canUpgradeSupply: false,
+    waveClearGoldProgressionBonus: 0,
+    fireTrainingUpgradeLevel: 0,
+    fireTrainingUpgradeCost: 18,
+    canUpgradeFireTraining: false,
+    fireTrainingDamageBonusRate: 0,
   );
 }

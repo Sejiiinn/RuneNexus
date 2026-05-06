@@ -171,6 +171,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       nexusHpUpgradeLevel: 0,
       nexusHpUpgradeCost: RunProgression.nexusHpUpgradeBaseCost,
       canUpgradeNexusHp: false,
+      supplyUpgradeLevel: 0,
+      supplyUpgradeCost: RunProgression.supplyUpgradeBaseCost,
+      canUpgradeSupply: false,
+      waveClearGoldProgressionBonus: 0,
+      fireTrainingUpgradeLevel: 0,
+      fireTrainingUpgradeCost: RunProgression.fireTrainingUpgradeBaseCost,
+      canUpgradeFireTraining: false,
+      fireTrainingDamageBonusRate: 0,
     );
   }
 
@@ -284,7 +292,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   int get _maxNexusHp => _progression.maxNexusHp;
   bool get _canEditBoard =>
       _phase == GamePhase.preparation || _phase == GamePhase.wave;
-  double get towerDamageRunMultiplier => 1 + _towerDamageRunBonusRate;
+  double get towerDamageRunMultiplier =>
+      1 + _towerDamageRunBonusRate + _progression.fireTrainingDamageBonusRate;
 
   double get _towerDamageRunBonusRate =>
       _runUpgradeLevel(RunUpgradeType.towerDamage) *
@@ -615,7 +624,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     if (_phase == GamePhase.preparation && _turrets.isEmpty) {
-      _gold += 10;
+      _gold += RunProgression.startingGoldPerUpgradeLevel;
     }
     _publish();
     _requestLocalSave(immediate: true);
@@ -629,6 +638,24 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_phase == GamePhase.preparation || _phase == GamePhase.success) {
       _nexusHp++;
     }
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void upgradeSupplyProgression() {
+    if (!_progression.upgradeSupply()) {
+      return;
+    }
+
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void upgradeFireTrainingProgression() {
+    if (!_progression.upgradeFireTraining()) {
+      return;
+    }
+
     _publish();
     _requestLocalSave(immediate: true);
   }
@@ -1420,7 +1447,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     final completedRound = _roundIndex + 1;
-    _gold += _waves[_roundIndex].clearRewardGold + _waveClearGoldRunBonus;
+    _gold +=
+        _waves[_roundIndex].clearRewardGold +
+        _progression.waveClearGoldBonus +
+        _waveClearGoldRunBonus;
     _roundIndex++;
     _completedRounds = completedRound;
     if (_roundIndex >= _waves.length) {
@@ -1956,6 +1986,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       nexusHpUpgradeLevel: _progression.nexusHpUpgradeLevel,
       nexusHpUpgradeCost: _progression.nexusHpUpgradeCost,
       canUpgradeNexusHp: _progression.canUpgradeNexusHp,
+      supplyUpgradeLevel: _progression.supplyUpgradeLevel,
+      supplyUpgradeCost: _progression.supplyUpgradeCost,
+      canUpgradeSupply: _progression.canUpgradeSupply,
+      waveClearGoldProgressionBonus: _progression.waveClearGoldBonus,
+      fireTrainingUpgradeLevel: _progression.fireTrainingUpgradeLevel,
+      fireTrainingUpgradeCost: _progression.fireTrainingUpgradeCost,
+      canUpgradeFireTraining: _progression.canUpgradeFireTraining,
+      fireTrainingDamageBonusRate: _progression.fireTrainingDamageBonusRate,
     );
   }
 }

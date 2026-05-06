@@ -27,6 +27,9 @@ class RuneNexusLocalizations {
   String get ownedRunes => _isEnglish ? 'Owned Runes' : '보유 룬';
   String get startGold => _isEnglish ? 'Starting Gold' : '시작 골드';
   String get nexusHp => _isEnglish ? 'Nexus HP' : '넥서스 체력';
+  String get maintenanceSupply => _isEnglish ? 'Maintenance Supply' : '정비 보급';
+  String get basicFireTraining =>
+      _isEnglish ? 'Basic Fire Training' : '기초 화력 훈련';
   String get cleared => _isEnglish ? 'Cleared' : '클리어';
   String get settled => _isEnglish ? 'Settled' : '정산 완료';
   String get combatInProgress => _isEnglish ? 'Combat in progress' : '전투 진행 중';

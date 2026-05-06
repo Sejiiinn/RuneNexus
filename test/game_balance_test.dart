@@ -20,6 +20,7 @@ import 'package:rune_nexus/domain/wave/wave_definition.dart';
 import 'package:rune_nexus/game/components/enemy_component.dart';
 import 'package:rune_nexus/game/components/turret_component.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
+import 'package:rune_nexus/game/systems/run_progression.dart';
 
 void main() {
   test('demo stage uses 50 survival rounds', () {
@@ -137,6 +138,32 @@ void main() {
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(2));
     expect(game.snapshotNotifier.value.lastRunWasNewBestRound, isTrue);
     expect(game.snapshotNotifier.value.lastRunUnlockedStageNumber, 3);
+  });
+
+  test('permanent starting gold and nexus hp upgrades respect max levels', () {
+    final progression = RunProgression()..runes = 10000;
+
+    for (var i = 0; i < 25; i++) {
+      progression.upgradeStartingGold();
+      progression.upgradeNexusHp();
+    }
+
+    expect(
+      progression.startingGoldUpgradeLevel,
+      RunProgression.maxStartingGoldUpgradeLevel,
+    );
+    expect(
+      progression.nexusHpUpgradeLevel,
+      RunProgression.maxNexusHpUpgradeLevel,
+    );
+    expect(progression.initialGold, 250);
+    expect(progression.maxNexusHp, 30);
+
+    progression.startingGoldUpgradeLevel = 99;
+    progression.nexusHpUpgradeLevel = 99;
+
+    expect(progression.initialGold, 250);
+    expect(progression.maxNexusHp, 30);
   });
 
   test('gem reward appears every five completed rounds', () {
@@ -563,6 +590,97 @@ void main() {
 
     expect(game.snapshotNotifier.value.phase, GamePhase.success);
     expect(game.snapshotNotifier.value.gold, 142);
+  });
+
+  test('permanent supply upgrade adds one gold per cleared wave', () {
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+
+    game.startNextWave();
+    game.update(0.016);
+    game.upgradeSupplyProgression();
+    game.restartDemo();
+    game.startNextWave();
+    game.update(0.016);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.success);
+    expect(game.snapshotNotifier.value.gold, 151);
+    expect(game.snapshotNotifier.value.waveClearGoldProgressionBonus, 1);
+  });
+
+  test('permanent fire training boosts turret damage', () {
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+    final turret = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: demoTurrets[TurretType.arrow]!,
+      game: game,
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+
+    game.startNextWave();
+    game.update(0.016);
+    game.upgradeFireTrainingProgression();
+
+    expect(turret.damage, closeTo(7.07, 0.001));
+    expect(game.snapshotNotifier.value.fireTrainingUpgradeLevel, 1);
+    expect(
+      game.snapshotNotifier.value.fireTrainingDamageBonusRate,
+      closeTo(0.01, 0.001),
+    );
+  });
+
+  test('new permanent upgrades are saved and restored', () async {
+    final repository = MemorySaveRepository();
+    final game = RuneNexusGame(
+      saveRepository: repository,
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+    game.update(0.016);
+    game.upgradeSupplyProgression();
+    game.upgradeFireTrainingProgression();
+    await game.saveNow();
+
+    final restoredRepository = MemorySaveRepository()..data = repository.data;
+    final restored = RuneNexusGame(saveRepository: restoredRepository);
+    restored.onGameResize(Vector2(400, 800));
+    await restored.onLoad();
+
+    final snapshot = restored.snapshotNotifier.value;
+    expect(snapshot.supplyUpgradeLevel, 1);
+    expect(snapshot.waveClearGoldProgressionBonus, 1);
+    expect(snapshot.fireTrainingUpgradeLevel, 1);
+    expect(snapshot.fireTrainingDamageBonusRate, closeTo(0.01, 0.001));
   });
 
   test(

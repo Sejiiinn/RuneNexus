@@ -79,6 +79,14 @@ class GameSnapshot {
     required this.nexusHpUpgradeLevel,
     required this.nexusHpUpgradeCost,
     required this.canUpgradeNexusHp,
+    required this.supplyUpgradeLevel,
+    required this.supplyUpgradeCost,
+    required this.canUpgradeSupply,
+    required this.waveClearGoldProgressionBonus,
+    required this.fireTrainingUpgradeLevel,
+    required this.fireTrainingUpgradeCost,
+    required this.canUpgradeFireTraining,
+    required this.fireTrainingDamageBonusRate,
   });
 
   final int gold;
@@ -151,4 +159,12 @@ class GameSnapshot {
   final int nexusHpUpgradeLevel;
   final int nexusHpUpgradeCost;
   final bool canUpgradeNexusHp;
+  final int supplyUpgradeLevel;
+  final int supplyUpgradeCost;
+  final bool canUpgradeSupply;
+  final int waveClearGoldProgressionBonus;
+  final int fireTrainingUpgradeLevel;
+  final int fireTrainingUpgradeCost;
+  final bool canUpgradeFireTraining;
+  final double fireTrainingDamageBonusRate;
 }

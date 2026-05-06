@@ -6,38 +6,74 @@ class RunProgression {
   static const int baseInitialGold = 150;
   static const int baseNexusHp = 20;
   static const int maxStageCount = 5;
-  static const int maxProgressionLevel = 20;
+  static const int maxStartingGoldUpgradeLevel = 20;
+  static const int maxNexusHpUpgradeLevel = 10;
+  static const int maxSupplyUpgradeLevel = 10;
+  static const int maxFireTrainingUpgradeLevel = 10;
   static const int startingGoldUpgradeBaseCost = 8;
   static const int startingGoldPerUpgradeLevel = 5;
   static const int nexusHpUpgradeBaseCost = 6;
+  static const int supplyUpgradeBaseCost = 12;
+  static const int supplyGoldPerUpgradeLevel = 1;
+  static const int fireTrainingUpgradeBaseCost = 18;
+  static const double fireTrainingDamagePerUpgradeLevel = 0.01;
 
   int runes = 0;
   int lastRunRuneReward = 0;
   int startingGoldUpgradeLevel = 0;
   int nexusHpUpgradeLevel = 0;
+  int supplyUpgradeLevel = 0;
+  int fireTrainingUpgradeLevel = 0;
   int unlockedStageCount = 1;
   final Map<int, int> bestRoundsByStage = {};
   final Set<int> clearedStageNumbers = {};
 
   int get initialGold =>
-      baseInitialGold + startingGoldUpgradeLevel * startingGoldPerUpgradeLevel;
-  int get maxNexusHp => baseNexusHp + nexusHpUpgradeLevel;
+      baseInitialGold +
+      _cappedStartingGoldUpgradeLevel * startingGoldPerUpgradeLevel;
+  int get maxNexusHp => baseNexusHp + _cappedNexusHpUpgradeLevel;
   int get startingGoldUpgradeCost =>
-      startingGoldUpgradeBaseCost + startingGoldUpgradeLevel * 5;
+      startingGoldUpgradeBaseCost + _cappedStartingGoldUpgradeLevel * 5;
   int get nexusHpUpgradeCost =>
-      nexusHpUpgradeBaseCost + nexusHpUpgradeLevel * 4;
+      nexusHpUpgradeBaseCost + _cappedNexusHpUpgradeLevel * 4;
+  int get supplyUpgradeCost =>
+      supplyUpgradeBaseCost + _cappedSupplyUpgradeLevel * 6;
+  int get fireTrainingUpgradeCost =>
+      fireTrainingUpgradeBaseCost + _cappedFireTrainingUpgradeLevel * 8;
+  int get waveClearGoldBonus =>
+      _cappedSupplyUpgradeLevel * supplyGoldPerUpgradeLevel;
+  double get fireTrainingDamageBonusRate =>
+      _cappedFireTrainingUpgradeLevel * fireTrainingDamagePerUpgradeLevel;
   bool get canUpgradeStartingGold =>
-      startingGoldUpgradeLevel < maxProgressionLevel &&
+      _cappedStartingGoldUpgradeLevel < maxStartingGoldUpgradeLevel &&
       runes >= startingGoldUpgradeCost;
   bool get canUpgradeNexusHp =>
-      nexusHpUpgradeLevel < maxProgressionLevel && runes >= nexusHpUpgradeCost;
+      _cappedNexusHpUpgradeLevel < maxNexusHpUpgradeLevel &&
+      runes >= nexusHpUpgradeCost;
+  bool get canUpgradeSupply =>
+      _cappedSupplyUpgradeLevel < maxSupplyUpgradeLevel &&
+      runes >= supplyUpgradeCost;
+  bool get canUpgradeFireTraining =>
+      _cappedFireTrainingUpgradeLevel < maxFireTrainingUpgradeLevel &&
+      runes >= fireTrainingUpgradeCost;
+
+  int get _cappedStartingGoldUpgradeLevel =>
+      startingGoldUpgradeLevel.clamp(0, maxStartingGoldUpgradeLevel).toInt();
+  int get _cappedNexusHpUpgradeLevel =>
+      nexusHpUpgradeLevel.clamp(0, maxNexusHpUpgradeLevel).toInt();
+  int get _cappedSupplyUpgradeLevel =>
+      supplyUpgradeLevel.clamp(0, maxSupplyUpgradeLevel).toInt();
+  int get _cappedFireTrainingUpgradeLevel =>
+      fireTrainingUpgradeLevel.clamp(0, maxFireTrainingUpgradeLevel).toInt();
 
   SavedProgression toSaveData() {
     return SavedProgression(
       runes: runes,
       lastRunRuneReward: lastRunRuneReward,
-      startingGoldUpgradeLevel: startingGoldUpgradeLevel,
-      nexusHpUpgradeLevel: nexusHpUpgradeLevel,
+      startingGoldUpgradeLevel: _cappedStartingGoldUpgradeLevel,
+      nexusHpUpgradeLevel: _cappedNexusHpUpgradeLevel,
+      supplyUpgradeLevel: _cappedSupplyUpgradeLevel,
+      fireTrainingUpgradeLevel: _cappedFireTrainingUpgradeLevel,
       unlockedStageCount: unlockedStageCount,
       bestRoundsByStage: Map.unmodifiable(bestRoundsByStage),
       clearedStageNumbers: Set.unmodifiable(clearedStageNumbers),
@@ -48,10 +84,16 @@ class RunProgression {
     runes = math.max(0, data.runes);
     lastRunRuneReward = math.max(0, data.lastRunRuneReward);
     startingGoldUpgradeLevel = data.startingGoldUpgradeLevel
-        .clamp(0, maxProgressionLevel)
+        .clamp(0, maxStartingGoldUpgradeLevel)
         .toInt();
     nexusHpUpgradeLevel = data.nexusHpUpgradeLevel
-        .clamp(0, maxProgressionLevel)
+        .clamp(0, maxNexusHpUpgradeLevel)
+        .toInt();
+    supplyUpgradeLevel = data.supplyUpgradeLevel
+        .clamp(0, maxSupplyUpgradeLevel)
+        .toInt();
+    fireTrainingUpgradeLevel = data.fireTrainingUpgradeLevel
+        .clamp(0, maxFireTrainingUpgradeLevel)
         .toInt();
     unlockedStageCount = data.unlockedStageCount
         .clamp(1, maxStageCount)
@@ -85,6 +127,26 @@ class RunProgression {
 
     runes -= nexusHpUpgradeCost;
     nexusHpUpgradeLevel++;
+    return true;
+  }
+
+  bool upgradeSupply() {
+    if (!canUpgradeSupply) {
+      return false;
+    }
+
+    runes -= supplyUpgradeCost;
+    supplyUpgradeLevel++;
+    return true;
+  }
+
+  bool upgradeFireTraining() {
+    if (!canUpgradeFireTraining) {
+      return false;
+    }
+
+    runes -= fireTrainingUpgradeCost;
+    fireTrainingUpgradeLevel++;
     return true;
   }
 

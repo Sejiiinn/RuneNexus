@@ -597,6 +597,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _ProgressionUpgradeButton(
+          icon: Icons.toll_outlined,
           title: l10n.startGold,
           level: snapshot.startingGoldUpgradeLevel,
           valueText:
@@ -607,12 +608,34 @@ class _PermanentUpgradeMenu extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         _ProgressionUpgradeButton(
+          icon: Icons.favorite_border,
           title: l10n.nexusHp,
           level: snapshot.nexusHpUpgradeLevel,
           valueText: '+${snapshot.nexusHpUpgradeLevel}',
           cost: snapshot.nexusHpUpgradeCost,
           enabled: snapshot.canUpgradeNexusHp,
           onPressed: game.upgradeNexusHpProgression,
+        ),
+        const SizedBox(height: 8),
+        _ProgressionUpgradeButton(
+          icon: Icons.inventory_2_outlined,
+          title: l10n.maintenanceSupply,
+          level: snapshot.supplyUpgradeLevel,
+          valueText: '+${snapshot.waveClearGoldProgressionBonus}G',
+          cost: snapshot.supplyUpgradeCost,
+          enabled: snapshot.canUpgradeSupply,
+          onPressed: game.upgradeSupplyProgression,
+        ),
+        const SizedBox(height: 8),
+        _ProgressionUpgradeButton(
+          icon: Icons.local_fire_department_outlined,
+          title: l10n.basicFireTraining,
+          level: snapshot.fireTrainingUpgradeLevel,
+          valueText:
+              '+${(snapshot.fireTrainingDamageBonusRate * 100).round()}%',
+          cost: snapshot.fireTrainingUpgradeCost,
+          enabled: snapshot.canUpgradeFireTraining,
+          onPressed: game.upgradeFireTrainingProgression,
         ),
       ],
     );
@@ -621,6 +644,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
 
 class _ProgressionUpgradeButton extends StatelessWidget {
   const _ProgressionUpgradeButton({
+    required this.icon,
     required this.title,
     required this.level,
     required this.valueText,
@@ -629,6 +653,7 @@ class _ProgressionUpgradeButton extends StatelessWidget {
     required this.onPressed,
   });
 
+  final IconData icon;
   final String title;
   final int level;
   final String valueText;
@@ -654,6 +679,8 @@ class _ProgressionUpgradeButton extends StatelessWidget {
         ),
         child: Row(
           children: [
+            Icon(icon, size: 17),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 l10n.upgradeLevel(title, level),
