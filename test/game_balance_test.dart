@@ -492,11 +492,11 @@ void main() {
     expect(GemType.values, contains(GemType.damageOverTime));
   });
 
-  test('enemy kill rewards are reduced to about 60 percent', () {
-    expect(demoEnemies[EnemyType.normal]!.rewardGold, 4);
-    expect(demoEnemies[EnemyType.fast]!.rewardGold, 5);
-    expect(demoEnemies[EnemyType.tank]!.rewardGold, 9);
-    expect(demoEnemies[EnemyType.boss]!.rewardGold, 36);
+  test('enemy kill rewards limit late-wave gold snowballing', () {
+    expect(demoEnemies[EnemyType.normal]!.rewardGold, 3);
+    expect(demoEnemies[EnemyType.fast]!.rewardGold, 3);
+    expect(demoEnemies[EnemyType.tank]!.rewardGold, 6);
+    expect(demoEnemies[EnemyType.boss]!.rewardGold, 24);
   });
 
   test('physical damage gem boosts physical turrets only', () {

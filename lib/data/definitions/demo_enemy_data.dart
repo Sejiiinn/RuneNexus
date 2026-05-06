@@ -12,7 +12,7 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
     name: '일반',
     maxHp: 45,
     speed: 31.5,
-    rewardGold: 4,
+    rewardGold: 3,
     coreDamage: 1,
     color: Color(0xFFC7CED6),
     resistanceProfile: EnemyResistanceProfile.neutral,
@@ -22,7 +22,7 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
     name: '빠름',
     maxHp: 28,
     speed: 54.6,
-    rewardGold: 5,
+    rewardGold: 3,
     coreDamage: 1,
     color: Color(0xFF9CEBFF),
     resistanceProfile: EnemyResistanceProfile(
@@ -34,7 +34,7 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
     name: '탱커',
     maxHp: 135,
     speed: 21,
-    rewardGold: 9,
+    rewardGold: 6,
     coreDamage: 2,
     color: Color(0xFFA9856A),
     resistanceProfile: EnemyResistanceProfile(
@@ -47,7 +47,7 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
     name: '보스',
     maxHp: 900,
     speed: 16.8,
-    rewardGold: 36,
+    rewardGold: 24,
     coreDamage: 8,
     color: Color(0xFFFF5A66),
     resistanceProfile: EnemyResistanceProfile(
