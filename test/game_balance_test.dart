@@ -286,8 +286,8 @@ void main() {
     expect(turret.level, 10);
     expect(turret.maxLevel, 10);
     expect(turret.range, closeTo(116.25, 0.001));
-    expect(turret.damage, closeTo(19.6, 0.001));
-    expect(turret.attackRate, closeTo(3.2915, 0.001));
+    expect(turret.damage, closeTo(36.118, 0.001));
+    expect(turret.attackRate, closeTo(3.5215, 0.001));
   });
 
   test('turret level up costs scale with turret price', () {

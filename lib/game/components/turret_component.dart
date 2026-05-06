@@ -81,7 +81,8 @@ class TurretComponent extends PositionComponent {
 
   double get damage {
     var levelDamage =
-        definition.damage * (1 + (_level - 1) * _damageGrowthPerLevel);
+        definition.damage *
+        math.pow(1 + _damageGrowthPerLevel, _level - 1).toDouble();
     if (definition.damageFamily == DamageFamily.physical &&
         hasGem(GemType.physicalDamage)) {
       levelDamage *= 1.4;
@@ -110,7 +111,9 @@ class TurretComponent extends PositionComponent {
   }
 
   double get attackRate {
-    final levelMultiplier = 1 + (_level - 1) * _attackRateGrowthPerLevel;
+    final levelMultiplier = math
+        .pow(1 + _attackRateGrowthPerLevel, _level - 1)
+        .toDouble();
     return definition.attackRate *
         levelMultiplier *
         (hasGem(GemType.attackSpeed) ? 1.4 : 1) *
