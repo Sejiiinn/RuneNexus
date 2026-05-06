@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../data/definitions/demo_enemy_data.dart';
 import '../../data/definitions/demo_gem_data.dart';
 import '../../data/definitions/demo_turret_data.dart';
+import '../../domain/combat/auto_start_mode.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../domain/enemy/enemy_definition.dart';
 import '../../domain/enemy/enemy_scaling.dart';
@@ -54,7 +55,6 @@ class GameHud extends StatefulWidget {
 
 class _GameHudState extends State<GameHud> {
   bool _showGemDebugPanel = false;
-  EnemyType? _selectedPreviewEnemyType;
   late final AppLifecycleListener _lifecycleListener;
 
   @override
@@ -139,28 +139,9 @@ class _GameHudState extends State<GameHud> {
           child: ValueListenableBuilder<GameSnapshot>(
             valueListenable: widget.game.snapshotNotifier,
             builder: (context, snapshot, _) {
-              final selectedPreviewEnemyType =
-                  snapshot.phase == GamePhase.preparation &&
-                      snapshot.nextWaveEnemyTypes.contains(
-                        _selectedPreviewEnemyType,
-                      )
-                  ? _selectedPreviewEnemyType
-                  : null;
               return Stack(
                 children: [
-                  if (selectedPreviewEnemyType != null)
-                    Positioned.fill(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onTap: () {
-                          setState(() {
-                            _selectedPreviewEnemyType = null;
-                          });
-                        },
-                      ),
-                    ),
                   _TopBar(
-                    game: widget.game,
                     snapshot: snapshot,
                     showDebugButton: _showDebugPanel,
                     showGemDebugPanel: _showGemDebugPanel,
@@ -180,17 +161,7 @@ class _GameHudState extends State<GameHud> {
                         snapshot: snapshot,
                       ),
                     ),
-                  _BottomBar(
-                    game: widget.game,
-                    snapshot: snapshot,
-                    selectedPreviewEnemyType: selectedPreviewEnemyType,
-                    onSelectPreviewEnemy: (type) {
-                      setState(() {
-                        _selectedPreviewEnemyType =
-                            selectedPreviewEnemyType == type ? null : type;
-                      });
-                    },
-                  ),
+                  _BottomBar(game: widget.game, snapshot: snapshot),
                   if (snapshot.phase == GamePhase.reward)
                     Positioned.fill(
                       child: _RewardOverlay(

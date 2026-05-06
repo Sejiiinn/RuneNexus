@@ -2,7 +2,6 @@ part of 'game_hud.dart';
 
 class _TopBar extends StatelessWidget {
   const _TopBar({
-    required this.game,
     required this.snapshot,
     required this.showDebugButton,
     required this.showGemDebugPanel,
@@ -10,7 +9,6 @@ class _TopBar extends StatelessWidget {
     this.onOpenMainMenu,
   });
 
-  final RuneNexusGame game;
   final GameSnapshot snapshot;
   final bool showDebugButton;
   final bool showGemDebugPanel;
@@ -43,8 +41,6 @@ class _TopBar extends StatelessWidget {
               label: '라운드',
               value: '${snapshot.round}/${snapshot.maxRound}',
             ),
-            const SizedBox(width: 14),
-            _SpeedControl(snapshot: snapshot, game: game),
             const SizedBox(width: 6),
             SizedBox(
               width: 30,
@@ -513,59 +509,6 @@ class _DebugRoundButton extends StatelessWidget {
           child: Text(label, style: const TextStyle(fontSize: 11)),
         ),
       ),
-    );
-  }
-}
-
-class _SpeedControl extends StatelessWidget {
-  const _SpeedControl({required this.snapshot, required this.game});
-
-  final GameSnapshot snapshot;
-  final RuneNexusGame game;
-
-  @override
-  Widget build(BuildContext context) {
-    const speeds = [1.0, 2.0, 4.0];
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: speeds.map((speed) {
-        final selected = snapshot.speedMultiplier == speed;
-        return Padding(
-          padding: const EdgeInsets.only(left: 3),
-          child: SizedBox(
-            width: 30,
-            height: 28,
-            child: OutlinedButton(
-              onPressed: () => game.setSpeedMultiplier(speed),
-              style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.zero,
-                foregroundColor: selected
-                    ? const Color(0xFF07111D)
-                    : Colors.white,
-                backgroundColor: selected
-                    ? const Color(0xFF8EE6FF)
-                    : Colors.transparent,
-                side: BorderSide(
-                  color: selected
-                      ? const Color(0xFF8EE6FF)
-                      : const Color(0x5533D8FF),
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-              child: Text(
-                '${speed.toInt()}x',
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ),
-        );
-      }).toList(),
     );
   }
 }

@@ -1,3 +1,4 @@
+import '../../domain/combat/auto_start_mode.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../domain/enemy/enemy_type.dart';
 import '../../domain/gem/gem_type.dart';
@@ -14,6 +15,7 @@ class GameSaveData {
     required this.roundIndex,
     required this.completedRounds,
     required this.phase,
+    required this.autoStartMode,
     required this.progression,
     required this.gemInventory,
     required this.rewardOptions,
@@ -32,6 +34,7 @@ class GameSaveData {
   final int roundIndex;
   final int completedRounds;
   final GamePhase phase;
+  final AutoStartMode autoStartMode;
   final SavedProgression progression;
   final Map<GemType, int> gemInventory;
   final List<GemType> rewardOptions;
@@ -61,6 +64,7 @@ class GameSaveData {
       'roundIndex': roundIndex,
       'completedRounds': completedRounds,
       'phase': phase.name,
+      'autoStartMode': autoStartMode.name,
       'progression': progression.toJson(),
       'gemInventory': gemInventory.map(
         (key, value) => MapEntry(key.name, value),
@@ -91,6 +95,9 @@ class GameSaveData {
       completedRounds: _intValue(json['completedRounds']),
       phase:
           _enumValue(GamePhase.values, json['phase']) ?? GamePhase.preparation,
+      autoStartMode:
+          _enumValue(AutoStartMode.values, json['autoStartMode']) ??
+          AutoStartMode.pauseEachRound,
       progression: SavedProgression.fromJson(json['progression']),
       gemInventory: _enumIntMap(GemType.values, json['gemInventory']),
       rewardOptions: _enumList(GemType.values, json['rewardOptions']),

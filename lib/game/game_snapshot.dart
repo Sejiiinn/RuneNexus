@@ -1,4 +1,5 @@
 import '../domain/combat/game_phase.dart';
+import '../domain/combat/auto_start_mode.dart';
 import '../domain/enemy/enemy_type.dart';
 import '../domain/gem/gem_type.dart';
 import '../domain/map/grid_point.dart';
@@ -53,6 +54,8 @@ class GameSnapshot {
     required this.topDamageTurretName,
     required this.topDamageTurretDamageDealt,
     required this.nextWaveEnemyTypes,
+    required this.nextWaveEnemyCounts,
+    required this.autoStartMode,
     required this.speedMultiplier,
     required this.runes,
     required this.lastRunRuneReward,
@@ -116,6 +119,8 @@ class GameSnapshot {
   final String? topDamageTurretName;
   final double topDamageTurretDamageDealt;
   final List<EnemyType> nextWaveEnemyTypes;
+  final Map<EnemyType, int> nextWaveEnemyCounts;
+  final AutoStartMode autoStartMode;
   final double speedMultiplier;
   final int runes;
   final int lastRunRuneReward;

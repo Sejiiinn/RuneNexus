@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/app/rune_nexus_app.dart';
+import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/game/game_snapshot.dart';
@@ -227,6 +228,8 @@ GameSnapshot _resultSnapshot({
     topDamageTurretName: null,
     topDamageTurretDamageDealt: 0,
     nextWaveEnemyTypes: const [],
+    nextWaveEnemyCounts: const {},
+    autoStartMode: AutoStartMode.pauseEachRound,
     speedMultiplier: 1,
     runes: runes,
     lastRunRuneReward: lastRunRuneReward,

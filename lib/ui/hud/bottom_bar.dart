@@ -1,17 +1,10 @@
 part of 'game_hud.dart';
 
 class _BottomBar extends StatelessWidget {
-  const _BottomBar({
-    required this.game,
-    required this.snapshot,
-    required this.selectedPreviewEnemyType,
-    required this.onSelectPreviewEnemy,
-  });
+  const _BottomBar({required this.game, required this.snapshot});
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
-  final EnemyType? selectedPreviewEnemyType;
-  final ValueChanged<EnemyType> onSelectPreviewEnemy;
 
   @override
   Widget build(BuildContext context) {
@@ -43,29 +36,18 @@ class _BottomBar extends StatelessWidget {
           children: [
             Row(
               children: [
-                Expanded(
-                  child: snapshot.phase == GamePhase.preparation
-                      ? _WavePreview(
-                          snapshot: snapshot,
-                          selectedType: selectedPreviewEnemyType,
-                          onSelectType: onSelectPreviewEnemy,
-                        )
-                      : Text(
-                          statusText,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFFE8F8FF),
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                ),
-                const SizedBox(width: 8),
+                _BottomSpeedControl(snapshot: snapshot, game: game),
+                const Spacer(),
+                _AutoStartModeButton(game: game, snapshot: snapshot),
+                const SizedBox(width: 6),
                 _StartWaveButton(
                   enabled: canPrepare,
                   onPressed: game.startNextWave,
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            _PortalSummaryCard(snapshot: snapshot, statusText: statusText),
             if (snapshot.selectedTurretPoint != null && canEditBoard) ...[
               const SizedBox(height: 8),
               _GemEquipPanel(game: game, snapshot: snapshot),
@@ -102,64 +84,520 @@ class _BottomBar extends StatelessWidget {
   }
 }
 
-class _WavePreview extends StatelessWidget {
-  const _WavePreview({
-    required this.snapshot,
-    required this.selectedType,
-    required this.onSelectType,
-  });
+class _PortalSummaryCard extends StatelessWidget {
+  const _PortalSummaryCard({required this.snapshot, required this.statusText});
 
   final GameSnapshot snapshot;
-  final EnemyType? selectedType;
-  final ValueChanged<EnemyType> onSelectType;
+  final String statusText;
 
   @override
   Widget build(BuildContext context) {
-    final selectedEnemy = selectedType == null
-        ? null
-        : demoEnemies[selectedType]!;
+    final showWave = snapshot.phase == GamePhase.preparation;
+    final title = showWave ? '포탈 1' : statusText;
+    final subtitle = showWave
+        ? '${snapshot.previewText} · ${snapshot.round}/${snapshot.maxRound}'
+        : '진행 상태 확인';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Text(
-              '다음 라운드',
-              style: TextStyle(fontSize: 13, color: Color(0xFFE8F8FF)),
-            ),
-            const SizedBox(width: 8),
-            ...snapshot.nextWaveEnemyTypes.map((type) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 5),
-                child: GestureDetector(
-                  onTap: () => onSelectType(type),
-                  child: _EnemyIcon(type: type, selected: selectedType == type),
-                ),
-              );
-            }),
-          ],
-        ),
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 140),
-          reverseDuration: const Duration(milliseconds: 90),
-          switchInCurve: Curves.easeOut,
-          switchOutCurve: Curves.easeIn,
-          child: selectedEnemy == null
-              ? const SizedBox.shrink()
-              : Padding(
-                  key: ValueKey(selectedType),
-                  padding: const EdgeInsets.only(top: 8),
-                  child: _EnemyPreviewPanel(
-                    enemy: selectedEnemy,
-                    round: snapshot.round,
-                    stageNumber: snapshot.currentStageNumber,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: showWave
+            ? () => showModalBottomSheet<void>(
+                context: context,
+                backgroundColor: Colors.transparent,
+                builder: (context) =>
+                    _PortalWaveDetailSheet(snapshot: snapshot),
+              )
+            : null,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 9),
+          decoration: BoxDecoration(
+            color: const Color(0xAA0B1B2B),
+            border: Border.all(color: const Color(0x7733D8FF)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4B245F),
+                  border: Border.all(
+                    color: const Color(0xFFB16DFF),
+                    width: 1.4,
                   ),
+                  borderRadius: BorderRadius.circular(7),
                 ),
+                child: const Icon(
+                  Icons.filter_tilt_shift,
+                  size: 18,
+                  color: Color(0xFFE3B7FF),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFFE8F8FF),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF8FA8BA),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+              if (showWave) _NextWaveEnemySummary(snapshot: snapshot),
+              const SizedBox(width: 5),
+              Icon(
+                Icons.expand_less,
+                size: 18,
+                color: showWave
+                    ? const Color(0xFF8EE6FF)
+                    : const Color(0xFF627384),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _NextWaveEnemySummary extends StatelessWidget {
+  const _NextWaveEnemySummary({required this.snapshot});
+
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final types = snapshot.nextWaveEnemyTypes.take(3).toList();
+    final hiddenCount = snapshot.nextWaveEnemyTypes.length - types.length;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ...types.map(
+          (type) => Padding(
+            padding: const EdgeInsets.only(left: 3),
+            child: SizedBox(
+              width: 25,
+              height: 25,
+              child: _EnemyIcon(type: type, selected: false),
+            ),
+          ),
+        ),
+        if (hiddenCount > 0)
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Text(
+              '+$hiddenCount',
+              style: const TextStyle(
+                color: Color(0xFF8EE6FF),
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
       ],
     );
   }
+}
+
+class _PortalWaveDetailSheet extends StatelessWidget {
+  const _PortalWaveDetailSheet({required this.snapshot});
+
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xF70B1827),
+          border: Border.all(color: const Color(0x8833D8FF)),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.filter_tilt_shift,
+                  color: Color(0xFFE3B7FF),
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '포탈 1 · ${snapshot.round}/${snapshot.maxRound} 라운드',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFFE8F8FF),
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: IconButton(
+                    tooltip: '닫기',
+                    onPressed: () => Navigator.of(context).pop(),
+                    style: IconButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      foregroundColor: const Color(0xFFC6D6E4),
+                      backgroundColor: Colors.transparent,
+                      side: const BorderSide(color: Color(0x664A6172)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    icon: const Icon(Icons.close, size: 17),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              snapshot.previewText,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Color(0xFF8FA8BA),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: snapshot.nextWaveEnemyTypes.map((type) {
+                final enemy = demoEnemies[type]!;
+                final count = snapshot.nextWaveEnemyCounts[type] ?? 0;
+                return _EnemyCountChip(enemy: enemy, count: count);
+              }).toList(),
+            ),
+            const SizedBox(height: 10),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: snapshot.nextWaveEnemyTypes.map((type) {
+                    final enemy = demoEnemies[type]!;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 7),
+                      child: _EnemyDetailRow(
+                        enemy: enemy,
+                        count: snapshot.nextWaveEnemyCounts[type] ?? 0,
+                        round: snapshot.round,
+                        stageNumber: snapshot.currentStageNumber,
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EnemyCountChip extends StatelessWidget {
+  const _EnemyCountChip({required this.enemy, required this.count});
+
+  final EnemyDefinition enemy;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: enemy.color.withValues(alpha: 0.12),
+        border: Border.all(color: enemy.color.withValues(alpha: 0.75)),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 18,
+            height: 18,
+            child: _EnemyIcon(type: enemy.type, selected: false),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            '${enemy.name} x$count',
+            style: TextStyle(
+              color: enemy.color,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EnemyDetailRow extends StatelessWidget {
+  const _EnemyDetailRow({
+    required this.enemy,
+    required this.count,
+    required this.round,
+    required this.stageNumber,
+  });
+
+  final EnemyDefinition enemy;
+  final int count;
+  final int round;
+  final int stageNumber;
+
+  @override
+  Widget build(BuildContext context) {
+    final maxHp = scaledEnemyMaxHp(enemy, round, stageNumber: stageNumber);
+    final multiplierRows = [
+      ...DamageFamily.values
+          .map(
+            (family) => (
+              label: family.label,
+              color: family.color,
+              value: enemy.resistanceProfile.familyMultiplier(family),
+            ),
+          )
+          .where((row) => row.value != 1),
+      ...AttackTag.values
+          .map(
+            (tag) => (
+              label: tag.label,
+              color: tag.color,
+              value: enemy.resistanceProfile.tagMultiplier(tag),
+            ),
+          )
+          .where((row) => row.value != 1),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(9),
+      decoration: BoxDecoration(
+        color: const Color(0xAA07111D),
+        border: Border.all(color: enemy.color.withValues(alpha: 0.55)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              _EnemyIcon(type: enemy.type, selected: false),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '${enemy.name} x$count',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: enemy.color,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              _StatPill(label: '체력', value: maxHp.round().toString()),
+              const SizedBox(width: 5),
+              _StatPill(label: '속도', value: enemy.speed.round().toString()),
+            ],
+          ),
+          if (multiplierRows.isNotEmpty) ...[
+            const SizedBox(height: 7),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Wrap(
+                spacing: 5,
+                runSpacing: 5,
+                children: multiplierRows.map((row) {
+                  return _MultiplierChip(
+                    label: row.label,
+                    value: row.value,
+                    color: row.color,
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _BottomSpeedControl extends StatelessWidget {
+  const _BottomSpeedControl({required this.snapshot, required this.game});
+
+  final GameSnapshot snapshot;
+  final RuneNexusGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    const speeds = [1.0, 2.0, 4.0];
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: const Color(0x5507111D),
+        border: Border.all(color: const Color(0x5533D8FF)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: speeds.map((speed) {
+          final selected = snapshot.speedMultiplier == speed;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 1),
+            child: SizedBox(
+              width: 30,
+              height: 32,
+              child: OutlinedButton(
+                onPressed: () => game.setSpeedMultiplier(speed),
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  foregroundColor: selected
+                      ? const Color(0xFF07111D)
+                      : Colors.white,
+                  backgroundColor: selected
+                      ? const Color(0xFF8EE6FF)
+                      : Colors.transparent,
+                  side: BorderSide(
+                    color: selected
+                        ? const Color(0xFF8EE6FF)
+                        : Colors.transparent,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+                child: Text(
+                  '${speed.toInt()}x',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class _AutoStartModeButton extends StatelessWidget {
+  const _AutoStartModeButton({required this.game, required this.snapshot});
+
+  final RuneNexusGame game;
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<AutoStartMode>(
+      tooltip: _autoStartModeLabel(snapshot.autoStartMode),
+      color: const Color(0xFF0B1827),
+      offset: const Offset(0, -142),
+      shape: RoundedRectangleBorder(
+        side: const BorderSide(color: Color(0x8833D8FF)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      onSelected: game.setAutoStartMode,
+      itemBuilder: (context) {
+        return AutoStartMode.values.map((mode) {
+          final selected = snapshot.autoStartMode == mode;
+          return PopupMenuItem(
+            value: mode,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  _autoStartModeIcon(mode),
+                  size: 18,
+                  color: selected
+                      ? const Color(0xFF8EE6FF)
+                      : const Color(0xFFB7C8D8),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _autoStartModeLabel(mode),
+                  style: TextStyle(
+                    color: selected
+                        ? const Color(0xFF8EE6FF)
+                        : const Color(0xFFE8F8FF),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList();
+      },
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: const Color(0x2207111D),
+          border: Border.all(color: const Color(0x8833D8FF)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          _autoStartModeIcon(snapshot.autoStartMode),
+          size: 22,
+          color: const Color(0xFF8EE6FF),
+        ),
+      ),
+    );
+  }
+}
+
+IconData _autoStartModeIcon(AutoStartMode mode) {
+  return switch (mode) {
+    AutoStartMode.pauseEachRound => Icons.pause_rounded,
+    AutoStartMode.skipBossRounds => Icons.auto_mode_rounded,
+    AutoStartMode.fullAuto => Icons.all_inclusive,
+  };
+}
+
+String _autoStartModeLabel(AutoStartMode mode) {
+  return switch (mode) {
+    AutoStartMode.pauseEachRound => '라운드마다 정지',
+    AutoStartMode.skipBossRounds => '보스 제외 자동',
+    AutoStartMode.fullAuto => '전부 자동',
+  };
 }
 
 class _EnemyIcon extends StatelessWidget {
@@ -214,97 +652,6 @@ class _EnemyIconPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _EnemyIconPainter oldDelegate) {
     return oldDelegate.color != color || oldDelegate.type != type;
-  }
-}
-
-class _EnemyPreviewPanel extends StatelessWidget {
-  const _EnemyPreviewPanel({
-    required this.enemy,
-    required this.round,
-    required this.stageNumber,
-  });
-
-  final EnemyDefinition enemy;
-  final int round;
-  final int stageNumber;
-
-  @override
-  Widget build(BuildContext context) {
-    final maxHp = scaledEnemyMaxHp(enemy, round, stageNumber: stageNumber);
-    final multiplierRows = [
-      ...DamageFamily.values
-          .map(
-            (family) => (
-              label: family.label,
-              color: family.color,
-              value: enemy.resistanceProfile.familyMultiplier(family),
-            ),
-          )
-          .where((row) => row.value != 1),
-      ...AttackTag.values
-          .map(
-            (tag) => (
-              label: tag.label,
-              color: tag.color,
-              value: enemy.resistanceProfile.tagMultiplier(tag),
-            ),
-          )
-          .where((row) => row.value != 1),
-    ];
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: const Color(0xF00B1B2B),
-        border: Border.all(color: enemy.color.withValues(alpha: 0.65)),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              _EnemyIcon(type: enemy.type, selected: false),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  enemy.name,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    color: enemy.color,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              _StatPill(label: '체력', value: maxHp.round().toString()),
-              const SizedBox(width: 5),
-              _StatPill(label: '속도', value: enemy.speed.round().toString()),
-            ],
-          ),
-          const SizedBox(height: 7),
-          if (multiplierRows.isEmpty)
-            const Text(
-              '피해 배율 변화 없음',
-              style: TextStyle(fontSize: 11, color: Color(0xFFB9D6E4)),
-            )
-          else
-            Wrap(
-              spacing: 5,
-              runSpacing: 5,
-              children: multiplierRows.map((row) {
-                return _MultiplierChip(
-                  label: row.label,
-                  value: row.value,
-                  color: row.color,
-                );
-              }).toList(),
-            ),
-        ],
-      ),
-    );
   }
 }
 

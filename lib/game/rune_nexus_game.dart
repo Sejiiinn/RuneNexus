@@ -14,6 +14,7 @@ import '../data/save/game_save_data.dart';
 import '../data/save/local_save_repository.dart';
 import '../data/save/online_save_repository.dart';
 import '../data/save/save_repository.dart';
+import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/game_phase.dart';
 import '../domain/enemy/enemy_scaling.dart';
 import '../domain/enemy/enemy_type.dart';
@@ -94,6 +95,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   static GameSnapshot _initialSnapshot(StageDefinition stage) {
+    final firstWave = stage.waves.first;
     return GameSnapshot(
       gold: RunProgression.baseInitialGold,
       nexusHp: RunProgression.baseNexusHp,
@@ -109,7 +111,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       bestRoundsByStage: const {},
       clearedStageNumbers: const {},
       selectedTurretType: TurretType.arrow,
-      previewText: stage.waves.first.previewText,
+      previewText: firstWave.previewText,
       rewardOptions: const [],
       gemInventory: const {},
       selectedBuildPoint: null,
@@ -141,7 +143,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretBurnDamageDealt: 0,
       topDamageTurretName: null,
       topDamageTurretDamageDealt: 0,
-      nextWaveEnemyTypes: const [],
+      nextWaveEnemyTypes: _enemyTypesFor(firstWave),
+      nextWaveEnemyCounts: _enemyCountsFor(firstWave),
+      autoStartMode: AutoStartMode.pauseEachRound,
       speedMultiplier: 1,
       runes: 0,
       lastRunRuneReward: 0,
@@ -157,6 +161,24 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       nexusHpUpgradeCost: RunProgression.nexusHpUpgradeBaseCost,
       canUpgradeNexusHp: false,
     );
+  }
+
+  static List<EnemyType> _enemyTypesFor(WaveDefinition wave) {
+    final types = <EnemyType>[];
+    for (final group in wave.groups) {
+      if (!types.contains(group.enemyType)) {
+        types.add(group.enemyType);
+      }
+    }
+    return List.unmodifiable(types);
+  }
+
+  static Map<EnemyType, int> _enemyCountsFor(WaveDefinition wave) {
+    final counts = <EnemyType, int>{};
+    for (final group in wave.groups) {
+      counts[group.enemyType] = (counts[group.enemyType] ?? 0) + group.count;
+    }
+    return Map.unmodifiable(counts);
   }
 
   RuneNexusGame({
@@ -223,6 +245,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   GridPoint? _selectedBuildPoint;
   GridPoint? _selectedTurretPoint;
   int? _selectedTurretGemSlotIndex;
+  AutoStartMode _autoStartMode = AutoStartMode.pauseEachRound;
   double _speedMultiplier = 1;
   double _boardZoom = _minBoardZoom;
   Vector2 _boardOffset = Vector2.zero();
@@ -301,6 +324,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
     super.update(dt * _speedMultiplier);
     if (_phase != GamePhase.wave) {
+      _maybeAutoStartNextWave();
       return;
     }
 
@@ -399,6 +423,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   void setSpeedMultiplier(double value) {
     _speedMultiplier = value;
     _publish();
+  }
+
+  void setAutoStartMode(AutoStartMode mode) {
+    if (_autoStartMode == mode) {
+      return;
+    }
+    _autoStartMode = mode;
+    _publish();
+    _requestLocalSave(immediate: true);
+    _maybeAutoStartNextWave();
   }
 
   void startNextWave() {
@@ -1292,6 +1326,22 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _publish();
   }
 
+  void _maybeAutoStartNextWave() {
+    if (_phase != GamePhase.preparation || _roundIndex >= _waves.length) {
+      return;
+    }
+    if (_autoStartMode == AutoStartMode.pauseEachRound) {
+      return;
+    }
+    final nextWaveHasBoss = _waves[_roundIndex].groups.any(
+      (group) => group.enemyType == EnemyType.boss,
+    );
+    if (_autoStartMode == AutoStartMode.skipBossRounds && nextWaveHasBoss) {
+      return;
+    }
+    startNextWave();
+  }
+
   void _finishRun(GamePhase resultPhase) {
     if (_phase == GamePhase.success || _phase == GamePhase.failure) {
       return;
@@ -1420,6 +1470,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       roundIndex: _roundIndex,
       completedRounds: _completedRounds,
       phase: savedPhase,
+      autoStartMode: _autoStartMode,
       progression: _progression.toSaveData(),
       gemInventory: Map.unmodifiable(_gemInventory),
       rewardOptions: List.unmodifiable(_rewardOptions),
@@ -1437,6 +1488,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _restoreMenuStateFromSaveData(GameSaveData data) {
+    _autoStartMode = data.autoStartMode;
     _progression.restoreFromSaveData(data.progression);
     _gemInventory
       ..clear()
@@ -1488,6 +1540,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _restoreFromSaveData(GameSaveData data) {
+    _autoStartMode = data.autoStartMode;
     _progression.restoreFromSaveData(data.progression);
     _clearActiveCombat();
     for (final turret in _turrets.values.toList()) {
@@ -1645,12 +1698,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       }
       return current;
     });
-    final nextWaveEnemyTypes = <EnemyType>[];
-    for (final group in nextWave.groups) {
-      if (!nextWaveEnemyTypes.contains(group.enemyType)) {
-        nextWaveEnemyTypes.add(group.enemyType);
-      }
-    }
+    final nextWaveEnemyTypes = _enemyTypesFor(nextWave);
+    final nextWaveEnemyCounts = _enemyCountsFor(nextWave);
     final hasStageProgress =
         _phase == GamePhase.wave ||
         _phase == GamePhase.reward ||
@@ -1724,6 +1773,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
           : topDamageTurret.definition.name,
       topDamageTurretDamageDealt: topDamageTurret?.damageDealt ?? 0,
       nextWaveEnemyTypes: List.unmodifiable(nextWaveEnemyTypes),
+      nextWaveEnemyCounts: Map.unmodifiable(nextWaveEnemyCounts),
+      autoStartMode: _autoStartMode,
       speedMultiplier: _speedMultiplier,
       runes: _progression.runes,
       lastRunRuneReward: _progression.lastRunRuneReward,

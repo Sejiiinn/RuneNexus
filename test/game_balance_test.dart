@@ -4,6 +4,7 @@ import 'package:rune_nexus/data/definitions/demo_enemy_data.dart';
 import 'package:rune_nexus/data/definitions/demo_stage_data.dart';
 import 'package:rune_nexus/data/definitions/demo_turret_data.dart';
 import 'package:rune_nexus/data/save/save_repository.dart';
+import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
 import 'package:rune_nexus/domain/enemy/enemy_scaling.dart';
 import 'package:rune_nexus/domain/enemy/enemy_type.dart';
@@ -168,6 +169,59 @@ void main() {
 
     expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
     expect(game.snapshotNotifier.value.gemInventory.values.single, 1);
+  });
+
+  test('auto start can continue non-boss preparation rounds', () {
+    final game = RuneNexusGame(
+      waves: List<WaveDefinition>.generate(
+        2,
+        (index) => WaveDefinition(
+          round: index + 1,
+          previewText: 'test',
+          groups: const [],
+          clearRewardGold: 0,
+        ),
+      ),
+    );
+
+    game.setAutoStartMode(AutoStartMode.fullAuto);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.wave);
+
+    game.update(0.016);
+    expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+    expect(game.snapshotNotifier.value.round, 2);
+
+    game.update(0.016);
+    expect(game.snapshotNotifier.value.phase, GamePhase.wave);
+  });
+
+  test('auto start can pause before boss rounds', () {
+    final game = RuneNexusGame(
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'normal',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+        WaveDefinition(
+          round: 2,
+          previewText: 'boss',
+          groups: [
+            SpawnGroup(enemyType: EnemyType.boss, count: 1, interval: 1),
+          ],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+
+    game.setAutoStartMode(AutoStartMode.skipBossRounds);
+    game.update(0.016);
+    game.update(0.016);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+    expect(game.snapshotNotifier.value.round, 2);
   });
 
   test('abandoning an active run settles failure rewards', () async {
