@@ -1251,7 +1251,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final definition = demoEnemies[type]!;
     final enemy = EnemyComponent(
       definition: definition,
-      maxHp: scaledEnemyMaxHp(definition, _waves[_roundIndex].round),
+      maxHp: scaledEnemyMaxHp(
+        definition,
+        _waves[_roundIndex].round,
+        stageNumber: _currentStageNumber,
+      ),
       path: _worldPath,
       game: this,
     );
@@ -1550,7 +1554,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         definition: definition,
         maxHp: savedEnemy.maxHp > 0
             ? savedEnemy.maxHp
-            : scaledEnemyMaxHp(definition, _waves[_roundIndex].round),
+            : scaledEnemyMaxHp(
+                definition,
+                _waves[_roundIndex].round,
+                stageNumber: _currentStageNumber,
+              ),
         path: _worldPath,
         game: this,
       )..restoreFromSaveData(savedEnemy);

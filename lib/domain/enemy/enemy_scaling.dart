@@ -5,6 +5,16 @@ double enemyHpMultiplierForRound(int round) {
   return math.pow(2, ((round - 1).clamp(0, 49)) / 10).toDouble();
 }
 
-double scaledEnemyMaxHp(EnemyDefinition definition, int round) {
-  return definition.maxHp * enemyHpMultiplierForRound(round);
+double enemyHpMultiplierForStage(int stageNumber) {
+  return math.pow(1.2, (stageNumber - 1).clamp(0, 4)).toDouble();
+}
+
+double scaledEnemyMaxHp(
+  EnemyDefinition definition,
+  int round, {
+  int stageNumber = 1,
+}) {
+  return definition.maxHp *
+      enemyHpMultiplierForRound(round) *
+      enemyHpMultiplierForStage(stageNumber);
 }

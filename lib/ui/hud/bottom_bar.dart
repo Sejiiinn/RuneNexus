@@ -153,6 +153,7 @@ class _WavePreview extends StatelessWidget {
                   child: _EnemyPreviewPanel(
                     enemy: selectedEnemy,
                     round: snapshot.round,
+                    stageNumber: snapshot.currentStageNumber,
                   ),
                 ),
         ),
@@ -217,14 +218,19 @@ class _EnemyIconPainter extends CustomPainter {
 }
 
 class _EnemyPreviewPanel extends StatelessWidget {
-  const _EnemyPreviewPanel({required this.enemy, required this.round});
+  const _EnemyPreviewPanel({
+    required this.enemy,
+    required this.round,
+    required this.stageNumber,
+  });
 
   final EnemyDefinition enemy;
   final int round;
+  final int stageNumber;
 
   @override
   Widget build(BuildContext context) {
-    final maxHp = scaledEnemyMaxHp(enemy, round);
+    final maxHp = scaledEnemyMaxHp(enemy, round, stageNumber: stageNumber);
     final multiplierRows = [
       ...DamageFamily.values
           .map(

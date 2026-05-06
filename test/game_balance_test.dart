@@ -214,6 +214,15 @@ void main() {
     expect(enemyHpMultiplierForRound(21), closeTo(4, 0.001));
   });
 
+  test('enemy hp scales by stage', () {
+    final normal = demoEnemies[EnemyType.normal]!;
+
+    expect(enemyHpMultiplierForStage(1), closeTo(1, 0.001));
+    expect(enemyHpMultiplierForStage(2), closeTo(1.2, 0.001));
+    expect(enemyHpMultiplierForStage(5), closeTo(2.0736, 0.001));
+    expect(scaledEnemyMaxHp(normal, 1, stageNumber: 2), closeTo(54, 0.001));
+  });
+
   test('projectiles are faster for straight-shot combat', () {
     expect(demoTurrets[TurretType.arrow]!.projectileSpeed, 620);
     expect(demoTurrets[TurretType.cannon]!.projectileSpeed, 340);
