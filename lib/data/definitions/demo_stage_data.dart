@@ -199,26 +199,25 @@ String _previewTextFor(int round) {
 
 List<SpawnGroup> _groupsFor(int round, int step) {
   if (round % 10 == 0) {
-    final bossCount = 1 + round ~/ 30;
-    final boss = SpawnGroup(
-      enemyType: EnemyType.boss,
-      count: bossCount,
-      interval: 2.0,
-    );
     final tank = SpawnGroup(
       enemyType: EnemyType.tank,
       count: 4 + step ~/ 4,
       interval: 1.5,
-      startDelay: _nextGroupDelay(boss, gap: _bossGroupGap),
+    );
+    final fast = SpawnGroup(
+      enemyType: EnemyType.fast,
+      count: 9 + step ~/ 2,
+      interval: 0.7,
+      startDelay: _nextGroupDelay(tank, gap: _standardGroupGap),
     );
     return [
-      boss,
       tank,
+      fast,
       SpawnGroup(
-        enemyType: EnemyType.fast,
-        count: 9 + step ~/ 2,
-        interval: 0.7,
-        startDelay: _nextGroupDelay(tank, gap: _standardGroupGap),
+        enemyType: EnemyType.boss,
+        count: 1,
+        interval: 2.0,
+        startDelay: _nextGroupDelay(fast, gap: _bossGroupGap),
       ),
     ];
   }

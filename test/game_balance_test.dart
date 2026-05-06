@@ -682,18 +682,19 @@ void main() {
       );
 
       final wave30 = demoWaves[29];
-      final wave30Boss = wave30.groups[0];
-      final wave30Tank = wave30.groups[1];
-      final wave30Fast = wave30.groups[2];
+      final wave30Tank = wave30.groups[0];
+      final wave30Fast = wave30.groups[1];
+      final wave30Boss = wave30.groups[2];
 
-      expect(
-        wave30Tank.startDelay,
-        greaterThanOrEqualTo(lastSpawnDelay(wave30Boss) + 1.5),
-      );
       expect(
         wave30Fast.startDelay,
         greaterThanOrEqualTo(lastSpawnDelay(wave30Tank) + 0.75),
       );
+      expect(
+        wave30Boss.startDelay,
+        greaterThanOrEqualTo(lastSpawnDelay(wave30Fast) + 1.5),
+      );
+      expect(wave30Boss.count, 1);
     },
   );
 
@@ -711,7 +712,7 @@ void main() {
     expect(demoWaves[25].groups[1].interval, greaterThanOrEqualTo(0.6));
     expect(demoWaves[4].groups[0].interval, greaterThanOrEqualTo(1.5));
     expect(demoWaves[10].groups[2].interval, greaterThanOrEqualTo(1.5));
-    expect(demoWaves[29].groups[0].interval, greaterThanOrEqualTo(2.0));
+    expect(demoWaves[29].groups[2].interval, greaterThanOrEqualTo(2.0));
   });
 
   test('fire turret is tagged as damage over time', () {
