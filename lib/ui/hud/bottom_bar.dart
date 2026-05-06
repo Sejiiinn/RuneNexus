@@ -13,7 +13,7 @@ class _BottomBar extends StatelessWidget {
         snapshot.phase == GamePhase.preparation ||
         snapshot.phase == GamePhase.wave;
     final statusText = switch (snapshot.phase) {
-      GamePhase.preparation => '다음 라운드',
+      GamePhase.preparation => '다음 웨이브',
       GamePhase.wave => '전투 진행 중',
       GamePhase.reward => '젬 보상 선택 대기',
       GamePhase.success => '방어 성공',
@@ -48,40 +48,397 @@ class _BottomBar extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             _PortalSummaryCard(snapshot: snapshot, statusText: statusText),
-            if (snapshot.selectedTurretPoint != null && canEditBoard) ...[
+            if (snapshot.selectedRunPanelTab == RunPanelTab.upgrades) ...[
               const SizedBox(height: 8),
-              _GemEquipPanel(game: game, snapshot: snapshot),
-            ] else if ((snapshot.selectedBuildPoint != null ||
-                    snapshot.selectedBuildTurretType != null) &&
-                canEditBoard) ...[
+              _RunUpgradePanel(game: game, snapshot: snapshot),
+            ] else ...[
+              if (snapshot.selectedTurretPoint != null && canEditBoard) ...[
+                const SizedBox(height: 8),
+                _GemEquipPanel(game: game, snapshot: snapshot),
+              ] else if ((snapshot.selectedBuildPoint != null ||
+                      snapshot.selectedBuildTurretType != null) &&
+                  canEditBoard) ...[
+                const SizedBox(height: 8),
+                _BuildSelectionPanel(game: game, snapshot: snapshot),
+              ],
               const SizedBox(height: 8),
-              _BuildSelectionPanel(game: game, snapshot: snapshot),
+              Row(
+                children: TurretType.values.map((type) {
+                  final definition = demoTurrets[type]!;
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 3),
+                      child: _TurretButton(
+                        type: type,
+                        label: definition.name,
+                        cost: definition.cost,
+                        color: definition.color,
+                        selected: snapshot.selectedBuildTurretType == type,
+                        enabled: canEditBoard,
+                        onPressed: () => game.previewOrBuildSelectedTile(type),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
             ],
             const SizedBox(height: 8),
-            Row(
-              children: TurretType.values.map((type) {
-                final definition = demoTurrets[type]!;
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    child: _TurretButton(
-                      type: type,
-                      label: definition.name,
-                      cost: definition.cost,
-                      color: definition.color,
-                      selected: snapshot.selectedBuildTurretType == type,
-                      enabled: canEditBoard,
-                      onPressed: () => game.previewOrBuildSelectedTile(type),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
+            _RunPanelTabs(game: game, snapshot: snapshot),
           ],
         ),
       ),
     );
   }
+}
+
+class _RunPanelTabs extends StatelessWidget {
+  const _RunPanelTabs({required this.game, required this.snapshot});
+
+  final RuneNexusGame game;
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 38,
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: const Color(0x6607111D),
+        border: Border.all(color: const Color(0x5533D8FF)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          _RunPanelTabButton(
+            icon: Icons.account_tree_outlined,
+            label: '포탑',
+            selected: snapshot.selectedRunPanelTab == RunPanelTab.turrets,
+            onPressed: () => game.selectRunPanelTab(RunPanelTab.turrets),
+          ),
+          const SizedBox(width: 4),
+          _RunPanelTabButton(
+            icon: Icons.trending_up_rounded,
+            label: '업그레이드',
+            selected: snapshot.selectedRunPanelTab == RunPanelTab.upgrades,
+            onPressed: () => game.selectRunPanelTab(RunPanelTab.upgrades),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RunPanelTabButton extends StatelessWidget {
+  const _RunPanelTabButton({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = selected
+        ? const Color(0xFF07111D)
+        : const Color(0xFFC6D6E4);
+    return Expanded(
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          padding: EdgeInsets.zero,
+          foregroundColor: foreground,
+          backgroundColor: selected
+              ? const Color(0xFF8EE6FF)
+              : Colors.transparent,
+          side: BorderSide(
+            color: selected ? const Color(0xFF8EE6FF) : Colors.transparent,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        ),
+        icon: Icon(icon, size: 16),
+        label: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+        ),
+      ),
+    );
+  }
+}
+
+class _RunUpgradePanel extends StatelessWidget {
+  const _RunUpgradePanel({required this.game, required this.snapshot});
+
+  final RuneNexusGame game;
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 198),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: RunUpgradeType.values.map((type) {
+            final definition = demoRunUpgrades[type]!;
+            final level = snapshot.runUpgradeLevels[type] ?? 0;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: _RunUpgradeRow(
+                definition: definition,
+                level: level,
+                gold: snapshot.gold,
+                onPressed: () => game.buyRunUpgrade(type),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+}
+
+class _RunUpgradeRow extends StatelessWidget {
+  const _RunUpgradeRow({
+    required this.definition,
+    required this.level,
+    required this.gold,
+    required this.onPressed,
+  });
+
+  final RunUpgradeDefinition definition;
+  final int level;
+  final int gold;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final isMax = level >= definition.maxLevel;
+    final cost = definition.costForLevel(level);
+    final enabled = !isMax && gold >= cost;
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: const Color(0xAA0B1B2B),
+        border: Border.all(color: const Color(0x5533D8FF)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            _runUpgradeIcon(definition.type),
+            size: 22,
+            color: enabled ? const Color(0xFF8EE6FF) : const Color(0xFF607486),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        definition.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFFE8F8FF),
+                        ),
+                      ),
+                    ),
+                    Text(
+                      'Lv $level/${definition.maxLevel}',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF8FA8BA),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  definition.description,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF8FA8BA),
+                  ),
+                ),
+                const SizedBox(height: 5),
+                _RunUpgradeEffectPreview(
+                  definition: definition,
+                  level: level,
+                  isMax: isMax,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 70,
+            height: 34,
+            child: OutlinedButton(
+              onPressed: enabled ? onPressed : null,
+              style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.zero,
+                foregroundColor: enabled
+                    ? const Color(0xFF07111D)
+                    : const Color(0xFF607486),
+                backgroundColor: enabled
+                    ? const Color(0xFF8EE6FF)
+                    : const Color(0x33223543),
+                side: BorderSide(
+                  color: enabled
+                      ? const Color(0xFF8EE6FF)
+                      : const Color(0x33485B68),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(7),
+                ),
+              ),
+              child: Text(
+                isMax ? 'MAX' : '${cost}G',
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RunUpgradeEffectPreview extends StatelessWidget {
+  const _RunUpgradeEffectPreview({
+    required this.definition,
+    required this.level,
+    required this.isMax,
+  });
+
+  final RunUpgradeDefinition definition;
+  final int level;
+  final bool isMax;
+
+  @override
+  Widget build(BuildContext context) {
+    final subject = _runUpgradeEffectSubject(definition.type);
+    final currentText = _runUpgradeEffectText(definition, level);
+    final nextText = isMax
+        ? 'MAX'
+        : _runUpgradeEffectText(definition, level + 1);
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 5,
+      runSpacing: 4,
+      children: [
+        _RunUpgradeEffectChip(
+          label: subject,
+          value: currentText,
+          color: const Color(0xFFB9D6E4),
+        ),
+        const Text(
+          '>',
+          style: TextStyle(
+            color: Color(0xFF8FA8BA),
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        _RunUpgradeEffectChip(
+          label: '강화',
+          value: nextText,
+          color: isMax ? const Color(0xFF8FA8BA) : const Color(0xFF8EE6FF),
+        ),
+      ],
+    );
+  }
+}
+
+class _RunUpgradeEffectChip extends StatelessWidget {
+  const _RunUpgradeEffectChip({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF8FA8BA),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _runUpgradeEffectSubject(RunUpgradeType type) {
+  return switch (type) {
+    RunUpgradeType.towerDamage => '피해',
+    RunUpgradeType.killGold => '처치 골드',
+    RunUpgradeType.waveGold => '웨이브 보상',
+  };
+}
+
+String _runUpgradeEffectText(RunUpgradeDefinition definition, int level) {
+  final effect = definition.effectPerLevel * level;
+  return switch (definition.type) {
+    RunUpgradeType.towerDamage => '+${(effect * 100).round()}%',
+    RunUpgradeType.killGold => '+${(effect * 100).round()}%',
+    RunUpgradeType.waveGold => '+${effect.round()}G',
+  };
+}
+
+IconData _runUpgradeIcon(RunUpgradeType type) {
+  return switch (type) {
+    RunUpgradeType.towerDamage => Icons.local_fire_department_outlined,
+    RunUpgradeType.killGold => Icons.toll_outlined,
+    RunUpgradeType.waveGold => Icons.inventory_2_outlined,
+  };
 }
 
 class _PortalSummaryCard extends StatelessWidget {
@@ -256,7 +613,7 @@ class _PortalWaveDetailSheet extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '포탈 1 · ${snapshot.round}/${snapshot.maxRound} 라운드',
+                    '포탈 1 · ${snapshot.round}/${snapshot.maxRound} 웨이브',
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w900,
@@ -594,7 +951,7 @@ IconData _autoStartModeIcon(AutoStartMode mode) {
 
 String _autoStartModeLabel(AutoStartMode mode) {
   return switch (mode) {
-    AutoStartMode.pauseEachRound => '라운드마다 정지',
+    AutoStartMode.pauseEachRound => '웨이브마다 정지',
     AutoStartMode.skipBossRounds => '보스 제외 자동',
     AutoStartMode.fullAuto => '전부 자동',
   };

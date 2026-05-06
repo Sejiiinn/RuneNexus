@@ -44,7 +44,7 @@ class _RewardOverlayState extends State<_RewardOverlay> {
               ),
               const SizedBox(height: 4),
               Text(
-                '${snapshot.completedRounds}라운드 클리어 보상',
+                '${snapshot.completedRounds}웨이브 클리어 보상',
                 style: const TextStyle(fontSize: 12, color: Color(0xFFB9D6E4)),
               ),
               const SizedBox(height: 12),

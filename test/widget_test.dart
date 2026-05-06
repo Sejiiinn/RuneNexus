@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/app/rune_nexus_app.dart';
 import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
+import 'package:rune_nexus/domain/combat/run_panel_tab.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/game/game_snapshot.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
@@ -195,6 +196,7 @@ GameSnapshot _resultSnapshot({
     bestRoundsByStage: bestRoundsByStage,
     clearedStageNumbers: clearedStageNumbers,
     selectedTurretType: TurretType.arrow,
+    selectedRunPanelTab: RunPanelTab.turrets,
     previewText: '',
     rewardOptions: const [],
     gemInventory: const {},
@@ -231,6 +233,11 @@ GameSnapshot _resultSnapshot({
     nextWaveEnemyCounts: const {},
     autoStartMode: AutoStartMode.pauseEachRound,
     speedMultiplier: 1,
+    killGoldFractionWallet: 0,
+    runUpgradeLevels: const {},
+    towerDamageRunBonusRate: 0,
+    killGoldRunBonusRate: 0,
+    waveClearGoldRunBonus: 0,
     runes: runes,
     lastRunRuneReward: lastRunRuneReward,
     projectedFailureRuneReward: completedRounds * 2,

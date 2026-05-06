@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 
 import '../data/definitions/demo_enemy_data.dart';
 import '../data/definitions/demo_gem_data.dart';
+import '../data/definitions/demo_run_upgrade_data.dart';
 import '../data/definitions/demo_stage_data.dart';
 import '../data/definitions/demo_turret_data.dart';
 import '../data/save/game_save_data.dart';
@@ -16,12 +17,14 @@ import '../data/save/online_save_repository.dart';
 import '../data/save/save_repository.dart';
 import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/game_phase.dart';
+import '../domain/combat/run_panel_tab.dart';
 import '../domain/enemy/enemy_scaling.dart';
 import '../domain/enemy/enemy_type.dart';
 import '../domain/gem/gem_equip_rules.dart';
 import '../domain/gem/gem_type.dart';
 import '../domain/map/grid_point.dart';
 import '../domain/map/map_definition.dart';
+import '../domain/run_upgrade/run_upgrade_type.dart';
 import '../domain/stage/stage_definition.dart';
 import '../domain/turret/attack_tag.dart';
 import '../domain/turret/turret_type.dart';
@@ -111,6 +114,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       bestRoundsByStage: const {},
       clearedStageNumbers: const {},
       selectedTurretType: TurretType.arrow,
+      selectedRunPanelTab: RunPanelTab.turrets,
       previewText: firstWave.previewText,
       rewardOptions: const [],
       gemInventory: const {},
@@ -147,6 +151,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       nextWaveEnemyCounts: _enemyCountsFor(firstWave),
       autoStartMode: AutoStartMode.pauseEachRound,
       speedMultiplier: 1,
+      killGoldFractionWallet: 0,
+      runUpgradeLevels: const {},
+      towerDamageRunBonusRate: 0,
+      killGoldRunBonusRate: 0,
+      waveClearGoldRunBonus: 0,
       runes: 0,
       lastRunRuneReward: 0,
       projectedFailureRuneReward: 0,
@@ -216,6 +225,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   final List<EnemyComponent> enemies = [];
   final Map<GridPoint, TurretComponent> _turrets = {};
   final Map<GemType, int> _gemInventory = {};
+  final Map<RunUpgradeType, int> _runUpgradeLevels = {};
   final List<GemType> _rewardOptions = [];
   final WaveSpawner _waveSpawner = WaveSpawner();
   final GemRewardGenerator _gemRewardGenerator = GemRewardGenerator();
@@ -241,12 +251,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   GamePhase _phase = GamePhase.preparation;
   GamePhase? _restoredPhase;
   TurretType _selectedTurretType = TurretType.arrow;
+  RunPanelTab _selectedRunPanelTab = RunPanelTab.turrets;
   TurretType? _selectedBuildTurretType;
   GridPoint? _selectedBuildPoint;
   GridPoint? _selectedTurretPoint;
   int? _selectedTurretGemSlotIndex;
   AutoStartMode _autoStartMode = AutoStartMode.pauseEachRound;
   double _speedMultiplier = 1;
+  double _killGoldFractionWallet = 0;
   double _boardZoom = _minBoardZoom;
   Vector2 _boardOffset = Vector2.zero();
   double _scaleStartZoom = _minBoardZoom;
@@ -269,6 +281,24 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   int get _maxNexusHp => _progression.maxNexusHp;
   bool get _canEditBoard =>
       _phase == GamePhase.preparation || _phase == GamePhase.wave;
+  double get towerDamageRunMultiplier => 1 + _towerDamageRunBonusRate;
+
+  double get _towerDamageRunBonusRate =>
+      _runUpgradeLevel(RunUpgradeType.towerDamage) *
+      demoRunUpgrades[RunUpgradeType.towerDamage]!.effectPerLevel;
+  double get _killGoldRunBonusRate =>
+      _runUpgradeLevel(RunUpgradeType.killGold) *
+      demoRunUpgrades[RunUpgradeType.killGold]!.effectPerLevel;
+  int get _waveClearGoldRunBonus =>
+      (_runUpgradeLevel(RunUpgradeType.waveGold) *
+              demoRunUpgrades[RunUpgradeType.waveGold]!.effectPerLevel)
+          .round();
+
+  int _runUpgradeLevel(RunUpgradeType type) {
+    final definition = demoRunUpgrades[type];
+    final level = _runUpgradeLevels[type] ?? 0;
+    return definition == null ? 0 : level.clamp(0, definition.maxLevel).toInt();
+  }
 
   @override
   Color backgroundColor() => const Color(0xFF07111D);
@@ -370,6 +400,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _selectedBuildPoint = null;
       _selectedBuildTurretType = null;
       _selectedTurretType = turret.definition.type;
+      _selectedRunPanelTab = RunPanelTab.turrets;
       _selectedTurretPoint = point;
       _selectedTurretGemSlotIndex = null;
       _publish();
@@ -377,6 +408,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
     if (_canEditBoard && _map.canBuildAt(point)) {
       _selectedBuildPoint = point;
+      _selectedRunPanelTab = RunPanelTab.turrets;
       _selectedTurretPoint = null;
       _selectedTurretGemSlotIndex = null;
       _publish();
@@ -392,6 +424,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   void previewOrBuildSelectedTile(TurretType type) {
     _selectedTurretType = type;
+    _selectedRunPanelTab = RunPanelTab.turrets;
     _selectedBuildTurretType = type;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
@@ -417,7 +450,40 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   void selectTurretType(TurretType type) {
     _selectedTurretType = type;
+    _selectedRunPanelTab = RunPanelTab.turrets;
     _publish();
+  }
+
+  void selectRunPanelTab(RunPanelTab tab) {
+    if (_selectedRunPanelTab == tab) {
+      return;
+    }
+    _selectedRunPanelTab = tab;
+    _publish();
+  }
+
+  void buyRunUpgrade(RunUpgradeType type) {
+    if (!_canEditBoard) {
+      return;
+    }
+    final definition = demoRunUpgrades[type];
+    if (definition == null) {
+      return;
+    }
+    final currentLevel = _runUpgradeLevel(type);
+    if (currentLevel >= definition.maxLevel) {
+      return;
+    }
+    final cost = definition.costForLevel(currentLevel);
+    if (_gold < cost) {
+      return;
+    }
+
+    _gold -= cost;
+    _runUpgradeLevels[type] = currentLevel + 1;
+    _selectedRunPanelTab = RunPanelTab.upgrades;
+    _publish();
+    _requestLocalSave(immediate: true);
   }
 
   void setSpeedMultiplier(double value) {
@@ -468,7 +534,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _selectStage(targetStageNumber);
     }
     _gemInventory.clear();
+    _runUpgradeLevels.clear();
     _rewardOptions.clear();
+    _killGoldFractionWallet = 0;
     _pendingFullSaveData = null;
     _savedTurretCountForMenu = 0;
     _menuSaveDataLoaded = true;
@@ -483,6 +551,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _progression.resetLastRunReward();
     _phase = GamePhase.preparation;
     _selectedTurretType = TurretType.arrow;
+    _selectedRunPanelTab = RunPanelTab.turrets;
     _selectedBuildTurretType = null;
     _selectedBuildPoint = null;
     _selectedTurretPoint = null;
@@ -1053,10 +1122,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void enemyKilled(EnemyComponent enemy) {
-    if (!enemy.isMounted) {
+    if (!enemy.isMounted && !enemies.contains(enemy)) {
       return;
     }
-    _gold += enemy.definition.rewardGold;
+    final baseReward = enemy.definition.rewardGold;
+    final bonusReward = baseReward * _killGoldRunBonusRate;
+    final wholeBonus = bonusReward.floor();
+    _killGoldFractionWallet += bonusReward - wholeBonus;
+    final walletGold = _killGoldFractionWallet.floor();
+    if (walletGold > 0) {
+      _killGoldFractionWallet -= walletGold;
+    }
+    _gold += baseReward + wholeBonus + walletGold;
     enemies.remove(enemy);
     enemy.removeFromParent();
     _publish();
@@ -1305,7 +1382,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     final completedRound = _roundIndex + 1;
-    _gold += _waves[_roundIndex].clearRewardGold;
+    _gold += _waves[_roundIndex].clearRewardGold + _waveClearGoldRunBonus;
     _roundIndex++;
     _completedRounds = completedRound;
     if (_roundIndex >= _waves.length) {
@@ -1472,6 +1549,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       phase: savedPhase,
       autoStartMode: _autoStartMode,
       progression: _progression.toSaveData(),
+      runUpgradeLevels: Map.unmodifiable(_runUpgradeLevels),
+      killGoldFractionWallet: _killGoldFractionWallet,
       gemInventory: Map.unmodifiable(_gemInventory),
       rewardOptions: List.unmodifiable(_rewardOptions),
       turrets:
@@ -1490,6 +1569,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   void _restoreMenuStateFromSaveData(GameSaveData data) {
     _autoStartMode = data.autoStartMode;
     _progression.restoreFromSaveData(data.progression);
+    _restoreRunUpgradeState(data);
     _gemInventory
       ..clear()
       ..addEntries(data.gemInventory.entries.where((entry) => entry.value > 0));
@@ -1505,6 +1585,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _nexusHp = _maxNexusHp;
       _roundIndex = 0;
       _completedRounds = 0;
+      _runUpgradeLevels.clear();
+      _killGoldFractionWallet = 0;
       _lastRunPreviousBestRound = 0;
       _lastRunWasNewBestRound = false;
       _lastRunUnlockedStageNumber = null;
@@ -1521,6 +1603,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _lastRunWasNewBestRound = false;
     _lastRunUnlockedStageNumber = null;
     _selectedTurretType = TurretType.arrow;
+    _selectedRunPanelTab = RunPanelTab.turrets;
     _selectedBuildTurretType = null;
     _selectedBuildPoint = null;
     _selectedTurretPoint = null;
@@ -1560,6 +1643,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _nexusHp = _maxNexusHp;
       _roundIndex = 0;
       _completedRounds = 0;
+      _runUpgradeLevels.clear();
+      _killGoldFractionWallet = 0;
       _lastRunPreviousBestRound = 0;
       _lastRunWasNewBestRound = false;
       _lastRunUnlockedStageNumber = null;
@@ -1568,6 +1653,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
 
+    _restoreRunUpgradeState(data);
     _gold = math.max(0, data.gold);
     _selectStage(_clampedStageNumber(data.stageNumber));
     _nexusHp = data.nexusHp.clamp(0, _maxNexusHp).toInt();
@@ -1577,6 +1663,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _lastRunWasNewBestRound = false;
     _lastRunUnlockedStageNumber = null;
     _selectedTurretType = TurretType.arrow;
+    _selectedRunPanelTab = RunPanelTab.turrets;
     _selectedBuildTurretType = null;
     _selectedBuildPoint = null;
     _selectedTurretPoint = null;
@@ -1631,6 +1718,28 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _phase = GamePhase.restored;
     _restoredPhase = restoredPhase;
+  }
+
+  void _restoreRunUpgradeState(GameSaveData data) {
+    _runUpgradeLevels
+      ..clear()
+      ..addEntries(
+        data.runUpgradeLevels.entries
+            .where((entry) {
+              final definition = demoRunUpgrades[entry.key];
+              return definition != null && entry.value > 0;
+            })
+            .map((entry) {
+              final maxLevel = demoRunUpgrades[entry.key]!.maxLevel;
+              return MapEntry(
+                entry.key,
+                entry.value.clamp(0, maxLevel).toInt(),
+              );
+            }),
+      );
+    _killGoldFractionWallet = data.killGoldFractionWallet
+        .clamp(0.0, 0.999999)
+        .toDouble();
   }
 
   void _applyGemStatuses(
@@ -1710,6 +1819,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _savedTurretCountForMenu > 0 ||
         enemies.isNotEmpty ||
         !_waveSpawner.isEmpty ||
+        _runUpgradeLevels.isNotEmpty ||
+        _killGoldFractionWallet > 0 ||
         _gemInventory.isNotEmpty ||
         _rewardOptions.isNotEmpty ||
         _gold != _initialGold ||
@@ -1729,6 +1840,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       bestRoundsByStage: Map.unmodifiable(_progression.bestRoundsByStage),
       clearedStageNumbers: Set.unmodifiable(_progression.clearedStageNumbers),
       selectedTurretType: _selectedTurretType,
+      selectedRunPanelTab: _selectedRunPanelTab,
       previewText: nextWave.previewText,
       rewardOptions: List.unmodifiable(_rewardOptions),
       gemInventory: Map.unmodifiable(_gemInventory),
@@ -1776,6 +1888,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       nextWaveEnemyCounts: Map.unmodifiable(nextWaveEnemyCounts),
       autoStartMode: _autoStartMode,
       speedMultiplier: _speedMultiplier,
+      killGoldFractionWallet: _killGoldFractionWallet,
+      runUpgradeLevels: Map.unmodifiable(_runUpgradeLevels),
+      towerDamageRunBonusRate: _towerDamageRunBonusRate,
+      killGoldRunBonusRate: _killGoldRunBonusRate,
+      waveClearGoldRunBonus: _waveClearGoldRunBonus,
       runes: _progression.runes,
       lastRunRuneReward: _progression.lastRunRuneReward,
       projectedFailureRuneReward: hasStageProgress

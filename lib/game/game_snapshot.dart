@@ -1,8 +1,10 @@
 import '../domain/combat/game_phase.dart';
 import '../domain/combat/auto_start_mode.dart';
+import '../domain/combat/run_panel_tab.dart';
 import '../domain/enemy/enemy_type.dart';
 import '../domain/gem/gem_type.dart';
 import '../domain/map/grid_point.dart';
+import '../domain/run_upgrade/run_upgrade_type.dart';
 import '../domain/turret/turret_type.dart';
 
 class GameSnapshot {
@@ -21,6 +23,7 @@ class GameSnapshot {
     required this.bestRoundsByStage,
     required this.clearedStageNumbers,
     required this.selectedTurretType,
+    required this.selectedRunPanelTab,
     required this.previewText,
     required this.rewardOptions,
     required this.gemInventory,
@@ -57,6 +60,11 @@ class GameSnapshot {
     required this.nextWaveEnemyCounts,
     required this.autoStartMode,
     required this.speedMultiplier,
+    required this.killGoldFractionWallet,
+    required this.runUpgradeLevels,
+    required this.towerDamageRunBonusRate,
+    required this.killGoldRunBonusRate,
+    required this.waveClearGoldRunBonus,
     required this.runes,
     required this.lastRunRuneReward,
     required this.projectedFailureRuneReward,
@@ -86,6 +94,7 @@ class GameSnapshot {
   final Map<int, int> bestRoundsByStage;
   final Set<int> clearedStageNumbers;
   final TurretType selectedTurretType;
+  final RunPanelTab selectedRunPanelTab;
   final String previewText;
   final List<GemType> rewardOptions;
   final Map<GemType, int> gemInventory;
@@ -122,6 +131,11 @@ class GameSnapshot {
   final Map<EnemyType, int> nextWaveEnemyCounts;
   final AutoStartMode autoStartMode;
   final double speedMultiplier;
+  final double killGoldFractionWallet;
+  final Map<RunUpgradeType, int> runUpgradeLevels;
+  final double towerDamageRunBonusRate;
+  final double killGoldRunBonusRate;
+  final int waveClearGoldRunBonus;
   final int runes;
   final int lastRunRuneReward;
   final int projectedFailureRuneReward;

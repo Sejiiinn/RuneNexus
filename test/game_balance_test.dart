@@ -11,6 +11,7 @@ import 'package:rune_nexus/domain/enemy/enemy_type.dart';
 import 'package:rune_nexus/domain/gem/gem_equip_rules.dart';
 import 'package:rune_nexus/domain/gem/gem_type.dart';
 import 'package:rune_nexus/domain/map/grid_point.dart';
+import 'package:rune_nexus/domain/run_upgrade/run_upgrade_type.dart';
 import 'package:rune_nexus/domain/stage/stage_definition.dart';
 import 'package:rune_nexus/domain/turret/attack_tag.dart';
 import 'package:rune_nexus/domain/turret/damage_family.dart';
@@ -498,6 +499,105 @@ void main() {
     expect(demoEnemies[EnemyType.tank]!.rewardGold, 6);
     expect(demoEnemies[EnemyType.boss]!.rewardGold, 24);
   });
+
+  test('run tower damage upgrade boosts all turret damage', () {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    final turret = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: demoTurrets[TurretType.arrow]!,
+      game: game,
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+
+    game.buyRunUpgrade(RunUpgradeType.towerDamage);
+
+    expect(turret.damage, closeTo(7.21, 0.001));
+    expect(game.snapshotNotifier.value.gold, 110);
+    expect(
+      game.snapshotNotifier.value.runUpgradeLevels[RunUpgradeType.towerDamage],
+      1,
+    );
+  });
+
+  test('run kill gold upgrade accumulates fractional rewards', () async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.buyRunUpgrade(RunUpgradeType.killGold);
+
+    for (var i = 0; i < 17; i++) {
+      final enemy = EnemyComponent(
+        definition: demoEnemies[EnemyType.normal]!,
+        maxHp: 1,
+        path: [Vector2.zero(), Vector2(1, 0)],
+        game: game,
+      );
+      game.enemies.add(enemy);
+      enemy.receiveDamage(999);
+    }
+
+    expect(game.snapshotNotifier.value.gold, 182);
+    expect(
+      game.snapshotNotifier.value.killGoldFractionWallet,
+      closeTo(0.02, 0.001),
+    );
+  });
+
+  test('run wave gold upgrade adds clear reward gold', () {
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+
+    game.buyRunUpgrade(RunUpgradeType.waveGold);
+    game.startNextWave();
+    game.update(0.016);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.success);
+    expect(game.snapshotNotifier.value.gold, 142);
+  });
+
+  test(
+    'run upgrades and fractional gold wallet are saved and restored',
+    () async {
+      final repository = MemorySaveRepository();
+      final game = RuneNexusGame(saveRepository: repository);
+
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      game.buyRunUpgrade(RunUpgradeType.towerDamage);
+      game.buyRunUpgrade(RunUpgradeType.killGold);
+      final enemy = EnemyComponent(
+        definition: demoEnemies[EnemyType.normal]!,
+        maxHp: 1,
+        path: [Vector2.zero(), Vector2(1, 0)],
+        game: game,
+      );
+      game.enemies.add(enemy);
+      enemy.receiveDamage(999);
+      await game.saveNow();
+
+      final restoredRepository = MemorySaveRepository()..data = repository.data;
+      final restored = RuneNexusGame(saveRepository: restoredRepository);
+      restored.onGameResize(Vector2(400, 800));
+      await restored.onLoad();
+
+      final snapshot = restored.snapshotNotifier.value;
+      expect(snapshot.phase, GamePhase.preparation);
+      expect(snapshot.runUpgradeLevels[RunUpgradeType.towerDamage], 1);
+      expect(snapshot.runUpgradeLevels[RunUpgradeType.killGold], 1);
+      expect(snapshot.killGoldFractionWallet, closeTo(0.06, 0.001));
+      expect(snapshot.towerDamageRunBonusRate, closeTo(0.03, 0.001));
+    },
+  );
 
   test('physical damage gem boosts physical turrets only', () {
     final game = RuneNexusGame();

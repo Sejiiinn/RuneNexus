@@ -121,10 +121,11 @@ class _TurretShapePainter extends CustomPainter {
 }
 
 class _Metric extends StatelessWidget {
-  const _Metric({required this.label, required this.value});
+  const _Metric({required this.label, required this.value, this.valueChild});
 
   final String label;
   final String value;
+  final Widget? valueChild;
 
   @override
   Widget build(BuildContext context) {
@@ -135,10 +136,11 @@ class _Metric extends StatelessWidget {
           label,
           style: const TextStyle(fontSize: 11, color: Color(0xFF8CC8D8)),
         ),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
-        ),
+        valueChild ??
+            Text(
+              value,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+            ),
       ],
     );
   }
@@ -194,8 +196,8 @@ class _RestoreRunOverlayState extends State<_RestoreRunOverlay> {
   Widget build(BuildContext context) {
     final countdown = _countdown;
     final roundLabel = widget.snapshot.restoredPhase == GamePhase.wave
-        ? '진행 중이던 라운드'
-        : '저장된 라운드';
+        ? '진행 중이던 웨이브'
+        : '저장된 웨이브';
     if (countdown != null) {
       return Container(
         color: const Color(0x4402070D),

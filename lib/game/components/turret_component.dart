@@ -116,7 +116,7 @@ class TurretComponent extends PositionComponent {
       levelDamage *= 1.3;
     }
 
-    return levelDamage;
+    return levelDamage * game.towerDamageRunMultiplier;
   }
 
   double get range {

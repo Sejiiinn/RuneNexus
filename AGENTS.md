@@ -15,3 +15,10 @@
 2. 버그 수정 - fix:
 3. 리팩토링 - refactor:
 4. 기타 수정 - chore:
+
+## Windows Flutter 검증 주의
+- Windows 샌드박스 환경에서는 `dart`, `flutter` 배치 래퍼가 오래 멈추거나 `dartaotruntime.exe` 실행이 `Access denied`로 실패할 수 있습니다.
+- 포맷은 가능한 경우 Dart SDK 실행 파일을 직접 호출하세요.
+  - `C:\Users\rlatp\develop\flutter\bin\cache\dart-sdk\bin\dart.exe format <파일>`
+- `flutter analyze`, `flutter test`, `flutter run`이 30초 이상 무응답이거나 접근 거부로 실패하면 같은 명령을 오래 재시도하지 말고 즉시 샌드박스 밖 실행 승인을 요청하세요.
+- 인앱 브라우저 확인 전에는 53000 포트의 기존 Flutter web server가 살아 있는지 확인하고, 오래된 번들이 의심되면 서버를 재시작한 뒤 cache-bust URL로 접속하세요.

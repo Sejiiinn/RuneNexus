@@ -3,6 +3,7 @@ import '../../domain/combat/game_phase.dart';
 import '../../domain/enemy/enemy_type.dart';
 import '../../domain/gem/gem_type.dart';
 import '../../domain/map/grid_point.dart';
+import '../../domain/run_upgrade/run_upgrade_type.dart';
 import '../../domain/turret/turret_type.dart';
 
 class GameSaveData {
@@ -17,6 +18,8 @@ class GameSaveData {
     required this.phase,
     required this.autoStartMode,
     required this.progression,
+    required this.runUpgradeLevels,
+    required this.killGoldFractionWallet,
     required this.gemInventory,
     required this.rewardOptions,
     required this.turrets,
@@ -36,6 +39,8 @@ class GameSaveData {
   final GamePhase phase;
   final AutoStartMode autoStartMode;
   final SavedProgression progression;
+  final Map<RunUpgradeType, int> runUpgradeLevels;
+  final double killGoldFractionWallet;
   final Map<GemType, int> gemInventory;
   final List<GemType> rewardOptions;
   final List<SavedTurret> turrets;
@@ -50,6 +55,8 @@ class GameSaveData {
         turrets.isNotEmpty ||
         enemies.isNotEmpty ||
         spawnQueue.isNotEmpty ||
+        runUpgradeLevels.isNotEmpty ||
+        killGoldFractionWallet > 0 ||
         gemInventory.isNotEmpty ||
         rewardOptions.isNotEmpty;
   }
@@ -66,6 +73,10 @@ class GameSaveData {
       'phase': phase.name,
       'autoStartMode': autoStartMode.name,
       'progression': progression.toJson(),
+      'runUpgradeLevels': runUpgradeLevels.map(
+        (key, value) => MapEntry(key.name, value),
+      ),
+      'killGoldFractionWallet': killGoldFractionWallet,
       'gemInventory': gemInventory.map(
         (key, value) => MapEntry(key.name, value),
       ),
@@ -99,6 +110,11 @@ class GameSaveData {
           _enumValue(AutoStartMode.values, json['autoStartMode']) ??
           AutoStartMode.pauseEachRound,
       progression: SavedProgression.fromJson(json['progression']),
+      runUpgradeLevels: _enumIntMap(
+        RunUpgradeType.values,
+        json['runUpgradeLevels'],
+      ),
+      killGoldFractionWallet: _doubleValue(json['killGoldFractionWallet']),
       gemInventory: _enumIntMap(GemType.values, json['gemInventory']),
       rewardOptions: _enumList(GemType.values, json['rewardOptions']),
       turrets: _objectList(json['turrets'], SavedTurret.fromJson),

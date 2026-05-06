@@ -30,7 +30,11 @@ class _TopBar extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _Metric(label: '골드', value: '${snapshot.gold}'),
+            _Metric(
+              label: '골드',
+              value: '${snapshot.gold}',
+              valueChild: _GoldValue(snapshot: snapshot),
+            ),
             const SizedBox(width: 14),
             _Metric(
               label: 'Nexus',
@@ -38,7 +42,7 @@ class _TopBar extends StatelessWidget {
             ),
             const SizedBox(width: 14),
             _Metric(
-              label: '라운드',
+              label: '웨이브',
               value: '${snapshot.round}/${snapshot.maxRound}',
             ),
             const SizedBox(width: 6),
@@ -91,6 +95,38 @@ class _TopBar extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _GoldValue extends StatelessWidget {
+  const _GoldValue({required this.snapshot});
+
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final fractionDigit = (snapshot.killGoldFractionWallet * 10).floor();
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+        children: [
+          TextSpan(text: '${snapshot.gold}'),
+          if (fractionDigit > 0)
+            TextSpan(
+              text: '.$fractionDigit',
+              style: const TextStyle(
+                fontSize: 11,
+                color: Color(0xFF607486),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -176,7 +212,7 @@ class _StageMenuDialog extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        canEndStage ? '$completedRounds라운드 기준' : '종료할 진행 상황 없음',
+                        canEndStage ? '$completedRounds웨이브 기준' : '종료할 진행 상황 없음',
                         style: const TextStyle(
                           color: Color(0xFFB7C8D8),
                           fontSize: 12,
@@ -356,7 +392,7 @@ class _GemDebugPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            '테스트 라운드',
+            '테스트 웨이브',
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 6),
