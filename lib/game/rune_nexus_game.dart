@@ -24,6 +24,7 @@ import '../domain/gem/gem_equip_rules.dart';
 import '../domain/gem/gem_type.dart';
 import '../domain/map/grid_point.dart';
 import '../domain/map/map_definition.dart';
+import '../domain/map/tile_type.dart';
 import '../domain/run_upgrade/run_upgrade_type.dart';
 import '../domain/stage/stage_definition.dart';
 import '../domain/turret/attack_tag.dart';
@@ -120,6 +121,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       gemInventory: const {},
       selectedBuildPoint: null,
       selectedBuildTurretType: null,
+      selectedPortalPoint: null,
       selectedTurretPoint: null,
       selectedTurretName: null,
       selectedTurretGems: const [],
@@ -254,6 +256,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   RunPanelTab _selectedRunPanelTab = RunPanelTab.turrets;
   TurretType? _selectedBuildTurretType;
   GridPoint? _selectedBuildPoint;
+  GridPoint? _selectedPortalPoint;
   GridPoint? _selectedTurretPoint;
   int? _selectedTurretGemSlotIndex;
   AutoStartMode _autoStartMode = AutoStartMode.pauseEachRound;
@@ -399,6 +402,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       final turret = _turrets[point]!;
       _selectedBuildPoint = null;
       _selectedBuildTurretType = null;
+      _selectedPortalPoint = null;
       _selectedTurretType = turret.definition.type;
       _selectedRunPanelTab = RunPanelTab.turrets;
       _selectedTurretPoint = point;
@@ -406,8 +410,19 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _publish();
       return;
     }
+    if (_map.tileAt(point) == TileType.spawn) {
+      _selectedBuildPoint = null;
+      _selectedBuildTurretType = null;
+      _selectedPortalPoint = point;
+      _selectedTurretPoint = null;
+      _selectedTurretGemSlotIndex = null;
+      _selectedRunPanelTab = RunPanelTab.turrets;
+      _publish();
+      return;
+    }
     if (_canEditBoard && _map.canBuildAt(point)) {
       _selectedBuildPoint = point;
+      _selectedPortalPoint = null;
       _selectedRunPanelTab = RunPanelTab.turrets;
       _selectedTurretPoint = null;
       _selectedTurretGemSlotIndex = null;
@@ -417,6 +432,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
+    _selectedPortalPoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
     _publish();
@@ -426,6 +442,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedTurretType = type;
     _selectedRunPanelTab = RunPanelTab.turrets;
     _selectedBuildTurretType = type;
+    _selectedPortalPoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
     final point = _selectedBuildPoint;
@@ -510,6 +527,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedTurretPoint = null;
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
+    _selectedPortalPoint = null;
     _selectedTurretGemSlotIndex = null;
     _waveSpawner.start(_waves[_roundIndex]);
     _publish();
@@ -554,6 +572,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedRunPanelTab = RunPanelTab.turrets;
     _selectedBuildTurretType = null;
     _selectedBuildPoint = null;
+    _selectedPortalPoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
     _restoredPhase = null;
@@ -621,6 +640,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _phase = GamePhase.preparation;
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
+    _selectedPortalPoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
     _publish();
@@ -661,6 +681,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _turrets[point] = turret;
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
+    _selectedPortalPoint = null;
     _selectedTurretPoint = point;
     _selectedTurretGemSlotIndex = null;
     add(turret);
@@ -1236,6 +1257,23 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   void _drawBuildSelection(Canvas canvas) {
     final point = _selectedBuildPoint;
+    final portalPoint = _selectedPortalPoint;
+    if (portalPoint != null) {
+      final rect = Rect.fromLTWH(
+        _origin.x + portalPoint.x * _tileSize + 2,
+        _origin.y + portalPoint.y * _tileSize + 2,
+        _tileSize - 4,
+        _tileSize - 4,
+      );
+      canvas.drawRect(
+        rect,
+        Paint()
+          ..color = const Color(0xCCB16DFF)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3,
+      );
+    }
+
     if (point == null) {
       return;
     }
@@ -1590,6 +1628,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _lastRunPreviousBestRound = 0;
       _lastRunWasNewBestRound = false;
       _lastRunUnlockedStageNumber = null;
+      _selectedTurretType = TurretType.arrow;
+      _selectedRunPanelTab = RunPanelTab.turrets;
+      _selectedBuildTurretType = null;
+      _selectedBuildPoint = null;
+      _selectedPortalPoint = null;
+      _selectedTurretPoint = null;
+      _selectedTurretGemSlotIndex = null;
       _phase = GamePhase.preparation;
       _restoredPhase = null;
       return;
@@ -1606,6 +1651,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedRunPanelTab = RunPanelTab.turrets;
     _selectedBuildTurretType = null;
     _selectedBuildPoint = null;
+    _selectedPortalPoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
 
@@ -1666,6 +1712,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedRunPanelTab = RunPanelTab.turrets;
     _selectedBuildTurretType = null;
     _selectedBuildPoint = null;
+    _selectedPortalPoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
 
@@ -1846,6 +1893,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       gemInventory: Map.unmodifiable(_gemInventory),
       selectedBuildPoint: _selectedBuildPoint,
       selectedBuildTurretType: _selectedBuildTurretType,
+      selectedPortalPoint: _selectedPortalPoint,
       selectedTurretPoint: _selectedTurretPoint,
       selectedTurretName: selectedTurret?.definition.name,
       selectedTurretGems: List.unmodifiable(

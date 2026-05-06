@@ -202,6 +202,7 @@ GameSnapshot _resultSnapshot({
     gemInventory: const {},
     selectedBuildPoint: null,
     selectedBuildTurretType: null,
+    selectedPortalPoint: null,
     selectedTurretPoint: null,
     selectedTurretName: null,
     selectedTurretGems: const [],

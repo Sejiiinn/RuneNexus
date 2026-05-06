@@ -29,6 +29,7 @@ class GameSnapshot {
     required this.gemInventory,
     required this.selectedBuildPoint,
     required this.selectedBuildTurretType,
+    required this.selectedPortalPoint,
     required this.selectedTurretPoint,
     required this.selectedTurretName,
     required this.selectedTurretGems,
@@ -100,6 +101,7 @@ class GameSnapshot {
   final Map<GemType, int> gemInventory;
   final GridPoint? selectedBuildPoint;
   final TurretType? selectedBuildTurretType;
+  final GridPoint? selectedPortalPoint;
   final GridPoint? selectedTurretPoint;
   final String? selectedTurretName;
   final List<GemType> selectedTurretGems;

@@ -47,18 +47,18 @@ class _BottomBar extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            _PortalSummaryCard(snapshot: snapshot, statusText: statusText),
-            if (snapshot.selectedRunPanelTab == RunPanelTab.upgrades) ...[
+            if (snapshot.selectedPortalPoint != null) ...[
+              _PortalSummaryCard(snapshot: snapshot, statusText: statusText),
               const SizedBox(height: 8),
+            ],
+            if (snapshot.selectedRunPanelTab == RunPanelTab.upgrades) ...[
               _RunUpgradePanel(game: game, snapshot: snapshot),
             ] else ...[
               if (snapshot.selectedTurretPoint != null && canEditBoard) ...[
-                const SizedBox(height: 8),
                 _GemEquipPanel(game: game, snapshot: snapshot),
               ] else if ((snapshot.selectedBuildPoint != null ||
                       snapshot.selectedBuildTurretType != null) &&
                   canEditBoard) ...[
-                const SizedBox(height: 8),
                 _BuildSelectionPanel(game: game, snapshot: snapshot),
               ],
               const SizedBox(height: 8),
