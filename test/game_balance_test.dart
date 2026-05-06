@@ -285,9 +285,23 @@ void main() {
 
     expect(turret.level, 10);
     expect(turret.maxLevel, 10);
-    expect(turret.range, closeTo(116.25, 0.001));
+    expect(turret.range, closeTo(124.512, 0.001));
     expect(turret.damage, closeTo(36.118, 0.001));
     expect(turret.attackRate, closeTo(3.5215, 0.001));
+  });
+
+  test('range gem amplifies turret range by percent', () {
+    final turret = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: demoTurrets[TurretType.arrow]!,
+      game: RuneNexusGame(),
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+
+    turret.equipGem(GemType.range, 0);
+
+    expect(turret.range, closeTo(115.2, 0.001));
   });
 
   test('turret level up costs scale with turret price', () {

@@ -17,9 +17,9 @@ const demoGems = <GemType, GemDefinition>{
   GemType.range: GemDefinition(
     type: GemType.range,
     name: '사거리',
-    shortText: '범위 증가',
-    effectType: GemEffectType.rangeBonus,
-    value: 32,
+    shortText: '범위 증폭',
+    effectType: GemEffectType.rangeMultiplier,
+    value: 1.2,
     color: Color(0xFF69D7FF),
     icon: Icons.radio_button_checked,
   ),

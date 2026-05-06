@@ -1,6 +1,6 @@
 enum GemEffectType {
   attackSpeedMultiplier,
-  rangeBonus,
+  rangeMultiplier,
   damageFamilyMultiplier,
   attackTagEnhancement,
   splashBonus,

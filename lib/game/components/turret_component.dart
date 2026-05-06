@@ -45,7 +45,7 @@ class TurretComponent extends PositionComponent {
   double _burnDamageDealt = 0;
 
   static const double _damageGrowthPerLevel = 0.2;
-  static const double _rangeGrowthPerLevel = 2.25;
+  static const double _rangeGrowthPerLevel = 0.033;
   static const double _attackRateGrowthPerLevel = 0.05;
 
   int get level => _level;
@@ -118,9 +118,10 @@ class TurretComponent extends PositionComponent {
   }
 
   double get range {
-    return (definition.range +
-            (_level - 1) * _rangeGrowthPerLevel +
-            (hasGem(GemType.range) ? 32 : 0)) *
+    final levelMultiplier = 1 + (_level - 1) * _rangeGrowthPerLevel;
+    return definition.range *
+        levelMultiplier *
+        (hasGem(GemType.range) ? 1.2 : 1) *
         game.boardDistanceScale;
   }
 
