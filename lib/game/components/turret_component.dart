@@ -33,6 +33,7 @@ class TurretComponent extends PositionComponent {
   final TurretDefinition definition;
   final RuneNexusGame game;
   final List<GemType> equippedGems = [];
+  final math.Random _cooldownRandom = math.Random();
 
   double _tileSize;
   double _cooldown = 0;
@@ -47,6 +48,7 @@ class TurretComponent extends PositionComponent {
   static const double _damageGrowthPerLevel = 0.2;
   static const double _rangeGrowthPerLevel = 0.033;
   static const double _attackRateGrowthPerLevel = 0.05;
+  static const double _cooldownVariance = 0.05;
 
   int get level => _level;
   int get maxLevel => 10;
@@ -297,7 +299,7 @@ class TurretComponent extends PositionComponent {
       return;
     }
 
-    _cooldown = 1 / attackRate;
+    _cooldown = (1 / attackRate) * _nextCooldownVarianceMultiplier();
     _aimAngle = math.atan2(
       target.position.y - position.y,
       target.position.x - position.x,
@@ -336,6 +338,12 @@ class TurretComponent extends PositionComponent {
       (a, b) => b.distanceTravelled.compareTo(a.distanceTravelled),
     );
     return candidates.first;
+  }
+
+  double _nextCooldownVarianceMultiplier() {
+    return 1 -
+        _cooldownVariance +
+        _cooldownRandom.nextDouble() * 2 * _cooldownVariance;
   }
 
   @override
