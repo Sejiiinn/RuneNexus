@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flame/components.dart';
@@ -22,9 +23,16 @@ class GridComponent extends Component {
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1;
 
+  double _portalSpin = 0;
+
   void updateLayout({required Vector2 origin, required double tileSize}) {
     this.origin = origin;
     this.tileSize = tileSize;
+  }
+
+  @override
+  void update(double dt) {
+    _portalSpin = (_portalSpin + dt * 0.75) % (math.pi * 2);
   }
 
   @override
@@ -169,12 +177,59 @@ class GridComponent extends Component {
 
     canvas.drawCircle(center, radius * 1.08, base);
     canvas.drawCircle(center, radius, inner);
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(_portalSpin);
+    _drawPortalSwirl(canvas, radius);
+    canvas.restore();
     canvas.drawCircle(center, radius, outer);
+    canvas.drawCircle(
+      center,
+      radius * (0.68 + math.sin(_portalSpin * 2) * 0.05),
+      Paint()
+        ..color = const Color(0x6650E6FF)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = tileSize * 0.025,
+    );
     canvas.drawCircle(
       Offset(center.dx, center.dy),
       radius * 0.42,
       Paint()..color = const Color(0xAAE3B7FF),
     );
+  }
+
+  void _drawPortalSwirl(Canvas canvas, double radius) {
+    final glow = Paint()
+      ..color = const Color(0x6650E6FF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = tileSize * 0.035
+      ..strokeCap = StrokeCap.round;
+    final spiral = Paint()
+      ..color = const Color(0xCCB16DFF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = tileSize * 0.045
+      ..strokeCap = StrokeCap.round;
+
+    for (var arm = 0; arm < 3; arm++) {
+      final turn = arm * math.pi * 2 / 3;
+      final path = Path();
+      for (var i = 0; i <= 18; i++) {
+        final t = i / 18;
+        final angle = turn + t * math.pi * 1.35;
+        final distance = radius * (0.18 + t * 0.62);
+        final point = Offset(
+          math.cos(angle) * distance,
+          math.sin(angle) * distance,
+        );
+        if (i == 0) {
+          path.moveTo(point.dx, point.dy);
+        } else {
+          path.lineTo(point.dx, point.dy);
+        }
+      }
+      canvas.drawPath(path, glow);
+      canvas.drawPath(path, spiral);
+    }
   }
 
   void _drawNexus(Canvas canvas, Rect rect) {
