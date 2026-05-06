@@ -236,22 +236,29 @@ class _StageMenuDialog extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _StageDialogActionButton(
-                icon: Icons.flag_outlined,
-                label: '스테이지 종료',
-                style: _StageDialogActionStyle.danger,
-                onPressed: canEndStage
-                    ? () => Navigator.of(context).pop(_StageMenuAction.endStage)
-                    : null,
+              Expanded(
+                flex: 5,
+                child: _StageDialogActionButton(
+                  icon: Icons.flag_outlined,
+                  label: '스테이지 종료',
+                  style: _StageDialogActionStyle.danger,
+                  onPressed: canEndStage
+                      ? () =>
+                            Navigator.of(context).pop(_StageMenuAction.endStage)
+                      : null,
+                ),
               ),
-              _StageDialogActionButton(
-                icon: Icons.home_outlined,
-                label: '메인화면으로 이동',
-                style: _StageDialogActionStyle.primary,
-                onPressed: () =>
-                    Navigator.of(context).pop(_StageMenuAction.openMainMenu),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 6,
+                child: _StageDialogActionButton(
+                  icon: Icons.home_outlined,
+                  label: '메인화면으로 이동',
+                  style: _StageDialogActionStyle.primary,
+                  onPressed: () =>
+                      Navigator.of(context).pop(_StageMenuAction.openMainMenu),
+                ),
               ),
             ],
           ),
@@ -345,9 +352,10 @@ class _StageDialogActionButton extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           child: Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
             children: [
               Icon(
                 icon,
@@ -355,12 +363,18 @@ class _StageDialogActionButton extends StatelessWidget {
                 color: enabled ? colors.foreground : const Color(0xFF627384),
               ),
               const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  color: enabled ? colors.foreground : const Color(0xFF627384),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: enabled
+                        ? colors.foreground
+                        : const Color(0xFF627384),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
             ],

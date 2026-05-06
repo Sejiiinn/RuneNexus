@@ -134,6 +134,13 @@ void main() {
   testWidgets('home button opens stage menu with end confirmation', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(411, 720);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     await tester.pumpWidget(const RuneNexusApp());
     await tester.pump();
 
@@ -148,6 +155,7 @@ void main() {
     expect(find.text('메인화면으로 이동'), findsOneWidget);
     expect(find.text('종료 시 보상'), findsOneWidget);
     expect(find.text('+1 룬'), findsOneWidget);
+    expect(tester.takeException(), isNull);
 
     await tester.tap(find.text('스테이지 종료'));
     await tester.pumpAndSettle();
