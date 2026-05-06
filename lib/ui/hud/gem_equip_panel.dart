@@ -883,8 +883,7 @@ String _gemEffectText(GemType type, TurretDefinition turret) {
       turret.attackTags.contains(AttackTag.damageOverTime)
           ? '지속피해 30% 증폭, 지속시간 30% 증가'
           : '현재 적용되는 지속피해 없음',
-    GemType.explosion =>
-      turret.splashRadius > 0 ? '폭발 반경 +8, 주변 피해 65%' : '반경 34 폭발, 주변 피해 35%',
+    GemType.explosion => turret.splashRadius > 0 ? '폭발 반경 25% 증폭' : '반경 34 폭발',
     GemType.chain =>
       turret.splashRadius > 0 ? '폭발 미적중 최대 2명에게 50% 연쇄' : '주변 최대 2명에게 50% 연쇄',
   };

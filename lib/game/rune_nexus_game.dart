@@ -959,14 +959,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     required TurretComponent owner,
     required Vector2 position,
   }) {
-    final style = switch (owner.definition.type) {
-      TurretType.arrow => ImpactEffectStyle.spark,
-      TurretType.cannon => ImpactEffectStyle.blast,
-      TurretType.magic => ImpactEffectStyle.flame,
-    };
-    final radius = owner.splashRadius > 0
-        ? owner.splashRadius
-              .clamp(18 * boardDistanceScale, 48 * boardDistanceScale)
+    final splashRadius = owner.splashRadius;
+    final style = splashRadius > 0
+        ? ImpactEffectStyle.blast
+        : switch (owner.definition.type) {
+            TurretType.arrow => ImpactEffectStyle.spark,
+            TurretType.cannon => ImpactEffectStyle.blast,
+            TurretType.magic => ImpactEffectStyle.flame,
+          };
+    final radius = splashRadius > 0
+        ? splashRadius
+              .clamp(18 * boardDistanceScale, double.infinity)
               .toDouble()
         : switch (owner.definition.type) {
                 TurretType.arrow => 11.0,

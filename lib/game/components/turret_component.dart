@@ -155,7 +155,7 @@ class TurretComponent extends PositionComponent {
 
   double get splashSecondaryDamageMultiplier {
     if (hasGem(GemType.explosion)) {
-      return definition.splashRadius > 0 ? 0.65 : 0.35;
+      return definition.splashRadius > 0 ? 0.75 : 0.35;
     }
     return definition.splashRadius > 0 ? 0.75 : 1;
   }
@@ -167,7 +167,8 @@ class TurretComponent extends PositionComponent {
         ? 1.2
         : 1.0;
     if (definition.splashRadius > 0) {
-      return (definition.splashRadius + (hasGem(GemType.explosion) ? 8 : 0)) *
+      return definition.splashRadius *
+          (hasGem(GemType.explosion) ? 1.25 : 1) *
           heavyMultiplier *
           game.boardDistanceScale;
     }

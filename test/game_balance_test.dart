@@ -534,6 +534,34 @@ void main() {
     expect(cannon.splashRadius, closeTo(50.4, 0.001));
   });
 
+  test(
+    'explosion gem keeps splash damage ratio and amplifies splash radius',
+    () {
+      final machineGun = TurretComponent(
+        gridPoint: const GridPoint(0, 0),
+        definition: demoTurrets[TurretType.arrow]!,
+        game: RuneNexusGame(),
+        center: Vector2.zero(),
+        tileSize: 32,
+      );
+      final cannon = TurretComponent(
+        gridPoint: const GridPoint(1, 0),
+        definition: demoTurrets[TurretType.cannon]!,
+        game: RuneNexusGame(),
+        center: Vector2.zero(),
+        tileSize: 32,
+      );
+
+      machineGun.equipGem(GemType.explosion, 0);
+      cannon.equipGem(GemType.explosion, 0);
+
+      expect(machineGun.splashRadius, closeTo(34, 0.001));
+      expect(machineGun.splashSecondaryDamageMultiplier, closeTo(0.35, 0.001));
+      expect(cannon.splashRadius, closeTo(52.5, 0.001));
+      expect(cannon.splashSecondaryDamageMultiplier, closeTo(0.75, 0.001));
+    },
+  );
+
   test('damage over time gem boosts only dot stats', () {
     final fireTurret = TurretComponent(
       gridPoint: const GridPoint(0, 0),
