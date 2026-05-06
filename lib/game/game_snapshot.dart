@@ -39,6 +39,7 @@ class GameSnapshot {
     required this.selectedTurretMaxLevel,
     required this.selectedTurretCanLevelUp,
     required this.selectedTurretLevelUpCost,
+    required this.selectedTurretRefundGold,
     required this.selectedTurretDamage,
     required this.selectedTurretRange,
     required this.selectedTurretAttackRate,
@@ -101,6 +102,7 @@ class GameSnapshot {
   final int selectedTurretMaxLevel;
   final bool selectedTurretCanLevelUp;
   final int selectedTurretLevelUpCost;
+  final int selectedTurretRefundGold;
   final double selectedTurretDamage;
   final double selectedTurretRange;
   final double selectedTurretAttackRate;

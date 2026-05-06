@@ -193,7 +193,7 @@ class _RewardCard extends StatelessWidget {
 
 String _rewardGemEffectText(GemType type) {
   return switch (type) {
-    GemType.attackSpeed => '장착 포탑의 초당 발사 수를 40% 증가',
+    GemType.attackSpeed => '장착 포탑의 초당 발사 수 40% 증폭',
     GemType.range => '장착 포탑의 사거리 +32',
     GemType.physicalDamage => '물리 피해 40% 증폭',
     GemType.magicalDamage => '마법 피해 40% 증폭',

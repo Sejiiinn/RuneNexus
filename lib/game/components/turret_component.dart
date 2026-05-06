@@ -62,6 +62,21 @@ class TurretComponent extends PositionComponent {
       _burnDamageDealt;
   int get levelUpCost =>
       (definition.cost * (70 + (_level - 1) * 45) + 50) ~/ 100;
+  int get investedGold {
+    var total = definition.cost;
+    for (var level = 1; level < _level; level++) {
+      total += _levelUpCostAt(level);
+    }
+    if (_slotLimit >= 2) {
+      total += _linkUpgradeCostForSlot(2);
+    }
+    if (_slotLimit >= 3) {
+      total += _linkUpgradeCostForSlot(3);
+    }
+    return total;
+  }
+
+  int get refundGold => investedGold * 75 ~/ 100;
   bool get canLevelUp => _level < maxLevel;
   int get slotLimit => _slotLimit;
   int get maxSlotLimit => 3;
@@ -72,8 +87,7 @@ class TurretComponent extends PositionComponent {
     if (!hasNextLinkUpgrade) {
       return 0;
     }
-    final costPercent = nextSlotLimit == 2 ? 150 : 300;
-    return (definition.cost * costPercent + 50) ~/ 100;
+    return _linkUpgradeCostForSlot(nextSlotLimit);
   }
 
   bool get canUpgradeLink =>
@@ -257,6 +271,15 @@ class TurretComponent extends PositionComponent {
     }
     _slotLimit++;
     return true;
+  }
+
+  int _levelUpCostAt(int level) {
+    return (definition.cost * (70 + (level - 1) * 45) + 50) ~/ 100;
+  }
+
+  int _linkUpgradeCostForSlot(int slotLimit) {
+    final costPercent = slotLimit == 2 ? 150 : 300;
+    return (definition.cost * costPercent + 50) ~/ 100;
   }
 
   @override

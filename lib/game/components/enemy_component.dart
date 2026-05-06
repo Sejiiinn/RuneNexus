@@ -197,6 +197,14 @@ class EnemyComponent extends PositionComponent {
     );
   }
 
+  void clearBurnSource(GridPoint sourceTurretPoint) {
+    for (final instance in _burnInstances) {
+      if (instance.sourceTurretPoint == sourceTurretPoint) {
+        instance.sourceTurretPoint = null;
+      }
+    }
+  }
+
   void applySlow({required double multiplier, required double duration}) {
     _slowMultiplier = math.min(_slowMultiplier, multiplier);
     _slowRemaining = math.max(_slowRemaining, duration);
@@ -380,7 +388,7 @@ class _BurnInstance {
   double remaining;
   final double damagePerSecond;
   final double damageMultiplier;
-  final GridPoint? sourceTurretPoint;
+  GridPoint? sourceTurretPoint;
 
   SavedBurnInstance toSaveData() {
     return SavedBurnInstance(

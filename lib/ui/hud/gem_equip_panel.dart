@@ -20,6 +20,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
     final canLevelUp =
         snapshot.phase == GamePhase.preparation ||
         snapshot.phase == GamePhase.wave;
+    final canRefund = snapshot.selectedTurretPoint != null && canLevelUp;
     final slotText =
         '${snapshot.selectedTurretGems.length}/${snapshot.selectedTurretSlotLimit}';
     final definition = demoTurrets[snapshot.selectedTurretType]!;
@@ -131,6 +132,27 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                   ),
                 ),
               ],
+              const SizedBox(width: 6),
+              SizedBox(
+                height: 30,
+                child: OutlinedButton(
+                  onPressed: canRefund
+                      ? () => _confirmRefundSelectedTurret(snapshot)
+                      : null,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Color(0xFFFF8A2A)),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                  ),
+                  child: Text(
+                    '환불 ${snapshot.selectedTurretRefundGold}G',
+                    style: const TextStyle(fontSize: 11),
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 5),
@@ -299,6 +321,62 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
           ],
         ],
       ),
+    );
+  }
+
+  Future<void> _confirmRefundSelectedTurret(GameSnapshot snapshot) async {
+    final pauseCombat = snapshot.phase == GamePhase.wave;
+    if (pauseCombat) {
+      widget.game.pauseEngine();
+    }
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => _TurretRefundConfirmDialog(snapshot: snapshot),
+      );
+      if (!mounted || confirmed != true) {
+        return;
+      }
+
+      widget.game.refundSelectedTurret();
+    } finally {
+      if (pauseCombat) {
+        widget.game.resumeEngine();
+      }
+    }
+  }
+}
+
+class _TurretRefundConfirmDialog extends StatelessWidget {
+  const _TurretRefundConfirmDialog({required this.snapshot});
+
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final gemCount = snapshot.selectedTurretGems.length;
+    return AlertDialog(
+      backgroundColor: const Color(0xFF102235),
+      title: Text(
+        '${snapshot.selectedTurretName ?? '선택한'} 포탑 환불',
+        style: const TextStyle(color: Color(0xFFE8F8FF)),
+      ),
+      content: Text(
+        '설치 및 업그레이드 비용의 75%인 '
+        '${snapshot.selectedTurretRefundGold}골드를 돌려받습니다.'
+        '${gemCount > 0 ? '\n장착된 젬 $gemCount개는 인벤토리로 반환됩니다.' : ''}',
+        style: const TextStyle(color: Color(0xFFC9DCE8), height: 1.35),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('취소'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('환불', style: TextStyle(color: Color(0xFFFF8A2A))),
+        ),
+      ],
     );
   }
 }
@@ -783,7 +861,7 @@ class _StatPill extends StatelessWidget {
 
 String _gemEffectText(GemType type, TurretDefinition turret) {
   return switch (type) {
-    GemType.attackSpeed => '초당 발사 40% 증가',
+    GemType.attackSpeed => '초당 발사 40% 증폭',
     GemType.range => '사거리 +32',
     GemType.physicalDamage =>
       turret.damageFamily == DamageFamily.physical
@@ -795,7 +873,7 @@ String _gemEffectText(GemType type, TurretDefinition turret) {
           : '현재 적용되는 마법 피해 없음',
     GemType.lightWeapon =>
       turret.attackTags.contains(AttackTag.light)
-          ? '경량화기 피해 20% 증폭, 초당 발사 20% 증가'
+          ? '경량화기 피해 20% 증폭, 초당 발사 20% 증폭'
           : '현재 적용되는 경량화기 피해 없음',
     GemType.heavyWeapon =>
       turret.attackTags.contains(AttackTag.heavy)

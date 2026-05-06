@@ -798,15 +798,15 @@ void main() {
     expect(enemy.hp, closeTo(44, 0.001));
   });
 
-  test('chain hit from fire turret applies scaled burn', () {
-    final game = RuneNexusGame();
-    final fireTurret = TurretComponent(
-      gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.magic]!,
-      game: game,
-      center: Vector2.zero(),
-      tileSize: 32,
-    )..equipGem(GemType.chain, 0);
+  test('chain hit from fire turret applies scaled burn', () async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.selectTurretType(TurretType.magic);
+    game.tryBuildTurret(const GridPoint(2, 0));
+    game.grantGem(GemType.chain);
+    game.equipSelectedTurret(GemType.chain);
+    final fireTurret = game.children.whereType<TurretComponent>().single;
     final enemy = EnemyComponent(
       definition: demoEnemies[EnemyType.normal]!,
       maxHp: 100,
@@ -822,7 +822,7 @@ void main() {
     enemy.update(1);
 
     expect(enemy.hp, closeTo(88, 0.001));
-    expect(fireTurret.damageDealt, closeTo(8, 0.001));
+    expect(fireTurret.damageDealt, closeTo(12, 0.001));
   });
 
   test('burn damage is credited to its source turret', () async {
@@ -1063,5 +1063,72 @@ void main() {
     expect(saved!.phase, GamePhase.wave);
     expect(saved.turrets, hasLength(1));
     expect(saved.turrets.single.level, 2);
+  });
+
+  test('turret refund returns investment and equipped gems', () async {
+    final repository = MemorySaveRepository();
+    final game = RuneNexusGame(saveRepository: repository);
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.tryBuildTurret(const GridPoint(2, 0));
+    game.grantGem(GemType.range);
+    game.equipSelectedTurret(GemType.range);
+    game.levelUpSelectedTurret();
+    game.debugAddGold(100);
+    game.upgradeSelectedTurretLink();
+
+    expect(game.snapshotNotifier.value.selectedTurretRefundGold, 144);
+    game.refundSelectedTurret();
+    await game.saveNow();
+
+    final snapshot = game.snapshotNotifier.value;
+    expect(snapshot.gold, 202);
+    expect(snapshot.selectedTurretPoint, isNull);
+    expect(snapshot.gemInventory[GemType.range], 1);
+    expect(repository.data!.turrets, isEmpty);
+  });
+
+  test('turret refund is allowed while a round is running', () async {
+    final repository = MemorySaveRepository();
+    final game = RuneNexusGame(saveRepository: repository);
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+    game.tryBuildTurret(const GridPoint(2, 0));
+
+    game.refundSelectedTurret();
+    await game.saveNow();
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.wave);
+    expect(game.snapshotNotifier.value.gold, 135);
+    expect(game.snapshotNotifier.value.selectedTurretPoint, isNull);
+    expect(repository.data!.turrets, isEmpty);
+  });
+
+  test('turret refund stops later burn credit to a rebuilt turret', () async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    const point = GridPoint(2, 0);
+    final normal = demoEnemies[EnemyType.normal]!;
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.selectTurretType(TurretType.magic);
+    game.tryBuildTurret(point);
+    final enemy = EnemyComponent(
+      definition: normal,
+      maxHp: 1000,
+      path: [Vector2.zero(), Vector2(100, 0)],
+      game: game,
+    )..applyBurn(damagePerSecond: 1, duration: 2, sourceTurretPoint: point);
+    game.enemies.add(enemy);
+
+    game.refundSelectedTurret();
+    game.selectTurretType(TurretType.arrow);
+    game.tryBuildTurret(point);
+    enemy.update(1);
+
+    expect(game.snapshotNotifier.value.selectedTurretDamageDealt, 0);
   });
 }

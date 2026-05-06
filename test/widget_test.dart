@@ -213,6 +213,7 @@ GameSnapshot _resultSnapshot({
     selectedTurretMaxLevel: 0,
     selectedTurretCanLevelUp: false,
     selectedTurretLevelUpCost: 0,
+    selectedTurretRefundGold: 0,
     selectedTurretDamage: 0,
     selectedTurretRange: 0,
     selectedTurretAttackRate: 0,

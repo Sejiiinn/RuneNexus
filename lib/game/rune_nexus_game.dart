@@ -128,6 +128,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretMaxLevel: 0,
       selectedTurretCanLevelUp: false,
       selectedTurretLevelUpCost: 0,
+      selectedTurretRefundGold: 0,
       selectedTurretDamage: 0,
       selectedTurretRange: 0,
       selectedTurretAttackRate: 0,
@@ -712,6 +713,35 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
+  void refundSelectedTurret() {
+    if (!_canEditBoard) {
+      return;
+    }
+
+    final point = _selectedTurretPoint;
+    if (point == null) {
+      return;
+    }
+    final turret = _turrets[point];
+    if (turret == null) {
+      return;
+    }
+
+    _gold += turret.refundGold;
+    for (final gem in turret.equippedGems) {
+      _gemInventory[gem] = (_gemInventory[gem] ?? 0) + 1;
+    }
+    for (final enemy in enemies) {
+      enemy.clearBurnSource(point);
+    }
+    _turrets.remove(point);
+    turret.removeFromParent();
+    _selectedTurretPoint = null;
+    _selectedTurretGemSlotIndex = null;
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
   int _defaultGemSlotIndex(TurretComponent turret) {
     if (turret.equippedGems.length < turret.slotLimit) {
       return turret.equippedGems.length;
@@ -914,7 +944,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     double damage,
     TurretDamageKind kind,
   ) {
-    if (damage <= 0) {
+    if (damage <= 0 || !_isActiveTurret(turret)) {
       return;
     }
     turret.recordDamageDealt(damage, kind);
@@ -1555,9 +1585,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
             owner.damageOverTimeDamageMultiplier,
         duration: _burnDurationSeconds * owner.damageOverTimeDurationMultiplier,
         damageMultiplier: burnMultiplier,
-        sourceTurretPoint: owner.gridPoint,
+        sourceTurretPoint: _isActiveTurret(owner) ? owner.gridPoint : null,
       );
     }
+  }
+
+  bool _isActiveTurret(TurretComponent turret) {
+    return _turrets[turret.gridPoint] == turret;
   }
 
   double _damageMultiplier(
@@ -1662,6 +1696,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretMaxLevel: selectedTurret?.maxLevel ?? 0,
       selectedTurretCanLevelUp: selectedTurret?.canLevelUp ?? false,
       selectedTurretLevelUpCost: selectedTurret?.levelUpCost ?? 0,
+      selectedTurretRefundGold: selectedTurret?.refundGold ?? 0,
       selectedTurretDamage: selectedTurret?.damage ?? 0,
       selectedTurretRange: selectedTurret?.range ?? 0,
       selectedTurretAttackRate: selectedTurret?.attackRate ?? 0,

@@ -8,7 +8,7 @@ const demoGems = <GemType, GemDefinition>{
   GemType.attackSpeed: GemDefinition(
     type: GemType.attackSpeed,
     name: '가속',
-    shortText: '공속 증가',
+    shortText: '공속 증폭',
     effectType: GemEffectType.attackSpeedMultiplier,
     value: 1.4,
     color: Color(0xFFFFD866),
