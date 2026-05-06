@@ -157,9 +157,9 @@ class TurretComponent extends PositionComponent {
 
   double get splashSecondaryDamageMultiplier {
     if (hasGem(GemType.explosion)) {
-      return definition.splashRadius > 0 ? 0.75 : 0.35;
+      return definition.splashRadius > 0 ? 0.5 : 0.35;
     }
-    return definition.splashRadius > 0 ? 0.75 : 1;
+    return definition.splashRadius > 0 ? 0.5 : 1;
   }
 
   double get splashRadius {

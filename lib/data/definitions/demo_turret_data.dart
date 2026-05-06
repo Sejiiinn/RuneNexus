@@ -23,7 +23,7 @@ const demoTurrets = <TurretType, TurretDefinition>{
     type: TurretType.cannon,
     name: '대포',
     cost: 90,
-    damage: 28,
+    damage: 25,
     range: 84,
     attackRate: 0.4,
     projectileSpeed: 340,

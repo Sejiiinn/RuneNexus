@@ -568,7 +568,7 @@ void main() {
 
     expect(machineGun.damage, closeTo(8.4, 0.001));
     expect(machineGun.attackRate, closeTo(2.724, 0.001));
-    expect(cannon.damage, closeTo(28, 0.001));
+    expect(cannon.damage, closeTo(25, 0.001));
     expect(cannon.attackRate, closeTo(0.4, 0.001));
   });
 
@@ -593,7 +593,7 @@ void main() {
 
     expect(machineGun.damage, closeTo(7, 0.001));
     expect(machineGun.splashRadius, closeTo(0, 0.001));
-    expect(cannon.damage, closeTo(36.4, 0.001));
+    expect(cannon.damage, closeTo(32.5, 0.001));
     expect(cannon.splashRadius, closeTo(50.4, 0.001));
   });
 
@@ -621,7 +621,7 @@ void main() {
       expect(machineGun.splashRadius, closeTo(34, 0.001));
       expect(machineGun.splashSecondaryDamageMultiplier, closeTo(0.35, 0.001));
       expect(cannon.splashRadius, closeTo(52.5, 0.001));
-      expect(cannon.splashSecondaryDamageMultiplier, closeTo(0.75, 0.001));
+      expect(cannon.splashSecondaryDamageMultiplier, closeTo(0.5, 0.001));
     },
   );
 
