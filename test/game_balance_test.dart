@@ -396,6 +396,29 @@ void main() {
     expect(turret.range, closeTo(115.2, 0.001));
   });
 
+  test('turret range check includes rough enemy body radius', () {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    final turret = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: demoTurrets[TurretType.arrow]!,
+      game: game,
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+    final enemy = EnemyComponent(
+      definition: demoEnemies[EnemyType.normal]!,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(300, 0)],
+      game: game,
+    );
+
+    enemy.position = Vector2(turret.range + enemy.size.x / 2 - 0.1, 0);
+    expect(turret.isEnemyBodyInRange(enemy), isTrue);
+
+    enemy.position = Vector2(turret.range + enemy.size.x / 2 + 0.1, 0);
+    expect(turret.isEnemyBodyInRange(enemy), isFalse);
+  });
+
   test('turret level up costs scale with turret price', () {
     final machineGun = TurretComponent(
       gridPoint: const GridPoint(0, 0),

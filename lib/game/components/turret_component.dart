@@ -181,6 +181,11 @@ class TurretComponent extends PositionComponent {
 
   bool hasGem(GemType type) => equippedGems.contains(type);
 
+  bool isEnemyBodyInRange(EnemyComponent enemy) {
+    final enemyRadius = math.min(enemy.size.x, enemy.size.y) / 2;
+    return enemy.position.distanceTo(position) <= range + enemyRadius;
+  }
+
   SavedTurret toSaveData() {
     return SavedTurret(
       x: gridPoint.x,
@@ -325,9 +330,7 @@ class TurretComponent extends PositionComponent {
 
   EnemyComponent? _findTarget() {
     final candidates = game.enemies.where((enemy) {
-      return enemy.isMounted &&
-          !enemy.isDead &&
-          enemy.position.distanceTo(position) <= range;
+      return enemy.isMounted && !enemy.isDead && isEnemyBodyInRange(enemy);
     }).toList();
 
     if (candidates.isEmpty) {
