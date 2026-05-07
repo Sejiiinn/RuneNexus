@@ -1393,6 +1393,56 @@ void main() {
     expect(restored.snapshotNotifier.value.phase, GamePhase.wave);
   });
 
+  test('discarding a restored run settles failure rewards', () async {
+    final repository = MemorySaveRepository();
+    final game = RuneNexusGame(
+      saveRepository: repository,
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'first',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+        WaveDefinition(
+          round: 2,
+          previewText: 'second',
+          groups: [
+            SpawnGroup(enemyType: EnemyType.normal, count: 1, interval: 10),
+          ],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+    game.update(0.016);
+    expect(game.snapshotNotifier.value.completedRounds, 1);
+
+    game.startNextWave();
+    await game.saveNow();
+
+    final saved = repository.data;
+    expect(saved, isNotNull);
+    expect(saved!.phase, GamePhase.wave);
+
+    final restoredRepository = MemorySaveRepository()..data = saved;
+    final restored = RuneNexusGame(saveRepository: restoredRepository);
+    restored.onGameResize(Vector2(400, 800));
+    await restored.onLoad();
+
+    expect(restored.snapshotNotifier.value.phase, GamePhase.restored);
+
+    await restored.discardRestoredRun();
+
+    final snapshot = restored.snapshotNotifier.value;
+    expect(snapshot.phase, GamePhase.preparation);
+    expect(snapshot.runes, 2);
+    expect(snapshot.bestRoundsByStage[1], 1);
+  });
+
   test('turrets can be built and leveled while a round is running', () async {
     final repository = MemorySaveRepository();
     final game = RuneNexusGame(saveRepository: repository);

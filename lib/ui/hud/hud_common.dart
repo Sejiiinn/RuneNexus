@@ -306,7 +306,8 @@ class _RestoreRunOverlayState extends State<_RestoreRunOverlay> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: widget.game.discardRestoredRun,
+                      onPressed: () =>
+                          unawaited(widget.game.discardRestoredRun()),
                       child: const Text('새로 시작'),
                     ),
                   ),

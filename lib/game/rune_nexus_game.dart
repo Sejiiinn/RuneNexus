@@ -609,12 +609,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
-  void discardRestoredRun() {
+  Future<void> discardRestoredRun() async {
     if (_phase != GamePhase.restored) {
       return;
     }
 
-    _restoredPhase = null;
+    await settleCurrentRunAsFailure();
     restartDemo();
   }
 
