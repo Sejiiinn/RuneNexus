@@ -55,7 +55,7 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
         DamageFamily.physical: 0.9,
         DamageFamily.magical: 0.9,
       },
-      tagMultipliers: {AttackTag.light: 0.85, AttackTag.damageOverTime: 0.75},
+      tagMultipliers: {AttackTag.damageOverTime: 0.75},
     ),
   ),
 };

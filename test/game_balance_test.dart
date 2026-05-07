@@ -1051,6 +1051,18 @@ void main() {
     );
   });
 
+  test('boss enemies do not resist light weapons', () {
+    final boss = demoEnemies[EnemyType.boss]!;
+
+    expect(
+      boss.resistanceProfile.multiplierFor(
+        family: DamageFamily.physical,
+        tags: const {AttackTag.light},
+      ),
+      closeTo(0.9, 0.001),
+    );
+  });
+
   test('fast enemies strongly favor light weapons over heavy weapons', () {
     final fast = demoEnemies[EnemyType.fast]!;
 
