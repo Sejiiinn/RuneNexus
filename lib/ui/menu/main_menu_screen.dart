@@ -593,6 +593,18 @@ class _PermanentUpgradeMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final nextStartingGoldLevel = (snapshot.startingGoldUpgradeLevel + 1)
+        .clamp(0, RunProgression.maxStartingGoldUpgradeLevel)
+        .toInt();
+    final nextNexusHpLevel = (snapshot.nexusHpUpgradeLevel + 1)
+        .clamp(0, RunProgression.maxNexusHpUpgradeLevel)
+        .toInt();
+    final nextSupplyLevel = (snapshot.supplyUpgradeLevel + 1)
+        .clamp(0, RunProgression.maxSupplyUpgradeLevel)
+        .toInt();
+    final nextFireTrainingLevel = (snapshot.fireTrainingUpgradeLevel + 1)
+        .clamp(0, RunProgression.maxFireTrainingUpgradeLevel)
+        .toInt();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -604,6 +616,8 @@ class _PermanentUpgradeMenu extends StatelessWidget {
           maxLevel: RunProgression.maxStartingGoldUpgradeLevel,
           valueText:
               '+${snapshot.startingGoldUpgradeLevel * RunProgression.startingGoldPerUpgradeLevel}G',
+          nextValueText:
+              '+${nextStartingGoldLevel * RunProgression.startingGoldPerUpgradeLevel}G',
           cost: snapshot.startingGoldUpgradeCost,
           enabled: snapshot.canUpgradeStartingGold,
           onPressed: game.upgradeStartingGoldProgression,
@@ -616,6 +630,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
           level: snapshot.nexusHpUpgradeLevel,
           maxLevel: RunProgression.maxNexusHpUpgradeLevel,
           valueText: '+${snapshot.nexusHpUpgradeLevel}',
+          nextValueText: '+$nextNexusHpLevel',
           cost: snapshot.nexusHpUpgradeCost,
           enabled: snapshot.canUpgradeNexusHp,
           onPressed: game.upgradeNexusHpProgression,
@@ -628,6 +643,8 @@ class _PermanentUpgradeMenu extends StatelessWidget {
           level: snapshot.supplyUpgradeLevel,
           maxLevel: RunProgression.maxSupplyUpgradeLevel,
           valueText: '+${snapshot.waveClearGoldProgressionBonus}G',
+          nextValueText:
+              '+${nextSupplyLevel * RunProgression.supplyGoldPerUpgradeLevel}G',
           cost: snapshot.supplyUpgradeCost,
           enabled: snapshot.canUpgradeSupply,
           onPressed: game.upgradeSupplyProgression,
@@ -641,6 +658,8 @@ class _PermanentUpgradeMenu extends StatelessWidget {
           maxLevel: RunProgression.maxFireTrainingUpgradeLevel,
           valueText:
               '+${(snapshot.fireTrainingDamageBonusRate * 100).round()}%',
+          nextValueText:
+              '+${(nextFireTrainingLevel * RunProgression.fireTrainingDamagePerUpgradeLevel * 100).round()}%',
           cost: snapshot.fireTrainingUpgradeCost,
           enabled: snapshot.canUpgradeFireTraining,
           onPressed: game.upgradeFireTrainingProgression,
@@ -658,6 +677,7 @@ class _ProgressionUpgradeButton extends StatelessWidget {
     required this.level,
     required this.maxLevel,
     required this.valueText,
+    required this.nextValueText,
     required this.cost,
     required this.enabled,
     required this.onPressed,
@@ -669,6 +689,7 @@ class _ProgressionUpgradeButton extends StatelessWidget {
   final int level;
   final int maxLevel;
   final String valueText;
+  final String nextValueText;
   final int cost;
   final bool enabled;
   final VoidCallback onPressed;
@@ -725,13 +746,10 @@ class _ProgressionUpgradeButton extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                valueText,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFFB9D6E4),
-                  fontWeight: FontWeight.w700,
-                ),
+              _UpgradeValueSummary(
+                currentValueText: valueText,
+                nextValueText: nextValueText,
+                enabled: enabled,
               ),
               const SizedBox(height: 6),
               SizedBox(
@@ -767,6 +785,52 @@ class _ProgressionUpgradeButton extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _UpgradeValueSummary extends StatelessWidget {
+  const _UpgradeValueSummary({
+    required this.currentValueText,
+    required this.nextValueText,
+    required this.enabled,
+  });
+
+  final String currentValueText;
+  final String nextValueText;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _UpgradeValueText('현재 $currentValueText'),
+        const SizedBox(height: 2),
+        _UpgradeValueText('다음 $nextValueText', highlighted: enabled),
+      ],
+    );
+  }
+}
+
+class _UpgradeValueText extends StatelessWidget {
+  const _UpgradeValueText(this.text, {this.highlighted = false});
+
+  final String text;
+  final bool highlighted;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 11,
+        color: highlighted ? const Color(0xFFE7C66A) : const Color(0xFFB9D6E4),
+        fontWeight: FontWeight.w700,
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }
