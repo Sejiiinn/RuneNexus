@@ -362,7 +362,7 @@ void main() {
     expect(demoTurrets[TurretType.arrow]!.attackRate, 2.27);
     expect(demoTurrets[TurretType.cannon]!.attackRate, 0.4);
     expect(demoTurrets[TurretType.magic]!.attackRate, 0.59);
-    expect(demoTurrets[TurretType.frost]!.attackRate, 0.5);
+    expect(demoTurrets[TurretType.frost]!.attackRate, 0.4);
   });
 
   test('turret level cap grows to 10 without excessive range gain', () {
@@ -1205,7 +1205,7 @@ void main() {
       targets: [inRangeEnemy, outOfRangeEnemy],
     );
 
-    expect(inRangeEnemy.hp, closeTo(88, 0.001));
+    expect(inRangeEnemy.hp, closeTo(96, 0.001));
     expect(inRangeEnemy.isSlowed, isTrue);
     expect(inRangeEnemy.slowMultiplier, closeTo(0.7, 0.001));
     expect(inRangeEnemy.slowRemaining, closeTo(1, 0.001));
