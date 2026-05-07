@@ -26,10 +26,18 @@ class GridComponent extends Component {
   double _portalSpin = 0;
   double portalAlert = 0;
   double nexusHitAlert = 0;
+  Picture? _staticBoardPicture;
+  late final List<GridPoint> _dynamicTilePoints = _collectDynamicTilePoints();
 
   void updateLayout({required Vector2 origin, required double tileSize}) {
+    if (this.origin.x == origin.x &&
+        this.origin.y == origin.y &&
+        this.tileSize == tileSize) {
+      return;
+    }
     this.origin = origin;
     this.tileSize = tileSize;
+    _invalidateStaticBoardPicture();
   }
 
   @override
@@ -39,31 +47,73 @@ class GridComponent extends Component {
 
   @override
   void render(Canvas canvas) {
+    final staticBoard = _staticBoardPicture ??= _buildStaticBoardPicture();
+    canvas.drawPicture(staticBoard);
+
+    for (final point in _dynamicTilePoints) {
+      final rect = _tileRect(point);
+      switch (map.tileAt(point)) {
+        case TileType.spawn:
+          _drawPortal(canvas, rect);
+        case TileType.core:
+          _drawNexus(canvas, rect);
+        case TileType.path:
+        case TileType.build:
+        case TileType.blocked:
+          break;
+      }
+    }
+  }
+
+  @override
+  void onRemove() {
+    _invalidateStaticBoardPicture();
+    super.onRemove();
+  }
+
+  Picture _buildStaticBoardPicture() {
+    final recorder = PictureRecorder();
+    final canvas = Canvas(recorder);
+
     for (var y = 0; y < map.rows; y++) {
       for (var x = 0; x < map.columns; x++) {
         final point = GridPoint(x, y);
-        final rect = Rect.fromLTWH(
-          origin.x + x * tileSize,
-          origin.y + y * tileSize,
-          tileSize,
-          tileSize,
-        );
-
+        final rect = _tileRect(point);
         final tileType = map.tileAt(point);
         _drawTile(canvas, rect, point, tileType);
         canvas.drawRect(rect.deflate(1), _stroke);
-        switch (tileType) {
-          case TileType.spawn:
-            _drawPortal(canvas, rect);
-          case TileType.core:
-            _drawNexus(canvas, rect);
-          case TileType.path:
-          case TileType.build:
-          case TileType.blocked:
-            break;
+      }
+    }
+
+    return recorder.endRecording();
+  }
+
+  List<GridPoint> _collectDynamicTilePoints() {
+    final points = <GridPoint>[];
+    for (var y = 0; y < map.rows; y++) {
+      for (var x = 0; x < map.columns; x++) {
+        final point = GridPoint(x, y);
+        final tileType = map.tileAt(point);
+        if (tileType == TileType.spawn || tileType == TileType.core) {
+          points.add(point);
         }
       }
     }
+    return List.unmodifiable(points);
+  }
+
+  Rect _tileRect(GridPoint point) {
+    return Rect.fromLTWH(
+      origin.x + point.x * tileSize,
+      origin.y + point.y * tileSize,
+      tileSize,
+      tileSize,
+    );
+  }
+
+  void _invalidateStaticBoardPicture() {
+    _staticBoardPicture?.dispose();
+    _staticBoardPicture = null;
   }
 
   void _drawTile(Canvas canvas, Rect rect, GridPoint point, TileType tileType) {

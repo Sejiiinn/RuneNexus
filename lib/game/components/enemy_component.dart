@@ -46,6 +46,8 @@ class EnemyComponent extends PositionComponent {
   double _hitFlashTimer = 0;
   Color _hitFlashColor = const Color(0xFFFFFFFF);
   double _statusEffectTime = 0;
+  static const double _burnNumberInterval = 0.28;
+  static const double _poisonNumberInterval = 0.5;
 
   bool get isDead => hp <= 0;
   bool get isSlowed => _slowRemaining > 0;
@@ -238,7 +240,7 @@ class EnemyComponent extends PositionComponent {
       }
       _burnInstances.removeWhere((instance) => instance.remaining <= 0);
       if (!isDead &&
-          (_burnNumberTimer >= 0.5 || _burnInstances.isEmpty) &&
+          (_burnNumberTimer >= _burnNumberInterval || _burnInstances.isEmpty) &&
           _burnNumberDamage > 0) {
         game.showDamageNumber(
           position: position.clone(),
@@ -257,7 +259,9 @@ class EnemyComponent extends PositionComponent {
       _poisonNumberDamage += damage;
       _poisonNumberTimer += dt;
       receiveDamage(damage);
-      if (!isDead && (_poisonNumberTimer >= 0.75 || _poisonRemaining == 0)) {
+      if (!isDead &&
+          (_poisonNumberTimer >= _poisonNumberInterval ||
+              _poisonRemaining == 0)) {
         game.showDamageNumber(
           position: position.clone(),
           damage: _poisonNumberDamage,

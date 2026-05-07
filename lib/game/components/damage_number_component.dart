@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +19,7 @@ class DamageNumberComponent extends PositionComponent {
        _motion = motion,
        _feedback = feedback,
        _arcDirection = position.x.round().isEven ? -1 : 1,
-       super(position: position, size: Vector2(64, 24), anchor: Anchor.center);
+       super(position: position, size: Vector2(78, 28), anchor: Anchor.center);
 
   final String _text;
   final Color _baseColor;
@@ -36,8 +38,8 @@ class DamageNumberComponent extends PositionComponent {
       case DamageNumberMotion.rise:
         position.y -= 34 * dt;
       case DamageNumberMotion.fallArc:
-        position.x += _arcDirection * 24 * dt;
-        position.y += (-18 + 74 * progress) * dt;
+        position.x += _arcDirection * 42 * dt;
+        position.y += (-28 + 96 * progress) * dt;
     }
 
     if (_age >= _lifeTime) {
@@ -49,20 +51,35 @@ class DamageNumberComponent extends PositionComponent {
   void render(Canvas canvas) {
     final progress = (_age / _lifeTime).clamp(0.0, 1.0);
     final alpha = 1 - progress;
-    final scale = switch (_motion) {
+    final motionScale = switch (_motion) {
       DamageNumberMotion.rise => 1.0,
       DamageNumberMotion.fallArc => 1 - progress * 0.48,
     };
-    final text = switch (_feedback) {
-      DamageNumberFeedback.weak => '↑$_text',
-      DamageNumberFeedback.resisted => '↓$_text',
-      DamageNumberFeedback.neutral => _text,
+    final feedbackScale = switch (_feedback) {
+      DamageNumberFeedback.weak => 1.14,
+      DamageNumberFeedback.resisted => 0.82,
+      DamageNumberFeedback.neutral => 1.0,
     };
+    final textColor = switch (_feedback) {
+      DamageNumberFeedback.weak => Color.lerp(
+        _baseColor,
+        const Color(0xFFFFFFFF),
+        0.35,
+      )!,
+      DamageNumberFeedback.resisted => Color.lerp(
+        _baseColor,
+        const Color(0xFF7E8B96),
+        0.72,
+      )!,
+      DamageNumberFeedback.neutral => _baseColor,
+    };
+    final scale = motionScale * feedbackScale;
+    _drawFeedbackEffect(canvas, progress, alpha);
     final painter = TextPainter(
       text: TextSpan(
-        text: text,
+        text: _text,
         style: TextStyle(
-          color: _baseColor.withValues(alpha: alpha),
+          color: textColor.withValues(alpha: alpha),
           fontSize: 15 * scale,
           fontWeight: FontWeight.w900,
           shadows: [
@@ -80,7 +97,42 @@ class DamageNumberComponent extends PositionComponent {
 
     painter.paint(
       canvas,
-      Offset((size.x - painter.width) / 2, (size.y - painter.height) / 2),
+      Offset(
+        (size.x - painter.width) / 2,
+        (size.y - painter.height) / 2 +
+            (_feedback == DamageNumberFeedback.resisted ? progress * 5 : 0),
+      ),
     );
+  }
+
+  void _drawFeedbackEffect(Canvas canvas, double progress, double alpha) {
+    final center = Offset(size.x / 2, size.y / 2);
+    switch (_feedback) {
+      case DamageNumberFeedback.weak:
+        final sparkPaint = Paint()
+          ..color = const Color(0xFFFFF0A6).withValues(alpha: alpha * 0.72)
+          ..strokeWidth = 1.1
+          ..strokeCap = StrokeCap.round;
+        for (var i = 0; i < 3; i++) {
+          final angle = -math.pi * 0.72 + i * math.pi * 0.72;
+          final inner = 8 + progress * 2;
+          final outer = 13 + progress * 4;
+          canvas.drawLine(
+            Offset(
+              center.dx + math.cos(angle) * inner,
+              center.dy + math.sin(angle) * inner,
+            ),
+            Offset(
+              center.dx + math.cos(angle) * outer,
+              center.dy + math.sin(angle) * outer,
+            ),
+            sparkPaint,
+          );
+        }
+      case DamageNumberFeedback.resisted:
+        break;
+      case DamageNumberFeedback.neutral:
+        break;
+    }
   }
 }
