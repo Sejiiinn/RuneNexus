@@ -676,6 +676,23 @@ void main() {
     );
   });
 
+  test('fire training uses cheaper 20 level progression', () {
+    final progression = RunProgression()..runes = 10000;
+
+    expect(RunProgression.maxFireTrainingUpgradeLevel, 20);
+    expect(progression.fireTrainingUpgradeCost, 12);
+
+    for (var i = 0; i < 20; i++) {
+      expect(progression.upgradeFireTraining(), isTrue);
+    }
+
+    expect(progression.fireTrainingUpgradeLevel, 20);
+    expect(progression.fireTrainingDamageBonusRate, closeTo(0.20, 0.001));
+    expect(progression.fireTrainingUpgradeCost, 112);
+    expect(progression.canUpgradeFireTraining, isFalse);
+    expect(progression.upgradeFireTraining(), isFalse);
+  });
+
   test('new permanent upgrades are saved and restored', () async {
     final repository = MemorySaveRepository();
     final game = RuneNexusGame(

@@ -294,7 +294,7 @@ GameSnapshot _resultSnapshot({
     canUpgradeSupply: false,
     waveClearGoldProgressionBonus: 0,
     fireTrainingUpgradeLevel: 0,
-    fireTrainingUpgradeCost: 18,
+    fireTrainingUpgradeCost: 12,
     canUpgradeFireTraining: false,
     fireTrainingDamageBonusRate: 0,
   );

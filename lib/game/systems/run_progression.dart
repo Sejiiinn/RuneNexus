@@ -9,13 +9,14 @@ class RunProgression {
   static const int maxStartingGoldUpgradeLevel = 20;
   static const int maxNexusHpUpgradeLevel = 10;
   static const int maxSupplyUpgradeLevel = 10;
-  static const int maxFireTrainingUpgradeLevel = 10;
+  static const int maxFireTrainingUpgradeLevel = 20;
   static const int startingGoldUpgradeBaseCost = 8;
   static const int startingGoldPerUpgradeLevel = 5;
   static const int nexusHpUpgradeBaseCost = 25;
   static const int supplyUpgradeBaseCost = 12;
   static const int supplyGoldPerUpgradeLevel = 1;
-  static const int fireTrainingUpgradeBaseCost = 18;
+  static const int fireTrainingUpgradeBaseCost = 12;
+  static const int fireTrainingUpgradeCostPerLevel = 5;
   static const double fireTrainingDamagePerUpgradeLevel = 0.01;
 
   int runes = 0;
@@ -39,7 +40,8 @@ class RunProgression {
   int get supplyUpgradeCost =>
       supplyUpgradeBaseCost + _cappedSupplyUpgradeLevel * 6;
   int get fireTrainingUpgradeCost =>
-      fireTrainingUpgradeBaseCost + _cappedFireTrainingUpgradeLevel * 8;
+      fireTrainingUpgradeBaseCost +
+      _cappedFireTrainingUpgradeLevel * fireTrainingUpgradeCostPerLevel;
   int get waveClearGoldBonus =>
       _cappedSupplyUpgradeLevel * supplyGoldPerUpgradeLevel;
   double get fireTrainingDamageBonusRate =>
