@@ -60,9 +60,22 @@ class ChainProjectileComponent extends PositionComponent {
         alpha: (0.8 * (1 - i / (_points.length + 1))).clamp(0.0, 0.8),
       );
       canvas.drawCircle(local, 2.2 - i * 0.18, trailPaint);
+      canvas.drawCircle(
+        local,
+        4.4 - i * 0.22,
+        Paint()
+          ..color = color.withValues(
+            alpha: (0.18 * (1 - i / (_points.length + 1))).clamp(0.0, 0.18),
+          ),
+      );
     }
 
     final headPaint = Paint()..color = color;
+    canvas.drawCircle(
+      Offset(size.x / 2, size.y / 2),
+      5.2,
+      Paint()..color = color.withValues(alpha: 0.24),
+    );
     canvas.drawCircle(Offset(size.x / 2, size.y / 2), 2.8, headPaint);
   }
 }

@@ -32,6 +32,7 @@ import '../domain/turret/turret_type.dart';
 import '../domain/wave/wave_definition.dart';
 import 'components/chain_projectile_component.dart';
 import 'components/damage_number_component.dart';
+import 'components/death_burst_effect_component.dart';
 import 'components/enemy_component.dart';
 import 'components/grid_component.dart';
 import 'components/impact_effect_component.dart';
@@ -1037,6 +1038,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         color: owner.definition.color,
         damageMultiplier: multiplier,
       );
+      enemy.showHitFlash(owner.definition.color);
       final actualDamage = enemy.receiveDamage(damage);
       _recordTurretDamage(
         owner,
@@ -1067,6 +1069,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       color: chainColorFor(owner),
       damageMultiplier: multiplier,
     );
+    target.showHitFlash(chainColorFor(owner));
     final actualDamage = target.receiveDamage(adjustedDamage);
     _recordTurretDamage(owner, actualDamage, TurretDamageKind.chain);
   }
@@ -1101,6 +1104,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         color: owner.definition.color,
         damageMultiplier: multiplier,
       );
+      enemy.showHitFlash(owner.definition.color);
       final actualDamage = enemy.receiveDamage(damage);
       _recordTurretDamage(owner, actualDamage, TurretDamageKind.splash);
     }
@@ -1220,6 +1224,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
     _gold += baseReward + wholeBonus + walletGold;
     enemies.remove(enemy);
+    add(
+      DeathBurstEffectComponent(
+        position: enemy.position.clone(),
+        color: enemy.definition.color,
+        type: enemy.definition.type,
+        radius: enemy.size.x,
+      ),
+    );
     enemy.removeFromParent();
     _publish();
   }

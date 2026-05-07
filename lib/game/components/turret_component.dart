@@ -38,6 +38,7 @@ class TurretComponent extends PositionComponent {
   double _tileSize;
   double _cooldown = 0;
   double _aimAngle = -math.pi / 2;
+  double _fireFeedbackTimer = 0;
   int _slotLimit = 1;
   int _level = 1;
   double _directDamageDealt = 0;
@@ -49,6 +50,7 @@ class TurretComponent extends PositionComponent {
   static const double _rangeGrowthPerLevel = 0.033;
   static const double _attackRateGrowthPerLevel = 0.05;
   static const double _cooldownVariance = 0.05;
+  static const double _fireFeedbackDuration = 0.12;
 
   int get level => _level;
   int get maxLevel => 10;
@@ -294,6 +296,7 @@ class TurretComponent extends PositionComponent {
   @override
   void update(double dt) {
     super.update(dt);
+    _fireFeedbackTimer = math.max(0, _fireFeedbackTimer - dt);
     _cooldown = math.max(0, _cooldown - dt);
     if (_cooldown > 0 || !game.isWaveRunning) {
       return;
@@ -313,6 +316,7 @@ class TurretComponent extends PositionComponent {
         leadTarget.position.y - position.y,
         leadTarget.position.x - position.x,
       );
+      _triggerFireFeedback();
       game.resolveCenteredAreaAttack(owner: this, targets: targets);
       return;
     }
@@ -327,6 +331,7 @@ class TurretComponent extends PositionComponent {
       target.position.y - position.y,
       target.position.x - position.x,
     );
+    _triggerFireFeedback();
     final projectileOrigin = definition.type == TurretType.magic
         ? (() {
             final origin = fireballOriginForTurret(
@@ -371,6 +376,10 @@ class TurretComponent extends PositionComponent {
         _cooldownRandom.nextDouble() * 2 * _cooldownVariance;
   }
 
+  void _triggerFireFeedback() {
+    _fireFeedbackTimer = _fireFeedbackDuration;
+  }
+
   @override
   void render(Canvas canvas) {
     final selected = game.isTurretSelected(gridPoint);
@@ -397,6 +406,10 @@ class TurretComponent extends PositionComponent {
       type: definition.type,
       color: definition.color,
       aimAngle: _aimAngle,
+      fireFeedback: (_fireFeedbackTimer / _fireFeedbackDuration).clamp(
+        0.0,
+        1.0,
+      ),
     );
 
     if (_level > 1) {

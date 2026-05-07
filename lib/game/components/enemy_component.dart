@@ -43,6 +43,8 @@ class EnemyComponent extends PositionComponent {
   double _slowRemaining = 0;
   double _slowMultiplier = 1;
   double _facingAngle = 0;
+  double _hitFlashTimer = 0;
+  Color _hitFlashColor = const Color(0xFFFFFFFF);
 
   bool get isDead => hp <= 0;
   bool get isSlowed => _slowRemaining > 0;
@@ -123,6 +125,7 @@ class EnemyComponent extends PositionComponent {
   @override
   void update(double dt) {
     super.update(dt);
+    _hitFlashTimer = math.max(0, _hitFlashTimer - dt);
     _updateStatusEffects(dt);
     if (isDead) {
       return;
@@ -167,6 +170,11 @@ class EnemyComponent extends PositionComponent {
       game.enemyKilled(this);
     }
     return actualDamage;
+  }
+
+  void showHitFlash(Color color) {
+    _hitFlashColor = color;
+    _hitFlashTimer = 0.08;
   }
 
   void applyPoison({
@@ -291,6 +299,7 @@ class EnemyComponent extends PositionComponent {
       ..strokeWidth = 2;
 
     _drawBody(canvas, body, outline);
+    _drawHitFlash(canvas);
 
     if (_burnInstances.isNotEmpty) {
       canvas.drawCircle(
@@ -347,6 +356,33 @@ class EnemyComponent extends PositionComponent {
       color: body.color,
       strokeWidth: outline.strokeWidth,
       facingAngle: _facingAngle,
+    );
+  }
+
+  void _drawHitFlash(Canvas canvas) {
+    if (_hitFlashTimer <= 0) {
+      return;
+    }
+    final progress = (_hitFlashTimer / 0.08).clamp(0.0, 1.0);
+    final center = Offset(size.x / 2, size.y / 2);
+    final radius = size.x * (0.44 + (1 - progress) * 0.12);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = Color.lerp(
+          _hitFlashColor,
+          const Color(0xFFFFFFFF),
+          0.55,
+        )!.withValues(alpha: progress * 0.34),
+    );
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = _hitFlashColor.withValues(alpha: progress * 0.82)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.4,
     );
   }
 

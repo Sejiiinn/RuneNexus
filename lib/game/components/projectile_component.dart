@@ -35,8 +35,8 @@ class ProjectileComponent extends PositionComponent {
     position += _direction * step;
     _travelled += step;
     _trail.insert(0, position.clone());
-    if (_trail.length > 6) {
-      _trail.removeRange(6, _trail.length);
+    if (_trail.length > 9) {
+      _trail.removeRange(9, _trail.length);
     }
 
     final target = _findHitEnemy();
@@ -85,13 +85,35 @@ class ProjectileComponent extends PositionComponent {
         point.x - position.x + size.x / 2,
         point.y - position.y + size.y / 2,
       );
-      final alpha = (0.28 * (1 - i / _trail.length)).clamp(0.0, 0.28);
+      final alpha = (0.46 * (1 - i / _trail.length)).clamp(0.0, 0.46);
       final radius = switch (owner.definition.type) {
-        TurretType.arrow => 1.9 - i * 0.18,
-        TurretType.cannon => 3.4 - i * 0.24,
-        TurretType.magic => 2.8 - i * 0.2,
-        TurretType.frost => 2.5 - i * 0.18,
+        TurretType.arrow => 2.2 - i * 0.16,
+        TurretType.cannon => 4.2 - i * 0.22,
+        TurretType.magic => 3.5 - i * 0.18,
+        TurretType.frost => 3.0 - i * 0.16,
       };
+      if (owner.definition.type == TurretType.arrow && i < _trail.length - 1) {
+        final next = _trail[i + 1];
+        final nextLocal = Offset(
+          next.x - position.x + size.x / 2,
+          next.y - position.y + size.y / 2,
+        );
+        canvas.drawLine(
+          local,
+          nextLocal,
+          Paint()
+            ..color = color.withValues(alpha: alpha * 0.86)
+            ..strokeWidth = 1.5
+            ..strokeCap = StrokeCap.round,
+        );
+      }
+      if (owner.definition.type == TurretType.magic) {
+        canvas.drawCircle(
+          local,
+          radius * 2.4,
+          Paint()..color = color.withValues(alpha: alpha * 0.16),
+        );
+      }
       canvas.drawCircle(
         local,
         radius,
@@ -109,6 +131,11 @@ class ProjectileComponent extends PositionComponent {
           Paint()..color = const Color(0xFFFFFFFF),
         );
       case TurretType.cannon:
+        canvas.drawCircle(
+          center.translate(-2, 1),
+          6.0,
+          Paint()..color = color.withValues(alpha: 0.18),
+        );
         canvas.drawCircle(
           center,
           4.0,

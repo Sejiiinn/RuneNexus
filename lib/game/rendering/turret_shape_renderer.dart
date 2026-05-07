@@ -9,6 +9,7 @@ void drawTurretShape(
   required TurretType type,
   required Color color,
   double aimAngle = -math.pi / 2,
+  double fireFeedback = 0,
   double strokeWidth = 2,
 }) {
   final center = Offset(size.width / 2, size.height / 2);
@@ -42,22 +43,23 @@ void drawTurretShape(
   );
 
   if (type == TurretType.magic) {
-    _drawFireHead(canvas, center, scale, accent, outline);
+    _drawFireHead(canvas, center, scale, accent, outline, fireFeedback);
     return;
   }
   if (type == TurretType.frost) {
-    _drawFrostHead(canvas, center, scale, accent, outline);
+    _drawFrostHead(canvas, center, scale, accent, outline, fireFeedback);
     return;
   }
 
   canvas.save();
   canvas.translate(center.dx, center.dy);
   canvas.rotate(aimAngle);
+  canvas.translate(-scale * 0.08 * fireFeedback, 0);
   switch (type) {
     case TurretType.arrow:
-      _drawMachineGunHead(canvas, scale, accent, outline);
+      _drawMachineGunHead(canvas, scale, accent, outline, fireFeedback);
     case TurretType.cannon:
-      _drawCannonHead(canvas, scale, accent, outline);
+      _drawCannonHead(canvas, scale, accent, outline, fireFeedback);
     case TurretType.magic:
       break;
     case TurretType.frost:
@@ -75,6 +77,7 @@ void _drawMachineGunHead(
   double scale,
   Paint accent,
   Paint outline,
+  double fireFeedback,
 ) {
   for (final y in [-scale * 0.1, scale * 0.1]) {
     final barrel = RRect.fromRectAndRadius(
@@ -86,9 +89,24 @@ void _drawMachineGunHead(
   }
   canvas.drawCircle(Offset.zero, scale * 0.15, accent);
   canvas.drawCircle(Offset.zero, scale * 0.15, outline);
+  if (fireFeedback > 0) {
+    _drawMuzzleFlash(
+      canvas,
+      Offset(scale * 0.58, 0),
+      scale,
+      fireFeedback,
+      0.18,
+    );
+  }
 }
 
-void _drawCannonHead(Canvas canvas, double scale, Paint accent, Paint outline) {
+void _drawCannonHead(
+  Canvas canvas,
+  double scale,
+  Paint accent,
+  Paint outline,
+  double fireFeedback,
+) {
   final barrel = RRect.fromRectAndRadius(
     Rect.fromLTWH(-scale * 0.08, -scale * 0.14, scale * 0.66, scale * 0.28),
     Radius.circular(scale * 0.06),
@@ -103,6 +121,23 @@ void _drawCannonHead(Canvas canvas, double scale, Paint accent, Paint outline) {
   canvas.drawRRect(muzzle, outline);
   canvas.drawCircle(Offset.zero, scale * 0.17, accent);
   canvas.drawCircle(Offset.zero, scale * 0.17, outline);
+  if (fireFeedback > 0) {
+    _drawMuzzleFlash(
+      canvas,
+      Offset(scale * 0.66, 0),
+      scale,
+      fireFeedback,
+      0.28,
+    );
+    canvas.drawCircle(
+      Offset(scale * 0.76, scale * 0.08),
+      scale * 0.18 * fireFeedback,
+      Paint()
+        ..color = const Color(
+          0xFFB8B8A8,
+        ).withValues(alpha: 0.22 * fireFeedback),
+    );
+  }
 }
 
 void _drawFireHead(
@@ -111,6 +146,7 @@ void _drawFireHead(
   double scale,
   Paint accent,
   Paint outline,
+  double fireFeedback,
 ) {
   final brazierCenter = center.translate(0, scale * 0.04);
   final brazier = RRect.fromRectAndRadius(
@@ -124,8 +160,13 @@ void _drawFireHead(
   canvas.drawRRect(brazier, Paint()..color = const Color(0xFF2A2530));
   canvas.drawRRect(brazier, outline);
 
+  final lift = scale * 0.08 * fireFeedback;
+  final flameScale = 1 + fireFeedback * 0.18;
   final flame = Path()
-    ..moveTo(center.dx + scale * 0.05, center.dy - scale * 0.45)
+    ..moveTo(
+      center.dx + scale * 0.05,
+      center.dy - scale * 0.45 * flameScale - lift,
+    )
     ..quadraticBezierTo(
       center.dx + scale * 0.28,
       center.dy - scale * 0.03,
@@ -143,9 +184,19 @@ void _drawFireHead(
   canvas.drawPath(flame, outline);
   canvas.drawCircle(
     center.translate(scale * 0.04, -scale * 0.07),
-    scale * 0.1,
-    Paint()..color = const Color(0xFFFFD45A),
+    scale * (0.1 + fireFeedback * 0.05),
+    Paint()..color = const Color(0xFFFFD45A).withValues(alpha: 0.9),
   );
+  if (fireFeedback > 0) {
+    canvas.drawCircle(
+      center.translate(0, -scale * 0.16),
+      scale * (0.26 + fireFeedback * 0.18),
+      Paint()
+        ..color = accent.color.withValues(alpha: 0.18 * fireFeedback)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = scale * 0.035,
+    );
+  }
 }
 
 void _drawFrostHead(
@@ -154,6 +205,7 @@ void _drawFrostHead(
   double scale,
   Paint accent,
   Paint outline,
+  double fireFeedback,
 ) {
   final core = Path()
     ..moveTo(center.dx, center.dy - scale * 0.35)
@@ -182,7 +234,51 @@ void _drawFrostHead(
   }
   canvas.drawCircle(
     center,
-    scale * 0.1,
+    scale * (0.1 + fireFeedback * 0.09),
     Paint()..color = const Color(0xFFE8FBFF),
+  );
+  if (fireFeedback > 0) {
+    canvas.drawCircle(
+      center,
+      scale * (0.22 + fireFeedback * 0.16),
+      Paint()
+        ..color = const Color(
+          0xFFE8FBFF,
+        ).withValues(alpha: 0.34 * fireFeedback),
+    );
+    canvas.drawCircle(
+      center,
+      scale * (0.42 + fireFeedback * 0.2),
+      Paint()
+        ..color = accent.color.withValues(alpha: 0.5 * fireFeedback)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = scale * 0.035,
+    );
+  }
+}
+
+void _drawMuzzleFlash(
+  Canvas canvas,
+  Offset center,
+  double scale,
+  double fireFeedback,
+  double sizeScale,
+) {
+  final length = scale * sizeScale * (0.75 + fireFeedback * 0.45);
+  final width = scale * sizeScale * 0.42;
+  final flash = Path()
+    ..moveTo(center.dx + length, center.dy)
+    ..lineTo(center.dx, center.dy - width)
+    ..lineTo(center.dx - length * 0.24, center.dy)
+    ..lineTo(center.dx, center.dy + width)
+    ..close();
+  canvas.drawPath(
+    flash,
+    Paint()..color = const Color(0xFFFFF0A6).withValues(alpha: fireFeedback),
+  );
+  canvas.drawCircle(
+    center,
+    width * 0.6,
+    Paint()..color = const Color(0xFFFFFFFF).withValues(alpha: fireFeedback),
   );
 }
