@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
@@ -19,13 +20,17 @@ class DamageNumberComponent extends PositionComponent {
        _motion = motion,
        _feedback = feedback,
        _arcDirection = position.x.round().isEven ? -1 : 1,
-       super(position: position, size: Vector2(78, 28), anchor: Anchor.center);
+       super(position: position, size: Vector2(78, 28), anchor: Anchor.center) {
+    _textImage = _renderTextImage();
+  }
 
   final String _text;
   final Color _baseColor;
   final DamageNumberMotion _motion;
   final DamageNumberFeedback _feedback;
   final int _arcDirection;
+  late final ui.Image _textImage;
+  final Paint _imagePaint = Paint()..filterQuality = FilterQuality.none;
   double _age = 0;
   final double _lifeTime = 0.75;
 
@@ -75,16 +80,49 @@ class DamageNumberComponent extends PositionComponent {
     };
     final scale = motionScale * feedbackScale;
     _drawFeedbackEffect(canvas, progress, alpha);
+    _imagePaint.colorFilter = ColorFilter.mode(
+      const Color(0xFFFFFFFF).withValues(alpha: alpha),
+      BlendMode.modulate,
+    );
+    canvas.save();
+    canvas.translate(
+      size.x / 2,
+      size.y / 2 +
+          (_feedback == DamageNumberFeedback.resisted ? progress * 5 : 0),
+    );
+    canvas.scale(scale);
+    canvas.drawImage(
+      _textImage,
+      Offset(-_textImage.width / 2, -_textImage.height / 2),
+      _imagePaint,
+    );
+    canvas.restore();
+  }
+
+  ui.Image _renderTextImage() {
+    final textColor = switch (_feedback) {
+      DamageNumberFeedback.weak => Color.lerp(
+        _baseColor,
+        const Color(0xFFFFFFFF),
+        0.35,
+      )!,
+      DamageNumberFeedback.resisted => Color.lerp(
+        _baseColor,
+        const Color(0xFF7E8B96),
+        0.72,
+      )!,
+      DamageNumberFeedback.neutral => _baseColor,
+    };
     final painter = TextPainter(
       text: TextSpan(
         text: _text,
         style: TextStyle(
-          color: textColor.withValues(alpha: alpha),
-          fontSize: 15 * scale,
+          color: textColor,
+          fontSize: 15,
           fontWeight: FontWeight.w900,
           shadows: [
             Shadow(
-              color: const Color(0xFF02070D).withValues(alpha: alpha * 0.42),
+              color: const Color(0xFF02070D).withValues(alpha: 0.42),
               blurRadius: 3,
               offset: Offset(1, 1),
             ),
@@ -95,14 +133,22 @@ class DamageNumberComponent extends PositionComponent {
       textDirection: TextDirection.ltr,
     )..layout(maxWidth: size.x);
 
+    final recorder = ui.PictureRecorder();
+    final imageCanvas = Canvas(recorder);
     painter.paint(
-      canvas,
-      Offset(
-        (size.x - painter.width) / 2,
-        (size.y - painter.height) / 2 +
-            (_feedback == DamageNumberFeedback.resisted ? progress * 5 : 0),
-      ),
+      imageCanvas,
+      Offset((size.x - painter.width) / 2, (size.y - painter.height) / 2),
     );
+    final picture = recorder.endRecording();
+    final image = picture.toImageSync(size.x.ceil(), size.y.ceil());
+    picture.dispose();
+    return image;
+  }
+
+  @override
+  void onRemove() {
+    _textImage.dispose();
+    super.onRemove();
   }
 
   void _drawFeedbackEffect(Canvas canvas, double progress, double alpha) {

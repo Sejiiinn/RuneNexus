@@ -57,10 +57,13 @@ class ProjectileComponent extends PositionComponent {
 
   EnemyComponent? _findHitEnemy() {
     final hitRadius = _hitRadius;
+    final hitRadiusSquared = hitRadius * hitRadius;
     for (final enemy in game.enemies) {
+      final dx = enemy.position.x - position.x;
+      final dy = enemy.position.y - position.y;
       if (enemy.isMounted &&
           !enemy.isDead &&
-          enemy.position.distanceTo(position) <= hitRadius) {
+          dx * dx + dy * dy <= hitRadiusSquared) {
         return enemy;
       }
     }

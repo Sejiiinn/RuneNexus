@@ -1025,10 +1025,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }) {
     final impacted = <EnemyComponent>{};
     if (owner.splashRadius > 0) {
+      final splashRadiusSquared = owner.splashRadius * owner.splashRadius;
       for (final enemy in enemies.toList()) {
+        final dx = enemy.position.x - hitPosition.x;
+        final dy = enemy.position.y - hitPosition.y;
         if (enemy.isMounted &&
             !enemy.isDead &&
-            enemy.position.distanceTo(hitPosition) <= owner.splashRadius) {
+            dx * dx + dy * dy <= splashRadiusSquared) {
           impacted.add(enemy);
         }
       }
@@ -1196,20 +1199,35 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     required EnemyComponent source,
     required Set<EnemyComponent> excluded,
   }) {
-    final candidates =
-        enemies.where((enemy) {
-          return enemy.isMounted &&
-              !enemy.isDead &&
-              !excluded.contains(enemy) &&
-              enemy.position.distanceTo(source.position) <=
-                  _chainJumpRange * boardDistanceScale;
-        }).toList()..sort(
-          (a, b) => a.position
-              .distanceTo(source.position)
-              .compareTo(b.position.distanceTo(source.position)),
-        );
+    final jumpRange = _chainJumpRange * boardDistanceScale;
+    final jumpRangeSquared = jumpRange * jumpRange;
+    EnemyComponent? firstTarget;
+    EnemyComponent? secondTarget;
+    var firstDistanceSquared = double.infinity;
+    var secondDistanceSquared = double.infinity;
 
-    for (final enemy in candidates.take(2)) {
+    for (final enemy in enemies) {
+      if (!enemy.isMounted || enemy.isDead || excluded.contains(enemy)) {
+        continue;
+      }
+      final dx = enemy.position.x - source.position.x;
+      final dy = enemy.position.y - source.position.y;
+      final distanceSquared = dx * dx + dy * dy;
+      if (distanceSquared > jumpRangeSquared) {
+        continue;
+      }
+      if (distanceSquared < firstDistanceSquared) {
+        secondDistanceSquared = firstDistanceSquared;
+        secondTarget = firstTarget;
+        firstDistanceSquared = distanceSquared;
+        firstTarget = enemy;
+      } else if (distanceSquared < secondDistanceSquared) {
+        secondDistanceSquared = distanceSquared;
+        secondTarget = enemy;
+      }
+    }
+
+    for (final enemy in [firstTarget, secondTarget].nonNulls) {
       add(
         ChainProjectileComponent(
           origin: source.position.clone(),

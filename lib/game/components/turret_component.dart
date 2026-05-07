@@ -185,7 +185,10 @@ class TurretComponent extends PositionComponent {
 
   bool isEnemyBodyInRange(EnemyComponent enemy) {
     final enemyRadius = math.min(enemy.size.x, enemy.size.y) / 2;
-    return enemy.position.distanceTo(position) <= range + enemyRadius;
+    final rangeWithBody = range + enemyRadius;
+    final dx = enemy.position.x - position.x;
+    final dy = enemy.position.y - position.y;
+    return dx * dx + dy * dy <= rangeWithBody * rangeWithBody;
   }
 
   SavedTurret toSaveData() {
