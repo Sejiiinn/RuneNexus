@@ -42,24 +42,30 @@ class ImpactEffectComponent extends PositionComponent {
     switch (style) {
       case ImpactEffectStyle.spark:
         final paint = Paint()
-          ..color = _color.withValues(alpha: alpha)
           ..strokeWidth = 1.4
           ..strokeCap = StrokeCap.square;
-        for (var i = 0; i < 4; i++) {
-          final angle = i * 1.5708 + progress * 0.55;
+        for (var i = 0; i < 6; i++) {
+          final angle = i * math.pi / 3 + progress * 0.55;
           final from = Offset(
-            center.dx + radius * 0.15 * math.cos(angle),
-            center.dy + radius * 0.15 * math.sin(angle),
+            center.dx + radius * 0.12 * math.cos(angle),
+            center.dy + radius * 0.12 * math.sin(angle),
           );
           final to = Offset(
-            center.dx + radius * (0.55 + progress * 0.25) * math.cos(angle),
-            center.dy + radius * (0.55 + progress * 0.25) * math.sin(angle),
+            center.dx + radius * (0.48 + progress * 0.34) * math.cos(angle),
+            center.dy + radius * (0.48 + progress * 0.34) * math.sin(angle),
           );
+          paint.color = (i.isEven ? const Color(0xFFFFFFFF) : _color)
+              .withValues(alpha: alpha * 0.9);
           canvas.drawLine(from, to, paint);
         }
+        canvas.drawCircle(
+          center,
+          radius * (0.14 + progress * 0.08),
+          Paint()..color = const Color(0xFFFFFFFF).withValues(alpha: alpha),
+        );
       case ImpactEffectStyle.blast:
         final ring = Paint()
-          ..color = _color.withValues(alpha: alpha * 0.72)
+          ..color = _color.withValues(alpha: alpha * 0.66)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.2;
         canvas.drawCircle(center, radius * (0.3 + progress * 0.7), ring);
@@ -69,19 +75,52 @@ class ImpactEffectComponent extends PositionComponent {
           Paint()
             ..color = const Color(0xFFFFD45A).withValues(alpha: alpha * 0.55),
         );
+        final dust = Paint()..color = const Color(0xFFB8B8A8);
+        for (var i = 0; i < 5; i++) {
+          final angle = i * math.pi * 2 / 5 + 0.28;
+          final distance = radius * (0.2 + progress * 0.62);
+          dust.color = dust.color.withValues(alpha: alpha * 0.34);
+          canvas.drawCircle(
+            Offset(
+              center.dx + math.cos(angle) * distance,
+              center.dy + math.sin(angle) * distance * 0.72,
+            ),
+            radius * (0.08 + progress * 0.05),
+            dust,
+          );
+        }
       case ImpactEffectStyle.flame:
-        final flame = Paint()..color = _color.withValues(alpha: alpha * 0.72);
-        canvas.drawCircle(
-          Offset(center.dx, center.dy - radius * 0.16 * progress),
-          radius * (0.28 + progress * 0.18),
-          flame,
-        );
+        final flame = Paint()..color = _color.withValues(alpha: alpha * 0.7);
+        for (var i = 0; i < 3; i++) {
+          final xOffset = (i - 1) * radius * 0.16;
+          final lift = radius * progress * (0.32 + i * 0.08);
+          canvas.drawOval(
+            Rect.fromCenter(
+              center: center.translate(xOffset, -lift),
+              width: radius * (0.22 + progress * 0.12),
+              height: radius * (0.5 + progress * 0.18),
+            ),
+            flame,
+          );
+        }
         canvas.drawCircle(
           center,
           radius * (0.12 + progress * 0.1),
           Paint()
             ..color = const Color(0xFFFFD45A).withValues(alpha: alpha * 0.7),
         );
+        for (var i = 0; i < 4; i++) {
+          final angle = -math.pi * 0.8 + i * math.pi * 0.42;
+          canvas.drawCircle(
+            Offset(
+              center.dx + math.cos(angle) * radius * (0.22 + progress * 0.38),
+              center.dy + math.sin(angle) * radius * (0.2 + progress * 0.24),
+            ),
+            radius * 0.035,
+            Paint()
+              ..color = const Color(0xFFFFD45A).withValues(alpha: alpha * 0.9),
+          );
+        }
       case ImpactEffectStyle.frost:
         final ring = Paint()
           ..color = _color.withValues(alpha: alpha * 0.72)
@@ -107,6 +146,29 @@ class ImpactEffectComponent extends PositionComponent {
               center.dy + outer * math.sin(angle),
             ),
             ring,
+          );
+        }
+        final shardPaint = Paint()
+          ..color = const Color(0xFFE8FBFF).withValues(alpha: alpha)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.3
+          ..strokeCap = StrokeCap.round;
+        for (var i = 0; i < 5; i++) {
+          final angle = i * math.pi * 2 / 5 + progress * 0.35;
+          final shardCenter = Offset(
+            center.dx + math.cos(angle) * radius * (0.34 + progress * 0.38),
+            center.dy + math.sin(angle) * radius * (0.34 + progress * 0.38),
+          );
+          final shardSize = radius * 0.05;
+          canvas.drawLine(
+            shardCenter.translate(-shardSize, 0),
+            shardCenter.translate(shardSize, 0),
+            shardPaint,
+          );
+          canvas.drawLine(
+            shardCenter.translate(0, -shardSize),
+            shardCenter.translate(0, shardSize),
+            shardPaint,
           );
         }
     }

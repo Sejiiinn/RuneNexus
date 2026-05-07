@@ -45,6 +45,7 @@ class EnemyComponent extends PositionComponent {
   double _facingAngle = 0;
   double _hitFlashTimer = 0;
   Color _hitFlashColor = const Color(0xFFFFFFFF);
+  double _statusEffectTime = 0;
 
   bool get isDead => hp <= 0;
   bool get isSlowed => _slowRemaining > 0;
@@ -126,6 +127,7 @@ class EnemyComponent extends PositionComponent {
   void update(double dt) {
     super.update(dt);
     _hitFlashTimer = math.max(0, _hitFlashTimer - dt);
+    _statusEffectTime += dt;
     _updateStatusEffects(dt);
     if (isDead) {
       return;
@@ -302,14 +304,7 @@ class EnemyComponent extends PositionComponent {
     _drawHitFlash(canvas);
 
     if (_burnInstances.isNotEmpty) {
-      canvas.drawCircle(
-        Offset(size.x / 2, size.y / 2),
-        size.x * 0.5,
-        Paint()
-          ..color = const Color(0x88FF8A2A)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2,
-      );
+      _drawBurnStatus(canvas);
     }
     if (_poisonRemaining > 0) {
       canvas.drawCircle(
@@ -322,19 +317,7 @@ class EnemyComponent extends PositionComponent {
       );
     }
     if (_slowRemaining > 0) {
-      canvas.drawCircle(
-        Offset(size.x / 2, size.y / 2),
-        size.x * 0.48,
-        Paint()..color = const Color(0x449BE7FF),
-      );
-      canvas.drawCircle(
-        Offset(size.x / 2, size.y / 2),
-        size.x * 0.58,
-        Paint()
-          ..color = const Color(0x669BE7FF)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2,
-      );
+      _drawSlowStatus(canvas);
     }
 
     final ratio = hp / maxHp;
@@ -384,6 +367,77 @@ class EnemyComponent extends PositionComponent {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2.4,
     );
+  }
+
+  void _drawBurnStatus(Canvas canvas) {
+    final center = Offset(size.x / 2, size.y / 2);
+    final emberPaint = Paint()..color = const Color(0xFFFFA23A);
+    final glowPaint = Paint()..color = const Color(0x66FF5A1F);
+    final smokePaint = Paint()..color = const Color(0x55746A63);
+    for (var i = 0; i < 4; i++) {
+      final phase = (_statusEffectTime * 3.4 + i * 0.31) % 1;
+      final angle = -math.pi * 0.85 + i * math.pi * 0.55;
+      final sway = math.sin(_statusEffectTime * 5.2 + i) * size.x * 0.04;
+      final base = Offset(
+        center.dx + math.cos(angle) * size.x * 0.36 + sway,
+        center.dy + math.sin(angle) * size.y * 0.34,
+      );
+      final ember = base.translate(0, -phase * size.y * 0.34);
+      final radius = size.x * (0.045 + (1 - phase) * 0.035);
+      canvas.drawCircle(ember, radius * 2.2, glowPaint);
+      canvas.drawCircle(ember, radius, emberPaint);
+      if (i.isEven) {
+        canvas.drawCircle(
+          ember.translate(size.x * 0.04, -size.y * 0.1),
+          radius * 1.5,
+          smokePaint..color = smokePaint.color.withValues(alpha: 0.22 * phase),
+        );
+      }
+    }
+  }
+
+  void _drawSlowStatus(Canvas canvas) {
+    final center = Offset(size.x / 2, size.y / 2);
+    final rimRect = Rect.fromCircle(center: center, radius: size.x * 0.48);
+    final phase = _statusEffectTime * 0.9;
+    final rimPaint = Paint()
+      ..color = const Color(0xCCBFEFFF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.7
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < 3; i++) {
+      canvas.drawArc(
+        rimRect,
+        phase + i * math.pi * 2 / 3,
+        math.pi * 0.34,
+        false,
+        rimPaint,
+      );
+    }
+
+    final shardPaint = Paint()
+      ..color = const Color(0xFFE8FBFF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < 4; i++) {
+      final angle = phase * 0.7 + i * math.pi / 2;
+      final shardCenter = Offset(
+        center.dx + math.cos(angle) * size.x * 0.34,
+        center.dy + math.sin(angle) * size.y * 0.34,
+      );
+      final shardSize = size.x * 0.075;
+      canvas.drawLine(
+        shardCenter.translate(-shardSize, 0),
+        shardCenter.translate(shardSize, 0),
+        shardPaint,
+      );
+      canvas.drawLine(
+        shardCenter.translate(0, -shardSize),
+        shardCenter.translate(0, shardSize),
+        shardPaint,
+      );
+    }
   }
 
   void _placeAtDistance(double targetDistance) {
