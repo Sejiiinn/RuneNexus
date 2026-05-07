@@ -45,6 +45,9 @@ class EnemyComponent extends PositionComponent {
   double _facingAngle = 0;
 
   bool get isDead => hp <= 0;
+  bool get isSlowed => _slowRemaining > 0;
+  double get slowRemaining => _slowRemaining;
+  double get slowMultiplier => _slowMultiplier;
   double get totalBurnDamagePerSecond => _burnInstances.fold(
     0,
     (total, instance) => total + instance.damagePerSecond,
@@ -310,6 +313,11 @@ class EnemyComponent extends PositionComponent {
       );
     }
     if (_slowRemaining > 0) {
+      canvas.drawCircle(
+        Offset(size.x / 2, size.y / 2),
+        size.x * 0.48,
+        Paint()..color = const Color(0x449BE7FF),
+      );
       canvas.drawCircle(
         Offset(size.x / 2, size.y / 2),
         size.x * 0.58,

@@ -299,6 +299,24 @@ class TurretComponent extends PositionComponent {
       return;
     }
 
+    if (definition.centeredAreaAttack) {
+      final targets = _findTargetsInRange();
+      if (targets.isEmpty) {
+        return;
+      }
+
+      _cooldown = (1 / attackRate) * _nextCooldownVarianceMultiplier();
+      final leadTarget = targets.reduce(
+        (a, b) => a.distanceTravelled >= b.distanceTravelled ? a : b,
+      );
+      _aimAngle = math.atan2(
+        leadTarget.position.y - position.y,
+        leadTarget.position.x - position.x,
+      );
+      game.resolveCenteredAreaAttack(owner: this, targets: targets);
+      return;
+    }
+
     final target = _findTarget();
     if (target == null) {
       return;
@@ -329,9 +347,7 @@ class TurretComponent extends PositionComponent {
   }
 
   EnemyComponent? _findTarget() {
-    final candidates = game.enemies.where((enemy) {
-      return enemy.isMounted && !enemy.isDead && isEnemyBodyInRange(enemy);
-    }).toList();
+    final candidates = _findTargetsInRange();
 
     if (candidates.isEmpty) {
       return null;
@@ -341,6 +357,12 @@ class TurretComponent extends PositionComponent {
       (a, b) => b.distanceTravelled.compareTo(a.distanceTravelled),
     );
     return candidates.first;
+  }
+
+  List<EnemyComponent> _findTargetsInRange() {
+    return game.enemies.where((enemy) {
+      return enemy.isMounted && !enemy.isDead && isEnemyBodyInRange(enemy);
+    }).toList();
   }
 
   double _nextCooldownVarianceMultiplier() {

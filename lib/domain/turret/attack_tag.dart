@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-enum AttackTag { light, heavy, damageOverTime }
+enum AttackTag { light, heavy, damageOverTime, cooling }
 
 extension AttackTagLabel on AttackTag {
   String get label {
@@ -8,6 +8,7 @@ extension AttackTagLabel on AttackTag {
       AttackTag.light => '경량화기',
       AttackTag.heavy => '중화기',
       AttackTag.damageOverTime => '지속피해',
+      AttackTag.cooling => '냉각',
     };
   }
 
@@ -16,6 +17,7 @@ extension AttackTagLabel on AttackTag {
       AttackTag.light => const Color(0xFFE7C66A),
       AttackTag.heavy => const Color(0xFFFF8A2A),
       AttackTag.damageOverTime => const Color(0xFF9DFF4A),
+      AttackTag.cooling => const Color(0xFF7FD8FF),
     };
   }
 }

@@ -18,6 +18,9 @@ class TurretDefinition {
     required this.attackTags,
     required this.color,
     this.splashRadius = 0,
+    this.centeredAreaAttack = false,
+    this.slowMultiplier = 1,
+    this.slowDuration = 0,
   });
 
   final TurretType type;
@@ -32,4 +35,7 @@ class TurretDefinition {
   final Set<AttackTag> attackTags;
   final Color color;
   final double splashRadius;
+  final bool centeredAreaAttack;
+  final double slowMultiplier;
+  final double slowDuration;
 }

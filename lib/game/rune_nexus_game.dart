@@ -1030,7 +1030,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
           : owner.damage * owner.splashSecondaryDamageMultiplier;
       final multiplier = _damageMultiplier(owner, enemy);
       final damage = baseDamage * multiplier;
-      _applyGemStatuses(owner, enemy);
+      _applyAttackStatuses(owner, enemy);
       showDamageNumber(
         position: enemy.position.clone(),
         damage: damage,
@@ -1060,7 +1060,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final multiplier = _damageMultiplier(owner, target);
     final adjustedDamage = damage * multiplier;
     final statusScale = owner.damage <= 0 ? 0.0 : damage / owner.damage;
-    _applyGemStatuses(owner, target, damageScale: statusScale);
+    _applyAttackStatuses(owner, target, damageScale: statusScale);
     showDamageNumber(
       position: target.position.clone(),
       damage: adjustedDamage,
@@ -1069,6 +1069,41 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
     final actualDamage = target.receiveDamage(adjustedDamage);
     _recordTurretDamage(owner, actualDamage, TurretDamageKind.chain);
+  }
+
+  void resolveCenteredAreaAttack({
+    required TurretComponent owner,
+    required Iterable<EnemyComponent> targets,
+  }) {
+    final impacted = targets
+        .where((enemy) => !enemy.isDead && owner.isEnemyBodyInRange(enemy))
+        .toList();
+    if (impacted.isEmpty) {
+      return;
+    }
+
+    add(
+      ImpactEffectComponent(
+        position: owner.position.clone(),
+        color: owner.definition.color,
+        style: ImpactEffectStyle.frost,
+        radius: owner.range,
+      ),
+    );
+
+    for (final enemy in impacted) {
+      final multiplier = _damageMultiplier(owner, enemy);
+      final damage = owner.damage * multiplier;
+      _applyAttackStatuses(owner, enemy);
+      showDamageNumber(
+        position: enemy.position.clone(),
+        damage: damage,
+        color: owner.definition.color,
+        damageMultiplier: multiplier,
+      );
+      final actualDamage = enemy.receiveDamage(damage);
+      _recordTurretDamage(owner, actualDamage, TurretDamageKind.splash);
+    }
   }
 
   void recordTurretDamage(GridPoint? sourceTurretPoint, double damage) {
@@ -1117,6 +1152,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
             TurretType.arrow => ImpactEffectStyle.spark,
             TurretType.cannon => ImpactEffectStyle.blast,
             TurretType.magic => ImpactEffectStyle.flame,
+            TurretType.frost => ImpactEffectStyle.frost,
           };
     final radius = splashRadius > 0
         ? splashRadius
@@ -1126,6 +1162,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
                 TurretType.arrow => 11.0,
                 TurretType.cannon => 22.0,
                 TurretType.magic => 16.0,
+                TurretType.frost => 18.0,
               } *
               boardDistanceScale;
     add(
@@ -1819,7 +1856,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         .toDouble();
   }
 
-  void _applyGemStatuses(
+  void _applyAttackStatuses(
     TurretComponent owner,
     EnemyComponent enemy, {
     double damageScale = 1,
@@ -1836,6 +1873,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         duration: _burnDurationSeconds * owner.damageOverTimeDurationMultiplier,
         damageMultiplier: burnMultiplier,
         sourceTurretPoint: _isActiveTurret(owner) ? owner.gridPoint : null,
+      );
+    }
+    if (owner.definition.slowDuration > 0 &&
+        owner.definition.slowMultiplier < 1) {
+      enemy.applySlow(
+        multiplier: owner.definition.slowMultiplier,
+        duration: owner.definition.slowDuration,
       );
     }
   }

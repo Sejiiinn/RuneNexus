@@ -1315,6 +1315,14 @@ class _BuildTurretStats extends StatelessWidget {
             value: '${RuneNexusGame.burnDurationSeconds.toStringAsFixed(1)}초',
           ),
         ],
+        if (definition.slowDuration > 0) ...[
+          const SizedBox(width: 5),
+          _StatPill(
+            label: '감속',
+            value:
+                '${((1 - definition.slowMultiplier) * 100).round()}%/${definition.slowDuration.toStringAsFixed(1)}초',
+          ),
+        ],
         const SizedBox(width: 5),
         _StatPill(label: '사거리', value: definition.range.round().toString()),
         const SizedBox(width: 5),

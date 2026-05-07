@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 
-enum ImpactEffectStyle { spark, blast, flame }
+enum ImpactEffectStyle { spark, blast, flame, frost }
 
 class ImpactEffectComponent extends PositionComponent {
   ImpactEffectComponent({
@@ -82,6 +82,33 @@ class ImpactEffectComponent extends PositionComponent {
           Paint()
             ..color = const Color(0xFFFFD45A).withValues(alpha: alpha * 0.7),
         );
+      case ImpactEffectStyle.frost:
+        final ring = Paint()
+          ..color = _color.withValues(alpha: alpha * 0.72)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0;
+        canvas.drawCircle(center, radius * (0.18 + progress * 0.82), ring);
+        canvas.drawCircle(
+          center,
+          radius * (0.12 + progress * 0.36),
+          Paint()..color = _color.withValues(alpha: alpha * 0.12),
+        );
+        for (var i = 0; i < 6; i++) {
+          final angle = i * math.pi / 3 + progress * 0.22;
+          final inner = radius * (0.16 + progress * 0.2);
+          final outer = radius * (0.42 + progress * 0.28);
+          canvas.drawLine(
+            Offset(
+              center.dx + inner * math.cos(angle),
+              center.dy + inner * math.sin(angle),
+            ),
+            Offset(
+              center.dx + outer * math.cos(angle),
+              center.dy + outer * math.sin(angle),
+            ),
+            ring,
+          );
+        }
     }
   }
 }

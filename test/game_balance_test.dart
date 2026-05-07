@@ -310,6 +310,7 @@ void main() {
     expect(demoTurrets[TurretType.arrow]!.projectileSpeed, 620);
     expect(demoTurrets[TurretType.cannon]!.projectileSpeed, 340);
     expect(demoTurrets[TurretType.magic]!.projectileSpeed, 420);
+    expect(demoTurrets[TurretType.frost]!.projectileSpeed, 0);
   });
 
   test('enemy movement speeds are tuned down for readable combat', () {
@@ -323,6 +324,7 @@ void main() {
     expect(demoTurrets[TurretType.arrow]!.range, 96);
     expect(demoTurrets[TurretType.cannon]!.range, 84);
     expect(demoTurrets[TurretType.magic]!.range, 108);
+    expect(demoTurrets[TurretType.frost]!.range, 76);
   });
 
   test('runtime combat distances scale with board tile size', () async {
@@ -360,6 +362,7 @@ void main() {
     expect(demoTurrets[TurretType.arrow]!.attackRate, 2.27);
     expect(demoTurrets[TurretType.cannon]!.attackRate, 0.4);
     expect(demoTurrets[TurretType.magic]!.attackRate, 0.59);
+    expect(demoTurrets[TurretType.frost]!.attackRate, 0.5);
   });
 
   test('turret level cap grows to 10 without excessive range gain', () {
@@ -1025,6 +1028,16 @@ void main() {
     );
   });
 
+  test('frost turret is a centered cooling area attack', () {
+    final frost = demoTurrets[TurretType.frost]!;
+
+    expect(frost.centeredAreaAttack, isTrue);
+    expect(frost.damageFamily, DamageFamily.magical);
+    expect(frost.attackTags, contains(AttackTag.cooling));
+    expect(frost.slowMultiplier, closeTo(0.7, 0.001));
+    expect(frost.slowDuration, closeTo(1, 0.001));
+  });
+
   test('enemy resistance profile multiplies family and tag values', () {
     final tank = demoEnemies[EnemyType.tank]!;
 
@@ -1156,6 +1169,62 @@ void main() {
     enemy.update(1);
 
     expect(enemy.hp, closeTo(44, 0.001));
+  });
+
+  test('frost turret damages and slows enemies in its centered area', () async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.selectTurretType(TurretType.frost);
+    game.tryBuildTurret(const GridPoint(2, 0));
+    final frostTurret = game.children.whereType<TurretComponent>().single;
+    final inRangeEnemy = EnemyComponent(
+      definition: demoEnemies[EnemyType.normal]!,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(500, 0)],
+      game: game,
+    );
+    final outOfRangeEnemy = EnemyComponent(
+      definition: demoEnemies[EnemyType.normal]!,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(500, 0)],
+      game: game,
+    );
+
+    await game.add(inRangeEnemy);
+    await game.add(outOfRangeEnemy);
+    inRangeEnemy.position =
+        frostTurret.position + Vector2(frostTurret.range, 0);
+    outOfRangeEnemy.position =
+        frostTurret.position + Vector2(frostTurret.range + 80, 0);
+    game.enemies.addAll([inRangeEnemy, outOfRangeEnemy]);
+
+    game.resolveCenteredAreaAttack(
+      owner: frostTurret,
+      targets: [inRangeEnemy, outOfRangeEnemy],
+    );
+
+    expect(inRangeEnemy.hp, closeTo(88, 0.001));
+    expect(inRangeEnemy.isSlowed, isTrue);
+    expect(inRangeEnemy.slowMultiplier, closeTo(0.7, 0.001));
+    expect(inRangeEnemy.slowRemaining, closeTo(1, 0.001));
+    expect(outOfRangeEnemy.hp, closeTo(100, 0.001));
+    expect(outOfRangeEnemy.isSlowed, isFalse);
+
+    final previousDistance = inRangeEnemy.distanceTravelled;
+    inRangeEnemy.update(0.5);
+
+    expect(
+      inRangeEnemy.distanceTravelled - previousDistance,
+      closeTo(
+        demoEnemies[EnemyType.normal]!.speed *
+            game.boardDistanceScale *
+            0.7 *
+            0.5,
+        0.001,
+      ),
+    );
   });
 
   test('chain hit from fire turret applies scaled burn', () async {

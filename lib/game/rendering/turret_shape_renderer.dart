@@ -45,6 +45,10 @@ void drawTurretShape(
     _drawFireHead(canvas, center, scale, accent, outline);
     return;
   }
+  if (type == TurretType.frost) {
+    _drawFrostHead(canvas, center, scale, accent, outline);
+    return;
+  }
 
   canvas.save();
   canvas.translate(center.dx, center.dy);
@@ -55,6 +59,8 @@ void drawTurretShape(
     case TurretType.cannon:
       _drawCannonHead(canvas, scale, accent, outline);
     case TurretType.magic:
+      break;
+    case TurretType.frost:
       break;
   }
   canvas.restore();
@@ -139,5 +145,44 @@ void _drawFireHead(
     center.translate(scale * 0.04, -scale * 0.07),
     scale * 0.1,
     Paint()..color = const Color(0xFFFFD45A),
+  );
+}
+
+void _drawFrostHead(
+  Canvas canvas,
+  Offset center,
+  double scale,
+  Paint accent,
+  Paint outline,
+) {
+  final core = Path()
+    ..moveTo(center.dx, center.dy - scale * 0.35)
+    ..lineTo(center.dx + scale * 0.24, center.dy)
+    ..lineTo(center.dx, center.dy + scale * 0.35)
+    ..lineTo(center.dx - scale * 0.24, center.dy)
+    ..close();
+  canvas.drawPath(core, accent);
+  canvas.drawPath(core, outline);
+
+  final rayPaint = Paint()
+    ..color = accent.color.withValues(alpha: 0.88)
+    ..strokeWidth = scale * 0.055
+    ..strokeCap = StrokeCap.round;
+  for (var i = 0; i < 6; i++) {
+    final angle = i * math.pi / 3;
+    final inner = Offset(
+      center.dx + scale * 0.14 * math.cos(angle),
+      center.dy + scale * 0.14 * math.sin(angle),
+    );
+    final outer = Offset(
+      center.dx + scale * 0.34 * math.cos(angle),
+      center.dy + scale * 0.34 * math.sin(angle),
+    );
+    canvas.drawLine(inner, outer, rayPaint);
+  }
+  canvas.drawCircle(
+    center,
+    scale * 0.1,
+    Paint()..color = const Color(0xFFE8FBFF),
   );
 }

@@ -160,7 +160,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
           const SizedBox(height: 6),
           _TurretAttributeChips(definition: definition),
           const SizedBox(height: 6),
-          _TurretStats(snapshot: snapshot),
+          _TurretStats(snapshot: snapshot, definition: definition),
           const SizedBox(height: 6),
           Row(
             children: [
@@ -740,9 +740,10 @@ class _SelectedSlotGemActions extends StatelessWidget {
 }
 
 class _TurretStats extends StatelessWidget {
-  const _TurretStats({required this.snapshot});
+  const _TurretStats({required this.snapshot, required this.definition});
 
   final GameSnapshot snapshot;
+  final TurretDefinition definition;
 
   @override
   Widget build(BuildContext context) {
@@ -787,6 +788,14 @@ class _TurretStats extends StatelessWidget {
           _StatPill(
             label: '화상',
             value: '${snapshot.selectedTurretBurnDuration.toStringAsFixed(1)}초',
+          ),
+        ],
+        if (definition.slowDuration > 0) ...[
+          const SizedBox(width: 5),
+          _StatPill(
+            label: '감속',
+            value:
+                '${((1 - definition.slowMultiplier) * 100).round()}%/${definition.slowDuration.toStringAsFixed(1)}초',
           ),
         ],
         const SizedBox(width: 5),

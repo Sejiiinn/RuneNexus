@@ -72,6 +72,7 @@ class ProjectileComponent extends PositionComponent {
       TurretType.arrow => 12,
       TurretType.cannon => 18,
       TurretType.magic => 13,
+      TurretType.frost => 16,
     };
   }
 
@@ -89,6 +90,7 @@ class ProjectileComponent extends PositionComponent {
         TurretType.arrow => 1.9 - i * 0.18,
         TurretType.cannon => 3.4 - i * 0.24,
         TurretType.magic => 2.8 - i * 0.2,
+        TurretType.frost => 2.5 - i * 0.18,
       };
       canvas.drawCircle(
         local,
@@ -135,6 +137,17 @@ class ProjectileComponent extends PositionComponent {
           1.4,
           Paint()..color = const Color(0xFFFFD45A),
         );
+      case TurretType.frost:
+        canvas.drawCircle(
+          center,
+          3.6,
+          Paint()..color = color.withValues(alpha: 0.9),
+        );
+        canvas.drawCircle(
+          center,
+          1.5,
+          Paint()..color = const Color(0xFFE8FBFF),
+        );
     }
   }
 
@@ -151,6 +164,7 @@ class ProjectileComponent extends PositionComponent {
       TurretType.arrow => 8,
       TurretType.cannon => 12,
       TurretType.magic => 10,
+      TurretType.frost => 10,
     };
   }
 }
