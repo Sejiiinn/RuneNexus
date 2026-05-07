@@ -599,6 +599,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
         _ProgressionUpgradeButton(
           icon: Icons.toll_outlined,
           title: l10n.startGold,
+          description: l10n.permanentUpgradeDescription(l10n.startGold),
           level: snapshot.startingGoldUpgradeLevel,
           valueText:
               '+${snapshot.startingGoldUpgradeLevel * RunProgression.startingGoldPerUpgradeLevel}G',
@@ -610,6 +611,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
         _ProgressionUpgradeButton(
           icon: Icons.favorite_border,
           title: l10n.nexusHp,
+          description: l10n.permanentUpgradeDescription(l10n.nexusHp),
           level: snapshot.nexusHpUpgradeLevel,
           valueText: '+${snapshot.nexusHpUpgradeLevel}',
           cost: snapshot.nexusHpUpgradeCost,
@@ -620,6 +622,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
         _ProgressionUpgradeButton(
           icon: Icons.inventory_2_outlined,
           title: l10n.maintenanceSupply,
+          description: l10n.permanentUpgradeDescription(l10n.maintenanceSupply),
           level: snapshot.supplyUpgradeLevel,
           valueText: '+${snapshot.waveClearGoldProgressionBonus}G',
           cost: snapshot.supplyUpgradeCost,
@@ -630,6 +633,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
         _ProgressionUpgradeButton(
           icon: Icons.local_fire_department_outlined,
           title: l10n.basicFireTraining,
+          description: l10n.permanentUpgradeDescription(l10n.basicFireTraining),
           level: snapshot.fireTrainingUpgradeLevel,
           valueText:
               '+${(snapshot.fireTrainingDamageBonusRate * 100).round()}%',
@@ -646,6 +650,7 @@ class _ProgressionUpgradeButton extends StatelessWidget {
   const _ProgressionUpgradeButton({
     required this.icon,
     required this.title,
+    required this.description,
     required this.level,
     required this.valueText,
     required this.cost,
@@ -655,6 +660,7 @@ class _ProgressionUpgradeButton extends StatelessWidget {
 
   final IconData icon;
   final String title;
+  final String description;
   final int level;
   final String valueText;
   final int cost;
@@ -664,38 +670,136 @@ class _ProgressionUpgradeButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return SizedBox(
-      height: 44,
-      child: OutlinedButton(
-        onPressed: enabled ? onPressed : null,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white,
-          disabledForegroundColor: const Color(0xFF6D7F8F),
-          side: BorderSide(
-            color: enabled ? const Color(0xFFE7C66A) : const Color(0x55485B68),
+    final borderColor = enabled
+        ? const Color(0xFFE7C66A)
+        : const Color(0x55485B68);
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        border: Border.all(color: borderColor),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: enabled ? const Color(0xFFE7C66A) : const Color(0xFF6D7F8F),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, size: 17),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                l10n.upgradeLevel(title, level),
-                style: const TextStyle(fontSize: 13),
-                overflow: TextOverflow.ellipsis,
+          const SizedBox(width: 9),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l10n.upgradeLevel(title, level),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFFB9D6E4),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                valueText,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFFB9D6E4),
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            Text(
-              valueText,
-              style: const TextStyle(fontSize: 12, color: Color(0xFFB9D6E4)),
-            ),
-            const SizedBox(width: 10),
-            Text(l10n.runeCost(cost), style: const TextStyle(fontSize: 12)),
-          ],
+              const SizedBox(height: 6),
+              SizedBox(
+                height: 32,
+                child: OutlinedButton(
+                  onPressed: enabled ? onPressed : null,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    disabledForegroundColor: const Color(0xFF6D7F8F),
+                    side: BorderSide(color: borderColor),
+                    padding: const EdgeInsets.fromLTRB(10, 0, 5, 0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.levelUp,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 7),
+                      _RuneCostChip(cost: cost, enabled: enabled),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RuneCostChip extends StatelessWidget {
+  const _RuneCostChip({required this.cost, required this.enabled});
+
+  final int cost;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = enabled
+        ? const Color(0xFFE7C66A)
+        : const Color(0xFF6D7F8F);
+    return Container(
+      height: 23,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      decoration: BoxDecoration(
+        color: enabled ? const Color(0x1AE7C66A) : const Color(0x14485B68),
+        border: Border.all(
+          color: enabled ? const Color(0x88E7C66A) : const Color(0x33485B68),
         ),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.diamond_outlined, size: 13, color: foreground),
+          const SizedBox(width: 3),
+          Text(
+            '$cost',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: foreground,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -30,6 +30,7 @@ class RuneNexusLocalizations {
   String get maintenanceSupply => _isEnglish ? 'Maintenance Supply' : '정비 보급';
   String get basicFireTraining =>
       _isEnglish ? 'Basic Fire Training' : '기초 화력 훈련';
+  String get levelUp => _isEnglish ? 'Level Up' : '레벨업';
   String get cleared => _isEnglish ? 'Cleared' : '클리어';
   String get settled => _isEnglish ? 'Settled' : '정산 완료';
   String get combatInProgress => _isEnglish ? 'Combat in progress' : '전투 진행 중';
@@ -99,6 +100,30 @@ class RuneNexusLocalizations {
 
   String runeCost(int cost) {
     return _isEnglish ? 'Runes $cost' : '룬 $cost';
+  }
+
+  String permanentUpgradeDescription(String title) {
+    if (title == startGold) {
+      return _isEnglish
+          ? 'Increases the gold available at the start of every run.'
+          : '새 런을 시작할 때 보유하는 골드가 영구적으로 증가합니다.';
+    }
+    if (title == nexusHp) {
+      return _isEnglish
+          ? 'Increases max Nexus HP for every run.'
+          : '모든 런의 넥서스 최대 체력이 영구적으로 증가합니다.';
+    }
+    if (title == maintenanceSupply) {
+      return _isEnglish
+          ? 'Adds bonus gold whenever a wave is cleared.'
+          : '웨이브를 클리어할 때마다 추가 골드를 받습니다.';
+    }
+    if (title == basicFireTraining) {
+      return _isEnglish
+          ? 'Increases the damage of all turrets in every run.'
+          : '모든 런에서 모든 포탑의 피해량이 증가합니다.';
+    }
+    return '';
   }
 
   String endActiveStageBody({

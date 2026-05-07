@@ -35,6 +35,11 @@ void main() {
 
     expect(find.text('Rune Nexus'), findsNothing);
     expect(find.text('시작 골드 Lv.0'), findsOneWidget);
+    expect(find.text('새 런을 시작할 때 보유하는 골드가 영구적으로 증가합니다.'), findsOneWidget);
+    expect(find.text('웨이브를 클리어할 때마다 추가 골드를 받습니다.'), findsOneWidget);
+    expect(find.text('레벨업'), findsNWidgets(4));
+    expect(find.text('8'), findsOneWidget);
+    expect(find.text('25'), findsOneWidget);
     expect(find.text('스테이지'), findsOneWidget);
     expect(find.text('영구 업그레이드'), findsOneWidget);
 
@@ -56,6 +61,28 @@ void main() {
     await tester.pump();
 
     expect(find.text('스테이지 1 클리어 필요'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('permanent upgrade rows fit on narrow menu width', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 720);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(const RuneNexusApp());
+    await tester.pump();
+
+    await tester.tap(find.text('영구 업그레이드'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('레벨업'), findsNWidgets(4));
+    expect(find.text('25'), findsOneWidget);
+    expect(find.text('웨이브를 클리어할 때마다 추가 골드를 받습니다.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -258,7 +285,7 @@ GameSnapshot _resultSnapshot({
     startingGoldUpgradeCost: 8,
     canUpgradeStartingGold: false,
     nexusHpUpgradeLevel: 0,
-    nexusHpUpgradeCost: 6,
+    nexusHpUpgradeCost: 25,
     canUpgradeNexusHp: false,
     supplyUpgradeLevel: 0,
     supplyUpgradeCost: 12,

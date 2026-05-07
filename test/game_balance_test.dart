@@ -158,6 +158,7 @@ void main() {
     );
     expect(progression.initialGold, 250);
     expect(progression.maxNexusHp, 30);
+    expect(progression.runes, 8190);
 
     progression.startingGoldUpgradeLevel = 99;
     progression.nexusHpUpgradeLevel = 99;
