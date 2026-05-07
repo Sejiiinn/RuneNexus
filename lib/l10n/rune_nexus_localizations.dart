@@ -94,8 +94,9 @@ class RuneNexusLocalizations {
         : '스테이지 $previousStageNumber 클리어 필요';
   }
 
-  String upgradeLevel(String title, int level) {
-    return _isEnglish ? '$title Lv.$level' : '$title Lv.$level';
+  String upgradeLevel(String title, int level, {int? maxLevel}) {
+    final levelText = maxLevel == null ? 'Lv.$level' : 'Lv.$level/$maxLevel';
+    return _isEnglish ? '$title $levelText' : '$title $levelText';
   }
 
   String runeCost(int cost) {

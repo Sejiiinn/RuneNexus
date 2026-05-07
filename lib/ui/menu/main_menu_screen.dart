@@ -601,6 +601,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
           title: l10n.startGold,
           description: l10n.permanentUpgradeDescription(l10n.startGold),
           level: snapshot.startingGoldUpgradeLevel,
+          maxLevel: RunProgression.maxStartingGoldUpgradeLevel,
           valueText:
               '+${snapshot.startingGoldUpgradeLevel * RunProgression.startingGoldPerUpgradeLevel}G',
           cost: snapshot.startingGoldUpgradeCost,
@@ -613,6 +614,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
           title: l10n.nexusHp,
           description: l10n.permanentUpgradeDescription(l10n.nexusHp),
           level: snapshot.nexusHpUpgradeLevel,
+          maxLevel: RunProgression.maxNexusHpUpgradeLevel,
           valueText: '+${snapshot.nexusHpUpgradeLevel}',
           cost: snapshot.nexusHpUpgradeCost,
           enabled: snapshot.canUpgradeNexusHp,
@@ -624,6 +626,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
           title: l10n.maintenanceSupply,
           description: l10n.permanentUpgradeDescription(l10n.maintenanceSupply),
           level: snapshot.supplyUpgradeLevel,
+          maxLevel: RunProgression.maxSupplyUpgradeLevel,
           valueText: '+${snapshot.waveClearGoldProgressionBonus}G',
           cost: snapshot.supplyUpgradeCost,
           enabled: snapshot.canUpgradeSupply,
@@ -635,6 +638,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
           title: l10n.basicFireTraining,
           description: l10n.permanentUpgradeDescription(l10n.basicFireTraining),
           level: snapshot.fireTrainingUpgradeLevel,
+          maxLevel: RunProgression.maxFireTrainingUpgradeLevel,
           valueText:
               '+${(snapshot.fireTrainingDamageBonusRate * 100).round()}%',
           cost: snapshot.fireTrainingUpgradeCost,
@@ -652,6 +656,7 @@ class _ProgressionUpgradeButton extends StatelessWidget {
     required this.title,
     required this.description,
     required this.level,
+    required this.maxLevel,
     required this.valueText,
     required this.cost,
     required this.enabled,
@@ -662,6 +667,7 @@ class _ProgressionUpgradeButton extends StatelessWidget {
   final String title;
   final String description;
   final int level;
+  final int maxLevel;
   final String valueText;
   final int cost;
   final bool enabled;
@@ -694,7 +700,7 @@ class _ProgressionUpgradeButton extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  l10n.upgradeLevel(title, level),
+                  l10n.upgradeLevel(title, level, maxLevel: maxLevel),
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w800,

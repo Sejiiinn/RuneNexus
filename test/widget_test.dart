@@ -34,7 +34,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Rune Nexus'), findsNothing);
-    expect(find.text('시작 골드 Lv.0'), findsOneWidget);
+    expect(find.text('시작 골드 Lv.0/20'), findsOneWidget);
     expect(find.text('새 런을 시작할 때 보유하는 골드가 영구적으로 증가합니다.'), findsOneWidget);
     expect(find.text('웨이브를 클리어할 때마다 추가 골드를 받습니다.'), findsOneWidget);
     expect(find.text('레벨업'), findsNWidgets(4));
