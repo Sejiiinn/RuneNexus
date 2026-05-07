@@ -46,8 +46,34 @@ class EnemyComponent extends PositionComponent {
   double _hitFlashTimer = 0;
   Color _hitFlashColor = const Color(0xFFFFFFFF);
   double _statusEffectTime = 0;
+  final Paint _burnEmberPaint = Paint()..color = const Color(0xFFFFA23A);
+  final Paint _burnGlowPaint = Paint()..color = const Color(0x66FF5A1F);
+  final Paint _burnSmokePaint = Paint()..color = const Color(0x55746A63);
+  final Paint _slowRimPaint = Paint()
+    ..color = const Color(0xCCBFEFFF)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.7
+    ..strokeCap = StrokeCap.round;
+  final Paint _slowShardPaint = Paint()
+    ..color = const Color(0xFFE8FBFF)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.2
+    ..strokeCap = StrokeCap.round;
   static const double _burnNumberInterval = 0.28;
   static const double _poisonNumberInterval = 0.5;
+  static const List<Offset> _burnBaseOffsets = [
+    Offset(-0.31, -0.25),
+    Offset(-0.11, -0.34),
+    Offset(0.13, -0.31),
+    Offset(0.32, -0.19),
+  ];
+  static const List<double> _burnPhaseOffsets = [0, 0.31, 0.62, 0.93];
+  static const List<Offset> _slowShardOffsets = [
+    Offset(0.34, 0),
+    Offset(0, 0.34),
+    Offset(-0.34, 0),
+    Offset(0, -0.34),
+  ];
 
   bool get isDead => hp <= 0;
   bool get isSlowed => _slowRemaining > 0;
@@ -228,17 +254,20 @@ class EnemyComponent extends PositionComponent {
   void _updateStatusEffects(double dt) {
     if (_burnInstances.isNotEmpty) {
       _burnNumberTimer += dt;
-      for (final instance in _burnInstances.toList()) {
+      for (var i = _burnInstances.length - 1; i >= 0; i--) {
+        final instance = _burnInstances[i];
         instance.remaining = math.max(0, instance.remaining - dt);
         final damage = instance.damagePerSecond * dt;
         final actualDamage = receiveDamage(damage);
         _burnNumberDamage += actualDamage;
         game.recordTurretDamage(instance.sourceTurretPoint, actualDamage);
+        if (instance.remaining <= 0) {
+          _burnInstances.removeAt(i);
+        }
         if (isDead) {
           break;
         }
       }
-      _burnInstances.removeWhere((instance) => instance.remaining <= 0);
       if (!isDead &&
           (_burnNumberTimer >= _burnNumberInterval || _burnInstances.isEmpty) &&
           _burnNumberDamage > 0) {
@@ -375,26 +404,26 @@ class EnemyComponent extends PositionComponent {
 
   void _drawBurnStatus(Canvas canvas) {
     final center = Offset(size.x / 2, size.y / 2);
-    final emberPaint = Paint()..color = const Color(0xFFFFA23A);
-    final glowPaint = Paint()..color = const Color(0x66FF5A1F);
-    final smokePaint = Paint()..color = const Color(0x55746A63);
-    for (var i = 0; i < 4; i++) {
-      final phase = (_statusEffectTime * 3.4 + i * 0.31) % 1;
-      final angle = -math.pi * 0.85 + i * math.pi * 0.55;
-      final sway = math.sin(_statusEffectTime * 5.2 + i) * size.x * 0.04;
+    final emberCount = game.enemies.length >= 60 ? 2 : _burnBaseOffsets.length;
+    for (var i = 0; i < emberCount; i++) {
+      final phase = (_statusEffectTime * 3.4 + _burnPhaseOffsets[i]) % 1;
+      final baseOffset = _burnBaseOffsets[i];
       final base = Offset(
-        center.dx + math.cos(angle) * size.x * 0.36 + sway,
-        center.dy + math.sin(angle) * size.y * 0.34,
+        center.dx + baseOffset.dx * size.x,
+        center.dy + baseOffset.dy * size.y,
       );
       final ember = base.translate(0, -phase * size.y * 0.34);
       final radius = size.x * (0.045 + (1 - phase) * 0.035);
-      canvas.drawCircle(ember, radius * 2.2, glowPaint);
-      canvas.drawCircle(ember, radius, emberPaint);
+      canvas.drawCircle(ember, radius * 2.2, _burnGlowPaint);
+      canvas.drawCircle(ember, radius, _burnEmberPaint);
       if (i.isEven) {
+        _burnSmokePaint.color = const Color(
+          0xFF746A63,
+        ).withValues(alpha: 0.22 * phase);
         canvas.drawCircle(
           ember.translate(size.x * 0.04, -size.y * 0.1),
           radius * 1.5,
-          smokePaint..color = smokePaint.color.withValues(alpha: 0.22 * phase),
+          _burnSmokePaint,
         );
       }
     }
@@ -404,42 +433,34 @@ class EnemyComponent extends PositionComponent {
     final center = Offset(size.x / 2, size.y / 2);
     final rimRect = Rect.fromCircle(center: center, radius: size.x * 0.48);
     final phase = _statusEffectTime * 0.9;
-    final rimPaint = Paint()
-      ..color = const Color(0xCCBFEFFF)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.7
-      ..strokeCap = StrokeCap.round;
-    for (var i = 0; i < 3; i++) {
+    final rimCount = game.enemies.length >= 60 ? 2 : 3;
+    for (var i = 0; i < rimCount; i++) {
       canvas.drawArc(
         rimRect,
         phase + i * math.pi * 2 / 3,
         math.pi * 0.34,
         false,
-        rimPaint,
+        _slowRimPaint,
       );
     }
 
-    final shardPaint = Paint()
-      ..color = const Color(0xFFE8FBFF)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..strokeCap = StrokeCap.round;
-    for (var i = 0; i < 4; i++) {
-      final angle = phase * 0.7 + i * math.pi / 2;
+    final shardCount = game.enemies.length >= 60 ? 2 : _slowShardOffsets.length;
+    for (var i = 0; i < shardCount; i++) {
+      final shardOffset = _slowShardOffsets[i];
       final shardCenter = Offset(
-        center.dx + math.cos(angle) * size.x * 0.34,
-        center.dy + math.sin(angle) * size.y * 0.34,
+        center.dx + shardOffset.dx * size.x,
+        center.dy + shardOffset.dy * size.y,
       );
       final shardSize = size.x * 0.075;
       canvas.drawLine(
         shardCenter.translate(-shardSize, 0),
         shardCenter.translate(shardSize, 0),
-        shardPaint,
+        _slowShardPaint,
       );
       canvas.drawLine(
         shardCenter.translate(0, -shardSize),
         shardCenter.translate(0, shardSize),
-        shardPaint,
+        _slowShardPaint,
       );
     }
   }
