@@ -55,6 +55,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _chainJumpRange = 88;
   static const double _minBoardZoom = 1;
   static const double _maxBoardZoom = 2.1;
+  static const double _nexusHitAlertDuration = 0.65;
+  static const double _portalAlertDuration = 0.55;
+  static const double _postPortalAlertSpawnDelay = 0.15;
 
   static List<StageDefinition> _buildInitialStages({
     StageDefinition? stage,
@@ -246,6 +249,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   );
 
   late GridComponent _gridComponent;
+  bool _gridComponentReady = false;
   late Vector2 _origin;
   late double _tileSize;
   late List<Vector2> _worldPath;
@@ -279,6 +283,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   Vector2? _lastDragPosition;
   double _dragDistance = 0;
   bool _suppressNextTap = false;
+  double _nexusHitAlertTimer = 0;
+  double _portalAlertTimer = 0;
   bool _savedDataLoaded = false;
   bool _menuSaveDataLoaded = false;
   int _savedTurretCountForMenu = 0;
@@ -325,6 +331,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       origin: _origin,
       tileSize: _tileSize,
     );
+    _gridComponentReady = true;
     add(_gridComponent);
     await _restoreSavedDataIfNeeded();
     _syncBoardComponents();
@@ -361,6 +368,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void update(double dt) {
+    _updateVisualAlerts(dt);
     if (_phase == GamePhase.restored) {
       super.update(0);
       return;
@@ -539,7 +547,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedBuildTurretType = null;
     _selectedPortalPoint = null;
     _selectedTurretGemSlotIndex = null;
-    _waveSpawner.start(_waves[_roundIndex]);
+    _triggerPortalAlert();
+    final initialSpawnDelay = _boardConfigured
+        ? (_portalAlertDuration + _postPortalAlertSpawnDelay) * _speedMultiplier
+        : 0.0;
+    _waveSpawner.start(_waves[_roundIndex], initialDelay: initialSpawnDelay);
     _publish();
     _requestLocalSave(immediate: true);
   }
@@ -1240,6 +1252,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (!enemy.isMounted) {
       return;
     }
+    _triggerNexusHitAlert();
     _nexusHp = math.max(0, _nexusHp - enemy.definition.coreDamage);
     enemies.remove(enemy);
     enemy.removeFromParent();
@@ -1303,6 +1316,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     enemies.clear();
     _waveSpawner.clear();
     _rewardOptions.clear();
+    _nexusHitAlertTimer = 0;
+    _portalAlertTimer = 0;
+    _syncVisualAlerts();
 
     for (final component
         in children.whereType<ProjectileComponent>().toList()) {
@@ -1329,6 +1345,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     super.render(canvas);
     _drawBuildSelection(canvas);
     canvas.restore();
+    _drawNexusScreenAlert(canvas);
   }
 
   void _drawBuildSelection(Canvas canvas) {
@@ -1536,6 +1553,82 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     startNextWave();
   }
 
+  void _updateVisualAlerts(double dt) {
+    _nexusHitAlertTimer = math.max(0, _nexusHitAlertTimer - dt);
+    _portalAlertTimer = math.max(0, _portalAlertTimer - dt);
+    _syncVisualAlerts();
+  }
+
+  void _triggerNexusHitAlert() {
+    _nexusHitAlertTimer = _nexusHitAlertDuration;
+    _syncVisualAlerts();
+  }
+
+  void _triggerPortalAlert() {
+    _portalAlertTimer = _portalAlertDuration;
+    _syncVisualAlerts();
+  }
+
+  void _syncVisualAlerts() {
+    if (!_gridComponentReady) {
+      return;
+    }
+    _gridComponent.nexusHitAlert =
+        (_nexusHitAlertTimer / _nexusHitAlertDuration).clamp(0.0, 1.0);
+    _gridComponent.portalAlert = (_portalAlertTimer / _portalAlertDuration)
+        .clamp(0.0, 1.0);
+  }
+
+  void _drawNexusScreenAlert(Canvas canvas) {
+    final alert = (_nexusHitAlertTimer / _nexusHitAlertDuration).clamp(
+      0.0,
+      1.0,
+    );
+    if (alert <= 0) {
+      return;
+    }
+    final rect = Rect.fromLTWH(0, 0, size.x, size.y);
+    final fadeWidth = (math.min(size.x, size.y) * 0.12)
+        .clamp(26.0, 54.0)
+        .toDouble();
+    final edgeColor = const Color(0xFFFF3D3D).withValues(alpha: 0.22 * alert);
+    const transparent = Color(0x00FF3D3D);
+
+    void drawEdge(Rect edgeRect, Alignment begin, Alignment end) {
+      canvas.drawRect(
+        edgeRect,
+        Paint()
+          ..shader = LinearGradient(
+            begin: begin,
+            end: end,
+            colors: [edgeColor, transparent],
+            stops: const [0.0, 1.0],
+          ).createShader(edgeRect),
+      );
+    }
+
+    drawEdge(
+      Rect.fromLTWH(0, 0, size.x, fadeWidth),
+      Alignment.topCenter,
+      Alignment.bottomCenter,
+    );
+    drawEdge(
+      Rect.fromLTWH(0, size.y - fadeWidth, size.x, fadeWidth),
+      Alignment.bottomCenter,
+      Alignment.topCenter,
+    );
+    drawEdge(
+      Rect.fromLTWH(0, 0, fadeWidth, size.y),
+      Alignment.centerLeft,
+      Alignment.centerRight,
+    );
+    drawEdge(
+      Rect.fromLTWH(size.x - fadeWidth, 0, fadeWidth, size.y),
+      Alignment.centerRight,
+      Alignment.centerLeft,
+    );
+  }
+
   void _finishRun(GamePhase resultPhase) {
     if (_phase == GamePhase.success || _phase == GamePhase.failure) {
       return;
@@ -1597,13 +1690,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   void _rebuildGridComponent() {
     _configureBoard();
+    _gridComponentReady = false;
     _gridComponent.removeFromParent();
     _gridComponent = GridComponent(
       map: _map,
       origin: _origin,
       tileSize: _tileSize,
     );
+    _gridComponentReady = true;
     add(_gridComponent);
+    _syncVisualAlerts();
     _syncBoardComponents();
   }
 

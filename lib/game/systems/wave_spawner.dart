@@ -7,10 +7,10 @@ class WaveSpawner {
 
   bool get isEmpty => _queue.isEmpty;
 
-  void start(WaveDefinition wave) {
+  void start(WaveDefinition wave, {double initialDelay = 0}) {
     _queue
       ..clear()
-      ..addAll(_buildSpawnQueue(wave));
+      ..addAll(_buildSpawnQueue(wave, initialDelay: initialDelay));
   }
 
   void clear() {
@@ -45,14 +45,17 @@ class WaveSpawner {
     return ready.map((request) => request.enemyType).toList();
   }
 
-  List<SpawnRequest> _buildSpawnQueue(WaveDefinition wave) {
+  List<SpawnRequest> _buildSpawnQueue(
+    WaveDefinition wave, {
+    required double initialDelay,
+  }) {
     final requests = <SpawnRequest>[];
     for (final group in wave.groups) {
       for (var i = 0; i < group.count; i++) {
         requests.add(
           SpawnRequest(
             enemyType: group.enemyType,
-            delay: group.startDelay + group.interval * i,
+            delay: initialDelay + group.startDelay + group.interval * i,
           ),
         );
       }

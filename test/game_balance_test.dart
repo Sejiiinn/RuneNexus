@@ -1455,7 +1455,7 @@ void main() {
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
     game.startNextWave();
-    game.update(0.25);
+    game.update(0.9);
     expect(game.enemies, isNotEmpty);
 
     final enemy = game.enemies.first;

@@ -24,6 +24,8 @@ class GridComponent extends Component {
     ..strokeWidth = 1;
 
   double _portalSpin = 0;
+  double portalAlert = 0;
+  double nexusHitAlert = 0;
 
   void updateLayout({required Vector2 origin, required double tileSize}) {
     this.origin = origin;
@@ -166,21 +168,46 @@ class GridComponent extends Component {
   void _drawPortal(Canvas canvas, Rect rect) {
     final center = rect.center;
     final radius = tileSize * 0.3;
+    final alert = portalAlert.clamp(0.0, 1.0);
     final outer = Paint()
-      ..color = const Color(0xFFB16DFF)
+      ..color = Color.lerp(
+        const Color(0xFFB16DFF),
+        const Color(0xFFE3B7FF),
+        alert,
+      )!
       ..style = PaintingStyle.stroke
-      ..strokeWidth = tileSize * 0.07;
-    final inner = Paint()..color = const Color(0xFF2B0D44);
+      ..strokeWidth = tileSize * (0.07 + alert * 0.035);
+    final inner = Paint()
+      ..color = Color.lerp(
+        const Color(0xFF2B0D44),
+        const Color(0xFF4A1478),
+        alert,
+      )!;
     final base = Paint()
       ..color = const Color(0xFF190826)
       ..style = PaintingStyle.fill;
 
-    canvas.drawCircle(center, radius * 1.08, base);
+    if (alert > 0) {
+      canvas.drawCircle(
+        center,
+        radius * (1.28 + alert * 0.28),
+        Paint()
+          ..color = const Color(0xFFB16DFF).withValues(alpha: 0.24 * alert)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = tileSize * 0.035,
+      );
+      canvas.drawCircle(
+        center,
+        radius * (1.05 + alert * 0.32),
+        Paint()..color = const Color(0xFF8E46FF).withValues(alpha: 0.2 * alert),
+      );
+    }
+    canvas.drawCircle(center, radius * (1.08 + alert * 0.08), base);
     canvas.drawCircle(center, radius, inner);
     canvas.save();
     canvas.translate(center.dx, center.dy);
-    canvas.rotate(_portalSpin);
-    _drawPortalSwirl(canvas, radius);
+    canvas.rotate(_portalSpin * (1 + alert * 0.9));
+    _drawPortalSwirl(canvas, radius * (1 + alert * 0.12));
     canvas.restore();
     canvas.drawCircle(center, radius, outer);
     canvas.drawCircle(
@@ -234,8 +261,29 @@ class GridComponent extends Component {
 
   void _drawNexus(Canvas canvas, Rect rect) {
     final center = rect.center;
+    final hit = nexusHitAlert.clamp(0.0, 1.0);
     final basePaint = Paint()..color = const Color(0xFF26384A);
     final shadowPaint = Paint()..color = const Color(0xFF07111D);
+
+    if (hit > 0) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          rect.deflate(tileSize * 0.05),
+          Radius.circular(tileSize * 0.08),
+        ),
+        Paint()..color = const Color(0xFFFF3D3D).withValues(alpha: 0.26 * hit),
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          rect.deflate(tileSize * 0.08),
+          Radius.circular(tileSize * 0.08),
+        ),
+        Paint()
+          ..color = const Color(0xFFFF7A59).withValues(alpha: 0.75 * hit)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = tileSize * 0.045,
+      );
+    }
 
     final pedestal = Rect.fromCenter(
       center: Offset(center.dx, center.dy + tileSize * 0.18),
@@ -269,7 +317,15 @@ class GridComponent extends Component {
       ..lineTo(center.dx, center.dy + tileSize * 0.16)
       ..lineTo(center.dx - tileSize * 0.16, center.dy - tileSize * 0.08)
       ..close();
-    canvas.drawPath(gem, Paint()..color = const Color(0xFFB9F7FF));
+    canvas.drawPath(
+      gem,
+      Paint()
+        ..color = Color.lerp(
+          const Color(0xFFB9F7FF),
+          const Color(0xFFFFD0C6),
+          hit,
+        )!,
+    );
     canvas.drawPath(
       gem,
       Paint()
