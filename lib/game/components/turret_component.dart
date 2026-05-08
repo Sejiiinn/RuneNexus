@@ -15,6 +15,8 @@ import '../rune_nexus_game.dart';
 import 'enemy_component.dart';
 import 'projectile_component.dart';
 
+enum TurretTargetPriority { first, last, nearest }
+
 class TurretComponent extends PositionComponent {
   TurretComponent({
     required this.gridPoint,
@@ -45,6 +47,7 @@ class TurretComponent extends PositionComponent {
   double _splashDamageDealt = 0;
   double _chainDamageDealt = 0;
   double _burnDamageDealt = 0;
+  TurretTargetPriority _targetPriority = TurretTargetPriority.first;
 
   static const double _damageGrowthPerLevel = 0.2;
   static const double _rangeGrowthPerLevel = 0.033;
@@ -59,6 +62,7 @@ class TurretComponent extends PositionComponent {
   double get splashDamageDealt => _splashDamageDealt;
   double get chainDamageDealt => _chainDamageDealt;
   double get burnDamageDealt => _burnDamageDealt;
+  TurretTargetPriority get targetPriority => _targetPriority;
   double get damageDealt =>
       _directDamageDealt +
       _splashDamageDealt +
@@ -182,6 +186,10 @@ class TurretComponent extends PositionComponent {
   }
 
   bool hasGem(GemType type) => equippedGems.contains(type);
+
+  void setTargetPriority(TurretTargetPriority priority) {
+    _targetPriority = priority;
+  }
 
   bool isEnemyBodyInRange(EnemyComponent enemy) {
     final enemyRadius = math.min(enemy.size.x, enemy.size.y) / 2;
@@ -355,16 +363,51 @@ class TurretComponent extends PositionComponent {
   }
 
   EnemyComponent? _findTarget() {
-    final candidates = _findTargetsInRange();
-
-    if (candidates.isEmpty) {
-      return null;
+    EnemyComponent? selectedTarget;
+    var selectedDistanceSquared = double.infinity;
+    for (final enemy in game.enemies) {
+      if (!enemy.isMounted || enemy.isDead || !isEnemyBodyInRange(enemy)) {
+        continue;
+      }
+      final distanceSquared = _targetPriority == TurretTargetPriority.nearest
+          ? _distanceSquaredTo(enemy)
+          : double.infinity;
+      if (_isPreferredTarget(
+        candidate: enemy,
+        current: selectedTarget,
+        candidateDistanceSquared: distanceSquared,
+        currentDistanceSquared: selectedDistanceSquared,
+      )) {
+        selectedTarget = enemy;
+        selectedDistanceSquared = distanceSquared;
+      }
     }
+    return selectedTarget;
+  }
 
-    candidates.sort(
-      (a, b) => b.distanceTravelled.compareTo(a.distanceTravelled),
-    );
-    return candidates.first;
+  bool _isPreferredTarget({
+    required EnemyComponent candidate,
+    required EnemyComponent? current,
+    required double candidateDistanceSquared,
+    required double currentDistanceSquared,
+  }) {
+    if (current == null) {
+      return true;
+    }
+    return switch (_targetPriority) {
+      TurretTargetPriority.first =>
+        candidate.distanceTravelled > current.distanceTravelled,
+      TurretTargetPriority.last =>
+        candidate.distanceTravelled < current.distanceTravelled,
+      TurretTargetPriority.nearest =>
+        candidateDistanceSquared < currentDistanceSquared,
+    };
+  }
+
+  double _distanceSquaredTo(EnemyComponent enemy) {
+    final dx = enemy.position.x - position.x;
+    final dy = enemy.position.y - position.y;
+    return dx * dx + dy * dy;
   }
 
   List<EnemyComponent> _findTargetsInRange() {

@@ -58,6 +58,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _nexusHitAlertDuration = 0.65;
   static const double _portalAlertDuration = 0.55;
   static const double _postPortalAlertSpawnDelay = 0.15;
+  static const double _combatStatsPublishInterval = 0.2;
 
   static List<StageDefinition> _buildInitialStages({
     StageDefinition? stage,
@@ -289,6 +290,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   bool _menuSaveDataLoaded = false;
   int _savedTurretCountForMenu = 0;
   GameSaveData? _pendingFullSaveData;
+  double _combatStatsPublishTimer = 0;
+  bool _combatStatsPublishPending = false;
 
   bool get isWaveRunning => _phase == GamePhase.wave;
   double get boardDistanceScale =>
@@ -373,13 +376,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       super.update(0);
       return;
     }
-    super.update(dt * _speedMultiplier);
+    final scaledDt = dt * _speedMultiplier;
+    super.update(scaledDt);
+    _updateCombatStatsPublish(dt);
     if (_phase != GamePhase.wave) {
       _maybeAutoStartNextWave();
       return;
     }
 
-    _updateWaveSpawns(dt * _speedMultiplier);
+    _updateWaveSpawns(scaledDt);
     _checkWaveClear();
     _requestLocalSave();
   }
@@ -1153,7 +1158,29 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
     turret.recordDamageDealt(damage, kind);
-    _publish();
+    _requestCombatStatsPublish();
+  }
+
+  void _requestCombatStatsPublish() {
+    if (_phase != GamePhase.wave) {
+      _publish();
+      return;
+    }
+    _combatStatsPublishPending = true;
+  }
+
+  void _updateCombatStatsPublish(double dt) {
+    if (!_combatStatsPublishPending) {
+      return;
+    }
+    if (_phase != GamePhase.wave) {
+      _publish();
+      return;
+    }
+    _combatStatsPublishTimer += dt;
+    if (_combatStatsPublishTimer >= _combatStatsPublishInterval) {
+      _publish();
+    }
   }
 
   Color chainColorFor(TurretComponent owner) {
@@ -2026,6 +2053,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _publish() {
+    _combatStatsPublishPending = false;
+    _combatStatsPublishTimer = 0;
     final nextWave = _roundIndex < _waves.length
         ? _waves[_roundIndex]
         : _waves.last;
