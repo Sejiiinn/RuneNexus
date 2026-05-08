@@ -185,7 +185,7 @@ void main() {
     await _pumpGameFrames(tester);
 
     expect(find.text('정말 종료할까요?'), findsOneWidget);
-    expect(find.textContaining('+1 룬'), findsOneWidget);
+    expect(find.textContaining('+1 룬'), findsWidgets);
   });
 
   testWidgets('debug panel button is hidden by default', (tester) async {

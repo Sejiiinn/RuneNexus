@@ -19,6 +19,7 @@ class RuneNexusApp extends StatefulWidget {
 
 class _RuneNexusAppState extends State<RuneNexusApp> {
   late final RuneNexusGame game;
+  late final Future<void> _initialLoad;
   _AppScreen _screen = _AppScreen.main;
   MainMenuTab _selectedMainMenuTab = MainMenuTab.stage;
 
@@ -26,7 +27,7 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
   void initState() {
     super.initState();
     game = RuneNexusGame();
-    game.readyNotifier.addListener(_syncGameEngineState);
+    _initialLoad = Future<void>.delayed(Duration.zero, game.prepareForAppStart);
   }
 
   void _openMainScreen({MainMenuTab tab = MainMenuTab.stage}) {
@@ -34,18 +35,6 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
       _screen = _AppScreen.main;
       _selectedMainMenuTab = tab;
     });
-    _syncGameEngineState();
-  }
-
-  void _syncGameEngineState() {
-    if (!game.readyNotifier.value) {
-      return;
-    }
-    if (_screen == _AppScreen.stage) {
-      game.resumeEngine();
-    } else {
-      game.pauseEngine();
-    }
   }
 
   Future<void> _startStage(int stageNumber, GameSnapshot snapshot) async {
@@ -101,13 +90,6 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
     setState(() {
       _screen = _AppScreen.stage;
     });
-    _syncGameEngineState();
-  }
-
-  @override
-  void dispose() {
-    game.readyNotifier.removeListener(_syncGameEngineState);
-    super.dispose();
   }
 
   @override
@@ -132,58 +114,43 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
       ),
       home: Scaffold(
         backgroundColor: const Color(0xFF07111D),
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: GameHud(
+        body: FutureBuilder<void>(
+          future: _initialLoad,
+          builder: (context, loadState) {
+            if (loadState.hasError) {
+              return const _AppLoadErrorScreen();
+            }
+            if (loadState.connectionState != ConnectionState.done) {
+              return const _AppLoadingScreen();
+            }
+            if (_screen == _AppScreen.stage) {
+              return GameHud(
                 game: game,
-                showControls: _screen == _AppScreen.stage,
                 onOpenStageSelect: () => _openMainScreen(),
                 onOpenPermanentUpgrades: () =>
                     _openMainScreen(tab: MainMenuTab.permanentUpgrades),
                 onStartStage: (stageNumber) =>
                     _startStage(stageNumber, game.snapshotNotifier.value),
-              ),
-            ),
-            ValueListenableBuilder<Object?>(
-              valueListenable: game.loadErrorNotifier,
-              builder: (context, loadError, _) {
-                if (loadError != null) {
-                  return const Positioned.fill(child: _AppLoadErrorScreen());
-                }
-                return ValueListenableBuilder<bool>(
-                  valueListenable: game.readyNotifier,
-                  builder: (context, ready, _) {
-                    if (!ready) {
-                      return const Positioned.fill(child: _AppLoadingScreen());
-                    }
-                    if (_screen == _AppScreen.stage) {
-                      return const SizedBox.shrink();
-                    }
-                    return Positioned.fill(
-                      child: ValueListenableBuilder(
-                        valueListenable: game.snapshotNotifier,
-                        builder: (context, snapshot, _) {
-                          return MainMenuScreen(
-                            game: game,
-                            snapshot: snapshot,
-                            selectedTab: _selectedMainMenuTab,
-                            onSelectTab: (tab) {
-                              setState(() {
-                                _selectedMainMenuTab = tab;
-                              });
-                            },
-                            onStartStage: (stageNumber) =>
-                                _startStage(stageNumber, snapshot),
-                          );
-                        },
-                      ),
-                    );
+              );
+            }
+            return ValueListenableBuilder(
+              valueListenable: game.snapshotNotifier,
+              builder: (context, snapshot, _) {
+                return MainMenuScreen(
+                  game: game,
+                  snapshot: snapshot,
+                  selectedTab: _selectedMainMenuTab,
+                  onSelectTab: (tab) {
+                    setState(() {
+                      _selectedMainMenuTab = tab;
+                    });
                   },
+                  onStartStage: (stageNumber) =>
+                      _startStage(stageNumber, snapshot),
                 );
               },
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
