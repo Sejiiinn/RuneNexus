@@ -685,6 +685,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _phase = _restoredPhase ?? GamePhase.preparation;
     _restoredPhase = null;
+    resumeEngine();
     _publish();
     _requestLocalSave(immediate: true);
   }
@@ -1412,7 +1413,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       );
     }
     for (final enemy in enemies) {
-      enemy.updatePath(_worldPath);
+      enemy.updateLayout(tileSize: _tileSize, newPath: _worldPath);
     }
   }
 

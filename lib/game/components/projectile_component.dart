@@ -17,7 +17,9 @@ class ProjectileComponent extends PositionComponent {
        _maxDistance = owner.range + 64 * owner.game.boardDistanceScale,
        super(
          position: origin,
-         size: Vector2.all(_visualSize(owner.definition.type)),
+         size: Vector2.all(
+           _visualSize(owner.definition.type) * owner.game.boardDistanceScale,
+         ),
          anchor: Anchor.center,
        );
 
@@ -71,12 +73,13 @@ class ProjectileComponent extends PositionComponent {
   }
 
   double get _hitRadius {
-    return switch (owner.definition.type) {
+    final baseRadius = switch (owner.definition.type) {
       TurretType.arrow => 12,
       TurretType.cannon => 18,
       TurretType.magic => 13,
       TurretType.frost => 16,
     };
+    return baseRadius * owner.game.boardDistanceScale;
   }
 
   @override

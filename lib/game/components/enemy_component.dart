@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 
 import '../../data/save/game_save_data.dart';
 import '../../domain/enemy/enemy_definition.dart';
+import '../../domain/enemy/enemy_type.dart';
 import '../../domain/map/grid_point.dart';
 import '../rendering/enemy_shape_renderer.dart';
 import '../rune_nexus_game.dart';
@@ -19,7 +20,7 @@ class EnemyComponent extends PositionComponent {
   }) : hp = maxHp,
        super(
          position: path.first.clone(),
-         size: Vector2.all(22),
+         size: Vector2.all(_sizeForTileScale(game.boardDistanceScale)),
          anchor: Anchor.center,
        );
 
@@ -54,6 +55,7 @@ class EnemyComponent extends PositionComponent {
   final Paint _spritePaint = Paint()..filterQuality = FilterQuality.none;
   static const double _burnNumberInterval = 0.28;
   static const double _poisonNumberInterval = 0.5;
+  static const double _designTileSize = 48;
   static const List<Offset> _burnBaseOffsets = [
     Offset(-0.31, -0.25),
     Offset(-0.11, -0.34),
@@ -131,6 +133,15 @@ class EnemyComponent extends PositionComponent {
     _placeAtDistance(distanceTravelled);
   }
 
+  void updateLayout({
+    required double tileSize,
+    required List<Vector2> newPath,
+  }) {
+    size = Vector2.all(tileSize * _sizeScaleByType);
+    _slowRimPaint.strokeWidth = size.x * 0.077;
+    updatePath(newPath);
+  }
+
   void updatePath(List<Vector2> newPath) {
     if (newPath.length < 2) {
       return;
@@ -142,6 +153,19 @@ class EnemyComponent extends PositionComponent {
     path = newPath;
     distanceTravelled = _pathLength(path) * progressRatio;
     _placeAtDistance(distanceTravelled);
+  }
+
+  static double _sizeForTileScale(double boardDistanceScale) {
+    return _designTileSize * 0.46 * boardDistanceScale;
+  }
+
+  double get _sizeScaleByType {
+    return switch (definition.type) {
+      EnemyType.fast => 0.40,
+      EnemyType.normal => 0.46,
+      EnemyType.tank => 0.54,
+      EnemyType.boss => 0.66,
+    };
   }
 
   @override

@@ -96,6 +96,9 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
     setState(() {
       _screen = _AppScreen.stage;
     });
+    if (game.snapshotNotifier.value.phase != GamePhase.restored) {
+      game.resumeEngine();
+    }
   }
 
   @override
