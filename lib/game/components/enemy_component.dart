@@ -71,6 +71,7 @@ class EnemyComponent extends PositionComponent {
   ];
 
   bool get isDead => hp <= 0;
+  double get collisionRadius => size.x * 0.42;
   bool get isSlowed => _slowRemaining > 0;
   double get slowRemaining => _slowRemaining;
   double get slowMultiplier => _slowMultiplier;

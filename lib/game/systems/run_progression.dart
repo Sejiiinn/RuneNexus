@@ -10,12 +10,12 @@ class RunProgression {
   static const int maxNexusHpUpgradeLevel = 10;
   static const int maxSupplyUpgradeLevel = 10;
   static const int maxFireTrainingUpgradeLevel = 20;
-  static const int startingGoldUpgradeBaseCost = 8;
+  static const int startingGoldUpgradeBaseCost = 6;
   static const int startingGoldPerUpgradeLevel = 5;
-  static const int nexusHpUpgradeBaseCost = 25;
-  static const int supplyUpgradeBaseCost = 12;
+  static const int nexusHpUpgradeBaseCost = 20;
+  static const int supplyUpgradeBaseCost = 10;
   static const int supplyGoldPerUpgradeLevel = 1;
-  static const int fireTrainingUpgradeBaseCost = 12;
+  static const int fireTrainingUpgradeBaseCost = 10;
   static const int fireTrainingUpgradeCostPerLevel = 5;
   static const double fireTrainingDamagePerUpgradeLevel = 0.01;
 

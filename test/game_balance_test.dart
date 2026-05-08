@@ -567,7 +567,7 @@ void main() {
     game.buyRunUpgrade(RunUpgradeType.towerDamage);
 
     expect(turret.damage, closeTo(7.21, 0.001));
-    expect(game.snapshotNotifier.value.gold, 110);
+    expect(game.snapshotNotifier.value.gold, 118);
     expect(
       game.snapshotNotifier.value.runUpgradeLevels[RunUpgradeType.towerDamage],
       1,
@@ -680,7 +680,7 @@ void main() {
     final progression = RunProgression()..runes = 10000;
 
     expect(RunProgression.maxFireTrainingUpgradeLevel, 20);
-    expect(progression.fireTrainingUpgradeCost, 12);
+    expect(progression.fireTrainingUpgradeCost, 10);
 
     for (var i = 0; i < 20; i++) {
       expect(progression.upgradeFireTraining(), isTrue);
@@ -688,7 +688,7 @@ void main() {
 
     expect(progression.fireTrainingUpgradeLevel, 20);
     expect(progression.fireTrainingDamageBonusRate, closeTo(0.20, 0.001));
-    expect(progression.fireTrainingUpgradeCost, 112);
+    expect(progression.fireTrainingUpgradeCost, 110);
     expect(progression.canUpgradeFireTraining, isFalse);
     expect(progression.upgradeFireTraining(), isFalse);
   });

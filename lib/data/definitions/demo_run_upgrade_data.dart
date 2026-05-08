@@ -8,7 +8,7 @@ const demoRunUpgrades = <RunUpgradeType, RunUpgradeDefinition>{
     description: '모든 포탑 피해가 증가합니다.',
     effectLabel: '+3%',
     maxLevel: 10,
-    baseCost: 40,
+    baseCost: 32,
     costMultiplier: 1.5,
     effectPerLevel: 0.03,
   ),

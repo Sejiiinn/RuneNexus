@@ -58,14 +58,14 @@ class ProjectileComponent extends PositionComponent {
   }
 
   EnemyComponent? _findHitEnemy() {
-    final hitRadius = _hitRadius;
-    final hitRadiusSquared = hitRadius * hitRadius;
+    final projectileRadius = _hitRadius;
     for (final enemy in game.enemies) {
       final dx = enemy.position.x - position.x;
       final dy = enemy.position.y - position.y;
+      final hitRadius = projectileRadius + enemy.collisionRadius;
       if (enemy.isMounted &&
           !enemy.isDead &&
-          dx * dx + dy * dy <= hitRadiusSquared) {
+          dx * dx + dy * dy <= hitRadius * hitRadius) {
         return enemy;
       }
     }
@@ -74,10 +74,10 @@ class ProjectileComponent extends PositionComponent {
 
   double get _hitRadius {
     final baseRadius = switch (owner.definition.type) {
-      TurretType.arrow => 12,
-      TurretType.cannon => 18,
-      TurretType.magic => 13,
-      TurretType.frost => 16,
+      TurretType.arrow => 3,
+      TurretType.cannon => 7,
+      TurretType.magic => 4,
+      TurretType.frost => 5,
     };
     return baseRadius * owner.game.boardDistanceScale;
   }
