@@ -37,6 +37,12 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
     });
   }
 
+  @override
+  void dispose() {
+    game.disposeAppResources();
+    super.dispose();
+  }
+
   Future<void> _startStage(int stageNumber, GameSnapshot snapshot) async {
     final activeRunInProgress =
         snapshot.hasStageProgress &&

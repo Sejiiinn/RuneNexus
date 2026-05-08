@@ -98,6 +98,7 @@ class _GameHudState extends State<GameHud> {
       }
 
       if (action == _StageMenuAction.openMainMenu) {
+        widget.game.suspendCurrentRunForMenu();
         await widget.game.saveNow();
         if (!mounted) {
           return;

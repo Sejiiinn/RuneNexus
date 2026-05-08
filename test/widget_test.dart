@@ -188,6 +188,38 @@ void main() {
     expect(find.textContaining('+1 룬'), findsWidgets);
   });
 
+  testWidgets('main menu return preserves active run as restore flow', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(411, 720);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await _pumpLoadedApp(tester);
+
+    await tester.tap(find.text('스테이지 1'));
+    await _pumpGameFrames(tester);
+    await tester.tap(find.text('시작'));
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.home_outlined));
+    await _pumpGameFrames(tester);
+    await tester.tap(find.text('메인화면으로 이동'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('진행 중 · 스테이지 1'), findsOneWidget);
+    expect(find.text('저장된 전투'), findsOneWidget);
+    expect(find.text('이어서 진행'), findsOneWidget);
+
+    await tester.tap(find.text('이어서 진행'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('저장된 진행 발견'), findsOneWidget);
+    expect(find.text('계속 진행하시겠습니까?'), findsOneWidget);
+  });
+
   testWidgets('debug panel button is hidden by default', (tester) async {
     await _pumpLoadedApp(tester);
 

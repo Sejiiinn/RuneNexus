@@ -297,6 +297,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   GameSaveData? _pendingFullSaveData;
   double _combatStatsPublishTimer = 0;
   bool _combatStatsPublishPending = false;
+  bool _appResourcesDisposed = false;
 
   bool get isWaveRunning => _phase == GamePhase.wave;
   double get boardDistanceScale =>
@@ -394,13 +395,21 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void onRemove() {
+    super.onRemove();
+  }
+
+  void disposeAppResources() {
+    if (_appResourcesDisposed) {
+      return;
+    }
+    _appResourcesDisposed = true;
     if (_statusEffectSpritesReady) {
       statusEffectSprites.dispose();
+      _statusEffectSpritesReady = false;
     }
     _saveScheduler.dispose();
     readyNotifier.dispose();
     loadErrorNotifier.dispose();
-    super.onRemove();
   }
 
   @override
@@ -657,6 +666,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _finishRun(GamePhase.failure);
     _publish();
     await _saveRoundCheckpoint();
+  }
+
+  void suspendCurrentRunForMenu() {
+    if (_phase != GamePhase.wave) {
+      return;
+    }
+    _phase = GamePhase.restored;
+    _restoredPhase = GamePhase.wave;
+    _publish();
+    _requestLocalSave(immediate: true);
   }
 
   void continueRestoredRun() {
