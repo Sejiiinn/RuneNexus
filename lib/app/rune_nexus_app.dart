@@ -26,7 +26,7 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
   void initState() {
     super.initState();
     game = RuneNexusGame();
-    game.prepareSavedStateForMenu();
+    game.readyNotifier.addListener(_syncGameEngineState);
   }
 
   void _openMainScreen({MainMenuTab tab = MainMenuTab.stage}) {
@@ -34,6 +34,18 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
       _screen = _AppScreen.main;
       _selectedMainMenuTab = tab;
     });
+    _syncGameEngineState();
+  }
+
+  void _syncGameEngineState() {
+    if (!game.readyNotifier.value) {
+      return;
+    }
+    if (_screen == _AppScreen.stage) {
+      game.resumeEngine();
+    } else {
+      game.pauseEngine();
+    }
   }
 
   Future<void> _startStage(int stageNumber, GameSnapshot snapshot) async {
@@ -89,6 +101,13 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
     setState(() {
       _screen = _AppScreen.stage;
     });
+    _syncGameEngineState();
+  }
+
+  @override
+  void dispose() {
+    game.readyNotifier.removeListener(_syncGameEngineState);
+    super.dispose();
   }
 
   @override
@@ -113,31 +132,124 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
       ),
       home: Scaffold(
         backgroundColor: const Color(0xFF07111D),
-        body: ValueListenableBuilder(
-          valueListenable: game.snapshotNotifier,
-          builder: (context, snapshot, _) {
-            if (_screen == _AppScreen.stage) {
-              return GameHud(
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: GameHud(
                 game: game,
+                showControls: _screen == _AppScreen.stage,
                 onOpenStageSelect: () => _openMainScreen(),
                 onOpenPermanentUpgrades: () =>
                     _openMainScreen(tab: MainMenuTab.permanentUpgrades),
                 onStartStage: (stageNumber) =>
                     _startStage(stageNumber, game.snapshotNotifier.value),
-              );
-            }
-            return MainMenuScreen(
-              game: game,
-              snapshot: snapshot,
-              selectedTab: _selectedMainMenuTab,
-              onSelectTab: (tab) {
-                setState(() {
-                  _selectedMainMenuTab = tab;
-                });
+              ),
+            ),
+            ValueListenableBuilder<Object?>(
+              valueListenable: game.loadErrorNotifier,
+              builder: (context, loadError, _) {
+                if (loadError != null) {
+                  return const Positioned.fill(child: _AppLoadErrorScreen());
+                }
+                return ValueListenableBuilder<bool>(
+                  valueListenable: game.readyNotifier,
+                  builder: (context, ready, _) {
+                    if (!ready) {
+                      return const Positioned.fill(child: _AppLoadingScreen());
+                    }
+                    if (_screen == _AppScreen.stage) {
+                      return const SizedBox.shrink();
+                    }
+                    return Positioned.fill(
+                      child: ValueListenableBuilder(
+                        valueListenable: game.snapshotNotifier,
+                        builder: (context, snapshot, _) {
+                          return MainMenuScreen(
+                            game: game,
+                            snapshot: snapshot,
+                            selectedTab: _selectedMainMenuTab,
+                            onSelectTab: (tab) {
+                              setState(() {
+                                _selectedMainMenuTab = tab;
+                              });
+                            },
+                            onStartStage: (stageNumber) =>
+                                _startStage(stageNumber, snapshot),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                );
               },
-              onStartStage: (stageNumber) => _startStage(stageNumber, snapshot),
-            );
-          },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AppLoadingScreen extends StatelessWidget {
+  const _AppLoadingScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ColoredBox(
+      color: Color(0xFF07111D),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.auto_awesome, color: Color(0xFF8EE6FF), size: 38),
+            SizedBox(height: 14),
+            Text(
+              '룬 넥서스 준비 중',
+              style: TextStyle(
+                color: Color(0xFFE8FBFF),
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            SizedBox(height: 6),
+            Text(
+              '전투 이펙트 리소스를 불러오는 중',
+              style: TextStyle(color: Color(0xFF8AA6B6), fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AppLoadErrorScreen extends StatelessWidget {
+  const _AppLoadErrorScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ColoredBox(
+      color: Color(0xFF07111D),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, color: Color(0xFFFF8A80), size: 38),
+            SizedBox(height: 14),
+            Text(
+              '초기화에 실패했습니다',
+              style: TextStyle(
+                color: Color(0xFFFFE8E5),
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            SizedBox(height: 6),
+            Text(
+              '앱을 다시 시작해 주세요',
+              style: TextStyle(color: Color(0xFFBFA19D), fontSize: 12),
+            ),
+          ],
         ),
       ),
     );

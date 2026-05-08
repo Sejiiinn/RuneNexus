@@ -11,8 +11,7 @@ import 'package:rune_nexus/ui/menu/result_overlay.dart';
 
 void main() {
   testWidgets('Rune Nexus app renders main menu', (tester) async {
-    await tester.pumpWidget(const RuneNexusApp());
-    await tester.pump();
+    await _pumpLoadedApp(tester);
 
     expect(find.text('Rune Nexus'), findsOneWidget);
     expect(find.text('스테이지'), findsOneWidget);
@@ -25,13 +24,12 @@ void main() {
   testWidgets('main menu keeps tabs on bottom and hides logo on upgrades', (
     tester,
   ) async {
-    await tester.pumpWidget(const RuneNexusApp());
-    await tester.pump();
+    await _pumpLoadedApp(tester);
 
     expect(find.text('Rune Nexus'), findsOneWidget);
 
     await tester.tap(find.text('영구 업그레이드'));
-    await tester.pumpAndSettle();
+    await _pumpGameFrames(tester);
 
     expect(find.text('Rune Nexus'), findsNothing);
     expect(find.text('시작 골드 Lv.0/20'), findsOneWidget);
@@ -46,7 +44,7 @@ void main() {
     expect(find.text('영구 업그레이드'), findsOneWidget);
 
     await tester.tap(find.text('스테이지'));
-    await tester.pumpAndSettle();
+    await _pumpGameFrames(tester);
 
     expect(find.text('Rune Nexus'), findsOneWidget);
   });
@@ -59,8 +57,7 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    await tester.pumpWidget(const RuneNexusApp());
-    await tester.pump();
+    await _pumpLoadedApp(tester);
 
     expect(find.text('스테이지 1 클리어 필요'), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -76,11 +73,10 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    await tester.pumpWidget(const RuneNexusApp());
-    await tester.pump();
+    await _pumpLoadedApp(tester);
 
     await tester.tap(find.text('영구 업그레이드'));
-    await tester.pumpAndSettle();
+    await _pumpGameFrames(tester);
 
     expect(find.text('레벨업'), findsNWidgets(4));
     expect(find.text('25'), findsOneWidget);
@@ -170,15 +166,14 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    await tester.pumpWidget(const RuneNexusApp());
-    await tester.pump();
+    await _pumpLoadedApp(tester);
 
     await tester.tap(find.text('스테이지 1'));
-    await tester.pumpAndSettle();
+    await _pumpGameFrames(tester);
     await tester.tap(find.text('시작'));
     await tester.pump();
     await tester.tap(find.byIcon(Icons.home_outlined));
-    await tester.pumpAndSettle();
+    await _pumpGameFrames(tester);
 
     expect(find.text('스테이지 메뉴'), findsOneWidget);
     expect(find.text('메인화면으로 이동'), findsOneWidget);
@@ -187,22 +182,46 @@ void main() {
     expect(tester.takeException(), isNull);
 
     await tester.tap(find.text('스테이지 종료'));
-    await tester.pumpAndSettle();
+    await _pumpGameFrames(tester);
 
     expect(find.text('정말 종료할까요?'), findsOneWidget);
     expect(find.textContaining('+1 룬'), findsOneWidget);
   });
 
   testWidgets('debug panel button is hidden by default', (tester) async {
-    await tester.pumpWidget(const RuneNexusApp());
-    await tester.pump();
+    await _pumpLoadedApp(tester);
 
     await tester.tap(find.text('스테이지 1'));
-    await tester.pumpAndSettle();
+    await _pumpGameFrames(tester);
 
     expect(find.byIcon(Icons.diamond_outlined), findsNothing);
     expect(find.text('테스트 라운드'), findsNothing);
   });
+}
+
+Future<void> _pumpLoadedApp(WidgetTester tester) async {
+  await tester.pumpWidget(const RuneNexusApp());
+  await _pumpUntilFound(tester, find.text('Rune Nexus'));
+}
+
+Future<void> _pumpGameFrames(WidgetTester tester, {int frameCount = 3}) async {
+  for (var i = 0; i < frameCount; i++) {
+    await tester.pump(const Duration(milliseconds: 16));
+  }
+}
+
+Future<void> _pumpUntilFound(
+  WidgetTester tester,
+  Finder finder, {
+  int maxFrameCount = 60,
+}) async {
+  for (var i = 0; i < maxFrameCount; i++) {
+    await tester.pump(const Duration(milliseconds: 16));
+    if (finder.evaluate().isNotEmpty) {
+      return;
+    }
+  }
+  fail('앱 초기 로딩이 완료되지 않았습니다.');
 }
 
 GameSnapshot _resultSnapshot({

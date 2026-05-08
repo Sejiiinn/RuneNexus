@@ -234,6 +234,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   final SaveRepository _saveRepository;
   final OnlineSaveRepository _onlineSaveRepository;
   late final ValueNotifier<GameSnapshot> snapshotNotifier;
+  final ValueNotifier<bool> readyNotifier = ValueNotifier(false);
+  final ValueNotifier<Object?> loadErrorNotifier = ValueNotifier(null);
 
   MapDefinition get _map => _activeStage.map;
   List<WaveDefinition> get _waves => _activeStage.waves;
@@ -252,6 +254,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   late GridComponent _gridComponent;
   late final StatusEffectSpriteCache statusEffectSprites;
+  bool _statusEffectSpritesReady = false;
   bool _gridComponentReady = false;
   late Vector2 _origin;
   late double _tileSize;
@@ -289,9 +292,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double _nexusHitAlertTimer = 0;
   double _portalAlertTimer = 0;
   bool _savedDataLoaded = false;
-  bool _menuSaveDataLoaded = false;
-  int _savedTurretCountForMenu = 0;
-  GameSaveData? _pendingFullSaveData;
   double _combatStatsPublishTimer = 0;
   bool _combatStatsPublishPending = false;
 
@@ -329,38 +329,40 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   Future<void> onLoad() async {
-    await super.onLoad();
-    statusEffectSprites = StatusEffectSpriteCache.create();
-    _configureBoard();
-    _gridComponent = GridComponent(
-      map: _map,
-      origin: _origin,
-      tileSize: _tileSize,
-    );
-    _gridComponentReady = true;
-    add(_gridComponent);
-    await _restoreSavedDataIfNeeded();
-    _syncBoardComponents();
-    _publish();
-  }
-
-  Future<void> prepareSavedStateForMenu() async {
-    if (isLoaded || _savedDataLoaded || _menuSaveDataLoaded) {
-      return;
+    try {
+      await super.onLoad();
+      statusEffectSprites = StatusEffectSpriteCache.create();
+      _statusEffectSpritesReady = true;
+      _configureBoard();
+      _gridComponent = GridComponent(
+        map: _map,
+        origin: _origin,
+        tileSize: _tileSize,
+      );
+      _gridComponentReady = true;
+      add(_gridComponent);
+      try {
+        await _restoreSavedDataIfNeeded();
+      } on Object {
+        // 저장 복원 실패 폴백
+      }
+      _syncBoardComponents();
+      _publish();
+      readyNotifier.value = true;
+    } on Object catch (error) {
+      loadErrorNotifier.value = error;
+      rethrow;
     }
-    _menuSaveDataLoaded = true;
-    final savedData = await _saveRepository.load();
-    _pendingFullSaveData = savedData;
-    if (savedData != null) {
-      _restoreMenuStateFromSaveData(savedData);
-    }
-    _publish();
   }
 
   @override
   void onRemove() {
-    statusEffectSprites.dispose();
+    if (_statusEffectSpritesReady) {
+      statusEffectSprites.dispose();
+    }
     _saveScheduler.dispose();
+    readyNotifier.dispose();
+    loadErrorNotifier.dispose();
     super.onRemove();
   }
 
@@ -586,9 +588,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _runUpgradeLevels.clear();
     _rewardOptions.clear();
     _killGoldFractionWallet = 0;
-    _pendingFullSaveData = null;
-    _savedTurretCountForMenu = 0;
-    _menuSaveDataLoaded = true;
 
     _gold = _initialGold;
     _nexusHp = _maxNexusHp;
@@ -1787,9 +1786,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
     _savedDataLoaded = true;
-    final savedData = _pendingFullSaveData ?? await _saveRepository.load();
-    _pendingFullSaveData = null;
-    _savedTurretCountForMenu = 0;
+    final savedData = await _saveRepository.load();
     if (savedData != null) {
       _restoreFromSaveData(savedData);
     }
@@ -1799,7 +1796,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final savedPhase = _phase == GamePhase.restored
         ? _restoredPhase ?? GamePhase.preparation
         : _phase;
-    final pendingSave = !_savedDataLoaded ? _pendingFullSaveData : null;
     return GameSaveData(
       version: GameSaveData.currentVersion,
       savedAtMillis: DateTime.now().millisecondsSinceEpoch,
@@ -1815,81 +1811,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       killGoldFractionWallet: _killGoldFractionWallet,
       gemInventory: Map.unmodifiable(_gemInventory),
       rewardOptions: List.unmodifiable(_rewardOptions),
-      turrets:
-          pendingSave?.turrets ??
-          [for (final turret in _turrets.values) turret.toSaveData()],
-      enemies:
-          pendingSave?.enemies ??
-          [
-            for (final enemy in enemies)
-              if (!enemy.isDead) enemy.toSaveData(),
-          ],
-      spawnQueue: pendingSave?.spawnQueue ?? _waveSpawner.toSaveData(),
+      turrets: [for (final turret in _turrets.values) turret.toSaveData()],
+      enemies: [
+        for (final enemy in enemies)
+          if (!enemy.isDead) enemy.toSaveData(),
+      ],
+      spawnQueue: _waveSpawner.toSaveData(),
     );
-  }
-
-  void _restoreMenuStateFromSaveData(GameSaveData data) {
-    _autoStartMode = data.autoStartMode;
-    _progression.restoreFromSaveData(data.progression);
-    _restoreRunUpgradeState(data);
-    _gemInventory
-      ..clear()
-      ..addEntries(data.gemInventory.entries.where((entry) => entry.value > 0));
-    _rewardOptions
-      ..clear()
-      ..addAll(data.rewardOptions);
-    _savedTurretCountForMenu = data.turrets.length;
-
-    if (!data.hasActiveRun) {
-      _savedTurretCountForMenu = 0;
-      _selectStage(_clampedStageNumber(data.stageNumber));
-      _gold = _initialGold;
-      _nexusHp = _maxNexusHp;
-      _roundIndex = 0;
-      _completedRounds = 0;
-      _runUpgradeLevels.clear();
-      _killGoldFractionWallet = 0;
-      _lastRunPreviousBestRound = 0;
-      _lastRunWasNewBestRound = false;
-      _lastRunUnlockedStageNumber = null;
-      _selectedTurretType = TurretType.arrow;
-      _selectedRunPanelTab = RunPanelTab.turrets;
-      _selectedBuildTurretType = null;
-      _selectedBuildPoint = null;
-      _selectedPortalPoint = null;
-      _selectedTurretPoint = null;
-      _selectedTurretGemSlotIndex = null;
-      _phase = GamePhase.preparation;
-      _restoredPhase = null;
-      return;
-    }
-    _gold = math.max(0, data.gold);
-    _selectStage(_clampedStageNumber(data.stageNumber));
-    _nexusHp = data.nexusHp.clamp(0, _maxNexusHp).toInt();
-    _roundIndex = data.roundIndex.clamp(0, _waves.length - 1).toInt();
-    _completedRounds = data.completedRounds.clamp(0, _waves.length).toInt();
-    _lastRunPreviousBestRound = 0;
-    _lastRunWasNewBestRound = false;
-    _lastRunUnlockedStageNumber = null;
-    _selectedTurretType = TurretType.arrow;
-    _selectedRunPanelTab = RunPanelTab.turrets;
-    _selectedBuildTurretType = null;
-    _selectedBuildPoint = null;
-    _selectedPortalPoint = null;
-    _selectedTurretPoint = null;
-    _selectedTurretGemSlotIndex = null;
-
-    final restoredPhase = data.phase == GamePhase.restored
-        ? GamePhase.preparation
-        : data.phase;
-    if (restoredPhase != GamePhase.wave) {
-      _phase = restoredPhase;
-      _restoredPhase = null;
-      return;
-    }
-
-    _phase = GamePhase.restored;
-    _restoredPhase = restoredPhase;
   }
 
   void _restoreFromSaveData(GameSaveData data) {
@@ -2096,7 +2024,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _roundIndex > 0 ||
         _completedRounds > 0 ||
         _turrets.isNotEmpty ||
-        _savedTurretCountForMenu > 0 ||
         enemies.isNotEmpty ||
         !_waveSpawner.isEmpty ||
         _runUpgradeLevels.isNotEmpty ||
@@ -2114,7 +2041,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       phase: _phase,
       restoredPhase: _phase == GamePhase.restored ? _restoredPhase : null,
       hasStageProgress: hasStageProgress,
-      placedTurretCount: math.max(_turrets.length, _savedTurretCountForMenu),
+      placedTurretCount: _turrets.length,
       currentStageNumber: _currentStageNumber,
       unlockedStageCount: _progression.unlockedStageCount,
       bestRoundsByStage: Map.unmodifiable(_progression.bestRoundsByStage),

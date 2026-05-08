@@ -42,6 +42,7 @@ const _showDebugPanel = bool.fromEnvironment(
 class GameHud extends StatefulWidget {
   const GameHud({
     required this.game,
+    this.showControls = true,
     this.onOpenStageSelect,
     this.onOpenPermanentUpgrades,
     this.onStartStage,
@@ -49,6 +50,7 @@ class GameHud extends StatefulWidget {
   });
 
   final RuneNexusGame game;
+  final bool showControls;
   final VoidCallback? onOpenStageSelect;
   final VoidCallback? onOpenPermanentUpgrades;
   final ValueChanged<int>? onStartStage;
@@ -82,8 +84,8 @@ class _GameHudState extends State<GameHud> {
       return;
     }
 
-    final pauseCombat = snapshot.phase == GamePhase.wave;
-    if (pauseCombat) {
+    var shouldResumeCombat = snapshot.phase == GamePhase.wave;
+    if (shouldResumeCombat) {
       widget.game.pauseEngine();
     }
     try {
@@ -100,6 +102,7 @@ class _GameHudState extends State<GameHud> {
         if (!mounted) {
           return;
         }
+        shouldResumeCombat = false;
         widget.onOpenStageSelect?.call();
         return;
       }
@@ -117,9 +120,10 @@ class _GameHudState extends State<GameHud> {
       if (!mounted) {
         return;
       }
+      shouldResumeCombat = false;
       widget.onOpenStageSelect?.call();
     } finally {
-      if (pauseCombat) {
+      if (shouldResumeCombat) {
         widget.game.resumeEngine();
       }
     }
@@ -129,76 +133,81 @@ class _GameHudState extends State<GameHud> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Listener(
-          behavior: HitTestBehavior.opaque,
-          onPointerDown: widget.game.handleBoardPointerDown,
-          onPointerMove: widget.game.handleBoardPointerMove,
-          onPointerUp: widget.game.handleBoardPointerUp,
-          onPointerCancel: widget.game.handleBoardPointerCancel,
-          onPointerPanZoomStart: widget.game.handleTrackpadZoomStart,
-          onPointerPanZoomUpdate: widget.game.handleTrackpadZoomUpdate,
-          child: GameWidget(
-            game: widget.game,
-            loadingBuilder: (_) => const _GameLoadingScreen(),
+        IgnorePointer(
+          ignoring: !widget.showControls,
+          child: Listener(
+            behavior: HitTestBehavior.opaque,
+            onPointerDown: widget.game.handleBoardPointerDown,
+            onPointerMove: widget.game.handleBoardPointerMove,
+            onPointerUp: widget.game.handleBoardPointerUp,
+            onPointerCancel: widget.game.handleBoardPointerCancel,
+            onPointerPanZoomStart: widget.game.handleTrackpadZoomStart,
+            onPointerPanZoomUpdate: widget.game.handleTrackpadZoomUpdate,
+            child: GameWidget(
+              game: widget.game,
+              loadingBuilder: (_) => const _GameLoadingScreen(),
+            ),
           ),
         ),
-        SafeArea(
-          child: ValueListenableBuilder<GameSnapshot>(
-            valueListenable: widget.game.snapshotNotifier,
-            builder: (context, snapshot, _) {
-              return Stack(
-                children: [
-                  _TopBar(
-                    snapshot: snapshot,
-                    showDebugButton: _showDebugPanel,
-                    showGemDebugPanel: _showGemDebugPanel,
-                    onOpenMainMenu: () => _handleOpenMainMenu(snapshot),
-                    onToggleGemDebugPanel: () {
-                      setState(() {
-                        _showGemDebugPanel = !_showGemDebugPanel;
-                      });
-                    },
-                  ),
-                  if (_showDebugPanel && _showGemDebugPanel)
-                    Positioned(
-                      top: 78,
-                      right: 12,
-                      child: _GemDebugPanel(
-                        game: widget.game,
-                        snapshot: snapshot,
-                      ),
+        if (widget.showControls)
+          SafeArea(
+            child: ValueListenableBuilder<GameSnapshot>(
+              valueListenable: widget.game.snapshotNotifier,
+              builder: (context, snapshot, _) {
+                return Stack(
+                  children: [
+                    _TopBar(
+                      snapshot: snapshot,
+                      showDebugButton: _showDebugPanel,
+                      showGemDebugPanel: _showGemDebugPanel,
+                      onOpenMainMenu: () => _handleOpenMainMenu(snapshot),
+                      onToggleGemDebugPanel: () {
+                        setState(() {
+                          _showGemDebugPanel = !_showGemDebugPanel;
+                        });
+                      },
                     ),
-                  _BottomBar(game: widget.game, snapshot: snapshot),
-                  if (snapshot.phase == GamePhase.reward)
-                    Positioned.fill(
-                      child: _RewardOverlay(
-                        game: widget.game,
-                        snapshot: snapshot,
+                    if (_showDebugPanel && _showGemDebugPanel)
+                      Positioned(
+                        top: 78,
+                        right: 12,
+                        child: _GemDebugPanel(
+                          game: widget.game,
+                          snapshot: snapshot,
+                        ),
                       ),
-                    ),
-                  if (snapshot.phase == GamePhase.restored)
-                    Positioned.fill(
-                      child: _RestoreRunOverlay(
-                        game: widget.game,
-                        snapshot: snapshot,
+                    _BottomBar(game: widget.game, snapshot: snapshot),
+                    if (snapshot.phase == GamePhase.reward)
+                      Positioned.fill(
+                        child: _RewardOverlay(
+                          game: widget.game,
+                          snapshot: snapshot,
+                        ),
                       ),
-                    ),
-                  if (snapshot.phase == GamePhase.success ||
-                      snapshot.phase == GamePhase.failure)
-                    Positioned.fill(
-                      child: ResultOverlay(
-                        game: widget.game,
-                        snapshot: snapshot,
-                        onOpenStageSelect: widget.onOpenStageSelect,
-                        onOpenPermanentUpgrades: widget.onOpenPermanentUpgrades,
-                        onStartStage: widget.onStartStage,
+                    if (snapshot.phase == GamePhase.restored)
+                      Positioned.fill(
+                        child: _RestoreRunOverlay(
+                          game: widget.game,
+                          snapshot: snapshot,
+                        ),
                       ),
-                    ),
-                ],
-              );
-            },
+                    if (snapshot.phase == GamePhase.success ||
+                        snapshot.phase == GamePhase.failure)
+                      Positioned.fill(
+                        child: ResultOverlay(
+                          game: widget.game,
+                          snapshot: snapshot,
+                          onOpenStageSelect: widget.onOpenStageSelect,
+                          onOpenPermanentUpgrades:
+                              widget.onOpenPermanentUpgrades,
+                          onStartStage: widget.onStartStage,
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
