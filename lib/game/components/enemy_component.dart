@@ -161,10 +161,10 @@ class EnemyComponent extends PositionComponent {
 
   double get _sizeScaleByType {
     return switch (definition.type) {
-      EnemyType.fast => 0.40,
-      EnemyType.normal => 0.46,
-      EnemyType.tank => 0.54,
-      EnemyType.boss => 0.66,
+      EnemyType.fast => 0.48,
+      EnemyType.normal => 0.55,
+      EnemyType.tank => 0.65,
+      EnemyType.boss => 0.79,
     };
   }
 
