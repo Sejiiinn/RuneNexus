@@ -171,32 +171,145 @@ class _AppLoadingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(
-      color: Color(0xFF07111D),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.auto_awesome, color: Color(0xFF8EE6FF), size: 38),
-            SizedBox(height: 14),
-            Text(
-              '룬 넥서스 준비 중',
-              style: TextStyle(
-                color: Color(0xFFE8FBFF),
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
+    return ColoredBox(
+      color: const Color(0xFF07111D),
+      child: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(0, -0.55),
+            radius: 1.05,
+            colors: [Color(0xFF102A3A), Color(0xFF07111D)],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: 58),
+              const _RuneNexusLoadingLogo(),
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(36, 0, 36, 42),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      '전투 이펙트 리소스를 불러오는 중',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFFB9D6E4),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: const LinearProgressIndicator(
+                        minHeight: 8,
+                        backgroundColor: Color(0x332ED3FF),
+                        color: Color(0xFF8EE6FF),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            SizedBox(height: 6),
-            Text(
-              '전투 이펙트 리소스를 불러오는 중',
-              style: TextStyle(color: Color(0xFF8AA6B6), fontSize: 12),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _RuneNexusLoadingLogo extends StatelessWidget {
+  const _RuneNexusLoadingLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 112,
+          height: 112,
+          child: CustomPaint(painter: _RuneNexusLogoPainter()),
+        ),
+        const SizedBox(height: 18),
+        const Text(
+          'RUNE NEXUS',
+          style: TextStyle(
+            color: Color(0xFFE8FBFF),
+            fontSize: 28,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2.6,
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          '룬 넥서스 준비 중',
+          style: TextStyle(
+            color: Color(0xFF7DB8C8),
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.8,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RuneNexusLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.shortestSide * 0.42;
+
+    final outer = Paint()
+      ..color = const Color(0xFF153447)
+      ..style = PaintingStyle.fill;
+    final rim = Paint()
+      ..color = const Color(0xFF8EE6FF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.shortestSide * 0.035;
+    final rune = Paint()
+      ..color = const Color(0xFFE7C66A)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.shortestSide * 0.05
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas.drawCircle(center, radius, outer);
+    canvas.drawCircle(center, radius, rim);
+
+    final diamond = Path()
+      ..moveTo(center.dx, center.dy - radius * 0.78)
+      ..lineTo(center.dx + radius * 0.42, center.dy)
+      ..lineTo(center.dx, center.dy + radius * 0.78)
+      ..lineTo(center.dx - radius * 0.42, center.dy)
+      ..close();
+    canvas.drawPath(diamond, rune);
+
+    canvas.drawLine(
+      center.translate(0, -radius * 0.42),
+      center.translate(0, radius * 0.42),
+      rune,
+    );
+    canvas.drawLine(
+      center.translate(-radius * 0.28, 0),
+      center.translate(radius * 0.28, 0),
+      rune,
+    );
+
+    canvas.drawCircle(
+      center,
+      radius * 0.16,
+      Paint()..color = const Color(0xFF8EE6FF),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _AppLoadErrorScreen extends StatelessWidget {
