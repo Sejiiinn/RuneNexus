@@ -46,19 +46,12 @@ class EnemyComponent extends PositionComponent {
   double _hitFlashTimer = 0;
   Color _hitFlashColor = const Color(0xFFFFFFFF);
   double _statusEffectTime = 0;
-  final Paint _burnEmberPaint = Paint()..color = const Color(0xFFFFA23A);
-  final Paint _burnGlowPaint = Paint()..color = const Color(0x66FF5A1F);
-  final Paint _burnSmokePaint = Paint()..color = const Color(0x55746A63);
   final Paint _slowRimPaint = Paint()
     ..color = const Color(0xCCBFEFFF)
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.7
     ..strokeCap = StrokeCap.round;
-  final Paint _slowShardPaint = Paint()
-    ..color = const Color(0xFFE8FBFF)
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.2
-    ..strokeCap = StrokeCap.round;
+  final Paint _spritePaint = Paint()..filterQuality = FilterQuality.none;
   static const double _burnNumberInterval = 0.28;
   static const double _poisonNumberInterval = 0.5;
   static const List<Offset> _burnBaseOffsets = [
@@ -414,16 +407,25 @@ class EnemyComponent extends PositionComponent {
       );
       final ember = base.translate(0, -phase * size.y * 0.34);
       final radius = size.x * (0.045 + (1 - phase) * 0.035);
-      canvas.drawCircle(ember, radius * 2.2, _burnGlowPaint);
-      canvas.drawCircle(ember, radius, _burnEmberPaint);
+      _drawStatusSprite(
+        canvas,
+        image: game.statusEffectSprites.burnGlow,
+        center: ember,
+        radius: radius * 2.2,
+      );
+      _drawStatusSprite(
+        canvas,
+        image: game.statusEffectSprites.burnEmber,
+        center: ember,
+        radius: radius,
+      );
       if (i.isEven) {
-        _burnSmokePaint.color = const Color(
-          0xFF746A63,
-        ).withValues(alpha: 0.22 * phase);
-        canvas.drawCircle(
-          ember.translate(size.x * 0.04, -size.y * 0.1),
-          radius * 1.5,
-          _burnSmokePaint,
+        _drawStatusSprite(
+          canvas,
+          image: game.statusEffectSprites.burnSmoke,
+          center: ember.translate(size.x * 0.04, -size.y * 0.1),
+          radius: radius * 1.5,
+          alpha: 0.22 * phase,
         );
       }
     }
@@ -452,17 +454,34 @@ class EnemyComponent extends PositionComponent {
         center.dy + shardOffset.dy * size.y,
       );
       final shardSize = size.x * 0.075;
-      canvas.drawLine(
-        shardCenter.translate(-shardSize, 0),
-        shardCenter.translate(shardSize, 0),
-        _slowShardPaint,
-      );
-      canvas.drawLine(
-        shardCenter.translate(0, -shardSize),
-        shardCenter.translate(0, shardSize),
-        _slowShardPaint,
+      _drawStatusSprite(
+        canvas,
+        image: game.statusEffectSprites.slowShard,
+        center: shardCenter,
+        radius: shardSize / 0.34,
       );
     }
+  }
+
+  void _drawStatusSprite(
+    Canvas canvas, {
+    required Image image,
+    required Offset center,
+    required double radius,
+    double alpha = 1,
+  }) {
+    _spritePaint.colorFilter = alpha >= 1
+        ? null
+        : ColorFilter.mode(
+            const Color(0xFFFFFFFF).withValues(alpha: alpha),
+            BlendMode.modulate,
+          );
+    canvas.drawImageRect(
+      image,
+      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+      Rect.fromCircle(center: center, radius: radius),
+      _spritePaint,
+    );
   }
 
   void _placeAtDistance(double targetDistance) {

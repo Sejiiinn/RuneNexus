@@ -137,7 +137,10 @@ class _GameHudState extends State<GameHud> {
           onPointerCancel: widget.game.handleBoardPointerCancel,
           onPointerPanZoomStart: widget.game.handleTrackpadZoomStart,
           onPointerPanZoomUpdate: widget.game.handleTrackpadZoomUpdate,
-          child: GameWidget(game: widget.game),
+          child: GameWidget(
+            game: widget.game,
+            loadingBuilder: (_) => const _GameLoadingScreen(),
+          ),
         ),
         SafeArea(
           child: ValueListenableBuilder<GameSnapshot>(
@@ -197,6 +200,34 @@ class _GameHudState extends State<GameHud> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _GameLoadingScreen extends StatelessWidget {
+  const _GameLoadingScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFF07111D),
+      child: const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.auto_awesome, color: Color(0xFF8EE6FF), size: 34),
+            SizedBox(height: 14),
+            Text(
+              '전투 준비 중',
+              style: TextStyle(
+                color: Color(0xFFE8FBFF),
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

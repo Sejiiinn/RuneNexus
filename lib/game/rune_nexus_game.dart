@@ -39,6 +39,7 @@ import 'components/impact_effect_component.dart';
 import 'components/projectile_component.dart';
 import 'components/turret_component.dart';
 import 'game_snapshot.dart';
+import 'rendering/status_effect_sprite_cache.dart';
 import 'rendering/turret_shape_renderer.dart';
 import 'systems/gem_reward_generator.dart';
 import 'systems/run_progression.dart';
@@ -250,6 +251,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   );
 
   late GridComponent _gridComponent;
+  late final StatusEffectSpriteCache statusEffectSprites;
   bool _gridComponentReady = false;
   late Vector2 _origin;
   late double _tileSize;
@@ -328,6 +330,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   @override
   Future<void> onLoad() async {
     await super.onLoad();
+    statusEffectSprites = StatusEffectSpriteCache.create();
     _configureBoard();
     _gridComponent = GridComponent(
       map: _map,
@@ -356,6 +359,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void onRemove() {
+    statusEffectSprites.dispose();
     _saveScheduler.dispose();
     super.onRemove();
   }
