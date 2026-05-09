@@ -14,11 +14,12 @@
 
 - 서버 상태는 PID 파일보다 실제 53000 LISTEN + HTTP 200으로 판단한다.
 - Dart UI 코드를 바꾼 경우에만 서버를 재시작한다.
-- 재시작은 수동 명령 조합 대신 `scripts/in_app_server.ps1` 하나로 처리한다.
+- Windows에서는 재시작을 수동 명령 조합 대신 `scripts/in_app_server.ps1` 하나로 처리한다.
+- macOS Codex 세션에서는 최신 빌드를 만든 뒤 `build/web`을 정적 서버로 띄우는 경로를 우선 사용한다.
 - 캡처 전에는 화면 텍스트나 DOM 상태를 확인한 뒤 스크린샷을 찍는다.
 - UI 후보가 2개 이상이면 후보별 재시작 루프를 만들지 말고, 먼저 한 번에 전환 가능한 preview 상태를 만든다.
 
-## 서버 명령
+## Windows 서버 명령
 
 상태 확인:
 
@@ -53,28 +54,142 @@
 - HTTP 200이 나올 때까지 대기
 - cache-bust URL 출력
 
+## macOS 서버 명령
+
+macOS Codex 세션 기준 경로:
+
+```bash
+cd /Users/sejin/Documents/RuneNexus
+```
+
+Flutter/Dart 실행 파일:
+
+```bash
+/Users/sejin/development/flutter/bin/flutter
+/Users/sejin/development/flutter/bin/cache/dart-sdk/bin/dart
+```
+
+macOS에서는 다음 스크립트를 고정 진입점으로 사용한다.
+
+```bash
+scripts/in_app_server_macos.sh status
+scripts/in_app_server_macos.sh restart
+scripts/in_app_server_macos.sh stop
+```
+
+`restart`는 53000 포트 정리, `flutter build web --pwa-strategy=none`, 정적 서버 foreground 기동을 순서대로 실행한다. 서버 세션이 유지되는 동안 Browser 플러그인의 인앱 브라우저로 출력된 `URL=...` 주소를 연다.
+
+상태 확인:
+
+```bash
+scripts/in_app_server_macos.sh status
+```
+
+포맷:
+
+```bash
+scripts/in_app_server_macos.sh dart format <수정 파일>
+```
+
+테스트:
+
+```bash
+scripts/in_app_server_macos.sh flutter test <관련 테스트 파일>
+```
+
+웹 빌드:
+
+```bash
+scripts/in_app_server_macos.sh build
+```
+
+정적 서버 기동:
+
+```bash
+scripts/in_app_server_macos.sh start
+```
+
+브라우저 접속 주소:
+
+```bash
+scripts/in_app_server_macos.sh url
+```
+
+인앱 브라우저 열기:
+
+- Codex에서는 macOS `open` 명령을 쓰지 않는다.
+- Browser 플러그인의 인앱 브라우저에 위 cache-bust URL을 직접 연다.
+- 화면 확인 전 `title == Rune Nexus`와 주요 텍스트 표시를 먼저 확인한다.
+
+포트 정리:
+
+```bash
+scripts/in_app_server_macos.sh stop
+```
+
+주의:
+
+- macOS Codex 샌드박스에서는 Flutter SDK 캐시 쓰기, 포트 바인딩, 프로세스 종료가 `Operation not permitted`로 막힐 수 있다.
+- 이 경우 같은 명령을 오래 반복하지 말고 즉시 샌드박스 밖 실행 승인을 요청한다.
+- 백그라운드 `python3 -m http.server ... &`는 세션 종료와 함께 바로 죽을 수 있으므로, 인앱 확인 중에는 foreground PTY 세션으로 띄워 둔다.
+- 확인이 끝나면 서버 세션에 `Ctrl-C`를 보내 정리한다.
+- `flutter run -d web-server`는 debug 서비스 대기와 연결 단계 때문에 느리다. 단순 화면 확인은 `scripts/in_app_server_macos.sh restart`를 우선한다.
+
 ## 빠른 화면 확인 절차
 
 1. 코드 수정 전 현재 서버 상태를 확인한다.
+
+Windows:
 
 ```powershell
 .\scripts\in_app_server.ps1 -Action status
 ```
 
+macOS:
+
+```bash
+scripts/in_app_server_macos.sh status
+```
+
 2. Dart UI 코드를 수정했다면 포맷 후 테스트를 먼저 돌린다.
+
+Windows:
 
 ```powershell
 C:\Users\rlatp\develop\flutter\bin\cache\dart-sdk\bin\dart.exe format <수정 파일>
 C:\Users\rlatp\develop\flutter\bin\flutter.bat test test\widget_test.dart
 ```
 
-3. 서버를 한 번만 재시작한다.
+macOS:
+
+```bash
+scripts/in_app_server_macos.sh dart format <수정 파일>
+scripts/in_app_server_macos.sh flutter test <관련 테스트 파일>
+```
+
+3. 서버를 한 번만 재시작하거나 정적 빌드를 갱신한다.
+
+Windows:
 
 ```powershell
 .\scripts\in_app_server.ps1 -Action restart
 ```
 
+macOS:
+
+```bash
+scripts/in_app_server_macos.sh restart
+```
+
 4. 출력된 `URL=...cache_bust=...` 주소로 인앱 브라우저를 연다.
+
+macOS 정적 서버는 직접 다음 형식으로 연다.
+
+```text
+http://127.0.0.1:53000/?cache_bust=<현재시각>
+```
+
+Codex에서는 이 URL을 Browser 플러그인의 인앱 브라우저로 연다. macOS `open` 명령은 사용하지 않는다.
 
 5. Flutter 초기화 화면 방지:
    - 제목이 `Rune Nexus`로 바뀌었는지 확인
@@ -97,12 +212,15 @@ C:\Users\rlatp\develop\flutter\bin\flutter.bat test test\widget_test.dart
 
 ## 다음부터 Codex가 따라야 할 체크리스트
 
-- 인앱 확인 요청을 받으면 먼저 `scripts/in_app_server.ps1 -Action status`를 실행한다.
+- 인앱 확인 요청을 받으면 먼저 현재 OS를 확인한다.
+- Windows면 `scripts/in_app_server.ps1 -Action status`를 실행한다.
+- macOS면 `scripts/in_app_server_macos.sh status`로 53000 LISTEN/HTTP 200을 확인한다.
 - 코드 변경이 없으면 서버를 재시작하지 않는다.
-- Dart UI 변경이 있으면 `restart`는 한 번만 한다.
+- Dart UI 변경이 있으면 Windows는 `restart`, macOS는 `scripts/in_app_server_macos.sh restart`를 한 번만 실행한다.
 - 후보 비교가 필요하면 먼저 URL query 기반 preview 진입점을 제안하거나 만든다.
 - 캡처 실패 시 같은 재시작을 반복하지 않는다. 브라우저 렌더 완료 상태를 먼저 확인한다.
 - PID 파일과 실제 LISTEN PID가 다르면 실제 LISTEN PID를 기준으로 정리한다.
+- macOS에서 `Operation not permitted`가 나오면 같은 명령을 반복하지 말고 승인 요청으로 전환한다.
 
 ## 기대 시간
 

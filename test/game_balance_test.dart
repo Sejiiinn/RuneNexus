@@ -301,9 +301,9 @@ void main() {
     final normal = demoEnemies[EnemyType.normal]!;
 
     expect(enemyHpMultiplierForStage(1), closeTo(1, 0.001));
-    expect(enemyHpMultiplierForStage(2), closeTo(1.2, 0.001));
-    expect(enemyHpMultiplierForStage(5), closeTo(2.0736, 0.001));
-    expect(scaledEnemyMaxHp(normal, 1, stageNumber: 2), closeTo(54, 0.001));
+    expect(enemyHpMultiplierForStage(2), closeTo(1.3, 0.001));
+    expect(enemyHpMultiplierForStage(5), closeTo(2.8561, 0.001));
+    expect(scaledEnemyMaxHp(normal, 1, stageNumber: 2), closeTo(45.5, 0.001));
   });
 
   test('projectiles are faster for straight-shot combat', () {
@@ -968,51 +968,61 @@ void main() {
     expect(turret.equippedGems, [GemType.chain]);
   });
 
-  test(
-    'mixed waves delay later enemy groups until earlier groups are fully spawned',
-    () {
-      double lastSpawnDelay(SpawnGroup group) =>
-          group.startDelay + group.interval * (group.count - 1);
+  test('only dedicated pressure waves overlap major spawn groups', () {
+    double lastSpawnDelay(SpawnGroup group) =>
+        group.startDelay + group.interval * (group.count - 1);
 
-      final wave4 = demoWaves[3];
-      final normal = wave4.groups[0];
-      final fast = wave4.groups[1];
+    final wave7 = demoWaves[6];
+    final wave7Normal = wave7.groups[0];
+    final wave7FirstRush = wave7.groups[1];
+    final wave7SecondRush = wave7.groups[2];
 
-      expect(
-        fast.startDelay,
-        greaterThanOrEqualTo(lastSpawnDelay(normal) + 0.75),
-      );
+    expect(wave7FirstRush.startDelay, greaterThan(lastSpawnDelay(wave7Normal)));
+    expect(
+      wave7SecondRush.startDelay,
+      greaterThan(lastSpawnDelay(wave7FirstRush)),
+    );
 
-      final wave11 = demoWaves[10];
-      final wave11Normal = wave11.groups[0];
-      final wave11Fast = wave11.groups[1];
-      final wave11Tank = wave11.groups[2];
+    final wave8 = demoWaves[7];
+    final wave8Normal = wave8.groups[0];
+    final wave8Fast = wave8.groups[1];
 
-      expect(
-        wave11Fast.startDelay,
-        greaterThanOrEqualTo(lastSpawnDelay(wave11Normal) + 0.75),
-      );
-      expect(
-        wave11Tank.startDelay,
-        greaterThanOrEqualTo(lastSpawnDelay(wave11Fast) + 0.75),
-      );
+    expect(wave8Fast.startDelay, greaterThan(wave8Normal.startDelay));
+    expect(wave8Fast.startDelay, lessThan(lastSpawnDelay(wave8Normal)));
 
-      final wave30 = demoWaves[29];
-      final wave30Tank = wave30.groups[0];
-      final wave30Fast = wave30.groups[1];
-      final wave30Boss = wave30.groups[2];
+    final wave9 = demoWaves[8];
+    final wave9Tank = wave9.groups[0];
+    final wave9Normal = wave9.groups[1];
+    final wave9Fast = wave9.groups[2];
 
-      expect(
-        wave30Fast.startDelay,
-        greaterThanOrEqualTo(lastSpawnDelay(wave30Tank) + 0.75),
-      );
-      expect(
-        wave30Boss.startDelay,
-        greaterThanOrEqualTo(lastSpawnDelay(wave30Fast) + 1.5),
-      );
-      expect(wave30Boss.count, 1);
-    },
-  );
+    expect(wave9Normal.startDelay, greaterThan(lastSpawnDelay(wave9Tank)));
+    expect(wave9Fast.startDelay, greaterThan(lastSpawnDelay(wave9Normal)));
+
+    final wave30 = demoWaves[29];
+    final wave30Tank = wave30.groups[0];
+    final wave30Fast = wave30.groups[1];
+    final wave30Boss = wave30.groups[2];
+    final wave30RearGuard = wave30.groups[3];
+
+    expect(wave30Fast.startDelay, greaterThan(lastSpawnDelay(wave30Tank)));
+    expect(wave30Boss.startDelay, greaterThan(lastSpawnDelay(wave30Fast)));
+    expect(wave30Boss.count, 1);
+    expect(wave30RearGuard.startDelay, greaterThan(wave30Boss.startDelay));
+    expect(wave30RearGuard.startDelay, lessThan(wave30Boss.startDelay + 1.5));
+  });
+
+  test('late wave enemy counts stay within the planned pressure range', () {
+    int totalCount(WaveDefinition wave) =>
+        wave.groups.fold(0, (total, group) => total + group.count);
+
+    final round6Count = totalCount(demoWaves[5]);
+    final round49Count = totalCount(demoWaves[48]);
+    final round50Count = totalCount(demoWaves[49]);
+
+    expect(round6Count, inInclusiveRange(16, 18));
+    expect(round49Count, lessThanOrEqualTo(round6Count * 2));
+    expect(round50Count, lessThanOrEqualTo(round6Count * 2));
+  });
 
   test('normal enemy groups use a slower spawn cadence', () {
     expect(demoWaves[0].groups.single.interval, greaterThanOrEqualTo(1.6));
@@ -1023,11 +1033,11 @@ void main() {
   });
 
   test('special enemy groups keep readable spawn gaps', () {
-    expect(demoWaves[3].groups[1].interval, greaterThanOrEqualTo(0.75));
+    expect(demoWaves[3].groups[1].interval, greaterThanOrEqualTo(0.8));
     expect(demoWaves[10].groups[1].interval, greaterThanOrEqualTo(0.65));
     expect(demoWaves[25].groups[1].interval, greaterThanOrEqualTo(0.6));
     expect(demoWaves[4].groups[0].interval, greaterThanOrEqualTo(1.5));
-    expect(demoWaves[10].groups[2].interval, greaterThanOrEqualTo(1.5));
+    expect(demoWaves[9].groups[2].interval, greaterThanOrEqualTo(2.0));
     expect(demoWaves[29].groups[2].interval, greaterThanOrEqualTo(2.0));
   });
 

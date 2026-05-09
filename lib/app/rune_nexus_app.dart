@@ -119,6 +119,13 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
           seedColor: const Color(0xFF2ED3FF),
           brightness: Brightness.dark,
         ),
+        fontFamilyFallback: const [
+          'Apple SD Gothic Neo',
+          'Noto Sans KR',
+          'Noto Sans CJK KR',
+          'Malgun Gothic',
+          'sans-serif',
+        ],
         useMaterial3: true,
       ),
       home: Scaffold(

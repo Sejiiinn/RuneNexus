@@ -6,13 +6,17 @@
 
 - 워크트리 기준 경로:
   - `C:\Users\rlatp\Documents\RuneNexus`
+  - macOS: `/Users/sejin/Documents/RuneNexus`
 - 대상 포트: `53000`
 - 이미 떠 있는 기존 테스트 서버가 있는지 확인
   - `Get-NetTCPConnection -LocalPort 53000 -State Listen -ErrorAction SilentlyContinue`
+  - macOS: `lsof -nP -iTCP:53000 -sTCP:LISTEN`
 - 현재 로그인된 Flutter 실행 파일이 동작 가능한지 확인
   - `flutter --version`
+  - macOS: `/Users/sejin/development/flutter/bin/flutter --version`
 - 인앱 브라우저에서 200 응답 확인 (필요 시 즉시 실행 여부 판단)
   - `Invoke-WebRequest -Uri http://127.0.0.1:53000/ -UseBasicParsing -TimeoutSec 5`
+  - macOS: `curl -sS -o /dev/null -w "%{http_code}" http://127.0.0.1:53000/`
 
 ## 2) 기존 상태 정리 (필요 시)
 
@@ -59,6 +63,62 @@
   - `if (Test-Path flutter_web_server.pid) { Stop-Process -Id (Get-Content flutter_web_server.pid | ForEach-Object { [int]($_ -as [string]).Trim() }) -Force -ErrorAction SilentlyContinue }`
 - PID 파일 및 로그 정리
   - `Remove-Item flutter_web_server.pid,flutter_web_server.out.log,flutter_web_server.err.log -ErrorAction SilentlyContinue`
+
+## 5-1) macOS Codex 빠른 경로
+
+macOS에서는 Windows용 `scripts/in_app_server.ps1`을 쓰지 않는다. Codex 세션에서는 아래 순서를 기본 경로로 사용한다.
+
+1. 워크트리로 이동한다.
+
+```bash
+cd /Users/sejin/Documents/RuneNexus
+```
+
+2. 53000 포트 상태를 확인한다.
+
+```bash
+scripts/in_app_server_macos.sh status
+```
+
+3. 수정 파일을 포맷하고 관련 테스트를 먼저 실행한다.
+
+```bash
+scripts/in_app_server_macos.sh dart format <수정 파일>
+scripts/in_app_server_macos.sh flutter test <관련 테스트 파일>
+```
+
+4. 최신 웹 빌드를 만들고 정적 서버를 foreground 세션으로 띄운다.
+
+```bash
+scripts/in_app_server_macos.sh restart
+```
+
+5. 인앱 브라우저를 스크립트가 출력한 cache-bust URL로 연다.
+
+URL만 다시 확인해야 하면 다음을 사용한다.
+
+```bash
+scripts/in_app_server_macos.sh url
+```
+
+Codex에서는 Browser 플러그인의 인앱 브라우저에 직접 연다. macOS `open` 명령으로 외부 브라우저를 띄우지 않는다.
+
+6. 화면 확인 후 서버 세션에 `Ctrl-C`를 보내 종료한다. 별도 정리가 필요하면 다음을 사용한다.
+
+```bash
+scripts/in_app_server_macos.sh stop
+```
+
+macOS 주의:
+
+- `flutter run -d web-server`는 debug service 연결 때문에 오래 걸릴 수 있으므로 단순 화면 확인에는 우선 사용하지 않는다.
+- `python3 -m http.server ... &` 백그라운드 기동은 세션 종료와 함께 바로 죽을 수 있다. 인앱 확인 중에는 foreground 세션을 유지한다.
+- Flutter SDK 캐시 접근, 포트 바인딩, 프로세스 종료가 `Operation not permitted`로 실패하면 같은 명령을 반복하지 말고 샌드박스 밖 실행 승인을 요청한다.
+- 기존 53000 포트 프로세스를 종료해야 하면 다음 명령을 사용한다.
+
+```bash
+scripts/in_app_server_macos.sh stop
+```
 
 ## 6) 실패 원인 체크리스트
 

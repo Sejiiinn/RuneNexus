@@ -10,7 +10,7 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
   EnemyType.normal: EnemyDefinition(
     type: EnemyType.normal,
     name: '일반',
-    maxHp: 45,
+    maxHp: 35,
     speed: 31.5,
     rewardGold: 3,
     coreDamage: 1,
@@ -20,7 +20,7 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
   EnemyType.fast: EnemyDefinition(
     type: EnemyType.fast,
     name: '빠름',
-    maxHp: 28,
+    maxHp: 22,
     speed: 54.6,
     rewardGold: 3,
     coreDamage: 1,
@@ -32,7 +32,7 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
   EnemyType.tank: EnemyDefinition(
     type: EnemyType.tank,
     name: '탱커',
-    maxHp: 135,
+    maxHp: 104,
     speed: 21,
     rewardGold: 6,
     coreDamage: 2,
@@ -45,7 +45,7 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
   EnemyType.boss: EnemyDefinition(
     type: EnemyType.boss,
     name: '보스',
-    maxHp: 900,
+    maxHp: 692,
     speed: 16.8,
     rewardGold: 24,
     coreDamage: 8,

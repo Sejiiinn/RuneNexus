@@ -6,7 +6,7 @@ double enemyHpMultiplierForRound(int round) {
 }
 
 double enemyHpMultiplierForStage(int stageNumber) {
-  return math.pow(1.2, (stageNumber - 1).clamp(0, 4)).toDouble();
+  return math.pow(1.3, (stageNumber - 1).clamp(0, 4)).toDouble();
 }
 
 double scaledEnemyMaxHp(
