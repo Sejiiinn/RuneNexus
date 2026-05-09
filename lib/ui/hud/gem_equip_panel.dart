@@ -78,85 +78,37 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              SizedBox(
-                height: 30,
-                child: OutlinedButton(
-                  onPressed:
-                      snapshot.selectedTurretCanLevelUp &&
-                          canLevelUp &&
-                          snapshot.gold >= snapshot.selectedTurretLevelUpCost
-                      ? widget.game.levelUpSelectedTurret
-                      : null,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Color(0xFFE7C66A)),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                  ),
-                  child: Text(
-                    snapshot.selectedTurretCanLevelUp
-                        ? '레벨업 ${snapshot.selectedTurretLevelUpCost}G'
-                        : '최대 레벨',
-                    style: const TextStyle(fontSize: 11),
-                  ),
-                ),
-              ),
-              if (snapshot.selectedTurretHasLinkUpgrade) ...[
-                const SizedBox(width: 6),
-                SizedBox(
-                  height: 30,
-                  child: OutlinedButton(
-                    onPressed:
-                        snapshot.selectedTurretCanUpgradeLink &&
-                            canManageGems &&
-                            snapshot.gold >=
-                                snapshot.selectedTurretLinkUpgradeCost
-                        ? widget.game.upgradeSelectedTurretLink
-                        : null,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Color(0xFF8EE6FF)),
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                    ),
-                    child: Text(
-                      snapshot.selectedTurretCanUpgradeLink
-                          ? '${snapshot.selectedTurretNextSlotLimit}링크 ${snapshot.selectedTurretLinkUpgradeCost}G'
-                          : '${snapshot.selectedTurretNextSlotLimit}링크 Lv.${snapshot.selectedTurretLinkUpgradeRequiredLevel}',
-                      style: const TextStyle(fontSize: 11),
-                    ),
-                  ),
-                ),
-              ],
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(child: _DamageSummaryRow(snapshot: snapshot)),
               const SizedBox(width: 6),
-              SizedBox(
-                height: 30,
-                child: OutlinedButton(
-                  onPressed: canRefund
-                      ? () => _confirmRefundSelectedTurret(snapshot)
-                      : null,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Color(0xFFFF8A2A)),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                  ),
-                  child: Text(
-                    '환불 ${snapshot.selectedTurretRefundGold}G',
-                    style: const TextStyle(fontSize: 11),
-                  ),
-                ),
+              _TurretActionBar(
+                canLevelUp:
+                    snapshot.selectedTurretCanLevelUp &&
+                    canLevelUp &&
+                    snapshot.gold >= snapshot.selectedTurretLevelUpCost,
+                levelUpLabel: snapshot.selectedTurretCanLevelUp
+                    ? '${snapshot.selectedTurretLevelUpCost}G'
+                    : 'MAX',
+                onLevelUp: widget.game.levelUpSelectedTurret,
+                showLink: snapshot.selectedTurretHasLinkUpgrade,
+                canUpgradeLink:
+                    snapshot.selectedTurretCanUpgradeLink &&
+                    canManageGems &&
+                    snapshot.gold >= snapshot.selectedTurretLinkUpgradeCost,
+                linkLabel: snapshot.selectedTurretCanUpgradeLink
+                    ? '${snapshot.selectedTurretLinkUpgradeCost}G'
+                    : 'Lv.${snapshot.selectedTurretLinkUpgradeRequiredLevel}',
+                onUpgradeLink: widget.game.upgradeSelectedTurretLink,
+                canRefund: canRefund,
+                refundLabel: '${snapshot.selectedTurretRefundGold}G',
+                onRefund: () => _confirmRefundSelectedTurret(snapshot),
               ),
             ],
           ),
-          const SizedBox(height: 5),
-          _DamageSummaryRow(snapshot: snapshot),
           const SizedBox(height: 6),
           _TurretAttributeChips(definition: definition),
           const SizedBox(height: 6),
@@ -344,6 +296,112 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
         widget.game.resumeEngine();
       }
     }
+  }
+}
+
+class _TurretActionBar extends StatelessWidget {
+  const _TurretActionBar({
+    required this.canLevelUp,
+    required this.levelUpLabel,
+    required this.onLevelUp,
+    required this.showLink,
+    required this.canUpgradeLink,
+    required this.linkLabel,
+    required this.onUpgradeLink,
+    required this.canRefund,
+    required this.refundLabel,
+    required this.onRefund,
+  });
+
+  final bool canLevelUp;
+  final String levelUpLabel;
+  final VoidCallback onLevelUp;
+  final bool showLink;
+  final bool canUpgradeLink;
+  final String linkLabel;
+  final VoidCallback onUpgradeLink;
+  final bool canRefund;
+  final String refundLabel;
+  final VoidCallback onRefund;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _TurretActionButton(
+          icon: Icons.trending_up,
+          label: levelUpLabel,
+          color: const Color(0xFFE7C66A),
+          onPressed: canLevelUp ? onLevelUp : null,
+        ),
+        if (showLink) ...[
+          const SizedBox(width: 6),
+          _TurretActionButton(
+            icon: Icons.account_tree_outlined,
+            label: linkLabel,
+            color: const Color(0xFF8EE6FF),
+            onPressed: canUpgradeLink ? onUpgradeLink : null,
+          ),
+        ],
+        const SizedBox(width: 6),
+        _TurretActionButton(
+          icon: Icons.sell_outlined,
+          label: refundLabel,
+          color: const Color(0xFFFF8A2A),
+          onPressed: canRefund ? onRefund : null,
+        ),
+      ],
+    );
+  }
+}
+
+class _TurretActionButton extends StatelessWidget {
+  const _TurretActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onPressed != null;
+    final foreground = enabled ? color : const Color(0xFF607587);
+    return SizedBox(
+      height: 30,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: foreground,
+          disabledForegroundColor: const Color(0xFF607587),
+          side: BorderSide(
+            color: enabled
+                ? color.withValues(alpha: 0.82)
+                : const Color(0x5533D8FF),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+          minimumSize: const Size(44, 30),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

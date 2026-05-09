@@ -1103,6 +1103,18 @@ void main() {
     );
   });
 
+  test('boss enemies do not additionally resist damage over time', () {
+    final boss = demoEnemies[EnemyType.boss]!;
+
+    expect(
+      boss.resistanceProfile.multiplierFor(
+        family: DamageFamily.magical,
+        tags: const {AttackTag.damageOverTime},
+      ),
+      closeTo(0.9, 0.001),
+    );
+  });
+
   test('fast enemies strongly favor light weapons over heavy weapons', () {
     final fast = demoEnemies[EnemyType.fast]!;
 
