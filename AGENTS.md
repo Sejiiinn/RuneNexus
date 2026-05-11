@@ -22,5 +22,7 @@
   - `C:\Users\rlatp\develop\flutter\bin\cache\dart-sdk\bin\dart.exe format <파일>`
 - `flutter analyze`, `flutter test`, `flutter run`이 30초 이상 무응답이거나 접근 거부로 실패하면 같은 명령을 오래 재시도하지 말고 즉시 샌드박스 밖 실행 승인을 요청하세요.
 - 인앱 브라우저 확인 전에는 53000 포트의 기존 Flutter web server가 살아 있는지 확인하고, 오래된 번들이 의심되면 서버를 재시작한 뒤 cache-bust URL로 접속하세요.
-- 사용자가 인앱 테스트 화면을 요청하면 일반 `flutter run` 재시도보다 프로젝트의 빠른 인앱 테스트 경로 스크립트를 우선 활용하세요. 스크립트가 없거나 실패할 때만 기존 Flutter web server 재기동 경로로 진행하세요.
+
+## 인앱 테스트 공통 지침
+- Windows와 macOS 모두에서 사용자가 인앱 테스트 화면을 요청하면 일반 `flutter run` 재시도보다 프로젝트의 빠른 인앱 테스트 경로 스크립트를 우선 활용하세요. 스크립트가 없거나 실패할 때만 기존 Flutter web server 재기동 경로로 진행하세요.
 - UI·게임플레이·렌더링 등 인게임 내 변화가 있는 변경 요청을 완료한 경우, 사용자가 별도로 요청하지 않아도 53000 포트 서버를 재기동하고 기존 인앱 브라우저 탭을 cache-bust URL로 갱신해 바로 테스트할 수 있게 하세요.
