@@ -66,26 +66,19 @@ class _ResourceStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 36,
-      padding: const EdgeInsets.symmetric(horizontal: 7),
-      decoration: BoxDecoration(
-        color: const Color(0xE607111D),
-        border: Border.all(color: const Color(0x6650E6FF)),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
+    return Padding(
+      padding: const EdgeInsets.only(top: 2),
+      child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _ResourceValue(
-            tooltip: '골드',
             icon: Icons.paid_outlined,
             iconColor: const Color(0xFFFFD166),
             valueChild: _GoldValue(snapshot: snapshot),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(height: 5),
           _ResourceValue(
-            tooltip: '젬 파편',
             iconWidget: const _GemShardIcon(),
             valueText: '${snapshot.gemShards}',
           ),
@@ -97,7 +90,6 @@ class _ResourceStrip extends StatelessWidget {
 
 class _ResourceValue extends StatelessWidget {
   const _ResourceValue({
-    required this.tooltip,
     this.icon,
     this.iconColor,
     this.iconWidget,
@@ -105,7 +97,6 @@ class _ResourceValue extends StatelessWidget {
     this.valueChild,
   });
 
-  final String tooltip;
   final IconData? icon;
   final Color? iconColor;
   final Widget? iconWidget;
@@ -114,25 +105,22 @@ class _ResourceValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          iconWidget ??
-              Icon(icon, size: 16, color: iconColor ?? const Color(0xFFE8FBFF)),
-          const SizedBox(width: 3),
-          DefaultTextStyle(
-            style: const TextStyle(
-              color: Color(0xFFE8FBFF),
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              height: 1,
-            ),
-            child: valueChild ?? Text(valueText ?? '0'),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        iconWidget ??
+            Icon(icon, size: 16, color: iconColor ?? const Color(0xFFE8FBFF)),
+        const SizedBox(width: 3),
+        DefaultTextStyle(
+          style: const TextStyle(
+            color: Color(0xFFE8FBFF),
+            fontSize: 13,
+            fontWeight: FontWeight.w900,
+            height: 1,
           ),
-        ],
-      ),
+          child: valueChild ?? Text(valueText ?? '0'),
+        ),
+      ],
     );
   }
 }
@@ -414,7 +402,7 @@ class _WaveRewardSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: '웨이브 클리어/처치 예상 보상',
+      message: '웨이브 클리어 보상',
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
         decoration: BoxDecoration(
@@ -430,9 +418,6 @@ class _WaveRewardSummary extends StatelessWidget {
             const SizedBox(width: 4),
             const SizedBox(width: 10, height: 10, child: _GemShardIcon()),
             _RewardValue(value: snapshot.nextWaveClearRewardGemShards),
-            const SizedBox(width: 4),
-            const Icon(Icons.paid_outlined, size: 10, color: Color(0xFFFFD166)),
-            _RewardValue(value: snapshot.nextWaveKillRewardGold),
           ],
         ),
       ),
