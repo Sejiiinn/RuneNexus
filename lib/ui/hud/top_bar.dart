@@ -404,7 +404,7 @@ class _WaveRewardSummary extends StatelessWidget {
     return Tooltip(
       message: '웨이브 클리어 보상',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
         decoration: BoxDecoration(
           color: const Color(0xFF15293A),
           border: Border.all(color: const Color(0x444A6172)),
@@ -413,10 +413,10 @@ class _WaveRewardSummary extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.flag_outlined, size: 10, color: Color(0xFFFFD166)),
+            const Icon(Icons.flag_outlined, size: 12, color: Color(0xFFFFD166)),
             _RewardValue(value: snapshot.nextWaveClearRewardGold),
-            const SizedBox(width: 4),
-            const SizedBox(width: 10, height: 10, child: _GemShardIcon()),
+            const SizedBox(width: 5),
+            const SizedBox(width: 12, height: 12, child: _GemShardIcon()),
             _RewardValue(value: snapshot.nextWaveClearRewardGemShards),
           ],
         ),
@@ -436,7 +436,7 @@ class _RewardValue extends StatelessWidget {
       '+$value',
       style: const TextStyle(
         color: Color(0xFFE8FBFF),
-        fontSize: 8,
+        fontSize: 10,
         fontWeight: FontWeight.w900,
         height: 1,
       ),

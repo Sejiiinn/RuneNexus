@@ -1637,7 +1637,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _applyBoardZoom(Canvas canvas) {
-    if (_boardZoom == _minBoardZoom) {
+    if (_boardZoom == _minBoardZoom && _boardOffset.length2 == 0) {
       return;
     }
 
@@ -1650,7 +1650,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Vector2 _unzoomPosition(Vector2 position) {
-    if (_boardZoom == _minBoardZoom) {
+    if (_boardZoom == _minBoardZoom && _boardOffset.length2 == 0) {
       return position;
     }
 
@@ -1659,12 +1659,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Vector2 _clampBoardOffset(Vector2 offset) {
-    if (_boardZoom <= _minBoardZoom) {
-      return Vector2.zero();
-    }
-
-    final maxX = _tileSize * _map.columns * (_boardZoom - 1) / 2;
-    final maxY = _tileSize * _map.rows * (_boardZoom - 1) / 2;
+    final zoomOverflow = math.max(0, _boardZoom - _minBoardZoom);
+    final baseMaxX = _tileSize * _map.columns * zoomOverflow / 2;
+    final baseMaxY = _tileSize * _map.rows * zoomOverflow / 2;
+    final minPanX = _tileSize * 0.8;
+    final minPanY = _tileSize * 1.8;
+    final maxX = baseMaxX + minPanX;
+    final maxY = baseMaxY + minPanY;
     return Vector2(
       offset.x.clamp(-maxX, maxX).toDouble(),
       offset.y.clamp(-maxY, maxY).toDouble(),
