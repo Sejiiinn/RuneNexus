@@ -246,24 +246,36 @@ class _GemInventorySectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 24,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF10243A),
-        border: Border.all(color: const Color(0x4433D8FF)),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      alignment: Alignment.centerLeft,
-      child: const Text(
-        '보유 젬',
-        style: TextStyle(
-          color: Color(0xFFE8F8FF),
-          fontSize: 11,
-          fontWeight: FontWeight.w900,
-          height: 1,
+    return const Row(
+      children: [
+        Expanded(
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: Color(0x334D6577),
+          ),
         ),
-      ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: Text(
+            '보유 젬',
+            style: TextStyle(
+              color: Color(0xFF5F788A),
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.6,
+              height: 1,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: Color(0x334D6577),
+          ),
+        ),
+      ],
     );
   }
 }
