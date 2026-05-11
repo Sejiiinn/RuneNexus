@@ -26,10 +26,10 @@ const demoRunUpgrades = <RunUpgradeType, RunUpgradeDefinition>{
     type: RunUpgradeType.waveGold,
     name: '정비 보급',
     description: '웨이브 종료 골드가 증가합니다.',
-    effectLabel: '+2G',
+    effectLabel: '+4G',
     maxLevel: 20,
     baseCost: 10,
     costMultiplier: 1.2,
-    effectPerLevel: 2,
+    effectPerLevel: 4,
   ),
 };

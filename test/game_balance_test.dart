@@ -548,10 +548,10 @@ void main() {
   });
 
   test('enemy kill rewards limit late-wave gold snowballing', () {
-    expect(demoEnemies[EnemyType.normal]!.rewardGold, 3);
-    expect(demoEnemies[EnemyType.fast]!.rewardGold, 3);
-    expect(demoEnemies[EnemyType.tank]!.rewardGold, 6);
-    expect(demoEnemies[EnemyType.boss]!.rewardGold, 24);
+    expect(demoEnemies[EnemyType.normal]!.rewardGold, 5);
+    expect(demoEnemies[EnemyType.fast]!.rewardGold, 5);
+    expect(demoEnemies[EnemyType.tank]!.rewardGold, 9);
+    expect(demoEnemies[EnemyType.boss]!.rewardGold, 35);
   });
 
   test('run tower damage upgrade boosts all turret damage', () {
@@ -591,10 +591,10 @@ void main() {
       enemy.receiveDamage(999);
     }
 
-    expect(game.snapshotNotifier.value.gold, 182);
+    expect(game.snapshotNotifier.value.gold, 216);
     expect(
       game.snapshotNotifier.value.killGoldFractionWallet,
-      closeTo(0.02, 0.001),
+      closeTo(0.7, 0.001),
     );
   });
 
@@ -616,7 +616,7 @@ void main() {
     game.update(0.016);
 
     expect(game.snapshotNotifier.value.phase, GamePhase.success);
-    expect(game.snapshotNotifier.value.gold, 142);
+    expect(game.snapshotNotifier.value.gold, 144);
   });
 
   test('permanent supply upgrade adds one gold per cleared wave', () {
