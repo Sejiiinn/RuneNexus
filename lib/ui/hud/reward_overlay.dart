@@ -12,10 +12,12 @@ class _RewardOverlay extends StatefulWidget {
 
 class _RewardOverlayState extends State<_RewardOverlay> {
   GemType? _selectedGem;
+  bool _selectedGemShards = false;
 
   @override
   Widget build(BuildContext context) {
     final snapshot = widget.snapshot;
+    final isPurchase = snapshot.isPurchasedGemReward;
     final selectedGem =
         _selectedGem != null && snapshot.rewardOptions.contains(_selectedGem)
         ? _selectedGem
@@ -38,35 +40,110 @@ class _RewardOverlayState extends State<_RewardOverlay> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                '젬 보상 선택',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              Text(
+                isPurchase ? '젬 구매 선택' : '젬 보상 선택',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
-                '${snapshot.completedRounds}웨이브 클리어 보상',
+                isPurchase
+                    ? '선택 시 젬 파편 ${RuneNexusGame.gemChoicePurchaseCost}개를 사용합니다'
+                    : '${snapshot.completedRounds}웨이브 클리어 보상',
                 style: const TextStyle(fontSize: 12, color: Color(0xFFB9D6E4)),
               ),
               const SizedBox(height: 12),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: snapshot.rewardOptions.map((type) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
-                    child: _RewardCard(
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  ...snapshot.rewardOptions.map((type) {
+                    return _RewardCard(
                       type: type,
                       ownedCount: snapshot.gemInventory[type] ?? 0,
-                      selected: selectedGem == type,
+                      selected: selectedGem == type && !_selectedGemShards,
                       onPressed: () {
                         setState(() {
                           _selectedGem = type;
+                          _selectedGemShards = false;
+                        });
+                      },
+                    );
+                  }),
+                  if (!isPurchase)
+                    _GemShardRewardCard(
+                      ownedCount: snapshot.gemShards,
+                      selected: _selectedGemShards,
+                      onPressed: () {
+                        setState(() {
+                          _selectedGem = null;
+                          _selectedGemShards = true;
                         });
                       },
                     ),
-                  );
-                }).toList(),
+                ],
               ),
-              if (selectedGem != null && selectedGemDefinition != null) ...[
+              if (_selectedGemShards) ...[
+                const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xAA07111D),
+                    border: Border.all(color: const Color(0xAA28D66F)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const _GemShardIcon(),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              '젬 파편',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              '젬 대신 파편 ${RuneNexusGame.gemShardRewardFallbackAmount}개를 획득합니다.',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Color(0xFFC9DCE8),
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        height: 30,
+                        child: FilledButton(
+                          onPressed: widget.game.selectRewardGemShards,
+                          child: const Text(
+                            '선택',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ] else if (selectedGem != null &&
+                  selectedGemDefinition != null) ...[
                 const SizedBox(height: 10),
                 Container(
                   width: double.infinity,
@@ -130,8 +207,68 @@ class _RewardOverlayState extends State<_RewardOverlay> {
                   ),
                 ),
               ],
+              if (isPurchase) ...[
+                const SizedBox(height: 10),
+                SizedBox(
+                  height: 30,
+                  child: OutlinedButton(
+                    onPressed: widget.game.cancelPurchasedGemChoice,
+                    child: const Text('취소', style: TextStyle(fontSize: 12)),
+                  ),
+                ),
+              ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GemShardRewardCard extends StatelessWidget {
+  const _GemShardRewardCard({
+    required this.ownedCount,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  final int ownedCount;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 96,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.white,
+          side: BorderSide(
+            color: selected ? const Color(0xFF28D66F) : const Color(0x9928D66F),
+            width: selected ? 2 : 1,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const _GemShardIcon(),
+            const SizedBox(height: 8),
+            const Text('젬 파편', style: TextStyle(fontWeight: FontWeight.w800)),
+            const SizedBox(height: 4),
+            Text(
+              '+${RuneNexusGame.gemShardRewardFallbackAmount} 획득',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, color: Color(0xFFC9DCE8)),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '보유 x$ownedCount',
+              style: const TextStyle(fontSize: 10, color: Color(0xFF8AA6B8)),
+            ),
+          ],
         ),
       ),
     );

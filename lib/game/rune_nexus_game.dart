@@ -50,6 +50,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _chainDamageMultiplier = 0.5;
   static const double _burnDamagePerSecondScale = 0.5;
   static const double _burnDurationSeconds = 2;
+  static const int gemShardRewardFallbackAmount = 10;
+  static const int gemChoicePurchaseCost = 20;
   static const double burnDamagePerSecondScale = _burnDamagePerSecondScale;
   static const double burnDurationSeconds = _burnDurationSeconds;
   static const double _designTileSize = 48;
@@ -125,6 +127,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedRunPanelTab: RunPanelTab.turrets,
       previewText: firstWave.previewText,
       rewardOptions: const [],
+      isPurchasedGemReward: false,
       gemInventory: const {},
       selectedBuildPoint: null,
       selectedBuildTurretType: null,
@@ -160,6 +163,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       nextWaveEnemyCounts: _enemyCountsFor(firstWave),
       nextWaveClearRewardGold: firstWave.clearRewardGold,
       nextWaveKillRewardGold: _killRewardGoldFor(firstWave),
+      nextWaveClearRewardGemShards: _roundClearGemShardRewardFor(1),
       autoStartMode: AutoStartMode.pauseEachRound,
       speedMultiplier: 1,
       killGoldFractionWallet: 0,
@@ -215,6 +219,19 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       total += demoEnemies[group.enemyType]!.rewardGold * group.count;
     }
     return total;
+  }
+
+  static int _roundClearGemShardRewardFor(int completedRound) {
+    if (completedRound <= 0) {
+      return 0;
+    }
+    if (completedRound <= 20) {
+      return 1;
+    }
+    if (completedRound <= 40) {
+      return 2;
+    }
+    return 3;
   }
 
   RuneNexusGame({
@@ -273,6 +290,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   bool _boardConfigured = false;
 
   int _gold = RunProgression.baseInitialGold;
+  int _gemShards = 0;
   int _nexusHp = RunProgression.baseNexusHp;
   late int _currentStageNumber;
   int _completedRounds = 0;
@@ -282,6 +300,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   int _roundIndex = 0;
   GamePhase _phase = GamePhase.preparation;
   GamePhase? _restoredPhase;
+  bool _isPurchasedGemReward = false;
   TurretType _selectedTurretType = TurretType.arrow;
   RunPanelTab _selectedRunPanelTab = RunPanelTab.turrets;
   TurretType? _selectedBuildTurretType;
@@ -565,6 +584,32 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _publish();
   }
 
+  void purchaseGemChoice() {
+    if (_phase != GamePhase.preparation || _gemShards < gemChoicePurchaseCost) {
+      return;
+    }
+
+    _isPurchasedGemReward = true;
+    _rewardOptions
+      ..clear()
+      ..addAll(_gemRewardGenerator.generateOptions());
+    _phase = GamePhase.reward;
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void cancelPurchasedGemChoice() {
+    if (_phase != GamePhase.reward || !_isPurchasedGemReward) {
+      return;
+    }
+
+    _isPurchasedGemReward = false;
+    _rewardOptions.clear();
+    _phase = GamePhase.preparation;
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
   void buyRunUpgrade(RunUpgradeType type) {
     if (!_canEditBoard) {
       return;
@@ -642,8 +687,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _selectStage(targetStageNumber);
     }
     _gemInventory.clear();
+    _gemShards = 0;
     _runUpgradeLevels.clear();
     _rewardOptions.clear();
+    _isPurchasedGemReward = false;
     _killGoldFractionWallet = 0;
     _pendingFullSaveData = null;
     _savedTurretCountForMenu = 0;
@@ -813,8 +860,28 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
 
-    grantGem(type);
+    if (_isPurchasedGemReward) {
+      if (_gemShards < gemChoicePurchaseCost) {
+        return;
+      }
+      _gemShards -= gemChoicePurchaseCost;
+    }
+    _gemInventory[type] = (_gemInventory[type] ?? 0) + 1;
     _rewardOptions.clear();
+    _isPurchasedGemReward = false;
+    _phase = GamePhase.preparation;
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void selectRewardGemShards() {
+    if (_phase != GamePhase.reward || _isPurchasedGemReward) {
+      return;
+    }
+
+    _gemShards += gemShardRewardFallbackAmount;
+    _rewardOptions.clear();
+    _isPurchasedGemReward = false;
     _phase = GamePhase.preparation;
     _publish();
     _requestLocalSave(immediate: true);
@@ -1636,6 +1703,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _waves[_roundIndex].clearRewardGold +
         _progression.waveClearGoldBonus +
         _waveClearGoldRunBonus;
+    _gemShards += _roundClearGemShardRewardFor(completedRound);
     _roundIndex++;
     _completedRounds = completedRound;
     if (_roundIndex >= _waves.length) {
@@ -1644,6 +1712,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       unawaited(_saveRoundCheckpoint());
     } else if (_gemRewardGenerator.shouldOfferReward(completedRound)) {
       _phase = GamePhase.reward;
+      _isPurchasedGemReward = false;
       _rewardOptions
         ..clear()
         ..addAll(_gemRewardGenerator.generateOptions());
@@ -1651,6 +1720,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     } else {
       _phase = GamePhase.preparation;
       _rewardOptions.clear();
+      _isPurchasedGemReward = false;
       unawaited(_saveRoundCheckpoint());
     }
     _publish();
@@ -1874,6 +1944,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       version: GameSaveData.currentVersion,
       savedAtMillis: DateTime.now().millisecondsSinceEpoch,
       gold: _gold,
+      gemShards: _gemShards,
       nexusHp: _nexusHp,
       stageNumber: _currentStageNumber,
       roundIndex: _roundIndex,
@@ -1885,6 +1956,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       killGoldFractionWallet: _killGoldFractionWallet,
       gemInventory: Map.unmodifiable(_gemInventory),
       rewardOptions: List.unmodifiable(_rewardOptions),
+      isPurchasedGemReward: _isPurchasedGemReward,
       turrets:
           pendingSave?.turrets ??
           [for (final turret in _turrets.values) turret.toSaveData()],
@@ -1908,12 +1980,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _rewardOptions
       ..clear()
       ..addAll(data.rewardOptions);
+    _gemShards = math.max(0, data.gemShards);
+    _isPurchasedGemReward = data.isPurchasedGemReward;
     _savedTurretCountForMenu = data.turrets.length;
 
     if (!data.hasActiveRun) {
       _savedTurretCountForMenu = 0;
       _selectStage(_clampedStageNumber(data.stageNumber));
       _gold = _initialGold;
+      _gemShards = 0;
       _nexusHp = _maxNexusHp;
       _roundIndex = 0;
       _completedRounds = 0;
@@ -1931,9 +2006,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _selectedTurretGemSlotIndex = null;
       _phase = GamePhase.preparation;
       _restoredPhase = null;
+      _isPurchasedGemReward = false;
       return;
     }
     _gold = math.max(0, data.gold);
+    _gemShards = math.max(0, data.gemShards);
     _selectStage(_clampedStageNumber(data.stageNumber));
     _nexusHp = data.nexusHp.clamp(0, _maxNexusHp).toInt();
     _roundIndex = data.roundIndex.clamp(0, _waves.length - 1).toInt();
@@ -1960,6 +2037,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _phase = GamePhase.restored;
     _restoredPhase = restoredPhase;
+    _isPurchasedGemReward = false;
   }
 
   void _restoreFromSaveData(GameSaveData data) {
@@ -1976,10 +2054,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _rewardOptions
       ..clear()
       ..addAll(data.rewardOptions);
+    _gemShards = math.max(0, data.gemShards);
+    _isPurchasedGemReward = data.isPurchasedGemReward;
 
     if (!data.hasActiveRun) {
       _selectStage(_clampedStageNumber(data.stageNumber));
       _gold = _initialGold;
+      _gemShards = 0;
       _nexusHp = _maxNexusHp;
       _roundIndex = 0;
       _completedRounds = 0;
@@ -1990,11 +2071,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _lastRunUnlockedStageNumber = null;
       _phase = GamePhase.preparation;
       _restoredPhase = null;
+      _isPurchasedGemReward = false;
       return;
     }
 
     _restoreRunUpgradeState(data);
     _gold = math.max(0, data.gold);
+    _gemShards = math.max(0, data.gemShards);
     _selectStage(_clampedStageNumber(data.stageNumber));
     _nexusHp = data.nexusHp.clamp(0, _maxNexusHp).toInt();
     _roundIndex = data.roundIndex.clamp(0, _waves.length - 1).toInt();
@@ -2059,6 +2142,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _phase = GamePhase.restored;
     _restoredPhase = restoredPhase;
+    _isPurchasedGemReward = false;
   }
 
   void _restoreRunUpgradeState(GameSaveData data) {
@@ -2170,13 +2254,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         !_waveSpawner.isEmpty ||
         _runUpgradeLevels.isNotEmpty ||
         _killGoldFractionWallet > 0 ||
+        _gemShards > 0 ||
         _gemInventory.isNotEmpty ||
         _rewardOptions.isNotEmpty ||
         _gold != _initialGold ||
         _nexusHp != _maxNexusHp;
     snapshotNotifier.value = GameSnapshot(
       gold: _gold,
-      gemShards: 0,
+      gemShards: _gemShards,
       nexusHp: _nexusHp,
       maxNexusHp: _maxNexusHp,
       round: math.min(_roundIndex + 1, _waves.length),
@@ -2193,6 +2278,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedRunPanelTab: _selectedRunPanelTab,
       previewText: nextWave.previewText,
       rewardOptions: List.unmodifiable(_rewardOptions),
+      isPurchasedGemReward: _isPurchasedGemReward,
       gemInventory: Map.unmodifiable(_gemInventory),
       selectedBuildPoint: _selectedBuildPoint,
       selectedBuildTurretType: _selectedBuildTurretType,
@@ -2239,6 +2325,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       nextWaveEnemyCounts: Map.unmodifiable(nextWaveEnemyCounts),
       nextWaveClearRewardGold: nextWave.clearRewardGold,
       nextWaveKillRewardGold: _killRewardGoldFor(nextWave),
+      nextWaveClearRewardGemShards: _roundClearGemShardRewardFor(
+        math.min(_roundIndex + 1, _waves.length),
+      ),
       autoStartMode: _autoStartMode,
       speedMultiplier: _speedMultiplier,
       killGoldFractionWallet: _killGoldFractionWallet,

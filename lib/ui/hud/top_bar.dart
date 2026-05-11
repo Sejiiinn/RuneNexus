@@ -332,17 +332,7 @@ class _WaveIntelRow extends StatelessWidget {
           hiddenCount: hiddenCount,
         ),
         const Spacer(),
-        _RewardChip(
-          tooltip: '웨이브 클리어 보상',
-          icon: Icons.flag_outlined,
-          value: snapshot.nextWaveClearRewardGold,
-        ),
-        const SizedBox(width: 3),
-        _RewardChip(
-          tooltip: '모든 적 처치 보상',
-          icon: Icons.paid_outlined,
-          value: snapshot.nextWaveKillRewardGold,
-        ),
+        _WaveRewardSummary(snapshot: snapshot),
       ],
     );
   }
@@ -416,23 +406,17 @@ class _EnemyIntelButton extends StatelessWidget {
   }
 }
 
-class _RewardChip extends StatelessWidget {
-  const _RewardChip({
-    required this.tooltip,
-    required this.icon,
-    required this.value,
-  });
+class _WaveRewardSummary extends StatelessWidget {
+  const _WaveRewardSummary({required this.snapshot});
 
-  final String tooltip;
-  final IconData icon;
-  final int value;
+  final GameSnapshot snapshot;
 
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: tooltip,
+      message: '웨이브 클리어/처치 예상 보상',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
         decoration: BoxDecoration(
           color: const Color(0xFF15293A),
           border: Border.all(color: const Color(0x444A6172)),
@@ -441,19 +425,35 @@ class _RewardChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 10, color: const Color(0xFFFFD166)),
-            const SizedBox(width: 2),
-            Text(
-              '+$value',
-              style: const TextStyle(
-                color: Color(0xFFE8FBFF),
-                fontSize: 9,
-                fontWeight: FontWeight.w900,
-                height: 1,
-              ),
-            ),
+            const Icon(Icons.flag_outlined, size: 10, color: Color(0xFFFFD166)),
+            _RewardValue(value: snapshot.nextWaveClearRewardGold),
+            const SizedBox(width: 4),
+            const SizedBox(width: 10, height: 10, child: _GemShardIcon()),
+            _RewardValue(value: snapshot.nextWaveClearRewardGemShards),
+            const SizedBox(width: 4),
+            const Icon(Icons.paid_outlined, size: 10, color: Color(0xFFFFD166)),
+            _RewardValue(value: snapshot.nextWaveKillRewardGold),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _RewardValue extends StatelessWidget {
+  const _RewardValue({required this.value});
+
+  final int value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '+$value',
+      style: const TextStyle(
+        color: Color(0xFFE8FBFF),
+        fontSize: 8,
+        fontWeight: FontWeight.w900,
+        height: 1,
       ),
     );
   }

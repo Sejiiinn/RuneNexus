@@ -53,6 +53,8 @@ class _BottomBar extends StatelessWidget {
             ],
             if (snapshot.selectedRunPanelTab == RunPanelTab.upgrades) ...[
               _RunUpgradePanel(game: game, snapshot: snapshot),
+            ] else if (snapshot.selectedRunPanelTab == RunPanelTab.gems) ...[
+              _GemInventoryPanel(game: game, snapshot: snapshot),
             ] else ...[
               if (snapshot.selectedTurretPoint != null && canEditBoard) ...[
                 _GemEquipPanel(game: game, snapshot: snapshot),
@@ -61,26 +63,29 @@ class _BottomBar extends StatelessWidget {
                   canEditBoard) ...[
                 _BuildSelectionPanel(game: game, snapshot: snapshot),
               ],
-              const SizedBox(height: 8),
-              Row(
-                children: TurretType.values.map((type) {
-                  final definition = demoTurrets[type]!;
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 3),
-                      child: _TurretButton(
-                        type: type,
-                        label: definition.name,
-                        cost: definition.cost,
-                        color: definition.color,
-                        selected: snapshot.selectedBuildTurretType == type,
-                        enabled: canEditBoard,
-                        onPressed: () => game.previewOrBuildSelectedTile(type),
+              if (snapshot.selectedTurretPoint == null) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: TurretType.values.map((type) {
+                    final definition = demoTurrets[type]!;
+                    return Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 3),
+                        child: _TurretButton(
+                          type: type,
+                          label: definition.name,
+                          cost: definition.cost,
+                          color: definition.color,
+                          selected: snapshot.selectedBuildTurretType == type,
+                          enabled: canEditBoard,
+                          onPressed: () =>
+                              game.previewOrBuildSelectedTile(type),
+                        ),
                       ),
-                    ),
-                  );
-                }).toList(),
-              ),
+                    );
+                  }).toList(),
+                ),
+              ],
             ],
             const SizedBox(height: 8),
             _RunPanelTabs(game: game, snapshot: snapshot),
@@ -122,10 +127,207 @@ class _RunPanelTabs extends StatelessWidget {
             selected: snapshot.selectedRunPanelTab == RunPanelTab.upgrades,
             onPressed: () => game.selectRunPanelTab(RunPanelTab.upgrades),
           ),
+          const SizedBox(width: 4),
+          _RunPanelTabButton(
+            icon: Icons.diamond_outlined,
+            label: '젬',
+            selected: snapshot.selectedRunPanelTab == RunPanelTab.gems,
+            onPressed: () => game.selectRunPanelTab(RunPanelTab.gems),
+          ),
         ],
       ),
     );
   }
+}
+
+class _GemInventoryPanel extends StatelessWidget {
+  const _GemInventoryPanel({required this.game, required this.snapshot});
+
+  final RuneNexusGame game;
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final ownedGems = GemType.values
+        .where((type) => (snapshot.gemInventory[type] ?? 0) > 0)
+        .toList();
+    final canPurchase =
+        snapshot.phase == GamePhase.preparation &&
+        snapshot.gemShards >= RuneNexusGame.gemChoicePurchaseCost;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: const Color(0xAA0B1B2B),
+        border: Border.all(color: const Color(0x5533D8FF)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const _GemShardIcon(),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  '젬 파편 ${snapshot.gemShards}',
+                  style: const TextStyle(
+                    color: Color(0xFFE8F8FF),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 32,
+                child: FilledButton(
+                  onPressed: canPurchase ? game.purchaseGemChoice : null,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        '젬 구매',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: _GemShardIcon(),
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        '${RuneNexusGame.gemChoicePurchaseCost}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (ownedGems.isEmpty)
+            const Text(
+              '보유한 젬이 없습니다. 5라운드 보상 또는 파편 구매로 젬을 획득하세요.',
+              style: TextStyle(fontSize: 11, color: Color(0xFF8FA8BA)),
+            )
+          else ...[
+            const _GemInventorySectionHeader(),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: ownedGems.map((type) {
+                return _GemInventoryChip(
+                  type: type,
+                  count: snapshot.gemInventory[type] ?? 0,
+                );
+              }).toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _GemInventorySectionHeader extends StatelessWidget {
+  const _GemInventorySectionHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF10243A),
+        border: Border.all(color: const Color(0x4433D8FF)),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      alignment: Alignment.centerLeft,
+      child: const Text(
+        '보유 젬',
+        style: TextStyle(
+          color: Color(0xFFE8F8FF),
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+          height: 1,
+        ),
+      ),
+    );
+  }
+}
+
+class _GemInventoryChip extends StatelessWidget {
+  const _GemInventoryChip({required this.type, required this.count});
+
+  final GemType type;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final gem = demoGems[type]!;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+      decoration: BoxDecoration(
+        color: gem.color.withValues(alpha: 0.12),
+        border: Border.all(color: gem.color.withValues(alpha: 0.55)),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(gem.icon, color: gem.color, size: 14),
+              const SizedBox(width: 4),
+              Text(
+                '${gem.name} x$count',
+                style: const TextStyle(
+                  color: Color(0xFFE8F8FF),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            _gemInventoryEffectText(type),
+            style: const TextStyle(fontSize: 10, color: Color(0xFF9FB7C8)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _gemInventoryEffectText(GemType type) {
+  return switch (type) {
+    GemType.attackSpeed => '초당 발사 +40%',
+    GemType.range => '사거리 +20%',
+    GemType.physicalDamage => '물리 피해 +40%',
+    GemType.magicalDamage => '마법 피해 +40%',
+    GemType.lightWeapon => '경량화기 강화',
+    GemType.heavyWeapon => '중화기 강화',
+    GemType.damageOverTime => '지속피해 강화',
+    GemType.explosion => '폭발 피해 추가',
+    GemType.chain => '연쇄 투사체 추가',
+  };
 }
 
 class _RunPanelTabButton extends StatelessWidget {

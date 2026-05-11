@@ -1,1 +1,1 @@
-enum RunPanelTab { turrets, upgrades }
+enum RunPanelTab { turrets, upgrades, gems }

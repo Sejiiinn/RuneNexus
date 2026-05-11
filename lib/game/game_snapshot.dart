@@ -27,6 +27,7 @@ class GameSnapshot {
     required this.selectedRunPanelTab,
     required this.previewText,
     required this.rewardOptions,
+    required this.isPurchasedGemReward,
     required this.gemInventory,
     required this.selectedBuildPoint,
     required this.selectedBuildTurretType,
@@ -62,6 +63,7 @@ class GameSnapshot {
     required this.nextWaveEnemyCounts,
     required this.nextWaveClearRewardGold,
     required this.nextWaveKillRewardGold,
+    required this.nextWaveClearRewardGemShards,
     required this.autoStartMode,
     required this.speedMultiplier,
     required this.killGoldFractionWallet,
@@ -110,6 +112,7 @@ class GameSnapshot {
   final RunPanelTab selectedRunPanelTab;
   final String previewText;
   final List<GemType> rewardOptions;
+  final bool isPurchasedGemReward;
   final Map<GemType, int> gemInventory;
   final GridPoint? selectedBuildPoint;
   final TurretType? selectedBuildTurretType;
@@ -145,6 +148,7 @@ class GameSnapshot {
   final Map<EnemyType, int> nextWaveEnemyCounts;
   final int nextWaveClearRewardGold;
   final int nextWaveKillRewardGold;
+  final int nextWaveClearRewardGemShards;
   final AutoStartMode autoStartMode;
   final double speedMultiplier;
   final double killGoldFractionWallet;

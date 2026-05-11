@@ -11,6 +11,7 @@ class GameSaveData {
     required this.version,
     required this.savedAtMillis,
     required this.gold,
+    required this.gemShards,
     required this.nexusHp,
     required this.stageNumber,
     required this.roundIndex,
@@ -22,6 +23,7 @@ class GameSaveData {
     required this.killGoldFractionWallet,
     required this.gemInventory,
     required this.rewardOptions,
+    required this.isPurchasedGemReward,
     required this.turrets,
     required this.enemies,
     required this.spawnQueue,
@@ -32,6 +34,7 @@ class GameSaveData {
   final int version;
   final int savedAtMillis;
   final int gold;
+  final int gemShards;
   final int nexusHp;
   final int stageNumber;
   final int roundIndex;
@@ -43,6 +46,7 @@ class GameSaveData {
   final double killGoldFractionWallet;
   final Map<GemType, int> gemInventory;
   final List<GemType> rewardOptions;
+  final bool isPurchasedGemReward;
   final List<SavedTurret> turrets;
   final List<SavedEnemy> enemies;
   final List<SavedSpawnRequest> spawnQueue;
@@ -57,6 +61,7 @@ class GameSaveData {
         spawnQueue.isNotEmpty ||
         runUpgradeLevels.isNotEmpty ||
         killGoldFractionWallet > 0 ||
+        gemShards > 0 ||
         gemInventory.isNotEmpty ||
         rewardOptions.isNotEmpty;
   }
@@ -66,6 +71,7 @@ class GameSaveData {
       'version': version,
       'savedAtMillis': savedAtMillis,
       'gold': gold,
+      'gemShards': gemShards,
       'nexusHp': nexusHp,
       'stageNumber': stageNumber,
       'roundIndex': roundIndex,
@@ -81,6 +87,7 @@ class GameSaveData {
         (key, value) => MapEntry(key.name, value),
       ),
       'rewardOptions': rewardOptions.map((type) => type.name).toList(),
+      'isPurchasedGemReward': isPurchasedGemReward,
       'turrets': turrets.map((turret) => turret.toJson()).toList(),
       'enemies': enemies.map((enemy) => enemy.toJson()).toList(),
       'spawnQueue': spawnQueue.map((request) => request.toJson()).toList(),
@@ -100,6 +107,7 @@ class GameSaveData {
       version: version,
       savedAtMillis: _intValue(json['savedAtMillis']),
       gold: _intValue(json['gold']),
+      gemShards: _intValue(json['gemShards']),
       nexusHp: _intValue(json['nexusHp']),
       stageNumber: _intValue(json['stageNumber'], fallback: 1),
       roundIndex: _intValue(json['roundIndex']),
@@ -117,6 +125,7 @@ class GameSaveData {
       killGoldFractionWallet: _doubleValue(json['killGoldFractionWallet']),
       gemInventory: _enumIntMap(GemType.values, json['gemInventory']),
       rewardOptions: _enumList(GemType.values, json['rewardOptions']),
+      isPurchasedGemReward: json['isPurchasedGemReward'] == true,
       turrets: _objectList(json['turrets'], SavedTurret.fromJson),
       enemies: _objectList(json['enemies'], SavedEnemy.fromJson),
       spawnQueue: _objectList(json['spawnQueue'], SavedSpawnRequest.fromJson),
