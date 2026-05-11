@@ -786,9 +786,38 @@ class _EnemyDetailRow extends StatelessWidget {
                   ),
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 7),
+          Row(
+            children: [
               _StatPill(label: '체력', value: maxHp.round().toString()),
               const SizedBox(width: 5),
               _StatPill(label: '속도', value: enemy.speed.round().toString()),
+              const SizedBox(width: 5),
+              _StatPill(
+                label: '보상',
+                value: '+${enemy.rewardGold}',
+                valueChild: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.paid_outlined,
+                      size: 12,
+                      color: Color(0xFFFFD166),
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      '+${enemy.rewardGold}',
+                      style: const TextStyle(
+                        color: Color(0xFFFFD166),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
           if (multiplierRows.isNotEmpty) ...[

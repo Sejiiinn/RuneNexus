@@ -249,7 +249,7 @@ class _RunStatusPanel extends StatelessWidget {
     final hpColor = danger ? const Color(0xFFFF7043) : const Color(0xFF6EF6A5);
 
     return Container(
-      height: 58,
+      height: 60,
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
       decoration: BoxDecoration(
         color: const Color(0xD6091624),
@@ -361,7 +361,7 @@ class _EnemyIntelButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = 10.0 + types.length * 18 + (hiddenCount > 0 ? 16 : 0);
+    final width = 10.0 + types.length * 20 + (hiddenCount > 0 ? 16 : 0);
 
     return Material(
       color: Colors.transparent,
@@ -373,7 +373,7 @@ class _EnemyIntelButton extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(5),
         child: Container(
-          height: 22,
+          height: 24,
           width: width.clamp(28.0, 82.0),
           padding: const EdgeInsets.symmetric(horizontal: 4),
           decoration: BoxDecoration(
@@ -387,9 +387,14 @@ class _EnemyIntelButton extends StatelessWidget {
                 (type) => Padding(
                   padding: const EdgeInsets.only(right: 2),
                   child: SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: _WaveEnemyMiniIcon(type: type),
+                    width: 18,
+                    height: 18,
+                    child: CustomPaint(
+                      painter: _EnemyIconPainter(
+                        color: demoEnemies[type]!.color,
+                        type: type,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -406,49 +411,6 @@ class _EnemyIntelButton extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _WaveEnemyMiniIcon extends StatelessWidget {
-  const _WaveEnemyMiniIcon({required this.type});
-
-  final EnemyType type;
-
-  @override
-  Widget build(BuildContext context) {
-    final style = switch (type) {
-      EnemyType.normal => (
-        icon: Icons.circle,
-        color: const Color(0xFFD8E8F5),
-        size: 11.0,
-      ),
-      EnemyType.fast => (
-        icon: Icons.bolt,
-        color: const Color(0xFFFFD166),
-        size: 15.0,
-      ),
-      EnemyType.tank => (
-        icon: Icons.shield,
-        color: const Color(0xFF8EE6FF),
-        size: 14.0,
-      ),
-      EnemyType.boss => (
-        icon: Icons.local_fire_department,
-        color: const Color(0xFFFF7043),
-        size: 15.0,
-      ),
-    };
-
-    return Center(
-      child: Icon(
-        style.icon,
-        size: style.size,
-        color: style.color,
-        shadows: const [
-          Shadow(color: Color(0x99000000), blurRadius: 3, offset: Offset(0, 1)),
-        ],
       ),
     );
   }
