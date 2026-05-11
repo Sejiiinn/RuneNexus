@@ -8,28 +8,139 @@ enum DamageNumberMotion { rise, fallArc }
 
 enum DamageNumberFeedback { neutral, weak, resisted }
 
-class DamageNumberComponent extends PositionComponent {
-  DamageNumberComponent({
+class DamageNumberImageCache {
+  final Map<_DamageNumberImageKey, ui.Image> _images = {};
+
+  ui.Image imageFor({
     required String text,
     required Color color,
-    required Vector2 position,
-    DamageNumberMotion motion = DamageNumberMotion.rise,
-    DamageNumberFeedback feedback = DamageNumberFeedback.neutral,
-  }) : _text = text,
-       _baseColor = color,
-       _motion = motion,
-       _feedback = feedback,
-       _arcDirection = position.x.round().isEven ? -1 : 1,
-       super(position: position, size: Vector2(78, 28), anchor: Anchor.center) {
-    _textImage = _renderTextImage();
+    required DamageNumberFeedback feedback,
+    required Vector2 size,
+  }) {
+    final key = _DamageNumberImageKey(
+      text: text,
+      color: color,
+      feedback: feedback,
+      width: size.x.ceil(),
+      height: size.y.ceil(),
+    );
+    return _images.putIfAbsent(
+      key,
+      () => _renderTextImage(
+        text: text,
+        color: color,
+        feedback: feedback,
+        width: key.width,
+        height: key.height,
+      ),
+    );
   }
 
-  final String _text;
-  final Color _baseColor;
+  void dispose() {
+    for (final image in _images.values) {
+      image.dispose();
+    }
+    _images.clear();
+  }
+
+  ui.Image _renderTextImage({
+    required String text,
+    required Color color,
+    required DamageNumberFeedback feedback,
+    required int width,
+    required int height,
+  }) {
+    final textColor = switch (feedback) {
+      DamageNumberFeedback.weak => Color.lerp(
+        color,
+        const Color(0xFFFFFFFF),
+        0.35,
+      )!,
+      DamageNumberFeedback.resisted => Color.lerp(
+        color,
+        const Color(0xFF7E8B96),
+        0.72,
+      )!,
+      DamageNumberFeedback.neutral => color,
+    };
+    final painter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 15,
+          fontWeight: FontWeight.w900,
+          shadows: [
+            Shadow(
+              color: const Color(0xFF02070D).withValues(alpha: 0.42),
+              blurRadius: 3,
+              offset: Offset(1, 1),
+            ),
+          ],
+        ),
+      ),
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: width.toDouble());
+
+    final recorder = ui.PictureRecorder();
+    final imageCanvas = Canvas(recorder);
+    painter.paint(
+      imageCanvas,
+      Offset((width - painter.width) / 2, (height - painter.height) / 2),
+    );
+    final picture = recorder.endRecording();
+    final image = picture.toImageSync(width, height);
+    picture.dispose();
+    return image;
+  }
+}
+
+class _DamageNumberImageKey {
+  const _DamageNumberImageKey({
+    required this.text,
+    required this.color,
+    required this.feedback,
+    required this.width,
+    required this.height,
+  });
+
+  final String text;
+  final Color color;
+  final DamageNumberFeedback feedback;
+  final int width;
+  final int height;
+
+  @override
+  bool operator ==(Object other) {
+    return other is _DamageNumberImageKey &&
+        other.text == text &&
+        other.color == color &&
+        other.feedback == feedback &&
+        other.width == width &&
+        other.height == height;
+  }
+
+  @override
+  int get hashCode => Object.hash(text, color, feedback, width, height);
+}
+
+class DamageNumberComponent extends PositionComponent {
+  DamageNumberComponent({
+    required Vector2 position,
+    required ui.Image textImage,
+    DamageNumberMotion motion = DamageNumberMotion.rise,
+    DamageNumberFeedback feedback = DamageNumberFeedback.neutral,
+  }) : _motion = motion,
+       _feedback = feedback,
+       _arcDirection = position.x.round().isEven ? -1 : 1,
+       _textImage = textImage,
+       super(position: position, size: Vector2(78, 28), anchor: Anchor.center);
+
   final DamageNumberMotion _motion;
   final DamageNumberFeedback _feedback;
   final int _arcDirection;
-  late final ui.Image _textImage;
+  final ui.Image _textImage;
   final Paint _imagePaint = Paint()..filterQuality = FilterQuality.none;
   double _age = 0;
   final double _lifeTime = 0.75;
@@ -65,19 +176,6 @@ class DamageNumberComponent extends PositionComponent {
       DamageNumberFeedback.resisted => 0.82,
       DamageNumberFeedback.neutral => 1.0,
     };
-    final textColor = switch (_feedback) {
-      DamageNumberFeedback.weak => Color.lerp(
-        _baseColor,
-        const Color(0xFFFFFFFF),
-        0.35,
-      )!,
-      DamageNumberFeedback.resisted => Color.lerp(
-        _baseColor,
-        const Color(0xFF7E8B96),
-        0.72,
-      )!,
-      DamageNumberFeedback.neutral => _baseColor,
-    };
     final scale = motionScale * feedbackScale;
     _drawFeedbackEffect(canvas, progress, alpha);
     _imagePaint.colorFilter = ColorFilter.mode(
@@ -97,58 +195,6 @@ class DamageNumberComponent extends PositionComponent {
       _imagePaint,
     );
     canvas.restore();
-  }
-
-  ui.Image _renderTextImage() {
-    final textColor = switch (_feedback) {
-      DamageNumberFeedback.weak => Color.lerp(
-        _baseColor,
-        const Color(0xFFFFFFFF),
-        0.35,
-      )!,
-      DamageNumberFeedback.resisted => Color.lerp(
-        _baseColor,
-        const Color(0xFF7E8B96),
-        0.72,
-      )!,
-      DamageNumberFeedback.neutral => _baseColor,
-    };
-    final painter = TextPainter(
-      text: TextSpan(
-        text: _text,
-        style: TextStyle(
-          color: textColor,
-          fontSize: 15,
-          fontWeight: FontWeight.w900,
-          shadows: [
-            Shadow(
-              color: const Color(0xFF02070D).withValues(alpha: 0.42),
-              blurRadius: 3,
-              offset: Offset(1, 1),
-            ),
-          ],
-        ),
-      ),
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
-    )..layout(maxWidth: size.x);
-
-    final recorder = ui.PictureRecorder();
-    final imageCanvas = Canvas(recorder);
-    painter.paint(
-      imageCanvas,
-      Offset((size.x - painter.width) / 2, (size.y - painter.height) / 2),
-    );
-    final picture = recorder.endRecording();
-    final image = picture.toImageSync(size.x.ceil(), size.y.ceil());
-    picture.dispose();
-    return image;
-  }
-
-  @override
-  void onRemove() {
-    _textImage.dispose();
-    super.onRemove();
   }
 
   void _drawFeedbackEffect(Canvas canvas, double progress, double alpha) {

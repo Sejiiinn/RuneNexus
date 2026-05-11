@@ -273,6 +273,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   final Map<GemType, int> _gemInventory = {};
   final Map<RunUpgradeType, int> _runUpgradeLevels = {};
   final List<GemType> _rewardOptions = [];
+  final DamageNumberImageCache _damageNumberImages = DamageNumberImageCache();
   final WaveSpawner _waveSpawner = WaveSpawner();
   final GemRewardGenerator _gemRewardGenerator = GemRewardGenerator();
   final RunProgression _progression = RunProgression();
@@ -437,6 +438,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       statusEffectSprites.dispose();
       _statusEffectSpritesReady = false;
     }
+    _damageNumberImages.dispose();
     _saveScheduler.dispose();
     readyNotifier.dispose();
     loadErrorNotifier.dispose();
@@ -1068,13 +1070,20 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     DamageNumberMotion motion = DamageNumberMotion.rise,
     double damageMultiplier = 1,
   }) {
+    final text = damage.round().toString();
+    final feedback = _damageFeedbackFor(damageMultiplier);
+    final size = Vector2(78, 28);
     add(
       DamageNumberComponent(
-        text: damage.round().toString(),
-        color: color,
         position: position,
+        textImage: _damageNumberImages.imageFor(
+          text: text,
+          color: color,
+          feedback: feedback,
+          size: size,
+        ),
         motion: motion,
-        feedback: _damageFeedbackFor(damageMultiplier),
+        feedback: feedback,
       ),
     );
   }
