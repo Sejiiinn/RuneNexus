@@ -320,6 +320,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double _trackpadStartZoom = _minBoardZoom;
   Vector2 _trackpadStartOffset = Vector2.zero();
   Vector2 _trackpadStartFocal = Vector2.zero();
+  final Set<int> _boardPointers = {};
   int? _dragPointer;
   Vector2? _lastDragPosition;
   double _dragDistance = 0;
@@ -495,7 +496,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final scale = (info.scale.global.x + info.scale.global.y) / 2;
     _zoomBoardAround(
       zoom: (_scaleStartZoom * scale).clamp(_minBoardZoom, _maxBoardZoom),
-      focal: info.eventPosition.widget,
+      focal: _scaleStartFocal,
       startZoom: _scaleStartZoom,
       startOffset: _scaleStartOffset,
       startFocal: _scaleStartFocal,
@@ -1116,13 +1117,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void handleTrackpadZoomUpdate(gestures.PointerPanZoomUpdateEvent event) {
-    final pan = Vector2(event.localPan.dx, event.localPan.dy);
     _zoomBoardAround(
       zoom: (_trackpadStartZoom * event.scale).clamp(
         _minBoardZoom,
         _maxBoardZoom,
       ),
-      focal: _trackpadStartFocal + pan,
+      focal: _trackpadStartFocal,
       startZoom: _trackpadStartZoom,
       startOffset: _trackpadStartOffset,
       startFocal: _trackpadStartFocal,
@@ -1130,7 +1130,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void handleBoardPointerDown(gestures.PointerDownEvent event) {
-    if (_boardZoom <= _minBoardZoom) {
+    _boardPointers.add(event.pointer);
+    if (_boardPointers.length != 1) {
+      _dragPointer = null;
+      _lastDragPosition = null;
+      _dragDistance = 0;
       return;
     }
 
@@ -1140,7 +1144,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void handleBoardPointerMove(gestures.PointerMoveEvent event) {
-    if (_dragPointer != event.pointer || _boardZoom <= _minBoardZoom) {
+    if (_boardPointers.length != 1 || _dragPointer != event.pointer) {
       return;
     }
 
@@ -1164,6 +1168,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void handleBoardPointerUp(gestures.PointerUpEvent event) {
+    _boardPointers.remove(event.pointer);
     if (_dragPointer == event.pointer) {
       _dragPointer = null;
       _lastDragPosition = null;
@@ -1172,6 +1177,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void handleBoardPointerCancel(gestures.PointerCancelEvent event) {
+    _boardPointers.remove(event.pointer);
     if (_dragPointer == event.pointer) {
       _dragPointer = null;
       _lastDragPosition = null;
@@ -1180,10 +1186,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _moveBoardBy(Vector2 delta) {
-    if (_boardZoom <= _minBoardZoom) {
-      _boardOffset = Vector2.zero();
-      return;
-    }
     _boardOffset = _clampBoardOffset(_boardOffset + delta);
   }
 
