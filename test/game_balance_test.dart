@@ -158,7 +158,7 @@ void main() {
     );
     expect(progression.initialGold, 250);
     expect(progression.maxNexusHp, 30);
-    expect(progression.runes, 8190);
+    expect(progression.runes, 8705);
 
     progression.startingGoldUpgradeLevel = 99;
     progression.nexusHpUpgradeLevel = 99;
@@ -680,7 +680,7 @@ void main() {
     final progression = RunProgression()..runes = 10000;
 
     expect(RunProgression.maxFireTrainingUpgradeLevel, 20);
-    expect(progression.fireTrainingUpgradeCost, 10);
+    expect(progression.fireTrainingUpgradeCost, 7);
 
     for (var i = 0; i < 20; i++) {
       expect(progression.upgradeFireTraining(), isTrue);
@@ -688,7 +688,7 @@ void main() {
 
     expect(progression.fireTrainingUpgradeLevel, 20);
     expect(progression.fireTrainingDamageBonusRate, closeTo(0.20, 0.001));
-    expect(progression.fireTrainingUpgradeCost, 110);
+    expect(progression.fireTrainingUpgradeCost, 87);
     expect(progression.canUpgradeFireTraining, isFalse);
     expect(progression.upgradeFireTraining(), isFalse);
   });
