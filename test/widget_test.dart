@@ -271,6 +271,7 @@ GameSnapshot _resultSnapshot({
 }) {
   return GameSnapshot(
     gold: 0,
+    gemShards: 0,
     nexusHp: 0,
     maxNexusHp: 20,
     round: completedRounds,
@@ -320,6 +321,8 @@ GameSnapshot _resultSnapshot({
     topDamageTurretDamageDealt: 0,
     nextWaveEnemyTypes: const [],
     nextWaveEnemyCounts: const {},
+    nextWaveClearRewardGold: 0,
+    nextWaveKillRewardGold: 0,
     autoStartMode: AutoStartMode.pauseEachRound,
     speedMultiplier: 1,
     killGoldFractionWallet: 0,

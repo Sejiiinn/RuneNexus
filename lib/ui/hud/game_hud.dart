@@ -170,7 +170,7 @@ class _GameHudState extends State<GameHud> {
                     ),
                     if (_showDebugPanel && _showGemDebugPanel)
                       Positioned(
-                        top: 78,
+                        top: 112,
                         right: 12,
                         child: _GemDebugPanel(
                           game: widget.game,

@@ -108,6 +108,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final firstWave = stage.waves.first;
     return GameSnapshot(
       gold: RunProgression.baseInitialGold,
+      gemShards: 0,
       nexusHp: RunProgression.baseNexusHp,
       maxNexusHp: RunProgression.baseNexusHp,
       round: 1,
@@ -157,6 +158,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       topDamageTurretDamageDealt: 0,
       nextWaveEnemyTypes: _enemyTypesFor(firstWave),
       nextWaveEnemyCounts: _enemyCountsFor(firstWave),
+      nextWaveClearRewardGold: firstWave.clearRewardGold,
+      nextWaveKillRewardGold: _killRewardGoldFor(firstWave),
       autoStartMode: AutoStartMode.pauseEachRound,
       speedMultiplier: 1,
       killGoldFractionWallet: 0,
@@ -204,6 +207,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       counts[group.enemyType] = (counts[group.enemyType] ?? 0) + group.count;
     }
     return Map.unmodifiable(counts);
+  }
+
+  static int _killRewardGoldFor(WaveDefinition wave) {
+    var total = 0;
+    for (final group in wave.groups) {
+      total += demoEnemies[group.enemyType]!.rewardGold * group.count;
+    }
+    return total;
   }
 
   RuneNexusGame({
@@ -2165,6 +2176,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _nexusHp != _maxNexusHp;
     snapshotNotifier.value = GameSnapshot(
       gold: _gold,
+      gemShards: 0,
       nexusHp: _nexusHp,
       maxNexusHp: _maxNexusHp,
       round: math.min(_roundIndex + 1, _waves.length),
@@ -2225,6 +2237,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       topDamageTurretDamageDealt: topDamageTurret?.damageDealt ?? 0,
       nextWaveEnemyTypes: List.unmodifiable(nextWaveEnemyTypes),
       nextWaveEnemyCounts: Map.unmodifiable(nextWaveEnemyCounts),
+      nextWaveClearRewardGold: nextWave.clearRewardGold,
+      nextWaveKillRewardGold: _killRewardGoldFor(nextWave),
       autoStartMode: _autoStartMode,
       speedMultiplier: _speedMultiplier,
       killGoldFractionWallet: _killGoldFractionWallet,

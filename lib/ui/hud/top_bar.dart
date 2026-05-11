@@ -19,78 +19,37 @@ class _TopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: Alignment.topCenter,
-      child: Container(
-        margin: const EdgeInsets.all(12),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: const Color(0xDD091624),
-          border: Border.all(color: const Color(0x8833D8FF)),
-          borderRadius: BorderRadius.circular(8),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _Metric(
-              label: '골드',
-              value: '${snapshot.gold}',
-              valueChild: _GoldValue(snapshot: snapshot),
-            ),
-            const SizedBox(width: 14),
-            _Metric(
-              label: 'Nexus',
-              value: '${snapshot.nexusHp}/${snapshot.maxNexusHp}',
-            ),
-            const SizedBox(width: 14),
-            _Metric(
-              label: '웨이브',
-              value: '${snapshot.round}/${snapshot.maxRound}',
-            ),
-            const SizedBox(width: 6),
-            SizedBox(
-              width: 30,
-              height: 28,
-              child: IconButton(
-                onPressed: onOpenMainMenu,
-                style: IconButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  backgroundColor: Colors.transparent,
-                  side: const BorderSide(color: Color(0x5533D8FF)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
+            _ResourceStrip(snapshot: snapshot),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: showDebugButton ? 190 : 214,
                   ),
+                  child: _RunStatusPanel(snapshot: snapshot),
                 ),
-                icon: const Icon(Icons.home_outlined, size: 17),
               ),
+            ),
+            const SizedBox(width: 8),
+            _TopIconButton(
+              tooltip: '스테이지 메뉴',
+              icon: Icons.home_outlined,
+              onPressed: onOpenMainMenu,
             ),
             if (showDebugButton) ...[
               const SizedBox(width: 6),
-              SizedBox(
-                width: 30,
-                height: 28,
-                child: IconButton(
-                  onPressed: onToggleGemDebugPanel,
-                  style: IconButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    backgroundColor: showGemDebugPanel
-                        ? const Color(0xFF8EE6FF)
-                        : Colors.transparent,
-                    side: BorderSide(
-                      color: showGemDebugPanel
-                          ? const Color(0xFF8EE6FF)
-                          : const Color(0x5533D8FF),
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                  ),
-                  icon: Icon(
-                    Icons.diamond_outlined,
-                    size: 17,
-                    color: showGemDebugPanel
-                        ? const Color(0xFF07111D)
-                        : Colors.white,
-                  ),
-                ),
+              _TopIconButton(
+                tooltip: '테스트 젬 패널',
+                icon: Icons.diamond_outlined,
+                selected: showGemDebugPanel,
+                onPressed: onToggleGemDebugPanel,
               ),
             ],
           ],
@@ -98,6 +57,149 @@ class _TopBar extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ResourceStrip extends StatelessWidget {
+  const _ResourceStrip({required this.snapshot});
+
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 36,
+      padding: const EdgeInsets.symmetric(horizontal: 7),
+      decoration: BoxDecoration(
+        color: const Color(0xE607111D),
+        border: Border.all(color: const Color(0x6650E6FF)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _ResourceValue(
+            tooltip: '골드',
+            icon: Icons.paid_outlined,
+            iconColor: const Color(0xFFFFD166),
+            valueChild: _GoldValue(snapshot: snapshot),
+          ),
+          const SizedBox(width: 8),
+          _ResourceValue(
+            tooltip: '젬 파편',
+            iconWidget: const _GemShardIcon(),
+            valueText: '${snapshot.gemShards}',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResourceValue extends StatelessWidget {
+  const _ResourceValue({
+    required this.tooltip,
+    this.icon,
+    this.iconColor,
+    this.iconWidget,
+    this.valueText,
+    this.valueChild,
+  });
+
+  final String tooltip;
+  final IconData? icon;
+  final Color? iconColor;
+  final Widget? iconWidget;
+  final String? valueText;
+  final Widget? valueChild;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          iconWidget ??
+              Icon(icon, size: 16, color: iconColor ?? const Color(0xFFE8FBFF)),
+          const SizedBox(width: 3),
+          DefaultTextStyle(
+            style: const TextStyle(
+              color: Color(0xFFE8FBFF),
+              fontSize: 13,
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
+            child: valueChild ?? Text(valueText ?? '0'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GemShardIcon extends StatelessWidget {
+  const _GemShardIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 16,
+      height: 16,
+      child: CustomPaint(painter: _GemShardPainter()),
+    );
+  }
+}
+
+class _GemShardPainter extends CustomPainter {
+  const _GemShardPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final shard = Path()
+      ..moveTo(size.width * 0.48, size.height * 0.08)
+      ..lineTo(size.width * 0.88, size.height * 0.26)
+      ..lineTo(size.width * 0.78, size.height * 0.62)
+      ..lineTo(size.width * 0.36, size.height * 0.94)
+      ..lineTo(size.width * 0.08, size.height * 0.5)
+      ..close();
+    final paint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFA8FFB8), Color(0xFF28D66F), Color(0xFF0E7F47)],
+      ).createShader(Offset.zero & size);
+    canvas.drawPath(shard, paint);
+
+    final edgePaint = Paint()
+      ..color = const Color(0xFFBFFFF0)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(shard, edgePaint);
+
+    final facetPaint = Paint()
+      ..color = const Color(0x665CFFAA)
+      ..style = PaintingStyle.fill;
+    final facet = Path()
+      ..moveTo(size.width * 0.48, size.height * 0.08)
+      ..lineTo(size.width * 0.88, size.height * 0.26)
+      ..lineTo(size.width * 0.52, size.height * 0.38)
+      ..close();
+    canvas.drawPath(facet, facetPaint);
+
+    final glintPaint = Paint()
+      ..color = const Color(0xDDFFFFFF)
+      ..strokeWidth = 1.1
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(size.width * 0.3, size.height * 0.32),
+      Offset(size.width * 0.5, size.height * 0.16),
+      glintPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _GemShardPainter oldDelegate) => false;
 }
 
 class _GoldValue extends StatelessWidget {
@@ -111,9 +213,10 @@ class _GoldValue extends StatelessWidget {
     return RichText(
       text: TextSpan(
         style: const TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w900,
+          color: Color(0xFFE8FBFF),
+          height: 1,
         ),
         children: [
           TextSpan(text: '${snapshot.gold}'),
@@ -122,11 +225,313 @@ class _GoldValue extends StatelessWidget {
               text: '.$fractionDigit',
               style: const TextStyle(
                 fontSize: 11,
-                color: Color(0xFF607486),
+                color: Color(0xFF8FA8BA),
                 fontWeight: FontWeight.w800,
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _RunStatusPanel extends StatelessWidget {
+  const _RunStatusPanel({required this.snapshot});
+
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final hpRatio = snapshot.maxNexusHp <= 0
+        ? 0.0
+        : (snapshot.nexusHp / snapshot.maxNexusHp).clamp(0.0, 1.0);
+    final danger = hpRatio <= 0.35;
+    final hpColor = danger ? const Color(0xFFFF7043) : const Color(0xFF6EF6A5);
+
+    return Container(
+      height: 58,
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xD6091624),
+        border: Border.all(color: const Color(0x554A6172)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.favorite_outline, size: 12, color: hpColor),
+              const SizedBox(width: 3),
+              Text(
+                '${snapshot.nexusHp}/${snapshot.maxNexusHp}',
+                style: const TextStyle(
+                  color: Color(0xFFE8FBFF),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: LinearProgressIndicator(
+                    value: hpRatio,
+                    minHeight: 3,
+                    color: hpColor,
+                    backgroundColor: const Color(0xFF1A2A39),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                height: 20,
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10243A),
+                  border: Border.all(color: const Color(0x6633D8FF)),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '${snapshot.round}/${snapshot.maxRound}',
+                  style: const TextStyle(
+                    color: Color(0xFFE8FBFF),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          _WaveIntelRow(snapshot: snapshot),
+        ],
+      ),
+    );
+  }
+}
+
+class _WaveIntelRow extends StatelessWidget {
+  const _WaveIntelRow({required this.snapshot});
+
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final types = snapshot.nextWaveEnemyTypes.take(3).toList();
+    final hiddenCount = snapshot.nextWaveEnemyTypes.length - types.length;
+
+    return Row(
+      children: [
+        _EnemyIntelButton(
+          snapshot: snapshot,
+          types: types,
+          hiddenCount: hiddenCount,
+        ),
+        const Spacer(),
+        _RewardChip(
+          tooltip: '웨이브 클리어 보상',
+          icon: Icons.flag_outlined,
+          value: snapshot.nextWaveClearRewardGold,
+        ),
+        const SizedBox(width: 3),
+        _RewardChip(
+          tooltip: '모든 적 처치 보상',
+          icon: Icons.paid_outlined,
+          value: snapshot.nextWaveKillRewardGold,
+        ),
+      ],
+    );
+  }
+}
+
+class _EnemyIntelButton extends StatelessWidget {
+  const _EnemyIntelButton({
+    required this.snapshot,
+    required this.types,
+    required this.hiddenCount,
+  });
+
+  final GameSnapshot snapshot;
+  final List<EnemyType> types;
+  final int hiddenCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final width = 10.0 + types.length * 18 + (hiddenCount > 0 ? 16 : 0);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => showModalBottomSheet<void>(
+          context: context,
+          backgroundColor: Colors.transparent,
+          builder: (context) => _PortalWaveDetailSheet(snapshot: snapshot),
+        ),
+        borderRadius: BorderRadius.circular(5),
+        child: Container(
+          height: 22,
+          width: width.clamp(28.0, 82.0),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFF10243A),
+            border: Border.all(color: const Color(0x5533D8FF)),
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Row(
+            children: [
+              ...types.map(
+                (type) => Padding(
+                  padding: const EdgeInsets.only(right: 2),
+                  child: SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: _WaveEnemyMiniIcon(type: type),
+                  ),
+                ),
+              ),
+              if (hiddenCount > 0)
+                Text(
+                  '+$hiddenCount',
+                  style: const TextStyle(
+                    color: Color(0xFF8EE6FF),
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WaveEnemyMiniIcon extends StatelessWidget {
+  const _WaveEnemyMiniIcon({required this.type});
+
+  final EnemyType type;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = switch (type) {
+      EnemyType.normal => (
+        icon: Icons.circle,
+        color: const Color(0xFFD8E8F5),
+        size: 11.0,
+      ),
+      EnemyType.fast => (
+        icon: Icons.bolt,
+        color: const Color(0xFFFFD166),
+        size: 15.0,
+      ),
+      EnemyType.tank => (
+        icon: Icons.shield,
+        color: const Color(0xFF8EE6FF),
+        size: 14.0,
+      ),
+      EnemyType.boss => (
+        icon: Icons.local_fire_department,
+        color: const Color(0xFFFF7043),
+        size: 15.0,
+      ),
+    };
+
+    return Center(
+      child: Icon(
+        style.icon,
+        size: style.size,
+        color: style.color,
+        shadows: const [
+          Shadow(color: Color(0x99000000), blurRadius: 3, offset: Offset(0, 1)),
+        ],
+      ),
+    );
+  }
+}
+
+class _RewardChip extends StatelessWidget {
+  const _RewardChip({
+    required this.tooltip,
+    required this.icon,
+    required this.value,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final int value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        decoration: BoxDecoration(
+          color: const Color(0xFF15293A),
+          border: Border.all(color: const Color(0x444A6172)),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 10, color: const Color(0xFFFFD166)),
+            const SizedBox(width: 2),
+            Text(
+              '+$value',
+              style: const TextStyle(
+                color: Color(0xFFE8FBFF),
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                height: 1,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TopIconButton extends StatelessWidget {
+  const _TopIconButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+    this.selected = false,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 36,
+      height: 36,
+      child: IconButton(
+        tooltip: tooltip,
+        onPressed: onPressed,
+        style: IconButton.styleFrom(
+          padding: EdgeInsets.zero,
+          foregroundColor: selected
+              ? const Color(0xFF07111D)
+              : const Color(0xFFE8FBFF),
+          backgroundColor: selected
+              ? const Color(0xFF8EE6FF)
+              : const Color(0xE607111D),
+          side: BorderSide(
+            color: selected ? const Color(0xFF8EE6FF) : const Color(0x6650E6FF),
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        icon: Icon(icon, size: 18),
       ),
     );
   }

@@ -10,6 +10,7 @@ import '../domain/turret/turret_type.dart';
 class GameSnapshot {
   const GameSnapshot({
     required this.gold,
+    required this.gemShards,
     required this.nexusHp,
     required this.maxNexusHp,
     required this.round,
@@ -59,6 +60,8 @@ class GameSnapshot {
     required this.topDamageTurretDamageDealt,
     required this.nextWaveEnemyTypes,
     required this.nextWaveEnemyCounts,
+    required this.nextWaveClearRewardGold,
+    required this.nextWaveKillRewardGold,
     required this.autoStartMode,
     required this.speedMultiplier,
     required this.killGoldFractionWallet,
@@ -90,6 +93,7 @@ class GameSnapshot {
   });
 
   final int gold;
+  final int gemShards;
   final int nexusHp;
   final int maxNexusHp;
   final int round;
@@ -139,6 +143,8 @@ class GameSnapshot {
   final double topDamageTurretDamageDealt;
   final List<EnemyType> nextWaveEnemyTypes;
   final Map<EnemyType, int> nextWaveEnemyCounts;
+  final int nextWaveClearRewardGold;
+  final int nextWaveKillRewardGold;
   final AutoStartMode autoStartMode;
   final double speedMultiplier;
   final double killGoldFractionWallet;
