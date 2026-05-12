@@ -14,7 +14,9 @@ class ImpactEffectComponent extends PositionComponent {
   }) : _color = color,
        super(
          position: position,
-         size: Vector2.all(radius * 2),
+         size: Vector2.all(
+           radius * (style == ImpactEffectStyle.blast ? 2.45 : 2),
+         ),
          anchor: Anchor.center,
        );
 
@@ -22,7 +24,7 @@ class ImpactEffectComponent extends PositionComponent {
   final ImpactEffectStyle style;
   final double radius;
   double _age = 0;
-  final double _lifeTime = 0.28;
+  double get _lifeTime => style == ImpactEffectStyle.blast ? 0.36 : 0.28;
 
   @override
   void update(double dt) {
@@ -64,22 +66,54 @@ class ImpactEffectComponent extends PositionComponent {
           Paint()..color = const Color(0xFFFFFFFF).withValues(alpha: alpha),
         );
       case ImpactEffectStyle.blast:
-        final ring = Paint()
-          ..color = _color.withValues(alpha: alpha * 0.66)
+        final shockRing = Paint()
+          ..color = const Color(0xFFFFF0B0).withValues(alpha: alpha * 0.62)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3.1;
+        final outerRing = Paint()
+          ..color = _color.withValues(alpha: alpha * 0.78)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.2;
-        canvas.drawCircle(center, radius * (0.3 + progress * 0.7), ring);
+        canvas.drawCircle(center, radius * (0.24 + progress * 0.9), shockRing);
+        canvas.drawCircle(center, radius * (0.38 + progress * 0.58), outerRing);
+        final flash = Paint()
+          ..color = const Color(
+            0xFFFFF4C6,
+          ).withValues(alpha: (1 - progress * 1.4).clamp(0.0, 1.0));
+        canvas.drawCircle(center, radius * (0.22 + progress * 0.12), flash);
         canvas.drawCircle(
           center,
-          radius * (0.18 + progress * 0.16),
+          radius * (0.2 + progress * 0.2),
           Paint()
-            ..color = const Color(0xFFFFD45A).withValues(alpha: alpha * 0.55),
+            ..color = const Color(0xFFFFA84E).withValues(alpha: alpha * 0.65),
         );
+        final shard = Paint()
+          ..strokeWidth = 1.7
+          ..strokeCap = StrokeCap.round;
+        for (var i = 0; i < 8; i++) {
+          final angle = i * math.pi * 2 / 8 + 0.2;
+          final inner = radius * (0.18 + progress * 0.18);
+          final outer = radius * (0.42 + progress * 0.42);
+          shard.color =
+              (i.isEven ? const Color(0xFFFFF4C6) : const Color(0xFFFF9A3D))
+                  .withValues(alpha: alpha * 0.74);
+          canvas.drawLine(
+            Offset(
+              center.dx + math.cos(angle) * inner,
+              center.dy + math.sin(angle) * inner,
+            ),
+            Offset(
+              center.dx + math.cos(angle) * outer,
+              center.dy + math.sin(angle) * outer,
+            ),
+            shard,
+          );
+        }
         final dust = Paint()..color = const Color(0xFFB8B8A8);
-        for (var i = 0; i < 5; i++) {
-          final angle = i * math.pi * 2 / 5 + 0.28;
-          final distance = radius * (0.2 + progress * 0.62);
-          dust.color = dust.color.withValues(alpha: alpha * 0.34);
+        for (var i = 0; i < 7; i++) {
+          final angle = i * math.pi * 2 / 7 + 0.28;
+          final distance = radius * (0.28 + progress * 0.76);
+          dust.color = dust.color.withValues(alpha: alpha * 0.38);
           canvas.drawCircle(
             Offset(
               center.dx + math.cos(angle) * distance,

@@ -21,8 +21,6 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
         snapshot.phase == GamePhase.preparation ||
         snapshot.phase == GamePhase.wave;
     final canRefund = snapshot.selectedTurretPoint != null && canLevelUp;
-    final slotText =
-        '${snapshot.selectedTurretGems.length}/${snapshot.selectedTurretSlotLimit}';
     final definition = demoTurrets[snapshot.selectedTurretType]!;
     final inventory = GemType.values
         .where((type) => (snapshot.gemInventory[type] ?? 0) > 0)
@@ -94,15 +92,6 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                     ? '${snapshot.selectedTurretLevelUpCost}G'
                     : 'MAX',
                 onLevelUp: widget.game.levelUpSelectedTurret,
-                showLink: snapshot.selectedTurretHasLinkUpgrade,
-                canUpgradeLink:
-                    snapshot.selectedTurretCanUpgradeLink &&
-                    canManageGems &&
-                    snapshot.gold >= snapshot.selectedTurretLinkUpgradeCost,
-                linkLabel: snapshot.selectedTurretCanUpgradeLink
-                    ? '${snapshot.selectedTurretLinkUpgradeCost}G'
-                    : 'Lv.${snapshot.selectedTurretLinkUpgradeRequiredLevel}',
-                onUpgradeLink: widget.game.upgradeSelectedTurretLink,
                 canRefund: canRefund,
                 refundLabel: '${snapshot.selectedTurretRefundGold}G',
                 onRefund: () => _confirmRefundSelectedTurret(snapshot),
@@ -120,70 +109,12 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
           const SizedBox(height: 6),
           _TurretStats(snapshot: snapshot, definition: definition),
           const SizedBox(height: 6),
-          Row(
-            children: [
-              Text(
-                '링크 $slotText',
-                style: const TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: List.generate(snapshot.selectedTurretSlotLimit, (
-                      index,
-                    ) {
-                      final type = index < snapshot.selectedTurretGems.length
-                          ? snapshot.selectedTurretGems[index]
-                          : null;
-                      final selected = selectedSlotIndex == index;
-                      final color = type == null
-                          ? const Color(0xFF8AA6B8)
-                          : demoGems[type]!.color;
-                      final label = type == null
-                          ? '${index + 1}: 빈 슬롯'
-                          : '${index + 1}';
-
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: OutlinedButton(
-                          onPressed: canManageGems
-                              ? () => widget.game.selectSelectedTurretGemSlot(
-                                  index,
-                                )
-                              : null,
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: BorderSide(
-                              color: selected
-                                  ? color
-                                  : color.withValues(alpha: 0.55),
-                              width: selected ? 2 : 1,
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            minimumSize: const Size(0, 30),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(7),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (type != null) ...[
-                                Icon(demoGems[type]!.icon, size: 13),
-                                const SizedBox(width: 4),
-                              ],
-                              Text(label, style: const TextStyle(fontSize: 11)),
-                            ],
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-              ),
-            ],
+          _TurretLinkSocketStrip(
+            snapshot: snapshot,
+            canManageGems: canManageGems,
+            selectedSlotIndex: selectedSlotIndex,
+            onSelectSlot: widget.game.selectSelectedTurretGemSlot,
+            onUpgradeLink: widget.game.upgradeSelectedTurretLink,
           ),
           if (showGemInventory && selectedSlotGem != null) ...[
             const SizedBox(height: 6),
@@ -336,10 +267,6 @@ class _TurretActionBar extends StatelessWidget {
     required this.canLevelUp,
     required this.levelUpLabel,
     required this.onLevelUp,
-    required this.showLink,
-    required this.canUpgradeLink,
-    required this.linkLabel,
-    required this.onUpgradeLink,
     required this.canRefund,
     required this.refundLabel,
     required this.onRefund,
@@ -349,10 +276,6 @@ class _TurretActionBar extends StatelessWidget {
   final bool canLevelUp;
   final String levelUpLabel;
   final VoidCallback onLevelUp;
-  final bool showLink;
-  final bool canUpgradeLink;
-  final String linkLabel;
-  final VoidCallback onUpgradeLink;
   final bool canRefund;
   final String refundLabel;
   final VoidCallback onRefund;
@@ -368,15 +291,6 @@ class _TurretActionBar extends StatelessWidget {
           color: const Color(0xFFE7C66A),
           onPressed: canLevelUp ? onLevelUp : null,
         ),
-        if (showLink) ...[
-          const SizedBox(width: 6),
-          _TurretActionButton(
-            icon: Icons.account_tree_outlined,
-            label: linkLabel,
-            color: const Color(0xFF8EE6FF),
-            onPressed: canUpgradeLink ? onUpgradeLink : null,
-          ),
-        ],
         const SizedBox(width: 6),
         _TurretActionButton(
           icon: Icons.sell_outlined,
@@ -386,6 +300,188 @@ class _TurretActionBar extends StatelessWidget {
         ),
         if (traitButton != null) ...[const SizedBox(width: 6), traitButton!],
       ],
+    );
+  }
+}
+
+class _TurretLinkSocketStrip extends StatelessWidget {
+  const _TurretLinkSocketStrip({
+    required this.snapshot,
+    required this.canManageGems,
+    required this.selectedSlotIndex,
+    required this.onSelectSlot,
+    required this.onUpgradeLink,
+  });
+
+  final GameSnapshot snapshot;
+  final bool canManageGems;
+  final int? selectedSlotIndex;
+  final ValueChanged<int> onSelectSlot;
+  final VoidCallback onUpgradeLink;
+
+  @override
+  Widget build(BuildContext context) {
+    final canOpenLockedSocket =
+        canManageGems &&
+        snapshot.selectedTurretCanUpgradeLink &&
+        snapshot.gold >= snapshot.selectedTurretLinkUpgradeCost;
+    final lockedLabel = snapshot.selectedTurretCanUpgradeLink
+        ? '${snapshot.selectedTurretLinkUpgradeCost}G'
+        : 'Lv.${snapshot.selectedTurretLinkUpgradeRequiredLevel}';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+      decoration: BoxDecoration(
+        color: const Color(0x9907111D),
+        border: Border.all(color: const Color(0x4433D8FF)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.hub_outlined, size: 15, color: Color(0xFF8EE6FF)),
+          const SizedBox(width: 6),
+          const Text(
+            '링크 홈',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFFE8F8FF),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  for (
+                    var index = 0;
+                    index < snapshot.selectedTurretSlotLimit;
+                    index++
+                  )
+                    Padding(
+                      padding: const EdgeInsets.only(right: 7),
+                      child: _LinkSocketButton(
+                        index: index,
+                        type: index < snapshot.selectedTurretGems.length
+                            ? snapshot.selectedTurretGems[index]
+                            : null,
+                        selected: selectedSlotIndex == index,
+                        enabled: canManageGems,
+                        onTap: () => onSelectSlot(index),
+                      ),
+                    ),
+                  if (snapshot.selectedTurretHasLinkUpgrade)
+                    _LinkSocketButton(
+                      index: snapshot.selectedTurretSlotLimit,
+                      type: null,
+                      selected: false,
+                      enabled: canOpenLockedSocket,
+                      locked: true,
+                      lockedLabel: lockedLabel,
+                      onTap: onUpgradeLink,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LinkSocketButton extends StatelessWidget {
+  const _LinkSocketButton({
+    required this.index,
+    required this.type,
+    required this.selected,
+    required this.enabled,
+    required this.onTap,
+    this.locked = false,
+    this.lockedLabel,
+  });
+
+  final int index;
+  final GemType? type;
+  final bool selected;
+  final bool enabled;
+  final VoidCallback onTap;
+  final bool locked;
+  final String? lockedLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final gem = type == null ? null : demoGems[type]!;
+    final accent = locked
+        ? (enabled ? const Color(0xFFE7C66A) : const Color(0xFF607587))
+        : gem?.color ?? const Color(0xFF8AA6B8);
+    final tooltip = locked ? (enabled ? '홈 열기' : '홈 잠김') : gem?.name ?? '빈 홈';
+
+    return Tooltip(
+      message: tooltip,
+      child: SizedBox(
+        width: 44,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 38,
+              height: 38,
+              child: OutlinedButton(
+                onPressed: enabled ? onTap : null,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: accent,
+                  disabledForegroundColor: const Color(0xFF607587),
+                  backgroundColor: selected
+                      ? accent.withValues(alpha: 0.2)
+                      : const Color(0xFF07111D),
+                  side: BorderSide(
+                    color: selected ? accent : accent.withValues(alpha: 0.62),
+                    width: selected ? 2 : 1,
+                  ),
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(38, 38),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: const CircleBorder(),
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 25,
+                      height: 25,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.36),
+                        ),
+                      ),
+                    ),
+                    if (locked)
+                      Icon(Icons.lock_outline, size: 15, color: accent)
+                    else if (gem == null)
+                      Icon(Icons.add, size: 17, color: accent)
+                    else
+                      Icon(gem.icon, size: 17, color: gem.color),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              locked ? (lockedLabel ?? '잠김') : '홈 ${index + 1}',
+              style: TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                color: selected ? accent : const Color(0xFF8AA6B8),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

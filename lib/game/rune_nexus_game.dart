@@ -1213,7 +1213,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _gold -= turret.linkUpgradeCost;
     turret.upgradeLink();
-    _selectedTurretGemSlotIndex = null;
+    _selectedTurretGemSlotIndex = turret.slotLimit - 1;
     _publish();
     _requestLocalSave(immediate: true);
   }
@@ -1715,7 +1715,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _configureBoard() {
-    const topReservedHeight = 88.0;
+    const topReservedHeight = 76.0;
     const bottomReservedHeight = 305.0;
     final availableHeight = math.max(
       160.0,

@@ -19,6 +19,8 @@ import 'projectile_component.dart';
 enum TurretTargetPriority { first, last, nearest }
 
 class TurretComponent extends PositionComponent {
+  static const double _visualSizeScale = 0.82;
+
   TurretComponent({
     required this.gridPoint,
     required this.definition,
@@ -28,7 +30,7 @@ class TurretComponent extends PositionComponent {
   }) : _tileSize = tileSize,
        super(
          position: center,
-         size: Vector2.all(tileSize * 0.72),
+         size: Vector2.all(tileSize * _visualSizeScale),
          anchor: Anchor.center,
        );
 
@@ -348,7 +350,7 @@ class TurretComponent extends PositionComponent {
   void updateLayout({required Vector2 center, required double tileSize}) {
     position = center;
     _tileSize = tileSize;
-    size = Vector2.all(tileSize * 0.72);
+    size = Vector2.all(tileSize * _visualSizeScale);
   }
 
   GemType? equipGem(GemType type, int slotIndex) {
@@ -566,33 +568,7 @@ class TurretComponent extends PositionComponent {
       ),
     );
 
-    if (_level > 1) {
-      final markerCount = _level - 1;
-      final markerSize = _tileSize * 0.045;
-      final markerGap = _tileSize * 0.035;
-      final markerWidth = markerSize * 2;
-      final totalWidth =
-          markerCount * markerWidth + (markerCount - 1) * markerGap;
-      final startX = center.dx - totalWidth / 2 + markerSize;
-      final markerY = center.dy + _tileSize * 0.32;
-      final markerFill = Paint()..color = const Color(0xFFFFD45A);
-      final markerOutline = Paint()
-        ..color = const Color(0xFF050A12)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2;
-
-      for (var i = 0; i < markerCount; i++) {
-        final x = startX + i * (markerWidth + markerGap);
-        final marker = Path()
-          ..moveTo(x, markerY - markerSize)
-          ..lineTo(x + markerSize, markerY)
-          ..lineTo(x, markerY + markerSize)
-          ..lineTo(x - markerSize, markerY)
-          ..close();
-        canvas.drawPath(marker, markerFill);
-        canvas.drawPath(marker, markerOutline);
-      }
-    }
+    _drawLevelAura(canvas, center);
 
     for (var i = 0; i < equippedGems.length; i++) {
       final offsetX = size.x * 0.78 - i * _tileSize * 0.14;
@@ -628,6 +604,51 @@ class TurretComponent extends PositionComponent {
     canvas.drawRRect(RRect.fromRectAndRadius(tileRect, radius), outerPaint);
     canvas.drawCircle(center, _tileSize * 0.42, outerPaint);
     canvas.drawCircle(center, _tileSize * 0.32, innerPaint);
+  }
+
+  void _drawLevelAura(Canvas canvas, Offset center) {
+    if (_level <= 1) {
+      return;
+    }
+
+    final progress = (_level - 1) / (maxLevel - 1);
+    final ringRadius = _tileSize * 0.39;
+    final ringRect = Rect.fromCircle(center: center, radius: ringRadius);
+    final basePaint = Paint()
+      ..color = const Color(0xFF050A12).withValues(alpha: 0.78)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.6
+      ..strokeCap = StrokeCap.round;
+    final progressPaint = Paint()
+      ..color = const Color(0xFFFFD45A).withValues(alpha: 0.92)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.6
+      ..strokeCap = StrokeCap.round;
+    final glowPaint = Paint()
+      ..color = const Color(0xFFFFD45A).withValues(alpha: 0.08 + progress * 0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 7;
+
+    canvas.drawCircle(center, ringRadius, glowPaint);
+    canvas.drawArc(ringRect, -math.pi * 0.82, math.pi * 1.64, false, basePaint);
+    canvas.drawArc(
+      ringRect,
+      -math.pi * 0.82,
+      math.pi * 1.64 * progress,
+      false,
+      progressPaint,
+    );
+
+    final pipCount = math.min(_level - 1, 9);
+    final pipPaint = Paint()..color = const Color(0xFFFFF0B0);
+    for (var i = 0; i < pipCount; i++) {
+      final angle = -math.pi * 0.82 + math.pi * 1.64 * (i / 8);
+      final pipCenter = Offset(
+        center.dx + math.cos(angle) * ringRadius,
+        center.dy + math.sin(angle) * ringRadius,
+      );
+      canvas.drawCircle(pipCenter, _tileSize * 0.022, pipPaint);
+    }
   }
 }
 
