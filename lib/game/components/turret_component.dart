@@ -9,6 +9,7 @@ import '../../domain/map/grid_point.dart';
 import '../../domain/turret/attack_tag.dart';
 import '../../domain/turret/damage_family.dart';
 import '../../domain/turret/turret_definition.dart';
+import '../../domain/turret/turret_trait_type.dart';
 import '../../domain/turret/turret_type.dart';
 import '../rendering/turret_shape_renderer.dart';
 import '../rune_nexus_game.dart';
@@ -47,6 +48,14 @@ class TurretComponent extends PositionComponent {
   double _splashDamageDealt = 0;
   double _chainDamageDealt = 0;
   double _burnDamageDealt = 0;
+  TurretTraitType? _primaryTrait;
+  TurretTraitType? _secondaryTrait;
+  EnemyComponent? _overheatTarget;
+  int _overheatStacks = 0;
+  EnemyComponent? _suppressiveTarget;
+  int _suppressiveHits = 0;
+  final Map<EnemyComponent, double> _recentHitTimers = {};
+  double _chainCleanupTimer = 0;
   TurretTargetPriority _targetPriority = TurretTargetPriority.first;
 
   static const double _damageGrowthPerLevel = 0.2;
@@ -62,6 +71,8 @@ class TurretComponent extends PositionComponent {
   double get splashDamageDealt => _splashDamageDealt;
   double get chainDamageDealt => _chainDamageDealt;
   double get burnDamageDealt => _burnDamageDealt;
+  TurretTraitType? get primaryTrait => _primaryTrait;
+  TurretTraitType? get secondaryTrait => _secondaryTrait;
   TurretTargetPriority get targetPriority => _targetPriority;
   double get damageDealt =>
       _directDamageDealt +
@@ -100,6 +111,14 @@ class TurretComponent extends PositionComponent {
 
   bool get canUpgradeLink =>
       hasNextLinkUpgrade && _level >= linkUpgradeRequiredLevel;
+  bool get supportsTraits => definition.type == TurretType.arrow;
+  bool get canChoosePrimaryTrait =>
+      supportsTraits && _primaryTrait == null && _level >= 3;
+  bool get canChooseSecondaryTrait =>
+      supportsTraits &&
+      _primaryTrait != null &&
+      _secondaryTrait == null &&
+      _level >= 7;
 
   double get damage {
     var levelDamage =
@@ -137,17 +156,25 @@ class TurretComponent extends PositionComponent {
     final levelMultiplier = math
         .pow(1 + _attackRateGrowthPerLevel, _level - 1)
         .toDouble();
-    return definition.attackRate *
+    var rate =
+        definition.attackRate *
         levelMultiplier *
         (hasGem(GemType.attackSpeed) ? 1.4 : 1) *
         (definition.attackTags.contains(AttackTag.light) &&
                 hasGem(GemType.lightWeapon)
             ? 1.2
-            : 1);
+            : 1) *
+        (_primaryTrait == TurretTraitType.lightweightBarrel ? 1.1 : 1);
+    if (_chainCleanupTimer > 0) {
+      rate *= 1.4;
+    }
+    return rate;
   }
 
   double get projectileSpeed =>
-      definition.projectileSpeed * game.boardDistanceScale;
+      definition.projectileSpeed *
+      (_primaryTrait == TurretTraitType.lightweightBarrel ? 1.3 : 1) *
+      game.boardDistanceScale;
 
   double get damageOverTimeDamageMultiplier =>
       definition.attackTags.contains(AttackTag.damageOverTime) &&
@@ -213,6 +240,8 @@ class TurretComponent extends PositionComponent {
       splashDamageDealt: _splashDamageDealt,
       chainDamageDealt: _chainDamageDealt,
       burnDamageDealt: _burnDamageDealt,
+      primaryTrait: _primaryTrait,
+      secondaryTrait: _secondaryTrait,
     );
   }
 
@@ -224,6 +253,8 @@ class TurretComponent extends PositionComponent {
     _splashDamageDealt = math.max(0, data.splashDamageDealt);
     _chainDamageDealt = math.max(0, data.chainDamageDealt);
     _burnDamageDealt = math.max(0, data.burnDamageDealt);
+    _primaryTrait = supportsTraits ? data.primaryTrait : null;
+    _secondaryTrait = supportsTraits ? data.secondaryTrait : null;
     if (damageDealt == 0 && data.damageDealt > 0) {
       _directDamageDealt = math.max(0, data.damageDealt);
     }
@@ -246,6 +277,72 @@ class TurretComponent extends PositionComponent {
       case TurretDamageKind.burn:
         _burnDamageDealt += damage;
     }
+  }
+
+  bool choosePrimaryTrait(TurretTraitType trait) {
+    if (!canChoosePrimaryTrait) {
+      return false;
+    }
+    _primaryTrait = trait;
+    _secondaryTrait = null;
+    _overheatTarget = null;
+    _overheatStacks = 0;
+    _suppressiveTarget = null;
+    _suppressiveHits = 0;
+    _recentHitTimers.clear();
+    _chainCleanupTimer = 0;
+    return true;
+  }
+
+  bool chooseSecondaryTrait(TurretTraitType trait) {
+    if (!canChooseSecondaryTrait) {
+      return false;
+    }
+    _secondaryTrait = trait;
+    _suppressiveTarget = null;
+    _suppressiveHits = 0;
+    _recentHitTimers.clear();
+    _chainCleanupTimer = 0;
+    return true;
+  }
+
+  double registerDirectHitTraits(EnemyComponent enemy) {
+    if (_secondaryTrait == TurretTraitType.chainCleanup) {
+      _recentHitTimers[enemy] = 1.5;
+    }
+    if (_secondaryTrait == TurretTraitType.suppressiveFire) {
+      if (identical(_suppressiveTarget, enemy)) {
+        _suppressiveHits++;
+      } else {
+        _suppressiveTarget = enemy;
+        _suppressiveHits = 1;
+      }
+      if (_suppressiveHits >= 5) {
+        enemy.applyPhysicalVulnerability(bonus: 0.2, duration: 2);
+        _suppressiveHits = 0;
+      }
+    }
+    if (_primaryTrait == TurretTraitType.overheatMagazine) {
+      if (identical(_overheatTarget, enemy)) {
+        _overheatStacks = math.min(15, _overheatStacks + 1);
+      } else {
+        _overheatTarget = enemy;
+        _overheatStacks = 1;
+      }
+      return 1 + _overheatStacks * 0.02;
+    }
+    return 1;
+  }
+
+  void handleEnemyKilled(EnemyComponent enemy) {
+    if (_secondaryTrait != TurretTraitType.chainCleanup) {
+      return;
+    }
+    if ((_recentHitTimers[enemy] ?? 0) <= 0) {
+      return;
+    }
+    _chainCleanupTimer = 3;
+    _recentHitTimers.remove(enemy);
   }
 
   void updateLayout({required Vector2 center, required double tileSize}) {
@@ -309,6 +406,17 @@ class TurretComponent extends PositionComponent {
     super.update(dt);
     _fireFeedbackTimer = math.max(0, _fireFeedbackTimer - dt);
     _cooldown = math.max(0, _cooldown - dt);
+    _chainCleanupTimer = math.max(0, _chainCleanupTimer - dt);
+    if (_recentHitTimers.isNotEmpty) {
+      for (final entry in _recentHitTimers.entries.toList()) {
+        final remaining = entry.value - dt;
+        if (remaining <= 0 || entry.key.isDead) {
+          _recentHitTimers.remove(entry.key);
+        } else {
+          _recentHitTimers[entry.key] = remaining;
+        }
+      }
+    }
     if (_cooldown > 0 || !game.isWaveRunning) {
       return;
     }

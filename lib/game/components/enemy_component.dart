@@ -43,6 +43,8 @@ class EnemyComponent extends PositionComponent {
   int _poisonStacks = 0;
   double _slowRemaining = 0;
   double _slowMultiplier = 1;
+  double _physicalVulnerabilityRemaining = 0;
+  double _physicalVulnerabilityBonus = 0;
   double _facingAngle = 0;
   double _hitFlashTimer = 0;
   Color _hitFlashColor = const Color(0xFFFFFFFF);
@@ -75,6 +77,8 @@ class EnemyComponent extends PositionComponent {
   bool get isSlowed => _slowRemaining > 0;
   double get slowRemaining => _slowRemaining;
   double get slowMultiplier => _slowMultiplier;
+  double get physicalDamageTakenBonus =>
+      _physicalVulnerabilityRemaining > 0 ? _physicalVulnerabilityBonus : 0;
   double get totalBurnDamagePerSecond => _burnInstances.fold(
     0,
     (total, instance) => total + instance.damagePerSecond,
@@ -108,6 +112,8 @@ class EnemyComponent extends PositionComponent {
       poisonStacks: _poisonStacks,
       slowRemaining: _slowRemaining,
       slowMultiplier: _slowMultiplier,
+      physicalVulnerabilityRemaining: _physicalVulnerabilityRemaining,
+      physicalVulnerabilityBonus: _physicalVulnerabilityBonus,
     );
   }
 
@@ -131,6 +137,11 @@ class EnemyComponent extends PositionComponent {
     _poisonNumberTimer = 0;
     _slowRemaining = math.max(0, data.slowRemaining);
     _slowMultiplier = data.slowMultiplier <= 0 ? 1 : data.slowMultiplier;
+    _physicalVulnerabilityRemaining = math.max(
+      0,
+      data.physicalVulnerabilityRemaining,
+    );
+    _physicalVulnerabilityBonus = math.max(0, data.physicalVulnerabilityBonus);
     _placeAtDistance(distanceTravelled);
   }
 
@@ -269,6 +280,20 @@ class EnemyComponent extends PositionComponent {
     _slowRemaining = math.max(_slowRemaining, duration);
   }
 
+  void applyPhysicalVulnerability({
+    required double bonus,
+    required double duration,
+  }) {
+    if (bonus <= 0 || duration <= 0) {
+      return;
+    }
+    _physicalVulnerabilityBonus = math.max(_physicalVulnerabilityBonus, bonus);
+    _physicalVulnerabilityRemaining = math.max(
+      _physicalVulnerabilityRemaining,
+      duration,
+    );
+  }
+
   void _updateStatusEffects(double dt) {
     if (_burnInstances.isNotEmpty) {
       _burnNumberTimer += dt;
@@ -330,6 +355,15 @@ class EnemyComponent extends PositionComponent {
       _slowRemaining = math.max(0, _slowRemaining - dt);
       if (_slowRemaining == 0) {
         _slowMultiplier = 1;
+      }
+    }
+    if (_physicalVulnerabilityRemaining > 0) {
+      _physicalVulnerabilityRemaining = math.max(
+        0,
+        _physicalVulnerabilityRemaining - dt,
+      );
+      if (_physicalVulnerabilityRemaining == 0) {
+        _physicalVulnerabilityBonus = 0;
       }
     }
   }

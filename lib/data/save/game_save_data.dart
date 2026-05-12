@@ -4,6 +4,7 @@ import '../../domain/enemy/enemy_type.dart';
 import '../../domain/gem/gem_type.dart';
 import '../../domain/map/grid_point.dart';
 import '../../domain/run_upgrade/run_upgrade_type.dart';
+import '../../domain/turret/turret_trait_type.dart';
 import '../../domain/turret/turret_type.dart';
 
 class GameSaveData {
@@ -202,6 +203,8 @@ class SavedTurret {
     required this.splashDamageDealt,
     required this.chainDamageDealt,
     required this.burnDamageDealt,
+    required this.primaryTrait,
+    required this.secondaryTrait,
   });
 
   final int x;
@@ -216,6 +219,8 @@ class SavedTurret {
   final double splashDamageDealt;
   final double chainDamageDealt;
   final double burnDamageDealt;
+  final TurretTraitType? primaryTrait;
+  final TurretTraitType? secondaryTrait;
 
   GridPoint get point => GridPoint(x, y);
 
@@ -233,6 +238,8 @@ class SavedTurret {
       'splashDamageDealt': splashDamageDealt,
       'chainDamageDealt': chainDamageDealt,
       'burnDamageDealt': burnDamageDealt,
+      'primaryTrait': primaryTrait?.name,
+      'secondaryTrait': secondaryTrait?.name,
     };
   }
 
@@ -257,6 +264,11 @@ class SavedTurret {
       splashDamageDealt: _doubleValue(json['splashDamageDealt']),
       chainDamageDealt: _doubleValue(json['chainDamageDealt']),
       burnDamageDealt: _doubleValue(json['burnDamageDealt']),
+      primaryTrait: _enumValue(TurretTraitType.values, json['primaryTrait']),
+      secondaryTrait: _enumValue(
+        TurretTraitType.values,
+        json['secondaryTrait'],
+      ),
     );
   }
 }
@@ -327,6 +339,8 @@ class SavedEnemy {
     required this.poisonStacks,
     required this.slowRemaining,
     required this.slowMultiplier,
+    required this.physicalVulnerabilityRemaining,
+    required this.physicalVulnerabilityBonus,
   });
 
   final EnemyType type;
@@ -343,6 +357,8 @@ class SavedEnemy {
   final int poisonStacks;
   final double slowRemaining;
   final double slowMultiplier;
+  final double physicalVulnerabilityRemaining;
+  final double physicalVulnerabilityBonus;
 
   Map<String, Object?> toJson() {
     return {
@@ -362,6 +378,8 @@ class SavedEnemy {
       'poisonStacks': poisonStacks,
       'slowRemaining': slowRemaining,
       'slowMultiplier': slowMultiplier,
+      'physicalVulnerabilityRemaining': physicalVulnerabilityRemaining,
+      'physicalVulnerabilityBonus': physicalVulnerabilityBonus,
     };
   }
 
@@ -416,6 +434,12 @@ class SavedEnemy {
       poisonStacks: _intValue(json['poisonStacks']),
       slowRemaining: _doubleValue(json['slowRemaining']),
       slowMultiplier: _doubleValue(json['slowMultiplier'], fallback: 1),
+      physicalVulnerabilityRemaining: _doubleValue(
+        json['physicalVulnerabilityRemaining'],
+      ),
+      physicalVulnerabilityBonus: _doubleValue(
+        json['physicalVulnerabilityBonus'],
+      ),
     );
   }
 }

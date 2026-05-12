@@ -106,6 +106,12 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                 canRefund: canRefund,
                 refundLabel: '${snapshot.selectedTurretRefundGold}G',
                 onRefund: () => _confirmRefundSelectedTurret(snapshot),
+                traitButton: snapshot.selectedTurretSupportsTraits
+                    ? _TurretTraitActionButton(
+                        snapshot: snapshot,
+                        onPressed: () => _showTraitDialog(snapshot),
+                      )
+                    : null,
               ),
             ],
           ),
@@ -297,6 +303,32 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
       }
     }
   }
+
+  Future<void> _showTraitDialog(GameSnapshot snapshot) async {
+    final pauseCombat = snapshot.phase == GamePhase.wave;
+    if (pauseCombat) {
+      widget.game.pauseEngine();
+    }
+    try {
+      final selected = await showDialog<_TraitSelection>(
+        context: context,
+        builder: (context) => _TurretTraitDialog(snapshot: snapshot),
+      );
+      if (!mounted || selected == null) {
+        return;
+      }
+
+      if (selected.tier == 1) {
+        widget.game.chooseSelectedTurretPrimaryTrait(selected.trait);
+      } else {
+        widget.game.chooseSelectedTurretSecondaryTrait(selected.trait);
+      }
+    } finally {
+      if (pauseCombat) {
+        widget.game.resumeEngine();
+      }
+    }
+  }
 }
 
 class _TurretActionBar extends StatelessWidget {
@@ -311,6 +343,7 @@ class _TurretActionBar extends StatelessWidget {
     required this.canRefund,
     required this.refundLabel,
     required this.onRefund,
+    this.traitButton,
   });
 
   final bool canLevelUp;
@@ -323,6 +356,7 @@ class _TurretActionBar extends StatelessWidget {
   final bool canRefund;
   final String refundLabel;
   final VoidCallback onRefund;
+  final Widget? traitButton;
 
   @override
   Widget build(BuildContext context) {
@@ -350,7 +384,447 @@ class _TurretActionBar extends StatelessWidget {
           color: const Color(0xFFFF8A2A),
           onPressed: canRefund ? onRefund : null,
         ),
+        if (traitButton != null) ...[const SizedBox(width: 6), traitButton!],
       ],
+    );
+  }
+}
+
+class _TurretTraitActionButton extends StatelessWidget {
+  const _TurretTraitActionButton({
+    required this.snapshot,
+    required this.onPressed,
+  });
+
+  final GameSnapshot snapshot;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = snapshot.selectedTurretPrimaryTrait != null;
+    final readyPrimary =
+        snapshot.selectedTurretCanChoosePrimaryTrait &&
+        snapshot.gemShards >= snapshot.selectedTurretPrimaryTraitCost;
+    final readySecondary =
+        snapshot.selectedTurretCanChooseSecondaryTrait &&
+        snapshot.gemShards >= snapshot.selectedTurretSecondaryTraitCost;
+    final ready = readyPrimary || readySecondary;
+    final complete = snapshot.selectedTurretSecondaryTrait != null;
+    final locked = !selected && !ready;
+    final color = selected
+        ? complete
+              ? const Color(0xFF80F2B8)
+              : const Color(0xFFB9F27C)
+        : ready
+        ? const Color(0xFFE7C66A)
+        : const Color(0xFF607587);
+    final badgeText = selected
+        ? complete
+              ? '2'
+              : '1'
+        : ready
+        ? '!'
+        : '${snapshot.selectedTurretPrimaryTraitRequiredLevel}';
+
+    return Tooltip(
+      message: '특성',
+      child: SizedBox(
+        width: 34,
+        height: 30,
+        child: OutlinedButton(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: color,
+            side: BorderSide(
+              color: locked
+                  ? const Color(0x5533D8FF)
+                  : color.withValues(alpha: 0.85),
+            ),
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(34, 30),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(7),
+            ),
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Center(child: Icon(Icons.auto_awesome, size: 15)),
+              Positioned(
+                right: -2,
+                top: -3,
+                child: _TraitActionBadge(label: badgeText, color: color),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TraitActionBadge extends StatelessWidget {
+  const _TraitActionBadge({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 13,
+      height: 13,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: const Color(0xFF07111D),
+        border: Border.all(color: color, width: 1.2),
+        shape: BoxShape.circle,
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 8,
+          height: 1,
+          fontWeight: FontWeight.w900,
+          color: color,
+        ),
+      ),
+    );
+  }
+}
+
+class _TurretTraitDialog extends StatelessWidget {
+  const _TurretTraitDialog({required this.snapshot});
+
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = snapshot.selectedTurretPrimaryTrait;
+    final secondary = snapshot.selectedTurretSecondaryTrait;
+    final canChoosePrimary =
+        snapshot.selectedTurretCanChoosePrimaryTrait &&
+        snapshot.gemShards >= snapshot.selectedTurretPrimaryTraitCost;
+    final canChooseSecondary =
+        snapshot.selectedTurretCanChooseSecondaryTrait &&
+        snapshot.gemShards >= snapshot.selectedTurretSecondaryTraitCost;
+    final primaryBlockedText = _primaryTraitBlockedText(snapshot);
+    final secondaryBlockedText = _secondaryTraitBlockedText(snapshot);
+
+    return AlertDialog(
+      backgroundColor: const Color(0xFF091624),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: const BorderSide(color: Color(0x8833D8FF)),
+      ),
+      titlePadding: const EdgeInsets.fromLTRB(16, 14, 10, 0),
+      contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      title: Row(
+        children: [
+          const Icon(Icons.auto_awesome, color: Color(0xFFE7C66A), size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '${snapshot.selectedTurretName ?? '포탑'} 특성',
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFFE8F8FF),
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.close, size: 18),
+          ),
+        ],
+      ),
+      content: SizedBox(
+        width: 340,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Text(
+                  '젬 파편',
+                  style: TextStyle(fontSize: 11, color: Color(0xFF8AA6B8)),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '${snapshot.gemShards}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFFE8F8FF),
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '1차 ${snapshot.selectedTurretPrimaryTraitCost} · 2차 ${snapshot.selectedTurretSecondaryTraitCost}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFFE7C66A),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const _TraitSectionLabel(text: '1차 특성'),
+            const SizedBox(height: 6),
+            if (primary != null)
+              _SelectedTraitSummary(trait: primary)
+            else ...[
+              if (primaryBlockedText != null) ...[
+                _TraitBlockedNotice(text: primaryBlockedText),
+                const SizedBox(height: 8),
+              ],
+              _TraitChoiceButton(
+                trait: TurretTraitType.overheatMagazine,
+                enabled: canChoosePrimary,
+                tier: 1,
+              ),
+              const SizedBox(height: 7),
+              _TraitChoiceButton(
+                trait: TurretTraitType.lightweightBarrel,
+                enabled: canChoosePrimary,
+                tier: 1,
+              ),
+            ],
+            const SizedBox(height: 10),
+            const _TraitSectionLabel(text: '2차 특성'),
+            const SizedBox(height: 6),
+            if (secondary != null)
+              _SelectedTraitSummary(trait: secondary)
+            else ...[
+              if (secondaryBlockedText != null) ...[
+                _TraitBlockedNotice(text: secondaryBlockedText),
+                const SizedBox(height: 8),
+              ],
+              _TraitChoiceButton(
+                trait: TurretTraitType.suppressiveFire,
+                enabled: canChooseSecondary,
+                tier: 2,
+              ),
+              const SizedBox(height: 7),
+              _TraitChoiceButton(
+                trait: TurretTraitType.chainCleanup,
+                enabled: canChooseSecondary,
+                tier: 2,
+              ),
+            ],
+            const SizedBox(height: 8),
+            const Text(
+              '선택한 특성은 이번 런 동안 변경할 수 없습니다.',
+              style: TextStyle(
+                fontSize: 10,
+                color: Color(0xFF8AA6B8),
+                height: 1.25,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String? _primaryTraitBlockedText(GameSnapshot snapshot) {
+    if (!snapshot.selectedTurretCanChoosePrimaryTrait) {
+      return '1차 특성은 Lv.${snapshot.selectedTurretPrimaryTraitRequiredLevel}부터 선택할 수 있습니다.';
+    }
+    if (snapshot.gemShards < snapshot.selectedTurretPrimaryTraitCost) {
+      return '젬 파편이 ${snapshot.selectedTurretPrimaryTraitCost - snapshot.gemShards}개 부족합니다.';
+    }
+    return null;
+  }
+
+  String? _secondaryTraitBlockedText(GameSnapshot snapshot) {
+    if (snapshot.selectedTurretPrimaryTrait == null) {
+      return '2차 특성은 1차 특성을 먼저 선택해야 합니다.';
+    }
+    if (!snapshot.selectedTurretCanChooseSecondaryTrait) {
+      return '2차 특성은 Lv.${snapshot.selectedTurretSecondaryTraitRequiredLevel}부터 선택할 수 있습니다.';
+    }
+    if (snapshot.gemShards < snapshot.selectedTurretSecondaryTraitCost) {
+      return '젬 파편이 ${snapshot.selectedTurretSecondaryTraitCost - snapshot.gemShards}개 부족합니다.';
+    }
+    return null;
+  }
+}
+
+class _TraitSelection {
+  const _TraitSelection({required this.tier, required this.trait});
+
+  final int tier;
+  final TurretTraitType trait;
+}
+
+class _TraitSectionLabel extends StatelessWidget {
+  const _TraitSectionLabel({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w900,
+        color: Color(0xFF8AA6B8),
+      ),
+    );
+  }
+}
+
+class _SelectedTraitSummary extends StatelessWidget {
+  const _SelectedTraitSummary({required this.trait});
+
+  final TurretTraitType trait;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(9),
+      decoration: BoxDecoration(
+        color: const Color(0x9907111D),
+        border: Border.all(color: const Color(0x6680F2B8)),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle, size: 16, color: Color(0xFF80F2B8)),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  trait.nameText,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFFE8F8FF),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  trait.shortText,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Color(0xFFC9DCE8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TraitBlockedNotice extends StatelessWidget {
+  const _TraitBlockedNotice({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontSize: 11,
+        color: Color(0xFFFFC285),
+        height: 1.25,
+      ),
+    );
+  }
+}
+
+class _TraitChoiceButton extends StatelessWidget {
+  const _TraitChoiceButton({
+    required this.trait,
+    required this.enabled,
+    required this.tier,
+  });
+
+  final TurretTraitType trait;
+  final bool enabled;
+  final int tier;
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: enabled ? 1 : 0.56,
+      child: OutlinedButton(
+        onPressed: enabled
+            ? () => Navigator.of(
+                context,
+              ).pop(_TraitSelection(tier: tier, trait: trait))
+            : null,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: const Color(0xFFE8F8FF),
+          disabledForegroundColor: const Color(0xFF8AA6B8),
+          side: BorderSide(
+            color: enabled ? const Color(0xFF8EE6FF) : const Color(0x55485B68),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+          alignment: Alignment.centerLeft,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.auto_awesome, size: 15),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    trait.nameText,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    trait.shortText,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFFC9DCE8),
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    trait.intentText,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFF8AA6B8),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '선택',
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -413,6 +887,9 @@ class _TurretRefundConfirmDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gemCount = snapshot.selectedTurretGems.length;
+    final traitWarning = snapshot.selectedTurretPrimaryTrait == null
+        ? ''
+        : '\n특성에 사용한 젬 파편은 반환되지 않습니다.';
     return AlertDialog(
       backgroundColor: const Color(0xFF102235),
       title: Text(
@@ -422,7 +899,8 @@ class _TurretRefundConfirmDialog extends StatelessWidget {
       content: Text(
         '설치 및 업그레이드 비용의 75%인 '
         '${snapshot.selectedTurretRefundGold}골드를 돌려받습니다.'
-        '${gemCount > 0 ? '\n장착된 젬 $gemCount개는 인벤토리로 반환됩니다.' : ''}',
+        '${gemCount > 0 ? '\n장착된 젬 $gemCount개는 인벤토리로 반환됩니다.' : ''}'
+        '$traitWarning',
         style: const TextStyle(color: Color(0xFFC9DCE8), height: 1.35),
       ),
       actions: [

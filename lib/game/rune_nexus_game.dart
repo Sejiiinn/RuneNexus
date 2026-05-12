@@ -19,6 +19,7 @@ import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/game_phase.dart';
 import '../domain/combat/run_panel_tab.dart';
 import '../domain/enemy/enemy_scaling.dart';
+import '../domain/enemy/enemy_resistance_profile.dart';
 import '../domain/enemy/enemy_type.dart';
 import '../domain/gem/gem_equip_rules.dart';
 import '../domain/gem/gem_type.dart';
@@ -28,6 +29,8 @@ import '../domain/map/tile_type.dart';
 import '../domain/run_upgrade/run_upgrade_type.dart';
 import '../domain/stage/stage_definition.dart';
 import '../domain/turret/attack_tag.dart';
+import '../domain/turret/damage_family.dart';
+import '../domain/turret/turret_trait_type.dart';
 import '../domain/turret/turret_type.dart';
 import '../domain/wave/wave_definition.dart';
 import 'components/chain_projectile_component.dart';
@@ -52,6 +55,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _burnDurationSeconds = 2;
   static const int gemShardRewardFallbackAmount = 10;
   static const int gemChoicePurchaseCost = 20;
+  static const int primaryTraitCost = 12;
+  static const int primaryTraitRequiredLevel = 3;
+  static const int secondaryTraitCost = 24;
+  static const int secondaryTraitRequiredLevel = 7;
   static const double burnDamagePerSecondScale = _burnDamagePerSecondScale;
   static const double burnDurationSeconds = _burnDurationSeconds;
   static const double _designTileSize = 48;
@@ -157,6 +164,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretSplashDamageDealt: 0,
       selectedTurretChainDamageDealt: 0,
       selectedTurretBurnDamageDealt: 0,
+      selectedTurretSupportsTraits: false,
+      selectedTurretPrimaryTrait: null,
+      selectedTurretSecondaryTrait: null,
+      selectedTurretCanChoosePrimaryTrait: false,
+      selectedTurretCanChooseSecondaryTrait: false,
+      selectedTurretPrimaryTraitCost: primaryTraitCost,
+      selectedTurretSecondaryTraitCost: secondaryTraitCost,
+      selectedTurretPrimaryTraitRequiredLevel: primaryTraitRequiredLevel,
+      selectedTurretSecondaryTraitRequiredLevel: secondaryTraitRequiredLevel,
       topDamageTurretName: null,
       topDamageTurretDamageDealt: 0,
       nextWaveEnemyTypes: _enemyTypesFor(firstWave),
@@ -1037,6 +1053,50 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
+  void chooseSelectedTurretPrimaryTrait(TurretTraitType trait) {
+    if (!_canEditBoard || _gemShards < primaryTraitCost) {
+      return;
+    }
+
+    final point = _selectedTurretPoint;
+    if (point == null) {
+      return;
+    }
+    final turret = _turrets[point];
+    if (turret == null || !turret.canChoosePrimaryTrait) {
+      return;
+    }
+
+    if (!turret.choosePrimaryTrait(trait)) {
+      return;
+    }
+    _gemShards -= primaryTraitCost;
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void chooseSelectedTurretSecondaryTrait(TurretTraitType trait) {
+    if (!_canEditBoard || _gemShards < secondaryTraitCost) {
+      return;
+    }
+
+    final point = _selectedTurretPoint;
+    if (point == null) {
+      return;
+    }
+    final turret = _turrets[point];
+    if (turret == null || !turret.canChooseSecondaryTrait) {
+      return;
+    }
+
+    if (!turret.chooseSecondaryTrait(trait)) {
+      return;
+    }
+    _gemShards -= secondaryTraitCost;
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
   void refundSelectedTurret() {
     if (!_canEditBoard) {
       return;
@@ -1113,7 +1173,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   void handleTrackpadZoomStart(gestures.PointerPanZoomStartEvent event) {
     _trackpadStartZoom = _boardZoom;
     _trackpadStartOffset = _boardOffset.clone();
-    _trackpadStartFocal = Vector2(event.localPosition.dx, event.localPosition.dy);
+    _trackpadStartFocal = Vector2(
+      event.localPosition.dx,
+      event.localPosition.dy,
+    );
   }
 
   void handleTrackpadZoomUpdate(gestures.PointerPanZoomUpdateEvent event) {
@@ -1212,11 +1275,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _showImpact(owner: owner, position: hitPosition);
 
     for (final enemy in impacted.toList()) {
+      final traitMultiplier = identical(enemy, target)
+          ? owner.registerDirectHitTraits(enemy)
+          : 1.0;
       final baseDamage = identical(enemy, target)
           ? owner.damage
           : owner.damage * owner.splashSecondaryDamageMultiplier;
       final multiplier = _damageMultiplier(owner, enemy);
-      final damage = baseDamage * multiplier;
+      final damage = baseDamage * traitMultiplier * multiplier;
       _applyAttackStatuses(owner, enemy);
       showDamageNumber(
         position: enemy.position.clone(),
@@ -1436,6 +1502,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   void enemyKilled(EnemyComponent enemy) {
     if (!enemy.isMounted && !enemies.contains(enemy)) {
       return;
+    }
+    for (final turret in _turrets.values) {
+      turret.handleEnemyKilled(enemy);
     }
     final baseReward = enemy.definition.rewardGold;
     final bonusReward = baseReward * _killGoldRunBonusRate;
@@ -1682,7 +1751,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     required Vector2 startFocal,
   }) {
     final center = _boardCenter();
-    final anchoredWorld = center + (startFocal - startOffset - center) / startZoom;
+    final anchoredWorld =
+        center + (startFocal - startOffset - center) / startZoom;
     _boardZoom = zoom;
     _boardOffset = _clampBoardOffset(
       focal - center - (anchoredWorld - center) * _boardZoom,
@@ -2245,10 +2315,19 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     EnemyComponent enemy, {
     Set<AttackTag> extraTags = const {},
   }) {
-    return enemy.definition.resistanceProfile.multiplierFor(
+    final baseMultiplier = enemy.definition.resistanceProfile.multiplierFor(
       family: owner.definition.damageFamily,
       tags: {...owner.definition.attackTags, ...extraTags},
     );
+    if (owner.definition.damageFamily == DamageFamily.physical) {
+      return (baseMultiplier + enemy.physicalDamageTakenBonus)
+          .clamp(
+            EnemyResistanceProfile.minMultiplier,
+            EnemyResistanceProfile.maxMultiplier,
+          )
+          .toDouble();
+    }
+    return baseMultiplier;
   }
 
   void _publish() {
@@ -2357,6 +2436,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretSplashDamageDealt: selectedTurret?.splashDamageDealt ?? 0,
       selectedTurretChainDamageDealt: selectedTurret?.chainDamageDealt ?? 0,
       selectedTurretBurnDamageDealt: selectedTurret?.burnDamageDealt ?? 0,
+      selectedTurretSupportsTraits: selectedTurret?.supportsTraits ?? false,
+      selectedTurretPrimaryTrait: selectedTurret?.primaryTrait,
+      selectedTurretSecondaryTrait: selectedTurret?.secondaryTrait,
+      selectedTurretCanChoosePrimaryTrait:
+          selectedTurret?.canChoosePrimaryTrait ?? false,
+      selectedTurretCanChooseSecondaryTrait:
+          selectedTurret?.canChooseSecondaryTrait ?? false,
+      selectedTurretPrimaryTraitCost: primaryTraitCost,
+      selectedTurretSecondaryTraitCost: secondaryTraitCost,
+      selectedTurretPrimaryTraitRequiredLevel: primaryTraitRequiredLevel,
+      selectedTurretSecondaryTraitRequiredLevel: secondaryTraitRequiredLevel,
       topDamageTurretName:
           topDamageTurret == null || topDamageTurret.damageDealt <= 0
           ? null

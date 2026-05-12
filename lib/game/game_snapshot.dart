@@ -5,6 +5,7 @@ import '../domain/enemy/enemy_type.dart';
 import '../domain/gem/gem_type.dart';
 import '../domain/map/grid_point.dart';
 import '../domain/run_upgrade/run_upgrade_type.dart';
+import '../domain/turret/turret_trait_type.dart';
 import '../domain/turret/turret_type.dart';
 
 class GameSnapshot {
@@ -57,6 +58,15 @@ class GameSnapshot {
     required this.selectedTurretSplashDamageDealt,
     required this.selectedTurretChainDamageDealt,
     required this.selectedTurretBurnDamageDealt,
+    required this.selectedTurretSupportsTraits,
+    required this.selectedTurretPrimaryTrait,
+    required this.selectedTurretSecondaryTrait,
+    required this.selectedTurretCanChoosePrimaryTrait,
+    required this.selectedTurretCanChooseSecondaryTrait,
+    required this.selectedTurretPrimaryTraitCost,
+    required this.selectedTurretSecondaryTraitCost,
+    required this.selectedTurretPrimaryTraitRequiredLevel,
+    required this.selectedTurretSecondaryTraitRequiredLevel,
     required this.topDamageTurretName,
     required this.topDamageTurretDamageDealt,
     required this.nextWaveEnemyTypes,
@@ -142,6 +152,15 @@ class GameSnapshot {
   final double selectedTurretSplashDamageDealt;
   final double selectedTurretChainDamageDealt;
   final double selectedTurretBurnDamageDealt;
+  final bool selectedTurretSupportsTraits;
+  final TurretTraitType? selectedTurretPrimaryTrait;
+  final TurretTraitType? selectedTurretSecondaryTrait;
+  final bool selectedTurretCanChoosePrimaryTrait;
+  final bool selectedTurretCanChooseSecondaryTrait;
+  final int selectedTurretPrimaryTraitCost;
+  final int selectedTurretSecondaryTraitCost;
+  final int selectedTurretPrimaryTraitRequiredLevel;
+  final int selectedTurretSecondaryTraitRequiredLevel;
   final String? topDamageTurretName;
   final double topDamageTurretDamageDealt;
   final List<EnemyType> nextWaveEnemyTypes;
