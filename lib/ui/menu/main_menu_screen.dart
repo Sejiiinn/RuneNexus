@@ -7,6 +7,11 @@ import '../../game/systems/run_progression.dart';
 import '../../l10n/rune_nexus_localizations.dart';
 import '../widgets/rune_balance_card.dart';
 
+const _showMapEditor = bool.fromEnvironment(
+  'RUNE_NEXUS_DEBUG_PANEL',
+  defaultValue: false,
+);
+
 enum MainMenuTab { stage, permanentUpgrades }
 
 class MainMenuScreen extends StatelessWidget {
@@ -16,6 +21,7 @@ class MainMenuScreen extends StatelessWidget {
     required this.selectedTab,
     required this.onSelectTab,
     required this.onStartStage,
+    this.onOpenMapEditor,
     super.key,
   });
 
@@ -24,6 +30,7 @@ class MainMenuScreen extends StatelessWidget {
   final MainMenuTab selectedTab;
   final ValueChanged<MainMenuTab> onSelectTab;
   final ValueChanged<int> onStartStage;
+  final VoidCallback? onOpenMapEditor;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +45,12 @@ class MainMenuScreen extends StatelessWidget {
               right: 16,
               child: RuneBalanceCard(runes: snapshot.runes),
             ),
+            if (_showMapEditor)
+              Positioned(
+                top: 10,
+                left: 16,
+                child: _MapEditorShortcut(onPressed: onOpenMapEditor),
+              ),
             Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
@@ -68,7 +81,7 @@ class MainMenuScreen extends StatelessWidget {
                             snapshot: snapshot,
                             onStartStage: onStartStage,
                           ),
-                        ] else
+                        ] else if (selectedTab == MainMenuTab.permanentUpgrades)
                           _PermanentUpgradeMenu(game: game, snapshot: snapshot),
                       ],
                     ),
@@ -93,6 +106,31 @@ class MainMenuScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _MapEditorShortcut extends StatelessWidget {
+  const _MapEditorShortcut({required this.onPressed});
+
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 40,
+      height: 40,
+      child: IconButton(
+        tooltip: '맵 에디터',
+        onPressed: onPressed,
+        style: IconButton.styleFrom(
+          foregroundColor: const Color(0xFFE8FBFF),
+          backgroundColor: const Color(0xE607111D),
+          side: const BorderSide(color: Color(0x6650E6FF)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        icon: const Icon(Icons.map_outlined, size: 20),
       ),
     );
   }

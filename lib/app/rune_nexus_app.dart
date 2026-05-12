@@ -7,8 +7,9 @@ import '../game/rune_nexus_game.dart';
 import '../l10n/rune_nexus_localizations.dart';
 import '../ui/hud/game_hud.dart';
 import '../ui/menu/main_menu_screen.dart';
+import '../ui/menu/map_editor_panel.dart';
 
-enum _AppScreen { main, stage }
+enum _AppScreen { main, stage, mapEditor }
 
 class RuneNexusApp extends StatefulWidget {
   const RuneNexusApp({super.key});
@@ -149,6 +150,13 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
                     _startStage(stageNumber, game.snapshotNotifier.value),
               );
             }
+            if (_screen == _AppScreen.mapEditor) {
+              return _MapEditorScreen(
+                initialStageNumber:
+                    game.snapshotNotifier.value.currentStageNumber,
+                onBack: () => _openMainScreen(),
+              );
+            }
             return ValueListenableBuilder(
               valueListenable: game.snapshotNotifier,
               builder: (context, snapshot, _) {
@@ -163,6 +171,11 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
                   },
                   onStartStage: (stageNumber) =>
                       _startStage(stageNumber, snapshot),
+                  onOpenMapEditor: () {
+                    setState(() {
+                      _screen = _AppScreen.mapEditor;
+                    });
+                  },
                 );
               },
             );
@@ -171,6 +184,111 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
       ),
     );
   }
+}
+
+class _MapEditorScreen extends StatelessWidget {
+  const _MapEditorScreen({
+    required this.initialStageNumber,
+    required this.onBack,
+  });
+
+  final int initialStageNumber;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFF07111D),
+      child: SafeArea(
+        child: Stack(
+          children: [
+            const Positioned.fill(child: _AppBackdrop()),
+            Positioned(
+              top: 10,
+              left: 16,
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: IconButton(
+                  tooltip: '메인 메뉴',
+                  onPressed: onBack,
+                  style: IconButton.styleFrom(
+                    foregroundColor: const Color(0xFFE8FBFF),
+                    backgroundColor: const Color(0xE607111D),
+                    side: const BorderSide(color: Color(0x6650E6FF)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.arrow_back, size: 20),
+                ),
+              ),
+            ),
+            Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 64, 16, 24),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 760),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xF0091624),
+                      border: Border.all(color: const Color(0x9933D8FF)),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x66000000),
+                          blurRadius: 20,
+                          offset: Offset(0, 12),
+                        ),
+                      ],
+                    ),
+                    child: DebugMapEditorPanel(
+                      initialStageNumber: initialStageNumber,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AppBackdrop extends StatelessWidget {
+  const _AppBackdrop();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(painter: _AppBackdropPainter());
+  }
+}
+
+class _AppBackdropPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0x33143A4E)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(
+      Offset(size.width * 0.5, size.height * 0.28),
+      size.shortestSide * 0.32,
+      paint,
+    );
+
+    final linePaint = Paint()
+      ..color = const Color(0x1233D8FF)
+      ..strokeWidth = 1;
+    const spacing = 38.0;
+    for (var x = -spacing; x < size.width + spacing; x += spacing) {
+      canvas.drawLine(Offset(x, 0), Offset(x + 90, size.height), linePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _AppLoadingScreen extends StatelessWidget {
