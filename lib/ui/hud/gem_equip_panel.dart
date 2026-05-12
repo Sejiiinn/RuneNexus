@@ -804,16 +804,6 @@ class _TraitChoiceButton extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    trait.intentText,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Color(0xFF8AA6B8),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
                 ],
               ),
             ),

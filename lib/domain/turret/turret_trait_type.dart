@@ -23,13 +23,4 @@ extension TurretTraitTypeText on TurretTraitType {
       TurretTraitType.chainCleanup => '최근 명중 관여 처치 시 3초간 공격 속도 +40%',
     };
   }
-
-  String get intentText {
-    return switch (this) {
-      TurretTraitType.overheatMagazine => '보스와 탱커를 오래 때리는 캐리 기관총',
-      TurretTraitType.lightweightBarrel => '빠른 적 대응과 초반 안정성',
-      TurretTraitType.suppressiveFire => '보스/탱커와 물리 조합 지원',
-      TurretTraitType.chainCleanup => '웨이브 정리와 킬 체인',
-    };
-  }
 }
