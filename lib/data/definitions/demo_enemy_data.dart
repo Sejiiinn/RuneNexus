@@ -45,7 +45,7 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
   EnemyType.boss: EnemyDefinition(
     type: EnemyType.boss,
     name: '보스',
-    maxHp: 692,
+    maxHp: 623,
     speed: 16.8,
     rewardGold: 35,
     coreDamage: 8,

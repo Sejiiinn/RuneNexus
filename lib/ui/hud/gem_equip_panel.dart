@@ -411,20 +411,14 @@ class _TurretTraitActionButton extends StatelessWidget {
     final ready = readyPrimary || readySecondary;
     final complete = snapshot.selectedTurretSecondaryTrait != null;
     final locked = !selected && !ready;
-    final color = selected
-        ? complete
-              ? const Color(0xFF80F2B8)
-              : const Color(0xFFB9F27C)
+    final color = locked ? const Color(0xFF607587) : const Color(0xFF63E6A5);
+    final badgeIcon = complete
+        ? Icons.done_all
+        : selected
+        ? Icons.check
         : ready
-        ? const Color(0xFFE7C66A)
-        : const Color(0xFF607587);
-    final badgeText = selected
-        ? complete
-              ? '2'
-              : '1'
-        : ready
-        ? '!'
-        : '${snapshot.selectedTurretPrimaryTraitRequiredLevel}';
+        ? Icons.priority_high
+        : Icons.lock_outline;
 
     return Tooltip(
       message: '특성',
@@ -435,6 +429,9 @@ class _TurretTraitActionButton extends StatelessWidget {
           onPressed: onPressed,
           style: OutlinedButton.styleFrom(
             foregroundColor: color,
+            backgroundColor: locked
+                ? Colors.transparent
+                : const Color(0x2263E6A5),
             side: BorderSide(
               color: locked
                   ? const Color(0x5533D8FF)
@@ -454,7 +451,7 @@ class _TurretTraitActionButton extends StatelessWidget {
               Positioned(
                 right: -2,
                 top: -3,
-                child: _TraitActionBadge(label: badgeText, color: color),
+                child: _TraitActionBadge(icon: badgeIcon, color: color),
               ),
             ],
           ),
@@ -465,9 +462,9 @@ class _TurretTraitActionButton extends StatelessWidget {
 }
 
 class _TraitActionBadge extends StatelessWidget {
-  const _TraitActionBadge({required this.label, required this.color});
+  const _TraitActionBadge({required this.icon, required this.color});
 
-  final String label;
+  final IconData icon;
   final Color color;
 
   @override
@@ -481,15 +478,7 @@ class _TraitActionBadge extends StatelessWidget {
         border: Border.all(color: color, width: 1.2),
         shape: BoxShape.circle,
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 8,
-          height: 1,
-          fontWeight: FontWeight.w900,
-          color: color,
-        ),
-      ),
+      child: Icon(icon, size: 9, color: color),
     );
   }
 }
@@ -516,13 +505,13 @@ class _TurretTraitDialog extends StatelessWidget {
       backgroundColor: const Color(0xFF091624),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: Color(0x8833D8FF)),
+        side: const BorderSide(color: Color(0x9963E6A5)),
       ),
       titlePadding: const EdgeInsets.fromLTRB(16, 14, 10, 0),
       contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       title: Row(
         children: [
-          const Icon(Icons.auto_awesome, color: Color(0xFFE7C66A), size: 18),
+          const Icon(Icons.auto_awesome, color: Color(0xFF63E6A5), size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -548,76 +537,38 @@ class _TurretTraitDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                const Text(
-                  '젬 파편',
-                  style: TextStyle(fontSize: 11, color: Color(0xFF8AA6B8)),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '${snapshot.gemShards}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFFE8F8FF),
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '1차 ${snapshot.selectedTurretPrimaryTraitCost} · 2차 ${snapshot.selectedTurretSecondaryTraitCost}',
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFFE7C66A),
-                  ),
-                ),
+            _TraitResourceStrip(
+              gemShards: snapshot.gemShards,
+              primaryCost: snapshot.selectedTurretPrimaryTraitCost,
+              secondaryCost: snapshot.selectedTurretSecondaryTraitCost,
+            ),
+            const SizedBox(height: 12),
+            _TraitTierBlock(
+              tierText: '1차',
+              title: '무기 개조',
+              selectedTrait: primary,
+              blockedText: primaryBlockedText,
+              choices: const [
+                TurretTraitType.overheatMagazine,
+                TurretTraitType.lightweightBarrel,
               ],
+              enabled: canChoosePrimary,
+              tier: 1,
             ),
             const SizedBox(height: 10),
-            const _TraitSectionLabel(text: '1차 특성'),
-            const SizedBox(height: 6),
-            if (primary != null)
-              _SelectedTraitSummary(trait: primary)
-            else ...[
-              if (primaryBlockedText != null) ...[
-                _TraitBlockedNotice(text: primaryBlockedText),
-                const SizedBox(height: 8),
+            _TraitTierBlock(
+              tierText: '2차',
+              title: '전투 교리',
+              selectedTrait: secondary,
+              blockedText: secondaryBlockedText,
+              choices: const [
+                TurretTraitType.suppressiveFire,
+                TurretTraitType.chainCleanup,
               ],
-              _TraitChoiceButton(
-                trait: TurretTraitType.overheatMagazine,
-                enabled: canChoosePrimary,
-                tier: 1,
-              ),
-              const SizedBox(height: 7),
-              _TraitChoiceButton(
-                trait: TurretTraitType.lightweightBarrel,
-                enabled: canChoosePrimary,
-                tier: 1,
-              ),
-            ],
+              enabled: canChooseSecondary,
+              tier: 2,
+            ),
             const SizedBox(height: 10),
-            const _TraitSectionLabel(text: '2차 특성'),
-            const SizedBox(height: 6),
-            if (secondary != null)
-              _SelectedTraitSummary(trait: secondary)
-            else ...[
-              if (secondaryBlockedText != null) ...[
-                _TraitBlockedNotice(text: secondaryBlockedText),
-                const SizedBox(height: 8),
-              ],
-              _TraitChoiceButton(
-                trait: TurretTraitType.suppressiveFire,
-                enabled: canChooseSecondary,
-                tier: 2,
-              ),
-              const SizedBox(height: 7),
-              _TraitChoiceButton(
-                trait: TurretTraitType.chainCleanup,
-                enabled: canChooseSecondary,
-                tier: 2,
-              ),
-            ],
-            const SizedBox(height: 8),
             const Text(
               '선택한 특성은 이번 런 동안 변경할 수 없습니다.',
               style: TextStyle(
@@ -663,19 +614,190 @@ class _TraitSelection {
   final TurretTraitType trait;
 }
 
-class _TraitSectionLabel extends StatelessWidget {
-  const _TraitSectionLabel({required this.text});
+class _TraitResourceStrip extends StatelessWidget {
+  const _TraitResourceStrip({
+    required this.gemShards,
+    required this.primaryCost,
+    required this.secondaryCost,
+  });
 
-  final String text;
+  final int gemShards;
+  final int primaryCost;
+  final int secondaryCost;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w900,
-        color: Color(0xFF8AA6B8),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0x9907111D),
+        border: Border.all(color: const Color(0x3363E6A5)),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 15, height: 15, child: _GemShardIcon()),
+          const SizedBox(width: 6),
+          const Text(
+            '젬 파편',
+            style: TextStyle(fontSize: 11, color: Color(0xFF8AA6B8)),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            '$gemShards',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFFE8F8FF),
+            ),
+          ),
+          const Spacer(),
+          _TraitCostChip(label: '1차', cost: primaryCost),
+          const SizedBox(width: 5),
+          _TraitCostChip(label: '2차', cost: secondaryCost),
+        ],
+      ),
+    );
+  }
+}
+
+class _TraitCostChip extends StatelessWidget {
+  const _TraitCostChip({required this.label, required this.cost});
+
+  final String label;
+  final int cost;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 22,
+      padding: const EdgeInsets.symmetric(horizontal: 7),
+      decoration: BoxDecoration(
+        color: const Color(0x1F63E6A5),
+        border: Border.all(color: const Color(0x6663E6A5)),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF8AA6B8),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '$cost',
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF63E6A5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TraitTierBlock extends StatelessWidget {
+  const _TraitTierBlock({
+    required this.tierText,
+    required this.title,
+    required this.selectedTrait,
+    required this.blockedText,
+    required this.choices,
+    required this.enabled,
+    required this.tier,
+  });
+
+  final String tierText;
+  final String title;
+  final TurretTraitType? selectedTrait;
+  final String? blockedText;
+  final List<TurretTraitType> choices;
+  final bool enabled;
+  final int tier;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = selectedTrait != null;
+    return Container(
+      padding: const EdgeInsets.all(9),
+      decoration: BoxDecoration(
+        color: selected ? const Color(0x1F63E6A5) : const Color(0x6607111D),
+        border: Border.all(
+          color: selected ? const Color(0x9963E6A5) : const Color(0x3333D8FF),
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 28,
+                height: 20,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? const Color(0x3363E6A5)
+                      : const Color(0xFF07111D),
+                  border: Border.all(color: const Color(0x9963E6A5)),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  tierText,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF63E6A5),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFFE8F8FF),
+                  ),
+                ),
+              ),
+              Icon(
+                selected ? Icons.check_circle : Icons.radio_button_unchecked,
+                size: 16,
+                color: selected
+                    ? const Color(0xFF63E6A5)
+                    : const Color(0xFF607587),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (selectedTrait != null)
+            _SelectedTraitSummary(trait: selectedTrait!)
+          else ...[
+            if (blockedText != null) ...[
+              _TraitBlockedNotice(text: blockedText!),
+              const SizedBox(height: 8),
+            ],
+            for (var i = 0; i < choices.length; i++) ...[
+              if (i > 0) const SizedBox(height: 7),
+              _TraitChoiceButton(
+                trait: choices[i],
+                enabled: enabled,
+                tier: tier,
+              ),
+            ],
+          ],
+        ],
       ),
     );
   }
@@ -691,13 +813,13 @@ class _SelectedTraitSummary extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
-        color: const Color(0x9907111D),
-        border: Border.all(color: const Color(0x6680F2B8)),
+        color: const Color(0x3363E6A5),
+        border: Border.all(color: const Color(0xAA63E6A5)),
         borderRadius: BorderRadius.circular(7),
       ),
       child: Row(
         children: [
-          const Icon(Icons.check_circle, size: 16, color: Color(0xFF80F2B8)),
+          Icon(_traitIcon(trait), size: 17, color: _traitAccentColor(trait)),
           const SizedBox(width: 7),
           Expanded(
             child: Column(
@@ -736,12 +858,28 @@ class _TraitBlockedNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontSize: 11,
-        color: Color(0xFFFFC285),
-        height: 1.25,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0x22FFC285),
+        border: Border.all(color: const Color(0x55FFC285)),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.lock_outline, size: 13, color: Color(0xFFFFC285)),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Color(0xFFFFC285),
+                height: 1.25,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -760,6 +898,7 @@ class _TraitChoiceButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = _traitAccentColor(trait);
     return Opacity(
       opacity: enabled ? 1 : 0.56,
       child: OutlinedButton(
@@ -771,8 +910,11 @@ class _TraitChoiceButton extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           foregroundColor: const Color(0xFFE8F8FF),
           disabledForegroundColor: const Color(0xFF8AA6B8),
+          backgroundColor: enabled
+              ? const Color(0x1463E6A5)
+              : const Color(0x6607111D),
           side: BorderSide(
-            color: enabled ? const Color(0xFF8EE6FF) : const Color(0x55485B68),
+            color: enabled ? const Color(0x9963E6A5) : const Color(0x55485B68),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
           alignment: Alignment.centerLeft,
@@ -780,7 +922,17 @@ class _TraitChoiceButton extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.auto_awesome, size: 15),
+            Container(
+              width: 28,
+              height: 28,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: enabled ? 0.18 : 0.08),
+                border: Border.all(color: accent.withValues(alpha: 0.68)),
+                borderRadius: BorderRadius.circular(7),
+              ),
+              child: Icon(_traitIcon(trait), size: 16, color: accent),
+            ),
             const SizedBox(width: 7),
             Expanded(
               child: Column(
@@ -808,15 +960,36 @@ class _TraitChoiceButton extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            Text(
-              '선택',
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
+            Icon(
+              enabled ? Icons.add_circle_outline : Icons.lock_outline,
+              size: 17,
+              color: enabled
+                  ? const Color(0xFF63E6A5)
+                  : const Color(0xFF607587),
             ),
           ],
         ),
       ),
     );
   }
+}
+
+IconData _traitIcon(TurretTraitType trait) {
+  return switch (trait) {
+    TurretTraitType.overheatMagazine => Icons.local_fire_department_outlined,
+    TurretTraitType.lightweightBarrel => Icons.speed,
+    TurretTraitType.suppressiveFire => Icons.gps_fixed,
+    TurretTraitType.chainCleanup => Icons.hub_outlined,
+  };
+}
+
+Color _traitAccentColor(TurretTraitType trait) {
+  return switch (trait) {
+    TurretTraitType.overheatMagazine => const Color(0xFFFFB45E),
+    TurretTraitType.lightweightBarrel => const Color(0xFF8EE6FF),
+    TurretTraitType.suppressiveFire => const Color(0xFF63E6A5),
+    TurretTraitType.chainCleanup => const Color(0xFFD7F27C),
+  };
 }
 
 class _TurretActionButton extends StatelessWidget {

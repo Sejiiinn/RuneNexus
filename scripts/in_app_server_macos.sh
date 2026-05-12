@@ -61,7 +61,7 @@ stop_server() {
 build_web() {
   require_file "$FLUTTER" FLUTTER
   cd "$WORK_DIR"
-  "$FLUTTER" build web --pwa-strategy=none
+  "$FLUTTER" build web --pwa-strategy=none --dart-define=RUNE_NEXUS_DEBUG_PANEL=true
 }
 
 serve_foreground() {

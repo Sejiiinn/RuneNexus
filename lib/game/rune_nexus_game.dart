@@ -49,6 +49,11 @@ import 'systems/run_progression.dart';
 import 'systems/save_scheduler.dart';
 import 'systems/wave_spawner.dart';
 
+const _debugPanelEnabled = bool.fromEnvironment(
+  'RUNE_NEXUS_DEBUG_PANEL',
+  defaultValue: false,
+);
+
 class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _chainDamageMultiplier = 0.5;
   static const double _burnDamagePerSecondScale = 0.5;
@@ -853,6 +858,97 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
+  void debugAddGemShards(int amount) {
+    if (!_debugPanelEnabled) {
+      return;
+    }
+    if (amount <= 0) {
+      return;
+    }
+
+    _gemShards += amount;
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void debugOpenGemReward() {
+    if (!_debugPanelEnabled) {
+      return;
+    }
+
+    _clearActiveCombat();
+    _phase = GamePhase.reward;
+    _isPurchasedGemReward = false;
+    _selectedBuildPoint = null;
+    _selectedBuildTurretType = null;
+    _selectedPortalPoint = null;
+    _selectedTurretPoint = null;
+    _selectedTurretGemSlotIndex = null;
+    _completedRounds = math.max(_completedRounds, _roundIndex + 1);
+    _seedDebugGemInventory();
+    _rewardOptions
+      ..clear()
+      ..addAll(_gemRewardGenerator.generateOptions());
+    _publish();
+  }
+
+  void debugPreparePrimaryTrait() {
+    if (!_debugPanelEnabled) {
+      return;
+    }
+
+    final turret = _debugEnsureTraitTurret(
+      targetLevel: primaryTraitRequiredLevel,
+    );
+    if (turret == null) {
+      return;
+    }
+    _gemShards = math.max(_gemShards, primaryTraitCost);
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void debugPrepareSecondaryTrait() {
+    if (!_debugPanelEnabled) {
+      return;
+    }
+
+    final turret = _debugEnsureTraitTurret(
+      targetLevel: secondaryTraitRequiredLevel,
+    );
+    if (turret == null) {
+      return;
+    }
+    turret.choosePrimaryTrait(TurretTraitType.lightweightBarrel);
+    _gemShards = math.max(_gemShards, secondaryTraitCost);
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void debugPrepareBossWave() {
+    if (!_debugPanelEnabled) {
+      return;
+    }
+
+    final bossRoundIndex = _waves.indexWhere(
+      (wave) => wave.groups.any((group) => group.enemyType == EnemyType.boss),
+    );
+    if (bossRoundIndex < 0) {
+      return;
+    }
+
+    _clearActiveCombat();
+    _roundIndex = bossRoundIndex;
+    _phase = GamePhase.preparation;
+    _selectedBuildPoint = null;
+    _selectedBuildTurretType = null;
+    _selectedPortalPoint = null;
+    _selectedTurretPoint = null;
+    _selectedTurretGemSlotIndex = null;
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
   void tryBuildTurret(GridPoint point) {
     if (!_canEditBoard) {
       return;
@@ -921,6 +1017,75 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _gemInventory[type] = (_gemInventory[type] ?? 0) + 1;
     _publish();
     _requestLocalSave(immediate: true);
+  }
+
+  void _seedDebugGemInventory() {
+    const seeds = {
+      GemType.attackSpeed: 1,
+      GemType.range: 2,
+      GemType.physicalDamage: 1,
+      GemType.lightWeapon: 1,
+    };
+
+    for (final entry in seeds.entries) {
+      _gemInventory[entry.key] = math.max(
+        _gemInventory[entry.key] ?? 0,
+        entry.value,
+      );
+    }
+  }
+
+  TurretComponent? _debugEnsureTraitTurret({required int targetLevel}) {
+    _clearActiveCombat();
+    _phase = GamePhase.preparation;
+    _selectedBuildPoint = null;
+    _selectedBuildTurretType = null;
+    _selectedPortalPoint = null;
+    _selectedTurretGemSlotIndex = null;
+    _selectedRunPanelTab = RunPanelTab.gems;
+
+    MapEntry<GridPoint, TurretComponent>? entry;
+    for (final candidate in _turrets.entries) {
+      if (candidate.value.supportsTraits) {
+        entry = candidate;
+        break;
+      }
+    }
+    if (entry == null) {
+      final point = _firstEmptyBuildPoint();
+      if (point == null || !_boardConfigured) {
+        return null;
+      }
+      final turret = TurretComponent(
+        gridPoint: point,
+        definition: demoTurrets[TurretType.arrow]!,
+        game: this,
+        center: _centerOf(point),
+        tileSize: _tileSize,
+      );
+      _turrets[point] = turret;
+      add(turret);
+      entry = MapEntry(point, turret);
+    }
+
+    final turret = entry.value;
+    while (turret.level < targetLevel && turret.upgradeLevel()) {}
+    _selectedTurretType = TurretType.arrow;
+    _selectedTurretPoint = entry.key;
+    _gold = math.max(_gold, 500);
+    return turret;
+  }
+
+  GridPoint? _firstEmptyBuildPoint() {
+    for (var y = 0; y < _map.rows; y++) {
+      for (var x = 0; x < _map.columns; x++) {
+        final point = GridPoint(x, y);
+        if (_map.canBuildAt(point) && !_turrets.containsKey(point)) {
+          return point;
+        }
+      }
+    }
+    return null;
   }
 
   void selectSelectedTurretGemSlot(int slotIndex) {

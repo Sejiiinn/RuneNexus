@@ -86,6 +86,7 @@ class _RewardOverlayState extends State<_RewardOverlay> {
                   },
                   onConfirm: widget.game.selectRewardGemShards,
                 ),
+                _OwnedGemSummary(inventory: snapshot.gemInventory),
               ],
               if (isPurchase) ...[
                 const SizedBox(height: 10),
@@ -184,6 +185,100 @@ class _GemShardRewardBar extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _OwnedGemSummary extends StatelessWidget {
+  const _OwnedGemSummary({required this.inventory});
+
+  final Map<GemType, int> inventory;
+
+  @override
+  Widget build(BuildContext context) {
+    final ownedTypes = GemType.values
+        .where((type) => (inventory[type] ?? 0) > 0)
+        .toList();
+    if (ownedTypes.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 7),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
+      decoration: BoxDecoration(
+        color: const Color(0x7707111D),
+        border: Border.all(color: const Color(0x3333D8FF)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            '보유 젬',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF8AA6B8),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 5,
+            runSpacing: 5,
+            children: ownedTypes.map((type) {
+              return _OwnedGemChip(type: type, count: inventory[type] ?? 0);
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OwnedGemChip extends StatelessWidget {
+  const _OwnedGemChip({required this.type, required this.count});
+
+  final GemType type;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final gem = demoGems[type]!;
+    return Container(
+      height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: 7),
+      decoration: BoxDecoration(
+        color: gem.color.withValues(alpha: 0.1),
+        border: Border.all(color: gem.color.withValues(alpha: 0.58)),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(gem.icon, size: 13, color: gem.color),
+          const SizedBox(width: 4),
+          Text(
+            gem.name,
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFFE8F8FF),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            'x$count',
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFFB9D6E4),
+            ),
+          ),
+        ],
       ),
     );
   }

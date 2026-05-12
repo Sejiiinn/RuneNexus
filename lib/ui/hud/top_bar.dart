@@ -46,8 +46,8 @@ class _TopBar extends StatelessWidget {
             if (showDebugButton) ...[
               const SizedBox(width: 6),
               _TopIconButton(
-                tooltip: '테스트 젬 패널',
-                icon: Icons.diamond_outlined,
+                tooltip: '인앱 테스트 패널',
+                icon: Icons.construction_outlined,
                 selected: showGemDebugPanel,
                 onPressed: onToggleGemDebugPanel,
               ),
@@ -746,137 +746,173 @@ class _GemDebugPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 190,
+      width: 206,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: const Color(0xF0091624),
         border: Border.all(color: const Color(0xAA33D8FF)),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            '테스트 웨이브',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 6),
-          Row(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 430),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _DebugRoundButton(
-                label: '-1',
-                enabled: snapshot.round > 1,
-                onPressed: () => game.debugSetRound(snapshot.round - 1),
+              const Text(
+                '테스트 시나리오',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
               ),
-              const SizedBox(width: 5),
-              _DebugRoundButton(
-                label: '+1',
-                enabled: snapshot.round < snapshot.maxRound,
-                onPressed: () => game.debugSetRound(snapshot.round + 1),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  _DebugRoundButton(
+                    label: '보상 UI',
+                    enabled: true,
+                    onPressed: game.debugOpenGemReward,
+                  ),
+                  const SizedBox(width: 5),
+                  _DebugRoundButton(
+                    label: '1차 특성',
+                    enabled: true,
+                    onPressed: game.debugPreparePrimaryTrait,
+                  ),
+                ],
               ),
-              const SizedBox(width: 5),
-              _DebugRoundButton(
-                label: '+5',
-                enabled: snapshot.round < snapshot.maxRound,
-                onPressed: () => game.debugSetRound(snapshot.round + 5),
+              const SizedBox(height: 5),
+              Row(
+                children: [
+                  _DebugRoundButton(
+                    label: '2차 특성',
+                    enabled: true,
+                    onPressed: game.debugPrepareSecondaryTrait,
+                  ),
+                  const SizedBox(width: 5),
+                  _DebugRoundButton(
+                    label: '보스 웨이브',
+                    enabled: true,
+                    onPressed: game.debugPrepareBossWave,
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 5),
-          Row(
-            children: [
-              _DebugRoundButton(
-                label: '10R',
-                enabled: snapshot.round != 10,
-                onPressed: () => game.debugSetRound(10),
+              const SizedBox(height: 10),
+              const Text(
+                '테스트 웨이브',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
               ),
-              const SizedBox(width: 5),
-              _DebugRoundButton(
-                label: '25R',
-                enabled: snapshot.round != 25,
-                onPressed: () => game.debugSetRound(25),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  _DebugRoundButton(
+                    label: '-1',
+                    enabled: snapshot.round > 1,
+                    onPressed: () => game.debugSetRound(snapshot.round - 1),
+                  ),
+                  const SizedBox(width: 5),
+                  _DebugRoundButton(
+                    label: '+1',
+                    enabled: snapshot.round < snapshot.maxRound,
+                    onPressed: () => game.debugSetRound(snapshot.round + 1),
+                  ),
+                  const SizedBox(width: 5),
+                  _DebugRoundButton(
+                    label: '+5',
+                    enabled: snapshot.round < snapshot.maxRound,
+                    onPressed: () => game.debugSetRound(snapshot.round + 5),
+                  ),
+                ],
               ),
-              const SizedBox(width: 5),
-              _DebugRoundButton(
-                label: '50R',
-                enabled: snapshot.round != snapshot.maxRound,
-                onPressed: () => game.debugSetRound(snapshot.maxRound),
+              const SizedBox(height: 5),
+              Row(
+                children: [
+                  _DebugRoundButton(
+                    label: '10R',
+                    enabled: snapshot.round != 10,
+                    onPressed: () => game.debugSetRound(10),
+                  ),
+                  const SizedBox(width: 5),
+                  _DebugRoundButton(
+                    label: '25R',
+                    enabled: snapshot.round != 25,
+                    onPressed: () => game.debugSetRound(25),
+                  ),
+                  const SizedBox(width: 5),
+                  _DebugRoundButton(
+                    label: '50R',
+                    enabled: snapshot.round != snapshot.maxRound,
+                    onPressed: () => game.debugSetRound(snapshot.maxRound),
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 5),
-          Row(
-            children: [
-              _DebugRoundButton(
-                label: '스테이지 초기화',
-                enabled: true,
-                onPressed: game.restartDemo,
+              const SizedBox(height: 5),
+              Row(
+                children: [
+                  _DebugRoundButton(
+                    label: '스테이지 초기화',
+                    enabled: true,
+                    onPressed: game.restartDemo,
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            '테스트 골드',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              _DebugRoundButton(
-                label: '+100',
-                enabled: true,
-                onPressed: () => game.debugAddGold(100),
+              const SizedBox(height: 10),
+              const Text(
+                '테스트 재화',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
               ),
-              const SizedBox(width: 5),
-              _DebugRoundButton(
-                label: '+500',
-                enabled: true,
-                onPressed: () => game.debugAddGold(500),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  _DebugRoundButton(
+                    label: '+500G',
+                    enabled: true,
+                    onPressed: () => game.debugAddGold(500),
+                  ),
+                  const SizedBox(width: 5),
+                  _DebugRoundButton(
+                    label: '+50 파편',
+                    enabled: true,
+                    onPressed: () => game.debugAddGemShards(50),
+                  ),
+                ],
               ),
-              const SizedBox(width: 5),
-              _DebugRoundButton(
-                label: '+1000',
-                enabled: true,
-                onPressed: () => game.debugAddGold(1000),
+              const SizedBox(height: 10),
+              const Text(
+                '테스트 젬',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
               ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            '테스트 젬',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 5,
-            runSpacing: 5,
-            children: GemType.values.map((type) {
-              final gem = demoGems[type]!;
-              return SizedBox(
-                width: 70,
-                height: 34,
-                child: OutlinedButton.icon(
-                  onPressed: () => game.grantGem(type),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: BorderSide(color: gem.color),
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(7),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 5,
+                runSpacing: 5,
+                children: GemType.values.map((type) {
+                  final gem = demoGems[type]!;
+                  return SizedBox(
+                    width: 88,
+                    height: 34,
+                    child: OutlinedButton.icon(
+                      onPressed: () => game.grantGem(type),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: BorderSide(color: gem.color),
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                      ),
+                      icon: Icon(gem.icon, color: gem.color, size: 14),
+                      label: Text(
+                        gem.name,
+                        style: const TextStyle(fontSize: 11),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  ),
-                  icon: Icon(gem.icon, color: gem.color, size: 14),
-                  label: Text(
-                    gem.name,
-                    style: const TextStyle(fontSize: 11),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              );
-            }).toList(),
+                  );
+                }).toList(),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

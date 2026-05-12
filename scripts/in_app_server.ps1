@@ -87,6 +87,7 @@ function Start-InAppServer {
       'web-server',
       "--web-hostname=127.0.0.1",
       "--web-port=$Port",
+      '--dart-define=RUNE_NEXUS_DEBUG_PANEL=true',
       '-t',
       'lib/main.dart'
     ) `
