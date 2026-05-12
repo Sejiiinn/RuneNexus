@@ -123,16 +123,21 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
   }
 
   void _editPath(GridPoint point) {
-    if (!_tiles[point.y][point.x].canBePathNode) {
-      return;
-    }
     setState(() {
       final existingIndex = _path.indexOf(point);
-      if (existingIndex == _path.length - 1) {
-        _path.removeLast();
-      } else if (existingIndex >= 0) {
-        _path = _path.take(existingIndex + 1).toList();
+      if (existingIndex >= 0) {
+        if (existingIndex == _path.length - 1) {
+          _path.removeLast();
+        } else {
+          _path = _path.take(existingIndex + 1).toList();
+        }
       } else {
+        if (!_tiles[point.y][point.x].canBePathNode) {
+          return;
+        }
+        if (_path.isNotEmpty && !_isStraightSegment(_path.last, point)) {
+          return;
+        }
         _path.add(point);
       }
       _lastExportText = null;
@@ -312,23 +317,13 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
           messages.add('경로에는 path, spawn, core 타일만 포함할 수 있습니다.');
           break;
         }
-        if (i > 0 && !_isAdjacent(_path[i - 1], point)) {
-          messages.add('경로는 상하좌우로 연속되어야 합니다.');
+        if (i > 0 && !_isStraightSegment(_path[i - 1], point)) {
+          messages.add('경로는 가로 또는 세로 직선 구간으로만 연결해야 합니다.');
           break;
         }
       }
     }
 
-    final orderedPath = _path.toSet();
-    for (var y = 0; y < _tiles.length; y++) {
-      for (var x = 0; x < _tiles[y].length; x++) {
-        final point = GridPoint(x, y);
-        if (_tiles[y][x].canBePathNode && !orderedPath.contains(point)) {
-          messages.add('path, spawn, core 타일은 모두 경로 순서에 포함되어야 합니다.');
-          return messages;
-        }
-      }
-    }
     return messages;
   }
 
@@ -359,8 +354,8 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
     return point.x >= 0 && point.x < columns && point.y >= 0 && point.y < rows;
   }
 
-  bool _isAdjacent(GridPoint a, GridPoint b) {
-    return (a.x - b.x).abs() + (a.y - b.y).abs() == 1;
+  bool _isStraightSegment(GridPoint a, GridPoint b) {
+    return a.x == b.x || a.y == b.y;
   }
 
   String _buildExportText() {
@@ -909,28 +904,22 @@ class _EditorGrid extends StatelessWidget {
             return map.contains(point) ? point : null;
           }
 
-          return GestureDetector(
+          return Listener(
             behavior: HitTestBehavior.opaque,
-            onTapDown: (details) {
-              final point = pointFor(details.localPosition);
+            onPointerDown: (event) {
+              final point = pointFor(event.localPosition);
               if (point != null) {
                 onPointStart(point);
               }
             },
-            onPanStart: (details) {
-              final point = pointFor(details.localPosition);
-              if (point != null) {
-                onPointStart(point);
-              }
-            },
-            onPanUpdate: (details) {
-              final point = pointFor(details.localPosition);
+            onPointerMove: (event) {
+              final point = pointFor(event.localPosition);
               if (point != null) {
                 onPointDrag(point);
               }
             },
-            onPanEnd: (_) => onPointEnd(),
-            onPanCancel: onPointEnd,
+            onPointerUp: (_) => onPointEnd(),
+            onPointerCancel: (_) => onPointEnd(),
             child: CustomPaint(painter: _EditorGridPainter(map: map)),
           );
         },

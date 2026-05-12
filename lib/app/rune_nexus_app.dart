@@ -203,27 +203,6 @@ class _MapEditorScreen extends StatelessWidget {
         child: Stack(
           children: [
             const Positioned.fill(child: _AppBackdrop()),
-            Positioned(
-              top: 10,
-              left: 16,
-              child: SizedBox(
-                width: 40,
-                height: 40,
-                child: IconButton(
-                  tooltip: '메인 메뉴',
-                  onPressed: onBack,
-                  style: IconButton.styleFrom(
-                    foregroundColor: const Color(0xFFE8FBFF),
-                    backgroundColor: const Color(0xE607111D),
-                    side: const BorderSide(color: Color(0x6650E6FF)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  icon: const Icon(Icons.arrow_back, size: 20),
-                ),
-              ),
-            ),
             Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 64, 16, 24),
@@ -247,6 +226,27 @@ class _MapEditorScreen extends StatelessWidget {
                       initialStageNumber: initialStageNumber,
                     ),
                   ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 10,
+              left: 16,
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: IconButton(
+                  tooltip: '메인 메뉴',
+                  onPressed: onBack,
+                  style: IconButton.styleFrom(
+                    foregroundColor: const Color(0xFFE8FBFF),
+                    backgroundColor: const Color(0xE607111D),
+                    side: const BorderSide(color: Color(0x6650E6FF)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  icon: const Icon(Icons.arrow_back, size: 20),
                 ),
               ),
             ),

@@ -15,6 +15,7 @@ class GameSaveData {
     required this.gemShards,
     required this.nexusHp,
     required this.stageNumber,
+    required this.mapSignature,
     required this.roundIndex,
     required this.completedRounds,
     required this.phase,
@@ -38,6 +39,7 @@ class GameSaveData {
   final int gemShards;
   final int nexusHp;
   final int stageNumber;
+  final String? mapSignature;
   final int roundIndex;
   final int completedRounds;
   final GamePhase phase;
@@ -75,6 +77,7 @@ class GameSaveData {
       'gemShards': gemShards,
       'nexusHp': nexusHp,
       'stageNumber': stageNumber,
+      'mapSignature': mapSignature,
       'roundIndex': roundIndex,
       'completedRounds': completedRounds,
       'phase': phase.name,
@@ -111,6 +114,7 @@ class GameSaveData {
       gemShards: _intValue(json['gemShards']),
       nexusHp: _intValue(json['nexusHp']),
       stageNumber: _intValue(json['stageNumber'], fallback: 1),
+      mapSignature: _stringValue(json['mapSignature']),
       roundIndex: _intValue(json['roundIndex']),
       completedRounds: _intValue(json['completedRounds']),
       phase:
@@ -491,6 +495,10 @@ double _doubleValue(Object? value, {double fallback = 0}) {
     double() => value,
     _ => fallback,
   };
+}
+
+String? _stringValue(Object? value) {
+  return value is String && value.isNotEmpty ? value : null;
 }
 
 T? _enumValue<T extends Enum>(List<T> values, Object? name) {

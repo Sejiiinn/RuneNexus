@@ -2226,6 +2226,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       gemShards: _gemShards,
       nexusHp: _nexusHp,
       stageNumber: _currentStageNumber,
+      mapSignature: pendingSave?.hasActiveRun == true
+          ? pendingSave?.mapSignature
+          : _mapSignature(_map),
       roundIndex: _roundIndex,
       completedRounds: _completedRounds,
       phase: savedPhase,
@@ -2372,6 +2375,21 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
 
+    if (_hasSavedRunMapMismatch(data)) {
+      _refundSavedTurretsForMapChange(data.turrets);
+      _phase = GamePhase.preparation;
+      _restoredPhase = null;
+      _rewardOptions.clear();
+      _isPurchasedGemReward = false;
+      _selectedBuildTurretType = null;
+      _selectedBuildPoint = null;
+      _selectedPortalPoint = null;
+      _selectedTurretPoint = null;
+      _selectedTurretGemSlotIndex = null;
+      _requestLocalSave(immediate: true);
+      return;
+    }
+
     for (final savedTurret in data.turrets) {
       final definition = demoTurrets[savedTurret.type];
       if (definition == null || !_map.contains(savedTurret.point)) {
@@ -2422,6 +2440,77 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _phase = GamePhase.restored;
     _restoredPhase = restoredPhase;
     _isPurchasedGemReward = false;
+  }
+
+  bool _hasSavedRunMapMismatch(GameSaveData data) {
+    if (data.mapSignature != _mapSignature(_map)) {
+      return true;
+    }
+    for (final savedTurret in data.turrets) {
+      if (!_map.canBuildAt(savedTurret.point)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _refundSavedTurretsForMapChange(List<SavedTurret> savedTurrets) {
+    for (final savedTurret in savedTurrets) {
+      final definition = demoTurrets[savedTurret.type];
+      if (definition != null) {
+        _gold += _savedTurretInvestedGold(savedTurret, definition.cost);
+      }
+      for (final gem in savedTurret.equippedGems) {
+        _gemInventory[gem] = (_gemInventory[gem] ?? 0) + 1;
+      }
+      if (savedTurret.primaryTrait != null) {
+        _gemShards += primaryTraitCost;
+      }
+      if (savedTurret.secondaryTrait != null) {
+        _gemShards += secondaryTraitCost;
+      }
+    }
+    _waveSpawner.clear();
+  }
+
+  String _mapSignature(MapDefinition map) {
+    final buffer = StringBuffer('${map.columns}x${map.rows}|');
+    for (final row in map.tiles) {
+      for (final tile in row) {
+        buffer.write('${tile.name},');
+      }
+      buffer.write('/');
+    }
+    buffer.write('|');
+    for (final point in map.path) {
+      buffer.write('${point.x},${point.y};');
+    }
+    return buffer.toString();
+  }
+
+  int _savedTurretInvestedGold(SavedTurret savedTurret, int baseCost) {
+    var total = baseCost;
+    final level = savedTurret.level.clamp(1, 10).toInt();
+    for (var currentLevel = 1; currentLevel < level; currentLevel++) {
+      total += _turretLevelUpCostAt(baseCost, currentLevel);
+    }
+    final slotLimit = savedTurret.slotLimit.clamp(1, 3).toInt();
+    if (slotLimit >= 2) {
+      total += _turretLinkUpgradeCostForSlot(baseCost, 2);
+    }
+    if (slotLimit >= 3) {
+      total += _turretLinkUpgradeCostForSlot(baseCost, 3);
+    }
+    return total;
+  }
+
+  int _turretLevelUpCostAt(int baseCost, int level) {
+    return (baseCost * (70 + (level - 1) * 45) + 50) ~/ 100;
+  }
+
+  int _turretLinkUpgradeCostForSlot(int baseCost, int slotLimit) {
+    final costPercent = slotLimit == 2 ? 150 : 300;
+    return (baseCost * costPercent + 50) ~/ 100;
   }
 
   void _restoreRunUpgradeState(GameSaveData data) {
