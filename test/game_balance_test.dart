@@ -968,6 +968,24 @@ void main() {
     expect(turret.equippedGems, [GemType.chain]);
   });
 
+  test('link upgrade selects the first usable empty gem socket', () async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    game.tryBuildTurret(const GridPoint(2, 0));
+    game.debugAddGold(1000);
+    game.upgradeSelectedTurretLink();
+    game.selectSelectedTurretGemSlot(1);
+    game.grantGem(GemType.range);
+    game.equipSelectedTurret(GemType.range);
+
+    final snapshot = game.snapshotNotifier.value;
+    expect(snapshot.selectedTurretGemSlotIndex, 0);
+    expect(snapshot.selectedTurretGems, [GemType.range]);
+    expect(snapshot.gemInventory[GemType.range], isNull);
+  });
+
   test('only dedicated pressure waves overlap major spawn groups', () {
     double lastSpawnDelay(SpawnGroup group) =>
         group.startDelay + group.interval * (group.count - 1);

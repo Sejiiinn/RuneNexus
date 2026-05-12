@@ -1,7 +1,7 @@
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flame/components.dart';
+import 'package:flutter/painting.dart';
 
 import '../../data/save/game_save_data.dart';
 import '../../domain/gem/gem_type.dart';
@@ -216,6 +216,12 @@ class TurretComponent extends PositionComponent {
 
   bool hasGem(GemType type) => equippedGems.contains(type);
 
+  bool canEquipGemAt(int slotIndex) {
+    return slotIndex >= 0 &&
+        slotIndex < slotLimit &&
+        slotIndex <= equippedGems.length;
+  }
+
   void setTargetPriority(TurretTargetPriority priority) {
     _targetPriority = priority;
   }
@@ -354,7 +360,7 @@ class TurretComponent extends PositionComponent {
   }
 
   GemType? equipGem(GemType type, int slotIndex) {
-    if (slotIndex < 0 || slotIndex >= slotLimit) {
+    if (!canEquipGemAt(slotIndex)) {
       return null;
     }
 
@@ -556,6 +562,8 @@ class TurretComponent extends PositionComponent {
       _drawSelectionHighlight(canvas, center);
     }
 
+    _drawLevelPowerAura(canvas, center);
+
     drawTurretShape(
       canvas,
       size: Size(size.x, size.y),
@@ -568,7 +576,7 @@ class TurretComponent extends PositionComponent {
       ),
     );
 
-    _drawLevelAura(canvas, center);
+    _drawLevelGlyph(canvas, center);
 
     for (var i = 0; i < equippedGems.length; i++) {
       final offsetX = size.x * 0.78 - i * _tileSize * 0.14;
@@ -606,49 +614,217 @@ class TurretComponent extends PositionComponent {
     canvas.drawCircle(center, _tileSize * 0.32, innerPaint);
   }
 
-  void _drawLevelAura(Canvas canvas, Offset center) {
+  void _drawLevelPowerAura(Canvas canvas, Offset center) {
     if (_level <= 1) {
       return;
     }
 
-    final progress = (_level - 1) / (maxLevel - 1);
-    final ringRadius = _tileSize * 0.39;
-    final ringRect = Rect.fromCircle(center: center, radius: ringRadius);
-    final basePaint = Paint()
-      ..color = const Color(0xFF050A12).withValues(alpha: 0.78)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.6
-      ..strokeCap = StrokeCap.round;
-    final progressPaint = Paint()
-      ..color = const Color(0xFFFFD45A).withValues(alpha: 0.92)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.6
-      ..strokeCap = StrokeCap.round;
+    final tier = _levelVisualTier;
+    final ringRadius = _tileSize * (0.27 + tier * 0.018);
     final glowPaint = Paint()
-      ..color = const Color(0xFFFFD45A).withValues(alpha: 0.08 + progress * 0.1)
+      ..color = const Color(0xFFFFD45A).withValues(alpha: 0.06 + tier * 0.025)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 7;
+      ..strokeWidth = _tileSize * (0.045 + tier * 0.006);
+    final ringPaint = Paint()
+      ..color = const Color(0xFFFFE78C).withValues(alpha: 0.18 + tier * 0.07)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2 + tier * 0.35;
 
     canvas.drawCircle(center, ringRadius, glowPaint);
-    canvas.drawArc(ringRect, -math.pi * 0.82, math.pi * 1.64, false, basePaint);
-    canvas.drawArc(
-      ringRect,
-      -math.pi * 0.82,
-      math.pi * 1.64 * progress,
-      false,
-      progressPaint,
-    );
+    canvas.drawCircle(center, ringRadius, ringPaint);
 
-    final pipCount = math.min(_level - 1, 9);
-    final pipPaint = Paint()..color = const Color(0xFFFFF0B0);
-    for (var i = 0; i < pipCount; i++) {
-      final angle = -math.pi * 0.82 + math.pi * 1.64 * (i / 8);
-      final pipCenter = Offset(
+    if (tier < 3) {
+      return;
+    }
+
+    final sparkPaint = Paint()
+      ..color = const Color(
+        0xFFFFF0B0,
+      ).withValues(alpha: tier >= 4 ? 0.95 : 0.72)
+      ..strokeWidth = tier >= 4 ? 2.0 : 1.5
+      ..strokeCap = StrokeCap.round;
+    for (final angle in const [-math.pi / 2, 0.0, math.pi / 2, math.pi]) {
+      final start = Offset(
         center.dx + math.cos(angle) * ringRadius,
         center.dy + math.sin(angle) * ringRadius,
       );
-      canvas.drawCircle(pipCenter, _tileSize * 0.022, pipPaint);
+      final end = Offset(
+        center.dx + math.cos(angle) * (ringRadius + _tileSize * 0.035),
+        center.dy + math.sin(angle) * (ringRadius + _tileSize * 0.035),
+      );
+      canvas.drawLine(start, end, sparkPaint);
     }
+  }
+
+  void _drawLevelGlyph(Canvas canvas, Offset center) {
+    if (_level <= 1) {
+      return;
+    }
+
+    final tier = _levelVisualTier;
+    final glyphCenter = center.translate(0, _tileSize * 0.27);
+    final outline = Paint()
+      ..color = const Color(0xFF050A12).withValues(alpha: 0.9)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    final shadowFill = Paint()
+      ..color = const Color(0xFF050A12).withValues(alpha: 0.68);
+    final glowStroke = Paint()
+      ..color = const Color(0xFFFFD45A).withValues(alpha: 0.18)
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 3.0;
+
+    if (tier >= 4) {
+      final starRadius = _tileSize * 0.135;
+      final star = _levelStarPath(glyphCenter, starRadius);
+      canvas.drawPath(star.shift(Offset(0, _tileSize * 0.014)), shadowFill);
+      canvas.drawPath(star, glowStroke);
+      canvas.drawPath(
+        star,
+        Paint()..color = const Color(0xFFFFF0B0).withValues(alpha: 0.98),
+      );
+      canvas.drawPath(star, outline);
+    }
+
+    if (tier >= 3) {
+      final ringRadius = _tileSize * 0.128;
+      canvas.drawCircle(glyphCenter, ringRadius, glowStroke);
+      canvas.drawCircle(
+        glyphCenter,
+        ringRadius,
+        Paint()
+          ..color = const Color(0xFF050A12).withValues(alpha: 0.74)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0,
+      );
+      for (final direction in const [
+        Offset(0, -1),
+        Offset(1, 0),
+        Offset(0, 1),
+        Offset(-1, 0),
+      ]) {
+        canvas.drawLine(
+          glyphCenter.translate(
+            direction.dx * _tileSize * 0.115,
+            direction.dy * _tileSize * 0.115,
+          ),
+          glyphCenter.translate(
+            direction.dx * _tileSize * 0.155,
+            direction.dy * _tileSize * 0.155,
+          ),
+          Paint()
+            ..color = const Color(0xFFFFF0B0).withValues(alpha: 0.9)
+            ..strokeWidth = 1.6
+            ..strokeCap = StrokeCap.round,
+        );
+      }
+    }
+
+    if (tier >= 2) {
+      final width = _tileSize * (tier >= 3 ? 0.38 : 0.34);
+      final height = _tileSize * 0.11;
+      final wing = _levelWingPath(glyphCenter, width, height);
+      canvas.drawPath(wing.shift(Offset(0, _tileSize * 0.014)), shadowFill);
+      canvas.drawPath(
+        wing,
+        Paint()..color = const Color(0xFFFFB84A).withValues(alpha: 0.96),
+      );
+      canvas.drawPath(wing, outline);
+    }
+
+    final coreRadius =
+        _tileSize *
+        switch (tier) {
+          1 => 0.12,
+          2 => 0.125,
+          3 => 0.13,
+          _ => 0.116,
+        };
+    final core = _levelDiamondPath(glyphCenter, coreRadius);
+    canvas.drawPath(core.shift(Offset(0, _tileSize * 0.012)), shadowFill);
+    canvas.drawPath(
+      core,
+      Paint()
+        ..color =
+            (tier >= 3 ? const Color(0xFFFFF0B0) : const Color(0xFFFFD45A))
+                .withValues(alpha: 0.97),
+    );
+    canvas.drawPath(core, outline);
+
+    if (tier >= 2) {
+      final sparkRadius = coreRadius * 0.34;
+      canvas.drawCircle(
+        glyphCenter,
+        sparkRadius,
+        Paint()
+          ..color =
+              (tier >= 3 ? const Color(0xFFFFFFFF) : const Color(0xFFFFF0B0))
+                  .withValues(alpha: 0.82),
+      );
+    }
+
+    if (tier >= 4) {
+      canvas.drawCircle(
+        glyphCenter.translate(0, -_tileSize * 0.006),
+        coreRadius * 0.2,
+        Paint()..color = const Color(0xFFFF8A3D).withValues(alpha: 0.95),
+      );
+    }
+  }
+
+  Path _levelDiamondPath(Offset center, double radius) {
+    return Path()
+      ..moveTo(center.dx, center.dy - radius)
+      ..lineTo(center.dx + radius * 0.82, center.dy)
+      ..lineTo(center.dx, center.dy + radius)
+      ..lineTo(center.dx - radius * 0.82, center.dy)
+      ..close();
+  }
+
+  Path _levelWingPath(Offset center, double width, double height) {
+    final halfWidth = width / 2;
+    final halfHeight = height / 2;
+    final bevel = height * 0.52;
+    return Path()
+      ..moveTo(center.dx - halfWidth, center.dy)
+      ..lineTo(center.dx - halfWidth + bevel, center.dy - halfHeight)
+      ..lineTo(center.dx + halfWidth - bevel, center.dy - halfHeight)
+      ..lineTo(center.dx + halfWidth, center.dy)
+      ..lineTo(center.dx + halfWidth - bevel, center.dy + halfHeight)
+      ..lineTo(center.dx - halfWidth + bevel, center.dy + halfHeight)
+      ..close();
+  }
+
+  Path _levelStarPath(Offset center, double radius) {
+    final path = Path();
+    for (var i = 0; i < 8; i++) {
+      final angle = -math.pi / 2 + i * math.pi / 4;
+      final pointRadius = i.isEven ? radius : radius * 0.48;
+      final point = Offset(
+        center.dx + math.cos(angle) * pointRadius,
+        center.dy + math.sin(angle) * pointRadius,
+      );
+      if (i == 0) {
+        path.moveTo(point.dx, point.dy);
+      } else {
+        path.lineTo(point.dx, point.dy);
+      }
+    }
+    return path..close();
+  }
+
+  int get _levelVisualTier {
+    if (_level >= 10) {
+      return 4;
+    }
+    if (_level >= 8) {
+      return 3;
+    }
+    if (_level >= 5) {
+      return 2;
+    }
+    return 1;
   }
 }
 

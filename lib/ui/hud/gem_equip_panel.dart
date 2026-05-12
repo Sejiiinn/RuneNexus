@@ -329,64 +329,72 @@ class _TurretLinkSocketStrip extends StatelessWidget {
         ? '${snapshot.selectedTurretLinkUpgradeCost}G'
         : 'Lv.${snapshot.selectedTurretLinkUpgradeRequiredLevel}';
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-      decoration: BoxDecoration(
-        color: const Color(0x9907111D),
-        border: Border.all(color: const Color(0x4433D8FF)),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.hub_outlined, size: 15, color: Color(0xFF8EE6FF)),
-          const SizedBox(width: 6),
-          const Text(
-            '링크 홈',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFFE8F8FF),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(top: 6),
+          padding: const EdgeInsets.fromLTRB(8, 10, 8, 7),
+          decoration: BoxDecoration(
+            color: const Color(0x9907111D),
+            border: Border.all(color: const Color(0x4433D8FF)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (
+                  var index = 0;
+                  index < snapshot.selectedTurretSlotLimit;
+                  index++
+                )
+                  Padding(
+                    padding: const EdgeInsets.only(right: 7),
+                    child: _LinkSocketButton(
+                      index: index,
+                      type: index < snapshot.selectedTurretGems.length
+                          ? snapshot.selectedTurretGems[index]
+                          : null,
+                      selected: selectedSlotIndex == index,
+                      enabled:
+                          canManageGems &&
+                          index <= snapshot.selectedTurretGems.length,
+                      onTap: () => onSelectSlot(index),
+                    ),
+                  ),
+                if (snapshot.selectedTurretHasLinkUpgrade)
+                  _LinkSocketButton(
+                    index: snapshot.selectedTurretSlotLimit,
+                    type: null,
+                    selected: false,
+                    enabled: canOpenLockedSocket,
+                    locked: true,
+                    lockedLabel: lockedLabel,
+                    onTap: onUpgradeLink,
+                  ),
+              ],
             ),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  for (
-                    var index = 0;
-                    index < snapshot.selectedTurretSlotLimit;
-                    index++
-                  )
-                    Padding(
-                      padding: const EdgeInsets.only(right: 7),
-                      child: _LinkSocketButton(
-                        index: index,
-                        type: index < snapshot.selectedTurretGems.length
-                            ? snapshot.selectedTurretGems[index]
-                            : null,
-                        selected: selectedSlotIndex == index,
-                        enabled: canManageGems,
-                        onTap: () => onSelectSlot(index),
-                      ),
-                    ),
-                  if (snapshot.selectedTurretHasLinkUpgrade)
-                    _LinkSocketButton(
-                      index: snapshot.selectedTurretSlotLimit,
-                      type: null,
-                      selected: false,
-                      enabled: canOpenLockedSocket,
-                      locked: true,
-                      lockedLabel: lockedLabel,
-                      onTap: onUpgradeLink,
-                    ),
-                ],
+        ),
+        Positioned(
+          left: 10,
+          top: 0,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            color: const Color(0xFF0B1B2B),
+            child: const Text(
+              '링크 홈',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF8EE6FF),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

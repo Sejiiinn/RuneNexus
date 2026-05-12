@@ -1094,7 +1094,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
     final turret = _turrets[point];
-    if (turret == null || slotIndex < 0 || slotIndex >= turret.slotLimit) {
+    if (turret == null || !turret.canEquipGemAt(slotIndex)) {
       return;
     }
 
@@ -1126,6 +1126,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final slotIndex = selectedSlotIndex == null
         ? _defaultGemSlotIndex(turret)
         : selectedSlotIndex.clamp(0, turret.slotLimit - 1).toInt();
+    if (!turret.canEquipGemAt(slotIndex)) {
+      return;
+    }
     final returnedGem = turret.equipGem(type, slotIndex);
     _gemInventory[type] = (_gemInventory[type] ?? 0) - 1;
     if ((_gemInventory[type] ?? 0) <= 0) {
@@ -1213,7 +1216,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _gold -= turret.linkUpgradeCost;
     turret.upgradeLink();
-    _selectedTurretGemSlotIndex = turret.slotLimit - 1;
+    _selectedTurretGemSlotIndex = _defaultGemSlotIndex(turret);
     _publish();
     _requestLocalSave(immediate: true);
   }
