@@ -12,6 +12,7 @@ class _RewardOverlay extends StatefulWidget {
 
 class _RewardOverlayState extends State<_RewardOverlay> {
   GemType? _selectedGem;
+  bool _selectedGemShards = false;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +65,7 @@ class _RewardOverlayState extends State<_RewardOverlay> {
                       onPressed: () {
                         setState(() {
                           _selectedGem = type;
+                          _selectedGemShards = false;
                         });
                       },
                       onConfirm: () => widget.game.selectRewardGem(type),
@@ -75,7 +77,14 @@ class _RewardOverlayState extends State<_RewardOverlay> {
                 const SizedBox(height: 10),
                 _GemShardRewardBar(
                   ownedCount: snapshot.gemShards,
-                  onPressed: widget.game.selectRewardGemShards,
+                  selected: _selectedGemShards,
+                  onPressed: () {
+                    setState(() {
+                      _selectedGem = null;
+                      _selectedGemShards = true;
+                    });
+                  },
+                  onConfirm: widget.game.selectRewardGemShards,
                 ),
               ],
               if (isPurchase) ...[
@@ -99,63 +108,82 @@ class _RewardOverlayState extends State<_RewardOverlay> {
 class _GemShardRewardBar extends StatelessWidget {
   const _GemShardRewardBar({
     required this.ownedCount,
+    required this.selected,
     required this.onPressed,
+    required this.onConfirm,
   });
 
   final int ownedCount;
+  final bool selected;
   final VoidCallback onPressed;
+  final VoidCallback onConfirm;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xAA07111D),
-        border: Border.all(color: const Color(0xAA28D66F)),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
         borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          const _GemShardIcon(),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  '젬 대신 파편 획득',
-                  style: TextStyle(
-                    color: Color(0xFFE8F8FF),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0x3328D66F) : const Color(0xAA07111D),
+            border: Border.all(
+              color: selected
+                  ? const Color(0xFF28D66F)
+                  : const Color(0xAA28D66F),
+              width: selected ? 2 : 1,
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              const _GemShardIcon(),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      '젬 대신 파편 획득',
+                      style: TextStyle(
+                        color: Color(0xFFE8F8FF),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '파편 +${RuneNexusGame.gemShardRewardFallbackAmount} · 현재 보유 $ownedCount',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF9FB7C8),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  '파편 +${RuneNexusGame.gemShardRewardFallbackAmount} · 현재 보유 $ownedCount',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Color(0xFF9FB7C8),
+              ),
+              if (selected) ...[
+                const SizedBox(width: 8),
+                SizedBox(
+                  height: 30,
+                  child: FilledButton(
+                    onPressed: onConfirm,
+                    child: const Text('파편 받기', style: TextStyle(fontSize: 12)),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
-            ),
+            ],
           ),
-          const SizedBox(width: 8),
-          SizedBox(
-            height: 30,
-            child: FilledButton(
-              onPressed: onPressed,
-              child: const Text('선택', style: TextStyle(fontSize: 12)),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -269,4 +297,3 @@ class _RewardCard extends StatelessWidget {
     );
   }
 }
-
