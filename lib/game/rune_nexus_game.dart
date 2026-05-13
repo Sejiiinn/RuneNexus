@@ -70,6 +70,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _chainJumpRange = 88;
   static const double _minBoardZoom = 1;
   static const double _maxBoardZoom = 2.1;
+  static const double _baseBoardPanRatio = 0.2;
   static const double _nexusHitAlertDuration = 0.65;
   static const double _portalAlertDuration = 0.55;
   static const double _postPortalAlertSpawnDelay = 0.15;
@@ -1903,18 +1904,29 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Vector2 _clampBoardOffset(Vector2 offset) {
-    final zoomOverflow = math.max(0, _boardZoom - _minBoardZoom);
-    final baseMaxX = _tileSize * _map.columns * zoomOverflow / 2;
-    final baseMaxY = _tileSize * _map.rows * zoomOverflow / 2;
-    final minPanX = _tileSize * 0.8;
-    final minPanY = _tileSize * 1.8;
-    final maxX = baseMaxX + minPanX;
-    final maxY = baseMaxY + minPanY;
+    final limit = _boardPanLimit();
     return Vector2(
-      offset.x.clamp(-maxX, maxX).toDouble(),
-      offset.y.clamp(-maxY, maxY).toDouble(),
+      offset.x.clamp(-limit.x, limit.x).toDouble(),
+      offset.y.clamp(-limit.y, limit.y).toDouble(),
     );
   }
+
+  Vector2 _boardPanLimit() {
+    final boardWidth = _tileSize * _map.columns;
+    final boardHeight = _tileSize * _map.rows;
+    final zoomOverflow = math.max(0, _boardZoom - _minBoardZoom);
+    final zoomPanX = boardWidth * zoomOverflow / 2;
+    final zoomPanY = boardHeight * zoomOverflow / 2;
+    final basePanX = math.max(_tileSize * 0.8, boardWidth * _baseBoardPanRatio);
+    final basePanY = math.max(
+      _tileSize * 1.8,
+      boardHeight * _baseBoardPanRatio,
+    );
+    return Vector2(zoomPanX + basePanX, zoomPanY + basePanY);
+  }
+
+  @visibleForTesting
+  Vector2 debugBoardPanLimit() => _boardPanLimit();
 
   void _zoomBoardAround({
     required double zoom,

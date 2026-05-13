@@ -358,6 +358,22 @@ void main() {
     expect(enemy.position.x, closeTo(31.5 * game.boardDistanceScale, 0.001));
   });
 
+  test('board pan room scales with wide map size', () async {
+    final game = RuneNexusGame(
+      stage: demoStages[1],
+      saveRepository: MemorySaveRepository(),
+    );
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    final tileSize = game.boardDistanceScale * 48;
+    final panLimit = game.debugBoardPanLimit();
+
+    expect(panLimit.x, closeTo(80, 0.001));
+    expect(panLimit.x, greaterThan(tileSize * 2));
+  });
+
   test('turret fire rate is represented as shots per second', () {
     expect(demoTurrets[TurretType.arrow]!.attackRate, 2.27);
     expect(demoTurrets[TurretType.cannon]!.attackRate, 0.4);

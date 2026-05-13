@@ -54,7 +54,7 @@ void main() {
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.cannon]!,
+            definition: demoTurrets[TurretType.magic]!,
             game: game,
             center: Vector2.zero(),
             tileSize: 32,
@@ -70,6 +70,68 @@ void main() {
       turret.choosePrimaryTrait(TurretTraitType.lightweightBarrel),
       isFalse,
     );
+  });
+
+  test('cannon primary traits expose splash and direct damage paths', () {
+    final game = RuneNexusGame();
+    final turret =
+        TurretComponent(
+            gridPoint: const GridPoint(0, 0),
+            definition: demoTurrets[TurretType.cannon]!,
+            game: game,
+            center: Vector2.zero(),
+            tileSize: 32,
+          )
+          ..upgradeLevel()
+          ..upgradeLevel();
+
+    expect(turret.primaryTraitChoices, [
+      TurretTraitType.shrapnelShell,
+      TurretTraitType.compressedCharge,
+    ]);
+    expect(turret.secondaryTraitChoices, isEmpty);
+    expect(turret.canChoosePrimaryTrait, isTrue);
+  });
+
+  test('shrapnel shell improves cannon splash coverage', () {
+    final game = RuneNexusGame();
+    final turret =
+        TurretComponent(
+            gridPoint: const GridPoint(0, 0),
+            definition: demoTurrets[TurretType.cannon]!,
+            game: game,
+            center: Vector2.zero(),
+            tileSize: 32,
+          )
+          ..upgradeLevel()
+          ..upgradeLevel();
+    final baseSplashRadius = turret.splashRadius;
+
+    turret.choosePrimaryTrait(TurretTraitType.shrapnelShell);
+
+    expect(turret.splashRadius, closeTo(baseSplashRadius * 1.2, 0.001));
+    expect(turret.splashSecondaryDamageMultiplier, closeTo(0.6, 0.001));
+  });
+
+  test('compressed charge trades cannon speed for direct damage', () {
+    final game = RuneNexusGame();
+    final turret =
+        TurretComponent(
+            gridPoint: const GridPoint(0, 0),
+            definition: demoTurrets[TurretType.cannon]!,
+            game: game,
+            center: Vector2.zero(),
+            tileSize: 32,
+          )
+          ..upgradeLevel()
+          ..upgradeLevel();
+    final baseAttackRate = turret.attackRate;
+    final enemy = _enemy(game);
+
+    turret.choosePrimaryTrait(TurretTraitType.compressedCharge);
+
+    expect(turret.attackRate, closeTo(baseAttackRate * 0.9, 0.001));
+    expect(turret.registerDirectHitTraits(enemy), closeTo(1.35, 0.001));
   });
 
   test('lightweight barrel improves machine gun speed stats', () {
@@ -179,7 +241,7 @@ void main() {
       ..chooseSecondaryTrait(TurretTraitType.chainCleanup);
     final restored = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.cannon]!,
+      definition: demoTurrets[TurretType.magic]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,

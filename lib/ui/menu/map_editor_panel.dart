@@ -184,15 +184,22 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
 
   Future<void> _copyExport() async {
     final exportText = _buildExportText();
-    await Clipboard.setData(ClipboardData(text: exportText));
-    final copiedText = await Clipboard.getData('text/plain');
-    final copied = copiedText?.text == exportText;
-    if (!mounted) {
-      return;
-    }
     setState(() {
       _lastExportText = exportText;
     });
+
+    var copied = false;
+    try {
+      await Clipboard.setData(ClipboardData(text: exportText));
+      final copiedText = await Clipboard.getData('text/plain');
+      copied = copiedText?.text == exportText;
+    } catch (_) {
+      copied = false;
+    }
+
+    if (!mounted) {
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(

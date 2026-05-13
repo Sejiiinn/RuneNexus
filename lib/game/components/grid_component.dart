@@ -80,6 +80,9 @@ class GridComponent extends Component {
         final point = GridPoint(x, y);
         final rect = _tileRect(point);
         final tileType = map.tileAt(point);
+        if (tileType == TileType.blocked) {
+          continue;
+        }
         _drawTile(canvas, rect, point, tileType);
         canvas.drawRect(rect.deflate(1), _stroke);
       }
@@ -128,7 +131,7 @@ class GridComponent extends Component {
       case TileType.build:
         _drawGrassDetails(canvas, inner, point);
       case TileType.blocked:
-        _drawRuinDetails(canvas, inner, point);
+        break;
     }
   }
 
@@ -188,31 +191,6 @@ class GridComponent extends Component {
         bladePaint,
       );
     }
-  }
-
-  void _drawRuinDetails(Canvas canvas, Rect rect, GridPoint point) {
-    final stone = Paint()..color = const Color(0xFF243342);
-    final crack = Paint()
-      ..color = const Color(0x8807111D)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-    final rubble = Rect.fromLTWH(
-      rect.left + tileSize * (0.16 + (point.x % 2) * 0.14),
-      rect.top + tileSize * 0.22,
-      tileSize * 0.26,
-      tileSize * 0.18,
-    );
-    canvas.drawRect(rubble, stone);
-    canvas.drawLine(
-      Offset(rect.left + tileSize * 0.62, rect.top + tileSize * 0.18),
-      Offset(rect.left + tileSize * 0.45, rect.top + tileSize * 0.62),
-      crack,
-    );
-    canvas.drawLine(
-      Offset(rect.left + tileSize * 0.45, rect.top + tileSize * 0.62),
-      Offset(rect.left + tileSize * 0.56, rect.bottom - tileSize * 0.14),
-      crack,
-    );
   }
 
   void _drawPortal(Canvas canvas, Rect rect) {
@@ -390,7 +368,7 @@ class GridComponent extends Component {
       ..color = switch (type) {
         TileType.path => const Color(0xFF786C58),
         TileType.build => const Color(0xFF1C4737),
-        TileType.blocked => const Color(0xFF172634),
+        TileType.blocked => const Color(0x00000000),
         TileType.spawn => const Color(0xFF4B245F),
         TileType.core => const Color(0xFF0B86B8),
       };

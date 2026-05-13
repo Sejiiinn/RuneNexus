@@ -1079,6 +1079,8 @@ IconData _traitIcon(TurretTraitType trait) {
   return switch (trait) {
     TurretTraitType.overheatMagazine => Icons.local_fire_department_outlined,
     TurretTraitType.lightweightBarrel => Icons.speed,
+    TurretTraitType.shrapnelShell => Icons.blur_on,
+    TurretTraitType.compressedCharge => Icons.compress,
     TurretTraitType.suppressiveFire => Icons.gps_fixed,
     TurretTraitType.chainCleanup => Icons.hub_outlined,
   };
@@ -1088,6 +1090,8 @@ Color _traitAccentColor(TurretTraitType trait) {
   return switch (trait) {
     TurretTraitType.overheatMagazine => const Color(0xFFFFB45E),
     TurretTraitType.lightweightBarrel => const Color(0xFF8EE6FF),
+    TurretTraitType.shrapnelShell => const Color(0xFFFF9A5F),
+    TurretTraitType.compressedCharge => const Color(0xFFFFD166),
     TurretTraitType.suppressiveFire => const Color(0xFF63E6A5),
     TurretTraitType.chainCleanup => const Color(0xFFD7F27C),
   };

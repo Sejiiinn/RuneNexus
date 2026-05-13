@@ -170,7 +170,8 @@ class TurretComponent extends PositionComponent {
                 hasGem(GemType.lightWeapon)
             ? 1.2
             : 1) *
-        (_primaryTrait == TurretTraitType.lightweightBarrel ? 1.1 : 1);
+        (_primaryTrait == TurretTraitType.lightweightBarrel ? 1.1 : 1) *
+        (_primaryTrait == TurretTraitType.compressedCharge ? 0.9 : 1);
     if (_chainCleanupTimer > 0) {
       rate *= 1.4;
     }
@@ -198,6 +199,9 @@ class TurretComponent extends PositionComponent {
     if (hasGem(GemType.explosion)) {
       return definition.splashRadius > 0 ? 0.5 : 0.35;
     }
+    if (_primaryTrait == TurretTraitType.shrapnelShell) {
+      return definition.splashRadius > 0 ? 0.6 : 1;
+    }
     return definition.splashRadius > 0 ? 0.5 : 1;
   }
 
@@ -210,6 +214,7 @@ class TurretComponent extends PositionComponent {
     if (definition.splashRadius > 0) {
       return definition.splashRadius *
           (hasGem(GemType.explosion) ? 1.25 : 1) *
+          (_primaryTrait == TurretTraitType.shrapnelShell ? 1.2 : 1) *
           heavyMultiplier *
           game.boardDistanceScale;
     }
@@ -355,6 +360,9 @@ class TurretComponent extends PositionComponent {
         _overheatStacks = 1;
       }
       return 1 + _overheatStacks * 0.02;
+    }
+    if (_primaryTrait == TurretTraitType.compressedCharge) {
+      return 1.35;
     }
     return 1;
   }

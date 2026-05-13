@@ -20,6 +20,10 @@ const turretTraitCatalog = <TurretType, TurretTraitSet>{
     ],
     secondary: [TurretTraitType.suppressiveFire, TurretTraitType.chainCleanup],
   ),
+  TurretType.cannon: TurretTraitSet(
+    primary: [TurretTraitType.shrapnelShell, TurretTraitType.compressedCharge],
+    secondary: [],
+  ),
 };
 
 TurretTraitSet turretTraitSetFor(TurretType type) {
