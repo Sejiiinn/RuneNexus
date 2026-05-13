@@ -46,45 +46,48 @@ class _BottomBar extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            if (snapshot.selectedPortalPoint != null) ...[
-              _PortalSummaryCard(snapshot: snapshot, statusText: statusText),
+            if (snapshot.selectedRunPanelTab != RunPanelTab.closed) ...[
               const SizedBox(height: 8),
-            ],
-            if (snapshot.selectedRunPanelTab == RunPanelTab.upgrades) ...[
-              _RunUpgradePanel(game: game, snapshot: snapshot),
-            ] else if (snapshot.selectedRunPanelTab == RunPanelTab.gems) ...[
-              _GemInventoryPanel(game: game, snapshot: snapshot),
-            ] else ...[
-              if (snapshot.selectedTurretPoint != null && canEditBoard) ...[
-                _GemEquipPanel(game: game, snapshot: snapshot),
-              ] else if ((snapshot.selectedBuildPoint != null ||
-                      snapshot.selectedBuildTurretType != null) &&
-                  canEditBoard) ...[
-                _BuildSelectionPanel(game: game, snapshot: snapshot),
-              ],
-              if (snapshot.selectedTurretPoint == null) ...[
+              if (snapshot.selectedPortalPoint != null) ...[
+                _PortalSummaryCard(snapshot: snapshot, statusText: statusText),
                 const SizedBox(height: 8),
-                Row(
-                  children: TurretType.values.map((type) {
-                    final definition = demoTurrets[type]!;
-                    return Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 3),
-                        child: _TurretButton(
-                          type: type,
-                          label: definition.name,
-                          cost: definition.cost,
-                          color: definition.color,
-                          selected: snapshot.selectedBuildTurretType == type,
-                          enabled: canEditBoard,
-                          onPressed: () =>
-                              game.previewOrBuildSelectedTile(type),
+              ],
+              if (snapshot.selectedRunPanelTab == RunPanelTab.upgrades) ...[
+                _RunUpgradePanel(game: game, snapshot: snapshot),
+              ] else if (snapshot.selectedRunPanelTab == RunPanelTab.gems) ...[
+                _GemInventoryPanel(game: game, snapshot: snapshot),
+              ] else if (snapshot.selectedRunPanelTab ==
+                  RunPanelTab.turrets) ...[
+                if (snapshot.selectedTurretPoint != null && canEditBoard) ...[
+                  _GemEquipPanel(game: game, snapshot: snapshot),
+                ] else if ((snapshot.selectedBuildPoint != null ||
+                        snapshot.selectedBuildTurretType != null) &&
+                    canEditBoard) ...[
+                  _BuildSelectionPanel(game: game, snapshot: snapshot),
+                ],
+                if (snapshot.selectedTurretPoint == null) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: TurretType.values.map((type) {
+                      final definition = demoTurrets[type]!;
+                      return Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 3),
+                          child: _TurretButton(
+                            type: type,
+                            label: definition.name,
+                            cost: definition.cost,
+                            color: definition.color,
+                            selected: snapshot.selectedBuildTurretType == type,
+                            enabled: canEditBoard,
+                            onPressed: () =>
+                                game.previewOrBuildSelectedTile(type),
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
+                      );
+                    }).toList(),
+                  ),
+                ],
               ],
             ],
             const SizedBox(height: 8),
@@ -249,11 +252,7 @@ class _GemInventorySectionHeader extends StatelessWidget {
     return const Row(
       children: [
         Expanded(
-          child: Divider(
-            height: 1,
-            thickness: 1,
-            color: Color(0x334D6577),
-          ),
+          child: Divider(height: 1, thickness: 1, color: Color(0x334D6577)),
         ),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 8),
@@ -269,11 +268,7 @@ class _GemInventorySectionHeader extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: Divider(
-            height: 1,
-            thickness: 1,
-            color: Color(0x334D6577),
-          ),
+          child: Divider(height: 1, thickness: 1, color: Color(0x334D6577)),
         ),
       ],
     );

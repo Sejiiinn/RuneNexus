@@ -6,6 +6,7 @@ import 'package:rune_nexus/data/definitions/demo_turret_data.dart';
 import 'package:rune_nexus/data/save/save_repository.dart';
 import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
+import 'package:rune_nexus/domain/combat/run_panel_tab.dart';
 import 'package:rune_nexus/domain/enemy/enemy_scaling.dart';
 import 'package:rune_nexus/domain/enemy/enemy_type.dart';
 import 'package:rune_nexus/domain/gem/gem_equip_rules.dart';
@@ -549,6 +550,23 @@ void main() {
     expect(game.snapshotNotifier.value.selectedBuildPoint, isNull);
     expect(game.snapshotNotifier.value.placedTurretCount, 0);
     expect(game.snapshotNotifier.value.gold, 150);
+  });
+
+  test('run panel tab can be toggled closed', () {
+    final game = RuneNexusGame();
+
+    expect(
+      game.snapshotNotifier.value.selectedRunPanelTab,
+      RunPanelTab.turrets,
+    );
+
+    game.selectRunPanelTab(RunPanelTab.turrets);
+
+    expect(game.snapshotNotifier.value.selectedRunPanelTab, RunPanelTab.closed);
+
+    game.selectRunPanelTab(RunPanelTab.gems);
+
+    expect(game.snapshotNotifier.value.selectedRunPanelTab, RunPanelTab.gems);
   });
 
   test('status gems are removed from the reward pool', () {

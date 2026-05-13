@@ -71,6 +71,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _minBoardZoom = 1;
   static const double _maxBoardZoom = 2.1;
   static const double _baseBoardPanRatio = 0.2;
+  static const int _spaceStarCount = 86;
   static const double _nexusHitAlertDuration = 0.65;
   static const double _portalAlertDuration = 0.55;
   static const double _postPortalAlertSpawnDelay = 0.15;
@@ -358,6 +359,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double _combatStatsPublishTimer = 0;
   bool _combatStatsPublishPending = false;
   bool _appResourcesDisposed = false;
+  double _spaceTime = 0;
 
   bool get isWaveRunning => _phase == GamePhase.wave;
   double get boardDistanceScale =>
@@ -484,6 +486,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void update(double dt) {
+    _spaceTime = (_spaceTime + dt) % 1200;
     _updateVisualAlerts(dt);
     if (_phase == GamePhase.restored) {
       super.update(0);
@@ -539,6 +542,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     final point = _gridPointAt(_unzoomPosition(event.localPosition));
     if (point == null) {
+      _clearBoardSelection(closePanel: true);
+      _publish();
       return;
     }
     if (_turrets.containsKey(point)) {
@@ -573,12 +578,19 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
 
+    _clearBoardSelection(closePanel: true);
+    _publish();
+  }
+
+  void _clearBoardSelection({required bool closePanel}) {
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
     _selectedPortalPoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
-    _publish();
+    if (closePanel) {
+      _selectedRunPanelTab = RunPanelTab.closed;
+    }
   }
 
   void previewOrBuildSelectedTile(TurretType type) {
@@ -616,6 +628,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   void selectRunPanelTab(RunPanelTab tab) {
     if (_selectedRunPanelTab == tab) {
+      _selectedRunPanelTab = RunPanelTab.closed;
+      _publish();
       return;
     }
     _selectedRunPanelTab = tab;
@@ -1794,12 +1808,79 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void render(Canvas canvas) {
+    _drawSpaceBackground(canvas);
     canvas.save();
     _applyBoardZoom(canvas);
     super.render(canvas);
     _drawBuildSelection(canvas);
     canvas.restore();
     _drawNexusScreenAlert(canvas);
+  }
+
+  void _drawSpaceBackground(Canvas canvas) {
+    if (size.x <= 0 || size.y <= 0) {
+      return;
+    }
+
+    final bounds = Rect.fromLTWH(0, 0, size.x, size.y);
+    canvas.drawRect(
+      bounds,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF040913), Color(0xFF07111D), Color(0xFF02060C)],
+        ).createShader(bounds),
+    );
+
+    final hazeCenter = Offset(size.x * 0.52, size.y * 0.18);
+    canvas.drawCircle(
+      hazeCenter,
+      math.max(size.x, size.y) * 0.44,
+      Paint()
+        ..shader =
+            RadialGradient(
+              colors: [
+                const Color(0xFF1A4B66).withValues(alpha: 0.16),
+                const Color(0xFF1A4B66).withValues(alpha: 0),
+              ],
+            ).createShader(
+              Rect.fromCircle(
+                center: hazeCenter,
+                radius: math.max(size.x, size.y) * 0.44,
+              ),
+            ),
+    );
+
+    for (var i = 0; i < _spaceStarCount; i++) {
+      final x = _starUnit(i, 1) * size.x;
+      final y = _starUnit(i, 2) * size.y;
+      final speed = 0.75 + _starUnit(i, 3) * 1.8;
+      final phase = _starUnit(i, 4) * math.pi * 2;
+      final pulse = (math.sin(_spaceTime * speed + phase) + 1) / 2;
+      final baseAlpha = 0.16 + _starUnit(i, 5) * 0.24;
+      final alpha = baseAlpha + pulse * (0.18 + _starUnit(i, 6) * 0.24);
+      final radius = 0.55 + _starUnit(i, 7) * 1.05;
+      final color = Color.lerp(
+        const Color(0xFFC7F2FF),
+        const Color(0xFFFFFFFF),
+        _starUnit(i, 8),
+      )!.withValues(alpha: alpha.clamp(0.0, 0.82));
+
+      if (radius > 1.25 && pulse > 0.62) {
+        canvas.drawCircle(
+          Offset(x, y),
+          radius * (2.2 + pulse),
+          Paint()..color = color.withValues(alpha: alpha * 0.16),
+        );
+      }
+      canvas.drawCircle(Offset(x, y), radius, Paint()..color = color);
+    }
+  }
+
+  double _starUnit(int index, int salt) {
+    final value = math.sin(index * 12.9898 + salt * 78.233) * 43758.5453;
+    return value - value.floorToDouble();
   }
 
   void _drawBuildSelection(Canvas canvas) {
