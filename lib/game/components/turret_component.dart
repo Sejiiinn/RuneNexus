@@ -37,7 +37,7 @@ class TurretComponent extends PositionComponent {
   final GridPoint gridPoint;
   final TurretDefinition definition;
   final RuneNexusGame game;
-  final List<GemType> equippedGems = [];
+  final List<GemType?> _gemSlots = [null];
   final math.Random _cooldownRandom = math.Random();
 
   double _tileSize;
@@ -215,11 +215,13 @@ class TurretComponent extends PositionComponent {
   }
 
   bool hasGem(GemType type) => equippedGems.contains(type);
+  List<GemType> get equippedGems =>
+      List.unmodifiable(_gemSlots.whereType<GemType>());
+  List<GemType?> get equippedGemSlots =>
+      List.unmodifiable(_gemSlots.take(_slotLimit));
 
   bool canEquipGemAt(int slotIndex) {
-    return slotIndex >= 0 &&
-        slotIndex < slotLimit &&
-        slotIndex <= equippedGems.length;
+    return slotIndex >= 0 && slotIndex < slotLimit;
   }
 
   void setTargetPriority(TurretTargetPriority priority) {
@@ -243,6 +245,7 @@ class TurretComponent extends PositionComponent {
       slotLimit: _slotLimit,
       cooldown: _cooldown,
       equippedGems: List.unmodifiable(equippedGems),
+      equippedGemSlots: List.unmodifiable(equippedGemSlots),
       damageDealt: damageDealt,
       directDamageDealt: _directDamageDealt,
       splashDamageDealt: _splashDamageDealt,
@@ -266,9 +269,13 @@ class TurretComponent extends PositionComponent {
     if (damageDealt == 0 && data.damageDealt > 0) {
       _directDamageDealt = math.max(0, data.damageDealt);
     }
-    equippedGems
+    final restoredSlots = data.equippedGemSlots.isEmpty
+        ? data.equippedGems
+        : data.equippedGemSlots;
+    _gemSlots
       ..clear()
-      ..addAll(data.equippedGems.take(_slotLimit));
+      ..addAll(restoredSlots.take(_slotLimit));
+    _syncGemSlotLength();
   }
 
   void recordDamageDealt(double damage, TurretDamageKind kind) {
@@ -364,24 +371,20 @@ class TurretComponent extends PositionComponent {
       return null;
     }
 
-    if (slotIndex == equippedGems.length) {
-      equippedGems.add(type);
-      return null;
-    }
-    if (slotIndex > equippedGems.length) {
-      return null;
-    }
-
-    final previous = equippedGems[slotIndex];
-    equippedGems[slotIndex] = type;
+    _syncGemSlotLength();
+    final previous = _gemSlots[slotIndex];
+    _gemSlots[slotIndex] = type;
     return previous;
   }
 
   GemType? removeGemAt(int slotIndex) {
-    if (slotIndex < 0 || slotIndex >= equippedGems.length) {
+    if (!canEquipGemAt(slotIndex)) {
       return null;
     }
-    return equippedGems.removeAt(slotIndex);
+    _syncGemSlotLength();
+    final removed = _gemSlots[slotIndex];
+    _gemSlots[slotIndex] = null;
+    return removed;
   }
 
   bool upgradeLevel() {
@@ -397,6 +400,7 @@ class TurretComponent extends PositionComponent {
       return false;
     }
     _slotLimit++;
+    _syncGemSlotLength();
     return true;
   }
 
@@ -578,13 +582,27 @@ class TurretComponent extends PositionComponent {
 
     _drawLevelGlyph(canvas, center);
 
-    for (var i = 0; i < equippedGems.length; i++) {
+    _syncGemSlotLength();
+    for (var i = 0; i < _gemSlots.length; i++) {
+      final gem = _gemSlots[i];
+      if (gem == null) {
+        continue;
+      }
       final offsetX = size.x * 0.78 - i * _tileSize * 0.14;
       canvas.drawCircle(
         Offset(offsetX, size.y * 0.22),
         _tileSize * 0.08,
-        Paint()..color = game.colorForGem(equippedGems[i]),
+        Paint()..color = game.colorForGem(gem),
       );
+    }
+  }
+
+  void _syncGemSlotLength() {
+    while (_gemSlots.length < _slotLimit) {
+      _gemSlots.add(null);
+    }
+    if (_gemSlots.length > _slotLimit) {
+      _gemSlots.removeRange(_slotLimit, _gemSlots.length);
     }
   }
 

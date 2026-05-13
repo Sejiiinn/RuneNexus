@@ -1295,8 +1295,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   int _defaultGemSlotIndex(TurretComponent turret) {
-    if (turret.equippedGems.length < turret.slotLimit) {
-      return turret.equippedGems.length;
+    final slots = turret.equippedGemSlots;
+    for (var index = 0; index < turret.slotLimit; index++) {
+      if (index >= slots.length || slots[index] == null) {
+        return index;
+      }
     }
     return 0;
   }
@@ -2574,7 +2577,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretPoint: _selectedTurretPoint,
       selectedTurretName: selectedTurret?.definition.name,
       selectedTurretGems: List.unmodifiable(
-        selectedTurret?.equippedGems ?? const [],
+        selectedTurret?.equippedGemSlots ?? const [],
       ),
       selectedTurretGemSlotIndex:
           selectedTurret == null || _selectedTurretGemSlotIndex == null

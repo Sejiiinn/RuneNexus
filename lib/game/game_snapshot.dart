@@ -129,7 +129,7 @@ class GameSnapshot {
   final GridPoint? selectedPortalPoint;
   final GridPoint? selectedTurretPoint;
   final String? selectedTurretName;
-  final List<GemType> selectedTurretGems;
+  final List<GemType?> selectedTurretGems;
   final int? selectedTurretGemSlotIndex;
   final int selectedTurretSlotLimit;
   final bool selectedTurretHasLinkUpgrade;

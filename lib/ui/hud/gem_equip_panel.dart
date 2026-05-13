@@ -358,9 +358,7 @@ class _TurretLinkSocketStrip extends StatelessWidget {
                           ? snapshot.selectedTurretGems[index]
                           : null,
                       selected: selectedSlotIndex == index,
-                      enabled:
-                          canManageGems &&
-                          index <= snapshot.selectedTurretGems.length,
+                      enabled: canManageGems,
                       onTap: () => onSelectSlot(index),
                     ),
                   ),

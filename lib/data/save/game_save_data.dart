@@ -198,6 +198,7 @@ class SavedTurret {
     required this.slotLimit,
     required this.cooldown,
     required this.equippedGems,
+    required this.equippedGemSlots,
     required this.damageDealt,
     required this.directDamageDealt,
     required this.splashDamageDealt,
@@ -214,6 +215,7 @@ class SavedTurret {
   final int slotLimit;
   final double cooldown;
   final List<GemType> equippedGems;
+  final List<GemType?> equippedGemSlots;
   final double damageDealt;
   final double directDamageDealt;
   final double splashDamageDealt;
@@ -233,6 +235,7 @@ class SavedTurret {
       'slotLimit': slotLimit,
       'cooldown': cooldown,
       'equippedGems': equippedGems.map((type) => type.name).toList(),
+      'equippedGemSlots': equippedGemSlots.map((type) => type?.name).toList(),
       'damageDealt': damageDealt,
       'directDamageDealt': directDamageDealt,
       'splashDamageDealt': splashDamageDealt,
@@ -251,6 +254,10 @@ class SavedTurret {
     if (type == null) {
       return null;
     }
+    final equippedGems = _enumList(GemType.values, json['equippedGems']);
+    final equippedGemSlots = json.containsKey('equippedGemSlots')
+        ? _nullableEnumList(GemType.values, json['equippedGemSlots'])
+        : equippedGems;
     return SavedTurret(
       x: _intValue(json['x']),
       y: _intValue(json['y']),
@@ -258,7 +265,8 @@ class SavedTurret {
       level: _intValue(json['level'], fallback: 1),
       slotLimit: _intValue(json['slotLimit'], fallback: 1),
       cooldown: _doubleValue(json['cooldown']),
-      equippedGems: _enumList(GemType.values, json['equippedGems']),
+      equippedGems: equippedGems,
+      equippedGemSlots: equippedGemSlots,
       damageDealt: _doubleValue(json['damageDealt']),
       directDamageDealt: _doubleValue(json['directDamageDealt']),
       splashDamageDealt: _doubleValue(json['splashDamageDealt']),
@@ -558,6 +566,17 @@ List<T> _enumList<T extends Enum>(List<T> values, Object? json) {
     if (value != null) {
       result.add(value);
     }
+  }
+  return result;
+}
+
+List<T?> _nullableEnumList<T extends Enum>(List<T> values, Object? json) {
+  if (json is! List) {
+    return [];
+  }
+  final result = <T?>[];
+  for (final item in json) {
+    result.add(_enumValue(values, item));
   }
   return result;
 }
