@@ -1,0 +1,27 @@
+import 'turret_trait_type.dart';
+import 'turret_type.dart';
+
+class TurretTraitSet {
+  const TurretTraitSet({required this.primary, required this.secondary});
+
+  final List<TurretTraitType> primary;
+  final List<TurretTraitType> secondary;
+
+  bool get hasChoices => primary.isNotEmpty || secondary.isNotEmpty;
+}
+
+const _emptyTurretTraitSet = TurretTraitSet(primary: [], secondary: []);
+
+const turretTraitCatalog = <TurretType, TurretTraitSet>{
+  TurretType.arrow: TurretTraitSet(
+    primary: [
+      TurretTraitType.overheatMagazine,
+      TurretTraitType.lightweightBarrel,
+    ],
+    secondary: [TurretTraitType.suppressiveFire, TurretTraitType.chainCleanup],
+  ),
+};
+
+TurretTraitSet turretTraitSetFor(TurretType type) {
+  return turretTraitCatalog[type] ?? _emptyTurretTraitSet;
+}

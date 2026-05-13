@@ -358,9 +358,7 @@ class _TurretLinkSocketStrip extends StatelessWidget {
                           ? snapshot.selectedTurretGems[index]
                           : null,
                       selected: selectedSlotIndex == index,
-                      enabled:
-                          canManageGems &&
-                          index <= snapshot.selectedTurretGems.length,
+                      enabled: canManageGems,
                       onTap: () => onSelectSlot(index),
                     ),
                   ),
@@ -596,6 +594,8 @@ class _TurretTraitDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = snapshot.selectedTurretPrimaryTrait;
     final secondary = snapshot.selectedTurretSecondaryTrait;
+    final primaryChoices = snapshot.selectedTurretPrimaryTraitChoices;
+    final secondaryChoices = snapshot.selectedTurretSecondaryTraitChoices;
     final canChoosePrimary =
         snapshot.selectedTurretCanChoosePrimaryTrait &&
         snapshot.gemShards >= snapshot.selectedTurretPrimaryTraitCost;
@@ -647,31 +647,28 @@ class _TurretTraitDialog extends StatelessWidget {
               secondaryCost: snapshot.selectedTurretSecondaryTraitCost,
             ),
             const SizedBox(height: 12),
-            _TraitTierBlock(
-              tierText: '1차',
-              title: '무기 개조',
-              selectedTrait: primary,
-              blockedText: primaryBlockedText,
-              choices: const [
-                TurretTraitType.overheatMagazine,
-                TurretTraitType.lightweightBarrel,
-              ],
-              enabled: canChoosePrimary,
-              tier: 1,
-            ),
-            const SizedBox(height: 10),
-            _TraitTierBlock(
-              tierText: '2차',
-              title: '전투 교리',
-              selectedTrait: secondary,
-              blockedText: secondaryBlockedText,
-              choices: const [
-                TurretTraitType.suppressiveFire,
-                TurretTraitType.chainCleanup,
-              ],
-              enabled: canChooseSecondary,
-              tier: 2,
-            ),
+            if (primaryChoices.isNotEmpty)
+              _TraitTierBlock(
+                tierText: '1차',
+                title: '무기 개조',
+                selectedTrait: primary,
+                blockedText: primaryBlockedText,
+                choices: primaryChoices,
+                enabled: canChoosePrimary,
+                tier: 1,
+              ),
+            if (primaryChoices.isNotEmpty && secondaryChoices.isNotEmpty)
+              const SizedBox(height: 10),
+            if (secondaryChoices.isNotEmpty)
+              _TraitTierBlock(
+                tierText: '2차',
+                title: '전투 교리',
+                selectedTrait: secondary,
+                blockedText: secondaryBlockedText,
+                choices: secondaryChoices,
+                enabled: canChooseSecondary,
+                tier: 2,
+              ),
             const SizedBox(height: 10),
             const Text(
               '선택한 특성은 이번 런 동안 변경할 수 없습니다.',

@@ -319,6 +319,8 @@ GameSnapshot _resultSnapshot({
     selectedTurretChainDamageDealt: 0,
     selectedTurretBurnDamageDealt: 0,
     selectedTurretSupportsTraits: false,
+    selectedTurretPrimaryTraitChoices: const [],
+    selectedTurretSecondaryTraitChoices: const [],
     selectedTurretPrimaryTrait: null,
     selectedTurretSecondaryTrait: null,
     selectedTurretCanChoosePrimaryTrait: false,

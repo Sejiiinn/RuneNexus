@@ -59,6 +59,8 @@ class GameSnapshot {
     required this.selectedTurretChainDamageDealt,
     required this.selectedTurretBurnDamageDealt,
     required this.selectedTurretSupportsTraits,
+    required this.selectedTurretPrimaryTraitChoices,
+    required this.selectedTurretSecondaryTraitChoices,
     required this.selectedTurretPrimaryTrait,
     required this.selectedTurretSecondaryTrait,
     required this.selectedTurretCanChoosePrimaryTrait,
@@ -129,7 +131,7 @@ class GameSnapshot {
   final GridPoint? selectedPortalPoint;
   final GridPoint? selectedTurretPoint;
   final String? selectedTurretName;
-  final List<GemType> selectedTurretGems;
+  final List<GemType?> selectedTurretGems;
   final int? selectedTurretGemSlotIndex;
   final int selectedTurretSlotLimit;
   final bool selectedTurretHasLinkUpgrade;
@@ -153,6 +155,8 @@ class GameSnapshot {
   final double selectedTurretChainDamageDealt;
   final double selectedTurretBurnDamageDealt;
   final bool selectedTurretSupportsTraits;
+  final List<TurretTraitType> selectedTurretPrimaryTraitChoices;
+  final List<TurretTraitType> selectedTurretSecondaryTraitChoices;
   final TurretTraitType? selectedTurretPrimaryTrait;
   final TurretTraitType? selectedTurretSecondaryTrait;
   final bool selectedTurretCanChoosePrimaryTrait;

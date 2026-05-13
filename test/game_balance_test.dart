@@ -965,10 +965,11 @@ void main() {
           ..equipGem(GemType.chain, 1);
 
     expect(turret.removeGemAt(0), GemType.range);
+    expect(turret.equippedGemSlots, [null, GemType.chain]);
     expect(turret.equippedGems, [GemType.chain]);
   });
 
-  test('link upgrade selects the first usable empty gem socket', () async {
+  test('gems can be equipped into the selected empty socket', () async {
     final game = RuneNexusGame(saveRepository: MemorySaveRepository());
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
@@ -981,9 +982,38 @@ void main() {
     game.equipSelectedTurret(GemType.range);
 
     final snapshot = game.snapshotNotifier.value;
-    expect(snapshot.selectedTurretGemSlotIndex, 0);
-    expect(snapshot.selectedTurretGems, [GemType.range]);
+    expect(snapshot.selectedTurretGemSlotIndex, 1);
+    expect(snapshot.selectedTurretGems, [null, GemType.range]);
     expect(snapshot.gemInventory[GemType.range], isNull);
+  });
+
+  test('removing a gem keeps other gem socket positions fixed', () async {
+    final repository = MemorySaveRepository();
+    final game = RuneNexusGame(saveRepository: repository);
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    game.tryBuildTurret(const GridPoint(2, 0));
+    game.debugAddGold(1000);
+    game.upgradeSelectedTurretLink();
+    game.grantGem(GemType.range);
+    game.equipSelectedTurret(GemType.range);
+    game.selectSelectedTurretGemSlot(1);
+    game.grantGem(GemType.chain);
+    game.equipSelectedTurret(GemType.chain);
+    game.selectSelectedTurretGemSlot(0);
+    game.removeSelectedTurretGemSlot();
+
+    final snapshot = game.snapshotNotifier.value;
+    expect(snapshot.selectedTurretGemSlotIndex, 0);
+    expect(snapshot.selectedTurretGems, [null, GemType.chain]);
+    expect(snapshot.gemInventory[GemType.range], 1);
+
+    await game.saveNow();
+    expect(repository.data!.turrets.single.equippedGemSlots, [
+      null,
+      GemType.chain,
+    ]);
   });
 
   test('only dedicated pressure waves overlap major spawn groups', () {
@@ -1435,6 +1465,7 @@ void main() {
     expect(saved.turrets.single.level, 2);
     expect(saved.turrets.single.slotLimit, 2);
     expect(saved.turrets.single.equippedGems, [GemType.range]);
+    expect(saved.turrets.single.equippedGemSlots, [GemType.range, null]);
     expect(saved.turrets.single.damageDealt, closeTo(123, 0.001));
     expect(saved.turrets.single.directDamageDealt, closeTo(123, 0.001));
 
