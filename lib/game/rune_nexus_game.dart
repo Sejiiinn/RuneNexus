@@ -2636,12 +2636,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         sourceTurretPoint: _isActiveTurret(owner) ? owner.gridPoint : null,
       );
     }
-    if (owner.definition.slowDuration > 0 &&
-        owner.definition.slowMultiplier < 1) {
+    if (owner.slowDuration > 0 && owner.slowMultiplier < 1) {
       enemy.applySlow(
-        multiplier: owner.definition.slowMultiplier,
-        duration: owner.definition.slowDuration,
+        multiplier: owner.slowMultiplier,
+        duration: owner.slowDuration,
       );
+      if (owner.appliesFrostCrack) {
+        enemy.applyMagicalVulnerability(
+          bonus: 0.15,
+          duration: owner.slowDuration,
+        );
+      }
     }
   }
 
@@ -2660,6 +2665,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
     if (owner.definition.damageFamily == DamageFamily.physical) {
       return (baseMultiplier + enemy.physicalDamageTakenBonus)
+          .clamp(
+            EnemyResistanceProfile.minMultiplier,
+            EnemyResistanceProfile.maxMultiplier,
+          )
+          .toDouble();
+    }
+    if (owner.definition.damageFamily == DamageFamily.magical) {
+      return (baseMultiplier + enemy.magicalDamageTakenBonus)
           .clamp(
             EnemyResistanceProfile.minMultiplier,
             EnemyResistanceProfile.maxMultiplier,

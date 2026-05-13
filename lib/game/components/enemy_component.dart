@@ -45,6 +45,8 @@ class EnemyComponent extends PositionComponent {
   double _slowMultiplier = 1;
   double _physicalVulnerabilityRemaining = 0;
   double _physicalVulnerabilityBonus = 0;
+  double _magicalVulnerabilityRemaining = 0;
+  double _magicalVulnerabilityBonus = 0;
   double _facingAngle = 0;
   double _hitFlashTimer = 0;
   Color _hitFlashColor = const Color(0xFFFFFFFF);
@@ -79,6 +81,8 @@ class EnemyComponent extends PositionComponent {
   double get slowMultiplier => _slowMultiplier;
   double get physicalDamageTakenBonus =>
       _physicalVulnerabilityRemaining > 0 ? _physicalVulnerabilityBonus : 0;
+  double get magicalDamageTakenBonus =>
+      _magicalVulnerabilityRemaining > 0 ? _magicalVulnerabilityBonus : 0;
   double get totalBurnDamagePerSecond => _burnInstances.fold(
     0,
     (total, instance) => total + instance.damagePerSecond,
@@ -114,6 +118,8 @@ class EnemyComponent extends PositionComponent {
       slowMultiplier: _slowMultiplier,
       physicalVulnerabilityRemaining: _physicalVulnerabilityRemaining,
       physicalVulnerabilityBonus: _physicalVulnerabilityBonus,
+      magicalVulnerabilityRemaining: _magicalVulnerabilityRemaining,
+      magicalVulnerabilityBonus: _magicalVulnerabilityBonus,
     );
   }
 
@@ -142,6 +148,11 @@ class EnemyComponent extends PositionComponent {
       data.physicalVulnerabilityRemaining,
     );
     _physicalVulnerabilityBonus = math.max(0, data.physicalVulnerabilityBonus);
+    _magicalVulnerabilityRemaining = math.max(
+      0,
+      data.magicalVulnerabilityRemaining,
+    );
+    _magicalVulnerabilityBonus = math.max(0, data.magicalVulnerabilityBonus);
     _placeAtDistance(distanceTravelled);
   }
 
@@ -294,6 +305,20 @@ class EnemyComponent extends PositionComponent {
     );
   }
 
+  void applyMagicalVulnerability({
+    required double bonus,
+    required double duration,
+  }) {
+    if (bonus <= 0 || duration <= 0) {
+      return;
+    }
+    _magicalVulnerabilityBonus = math.max(_magicalVulnerabilityBonus, bonus);
+    _magicalVulnerabilityRemaining = math.max(
+      _magicalVulnerabilityRemaining,
+      duration,
+    );
+  }
+
   void _updateStatusEffects(double dt) {
     if (_burnInstances.isNotEmpty) {
       _burnNumberTimer += dt;
@@ -364,6 +389,15 @@ class EnemyComponent extends PositionComponent {
       );
       if (_physicalVulnerabilityRemaining == 0) {
         _physicalVulnerabilityBonus = 0;
+      }
+    }
+    if (_magicalVulnerabilityRemaining > 0) {
+      _magicalVulnerabilityRemaining = math.max(
+        0,
+        _magicalVulnerabilityRemaining - dt,
+      );
+      if (_magicalVulnerabilityRemaining == 0) {
+        _magicalVulnerabilityBonus = 0;
       }
     }
   }

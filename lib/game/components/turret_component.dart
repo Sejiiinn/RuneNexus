@@ -147,6 +147,9 @@ class TurretComponent extends PositionComponent {
         hasGem(GemType.heavyWeapon)) {
       levelDamage *= 1.3;
     }
+    if (_primaryTrait == TurretTraitType.spreadingChill) {
+      levelDamage *= 0.9;
+    }
 
     return levelDamage * game.towerDamageRunMultiplier;
   }
@@ -156,6 +159,7 @@ class TurretComponent extends PositionComponent {
     return definition.range *
         levelMultiplier *
         (hasGem(GemType.range) ? 1.2 : 1) *
+        (_primaryTrait == TurretTraitType.spreadingChill ? 1.15 : 1) *
         game.boardDistanceScale;
   }
 
@@ -172,7 +176,8 @@ class TurretComponent extends PositionComponent {
             ? 1.2
             : 1) *
         (_primaryTrait == TurretTraitType.lightweightBarrel ? 1.1 : 1) *
-        (_primaryTrait == TurretTraitType.compressedCharge ? 0.9 : 1);
+        (_primaryTrait == TurretTraitType.compressedCharge ? 0.9 : 1) *
+        (_secondaryTrait == TurretTraitType.coolingCycle ? 1.2 : 1);
     if (_chainCleanupTimer > 0) {
       rate *= 1.4;
     }
@@ -184,17 +189,46 @@ class TurretComponent extends PositionComponent {
       (_primaryTrait == TurretTraitType.lightweightBarrel ? 1.3 : 1) *
       game.boardDistanceScale;
 
-  double get damageOverTimeDamageMultiplier =>
-      definition.attackTags.contains(AttackTag.damageOverTime) &&
-          hasGem(GemType.damageOverTime)
-      ? 1.3
-      : 1;
+  double get damageOverTimeDamageMultiplier {
+    if (!definition.attackTags.contains(AttackTag.damageOverTime)) {
+      return 1;
+    }
+    var bonus = 0.0;
+    if (hasGem(GemType.damageOverTime)) {
+      bonus += 0.3;
+    }
+    if (_primaryTrait == TurretTraitType.highHeatBurn) {
+      bonus += 0.25;
+    }
+    return 1 + bonus;
+  }
 
-  double get damageOverTimeDurationMultiplier =>
-      definition.attackTags.contains(AttackTag.damageOverTime) &&
-          hasGem(GemType.damageOverTime)
-      ? 1.3
-      : 1;
+  double get damageOverTimeDurationMultiplier {
+    if (!definition.attackTags.contains(AttackTag.damageOverTime)) {
+      return 1;
+    }
+    var bonus = 0.0;
+    if (hasGem(GemType.damageOverTime)) {
+      bonus += 0.3;
+    }
+    if (_primaryTrait == TurretTraitType.lingeringEmbers) {
+      bonus += 0.4;
+    }
+    return 1 + bonus;
+  }
+
+  double get slowMultiplier {
+    if (_primaryTrait == TurretTraitType.rapidCooling) {
+      return 0.62;
+    }
+    return definition.slowMultiplier;
+  }
+
+  double get slowDuration =>
+      definition.slowDuration *
+      (_secondaryTrait == TurretTraitType.coolingCycle ? 0.85 : 1);
+
+  bool get appliesFrostCrack => _secondaryTrait == TurretTraitType.frostCrack;
 
   double get splashSecondaryDamageMultiplier {
     if (hasGem(GemType.explosion)) {

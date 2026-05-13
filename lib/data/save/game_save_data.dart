@@ -353,6 +353,8 @@ class SavedEnemy {
     required this.slowMultiplier,
     required this.physicalVulnerabilityRemaining,
     required this.physicalVulnerabilityBonus,
+    required this.magicalVulnerabilityRemaining,
+    required this.magicalVulnerabilityBonus,
   });
 
   final EnemyType type;
@@ -371,6 +373,8 @@ class SavedEnemy {
   final double slowMultiplier;
   final double physicalVulnerabilityRemaining;
   final double physicalVulnerabilityBonus;
+  final double magicalVulnerabilityRemaining;
+  final double magicalVulnerabilityBonus;
 
   Map<String, Object?> toJson() {
     return {
@@ -392,6 +396,8 @@ class SavedEnemy {
       'slowMultiplier': slowMultiplier,
       'physicalVulnerabilityRemaining': physicalVulnerabilityRemaining,
       'physicalVulnerabilityBonus': physicalVulnerabilityBonus,
+      'magicalVulnerabilityRemaining': magicalVulnerabilityRemaining,
+      'magicalVulnerabilityBonus': magicalVulnerabilityBonus,
     };
   }
 
@@ -451,6 +457,12 @@ class SavedEnemy {
       ),
       physicalVulnerabilityBonus: _doubleValue(
         json['physicalVulnerabilityBonus'],
+      ),
+      magicalVulnerabilityRemaining: _doubleValue(
+        json['magicalVulnerabilityRemaining'],
+      ),
+      magicalVulnerabilityBonus: _doubleValue(
+        json['magicalVulnerabilityBonus'],
       ),
     );
   }
