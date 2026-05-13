@@ -74,7 +74,7 @@ class ProjectileComponent extends PositionComponent {
 
   double get _hitRadius {
     final baseRadius = switch (owner.definition.type) {
-      TurretType.arrow => 3,
+      TurretType.arrow => 3.5,
       TurretType.cannon => 7,
       TurretType.magic => 4,
       TurretType.frost => 5,
