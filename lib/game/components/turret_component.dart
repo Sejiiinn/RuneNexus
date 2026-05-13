@@ -45,6 +45,7 @@ class TurretComponent extends PositionComponent {
   double _cooldown = 0;
   double _aimAngle = -math.pi / 2;
   double _fireFeedbackTimer = 0;
+  double _gemRingPhase = 0;
   int _slotLimit = 1;
   int _level = 1;
   double _directDamageDealt = 0;
@@ -437,6 +438,7 @@ class TurretComponent extends PositionComponent {
     _fireFeedbackTimer = math.max(0, _fireFeedbackTimer - dt);
     _cooldown = math.max(0, _cooldown - dt);
     _chainCleanupTimer = math.max(0, _chainCleanupTimer - dt);
+    _gemRingPhase = (_gemRingPhase + dt * 0.45) % (math.pi * 2);
     if (_recentHitTimers.isNotEmpty) {
       for (final entry in _recentHitTimers.entries.toList()) {
         final remaining = entry.value - dt;
@@ -585,6 +587,8 @@ class TurretComponent extends PositionComponent {
     }
 
     _drawLevelPowerAura(canvas, center);
+    _syncGemSlotLength();
+    _drawGemReactionRing(canvas, center);
 
     drawTurretShape(
       canvas,
@@ -599,20 +603,6 @@ class TurretComponent extends PositionComponent {
     );
 
     _drawLevelGlyph(canvas, center);
-
-    _syncGemSlotLength();
-    for (var i = 0; i < _gemSlots.length; i++) {
-      final gem = _gemSlots[i];
-      if (gem == null) {
-        continue;
-      }
-      final offsetX = size.x * 0.78 - i * _tileSize * 0.14;
-      canvas.drawCircle(
-        Offset(offsetX, size.y * 0.22),
-        _tileSize * 0.08,
-        Paint()..color = game.colorForGem(gem),
-      );
-    }
   }
 
   void _syncGemSlotLength() {
@@ -621,6 +611,80 @@ class TurretComponent extends PositionComponent {
     }
     if (_gemSlots.length > _slotLimit) {
       _gemSlots.removeRange(_slotLimit, _gemSlots.length);
+    }
+  }
+
+  void _drawGemReactionRing(Canvas canvas, Offset center) {
+    final gems = equippedGems;
+    if (gems.isEmpty) {
+      return;
+    }
+
+    final ringRect = Rect.fromCircle(center: center, radius: _tileSize * 0.43);
+    final pulse = 0.88 + math.sin(_gemRingPhase * 2.4) * 0.12;
+    final baseStroke = _tileSize * 0.03;
+    final glowStroke = _tileSize * 0.1;
+    canvas.drawOval(
+      ringRect,
+      Paint()
+        ..color = const Color(0xFF020812).withValues(alpha: 0.76)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = baseStroke * 2.1,
+    );
+
+    final count = math.min(gems.length, maxSlotLimit);
+    final gap = count == 1 ? 0.0 : 0.22;
+    final segmentSweep = count == 1
+        ? math.pi * 1.64
+        : (math.pi * 2 / count) - gap;
+    final startOffset =
+        -math.pi / 2 - (count == 1 ? segmentSweep / 2 : 0) + _gemRingPhase;
+    for (var i = 0; i < count; i++) {
+      final gemColor = game.colorForGem(gems[i]);
+      final ringColor = Color.lerp(gemColor, const Color(0xFFFFFFFF), 0.12)!;
+      final start = count == 1
+          ? startOffset
+          : startOffset + i * math.pi * 2 / count + gap / 2;
+
+      canvas.drawArc(
+        ringRect,
+        start,
+        segmentSweep,
+        false,
+        Paint()
+          ..color = ringColor.withValues(alpha: 0.34 * pulse)
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = glowStroke,
+      );
+      canvas.drawArc(
+        ringRect,
+        start,
+        segmentSweep,
+        false,
+        Paint()
+          ..color = ringColor.withValues(alpha: 0.96 * pulse)
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = baseStroke,
+      );
+      final midAngle = start + segmentSweep / 2;
+      final tickStart = Offset(
+        center.dx + math.cos(midAngle) * _tileSize * 0.39,
+        center.dy + math.sin(midAngle) * _tileSize * 0.39,
+      );
+      final tickEnd = Offset(
+        center.dx + math.cos(midAngle) * _tileSize * 0.47,
+        center.dy + math.sin(midAngle) * _tileSize * 0.47,
+      );
+      canvas.drawLine(
+        tickStart,
+        tickEnd,
+        Paint()
+          ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.72 * pulse)
+          ..strokeCap = StrokeCap.round
+          ..strokeWidth = _tileSize * 0.011,
+      );
     }
   }
 
@@ -761,11 +825,11 @@ class TurretComponent extends PositionComponent {
       final width = _tileSize * (tier >= 3 ? 0.38 : 0.34);
       final height = _tileSize * 0.11;
       final wing = _levelWingPath(glyphCenter, width, height);
+      final wingFill = tier >= 3
+          ? const Color(0xFFFFF6DA)
+          : const Color(0xFFFFEBC1);
       canvas.drawPath(wing.shift(Offset(0, _tileSize * 0.014)), shadowFill);
-      canvas.drawPath(
-        wing,
-        Paint()..color = const Color(0xFFFFB84A).withValues(alpha: 0.96),
-      );
+      canvas.drawPath(wing, Paint()..color = wingFill.withValues(alpha: 0.98));
       canvas.drawPath(wing, outline);
     }
 
