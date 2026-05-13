@@ -642,23 +642,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
 
+    _gemShards -= gemChoicePurchaseCost;
     _isPurchasedGemReward = true;
     _rewardOptions
       ..clear()
       ..addAll(_gemRewardGenerator.generateOptions());
     _phase = GamePhase.reward;
-    _publish();
-    _requestLocalSave(immediate: true);
-  }
-
-  void cancelPurchasedGemChoice() {
-    if (_phase != GamePhase.reward || !_isPurchasedGemReward) {
-      return;
-    }
-
-    _isPurchasedGemReward = false;
-    _rewardOptions.clear();
-    _phase = GamePhase.preparation;
     _publish();
     _requestLocalSave(immediate: true);
   }
@@ -1004,12 +993,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
 
-    if (_isPurchasedGemReward) {
-      if (_gemShards < gemChoicePurchaseCost) {
-        return;
-      }
-      _gemShards -= gemChoicePurchaseCost;
-    }
     _gemInventory[type] = (_gemInventory[type] ?? 0) + 1;
     _rewardOptions.clear();
     _isPurchasedGemReward = false;

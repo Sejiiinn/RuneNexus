@@ -44,13 +44,16 @@ class _RewardOverlayState extends State<_RewardOverlay> {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                isPurchase
-                    ? '선택 시 젬 파편 ${RuneNexusGame.gemChoicePurchaseCost}개를 사용합니다'
-                    : '${snapshot.completedRounds}웨이브 클리어 보상',
-                style: const TextStyle(fontSize: 12, color: Color(0xFFB9D6E4)),
-              ),
+              if (!isPurchase) ...[
+                const SizedBox(height: 4),
+                Text(
+                  '${snapshot.completedRounds}웨이브 클리어 보상',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFFB9D6E4),
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
               Wrap(
                 alignment: WrapAlignment.center,
@@ -60,7 +63,6 @@ class _RewardOverlayState extends State<_RewardOverlay> {
                   ...snapshot.rewardOptions.map((type) {
                     return _RewardCard(
                       type: type,
-                      ownedCount: snapshot.gemCollection[type] ?? 0,
                       selected: selectedGem == type,
                       onPressed: () {
                         setState(() {
@@ -86,18 +88,8 @@ class _RewardOverlayState extends State<_RewardOverlay> {
                   },
                   onConfirm: widget.game.selectRewardGemShards,
                 ),
-                _OwnedGemSummary(collection: snapshot.gemCollection),
               ],
-              if (isPurchase) ...[
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 30,
-                  child: OutlinedButton(
-                    onPressed: widget.game.cancelPurchasedGemChoice,
-                    child: const Text('취소', style: TextStyle(fontSize: 12)),
-                  ),
-                ),
-              ],
+              _OwnedGemSummary(collection: snapshot.gemCollection),
             ],
           ),
         ),
@@ -287,14 +279,12 @@ class _OwnedGemChip extends StatelessWidget {
 class _RewardCard extends StatelessWidget {
   const _RewardCard({
     required this.type,
-    required this.ownedCount,
     required this.selected,
     required this.onPressed,
     required this.onConfirm,
   });
 
   final GemType type;
-  final int ownedCount;
   final bool selected;
   final VoidCallback onPressed;
   final VoidCallback onConfirm;
@@ -373,15 +363,6 @@ class _RewardCard extends StatelessWidget {
                           fontWeight: FontWeight.w900,
                         ),
                       ),
-                    ),
-                  )
-                else
-                  Text(
-                    '획득 x$ownedCount',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF8AA6B8),
                     ),
                   ),
               ],

@@ -201,6 +201,48 @@ void main() {
     expect(game.snapshotNotifier.value.gemInventory.values.single, 1);
   });
 
+  test('purchased gem choice spends shards immediately', () {
+    final game = RuneNexusGame(
+      waves: List<WaveDefinition>.generate(
+        21,
+        (index) => WaveDefinition(
+          round: index + 1,
+          previewText: 'test',
+          groups: const [],
+          clearRewardGold: 0,
+        ),
+      ),
+    );
+
+    while (game.snapshotNotifier.value.gemShards <
+        RuneNexusGame.gemChoicePurchaseCost) {
+      game.startNextWave();
+      game.update(0.016);
+      final snapshot = game.snapshotNotifier.value;
+      if (snapshot.phase == GamePhase.reward) {
+        game.selectRewardGem(snapshot.rewardOptions.first);
+      }
+    }
+
+    expect(
+      game.snapshotNotifier.value.gemShards,
+      RuneNexusGame.gemChoicePurchaseCost,
+    );
+
+    game.purchaseGemChoice();
+
+    final purchaseSnapshot = game.snapshotNotifier.value;
+    expect(purchaseSnapshot.phase, GamePhase.reward);
+    expect(purchaseSnapshot.isPurchasedGemReward, isTrue);
+    expect(purchaseSnapshot.gemShards, 0);
+
+    game.selectRewardGem(purchaseSnapshot.rewardOptions.first);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+    expect(game.snapshotNotifier.value.gemShards, 0);
+    expect(game.snapshotNotifier.value.gemInventory.values, contains(1));
+  });
+
   test('auto start can continue non-boss preparation rounds', () {
     final game = RuneNexusGame(
       waves: List<WaveDefinition>.generate(
