@@ -9,6 +9,7 @@ import '../../domain/map/grid_point.dart';
 import '../../domain/turret/attack_tag.dart';
 import '../../domain/turret/damage_family.dart';
 import '../../domain/turret/turret_definition.dart';
+import '../../domain/turret/turret_trait_catalog.dart';
 import '../../domain/turret/turret_trait_type.dart';
 import '../../domain/turret/turret_type.dart';
 import '../rendering/turret_shape_renderer.dart';
@@ -113,11 +114,14 @@ class TurretComponent extends PositionComponent {
 
   bool get canUpgradeLink =>
       hasNextLinkUpgrade && _level >= linkUpgradeRequiredLevel;
-  bool get supportsTraits => definition.type == TurretType.arrow;
+  TurretTraitSet get traitSet => turretTraitSetFor(definition.type);
+  bool get supportsTraits => traitSet.hasChoices;
+  List<TurretTraitType> get primaryTraitChoices => traitSet.primary;
+  List<TurretTraitType> get secondaryTraitChoices => traitSet.secondary;
   bool get canChoosePrimaryTrait =>
-      supportsTraits && _primaryTrait == null && _level >= 3;
+      primaryTraitChoices.isNotEmpty && _primaryTrait == null && _level >= 3;
   bool get canChooseSecondaryTrait =>
-      supportsTraits &&
+      secondaryTraitChoices.isNotEmpty &&
       _primaryTrait != null &&
       _secondaryTrait == null &&
       _level >= 7;
@@ -264,8 +268,14 @@ class TurretComponent extends PositionComponent {
     _splashDamageDealt = math.max(0, data.splashDamageDealt);
     _chainDamageDealt = math.max(0, data.chainDamageDealt);
     _burnDamageDealt = math.max(0, data.burnDamageDealt);
-    _primaryTrait = supportsTraits ? data.primaryTrait : null;
-    _secondaryTrait = supportsTraits ? data.secondaryTrait : null;
+    _primaryTrait = primaryTraitChoices.contains(data.primaryTrait)
+        ? data.primaryTrait
+        : null;
+    _secondaryTrait =
+        _primaryTrait != null &&
+            secondaryTraitChoices.contains(data.secondaryTrait)
+        ? data.secondaryTrait
+        : null;
     if (damageDealt == 0 && data.damageDealt > 0) {
       _directDamageDealt = math.max(0, data.damageDealt);
     }
@@ -295,7 +305,7 @@ class TurretComponent extends PositionComponent {
   }
 
   bool choosePrimaryTrait(TurretTraitType trait) {
-    if (!canChoosePrimaryTrait) {
+    if (!canChoosePrimaryTrait || !primaryTraitChoices.contains(trait)) {
       return false;
     }
     _primaryTrait = trait;
@@ -310,7 +320,7 @@ class TurretComponent extends PositionComponent {
   }
 
   bool chooseSecondaryTrait(TurretTraitType trait) {
-    if (!canChooseSecondaryTrait) {
+    if (!canChooseSecondaryTrait || !secondaryTraitChoices.contains(trait)) {
       return false;
     }
     _secondaryTrait = trait;

@@ -22,6 +22,14 @@ void main() {
     );
 
     expect(turret.supportsTraits, isTrue);
+    expect(turret.primaryTraitChoices, [
+      TurretTraitType.overheatMagazine,
+      TurretTraitType.lightweightBarrel,
+    ]);
+    expect(turret.secondaryTraitChoices, [
+      TurretTraitType.suppressiveFire,
+      TurretTraitType.chainCleanup,
+    ]);
     expect(turret.canChoosePrimaryTrait, isFalse);
 
     turret
@@ -37,6 +45,29 @@ void main() {
     expect(turret.canChoosePrimaryTrait, isFalse);
     expect(
       turret.choosePrimaryTrait(TurretTraitType.overheatMagazine),
+      isFalse,
+    );
+  });
+
+  test('turrets without trait choices do not expose trait selection', () {
+    final game = RuneNexusGame();
+    final turret =
+        TurretComponent(
+            gridPoint: const GridPoint(0, 0),
+            definition: demoTurrets[TurretType.cannon]!,
+            game: game,
+            center: Vector2.zero(),
+            tileSize: 32,
+          )
+          ..upgradeLevel()
+          ..upgradeLevel();
+
+    expect(turret.supportsTraits, isFalse);
+    expect(turret.primaryTraitChoices, isEmpty);
+    expect(turret.secondaryTraitChoices, isEmpty);
+    expect(turret.canChoosePrimaryTrait, isFalse);
+    expect(
+      turret.choosePrimaryTrait(TurretTraitType.lightweightBarrel),
       isFalse,
     );
   });
@@ -139,6 +170,24 @@ void main() {
 
     expect(restored.primaryTrait, TurretTraitType.overheatMagazine);
     expect(restored.secondaryTrait, TurretTraitType.chainCleanup);
+  });
+
+  test('unsupported turret does not restore traits from save data', () {
+    final game = RuneNexusGame();
+    final source = _levelSevenMachineGun(game)
+      ..choosePrimaryTrait(TurretTraitType.overheatMagazine)
+      ..chooseSecondaryTrait(TurretTraitType.chainCleanup);
+    final restored = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: demoTurrets[TurretType.cannon]!,
+      game: game,
+      center: Vector2.zero(),
+      tileSize: 32,
+    )..restoreFromSaveData(source.toSaveData());
+
+    expect(restored.supportsTraits, isFalse);
+    expect(restored.primaryTrait, isNull);
+    expect(restored.secondaryTrait, isNull);
   });
 }
 

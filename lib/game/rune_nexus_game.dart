@@ -170,6 +170,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretChainDamageDealt: 0,
       selectedTurretBurnDamageDealt: 0,
       selectedTurretSupportsTraits: false,
+      selectedTurretPrimaryTraitChoices: const [],
+      selectedTurretSecondaryTraitChoices: const [],
       selectedTurretPrimaryTrait: null,
       selectedTurretSecondaryTrait: null,
       selectedTurretCanChoosePrimaryTrait: false,
@@ -2608,6 +2610,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretChainDamageDealt: selectedTurret?.chainDamageDealt ?? 0,
       selectedTurretBurnDamageDealt: selectedTurret?.burnDamageDealt ?? 0,
       selectedTurretSupportsTraits: selectedTurret?.supportsTraits ?? false,
+      selectedTurretPrimaryTraitChoices: List.unmodifiable(
+        selectedTurret?.primaryTraitChoices ?? const [],
+      ),
+      selectedTurretSecondaryTraitChoices: List.unmodifiable(
+        selectedTurret?.secondaryTraitChoices ?? const [],
+      ),
       selectedTurretPrimaryTrait: selectedTurret?.primaryTrait,
       selectedTurretSecondaryTrait: selectedTurret?.secondaryTrait,
       selectedTurretCanChoosePrimaryTrait:
