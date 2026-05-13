@@ -60,7 +60,7 @@ class _RewardOverlayState extends State<_RewardOverlay> {
                   ...snapshot.rewardOptions.map((type) {
                     return _RewardCard(
                       type: type,
-                      ownedCount: snapshot.gemInventory[type] ?? 0,
+                      ownedCount: snapshot.gemCollection[type] ?? 0,
                       selected: selectedGem == type,
                       onPressed: () {
                         setState(() {
@@ -86,7 +86,7 @@ class _RewardOverlayState extends State<_RewardOverlay> {
                   },
                   onConfirm: widget.game.selectRewardGemShards,
                 ),
-                _OwnedGemSummary(inventory: snapshot.gemInventory),
+                _OwnedGemSummary(collection: snapshot.gemCollection),
               ],
               if (isPurchase) ...[
                 const SizedBox(height: 10),
@@ -191,14 +191,14 @@ class _GemShardRewardBar extends StatelessWidget {
 }
 
 class _OwnedGemSummary extends StatelessWidget {
-  const _OwnedGemSummary({required this.inventory});
+  const _OwnedGemSummary({required this.collection});
 
-  final Map<GemType, int> inventory;
+  final Map<GemType, int> collection;
 
   @override
   Widget build(BuildContext context) {
     final ownedTypes = GemType.values
-        .where((type) => (inventory[type] ?? 0) > 0)
+        .where((type) => (collection[type] ?? 0) > 0)
         .toList();
     if (ownedTypes.isEmpty) {
       return const SizedBox.shrink();
@@ -218,7 +218,7 @@ class _OwnedGemSummary extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Text(
-            '보유 젬',
+            '획득 젬',
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w800,
@@ -230,7 +230,7 @@ class _OwnedGemSummary extends StatelessWidget {
             spacing: 5,
             runSpacing: 5,
             children: ownedTypes.map((type) {
-              return _OwnedGemChip(type: type, count: inventory[type] ?? 0);
+              return _OwnedGemChip(type: type, count: collection[type] ?? 0);
             }).toList(),
           ),
         ],
@@ -377,7 +377,7 @@ class _RewardCard extends StatelessWidget {
                   )
                 else
                   Text(
-                    '보유 x$ownedCount',
+                    '획득 x$ownedCount',
                     style: const TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,

@@ -290,6 +290,7 @@ GameSnapshot _resultSnapshot({
     rewardOptions: const [],
     isPurchasedGemReward: false,
     gemInventory: const {},
+    gemCollection: const {},
     selectedBuildPoint: null,
     selectedBuildTurretType: null,
     selectedPortalPoint: null,

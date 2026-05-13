@@ -30,6 +30,7 @@ class GameSnapshot {
     required this.rewardOptions,
     required this.isPurchasedGemReward,
     required this.gemInventory,
+    required this.gemCollection,
     required this.selectedBuildPoint,
     required this.selectedBuildTurretType,
     required this.selectedPortalPoint,
@@ -126,6 +127,7 @@ class GameSnapshot {
   final List<GemType> rewardOptions;
   final bool isPurchasedGemReward;
   final Map<GemType, int> gemInventory;
+  final Map<GemType, int> gemCollection;
   final GridPoint? selectedBuildPoint;
   final TurretType? selectedBuildTurretType;
   final GridPoint? selectedPortalPoint;

@@ -1019,6 +1019,7 @@ void main() {
     expect(snapshot.selectedTurretGemSlotIndex, 1);
     expect(snapshot.selectedTurretGems, [null, GemType.range]);
     expect(snapshot.gemInventory[GemType.range], isNull);
+    expect(snapshot.gemCollection[GemType.range], 1);
   });
 
   test('removing a gem keeps other gem socket positions fixed', () async {

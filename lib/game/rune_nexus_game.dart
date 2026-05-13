@@ -143,6 +143,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       rewardOptions: const [],
       isPurchasedGemReward: false,
       gemInventory: const {},
+      gemCollection: const {},
       selectedBuildPoint: null,
       selectedBuildTurretType: null,
       selectedPortalPoint: null,
@@ -2718,6 +2719,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     });
     final nextWaveEnemyTypes = _enemyTypesFor(nextWave);
     final nextWaveEnemyCounts = _enemyCountsFor(nextWave);
+    final gemCollection = _gemCollectionTotals();
     final hasStageProgress =
         _phase == GamePhase.wave ||
         _phase == GamePhase.reward ||
@@ -2755,6 +2757,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       rewardOptions: List.unmodifiable(_rewardOptions),
       isPurchasedGemReward: _isPurchasedGemReward,
       gemInventory: Map.unmodifiable(_gemInventory),
+      gemCollection: Map.unmodifiable(gemCollection),
       selectedBuildPoint: _selectedBuildPoint,
       selectedBuildTurretType: _selectedBuildTurretType,
       selectedPortalPoint: _selectedPortalPoint,
@@ -2851,5 +2854,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       canUpgradeFireTraining: _progression.canUpgradeFireTraining,
       fireTrainingDamageBonusRate: _progression.fireTrainingDamageBonusRate,
     );
+  }
+
+  Map<GemType, int> _gemCollectionTotals() {
+    final totals = <GemType, int>{..._gemInventory};
+    for (final turret in _turrets.values) {
+      for (final gem in turret.equippedGems) {
+        totals[gem] = (totals[gem] ?? 0) + 1;
+      }
+    }
+    return totals;
   }
 }
