@@ -169,7 +169,7 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
           if (y < _tiles.length && x < _tiles[y].length) {
             return _tiles[y][x];
           }
-          return TileType.build;
+          return TileType.blocked;
         }),
       );
       _tiles = nextTiles;
