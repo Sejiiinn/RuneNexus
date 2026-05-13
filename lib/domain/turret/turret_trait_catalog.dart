@@ -26,11 +26,11 @@ const turretTraitCatalog = <TurretType, TurretTraitSet>{
   ),
   TurretType.magic: TurretTraitSet(
     primary: [TurretTraitType.highHeatBurn, TurretTraitType.lingeringEmbers],
-    secondary: [],
+    secondary: [TurretTraitType.ignitionBurst, TurretTraitType.chainIgnition],
   ),
   TurretType.frost: TurretTraitSet(
-    primary: [TurretTraitType.rapidCooling, TurretTraitType.spreadingChill],
-    secondary: [TurretTraitType.frostCrack, TurretTraitType.coolingCycle],
+    primary: [TurretTraitType.coolingCycle, TurretTraitType.spreadingChill],
+    secondary: [TurretTraitType.frostCrack, TurretTraitType.rapidCooling],
   ),
 };
 

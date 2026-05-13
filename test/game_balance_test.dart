@@ -16,6 +16,7 @@ import 'package:rune_nexus/domain/run_upgrade/run_upgrade_type.dart';
 import 'package:rune_nexus/domain/stage/stage_definition.dart';
 import 'package:rune_nexus/domain/turret/attack_tag.dart';
 import 'package:rune_nexus/domain/turret/damage_family.dart';
+import 'package:rune_nexus/domain/turret/turret_trait_type.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/domain/wave/wave_definition.dart';
 import 'package:rune_nexus/game/components/enemy_component.dart';
@@ -1314,7 +1315,7 @@ void main() {
     },
   );
 
-  test('burn instances tick independently over their own durations', () {
+  test('burn damage uses only the strongest active burn instance', () {
     final game = RuneNexusGame();
     final normal = demoEnemies[EnemyType.normal]!;
     final enemy = EnemyComponent(
@@ -1328,11 +1329,11 @@ void main() {
     enemy.applyBurn(damagePerSecond: 8, duration: 2);
     enemy.update(1);
 
-    expect(enemy.hp, closeTo(52, 0.001));
+    expect(enemy.hp, closeTo(60, 0.001));
 
     enemy.update(1);
 
-    expect(enemy.hp, closeTo(44, 0.001));
+    expect(enemy.hp, closeTo(52, 0.001));
   });
 
   test('frost turret damages and slows enemies in its centered area', () async {
@@ -1417,6 +1418,162 @@ void main() {
     expect(enemy.hp, closeTo(88, 0.001));
     expect(fireTurret.damageDealt, closeTo(12, 0.001));
   });
+
+  test(
+    'ignition burst deals direct damage against an existing source burn',
+    () async {
+      final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      game.selectTurretType(TurretType.magic);
+      game.tryBuildTurret(const GridPoint(2, 0));
+      final fireTurret = game.children.whereType<TurretComponent>().single;
+      while (fireTurret.level < 7) {
+        fireTurret.upgradeLevel();
+      }
+      fireTurret
+        ..choosePrimaryTrait(TurretTraitType.highHeatBurn)
+        ..chooseSecondaryTrait(TurretTraitType.ignitionBurst);
+      final enemy =
+          EnemyComponent(
+              definition: demoEnemies[EnemyType.normal]!,
+              maxHp: 200,
+              path: [Vector2.zero(), Vector2(100, 0)],
+              game: game,
+            )
+            ..position = fireTurret.position.clone()
+            ..applyBurn(
+              damagePerSecond: 10,
+              duration: 2,
+              sourceTurretPoint: fireTurret.gridPoint,
+            );
+
+      await game.add(enemy);
+      game.enemies.add(enemy);
+      game.update(0);
+      game.resolveProjectileHit(
+        owner: fireTurret,
+        target: enemy,
+        hitPosition: enemy.position.clone(),
+      );
+
+      final ignitionBurstDamage = 10 * RuneNexusGame.burnDurationSeconds * 0.3;
+      final expectedDirectDamage = fireTurret.damage + ignitionBurstDamage;
+      expect(enemy.hp, closeTo(200 - expectedDirectDamage, 0.001));
+      expect(
+        fireTurret.directDamageDealt,
+        closeTo(expectedDirectDamage, 0.001),
+      );
+    },
+  );
+
+  test('chain ignition transfers a killing burn to a nearby enemy', () async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.selectTurretType(TurretType.magic);
+    game.tryBuildTurret(const GridPoint(2, 0));
+    final fireTurret = game.children.whereType<TurretComponent>().single;
+    while (fireTurret.level < 7) {
+      fireTurret.upgradeLevel();
+    }
+    fireTurret
+      ..choosePrimaryTrait(TurretTraitType.lingeringEmbers)
+      ..chooseSecondaryTrait(TurretTraitType.chainIgnition);
+    final source =
+        EnemyComponent(
+            definition: demoEnemies[EnemyType.normal]!,
+            maxHp: 5,
+            path: [Vector2.zero(), Vector2(100, 0)],
+            game: game,
+          )
+          ..position = fireTurret.position.clone()
+          ..applyBurn(
+            damagePerSecond: 10,
+            duration: 2,
+            sourceTurretPoint: fireTurret.gridPoint,
+          );
+    final target =
+        EnemyComponent(
+            definition: demoEnemies[EnemyType.normal]!,
+            maxHp: 100,
+            path: [Vector2.zero(), Vector2(100, 0)],
+            game: game,
+          )
+          ..position = fireTurret.position + Vector2(40, 0)
+          ..distanceTravelled = 1;
+
+    await game.add(source);
+    await game.add(target);
+    game.enemies.addAll([source, target]);
+    game.update(0);
+
+    source.update(1);
+    target.update(0.6);
+
+    expect(source.isDead, isTrue);
+    expect(target.hp, closeTo(94, 0.001));
+  });
+
+  test(
+    'chain ignition transfers when direct fire damage kills a burning enemy',
+    () async {
+      final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      game.selectTurretType(TurretType.magic);
+      game.tryBuildTurret(const GridPoint(2, 0));
+      final fireTurret = game.children.whereType<TurretComponent>().single;
+      while (fireTurret.level < 7) {
+        fireTurret.upgradeLevel();
+      }
+      fireTurret
+        ..choosePrimaryTrait(TurretTraitType.highHeatBurn)
+        ..chooseSecondaryTrait(TurretTraitType.chainIgnition);
+      final source =
+          EnemyComponent(
+              definition: demoEnemies[EnemyType.normal]!,
+              maxHp: 20,
+              path: [Vector2.zero(), Vector2(100, 0)],
+              game: game,
+            )
+            ..position = fireTurret.position.clone()
+            ..applyBurn(
+              damagePerSecond: 10,
+              duration: 2,
+              sourceTurretPoint: fireTurret.gridPoint,
+            );
+      final target =
+          EnemyComponent(
+              definition: demoEnemies[EnemyType.normal]!,
+              maxHp: 100,
+              path: [Vector2.zero(), Vector2(100, 0)],
+              game: game,
+            )
+            ..position = fireTurret.position + Vector2(40, 0)
+            ..distanceTravelled = 1;
+
+      await game.add(source);
+      await game.add(target);
+      game.enemies.addAll([source, target]);
+      game.update(0);
+
+      game.resolveProjectileHit(
+        owner: fireTurret,
+        target: source,
+        hitPosition: source.position.clone(),
+      );
+      target.update(0.6);
+
+      final transferredDamage =
+          fireTurret.damage *
+          RuneNexusGame.burnDamagePerSecondScale *
+          fireTurret.damageOverTimeDamageMultiplier *
+          0.6;
+      expect(source.isDead, isTrue);
+      expect(target.hp, closeTo(100 - transferredDamage, 0.001));
+    },
+  );
 
   test('burn damage is credited to its source turret', () async {
     final game = RuneNexusGame(saveRepository: MemorySaveRepository());

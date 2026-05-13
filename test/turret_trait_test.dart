@@ -68,7 +68,10 @@ void main() {
       TurretTraitType.highHeatBurn,
       TurretTraitType.lingeringEmbers,
     ]);
-    expect(turret.secondaryTraitChoices, isEmpty);
+    expect(turret.secondaryTraitChoices, [
+      TurretTraitType.ignitionBurst,
+      TurretTraitType.chainIgnition,
+    ]);
     expect(turret.canChoosePrimaryTrait, isTrue);
   });
 
@@ -87,12 +90,12 @@ void main() {
 
     expect(turret.supportsTraits, isTrue);
     expect(turret.primaryTraitChoices, [
-      TurretTraitType.rapidCooling,
+      TurretTraitType.coolingCycle,
       TurretTraitType.spreadingChill,
     ]);
     expect(turret.secondaryTraitChoices, [
       TurretTraitType.frostCrack,
-      TurretTraitType.coolingCycle,
+      TurretTraitType.rapidCooling,
     ]);
     expect(turret.canChoosePrimaryTrait, isTrue);
   });
@@ -280,20 +283,12 @@ void main() {
     expect(turret.damageOverTimeDurationMultiplier, closeTo(1.7, 0.001));
   });
 
-  test('rapid cooling improves frost slow strength', () {
+  test('rapid cooling improves frost slow strength as a secondary trait', () {
     final game = RuneNexusGame();
-    final turret =
-        TurretComponent(
-            gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.frost]!,
-            game: game,
-            center: Vector2.zero(),
-            tileSize: 32,
-          )
-          ..upgradeLevel()
-          ..upgradeLevel();
+    final turret = _levelSevenFrost(game)
+      ..choosePrimaryTrait(TurretTraitType.spreadingChill);
 
-    turret.choosePrimaryTrait(TurretTraitType.rapidCooling);
+    expect(turret.chooseSecondaryTrait(TurretTraitType.rapidCooling), isTrue);
 
     expect(turret.slowMultiplier, closeTo(0.62, 0.001));
     expect(turret.slowDuration, closeTo(1, 0.001));
@@ -323,7 +318,7 @@ void main() {
   test('frost crack marks enemies for magical vulnerability', () {
     final game = RuneNexusGame();
     final turret = _levelSevenFrost(game)
-      ..choosePrimaryTrait(TurretTraitType.rapidCooling);
+      ..choosePrimaryTrait(TurretTraitType.coolingCycle);
     final enemy = EnemyComponent(
       definition: demoEnemies[EnemyType.normal]!,
       maxHp: 100,
@@ -339,18 +334,29 @@ void main() {
     expect(enemy.magicalDamageTakenBonus, closeTo(0.15, 0.001));
   });
 
-  test('cooling cycle trades frost slow duration for attack speed', () {
-    final game = RuneNexusGame();
-    final turret = _levelSevenFrost(game)
-      ..choosePrimaryTrait(TurretTraitType.rapidCooling);
-    final baseAttackRate = turret.attackRate;
-    final baseSlowDuration = turret.slowDuration;
+  test(
+    'cooling cycle trades frost slow duration for attack speed as a primary trait',
+    () {
+      final game = RuneNexusGame();
+      final turret =
+          TurretComponent(
+              gridPoint: const GridPoint(0, 0),
+              definition: demoTurrets[TurretType.frost]!,
+              game: game,
+              center: Vector2.zero(),
+              tileSize: 32,
+            )
+            ..upgradeLevel()
+            ..upgradeLevel();
+      final baseAttackRate = turret.attackRate;
+      final baseSlowDuration = turret.slowDuration;
 
-    turret.chooseSecondaryTrait(TurretTraitType.coolingCycle);
+      expect(turret.choosePrimaryTrait(TurretTraitType.coolingCycle), isTrue);
 
-    expect(turret.attackRate, closeTo(baseAttackRate * 1.2, 0.001));
-    expect(turret.slowDuration, closeTo(baseSlowDuration * 0.85, 0.001));
-  });
+      expect(turret.attackRate, closeTo(baseAttackRate * 1.2, 0.001));
+      expect(turret.slowDuration, closeTo(baseSlowDuration * 0.85, 0.001));
+    },
+  );
 
   test('suppressive fire applies physical vulnerability every five hits', () {
     final game = RuneNexusGame();

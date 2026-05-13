@@ -85,7 +85,7 @@ class EnemyComponent extends PositionComponent {
       _magicalVulnerabilityRemaining > 0 ? _magicalVulnerabilityBonus : 0;
   double get totalBurnDamagePerSecond => _burnInstances.fold(
     0,
-    (total, instance) => total + instance.damagePerSecond,
+    (strongest, instance) => math.max(strongest, instance.damagePerSecond),
   );
   double get maxBurnRemaining => _burnInstances.fold(
     0,
@@ -229,7 +229,7 @@ class EnemyComponent extends PositionComponent {
     distanceTravelled += step;
   }
 
-  double receiveDamage(double damage) {
+  double receiveDamage(double damage, {BurnTransferPayload? burnTransfer}) {
     if (damage <= 0 || isDead) {
       return 0;
     }
@@ -237,7 +237,7 @@ class EnemyComponent extends PositionComponent {
     hp = math.max(0, hp - damage);
     final actualDamage = previousHp - hp;
     if (isDead) {
-      game.enemyKilled(this);
+      game.enemyKilled(this, burnTransfer: burnTransfer);
     }
     return actualDamage;
   }
@@ -268,6 +268,23 @@ class EnemyComponent extends PositionComponent {
     if (damagePerSecond <= 0 || duration <= 0) {
       return;
     }
+    final sourcePoint = sourceTurretPoint;
+    if (sourcePoint != null) {
+      for (final instance in _burnInstances) {
+        if (instance.sourceTurretPoint == sourcePoint) {
+          instance.damagePerSecond = math.max(
+            instance.damagePerSecond,
+            damagePerSecond,
+          );
+          instance.damageMultiplier = math.max(
+            instance.damageMultiplier,
+            damageMultiplier,
+          );
+          instance.remaining = math.max(instance.remaining, duration);
+          return;
+        }
+      }
+    }
     _burnInstances.add(
       _BurnInstance(
         remaining: duration,
@@ -275,6 +292,58 @@ class EnemyComponent extends PositionComponent {
         damageMultiplier: damageMultiplier,
         sourceTurretPoint: sourceTurretPoint,
       ),
+    );
+  }
+
+  bool hasBurnFromSource(GridPoint sourceTurretPoint) {
+    return _burnInstances.any(
+      (instance) =>
+          instance.sourceTurretPoint == sourceTurretPoint &&
+          instance.remaining > 0,
+    );
+  }
+
+  double strongestBurnDamagePerSecondFromSource(GridPoint sourceTurretPoint) {
+    return _burnInstances
+        .where(
+          (instance) =>
+              instance.sourceTurretPoint == sourceTurretPoint &&
+              instance.remaining > 0,
+        )
+        .fold(0.0, (strongest, instance) {
+          return math.max(strongest, instance.damagePerSecond);
+        });
+  }
+
+  BurnTransferPayload? burnTransferPayloadFromSource(
+    GridPoint sourceTurretPoint,
+  ) {
+    _BurnInstance? strongestBurn;
+    for (final instance in _burnInstances) {
+      if (instance.sourceTurretPoint != sourceTurretPoint ||
+          instance.remaining <= 0) {
+        continue;
+      }
+      final isStronger =
+          strongestBurn == null ||
+          instance.damagePerSecond > strongestBurn.damagePerSecond;
+      final isSameStrengthButLonger =
+          strongestBurn != null &&
+          instance.damagePerSecond == strongestBurn.damagePerSecond &&
+          instance.remaining > strongestBurn.remaining;
+      if (isStronger || isSameStrengthButLonger) {
+        strongestBurn = instance;
+      }
+    }
+    final burn = strongestBurn;
+    if (burn == null) {
+      return null;
+    }
+    return BurnTransferPayload(
+      sourceTurretPoint: burn.sourceTurretPoint,
+      remaining: burn.remaining,
+      damagePerSecond: burn.damagePerSecond,
+      damageMultiplier: burn.damageMultiplier,
     );
   }
 
@@ -322,20 +391,35 @@ class EnemyComponent extends PositionComponent {
   void _updateStatusEffects(double dt) {
     if (_burnInstances.isNotEmpty) {
       _burnNumberTimer += dt;
+      _BurnInstance? strongestBurn;
+      var strongestBurnTickDuration = 0.0;
       for (var i = _burnInstances.length - 1; i >= 0; i--) {
         final instance = _burnInstances[i];
+        final tickDuration = math.min(dt, instance.remaining);
         instance.remaining = math.max(0, instance.remaining - dt);
-        final damage = instance.damagePerSecond * dt;
-        final actualDamage = receiveDamage(damage);
-        _burnNumberDamage += actualDamage;
-        game.recordTurretDamage(instance.sourceTurretPoint, actualDamage);
-        if (instance.remaining <= 0) {
-          _burnInstances.removeAt(i);
-        }
-        if (isDead) {
-          break;
+        if (tickDuration > 0 &&
+            (strongestBurn == null ||
+                instance.damagePerSecond > strongestBurn.damagePerSecond)) {
+          strongestBurn = instance;
+          strongestBurnTickDuration = tickDuration;
         }
       }
+      final activeBurn = strongestBurn;
+      if (activeBurn != null) {
+        final damage = activeBurn.damagePerSecond * strongestBurnTickDuration;
+        final actualDamage = receiveDamage(
+          damage,
+          burnTransfer: BurnTransferPayload(
+            sourceTurretPoint: activeBurn.sourceTurretPoint,
+            remaining: activeBurn.remaining,
+            damagePerSecond: activeBurn.damagePerSecond,
+            damageMultiplier: activeBurn.damageMultiplier,
+          ),
+        );
+        _burnNumberDamage += actualDamage;
+        game.recordTurretDamage(activeBurn.sourceTurretPoint, actualDamage);
+      }
+      _burnInstances.removeWhere((instance) => instance.remaining <= 0);
       if (!isDead &&
           (_burnNumberTimer >= _burnNumberInterval || _burnInstances.isEmpty) &&
           _burnNumberDamage > 0) {
@@ -621,8 +705,8 @@ class _BurnInstance {
   });
 
   double remaining;
-  final double damagePerSecond;
-  final double damageMultiplier;
+  double damagePerSecond;
+  double damageMultiplier;
   GridPoint? sourceTurretPoint;
 
   SavedBurnInstance toSaveData() {
@@ -643,4 +727,18 @@ class _BurnInstance {
       sourceTurretPoint: data.sourcePoint,
     );
   }
+}
+
+class BurnTransferPayload {
+  const BurnTransferPayload({
+    required this.sourceTurretPoint,
+    required this.remaining,
+    required this.damagePerSecond,
+    required this.damageMultiplier,
+  });
+
+  final GridPoint? sourceTurretPoint;
+  final double remaining;
+  final double damagePerSecond;
+  final double damageMultiplier;
 }

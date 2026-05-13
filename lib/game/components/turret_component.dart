@@ -177,7 +177,7 @@ class TurretComponent extends PositionComponent {
             : 1) *
         (_primaryTrait == TurretTraitType.lightweightBarrel ? 1.1 : 1) *
         (_primaryTrait == TurretTraitType.compressedCharge ? 0.9 : 1) *
-        (_secondaryTrait == TurretTraitType.coolingCycle ? 1.2 : 1);
+        (_primaryTrait == TurretTraitType.coolingCycle ? 1.2 : 1);
     if (_chainCleanupTimer > 0) {
       rate *= 1.4;
     }
@@ -218,7 +218,7 @@ class TurretComponent extends PositionComponent {
   }
 
   double get slowMultiplier {
-    if (_primaryTrait == TurretTraitType.rapidCooling) {
+    if (_secondaryTrait == TurretTraitType.rapidCooling) {
       return 0.62;
     }
     return definition.slowMultiplier;
@@ -226,9 +226,13 @@ class TurretComponent extends PositionComponent {
 
   double get slowDuration =>
       definition.slowDuration *
-      (_secondaryTrait == TurretTraitType.coolingCycle ? 0.85 : 1);
+      (_primaryTrait == TurretTraitType.coolingCycle ? 0.85 : 1);
 
   bool get appliesFrostCrack => _secondaryTrait == TurretTraitType.frostCrack;
+  bool get appliesIgnitionBurst =>
+      _secondaryTrait == TurretTraitType.ignitionBurst;
+  bool get spreadsChainIgnition =>
+      _secondaryTrait == TurretTraitType.chainIgnition;
 
   double get splashSecondaryDamageMultiplier {
     if (hasGem(GemType.explosion)) {

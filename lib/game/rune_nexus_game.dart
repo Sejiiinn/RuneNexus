@@ -58,6 +58,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _chainDamageMultiplier = 0.5;
   static const double _burnDamagePerSecondScale = 0.5;
   static const double _burnDurationSeconds = 2;
+  static const double _ignitionBurstDurationRate = 0.3;
+  static const double _chainIgnitionDurationRate = 0.6;
   static const int gemShardRewardFallbackAmount = 10;
   static const int gemChoicePurchaseCost = 20;
   static const int primaryTraitCost = 12;
@@ -1435,18 +1437,22 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       for (final enemy in enemies.toList()) {
         final dx = enemy.position.x - hitPosition.x;
         final dy = enemy.position.y - hitPosition.y;
-        if (enemy.isMounted &&
+        if ((enemy.isMounted || enemies.contains(enemy)) &&
             !enemy.isDead &&
             dx * dx + dy * dy <= splashRadiusSquared) {
           impacted.add(enemy);
         }
       }
-    } else if (target.isMounted && !target.isDead) {
+    } else if ((target.isMounted || enemies.contains(target)) &&
+        !target.isDead) {
       impacted.add(target);
     }
     _showImpact(owner: owner, position: hitPosition);
 
     for (final enemy in impacted.toList()) {
+      final ignitionBurstDamage = identical(enemy, target)
+          ? _ignitionBurstDamage(owner, enemy)
+          : 0.0;
       final traitMultiplier = identical(enemy, target)
           ? owner.registerDirectHitTraits(enemy)
           : 1.0;
@@ -1463,7 +1469,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         damageMultiplier: multiplier,
       );
       enemy.showHitFlash(owner.definition.color);
-      final actualDamage = enemy.receiveDamage(damage);
+      final actualDamage = enemy.receiveDamage(
+        damage,
+        burnTransfer: _burnTransferForHit(owner, enemy),
+      );
       _recordTurretDamage(
         owner,
         actualDamage,
@@ -1471,6 +1480,19 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
             ? TurretDamageKind.direct
             : TurretDamageKind.splash,
       );
+      if (ignitionBurstDamage > 0 && !enemy.isDead) {
+        showDamageNumber(
+          position: enemy.position.clone(),
+          damage: ignitionBurstDamage,
+          color: owner.definition.color,
+        );
+        enemy.showHitFlash(owner.definition.color);
+        final actualBurstDamage = enemy.receiveDamage(
+          ignitionBurstDamage,
+          burnTransfer: _burnTransferForHit(owner, enemy),
+        );
+        _recordTurretDamage(owner, actualBurstDamage, TurretDamageKind.direct);
+      }
     }
 
     if (owner.hasGem(GemType.chain)) {
@@ -1494,7 +1516,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       damageMultiplier: multiplier,
     );
     target.showHitFlash(chainColorFor(owner));
-    final actualDamage = target.receiveDamage(adjustedDamage);
+    final actualDamage = target.receiveDamage(
+      adjustedDamage,
+      burnTransfer: _burnTransferForHit(owner, target),
+    );
     _recordTurretDamage(owner, actualDamage, TurretDamageKind.chain);
   }
 
@@ -1529,7 +1554,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         damageMultiplier: multiplier,
       );
       enemy.showHitFlash(owner.definition.color);
-      final actualDamage = enemy.receiveDamage(damage);
+      final actualDamage = enemy.receiveDamage(
+        damage,
+        burnTransfer: _burnTransferForHit(owner, enemy),
+      );
       _recordTurretDamage(owner, actualDamage, TurretDamageKind.splash);
     }
   }
@@ -1538,15 +1566,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (sourceTurretPoint == null || damage <= 0) {
       return;
     }
-    TurretComponent? turret = _turrets[sourceTurretPoint];
-    if (turret == null) {
-      for (final child in children.whereType<TurretComponent>()) {
-        if (child.gridPoint == sourceTurretPoint) {
-          turret = child;
-          break;
-        }
-      }
-    }
+    final turret = _turretForPoint(sourceTurretPoint);
     if (turret == null) {
       return;
     }
@@ -1671,9 +1691,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
   }
 
-  void enemyKilled(EnemyComponent enemy) {
+  void enemyKilled(EnemyComponent enemy, {BurnTransferPayload? burnTransfer}) {
     if (!enemy.isMounted && !enemies.contains(enemy)) {
       return;
+    }
+    if (burnTransfer != null) {
+      _spreadChainIgnition(source: enemy, burnTransfer: burnTransfer);
     }
     for (final turret in _turrets.values) {
       turret.handleEnemyKilled(enemy);
@@ -2652,6 +2675,111 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   bool _isActiveTurret(TurretComponent turret) {
     return _turrets[turret.gridPoint] == turret;
+  }
+
+  TurretComponent? _turretForPoint(GridPoint point) {
+    final activeTurret = _turrets[point];
+    if (activeTurret != null) {
+      return activeTurret;
+    }
+    for (final child in children.whereType<TurretComponent>()) {
+      if (child.gridPoint == point) {
+        return child;
+      }
+    }
+    return null;
+  }
+
+  double _ignitionBurstDamage(TurretComponent owner, EnemyComponent enemy) {
+    if (!owner.appliesIgnitionBurst ||
+        !owner.definition.attackTags.contains(AttackTag.damageOverTime) ||
+        !_isActiveTurret(owner) ||
+        !enemy.hasBurnFromSource(owner.gridPoint)) {
+      return 0;
+    }
+    final burnDamagePerSecond = enemy.strongestBurnDamagePerSecondFromSource(
+      owner.gridPoint,
+    );
+    final burnDuration =
+        _burnDurationSeconds * owner.damageOverTimeDurationMultiplier;
+    return burnDamagePerSecond * burnDuration * _ignitionBurstDurationRate;
+  }
+
+  BurnTransferPayload? _burnTransferForHit(
+    TurretComponent owner,
+    EnemyComponent enemy,
+  ) {
+    if (!owner.spreadsChainIgnition ||
+        !owner.definition.attackTags.contains(AttackTag.damageOverTime) ||
+        !_isActiveTurret(owner)) {
+      return null;
+    }
+    return enemy.burnTransferPayloadFromSource(owner.gridPoint);
+  }
+
+  void _spreadChainIgnition({
+    required EnemyComponent source,
+    required BurnTransferPayload burnTransfer,
+  }) {
+    final sourcePoint = burnTransfer.sourceTurretPoint;
+    if (sourcePoint == null ||
+        burnTransfer.remaining <= 0 ||
+        burnTransfer.damagePerSecond <= 0) {
+      return;
+    }
+    final turret = _turretForPoint(sourcePoint);
+    if (turret == null ||
+        !turret.spreadsChainIgnition ||
+        !_isActiveTurret(turret)) {
+      return;
+    }
+    final transferDuration =
+        burnTransfer.remaining * _chainIgnitionDurationRate;
+    if (transferDuration <= 0) {
+      return;
+    }
+    final target = _chainIgnitionTarget(source);
+    if (target == null) {
+      return;
+    }
+    target.applyBurn(
+      damagePerSecond: burnTransfer.damagePerSecond,
+      duration: transferDuration,
+      damageMultiplier: burnTransfer.damageMultiplier,
+      sourceTurretPoint: sourcePoint,
+    );
+    target.showHitFlash(turret.definition.color);
+  }
+
+  EnemyComponent? _chainIgnitionTarget(EnemyComponent source) {
+    final jumpRange = _chainJumpRange * boardDistanceScale;
+    final jumpRangeSquared = jumpRange * jumpRange;
+    EnemyComponent? target;
+    var targetDistanceTravelled = -double.infinity;
+    var targetDistanceSquared = double.infinity;
+    for (final enemy in enemies) {
+      if (identical(enemy, source) ||
+          (!enemy.isMounted && !enemies.contains(enemy)) ||
+          enemy.isDead) {
+        continue;
+      }
+      final dx = enemy.position.x - source.position.x;
+      final dy = enemy.position.y - source.position.y;
+      final distanceSquared = dx * dx + dy * dy;
+      if (distanceSquared > jumpRangeSquared) {
+        continue;
+      }
+      final isFurtherAhead = enemy.distanceTravelled > targetDistanceTravelled;
+      final isTieButCloser =
+          enemy.distanceTravelled == targetDistanceTravelled &&
+          distanceSquared < targetDistanceSquared;
+      if (isFurtherAhead || isTieButCloser) {
+        target = enemy;
+        targetDistanceTravelled = enemy.distanceTravelled;
+        targetDistanceSquared = distanceSquared;
+      }
+    }
+    return target;
   }
 
   double _damageMultiplier(
