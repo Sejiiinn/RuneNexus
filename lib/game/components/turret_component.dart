@@ -46,6 +46,8 @@ class TurretComponent extends PositionComponent {
   double _aimAngle = -math.pi / 2;
   double _fireFeedbackTimer = 0;
   double _gemRingPhase = 0;
+  EnemyComponent? _aimTarget;
+  double _aimProgress = 0;
   int _slotLimit = 1;
   int _level = 1;
   double _directDamageDealt = 0;
@@ -277,6 +279,13 @@ class TurretComponent extends PositionComponent {
       List.unmodifiable(_gemSlots.whereType<GemType>());
   List<GemType?> get equippedGemSlots =>
       List.unmodifiable(_gemSlots.take(_slotLimit));
+  double get aimProgressRatio {
+    final duration = definition.aimDuration;
+    if (!definition.instantHit || duration <= 0 || _aimTarget == null) {
+      return 0;
+    }
+    return (_aimProgress / duration).clamp(0.0, 1.0);
+  }
 
   bool canEquipGemAt(int slotIndex) {
     return slotIndex >= 0 && slotIndex < slotLimit;
@@ -497,7 +506,17 @@ class TurretComponent extends PositionComponent {
         }
       }
     }
-    if (_cooldown > 0 || !game.isWaveRunning) {
+    if (!game.isWaveRunning) {
+      _clearAim();
+      return;
+    }
+    if (_cooldown > 0) {
+      _clearAim();
+      return;
+    }
+
+    if (definition.instantHit) {
+      _updateInstantHitAttack(dt);
       return;
     }
 
@@ -548,6 +567,42 @@ class TurretComponent extends PositionComponent {
         game: game,
       ),
     );
+  }
+
+  void _updateInstantHitAttack(double dt) {
+    var target = _aimTarget;
+    if (target == null || !_isValidAimTarget(target)) {
+      target = _findTarget();
+      _aimTarget = target;
+      _aimProgress = 0;
+    }
+    if (target == null) {
+      return;
+    }
+
+    _aimAngle = math.atan2(
+      target.position.y - position.y,
+      target.position.x - position.x,
+    );
+    _aimProgress += dt;
+    if (_aimProgress < definition.aimDuration) {
+      return;
+    }
+
+    final critical =
+        definition.criticalChance > 0 &&
+        _cooldownRandom.nextDouble() < definition.criticalChance;
+    final criticalMultiplier = critical
+        ? definition.criticalDamageMultiplier
+        : 1.0;
+    _cooldown = (1 / attackRate) * _nextCooldownVarianceMultiplier();
+    _triggerFireFeedback();
+    game.resolveInstantHit(
+      owner: this,
+      target: target,
+      criticalMultiplier: criticalMultiplier,
+    );
+    _clearAim();
   }
 
   EnemyComponent? _findTarget() {
@@ -604,6 +659,10 @@ class TurretComponent extends PositionComponent {
     }).toList();
   }
 
+  bool _isValidAimTarget(EnemyComponent enemy) {
+    return enemy.isMounted && !enemy.isDead && isEnemyBodyInRange(enemy);
+  }
+
   double _nextCooldownVarianceMultiplier() {
     return 1 -
         _cooldownVariance +
@@ -612,6 +671,11 @@ class TurretComponent extends PositionComponent {
 
   void _triggerFireFeedback() {
     _fireFeedbackTimer = _fireFeedbackDuration;
+  }
+
+  void _clearAim() {
+    _aimTarget = null;
+    _aimProgress = 0;
   }
 
   @override
@@ -637,6 +701,7 @@ class TurretComponent extends PositionComponent {
     _drawLevelPowerAura(canvas, center);
     _syncGemSlotLength();
     _drawGemReactionRing(canvas, center);
+    _drawAimBeam(canvas, center);
 
     drawTurretShape(
       canvas,
@@ -651,6 +716,42 @@ class TurretComponent extends PositionComponent {
     );
 
     _drawLevelGlyph(canvas, center);
+  }
+
+  void _drawAimBeam(Canvas canvas, Offset center) {
+    final target = _aimTarget;
+    if (target == null || !definition.instantHit) {
+      return;
+    }
+    final progress = aimProgressRatio;
+    if (progress <= 0) {
+      return;
+    }
+    final targetLocal = Offset(
+      center.dx + target.position.x - position.x,
+      center.dy + target.position.y - position.y,
+    );
+    final pulse = 0.55 + math.sin(_gemRingPhase * 8) * 0.18;
+    final beamColor = definition.color.withValues(
+      alpha: (0.16 + progress * 0.42) * pulse,
+    );
+    canvas.drawLine(
+      center,
+      targetLocal,
+      Paint()
+        ..color = beamColor
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = _tileSize * (0.018 + progress * 0.014),
+    );
+    final chargeRadius = _tileSize * (0.08 + progress * 0.07);
+    canvas.drawCircle(
+      center,
+      chargeRadius,
+      Paint()
+        ..color = definition.color.withValues(alpha: 0.16 + progress * 0.16)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = _tileSize * 0.025,
+    );
   }
 
   void _syncGemSlotLength() {

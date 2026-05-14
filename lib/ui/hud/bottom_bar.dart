@@ -68,7 +68,7 @@ class _BottomBar extends StatelessWidget {
                 if (snapshot.selectedTurretPoint == null) ...[
                   const SizedBox(height: 8),
                   Row(
-                    children: TurretType.values.map((type) {
+                    children: snapshot.availableTurretTypes.map((type) {
                       final definition = demoTurrets[type]!;
                       return Expanded(
                         child: Padding(

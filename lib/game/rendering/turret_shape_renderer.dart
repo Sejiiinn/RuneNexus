@@ -60,6 +60,8 @@ void drawTurretShape(
       _drawMachineGunHead(canvas, scale, accent, outline, fireFeedback);
     case TurretType.cannon:
       _drawCannonHead(canvas, scale, accent, outline, fireFeedback);
+    case TurretType.sniper:
+      _drawSniperHead(canvas, scale, accent, outline, fireFeedback);
     case TurretType.magic:
       break;
     case TurretType.frost:
@@ -96,6 +98,48 @@ void _drawMachineGunHead(
       scale,
       fireFeedback,
       0.18,
+    );
+  }
+}
+
+void _drawSniperHead(
+  Canvas canvas,
+  double scale,
+  Paint accent,
+  Paint outline,
+  double fireFeedback,
+) {
+  final barrel = RRect.fromRectAndRadius(
+    Rect.fromLTWH(-scale * 0.12, -scale * 0.055, scale * 0.78, scale * 0.11),
+    Radius.circular(scale * 0.025),
+  );
+  final stock = Path()
+    ..moveTo(-scale * 0.24, -scale * 0.13)
+    ..lineTo(scale * 0.08, -scale * 0.08)
+    ..lineTo(scale * 0.08, scale * 0.08)
+    ..lineTo(-scale * 0.24, scale * 0.13)
+    ..close();
+  final lens = Rect.fromCenter(
+    center: Offset(scale * 0.14, -scale * 0.13),
+    width: scale * 0.28,
+    height: scale * 0.08,
+  );
+  canvas.drawPath(stock, Paint()..color = const Color(0xFF223347));
+  canvas.drawPath(stock, outline);
+  canvas.drawRRect(barrel, accent);
+  canvas.drawRRect(barrel, outline);
+  canvas.drawOval(lens, Paint()..color = const Color(0xFFE8FBFF));
+  canvas.drawOval(lens, outline);
+  canvas.drawCircle(Offset.zero, scale * 0.14, accent);
+  canvas.drawCircle(Offset.zero, scale * 0.14, outline);
+  if (fireFeedback > 0) {
+    canvas.drawLine(
+      Offset(scale * 0.66, 0),
+      Offset(scale * (0.9 + fireFeedback * 0.25), 0),
+      Paint()
+        ..color = const Color(0xFFFFFFFF).withValues(alpha: fireFeedback)
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = scale * 0.045,
     );
   }
 }

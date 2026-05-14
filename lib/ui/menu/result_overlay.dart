@@ -92,7 +92,8 @@ class ResultOverlay extends StatelessWidget {
                       style: const TextStyle(color: Color(0xFFC5DCE8)),
                     ),
                     if (snapshot.lastRunWasNewBestRound ||
-                        snapshot.lastRunUnlockedStageNumber != null) ...[
+                        snapshot.lastRunUnlockedStageNumber != null ||
+                        snapshot.lastRunUnlockedSniperTurret) ...[
                       const SizedBox(height: 10),
                       Wrap(
                         alignment: WrapAlignment.center,
@@ -113,6 +114,12 @@ class ResultOverlay extends StatelessWidget {
                               label: '신규 해금',
                               value:
                                   '스테이지 ${snapshot.lastRunUnlockedStageNumber}',
+                            ),
+                          if (snapshot.lastRunUnlockedSniperTurret)
+                            const _ResultHighlight(
+                              icon: Icons.my_location,
+                              label: '포탑 해금',
+                              value: '저격',
                             ),
                         ],
                       ),

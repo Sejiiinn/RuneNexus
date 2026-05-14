@@ -24,6 +24,7 @@ class GameSnapshot {
     required this.unlockedStageCount,
     required this.bestRoundsByStage,
     required this.clearedStageNumbers,
+    required this.availableTurretTypes,
     required this.selectedTurretType,
     required this.selectedRunPanelTab,
     required this.previewText,
@@ -90,6 +91,7 @@ class GameSnapshot {
     required this.lastRunPreviousBestRound,
     required this.lastRunWasNewBestRound,
     required this.lastRunUnlockedStageNumber,
+    required this.lastRunUnlockedSniperTurret,
     required this.completedRounds,
     required this.startingGoldUpgradeLevel,
     required this.startingGoldUpgradeCost,
@@ -121,6 +123,7 @@ class GameSnapshot {
   final int unlockedStageCount;
   final Map<int, int> bestRoundsByStage;
   final Set<int> clearedStageNumbers;
+  final List<TurretType> availableTurretTypes;
   final TurretType selectedTurretType;
   final RunPanelTab selectedRunPanelTab;
   final String previewText;
@@ -187,6 +190,7 @@ class GameSnapshot {
   final int lastRunPreviousBestRound;
   final bool lastRunWasNewBestRound;
   final int? lastRunUnlockedStageNumber;
+  final bool lastRunUnlockedSniperTurret;
   final int completedRounds;
   final int startingGoldUpgradeLevel;
   final int startingGoldUpgradeCost;

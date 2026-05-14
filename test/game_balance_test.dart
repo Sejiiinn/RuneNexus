@@ -21,6 +21,7 @@ import 'package:rune_nexus/domain/turret/turret_trait_type.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/domain/wave/wave_definition.dart';
 import 'package:rune_nexus/game/components/enemy_component.dart';
+import 'package:rune_nexus/game/components/projectile_component.dart';
 import 'package:rune_nexus/game/components/turret_component.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
 import 'package:rune_nexus/game/systems/run_progression.dart';
@@ -356,6 +357,7 @@ void main() {
     expect(demoTurrets[TurretType.cannon]!.projectileSpeed, 340);
     expect(demoTurrets[TurretType.magic]!.projectileSpeed, 420);
     expect(demoTurrets[TurretType.frost]!.projectileSpeed, 0);
+    expect(demoTurrets[TurretType.sniper]!.projectileSpeed, 0);
   });
 
   test('enemy movement speeds are tuned down for readable combat', () {
@@ -370,6 +372,7 @@ void main() {
     expect(demoTurrets[TurretType.cannon]!.range, 84);
     expect(demoTurrets[TurretType.magic]!.range, 108);
     expect(demoTurrets[TurretType.frost]!.range, 76);
+    expect(demoTurrets[TurretType.sniper]!.range, 150);
   });
 
   test('runtime combat distances scale with board tile size', () async {
@@ -424,6 +427,47 @@ void main() {
     expect(demoTurrets[TurretType.cannon]!.attackRate, 0.4);
     expect(demoTurrets[TurretType.magic]!.attackRate, 0.59);
     expect(demoTurrets[TurretType.frost]!.attackRate, 0.4);
+    expect(demoTurrets[TurretType.sniper]!.attackRate, 0.625);
+  });
+
+  test('sniper turret unlocks after stage one clear', () {
+    final game = RuneNexusGame(
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+
+    expect(
+      game.snapshotNotifier.value.availableTurretTypes,
+      isNot(contains(TurretType.sniper)),
+    );
+
+    game.selectTurretType(TurretType.sniper);
+    expect(game.snapshotNotifier.value.selectedTurretType, TurretType.arrow);
+
+    game.startNextWave();
+    game.update(0.016);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.success);
+    expect(game.snapshotNotifier.value.lastRunUnlockedSniperTurret, isTrue);
+    expect(
+      game.snapshotNotifier.value.availableTurretTypes,
+      contains(TurretType.sniper),
+    );
+  });
+
+  test('sniper turret uses aim time and critical instant hit stats', () {
+    final sniper = demoTurrets[TurretType.sniper]!;
+
+    expect(sniper.instantHit, isTrue);
+    expect(sniper.aimDuration, closeTo(1, 0.001));
+    expect(sniper.criticalChance, closeTo(0.15, 0.001));
+    expect(sniper.criticalDamageMultiplier, closeTo(1.5, 0.001));
   });
 
   test('turret level cap grows to 10 without excessive range gain', () {
@@ -1406,6 +1450,55 @@ void main() {
       ),
     );
   });
+
+  test(
+    'sniper instant hit applies critical direct damage without projectile',
+    () async {
+      final game = RuneNexusGame(
+        saveRepository: MemorySaveRepository(),
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 0,
+          ),
+        ],
+      );
+
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      game.startNextWave();
+      game.update(0.016);
+      game.restartDemo();
+      game.selectTurretType(TurretType.sniper);
+      game.tryBuildTurret(const GridPoint(2, 0));
+
+      final sniperTurret = game.children.whereType<TurretComponent>().single;
+      final enemy = EnemyComponent(
+        definition: demoEnemies[EnemyType.normal]!,
+        maxHp: 100,
+        path: [Vector2.zero(), Vector2(500, 0)],
+        game: game,
+      );
+
+      await game.add(enemy);
+      game.update(0);
+      enemy.position =
+          sniperTurret.position + Vector2(sniperTurret.range * 0.5, 0);
+      game.enemies.add(enemy);
+
+      game.resolveInstantHit(
+        owner: sniperTurret,
+        target: enemy,
+        criticalMultiplier: 1.5,
+      );
+
+      expect(enemy.hp, closeTo(28, 0.001));
+      expect(sniperTurret.directDamageDealt, closeTo(72, 0.001));
+      expect(game.children.whereType<ProjectileComponent>(), isEmpty);
+    },
+  );
 
   test('chain hit from fire turret applies scaled burn', () async {
     final game = RuneNexusGame(saveRepository: MemorySaveRepository());

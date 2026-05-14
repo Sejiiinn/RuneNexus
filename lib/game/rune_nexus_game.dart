@@ -139,6 +139,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       unlockedStageCount: 1,
       bestRoundsByStage: const {},
       clearedStageNumbers: const {},
+      availableTurretTypes: const [
+        TurretType.arrow,
+        TurretType.cannon,
+        TurretType.magic,
+        TurretType.frost,
+      ],
       selectedTurretType: TurretType.arrow,
       selectedRunPanelTab: RunPanelTab.turrets,
       previewText: firstWave.previewText,
@@ -205,6 +211,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       lastRunPreviousBestRound: 0,
       lastRunWasNewBestRound: false,
       lastRunUnlockedStageNumber: null,
+      lastRunUnlockedSniperTurret: false,
       completedRounds: 0,
       startingGoldUpgradeLevel: 0,
       startingGoldUpgradeCost: RunProgression.startingGoldUpgradeBaseCost,
@@ -326,6 +333,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   int _lastRunPreviousBestRound = 0;
   bool _lastRunWasNewBestRound = false;
   int? _lastRunUnlockedStageNumber;
+  bool _lastRunUnlockedSniperTurret = false;
   int _roundIndex = 0;
   GamePhase _phase = GamePhase.preparation;
   GamePhase? _restoredPhase;
@@ -597,6 +605,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void previewOrBuildSelectedTile(TurretType type) {
+    if (!_isTurretUnlocked(type)) {
+      return;
+    }
     _selectedTurretType = type;
     _selectedRunPanelTab = RunPanelTab.turrets;
     _selectedBuildTurretType = type;
@@ -618,12 +629,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (type == null || point == null) {
       return;
     }
+    if (!_isTurretUnlocked(type)) {
+      return;
+    }
 
     _selectedTurretType = type;
     tryBuildTurret(point);
   }
 
   void selectTurretType(TurretType type) {
+    if (!_isTurretUnlocked(type)) {
+      return;
+    }
     _selectedTurretType = type;
     _selectedRunPanelTab = RunPanelTab.turrets;
     _publish();
@@ -747,6 +764,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _lastRunPreviousBestRound = 0;
     _lastRunWasNewBestRound = false;
     _lastRunUnlockedStageNumber = null;
+    _lastRunUnlockedSniperTurret = false;
     _progression.resetLastRunReward();
     _phase = GamePhase.preparation;
     _selectedTurretType = TurretType.arrow;
@@ -960,6 +978,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   void tryBuildTurret(GridPoint point) {
     if (!_canEditBoard) {
+      return;
+    }
+    if (!_isTurretUnlocked(_selectedTurretType)) {
       return;
     }
     if (!_map.canBuildAt(point) || _turrets.containsKey(point)) {
@@ -1523,6 +1544,67 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _recordTurretDamage(owner, actualDamage, TurretDamageKind.chain);
   }
 
+  void resolveInstantHit({
+    required TurretComponent owner,
+    required EnemyComponent target,
+    double criticalMultiplier = 1,
+  }) {
+    if ((!target.isMounted && !enemies.contains(target)) ||
+        target.isDead ||
+        !owner.isEnemyBodyInRange(target)) {
+      return;
+    }
+
+    final impacted = <EnemyComponent>{target};
+    if (owner.splashRadius > 0) {
+      final splashRadiusSquared = owner.splashRadius * owner.splashRadius;
+      for (final enemy in enemies.toList()) {
+        final dx = enemy.position.x - target.position.x;
+        final dy = enemy.position.y - target.position.y;
+        if ((enemy.isMounted || enemies.contains(enemy)) &&
+            !enemy.isDead &&
+            dx * dx + dy * dy <= splashRadiusSquared) {
+          impacted.add(enemy);
+        }
+      }
+    }
+    _showImpact(owner: owner, position: target.position.clone());
+
+    for (final enemy in impacted.toList()) {
+      final isPrimaryTarget = identical(enemy, target);
+      final traitMultiplier = isPrimaryTarget
+          ? owner.registerDirectHitTraits(enemy)
+          : 1.0;
+      final baseDamage = isPrimaryTarget
+          ? owner.damage * criticalMultiplier
+          : owner.damage * owner.splashSecondaryDamageMultiplier;
+      final multiplier = _damageMultiplier(owner, enemy);
+      final damage = baseDamage * traitMultiplier * multiplier;
+      _applyAttackStatuses(owner, enemy);
+      showDamageNumber(
+        position: enemy.position.clone(),
+        damage: damage,
+        color: owner.definition.color,
+        damageMultiplier:
+            multiplier * (isPrimaryTarget ? criticalMultiplier : 1),
+      );
+      enemy.showHitFlash(owner.definition.color);
+      final actualDamage = enemy.receiveDamage(
+        damage,
+        burnTransfer: _burnTransferForHit(owner, enemy),
+      );
+      _recordTurretDamage(
+        owner,
+        actualDamage,
+        isPrimaryTarget ? TurretDamageKind.direct : TurretDamageKind.splash,
+      );
+    }
+
+    if (owner.hasGem(GemType.chain)) {
+      _spawnChainProjectiles(owner: owner, source: target, excluded: impacted);
+    }
+  }
+
   void resolveCenteredAreaAttack({
     required TurretComponent owner,
     required Iterable<EnemyComponent> targets,
@@ -1623,6 +1705,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
             TurretType.cannon => ImpactEffectStyle.blast,
             TurretType.magic => ImpactEffectStyle.flame,
             TurretType.frost => ImpactEffectStyle.frost,
+            TurretType.sniper => ImpactEffectStyle.spark,
           };
     final radius = splashRadius > 0
         ? splashRadius
@@ -1633,6 +1716,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
                 TurretType.cannon => 22.0,
                 TurretType.magic => 16.0,
                 TurretType.frost => 18.0,
+                TurretType.sniper => 13.0,
               } *
               boardDistanceScale;
     add(
@@ -2213,6 +2297,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _currentStageNumber,
     );
     final previousUnlockedStageCount = _progression.unlockedStageCount;
+    final stageOneWasCleared = _progression.isStageCleared(1);
     _progression.finishRun(
       completedRounds: _completedRounds,
       success: success,
@@ -2224,6 +2309,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _progression.unlockedStageCount > previousUnlockedStageCount
         ? _progression.unlockedStageCount
         : null;
+    _lastRunUnlockedSniperTurret =
+        success && !stageOneWasCleared && _progression.isStageCleared(1);
     _phase = resultPhase;
   }
 
@@ -2237,6 +2324,23 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       maxConfiguredStage,
     );
     return stageNumber.clamp(1, maxSelectableStage).toInt();
+  }
+
+  bool _isTurretUnlocked(TurretType type) {
+    return _availableTurretTypes().contains(type);
+  }
+
+  List<TurretType> _availableTurretTypes() {
+    final types = <TurretType>[
+      TurretType.arrow,
+      TurretType.cannon,
+      TurretType.magic,
+      TurretType.frost,
+    ];
+    if (_progression.isStageCleared(1)) {
+      types.add(TurretType.sniper);
+    }
+    return types;
   }
 
   StageDefinition _stageForNumber(int stageNumber) {
@@ -2384,6 +2488,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _lastRunPreviousBestRound = 0;
       _lastRunWasNewBestRound = false;
       _lastRunUnlockedStageNumber = null;
+      _lastRunUnlockedSniperTurret = false;
       _selectedTurretType = TurretType.arrow;
       _selectedRunPanelTab = RunPanelTab.turrets;
       _selectedBuildTurretType = null;
@@ -2405,6 +2510,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _lastRunPreviousBestRound = 0;
     _lastRunWasNewBestRound = false;
     _lastRunUnlockedStageNumber = null;
+    _lastRunUnlockedSniperTurret = false;
     _selectedTurretType = TurretType.arrow;
     _selectedRunPanelTab = RunPanelTab.turrets;
     _selectedBuildTurretType = null;
@@ -2456,6 +2562,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _lastRunPreviousBestRound = 0;
       _lastRunWasNewBestRound = false;
       _lastRunUnlockedStageNumber = null;
+      _lastRunUnlockedSniperTurret = false;
       _phase = GamePhase.preparation;
       _restoredPhase = null;
       _isPurchasedGemReward = false;
@@ -2472,6 +2579,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _lastRunPreviousBestRound = 0;
     _lastRunWasNewBestRound = false;
     _lastRunUnlockedStageNumber = null;
+    _lastRunUnlockedSniperTurret = false;
     _selectedTurretType = TurretType.arrow;
     _selectedRunPanelTab = RunPanelTab.turrets;
     _selectedBuildTurretType = null;
@@ -2876,6 +2984,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       unlockedStageCount: _progression.unlockedStageCount,
       bestRoundsByStage: Map.unmodifiable(_progression.bestRoundsByStage),
       clearedStageNumbers: Set.unmodifiable(_progression.clearedStageNumbers),
+      availableTurretTypes: List.unmodifiable(_availableTurretTypes()),
       selectedTurretType: _selectedTurretType,
       selectedRunPanelTab: _selectedRunPanelTab,
       previewText: nextWave.previewText,
@@ -2963,6 +3072,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       lastRunPreviousBestRound: _lastRunPreviousBestRound,
       lastRunWasNewBestRound: _lastRunWasNewBestRound,
       lastRunUnlockedStageNumber: _lastRunUnlockedStageNumber,
+      lastRunUnlockedSniperTurret: _lastRunUnlockedSniperTurret,
       completedRounds: _completedRounds,
       startingGoldUpgradeLevel: _progression.startingGoldUpgradeLevel,
       startingGoldUpgradeCost: _progression.startingGoldUpgradeCost,

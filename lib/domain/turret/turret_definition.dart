@@ -19,6 +19,10 @@ class TurretDefinition {
     required this.color,
     this.splashRadius = 0,
     this.centeredAreaAttack = false,
+    this.instantHit = false,
+    this.aimDuration = 0,
+    this.criticalChance = 0,
+    this.criticalDamageMultiplier = 1.5,
     this.slowMultiplier = 1,
     this.slowDuration = 0,
   });
@@ -36,6 +40,10 @@ class TurretDefinition {
   final Color color;
   final double splashRadius;
   final bool centeredAreaAttack;
+  final bool instantHit;
+  final double aimDuration;
+  final double criticalChance;
+  final double criticalDamageMultiplier;
   final double slowMultiplier;
   final double slowDuration;
 }

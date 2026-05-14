@@ -103,6 +103,7 @@ void main() {
             lastRunPreviousBestRound: 20,
             lastRunWasNewBestRound: true,
             lastRunUnlockedStageNumber: 2,
+            lastRunUnlockedSniperTurret: true,
             bestRoundsByStage: const {1: 50},
             clearedStageNumbers: const {1},
           ),
@@ -118,11 +119,18 @@ void main() {
     expect(find.text('스테이지 2 신규 해금'), findsOneWidget);
     expect(find.text('신기록'), findsOneWidget);
     expect(find.text('20R → 50R'), findsOneWidget);
+    expect(find.text('포탑 해금'), findsOneWidget);
+    expect(find.text('저격'), findsOneWidget);
     expect(find.text('신규 해금'), findsOneWidget);
     expect(find.text('스테이지 2 시작'), findsOneWidget);
     expect(find.text('업그레이드'), findsOneWidget);
     expect(find.text('현재 스테이지 재도전'), findsOneWidget);
 
+    await tester.drag(
+      find.byType(SingleChildScrollView),
+      const Offset(0, -160),
+    );
+    await tester.pump();
     await tester.tap(find.text('스테이지 2 시작'));
 
     expect(startedStage, 2);
@@ -266,6 +274,7 @@ GameSnapshot _resultSnapshot({
   int lastRunPreviousBestRound = 0,
   bool lastRunWasNewBestRound = false,
   int? lastRunUnlockedStageNumber,
+  bool lastRunUnlockedSniperTurret = false,
   Map<int, int> bestRoundsByStage = const {},
   Set<int> clearedStageNumbers = const {},
 }) {
@@ -284,6 +293,12 @@ GameSnapshot _resultSnapshot({
     unlockedStageCount: unlockedStageCount,
     bestRoundsByStage: bestRoundsByStage,
     clearedStageNumbers: clearedStageNumbers,
+    availableTurretTypes: const [
+      TurretType.arrow,
+      TurretType.cannon,
+      TurretType.magic,
+      TurretType.frost,
+    ],
     selectedTurretType: TurretType.arrow,
     selectedRunPanelTab: RunPanelTab.turrets,
     previewText: '',
@@ -350,6 +365,7 @@ GameSnapshot _resultSnapshot({
     lastRunPreviousBestRound: lastRunPreviousBestRound,
     lastRunWasNewBestRound: lastRunWasNewBestRound,
     lastRunUnlockedStageNumber: lastRunUnlockedStageNumber,
+    lastRunUnlockedSniperTurret: lastRunUnlockedSniperTurret,
     completedRounds: completedRounds,
     startingGoldUpgradeLevel: 0,
     startingGoldUpgradeCost: 4,

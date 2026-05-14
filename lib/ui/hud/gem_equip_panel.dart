@@ -1694,7 +1694,7 @@ class _StatPill extends StatelessWidget {
 
 String _gemEffectText(GemType type, TurretDefinition turret) {
   return switch (type) {
-    GemType.attackSpeed => '초당 발사 40% 증폭',
+    GemType.attackSpeed => turret.instantHit ? '쿨타임 40% 단축' : '초당 발사 40% 증폭',
     GemType.range => '사거리 20% 증폭',
     GemType.physicalDamage =>
       turret.damageFamily == DamageFamily.physical
