@@ -949,25 +949,25 @@ class _EnemyDetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxHp = scaledEnemyMaxHp(enemy, round, stageNumber: stageNumber);
-    final multiplierRows = [
+    final resistanceRows = [
       ...DamageFamily.values
           .map(
             (family) => (
               label: family.label,
               color: family.color,
-              value: enemy.resistanceProfile.familyMultiplier(family),
+              value: enemy.resistanceProfile.familyResistance(family),
             ),
           )
-          .where((row) => row.value != 1),
+          .where((row) => row.value != 0),
       ...AttackTag.values
           .map(
             (tag) => (
               label: tag.label,
               color: tag.color,
-              value: enemy.resistanceProfile.tagMultiplier(tag),
+              value: enemy.resistanceProfile.tagResistance(tag),
             ),
           )
-          .where((row) => row.value != 1),
+          .where((row) => row.value != 0),
     ];
 
     return Container(
@@ -1029,15 +1029,15 @@ class _EnemyDetailRow extends StatelessWidget {
               ),
             ],
           ),
-          if (multiplierRows.isNotEmpty) ...[
+          if (resistanceRows.isNotEmpty) ...[
             const SizedBox(height: 7),
             Align(
               alignment: Alignment.centerLeft,
               child: Wrap(
                 spacing: 5,
                 runSpacing: 5,
-                children: multiplierRows.map((row) {
-                  return _MultiplierChip(
+                children: resistanceRows.map((row) {
+                  return _ResistanceChip(
                     label: row.label,
                     value: row.value,
                     color: row.color,
@@ -1250,8 +1250,8 @@ class _EnemyIconPainter extends CustomPainter {
   }
 }
 
-class _MultiplierChip extends StatelessWidget {
-  const _MultiplierChip({
+class _ResistanceChip extends StatelessWidget {
+  const _ResistanceChip({
     required this.label,
     required this.value,
     required this.color,
@@ -1263,7 +1263,9 @@ class _MultiplierChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = value >= 1 ? color : const Color(0xFFFF8A8A);
+    final textColor = value <= 0 ? color : const Color(0xFFFF8A8A);
+    final percent = (value * 100).round();
+    final sign = percent > 0 ? '+' : '';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
@@ -1272,7 +1274,7 @@ class _MultiplierChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
-        '$label x${value.toStringAsFixed(2)}',
+        '$label 저항 $sign$percent%',
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w800,

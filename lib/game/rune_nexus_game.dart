@@ -2787,27 +2787,28 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     EnemyComponent enemy, {
     Set<AttackTag> extraTags = const {},
   }) {
-    final baseMultiplier = enemy.definition.resistanceProfile.multiplierFor(
-      family: owner.definition.damageFamily,
-      tags: {...owner.definition.attackTags, ...extraTags},
+    final resistance = enemy.definition.resistanceProfile;
+    final tags = {...owner.definition.attackTags, ...extraTags};
+    var familyResistance = resistance.familyResistance(
+      owner.definition.damageFamily,
     );
     if (owner.definition.damageFamily == DamageFamily.physical) {
-      return (baseMultiplier + enemy.physicalDamageTakenBonus)
-          .clamp(
-            EnemyResistanceProfile.minMultiplier,
-            EnemyResistanceProfile.maxMultiplier,
-          )
-          .toDouble();
+      familyResistance -=
+          enemy.physicalResistanceReduction + owner.physicalResistanceReduction;
     }
     if (owner.definition.damageFamily == DamageFamily.magical) {
-      return (baseMultiplier + enemy.magicalDamageTakenBonus)
-          .clamp(
-            EnemyResistanceProfile.minMultiplier,
-            EnemyResistanceProfile.maxMultiplier,
-          )
-          .toDouble();
+      familyResistance -= enemy.magicalResistanceReduction;
     }
-    return baseMultiplier;
+
+    var multiplier = EnemyResistanceProfile.multiplierForResistance(
+      familyResistance,
+    );
+    for (final tag in tags) {
+      multiplier *= EnemyResistanceProfile.multiplierForResistance(
+        resistance.tagResistance(tag),
+      );
+    }
+    return multiplier;
   }
 
   void _publish() {

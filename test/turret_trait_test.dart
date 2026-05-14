@@ -117,7 +117,10 @@ void main() {
       TurretTraitType.shrapnelShell,
       TurretTraitType.compressedCharge,
     ]);
-    expect(turret.secondaryTraitChoices, isEmpty);
+    expect(turret.secondaryTraitChoices, [
+      TurretTraitType.expandedBlastCore,
+      TurretTraitType.fractureImpact,
+    ]);
     expect(turret.canChoosePrimaryTrait, isTrue);
   });
 
@@ -137,8 +140,11 @@ void main() {
 
     turret.choosePrimaryTrait(TurretTraitType.shrapnelShell);
 
-    expect(turret.splashRadius, closeTo(baseSplashRadius * 1.2, 0.001));
-    expect(turret.splashSecondaryDamageMultiplier, closeTo(0.6, 0.001));
+    expect(turret.splashRadius, closeTo(baseSplashRadius * 1.3, 0.001));
+    expect(turret.splashSecondaryDamageMultiplier, closeTo(0.5, 0.001));
+
+    turret.equipGem(GemType.heavyWeapon, 0);
+    expect(turret.splashRadius, closeTo(baseSplashRadius * 1.5, 0.001));
   });
 
   test('compressed charge trades cannon speed for direct damage', () {
@@ -160,6 +166,55 @@ void main() {
 
     expect(turret.attackRate, closeTo(baseAttackRate * 0.9, 0.001));
     expect(turret.registerDirectHitTraits(enemy), closeTo(1.35, 0.001));
+  });
+
+  test('expanded blast core improves cannon splash as a secondary trait', () {
+    final game = RuneNexusGame();
+    final turret = _levelSevenCannon(game)
+      ..choosePrimaryTrait(TurretTraitType.shrapnelShell);
+    final baseSplashRadius = demoTurrets[TurretType.cannon]!.splashRadius;
+
+    expect(
+      turret.chooseSecondaryTrait(TurretTraitType.expandedBlastCore),
+      isTrue,
+    );
+
+    expect(turret.splashRadius, closeTo(baseSplashRadius * 1.7, 0.001));
+    expect(turret.splashSecondaryDamageMultiplier, closeTo(0.6, 0.001));
+
+    turret.equipGem(GemType.heavyWeapon, 0);
+    expect(turret.splashRadius, closeTo(baseSplashRadius * 1.9, 0.001));
+    expect(turret.upgradeLink(), isTrue);
+    turret.equipGem(GemType.explosion, 1);
+    expect(turret.splashRadius, closeTo(baseSplashRadius * 2.375, 0.001));
+  });
+
+  test('fracture impact improves cannon hit damage multiplier', () {
+    final game = RuneNexusGame();
+    final turret = _levelSevenCannon(game)
+      ..choosePrimaryTrait(TurretTraitType.shrapnelShell);
+    final directEnemy = _boss(game)..position = Vector2.zero();
+    final splashEnemy = _boss(game)..position = Vector2(1, 0);
+    game.enemies.addAll([directEnemy, splashEnemy]);
+
+    expect(turret.chooseSecondaryTrait(TurretTraitType.fractureImpact), isTrue);
+
+    game.resolveProjectileHit(
+      owner: turret,
+      target: directEnemy,
+      hitPosition: directEnemy.position.clone(),
+    );
+
+    expect(directEnemy.hp, closeTo(100 - turret.damage * 1.1, 0.001));
+    expect(
+      splashEnemy.hp,
+      closeTo(
+        100 - turret.damage * turret.splashSecondaryDamageMultiplier * 1.1,
+        0.001,
+      ),
+    );
+    expect(directEnemy.physicalResistanceReduction, 0);
+    expect(splashEnemy.physicalResistanceReduction, 0);
   });
 
   test('lightweight barrel improves machine gun speed stats', () {
@@ -315,7 +370,7 @@ void main() {
     expect(turret.range, closeTo(baseRange * 1.15, 0.001));
   });
 
-  test('frost crack marks enemies for magical vulnerability', () {
+  test('frost crack reduces slowed enemy magical resistance', () {
     final game = RuneNexusGame();
     final turret = _levelSevenFrost(game)
       ..choosePrimaryTrait(TurretTraitType.coolingCycle);
@@ -331,7 +386,7 @@ void main() {
 
     game.resolveCenteredAreaAttack(owner: turret, targets: [enemy]);
 
-    expect(enemy.magicalDamageTakenBonus, closeTo(0.15, 0.001));
+    expect(enemy.magicalResistanceReduction, closeTo(0.15, 0.001));
   });
 
   test(
@@ -358,7 +413,7 @@ void main() {
     },
   );
 
-  test('suppressive fire applies physical vulnerability every five hits', () {
+  test('suppressive fire reduces physical resistance every five hits', () {
     final game = RuneNexusGame();
     final turret = _levelSevenMachineGun(game)
       ..choosePrimaryTrait(TurretTraitType.lightweightBarrel);
@@ -372,11 +427,11 @@ void main() {
       turret.registerDirectHitTraits(enemy);
     }
 
-    expect(enemy.physicalDamageTakenBonus, 0);
+    expect(enemy.physicalResistanceReduction, 0);
 
     turret.registerDirectHitTraits(enemy);
 
-    expect(enemy.physicalDamageTakenBonus, closeTo(0.2, 0.001));
+    expect(enemy.physicalResistanceReduction, closeTo(0.2, 0.001));
     expect(turret.toSaveData().secondaryTrait, TurretTraitType.suppressiveFire);
   });
 
@@ -448,6 +503,20 @@ TurretComponent _levelSevenMachineGun(RuneNexusGame game) {
   return turret;
 }
 
+TurretComponent _levelSevenCannon(RuneNexusGame game) {
+  final turret = TurretComponent(
+    gridPoint: const GridPoint(0, 0),
+    definition: demoTurrets[TurretType.cannon]!,
+    game: game,
+    center: Vector2.zero(),
+    tileSize: 32,
+  );
+  for (var i = 0; i < 6; i++) {
+    turret.upgradeLevel();
+  }
+  return turret;
+}
+
 TurretComponent _levelSevenFrost(RuneNexusGame game) {
   final turret = TurretComponent(
     gridPoint: const GridPoint(0, 0),
@@ -466,6 +535,15 @@ EnemyComponent _enemy(RuneNexusGame game) {
   return EnemyComponent(
     definition: demoEnemies[EnemyType.normal]!,
     maxHp: 10,
+    path: [Vector2.zero(), Vector2(1, 0)],
+    game: game,
+  );
+}
+
+EnemyComponent _boss(RuneNexusGame game) {
+  return EnemyComponent(
+    definition: demoEnemies[EnemyType.boss]!,
+    maxHp: 100,
     path: [Vector2.zero(), Vector2(1, 0)],
     game: game,
   );

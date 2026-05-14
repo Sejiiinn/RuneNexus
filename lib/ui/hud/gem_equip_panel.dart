@@ -1091,6 +1091,8 @@ IconData _traitIcon(TurretTraitType trait) {
     TurretTraitType.coolingCycle => Icons.cyclone,
     TurretTraitType.suppressiveFire => Icons.gps_fixed,
     TurretTraitType.chainCleanup => Icons.hub_outlined,
+    TurretTraitType.expandedBlastCore => Icons.blur_on,
+    TurretTraitType.fractureImpact => Icons.my_location,
   };
 }
 
@@ -1110,6 +1112,8 @@ Color _traitAccentColor(TurretTraitType trait) {
     TurretTraitType.coolingCycle => const Color(0xFF7EE8D4),
     TurretTraitType.suppressiveFire => const Color(0xFF63E6A5),
     TurretTraitType.chainCleanup => const Color(0xFFD7F27C),
+    TurretTraitType.expandedBlastCore => const Color(0xFFFF9A5F),
+    TurretTraitType.fractureImpact => const Color(0xFFFFD166),
   };
 }
 

@@ -7,6 +7,7 @@ import 'package:rune_nexus/data/save/save_repository.dart';
 import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
 import 'package:rune_nexus/domain/combat/run_panel_tab.dart';
+import 'package:rune_nexus/domain/enemy/enemy_resistance_profile.dart';
 import 'package:rune_nexus/domain/enemy/enemy_scaling.dart';
 import 'package:rune_nexus/domain/enemy/enemy_type.dart';
 import 'package:rune_nexus/domain/gem/gem_equip_rules.dart';
@@ -1191,29 +1192,43 @@ void main() {
     expect(frost.slowDuration, closeTo(1, 0.001));
   });
 
-  test('enemy resistance profile multiplies family and tag values', () {
-    final tank = demoEnemies[EnemyType.tank]!;
+  test(
+    'enemy resistance profile sums same-layer resistance and multiplies layers',
+    () {
+      final tank = demoEnemies[EnemyType.tank]!;
 
+      expect(
+        tank.resistanceProfile.multiplierFor(
+          family: DamageFamily.physical,
+          tags: const {AttackTag.light},
+        ),
+        closeTo(0.52, 0.001),
+      );
+      expect(
+        tank.resistanceProfile.multiplierFor(
+          family: DamageFamily.physical,
+          tags: const {AttackTag.heavy},
+        ),
+        closeTo(0.96, 0.001),
+      );
+      expect(
+        tank.resistanceProfile.multiplierFor(
+          family: DamageFamily.magical,
+          tags: const {AttackTag.damageOverTime},
+        ),
+        closeTo(1, 0.001),
+      );
+    },
+  );
+
+  test('enemy resistance caps positive resistance but keeps vulnerability', () {
     expect(
-      tank.resistanceProfile.multiplierFor(
-        family: DamageFamily.physical,
-        tags: const {AttackTag.light},
-      ),
-      closeTo(0.52, 0.001),
+      EnemyResistanceProfile.multiplierForResistance(1.5),
+      closeTo(0.1, 0.001),
     );
     expect(
-      tank.resistanceProfile.multiplierFor(
-        family: DamageFamily.physical,
-        tags: const {AttackTag.heavy},
-      ),
-      closeTo(0.96, 0.001),
-    );
-    expect(
-      tank.resistanceProfile.multiplierFor(
-        family: DamageFamily.magical,
-        tags: const {AttackTag.damageOverTime},
-      ),
-      closeTo(1, 0.001),
+      EnemyResistanceProfile.multiplierForResistance(-1.1),
+      closeTo(2.1, 0.001),
     );
   });
 

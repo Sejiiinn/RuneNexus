@@ -233,33 +233,43 @@ class TurretComponent extends PositionComponent {
       _secondaryTrait == TurretTraitType.ignitionBurst;
   bool get spreadsChainIgnition =>
       _secondaryTrait == TurretTraitType.chainIgnition;
+  double get physicalResistanceReduction =>
+      _secondaryTrait == TurretTraitType.fractureImpact ? 0.2 : 0;
 
   double get splashSecondaryDamageMultiplier {
+    if (_secondaryTrait == TurretTraitType.expandedBlastCore) {
+      return definition.splashRadius > 0 ? 0.6 : 1;
+    }
     if (hasGem(GemType.explosion)) {
       return definition.splashRadius > 0 ? 0.5 : 0.35;
-    }
-    if (_primaryTrait == TurretTraitType.shrapnelShell) {
-      return definition.splashRadius > 0 ? 0.6 : 1;
     }
     return definition.splashRadius > 0 ? 0.5 : 1;
   }
 
   double get splashRadius {
-    final heavyMultiplier =
+    final heavyRadiusBonus =
         definition.attackTags.contains(AttackTag.heavy) &&
             hasGem(GemType.heavyWeapon)
-        ? 1.2
-        : 1.0;
+        ? definition.splashRadius * 0.2
+        : 0.0;
+    final traitRadiusBonus = _primaryTrait == TurretTraitType.shrapnelShell
+        ? definition.splashRadius * 0.3
+        : 0.0;
+    final secondaryTraitRadiusBonus =
+        _secondaryTrait == TurretTraitType.expandedBlastCore
+        ? definition.splashRadius * 0.4
+        : 0.0;
     if (definition.splashRadius > 0) {
-      return definition.splashRadius *
+      final additiveRadius =
+          definition.splashRadius +
+          heavyRadiusBonus +
+          traitRadiusBonus +
+          secondaryTraitRadiusBonus;
+      return additiveRadius *
           (hasGem(GemType.explosion) ? 1.25 : 1) *
-          (_primaryTrait == TurretTraitType.shrapnelShell ? 1.2 : 1) *
-          heavyMultiplier *
           game.boardDistanceScale;
     }
-    return (hasGem(GemType.explosion) ? 34 : 0) *
-        heavyMultiplier *
-        game.boardDistanceScale;
+    return (hasGem(GemType.explosion) ? 34 : 0) * game.boardDistanceScale;
   }
 
   bool hasGem(GemType type) => equippedGems.contains(type);

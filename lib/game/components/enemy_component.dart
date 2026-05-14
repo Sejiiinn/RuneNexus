@@ -79,9 +79,9 @@ class EnemyComponent extends PositionComponent {
   bool get isSlowed => _slowRemaining > 0;
   double get slowRemaining => _slowRemaining;
   double get slowMultiplier => _slowMultiplier;
-  double get physicalDamageTakenBonus =>
+  double get physicalResistanceReduction =>
       _physicalVulnerabilityRemaining > 0 ? _physicalVulnerabilityBonus : 0;
-  double get magicalDamageTakenBonus =>
+  double get magicalResistanceReduction =>
       _magicalVulnerabilityRemaining > 0 ? _magicalVulnerabilityBonus : 0;
   double get totalBurnDamagePerSecond => _burnInstances.fold(
     0,

@@ -22,7 +22,10 @@ const turretTraitCatalog = <TurretType, TurretTraitSet>{
   ),
   TurretType.cannon: TurretTraitSet(
     primary: [TurretTraitType.shrapnelShell, TurretTraitType.compressedCharge],
-    secondary: [],
+    secondary: [
+      TurretTraitType.expandedBlastCore,
+      TurretTraitType.fractureImpact,
+    ],
   ),
   TurretType.magic: TurretTraitSet(
     primary: [TurretTraitType.highHeatBurn, TurretTraitType.lingeringEmbers],

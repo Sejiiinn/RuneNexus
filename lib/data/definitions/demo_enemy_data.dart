@@ -26,7 +26,7 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
     coreDamage: 1,
     color: Color(0xFF9CEBFF),
     resistanceProfile: EnemyResistanceProfile(
-      tagMultipliers: {AttackTag.light: 1.5, AttackTag.heavy: 0.5},
+      tagResistances: {AttackTag.light: -0.5, AttackTag.heavy: 0.5},
     ),
   ),
   EnemyType.tank: EnemyDefinition(
@@ -38,8 +38,8 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
     coreDamage: 2,
     color: Color(0xFFA9856A),
     resistanceProfile: EnemyResistanceProfile(
-      familyMultipliers: {DamageFamily.physical: 0.8},
-      tagMultipliers: {AttackTag.light: 0.65, AttackTag.heavy: 1.2},
+      familyResistances: {DamageFamily.physical: 0.2},
+      tagResistances: {AttackTag.light: 0.35, AttackTag.heavy: -0.2},
     ),
   ),
   EnemyType.boss: EnemyDefinition(
@@ -51,9 +51,9 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
     coreDamage: 8,
     color: Color(0xFFFF5A66),
     resistanceProfile: EnemyResistanceProfile(
-      familyMultipliers: {
-        DamageFamily.physical: 0.9,
-        DamageFamily.magical: 0.9,
+      familyResistances: {
+        DamageFamily.physical: 0.1,
+        DamageFamily.magical: 0.1,
       },
     ),
   ),

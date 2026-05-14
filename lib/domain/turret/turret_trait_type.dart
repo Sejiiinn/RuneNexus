@@ -13,6 +13,8 @@ enum TurretTraitType {
   coolingCycle,
   suppressiveFire,
   chainCleanup,
+  expandedBlastCore,
+  fractureImpact,
 }
 
 extension TurretTraitTypeText on TurretTraitType {
@@ -32,6 +34,8 @@ extension TurretTraitTypeText on TurretTraitType {
       TurretTraitType.coolingCycle => '빙결 순환',
       TurretTraitType.suppressiveFire => '제압 사격',
       TurretTraitType.chainCleanup => '연쇄 소탕',
+      TurretTraitType.expandedBlastCore => '확장 폭심',
+      TurretTraitType.fractureImpact => '파쇄 충격',
     };
   }
 
@@ -39,7 +43,7 @@ extension TurretTraitTypeText on TurretTraitType {
     return switch (this) {
       TurretTraitType.overheatMagazine => '같은 대상 명중마다 피해 +2%, 최대 15중첩',
       TurretTraitType.lightweightBarrel => '공격 속도 10% 증폭, 투사체 속도 30% 증폭',
-      TurretTraitType.shrapnelShell => '폭발 반경 20% 증폭, 주변 피해 +10%p',
+      TurretTraitType.shrapnelShell => '폭발 반경 +30%',
       TurretTraitType.compressedCharge => '직격 피해 +35%, 공격 속도 -10%',
       TurretTraitType.highHeatBurn => '화상 피해 +25%',
       TurretTraitType.lingeringEmbers => '화상 지속시간 +40%',
@@ -47,10 +51,12 @@ extension TurretTraitTypeText on TurretTraitType {
       TurretTraitType.chainIgnition => '화상 처치 시 주변 1명에게 남은 화상 60% 전이',
       TurretTraitType.rapidCooling => '둔화율 강화',
       TurretTraitType.spreadingChill => '사거리 15% 증폭, 피해 -10%',
-      TurretTraitType.frostCrack => '둔화 대상에게 마법 취약 +15%p',
+      TurretTraitType.frostCrack => '둔화 대상 마법 저항 -15%',
       TurretTraitType.coolingCycle => '공격 속도 20% 증폭, 둔화 지속시간 -15%',
-      TurretTraitType.suppressiveFire => '같은 대상 5회 명중 시 2초간 물리 취약 +20%p',
+      TurretTraitType.suppressiveFire => '같은 대상 5회 명중 시 2초간 물리 저항 -20%',
       TurretTraitType.chainCleanup => '최근 명중 관여 처치 시 3초간 공격 속도 40% 증폭',
+      TurretTraitType.expandedBlastCore => '폭발 반경 +40%, 주변 피해 배율 +10%p',
+      TurretTraitType.fractureImpact => '타격 대상 물리 저항 -20%',
     };
   }
 }

@@ -403,13 +403,8 @@ class _WaveRewardSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: '웨이브 클리어 보상',
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-        decoration: BoxDecoration(
-          color: const Color(0xFF15293A),
-          border: Border.all(color: const Color(0x444A6172)),
-          borderRadius: BorderRadius.circular(5),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.only(right: 2, bottom: 1),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
