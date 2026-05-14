@@ -21,10 +21,11 @@ flutter test test/game_balance_test.dart test/widget_test.dart
 ```bash
 flutter analyze
 flutter test
-flutter build web --pwa-strategy=none
+flutter build web --pwa-strategy=none --no-tree-shake-icons
 ```
 
 Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개발 중에는 `--pwa-strategy=none` 사용을 권장한다.
+젬 아이콘처럼 데이터에서 동적으로 꺼내 쓰는 Material 아이콘이 있으므로 웹 빌드에서는 아이콘 폰트 트리쉐이킹으로 인한 글리프 누락을 피하기 위해 `--no-tree-shake-icons`를 함께 사용한다.
 
 ## 구현된 항목
 

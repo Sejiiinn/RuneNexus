@@ -39,7 +39,7 @@ flutter run
 웹 데모 빌드:
 
 ```bash
-flutter build web --pwa-strategy=none
+flutter build web --pwa-strategy=none --no-tree-shake-icons
 ```
 
 로컬 정적 서버 예시:
@@ -48,14 +48,14 @@ flutter build web --pwa-strategy=none
 python -m http.server 54546 --bind 127.0.0.1 -d build/web
 ```
 
-Flutter Web은 서비스 워커 캐시 때문에 변경 사항이 바로 보이지 않을 수 있습니다. 개발 중에는 `--pwa-strategy=none` 빌드를 사용하거나 브라우저 캐시/서비스 워커를 갱신해야 합니다.
+Flutter Web은 서비스 워커 캐시 때문에 변경 사항이 바로 보이지 않을 수 있습니다. 개발 중에는 `--pwa-strategy=none` 빌드를 사용하거나 브라우저 캐시/서비스 워커를 갱신해야 합니다. 젬처럼 데이터에서 동적으로 꺼내 쓰는 아이콘이 있으므로 웹 빌드에서는 `--no-tree-shake-icons`를 함께 사용합니다.
 
 ## 검증
 
 ```bash
 flutter analyze
 flutter test
-flutter build web --pwa-strategy=none
+flutter build web --pwa-strategy=none --no-tree-shake-icons
 ```
 
 ## 문서

@@ -61,7 +61,7 @@ stop_server() {
 build_web() {
   require_file "$FLUTTER" FLUTTER
   cd "$WORK_DIR"
-  "$FLUTTER" build web --pwa-strategy=none --dart-define=RUNE_NEXUS_DEBUG_PANEL=true
+  "$FLUTTER" build web --pwa-strategy=none --no-tree-shake-icons --dart-define=RUNE_NEXUS_DEBUG_PANEL=true
 }
 
 serve_foreground() {
@@ -69,7 +69,7 @@ serve_foreground() {
   cd "$WORK_DIR"
   printf 'READY port=%s\n' "$PORT"
   printf 'URL=%s' "$(url)"
-  exec python3 -m http.server "$PORT" --bind 127.0.0.1 --directory "$BUILD_DIR"
+  exec python3 "$WORK_DIR/scripts/no_cache_static_server.py" --port "$PORT" --host 127.0.0.1 --directory "$BUILD_DIR"
 }
 
 case "$ACTION" in

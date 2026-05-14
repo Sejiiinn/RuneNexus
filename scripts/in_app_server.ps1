@@ -1,5 +1,5 @@
 param(
-  [ValidateSet('status', 'start', 'restart', 'stop')]
+  [ValidateSet('status', 'start', 'restart', 'stop', 'build')]
   [string]$Action = 'status',
   [int]$Port = 53000,
   [string]$WorkDir = 'C:\Users\rlatp\Documents\RuneNexus',
@@ -12,6 +12,8 @@ $ErrorActionPreference = 'Stop'
 $PidFile = Join-Path $WorkDir 'flutter_web_server.pid'
 $OutLog = Join-Path $WorkDir 'flutter_web_server.out.log'
 $ErrLog = Join-Path $WorkDir 'flutter_web_server.err.log'
+$BuildDir = Join-Path $WorkDir 'build\web'
+$StaticServerScript = Join-Path $WorkDir 'scripts\no_cache_static_server.py'
 
 function Get-ListeningPids {
   $pids = New-Object System.Collections.Generic.HashSet[int]
@@ -77,19 +79,23 @@ function Start-InAppServer {
   }
 
   Remove-Item $PidFile, $OutLog, $ErrLog -ErrorAction SilentlyContinue
+  $indexPath = Join-Path $BuildDir 'index.html'
+  if (!(Test-Path $indexPath)) {
+    Build-Web
+  }
 
   $proc = Start-Process -WindowStyle Hidden `
     -WorkingDirectory $WorkDir `
-    -FilePath $FlutterPath `
+    -FilePath 'py' `
     -ArgumentList @(
-      'run',
-      '-d',
-      'web-server',
-      "--web-hostname=127.0.0.1",
-      "--web-port=$Port",
-      '--dart-define=RUNE_NEXUS_DEBUG_PANEL=true',
-      '-t',
-      'lib/main.dart'
+      '-3',
+      $StaticServerScript,
+      '--directory',
+      $BuildDir,
+      '--host',
+      '127.0.0.1',
+      '--port',
+      "$Port"
     ) `
     -RedirectStandardOutput $OutLog `
     -RedirectStandardError $ErrLog `
@@ -120,6 +126,15 @@ function Start-InAppServer {
   exit 1
 }
 
+function Build-Web {
+  Push-Location $WorkDir
+  try {
+    & $FlutterPath build web --pwa-strategy=none --no-tree-shake-icons --dart-define=RUNE_NEXUS_DEBUG_PANEL=true
+  } finally {
+    Pop-Location
+  }
+}
+
 switch ($Action) {
   'status' {
     $listener = @(Get-ListeningPids)
@@ -137,8 +152,12 @@ switch ($Action) {
   'start' {
     Start-InAppServer
   }
+  'build' {
+    Build-Web
+  }
   'restart' {
     Stop-InAppServer
+    Build-Web
     Start-InAppServer
   }
 }

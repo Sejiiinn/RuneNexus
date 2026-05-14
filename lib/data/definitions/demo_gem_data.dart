@@ -93,7 +93,7 @@ const demoGems = <GemType, GemDefinition>{
     effectType: GemEffectType.criticalChanceBonus,
     value: 0.2,
     color: Color(0xFFFF5F7E),
-    icon: Icons.flash_on,
+    icon: Icons.gps_fixed,
   ),
   GemType.aimSpeed: GemDefinition(
     type: GemType.aimSpeed,
