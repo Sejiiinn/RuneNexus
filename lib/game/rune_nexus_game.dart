@@ -665,7 +665,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _isPurchasedGemReward = true;
     _rewardOptions
       ..clear()
-      ..addAll(_gemRewardGenerator.generateOptions());
+      ..addAll(
+        _gemRewardGenerator.generateOptions(
+          availableGems: _availableGemTypes(),
+        ),
+      );
     _phase = GamePhase.reward;
     _publish();
     _requestLocalSave(immediate: true);
@@ -915,7 +919,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _seedDebugGemInventory();
     _rewardOptions
       ..clear()
-      ..addAll(_gemRewardGenerator.generateOptions());
+      ..addAll(
+        _gemRewardGenerator.generateOptions(
+          availableGems: _availableGemTypes(),
+        ),
+      );
     _publish();
   }
 
@@ -1452,6 +1460,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     required EnemyComponent target,
     required Vector2 hitPosition,
   }) {
+    final criticalMultiplier = owner.rollCriticalHit()
+        ? owner.criticalDamageMultiplier
+        : 1.0;
     final impacted = <EnemyComponent>{};
     if (owner.splashRadius > 0) {
       final splashRadiusSquared = owner.splashRadius * owner.splashRadius;
@@ -1478,7 +1489,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
           ? owner.registerDirectHitTraits(enemy)
           : 1.0;
       final baseDamage = identical(enemy, target)
-          ? owner.damage
+          ? owner.damage * criticalMultiplier
           : owner.damage * owner.splashSecondaryDamageMultiplier;
       final multiplier = _damageMultiplier(owner, enemy);
       final damage = baseDamage * traitMultiplier * multiplier;
@@ -1487,7 +1498,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         position: enemy.position.clone(),
         damage: damage,
         color: owner.definition.color,
-        damageMultiplier: multiplier,
+        damageMultiplier:
+            multiplier * (identical(enemy, target) ? criticalMultiplier : 1),
       );
       enemy.showHitFlash(owner.definition.color);
       final actualDamage = enemy.receiveDamage(
@@ -2183,7 +2195,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _isPurchasedGemReward = false;
       _rewardOptions
         ..clear()
-        ..addAll(_gemRewardGenerator.generateOptions());
+        ..addAll(
+          _gemRewardGenerator.generateOptions(
+            availableGems: _availableGemTypes(),
+          ),
+        );
       unawaited(_saveRoundCheckpoint());
     } else {
       _phase = GamePhase.preparation;
@@ -2341,6 +2357,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       types.add(TurretType.sniper);
     }
     return types;
+  }
+
+  List<GemType> _availableGemTypes() {
+    return GemType.values
+        .where(
+          (type) => type != GemType.aimSpeed || _progression.isStageCleared(1),
+        )
+        .toList();
   }
 
   StageDefinition _stageForNumber(int stageNumber) {

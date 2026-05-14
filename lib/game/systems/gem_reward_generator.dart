@@ -11,8 +11,8 @@ class GemRewardGenerator {
     return completedRound % 5 == 0;
   }
 
-  List<GemType> generateOptions() {
-    final gems = GemType.values.toList()..shuffle(_random);
+  List<GemType> generateOptions({Iterable<GemType>? availableGems}) {
+    final gems = (availableGems ?? GemType.values).toList()..shuffle(_random);
     return gems.take(3).toList();
   }
 }

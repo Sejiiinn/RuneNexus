@@ -24,6 +24,7 @@ import 'package:rune_nexus/game/components/enemy_component.dart';
 import 'package:rune_nexus/game/components/projectile_component.dart';
 import 'package:rune_nexus/game/components/turret_component.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
+import 'package:rune_nexus/game/systems/gem_reward_generator.dart';
 import 'package:rune_nexus/game/systems/run_progression.dart';
 
 void main() {
@@ -461,13 +462,46 @@ void main() {
     );
   });
 
+  test('turret critical damage uses base multiplier and sniper bonus', () {
+    for (final entry in demoTurrets.entries) {
+      final expectedMultiplier = entry.key == TurretType.sniper ? 2.0 : 1.5;
+      expect(
+        entry.value.criticalDamageMultiplier,
+        closeTo(expectedMultiplier, 0.001),
+      );
+    }
+  });
+
   test('sniper turret uses aim time and critical instant hit stats', () {
     final sniper = demoTurrets[TurretType.sniper]!;
 
     expect(sniper.instantHit, isTrue);
+    expect(sniper.damage, closeTo(40, 0.001));
     expect(sniper.aimDuration, closeTo(1, 0.001));
     expect(sniper.criticalChance, closeTo(0.15, 0.001));
-    expect(sniper.criticalDamageMultiplier, closeTo(1.5, 0.001));
+    expect(sniper.criticalDamageMultiplier, closeTo(2.0, 0.001));
+  });
+
+  test('sniper aim speed grows additively by level', () {
+    final turret = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: demoTurrets[TurretType.sniper]!,
+      game: RuneNexusGame(),
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+
+    expect(turret.aimDuration, closeTo(1, 0.001));
+
+    turret.upgradeLevel();
+    turret.upgradeLevel();
+
+    expect(turret.level, 3);
+    expect(turret.aimDuration, closeTo(1 / 1.16, 0.001));
+
+    turret.equipGem(GemType.aimSpeed, 0);
+
+    expect(turret.aimDuration, closeTo(1 / 1.66, 0.001));
   });
 
   test('turret level cap grows to 10 without excessive range gain', () {
@@ -667,6 +701,24 @@ void main() {
     expect(GemType.values, contains(GemType.lightWeapon));
     expect(GemType.values, contains(GemType.heavyWeapon));
     expect(GemType.values, contains(GemType.damageOverTime));
+    expect(GemType.values, contains(GemType.criticalChance));
+    expect(GemType.values, contains(GemType.aimSpeed));
+    expect(GemType.values, contains(GemType.damageAmplifier));
+  });
+
+  test('aim speed gem is gated by the provided reward pool', () {
+    final generator = GemRewardGenerator();
+    final lockedPool = GemType.values.where((type) => type != GemType.aimSpeed);
+
+    for (var i = 0; i < 20; i++) {
+      expect(
+        generator.generateOptions(availableGems: lockedPool),
+        isNot(contains(GemType.aimSpeed)),
+      );
+    }
+    expect(generator.generateOptions(availableGems: const [GemType.aimSpeed]), [
+      GemType.aimSpeed,
+    ]);
   });
 
   test('enemy kill rewards limit late-wave gold snowballing', () {
@@ -1025,6 +1077,71 @@ void main() {
     expect(fireTurret.damageOverTimeDurationMultiplier, closeTo(1.3, 0.001));
   });
 
+  test('critical chance gem adds twenty percentage points', () {
+    final arrow = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: demoTurrets[TurretType.arrow]!,
+      game: RuneNexusGame(),
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+    final sniper = TurretComponent(
+      gridPoint: const GridPoint(1, 0),
+      definition: demoTurrets[TurretType.sniper]!,
+      game: RuneNexusGame(),
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+
+    arrow.equipGem(GemType.criticalChance, 0);
+    sniper.equipGem(GemType.criticalChance, 0);
+
+    expect(arrow.criticalChance, closeTo(0.2, 0.001));
+    expect(sniper.criticalChance, closeTo(0.35, 0.001));
+  });
+
+  test('damage amplifier gem boosts burn through hit damage base', () {
+    final arrow = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: demoTurrets[TurretType.arrow]!,
+      game: RuneNexusGame(),
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+    final fireTurret = TurretComponent(
+      gridPoint: const GridPoint(1, 0),
+      definition: demoTurrets[TurretType.magic]!,
+      game: RuneNexusGame(),
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+    final cannon = TurretComponent(
+      gridPoint: const GridPoint(2, 0),
+      definition: demoTurrets[TurretType.cannon]!,
+      game: RuneNexusGame(),
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+
+    arrow.equipGem(GemType.damageAmplifier, 0);
+    fireTurret.equipGem(GemType.damageAmplifier, 0);
+    cannon.equipGem(GemType.damageAmplifier, 0);
+
+    expect(arrow.damage, closeTo(8.75, 0.001));
+    expect(fireTurret.damage, closeTo(20, 0.001));
+    expect(cannon.damage, closeTo(31.25, 0.001));
+    expect(
+      cannon.damage * cannon.splashSecondaryDamageMultiplier,
+      closeTo(15.625, 0.001),
+    );
+    expect(
+      fireTurret.damage *
+          RuneNexusGame.burnDamagePerSecondScale *
+          fireTurret.damageOverTimeDamageMultiplier,
+      closeTo(10, 0.001),
+    );
+  });
+
   test('scaling gems can be equipped before matching conversion exists', () {
     expect(
       canEquipGemOnTurret(
@@ -1068,6 +1185,14 @@ void main() {
     );
     expect(
       canEquipGemOnTurret(GemType.chain, demoTurrets[TurretType.arrow]!),
+      isTrue,
+    );
+    expect(
+      canEquipGemOnTurret(GemType.aimSpeed, demoTurrets[TurretType.arrow]!),
+      isFalse,
+    );
+    expect(
+      canEquipGemOnTurret(GemType.aimSpeed, demoTurrets[TurretType.sniper]!),
       isTrue,
     );
   });
@@ -1491,11 +1616,11 @@ void main() {
       game.resolveInstantHit(
         owner: sniperTurret,
         target: enemy,
-        criticalMultiplier: 1.5,
+        criticalMultiplier: sniperTurret.criticalDamageMultiplier,
       );
 
-      expect(enemy.hp, closeTo(28, 0.001));
-      expect(sniperTurret.directDamageDealt, closeTo(72, 0.001));
+      expect(enemy.hp, closeTo(20, 0.001));
+      expect(sniperTurret.directDamageDealt, closeTo(80, 0.001));
       expect(game.children.whereType<ProjectileComponent>(), isEmpty);
     },
   );

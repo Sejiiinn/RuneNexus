@@ -8,4 +8,7 @@ enum GemType {
   damageOverTime,
   explosion,
   chain,
+  criticalChance,
+  aimSpeed,
+  damageAmplifier,
 }

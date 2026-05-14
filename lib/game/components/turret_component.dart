@@ -67,6 +67,7 @@ class TurretComponent extends PositionComponent {
   static const double _damageGrowthPerLevel = 0.2;
   static const double _rangeGrowthPerLevel = 0.033;
   static const double _attackRateGrowthPerLevel = 0.05;
+  static const double _aimSpeedGrowthPerLevel = 0.08;
   static const double _cooldownVariance = 0.05;
   static const double _fireFeedbackDuration = 0.12;
 
@@ -151,6 +152,9 @@ class TurretComponent extends PositionComponent {
     }
     if (_primaryTrait == TurretTraitType.spreadingChill) {
       levelDamage *= 0.9;
+    }
+    if (hasGem(GemType.damageAmplifier)) {
+      levelDamage *= 1.25;
     }
 
     return levelDamage * game.towerDamageRunMultiplier;
@@ -279,8 +283,25 @@ class TurretComponent extends PositionComponent {
       List.unmodifiable(_gemSlots.whereType<GemType>());
   List<GemType?> get equippedGemSlots =>
       List.unmodifiable(_gemSlots.take(_slotLimit));
+  double get criticalChance {
+    final bonus = hasGem(GemType.criticalChance) ? 0.2 : 0.0;
+    return (definition.criticalChance + bonus).clamp(0.0, 1.0).toDouble();
+  }
+
+  double get criticalDamageMultiplier => definition.criticalDamageMultiplier;
+
+  double get aimDuration {
+    if (!definition.instantHit || definition.aimDuration <= 0) {
+      return definition.aimDuration;
+    }
+    final gemAimSpeedBonus = hasGem(GemType.aimSpeed) ? 0.5 : 0.0;
+    final aimSpeedMultiplier =
+        1 + (_level - 1) * _aimSpeedGrowthPerLevel + gemAimSpeedBonus;
+    return definition.aimDuration / aimSpeedMultiplier;
+  }
+
   double get aimProgressRatio {
-    final duration = definition.aimDuration;
+    final duration = aimDuration;
     if (!definition.instantHit || duration <= 0 || _aimTarget == null) {
       return 0;
     }
@@ -289,6 +310,11 @@ class TurretComponent extends PositionComponent {
 
   bool canEquipGemAt(int slotIndex) {
     return slotIndex >= 0 && slotIndex < slotLimit;
+  }
+
+  bool rollCriticalHit() {
+    final chance = criticalChance;
+    return chance > 0 && _cooldownRandom.nextDouble() < chance;
   }
 
   void setTargetPriority(TurretTargetPriority priority) {
@@ -585,15 +611,12 @@ class TurretComponent extends PositionComponent {
       target.position.x - position.x,
     );
     _aimProgress += dt;
-    if (_aimProgress < definition.aimDuration) {
+    if (_aimProgress < aimDuration) {
       return;
     }
 
-    final critical =
-        definition.criticalChance > 0 &&
-        _cooldownRandom.nextDouble() < definition.criticalChance;
-    final criticalMultiplier = critical
-        ? definition.criticalDamageMultiplier
+    final criticalMultiplier = rollCriticalHit()
+        ? criticalDamageMultiplier
         : 1.0;
     _cooldown = (1 / attackRate) * _nextCooldownVarianceMultiplier();
     _triggerFireFeedback();

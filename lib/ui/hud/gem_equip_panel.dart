@@ -1719,5 +1719,11 @@ String _gemEffectText(GemType type, TurretDefinition turret) {
     GemType.explosion => turret.splashRadius > 0 ? '폭발 반경 25% 증폭' : '반경 34 폭발',
     GemType.chain =>
       turret.splashRadius > 0 ? '폭발 미적중 최대 2명에게 50% 연쇄' : '주변 최대 2명에게 50% 연쇄',
+    GemType.criticalChance => '치명 확률 +20%p',
+    GemType.aimSpeed =>
+      turret.instantHit && turret.aimDuration > 0
+          ? '조준 속도 50% 증가'
+          : '현재 적용되는 조준 시간 없음',
+    GemType.damageAmplifier => '타격 피해 25% 증폭',
   };
 }

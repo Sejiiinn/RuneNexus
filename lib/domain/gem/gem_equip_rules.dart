@@ -10,5 +10,9 @@ String? gemEquipBlockReason(GemType type, TurretDefinition turret) {
   if (type == GemType.chain && turret.attackTags.contains(AttackTag.heavy)) {
     return '중화기 포탑에는 장착 불가';
   }
+  if (type == GemType.aimSpeed &&
+      (!turret.instantHit || turret.aimDuration <= 0)) {
+    return '조준 시간이 있는 포탑에만 장착 가능';
+  }
   return null;
 }

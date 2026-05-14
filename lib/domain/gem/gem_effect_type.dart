@@ -5,4 +5,7 @@ enum GemEffectType {
   attackTagEnhancement,
   splashBonus,
   chainHit,
+  criticalChanceBonus,
+  aimSpeedBonus,
+  damageAmplifier,
 }
