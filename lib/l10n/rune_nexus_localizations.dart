@@ -28,6 +28,7 @@ class RuneNexusLocalizations {
   String get startGold => _isEnglish ? 'Starting Gold' : '시작 골드';
   String get nexusHp => _isEnglish ? 'Nexus HP' : '넥서스 체력';
   String get maintenanceSupply => _isEnglish ? 'Maintenance Supply' : '정비 보급';
+  String get killRewardBonus => _isEnglish ? 'Kill Reward' : '처치 보상';
   String get basicFireTraining =>
       _isEnglish ? 'Basic Fire Training' : '기초 화력 훈련';
   String get growthHubTitle => _isEnglish ? 'Growth Hub' : '성장 허브';
@@ -44,6 +45,9 @@ class RuneNexusLocalizations {
   String get upgradeAvailable => _isEnglish ? 'Ready' : '구매 가능';
   String get plannedUpgrade => _isEnglish ? 'Planned' : '준비 중';
   String get researchPending => _isEnglish ? 'Future update' : '이후 개발';
+  String get lockedUpgrade => _isEnglish ? 'Locked Upgrade' : '미해금 업그레이드';
+  String get unavailableUpgrade =>
+      _isEnglish ? 'Not available yet' : '아직 사용할 수 없음';
   String get combatUpgradeGroup => _isEnglish ? 'Combat' : '전투';
   String get economyUpgradeGroup => _isEnglish ? 'Economy' : '경제';
   String get researchLockedReason => _isEnglish
@@ -139,6 +143,12 @@ class RuneNexusLocalizations {
     return _isEnglish ? 'Clear Stage $stageNumber' : '스테이지 $stageNumber 클리어';
   }
 
+  String unlocksAfter(String requirement) {
+    return _isEnglish
+        ? 'Available after: $requirement'
+        : '$requirement 후 사용 가능';
+  }
+
   String futureUpgradeEffect(String title) {
     if (title == linkMaintenance) {
       return _isEnglish
@@ -202,6 +212,11 @@ class RuneNexusLocalizations {
       return _isEnglish
           ? 'Adds bonus gold whenever a wave is cleared.'
           : '웨이브를 클리어할 때마다 추가 골드를 받습니다.';
+    }
+    if (title == killRewardBonus) {
+      return _isEnglish
+          ? 'Increases gold gained from defeating enemies.'
+          : '적을 처치할 때 획득하는 골드가 증가합니다.';
     }
     if (title == basicFireTraining) {
       return _isEnglish

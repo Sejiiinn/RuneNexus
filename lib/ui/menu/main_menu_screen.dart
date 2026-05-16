@@ -967,9 +967,13 @@ class _PermanentUpgradeMenu extends StatelessWidget {
     final nextSupplyLevel = (snapshot.supplyUpgradeLevel + 1)
         .clamp(0, RunProgression.maxSupplyUpgradeLevel)
         .toInt();
+    final nextKillGoldLevel = (snapshot.killGoldUpgradeLevel + 1)
+        .clamp(0, RunProgression.maxKillGoldUpgradeLevel)
+        .toInt();
     final nextFireTrainingLevel = (snapshot.fireTrainingUpgradeLevel + 1)
         .clamp(0, RunProgression.maxFireTrainingUpgradeLevel)
         .toInt();
+    final killGoldUnlocked = snapshot.clearedStageNumbers.contains(2);
     final combatTiles = [
       _PermanentUpgradeTile(
         icon: Icons.favorite_border,
@@ -1033,6 +1037,30 @@ class _PermanentUpgradeMenu extends StatelessWidget {
         lockText: l10n.maxLevelReached,
         onPressed: game.upgradeSupplyProgression,
       ),
+      if (killGoldUnlocked)
+        _PermanentUpgradeTile(
+          icon: Icons.monetization_on_outlined,
+          title: l10n.killRewardBonus,
+          description: l10n.permanentUpgradeDescription(l10n.killRewardBonus),
+          level: snapshot.killGoldUpgradeLevel,
+          maxLevel: RunProgression.maxKillGoldUpgradeLevel,
+          globalMaxLevel: RunProgression.maxKillGoldUpgradeLevel,
+          valueText:
+              '+${(snapshot.killGoldProgressionBonusRate * 100).round()}%',
+          nextValueText:
+              '+${(nextKillGoldLevel * RunProgression.killGoldBonusPerUpgradeLevel * 100).round()}%',
+          cost: snapshot.killGoldUpgradeCost,
+          enabled: snapshot.canUpgradeKillGold,
+          lockText: l10n.maxLevelReached,
+          onPressed: game.upgradeKillGoldProgression,
+        )
+      else
+        _PermanentUpgradeTile.locked(
+          icon: Icons.monetization_on_outlined,
+          title: l10n.killRewardBonus,
+          description: l10n.permanentUpgradeDescription(l10n.killRewardBonus),
+          lockText: l10n.stageClearRequirement(2),
+        ),
     ];
     return _PermanentUpgradeBoard(
       tiles: group == _PermanentUpgradeGroup.combat
@@ -1351,17 +1379,147 @@ class _PermanentUpgradeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final locked = !_isActive;
     final borderColor = enabled
         ? const Color(0xFFE7C66A)
+        : locked
+        ? const Color(0x33485B68)
         : const Color(0x55485B68);
     final titleColor = enabled
         ? const Color(0xFFE8FBFF)
+        : locked
+        ? const Color(0xFF6D7F8F)
         : const Color(0xFFB9D6E4);
+    if (locked) {
+      return Container(
+        height: 154,
+        padding: const EdgeInsets.all(9),
+        decoration: BoxDecoration(
+          color: const Color(0x44000000),
+          border: Border.all(color: const Color(0x33485B68)),
+          borderRadius: BorderRadius.circular(7),
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: const Color(0x22000000),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.lock_outline,
+                      color: Color(0xFF8DA5B3),
+                      size: 15,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        l10n.lockedUpgrade,
+                        style: const TextStyle(
+                          color: Color(0xFF8DA5B3),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Icon(icon, color: const Color(0xFF526676), size: 16),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Color(0xFF8DA5B3),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const Spacer(),
+                Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        l10n.unavailableUpgrade,
+                        style: const TextStyle(
+                          color: Color(0xFFE8FBFF),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 7),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 9,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xAA07111D),
+                          border: Border.all(color: const Color(0x66526676)),
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.flag_outlined,
+                              color: Color(0xFFB9D6E4),
+                              size: 13,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                l10n.unlocksAfter(_lockedStatusText(l10n)),
+                                style: const TextStyle(
+                                  color: Color(0xFFB9D6E4),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    color: Color(0xFF637789),
+                    fontSize: 10,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
     return Container(
       constraints: const BoxConstraints(minHeight: 154),
       padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
-        color: const Color(0x3307111D),
+        color: locked ? const Color(0x22000000) : const Color(0x3307111D),
         border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(7),
       ),
@@ -1396,11 +1554,17 @@ class _PermanentUpgradeTile extends StatelessWidget {
               ),
             )
           else
-            _PermanentUpgradeStatusChip(text: _lockedStatusText(l10n)),
+            _PermanentUpgradeStatusChip(
+              text: _lockedStatusText(l10n),
+              icon: Icons.lock_outline,
+            ),
           const SizedBox(height: 5),
           Text(
             description,
-            style: const TextStyle(color: Color(0xFF9EB3BF), fontSize: 10),
+            style: TextStyle(
+              color: locked ? const Color(0xFF6D7F8F) : const Color(0xFF9EB3BF),
+              fontSize: 10,
+            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -1477,9 +1641,10 @@ class _PermanentUpgradeTile extends StatelessWidget {
 }
 
 class _PermanentUpgradeStatusChip extends StatelessWidget {
-  const _PermanentUpgradeStatusChip({required this.text});
+  const _PermanentUpgradeStatusChip({required this.text, this.icon});
 
   final String text;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -1491,15 +1656,26 @@ class _PermanentUpgradeStatusChip extends StatelessWidget {
           border: Border.all(color: const Color(0x55485B68)),
           borderRadius: BorderRadius.circular(7),
         ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            color: Color(0xFF8DA5B3),
-            fontSize: 10,
-            fontWeight: FontWeight.w800,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, color: const Color(0xFF8DA5B3), size: 11),
+              const SizedBox(width: 4),
+            ],
+            Flexible(
+              child: Text(
+                text,
+                style: const TextStyle(
+                  color: Color(0xFF8DA5B3),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
       ),
     );

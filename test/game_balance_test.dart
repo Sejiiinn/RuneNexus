@@ -818,6 +818,77 @@ void main() {
     expect(game.snapshotNotifier.value.waveClearGoldProgressionBonus, 1);
   });
 
+  test('permanent kill reward upgrade boosts enemy gold rewards', () async {
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+    game.update(0.016);
+    game.startStage(2);
+    game.startNextWave();
+    game.update(0.016);
+    game.upgradeKillGoldProgression();
+    game.restartDemo();
+
+    for (var i = 0; i < 20; i++) {
+      final enemy = EnemyComponent(
+        definition: demoEnemies[EnemyType.normal]!,
+        maxHp: 1,
+        path: [Vector2.zero(), Vector2(1, 0)],
+        game: game,
+      );
+      game.enemies.add(enemy);
+      enemy.receiveDamage(999);
+    }
+
+    expect(game.snapshotNotifier.value.gold, 251);
+    expect(game.snapshotNotifier.value.killGoldUpgradeLevel, 1);
+    expect(
+      game.snapshotNotifier.value.killGoldProgressionBonusRate,
+      closeTo(0.01, 0.001),
+    );
+  });
+
+  test('permanent kill reward unlocks after stage two clear', () {
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+
+    game.startNextWave();
+    game.update(0.016);
+    game.upgradeKillGoldProgression();
+
+    expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(2)));
+    expect(game.snapshotNotifier.value.killGoldUpgradeLevel, 0);
+    expect(game.snapshotNotifier.value.canUpgradeKillGold, isFalse);
+
+    game.startStage(2);
+    game.startNextWave();
+    game.update(0.016);
+
+    expect(game.snapshotNotifier.value.clearedStageNumbers, contains(2));
+    expect(game.snapshotNotifier.value.canUpgradeKillGold, isTrue);
+  });
+
   test('permanent fire training boosts turret damage', () {
     final game = RuneNexusGame(
       saveRepository: MemorySaveRepository(),
@@ -867,6 +938,23 @@ void main() {
     expect(progression.upgradeFireTraining(), isFalse);
   });
 
+  test('kill reward uses supply-like 10 level progression', () {
+    final progression = RunProgression()..runes = 10000;
+
+    expect(RunProgression.maxKillGoldUpgradeLevel, 10);
+    expect(progression.killGoldUpgradeCost, 7);
+
+    for (var i = 0; i < 10; i++) {
+      expect(progression.upgradeKillGold(), isTrue);
+    }
+
+    expect(progression.killGoldUpgradeLevel, 10);
+    expect(progression.killGoldBonusRate, closeTo(0.10, 0.001));
+    expect(progression.killGoldUpgradeCost, 47);
+    expect(progression.canUpgradeKillGold, isFalse);
+    expect(progression.upgradeKillGold(), isFalse);
+  });
+
   test('new permanent upgrades are saved and restored', () async {
     final repository = MemorySaveRepository();
     final game = RuneNexusGame(
@@ -885,8 +973,12 @@ void main() {
     await game.onLoad();
     game.startNextWave();
     game.update(0.016);
+    game.startStage(2);
+    game.startNextWave();
+    game.update(0.016);
     game.upgradeSupplyProgression();
     game.upgradeFireTrainingProgression();
+    game.upgradeKillGoldProgression();
     await game.saveNow();
 
     final restoredRepository = MemorySaveRepository()..data = repository.data;
@@ -899,6 +991,8 @@ void main() {
     expect(snapshot.waveClearGoldProgressionBonus, 1);
     expect(snapshot.fireTrainingUpgradeLevel, 1);
     expect(snapshot.fireTrainingDamageBonusRate, closeTo(0.01, 0.001));
+    expect(snapshot.killGoldUpgradeLevel, 1);
+    expect(snapshot.killGoldProgressionBonusRate, closeTo(0.01, 0.001));
   });
 
   test(

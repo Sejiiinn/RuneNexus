@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/app/rune_nexus_app.dart';
 import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
@@ -7,6 +8,8 @@ import 'package:rune_nexus/domain/combat/run_panel_tab.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/game/game_snapshot.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
+import 'package:rune_nexus/l10n/rune_nexus_localizations.dart';
+import 'package:rune_nexus/ui/menu/main_menu_screen.dart';
 import 'package:rune_nexus/ui/menu/result_overlay.dart';
 
 void main() {
@@ -38,13 +41,17 @@ void main() {
     expect(find.text('기초 화력 훈련'), findsOneWidget);
     expect(find.text('레벨업'), findsNWidgets(2));
 
-    await tester.tap(find.byTooltip('경제'));
+    await tester.tap(find.byIcon(Icons.paid_outlined));
     await _pumpGameFrames(tester);
 
     expect(find.text('시작 골드'), findsOneWidget);
     expect(find.text('정비 보급'), findsOneWidget);
+    expect(find.text('처치 보상'), findsOneWidget);
+    expect(find.text('미해금 업그레이드'), findsOneWidget);
+    expect(find.text('아직 사용할 수 없음'), findsOneWidget);
     expect(find.text('새 런을 시작할 때 보유하는 골드가 영구적으로 증가합니다.'), findsOneWidget);
     expect(find.text('웨이브를 클리어할 때마다 추가 골드를 받습니다.'), findsOneWidget);
+    expect(find.text('적을 처치할 때 획득하는 골드가 증가합니다.'), findsOneWidget);
     expect(find.text('스테이지'), findsOneWidget);
     expect(find.text('강화'), findsOneWidget);
     expect(find.text('연구'), findsOneWidget);
@@ -95,6 +102,45 @@ void main() {
     expect(find.text('업그레이드 보드'), findsOneWidget);
     expect(find.text('레벨업'), findsNWidgets(2));
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('locked kill reward stays locked even with saved levels', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            runes: 181,
+            killGoldUpgradeLevel: 3,
+            killGoldProgressionBonusRate: 0,
+          ),
+          selectedTab: MainMenuTab.permanentUpgrades,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    await tester.tap(find.byIcon(Icons.paid_outlined));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('처치 보상'), findsOneWidget);
+    expect(find.text('미해금 업그레이드'), findsOneWidget);
+    expect(find.text('아직 사용할 수 없음'), findsOneWidget);
+    expect(find.text('Lv.3/10'), findsNothing);
   });
 
   testWidgets('result overlay exposes next stage and growth actions', (
@@ -289,6 +335,8 @@ GameSnapshot _resultSnapshot({
   bool lastRunUnlockedSniperTurret = false,
   Map<int, int> bestRoundsByStage = const {},
   Set<int> clearedStageNumbers = const {},
+  int killGoldUpgradeLevel = 0,
+  double killGoldProgressionBonusRate = 0,
 }) {
   return GameSnapshot(
     gold: 0,
@@ -393,5 +441,9 @@ GameSnapshot _resultSnapshot({
     fireTrainingUpgradeCost: 7,
     canUpgradeFireTraining: false,
     fireTrainingDamageBonusRate: 0,
+    killGoldUpgradeLevel: killGoldUpgradeLevel,
+    killGoldUpgradeCost: 7,
+    canUpgradeKillGold: false,
+    killGoldProgressionBonusRate: killGoldProgressionBonusRate,
   );
 }

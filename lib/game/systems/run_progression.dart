@@ -10,6 +10,7 @@ class RunProgression {
   static const int maxNexusHpUpgradeLevel = 10;
   static const int maxSupplyUpgradeLevel = 10;
   static const int maxFireTrainingUpgradeLevel = 20;
+  static const int maxKillGoldUpgradeLevel = 10;
   static const int startingGoldUpgradeBaseCost = 4;
   static const int startingGoldUpgradeCostPerLevel = 4;
   static const int startingGoldPerUpgradeLevel = 5;
@@ -21,6 +22,9 @@ class RunProgression {
   static const int fireTrainingUpgradeBaseCost = 7;
   static const int fireTrainingUpgradeCostPerLevel = 4;
   static const double fireTrainingDamagePerUpgradeLevel = 0.01;
+  static const int killGoldUpgradeBaseCost = 7;
+  static const int killGoldUpgradeCostPerLevel = 4;
+  static const double killGoldBonusPerUpgradeLevel = 0.01;
 
   int runes = 0;
   int lastRunRuneReward = 0;
@@ -28,6 +32,7 @@ class RunProgression {
   int nexusHpUpgradeLevel = 0;
   int supplyUpgradeLevel = 0;
   int fireTrainingUpgradeLevel = 0;
+  int killGoldUpgradeLevel = 0;
   int unlockedStageCount = 1;
   final Map<int, int> bestRoundsByStage = {};
   final Set<int> clearedStageNumbers = {};
@@ -48,10 +53,15 @@ class RunProgression {
   int get fireTrainingUpgradeCost =>
       fireTrainingUpgradeBaseCost +
       _cappedFireTrainingUpgradeLevel * fireTrainingUpgradeCostPerLevel;
+  int get killGoldUpgradeCost =>
+      killGoldUpgradeBaseCost +
+      _cappedKillGoldUpgradeLevel * killGoldUpgradeCostPerLevel;
   int get waveClearGoldBonus =>
       _cappedSupplyUpgradeLevel * supplyGoldPerUpgradeLevel;
   double get fireTrainingDamageBonusRate =>
       _cappedFireTrainingUpgradeLevel * fireTrainingDamagePerUpgradeLevel;
+  double get killGoldBonusRate =>
+      _cappedKillGoldUpgradeLevel * killGoldBonusPerUpgradeLevel;
   bool get canUpgradeStartingGold =>
       _cappedStartingGoldUpgradeLevel < maxStartingGoldUpgradeLevel &&
       runes >= startingGoldUpgradeCost;
@@ -64,6 +74,9 @@ class RunProgression {
   bool get canUpgradeFireTraining =>
       _cappedFireTrainingUpgradeLevel < maxFireTrainingUpgradeLevel &&
       runes >= fireTrainingUpgradeCost;
+  bool get canUpgradeKillGold =>
+      _cappedKillGoldUpgradeLevel < maxKillGoldUpgradeLevel &&
+      runes >= killGoldUpgradeCost;
 
   int get _cappedStartingGoldUpgradeLevel =>
       startingGoldUpgradeLevel.clamp(0, maxStartingGoldUpgradeLevel).toInt();
@@ -73,6 +86,8 @@ class RunProgression {
       supplyUpgradeLevel.clamp(0, maxSupplyUpgradeLevel).toInt();
   int get _cappedFireTrainingUpgradeLevel =>
       fireTrainingUpgradeLevel.clamp(0, maxFireTrainingUpgradeLevel).toInt();
+  int get _cappedKillGoldUpgradeLevel =>
+      killGoldUpgradeLevel.clamp(0, maxKillGoldUpgradeLevel).toInt();
 
   SavedProgression toSaveData() {
     return SavedProgression(
@@ -82,6 +97,7 @@ class RunProgression {
       nexusHpUpgradeLevel: _cappedNexusHpUpgradeLevel,
       supplyUpgradeLevel: _cappedSupplyUpgradeLevel,
       fireTrainingUpgradeLevel: _cappedFireTrainingUpgradeLevel,
+      killGoldUpgradeLevel: _cappedKillGoldUpgradeLevel,
       unlockedStageCount: unlockedStageCount,
       bestRoundsByStage: Map.unmodifiable(bestRoundsByStage),
       clearedStageNumbers: Set.unmodifiable(clearedStageNumbers),
@@ -102,6 +118,9 @@ class RunProgression {
         .toInt();
     fireTrainingUpgradeLevel = data.fireTrainingUpgradeLevel
         .clamp(0, maxFireTrainingUpgradeLevel)
+        .toInt();
+    killGoldUpgradeLevel = data.killGoldUpgradeLevel
+        .clamp(0, maxKillGoldUpgradeLevel)
         .toInt();
     unlockedStageCount = data.unlockedStageCount
         .clamp(1, maxStageCount)
@@ -155,6 +174,16 @@ class RunProgression {
 
     runes -= fireTrainingUpgradeCost;
     fireTrainingUpgradeLevel++;
+    return true;
+  }
+
+  bool upgradeKillGold() {
+    if (!canUpgradeKillGold) {
+      return false;
+    }
+
+    runes -= killGoldUpgradeCost;
+    killGoldUpgradeLevel++;
     return true;
   }
 

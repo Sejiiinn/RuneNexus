@@ -107,6 +107,10 @@ class GameSnapshot {
     required this.fireTrainingUpgradeCost,
     required this.canUpgradeFireTraining,
     required this.fireTrainingDamageBonusRate,
+    required this.killGoldUpgradeLevel,
+    required this.killGoldUpgradeCost,
+    required this.canUpgradeKillGold,
+    required this.killGoldProgressionBonusRate,
   });
 
   final int gold;
@@ -206,4 +210,8 @@ class GameSnapshot {
   final int fireTrainingUpgradeCost;
   final bool canUpgradeFireTraining;
   final double fireTrainingDamageBonusRate;
+  final int killGoldUpgradeLevel;
+  final int killGoldUpgradeCost;
+  final bool canUpgradeKillGold;
+  final double killGoldProgressionBonusRate;
 }

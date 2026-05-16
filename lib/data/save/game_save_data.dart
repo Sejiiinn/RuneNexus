@@ -146,6 +146,7 @@ class SavedProgression {
     required this.nexusHpUpgradeLevel,
     required this.supplyUpgradeLevel,
     required this.fireTrainingUpgradeLevel,
+    required this.killGoldUpgradeLevel,
     required this.unlockedStageCount,
     required this.bestRoundsByStage,
     required this.clearedStageNumbers,
@@ -157,6 +158,7 @@ class SavedProgression {
   final int nexusHpUpgradeLevel;
   final int supplyUpgradeLevel;
   final int fireTrainingUpgradeLevel;
+  final int killGoldUpgradeLevel;
   final int unlockedStageCount;
   final Map<int, int> bestRoundsByStage;
   final Set<int> clearedStageNumbers;
@@ -169,6 +171,7 @@ class SavedProgression {
       'nexusHpUpgradeLevel': nexusHpUpgradeLevel,
       'supplyUpgradeLevel': supplyUpgradeLevel,
       'fireTrainingUpgradeLevel': fireTrainingUpgradeLevel,
+      'killGoldUpgradeLevel': killGoldUpgradeLevel,
       'unlockedStageCount': unlockedStageCount,
       'bestRoundsByStage': bestRoundsByStage.map(
         (key, value) => MapEntry('$key', value),
@@ -186,6 +189,7 @@ class SavedProgression {
       nexusHpUpgradeLevel: _intValue(map['nexusHpUpgradeLevel']),
       supplyUpgradeLevel: _intValue(map['supplyUpgradeLevel']),
       fireTrainingUpgradeLevel: _intValue(map['fireTrainingUpgradeLevel']),
+      killGoldUpgradeLevel: _intValue(map['killGoldUpgradeLevel']),
       unlockedStageCount: _intValue(map['unlockedStageCount'], fallback: 1),
       bestRoundsByStage: _intIntMap(map['bestRoundsByStage']),
       clearedStageNumbers: _intSet(map['clearedStageNumbers']),

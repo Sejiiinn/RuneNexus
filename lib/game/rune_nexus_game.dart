@@ -227,6 +227,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       fireTrainingUpgradeCost: RunProgression.fireTrainingUpgradeBaseCost,
       canUpgradeFireTraining: false,
       fireTrainingDamageBonusRate: 0,
+      killGoldUpgradeLevel: 0,
+      killGoldUpgradeCost: RunProgression.killGoldUpgradeBaseCost,
+      canUpgradeKillGold: false,
+      killGoldProgressionBonusRate: 0,
     );
   }
 
@@ -390,6 +394,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double get _killGoldRunBonusRate =>
       _runUpgradeLevel(RunUpgradeType.killGold) *
       demoRunUpgrades[RunUpgradeType.killGold]!.effectPerLevel;
+  double get _killGoldProgressionBonusRate =>
+      _progression.isStageCleared(2) ? _progression.killGoldBonusRate : 0;
+  double get _killGoldTotalBonusRate =>
+      _killGoldRunBonusRate + _killGoldProgressionBonusRate;
   int get _waveClearGoldRunBonus =>
       (_runUpgradeLevel(RunUpgradeType.waveGold) *
               demoRunUpgrades[RunUpgradeType.waveGold]!.effectPerLevel)
@@ -858,6 +866,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   void upgradeFireTrainingProgression() {
     if (!_progression.upgradeFireTraining()) {
+      return;
+    }
+
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void upgradeKillGoldProgression() {
+    if (!_progression.isStageCleared(2)) {
+      return;
+    }
+    if (!_progression.upgradeKillGold()) {
       return;
     }
 
@@ -1798,7 +1818,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       turret.handleEnemyKilled(enemy);
     }
     final baseReward = enemy.definition.rewardGold;
-    final bonusReward = baseReward * _killGoldRunBonusRate;
+    final bonusReward = baseReward * _killGoldTotalBonusRate;
     final wholeBonus = bonusReward.floor();
     _killGoldFractionWallet += bonusReward - wholeBonus;
     final walletGold = _killGoldFractionWallet.floor();
@@ -3112,6 +3132,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       fireTrainingUpgradeCost: _progression.fireTrainingUpgradeCost,
       canUpgradeFireTraining: _progression.canUpgradeFireTraining,
       fireTrainingDamageBonusRate: _progression.fireTrainingDamageBonusRate,
+      killGoldUpgradeLevel: _progression.killGoldUpgradeLevel,
+      killGoldUpgradeCost: _progression.killGoldUpgradeCost,
+      canUpgradeKillGold:
+          _progression.isStageCleared(2) && _progression.canUpgradeKillGold,
+      killGoldProgressionBonusRate: _killGoldProgressionBonusRate,
     );
   }
 
