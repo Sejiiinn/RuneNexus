@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/combat/game_phase.dart';
+import '../../domain/turret/turret_type.dart';
 import '../../game/game_snapshot.dart';
+import '../../game/rendering/turret_shape_renderer.dart';
 import '../../game/rune_nexus_game.dart';
 import '../../game/systems/run_progression.dart';
 import '../../l10n/rune_nexus_localizations.dart';
@@ -339,6 +341,8 @@ class _StageMenu extends StatelessWidget {
                     active:
                         activeRunInProgress &&
                         stage == snapshot.currentStageNumber,
+                    sniperRewardUnlocked: snapshot.availableTurretTypes
+                        .contains(TurretType.sniper),
                     statusText: _stageStatusText(
                       l10n: l10n,
                       snapshot: snapshot,
@@ -497,6 +501,7 @@ class _StageSelectionCard extends StatelessWidget {
     required this.stageNumber,
     required this.unlocked,
     required this.active,
+    required this.sniperRewardUnlocked,
     required this.statusText,
     required this.detailText,
     required this.onPressed,
@@ -505,6 +510,7 @@ class _StageSelectionCard extends StatelessWidget {
   final int stageNumber;
   final bool unlocked;
   final bool active;
+  final bool sniperRewardUnlocked;
   final String statusText;
   final String detailText;
   final VoidCallback? onPressed;
@@ -565,22 +571,100 @@ class _StageSelectionCard extends StatelessWidget {
               maxLines: 1,
             ),
             const SizedBox(height: 2),
-            Text(
-              detailText,
-              style: TextStyle(
-                fontSize: 10,
-                color: unlocked
-                    ? const Color(0xFFB9D6E4)
-                    : const Color(0xFF667987),
+            if (stageNumber == 1)
+              _StageSniperRewardPreview(
+                unlocked: unlocked,
+                rewardUnlocked: sniperRewardUnlocked,
+              )
+            else
+              Text(
+                detailText,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: unlocked
+                      ? const Color(0xFFB9D6E4)
+                      : const Color(0xFF667987),
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
           ],
         ),
       ),
     );
   }
+}
+
+class _StageSniperRewardPreview extends StatelessWidget {
+  const _StageSniperRewardPreview({
+    required this.unlocked,
+    required this.rewardUnlocked,
+  });
+
+  final bool unlocked;
+  final bool rewardUnlocked;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final color = rewardUnlocked
+        ? const Color(0xFFE7C66A)
+        : unlocked
+        ? const Color(0xFFB9D6E4)
+        : const Color(0xFF667987);
+
+    return Row(
+      children: [
+        Opacity(opacity: unlocked ? 1 : 0.58, child: const _SniperRewardIcon()),
+        const SizedBox(width: 5),
+        Expanded(
+          child: Text(
+            rewardUnlocked
+                ? l10n.stageSniperRewardUnlocked
+                : l10n.stageSniperRewardLocked,
+            style: TextStyle(
+              fontSize: 10,
+              color: color,
+              fontWeight: rewardUnlocked ? FontWeight.w800 : FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SniperRewardIcon extends StatelessWidget {
+  const _SniperRewardIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 18,
+      height: 16,
+      child: CustomPaint(painter: _SniperRewardIconPainter()),
+    );
+  }
+}
+
+class _SniperRewardIconPainter extends CustomPainter {
+  const _SniperRewardIconPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    drawTurretShape(
+      canvas,
+      size: size,
+      type: TurretType.sniper,
+      color: const Color(0xFFB7F4FF),
+      strokeWidth: 1.1,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _StageIcon extends StatelessWidget {

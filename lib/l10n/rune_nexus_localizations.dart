@@ -47,6 +47,10 @@ class RuneNexusLocalizations {
   String get locked => _isEnglish ? 'Locked' : '잠김';
   String get recordNone => _isEnglish ? 'No record' : '기록 없음';
   String get recordCleared => _isEnglish ? 'Cleared' : '클리어';
+  String get stageSniperRewardLocked =>
+      _isEnglish ? 'Clear reward: Sniper turret' : '클리어 보상: 저격 포탑';
+  String get stageSniperRewardUnlocked =>
+      _isEnglish ? 'Unlocked: Sniper turret' : '해금됨: 저격 포탑';
   String get cancel => _isEnglish ? 'Cancel' : '취소';
   String get settleAndStart => _isEnglish ? 'Settle and start' : '정산 후 시작';
   String get endActiveStageTitle =>
