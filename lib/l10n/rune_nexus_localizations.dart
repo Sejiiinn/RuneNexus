@@ -21,8 +21,8 @@ class RuneNexusLocalizations {
 
   String get appTitle => 'Rune Nexus';
   String get stageTab => _isEnglish ? 'Stage' : '스테이지';
-  String get permanentUpgradeTab =>
-      _isEnglish ? 'Permanent Upgrades' : '영구 업그레이드';
+  String get permanentUpgradeTab => _isEnglish ? 'Upgrade' : '강화';
+  String get researchTab => _isEnglish ? 'Research' : '연구';
   String get runes => _isEnglish ? 'Runes' : '룬';
   String get ownedRunes => _isEnglish ? 'Owned Runes' : '보유 룬';
   String get startGold => _isEnglish ? 'Starting Gold' : '시작 골드';
@@ -30,6 +30,30 @@ class RuneNexusLocalizations {
   String get maintenanceSupply => _isEnglish ? 'Maintenance Supply' : '정비 보급';
   String get basicFireTraining =>
       _isEnglish ? 'Basic Fire Training' : '기초 화력 훈련';
+  String get growthHubTitle => _isEnglish ? 'Growth Hub' : '성장 허브';
+  String get commonGrowth => _isEnglish ? 'Common Growth' : '공통 성장';
+  String get stageUnlockPreview => _isEnglish ? 'Stage Unlocks' : '스테이지 해금';
+  String get towerResearch => _isEnglish ? 'Tower Research' : '계열 연구';
+  String get designLocked => _isEnglish ? 'Design locked' : '설계 잠금';
+  String get upgradeBoard => _isEnglish ? 'Upgrade Board' : '업그레이드 보드';
+  String get researchBoard => _isEnglish ? 'Research Board' : '연구 보드';
+  String get systemResearch => _isEnglish ? 'System Research' : '시스템 연구';
+  String get selectedUpgrade => _isEnglish ? 'Selected Upgrade' : '선택한 성장';
+  String get maxLevelReached => _isEnglish ? 'Max level' : '최대 레벨';
+  String get notEnoughRunes => _isEnglish ? 'Need more runes' : '룬 부족';
+  String get upgradeAvailable => _isEnglish ? 'Ready' : '구매 가능';
+  String get plannedUpgrade => _isEnglish ? 'Planned' : '준비 중';
+  String get researchPending => _isEnglish ? 'Future update' : '이후 개발';
+  String get combatUpgradeGroup => _isEnglish ? 'Combat' : '전투';
+  String get economyUpgradeGroup => _isEnglish ? 'Economy' : '경제';
+  String get researchLockedReason => _isEnglish
+      ? 'Opens after the tower research direction is fixed.'
+      : '포탑 연구 방향이 확정된 뒤 개방됩니다.';
+  String get linkMaintenance => _isEnglish ? 'Link Maintenance' : '링크 정비';
+  String get linkExpansionOne => _isEnglish ? 'Link Expansion I' : '링크 확장 I';
+  String get linkExpansionTwo => _isEnglish ? 'Link Expansion II' : '링크 확장 II';
+  String get gemAttunement => _isEnglish ? 'Gem Attunement' : '젬 감응';
+  String get runeResonance => _isEnglish ? 'Rune Resonance' : '룬 공명';
   String get levelUp => _isEnglish ? 'Level Up' : '레벨업';
   String get cleared => _isEnglish ? 'Cleared' : '클리어';
   String get settled => _isEnglish ? 'Settled' : '정산 완료';
@@ -105,6 +129,62 @@ class RuneNexusLocalizations {
 
   String runeCost(int cost) {
     return _isEnglish ? 'Runes $cost' : '룬 $cost';
+  }
+
+  String stageReachRequirement(int stageNumber) {
+    return _isEnglish ? 'Reach Stage $stageNumber' : '스테이지 $stageNumber 도달';
+  }
+
+  String stageClearRequirement(int stageNumber) {
+    return _isEnglish ? 'Clear Stage $stageNumber' : '스테이지 $stageNumber 클리어';
+  }
+
+  String futureUpgradeEffect(String title) {
+    if (title == linkMaintenance) {
+      return _isEnglish
+          ? 'Reduces the first link expansion cost.'
+          : '첫 링크 확장 비용을 낮춥니다.';
+    }
+    if (title == gemAttunement) {
+      return _isEnglish
+          ? 'Improves the first gem reward timing.'
+          : '첫 젬 보상 흐름을 개선합니다.';
+    }
+    if (title == runeResonance) {
+      return _isEnglish
+          ? 'Increases runes gained after a run.'
+          : '런 종료 후 획득 룬을 늘립니다.';
+    }
+    return '';
+  }
+
+  String researchDescription(String title) {
+    if (title == linkExpansionOne) {
+      return _isEnglish
+          ? 'Raises the maximum links per turret to 4.'
+          : '포탑 하나가 연결할 수 있는 최대 링크를 4개로 늘립니다.';
+    }
+    if (title == linkExpansionTwo) {
+      return _isEnglish
+          ? 'Raises the maximum links per turret to 5.'
+          : '포탑 하나가 연결할 수 있는 최대 링크를 5개로 늘립니다.';
+    }
+    if (title == gemAttunement) {
+      return _isEnglish
+          ? 'Opens the first gem reward and gem interaction flow.'
+          : '첫 젬 보상과 젬 상호작용 흐름을 개방합니다.';
+    }
+    if (title == runeResonance) {
+      return _isEnglish
+          ? 'Opens research for improving rune rewards after a run.'
+          : '런 종료 후 룬 보상을 개선하는 연구를 개방합니다.';
+    }
+    if (title == towerResearch) {
+      return _isEnglish
+          ? 'Reserved for turret family research after its direction is fixed.'
+          : '포탑 계열 연구 방향이 확정된 뒤 사용할 영역입니다.';
+    }
+    return '';
   }
 
   String permanentUpgradeDescription(String title) {

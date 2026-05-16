@@ -14,9 +14,11 @@ const _showMapEditor = bool.fromEnvironment(
   defaultValue: false,
 );
 
-enum MainMenuTab { stage, permanentUpgrades }
+enum MainMenuTab { stage, permanentUpgrades, research }
 
-class MainMenuScreen extends StatelessWidget {
+enum _PermanentUpgradeGroup { combat, economy }
+
+class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({
     required this.game,
     required this.snapshot,
@@ -35,7 +37,19 @@ class MainMenuScreen extends StatelessWidget {
   final VoidCallback? onOpenMapEditor;
 
   @override
+  State<MainMenuScreen> createState() => _MainMenuScreenState();
+}
+
+class _MainMenuScreenState extends State<MainMenuScreen> {
+  _PermanentUpgradeGroup _selectedUpgradeGroup = _PermanentUpgradeGroup.combat;
+
+  @override
   Widget build(BuildContext context) {
+    final selectedTab = widget.selectedTab;
+    final menuTopPadding = selectedTab == MainMenuTab.stage ? 16.0 : 58.0;
+    final menuBottomPadding = selectedTab == MainMenuTab.permanentUpgrades
+        ? 146.0
+        : 92.0;
     return Container(
       color: const Color(0xFF07111D),
       child: SafeArea(
@@ -45,17 +59,22 @@ class MainMenuScreen extends StatelessWidget {
             Positioned(
               top: 10,
               right: 16,
-              child: RuneBalanceCard(runes: snapshot.runes),
+              child: RuneBalanceCard(runes: widget.snapshot.runes),
             ),
             if (_showMapEditor)
               Positioned(
                 top: 10,
                 left: 16,
-                child: _MapEditorShortcut(onPressed: onOpenMapEditor),
+                child: _MapEditorShortcut(onPressed: widget.onOpenMapEditor),
               ),
             Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 92),
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  menuTopPadding,
+                  16,
+                  menuBottomPadding,
+                ),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 430),
                   child: Container(
@@ -80,30 +99,42 @@ class MainMenuScreen extends StatelessWidget {
                           const _MenuHeader(),
                           const SizedBox(height: 14),
                           _StageMenu(
-                            snapshot: snapshot,
-                            onStartStage: onStartStage,
+                            snapshot: widget.snapshot,
+                            onStartStage: widget.onStartStage,
                           ),
                         ] else if (selectedTab == MainMenuTab.permanentUpgrades)
-                          _PermanentUpgradeMenu(game: game, snapshot: snapshot),
+                          _PermanentUpgradeMenu(
+                            game: widget.game,
+                            snapshot: widget.snapshot,
+                            group: _selectedUpgradeGroup,
+                          )
+                        else
+                          _ResearchMenu(snapshot: widget.snapshot),
                       ],
                     ),
                   ),
                 ),
               ),
             ),
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 12,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 430),
-                  child: _MenuTabs(
-                    selectedTab: selectedTab,
-                    onSelectTab: onSelectTab,
-                  ),
+            if (selectedTab == MainMenuTab.permanentUpgrades)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 62,
+                child: _PermanentUpgradeGroupTabs(
+                  selectedGroup: _selectedUpgradeGroup,
+                  onSelectGroup: (group) {
+                    setState(() => _selectedUpgradeGroup = group);
+                  },
                 ),
+              ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _MenuTabs(
+                selectedTab: selectedTab,
+                onSelectTab: widget.onSelectTab,
               ),
             ),
           ],
@@ -217,16 +248,15 @@ class _MenuTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: const Color(0xF0091624),
-        border: Border.all(color: const Color(0x9933D8FF)),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
+      height: 54,
+      decoration: const BoxDecoration(
+        color: Color(0xF207111D),
+        border: Border(top: BorderSide(color: Color(0x9933D8FF))),
+        boxShadow: [
           BoxShadow(
             color: Color(0x66000000),
             blurRadius: 18,
-            offset: Offset(0, 10),
+            offset: Offset(0, -8),
           ),
         ],
       ),
@@ -240,7 +270,7 @@ class _MenuTabs extends StatelessWidget {
               onPressed: () => onSelectTab(MainMenuTab.stage),
             ),
           ),
-          const SizedBox(width: 8),
+          Container(width: 1, height: 32, color: const Color(0x5533D8FF)),
           Expanded(
             child: _TabButton(
               icon: Icons.auto_awesome,
@@ -249,7 +279,189 @@ class _MenuTabs extends StatelessWidget {
               onPressed: () => onSelectTab(MainMenuTab.permanentUpgrades),
             ),
           ),
+          Container(width: 1, height: 32, color: const Color(0x5533D8FF)),
+          Expanded(
+            child: _TabButton(
+              icon: Icons.science_outlined,
+              label: l10n.researchTab,
+              selected: selectedTab == MainMenuTab.research,
+              onPressed: () => onSelectTab(MainMenuTab.research),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _PermanentUpgradeGroupTabs extends StatelessWidget {
+  const _PermanentUpgradeGroupTabs({
+    required this.selectedGroup,
+    required this.onSelectGroup,
+  });
+
+  final _PermanentUpgradeGroup selectedGroup;
+  final ValueChanged<_PermanentUpgradeGroup> onSelectGroup;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Center(
+      child: Container(
+        width: 142,
+        height: 42,
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: const Color(0xF0091624),
+          border: Border.all(color: const Color(0x7733D8FF)),
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x66000000),
+              blurRadius: 14,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _UpgradeGroupTabButton(
+                icon: const _CombatGroupIcon(),
+                label: l10n.combatUpgradeGroup,
+                activeColor: const Color(0xFFFF7A7A),
+                inactiveColor: const Color(0xFFB88989),
+                selected: selectedGroup == _PermanentUpgradeGroup.combat,
+                onPressed: () => onSelectGroup(_PermanentUpgradeGroup.combat),
+              ),
+            ),
+            Container(width: 1, height: 24, color: const Color(0x5533D8FF)),
+            Expanded(
+              child: _UpgradeGroupTabButton(
+                icon: const Icon(Icons.paid_outlined, size: 19),
+                label: l10n.economyUpgradeGroup,
+                activeColor: const Color(0xFFE7C66A),
+                inactiveColor: const Color(0xFFB6A36D),
+                selected: selectedGroup == _PermanentUpgradeGroup.economy,
+                onPressed: () => onSelectGroup(_PermanentUpgradeGroup.economy),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CombatGroupIcon extends StatelessWidget {
+  const _CombatGroupIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    final color = IconTheme.of(context).color;
+    return SizedBox(
+      width: 24,
+      height: 22,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(Icons.shield_outlined, size: 20, color: color),
+          CustomPaint(
+            size: const Size(18, 18),
+            painter: _SwordIconPainter(color ?? const Color(0xFFFF7A7A)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SwordIconPainter extends CustomPainter {
+  const _SwordIconPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 1.7;
+    final bladeStart = Offset(size.width * 0.36, size.height * 0.72);
+    final bladeEnd = Offset(size.width * 0.74, size.height * 0.24);
+    canvas.drawLine(bladeStart, bladeEnd, paint);
+    canvas.drawLine(
+      Offset(size.width * 0.25, size.height * 0.61),
+      Offset(size.width * 0.49, size.height * 0.82),
+      paint,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.31, size.height * 0.83),
+      Offset(size.width * 0.22, size.height * 0.94),
+      paint,
+    );
+    final tipPath = Path()
+      ..moveTo(size.width * 0.74, size.height * 0.24)
+      ..lineTo(size.width * 0.68, size.height * 0.36)
+      ..lineTo(size.width * 0.83, size.height * 0.32)
+      ..close();
+    canvas.drawPath(tipPath, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SwordIconPainter oldDelegate) {
+    return oldDelegate.color != color;
+  }
+}
+
+class _UpgradeGroupTabButton extends StatelessWidget {
+  const _UpgradeGroupTabButton({
+    required this.icon,
+    required this.label,
+    required this.activeColor,
+    required this.inactiveColor,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  final Widget icon;
+  final String label;
+  final Color activeColor;
+  final Color inactiveColor;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final foregroundColor = selected ? activeColor : inactiveColor;
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onPressed,
+            splashColor: activeColor.withAlpha(35),
+            highlightColor: const Color(0x1422C7E8),
+            child: Container(
+              height: double.infinity,
+              decoration: BoxDecoration(
+                color: selected
+                    ? activeColor.withAlpha(42)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(7),
+              ),
+              alignment: Alignment.center,
+              child: IconTheme(
+                data: IconThemeData(color: foregroundColor),
+                child: icon,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -270,20 +482,46 @@ class _TabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 38,
-      child: OutlinedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 16),
-        label: Text(label, overflow: TextOverflow.ellipsis, maxLines: 1),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: selected ? const Color(0xFF07111D) : Colors.white,
-          backgroundColor: selected ? const Color(0xFF8EE6FF) : null,
-          side: BorderSide(
-            color: selected ? const Color(0xFF8EE6FF) : const Color(0x5533D8FF),
+    final foregroundColor = selected
+        ? const Color(0xFF8EE6FF)
+        : const Color(0xFFB9D6E4);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        splashColor: const Color(0x1A8EE6FF),
+        highlightColor: const Color(0x1422C7E8),
+        child: Container(
+          height: double.infinity,
+          decoration: BoxDecoration(
+            color: selected ? const Color(0x2222C7E8) : Colors.transparent,
+            border: Border(
+              bottom: BorderSide(
+                color: selected ? const Color(0xFF8EE6FF) : Colors.transparent,
+                width: 2,
+              ),
+            ),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 10),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: foregroundColor),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: foregroundColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -707,10 +945,15 @@ class _StageIcon extends StatelessWidget {
 }
 
 class _PermanentUpgradeMenu extends StatelessWidget {
-  const _PermanentUpgradeMenu({required this.game, required this.snapshot});
+  const _PermanentUpgradeMenu({
+    required this.game,
+    required this.snapshot,
+    required this.group,
+  });
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
+  final _PermanentUpgradeGroup group;
 
   @override
   Widget build(BuildContext context) {
@@ -727,135 +970,267 @@ class _PermanentUpgradeMenu extends StatelessWidget {
     final nextFireTrainingLevel = (snapshot.fireTrainingUpgradeLevel + 1)
         .clamp(0, RunProgression.maxFireTrainingUpgradeLevel)
         .toInt();
+    final combatTiles = [
+      _PermanentUpgradeTile(
+        icon: Icons.favorite_border,
+        title: l10n.nexusHp,
+        description: l10n.permanentUpgradeDescription(l10n.nexusHp),
+        level: snapshot.nexusHpUpgradeLevel,
+        maxLevel: RunProgression.maxNexusHpUpgradeLevel,
+        globalMaxLevel: RunProgression.maxNexusHpUpgradeLevel,
+        valueText: '+${snapshot.nexusHpUpgradeLevel}',
+        nextValueText: '+$nextNexusHpLevel',
+        cost: snapshot.nexusHpUpgradeCost,
+        enabled: snapshot.canUpgradeNexusHp,
+        lockText: l10n.maxLevelReached,
+        onPressed: game.upgradeNexusHpProgression,
+      ),
+      _PermanentUpgradeTile(
+        icon: Icons.local_fire_department_outlined,
+        title: l10n.basicFireTraining,
+        description: l10n.permanentUpgradeDescription(l10n.basicFireTraining),
+        level: snapshot.fireTrainingUpgradeLevel,
+        maxLevel: RunProgression.maxFireTrainingUpgradeLevel,
+        globalMaxLevel: RunProgression.maxFireTrainingUpgradeLevel,
+        valueText: '+${(snapshot.fireTrainingDamageBonusRate * 100).round()}%',
+        nextValueText:
+            '+${(nextFireTrainingLevel * RunProgression.fireTrainingDamagePerUpgradeLevel * 100).round()}%',
+        cost: snapshot.fireTrainingUpgradeCost,
+        enabled: snapshot.canUpgradeFireTraining,
+        lockText: l10n.maxLevelReached,
+        onPressed: game.upgradeFireTrainingProgression,
+      ),
+    ];
+    final economyTiles = [
+      _PermanentUpgradeTile(
+        icon: Icons.toll_outlined,
+        title: l10n.startGold,
+        description: l10n.permanentUpgradeDescription(l10n.startGold),
+        level: snapshot.startingGoldUpgradeLevel,
+        maxLevel: RunProgression.maxStartingGoldUpgradeLevel,
+        globalMaxLevel: RunProgression.maxStartingGoldUpgradeLevel,
+        valueText:
+            '+${snapshot.startingGoldUpgradeLevel * RunProgression.startingGoldPerUpgradeLevel}G',
+        nextValueText:
+            '+${nextStartingGoldLevel * RunProgression.startingGoldPerUpgradeLevel}G',
+        cost: snapshot.startingGoldUpgradeCost,
+        enabled: snapshot.canUpgradeStartingGold,
+        lockText: l10n.maxLevelReached,
+        onPressed: game.upgradeStartingGoldProgression,
+      ),
+      _PermanentUpgradeTile(
+        icon: Icons.inventory_2_outlined,
+        title: l10n.maintenanceSupply,
+        description: l10n.permanentUpgradeDescription(l10n.maintenanceSupply),
+        level: snapshot.supplyUpgradeLevel,
+        maxLevel: RunProgression.maxSupplyUpgradeLevel,
+        globalMaxLevel: RunProgression.maxSupplyUpgradeLevel,
+        valueText: '+${snapshot.waveClearGoldProgressionBonus}G',
+        nextValueText:
+            '+${nextSupplyLevel * RunProgression.supplyGoldPerUpgradeLevel}G',
+        cost: snapshot.supplyUpgradeCost,
+        enabled: snapshot.canUpgradeSupply,
+        lockText: l10n.maxLevelReached,
+        onPressed: game.upgradeSupplyProgression,
+      ),
+    ];
+    return _PermanentUpgradeBoard(
+      tiles: group == _PermanentUpgradeGroup.combat
+          ? combatTiles
+          : economyTiles,
+    );
+  }
+}
+
+class _ResearchMenu extends StatelessWidget {
+  const _ResearchMenu({required this.snapshot});
+
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _ProgressionUpgradeButton(
-          icon: Icons.toll_outlined,
-          title: l10n.startGold,
-          description: l10n.permanentUpgradeDescription(l10n.startGold),
-          level: snapshot.startingGoldUpgradeLevel,
-          maxLevel: RunProgression.maxStartingGoldUpgradeLevel,
-          valueText:
-              '+${snapshot.startingGoldUpgradeLevel * RunProgression.startingGoldPerUpgradeLevel}G',
-          nextValueText:
-              '+${nextStartingGoldLevel * RunProgression.startingGoldPerUpgradeLevel}G',
-          cost: snapshot.startingGoldUpgradeCost,
-          enabled: snapshot.canUpgradeStartingGold,
-          onPressed: game.upgradeStartingGoldProgression,
+        Row(
+          children: [
+            const Icon(
+              Icons.science_outlined,
+              color: Color(0xFF8EE6FF),
+              size: 19,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              l10n.researchBoard,
+              style: const TextStyle(
+                color: Color(0xFFE8FBFF),
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        _ProgressionUpgradeButton(
-          icon: Icons.favorite_border,
-          title: l10n.nexusHp,
-          description: l10n.permanentUpgradeDescription(l10n.nexusHp),
-          level: snapshot.nexusHpUpgradeLevel,
-          maxLevel: RunProgression.maxNexusHpUpgradeLevel,
-          valueText: '+${snapshot.nexusHpUpgradeLevel}',
-          nextValueText: '+$nextNexusHpLevel',
-          cost: snapshot.nexusHpUpgradeCost,
-          enabled: snapshot.canUpgradeNexusHp,
-          onPressed: game.upgradeNexusHpProgression,
+        const SizedBox(height: 10),
+        _ResearchTrack(
+          icon: Icons.account_tree_outlined,
+          title: l10n.systemResearch,
+          tiles: [
+            _ResearchTile(
+              icon: Icons.hub_outlined,
+              title: l10n.linkExpansionOne,
+              description: l10n.researchDescription(l10n.linkExpansionOne),
+              statusText: snapshot.unlockedStageCount >= 2
+                  ? l10n.researchPending
+                  : l10n.stageReachRequirement(2),
+            ),
+            _ResearchTile(
+              icon: Icons.hub,
+              title: l10n.linkExpansionTwo,
+              description: l10n.researchDescription(l10n.linkExpansionTwo),
+              statusText: snapshot.unlockedStageCount >= 3
+                  ? l10n.researchPending
+                  : l10n.stageReachRequirement(3),
+            ),
+            _ResearchTile(
+              icon: Icons.auto_awesome_outlined,
+              title: l10n.gemAttunement,
+              description: l10n.researchDescription(l10n.gemAttunement),
+              statusText: snapshot.unlockedStageCount >= 3
+                  ? l10n.researchPending
+                  : l10n.stageReachRequirement(3),
+            ),
+            _ResearchTile(
+              icon: Icons.toll_outlined,
+              title: l10n.runeResonance,
+              description: l10n.researchDescription(l10n.runeResonance),
+              statusText: snapshot.unlockedStageCount >= 4
+                  ? l10n.researchPending
+                  : l10n.stageReachRequirement(4),
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        _ProgressionUpgradeButton(
-          icon: Icons.inventory_2_outlined,
-          title: l10n.maintenanceSupply,
-          description: l10n.permanentUpgradeDescription(l10n.maintenanceSupply),
-          level: snapshot.supplyUpgradeLevel,
-          maxLevel: RunProgression.maxSupplyUpgradeLevel,
-          valueText: '+${snapshot.waveClearGoldProgressionBonus}G',
-          nextValueText:
-              '+${nextSupplyLevel * RunProgression.supplyGoldPerUpgradeLevel}G',
-          cost: snapshot.supplyUpgradeCost,
-          enabled: snapshot.canUpgradeSupply,
-          onPressed: game.upgradeSupplyProgression,
-        ),
-        const SizedBox(height: 8),
-        _ProgressionUpgradeButton(
-          icon: Icons.local_fire_department_outlined,
-          title: l10n.basicFireTraining,
-          description: l10n.permanentUpgradeDescription(l10n.basicFireTraining),
-          level: snapshot.fireTrainingUpgradeLevel,
-          maxLevel: RunProgression.maxFireTrainingUpgradeLevel,
-          valueText:
-              '+${(snapshot.fireTrainingDamageBonusRate * 100).round()}%',
-          nextValueText:
-              '+${(nextFireTrainingLevel * RunProgression.fireTrainingDamagePerUpgradeLevel * 100).round()}%',
-          cost: snapshot.fireTrainingUpgradeCost,
-          enabled: snapshot.canUpgradeFireTraining,
-          onPressed: game.upgradeFireTrainingProgression,
+        const SizedBox(height: 10),
+        _ResearchTrack(
+          icon: Icons.precision_manufacturing_outlined,
+          title: l10n.towerResearch,
+          tiles: [
+            _ResearchTile(
+              icon: Icons.shield_outlined,
+              title: l10n.towerResearch,
+              description: l10n.researchDescription(l10n.towerResearch),
+              statusText: l10n.designLocked,
+            ),
+          ],
         ),
       ],
     );
   }
 }
 
-class _ProgressionUpgradeButton extends StatelessWidget {
-  const _ProgressionUpgradeButton({
+class _ResearchTrack extends StatelessWidget {
+  const _ResearchTrack({
+    required this.icon,
+    required this.title,
+    required this.tiles,
+  });
+
+  final IconData icon;
+  final String title;
+  final List<_ResearchTile> tiles;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0x3307111D),
+        border: Border.all(color: const Color(0x55485B68)),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: const Color(0xFFB9D6E4), size: 17),
+              const SizedBox(width: 7),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Color(0xFFE8FBFF),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          for (var index = 0; index < tiles.length; index++) ...[
+            if (index > 0) const SizedBox(height: 7),
+            tiles[index],
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ResearchTile extends StatelessWidget {
+  const _ResearchTile({
     required this.icon,
     required this.title,
     required this.description,
-    required this.level,
-    required this.maxLevel,
-    required this.valueText,
-    required this.nextValueText,
-    required this.cost,
-    required this.enabled,
-    required this.onPressed,
+    required this.statusText,
   });
 
   final IconData icon;
   final String title;
   final String description;
-  final int level;
-  final int maxLevel;
-  final String valueText;
-  final String nextValueText;
-  final int cost;
-  final bool enabled;
-  final VoidCallback onPressed;
+  final String statusText;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final borderColor = enabled
-        ? const Color(0xFFE7C66A)
-        : const Color(0x55485B68);
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
-        border: Border.all(color: borderColor),
+        color: const Color(0x22000000),
+        border: Border.all(color: const Color(0x33485B68)),
         borderRadius: BorderRadius.circular(7),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            size: 18,
-            color: enabled ? const Color(0xFFE7C66A) : const Color(0xFF6D7F8F),
-          ),
-          const SizedBox(width: 9),
+          Icon(icon, color: const Color(0xFF8EE6FF), size: 18),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  l10n.upgradeLevel(title, level, maxLevel: maxLevel),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                  ),
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          color: Color(0xFFE8FBFF),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    _PermanentUpgradeStatusChip(text: statusText),
+                  ],
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 5),
                 Text(
                   description,
                   style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFFB9D6E4),
+                    color: Color(0xFF9EB3BF),
+                    fontSize: 10,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -863,56 +1238,276 @@ class _ProgressionUpgradeButton extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _UpgradeValueSummary(
-                currentValueText: valueText,
-                nextValueText: nextValueText,
-                enabled: enabled,
-              ),
-              const SizedBox(height: 6),
-              SizedBox(
-                height: 32,
-                child: OutlinedButton(
-                  onPressed: enabled ? onPressed : null,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    disabledForegroundColor: const Color(0xFF6D7F8F),
-                    side: BorderSide(color: borderColor),
-                    padding: const EdgeInsets.fromLTRB(10, 0, 5, 0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        l10n.levelUp,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(width: 7),
-                      _RuneCostChip(cost: cost, enabled: enabled),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
   }
 }
 
-class _UpgradeValueSummary extends StatelessWidget {
-  const _UpgradeValueSummary({
+class _PermanentUpgradeBoard extends StatelessWidget {
+  const _PermanentUpgradeBoard({required this.tiles});
+
+  final List<_PermanentUpgradeTile> tiles;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.grid_view_rounded,
+              color: Color(0xFF8EE6FF),
+              size: 19,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              l10n.upgradeBoard,
+              style: const TextStyle(
+                color: Color(0xFFE8FBFF),
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final useTwoColumns = constraints.maxWidth >= 320;
+            final tileWidth = useTwoColumns
+                ? (constraints.maxWidth - 8) / 2
+                : constraints.maxWidth;
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final tile in tiles)
+                  SizedBox(width: tileWidth, child: tile),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _PermanentUpgradeTile extends StatelessWidget {
+  const _PermanentUpgradeTile({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.level,
+    required this.maxLevel,
+    required this.globalMaxLevel,
+    required this.valueText,
+    required this.nextValueText,
+    required this.cost,
+    required this.enabled,
+    required this.lockText,
+    required this.onPressed,
+  });
+
+  const _PermanentUpgradeTile.locked({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.lockText,
+  }) : level = null,
+       maxLevel = null,
+       globalMaxLevel = null,
+       valueText = null,
+       nextValueText = null,
+       cost = null,
+       enabled = false,
+       onPressed = null;
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final int? level;
+  final int? maxLevel;
+  final int? globalMaxLevel;
+  final String? valueText;
+  final String? nextValueText;
+  final int? cost;
+  final bool enabled;
+  final String lockText;
+  final VoidCallback? onPressed;
+
+  bool get _isActive => level != null && maxLevel != null;
+  bool get _isMaxed =>
+      level != null && globalMaxLevel != null && level! >= globalMaxLevel!;
+  bool get _isTierLocked =>
+      level != null &&
+      maxLevel != null &&
+      globalMaxLevel != null &&
+      level! >= maxLevel! &&
+      level! < globalMaxLevel!;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final borderColor = enabled
+        ? const Color(0xFFE7C66A)
+        : const Color(0x55485B68);
+    final titleColor = enabled
+        ? const Color(0xFFE8FBFF)
+        : const Color(0xFFB9D6E4);
+    return Container(
+      constraints: const BoxConstraints(minHeight: 154),
+      padding: const EdgeInsets.all(9),
+      decoration: BoxDecoration(
+        color: const Color(0x3307111D),
+        border: Border.all(color: borderColor),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: titleColor, size: 17),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: titleColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          if (_isActive)
+            Text(
+              'Lv.$level/$maxLevel',
+              style: const TextStyle(
+                color: Color(0xFFB9D6E4),
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+              ),
+            )
+          else
+            _PermanentUpgradeStatusChip(text: _lockedStatusText(l10n)),
+          const SizedBox(height: 5),
+          Text(
+            description,
+            style: const TextStyle(color: Color(0xFF9EB3BF), fontSize: 10),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 7),
+          if (_isActive &&
+              valueText != null &&
+              nextValueText != null &&
+              cost != null)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _CompactUpgradeValueSummary(
+                  currentValueText: valueText!,
+                  nextValueText: nextValueText!,
+                  enabled: enabled,
+                ),
+                const SizedBox(height: 7),
+                SizedBox(
+                  height: 30,
+                  child: OutlinedButton(
+                    onPressed: enabled ? onPressed : null,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      disabledForegroundColor: const Color(0xFF6D7F8F),
+                      side: BorderSide(color: borderColor),
+                      padding: const EdgeInsets.symmetric(horizontal: 7),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                    ),
+                    child: _buttonChild(l10n),
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buttonChild(RuneNexusLocalizations l10n) {
+    if (_isMaxed) {
+      return Text(
+        l10n.maxLevelReached,
+        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+    if (_isTierLocked) {
+      return Text(
+        lockText,
+        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          l10n.levelUp,
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(width: 5),
+        _RuneCostChip(cost: cost!, enabled: enabled),
+      ],
+    );
+  }
+
+  String _lockedStatusText(RuneNexusLocalizations l10n) {
+    return lockText == l10n.plannedUpgrade || lockText == l10n.designLocked
+        ? lockText
+        : lockText;
+  }
+}
+
+class _PermanentUpgradeStatusChip extends StatelessWidget {
+  const _PermanentUpgradeStatusChip({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0x55485B68)),
+          borderRadius: BorderRadius.circular(7),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            color: Color(0xFF8DA5B3),
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+}
+
+class _CompactUpgradeValueSummary extends StatelessWidget {
+  const _CompactUpgradeValueSummary({
     required this.currentValueText,
     required this.nextValueText,
     required this.enabled,
@@ -924,35 +1519,30 @@ class _UpgradeValueSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
+    return Row(
       children: [
-        _UpgradeValueText('현재 $currentValueText'),
-        const SizedBox(height: 2),
-        _UpgradeValueText('다음 $nextValueText', highlighted: enabled),
+        Expanded(
+          child: Text(
+            '현재 $currentValueText',
+            style: const TextStyle(
+              color: Color(0xFFE8FBFF),
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          '다음 $nextValueText',
+          style: TextStyle(
+            color: enabled ? const Color(0xFFE7C66A) : const Color(0xFF6D7F8F),
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
       ],
-    );
-  }
-}
-
-class _UpgradeValueText extends StatelessWidget {
-  const _UpgradeValueText(this.text, {this.highlighted = false});
-
-  final String text;
-  final bool highlighted;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: TextStyle(
-        fontSize: 11,
-        color: highlighted ? const Color(0xFFE7C66A) : const Color(0xFFB9D6E4),
-        fontWeight: FontWeight.w700,
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
     );
   }
 }

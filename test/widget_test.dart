@@ -18,7 +18,8 @@ void main() {
     expect(find.text('스테이지 1'), findsOneWidget);
     expect(find.text('스테이지 5'), findsOneWidget);
     expect(find.text('잠김'), findsNWidgets(4));
-    expect(find.text('영구 업그레이드'), findsOneWidget);
+    expect(find.text('강화'), findsOneWidget);
+    expect(find.text('연구'), findsOneWidget);
   });
 
   testWidgets('main menu keeps tabs on bottom and hides logo on upgrades', (
@@ -28,20 +29,33 @@ void main() {
 
     expect(find.text('Rune Nexus'), findsOneWidget);
 
-    await tester.tap(find.text('영구 업그레이드'));
+    await tester.tap(find.text('강화'));
     await _pumpGameFrames(tester);
 
     expect(find.text('Rune Nexus'), findsNothing);
-    expect(find.text('시작 골드 Lv.0/20'), findsOneWidget);
-    expect(find.text('현재 +0G'), findsAtLeastNWidgets(1));
-    expect(find.text('다음 +5G'), findsOneWidget);
+    expect(find.text('업그레이드 보드'), findsOneWidget);
+    expect(find.text('넥서스 체력'), findsOneWidget);
+    expect(find.text('기초 화력 훈련'), findsOneWidget);
+    expect(find.text('레벨업'), findsNWidgets(2));
+
+    await tester.tap(find.byTooltip('경제'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('시작 골드'), findsOneWidget);
+    expect(find.text('정비 보급'), findsOneWidget);
     expect(find.text('새 런을 시작할 때 보유하는 골드가 영구적으로 증가합니다.'), findsOneWidget);
     expect(find.text('웨이브를 클리어할 때마다 추가 골드를 받습니다.'), findsOneWidget);
-    expect(find.text('레벨업'), findsNWidgets(4));
-    expect(find.text('8'), findsOneWidget);
-    expect(find.text('25'), findsOneWidget);
     expect(find.text('스테이지'), findsOneWidget);
-    expect(find.text('영구 업그레이드'), findsOneWidget);
+    expect(find.text('강화'), findsOneWidget);
+    expect(find.text('연구'), findsOneWidget);
+
+    await tester.tap(find.text('연구'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('연구 보드'), findsOneWidget);
+    expect(find.text('링크 확장 I'), findsOneWidget);
+    expect(find.text('젬 감응'), findsOneWidget);
+    expect(find.text('계열 연구'), findsWidgets);
 
     await tester.tap(find.text('스테이지'));
     await _pumpGameFrames(tester);
@@ -75,12 +89,11 @@ void main() {
 
     await _pumpLoadedApp(tester);
 
-    await tester.tap(find.text('영구 업그레이드'));
+    await tester.tap(find.text('강화'));
     await _pumpGameFrames(tester);
 
-    expect(find.text('레벨업'), findsNWidgets(4));
-    expect(find.text('25'), findsOneWidget);
-    expect(find.text('웨이브를 클리어할 때마다 추가 골드를 받습니다.'), findsOneWidget);
+    expect(find.text('업그레이드 보드'), findsOneWidget);
+    expect(find.text('레벨업'), findsNWidgets(2));
     expect(tester.takeException(), isNull);
   });
 
@@ -234,7 +247,6 @@ void main() {
     await tester.tap(find.text('스테이지 1'));
     await _pumpGameFrames(tester);
 
-    expect(find.byIcon(Icons.diamond_outlined), findsNothing);
     expect(find.text('테스트 라운드'), findsNothing);
   });
 }
