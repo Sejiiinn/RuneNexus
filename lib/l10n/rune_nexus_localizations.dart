@@ -80,6 +80,8 @@ class RuneNexusLocalizations {
       _isEnglish ? 'Clear reward: Sniper turret' : '클리어 보상: 저격 포탑';
   String get stageSniperRewardUnlocked =>
       _isEnglish ? 'Unlocked: Sniper turret' : '해금됨: 저격 포탑';
+  String get sniperTurret => _isEnglish ? 'Sniper turret' : '저격 포탑';
+  String get economyUnlock => _isEnglish ? 'Economy unlock' : '경제 해금';
   String get cancel => _isEnglish ? 'Cancel' : '취소';
   String get settleAndStart => _isEnglish ? 'Settle and start' : '정산 후 시작';
   String get endActiveStageTitle =>
@@ -93,6 +95,18 @@ class RuneNexusLocalizations {
 
   String stageName(int stageNumber) {
     return _isEnglish ? 'Stage $stageNumber' : '스테이지 $stageNumber';
+  }
+
+  String stageChapterName(int chapterNumber) {
+    if (chapterNumber == 1) {
+      return _isEnglish ? 'Rift Entry' : '균열 초입';
+    }
+    return _isEnglish ? 'Chapter $chapterNumber' : '챕터 $chapterNumber';
+  }
+
+  String stageRuneBonus(double bonusRate) {
+    final bonusPercent = (bonusRate * 100).round();
+    return _isEnglish ? 'Runes +$bonusPercent%' : '룬 +$bonusPercent%';
   }
 
   String stageBestRound(int round) {

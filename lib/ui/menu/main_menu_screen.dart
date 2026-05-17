@@ -18,6 +18,9 @@ enum MainMenuTab { stage, permanentUpgrades, research }
 
 enum _PermanentUpgradeGroup { combat, economy }
 
+const int _stageChapterSize = 5;
+const int _visibleStageChapterCount = 3;
+
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({
     required this.game,
@@ -50,6 +53,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     final menuBottomPadding = selectedTab == MainMenuTab.permanentUpgrades
         ? 146.0
         : 92.0;
+    final stageSelected = selectedTab == MainMenuTab.stage;
     return Container(
       color: const Color(0xFF07111D),
       child: SafeArea(
@@ -77,41 +81,29 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                 ),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 430),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xF0091624),
-                      border: Border.all(color: const Color(0x9933D8FF)),
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x66000000),
-                          blurRadius: 20,
-                          offset: Offset(0, 12),
-                        ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (stageSelected) ...[
+                        const _MenuHeader(),
+                        const SizedBox(height: 14),
                       ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (selectedTab == MainMenuTab.stage) ...[
-                          const _MenuHeader(),
-                          const SizedBox(height: 14),
-                          _StageMenu(
-                            snapshot: widget.snapshot,
-                            onStartStage: widget.onStartStage,
-                          ),
-                        ] else if (selectedTab == MainMenuTab.permanentUpgrades)
-                          _PermanentUpgradeMenu(
-                            game: widget.game,
-                            snapshot: widget.snapshot,
-                            group: _selectedUpgradeGroup,
-                          )
-                        else
-                          _ResearchMenu(snapshot: widget.snapshot),
-                      ],
-                    ),
+                      _MainMenuPanel(
+                        child: selectedTab == MainMenuTab.stage
+                            ? _StageMenu(
+                                snapshot: widget.snapshot,
+                                onStartStage: widget.onStartStage,
+                              )
+                            : selectedTab == MainMenuTab.permanentUpgrades
+                            ? _PermanentUpgradeMenu(
+                                game: widget.game,
+                                snapshot: widget.snapshot,
+                                group: _selectedUpgradeGroup,
+                              )
+                            : _ResearchMenu(snapshot: widget.snapshot),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -140,6 +132,32 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MainMenuPanel extends StatelessWidget {
+  const _MainMenuPanel({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xF0091624),
+        border: Border.all(color: const Color(0x9933D8FF)),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 20,
+            offset: Offset(0, 12),
+          ),
+        ],
+      ),
+      child: child,
     );
   }
 }
@@ -541,11 +559,16 @@ class _StageMenu extends StatelessWidget {
         snapshot.hasStageProgress &&
         snapshot.phase != GamePhase.success &&
         snapshot.phase != GamePhase.failure;
-    final stageCount = snapshot.unlockedStageCount.clamp(1, 5);
+    final stageCount = snapshot.unlockedStageCount.clamp(
+      1,
+      RunProgression.maxStageCount,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        const _StageChapterTabs(),
+        const SizedBox(height: 10),
         if (activeRunInProgress) ...[
           _ActiveRunSummary(
             snapshot: snapshot,
@@ -553,55 +576,131 @@ class _StageMenu extends StatelessWidget {
           ),
           const SizedBox(height: 10),
         ],
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final narrow = constraints.maxWidth < 380;
-            final singleColumn = constraints.maxWidth < 300;
-            final columnCount = singleColumn ? 1 : 2;
-            final aspectRatio = singleColumn
-                ? 2.7
-                : narrow
-                ? 1.45
-                : 2.05;
-
-            return GridView.count(
-              crossAxisCount: columnCount,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              childAspectRatio: aspectRatio,
-              children: [
-                for (var stage = 1; stage <= 5; stage++)
-                  _StageSelectionCard(
-                    stageNumber: stage,
-                    unlocked: stage <= stageCount,
-                    active:
-                        activeRunInProgress &&
-                        stage == snapshot.currentStageNumber,
-                    sniperRewardUnlocked: snapshot.availableTurretTypes
-                        .contains(TurretType.sniper),
-                    statusText: _stageStatusText(
-                      l10n: l10n,
-                      snapshot: snapshot,
-                      stageNumber: stage,
-                      activeRunInProgress: activeRunInProgress,
-                    ),
-                    detailText: _stageDetailText(
-                      l10n: l10n,
-                      snapshot: snapshot,
-                      stageNumber: stage,
-                      activeRunInProgress: activeRunInProgress,
-                    ),
-                    onPressed: stage <= stageCount
-                        ? () => onStartStage(stage)
-                        : null,
-                  ),
-              ],
-            );
-          },
-        ),
+        for (var stage = 1; stage <= _stageChapterSize; stage++)
+          Padding(
+            padding: EdgeInsets.only(
+              bottom: stage == _stageChapterSize ? 0 : 8,
+            ),
+            child: _StageSelectionRow(
+              stageNumber: stage,
+              unlocked: stage <= stageCount,
+              active:
+                  activeRunInProgress && stage == snapshot.currentStageNumber,
+              sniperRewardUnlocked: snapshot.availableTurretTypes.contains(
+                TurretType.sniper,
+              ),
+              economyRewardUnlocked: snapshot.clearedStageNumbers.contains(2),
+              statusText: _stageStatusText(
+                l10n: l10n,
+                snapshot: snapshot,
+                stageNumber: stage,
+                activeRunInProgress: activeRunInProgress,
+              ),
+              detailText: _stageDetailText(
+                l10n: l10n,
+                snapshot: snapshot,
+                stageNumber: stage,
+                activeRunInProgress: activeRunInProgress,
+              ),
+              runeBonusText: l10n.stageRuneBonus(
+                RunProgression.stageRuneRewardBonusRateFor(stage),
+              ),
+              onPressed: stage <= stageCount ? () => onStartStage(stage) : null,
+            ),
+          ),
       ],
+    );
+  }
+}
+
+class _StageChapterTabs extends StatelessWidget {
+  const _StageChapterTabs();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SizedBox(
+      height: 42,
+      child: Row(
+        children: [
+          Expanded(
+            child: _StageChapterTab(
+              label: l10n.stageChapterName(1),
+              selected: true,
+              enabled: true,
+            ),
+          ),
+          for (var chapter = 2; chapter <= _visibleStageChapterCount; chapter++)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: _LockedStageChapterTab(tooltip: l10n.plannedUpgrade),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StageChapterTab extends StatelessWidget {
+  const _StageChapterTab({
+    required this.label,
+    required this.selected,
+    required this.enabled,
+  });
+
+  final String label;
+  final bool selected;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 42,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: selected ? const Color(0x2233D8FF) : const Color(0x6607111D),
+        border: Border.all(
+          color: selected ? const Color(0xAA33D8FF) : const Color(0x33485B68),
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w900,
+          color: enabled ? const Color(0xFFE8F8FF) : const Color(0xFF667987),
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
+class _LockedStageChapterTab extends StatelessWidget {
+  const _LockedStageChapterTab({required this.tooltip});
+
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Container(
+        width: 42,
+        height: 42,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: const Color(0x6607111D),
+          border: Border.all(color: const Color(0x33485B68)),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Icon(
+          Icons.lock_outline,
+          size: 18,
+          color: Color(0xFF667987),
+        ),
+      ),
     );
   }
 }
@@ -734,14 +833,16 @@ String _recordTextForStage(
   return l10n.recordNone;
 }
 
-class _StageSelectionCard extends StatelessWidget {
-  const _StageSelectionCard({
+class _StageSelectionRow extends StatelessWidget {
+  const _StageSelectionRow({
     required this.stageNumber,
     required this.unlocked,
     required this.active,
     required this.sniperRewardUnlocked,
+    required this.economyRewardUnlocked,
     required this.statusText,
     required this.detailText,
+    required this.runeBonusText,
     required this.onPressed,
   });
 
@@ -749,8 +850,10 @@ class _StageSelectionCard extends StatelessWidget {
   final bool unlocked;
   final bool active;
   final bool sniperRewardUnlocked;
+  final bool economyRewardUnlocked;
   final String statusText;
   final String detailText;
+  final String runeBonusText;
   final VoidCallback? onPressed;
 
   @override
@@ -778,98 +881,162 @@ class _StageSelectionCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 12, 10, 9),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(
-              children: [
-                _StageIcon(unlocked: unlocked, active: active),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    l10n.stageName(stageNumber),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      color: unlocked
-                          ? const Color(0xFFE8F8FF)
-                          : const Color(0xFF7F93A1),
-                    ),
-                    overflow: TextOverflow.ellipsis,
+            _StageIcon(unlocked: unlocked, active: active),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.stageName(stageNumber),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            color: unlocked
+                                ? const Color(0xFFE8F8FF)
+                                : const Color(0xFF7F93A1),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      _StageInfoChip(
+                        text: runeBonusText,
+                        unlocked: unlocked,
+                        highlighted: active,
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 5),
-            Text(
-              statusText,
-              style: TextStyle(fontSize: 11, color: statusColor),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-            const SizedBox(height: 2),
-            if (stageNumber == 1)
-              _StageSniperRewardPreview(
-                unlocked: unlocked,
-                rewardUnlocked: sniperRewardUnlocked,
-              )
-            else
-              Text(
-                detailText,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: unlocked
-                      ? const Color(0xFFB9D6E4)
-                      : const Color(0xFF667987),
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
+                  const SizedBox(height: 5),
+                  Wrap(
+                    spacing: 5,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      _StageInfoChip(
+                        text: statusText,
+                        unlocked: unlocked,
+                        highlighted: active,
+                        overrideColor: statusColor,
+                      ),
+                      if (detailText != statusText)
+                        _StageInfoChip(
+                          text: detailText,
+                          unlocked: unlocked,
+                          highlighted: false,
+                        ),
+                      ..._stageUnlockChips(context),
+                    ],
+                  ),
+                ],
               ),
+            ),
           ],
         ),
       ),
     );
   }
+
+  List<Widget> _stageUnlockChips(BuildContext context) {
+    final l10n = context.l10n;
+    if (stageNumber == 1) {
+      return [
+        _StageInfoChip(
+          text: l10n.sniperTurret,
+          unlocked: unlocked,
+          highlighted: sniperRewardUnlocked,
+          leading: const _SniperRewardIcon(),
+        ),
+      ];
+    }
+    if (stageNumber == 2) {
+      return [
+        _StageInfoChip(
+          text: l10n.economyUnlock,
+          unlocked: unlocked,
+          highlighted: economyRewardUnlocked,
+          leading: const Icon(Icons.paid_outlined, size: 13),
+        ),
+      ];
+    }
+    return const [];
+  }
 }
 
-class _StageSniperRewardPreview extends StatelessWidget {
-  const _StageSniperRewardPreview({
+class _StageInfoChip extends StatelessWidget {
+  const _StageInfoChip({
+    required this.text,
     required this.unlocked,
-    required this.rewardUnlocked,
+    required this.highlighted,
+    this.leading,
+    this.overrideColor,
   });
 
+  final String text;
   final bool unlocked;
-  final bool rewardUnlocked;
+  final bool highlighted;
+  final Widget? leading;
+  final Color? overrideColor;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final color = rewardUnlocked
-        ? const Color(0xFFE7C66A)
-        : unlocked
-        ? const Color(0xFFB9D6E4)
-        : const Color(0xFF667987);
-
-    return Row(
-      children: [
-        Opacity(opacity: unlocked ? 1 : 0.58, child: const _SniperRewardIcon()),
-        const SizedBox(width: 5),
-        Expanded(
-          child: Text(
-            rewardUnlocked
-                ? l10n.stageSniperRewardUnlocked
-                : l10n.stageSniperRewardLocked,
-            style: TextStyle(
-              fontSize: 10,
-              color: color,
-              fontWeight: rewardUnlocked ? FontWeight.w800 : FontWeight.w600,
-            ),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
+    final color =
+        overrideColor ??
+        (highlighted
+            ? const Color(0xFFE7C66A)
+            : unlocked
+            ? const Color(0xFF8EE6FF)
+            : const Color(0xFF667987));
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 180),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: highlighted
+            ? const Color(0x22E7C66A)
+            : unlocked
+            ? const Color(0x1833D8FF)
+            : const Color(0x183D4D5A),
+        border: Border.all(
+          color: highlighted
+              ? const Color(0x88E7C66A)
+              : unlocked
+              ? const Color(0x5533D8FF)
+              : const Color(0x33485B68),
         ),
-      ],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (leading != null) ...[
+            IconTheme(
+              data: IconThemeData(color: color, size: 13),
+              child: leading!,
+            ),
+            const SizedBox(width: 4),
+          ],
+          Flexible(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 10,
+                color: color,
+                fontWeight: highlighted ? FontWeight.w800 : FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
