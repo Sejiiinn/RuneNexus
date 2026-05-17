@@ -27,8 +27,8 @@ class RunProgression {
   static const int killGoldUpgradeBaseCost = 7;
   static const int killGoldUpgradeCostPerLevel = 4;
   static const double killGoldBonusPerUpgradeLevel = 0.01;
-  static const int emergencySaleUpgradeBaseCost = 10;
-  static const int emergencySaleUpgradeCostPerLevel = 6;
+  static const int emergencySaleUpgradeBaseCost = 60;
+  static const int emergencySaleUpgradeCostPerLevel = 20;
   static const int emergencySaleRefundPercentPerLevel = 1;
 
   int runes = 0;

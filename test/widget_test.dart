@@ -206,7 +206,7 @@ void main() {
             runes: 181,
             clearedStageNumbers: const {2},
             emergencySaleUpgradeLevel: 0,
-            emergencySaleUpgradeCost: 10,
+            emergencySaleUpgradeCost: 60,
             canUpgradeEmergencySale: true,
             turretRefundPercent: 75,
           ),
@@ -431,7 +431,7 @@ GameSnapshot _resultSnapshot({
   int killGoldUpgradeLevel = 0,
   double killGoldProgressionBonusRate = 0,
   int emergencySaleUpgradeLevel = 0,
-  int emergencySaleUpgradeCost = 10,
+  int emergencySaleUpgradeCost = 60,
   bool canUpgradeEmergencySale = false,
   int turretRefundPercent = 75,
 }) {

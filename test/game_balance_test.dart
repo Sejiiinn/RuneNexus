@@ -957,7 +957,7 @@ void main() {
 
   test('emergency sale uses five level refund progression', () {
     final progression = RunProgression()..runes = 10000;
-    const expectedCosts = [10, 16, 22, 28, 34];
+    const expectedCosts = [60, 80, 100, 120, 140];
 
     expect(RunProgression.maxEmergencySaleUpgradeLevel, 5);
     expect(progression.emergencySaleUpgradeCost, expectedCosts.first);
@@ -969,7 +969,7 @@ void main() {
 
     expect(progression.emergencySaleUpgradeLevel, 5);
     expect(progression.turretRefundPercent, 80);
-    expect(progression.emergencySaleUpgradeCost, 40);
+    expect(progression.emergencySaleUpgradeCost, 160);
     expect(progression.canUpgradeEmergencySale, isFalse);
     expect(progression.upgradeEmergencySale(), isFalse);
   });
