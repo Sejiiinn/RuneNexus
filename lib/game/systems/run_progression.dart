@@ -27,9 +27,16 @@ class RunProgression {
   static const int killGoldUpgradeBaseCost = 7;
   static const int killGoldUpgradeCostPerLevel = 4;
   static const double killGoldBonusPerUpgradeLevel = 0.01;
-  static const int emergencySaleUpgradeBaseCost = 60;
-  static const int emergencySaleUpgradeCostPerLevel = 20;
+  static const int emergencySaleUpgradeBaseCost = 80;
   static const int emergencySaleRefundPercentPerLevel = 1;
+  static const List<int> emergencySaleUpgradeCosts = [80, 120, 180, 260, 360];
+  static const List<double> _stageRuneRewardBonusRates = [
+    0,
+    0.20,
+    0.45,
+    0.75,
+    1.10,
+  ];
 
   int runes = 0;
   int lastRunRuneReward = 0;
@@ -63,8 +70,10 @@ class RunProgression {
       killGoldUpgradeBaseCost +
       _cappedKillGoldUpgradeLevel * killGoldUpgradeCostPerLevel;
   int get emergencySaleUpgradeCost =>
-      emergencySaleUpgradeBaseCost +
-      _cappedEmergencySaleUpgradeLevel * emergencySaleUpgradeCostPerLevel;
+      emergencySaleUpgradeCosts[math.min(
+        _cappedEmergencySaleUpgradeLevel,
+        emergencySaleUpgradeCosts.length - 1,
+      )];
   int get waveClearGoldBonus =>
       _cappedSupplyUpgradeLevel * supplyGoldPerUpgradeLevel;
   double get fireTrainingDamageBonusRate =>
@@ -105,6 +114,11 @@ class RunProgression {
       killGoldUpgradeLevel.clamp(0, maxKillGoldUpgradeLevel).toInt();
   int get _cappedEmergencySaleUpgradeLevel =>
       emergencySaleUpgradeLevel.clamp(0, maxEmergencySaleUpgradeLevel).toInt();
+
+  static double stageRuneRewardBonusRateFor(int stageNumber) {
+    final index = stageNumber.clamp(1, maxStageCount).toInt() - 1;
+    return _stageRuneRewardBonusRates[index];
+  }
 
   SavedProgression toSaveData() {
     return SavedProgression(
@@ -223,7 +237,11 @@ class RunProgression {
     required bool success,
     required int stageNumber,
   }) {
-    lastRunRuneReward = runeRewardFor(completedRounds, success: success);
+    lastRunRuneReward = runeRewardFor(
+      completedRounds,
+      success: success,
+      stageNumber: stageNumber,
+    );
     runes += lastRunRuneReward;
     _recordStageProgress(
       stageNumber: stageNumber,
@@ -262,8 +280,14 @@ class RunProgression {
     }
   }
 
-  int runeRewardFor(int completedRounds, {required bool success}) {
-    return math.max(1, completedRounds * 2 + (success ? 40 : 0));
+  int runeRewardFor(
+    int completedRounds, {
+    required bool success,
+    int stageNumber = 1,
+  }) {
+    final baseReward = math.max(1, completedRounds * 2 + (success ? 40 : 0));
+    final bonusRate = stageRuneRewardBonusRateFor(stageNumber);
+    return math.max(1, (baseReward * (1 + bonusRate)).round());
   }
 
   void resetLastRunReward() {

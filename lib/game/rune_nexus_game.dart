@@ -3128,7 +3128,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       runes: _progression.runes,
       lastRunRuneReward: _progression.lastRunRuneReward,
       projectedFailureRuneReward: hasStageProgress
-          ? _progression.runeRewardFor(_roundIndex, success: false)
+          ? _progression.runeRewardFor(
+              _roundIndex,
+              success: false,
+              stageNumber: _currentStageNumber,
+            )
           : 0,
       lastRunPreviousBestRound: _lastRunPreviousBestRound,
       lastRunWasNewBestRound: _lastRunWasNewBestRound,

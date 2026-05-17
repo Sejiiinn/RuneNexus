@@ -138,6 +138,7 @@ void main() {
     game.update(0.016);
 
     expect(game.snapshotNotifier.value.currentStageNumber, 2);
+    expect(game.snapshotNotifier.value.lastRunRuneReward, 50);
     expect(game.snapshotNotifier.value.unlockedStageCount, 3);
     expect(game.snapshotNotifier.value.bestRoundsByStage[2], 1);
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(2));
@@ -955,9 +956,29 @@ void main() {
     expect(progression.upgradeKillGold(), isFalse);
   });
 
+  test('stage rune reward bonus scales repeat rewards', () {
+    final progression = RunProgression();
+
+    expect(progression.runeRewardFor(50, success: true), 140);
+    expect(progression.runeRewardFor(50, success: true, stageNumber: 2), 168);
+    expect(progression.runeRewardFor(50, success: true, stageNumber: 3), 203);
+    expect(progression.runeRewardFor(50, success: true, stageNumber: 4), 245);
+    expect(progression.runeRewardFor(50, success: true, stageNumber: 5), 294);
+  });
+
+  test('stage rune reward bonus does not add first clear rewards', () {
+    final progression = RunProgression();
+
+    progression.finishRun(completedRounds: 1, success: true, stageNumber: 2);
+    expect(progression.lastRunRuneReward, 50);
+
+    progression.finishRun(completedRounds: 1, success: true, stageNumber: 2);
+    expect(progression.lastRunRuneReward, 50);
+  });
+
   test('emergency sale uses five level refund progression', () {
     final progression = RunProgression()..runes = 10000;
-    const expectedCosts = [60, 80, 100, 120, 140];
+    const expectedCosts = [80, 120, 180, 260, 360];
 
     expect(RunProgression.maxEmergencySaleUpgradeLevel, 5);
     expect(progression.emergencySaleUpgradeCost, expectedCosts.first);
@@ -969,7 +990,7 @@ void main() {
 
     expect(progression.emergencySaleUpgradeLevel, 5);
     expect(progression.turretRefundPercent, 80);
-    expect(progression.emergencySaleUpgradeCost, 160);
+    expect(progression.emergencySaleUpgradeCost, 360);
     expect(progression.canUpgradeEmergencySale, isFalse);
     expect(progression.upgradeEmergencySale(), isFalse);
   });
@@ -999,6 +1020,9 @@ void main() {
     game.startStage(2);
     game.startNextWave();
     game.update(0.016);
+    game.startStage(2);
+    game.startNextWave();
+    game.update(0.016);
 
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(2));
     expect(game.snapshotNotifier.value.canUpgradeEmergencySale, isTrue);
@@ -1020,6 +1044,9 @@ void main() {
 
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
+    game.startNextWave();
+    game.update(0.016);
+    game.startStage(2);
     game.startNextWave();
     game.update(0.016);
     game.startStage(2);
@@ -1056,6 +1083,12 @@ void main() {
 
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
+    game.startNextWave();
+    game.update(0.016);
+    game.startStage(2);
+    game.startNextWave();
+    game.update(0.016);
+    game.startStage(2);
     game.startNextWave();
     game.update(0.016);
     game.startStage(2);
