@@ -102,7 +102,7 @@ class TurretComponent extends PositionComponent {
     return total;
   }
 
-  int get refundGold => investedGold * 75 ~/ 100;
+  int get refundGold => investedGold * game.turretRefundPercent ~/ 100;
   bool get canLevelUp => _level < maxLevel;
   int get slotLimit => _slotLimit;
   int get maxSlotLimit => 3;

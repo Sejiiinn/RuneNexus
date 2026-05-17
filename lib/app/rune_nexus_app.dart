@@ -12,7 +12,9 @@ import '../ui/menu/map_editor_panel.dart';
 enum _AppScreen { main, stage, mapEditor }
 
 class RuneNexusApp extends StatefulWidget {
-  const RuneNexusApp({super.key});
+  const RuneNexusApp({this.game, super.key});
+
+  final RuneNexusGame? game;
 
   @override
   State<RuneNexusApp> createState() => _RuneNexusAppState();
@@ -27,7 +29,7 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
   @override
   void initState() {
     super.initState();
-    game = RuneNexusGame();
+    game = widget.game ?? RuneNexusGame();
     _initialLoad = Future<void>.delayed(Duration.zero, game.prepareForAppStart);
   }
 

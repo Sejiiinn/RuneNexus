@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/app/rune_nexus_app.dart';
+import 'package:rune_nexus/data/save/save_repository.dart';
 import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
 import 'package:rune_nexus/domain/combat/run_panel_tab.dart';
@@ -47,11 +48,13 @@ void main() {
     expect(find.text('시작 골드'), findsOneWidget);
     expect(find.text('정비 보급'), findsOneWidget);
     expect(find.text('처치 보상'), findsOneWidget);
-    expect(find.text('미해금 업그레이드'), findsOneWidget);
-    expect(find.text('아직 사용할 수 없음'), findsOneWidget);
+    expect(find.text('긴급 매각'), findsOneWidget);
+    expect(find.text('미해금 업그레이드'), findsNWidgets(2));
+    expect(find.text('아직 사용할 수 없음'), findsNWidgets(2));
     expect(find.text('새 런을 시작할 때 보유하는 골드가 영구적으로 증가합니다.'), findsOneWidget);
     expect(find.text('웨이브를 클리어할 때마다 추가 골드를 받습니다.'), findsOneWidget);
     expect(find.text('적을 처치할 때 획득하는 골드가 증가합니다.'), findsOneWidget);
+    expect(find.text('포탑을 환불할 때 돌려받는 골드 비율이 증가합니다.'), findsOneWidget);
     expect(find.text('스테이지'), findsOneWidget);
     expect(find.text('강화'), findsOneWidget);
     expect(find.text('연구'), findsOneWidget);
@@ -138,9 +141,89 @@ void main() {
     await _pumpGameFrames(tester);
 
     expect(find.text('처치 보상'), findsOneWidget);
-    expect(find.text('미해금 업그레이드'), findsOneWidget);
-    expect(find.text('아직 사용할 수 없음'), findsOneWidget);
+    expect(find.text('미해금 업그레이드'), findsWidgets);
+    expect(find.text('아직 사용할 수 없음'), findsWidgets);
     expect(find.text('Lv.3/10'), findsNothing);
+  });
+
+  testWidgets('locked emergency sale stays locked even with saved levels', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            runes: 181,
+            emergencySaleUpgradeLevel: 3,
+            turretRefundPercent: 75,
+          ),
+          selectedTab: MainMenuTab.permanentUpgrades,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    await tester.tap(find.byIcon(Icons.paid_outlined));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('긴급 매각'), findsOneWidget);
+    expect(find.text('미해금 업그레이드'), findsWidgets);
+    expect(find.text('아직 사용할 수 없음'), findsWidgets);
+    expect(find.text('Lv.3/5'), findsNothing);
+  });
+
+  testWidgets('emergency sale shows refund percent after stage two clear', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            runes: 181,
+            clearedStageNumbers: const {2},
+            emergencySaleUpgradeLevel: 0,
+            emergencySaleUpgradeCost: 10,
+            canUpgradeEmergencySale: true,
+            turretRefundPercent: 75,
+          ),
+          selectedTab: MainMenuTab.permanentUpgrades,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    await tester.tap(find.byIcon(Icons.paid_outlined));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('긴급 매각'), findsOneWidget);
+    expect(find.text('현재 75%'), findsOneWidget);
+    expect(find.text('다음 76%'), findsOneWidget);
   });
 
   testWidgets('result overlay exposes next stage and growth actions', (
@@ -235,8 +318,8 @@ void main() {
 
     await _pumpLoadedApp(tester);
 
-    await tester.tap(find.text('스테이지 1'));
-    await _pumpGameFrames(tester);
+    await _tapStageCard(tester, '스테이지 1');
+    await _pumpUntilFound(tester, find.text('시작'));
     await tester.tap(find.text('시작'));
     await tester.pump();
     await tester.tap(find.byIcon(Icons.home_outlined));
@@ -267,8 +350,8 @@ void main() {
 
     await _pumpLoadedApp(tester);
 
-    await tester.tap(find.text('스테이지 1'));
-    await _pumpGameFrames(tester);
+    await _tapStageCard(tester, '스테이지 1');
+    await _pumpUntilFound(tester, find.text('시작'));
     await tester.tap(find.text('시작'));
     await tester.pump();
     await tester.tap(find.byIcon(Icons.home_outlined));
@@ -290,7 +373,7 @@ void main() {
   testWidgets('debug panel button is hidden by default', (tester) async {
     await _pumpLoadedApp(tester);
 
-    await tester.tap(find.text('스테이지 1'));
+    await _tapStageCard(tester, '스테이지 1');
     await _pumpGameFrames(tester);
 
     expect(find.text('테스트 라운드'), findsNothing);
@@ -298,8 +381,18 @@ void main() {
 }
 
 Future<void> _pumpLoadedApp(WidgetTester tester) async {
-  await tester.pumpWidget(const RuneNexusApp());
+  await tester.pumpWidget(
+    RuneNexusApp(game: RuneNexusGame(saveRepository: MemorySaveRepository())),
+  );
   await _pumpUntilFound(tester, find.text('Rune Nexus'));
+}
+
+Future<void> _tapStageCard(WidgetTester tester, String stageName) async {
+  final button = tester.widget<OutlinedButton>(
+    find.widgetWithText(OutlinedButton, stageName),
+  );
+  button.onPressed?.call();
+  await tester.pump();
 }
 
 Future<void> _pumpGameFrames(WidgetTester tester, {int frameCount = 3}) async {
@@ -337,6 +430,10 @@ GameSnapshot _resultSnapshot({
   Set<int> clearedStageNumbers = const {},
   int killGoldUpgradeLevel = 0,
   double killGoldProgressionBonusRate = 0,
+  int emergencySaleUpgradeLevel = 0,
+  int emergencySaleUpgradeCost = 10,
+  bool canUpgradeEmergencySale = false,
+  int turretRefundPercent = 75,
 }) {
   return GameSnapshot(
     gold: 0,
@@ -445,5 +542,9 @@ GameSnapshot _resultSnapshot({
     killGoldUpgradeCost: 7,
     canUpgradeKillGold: false,
     killGoldProgressionBonusRate: killGoldProgressionBonusRate,
+    emergencySaleUpgradeLevel: emergencySaleUpgradeLevel,
+    emergencySaleUpgradeCost: emergencySaleUpgradeCost,
+    canUpgradeEmergencySale: canUpgradeEmergencySale,
+    turretRefundPercent: turretRefundPercent,
   );
 }

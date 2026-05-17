@@ -231,6 +231,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       killGoldUpgradeCost: RunProgression.killGoldUpgradeBaseCost,
       canUpgradeKillGold: false,
       killGoldProgressionBonusRate: 0,
+      emergencySaleUpgradeLevel: 0,
+      emergencySaleUpgradeCost: RunProgression.emergencySaleUpgradeBaseCost,
+      canUpgradeEmergencySale: false,
+      turretRefundPercent: RunProgression.baseTurretRefundPercent,
     );
   }
 
@@ -383,6 +387,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   int get _initialGold => _progression.initialGold;
   int get _maxNexusHp => _progression.maxNexusHp;
+  int get turretRefundPercent => _progression.isStageCleared(2)
+      ? _progression.turretRefundPercent
+      : RunProgression.baseTurretRefundPercent;
   bool get _canEditBoard =>
       _phase == GamePhase.preparation || _phase == GamePhase.wave;
   double get towerDamageRunMultiplier =>
@@ -472,11 +479,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
     statusEffectSprites = StatusEffectSpriteCache.create();
     _statusEffectSpritesReady = true;
-  }
-
-  @override
-  void onRemove() {
-    super.onRemove();
   }
 
   void disposeAppResources() {
@@ -878,6 +880,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
     if (!_progression.upgradeKillGold()) {
+      return;
+    }
+
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void upgradeEmergencySaleProgression() {
+    if (!_progression.isStageCleared(2)) {
+      return;
+    }
+    if (!_progression.upgradeEmergencySale()) {
       return;
     }
 
@@ -2280,7 +2294,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (alert <= 0) {
       return;
     }
-    final rect = Rect.fromLTWH(0, 0, size.x, size.y);
     final fadeWidth = (math.min(size.x, size.y) * 0.12)
         .clamp(26.0, 54.0)
         .toDouble();
@@ -3008,11 +3021,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         !_waveSpawner.isEmpty ||
         _runUpgradeLevels.isNotEmpty ||
         _killGoldFractionWallet > 0 ||
+        _savedTurretCountForMenu > 0 ||
         _gemShards > 0 ||
         _gemInventory.isNotEmpty ||
         _rewardOptions.isNotEmpty ||
         _gold != _initialGold ||
         _nexusHp != _maxNexusHp;
+    final placedTurretCount = _turrets.isNotEmpty
+        ? _turrets.length
+        : _savedTurretCountForMenu;
     snapshotNotifier.value = GameSnapshot(
       gold: _gold,
       gemShards: _gemShards,
@@ -3023,7 +3040,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       phase: _phase,
       restoredPhase: _phase == GamePhase.restored ? _restoredPhase : null,
       hasStageProgress: hasStageProgress,
-      placedTurretCount: _turrets.length,
+      placedTurretCount: placedTurretCount,
       currentStageNumber: _currentStageNumber,
       unlockedStageCount: _progression.unlockedStageCount,
       bestRoundsByStage: Map.unmodifiable(_progression.bestRoundsByStage),
@@ -3137,6 +3154,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       canUpgradeKillGold:
           _progression.isStageCleared(2) && _progression.canUpgradeKillGold,
       killGoldProgressionBonusRate: _killGoldProgressionBonusRate,
+      emergencySaleUpgradeLevel: _progression.emergencySaleUpgradeLevel,
+      emergencySaleUpgradeCost: _progression.emergencySaleUpgradeCost,
+      canUpgradeEmergencySale:
+          _progression.isStageCleared(2) &&
+          _progression.canUpgradeEmergencySale,
+      turretRefundPercent: turretRefundPercent,
     );
   }
 

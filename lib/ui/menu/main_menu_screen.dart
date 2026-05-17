@@ -970,10 +970,13 @@ class _PermanentUpgradeMenu extends StatelessWidget {
     final nextKillGoldLevel = (snapshot.killGoldUpgradeLevel + 1)
         .clamp(0, RunProgression.maxKillGoldUpgradeLevel)
         .toInt();
+    final nextEmergencySaleLevel = (snapshot.emergencySaleUpgradeLevel + 1)
+        .clamp(0, RunProgression.maxEmergencySaleUpgradeLevel)
+        .toInt();
     final nextFireTrainingLevel = (snapshot.fireTrainingUpgradeLevel + 1)
         .clamp(0, RunProgression.maxFireTrainingUpgradeLevel)
         .toInt();
-    final killGoldUnlocked = snapshot.clearedStageNumbers.contains(2);
+    final stageTwoCleared = snapshot.clearedStageNumbers.contains(2);
     final combatTiles = [
       _PermanentUpgradeTile(
         icon: Icons.favorite_border,
@@ -1037,7 +1040,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
         lockText: l10n.maxLevelReached,
         onPressed: game.upgradeSupplyProgression,
       ),
-      if (killGoldUnlocked)
+      if (stageTwoCleared)
         _PermanentUpgradeTile(
           icon: Icons.monetization_on_outlined,
           title: l10n.killRewardBonus,
@@ -1059,6 +1062,29 @@ class _PermanentUpgradeMenu extends StatelessWidget {
           icon: Icons.monetization_on_outlined,
           title: l10n.killRewardBonus,
           description: l10n.permanentUpgradeDescription(l10n.killRewardBonus),
+          lockText: l10n.stageClearRequirement(2),
+        ),
+      if (stageTwoCleared)
+        _PermanentUpgradeTile(
+          icon: Icons.sell_outlined,
+          title: l10n.emergencySale,
+          description: l10n.permanentUpgradeDescription(l10n.emergencySale),
+          level: snapshot.emergencySaleUpgradeLevel,
+          maxLevel: RunProgression.maxEmergencySaleUpgradeLevel,
+          globalMaxLevel: RunProgression.maxEmergencySaleUpgradeLevel,
+          valueText: '${snapshot.turretRefundPercent}%',
+          nextValueText:
+              '${RunProgression.baseTurretRefundPercent + nextEmergencySaleLevel * RunProgression.emergencySaleRefundPercentPerLevel}%',
+          cost: snapshot.emergencySaleUpgradeCost,
+          enabled: snapshot.canUpgradeEmergencySale,
+          lockText: l10n.maxLevelReached,
+          onPressed: game.upgradeEmergencySaleProgression,
+        )
+      else
+        _PermanentUpgradeTile.locked(
+          icon: Icons.sell_outlined,
+          title: l10n.emergencySale,
+          description: l10n.permanentUpgradeDescription(l10n.emergencySale),
           lockText: l10n.stageClearRequirement(2),
         ),
     ];

@@ -383,7 +383,7 @@ void main() {
     await game.onLoad();
     game.tryBuildTurret(const GridPoint(2, 0));
     final turret = game.children.whereType<TurretComponent>().single;
-    final expectedScale = 40.7 / 48;
+    final expectedScale = 41.9 / 48;
 
     expect(game.boardDistanceScale, closeTo(expectedScale, 0.001));
     expect(turret.range, closeTo(96 * expectedScale, 0.001));
@@ -955,6 +955,91 @@ void main() {
     expect(progression.upgradeKillGold(), isFalse);
   });
 
+  test('emergency sale uses five level refund progression', () {
+    final progression = RunProgression()..runes = 10000;
+    const expectedCosts = [10, 16, 22, 28, 34];
+
+    expect(RunProgression.maxEmergencySaleUpgradeLevel, 5);
+    expect(progression.emergencySaleUpgradeCost, expectedCosts.first);
+
+    for (final cost in expectedCosts) {
+      expect(progression.emergencySaleUpgradeCost, cost);
+      expect(progression.upgradeEmergencySale(), isTrue);
+    }
+
+    expect(progression.emergencySaleUpgradeLevel, 5);
+    expect(progression.turretRefundPercent, 80);
+    expect(progression.emergencySaleUpgradeCost, 40);
+    expect(progression.canUpgradeEmergencySale, isFalse);
+    expect(progression.upgradeEmergencySale(), isFalse);
+  });
+
+  test('permanent emergency sale unlocks after stage two clear', () {
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+
+    game.startNextWave();
+    game.update(0.016);
+    game.upgradeEmergencySaleProgression();
+
+    expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(2)));
+    expect(game.snapshotNotifier.value.emergencySaleUpgradeLevel, 0);
+    expect(game.snapshotNotifier.value.canUpgradeEmergencySale, isFalse);
+    expect(game.snapshotNotifier.value.turretRefundPercent, 75);
+
+    game.startStage(2);
+    game.startNextWave();
+    game.update(0.016);
+
+    expect(game.snapshotNotifier.value.clearedStageNumbers, contains(2));
+    expect(game.snapshotNotifier.value.canUpgradeEmergencySale, isTrue);
+  });
+
+  test('emergency sale upgrade increases turret refund gold', () async {
+    final repository = MemorySaveRepository();
+    final game = RuneNexusGame(
+      saveRepository: repository,
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+    game.update(0.016);
+    game.startStage(2);
+    game.startNextWave();
+    game.update(0.016);
+    game.upgradeEmergencySaleProgression();
+    game.restartDemo();
+
+    game.tryBuildTurret(const GridPoint(2, 0));
+    game.levelUpSelectedTurret();
+    game.debugAddGold(100);
+    game.upgradeSelectedTurretLink();
+
+    expect(game.snapshotNotifier.value.turretRefundPercent, 76);
+    expect(game.snapshotNotifier.value.selectedTurretRefundGold, 145);
+    game.refundSelectedTurret();
+
+    expect(game.snapshotNotifier.value.gold, 203);
+  });
+
   test('new permanent upgrades are saved and restored', () async {
     final repository = MemorySaveRepository();
     final game = RuneNexusGame(
@@ -979,6 +1064,7 @@ void main() {
     game.upgradeSupplyProgression();
     game.upgradeFireTrainingProgression();
     game.upgradeKillGoldProgression();
+    game.upgradeEmergencySaleProgression();
     await game.saveNow();
 
     final restoredRepository = MemorySaveRepository()..data = repository.data;
@@ -993,6 +1079,8 @@ void main() {
     expect(snapshot.fireTrainingDamageBonusRate, closeTo(0.01, 0.001));
     expect(snapshot.killGoldUpgradeLevel, 1);
     expect(snapshot.killGoldProgressionBonusRate, closeTo(0.01, 0.001));
+    expect(snapshot.emergencySaleUpgradeLevel, 1);
+    expect(snapshot.turretRefundPercent, 76);
   });
 
   test(
@@ -1024,7 +1112,7 @@ void main() {
       expect(snapshot.phase, GamePhase.preparation);
       expect(snapshot.runUpgradeLevels[RunUpgradeType.towerDamage], 1);
       expect(snapshot.runUpgradeLevels[RunUpgradeType.killGold], 1);
-      expect(snapshot.killGoldFractionWallet, closeTo(0.06, 0.001));
+      expect(snapshot.killGoldFractionWallet, closeTo(0.1, 0.001));
       expect(snapshot.towerDamageRunBonusRate, closeTo(0.03, 0.001));
     },
   );

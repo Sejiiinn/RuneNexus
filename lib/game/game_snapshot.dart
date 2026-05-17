@@ -111,6 +111,10 @@ class GameSnapshot {
     required this.killGoldUpgradeCost,
     required this.canUpgradeKillGold,
     required this.killGoldProgressionBonusRate,
+    required this.emergencySaleUpgradeLevel,
+    required this.emergencySaleUpgradeCost,
+    required this.canUpgradeEmergencySale,
+    required this.turretRefundPercent,
   });
 
   final int gold;
@@ -214,4 +218,8 @@ class GameSnapshot {
   final int killGoldUpgradeCost;
   final bool canUpgradeKillGold;
   final double killGoldProgressionBonusRate;
+  final int emergencySaleUpgradeLevel;
+  final int emergencySaleUpgradeCost;
+  final bool canUpgradeEmergencySale;
+  final int turretRefundPercent;
 }

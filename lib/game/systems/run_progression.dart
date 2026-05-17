@@ -11,6 +11,8 @@ class RunProgression {
   static const int maxSupplyUpgradeLevel = 10;
   static const int maxFireTrainingUpgradeLevel = 20;
   static const int maxKillGoldUpgradeLevel = 10;
+  static const int maxEmergencySaleUpgradeLevel = 5;
+  static const int baseTurretRefundPercent = 75;
   static const int startingGoldUpgradeBaseCost = 4;
   static const int startingGoldUpgradeCostPerLevel = 4;
   static const int startingGoldPerUpgradeLevel = 5;
@@ -25,6 +27,9 @@ class RunProgression {
   static const int killGoldUpgradeBaseCost = 7;
   static const int killGoldUpgradeCostPerLevel = 4;
   static const double killGoldBonusPerUpgradeLevel = 0.01;
+  static const int emergencySaleUpgradeBaseCost = 10;
+  static const int emergencySaleUpgradeCostPerLevel = 6;
+  static const int emergencySaleRefundPercentPerLevel = 1;
 
   int runes = 0;
   int lastRunRuneReward = 0;
@@ -33,6 +38,7 @@ class RunProgression {
   int supplyUpgradeLevel = 0;
   int fireTrainingUpgradeLevel = 0;
   int killGoldUpgradeLevel = 0;
+  int emergencySaleUpgradeLevel = 0;
   int unlockedStageCount = 1;
   final Map<int, int> bestRoundsByStage = {};
   final Set<int> clearedStageNumbers = {};
@@ -56,12 +62,18 @@ class RunProgression {
   int get killGoldUpgradeCost =>
       killGoldUpgradeBaseCost +
       _cappedKillGoldUpgradeLevel * killGoldUpgradeCostPerLevel;
+  int get emergencySaleUpgradeCost =>
+      emergencySaleUpgradeBaseCost +
+      _cappedEmergencySaleUpgradeLevel * emergencySaleUpgradeCostPerLevel;
   int get waveClearGoldBonus =>
       _cappedSupplyUpgradeLevel * supplyGoldPerUpgradeLevel;
   double get fireTrainingDamageBonusRate =>
       _cappedFireTrainingUpgradeLevel * fireTrainingDamagePerUpgradeLevel;
   double get killGoldBonusRate =>
       _cappedKillGoldUpgradeLevel * killGoldBonusPerUpgradeLevel;
+  int get turretRefundPercent =>
+      baseTurretRefundPercent +
+      _cappedEmergencySaleUpgradeLevel * emergencySaleRefundPercentPerLevel;
   bool get canUpgradeStartingGold =>
       _cappedStartingGoldUpgradeLevel < maxStartingGoldUpgradeLevel &&
       runes >= startingGoldUpgradeCost;
@@ -77,6 +89,9 @@ class RunProgression {
   bool get canUpgradeKillGold =>
       _cappedKillGoldUpgradeLevel < maxKillGoldUpgradeLevel &&
       runes >= killGoldUpgradeCost;
+  bool get canUpgradeEmergencySale =>
+      _cappedEmergencySaleUpgradeLevel < maxEmergencySaleUpgradeLevel &&
+      runes >= emergencySaleUpgradeCost;
 
   int get _cappedStartingGoldUpgradeLevel =>
       startingGoldUpgradeLevel.clamp(0, maxStartingGoldUpgradeLevel).toInt();
@@ -88,6 +103,8 @@ class RunProgression {
       fireTrainingUpgradeLevel.clamp(0, maxFireTrainingUpgradeLevel).toInt();
   int get _cappedKillGoldUpgradeLevel =>
       killGoldUpgradeLevel.clamp(0, maxKillGoldUpgradeLevel).toInt();
+  int get _cappedEmergencySaleUpgradeLevel =>
+      emergencySaleUpgradeLevel.clamp(0, maxEmergencySaleUpgradeLevel).toInt();
 
   SavedProgression toSaveData() {
     return SavedProgression(
@@ -98,6 +115,7 @@ class RunProgression {
       supplyUpgradeLevel: _cappedSupplyUpgradeLevel,
       fireTrainingUpgradeLevel: _cappedFireTrainingUpgradeLevel,
       killGoldUpgradeLevel: _cappedKillGoldUpgradeLevel,
+      emergencySaleUpgradeLevel: _cappedEmergencySaleUpgradeLevel,
       unlockedStageCount: unlockedStageCount,
       bestRoundsByStage: Map.unmodifiable(bestRoundsByStage),
       clearedStageNumbers: Set.unmodifiable(clearedStageNumbers),
@@ -121,6 +139,9 @@ class RunProgression {
         .toInt();
     killGoldUpgradeLevel = data.killGoldUpgradeLevel
         .clamp(0, maxKillGoldUpgradeLevel)
+        .toInt();
+    emergencySaleUpgradeLevel = data.emergencySaleUpgradeLevel
+        .clamp(0, maxEmergencySaleUpgradeLevel)
         .toInt();
     unlockedStageCount = data.unlockedStageCount
         .clamp(1, maxStageCount)
@@ -184,6 +205,16 @@ class RunProgression {
 
     runes -= killGoldUpgradeCost;
     killGoldUpgradeLevel++;
+    return true;
+  }
+
+  bool upgradeEmergencySale() {
+    if (!canUpgradeEmergencySale) {
+      return false;
+    }
+
+    runes -= emergencySaleUpgradeCost;
+    emergencySaleUpgradeLevel++;
     return true;
   }
 

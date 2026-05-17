@@ -12,6 +12,7 @@ class SaveScheduler {
   Timer? _timer;
   bool _inFlight = false;
   bool _pending = false;
+  Future<void>? _inFlightFlush;
 
   void requestSave({bool immediate = false}) {
     if (immediate) {
@@ -26,13 +27,23 @@ class SaveScheduler {
     });
   }
 
-  Future<void> flush() async {
+  Future<void> flush() {
     if (_inFlight) {
       _pending = true;
-      return;
+      final inFlightFlush = _inFlightFlush;
+      if (inFlightFlush != null) {
+        return inFlightFlush;
+      }
+      return Future<void>.value();
     }
 
     _inFlight = true;
+    final future = _flushLoop();
+    _inFlightFlush = future;
+    return future;
+  }
+
+  Future<void> _flushLoop() async {
     try {
       do {
         _pending = false;
@@ -40,6 +51,7 @@ class SaveScheduler {
       } while (_pending);
     } finally {
       _inFlight = false;
+      _inFlightFlush = null;
     }
   }
 

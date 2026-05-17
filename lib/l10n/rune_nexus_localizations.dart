@@ -29,6 +29,7 @@ class RuneNexusLocalizations {
   String get nexusHp => _isEnglish ? 'Nexus HP' : '넥서스 체력';
   String get maintenanceSupply => _isEnglish ? 'Maintenance Supply' : '정비 보급';
   String get killRewardBonus => _isEnglish ? 'Kill Reward' : '처치 보상';
+  String get emergencySale => _isEnglish ? 'Emergency Sale' : '긴급 매각';
   String get basicFireTraining =>
       _isEnglish ? 'Basic Fire Training' : '기초 화력 훈련';
   String get growthHubTitle => _isEnglish ? 'Growth Hub' : '성장 허브';
@@ -217,6 +218,11 @@ class RuneNexusLocalizations {
       return _isEnglish
           ? 'Increases gold gained from defeating enemies.'
           : '적을 처치할 때 획득하는 골드가 증가합니다.';
+    }
+    if (title == emergencySale) {
+      return _isEnglish
+          ? 'Increases the gold refunded when selling turrets.'
+          : '포탑을 환불할 때 돌려받는 골드 비율이 증가합니다.';
     }
     if (title == basicFireTraining) {
       return _isEnglish

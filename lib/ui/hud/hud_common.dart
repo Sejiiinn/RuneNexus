@@ -120,32 +120,6 @@ class _TurretShapePainter extends CustomPainter {
   }
 }
 
-class _Metric extends StatelessWidget {
-  const _Metric({required this.label, required this.value, this.valueChild});
-
-  final String label;
-  final String value;
-  final Widget? valueChild;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 11, color: Color(0xFF8CC8D8)),
-        ),
-        valueChild ??
-            Text(
-              value,
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
-            ),
-      ],
-    );
-  }
-}
-
 class _RestoreRunOverlay extends StatefulWidget {
   const _RestoreRunOverlay({required this.game, required this.snapshot});
 
