@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 
 class RuneBalanceCard extends StatelessWidget {
-  const RuneBalanceCard({required this.runes, this.compact = false, super.key});
+  const RuneBalanceCard({
+    required this.runes,
+    this.compact = false,
+    this.frameless = false,
+    super.key,
+  });
 
   final int runes;
   final bool compact;
+  final bool frameless;
 
   @override
   Widget build(BuildContext context) {
@@ -17,18 +23,20 @@ class RuneBalanceCard extends StatelessWidget {
         horizontal: compact ? 8 : 10,
         vertical: compact ? 6 : 8,
       ),
-      decoration: BoxDecoration(
-        color: const Color(0xAA07111D),
-        border: Border.all(color: const Color(0x88E7C66A)),
-        borderRadius: BorderRadius.circular(7),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x33000000),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
+      decoration: frameless
+          ? null
+          : BoxDecoration(
+              color: const Color(0xAA07111D),
+              border: Border.all(color: const Color(0x88E7C66A)),
+              borderRadius: BorderRadius.circular(7),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x33000000),
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,

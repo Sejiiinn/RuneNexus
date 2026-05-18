@@ -49,28 +49,17 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   @override
   Widget build(BuildContext context) {
     final selectedTab = widget.selectedTab;
-    final menuTopPadding = selectedTab == MainMenuTab.stage ? 16.0 : 58.0;
+    const menuTopPadding = 76.0;
     final menuBottomPadding = selectedTab == MainMenuTab.permanentUpgrades
         ? 146.0
         : 92.0;
-    final stageSelected = selectedTab == MainMenuTab.stage;
     return Container(
       color: const Color(0xFF07111D),
       child: SafeArea(
         child: Stack(
           children: [
             const Positioned.fill(child: _MainMenuBackdrop()),
-            Positioned(
-              top: 10,
-              right: 16,
-              child: RuneBalanceCard(runes: widget.snapshot.runes),
-            ),
-            if (_showMapEditor)
-              Positioned(
-                top: 10,
-                left: 16,
-                child: _MapEditorShortcut(onPressed: widget.onOpenMapEditor),
-              ),
+            const Positioned(top: 10, left: 0, right: 0, child: _MenuLogo()),
             Center(
               child: SingleChildScrollView(
                 padding: EdgeInsets.fromLTRB(
@@ -85,10 +74,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (stageSelected) ...[
-                        const _MenuHeader(),
-                        const SizedBox(height: 14),
-                      ],
                       _MainMenuPanel(
                         child: selectedTab == MainMenuTab.stage
                             ? _StageMenu(
@@ -108,6 +93,20 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                 ),
               ),
             ),
+            Positioned(
+              top: 10,
+              right: 16,
+              child: RuneBalanceCard(
+                runes: widget.snapshot.runes,
+                frameless: true,
+              ),
+            ),
+            if (_showMapEditor)
+              Positioned(
+                top: 10,
+                left: 16,
+                child: _MapEditorShortcut(onPressed: widget.onOpenMapEditor),
+              ),
             if (selectedTab == MainMenuTab.permanentUpgrades)
               Positioned(
                 left: 0,
@@ -221,37 +220,45 @@ class _MainMenuBackdropPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class _MenuHeader extends StatelessWidget {
-  const _MenuHeader();
+class _MenuLogo extends StatelessWidget {
+  const _MenuLogo();
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Row(
-      children: [
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: const Color(0x2233D8FF),
-            border: Border.all(color: const Color(0xAA33D8FF)),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(
-            Icons.diamond_outlined,
-            color: Color(0xFF8EE6FF),
-            size: 20,
+    return IgnorePointer(
+      child: Center(
+        child: Opacity(
+          opacity: 0.92,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: const Color(0x2233D8FF),
+                  border: Border.all(color: const Color(0xAA33D8FF)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.diamond_outlined,
+                  color: Color(0xFF8EE6FF),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                l10n.appTitle,
+                style: const TextStyle(
+                  fontSize: 23,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            l10n.appTitle,
-            style: const TextStyle(fontSize: 23, fontWeight: FontWeight.w900),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

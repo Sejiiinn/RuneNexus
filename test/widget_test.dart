@@ -26,7 +26,7 @@ void main() {
     expect(find.text('연구'), findsOneWidget);
   });
 
-  testWidgets('main menu keeps tabs on bottom and hides logo on upgrades', (
+  testWidgets('main menu keeps tabs on bottom and keeps logo across tabs', (
     tester,
   ) async {
     await _pumpLoadedApp(tester);
@@ -36,7 +36,7 @@ void main() {
     await tester.tap(find.text('강화'));
     await _pumpGameFrames(tester);
 
-    expect(find.text('Rune Nexus'), findsNothing);
+    expect(find.text('Rune Nexus'), findsOneWidget);
     expect(find.text('업그레이드 보드'), findsOneWidget);
     expect(find.text('넥서스 체력'), findsOneWidget);
     expect(find.text('기초 화력 훈련'), findsOneWidget);
@@ -62,6 +62,7 @@ void main() {
     await tester.tap(find.text('연구'));
     await _pumpGameFrames(tester);
 
+    expect(find.text('Rune Nexus'), findsOneWidget);
     expect(find.text('연구 보드'), findsOneWidget);
     expect(find.text('링크 확장 I'), findsOneWidget);
     expect(find.text('젬 감응'), findsOneWidget);
