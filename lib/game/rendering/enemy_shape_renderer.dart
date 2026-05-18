@@ -562,6 +562,18 @@ void _drawArmored(
     palette.body,
     strokeWidth * 0.45,
   );
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(-0.17, -0.37),
+      const Offset(0.17, -0.27),
+      const Offset(0.04, -0.18),
+      const Offset(-0.18, -0.23),
+    ],
+    palette.edge.withValues(alpha: 0.5),
+    strokeWidth * 0.32,
+  );
   _drawCore(
     canvas,
     scale,
@@ -616,6 +628,18 @@ void _drawArmoredSide(
     ],
     palette.body,
     strokeWidth * 0.42,
+  );
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(-0.21, -0.27),
+      const Offset(0.14, -0.24),
+      const Offset(0.05, -0.17),
+      const Offset(-0.24, -0.18),
+    ],
+    palette.edge.withValues(alpha: 0.48),
+    strokeWidth * 0.3,
   );
   _drawCore(
     canvas,
@@ -673,6 +697,18 @@ void _drawArmoredBack(
     ],
     palette.body.withValues(alpha: 0.58),
     strokeWidth * 0.42,
+  );
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(-0.11, -0.29),
+      const Offset(0.18, -0.14),
+      const Offset(0.13, -0.05),
+      const Offset(-0.16, -0.19),
+    ],
+    palette.edge.withValues(alpha: 0.46),
+    strokeWidth * 0.3,
   );
 }
 
@@ -1388,10 +1424,10 @@ class _EnemyVisualPalette {
         accent: fallbackAccent,
       ),
       EnemyType.armored => _EnemyVisualPalette(
-        body: const Color(0xFF263848),
-        spike: const Color(0xFF1D3142),
-        edge: const Color(0xFFD6DEE8),
-        armor: const Color(0xFFAEB7C1),
+        body: const Color(0xFF4A4F55),
+        spike: const Color(0xFF30343A),
+        edge: const Color(0xFFF0F2F4),
+        armor: const Color(0xFFD0D3D6),
         accent: fallbackAccent,
       ),
       EnemyType.fast => _EnemyVisualPalette(

@@ -49,6 +49,7 @@ import 'systems/save_scheduler.dart';
 import 'systems/turret_action_controller.dart';
 import 'systems/wave_spawner.dart';
 
+part 'game_restore_controller.dart';
 part 'game_snapshot_builder.dart';
 
 const _debugPanelEnabled = bool.fromEnvironment(
@@ -336,6 +337,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   final WaveSpawner _waveSpawner = WaveSpawner();
   final GemRewardController _gemRewards = GemRewardController();
   final GameSaveAdapter _saveAdapter = const GameSaveAdapter();
+  late final GameRestoreController _restoreController = GameRestoreController(
+    this,
+  );
   final TurretActionController _turretActions = const TurretActionController();
   final RunProgression _progression = RunProgression();
   late final SaveScheduler _saveScheduler = SaveScheduler(
@@ -498,7 +502,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final savedData = await _saveRepository.load();
     _pendingFullSaveData = savedData;
     if (savedData != null) {
-      _restoreMenuStateFromSaveData(savedData);
+      _restoreController.restoreMenuStateFromSaveData(savedData);
     }
     _publish();
   }
@@ -2504,7 +2508,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _pendingFullSaveData = null;
     _savedTurretCountForMenu = 0;
     if (savedData != null) {
-      _restoreFromSaveData(savedData);
+      _restoreController.restoreFromSaveData(savedData);
     }
   }
 
@@ -2538,247 +2542,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         pendingFullSaveData: _pendingFullSaveData,
       ),
     );
-  }
-
-  void _restoreMenuStateFromSaveData(GameSaveData data) {
-    _autoStartMode = data.autoStartMode;
-    _progression.restoreFromSaveData(data.progression);
-    _restoreRunUpgradeState(data);
-    _gemInventory
-      ..clear()
-      ..addEntries(data.gemInventory.entries.where((entry) => entry.value > 0));
-    _rewardOptions
-      ..clear()
-      ..addAll(data.rewardOptions);
-    _gemShards = math.max(0, data.gemShards);
-    _isPurchasedGemReward = data.isPurchasedGemReward;
-    _savedTurretCountForMenu = data.turrets.length;
-
-    if (!data.hasActiveRun) {
-      _savedTurretCountForMenu = 0;
-      _selectStage(_clampedStageNumber(data.stageNumber));
-      _gold = _initialGold;
-      _gemShards = 0;
-      _nexusHp = _maxNexusHp;
-      _roundIndex = 0;
-      _completedRounds = 0;
-      _runUpgradeLevels.clear();
-      _killGoldFractionWallet = 0;
-      _lastRunPreviousBestRound = 0;
-      _lastRunWasNewBestRound = false;
-      _lastRunUnlockedStageNumber = null;
-      _lastRunUnlockedSniperTurret = false;
-      _selectedTurretType = TurretType.arrow;
-      _selectedRunPanelTab = RunPanelTab.turrets;
-      _selectedBuildTurretType = null;
-      _selectedBuildPoint = null;
-      _selectedPortalPoint = null;
-      _selectedTurretPoint = null;
-      _selectedTurretGemSlotIndex = null;
-      _phase = GamePhase.preparation;
-      _restoredPhase = null;
-      _isPurchasedGemReward = false;
-      return;
-    }
-    _gold = math.max(0, data.gold);
-    _gemShards = math.max(0, data.gemShards);
-    _selectStage(_clampedStageNumber(data.stageNumber));
-    _nexusHp = data.nexusHp.clamp(0, _maxNexusHp).toInt();
-    _roundIndex = data.roundIndex.clamp(0, _waves.length - 1).toInt();
-    _completedRounds = data.completedRounds.clamp(0, _waves.length).toInt();
-    _lastRunPreviousBestRound = 0;
-    _lastRunWasNewBestRound = false;
-    _lastRunUnlockedStageNumber = null;
-    _lastRunUnlockedSniperTurret = false;
-    _selectedTurretType = TurretType.arrow;
-    _selectedRunPanelTab = RunPanelTab.turrets;
-    _selectedBuildTurretType = null;
-    _selectedBuildPoint = null;
-    _selectedPortalPoint = null;
-    _selectedTurretPoint = null;
-    _selectedTurretGemSlotIndex = null;
-
-    final restoredPhase = data.phase == GamePhase.restored
-        ? GamePhase.preparation
-        : data.phase;
-    if (restoredPhase != GamePhase.wave) {
-      _phase = restoredPhase;
-      _restoredPhase = null;
-      return;
-    }
-
-    _phase = GamePhase.restored;
-    _restoredPhase = restoredPhase;
-    _isPurchasedGemReward = false;
-  }
-
-  void _restoreFromSaveData(GameSaveData data) {
-    _autoStartMode = data.autoStartMode;
-    _progression.restoreFromSaveData(data.progression);
-    _clearActiveCombat();
-    for (final turret in _turrets.values.toList()) {
-      turret.removeFromParent();
-    }
-    _turrets.clear();
-    _gemInventory
-      ..clear()
-      ..addEntries(data.gemInventory.entries.where((entry) => entry.value > 0));
-    _rewardOptions
-      ..clear()
-      ..addAll(data.rewardOptions);
-    _gemShards = math.max(0, data.gemShards);
-    _isPurchasedGemReward = data.isPurchasedGemReward;
-
-    if (!data.hasActiveRun) {
-      _selectStage(_clampedStageNumber(data.stageNumber));
-      _gold = _initialGold;
-      _gemShards = 0;
-      _nexusHp = _maxNexusHp;
-      _roundIndex = 0;
-      _completedRounds = 0;
-      _runUpgradeLevels.clear();
-      _killGoldFractionWallet = 0;
-      _lastRunPreviousBestRound = 0;
-      _lastRunWasNewBestRound = false;
-      _lastRunUnlockedStageNumber = null;
-      _lastRunUnlockedSniperTurret = false;
-      _phase = GamePhase.preparation;
-      _restoredPhase = null;
-      _isPurchasedGemReward = false;
-      return;
-    }
-
-    _restoreRunUpgradeState(data);
-    _gold = math.max(0, data.gold);
-    _gemShards = math.max(0, data.gemShards);
-    _selectStage(_clampedStageNumber(data.stageNumber));
-    _nexusHp = data.nexusHp.clamp(0, _maxNexusHp).toInt();
-    _roundIndex = data.roundIndex.clamp(0, _waves.length - 1).toInt();
-    _completedRounds = data.completedRounds.clamp(0, _waves.length).toInt();
-    _lastRunPreviousBestRound = 0;
-    _lastRunWasNewBestRound = false;
-    _lastRunUnlockedStageNumber = null;
-    _lastRunUnlockedSniperTurret = false;
-    _selectedTurretType = TurretType.arrow;
-    _selectedRunPanelTab = RunPanelTab.turrets;
-    _selectedBuildTurretType = null;
-    _selectedBuildPoint = null;
-    _selectedPortalPoint = null;
-    _selectedTurretPoint = null;
-    _selectedTurretGemSlotIndex = null;
-
-    if (_saveAdapter.hasSavedRunMapMismatch(data, _map)) {
-      _refundSavedTurretsForMapChange(data.turrets);
-      _phase = GamePhase.preparation;
-      _restoredPhase = null;
-      _rewardOptions.clear();
-      _isPurchasedGemReward = false;
-      _selectedBuildTurretType = null;
-      _selectedBuildPoint = null;
-      _selectedPortalPoint = null;
-      _selectedTurretPoint = null;
-      _selectedTurretGemSlotIndex = null;
-      _requestLocalSave(immediate: true);
-      return;
-    }
-
-    for (final savedTurret in data.turrets) {
-      final definition = demoTurrets[savedTurret.type];
-      if (definition == null || !_map.contains(savedTurret.point)) {
-        continue;
-      }
-      final turret = TurretComponent(
-        gridPoint: savedTurret.point,
-        definition: definition,
-        game: this,
-        center: _centerOf(savedTurret.point),
-        tileSize: _tileSize,
-      )..restoreFromSaveData(savedTurret);
-      _turrets[savedTurret.point] = turret;
-      add(turret);
-    }
-
-    for (final savedEnemy in data.enemies) {
-      final definition = demoEnemies[savedEnemy.type];
-      if (definition == null || savedEnemy.hp <= 0) {
-        continue;
-      }
-      final enemy = EnemyComponent(
-        definition: definition,
-        maxHp: savedEnemy.maxHp > 0
-            ? savedEnemy.maxHp
-            : scaledEnemyMaxHp(
-                definition,
-                _waves[_roundIndex].round,
-                stageNumber: _currentStageNumber,
-              ),
-        maxShield: scaledEnemyMaxShield(
-          definition,
-          _waves[_roundIndex].round,
-          stageNumber: _currentStageNumber,
-        ),
-        maxArmor: scaledEnemyMaxArmor(
-          definition,
-          _waves[_roundIndex].round,
-          stageNumber: _currentStageNumber,
-        ),
-        path: _worldPath,
-        game: this,
-      )..restoreFromSaveData(savedEnemy);
-      enemies.add(enemy);
-      add(enemy);
-    }
-    _waveSpawner.restoreFromSaveData(data.spawnQueue);
-
-    final restoredPhase = data.phase == GamePhase.restored
-        ? GamePhase.preparation
-        : data.phase;
-    if (restoredPhase != GamePhase.wave) {
-      _phase = restoredPhase;
-      _restoredPhase = null;
-      return;
-    }
-
-    _phase = GamePhase.restored;
-    _restoredPhase = restoredPhase;
-    _isPurchasedGemReward = false;
-  }
-
-  void _refundSavedTurretsForMapChange(List<SavedTurret> savedTurrets) {
-    final refund = _saveAdapter.refundSavedTurretsForMapChange(
-      savedTurrets: savedTurrets,
-      baseCostFor: (type) => demoTurrets[type]?.cost,
-      primaryTraitCost: primaryTraitCost,
-      secondaryTraitCost: secondaryTraitCost,
-    );
-    _gold += refund.gold;
-    _gemShards += refund.gemShards;
-    for (final entry in refund.gemInventory.entries) {
-      _gemInventory[entry.key] = (_gemInventory[entry.key] ?? 0) + entry.value;
-    }
-    _waveSpawner.clear();
-  }
-
-  void _restoreRunUpgradeState(GameSaveData data) {
-    _runUpgradeLevels
-      ..clear()
-      ..addEntries(
-        data.runUpgradeLevels.entries
-            .where((entry) {
-              final definition = demoRunUpgrades[entry.key];
-              return definition != null && entry.value > 0;
-            })
-            .map((entry) {
-              final maxLevel = demoRunUpgrades[entry.key]!.maxLevel;
-              return MapEntry(
-                entry.key,
-                entry.value.clamp(0, maxLevel).toInt(),
-              );
-            }),
-      );
-    _killGoldFractionWallet = data.killGoldFractionWallet
-        .clamp(0.0, 0.999999)
-        .toDouble();
   }
 
   bool _isActiveTurret(TurretComponent turret) {

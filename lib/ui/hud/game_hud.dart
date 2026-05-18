@@ -33,6 +33,8 @@ import '../menu/result_overlay.dart';
 part 'top_bar.dart';
 part 'bottom_bar.dart';
 part 'gem_equip_panel.dart';
+part 'gem_socket_section.dart';
+part 'turret_trait_panel.dart';
 part 'reward_overlay.dart';
 part 'hud_common.dart';
 
