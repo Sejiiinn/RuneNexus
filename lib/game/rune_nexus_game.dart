@@ -19,9 +19,7 @@ import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/game_phase.dart';
 import '../domain/combat/run_panel_tab.dart';
 import '../domain/enemy/enemy_scaling.dart';
-import '../domain/enemy/enemy_resistance_profile.dart';
 import '../domain/enemy/enemy_type.dart';
-import '../domain/gem/gem_equip_rules.dart';
 import '../domain/gem/gem_type.dart';
 import '../domain/map/grid_point.dart';
 import '../domain/map/map_definition.dart';
@@ -29,7 +27,6 @@ import '../domain/map/tile_type.dart';
 import '../domain/run_upgrade/run_upgrade_type.dart';
 import '../domain/stage/stage_definition.dart';
 import '../domain/turret/attack_tag.dart';
-import '../domain/turret/damage_family.dart';
 import '../domain/turret/turret_trait_type.dart';
 import '../domain/turret/turret_type.dart';
 import '../domain/wave/wave_definition.dart';
@@ -44,10 +41,15 @@ import 'components/turret_component.dart';
 import 'game_snapshot.dart';
 import 'rendering/status_effect_sprite_cache.dart';
 import 'rendering/turret_shape_renderer.dart';
-import 'systems/gem_reward_generator.dart';
+import 'systems/combat_resolver.dart';
+import 'systems/game_save_adapter.dart';
+import 'systems/gem_reward_controller.dart';
 import 'systems/run_progression.dart';
 import 'systems/save_scheduler.dart';
+import 'systems/turret_action_controller.dart';
 import 'systems/wave_spawner.dart';
+
+part 'game_snapshot_builder.dart';
 
 const _debugPanelEnabled = bool.fromEnvironment(
   'RUNE_NEXUS_DEBUG_PANEL',
@@ -325,8 +327,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   final Map<RunUpgradeType, int> _runUpgradeLevels = {};
   final List<GemType> _rewardOptions = [];
   final DamageNumberImageCache _damageNumberImages = DamageNumberImageCache();
+  final CombatResolver _combatResolver = const CombatResolver(
+    chainDamageMultiplier: _chainDamageMultiplier,
+    chainJumpRange: _chainJumpRange,
+    burnDamagePerSecondScale: _burnDamagePerSecondScale,
+    burnDurationSeconds: _burnDurationSeconds,
+  );
   final WaveSpawner _waveSpawner = WaveSpawner();
-  final GemRewardGenerator _gemRewardGenerator = GemRewardGenerator();
+  final GemRewardController _gemRewards = GemRewardController();
+  final GameSaveAdapter _saveAdapter = const GameSaveAdapter();
+  final TurretActionController _turretActions = const TurretActionController();
   final RunProgression _progression = RunProgression();
   late final SaveScheduler _saveScheduler = SaveScheduler(
     saveNow: _writeLocalSave,
@@ -689,19 +699,21 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void purchaseGemChoice() {
-    if (_phase != GamePhase.preparation || _gemShards < gemChoicePurchaseCost) {
+    final purchase = _gemRewards.purchaseGemChoice(
+      phase: _phase,
+      gemShards: _gemShards,
+      purchaseCost: gemChoicePurchaseCost,
+      availableGems: _availableGemTypes(),
+    );
+    if (purchase == null) {
       return;
     }
 
-    _gemShards -= gemChoicePurchaseCost;
+    _gemShards = purchase.gemShards;
     _isPurchasedGemReward = true;
     _rewardOptions
       ..clear()
-      ..addAll(
-        _gemRewardGenerator.generateOptions(
-          availableGems: _availableGemTypes(),
-        ),
-      );
+      ..addAll(purchase.rewardOptions);
     _phase = GamePhase.reward;
     _publish();
     _requestLocalSave(immediate: true);
@@ -988,15 +1000,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedPortalPoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
-    _completedRounds = math.max(_completedRounds, _roundIndex + 1);
-    _seedDebugGemInventory();
+    final reward = _gemRewards.openDebugReward(
+      completedRounds: _completedRounds,
+      roundIndex: _roundIndex,
+      availableGems: _availableGemTypes(),
+    );
+    _completedRounds = reward.completedRounds;
+    _gemRewards.seedDebugGemInventory(_gemInventory);
     _rewardOptions
       ..clear()
-      ..addAll(
-        _gemRewardGenerator.generateOptions(
-          availableGems: _availableGemTypes(),
-        ),
-      );
+      ..addAll(reward.rewardOptions);
     _publish();
   }
 
@@ -1093,12 +1106,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void selectRewardGem(GemType type) {
-    if (_phase != GamePhase.reward || !_rewardOptions.contains(type)) {
+    final selected = _gemRewards.selectRewardGem(
+      phase: _phase,
+      rewardOptions: _rewardOptions,
+      gemInventory: _gemInventory,
+      type: type,
+    );
+    if (!selected) {
       return;
     }
 
-    _gemInventory[type] = (_gemInventory[type] ?? 0) + 1;
-    _rewardOptions.clear();
     _isPurchasedGemReward = false;
     _phase = GamePhase.preparation;
     _publish();
@@ -1106,12 +1123,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void selectRewardGemShards() {
-    if (_phase != GamePhase.reward || _isPurchasedGemReward) {
+    final gemShards = _gemRewards.selectRewardGemShards(
+      phase: _phase,
+      isPurchasedGemReward: _isPurchasedGemReward,
+      gemShards: _gemShards,
+      shardRewardAmount: gemShardRewardFallbackAmount,
+      rewardOptions: _rewardOptions,
+    );
+    if (gemShards == null) {
       return;
     }
 
-    _gemShards += gemShardRewardFallbackAmount;
-    _rewardOptions.clear();
+    _gemShards = gemShards;
     _isPurchasedGemReward = false;
     _phase = GamePhase.preparation;
     _publish();
@@ -1119,25 +1142,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void grantGem(GemType type) {
-    _gemInventory[type] = (_gemInventory[type] ?? 0) + 1;
+    _gemRewards.grantGem(gemInventory: _gemInventory, type: type);
     _publish();
     _requestLocalSave(immediate: true);
-  }
-
-  void _seedDebugGemInventory() {
-    const seeds = {
-      GemType.attackSpeed: 1,
-      GemType.range: 2,
-      GemType.physicalDamage: 1,
-      GemType.lightWeapon: 1,
-    };
-
-    for (final entry in seeds.entries) {
-      _gemInventory[entry.key] = math.max(
-        _gemInventory[entry.key] ?? 0,
-        entry.value,
-      );
-    }
   }
 
   TurretComponent? _debugEnsureTraitTurret({required int targetLevel}) {
@@ -1194,249 +1201,150 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void selectSelectedTurretGemSlot(int slotIndex) {
-    final point = _selectedTurretPoint;
-    if (point == null) {
-      return;
-    }
-    final turret = _turrets[point];
-    if (turret == null || !turret.canEquipGemAt(slotIndex)) {
-      return;
-    }
-
-    _selectedTurretGemSlotIndex = slotIndex;
-    _publish();
+    _applyTurretAction(
+      _turretActions.selectGemSlot(
+        selectedPoint: _selectedTurretPoint,
+        turrets: _turrets,
+        slotIndex: slotIndex,
+        gold: _gold,
+        gemShards: _gemShards,
+        levelUpPreviewPoint: _levelUpPreviewPoint,
+      ),
+    );
   }
 
   void equipSelectedTurret(GemType type) {
-    if (_phase != GamePhase.preparation || (_gemInventory[type] ?? 0) <= 0) {
-      return;
-    }
-
-    final point = _selectedTurretPoint;
-    if (point == null) {
-      return;
-    }
-    final turret = _turrets[point];
-    if (turret == null) {
-      return;
-    }
-    if (turret.equippedGems.contains(type)) {
-      return;
-    }
-    if (!canEquipGemOnTurret(type, turret.definition)) {
-      return;
-    }
-
-    final selectedSlotIndex = _selectedTurretGemSlotIndex;
-    final slotIndex = selectedSlotIndex == null
-        ? _defaultGemSlotIndex(turret)
-        : selectedSlotIndex.clamp(0, turret.slotLimit - 1).toInt();
-    if (!turret.canEquipGemAt(slotIndex)) {
-      return;
-    }
-    final returnedGem = turret.equipGem(type, slotIndex);
-    _gemInventory[type] = (_gemInventory[type] ?? 0) - 1;
-    if ((_gemInventory[type] ?? 0) <= 0) {
-      _gemInventory.remove(type);
-    }
-    if (returnedGem != null) {
-      _gemInventory[returnedGem] = (_gemInventory[returnedGem] ?? 0) + 1;
-    }
-    _selectedTurretGemSlotIndex = slotIndex;
-    _publish();
-    _requestLocalSave(immediate: true);
+    _applyTurretAction(
+      _turretActions.equipGem(
+        phase: _phase,
+        selectedPoint: _selectedTurretPoint,
+        selectedSlotIndex: _selectedTurretGemSlotIndex,
+        turrets: _turrets,
+        gemInventory: _gemInventory,
+        type: type,
+        gold: _gold,
+        gemShards: _gemShards,
+        levelUpPreviewPoint: _levelUpPreviewPoint,
+      ),
+    );
   }
 
   void removeSelectedTurretGemSlot() {
-    if (_phase != GamePhase.preparation) {
-      return;
-    }
-
-    final point = _selectedTurretPoint;
-    if (point == null) {
-      return;
-    }
-    final turret = _turrets[point];
-    if (turret == null) {
-      return;
-    }
-
-    final slotIndex = _selectedTurretGemSlotIndex;
-    if (slotIndex == null) {
-      return;
-    }
-
-    final removedGem = turret.removeGemAt(slotIndex);
-    if (removedGem == null) {
-      return;
-    }
-
-    _gemInventory[removedGem] = (_gemInventory[removedGem] ?? 0) + 1;
-    _selectedTurretGemSlotIndex = slotIndex
-        .clamp(0, math.max(0, turret.slotLimit - 1))
-        .toInt();
-    _publish();
-    _requestLocalSave(immediate: true);
+    _applyTurretAction(
+      _turretActions.removeGem(
+        phase: _phase,
+        selectedPoint: _selectedTurretPoint,
+        selectedSlotIndex: _selectedTurretGemSlotIndex,
+        turrets: _turrets,
+        gemInventory: _gemInventory,
+        gold: _gold,
+        gemShards: _gemShards,
+        levelUpPreviewPoint: _levelUpPreviewPoint,
+      ),
+    );
   }
 
   void levelUpSelectedTurret() {
-    if (!_canEditBoard) {
-      return;
-    }
-
-    final point = _selectedTurretPoint;
-    if (point == null) {
-      return;
-    }
-    final turret = _turrets[point];
-    if (turret == null || !turret.canLevelUp) {
-      return;
-    }
-    if (_gold < turret.levelUpCost) {
-      return;
-    }
-
-    _gold -= turret.levelUpCost;
-    turret.upgradeLevel();
-    if (_levelUpPreviewPoint == point &&
-        (!turret.canLevelUp || _gold < turret.levelUpCost)) {
-      _levelUpPreviewPoint = null;
-    }
-    _publish();
-    _requestLocalSave(immediate: true);
+    _applyTurretAction(
+      _turretActions.levelUp(
+        canEditBoard: _canEditBoard,
+        selectedPoint: _selectedTurretPoint,
+        turrets: _turrets,
+        gold: _gold,
+        gemShards: _gemShards,
+        selectedGemSlotIndex: _selectedTurretGemSlotIndex,
+        levelUpPreviewPoint: _levelUpPreviewPoint,
+      ),
+    );
   }
 
   void previewOrLevelUpSelectedTurret() {
-    if (!_canEditBoard) {
-      return;
-    }
-
-    final point = _selectedTurretPoint;
-    if (point == null) {
-      return;
-    }
-    final turret = _turrets[point];
-    if (turret == null || !turret.canLevelUp) {
-      return;
-    }
-    if (_gold < turret.levelUpCost) {
-      return;
-    }
-
-    if (_levelUpPreviewPoint == point) {
-      levelUpSelectedTurret();
-      return;
-    }
-
-    _levelUpPreviewPoint = point;
-    _publish();
+    _applyTurretAction(
+      _turretActions.previewOrLevelUp(
+        canEditBoard: _canEditBoard,
+        selectedPoint: _selectedTurretPoint,
+        turrets: _turrets,
+        gold: _gold,
+        gemShards: _gemShards,
+        selectedGemSlotIndex: _selectedTurretGemSlotIndex,
+        levelUpPreviewPoint: _levelUpPreviewPoint,
+      ),
+    );
   }
 
   void upgradeSelectedTurretLink() {
-    if (_phase != GamePhase.preparation) {
-      return;
-    }
-
-    final point = _selectedTurretPoint;
-    if (point == null) {
-      return;
-    }
-    final turret = _turrets[point];
-    if (turret == null || !turret.canUpgradeLink) {
-      return;
-    }
-    if (_gold < turret.linkUpgradeCost) {
-      return;
-    }
-
-    _gold -= turret.linkUpgradeCost;
-    turret.upgradeLink();
-    _selectedTurretGemSlotIndex = _defaultGemSlotIndex(turret);
-    _publish();
-    _requestLocalSave(immediate: true);
+    _applyTurretAction(
+      _turretActions.upgradeLink(
+        phase: _phase,
+        selectedPoint: _selectedTurretPoint,
+        turrets: _turrets,
+        gold: _gold,
+        gemShards: _gemShards,
+        levelUpPreviewPoint: _levelUpPreviewPoint,
+      ),
+    );
   }
 
   void chooseSelectedTurretPrimaryTrait(TurretTraitType trait) {
-    if (!_canEditBoard || _gemShards < primaryTraitCost) {
-      return;
-    }
-
-    final point = _selectedTurretPoint;
-    if (point == null) {
-      return;
-    }
-    final turret = _turrets[point];
-    if (turret == null || !turret.canChoosePrimaryTrait) {
-      return;
-    }
-
-    if (!turret.choosePrimaryTrait(trait)) {
-      return;
-    }
-    _gemShards -= primaryTraitCost;
-    _publish();
-    _requestLocalSave(immediate: true);
+    _applyTurretAction(
+      _turretActions.choosePrimaryTrait(
+        canEditBoard: _canEditBoard,
+        selectedPoint: _selectedTurretPoint,
+        turrets: _turrets,
+        gold: _gold,
+        gemShards: _gemShards,
+        selectedGemSlotIndex: _selectedTurretGemSlotIndex,
+        levelUpPreviewPoint: _levelUpPreviewPoint,
+        primaryTraitCost: primaryTraitCost,
+        trait: trait,
+      ),
+    );
   }
 
   void chooseSelectedTurretSecondaryTrait(TurretTraitType trait) {
-    if (!_canEditBoard || _gemShards < secondaryTraitCost) {
-      return;
-    }
-
-    final point = _selectedTurretPoint;
-    if (point == null) {
-      return;
-    }
-    final turret = _turrets[point];
-    if (turret == null || !turret.canChooseSecondaryTrait) {
-      return;
-    }
-
-    if (!turret.chooseSecondaryTrait(trait)) {
-      return;
-    }
-    _gemShards -= secondaryTraitCost;
-    _publish();
-    _requestLocalSave(immediate: true);
+    _applyTurretAction(
+      _turretActions.chooseSecondaryTrait(
+        canEditBoard: _canEditBoard,
+        selectedPoint: _selectedTurretPoint,
+        turrets: _turrets,
+        gold: _gold,
+        gemShards: _gemShards,
+        selectedGemSlotIndex: _selectedTurretGemSlotIndex,
+        levelUpPreviewPoint: _levelUpPreviewPoint,
+        secondaryTraitCost: secondaryTraitCost,
+        trait: trait,
+      ),
+    );
   }
 
   void refundSelectedTurret() {
-    if (!_canEditBoard) {
-      return;
-    }
-
-    final point = _selectedTurretPoint;
-    if (point == null) {
-      return;
-    }
-    final turret = _turrets[point];
-    if (turret == null) {
-      return;
-    }
-
-    _gold += turret.refundGold;
-    for (final gem in turret.equippedGems) {
-      _gemInventory[gem] = (_gemInventory[gem] ?? 0) + 1;
-    }
-    for (final enemy in enemies) {
-      enemy.clearBurnSource(point);
-    }
-    _turrets.remove(point);
-    turret.removeFromParent();
-    _selectedTurretPoint = null;
-    _selectedTurretGemSlotIndex = null;
-    _publish();
-    _requestLocalSave(immediate: true);
+    _applyTurretAction(
+      _turretActions.refund(
+        canEditBoard: _canEditBoard,
+        selectedPoint: _selectedTurretPoint,
+        turrets: _turrets,
+        enemies: enemies,
+        gemInventory: _gemInventory,
+        gold: _gold,
+        gemShards: _gemShards,
+        levelUpPreviewPoint: _levelUpPreviewPoint,
+      ),
+    );
   }
 
-  int _defaultGemSlotIndex(TurretComponent turret) {
-    final slots = turret.equippedGemSlots;
-    for (var index = 0; index < turret.slotLimit; index++) {
-      if (index >= slots.length || slots[index] == null) {
-        return index;
-      }
+  void _applyTurretAction(TurretActionResult? result) {
+    if (result == null) {
+      return;
     }
-    return 0;
+    _gold = result.gold;
+    _gemShards = result.gemShards;
+    _selectedTurretPoint = result.selectedTurretPoint;
+    _selectedTurretGemSlotIndex = result.selectedGemSlotIndex;
+    _levelUpPreviewPoint = result.levelUpPreviewPoint;
+    _publish();
+    if (result.saveImmediately) {
+      _requestLocalSave(immediate: true);
+    }
   }
 
   Color colorForGem(GemType type) => demoGems[type]!.color;
@@ -1594,12 +1502,22 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       final baseDamage = identical(enemy, target)
           ? owner.damage * criticalMultiplier
           : owner.damage * owner.splashSecondaryDamageMultiplier;
-      final multiplier = _damageMultiplier(owner, enemy);
-      final damage = baseDamage * traitMultiplier * multiplier;
-      _applyAttackStatuses(owner, enemy);
+      final resolvedDamage = _combatResolver.resolveAttackDamage(
+        owner: owner,
+        enemy: enemy,
+        baseDamage: baseDamage,
+        traitMultiplier: traitMultiplier,
+      );
+      _combatResolver.applyAttackStatuses(
+        owner: owner,
+        enemy: enemy,
+        activeSourceTurretPoint: _isActiveTurret(owner)
+            ? owner.gridPoint
+            : null,
+      );
       enemy.showHitFlash(owner.definition.color);
       final actualDamage = enemy.receiveDamage(
-        damage,
+        resolvedDamage.damage,
         burnTransfer: _burnTransferForHit(owner, enemy),
       );
       showDamageNumber(
@@ -1607,7 +1525,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         damage: actualDamage,
         color: owner.definition.color,
         damageMultiplier:
-            multiplier * (identical(enemy, target) ? criticalMultiplier : 1),
+            resolvedDamage.resistanceMultiplier *
+            (identical(enemy, target) ? criticalMultiplier : 1),
       );
       _recordTurretDamage(
         owner,
@@ -1641,20 +1560,31 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     required EnemyComponent target,
     required double damage,
   }) {
-    final multiplier = _damageMultiplier(owner, target);
-    final adjustedDamage = damage * multiplier;
-    final statusScale = owner.damage <= 0 ? 0.0 : damage / owner.damage;
-    _applyAttackStatuses(owner, target, damageScale: statusScale);
+    final resolvedDamage = _combatResolver.resolveAttackDamage(
+      owner: owner,
+      enemy: target,
+      baseDamage: damage,
+    );
+    final statusScale = _combatResolver.chainStatusDamageScale(
+      owner: owner,
+      damage: damage,
+    );
+    _combatResolver.applyAttackStatuses(
+      owner: owner,
+      enemy: target,
+      damageScale: statusScale,
+      activeSourceTurretPoint: _isActiveTurret(owner) ? owner.gridPoint : null,
+    );
     target.showHitFlash(chainColorFor(owner));
     final actualDamage = target.receiveDamage(
-      adjustedDamage,
+      resolvedDamage.damage,
       burnTransfer: _burnTransferForHit(owner, target),
     );
     showDamageNumber(
       position: target.position.clone(),
       damage: actualDamage,
       color: chainColorFor(owner),
-      damageMultiplier: multiplier,
+      damageMultiplier: resolvedDamage.resistanceMultiplier,
     );
     _recordTurretDamage(owner, actualDamage, TurretDamageKind.chain);
   }
@@ -1693,12 +1623,22 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       final baseDamage = isPrimaryTarget
           ? owner.damage * criticalMultiplier
           : owner.damage * owner.splashSecondaryDamageMultiplier;
-      final multiplier = _damageMultiplier(owner, enemy);
-      final damage = baseDamage * traitMultiplier * multiplier;
-      _applyAttackStatuses(owner, enemy);
+      final resolvedDamage = _combatResolver.resolveAttackDamage(
+        owner: owner,
+        enemy: enemy,
+        baseDamage: baseDamage,
+        traitMultiplier: traitMultiplier,
+      );
+      _combatResolver.applyAttackStatuses(
+        owner: owner,
+        enemy: enemy,
+        activeSourceTurretPoint: _isActiveTurret(owner)
+            ? owner.gridPoint
+            : null,
+      );
       enemy.showHitFlash(owner.definition.color);
       final actualDamage = enemy.receiveDamage(
-        damage,
+        resolvedDamage.damage,
         burnTransfer: _burnTransferForHit(owner, enemy),
       );
       showDamageNumber(
@@ -1706,7 +1646,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         damage: actualDamage,
         color: owner.definition.color,
         damageMultiplier:
-            multiplier * (isPrimaryTarget ? criticalMultiplier : 1),
+            resolvedDamage.resistanceMultiplier *
+            (isPrimaryTarget ? criticalMultiplier : 1),
       );
       _recordTurretDamage(
         owner,
@@ -1741,19 +1682,28 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
 
     for (final enemy in impacted) {
-      final multiplier = _damageMultiplier(owner, enemy);
-      final damage = owner.damage * multiplier;
-      _applyAttackStatuses(owner, enemy);
+      final resolvedDamage = _combatResolver.resolveAttackDamage(
+        owner: owner,
+        enemy: enemy,
+        baseDamage: owner.damage,
+      );
+      _combatResolver.applyAttackStatuses(
+        owner: owner,
+        enemy: enemy,
+        activeSourceTurretPoint: _isActiveTurret(owner)
+            ? owner.gridPoint
+            : null,
+      );
       enemy.showHitFlash(owner.definition.color);
       final actualDamage = enemy.receiveDamage(
-        damage,
+        resolvedDamage.damage,
         burnTransfer: _burnTransferForHit(owner, enemy),
       );
       showDamageNumber(
         position: enemy.position.clone(),
         damage: actualDamage,
         color: owner.definition.color,
-        damageMultiplier: multiplier,
+        damageMultiplier: resolvedDamage.resistanceMultiplier,
       );
       _recordTurretDamage(owner, actualDamage, TurretDamageKind.splash);
     }
@@ -1849,41 +1799,20 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     required EnemyComponent source,
     required Set<EnemyComponent> excluded,
   }) {
-    final jumpRange = _chainJumpRange * boardDistanceScale;
-    final jumpRangeSquared = jumpRange * jumpRange;
-    EnemyComponent? firstTarget;
-    EnemyComponent? secondTarget;
-    var firstDistanceSquared = double.infinity;
-    var secondDistanceSquared = double.infinity;
-
-    for (final enemy in enemies) {
-      if (!enemy.isMounted || enemy.isDead || excluded.contains(enemy)) {
-        continue;
-      }
-      final dx = enemy.position.x - source.position.x;
-      final dy = enemy.position.y - source.position.y;
-      final distanceSquared = dx * dx + dy * dy;
-      if (distanceSquared > jumpRangeSquared) {
-        continue;
-      }
-      if (distanceSquared < firstDistanceSquared) {
-        secondDistanceSquared = firstDistanceSquared;
-        secondTarget = firstTarget;
-        firstDistanceSquared = distanceSquared;
-        firstTarget = enemy;
-      } else if (distanceSquared < secondDistanceSquared) {
-        secondDistanceSquared = distanceSquared;
-        secondTarget = enemy;
-      }
-    }
-
-    for (final enemy in [firstTarget, secondTarget].nonNulls) {
+    final targets = _combatResolver.chainProjectileTargets(
+      enemies: enemies,
+      source: source,
+      excluded: excluded,
+      boardDistanceScale: boardDistanceScale,
+    );
+    final damage = _combatResolver.chainProjectileDamage(owner);
+    for (final enemy in targets) {
       add(
         ChainProjectileComponent(
           origin: source.position.clone(),
           target: enemy,
           owner: owner,
-          damage: owner.damage * _chainDamageMultiplier,
+          damage: damage,
           game: this,
         ),
       );
@@ -2319,20 +2248,20 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _gemShards += _roundClearGemShardRewardFor(completedRound);
     _roundIndex++;
     _completedRounds = completedRound;
+    final gemRoundReward = _gemRewards.completeRound(
+      completedRound: completedRound,
+      availableGems: _availableGemTypes(),
+    );
     if (_roundIndex >= _waves.length) {
       _rewardOptions.clear();
       _finishRun(GamePhase.success);
       unawaited(_saveRoundCheckpoint());
-    } else if (_gemRewardGenerator.shouldOfferReward(completedRound)) {
+    } else if (gemRoundReward != null) {
       _phase = GamePhase.reward;
       _isPurchasedGemReward = false;
       _rewardOptions
         ..clear()
-        ..addAll(
-          _gemRewardGenerator.generateOptions(
-            availableGems: _availableGemTypes(),
-          ),
-        );
+        ..addAll(gemRoundReward.rewardOptions);
       unawaited(_saveRoundCheckpoint());
     } else {
       _phase = GamePhase.preparation;
@@ -2580,40 +2509,34 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   GameSaveData _buildSaveData() {
-    final savedPhase = _phase == GamePhase.restored
-        ? _restoredPhase ?? GamePhase.preparation
-        : _phase;
-    final pendingSave = !_savedDataLoaded ? _pendingFullSaveData : null;
-    return GameSaveData(
-      version: GameSaveData.currentVersion,
-      savedAtMillis: DateTime.now().millisecondsSinceEpoch,
-      gold: _gold,
-      gemShards: _gemShards,
-      nexusHp: _nexusHp,
-      stageNumber: _currentStageNumber,
-      mapSignature: pendingSave?.hasActiveRun == true
-          ? pendingSave?.mapSignature
-          : _mapSignature(_map),
-      roundIndex: _roundIndex,
-      completedRounds: _completedRounds,
-      phase: savedPhase,
-      autoStartMode: _autoStartMode,
-      progression: _progression.toSaveData(),
-      runUpgradeLevels: Map.unmodifiable(_runUpgradeLevels),
-      killGoldFractionWallet: _killGoldFractionWallet,
-      gemInventory: Map.unmodifiable(_gemInventory),
-      rewardOptions: List.unmodifiable(_rewardOptions),
-      isPurchasedGemReward: _isPurchasedGemReward,
-      turrets:
-          pendingSave?.turrets ??
-          [for (final turret in _turrets.values) turret.toSaveData()],
-      enemies:
-          pendingSave?.enemies ??
-          [
-            for (final enemy in enemies)
-              if (!enemy.isDead) enemy.toSaveData(),
-          ],
-      spawnQueue: pendingSave?.spawnQueue ?? _waveSpawner.toSaveData(),
+    return _saveAdapter.buildSaveData(
+      GameSaveBuildState(
+        savedAtMillis: DateTime.now().millisecondsSinceEpoch,
+        gold: _gold,
+        gemShards: _gemShards,
+        nexusHp: _nexusHp,
+        currentStageNumber: _currentStageNumber,
+        map: _map,
+        roundIndex: _roundIndex,
+        completedRounds: _completedRounds,
+        phase: _phase,
+        restoredPhase: _restoredPhase,
+        autoStartMode: _autoStartMode,
+        progression: _progression,
+        runUpgradeLevels: _runUpgradeLevels,
+        killGoldFractionWallet: _killGoldFractionWallet,
+        gemInventory: _gemInventory,
+        rewardOptions: _rewardOptions,
+        isPurchasedGemReward: _isPurchasedGemReward,
+        turrets: [for (final turret in _turrets.values) turret.toSaveData()],
+        enemies: [
+          for (final enemy in enemies)
+            if (!enemy.isDead) enemy.toSaveData(),
+        ],
+        spawnQueue: _waveSpawner.toSaveData(),
+        savedDataLoaded: _savedDataLoaded,
+        pendingFullSaveData: _pendingFullSaveData,
+      ),
     );
   }
 
@@ -2744,7 +2667,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
 
-    if (_hasSavedRunMapMismatch(data)) {
+    if (_saveAdapter.hasSavedRunMapMismatch(data, _map)) {
       _refundSavedTurretsForMapChange(data.turrets);
       _phase = GamePhase.preparation;
       _restoredPhase = null;
@@ -2821,75 +2744,19 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _isPurchasedGemReward = false;
   }
 
-  bool _hasSavedRunMapMismatch(GameSaveData data) {
-    if (data.mapSignature != _mapSignature(_map)) {
-      return true;
-    }
-    for (final savedTurret in data.turrets) {
-      if (!_map.canBuildAt(savedTurret.point)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   void _refundSavedTurretsForMapChange(List<SavedTurret> savedTurrets) {
-    for (final savedTurret in savedTurrets) {
-      final definition = demoTurrets[savedTurret.type];
-      if (definition != null) {
-        _gold += _savedTurretInvestedGold(savedTurret, definition.cost);
-      }
-      for (final gem in savedTurret.equippedGems) {
-        _gemInventory[gem] = (_gemInventory[gem] ?? 0) + 1;
-      }
-      if (savedTurret.primaryTrait != null) {
-        _gemShards += primaryTraitCost;
-      }
-      if (savedTurret.secondaryTrait != null) {
-        _gemShards += secondaryTraitCost;
-      }
+    final refund = _saveAdapter.refundSavedTurretsForMapChange(
+      savedTurrets: savedTurrets,
+      baseCostFor: (type) => demoTurrets[type]?.cost,
+      primaryTraitCost: primaryTraitCost,
+      secondaryTraitCost: secondaryTraitCost,
+    );
+    _gold += refund.gold;
+    _gemShards += refund.gemShards;
+    for (final entry in refund.gemInventory.entries) {
+      _gemInventory[entry.key] = (_gemInventory[entry.key] ?? 0) + entry.value;
     }
     _waveSpawner.clear();
-  }
-
-  String _mapSignature(MapDefinition map) {
-    final buffer = StringBuffer('${map.columns}x${map.rows}|');
-    for (final row in map.tiles) {
-      for (final tile in row) {
-        buffer.write('${tile.name},');
-      }
-      buffer.write('/');
-    }
-    buffer.write('|');
-    for (final point in map.path) {
-      buffer.write('${point.x},${point.y};');
-    }
-    return buffer.toString();
-  }
-
-  int _savedTurretInvestedGold(SavedTurret savedTurret, int baseCost) {
-    var total = baseCost;
-    final level = savedTurret.level.clamp(1, 10).toInt();
-    for (var currentLevel = 1; currentLevel < level; currentLevel++) {
-      total += _turretLevelUpCostAt(baseCost, currentLevel);
-    }
-    final slotLimit = savedTurret.slotLimit.clamp(1, 3).toInt();
-    if (slotLimit >= 2) {
-      total += _turretLinkUpgradeCostForSlot(baseCost, 2);
-    }
-    if (slotLimit >= 3) {
-      total += _turretLinkUpgradeCostForSlot(baseCost, 3);
-    }
-    return total;
-  }
-
-  int _turretLevelUpCostAt(int baseCost, int level) {
-    return (baseCost * (70 + (level - 1) * 45) + 50) ~/ 100;
-  }
-
-  int _turretLinkUpgradeCostForSlot(int baseCost, int slotLimit) {
-    final costPercent = slotLimit == 2 ? 150 : 300;
-    return (baseCost * costPercent + 50) ~/ 100;
   }
 
   void _restoreRunUpgradeState(GameSaveData data) {
@@ -2912,39 +2779,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _killGoldFractionWallet = data.killGoldFractionWallet
         .clamp(0.0, 0.999999)
         .toDouble();
-  }
-
-  void _applyAttackStatuses(
-    TurretComponent owner,
-    EnemyComponent enemy, {
-    double damageScale = 1,
-  }) {
-    if (owner.definition.attackTags.contains(AttackTag.damageOverTime)) {
-      final burnMultiplier = _damageMultiplier(owner, enemy);
-      enemy.applyBurn(
-        damagePerSecond:
-            owner.damage *
-            _burnDamagePerSecondScale *
-            damageScale *
-            burnMultiplier *
-            owner.damageOverTimeDamageMultiplier,
-        duration: _burnDurationSeconds * owner.damageOverTimeDurationMultiplier,
-        damageMultiplier: burnMultiplier,
-        sourceTurretPoint: _isActiveTurret(owner) ? owner.gridPoint : null,
-      );
-    }
-    if (owner.slowDuration > 0 && owner.slowMultiplier < 1) {
-      enemy.applySlow(
-        multiplier: owner.slowMultiplier,
-        duration: owner.slowDuration,
-      );
-      if (owner.appliesFrostCrack) {
-        enemy.applyMagicalVulnerability(
-          bonus: 0.15,
-          duration: owner.slowDuration,
-        );
-      }
-    }
   }
 
   bool _isActiveTurret(TurretComponent turret) {
@@ -3012,7 +2846,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (transferDuration <= 0) {
       return;
     }
-    final target = _chainIgnitionTarget(source);
+    final target = _combatResolver.chainIgnitionTarget(
+      enemies: enemies,
+      source: source,
+      boardDistanceScale: boardDistanceScale,
+    );
     if (target == null) {
       return;
     }
@@ -3023,66 +2861,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       sourceTurretPoint: sourcePoint,
     );
     target.showHitFlash(turret.definition.color);
-  }
-
-  EnemyComponent? _chainIgnitionTarget(EnemyComponent source) {
-    final jumpRange = _chainJumpRange * boardDistanceScale;
-    final jumpRangeSquared = jumpRange * jumpRange;
-    EnemyComponent? target;
-    var targetDistanceTravelled = -double.infinity;
-    var targetDistanceSquared = double.infinity;
-    for (final enemy in enemies) {
-      if (identical(enemy, source) ||
-          (!enemy.isMounted && !enemies.contains(enemy)) ||
-          enemy.isDead) {
-        continue;
-      }
-      final dx = enemy.position.x - source.position.x;
-      final dy = enemy.position.y - source.position.y;
-      final distanceSquared = dx * dx + dy * dy;
-      if (distanceSquared > jumpRangeSquared) {
-        continue;
-      }
-      final isFurtherAhead = enemy.distanceTravelled > targetDistanceTravelled;
-      final isTieButCloser =
-          enemy.distanceTravelled == targetDistanceTravelled &&
-          distanceSquared < targetDistanceSquared;
-      if (isFurtherAhead || isTieButCloser) {
-        target = enemy;
-        targetDistanceTravelled = enemy.distanceTravelled;
-        targetDistanceSquared = distanceSquared;
-      }
-    }
-    return target;
-  }
-
-  double _damageMultiplier(
-    TurretComponent owner,
-    EnemyComponent enemy, {
-    Set<AttackTag> extraTags = const {},
-  }) {
-    final resistance = enemy.definition.resistanceProfile;
-    final tags = {...owner.definition.attackTags, ...extraTags};
-    var familyResistance = resistance.familyResistance(
-      owner.definition.damageFamily,
-    );
-    if (owner.definition.damageFamily == DamageFamily.physical) {
-      familyResistance -=
-          enemy.physicalResistanceReduction + owner.physicalResistanceReduction;
-    }
-    if (owner.definition.damageFamily == DamageFamily.magical) {
-      familyResistance -= enemy.magicalResistanceReduction;
-    }
-
-    var multiplier = EnemyResistanceProfile.multiplierForResistance(
-      familyResistance,
-    );
-    for (final tag in tags) {
-      multiplier *= EnemyResistanceProfile.multiplierForResistance(
-        resistance.tagResistance(tag),
-      );
-    }
-    return multiplier;
   }
 
   double _turretBurnDamagePerSecondAtLevel(TurretComponent turret, int level) {
@@ -3104,232 +2882,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   void _publish() {
     _combatStatsPublishPending = false;
     _combatStatsPublishTimer = 0;
-    final nextWave = _roundIndex < _waves.length
-        ? _waves[_roundIndex]
-        : _waves.last;
-    final selectedTurret = _selectedTurretPoint == null
-        ? null
-        : _turrets[_selectedTurretPoint];
-    final levelUpPreviewActive =
-        _levelUpPreviewPoint != null &&
-        _levelUpPreviewPoint == _selectedTurretPoint &&
-        selectedTurret != null &&
-        selectedTurret.canLevelUp &&
-        _gold >= selectedTurret.levelUpCost;
-    if (!levelUpPreviewActive) {
-      _levelUpPreviewPoint = null;
-    }
-    final selectedTurretNextLevel = levelUpPreviewActive
-        ? selectedTurret.level + 1
-        : 0;
-    final selectedTurretBurnDamagePerSecond = selectedTurret == null
-        ? 0.0
-        : _turretBurnDamagePerSecondAtLevel(
-            selectedTurret,
-            selectedTurret.level,
-          );
-    final selectedTurretBurnDuration = selectedTurret == null
-        ? 0.0
-        : _turretBurnDuration(selectedTurret);
-    final selectedTurretNextBurnDamagePerSecond = levelUpPreviewActive
-        ? _turretBurnDamagePerSecondAtLevel(
-            selectedTurret,
-            selectedTurretNextLevel,
-          )
-        : 0.0;
-    final selectedTurretNextBurnDuration = levelUpPreviewActive
-        ? _turretBurnDuration(selectedTurret)
-        : 0.0;
-    final topDamageTurret = _turrets.values.fold<TurretComponent?>(null, (
-      current,
-      turret,
-    ) {
-      if (current == null || turret.damageDealt > current.damageDealt) {
-        return turret;
-      }
-      return current;
-    });
-    final nextWaveEnemyTypes = _enemyTypesFor(nextWave);
-    final nextWaveEnemyCounts = _enemyCountsFor(nextWave);
-    final gemCollection = _gemCollectionTotals();
-    final hasStageProgress =
-        _phase == GamePhase.wave ||
-        _phase == GamePhase.reward ||
-        _phase == GamePhase.restored ||
-        _roundIndex > 0 ||
-        _completedRounds > 0 ||
-        _turrets.isNotEmpty ||
-        enemies.isNotEmpty ||
-        !_waveSpawner.isEmpty ||
-        _runUpgradeLevels.isNotEmpty ||
-        _killGoldFractionWallet > 0 ||
-        _savedTurretCountForMenu > 0 ||
-        _gemShards > 0 ||
-        _gemInventory.isNotEmpty ||
-        _rewardOptions.isNotEmpty ||
-        _gold != _initialGold ||
-        _nexusHp != _maxNexusHp;
-    final placedTurretCount = _turrets.isNotEmpty
-        ? _turrets.length
-        : _savedTurretCountForMenu;
-    snapshotNotifier.value = GameSnapshot(
-      gold: _gold,
-      gemShards: _gemShards,
-      nexusHp: _nexusHp,
-      maxNexusHp: _maxNexusHp,
-      round: math.min(_roundIndex + 1, _waves.length),
-      maxRound: _waves.length,
-      phase: _phase,
-      restoredPhase: _phase == GamePhase.restored ? _restoredPhase : null,
-      hasStageProgress: hasStageProgress,
-      placedTurretCount: placedTurretCount,
-      currentStageNumber: _currentStageNumber,
-      unlockedStageCount: _progression.unlockedStageCount,
-      bestRoundsByStage: Map.unmodifiable(_progression.bestRoundsByStage),
-      clearedStageNumbers: Set.unmodifiable(_progression.clearedStageNumbers),
-      availableTurretTypes: List.unmodifiable(_availableTurretTypes()),
-      selectedTurretType: _selectedTurretType,
-      selectedRunPanelTab: _selectedRunPanelTab,
-      previewText: nextWave.previewText,
-      rewardOptions: List.unmodifiable(_rewardOptions),
-      isPurchasedGemReward: _isPurchasedGemReward,
-      gemInventory: Map.unmodifiable(_gemInventory),
-      gemCollection: Map.unmodifiable(gemCollection),
-      selectedBuildPoint: _selectedBuildPoint,
-      selectedBuildTurretType: _selectedBuildTurretType,
-      selectedPortalPoint: _selectedPortalPoint,
-      selectedTurretPoint: _selectedTurretPoint,
-      selectedTurretName: selectedTurret?.definition.name,
-      selectedTurretGems: List.unmodifiable(
-        selectedTurret?.equippedGemSlots ?? const [],
-      ),
-      selectedTurretGemSlotIndex:
-          selectedTurret == null || _selectedTurretGemSlotIndex == null
-          ? null
-          : _selectedTurretGemSlotIndex!
-                .clamp(0, selectedTurret.slotLimit - 1)
-                .toInt(),
-      selectedTurretSlotLimit: selectedTurret?.slotLimit ?? 0,
-      selectedTurretHasLinkUpgrade: selectedTurret?.hasNextLinkUpgrade ?? false,
-      selectedTurretCanUpgradeLink: selectedTurret?.canUpgradeLink ?? false,
-      selectedTurretLinkUpgradeCost: selectedTurret?.linkUpgradeCost ?? 0,
-      selectedTurretNextSlotLimit: selectedTurret?.nextSlotLimit ?? 0,
-      selectedTurretLinkUpgradeRequiredLevel:
-          selectedTurret?.linkUpgradeRequiredLevel ?? 0,
-      selectedTurretLevel: selectedTurret?.level ?? 0,
-      selectedTurretMaxLevel: selectedTurret?.maxLevel ?? 0,
-      selectedTurretCanLevelUp: selectedTurret?.canLevelUp ?? false,
-      selectedTurretLevelUpCost: selectedTurret?.levelUpCost ?? 0,
-      selectedTurretLevelUpPreviewActive: levelUpPreviewActive,
-      selectedTurretNextLevel: selectedTurretNextLevel,
-      selectedTurretNextDamage: levelUpPreviewActive
-          ? selectedTurret.damageAtLevel(selectedTurretNextLevel)
-          : 0,
-      selectedTurretNextRange: levelUpPreviewActive
-          ? selectedTurret.rangeAtLevel(selectedTurretNextLevel)
-          : 0,
-      selectedTurretNextAttackRate: levelUpPreviewActive
-          ? selectedTurret.attackRateAtLevel(selectedTurretNextLevel)
-          : 0,
-      selectedTurretNextBurnDamagePerSecond:
-          selectedTurretNextBurnDamagePerSecond,
-      selectedTurretNextBurnDuration: selectedTurretNextBurnDuration,
-      selectedTurretRefundGold: selectedTurret?.refundGold ?? 0,
-      selectedTurretDamage: selectedTurret?.damage ?? 0,
-      selectedTurretRange: selectedTurret?.range ?? 0,
-      selectedTurretAttackRate: selectedTurret?.attackRate ?? 0,
-      selectedTurretBurnDamagePerSecond: selectedTurretBurnDamagePerSecond,
-      selectedTurretBurnDuration: selectedTurretBurnDuration,
-      selectedTurretDamageDealt: selectedTurret?.damageDealt ?? 0,
-      selectedTurretDirectDamageDealt: selectedTurret?.directDamageDealt ?? 0,
-      selectedTurretSplashDamageDealt: selectedTurret?.splashDamageDealt ?? 0,
-      selectedTurretChainDamageDealt: selectedTurret?.chainDamageDealt ?? 0,
-      selectedTurretBurnDamageDealt: selectedTurret?.burnDamageDealt ?? 0,
-      selectedTurretSupportsTraits: selectedTurret?.supportsTraits ?? false,
-      selectedTurretPrimaryTraitChoices: List.unmodifiable(
-        selectedTurret?.primaryTraitChoices ?? const [],
-      ),
-      selectedTurretSecondaryTraitChoices: List.unmodifiable(
-        selectedTurret?.secondaryTraitChoices ?? const [],
-      ),
-      selectedTurretPrimaryTrait: selectedTurret?.primaryTrait,
-      selectedTurretSecondaryTrait: selectedTurret?.secondaryTrait,
-      selectedTurretCanChoosePrimaryTrait:
-          selectedTurret?.canChoosePrimaryTrait ?? false,
-      selectedTurretCanChooseSecondaryTrait:
-          selectedTurret?.canChooseSecondaryTrait ?? false,
-      selectedTurretPrimaryTraitCost: primaryTraitCost,
-      selectedTurretSecondaryTraitCost: secondaryTraitCost,
-      selectedTurretPrimaryTraitRequiredLevel: primaryTraitRequiredLevel,
-      selectedTurretSecondaryTraitRequiredLevel: secondaryTraitRequiredLevel,
-      topDamageTurretName:
-          topDamageTurret == null || topDamageTurret.damageDealt <= 0
-          ? null
-          : topDamageTurret.definition.name,
-      topDamageTurretDamageDealt: topDamageTurret?.damageDealt ?? 0,
-      nextWaveEnemyTypes: List.unmodifiable(nextWaveEnemyTypes),
-      nextWaveEnemyCounts: Map.unmodifiable(nextWaveEnemyCounts),
-      nextWaveClearRewardGold: nextWave.clearRewardGold,
-      nextWaveKillRewardGold: _killRewardGoldFor(nextWave),
-      nextWaveClearRewardGemShards: _roundClearGemShardRewardFor(
-        math.min(_roundIndex + 1, _waves.length),
-      ),
-      autoStartMode: _autoStartMode,
-      speedMultiplier: _speedMultiplier,
-      killGoldFractionWallet: _killGoldFractionWallet,
-      runUpgradeLevels: Map.unmodifiable(_runUpgradeLevels),
-      towerDamageRunBonusRate: _towerDamageRunBonusRate,
-      killGoldRunBonusRate: _killGoldRunBonusRate,
-      waveClearGoldRunBonus: _waveClearGoldRunBonus,
-      runes: _progression.runes,
-      lastRunRuneReward: _progression.lastRunRuneReward,
-      projectedFailureRuneReward: hasStageProgress
-          ? _progression.runeRewardFor(
-              _roundIndex,
-              success: false,
-              stageNumber: _currentStageNumber,
-            )
-          : 0,
-      lastRunPreviousBestRound: _lastRunPreviousBestRound,
-      lastRunWasNewBestRound: _lastRunWasNewBestRound,
-      lastRunUnlockedStageNumber: _lastRunUnlockedStageNumber,
-      lastRunUnlockedSniperTurret: _lastRunUnlockedSniperTurret,
-      completedRounds: _completedRounds,
-      startingGoldUpgradeLevel: _progression.startingGoldUpgradeLevel,
-      startingGoldUpgradeCost: _progression.startingGoldUpgradeCost,
-      canUpgradeStartingGold: _progression.canUpgradeStartingGold,
-      nexusHpUpgradeLevel: _progression.nexusHpUpgradeLevel,
-      nexusHpUpgradeCost: _progression.nexusHpUpgradeCost,
-      canUpgradeNexusHp: _progression.canUpgradeNexusHp,
-      supplyUpgradeLevel: _progression.supplyUpgradeLevel,
-      supplyUpgradeCost: _progression.supplyUpgradeCost,
-      canUpgradeSupply: _progression.canUpgradeSupply,
-      waveClearGoldProgressionBonus: _progression.waveClearGoldBonus,
-      fireTrainingUpgradeLevel: _progression.fireTrainingUpgradeLevel,
-      fireTrainingUpgradeCost: _progression.fireTrainingUpgradeCost,
-      canUpgradeFireTraining: _progression.canUpgradeFireTraining,
-      fireTrainingDamageBonusRate: _progression.fireTrainingDamageBonusRate,
-      killGoldUpgradeLevel: _progression.killGoldUpgradeLevel,
-      killGoldUpgradeCost: _progression.killGoldUpgradeCost,
-      canUpgradeKillGold:
-          _progression.isStageCleared(2) && _progression.canUpgradeKillGold,
-      killGoldProgressionBonusRate: _killGoldProgressionBonusRate,
-      emergencySaleUpgradeLevel: _progression.emergencySaleUpgradeLevel,
-      emergencySaleUpgradeCost: _progression.emergencySaleUpgradeCost,
-      canUpgradeEmergencySale:
-          _progression.isStageCleared(2) &&
-          _progression.canUpgradeEmergencySale,
-      turretRefundPercent: turretRefundPercent,
-    );
-  }
-
-  Map<GemType, int> _gemCollectionTotals() {
-    final totals = <GemType, int>{..._gemInventory};
-    for (final turret in _turrets.values) {
-      for (final gem in turret.equippedGems) {
-        totals[gem] = (totals[gem] ?? 0) + 1;
-      }
-    }
-    return totals;
+    snapshotNotifier.value = GameSnapshotBuilder(this).build();
   }
 }
