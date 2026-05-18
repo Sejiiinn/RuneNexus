@@ -597,7 +597,7 @@ void main() {
   });
 
   test('turret level up button previews before spending gold', () async {
-    final game = RuneNexusGame();
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
 
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();

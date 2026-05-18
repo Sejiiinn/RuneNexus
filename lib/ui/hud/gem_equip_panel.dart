@@ -92,10 +92,9 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                     canLevelUp &&
                     snapshot.gold >= snapshot.selectedTurretLevelUpCost,
                 levelUpLabel: snapshot.selectedTurretCanLevelUp
-                    ? (levelUpPreviewActive
-                          ? '강화'
-                          : '${snapshot.selectedTurretLevelUpCost}G')
+                    ? '${snapshot.selectedTurretLevelUpCost}G'
                     : 'MAX',
+                levelUpPreviewActive: levelUpPreviewActive,
                 onLevelUp: widget.game.previewOrLevelUpSelectedTurret,
                 canRefund: canRefund,
                 refundLabel: '${snapshot.selectedTurretRefundGold}G',
@@ -271,6 +270,7 @@ class _TurretActionBar extends StatelessWidget {
   const _TurretActionBar({
     required this.canLevelUp,
     required this.levelUpLabel,
+    required this.levelUpPreviewActive,
     required this.onLevelUp,
     required this.canRefund,
     required this.refundLabel,
@@ -280,6 +280,7 @@ class _TurretActionBar extends StatelessWidget {
 
   final bool canLevelUp;
   final String levelUpLabel;
+  final bool levelUpPreviewActive;
   final VoidCallback onLevelUp;
   final bool canRefund;
   final String refundLabel;
@@ -294,6 +295,7 @@ class _TurretActionBar extends StatelessWidget {
           icon: Icons.trending_up,
           label: levelUpLabel,
           color: const Color(0xFFE7C66A),
+          highlighted: levelUpPreviewActive,
           onPressed: canLevelUp ? onLevelUp : null,
         ),
         const SizedBox(width: 6),
@@ -1128,17 +1130,22 @@ class _TurretActionButton extends StatelessWidget {
     required this.label,
     required this.color,
     required this.onPressed,
+    this.highlighted = false,
   });
 
   final IconData icon;
   final String label;
   final Color color;
   final VoidCallback? onPressed;
+  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null;
-    final foreground = enabled ? color : const Color(0xFF607587);
+    final activeHighlight = enabled && highlighted;
+    final foreground = enabled
+        ? (activeHighlight ? const Color(0xFF07111D) : color)
+        : const Color(0xFF607587);
     return SizedBox(
       height: 30,
       child: OutlinedButton(
@@ -1146,10 +1153,16 @@ class _TurretActionButton extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           foregroundColor: foreground,
           disabledForegroundColor: const Color(0xFF607587),
+          backgroundColor: activeHighlight
+              ? color.withValues(alpha: 0.82)
+              : Colors.transparent,
           side: BorderSide(
-            color: enabled
+            color: activeHighlight
+                ? const Color(0xFFE8F8FF)
+                : enabled
                 ? color.withValues(alpha: 0.82)
                 : const Color(0x5533D8FF),
+            width: activeHighlight ? 1.4 : 1,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 6),
           minimumSize: const Size(44, 30),
