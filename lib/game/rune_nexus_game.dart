@@ -320,6 +320,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   final List<EnemyComponent> enemies = [];
   final Map<GridPoint, TurretComponent> _turrets = {};
+  final Set<EnemyComponent> _debugEnemies = {};
   final Map<GemType, int> _gemInventory = {};
   final Map<RunUpgradeType, int> _runUpgradeLevels = {};
   final List<GemType> _rewardOptions = [];
@@ -351,6 +352,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   bool _lastRunUnlockedSniperTurret = false;
   int _roundIndex = 0;
   GamePhase _phase = GamePhase.preparation;
+  bool _debugCombatActive = false;
   GamePhase? _restoredPhase;
   bool _isPurchasedGemReward = false;
   TurretType _selectedTurretType = TurretType.arrow;
@@ -388,7 +390,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   bool _appResourcesDisposed = false;
   double _spaceTime = 0;
 
-  bool get isWaveRunning => _phase == GamePhase.wave;
+  bool get isWaveRunning => _phase == GamePhase.wave || _debugCombatActive;
   double get boardDistanceScale =>
       _boardConfigured ? _tileSize / _designTileSize : 1;
   bool isTurretSelected(GridPoint point) => _selectedTurretPoint == point;
@@ -535,7 +537,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     super.update(scaledDt);
     _updateCombatStatsPublish(dt);
     if (_phase != GamePhase.wave) {
-      _maybeAutoStartNextWave();
+      if (!_debugCombatActive) {
+        _maybeAutoStartNextWave();
+      }
       return;
     }
 
@@ -952,6 +956,23 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _gemShards += amount;
     _publish();
     _requestLocalSave(immediate: true);
+  }
+
+  void debugSpawnEnemy(EnemyType type) {
+    if (!_debugPanelEnabled) {
+      return;
+    }
+    if (_phase != GamePhase.preparation && _phase != GamePhase.wave) {
+      return;
+    }
+    if (!demoEnemies.containsKey(type) || _worldPath.length < 2) {
+      return;
+    }
+
+    _debugCombatActive = true;
+    _spawnEnemy(type, debugSpawn: true);
+    _triggerPortalAlert();
+    _publish();
   }
 
   void debugOpenGemReward() {
@@ -1576,17 +1597,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       final multiplier = _damageMultiplier(owner, enemy);
       final damage = baseDamage * traitMultiplier * multiplier;
       _applyAttackStatuses(owner, enemy);
-      showDamageNumber(
-        position: enemy.position.clone(),
-        damage: damage,
-        color: owner.definition.color,
-        damageMultiplier:
-            multiplier * (identical(enemy, target) ? criticalMultiplier : 1),
-      );
       enemy.showHitFlash(owner.definition.color);
       final actualDamage = enemy.receiveDamage(
         damage,
         burnTransfer: _burnTransferForHit(owner, enemy),
+      );
+      showDamageNumber(
+        position: enemy.position.clone(),
+        damage: actualDamage,
+        color: owner.definition.color,
+        damageMultiplier:
+            multiplier * (identical(enemy, target) ? criticalMultiplier : 1),
       );
       _recordTurretDamage(
         owner,
@@ -1596,15 +1617,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
             : TurretDamageKind.splash,
       );
       if (ignitionBurstDamage > 0 && !enemy.isDead) {
-        showDamageNumber(
-          position: enemy.position.clone(),
-          damage: ignitionBurstDamage,
-          color: owner.definition.color,
-        );
         enemy.showHitFlash(owner.definition.color);
         final actualBurstDamage = enemy.receiveDamage(
           ignitionBurstDamage,
           burnTransfer: _burnTransferForHit(owner, enemy),
+        );
+        showDamageNumber(
+          position: enemy.position.clone(),
+          damage: actualBurstDamage,
+          color: owner.definition.color,
         );
         _recordTurretDamage(owner, actualBurstDamage, TurretDamageKind.direct);
       }
@@ -1624,16 +1645,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final adjustedDamage = damage * multiplier;
     final statusScale = owner.damage <= 0 ? 0.0 : damage / owner.damage;
     _applyAttackStatuses(owner, target, damageScale: statusScale);
-    showDamageNumber(
-      position: target.position.clone(),
-      damage: adjustedDamage,
-      color: chainColorFor(owner),
-      damageMultiplier: multiplier,
-    );
     target.showHitFlash(chainColorFor(owner));
     final actualDamage = target.receiveDamage(
       adjustedDamage,
       burnTransfer: _burnTransferForHit(owner, target),
+    );
+    showDamageNumber(
+      position: target.position.clone(),
+      damage: actualDamage,
+      color: chainColorFor(owner),
+      damageMultiplier: multiplier,
     );
     _recordTurretDamage(owner, actualDamage, TurretDamageKind.chain);
   }
@@ -1675,17 +1696,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       final multiplier = _damageMultiplier(owner, enemy);
       final damage = baseDamage * traitMultiplier * multiplier;
       _applyAttackStatuses(owner, enemy);
-      showDamageNumber(
-        position: enemy.position.clone(),
-        damage: damage,
-        color: owner.definition.color,
-        damageMultiplier:
-            multiplier * (isPrimaryTarget ? criticalMultiplier : 1),
-      );
       enemy.showHitFlash(owner.definition.color);
       final actualDamage = enemy.receiveDamage(
         damage,
         burnTransfer: _burnTransferForHit(owner, enemy),
+      );
+      showDamageNumber(
+        position: enemy.position.clone(),
+        damage: actualDamage,
+        color: owner.definition.color,
+        damageMultiplier:
+            multiplier * (isPrimaryTarget ? criticalMultiplier : 1),
       );
       _recordTurretDamage(
         owner,
@@ -1723,16 +1744,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       final multiplier = _damageMultiplier(owner, enemy);
       final damage = owner.damage * multiplier;
       _applyAttackStatuses(owner, enemy);
-      showDamageNumber(
-        position: enemy.position.clone(),
-        damage: damage,
-        color: owner.definition.color,
-        damageMultiplier: multiplier,
-      );
       enemy.showHitFlash(owner.definition.color);
       final actualDamage = enemy.receiveDamage(
         damage,
         burnTransfer: _burnTransferForHit(owner, enemy),
+      );
+      showDamageNumber(
+        position: enemy.position.clone(),
+        damage: actualDamage,
+        color: owner.definition.color,
+        damageMultiplier: multiplier,
       );
       _recordTurretDamage(owner, actualDamage, TurretDamageKind.splash);
     }
@@ -1876,19 +1897,23 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (burnTransfer != null) {
       _spreadChainIgnition(source: enemy, burnTransfer: burnTransfer);
     }
+    final isDebugEnemy = _debugEnemies.remove(enemy);
     for (final turret in _turrets.values) {
       turret.handleEnemyKilled(enemy);
     }
-    final baseReward = enemy.definition.rewardGold;
-    final bonusReward = baseReward * _killGoldTotalBonusRate;
-    final wholeBonus = bonusReward.floor();
-    _killGoldFractionWallet += bonusReward - wholeBonus;
-    final walletGold = _killGoldFractionWallet.floor();
-    if (walletGold > 0) {
-      _killGoldFractionWallet -= walletGold;
+    if (!isDebugEnemy) {
+      final baseReward = enemy.definition.rewardGold;
+      final bonusReward = baseReward * _killGoldTotalBonusRate;
+      final wholeBonus = bonusReward.floor();
+      _killGoldFractionWallet += bonusReward - wholeBonus;
+      final walletGold = _killGoldFractionWallet.floor();
+      if (walletGold > 0) {
+        _killGoldFractionWallet -= walletGold;
+      }
+      _gold += baseReward + wholeBonus + walletGold;
     }
-    _gold += baseReward + wholeBonus + walletGold;
     enemies.remove(enemy);
+    _finishDebugCombatIfIdle();
     add(
       DeathBurstEffectComponent(
         position: enemy.position.clone(),
@@ -1906,11 +1931,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
     _triggerNexusHitAlert();
-    _nexusHp = math.max(0, _nexusHp - enemy.definition.coreDamage);
+    final isDebugEnemy = _debugEnemies.remove(enemy);
+    if (!isDebugEnemy) {
+      _nexusHp = math.max(0, _nexusHp - enemy.definition.coreDamage);
+    }
     enemies.remove(enemy);
+    _finishDebugCombatIfIdle();
     enemy.removeFromParent();
 
-    if (_nexusHp <= 0) {
+    if (!isDebugEnemy && _nexusHp <= 0) {
       _waveSpawner.clear();
       for (final activeEnemy in enemies.toList()) {
         activeEnemy.removeFromParent();
@@ -1920,6 +1949,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       unawaited(_saveRoundCheckpoint());
     }
     _publish();
+  }
+
+  void _finishDebugCombatIfIdle() {
+    if (_debugCombatActive && _debugEnemies.isEmpty) {
+      _debugCombatActive = false;
+    }
   }
 
   void _configureBoard() {
@@ -1967,6 +2002,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       enemy.removeFromParent();
     }
     enemies.clear();
+    _debugEnemies.clear();
+    _debugCombatActive = false;
     _waveSpawner.clear();
     _rewardOptions.clear();
     _nexusHitAlertTimer = 0;
@@ -2237,7 +2274,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
   }
 
-  void _spawnEnemy(EnemyType type) {
+  void _spawnEnemy(EnemyType type, {bool debugSpawn = false}) {
     final definition = demoEnemies[type]!;
     final enemy = EnemyComponent(
       definition: definition,
@@ -2259,7 +2296,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       path: _worldPath,
       game: this,
     );
+    enemy.updateLayout(tileSize: _tileSize, newPath: _worldPath);
     enemies.add(enemy);
+    if (debugSpawn) {
+      _debugEnemies.add(enemy);
+    }
     add(enemy);
   }
 

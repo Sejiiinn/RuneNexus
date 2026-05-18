@@ -18,11 +18,6 @@ class GridComponent extends Component {
   Vector2 origin;
   double tileSize;
 
-  final _stroke = Paint()
-    ..color = const Color(0x6633C8FF)
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 1;
-
   double _portalSpin = 0;
   double portalAlert = 0;
   double nexusHitAlert = 0;
@@ -84,7 +79,13 @@ class GridComponent extends Component {
           continue;
         }
         _drawTile(canvas, rect, point, tileType);
-        canvas.drawRect(rect.deflate(1), _stroke);
+        canvas.drawRect(
+          rect.deflate(tileSize * 0.012),
+          Paint()
+            ..color = const Color(0x44083A42)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = tileSize * 0.01,
+        );
       }
     }
 
@@ -121,18 +122,216 @@ class GridComponent extends Component {
 
   void _drawTile(Canvas canvas, Rect rect, GridPoint point, TileType tileType) {
     final inner = rect.deflate(1);
-    canvas.drawRect(inner, _paintFor(tileType));
 
     switch (tileType) {
       case TileType.path:
+        _drawDirtTile(canvas, inner, point);
+      case TileType.build:
+        _drawGrassTile(canvas, inner, point);
       case TileType.spawn:
       case TileType.core:
+        canvas.drawRect(inner, _paintFor(tileType));
         _drawStoneDetails(canvas, inner, point);
-      case TileType.build:
-        _drawGrassDetails(canvas, inner, point);
       case TileType.blocked:
         break;
     }
+  }
+
+  void _drawDirtTile(Canvas canvas, Rect rect, GridPoint point) {
+    final tile = _tileFace(rect);
+    _drawPolishedTileFrame(
+      canvas,
+      rect,
+      tile,
+      topColor: const Color(0xFF968875),
+      midColor: const Color(0xFF796F60),
+      bottomColor: const Color(0xFF5C554B),
+      rimColor: const Color(0xFF193E3F),
+    );
+
+    final stain = _tileUnit(point, 1);
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(
+          tile.left + tile.width * (0.32 + stain * 0.32),
+          tile.top + tile.height * (0.28 + _tileUnit(point, 2) * 0.32),
+        ),
+        width: tile.width * 0.42,
+        height: tile.height * 0.26,
+      ),
+      Paint()
+        ..color = const Color(0x223E3329)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, tileSize * 0.018),
+    );
+
+    final chipPaint = Paint()
+      ..color = const Color(0x66473F35)
+      ..style = PaintingStyle.fill;
+    final lightChipPaint = Paint()
+      ..color = const Color(0x338F8575)
+      ..style = PaintingStyle.fill;
+    for (var i = 0; i < 5; i++) {
+      final x =
+          tile.left + tile.width * (0.16 + _tileUnit(point, i + 3) * 0.68);
+      final y =
+          tile.top + tile.height * (0.18 + _tileUnit(point, i + 9) * 0.66);
+      final chip = Rect.fromCenter(
+        center: Offset(x, y),
+        width: tileSize * (0.03 + _tileUnit(point, i + 15) * 0.035),
+        height: tileSize * 0.018,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(chip, Radius.circular(tileSize * 0.01)),
+        i.isEven ? chipPaint : lightChipPaint,
+      );
+    }
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        tile.deflate(tileSize * 0.06),
+        Radius.circular(tileSize * 0.035),
+      ),
+      Paint()
+        ..color = const Color(0x333F352B)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = tileSize * 0.014,
+    );
+  }
+
+  void _drawGrassTile(Canvas canvas, Rect rect, GridPoint point) {
+    final tile = _tileFace(rect);
+    _drawPolishedTileFrame(
+      canvas,
+      rect,
+      tile,
+      topColor: const Color(0xFF3D6048),
+      midColor: const Color(0xFF2E5040),
+      bottomColor: const Color(0xFF203B34),
+      rimColor: const Color(0xFF183F3D),
+    );
+
+    final mossPaint = Paint()
+      ..color = const Color(0x55304335)
+      ..style = PaintingStyle.fill;
+    for (var i = 0; i < 6; i++) {
+      final center = Offset(
+        tile.left + tile.width * (0.16 + _tileUnit(point, i + 21) * 0.7),
+        tile.top + tile.height * (0.16 + _tileUnit(point, i + 27) * 0.68),
+      );
+      canvas.drawCircle(
+        center,
+        tileSize * (0.018 + _tileUnit(point, i + 33) * 0.014),
+        mossPaint,
+      );
+    }
+
+    _drawGrassScuffs(canvas, tile, point);
+  }
+
+  Rect _tileFace(Rect rect) {
+    return rect.deflate(tileSize * 0.025);
+  }
+
+  void _drawPolishedTileFrame(
+    Canvas canvas,
+    Rect rect,
+    Rect face, {
+    required Color topColor,
+    required Color midColor,
+    required Color bottomColor,
+    required Color rimColor,
+  }) {
+    final radius = Radius.circular(tileSize * 0.035);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect.deflate(tileSize * 0.012), radius),
+      Paint()..color = rimColor.withValues(alpha: 0.65),
+    );
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(face, Radius.circular(tileSize * 0.03)),
+      Paint()
+        ..shader = Gradient.linear(
+          face.topLeft,
+          face.bottomRight,
+          [topColor, midColor, bottomColor],
+          const [0, 0.56, 1],
+        ),
+    );
+
+    canvas.drawLine(
+      Offset(face.left + tileSize * 0.04, face.top + tileSize * 0.05),
+      Offset(face.right - tileSize * 0.08, face.top + tileSize * 0.05),
+      Paint()
+        ..color = const Color(0x18FFFFFF)
+        ..strokeWidth = tileSize * 0.009
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawLine(
+      Offset(face.left + tileSize * 0.05, face.top + tileSize * 0.04),
+      Offset(face.left + tileSize * 0.05, face.bottom - tileSize * 0.08),
+      Paint()
+        ..color = const Color(0x10FFFFFF)
+        ..strokeWidth = tileSize * 0.008
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawLine(
+      Offset(face.left + tileSize * 0.08, face.bottom - tileSize * 0.05),
+      Offset(face.right - tileSize * 0.05, face.bottom - tileSize * 0.05),
+      Paint()
+        ..color = const Color(0x30000000)
+        ..strokeWidth = tileSize * 0.01
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawLine(
+      Offset(face.right - tileSize * 0.05, face.top + tileSize * 0.08),
+      Offset(face.right - tileSize * 0.05, face.bottom - tileSize * 0.06),
+      Paint()
+        ..color = const Color(0x22000000)
+        ..strokeWidth = tileSize * 0.009
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  void _drawGrassScuffs(Canvas canvas, Rect tile, GridPoint point) {
+    final dark = Paint()
+      ..color = const Color(0x7720322A)
+      ..strokeWidth = tileSize * 0.018
+      ..strokeCap = StrokeCap.square;
+    final mutedLeaf = Paint()
+      ..color = const Color(0x665C7F50)
+      ..strokeWidth = tileSize * 0.016
+      ..strokeCap = StrokeCap.square;
+
+    for (var group = 0; group < 3; group++) {
+      final base = Offset(
+        tile.left + tile.width * (0.22 + _tileUnit(point, group + 44) * 0.56),
+        tile.top + tile.height * (0.28 + _tileUnit(point, group + 51) * 0.5),
+      );
+      for (var bladeIndex = 0; bladeIndex < 3; bladeIndex++) {
+        final start = base.translate(
+          (bladeIndex - 1) * tileSize * 0.055,
+          bladeIndex * tileSize * 0.015,
+        );
+        final lean =
+            tileSize *
+            (-0.04 + _tileUnit(point, group * 5 + bladeIndex + 58) * 0.08);
+        final height =
+            tileSize *
+            (0.065 + _tileUnit(point, group * 5 + bladeIndex + 64) * 0.04);
+        final end = Offset(start.dx + lean, start.dy - height);
+        canvas.drawLine(
+          start.translate(tileSize * 0.015, tileSize * 0.015),
+          end,
+          dark,
+        );
+        canvas.drawLine(start, end, bladeIndex == 1 ? mutedLeaf : dark);
+      }
+    }
+  }
+
+  double _tileUnit(GridPoint point, int salt) {
+    final n = math.sin(point.x * 12.9898 + point.y * 78.233 + salt * 37.719);
+    return (n * 43758.5453).abs() % 1;
   }
 
   void _drawStoneDetails(Canvas canvas, Rect rect, GridPoint point) {
@@ -160,35 +359,6 @@ class GridComponent extends Component {
         Offset(rect.left + tileSize * 0.2, rect.bottom - tileSize * 0.22),
         Offset(rect.left + tileSize * 0.55, rect.bottom - tileSize * 0.18),
         mortar,
-      );
-    }
-  }
-
-  void _drawGrassDetails(Canvas canvas, Rect rect, GridPoint point) {
-    final bladePaint = Paint()
-      ..color = const Color(0x555DCC76)
-      ..strokeWidth = 1.2
-      ..strokeCap = StrokeCap.square;
-    final shadowPatch = Paint()..color = const Color(0x17101116);
-
-    if ((point.x * 3 + point.y).isEven) {
-      canvas.drawRect(
-        Rect.fromLTWH(
-          rect.left + tileSize * 0.08,
-          rect.top + tileSize * 0.08,
-          tileSize * 0.22,
-          tileSize * 0.16,
-        ),
-        shadowPatch,
-      );
-    }
-    for (var i = 0; i < 3; i++) {
-      final x = rect.left + tileSize * (0.22 + i * 0.19);
-      final y = rect.top + tileSize * (0.72 - ((point.x + i) % 2) * 0.18);
-      canvas.drawLine(
-        Offset(x, y),
-        Offset(x + tileSize * 0.05, y - 4),
-        bladePaint,
       );
     }
   }

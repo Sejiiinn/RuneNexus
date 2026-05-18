@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../../data/save/game_save_data.dart';
 import '../../domain/enemy/enemy_type.dart';
 import '../../domain/wave/wave_definition.dart';
@@ -50,15 +52,28 @@ class WaveSpawner {
     required double initialDelay,
   }) {
     final requests = <SpawnRequest>[];
+    double? previousGroupEndDelay;
     for (final group in wave.groups) {
+      var groupStartDelay = initialDelay + group.startDelay;
+      if (group.startAfterPrevious && previousGroupEndDelay != null) {
+        groupStartDelay = math.max(
+          groupStartDelay,
+          previousGroupEndDelay + group.followDelay,
+        );
+      }
       for (var i = 0; i < group.count; i++) {
         requests.add(
           SpawnRequest(
             enemyType: group.enemyType,
-            delay: initialDelay + group.startDelay + group.interval * i,
+            delay: groupStartDelay + group.interval * i,
           ),
         );
       }
+      final lastSpawnIndex = group.count > 0 ? group.count - 1 : 0;
+      final groupEndDelay = groupStartDelay + group.interval * lastSpawnIndex;
+      previousGroupEndDelay = previousGroupEndDelay == null
+          ? groupEndDelay
+          : math.max(previousGroupEndDelay, groupEndDelay);
     }
     requests.sort((a, b) => a.delay.compareTo(b.delay));
     const minSpawnGap = 0.18;

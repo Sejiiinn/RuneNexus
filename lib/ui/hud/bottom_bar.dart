@@ -1034,6 +1034,30 @@ class _EnemyDetailRow extends StatelessWidget {
                 expand: false,
               ),
               _StatPill(
+                label: '넥서스 피해',
+                value: '-${enemy.coreDamage}',
+                expand: false,
+                valueChild: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.favorite_outline,
+                      size: 12,
+                      color: Color(0xFFFF7043),
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      '-${enemy.coreDamage}',
+                      style: const TextStyle(
+                        color: Color(0xFFFF9B72),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _StatPill(
                 label: '보상',
                 value: '+${enemy.rewardGold}',
                 expand: false,

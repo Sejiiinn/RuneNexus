@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,6 +30,7 @@ import 'package:rune_nexus/game/components/turret_component.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
 import 'package:rune_nexus/game/systems/gem_reward_generator.dart';
 import 'package:rune_nexus/game/systems/run_progression.dart';
+import 'package:rune_nexus/game/systems/wave_spawner.dart';
 
 void main() {
   test('demo stage uses 50 survival rounds', () {
@@ -416,6 +419,34 @@ void main() {
     enemy.update(1);
 
     expect(enemy.position.x, closeTo(31.5 * game.boardDistanceScale, 0.001));
+  });
+
+  test('spawned enemies use type-specific board size immediately', () async {
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [
+            SpawnGroup(enemyType: EnemyType.tank, count: 1, interval: 1),
+          ],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.setSpeedMultiplier(0);
+    game.startNextWave();
+    game.update(0.016);
+
+    expect(game.enemies, hasLength(1));
+    expect(
+      game.enemies.single.size.x,
+      closeTo(48 * game.boardDistanceScale * 0.65, 0.001),
+    );
   });
 
   test('board pan room scales with wide map size', () async {
@@ -1599,6 +1630,22 @@ void main() {
     },
   );
 
+  test('stage two learning armored group starts after normal group', () {
+    final spawner = WaveSpawner()..start(demoStage2Waves[1]);
+    final queue = spawner.toSaveData();
+    final normalDelays = queue
+        .where((request) => request.enemyType == EnemyType.normal)
+        .map((request) => request.delay);
+    final armoredDelays = queue
+        .where((request) => request.enemyType == EnemyType.armored)
+        .map((request) => request.delay);
+
+    expect(
+      armoredDelays.reduce(math.min),
+      greaterThan(normalDelays.reduce(math.max)),
+    );
+  });
+
   test('late wave enemy counts stay within the planned pressure range', () {
     int totalCount(WaveDefinition wave) =>
         wave.groups.fold(0, (total, group) => total + group.count);
@@ -1791,6 +1838,22 @@ void main() {
     expect(enemy.receiveDamage(100), closeTo(98.72, 0.001));
     expect(enemy.armor, closeTo(0, 0.001));
     expect(enemy.hp, closeTo(33.28, 0.001));
+  });
+
+  test('armor 54 reduces machine gun base damage before hp', () {
+    final game = RuneNexusGame();
+    final armored = demoEnemies[EnemyType.armored]!;
+    final enemy = EnemyComponent(
+      definition: armored,
+      maxHp: 100,
+      maxArmor: 54,
+      path: [Vector2.zero(), Vector2(100, 0)],
+      game: game,
+    );
+
+    expect(enemy.receiveDamage(7), closeTo(4.84, 0.001));
+    expect(enemy.armor, closeTo(49.16, 0.001));
+    expect(enemy.hp, closeTo(100, 0.001));
   });
 
   test(

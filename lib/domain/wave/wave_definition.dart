@@ -20,10 +20,14 @@ class SpawnGroup {
     required this.count,
     required this.interval,
     this.startDelay = 0,
+    this.startAfterPrevious = false,
+    this.followDelay = 0.7,
   });
 
   final EnemyType enemyType;
   final int count;
   final double interval;
   final double startDelay;
+  final bool startAfterPrevious;
+  final double followDelay;
 }

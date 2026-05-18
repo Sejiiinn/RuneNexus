@@ -873,6 +873,40 @@ class _GemDebugPanel extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               const Text(
+                '테스트 몹',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 5,
+                runSpacing: 5,
+                children: EnemyType.values.map((type) {
+                  final enemy = demoEnemies[type]!;
+                  return SizedBox(
+                    width: 88,
+                    height: 34,
+                    child: OutlinedButton.icon(
+                      onPressed: () => game.debugSpawnEnemy(type),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: BorderSide(color: enemy.color),
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                      ),
+                      icon: _EnemyIcon(type: type, selected: false, size: 17),
+                      label: Text(
+                        enemy.name,
+                        style: const TextStyle(fontSize: 11),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 10),
+              const Text(
                 '테스트 젬',
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
               ),

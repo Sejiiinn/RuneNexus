@@ -485,9 +485,9 @@ class EnemyComponent extends PositionComponent {
     if (_poisonRemaining > 0) {
       _poisonRemaining = math.max(0, _poisonRemaining - dt);
       final damage = _poisonDamagePerSecond * _poisonStacks * dt;
-      _poisonNumberDamage += damage;
       _poisonNumberTimer += dt;
-      receiveDamage(damage);
+      final actualDamage = receiveDamage(damage);
+      _poisonNumberDamage += actualDamage;
       if (!isDead &&
           (_poisonNumberTimer >= _poisonNumberInterval ||
               _poisonRemaining == 0)) {
@@ -613,15 +613,21 @@ class EnemyComponent extends PositionComponent {
       Paint()..color = backgroundColor,
     );
     if (armor > 0 && maxArmor > 0) {
-      final totalDurability = math.max(1.0, maxHp + maxArmor);
-      final hpWidth = barWidth * (hp / totalDurability).clamp(0.0, 1.0);
-      final armorWidth = barWidth * (armor / totalDurability).clamp(0.0, 1.0);
+      // 현재 방어구 기준 표시 폭
+      final displayDurability = math.max(1.0, maxHp + armor);
+      final hpCapacityWidth =
+          barWidth * (maxHp / displayDurability).clamp(0.0, 1.0).toDouble();
+      final hpWidth =
+          hpCapacityWidth *
+          (maxHp <= 0 ? 0.0 : (hp / maxHp).clamp(0.0, 1.0).toDouble());
+      final armorWidth =
+          barWidth * (armor / displayDurability).clamp(0.0, 1.0).toDouble();
       canvas.drawRect(
         Rect.fromLTWH(1, -5, hpWidth, 3),
         Paint()..color = hpColor,
       );
       canvas.drawRect(
-        Rect.fromLTWH(1 + hpWidth, -5, armorWidth, 3),
+        Rect.fromLTWH(1 + hpCapacityWidth, -5, armorWidth, 3),
         Paint()..color = armorColor,
       );
       return;

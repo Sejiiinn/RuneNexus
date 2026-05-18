@@ -896,7 +896,8 @@ List<SpawnGroup> _stage2LearningGroupsFor(int round) {
         enemyType: EnemyType.armored,
         count: 2,
         interval: 1.55,
-        startDelay: 3.7,
+        startAfterPrevious: true,
+        followDelay: 0.8,
       ),
     ];
   }
@@ -928,13 +929,15 @@ List<SpawnGroup> _stage2LearningGroupsFor(int round) {
       enemyType: EnemyType.normal,
       count: 6,
       interval: 1.25,
-      startDelay: 2.7,
+      startAfterPrevious: true,
+      followDelay: 0.7,
     ),
     SpawnGroup(
       enemyType: EnemyType.tank,
       count: 1,
       interval: 1.7,
-      startDelay: 8.9,
+      startAfterPrevious: true,
+      followDelay: 0.8,
     ),
   ];
 }
