@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'enemy_resistance_profile.dart';
 import 'enemy_type.dart';
 
-const double defaultArmorReductionRate = 0.04;
+const double defaultArmorReductionRate = 0.05;
 const double defaultArmorMinimumDamageRate = 0.25;
 
 class EnemyDefinition {

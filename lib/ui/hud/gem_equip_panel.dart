@@ -1822,7 +1822,7 @@ String _gemEffectText(GemType type, TurretDefinition turret) {
     GemType.criticalChance => '치명 확률 +20%p',
     GemType.aimSpeed =>
       turret.instantHit && turret.aimDuration > 0
-          ? '조준 속도 50% 증가'
+          ? '조준 속도 75% 증가'
           : '현재 적용되는 조준 시간 없음',
     GemType.damageAmplifier => '타격 피해 25% 증폭',
   };

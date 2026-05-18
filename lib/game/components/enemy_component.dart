@@ -612,24 +612,22 @@ class EnemyComponent extends PositionComponent {
       Rect.fromLTWH(1, -5, barWidth, 3),
       Paint()..color = backgroundColor,
     );
-    if (armor > 0 && maxArmor > 0) {
-      // 현재 방어구 기준 표시 폭
-      final displayDurability = math.max(1.0, maxHp + armor);
-      final hpCapacityWidth =
-          barWidth * (maxHp / displayDurability).clamp(0.0, 1.0).toDouble();
+    if (maxArmor > 0) {
+      final totalDurability = math.max(1.0, maxHp + maxArmor);
       final hpWidth =
-          hpCapacityWidth *
-          (maxHp <= 0 ? 0.0 : (hp / maxHp).clamp(0.0, 1.0).toDouble());
+          barWidth * (hp / totalDurability).clamp(0.0, 1.0).toDouble();
       final armorWidth =
-          barWidth * (armor / displayDurability).clamp(0.0, 1.0).toDouble();
+          barWidth * (armor / totalDurability).clamp(0.0, 1.0).toDouble();
       canvas.drawRect(
         Rect.fromLTWH(1, -5, hpWidth, 3),
         Paint()..color = hpColor,
       );
-      canvas.drawRect(
-        Rect.fromLTWH(1 + hpCapacityWidth, -5, armorWidth, 3),
-        Paint()..color = armorColor,
-      );
+      if (armorWidth > 0) {
+        canvas.drawRect(
+          Rect.fromLTWH(1 + hpWidth, -5, armorWidth, 3),
+          Paint()..color = armorColor,
+        );
+      }
       return;
     }
 

@@ -100,7 +100,7 @@ const demoGems = <GemType, GemDefinition>{
     name: '조준경',
     shortText: '조준 속도 증가',
     effectType: GemEffectType.aimSpeedBonus,
-    value: 0.5,
+    value: 0.75,
     color: Color(0xFFB7F4FF),
     icon: Icons.visibility,
   ),

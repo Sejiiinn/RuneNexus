@@ -335,7 +335,7 @@ String _gemInventoryEffectText(GemType type) {
     GemType.explosion => '폭발 피해 추가',
     GemType.chain => '연쇄 투사체 추가',
     GemType.criticalChance => '치명 확률 +20%p',
-    GemType.aimSpeed => '조준 속도 +50%',
+    GemType.aimSpeed => '조준 속도 +75%',
     GemType.damageAmplifier => '타격 피해 +25%',
   };
 }

@@ -308,7 +308,7 @@ class TurretComponent extends PositionComponent {
       return definition.aimDuration;
     }
     final targetLevel = level.clamp(1, maxLevel).toInt();
-    final gemAimSpeedBonus = hasGem(GemType.aimSpeed) ? 0.5 : 0.0;
+    final gemAimSpeedBonus = hasGem(GemType.aimSpeed) ? 0.75 : 0.0;
     final aimSpeedMultiplier =
         1 + (targetLevel - 1) * _aimSpeedGrowthPerLevel + gemAimSpeedBonus;
     return definition.aimDuration / aimSpeedMultiplier;

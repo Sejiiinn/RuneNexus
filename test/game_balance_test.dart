@@ -543,7 +543,7 @@ void main() {
 
     turret.equipGem(GemType.aimSpeed, 0);
 
-    expect(turret.aimDuration, closeTo(1 / 1.66, 0.001));
+    expect(turret.aimDuration, closeTo(1 / 1.91, 0.001));
   });
 
   test('turret level cap grows to 10 without excessive range gain', () {
@@ -1831,13 +1831,13 @@ void main() {
       game: game,
     );
 
-    expect(enemy.receiveDamage(20), closeTo(18, 0.001));
-    expect(enemy.armor, closeTo(32, 0.001));
+    expect(enemy.receiveDamage(20), closeTo(17.5, 0.001));
+    expect(enemy.armor, closeTo(32.5, 0.001));
     expect(enemy.hp, closeTo(100, 0.001));
 
-    expect(enemy.receiveDamage(100), closeTo(98.72, 0.001));
+    expect(enemy.receiveDamage(100), closeTo(98.375, 0.001));
     expect(enemy.armor, closeTo(0, 0.001));
-    expect(enemy.hp, closeTo(33.28, 0.001));
+    expect(enemy.hp, closeTo(34.125, 0.001));
   });
 
   test('armor 54 reduces machine gun base damage before hp', () {
@@ -1851,8 +1851,8 @@ void main() {
       game: game,
     );
 
-    expect(enemy.receiveDamage(7), closeTo(4.84, 0.001));
-    expect(enemy.armor, closeTo(49.16, 0.001));
+    expect(enemy.receiveDamage(7), closeTo(4.3, 0.001));
+    expect(enemy.armor, closeTo(49.7, 0.001));
     expect(enemy.hp, closeTo(100, 0.001));
   });
 
@@ -1882,10 +1882,10 @@ void main() {
         game: game,
       );
 
-      expect(enemy.receiveDamage(120), closeTo(118, 0.001));
+      expect(enemy.receiveDamage(120), closeTo(117.5, 0.001));
       expect(enemy.shield, closeTo(0, 0.001));
       expect(enemy.shieldBroken, isTrue);
-      expect(enemy.armor, closeTo(32, 0.001));
+      expect(enemy.armor, closeTo(32.5, 0.001));
       expect(enemy.hp, closeTo(100, 0.001));
 
       enemy.update(1);
@@ -1930,7 +1930,7 @@ void main() {
 
     expect(restored.shield, closeTo(0, 0.001));
     expect(restored.shieldBroken, isTrue);
-    expect(restored.armor, closeTo(32, 0.001));
+    expect(restored.armor, closeTo(32.5, 0.001));
     expect(restored.hp, closeTo(100, 0.001));
   });
 
