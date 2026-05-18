@@ -773,7 +773,7 @@ class _NextWaveEnemySummary extends StatelessWidget {
             child: SizedBox(
               width: 25,
               height: 25,
-              child: _EnemyIcon(type: type, selected: false),
+              child: _EnemyIcon(type: type, selected: false, size: 25),
             ),
           ),
         ),
@@ -916,11 +916,7 @@ class _EnemyCountChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(
-            width: 18,
-            height: 18,
-            child: _EnemyIcon(type: enemy.type, selected: false),
-          ),
+          _EnemyIcon(type: enemy.type, selected: false, size: 18),
           const SizedBox(width: 5),
           Text(
             '${enemy.name} x$count',
@@ -1015,15 +1011,32 @@ class _EnemyDetailRow extends StatelessWidget {
             spacing: 5,
             runSpacing: 5,
             children: [
-              _StatPill(label: '체력', value: maxHp.round().toString()),
+              _StatPill(
+                label: '체력',
+                value: maxHp.round().toString(),
+                expand: false,
+              ),
               if (maxArmor > 0)
-                _StatPill(label: '방어구', value: maxArmor.round().toString()),
+                _StatPill(
+                  label: '방어구',
+                  value: maxArmor.round().toString(),
+                  expand: false,
+                ),
               if (maxShield > 0)
-                _StatPill(label: '보호막', value: maxShield.round().toString()),
-              _StatPill(label: '속도', value: enemy.speed.round().toString()),
+                _StatPill(
+                  label: '보호막',
+                  value: maxShield.round().toString(),
+                  expand: false,
+                ),
+              _StatPill(
+                label: '속도',
+                value: enemy.speed.round().toString(),
+                expand: false,
+              ),
               _StatPill(
                 label: '보상',
                 value: '+${enemy.rewardGold}',
+                expand: false,
                 valueChild: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -1213,10 +1226,15 @@ String _autoStartModeLabel(AutoStartMode mode) {
 }
 
 class _EnemyIcon extends StatelessWidget {
-  const _EnemyIcon({required this.type, required this.selected});
+  const _EnemyIcon({
+    required this.type,
+    required this.selected,
+    this.size = 30,
+  });
 
   final EnemyType type;
   final bool selected;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -1224,9 +1242,9 @@ class _EnemyIcon extends StatelessWidget {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 110),
-      width: 30,
-      height: 30,
-      padding: const EdgeInsets.all(3),
+      width: size,
+      height: size,
+      padding: EdgeInsets.all(math.max(2, size * 0.1)),
       decoration: BoxDecoration(
         color: selected
             ? enemy.color.withValues(alpha: 0.16)
@@ -1252,6 +1270,8 @@ class _EnemyIconPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
     drawEnemyShape(
       canvas,
       size: size,
@@ -1259,6 +1279,7 @@ class _EnemyIconPainter extends CustomPainter {
       color: color,
       strokeWidth: 2,
     );
+    canvas.restore();
   }
 
   @override

@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rune Nexus Enemy Visual Concept</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #081019;
+      --panel: #101a25;
+      --line: #263747;
+      --text: #e8f2f8;
+      --muted: #91a4b3;
+      --body-a: #304354;
+      --body-b: #182431;
+      --edge: #b8c8d8;
+      --armor: #a9adb4;
+      --normal: #d9e3ec;
+      --fast: #55e1f6;
+      --tank: #d7ad61;
+      --boss: #ff5361;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 50% -10%, rgba(56, 149, 188, 0.16), transparent 36rem),
+        linear-gradient(180deg, #0a121d, var(--bg));
+      color: var(--text);
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 34px 0 42px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      font-weight: 850;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      min-width: 0;
+      border: 1px solid rgba(158, 190, 213, 0.22);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(22, 34, 48, 0.96), rgba(10, 18, 28, 0.96));
+      overflow: hidden;
+    }
+
+    .stage {
+      min-height: 250px;
+      display: grid;
+      place-items: center;
+      border-bottom: 1px solid rgba(158, 190, 213, 0.14);
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 22px 22px;
+    }
+
+    .info {
+      padding: 13px 14px 15px;
+    }
+
+    .name {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+
+    .name strong {
+      min-width: 0;
+      font-size: 15px;
+      font-weight: 850;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tag {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    .rule {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .notes {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1.25fr 1fr;
+      gap: 14px;
+    }
+
+    .note {
+      border: 1px solid rgba(158, 190, 213, 0.2);
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: rgba(9, 17, 27, 0.72);
+    }
+
+    .note h2 {
+      margin: 0 0 9px;
+      font-size: 14px;
+    }
+
+    .note p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    svg {
+      width: 190px;
+      height: 190px;
+      overflow: visible;
+    }
+
+    .shadow {
+      fill: rgba(0, 0, 0, 0.35);
+    }
+
+    .body {
+      fill: url(#bodyGradient);
+      stroke: #b8c8d8;
+      stroke-width: 3;
+      stroke-linejoin: round;
+    }
+
+    .plate {
+      fill: rgba(180, 188, 197, 0.88);
+      stroke: #f1f5f9;
+      stroke-width: 1.6;
+      stroke-linejoin: round;
+    }
+
+    .core {
+      stroke: #f7fbff;
+      stroke-width: 2.2;
+    }
+
+    .spike {
+      fill: #213241;
+      stroke: #6f879b;
+      stroke-width: 1.8;
+      stroke-linejoin: round;
+    }
+
+    .trail {
+      fill: none;
+      stroke: var(--fast);
+      stroke-width: 4;
+      stroke-linecap: round;
+      opacity: 0.65;
+    }
+
+    .aura {
+      fill: none;
+      stroke-width: 5;
+      opacity: 0.34;
+    }
+
+    .hp-bg {
+      fill: #35131a;
+    }
+
+    .hp {
+      fill: #ff4e5d;
+    }
+
+    .armor {
+      fill: #aeb5be;
+    }
+
+    .shield {
+      fill: #55dff8;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .notes {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      main {
+        width: min(100vw - 20px, 420px);
+        padding-top: 20px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>균열 결정체 몹 외형 시안</h1>
+    <p class="lead">같은 진영에서 나온 적처럼 보이도록 공통 코어, 결정 파편, 금속 외곽선을 공유하고 역할별 실루엣만 다르게 잡은 초안입니다.</p>
+
+    <section class="grid" aria-label="Enemy concepts">
+      <article class="card">
+        <div class="stage">
+          <svg viewBox="0 0 190 190" role="img" aria-label="균열 보행체">
+            <defs>
+              <linearGradient id="bodyGradient" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="#34495b"></stop>
+                <stop offset="1" stop-color="#172431"></stop>
+              </linearGradient>
+            </defs>
+            <ellipse class="shadow" cx="96" cy="151" rx="48" ry="10"></ellipse>
+            <path class="spike" d="M95 23 111 58 95 50 78 58Z"></path>
+            <path class="spike" d="M33 95 66 79 59 95 66 112Z"></path>
+            <path class="spike" d="M157 95 124 79 131 95 124 112Z"></path>
+            <path class="body" d="M95 42 130 63 143 101 121 136 95 148 67 136 47 101 60 63Z"></path>
+            <path class="plate" d="M95 49 118 65 95 74 72 65Z" opacity="0.55"></path>
+            <circle class="core" cx="95" cy="98" r="18" fill="var(--normal)"></circle>
+            <circle cx="95" cy="98" r="7" fill="#ffffff"></circle>
+            <rect class="hp-bg" x="45" y="165" width="100" height="7" rx="2"></rect>
+            <rect class="hp" x="45" y="165" width="66" height="7" rx="2"></rect>
+            <rect class="armor" x="111" y="165" width="24" height="7" rx="2"></rect>
+          </svg>
+        </div>
+        <div class="info">
+          <div class="name"><strong>균열 보행체</strong><span class="tag">기준형</span></div>
+          <p class="rule">마름모 몸체와 중앙 코어를 기본 골격으로 사용합니다.</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="stage">
+          <svg viewBox="0 0 190 190" role="img" aria-label="균열 척후체">
+            <defs>
+              <linearGradient id="bodyGradient" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="#34495b"></stop>
+                <stop offset="1" stop-color="#172431"></stop>
+              </linearGradient>
+            </defs>
+            <ellipse class="shadow" cx="96" cy="151" rx="45" ry="9"></ellipse>
+            <path class="trail" d="M54 111 C32 119 27 129 18 142"></path>
+            <path class="trail" d="M58 83 C36 77 29 65 20 52"></path>
+            <path class="spike" d="M53 72 31 53 62 57Z"></path>
+            <path class="spike" d="M53 118 31 137 62 133Z"></path>
+            <path class="body" d="M36 95 85 48 143 60 160 95 143 130 85 142Z"></path>
+            <path class="plate" d="M79 63 111 72 87 90 58 91Z" opacity="0.5"></path>
+            <circle class="core" cx="111" cy="95" r="15" fill="var(--fast)"></circle>
+            <circle cx="111" cy="95" r="6" fill="#eaffff"></circle>
+            <rect class="hp-bg" x="45" y="165" width="100" height="7" rx="2"></rect>
+            <rect class="hp" x="45" y="165" width="75" height="7" rx="2"></rect>
+            <rect class="armor" x="120" y="165" width="13" height="7" rx="2"></rect>
+          </svg>
+        </div>
+        <div class="info">
+          <div class="name"><strong>균열 척후체</strong><span class="tag">고속형</span></div>
+          <p class="rule">앞으로 쏠린 쐐기 실루엣과 청록 추진 흔적으로 속도를 강조합니다.</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="stage">
+          <svg viewBox="0 0 190 190" role="img" aria-label="장갑 파편체">
+            <defs>
+              <linearGradient id="bodyGradient" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="#34495b"></stop>
+                <stop offset="1" stop-color="#172431"></stop>
+              </linearGradient>
+            </defs>
+            <ellipse class="shadow" cx="96" cy="153" rx="57" ry="12"></ellipse>
+            <path class="spike" d="M95 20 112 55 95 49 78 55Z"></path>
+            <path class="body" d="M95 38 137 55 159 94 138 136 95 154 52 136 31 94 53 55Z"></path>
+            <path class="plate" d="M49 73 77 57 74 132 47 119 34 94Z"></path>
+            <path class="plate" d="M141 73 113 57 116 132 143 119 156 94Z"></path>
+            <path class="plate" d="M77 54 113 54 123 76 95 88 67 76Z" fill="var(--tank)"></path>
+            <circle class="core" cx="95" cy="102" r="16" fill="var(--tank)"></circle>
+            <circle cx="95" cy="102" r="6" fill="#fff3cc"></circle>
+            <rect class="hp-bg" x="45" y="165" width="100" height="7" rx="2"></rect>
+            <rect class="hp" x="45" y="165" width="80" height="7" rx="2"></rect>
+            <rect class="armor" x="125" y="165" width="15" height="7" rx="2"></rect>
+          </svg>
+        </div>
+        <div class="info">
+          <div class="name"><strong>장갑 파편체</strong><span class="tag">방어형</span></div>
+          <p class="rule">양옆 금속판과 넓은 육각 몸체로 방어구 몹임을 먼저 읽히게 합니다.</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="stage">
+          <svg viewBox="0 0 190 190" role="img" aria-label="균열 수호체">
+            <defs>
+              <linearGradient id="bodyGradient" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="#34495b"></stop>
+                <stop offset="1" stop-color="#172431"></stop>
+              </linearGradient>
+            </defs>
+            <ellipse class="shadow" cx="96" cy="156" rx="66" ry="13"></ellipse>
+            <circle class="aura" cx="95" cy="96" r="62" stroke="var(--boss)"></circle>
+            <path class="spike" d="M95 12 114 54 95 47 76 54Z"></path>
+            <path class="spike" d="M27 78 67 68 55 92Z"></path>
+            <path class="spike" d="M163 78 123 68 135 92Z"></path>
+            <path class="spike" d="M48 145 70 119 78 150Z"></path>
+            <path class="spike" d="M142 145 120 119 112 150Z"></path>
+            <path class="body" d="M95 34 143 54 168 96 143 139 95 160 47 139 22 96 47 54Z"></path>
+            <path class="plate" d="M62 61 91 47 85 88 48 91Z"></path>
+            <path class="plate" d="M128 61 99 47 105 88 142 91Z"></path>
+            <path class="plate" d="M58 125 90 111 95 149 67 139Z" opacity="0.86"></path>
+            <path class="plate" d="M132 125 100 111 95 149 123 139Z" opacity="0.86"></path>
+            <circle class="core" cx="95" cy="96" r="25" fill="var(--boss)"></circle>
+            <circle cx="95" cy="96" r="9" fill="#fff2f4"></circle>
+            <rect class="shield" x="45" y="156" width="100" height="5" rx="2" opacity="0.82"></rect>
+            <rect class="hp-bg" x="45" y="165" width="100" height="7" rx="2"></rect>
+            <rect class="hp" x="45" y="165" width="86" height="7" rx="2"></rect>
+            <rect class="armor" x="131" y="165" width="8" height="7" rx="2"></rect>
+          </svg>
+        </div>
+        <div class="info">
+          <div class="name"><strong>균열 수호체</strong><span class="tag">보스형</span></div>
+          <p class="rule">기준 골격을 크게 확장하고 붉은 코어와 다중 파편으로 위계를 줍니다.</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="notes">
+      <div class="note">
+        <h2>외형 규칙</h2>
+        <p>모든 몹은 어두운 결정 몸체, 밝은 외곽선, 중앙 코어를 공유합니다. 역할 차이는 몸체 비율, 파편 방향, 포인트 컬러, 장갑판 개수로만 구분합니다.</p>
+      </div>
+      <div class="note">
+        <h2>내구도 표시</h2>
+        <p>보호막은 위쪽 파란 줄, 체력과 방어구는 아래쪽 줄의 붉은 체력 구간과 회색 방어구 구간으로 표시합니다.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

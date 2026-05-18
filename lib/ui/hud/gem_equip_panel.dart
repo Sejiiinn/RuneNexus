@@ -1648,47 +1648,56 @@ String _formatDamageValue(double value) {
 }
 
 class _StatPill extends StatelessWidget {
-  const _StatPill({required this.label, required this.value, this.valueChild});
+  const _StatPill({
+    required this.label,
+    required this.value,
+    this.valueChild,
+    this.expand = true,
+  });
 
   final String label;
   final String value;
   final Widget? valueChild;
+  final bool expand;
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
-        decoration: BoxDecoration(
-          color: const Color(0xAA07111D),
-          border: Border.all(color: const Color(0x3333D8FF)),
-          borderRadius: BorderRadius.circular(7),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontSize: 10, color: Color(0xFF8AA6B8)),
-              overflow: TextOverflow.ellipsis,
-            ),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child:
-                  valueChild ??
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+    final content = Container(
+      constraints: expand ? null : const BoxConstraints(minWidth: 58),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xAA07111D),
+        border: Border.all(color: const Color(0x3333D8FF)),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 10, color: Color(0xFF8AA6B8)),
+            overflow: TextOverflow.ellipsis,
+          ),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child:
+                valueChild ??
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
                   ),
-            ),
-          ],
-        ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+          ),
+        ],
       ),
     );
+    if (!expand) {
+      return content;
+    }
+    return Expanded(child: content);
   }
 }
 
