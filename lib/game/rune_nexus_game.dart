@@ -24,6 +24,7 @@ import '../domain/gem/gem_type.dart';
 import '../domain/map/grid_point.dart';
 import '../domain/map/map_definition.dart';
 import '../domain/map/tile_type.dart';
+import '../domain/research/research_type.dart';
 import '../domain/run_upgrade/run_upgrade_type.dart';
 import '../domain/stage/stage_definition.dart';
 import '../domain/turret/attack_tag.dart';
@@ -245,6 +246,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       emergencySaleUpgradeCost: RunProgression.emergencySaleUpgradeBaseCost,
       canUpgradeEmergencySale: false,
       turretRefundPercent: RunProgression.baseTurretRefundPercent,
+      researchSlotCount: RunProgression.researchSlotCount,
+      researchLevels: const {},
+      activeResearches: const [],
+      startingGemShards: 0,
     );
   }
 
@@ -424,6 +429,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   int get turretRefundPercent => _progression.isStageCleared(2)
       ? _progression.turretRefundPercent
       : RunProgression.baseTurretRefundPercent;
+  int get maxTurretLinkSlotLimit => _progression.maxTurretLinkSlots;
   bool get _canEditBoard =>
       _phase == GamePhase.preparation || _phase == GamePhase.wave;
   double get towerDamageRunMultiplier =>
@@ -504,6 +510,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (savedData != null) {
       _restoreController.restoreMenuStateFromSaveData(savedData);
     }
+    _updateResearchProgress();
     _publish();
   }
 
@@ -541,6 +548,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void update(double dt) {
+    _updateResearchProgress();
     _spaceTime = (_spaceTime + dt) % 1200;
     _updateVisualAlerts(dt);
     if (_phase == GamePhase.restored) {
@@ -560,6 +568,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _updateWaveSpawns(scaledDt);
     _checkWaveClear();
     _requestLocalSave();
+  }
+
+  void _updateResearchProgress() {
+    final completed = _progression.completeFinishedResearches(
+      nowMillis: DateTime.now().millisecondsSinceEpoch,
+    );
+    if (!completed) {
+      return;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
   }
 
   @override
@@ -800,7 +819,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _selectStage(targetStageNumber);
     }
     _gemInventory.clear();
-    _gemShards = 0;
+    _gemShards = _progression.startingGemShards;
     _runUpgradeLevels.clear();
     _rewardOptions.clear();
     _isPurchasedGemReward = false;
@@ -827,6 +846,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
     _restoredPhase = null;
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void startResearch(ResearchType type) {
+    final started = _progression.startResearch(
+      type,
+      nowMillis: DateTime.now().millisecondsSinceEpoch,
+    );
+    if (!started) {
+      return;
+    }
     _publish();
     _requestLocalSave(immediate: true);
   }
@@ -2510,6 +2541,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (savedData != null) {
       _restoreController.restoreFromSaveData(savedData);
     }
+    _updateResearchProgress();
   }
 
   GameSaveData _buildSaveData() {

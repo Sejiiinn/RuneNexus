@@ -105,10 +105,10 @@ class TurretComponent extends PositionComponent {
   int get refundGold => investedGold * game.turretRefundPercent ~/ 100;
   bool get canLevelUp => _level < maxLevel;
   int get slotLimit => _slotLimit;
-  int get maxSlotLimit => 3;
+  int get maxSlotLimit => game.maxTurretLinkSlotLimit;
   bool get hasNextLinkUpgrade => _slotLimit < maxSlotLimit;
   int get nextSlotLimit => hasNextLinkUpgrade ? _slotLimit + 1 : _slotLimit;
-  int get linkUpgradeRequiredLevel => nextSlotLimit >= 3 ? 5 : 1;
+  int get linkUpgradeRequiredLevel => 1;
   int get linkUpgradeCost {
     if (!hasNextLinkUpgrade) {
       return 0;

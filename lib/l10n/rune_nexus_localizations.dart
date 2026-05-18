@@ -40,6 +40,22 @@ class RuneNexusLocalizations {
   String get upgradeBoard => _isEnglish ? 'Upgrade Board' : '업그레이드 보드';
   String get researchBoard => _isEnglish ? 'Research Board' : '연구 보드';
   String get systemResearch => _isEnglish ? 'System Research' : '시스템 연구';
+  String get researchSlot => _isEnglish ? 'Research Slot' : '연구 슬롯';
+  String get availableResearch =>
+      _isEnglish ? 'Available Research' : '시작 가능 연구';
+  String get completedResearch => _isEnglish ? 'Completed Research' : '완료된 연구';
+  String get emptyResearchSlot =>
+      _isEnglish ? 'Empty research slot' : '빈 연구 슬롯';
+  String get startResearch => _isEnglish ? 'Start' : '연구 시작';
+  String get researchInProgress => _isEnglish ? 'Researching' : '연구 중';
+  String get researchComplete => _isEnglish ? 'Completed' : '완료';
+  String get researchSlotBusy => _isEnglish ? 'Slot in use' : '슬롯 사용 중';
+  String get researchAvailable => _isEnglish ? 'Ready' : '시작 가능';
+  String get researchLevelLabel => _isEnglish ? 'Level' : '레벨';
+  String get researchRequirementLabel => _isEnglish ? 'Requirement' : '조건';
+  String get researchCostLabel => _isEnglish ? 'Cost' : '비용';
+  String get researchTimeLabel => _isEnglish ? 'Time' : '시간';
+  String get researchStatusLabel => _isEnglish ? 'Status' : '상태';
   String get selectedUpgrade => _isEnglish ? 'Selected Upgrade' : '선택한 성장';
   String get maxLevelReached => _isEnglish ? 'Max level' : '최대 레벨';
   String get notEnoughRunes => _isEnglish ? 'Need more runes' : '룬 부족';
@@ -47,6 +63,7 @@ class RuneNexusLocalizations {
   String get plannedUpgrade => _isEnglish ? 'Planned' : '준비 중';
   String get researchPending => _isEnglish ? 'Future update' : '이후 개발';
   String get lockedUpgrade => _isEnglish ? 'Locked Upgrade' : '미해금 업그레이드';
+  String get lockedResearch => _isEnglish ? 'Locked Research' : '미해금 연구';
   String get unavailableUpgrade =>
       _isEnglish ? 'Not available yet' : '아직 사용할 수 없음';
   String get combatUpgradeGroup => _isEnglish ? 'Combat' : '전투';
@@ -81,7 +98,8 @@ class RuneNexusLocalizations {
   String get stageSniperRewardUnlocked =>
       _isEnglish ? 'Unlocked: Sniper turret' : '해금됨: 저격 포탑';
   String get sniperTurret => _isEnglish ? 'Sniper turret' : '저격 포탑';
-  String get economyUnlock => _isEnglish ? 'Economy unlock' : '경제 해금';
+  String get upgradeUnlock => _isEnglish ? 'Upgrade unlock' : '강화 해금';
+  String get researchUnlock => _isEnglish ? 'Research unlock' : '연구 해금';
   String get cancel => _isEnglish ? 'Cancel' : '취소';
   String get settleAndStart => _isEnglish ? 'Settle and start' : '정산 후 시작';
   String get endActiveStageTitle =>
@@ -150,6 +168,29 @@ class RuneNexusLocalizations {
     return _isEnglish ? 'Runes $cost' : '룬 $cost';
   }
 
+  String researchLevel(int level, int maxLevel) {
+    return _isEnglish ? 'Lv.$level/$maxLevel' : 'Lv.$level/$maxLevel';
+  }
+
+  String researchDuration(int durationMillis) {
+    final minutes = durationMillis ~/ 60000;
+    if (minutes >= 60 && minutes % 60 == 0) {
+      final hours = minutes ~/ 60;
+      return _isEnglish ? '${hours}h' : '$hours시간';
+    }
+    return _isEnglish ? '${minutes}m' : '$minutes분';
+  }
+
+  String researchRemaining(int remainingMillis) {
+    final seconds = (remainingMillis / 1000).ceil();
+    final hours = seconds ~/ 3600;
+    final minutes = (seconds % 3600) ~/ 60;
+    final restSeconds = seconds % 60;
+    return _isEnglish
+        ? '${hours}h ${minutes}m ${restSeconds}s'
+        : '$hours시간 $minutes분 $restSeconds초';
+  }
+
   String stageReachRequirement(int stageNumber) {
     return _isEnglish ? 'Reach Stage $stageNumber' : '스테이지 $stageNumber 도달';
   }
@@ -186,8 +227,8 @@ class RuneNexusLocalizations {
   String researchDescription(String title) {
     if (title == linkExpansionOne) {
       return _isEnglish
-          ? 'Raises the maximum links per turret to 4.'
-          : '포탑 하나가 연결할 수 있는 최대 링크를 4개로 늘립니다.';
+          ? 'Unlocks the first extra link socket for turrets.'
+          : '포탑의 추가 링크 홈을 열 수 있게 합니다.';
     }
     if (title == linkExpansionTwo) {
       return _isEnglish
@@ -196,8 +237,8 @@ class RuneNexusLocalizations {
     }
     if (title == gemAttunement) {
       return _isEnglish
-          ? 'Opens the first gem reward and gem interaction flow.'
-          : '첫 젬 보상과 젬 상호작용 흐름을 개방합니다.';
+          ? 'Adds +2 starting gem shards per level.'
+          : '스테이지 시작 젬 파편을 +2 늘립니다.';
     }
     if (title == runeResonance) {
       return _isEnglish

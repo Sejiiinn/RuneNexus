@@ -230,6 +230,10 @@ class GameSnapshotBuilder {
           _game._progression.isStageCleared(2) &&
           _game._progression.canUpgradeEmergencySale,
       turretRefundPercent: _game.turretRefundPercent,
+      researchSlotCount: RunProgression.researchSlotCount,
+      researchLevels: Map.unmodifiable(_game._progression.researchLevels),
+      activeResearches: List.unmodifiable(_game._progression.activeResearches),
+      startingGemShards: _game._progression.startingGemShards,
     );
   }
 

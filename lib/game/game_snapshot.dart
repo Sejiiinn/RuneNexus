@@ -4,6 +4,8 @@ import '../domain/combat/run_panel_tab.dart';
 import '../domain/enemy/enemy_type.dart';
 import '../domain/gem/gem_type.dart';
 import '../domain/map/grid_point.dart';
+import '../domain/research/research_progress.dart';
+import '../domain/research/research_type.dart';
 import '../domain/run_upgrade/run_upgrade_type.dart';
 import '../domain/turret/turret_trait_type.dart';
 import '../domain/turret/turret_type.dart';
@@ -122,6 +124,10 @@ class GameSnapshot {
     required this.emergencySaleUpgradeCost,
     required this.canUpgradeEmergencySale,
     required this.turretRefundPercent,
+    required this.researchSlotCount,
+    required this.researchLevels,
+    required this.activeResearches,
+    required this.startingGemShards,
   });
 
   final int gold;
@@ -236,4 +242,8 @@ class GameSnapshot {
   final int emergencySaleUpgradeCost;
   final bool canUpgradeEmergencySale;
   final int turretRefundPercent;
+  final int researchSlotCount;
+  final Map<ResearchType, int> researchLevels;
+  final List<ResearchProgress> activeResearches;
+  final int startingGemShards;
 }

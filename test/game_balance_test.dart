@@ -17,6 +17,7 @@ import 'package:rune_nexus/domain/enemy/enemy_type.dart';
 import 'package:rune_nexus/domain/gem/gem_equip_rules.dart';
 import 'package:rune_nexus/domain/gem/gem_type.dart';
 import 'package:rune_nexus/domain/map/grid_point.dart';
+import 'package:rune_nexus/domain/research/research_type.dart';
 import 'package:rune_nexus/domain/run_upgrade/run_upgrade_type.dart';
 import 'package:rune_nexus/domain/stage/stage_definition.dart';
 import 'package:rune_nexus/domain/turret/attack_tag.dart';
@@ -668,18 +669,32 @@ void main() {
     expect(upgraded.selectedTurretNextLevel, 3);
   });
 
-  test('turret link upgrades scale with price and gate the third link', () {
+  test('turret link upgrade requires completed link research', () {
+    final lockedGame = RuneNexusGame();
+    final lockedTurret = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: demoTurrets[TurretType.arrow]!,
+      game: lockedGame,
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+
+    expect(lockedTurret.maxSlotLimit, 1);
+    expect(lockedTurret.hasNextLinkUpgrade, isFalse);
+    expect(lockedTurret.upgradeLink(), isFalse);
+
+    final unlockedGame = _LinkResearchUnlockedGame();
     final machineGun = TurretComponent(
       gridPoint: const GridPoint(0, 0),
       definition: demoTurrets[TurretType.arrow]!,
-      game: RuneNexusGame(),
+      game: unlockedGame,
       center: Vector2.zero(),
       tileSize: 32,
     );
     final cannon = TurretComponent(
       gridPoint: const GridPoint(1, 0),
       definition: demoTurrets[TurretType.cannon]!,
-      game: RuneNexusGame(),
+      game: unlockedGame,
       center: Vector2.zero(),
       tileSize: 32,
     );
@@ -690,19 +705,40 @@ void main() {
     expect(cannon.upgradeLink(), isTrue);
     expect(machineGun.slotLimit, 2);
     expect(cannon.slotLimit, 2);
-    expect(machineGun.linkUpgradeCost, 180);
-    expect(cannon.linkUpgradeCost, 270);
-    expect(machineGun.canUpgradeLink, isFalse);
-    expect(machineGun.linkUpgradeRequiredLevel, 5);
-
-    while (machineGun.level < 5) {
-      expect(machineGun.upgradeLevel(), isTrue);
-    }
-
-    expect(machineGun.canUpgradeLink, isTrue);
-    expect(machineGun.upgradeLink(), isTrue);
-    expect(machineGun.slotLimit, 3);
     expect(machineGun.hasNextLinkUpgrade, isFalse);
+  });
+
+  test('timed research spends runes and applies effects after completion', () {
+    final progression = RunProgression()
+      ..runes = 1000
+      ..clearedStageNumbers.addAll({1, 2, 3, 4, 5});
+
+    expect(
+      progression.startResearch(ResearchType.gemAttunement, nowMillis: 1000),
+      isTrue,
+    );
+    expect(progression.runes, 850);
+    expect(progression.researchLevel(ResearchType.gemAttunement), 0);
+    expect(progression.startingGemShards, 0);
+    expect(progression.activeResearches, hasLength(1));
+
+    expect(
+      progression.completeFinishedResearches(nowMillis: 1000 + 3599999),
+      isFalse,
+    );
+    expect(
+      progression.completeFinishedResearches(nowMillis: 1000 + 3600000),
+      isTrue,
+    );
+    expect(progression.researchLevel(ResearchType.gemAttunement), 1);
+    expect(progression.startingGemShards, 2);
+    expect(progression.activeResearches, isEmpty);
+
+    expect(
+      progression.startResearch(ResearchType.gemAttunement, nowMillis: 5000000),
+      isTrue,
+    );
+    expect(progression.runes, 625);
   });
 
   test('debug round control jumps to requested preparation round', () {
@@ -1113,7 +1149,7 @@ void main() {
 
   test('emergency sale upgrade increases turret refund gold', () async {
     final repository = MemorySaveRepository();
-    final game = RuneNexusGame(
+    final game = _LinkResearchUnlockedGame(
       saveRepository: repository,
       waves: const [
         WaveDefinition(
@@ -1234,7 +1270,7 @@ void main() {
   );
 
   test('physical damage gem boosts physical turrets only', () {
-    final game = RuneNexusGame();
+    final game = _LinkResearchUnlockedGame();
     final machineGun = TurretComponent(
       gridPoint: const GridPoint(0, 0),
       definition: demoTurrets[TurretType.arrow]!,
@@ -1496,7 +1532,7 @@ void main() {
   });
 
   test('turret gems can be removed and returned by slot', () {
-    final game = RuneNexusGame();
+    final game = _LinkResearchUnlockedGame();
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
@@ -1515,7 +1551,9 @@ void main() {
   });
 
   test('gems can be equipped into the selected empty socket', () async {
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    final game = _LinkResearchUnlockedGame(
+      saveRepository: MemorySaveRepository(),
+    );
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
 
@@ -1535,7 +1573,7 @@ void main() {
 
   test('removing a gem keeps other gem socket positions fixed', () async {
     final repository = MemorySaveRepository();
-    final game = RuneNexusGame(saveRepository: repository);
+    final game = _LinkResearchUnlockedGame(saveRepository: repository);
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
 
@@ -2365,7 +2403,7 @@ void main() {
 
   test('local save restores preparation setup without resume prompt', () async {
     final repository = MemorySaveRepository();
-    final game = RuneNexusGame(saveRepository: repository);
+    final game = _LinkResearchUnlockedGame(saveRepository: repository);
 
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
@@ -2390,7 +2428,9 @@ void main() {
     expect(saved.turrets.single.directDamageDealt, closeTo(123, 0.001));
 
     final restoredRepository = MemorySaveRepository()..data = saved;
-    final restored = RuneNexusGame(saveRepository: restoredRepository);
+    final restored = _LinkResearchUnlockedGame(
+      saveRepository: restoredRepository,
+    );
     restored.onGameResize(Vector2(400, 800));
     await restored.onLoad();
 
@@ -2544,7 +2584,7 @@ void main() {
 
   test('turrets can be built and leveled while a round is running', () async {
     final repository = MemorySaveRepository();
-    final game = RuneNexusGame(saveRepository: repository);
+    final game = _LinkResearchUnlockedGame(saveRepository: repository);
 
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
@@ -2564,7 +2604,7 @@ void main() {
 
   test('turret refund returns investment and equipped gems', () async {
     final repository = MemorySaveRepository();
-    final game = RuneNexusGame(saveRepository: repository);
+    final game = _LinkResearchUnlockedGame(saveRepository: repository);
 
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
@@ -2628,4 +2668,11 @@ void main() {
 
     expect(game.snapshotNotifier.value.selectedTurretDamageDealt, 0);
   });
+}
+
+class _LinkResearchUnlockedGame extends RuneNexusGame {
+  _LinkResearchUnlockedGame({super.waves, super.saveRepository});
+
+  @override
+  int get maxTurretLinkSlotLimit => 2;
 }

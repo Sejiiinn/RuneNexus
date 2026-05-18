@@ -3,6 +3,7 @@ import '../../domain/combat/game_phase.dart';
 import '../../domain/enemy/enemy_type.dart';
 import '../../domain/gem/gem_type.dart';
 import '../../domain/map/grid_point.dart';
+import '../../domain/research/research_type.dart';
 import '../../domain/run_upgrade/run_upgrade_type.dart';
 import '../../domain/turret/turret_trait_type.dart';
 import '../../domain/turret/turret_type.dart';
@@ -151,6 +152,8 @@ class SavedProgression {
     required this.unlockedStageCount,
     required this.bestRoundsByStage,
     required this.clearedStageNumbers,
+    required this.researchLevels,
+    required this.activeResearches,
   });
 
   final int runes;
@@ -164,6 +167,8 @@ class SavedProgression {
   final int unlockedStageCount;
   final Map<int, int> bestRoundsByStage;
   final Set<int> clearedStageNumbers;
+  final Map<ResearchType, int> researchLevels;
+  final List<SavedActiveResearch> activeResearches;
 
   Map<String, Object?> toJson() {
     return {
@@ -180,6 +185,12 @@ class SavedProgression {
         (key, value) => MapEntry('$key', value),
       ),
       'clearedStageNumbers': clearedStageNumbers.toList(),
+      'researchLevels': researchLevels.map(
+        (key, value) => MapEntry(key.name, value),
+      ),
+      'activeResearches': activeResearches
+          .map((research) => research.toJson())
+          .toList(),
     };
   }
 
@@ -197,6 +208,50 @@ class SavedProgression {
       unlockedStageCount: _intValue(map['unlockedStageCount'], fallback: 1),
       bestRoundsByStage: _intIntMap(map['bestRoundsByStage']),
       clearedStageNumbers: _intSet(map['clearedStageNumbers']),
+      researchLevels: _enumIntMap(ResearchType.values, map['researchLevels']),
+      activeResearches: _objectList(
+        map['activeResearches'],
+        SavedActiveResearch.fromJson,
+      ),
+    );
+  }
+}
+
+class SavedActiveResearch {
+  const SavedActiveResearch({
+    required this.type,
+    required this.targetLevel,
+    required this.startedAtMillis,
+    required this.durationMillis,
+  });
+
+  final ResearchType type;
+  final int targetLevel;
+  final int startedAtMillis;
+  final int durationMillis;
+
+  Map<String, Object?> toJson() {
+    return {
+      'type': type.name,
+      'targetLevel': targetLevel,
+      'startedAtMillis': startedAtMillis,
+      'durationMillis': durationMillis,
+    };
+  }
+
+  static SavedActiveResearch? fromJson(Object? json) {
+    if (json is! Map<String, Object?>) {
+      return null;
+    }
+    final type = _enumValue(ResearchType.values, json['type']);
+    if (type == null) {
+      return null;
+    }
+    return SavedActiveResearch(
+      type: type,
+      targetLevel: _intValue(json['targetLevel'], fallback: 1),
+      startedAtMillis: _intValue(json['startedAtMillis']),
+      durationMillis: _intValue(json['durationMillis']),
     );
   }
 }

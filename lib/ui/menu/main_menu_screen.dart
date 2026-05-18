@@ -1,6 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../../data/definitions/demo_research_data.dart';
 import '../../domain/combat/game_phase.dart';
+import '../../domain/research/research_progress.dart';
+import '../../domain/research/research_type.dart';
 import '../../domain/turret/turret_type.dart';
 import '../../game/game_snapshot.dart';
 import '../../game/rendering/turret_shape_renderer.dart';
@@ -45,6 +50,51 @@ class MainMenuScreen extends StatefulWidget {
 
 class _MainMenuScreenState extends State<MainMenuScreen> {
   _PermanentUpgradeGroup _selectedUpgradeGroup = _PermanentUpgradeGroup.combat;
+  Timer? _researchClockTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncResearchClockTimer();
+  }
+
+  @override
+  void didUpdateWidget(covariant MainMenuScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncResearchClockTimer();
+  }
+
+  @override
+  void dispose() {
+    _researchClockTimer?.cancel();
+    super.dispose();
+  }
+
+  void _syncResearchClockTimer() {
+    final needsClock =
+        widget.selectedTab == MainMenuTab.research &&
+        widget.snapshot.activeResearches.isNotEmpty;
+    if (!needsClock) {
+      _researchClockTimer?.cancel();
+      _researchClockTimer = null;
+      return;
+    }
+    if (_researchClockTimer != null) {
+      return;
+    }
+    _researchClockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) {
+        return;
+      }
+      if (widget.selectedTab != MainMenuTab.research ||
+          widget.snapshot.activeResearches.isEmpty) {
+        _researchClockTimer?.cancel();
+        _researchClockTimer = null;
+        return;
+      }
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +136,10 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                                 snapshot: widget.snapshot,
                                 group: _selectedUpgradeGroup,
                               )
-                            : _ResearchMenu(snapshot: widget.snapshot),
+                            : _ResearchMenu(
+                                game: widget.game,
+                                snapshot: widget.snapshot,
+                              ),
                       ),
                     ],
                   ),
@@ -596,7 +649,7 @@ class _StageMenu extends StatelessWidget {
               sniperRewardUnlocked: snapshot.availableTurretTypes.contains(
                 TurretType.sniper,
               ),
-              economyRewardUnlocked: snapshot.clearedStageNumbers.contains(2),
+              stageCleared: snapshot.clearedStageNumbers.contains(stage),
               statusText: _stageStatusText(
                 l10n: l10n,
                 snapshot: snapshot,
@@ -607,7 +660,6 @@ class _StageMenu extends StatelessWidget {
                 l10n: l10n,
                 snapshot: snapshot,
                 stageNumber: stage,
-                activeRunInProgress: activeRunInProgress,
               ),
               runeBonusText: l10n.stageRuneBonus(
                 RunProgression.stageRuneRewardBonusRateFor(stage),
@@ -809,18 +861,9 @@ String _stageDetailText({
   required RuneNexusLocalizations l10n,
   required GameSnapshot snapshot,
   required int stageNumber,
-  required bool activeRunInProgress,
 }) {
   if (stageNumber > snapshot.unlockedStageCount) {
     return l10n.stageUnlockRequirement(stageNumber - 1);
-  }
-  if (activeRunInProgress && stageNumber == snapshot.currentStageNumber) {
-    return l10n.stageProgressDetail(
-      round: snapshot.round,
-      maxRound: snapshot.maxRound,
-      turretCount: snapshot.placedTurretCount,
-      gold: snapshot.gold,
-    );
   }
   return _recordTextForStage(l10n, snapshot, stageNumber);
 }
@@ -830,12 +873,12 @@ String _recordTextForStage(
   GameSnapshot snapshot,
   int stageNumber,
 ) {
-  if (snapshot.clearedStageNumbers.contains(stageNumber)) {
-    return l10n.recordCleared;
-  }
   final bestRound = snapshot.bestRoundsByStage[stageNumber] ?? 0;
   if (bestRound > 0) {
     return l10n.stageBestRound(bestRound);
+  }
+  if (snapshot.clearedStageNumbers.contains(stageNumber)) {
+    return l10n.recordCleared;
   }
   return l10n.recordNone;
 }
@@ -846,7 +889,7 @@ class _StageSelectionRow extends StatelessWidget {
     required this.unlocked,
     required this.active,
     required this.sniperRewardUnlocked,
-    required this.economyRewardUnlocked,
+    required this.stageCleared,
     required this.statusText,
     required this.detailText,
     required this.runeBonusText,
@@ -857,7 +900,7 @@ class _StageSelectionRow extends StatelessWidget {
   final bool unlocked;
   final bool active;
   final bool sniperRewardUnlocked;
-  final bool economyRewardUnlocked;
+  final bool stageCleared;
   final String statusText;
   final String detailText;
   final String runeBonusText;
@@ -967,10 +1010,20 @@ class _StageSelectionRow extends StatelessWidget {
     if (stageNumber == 2) {
       return [
         _StageInfoChip(
-          text: l10n.economyUnlock,
+          text: l10n.upgradeUnlock,
           unlocked: unlocked,
-          highlighted: economyRewardUnlocked,
+          highlighted: stageCleared,
           leading: const Icon(Icons.paid_outlined, size: 13),
+        ),
+      ];
+    }
+    if (stageNumber == 3 || stageNumber == 5) {
+      return [
+        _StageInfoChip(
+          text: l10n.researchUnlock,
+          unlocked: unlocked,
+          highlighted: stageCleared,
+          leading: const Icon(Icons.science_outlined, size: 13),
         ),
       ];
     }
@@ -1270,14 +1323,36 @@ class _PermanentUpgradeMenu extends StatelessWidget {
   }
 }
 
-class _ResearchMenu extends StatelessWidget {
-  const _ResearchMenu({required this.snapshot});
+class _ResearchMenu extends StatefulWidget {
+  const _ResearchMenu({required this.game, required this.snapshot});
 
+  final RuneNexusGame game;
   final GameSnapshot snapshot;
 
   @override
+  State<_ResearchMenu> createState() => _ResearchMenuState();
+}
+
+class _ResearchMenuState extends State<_ResearchMenu> {
+  @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final nowMillis = DateTime.now().millisecondsSinceEpoch;
+    final activeResearches = widget.snapshot.activeResearches;
+    final completedTypes =
+        ResearchType.values
+            .where(
+              (type) =>
+                  _researchLevel(widget.snapshot, type) >=
+                  demoResearchDefinitions[type]!.maxLevel,
+            )
+            .toList()
+          ..sort(_compareResearchRequirement);
+    final availableTypes =
+        ResearchType.values
+            .where((type) => !completedTypes.contains(type))
+            .toList()
+          ..sort(_compareResearchRequirement);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -1300,72 +1375,194 @@ class _ResearchMenu extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        _ResearchTrack(
-          icon: Icons.account_tree_outlined,
-          title: l10n.systemResearch,
-          tiles: [
-            _ResearchTile(
-              icon: Icons.hub_outlined,
-              title: l10n.linkExpansionOne,
-              description: l10n.researchDescription(l10n.linkExpansionOne),
-              statusText: snapshot.unlockedStageCount >= 2
-                  ? l10n.researchPending
-                  : l10n.stageReachRequirement(2),
-            ),
-            _ResearchTile(
-              icon: Icons.hub,
-              title: l10n.linkExpansionTwo,
-              description: l10n.researchDescription(l10n.linkExpansionTwo),
-              statusText: snapshot.unlockedStageCount >= 3
-                  ? l10n.researchPending
-                  : l10n.stageReachRequirement(3),
-            ),
-            _ResearchTile(
-              icon: Icons.auto_awesome_outlined,
-              title: l10n.gemAttunement,
-              description: l10n.researchDescription(l10n.gemAttunement),
-              statusText: snapshot.unlockedStageCount >= 3
-                  ? l10n.researchPending
-                  : l10n.stageReachRequirement(3),
-            ),
-            _ResearchTile(
-              icon: Icons.toll_outlined,
-              title: l10n.runeResonance,
-              description: l10n.researchDescription(l10n.runeResonance),
-              statusText: snapshot.unlockedStageCount >= 4
-                  ? l10n.researchPending
-                  : l10n.stageReachRequirement(4),
-            ),
-          ],
+        _ResearchSlotPanel(
+          slots: widget.snapshot.researchSlotCount,
+          activeResearches: activeResearches,
+          nowMillis: nowMillis,
         ),
         const SizedBox(height: 10),
-        _ResearchTrack(
-          icon: Icons.precision_manufacturing_outlined,
-          title: l10n.towerResearch,
-          tiles: [
-            _ResearchTile(
-              icon: Icons.shield_outlined,
-              title: l10n.towerResearch,
-              description: l10n.researchDescription(l10n.towerResearch),
-              statusText: l10n.designLocked,
+        _ResearchSection(
+          icon: Icons.science_outlined,
+          title: l10n.availableResearch,
+          children: [
+            _ResearchCardGrid(
+              types: availableTypes,
+              game: widget.game,
+              snapshot: widget.snapshot,
+              nowMillis: nowMillis,
+              onSelectType: _openResearchDetails,
             ),
           ],
         ),
+        if (completedTypes.isNotEmpty) ...[
+          const SizedBox(height: 10),
+          _ResearchSection(
+            icon: Icons.done_all,
+            title: l10n.completedResearch,
+            children: [
+              _ResearchCardGrid(
+                types: completedTypes,
+                game: widget.game,
+                snapshot: widget.snapshot,
+                nowMillis: nowMillis,
+                onSelectType: _openResearchDetails,
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _openResearchDetails(ResearchType type) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => _ResearchDetailDialog(
+        game: widget.game,
+        snapshot: widget.snapshot,
+        type: type,
+        nowMillis: DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+  }
+}
+
+int _compareResearchRequirement(ResearchType left, ResearchType right) {
+  final leftStage = demoResearchDefinitions[left]!.requiredClearedStage;
+  final rightStage = demoResearchDefinitions[right]!.requiredClearedStage;
+  final stageOrder = leftStage.compareTo(rightStage);
+  if (stageOrder != 0) {
+    return stageOrder;
+  }
+  return left.index.compareTo(right.index);
+}
+
+class _ResearchSlotPanel extends StatelessWidget {
+  const _ResearchSlotPanel({
+    required this.slots,
+    required this.activeResearches,
+    required this.nowMillis,
+  });
+
+  final int slots;
+  final List<ResearchProgress> activeResearches;
+  final int nowMillis;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return _ResearchSection(
+      icon: Icons.view_module_outlined,
+      title: l10n.researchSlot,
+      children: [
+        for (var index = 0; index < slots; index++) ...[
+          if (index > 0) const SizedBox(height: 7),
+          _ResearchSlotCard(
+            research: index < activeResearches.length
+                ? activeResearches[index]
+                : null,
+            nowMillis: nowMillis,
+          ),
+        ],
       ],
     );
   }
 }
 
-class _ResearchTrack extends StatelessWidget {
-  const _ResearchTrack({
+class _ResearchSlotCard extends StatelessWidget {
+  const _ResearchSlotCard({required this.research, required this.nowMillis});
+
+  final ResearchProgress? research;
+  final int nowMillis;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final active = research;
+    final progress = active == null || active.durationMillis <= 0
+        ? 0.0
+        : 1 - active.remainingMillisAt(nowMillis) / active.durationMillis;
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0x22000000),
+        border: Border.all(color: const Color(0x33485B68)),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          if (active != null)
+            Positioned.fill(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: AnimatedFractionallySizedBox(
+                  duration: const Duration(milliseconds: 850),
+                  curve: Curves.easeOutCubic,
+                  widthFactor: progress.clamp(0.0, 1.0),
+                  heightFactor: 1,
+                  child: const DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Color(0x22E7C66A),
+                      border: Border(
+                        right: BorderSide(color: Color(0x88E7C66A)),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(9),
+            child: Row(
+              children: [
+                Icon(
+                  active == null
+                      ? Icons.add_circle_outline
+                      : Icons.hourglass_bottom,
+                  color: active == null
+                      ? const Color(0xFF607587)
+                      : const Color(0xFFE7C66A),
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    active == null
+                        ? l10n.emptyResearchSlot
+                        : '${_researchTitle(l10n, active.type)} ${l10n.researchLevel(active.targetLevel - 1, demoResearchDefinitions[active.type]!.maxLevel)}',
+                    style: const TextStyle(
+                      color: Color(0xFFE8FBFF),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (active != null)
+                  _PermanentUpgradeStatusChip(
+                    text: l10n.researchRemaining(
+                      active.remainingMillisAt(nowMillis),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResearchSection extends StatelessWidget {
+  const _ResearchSection({
     required this.icon,
     required this.title,
-    required this.tiles,
+    required this.children,
   });
 
   final IconData icon;
   final String title;
-  final List<_ResearchTile> tiles;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
@@ -1394,9 +1591,251 @@ class _ResearchTrack extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          for (var index = 0; index < tiles.length; index++) ...[
-            if (index > 0) const SizedBox(height: 7),
-            tiles[index],
+          ...children,
+        ],
+      ),
+    );
+  }
+}
+
+class _ResearchCardGrid extends StatelessWidget {
+  const _ResearchCardGrid({
+    required this.types,
+    required this.game,
+    required this.snapshot,
+    required this.nowMillis,
+    required this.onSelectType,
+  });
+
+  final List<ResearchType> types;
+  final RuneNexusGame game;
+  final GameSnapshot snapshot;
+  final int nowMillis;
+  final ValueChanged<ResearchType> onSelectType;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useTwoColumns = constraints.maxWidth >= 320;
+        final tileWidth = useTwoColumns
+            ? (constraints.maxWidth - 8) / 2
+            : constraints.maxWidth;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final type in types)
+              SizedBox(
+                width: tileWidth,
+                child: _ResearchTile(
+                  game: game,
+                  snapshot: snapshot,
+                  type: type,
+                  nowMillis: nowMillis,
+                  onPressed: () => onSelectType(type),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ResearchTile extends StatelessWidget {
+  const _ResearchTile({
+    required this.game,
+    required this.snapshot,
+    required this.type,
+    required this.nowMillis,
+    required this.onPressed,
+  });
+
+  final RuneNexusGame game;
+  final GameSnapshot snapshot;
+  final ResearchType type;
+  final int nowMillis;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final definition = demoResearchDefinitions[type]!;
+    final level = _researchLevel(snapshot, type);
+    final active = _activeResearch(snapshot, type);
+    final complete = level >= definition.maxLevel;
+    final unlocked = snapshot.clearedStageNumbers.contains(
+      definition.requiredClearedStage,
+    );
+    final slotAvailable =
+        active != null ||
+        snapshot.activeResearches.length < snapshot.researchSlotCount;
+    final cost = definition.costForCurrentLevel(level);
+    final canStart =
+        active == null &&
+        !complete &&
+        unlocked &&
+        slotAvailable &&
+        snapshot.runes >= cost;
+    final statusText = active != null
+        ? l10n.researchRemaining(active.remainingMillisAt(nowMillis))
+        : complete
+        ? l10n.researchComplete
+        : !unlocked
+        ? l10n.lockedResearch
+        : !slotAvailable
+        ? l10n.researchSlotBusy
+        : snapshot.runes < cost
+        ? l10n.notEnoughRunes
+        : l10n.researchAvailable;
+    final borderColor = canStart
+        ? const Color(0xFFE7C66A)
+        : complete
+        ? const Color(0x6657C88B)
+        : const Color(0x55485B68);
+    final titleColor = complete
+        ? const Color(0xFFBDEFCF)
+        : canStart
+        ? const Color(0xFFE8FBFF)
+        : const Color(0xFFB9D6E4);
+    final clickable = active == null;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: clickable ? onPressed : null,
+        borderRadius: BorderRadius.circular(7),
+        splashColor: const Color(0x1A8EE6FF),
+        highlightColor: const Color(0x1422C7E8),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 88),
+          padding: const EdgeInsets.all(9),
+          decoration: BoxDecoration(
+            color: clickable
+                ? const Color(0x3307111D)
+                : const Color(0x22000000),
+            border: Border.all(color: borderColor),
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    _researchIcon(type),
+                    color: const Color(0xFF8EE6FF),
+                    size: 17,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      _researchTitle(l10n, type),
+                      style: TextStyle(
+                        color: titleColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  if (clickable)
+                    const Icon(
+                      Icons.open_in_new,
+                      color: Color(0xFF8DA5B3),
+                      size: 13,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _ResearchMetaStrip(
+                levelText: l10n.researchLevel(level, definition.maxLevel),
+                cost: complete ? null : cost,
+                durationText: complete
+                    ? null
+                    : l10n.researchDuration(definition.durationMillis),
+                enabled: canStart,
+              ),
+              if (active != null || complete || !canStart) ...[
+                const SizedBox(height: 6),
+                _PermanentUpgradeStatusChip(text: statusText),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ResearchMetaStrip extends StatelessWidget {
+  const _ResearchMetaStrip({
+    required this.levelText,
+    required this.cost,
+    required this.durationText,
+    required this.enabled,
+  });
+
+  final String levelText;
+  final int? cost;
+  final String? durationText;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = enabled
+        ? const Color(0xFFE7C66A)
+        : const Color(0xFF8DA5B3);
+    return Container(
+      height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      decoration: BoxDecoration(
+        color: const Color(0x22000000),
+        border: Border.all(color: const Color(0x33485B68)),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        children: [
+          Flexible(
+            child: Text(
+              levelText,
+              style: const TextStyle(
+                color: Color(0xFFB9D6E4),
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (cost != null) ...[
+            _ResearchMetaDivider(),
+            Icon(Icons.diamond_outlined, size: 12, color: foreground),
+            const SizedBox(width: 2),
+            Text(
+              '$cost',
+              style: TextStyle(
+                color: foreground,
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+          if (durationText != null) ...[
+            _ResearchMetaDivider(),
+            Flexible(
+              child: Text(
+                durationText!,
+                style: const TextStyle(
+                  color: Color(0xFFB9D6E4),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ],
       ),
@@ -1404,63 +1843,323 @@ class _ResearchTrack extends StatelessWidget {
   }
 }
 
-class _ResearchTile extends StatelessWidget {
-  const _ResearchTile({
-    required this.icon,
-    required this.title,
-    required this.description,
-    required this.statusText,
-  });
-
-  final IconData icon;
-  final String title;
-  final String description;
-  final String statusText;
+class _ResearchMetaDivider extends StatelessWidget {
+  const _ResearchMetaDivider();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(9),
+      width: 1,
+      height: 12,
+      margin: const EdgeInsets.symmetric(horizontal: 5),
+      color: const Color(0x33485B68),
+    );
+  }
+}
+
+class _ResearchDetailDialog extends StatelessWidget {
+  const _ResearchDetailDialog({
+    required this.game,
+    required this.snapshot,
+    required this.type,
+    required this.nowMillis,
+  });
+
+  final RuneNexusGame game;
+  final GameSnapshot snapshot;
+  final ResearchType type;
+  final int nowMillis;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final definition = demoResearchDefinitions[type]!;
+    final level = _researchLevel(snapshot, type);
+    final active = _activeResearch(snapshot, type);
+    final complete = level >= definition.maxLevel;
+    final unlocked = snapshot.clearedStageNumbers.contains(
+      definition.requiredClearedStage,
+    );
+    final slotAvailable =
+        active != null ||
+        snapshot.activeResearches.length < snapshot.researchSlotCount;
+    final cost = definition.costForCurrentLevel(level);
+    final canStart =
+        active == null &&
+        !complete &&
+        unlocked &&
+        slotAvailable &&
+        snapshot.runes >= cost;
+    final statusText = active != null
+        ? l10n.researchRemaining(active.remainingMillisAt(nowMillis))
+        : complete
+        ? l10n.researchComplete
+        : !unlocked
+        ? l10n.lockedResearch
+        : !slotAvailable
+        ? l10n.researchSlotBusy
+        : snapshot.runes < cost
+        ? l10n.notEnoughRunes
+        : l10n.researchAvailable;
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 360),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0B1725),
+          border: Border.all(color: const Color(0xAA33D8FF)),
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x99000000),
+              blurRadius: 20,
+              offset: Offset(0, 8),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+              decoration: const BoxDecoration(
+                color: Color(0x2A33D8FF),
+                border: Border(bottom: BorderSide(color: Color(0x5533D8FF))),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: const Color(0x2233D8FF),
+                      border: Border.all(color: const Color(0x7733D8FF)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      _researchIcon(type),
+                      color: const Color(0xFF8EE6FF),
+                      size: 21,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _researchTitle(l10n, type),
+                      style: const TextStyle(
+                        color: Color(0xFFE8FBFF),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close, size: 20),
+                    color: const Color(0xFFE8FBFF),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints.tightFor(
+                      width: 32,
+                      height: 32,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(11),
+                    decoration: BoxDecoration(
+                      color: const Color(0x33000000),
+                      border: Border.all(color: const Color(0x33485B68)),
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    child: Text(
+                      l10n.researchDescription(_researchTitle(l10n, type)),
+                      style: const TextStyle(
+                        color: Color(0xFFE0F4FF),
+                        fontSize: 12,
+                        height: 1.35,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final itemWidth = (constraints.maxWidth - 8) / 2;
+                      return Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          SizedBox(
+                            width: itemWidth,
+                            child: _ResearchDialogMetric(
+                              icon: Icons.auto_graph,
+                              label: l10n.researchLevelLabel,
+                              value: l10n.researchLevel(
+                                level,
+                                definition.maxLevel,
+                              ),
+                              accent: const Color(0xFF8EE6FF),
+                            ),
+                          ),
+                          SizedBox(
+                            width: itemWidth,
+                            child: _ResearchDialogMetric(
+                              icon: Icons.flag_outlined,
+                              label: l10n.researchRequirementLabel,
+                              value: l10n.stageClearRequirement(
+                                definition.requiredClearedStage,
+                              ),
+                              accent: unlocked
+                                  ? const Color(0xFF8EE6FF)
+                                  : const Color(0xFF8DA5B3),
+                            ),
+                          ),
+                          if (!complete)
+                            SizedBox(
+                              width: itemWidth,
+                              child: _ResearchDialogMetric(
+                                icon: Icons.diamond_outlined,
+                                label: l10n.researchCostLabel,
+                                value: '$cost',
+                                accent: canStart
+                                    ? const Color(0xFFE7C66A)
+                                    : const Color(0xFF8DA5B3),
+                              ),
+                            ),
+                          if (!complete)
+                            SizedBox(
+                              width: itemWidth,
+                              child: _ResearchDialogMetric(
+                                icon: Icons.schedule,
+                                label: l10n.researchTimeLabel,
+                                value: l10n.researchDuration(
+                                  definition.durationMillis,
+                                ),
+                                accent: const Color(0xFFB9D6E4),
+                              ),
+                            ),
+                          SizedBox(
+                            width: constraints.maxWidth,
+                            child: _ResearchDialogMetric(
+                              icon: active == null
+                                  ? Icons.info_outline
+                                  : Icons.hourglass_bottom,
+                              label: l10n.researchStatusLabel,
+                              value: statusText,
+                              accent: canStart
+                                  ? const Color(0xFFE7C66A)
+                                  : const Color(0xFFB9D6E4),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  if (!complete) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: 38,
+                      child: FilledButton(
+                        onPressed: canStart
+                            ? () {
+                                game.startResearch(type);
+                                Navigator.of(context).pop();
+                              }
+                            : null,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF8EE6FF),
+                          disabledBackgroundColor: const Color(0x33485B68),
+                          foregroundColor: const Color(0xFF07111D),
+                          disabledForegroundColor: const Color(0xFF607587),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                        ),
+                        child: Text(
+                          l10n.startResearch,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ResearchDialogMetric extends StatelessWidget {
+  const _ResearchDialogMetric({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.accent,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 50),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0x22000000),
-        border: Border.all(color: const Color(0x33485B68)),
+        color: const Color(0x221B2C3D),
+        border: Border.all(color: const Color(0x44485B68)),
         borderRadius: BorderRadius.circular(7),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: const Color(0xFF8EE6FF), size: 18),
-          const SizedBox(width: 8),
+          Icon(icon, color: accent, size: 16),
+          const SizedBox(width: 7),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          color: Color(0xFFE8FBFF),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    _PermanentUpgradeStatusChip(text: statusText),
-                  ],
-                ),
-                const SizedBox(height: 5),
                 Text(
-                  description,
+                  label,
                   style: const TextStyle(
-                    color: Color(0xFF9EB3BF),
-                    fontSize: 10,
+                    color: Color(0xFF8DA5B3),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
                   ),
-                  maxLines: 2,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: Color(0xFFE8FBFF),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -1470,6 +2169,33 @@ class _ResearchTile extends StatelessWidget {
       ),
     );
   }
+}
+
+int _researchLevel(GameSnapshot snapshot, ResearchType type) {
+  return snapshot.researchLevels[type] ?? 0;
+}
+
+ResearchProgress? _activeResearch(GameSnapshot snapshot, ResearchType type) {
+  for (final research in snapshot.activeResearches) {
+    if (research.type == type) {
+      return research;
+    }
+  }
+  return null;
+}
+
+String _researchTitle(RuneNexusLocalizations l10n, ResearchType type) {
+  return switch (type) {
+    ResearchType.linkExpansionOne => l10n.linkExpansionOne,
+    ResearchType.gemAttunement => l10n.gemAttunement,
+  };
+}
+
+IconData _researchIcon(ResearchType type) {
+  return switch (type) {
+    ResearchType.linkExpansionOne => Icons.hub_outlined,
+    ResearchType.gemAttunement => Icons.auto_awesome_outlined,
+  };
 }
 
 class _PermanentUpgradeBoard extends StatelessWidget {

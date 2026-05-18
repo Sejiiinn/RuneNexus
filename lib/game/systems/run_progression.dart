@@ -1,6 +1,9 @@
 import 'dart:math' as math;
 
+import '../../data/definitions/demo_research_data.dart';
 import '../../data/save/game_save_data.dart';
+import '../../domain/research/research_progress.dart';
+import '../../domain/research/research_type.dart';
 
 class RunProgression {
   static const int baseInitialGold = 150;
@@ -12,6 +15,8 @@ class RunProgression {
   static const int maxFireTrainingUpgradeLevel = 20;
   static const int maxKillGoldUpgradeLevel = 10;
   static const int maxEmergencySaleUpgradeLevel = 5;
+  static const int researchSlotCount = 1;
+  static const int gemShardsPerGemAttunementLevel = 2;
   static const int baseTurretRefundPercent = 75;
   static const int startingGoldUpgradeBaseCost = 4;
   static const int startingGoldUpgradeCostPerLevel = 4;
@@ -49,6 +54,8 @@ class RunProgression {
   int unlockedStageCount = 1;
   final Map<int, int> bestRoundsByStage = {};
   final Set<int> clearedStageNumbers = {};
+  final Map<ResearchType, int> researchLevels = {};
+  final List<ResearchProgress> activeResearches = [];
 
   int get initialGold =>
       baseInitialGold +
@@ -83,6 +90,11 @@ class RunProgression {
   int get turretRefundPercent =>
       baseTurretRefundPercent +
       _cappedEmergencySaleUpgradeLevel * emergencySaleRefundPercentPerLevel;
+  int get startingGemShards =>
+      researchLevel(ResearchType.gemAttunement) *
+      gemShardsPerGemAttunementLevel;
+  int get maxTurretLinkSlots =>
+      isResearchComplete(ResearchType.linkExpansionOne) ? 2 : 1;
   bool get canUpgradeStartingGold =>
       _cappedStartingGoldUpgradeLevel < maxStartingGoldUpgradeLevel &&
       runes >= startingGoldUpgradeCost;
@@ -120,6 +132,84 @@ class RunProgression {
     return _stageRuneRewardBonusRates[index];
   }
 
+  int researchLevel(ResearchType type) {
+    final definition = demoResearchDefinitions[type];
+    final maxLevel = definition?.maxLevel ?? 0;
+    return (researchLevels[type] ?? 0).clamp(0, maxLevel).toInt();
+  }
+
+  bool isResearchActive(ResearchType type) {
+    return activeResearches.any((research) => research.type == type);
+  }
+
+  bool isResearchComplete(ResearchType type) {
+    final definition = demoResearchDefinitions[type];
+    if (definition == null) {
+      return false;
+    }
+    return researchLevel(type) >= definition.maxLevel;
+  }
+
+  bool isResearchUnlocked(ResearchType type) {
+    final definition = demoResearchDefinitions[type];
+    if (definition == null) {
+      return false;
+    }
+    return isStageCleared(definition.requiredClearedStage);
+  }
+
+  bool canStartResearch(ResearchType type) {
+    final definition = demoResearchDefinitions[type];
+    if (definition == null ||
+        !isResearchUnlocked(type) ||
+        isResearchComplete(type) ||
+        isResearchActive(type) ||
+        activeResearches.length >= researchSlotCount) {
+      return false;
+    }
+    return runes >= definition.costForCurrentLevel(researchLevel(type));
+  }
+
+  bool startResearch(ResearchType type, {required int nowMillis}) {
+    final definition = demoResearchDefinitions[type];
+    if (definition == null || !canStartResearch(type)) {
+      return false;
+    }
+
+    final currentLevel = researchLevel(type);
+    runes -= definition.costForCurrentLevel(currentLevel);
+    activeResearches.add(
+      ResearchProgress(
+        type: type,
+        targetLevel: currentLevel + 1,
+        startedAtMillis: nowMillis,
+        durationMillis: definition.durationMillis,
+      ),
+    );
+    return true;
+  }
+
+  bool completeFinishedResearches({required int nowMillis}) {
+    var changed = false;
+    for (final research in activeResearches.toList()) {
+      if (!research.isCompleteAt(nowMillis)) {
+        continue;
+      }
+      final definition = demoResearchDefinitions[research.type];
+      if (definition == null) {
+        activeResearches.remove(research);
+        changed = true;
+        continue;
+      }
+      researchLevels[research.type] = research.targetLevel
+          .clamp(0, definition.maxLevel)
+          .toInt();
+      activeResearches.remove(research);
+      changed = true;
+    }
+    return changed;
+  }
+
   SavedProgression toSaveData() {
     return SavedProgression(
       runes: runes,
@@ -133,6 +223,19 @@ class RunProgression {
       unlockedStageCount: unlockedStageCount,
       bestRoundsByStage: Map.unmodifiable(bestRoundsByStage),
       clearedStageNumbers: Set.unmodifiable(clearedStageNumbers),
+      researchLevels: Map.unmodifiable(
+        researchLevels.map((key, value) => MapEntry(key, researchLevel(key))),
+      ),
+      activeResearches: List.unmodifiable(
+        activeResearches.map(
+          (research) => SavedActiveResearch(
+            type: research.type,
+            targetLevel: research.targetLevel,
+            startedAtMillis: research.startedAtMillis,
+            durationMillis: research.durationMillis,
+          ),
+        ),
+      ),
     );
   }
 
@@ -170,6 +273,42 @@ class RunProgression {
     clearedStageNumbers
       ..clear()
       ..addAll(data.clearedStageNumbers.where((stage) => stage > 0));
+    researchLevels
+      ..clear()
+      ..addEntries(
+        data.researchLevels.entries
+            .where((entry) {
+              final definition = demoResearchDefinitions[entry.key];
+              return definition != null && entry.value > 0;
+            })
+            .map((entry) {
+              final definition = demoResearchDefinitions[entry.key]!;
+              return MapEntry(
+                entry.key,
+                entry.value.clamp(0, definition.maxLevel).toInt(),
+              );
+            }),
+      );
+    activeResearches
+      ..clear()
+      ..addAll(
+        data.activeResearches
+            .where((research) {
+              final definition = demoResearchDefinitions[research.type];
+              return definition != null &&
+                  research.durationMillis > 0 &&
+                  research.targetLevel > researchLevel(research.type) &&
+                  research.targetLevel <= definition.maxLevel;
+            })
+            .map(
+              (research) => ResearchProgress(
+                type: research.type,
+                targetLevel: research.targetLevel,
+                startedAtMillis: research.startedAtMillis,
+                durationMillis: research.durationMillis,
+              ),
+            ),
+      );
   }
 
   bool upgradeStartingGold() {
