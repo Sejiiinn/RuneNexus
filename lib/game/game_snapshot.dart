@@ -49,6 +49,13 @@ class GameSnapshot {
     required this.selectedTurretMaxLevel,
     required this.selectedTurretCanLevelUp,
     required this.selectedTurretLevelUpCost,
+    required this.selectedTurretLevelUpPreviewActive,
+    required this.selectedTurretNextLevel,
+    required this.selectedTurretNextDamage,
+    required this.selectedTurretNextRange,
+    required this.selectedTurretNextAttackRate,
+    required this.selectedTurretNextBurnDamagePerSecond,
+    required this.selectedTurretNextBurnDuration,
     required this.selectedTurretRefundGold,
     required this.selectedTurretDamage,
     required this.selectedTurretRange,
@@ -156,6 +163,13 @@ class GameSnapshot {
   final int selectedTurretMaxLevel;
   final bool selectedTurretCanLevelUp;
   final int selectedTurretLevelUpCost;
+  final bool selectedTurretLevelUpPreviewActive;
+  final int selectedTurretNextLevel;
+  final double selectedTurretNextDamage;
+  final double selectedTurretNextRange;
+  final double selectedTurretNextAttackRate;
+  final double selectedTurretNextBurnDamagePerSecond;
+  final double selectedTurretNextBurnDuration;
   final int selectedTurretRefundGold;
   final double selectedTurretDamage;
   final double selectedTurretRange;

@@ -21,6 +21,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
         snapshot.phase == GamePhase.preparation ||
         snapshot.phase == GamePhase.wave;
     final canRefund = snapshot.selectedTurretPoint != null && canLevelUp;
+    final levelUpPreviewActive = snapshot.selectedTurretLevelUpPreviewActive;
     final definition = demoTurrets[snapshot.selectedTurretType]!;
     final inventory = GemType.values
         .where((type) => (snapshot.gemInventory[type] ?? 0) > 0)
@@ -68,7 +69,9 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
             children: [
               Expanded(
                 child: Text(
-                  '${snapshot.selectedTurretName} 포탑  Lv.${snapshot.selectedTurretLevel}/${snapshot.selectedTurretMaxLevel}',
+                  levelUpPreviewActive
+                      ? '${snapshot.selectedTurretName} 포탑  Lv.${snapshot.selectedTurretLevel} -> ${snapshot.selectedTurretNextLevel}'
+                      : '${snapshot.selectedTurretName} 포탑  Lv.${snapshot.selectedTurretLevel}/${snapshot.selectedTurretMaxLevel}',
                   style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFFE8F8FF),
@@ -89,9 +92,11 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                     canLevelUp &&
                     snapshot.gold >= snapshot.selectedTurretLevelUpCost,
                 levelUpLabel: snapshot.selectedTurretCanLevelUp
-                    ? '${snapshot.selectedTurretLevelUpCost}G'
+                    ? (levelUpPreviewActive
+                          ? '강화'
+                          : '${snapshot.selectedTurretLevelUpCost}G')
                     : 'MAX',
-                onLevelUp: widget.game.levelUpSelectedTurret,
+                onLevelUp: widget.game.previewOrLevelUpSelectedTurret,
                 canRefund: canRefund,
                 refundLabel: '${snapshot.selectedTurretRefundGold}G',
                 onRefund: () => _confirmRefundSelectedTurret(snapshot),
@@ -1571,22 +1576,41 @@ class _TurretStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final previewActive = snapshot.selectedTurretLevelUpPreviewActive;
     final dps = snapshot.selectedTurretAttackRate <= 0
         ? 0
         : snapshot.selectedTurretDamage * snapshot.selectedTurretAttackRate;
+    final nextDps = snapshot.selectedTurretNextAttackRate <= 0
+        ? 0
+        : snapshot.selectedTurretNextDamage *
+              snapshot.selectedTurretNextAttackRate;
     final burnDps = snapshot.selectedTurretBurnDamagePerSecond;
+    final totalDps = dps + burnDps;
+    final nextTotalDps =
+        nextDps + snapshot.selectedTurretNextBurnDamagePerSecond;
 
     return Row(
       children: [
         _StatPill(
           label: '피해',
           value: snapshot.selectedTurretDamage.toStringAsFixed(1),
+          valueChild: previewActive
+              ? _PreviewStatValue(
+                  current: snapshot.selectedTurretDamage.toStringAsFixed(1),
+                  next: snapshot.selectedTurretNextDamage.toStringAsFixed(1),
+                )
+              : null,
         ),
         const SizedBox(width: 5),
         _StatPill(
           label: 'DPS',
-          value: dps.toStringAsFixed(1),
-          valueChild: burnDps > 0
+          value: totalDps.toStringAsFixed(1),
+          valueChild: previewActive
+              ? _PreviewStatValue(
+                  current: totalDps.toStringAsFixed(1),
+                  next: nextTotalDps.toStringAsFixed(1),
+                )
+              : burnDps > 0
               ? RichText(
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -1612,6 +1636,14 @@ class _TurretStats extends StatelessWidget {
           _StatPill(
             label: '화상',
             value: '${snapshot.selectedTurretBurnDuration.toStringAsFixed(1)}초',
+            valueChild: previewActive
+                ? _PreviewStatValue(
+                    current:
+                        '${snapshot.selectedTurretBurnDuration.toStringAsFixed(1)}초',
+                    next:
+                        '${snapshot.selectedTurretNextBurnDuration.toStringAsFixed(1)}초',
+                  )
+                : null,
           ),
         ],
         if (definition.slowDuration > 0) ...[
@@ -1626,11 +1658,25 @@ class _TurretStats extends StatelessWidget {
         _StatPill(
           label: '사거리',
           value: snapshot.selectedTurretRange.round().toString(),
+          valueChild: previewActive
+              ? _PreviewStatValue(
+                  current: snapshot.selectedTurretRange.round().toString(),
+                  next: snapshot.selectedTurretNextRange.round().toString(),
+                )
+              : null,
         ),
         const SizedBox(width: 5),
         _StatPill(
           label: '초당',
           value: '${snapshot.selectedTurretAttackRate.toStringAsFixed(2)}회',
+          valueChild: previewActive
+              ? _PreviewStatValue(
+                  current:
+                      '${snapshot.selectedTurretAttackRate.toStringAsFixed(2)}회',
+                  next:
+                      '${snapshot.selectedTurretNextAttackRate.toStringAsFixed(2)}회',
+                )
+              : null,
         ),
       ],
     );
@@ -1645,6 +1691,38 @@ String _formatDamageValue(double value) {
     return value.round().toString();
   }
   return value.toStringAsFixed(1);
+}
+
+class _PreviewStatValue extends StatelessWidget {
+  const _PreviewStatValue({required this.current, required this.next});
+
+  final String current;
+  final String next;
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+        children: [
+          TextSpan(
+            text: current,
+            style: const TextStyle(color: Color(0xFF8AA6B8)),
+          ),
+          const TextSpan(
+            text: ' -> ',
+            style: TextStyle(color: Color(0xFF63E6A5)),
+          ),
+          TextSpan(
+            text: next,
+            style: const TextStyle(color: Color(0xFFE8F8FF)),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _StatPill extends StatelessWidget {

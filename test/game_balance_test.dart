@@ -596,6 +596,47 @@ void main() {
     expect(cannon.levelUpCost, 104);
   });
 
+  test('turret level up button previews before spending gold', () async {
+    final game = RuneNexusGame();
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.tryBuildTurret(const GridPoint(2, 0));
+    game.debugAddGold(200);
+
+    final beforePreview = game.snapshotNotifier.value;
+    final beforeGold = beforePreview.gold;
+    final beforeCost = beforePreview.selectedTurretLevelUpCost;
+
+    game.previewOrLevelUpSelectedTurret();
+
+    final preview = game.snapshotNotifier.value;
+    expect(preview.selectedTurretLevelUpPreviewActive, isTrue);
+    expect(preview.selectedTurretLevel, 1);
+    expect(preview.selectedTurretNextLevel, 2);
+    expect(preview.gold, beforeGold);
+    expect(
+      preview.selectedTurretNextDamage,
+      greaterThan(preview.selectedTurretDamage),
+    );
+    expect(
+      preview.selectedTurretNextRange,
+      greaterThan(preview.selectedTurretRange),
+    );
+    expect(
+      game.levelUpPreviewRangeFor(const GridPoint(2, 0)),
+      closeTo(preview.selectedTurretNextRange, 0.001),
+    );
+
+    game.previewOrLevelUpSelectedTurret();
+
+    final upgraded = game.snapshotNotifier.value;
+    expect(upgraded.selectedTurretLevel, 2);
+    expect(upgraded.gold, beforeGold - beforeCost);
+    expect(upgraded.selectedTurretLevelUpPreviewActive, isTrue);
+    expect(upgraded.selectedTurretNextLevel, 3);
+  });
+
   test('turret link upgrades scale with price and gate the third link', () {
     final machineGun = TurretComponent(
       gridPoint: const GridPoint(0, 0),

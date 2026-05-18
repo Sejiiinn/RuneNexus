@@ -169,6 +169,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretMaxLevel: 0,
       selectedTurretCanLevelUp: false,
       selectedTurretLevelUpCost: 0,
+      selectedTurretLevelUpPreviewActive: false,
+      selectedTurretNextLevel: 0,
+      selectedTurretNextDamage: 0,
+      selectedTurretNextRange: 0,
+      selectedTurretNextAttackRate: 0,
+      selectedTurretNextBurnDamagePerSecond: 0,
+      selectedTurretNextBurnDuration: 0,
       selectedTurretRefundGold: 0,
       selectedTurretDamage: 0,
       selectedTurretRange: 0,
@@ -352,6 +359,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   GridPoint? _selectedBuildPoint;
   GridPoint? _selectedPortalPoint;
   GridPoint? _selectedTurretPoint;
+  GridPoint? _levelUpPreviewPoint;
   int? _selectedTurretGemSlotIndex;
   AutoStartMode _autoStartMode = AutoStartMode.pauseEachRound;
   double _speedMultiplier = 1;
@@ -384,6 +392,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double get boardDistanceScale =>
       _boardConfigured ? _tileSize / _designTileSize : 1;
   bool isTurretSelected(GridPoint point) => _selectedTurretPoint == point;
+  double? levelUpPreviewRangeFor(GridPoint point) {
+    if (_levelUpPreviewPoint != point || _selectedTurretPoint != point) {
+      return null;
+    }
+    final turret = _turrets[point];
+    if (turret == null || !turret.canLevelUp || _gold < turret.levelUpCost) {
+      return null;
+    }
+    return turret.rangeAtLevel(turret.level + 1);
+  }
 
   int get _initialGold => _progression.initialGold;
   int get _maxNexusHp => _progression.maxNexusHp;
@@ -1259,8 +1277,38 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _gold -= turret.levelUpCost;
     turret.upgradeLevel();
+    if (_levelUpPreviewPoint == point &&
+        (!turret.canLevelUp || _gold < turret.levelUpCost)) {
+      _levelUpPreviewPoint = null;
+    }
     _publish();
     _requestLocalSave(immediate: true);
+  }
+
+  void previewOrLevelUpSelectedTurret() {
+    if (!_canEditBoard) {
+      return;
+    }
+
+    final point = _selectedTurretPoint;
+    if (point == null) {
+      return;
+    }
+    final turret = _turrets[point];
+    if (turret == null || !turret.canLevelUp) {
+      return;
+    }
+    if (_gold < turret.levelUpCost) {
+      return;
+    }
+
+    if (_levelUpPreviewPoint == point) {
+      levelUpSelectedTurret();
+      return;
+    }
+
+    _levelUpPreviewPoint = point;
+    _publish();
   }
 
   void upgradeSelectedTurretLink() {
@@ -2996,6 +3044,22 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return multiplier;
   }
 
+  double _turretBurnDamagePerSecondAtLevel(TurretComponent turret, int level) {
+    if (!turret.definition.attackTags.contains(AttackTag.damageOverTime)) {
+      return 0;
+    }
+    return turret.damageAtLevel(level) *
+        _burnDamagePerSecondScale *
+        turret.damageOverTimeDamageMultiplier;
+  }
+
+  double _turretBurnDuration(TurretComponent turret) {
+    if (!turret.definition.attackTags.contains(AttackTag.damageOverTime)) {
+      return 0;
+    }
+    return _burnDurationSeconds * turret.damageOverTimeDurationMultiplier;
+  }
+
   void _publish() {
     _combatStatsPublishPending = false;
     _combatStatsPublishTimer = 0;
@@ -3005,18 +3069,35 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final selectedTurret = _selectedTurretPoint == null
         ? null
         : _turrets[_selectedTurretPoint];
-    final selectedTurretBurnDamagePerSecond =
+    final levelUpPreviewActive =
+        _levelUpPreviewPoint != null &&
+        _levelUpPreviewPoint == _selectedTurretPoint &&
         selectedTurret != null &&
-            selectedTurret.definition.attackTags.contains(
-              AttackTag.damageOverTime,
-            )
-        ? selectedTurret.damage *
-              _burnDamagePerSecondScale *
-              selectedTurret.damageOverTimeDamageMultiplier
+        selectedTurret.canLevelUp &&
+        _gold >= selectedTurret.levelUpCost;
+    if (!levelUpPreviewActive) {
+      _levelUpPreviewPoint = null;
+    }
+    final selectedTurretNextLevel = levelUpPreviewActive
+        ? selectedTurret.level + 1
+        : 0;
+    final selectedTurretBurnDamagePerSecond = selectedTurret == null
+        ? 0.0
+        : _turretBurnDamagePerSecondAtLevel(
+            selectedTurret,
+            selectedTurret.level,
+          );
+    final selectedTurretBurnDuration = selectedTurret == null
+        ? 0.0
+        : _turretBurnDuration(selectedTurret);
+    final selectedTurretNextBurnDamagePerSecond = levelUpPreviewActive
+        ? _turretBurnDamagePerSecondAtLevel(
+            selectedTurret,
+            selectedTurretNextLevel,
+          )
         : 0.0;
-    final selectedTurretBurnDuration = selectedTurretBurnDamagePerSecond > 0
-        ? _burnDurationSeconds *
-              selectedTurret!.damageOverTimeDurationMultiplier
+    final selectedTurretNextBurnDuration = levelUpPreviewActive
+        ? _turretBurnDuration(selectedTurret)
         : 0.0;
     final topDamageTurret = _turrets.values.fold<TurretComponent?>(null, (
       current,
@@ -3098,6 +3179,20 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretMaxLevel: selectedTurret?.maxLevel ?? 0,
       selectedTurretCanLevelUp: selectedTurret?.canLevelUp ?? false,
       selectedTurretLevelUpCost: selectedTurret?.levelUpCost ?? 0,
+      selectedTurretLevelUpPreviewActive: levelUpPreviewActive,
+      selectedTurretNextLevel: selectedTurretNextLevel,
+      selectedTurretNextDamage: levelUpPreviewActive
+          ? selectedTurret.damageAtLevel(selectedTurretNextLevel)
+          : 0,
+      selectedTurretNextRange: levelUpPreviewActive
+          ? selectedTurret.rangeAtLevel(selectedTurretNextLevel)
+          : 0,
+      selectedTurretNextAttackRate: levelUpPreviewActive
+          ? selectedTurret.attackRateAtLevel(selectedTurretNextLevel)
+          : 0,
+      selectedTurretNextBurnDamagePerSecond:
+          selectedTurretNextBurnDamagePerSecond,
+      selectedTurretNextBurnDuration: selectedTurretNextBurnDuration,
       selectedTurretRefundGold: selectedTurret?.refundGold ?? 0,
       selectedTurretDamage: selectedTurret?.damage ?? 0,
       selectedTurretRange: selectedTurret?.range ?? 0,

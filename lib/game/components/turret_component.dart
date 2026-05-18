@@ -130,10 +130,13 @@ class TurretComponent extends PositionComponent {
       _secondaryTrait == null &&
       _level >= 7;
 
-  double get damage {
+  double get damage => damageAtLevel(_level);
+
+  double damageAtLevel(int level) {
+    final targetLevel = level.clamp(1, maxLevel).toInt();
     var levelDamage =
         definition.damage *
-        math.pow(1 + _damageGrowthPerLevel, _level - 1).toDouble();
+        math.pow(1 + _damageGrowthPerLevel, targetLevel - 1).toDouble();
     if (definition.damageFamily == DamageFamily.physical &&
         hasGem(GemType.physicalDamage)) {
       levelDamage *= 1.4;
@@ -160,8 +163,11 @@ class TurretComponent extends PositionComponent {
     return levelDamage * game.towerDamageRunMultiplier;
   }
 
-  double get range {
-    final levelMultiplier = 1 + (_level - 1) * _rangeGrowthPerLevel;
+  double get range => rangeAtLevel(_level);
+
+  double rangeAtLevel(int level) {
+    final targetLevel = level.clamp(1, maxLevel).toInt();
+    final levelMultiplier = 1 + (targetLevel - 1) * _rangeGrowthPerLevel;
     return definition.range *
         levelMultiplier *
         (hasGem(GemType.range) ? 1.2 : 1) *
@@ -169,9 +175,12 @@ class TurretComponent extends PositionComponent {
         game.boardDistanceScale;
   }
 
-  double get attackRate {
+  double get attackRate => attackRateAtLevel(_level);
+
+  double attackRateAtLevel(int level) {
+    final targetLevel = level.clamp(1, maxLevel).toInt();
     final levelMultiplier = math
-        .pow(1 + _attackRateGrowthPerLevel, _level - 1)
+        .pow(1 + _attackRateGrowthPerLevel, targetLevel - 1)
         .toDouble();
     var rate =
         definition.attackRate *
@@ -291,12 +300,17 @@ class TurretComponent extends PositionComponent {
   double get criticalDamageMultiplier => definition.criticalDamageMultiplier;
 
   double get aimDuration {
+    return aimDurationAtLevel(_level);
+  }
+
+  double aimDurationAtLevel(int level) {
     if (!definition.instantHit || definition.aimDuration <= 0) {
       return definition.aimDuration;
     }
+    final targetLevel = level.clamp(1, maxLevel).toInt();
     final gemAimSpeedBonus = hasGem(GemType.aimSpeed) ? 0.5 : 0.0;
     final aimSpeedMultiplier =
-        1 + (_level - 1) * _aimSpeedGrowthPerLevel + gemAimSpeedBonus;
+        1 + (targetLevel - 1) * _aimSpeedGrowthPerLevel + gemAimSpeedBonus;
     return definition.aimDuration / aimSpeedMultiplier;
   }
 
@@ -710,6 +724,18 @@ class TurretComponent extends PositionComponent {
       ..style = PaintingStyle.fill;
     canvas.drawCircle(center, range, rangePaint);
     if (selected) {
+      final previewRange = game.levelUpPreviewRangeFor(gridPoint);
+      if (previewRange != null && previewRange > range) {
+        final previewFill = Paint()
+          ..color = definition.color.withValues(alpha: 0.045)
+          ..style = PaintingStyle.fill;
+        final previewStroke = Paint()
+          ..color = definition.color.withValues(alpha: 0.34)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.3;
+        canvas.drawCircle(center, previewRange, previewFill);
+        canvas.drawCircle(center, previewRange, previewStroke);
+      }
       final rangeStroke = Paint()
         ..color = definition.color.withValues(alpha: 0.48)
         ..style = PaintingStyle.stroke
