@@ -15,9 +15,13 @@ class EnemyComponent extends PositionComponent {
   EnemyComponent({
     required this.definition,
     required this.maxHp,
+    this.maxShield = 0,
+    this.maxArmor = 0,
     required this.path,
     required this.game,
   }) : hp = maxHp,
+       shield = maxShield,
+       armor = maxArmor,
        super(
          position: path.first.clone(),
          size: Vector2.all(_sizeForTileScale(game.boardDistanceScale)),
@@ -26,9 +30,14 @@ class EnemyComponent extends PositionComponent {
 
   final EnemyDefinition definition;
   final double maxHp;
+  final double maxShield;
+  final double maxArmor;
   final RuneNexusGame game;
   List<Vector2> path;
   double hp;
+  double shield;
+  bool shieldBroken = false;
+  double armor;
 
   int _targetIndex = 1;
   double distanceTravelled = 0;
@@ -99,6 +108,9 @@ class EnemyComponent extends PositionComponent {
       type: definition.type,
       maxHp: maxHp,
       hp: hp,
+      shield: shield,
+      shieldBroken: shieldBroken,
+      armor: armor,
       distanceTravelled: distanceTravelled,
       burnRemaining: burnRemaining,
       burnDamagePerSecond: burnDamagePerSecond,
@@ -125,6 +137,9 @@ class EnemyComponent extends PositionComponent {
 
   void restoreFromSaveData(SavedEnemy data) {
     hp = data.hp.clamp(0, maxHp).toDouble();
+    shield = maxShield <= 0 ? 0 : data.shield.clamp(0, maxShield).toDouble();
+    shieldBroken = maxShield > 0 && data.shieldBroken;
+    armor = maxArmor <= 0 ? 0 : data.armor.clamp(0, maxArmor).toDouble();
     distanceTravelled = math.max(0, data.distanceTravelled);
     _burnInstances
       ..clear()
@@ -196,6 +211,7 @@ class EnemyComponent extends PositionComponent {
     super.update(dt);
     _hitFlashTimer = math.max(0, _hitFlashTimer - dt);
     _statusEffectTime += dt;
+    _updateShield(dt);
     _updateStatusEffects(dt);
     if (isDead) {
       return;
@@ -233,9 +249,40 @@ class EnemyComponent extends PositionComponent {
     if (damage <= 0 || isDead) {
       return 0;
     }
+    var remainingDamage = damage;
+    var actualDamage = 0.0;
+
+    if (shield > 0) {
+      final shieldDamage = math.min(shield, remainingDamage);
+      shield = math.max(0, shield - shieldDamage);
+      actualDamage += shieldDamage;
+      remainingDamage -= shieldDamage;
+      if (shield == 0) {
+        shieldBroken = true;
+      }
+    }
+
+    if (remainingDamage > 0 && armor > 0) {
+      final armorReduction = armor * definition.armorReductionRate;
+      final minimumArmorDamage =
+          remainingDamage * definition.armorMinimumDamageRate;
+      final armorDamage = math.max(
+        minimumArmorDamage,
+        remainingDamage - armorReduction,
+      );
+      final actualArmorDamage = math.min(armor, armorDamage);
+      armor = math.max(0, armor - actualArmorDamage);
+      actualDamage += actualArmorDamage;
+      remainingDamage = math.max(0, armorDamage - actualArmorDamage);
+    }
+
+    if (remainingDamage <= 0) {
+      return actualDamage;
+    }
+
     final previousHp = hp;
-    hp = math.max(0, hp - damage);
-    final actualDamage = previousHp - hp;
+    hp = math.max(0, hp - remainingDamage);
+    actualDamage += previousHp - hp;
     if (isDead) {
       game.enemyKilled(this, burnTransfer: burnTransfer);
     }
@@ -486,6 +533,20 @@ class EnemyComponent extends PositionComponent {
     }
   }
 
+  void _updateShield(double dt) {
+    if (isDead ||
+        maxShield <= 0 ||
+        shieldBroken ||
+        shield >= maxShield ||
+        definition.shieldRegenRate <= 0) {
+      return;
+    }
+    shield = math.min(
+      maxShield,
+      shield + maxShield * definition.shieldRegenRate * dt,
+    );
+  }
+
   double get _maxBurnDamageMultiplier {
     if (_burnInstances.isEmpty) {
       return 1;
@@ -523,14 +584,52 @@ class EnemyComponent extends PositionComponent {
       _drawSlowStatus(canvas);
     }
 
-    final ratio = hp / maxHp;
+    _drawDurabilityBars(canvas);
+  }
+
+  void _drawDurabilityBars(Canvas canvas) {
+    final barWidth = size.x - 2;
+    const hpColor = Color(0xFFFF4E5D);
+    const armorColor = Color(0xFFB7BDC8);
+    const shieldColor = Color(0xFF62D9FF);
+    const backgroundColor = Color(0xFF321118);
+    const shieldBackgroundColor = Color(0xFF102B3A);
+
+    if (maxShield > 0 && shield > 0) {
+      final shieldRatio = (shield / maxShield).clamp(0.0, 1.0).toDouble();
+      canvas.drawRect(
+        Rect.fromLTWH(1, -9, barWidth, 3),
+        Paint()..color = shieldBackgroundColor,
+      );
+      canvas.drawRect(
+        Rect.fromLTWH(1, -9, barWidth * shieldRatio, 3),
+        Paint()..color = shieldColor,
+      );
+    }
+
     canvas.drawRect(
-      Rect.fromLTWH(1, -5, size.x - 2, 3),
-      Paint()..color = const Color(0xFF321118),
+      Rect.fromLTWH(1, -5, barWidth, 3),
+      Paint()..color = backgroundColor,
     );
+    if (armor > 0 && maxArmor > 0) {
+      final totalDurability = math.max(1.0, maxHp + maxArmor);
+      final hpWidth = barWidth * (hp / totalDurability).clamp(0.0, 1.0);
+      final armorWidth = barWidth * (armor / totalDurability).clamp(0.0, 1.0);
+      canvas.drawRect(
+        Rect.fromLTWH(1, -5, hpWidth, 3),
+        Paint()..color = hpColor,
+      );
+      canvas.drawRect(
+        Rect.fromLTWH(1 + hpWidth, -5, armorWidth, 3),
+        Paint()..color = armorColor,
+      );
+      return;
+    }
+
+    final ratio = maxHp <= 0 ? 0.0 : (hp / maxHp).clamp(0.0, 1.0).toDouble();
     canvas.drawRect(
-      Rect.fromLTWH(1, -5, (size.x - 2) * ratio, 3),
-      Paint()..color = const Color(0xFFFF4E5D),
+      Rect.fromLTWH(1, -5, barWidth * ratio, 3),
+      Paint()..color = hpColor,
     );
   }
 

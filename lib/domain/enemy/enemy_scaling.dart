@@ -18,3 +18,23 @@ double scaledEnemyMaxHp(
       enemyHpMultiplierForRound(round) *
       enemyHpMultiplierForStage(stageNumber);
 }
+
+double scaledEnemyMaxShield(
+  EnemyDefinition definition,
+  int round, {
+  int stageNumber = 1,
+}) {
+  return definition.maxShield *
+      enemyHpMultiplierForRound(round) *
+      enemyHpMultiplierForStage(stageNumber);
+}
+
+double scaledEnemyMaxArmor(
+  EnemyDefinition definition,
+  int round, {
+  int stageNumber = 1,
+}) {
+  return definition.maxArmor *
+      enemyHpMultiplierForRound(round) *
+      enemyHpMultiplierForStage(stageNumber);
+}

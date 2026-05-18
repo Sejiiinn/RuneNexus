@@ -2198,6 +2198,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _waves[_roundIndex].round,
         stageNumber: _currentStageNumber,
       ),
+      maxShield: scaledEnemyMaxShield(
+        definition,
+        _waves[_roundIndex].round,
+        stageNumber: _currentStageNumber,
+      ),
+      maxArmor: scaledEnemyMaxArmor(
+        definition,
+        _waves[_roundIndex].round,
+        stageNumber: _currentStageNumber,
+      ),
       path: _worldPath,
       game: this,
     );
@@ -2690,6 +2700,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
                 _waves[_roundIndex].round,
                 stageNumber: _currentStageNumber,
               ),
+        maxShield: scaledEnemyMaxShield(
+          definition,
+          _waves[_roundIndex].round,
+          stageNumber: _currentStageNumber,
+        ),
+        maxArmor: scaledEnemyMaxArmor(
+          definition,
+          _waves[_roundIndex].round,
+          stageNumber: _currentStageNumber,
+        ),
         path: _worldPath,
         game: this,
       )..restoreFromSaveData(savedEnemy);

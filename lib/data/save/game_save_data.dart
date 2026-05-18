@@ -348,6 +348,9 @@ class SavedEnemy {
     required this.type,
     required this.maxHp,
     required this.hp,
+    required this.shield,
+    required this.shieldBroken,
+    required this.armor,
     required this.distanceTravelled,
     required this.burnRemaining,
     required this.burnDamagePerSecond,
@@ -368,6 +371,9 @@ class SavedEnemy {
   final EnemyType type;
   final double maxHp;
   final double hp;
+  final double shield;
+  final bool shieldBroken;
+  final double armor;
   final double distanceTravelled;
   final double burnRemaining;
   final double burnDamagePerSecond;
@@ -389,6 +395,9 @@ class SavedEnemy {
       'type': type.name,
       'maxHp': maxHp,
       'hp': hp,
+      'shield': shield,
+      'shieldBroken': shieldBroken,
+      'armor': armor,
       'distanceTravelled': distanceTravelled,
       'burnRemaining': burnRemaining,
       'burnDamagePerSecond': burnDamagePerSecond,
@@ -443,6 +452,9 @@ class SavedEnemy {
       type: type,
       maxHp: _doubleValue(json['maxHp']),
       hp: _doubleValue(json['hp']),
+      shield: _doubleValue(json['shield']),
+      shieldBroken: _boolValue(json['shieldBroken']),
+      armor: _doubleValue(json['armor']),
       distanceTravelled: _doubleValue(json['distanceTravelled']),
       burnRemaining: legacyBurnRemaining,
       burnDamagePerSecond: legacyBurnDamagePerSecond,
@@ -523,6 +535,10 @@ double _doubleValue(Object? value, {double fallback = 0}) {
     double() => value,
     _ => fallback,
   };
+}
+
+bool _boolValue(Object? value, {bool fallback = false}) {
+  return value is bool ? value : fallback;
 }
 
 String? _stringValue(Object? value) {

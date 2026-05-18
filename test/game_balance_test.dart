@@ -1,4 +1,5 @@
 import 'package:flame/components.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/definitions/demo_enemy_data.dart';
 import 'package:rune_nexus/data/definitions/demo_stage_data.dart';
@@ -7,6 +8,7 @@ import 'package:rune_nexus/data/save/save_repository.dart';
 import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
 import 'package:rune_nexus/domain/combat/run_panel_tab.dart';
+import 'package:rune_nexus/domain/enemy/enemy_definition.dart';
 import 'package:rune_nexus/domain/enemy/enemy_resistance_profile.dart';
 import 'package:rune_nexus/domain/enemy/enemy_scaling.dart';
 import 'package:rune_nexus/domain/enemy/enemy_type.dart';
@@ -1696,6 +1698,104 @@ void main() {
     expect(enemy.receiveDamage(20), closeTo(0, 0.001));
   });
 
+  test('armor mitigates damage before hp and weakens as it breaks', () {
+    final game = RuneNexusGame();
+    final normal = demoEnemies[EnemyType.normal]!;
+    final enemy = EnemyComponent(
+      definition: normal,
+      maxHp: 100,
+      maxArmor: 50,
+      path: [Vector2.zero(), Vector2(100, 0)],
+      game: game,
+    );
+
+    expect(enemy.receiveDamage(20), closeTo(18, 0.001));
+    expect(enemy.armor, closeTo(32, 0.001));
+    expect(enemy.hp, closeTo(100, 0.001));
+
+    expect(enemy.receiveDamage(100), closeTo(98.72, 0.001));
+    expect(enemy.armor, closeTo(0, 0.001));
+    expect(enemy.hp, closeTo(33.28, 0.001));
+  });
+
+  test(
+    'shield overflow spills into armor and broken shield does not regen',
+    () {
+      final game = RuneNexusGame();
+      const shielded = EnemyDefinition(
+        type: EnemyType.normal,
+        name: '보호막 테스트',
+        maxHp: 100,
+        maxShield: 100,
+        shieldRegenRate: 0.1,
+        maxArmor: 50,
+        speed: 30,
+        rewardGold: 1,
+        coreDamage: 1,
+        color: Color(0xFFFFFFFF),
+        resistanceProfile: EnemyResistanceProfile.neutral,
+      );
+      final enemy = EnemyComponent(
+        definition: shielded,
+        maxHp: 100,
+        maxShield: 100,
+        maxArmor: 50,
+        path: [Vector2.zero(), Vector2(100, 0)],
+        game: game,
+      );
+
+      expect(enemy.receiveDamage(120), closeTo(118, 0.001));
+      expect(enemy.shield, closeTo(0, 0.001));
+      expect(enemy.shieldBroken, isTrue);
+      expect(enemy.armor, closeTo(32, 0.001));
+      expect(enemy.hp, closeTo(100, 0.001));
+
+      enemy.update(1);
+
+      expect(enemy.shield, closeTo(0, 0.001));
+    },
+  );
+
+  test('enemy durability state is saved and restored', () {
+    final game = RuneNexusGame();
+    const shielded = EnemyDefinition(
+      type: EnemyType.normal,
+      name: '저장 테스트',
+      maxHp: 100,
+      maxShield: 100,
+      shieldRegenRate: 0.1,
+      maxArmor: 50,
+      speed: 30,
+      rewardGold: 1,
+      coreDamage: 1,
+      color: Color(0xFFFFFFFF),
+      resistanceProfile: EnemyResistanceProfile.neutral,
+    );
+    final enemy = EnemyComponent(
+      definition: shielded,
+      maxHp: 100,
+      maxShield: 100,
+      maxArmor: 50,
+      path: [Vector2.zero(), Vector2(100, 0)],
+      game: game,
+    );
+    enemy.receiveDamage(120);
+
+    final restored = EnemyComponent(
+      definition: shielded,
+      maxHp: 100,
+      maxShield: 100,
+      maxArmor: 50,
+      path: [Vector2.zero(), Vector2(100, 0)],
+      game: game,
+    )..restoreFromSaveData(enemy.toSaveData());
+
+    expect(restored.shield, closeTo(0, 0.001));
+    expect(restored.shieldBroken, isTrue);
+    expect(restored.armor, closeTo(32, 0.001));
+    expect(restored.hp, closeTo(100, 0.001));
+  });
+
   test(
     'fire turret exposes burn damage in the selected turret stats',
     () async {
@@ -2201,48 +2301,58 @@ void main() {
     },
   );
 
-  test('local save restores active enemy hp and path progress', () async {
-    final repository = MemorySaveRepository();
-    final game = RuneNexusGame(saveRepository: repository);
+  test(
+    'local save restores active enemy durability and path progress',
+    () async {
+      final repository = MemorySaveRepository();
+      final game = RuneNexusGame(saveRepository: repository);
 
-    game.onGameResize(Vector2(400, 800));
-    await game.onLoad();
-    game.startNextWave();
-    game.update(0.9);
-    expect(game.enemies, isNotEmpty);
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      game.startNextWave();
+      game.update(0.9);
+      expect(game.enemies, isNotEmpty);
 
-    final enemy = game.enemies.first;
-    enemy.receiveDamage(5);
-    game.update(0.5);
-    await game.saveNow();
+      final enemy = game.enemies.first;
+      enemy.receiveDamage(5);
+      game.update(0.5);
+      await game.saveNow();
 
-    final saved = repository.data;
-    expect(saved, isNotNull);
-    expect(saved!.phase, GamePhase.wave);
-    expect(saved.enemies, isNotEmpty);
-    expect(saved.enemies.first.hp, lessThan(saved.enemies.first.maxHp));
-    expect(saved.enemies.first.distanceTravelled, greaterThan(0));
-    expect(saved.spawnQueue, isNotEmpty);
+      final saved = repository.data;
+      expect(saved, isNotNull);
+      expect(saved!.phase, GamePhase.wave);
+      expect(saved.enemies, isNotEmpty);
+      expect(
+        saved.enemies.first.armor,
+        lessThan(scaledEnemyMaxArmor(enemy.definition, 1)),
+      );
+      expect(saved.enemies.first.distanceTravelled, greaterThan(0));
+      expect(saved.spawnQueue, isNotEmpty);
 
-    final restoredRepository = MemorySaveRepository()..data = saved;
-    final restored = RuneNexusGame(saveRepository: restoredRepository);
-    restored.onGameResize(Vector2(400, 800));
-    await restored.onLoad();
+      final restoredRepository = MemorySaveRepository()..data = saved;
+      final restored = RuneNexusGame(saveRepository: restoredRepository);
+      restored.onGameResize(Vector2(400, 800));
+      await restored.onLoad();
 
-    expect(restored.snapshotNotifier.value.phase, GamePhase.restored);
-    expect(restored.snapshotNotifier.value.restoredPhase, GamePhase.wave);
-    expect(restored.snapshotNotifier.value.round, 1);
-    restored.update(1);
-    await restored.saveNow();
+      expect(restored.snapshotNotifier.value.phase, GamePhase.restored);
+      expect(restored.snapshotNotifier.value.restoredPhase, GamePhase.wave);
+      expect(restored.snapshotNotifier.value.round, 1);
+      restored.update(1);
+      await restored.saveNow();
 
-    expect(
-      restoredRepository.data!.enemies.first.distanceTravelled,
-      closeTo(saved.enemies.first.distanceTravelled, 0.001),
-    );
+      expect(
+        restoredRepository.data!.enemies.first.distanceTravelled,
+        closeTo(saved.enemies.first.distanceTravelled, 0.001),
+      );
+      expect(
+        restoredRepository.data!.enemies.first.armor,
+        closeTo(saved.enemies.first.armor, 0.001),
+      );
 
-    restored.continueRestoredRun();
-    expect(restored.snapshotNotifier.value.phase, GamePhase.wave);
-  });
+      restored.continueRestoredRun();
+      expect(restored.snapshotNotifier.value.phase, GamePhase.wave);
+    },
+  );
 
   test('discarding a restored run settles failure rewards', () async {
     final repository = MemorySaveRepository();

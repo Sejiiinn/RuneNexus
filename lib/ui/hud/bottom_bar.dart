@@ -952,6 +952,16 @@ class _EnemyDetailRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxHp = scaledEnemyMaxHp(enemy, round, stageNumber: stageNumber);
+    final maxShield = scaledEnemyMaxShield(
+      enemy,
+      round,
+      stageNumber: stageNumber,
+    );
+    final maxArmor = scaledEnemyMaxArmor(
+      enemy,
+      round,
+      stageNumber: stageNumber,
+    );
     final resistanceRows = [
       ...DamageFamily.values
           .map(
@@ -1001,12 +1011,16 @@ class _EnemyDetailRow extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 7),
-          Row(
+          Wrap(
+            spacing: 5,
+            runSpacing: 5,
             children: [
               _StatPill(label: '체력', value: maxHp.round().toString()),
-              const SizedBox(width: 5),
+              if (maxArmor > 0)
+                _StatPill(label: '방어구', value: maxArmor.round().toString()),
+              if (maxShield > 0)
+                _StatPill(label: '보호막', value: maxShield.round().toString()),
               _StatPill(label: '속도', value: enemy.speed.round().toString()),
-              const SizedBox(width: 5),
               _StatPill(
                 label: '보상',
                 value: '+${enemy.rewardGold}',
