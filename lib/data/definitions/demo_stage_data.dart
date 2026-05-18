@@ -656,13 +656,34 @@ const stage5Map = MapDefinition(
 );
 
 final demoWaves = List<WaveDefinition>.unmodifiable(_buildDemoWaves());
+final demoStage2Waves = List<WaveDefinition>.unmodifiable(_buildStage2Waves());
 
 final demoStages = List<StageDefinition>.unmodifiable([
   StageDefinition(id: 1, name: 'Stage 1', map: demoMap, waves: demoWaves),
-  StageDefinition(id: 2, name: 'Stage 2', map: demoStage2Map, waves: demoWaves),
-  StageDefinition(id: 3, name: 'Stage 3', map: stage3Map, waves: demoWaves),
-  StageDefinition(id: 4, name: 'Stage 4', map: stage4Map, waves: demoWaves),
-  StageDefinition(id: 5, name: 'Stage 5', map: stage5Map, waves: demoWaves),
+  StageDefinition(
+    id: 2,
+    name: 'Stage 2',
+    map: demoStage2Map,
+    waves: demoStage2Waves,
+  ),
+  StageDefinition(
+    id: 3,
+    name: 'Stage 3',
+    map: stage3Map,
+    waves: demoStage2Waves,
+  ),
+  StageDefinition(
+    id: 4,
+    name: 'Stage 4',
+    map: stage4Map,
+    waves: demoStage2Waves,
+  ),
+  StageDefinition(
+    id: 5,
+    name: 'Stage 5',
+    map: stage5Map,
+    waves: demoStage2Waves,
+  ),
 ]);
 
 const double _standardGroupGap = 0.75;
@@ -676,6 +697,18 @@ List<WaveDefinition> _buildDemoWaves() {
       previewText: _previewTextFor(round),
       clearRewardGold: _clearRewardGoldFor(round),
       groups: _groupsFor(round),
+    );
+  });
+}
+
+List<WaveDefinition> _buildStage2Waves() {
+  return List<WaveDefinition>.generate(50, (index) {
+    final round = index + 1;
+    return WaveDefinition(
+      round: round,
+      previewText: _stage2PreviewTextFor(round),
+      clearRewardGold: _clearRewardGoldFor(round),
+      groups: _stage2GroupsFor(round),
     );
   });
 }
@@ -719,6 +752,41 @@ String _previewTextFor(int round) {
   return '일반 적 중심';
 }
 
+String _stage2PreviewTextFor(int round) {
+  if (round == 2) {
+    return '장갑병 첫 등장';
+  }
+  if (round == 3) {
+    return '장갑 대열';
+  }
+  if (round == 4) {
+    return '빠른 적 재압박';
+  }
+  if (round == 5) {
+    return '장갑병과 탱커';
+  }
+  if (round % 10 == 0) {
+    return '장갑 호위 보스';
+  }
+  final cycleStep = _cycleStepFor(round);
+  if (cycleStep == 1) {
+    return '장갑 혼합';
+  }
+  if (cycleStep == 2) {
+    return '빠른 적 러시';
+  }
+  if (cycleStep == 3) {
+    return '장갑 대열';
+  }
+  if (cycleStep == 4) {
+    return '분산 압박';
+  }
+  if (cycleStep == 5) {
+    return '장갑 압축';
+  }
+  return '일반 적 중심';
+}
+
 List<SpawnGroup> _groupsFor(int round) {
   if (round <= 5) {
     return _learningGroupsFor(round);
@@ -743,6 +811,32 @@ List<SpawnGroup> _groupsFor(int round) {
     return _tankPressureGroups(tier);
   }
   return _compressedGroups(tier);
+}
+
+List<SpawnGroup> _stage2GroupsFor(int round) {
+  if (round <= 5) {
+    return _stage2LearningGroupsFor(round);
+  }
+
+  final tier = _tierForRound(round);
+  if (round % 10 == 0) {
+    return _stage2BossEscortGroups(tier);
+  }
+
+  final cycleStep = _cycleStepFor(round);
+  if (cycleStep == 1) {
+    return _stage2StandardMixedGroups(tier);
+  }
+  if (cycleStep == 2) {
+    return _stage2RushGroups(tier);
+  }
+  if (cycleStep == 3) {
+    return _stage2ArmorLineGroups(tier);
+  }
+  if (cycleStep == 4) {
+    return _stage2SplitPressureGroups(tier);
+  }
+  return _stage2CompressedGroups(tier);
 }
 
 List<SpawnGroup> _learningGroupsFor(int round) {
@@ -789,6 +883,62 @@ List<SpawnGroup> _learningGroupsFor(int round) {
   ];
 }
 
+List<SpawnGroup> _stage2LearningGroupsFor(int round) {
+  if (round == 1) {
+    return const [
+      SpawnGroup(enemyType: EnemyType.normal, count: 6, interval: 1.7),
+    ];
+  }
+  if (round == 2) {
+    return const [
+      SpawnGroup(enemyType: EnemyType.normal, count: 5, interval: 1.55),
+      SpawnGroup(
+        enemyType: EnemyType.armored,
+        count: 2,
+        interval: 1.55,
+        startDelay: 3.7,
+      ),
+    ];
+  }
+  if (round == 3) {
+    return const [
+      SpawnGroup(enemyType: EnemyType.armored, count: 4, interval: 1.5),
+      SpawnGroup(
+        enemyType: EnemyType.normal,
+        count: 4,
+        interval: 1.35,
+        startDelay: 5.6,
+      ),
+    ];
+  }
+  if (round == 4) {
+    return const [
+      SpawnGroup(enemyType: EnemyType.normal, count: 6, interval: 1.4),
+      SpawnGroup(
+        enemyType: EnemyType.fast,
+        count: 4,
+        interval: 0.85,
+        startDelay: 7.6,
+      ),
+    ];
+  }
+  return const [
+    SpawnGroup(enemyType: EnemyType.armored, count: 3, interval: 1.45),
+    SpawnGroup(
+      enemyType: EnemyType.normal,
+      count: 6,
+      interval: 1.25,
+      startDelay: 2.7,
+    ),
+    SpawnGroup(
+      enemyType: EnemyType.tank,
+      count: 1,
+      interval: 1.7,
+      startDelay: 8.9,
+    ),
+  ];
+}
+
 List<SpawnGroup> _standardMixedGroups(int tier) {
   final normal = SpawnGroup(
     enemyType: EnemyType.normal,
@@ -802,6 +952,29 @@ List<SpawnGroup> _standardMixedGroups(int tier) {
       count: 4 + tier ~/ 2,
       interval: _fastIntervalFor(tier),
       startDelay: _nextGroupDelay(normal, gap: _standardGroupGap),
+    ),
+  ];
+}
+
+List<SpawnGroup> _stage2StandardMixedGroups(int tier) {
+  final normal = SpawnGroup(
+    enemyType: EnemyType.normal,
+    count: 8 + tier,
+    interval: _normalIntervalFor(tier),
+  );
+  return [
+    normal,
+    SpawnGroup(
+      enemyType: EnemyType.armored,
+      count: 2 + (tier + 1) ~/ 2,
+      interval: _armoredIntervalFor(tier),
+      startDelay: _nextGroupDelay(normal, gap: _tightGroupGap),
+    ),
+    SpawnGroup(
+      enemyType: EnemyType.fast,
+      count: 3 + tier ~/ 3,
+      interval: _fastIntervalFor(tier),
+      startDelay: _nextGroupDelay(normal, gap: _standardGroupGap + 2.0),
     ),
   ];
 }
@@ -826,6 +999,30 @@ List<SpawnGroup> _rushGroups(int tier) {
       count: 5 + (tier + 1) ~/ 2,
       interval: _fastIntervalFor(tier),
       startDelay: _nextGroupDelay(firstRush, gap: _standardGroupGap),
+    ),
+  ];
+}
+
+List<SpawnGroup> _stage2RushGroups(int tier) {
+  final normal = SpawnGroup(
+    enemyType: EnemyType.normal,
+    count: 5 + tier,
+    interval: 1.25,
+  );
+  final fast = SpawnGroup(
+    enemyType: EnemyType.fast,
+    count: 7 + tier,
+    interval: _fastIntervalFor(tier),
+    startDelay: _nextGroupDelay(normal, gap: _tightGroupGap),
+  );
+  return [
+    normal,
+    fast,
+    SpawnGroup(
+      enemyType: EnemyType.armored,
+      count: 1 + tier ~/ 3,
+      interval: _armoredIntervalFor(tier),
+      startDelay: _nextGroupDelay(fast, gap: _standardGroupGap),
     ),
   ];
 }
@@ -858,6 +1055,29 @@ List<SpawnGroup> _overlapGroups(int tier) {
   return groups;
 }
 
+List<SpawnGroup> _stage2ArmorLineGroups(int tier) {
+  final armored = SpawnGroup(
+    enemyType: EnemyType.armored,
+    count: 4 + tier,
+    interval: _armoredIntervalFor(tier),
+  );
+  return [
+    armored,
+    SpawnGroup(
+      enemyType: EnemyType.normal,
+      count: 6 + tier,
+      interval: _normalIntervalFor(tier),
+      startDelay: _nextGroupDelay(armored, gap: _tightGroupGap),
+    ),
+    SpawnGroup(
+      enemyType: EnemyType.fast,
+      count: 3 + tier ~/ 2,
+      interval: _fastIntervalFor(tier),
+      startDelay: 2.4,
+    ),
+  ];
+}
+
 List<SpawnGroup> _tankPressureGroups(int tier) {
   final tank = SpawnGroup(
     enemyType: EnemyType.tank,
@@ -878,6 +1098,30 @@ List<SpawnGroup> _tankPressureGroups(int tier) {
       count: 3 + tier ~/ 3,
       interval: _fastIntervalFor(tier),
       startDelay: _nextGroupDelay(normal, gap: _standardGroupGap),
+    ),
+  ];
+}
+
+List<SpawnGroup> _stage2SplitPressureGroups(int tier) {
+  final normal = SpawnGroup(
+    enemyType: EnemyType.normal,
+    count: 8 + tier,
+    interval: 1.12,
+  );
+  final armored = SpawnGroup(
+    enemyType: EnemyType.armored,
+    count: 3 + (tier + 1) ~/ 2,
+    interval: _armoredIntervalFor(tier),
+    startDelay: 1.8,
+  );
+  return [
+    normal,
+    armored,
+    SpawnGroup(
+      enemyType: EnemyType.fast,
+      count: 4 + tier ~/ 2,
+      interval: _fastIntervalFor(tier),
+      startDelay: _nextGroupDelay(armored, gap: _standardGroupGap),
     ),
   ];
 }
@@ -904,6 +1148,38 @@ List<SpawnGroup> _compressedGroups(int tier) {
       startDelay: _nextGroupDelay(fast, gap: _tightGroupGap),
     ),
   ];
+}
+
+List<SpawnGroup> _stage2CompressedGroups(int tier) {
+  final normal = SpawnGroup(
+    enemyType: EnemyType.normal,
+    count: 6 + tier,
+    interval: 1.08,
+  );
+  final fast = SpawnGroup(
+    enemyType: EnemyType.fast,
+    count: 5 + tier,
+    interval: _fastIntervalFor(tier),
+    startDelay: _nextGroupDelay(normal, gap: _tightGroupGap),
+  );
+  final armored = SpawnGroup(
+    enemyType: EnemyType.armored,
+    count: 3 + (tier + 1) ~/ 2,
+    interval: _armoredIntervalFor(tier),
+    startDelay: _nextGroupDelay(fast, gap: _tightGroupGap),
+  );
+  final groups = [normal, fast, armored];
+  if (tier >= 3) {
+    groups.add(
+      SpawnGroup(
+        enemyType: EnemyType.tank,
+        count: 1 + tier ~/ 5,
+        interval: 1.55,
+        startDelay: _nextGroupDelay(armored, gap: _tightGroupGap),
+      ),
+    );
+  }
+  return groups;
 }
 
 List<SpawnGroup> _bossEscortGroups(int tier) {
@@ -937,6 +1213,48 @@ List<SpawnGroup> _bossEscortGroups(int tier) {
   ];
 }
 
+List<SpawnGroup> _stage2BossEscortGroups(int tier) {
+  final armored = SpawnGroup(
+    enemyType: EnemyType.armored,
+    count: 2 + tier ~/ 2,
+    interval: _armoredIntervalFor(tier),
+  );
+  final fast = SpawnGroup(
+    enemyType: EnemyType.fast,
+    count: 4 + tier ~/ 2,
+    interval: _fastIntervalFor(tier),
+    startDelay: _nextGroupDelay(armored, gap: _tightGroupGap),
+  );
+  final boss = SpawnGroup(
+    enemyType: EnemyType.boss,
+    count: 1,
+    interval: 2.0,
+    startDelay: _nextGroupDelay(fast, gap: 1.2),
+  );
+  final groups = [
+    armored,
+    fast,
+    boss,
+    SpawnGroup(
+      enemyType: EnemyType.normal,
+      count: 4 + tier ~/ 2,
+      interval: 1.0,
+      startDelay: boss.startDelay + 0.9,
+    ),
+  ];
+  if (tier >= 6) {
+    groups.add(
+      SpawnGroup(
+        enemyType: EnemyType.tank,
+        count: 1,
+        interval: 1.6,
+        startDelay: boss.startDelay + 2.2,
+      ),
+    );
+  }
+  return groups;
+}
+
 int _tierForRound(int round) {
   if (round <= 5) {
     return 0;
@@ -957,6 +1275,10 @@ double _normalIntervalFor(int tier) {
 
 double _fastIntervalFor(int tier) {
   return 0.82 - tier * 0.015;
+}
+
+double _armoredIntervalFor(int tier) {
+  return 1.38 - tier * 0.02;
 }
 
 double _nextGroupDelay(SpawnGroup previous, {required double gap}) {

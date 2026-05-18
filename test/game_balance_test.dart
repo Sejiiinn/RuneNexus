@@ -37,6 +37,13 @@ void main() {
     expect(demoWaves, hasLength(50));
     expect(demoWaves.first.round, 1);
     expect(demoWaves.last.round, 50);
+    expect(demoStage2Waves, hasLength(50));
+    expect(demoStage2Waves.first.round, 1);
+    expect(demoStage2Waves.last.round, 50);
+    expect(demoStages[1].waves, same(demoStage2Waves));
+    expect(demoStages[2].waves, same(demoStage2Waves));
+    expect(demoStages[3].waves, same(demoStage2Waves));
+    expect(demoStages[4].waves, same(demoStage2Waves));
   });
 
   test('stage definitions select their own wave data', () {
@@ -366,6 +373,7 @@ void main() {
 
   test('enemy movement speeds are tuned down for readable combat', () {
     expect(demoEnemies[EnemyType.normal]!.speed, 31.5);
+    expect(demoEnemies[EnemyType.armored]!.speed, 28);
     expect(demoEnemies[EnemyType.fast]!.speed, 54.6);
     expect(demoEnemies[EnemyType.tank]!.speed, 21);
     expect(demoEnemies[EnemyType.boss]!.speed, 16.8);
@@ -726,6 +734,7 @@ void main() {
 
   test('enemy kill rewards limit late-wave gold snowballing', () {
     expect(demoEnemies[EnemyType.normal]!.rewardGold, 5);
+    expect(demoEnemies[EnemyType.armored]!.rewardGold, 7);
     expect(demoEnemies[EnemyType.fast]!.rewardGold, 5);
     expect(demoEnemies[EnemyType.tank]!.rewardGold, 9);
     expect(demoEnemies[EnemyType.boss]!.rewardGold, 35);
@@ -1523,6 +1532,31 @@ void main() {
     expect(wave30RearGuard.startDelay, greaterThan(wave30Boss.startDelay));
     expect(wave30RearGuard.startDelay, lessThan(wave30Boss.startDelay + 1.5));
   });
+
+  test(
+    'stage two waves introduce armored enemies without changing stage one',
+    () {
+      expect(
+        demoWaves.expand((wave) => wave.groups).map((group) => group.enemyType),
+        isNot(contains(EnemyType.armored)),
+      );
+
+      final stage2Round2Types = demoStage2Waves[1].groups.map(
+        (group) => group.enemyType,
+      );
+      final stage2Round3Types = demoStage2Waves[2].groups.map(
+        (group) => group.enemyType,
+      );
+      final stage2Round10Types = demoStage2Waves[9].groups.map(
+        (group) => group.enemyType,
+      );
+
+      expect(stage2Round2Types, contains(EnemyType.armored));
+      expect(stage2Round3Types.first, EnemyType.armored);
+      expect(stage2Round10Types, contains(EnemyType.armored));
+      expect(stage2Round10Types, contains(EnemyType.boss));
+    },
+  );
 
   test('late wave enemy counts stay within the planned pressure range', () {
     int totalCount(WaveDefinition wave) =>
@@ -2323,8 +2357,8 @@ void main() {
       expect(saved!.phase, GamePhase.wave);
       expect(saved.enemies, isNotEmpty);
       expect(
-        saved.enemies.first.armor,
-        lessThan(scaledEnemyMaxArmor(enemy.definition, 1)),
+        saved.enemies.first.hp,
+        lessThan(scaledEnemyMaxHp(enemy.definition, 1)),
       );
       expect(saved.enemies.first.distanceTravelled, greaterThan(0));
       expect(saved.spawnQueue, isNotEmpty);

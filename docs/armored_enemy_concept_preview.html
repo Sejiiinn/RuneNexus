@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rune Nexus Armored Enemy Concepts</title>
+    <style>
+      :root {
+        --bg: #07111d;
+        --panel: #091827;
+        --panel-soft: #102236;
+        --line: #33d8ff;
+        --text: #e8f8ff;
+        --muted: #8fa8ba;
+        --body: #2f4355;
+        --body-dark: #1d3142;
+        --armor: #aeb7c1;
+        --armor-dark: #737f8d;
+        --armor-warm: #c0964d;
+        --core: #f0d878;
+        --hp: #ef5f5f;
+        --bar-bg: #1a2a37;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 50% 8%, rgba(51, 216, 255, 0.12), transparent 34rem),
+          linear-gradient(115deg, rgba(51, 216, 255, 0.08) 0 1px, transparent 1px 42px),
+          var(--bg);
+        color: var(--text);
+        font-family:
+          Inter,
+          "Noto Sans KR",
+          system-ui,
+          sans-serif;
+      }
+
+      main {
+        width: min(1180px, calc(100vw - 32px));
+        margin: 0 auto;
+        padding: 32px 0 42px;
+      }
+
+      header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 18px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 28px;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .rule {
+        flex: 0 0 auto;
+        color: #c7d6e4;
+        border: 1px solid rgba(51, 216, 255, 0.35);
+        background: rgba(7, 17, 29, 0.72);
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .card {
+        border: 1px solid rgba(51, 216, 255, 0.38);
+        background: rgba(9, 24, 39, 0.9);
+        border-radius: 8px;
+        padding: 14px;
+        box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
+      }
+
+      .art {
+        display: grid;
+        place-items: center;
+        min-height: 230px;
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+          var(--panel-soft);
+        border: 1px solid rgba(143, 168, 186, 0.18);
+        overflow: hidden;
+      }
+
+      svg {
+        width: min(220px, 100%);
+        height: auto;
+        overflow: visible;
+      }
+
+      .shadow {
+        fill: rgba(0, 0, 0, 0.36);
+      }
+
+      .body {
+        fill: var(--body);
+        stroke: #c7d2df;
+        stroke-width: 3;
+        stroke-linejoin: round;
+      }
+
+      .body-dark {
+        fill: var(--body-dark);
+        stroke: #8393a5;
+        stroke-width: 2.5;
+        stroke-linejoin: round;
+      }
+
+      .armor {
+        fill: var(--armor);
+        stroke: #f1f5f9;
+        stroke-width: 2.5;
+        stroke-linejoin: round;
+      }
+
+      .armor-dark {
+        fill: var(--armor-dark);
+        stroke: #d6dee8;
+        stroke-width: 2.2;
+        stroke-linejoin: round;
+      }
+
+      .armor-warm {
+        fill: var(--armor-warm);
+        stroke: #ffdf8a;
+        stroke-width: 2.3;
+        stroke-linejoin: round;
+      }
+
+      .core {
+        fill: var(--core);
+        stroke: #fff8c8;
+        stroke-width: 3;
+      }
+
+      .slot {
+        fill: rgba(7, 17, 29, 0.74);
+        stroke: rgba(241, 245, 249, 0.72);
+        stroke-width: 2;
+      }
+
+      .label {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        margin-top: 12px;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 16px;
+        letter-spacing: 0;
+      }
+
+      .tag {
+        color: #07111d;
+        background: #aeeaff;
+        border-radius: 999px;
+        padding: 4px 8px;
+        font-size: 11px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .desc {
+        margin: 7px 0 12px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.5;
+        min-height: 38px;
+      }
+
+      .bars {
+        display: grid;
+        gap: 5px;
+      }
+
+      .bar {
+        height: 8px;
+        background: var(--bar-bg);
+        border: 1px solid rgba(199, 210, 223, 0.25);
+        overflow: hidden;
+      }
+
+      .bar > span {
+        display: block;
+        height: 100%;
+      }
+
+      .hp > span {
+        width: 59%;
+        background: var(--hp);
+      }
+
+      .armor-bar > span {
+        width: 41%;
+        background: var(--armor);
+      }
+
+      .mini-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 11px;
+      }
+
+      .mini-row svg {
+        width: 34px;
+      }
+
+      .note {
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      @media (max-width: 900px) {
+        header {
+          display: block;
+        }
+
+        .rule {
+          margin-top: 12px;
+          display: inline-block;
+        }
+
+        .grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 620px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>장갑병 외형 후보</h1>
+          <p class="subtitle">일반몹 개량형 · 방어구 전용 · 체력 40 / 방어구 28 기준</p>
+        </div>
+        <div class="rule">읽기 목표: 회색 금속판이 먼저 보이는 일반형</div>
+      </header>
+
+      <section class="grid">
+        <article class="card">
+          <div class="art">
+            <svg viewBox="0 0 190 190" aria-label="전면 장갑판형">
+              <ellipse class="shadow" cx="95" cy="158" rx="58" ry="11" />
+              <path class="body-dark" d="M95 26 136 52 151 98 128 139 95 156 61 139 39 98 54 52Z" />
+              <path class="body" d="M95 38 128 58 140 98 119 131 95 144 70 131 50 98 62 58Z" />
+              <path class="armor" d="M95 42 119 61 111 89 95 100 79 89 71 61Z" />
+              <path class="armor-dark" d="M60 81 78 92 76 125 57 115 48 96Z" />
+              <path class="armor-dark" d="M130 81 112 92 114 125 133 115 142 96Z" />
+              <circle class="core" cx="95" cy="113" r="13" />
+            </svg>
+          </div>
+          <div class="label">
+            <h2>전면 장갑판형</h2>
+            <span class="tag">가장 직관적</span>
+          </div>
+          <p class="desc">몸 중앙 금속판을 크게 둬서 작은 크기에서도 장갑병임이 바로 보입니다.</p>
+          <div class="bars">
+            <div class="bar hp"><span></span></div>
+            <div class="bar armor-bar"><span></span></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="art">
+            <svg viewBox="0 0 190 190" aria-label="헬멧 바이저형">
+              <ellipse class="shadow" cx="95" cy="158" rx="58" ry="11" />
+              <path class="body" d="M95 31 134 55 149 101 124 143 95 158 66 143 41 101 56 55Z" />
+              <path class="armor" d="M63 52 95 34 127 52 119 82 95 94 71 82Z" />
+              <path class="slot" d="M72 63 118 63 110 78 80 78Z" />
+              <path class="armor-dark" d="M49 92 74 86 78 131 61 124Z" />
+              <path class="armor-dark" d="M141 92 116 86 112 131 129 124Z" />
+              <circle class="core" cx="95" cy="119" r="12" />
+            </svg>
+          </div>
+          <div class="label">
+            <h2>헬멧 바이저형</h2>
+            <span class="tag">병사 느낌</span>
+          </div>
+          <p class="desc">투구/시야 슬롯을 넣어 일반몹의 개량병이라는 인상이 가장 강합니다.</p>
+          <div class="bars">
+            <div class="bar hp"><span></span></div>
+            <div class="bar armor-bar"><span></span></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="art">
+            <svg viewBox="0 0 190 190" aria-label="방패 견갑형">
+              <ellipse class="shadow" cx="95" cy="158" rx="58" ry="11" />
+              <path class="body" d="M95 34 130 59 145 101 124 139 95 153 66 139 45 101 60 59Z" />
+              <path class="armor" d="M46 76 77 60 83 133 59 125 43 100Z" />
+              <path class="armor" d="M144 76 113 60 107 133 131 125 147 100Z" />
+              <path class="armor-warm" d="M95 50 113 70 106 94 95 104 84 94 77 70Z" />
+              <circle class="core" cx="95" cy="119" r="12" />
+            </svg>
+          </div>
+          <div class="label">
+            <h2>방패 견갑형</h2>
+            <span class="tag">강한 실루엣</span>
+          </div>
+          <p class="desc">양옆 판이 넓어 옆모습 전환을 만들 때도 장갑 존재감이 잘 남습니다.</p>
+          <div class="bars">
+            <div class="bar hp"><span></span></div>
+            <div class="bar armor-bar"><span></span></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="art">
+            <svg viewBox="0 0 190 190" aria-label="분절 장갑형">
+              <ellipse class="shadow" cx="95" cy="158" rx="58" ry="11" />
+              <path class="body" d="M95 28 134 56 149 99 126 140 95 157 64 140 41 99 56 56Z" />
+              <path class="armor" d="M74 48 95 37 116 48 111 66 95 75 79 66Z" />
+              <path class="armor-dark" d="M67 76 91 82 86 103 62 99Z" />
+              <path class="armor-dark" d="M123 76 99 82 104 103 128 99Z" />
+              <path class="armor" d="M73 111 95 101 117 111 110 134 95 144 80 134Z" />
+              <circle class="core" cx="95" cy="94" r="10" />
+            </svg>
+          </div>
+          <div class="label">
+            <h2>분절 장갑형</h2>
+            <span class="tag">상태 변화 좋음</span>
+          </div>
+          <p class="desc">방어구가 깨질 때 장갑판이 줄어드는 연출로 확장하기 좋습니다.</p>
+          <div class="bars">
+            <div class="bar hp"><span></span></div>
+            <div class="bar armor-bar"><span></span></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="art">
+            <svg viewBox="0 0 190 190" aria-label="가시 장갑형">
+              <ellipse class="shadow" cx="95" cy="158" rx="58" ry="11" />
+              <path class="body-dark" d="M95 20 107 47 95 58 83 47Z" />
+              <path class="body-dark" d="M39 88 67 76 75 93 54 110Z" />
+              <path class="body-dark" d="M151 88 123 76 115 93 136 110Z" />
+              <path class="body" d="M95 39 132 60 145 102 123 141 95 155 67 141 45 102 58 60Z" />
+              <path class="armor" d="M95 45 124 66 117 103 95 115 73 103 66 66Z" />
+              <path class="slot" d="M80 67 110 67 115 80 95 88 75 80Z" />
+              <circle class="core" cx="95" cy="125" r="11" />
+            </svg>
+          </div>
+          <div class="label">
+            <h2>가시 장갑형</h2>
+            <span class="tag">공격적</span>
+          </div>
+          <p class="desc">기존 일반몹의 결정 실루엣을 유지하면서 장갑판을 덧댄 형태입니다.</p>
+          <div class="bars">
+            <div class="bar hp"><span></span></div>
+            <div class="bar armor-bar"><span></span></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="art">
+            <svg viewBox="0 0 190 190" aria-label="소형 중갑형">
+              <ellipse class="shadow" cx="95" cy="158" rx="58" ry="11" />
+              <path class="body" d="M95 37 126 58 139 98 121 134 95 149 69 134 51 98 64 58Z" />
+              <path class="armor" d="M66 54 95 42 124 54 133 95 117 128 95 139 73 128 57 95Z" />
+              <path class="body-dark" d="M76 70 95 61 114 70 109 95 95 104 81 95Z" />
+              <path class="slot" d="M80 75 110 75 105 88 85 88Z" />
+              <circle class="core" cx="95" cy="118" r="11" />
+            </svg>
+          </div>
+          <div class="label">
+            <h2>소형 중갑형</h2>
+            <span class="tag">탱커와 차이 큼</span>
+          </div>
+          <p class="desc">몸은 작지만 외피 대부분이 금속이라 방어구 비율이 높은 적으로 읽힙니다.</p>
+          <div class="bars">
+            <div class="bar hp"><span></span></div>
+            <div class="bar armor-bar"><span></span></div>
+          </div>
+        </article>
+      </section>
+
+      <p class="note">
+        구현 후보는 전면 장갑판형 또는 헬멧 바이저형이 가장 안정적입니다. 작은 UI 아이콘에서는
+        큰 중앙 장갑판과 좁은 코어가 제일 잘 읽힙니다.
+      </p>
+    </main>
+  </body>
+</html>

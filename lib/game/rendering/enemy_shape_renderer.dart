@@ -32,6 +32,14 @@ void drawEnemyShape(
       } else {
         _drawNormalSide(canvas, scale, palette, strokeWidth);
       }
+    case EnemyType.armored:
+      if (facing == _EnemyFacing.front) {
+        _drawArmored(canvas, scale, palette, strokeWidth);
+      } else if (facing == _EnemyFacing.back) {
+        _drawArmoredBack(canvas, scale, palette, strokeWidth);
+      } else {
+        _drawArmoredSide(canvas, scale, palette, strokeWidth);
+      }
     case EnemyType.fast:
       if (facing == _EnemyFacing.front) {
         _drawFastFront(canvas, scale, palette, strokeWidth);
@@ -477,6 +485,194 @@ void _drawFast(
     palette.accent,
     center: const Offset(0.13, 0),
     radius: 0.14,
+  );
+}
+
+void _drawArmored(
+  Canvas canvas,
+  double scale,
+  _EnemyVisualPalette palette,
+  double strokeWidth,
+) {
+  _drawBody(
+    canvas,
+    scale,
+    [
+      const Offset(0, -0.42),
+      const Offset(0.33, -0.2),
+      const Offset(0.47, 0.07),
+      const Offset(0.31, 0.35),
+      const Offset(0, 0.48),
+      const Offset(-0.31, 0.35),
+      const Offset(-0.47, 0.07),
+      const Offset(-0.33, -0.2),
+    ],
+    palette,
+    strokeWidth,
+  );
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(-0.34, -0.12),
+      const Offset(-0.12, -0.22),
+      const Offset(-0.08, 0.34),
+      const Offset(-0.3, 0.27),
+      const Offset(-0.42, 0.05),
+    ],
+    palette.armor.withValues(alpha: 0.82),
+    strokeWidth * 0.55,
+  );
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(0.34, -0.12),
+      const Offset(0.12, -0.22),
+      const Offset(0.08, 0.34),
+      const Offset(0.3, 0.27),
+      const Offset(0.42, 0.05),
+    ],
+    palette.armor.withValues(alpha: 0.82),
+    strokeWidth * 0.55,
+  );
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(0, -0.43),
+      const Offset(0.25, -0.27),
+      const Offset(0.2, -0.02),
+      const Offset(0, 0.1),
+      const Offset(-0.2, -0.02),
+      const Offset(-0.25, -0.27),
+    ],
+    palette.armor,
+    strokeWidth * 0.6,
+  );
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(-0.2, -0.17),
+      const Offset(0.2, -0.17),
+      const Offset(0.14, 0),
+      const Offset(-0.14, 0),
+    ],
+    palette.body,
+    strokeWidth * 0.45,
+  );
+  _drawCore(
+    canvas,
+    scale,
+    palette.accent,
+    center: const Offset(0, 0.2),
+    radius: 0.13,
+  );
+}
+
+void _drawArmoredSide(
+  Canvas canvas,
+  double scale,
+  _EnemyVisualPalette palette,
+  double strokeWidth,
+) {
+  _drawBody(
+    canvas,
+    scale,
+    [
+      const Offset(-0.38, -0.1),
+      const Offset(-0.14, -0.35),
+      const Offset(0.3, -0.28),
+      const Offset(0.48, 0),
+      const Offset(0.3, 0.28),
+      const Offset(-0.14, 0.35),
+      const Offset(-0.38, 0.1),
+    ],
+    palette,
+    strokeWidth,
+  );
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(-0.28, -0.25),
+      const Offset(0.21, -0.22),
+      const Offset(0.32, -0.03),
+      const Offset(0.08, 0.12),
+      const Offset(-0.32, 0.04),
+    ],
+    palette.armor,
+    strokeWidth * 0.58,
+  );
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(-0.1, -0.14),
+      const Offset(0.22, -0.12),
+      const Offset(0.14, 0.01),
+      const Offset(-0.16, 0.01),
+    ],
+    palette.body,
+    strokeWidth * 0.42,
+  );
+  _drawCore(
+    canvas,
+    scale,
+    palette.accent,
+    center: const Offset(0.13, 0.18),
+    radius: 0.12,
+  );
+}
+
+void _drawArmoredBack(
+  Canvas canvas,
+  double scale,
+  _EnemyVisualPalette palette,
+  double strokeWidth,
+) {
+  _drawBody(
+    canvas,
+    scale,
+    [
+      const Offset(0, -0.42),
+      const Offset(0.33, -0.2),
+      const Offset(0.47, 0.07),
+      const Offset(0.31, 0.35),
+      const Offset(0, 0.48),
+      const Offset(-0.31, 0.35),
+      const Offset(-0.47, 0.07),
+      const Offset(-0.33, -0.2),
+    ],
+    palette,
+    strokeWidth,
+  );
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(0, -0.36),
+      const Offset(0.29, -0.14),
+      const Offset(0.2, 0.27),
+      const Offset(0, 0.4),
+      const Offset(-0.2, 0.27),
+      const Offset(-0.29, -0.14),
+    ],
+    palette.armor,
+    strokeWidth * 0.6,
+  );
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(0, -0.18),
+      const Offset(0.14, -0.03),
+      const Offset(0, 0.12),
+      const Offset(-0.14, -0.03),
+    ],
+    palette.body.withValues(alpha: 0.58),
+    strokeWidth * 0.42,
   );
 }
 
@@ -1188,6 +1384,13 @@ class _EnemyVisualPalette {
         body: const Color(0xFF2F4355),
         spike: const Color(0xFF1E3142),
         edge: const Color(0xFFC7D2DF),
+        armor: const Color(0xFFAEB7C1),
+        accent: fallbackAccent,
+      ),
+      EnemyType.armored => _EnemyVisualPalette(
+        body: const Color(0xFF263848),
+        spike: const Color(0xFF1D3142),
+        edge: const Color(0xFFD6DEE8),
         armor: const Color(0xFFAEB7C1),
         accent: fallbackAccent,
       ),
