@@ -6,6 +6,8 @@ import 'package:rune_nexus/data/save/save_repository.dart';
 import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
 import 'package:rune_nexus/domain/combat/run_panel_tab.dart';
+import 'package:rune_nexus/domain/research/research_progress.dart';
+import 'package:rune_nexus/domain/research/research_type.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/game/game_snapshot.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
@@ -542,6 +544,46 @@ void main() {
 
     expect(find.text('테스트 라운드'), findsNothing);
   });
+
+  testWidgets('menu clock refreshes active research completion', (
+    tester,
+  ) async {
+    final game = _ResearchRefreshGame();
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: game,
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            activeResearches: const [
+              ResearchProgress(
+                type: ResearchType.gemAttunement,
+                targetLevel: 1,
+                startedAtMillis: 0,
+                durationMillis: 1,
+              ),
+            ],
+          ),
+          selectedTab: MainMenuTab.stage,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(game.researchRefreshCount, 1);
+  });
 }
 
 Future<void> _pumpLoadedApp(WidgetTester tester) async {
@@ -606,6 +648,7 @@ GameSnapshot _resultSnapshot({
   int emergencySaleUpgradeCost = 80,
   bool canUpgradeEmergencySale = false,
   int turretRefundPercent = 75,
+  List<ResearchProgress> activeResearches = const [],
 }) {
   return GameSnapshot(
     gold: 0,
@@ -736,7 +779,19 @@ GameSnapshot _resultSnapshot({
     researchSlotCount: 1,
     researchLevels: const {},
     researchElapsedMillis: const {},
-    activeResearches: const [],
+    activeResearches: activeResearches,
     startingGemShards: 0,
   );
+}
+
+class _ResearchRefreshGame extends RuneNexusGame {
+  _ResearchRefreshGame() : super(saveRepository: MemorySaveRepository());
+
+  int researchRefreshCount = 0;
+
+  @override
+  bool refreshResearchProgress() {
+    researchRefreshCount += 1;
+    return true;
+  }
 }

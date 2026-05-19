@@ -73,9 +73,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   }
 
   void _syncResearchClockTimer() {
-    final needsClock =
-        widget.selectedTab == MainMenuTab.research &&
-        widget.snapshot.activeResearches.isNotEmpty;
+    final needsClock = widget.snapshot.activeResearches.isNotEmpty;
     if (!needsClock) {
       _researchClockTimer?.cancel();
       _researchClockTimer = null;
@@ -88,13 +86,15 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
       if (!mounted) {
         return;
       }
-      if (widget.selectedTab != MainMenuTab.research ||
-          widget.snapshot.activeResearches.isEmpty) {
+      if (widget.snapshot.activeResearches.isEmpty) {
         _researchClockTimer?.cancel();
         _researchClockTimer = null;
         return;
       }
-      setState(() {});
+      if (!widget.game.refreshResearchProgress() &&
+          widget.selectedTab == MainMenuTab.research) {
+        setState(() {});
+      }
     });
   }
 

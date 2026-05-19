@@ -583,15 +583,20 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave();
   }
 
-  void _updateResearchProgress() {
+  bool refreshResearchProgress() {
+    return _updateResearchProgress();
+  }
+
+  bool _updateResearchProgress() {
     final completed = _progression.completeFinishedResearches(
       nowMillis: DateTime.now().millisecondsSinceEpoch,
     );
     if (!completed) {
-      return;
+      return false;
     }
     _publish();
     _requestLocalSave(immediate: true);
+    return true;
   }
 
   @override
