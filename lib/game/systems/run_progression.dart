@@ -17,6 +17,8 @@ class RunProgression {
   static const int maxEmergencySaleUpgradeLevel = 5;
   static const int researchSlotCount = 1;
   static const int gemShardsPerGemAttunementLevel = 2;
+  static const double researchEfficiencyPerLevel = 0.05;
+  static const double researchCostEfficiencyPerLevel = 0.05;
   static const int baseTurretRefundPercent = 75;
   static const int startingGoldUpgradeBaseCost = 4;
   static const int startingGoldUpgradeCostPerLevel = 4;
@@ -95,6 +97,12 @@ class RunProgression {
       gemShardsPerGemAttunementLevel;
   int get maxTurretLinkSlots =>
       isResearchComplete(ResearchType.linkExpansionOne) ? 2 : 1;
+  double get researchEfficiencyRate =>
+      researchLevel(ResearchType.researchEfficiency) *
+      researchEfficiencyPerLevel;
+  double get researchCostEfficiencyRate =>
+      researchLevel(ResearchType.researchCostEfficiency) *
+      researchCostEfficiencyPerLevel;
   bool get canUpgradeStartingGold =>
       _cappedStartingGoldUpgradeLevel < maxStartingGoldUpgradeLevel &&
       runes >= startingGoldUpgradeCost;
@@ -132,6 +140,17 @@ class RunProgression {
     return _stageRuneRewardBonusRates[index];
   }
 
+  static int applyResearchEfficiency(
+    int durationMillis,
+    double efficiencyRate,
+  ) {
+    return math.max(1, (durationMillis / (1 + efficiencyRate)).round());
+  }
+
+  static int applyResearchCostEfficiency(int cost, double efficiencyRate) {
+    return math.max(1, (cost / (1 + efficiencyRate)).round());
+  }
+
   int researchLevel(ResearchType type) {
     final definition = demoResearchDefinitions[type];
     final maxLevel = definition?.maxLevel ?? 0;
@@ -155,7 +174,30 @@ class RunProgression {
     if (definition == null) {
       return false;
     }
+    if (definition.requiredClearedStage <= 0) {
+      return true;
+    }
     return isStageCleared(definition.requiredClearedStage);
+  }
+
+  int researchCostForCurrentLevel(ResearchType type) {
+    final definition = demoResearchDefinitions[type];
+    if (definition == null) {
+      return 0;
+    }
+    final baseCost = definition.costForCurrentLevel(researchLevel(type));
+    return applyResearchCostEfficiency(baseCost, researchCostEfficiencyRate);
+  }
+
+  int researchDurationForCurrentLevel(ResearchType type) {
+    final definition = demoResearchDefinitions[type];
+    if (definition == null) {
+      return 0;
+    }
+    final baseDuration = definition.durationForCurrentLevel(
+      researchLevel(type),
+    );
+    return applyResearchEfficiency(baseDuration, researchEfficiencyRate);
   }
 
   bool canStartResearch(ResearchType type) {
@@ -167,7 +209,7 @@ class RunProgression {
         activeResearches.length >= researchSlotCount) {
       return false;
     }
-    return runes >= definition.costForCurrentLevel(researchLevel(type));
+    return runes >= researchCostForCurrentLevel(type);
   }
 
   bool startResearch(ResearchType type, {required int nowMillis}) {
@@ -177,13 +219,13 @@ class RunProgression {
     }
 
     final currentLevel = researchLevel(type);
-    runes -= definition.costForCurrentLevel(currentLevel);
+    runes -= researchCostForCurrentLevel(type);
     activeResearches.add(
       ResearchProgress(
         type: type,
         targetLevel: currentLevel + 1,
         startedAtMillis: nowMillis,
-        durationMillis: definition.durationMillis,
+        durationMillis: researchDurationForCurrentLevel(type),
       ),
     );
     return true;

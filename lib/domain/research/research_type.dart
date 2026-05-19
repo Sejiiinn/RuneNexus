@@ -1,1 +1,6 @@
-enum ResearchType { linkExpansionOne, gemAttunement }
+enum ResearchType {
+  researchEfficiency,
+  researchCostEfficiency,
+  linkExpansionOne,
+  gemAttunement,
+}

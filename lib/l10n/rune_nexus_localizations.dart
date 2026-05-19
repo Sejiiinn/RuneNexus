@@ -75,6 +75,9 @@ class RuneNexusLocalizations {
   String get linkExpansionOne => _isEnglish ? 'Link Expansion I' : '링크 확장 I';
   String get linkExpansionTwo => _isEnglish ? 'Link Expansion II' : '링크 확장 II';
   String get gemAttunement => _isEnglish ? 'Gem Attunement' : '젬 감응';
+  String get researchEfficiency => _isEnglish ? 'Research Efficiency' : '연구 효율';
+  String get researchCostEfficiency =>
+      _isEnglish ? 'Research Cost Efficiency' : '연구 비용 효율';
   String get runeResonance => _isEnglish ? 'Rune Resonance' : '룬 공명';
   String get levelUp => _isEnglish ? 'Level Up' : '레벨업';
   String get cleared => _isEnglish ? 'Cleared' : '클리어';
@@ -196,6 +199,9 @@ class RuneNexusLocalizations {
   }
 
   String stageClearRequirement(int stageNumber) {
+    if (stageNumber <= 0) {
+      return _isEnglish ? 'Unlocked by default' : '기본 해금';
+    }
     return _isEnglish ? 'Clear Stage $stageNumber' : '스테이지 $stageNumber 클리어';
   }
 
@@ -239,6 +245,16 @@ class RuneNexusLocalizations {
       return _isEnglish
           ? 'Adds +2 starting gem shards per level.'
           : '스테이지 시작 젬 파편을 +2 늘립니다.';
+    }
+    if (title == researchEfficiency) {
+      return _isEnglish
+          ? 'Increases research efficiency by 5% per level. 100% efficiency makes future research twice as fast.'
+          : '레벨마다 연구 효율이 5% 증가합니다. 효율 100%는 이후 연구를 2배 빠르게 만듭니다.';
+    }
+    if (title == researchCostEfficiency) {
+      return _isEnglish
+          ? 'Increases research cost efficiency by 5% per level. 100% efficiency halves future research rune costs.'
+          : '레벨마다 연구 비용 효율이 5% 증가합니다. 효율 100%는 이후 연구 룬 비용을 절반으로 줄입니다.';
     }
     if (title == runeResonance) {
       return _isEnglish

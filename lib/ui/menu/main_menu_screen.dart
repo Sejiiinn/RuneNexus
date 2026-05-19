@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/definitions/demo_research_data.dart';
 import '../../domain/combat/game_phase.dart';
+import '../../domain/research/research_definition.dart';
 import '../../domain/research/research_progress.dart';
 import '../../domain/research/research_type.dart';
 import '../../domain/turret/turret_type.dart';
@@ -1665,13 +1666,12 @@ class _ResearchTile extends StatelessWidget {
     final level = _researchLevel(snapshot, type);
     final active = _activeResearch(snapshot, type);
     final complete = level >= definition.maxLevel;
-    final unlocked = snapshot.clearedStageNumbers.contains(
-      definition.requiredClearedStage,
-    );
+    final unlocked = _researchUnlocked(snapshot, definition);
     final slotAvailable =
         active != null ||
         snapshot.activeResearches.length < snapshot.researchSlotCount;
-    final cost = definition.costForCurrentLevel(level);
+    final cost = _researchCost(snapshot, type);
+    final duration = _researchDuration(snapshot, type);
     final canStart =
         active == null &&
         !complete &&
@@ -1754,9 +1754,7 @@ class _ResearchTile extends StatelessWidget {
               _ResearchMetaStrip(
                 levelText: l10n.researchLevel(level, definition.maxLevel),
                 cost: complete ? null : cost,
-                durationText: complete
-                    ? null
-                    : l10n.researchDuration(definition.durationMillis),
+                durationText: complete ? null : l10n.researchDuration(duration),
                 enabled: canStart,
               ),
               if (active != null || complete || !canStart) ...[
@@ -1877,13 +1875,12 @@ class _ResearchDetailDialog extends StatelessWidget {
     final level = _researchLevel(snapshot, type);
     final active = _activeResearch(snapshot, type);
     final complete = level >= definition.maxLevel;
-    final unlocked = snapshot.clearedStageNumbers.contains(
-      definition.requiredClearedStage,
-    );
+    final unlocked = _researchUnlocked(snapshot, definition);
     final slotAvailable =
         active != null ||
         snapshot.activeResearches.length < snapshot.researchSlotCount;
-    final cost = definition.costForCurrentLevel(level);
+    final cost = _researchCost(snapshot, type);
+    final duration = _researchDuration(snapshot, type);
     final canStart =
         active == null &&
         !complete &&
@@ -2046,9 +2043,7 @@ class _ResearchDetailDialog extends StatelessWidget {
                               child: _ResearchDialogMetric(
                                 icon: Icons.schedule,
                                 label: l10n.researchTimeLabel,
-                                value: l10n.researchDuration(
-                                  definition.durationMillis,
-                                ),
+                                value: l10n.researchDuration(duration),
                                 accent: const Color(0xFFB9D6E4),
                               ),
                             ),
@@ -2175,6 +2170,33 @@ int _researchLevel(GameSnapshot snapshot, ResearchType type) {
   return snapshot.researchLevels[type] ?? 0;
 }
 
+bool _researchUnlocked(GameSnapshot snapshot, ResearchDefinition definition) {
+  return definition.requiredClearedStage <= 0 ||
+      snapshot.clearedStageNumbers.contains(definition.requiredClearedStage);
+}
+
+int _researchCost(GameSnapshot snapshot, ResearchType type) {
+  final definition = demoResearchDefinitions[type]!;
+  final baseCost = definition.costForCurrentLevel(
+    _researchLevel(snapshot, type),
+  );
+  final efficiencyRate =
+      _researchLevel(snapshot, ResearchType.researchCostEfficiency) *
+      RunProgression.researchCostEfficiencyPerLevel;
+  return RunProgression.applyResearchCostEfficiency(baseCost, efficiencyRate);
+}
+
+int _researchDuration(GameSnapshot snapshot, ResearchType type) {
+  final definition = demoResearchDefinitions[type]!;
+  final baseDuration = definition.durationForCurrentLevel(
+    _researchLevel(snapshot, type),
+  );
+  final efficiencyRate =
+      _researchLevel(snapshot, ResearchType.researchEfficiency) *
+      RunProgression.researchEfficiencyPerLevel;
+  return RunProgression.applyResearchEfficiency(baseDuration, efficiencyRate);
+}
+
 ResearchProgress? _activeResearch(GameSnapshot snapshot, ResearchType type) {
   for (final research in snapshot.activeResearches) {
     if (research.type == type) {
@@ -2186,6 +2208,8 @@ ResearchProgress? _activeResearch(GameSnapshot snapshot, ResearchType type) {
 
 String _researchTitle(RuneNexusLocalizations l10n, ResearchType type) {
   return switch (type) {
+    ResearchType.researchEfficiency => l10n.researchEfficiency,
+    ResearchType.researchCostEfficiency => l10n.researchCostEfficiency,
     ResearchType.linkExpansionOne => l10n.linkExpansionOne,
     ResearchType.gemAttunement => l10n.gemAttunement,
   };
@@ -2193,6 +2217,8 @@ String _researchTitle(RuneNexusLocalizations l10n, ResearchType type) {
 
 IconData _researchIcon(ResearchType type) {
   return switch (type) {
+    ResearchType.researchEfficiency => Icons.speed_outlined,
+    ResearchType.researchCostEfficiency => Icons.savings_outlined,
     ResearchType.linkExpansionOne => Icons.hub_outlined,
     ResearchType.gemAttunement => Icons.auto_awesome_outlined,
   };

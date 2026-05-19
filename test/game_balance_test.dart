@@ -721,6 +721,7 @@ void main() {
     expect(progression.researchLevel(ResearchType.gemAttunement), 0);
     expect(progression.startingGemShards, 0);
     expect(progression.activeResearches, hasLength(1));
+    expect(progression.activeResearches.single.durationMillis, 3600000);
 
     expect(
       progression.completeFinishedResearches(nowMillis: 1000 + 3599999),
@@ -739,6 +740,40 @@ void main() {
       isTrue,
     );
     expect(progression.runes, 625);
+    expect(progression.activeResearches.single.durationMillis, 4500000);
+  });
+
+  test('research efficiency and cost efficiency affect future research', () {
+    final progression = RunProgression()..runes = 50;
+
+    expect(
+      progression.startResearch(
+        ResearchType.researchEfficiency,
+        nowMillis: 1000,
+      ),
+      isTrue,
+    );
+    expect(progression.runes, 0);
+    expect(progression.activeResearches.single.durationMillis, 1800000);
+
+    expect(
+      progression.completeFinishedResearches(nowMillis: 1000 + 1800000),
+      isTrue,
+    );
+    expect(progression.researchEfficiencyRate, 0.05);
+
+    progression
+      ..runes = 200
+      ..clearedStageNumbers.addAll({1, 2, 3})
+      ..researchLevels[ResearchType.researchCostEfficiency] = 20;
+
+    expect(progression.researchCostEfficiencyRate, 1);
+    expect(
+      progression.startResearch(ResearchType.gemAttunement, nowMillis: 3000),
+      isTrue,
+    );
+    expect(progression.runes, 125);
+    expect(progression.activeResearches.single.durationMillis, 3428571);
   });
 
   test('debug round control jumps to requested preparation round', () {
