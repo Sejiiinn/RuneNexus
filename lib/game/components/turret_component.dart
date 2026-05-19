@@ -293,11 +293,15 @@ class TurretComponent extends PositionComponent {
   List<GemType?> get equippedGemSlots =>
       List.unmodifiable(_gemSlots.take(_slotLimit));
   double get criticalChance {
-    final bonus = hasGem(GemType.criticalChance) ? 0.2 : 0.0;
+    final bonus =
+        (hasGem(GemType.criticalChance) ? 0.2 : 0.0) +
+        game.criticalChanceProgressionBonusRate;
     return (definition.criticalChance + bonus).clamp(0.0, 1.0).toDouble();
   }
 
-  double get criticalDamageMultiplier => definition.criticalDamageMultiplier;
+  double get criticalDamageMultiplier =>
+      definition.criticalDamageMultiplier +
+      game.criticalDamageProgressionBonusRate;
 
   double get aimDuration {
     return aimDurationAtLevel(_level);

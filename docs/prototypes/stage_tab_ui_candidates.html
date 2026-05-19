@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stage 탭 난이도 선택 후보</title>
+  <style>
+    :root {
+      --bg: #07101d;
+      --panel: #0b1728;
+      --panel-2: #102039;
+      --line: rgba(143, 191, 255, 0.28);
+      --text: #eaf4ff;
+      --muted: #93aac9;
+      --cyan: #82e7ff;
+      --gold: #f3c968;
+      --green: #7cf5bd;
+      --violet: #bd9cff;
+      --red: #ff8f7d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif;
+      line-height: 1.25;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(75, 165, 255, 0.18), transparent 34%),
+        radial-gradient(circle at 100% 32%, rgba(189, 156, 255, 0.12), transparent 42%),
+        var(--bg);
+    }
+
+    .wrap {
+      width: min(1040px, 100%);
+      margin: 0 auto;
+      padding: 18px 10px 32px;
+      display: grid;
+      gap: 14px;
+    }
+
+    @media (min-width: 1060px) {
+      .wrap { grid-template-columns: repeat(2, minmax(430px, 1fr)); }
+    }
+
+    h1 {
+      grid-column: 1 / -1;
+      margin: 4px 0 0;
+      text-align: center;
+      font-size: 20px;
+      letter-spacing: 0;
+    }
+
+    .intro {
+      grid-column: 1 / -1;
+      max-width: 800px;
+      margin: 0 auto 4px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .candidate {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: linear-gradient(160deg, rgba(15, 28, 47, 0.96), rgba(6, 12, 24, 0.97));
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.34);
+    }
+
+    .candidate > h2 {
+      margin: 2px 2px 4px;
+      font-size: 14px;
+    }
+
+    .subnote {
+      margin: 0 2px 10px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .phone {
+      width: min(430px, 100%);
+      margin: 0 auto;
+      overflow: hidden;
+      border: 1px solid rgba(159, 207, 255, 0.28);
+      border-radius: 14px;
+      background: #08111f;
+    }
+
+    .screen {
+      min-height: 480px;
+      padding: 10px;
+    }
+
+    .chapter-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .chapter-tab {
+      height: 30px;
+      border: 1px solid rgba(143, 191, 255, 0.28);
+      border-radius: 8px;
+      background: rgba(4, 11, 24, 0.68);
+      color: #98abc8;
+      font: inherit;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .chapter-tab.active {
+      color: #f2fbff;
+      border-color: rgba(130, 231, 255, 0.78);
+      background: rgba(80, 190, 255, 0.2);
+      box-shadow: inset 0 -2px 0 var(--cyan);
+    }
+
+    .chapter-tab.locked {
+      opacity: 0.58;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 22px;
+      padding: 3px 7px;
+      border: 1px solid rgba(154, 191, 230, 0.3);
+      border-radius: 999px;
+      color: #bdd0ec;
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .chip.gold { color: #ffe2a4; border-color: rgba(243, 201, 104, 0.55); background: rgba(243, 201, 104, 0.12); }
+    .chip.cyan { color: #ccf7ff; border-color: rgba(130, 231, 255, 0.55); background: rgba(130, 231, 255, 0.12); }
+    .chip.green { color: #c8ffe6; border-color: rgba(124, 245, 189, 0.48); background: rgba(124, 245, 189, 0.1); }
+    .chip.violet { color: #e4d8ff; border-color: rgba(189, 156, 255, 0.5); background: rgba(189, 156, 255, 0.12); }
+
+    .action {
+      height: 32px;
+      border: 0;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #8ee6ff, #b7f0ff);
+      color: #061222;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 0 12px;
+    }
+
+    .muted { color: var(--muted); }
+
+    .stage-dot {
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      border: 1px solid rgba(130, 231, 255, 0.6);
+      border-radius: 50%;
+      color: #ecfbff;
+      background: rgba(130, 231, 255, 0.14);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .stage-dot.gold {
+      color: #ffdf92;
+      border-color: rgba(243, 201, 104, 0.75);
+      background: rgba(243, 201, 104, 0.16);
+    }
+
+    .progress {
+      height: 7px;
+      overflow: hidden;
+      border: 1px solid rgba(210, 238, 255, 0.36);
+      border-radius: 999px;
+      background: rgba(3, 9, 18, 0.65);
+    }
+
+    .progress > span {
+      display: block;
+      width: 72%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), #a7f3ff);
+    }
+
+    /* Candidate 1 */
+    .selector-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .selector-head h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .selector-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .difficulty-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .difficulty-card {
+      min-height: 132px;
+      padding: 10px;
+      border: 1px solid rgba(143, 191, 255, 0.26);
+      border-radius: 13px;
+      background: rgba(6, 15, 28, 0.76);
+      display: grid;
+      align-content: space-between;
+      gap: 8px;
+    }
+
+    .difficulty-card.active {
+      border-color: rgba(243, 201, 104, 0.8);
+      background:
+        radial-gradient(circle at 100% 0%, rgba(243, 201, 104, 0.18), transparent 45%),
+        rgba(35, 27, 12, 0.84);
+    }
+
+    .difficulty-card.new {
+      border-color: rgba(130, 231, 255, 0.64);
+    }
+
+    .difficulty-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .stat-stack {
+      display: grid;
+      gap: 4px;
+      font-size: 10px;
+      color: #b9cce7;
+    }
+
+    .stat-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    /* Candidate 2 */
+    .compare-board {
+      display: grid;
+      gap: 8px;
+    }
+
+    .compare-head {
+      display: grid;
+      grid-template-columns: 44px 1fr 82px 66px;
+      gap: 6px;
+      padding: 0 8px;
+      color: #8fa6c5;
+      font-size: 9px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .compare-row {
+      display: grid;
+      grid-template-columns: 44px 1fr 82px 66px;
+      gap: 6px;
+      align-items: center;
+      min-height: 52px;
+      padding: 8px;
+      border: 1px solid rgba(143, 191, 255, 0.24);
+      border-radius: 10px;
+      background: rgba(5, 13, 25, 0.72);
+      font-size: 11px;
+    }
+
+    .compare-row.active {
+      border-color: rgba(243, 201, 104, 0.74);
+      background: rgba(48, 35, 12, 0.72);
+    }
+
+    .compare-row.new {
+      border-color: rgba(130, 231, 255, 0.54);
+    }
+
+    .small-button {
+      height: 28px;
+      border: 1px solid rgba(130, 231, 255, 0.52);
+      border-radius: 7px;
+      background: rgba(130, 231, 255, 0.12);
+      color: #d8f8ff;
+      font: inherit;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    /* Candidate 3 */
+    .deck-screen {
+      display: grid;
+      gap: 10px;
+    }
+
+    .deck-stage {
+      display: grid;
+      grid-template-columns: 1fr 112px;
+      gap: 10px;
+      min-height: 270px;
+    }
+
+    .deck-main {
+      padding: 14px;
+      border: 1px solid rgba(130, 231, 255, 0.52);
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(130, 231, 255, 0.22), transparent 40%),
+        linear-gradient(145deg, rgba(12, 30, 52, 0.95), rgba(4, 10, 20, 0.95));
+    }
+
+    .deck-main h3 {
+      margin: 8px 0;
+      font-size: 22px;
+    }
+
+    .deck-side {
+      display: grid;
+      gap: 8px;
+    }
+
+    .deck-card {
+      padding: 10px;
+      border: 1px solid rgba(143, 191, 255, 0.28);
+      border-radius: 12px;
+      background: rgba(4, 10, 20, 0.75);
+      font-size: 11px;
+    }
+
+    .deck-card.reward { border-color: rgba(243, 201, 104, 0.56); }
+    .deck-card.route { border-color: rgba(130, 231, 255, 0.38); }
+
+    .deck-tabs {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .deck-step {
+      min-height: 48px;
+      border: 1px solid rgba(143, 191, 255, 0.25);
+      border-radius: 10px;
+      background: rgba(4, 10, 20, 0.78);
+      color: #b6c8e8;
+      font: inherit;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .deck-step.active {
+      color: #fff2c9;
+      border-color: rgba(243, 201, 104, 0.8);
+      background: rgba(78, 48, 10, 0.48);
+    }
+
+    /* Candidate 4 */
+    .tier-board {
+      display: grid;
+      grid-template-columns: 1fr 118px;
+      gap: 10px;
+    }
+
+    .tier-ladder {
+      display: grid;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid rgba(143, 191, 255, 0.24);
+      border-radius: 12px;
+      background: rgba(5, 13, 25, 0.72);
+    }
+
+    .tier-row {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 44px;
+      border-top: 1px solid rgba(143, 191, 255, 0.12);
+      font-size: 11px;
+    }
+
+    .tier-row:first-child {
+      border-top: 0;
+    }
+
+    .tier-row.active {
+      color: #ffe6aa;
+    }
+
+    .tier-aside {
+      display: grid;
+      gap: 8px;
+    }
+
+    .side-block {
+      min-height: 72px;
+      padding: 9px;
+      border: 1px solid rgba(143, 191, 255, 0.22);
+      border-radius: 10px;
+      background: rgba(6, 18, 30, 0.84);
+      font-size: 11px;
+    }
+
+    .side-block.gold {
+      border-color: rgba(243, 201, 104, 0.48);
+    }
+
+    @media (max-width: 390px) {
+      .deck-stage,
+      .tier-board {
+        grid-template-columns: 1fr;
+      }
+      .deck-side {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .compare-head,
+      .compare-row {
+        grid-template-columns: 38px 1fr 62px 56px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Stage 탭 난이도 선택 후보</h1>
+    <p class="intro">클리어한 스테이지가 지나간 기록이 아니라, 언제든 다시 고르는 난이도 슬롯처럼 보이도록 재구성한 시안입니다.</p>
+
+    <section class="candidate">
+      <h2>후보 1 · Difficulty Selector Grid</h2>
+      <p class="subnote">해금된 스테이지를 동등한 선택 카드로 배치하고, 현재 진행만 별도 상태로 강조.</p>
+      <div class="phone">
+        <div class="screen">
+          <div class="chapter-tabs">
+            <button class="chapter-tab active">챕터 1</button>
+            <button class="chapter-tab locked">챕터 2</button>
+            <button class="chapter-tab locked">챕터 3</button>
+            <button class="chapter-tab locked">챕터 4</button>
+          </div>
+          <div class="selector-head">
+            <div>
+              <h3>챕터 1 난이도 선택</h3>
+              <p>해금된 스테이지는 언제든 재선택 가능</p>
+            </div>
+            <span class="chip gold">진행 중 4</span>
+          </div>
+          <div class="difficulty-grid">
+            <article class="difficulty-card">
+              <div class="difficulty-title"><span>스테이지 1</span><span class="stage-dot">1</span></div>
+              <div class="stat-stack">
+                <div class="stat-line"><span>적 체력</span><strong>+0%</strong></div>
+                <div class="stat-line"><span>기록</span><strong>클리어</strong></div>
+              </div>
+              <button class="small-button">재도전</button>
+            </article>
+            <article class="difficulty-card">
+              <div class="difficulty-title"><span>스테이지 2</span><span class="stage-dot">2</span></div>
+              <div class="stat-stack">
+                <div class="stat-line"><span>적 체력</span><strong>+30%</strong></div>
+                <div class="stat-line"><span>기록</span><strong>클리어</strong></div>
+              </div>
+              <button class="small-button">재도전</button>
+            </article>
+            <article class="difficulty-card">
+              <div class="difficulty-title"><span>스테이지 3</span><span class="stage-dot">3</span></div>
+              <div class="stat-stack">
+                <div class="stat-line"><span>적 체력</span><strong>+69%</strong></div>
+                <div class="stat-line"><span>기록</span><strong>클리어</strong></div>
+              </div>
+              <button class="small-button">재도전</button>
+            </article>
+            <article class="difficulty-card active">
+              <div class="difficulty-title"><span>스테이지 4</span><span class="stage-dot gold">4</span></div>
+              <div class="stat-stack">
+                <div class="stat-line"><span>적 체력</span><strong>+120%</strong></div>
+                <div class="stat-line"><span>상태</span><strong>진행 중</strong></div>
+              </div>
+              <button class="action">계속</button>
+            </article>
+            <article class="difficulty-card new">
+              <div class="difficulty-title"><span>스테이지 5</span><span class="stage-dot">5</span></div>
+              <div class="stat-stack">
+                <div class="stat-line"><span>적 체력</span><strong>+186%</strong></div>
+                <div class="stat-line"><span>최초 보상</span><strong>저격 포탑</strong></div>
+              </div>
+              <button class="small-button">도전</button>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="candidate">
+      <h2>후보 2 · Compare Table</h2>
+      <p class="subnote">난이도 증가폭, 기록, 최초 보상을 한 표 안에서 비교하고 선택.</p>
+      <div class="phone">
+        <div class="screen compare-board">
+          <div class="chapter-tabs">
+            <button class="chapter-tab active">챕터 1</button>
+            <button class="chapter-tab locked">챕터 2</button>
+            <button class="chapter-tab locked">챕터 3</button>
+            <button class="chapter-tab locked">챕터 4</button>
+          </div>
+          <div class="selector-head">
+            <div>
+              <h3>스테이지 비교</h3>
+              <p>체력 30% 계단을 먼저 보여주는 선택표</p>
+            </div>
+            <span class="chip cyan">언제든 선택</span>
+          </div>
+          <div class="compare-head">
+            <span>단계</span><span>상태</span><span>적 체력</span><span>선택</span>
+          </div>
+          <div class="compare-row">
+            <span class="stage-dot">1</span>
+            <span>클리어 · 재도전 가능</span>
+            <strong>+0%</strong>
+            <button class="small-button">선택</button>
+          </div>
+          <div class="compare-row">
+            <span class="stage-dot">2</span>
+            <span>클리어 · 재도전 가능</span>
+            <strong>+30%</strong>
+            <button class="small-button">선택</button>
+          </div>
+          <div class="compare-row">
+            <span class="stage-dot">3</span>
+            <span>클리어 · 연구 해금됨</span>
+            <strong>+69%</strong>
+            <button class="small-button">선택</button>
+          </div>
+          <div class="compare-row active">
+            <span class="stage-dot gold">4</span>
+            <span>진행 중 · 이어서 가능</span>
+            <strong>+120%</strong>
+            <button class="action">계속</button>
+          </div>
+          <div class="compare-row new">
+            <span class="stage-dot">5</span>
+            <span>신규 해금 · 최초 보상 저격 포탑</span>
+            <strong>+186%</strong>
+            <button class="small-button">도전</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="candidate">
+      <h2>후보 3 · Mission Deck</h2>
+      <p class="subnote">현재 선택 후보를 크게 보여주되, 다른 해금 스테이지도 하단 슬롯으로 동등하게 유지.</p>
+      <div class="phone">
+        <div class="screen deck-screen">
+          <div class="chapter-tabs">
+            <button class="chapter-tab active">챕터 1</button>
+            <button class="chapter-tab locked">챕터 2</button>
+            <button class="chapter-tab locked">챕터 3</button>
+            <button class="chapter-tab locked">챕터 4</button>
+          </div>
+          <div class="deck-stage">
+            <div class="deck-main">
+              <span class="chip gold">진행 중 스테이지 4</span>
+              <h3>균열 초입 4</h3>
+              <p style="margin:0 0 12px;color:#b8cbe8;font-size:12px;">클리어한 스테이지도 언제든 다시 선택할 수 있습니다.</p>
+              <div class="stat-stack" style="margin-bottom:12px;">
+                <div class="stat-line"><span>적 체력</span><strong>+120%</strong></div>
+                <div class="stat-line"><span>진행</span><strong>라운드 36/50</strong></div>
+              </div>
+              <div class="progress"><span></span></div>
+              <button class="action" style="width:100%;margin-top:14px;">스테이지 4 계속</button>
+            </div>
+            <div class="deck-side">
+              <div class="deck-card reward"><strong>신규 해금</strong><br />스테이지 5<br /><span class="chip gold" style="margin-top:6px;">저격 포탑</span></div>
+              <div class="deck-card route"><strong>재도전</strong><br />스테이지 1~3<br />기록 갱신 가능</div>
+              <div class="deck-card"><strong>난이도</strong><br />스테이지마다<br />체력 30% 상승</div>
+            </div>
+          </div>
+          <div class="deck-tabs">
+            <button class="deck-step">1<br /><small>+0%</small></button>
+            <button class="deck-step">2<br /><small>+30%</small></button>
+            <button class="deck-step">3<br /><small>+69%</small></button>
+            <button class="deck-step active">4<br /><small>+120%</small></button>
+            <button class="deck-step">5<br /><small>+186%</small></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="candidate">
+      <h2>후보 4 · Tier Board</h2>
+      <p class="subnote">스테이지를 난이도 티어로 보여주고, 보상/기록은 오른쪽 정보 패널로 분리.</p>
+      <div class="phone">
+        <div class="screen">
+          <div class="chapter-tabs">
+            <button class="chapter-tab active">챕터 1</button>
+            <button class="chapter-tab locked">챕터 2</button>
+            <button class="chapter-tab locked">챕터 3</button>
+            <button class="chapter-tab locked">챕터 4</button>
+          </div>
+          <div class="selector-head">
+            <div>
+              <h3>난이도 티어 보드</h3>
+              <p>해금됨은 완료가 아니라 선택 가능 상태</p>
+            </div>
+            <span class="chip green">선택 가능 5</span>
+          </div>
+          <div class="tier-board">
+            <div class="tier-ladder">
+              <div class="tier-row"><span class="stage-dot">1</span><span>스테이지 1 · 재도전</span><strong>+0%</strong></div>
+              <div class="tier-row"><span class="stage-dot">2</span><span>스테이지 2 · 재도전</span><strong>+30%</strong></div>
+              <div class="tier-row"><span class="stage-dot">3</span><span>스테이지 3 · 연구 해금</span><strong>+69%</strong></div>
+              <div class="tier-row active"><span class="stage-dot gold">4</span><span>스테이지 4 · 진행 중</span><strong>+120%</strong></div>
+              <div class="tier-row"><span class="stage-dot">5</span><span>스테이지 5 · 신규 도전</span><strong>+186%</strong></div>
+            </div>
+            <div class="tier-aside">
+              <div class="side-block gold">최초 보상<br /><strong>스테이지 5 저격 포탑</strong></div>
+              <div class="side-block">현재 진행<br /><strong>스테이지 4 라운드 36</strong></div>
+              <div class="side-block">기록 갱신<br /><strong>이전 스테이지 재도전</strong></div>
+              <button class="action">선택 스테이지 시작</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

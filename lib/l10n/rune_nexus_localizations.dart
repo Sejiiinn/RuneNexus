@@ -32,6 +32,8 @@ class RuneNexusLocalizations {
   String get emergencySale => _isEnglish ? 'Emergency Sale' : '긴급 매각';
   String get basicFireTraining =>
       _isEnglish ? 'Basic Fire Training' : '기초 화력 훈련';
+  String get criticalChanceTraining => _isEnglish ? 'Critical Focus' : '치명 집중';
+  String get criticalDamageTraining => _isEnglish ? 'Critical Impact' : '치명 충격';
   String get growthHubTitle => _isEnglish ? 'Growth Hub' : '성장 허브';
   String get commonGrowth => _isEnglish ? 'Common Growth' : '공통 성장';
   String get stageUnlockPreview => _isEnglish ? 'Stage Unlocks' : '스테이지 해금';
@@ -51,6 +53,9 @@ class RuneNexusLocalizations {
   String get researchComplete => _isEnglish ? 'Completed' : '완료';
   String get researchSlotBusy => _isEnglish ? 'Slot in use' : '슬롯 사용 중';
   String get researchAvailable => _isEnglish ? 'Ready' : '시작 가능';
+  String get cancelResearchTitle =>
+      _isEnglish ? 'Cancel research?' : '연구를 취소할까요?';
+  String get cancelResearchConfirm => _isEnglish ? 'Cancel research' : '연구 취소';
   String get researchLevelLabel => _isEnglish ? 'Level' : '레벨';
   String get researchRequirementLabel => _isEnglish ? 'Requirement' : '조건';
   String get researchCostLabel => _isEnglish ? 'Cost' : '비용';
@@ -102,6 +107,8 @@ class RuneNexusLocalizations {
       _isEnglish ? 'Unlocked: Sniper turret' : '해금됨: 저격 포탑';
   String get sniperTurret => _isEnglish ? 'Sniper turret' : '저격 포탑';
   String get upgradeUnlock => _isEnglish ? 'Upgrade unlock' : '강화 해금';
+  String get combatUpgradeUnlock =>
+      _isEnglish ? 'Combat upgrade unlock' : '전투 강화 해금';
   String get researchUnlock => _isEnglish ? 'Research unlock' : '연구 해금';
   String get cancel => _isEnglish ? 'Cancel' : '취소';
   String get settleAndStart => _isEnglish ? 'Settle and start' : '정산 후 시작';
@@ -112,6 +119,12 @@ class RuneNexusLocalizations {
     return _isEnglish
         ? 'Active run · Stage $stageNumber'
         : '진행 중 · 스테이지 $stageNumber';
+  }
+
+  String cancelResearchMessage(String title) {
+    return _isEnglish
+        ? '$title cost is refunded, and saved progress remains.'
+        : '$title 비용은 환불되고, 진행한 시간은 유지됩니다.';
   }
 
   String stageName(int stageNumber) {
@@ -182,6 +195,22 @@ class RuneNexusLocalizations {
       return _isEnglish ? '${hours}h' : '$hours시간';
     }
     return _isEnglish ? '${minutes}m' : '$minutes분';
+  }
+
+  String researchGemShardEffect(int amount) {
+    return _isEnglish ? 'Gem Shards +$amount' : '젬 파편 +$amount';
+  }
+
+  String researchEfficiencyEffect(int percent) {
+    return _isEnglish ? 'Research efficiency +$percent%' : '연구 효율 +$percent%';
+  }
+
+  String researchCostEfficiencyEffect(int percent) {
+    return _isEnglish ? 'Cost efficiency +$percent%' : '비용 효율 +$percent%';
+  }
+
+  String get researchLinkSlotEffect {
+    return _isEnglish ? 'Max links increase' : '최대 링크 증가';
   }
 
   String researchRemaining(int remainingMillis) {
@@ -299,6 +328,16 @@ class RuneNexusLocalizations {
       return _isEnglish
           ? 'Increases the damage of all turrets in every run.'
           : '모든 런에서 모든 포탑의 피해량이 증가합니다.';
+    }
+    if (title == criticalChanceTraining) {
+      return _isEnglish
+          ? 'Increases critical chance for all turrets.'
+          : '모든 포탑의 치명타 확률이 증가합니다.';
+    }
+    if (title == criticalDamageTraining) {
+      return _isEnglish
+          ? 'Adds to critical bonus damage for all turrets.'
+          : '모든 포탑의 치명타 추가 피해율이 증가합니다.';
     }
     return '';
   }

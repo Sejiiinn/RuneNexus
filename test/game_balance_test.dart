@@ -743,6 +743,54 @@ void main() {
     expect(progression.activeResearches.single.durationMillis, 4500000);
   });
 
+  test('canceling research keeps elapsed time for the next resume', () {
+    final progression = RunProgression()
+      ..runes = 1000
+      ..clearedStageNumbers.addAll({1, 2, 3, 4, 5});
+
+    expect(
+      progression.startResearch(ResearchType.gemAttunement, nowMillis: 1000),
+      isTrue,
+    );
+    expect(
+      progression.cancelResearch(ResearchType.gemAttunement, nowMillis: 901000),
+      isTrue,
+    );
+    expect(progression.activeResearches, isEmpty);
+    expect(
+      progression.researchElapsedMillis[ResearchType.gemAttunement],
+      900000,
+    );
+    expect(progression.runes, 1000);
+
+    final restored = RunProgression()
+      ..restoreFromSaveData(progression.toSaveData());
+    expect(restored.researchElapsedMillis[ResearchType.gemAttunement], 900000);
+
+    expect(
+      restored.startResearch(ResearchType.gemAttunement, nowMillis: 5000000),
+      isTrue,
+    );
+    expect(restored.runes, 850);
+    expect(restored.activeResearches.single.durationMillis, 2700000);
+    expect(restored.activeResearches.single.initialElapsedMillis, 900000);
+    expect(restored.activeResearches.single.progressRatioAt(5000000), 0.25);
+
+    expect(
+      restored.completeFinishedResearches(nowMillis: 5000000 + 2699999),
+      isFalse,
+    );
+    expect(
+      restored.completeFinishedResearches(nowMillis: 5000000 + 2700000),
+      isTrue,
+    );
+    expect(restored.researchLevel(ResearchType.gemAttunement), 1);
+    expect(
+      restored.researchElapsedMillis,
+      isNot(contains(ResearchType.gemAttunement)),
+    );
+  });
+
   test('research efficiency and cost efficiency affect future research', () {
     final progression = RunProgression()..runes = 50;
 
@@ -1093,6 +1141,124 @@ void main() {
     expect(progression.upgradeFireTraining(), isFalse);
   });
 
+  test('critical progression uses requested level caps and scaling', () {
+    final progression = RunProgression()..runes = 20000;
+    const chanceCosts = [
+      70,
+      84,
+      101,
+      121,
+      145,
+      174,
+      209,
+      251,
+      301,
+      361,
+      433,
+      520,
+      624,
+      749,
+      899,
+      1078,
+      1294,
+      1553,
+      1864,
+      2236,
+    ];
+    const damageCosts = [
+      60,
+      66,
+      73,
+      80,
+      88,
+      97,
+      106,
+      117,
+      129,
+      141,
+      156,
+      171,
+      188,
+      207,
+      228,
+      251,
+      276,
+      303,
+      334,
+      367,
+    ];
+
+    expect(RunProgression.maxCriticalChanceUpgradeLevel, 20);
+    expect(RunProgression.maxCriticalDamageUpgradeLevel, 20);
+    for (final cost in chanceCosts) {
+      expect(progression.criticalChanceUpgradeCost, cost);
+      expect(progression.upgradeCriticalChance(), isTrue);
+    }
+    for (final cost in damageCosts) {
+      expect(progression.criticalDamageUpgradeCost, cost);
+      expect(progression.upgradeCriticalDamage(), isTrue);
+    }
+
+    expect(progression.criticalChanceUpgradeLevel, 20);
+    expect(progression.criticalChanceBonusRate, closeTo(0.20, 0.001));
+    expect(progression.canUpgradeCriticalChance, isFalse);
+    expect(progression.criticalDamageUpgradeLevel, 20);
+    expect(progression.criticalDamageBonusRate, closeTo(0.20, 0.001));
+    expect(progression.canUpgradeCriticalDamage, isFalse);
+  });
+
+  test('critical progression unlocks after stage four clear', () {
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+    final arrow = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: demoTurrets[TurretType.arrow]!,
+      game: game,
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+    final sniper = TurretComponent(
+      gridPoint: const GridPoint(1, 0),
+      definition: demoTurrets[TurretType.sniper]!,
+      game: game,
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+
+    game.upgradeCriticalChanceProgression();
+    game.upgradeCriticalDamageProgression();
+
+    expect(game.snapshotNotifier.value.canUpgradeCriticalChance, isFalse);
+    expect(game.snapshotNotifier.value.canUpgradeCriticalDamage, isFalse);
+    expect(game.snapshotNotifier.value.criticalChanceUpgradeLevel, 0);
+    expect(game.snapshotNotifier.value.criticalDamageUpgradeLevel, 0);
+
+    for (final stageNumber in [1, 2, 3, 4, 4]) {
+      game.startStage(stageNumber);
+      game.startNextWave();
+      game.update(0.016);
+    }
+    game.upgradeCriticalChanceProgression();
+    game.upgradeCriticalDamageProgression();
+
+    expect(game.snapshotNotifier.value.clearedStageNumbers, contains(4));
+    expect(game.snapshotNotifier.value.criticalChanceUpgradeLevel, 1);
+    expect(game.snapshotNotifier.value.criticalDamageUpgradeLevel, 1);
+    expect(arrow.criticalChance, closeTo(0.01, 0.001));
+    expect(arrow.criticalDamageMultiplier, closeTo(1.51, 0.001));
+    expect(sniper.criticalChance, closeTo(0.16, 0.001));
+    expect(sniper.criticalDamageMultiplier, closeTo(2.01, 0.001));
+  });
+
   test('kill reward uses supply-like 10 level progression', () {
     final progression = RunProgression()..runes = 10000;
 
@@ -1242,14 +1408,25 @@ void main() {
     game.startStage(2);
     game.startNextWave();
     game.update(0.016);
-    game.startStage(2);
+    game.startStage(3);
     game.startNextWave();
     game.update(0.016);
-    game.startStage(2);
+    game.startStage(4);
+    game.startNextWave();
+    game.update(0.016);
+    game.startStage(4);
+    game.startNextWave();
+    game.update(0.016);
+    game.startStage(4);
+    game.startNextWave();
+    game.update(0.016);
+    game.startStage(4);
     game.startNextWave();
     game.update(0.016);
     game.upgradeSupplyProgression();
     game.upgradeFireTrainingProgression();
+    game.upgradeCriticalChanceProgression();
+    game.upgradeCriticalDamageProgression();
     game.upgradeKillGoldProgression();
     game.upgradeEmergencySaleProgression();
     await game.saveNow();
@@ -1264,6 +1441,10 @@ void main() {
     expect(snapshot.waveClearGoldProgressionBonus, 1);
     expect(snapshot.fireTrainingUpgradeLevel, 1);
     expect(snapshot.fireTrainingDamageBonusRate, closeTo(0.01, 0.001));
+    expect(snapshot.criticalChanceUpgradeLevel, 1);
+    expect(snapshot.criticalChanceProgressionBonusRate, closeTo(0.01, 0.001));
+    expect(snapshot.criticalDamageUpgradeLevel, 1);
+    expect(snapshot.criticalDamageProgressionBonusRate, closeTo(0.01, 0.001));
     expect(snapshot.killGoldUpgradeLevel, 1);
     expect(snapshot.killGoldProgressionBonusRate, closeTo(0.01, 0.001));
     expect(snapshot.emergencySaleUpgradeLevel, 1);

@@ -218,6 +218,20 @@ class GameSnapshotBuilder {
       canUpgradeFireTraining: _game._progression.canUpgradeFireTraining,
       fireTrainingDamageBonusRate:
           _game._progression.fireTrainingDamageBonusRate,
+      criticalChanceUpgradeLevel: _game._progression.criticalChanceUpgradeLevel,
+      criticalChanceUpgradeCost: _game._progression.criticalChanceUpgradeCost,
+      canUpgradeCriticalChance:
+          _game._progression.isStageCleared(4) &&
+          _game._progression.canUpgradeCriticalChance,
+      criticalChanceProgressionBonusRate:
+          _game.criticalChanceProgressionBonusRate,
+      criticalDamageUpgradeLevel: _game._progression.criticalDamageUpgradeLevel,
+      criticalDamageUpgradeCost: _game._progression.criticalDamageUpgradeCost,
+      canUpgradeCriticalDamage:
+          _game._progression.isStageCleared(4) &&
+          _game._progression.canUpgradeCriticalDamage,
+      criticalDamageProgressionBonusRate:
+          _game.criticalDamageProgressionBonusRate,
       killGoldUpgradeLevel: _game._progression.killGoldUpgradeLevel,
       killGoldUpgradeCost: _game._progression.killGoldUpgradeCost,
       canUpgradeKillGold:
@@ -232,6 +246,9 @@ class GameSnapshotBuilder {
       turretRefundPercent: _game.turretRefundPercent,
       researchSlotCount: RunProgression.researchSlotCount,
       researchLevels: Map.unmodifiable(_game._progression.researchLevels),
+      researchElapsedMillis: Map.unmodifiable(
+        _game._progression.researchElapsedMillis,
+      ),
       activeResearches: List.unmodifiable(_game._progression.activeResearches),
       startingGemShards: _game._progression.startingGemShards,
     );

@@ -147,12 +147,15 @@ class SavedProgression {
     required this.nexusHpUpgradeLevel,
     required this.supplyUpgradeLevel,
     required this.fireTrainingUpgradeLevel,
+    required this.criticalChanceUpgradeLevel,
+    required this.criticalDamageUpgradeLevel,
     required this.killGoldUpgradeLevel,
     required this.emergencySaleUpgradeLevel,
     required this.unlockedStageCount,
     required this.bestRoundsByStage,
     required this.clearedStageNumbers,
     required this.researchLevels,
+    required this.researchElapsedMillis,
     required this.activeResearches,
   });
 
@@ -162,12 +165,15 @@ class SavedProgression {
   final int nexusHpUpgradeLevel;
   final int supplyUpgradeLevel;
   final int fireTrainingUpgradeLevel;
+  final int criticalChanceUpgradeLevel;
+  final int criticalDamageUpgradeLevel;
   final int killGoldUpgradeLevel;
   final int emergencySaleUpgradeLevel;
   final int unlockedStageCount;
   final Map<int, int> bestRoundsByStage;
   final Set<int> clearedStageNumbers;
   final Map<ResearchType, int> researchLevels;
+  final Map<ResearchType, int> researchElapsedMillis;
   final List<SavedActiveResearch> activeResearches;
 
   Map<String, Object?> toJson() {
@@ -178,6 +184,8 @@ class SavedProgression {
       'nexusHpUpgradeLevel': nexusHpUpgradeLevel,
       'supplyUpgradeLevel': supplyUpgradeLevel,
       'fireTrainingUpgradeLevel': fireTrainingUpgradeLevel,
+      'criticalChanceUpgradeLevel': criticalChanceUpgradeLevel,
+      'criticalDamageUpgradeLevel': criticalDamageUpgradeLevel,
       'killGoldUpgradeLevel': killGoldUpgradeLevel,
       'emergencySaleUpgradeLevel': emergencySaleUpgradeLevel,
       'unlockedStageCount': unlockedStageCount,
@@ -186,6 +194,9 @@ class SavedProgression {
       ),
       'clearedStageNumbers': clearedStageNumbers.toList(),
       'researchLevels': researchLevels.map(
+        (key, value) => MapEntry(key.name, value),
+      ),
+      'researchElapsedMillis': researchElapsedMillis.map(
         (key, value) => MapEntry(key.name, value),
       ),
       'activeResearches': activeResearches
@@ -203,12 +214,18 @@ class SavedProgression {
       nexusHpUpgradeLevel: _intValue(map['nexusHpUpgradeLevel']),
       supplyUpgradeLevel: _intValue(map['supplyUpgradeLevel']),
       fireTrainingUpgradeLevel: _intValue(map['fireTrainingUpgradeLevel']),
+      criticalChanceUpgradeLevel: _intValue(map['criticalChanceUpgradeLevel']),
+      criticalDamageUpgradeLevel: _intValue(map['criticalDamageUpgradeLevel']),
       killGoldUpgradeLevel: _intValue(map['killGoldUpgradeLevel']),
       emergencySaleUpgradeLevel: _intValue(map['emergencySaleUpgradeLevel']),
       unlockedStageCount: _intValue(map['unlockedStageCount'], fallback: 1),
       bestRoundsByStage: _intIntMap(map['bestRoundsByStage']),
       clearedStageNumbers: _intSet(map['clearedStageNumbers']),
       researchLevels: _enumIntMap(ResearchType.values, map['researchLevels']),
+      researchElapsedMillis: _enumIntMap(
+        ResearchType.values,
+        map['researchElapsedMillis'],
+      ),
       activeResearches: _objectList(
         map['activeResearches'],
         SavedActiveResearch.fromJson,
@@ -223,12 +240,14 @@ class SavedActiveResearch {
     required this.targetLevel,
     required this.startedAtMillis,
     required this.durationMillis,
+    required this.initialElapsedMillis,
   });
 
   final ResearchType type;
   final int targetLevel;
   final int startedAtMillis;
   final int durationMillis;
+  final int initialElapsedMillis;
 
   Map<String, Object?> toJson() {
     return {
@@ -236,6 +255,7 @@ class SavedActiveResearch {
       'targetLevel': targetLevel,
       'startedAtMillis': startedAtMillis,
       'durationMillis': durationMillis,
+      'initialElapsedMillis': initialElapsedMillis,
     };
   }
 
@@ -252,6 +272,7 @@ class SavedActiveResearch {
       targetLevel: _intValue(json['targetLevel'], fallback: 1),
       startedAtMillis: _intValue(json['startedAtMillis']),
       durationMillis: _intValue(json['durationMillis']),
+      initialElapsedMillis: _intValue(json['initialElapsedMillis']),
     );
   }
 }

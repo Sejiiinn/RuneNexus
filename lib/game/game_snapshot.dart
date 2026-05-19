@@ -116,6 +116,14 @@ class GameSnapshot {
     required this.fireTrainingUpgradeCost,
     required this.canUpgradeFireTraining,
     required this.fireTrainingDamageBonusRate,
+    required this.criticalChanceUpgradeLevel,
+    required this.criticalChanceUpgradeCost,
+    required this.canUpgradeCriticalChance,
+    required this.criticalChanceProgressionBonusRate,
+    required this.criticalDamageUpgradeLevel,
+    required this.criticalDamageUpgradeCost,
+    required this.canUpgradeCriticalDamage,
+    required this.criticalDamageProgressionBonusRate,
     required this.killGoldUpgradeLevel,
     required this.killGoldUpgradeCost,
     required this.canUpgradeKillGold,
@@ -126,6 +134,7 @@ class GameSnapshot {
     required this.turretRefundPercent,
     required this.researchSlotCount,
     required this.researchLevels,
+    required this.researchElapsedMillis,
     required this.activeResearches,
     required this.startingGemShards,
   });
@@ -234,6 +243,14 @@ class GameSnapshot {
   final int fireTrainingUpgradeCost;
   final bool canUpgradeFireTraining;
   final double fireTrainingDamageBonusRate;
+  final int criticalChanceUpgradeLevel;
+  final int criticalChanceUpgradeCost;
+  final bool canUpgradeCriticalChance;
+  final double criticalChanceProgressionBonusRate;
+  final int criticalDamageUpgradeLevel;
+  final int criticalDamageUpgradeCost;
+  final bool canUpgradeCriticalDamage;
+  final double criticalDamageProgressionBonusRate;
   final int killGoldUpgradeLevel;
   final int killGoldUpgradeCost;
   final bool canUpgradeKillGold;
@@ -244,6 +261,7 @@ class GameSnapshot {
   final int turretRefundPercent;
   final int researchSlotCount;
   final Map<ResearchType, int> researchLevels;
+  final Map<ResearchType, int> researchElapsedMillis;
   final List<ResearchProgress> activeResearches;
   final int startingGemShards;
 }

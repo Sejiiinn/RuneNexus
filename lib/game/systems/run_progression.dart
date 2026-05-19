@@ -13,6 +13,8 @@ class RunProgression {
   static const int maxNexusHpUpgradeLevel = 10;
   static const int maxSupplyUpgradeLevel = 10;
   static const int maxFireTrainingUpgradeLevel = 20;
+  static const int maxCriticalChanceUpgradeLevel = 20;
+  static const int maxCriticalDamageUpgradeLevel = 20;
   static const int maxKillGoldUpgradeLevel = 10;
   static const int maxEmergencySaleUpgradeLevel = 5;
   static const int researchSlotCount = 1;
@@ -31,6 +33,12 @@ class RunProgression {
   static const int fireTrainingUpgradeBaseCost = 7;
   static const int fireTrainingUpgradeCostPerLevel = 4;
   static const double fireTrainingDamagePerUpgradeLevel = 0.01;
+  static const int criticalChanceUpgradeBaseCost = 70;
+  static const double criticalChanceUpgradeCostMultiplier = 1.2;
+  static const double criticalChanceBonusPerUpgradeLevel = 0.01;
+  static const int criticalDamageUpgradeBaseCost = 60;
+  static const double criticalDamageUpgradeCostMultiplier = 1.1;
+  static const double criticalDamageBonusPerUpgradeLevel = 0.01;
   static const int killGoldUpgradeBaseCost = 7;
   static const int killGoldUpgradeCostPerLevel = 4;
   static const double killGoldBonusPerUpgradeLevel = 0.01;
@@ -51,12 +59,15 @@ class RunProgression {
   int nexusHpUpgradeLevel = 0;
   int supplyUpgradeLevel = 0;
   int fireTrainingUpgradeLevel = 0;
+  int criticalChanceUpgradeLevel = 0;
+  int criticalDamageUpgradeLevel = 0;
   int killGoldUpgradeLevel = 0;
   int emergencySaleUpgradeLevel = 0;
   int unlockedStageCount = 1;
   final Map<int, int> bestRoundsByStage = {};
   final Set<int> clearedStageNumbers = {};
   final Map<ResearchType, int> researchLevels = {};
+  final Map<ResearchType, int> researchElapsedMillis = {};
   final List<ResearchProgress> activeResearches = [];
 
   int get initialGold =>
@@ -75,6 +86,20 @@ class RunProgression {
   int get fireTrainingUpgradeCost =>
       fireTrainingUpgradeBaseCost +
       _cappedFireTrainingUpgradeLevel * fireTrainingUpgradeCostPerLevel;
+  int get criticalChanceUpgradeCost =>
+      (criticalChanceUpgradeBaseCost *
+              math.pow(
+                criticalChanceUpgradeCostMultiplier,
+                _cappedCriticalChanceUpgradeLevel,
+              ))
+          .round();
+  int get criticalDamageUpgradeCost =>
+      (criticalDamageUpgradeBaseCost *
+              math.pow(
+                criticalDamageUpgradeCostMultiplier,
+                _cappedCriticalDamageUpgradeLevel,
+              ))
+          .round();
   int get killGoldUpgradeCost =>
       killGoldUpgradeBaseCost +
       _cappedKillGoldUpgradeLevel * killGoldUpgradeCostPerLevel;
@@ -87,6 +112,10 @@ class RunProgression {
       _cappedSupplyUpgradeLevel * supplyGoldPerUpgradeLevel;
   double get fireTrainingDamageBonusRate =>
       _cappedFireTrainingUpgradeLevel * fireTrainingDamagePerUpgradeLevel;
+  double get criticalChanceBonusRate =>
+      _cappedCriticalChanceUpgradeLevel * criticalChanceBonusPerUpgradeLevel;
+  double get criticalDamageBonusRate =>
+      _cappedCriticalDamageUpgradeLevel * criticalDamageBonusPerUpgradeLevel;
   double get killGoldBonusRate =>
       _cappedKillGoldUpgradeLevel * killGoldBonusPerUpgradeLevel;
   int get turretRefundPercent =>
@@ -115,6 +144,12 @@ class RunProgression {
   bool get canUpgradeFireTraining =>
       _cappedFireTrainingUpgradeLevel < maxFireTrainingUpgradeLevel &&
       runes >= fireTrainingUpgradeCost;
+  bool get canUpgradeCriticalChance =>
+      _cappedCriticalChanceUpgradeLevel < maxCriticalChanceUpgradeLevel &&
+      runes >= criticalChanceUpgradeCost;
+  bool get canUpgradeCriticalDamage =>
+      _cappedCriticalDamageUpgradeLevel < maxCriticalDamageUpgradeLevel &&
+      runes >= criticalDamageUpgradeCost;
   bool get canUpgradeKillGold =>
       _cappedKillGoldUpgradeLevel < maxKillGoldUpgradeLevel &&
       runes >= killGoldUpgradeCost;
@@ -130,6 +165,12 @@ class RunProgression {
       supplyUpgradeLevel.clamp(0, maxSupplyUpgradeLevel).toInt();
   int get _cappedFireTrainingUpgradeLevel =>
       fireTrainingUpgradeLevel.clamp(0, maxFireTrainingUpgradeLevel).toInt();
+  int get _cappedCriticalChanceUpgradeLevel => criticalChanceUpgradeLevel
+      .clamp(0, maxCriticalChanceUpgradeLevel)
+      .toInt();
+  int get _cappedCriticalDamageUpgradeLevel => criticalDamageUpgradeLevel
+      .clamp(0, maxCriticalDamageUpgradeLevel)
+      .toInt();
   int get _cappedKillGoldUpgradeLevel =>
       killGoldUpgradeLevel.clamp(0, maxKillGoldUpgradeLevel).toInt();
   int get _cappedEmergencySaleUpgradeLevel =>
@@ -200,6 +241,17 @@ class RunProgression {
     return applyResearchEfficiency(baseDuration, researchEfficiencyRate);
   }
 
+  int researchRemainingDurationForCurrentLevel(ResearchType type) {
+    final duration = researchDurationForCurrentLevel(type);
+    if (duration <= 0) {
+      return 0;
+    }
+    final elapsed = (researchElapsedMillis[type] ?? 0)
+        .clamp(0, duration - 1)
+        .toInt();
+    return duration - elapsed;
+  }
+
   bool canStartResearch(ResearchType type) {
     final definition = demoResearchDefinitions[type];
     if (definition == null ||
@@ -219,15 +271,50 @@ class RunProgression {
     }
 
     final currentLevel = researchLevel(type);
+    final elapsed = researchElapsedMillis[type] ?? 0;
     runes -= researchCostForCurrentLevel(type);
     activeResearches.add(
       ResearchProgress(
         type: type,
         targetLevel: currentLevel + 1,
         startedAtMillis: nowMillis,
-        durationMillis: researchDurationForCurrentLevel(type),
+        durationMillis: researchRemainingDurationForCurrentLevel(type),
+        initialElapsedMillis: elapsed,
       ),
     );
+    return true;
+  }
+
+  bool cancelResearch(ResearchType type, {required int nowMillis}) {
+    final activeIndex = activeResearches.indexWhere(
+      (research) => research.type == type,
+    );
+    if (activeIndex < 0) {
+      return false;
+    }
+    final active = activeResearches[activeIndex];
+    if (active.isCompleteAt(nowMillis)) {
+      return completeFinishedResearches(nowMillis: nowMillis);
+    }
+    activeResearches.removeAt(activeIndex);
+    runes += researchCostForCurrentLevel(type);
+    final fullDuration = researchDurationForCurrentLevel(type);
+    if (fullDuration <= 0) {
+      researchElapsedMillis.remove(type);
+      return true;
+    }
+
+    final previousElapsed = active.initialElapsedMillis;
+    final elapsedThisRun =
+        active.durationMillis - active.remainingMillisAt(nowMillis);
+    final elapsed = (previousElapsed + elapsedThisRun)
+        .clamp(0, fullDuration - 1)
+        .toInt();
+    if (elapsed > 0) {
+      researchElapsedMillis[type] = elapsed;
+    } else {
+      researchElapsedMillis.remove(type);
+    }
     return true;
   }
 
@@ -247,6 +334,7 @@ class RunProgression {
           .clamp(0, definition.maxLevel)
           .toInt();
       activeResearches.remove(research);
+      researchElapsedMillis.remove(research.type);
       changed = true;
     }
     return changed;
@@ -260,6 +348,8 @@ class RunProgression {
       nexusHpUpgradeLevel: _cappedNexusHpUpgradeLevel,
       supplyUpgradeLevel: _cappedSupplyUpgradeLevel,
       fireTrainingUpgradeLevel: _cappedFireTrainingUpgradeLevel,
+      criticalChanceUpgradeLevel: _cappedCriticalChanceUpgradeLevel,
+      criticalDamageUpgradeLevel: _cappedCriticalDamageUpgradeLevel,
       killGoldUpgradeLevel: _cappedKillGoldUpgradeLevel,
       emergencySaleUpgradeLevel: _cappedEmergencySaleUpgradeLevel,
       unlockedStageCount: unlockedStageCount,
@@ -268,6 +358,7 @@ class RunProgression {
       researchLevels: Map.unmodifiable(
         researchLevels.map((key, value) => MapEntry(key, researchLevel(key))),
       ),
+      researchElapsedMillis: Map.unmodifiable(researchElapsedMillis),
       activeResearches: List.unmodifiable(
         activeResearches.map(
           (research) => SavedActiveResearch(
@@ -275,6 +366,7 @@ class RunProgression {
             targetLevel: research.targetLevel,
             startedAtMillis: research.startedAtMillis,
             durationMillis: research.durationMillis,
+            initialElapsedMillis: research.initialElapsedMillis,
           ),
         ),
       ),
@@ -295,6 +387,12 @@ class RunProgression {
         .toInt();
     fireTrainingUpgradeLevel = data.fireTrainingUpgradeLevel
         .clamp(0, maxFireTrainingUpgradeLevel)
+        .toInt();
+    criticalChanceUpgradeLevel = data.criticalChanceUpgradeLevel
+        .clamp(0, maxCriticalChanceUpgradeLevel)
+        .toInt();
+    criticalDamageUpgradeLevel = data.criticalDamageUpgradeLevel
+        .clamp(0, maxCriticalDamageUpgradeLevel)
         .toInt();
     killGoldUpgradeLevel = data.killGoldUpgradeLevel
         .clamp(0, maxKillGoldUpgradeLevel)
@@ -331,6 +429,20 @@ class RunProgression {
               );
             }),
       );
+    researchElapsedMillis
+      ..clear()
+      ..addEntries(
+        data.researchElapsedMillis.entries
+            .where((entry) {
+              final definition = demoResearchDefinitions[entry.key];
+              final fullDuration = researchDurationForCurrentLevel(entry.key);
+              return definition != null &&
+                  entry.value > 0 &&
+                  entry.value < fullDuration &&
+                  researchLevel(entry.key) < definition.maxLevel;
+            })
+            .map((entry) => MapEntry(entry.key, entry.value)),
+      );
     activeResearches
       ..clear()
       ..addAll(
@@ -348,6 +460,7 @@ class RunProgression {
                 targetLevel: research.targetLevel,
                 startedAtMillis: research.startedAtMillis,
                 durationMillis: research.durationMillis,
+                initialElapsedMillis: research.initialElapsedMillis,
               ),
             ),
       );
@@ -390,6 +503,26 @@ class RunProgression {
 
     runes -= fireTrainingUpgradeCost;
     fireTrainingUpgradeLevel++;
+    return true;
+  }
+
+  bool upgradeCriticalChance() {
+    if (!canUpgradeCriticalChance) {
+      return false;
+    }
+
+    runes -= criticalChanceUpgradeCost;
+    criticalChanceUpgradeLevel++;
+    return true;
+  }
+
+  bool upgradeCriticalDamage() {
+    if (!canUpgradeCriticalDamage) {
+      return false;
+    }
+
+    runes -= criticalDamageUpgradeCost;
+    criticalDamageUpgradeLevel++;
     return true;
   }
 

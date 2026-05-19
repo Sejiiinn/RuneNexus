@@ -238,6 +238,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       fireTrainingUpgradeCost: RunProgression.fireTrainingUpgradeBaseCost,
       canUpgradeFireTraining: false,
       fireTrainingDamageBonusRate: 0,
+      criticalChanceUpgradeLevel: 0,
+      criticalChanceUpgradeCost: RunProgression.criticalChanceUpgradeBaseCost,
+      canUpgradeCriticalChance: false,
+      criticalChanceProgressionBonusRate: 0,
+      criticalDamageUpgradeLevel: 0,
+      criticalDamageUpgradeCost: RunProgression.criticalDamageUpgradeBaseCost,
+      canUpgradeCriticalDamage: false,
+      criticalDamageProgressionBonusRate: 0,
       killGoldUpgradeLevel: 0,
       killGoldUpgradeCost: RunProgression.killGoldUpgradeBaseCost,
       canUpgradeKillGold: false,
@@ -248,6 +256,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       turretRefundPercent: RunProgression.baseTurretRefundPercent,
       researchSlotCount: RunProgression.researchSlotCount,
       researchLevels: const {},
+      researchElapsedMillis: const {},
       activeResearches: const [],
       startingGemShards: 0,
     );
@@ -434,6 +443,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _phase == GamePhase.preparation || _phase == GamePhase.wave;
   double get towerDamageRunMultiplier =>
       1 + _towerDamageRunBonusRate + _progression.fireTrainingDamageBonusRate;
+  double get criticalChanceProgressionBonusRate =>
+      _progression.isStageCleared(4) ? _progression.criticalChanceBonusRate : 0;
+  double get criticalDamageProgressionBonusRate =>
+      _progression.isStageCleared(4) ? _progression.criticalDamageBonusRate : 0;
 
   double get _towerDamageRunBonusRate =>
       _runUpgradeLevel(RunUpgradeType.towerDamage) *
@@ -862,6 +875,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
+  void cancelResearch(ResearchType type) {
+    final canceled = _progression.cancelResearch(
+      type,
+      nowMillis: DateTime.now().millisecondsSinceEpoch,
+    );
+    if (!canceled) {
+      return;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
   Future<void> settleCurrentRunAsFailure() async {
     if (_phase == GamePhase.success || _phase == GamePhase.failure) {
       return;
@@ -937,6 +962,30 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   void upgradeFireTrainingProgression() {
     if (!_progression.upgradeFireTraining()) {
+      return;
+    }
+
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void upgradeCriticalChanceProgression() {
+    if (!_progression.isStageCleared(4)) {
+      return;
+    }
+    if (!_progression.upgradeCriticalChance()) {
+      return;
+    }
+
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void upgradeCriticalDamageProgression() {
+    if (!_progression.isStageCleared(4)) {
+      return;
+    }
+    if (!_progression.upgradeCriticalDamage()) {
       return;
     }
 

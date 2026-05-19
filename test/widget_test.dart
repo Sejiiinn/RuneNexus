@@ -47,14 +47,14 @@ void main() {
 
     expect(find.text('시작 골드'), findsOneWidget);
     expect(find.text('정비 보급'), findsOneWidget);
-    expect(find.text('처치 보상'), findsOneWidget);
-    expect(find.text('긴급 매각'), findsOneWidget);
-    expect(find.text('미해금 업그레이드'), findsNWidgets(2));
-    expect(find.text('아직 사용할 수 없음'), findsNWidgets(2));
+    expect(find.text('처치 보상'), findsNothing);
+    expect(find.text('긴급 매각'), findsNothing);
+    expect(find.text('미해금 업그레이드'), findsNothing);
+    expect(find.text('아직 사용할 수 없음'), findsNothing);
     expect(find.text('새 런을 시작할 때 보유하는 골드가 영구적으로 증가합니다.'), findsOneWidget);
     expect(find.text('웨이브를 클리어할 때마다 추가 골드를 받습니다.'), findsOneWidget);
-    expect(find.text('적을 처치할 때 획득하는 골드가 증가합니다.'), findsOneWidget);
-    expect(find.text('포탑을 환불할 때 돌려받는 골드 비율이 증가합니다.'), findsOneWidget);
+    expect(find.text('적을 처치할 때 획득하는 골드가 증가합니다.'), findsNothing);
+    expect(find.text('포탑을 환불할 때 돌려받는 골드 비율이 증가합니다.'), findsNothing);
     expect(find.text('스테이지'), findsOneWidget);
     expect(find.text('강화'), findsOneWidget);
     expect(find.text('연구'), findsOneWidget);
@@ -89,6 +89,13 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('stage four previews combat upgrade unlock', (tester) async {
+    await _pumpLoadedApp(tester);
+
+    expect(find.text('스테이지 4'), findsOneWidget);
+    expect(find.text('전투 강화 해금'), findsOneWidget);
+  });
+
   testWidgets('permanent upgrade rows fit on narrow menu width', (
     tester,
   ) async {
@@ -109,9 +116,44 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('locked kill reward stays locked even with saved levels', (
+  testWidgets('research cards keep two columns on narrow menu width', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(360, 720);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await _pumpLoadedApp(tester);
+
+    await tester.tap(find.text('연구'));
+    await _pumpGameFrames(tester);
+
+    final efficiencyTopLeft = tester.getTopLeft(find.text('연구 효율'));
+    final costEfficiencyTopLeft = tester.getTopLeft(find.text('연구 비용 효율'));
+
+    expect(
+      find.textContaining('연구 효율 +0% -> +5%', findRichText: true),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('비용 효율 +0% -> +5%', findRichText: true),
+      findsOneWidget,
+    );
+    expect(find.text('미해금 연구'), findsNothing);
+    expect(find.byIcon(Icons.lock_outline), findsWidgets);
+    expect(find.text('Lv.0/1'), findsOneWidget);
+    expect(
+      (efficiencyTopLeft.dy - costEfficiencyTopLeft.dy).abs(),
+      lessThan(4),
+    );
+    expect(costEfficiencyTopLeft.dx, greaterThan(efficiencyTopLeft.dx));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('kill reward is hidden before stage two clear', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ko'),
@@ -142,13 +184,13 @@ void main() {
     await tester.tap(find.byIcon(Icons.paid_outlined));
     await _pumpGameFrames(tester);
 
-    expect(find.text('처치 보상'), findsOneWidget);
-    expect(find.text('미해금 업그레이드'), findsWidgets);
-    expect(find.text('아직 사용할 수 없음'), findsWidgets);
+    expect(find.text('처치 보상'), findsNothing);
+    expect(find.text('미해금 업그레이드'), findsNothing);
+    expect(find.text('아직 사용할 수 없음'), findsNothing);
     expect(find.text('Lv.3/10'), findsNothing);
   });
 
-  testWidgets('locked emergency sale stays locked even with saved levels', (
+  testWidgets('emergency sale is hidden before stage two clear', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -181,9 +223,9 @@ void main() {
     await tester.tap(find.byIcon(Icons.paid_outlined));
     await _pumpGameFrames(tester);
 
-    expect(find.text('긴급 매각'), findsOneWidget);
-    expect(find.text('미해금 업그레이드'), findsWidgets);
-    expect(find.text('아직 사용할 수 없음'), findsWidgets);
+    expect(find.text('긴급 매각'), findsNothing);
+    expect(find.text('미해금 업그레이드'), findsNothing);
+    expect(find.text('아직 사용할 수 없음'), findsNothing);
     expect(find.text('Lv.3/5'), findsNothing);
   });
 
@@ -226,6 +268,86 @@ void main() {
     expect(find.text('긴급 매각'), findsOneWidget);
     expect(find.text('현재 75%'), findsOneWidget);
     expect(find.text('다음 76%'), findsOneWidget);
+  });
+
+  testWidgets('critical upgrades are hidden before stage four clear', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            runes: 200,
+            criticalChanceUpgradeLevel: 15,
+            criticalChanceProgressionBonusRate: 0,
+            criticalDamageUpgradeLevel: 15,
+            criticalDamageProgressionBonusRate: 0,
+          ),
+          selectedTab: MainMenuTab.permanentUpgrades,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('치명 집중'), findsNothing);
+    expect(find.text('치명 충격'), findsNothing);
+    expect(find.text('Lv.15/20'), findsNothing);
+  });
+
+  testWidgets('critical upgrades unlock after stage four clear', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            runes: 200,
+            clearedStageNumbers: const {4},
+            criticalChanceUpgradeLevel: 15,
+            criticalChanceUpgradeCost: 1078,
+            canUpgradeCriticalChance: true,
+            criticalChanceProgressionBonusRate: 0.15,
+            criticalDamageUpgradeLevel: 15,
+            criticalDamageUpgradeCost: 251,
+            canUpgradeCriticalDamage: true,
+            criticalDamageProgressionBonusRate: 0.15,
+          ),
+          selectedTab: MainMenuTab.permanentUpgrades,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('치명 집중'), findsOneWidget);
+    expect(find.text('치명 충격'), findsOneWidget);
+    expect(find.text('현재 +15%p'), findsNWidgets(2));
+    expect(find.text('다음 +16%p'), findsNWidgets(2));
   });
 
   testWidgets('result overlay exposes next stage and growth actions', (
@@ -432,6 +554,14 @@ GameSnapshot _resultSnapshot({
   Set<int> clearedStageNumbers = const {},
   int killGoldUpgradeLevel = 0,
   double killGoldProgressionBonusRate = 0,
+  int criticalChanceUpgradeLevel = 0,
+  int criticalChanceUpgradeCost = 70,
+  bool canUpgradeCriticalChance = false,
+  double criticalChanceProgressionBonusRate = 0,
+  int criticalDamageUpgradeLevel = 0,
+  int criticalDamageUpgradeCost = 60,
+  bool canUpgradeCriticalDamage = false,
+  double criticalDamageProgressionBonusRate = 0,
   int emergencySaleUpgradeLevel = 0,
   int emergencySaleUpgradeCost = 80,
   bool canUpgradeEmergencySale = false,
@@ -547,6 +677,14 @@ GameSnapshot _resultSnapshot({
     fireTrainingUpgradeCost: 7,
     canUpgradeFireTraining: false,
     fireTrainingDamageBonusRate: 0,
+    criticalChanceUpgradeLevel: criticalChanceUpgradeLevel,
+    criticalChanceUpgradeCost: criticalChanceUpgradeCost,
+    canUpgradeCriticalChance: canUpgradeCriticalChance,
+    criticalChanceProgressionBonusRate: criticalChanceProgressionBonusRate,
+    criticalDamageUpgradeLevel: criticalDamageUpgradeLevel,
+    criticalDamageUpgradeCost: criticalDamageUpgradeCost,
+    canUpgradeCriticalDamage: canUpgradeCriticalDamage,
+    criticalDamageProgressionBonusRate: criticalDamageProgressionBonusRate,
     killGoldUpgradeLevel: killGoldUpgradeLevel,
     killGoldUpgradeCost: 7,
     canUpgradeKillGold: false,
@@ -557,6 +695,7 @@ GameSnapshot _resultSnapshot({
     turretRefundPercent: turretRefundPercent,
     researchSlotCount: 1,
     researchLevels: const {},
+    researchElapsedMillis: const {},
     activeResearches: const [],
     startingGemShards: 0,
   );

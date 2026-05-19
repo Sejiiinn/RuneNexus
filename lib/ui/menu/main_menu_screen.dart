@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
@@ -1018,6 +1019,16 @@ class _StageSelectionRow extends StatelessWidget {
         ),
       ];
     }
+    if (stageNumber == 4) {
+      return [
+        _StageInfoChip(
+          text: l10n.combatUpgradeUnlock,
+          unlocked: unlocked,
+          highlighted: stageCleared,
+          leading: const Icon(Icons.bolt_outlined, size: 13),
+        ),
+      ];
+    }
     if (stageNumber == 3 || stageNumber == 5) {
       return [
         _StageInfoChip(
@@ -1204,7 +1215,14 @@ class _PermanentUpgradeMenu extends StatelessWidget {
     final nextFireTrainingLevel = (snapshot.fireTrainingUpgradeLevel + 1)
         .clamp(0, RunProgression.maxFireTrainingUpgradeLevel)
         .toInt();
+    final nextCriticalChanceLevel = (snapshot.criticalChanceUpgradeLevel + 1)
+        .clamp(0, RunProgression.maxCriticalChanceUpgradeLevel)
+        .toInt();
+    final nextCriticalDamageLevel = (snapshot.criticalDamageUpgradeLevel + 1)
+        .clamp(0, RunProgression.maxCriticalDamageUpgradeLevel)
+        .toInt();
     final stageTwoCleared = snapshot.clearedStageNumbers.contains(2);
+    final stageFourCleared = snapshot.clearedStageNumbers.contains(4);
     final combatTiles = [
       _PermanentUpgradeTile(
         icon: Icons.favorite_border,
@@ -1235,6 +1253,44 @@ class _PermanentUpgradeMenu extends StatelessWidget {
         lockText: l10n.maxLevelReached,
         onPressed: game.upgradeFireTrainingProgression,
       ),
+      if (stageFourCleared)
+        _PermanentUpgradeTile(
+          icon: Icons.gps_fixed,
+          title: l10n.criticalChanceTraining,
+          description: l10n.permanentUpgradeDescription(
+            l10n.criticalChanceTraining,
+          ),
+          level: snapshot.criticalChanceUpgradeLevel,
+          maxLevel: RunProgression.maxCriticalChanceUpgradeLevel,
+          globalMaxLevel: RunProgression.maxCriticalChanceUpgradeLevel,
+          valueText:
+              '+${(snapshot.criticalChanceProgressionBonusRate * 100).round()}%p',
+          nextValueText:
+              '+${(nextCriticalChanceLevel * RunProgression.criticalChanceBonusPerUpgradeLevel * 100).round()}%p',
+          cost: snapshot.criticalChanceUpgradeCost,
+          enabled: snapshot.canUpgradeCriticalChance,
+          lockText: l10n.maxLevelReached,
+          onPressed: game.upgradeCriticalChanceProgression,
+        ),
+      if (stageFourCleared)
+        _PermanentUpgradeTile(
+          icon: Icons.bolt,
+          title: l10n.criticalDamageTraining,
+          description: l10n.permanentUpgradeDescription(
+            l10n.criticalDamageTraining,
+          ),
+          level: snapshot.criticalDamageUpgradeLevel,
+          maxLevel: RunProgression.maxCriticalDamageUpgradeLevel,
+          globalMaxLevel: RunProgression.maxCriticalDamageUpgradeLevel,
+          valueText:
+              '+${(snapshot.criticalDamageProgressionBonusRate * 100).round()}%p',
+          nextValueText:
+              '+${(nextCriticalDamageLevel * RunProgression.criticalDamageBonusPerUpgradeLevel * 100).round()}%p',
+          cost: snapshot.criticalDamageUpgradeCost,
+          enabled: snapshot.canUpgradeCriticalDamage,
+          lockText: l10n.maxLevelReached,
+          onPressed: game.upgradeCriticalDamageProgression,
+        ),
     ];
     final economyTiles = [
       _PermanentUpgradeTile(
@@ -1284,13 +1340,6 @@ class _PermanentUpgradeMenu extends StatelessWidget {
           enabled: snapshot.canUpgradeKillGold,
           lockText: l10n.maxLevelReached,
           onPressed: game.upgradeKillGoldProgression,
-        )
-      else
-        _PermanentUpgradeTile.locked(
-          icon: Icons.monetization_on_outlined,
-          title: l10n.killRewardBonus,
-          description: l10n.permanentUpgradeDescription(l10n.killRewardBonus),
-          lockText: l10n.stageClearRequirement(2),
         ),
       if (stageTwoCleared)
         _PermanentUpgradeTile(
@@ -1307,13 +1356,6 @@ class _PermanentUpgradeMenu extends StatelessWidget {
           enabled: snapshot.canUpgradeEmergencySale,
           lockText: l10n.maxLevelReached,
           onPressed: game.upgradeEmergencySaleProgression,
-        )
-      else
-        _PermanentUpgradeTile.locked(
-          icon: Icons.sell_outlined,
-          title: l10n.emergencySale,
-          description: l10n.permanentUpgradeDescription(l10n.emergencySale),
-          lockText: l10n.stageClearRequirement(2),
         ),
     ];
     return _PermanentUpgradeBoard(
@@ -1380,6 +1422,7 @@ class _ResearchMenuState extends State<_ResearchMenu> {
           slots: widget.snapshot.researchSlotCount,
           activeResearches: activeResearches,
           nowMillis: nowMillis,
+          game: widget.game,
         ),
         const SizedBox(height: 10),
         _ResearchSection(
@@ -1443,11 +1486,13 @@ class _ResearchSlotPanel extends StatelessWidget {
     required this.slots,
     required this.activeResearches,
     required this.nowMillis,
+    required this.game,
   });
 
   final int slots;
   final List<ResearchProgress> activeResearches;
   final int nowMillis;
+  final RuneNexusGame game;
 
   @override
   Widget build(BuildContext context) {
@@ -1463,6 +1508,7 @@ class _ResearchSlotPanel extends StatelessWidget {
                 ? activeResearches[index]
                 : null,
             nowMillis: nowMillis,
+            game: game,
           ),
         ],
       ],
@@ -1471,10 +1517,15 @@ class _ResearchSlotPanel extends StatelessWidget {
 }
 
 class _ResearchSlotCard extends StatelessWidget {
-  const _ResearchSlotCard({required this.research, required this.nowMillis});
+  const _ResearchSlotCard({
+    required this.research,
+    required this.nowMillis,
+    required this.game,
+  });
 
   final ResearchProgress? research;
   final int nowMillis;
+  final RuneNexusGame game;
 
   @override
   Widget build(BuildContext context) {
@@ -1482,7 +1533,7 @@ class _ResearchSlotCard extends StatelessWidget {
     final active = research;
     final progress = active == null || active.durationMillis <= 0
         ? 0.0
-        : 1 - active.remainingMillisAt(nowMillis) / active.durationMillis;
+        : active.progressRatioAt(nowMillis);
     return Container(
       decoration: BoxDecoration(
         color: const Color(0x22000000),
@@ -1540,10 +1591,36 @@ class _ResearchSlotCard extends StatelessWidget {
                   ),
                 ),
                 if (active != null)
-                  _PermanentUpgradeStatusChip(
-                    text: l10n.researchRemaining(
-                      active.remainingMillisAt(nowMillis),
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _PermanentUpgradeStatusChip(
+                        text: l10n.researchRemaining(
+                          active.remainingMillisAt(nowMillis),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Tooltip(
+                        message: l10n.cancel,
+                        child: InkResponse(
+                          onTap: () => _confirmCancelResearch(
+                            context,
+                            game: game,
+                            research: active,
+                          ),
+                          radius: 15,
+                          child: const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: Icon(
+                              Icons.close,
+                              color: Color(0xFFE8FBFF),
+                              size: 15,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
               ],
             ),
@@ -1552,6 +1629,55 @@ class _ResearchSlotCard extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _confirmCancelResearch(
+  BuildContext context, {
+  required RuneNexusGame game,
+  required ResearchProgress research,
+}) async {
+  final l10n = context.l10n;
+  final title = _researchTitle(l10n, research.type);
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: const Color(0xFF0B1725),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: const BorderSide(color: Color(0xAA33D8FF)),
+      ),
+      title: Text(
+        l10n.cancelResearchTitle,
+        style: const TextStyle(
+          color: Color(0xFFE8FBFF),
+          fontSize: 16,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+      content: Text(
+        l10n.cancelResearchMessage(title),
+        style: const TextStyle(
+          color: Color(0xFFB9D6E4),
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(l10n.cancelResearchConfirm),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true) {
+    return;
+  }
+  game.cancelResearch(research.type);
 }
 
 class _ResearchSection extends StatelessWidget {
@@ -1618,7 +1744,7 @@ class _ResearchCardGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final useTwoColumns = constraints.maxWidth >= 320;
+        final useTwoColumns = constraints.maxWidth >= 220;
         final tileWidth = useTwoColumns
             ? (constraints.maxWidth - 8) / 2
             : constraints.maxWidth;
@@ -1679,18 +1805,20 @@ class _ResearchTile extends StatelessWidget {
         slotAvailable &&
         snapshot.runes >= cost;
     final statusText = active != null
-        ? l10n.researchRemaining(active.remainingMillisAt(nowMillis))
+        ? null
         : complete
         ? l10n.researchComplete
         : !unlocked
         ? l10n.lockedResearch
         : !slotAvailable
-        ? l10n.researchSlotBusy
+        ? null
         : snapshot.runes < cost
         ? l10n.notEnoughRunes
         : l10n.researchAvailable;
     final borderColor = canStart
         ? const Color(0xFFE7C66A)
+        : active != null
+        ? const Color(0xAA8EE6FF)
         : complete
         ? const Color(0x6657C88B)
         : const Color(0x55485B68);
@@ -1699,7 +1827,10 @@ class _ResearchTile extends StatelessWidget {
         : canStart
         ? const Color(0xFFE8FBFF)
         : const Color(0xFFB9D6E4);
-    final clickable = active == null;
+    final clickable = active == null && unlocked;
+    final showStatusChip =
+        statusText != null &&
+        (complete || (!canStart && unlocked && slotAvailable));
 
     return Material(
       color: Colors.transparent,
@@ -1709,8 +1840,7 @@ class _ResearchTile extends StatelessWidget {
         splashColor: const Color(0x1A8EE6FF),
         highlightColor: const Color(0x1422C7E8),
         child: Container(
-          constraints: const BoxConstraints(minHeight: 88),
-          padding: const EdgeInsets.all(9),
+          constraints: const BoxConstraints(minHeight: 106),
           decoration: BoxDecoration(
             color: clickable
                 ? const Color(0x3307111D)
@@ -1718,55 +1848,253 @@ class _ResearchTile extends StatelessWidget {
             border: Border.all(color: borderColor),
             borderRadius: BorderRadius.circular(7),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
             children: [
-              Row(
-                children: [
-                  Icon(
-                    _researchIcon(type),
-                    color: const Color(0xFF8EE6FF),
-                    size: 17,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      _researchTitle(l10n, type),
-                      style: TextStyle(
-                        color: titleColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
+              if (active != null) ...[
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0x2633D8FF),
+                          Color(0x10000000),
+                          Color(0x22E7C66A),
+                        ],
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const SizedBox(width: 5),
-                  if (clickable)
-                    const Icon(
-                      Icons.open_in_new,
-                      color: Color(0xFF8DA5B3),
-                      size: 13,
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              _ResearchMetaStrip(
-                levelText: l10n.researchLevel(level, definition.maxLevel),
-                cost: complete ? null : cost,
-                durationText: complete ? null : l10n.researchDuration(duration),
-                enabled: canStart,
-              ),
-              if (active != null || complete || !canStart) ...[
-                const SizedBox(height: 6),
-                _PermanentUpgradeStatusChip(text: statusText),
+                ),
+                const _ResearchActiveEffect(),
               ],
+              Padding(
+                padding: const EdgeInsets.all(9),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          _researchIcon(type),
+                          color: active == null
+                              ? const Color(0xFF8EE6FF)
+                              : const Color(0xFFE7C66A),
+                          size: 17,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            _researchTitle(l10n, type),
+                            style: TextStyle(
+                              color: titleColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        if (!unlocked)
+                          const Icon(
+                            Icons.lock_outline,
+                            color: Color(0xFF607587),
+                            size: 14,
+                          )
+                        else if (clickable)
+                          const Icon(
+                            Icons.open_in_new,
+                            color: Color(0xFF8DA5B3),
+                            size: 13,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    _ResearchEffectLine(
+                      effect: _researchEffectText(
+                        l10n,
+                        type,
+                        level,
+                        active?.targetLevel,
+                      ),
+                      enabled:
+                          unlocked && (canStart || complete || active != null),
+                    ),
+                    const SizedBox(height: 8),
+                    _ResearchMetaStrip(
+                      levelText: l10n.researchLevel(level, definition.maxLevel),
+                      cost: complete ? null : cost,
+                      durationText: complete
+                          ? null
+                          : l10n.researchDuration(duration),
+                      enabled: canStart || active != null,
+                    ),
+                    if (showStatusChip) ...[
+                      const SizedBox(height: 6),
+                      _PermanentUpgradeStatusChip(text: statusText),
+                    ],
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
+}
+
+class _ResearchEffectLine extends StatelessWidget {
+  const _ResearchEffectLine({required this.effect, required this.enabled});
+
+  final _ResearchEffectText effect;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final currentColor = enabled
+        ? const Color(0xFF8EE6FF)
+        : const Color(0xFF8DA5B3);
+    final nextColor = enabled
+        ? const Color(0xFFE7C66A)
+        : const Color(0xFF8DA5B3);
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+        children: [
+          TextSpan(
+            text: effect.currentText,
+            style: TextStyle(color: currentColor),
+          ),
+          if (effect.nextText != null) ...[
+            const TextSpan(
+              text: ' -> ',
+              style: TextStyle(color: Color(0xFF8DA5B3)),
+            ),
+            TextSpan(
+              text: effect.nextText,
+              style: TextStyle(color: nextColor),
+            ),
+          ],
+        ],
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+}
+
+class _ResearchActiveEffect extends StatefulWidget {
+  const _ResearchActiveEffect();
+
+  @override
+  State<_ResearchActiveEffect> createState() => _ResearchActiveEffectState();
+}
+
+class _ResearchActiveEffectState extends State<_ResearchActiveEffect>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2400),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (context, _) {
+            return CustomPaint(
+              painter: _ResearchActiveBorderPainter(_controller.value),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _ResearchActiveBorderPainter extends CustomPainter {
+  const _ResearchActiveBorderPainter(this.progress);
+
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final radius = Radius.circular(7);
+    final borderPath = Path()
+      ..addRRect(RRect.fromRectAndRadius(rect.deflate(1.1), radius));
+    final glowPaint = Paint()
+      ..color = const Color(0x44E7C66A)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round;
+    final highlightPaint = Paint()
+      ..color = const Color(0xFFE7C66A)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawPath(borderPath, glowPaint);
+    for (final metric in borderPath.computeMetrics()) {
+      final length = metric.length;
+      final segmentLength = length * 0.22;
+      final start = length * progress;
+      _drawMetricSegment(canvas, metric, start, segmentLength, highlightPaint);
+      _drawMetricSegment(
+        canvas,
+        metric,
+        (start + length * 0.5) % length,
+        segmentLength * 0.55,
+        glowPaint,
+      );
+    }
+  }
+
+  void _drawMetricSegment(
+    Canvas canvas,
+    ui.PathMetric metric,
+    double start,
+    double length,
+    Paint paint,
+  ) {
+    final end = start + length;
+    if (end <= metric.length) {
+      canvas.drawPath(metric.extractPath(start, end), paint);
+      return;
+    }
+    canvas
+      ..drawPath(metric.extractPath(start, metric.length), paint)
+      ..drawPath(metric.extractPath(0, end - metric.length), paint);
+  }
+
+  @override
+  bool shouldRepaint(_ResearchActiveBorderPainter oldDelegate) {
+    return oldDelegate.progress != progress;
+  }
+}
+
+class _ResearchEffectText {
+  const _ResearchEffectText(this.currentText, [this.nextText]);
+
+  final String currentText;
+  final String? nextText;
 }
 
 class _ResearchMetaStrip extends StatelessWidget {
@@ -1888,20 +2216,20 @@ class _ResearchDetailDialog extends StatelessWidget {
         slotAvailable &&
         snapshot.runes >= cost;
     final statusText = active != null
-        ? l10n.researchRemaining(active.remainingMillisAt(nowMillis))
+        ? null
         : complete
         ? l10n.researchComplete
         : !unlocked
         ? l10n.lockedResearch
         : !slotAvailable
-        ? l10n.researchSlotBusy
+        ? null
         : snapshot.runes < cost
         ? l10n.notEnoughRunes
         : l10n.researchAvailable;
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 360),
         decoration: BoxDecoration(
@@ -1922,7 +2250,7 @@ class _ResearchDetailDialog extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
+              padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
               decoration: const BoxDecoration(
                 color: Color(0x2A33D8FF),
                 border: Border(bottom: BorderSide(color: Color(0x5533D8FF))),
@@ -1930,8 +2258,8 @@ class _ResearchDetailDialog extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 30,
+                    height: 30,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: const Color(0x2233D8FF),
@@ -1941,7 +2269,7 @@ class _ResearchDetailDialog extends StatelessWidget {
                     child: Icon(
                       _researchIcon(type),
                       color: const Color(0xFF8EE6FF),
-                      size: 21,
+                      size: 18,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -1970,13 +2298,13 @@ class _ResearchDetailDialog extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(11),
+                    padding: const EdgeInsets.all(9),
                     decoration: BoxDecoration(
                       color: const Color(0x33000000),
                       border: Border.all(color: const Color(0x33485B68)),
@@ -1987,18 +2315,18 @@ class _ResearchDetailDialog extends StatelessWidget {
                       style: const TextStyle(
                         color: Color(0xFFE0F4FF),
                         fontSize: 12,
-                        height: 1.35,
+                        height: 1.28,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final itemWidth = (constraints.maxWidth - 8) / 2;
                       return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
+                        spacing: 6,
+                        runSpacing: 6,
                         children: [
                           SizedBox(
                             width: itemWidth,
@@ -2047,27 +2375,28 @@ class _ResearchDetailDialog extends StatelessWidget {
                                 accent: const Color(0xFFB9D6E4),
                               ),
                             ),
-                          SizedBox(
-                            width: constraints.maxWidth,
-                            child: _ResearchDialogMetric(
-                              icon: active == null
-                                  ? Icons.info_outline
-                                  : Icons.hourglass_bottom,
-                              label: l10n.researchStatusLabel,
-                              value: statusText,
-                              accent: canStart
-                                  ? const Color(0xFFE7C66A)
-                                  : const Color(0xFFB9D6E4),
+                          if (statusText != null)
+                            SizedBox(
+                              width: constraints.maxWidth,
+                              child: _ResearchDialogMetric(
+                                icon: active == null
+                                    ? Icons.info_outline
+                                    : Icons.hourglass_bottom,
+                                label: l10n.researchStatusLabel,
+                                value: statusText,
+                                accent: canStart
+                                    ? const Color(0xFFE7C66A)
+                                    : const Color(0xFFB9D6E4),
+                              ),
                             ),
-                          ),
                         ],
                       );
                     },
                   ),
                   if (!complete) ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     SizedBox(
-                      height: 38,
+                      height: 34,
                       child: FilledButton(
                         onPressed: canStart
                             ? () {
@@ -2087,7 +2416,7 @@ class _ResearchDetailDialog extends StatelessWidget {
                         child: Text(
                           l10n.startResearch,
                           style: const TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             fontWeight: FontWeight.w900,
                           ),
                         ),
@@ -2120,8 +2449,8 @@ class _ResearchDialogMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minHeight: 50),
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+      constraints: const BoxConstraints(minHeight: 42),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: const Color(0x221B2C3D),
         border: Border.all(color: const Color(0x44485B68)),
@@ -2129,8 +2458,8 @@ class _ResearchDialogMetric extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: accent, size: 16),
-          const SizedBox(width: 7),
+          Icon(icon, color: accent, size: 14),
+          const SizedBox(width: 6),
           Expanded(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -2146,12 +2475,12 @@ class _ResearchDialogMetric extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 1),
                 Text(
                   value,
                   style: const TextStyle(
                     color: Color(0xFFE8FBFF),
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: FontWeight.w900,
                   ),
                   maxLines: 1,
@@ -2194,7 +2523,19 @@ int _researchDuration(GameSnapshot snapshot, ResearchType type) {
   final efficiencyRate =
       _researchLevel(snapshot, ResearchType.researchEfficiency) *
       RunProgression.researchEfficiencyPerLevel;
-  return RunProgression.applyResearchEfficiency(baseDuration, efficiencyRate);
+  final duration = RunProgression.applyResearchEfficiency(
+    baseDuration,
+    efficiencyRate,
+  );
+  final elapsed = _researchSavedElapsed(
+    snapshot,
+    type,
+  ).clamp(0, duration <= 0 ? 0 : duration - 1).toInt();
+  return duration - elapsed;
+}
+
+int _researchSavedElapsed(GameSnapshot snapshot, ResearchType type) {
+  return snapshot.researchElapsedMillis[type] ?? 0;
 }
 
 ResearchProgress? _activeResearch(GameSnapshot snapshot, ResearchType type) {
@@ -2213,6 +2554,55 @@ String _researchTitle(RuneNexusLocalizations l10n, ResearchType type) {
     ResearchType.linkExpansionOne => l10n.linkExpansionOne,
     ResearchType.gemAttunement => l10n.gemAttunement,
   };
+}
+
+_ResearchEffectText _researchEffectText(
+  RuneNexusLocalizations l10n,
+  ResearchType type,
+  int level,
+  int? activeTargetLevel,
+) {
+  final definition = demoResearchDefinitions[type]!;
+  final nextLevel = activeTargetLevel ?? (level + 1);
+  final clampedNextLevel = nextLevel.clamp(0, definition.maxLevel).toInt();
+  final hasNext = clampedNextLevel > level;
+  return switch (type) {
+    ResearchType.researchEfficiency => _ResearchEffectText(
+      l10n.researchEfficiencyEffect(_researchEfficiencyPercent(level)),
+      hasNext
+          ? _signedPercent(_researchEfficiencyPercent(clampedNextLevel))
+          : null,
+    ),
+    ResearchType.researchCostEfficiency => _ResearchEffectText(
+      l10n.researchCostEfficiencyEffect(_researchCostEfficiencyPercent(level)),
+      hasNext
+          ? _signedPercent(_researchCostEfficiencyPercent(clampedNextLevel))
+          : null,
+    ),
+    ResearchType.linkExpansionOne => _ResearchEffectText(
+      l10n.researchLinkSlotEffect,
+    ),
+    ResearchType.gemAttunement => _ResearchEffectText(
+      l10n.researchGemShardEffect(
+        level * RunProgression.gemShardsPerGemAttunementLevel,
+      ),
+      hasNext
+          ? '+${clampedNextLevel * RunProgression.gemShardsPerGemAttunementLevel}'
+          : null,
+    ),
+  };
+}
+
+int _researchEfficiencyPercent(int level) {
+  return (level * RunProgression.researchEfficiencyPerLevel * 100).round();
+}
+
+int _researchCostEfficiencyPercent(int level) {
+  return (level * RunProgression.researchCostEfficiencyPerLevel * 100).round();
+}
+
+String _signedPercent(int percent) {
+  return '+$percent%';
 }
 
 IconData _researchIcon(ResearchType type) {
@@ -2291,187 +2681,36 @@ class _PermanentUpgradeTile extends StatelessWidget {
     required this.onPressed,
   });
 
-  const _PermanentUpgradeTile.locked({
-    required this.icon,
-    required this.title,
-    required this.description,
-    required this.lockText,
-  }) : level = null,
-       maxLevel = null,
-       globalMaxLevel = null,
-       valueText = null,
-       nextValueText = null,
-       cost = null,
-       enabled = false,
-       onPressed = null;
-
   final IconData icon;
   final String title;
   final String description;
-  final int? level;
-  final int? maxLevel;
-  final int? globalMaxLevel;
-  final String? valueText;
-  final String? nextValueText;
-  final int? cost;
+  final int level;
+  final int maxLevel;
+  final int globalMaxLevel;
+  final String valueText;
+  final String nextValueText;
+  final int cost;
   final bool enabled;
   final String lockText;
-  final VoidCallback? onPressed;
+  final VoidCallback onPressed;
 
-  bool get _isActive => level != null && maxLevel != null;
-  bool get _isMaxed =>
-      level != null && globalMaxLevel != null && level! >= globalMaxLevel!;
-  bool get _isTierLocked =>
-      level != null &&
-      maxLevel != null &&
-      globalMaxLevel != null &&
-      level! >= maxLevel! &&
-      level! < globalMaxLevel!;
+  bool get _isMaxed => level >= globalMaxLevel;
+  bool get _isTierLocked => level >= maxLevel && level < globalMaxLevel;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final locked = !_isActive;
     final borderColor = enabled
         ? const Color(0xFFE7C66A)
-        : locked
-        ? const Color(0x33485B68)
         : const Color(0x55485B68);
     final titleColor = enabled
         ? const Color(0xFFE8FBFF)
-        : locked
-        ? const Color(0xFF6D7F8F)
         : const Color(0xFFB9D6E4);
-    if (locked) {
-      return Container(
-        height: 154,
-        padding: const EdgeInsets.all(9),
-        decoration: BoxDecoration(
-          color: const Color(0x44000000),
-          border: Border.all(color: const Color(0x33485B68)),
-          borderRadius: BorderRadius.circular(7),
-        ),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: const Color(0x22000000),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.lock_outline,
-                      color: Color(0xFF8DA5B3),
-                      size: 15,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        l10n.lockedUpgrade,
-                        style: const TextStyle(
-                          color: Color(0xFF8DA5B3),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Icon(icon, color: const Color(0xFF526676), size: 16),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Color(0xFF8DA5B3),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const Spacer(),
-                Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        l10n.unavailableUpgrade,
-                        style: const TextStyle(
-                          color: Color(0xFFE8FBFF),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 7),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 9,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xAA07111D),
-                          border: Border.all(color: const Color(0x66526676)),
-                          borderRadius: BorderRadius.circular(7),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.flag_outlined,
-                              color: Color(0xFFB9D6E4),
-                              size: 13,
-                            ),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Text(
-                                l10n.unlocksAfter(_lockedStatusText(l10n)),
-                                style: const TextStyle(
-                                  color: Color(0xFFB9D6E4),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    color: Color(0xFF637789),
-                    fontSize: 10,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    }
     return Container(
       constraints: const BoxConstraints(minHeight: 154),
       padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
-        color: locked ? const Color(0x22000000) : const Color(0x3307111D),
+        color: const Color(0x3307111D),
         border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(7),
       ),
@@ -2496,62 +2735,49 @@ class _PermanentUpgradeTile extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 5),
-          if (_isActive)
-            Text(
-              'Lv.$level/$maxLevel',
-              style: const TextStyle(
-                color: Color(0xFFB9D6E4),
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-              ),
-            )
-          else
-            _PermanentUpgradeStatusChip(
-              text: _lockedStatusText(l10n),
-              icon: Icons.lock_outline,
+          Text(
+            'Lv.$level/$maxLevel',
+            style: const TextStyle(
+              color: Color(0xFFB9D6E4),
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
             ),
+          ),
           const SizedBox(height: 5),
           Text(
             description,
-            style: TextStyle(
-              color: locked ? const Color(0xFF6D7F8F) : const Color(0xFF9EB3BF),
-              fontSize: 10,
-            ),
+            style: const TextStyle(color: Color(0xFF9EB3BF), fontSize: 10),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 7),
-          if (_isActive &&
-              valueText != null &&
-              nextValueText != null &&
-              cost != null)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _CompactUpgradeValueSummary(
-                  currentValueText: valueText!,
-                  nextValueText: nextValueText!,
-                  enabled: enabled,
-                ),
-                const SizedBox(height: 7),
-                SizedBox(
-                  height: 30,
-                  child: OutlinedButton(
-                    onPressed: enabled ? onPressed : null,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      disabledForegroundColor: const Color(0xFF6D7F8F),
-                      side: BorderSide(color: borderColor),
-                      padding: const EdgeInsets.symmetric(horizontal: 7),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(7),
-                      ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _CompactUpgradeValueSummary(
+                currentValueText: valueText,
+                nextValueText: nextValueText,
+                enabled: enabled,
+              ),
+              const SizedBox(height: 7),
+              SizedBox(
+                height: 30,
+                child: OutlinedButton(
+                  onPressed: enabled ? onPressed : null,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    disabledForegroundColor: const Color(0xFF6D7F8F),
+                    side: BorderSide(color: borderColor),
+                    padding: const EdgeInsets.symmetric(horizontal: 7),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7),
                     ),
-                    child: _buttonChild(l10n),
                   ),
+                  child: _buttonChild(l10n),
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -2580,23 +2806,16 @@ class _PermanentUpgradeTile extends StatelessWidget {
           style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
         ),
         const SizedBox(width: 5),
-        _RuneCostChip(cost: cost!, enabled: enabled),
+        _RuneCostChip(cost: cost, enabled: enabled),
       ],
     );
-  }
-
-  String _lockedStatusText(RuneNexusLocalizations l10n) {
-    return lockText == l10n.plannedUpgrade || lockText == l10n.designLocked
-        ? lockText
-        : lockText;
   }
 }
 
 class _PermanentUpgradeStatusChip extends StatelessWidget {
-  const _PermanentUpgradeStatusChip({required this.text, this.icon});
+  const _PermanentUpgradeStatusChip({required this.text});
 
   final String text;
-  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -2611,10 +2830,6 @@ class _PermanentUpgradeStatusChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon != null) ...[
-              Icon(icon, color: const Color(0xFF8DA5B3), size: 11),
-              const SizedBox(width: 4),
-            ],
             Flexible(
               child: Text(
                 text,
