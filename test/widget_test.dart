@@ -12,6 +12,7 @@ import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/game/game_snapshot.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
 import 'package:rune_nexus/l10n/rune_nexus_localizations.dart';
+import 'package:rune_nexus/ui/game/game_button.dart';
 import 'package:rune_nexus/ui/menu/main_menu_screen.dart';
 import 'package:rune_nexus/ui/menu/result_overlay.dart';
 
@@ -26,6 +27,28 @@ void main() {
     expect(find.text('잠김'), findsNWidgets(4));
     expect(find.text('강화'), findsOneWidget);
     expect(find.text('연구'), findsOneWidget);
+  });
+
+  testWidgets('selected ghost game buttons stay visually restrained', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: GameButton(
+          onPressed: () {},
+          label: '진행 중',
+          selected: true,
+          variant: GameButtonVariant.ghost,
+        ),
+      ),
+    );
+
+    final container = tester.widget<AnimatedContainer>(
+      find.byType(AnimatedContainer),
+    );
+    final decoration = container.decoration as BoxDecoration;
+    expect(decoration.gradient, isNull);
   });
 
   testWidgets('main menu keeps tabs on bottom and keeps logo across tabs', (
@@ -153,8 +176,13 @@ void main() {
     await tester.tap(find.text('강화'));
     await _pumpGameFrames(tester);
 
+    final nexusHpTopLeft = tester.getTopLeft(find.text('넥서스 체력'));
+    final fireTrainingTopLeft = tester.getTopLeft(find.text('기초 화력 훈련'));
+
     expect(find.text('업그레이드 보드'), findsOneWidget);
     expect(find.text('레벨업'), findsNWidgets(2));
+    expect((nexusHpTopLeft.dy - fireTrainingTopLeft.dy).abs(), lessThan(4));
+    expect(fireTrainingTopLeft.dx, greaterThan(nexusHpTopLeft.dx));
     expect(tester.takeException(), isNull);
   });
 

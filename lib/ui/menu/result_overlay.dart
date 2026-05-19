@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../game/game_snapshot.dart';
 import '../../game/rune_nexus_game.dart';
+import '../game/game_ui.dart';
 import '../widgets/rune_balance_card.dart';
 
 class ResultOverlay extends StatelessWidget {
@@ -54,17 +55,13 @@ class ResultOverlay extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 360),
-              child: Container(
+              child: GamePanel(
                 padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: const Color(0xEE091624),
-                  border: Border.all(
-                    color: success
-                        ? const Color(0xFF50E6FF)
-                        : const Color(0xFFFF5A66),
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                selected: true,
+                variant: success
+                    ? GamePanelVariant.stone
+                    : GamePanelVariant.danger,
+                accentColor: success ? GamePalette.cyan : GamePalette.danger,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -72,24 +69,19 @@ class ResultOverlay extends StatelessWidget {
                       success
                           ? Icons.diamond_outlined
                           : Icons.warning_amber_rounded,
-                      color: success
-                          ? const Color(0xFF50E6FF)
-                          : const Color(0xFFFF5A66),
+                      color: success ? GamePalette.cyan : GamePalette.danger,
                       size: 40,
                     ),
                     const SizedBox(height: 10),
                     Text(
                       success ? 'Nexus 방어 성공' : 'Nexus 붕괴',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                      ),
+                      style: GameTextStyles.title,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       stageStatusText,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Color(0xFFC5DCE8)),
+                      style: GameTextStyles.body,
                     ),
                     if (snapshot.lastRunWasNewBestRound ||
                         snapshot.lastRunUnlockedStageNumber != null ||
@@ -155,12 +147,14 @@ class ResultOverlay extends StatelessWidget {
                     if (canStartNextStage) ...[
                       SizedBox(
                         width: double.infinity,
-                        child: FilledButton.icon(
+                        child: GameButton(
                           onPressed: onStartStage == null
                               ? null
                               : () => onStartStage!(nextStageNumber),
                           icon: const Icon(Icons.flag_outlined, size: 17),
-                          label: Text('스테이지 $nextStageNumber 시작'),
+                          label: '스테이지 $nextStageNumber 시작',
+                          variant: GameButtonVariant.primary,
+                          accentColor: GamePalette.cyan,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -168,18 +162,24 @@ class ResultOverlay extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton.icon(
+                          child: GameButton(
                             onPressed: onOpenStageSelect,
                             icon: const Icon(Icons.map_outlined, size: 16),
-                            label: const Text('스테이지'),
+                            label: '스테이지',
+                            compact: true,
+                            variant: GameButtonVariant.ghost,
+                            accentColor: GamePalette.cyan,
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: OutlinedButton.icon(
+                          child: GameButton(
                             onPressed: onOpenPermanentUpgrades,
                             icon: const Icon(Icons.auto_awesome, size: 16),
-                            label: const Text('업그레이드'),
+                            label: '업그레이드',
+                            compact: true,
+                            variant: GameButtonVariant.ghost,
+                            accentColor: GamePalette.gold,
                           ),
                         ),
                       ],
@@ -187,10 +187,16 @@ class ResultOverlay extends StatelessWidget {
                     const SizedBox(height: 8),
                     SizedBox(
                       width: double.infinity,
-                      child: FilledButton.icon(
+                      child: GameButton(
                         onPressed: game.restartDemo,
                         icon: const Icon(Icons.replay, size: 17),
-                        label: const Text('현재 스테이지 재도전'),
+                        label: '현재 스테이지 재도전',
+                        variant: success
+                            ? GameButtonVariant.secondary
+                            : GameButtonVariant.danger,
+                        accentColor: success
+                            ? GamePalette.cyan
+                            : GamePalette.danger,
                       ),
                     ),
                   ],
@@ -230,19 +236,19 @@ class _ResultHighlight extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF102437),
-        border: Border.all(color: const Color(0xFFE7C66A)),
-        borderRadius: BorderRadius.circular(8),
+        color: GamePalette.backdrop.withValues(alpha: 0.72),
+        border: Border.all(color: GamePalette.gold),
+        borderRadius: BorderRadius.circular(GamePalette.radius),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: const Color(0xFFE7C66A)),
+          Icon(icon, size: 16, color: GamePalette.gold),
           const SizedBox(width: 6),
           Text(
             label,
             style: const TextStyle(
-              color: Color(0xFFE7C66A),
+              color: GamePalette.gold,
               fontSize: 12,
               fontWeight: FontWeight.w900,
             ),
@@ -251,7 +257,7 @@ class _ResultHighlight extends StatelessWidget {
           Text(
             value,
             style: const TextStyle(
-              color: Color(0xFFE8F8FF),
+              color: GamePalette.textPrimary,
               fontSize: 12,
               fontWeight: FontWeight.w800,
             ),
@@ -273,21 +279,24 @@ class _ResultMetric extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
       decoration: BoxDecoration(
-        color: const Color(0xAA07111D),
-        border: Border.all(color: const Color(0x5533D8FF)),
-        borderRadius: BorderRadius.circular(7),
+        color: GamePalette.backdrop.withValues(alpha: 0.72),
+        border: Border.all(color: GamePalette.cyan.withValues(alpha: 0.34)),
+        borderRadius: BorderRadius.circular(GamePalette.radiusSmall),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 10, color: Color(0xFF8AA6B8)),
+            style: GameTextStyles.caption,
             overflow: TextOverflow.ellipsis,
           ),
           Text(
             value,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+            style: GameTextStyles.withColor(
+              GameTextStyles.body,
+              GamePalette.textPrimary,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ],

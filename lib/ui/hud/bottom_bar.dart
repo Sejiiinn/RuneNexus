@@ -104,10 +104,10 @@ class _RunPanelTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GamePanel(
-      height: 38,
-      padding: const EdgeInsets.all(3),
+      height: 50,
+      padding: const EdgeInsets.all(4),
       variant: GamePanelVariant.inset,
-      accentColor: GamePalette.cyan,
+      accentColor: GamePalette.metalDim,
       child: Row(
         children: [
           _RunPanelTabButton(
@@ -116,14 +116,14 @@ class _RunPanelTabs extends StatelessWidget {
             selected: snapshot.selectedRunPanelTab == RunPanelTab.turrets,
             onPressed: () => game.selectRunPanelTab(RunPanelTab.turrets),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 5),
           _RunPanelTabButton(
             icon: Icons.trending_up_rounded,
             label: '업그레이드',
             selected: snapshot.selectedRunPanelTab == RunPanelTab.upgrades,
             onPressed: () => game.selectRunPanelTab(RunPanelTab.upgrades),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 5),
           _RunPanelTabButton(
             icon: Icons.diamond_outlined,
             label: '젬',
@@ -357,21 +357,23 @@ class _RunPanelTabButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final foreground = selected
-        ? const Color(0xFF07111D)
-        : const Color(0xFFC6D6E4);
+        ? GamePalette.textPrimary
+        : GamePalette.textSecondary;
+    final accentColor = selected ? GamePalette.cyan : GamePalette.metalDim;
     return Expanded(
       child: GameButton(
         onPressed: onPressed,
         selected: selected,
         compact: true,
-        variant: selected ? GameButtonVariant.primary : GameButtonVariant.ghost,
-        accentColor: GamePalette.cyan,
-        padding: EdgeInsets.zero,
+        variant: GameButtonVariant.secondary,
+        accentColor: accentColor,
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 16, color: foreground),
-            const SizedBox(width: GamePalette.gapSmall),
+            Icon(icon, size: 18, color: foreground),
+            const SizedBox(width: 4),
             Flexible(
               child: Text(
                 label,
@@ -1120,11 +1122,15 @@ class _BottomSpeedControl extends StatelessWidget {
                     : GameButtonVariant.ghost,
                 accentColor: GamePalette.cyan,
                 padding: EdgeInsets.zero,
-                child: Text(
-                  '${speed.toInt()}x',
-                  style: GameTextStyles.withColor(
-                    GameTextStyles.buttonSmall,
-                    selected ? GamePalette.voidBlack : GamePalette.textPrimary,
+                child: Center(
+                  child: Text(
+                    '${speed.toInt()}x',
+                    style: GameTextStyles.withColor(
+                      GameTextStyles.buttonSmall,
+                      selected
+                          ? GamePalette.voidBlack
+                          : GamePalette.textPrimary,
+                    ),
                   ),
                 ),
               ),

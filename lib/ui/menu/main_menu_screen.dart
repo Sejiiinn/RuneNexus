@@ -198,7 +198,12 @@ class _MainMenuPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GamePanel(padding: const EdgeInsets.all(16), child: child);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final padding = constraints.maxWidth <= 390 ? 12.0 : 16.0;
+        return GamePanel(padding: EdgeInsets.all(padding), child: child);
+      },
+    );
   }
 }
 
@@ -759,7 +764,7 @@ class _ActiveRunSummary extends StatelessWidget {
     return GamePanel(
       padding: const EdgeInsets.all(12),
       selected: true,
-      accentColor: GamePalette.gold,
+      accentColor: GamePalette.metalDim,
       child: Row(
         children: [
           const _StageIcon(unlocked: true, active: true),
@@ -799,7 +804,7 @@ class _ActiveRunSummary extends StatelessWidget {
             onPressed: onPressed,
             label: l10n.continueRun,
             compact: true,
-            variant: GameButtonVariant.primary,
+            variant: GameButtonVariant.secondary,
             accentColor: GamePalette.gold,
           ),
         ],
@@ -1640,13 +1645,25 @@ Future<void> _confirmCancelResearch(
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(l10n.cancel),
+        SizedBox(
+          width: 86,
+          child: GameButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            label: l10n.cancel,
+            compact: true,
+            variant: GameButtonVariant.ghost,
+            accentColor: GamePalette.metal,
+          ),
         ),
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: Text(l10n.cancelResearchConfirm),
+        SizedBox(
+          width: 94,
+          child: GameButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            label: l10n.cancelResearchConfirm,
+            compact: true,
+            variant: GameButtonVariant.primary,
+            accentColor: GamePalette.cyan,
+          ),
         ),
       ],
     ),
@@ -1670,34 +1687,39 @@ class _ResearchSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: const Color(0x3307111D),
-        border: Border.all(color: const Color(0x55485B68)),
-        borderRadius: BorderRadius.circular(7),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final padding = constraints.maxWidth <= 330 ? 8.0 : 10.0;
+        return Container(
+          padding: EdgeInsets.all(padding),
+          decoration: BoxDecoration(
+            color: const Color(0x3307111D),
+            border: Border.all(color: const Color(0x55485B68)),
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(icon, color: const Color(0xFFB9D6E4), size: 17),
-              const SizedBox(width: 7),
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Color(0xFFE8FBFF),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                ),
+              Row(
+                children: [
+                  Icon(icon, color: const Color(0xFFB9D6E4), size: 17),
+                  const SizedBox(width: 7),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Color(0xFFE8FBFF),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 8),
+              ...children,
             ],
           ),
-          const SizedBox(height: 8),
-          ...children,
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -1721,12 +1743,13 @@ class _ResearchCardGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final useTwoColumns = constraints.maxWidth >= 220;
+        final spacing = constraints.maxWidth <= 300 ? 6.0 : 8.0;
+        final useTwoColumns = constraints.maxWidth >= 260;
         final tileWidth = useTwoColumns
-            ? (constraints.maxWidth - 8) / 2
+            ? (constraints.maxWidth - spacing) / 2
             : constraints.maxWidth;
         return Wrap(
-          spacing: 8,
+          spacing: spacing,
           runSpacing: 8,
           children: [
             for (final type in types)
@@ -1847,7 +1870,7 @@ class _ResearchTile extends StatelessWidget {
                 const _ResearchActiveEffect(),
               ],
               Padding(
-                padding: const EdgeInsets.all(9),
+                padding: const EdgeInsets.all(8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -1888,7 +1911,7 @@ class _ResearchTile extends StatelessWidget {
                           ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     _ResearchEffectLine(
                       effect: _researchEffectText(
                         l10n,
@@ -1899,7 +1922,7 @@ class _ResearchTile extends StatelessWidget {
                       enabled:
                           unlocked && (canStart || complete || active != null),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     _ResearchMetaStrip(
                       levelText: l10n.researchLevel(level, definition.maxLevel),
                       cost: complete ? null : cost,
@@ -1939,7 +1962,11 @@ class _ResearchEffectLine extends StatelessWidget {
         : const Color(0xFF8DA5B3);
     return RichText(
       text: TextSpan(
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          height: 1.16,
+        ),
         children: [
           TextSpan(
             text: effect.currentText,
@@ -1957,8 +1984,7 @@ class _ResearchEffectLine extends StatelessWidget {
           ],
         ],
       ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+      maxLines: 2,
     );
   }
 }
@@ -2093,69 +2119,53 @@ class _ResearchMetaStrip extends StatelessWidget {
         ? const Color(0xFFE7C66A)
         : const Color(0xFF8DA5B3);
     return Container(
-      height: 24,
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      constraints: const BoxConstraints(minHeight: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       decoration: BoxDecoration(
         color: const Color(0x22000000),
         border: Border.all(color: const Color(0x33485B68)),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Row(
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 3,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          Flexible(
-            child: Text(
-              levelText,
+          Text(
+            levelText,
+            style: const TextStyle(
+              color: Color(0xFFB9D6E4),
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          if (cost != null)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.diamond_outlined, size: 12, color: foreground),
+                const SizedBox(width: 2),
+                Text(
+                  '$cost',
+                  style: TextStyle(
+                    color: foreground,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          if (durationText != null)
+            Text(
+              durationText!,
               style: const TextStyle(
                 color: Color(0xFFB9D6E4),
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
               ),
-              overflow: TextOverflow.ellipsis,
             ),
-          ),
-          if (cost != null) ...[
-            _ResearchMetaDivider(),
-            Icon(Icons.diamond_outlined, size: 12, color: foreground),
-            const SizedBox(width: 2),
-            Text(
-              '$cost',
-              style: TextStyle(
-                color: foreground,
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
-          if (durationText != null) ...[
-            _ResearchMetaDivider(),
-            Flexible(
-              child: Text(
-                durationText!,
-                style: const TextStyle(
-                  color: Color(0xFFB9D6E4),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
         ],
       ),
-    );
-  }
-}
-
-class _ResearchMetaDivider extends StatelessWidget {
-  const _ResearchMetaDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      height: 12,
-      margin: const EdgeInsets.symmetric(horizontal: 5),
-      color: const Color(0x33485B68),
     );
   }
 }
@@ -2372,32 +2382,18 @@ class _ResearchDetailDialog extends StatelessWidget {
                   ),
                   if (!complete) ...[
                     const SizedBox(height: 10),
-                    SizedBox(
+                    GameButton(
+                      onPressed: canStart
+                          ? () {
+                              game.startResearch(type);
+                              Navigator.of(context).pop();
+                            }
+                          : null,
+                      label: l10n.startResearch,
+                      compact: true,
                       height: 34,
-                      child: FilledButton(
-                        onPressed: canStart
-                            ? () {
-                                game.startResearch(type);
-                                Navigator.of(context).pop();
-                              }
-                            : null,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF8EE6FF),
-                          disabledBackgroundColor: const Color(0x33485B68),
-                          foregroundColor: const Color(0xFF07111D),
-                          disabledForegroundColor: const Color(0xFF607587),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(7),
-                          ),
-                        ),
-                        child: Text(
-                          l10n.startResearch,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
+                      variant: GameButtonVariant.primary,
+                      accentColor: GamePalette.cyan,
                     ),
                   ],
                 ],
@@ -2623,12 +2619,13 @@ class _PermanentUpgradeBoard extends StatelessWidget {
         const SizedBox(height: 10),
         LayoutBuilder(
           builder: (context, constraints) {
-            final useTwoColumns = constraints.maxWidth >= 320;
+            final spacing = constraints.maxWidth <= 320 ? 6.0 : 8.0;
+            final useTwoColumns = constraints.maxWidth >= 280;
             final tileWidth = useTwoColumns
-                ? (constraints.maxWidth - 8) / 2
+                ? (constraints.maxWidth - spacing) / 2
                 : constraints.maxWidth;
             return Wrap(
-              spacing: 8,
+              spacing: spacing,
               runSpacing: 8,
               children: [
                 for (final tile in tiles)
@@ -2684,8 +2681,8 @@ class _PermanentUpgradeTile extends StatelessWidget {
         ? const Color(0xFFE8FBFF)
         : const Color(0xFFB9D6E4);
     return Container(
-      constraints: const BoxConstraints(minHeight: 154),
-      padding: const EdgeInsets.all(9),
+      constraints: const BoxConstraints(minHeight: 150),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: const Color(0x3307111D),
         border: Border.all(color: borderColor),
@@ -2727,7 +2724,7 @@ class _PermanentUpgradeTile extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 7),
+          const SizedBox(height: 6),
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -2736,20 +2733,17 @@ class _PermanentUpgradeTile extends StatelessWidget {
                 nextValueText: nextValueText,
                 enabled: enabled,
               ),
-              const SizedBox(height: 7),
+              const SizedBox(height: 6),
               SizedBox(
                 height: 30,
-                child: OutlinedButton(
+                child: GameButton(
                   onPressed: enabled ? onPressed : null,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    disabledForegroundColor: const Color(0xFF6D7F8F),
-                    side: BorderSide(color: borderColor),
-                    padding: const EdgeInsets.symmetric(horizontal: 7),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                  ),
+                  compact: true,
+                  variant: GameButtonVariant.secondary,
+                  accentColor: enabled
+                      ? GamePalette.gold
+                      : GamePalette.metalDim,
+                  padding: const EdgeInsets.symmetric(horizontal: 7),
                   child: _buttonChild(l10n),
                 ),
               ),
@@ -2776,13 +2770,16 @@ class _PermanentUpgradeTile extends StatelessWidget {
       );
     }
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          l10n.levelUp,
-          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+        Flexible(
+          child: Text(
+            l10n.levelUp,
+            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
-        const SizedBox(width: 5),
+        const SizedBox(width: 4),
         _RuneCostChip(cost: cost, enabled: enabled),
       ],
     );
@@ -2839,20 +2836,18 @@ class _CompactUpgradeValueSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Wrap(
+      spacing: 5,
+      runSpacing: 2,
       children: [
-        Expanded(
-          child: Text(
-            '현재 $currentValueText',
-            style: const TextStyle(
-              color: Color(0xFFE8FBFF),
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-            ),
-            overflow: TextOverflow.ellipsis,
+        Text(
+          '현재 $currentValueText',
+          style: const TextStyle(
+            color: Color(0xFFE8FBFF),
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
           ),
         ),
-        const SizedBox(width: 4),
         Text(
           '다음 $nextValueText',
           style: TextStyle(
@@ -2860,7 +2855,6 @@ class _CompactUpgradeValueSummary extends StatelessWidget {
             fontSize: 10,
             fontWeight: FontWeight.w800,
           ),
-          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
@@ -2880,7 +2874,7 @@ class _RuneCostChip extends StatelessWidget {
         : const Color(0xFF6D7F8F);
     return Container(
       height: 23,
-      padding: const EdgeInsets.symmetric(horizontal: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
       decoration: BoxDecoration(
         color: enabled ? const Color(0x1AE7C66A) : const Color(0x14485B68),
         border: Border.all(
@@ -2891,8 +2885,8 @@ class _RuneCostChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.diamond_outlined, size: 13, color: foreground),
-          const SizedBox(width: 3),
+          Icon(Icons.diamond_outlined, size: 12, color: foreground),
+          const SizedBox(width: 2),
           Text(
             '$cost',
             style: TextStyle(

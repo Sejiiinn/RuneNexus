@@ -195,7 +195,7 @@ class _GameButtonColors {
         glow: Colors.transparent,
       );
     }
-    if (variant == GameButtonVariant.primary || selected) {
+    if (variant == GameButtonVariant.primary) {
       return _GameButtonColors(
         foreground: GamePalette.voidBlack,
         border: GamePalette.cyanBright,

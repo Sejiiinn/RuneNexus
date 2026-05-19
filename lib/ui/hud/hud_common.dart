@@ -21,6 +21,12 @@ class _TurretButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final titleColor = enabled
+        ? (selected ? color : GamePalette.textPrimary)
+        : GamePalette.textDisabled;
+    final costColor = enabled
+        ? (selected ? color : GamePalette.textSecondary)
+        : GamePalette.textDisabled;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 120),
       decoration: BoxDecoration(
@@ -35,24 +41,18 @@ class _TurretButton extends StatelessWidget {
               ]
             : null,
       ),
-      child: OutlinedButton(
+      child: GameButton(
         onPressed: enabled ? onPressed : null,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white,
-          backgroundColor: selected
-              ? color.withValues(alpha: 0.2)
-              : Colors.transparent,
-          side: BorderSide(
-            color: selected ? color : const Color(0x5533D8FF),
-            width: selected ? 2.4 : 1,
-          ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-        ),
+        selected: selected,
+        variant: selected
+            ? GameButtonVariant.secondary
+            : GameButtonVariant.ghost,
+        accentColor: color,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _TurretShapeIcon(type: type, color: color),
+            _TurretShapeIcon(type: type, color: enabled ? color : costColor),
             const SizedBox(height: 2),
             Text(
               label,
@@ -60,6 +60,7 @@ class _TurretButton extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontWeight: selected ? FontWeight.w900 : FontWeight.w500,
+                color: titleColor,
               ),
             ),
             Text(
@@ -69,7 +70,7 @@ class _TurretButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w400,
-                color: selected ? color : null,
+                color: costColor,
               ),
             ),
           ],
@@ -219,22 +220,22 @@ class _RestoreRunOverlayState extends State<_RestoreRunOverlay> {
     return Container(
       color: const Color(0xAA02070D),
       child: Center(
-        child: Container(
+        child: GamePanel(
           width: 286,
           padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: const Color(0xEE091624),
-            border: Border.all(color: const Color(0xFF50E6FF)),
-            borderRadius: BorderRadius.circular(8),
-          ),
+          selected: true,
+          accentColor: GamePalette.cyan,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.restore, color: Color(0xFF50E6FF), size: 38),
+              const Icon(Icons.restore, color: GamePalette.cyan, size: 38),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 '저장된 진행 발견',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                style: GameTextStyles.withColor(
+                  GameTextStyles.title,
+                  GamePalette.textPrimary,
+                ),
               ),
               const SizedBox(height: 10),
               DecoratedBox(
@@ -279,17 +280,23 @@ class _RestoreRunOverlayState extends State<_RestoreRunOverlay> {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: GameButton(
                       onPressed: () =>
                           unawaited(widget.game.discardRestoredRun()),
-                      child: const Text('새로 시작'),
+                      label: '새로 시작',
+                      compact: true,
+                      variant: GameButtonVariant.ghost,
+                      accentColor: GamePalette.metal,
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: FilledButton(
+                    child: GameButton(
                       onPressed: _startCountdown,
-                      child: const Text('예'),
+                      label: '예',
+                      compact: true,
+                      variant: GameButtonVariant.primary,
+                      accentColor: GamePalette.cyan,
                     ),
                   ),
                 ],
