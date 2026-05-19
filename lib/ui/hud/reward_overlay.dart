@@ -26,32 +26,23 @@ class _RewardOverlayState extends State<_RewardOverlay> {
     return Container(
       color: const Color(0x9902070D),
       child: Center(
-        child: Container(
+        child: GamePanel(
           margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: const Color(0xF0091624),
-            border: Border.all(color: const Color(0xAA33D8FF)),
-            borderRadius: BorderRadius.circular(8),
-          ),
+          variant: GamePanelVariant.reward,
+          accentColor: GamePalette.green,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 isPurchase ? '젬 구매 선택' : '젬 보상 선택',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                ),
+                style: GameTextStyles.title,
               ),
               if (!isPurchase) ...[
                 const SizedBox(height: 4),
                 Text(
                   '${snapshot.completedRounds}웨이브 클리어 보상',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFFB9D6E4),
-                  ),
+                  style: GameTextStyles.body,
                 ),
               ],
               const SizedBox(height: 12),
@@ -168,9 +159,12 @@ class _GemShardRewardBar extends StatelessWidget {
                 const SizedBox(width: 8),
                 SizedBox(
                   height: 30,
-                  child: FilledButton(
+                  child: GameButton(
                     onPressed: onConfirm,
-                    child: const Text('파편 받기', style: TextStyle(fontSize: 12)),
+                    label: '파편 받기',
+                    compact: true,
+                    variant: GameButtonVariant.confirm,
+                    accentColor: GamePalette.green,
                   ),
                 ),
               ],
@@ -292,84 +286,17 @@ class _RewardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gem = demoGems[type]!;
-    return SizedBox(
+    return TraitCard(
       width: 96,
       height: 156,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(8),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
-            decoration: BoxDecoration(
-              color: selected ? gem.color.withValues(alpha: 0.12) : null,
-              border: Border.all(
-                color: selected ? gem.color : gem.color.withValues(alpha: 0.62),
-                width: selected ? 2 : 1,
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              children: [
-                Icon(gem.icon, color: gem.color, size: 26),
-                const SizedBox(height: 7),
-                Text(
-                  gem.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                SizedBox(
-                  height: 30,
-                  child: Text(
-                    gem.shortText,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Color(0xFFC9DCE8),
-                      height: 1.18,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                if (selected)
-                  SizedBox(
-                    height: 26,
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: onConfirm,
-                      style: FilledButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        backgroundColor: gem.color,
-                        foregroundColor: const Color(0xFF07111D),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      child: const Text(
-                        '선택',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      title: gem.name,
+      description: gem.shortText,
+      accentColor: gem.color,
+      icon: Icon(gem.icon),
+      selected: selected,
+      enabled: true,
+      onPressed: onPressed,
+      onConfirm: selected ? onConfirm : null,
     );
   }
 }

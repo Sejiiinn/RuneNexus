@@ -14,6 +14,7 @@ import '../../game/rendering/turret_shape_renderer.dart';
 import '../../game/rune_nexus_game.dart';
 import '../../game/systems/run_progression.dart';
 import '../../l10n/rune_nexus_localizations.dart';
+import '../game/game_ui.dart';
 import '../widgets/rune_balance_card.dart';
 
 const _showMapEditor = bool.fromEnvironment(
@@ -106,7 +107,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
         ? 146.0
         : 92.0;
     return Container(
-      color: const Color(0xFF07111D),
+      color: GamePalette.backdrop,
       child: SafeArea(
         child: Stack(
           children: [
@@ -197,22 +198,7 @@ class _MainMenuPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xF0091624),
-        border: Border.all(color: const Color(0x9933D8FF)),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x66000000),
-            blurRadius: 20,
-            offset: Offset(0, 12),
-          ),
-        ],
-      ),
-      child: child,
-    );
+    return GamePanel(padding: const EdgeInsets.all(16), child: child);
   }
 }
 
@@ -715,24 +701,21 @@ class _StageChapterTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GamePanel(
       height: 42,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: selected ? const Color(0x2233D8FF) : const Color(0x6607111D),
-        border: Border.all(
-          color: selected ? const Color(0xAA33D8FF) : const Color(0x33485B68),
+      selected: selected,
+      accentColor: GamePalette.cyan,
+      variant: selected ? GamePanelVariant.stone : GamePanelVariant.inset,
+      padding: const EdgeInsets.symmetric(horizontal: GamePalette.gapSmall),
+      child: Center(
+        child: Text(
+          label,
+          style: GameTextStyles.withColor(
+            GameTextStyles.button,
+            enabled ? GamePalette.textPrimary : GamePalette.textDisabled,
+          ),
+          overflow: TextOverflow.ellipsis,
         ),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w900,
-          color: enabled ? const Color(0xFFE8F8FF) : const Color(0xFF667987),
-        ),
-        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -747,19 +730,17 @@ class _LockedStageChapterTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: tooltip,
-      child: Container(
+      child: GamePanel(
         width: 42,
         height: 42,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: const Color(0x6607111D),
-          border: Border.all(color: const Color(0x33485B68)),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Icon(
-          Icons.lock_outline,
-          size: 18,
-          color: Color(0xFF667987),
+        variant: GamePanelVariant.inset,
+        padding: EdgeInsets.zero,
+        child: const Center(
+          child: Icon(
+            Icons.lock_outline,
+            size: 18,
+            color: GamePalette.textDisabled,
+          ),
         ),
       ),
     );
@@ -775,13 +756,10 @@ class _ActiveRunSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Container(
+    return GamePanel(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xBB07111D),
-        border: Border.all(color: const Color(0xAAE7C66A)),
-        borderRadius: BorderRadius.circular(8),
-      ),
+      selected: true,
+      accentColor: GamePalette.gold,
       child: Row(
         children: [
           const _StageIcon(unlocked: true, active: true),
@@ -817,18 +795,12 @@ class _ActiveRunSummary extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          SizedBox(
-            height: 34,
-            child: FilledButton(
-              onPressed: onPressed,
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-              ),
-              child: Text(
-                l10n.continueRun,
-                style: const TextStyle(fontSize: 12),
-              ),
-            ),
+          GameButton(
+            onPressed: onPressed,
+            label: l10n.continueRun,
+            compact: true,
+            variant: GameButtonVariant.primary,
+            accentColor: GamePalette.gold,
           ),
         ],
       ),
@@ -922,16 +894,13 @@ class _StageSelectionRow extends StatelessWidget {
         ? const Color(0xFF8EE6FF)
         : const Color(0xFF667987);
 
-    return OutlinedButton(
+    return GameButton(
+      key: ValueKey('stage-selection-row-$stageNumber'),
       onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: unlocked ? Colors.white : const Color(0xFF7F93A1),
-        disabledForegroundColor: const Color(0xFF7F93A1),
-        backgroundColor: const Color(0x6607111D),
-        side: BorderSide(color: borderColor, width: active ? 1.5 : 1),
-        padding: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
+      selected: active,
+      variant: unlocked ? GameButtonVariant.ghost : GameButtonVariant.secondary,
+      accentColor: borderColor,
+      padding: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
         child: Row(

@@ -105,22 +105,13 @@ class _ResourceValue extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        iconWidget ??
-            Icon(icon, size: 16, color: iconColor ?? const Color(0xFFE8FBFF)),
-        const SizedBox(width: 3),
-        DefaultTextStyle(
-          style: const TextStyle(
-            color: Color(0xFFE8FBFF),
-            fontSize: 13,
-            fontWeight: FontWeight.w900,
-            height: 1,
-          ),
-          child: valueChild ?? Text(valueText ?? '0'),
-        ),
-      ],
+    return HudResourceBar(
+      compact: true,
+      color: iconColor ?? GamePalette.green,
+      icon: icon,
+      iconWidget: iconWidget,
+      value: valueText ?? '0',
+      valueChild: valueChild,
     );
   }
 }
@@ -236,14 +227,11 @@ class _RunStatusPanel extends StatelessWidget {
     final danger = hpRatio <= 0.35;
     final hpColor = danger ? const Color(0xFFFF7043) : const Color(0xFF6EF6A5);
 
-    return Container(
-      height: 60,
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
-      decoration: BoxDecoration(
-        color: const Color(0xD6091624),
-        border: Border.all(color: const Color(0x554A6172)),
-        borderRadius: BorderRadius.circular(8),
-      ),
+    return GamePanel(
+      height: 62,
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      variant: GamePanelVariant.inset,
+      accentColor: hpColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -457,23 +445,21 @@ class _TopIconButton extends StatelessWidget {
     return SizedBox(
       width: 36,
       height: 36,
-      child: IconButton(
+      child: GameButton(
         tooltip: tooltip,
         onPressed: onPressed,
-        style: IconButton.styleFrom(
-          padding: EdgeInsets.zero,
-          foregroundColor: selected
-              ? const Color(0xFF07111D)
-              : const Color(0xFFE8FBFF),
-          backgroundColor: selected
-              ? const Color(0xFF8EE6FF)
-              : const Color(0xE607111D),
-          side: BorderSide(
-            color: selected ? const Color(0xFF8EE6FF) : const Color(0x6650E6FF),
+        selected: selected,
+        compact: true,
+        variant: selected ? GameButtonVariant.primary : GameButtonVariant.ghost,
+        accentColor: GamePalette.cyan,
+        padding: EdgeInsets.zero,
+        child: Center(
+          child: Icon(
+            icon,
+            size: 18,
+            color: selected ? GamePalette.voidBlack : GamePalette.textPrimary,
           ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        icon: Icon(icon, size: 18),
       ),
     );
   }

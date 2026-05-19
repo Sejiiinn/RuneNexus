@@ -594,10 +594,9 @@ Future<void> _pumpLoadedApp(WidgetTester tester) async {
 }
 
 Future<void> _tapStageCard(WidgetTester tester, String stageName) async {
-  final button = tester.widget<OutlinedButton>(
-    find.widgetWithText(OutlinedButton, stageName),
-  );
-  button.onPressed?.call();
+  final stageNumber = RegExp(r'\d+').firstMatch(stageName)?.group(0);
+  expect(stageNumber, isNotNull);
+  await tester.tap(find.byKey(ValueKey('stage-selection-row-$stageNumber')));
   await tester.pump();
 }
 

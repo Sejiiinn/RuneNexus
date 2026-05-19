@@ -35,25 +35,12 @@ class _TurretTraitActionButton extends StatelessWidget {
       child: SizedBox(
         width: 34,
         height: 30,
-        child: OutlinedButton(
+        child: GameButton(
           onPressed: onPressed,
-          style: OutlinedButton.styleFrom(
-            foregroundColor: color,
-            backgroundColor: locked
-                ? Colors.transparent
-                : const Color(0x2263E6A5),
-            side: BorderSide(
-              color: locked
-                  ? const Color(0x5533D8FF)
-                  : color.withValues(alpha: 0.85),
-            ),
-            padding: EdgeInsets.zero,
-            minimumSize: const Size(34, 30),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(7),
-            ),
-          ),
+          compact: true,
+          variant: locked ? GameButtonVariant.ghost : GameButtonVariant.confirm,
+          accentColor: color,
+          padding: EdgeInsets.zero,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -510,74 +497,17 @@ class _TraitChoiceButton extends StatelessWidget {
     final accent = _traitAccentColor(trait);
     return Opacity(
       opacity: enabled ? 1 : 0.56,
-      child: OutlinedButton(
-        onPressed: enabled
-            ? () => Navigator.of(
-                context,
-              ).pop(_TraitSelection(tier: tier, trait: trait))
-            : null,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: const Color(0xFFE8F8FF),
-          disabledForegroundColor: const Color(0xFF8AA6B8),
-          backgroundColor: enabled
-              ? const Color(0x1463E6A5)
-              : const Color(0x6607111D),
-          side: BorderSide(
-            color: enabled ? const Color(0x9963E6A5) : const Color(0x55485B68),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
-          alignment: Alignment.centerLeft,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 28,
-              height: 28,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: enabled ? 0.18 : 0.08),
-                border: Border.all(color: accent.withValues(alpha: 0.68)),
-                borderRadius: BorderRadius.circular(7),
-              ),
-              child: Icon(_traitIcon(trait), size: 16, color: accent),
-            ),
-            const SizedBox(width: 7),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    trait.nameText,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    trait.shortText,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Color(0xFFC9DCE8),
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(
-              enabled ? Icons.add_circle_outline : Icons.lock_outline,
-              size: 17,
-              color: enabled
-                  ? const Color(0xFF63E6A5)
-                  : const Color(0xFF607587),
-            ),
-          ],
-        ),
+      child: TraitCard(
+        title: trait.nameText,
+        description: trait.shortText,
+        accentColor: accent,
+        icon: Icon(_traitIcon(trait)),
+        selected: false,
+        enabled: enabled,
+        width: double.infinity,
+        onPressed: () => Navigator.of(
+          context,
+        ).pop(_TraitSelection(tier: tier, trait: trait)),
       ),
     );
   }

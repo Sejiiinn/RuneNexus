@@ -23,14 +23,10 @@ class _BottomBar extends StatelessWidget {
 
     return Align(
       alignment: Alignment.bottomCenter,
-      child: Container(
+      child: GamePanel(
         margin: const EdgeInsets.all(12),
         padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: const Color(0xE607111D),
-          border: Border.all(color: const Color(0x8833D8FF)),
-          borderRadius: BorderRadius.circular(8),
-        ),
+        accentColor: GamePalette.cyan,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -107,14 +103,11 @@ class _RunPanelTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GamePanel(
       height: 38,
       padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: const Color(0x6607111D),
-        border: Border.all(color: const Color(0x5533D8FF)),
-        borderRadius: BorderRadius.circular(8),
-      ),
+      variant: GamePanelVariant.inset,
+      accentColor: GamePalette.cyan,
       child: Row(
         children: [
           _RunPanelTabButton(
@@ -186,16 +179,22 @@ class _GemInventoryPanel extends StatelessWidget {
               ),
               SizedBox(
                 height: 32,
-                child: FilledButton(
+                child: GameButton(
                   onPressed: canPurchase ? game.purchaseGemChoice : null,
+                  compact: true,
+                  variant: GameButtonVariant.confirm,
+                  accentColor: GamePalette.green,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
+                      Text(
                         '젬 구매',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
+                        style: GameTextStyles.withColor(
+                          GameTextStyles.buttonSmall,
+                          canPurchase
+                              ? GamePalette.textPrimary
+                              : GamePalette.textDisabled,
                         ),
                       ),
                       const SizedBox(width: 5),
@@ -207,9 +206,11 @@ class _GemInventoryPanel extends StatelessWidget {
                       const SizedBox(width: 2),
                       Text(
                         '${RuneNexusGame.gemChoicePurchaseCost}',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
+                        style: GameTextStyles.withColor(
+                          GameTextStyles.buttonSmall,
+                          canPurchase
+                              ? GamePalette.green
+                              : GamePalette.textDisabled,
                         ),
                       ),
                     ],
@@ -359,25 +360,30 @@ class _RunPanelTabButton extends StatelessWidget {
         ? const Color(0xFF07111D)
         : const Color(0xFFC6D6E4);
     return Expanded(
-      child: OutlinedButton.icon(
+      child: GameButton(
         onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          padding: EdgeInsets.zero,
-          foregroundColor: foreground,
-          backgroundColor: selected
-              ? const Color(0xFF8EE6FF)
-              : Colors.transparent,
-          side: BorderSide(
-            color: selected ? const Color(0xFF8EE6FF) : Colors.transparent,
-          ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        ),
-        icon: Icon(icon, size: 16),
-        label: Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900),
+        selected: selected,
+        compact: true,
+        variant: selected ? GameButtonVariant.primary : GameButtonVariant.ghost,
+        accentColor: GamePalette.cyan,
+        padding: EdgeInsets.zero,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: foreground),
+            const SizedBox(width: GamePalette.gapSmall),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GameTextStyles.withColor(
+                  GameTextStyles.button,
+                  foreground,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -434,13 +440,10 @@ class _RunUpgradeRow extends StatelessWidget {
     final isMax = level >= definition.maxLevel;
     final cost = definition.costForLevel(level);
     final enabled = !isMax && gold >= cost;
-    return Container(
+    return GamePanel(
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: const Color(0xAA0B1B2B),
-        border: Border.all(color: const Color(0x5533D8FF)),
-        borderRadius: BorderRadius.circular(8),
-      ),
+      variant: GamePanelVariant.inset,
+      accentColor: enabled ? GamePalette.cyan : GamePalette.metalDim,
       child: Row(
         children: [
           Icon(
@@ -501,33 +504,12 @@ class _RunUpgradeRow extends StatelessWidget {
           const SizedBox(width: 8),
           SizedBox(
             width: 70,
-            height: 34,
-            child: OutlinedButton(
+            child: GameButton(
               onPressed: enabled ? onPressed : null,
-              style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.zero,
-                foregroundColor: enabled
-                    ? const Color(0xFF07111D)
-                    : const Color(0xFF607486),
-                backgroundColor: enabled
-                    ? const Color(0xFF8EE6FF)
-                    : const Color(0x33223543),
-                side: BorderSide(
-                  color: enabled
-                      ? const Color(0xFF8EE6FF)
-                      : const Color(0x33485B68),
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(7),
-                ),
-              ),
-              child: Text(
-                isMax ? 'MAX' : '${cost}G',
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
+              label: isMax ? 'MAX' : '${cost}G',
+              compact: true,
+              variant: GameButtonVariant.primary,
+              accentColor: GamePalette.cyan,
             ),
           ),
         ],
@@ -1115,14 +1097,11 @@ class _BottomSpeedControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const speeds = [1.0, 2.0, 4.0];
-    return Container(
+    return GamePanel(
       height: 40,
       padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: const Color(0x5507111D),
-        border: Border.all(color: const Color(0x5533D8FF)),
-        borderRadius: BorderRadius.circular(8),
-      ),
+      variant: GamePanelVariant.inset,
+      accentColor: GamePalette.cyan,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: speeds.map((speed) {
@@ -1132,30 +1111,20 @@ class _BottomSpeedControl extends StatelessWidget {
             child: SizedBox(
               width: 30,
               height: 32,
-              child: OutlinedButton(
+              child: GameButton(
                 onPressed: () => game.setSpeedMultiplier(speed),
-                style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  foregroundColor: selected
-                      ? const Color(0xFF07111D)
-                      : Colors.white,
-                  backgroundColor: selected
-                      ? const Color(0xFF8EE6FF)
-                      : Colors.transparent,
-                  side: BorderSide(
-                    color: selected
-                        ? const Color(0xFF8EE6FF)
-                        : Colors.transparent,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                ),
+                selected: selected,
+                compact: true,
+                variant: selected
+                    ? GameButtonVariant.primary
+                    : GameButtonVariant.ghost,
+                accentColor: GamePalette.cyan,
+                padding: EdgeInsets.zero,
                 child: Text(
                   '${speed.toInt()}x',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
+                  style: GameTextStyles.withColor(
+                    GameTextStyles.buttonSmall,
+                    selected ? GamePalette.voidBlack : GamePalette.textPrimary,
                   ),
                 ),
               ),
@@ -1425,59 +1394,29 @@ class _StartWaveButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foreground = enabled
-        ? const Color(0xFF04121D)
-        : const Color(0xFF66798A);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: enabled ? onPressed : null,
-        borderRadius: BorderRadius.circular(8),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 13),
-          decoration: BoxDecoration(
-            gradient: enabled
-                ? const LinearGradient(
-                    colors: [Color(0xFF8EE6FF), Color(0xFF50E6FF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  )
-                : null,
-            color: enabled ? null : const Color(0x33223543),
-            border: Border.all(
-              color: enabled
-                  ? const Color(0xFFBFF4FF)
-                  : const Color(0x33485B68),
+    return GameButton(
+      onPressed: enabled ? onPressed : null,
+      variant: GameButtonVariant.primary,
+      accentColor: GamePalette.cyan,
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 13),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.play_arrow_rounded,
+            size: 20,
+            color: enabled ? GamePalette.voidBlack : GamePalette.textDisabled,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '시작',
+            style: GameTextStyles.withColor(
+              GameTextStyles.button,
+              enabled ? GamePalette.voidBlack : GamePalette.textDisabled,
             ),
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: enabled
-                ? const [
-                    BoxShadow(
-                      color: Color(0x4433D8FF),
-                      blurRadius: 12,
-                      offset: Offset(0, 4),
-                    ),
-                  ]
-                : null,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.play_arrow_rounded, size: 20, color: foreground),
-              const SizedBox(width: 4),
-              Text(
-                '시작',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                  color: foreground,
-                ),
-              ),
-            ],
-          ),
-        ),
+        ],
       ),
     );
   }
@@ -1497,75 +1436,46 @@ class _InstallTurretButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final accent = definition.color;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: enabled ? onPressed : null,
-        borderRadius: BorderRadius.circular(8),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          height: 34,
-          padding: const EdgeInsets.only(left: 10, right: 7),
-          decoration: BoxDecoration(
-            color: enabled
-                ? accent.withValues(alpha: 0.22)
-                : const Color(0x33223543),
-            border: Border.all(
-              color: enabled
-                  ? accent.withValues(alpha: 0.9)
-                  : const Color(0x33485B68),
+    return GameButton(
+      onPressed: enabled ? onPressed : null,
+      variant: GameButtonVariant.confirm,
+      accentColor: accent,
+      height: 34,
+      padding: const EdgeInsets.only(left: 10, right: 7),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.add_circle_outline,
+            size: 16,
+            color: enabled ? accent : GamePalette.textDisabled,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            '설치',
+            style: GameTextStyles.withColor(
+              GameTextStyles.button,
+              enabled ? GamePalette.textPrimary : GamePalette.textDisabled,
             ),
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: enabled
-                ? [
-                    BoxShadow(
-                      color: accent.withValues(alpha: 0.18),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.add_circle_outline,
-                size: 16,
-                color: enabled ? accent : const Color(0xFF66798A),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+            decoration: BoxDecoration(
+              color: enabled
+                  ? GamePalette.backdrop.withValues(alpha: 0.72)
+                  : GamePalette.stoneDark.withValues(alpha: 0.28),
+              borderRadius: BorderRadius.circular(GamePalette.radiusSmall),
+            ),
+            child: Text(
+              '${definition.cost}G',
+              style: GameTextStyles.withColor(
+                GameTextStyles.caption,
+                enabled ? accent : GamePalette.textDisabled,
               ),
-              const SizedBox(width: 5),
-              Text(
-                '설치',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                  color: enabled
-                      ? const Color(0xFFE8F8FF)
-                      : const Color(0xFF66798A),
-                ),
-              ),
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                decoration: BoxDecoration(
-                  color: enabled
-                      ? const Color(0xBB07111D)
-                      : const Color(0x44223543),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '${definition.cost}G',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    color: enabled ? accent : const Color(0xFF66798A),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

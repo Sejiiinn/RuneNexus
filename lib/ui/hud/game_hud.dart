@@ -28,6 +28,7 @@ import '../../game/game_snapshot.dart';
 import '../../game/rendering/enemy_shape_renderer.dart';
 import '../../game/rendering/turret_shape_renderer.dart';
 import '../../game/rune_nexus_game.dart';
+import '../game/game_ui.dart';
 import '../menu/result_overlay.dart';
 
 part 'top_bar.dart';
