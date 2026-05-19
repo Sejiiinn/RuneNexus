@@ -89,11 +89,51 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('stage four previews combat upgrade unlock', (tester) async {
+  testWidgets('stage cards clarify clear rewards and unlocked rewards', (
+    tester,
+  ) async {
     await _pumpLoadedApp(tester);
 
-    expect(find.text('스테이지 4'), findsOneWidget);
-    expect(find.text('전투 강화 해금'), findsOneWidget);
+    expect(find.text('클리어 보상: 저격 포탑'), findsOneWidget);
+    expect(find.text('클리어 보상: 경제 강화'), findsOneWidget);
+    expect(find.text('클리어 보상: 연구'), findsNWidgets(2));
+    expect(find.text('클리어 보상: 전투 강화'), findsOneWidget);
+    expect(find.text('강화 해금'), findsNothing);
+    expect(find.text('연구 해금'), findsNothing);
+    expect(find.text('전투 강화 해금'), findsNothing);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            unlockedStageCount: 5,
+            clearedStageNumbers: const {2, 3, 4, 5},
+          ),
+          selectedTab: MainMenuTab.stage,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('해금됨: 경제 강화'), findsOneWidget);
+    expect(find.text('해금됨: 연구'), findsNWidgets(2));
+    expect(find.text('해금됨: 전투 강화'), findsOneWidget);
+    expect(find.text('클리어 보상: 경제 강화'), findsNothing);
+    expect(find.text('클리어 보상: 연구'), findsNothing);
+    expect(find.text('클리어 보상: 전투 강화'), findsNothing);
   });
 
   testWidgets('permanent upgrade rows fit on narrow menu width', (

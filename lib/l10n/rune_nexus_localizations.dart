@@ -101,11 +101,11 @@ class RuneNexusLocalizations {
   String get locked => _isEnglish ? 'Locked' : '잠김';
   String get recordNone => _isEnglish ? 'No record' : '기록 없음';
   String get recordCleared => _isEnglish ? 'Cleared' : '클리어';
-  String get stageSniperRewardLocked =>
-      _isEnglish ? 'Clear reward: Sniper turret' : '클리어 보상: 저격 포탑';
-  String get stageSniperRewardUnlocked =>
-      _isEnglish ? 'Unlocked: Sniper turret' : '해금됨: 저격 포탑';
+  String get stageSniperRewardLocked => clearReward(sniperTurret);
+  String get stageSniperRewardUnlocked => unlockedReward(sniperTurret);
   String get sniperTurret => _isEnglish ? 'Sniper turret' : '저격 포탑';
+  String get economicUpgrade => _isEnglish ? 'Economy upgrade' : '경제 강화';
+  String get combatUpgrade => _isEnglish ? 'Combat upgrade' : '전투 강화';
   String get upgradeUnlock => _isEnglish ? 'Upgrade unlock' : '강화 해금';
   String get combatUpgradeUnlock =>
       _isEnglish ? 'Combat upgrade unlock' : '전투 강화 해금';
@@ -119,6 +119,14 @@ class RuneNexusLocalizations {
     return _isEnglish
         ? 'Active run · Stage $stageNumber'
         : '진행 중 · 스테이지 $stageNumber';
+  }
+
+  String clearReward(String reward) {
+    return _isEnglish ? 'Clear reward: $reward' : '클리어 보상: $reward';
+  }
+
+  String unlockedReward(String reward) {
+    return _isEnglish ? 'Unlocked: $reward' : '해금됨: $reward';
   }
 
   String cancelResearchMessage(String title) {

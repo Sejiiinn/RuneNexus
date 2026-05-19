@@ -1002,7 +1002,9 @@ class _StageSelectionRow extends StatelessWidget {
     if (stageNumber == 1) {
       return [
         _StageInfoChip(
-          text: l10n.sniperTurret,
+          text: sniperRewardUnlocked
+              ? l10n.stageSniperRewardUnlocked
+              : l10n.stageSniperRewardLocked,
           unlocked: unlocked,
           highlighted: sniperRewardUnlocked,
           leading: const _SniperRewardIcon(),
@@ -1012,7 +1014,9 @@ class _StageSelectionRow extends StatelessWidget {
     if (stageNumber == 2) {
       return [
         _StageInfoChip(
-          text: l10n.upgradeUnlock,
+          text: stageCleared
+              ? l10n.unlockedReward(l10n.economicUpgrade)
+              : l10n.clearReward(l10n.economicUpgrade),
           unlocked: unlocked,
           highlighted: stageCleared,
           leading: const Icon(Icons.paid_outlined, size: 13),
@@ -1022,7 +1026,9 @@ class _StageSelectionRow extends StatelessWidget {
     if (stageNumber == 4) {
       return [
         _StageInfoChip(
-          text: l10n.combatUpgradeUnlock,
+          text: stageCleared
+              ? l10n.unlockedReward(l10n.combatUpgrade)
+              : l10n.clearReward(l10n.combatUpgrade),
           unlocked: unlocked,
           highlighted: stageCleared,
           leading: const Icon(Icons.bolt_outlined, size: 13),
@@ -1032,7 +1038,9 @@ class _StageSelectionRow extends StatelessWidget {
     if (stageNumber == 3 || stageNumber == 5) {
       return [
         _StageInfoChip(
-          text: l10n.researchUnlock,
+          text: stageCleared
+              ? l10n.unlockedReward(l10n.researchTab)
+              : l10n.clearReward(l10n.researchTab),
           unlocked: unlocked,
           highlighted: stageCleared,
           leading: const Icon(Icons.science_outlined, size: 13),
