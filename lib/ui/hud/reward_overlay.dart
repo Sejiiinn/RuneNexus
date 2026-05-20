@@ -312,7 +312,7 @@ class _RewardCard extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
           width: width,
-          height: 204,
+          height: 216,
           padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
@@ -401,20 +401,58 @@ class _RewardCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              SizedBox(
-                height: 28,
-                width: double.infinity,
-                child: selected
-                    ? GameButton(
-                        onPressed: onConfirm,
-                        label: '선택',
-                        compact: true,
-                        variant: GameButtonVariant.confirm,
-                        accentColor: gem.color,
-                      )
-                    : const SizedBox.shrink(),
-              ),
+              _RewardConfirmArea(selected: selected, onConfirm: onConfirm),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RewardConfirmArea extends StatelessWidget {
+  const _RewardConfirmArea({required this.selected, required this.onConfirm});
+
+  final bool selected;
+  final VoidCallback onConfirm;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 40,
+      width: double.infinity,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 120),
+        opacity: selected ? 1 : 0,
+        child: IgnorePointer(
+          ignoring: !selected,
+          child: Container(
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: GamePalette.goldBright.withValues(alpha: 0.72),
+              ),
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF223543), Color(0xFF07111D)],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: GamePalette.goldBright.withValues(alpha: 0.18),
+                  blurRadius: 12,
+                ),
+              ],
+            ),
+            child: GameButton(
+              onPressed: onConfirm,
+              label: '획득 확정',
+              height: 36,
+              variant: GameButtonVariant.confirm,
+              accentColor: GamePalette.goldBright,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+            ),
           ),
         ),
       ),
