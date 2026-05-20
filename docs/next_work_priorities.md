@@ -1,6 +1,6 @@
 # Rune Nexus 다음 작업 우선순위
 
-마지막 정리 기준: `main` 브랜치 커밋 `dc449a0`.
+마지막 정리 기준: `main` 브랜치 커밋 `2242f37`.
 
 ## 목적
 
@@ -31,6 +31,7 @@
 
 남은 핵심 약점은 다음과 같다.
 
+- 최우선 과제는 챕터 2 보호막병 웨이브 MVP 구현이다. `EnemyType.shielded`와 기본 수치는 이미 있으므로, 이제 스테이지 6과 챕터 2 웨이브 문법으로 실제 플레이 체감을 검증해야 한다.
 - 스테이지 2~5는 챕터 1 후반 구간으로 묶어도 된다. 신규 몹이나 신규 기믹 없이 스테이지 3~5의 웨이브만 억지로 갈라봤자 체감 차이가 작다.
 - 영구 업그레이드는 정비 보급, 기초 화력 훈련, 처치 보상, 긴급 매각까지 확장됐지만, 해금 단계와 젬/링크 계열 선택지는 아직 얕다.
 - 젬 파편과 포탑 특성 시스템은 구현됐지만, 수급량과 비용 곡선은 아직 장기 검증이 부족하다.
@@ -46,9 +47,11 @@
 
 가장 먼저 추천하는 작업이다.
 설계 기준은 `docs/chapter2_wave_enemy_design.md`에 유지한다.
+보호막병 시각/역할 기준은 `docs/prototypes/shielded_enemy_design_preview.html`에 정리했다.
 
 작업 후보:
 
+- 스테이지 6을 챕터 2 첫 스테이지로 추가
 - 보호막병이 기존 포탑, 젬, 링크, 특성 선택을 어떻게 다르게 요구하는지 웨이브에서 검증
 - 챕터 2 웨이브 문법을 챕터 1과 다르게 구현
 - 챕터 2 진입 조건, 해금 보상, 연구 조건 연결 검토
@@ -64,6 +67,7 @@
 관련 파일:
 
 - `docs/chapter2_wave_enemy_design.md`
+- `docs/prototypes/shielded_enemy_design_preview.html`
 - `lib/data/definitions/demo_stage_data.dart`
 - `lib/data/definitions/demo_stage_waves.dart`
 - `lib/data/definitions/demo_enemy_data.dart`

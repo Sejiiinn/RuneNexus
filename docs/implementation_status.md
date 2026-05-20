@@ -1,6 +1,6 @@
 # Rune Nexus 구현 현황
 
-마지막 갱신 기준: `main` 브랜치 커밋 `dc449a0`.
+마지막 갱신 기준: `main` 브랜치 커밋 `2242f37`.
 
 ## 요약
 
@@ -62,6 +62,8 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
   - 스테이지별 맵 드래프트를 에디터 세션 동안 유지
   - 맵 크기, 타일 타입, 적 이동 waypoint를 편집
   - `MapDefinition` Dart 코드 형태로 export 표시
+- 문서/프로토타입 HTML
+  - `docs/prototypes/shielded_enemy_design_preview.html`: 챕터 2 보호막병 실제 몹 설계안
 
 ### 스테이지/진행
 
@@ -296,7 +298,7 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 
 ## 아직 구현하지 않은 항목
 
-- `docs/chapter2_wave_enemy_design.md` 기준의 챕터 2 보호막병 웨이브 문법 구현
+- `docs/chapter2_wave_enemy_design.md`와 `docs/prototypes/shielded_enemy_design_preview.html` 기준의 챕터 2 보호막병 웨이브 문법 구현
 - 챕터 2 진입 조건, 해금 보상, 연구 조건 연결
 - 영구 업그레이드 해금 단계 구조
 - 링크/젬/룬 보상 계열 영구 업그레이드 추가 검토
@@ -308,7 +310,7 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 
 ## 다음 추천 작업
 
-1. `docs/chapter2_wave_enemy_design.md` 기준 챕터 2 보호막병 웨이브 MVP 구현
+1. `docs/chapter2_wave_enemy_design.md`와 `docs/prototypes/shielded_enemy_design_preview.html` 기준 챕터 2 보호막병 웨이브 MVP 구현
 2. 연구/영구 성장 해금 단계 정리
 3. 젬 파편 수급량과 젬 구매/포탑 특성 비용 밸런스 점검
 4. 50라운드 기준 보상/난이도 곡선 재점검

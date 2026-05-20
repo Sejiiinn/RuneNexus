@@ -38,6 +38,7 @@
 
 1차 구현 우선 후보다. 이미 구현된 보호막과 보호막 재생 규칙을 활용할 수 있어 신규 시스템 부담이 작다.
 현재 `EnemyType.shielded`와 적 데이터는 추가됐고, 웨이브 배치는 아직 하지 않았다.
+실제 몹 설계와 화면 기준은 `docs/prototypes/shielded_enemy_design_preview.html`에 별도 HTML 프로토타입으로 정리한다.
 
 역할:
 
@@ -206,10 +207,11 @@
 
 1. `EnemyType.shielded` 추가: 완료
 2. 보호막병 데이터 추가: 완료
-3. 챕터 2용 웨이브 빌더 추가
-4. 스테이지 6 정의 1개 추가
-5. 스테이지 선택 UI에서 챕터 2 첫 스테이지 표시
-6. 웨이브 미리보기와 적 상세에서 보호막 수치가 정상 표시되는지 테스트
+3. 보호막병 실제 몹 설계 HTML 추가: 완료
+4. 챕터 2용 웨이브 빌더 추가
+5. 스테이지 6 정의 1개 추가
+6. 스테이지 선택 UI에서 챕터 2 첫 스테이지 표시
+7. 웨이브 미리보기와 적 상세에서 보호막 수치가 정상 표시되는지 테스트
 
 MVP에서 제외:
 
@@ -223,6 +225,7 @@ MVP에서 제외:
 
 - `lib/domain/enemy/enemy_type.dart`
 - `lib/data/definitions/demo_enemy_data.dart`
+- `docs/prototypes/shielded_enemy_design_preview.html`
 - `lib/data/definitions/demo_stage_waves.dart`
 - `lib/data/definitions/demo_stage_data.dart`
 - `lib/domain/stage/stage_definition.dart`
