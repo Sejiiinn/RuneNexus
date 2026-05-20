@@ -420,6 +420,15 @@ class _MainMenuDebugPanel extends StatelessWidget {
                 title: '연구',
                 children: [
                   _DebugActionButton(
+                    label: game.debugInstantResearchCompletion
+                        ? '즉시 완료 ON'
+                        : '즉시 완료 OFF',
+                    selected: game.debugInstantResearchCompletion,
+                    onPressed: () => game.debugSetInstantResearchCompletion(
+                      !game.debugInstantResearchCompletion,
+                    ),
+                  ),
+                  _DebugActionButton(
                     label: '연구 초기화',
                     danger: true,
                     onPressed: game.debugResetResearchProgress,

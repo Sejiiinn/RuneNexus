@@ -963,7 +963,7 @@ void main() {
       progression.startResearch(ResearchType.gemAttunement, nowMillis: 1000),
       isTrue,
     );
-    expect(progression.runes, 850);
+    expect(progression.runes, 895);
     expect(progression.researchLevel(ResearchType.gemAttunement), 0);
     expect(progression.startingGemShards, 0);
     expect(progression.activeResearches, hasLength(1));
@@ -985,7 +985,7 @@ void main() {
       progression.startResearch(ResearchType.gemAttunement, nowMillis: 5000000),
       isTrue,
     );
-    expect(progression.runes, 655);
+    expect(progression.runes, 758);
     expect(progression.activeResearches.single.durationMillis, 4500000);
   });
 
@@ -1068,7 +1068,7 @@ void main() {
       restored.startResearch(ResearchType.gemAttunement, nowMillis: 5000000),
       isTrue,
     );
-    expect(restored.runes, 850);
+    expect(restored.runes, 895);
     expect(restored.activeResearches.single.durationMillis, 2700000);
     expect(restored.activeResearches.single.initialElapsedMillis, 900000);
     expect(restored.activeResearches.single.progressRatioAt(5000000), 0.25);
@@ -1117,7 +1117,7 @@ void main() {
       progression.startResearch(ResearchType.gemAttunement, nowMillis: 3000),
       isTrue,
     );
-    expect(progression.runes, 125);
+    expect(progression.runes, 147);
     expect(progression.activeResearches.single.durationMillis, 3428571);
   });
 
@@ -1178,6 +1178,19 @@ void main() {
     expect(game.snapshotNotifier.value.activeResearches, isEmpty);
     expect(game.snapshotNotifier.value.researchLevels, isEmpty);
     expect(game.snapshotNotifier.value.researchElapsedMillis, isEmpty);
+
+    game.debugSetInstantResearchCompletion(true);
+    expect(game.debugInstantResearchCompletion, isTrue);
+    game.startResearch(ResearchType.researchEfficiency);
+    expect(game.snapshotNotifier.value.activeResearches, isEmpty);
+    expect(
+      game.snapshotNotifier.value.researchLevels[ResearchType
+          .researchEfficiency],
+      1,
+    );
+
+    game.debugSetInstantResearchCompletion(false);
+    expect(game.debugInstantResearchCompletion, isFalse);
   });
 
   test('restart demo resets debug-modified stage state', () {
@@ -1656,19 +1669,27 @@ void main() {
     expect(sniper.criticalDamageMultiplier, closeTo(2.01, 0.001));
   });
 
-  test('kill reward uses supply-like 10 level progression', () {
+  test('supply and kill reward use 20 level progression', () {
     final progression = RunProgression()..runes = 10000;
 
-    expect(RunProgression.maxKillGoldUpgradeLevel, 10);
+    expect(RunProgression.maxSupplyUpgradeLevel, 20);
+    expect(RunProgression.maxKillGoldUpgradeLevel, 20);
+    expect(progression.supplyUpgradeCost, 7);
     expect(progression.killGoldUpgradeCost, 7);
 
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 20; i++) {
+      expect(progression.upgradeSupply(), isTrue);
       expect(progression.upgradeKillGold(), isTrue);
     }
 
-    expect(progression.killGoldUpgradeLevel, 10);
-    expect(progression.killGoldBonusRate, closeTo(0.10, 0.001));
-    expect(progression.killGoldUpgradeCost, 47);
+    expect(progression.supplyUpgradeLevel, 20);
+    expect(progression.waveClearGoldBonus, 20);
+    expect(progression.supplyUpgradeCost, 87);
+    expect(progression.canUpgradeSupply, isFalse);
+    expect(progression.upgradeSupply(), isFalse);
+    expect(progression.killGoldUpgradeLevel, 20);
+    expect(progression.killGoldBonusRate, closeTo(0.20, 0.001));
+    expect(progression.killGoldUpgradeCost, 87);
     expect(progression.canUpgradeKillGold, isFalse);
     expect(progression.upgradeKillGold(), isFalse);
   });

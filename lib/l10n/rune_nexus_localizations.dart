@@ -301,6 +301,11 @@ class RuneNexusLocalizations {
           ? 'Increases research cost efficiency by 5% per level. 100% efficiency halves future research rune costs.'
           : '레벨마다 연구 비용 효율이 5% 증가합니다. 효율 100%는 이후 연구 룬 비용을 절반으로 줄입니다.';
     }
+    if (title == tacticalCommand) {
+      return _isEnglish
+          ? 'Allows each turret to set its preferred attack target.'
+          : '포탑별로 우선 공격 대상을 지정할 수 있도록 합니다.';
+    }
     if (title == runeResonance) {
       return _isEnglish
           ? 'Opens research for improving rune rewards after a run.'

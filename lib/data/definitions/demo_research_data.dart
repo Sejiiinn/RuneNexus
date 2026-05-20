@@ -47,7 +47,7 @@ const demoResearchDefinitions = {
     type: ResearchType.gemAttunement,
     maxLevel: 5,
     requiredClearedStage: 3,
-    baseRuneCost: 150,
+    baseRuneCost: 105,
     costMultiplier: 1.3,
     durationMillis: oneHourResearchDurationMillis,
     durationMultiplier: 1.25,

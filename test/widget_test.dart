@@ -22,6 +22,20 @@ import 'package:rune_nexus/ui/menu/map_editor_panel.dart';
 import 'package:rune_nexus/ui/menu/result_overlay.dart';
 
 void main() {
+  test('tactical command research has popup description text', () {
+    const ko = RuneNexusLocalizations(Locale('ko'));
+    const en = RuneNexusLocalizations(Locale('en'));
+
+    expect(
+      ko.researchDescription(ko.tacticalCommand),
+      '포탑별로 우선 공격 대상을 지정할 수 있도록 합니다.',
+    );
+    expect(
+      en.researchDescription(en.tacticalCommand),
+      'Allows each turret to set its preferred attack target.',
+    );
+  });
+
   testWidgets('Rune Nexus app renders main menu', (tester) async {
     await _pumpLoadedApp(tester);
 

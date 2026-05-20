@@ -384,6 +384,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   int _roundIndex = 0;
   GamePhase _phase = GamePhase.preparation;
   bool _debugCombatActive = false;
+  bool _debugInstantResearchCompletion = false;
   GamePhase? _restoredPhase;
   bool _isPurchasedGemReward = false;
   TurretType _selectedTurretType = TurretType.arrow;
@@ -872,12 +873,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void startResearch(ResearchType type) {
-    final started = _progression.startResearch(
-      type,
-      nowMillis: DateTime.now().millisecondsSinceEpoch,
-    );
+    final nowMillis = DateTime.now().millisecondsSinceEpoch;
+    final started = _progression.startResearch(type, nowMillis: nowMillis);
     if (!started) {
       return;
+    }
+    if (_debugInstantResearchCompletion) {
+      _completeActiveResearchesForDebug(nowMillis);
     }
     _publish();
     _requestLocalSave(immediate: true);
@@ -1093,6 +1095,32 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _progression.activeResearches.clear();
     _publish();
     _requestLocalSave(immediate: true);
+  }
+
+  bool get debugInstantResearchCompletion => _debugInstantResearchCompletion;
+
+  void debugSetInstantResearchCompletion(bool enabled) {
+    if (_debugInstantResearchCompletion == enabled) {
+      return;
+    }
+    _debugInstantResearchCompletion = enabled;
+    if (enabled) {
+      _completeActiveResearchesForDebug(DateTime.now().millisecondsSinceEpoch);
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void _completeActiveResearchesForDebug(int nowMillis) {
+    if (_progression.activeResearches.isEmpty) {
+      return;
+    }
+    final completionMillis = _progression.activeResearches.fold<int>(
+      nowMillis,
+      (latest, research) =>
+          math.max(latest, research.startedAtMillis + research.durationMillis),
+    );
+    _progression.completeFinishedResearches(nowMillis: completionMillis);
   }
 
   void debugAddGemShards(int amount) {

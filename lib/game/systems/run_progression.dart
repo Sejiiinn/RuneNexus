@@ -11,11 +11,11 @@ class RunProgression {
   static const int maxStageCount = 10;
   static const int maxStartingGoldUpgradeLevel = 20;
   static const int maxNexusHpUpgradeLevel = 10;
-  static const int maxSupplyUpgradeLevel = 10;
+  static const int maxSupplyUpgradeLevel = 20;
   static const int maxFireTrainingUpgradeLevel = 20;
   static const int maxCriticalChanceUpgradeLevel = 20;
   static const int maxCriticalDamageUpgradeLevel = 20;
-  static const int maxKillGoldUpgradeLevel = 10;
+  static const int maxKillGoldUpgradeLevel = 20;
   static const int maxEmergencySaleUpgradeLevel = 5;
   static const int researchSlotCount = 1;
   static const int gemShardsPerGemAttunementLevel = 2;
