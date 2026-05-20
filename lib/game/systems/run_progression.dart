@@ -127,7 +127,7 @@ class RunProgression {
       researchLevel(ResearchType.gemAttunement) *
       gemShardsPerGemAttunementLevel;
   int get maxTurretLinkSlots =>
-      isResearchComplete(ResearchType.linkExpansionOne) ? 2 : 1;
+      isResearchComplete(ResearchType.linkExpansionOne) ? 4 : 3;
   bool get canSetTurretTargetPriority =>
       isResearchComplete(ResearchType.turretTargetPriority);
   double get researchEfficiencyRate =>

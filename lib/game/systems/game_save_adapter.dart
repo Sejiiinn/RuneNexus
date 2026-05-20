@@ -110,12 +110,9 @@ class GameSaveAdapter {
     for (var currentLevel = 1; currentLevel < level; currentLevel++) {
       total += _turretLevelUpCostAt(baseCost, currentLevel);
     }
-    final slotLimit = savedTurret.slotLimit.clamp(1, 3).toInt();
-    if (slotLimit >= 2) {
-      total += _turretLinkUpgradeCostForSlot(baseCost, 2);
-    }
-    if (slotLimit >= 3) {
-      total += _turretLinkUpgradeCostForSlot(baseCost, 3);
+    final slotLimit = savedTurret.slotLimit.clamp(1, 4).toInt();
+    for (var slot = 2; slot <= slotLimit; slot++) {
+      total += _turretLinkUpgradeCostForSlot(baseCost, slot);
     }
     return total;
   }

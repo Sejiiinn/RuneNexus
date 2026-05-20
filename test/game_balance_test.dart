@@ -846,20 +846,34 @@ void main() {
     expect(upgraded.selectedTurretNextLevel, 3);
   });
 
-  test('turret link upgrade requires completed link research', () {
-    final lockedGame = RuneNexusGame();
-    final lockedTurret = TurretComponent(
+  test('turret link upgrade opens three links before link research', () {
+    final baseGame = RuneNexusGame();
+    final baseTurret = TurretComponent(
       gridPoint: const GridPoint(0, 0),
       definition: demoTurrets[TurretType.arrow]!,
-      game: lockedGame,
+      game: baseGame,
       center: Vector2.zero(),
       tileSize: 32,
     );
 
-    expect(lockedTurret.maxSlotLimit, 1);
-    expect(lockedTurret.hasNextLinkUpgrade, isFalse);
-    expect(lockedTurret.upgradeLink(), isFalse);
+    expect(baseTurret.maxSlotLimit, 3);
+    expect(baseTurret.linkUpgradeCost, 90);
+    expect(baseTurret.upgradeLink(), isTrue);
+    expect(baseTurret.slotLimit, 2);
+    expect(baseTurret.linkUpgradeRequiredLevel, 5);
+    expect(baseTurret.upgradeLink(), isFalse);
 
+    while (baseTurret.level < 5) {
+      expect(baseTurret.upgradeLevel(), isTrue);
+    }
+
+    expect(baseTurret.linkUpgradeCost, 180);
+    expect(baseTurret.upgradeLink(), isTrue);
+    expect(baseTurret.slotLimit, 3);
+    expect(baseTurret.hasNextLinkUpgrade, isFalse);
+  });
+
+  test('link expansion research raises turret link limit to four', () {
     final unlockedGame = _LinkResearchUnlockedGame();
     final machineGun = TurretComponent(
       gridPoint: const GridPoint(0, 0),
@@ -882,6 +896,14 @@ void main() {
     expect(cannon.upgradeLink(), isTrue);
     expect(machineGun.slotLimit, 2);
     expect(cannon.slotLimit, 2);
+    while (machineGun.level < 5) {
+      expect(machineGun.upgradeLevel(), isTrue);
+    }
+    expect(machineGun.upgradeLink(), isTrue);
+    expect(machineGun.slotLimit, 3);
+    expect(machineGun.linkUpgradeCost, 180);
+    expect(machineGun.upgradeLink(), isTrue);
+    expect(machineGun.slotLimit, 4);
     expect(machineGun.hasNextLinkUpgrade, isFalse);
   });
 
@@ -3168,7 +3190,7 @@ class _LinkResearchUnlockedGame extends RuneNexusGame {
   _LinkResearchUnlockedGame({super.waves, super.saveRepository});
 
   @override
-  int get maxTurretLinkSlotLimit => 2;
+  int get maxTurretLinkSlotLimit => 4;
 }
 
 const _targetPriorityTestTurret = TurretDefinition(

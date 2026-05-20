@@ -92,11 +92,8 @@ class TurretComponent extends PositionComponent {
     for (var level = 1; level < _level; level++) {
       total += _levelUpCostAt(level);
     }
-    if (_slotLimit >= 2) {
-      total += _linkUpgradeCostForSlot(2);
-    }
-    if (_slotLimit >= 3) {
-      total += _linkUpgradeCostForSlot(3);
+    for (var slot = 2; slot <= _slotLimit; slot++) {
+      total += _linkUpgradeCostForSlot(slot);
     }
     return total;
   }
@@ -107,7 +104,7 @@ class TurretComponent extends PositionComponent {
   int get maxSlotLimit => game.maxTurretLinkSlotLimit;
   bool get hasNextLinkUpgrade => _slotLimit < maxSlotLimit;
   int get nextSlotLimit => hasNextLinkUpgrade ? _slotLimit + 1 : _slotLimit;
-  int get linkUpgradeRequiredLevel => 1;
+  int get linkUpgradeRequiredLevel => nextSlotLimit >= 3 ? 5 : 1;
   int get linkUpgradeCost {
     if (!hasNextLinkUpgrade) {
       return 0;
