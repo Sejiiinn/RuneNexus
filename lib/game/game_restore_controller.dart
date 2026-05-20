@@ -124,12 +124,32 @@ class GameRestoreController {
     if (restoredPhase != GamePhase.wave || !restoreWaveAsPaused) {
       _game._phase = restoredPhase;
       _game._restoredPhase = null;
+      _restoreEmptyRewardOptionsIfNeeded();
       return;
     }
 
     _game._phase = GamePhase.restored;
     _game._restoredPhase = restoredPhase;
     _game._isPurchasedGemReward = false;
+    _restoreEmptyRewardOptionsIfNeeded();
+  }
+
+  void _restoreEmptyRewardOptionsIfNeeded() {
+    if (_game._phase != GamePhase.reward || _game._rewardOptions.isNotEmpty) {
+      return;
+    }
+
+    final fallbackOptions = _game._availableGemTypes().take(3).toList();
+    if (fallbackOptions.isNotEmpty) {
+      _game._rewardOptions.addAll(fallbackOptions);
+      _game._requestLocalSave(immediate: true);
+      return;
+    }
+
+    _game._phase = GamePhase.preparation;
+    _game._restoredPhase = null;
+    _game._isPurchasedGemReward = false;
+    _game._requestLocalSave(immediate: true);
   }
 
   void _clearBoardEntities() {

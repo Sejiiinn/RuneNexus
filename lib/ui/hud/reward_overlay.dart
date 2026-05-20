@@ -46,25 +46,39 @@ class _RewardOverlayState extends State<_RewardOverlay> {
                 ),
               ],
               const SizedBox(height: 12),
-              Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  ...snapshot.rewardOptions.map((type) {
-                    return _RewardCard(
-                      type: type,
-                      selected: selectedGem == type,
-                      onPressed: () {
-                        setState(() {
-                          _selectedGem = type;
-                          _selectedGemShards = false;
-                        });
-                      },
-                      onConfirm: () => widget.game.selectRewardGem(type),
-                    );
-                  }),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final optionCount = snapshot.rewardOptions.length;
+                  const spacing = 8.0;
+                  final cardWidth = optionCount <= 1
+                      ? math.min(112.0, constraints.maxWidth)
+                      : ((constraints.maxWidth - spacing * (optionCount - 1)) /
+                                optionCount)
+                            .clamp(96.0, 110.0)
+                            .toDouble();
+                  return Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: spacing,
+                    runSpacing: spacing,
+                    children: [
+                      ...snapshot.rewardOptions.map((type) {
+                        return _RewardCard(
+                          type: type,
+                          width: cardWidth,
+                          ownedCount: snapshot.gemCollection[type] ?? 0,
+                          selected: selectedGem == type,
+                          onPressed: () {
+                            setState(() {
+                              _selectedGem = type;
+                              _selectedGemShards = false;
+                            });
+                          },
+                          onConfirm: () => widget.game.selectRewardGem(type),
+                        );
+                      }),
+                    ],
+                  );
+                },
               ),
               if (!isPurchase) ...[
                 const SizedBox(height: 10),
@@ -273,12 +287,16 @@ class _OwnedGemChip extends StatelessWidget {
 class _RewardCard extends StatelessWidget {
   const _RewardCard({
     required this.type,
+    required this.width,
+    required this.ownedCount,
     required this.selected,
     required this.onPressed,
     required this.onConfirm,
   });
 
   final GemType type;
+  final double width;
+  final int ownedCount;
   final bool selected;
   final VoidCallback onPressed;
   final VoidCallback onConfirm;
@@ -286,17 +304,138 @@ class _RewardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gem = demoGems[type]!;
-    return TraitCard(
-      width: 96,
-      height: 156,
-      title: gem.name,
-      description: gem.shortText,
-      accentColor: gem.color,
-      icon: Icon(gem.icon),
-      selected: selected,
-      enabled: true,
-      onPressed: onPressed,
-      onConfirm: selected ? onConfirm : null,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(8),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          width: width,
+          height: 204,
+          padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: gem.color, width: selected ? 2 : 1),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                gem.color.withValues(alpha: selected ? 0.22 : 0.14),
+                const Color(0xF007111D),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xAA000000),
+                blurRadius: selected ? 16 : 10,
+                offset: const Offset(0, 6),
+              ),
+              if (selected)
+                BoxShadow(
+                  color: gem.color.withValues(alpha: 0.22),
+                  blurRadius: 18,
+                ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: gem.color.withValues(alpha: 0.18),
+                  border: Border.all(color: gem.color.withValues(alpha: 0.78)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(gem.icon, color: gem.color, size: 21),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 36,
+                child: Center(
+                  child: Text(
+                    gem.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: GameTextStyles.sectionTitle.copyWith(
+                      fontSize: 13,
+                      height: 1.12,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              SizedBox(
+                height: 32,
+                child: Center(
+                  child: Text(
+                    _rewardCardEffectText(type),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: GameTextStyles.caption.copyWith(
+                      color: GamePalette.textSecondary,
+                      fontSize: 10.5,
+                      height: 1.18,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 7),
+              Container(
+                height: 22,
+                padding: const EdgeInsets.symmetric(horizontal: 7),
+                decoration: BoxDecoration(
+                  color: const Color(0x8802070D),
+                  border: Border.all(color: const Color(0x5533D8FF)),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '보유 $ownedCount',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GameTextStyles.chip.copyWith(fontSize: 10),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 28,
+                width: double.infinity,
+                child: selected
+                    ? GameButton(
+                        onPressed: onConfirm,
+                        label: '선택',
+                        compact: true,
+                        variant: GameButtonVariant.confirm,
+                        accentColor: gem.color,
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
+}
+
+String _rewardCardEffectText(GemType type) {
+  return switch (type) {
+    GemType.attackSpeed => '공격 속도 40% 증가',
+    GemType.range => '사거리 20% 증가',
+    GemType.physicalDamage => '물리 포탑 피해 40% 증가',
+    GemType.magicalDamage => '마법 포탑 피해 40% 증가',
+    GemType.lightWeapon => '경량화기 피해와 연사 강화',
+    GemType.heavyWeapon => '중화기 피해와 범위 강화',
+    GemType.damageOverTime => '지속피해와 시간 강화',
+    GemType.explosion => '범위 피해 추가',
+    GemType.chain => '추가 타격 발생',
+    GemType.criticalChance => '치명 확률 +20%p',
+    GemType.aimSpeed => '조준 속도 75% 증가',
+    GemType.damageAmplifier => '타격 피해 25% 증가',
+    GemType.armorPiercing => '방어구 감쇄 무시',
+  };
 }

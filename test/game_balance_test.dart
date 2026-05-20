@@ -32,6 +32,7 @@ import 'package:rune_nexus/game/components/enemy_component.dart';
 import 'package:rune_nexus/game/components/projectile_component.dart';
 import 'package:rune_nexus/game/components/turret_component.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
+import 'package:rune_nexus/game/systems/game_save_adapter.dart';
 import 'package:rune_nexus/game/systems/gem_reward_generator.dart';
 import 'package:rune_nexus/game/systems/run_progression.dart';
 import 'package:rune_nexus/game/systems/wave_spawner.dart';
@@ -3033,6 +3034,94 @@ void main() {
     },
   );
 
+  test('purchased reward options stay fixed after menu restore', () async {
+    const rewardOptions = [
+      GemType.chain,
+      GemType.range,
+      GemType.physicalDamage,
+    ];
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {},
+        researchLevels: const {},
+        gemShards: 5,
+        phase: GamePhase.reward,
+        isPurchasedGemReward: true,
+        rewardOptions: rewardOptions,
+      );
+    final restored = RuneNexusGame(saveRepository: repository);
+
+    await restored.prepareSavedStateForMenu();
+
+    final snapshot = restored.snapshotNotifier.value;
+    expect(snapshot.phase, GamePhase.reward);
+    expect(snapshot.isPurchasedGemReward, isTrue);
+    expect(snapshot.rewardOptions, rewardOptions);
+    expect(snapshot.gemShards, 5);
+  });
+
+  test(
+    'purchased reward options are kept when full game load follows menu save',
+    () async {
+      final repository = MemorySaveRepository()
+        ..data = _saveWithResearch(
+          clearedStageNumbers: const {},
+          researchLevels: const {},
+          gemShards: RuneNexusGame.gemChoicePurchaseCost,
+          mapSignature: const GameSaveAdapter().mapSignature(demoMap),
+        );
+      final game = RuneNexusGame(saveRepository: repository);
+
+      await game.prepareSavedStateForMenu();
+      game.purchaseGemChoice();
+      await game.saveNow();
+
+      final savedOptions = repository.data!.rewardOptions;
+      expect(repository.data!.phase, GamePhase.reward);
+      expect(savedOptions, isNotEmpty);
+
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+
+      final snapshot = game.snapshotNotifier.value;
+      expect(snapshot.phase, GamePhase.reward);
+      expect(snapshot.isPurchasedGemReward, isTrue);
+      expect(snapshot.rewardOptions, savedOptions);
+      expect(repository.data!.rewardOptions, savedOptions);
+    },
+  );
+
+  test(
+    'empty purchased reward save is recovered with stable options',
+    () async {
+      final repository = MemorySaveRepository()
+        ..data = _saveWithResearch(
+          clearedStageNumbers: const {},
+          researchLevels: const {},
+          gemShards: 5,
+          phase: GamePhase.reward,
+          isPurchasedGemReward: true,
+        );
+      final restored = RuneNexusGame(saveRepository: repository);
+
+      await restored.prepareSavedStateForMenu();
+      await restored.saveNow();
+
+      final snapshot = restored.snapshotNotifier.value;
+      expect(snapshot.phase, GamePhase.reward);
+      expect(snapshot.isPurchasedGemReward, isTrue);
+      expect(snapshot.rewardOptions, const [
+        GemType.attackSpeed,
+        GemType.range,
+        GemType.physicalDamage,
+      ]);
+      expect(snapshot.gemShards, 5);
+      expect(repository.data!.phase, GamePhase.reward);
+      expect(repository.data!.isPurchasedGemReward, isTrue);
+      expect(repository.data!.rewardOptions, snapshot.rewardOptions);
+    },
+  );
+
   test(
     'local save restores active enemy durability and path progress',
     () async {
@@ -3267,18 +3356,23 @@ GameSaveData _saveWithResearch({
   required Map<ResearchType, int> researchLevels,
   int runes = 0,
   int unlockedStageCount = 4,
+  int gemShards = 0,
+  GamePhase phase = GamePhase.preparation,
+  bool isPurchasedGemReward = false,
+  List<GemType> rewardOptions = const [],
+  String? mapSignature,
 }) {
   return GameSaveData(
     version: GameSaveData.currentVersion,
     savedAtMillis: 0,
     gold: 150,
-    gemShards: 0,
+    gemShards: gemShards,
     nexusHp: 20,
     stageNumber: 1,
-    mapSignature: null,
+    mapSignature: mapSignature,
     roundIndex: 0,
     completedRounds: 0,
-    phase: GamePhase.preparation,
+    phase: phase,
     autoStartMode: AutoStartMode.pauseEachRound,
     progression: SavedProgression(
       runes: runes,
@@ -3301,8 +3395,8 @@ GameSaveData _saveWithResearch({
     runUpgradeLevels: const {},
     killGoldFractionWallet: 0,
     gemInventory: const {},
-    rewardOptions: const [],
-    isPurchasedGemReward: false,
+    rewardOptions: rewardOptions,
+    isPurchasedGemReward: isPurchasedGemReward,
     turrets: const [],
     enemies: const [],
     spawnQueue: const [],

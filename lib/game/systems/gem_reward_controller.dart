@@ -22,9 +22,14 @@ class GemRewardController {
       return null;
     }
 
+    final rewardOptions = _generateOptions(availableGems);
+    if (rewardOptions.isEmpty) {
+      return null;
+    }
+
     return GemChoicePurchase(
       gemShards: gemShards - purchaseCost,
-      rewardOptions: _generateOptions(availableGems),
+      rewardOptions: rewardOptions,
     );
   }
 

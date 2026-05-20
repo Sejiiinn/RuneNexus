@@ -2581,6 +2581,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _requestLocalSave({bool immediate = false}) {
+    if (immediate && !_savedDataLoaded) {
+      _pendingFullSaveData = _buildSaveData();
+    }
     _saveScheduler.requestSave(immediate: immediate);
   }
 
@@ -2599,7 +2602,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Future<void> _writeLocalSave() {
-    return _writeLocalSaveData(_buildSaveData());
+    final data = _buildSaveData();
+    if (!_savedDataLoaded) {
+      _pendingFullSaveData = data;
+    }
+    return _writeLocalSaveData(data);
   }
 
   Future<void> _writeLocalSaveData(GameSaveData data) async {
@@ -2614,12 +2621,27 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_savedDataLoaded) {
       return;
     }
+    final pendingRewardOptions = List<GemType>.of(_rewardOptions);
+    final pendingRewardPhase = _phase;
+    final pendingRewardGemShards = _gemShards;
+    final pendingRewardIsPurchase = _isPurchasedGemReward;
     _savedDataLoaded = true;
     final savedData = _pendingFullSaveData ?? await _saveRepository.load();
     _pendingFullSaveData = null;
     _savedTurretCountForMenu = 0;
     if (savedData != null) {
       _restoreController.restoreFromSaveData(savedData);
+    }
+    if (pendingRewardPhase == GamePhase.reward &&
+        pendingRewardOptions.isNotEmpty) {
+      _phase = GamePhase.reward;
+      _restoredPhase = null;
+      _gemShards = pendingRewardGemShards;
+      _isPurchasedGemReward = pendingRewardIsPurchase;
+      _rewardOptions
+        ..clear()
+        ..addAll(pendingRewardOptions);
+      _requestLocalSave(immediate: true);
     }
     _updateResearchProgress();
   }
