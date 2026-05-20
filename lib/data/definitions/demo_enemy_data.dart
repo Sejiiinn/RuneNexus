@@ -28,6 +28,18 @@ const demoEnemies = <EnemyType, EnemyDefinition>{
     color: Color(0xFFF0D878),
     resistanceProfile: EnemyResistanceProfile.neutral,
   ),
+  EnemyType.shielded: EnemyDefinition(
+    type: EnemyType.shielded,
+    name: '보호막병',
+    maxHp: 36,
+    maxShield: 42,
+    shieldRegenRate: 0.04,
+    speed: 29,
+    rewardGold: 8,
+    coreDamage: 1,
+    color: Color(0xFF62D9FF),
+    resistanceProfile: EnemyResistanceProfile.neutral,
+  ),
   EnemyType.fast: EnemyDefinition(
     type: EnemyType.fast,
     name: '빠름',

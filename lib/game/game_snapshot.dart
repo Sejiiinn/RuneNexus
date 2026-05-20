@@ -7,6 +7,7 @@ import '../domain/map/grid_point.dart';
 import '../domain/research/research_progress.dart';
 import '../domain/research/research_type.dart';
 import '../domain/run_upgrade/run_upgrade_type.dart';
+import '../domain/turret/turret_target_priority.dart';
 import '../domain/turret/turret_trait_type.dart';
 import '../domain/turret/turret_type.dart';
 
@@ -69,6 +70,8 @@ class GameSnapshot {
     required this.selectedTurretSplashDamageDealt,
     required this.selectedTurretChainDamageDealt,
     required this.selectedTurretBurnDamageDealt,
+    required this.canSetTurretTargetPriority,
+    required this.selectedTurretTargetPriority,
     required this.selectedTurretSupportsTraits,
     required this.selectedTurretPrimaryTraitChoices,
     required this.selectedTurretSecondaryTraitChoices,
@@ -196,6 +199,8 @@ class GameSnapshot {
   final double selectedTurretSplashDamageDealt;
   final double selectedTurretChainDamageDealt;
   final double selectedTurretBurnDamageDealt;
+  final bool canSetTurretTargetPriority;
+  final TurretTargetPriority selectedTurretTargetPriority;
   final bool selectedTurretSupportsTraits;
   final List<TurretTraitType> selectedTurretPrimaryTraitChoices;
   final List<TurretTraitType> selectedTurretSecondaryTraitChoices;

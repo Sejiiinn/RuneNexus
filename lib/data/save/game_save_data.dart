@@ -7,6 +7,7 @@ import '../../domain/research/research_type.dart';
 import '../../domain/run_upgrade/run_upgrade_type.dart';
 import '../../domain/turret/turret_trait_type.dart';
 import '../../domain/turret/turret_type.dart';
+import '../../domain/turret/turret_target_priority.dart';
 
 class GameSaveData {
   const GameSaveData({
@@ -292,6 +293,7 @@ class SavedTurret {
     required this.splashDamageDealt,
     required this.chainDamageDealt,
     required this.burnDamageDealt,
+    required this.targetPriority,
     required this.primaryTrait,
     required this.secondaryTrait,
   });
@@ -309,6 +311,7 @@ class SavedTurret {
   final double splashDamageDealt;
   final double chainDamageDealt;
   final double burnDamageDealt;
+  final TurretTargetPriority targetPriority;
   final TurretTraitType? primaryTrait;
   final TurretTraitType? secondaryTrait;
 
@@ -329,6 +332,7 @@ class SavedTurret {
       'splashDamageDealt': splashDamageDealt,
       'chainDamageDealt': chainDamageDealt,
       'burnDamageDealt': burnDamageDealt,
+      'targetPriority': targetPriority.name,
       'primaryTrait': primaryTrait?.name,
       'secondaryTrait': secondaryTrait?.name,
     };
@@ -360,6 +364,9 @@ class SavedTurret {
       splashDamageDealt: _doubleValue(json['splashDamageDealt']),
       chainDamageDealt: _doubleValue(json['chainDamageDealt']),
       burnDamageDealt: _doubleValue(json['burnDamageDealt']),
+      targetPriority:
+          _enumValue(TurretTargetPriority.values, json['targetPriority']) ??
+          TurretTargetPriority.first,
       primaryTrait: _enumValue(TurretTraitType.values, json['primaryTrait']),
       secondaryTrait: _enumValue(
         TurretTraitType.values,

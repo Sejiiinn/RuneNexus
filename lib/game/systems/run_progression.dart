@@ -21,6 +21,8 @@ class RunProgression {
   static const int gemShardsPerGemAttunementLevel = 2;
   static const double researchEfficiencyPerLevel = 0.05;
   static const double researchCostEfficiencyPerLevel = 0.05;
+  static const int baseStageOneFullClearRuneReward = 200;
+  static const double runeRewardGrowthPerRound = 1.04;
   static const int baseTurretRefundPercent = 75;
   static const int startingGoldUpgradeBaseCost = 4;
   static const int startingGoldUpgradeCostPerLevel = 4;
@@ -126,6 +128,8 @@ class RunProgression {
       gemShardsPerGemAttunementLevel;
   int get maxTurretLinkSlots =>
       isResearchComplete(ResearchType.linkExpansionOne) ? 2 : 1;
+  bool get canSetTurretTargetPriority =>
+      isResearchComplete(ResearchType.turretTargetPriority);
   double get researchEfficiencyRate =>
       researchLevel(ResearchType.researchEfficiency) *
       researchEfficiencyPerLevel;
@@ -599,7 +603,14 @@ class RunProgression {
     required bool success,
     int stageNumber = 1,
   }) {
-    final baseReward = math.max(1, completedRounds * 2 + (success ? 40 : 0));
+    if (completedRounds <= 0) {
+      return 0;
+    }
+    final cappedRounds = completedRounds.clamp(0, 50).toInt();
+    final rewardProgress =
+        (math.pow(runeRewardGrowthPerRound, cappedRounds) - 1) /
+        (math.pow(runeRewardGrowthPerRound, 50) - 1);
+    final baseReward = baseStageOneFullClearRuneReward * rewardProgress;
     final bonusRate = stageRuneRewardBonusRateFor(stageNumber);
     return math.max(1, (baseReward * (1 + bonusRate)).round());
   }

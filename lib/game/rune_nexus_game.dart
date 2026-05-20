@@ -28,6 +28,7 @@ import '../domain/research/research_type.dart';
 import '../domain/run_upgrade/run_upgrade_type.dart';
 import '../domain/stage/stage_definition.dart';
 import '../domain/turret/attack_tag.dart';
+import '../domain/turret/turret_target_priority.dart';
 import '../domain/turret/turret_trait_type.dart';
 import '../domain/turret/turret_type.dart';
 import '../domain/wave/wave_definition.dart';
@@ -191,6 +192,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretSplashDamageDealt: 0,
       selectedTurretChainDamageDealt: 0,
       selectedTurretBurnDamageDealt: 0,
+      canSetTurretTargetPriority: false,
+      selectedTurretTargetPriority: TurretTargetPriority.first,
       selectedTurretSupportsTraits: false,
       selectedTurretPrimaryTraitChoices: const [],
       selectedTurretSecondaryTraitChoices: const [],
@@ -1372,6 +1375,24 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         levelUpPreviewPoint: _levelUpPreviewPoint,
       ),
     );
+  }
+
+  void setSelectedTurretTargetPriority(TurretTargetPriority priority) {
+    if (!_progression.canSetTurretTargetPriority) {
+      return;
+    }
+    final selectedPoint = _selectedTurretPoint;
+    if (selectedPoint == null) {
+      return;
+    }
+    final turret = _turrets[selectedPoint];
+    if (turret == null || turret.targetPriority == priority) {
+      return;
+    }
+
+    turret.setTargetPriority(priority);
+    _publish();
+    _requestLocalSave(immediate: true);
   }
 
   void chooseSelectedTurretPrimaryTrait(TurretTraitType trait) {

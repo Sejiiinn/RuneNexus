@@ -80,6 +80,7 @@ class RuneNexusLocalizations {
   String get linkExpansionOne => _isEnglish ? 'Link Expansion I' : '링크 확장 I';
   String get linkExpansionTwo => _isEnglish ? 'Link Expansion II' : '링크 확장 II';
   String get gemAttunement => _isEnglish ? 'Gem Attunement' : '젬 감응';
+  String get tacticalCommand => _isEnglish ? 'Tactical Command' : '전술 명령';
   String get researchEfficiency => _isEnglish ? 'Research Efficiency' : '연구 효율';
   String get researchCostEfficiency =>
       _isEnglish ? 'Research Cost Efficiency' : '연구 비용 효율';
@@ -219,6 +220,10 @@ class RuneNexusLocalizations {
 
   String get researchLinkSlotEffect {
     return _isEnglish ? 'Max links increase' : '최대 링크 증가';
+  }
+
+  String get researchTargetPriorityEffect {
+    return _isEnglish ? 'Tower targeting commands' : '포탑 공격 명령 해금';
   }
 
   String researchRemaining(int remainingMillis) {

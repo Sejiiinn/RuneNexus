@@ -151,6 +151,9 @@ class GameSnapshotBuilder {
       selectedTurretSplashDamageDealt: selectedTurret?.splashDamageDealt ?? 0,
       selectedTurretChainDamageDealt: selectedTurret?.chainDamageDealt ?? 0,
       selectedTurretBurnDamageDealt: selectedTurret?.burnDamageDealt ?? 0,
+      canSetTurretTargetPriority: _game._progression.canSetTurretTargetPriority,
+      selectedTurretTargetPriority:
+          selectedTurret?.targetPriority ?? TurretTargetPriority.first,
       selectedTurretSupportsTraits: selectedTurret?.supportsTraits ?? false,
       selectedTurretPrimaryTraitChoices: List.unmodifiable(
         selectedTurret?.primaryTraitChoices ?? const [],

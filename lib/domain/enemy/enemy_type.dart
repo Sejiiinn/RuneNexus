@@ -1,1 +1,1 @@
-enum EnemyType { normal, armored, fast, tank, boss }
+enum EnemyType { normal, armored, shielded, fast, tank, boss }

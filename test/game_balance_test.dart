@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/definitions/demo_enemy_data.dart';
 import 'package:rune_nexus/data/definitions/demo_stage_data.dart';
 import 'package:rune_nexus/data/definitions/demo_turret_data.dart';
+import 'package:rune_nexus/data/save/game_save_data.dart';
 import 'package:rune_nexus/data/save/save_repository.dart';
 import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
@@ -22,6 +23,8 @@ import 'package:rune_nexus/domain/run_upgrade/run_upgrade_type.dart';
 import 'package:rune_nexus/domain/stage/stage_definition.dart';
 import 'package:rune_nexus/domain/turret/attack_tag.dart';
 import 'package:rune_nexus/domain/turret/damage_family.dart';
+import 'package:rune_nexus/domain/turret/turret_definition.dart';
+import 'package:rune_nexus/domain/turret/turret_target_priority.dart';
 import 'package:rune_nexus/domain/turret/turret_trait_type.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/domain/wave/wave_definition.dart';
@@ -121,8 +124,8 @@ void main() {
 
     expect(game.snapshotNotifier.value.phase, GamePhase.success);
     expect(game.snapshotNotifier.value.completedRounds, 1);
-    expect(game.snapshotNotifier.value.lastRunRuneReward, 42);
-    expect(game.snapshotNotifier.value.runes, 42);
+    expect(game.snapshotNotifier.value.lastRunRuneReward, 1);
+    expect(game.snapshotNotifier.value.runes, 1);
     expect(game.snapshotNotifier.value.unlockedStageCount, 2);
     expect(game.snapshotNotifier.value.bestRoundsByStage[1], 1);
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(1));
@@ -134,9 +137,9 @@ void main() {
     game.upgradeNexusHpProgression();
     game.restartDemo();
 
-    expect(game.snapshotNotifier.value.gold, 155);
-    expect(game.snapshotNotifier.value.nexusHp, 21);
-    expect(game.snapshotNotifier.value.maxNexusHp, 21);
+    expect(game.snapshotNotifier.value.gold, 150);
+    expect(game.snapshotNotifier.value.nexusHp, 20);
+    expect(game.snapshotNotifier.value.maxNexusHp, 20);
     expect(game.snapshotNotifier.value.unlockedStageCount, 2);
 
     game.startNextWave();
@@ -151,7 +154,7 @@ void main() {
     game.update(0.016);
 
     expect(game.snapshotNotifier.value.currentStageNumber, 2);
-    expect(game.snapshotNotifier.value.lastRunRuneReward, 50);
+    expect(game.snapshotNotifier.value.lastRunRuneReward, 2);
     expect(game.snapshotNotifier.value.unlockedStageCount, 3);
     expect(game.snapshotNotifier.value.bestRoundsByStage[2], 1);
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(2));
@@ -336,9 +339,39 @@ void main() {
 
     expect(game.snapshotNotifier.value.phase, GamePhase.failure);
     expect(game.snapshotNotifier.value.completedRounds, 1);
-    expect(game.snapshotNotifier.value.lastRunRuneReward, 2);
-    expect(game.snapshotNotifier.value.runes, 2);
+    expect(game.snapshotNotifier.value.lastRunRuneReward, 1);
+    expect(game.snapshotNotifier.value.runes, 1);
     expect(game.snapshotNotifier.value.bestRoundsByStage[1], 1);
+    expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(1)));
+  });
+
+  test('abandoning before clearing any round grants no runes', () async {
+    final game = RuneNexusGame(
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [
+            SpawnGroup(enemyType: EnemyType.normal, count: 1, interval: 1),
+          ],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+
+    game.startNextWave();
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.wave);
+    expect(game.snapshotNotifier.value.completedRounds, 0);
+    expect(game.snapshotNotifier.value.projectedFailureRuneReward, 0);
+
+    await game.settleCurrentRunAsFailure();
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.failure);
+    expect(game.snapshotNotifier.value.completedRounds, 0);
+    expect(game.snapshotNotifier.value.lastRunRuneReward, 0);
+    expect(game.snapshotNotifier.value.runes, 0);
+    expect(game.snapshotNotifier.value.bestRoundsByStage[1], isNull);
     expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(1)));
   });
 
@@ -378,6 +411,7 @@ void main() {
   test('enemy movement speeds are tuned down for readable combat', () {
     expect(demoEnemies[EnemyType.normal]!.speed, 31.5);
     expect(demoEnemies[EnemyType.armored]!.speed, 28);
+    expect(demoEnemies[EnemyType.shielded]!.speed, 29);
     expect(demoEnemies[EnemyType.fast]!.speed, 54.6);
     expect(demoEnemies[EnemyType.tank]!.speed, 21);
     expect(demoEnemies[EnemyType.boss]!.speed, 16.8);
@@ -545,6 +579,149 @@ void main() {
     turret.equipGem(GemType.aimSpeed, 0);
 
     expect(turret.aimDuration, closeTo(1 / 1.91, 0.001));
+  });
+
+  test('turret target priority selects the configured combat target', () async {
+    final expectedTargets = {
+      TurretTargetPriority.first: 'front',
+      TurretTargetPriority.last: 'back',
+      TurretTargetPriority.strongest: 'strong',
+      TurretTargetPriority.weakest: 'weak',
+      TurretTargetPriority.nearest: 'near',
+    };
+
+    for (final entry in expectedTargets.entries) {
+      final game = RuneNexusGame(
+        saveRepository: MemorySaveRepository(),
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 0,
+          ),
+        ],
+      );
+      final turret = TurretComponent(
+        gridPoint: const GridPoint(0, 0),
+        definition: _targetPriorityTestTurret,
+        game: game,
+        center: Vector2(100, 100),
+        tileSize: 32,
+      )..setTargetPriority(entry.key);
+      final enemies = {
+        'front': _targetPriorityEnemy(
+          game: game,
+          hp: 100,
+          progress: 90,
+          position: turret.position + Vector2(70, 0),
+        ),
+        'back': _targetPriorityEnemy(
+          game: game,
+          hp: 100,
+          progress: 10,
+          position: turret.position + Vector2(65, 0),
+        ),
+        'strong': _targetPriorityEnemy(
+          game: game,
+          hp: 200,
+          progress: 50,
+          position: turret.position + Vector2(60, 0),
+        ),
+        'weak': _targetPriorityEnemy(
+          game: game,
+          hp: 20,
+          progress: 50,
+          position: turret.position + Vector2(55, 0),
+        ),
+        'near': _targetPriorityEnemy(
+          game: game,
+          hp: 100,
+          progress: 50,
+          position: turret.position + Vector2(20, 0),
+        ),
+      };
+
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      await game.add(turret);
+      for (final enemy in enemies.values) {
+        await game.add(enemy);
+      }
+      game.update(0);
+      game.enemies.addAll(enemies.values);
+      game.startNextWave();
+
+      turret.update(0.016);
+
+      for (final enemyEntry in enemies.entries) {
+        final expectedHp = enemyEntry.key == entry.value
+            ? enemyEntry.value.maxHp - _targetPriorityTestTurret.damage
+            : enemyEntry.value.maxHp;
+        expect(
+          enemyEntry.value.hp,
+          closeTo(expectedHp, 0.001),
+          reason: '${entry.key.name} should hit ${entry.value}',
+        );
+      }
+    }
+  });
+
+  test('selected turret target priority requires completed research', () async {
+    final lockedRepository = MemorySaveRepository();
+    final lockedGame = RuneNexusGame(saveRepository: lockedRepository);
+
+    lockedGame.onGameResize(Vector2(400, 800));
+    await lockedGame.onLoad();
+    lockedGame.tryBuildTurret(const GridPoint(2, 0));
+
+    expect(
+      lockedGame.snapshotNotifier.value.canSetTurretTargetPriority,
+      isFalse,
+    );
+    expect(
+      lockedGame.snapshotNotifier.value.selectedTurretTargetPriority,
+      TurretTargetPriority.first,
+    );
+
+    lockedGame.setSelectedTurretTargetPriority(TurretTargetPriority.strongest);
+
+    expect(
+      lockedGame.snapshotNotifier.value.selectedTurretTargetPriority,
+      TurretTargetPriority.first,
+    );
+
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {3},
+        researchLevels: const {ResearchType.turretTargetPriority: 1},
+      );
+    final game = RuneNexusGame(saveRepository: repository);
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.tryBuildTurret(const GridPoint(2, 0));
+
+    expect(game.snapshotNotifier.value.canSetTurretTargetPriority, isTrue);
+
+    game.setSelectedTurretTargetPriority(TurretTargetPriority.strongest);
+    await game.saveNow();
+
+    final saved = repository.data;
+    final restoredTurret = TurretComponent(
+      gridPoint: const GridPoint(2, 0),
+      definition: demoTurrets[saved!.turrets.single.type]!,
+      game: game,
+      center: Vector2.zero(),
+      tileSize: 32,
+    )..restoreFromSaveData(saved.turrets.single);
+
+    expect(
+      game.snapshotNotifier.value.selectedTurretTargetPriority,
+      TurretTargetPriority.strongest,
+    );
+    expect(saved.turrets.single.targetPriority, TurretTargetPriority.strongest);
+    expect(restoredTurret.targetPriority, TurretTargetPriority.strongest);
   });
 
   test('turret level cap grows to 10 without excessive range gain', () {
@@ -739,8 +916,59 @@ void main() {
       progression.startResearch(ResearchType.gemAttunement, nowMillis: 5000000),
       isTrue,
     );
-    expect(progression.runes, 625);
+    expect(progression.runes, 655);
     expect(progression.activeResearches.single.durationMillis, 4500000);
+  });
+
+  test('target priority research unlocks after stage three clear', () {
+    final progression = RunProgression()..runes = 100;
+
+    expect(
+      progression.isResearchUnlocked(ResearchType.turretTargetPriority),
+      isFalse,
+    );
+    expect(progression.canSetTurretTargetPriority, isFalse);
+    expect(
+      progression.startResearch(
+        ResearchType.turretTargetPriority,
+        nowMillis: 1000,
+      ),
+      isFalse,
+    );
+
+    progression.clearedStageNumbers.add(3);
+
+    expect(
+      progression.isResearchUnlocked(ResearchType.turretTargetPriority),
+      isTrue,
+    );
+    expect(
+      progression.researchCostForCurrentLevel(
+        ResearchType.turretTargetPriority,
+      ),
+      80,
+    );
+    expect(
+      progression.researchDurationForCurrentLevel(
+        ResearchType.turretTargetPriority,
+      ),
+      20 * 60 * 1000,
+    );
+    expect(
+      progression.startResearch(
+        ResearchType.turretTargetPriority,
+        nowMillis: 1000,
+      ),
+      isTrue,
+    );
+    expect(progression.runes, 20);
+    expect(progression.canSetTurretTargetPriority, isFalse);
+
+    expect(
+      progression.completeFinishedResearches(nowMillis: 1000 + 20 * 60 * 1000),
+      isTrue,
+    );
+    expect(progression.canSetTurretTargetPriority, isTrue);
   });
 
   test('canceling research keeps elapsed time for the next resume', () {
@@ -926,9 +1154,30 @@ void main() {
   test('enemy kill rewards limit late-wave gold snowballing', () {
     expect(demoEnemies[EnemyType.normal]!.rewardGold, 5);
     expect(demoEnemies[EnemyType.armored]!.rewardGold, 7);
+    expect(demoEnemies[EnemyType.shielded]!.rewardGold, 8);
     expect(demoEnemies[EnemyType.fast]!.rewardGold, 5);
     expect(demoEnemies[EnemyType.tank]!.rewardGold, 9);
     expect(demoEnemies[EnemyType.boss]!.rewardGold, 35);
+  });
+
+  test('shielded enemy is defined but not yet used by current waves', () {
+    final shielded = demoEnemies[EnemyType.shielded]!;
+
+    expect(demoEnemies.keys, containsAll(EnemyType.values));
+    expect(shielded.name, '보호막병');
+    expect(shielded.maxHp, 36);
+    expect(shielded.maxShield, 42);
+    expect(shielded.shieldRegenRate, 0.04);
+    expect(shielded.maxArmor, 0);
+    expect(shielded.coreDamage, 1);
+    expect(shielded.resistanceProfile, EnemyResistanceProfile.neutral);
+
+    final currentWaveTypes = [
+      ...demoWaves.expand((wave) => wave.groups),
+      ...demoStage2Waves.expand((wave) => wave.groups),
+    ].map((group) => group.enemyType);
+
+    expect(currentWaveTypes, isNot(contains(EnemyType.shielded)));
   });
 
   test('run tower damage upgrade boosts all turret damage', () {
@@ -996,34 +1245,16 @@ void main() {
     expect(game.snapshotNotifier.value.gold, 144);
   });
 
-  test('permanent supply upgrade adds one gold per cleared wave', () {
+  test('permanent supply upgrade adds one gold per cleared wave', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {1},
+        researchLevels: const {},
+        runes: 1000,
+        unlockedStageCount: 2,
+      );
     final game = RuneNexusGame(
-      saveRepository: MemorySaveRepository(),
-      waves: const [
-        WaveDefinition(
-          round: 1,
-          previewText: 'test',
-          groups: [],
-          clearRewardGold: 0,
-        ),
-      ],
-    );
-
-    game.startNextWave();
-    game.update(0.016);
-    game.upgradeSupplyProgression();
-    game.restartDemo();
-    game.startNextWave();
-    game.update(0.016);
-
-    expect(game.snapshotNotifier.value.phase, GamePhase.success);
-    expect(game.snapshotNotifier.value.gold, 151);
-    expect(game.snapshotNotifier.value.waveClearGoldProgressionBonus, 1);
-  });
-
-  test('permanent kill reward upgrade boosts enemy gold rewards', () async {
-    final game = RuneNexusGame(
-      saveRepository: MemorySaveRepository(),
+      saveRepository: repository,
       waves: const [
         WaveDefinition(
           round: 1,
@@ -1036,11 +1267,38 @@ void main() {
 
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
+    game.upgradeSupplyProgression();
+    game.restartDemo();
     game.startNextWave();
     game.update(0.016);
-    game.startStage(2);
-    game.startNextWave();
-    game.update(0.016);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.success);
+    expect(game.snapshotNotifier.value.gold, 151);
+    expect(game.snapshotNotifier.value.waveClearGoldProgressionBonus, 1);
+  });
+
+  test('permanent kill reward upgrade boosts enemy gold rewards', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {1, 2},
+        researchLevels: const {},
+        runes: 1000,
+        unlockedStageCount: 3,
+      );
+    final game = RuneNexusGame(
+      saveRepository: repository,
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
     game.upgradeKillGoldProgression();
     game.restartDemo();
 
@@ -1063,9 +1321,16 @@ void main() {
     );
   });
 
-  test('permanent kill reward unlocks after stage two clear', () {
+  test('permanent kill reward unlocks after stage two clear', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {1},
+        researchLevels: const {},
+        runes: 1000,
+        unlockedStageCount: 2,
+      );
     final game = RuneNexusGame(
-      saveRepository: MemorySaveRepository(),
+      saveRepository: repository,
       waves: const [
         WaveDefinition(
           round: 1,
@@ -1076,8 +1341,8 @@ void main() {
       ],
     );
 
-    game.startNextWave();
-    game.update(0.016);
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
     game.upgradeKillGoldProgression();
 
     expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(2)));
@@ -1092,9 +1357,15 @@ void main() {
     expect(game.snapshotNotifier.value.canUpgradeKillGold, isTrue);
   });
 
-  test('permanent fire training boosts turret damage', () {
+  test('permanent fire training boosts turret damage', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {},
+        researchLevels: const {},
+        runes: 1000,
+      );
     final game = RuneNexusGame(
-      saveRepository: MemorySaveRepository(),
+      saveRepository: repository,
       waves: const [
         WaveDefinition(
           round: 1,
@@ -1112,8 +1383,8 @@ void main() {
       tileSize: 32,
     );
 
-    game.startNextWave();
-    game.update(0.016);
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
     game.upgradeFireTrainingProgression();
 
     expect(turret.damage, closeTo(7.07, 0.001));
@@ -1207,9 +1478,16 @@ void main() {
     expect(progression.canUpgradeCriticalDamage, isFalse);
   });
 
-  test('critical progression unlocks after stage four clear', () {
+  test('critical progression unlocks after stage four clear', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {},
+        researchLevels: const {},
+        runes: 1000,
+        unlockedStageCount: 4,
+      );
     final game = RuneNexusGame(
-      saveRepository: MemorySaveRepository(),
+      saveRepository: repository,
       waves: const [
         WaveDefinition(
           round: 1,
@@ -1234,6 +1512,8 @@ void main() {
       tileSize: 32,
     );
 
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
     game.upgradeCriticalChanceProgression();
     game.upgradeCriticalDamageProgression();
 
@@ -1279,21 +1559,28 @@ void main() {
   test('stage rune reward bonus scales repeat rewards', () {
     final progression = RunProgression();
 
-    expect(progression.runeRewardFor(50, success: true), 140);
-    expect(progression.runeRewardFor(50, success: true, stageNumber: 2), 168);
-    expect(progression.runeRewardFor(50, success: true, stageNumber: 3), 203);
-    expect(progression.runeRewardFor(50, success: true, stageNumber: 4), 245);
-    expect(progression.runeRewardFor(50, success: true, stageNumber: 5), 294);
+    expect(progression.runeRewardFor(0, success: false), 0);
+    expect(progression.runeRewardFor(0, success: true), 0);
+    expect(progression.runeRewardFor(1, success: false), 1);
+    expect(progression.runeRewardFor(10, success: false), 16);
+    expect(progression.runeRewardFor(20, success: false), 39);
+    expect(progression.runeRewardFor(30, success: false), 73);
+    expect(progression.runeRewardFor(40, success: false), 124);
+    expect(progression.runeRewardFor(50, success: true), 200);
+    expect(progression.runeRewardFor(50, success: true, stageNumber: 2), 240);
+    expect(progression.runeRewardFor(50, success: true, stageNumber: 3), 290);
+    expect(progression.runeRewardFor(50, success: true, stageNumber: 4), 350);
+    expect(progression.runeRewardFor(50, success: true, stageNumber: 5), 420);
   });
 
-  test('stage rune reward bonus does not add first clear rewards', () {
+  test('stage rune reward bonus applies to first clear rewards', () {
     final progression = RunProgression();
 
     progression.finishRun(completedRounds: 1, success: true, stageNumber: 2);
-    expect(progression.lastRunRuneReward, 50);
+    expect(progression.lastRunRuneReward, 2);
 
     progression.finishRun(completedRounds: 1, success: true, stageNumber: 2);
-    expect(progression.lastRunRuneReward, 50);
+    expect(progression.lastRunRuneReward, 2);
   });
 
   test('emergency sale uses five level refund progression', () {
@@ -1315,9 +1602,16 @@ void main() {
     expect(progression.upgradeEmergencySale(), isFalse);
   });
 
-  test('permanent emergency sale unlocks after stage two clear', () {
+  test('permanent emergency sale unlocks after stage two clear', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {1},
+        researchLevels: const {},
+        runes: 1000,
+        unlockedStageCount: 2,
+      );
     final game = RuneNexusGame(
-      saveRepository: MemorySaveRepository(),
+      saveRepository: repository,
       waves: const [
         WaveDefinition(
           round: 1,
@@ -1328,8 +1622,8 @@ void main() {
       ],
     );
 
-    game.startNextWave();
-    game.update(0.016);
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
     game.upgradeEmergencySaleProgression();
 
     expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(2)));
@@ -1349,7 +1643,13 @@ void main() {
   });
 
   test('emergency sale upgrade increases turret refund gold', () async {
-    final repository = MemorySaveRepository();
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {1, 2},
+        researchLevels: const {},
+        runes: 1000,
+        unlockedStageCount: 3,
+      );
     final game = _LinkResearchUnlockedGame(
       saveRepository: repository,
       waves: const [
@@ -1364,14 +1664,6 @@ void main() {
 
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
-    game.startNextWave();
-    game.update(0.016);
-    game.startStage(2);
-    game.startNextWave();
-    game.update(0.016);
-    game.startStage(2);
-    game.startNextWave();
-    game.update(0.016);
     game.upgradeEmergencySaleProgression();
     game.restartDemo();
 
@@ -1388,7 +1680,13 @@ void main() {
   });
 
   test('new permanent upgrades are saved and restored', () async {
-    final repository = MemorySaveRepository();
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {1, 2, 3, 4},
+        researchLevels: const {},
+        runes: 1000,
+        unlockedStageCount: 5,
+      );
     final game = RuneNexusGame(
       saveRepository: repository,
       waves: const [
@@ -1403,26 +1701,6 @@ void main() {
 
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
-    game.startNextWave();
-    game.update(0.016);
-    game.startStage(2);
-    game.startNextWave();
-    game.update(0.016);
-    game.startStage(3);
-    game.startNextWave();
-    game.update(0.016);
-    game.startStage(4);
-    game.startNextWave();
-    game.update(0.016);
-    game.startStage(4);
-    game.startNextWave();
-    game.update(0.016);
-    game.startStage(4);
-    game.startNextWave();
-    game.update(0.016);
-    game.startStage(4);
-    game.startNextWave();
-    game.update(0.016);
     game.upgradeSupplyProgression();
     game.upgradeFireTrainingProgression();
     game.upgradeCriticalChanceProgression();
@@ -2794,7 +3072,7 @@ void main() {
 
     final snapshot = restored.snapshotNotifier.value;
     expect(snapshot.phase, GamePhase.preparation);
-    expect(snapshot.runes, 2);
+    expect(snapshot.runes, 1);
     expect(snapshot.bestRoundsByStage[1], 1);
   });
 
@@ -2891,4 +3169,82 @@ class _LinkResearchUnlockedGame extends RuneNexusGame {
 
   @override
   int get maxTurretLinkSlotLimit => 2;
+}
+
+const _targetPriorityTestTurret = TurretDefinition(
+  type: TurretType.sniper,
+  name: 'Target Priority Test',
+  cost: 0,
+  damage: 10,
+  range: 220,
+  attackRate: 10,
+  projectileSpeed: 0,
+  description: 'test',
+  damageFamily: DamageFamily.physical,
+  attackTags: {AttackTag.heavy},
+  color: Color(0xFFFFFFFF),
+  instantHit: true,
+);
+
+EnemyComponent _targetPriorityEnemy({
+  required RuneNexusGame game,
+  required double hp,
+  required double progress,
+  required Vector2 position,
+}) {
+  return EnemyComponent(
+      definition: demoEnemies[EnemyType.normal]!,
+      maxHp: hp,
+      path: [Vector2.zero(), Vector2(500, 0)],
+      game: game,
+    )
+    ..position = position
+    ..distanceTravelled = progress;
+}
+
+GameSaveData _saveWithResearch({
+  required Set<int> clearedStageNumbers,
+  required Map<ResearchType, int> researchLevels,
+  int runes = 0,
+  int unlockedStageCount = 4,
+}) {
+  return GameSaveData(
+    version: GameSaveData.currentVersion,
+    savedAtMillis: 0,
+    gold: 150,
+    gemShards: 0,
+    nexusHp: 20,
+    stageNumber: 1,
+    mapSignature: null,
+    roundIndex: 0,
+    completedRounds: 0,
+    phase: GamePhase.preparation,
+    autoStartMode: AutoStartMode.pauseEachRound,
+    progression: SavedProgression(
+      runes: runes,
+      lastRunRuneReward: 0,
+      startingGoldUpgradeLevel: 0,
+      nexusHpUpgradeLevel: 0,
+      supplyUpgradeLevel: 0,
+      fireTrainingUpgradeLevel: 0,
+      criticalChanceUpgradeLevel: 0,
+      criticalDamageUpgradeLevel: 0,
+      killGoldUpgradeLevel: 0,
+      emergencySaleUpgradeLevel: 0,
+      unlockedStageCount: unlockedStageCount,
+      bestRoundsByStage: const {},
+      clearedStageNumbers: clearedStageNumbers,
+      researchLevels: researchLevels,
+      researchElapsedMillis: const {},
+      activeResearches: const [],
+    ),
+    runUpgradeLevels: const {},
+    killGoldFractionWallet: 0,
+    gemInventory: const {},
+    rewardOptions: const [],
+    isPurchasedGemReward: false,
+    turrets: const [],
+    enemies: const [],
+    spawnQueue: const [],
+  );
 }

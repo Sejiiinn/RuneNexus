@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/app/rune_nexus_app.dart';
+import 'package:rune_nexus/data/save/game_save_data.dart';
 import 'package:rune_nexus/data/save/save_repository.dart';
 import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
 import 'package:rune_nexus/domain/combat/run_panel_tab.dart';
+import 'package:rune_nexus/domain/map/grid_point.dart';
 import 'package:rune_nexus/domain/research/research_progress.dart';
 import 'package:rune_nexus/domain/research/research_type.dart';
+import 'package:rune_nexus/domain/turret/turret_target_priority.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/game/game_snapshot.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
 import 'package:rune_nexus/l10n/rune_nexus_localizations.dart';
 import 'package:rune_nexus/ui/game/game_button.dart';
+import 'package:rune_nexus/ui/hud/game_hud.dart';
 import 'package:rune_nexus/ui/menu/main_menu_screen.dart';
 import 'package:rune_nexus/ui/menu/result_overlay.dart';
 
@@ -214,7 +218,7 @@ void main() {
     );
     expect(find.text('미해금 연구'), findsNothing);
     expect(find.byIcon(Icons.lock_outline), findsWidgets);
-    expect(find.text('Lv.0/1'), findsOneWidget);
+    expect(find.text('Lv.0/1'), findsNWidgets(2));
     expect(
       (efficiencyTopLeft.dy - costEfficiencyTopLeft.dy).abs(),
       lessThan(4),
@@ -522,14 +526,14 @@ void main() {
     expect(find.text('스테이지 메뉴'), findsOneWidget);
     expect(find.text('메인화면으로 이동'), findsOneWidget);
     expect(find.text('종료 시 보상'), findsOneWidget);
-    expect(find.text('+1 룬'), findsOneWidget);
+    expect(find.text('+0 룬'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     await tester.tap(find.text('스테이지 종료'));
     await _pumpGameFrames(tester);
 
     expect(find.text('정말 종료할까요?'), findsOneWidget);
-    expect(find.textContaining('+1 룬'), findsWidgets);
+    expect(find.textContaining('+0 룬'), findsWidgets);
   });
 
   testWidgets('main menu return preserves active run as restore flow', (
@@ -572,6 +576,57 @@ void main() {
 
     expect(find.text('테스트 라운드'), findsNothing);
   });
+
+  testWidgets(
+    'selected turret panel gates target priority selector by research',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            backgroundColor: const Color(0xFF07111D),
+            body: GameHud(game: game),
+          ),
+        ),
+      );
+      await _pumpGameFrames(tester, frameCount: 10);
+      game.tryBuildTurret(const GridPoint(2, 0));
+      await _pumpGameFrames(tester);
+
+      expect(find.text('공격 명령'), findsNothing);
+      expect(find.text('선두 적'), findsNothing);
+      expect(tester.takeException(), isNull);
+
+      final unlockedRepository = MemorySaveRepository()
+        ..data = _saveWithResearch(
+          clearedStageNumbers: const {3},
+          researchLevels: const {ResearchType.turretTargetPriority: 1},
+        );
+      final unlockedGame = RuneNexusGame(saveRepository: unlockedRepository);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            backgroundColor: const Color(0xFF07111D),
+            body: GameHud(game: unlockedGame),
+          ),
+        ),
+      );
+      await _pumpGameFrames(tester, frameCount: 10);
+      unlockedGame.tryBuildTurret(const GridPoint(2, 0));
+      await _pumpGameFrames(tester);
+
+      expect(find.text('공격 명령'), findsOneWidget);
+      expect(find.text('선두 적'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('menu clock refreshes active research completion', (
     tester,
@@ -740,6 +795,8 @@ GameSnapshot _resultSnapshot({
     selectedTurretSplashDamageDealt: 0,
     selectedTurretChainDamageDealt: 0,
     selectedTurretBurnDamageDealt: 0,
+    canSetTurretTargetPriority: false,
+    selectedTurretTargetPriority: TurretTargetPriority.first,
     selectedTurretSupportsTraits: false,
     selectedTurretPrimaryTraitChoices: const [],
     selectedTurretSecondaryTraitChoices: const [],
@@ -821,4 +878,49 @@ class _ResearchRefreshGame extends RuneNexusGame {
     researchRefreshCount += 1;
     return true;
   }
+}
+
+GameSaveData _saveWithResearch({
+  required Set<int> clearedStageNumbers,
+  required Map<ResearchType, int> researchLevels,
+}) {
+  return GameSaveData(
+    version: GameSaveData.currentVersion,
+    savedAtMillis: 0,
+    gold: 150,
+    gemShards: 0,
+    nexusHp: 20,
+    stageNumber: 1,
+    mapSignature: null,
+    roundIndex: 0,
+    completedRounds: 0,
+    phase: GamePhase.preparation,
+    autoStartMode: AutoStartMode.pauseEachRound,
+    progression: SavedProgression(
+      runes: 0,
+      lastRunRuneReward: 0,
+      startingGoldUpgradeLevel: 0,
+      nexusHpUpgradeLevel: 0,
+      supplyUpgradeLevel: 0,
+      fireTrainingUpgradeLevel: 0,
+      criticalChanceUpgradeLevel: 0,
+      criticalDamageUpgradeLevel: 0,
+      killGoldUpgradeLevel: 0,
+      emergencySaleUpgradeLevel: 0,
+      unlockedStageCount: 4,
+      bestRoundsByStage: const {},
+      clearedStageNumbers: clearedStageNumbers,
+      researchLevels: researchLevels,
+      researchElapsedMillis: const {},
+      activeResearches: const [],
+    ),
+    runUpgradeLevels: const {},
+    killGoldFractionWallet: 0,
+    gemInventory: const {},
+    rewardOptions: const [],
+    isPurchasedGemReward: false,
+    turrets: const [],
+    enemies: const [],
+    spawnQueue: const [],
+  );
 }

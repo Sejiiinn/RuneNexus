@@ -202,6 +202,7 @@ class EnemyComponent extends PositionComponent {
       EnemyType.fast => 0.48,
       EnemyType.normal => 0.55,
       EnemyType.armored => 0.58,
+      EnemyType.shielded => 0.59,
       EnemyType.tank => 0.65,
       EnemyType.boss => 0.79,
     };

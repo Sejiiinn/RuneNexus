@@ -1,6 +1,6 @@
 # Rune Nexus 다음 작업 우선순위
 
-마지막 정리 기준: `main` 브랜치 커밋 `a17d951` 이후 작업트리.
+마지막 정리 기준: `main` 브랜치 커밋 `dc449a0`.
 
 ## 목적
 
@@ -23,6 +23,11 @@
 - 스테이지 선택 화면의 1스테이지 저격 포탑 보상, 2스테이지 경제 해금 표시
 - 포탑별 1차/2차 특성 선택과 전투 효과
 - 보스 웨이브 순서, 호위 몹, 보스 수 정리
+- 공통 게임 UI 컴포넌트 기반의 주요 화면 정리
+- 메인 메뉴 스테이지/강화/연구 화면의 모바일 폭 대응
+- 저장된 진행 카드와 이어서 진행 버튼의 과도한 색상 강조 완화
+- 전투 하단 포탑/업그레이드/젬 탭의 금속 프레임형 버튼화
+- 배속 버튼 라벨 중앙 정렬
 
 남은 핵심 약점은 다음과 같다.
 
@@ -37,17 +42,18 @@
 
 ## 권장 우선순위
 
-### 1. 챕터 2 웨이브 변화와 신규 몹 설계
+### 1. 챕터 2 웨이브 변화와 신규 몹 MVP 구현
 
 가장 먼저 추천하는 작업이다.
+설계 기준은 `docs/chapter2_wave_enemy_design.md`에 유지한다.
 
 작업 후보:
 
-- 챕터 2에서 추가할 신규 몹 1~2종의 역할 정의
-- 신규 몹이 기존 포탑, 젬, 링크, 특성 선택을 어떻게 다르게 요구하는지 정리
-- 챕터 2 웨이브 문법을 챕터 1과 다르게 설계
+- 보호막병이 기존 포탑, 젬, 링크, 특성 선택을 어떻게 다르게 요구하는지 웨이브에서 검증
+- 챕터 2 웨이브 문법을 챕터 1과 다르게 구현
 - 챕터 2 진입 조건, 해금 보상, 연구 조건 연결 검토
 - 챕터 1 스테이지 2~5는 맵, 스테이지 보정, 해금/연구 조건 중심으로 유지
+- 작은 구현 단위로 챕터 2 스테이지 정의와 웨이브 빌더를 추가
 
 이유:
 
@@ -57,8 +63,11 @@
 
 관련 파일:
 
+- `docs/chapter2_wave_enemy_design.md`
 - `lib/data/definitions/demo_stage_data.dart`
 - `lib/data/definitions/demo_stage_waves.dart`
+- `lib/data/definitions/demo_enemy_data.dart`
+- `lib/domain/enemy/enemy_type.dart`
 - `lib/domain/stage/stage_definition.dart`
 - `lib/ui/menu/main_menu_screen.dart`
 - `test/game_balance_test.dart`
@@ -96,7 +105,32 @@
 - `test/game_balance_test.dart`
 - `test/widget_test.dart`
 
-### 3. 50라운드 보상/난이도 곡선 재점검
+### 3. 포탑 공격 명령 우선순위 구현
+
+작업 후보:
+
+- `docs/turret_target_priority_design.md` 기준으로 포탑별 공격 명령 저장/복구 추가
+- 선두, 후방, 강한 적, 약한 적, 근접 명령 지원
+- 선택 포탑 상세 패널에 명령 선택 UI 추가
+- 저격 포탑 조준 유지 규칙과 충돌하지 않는지 테스트
+
+이유:
+
+- 주변 보호형 적을 추가하기 전에 플레이어가 타겟 우선순위를 조정할 수 있어야 한다.
+- 보호막병, 장갑병, 보스가 섞이는 챕터 2에서 포탑별 역할 지정이 더 중요해진다.
+- 내부적으로 `first`, `last`, `nearest` 기반이 이미 있어 신규 시스템보다 확장 작업에 가깝다.
+
+관련 파일:
+
+- `docs/turret_target_priority_design.md`
+- `lib/game/components/turret_component.dart`
+- `lib/data/save/game_save_data.dart`
+- `lib/game/game_snapshot.dart`
+- `lib/ui/hud/gem_equip_panel.dart`
+- `test/game_balance_test.dart`
+- `test/widget_test.dart`
+
+### 4. 50라운드 보상/난이도 곡선 재점검
 
 작업 후보:
 
@@ -120,7 +154,7 @@
 - `test/game_balance_test.dart`
 - `docs/gameplay_balance_reference.md`
 
-### 4. 보스 웨이브 연출과 피드백 강화
+### 5. 보스 웨이브 연출과 피드백 강화
 
 작업 후보:
 
@@ -142,7 +176,7 @@
 - `lib/data/definitions/demo_stage_data.dart`
 - `test/widget_test.dart`
 
-### 5. `RuneNexusGame` 책임 분리 리팩토링
+### 6. `RuneNexusGame` 책임 분리 리팩토링
 
 작업 후보:
 
@@ -166,11 +200,12 @@
 
 ## 추천 실행 순서
 
-1. 챕터 2 웨이브 변화와 신규 몹 설계
+1. 챕터 2 웨이브 변화와 신규 몹 MVP 구현
 2. 연구/영구 성장 해금 단계 정리
-3. 50라운드 보상/난이도 곡선 재점검
-4. 보스 웨이브 연출과 피드백 강화
-5. `RuneNexusGame` 책임 분리 리팩토링
+3. 포탑 공격 명령 우선순위 구현
+4. 50라운드 보상/난이도 곡선 재점검
+5. 보스 웨이브 연출과 피드백 강화
+6. `RuneNexusGame` 책임 분리 리팩토링
 
 ## 보류 기준
 
@@ -189,7 +224,7 @@
 새 세션에서 바로 작업을 시작한다면 다음 문장이 적합하다.
 
 ```text
-docs/next_work_priorities.md 기준으로 1순위인 챕터 2 웨이브 변화와 신규 몹 설계 작업을 진행해줘.
+docs/chapter2_wave_enemy_design.md 기준으로 챕터 2 신규 몹과 웨이브 MVP 구현 계획을 세우고 진행해줘.
 ```
 
 영구 성장부터 확장하려면 다음 문장이 적합하다.

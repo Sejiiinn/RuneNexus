@@ -40,6 +40,14 @@ void drawEnemyShape(
       } else {
         _drawArmoredSide(canvas, scale, palette, strokeWidth);
       }
+    case EnemyType.shielded:
+      if (facing == _EnemyFacing.front) {
+        _drawNormal(canvas, scale, palette, strokeWidth);
+      } else if (facing == _EnemyFacing.back) {
+        _drawNormalBack(canvas, scale, palette, strokeWidth);
+      } else {
+        _drawNormalSide(canvas, scale, palette, strokeWidth);
+      }
     case EnemyType.fast:
       if (facing == _EnemyFacing.front) {
         _drawFastFront(canvas, scale, palette, strokeWidth);
@@ -1428,6 +1436,13 @@ class _EnemyVisualPalette {
         spike: const Color(0xFF30343A),
         edge: const Color(0xFFF0F2F4),
         armor: const Color(0xFFD0D3D6),
+        accent: fallbackAccent,
+      ),
+      EnemyType.shielded => _EnemyVisualPalette(
+        body: const Color(0xFF123A4E),
+        spike: const Color(0xFF0A2535),
+        edge: const Color(0xFFB9F4FF),
+        armor: const Color(0xFF4CAEC6),
         accent: fallbackAccent,
       ),
       EnemyType.fast => _EnemyVisualPalette(

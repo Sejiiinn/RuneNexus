@@ -22,6 +22,7 @@ import '../../domain/run_upgrade/run_upgrade_type.dart';
 import '../../domain/turret/attack_tag.dart';
 import '../../domain/turret/damage_family.dart';
 import '../../domain/turret/turret_definition.dart';
+import '../../domain/turret/turret_target_priority.dart';
 import '../../domain/turret/turret_trait_type.dart';
 import '../../domain/turret/turret_type.dart';
 import '../../game/game_snapshot.dart';

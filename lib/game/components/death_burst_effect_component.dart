@@ -28,6 +28,7 @@ class DeathBurstEffectComponent extends PositionComponent {
   double get _lifeTime => switch (_type) {
     EnemyType.boss => 0.46,
     EnemyType.tank => 0.36,
+    EnemyType.shielded => 0.32,
     EnemyType.normal || EnemyType.armored || EnemyType.fast => 0.28,
   };
 
@@ -35,6 +36,7 @@ class DeathBurstEffectComponent extends PositionComponent {
     EnemyType.boss => 10,
     EnemyType.tank => 7,
     EnemyType.fast => 6,
+    EnemyType.shielded => 6,
     EnemyType.armored => 6,
     EnemyType.normal => 5,
   };
@@ -88,6 +90,7 @@ class DeathBurstEffectComponent extends PositionComponent {
             EnemyType.tank => 0.14,
             EnemyType.boss => 0.12,
             EnemyType.fast => 0.08,
+            EnemyType.shielded => 0.1,
             EnemyType.armored => 0.1,
             EnemyType.normal => 0.1,
           } *

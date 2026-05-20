@@ -1,6 +1,7 @@
 enum ResearchType {
   researchEfficiency,
   researchCostEfficiency,
+  turretTargetPriority,
   linkExpansionOne,
   gemAttunement,
 }

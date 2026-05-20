@@ -2524,6 +2524,7 @@ String _researchTitle(RuneNexusLocalizations l10n, ResearchType type) {
   return switch (type) {
     ResearchType.researchEfficiency => l10n.researchEfficiency,
     ResearchType.researchCostEfficiency => l10n.researchCostEfficiency,
+    ResearchType.turretTargetPriority => l10n.tacticalCommand,
     ResearchType.linkExpansionOne => l10n.linkExpansionOne,
     ResearchType.gemAttunement => l10n.gemAttunement,
   };
@@ -2555,6 +2556,9 @@ _ResearchEffectText _researchEffectText(
     ResearchType.linkExpansionOne => _ResearchEffectText(
       l10n.researchLinkSlotEffect,
     ),
+    ResearchType.turretTargetPriority => _ResearchEffectText(
+      l10n.researchTargetPriorityEffect,
+    ),
     ResearchType.gemAttunement => _ResearchEffectText(
       l10n.researchGemShardEffect(
         level * RunProgression.gemShardsPerGemAttunementLevel,
@@ -2582,6 +2586,7 @@ IconData _researchIcon(ResearchType type) {
   return switch (type) {
     ResearchType.researchEfficiency => Icons.speed_outlined,
     ResearchType.researchCostEfficiency => Icons.savings_outlined,
+    ResearchType.turretTargetPriority => Icons.ads_click,
     ResearchType.linkExpansionOne => Icons.hub_outlined,
     ResearchType.gemAttunement => Icons.auto_awesome_outlined,
   };

@@ -9,6 +9,7 @@ import '../../domain/map/grid_point.dart';
 import '../../domain/turret/attack_tag.dart';
 import '../../domain/turret/damage_family.dart';
 import '../../domain/turret/turret_definition.dart';
+import '../../domain/turret/turret_target_priority.dart';
 import '../../domain/turret/turret_trait_catalog.dart';
 import '../../domain/turret/turret_trait_type.dart';
 import '../../domain/turret/turret_type.dart';
@@ -16,8 +17,6 @@ import '../rendering/turret_shape_renderer.dart';
 import '../rune_nexus_game.dart';
 import 'enemy_component.dart';
 import 'projectile_component.dart';
-
-enum TurretTargetPriority { first, last, nearest }
 
 class TurretComponent extends PositionComponent {
   static const double _visualSizeScale = 0.82;
@@ -362,6 +361,7 @@ class TurretComponent extends PositionComponent {
       splashDamageDealt: _splashDamageDealt,
       chainDamageDealt: _chainDamageDealt,
       burnDamageDealt: _burnDamageDealt,
+      targetPriority: _targetPriority,
       primaryTrait: _primaryTrait,
       secondaryTrait: _secondaryTrait,
     );
@@ -375,6 +375,7 @@ class TurretComponent extends PositionComponent {
     _splashDamageDealt = math.max(0, data.splashDamageDealt);
     _chainDamageDealt = math.max(0, data.chainDamageDealt);
     _burnDamageDealt = math.max(0, data.burnDamageDealt);
+    _targetPriority = data.targetPriority;
     _primaryTrait = primaryTraitChoices.contains(data.primaryTrait)
         ? data.primaryTrait
         : null;
@@ -649,21 +650,27 @@ class TurretComponent extends PositionComponent {
   EnemyComponent? _findTarget() {
     EnemyComponent? selectedTarget;
     var selectedDistanceSquared = double.infinity;
+    var selectedDurability = 0.0;
     for (final enemy in game.enemies) {
-      if (!enemy.isMounted || enemy.isDead || !isEnemyBodyInRange(enemy)) {
+      if ((!enemy.isMounted && !game.enemies.contains(enemy)) ||
+          enemy.isDead ||
+          !isEnemyBodyInRange(enemy)) {
         continue;
       }
-      final distanceSquared = _targetPriority == TurretTargetPriority.nearest
-          ? _distanceSquaredTo(enemy)
-          : double.infinity;
+      final distanceSquared = _distanceSquaredTo(enemy);
+      final durability =
+          enemy.hp + math.max(0, enemy.armor) + math.max(0, enemy.shield);
       if (_isPreferredTarget(
         candidate: enemy,
         current: selectedTarget,
         candidateDistanceSquared: distanceSquared,
         currentDistanceSquared: selectedDistanceSquared,
+        candidateDurability: durability,
+        currentDurability: selectedDurability,
       )) {
         selectedTarget = enemy;
         selectedDistanceSquared = distanceSquared;
+        selectedDurability = durability;
       }
     }
     return selectedTarget;
@@ -674,17 +681,33 @@ class TurretComponent extends PositionComponent {
     required EnemyComponent? current,
     required double candidateDistanceSquared,
     required double currentDistanceSquared,
+    required double candidateDurability,
+    required double currentDurability,
   }) {
     if (current == null) {
       return true;
     }
     return switch (_targetPriority) {
       TurretTargetPriority.first =>
-        candidate.distanceTravelled > current.distanceTravelled,
+        candidate.distanceTravelled > current.distanceTravelled ||
+            (candidate.distanceTravelled == current.distanceTravelled &&
+                candidateDistanceSquared < currentDistanceSquared),
       TurretTargetPriority.last =>
-        candidate.distanceTravelled < current.distanceTravelled,
+        candidate.distanceTravelled < current.distanceTravelled ||
+            (candidate.distanceTravelled == current.distanceTravelled &&
+                candidateDistanceSquared < currentDistanceSquared),
+      TurretTargetPriority.strongest =>
+        candidateDurability > currentDurability ||
+            (candidateDurability == currentDurability &&
+                candidate.distanceTravelled > current.distanceTravelled),
+      TurretTargetPriority.weakest =>
+        candidateDurability < currentDurability ||
+            (candidateDurability == currentDurability &&
+                candidate.distanceTravelled > current.distanceTravelled),
       TurretTargetPriority.nearest =>
-        candidateDistanceSquared < currentDistanceSquared,
+        candidateDistanceSquared < currentDistanceSquared ||
+            (candidateDistanceSquared == currentDistanceSquared &&
+                candidate.distanceTravelled > current.distanceTravelled),
     };
   }
 
@@ -696,12 +719,16 @@ class TurretComponent extends PositionComponent {
 
   List<EnemyComponent> _findTargetsInRange() {
     return game.enemies.where((enemy) {
-      return enemy.isMounted && !enemy.isDead && isEnemyBodyInRange(enemy);
+      return (enemy.isMounted || game.enemies.contains(enemy)) &&
+          !enemy.isDead &&
+          isEnemyBodyInRange(enemy);
     }).toList();
   }
 
   bool _isValidAimTarget(EnemyComponent enemy) {
-    return enemy.isMounted && !enemy.isDead && isEnemyBodyInRange(enemy);
+    return (enemy.isMounted || game.enemies.contains(enemy)) &&
+        !enemy.isDead &&
+        isEnemyBodyInRange(enemy);
   }
 
   double _nextCooldownVarianceMultiplier() {
