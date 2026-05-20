@@ -86,25 +86,27 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
             children: [
               Expanded(child: _DamageSummaryRow(snapshot: snapshot)),
               const SizedBox(width: 6),
-              _TurretActionBar(
-                canLevelUp:
-                    snapshot.selectedTurretCanLevelUp &&
-                    canLevelUp &&
-                    snapshot.gold >= snapshot.selectedTurretLevelUpCost,
-                levelUpLabel: snapshot.selectedTurretCanLevelUp
-                    ? '${snapshot.selectedTurretLevelUpCost}G'
-                    : 'MAX',
-                levelUpPreviewActive: levelUpPreviewActive,
-                onLevelUp: widget.game.previewOrLevelUpSelectedTurret,
-                canRefund: canRefund,
-                refundLabel: '${snapshot.selectedTurretRefundGold}G',
-                onRefund: () => _confirmRefundSelectedTurret(snapshot),
-                traitButton: snapshot.selectedTurretSupportsTraits
-                    ? _TurretTraitActionButton(
-                        snapshot: snapshot,
-                        onPressed: () => _showTraitDialog(snapshot),
-                      )
-                    : null,
+              Flexible(
+                child: _TurretActionBar(
+                  canLevelUp:
+                      snapshot.selectedTurretCanLevelUp &&
+                      canLevelUp &&
+                      snapshot.gold >= snapshot.selectedTurretLevelUpCost,
+                  levelUpLabel: snapshot.selectedTurretCanLevelUp
+                      ? '${snapshot.selectedTurretLevelUpCost}G'
+                      : 'MAX',
+                  levelUpPreviewActive: levelUpPreviewActive,
+                  onLevelUp: widget.game.previewOrLevelUpSelectedTurret,
+                  canRefund: canRefund,
+                  refundLabel: '${snapshot.selectedTurretRefundGold}G',
+                  onRefund: () => _confirmRefundSelectedTurret(snapshot),
+                  traitButton: snapshot.selectedTurretSupportsTraits
+                      ? _TurretTraitActionButton(
+                          snapshot: snapshot,
+                          onPressed: () => _showTraitDialog(snapshot),
+                        )
+                      : null,
+                ),
               ),
             ],
           ),
@@ -426,24 +428,28 @@ class _TurretActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        _TurretActionButton(
-          icon: Icons.trending_up,
-          label: levelUpLabel,
-          color: const Color(0xFFE7C66A),
-          highlighted: levelUpPreviewActive,
-          onPressed: canLevelUp ? onLevelUp : null,
-        ),
-        const SizedBox(width: 6),
-        _TurretActionButton(
-          icon: Icons.sell_outlined,
-          label: refundLabel,
-          color: const Color(0xFFFF8A2A),
-          onPressed: canRefund ? onRefund : null,
-        ),
-        if (traitButton != null) ...[const SizedBox(width: 6), traitButton!],
-      ],
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerRight,
+      child: Row(
+        children: [
+          _TurretActionButton(
+            icon: Icons.trending_up,
+            label: levelUpLabel,
+            color: const Color(0xFFE7C66A),
+            highlighted: levelUpPreviewActive,
+            onPressed: canLevelUp ? onLevelUp : null,
+          ),
+          const SizedBox(width: 6),
+          _TurretActionButton(
+            icon: Icons.sell_outlined,
+            label: refundLabel,
+            color: const Color(0xFFFF8A2A),
+            onPressed: canRefund ? onRefund : null,
+          ),
+          if (traitButton != null) ...[const SizedBox(width: 6), traitButton!],
+        ],
+      ),
     );
   }
 }

@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rune Nexus Trait Panel Mockup</title>
+    <style>
+      :root {
+        --void: #02070d;
+        --backdrop: #07111d;
+        --panel: #091624;
+        --panel-top: #0b2230;
+        --panel-bottom: #061712;
+        --cyan: #8ee6ff;
+        --cyan-dim: #33d8ff;
+        --green: #63e6a5;
+        --gold: #ffd166;
+        --warning: #ffc285;
+        --text: #e8f8ff;
+        --text-sub: #b9d6e4;
+        --text-muted: #8aa6b8;
+        --line: rgba(99, 230, 165, 0.48);
+        --shadow: rgba(0, 0, 0, 0.55);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 20% 10%, rgba(142, 230, 255, 0.14), transparent 28%),
+          radial-gradient(circle at 84% 36%, rgba(99, 230, 165, 0.1), transparent 26%),
+          linear-gradient(135deg, #03070d, #0a1420 52%, #03080f);
+        color: var(--text);
+        font-family:
+          Inter, Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      .page {
+        width: min(1120px, 100%);
+        margin: 0 auto;
+        padding: 28px 18px 42px;
+      }
+
+      .header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 22px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 22px;
+        line-height: 1.1;
+        letter-spacing: 0;
+      }
+
+      .lead {
+        margin: 0;
+        max-width: 680px;
+        color: var(--text-sub);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .note {
+        flex: 0 0 auto;
+        border: 1px solid rgba(142, 230, 255, 0.34);
+        border-radius: 8px;
+        padding: 9px 11px;
+        background: rgba(7, 17, 29, 0.78);
+        color: var(--cyan);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .frames {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, max-content));
+        gap: 24px;
+        align-items: start;
+      }
+
+      .phone-wrap {
+        display: grid;
+        gap: 9px;
+      }
+
+      .phone-label {
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .phone {
+        position: relative;
+        overflow: hidden;
+        width: var(--phone-w);
+        height: var(--phone-h);
+        border: 1px solid rgba(142, 230, 255, 0.22);
+        border-radius: 18px;
+        background:
+          linear-gradient(90deg, rgba(99, 230, 165, 0.08) 1px, transparent 1px),
+          linear-gradient(rgba(142, 230, 255, 0.08) 1px, transparent 1px),
+          radial-gradient(circle at 52% 32%, rgba(99, 230, 165, 0.12), transparent 12%),
+          linear-gradient(180deg, #06111d, #02070d);
+        background-size: auto, 42px 42px, auto, auto;
+        box-shadow: 0 18px 42px var(--shadow);
+      }
+
+      .hud-top {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        height: 34px;
+        border: 1px solid rgba(142, 230, 255, 0.18);
+        border-radius: 8px;
+        background: rgba(5, 12, 20, 0.78);
+      }
+
+      .hud-bottom {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        height: 132px;
+        border: 1px solid rgba(142, 230, 255, 0.2);
+        border-radius: 8px;
+        background: rgba(5, 12, 20, 0.84);
+      }
+
+      .dialog-shell {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 20px 14px;
+        background: rgba(0, 0, 0, 0.24);
+      }
+
+      .trait-dialog {
+        width: min(calc(100vw - 28px), 344px);
+        max-width: calc(var(--phone-w) - 28px);
+        max-height: calc(var(--phone-h) * 0.82);
+        display: grid;
+        grid-template-rows: auto auto 1fr auto;
+        border: 1px solid rgba(99, 230, 165, 0.58);
+        border-radius: 8px;
+        background: linear-gradient(145deg, rgba(11, 34, 48, 0.97), rgba(6, 23, 18, 0.97));
+        box-shadow:
+          0 0 0 3px rgba(99, 230, 165, 0.06),
+          0 20px 42px rgba(0, 0, 0, 0.62);
+      }
+
+      .trait-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 42px;
+        padding: 10px 10px 7px 14px;
+        border-bottom: 1px solid rgba(99, 230, 165, 0.18);
+      }
+
+      .spark {
+        width: 18px;
+        height: 18px;
+        display: grid;
+        place-items: center;
+        color: var(--green);
+        font-size: 16px;
+      }
+
+      .title-text {
+        flex: 1 1 auto;
+        min-width: 0;
+        font-size: 15px;
+        font-weight: 950;
+        text-shadow: 0 2px 4px var(--void);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .close {
+        width: 28px;
+        height: 28px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(142, 230, 255, 0.18);
+        border-radius: 6px;
+        color: var(--text-sub);
+        background: rgba(7, 17, 29, 0.74);
+        font-weight: 900;
+      }
+
+      .resource-strip {
+        margin: 10px 12px 8px;
+        min-height: 38px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 8px;
+        border: 1px solid rgba(99, 230, 165, 0.22);
+        border-radius: 7px;
+        background: rgba(7, 17, 29, 0.72);
+      }
+
+      .gem {
+        width: 15px;
+        height: 15px;
+        transform: rotate(45deg);
+        border: 1px solid rgba(142, 230, 255, 0.8);
+        background: linear-gradient(135deg, #63e6a5, #8ee6ff);
+      }
+
+      .resource-label {
+        color: var(--text-muted);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .resource-count {
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .spacer {
+        flex: 1 1 auto;
+      }
+
+      .cost {
+        height: 22px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 0 7px;
+        border: 1px solid rgba(99, 230, 165, 0.42);
+        border-radius: 999px;
+        background: rgba(99, 230, 165, 0.12);
+        color: var(--green);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .cost span {
+        color: var(--text-muted);
+        font-size: 10px;
+      }
+
+      .trait-scroll {
+        min-height: 0;
+        overflow-y: auto;
+        padding: 0 12px 10px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(99, 230, 165, 0.58) transparent;
+      }
+
+      .tier {
+        border: 1px solid rgba(51, 216, 255, 0.22);
+        border-radius: 8px;
+        background: rgba(7, 17, 29, 0.62);
+        padding: 8px;
+      }
+
+      .tier + .tier {
+        margin-top: 8px;
+      }
+
+      .tier-head {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 7px;
+      }
+
+      .tier-chip {
+        width: 28px;
+        height: 20px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(99, 230, 165, 0.58);
+        border-radius: 999px;
+        background: rgba(7, 17, 29, 0.94);
+        color: var(--green);
+        font-size: 10px;
+        font-weight: 950;
+      }
+
+      .tier-name {
+        flex: 1 1 auto;
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .state-dot {
+        width: 16px;
+        height: 16px;
+        border: 1px solid rgba(96, 117, 135, 0.9);
+        border-radius: 50%;
+      }
+
+      .state-dot.ready {
+        border-color: var(--green);
+        background: radial-gradient(circle, var(--green) 0 44%, transparent 47%);
+      }
+
+      .blocked {
+        display: flex;
+        gap: 6px;
+        align-items: flex-start;
+        margin-bottom: 7px;
+        padding: 6px 7px;
+        border: 1px solid rgba(255, 194, 133, 0.35);
+        border-radius: 7px;
+        background: rgba(255, 194, 133, 0.12);
+        color: var(--warning);
+        font-size: 10.5px;
+        line-height: 1.25;
+      }
+
+      .option {
+        min-height: 66px;
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: 9px;
+        align-items: center;
+        padding: 8px;
+        border: 1px solid rgba(99, 230, 165, 0.36);
+        border-radius: 8px;
+        background: linear-gradient(145deg, rgba(13, 42, 56, 0.78), rgba(5, 17, 16, 0.82));
+        box-shadow: inset 0 0 0 1px rgba(99, 230, 165, 0.08);
+      }
+
+      .option + .option {
+        margin-top: 6px;
+      }
+
+      .option.disabled {
+        border-color: rgba(96, 117, 135, 0.42);
+        background: rgba(7, 17, 29, 0.62);
+      }
+
+      .option.selected {
+        border-color: rgba(99, 230, 165, 0.86);
+        background: rgba(99, 230, 165, 0.16);
+      }
+
+      .iconbox {
+        width: 30px;
+        height: 30px;
+        display: grid;
+        place-items: center;
+        border: 1px solid currentColor;
+        border-radius: 7px;
+        color: var(--gold);
+        background: rgba(255, 209, 102, 0.1);
+        font-size: 16px;
+      }
+
+      .option.disabled .iconbox {
+        color: #607587;
+      }
+
+      .option-title {
+        margin: 0 0 3px;
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 950;
+        line-height: 1.1;
+        text-shadow: 0 2px 4px var(--void);
+      }
+
+      .option-desc {
+        margin: 0;
+        color: var(--text-sub);
+        font-size: 10px;
+        font-weight: 750;
+        line-height: 1.25;
+      }
+
+      .option.disabled .option-title {
+        color: #b0c4cf;
+      }
+
+      .option.disabled .option-desc {
+        color: #7f95a4;
+      }
+
+      .locked-row {
+        min-height: 52px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border: 1px solid rgba(96, 117, 135, 0.4);
+        border-radius: 8px;
+        background: rgba(7, 17, 29, 0.66);
+        color: var(--text-muted);
+      }
+
+      .locked-row strong {
+        display: block;
+        color: var(--text-sub);
+        font-size: 11px;
+        margin-bottom: 2px;
+      }
+
+      .locked-row span {
+        display: block;
+        font-size: 10px;
+        line-height: 1.25;
+      }
+
+      .footer {
+        padding: 8px 12px 10px;
+        border-top: 1px solid rgba(99, 230, 165, 0.16);
+        color: var(--text-muted);
+        font-size: 10px;
+        line-height: 1.25;
+      }
+
+      @media (max-width: 830px) {
+        .frames {
+          grid-template-columns: 1fr;
+        }
+
+        .header {
+          display: block;
+        }
+
+        .note {
+          display: inline-block;
+          margin-top: 12px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <div>
+          <h1>포탑 특성창 개선안</h1>
+          <p class="lead">
+            보상 선택 카드의 큰 세로형 구성을 팝업 안에서 쓰지 않고, 제목과 젬 파편은 고정한 뒤
+            특성 후보만 조밀한 가로형 카드로 표시하는 설계입니다.
+          </p>
+        </div>
+        <div class="note">목표: 360x800에서도 하단 잘림 없음</div>
+      </header>
+
+      <section class="frames" aria-label="mobile trait panel mockups">
+        <div class="phone-wrap">
+          <div class="phone-label">360 x 800 / 1차 선택 전</div>
+          <div class="phone" style="--phone-w: 360px; --phone-h: 800px">
+            <div class="hud-top"></div>
+            <div class="hud-bottom"></div>
+            <div class="dialog-shell">
+              <article class="trait-dialog">
+                <header class="trait-title">
+                  <div class="spark">✦</div>
+                  <div class="title-text">대포 특성</div>
+                  <div class="close">×</div>
+                </header>
+                <div class="resource-strip">
+                  <div class="gem"></div>
+                  <div class="resource-label">젬 파편</div>
+                  <div class="resource-count">0</div>
+                  <div class="spacer"></div>
+                  <div class="cost"><span>1차</span>12</div>
+                  <div class="cost"><span>2차</span>24</div>
+                </div>
+                <div class="trait-scroll">
+                  <section class="tier">
+                    <div class="tier-head">
+                      <div class="tier-chip">1차</div>
+                      <div class="tier-name">무기 개조</div>
+                      <div class="state-dot"></div>
+                    </div>
+                    <div class="blocked">▣ 1차 특성은 Lv.3부터 선택할 수 있습니다.</div>
+                    <div class="option disabled">
+                      <div class="iconbox">▦</div>
+                      <div>
+                        <p class="option-title">파편 장전</p>
+                        <p class="option-desc">폭발 반경 +30%</p>
+                      </div>
+                    </div>
+                    <div class="option disabled">
+                      <div class="iconbox">⇄</div>
+                      <div>
+                        <p class="option-title">압축 장약</p>
+                        <p class="option-desc">직격 피해 +35%, 공격 속도 -10%</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="tier">
+                    <div class="tier-head">
+                      <div class="tier-chip">2차</div>
+                      <div class="tier-name">전투 교리</div>
+                      <div class="state-dot"></div>
+                    </div>
+                    <div class="locked-row">
+                      <div class="iconbox">⌁</div>
+                      <div>
+                        <strong>1차 특성 선택 후 개방</strong>
+                        <span>후보 카드는 조건 충족 전까지 숨겨 세로 공간을 줄입니다.</span>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+                <footer class="footer">선택한 특성은 이번 런 동안 변경할 수 없습니다.</footer>
+              </article>
+            </div>
+          </div>
+        </div>
+
+        <div class="phone-wrap">
+          <div class="phone-label">390 x 844 / 1차 선택 후 2차 후보 표시</div>
+          <div class="phone" style="--phone-w: 390px; --phone-h: 844px">
+            <div class="hud-top"></div>
+            <div class="hud-bottom"></div>
+            <div class="dialog-shell">
+              <article class="trait-dialog">
+                <header class="trait-title">
+                  <div class="spark">✦</div>
+                  <div class="title-text">대포 특성</div>
+                  <div class="close">×</div>
+                </header>
+                <div class="resource-strip">
+                  <div class="gem"></div>
+                  <div class="resource-label">젬 파편</div>
+                  <div class="resource-count">32</div>
+                  <div class="spacer"></div>
+                  <div class="cost"><span>1차</span>12</div>
+                  <div class="cost"><span>2차</span>24</div>
+                </div>
+                <div class="trait-scroll">
+                  <section class="tier">
+                    <div class="tier-head">
+                      <div class="tier-chip">1차</div>
+                      <div class="tier-name">무기 개조</div>
+                      <div class="state-dot ready"></div>
+                    </div>
+                    <div class="option selected">
+                      <div class="iconbox">▦</div>
+                      <div>
+                        <p class="option-title">파편 장전</p>
+                        <p class="option-desc">폭발 반경 +30%</p>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="tier">
+                    <div class="tier-head">
+                      <div class="tier-chip">2차</div>
+                      <div class="tier-name">전투 교리</div>
+                      <div class="state-dot ready"></div>
+                    </div>
+                    <div class="option">
+                      <div class="iconbox">◎</div>
+                      <div>
+                        <p class="option-title">확장 폭심</p>
+                        <p class="option-desc">폭발 반경 +40%, 주변 피해 배율 +10%p</p>
+                      </div>
+                    </div>
+                    <div class="option">
+                      <div class="iconbox">⌖</div>
+                      <div>
+                        <p class="option-title">파쇄 충격</p>
+                        <p class="option-desc">타격 대상 물리 저항 -20%</p>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+                <footer class="footer">선택한 특성은 이번 런 동안 변경할 수 없습니다.</footer>
+              </article>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

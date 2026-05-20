@@ -628,6 +628,50 @@ void main() {
     },
   );
 
+  testWidgets('trait dialog uses compact tier panel on narrow combat width', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          backgroundColor: const Color(0xFF07111D),
+          body: GameHud(game: game),
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester, frameCount: 10);
+    game.debugAddGold(1000);
+    game.tryBuildTurret(const GridPoint(2, 0));
+    while (game.snapshotNotifier.value.selectedTurretLevel < 3) {
+      game.levelUpSelectedTurret();
+    }
+    await _pumpGameFrames(tester);
+
+    await tester.tap(find.byTooltip('특성'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('기관총 특성'), findsOneWidget);
+    expect(find.text('무기 개조'), findsNWidgets(2));
+    expect(find.text('전투 교리'), findsOneWidget);
+    expect(find.text('과열 탄창'), findsOneWidget);
+    expect(find.text('경량 총열'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('전투 교리'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('1차 특성 선택 후 후보 카드가 열립니다.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('menu clock refreshes active research completion', (
     tester,
   ) async {
