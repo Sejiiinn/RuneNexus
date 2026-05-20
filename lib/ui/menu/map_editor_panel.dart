@@ -1,15 +1,20 @@
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../data/definitions/demo_stage_data.dart';
 import '../../domain/map/grid_point.dart';
 import '../../domain/map/map_definition.dart';
+import '../../domain/map/map_tile_theme.dart';
 import '../../domain/map/tile_type.dart';
 
 enum _MapEditMode { tile, path }
 
 const _minMapSize = 4;
 const _maxMapSize = 16;
+const _editorStagesPerChapter = 5;
 
 class DebugMapEditorPanel extends StatefulWidget {
   const DebugMapEditorPanel({required this.initialStageNumber, super.key});
@@ -21,9 +26,11 @@ class DebugMapEditorPanel extends StatefulWidget {
 }
 
 class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
+  late int _chapterNumber;
   late int _stageNumber;
   late List<List<TileType>> _tiles;
   late List<GridPoint> _path;
+  late MapTileTheme _tileTheme;
   final Map<int, _MapDraft> _draftsByStage = {};
   TileType _selectedTile = TileType.build;
   _MapEditMode _mode = _MapEditMode.tile;
@@ -40,9 +47,11 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
 
   void _loadStage(int stageNumber) {
     final draft = _draftsByStage[stageNumber] ?? _draftForStage(stageNumber);
+    _chapterNumber = _chapterForStage(stageNumber);
     _stageNumber = stageNumber;
     _tiles = draft.copyTiles();
     _path = [...draft.path];
+    _tileTheme = draft.tileTheme;
     _lastExportText = null;
   }
 
@@ -54,6 +63,7 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
         for (final row in map.tiles) [...row],
       ],
       path: [...map.path],
+      tileTheme: map.tileTheme,
     );
   }
 
@@ -63,6 +73,7 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
         for (final row in _tiles) [...row],
       ],
       path: [..._path],
+      tileTheme: _tileTheme,
     );
   }
 
@@ -71,13 +82,16 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
       return;
     }
     _saveCurrentDraft();
-    final draft = _draftsByStage[stageNumber] ?? _draftForStage(stageNumber);
-    _tiles = [
-      for (final row in draft.tiles) [...row],
-    ];
-    _path = [...draft.path];
-    _stageNumber = stageNumber;
-    _lastExportText = null;
+    _loadStage(stageNumber);
+  }
+
+  void _switchChapter(int chapterNumber) {
+    if (chapterNumber == _chapterNumber) {
+      return;
+    }
+    _saveCurrentDraft();
+    final firstStage = _firstStageForChapter(chapterNumber);
+    _loadStage(firstStage.clamp(1, demoStages.length).toInt());
   }
 
   MapDefinition get _map => MapDefinition(
@@ -85,6 +99,7 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
     rows: _tiles.length,
     tiles: _tiles,
     path: _path,
+    tileTheme: _tileTheme,
   );
 
   void _handlePoint(GridPoint point) {
@@ -230,9 +245,16 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
           },
         );
         final setupControls = _EditorSetupControls(
+          chapterNumber: _chapterNumber,
           stageNumber: _stageNumber,
+          stageCount: demoStages.length,
           columns: _tiles.first.length,
           rows: _tiles.length,
+          onChapterSelected: (chapterNumber) {
+            setState(() {
+              _switchChapter(chapterNumber);
+            });
+          },
           onStageSelected: (stageNumber) {
             setState(() {
               _switchStage(stageNumber);
@@ -243,6 +265,7 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
         );
         final controls = _EditorControls(
           selectedTile: _selectedTile,
+          tileTheme: _tileTheme,
           mode: _mode,
           validationMessages: validationMessages,
           onTileSelected: (tileType) {
@@ -384,18 +407,33 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
     for (final point in _path) {
       buffer.writeln('    GridPoint(${point.x}, ${point.y}),');
     }
-    buffer
-      ..writeln('  ],')
-      ..writeln(');');
+    buffer.writeln('  ],');
+    if (_tileTheme.kind == MapTileThemeKind.chapterTwoRift) {
+      buffer.writeln('  tileTheme: chapterTwoRiftTileTheme,');
+    }
+    buffer.writeln(');');
     return buffer.toString();
+  }
+
+  int _chapterForStage(int stageNumber) {
+    return ((stageNumber - 1) ~/ _editorStagesPerChapter) + 1;
+  }
+
+  int _firstStageForChapter(int chapterNumber) {
+    return (chapterNumber - 1) * _editorStagesPerChapter + 1;
   }
 }
 
 class _MapDraft {
-  const _MapDraft({required this.tiles, required this.path});
+  const _MapDraft({
+    required this.tiles,
+    required this.path,
+    required this.tileTheme,
+  });
 
   final List<List<TileType>> tiles;
   final List<GridPoint> path;
+  final MapTileTheme tileTheme;
 
   List<List<TileType>> copyTiles() {
     return [
@@ -440,17 +478,23 @@ class _EditorHeader extends StatelessWidget {
 
 class _EditorSetupControls extends StatelessWidget {
   const _EditorSetupControls({
+    required this.chapterNumber,
     required this.stageNumber,
+    required this.stageCount,
     required this.columns,
     required this.rows,
+    required this.onChapterSelected,
     required this.onStageSelected,
     required this.onResizeColumns,
     required this.onResizeRows,
   });
 
+  final int chapterNumber;
   final int stageNumber;
+  final int stageCount;
   final int columns;
   final int rows;
+  final ValueChanged<int> onChapterSelected;
   final ValueChanged<int> onStageSelected;
   final ValueChanged<int> onResizeColumns;
   final ValueChanged<int> onResizeRows;
@@ -458,9 +502,26 @@ class _EditorSetupControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _ControlSection(
-      title: '스테이지 / 크기',
+      title: '챕터 / 스테이지 / 크기',
       child: Column(
         children: [
+          Wrap(
+            spacing: 5,
+            runSpacing: 5,
+            children: [
+              for (var chapter = 1; chapter <= _chapterCount; chapter++)
+                ChoiceChip(
+                  label: Text(_chapterLabel(chapter)),
+                  selected: chapterNumber == chapter,
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  labelPadding: const EdgeInsets.symmetric(horizontal: 8),
+                  padding: EdgeInsets.zero,
+                  onSelected: (_) => onChapterSelected(chapter),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
           Row(
             children: [
               Expanded(
@@ -468,7 +529,7 @@ class _EditorSetupControls extends StatelessWidget {
                   spacing: 5,
                   runSpacing: 5,
                   children: [
-                    for (var stage = 1; stage <= demoStages.length; stage++)
+                    for (final stage in _stagesInChapter(chapterNumber))
                       ChoiceChip(
                         label: Text('$stage'),
                         selected: stageNumber == stage,
@@ -509,11 +570,30 @@ class _EditorSetupControls extends StatelessWidget {
       ),
     );
   }
+
+  int get _chapterCount {
+    return (stageCount / _editorStagesPerChapter).ceil();
+  }
+
+  Iterable<int> _stagesInChapter(int chapter) sync* {
+    final first = (chapter - 1) * _editorStagesPerChapter + 1;
+    final last = math.min(first + _editorStagesPerChapter - 1, stageCount);
+    for (var stage = first; stage <= last; stage++) {
+      yield stage;
+    }
+  }
+
+  String _chapterLabel(int chapter) {
+    final first = (chapter - 1) * _editorStagesPerChapter + 1;
+    final last = math.min(first + _editorStagesPerChapter - 1, stageCount);
+    return '챕터 $chapter · $first-$last';
+  }
 }
 
 class _EditorControls extends StatelessWidget {
   const _EditorControls({
     required this.selectedTile,
+    required this.tileTheme,
     required this.mode,
     required this.validationMessages,
     required this.onTileSelected,
@@ -524,6 +604,7 @@ class _EditorControls extends StatelessWidget {
   });
 
   final TileType selectedTile;
+  final MapTileTheme tileTheme;
   final _MapEditMode mode;
   final List<String> validationMessages;
   final ValueChanged<TileType> onTileSelected;
@@ -571,6 +652,7 @@ class _EditorControls extends StatelessWidget {
                   for (final tileType in TileType.values)
                     _TileBrushButton(
                       tileType: tileType,
+                      tileTheme: tileTheme,
                       selected:
                           mode == _MapEditMode.tile && selectedTile == tileType,
                       onPressed: () => onTileSelected(tileType),
@@ -785,27 +867,30 @@ class _StepButton extends StatelessWidget {
 class _TileBrushButton extends StatelessWidget {
   const _TileBrushButton({
     required this.tileType,
+    required this.tileTheme,
     required this.selected,
     required this.onPressed,
   });
 
   final TileType tileType;
+  final MapTileTheme tileTheme;
   final bool selected;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 28,
+      height: 34,
       child: OutlinedButton.icon(
         onPressed: onPressed,
-        icon: Container(
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(
-            color: tileType.editorColor,
-            border: Border.all(color: const Color(0xFFE8FBFF)),
-            borderRadius: BorderRadius.circular(3),
+        icon: SizedBox(
+          width: 20,
+          height: 20,
+          child: CustomPaint(
+            painter: _TilePreviewPainter(
+              tileType: tileType,
+              tileTheme: tileTheme,
+            ),
           ),
         ),
         label: Text(tileType.label, style: const TextStyle(fontSize: 12)),
@@ -944,7 +1029,7 @@ class _EditorGridPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final tileSize = size.width / map.columns;
     final stroke = Paint()
-      ..color = const Color(0x8833D8FF)
+      ..color = map.tileTheme.gridStrokeColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
 
@@ -957,9 +1042,12 @@ class _EditorGridPainter extends CustomPainter {
           tileSize,
           tileSize,
         );
-        canvas.drawRect(
+        _EditorTileArt.drawTile(
+          canvas,
           rect.deflate(1),
-          Paint()..color = map.tileAt(point).editorColor,
+          point,
+          map.tileAt(point),
+          map.tileTheme,
         );
         canvas.drawRect(rect.deflate(1), stroke);
       }
@@ -1023,6 +1111,328 @@ class _EditorGridPainter extends CustomPainter {
   }
 }
 
+class _TilePreviewPainter extends CustomPainter {
+  const _TilePreviewPainter({required this.tileType, required this.tileTheme});
+
+  final TileType tileType;
+  final MapTileTheme tileTheme;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    _EditorTileArt.drawTile(
+      canvas,
+      Offset.zero & size,
+      const GridPoint(2, 3),
+      tileType,
+      tileTheme,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _TilePreviewPainter oldDelegate) {
+    return oldDelegate.tileType != tileType ||
+        oldDelegate.tileTheme.kind != tileTheme.kind;
+  }
+}
+
+class _EditorTileArt {
+  static void drawTile(
+    Canvas canvas,
+    Rect rect,
+    GridPoint point,
+    TileType tileType,
+    MapTileTheme theme,
+  ) {
+    switch (tileType) {
+      case TileType.path:
+        _drawTerrainTile(
+          canvas,
+          rect,
+          point,
+          theme,
+          topColor: theme.pathTopColor,
+          midColor: theme.pathMidColor,
+          bottomColor: theme.pathBottomColor,
+          rimColor: theme.pathRimColor,
+          detailColor: theme.pathChipColor,
+          accentColor: theme.pathLightChipColor,
+          isPath: true,
+        );
+      case TileType.build:
+        _drawTerrainTile(
+          canvas,
+          rect,
+          point,
+          theme,
+          topColor: theme.buildTopColor,
+          midColor: theme.buildMidColor,
+          bottomColor: theme.buildBottomColor,
+          rimColor: theme.buildRimColor,
+          detailColor: theme.buildDarkScuffColor,
+          accentColor: theme.buildMutedLeafColor,
+          isPath: false,
+        );
+      case TileType.blocked:
+        _drawBlockedTile(canvas, rect, theme);
+      case TileType.spawn:
+        _drawSpecialTile(canvas, rect, point, theme, isSpawn: true);
+      case TileType.core:
+        _drawSpecialTile(canvas, rect, point, theme, isSpawn: false);
+    }
+  }
+
+  static void _drawTerrainTile(
+    Canvas canvas,
+    Rect rect,
+    GridPoint point,
+    MapTileTheme theme, {
+    required Color topColor,
+    required Color midColor,
+    required Color bottomColor,
+    required Color rimColor,
+    required Color detailColor,
+    required Color accentColor,
+    required bool isPath,
+  }) {
+    final radius = Radius.circular(rect.shortestSide * 0.05);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, radius),
+      Paint()..color = rimColor.withValues(alpha: 0.72),
+    );
+    final face = rect.deflate(rect.shortestSide * 0.04);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(face, Radius.circular(rect.shortestSide * 0.04)),
+      Paint()
+        ..shader = ui.Gradient.linear(
+          face.topLeft,
+          face.bottomRight,
+          [topColor, midColor, bottomColor],
+          const [0, 0.58, 1],
+        ),
+    );
+    canvas.drawLine(
+      Offset(face.left + face.width * 0.08, face.top + face.height * 0.1),
+      Offset(face.right - face.width * 0.12, face.top + face.height * 0.08),
+      Paint()
+        ..color = const Color(0x1FFFFFFF)
+        ..strokeWidth = rect.shortestSide * 0.018
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawLine(
+      Offset(face.left + face.width * 0.12, face.bottom - face.height * 0.1),
+      Offset(face.right - face.width * 0.08, face.bottom - face.height * 0.08),
+      Paint()
+        ..color = const Color(0x33000000)
+        ..strokeWidth = rect.shortestSide * 0.018
+        ..strokeCap = StrokeCap.round,
+    );
+
+    if (isPath) {
+      _drawPathChips(canvas, face, point, detailColor, accentColor);
+    } else {
+      _drawBuildScuffs(canvas, face, point, detailColor, accentColor);
+    }
+    if (theme.usesRiftEnergy) {
+      _drawRiftMark(canvas, face, point, theme, isPath: isPath);
+    }
+  }
+
+  static void _drawPathChips(
+    Canvas canvas,
+    Rect face,
+    GridPoint point,
+    Color detailColor,
+    Color accentColor,
+  ) {
+    for (var i = 0; i < 4; i++) {
+      final center = Offset(
+        face.left + face.width * (0.18 + _unit(point, i) * 0.64),
+        face.top + face.height * (0.22 + _unit(point, i + 7) * 0.56),
+      );
+      final chip = Rect.fromCenter(
+        center: center,
+        width: face.width * (0.08 + _unit(point, i + 13) * 0.08),
+        height: math.max(1, face.height * 0.035),
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(chip, Radius.circular(face.width * 0.02)),
+        Paint()..color = i.isEven ? detailColor : accentColor,
+      );
+    }
+  }
+
+  static void _drawBuildScuffs(
+    Canvas canvas,
+    Rect face,
+    GridPoint point,
+    Color detailColor,
+    Color accentColor,
+  ) {
+    final dark = Paint()
+      ..color = detailColor
+      ..strokeWidth = math.max(1, face.shortestSide * 0.035)
+      ..strokeCap = StrokeCap.round;
+    final bright = Paint()
+      ..color = accentColor
+      ..strokeWidth = math.max(1, face.shortestSide * 0.03)
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < 3; i++) {
+      final start = Offset(
+        face.left + face.width * (0.2 + _unit(point, i + 19) * 0.56),
+        face.top + face.height * (0.36 + _unit(point, i + 25) * 0.42),
+      );
+      final end = start.translate(
+        face.width * (-0.08 + _unit(point, i + 31) * 0.16),
+        -face.height * (0.1 + _unit(point, i + 37) * 0.08),
+      );
+      canvas.drawLine(
+        start.translate(face.width * 0.02, face.height * 0.02),
+        end,
+        dark,
+      );
+      canvas.drawLine(start, end, i == 1 ? bright : dark);
+    }
+  }
+
+  static void _drawRiftMark(
+    Canvas canvas,
+    Rect face,
+    GridPoint point,
+    MapTileTheme theme, {
+    required bool isPath,
+  }) {
+    final start = Offset(
+      face.left + face.width * (0.16 + _unit(point, 43) * 0.12),
+      face.top + face.height * (isPath ? 0.44 : 0.3),
+    );
+    final mid = Offset(
+      face.left + face.width * (0.46 + _unit(point, 44) * 0.12),
+      face.top + face.height * (0.22 + _unit(point, 45) * 0.46),
+    );
+    final end = Offset(
+      face.right - face.width * (0.14 + _unit(point, 46) * 0.1),
+      face.top + face.height * (isPath ? 0.54 : 0.62),
+    );
+    final path = Path()
+      ..moveTo(start.dx, start.dy)
+      ..quadraticBezierTo(mid.dx, mid.dy, end.dx, end.dy);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = theme.energyPrimaryColor.withValues(alpha: 0.24)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = face.shortestSide * 0.1
+        ..strokeCap = StrokeCap.round
+        ..maskFilter = MaskFilter.blur(
+          BlurStyle.normal,
+          face.shortestSide * 0.04,
+        ),
+    );
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = theme.energySecondaryColor.withValues(alpha: 0.72)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1, face.shortestSide * 0.035)
+        ..strokeCap = StrokeCap.round,
+    );
+    canvas.drawCircle(
+      mid,
+      face.shortestSide * 0.055,
+      Paint()..color = theme.energyPrimaryColor.withValues(alpha: 0.72),
+    );
+  }
+
+  static void _drawBlockedTile(Canvas canvas, Rect rect, MapTileTheme theme) {
+    final face = rect.deflate(rect.shortestSide * 0.04);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, Radius.circular(rect.shortestSide * 0.05)),
+      Paint()..color = const Color(0xFF07111D),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(face, Radius.circular(rect.shortestSide * 0.04)),
+      Paint()
+        ..shader = ui.Gradient.linear(face.topLeft, face.bottomRight, [
+          theme.buildBottomColor.withValues(alpha: 0.82),
+          const Color(0xFF050A12),
+        ]),
+    );
+    canvas.drawLine(
+      Offset(face.left + face.width * 0.2, face.top + face.height * 0.2),
+      Offset(face.right - face.width * 0.2, face.bottom - face.height * 0.2),
+      Paint()
+        ..color = theme.gridStrokeColor.withValues(alpha: 0.7)
+        ..strokeWidth = math.max(1, face.shortestSide * 0.04),
+    );
+  }
+
+  static void _drawSpecialTile(
+    Canvas canvas,
+    Rect rect,
+    GridPoint point,
+    MapTileTheme theme, {
+    required bool isSpawn,
+  }) {
+    final baseColor = isSpawn ? theme.spawnTileColor : theme.coreTileColor;
+    _drawTerrainTile(
+      canvas,
+      rect,
+      point,
+      theme,
+      topColor: baseColor.withValues(alpha: 0.92),
+      midColor: baseColor,
+      bottomColor: const Color(0xFF080A18),
+      rimColor: isSpawn ? theme.portalOuterColor : theme.nexusGemStrokeColor,
+      detailColor: theme.stoneMortarColor,
+      accentColor: theme.stoneHighlightColor,
+      isPath: true,
+    );
+    final center = rect.center;
+    final radius = rect.shortestSide * 0.24;
+    if (isSpawn) {
+      canvas.drawCircle(
+        center,
+        radius * 1.08,
+        Paint()..color = theme.portalBaseColor,
+      );
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()
+          ..color = theme.portalOuterColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = math.max(1, rect.shortestSide * 0.05),
+      );
+      canvas.drawCircle(
+        center,
+        radius * 0.55,
+        Paint()..color = theme.portalGlowColor.withValues(alpha: 0.7),
+      );
+      return;
+    }
+
+    final gem = Path()
+      ..moveTo(center.dx, center.dy - radius)
+      ..lineTo(center.dx + radius * 0.68, center.dy)
+      ..lineTo(center.dx, center.dy + radius)
+      ..lineTo(center.dx - radius * 0.68, center.dy)
+      ..close();
+    canvas.drawPath(gem, Paint()..color = theme.nexusGemColor);
+    canvas.drawPath(
+      gem,
+      Paint()
+        ..color = theme.nexusGemStrokeColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1, rect.shortestSide * 0.045),
+    );
+  }
+
+  static double _unit(GridPoint point, int salt) {
+    final n = math.sin(point.x * 12.9898 + point.y * 78.233 + salt * 37.719);
+    return (n * 43758.5453).abs() % 1;
+  }
+}
+
 class _ExportPreview extends StatelessWidget {
   const _ExportPreview({required this.text});
 
@@ -1066,16 +1476,6 @@ extension on TileType {
       TileType.blocked => 'blocked',
       TileType.spawn => 'spawn',
       TileType.core => 'core',
-    };
-  }
-
-  Color get editorColor {
-    return switch (this) {
-      TileType.path => const Color(0xFF786C58),
-      TileType.build => const Color(0xFF1C4737),
-      TileType.blocked => const Color(0xFF172634),
-      TileType.spawn => const Color(0xFF4B245F),
-      TileType.core => const Color(0xFF0B86B8),
     };
   }
 }

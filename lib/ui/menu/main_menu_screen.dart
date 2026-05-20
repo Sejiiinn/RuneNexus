@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -28,6 +29,7 @@ enum _PermanentUpgradeGroup { combat, economy }
 
 const int _stageChapterSize = 5;
 const int _visibleStageChapterCount = 3;
+const double _stageRowHeight = 72;
 
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({
@@ -53,6 +55,7 @@ class MainMenuScreen extends StatefulWidget {
 
 class _MainMenuScreenState extends State<MainMenuScreen> {
   _PermanentUpgradeGroup _selectedUpgradeGroup = _PermanentUpgradeGroup.combat;
+  bool _showMenuDebugPanel = false;
   Timer? _researchClockTimer;
 
   @override
@@ -161,7 +164,35 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
               Positioned(
                 top: 10,
                 left: 16,
-                child: _MapEditorShortcut(onPressed: widget.onOpenMapEditor),
+                child: _MenuDebugShortcuts(
+                  testPanelOpen: _showMenuDebugPanel,
+                  onToggleTestPanel: () {
+                    setState(() {
+                      _showMenuDebugPanel = !_showMenuDebugPanel;
+                    });
+                  },
+                  onOpenMapEditor: widget.onOpenMapEditor,
+                ),
+              ),
+            if (_showMapEditor && _showMenuDebugPanel)
+              Positioned(
+                top: 58,
+                left: 16,
+                right: 16,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 430),
+                    child: _MainMenuDebugPanel(
+                      game: widget.game,
+                      snapshot: widget.snapshot,
+                      onClose: () {
+                        setState(() {
+                          _showMenuDebugPanel = false;
+                        });
+                      },
+                    ),
+                  ),
+                ),
               ),
             if (selectedTab == MainMenuTab.permanentUpgrades)
               Positioned(
@@ -207,9 +238,51 @@ class _MainMenuPanel extends StatelessWidget {
   }
 }
 
-class _MapEditorShortcut extends StatelessWidget {
-  const _MapEditorShortcut({required this.onPressed});
+class _MenuDebugShortcuts extends StatelessWidget {
+  const _MenuDebugShortcuts({
+    required this.testPanelOpen,
+    required this.onToggleTestPanel,
+    required this.onOpenMapEditor,
+  });
 
+  final bool testPanelOpen;
+  final VoidCallback onToggleTestPanel;
+  final VoidCallback? onOpenMapEditor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _DebugShortcutButton(
+          tooltip: '메뉴 테스트 패널',
+          icon: Icons.tune,
+          selected: testPanelOpen,
+          onPressed: onToggleTestPanel,
+        ),
+        const SizedBox(width: 6),
+        _DebugShortcutButton(
+          tooltip: '맵 에디터',
+          icon: Icons.map_outlined,
+          selected: false,
+          onPressed: onOpenMapEditor,
+        ),
+      ],
+    );
+  }
+}
+
+class _DebugShortcutButton extends StatelessWidget {
+  const _DebugShortcutButton({
+    required this.tooltip,
+    required this.icon,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final bool selected;
   final VoidCallback? onPressed;
 
   @override
@@ -218,15 +291,267 @@ class _MapEditorShortcut extends StatelessWidget {
       width: 40,
       height: 40,
       child: IconButton(
-        tooltip: '맵 에디터',
+        tooltip: tooltip,
         onPressed: onPressed,
         style: IconButton.styleFrom(
-          foregroundColor: const Color(0xFFE8FBFF),
-          backgroundColor: const Color(0xE607111D),
-          side: const BorderSide(color: Color(0x6650E6FF)),
+          foregroundColor: selected
+              ? const Color(0xFF07111D)
+              : const Color(0xFFE8FBFF),
+          backgroundColor: selected
+              ? const Color(0xFF8EE6FF)
+              : const Color(0xE607111D),
+          side: BorderSide(
+            color: selected ? const Color(0xFF8EE6FF) : const Color(0x6650E6FF),
+          ),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-        icon: const Icon(Icons.map_outlined, size: 20),
+        icon: Icon(icon, size: 20),
+      ),
+    );
+  }
+}
+
+class _MainMenuDebugPanel extends StatelessWidget {
+  const _MainMenuDebugPanel({
+    required this.game,
+    required this.snapshot,
+    required this.onClose,
+  });
+
+  final RuneNexusGame game;
+  final GameSnapshot snapshot;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return GamePanel(
+      padding: const EdgeInsets.all(10),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 430),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.tune, color: Color(0xFF8EE6FF), size: 18),
+                  const SizedBox(width: 7),
+                  const Expanded(
+                    child: Text(
+                      '메뉴 테스트 패널',
+                      style: TextStyle(
+                        color: Color(0xFFE8FBFF),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 30,
+                    height: 30,
+                    child: IconButton(
+                      tooltip: '닫기',
+                      onPressed: onClose,
+                      padding: EdgeInsets.zero,
+                      icon: const Icon(Icons.close, size: 16),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 5,
+                runSpacing: 5,
+                children: [
+                  _DebugStatusChip(
+                    icon: Icons.diamond_outlined,
+                    label: '룬',
+                    value: '${snapshot.runes}',
+                  ),
+                  _DebugStatusChip(
+                    icon: Icons.flag_outlined,
+                    label: '해금',
+                    value: '${snapshot.unlockedStageCount}',
+                  ),
+                  _DebugStatusChip(
+                    icon: Icons.check_circle_outline,
+                    label: '클리어',
+                    value: '${snapshot.clearedStageNumbers.length}',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              _DebugControlSection(
+                title: '룬',
+                children: [
+                  _DebugActionButton(
+                    label: '+100',
+                    onPressed: () => game.debugAddRunes(100),
+                  ),
+                  _DebugActionButton(
+                    label: '+1,000',
+                    onPressed: () => game.debugAddRunes(1000),
+                  ),
+                  _DebugActionButton(
+                    label: '+10,000',
+                    onPressed: () => game.debugAddRunes(10000),
+                  ),
+                  _DebugActionButton(
+                    label: '0으로',
+                    onPressed: () => game.debugSetRunes(0),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _DebugControlSection(
+                title: '클리어 스테이지',
+                children: [
+                  for (final count in const [0, 1, 2, 5, 10])
+                    _DebugActionButton(
+                      label: count == 0 ? '초기' : '$count까지',
+                      selected: snapshot.clearedStageNumbers.length == count,
+                      onPressed: () => game.debugSetClearedStageCount(count),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _DebugControlSection(
+                title: '연구',
+                children: [
+                  _DebugActionButton(
+                    label: '연구 초기화',
+                    danger: true,
+                    onPressed: game.debugResetResearchProgress,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DebugStatusChip extends StatelessWidget {
+  const _DebugStatusChip({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 28,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        color: const Color(0x3315283A),
+        border: Border.all(color: const Color(0x5533D8FF)),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: const Color(0xFF8EE6FF), size: 13),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF9EB3BF),
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Color(0xFFE8FBFF),
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DebugControlSection extends StatelessWidget {
+  const _DebugControlSection({required this.title, required this.children});
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: const Color(0x4415283A),
+        border: Border.all(color: const Color(0x33485B68)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Color(0xFFE8FBFF),
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Wrap(spacing: 5, runSpacing: 5, children: children),
+        ],
+      ),
+    );
+  }
+}
+
+class _DebugActionButton extends StatelessWidget {
+  const _DebugActionButton({
+    required this.label,
+    required this.onPressed,
+    this.selected = false,
+    this.danger = false,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+  final bool selected;
+  final bool danger;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = danger
+        ? const Color(0xFFFF9A7A)
+        : selected
+        ? const Color(0xFFE7C66A)
+        : const Color(0xFF8EE6FF);
+    return SizedBox(
+      height: 30,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: selected ? const Color(0xFF07111D) : Colors.white,
+          backgroundColor: selected ? accent : null,
+          side: BorderSide(color: accent.withValues(alpha: 0.74)),
+          padding: const EdgeInsets.symmetric(horizontal: 9),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+        ),
       ),
     );
   }
@@ -599,15 +924,37 @@ class _TabButton extends StatelessWidget {
   }
 }
 
-class _StageMenu extends StatelessWidget {
+class _StageMenu extends StatefulWidget {
   const _StageMenu({required this.snapshot, required this.onStartStage});
 
   final GameSnapshot snapshot;
   final ValueChanged<int> onStartStage;
 
   @override
+  State<_StageMenu> createState() => _StageMenuState();
+}
+
+class _StageMenuState extends State<_StageMenu> {
+  late int _selectedChapter = _initialChapterFor(widget.snapshot);
+
+  @override
+  void didUpdateWidget(covariant _StageMenu oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final maxChapter = _chapterForStage(RunProgression.maxStageCount);
+    if (_selectedChapter > maxChapter) {
+      _selectedChapter = maxChapter;
+    }
+    if (widget.snapshot.hasStageProgress &&
+        widget.snapshot.currentStageNumber !=
+            oldWidget.snapshot.currentStageNumber) {
+      _selectedChapter = _chapterForStage(widget.snapshot.currentStageNumber);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final snapshot = widget.snapshot;
     final activeRunInProgress =
         snapshot.hasStageProgress &&
         snapshot.phase != GamePhase.success &&
@@ -616,24 +963,35 @@ class _StageMenu extends StatelessWidget {
       1,
       RunProgression.maxStageCount,
     );
+    final chapterStart = (_selectedChapter - 1) * _stageChapterSize + 1;
+    final chapterEnd = math.min(
+      chapterStart + _stageChapterSize - 1,
+      RunProgression.maxStageCount,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const _StageChapterTabs(),
+        _StageChapterTabs(
+          selectedChapter: _selectedChapter,
+          unlockedStageCount: stageCount,
+          onSelected: (chapter) {
+            setState(() {
+              _selectedChapter = chapter;
+            });
+          },
+        ),
         const SizedBox(height: 10),
         if (activeRunInProgress) ...[
           _ActiveRunSummary(
             snapshot: snapshot,
-            onPressed: () => onStartStage(snapshot.currentStageNumber),
+            onPressed: () => widget.onStartStage(snapshot.currentStageNumber),
           ),
           const SizedBox(height: 10),
         ],
-        for (var stage = 1; stage <= _stageChapterSize; stage++)
+        for (var stage = chapterStart; stage <= chapterEnd; stage++)
           Padding(
-            padding: EdgeInsets.only(
-              bottom: stage == _stageChapterSize ? 0 : 8,
-            ),
+            padding: EdgeInsets.only(bottom: stage == chapterEnd ? 0 : 8),
             child: _StageSelectionRow(
               stageNumber: stage,
               unlocked: stage <= stageCount,
@@ -657,16 +1015,39 @@ class _StageMenu extends StatelessWidget {
               runeBonusText: l10n.stageRuneBonus(
                 RunProgression.stageRuneRewardBonusRateFor(stage),
               ),
-              onPressed: stage <= stageCount ? () => onStartStage(stage) : null,
+              onPressed: stage <= stageCount
+                  ? () => widget.onStartStage(stage)
+                  : null,
             ),
           ),
       ],
     );
   }
+
+  int _initialChapterFor(GameSnapshot snapshot) {
+    final stageNumber = snapshot.hasStageProgress
+        ? snapshot.currentStageNumber
+        : snapshot.unlockedStageCount;
+    return _chapterForStage(
+      stageNumber.clamp(1, RunProgression.maxStageCount).toInt(),
+    );
+  }
+}
+
+int _chapterForStage(int stageNumber) {
+  return ((stageNumber - 1) ~/ _stageChapterSize) + 1;
 }
 
 class _StageChapterTabs extends StatelessWidget {
-  const _StageChapterTabs();
+  const _StageChapterTabs({
+    required this.selectedChapter,
+    required this.unlockedStageCount,
+    required this.onSelected,
+  });
+
+  final int selectedChapter;
+  final int unlockedStageCount;
+  final ValueChanged<int> onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -675,21 +1056,33 @@ class _StageChapterTabs extends StatelessWidget {
       height: 42,
       child: Row(
         children: [
-          Expanded(
-            child: _StageChapterTab(
-              label: l10n.stageChapterName(1),
-              selected: true,
-              enabled: true,
-            ),
-          ),
-          for (var chapter = 2; chapter <= _visibleStageChapterCount; chapter++)
-            Padding(
-              padding: const EdgeInsets.only(left: 8),
-              child: _LockedStageChapterTab(tooltip: l10n.plannedUpgrade),
-            ),
+          for (var chapter = 1; chapter <= _visibleStageChapterCount; chapter++)
+            if (_chapterIsPlayable(chapter))
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(left: chapter == 1 ? 0 : 8),
+                  child: _StageChapterTab(
+                    label: l10n.stageChapterName(chapter),
+                    selected: selectedChapter == chapter,
+                    enabled: true,
+                    onPressed: () => onSelected(chapter),
+                  ),
+                ),
+              )
+            else
+              Padding(
+                padding: EdgeInsets.only(left: chapter == 1 ? 0 : 8),
+                child: _LockedStageChapterTab(tooltip: l10n.plannedUpgrade),
+              ),
         ],
       ),
     );
+  }
+
+  bool _chapterIsPlayable(int chapter) {
+    final chapterStart = (chapter - 1) * _stageChapterSize + 1;
+    return chapterStart <= RunProgression.maxStageCount &&
+        chapterStart <= unlockedStageCount;
   }
 }
 
@@ -698,11 +1091,13 @@ class _StageChapterTab extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.enabled,
+    this.onPressed,
   });
 
   final String label;
   final bool selected;
   final bool enabled;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -711,15 +1106,27 @@ class _StageChapterTab extends StatelessWidget {
       selected: selected,
       accentColor: GamePalette.cyan,
       variant: selected ? GamePanelVariant.stone : GamePanelVariant.inset,
-      padding: const EdgeInsets.symmetric(horizontal: GamePalette.gapSmall),
-      child: Center(
-        child: Text(
-          label,
-          style: GameTextStyles.withColor(
-            GameTextStyles.button,
-            enabled ? GamePalette.textPrimary : GamePalette.textDisabled,
+      padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: enabled ? onPressed : null,
+          borderRadius: BorderRadius.circular(8),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: GamePalette.gapSmall,
+              ),
+              child: Text(
+                label,
+                style: GameTextStyles.withColor(
+                  GameTextStyles.button,
+                  enabled ? GamePalette.textPrimary : GamePalette.textDisabled,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ),
-          overflow: TextOverflow.ellipsis,
         ),
       ),
     );
@@ -906,11 +1313,12 @@ class _StageSelectionRow extends StatelessWidget {
       variant: unlocked ? GameButtonVariant.ghost : GameButtonVariant.secondary,
       accentColor: borderColor,
       padding: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+      child: SizedBox(
+        height: _stageRowHeight,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            const SizedBox(width: 10),
             _StageIcon(unlocked: unlocked, active: active),
             const SizedBox(width: 9),
             Expanded(
@@ -965,6 +1373,7 @@ class _StageSelectionRow extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(width: 10),
           ],
         ),
       ),

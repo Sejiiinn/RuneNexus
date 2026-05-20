@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 
 import '../../domain/map/grid_point.dart';
 import '../../domain/map/map_definition.dart';
+import '../../domain/map/map_tile_theme.dart';
 import '../../domain/map/tile_type.dart';
 
 class GridComponent extends Component {
@@ -82,7 +83,7 @@ class GridComponent extends Component {
         canvas.drawRect(
           rect.deflate(tileSize * 0.012),
           Paint()
-            ..color = const Color(0x44083A42)
+            ..color = map.tileTheme.gridStrokeColor
             ..style = PaintingStyle.stroke
             ..strokeWidth = tileSize * 0.01,
         );
@@ -139,14 +140,15 @@ class GridComponent extends Component {
 
   void _drawDirtTile(Canvas canvas, Rect rect, GridPoint point) {
     final tile = _tileFace(rect);
+    final theme = map.tileTheme;
     _drawPolishedTileFrame(
       canvas,
       rect,
       tile,
-      topColor: const Color(0xFF968875),
-      midColor: const Color(0xFF796F60),
-      bottomColor: const Color(0xFF5C554B),
-      rimColor: const Color(0xFF193E3F),
+      topColor: theme.pathTopColor,
+      midColor: theme.pathMidColor,
+      bottomColor: theme.pathBottomColor,
+      rimColor: theme.pathRimColor,
     );
 
     final stain = _tileUnit(point, 1);
@@ -160,15 +162,15 @@ class GridComponent extends Component {
         height: tile.height * 0.26,
       ),
       Paint()
-        ..color = const Color(0x223E3329)
+        ..color = theme.pathStainColor
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, tileSize * 0.018),
     );
 
     final chipPaint = Paint()
-      ..color = const Color(0x66473F35)
+      ..color = theme.pathChipColor
       ..style = PaintingStyle.fill;
     final lightChipPaint = Paint()
-      ..color = const Color(0x338F8575)
+      ..color = theme.pathLightChipColor
       ..style = PaintingStyle.fill;
     for (var i = 0; i < 5; i++) {
       final x =
@@ -192,26 +194,30 @@ class GridComponent extends Component {
         Radius.circular(tileSize * 0.035),
       ),
       Paint()
-        ..color = const Color(0x333F352B)
+        ..color = theme.pathInsetStrokeColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = tileSize * 0.014,
     );
+    if (theme.usesRiftEnergy) {
+      _drawRiftPathDetails(canvas, tile, point, theme);
+    }
   }
 
   void _drawGrassTile(Canvas canvas, Rect rect, GridPoint point) {
     final tile = _tileFace(rect);
+    final theme = map.tileTheme;
     _drawPolishedTileFrame(
       canvas,
       rect,
       tile,
-      topColor: const Color(0xFF3D6048),
-      midColor: const Color(0xFF2E5040),
-      bottomColor: const Color(0xFF203B34),
-      rimColor: const Color(0xFF183F3D),
+      topColor: theme.buildTopColor,
+      midColor: theme.buildMidColor,
+      bottomColor: theme.buildBottomColor,
+      rimColor: theme.buildRimColor,
     );
 
     final mossPaint = Paint()
-      ..color = const Color(0x55304335)
+      ..color = theme.buildMossColor
       ..style = PaintingStyle.fill;
     for (var i = 0; i < 6; i++) {
       final center = Offset(
@@ -225,7 +231,10 @@ class GridComponent extends Component {
       );
     }
 
-    _drawGrassScuffs(canvas, tile, point);
+    _drawGrassScuffs(canvas, tile, point, theme);
+    if (theme.usesRiftEnergy) {
+      _drawRiftBuildDetails(canvas, tile, point, theme);
+    }
   }
 
   Rect _tileFace(Rect rect) {
@@ -292,13 +301,18 @@ class GridComponent extends Component {
     );
   }
 
-  void _drawGrassScuffs(Canvas canvas, Rect tile, GridPoint point) {
+  void _drawGrassScuffs(
+    Canvas canvas,
+    Rect tile,
+    GridPoint point,
+    MapTileTheme theme,
+  ) {
     final dark = Paint()
-      ..color = const Color(0x7720322A)
+      ..color = theme.buildDarkScuffColor
       ..strokeWidth = tileSize * 0.018
       ..strokeCap = StrokeCap.square;
     final mutedLeaf = Paint()
-      ..color = const Color(0x665C7F50)
+      ..color = theme.buildMutedLeafColor
       ..strokeWidth = tileSize * 0.016
       ..strokeCap = StrokeCap.square;
 
@@ -329,18 +343,108 @@ class GridComponent extends Component {
     }
   }
 
+  void _drawRiftPathDetails(
+    Canvas canvas,
+    Rect tile,
+    GridPoint point,
+    MapTileTheme theme,
+  ) {
+    final crack = Paint()
+      ..color = theme.energySecondaryColor.withValues(alpha: 0.58)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = tileSize * 0.012
+      ..strokeCap = StrokeCap.round;
+    final glow = Paint()
+      ..color = theme.energyPrimaryColor.withValues(alpha: 0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = tileSize * 0.04
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, tileSize * 0.018);
+
+    final start = Offset(
+      tile.left + tile.width * (0.16 + _tileUnit(point, 71) * 0.16),
+      tile.top + tile.height * (0.35 + _tileUnit(point, 72) * 0.25),
+    );
+    final mid = Offset(
+      tile.left + tile.width * (0.45 + _tileUnit(point, 73) * 0.1),
+      tile.top + tile.height * (0.24 + _tileUnit(point, 74) * 0.5),
+    );
+    final end = Offset(
+      tile.right - tile.width * (0.14 + _tileUnit(point, 75) * 0.2),
+      tile.top + tile.height * (0.45 + _tileUnit(point, 76) * 0.2),
+    );
+    final path = Path()
+      ..moveTo(start.dx, start.dy)
+      ..quadraticBezierTo(mid.dx, mid.dy, end.dx, end.dy);
+    canvas.drawPath(path, glow);
+    canvas.drawPath(path, crack);
+
+    final node = Rect.fromCenter(
+      center: mid,
+      width: tileSize * 0.06,
+      height: tileSize * 0.06,
+    );
+    canvas.drawOval(
+      node,
+      Paint()..color = theme.energyPrimaryColor.withValues(alpha: 0.68),
+    );
+  }
+
+  void _drawRiftBuildDetails(
+    Canvas canvas,
+    Rect tile,
+    GridPoint point,
+    MapTileTheme theme,
+  ) {
+    final runePaint = Paint()
+      ..color = theme.energyPrimaryColor.withValues(alpha: 0.42)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = tileSize * 0.01
+      ..strokeCap = StrokeCap.round;
+    final shardPaint = Paint()
+      ..color = theme.energySoftColor.withValues(alpha: 0.55)
+      ..style = PaintingStyle.fill;
+
+    for (var i = 0; i < 2; i++) {
+      final center = Offset(
+        tile.left + tile.width * (0.28 + _tileUnit(point, 81 + i) * 0.42),
+        tile.top + tile.height * (0.26 + _tileUnit(point, 83 + i) * 0.44),
+      );
+      final radius = tileSize * (0.045 + _tileUnit(point, 85 + i) * 0.018);
+      canvas.drawCircle(center, radius, runePaint);
+      canvas.drawLine(
+        center.translate(-radius * 0.8, 0),
+        center.translate(radius * 0.8, 0),
+        runePaint,
+      );
+    }
+
+    final shardCenter = Offset(
+      tile.left + tile.width * (0.18 + _tileUnit(point, 89) * 0.64),
+      tile.top + tile.height * (0.2 + _tileUnit(point, 90) * 0.58),
+    );
+    final shardPath = Path()
+      ..moveTo(shardCenter.dx, shardCenter.dy - tileSize * 0.045)
+      ..lineTo(shardCenter.dx + tileSize * 0.035, shardCenter.dy)
+      ..lineTo(shardCenter.dx, shardCenter.dy + tileSize * 0.055)
+      ..lineTo(shardCenter.dx - tileSize * 0.035, shardCenter.dy)
+      ..close();
+    canvas.drawPath(shardPath, shardPaint);
+  }
+
   double _tileUnit(GridPoint point, int salt) {
     final n = math.sin(point.x * 12.9898 + point.y * 78.233 + salt * 37.719);
     return (n * 43758.5453).abs() % 1;
   }
 
   void _drawStoneDetails(Canvas canvas, Rect rect, GridPoint point) {
+    final theme = map.tileTheme;
     final mortar = Paint()
-      ..color = const Color(0x33271618)
+      ..color = theme.stoneMortarColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     final highlight = Paint()
-      ..color = const Color(0x227FF3FF)
+      ..color = theme.stoneHighlightColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
     final inset = tileSize * 0.12;
@@ -364,25 +468,26 @@ class GridComponent extends Component {
   }
 
   void _drawPortal(Canvas canvas, Rect rect) {
+    final theme = map.tileTheme;
     final center = rect.center;
     final radius = tileSize * 0.3;
     final alert = portalAlert.clamp(0.0, 1.0);
     final outer = Paint()
       ..color = Color.lerp(
-        const Color(0xFFB16DFF),
-        const Color(0xFFE3B7FF),
+        theme.portalOuterColor,
+        theme.portalOuterAlertColor,
         alert,
       )!
       ..style = PaintingStyle.stroke
       ..strokeWidth = tileSize * (0.07 + alert * 0.035);
     final inner = Paint()
       ..color = Color.lerp(
-        const Color(0xFF2B0D44),
-        const Color(0xFF4A1478),
+        theme.portalInnerColor,
+        theme.portalInnerAlertColor,
         alert,
       )!;
     final base = Paint()
-      ..color = const Color(0xFF190826)
+      ..color = theme.portalBaseColor
       ..style = PaintingStyle.fill;
 
     if (alert > 0) {
@@ -390,14 +495,14 @@ class GridComponent extends Component {
         center,
         radius * (1.28 + alert * 0.28),
         Paint()
-          ..color = const Color(0xFFB16DFF).withValues(alpha: 0.24 * alert)
+          ..color = theme.portalOuterColor.withValues(alpha: 0.24 * alert)
           ..style = PaintingStyle.stroke
           ..strokeWidth = tileSize * 0.035,
       );
       canvas.drawCircle(
         center,
         radius * (1.05 + alert * 0.32),
-        Paint()..color = const Color(0xFF8E46FF).withValues(alpha: 0.2 * alert),
+        Paint()..color = theme.portalPulseColor.withValues(alpha: 0.2 * alert),
       );
     }
     canvas.drawCircle(center, radius * (1.08 + alert * 0.08), base);
@@ -412,25 +517,26 @@ class GridComponent extends Component {
       center,
       radius * (0.68 + math.sin(_portalSpin * 2) * 0.05),
       Paint()
-        ..color = const Color(0x6650E6FF)
+        ..color = theme.portalGlowColor.withValues(alpha: 0.4)
         ..style = PaintingStyle.stroke
         ..strokeWidth = tileSize * 0.025,
     );
     canvas.drawCircle(
       Offset(center.dx, center.dy),
       radius * 0.42,
-      Paint()..color = const Color(0xAAE3B7FF),
+      Paint()..color = theme.portalCoreColor.withValues(alpha: 0.67),
     );
   }
 
   void _drawPortalSwirl(Canvas canvas, double radius) {
+    final theme = map.tileTheme;
     final glow = Paint()
-      ..color = const Color(0x6650E6FF)
+      ..color = theme.portalGlowColor.withValues(alpha: 0.4)
       ..style = PaintingStyle.stroke
       ..strokeWidth = tileSize * 0.035
       ..strokeCap = StrokeCap.round;
     final spiral = Paint()
-      ..color = const Color(0xCCB16DFF)
+      ..color = theme.portalSpiralColor.withValues(alpha: 0.8)
       ..style = PaintingStyle.stroke
       ..strokeWidth = tileSize * 0.045
       ..strokeCap = StrokeCap.round;
@@ -458,10 +564,11 @@ class GridComponent extends Component {
   }
 
   void _drawNexus(Canvas canvas, Rect rect) {
+    final theme = map.tileTheme;
     final center = rect.center;
     final hit = nexusHitAlert.clamp(0.0, 1.0);
-    final basePaint = Paint()..color = const Color(0xFF26384A);
-    final shadowPaint = Paint()..color = const Color(0xFF07111D);
+    final basePaint = Paint()..color = theme.nexusBaseColor;
+    final shadowPaint = Paint()..color = theme.nexusShadowColor;
 
     if (hit > 0) {
       canvas.drawRRect(
@@ -518,16 +625,12 @@ class GridComponent extends Component {
     canvas.drawPath(
       gem,
       Paint()
-        ..color = Color.lerp(
-          const Color(0xFFB9F7FF),
-          const Color(0xFFFFD0C6),
-          hit,
-        )!,
+        ..color = Color.lerp(theme.nexusGemColor, theme.nexusGemHitColor, hit)!,
     );
     canvas.drawPath(
       gem,
       Paint()
-        ..color = const Color(0xFF70DFFF)
+        ..color = theme.nexusGemStrokeColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = tileSize * 0.035,
     );
@@ -536,11 +639,11 @@ class GridComponent extends Component {
   Paint _paintFor(TileType type) {
     return Paint()
       ..color = switch (type) {
-        TileType.path => const Color(0xFF786C58),
-        TileType.build => const Color(0xFF1C4737),
+        TileType.path => map.tileTheme.pathMidColor,
+        TileType.build => map.tileTheme.buildMidColor,
         TileType.blocked => const Color(0x00000000),
-        TileType.spawn => const Color(0xFF4B245F),
-        TileType.core => const Color(0xFF0B86B8),
+        TileType.spawn => map.tileTheme.spawnTileColor,
+        TileType.core => map.tileTheme.coreTileColor,
       };
   }
 }

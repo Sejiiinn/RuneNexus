@@ -142,7 +142,10 @@ class RuneNexusLocalizations {
 
   String stageChapterName(int chapterNumber) {
     if (chapterNumber == 1) {
-      return _isEnglish ? 'Rift Entry' : '균열 초입';
+      return _isEnglish ? 'Grassland Entry' : '초원 초입';
+    }
+    if (chapterNumber == 2) {
+      return _isEnglish ? 'Rift Veil' : '균열 장막';
     }
     return _isEnglish ? 'Chapter $chapterNumber' : '챕터 $chapterNumber';
   }

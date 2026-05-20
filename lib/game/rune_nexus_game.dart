@@ -1049,6 +1049,52 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
+  void debugAddRunes(int amount) {
+    if (amount <= 0) {
+      return;
+    }
+
+    _progression.runes += amount;
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void debugSetRunes(int amount) {
+    _progression.runes = math.max(0, amount);
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void debugSetClearedStageCount(int count) {
+    final clearedCount = count.clamp(0, RunProgression.maxStageCount).toInt();
+    _progression.clearedStageNumbers
+      ..clear()
+      ..addAll(List<int>.generate(clearedCount, (index) => index + 1));
+    _progression.unlockedStageCount = math.min(
+      RunProgression.maxStageCount,
+      clearedCount + 1,
+    );
+    for (var stage = 1; stage <= RunProgression.maxStageCount; stage++) {
+      if (stage <= clearedCount) {
+        _progression.bestRoundsByStage[stage] = _stageForNumber(
+          stage,
+        ).waves.length;
+      } else {
+        _progression.bestRoundsByStage.remove(stage);
+      }
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void debugResetResearchProgress() {
+    _progression.researchLevels.clear();
+    _progression.researchElapsedMillis.clear();
+    _progression.activeResearches.clear();
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
   void debugAddGemShards(int amount) {
     if (!_debugPanelEnabled) {
       return;

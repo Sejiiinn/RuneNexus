@@ -31,4 +31,34 @@ final demoStages = List<StageDefinition>.unmodifiable([
     map: stage5Map,
     waves: demoStage2Waves,
   ),
+  StageDefinition(
+    id: 6,
+    name: 'Stage 6',
+    map: chapterTwoStage6Map,
+    waves: demoChapter2Waves,
+  ),
+  StageDefinition(
+    id: 7,
+    name: 'Stage 7',
+    map: chapterTwoStage7Map,
+    waves: demoChapter2Waves,
+  ),
+  StageDefinition(
+    id: 8,
+    name: 'Stage 8',
+    map: chapterTwoStage8Map,
+    waves: demoChapter2Waves,
+  ),
+  StageDefinition(
+    id: 9,
+    name: 'Stage 9',
+    map: chapterTwoStage9Map,
+    waves: demoChapter2Waves,
+  ),
+  StageDefinition(
+    id: 10,
+    name: 'Stage 10',
+    map: chapterTwoStage10Map,
+    waves: demoChapter2Waves,
+  ),
 ]);

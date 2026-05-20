@@ -18,6 +18,9 @@ import 'package:rune_nexus/domain/enemy/enemy_type.dart';
 import 'package:rune_nexus/domain/gem/gem_equip_rules.dart';
 import 'package:rune_nexus/domain/gem/gem_type.dart';
 import 'package:rune_nexus/domain/map/grid_point.dart';
+import 'package:rune_nexus/domain/map/map_definition.dart';
+import 'package:rune_nexus/domain/map/map_tile_theme.dart';
+import 'package:rune_nexus/domain/map/tile_type.dart';
 import 'package:rune_nexus/domain/research/research_type.dart';
 import 'package:rune_nexus/domain/run_upgrade/run_upgrade_type.dart';
 import 'package:rune_nexus/domain/stage/stage_definition.dart';
@@ -39,19 +42,55 @@ import 'package:rune_nexus/game/systems/wave_spawner.dart';
 
 void main() {
   test('demo stage uses 50 survival rounds', () {
-    expect(demoStages, hasLength(5));
+    expect(demoStages, hasLength(10));
     expect(demoStages.first.id, 1);
-    expect(demoStages.last.id, 5);
+    expect(demoStages.last.id, 10);
     expect(demoWaves, hasLength(50));
     expect(demoWaves.first.round, 1);
     expect(demoWaves.last.round, 50);
     expect(demoStage2Waves, hasLength(50));
     expect(demoStage2Waves.first.round, 1);
     expect(demoStage2Waves.last.round, 50);
+    expect(demoChapter2Waves, hasLength(50));
+    expect(demoChapter2Waves.first.round, 1);
+    expect(demoChapter2Waves.last.round, 50);
+    expect(demoStages.first.map.tileTheme.kind, MapTileThemeKind.chapterOne);
+    expect(demoStages[1].map.tileTheme.kind, MapTileThemeKind.chapterOne);
     expect(demoStages[1].waves, same(demoStage2Waves));
     expect(demoStages[2].waves, same(demoStage2Waves));
     expect(demoStages[3].waves, same(demoStage2Waves));
     expect(demoStages[4].waves, same(demoStage2Waves));
+    expect(demoStages[5].waves, same(demoChapter2Waves));
+    expect(demoStages[5].map.tileTheme.kind, MapTileThemeKind.chapterTwoRift);
+    expect(demoStages[9].waves, same(demoChapter2Waves));
+    expect(demoStages[9].map.tileTheme.kind, MapTileThemeKind.chapterTwoRift);
+  });
+
+  test('chapter two maps use altered paths with rift theme', () {
+    final chapterOneMaps = [
+      demoMap,
+      demoStage2Map,
+      stage3Map,
+      stage4Map,
+      stage5Map,
+    ];
+    final chapterTwoMaps = [
+      chapterTwoStage6Map,
+      chapterTwoStage7Map,
+      chapterTwoStage8Map,
+      chapterTwoStage9Map,
+      chapterTwoStage10Map,
+    ];
+
+    for (var i = 0; i < chapterTwoMaps.length; i++) {
+      final source = chapterOneMaps[i];
+      final chapterTwo = chapterTwoMaps[i];
+      expect(chapterTwo.columns, source.columns);
+      expect(chapterTwo.rows, source.rows);
+      expect(chapterTwo.tileTheme.kind, MapTileThemeKind.chapterTwoRift);
+      expect(chapterTwo.path, isNot(orderedEquals(source.path)));
+      _expectValidMapPath(chapterTwo);
+    }
   });
 
   test('stage definitions select their own wave data', () {
@@ -1105,6 +1144,42 @@ void main() {
     expect(game.snapshotNotifier.value.gold, 650);
   });
 
+  test('menu debug controls update progression state', () {
+    final game = RuneNexusGame();
+
+    game.debugAddRunes(1000);
+    expect(game.snapshotNotifier.value.runes, 1000);
+
+    game.debugSetRunes(25);
+    expect(game.snapshotNotifier.value.runes, 25);
+
+    game.debugSetClearedStageCount(5);
+    expect(game.snapshotNotifier.value.unlockedStageCount, 6);
+    expect(
+      game.snapshotNotifier.value.clearedStageNumbers,
+      containsAll([1, 5]),
+    );
+    expect(game.snapshotNotifier.value.bestRoundsByStage[5], 50);
+    expect(
+      game.snapshotNotifier.value.availableTurretTypes,
+      contains(TurretType.sniper),
+    );
+
+    game.debugSetClearedStageCount(0);
+    expect(game.snapshotNotifier.value.unlockedStageCount, 1);
+    expect(game.snapshotNotifier.value.clearedStageNumbers, isEmpty);
+    expect(game.snapshotNotifier.value.bestRoundsByStage, isEmpty);
+
+    game.debugAddRunes(1000);
+    game.startResearch(ResearchType.researchEfficiency);
+    expect(game.snapshotNotifier.value.activeResearches, isNotEmpty);
+
+    game.debugResetResearchProgress();
+    expect(game.snapshotNotifier.value.activeResearches, isEmpty);
+    expect(game.snapshotNotifier.value.researchLevels, isEmpty);
+    expect(game.snapshotNotifier.value.researchElapsedMillis, isEmpty);
+  });
+
   test('restart demo resets debug-modified stage state', () {
     final game = RuneNexusGame();
 
@@ -1195,7 +1270,7 @@ void main() {
     expect(demoEnemies[EnemyType.boss]!.rewardGold, 35);
   });
 
-  test('shielded enemy is defined but not yet used by current waves', () {
+  test('shielded enemy is defined and starts appearing from chapter two', () {
     final shielded = demoEnemies[EnemyType.shielded]!;
 
     expect(demoEnemies.keys, containsAll(EnemyType.values));
@@ -1207,12 +1282,19 @@ void main() {
     expect(shielded.coreDamage, 1);
     expect(shielded.resistanceProfile, EnemyResistanceProfile.neutral);
 
-    final currentWaveTypes = [
-      ...demoWaves.expand((wave) => wave.groups),
-      ...demoStage2Waves.expand((wave) => wave.groups),
-    ].map((group) => group.enemyType);
+    final stageOneWaveTypes = demoWaves
+        .expand((wave) => wave.groups)
+        .map((group) => group.enemyType);
+    final chapterOneLateWaveTypes = demoStage2Waves
+        .expand((wave) => wave.groups)
+        .map((group) => group.enemyType);
+    final chapterTwoWaveTypes = demoChapter2Waves
+        .expand((wave) => wave.groups)
+        .map((group) => group.enemyType);
 
-    expect(currentWaveTypes, isNot(contains(EnemyType.shielded)));
+    expect(stageOneWaveTypes, isNot(contains(EnemyType.shielded)));
+    expect(chapterOneLateWaveTypes, isNot(contains(EnemyType.shielded)));
+    expect(chapterTwoWaveTypes, contains(EnemyType.shielded));
   });
 
   test('run tower damage upgrade boosts all turret damage', () {
@@ -2212,6 +2294,31 @@ void main() {
       greaterThan(normalDelays.reduce(math.max)),
     );
   });
+
+  test(
+    'chapter two waves introduce shielded enemies without changing chapter one',
+    () {
+      final chapterOneTypes = [
+        ...demoWaves.expand((wave) => wave.groups),
+        ...demoStage2Waves.expand((wave) => wave.groups),
+      ].map((group) => group.enemyType);
+      final chapter2Round2Types = demoChapter2Waves[1].groups.map(
+        (group) => group.enemyType,
+      );
+      final chapter2Round3Types = demoChapter2Waves[2].groups.map(
+        (group) => group.enemyType,
+      );
+      final chapter2Round10Types = demoChapter2Waves[9].groups.map(
+        (group) => group.enemyType,
+      );
+
+      expect(chapterOneTypes, isNot(contains(EnemyType.shielded)));
+      expect(chapter2Round2Types, contains(EnemyType.shielded));
+      expect(chapter2Round3Types.first, EnemyType.shielded);
+      expect(chapter2Round10Types, contains(EnemyType.shielded));
+      expect(chapter2Round10Types, contains(EnemyType.boss));
+    },
+  );
 
   test('late wave enemy counts stay within the planned pressure range', () {
     int totalCount(WaveDefinition wave) =>
@@ -3349,6 +3456,27 @@ EnemyComponent _targetPriorityEnemy({
     )
     ..position = position
     ..distanceTravelled = progress;
+}
+
+void _expectValidMapPath(MapDefinition map) {
+  expect(map.path, isNotEmpty);
+  expect(map.tileAt(map.path.first), TileType.spawn);
+  expect(map.tileAt(map.path.last), TileType.core);
+  for (var i = 0; i < map.path.length; i++) {
+    final point = map.path[i];
+    expect(map.contains(point), isTrue);
+    expect(
+      map.tileAt(point),
+      isIn(const [TileType.path, TileType.spawn, TileType.core]),
+    );
+    if (i == 0) {
+      continue;
+    }
+    final previous = map.path[i - 1];
+    final distance =
+        (point.x - previous.x).abs() + (point.y - previous.y).abs();
+    expect(distance, 1);
+  }
 }
 
 GameSaveData _saveWithResearch({

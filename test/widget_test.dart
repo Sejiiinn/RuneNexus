@@ -18,6 +18,7 @@ import 'package:rune_nexus/l10n/rune_nexus_localizations.dart';
 import 'package:rune_nexus/ui/game/game_button.dart';
 import 'package:rune_nexus/ui/hud/game_hud.dart';
 import 'package:rune_nexus/ui/menu/main_menu_screen.dart';
+import 'package:rune_nexus/ui/menu/map_editor_panel.dart';
 import 'package:rune_nexus/ui/menu/result_overlay.dart';
 
 void main() {
@@ -31,6 +32,51 @@ void main() {
     expect(find.text('잠김'), findsNWidgets(4));
     expect(find.text('강화'), findsOneWidget);
     expect(find.text('연구'), findsOneWidget);
+  });
+
+  testWidgets('stage menu opens chapter two as stages six to ten', (
+    tester,
+  ) async {
+    int? startedStage;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            unlockedStageCount: 6,
+            clearedStageNumbers: const {1, 2, 3, 4, 5},
+          ),
+          selectedTab: MainMenuTab.stage,
+          onSelectTab: (_) {},
+          onStartStage: (stage) {
+            startedStage = stage;
+          },
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    await tester.tap(find.text('균열 장막'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('스테이지 6'), findsOneWidget);
+    expect(find.text('스테이지 10'), findsOneWidget);
+    expect(find.text('스테이지 1'), findsNothing);
+
+    await tester.tap(find.text('스테이지 6'));
+    await _pumpGameFrames(tester);
+
+    expect(startedStage, 6);
   });
 
   testWidgets('selected ghost game buttons stay visually restrained', (
@@ -163,6 +209,51 @@ void main() {
     expect(find.text('클리어 보상: 경제 강화'), findsNothing);
     expect(find.text('클리어 보상: 연구'), findsNothing);
     expect(find.text('클리어 보상: 전투 강화'), findsNothing);
+  });
+
+  testWidgets('map editor scopes stage chips by chapter and preserves theme', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          backgroundColor: Color(0xFF07111D),
+          body: SingleChildScrollView(
+            child: DebugMapEditorPanel(initialStageNumber: 6),
+          ),
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('챕터 2 · 6-10'), findsOneWidget);
+    expect(_stageChipText('6'), findsOneWidget);
+    expect(_stageChipText('10'), findsOneWidget);
+    expect(find.text('챕터 1 · 1-5'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Export 표시'));
+    await tester.tap(find.text('Export 표시'));
+    await _pumpGameFrames(tester);
+
+    expect(
+      find.textContaining('tileTheme: chapterTwoRiftTileTheme'),
+      findsOneWidget,
+    );
+
+    await tester.ensureVisible(find.text('챕터 1 · 1-5'));
+    await tester.tap(find.text('챕터 1 · 1-5'));
+    await _pumpGameFrames(tester);
+
+    expect(_stageChipText('1'), findsOneWidget);
+    expect(_stageChipText('5'), findsOneWidget);
+    expect(_stageChipText('6'), findsNothing);
   });
 
   testWidgets('permanent upgrade rows fit on narrow menu width', (
@@ -718,6 +809,13 @@ Future<void> _pumpLoadedApp(WidgetTester tester) async {
     RuneNexusApp(game: RuneNexusGame(saveRepository: MemorySaveRepository())),
   );
   await _pumpUntilFound(tester, find.text('Rune Nexus'));
+}
+
+Finder _stageChipText(String text) {
+  return find.descendant(
+    of: find.byType(ChoiceChip),
+    matching: find.text(text),
+  );
 }
 
 Future<void> _tapStageCard(WidgetTester tester, String stageName) async {

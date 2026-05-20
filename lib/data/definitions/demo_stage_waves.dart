@@ -2,7 +2,12 @@ import '../../domain/enemy/enemy_type.dart';
 import '../../domain/wave/wave_definition.dart';
 
 final demoWaves = List<WaveDefinition>.unmodifiable(_buildDemoWaves());
-final demoStage2Waves = List<WaveDefinition>.unmodifiable(_buildStage2Waves());
+final demoStage2Waves = List<WaveDefinition>.unmodifiable(
+  _buildStage2ArmoredWaves(),
+);
+final demoChapter2Waves = List<WaveDefinition>.unmodifiable(
+  _buildStage2Waves(),
+);
 
 const double _standardGroupGap = 0.75;
 const double _tightGroupGap = 0.35;
@@ -27,6 +32,18 @@ List<WaveDefinition> _buildStage2Waves() {
       previewText: _stage2PreviewTextFor(round),
       clearRewardGold: _clearRewardGoldFor(round),
       groups: _stage2GroupsFor(round),
+    );
+  });
+}
+
+List<WaveDefinition> _buildStage2ArmoredWaves() {
+  return List<WaveDefinition>.generate(50, (index) {
+    final round = index + 1;
+    return WaveDefinition(
+      round: round,
+      previewText: _stage2ArmoredPreviewTextFor(round),
+      clearRewardGold: _clearRewardGoldFor(round),
+      groups: _stage2ArmoredGroupsFor(round),
     );
   });
 }
@@ -71,6 +88,41 @@ String _previewTextFor(int round) {
 }
 
 String _stage2PreviewTextFor(int round) {
+  if (round == 2) {
+    return '보호막병 첫 등장';
+  }
+  if (round == 3) {
+    return '보호막 대열';
+  }
+  if (round == 4) {
+    return '빠른 적 재압박';
+  }
+  if (round == 5) {
+    return '보호막병과 탱커';
+  }
+  if (round % 10 == 0) {
+    return '보호막 호위 보스';
+  }
+  final cycleStep = _cycleStepFor(round);
+  if (cycleStep == 1) {
+    return '보호막 혼합';
+  }
+  if (cycleStep == 2) {
+    return '빠른 적 러시';
+  }
+  if (cycleStep == 3) {
+    return '균열 보호막';
+  }
+  if (cycleStep == 4) {
+    return '분산 압박';
+  }
+  if (cycleStep == 5) {
+    return '보호막 압축';
+  }
+  return '일반 적 중심';
+}
+
+String _stage2ArmoredPreviewTextFor(int round) {
   if (round == 2) {
     return '장갑병 첫 등장';
   }
@@ -149,12 +201,38 @@ List<SpawnGroup> _stage2GroupsFor(int round) {
     return _stage2RushGroups(tier);
   }
   if (cycleStep == 3) {
-    return _stage2ArmorLineGroups(tier);
+    return _stage2ShieldLineGroups(tier);
   }
   if (cycleStep == 4) {
     return _stage2SplitPressureGroups(tier);
   }
   return _stage2CompressedGroups(tier);
+}
+
+List<SpawnGroup> _stage2ArmoredGroupsFor(int round) {
+  if (round <= 5) {
+    return _stage2ArmoredLearningGroupsFor(round);
+  }
+
+  final tier = _tierForRound(round);
+  if (round % 10 == 0) {
+    return _stage2ArmoredBossEscortGroups(tier);
+  }
+
+  final cycleStep = _cycleStepFor(round);
+  if (cycleStep == 1) {
+    return _stage2ArmoredStandardMixedGroups(tier);
+  }
+  if (cycleStep == 2) {
+    return _stage2ArmoredRushGroups(tier);
+  }
+  if (cycleStep == 3) {
+    return _stage2ArmoredLineGroups(tier);
+  }
+  if (cycleStep == 4) {
+    return _stage2ArmoredSplitPressureGroups(tier);
+  }
+  return _stage2ArmoredCompressedGroups(tier);
 }
 
 List<SpawnGroup> _learningGroupsFor(int round) {
@@ -202,6 +280,72 @@ List<SpawnGroup> _learningGroupsFor(int round) {
 }
 
 List<SpawnGroup> _stage2LearningGroupsFor(int round) {
+  if (round == 1) {
+    return const [
+      SpawnGroup(enemyType: EnemyType.normal, count: 6, interval: 1.7),
+    ];
+  }
+  if (round == 2) {
+    return const [
+      SpawnGroup(enemyType: EnemyType.normal, count: 5, interval: 1.55),
+      SpawnGroup(
+        enemyType: EnemyType.shielded,
+        count: 2,
+        interval: 1.55,
+        startAfterPrevious: true,
+        followDelay: 0.8,
+      ),
+    ];
+  }
+  if (round == 3) {
+    return const [
+      SpawnGroup(enemyType: EnemyType.shielded, count: 4, interval: 1.5),
+      SpawnGroup(
+        enemyType: EnemyType.normal,
+        count: 4,
+        interval: 1.35,
+        startDelay: 5.6,
+      ),
+    ];
+  }
+  if (round == 4) {
+    return const [
+      SpawnGroup(enemyType: EnemyType.normal, count: 6, interval: 1.4),
+      SpawnGroup(
+        enemyType: EnemyType.fast,
+        count: 4,
+        interval: 0.85,
+        startDelay: 7.6,
+      ),
+    ];
+  }
+  return const [
+    SpawnGroup(enemyType: EnemyType.shielded, count: 2, interval: 1.45),
+    SpawnGroup(
+      enemyType: EnemyType.armored,
+      count: 2,
+      interval: 1.45,
+      startAfterPrevious: true,
+      followDelay: 0.6,
+    ),
+    SpawnGroup(
+      enemyType: EnemyType.normal,
+      count: 6,
+      interval: 1.25,
+      startAfterPrevious: true,
+      followDelay: 0.7,
+    ),
+    SpawnGroup(
+      enemyType: EnemyType.tank,
+      count: 1,
+      interval: 1.7,
+      startAfterPrevious: true,
+      followDelay: 0.8,
+    ),
+  ];
+}
+
+List<SpawnGroup> _stage2ArmoredLearningGroupsFor(int round) {
   if (round == 1) {
     return const [
       SpawnGroup(enemyType: EnemyType.normal, count: 6, interval: 1.7),
@@ -286,9 +430,32 @@ List<SpawnGroup> _stage2StandardMixedGroups(int tier) {
   return [
     normal,
     SpawnGroup(
+      enemyType: EnemyType.shielded,
+      count: 2 + (tier + 1) ~/ 2,
+      interval: _durableIntervalFor(tier),
+      startDelay: _nextGroupDelay(normal, gap: _tightGroupGap),
+    ),
+    SpawnGroup(
+      enemyType: EnemyType.fast,
+      count: 3 + tier ~/ 3,
+      interval: _fastIntervalFor(tier),
+      startDelay: _nextGroupDelay(normal, gap: _standardGroupGap + 2.0),
+    ),
+  ];
+}
+
+List<SpawnGroup> _stage2ArmoredStandardMixedGroups(int tier) {
+  final normal = SpawnGroup(
+    enemyType: EnemyType.normal,
+    count: 8 + tier,
+    interval: _normalIntervalFor(tier),
+  );
+  return [
+    normal,
+    SpawnGroup(
       enemyType: EnemyType.armored,
       count: 2 + (tier + 1) ~/ 2,
-      interval: _armoredIntervalFor(tier),
+      interval: _durableIntervalFor(tier),
       startDelay: _nextGroupDelay(normal, gap: _tightGroupGap),
     ),
     SpawnGroup(
@@ -340,9 +507,33 @@ List<SpawnGroup> _stage2RushGroups(int tier) {
     normal,
     fast,
     SpawnGroup(
+      enemyType: EnemyType.shielded,
+      count: 1 + tier ~/ 3,
+      interval: _durableIntervalFor(tier),
+      startDelay: _nextGroupDelay(fast, gap: _standardGroupGap),
+    ),
+  ];
+}
+
+List<SpawnGroup> _stage2ArmoredRushGroups(int tier) {
+  final normal = SpawnGroup(
+    enemyType: EnemyType.normal,
+    count: 5 + tier,
+    interval: 1.25,
+  );
+  final fast = SpawnGroup(
+    enemyType: EnemyType.fast,
+    count: 7 + tier,
+    interval: _fastIntervalFor(tier),
+    startDelay: _nextGroupDelay(normal, gap: _tightGroupGap),
+  );
+  return [
+    normal,
+    fast,
+    SpawnGroup(
       enemyType: EnemyType.armored,
       count: 1 + tier ~/ 3,
-      interval: _armoredIntervalFor(tier),
+      interval: _durableIntervalFor(tier),
       startDelay: _nextGroupDelay(fast, gap: _standardGroupGap),
     ),
   ];
@@ -376,11 +567,40 @@ List<SpawnGroup> _overlapGroups(int tier) {
   return groups;
 }
 
-List<SpawnGroup> _stage2ArmorLineGroups(int tier) {
+List<SpawnGroup> _stage2ShieldLineGroups(int tier) {
+  final shielded = SpawnGroup(
+    enemyType: EnemyType.shielded,
+    count: 4 + tier,
+    interval: _durableIntervalFor(tier),
+  );
+  return [
+    shielded,
+    SpawnGroup(
+      enemyType: EnemyType.normal,
+      count: 6 + tier,
+      interval: _normalIntervalFor(tier),
+      startDelay: _nextGroupDelay(shielded, gap: _tightGroupGap),
+    ),
+    SpawnGroup(
+      enemyType: EnemyType.armored,
+      count: 1 + tier ~/ 2,
+      interval: _durableIntervalFor(tier),
+      startDelay: _nextGroupDelay(shielded, gap: _standardGroupGap),
+    ),
+    SpawnGroup(
+      enemyType: EnemyType.fast,
+      count: 3 + tier ~/ 2,
+      interval: _fastIntervalFor(tier),
+      startDelay: 2.4,
+    ),
+  ];
+}
+
+List<SpawnGroup> _stage2ArmoredLineGroups(int tier) {
   final armored = SpawnGroup(
     enemyType: EnemyType.armored,
     count: 4 + tier,
-    interval: _armoredIntervalFor(tier),
+    interval: _durableIntervalFor(tier),
   );
   return [
     armored,
@@ -429,10 +649,34 @@ List<SpawnGroup> _stage2SplitPressureGroups(int tier) {
     count: 8 + tier,
     interval: 1.12,
   );
+  final shielded = SpawnGroup(
+    enemyType: EnemyType.shielded,
+    count: 3 + (tier + 1) ~/ 2,
+    interval: _durableIntervalFor(tier),
+    startDelay: 1.8,
+  );
+  return [
+    normal,
+    shielded,
+    SpawnGroup(
+      enemyType: EnemyType.fast,
+      count: 4 + tier ~/ 2,
+      interval: _fastIntervalFor(tier),
+      startDelay: _nextGroupDelay(shielded, gap: _standardGroupGap),
+    ),
+  ];
+}
+
+List<SpawnGroup> _stage2ArmoredSplitPressureGroups(int tier) {
+  final normal = SpawnGroup(
+    enemyType: EnemyType.normal,
+    count: 8 + tier,
+    interval: 1.12,
+  );
   final armored = SpawnGroup(
     enemyType: EnemyType.armored,
     count: 3 + (tier + 1) ~/ 2,
-    interval: _armoredIntervalFor(tier),
+    interval: _durableIntervalFor(tier),
     startDelay: 1.8,
   );
   return [
@@ -483,10 +727,42 @@ List<SpawnGroup> _stage2CompressedGroups(int tier) {
     interval: _fastIntervalFor(tier),
     startDelay: _nextGroupDelay(normal, gap: _tightGroupGap),
   );
+  final shielded = SpawnGroup(
+    enemyType: EnemyType.shielded,
+    count: 3 + (tier + 1) ~/ 2,
+    interval: _durableIntervalFor(tier),
+    startDelay: _nextGroupDelay(fast, gap: _tightGroupGap),
+  );
+  final groups = [normal, fast, shielded];
+  if (tier >= 3) {
+    groups.add(
+      SpawnGroup(
+        enemyType: EnemyType.tank,
+        count: 1 + tier ~/ 5,
+        interval: 1.55,
+        startDelay: _nextGroupDelay(shielded, gap: _tightGroupGap),
+      ),
+    );
+  }
+  return groups;
+}
+
+List<SpawnGroup> _stage2ArmoredCompressedGroups(int tier) {
+  final normal = SpawnGroup(
+    enemyType: EnemyType.normal,
+    count: 6 + tier,
+    interval: 1.08,
+  );
+  final fast = SpawnGroup(
+    enemyType: EnemyType.fast,
+    count: 5 + tier,
+    interval: _fastIntervalFor(tier),
+    startDelay: _nextGroupDelay(normal, gap: _tightGroupGap),
+  );
   final armored = SpawnGroup(
     enemyType: EnemyType.armored,
     count: 3 + (tier + 1) ~/ 2,
-    interval: _armoredIntervalFor(tier),
+    interval: _durableIntervalFor(tier),
     startDelay: _nextGroupDelay(fast, gap: _tightGroupGap),
   );
   final groups = [normal, fast, armored];
@@ -535,10 +811,52 @@ List<SpawnGroup> _bossEscortGroups(int tier) {
 }
 
 List<SpawnGroup> _stage2BossEscortGroups(int tier) {
+  final shielded = SpawnGroup(
+    enemyType: EnemyType.shielded,
+    count: 2 + tier ~/ 2,
+    interval: _durableIntervalFor(tier),
+  );
+  final fast = SpawnGroup(
+    enemyType: EnemyType.fast,
+    count: 4 + tier ~/ 2,
+    interval: _fastIntervalFor(tier),
+    startDelay: _nextGroupDelay(shielded, gap: _tightGroupGap),
+  );
+  final boss = SpawnGroup(
+    enemyType: EnemyType.boss,
+    count: 1,
+    interval: 2.0,
+    startDelay: _nextGroupDelay(fast, gap: 1.2),
+  );
+  final groups = [
+    shielded,
+    fast,
+    boss,
+    SpawnGroup(
+      enemyType: EnemyType.normal,
+      count: 4 + tier ~/ 2,
+      interval: 1.0,
+      startDelay: boss.startDelay + 0.9,
+    ),
+  ];
+  if (tier >= 6) {
+    groups.add(
+      SpawnGroup(
+        enemyType: EnemyType.tank,
+        count: 1,
+        interval: 1.6,
+        startDelay: boss.startDelay + 2.2,
+      ),
+    );
+  }
+  return groups;
+}
+
+List<SpawnGroup> _stage2ArmoredBossEscortGroups(int tier) {
   final armored = SpawnGroup(
     enemyType: EnemyType.armored,
     count: 2 + tier ~/ 2,
-    interval: _armoredIntervalFor(tier),
+    interval: _durableIntervalFor(tier),
   );
   final fast = SpawnGroup(
     enemyType: EnemyType.fast,
@@ -598,7 +916,7 @@ double _fastIntervalFor(int tier) {
   return 0.82 - tier * 0.015;
 }
 
-double _armoredIntervalFor(int tier) {
+double _durableIntervalFor(int tier) {
   return 1.38 - tier * 0.02;
 }
 
