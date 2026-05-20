@@ -79,6 +79,7 @@ class CombatResolver {
         duration: burnDurationSeconds * owner.damageOverTimeDurationMultiplier,
         damageMultiplier: burnMultiplier,
         sourceTurretPoint: activeSourceTurretPoint,
+        ignoreArmorReduction: owner.ignoresArmorReduction,
       );
     }
     if (owner.slowDuration > 0 && owner.slowMultiplier < 1) {

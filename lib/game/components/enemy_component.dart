@@ -247,7 +247,11 @@ class EnemyComponent extends PositionComponent {
     distanceTravelled += step;
   }
 
-  double receiveDamage(double damage, {BurnTransferPayload? burnTransfer}) {
+  double receiveDamage(
+    double damage, {
+    BurnTransferPayload? burnTransfer,
+    bool ignoreArmorReduction = false,
+  }) {
     if (damage <= 0 || isDead) {
       return 0;
     }
@@ -265,13 +269,12 @@ class EnemyComponent extends PositionComponent {
     }
 
     if (remainingDamage > 0 && armor > 0) {
-      final armorReduction = armor * definition.armorReductionRate;
-      final minimumArmorDamage =
-          remainingDamage * definition.armorMinimumDamageRate;
-      final armorDamage = math.max(
-        minimumArmorDamage,
-        remainingDamage - armorReduction,
-      );
+      final armorDamage = ignoreArmorReduction
+          ? remainingDamage
+          : math.max(
+              remainingDamage * definition.armorMinimumDamageRate,
+              remainingDamage - armor * definition.armorReductionRate,
+            );
       final actualArmorDamage = math.min(armor, armorDamage);
       armor = math.max(0, armor - actualArmorDamage);
       actualDamage += actualArmorDamage;
@@ -313,6 +316,7 @@ class EnemyComponent extends PositionComponent {
     required double duration,
     double damageMultiplier = 1,
     GridPoint? sourceTurretPoint,
+    bool ignoreArmorReduction = false,
   }) {
     if (damagePerSecond <= 0 || duration <= 0) {
       return;
@@ -329,6 +333,8 @@ class EnemyComponent extends PositionComponent {
             instance.damageMultiplier,
             damageMultiplier,
           );
+          instance.ignoreArmorReduction =
+              instance.ignoreArmorReduction || ignoreArmorReduction;
           instance.remaining = math.max(instance.remaining, duration);
           return;
         }
@@ -340,6 +346,7 @@ class EnemyComponent extends PositionComponent {
         damagePerSecond: damagePerSecond,
         damageMultiplier: damageMultiplier,
         sourceTurretPoint: sourceTurretPoint,
+        ignoreArmorReduction: ignoreArmorReduction,
       ),
     );
   }
@@ -393,6 +400,7 @@ class EnemyComponent extends PositionComponent {
       remaining: burn.remaining,
       damagePerSecond: burn.damagePerSecond,
       damageMultiplier: burn.damageMultiplier,
+      ignoreArmorReduction: burn.ignoreArmorReduction,
     );
   }
 
@@ -463,7 +471,9 @@ class EnemyComponent extends PositionComponent {
             remaining: activeBurn.remaining,
             damagePerSecond: activeBurn.damagePerSecond,
             damageMultiplier: activeBurn.damageMultiplier,
+            ignoreArmorReduction: activeBurn.ignoreArmorReduction,
           ),
+          ignoreArmorReduction: activeBurn.ignoreArmorReduction,
         );
         _burnNumberDamage += actualDamage;
         game.recordTurretDamage(activeBurn.sourceTurretPoint, actualDamage);
@@ -807,12 +817,14 @@ class _BurnInstance {
     required this.damagePerSecond,
     required this.damageMultiplier,
     required this.sourceTurretPoint,
+    required this.ignoreArmorReduction,
   });
 
   double remaining;
   double damagePerSecond;
   double damageMultiplier;
   GridPoint? sourceTurretPoint;
+  bool ignoreArmorReduction;
 
   SavedBurnInstance toSaveData() {
     return SavedBurnInstance(
@@ -821,6 +833,7 @@ class _BurnInstance {
       damageMultiplier: damageMultiplier,
       sourceX: sourceTurretPoint?.x,
       sourceY: sourceTurretPoint?.y,
+      ignoreArmorReduction: ignoreArmorReduction,
     );
   }
 
@@ -830,6 +843,7 @@ class _BurnInstance {
       damagePerSecond: math.max(0, data.damagePerSecond),
       damageMultiplier: math.max(0, data.damageMultiplier),
       sourceTurretPoint: data.sourcePoint,
+      ignoreArmorReduction: data.ignoreArmorReduction,
     );
   }
 }
@@ -840,10 +854,12 @@ class BurnTransferPayload {
     required this.remaining,
     required this.damagePerSecond,
     required this.damageMultiplier,
+    required this.ignoreArmorReduction,
   });
 
   final GridPoint? sourceTurretPoint;
   final double remaining;
   final double damagePerSecond;
   final double damageMultiplier;
+  final bool ignoreArmorReduction;
 }

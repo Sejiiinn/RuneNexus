@@ -11,4 +11,5 @@ enum GemType {
   criticalChance,
   aimSpeed,
   damageAmplifier,
+  armorPiercing,
 }

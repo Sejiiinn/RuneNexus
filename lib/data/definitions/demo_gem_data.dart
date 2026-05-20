@@ -113,4 +113,13 @@ const demoGems = <GemType, GemDefinition>{
     color: Color(0xFFFFA14A),
     icon: Icons.brightness_high,
   ),
+  GemType.armorPiercing: GemDefinition(
+    type: GemType.armorPiercing,
+    name: '장갑 관통',
+    shortText: '방어구 감쇄 무시',
+    effectType: GemEffectType.armorReductionBypass,
+    value: 1,
+    color: Color(0xFFD0D7DE),
+    icon: Icons.security,
+  ),
 };

@@ -929,5 +929,6 @@ String _gemEffectText(GemType type, TurretDefinition turret) {
           ? '조준 속도 75% 증가'
           : '현재 적용되는 조준 시간 없음',
     GemType.damageAmplifier => '타격 피해 25% 증폭',
+    GemType.armorPiercing => '방어구 감쇄 무시',
   };
 }

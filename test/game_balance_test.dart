@@ -257,11 +257,18 @@ void main() {
     expect(purchaseSnapshot.isPurchasedGemReward, isTrue);
     expect(purchaseSnapshot.gemShards, 0);
 
-    game.selectRewardGem(purchaseSnapshot.rewardOptions.first);
+    final selectedGem = purchaseSnapshot.rewardOptions.first;
+    final beforeSelectedGemCount =
+        purchaseSnapshot.gemInventory[selectedGem] ?? 0;
+
+    game.selectRewardGem(selectedGem);
 
     expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
     expect(game.snapshotNotifier.value.gemShards, 0);
-    expect(game.snapshotNotifier.value.gemInventory.values, contains(1));
+    expect(
+      game.snapshotNotifier.value.gemInventory[selectedGem],
+      beforeSelectedGemCount + 1,
+    );
   });
 
   test('auto start can continue non-boss preparation rounds', () {
@@ -1156,21 +1163,26 @@ void main() {
     expect(GemType.values, contains(GemType.criticalChance));
     expect(GemType.values, contains(GemType.aimSpeed));
     expect(GemType.values, contains(GemType.damageAmplifier));
+    expect(GemType.values, contains(GemType.armorPiercing));
   });
 
-  test('aim speed gem is gated by the provided reward pool', () {
+  test('stage one reward gems are gated by the provided reward pool', () {
     final generator = GemRewardGenerator();
-    final lockedPool = GemType.values.where((type) => type != GemType.aimSpeed);
+    final lockedPool = GemType.values.where(
+      (type) => type != GemType.aimSpeed && type != GemType.armorPiercing,
+    );
 
     for (var i = 0; i < 20; i++) {
-      expect(
-        generator.generateOptions(availableGems: lockedPool),
-        isNot(contains(GemType.aimSpeed)),
-      );
+      final options = generator.generateOptions(availableGems: lockedPool);
+      expect(options, isNot(contains(GemType.aimSpeed)));
+      expect(options, isNot(contains(GemType.armorPiercing)));
     }
-    expect(generator.generateOptions(availableGems: const [GemType.aimSpeed]), [
-      GemType.aimSpeed,
-    ]);
+    expect(
+      generator.generateOptions(
+        availableGems: const [GemType.aimSpeed, GemType.armorPiercing],
+      ),
+      containsAll([GemType.aimSpeed, GemType.armorPiercing]),
+    );
   });
 
   test('enemy kill rewards limit late-wave gold snowballing', () {
@@ -2408,6 +2420,32 @@ void main() {
     expect(enemy.receiveDamage(7), closeTo(4.3, 0.001));
     expect(enemy.armor, closeTo(49.7, 0.001));
     expect(enemy.hp, closeTo(100, 0.001));
+  });
+
+  test('armor piercing ignores reduction without bypassing armor layer', () {
+    final game = RuneNexusGame();
+    final normal = demoEnemies[EnemyType.normal]!;
+    final enemy = EnemyComponent(
+      definition: normal,
+      maxHp: 100,
+      maxArmor: 50,
+      path: [Vector2.zero(), Vector2(100, 0)],
+      game: game,
+    );
+
+    expect(
+      enemy.receiveDamage(7, ignoreArmorReduction: true),
+      closeTo(7, 0.001),
+    );
+    expect(enemy.armor, closeTo(43, 0.001));
+    expect(enemy.hp, closeTo(100, 0.001));
+
+    expect(
+      enemy.receiveDamage(50, ignoreArmorReduction: true),
+      closeTo(50, 0.001),
+    );
+    expect(enemy.armor, closeTo(0, 0.001));
+    expect(enemy.hp, closeTo(93, 0.001));
   });
 
   test(

@@ -169,7 +169,7 @@ void main() {
   });
 
   test('expanded blast core improves cannon splash as a secondary trait', () {
-    final game = RuneNexusGame();
+    final game = _LinkResearchUnlockedGame();
     final turret = _levelSevenCannon(game)
       ..choosePrimaryTrait(TurretTraitType.shrapnelShell);
     final baseSplashRadius = demoTurrets[TurretType.cannon]!.splashRadius;
@@ -547,4 +547,9 @@ EnemyComponent _boss(RuneNexusGame game) {
     path: [Vector2.zero(), Vector2(1, 0)],
     game: game,
   );
+}
+
+class _LinkResearchUnlockedGame extends RuneNexusGame {
+  @override
+  int get maxTurretLinkSlotLimit => 2;
 }

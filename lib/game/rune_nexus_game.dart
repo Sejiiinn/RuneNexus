@@ -1629,6 +1629,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       final actualDamage = enemy.receiveDamage(
         resolvedDamage.damage,
         burnTransfer: _burnTransferForHit(owner, enemy),
+        ignoreArmorReduction: owner.ignoresArmorReduction,
       );
       showDamageNumber(
         position: enemy.position.clone(),
@@ -1650,6 +1651,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         final actualBurstDamage = enemy.receiveDamage(
           ignitionBurstDamage,
           burnTransfer: _burnTransferForHit(owner, enemy),
+          ignoreArmorReduction: owner.ignoresArmorReduction,
         );
         showDamageNumber(
           position: enemy.position.clone(),
@@ -1689,6 +1691,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final actualDamage = target.receiveDamage(
       resolvedDamage.damage,
       burnTransfer: _burnTransferForHit(owner, target),
+      ignoreArmorReduction: owner.ignoresArmorReduction,
     );
     showDamageNumber(
       position: target.position.clone(),
@@ -1750,6 +1753,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       final actualDamage = enemy.receiveDamage(
         resolvedDamage.damage,
         burnTransfer: _burnTransferForHit(owner, enemy),
+        ignoreArmorReduction: owner.ignoresArmorReduction,
       );
       showDamageNumber(
         position: enemy.position.clone(),
@@ -1808,6 +1812,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       final actualDamage = enemy.receiveDamage(
         resolvedDamage.damage,
         burnTransfer: _burnTransferForHit(owner, enemy),
+        ignoreArmorReduction: owner.ignoresArmorReduction,
       );
       showDamageNumber(
         position: enemy.position.clone(),
@@ -2531,11 +2536,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   List<GemType> _availableGemTypes() {
-    return GemType.values
-        .where(
-          (type) => type != GemType.aimSpeed || _progression.isStageCleared(1),
-        )
-        .toList();
+    return GemType.values.where((type) {
+      final stageOneReward =
+          type == GemType.aimSpeed || type == GemType.armorPiercing;
+      return !stageOneReward || _progression.isStageCleared(1);
+    }).toList();
   }
 
   StageDefinition _stageForNumber(int stageNumber) {
@@ -2729,6 +2734,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       duration: transferDuration,
       damageMultiplier: burnTransfer.damageMultiplier,
       sourceTurretPoint: sourcePoint,
+      ignoreArmorReduction: burnTransfer.ignoreArmorReduction,
     );
     target.showHitFlash(turret.definition.color);
   }

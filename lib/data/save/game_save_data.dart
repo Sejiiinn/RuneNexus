@@ -383,6 +383,7 @@ class SavedBurnInstance {
     required this.damageMultiplier,
     required this.sourceX,
     required this.sourceY,
+    required this.ignoreArmorReduction,
   });
 
   final double remaining;
@@ -390,6 +391,7 @@ class SavedBurnInstance {
   final double damageMultiplier;
   final int? sourceX;
   final int? sourceY;
+  final bool ignoreArmorReduction;
 
   GridPoint? get sourcePoint {
     final x = sourceX;
@@ -404,6 +406,7 @@ class SavedBurnInstance {
       'damageMultiplier': damageMultiplier,
       'sourceX': sourceX,
       'sourceY': sourceY,
+      'ignoreArmorReduction': ignoreArmorReduction,
     };
   }
 
@@ -422,6 +425,7 @@ class SavedBurnInstance {
       damageMultiplier: _doubleValue(json['damageMultiplier'], fallback: 1),
       sourceX: _nullableIntValue(json['sourceX']),
       sourceY: _nullableIntValue(json['sourceY']),
+      ignoreArmorReduction: _boolValue(json['ignoreArmorReduction']),
     );
   }
 }
@@ -528,6 +532,7 @@ class SavedEnemy {
           ),
           sourceX: null,
           sourceY: null,
+          ignoreArmorReduction: false,
         ),
       );
     }

@@ -284,6 +284,7 @@ class TurretComponent extends PositionComponent {
   }
 
   bool hasGem(GemType type) => equippedGems.contains(type);
+  bool get ignoresArmorReduction => hasGem(GemType.armorPiercing);
   List<GemType> get equippedGems =>
       List.unmodifiable(_gemSlots.whereType<GemType>());
   List<GemType?> get equippedGemSlots =>

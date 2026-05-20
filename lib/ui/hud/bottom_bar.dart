@@ -338,6 +338,7 @@ String _gemInventoryEffectText(GemType type) {
     GemType.criticalChance => '치명 확률 +20%p',
     GemType.aimSpeed => '조준 속도 +75%',
     GemType.damageAmplifier => '타격 피해 +25%',
+    GemType.armorPiercing => '방어구 감쇄 무시',
   };
 }
 

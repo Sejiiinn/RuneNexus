@@ -8,4 +8,5 @@ enum GemEffectType {
   criticalChanceBonus,
   aimSpeedBonus,
   damageAmplifier,
+  armorReductionBypass,
 }
