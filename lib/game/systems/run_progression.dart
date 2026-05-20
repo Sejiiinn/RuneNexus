@@ -25,15 +25,19 @@ class RunProgression {
   static const double runeRewardGrowthPerRound = 1.04;
   static const int baseTurretRefundPercent = 75;
   static const int startingGoldUpgradeBaseCost = 4;
-  static const int startingGoldUpgradeCostPerLevel = 4;
+  static const int startingGoldUpgradeCostPerLevel = 3;
+  static const double startingGoldUpgradeCostMultiplier = 1.08;
   static const int startingGoldPerUpgradeLevel = 5;
   static const int nexusHpUpgradeBaseCost = 14;
-  static const int nexusHpUpgradeCostPerLevel = 7;
+  static const int nexusHpUpgradeCostPerLevel = 5;
+  static const double nexusHpUpgradeCostMultiplier = 1.10;
   static const int supplyUpgradeBaseCost = 7;
-  static const int supplyUpgradeCostPerLevel = 4;
+  static const int supplyUpgradeCostPerLevel = 2;
+  static const double supplyUpgradeCostMultiplier = 1.10;
   static const int supplyGoldPerUpgradeLevel = 1;
   static const int fireTrainingUpgradeBaseCost = 7;
-  static const int fireTrainingUpgradeCostPerLevel = 4;
+  static const int fireTrainingUpgradeCostPerLevel = 2;
+  static const double fireTrainingUpgradeCostMultiplier = 1.10;
   static const double fireTrainingDamagePerUpgradeLevel = 0.01;
   static const int criticalChanceUpgradeBaseCost = 70;
   static const double criticalChanceUpgradeCostMultiplier = 1.2;
@@ -42,7 +46,8 @@ class RunProgression {
   static const double criticalDamageUpgradeCostMultiplier = 1.1;
   static const double criticalDamageBonusPerUpgradeLevel = 0.01;
   static const int killGoldUpgradeBaseCost = 7;
-  static const int killGoldUpgradeCostPerLevel = 4;
+  static const int killGoldUpgradeCostPerLevel = 2;
+  static const double killGoldUpgradeCostMultiplier = 1.10;
   static const double killGoldBonusPerUpgradeLevel = 0.01;
   static const int emergencySaleUpgradeBaseCost = 80;
   static const int emergencySaleRefundPercentPerLevel = 1;
@@ -81,18 +86,30 @@ class RunProgression {
       baseInitialGold +
       _cappedStartingGoldUpgradeLevel * startingGoldPerUpgradeLevel;
   int get maxNexusHp => baseNexusHp + _cappedNexusHpUpgradeLevel;
-  int get startingGoldUpgradeCost =>
-      startingGoldUpgradeBaseCost +
-      _cappedStartingGoldUpgradeLevel * startingGoldUpgradeCostPerLevel;
-  int get nexusHpUpgradeCost =>
-      nexusHpUpgradeBaseCost +
-      _cappedNexusHpUpgradeLevel * nexusHpUpgradeCostPerLevel;
-  int get supplyUpgradeCost =>
-      supplyUpgradeBaseCost +
-      _cappedSupplyUpgradeLevel * supplyUpgradeCostPerLevel;
-  int get fireTrainingUpgradeCost =>
-      fireTrainingUpgradeBaseCost +
-      _cappedFireTrainingUpgradeLevel * fireTrainingUpgradeCostPerLevel;
+  int get startingGoldUpgradeCost => _hybridUpgradeCost(
+    baseCost: startingGoldUpgradeBaseCost,
+    costPerLevel: startingGoldUpgradeCostPerLevel,
+    multiplier: startingGoldUpgradeCostMultiplier,
+    level: _cappedStartingGoldUpgradeLevel,
+  );
+  int get nexusHpUpgradeCost => _hybridUpgradeCost(
+    baseCost: nexusHpUpgradeBaseCost,
+    costPerLevel: nexusHpUpgradeCostPerLevel,
+    multiplier: nexusHpUpgradeCostMultiplier,
+    level: _cappedNexusHpUpgradeLevel,
+  );
+  int get supplyUpgradeCost => _hybridUpgradeCost(
+    baseCost: supplyUpgradeBaseCost,
+    costPerLevel: supplyUpgradeCostPerLevel,
+    multiplier: supplyUpgradeCostMultiplier,
+    level: _cappedSupplyUpgradeLevel,
+  );
+  int get fireTrainingUpgradeCost => _hybridUpgradeCost(
+    baseCost: fireTrainingUpgradeBaseCost,
+    costPerLevel: fireTrainingUpgradeCostPerLevel,
+    multiplier: fireTrainingUpgradeCostMultiplier,
+    level: _cappedFireTrainingUpgradeLevel,
+  );
   int get criticalChanceUpgradeCost =>
       (criticalChanceUpgradeBaseCost *
               math.pow(
@@ -107,9 +124,12 @@ class RunProgression {
                 _cappedCriticalDamageUpgradeLevel,
               ))
           .round();
-  int get killGoldUpgradeCost =>
-      killGoldUpgradeBaseCost +
-      _cappedKillGoldUpgradeLevel * killGoldUpgradeCostPerLevel;
+  int get killGoldUpgradeCost => _hybridUpgradeCost(
+    baseCost: killGoldUpgradeBaseCost,
+    costPerLevel: killGoldUpgradeCostPerLevel,
+    multiplier: killGoldUpgradeCostMultiplier,
+    level: _cappedKillGoldUpgradeLevel,
+  );
   int get emergencySaleUpgradeCost =>
       emergencySaleUpgradeCosts[math.min(
         _cappedEmergencySaleUpgradeLevel,
@@ -199,6 +219,16 @@ class RunProgression {
 
   static int applyResearchCostEfficiency(int cost, double efficiencyRate) {
     return math.max(1, (cost / (1 + efficiencyRate)).round());
+  }
+
+  static int _hybridUpgradeCost({
+    required int baseCost,
+    required int costPerLevel,
+    required double multiplier,
+    required int level,
+  }) {
+    final linearCost = baseCost + costPerLevel * level;
+    return math.max(1, (linearCost * math.pow(multiplier, level)).round());
   }
 
   int researchLevel(ResearchType type) {

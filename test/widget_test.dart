@@ -174,7 +174,7 @@ void main() {
 
     await _pumpLoadedApp(tester);
 
-    expect(find.text('스테이지 1 클리어 필요'), findsOneWidget);
+    expect(find.text('스테이지 1 클리어 필요'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

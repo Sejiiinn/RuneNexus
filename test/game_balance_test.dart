@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flame/components.dart';
+import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/definitions/demo_enemy_data.dart';
@@ -31,8 +32,10 @@ import 'package:rune_nexus/domain/turret/turret_target_priority.dart';
 import 'package:rune_nexus/domain/turret/turret_trait_type.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/domain/wave/wave_definition.dart';
+import 'package:rune_nexus/game/components/chain_projectile_component.dart';
 import 'package:rune_nexus/game/components/enemy_component.dart';
 import 'package:rune_nexus/game/components/projectile_component.dart';
+import 'package:rune_nexus/game/components/sniper_chain_beam_component.dart';
 import 'package:rune_nexus/game/components/turret_component.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
 import 'package:rune_nexus/game/systems/game_save_adapter.dart';
@@ -54,6 +57,10 @@ void main() {
     expect(demoChapter2Waves, hasLength(50));
     expect(demoChapter2Waves.first.round, 1);
     expect(demoChapter2Waves.last.round, 50);
+    expect(demoChapter2Stage7Waves, hasLength(50));
+    expect(demoChapter2Stage8Waves, hasLength(50));
+    expect(demoChapter2Stage9Waves, hasLength(50));
+    expect(demoChapter2Stage10Waves, hasLength(50));
     expect(demoStages.first.map.tileTheme.kind, MapTileThemeKind.chapterOne);
     expect(demoStages[1].map.tileTheme.kind, MapTileThemeKind.chapterOne);
     expect(demoStages[1].waves, same(demoStage2Waves));
@@ -61,8 +68,11 @@ void main() {
     expect(demoStages[3].waves, same(demoStage2Waves));
     expect(demoStages[4].waves, same(demoStage2Waves));
     expect(demoStages[5].waves, same(demoChapter2Waves));
+    expect(demoStages[6].waves, same(demoChapter2Stage7Waves));
+    expect(demoStages[7].waves, same(demoChapter2Stage8Waves));
+    expect(demoStages[8].waves, same(demoChapter2Stage9Waves));
+    expect(demoStages[9].waves, same(demoChapter2Stage10Waves));
     expect(demoStages[5].map.tileTheme.kind, MapTileThemeKind.chapterTwoRift);
-    expect(demoStages[9].waves, same(demoChapter2Waves));
     expect(demoStages[9].map.tileTheme.kind, MapTileThemeKind.chapterTwoRift);
   });
 
@@ -220,7 +230,7 @@ void main() {
     );
     expect(progression.initialGold, 250);
     expect(progression.maxNexusHp, 30);
-    expect(progression.runes, 8705);
+    expect(progression.runes, 7530);
 
     progression.startingGoldUpgradeLevel = 99;
     progression.nexusHpUpgradeLevel = 99;
@@ -442,9 +452,11 @@ void main() {
     final normal = demoEnemies[EnemyType.normal]!;
 
     expect(enemyHpMultiplierForStage(1), closeTo(1, 0.001));
-    expect(enemyHpMultiplierForStage(2), closeTo(1.3, 0.001));
-    expect(enemyHpMultiplierForStage(5), closeTo(2.8561, 0.001));
-    expect(scaledEnemyMaxHp(normal, 1, stageNumber: 2), closeTo(45.5, 0.001));
+    expect(enemyHpMultiplierForStage(2), closeTo(1.2, 0.001));
+    expect(enemyHpMultiplierForStage(5), closeTo(2.0736, 0.001));
+    expect(enemyHpMultiplierForStage(10), closeTo(5.1598, 0.001));
+    expect(enemyHpMultiplierForStage(11), closeTo(5.1598, 0.001));
+    expect(scaledEnemyMaxHp(normal, 1, stageNumber: 2), closeTo(42, 0.001));
   });
 
   test('projectiles are faster for straight-shot combat', () {
@@ -1191,6 +1203,38 @@ void main() {
 
     game.debugSetInstantResearchCompletion(false);
     expect(game.debugInstantResearchCompletion, isFalse);
+
+    game.debugSetClearedStageCount(5);
+    game.debugAddRunes(10000);
+    game.upgradeStartingGoldProgression();
+    game.upgradeNexusHpProgression();
+    game.upgradeSupplyProgression();
+    game.upgradeFireTrainingProgression();
+    game.upgradeCriticalChanceProgression();
+    game.upgradeCriticalDamageProgression();
+    game.upgradeKillGoldProgression();
+    game.upgradeEmergencySaleProgression();
+    expect(game.snapshotNotifier.value.startingGoldUpgradeLevel, 1);
+    expect(game.snapshotNotifier.value.nexusHpUpgradeLevel, 1);
+    expect(game.snapshotNotifier.value.supplyUpgradeLevel, 1);
+    expect(game.snapshotNotifier.value.fireTrainingUpgradeLevel, 1);
+    expect(game.snapshotNotifier.value.criticalChanceUpgradeLevel, 1);
+    expect(game.snapshotNotifier.value.criticalDamageUpgradeLevel, 1);
+    expect(game.snapshotNotifier.value.killGoldUpgradeLevel, 1);
+    expect(game.snapshotNotifier.value.emergencySaleUpgradeLevel, 1);
+
+    final runesBeforeUpgradeReset = game.snapshotNotifier.value.runes;
+    game.debugResetUpgradeProgress();
+    expect(game.snapshotNotifier.value.startingGoldUpgradeLevel, 0);
+    expect(game.snapshotNotifier.value.nexusHpUpgradeLevel, 0);
+    expect(game.snapshotNotifier.value.supplyUpgradeLevel, 0);
+    expect(game.snapshotNotifier.value.fireTrainingUpgradeLevel, 0);
+    expect(game.snapshotNotifier.value.criticalChanceUpgradeLevel, 0);
+    expect(game.snapshotNotifier.value.criticalDamageUpgradeLevel, 0);
+    expect(game.snapshotNotifier.value.killGoldUpgradeLevel, 0);
+    expect(game.snapshotNotifier.value.emergencySaleUpgradeLevel, 0);
+    expect(game.snapshotNotifier.value.runes, runesBeforeUpgradeReset);
+    expect(game.snapshotNotifier.value.clearedStageNumbers, contains(5));
   });
 
   test('restart demo resets debug-modified stage state', () {
@@ -1304,10 +1348,17 @@ void main() {
     final chapterTwoWaveTypes = demoChapter2Waves
         .expand((wave) => wave.groups)
         .map((group) => group.enemyType);
+    final chapterTwoLaterWaveTypes = [
+      ...demoChapter2Stage7Waves,
+      ...demoChapter2Stage8Waves,
+      ...demoChapter2Stage9Waves,
+      ...demoChapter2Stage10Waves,
+    ].expand((wave) => wave.groups).map((group) => group.enemyType);
 
     expect(stageOneWaveTypes, isNot(contains(EnemyType.shielded)));
     expect(chapterOneLateWaveTypes, isNot(contains(EnemyType.shielded)));
     expect(chapterTwoWaveTypes, contains(EnemyType.shielded));
+    expect(chapterTwoLaterWaveTypes, contains(EnemyType.shielded));
   });
 
   test('run tower damage upgrade boosts all turret damage', () {
@@ -1525,7 +1576,7 @@ void main() {
     );
   });
 
-  test('fire training uses cheaper 20 level progression', () {
+  test('fire training uses hybrid 20 level progression', () {
     final progression = RunProgression()..runes = 10000;
 
     expect(RunProgression.maxFireTrainingUpgradeLevel, 20);
@@ -1537,7 +1588,7 @@ void main() {
 
     expect(progression.fireTrainingUpgradeLevel, 20);
     expect(progression.fireTrainingDamageBonusRate, closeTo(0.20, 0.001));
-    expect(progression.fireTrainingUpgradeCost, 87);
+    expect(progression.fireTrainingUpgradeCost, 316);
     expect(progression.canUpgradeFireTraining, isFalse);
     expect(progression.upgradeFireTraining(), isFalse);
   });
@@ -1684,12 +1735,12 @@ void main() {
 
     expect(progression.supplyUpgradeLevel, 20);
     expect(progression.waveClearGoldBonus, 20);
-    expect(progression.supplyUpgradeCost, 87);
+    expect(progression.supplyUpgradeCost, 316);
     expect(progression.canUpgradeSupply, isFalse);
     expect(progression.upgradeSupply(), isFalse);
     expect(progression.killGoldUpgradeLevel, 20);
     expect(progression.killGoldBonusRate, closeTo(0.20, 0.001));
-    expect(progression.killGoldUpgradeCost, 87);
+    expect(progression.killGoldUpgradeCost, 316);
     expect(progression.canUpgradeKillGold, isFalse);
     expect(progression.upgradeKillGold(), isFalse);
   });
@@ -2154,6 +2205,10 @@ void main() {
       isTrue,
     );
     expect(
+      canEquipGemOnTurret(GemType.chain, demoTurrets[TurretType.sniper]!),
+      isTrue,
+    );
+    expect(
       canEquipGemOnTurret(GemType.aimSpeed, demoTurrets[TurretType.arrow]!),
       isFalse,
     );
@@ -2319,6 +2374,11 @@ void main() {
   test(
     'chapter two waves introduce shielded enemies without changing chapter one',
     () {
+      int countType(List<WaveDefinition> waves, int round, EnemyType type) =>
+          waves[round - 1].groups
+              .where((group) => group.enemyType == type)
+              .fold(0, (total, group) => total + group.count);
+
       final chapterOneTypes = [
         ...demoWaves.expand((wave) => wave.groups),
         ...demoStage2Waves.expand((wave) => wave.groups),
@@ -2338,6 +2398,22 @@ void main() {
       expect(chapter2Round3Types.first, EnemyType.shielded);
       expect(chapter2Round10Types, contains(EnemyType.shielded));
       expect(chapter2Round10Types, contains(EnemyType.boss));
+      expect(
+        countType(demoChapter2Stage7Waves, 7, EnemyType.fast),
+        greaterThan(countType(demoChapter2Waves, 7, EnemyType.fast)),
+      );
+      expect(
+        countType(demoChapter2Stage8Waves, 8, EnemyType.armored),
+        greaterThan(countType(demoChapter2Waves, 8, EnemyType.armored)),
+      );
+      expect(
+        countType(demoChapter2Stage9Waves, 8, EnemyType.shielded),
+        greaterThan(countType(demoChapter2Waves, 8, EnemyType.shielded)),
+      );
+      expect(
+        countType(demoChapter2Stage10Waves, 50, EnemyType.boss),
+        greaterThan(countType(demoChapter2Waves, 50, EnemyType.boss)),
+      );
     },
   );
 
@@ -2798,6 +2874,56 @@ void main() {
       expect(game.children.whereType<ProjectileComponent>(), isEmpty);
     },
   );
+
+  testWidgets('sniper chain gem applies instant beam chain damage', (
+    tester,
+  ) async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+
+    await tester.binding.setSurfaceSize(const Size(400, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(GameWidget(game: game));
+    await tester.pump();
+    game.debugSetClearedStageCount(1);
+    game.selectTurretType(TurretType.sniper);
+    game.tryBuildTurret(const GridPoint(2, 0));
+    game.update(0);
+
+    final sniperTurret = game.children.whereType<TurretComponent>().single;
+    expect(sniperTurret.definition.type, TurretType.sniper);
+    sniperTurret.equipGem(GemType.chain, 0);
+    expect(sniperTurret.hasGem(GemType.chain), isTrue);
+    final sourceEnemy = EnemyComponent(
+      definition: demoEnemies[EnemyType.normal]!,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(500, 0)],
+      game: game,
+    );
+    final chainEnemy = EnemyComponent(
+      definition: demoEnemies[EnemyType.normal]!,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(500, 0)],
+      game: game,
+    );
+
+    await game.add(sourceEnemy);
+    await game.add(chainEnemy);
+    await tester.pump();
+    game.update(0);
+    sourceEnemy.position =
+        sniperTurret.position + Vector2(sniperTurret.range * 0.5, 0);
+    chainEnemy.position = sourceEnemy.position + Vector2(1, 0);
+    game.enemies.addAll([sourceEnemy, chainEnemy]);
+
+    game.resolveInstantHit(owner: sniperTurret, target: sourceEnemy);
+    game.update(0);
+
+    expect(sourceEnemy.hp, closeTo(60, 0.001));
+    expect(chainEnemy.hp, closeTo(80, 0.001));
+    expect(sniperTurret.chainDamageDealt, closeTo(20, 0.001));
+    expect(game.children.whereType<ChainProjectileComponent>(), isEmpty);
+    expect(game.children.whereType<SniperChainBeamComponent>(), hasLength(1));
+  });
 
   test('chain hit from fire turret applies scaled burn', () async {
     final game = RuneNexusGame(saveRepository: MemorySaveRepository());

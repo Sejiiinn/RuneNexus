@@ -39,6 +39,7 @@ import 'components/enemy_component.dart';
 import 'components/grid_component.dart';
 import 'components/impact_effect_component.dart';
 import 'components/projectile_component.dart';
+import 'components/sniper_chain_beam_component.dart';
 import 'components/turret_component.dart';
 import 'game_snapshot.dart';
 import 'rendering/status_effect_sprite_cache.dart';
@@ -1097,6 +1098,19 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
+  void debugResetUpgradeProgress() {
+    _progression.startingGoldUpgradeLevel = 0;
+    _progression.nexusHpUpgradeLevel = 0;
+    _progression.supplyUpgradeLevel = 0;
+    _progression.fireTrainingUpgradeLevel = 0;
+    _progression.criticalChanceUpgradeLevel = 0;
+    _progression.criticalDamageUpgradeLevel = 0;
+    _progression.killGoldUpgradeLevel = 0;
+    _progression.emergencySaleUpgradeLevel = 0;
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
   bool get debugInstantResearchCompletion => _debugInstantResearchCompletion;
 
   void debugSetInstantResearchCompletion(bool enabled) {
@@ -1996,6 +2010,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
     final damage = _combatResolver.chainProjectileDamage(owner);
     for (final enemy in targets) {
+      if (owner.definition.type == TurretType.sniper) {
+        add(
+          SniperChainBeamComponent(
+            source: source,
+            target: enemy,
+            owner: owner,
+            damage: damage,
+            game: this,
+          ),
+        );
+        continue;
+      }
       add(
         ChainProjectileComponent(
           origin: source.position.clone(),
@@ -2134,6 +2160,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
     for (final component
         in children.whereType<ChainProjectileComponent>().toList()) {
+      component.removeFromParent();
+    }
+    for (final component
+        in children.whereType<SniperChainBeamComponent>().toList()) {
       component.removeFromParent();
     }
     for (final component

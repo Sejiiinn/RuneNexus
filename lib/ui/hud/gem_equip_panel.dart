@@ -87,25 +87,28 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
               Expanded(child: _DamageSummaryRow(snapshot: snapshot)),
               const SizedBox(width: 6),
               Flexible(
-                child: _TurretActionBar(
-                  canLevelUp:
-                      snapshot.selectedTurretCanLevelUp &&
-                      canLevelUp &&
-                      snapshot.gold >= snapshot.selectedTurretLevelUpCost,
-                  levelUpLabel: snapshot.selectedTurretCanLevelUp
-                      ? '${snapshot.selectedTurretLevelUpCost}G'
-                      : 'MAX',
-                  levelUpPreviewActive: levelUpPreviewActive,
-                  onLevelUp: widget.game.previewOrLevelUpSelectedTurret,
-                  canRefund: canRefund,
-                  refundLabel: '${snapshot.selectedTurretRefundGold}G',
-                  onRefund: () => _confirmRefundSelectedTurret(snapshot),
-                  traitButton: snapshot.selectedTurretSupportsTraits
-                      ? _TurretTraitActionButton(
-                          snapshot: snapshot,
-                          onPressed: () => _showTraitDialog(snapshot),
-                        )
-                      : null,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: _TurretActionBar(
+                    canLevelUp:
+                        snapshot.selectedTurretCanLevelUp &&
+                        canLevelUp &&
+                        snapshot.gold >= snapshot.selectedTurretLevelUpCost,
+                    levelUpLabel: snapshot.selectedTurretCanLevelUp
+                        ? '${snapshot.selectedTurretLevelUpCost}G'
+                        : 'MAX',
+                    levelUpPreviewActive: levelUpPreviewActive,
+                    onLevelUp: widget.game.previewOrLevelUpSelectedTurret,
+                    canRefund: canRefund,
+                    refundLabel: '${snapshot.selectedTurretRefundGold}G',
+                    onRefund: () => _confirmRefundSelectedTurret(snapshot),
+                    traitButton: snapshot.selectedTurretSupportsTraits
+                        ? _TurretTraitActionButton(
+                            snapshot: snapshot,
+                            onPressed: () => _showTraitDialog(snapshot),
+                          )
+                        : null,
+                  ),
                 ),
               ),
             ],

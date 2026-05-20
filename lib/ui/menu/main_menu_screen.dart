@@ -417,6 +417,17 @@ class _MainMenuDebugPanel extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               _DebugControlSection(
+                title: '강화',
+                children: [
+                  _DebugActionButton(
+                    label: '강화 초기화',
+                    danger: true,
+                    onPressed: game.debugResetUpgradeProgress,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _DebugControlSection(
                 title: '연구',
                 children: [
                   _DebugActionButton(
@@ -1258,7 +1269,7 @@ String _stageDetailText({
   required int stageNumber,
 }) {
   if (stageNumber > snapshot.unlockedStageCount) {
-    return l10n.stageUnlockRequirement(stageNumber - 1);
+    return l10n.locked;
   }
   return _recordTextForStage(l10n, snapshot, stageNumber);
 }
