@@ -51,6 +51,19 @@ class GameSnapshotBuilder {
       }
       return current;
     });
+    final totalTurretDps = _game._turrets.values.fold<double>(0, (
+      total,
+      turret,
+    ) {
+      final directDps = turret.attackRate <= 0
+          ? 0.0
+          : turret.damage * turret.attackRate;
+      final burnDps = _game._turretBurnDamagePerSecondAtLevel(
+        turret,
+        turret.level,
+      );
+      return total + directDps + burnDps;
+    });
     final nextWaveEnemyTypes = RuneNexusGame._enemyTypesFor(nextWave);
     final nextWaveEnemyCounts = RuneNexusGame._enemyCountsFor(nextWave);
     final gemCollection = _gemCollectionTotals();
@@ -178,6 +191,7 @@ class GameSnapshotBuilder {
           ? null
           : topDamageTurret.definition.name,
       topDamageTurretDamageDealt: topDamageTurret?.damageDealt ?? 0,
+      totalTurretDps: totalTurretDps,
       nextWaveEnemyTypes: List.unmodifiable(nextWaveEnemyTypes),
       nextWaveEnemyCounts: Map.unmodifiable(nextWaveEnemyCounts),
       nextWaveClearRewardGold: nextWave.clearRewardGold,

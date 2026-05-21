@@ -690,6 +690,32 @@ void main() {
     expect(find.text('테스트 라운드'), findsNothing);
   });
 
+  testWidgets('combat HUD shows total turret DPS under the home button', (
+    tester,
+  ) async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          backgroundColor: const Color(0xFF07111D),
+          body: GameHud(game: game),
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester, frameCount: 10);
+
+    expect(find.byTooltip('배치 포탑 전체 DPS'), findsOneWidget);
+    expect(find.text('전투력'), findsOneWidget);
+
+    game.tryBuildTurret(const GridPoint(2, 0));
+    await _pumpGameFrames(tester);
+
+    expect(game.snapshotNotifier.value.totalTurretDps, closeTo(15.89, 0.001));
+    expect(find.text('15.9'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'selected turret panel gates target priority selector by research',
     (tester) async {
@@ -974,6 +1000,7 @@ GameSnapshot _resultSnapshot({
     selectedTurretSecondaryTraitRequiredLevel: 7,
     topDamageTurretName: null,
     topDamageTurretDamageDealt: 0,
+    totalTurretDps: 0,
     nextWaveEnemyTypes: const [],
     nextWaveEnemyCounts: const {},
     nextWaveClearRewardGold: 0,

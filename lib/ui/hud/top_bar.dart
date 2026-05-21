@@ -38,20 +38,33 @@ class _TopBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            _TopIconButton(
-              tooltip: '스테이지 메뉴',
-              icon: Icons.home_outlined,
-              onPressed: onOpenMainMenu,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _TopIconButton(
+                      tooltip: '스테이지 메뉴',
+                      icon: Icons.home_outlined,
+                      onPressed: onOpenMainMenu,
+                    ),
+                    if (showDebugButton) ...[
+                      const SizedBox(width: 6),
+                      _TopIconButton(
+                        tooltip: '인앱 테스트 패널',
+                        icon: Icons.construction_outlined,
+                        selected: showGemDebugPanel,
+                        onPressed: onToggleGemDebugPanel,
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 5),
+                _CombatPowerBadge(totalDps: snapshot.totalTurretDps),
+              ],
             ),
-            if (showDebugButton) ...[
-              const SizedBox(width: 6),
-              _TopIconButton(
-                tooltip: '인앱 테스트 패널',
-                icon: Icons.construction_outlined,
-                selected: showGemDebugPanel,
-                onPressed: onToggleGemDebugPanel,
-              ),
-            ],
           ],
         ),
       ),
@@ -422,6 +435,64 @@ class _RewardValue extends StatelessWidget {
         fontSize: 10,
         fontWeight: FontWeight.w900,
         height: 1,
+      ),
+    );
+  }
+}
+
+class _CombatPowerBadge extends StatelessWidget {
+  const _CombatPowerBadge({required this.totalDps});
+
+  final double totalDps;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: '배치 포탑 전체 DPS',
+      child: Container(
+        width: 72,
+        height: 32,
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+        decoration: BoxDecoration(
+          color: const Color(0xE607111D),
+          border: Border.all(color: const Color(0x665CF9E9)),
+          borderRadius: BorderRadius.circular(6),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x66000000),
+              blurRadius: 8,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              '전투력',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: Color(0xFF8FA8BA),
+                fontSize: 9,
+                fontWeight: FontWeight.w800,
+                height: 1,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              _formatDamageValue(totalDps),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFFE8FBFF),
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                height: 1,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -208,6 +208,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedTurretSecondaryTraitRequiredLevel: secondaryTraitRequiredLevel,
       topDamageTurretName: null,
       topDamageTurretDamageDealt: 0,
+      totalTurretDps: 0,
       nextWaveEnemyTypes: _enemyTypesFor(firstWave),
       nextWaveEnemyCounts: _enemyCountsFor(firstWave),
       nextWaveClearRewardGold: firstWave.clearRewardGold,

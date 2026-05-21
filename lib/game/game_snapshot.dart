@@ -85,6 +85,7 @@ class GameSnapshot {
     required this.selectedTurretSecondaryTraitRequiredLevel,
     required this.topDamageTurretName,
     required this.topDamageTurretDamageDealt,
+    required this.totalTurretDps,
     required this.nextWaveEnemyTypes,
     required this.nextWaveEnemyCounts,
     required this.nextWaveClearRewardGold,
@@ -214,6 +215,7 @@ class GameSnapshot {
   final int selectedTurretSecondaryTraitRequiredLevel;
   final String? topDamageTurretName;
   final double topDamageTurretDamageDealt;
+  final double totalTurretDps;
   final List<EnemyType> nextWaveEnemyTypes;
   final Map<EnemyType, int> nextWaveEnemyCounts;
   final int nextWaveClearRewardGold;

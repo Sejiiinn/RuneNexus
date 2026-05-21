@@ -1282,6 +1282,33 @@ void main() {
     expect(game.snapshotNotifier.value.selectedRunPanelTab, RunPanelTab.gems);
   });
 
+  test('snapshot sums placed turret DPS for combat power', () async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    expect(game.snapshotNotifier.value.totalTurretDps, 0);
+
+    game.tryBuildTurret(const GridPoint(2, 0));
+
+    final arrow = gameTurrets[TurretType.arrow]!;
+    final arrowDps = arrow.damage * arrow.attackRate;
+    expect(
+      game.snapshotNotifier.value.totalTurretDps,
+      closeTo(arrowDps, 0.001),
+    );
+
+    game.previewOrBuildSelectedTile(TurretType.cannon);
+    game.tryBuildTurret(const GridPoint(3, 0));
+
+    final cannon = gameTurrets[TurretType.cannon]!;
+    final cannonDps = cannon.damage * cannon.attackRate;
+    expect(
+      game.snapshotNotifier.value.totalTurretDps,
+      closeTo(arrowDps + cannonDps, 0.001),
+    );
+  });
+
   test('status gems are removed from the reward pool', () {
     final gemNames = GemType.values.map((type) => type.name);
 
