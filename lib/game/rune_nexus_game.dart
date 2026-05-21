@@ -1967,7 +1967,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }) {
     final splashRadius = owner.splashRadius;
     final style = splashRadius > 0
-        ? ImpactEffectStyle.blast
+        ? owner.definition.type == TurretType.sniper
+              ? ImpactEffectStyle.sniperBlast
+              : ImpactEffectStyle.blast
         : switch (owner.definition.type) {
             TurretType.arrow => ImpactEffectStyle.spark,
             TurretType.cannon => ImpactEffectStyle.blast,
