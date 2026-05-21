@@ -1,7 +1,7 @@
 import '../../domain/run_upgrade/run_upgrade_definition.dart';
 import '../../domain/run_upgrade/run_upgrade_type.dart';
 
-const demoRunUpgrades = <RunUpgradeType, RunUpgradeDefinition>{
+const gameRunUpgrades = <RunUpgradeType, RunUpgradeDefinition>{
   RunUpgradeType.towerDamage: RunUpgradeDefinition(
     type: RunUpgradeType.towerDamage,
     name: '포탑 화력',

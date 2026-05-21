@@ -247,7 +247,7 @@ class _OwnedGemChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gem = demoGems[type]!;
+    final gem = gameGems[type]!;
     return Container(
       height: 24,
       padding: const EdgeInsets.symmetric(horizontal: 7),
@@ -303,7 +303,7 @@ class _RewardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gem = demoGems[type]!;
+    final gem = gameGems[type]!;
     return Material(
       color: Colors.transparent,
       child: InkWell(

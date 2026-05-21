@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import '../../data/definitions/demo_research_data.dart';
+import '../../data/definitions/game_research_data.dart';
 import '../../data/save/game_save_data.dart';
 import '../../domain/research/research_progress.dart';
 import '../../domain/research/research_type.dart';
@@ -232,7 +232,7 @@ class RunProgression {
   }
 
   int researchLevel(ResearchType type) {
-    final definition = demoResearchDefinitions[type];
+    final definition = gameResearchDefinitions[type];
     final maxLevel = definition?.maxLevel ?? 0;
     return (researchLevels[type] ?? 0).clamp(0, maxLevel).toInt();
   }
@@ -242,7 +242,7 @@ class RunProgression {
   }
 
   bool isResearchComplete(ResearchType type) {
-    final definition = demoResearchDefinitions[type];
+    final definition = gameResearchDefinitions[type];
     if (definition == null) {
       return false;
     }
@@ -250,7 +250,7 @@ class RunProgression {
   }
 
   bool isResearchUnlocked(ResearchType type) {
-    final definition = demoResearchDefinitions[type];
+    final definition = gameResearchDefinitions[type];
     if (definition == null) {
       return false;
     }
@@ -261,7 +261,7 @@ class RunProgression {
   }
 
   int researchCostForCurrentLevel(ResearchType type) {
-    final definition = demoResearchDefinitions[type];
+    final definition = gameResearchDefinitions[type];
     if (definition == null) {
       return 0;
     }
@@ -270,7 +270,7 @@ class RunProgression {
   }
 
   int researchDurationForCurrentLevel(ResearchType type) {
-    final definition = demoResearchDefinitions[type];
+    final definition = gameResearchDefinitions[type];
     if (definition == null) {
       return 0;
     }
@@ -292,7 +292,7 @@ class RunProgression {
   }
 
   bool canStartResearch(ResearchType type) {
-    final definition = demoResearchDefinitions[type];
+    final definition = gameResearchDefinitions[type];
     if (definition == null ||
         !isResearchUnlocked(type) ||
         isResearchComplete(type) ||
@@ -304,7 +304,7 @@ class RunProgression {
   }
 
   bool startResearch(ResearchType type, {required int nowMillis}) {
-    final definition = demoResearchDefinitions[type];
+    final definition = gameResearchDefinitions[type];
     if (definition == null || !canStartResearch(type)) {
       return false;
     }
@@ -363,7 +363,7 @@ class RunProgression {
       if (!research.isCompleteAt(nowMillis)) {
         continue;
       }
-      final definition = demoResearchDefinitions[research.type];
+      final definition = gameResearchDefinitions[research.type];
       if (definition == null) {
         activeResearches.remove(research);
         changed = true;
@@ -457,11 +457,11 @@ class RunProgression {
       ..addEntries(
         data.researchLevels.entries
             .where((entry) {
-              final definition = demoResearchDefinitions[entry.key];
+              final definition = gameResearchDefinitions[entry.key];
               return definition != null && entry.value > 0;
             })
             .map((entry) {
-              final definition = demoResearchDefinitions[entry.key]!;
+              final definition = gameResearchDefinitions[entry.key]!;
               return MapEntry(
                 entry.key,
                 entry.value.clamp(0, definition.maxLevel).toInt(),
@@ -473,7 +473,7 @@ class RunProgression {
       ..addEntries(
         data.researchElapsedMillis.entries
             .where((entry) {
-              final definition = demoResearchDefinitions[entry.key];
+              final definition = gameResearchDefinitions[entry.key];
               final fullDuration = researchDurationForCurrentLevel(entry.key);
               return definition != null &&
                   entry.value > 0 &&
@@ -487,7 +487,7 @@ class RunProgression {
       ..addAll(
         data.activeResearches
             .where((research) {
-              final definition = demoResearchDefinitions[research.type];
+              final definition = gameResearchDefinitions[research.type];
               return definition != null &&
                   research.durationMillis > 0 &&
                   research.targetLevel > researchLevel(research.type) &&

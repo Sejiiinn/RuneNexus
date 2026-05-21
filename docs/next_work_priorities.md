@@ -103,9 +103,9 @@
 
 - `docs/chapter2_wave_enemy_design.md`
 - `docs/prototypes/shielded_enemy_design_preview.html`
-- `lib/data/definitions/demo_stage_data.dart`
-- `lib/data/definitions/demo_stage_waves.dart`
-- `lib/data/definitions/demo_enemy_data.dart`
+- `lib/data/definitions/game_stage_data.dart`
+- `lib/data/definitions/game_stage_waves.dart`
+- `lib/data/definitions/game_enemy_data.dart`
 - `lib/domain/enemy/enemy_type.dart`
 - `lib/domain/stage/stage_definition.dart`
 - `lib/ui/menu/main_menu_screen.dart`
@@ -188,7 +188,7 @@
 관련 파일:
 
 - `lib/domain/enemy/enemy_scaling.dart`
-- `lib/data/definitions/demo_stage_data.dart`
+- `lib/data/definitions/game_stage_data.dart`
 - `lib/game/systems/run_progression.dart`
 - `test/game_balance_test.dart`
 - `docs/gameplay_balance_reference.md`
@@ -212,7 +212,7 @@
 - `lib/ui/hud/bottom_bar.dart`
 - `lib/game/components/enemy_component.dart`
 - `lib/game/rendering/enemy_shape_renderer.dart`
-- `lib/data/definitions/demo_stage_data.dart`
+- `lib/data/definitions/game_stage_data.dart`
 - `test/widget_test.dart`
 
 ### 7. `RuneNexusGame` 책임 분리 리팩토링

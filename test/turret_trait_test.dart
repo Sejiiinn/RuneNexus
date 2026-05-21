@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rune_nexus/data/definitions/demo_enemy_data.dart';
-import 'package:rune_nexus/data/definitions/demo_turret_data.dart';
+import 'package:rune_nexus/data/definitions/game_enemy_data.dart';
+import 'package:rune_nexus/data/definitions/game_turret_data.dart';
 import 'package:rune_nexus/domain/enemy/enemy_type.dart';
 import 'package:rune_nexus/domain/gem/gem_type.dart';
 import 'package:rune_nexus/domain/map/grid_point.dart';
@@ -16,7 +16,7 @@ void main() {
     final game = RuneNexusGame();
     final turret = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,
@@ -55,7 +55,7 @@ void main() {
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.magic]!,
+            definition: gameTurrets[TurretType.magic]!,
             game: game,
             center: Vector2.zero(),
             tileSize: 32,
@@ -80,7 +80,7 @@ void main() {
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.frost]!,
+            definition: gameTurrets[TurretType.frost]!,
             game: game,
             center: Vector2.zero(),
             tileSize: 32,
@@ -105,7 +105,7 @@ void main() {
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.cannon]!,
+            definition: gameTurrets[TurretType.cannon]!,
             game: game,
             center: Vector2.zero(),
             tileSize: 32,
@@ -129,7 +129,7 @@ void main() {
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.cannon]!,
+            definition: gameTurrets[TurretType.cannon]!,
             game: game,
             center: Vector2.zero(),
             tileSize: 32,
@@ -152,7 +152,7 @@ void main() {
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.cannon]!,
+            definition: gameTurrets[TurretType.cannon]!,
             game: game,
             center: Vector2.zero(),
             tileSize: 32,
@@ -172,7 +172,7 @@ void main() {
     final game = _LinkResearchUnlockedGame();
     final turret = _levelSevenCannon(game)
       ..choosePrimaryTrait(TurretTraitType.shrapnelShell);
-    final baseSplashRadius = demoTurrets[TurretType.cannon]!.splashRadius;
+    final baseSplashRadius = gameTurrets[TurretType.cannon]!.splashRadius;
 
     expect(
       turret.chooseSecondaryTrait(TurretTraitType.expandedBlastCore),
@@ -222,7 +222,7 @@ void main() {
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.arrow]!,
+            definition: gameTurrets[TurretType.arrow]!,
             game: game,
             center: Vector2.zero(),
             tileSize: 32,
@@ -244,7 +244,7 @@ void main() {
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.arrow]!,
+            definition: gameTurrets[TurretType.arrow]!,
             game: game,
             center: Vector2.zero(),
             tileSize: 32,
@@ -265,7 +265,7 @@ void main() {
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.magic]!,
+            definition: gameTurrets[TurretType.magic]!,
             game: game,
             center: Vector2.zero(),
             tileSize: 32,
@@ -284,7 +284,7 @@ void main() {
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.magic]!,
+            definition: gameTurrets[TurretType.magic]!,
             game: game,
             center: Vector2.zero(),
             tileSize: 32,
@@ -304,7 +304,7 @@ void main() {
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.magic]!,
+            definition: gameTurrets[TurretType.magic]!,
             game: game,
             center: Vector2.zero(),
             tileSize: 32,
@@ -323,7 +323,7 @@ void main() {
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.magic]!,
+            definition: gameTurrets[TurretType.magic]!,
             game: game,
             center: Vector2.zero(),
             tileSize: 32,
@@ -354,7 +354,7 @@ void main() {
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.frost]!,
+            definition: gameTurrets[TurretType.frost]!,
             game: game,
             center: Vector2.zero(),
             tileSize: 32,
@@ -375,7 +375,7 @@ void main() {
     final turret = _levelSevenFrost(game)
       ..choosePrimaryTrait(TurretTraitType.coolingCycle);
     final enemy = EnemyComponent(
-      definition: demoEnemies[EnemyType.normal]!,
+      definition: gameEnemies[EnemyType.normal]!,
       maxHp: 100,
       path: [Vector2.zero(), Vector2(1, 0)],
       game: game,
@@ -396,7 +396,7 @@ void main() {
       final turret =
           TurretComponent(
               gridPoint: const GridPoint(0, 0),
-              definition: demoTurrets[TurretType.frost]!,
+              definition: gameTurrets[TurretType.frost]!,
               game: game,
               center: Vector2.zero(),
               tileSize: 32,
@@ -460,7 +460,7 @@ void main() {
       ..chooseSecondaryTrait(TurretTraitType.chainCleanup);
     final restored = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,
@@ -477,7 +477,7 @@ void main() {
       ..chooseSecondaryTrait(TurretTraitType.chainCleanup);
     final restored = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.cannon]!,
+      definition: gameTurrets[TurretType.cannon]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,
@@ -492,7 +492,7 @@ void main() {
 TurretComponent _levelSevenMachineGun(RuneNexusGame game) {
   final turret = TurretComponent(
     gridPoint: const GridPoint(0, 0),
-    definition: demoTurrets[TurretType.arrow]!,
+    definition: gameTurrets[TurretType.arrow]!,
     game: game,
     center: Vector2.zero(),
     tileSize: 32,
@@ -506,7 +506,7 @@ TurretComponent _levelSevenMachineGun(RuneNexusGame game) {
 TurretComponent _levelSevenCannon(RuneNexusGame game) {
   final turret = TurretComponent(
     gridPoint: const GridPoint(0, 0),
-    definition: demoTurrets[TurretType.cannon]!,
+    definition: gameTurrets[TurretType.cannon]!,
     game: game,
     center: Vector2.zero(),
     tileSize: 32,
@@ -520,7 +520,7 @@ TurretComponent _levelSevenCannon(RuneNexusGame game) {
 TurretComponent _levelSevenFrost(RuneNexusGame game) {
   final turret = TurretComponent(
     gridPoint: const GridPoint(0, 0),
-    definition: demoTurrets[TurretType.frost]!,
+    definition: gameTurrets[TurretType.frost]!,
     game: game,
     center: Vector2.zero(),
     tileSize: 32,
@@ -533,7 +533,7 @@ TurretComponent _levelSevenFrost(RuneNexusGame game) {
 
 EnemyComponent _enemy(RuneNexusGame game) {
   return EnemyComponent(
-    definition: demoEnemies[EnemyType.normal]!,
+    definition: gameEnemies[EnemyType.normal]!,
     maxHp: 10,
     path: [Vector2.zero(), Vector2(1, 0)],
     game: game,
@@ -542,7 +542,7 @@ EnemyComponent _enemy(RuneNexusGame game) {
 
 EnemyComponent _boss(RuneNexusGame game) {
   return EnemyComponent(
-    definition: demoEnemies[EnemyType.boss]!,
+    definition: gameEnemies[EnemyType.boss]!,
     maxHp: 100,
     path: [Vector2.zero(), Vector2(1, 0)],
     game: game,

@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
-import '../../data/definitions/demo_research_data.dart';
+import '../../data/definitions/game_research_data.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../domain/research/research_definition.dart';
 import '../../domain/research/research_progress.dart';
@@ -1798,7 +1798,7 @@ class _ResearchMenuState extends State<_ResearchMenu> {
             .where(
               (type) =>
                   _researchLevel(widget.snapshot, type) >=
-                  demoResearchDefinitions[type]!.maxLevel,
+                  gameResearchDefinitions[type]!.maxLevel,
             )
             .toList()
           ..sort(_compareResearchRequirement);
@@ -1883,8 +1883,8 @@ class _ResearchMenuState extends State<_ResearchMenu> {
 }
 
 int _compareResearchRequirement(ResearchType left, ResearchType right) {
-  final leftStage = demoResearchDefinitions[left]!.requiredClearedStage;
-  final rightStage = demoResearchDefinitions[right]!.requiredClearedStage;
+  final leftStage = gameResearchDefinitions[left]!.requiredClearedStage;
+  final rightStage = gameResearchDefinitions[right]!.requiredClearedStage;
   final stageOrder = leftStage.compareTo(rightStage);
   if (stageOrder != 0) {
     return stageOrder;
@@ -1992,7 +1992,7 @@ class _ResearchSlotCard extends StatelessWidget {
                   child: Text(
                     active == null
                         ? l10n.emptyResearchSlot
-                        : '${_researchTitle(l10n, active.type)} ${l10n.researchLevel(active.targetLevel - 1, demoResearchDefinitions[active.type]!.maxLevel)}',
+                        : '${_researchTitle(l10n, active.type)} ${l10n.researchLevel(active.targetLevel - 1, gameResearchDefinitions[active.type]!.maxLevel)}',
                     style: const TextStyle(
                       color: Color(0xFFE8FBFF),
                       fontSize: 12,
@@ -2217,7 +2217,7 @@ class _ResearchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final definition = demoResearchDefinitions[type]!;
+    final definition = gameResearchDefinitions[type]!;
     final level = _researchLevel(snapshot, type);
     final active = _activeResearch(snapshot, type);
     final complete = level >= definition.maxLevel;
@@ -2615,7 +2615,7 @@ class _ResearchDetailDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final definition = demoResearchDefinitions[type]!;
+    final definition = gameResearchDefinitions[type]!;
     final level = _researchLevel(snapshot, type);
     final active = _activeResearch(snapshot, type);
     final complete = level >= definition.maxLevel;
@@ -2907,7 +2907,7 @@ bool _researchUnlocked(GameSnapshot snapshot, ResearchDefinition definition) {
 }
 
 int _researchCost(GameSnapshot snapshot, ResearchType type) {
-  final definition = demoResearchDefinitions[type]!;
+  final definition = gameResearchDefinitions[type]!;
   final baseCost = definition.costForCurrentLevel(
     _researchLevel(snapshot, type),
   );
@@ -2918,7 +2918,7 @@ int _researchCost(GameSnapshot snapshot, ResearchType type) {
 }
 
 int _researchDuration(GameSnapshot snapshot, ResearchType type) {
-  final definition = demoResearchDefinitions[type]!;
+  final definition = gameResearchDefinitions[type]!;
   final baseDuration = definition.durationForCurrentLevel(
     _researchLevel(snapshot, type),
   );
@@ -2965,7 +2965,7 @@ _ResearchEffectText _researchEffectText(
   int level,
   int? activeTargetLevel,
 ) {
-  final definition = demoResearchDefinitions[type]!;
+  final definition = gameResearchDefinitions[type]!;
   final nextLevel = activeTargetLevel ?? (level + 1);
   final clampedNextLevel = nextLevel.clamp(0, definition.maxLevel).toInt();
   final hasNext = clampedNextLevel > level;

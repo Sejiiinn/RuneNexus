@@ -89,5 +89,5 @@
 - README는 게임 소개와 개발 진입점 중심으로 정리했다.
 - 현재 구현 세부는 `docs/implementation_status.md`에 유지한다.
 - 현재 규칙과 밸런스 수치는 `docs/gameplay_balance_reference.md`로 분리했다.
-- 초기 계획과 향후 방향은 `docs/demo_mvp_work_plan.md`에 남겼다.
+- 초기 계획과 향후 방향은 `docs/mvp_work_plan.md`에 남겼다.
 - 다음 작업 후보는 `docs/next_work_priorities.md`에 정리했다.

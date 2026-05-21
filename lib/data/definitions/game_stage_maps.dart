@@ -3,7 +3,7 @@ import '../../domain/map/map_tile_theme.dart';
 import '../../domain/map/map_definition.dart';
 import '../../domain/map/tile_type.dart';
 
-const demoMap = MapDefinition(
+const gameMap = MapDefinition(
   columns: 8,
   rows: 10,
   tiles: [
@@ -138,7 +138,7 @@ const demoMap = MapDefinition(
   ],
 );
 
-const demoStage2Map = MapDefinition(
+const gameStage2Map = MapDefinition(
   columns: 11,
   rows: 7,
   tiles: [

@@ -6,7 +6,7 @@ const int halfHourResearchDurationMillis = 30 * 60 * 1000;
 const int fortyFiveMinuteResearchDurationMillis = 45 * 60 * 1000;
 const int twentyMinuteResearchDurationMillis = 20 * 60 * 1000;
 
-const demoResearchDefinitions = {
+const gameResearchDefinitions = {
   ResearchType.researchEfficiency: ResearchDefinition(
     type: ResearchType.researchEfficiency,
     maxLevel: 20,

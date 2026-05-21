@@ -36,7 +36,7 @@ flutter pub get
 flutter run
 ```
 
-웹 데모 빌드:
+웹 빌드:
 
 ```bash
 flutter build web --pwa-strategy=none --no-tree-shake-icons
@@ -63,5 +63,5 @@ flutter build web --pwa-strategy=none --no-tree-shake-icons
 - [구현 현황](docs/implementation_status.md)
 - [게임 규칙과 밸런스 기준](docs/gameplay_balance_reference.md)
 - [개발 히스토리](docs/development_history.md)
-- [데모 앱 작업 계획서](docs/demo_mvp_work_plan.md)
+- [MVP 작업 계획서](docs/mvp_work_plan.md)
 - [다음 작업 우선순위](docs/next_work_priorities.md)

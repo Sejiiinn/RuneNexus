@@ -6,11 +6,11 @@ import 'package:flame/game.dart';
 import 'package:flutter/gestures.dart' as gestures;
 import 'package:flutter/material.dart';
 
-import '../data/definitions/demo_enemy_data.dart';
-import '../data/definitions/demo_gem_data.dart';
-import '../data/definitions/demo_run_upgrade_data.dart';
-import '../data/definitions/demo_stage_data.dart';
-import '../data/definitions/demo_turret_data.dart';
+import '../data/definitions/game_enemy_data.dart';
+import '../data/definitions/game_gem_data.dart';
+import '../data/definitions/game_run_upgrade_data.dart';
+import '../data/definitions/game_stage_data.dart';
+import '../data/definitions/game_turret_data.dart';
 import '../data/save/game_save_data.dart';
 import '../data/save/local_save_repository.dart';
 import '../data/save/online_save_repository.dart';
@@ -98,8 +98,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return [stage];
     }
     if (map != null || waves != null) {
-      final customMap = map ?? demoMap;
-      final customWaves = waves ?? demoWaves;
+      final customMap = map ?? gameMap;
+      final customWaves = waves ?? gameWaves;
       return List<StageDefinition>.generate(
         RunProgression.maxStageCount,
         (index) => StageDefinition(
@@ -110,7 +110,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         ),
       );
     }
-    return demoStages;
+    return gameStages;
   }
 
   static StageDefinition _initialStage({
@@ -287,7 +287,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static int _killRewardGoldFor(WaveDefinition wave) {
     var total = 0;
     for (final group in wave.groups) {
-      total += demoEnemies[group.enemyType]!.rewardGold * group.count;
+      total += gameEnemies[group.enemyType]!.rewardGold * group.count;
     }
     return total;
   }
@@ -455,21 +455,21 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   double get _towerDamageRunBonusRate =>
       _runUpgradeLevel(RunUpgradeType.towerDamage) *
-      demoRunUpgrades[RunUpgradeType.towerDamage]!.effectPerLevel;
+      gameRunUpgrades[RunUpgradeType.towerDamage]!.effectPerLevel;
   double get _killGoldRunBonusRate =>
       _runUpgradeLevel(RunUpgradeType.killGold) *
-      demoRunUpgrades[RunUpgradeType.killGold]!.effectPerLevel;
+      gameRunUpgrades[RunUpgradeType.killGold]!.effectPerLevel;
   double get _killGoldProgressionBonusRate =>
       _progression.isStageCleared(2) ? _progression.killGoldBonusRate : 0;
   double get _killGoldTotalBonusRate =>
       _killGoldRunBonusRate + _killGoldProgressionBonusRate;
   int get _waveClearGoldRunBonus =>
       (_runUpgradeLevel(RunUpgradeType.waveGold) *
-              demoRunUpgrades[RunUpgradeType.waveGold]!.effectPerLevel)
+              gameRunUpgrades[RunUpgradeType.waveGold]!.effectPerLevel)
           .round();
 
   int _runUpgradeLevel(RunUpgradeType type) {
-    final definition = demoRunUpgrades[type];
+    final definition = gameRunUpgrades[type];
     final level = _runUpgradeLevels[type] ?? 0;
     return definition == null ? 0 : level.clamp(0, definition.maxLevel).toInt();
   }
@@ -769,7 +769,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (!_canEditBoard) {
       return;
     }
-    final definition = demoRunUpgrades[type];
+    final definition = gameRunUpgrades[type];
     if (definition == null) {
       return;
     }
@@ -825,10 +825,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void startStage(int stageNumber) {
-    restartDemo(stageNumber: stageNumber);
+    restartRun(stageNumber: stageNumber);
   }
 
-  void restartDemo({int? stageNumber}) {
+  void restartRun({int? stageNumber}) {
     final targetStageNumber = stageNumber == null
         ? null
         : _clampedStageNumber(stageNumber);
@@ -935,7 +935,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     await settleCurrentRunAsFailure();
-    restartDemo();
+    restartRun();
   }
 
   void upgradeStartingGoldProgression() {
@@ -1157,7 +1157,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_phase != GamePhase.preparation && _phase != GamePhase.wave) {
       return;
     }
-    if (!demoEnemies.containsKey(type) || _worldPath.length < 2) {
+    if (!gameEnemies.containsKey(type) || _worldPath.length < 2) {
       return;
     }
 
@@ -1261,7 +1261,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
 
-    final definition = demoTurrets[_selectedTurretType]!;
+    final definition = gameTurrets[_selectedTurretType]!;
     if (_gold < definition.cost) {
       return;
     }
@@ -1350,7 +1350,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       }
       final turret = TurretComponent(
         gridPoint: point,
-        definition: demoTurrets[TurretType.arrow]!,
+        definition: gameTurrets[TurretType.arrow]!,
         game: this,
         center: _centerOf(point),
         tileSize: _tileSize,
@@ -1545,7 +1545,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
   }
 
-  Color colorForGem(GemType type) => demoGems[type]!.color;
+  Color colorForGem(GemType type) => gameGems[type]!.color;
 
   void showDamageNumber({
     required Vector2 position,
@@ -2298,7 +2298,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _drawBuildGhost(Canvas canvas, Vector2 center, TurretType type) {
-    final definition = demoTurrets[type]!;
+    final definition = gameTurrets[type]!;
     final ghostCenter = Offset(center.x, center.y);
     final rangeFill = Paint()
       ..color = definition.color.withValues(alpha: 0.09)
@@ -2423,7 +2423,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _spawnEnemy(EnemyType type, {bool debugSpawn = false}) {
-    final definition = demoEnemies[type]!;
+    final definition = gameEnemies[type]!;
     final enemy = EnemyComponent(
       definition: definition,
       maxHp: scaledEnemyMaxHp(

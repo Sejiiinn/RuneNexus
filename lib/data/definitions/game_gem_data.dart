@@ -4,7 +4,7 @@ import '../../domain/gem/gem_definition.dart';
 import '../../domain/gem/gem_effect_type.dart';
 import '../../domain/gem/gem_type.dart';
 
-const demoGems = <GemType, GemDefinition>{
+const gameGems = <GemType, GemDefinition>{
   GemType.attackSpeed: GemDefinition(
     type: GemType.attackSpeed,
     name: '가속',

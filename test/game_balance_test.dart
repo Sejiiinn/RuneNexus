@@ -1,12 +1,11 @@
 import 'dart:math' as math;
 
-import 'package:flame/components.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rune_nexus/data/definitions/demo_enemy_data.dart';
-import 'package:rune_nexus/data/definitions/demo_stage_data.dart';
-import 'package:rune_nexus/data/definitions/demo_turret_data.dart';
+import 'package:rune_nexus/data/definitions/game_enemy_data.dart';
+import 'package:rune_nexus/data/definitions/game_stage_data.dart';
+import 'package:rune_nexus/data/definitions/game_turret_data.dart';
 import 'package:rune_nexus/data/save/game_save_data.dart';
 import 'package:rune_nexus/data/save/save_repository.dart';
 import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
@@ -44,42 +43,42 @@ import 'package:rune_nexus/game/systems/run_progression.dart';
 import 'package:rune_nexus/game/systems/wave_spawner.dart';
 
 void main() {
-  test('demo stage uses 50 survival rounds', () {
-    expect(demoStages, hasLength(10));
-    expect(demoStages.first.id, 1);
-    expect(demoStages.last.id, 10);
-    expect(demoWaves, hasLength(50));
-    expect(demoWaves.first.round, 1);
-    expect(demoWaves.last.round, 50);
-    expect(demoStage2Waves, hasLength(50));
-    expect(demoStage2Waves.first.round, 1);
-    expect(demoStage2Waves.last.round, 50);
-    expect(demoChapter2Waves, hasLength(50));
-    expect(demoChapter2Waves.first.round, 1);
-    expect(demoChapter2Waves.last.round, 50);
-    expect(demoChapter2Stage7Waves, hasLength(50));
-    expect(demoChapter2Stage8Waves, hasLength(50));
-    expect(demoChapter2Stage9Waves, hasLength(50));
-    expect(demoChapter2Stage10Waves, hasLength(50));
-    expect(demoStages.first.map.tileTheme.kind, MapTileThemeKind.chapterOne);
-    expect(demoStages[1].map.tileTheme.kind, MapTileThemeKind.chapterOne);
-    expect(demoStages[1].waves, same(demoStage2Waves));
-    expect(demoStages[2].waves, same(demoStage2Waves));
-    expect(demoStages[3].waves, same(demoStage2Waves));
-    expect(demoStages[4].waves, same(demoStage2Waves));
-    expect(demoStages[5].waves, same(demoChapter2Waves));
-    expect(demoStages[6].waves, same(demoChapter2Stage7Waves));
-    expect(demoStages[7].waves, same(demoChapter2Stage8Waves));
-    expect(demoStages[8].waves, same(demoChapter2Stage9Waves));
-    expect(demoStages[9].waves, same(demoChapter2Stage10Waves));
-    expect(demoStages[5].map.tileTheme.kind, MapTileThemeKind.chapterTwoRift);
-    expect(demoStages[9].map.tileTheme.kind, MapTileThemeKind.chapterTwoRift);
+  test('game stage uses 50 survival rounds', () {
+    expect(gameStages, hasLength(10));
+    expect(gameStages.first.id, 1);
+    expect(gameStages.last.id, 10);
+    expect(gameWaves, hasLength(50));
+    expect(gameWaves.first.round, 1);
+    expect(gameWaves.last.round, 50);
+    expect(gameStage2Waves, hasLength(50));
+    expect(gameStage2Waves.first.round, 1);
+    expect(gameStage2Waves.last.round, 50);
+    expect(gameChapter2Waves, hasLength(50));
+    expect(gameChapter2Waves.first.round, 1);
+    expect(gameChapter2Waves.last.round, 50);
+    expect(gameChapter2Stage7Waves, hasLength(50));
+    expect(gameChapter2Stage8Waves, hasLength(50));
+    expect(gameChapter2Stage9Waves, hasLength(50));
+    expect(gameChapter2Stage10Waves, hasLength(50));
+    expect(gameStages.first.map.tileTheme.kind, MapTileThemeKind.chapterOne);
+    expect(gameStages[1].map.tileTheme.kind, MapTileThemeKind.chapterOne);
+    expect(gameStages[1].waves, same(gameStage2Waves));
+    expect(gameStages[2].waves, same(gameStage2Waves));
+    expect(gameStages[3].waves, same(gameStage2Waves));
+    expect(gameStages[4].waves, same(gameStage2Waves));
+    expect(gameStages[5].waves, same(gameChapter2Waves));
+    expect(gameStages[6].waves, same(gameChapter2Stage7Waves));
+    expect(gameStages[7].waves, same(gameChapter2Stage8Waves));
+    expect(gameStages[8].waves, same(gameChapter2Stage9Waves));
+    expect(gameStages[9].waves, same(gameChapter2Stage10Waves));
+    expect(gameStages[5].map.tileTheme.kind, MapTileThemeKind.chapterTwoRift);
+    expect(gameStages[9].map.tileTheme.kind, MapTileThemeKind.chapterTwoRift);
   });
 
   test('chapter two maps use altered paths with rift theme', () {
     final chapterOneMaps = [
-      demoMap,
-      demoStage2Map,
+      gameMap,
+      gameStage2Map,
       stage3Map,
       stage4Map,
       stage5Map,
@@ -107,7 +106,7 @@ void main() {
     final stage1 = StageDefinition(
       id: 1,
       name: 'Stage 1',
-      map: demoMap,
+      map: gameMap,
       waves: const [
         WaveDefinition(
           round: 1,
@@ -120,7 +119,7 @@ void main() {
     final stage2 = StageDefinition(
       id: 2,
       name: 'Stage 2',
-      map: demoMap,
+      map: gameMap,
       waves: const [
         WaveDefinition(
           round: 1,
@@ -185,7 +184,7 @@ void main() {
 
     game.upgradeStartingGoldProgression();
     game.upgradeNexusHpProgression();
-    game.restartDemo();
+    game.restartRun();
 
     expect(game.snapshotNotifier.value.gold, 150);
     expect(game.snapshotNotifier.value.nexusHp, 20);
@@ -433,7 +432,7 @@ void main() {
   });
 
   test('enemy hp scaling grows by round', () {
-    final normal = demoEnemies[EnemyType.normal]!;
+    final normal = gameEnemies[EnemyType.normal]!;
     final round1Hp = scaledEnemyMaxHp(normal, 1);
     final round25Hp = scaledEnemyMaxHp(normal, 25);
     final round50Hp = scaledEnemyMaxHp(normal, 50);
@@ -449,7 +448,7 @@ void main() {
   });
 
   test('enemy hp scales by stage', () {
-    final normal = demoEnemies[EnemyType.normal]!;
+    final normal = gameEnemies[EnemyType.normal]!;
 
     expect(enemyHpMultiplierForStage(1), closeTo(1, 0.001));
     expect(enemyHpMultiplierForStage(2), closeTo(1.2, 0.001));
@@ -460,28 +459,28 @@ void main() {
   });
 
   test('projectiles are faster for straight-shot combat', () {
-    expect(demoTurrets[TurretType.arrow]!.projectileSpeed, 620);
-    expect(demoTurrets[TurretType.cannon]!.projectileSpeed, 340);
-    expect(demoTurrets[TurretType.magic]!.projectileSpeed, 420);
-    expect(demoTurrets[TurretType.frost]!.projectileSpeed, 0);
-    expect(demoTurrets[TurretType.sniper]!.projectileSpeed, 0);
+    expect(gameTurrets[TurretType.arrow]!.projectileSpeed, 620);
+    expect(gameTurrets[TurretType.cannon]!.projectileSpeed, 340);
+    expect(gameTurrets[TurretType.magic]!.projectileSpeed, 420);
+    expect(gameTurrets[TurretType.frost]!.projectileSpeed, 0);
+    expect(gameTurrets[TurretType.sniper]!.projectileSpeed, 0);
   });
 
   test('enemy movement speeds are tuned down for readable combat', () {
-    expect(demoEnemies[EnemyType.normal]!.speed, 31.5);
-    expect(demoEnemies[EnemyType.armored]!.speed, 28);
-    expect(demoEnemies[EnemyType.shielded]!.speed, 29);
-    expect(demoEnemies[EnemyType.fast]!.speed, 54.6);
-    expect(demoEnemies[EnemyType.tank]!.speed, 21);
-    expect(demoEnemies[EnemyType.boss]!.speed, 16.8);
+    expect(gameEnemies[EnemyType.normal]!.speed, 31.5);
+    expect(gameEnemies[EnemyType.armored]!.speed, 28);
+    expect(gameEnemies[EnemyType.shielded]!.speed, 29);
+    expect(gameEnemies[EnemyType.fast]!.speed, 54.6);
+    expect(gameEnemies[EnemyType.tank]!.speed, 21);
+    expect(gameEnemies[EnemyType.boss]!.speed, 16.8);
   });
 
   test('turret base ranges are reduced to tighten placement choices', () {
-    expect(demoTurrets[TurretType.arrow]!.range, 96);
-    expect(demoTurrets[TurretType.cannon]!.range, 84);
-    expect(demoTurrets[TurretType.magic]!.range, 108);
-    expect(demoTurrets[TurretType.frost]!.range, 76);
-    expect(demoTurrets[TurretType.sniper]!.range, 150);
+    expect(gameTurrets[TurretType.arrow]!.range, 96);
+    expect(gameTurrets[TurretType.cannon]!.range, 84);
+    expect(gameTurrets[TurretType.magic]!.range, 108);
+    expect(gameTurrets[TurretType.frost]!.range, 76);
+    expect(gameTurrets[TurretType.sniper]!.range, 150);
   });
 
   test('runtime combat distances scale with board tile size', () async {
@@ -499,7 +498,7 @@ void main() {
 
   test('enemy movement speed scales with board tile size', () async {
     final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-    final normal = demoEnemies[EnemyType.normal]!;
+    final normal = gameEnemies[EnemyType.normal]!;
 
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
@@ -545,7 +544,7 @@ void main() {
 
   test('board pan room scales with wide map size', () async {
     final game = RuneNexusGame(
-      stage: demoStages[1],
+      stage: gameStages[1],
       saveRepository: MemorySaveRepository(),
     );
 
@@ -560,11 +559,11 @@ void main() {
   });
 
   test('turret fire rate is represented as shots per second', () {
-    expect(demoTurrets[TurretType.arrow]!.attackRate, 2.27);
-    expect(demoTurrets[TurretType.cannon]!.attackRate, 0.4);
-    expect(demoTurrets[TurretType.magic]!.attackRate, 0.59);
-    expect(demoTurrets[TurretType.frost]!.attackRate, 0.4);
-    expect(demoTurrets[TurretType.sniper]!.attackRate, 0.625);
+    expect(gameTurrets[TurretType.arrow]!.attackRate, 2.27);
+    expect(gameTurrets[TurretType.cannon]!.attackRate, 0.4);
+    expect(gameTurrets[TurretType.magic]!.attackRate, 0.59);
+    expect(gameTurrets[TurretType.frost]!.attackRate, 0.4);
+    expect(gameTurrets[TurretType.sniper]!.attackRate, 0.625);
   });
 
   test('sniper turret unlocks after stage one clear', () {
@@ -599,7 +598,7 @@ void main() {
   });
 
   test('turret critical damage uses base multiplier and sniper bonus', () {
-    for (final entry in demoTurrets.entries) {
+    for (final entry in gameTurrets.entries) {
       final expectedMultiplier = entry.key == TurretType.sniper ? 2.0 : 1.5;
       expect(
         entry.value.criticalDamageMultiplier,
@@ -609,7 +608,7 @@ void main() {
   });
 
   test('sniper turret uses aim time and critical instant hit stats', () {
-    final sniper = demoTurrets[TurretType.sniper]!;
+    final sniper = gameTurrets[TurretType.sniper]!;
 
     expect(sniper.instantHit, isTrue);
     expect(sniper.damage, closeTo(40, 0.001));
@@ -621,7 +620,7 @@ void main() {
   test('sniper aim speed grows additively by level', () {
     final turret = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.sniper]!,
+      definition: gameTurrets[TurretType.sniper]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
@@ -769,7 +768,7 @@ void main() {
     final saved = repository.data;
     final restoredTurret = TurretComponent(
       gridPoint: const GridPoint(2, 0),
-      definition: demoTurrets[saved!.turrets.single.type]!,
+      definition: gameTurrets[saved!.turrets.single.type]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,
@@ -786,7 +785,7 @@ void main() {
   test('turret level cap grows to 10 without excessive range gain', () {
     final turret = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
@@ -806,7 +805,7 @@ void main() {
   test('range gem amplifies turret range by percent', () {
     final turret = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
@@ -821,13 +820,13 @@ void main() {
     final game = RuneNexusGame(saveRepository: MemorySaveRepository());
     final turret = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,
     );
     final enemy = EnemyComponent(
-      definition: demoEnemies[EnemyType.normal]!,
+      definition: gameEnemies[EnemyType.normal]!,
       maxHp: 100,
       path: [Vector2.zero(), Vector2(300, 0)],
       game: game,
@@ -843,14 +842,14 @@ void main() {
   test('turret level up costs scale with turret price', () {
     final machineGun = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
     );
     final cannon = TurretComponent(
       gridPoint: const GridPoint(1, 0),
-      definition: demoTurrets[TurretType.cannon]!,
+      definition: gameTurrets[TurretType.cannon]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
@@ -909,7 +908,7 @@ void main() {
     final baseGame = RuneNexusGame();
     final baseTurret = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: baseGame,
       center: Vector2.zero(),
       tileSize: 32,
@@ -936,14 +935,14 @@ void main() {
     final unlockedGame = _LinkResearchUnlockedGame();
     final machineGun = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: unlockedGame,
       center: Vector2.zero(),
       tileSize: 32,
     );
     final cannon = TurretComponent(
       gridPoint: const GridPoint(1, 0),
-      definition: demoTurrets[TurretType.cannon]!,
+      definition: gameTurrets[TurretType.cannon]!,
       game: unlockedGame,
       center: Vector2.zero(),
       tileSize: 32,
@@ -1139,7 +1138,7 @@ void main() {
     game.debugSetRound(25);
 
     expect(game.snapshotNotifier.value.round, 25);
-    expect(game.snapshotNotifier.value.previewText, demoWaves[24].previewText);
+    expect(game.snapshotNotifier.value.previewText, gameWaves[24].previewText);
 
     game.debugSetRound(999);
 
@@ -1237,14 +1236,14 @@ void main() {
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(5));
   });
 
-  test('restart demo resets debug-modified stage state', () {
+  test('restart run resets debug-modified stage state', () {
     final game = RuneNexusGame();
 
     game.debugSetRound(25);
     game.debugAddGold(500);
     game.grantGem(GemType.range);
 
-    game.restartDemo();
+    game.restartRun();
 
     expect(game.snapshotNotifier.value.round, 1);
     expect(game.snapshotNotifier.value.gold, 150);
@@ -1319,18 +1318,18 @@ void main() {
   });
 
   test('enemy kill rewards limit late-wave gold snowballing', () {
-    expect(demoEnemies[EnemyType.normal]!.rewardGold, 5);
-    expect(demoEnemies[EnemyType.armored]!.rewardGold, 7);
-    expect(demoEnemies[EnemyType.shielded]!.rewardGold, 8);
-    expect(demoEnemies[EnemyType.fast]!.rewardGold, 5);
-    expect(demoEnemies[EnemyType.tank]!.rewardGold, 9);
-    expect(demoEnemies[EnemyType.boss]!.rewardGold, 35);
+    expect(gameEnemies[EnemyType.normal]!.rewardGold, 5);
+    expect(gameEnemies[EnemyType.armored]!.rewardGold, 7);
+    expect(gameEnemies[EnemyType.shielded]!.rewardGold, 8);
+    expect(gameEnemies[EnemyType.fast]!.rewardGold, 5);
+    expect(gameEnemies[EnemyType.tank]!.rewardGold, 9);
+    expect(gameEnemies[EnemyType.boss]!.rewardGold, 35);
   });
 
   test('shielded enemy is defined and starts appearing from chapter two', () {
-    final shielded = demoEnemies[EnemyType.shielded]!;
+    final shielded = gameEnemies[EnemyType.shielded]!;
 
-    expect(demoEnemies.keys, containsAll(EnemyType.values));
+    expect(gameEnemies.keys, containsAll(EnemyType.values));
     expect(shielded.name, '보호막병');
     expect(shielded.maxHp, 36);
     expect(shielded.maxShield, 42);
@@ -1339,20 +1338,20 @@ void main() {
     expect(shielded.coreDamage, 1);
     expect(shielded.resistanceProfile, EnemyResistanceProfile.neutral);
 
-    final stageOneWaveTypes = demoWaves
+    final stageOneWaveTypes = gameWaves
         .expand((wave) => wave.groups)
         .map((group) => group.enemyType);
-    final chapterOneLateWaveTypes = demoStage2Waves
+    final chapterOneLateWaveTypes = gameStage2Waves
         .expand((wave) => wave.groups)
         .map((group) => group.enemyType);
-    final chapterTwoWaveTypes = demoChapter2Waves
+    final chapterTwoWaveTypes = gameChapter2Waves
         .expand((wave) => wave.groups)
         .map((group) => group.enemyType);
     final chapterTwoLaterWaveTypes = [
-      ...demoChapter2Stage7Waves,
-      ...demoChapter2Stage8Waves,
-      ...demoChapter2Stage9Waves,
-      ...demoChapter2Stage10Waves,
+      ...gameChapter2Stage7Waves,
+      ...gameChapter2Stage8Waves,
+      ...gameChapter2Stage9Waves,
+      ...gameChapter2Stage10Waves,
     ].expand((wave) => wave.groups).map((group) => group.enemyType);
 
     expect(stageOneWaveTypes, isNot(contains(EnemyType.shielded)));
@@ -1365,7 +1364,7 @@ void main() {
     final game = RuneNexusGame(saveRepository: MemorySaveRepository());
     final turret = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,
@@ -1389,7 +1388,7 @@ void main() {
 
     for (var i = 0; i < 17; i++) {
       final enemy = EnemyComponent(
-        definition: demoEnemies[EnemyType.normal]!,
+        definition: gameEnemies[EnemyType.normal]!,
         maxHp: 1,
         path: [Vector2.zero(), Vector2(1, 0)],
         game: game,
@@ -1449,7 +1448,7 @@ void main() {
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
     game.upgradeSupplyProgression();
-    game.restartDemo();
+    game.restartRun();
     game.startNextWave();
     game.update(0.016);
 
@@ -1481,11 +1480,11 @@ void main() {
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
     game.upgradeKillGoldProgression();
-    game.restartDemo();
+    game.restartRun();
 
     for (var i = 0; i < 20; i++) {
       final enemy = EnemyComponent(
-        definition: demoEnemies[EnemyType.normal]!,
+        definition: gameEnemies[EnemyType.normal]!,
         maxHp: 1,
         path: [Vector2.zero(), Vector2(1, 0)],
         game: game,
@@ -1558,7 +1557,7 @@ void main() {
     );
     final turret = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,
@@ -1680,14 +1679,14 @@ void main() {
     );
     final arrow = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,
     );
     final sniper = TurretComponent(
       gridPoint: const GridPoint(1, 0),
-      definition: demoTurrets[TurretType.sniper]!,
+      definition: gameTurrets[TurretType.sniper]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,
@@ -1854,7 +1853,7 @@ void main() {
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
     game.upgradeEmergencySaleProgression();
-    game.restartDemo();
+    game.restartRun();
 
     game.tryBuildTurret(const GridPoint(2, 0));
     game.levelUpSelectedTurret();
@@ -1929,7 +1928,7 @@ void main() {
       game.buyRunUpgrade(RunUpgradeType.towerDamage);
       game.buyRunUpgrade(RunUpgradeType.killGold);
       final enemy = EnemyComponent(
-        definition: demoEnemies[EnemyType.normal]!,
+        definition: gameEnemies[EnemyType.normal]!,
         maxHp: 1,
         path: [Vector2.zero(), Vector2(1, 0)],
         game: game,
@@ -1956,14 +1955,14 @@ void main() {
     final game = _LinkResearchUnlockedGame();
     final machineGun = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,
     );
     final fireTurret = TurretComponent(
       gridPoint: const GridPoint(1, 0),
-      definition: demoTurrets[TurretType.magic]!,
+      definition: gameTurrets[TurretType.magic]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,
@@ -1980,14 +1979,14 @@ void main() {
     final game = RuneNexusGame();
     final machineGun = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,
     );
     final fireTurret = TurretComponent(
       gridPoint: const GridPoint(1, 0),
-      definition: demoTurrets[TurretType.magic]!,
+      definition: gameTurrets[TurretType.magic]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,
@@ -2003,14 +2002,14 @@ void main() {
   test('light weapon gem boosts light turret damage and fire rate', () {
     final machineGun = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
     );
     final cannon = TurretComponent(
       gridPoint: const GridPoint(1, 0),
-      definition: demoTurrets[TurretType.cannon]!,
+      definition: gameTurrets[TurretType.cannon]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
@@ -2028,14 +2027,14 @@ void main() {
   test('heavy weapon gem boosts heavy turret damage and splash radius', () {
     final machineGun = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
     );
     final cannon = TurretComponent(
       gridPoint: const GridPoint(1, 0),
-      definition: demoTurrets[TurretType.cannon]!,
+      definition: gameTurrets[TurretType.cannon]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
@@ -2055,14 +2054,14 @@ void main() {
     () {
       final machineGun = TurretComponent(
         gridPoint: const GridPoint(0, 0),
-        definition: demoTurrets[TurretType.arrow]!,
+        definition: gameTurrets[TurretType.arrow]!,
         game: RuneNexusGame(),
         center: Vector2.zero(),
         tileSize: 32,
       );
       final cannon = TurretComponent(
         gridPoint: const GridPoint(1, 0),
-        definition: demoTurrets[TurretType.cannon]!,
+        definition: gameTurrets[TurretType.cannon]!,
         game: RuneNexusGame(),
         center: Vector2.zero(),
         tileSize: 32,
@@ -2081,7 +2080,7 @@ void main() {
   test('damage over time gem boosts only dot stats', () {
     final fireTurret = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.magic]!,
+      definition: gameTurrets[TurretType.magic]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
@@ -2097,14 +2096,14 @@ void main() {
   test('critical chance gem adds twenty percentage points', () {
     final arrow = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
     );
     final sniper = TurretComponent(
       gridPoint: const GridPoint(1, 0),
-      definition: demoTurrets[TurretType.sniper]!,
+      definition: gameTurrets[TurretType.sniper]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
@@ -2120,21 +2119,21 @@ void main() {
   test('damage amplifier gem boosts burn through hit damage base', () {
     final arrow = TurretComponent(
       gridPoint: const GridPoint(0, 0),
-      definition: demoTurrets[TurretType.arrow]!,
+      definition: gameTurrets[TurretType.arrow]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
     );
     final fireTurret = TurretComponent(
       gridPoint: const GridPoint(1, 0),
-      definition: demoTurrets[TurretType.magic]!,
+      definition: gameTurrets[TurretType.magic]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
     );
     final cannon = TurretComponent(
       gridPoint: const GridPoint(2, 0),
-      definition: demoTurrets[TurretType.cannon]!,
+      definition: gameTurrets[TurretType.cannon]!,
       game: RuneNexusGame(),
       center: Vector2.zero(),
       tileSize: 32,
@@ -2163,57 +2162,57 @@ void main() {
     expect(
       canEquipGemOnTurret(
         GemType.magicalDamage,
-        demoTurrets[TurretType.cannon]!,
+        gameTurrets[TurretType.cannon]!,
       ),
       isTrue,
     );
     expect(
       canEquipGemOnTurret(
         GemType.magicalDamage,
-        demoTurrets[TurretType.magic]!,
+        gameTurrets[TurretType.magic]!,
       ),
       isTrue,
     );
     expect(
-      canEquipGemOnTurret(GemType.heavyWeapon, demoTurrets[TurretType.arrow]!),
+      canEquipGemOnTurret(GemType.heavyWeapon, gameTurrets[TurretType.arrow]!),
       isTrue,
     );
     expect(
-      canEquipGemOnTurret(GemType.heavyWeapon, demoTurrets[TurretType.cannon]!),
+      canEquipGemOnTurret(GemType.heavyWeapon, gameTurrets[TurretType.cannon]!),
       isTrue,
     );
     expect(
       canEquipGemOnTurret(
         GemType.damageOverTime,
-        demoTurrets[TurretType.magic]!,
+        gameTurrets[TurretType.magic]!,
       ),
       isTrue,
     );
     expect(
       canEquipGemOnTurret(
         GemType.damageOverTime,
-        demoTurrets[TurretType.cannon]!,
+        gameTurrets[TurretType.cannon]!,
       ),
       isTrue,
     );
     expect(
-      canEquipGemOnTurret(GemType.chain, demoTurrets[TurretType.cannon]!),
+      canEquipGemOnTurret(GemType.chain, gameTurrets[TurretType.cannon]!),
       isFalse,
     );
     expect(
-      canEquipGemOnTurret(GemType.chain, demoTurrets[TurretType.arrow]!),
+      canEquipGemOnTurret(GemType.chain, gameTurrets[TurretType.arrow]!),
       isTrue,
     );
     expect(
-      canEquipGemOnTurret(GemType.chain, demoTurrets[TurretType.sniper]!),
+      canEquipGemOnTurret(GemType.chain, gameTurrets[TurretType.sniper]!),
       isTrue,
     );
     expect(
-      canEquipGemOnTurret(GemType.aimSpeed, demoTurrets[TurretType.arrow]!),
+      canEquipGemOnTurret(GemType.aimSpeed, gameTurrets[TurretType.arrow]!),
       isFalse,
     );
     expect(
-      canEquipGemOnTurret(GemType.aimSpeed, demoTurrets[TurretType.sniper]!),
+      canEquipGemOnTurret(GemType.aimSpeed, gameTurrets[TurretType.sniper]!),
       isTrue,
     );
   });
@@ -2223,7 +2222,7 @@ void main() {
     final turret =
         TurretComponent(
             gridPoint: const GridPoint(0, 0),
-            definition: demoTurrets[TurretType.arrow]!,
+            definition: gameTurrets[TurretType.arrow]!,
             game: game,
             center: Vector2.zero(),
             tileSize: 32,
@@ -2291,7 +2290,7 @@ void main() {
     double lastSpawnDelay(SpawnGroup group) =>
         group.startDelay + group.interval * (group.count - 1);
 
-    final wave7 = demoWaves[6];
+    final wave7 = gameWaves[6];
     final wave7Normal = wave7.groups[0];
     final wave7FirstRush = wave7.groups[1];
     final wave7SecondRush = wave7.groups[2];
@@ -2302,14 +2301,14 @@ void main() {
       greaterThan(lastSpawnDelay(wave7FirstRush)),
     );
 
-    final wave8 = demoWaves[7];
+    final wave8 = gameWaves[7];
     final wave8Normal = wave8.groups[0];
     final wave8Fast = wave8.groups[1];
 
     expect(wave8Fast.startDelay, greaterThan(wave8Normal.startDelay));
     expect(wave8Fast.startDelay, lessThan(lastSpawnDelay(wave8Normal)));
 
-    final wave9 = demoWaves[8];
+    final wave9 = gameWaves[8];
     final wave9Tank = wave9.groups[0];
     final wave9Normal = wave9.groups[1];
     final wave9Fast = wave9.groups[2];
@@ -2317,7 +2316,7 @@ void main() {
     expect(wave9Normal.startDelay, greaterThan(lastSpawnDelay(wave9Tank)));
     expect(wave9Fast.startDelay, greaterThan(lastSpawnDelay(wave9Normal)));
 
-    final wave30 = demoWaves[29];
+    final wave30 = gameWaves[29];
     final wave30Tank = wave30.groups[0];
     final wave30Fast = wave30.groups[1];
     final wave30Boss = wave30.groups[2];
@@ -2334,17 +2333,17 @@ void main() {
     'stage two waves introduce armored enemies without changing stage one',
     () {
       expect(
-        demoWaves.expand((wave) => wave.groups).map((group) => group.enemyType),
+        gameWaves.expand((wave) => wave.groups).map((group) => group.enemyType),
         isNot(contains(EnemyType.armored)),
       );
 
-      final stage2Round2Types = demoStage2Waves[1].groups.map(
+      final stage2Round2Types = gameStage2Waves[1].groups.map(
         (group) => group.enemyType,
       );
-      final stage2Round3Types = demoStage2Waves[2].groups.map(
+      final stage2Round3Types = gameStage2Waves[2].groups.map(
         (group) => group.enemyType,
       );
-      final stage2Round10Types = demoStage2Waves[9].groups.map(
+      final stage2Round10Types = gameStage2Waves[9].groups.map(
         (group) => group.enemyType,
       );
 
@@ -2356,7 +2355,7 @@ void main() {
   );
 
   test('stage two learning armored group starts after normal group', () {
-    final spawner = WaveSpawner()..start(demoStage2Waves[1]);
+    final spawner = WaveSpawner()..start(gameStage2Waves[1]);
     final queue = spawner.toSaveData();
     final normalDelays = queue
         .where((request) => request.enemyType == EnemyType.normal)
@@ -2380,16 +2379,16 @@ void main() {
               .fold(0, (total, group) => total + group.count);
 
       final chapterOneTypes = [
-        ...demoWaves.expand((wave) => wave.groups),
-        ...demoStage2Waves.expand((wave) => wave.groups),
+        ...gameWaves.expand((wave) => wave.groups),
+        ...gameStage2Waves.expand((wave) => wave.groups),
       ].map((group) => group.enemyType);
-      final chapter2Round2Types = demoChapter2Waves[1].groups.map(
+      final chapter2Round2Types = gameChapter2Waves[1].groups.map(
         (group) => group.enemyType,
       );
-      final chapter2Round3Types = demoChapter2Waves[2].groups.map(
+      final chapter2Round3Types = gameChapter2Waves[2].groups.map(
         (group) => group.enemyType,
       );
-      final chapter2Round10Types = demoChapter2Waves[9].groups.map(
+      final chapter2Round10Types = gameChapter2Waves[9].groups.map(
         (group) => group.enemyType,
       );
 
@@ -2399,20 +2398,20 @@ void main() {
       expect(chapter2Round10Types, contains(EnemyType.shielded));
       expect(chapter2Round10Types, contains(EnemyType.boss));
       expect(
-        countType(demoChapter2Stage7Waves, 7, EnemyType.fast),
-        greaterThan(countType(demoChapter2Waves, 7, EnemyType.fast)),
+        countType(gameChapter2Stage7Waves, 7, EnemyType.fast),
+        greaterThan(countType(gameChapter2Waves, 7, EnemyType.fast)),
       );
       expect(
-        countType(demoChapter2Stage8Waves, 8, EnemyType.armored),
-        greaterThan(countType(demoChapter2Waves, 8, EnemyType.armored)),
+        countType(gameChapter2Stage8Waves, 8, EnemyType.armored),
+        greaterThan(countType(gameChapter2Waves, 8, EnemyType.armored)),
       );
       expect(
-        countType(demoChapter2Stage9Waves, 8, EnemyType.shielded),
-        greaterThan(countType(demoChapter2Waves, 8, EnemyType.shielded)),
+        countType(gameChapter2Stage9Waves, 8, EnemyType.shielded),
+        greaterThan(countType(gameChapter2Waves, 8, EnemyType.shielded)),
       );
       expect(
-        countType(demoChapter2Stage10Waves, 50, EnemyType.boss),
-        greaterThan(countType(demoChapter2Waves, 50, EnemyType.boss)),
+        countType(gameChapter2Stage10Waves, 50, EnemyType.boss),
+        greaterThan(countType(gameChapter2Waves, 50, EnemyType.boss)),
       );
     },
   );
@@ -2421,9 +2420,9 @@ void main() {
     int totalCount(WaveDefinition wave) =>
         wave.groups.fold(0, (total, group) => total + group.count);
 
-    final round6Count = totalCount(demoWaves[5]);
-    final round49Count = totalCount(demoWaves[48]);
-    final round50Count = totalCount(demoWaves[49]);
+    final round6Count = totalCount(gameWaves[5]);
+    final round49Count = totalCount(gameWaves[48]);
+    final round50Count = totalCount(gameWaves[49]);
 
     expect(round6Count, inInclusiveRange(16, 18));
     expect(round49Count, lessThanOrEqualTo(round6Count * 2));
@@ -2431,38 +2430,38 @@ void main() {
   });
 
   test('normal enemy groups use a slower spawn cadence', () {
-    expect(demoWaves[0].groups.single.interval, greaterThanOrEqualTo(1.6));
-    expect(demoWaves[3].groups[0].interval, greaterThanOrEqualTo(1.35));
-    expect(demoWaves[10].groups[0].interval, greaterThanOrEqualTo(1.1));
-    expect(demoWaves[25].groups[0].interval, greaterThanOrEqualTo(1.0));
-    expect(demoWaves[4].groups[1].interval, greaterThanOrEqualTo(1.2));
+    expect(gameWaves[0].groups.single.interval, greaterThanOrEqualTo(1.6));
+    expect(gameWaves[3].groups[0].interval, greaterThanOrEqualTo(1.35));
+    expect(gameWaves[10].groups[0].interval, greaterThanOrEqualTo(1.1));
+    expect(gameWaves[25].groups[0].interval, greaterThanOrEqualTo(1.0));
+    expect(gameWaves[4].groups[1].interval, greaterThanOrEqualTo(1.2));
   });
 
   test('special enemy groups keep readable spawn gaps', () {
-    expect(demoWaves[3].groups[1].interval, greaterThanOrEqualTo(0.8));
-    expect(demoWaves[10].groups[1].interval, greaterThanOrEqualTo(0.65));
-    expect(demoWaves[25].groups[1].interval, greaterThanOrEqualTo(0.6));
-    expect(demoWaves[4].groups[0].interval, greaterThanOrEqualTo(1.5));
-    expect(demoWaves[9].groups[2].interval, greaterThanOrEqualTo(2.0));
-    expect(demoWaves[29].groups[2].interval, greaterThanOrEqualTo(2.0));
+    expect(gameWaves[3].groups[1].interval, greaterThanOrEqualTo(0.8));
+    expect(gameWaves[10].groups[1].interval, greaterThanOrEqualTo(0.65));
+    expect(gameWaves[25].groups[1].interval, greaterThanOrEqualTo(0.6));
+    expect(gameWaves[4].groups[0].interval, greaterThanOrEqualTo(1.5));
+    expect(gameWaves[9].groups[2].interval, greaterThanOrEqualTo(2.0));
+    expect(gameWaves[29].groups[2].interval, greaterThanOrEqualTo(2.0));
   });
 
   test('fire turret is tagged as damage over time', () {
     expect(
-      demoTurrets[TurretType.magic]!.attackTags,
+      gameTurrets[TurretType.magic]!.attackTags,
       contains(AttackTag.damageOverTime),
     );
   });
 
   test('machine gun is tagged as light weapon', () {
     expect(
-      demoTurrets[TurretType.arrow]!.attackTags,
+      gameTurrets[TurretType.arrow]!.attackTags,
       contains(AttackTag.light),
     );
   });
 
   test('frost turret is a centered cooling area attack', () {
-    final frost = demoTurrets[TurretType.frost]!;
+    final frost = gameTurrets[TurretType.frost]!;
 
     expect(frost.centeredAreaAttack, isTrue);
     expect(frost.damageFamily, DamageFamily.magical);
@@ -2474,7 +2473,7 @@ void main() {
   test(
     'enemy resistance profile sums same-layer resistance and multiplies layers',
     () {
-      final tank = demoEnemies[EnemyType.tank]!;
+      final tank = gameEnemies[EnemyType.tank]!;
 
       expect(
         tank.resistanceProfile.multiplierFor(
@@ -2512,7 +2511,7 @@ void main() {
   });
 
   test('boss enemies do not resist light weapons', () {
-    final boss = demoEnemies[EnemyType.boss]!;
+    final boss = gameEnemies[EnemyType.boss]!;
 
     expect(
       boss.resistanceProfile.multiplierFor(
@@ -2524,7 +2523,7 @@ void main() {
   });
 
   test('boss enemies do not additionally resist damage over time', () {
-    final boss = demoEnemies[EnemyType.boss]!;
+    final boss = gameEnemies[EnemyType.boss]!;
 
     expect(
       boss.resistanceProfile.multiplierFor(
@@ -2536,7 +2535,7 @@ void main() {
   });
 
   test('fast enemies strongly favor light weapons over heavy weapons', () {
-    final fast = demoEnemies[EnemyType.fast]!;
+    final fast = gameEnemies[EnemyType.fast]!;
 
     expect(
       fast.resistanceProfile.multiplierFor(
@@ -2563,7 +2562,7 @@ void main() {
 
   test('burn deals short duration damage over time', () {
     final game = RuneNexusGame();
-    final normal = demoEnemies[EnemyType.normal]!;
+    final normal = gameEnemies[EnemyType.normal]!;
     final enemy = EnemyComponent(
       definition: normal,
       maxHp: 100,
@@ -2578,7 +2577,7 @@ void main() {
 
   test('enemy damage returns actual hp loss', () {
     final game = RuneNexusGame();
-    final normal = demoEnemies[EnemyType.normal]!;
+    final normal = gameEnemies[EnemyType.normal]!;
     final enemy = EnemyComponent(
       definition: normal,
       maxHp: 12,
@@ -2593,7 +2592,7 @@ void main() {
 
   test('armor mitigates damage before hp and weakens as it breaks', () {
     final game = RuneNexusGame();
-    final normal = demoEnemies[EnemyType.normal]!;
+    final normal = gameEnemies[EnemyType.normal]!;
     final enemy = EnemyComponent(
       definition: normal,
       maxHp: 100,
@@ -2613,7 +2612,7 @@ void main() {
 
   test('armor 54 reduces machine gun base damage before hp', () {
     final game = RuneNexusGame();
-    final armored = demoEnemies[EnemyType.armored]!;
+    final armored = gameEnemies[EnemyType.armored]!;
     final enemy = EnemyComponent(
       definition: armored,
       maxHp: 100,
@@ -2629,7 +2628,7 @@ void main() {
 
   test('armor piercing ignores reduction without bypassing armor layer', () {
     final game = RuneNexusGame();
-    final normal = demoEnemies[EnemyType.normal]!;
+    final normal = gameEnemies[EnemyType.normal]!;
     final enemy = EnemyComponent(
       definition: normal,
       maxHp: 100,
@@ -2751,7 +2750,7 @@ void main() {
 
   test('burn damage uses only the strongest active burn instance', () {
     final game = RuneNexusGame();
-    final normal = demoEnemies[EnemyType.normal]!;
+    final normal = gameEnemies[EnemyType.normal]!;
     final enemy = EnemyComponent(
       definition: normal,
       maxHp: 100,
@@ -2779,13 +2778,13 @@ void main() {
     game.tryBuildTurret(const GridPoint(2, 0));
     final frostTurret = game.children.whereType<TurretComponent>().single;
     final inRangeEnemy = EnemyComponent(
-      definition: demoEnemies[EnemyType.normal]!,
+      definition: gameEnemies[EnemyType.normal]!,
       maxHp: 100,
       path: [Vector2.zero(), Vector2(500, 0)],
       game: game,
     );
     final outOfRangeEnemy = EnemyComponent(
-      definition: demoEnemies[EnemyType.normal]!,
+      definition: gameEnemies[EnemyType.normal]!,
       maxHp: 100,
       path: [Vector2.zero(), Vector2(500, 0)],
       game: game,
@@ -2817,7 +2816,7 @@ void main() {
     expect(
       inRangeEnemy.distanceTravelled - previousDistance,
       closeTo(
-        demoEnemies[EnemyType.normal]!.speed *
+        gameEnemies[EnemyType.normal]!.speed *
             game.boardDistanceScale *
             0.7 *
             0.5,
@@ -2845,13 +2844,13 @@ void main() {
       await game.onLoad();
       game.startNextWave();
       game.update(0.016);
-      game.restartDemo();
+      game.restartRun();
       game.selectTurretType(TurretType.sniper);
       game.tryBuildTurret(const GridPoint(2, 0));
 
       final sniperTurret = game.children.whereType<TurretComponent>().single;
       final enemy = EnemyComponent(
-        definition: demoEnemies[EnemyType.normal]!,
+        definition: gameEnemies[EnemyType.normal]!,
         maxHp: 100,
         path: [Vector2.zero(), Vector2(500, 0)],
         game: game,
@@ -2894,13 +2893,13 @@ void main() {
     sniperTurret.equipGem(GemType.chain, 0);
     expect(sniperTurret.hasGem(GemType.chain), isTrue);
     final sourceEnemy = EnemyComponent(
-      definition: demoEnemies[EnemyType.normal]!,
+      definition: gameEnemies[EnemyType.normal]!,
       maxHp: 100,
       path: [Vector2.zero(), Vector2(500, 0)],
       game: game,
     );
     final chainEnemy = EnemyComponent(
-      definition: demoEnemies[EnemyType.normal]!,
+      definition: gameEnemies[EnemyType.normal]!,
       maxHp: 100,
       path: [Vector2.zero(), Vector2(500, 0)],
       game: game,
@@ -2935,7 +2934,7 @@ void main() {
     game.equipSelectedTurret(GemType.chain);
     final fireTurret = game.children.whereType<TurretComponent>().single;
     final enemy = EnemyComponent(
-      definition: demoEnemies[EnemyType.normal]!,
+      definition: gameEnemies[EnemyType.normal]!,
       maxHp: 100,
       path: [Vector2.zero(), Vector2(100, 0)],
       game: game,
@@ -2969,7 +2968,7 @@ void main() {
         ..chooseSecondaryTrait(TurretTraitType.ignitionBurst);
       final enemy =
           EnemyComponent(
-              definition: demoEnemies[EnemyType.normal]!,
+              definition: gameEnemies[EnemyType.normal]!,
               maxHp: 200,
               path: [Vector2.zero(), Vector2(100, 0)],
               game: game,
@@ -3015,7 +3014,7 @@ void main() {
       ..chooseSecondaryTrait(TurretTraitType.chainIgnition);
     final source =
         EnemyComponent(
-            definition: demoEnemies[EnemyType.normal]!,
+            definition: gameEnemies[EnemyType.normal]!,
             maxHp: 5,
             path: [Vector2.zero(), Vector2(100, 0)],
             game: game,
@@ -3028,7 +3027,7 @@ void main() {
           );
     final target =
         EnemyComponent(
-            definition: demoEnemies[EnemyType.normal]!,
+            definition: gameEnemies[EnemyType.normal]!,
             maxHp: 100,
             path: [Vector2.zero(), Vector2(100, 0)],
             game: game,
@@ -3065,7 +3064,7 @@ void main() {
         ..chooseSecondaryTrait(TurretTraitType.chainIgnition);
       final source =
           EnemyComponent(
-              definition: demoEnemies[EnemyType.normal]!,
+              definition: gameEnemies[EnemyType.normal]!,
               maxHp: 20,
               path: [Vector2.zero(), Vector2(100, 0)],
               game: game,
@@ -3078,7 +3077,7 @@ void main() {
             );
       final target =
           EnemyComponent(
-              definition: demoEnemies[EnemyType.normal]!,
+              definition: gameEnemies[EnemyType.normal]!,
               maxHp: 100,
               path: [Vector2.zero(), Vector2(100, 0)],
               game: game,
@@ -3118,7 +3117,7 @@ void main() {
     final fireTurret = game.children.whereType<TurretComponent>().single;
     final enemy =
         EnemyComponent(
-          definition: demoEnemies[EnemyType.normal]!,
+          definition: gameEnemies[EnemyType.normal]!,
           maxHp: 100,
           path: [Vector2.zero(), Vector2(100, 0)],
           game: game,
@@ -3147,7 +3146,7 @@ void main() {
     final game = RuneNexusGame();
     final enemy =
         EnemyComponent(
-          definition: demoEnemies[EnemyType.normal]!,
+          definition: gameEnemies[EnemyType.normal]!,
           maxHp: 100,
           path: [Vector2.zero(), Vector2(100, 0)],
           game: game,
@@ -3164,7 +3163,7 @@ void main() {
     expect(saved.burnInstances.single.damagePerSecond, closeTo(12, 0.001));
 
     final restored = EnemyComponent(
-      definition: demoEnemies[EnemyType.normal]!,
+      definition: gameEnemies[EnemyType.normal]!,
       maxHp: 100,
       path: [Vector2.zero(), Vector2(100, 0)],
       game: game,
@@ -3177,7 +3176,7 @@ void main() {
 
   test('poison stacks as long low damage over time', () {
     final game = RuneNexusGame();
-    final normal = demoEnemies[EnemyType.normal]!;
+    final normal = gameEnemies[EnemyType.normal]!;
     final enemy =
         EnemyComponent(
             definition: normal,
@@ -3195,7 +3194,7 @@ void main() {
 
   test('enemy keeps path progress when board path is resized', () {
     final game = RuneNexusGame();
-    final normal = demoEnemies[EnemyType.normal]!;
+    final normal = gameEnemies[EnemyType.normal]!;
     final enemy = EnemyComponent(
       definition: normal,
       maxHp: 100,
@@ -3322,7 +3321,7 @@ void main() {
           clearedStageNumbers: const {},
           researchLevels: const {},
           gemShards: RuneNexusGame.gemChoicePurchaseCost,
-          mapSignature: const GameSaveAdapter().mapSignature(demoMap),
+          mapSignature: const GameSaveAdapter().mapSignature(gameMap),
         );
       final game = RuneNexusGame(saveRepository: repository);
 
@@ -3544,7 +3543,7 @@ void main() {
   test('turret refund stops later burn credit to a rebuilt turret', () async {
     final game = RuneNexusGame(saveRepository: MemorySaveRepository());
     const point = GridPoint(2, 0);
-    final normal = demoEnemies[EnemyType.normal]!;
+    final normal = gameEnemies[EnemyType.normal]!;
 
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
@@ -3596,7 +3595,7 @@ EnemyComponent _targetPriorityEnemy({
   required Vector2 position,
 }) {
   return EnemyComponent(
-      definition: demoEnemies[EnemyType.normal]!,
+      definition: gameEnemies[EnemyType.normal]!,
       maxHp: hp,
       path: [Vector2.zero(), Vector2(500, 0)],
       game: game,

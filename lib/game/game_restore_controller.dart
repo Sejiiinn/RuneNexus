@@ -162,7 +162,7 @@ class GameRestoreController {
 
   void _restoreTurrets(List<SavedTurret> savedTurrets) {
     for (final savedTurret in savedTurrets) {
-      final definition = demoTurrets[savedTurret.type];
+      final definition = gameTurrets[savedTurret.type];
       if (definition == null || !_game._map.contains(savedTurret.point)) {
         continue;
       }
@@ -185,7 +185,7 @@ class GameRestoreController {
 
   void _restoreEnemies(List<SavedEnemy> savedEnemies) {
     for (final savedEnemy in savedEnemies) {
-      final definition = demoEnemies[savedEnemy.type];
+      final definition = gameEnemies[savedEnemy.type];
       if (definition == null || savedEnemy.hp <= 0) {
         continue;
       }
@@ -219,7 +219,7 @@ class GameRestoreController {
   void _refundSavedTurretsForMapChange(List<SavedTurret> savedTurrets) {
     final refund = _game._saveAdapter.refundSavedTurretsForMapChange(
       savedTurrets: savedTurrets,
-      baseCostFor: (type) => demoTurrets[type]?.cost,
+      baseCostFor: (type) => gameTurrets[type]?.cost,
       primaryTraitCost: RuneNexusGame.primaryTraitCost,
       secondaryTraitCost: RuneNexusGame.secondaryTraitCost,
     );
@@ -238,11 +238,11 @@ class GameRestoreController {
       ..addEntries(
         data.runUpgradeLevels.entries
             .where((entry) {
-              final definition = demoRunUpgrades[entry.key];
+              final definition = gameRunUpgrades[entry.key];
               return definition != null && entry.value > 0;
             })
             .map((entry) {
-              final maxLevel = demoRunUpgrades[entry.key]!.maxLevel;
+              final maxLevel = gameRunUpgrades[entry.key]!.maxLevel;
               return MapEntry(
                 entry.key,
                 entry.value.clamp(0, maxLevel).toInt(),

@@ -114,7 +114,7 @@ class _LinkSocketButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gem = type == null ? null : demoGems[type]!;
+    final gem = type == null ? null : gameGems[type]!;
     final accent = locked
         ? (enabled ? const Color(0xFFE7C66A) : const Color(0xFF607587))
         : gem?.color ?? const Color(0xFF8AA6B8);
@@ -353,7 +353,7 @@ class _SelectedSlotGemActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gem = demoGems[type]!;
+    final gem = gameGems[type]!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(

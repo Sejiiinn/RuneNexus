@@ -224,10 +224,10 @@ MVP에서 제외:
 ## 예상 수정 파일
 
 - `lib/domain/enemy/enemy_type.dart`
-- `lib/data/definitions/demo_enemy_data.dart`
+- `lib/data/definitions/game_enemy_data.dart`
 - `docs/prototypes/shielded_enemy_design_preview.html`
-- `lib/data/definitions/demo_stage_waves.dart`
-- `lib/data/definitions/demo_stage_data.dart`
+- `lib/data/definitions/game_stage_waves.dart`
+- `lib/data/definitions/game_stage_data.dart`
 - `lib/domain/stage/stage_definition.dart`
 - `lib/ui/menu/main_menu_screen.dart`
 - `test/game_balance_test.dart`

@@ -4,7 +4,7 @@
 
 ## 목적
 
-이 문서는 현재 구현된 전투 규칙과 주요 밸런스 수치를 빠르게 확인하기 위한 기준 문서다. 기획 방향과 작업 순서는 `docs/demo_mvp_work_plan.md`, 구현 완료 여부는 `docs/implementation_status.md`를 기준으로 한다.
+이 문서는 현재 구현된 전투 규칙과 주요 밸런스 수치를 빠르게 확인하기 위한 기준 문서다. 기획 방향과 작업 순서는 `docs/mvp_work_plan.md`, 구현 완료 여부는 `docs/implementation_status.md`를 기준으로 한다.
 
 ## 스테이지와 라운드
 

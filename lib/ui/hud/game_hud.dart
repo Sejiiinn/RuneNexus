@@ -4,10 +4,10 @@ import 'dart:math' as math;
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
-import '../../data/definitions/demo_enemy_data.dart';
-import '../../data/definitions/demo_gem_data.dart';
-import '../../data/definitions/demo_run_upgrade_data.dart';
-import '../../data/definitions/demo_turret_data.dart';
+import '../../data/definitions/game_enemy_data.dart';
+import '../../data/definitions/game_gem_data.dart';
+import '../../data/definitions/game_run_upgrade_data.dart';
+import '../../data/definitions/game_turret_data.dart';
 import '../../domain/combat/auto_start_mode.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../domain/combat/run_panel_tab.dart';

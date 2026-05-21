@@ -188,7 +188,7 @@ class ResultOverlay extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: GameButton(
-                        onPressed: game.restartDemo,
+                        onPressed: game.restartRun,
                         icon: const Icon(Icons.replay, size: 17),
                         label: '현재 스테이지 재도전',
                         variant: success

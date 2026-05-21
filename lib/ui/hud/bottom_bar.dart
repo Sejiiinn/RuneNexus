@@ -65,7 +65,7 @@ class _BottomBar extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: snapshot.availableTurretTypes.map((type) {
-                      final definition = demoTurrets[type]!;
+                      final definition = gameTurrets[type]!;
                       return Expanded(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 3),
@@ -284,7 +284,7 @@ class _GemInventoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gem = demoGems[type]!;
+    final gem = gameGems[type]!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
       decoration: BoxDecoration(
@@ -407,7 +407,7 @@ class _RunUpgradePanel extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: RunUpgradeType.values.map((type) {
-            final definition = demoRunUpgrades[type]!;
+            final definition = gameRunUpgrades[type]!;
             final level = snapshot.runUpgradeLevels[type] ?? 0;
             return Padding(
               padding: const EdgeInsets.only(bottom: 6),
@@ -852,7 +852,7 @@ class _PortalWaveDetailSheet extends StatelessWidget {
               spacing: 6,
               runSpacing: 6,
               children: snapshot.nextWaveEnemyTypes.map((type) {
-                final enemy = demoEnemies[type]!;
+                final enemy = gameEnemies[type]!;
                 final count = snapshot.nextWaveEnemyCounts[type] ?? 0;
                 return _EnemyCountChip(enemy: enemy, count: count);
               }).toList(),
@@ -862,7 +862,7 @@ class _PortalWaveDetailSheet extends StatelessWidget {
               child: SingleChildScrollView(
                 child: Column(
                   children: snapshot.nextWaveEnemyTypes.map((type) {
-                    final enemy = demoEnemies[type]!;
+                    final enemy = gameEnemies[type]!;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 7),
                       child: _EnemyDetailRow(
@@ -1238,7 +1238,7 @@ class _EnemyIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final enemy = demoEnemies[type]!;
+    final enemy = gameEnemies[type]!;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 110),
@@ -1332,7 +1332,7 @@ class _BuildSelectionPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final type = snapshot.selectedBuildTurretType;
-    final definition = type == null ? null : demoTurrets[type]!;
+    final definition = type == null ? null : gameTurrets[type]!;
     final canInstall = snapshot.selectedBuildPoint != null;
 
     return Container(

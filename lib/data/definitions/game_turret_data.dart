@@ -5,7 +5,7 @@ import '../../domain/turret/damage_family.dart';
 import '../../domain/turret/turret_definition.dart';
 import '../../domain/turret/turret_type.dart';
 
-const demoTurrets = <TurretType, TurretDefinition>{
+const gameTurrets = <TurretType, TurretDefinition>{
   TurretType.arrow: TurretDefinition(
     type: TurretType.arrow,
     name: '기관총',

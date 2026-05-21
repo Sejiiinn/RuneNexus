@@ -357,7 +357,7 @@ class _EnemyIntelButton extends StatelessWidget {
                     height: 18,
                     child: CustomPaint(
                       painter: _EnemyIconPainter(
-                        color: demoEnemies[type]!.color,
+                        color: gameEnemies[type]!.color,
                         type: type,
                       ),
                     ),
@@ -832,7 +832,7 @@ class _GemDebugPanel extends StatelessWidget {
                   _DebugRoundButton(
                     label: '스테이지 초기화',
                     enabled: true,
-                    onPressed: game.restartDemo,
+                    onPressed: game.restartRun,
                   ),
                 ],
               ),
@@ -867,7 +867,7 @@ class _GemDebugPanel extends StatelessWidget {
                 spacing: 5,
                 runSpacing: 5,
                 children: EnemyType.values.map((type) {
-                  final enemy = demoEnemies[type]!;
+                  final enemy = gameEnemies[type]!;
                   return SizedBox(
                     width: 88,
                     height: 34,
@@ -901,7 +901,7 @@ class _GemDebugPanel extends StatelessWidget {
                 spacing: 5,
                 runSpacing: 5,
                 children: GemType.values.map((type) {
-                  final gem = demoGems[type]!;
+                  final gem = gameGems[type]!;
                   return SizedBox(
                     width: 88,
                     height: 34,

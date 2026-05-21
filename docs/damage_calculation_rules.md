@@ -315,7 +315,7 @@ DPS 100 -> 빠르게 돌파, 보호막 파괴 뒤 재생 없음
 
 ## 구현 위치
 
-- 적 저항 데이터: `lib/data/definitions/demo_enemy_data.dart`
+- 적 저항 데이터: `lib/data/definitions/game_enemy_data.dart`
 - 저항률 계산 규칙: `lib/domain/enemy/enemy_resistance_profile.dart`
 - 전투 피해 계산: `lib/game/rune_nexus_game.dart`
 - 포탑 스탯 계산: `lib/game/components/turret_component.dart`

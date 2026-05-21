@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../data/definitions/demo_stage_data.dart';
+import '../../data/definitions/game_stage_data.dart';
 import '../../domain/map/grid_point.dart';
 import '../../domain/map/map_definition.dart';
 import '../../domain/map/map_tile_theme.dart';
@@ -40,7 +40,7 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
   @override
   void initState() {
     super.initState();
-    final stageCount = demoStages.length;
+    final stageCount = gameStages.length;
     _stageNumber = widget.initialStageNumber.clamp(1, stageCount).toInt();
     _loadStage(_stageNumber);
   }
@@ -56,7 +56,7 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
   }
 
   _MapDraft _draftForStage(int stageNumber) {
-    final stage = demoStages[stageNumber - 1];
+    final stage = gameStages[stageNumber - 1];
     final map = stage.map;
     return _MapDraft(
       tiles: [
@@ -91,7 +91,7 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
     }
     _saveCurrentDraft();
     final firstStage = _firstStageForChapter(chapterNumber);
-    _loadStage(firstStage.clamp(1, demoStages.length).toInt());
+    _loadStage(firstStage.clamp(1, gameStages.length).toInt());
   }
 
   MapDefinition get _map => MapDefinition(
@@ -247,7 +247,7 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
         final setupControls = _EditorSetupControls(
           chapterNumber: _chapterNumber,
           stageNumber: _stageNumber,
-          stageCount: demoStages.length,
+          stageCount: gameStages.length,
           columns: _tiles.first.length,
           rows: _tiles.length,
           onChapterSelected: (chapterNumber) {

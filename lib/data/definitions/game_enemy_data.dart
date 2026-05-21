@@ -6,7 +6,7 @@ import '../../domain/enemy/enemy_type.dart';
 import '../../domain/turret/attack_tag.dart';
 import '../../domain/turret/damage_family.dart';
 
-const demoEnemies = <EnemyType, EnemyDefinition>{
+const gameEnemies = <EnemyType, EnemyDefinition>{
   EnemyType.normal: EnemyDefinition(
     type: EnemyType.normal,
     name: '일반',

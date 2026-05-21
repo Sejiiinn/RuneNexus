@@ -22,7 +22,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
         snapshot.phase == GamePhase.wave;
     final canRefund = snapshot.selectedTurretPoint != null && canLevelUp;
     final levelUpPreviewActive = snapshot.selectedTurretLevelUpPreviewActive;
-    final definition = demoTurrets[snapshot.selectedTurretType]!;
+    final definition = gameTurrets[snapshot.selectedTurretType]!;
     final inventory = GemType.values
         .where((type) => (snapshot.gemInventory[type] ?? 0) > 0)
         .toList();
@@ -40,7 +40,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
         : null;
     final selectedInventoryGemDefinition = selectedInventoryGem == null
         ? null
-        : demoGems[selectedInventoryGem]!;
+        : gameGems[selectedInventoryGem]!;
     final selectedInventoryBlockReason = selectedInventoryGem == null
         ? null
         : gemEquipBlockReason(selectedInventoryGem, definition);
@@ -162,7 +162,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                     spacing: 6,
                     runSpacing: 6,
                     children: inventory.map((type) {
-                      final gem = demoGems[type]!;
+                      final gem = gameGems[type]!;
                       final count = snapshot.gemInventory[type]!;
                       final equipped = snapshot.selectedTurretGems.contains(
                         type,
