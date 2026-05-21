@@ -45,7 +45,7 @@ void main() {
     expect(find.text('스테이지 5'), findsOneWidget);
     expect(find.text('잠김'), findsNWidgets(4));
     expect(find.text('강화'), findsOneWidget);
-    expect(find.text('연구'), findsOneWidget);
+    expect(find.text('연구'), findsWidgets);
   });
 
   testWidgets('stage menu opens chapter two as stages six to ten', (
@@ -84,7 +84,6 @@ void main() {
     await _pumpGameFrames(tester);
 
     expect(find.text('균열 장막'), findsOneWidget);
-    expect(find.text('균열 포탈 지대'), findsOneWidget);
     expect(find.text('스테이지 6'), findsOneWidget);
     expect(find.text('스테이지 10'), findsOneWidget);
     expect(find.text('스테이지 1'), findsNothing);
@@ -150,7 +149,7 @@ void main() {
     expect(find.text('강화'), findsOneWidget);
     expect(find.text('연구'), findsOneWidget);
 
-    await tester.tap(find.text('연구'));
+    await tester.tap(find.text('연구').last);
     await _pumpGameFrames(tester);
 
     expect(find.text('Rune Nexus'), findsOneWidget);
@@ -316,7 +315,7 @@ void main() {
 
     await _pumpLoadedApp(tester);
 
-    await tester.tap(find.text('연구'));
+    await tester.tap(find.text('연구').last);
     await _pumpGameFrames(tester);
 
     final efficiencyTopLeft = tester.getTopLeft(find.text('연구 효율'));

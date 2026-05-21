@@ -692,48 +692,99 @@ class _MenuTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Container(
-      height: 54,
+    return DecoratedBox(
       decoration: const BoxDecoration(
-        color: Color(0xF207111D),
-        border: Border(top: BorderSide(color: Color(0x9933D8FF))),
         boxShadow: [
           BoxShadow(
-            color: Color(0x66000000),
+            color: Color(0x99000000),
             blurRadius: 18,
             offset: Offset(0, -8),
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _TabButton(
-              icon: Icons.flag_outlined,
-              label: l10n.stageTab,
-              selected: selectedTab == MainMenuTab.stage,
-              onPressed: () => onSelectTab(MainMenuTab.stage),
-            ),
+      child: Container(
+        height: 56,
+        padding: const EdgeInsets.fromLTRB(10, 5, 10, 6),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF0D2433), Color(0xFF06101A)],
           ),
-          Container(width: 1, height: 32, color: const Color(0x5533D8FF)),
-          Expanded(
-            child: _TabButton(
-              icon: Icons.auto_awesome,
-              label: l10n.permanentUpgradeTab,
-              selected: selectedTab == MainMenuTab.permanentUpgrades,
-              onPressed: () => onSelectTab(MainMenuTab.permanentUpgrades),
-            ),
+          border: Border(
+            top: BorderSide(color: Color(0xAA5CF9E9)),
+            bottom: BorderSide(color: Color(0x6607111D)),
           ),
-          Container(width: 1, height: 32, color: const Color(0x5533D8FF)),
-          Expanded(
-            child: _TabButton(
-              icon: Icons.science_outlined,
-              label: l10n.researchTab,
-              selected: selectedTab == MainMenuTab.research,
-              onPressed: () => onSelectTab(MainMenuTab.research),
-            ),
+        ),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: const Color(0x6607111D),
+            border: Border.all(color: const Color(0x4433D8FF)),
+            borderRadius: BorderRadius.circular(4),
           ),
-        ],
+          child: Row(
+            children: [
+              Expanded(
+                child: _TabButton(
+                  icon: Icons.flag_outlined,
+                  label: l10n.stageTab,
+                  selected: selectedTab == MainMenuTab.stage,
+                  onPressed: () => onSelectTab(MainMenuTab.stage),
+                ),
+              ),
+              const _MenuTabGroove(),
+              Expanded(
+                child: _TabButton(
+                  icon: Icons.auto_awesome,
+                  label: l10n.permanentUpgradeTab,
+                  selected: selectedTab == MainMenuTab.permanentUpgrades,
+                  onPressed: () => onSelectTab(MainMenuTab.permanentUpgrades),
+                ),
+              ),
+              const _MenuTabGroove(),
+              Expanded(
+                child: _TabButton(
+                  icon: Icons.science_outlined,
+                  label: l10n.researchTab,
+                  selected: selectedTab == MainMenuTab.research,
+                  onPressed: () => onSelectTab(MainMenuTab.research),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuTabGroove extends StatelessWidget {
+  const _MenuTabGroove();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 2,
+      height: 34,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.transparent,
+              const Color(0xFF33D8FF).withValues(alpha: 0.34),
+              Colors.transparent,
+            ],
+          ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x88000000),
+              blurRadius: 4,
+              offset: Offset(-1, 0),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -929,40 +980,97 @@ class _TabButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final foregroundColor = selected
         ? const Color(0xFF8EE6FF)
-        : const Color(0xFFB9D6E4);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        splashColor: const Color(0x1A8EE6FF),
-        highlightColor: const Color(0x1422C7E8),
-        child: Container(
-          height: double.infinity,
-          decoration: BoxDecoration(
-            color: selected ? const Color(0x2222C7E8) : Colors.transparent,
-            border: Border(
-              bottom: BorderSide(
-                color: selected ? const Color(0xFF8EE6FF) : Colors.transparent,
-                width: 2,
-              ),
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+        : const Color(0xFF88A4B3);
+    final textColor = selected ? GamePalette.textPrimary : foregroundColor;
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: Material(
+        color: Colors.transparent,
+        child: InkResponse(
+          onTap: onPressed,
+          containedInkWell: false,
+          radius: 42,
+          splashColor: const Color(0x1A8EE6FF),
+          highlightColor: const Color(0x1022C7E8),
+          child: Stack(
+            alignment: Alignment.center,
             children: [
-              Icon(icon, size: 16, color: foregroundColor),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: foregroundColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
+              if (selected) ...[
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: RadialGradient(
+                        center: Alignment.bottomCenter,
+                        radius: 1.28,
+                        colors: [
+                          const Color(0xFF22C7E8).withValues(alpha: 0.28),
+                          const Color(0xFF22C7E8).withValues(alpha: 0.08),
+                          Colors.transparent,
+                        ],
+                        stops: const [0, 0.42, 1],
+                      ),
+                    ),
                   ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+                ),
+                Positioned(
+                  left: 18,
+                  right: 18,
+                  bottom: 0,
+                  child: Container(
+                    height: 3,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(2),
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0x008EE6FF),
+                          Color(0xFF8EE6FF),
+                          Color(0x008EE6FF),
+                        ],
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0xAA22C7E8),
+                          blurRadius: 7,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      icon,
+                      size: selected ? 18 : 17,
+                      color: foregroundColor,
+                      shadows: selected
+                          ? const [
+                              Shadow(color: Color(0xAA22C7E8), blurRadius: 8),
+                            ]
+                          : null,
+                    ),
+                    const SizedBox(width: 7),
+                    Flexible(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 13,
+                          fontWeight: selected
+                              ? FontWeight.w800
+                              : FontWeight.w700,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -1109,37 +1217,25 @@ class _StageChapterTheme {
   const _StageChapterTheme({
     required this.accent,
     required this.secondary,
-    required this.deep,
-    required this.mid,
-    required this.path,
-    required this.tag,
+    required this.bannerAsset,
   });
 
   final Color accent;
   final Color secondary;
-  final Color deep;
-  final Color mid;
-  final Color path;
-  final Color tag;
+  final String bannerAsset;
 
   static _StageChapterTheme forChapter(int chapter) {
     if (chapter == 2) {
       return const _StageChapterTheme(
         accent: Color(0xFF5CF9E9),
         secondary: Color(0xFFB68BFF),
-        deep: Color(0xFF071221),
-        mid: Color(0xFF101A33),
-        path: Color(0xFF332B4D),
-        tag: Color(0xFFB68BFF),
+        bannerAsset: 'assets/images/chapter_2_banner.png',
       );
     }
     return const _StageChapterTheme(
       accent: Color(0xFF8EE6FF),
       secondary: Color(0xFFE7C66A),
-      deep: Color(0xFF0A1F24),
-      mid: Color(0xFF183F3D),
-      path: Color(0xFF2E5040),
-      tag: Color(0xFFE7C66A),
+      bannerAsset: 'assets/images/chapter_1_banner.png',
     );
   }
 }
@@ -1176,21 +1272,35 @@ class _StageChapterThemeBanner extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(7),
-          child: CustomPaint(
-            painter: _StageChapterThemePainter(chapter: chapter, theme: theme),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    GamePalette.voidBlack.withValues(alpha: 0.58),
-                    GamePalette.voidBlack.withValues(alpha: 0.16),
-                  ],
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(
+                theme.bannerAsset,
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+              ),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      GamePalette.voidBlack.withValues(alpha: 0.72),
+                      GamePalette.voidBlack.withValues(alpha: 0.34),
+                      GamePalette.voidBlack.withValues(alpha: 0),
+                    ],
+                    stops: const [0, 0.42, 0.76],
+                  ),
                 ),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-              child: Row(
-                children: [
-                  Expanded(
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 7,
+                ),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 190),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -1215,289 +1325,13 @@ class _StageChapterThemeBanner extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: GamePalette.voidBlack.withValues(alpha: 0.32),
-                      border: Border.all(
-                        color: theme.tag.withValues(alpha: 0.54),
-                      ),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 5,
-                      ),
-                      child: Text(
-                        l10n.stageChapterThemeTag(chapter),
-                        style: TextStyle(
-                          color: theme.tag,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
     );
-  }
-}
-
-class _StageChapterThemePainter extends CustomPainter {
-  const _StageChapterThemePainter({required this.chapter, required this.theme});
-
-  final int chapter;
-  final _StageChapterTheme theme;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final bgPaint = Paint()
-      ..shader = ui.Gradient.linear(
-        rect.topLeft,
-        rect.bottomRight,
-        [theme.deep, theme.mid, GamePalette.voidBlack],
-        const [0, 0.58, 1],
-      );
-    canvas.drawRect(rect, bgPaint);
-    if (chapter == 2) {
-      _paintRift(canvas, size);
-    } else {
-      _paintGrassland(canvas, size);
-    }
-  }
-
-  void _paintRift(Canvas canvas, Size size) {
-    final pathPaint = Paint()
-      ..shader = ui.Gradient.linear(
-        Offset(0, size.height),
-        Offset(size.width * 0.74, size.height * 0.28),
-        [
-          theme.path.withValues(alpha: 0.72),
-          theme.path.withValues(alpha: 0.42),
-          const Color(0xFF1D3B46).withValues(alpha: 0.62),
-        ],
-        const [0, 0.52, 1],
-      );
-    final ground = Path()
-      ..moveTo(-22, size.height + 2)
-      ..cubicTo(54, 18, 88, 22, 132, 39)
-      ..cubicTo(178, 56, 216, 44, 256, 22)
-      ..cubicTo(292, 3, 322, 5, size.width + 22, 20)
-      ..lineTo(size.width + 22, size.height + 2)
-      ..close();
-    canvas.drawPath(ground, pathPaint);
-
-    final glowPaint = Paint()
-      ..shader = ui.Gradient.radial(
-        Offset(size.width * 0.84, size.height * 0.48),
-        size.height * 1.05,
-        [
-          theme.accent.withValues(alpha: 0.55),
-          theme.secondary.withValues(alpha: 0.24),
-          Colors.transparent,
-        ],
-        const [0, 0.42, 1],
-      );
-    canvas.drawCircle(
-      Offset(size.width * 0.84, size.height * 0.48),
-      size.height * 1.05,
-      glowPaint,
-    );
-
-    final portalCenter = Offset(size.width * 0.84, size.height * 0.48);
-    final arcPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    for (var i = 0; i < 4; i++) {
-      arcPaint
-        ..strokeWidth = 0.9 + i * 0.35
-        ..color = (i.isEven ? theme.accent : theme.secondary).withValues(
-          alpha: 0.48 - i * 0.07,
-        );
-      final radius = 22.0 + i * 9.0;
-      canvas.drawArc(
-        Rect.fromCircle(center: portalCenter, radius: radius),
-        0.55 + i * 0.7,
-        2.1,
-        false,
-        arcPaint,
-      );
-    }
-    for (var i = 0; i < 6; i++) {
-      final angle = i * math.pi / 3 + 0.35;
-      final start =
-          portalCenter + Offset(math.cos(angle), math.sin(angle)) * 18;
-      final end = portalCenter + Offset(math.cos(angle), math.sin(angle)) * 58;
-      canvas.drawLine(
-        start,
-        end,
-        Paint()
-          ..strokeWidth = 0.8
-          ..color = theme.accent.withValues(alpha: 0.18),
-      );
-    }
-
-    final ringPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
-      ..color = theme.accent.withValues(alpha: 0.68);
-    canvas.save();
-    canvas.translate(size.width * 0.84, size.height * 0.48);
-    canvas.rotate(0.45);
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset.zero, width: 54, height: 72),
-      ringPaint,
-    );
-    ringPaint
-      ..strokeWidth = 4
-      ..color = theme.secondary.withValues(alpha: 0.36);
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset.zero, width: 36, height: 50),
-      ringPaint,
-    );
-    canvas.restore();
-
-    final crystalPaint = Paint()
-      ..style = PaintingStyle.fill
-      ..color = const Color(0xFF11162D).withValues(alpha: 0.9);
-    final crystal = Path()
-      ..moveTo(size.width * 0.84, 6)
-      ..lineTo(size.width * 0.9, size.height * 0.46)
-      ..lineTo(size.width * 0.85, size.height - 4)
-      ..lineTo(size.width * 0.77, size.height * 0.55)
-      ..close();
-    canvas.drawPath(crystal, crystalPaint);
-    canvas.drawPath(
-      crystal,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.6
-        ..color = theme.secondary.withValues(alpha: 0.86),
-    );
-
-    final crackPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4
-      ..strokeCap = StrokeCap.round
-      ..color = theme.secondary.withValues(alpha: 0.52);
-    final crack = Path()
-      ..moveTo(size.width * 0.72, -4)
-      ..lineTo(size.width * 0.68, 26)
-      ..lineTo(size.width * 0.62, 48);
-    canvas.drawPath(crack, crackPaint);
-    crackPaint
-      ..strokeWidth = 1
-      ..color = theme.accent.withValues(alpha: 0.42);
-    canvas.drawLine(
-      Offset(size.width * 0.76, 34),
-      Offset(size.width * 0.88, 62),
-      crackPaint,
-    );
-    final motePaint = Paint()..color = theme.accent.withValues(alpha: 0.58);
-    for (var i = 0; i < 9; i++) {
-      final x = size.width * (0.42 + i * 0.047);
-      final y = 12.0 + (i * 17 % 40);
-      canvas.drawCircle(Offset(x, y), i.isEven ? 1.2 : 0.8, motePaint);
-    }
-  }
-
-  void _paintGrassland(Canvas canvas, Size size) {
-    final groundPaint = Paint()
-      ..shader =
-          ui.Gradient.linear(Offset.zero, Offset(size.width, size.height), [
-            theme.path.withValues(alpha: 0.72),
-            const Color(0xFF203B34).withValues(alpha: 0.72),
-          ]);
-    final ground = Path()
-      ..moveTo(-16, size.height)
-      ..cubicTo(34, 18, 82, 18, 128, 35)
-      ..cubicTo(172, 52, 218, 48, size.width + 16, 24)
-      ..lineTo(size.width + 16, size.height)
-      ..close();
-    canvas.drawPath(ground, groundPaint);
-
-    final portalPaint = Paint()
-      ..shader = ui.Gradient.radial(
-        Offset(size.width * 0.84, size.height * 0.48),
-        size.height * 0.86,
-        [
-          theme.accent.withValues(alpha: 0.34),
-          theme.secondary.withValues(alpha: 0.2),
-          Colors.transparent,
-        ],
-        const [0, 0.44, 1],
-      );
-    canvas.drawCircle(
-      Offset(size.width * 0.84, size.height * 0.48),
-      size.height * 0.86,
-      portalPaint,
-    );
-    final relicCenter = Offset(size.width * 0.84, size.height * 0.48);
-    final relicPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    for (var i = 0; i < 4; i++) {
-      relicPaint
-        ..strokeWidth = i == 0 ? 1.2 : 0.8
-        ..color = theme.secondary.withValues(alpha: 0.54 - i * 0.08);
-      canvas.drawCircle(relicCenter, 17.0 + i * 8.0, relicPaint);
-    }
-    for (var i = 0; i < 8; i++) {
-      final angle = i * math.pi / 4;
-      final inner = relicCenter + Offset(math.cos(angle), math.sin(angle)) * 16;
-      final outer = relicCenter + Offset(math.cos(angle), math.sin(angle)) * 46;
-      canvas.drawLine(inner, outer, relicPaint);
-      canvas.drawCircle(
-        outer,
-        1.15,
-        Paint()..color = theme.secondary.withValues(alpha: 0.68),
-      );
-    }
-    canvas.drawCircle(
-      Offset(size.width * 0.84, size.height * 0.48),
-      19,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.4
-        ..color = theme.secondary.withValues(alpha: 0.7),
-    );
-
-    final leafPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1
-      ..strokeCap = StrokeCap.round
-      ..color = theme.accent.withValues(alpha: 0.34);
-    for (var i = 0; i < 7; i++) {
-      final x = 32.0 + i * 38.0;
-      canvas.drawLine(
-        Offset(x, size.height - 8),
-        Offset(x + 8, size.height - 22 - (i.isEven ? 6 : 0)),
-        leafPaint,
-      );
-    }
-    final runePaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8
-      ..color = theme.accent.withValues(alpha: 0.22);
-    for (var i = 0; i < 5; i++) {
-      final x = size.width * (0.24 + i * 0.09);
-      final y = 14.0 + (i.isEven ? 0 : 16);
-      canvas.drawLine(Offset(x, y), Offset(x + 4, y + 9), runePaint);
-      canvas.drawLine(Offset(x + 4, y + 9), Offset(x - 2, y + 17), runePaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _StageChapterThemePainter oldDelegate) {
-    return oldDelegate.chapter != chapter || oldDelegate.theme != theme;
   }
 }
 
@@ -1998,7 +1832,6 @@ class _StageInfoChip extends StatelessWidget {
     required this.text,
     required this.unlocked,
     required this.highlighted,
-    this.leading,
     this.overrideColor,
     this.accentColor,
   });
@@ -2006,7 +1839,6 @@ class _StageInfoChip extends StatelessWidget {
   final String text;
   final bool unlocked;
   final bool highlighted;
-  final Widget? leading;
   final Color? overrideColor;
   final Color? accentColor;
 
@@ -2041,13 +1873,6 @@ class _StageInfoChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (leading != null) ...[
-            IconTheme(
-              data: IconThemeData(color: color, size: 13),
-              child: leading!,
-            ),
-            const SizedBox(width: 4),
-          ],
           Flexible(
             child: Text(
               text,
@@ -2098,18 +1923,14 @@ class _SniperRewardIconPainter extends CustomPainter {
 }
 
 class _StageIcon extends StatelessWidget {
-  const _StageIcon({
-    required this.unlocked,
-    this.active = false,
-    this.accent = const Color(0xFF8EE6FF),
-  });
+  const _StageIcon({required this.unlocked, this.active = false});
 
   final bool unlocked;
   final bool active;
-  final Color accent;
 
   @override
   Widget build(BuildContext context) {
+    const accent = Color(0xFF8EE6FF);
     return Container(
       width: 34,
       height: 34,
