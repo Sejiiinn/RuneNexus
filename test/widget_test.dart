@@ -80,9 +80,11 @@ void main() {
     );
     await _pumpGameFrames(tester);
 
-    await tester.tap(find.text('균열 장막'));
+    await tester.tap(find.text('챕터 2'));
     await _pumpGameFrames(tester);
 
+    expect(find.text('균열 장막'), findsOneWidget);
+    expect(find.text('균열 포탈 지대'), findsOneWidget);
     expect(find.text('스테이지 6'), findsOneWidget);
     expect(find.text('스테이지 10'), findsOneWidget);
     expect(find.text('스테이지 1'), findsNothing);
@@ -183,10 +185,16 @@ void main() {
   ) async {
     await _pumpLoadedApp(tester);
 
-    expect(find.text('클리어 보상: 저격 포탑'), findsOneWidget);
-    expect(find.text('클리어 보상: 경제 강화'), findsOneWidget);
-    expect(find.text('클리어 보상: 연구'), findsNWidgets(2));
-    expect(find.text('클리어 보상: 전투 강화'), findsOneWidget);
+    expect(find.text('클리어 보상'), findsNWidgets(5));
+    expect(find.text('저격 포탑'), findsOneWidget);
+    expect(find.text('경제 강화'), findsOneWidget);
+    expect(find.text('연구'), findsNWidgets(3));
+    expect(find.text('전투 강화'), findsOneWidget);
+    expect(find.text('룬 +0%'), findsOneWidget);
+    expect(find.text('룬 +20%'), findsOneWidget);
+    expect(find.text('룬 +45%'), findsOneWidget);
+    expect(find.text('룬 +75%'), findsOneWidget);
+    expect(find.text('룬 +110%'), findsOneWidget);
     expect(find.text('강화 해금'), findsNothing);
     expect(find.text('연구 해금'), findsNothing);
     expect(find.text('전투 강화 해금'), findsNothing);
@@ -217,9 +225,10 @@ void main() {
     );
     await _pumpGameFrames(tester);
 
-    expect(find.text('해금됨: 경제 강화'), findsOneWidget);
-    expect(find.text('해금됨: 연구'), findsNWidgets(2));
-    expect(find.text('해금됨: 전투 강화'), findsOneWidget);
+    expect(find.text('해금됨'), findsNWidgets(4));
+    expect(find.text('경제 강화'), findsOneWidget);
+    expect(find.text('연구'), findsNWidgets(3));
+    expect(find.text('전투 강화'), findsOneWidget);
     expect(find.text('클리어 보상: 경제 강화'), findsNothing);
     expect(find.text('클리어 보상: 연구'), findsNothing);
     expect(find.text('클리어 보상: 전투 강화'), findsNothing);

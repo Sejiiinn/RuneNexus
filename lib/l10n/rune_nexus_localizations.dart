@@ -102,6 +102,8 @@ class RuneNexusLocalizations {
   String get locked => _isEnglish ? 'Locked' : '잠김';
   String get recordNone => _isEnglish ? 'No record' : '기록 없음';
   String get recordCleared => _isEnglish ? 'Cleared' : '클리어';
+  String get clearRewardLabel => _isEnglish ? 'Clear reward' : '클리어 보상';
+  String get unlockedRewardLabel => _isEnglish ? 'Unlocked' : '해금됨';
   String get stageSniperRewardLocked => clearReward(sniperTurret);
   String get stageSniperRewardUnlocked => unlockedReward(sniperTurret);
   String get sniperTurret => _isEnglish ? 'Sniper turret' : '저격 포탑';
@@ -141,13 +143,33 @@ class RuneNexusLocalizations {
   }
 
   String stageChapterName(int chapterNumber) {
+    return _isEnglish ? 'Chapter $chapterNumber' : '챕터 $chapterNumber';
+  }
+
+  String stageChapterThemeName(int chapterNumber) {
     if (chapterNumber == 1) {
       return _isEnglish ? 'Grassland Entry' : '초원 초입';
     }
     if (chapterNumber == 2) {
       return _isEnglish ? 'Rift Veil' : '균열 장막';
     }
-    return _isEnglish ? 'Chapter $chapterNumber' : '챕터 $chapterNumber';
+    return _isEnglish ? 'Planned Area' : '준비 중인 지역';
+  }
+
+  String stageChapterThemeTag(int chapterNumber) {
+    if (chapterNumber == 1) {
+      return _isEnglish ? 'First Nexus Route' : '첫 넥서스 길목';
+    }
+    if (chapterNumber == 2) {
+      return _isEnglish ? 'Rift Portal Zone' : '균열 포탈 지대';
+    }
+    return plannedUpgrade;
+  }
+
+  String stageChapterRange(int startStage, int endStage) {
+    return _isEnglish
+        ? 'Stages $startStage-$endStage'
+        : '스테이지 $startStage-$endStage';
   }
 
   String stageRuneBonus(double bonusRate) {

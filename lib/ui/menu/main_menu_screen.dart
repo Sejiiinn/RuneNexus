@@ -29,7 +29,7 @@ enum _PermanentUpgradeGroup { combat, economy }
 
 const int _stageChapterSize = 5;
 const int _visibleStageChapterCount = 3;
-const double _stageRowHeight = 72;
+const double _stageRowHeight = 54;
 
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({
@@ -108,6 +108,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     const menuTopPadding = 76.0;
     final menuBottomPadding = selectedTab == MainMenuTab.permanentUpgrades
         ? 146.0
+        : selectedTab == MainMenuTab.stage
+        ? 62.0
         : 92.0;
     return Container(
       color: GamePalette.backdrop,
@@ -116,42 +118,69 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
           children: [
             const Positioned.fill(child: _MainMenuBackdrop()),
             const Positioned(top: 10, left: 0, right: 0, child: _MenuLogo()),
-            Center(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  16,
-                  menuTopPadding,
-                  16,
-                  menuBottomPadding,
-                ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 430),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _MainMenuPanel(
-                        child: selectedTab == MainMenuTab.stage
-                            ? _StageMenu(
-                                snapshot: widget.snapshot,
-                                onStartStage: widget.onStartStage,
-                              )
-                            : selectedTab == MainMenuTab.permanentUpgrades
-                            ? _PermanentUpgradeMenu(
-                                game: widget.game,
-                                snapshot: widget.snapshot,
-                                group: _selectedUpgradeGroup,
-                              )
-                            : _ResearchMenu(
-                                game: widget.game,
-                                snapshot: widget.snapshot,
-                              ),
+            if (selectedTab == MainMenuTab.stage)
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final panelHeight = math.max(
+                    0.0,
+                    constraints.maxHeight - menuTopPadding - menuBottomPadding,
+                  );
+                  return Center(
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        menuTopPadding,
+                        16,
+                        menuBottomPadding,
                       ),
-                    ],
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 430),
+                        child: SizedBox(
+                          height: panelHeight,
+                          child: _MainMenuPanel(
+                            child: _StageMenu(
+                              snapshot: widget.snapshot,
+                              onStartStage: widget.onStartStage,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              )
+            else
+              Center(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    menuTopPadding,
+                    16,
+                    menuBottomPadding,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 430),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _MainMenuPanel(
+                          child: selectedTab == MainMenuTab.permanentUpgrades
+                              ? _PermanentUpgradeMenu(
+                                  game: widget.game,
+                                  snapshot: widget.snapshot,
+                                  group: _selectedUpgradeGroup,
+                                )
+                              : _ResearchMenu(
+                                  game: widget.game,
+                                  snapshot: widget.snapshot,
+                                ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
             Positioned(
               top: 10,
               right: 16,
@@ -988,6 +1017,7 @@ class _StageMenuState extends State<_StageMenu> {
       chapterStart + _stageChapterSize - 1,
       RunProgression.maxStageCount,
     );
+    final chapterTheme = _StageChapterTheme.forChapter(_selectedChapter);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -995,11 +1025,19 @@ class _StageMenuState extends State<_StageMenu> {
         _StageChapterTabs(
           selectedChapter: _selectedChapter,
           unlockedStageCount: stageCount,
+          selectedTheme: chapterTheme,
           onSelected: (chapter) {
             setState(() {
               _selectedChapter = chapter;
             });
           },
+        ),
+        const SizedBox(height: 10),
+        _StageChapterThemeBanner(
+          chapter: _selectedChapter,
+          startStage: chapterStart,
+          endStage: chapterEnd,
+          theme: chapterTheme,
         ),
         const SizedBox(height: 10),
         if (activeRunInProgress) ...[
@@ -1009,37 +1047,46 @@ class _StageMenuState extends State<_StageMenu> {
           ),
           const SizedBox(height: 10),
         ],
-        for (var stage = chapterStart; stage <= chapterEnd; stage++)
-          Padding(
-            padding: EdgeInsets.only(bottom: stage == chapterEnd ? 0 : 8),
-            child: _StageSelectionRow(
-              stageNumber: stage,
-              unlocked: stage <= stageCount,
-              active:
-                  activeRunInProgress && stage == snapshot.currentStageNumber,
-              sniperRewardUnlocked: snapshot.availableTurretTypes.contains(
-                TurretType.sniper,
-              ),
-              stageCleared: snapshot.clearedStageNumbers.contains(stage),
-              statusText: _stageStatusText(
-                l10n: l10n,
-                snapshot: snapshot,
-                stageNumber: stage,
-                activeRunInProgress: activeRunInProgress,
-              ),
-              detailText: _stageDetailText(
-                l10n: l10n,
-                snapshot: snapshot,
-                stageNumber: stage,
-              ),
-              runeBonusText: l10n.stageRuneBonus(
-                RunProgression.stageRuneRewardBonusRateFor(stage),
-              ),
-              onPressed: stage <= stageCount
-                  ? () => widget.onStartStage(stage)
-                  : null,
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var stage = chapterStart; stage <= chapterEnd; stage++)
+                  Padding(
+                    padding: EdgeInsets.only(
+                      bottom: stage == chapterEnd ? 0 : 8,
+                    ),
+                    child: _StageSelectionRow(
+                      stageNumber: stage,
+                      unlocked: stage <= stageCount,
+                      active:
+                          activeRunInProgress &&
+                          stage == snapshot.currentStageNumber,
+                      theme: chapterTheme,
+                      sniperRewardUnlocked: snapshot.availableTurretTypes
+                          .contains(TurretType.sniper),
+                      stageCleared: snapshot.clearedStageNumbers.contains(
+                        stage,
+                      ),
+                      statusText: _stageStatusText(
+                        l10n: l10n,
+                        snapshot: snapshot,
+                        stageNumber: stage,
+                        activeRunInProgress: activeRunInProgress,
+                      ),
+                      runeBonusText: l10n.stageRuneBonus(
+                        RunProgression.stageRuneRewardBonusRateFor(stage),
+                      ),
+                      onPressed: stage <= stageCount
+                          ? () => widget.onStartStage(stage)
+                          : null,
+                    ),
+                  ),
+              ],
             ),
           ),
+        ),
       ],
     );
   }
@@ -1058,15 +1105,413 @@ int _chapterForStage(int stageNumber) {
   return ((stageNumber - 1) ~/ _stageChapterSize) + 1;
 }
 
+class _StageChapterTheme {
+  const _StageChapterTheme({
+    required this.accent,
+    required this.secondary,
+    required this.deep,
+    required this.mid,
+    required this.path,
+    required this.tag,
+  });
+
+  final Color accent;
+  final Color secondary;
+  final Color deep;
+  final Color mid;
+  final Color path;
+  final Color tag;
+
+  static _StageChapterTheme forChapter(int chapter) {
+    if (chapter == 2) {
+      return const _StageChapterTheme(
+        accent: Color(0xFF5CF9E9),
+        secondary: Color(0xFFB68BFF),
+        deep: Color(0xFF071221),
+        mid: Color(0xFF101A33),
+        path: Color(0xFF332B4D),
+        tag: Color(0xFFB68BFF),
+      );
+    }
+    return const _StageChapterTheme(
+      accent: Color(0xFF8EE6FF),
+      secondary: Color(0xFFE7C66A),
+      deep: Color(0xFF0A1F24),
+      mid: Color(0xFF183F3D),
+      path: Color(0xFF2E5040),
+      tag: Color(0xFFE7C66A),
+    );
+  }
+}
+
+class _StageChapterThemeBanner extends StatelessWidget {
+  const _StageChapterThemeBanner({
+    required this.chapter,
+    required this.startStage,
+    required this.endStage,
+    required this.theme,
+  });
+
+  final int chapter;
+  final int startStage;
+  final int endStage;
+  final _StageChapterTheme theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SizedBox(
+      height: 66,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: theme.accent.withValues(alpha: 0.72)),
+          boxShadow: [
+            BoxShadow(
+              color: theme.accent.withValues(alpha: 0.14),
+              blurRadius: 12,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(7),
+          child: CustomPaint(
+            painter: _StageChapterThemePainter(chapter: chapter, theme: theme),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    GamePalette.voidBlack.withValues(alpha: 0.58),
+                    GamePalette.voidBlack.withValues(alpha: 0.16),
+                  ],
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          l10n.stageChapterThemeName(chapter),
+                          style: GameTextStyles.withColor(
+                            GameTextStyles.title,
+                            GamePalette.textPrimary,
+                          ).copyWith(fontSize: 20),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          l10n.stageChapterRange(startStage, endStage),
+                          style: GameTextStyles.withColor(
+                            GameTextStyles.caption,
+                            GamePalette.textSecondary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: GamePalette.voidBlack.withValues(alpha: 0.32),
+                      border: Border.all(
+                        color: theme.tag.withValues(alpha: 0.54),
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 5,
+                      ),
+                      child: Text(
+                        l10n.stageChapterThemeTag(chapter),
+                        style: TextStyle(
+                          color: theme.tag,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StageChapterThemePainter extends CustomPainter {
+  const _StageChapterThemePainter({required this.chapter, required this.theme});
+
+  final int chapter;
+  final _StageChapterTheme theme;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final bgPaint = Paint()
+      ..shader = ui.Gradient.linear(
+        rect.topLeft,
+        rect.bottomRight,
+        [theme.deep, theme.mid, GamePalette.voidBlack],
+        const [0, 0.58, 1],
+      );
+    canvas.drawRect(rect, bgPaint);
+    if (chapter == 2) {
+      _paintRift(canvas, size);
+    } else {
+      _paintGrassland(canvas, size);
+    }
+  }
+
+  void _paintRift(Canvas canvas, Size size) {
+    final pathPaint = Paint()
+      ..shader = ui.Gradient.linear(
+        Offset(0, size.height),
+        Offset(size.width * 0.74, size.height * 0.28),
+        [
+          theme.path.withValues(alpha: 0.72),
+          theme.path.withValues(alpha: 0.42),
+          const Color(0xFF1D3B46).withValues(alpha: 0.62),
+        ],
+        const [0, 0.52, 1],
+      );
+    final ground = Path()
+      ..moveTo(-22, size.height + 2)
+      ..cubicTo(54, 18, 88, 22, 132, 39)
+      ..cubicTo(178, 56, 216, 44, 256, 22)
+      ..cubicTo(292, 3, 322, 5, size.width + 22, 20)
+      ..lineTo(size.width + 22, size.height + 2)
+      ..close();
+    canvas.drawPath(ground, pathPaint);
+
+    final glowPaint = Paint()
+      ..shader = ui.Gradient.radial(
+        Offset(size.width * 0.84, size.height * 0.48),
+        size.height * 1.05,
+        [
+          theme.accent.withValues(alpha: 0.55),
+          theme.secondary.withValues(alpha: 0.24),
+          Colors.transparent,
+        ],
+        const [0, 0.42, 1],
+      );
+    canvas.drawCircle(
+      Offset(size.width * 0.84, size.height * 0.48),
+      size.height * 1.05,
+      glowPaint,
+    );
+
+    final portalCenter = Offset(size.width * 0.84, size.height * 0.48);
+    final arcPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < 4; i++) {
+      arcPaint
+        ..strokeWidth = 0.9 + i * 0.35
+        ..color = (i.isEven ? theme.accent : theme.secondary).withValues(
+          alpha: 0.48 - i * 0.07,
+        );
+      final radius = 22.0 + i * 9.0;
+      canvas.drawArc(
+        Rect.fromCircle(center: portalCenter, radius: radius),
+        0.55 + i * 0.7,
+        2.1,
+        false,
+        arcPaint,
+      );
+    }
+    for (var i = 0; i < 6; i++) {
+      final angle = i * math.pi / 3 + 0.35;
+      final start =
+          portalCenter + Offset(math.cos(angle), math.sin(angle)) * 18;
+      final end = portalCenter + Offset(math.cos(angle), math.sin(angle)) * 58;
+      canvas.drawLine(
+        start,
+        end,
+        Paint()
+          ..strokeWidth = 0.8
+          ..color = theme.accent.withValues(alpha: 0.18),
+      );
+    }
+
+    final ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..color = theme.accent.withValues(alpha: 0.68);
+    canvas.save();
+    canvas.translate(size.width * 0.84, size.height * 0.48);
+    canvas.rotate(0.45);
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset.zero, width: 54, height: 72),
+      ringPaint,
+    );
+    ringPaint
+      ..strokeWidth = 4
+      ..color = theme.secondary.withValues(alpha: 0.36);
+    canvas.drawOval(
+      Rect.fromCenter(center: Offset.zero, width: 36, height: 50),
+      ringPaint,
+    );
+    canvas.restore();
+
+    final crystalPaint = Paint()
+      ..style = PaintingStyle.fill
+      ..color = const Color(0xFF11162D).withValues(alpha: 0.9);
+    final crystal = Path()
+      ..moveTo(size.width * 0.84, 6)
+      ..lineTo(size.width * 0.9, size.height * 0.46)
+      ..lineTo(size.width * 0.85, size.height - 4)
+      ..lineTo(size.width * 0.77, size.height * 0.55)
+      ..close();
+    canvas.drawPath(crystal, crystalPaint);
+    canvas.drawPath(
+      crystal,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..color = theme.secondary.withValues(alpha: 0.86),
+    );
+
+    final crackPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round
+      ..color = theme.secondary.withValues(alpha: 0.52);
+    final crack = Path()
+      ..moveTo(size.width * 0.72, -4)
+      ..lineTo(size.width * 0.68, 26)
+      ..lineTo(size.width * 0.62, 48);
+    canvas.drawPath(crack, crackPaint);
+    crackPaint
+      ..strokeWidth = 1
+      ..color = theme.accent.withValues(alpha: 0.42);
+    canvas.drawLine(
+      Offset(size.width * 0.76, 34),
+      Offset(size.width * 0.88, 62),
+      crackPaint,
+    );
+    final motePaint = Paint()..color = theme.accent.withValues(alpha: 0.58);
+    for (var i = 0; i < 9; i++) {
+      final x = size.width * (0.42 + i * 0.047);
+      final y = 12.0 + (i * 17 % 40);
+      canvas.drawCircle(Offset(x, y), i.isEven ? 1.2 : 0.8, motePaint);
+    }
+  }
+
+  void _paintGrassland(Canvas canvas, Size size) {
+    final groundPaint = Paint()
+      ..shader =
+          ui.Gradient.linear(Offset.zero, Offset(size.width, size.height), [
+            theme.path.withValues(alpha: 0.72),
+            const Color(0xFF203B34).withValues(alpha: 0.72),
+          ]);
+    final ground = Path()
+      ..moveTo(-16, size.height)
+      ..cubicTo(34, 18, 82, 18, 128, 35)
+      ..cubicTo(172, 52, 218, 48, size.width + 16, 24)
+      ..lineTo(size.width + 16, size.height)
+      ..close();
+    canvas.drawPath(ground, groundPaint);
+
+    final portalPaint = Paint()
+      ..shader = ui.Gradient.radial(
+        Offset(size.width * 0.84, size.height * 0.48),
+        size.height * 0.86,
+        [
+          theme.accent.withValues(alpha: 0.34),
+          theme.secondary.withValues(alpha: 0.2),
+          Colors.transparent,
+        ],
+        const [0, 0.44, 1],
+      );
+    canvas.drawCircle(
+      Offset(size.width * 0.84, size.height * 0.48),
+      size.height * 0.86,
+      portalPaint,
+    );
+    final relicCenter = Offset(size.width * 0.84, size.height * 0.48);
+    final relicPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < 4; i++) {
+      relicPaint
+        ..strokeWidth = i == 0 ? 1.2 : 0.8
+        ..color = theme.secondary.withValues(alpha: 0.54 - i * 0.08);
+      canvas.drawCircle(relicCenter, 17.0 + i * 8.0, relicPaint);
+    }
+    for (var i = 0; i < 8; i++) {
+      final angle = i * math.pi / 4;
+      final inner = relicCenter + Offset(math.cos(angle), math.sin(angle)) * 16;
+      final outer = relicCenter + Offset(math.cos(angle), math.sin(angle)) * 46;
+      canvas.drawLine(inner, outer, relicPaint);
+      canvas.drawCircle(
+        outer,
+        1.15,
+        Paint()..color = theme.secondary.withValues(alpha: 0.68),
+      );
+    }
+    canvas.drawCircle(
+      Offset(size.width * 0.84, size.height * 0.48),
+      19,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.4
+        ..color = theme.secondary.withValues(alpha: 0.7),
+    );
+
+    final leafPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1
+      ..strokeCap = StrokeCap.round
+      ..color = theme.accent.withValues(alpha: 0.34);
+    for (var i = 0; i < 7; i++) {
+      final x = 32.0 + i * 38.0;
+      canvas.drawLine(
+        Offset(x, size.height - 8),
+        Offset(x + 8, size.height - 22 - (i.isEven ? 6 : 0)),
+        leafPaint,
+      );
+    }
+    final runePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8
+      ..color = theme.accent.withValues(alpha: 0.22);
+    for (var i = 0; i < 5; i++) {
+      final x = size.width * (0.24 + i * 0.09);
+      final y = 14.0 + (i.isEven ? 0 : 16);
+      canvas.drawLine(Offset(x, y), Offset(x + 4, y + 9), runePaint);
+      canvas.drawLine(Offset(x + 4, y + 9), Offset(x - 2, y + 17), runePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _StageChapterThemePainter oldDelegate) {
+    return oldDelegate.chapter != chapter || oldDelegate.theme != theme;
+  }
+}
+
 class _StageChapterTabs extends StatelessWidget {
   const _StageChapterTabs({
     required this.selectedChapter,
     required this.unlockedStageCount,
+    required this.selectedTheme,
     required this.onSelected,
   });
 
   final int selectedChapter;
   final int unlockedStageCount;
+  final _StageChapterTheme selectedTheme;
   final ValueChanged<int> onSelected;
 
   @override
@@ -1077,23 +1522,20 @@ class _StageChapterTabs extends StatelessWidget {
       child: Row(
         children: [
           for (var chapter = 1; chapter <= _visibleStageChapterCount; chapter++)
-            if (_chapterIsPlayable(chapter))
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(left: chapter == 1 ? 0 : 8),
-                  child: _StageChapterTab(
-                    label: l10n.stageChapterName(chapter),
-                    selected: selectedChapter == chapter,
-                    enabled: true,
-                    onPressed: () => onSelected(chapter),
-                  ),
-                ),
-              )
-            else
-              Padding(
+            Expanded(
+              child: Padding(
                 padding: EdgeInsets.only(left: chapter == 1 ? 0 : 8),
-                child: _LockedStageChapterTab(tooltip: l10n.plannedUpgrade),
+                child: _StageChapterTab(
+                  label: l10n.stageChapterName(chapter),
+                  selected: selectedChapter == chapter,
+                  enabled: _chapterIsPlayable(chapter),
+                  accentColor: selectedChapter == chapter
+                      ? selectedTheme.accent
+                      : _StageChapterTheme.forChapter(chapter).accent,
+                  onPressed: () => onSelected(chapter),
+                ),
               ),
+            ),
         ],
       ),
     );
@@ -1111,12 +1553,14 @@ class _StageChapterTab extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.enabled,
+    required this.accentColor,
     this.onPressed,
   });
 
   final String label;
   final bool selected;
   final bool enabled;
+  final Color accentColor;
   final VoidCallback? onPressed;
 
   @override
@@ -1124,7 +1568,7 @@ class _StageChapterTab extends StatelessWidget {
     return GamePanel(
       height: 42,
       selected: selected,
-      accentColor: GamePalette.cyan,
+      accentColor: accentColor,
       variant: selected ? GamePanelVariant.stone : GamePanelVariant.inset,
       padding: EdgeInsets.zero,
       child: Material(
@@ -1153,32 +1597,6 @@ class _StageChapterTab extends StatelessWidget {
   }
 }
 
-class _LockedStageChapterTab extends StatelessWidget {
-  const _LockedStageChapterTab({required this.tooltip});
-
-  final String tooltip;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: GamePanel(
-        width: 42,
-        height: 42,
-        variant: GamePanelVariant.inset,
-        padding: EdgeInsets.zero,
-        child: const Center(
-          child: Icon(
-            Icons.lock_outline,
-            size: 18,
-            color: GamePalette.textDisabled,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _ActiveRunSummary extends StatelessWidget {
   const _ActiveRunSummary({required this.snapshot, required this.onPressed});
 
@@ -1189,7 +1607,7 @@ class _ActiveRunSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return GamePanel(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       selected: true,
       accentColor: GamePalette.metalDim,
       child: Row(
@@ -1201,9 +1619,19 @@ class _ActiveRunSummary extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
+                  l10n.inProgress,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF5CF9E9),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
                   l10n.activeRunTitle(snapshot.currentStageNumber),
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 15,
                     fontWeight: FontWeight.w900,
                     color: Color(0xFFE8F8FF),
                   ),
@@ -1230,9 +1658,10 @@ class _ActiveRunSummary extends StatelessWidget {
           GameButton(
             onPressed: onPressed,
             label: l10n.continueRun,
+            icon: const Icon(Icons.play_arrow_rounded, size: 16),
             compact: true,
             variant: GameButtonVariant.secondary,
-            accentColor: GamePalette.gold,
+            accentColor: GamePalette.cyan,
           ),
         ],
       ),
@@ -1257,19 +1686,8 @@ String _stageStatusText({
       _ => l10n.inProgress,
     };
   }
-  if (activeRunInProgress) {
-    return l10n.startAfterSettling;
-  }
-  return _recordTextForStage(l10n, snapshot, stageNumber);
-}
-
-String _stageDetailText({
-  required RuneNexusLocalizations l10n,
-  required GameSnapshot snapshot,
-  required int stageNumber,
-}) {
-  if (stageNumber > snapshot.unlockedStageCount) {
-    return l10n.locked;
+  if (snapshot.clearedStageNumbers.contains(stageNumber)) {
+    return l10n.recordCleared;
   }
   return _recordTextForStage(l10n, snapshot, stageNumber);
 }
@@ -1294,10 +1712,10 @@ class _StageSelectionRow extends StatelessWidget {
     required this.stageNumber,
     required this.unlocked,
     required this.active,
+    required this.theme,
     required this.sniperRewardUnlocked,
     required this.stageCleared,
     required this.statusText,
-    required this.detailText,
     required this.runeBonusText,
     required this.onPressed,
   });
@@ -1305,25 +1723,26 @@ class _StageSelectionRow extends StatelessWidget {
   final int stageNumber;
   final bool unlocked;
   final bool active;
+  final _StageChapterTheme theme;
   final bool sniperRewardUnlocked;
   final bool stageCleared;
   final String statusText;
-  final String detailText;
   final String runeBonusText;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final rewardInfo = _stageRewardInfo(context);
     final borderColor = active
         ? const Color(0xFFE7C66A)
         : unlocked
-        ? const Color(0x7733D8FF)
+        ? theme.accent.withValues(alpha: 0.48)
         : const Color(0x33485B68);
     final statusColor = active
         ? const Color(0xFFE7C66A)
         : unlocked
-        ? const Color(0xFF8EE6FF)
+        ? theme.accent
         : const Color(0xFF667987);
 
     return GameButton(
@@ -1338,119 +1757,239 @@ class _StageSelectionRow extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            SizedBox(
+              width: 48,
+              child: Center(
+                child: Text(
+                  stageNumber.toString().padLeft(2, '0'),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: active
+                        ? theme.accent
+                        : unlocked
+                        ? GamePalette.textSecondary
+                        : const Color(0xFF536675),
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              width: 1,
+              height: 31,
+              color: unlocked
+                  ? theme.accent.withValues(alpha: 0.32)
+                  : const Color(0x33485B68),
+            ),
             const SizedBox(width: 10),
-            _StageIcon(unlocked: unlocked, active: active),
-            const SizedBox(width: 9),
             Expanded(
+              flex: 9,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          l10n.stageName(stageNumber),
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            color: unlocked
-                                ? const Color(0xFFE8F8FF)
-                                : const Color(0xFF7F93A1),
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      _StageInfoChip(
-                        text: runeBonusText,
-                        unlocked: unlocked,
-                        highlighted: active,
-                      ),
-                    ],
+                  Text(
+                    l10n.stageName(stageNumber),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                      color: unlocked
+                          ? const Color(0xFFE8F8FF)
+                          : const Color(0xFF7F93A1),
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 5),
-                  Wrap(
-                    spacing: 5,
-                    runSpacing: 4,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      _StageInfoChip(
-                        text: statusText,
-                        unlocked: unlocked,
-                        highlighted: active,
-                        overrideColor: statusColor,
-                      ),
-                      if (detailText != statusText)
-                        _StageInfoChip(
-                          text: detailText,
-                          unlocked: unlocked,
-                          highlighted: false,
-                        ),
-                      ..._stageUnlockChips(context),
-                    ],
+                  const SizedBox(height: 4),
+                  _StageInfoChip(
+                    text: statusText,
+                    unlocked: unlocked,
+                    highlighted: active || stageCleared,
+                    overrideColor: statusColor,
+                    accentColor: theme.accent,
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 60,
+              child: _StageRuneBonusText(
+                text: runeBonusText,
+                unlocked: unlocked,
+                active: active,
+                theme: theme,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              flex: 7,
+              child: _StageRewardSummary(
+                rewardInfo: rewardInfo,
+                unlocked: unlocked,
+                theme: theme,
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: unlocked
+                  ? theme.accent.withValues(alpha: 0.84)
+                  : const Color(0xFF536675),
+              size: 22,
+            ),
+            const SizedBox(width: 6),
           ],
         ),
       ),
     );
   }
 
-  List<Widget> _stageUnlockChips(BuildContext context) {
+  _StageRewardInfo? _stageRewardInfo(BuildContext context) {
     final l10n = context.l10n;
     if (stageNumber == 1) {
-      return [
-        _StageInfoChip(
-          text: sniperRewardUnlocked
-              ? l10n.stageSniperRewardUnlocked
-              : l10n.stageSniperRewardLocked,
-          unlocked: unlocked,
-          highlighted: sniperRewardUnlocked,
-          leading: const _SniperRewardIcon(),
-        ),
-      ];
+      return _StageRewardInfo(
+        label: sniperRewardUnlocked
+            ? l10n.unlockedRewardLabel
+            : l10n.clearRewardLabel,
+        value: l10n.sniperTurret,
+        icon: const _SniperRewardIcon(),
+        highlighted: sniperRewardUnlocked,
+      );
     }
     if (stageNumber == 2) {
-      return [
-        _StageInfoChip(
-          text: stageCleared
-              ? l10n.unlockedReward(l10n.economicUpgrade)
-              : l10n.clearReward(l10n.economicUpgrade),
-          unlocked: unlocked,
-          highlighted: stageCleared,
-          leading: const Icon(Icons.paid_outlined, size: 13),
-        ),
-      ];
+      return _StageRewardInfo(
+        label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
+        value: l10n.economicUpgrade,
+        icon: const Icon(Icons.paid_outlined, size: 16),
+        highlighted: stageCleared,
+      );
     }
     if (stageNumber == 4) {
-      return [
-        _StageInfoChip(
-          text: stageCleared
-              ? l10n.unlockedReward(l10n.combatUpgrade)
-              : l10n.clearReward(l10n.combatUpgrade),
-          unlocked: unlocked,
-          highlighted: stageCleared,
-          leading: const Icon(Icons.bolt_outlined, size: 13),
-        ),
-      ];
+      return _StageRewardInfo(
+        label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
+        value: l10n.combatUpgrade,
+        icon: const Icon(Icons.bolt_outlined, size: 16),
+        highlighted: stageCleared,
+      );
     }
     if (stageNumber == 3 || stageNumber == 5) {
-      return [
-        _StageInfoChip(
-          text: stageCleared
-              ? l10n.unlockedReward(l10n.researchTab)
-              : l10n.clearReward(l10n.researchTab),
-          unlocked: unlocked,
-          highlighted: stageCleared,
-          leading: const Icon(Icons.science_outlined, size: 13),
-        ),
-      ];
+      return _StageRewardInfo(
+        label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
+        value: l10n.researchTab,
+        icon: const Icon(Icons.science_outlined, size: 16),
+        highlighted: stageCleared,
+      );
     }
-    return const [];
+    return null;
+  }
+}
+
+class _StageRuneBonusText extends StatelessWidget {
+  const _StageRuneBonusText({
+    required this.text,
+    required this.unlocked,
+    required this.active,
+    required this.theme,
+  });
+
+  final String text;
+  final bool unlocked;
+  final bool active;
+  final _StageChapterTheme theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = unlocked
+        ? active
+              ? const Color(0xFFE7C66A)
+              : theme.secondary
+        : const Color(0xFF667987);
+    return Text(
+      text,
+      textAlign: TextAlign.right,
+      style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w900),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 1,
+    );
+  }
+}
+
+class _StageRewardInfo {
+  const _StageRewardInfo({
+    this.label,
+    required this.value,
+    required this.icon,
+    required this.highlighted,
+  });
+
+  final String? label;
+  final String value;
+  final Widget icon;
+  final bool highlighted;
+}
+
+class _StageRewardSummary extends StatelessWidget {
+  const _StageRewardSummary({
+    required this.rewardInfo,
+    required this.unlocked,
+    required this.theme,
+  });
+
+  final _StageRewardInfo? rewardInfo;
+  final bool unlocked;
+  final _StageChapterTheme theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final rewardInfo = this.rewardInfo;
+    if (rewardInfo == null) {
+      return const SizedBox.shrink();
+    }
+    final color = unlocked
+        ? rewardInfo.highlighted
+              ? theme.secondary
+              : GamePalette.textSecondary
+        : const Color(0xFF667987);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        IconTheme(
+          data: IconThemeData(color: color, size: 16),
+          child: rewardInfo.icon,
+        ),
+        const SizedBox(width: 7),
+        Flexible(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (rewardInfo.label != null) ...[
+                Text(
+                  rewardInfo.label!,
+                  style: TextStyle(
+                    color: color.withValues(alpha: 0.78),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                const SizedBox(height: 2),
+              ],
+              Text(
+                rewardInfo.value,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -1461,6 +2000,7 @@ class _StageInfoChip extends StatelessWidget {
     required this.highlighted,
     this.leading,
     this.overrideColor,
+    this.accentColor,
   });
 
   final String text;
@@ -1468,15 +2008,17 @@ class _StageInfoChip extends StatelessWidget {
   final bool highlighted;
   final Widget? leading;
   final Color? overrideColor;
+  final Color? accentColor;
 
   @override
   Widget build(BuildContext context) {
+    final accent = accentColor ?? const Color(0xFF8EE6FF);
     final color =
         overrideColor ??
         (highlighted
             ? const Color(0xFFE7C66A)
             : unlocked
-            ? const Color(0xFF8EE6FF)
+            ? accent
             : const Color(0xFF667987));
     return Container(
       constraints: const BoxConstraints(maxWidth: 180),
@@ -1485,13 +2027,13 @@ class _StageInfoChip extends StatelessWidget {
         color: highlighted
             ? const Color(0x22E7C66A)
             : unlocked
-            ? const Color(0x1833D8FF)
+            ? accent.withValues(alpha: 0.12)
             : const Color(0x183D4D5A),
         border: Border.all(
           color: highlighted
               ? const Color(0x88E7C66A)
               : unlocked
-              ? const Color(0x5533D8FF)
+              ? accent.withValues(alpha: 0.34)
               : const Color(0x33485B68),
         ),
         borderRadius: BorderRadius.circular(8),
@@ -1556,10 +2098,15 @@ class _SniperRewardIconPainter extends CustomPainter {
 }
 
 class _StageIcon extends StatelessWidget {
-  const _StageIcon({required this.unlocked, this.active = false});
+  const _StageIcon({
+    required this.unlocked,
+    this.active = false,
+    this.accent = const Color(0xFF8EE6FF),
+  });
 
   final bool unlocked;
   final bool active;
+  final Color accent;
 
   @override
   Widget build(BuildContext context) {
@@ -1570,13 +2117,13 @@ class _StageIcon extends StatelessWidget {
         color: active
             ? const Color(0x22E7C66A)
             : unlocked
-            ? const Color(0x2233D8FF)
+            ? accent.withValues(alpha: 0.18)
             : const Color(0x22485B68),
         border: Border.all(
           color: active
               ? const Color(0xAAE7C66A)
               : unlocked
-              ? const Color(0xAA33D8FF)
+              ? accent.withValues(alpha: 0.72)
               : const Color(0x55485B68),
         ),
         borderRadius: BorderRadius.circular(8),
@@ -1586,7 +2133,7 @@ class _StageIcon extends StatelessWidget {
         color: active
             ? const Color(0xFFE7C66A)
             : unlocked
-            ? const Color(0xFF8EE6FF)
+            ? accent
             : const Color(0xFF6D7F8F),
         size: 18,
       ),
