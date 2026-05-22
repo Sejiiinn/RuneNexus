@@ -5,6 +5,9 @@
 .packages
 build/
 
+# Local in-app server artifacts
+flutter_web_server.*
+
 # Android/iOS generated files
 android/.gradle/
 ios/Pods/
