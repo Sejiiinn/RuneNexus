@@ -86,6 +86,10 @@ class GameSnapshot {
     required this.topDamageTurretName,
     required this.topDamageTurretDamageDealt,
     required this.totalTurretDps,
+    required this.nexusCoreBeamIntervalSeconds,
+    required this.nexusCoreBeamCooldownSeconds,
+    required this.nexusCoreBeamActive,
+    required this.nexusCoreBeamDamage,
     required this.nextWaveEnemyTypes,
     required this.nextWaveEnemyCounts,
     required this.nextWaveClearRewardGold,
@@ -216,6 +220,10 @@ class GameSnapshot {
   final String? topDamageTurretName;
   final double topDamageTurretDamageDealt;
   final double totalTurretDps;
+  final double nexusCoreBeamIntervalSeconds;
+  final double nexusCoreBeamCooldownSeconds;
+  final bool nexusCoreBeamActive;
+  final double nexusCoreBeamDamage;
   final List<EnemyType> nextWaveEnemyTypes;
   final Map<EnemyType, int> nextWaveEnemyCounts;
   final int nextWaveClearRewardGold;

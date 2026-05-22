@@ -23,7 +23,7 @@ const _showMapEditor = bool.fromEnvironment(
   defaultValue: false,
 );
 
-enum MainMenuTab { stage, permanentUpgrades, research }
+enum MainMenuTab { stage, core, permanentUpgrades, research }
 
 enum _PermanentUpgradeGroup { combat, economy }
 
@@ -184,16 +184,23 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _MainMenuPanel(
-                          child: selectedTab == MainMenuTab.permanentUpgrades
-                              ? _PermanentUpgradeMenu(
-                                  game: widget.game,
-                                  snapshot: widget.snapshot,
-                                  group: _selectedUpgradeGroup,
-                                )
-                              : _ResearchMenu(
-                                  game: widget.game,
-                                  snapshot: widget.snapshot,
-                                ),
+                          child: switch (selectedTab) {
+                            MainMenuTab.core => const _CoreMenu(),
+                            MainMenuTab.permanentUpgrades =>
+                              _PermanentUpgradeMenu(
+                                game: widget.game,
+                                snapshot: widget.snapshot,
+                                group: _selectedUpgradeGroup,
+                              ),
+                            MainMenuTab.research => _ResearchMenu(
+                              game: widget.game,
+                              snapshot: widget.snapshot,
+                            ),
+                            MainMenuTab.stage => _StageMenu(
+                              snapshot: widget.snapshot,
+                              onStartStage: widget.onStartStage,
+                            ),
+                          },
                         ),
                       ],
                     ),
@@ -750,6 +757,16 @@ class _MenuTabs extends StatelessWidget {
                   label: l10n.stageTab,
                   selected: selectedTab == MainMenuTab.stage,
                   onPressed: () => onSelectTab(MainMenuTab.stage),
+                ),
+              ),
+              const _MenuTabGroove(),
+              Expanded(
+                child: _TabButton(
+                  key: const ValueKey('main-menu-tab-core'),
+                  icon: Icons.diamond_outlined,
+                  label: l10n.coreTab,
+                  selected: selectedTab == MainMenuTab.core,
+                  onPressed: () => onSelectTab(MainMenuTab.core),
                 ),
               ),
               const _MenuTabGroove(),
@@ -1984,6 +2001,501 @@ class _StageIcon extends StatelessWidget {
         size: 18,
       ),
     );
+  }
+}
+
+enum _CoreMenuSelection {
+  guardianBeam,
+  coreBody,
+  passiveSlot,
+  skillTree,
+  passiveExpansion,
+  coreTraining,
+}
+
+class _CoreMenu extends StatefulWidget {
+  const _CoreMenu();
+
+  @override
+  State<_CoreMenu> createState() => _CoreMenuState();
+}
+
+class _CoreMenuState extends State<_CoreMenu> {
+  _CoreMenuSelection _selected = _CoreMenuSelection.guardianBeam;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.diamond_outlined, color: Color(0xFF8EE6FF), size: 20),
+            SizedBox(width: 8),
+            Text(
+              '넥서스 코어',
+              style: TextStyle(
+                color: Color(0xFFE8FBFF),
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        _CoreBodyPanel(
+          selected: _selected == _CoreMenuSelection.coreBody,
+          onTap: () => _select(_CoreMenuSelection.coreBody),
+        ),
+        const SizedBox(height: 10),
+        const _CoreSectionLabel(label: '영구 패시브'),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Expanded(
+              child: _CoreSlotButton(
+                icon: Icons.auto_awesome,
+                label: '수호 광선',
+                state: '기본 해금',
+                selected: _selected == _CoreMenuSelection.guardianBeam,
+                onTap: () => _select(_CoreMenuSelection.guardianBeam),
+              ),
+            ),
+            const SizedBox(width: 7),
+            Expanded(
+              child: _CoreSlotButton(
+                icon: Icons.lock_outline,
+                label: '패시브 슬롯',
+                state: '잠김',
+                locked: true,
+                selected: _selected == _CoreMenuSelection.passiveSlot,
+                onTap: () => _select(_CoreMenuSelection.passiveSlot),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        const _CoreSectionLabel(label: '코어 성장'),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 7,
+          runSpacing: 7,
+          children: [
+            _CoreGrowthButton(
+              icon: Icons.account_tree_outlined,
+              label: '스킬 트리',
+              selected: _selected == _CoreMenuSelection.skillTree,
+              onTap: () => _select(_CoreMenuSelection.skillTree),
+            ),
+            _CoreGrowthButton(
+              icon: Icons.add_circle_outline,
+              label: '슬롯 확장',
+              selected: _selected == _CoreMenuSelection.passiveExpansion,
+              onTap: () => _select(_CoreMenuSelection.passiveExpansion),
+            ),
+            _CoreGrowthButton(
+              icon: Icons.upgrade_outlined,
+              label: '코어 강화',
+              selected: _selected == _CoreMenuSelection.coreTraining,
+              onTap: () => _select(_CoreMenuSelection.coreTraining),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        _CoreDetailPanel(selection: _selected),
+      ],
+    );
+  }
+
+  void _select(_CoreMenuSelection selection) {
+    setState(() {
+      _selected = selection;
+    });
+  }
+}
+
+class _CoreBodyPanel extends StatelessWidget {
+  const _CoreBodyPanel({required this.selected, required this.onTap});
+
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xCC0E263A) : const Color(0xAA0B1B2B),
+            border: Border.all(
+              color: selected
+                  ? const Color(0xFF8EE6FF)
+                  : const Color(0x7733D8FF),
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  gradient: const RadialGradient(
+                    colors: [
+                      Color(0xFF8EE6FF),
+                      Color(0xFF155876),
+                      Color(0xFF07111D),
+                    ],
+                    stops: [0, 0.46, 1],
+                  ),
+                  border: Border.all(color: const Color(0xCC8EE6FF)),
+                  shape: BoxShape.circle,
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x6622C7E8),
+                      blurRadius: 16,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.diamond_outlined,
+                  color: Color(0xFFFFFFFF),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Lv.1 기본 코어',
+                      style: TextStyle(
+                        color: Color(0xFFE8FBFF),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    SizedBox(height: 3),
+                    Text(
+                      '코어 패시브와 해금된 기능을 확인합니다.',
+                      style: TextStyle(
+                        color: Color(0xFF8FA8BA),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right,
+                color: Color(0xFF8EE6FF),
+                size: 18,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CoreSectionLabel extends StatelessWidget {
+  const _CoreSectionLabel({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: const TextStyle(
+        color: Color(0xFFE8FBFF),
+        fontSize: 12,
+        fontWeight: FontWeight.w900,
+      ),
+    );
+  }
+}
+
+class _CoreSlotButton extends StatelessWidget {
+  const _CoreSlotButton({
+    required this.icon,
+    required this.label,
+    required this.state,
+    required this.selected,
+    required this.onTap,
+    this.locked = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String state;
+  final bool selected;
+  final bool locked;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = locked ? const Color(0xFF6D7F8F) : const Color(0xFF8EE6FF);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xAA15384B) : const Color(0x6615283A),
+            border: Border.all(
+              color: selected ? accent : const Color(0x5533D8FF),
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 17, color: accent),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: locked
+                            ? const Color(0xFF9BA8B3)
+                            : const Color(0xFFE8FBFF),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      state,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: locked
+                            ? const Color(0xFF758696)
+                            : const Color(0xFF8EE6FF),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CoreGrowthButton extends StatelessWidget {
+  const _CoreGrowthButton({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          width: 106,
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0xAA243241) : const Color(0x66111E2D),
+            border: Border.all(
+              color: selected
+                  ? const Color(0xFF8FA8BA)
+                  : const Color(0x445D7182),
+            ),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 15, color: const Color(0xFF8FA8BA)),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFE8FBFF),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.lock_outline,
+                size: 12,
+                color: Color(0xFF758696),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CoreDetailPanel extends StatelessWidget {
+  const _CoreDetailPanel({required this.selection});
+
+  final _CoreMenuSelection selection;
+
+  @override
+  Widget build(BuildContext context) {
+    final detail = _CoreDetailData.forSelection(selection);
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0x66111E2D),
+        border: Border.all(color: const Color(0x445D7182)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(detail.icon, size: 17, color: detail.accent),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Text(
+                  detail.title,
+                  style: const TextStyle(
+                    color: Color(0xFFE8FBFF),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              if (detail.locked)
+                const Icon(
+                  Icons.lock_outline,
+                  color: Color(0xFF758696),
+                  size: 15,
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...detail.lines.map(
+            (line) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                line,
+                style: const TextStyle(
+                  color: Color(0xFF8FA8BA),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  height: 1.25,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CoreDetailData {
+  const _CoreDetailData({
+    required this.title,
+    required this.icon,
+    required this.lines,
+    required this.accent,
+    this.locked = false,
+  });
+
+  final String title;
+  final IconData icon;
+  final List<String> lines;
+  final Color accent;
+  final bool locked;
+
+  static _CoreDetailData forSelection(_CoreMenuSelection selection) {
+    switch (selection) {
+      case _CoreMenuSelection.guardianBeam:
+        return const _CoreDetailData(
+          title: '수호 광선',
+          icon: Icons.auto_awesome,
+          accent: Color(0xFF8EE6FF),
+          lines: [
+            '기본으로 해금된 코어 패시브입니다.',
+            '웨이브 중 5초마다 자동 발사합니다.',
+            '선두 적을 우선 공격합니다.',
+          ],
+        );
+      case _CoreMenuSelection.coreBody:
+        return const _CoreDetailData(
+          title: 'Lv.1 기본 코어',
+          icon: Icons.diamond_outlined,
+          accent: Color(0xFF8EE6FF),
+          lines: ['넥서스를 보조하는 핵심 장치입니다.', '현재는 기본 패시브만 사용할 수 있습니다.'],
+        );
+      case _CoreMenuSelection.passiveSlot:
+        return const _CoreDetailData(
+          title: '패시브 슬롯 잠김',
+          icon: Icons.lock_outline,
+          accent: Color(0xFF8FA8BA),
+          locked: true,
+          lines: ['추후 코어 성장으로 추가 패시브 슬롯을 해금합니다.'],
+        );
+      case _CoreMenuSelection.skillTree:
+        return const _CoreDetailData(
+          title: '스킬 트리 잠김',
+          icon: Icons.account_tree_outlined,
+          accent: Color(0xFF8FA8BA),
+          locked: true,
+          lines: ['코어의 능력을 단계적으로 강화할 수 있게 됩니다.'],
+        );
+      case _CoreMenuSelection.passiveExpansion:
+        return const _CoreDetailData(
+          title: '슬롯 확장 잠김',
+          icon: Icons.add_circle_outline,
+          accent: Color(0xFF8FA8BA),
+          locked: true,
+          lines: ['더 많은 코어 패시브를 장착할 수 있게 됩니다.'],
+        );
+      case _CoreMenuSelection.coreTraining:
+        return const _CoreDetailData(
+          title: '코어 강화 잠김',
+          icon: Icons.upgrade_outlined,
+          accent: Color(0xFF8FA8BA),
+          locked: true,
+          lines: ['코어의 기본 능력을 강화할 수 있게 됩니다.'],
+        );
+    }
   }
 }
 

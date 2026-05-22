@@ -1309,6 +1309,58 @@ void main() {
     );
   });
 
+  test(
+    'nexus core beam periodically damages enemies from turret DPS',
+    () async {
+      final game = RuneNexusGame(
+        saveRepository: MemorySaveRepository(),
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 0,
+          ),
+        ],
+      );
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      game.tryBuildTurret(const GridPoint(2, 0));
+
+      final arrow = gameTurrets[TurretType.arrow]!;
+      final expectedBeamDamage = arrow.damage * arrow.attackRate * 5 * 0.08;
+      expect(
+        game.snapshotNotifier.value.nexusCoreBeamDamage,
+        closeTo(expectedBeamDamage, 0.001),
+      );
+
+      final backEnemy = EnemyComponent(
+        definition: gameEnemies[EnemyType.normal]!,
+        maxHp: 100,
+        path: [Vector2.zero(), Vector2(200, 0)],
+        game: game,
+      )..distanceTravelled = 10;
+      final frontEnemy = EnemyComponent(
+        definition: gameEnemies[EnemyType.normal]!,
+        maxHp: 100,
+        path: [Vector2.zero(), Vector2(200, 0)],
+        game: game,
+      )..distanceTravelled = 80;
+      await game.add(backEnemy);
+      await game.add(frontEnemy);
+      game.update(0);
+      game.startNextWave();
+      game.enemies.addAll([backEnemy, frontEnemy]);
+
+      game.update(5);
+
+      expect(game.nexusCoreBeamActive, isTrue);
+      expect(game.nexusCoreBeamCooldownSeconds, 0);
+      expect(frontEnemy.hp, lessThan(frontEnemy.maxHp));
+      expect(backEnemy.hp, backEnemy.maxHp);
+    },
+  );
+
   test('status gems are removed from the reward pool', () {
     final gemNames = GemType.values.map((type) => type.name);
 

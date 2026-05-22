@@ -21,6 +21,7 @@ class RuneNexusLocalizations {
 
   String get appTitle => 'Rune Nexus';
   String get stageTab => _isEnglish ? 'Stage' : '스테이지';
+  String get coreTab => _isEnglish ? 'Core' : '코어';
   String get permanentUpgradeTab => _isEnglish ? 'Upgrade' : '강화';
   String get researchTab => _isEnglish ? 'Research' : '연구';
   String get runes => _isEnglish ? 'Runes' : '룬';

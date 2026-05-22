@@ -124,6 +124,16 @@ void main() {
 
     expect(find.text('Rune Nexus'), findsOneWidget);
 
+    await tester.tap(find.text('코어'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('Rune Nexus'), findsOneWidget);
+    expect(find.text('넥서스 코어'), findsOneWidget);
+    expect(find.text('영구 패시브'), findsOneWidget);
+    expect(find.text('수호 광선'), findsWidgets);
+    expect(find.text('예상 피해'), findsNothing);
+    expect(find.text('평균 DPS 8%'), findsNothing);
+
     await tester.tap(find.text('강화'));
     await _pumpGameFrames(tester);
 
@@ -147,6 +157,7 @@ void main() {
     expect(find.text('적을 처치할 때 획득하는 골드가 증가합니다.'), findsNothing);
     expect(find.text('포탑을 환불할 때 돌려받는 골드 비율이 증가합니다.'), findsNothing);
     expect(find.text('스테이지'), findsOneWidget);
+    expect(find.text('코어'), findsOneWidget);
     expect(find.text('강화'), findsOneWidget);
     expect(find.text('연구'), findsOneWidget);
 
@@ -176,10 +187,39 @@ void main() {
 
     expect(find.text('연구 보드'), findsOneWidget);
 
+    await tester.tapAt(_tabLeadingEdge(tester, 'main-menu-tab-core'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('넥서스 코어'), findsOneWidget);
+
     await tester.tapAt(_tabLeadingEdge(tester, 'main-menu-tab-stage'));
     await _pumpGameFrames(tester);
 
     expect(find.text('스테이지 1'), findsOneWidget);
+  });
+
+  testWidgets('core menu keeps run-only combat data out of main menu', (
+    tester,
+  ) async {
+    await _pumpLoadedApp(tester);
+
+    await tester.tap(find.text('코어'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('넥서스 코어'), findsOneWidget);
+    expect(find.text('영구 패시브'), findsOneWidget);
+    expect(find.text('코어 성장'), findsOneWidget);
+    expect(find.text('예상 피해'), findsNothing);
+    expect(find.text('포탑 배치 필요'), findsNothing);
+    expect(find.text('평균 DPS 8%'), findsNothing);
+    expect(find.text('코어 젬 슬롯'), findsNothing);
+    expect(find.text('젬 공명'), findsNothing);
+
+    await tester.tap(find.text('슬롯 확장'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('슬롯 확장 잠김'), findsOneWidget);
+    expect(find.text('더 많은 코어 패시브를 장착할 수 있게 됩니다.'), findsOneWidget);
   });
 
   testWidgets('stage cards fit on narrow menu width', (tester) async {
@@ -1081,6 +1121,10 @@ GameSnapshot _resultSnapshot({
     topDamageTurretName: null,
     topDamageTurretDamageDealt: 0,
     totalTurretDps: 0,
+    nexusCoreBeamIntervalSeconds: 5,
+    nexusCoreBeamCooldownSeconds: 5,
+    nexusCoreBeamActive: false,
+    nexusCoreBeamDamage: 0,
     nextWaveEnemyTypes: const [],
     nextWaveEnemyCounts: const {},
     nextWaveClearRewardGold: 0,

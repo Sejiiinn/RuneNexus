@@ -38,6 +38,7 @@ import 'components/death_burst_effect_component.dart';
 import 'components/enemy_component.dart';
 import 'components/grid_component.dart';
 import 'components/impact_effect_component.dart';
+import 'components/nexus_core_beam_component.dart';
 import 'components/projectile_component.dart';
 import 'components/sniper_chain_beam_component.dart';
 import 'components/turret_component.dart';
@@ -84,6 +85,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _portalAlertDuration = 0.55;
   static const double _postPortalAlertSpawnDelay = 0.15;
   static const double _combatStatsPublishInterval = 0.2;
+  static const double _nexusCoreBeamInterval = 5;
+  static const double _nexusCoreBeamDuration = 1;
+  static const double _nexusCoreBeamTickInterval = 0.1;
+  static const double _nexusCoreBeamDpsRate = 0.08;
+  static const double _nexusCoreBeamMinNormalHpRate = 0.10;
+  static const double _nexusCoreBeamEnemyHpCapRate = 0.35;
+  static const double _nexusCoreBeamBossHpCapRate = 0.025;
+  static const Color _nexusCoreBeamColor = Color(0xFF8EE6FF);
 
   static List<StageDefinition> _buildInitialStages({
     StageDefinition? stage,
@@ -209,6 +218,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       topDamageTurretName: null,
       topDamageTurretDamageDealt: 0,
       totalTurretDps: 0,
+      nexusCoreBeamIntervalSeconds: _nexusCoreBeamInterval,
+      nexusCoreBeamCooldownSeconds: _nexusCoreBeamInterval,
+      nexusCoreBeamActive: false,
+      nexusCoreBeamDamage: 0,
       nextWaveEnemyTypes: _enemyTypesFor(firstWave),
       nextWaveEnemyCounts: _enemyCountsFor(firstWave),
       nextWaveClearRewardGold: firstWave.clearRewardGold,
@@ -423,6 +436,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   bool _combatStatsPublishPending = false;
   bool _appResourcesDisposed = false;
   double _spaceTime = 0;
+  double _nexusCoreBeamCooldown = _nexusCoreBeamInterval;
+  double _nexusCoreBeamActiveRemaining = 0;
+  double _nexusCoreBeamTickTimer = 0;
+  double _nexusCoreBeamTickDamage = 0;
 
   bool get isWaveRunning => _phase == GamePhase.wave || _debugCombatActive;
   double get boardDistanceScale =>
@@ -468,6 +485,24 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       (_runUpgradeLevel(RunUpgradeType.waveGold) *
               gameRunUpgrades[RunUpgradeType.waveGold]!.effectPerLevel)
           .round();
+  double get _totalTurretDps =>
+      _turrets.values.fold<double>(0, (total, turret) {
+        final directDps = turret.attackRate <= 0
+            ? 0.0
+            : turret.damage * turret.attackRate;
+        final burnDps = _turretBurnDamagePerSecondAtLevel(turret, turret.level);
+        return total + directDps + burnDps;
+      });
+  double get nexusCoreBeamIntervalSeconds => _nexusCoreBeamInterval;
+  double get nexusCoreBeamCooldownSeconds {
+    if (_nexusCoreBeamActiveRemaining > 0) {
+      return 0;
+    }
+    return _nexusCoreBeamCooldown.clamp(0.0, _nexusCoreBeamInterval).toDouble();
+  }
+
+  bool get nexusCoreBeamActive => _nexusCoreBeamActiveRemaining > 0;
+  double get nexusCoreBeamDamage => _nexusCoreBeamTotalDamage();
 
   int _runUpgradeLevel(RunUpgradeType type) {
     final definition = gameRunUpgrades[type];
@@ -585,6 +620,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     _updateWaveSpawns(scaledDt);
+    _updateNexusCoreBeam(scaledDt);
     _checkWaveClear();
     _requestLocalSave();
   }
@@ -816,6 +852,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedBuildTurretType = null;
     _selectedPortalPoint = null;
     _selectedTurretGemSlotIndex = null;
+    _resetNexusCoreBeamCycle();
     _triggerPortalAlert();
     final initialSpawnDelay = _boardConfigured
         ? (_portalAlertDuration + _postPortalAlertSpawnDelay) * _speedMultiplier
@@ -2170,6 +2207,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       component.removeFromParent();
     }
     for (final component
+        in children.whereType<NexusCoreBeamComponent>().toList()) {
+      component.removeFromParent();
+    }
+    for (final component
         in children.whereType<ImpactEffectComponent>().toList()) {
       component.removeFromParent();
     }
@@ -2177,6 +2218,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         in children.whereType<DamageNumberComponent>().toList()) {
       component.removeFromParent();
     }
+    _resetNexusCoreBeamCycle();
   }
 
   @override
@@ -2185,6 +2227,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     canvas.save();
     _applyBoardZoom(canvas);
     super.render(canvas);
+    _drawNexusCoreCooldownBar(canvas);
     _drawBuildSelection(canvas);
     canvas.restore();
     _drawNexusScreenAlert(canvas);
@@ -2297,6 +2340,60 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         ..color = const Color(0x668EE6FF)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3,
+    );
+  }
+
+  void _drawNexusCoreCooldownBar(Canvas canvas) {
+    if (_phase != GamePhase.wave || _worldPath.isEmpty) {
+      return;
+    }
+
+    final center = _nexusCorePosition();
+    final progress = _nexusCoreBeamActiveRemaining > 0
+        ? 1.0
+        : (1 - _nexusCoreBeamCooldown / _nexusCoreBeamInterval)
+              .clamp(0.0, 1.0)
+              .toDouble();
+    final barWidth = _tileSize * 0.86;
+    final barHeight = math.max(4.0, _tileSize * 0.11);
+    final topLeft = Offset(
+      center.x - barWidth / 2,
+      center.y + _tileSize * 0.56,
+    );
+    final rect = Rect.fromLTWH(topLeft.dx, topLeft.dy, barWidth, barHeight);
+    final radius = Radius.circular(barHeight / 2);
+    final background = RRect.fromRectAndRadius(rect, radius);
+    final fillWidth = (barWidth * progress).clamp(0.0, barWidth).toDouble();
+    final fillRect = Rect.fromLTWH(rect.left, rect.top, fillWidth, rect.height);
+    final activeGlow = _nexusCoreBeamActiveRemaining > 0 ? 1.0 : 0.0;
+
+    canvas.drawRRect(
+      background.inflate(1.8),
+      Paint()..color = const Color(0xEE02070D),
+    );
+    canvas.drawRRect(background, Paint()..color = const Color(0xAA102434));
+    if (fillWidth > 0) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(fillRect, radius),
+        Paint()
+          ..shader = LinearGradient(
+            colors: [
+              const Color(0xFF2BA9C9),
+              Color.lerp(
+                const Color(0xFF75EAFF),
+                const Color(0xFFFFFFFF),
+                activeGlow,
+              )!,
+            ],
+          ).createShader(rect),
+      );
+    }
+    canvas.drawRRect(
+      background,
+      Paint()
+        ..color = const Color(0xAA8EE6FF)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2,
     );
   }
 
@@ -2453,6 +2550,132 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _debugEnemies.add(enemy);
     }
     add(enemy);
+  }
+
+  void _resetNexusCoreBeamCycle() {
+    _nexusCoreBeamCooldown = _nexusCoreBeamInterval;
+    _nexusCoreBeamActiveRemaining = 0;
+    _nexusCoreBeamTickTimer = 0;
+    _nexusCoreBeamTickDamage = 0;
+  }
+
+  void _updateNexusCoreBeam(double dt) {
+    if (dt <= 0) {
+      return;
+    }
+    if (_nexusCoreBeamActiveRemaining > 0) {
+      _updateActiveNexusCoreBeam(dt);
+      return;
+    }
+
+    _nexusCoreBeamCooldown = math.max(0, _nexusCoreBeamCooldown - dt);
+    if (_nexusCoreBeamCooldown > 0 || enemies.isEmpty) {
+      return;
+    }
+
+    _nexusCoreBeamActiveRemaining = _nexusCoreBeamDuration;
+    _nexusCoreBeamTickTimer = 0;
+    _nexusCoreBeamTickDamage =
+        _nexusCoreBeamTotalDamage() /
+        (_nexusCoreBeamDuration / _nexusCoreBeamTickInterval);
+    _updateActiveNexusCoreBeam(0);
+    _requestCombatStatsPublish();
+  }
+
+  void _updateActiveNexusCoreBeam(double dt) {
+    _nexusCoreBeamActiveRemaining = math.max(
+      0,
+      _nexusCoreBeamActiveRemaining - dt,
+    );
+    _nexusCoreBeamTickTimer -= dt;
+    while (_nexusCoreBeamTickTimer <= 0 && _nexusCoreBeamActiveRemaining > 0) {
+      _nexusCoreBeamTickTimer += _nexusCoreBeamTickInterval;
+      _applyNexusCoreBeamTick();
+    }
+
+    if (_nexusCoreBeamActiveRemaining <= 0) {
+      _nexusCoreBeamCooldown = _nexusCoreBeamInterval;
+      _nexusCoreBeamTickTimer = 0;
+      _nexusCoreBeamTickDamage = 0;
+      _requestCombatStatsPublish();
+    }
+  }
+
+  void _applyNexusCoreBeamTick() {
+    final target = _nexusCoreBeamTarget();
+    if (target == null) {
+      return;
+    }
+    final capRate = target.definition.type == EnemyType.boss
+        ? _nexusCoreBeamBossHpCapRate
+        : _nexusCoreBeamEnemyHpCapRate;
+    final tickCap =
+        target.maxHp *
+        capRate *
+        (_nexusCoreBeamTickInterval / _nexusCoreBeamDuration);
+    final damage = math.min(_nexusCoreBeamTickDamage, tickCap);
+    if (damage <= 0) {
+      return;
+    }
+
+    target.showHitFlash(_nexusCoreBeamColor);
+    final actualDamage = target.receiveDamage(damage);
+    if (actualDamage <= 0) {
+      return;
+    }
+    add(
+      NexusCoreBeamComponent(
+        start: _nexusCorePosition(),
+        target: target,
+        color: _nexusCoreBeamColor,
+        game: this,
+      ),
+    );
+    showDamageNumber(
+      position: target.position.clone(),
+      damage: actualDamage,
+      color: _nexusCoreBeamColor,
+    );
+    _requestCombatStatsPublish();
+  }
+
+  EnemyComponent? _nexusCoreBeamTarget() {
+    EnemyComponent? selected;
+    var selectedProgress = double.negativeInfinity;
+    for (final enemy in enemies) {
+      if (enemy.isDead) {
+        continue;
+      }
+      if (enemy.distanceTravelled > selectedProgress) {
+        selected = enemy;
+        selectedProgress = enemy.distanceTravelled;
+      }
+    }
+    return selected;
+  }
+
+  Vector2 _nexusCorePosition() {
+    if (_worldPath.isEmpty) {
+      return _boardCenter();
+    }
+    return _worldPath.last.clone();
+  }
+
+  double _nexusCoreBeamTotalDamage() {
+    final round = _roundIndex < _waves.length
+        ? _waves[_roundIndex].round
+        : _waves.last.round;
+    final minimumDamage =
+        scaledEnemyMaxHp(
+          gameEnemies[EnemyType.normal]!,
+          round,
+          stageNumber: _currentStageNumber,
+        ) *
+        _nexusCoreBeamMinNormalHpRate;
+    return math.max(
+      minimumDamage,
+      _totalTurretDps * _nexusCoreBeamInterval * _nexusCoreBeamDpsRate,
+    );
   }
 
   void _checkWaveClear() {
