@@ -227,14 +227,14 @@ void main() {
       progression.nexusHpUpgradeLevel,
       RunProgression.maxNexusHpUpgradeLevel,
     );
-    expect(progression.initialGold, 250);
+    expect(progression.initialGold, 350);
     expect(progression.maxNexusHp, 30);
     expect(progression.runes, 7530);
 
     progression.startingGoldUpgradeLevel = 99;
     progression.nexusHpUpgradeLevel = 99;
 
-    expect(progression.initialGold, 250);
+    expect(progression.initialGold, 350);
     expect(progression.maxNexusHp, 30);
   });
 

@@ -64,7 +64,7 @@ class _TurretButton extends StatelessWidget {
               ),
             ),
             Text(
-              selected ? '선택됨 · $cost G' : '$cost G',
+              '$cost G',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(

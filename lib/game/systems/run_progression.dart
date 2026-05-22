@@ -27,7 +27,7 @@ class RunProgression {
   static const int startingGoldUpgradeBaseCost = 4;
   static const int startingGoldUpgradeCostPerLevel = 3;
   static const double startingGoldUpgradeCostMultiplier = 1.08;
-  static const int startingGoldPerUpgradeLevel = 5;
+  static const int startingGoldPerUpgradeLevel = 10;
   static const int nexusHpUpgradeBaseCost = 14;
   static const int nexusHpUpgradeCostPerLevel = 5;
   static const double nexusHpUpgradeCostMultiplier = 1.10;
