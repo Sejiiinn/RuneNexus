@@ -30,6 +30,12 @@ enum _PermanentUpgradeGroup { combat, economy }
 const int _stageChapterSize = 5;
 const int _visibleStageChapterCount = 3;
 const double _stageRowHeight = 54;
+const String _stageChapterOneBannerAsset = 'assets/images/chapter_1_banner.png';
+const String _stageChapterTwoBannerAsset = 'assets/images/chapter_2_banner.png';
+const List<String> _stageChapterBannerAssets = [
+  _stageChapterOneBannerAsset,
+  _stageChapterTwoBannerAsset,
+];
 
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({
@@ -56,12 +62,25 @@ class MainMenuScreen extends StatefulWidget {
 class _MainMenuScreenState extends State<MainMenuScreen> {
   _PermanentUpgradeGroup _selectedUpgradeGroup = _PermanentUpgradeGroup.combat;
   bool _showMenuDebugPanel = false;
+  bool _chapterBannersPrecached = false;
   Timer? _researchClockTimer;
 
   @override
   void initState() {
     super.initState();
     _syncResearchClockTimer();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_chapterBannersPrecached) {
+      return;
+    }
+    _chapterBannersPrecached = true;
+    for (final asset in _stageChapterBannerAssets) {
+      unawaited(precacheImage(AssetImage(asset), context));
+    }
   }
 
   @override
@@ -726,6 +745,7 @@ class _MenuTabs extends StatelessWidget {
             children: [
               Expanded(
                 child: _TabButton(
+                  key: const ValueKey('main-menu-tab-stage'),
                   icon: Icons.flag_outlined,
                   label: l10n.stageTab,
                   selected: selectedTab == MainMenuTab.stage,
@@ -735,6 +755,7 @@ class _MenuTabs extends StatelessWidget {
               const _MenuTabGroove(),
               Expanded(
                 child: _TabButton(
+                  key: const ValueKey('main-menu-tab-upgrades'),
                   icon: Icons.auto_awesome,
                   label: l10n.permanentUpgradeTab,
                   selected: selectedTab == MainMenuTab.permanentUpgrades,
@@ -744,6 +765,7 @@ class _MenuTabs extends StatelessWidget {
               const _MenuTabGroove(),
               Expanded(
                 child: _TabButton(
+                  key: const ValueKey('main-menu-tab-research'),
                   icon: Icons.science_outlined,
                   label: l10n.researchTab,
                   selected: selectedTab == MainMenuTab.research,
@@ -965,6 +987,7 @@ class _UpgradeGroupTabButton extends StatelessWidget {
 
 class _TabButton extends StatelessWidget {
   const _TabButton({
+    super.key,
     required this.icon,
     required this.label,
     required this.selected,
@@ -988,92 +1011,94 @@ class _TabButton extends StatelessWidget {
       label: label,
       child: Material(
         color: Colors.transparent,
-        child: InkResponse(
+        child: InkWell(
           onTap: onPressed,
-          containedInkWell: false,
-          radius: 42,
+          borderRadius: BorderRadius.circular(4),
           splashColor: const Color(0x1A8EE6FF),
           highlightColor: const Color(0x1022C7E8),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              if (selected) ...[
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        center: Alignment.bottomCenter,
-                        radius: 1.28,
-                        colors: [
-                          const Color(0xFF22C7E8).withValues(alpha: 0.28),
-                          const Color(0xFF22C7E8).withValues(alpha: 0.08),
-                          Colors.transparent,
-                        ],
-                        stops: const [0, 0.42, 1],
+          child: SizedBox.expand(
+            child: Stack(
+              fit: StackFit.expand,
+              alignment: Alignment.center,
+              children: [
+                if (selected) ...[
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: Alignment.bottomCenter,
+                          radius: 1.28,
+                          colors: [
+                            const Color(0xFF22C7E8).withValues(alpha: 0.28),
+                            const Color(0xFF22C7E8).withValues(alpha: 0.08),
+                            Colors.transparent,
+                          ],
+                          stops: const [0, 0.42, 1],
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Positioned(
-                  left: 18,
-                  right: 18,
-                  bottom: 0,
-                  child: Container(
-                    height: 3,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(2),
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0x008EE6FF),
-                          Color(0xFF8EE6FF),
-                          Color(0x008EE6FF),
+                  Positioned(
+                    left: 18,
+                    right: 18,
+                    bottom: 0,
+                    child: Container(
+                      height: 3,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(2),
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0x008EE6FF),
+                            Color(0xFF8EE6FF),
+                            Color(0x008EE6FF),
+                          ],
+                        ),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0xAA22C7E8),
+                            blurRadius: 7,
+                            spreadRadius: 1,
+                          ),
                         ],
                       ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0xAA22C7E8),
-                          blurRadius: 7,
-                          spreadRadius: 1,
-                        ),
-                      ],
                     ),
+                  ),
+                ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        icon,
+                        size: selected ? 18 : 17,
+                        color: foregroundColor,
+                        shadows: selected
+                            ? const [
+                                Shadow(color: Color(0xAA22C7E8), blurRadius: 8),
+                              ]
+                            : null,
+                      ),
+                      const SizedBox(width: 7),
+                      Flexible(
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 13,
+                            fontWeight: selected
+                                ? FontWeight.w800
+                                : FontWeight.w700,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      icon,
-                      size: selected ? 18 : 17,
-                      color: foregroundColor,
-                      shadows: selected
-                          ? const [
-                              Shadow(color: Color(0xAA22C7E8), blurRadius: 8),
-                            ]
-                          : null,
-                    ),
-                    const SizedBox(width: 7),
-                    Flexible(
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          color: textColor,
-                          fontSize: 13,
-                          fontWeight: selected
-                              ? FontWeight.w800
-                              : FontWeight.w700,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -1229,13 +1254,13 @@ class _StageChapterTheme {
       return const _StageChapterTheme(
         accent: Color(0xFF5CF9E9),
         secondary: Color(0xFFB68BFF),
-        bannerAsset: 'assets/images/chapter_2_banner.png',
+        bannerAsset: _stageChapterTwoBannerAsset,
       );
     }
     return const _StageChapterTheme(
       accent: Color(0xFF8EE6FF),
       secondary: Color(0xFFE7C66A),
-      bannerAsset: 'assets/images/chapter_1_banner.png',
+      bannerAsset: _stageChapterOneBannerAsset,
     );
   }
 }

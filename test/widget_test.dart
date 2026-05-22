@@ -166,6 +166,22 @@ void main() {
     expect(find.text('Rune Nexus'), findsOneWidget);
   });
 
+  testWidgets('main menu tabs respond across the whole button area', (
+    tester,
+  ) async {
+    await _pumpLoadedApp(tester);
+
+    await tester.tapAt(_tabLeadingEdge(tester, 'main-menu-tab-research'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('연구 보드'), findsOneWidget);
+
+    await tester.tapAt(_tabLeadingEdge(tester, 'main-menu-tab-stage'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('스테이지 1'), findsOneWidget);
+  });
+
   testWidgets('stage cards fit on narrow menu width', (tester) async {
     tester.view.physicalSize = const Size(360, 720);
     tester.view.devicePixelRatio = 1;
@@ -916,6 +932,11 @@ Future<void> _pumpLoadedApp(WidgetTester tester) async {
     RuneNexusApp(game: RuneNexusGame(saveRepository: MemorySaveRepository())),
   );
   await _pumpUntilFound(tester, find.text('Rune Nexus'));
+}
+
+Offset _tabLeadingEdge(WidgetTester tester, String key) {
+  final rect = tester.getRect(find.byKey(ValueKey(key)));
+  return Offset(rect.left + 8, rect.center.dy);
 }
 
 Finder _stageChipText(String text) {
