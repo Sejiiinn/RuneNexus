@@ -11,6 +11,7 @@ import 'package:rune_nexus/domain/map/grid_point.dart';
 import 'package:rune_nexus/domain/research/research_progress.dart';
 import 'package:rune_nexus/domain/research/research_type.dart';
 import 'package:rune_nexus/domain/turret/turret_target_priority.dart';
+import 'package:rune_nexus/domain/turret/turret_trait_type.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/game/game_snapshot.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
@@ -807,8 +808,66 @@ void main() {
     await tester.tap(find.text('전투 교리'));
     await _pumpGameFrames(tester);
 
-    expect(find.text('1차 특성 선택 후 후보 카드가 열립니다.'), findsOneWidget);
+    expect(find.text('제압 사격'), findsOneWidget);
+    expect(find.text('연쇄 소탕'), findsOneWidget);
+    expect(find.text('1차 특성 선택 후 후보 카드가 열립니다.'), findsNothing);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('trait dialog previews first tap and confirms second tap', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {},
+        researchLevels: const {},
+        gold: 1000,
+        gemShards: RuneNexusGame.primaryTraitCost,
+      );
+    final game = RuneNexusGame(saveRepository: repository);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          backgroundColor: const Color(0xFF07111D),
+          body: GameHud(game: game),
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester, frameCount: 10);
+    game.tryBuildTurret(const GridPoint(2, 0));
+    while (game.snapshotNotifier.value.selectedTurretLevel < 3) {
+      game.levelUpSelectedTurret();
+    }
+    await _pumpGameFrames(tester);
+
+    await tester.tap(find.byTooltip('특성'));
+    await _pumpGameFrames(tester);
+    await tester.tap(find.text('과열 탄창'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('선택'), findsOneWidget);
+    expect(find.text('기관총 특성'), findsOneWidget);
+    expect(game.snapshotNotifier.value.selectedTurretPrimaryTrait, isNull);
+    expect(
+      game.snapshotNotifier.value.gemShards,
+      RuneNexusGame.primaryTraitCost,
+    );
+
+    await tester.tap(find.text('과열 탄창'));
+    await _pumpGameFrames(tester);
+
+    expect(
+      game.snapshotNotifier.value.selectedTurretPrimaryTrait,
+      TurretTraitType.overheatMagazine,
+    );
+    expect(game.snapshotNotifier.value.gemShards, 0);
   });
 
   testWidgets('menu clock refreshes active research completion', (
@@ -1074,12 +1133,14 @@ class _ResearchRefreshGame extends RuneNexusGame {
 GameSaveData _saveWithResearch({
   required Set<int> clearedStageNumbers,
   required Map<ResearchType, int> researchLevels,
+  int gold = 150,
+  int gemShards = 0,
 }) {
   return GameSaveData(
     version: GameSaveData.currentVersion,
     savedAtMillis: 0,
-    gold: 150,
-    gemShards: 0,
+    gold: gold,
+    gemShards: gemShards,
     nexusHp: 20,
     stageNumber: 1,
     mapSignature: null,

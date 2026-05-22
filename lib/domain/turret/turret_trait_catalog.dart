@@ -35,6 +35,10 @@ const turretTraitCatalog = <TurretType, TurretTraitSet>{
     primary: [TurretTraitType.coolingCycle, TurretTraitType.spreadingChill],
     secondary: [TurretTraitType.frostCrack, TurretTraitType.rapidCooling],
   ),
+  TurretType.sniper: TurretTraitSet(
+    primary: [TurretTraitType.deadeyeFocus, TurretTraitType.quickScope],
+    secondary: [TurretTraitType.exposedMark, TurretTraitType.finishingShot],
+  ),
 };
 
 TurretTraitSet turretTraitSetFor(TurretType type) {

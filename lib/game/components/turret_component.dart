@@ -292,7 +292,9 @@ class TurretComponent extends PositionComponent {
   double get criticalChance {
     final bonus =
         (hasGem(GemType.criticalChance) ? 0.2 : 0.0) +
-        game.criticalChanceProgressionBonusRate;
+        game.criticalChanceProgressionBonusRate +
+        (_primaryTrait == TurretTraitType.deadeyeFocus ? 0.2 : 0.0) -
+        (_primaryTrait == TurretTraitType.quickScope ? 0.05 : 0.0);
     return (definition.criticalChance + bonus).clamp(0.0, 1.0).toDouble();
   }
 
@@ -310,9 +312,17 @@ class TurretComponent extends PositionComponent {
     }
     final targetLevel = level.clamp(1, maxLevel).toInt();
     final gemAimSpeedBonus = hasGem(GemType.aimSpeed) ? 0.75 : 0.0;
+    final traitAimSpeedBonus = switch (_primaryTrait) {
+      TurretTraitType.deadeyeFocus => -0.2,
+      TurretTraitType.quickScope => 0.4,
+      _ => 0.0,
+    };
     final aimSpeedMultiplier =
-        1 + (targetLevel - 1) * _aimSpeedGrowthPerLevel + gemAimSpeedBonus;
-    return definition.aimDuration / aimSpeedMultiplier;
+        1 +
+        (targetLevel - 1) * _aimSpeedGrowthPerLevel +
+        gemAimSpeedBonus +
+        traitAimSpeedBonus;
+    return definition.aimDuration / math.max(0.1, aimSpeedMultiplier);
   }
 
   double get aimProgressRatio {
@@ -453,6 +463,10 @@ class TurretComponent extends PositionComponent {
         _suppressiveHits = 0;
       }
     }
+    if (_secondaryTrait == TurretTraitType.exposedMark) {
+      enemy.applyPhysicalVulnerability(bonus: 0.15, duration: 2);
+    }
+    var multiplier = 1.0;
     if (_primaryTrait == TurretTraitType.overheatMagazine) {
       if (identical(_overheatTarget, enemy)) {
         _overheatStacks = math.min(15, _overheatStacks + 1);
@@ -460,12 +474,26 @@ class TurretComponent extends PositionComponent {
         _overheatTarget = enemy;
         _overheatStacks = 1;
       }
-      return 1 + _overheatStacks * 0.02;
+      multiplier *= 1 + _overheatStacks * 0.02;
     }
     if (_primaryTrait == TurretTraitType.compressedCharge) {
-      return 1.35;
+      multiplier *= 1.35;
     }
-    return 1;
+    if (_secondaryTrait == TurretTraitType.finishingShot &&
+        _durabilityRatio(enemy) <= 0.35) {
+      multiplier *= 1.45;
+    }
+    return multiplier;
+  }
+
+  double _durabilityRatio(EnemyComponent enemy) {
+    final maxDurability = enemy.maxHp + enemy.maxArmor + enemy.maxShield;
+    if (maxDurability <= 0) {
+      return 1;
+    }
+    final currentDurability =
+        enemy.hp + math.max(0, enemy.armor) + math.max(0, enemy.shield);
+    return (currentDurability / maxDurability).clamp(0.0, 1.0).toDouble();
   }
 
   void handleEnemyKilled(EnemyComponent enemy) {

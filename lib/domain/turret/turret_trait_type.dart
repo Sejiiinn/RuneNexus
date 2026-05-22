@@ -15,6 +15,10 @@ enum TurretTraitType {
   chainCleanup,
   expandedBlastCore,
   fractureImpact,
+  deadeyeFocus,
+  quickScope,
+  exposedMark,
+  finishingShot,
 }
 
 extension TurretTraitTypeText on TurretTraitType {
@@ -36,6 +40,10 @@ extension TurretTraitTypeText on TurretTraitType {
       TurretTraitType.chainCleanup => '연쇄 소탕',
       TurretTraitType.expandedBlastCore => '확장 폭심',
       TurretTraitType.fractureImpact => '파쇄 충격',
+      TurretTraitType.deadeyeFocus => '백발 조준',
+      TurretTraitType.quickScope => '속사 조준',
+      TurretTraitType.exposedMark => '노출 표식',
+      TurretTraitType.finishingShot => '마무리 탄환',
     };
   }
 
@@ -57,6 +65,10 @@ extension TurretTraitTypeText on TurretTraitType {
       TurretTraitType.chainCleanup => '최근 명중 관여 처치 시 3초간 공격 속도 40% 증폭',
       TurretTraitType.expandedBlastCore => '폭발 반경 +40%, 주변 피해 배율 +10%p',
       TurretTraitType.fractureImpact => '타격 대상 물리 저항 -20%',
+      TurretTraitType.deadeyeFocus => '조준 속도 -20%, 치명타 확률 +20%p',
+      TurretTraitType.quickScope => '조준 속도 +40%, 치명타 확률 -5%p',
+      TurretTraitType.exposedMark => '명중 대상 2초간 물리 저항 -15%',
+      TurretTraitType.finishingShot => '내구도 35% 이하 대상 피해 45% 증폭',
     };
   }
 }

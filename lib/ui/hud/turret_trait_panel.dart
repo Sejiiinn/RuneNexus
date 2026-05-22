@@ -93,6 +93,8 @@ class _TurretTraitDialogState extends State<_TurretTraitDialog> {
   late int _selectedTier = widget.snapshot.selectedTurretPrimaryTrait != null
       ? 2
       : 1;
+  int? _previewTier;
+  TurretTraitType? _previewTrait;
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +148,7 @@ class _TurretTraitDialogState extends State<_TurretTraitDialog> {
                         active: _selectedTier == 1,
                         enabled: primaryChoices.isNotEmpty,
                         blockedText: primaryBlockedText,
-                        onTap: () => setState(() => _selectedTier = 1),
+                        onTap: () => _selectTier(1),
                       ),
                     ),
                     const SizedBox(width: 7),
@@ -158,7 +160,7 @@ class _TurretTraitDialogState extends State<_TurretTraitDialog> {
                         active: _selectedTier == 2,
                         enabled: secondaryChoices.isNotEmpty,
                         blockedText: secondaryBlockedText,
-                        onTap: () => setState(() => _selectedTier = 2),
+                        onTap: () => _selectTier(2),
                       ),
                     ),
                   ],
@@ -176,20 +178,23 @@ class _TurretTraitDialogState extends State<_TurretTraitDialog> {
                           choices: primaryChoices,
                           enabled: canChoosePrimary,
                           tier: 1,
+                          previewTrait: _previewTier == 1
+                              ? _previewTrait
+                              : null,
+                          onPreview: _previewOrConfirmTrait,
                         )
                       : _TraitTierPane(
                           tierText: '2차',
                           title: '전투 교리',
                           selectedTrait: secondary,
                           blockedText: secondaryBlockedText,
-                          choices: primary == null
-                              ? const []
-                              : secondaryChoices,
+                          choices: secondaryChoices,
                           enabled: canChooseSecondary,
                           tier: 2,
-                          emptyText: primary == null
-                              ? '1차 특성 선택 후 후보 카드가 열립니다.'
+                          previewTrait: _previewTier == 2
+                              ? _previewTrait
                               : null,
+                          onPreview: _previewOrConfirmTrait,
                         ),
                 ),
               ),
@@ -232,6 +237,25 @@ class _TurretTraitDialogState extends State<_TurretTraitDialog> {
       return '젬 파편이 ${snapshot.selectedTurretSecondaryTraitCost - snapshot.gemShards}개 부족합니다.';
     }
     return null;
+  }
+
+  void _selectTier(int tier) {
+    setState(() {
+      _selectedTier = tier;
+      _previewTier = null;
+      _previewTrait = null;
+    });
+  }
+
+  void _previewOrConfirmTrait(int tier, TurretTraitType trait) {
+    if (_previewTier == tier && _previewTrait == trait) {
+      Navigator.of(context).pop(_TraitSelection(tier: tier, trait: trait));
+      return;
+    }
+    setState(() {
+      _previewTier = tier;
+      _previewTrait = trait;
+    });
   }
 }
 
@@ -394,7 +418,8 @@ class _TraitTierPane extends StatelessWidget {
     required this.choices,
     required this.enabled,
     required this.tier,
-    this.emptyText,
+    required this.previewTrait,
+    required this.onPreview,
   });
 
   final String tierText;
@@ -404,7 +429,8 @@ class _TraitTierPane extends StatelessWidget {
   final List<TurretTraitType> choices;
   final bool enabled;
   final int tier;
-  final String? emptyText;
+  final TurretTraitType? previewTrait;
+  final void Function(int tier, TurretTraitType trait) onPreview;
 
   @override
   Widget build(BuildContext context) {
@@ -459,7 +485,7 @@ class _TraitTierPane extends StatelessWidget {
               const SizedBox(height: 7),
             ],
             if (choices.isEmpty)
-              _TraitLockedSummary(text: emptyText ?? '선택 가능한 특성이 없습니다.')
+              _TraitLockedSummary(text: '선택 가능한 특성이 없습니다.')
             else
               for (var i = 0; i < choices.length; i++) ...[
                 if (i > 0) const SizedBox(height: 6),
@@ -467,6 +493,8 @@ class _TraitTierPane extends StatelessWidget {
                   trait: choices[i],
                   enabled: enabled,
                   tier: tier,
+                  previewed: previewTrait == choices[i],
+                  onPreview: onPreview,
                 ),
               ],
           ],
@@ -559,31 +587,38 @@ class _CompactTraitChoiceButton extends StatelessWidget {
     required this.trait,
     required this.enabled,
     required this.tier,
+    required this.previewed,
+    required this.onPreview,
   });
 
   final TurretTraitType trait;
   final bool enabled;
   final int tier;
+  final bool previewed;
+  final void Function(int tier, TurretTraitType trait) onPreview;
 
   @override
   Widget build(BuildContext context) {
     final accent = _traitAccentColor(trait);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: enabled
-          ? () => Navigator.of(
-              context,
-            ).pop(_TraitSelection(tier: tier, trait: trait))
-          : null,
+      onTap: enabled ? () => onPreview(tier, trait) : null,
       child: Container(
         constraints: const BoxConstraints(minHeight: 66),
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: enabled ? const Color(0xAA0B2230) : const Color(0x6607111D),
+          color: previewed
+              ? accent.withValues(alpha: 0.18)
+              : enabled
+              ? const Color(0xAA0B2230)
+              : const Color(0x6607111D),
           border: Border.all(
-            color: enabled
+            color: previewed
+                ? accent
+                : enabled
                 ? accent.withValues(alpha: 0.54)
                 : const Color(0x554A6172),
+            width: previewed ? 1.4 : 1,
           ),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -644,7 +679,39 @@ class _CompactTraitChoiceButton extends StatelessWidget {
                 ],
               ),
             ),
+            if (previewed) ...[
+              const SizedBox(width: 7),
+              _TraitPreviewBadge(accent: accent),
+            ],
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TraitPreviewBadge extends StatelessWidget {
+  const _TraitPreviewBadge({required this.accent});
+
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: 7),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: const Color(0xFF07111D),
+        border: Border.all(color: accent.withValues(alpha: 0.8)),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        '선택',
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          color: accent,
         ),
       ),
     );
@@ -864,6 +931,10 @@ IconData _traitIcon(TurretTraitType trait) {
     TurretTraitType.chainCleanup => Icons.hub_outlined,
     TurretTraitType.expandedBlastCore => Icons.blur_on,
     TurretTraitType.fractureImpact => Icons.my_location,
+    TurretTraitType.deadeyeFocus => Icons.center_focus_strong,
+    TurretTraitType.quickScope => Icons.flash_on,
+    TurretTraitType.exposedMark => Icons.filter_center_focus,
+    TurretTraitType.finishingShot => Icons.offline_bolt,
   };
 }
 
@@ -885,5 +956,9 @@ Color _traitAccentColor(TurretTraitType trait) {
     TurretTraitType.chainCleanup => const Color(0xFFD7F27C),
     TurretTraitType.expandedBlastCore => const Color(0xFFFF9A5F),
     TurretTraitType.fractureImpact => const Color(0xFFFFD166),
+    TurretTraitType.deadeyeFocus => const Color(0xFFB7F4FF),
+    TurretTraitType.quickScope => const Color(0xFF8EE6FF),
+    TurretTraitType.exposedMark => const Color(0xFFD7F27C),
+    TurretTraitType.finishingShot => const Color(0xFFFFD166),
   };
 }

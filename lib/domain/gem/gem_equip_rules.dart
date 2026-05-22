@@ -12,7 +12,7 @@ String? gemEquipBlockReason(GemType type, TurretDefinition turret) {
   }
   if (type == GemType.aimSpeed &&
       (!turret.instantHit || turret.aimDuration <= 0)) {
-    return '조준 시간이 있는 포탑에만 장착 가능';
+    return '조준 속도 적용 포탑에만 장착 가능';
   }
   return null;
 }

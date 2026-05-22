@@ -124,6 +124,31 @@ void main() {
     expect(turret.canChoosePrimaryTrait, isTrue);
   });
 
+  test('sniper traits split burst aiming and tactical follow-up paths', () {
+    final game = RuneNexusGame();
+    final turret =
+        TurretComponent(
+            gridPoint: const GridPoint(0, 0),
+            definition: gameTurrets[TurretType.sniper]!,
+            game: game,
+            center: Vector2.zero(),
+            tileSize: 32,
+          )
+          ..upgradeLevel()
+          ..upgradeLevel();
+
+    expect(turret.supportsTraits, isTrue);
+    expect(turret.primaryTraitChoices, [
+      TurretTraitType.deadeyeFocus,
+      TurretTraitType.quickScope,
+    ]);
+    expect(turret.secondaryTraitChoices, [
+      TurretTraitType.exposedMark,
+      TurretTraitType.finishingShot,
+    ]);
+    expect(turret.canChoosePrimaryTrait, isTrue);
+  });
+
   test('shrapnel shell improves cannon splash coverage', () {
     final game = RuneNexusGame();
     final turret =
@@ -453,6 +478,86 @@ void main() {
     expect(turret.attackRate, closeTo(baseAttackRate, 0.001));
   });
 
+  test('deadeye focus trades sniper aim speed for critical chance', () {
+    final game = RuneNexusGame();
+    final turret =
+        TurretComponent(
+            gridPoint: const GridPoint(0, 0),
+            definition: gameTurrets[TurretType.sniper]!,
+            game: game,
+            center: Vector2.zero(),
+            tileSize: 32,
+          )
+          ..upgradeLevel()
+          ..upgradeLevel();
+    final baseAimDuration = turret.aimDuration;
+    final baseCriticalChance = turret.criticalChance;
+
+    expect(turret.choosePrimaryTrait(TurretTraitType.deadeyeFocus), isTrue);
+
+    expect(turret.aimDuration, closeTo(1 / 0.96, 0.001));
+    expect(turret.aimDuration, greaterThan(baseAimDuration));
+    expect(turret.criticalChance, closeTo(baseCriticalChance + 0.2, 0.001));
+  });
+
+  test('quick scope trades critical chance for sniper aim speed', () {
+    final game = RuneNexusGame();
+    final turret =
+        TurretComponent(
+            gridPoint: const GridPoint(0, 0),
+            definition: gameTurrets[TurretType.sniper]!,
+            game: game,
+            center: Vector2.zero(),
+            tileSize: 32,
+          )
+          ..upgradeLevel()
+          ..upgradeLevel();
+    final baseAimDuration = turret.aimDuration;
+    final baseCriticalChance = turret.criticalChance;
+
+    expect(turret.choosePrimaryTrait(TurretTraitType.quickScope), isTrue);
+
+    expect(turret.aimDuration, closeTo(1 / 1.56, 0.001));
+    expect(turret.aimDuration, lessThan(baseAimDuration));
+    expect(turret.criticalChance, closeTo(baseCriticalChance - 0.05, 0.001));
+  });
+
+  test('exposed mark lets sniper direct hits apply physical vulnerability', () {
+    final game = RuneNexusGame();
+    final turret = _levelSevenSniper(game)
+      ..choosePrimaryTrait(TurretTraitType.quickScope);
+    final enemy = _enemy(game);
+
+    expect(turret.chooseSecondaryTrait(TurretTraitType.exposedMark), isTrue);
+    expect(turret.registerDirectHitTraits(enemy), closeTo(1, 0.001));
+
+    expect(enemy.physicalResistanceReduction, closeTo(0.15, 0.001));
+  });
+
+  test('finishing shot improves sniper damage against weakened durability', () {
+    final game = RuneNexusGame();
+    final turret = _levelSevenSniper(game)
+      ..choosePrimaryTrait(TurretTraitType.deadeyeFocus);
+    final enemy = EnemyComponent(
+      definition: gameEnemies[EnemyType.armored]!,
+      maxHp: 100,
+      maxArmor: 40,
+      maxShield: 20,
+      path: [Vector2.zero(), Vector2(1, 0)],
+      game: game,
+    );
+
+    expect(turret.chooseSecondaryTrait(TurretTraitType.finishingShot), isTrue);
+    expect(turret.registerDirectHitTraits(enemy), closeTo(1, 0.001));
+
+    enemy
+      ..hp = 30
+      ..armor = 15
+      ..shield = 10;
+
+    expect(turret.registerDirectHitTraits(enemy), closeTo(1.45, 0.001));
+  });
+
   test('primary and secondary traits are restored from save data', () {
     final game = RuneNexusGame();
     final turret = _levelSevenMachineGun(game)
@@ -521,6 +626,20 @@ TurretComponent _levelSevenFrost(RuneNexusGame game) {
   final turret = TurretComponent(
     gridPoint: const GridPoint(0, 0),
     definition: gameTurrets[TurretType.frost]!,
+    game: game,
+    center: Vector2.zero(),
+    tileSize: 32,
+  );
+  for (var i = 0; i < 6; i++) {
+    turret.upgradeLevel();
+  }
+  return turret;
+}
+
+TurretComponent _levelSevenSniper(RuneNexusGame game) {
+  final turret = TurretComponent(
+    gridPoint: const GridPoint(0, 0),
+    definition: gameTurrets[TurretType.sniper]!,
     game: game,
     center: Vector2.zero(),
     tileSize: 32,
