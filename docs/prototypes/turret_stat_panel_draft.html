@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rune Nexus Turret Summary + Floating Detail Draft</title>
+    <style>
+      :root {
+        --bg: #02070d;
+        --panel: #091624;
+        --panel2: #07111d;
+        --line: rgba(142, 230, 255, 0.22);
+        --line-soft: rgba(142, 230, 255, 0.12);
+        --cyan: #8ee6ff;
+        --cyan2: #22c7e8;
+        --text: #e8f8ff;
+        --sub: #b9d6e4;
+        --muted: #8aa6b8;
+        --green: #63e6a5;
+        --gold: #e7c66a;
+        --sniper: #b7f4ff;
+        --cannon: #ff7b2f;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 18% 10%, rgba(142, 230, 255, 0.12), transparent 22rem),
+          radial-gradient(circle at 78% 30%, rgba(99, 230, 165, 0.08), transparent 20rem),
+          linear-gradient(135deg, #03070d, #0a1420 52%, #03080f);
+        color: var(--text);
+        font-family: Inter, Pretendard, "Noto Sans KR", system-ui, sans-serif;
+      }
+
+      main {
+        width: min(1220px, calc(100vw - 20px));
+        margin: 0 auto;
+        padding: 18px 0 28px;
+      }
+
+      h1, p { margin: 0; }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 14px;
+        margin-bottom: 12px;
+      }
+
+      h1 {
+        font-size: 22px;
+        letter-spacing: 0;
+      }
+
+      .lead {
+        margin-top: 6px;
+        color: var(--sub);
+        font-size: 13px;
+        font-weight: 650;
+        line-height: 1.35;
+      }
+
+      .rule {
+        flex: 0 0 auto;
+        padding: 8px 10px;
+        border: 1px solid rgba(142, 230, 255, 0.28);
+        border-radius: 8px;
+        background: rgba(7, 17, 29, 0.72);
+        color: var(--cyan);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .frames {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .label {
+        margin-bottom: 7px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .phone {
+        position: relative;
+        overflow: hidden;
+        min-height: 690px;
+        border: 1px solid rgba(142, 230, 255, 0.22);
+        border-radius: 18px;
+        background:
+          linear-gradient(90deg, rgba(142, 230, 255, 0.055) 1px, transparent 1px),
+          linear-gradient(rgba(142, 230, 255, 0.055) 1px, transparent 1px),
+          linear-gradient(180deg, #06111d, #02070d);
+        background-size: 38px 38px;
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.4);
+      }
+
+      .top {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+      }
+
+      .res {
+        display: grid;
+        gap: 4px;
+      }
+
+      .res span,
+      .round {
+        min-height: 23px;
+        padding: 5px 8px;
+        border: 1px solid rgba(142, 230, 255, 0.18);
+        border-radius: 8px;
+        background: rgba(5, 12, 20, 0.8);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .round { color: var(--cyan); }
+
+      .board {
+        position: absolute;
+        inset: 78px 32px 164px;
+        display: grid;
+        place-items: center;
+      }
+
+      .map {
+        position: relative;
+        width: 230px;
+        height: 230px;
+        transform: rotate(-6deg);
+      }
+
+      .range {
+        position: absolute;
+        width: 182px;
+        height: 182px;
+        left: 33px;
+        top: 12px;
+        border: 1px solid rgba(183, 244, 255, 0.3);
+        border-radius: 50%;
+        background: rgba(183, 244, 255, 0.05);
+      }
+
+      .tile {
+        position: absolute;
+        width: 32px;
+        height: 32px;
+        border: 1px solid rgba(142, 230, 255, 0.18);
+        background: rgba(35, 98, 112, 0.34);
+      }
+
+      .tile:nth-child(2) { left: 32px; top: 38px; }
+      .tile:nth-child(3) { left: 66px; top: 38px; }
+      .tile:nth-child(4) { left: 100px; top: 38px; }
+      .tile:nth-child(5) { left: 32px; top: 72px; }
+      .tile:nth-child(6) { left: 66px; top: 72px; }
+      .tile:nth-child(7) { left: 100px; top: 72px; }
+      .tile:nth-child(8) { left: 134px; top: 72px; }
+      .tile:nth-child(9) { left: 66px; top: 106px; }
+      .tile:nth-child(10) { left: 100px; top: 106px; }
+      .tile:nth-child(11) { left: 134px; top: 106px; }
+      .tile:nth-child(12) { left: 168px; top: 106px; }
+      .tile:nth-child(13) { left: 100px; top: 140px; }
+      .tile:nth-child(14) { left: 134px; top: 140px; }
+      .tile:nth-child(15) { left: 168px; top: 140px; }
+      .tile:nth-child(16) { left: 168px; top: 174px; }
+
+      .dot {
+        position: absolute;
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.46);
+        border-radius: 8px;
+        background: rgba(5, 12, 20, 0.88);
+        color: var(--sniper);
+        font-size: 15px;
+        font-weight: 1000;
+        transform: rotate(6deg);
+      }
+
+      .dot.one { left: 72px; top: 78px; color: var(--gold); }
+      .dot.two { left: 128px; top: 94px; }
+      .dot.three { left: 112px; top: 150px; color: var(--cannon); }
+
+      .focus-ring {
+        position: absolute;
+        left: 118px;
+        top: 84px;
+        width: 50px;
+        height: 50px;
+        border: 1px solid rgba(183, 244, 255, 0.72);
+        border-radius: 14px;
+        transform: rotate(6deg);
+        box-shadow: 0 0 18px rgba(183, 244, 255, 0.2);
+      }
+
+      .bottom {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 12px;
+        border: 1px solid rgba(142, 230, 255, 0.25);
+        border-radius: 8px;
+        background: rgba(5, 12, 20, 0.92);
+      }
+
+      .speed {
+        display: flex;
+        justify-content: space-between;
+        padding: 9px 10px 7px;
+      }
+
+      .group {
+        display: flex;
+        gap: 6px;
+      }
+
+      .sq,
+      .play {
+        display: grid;
+        place-items: center;
+        height: 32px;
+        border: 1px solid rgba(142, 230, 255, 0.34);
+        border-radius: 8px;
+        background: rgba(7, 17, 29, 0.72);
+        color: var(--text);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .sq { width: 32px; }
+
+      .sq.active,
+      .play {
+        background: linear-gradient(180deg, var(--cyan), var(--cyan2));
+        color: #051019;
+      }
+
+      .play { min-width: 72px; }
+
+      .summary {
+        margin: 0 10px 8px;
+        padding: 8px 8px 7px;
+        border: 1px solid rgba(142, 230, 255, 0.22);
+        border-radius: 8px;
+        background: rgba(9, 22, 36, 0.86);
+      }
+
+      .summary-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .name {
+        min-width: 0;
+        color: var(--sniper);
+        font-size: 13px;
+        font-weight: 1000;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .role {
+        margin-top: 1px;
+        color: var(--sub);
+        font-size: 10px;
+        font-weight: 780;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 27px;
+        padding: 0 9px;
+        border: 1px solid rgba(183, 244, 255, 0.42);
+        border-radius: 8px;
+        background: rgba(7, 17, 29, 0.72);
+        color: var(--text);
+        font-size: 11px;
+        font-weight: 1000;
+        white-space: nowrap;
+      }
+
+      .btn.primary {
+        background: linear-gradient(180deg, rgba(183, 244, 255, 0.24), rgba(34, 199, 232, 0.16));
+        color: var(--sniper);
+      }
+
+      .summary-line {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        min-width: 0;
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px solid var(--line-soft);
+        color: var(--text);
+        font-size: 11px;
+        font-weight: 900;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      .metric {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .metric span {
+        color: var(--muted);
+        font-weight: 850;
+      }
+
+      .metric strong {
+        color: var(--text);
+        font-weight: 1000;
+      }
+
+      .next { color: var(--green); }
+
+      .identity-line {
+        display: flex;
+        gap: 7px;
+        align-items: center;
+        min-height: 23px;
+        color: var(--sub);
+        font-size: 10px;
+        font-weight: 900;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      .identity-line span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .identity-line strong {
+        color: var(--sniper);
+        font-size: 11px;
+      }
+
+      .manage {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: center;
+        gap: 6px;
+        margin-top: 6px;
+      }
+
+      .sockets {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        min-height: 27px;
+      }
+
+      .socket {
+        width: 18px;
+        height: 18px;
+        border: 1px solid rgba(142, 230, 255, 0.34);
+        border-radius: 6px;
+        background: rgba(2, 7, 13, 0.72);
+      }
+
+      .socket.on {
+        border-color: rgba(183, 244, 255, 0.68);
+        background: radial-gradient(circle, rgba(183, 244, 255, 0.84), rgba(34, 199, 232, 0.16));
+      }
+
+      .turrets {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 5px;
+        padding: 0 10px 8px;
+      }
+
+      .turret {
+        display: grid;
+        place-items: center;
+        min-height: 42px;
+        border: 1px solid rgba(142, 230, 255, 0.22);
+        border-radius: 8px;
+        background: rgba(7, 17, 29, 0.58);
+        color: var(--sub);
+        font-size: 10px;
+        font-weight: 950;
+        line-height: 1.24;
+      }
+
+      .turret.selected {
+        border-color: rgba(183, 244, 255, 0.78);
+        color: var(--sniper);
+      }
+
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        border-top: 1px solid rgba(142, 230, 255, 0.14);
+      }
+
+      .tab {
+        display: grid;
+        place-items: center;
+        min-height: 40px;
+        color: var(--sub);
+        font-size: 12px;
+        font-weight: 1000;
+      }
+
+      .tab.active {
+        background: rgba(34, 199, 232, 0.12);
+        color: var(--cyan);
+      }
+
+      .float-detail {
+        position: absolute;
+        left: 24px;
+        right: 24px;
+        top: 248px;
+        padding: 9px;
+        border: 1px solid rgba(99, 230, 165, 0.42);
+        border-radius: 8px;
+        background: rgba(7, 17, 29, 0.96);
+        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.46);
+      }
+
+      .float-detail:after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: -7px;
+        width: 12px;
+        height: 12px;
+        border-right: 1px solid rgba(99, 230, 165, 0.42);
+        border-bottom: 1px solid rgba(99, 230, 165, 0.42);
+        background: rgba(7, 17, 29, 0.96);
+        transform: rotate(45deg);
+      }
+
+      .detail-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 7px;
+      }
+
+      .detail-head strong {
+        color: var(--green);
+        font-size: 12px;
+        font-weight: 1000;
+      }
+
+      .close {
+        display: grid;
+        place-items: center;
+        width: 25px;
+        height: 25px;
+        border: 1px solid rgba(142, 230, 255, 0.24);
+        border-radius: 8px;
+        color: var(--sub);
+      }
+
+      .detail-groups {
+        display: grid;
+        gap: 7px;
+      }
+
+      .group-title {
+        margin-bottom: 4px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 950;
+      }
+
+      .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1px;
+        overflow: hidden;
+        border: 1px solid var(--line-soft);
+        border-radius: 7px;
+        background: rgba(142, 230, 255, 0.1);
+      }
+
+      .line {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        min-width: 0;
+        padding: 6px 7px;
+        background: rgba(9, 22, 36, 0.78);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .line span {
+        min-width: 0;
+        color: var(--sub);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .line strong {
+        color: var(--text);
+        white-space: nowrap;
+      }
+
+      @media (max-width: 980px) {
+        header { display: grid; }
+        .frames { grid-template-columns: 1fr; }
+        .rule { width: fit-content; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>포탑 정보 패널 초안 - 요약 + 부유 상세</h1>
+          <p class="lead">하단에는 즉시 판단할 요약만 남기고, 정확한 세부 수치는 포탑 근처 부유 패널로 분리한 안입니다.</p>
+        </div>
+        <div class="rule">하단 HUD 최소화</div>
+      </header>
+
+      <section class="frames">
+        <article>
+          <div class="label">설치 전: 숫자 3개 + 역할 1줄</div>
+          <div class="phone">
+            <div class="top">
+              <div class="res"><span>골드 866</span><span>파편 16</span></div>
+              <div class="round">라운드 24/50</div>
+            </div>
+            <div class="board">
+              <div class="map">
+                <div class="range"></div>
+                <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+                <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+                <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+                <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+                <div class="dot one">I</div><div class="dot two">S</div><div class="dot three">C</div>
+              </div>
+            </div>
+            <div class="bottom">
+              <div class="speed">
+                <div class="group"><div class="sq active">1x</div><div class="sq">2x</div><div class="sq">4x</div></div>
+                <div class="group"><div class="sq">II</div><div class="play">시작</div></div>
+              </div>
+              <div class="summary">
+                <div class="summary-head">
+                  <div>
+                    <div class="name">저격 포탑</div>
+                    <div class="role">긴 사거리 조준형 단일 타격</div>
+                  </div>
+                  <div class="btn primary">설치 120G</div>
+                </div>
+                <div class="summary-line">
+                  <div class="metric"><span>피해</span> <strong>40</strong></div>
+                  <div class="metric"><span>DPS</span> <strong>25</strong></div>
+                  <div class="metric"><span>사거리</span> <strong>150</strong></div>
+                </div>
+                <div class="identity-line">
+                  <span><strong>치명/조준 특화</strong></span>
+                  <span>치명 15%</span>
+                  <span>조준 1.00초</span>
+                </div>
+              </div>
+              <div class="turrets">
+                <div class="turret">기관총<br />60G</div><div class="turret">대포<br />90G</div><div class="turret">화염<br />80G</div><div class="turret">냉각<br />85G</div><div class="turret selected">저격<br />120G</div>
+              </div>
+              <div class="tabs"><div class="tab active">포탑</div><div class="tab">업그레이드</div><div class="tab">젬</div></div>
+            </div>
+          </div>
+        </article>
+
+        <article>
+          <div class="label">설치 후: 요약 + 관리만 하단에 유지</div>
+          <div class="phone">
+            <div class="top">
+              <div class="res"><span>골드 866</span><span>파편 16</span></div>
+              <div class="round">라운드 24/50</div>
+            </div>
+            <div class="board">
+              <div class="map">
+                <div class="range"></div>
+                <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+                <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+                <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+                <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+                <div class="dot one">I</div><div class="dot two">S</div><div class="dot three">C</div>
+                <div class="focus-ring"></div>
+              </div>
+            </div>
+            <div class="bottom">
+              <div class="speed">
+                <div class="group"><div class="sq active">1x</div><div class="sq">2x</div><div class="sq">4x</div></div>
+                <div class="group"><div class="sq">II</div><div class="play">시작</div></div>
+              </div>
+              <div class="summary">
+                <div class="summary-head">
+                  <div>
+                    <div class="name">저격 포탑 Lv.4 -&gt; 5</div>
+                    <div class="role">선두 적 공격 · 물리 단일 조준</div>
+                  </div>
+                  <div class="btn">상세</div>
+                </div>
+                <div class="summary-line">
+                  <div class="metric"><span>피해</span> <strong>69</strong> <b class="next">82</b></div>
+                  <div class="metric"><span>DPS</span> <strong>46</strong> <b class="next">58</b></div>
+                  <div class="metric"><span>사거리</span> <strong>165</strong> <b class="next">170</b></div>
+                </div>
+                <div class="identity-line">
+                  <span><strong>치명/조준 특화</strong></span>
+                  <span>치명 35%</span>
+                  <span>조준 0.81초</span>
+                </div>
+                <div class="manage">
+                  <div class="sockets"><div class="socket on"></div><div class="socket on"></div><div class="socket"></div></div>
+                  <div class="btn primary">레벨업 216G</div>
+                  <div class="btn">환불 138G</div>
+                </div>
+              </div>
+              <div class="tabs"><div class="tab active">포탑</div><div class="tab">업그레이드</div><div class="tab">젬</div></div>
+            </div>
+          </div>
+        </article>
+
+        <article>
+          <div class="label">상세: 포탑 근처 부유 패널</div>
+          <div class="phone">
+            <div class="top">
+              <div class="res"><span>골드 866</span><span>파편 16</span></div>
+              <div class="round">라운드 24/50</div>
+            </div>
+            <div class="board">
+              <div class="map">
+                <div class="range"></div>
+                <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+                <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+                <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+                <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+                <div class="dot one">I</div><div class="dot two">S</div><div class="dot three">C</div>
+                <div class="focus-ring"></div>
+              </div>
+            </div>
+            <div class="float-detail">
+              <div class="detail-head"><strong>저격 상세 수치</strong><div class="close">×</div></div>
+              <div class="detail-groups">
+                <div>
+                  <div class="group-title">공격</div>
+                  <div class="detail-grid">
+                    <div class="line"><span>피해</span><strong>69.1</strong></div>
+                    <div class="line"><span>DPS</span><strong>46.5</strong></div>
+                    <div class="line"><span>초당</span><strong>0.67회</strong></div>
+                    <div class="line"><span>간격</span><strong>1.49초</strong></div>
+                  </div>
+                </div>
+                <div>
+                  <div class="group-title">특수</div>
+                  <div class="detail-grid">
+                    <div class="line"><span>치명 확률</span><strong>35%</strong></div>
+                    <div class="line"><span>치명 피해</span><strong>2.04x</strong></div>
+                    <div class="line"><span>조준 시간</span><strong>0.81초</strong></div>
+                    <div class="line"><span>사거리</span><strong>165</strong></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="bottom">
+              <div class="speed">
+                <div class="group"><div class="sq active">1x</div><div class="sq">2x</div><div class="sq">4x</div></div>
+                <div class="group"><div class="sq">II</div><div class="play">시작</div></div>
+              </div>
+              <div class="summary">
+                <div class="summary-head">
+                  <div>
+                    <div class="name">저격 포탑 Lv.4</div>
+                    <div class="role">상세는 선택 포탑 근처에 표시</div>
+                  </div>
+                  <div class="btn primary">접기</div>
+                </div>
+                <div class="summary-line">
+                  <div class="metric"><span>피해</span> <strong>69</strong></div>
+                  <div class="metric"><span>DPS</span> <strong>46</strong></div>
+                  <div class="metric"><span>사거리</span> <strong>165</strong></div>
+                </div>
+                <div class="identity-line">
+                  <span><strong>치명/조준 특화</strong></span>
+                  <span>치명 35%</span>
+                  <span>조준 0.81초</span>
+                </div>
+              </div>
+              <div class="tabs"><div class="tab active">포탑</div><div class="tab">업그레이드</div><div class="tab">젬</div></div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
