@@ -3,14 +3,14 @@ part of 'game_hud.dart';
 class _TurretLinkSocketStrip extends StatelessWidget {
   const _TurretLinkSocketStrip({
     required this.snapshot,
-    required this.canManageGems,
+    required this.canInstallGems,
     required this.selectedSlotIndex,
     required this.onSelectSlot,
     required this.onUpgradeLink,
   });
 
   final GameSnapshot snapshot;
-  final bool canManageGems;
+  final bool canInstallGems;
   final int? selectedSlotIndex;
   final ValueChanged<int> onSelectSlot;
   final VoidCallback onUpgradeLink;
@@ -18,7 +18,7 @@ class _TurretLinkSocketStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canOpenLockedSocket =
-        canManageGems &&
+        canInstallGems &&
         snapshot.selectedTurretCanUpgradeLink &&
         snapshot.gold >= snapshot.selectedTurretLinkUpgradeCost;
     final lockedLabel = snapshot.selectedTurretCanUpgradeLink
@@ -54,7 +54,7 @@ class _TurretLinkSocketStrip extends StatelessWidget {
                           ? snapshot.selectedTurretGems[index]
                           : null,
                       selected: selectedSlotIndex == index,
-                      enabled: canManageGems,
+                      enabled: canInstallGems,
                       onTap: () => onSelectSlot(index),
                     ),
                   ),

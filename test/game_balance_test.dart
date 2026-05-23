@@ -3577,6 +3577,71 @@ void main() {
     expect(saved.turrets.single.level, 2);
   });
 
+  test('turret link can be upgraded while a round is running', () async {
+    final repository = MemorySaveRepository();
+    final game = _LinkResearchUnlockedGame(saveRepository: repository);
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+    game.tryBuildTurret(const GridPoint(2, 0));
+    game.debugAddGold(1000);
+
+    game.upgradeSelectedTurretLink();
+    await game.saveNow();
+
+    final snapshot = game.snapshotNotifier.value;
+    expect(snapshot.phase, GamePhase.wave);
+    expect(snapshot.selectedTurretSlotLimit, 2);
+    expect(repository.data!.turrets.single.slotLimit, 2);
+  });
+
+  test(
+    'gem can be equipped into an empty socket while a round is running',
+    () async {
+      final repository = MemorySaveRepository();
+      final game = _LinkResearchUnlockedGame(saveRepository: repository);
+
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      game.startNextWave();
+      game.tryBuildTurret(const GridPoint(2, 0));
+      game.grantGem(GemType.range);
+
+      game.equipSelectedTurret(GemType.range);
+      await game.saveNow();
+
+      final snapshot = game.snapshotNotifier.value;
+      expect(snapshot.phase, GamePhase.wave);
+      expect(snapshot.selectedTurretGems, [GemType.range]);
+      expect(snapshot.gemInventory[GemType.range], isNull);
+      expect(repository.data!.turrets.single.equippedGemSlots, [GemType.range]);
+    },
+  );
+
+  test('gem cannot be removed or replaced while a round is running', () async {
+    final repository = MemorySaveRepository();
+    final game = _LinkResearchUnlockedGame(saveRepository: repository);
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+    game.tryBuildTurret(const GridPoint(2, 0));
+    game.grantGem(GemType.range);
+    game.equipSelectedTurret(GemType.range);
+    game.selectSelectedTurretGemSlot(0);
+    game.grantGem(GemType.chain);
+
+    game.equipSelectedTurret(GemType.chain);
+    game.removeSelectedTurretGemSlot();
+
+    final snapshot = game.snapshotNotifier.value;
+    expect(snapshot.phase, GamePhase.wave);
+    expect(snapshot.selectedTurretGems, [GemType.range]);
+    expect(snapshot.gemInventory[GemType.range], isNull);
+    expect(snapshot.gemInventory[GemType.chain], 1);
+  });
+
   test('turret refund returns investment and equipped gems', () async {
     final repository = MemorySaveRepository();
     final game = _LinkResearchUnlockedGame(saveRepository: repository);

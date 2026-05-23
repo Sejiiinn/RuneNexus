@@ -16,7 +16,10 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
   @override
   Widget build(BuildContext context) {
     final snapshot = widget.snapshot;
-    final canManageGems = snapshot.phase == GamePhase.preparation;
+    final canFreelyManageGems = snapshot.phase == GamePhase.preparation;
+    final canInstallGems =
+        snapshot.phase == GamePhase.preparation ||
+        snapshot.phase == GamePhase.wave;
     final canLevelUp =
         snapshot.phase == GamePhase.preparation ||
         snapshot.phase == GamePhase.wave;
@@ -41,17 +44,28 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
     final selectedInventoryGemDefinition = selectedInventoryGem == null
         ? null
         : gameGems[selectedInventoryGem]!;
-    final selectedInventoryBlockReason = selectedInventoryGem == null
-        ? null
-        : gemEquipBlockReason(selectedInventoryGem, definition);
     final selectedInventoryEquipped =
         selectedInventoryGem != null &&
         snapshot.selectedTurretGems.contains(selectedInventoryGem);
+    final selectedSlotIsEmpty =
+        selectedSlotIndex != null && selectedSlotGem == null;
+    final selectedSlotCanAcceptGem =
+        selectedSlotIndex != null &&
+        (canFreelyManageGems || selectedSlotIsEmpty);
+    final selectedInventoryBlockReason = selectedInventoryGem == null
+        ? null
+        : gemEquipBlockReason(selectedInventoryGem, definition);
+    final selectedInventoryInstallBlockReason = selectedInventoryEquipped
+        ? '이미 이 포탑에 장착됨'
+        : !selectedSlotCanAcceptGem
+        ? '전투 중에는 빈 홈에만 장착 가능'
+        : selectedInventoryBlockReason;
     final selectedInventoryCanInstall =
         selectedInventoryGem != null &&
+        selectedSlotCanAcceptGem &&
         !selectedInventoryEquipped &&
         selectedInventoryBlockReason == null;
-    final showGemInventory = selectedSlotIndex != null && canManageGems;
+    final showGemInventory = selectedSlotIndex != null && canInstallGems;
 
     return Container(
       width: double.infinity,
@@ -127,7 +141,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
           const SizedBox(height: 6),
           _TurretLinkSocketStrip(
             snapshot: snapshot,
-            canManageGems: canManageGems,
+            canInstallGems: canInstallGems,
             selectedSlotIndex: selectedSlotIndex,
             onSelectSlot: widget.game.selectSelectedTurretGemSlot,
             onUpgradeLink: widget.game.upgradeSelectedTurretLink,
@@ -137,7 +151,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
             _SelectedSlotGemActions(
               type: selectedSlotGem,
               turret: definition,
-              onRemove: canManageGems
+              onRemove: canFreelyManageGems
                   ? widget.game.removeSelectedTurretGemSlot
                   : null,
             ),
@@ -169,16 +183,19 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                       );
                       final selected = selectedInventoryGem == type;
                       final blockReason = gemEquipBlockReason(type, definition);
-                      final canInstall = !equipped && blockReason == null;
+                      final canInstall =
+                          selectedSlotCanAcceptGem &&
+                          !equipped &&
+                          blockReason == null;
                       return _InventoryGemChip(
                         gem: gem,
                         count: count,
                         selected: selected,
                         equipped: equipped,
                         blocked: blockReason != null,
-                        enabled: canManageGems,
+                        enabled: canInstallGems,
                         onTap: () {
-                          if (!canManageGems) {
+                          if (!canInstallGems) {
                             return;
                           }
                           if (selected && canInstall) {
@@ -202,11 +219,9 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                       type: selectedInventoryGem,
                       turret: definition,
                       gem: selectedInventoryGemDefinition,
-                      blockReason: selectedInventoryEquipped
-                          ? '이미 이 포탑에 장착됨'
-                          : selectedInventoryBlockReason,
+                      blockReason: selectedInventoryInstallBlockReason,
                       canInstall: selectedInventoryCanInstall,
-                      enabled: canManageGems,
+                      enabled: canInstallGems,
                       onInstall: () {
                         widget.game.equipSelectedTurret(selectedInventoryGem);
                         setState(() {
@@ -217,7 +232,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                   ],
                 ],
               ),
-          ] else if (canManageGems) ...[
+          ] else if (canInstallGems) ...[
             const SizedBox(height: 6),
             const Text(
               '링크를 선택하면 젬을 관리할 수 있습니다',
