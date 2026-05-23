@@ -223,7 +223,7 @@ void main() {
   });
 
   testWidgets('stage cards fit on narrow menu width', (tester) async {
-    tester.view.physicalSize = const Size(360, 720);
+    tester.view.physicalSize = const Size(320, 720);
     tester.view.devicePixelRatio = 1;
     addTearDown(() {
       tester.view.resetPhysicalSize();
@@ -232,6 +232,10 @@ void main() {
 
     await _pumpLoadedApp(tester);
 
+    expect(find.text('스테이지'), findsOneWidget);
+    expect(find.text('코어'), findsOneWidget);
+    expect(find.text('강화'), findsOneWidget);
+    expect(find.text('클리어 보상'), findsNWidgets(5));
     expect(find.text('스테이지 1 클리어 필요'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -727,7 +731,9 @@ void main() {
     await tester.tap(find.text('메인화면으로 이동'));
     await _pumpGameFrames(tester);
 
-    expect(find.text('진행 중 · 스테이지 1'), findsOneWidget);
+    expect(find.text('진행 중 · 스테이지 1'), findsNothing);
+    expect(find.text('진행 중'), findsWidgets);
+    expect(find.text('스테이지 1'), findsWidgets);
     expect(find.text('저장된 전투'), findsOneWidget);
     expect(find.text('이어서 진행'), findsOneWidget);
 

@@ -1022,103 +1022,124 @@ class _TabButton extends StatelessWidget {
         ? const Color(0xFF8EE6FF)
         : const Color(0xFF88A4B3);
     final textColor = selected ? GamePalette.textPrimary : foregroundColor;
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(4),
-          splashColor: const Color(0x1A8EE6FF),
-          highlightColor: const Color(0x1022C7E8),
-          child: SizedBox.expand(
-            child: Stack(
-              fit: StackFit.expand,
-              alignment: Alignment.center,
-              children: [
-                if (selected) ...[
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          center: Alignment.bottomCenter,
-                          radius: 1.28,
-                          colors: [
-                            const Color(0xFF22C7E8).withValues(alpha: 0.28),
-                            const Color(0xFF22C7E8).withValues(alpha: 0.08),
-                            Colors.transparent,
-                          ],
-                          stops: const [0, 0.42, 1],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final dense = constraints.maxWidth < 88;
+        final horizontalPadding = dense ? 4.0 : 8.0;
+        final indicatorInset = dense ? 11.0 : 18.0;
+        final iconSize = selected
+            ? (dense ? 16.0 : 18.0)
+            : (dense ? 15.0 : 17.0);
+        final labelGap = dense ? 4.0 : 7.0;
+        final fontSize = dense ? 12.0 : 13.0;
+
+        return Semantics(
+          button: true,
+          selected: selected,
+          label: label,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onPressed,
+              borderRadius: BorderRadius.circular(4),
+              splashColor: const Color(0x1A8EE6FF),
+              highlightColor: const Color(0x1022C7E8),
+              child: SizedBox.expand(
+                child: Stack(
+                  fit: StackFit.expand,
+                  alignment: Alignment.center,
+                  children: [
+                    if (selected) ...[
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: RadialGradient(
+                              center: Alignment.bottomCenter,
+                              radius: 1.28,
+                              colors: [
+                                const Color(0xFF22C7E8).withValues(alpha: 0.28),
+                                const Color(0xFF22C7E8).withValues(alpha: 0.08),
+                                Colors.transparent,
+                              ],
+                              stops: const [0, 0.42, 1],
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  Positioned(
-                    left: 18,
-                    right: 18,
-                    bottom: 0,
-                    child: Container(
-                      height: 3,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(2),
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0x008EE6FF),
-                            Color(0xFF8EE6FF),
-                            Color(0x008EE6FF),
-                          ],
+                      Positioned(
+                        left: indicatorInset,
+                        right: indicatorInset,
+                        bottom: 0,
+                        child: Container(
+                          height: 3,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(2),
+                            gradient: const LinearGradient(
+                              colors: [
+                                Color(0x008EE6FF),
+                                Color(0xFF8EE6FF),
+                                Color(0x008EE6FF),
+                              ],
+                            ),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0xAA22C7E8),
+                                blurRadius: 7,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
                         ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0xAA22C7E8),
-                            blurRadius: 7,
-                            spreadRadius: 1,
+                      ),
+                    ],
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            icon,
+                            size: iconSize,
+                            color: foregroundColor,
+                            shadows: selected
+                                ? const [
+                                    Shadow(
+                                      color: Color(0xAA22C7E8),
+                                      blurRadius: 8,
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          SizedBox(width: labelGap),
+                          Flexible(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                label,
+                                maxLines: 1,
+                                softWrap: false,
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontSize: fontSize,
+                                  fontWeight: selected
+                                      ? FontWeight.w800
+                                      : FontWeight.w700,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        icon,
-                        size: selected ? 18 : 17,
-                        color: foregroundColor,
-                        shadows: selected
-                            ? const [
-                                Shadow(color: Color(0xAA22C7E8), blurRadius: 8),
-                              ]
-                            : null,
-                      ),
-                      const SizedBox(width: 7),
-                      Flexible(
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            color: textColor,
-                            fontSize: 13,
-                            fontWeight: selected
-                                ? FontWeight.w800
-                                : FontWeight.w700,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                      ),
-                    ],
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -1504,28 +1525,42 @@ class _ActiveRunSummary extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  l10n.activeRunTitle(snapshot.currentStageNumber),
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFFE8F8FF),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      l10n.stageName(snapshot.currentStageNumber),
+                      maxLines: 1,
+                      softWrap: false,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFFE8F8FF),
+                      ),
+                    ),
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 3),
-                Text(
-                  l10n.stageProgressDetail(
-                    round: snapshot.round,
-                    maxRound: snapshot.maxRound,
-                    turretCount: snapshot.placedTurretCount,
-                    gold: snapshot.gold,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      l10n.stageProgressDetail(
+                        round: snapshot.round,
+                        maxRound: snapshot.maxRound,
+                        turretCount: snapshot.placedTurretCount,
+                        gold: snapshot.gold,
+                      ),
+                      maxLines: 1,
+                      softWrap: false,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFFB9D6E4),
+                      ),
+                    ),
                   ),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Color(0xFFB9D6E4),
-                  ),
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -1628,93 +1663,117 @@ class _StageSelectionRow extends StatelessWidget {
       variant: unlocked ? GameButtonVariant.ghost : GameButtonVariant.secondary,
       accentColor: borderColor,
       padding: EdgeInsets.zero,
-      child: SizedBox(
-        height: _stageRowHeight,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: 48,
-              child: Center(
-                child: Text(
-                  stageNumber.toString().padLeft(2, '0'),
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: active
-                        ? theme.accent
-                        : unlocked
-                        ? GamePalette.textSecondary
-                        : const Color(0xFF536675),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final dense = constraints.maxWidth < 330;
+          final stageNumberWidth = dense ? 38.0 : 48.0;
+          final stageDividerHeight = dense ? 28.0 : 31.0;
+          final leftGap = dense ? 7.0 : 10.0;
+          final leftFlex = dense ? 8 : 9;
+          final runeGap = dense ? 5.0 : 8.0;
+          final runeWidth = dense ? 48.0 : 60.0;
+          final rewardGap = dense ? 5.0 : 8.0;
+          final rewardFlex = dense ? 10 : 7;
+          final chevronSize = dense ? 18.0 : 22.0;
+          final trailingGap = dense ? 2.0 : 6.0;
+
+          return SizedBox(
+            height: _stageRowHeight,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: stageNumberWidth,
+                  child: Center(
+                    child: Text(
+                      stageNumber.toString().padLeft(2, '0'),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: active
+                            ? theme.accent
+                            : unlocked
+                            ? GamePalette.textSecondary
+                            : const Color(0xFF536675),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            Container(
-              width: 1,
-              height: 31,
-              color: unlocked
-                  ? theme.accent.withValues(alpha: 0.32)
-                  : const Color(0x33485B68),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              flex: 9,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.stageName(stageNumber),
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                      color: unlocked
-                          ? const Color(0xFFE8F8FF)
-                          : const Color(0xFF7F93A1),
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                Container(
+                  width: 1,
+                  height: stageDividerHeight,
+                  color: unlocked
+                      ? theme.accent.withValues(alpha: 0.32)
+                      : const Color(0x33485B68),
+                ),
+                SizedBox(width: leftGap),
+                Expanded(
+                  flex: leftFlex,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            l10n.stageName(stageNumber),
+                            maxLines: 1,
+                            softWrap: false,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              color: unlocked
+                                  ? const Color(0xFFE8F8FF)
+                                  : const Color(0xFF7F93A1),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      _StageInfoChip(
+                        text: statusText,
+                        unlocked: unlocked,
+                        highlighted: active || stageCleared,
+                        overrideColor: statusColor,
+                        accentColor: theme.accent,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  _StageInfoChip(
-                    text: statusText,
+                ),
+                SizedBox(width: runeGap),
+                SizedBox(
+                  width: runeWidth,
+                  child: _StageRuneBonusText(
+                    text: runeBonusText,
                     unlocked: unlocked,
-                    highlighted: active || stageCleared,
-                    overrideColor: statusColor,
-                    accentColor: theme.accent,
+                    active: active,
+                    theme: theme,
                   ),
-                ],
-              ),
+                ),
+                SizedBox(width: rewardGap),
+                Expanded(
+                  flex: rewardFlex,
+                  child: _StageRewardSummary(
+                    rewardInfo: rewardInfo,
+                    unlocked: unlocked,
+                    theme: theme,
+                    dense: dense,
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: unlocked
+                      ? theme.accent.withValues(alpha: 0.84)
+                      : const Color(0xFF536675),
+                  size: chevronSize,
+                ),
+                SizedBox(width: trailingGap),
+              ],
             ),
-            const SizedBox(width: 8),
-            SizedBox(
-              width: 60,
-              child: _StageRuneBonusText(
-                text: runeBonusText,
-                unlocked: unlocked,
-                active: active,
-                theme: theme,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              flex: 7,
-              child: _StageRewardSummary(
-                rewardInfo: rewardInfo,
-                unlocked: unlocked,
-                theme: theme,
-              ),
-            ),
-            Icon(
-              Icons.chevron_right_rounded,
-              color: unlocked
-                  ? theme.accent.withValues(alpha: 0.84)
-                  : const Color(0xFF536675),
-              size: 22,
-            ),
-            const SizedBox(width: 6),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -1779,12 +1838,20 @@ class _StageRuneBonusText extends StatelessWidget {
               ? const Color(0xFFE7C66A)
               : theme.secondary
         : const Color(0xFF667987);
-    return Text(
-      text,
-      textAlign: TextAlign.right,
-      style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w900),
-      overflow: TextOverflow.ellipsis,
-      maxLines: 1,
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerRight,
+      child: Text(
+        text,
+        textAlign: TextAlign.right,
+        maxLines: 1,
+        softWrap: false,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
     );
   }
 }
@@ -1808,11 +1875,13 @@ class _StageRewardSummary extends StatelessWidget {
     required this.rewardInfo,
     required this.unlocked,
     required this.theme,
+    required this.dense,
   });
 
   final _StageRewardInfo? rewardInfo;
   final bool unlocked;
   final _StageChapterTheme theme;
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
@@ -1829,37 +1898,49 @@ class _StageRewardSummary extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         IconTheme(
-          data: IconThemeData(color: color, size: 16),
+          data: IconThemeData(color: color, size: dense ? 14 : 16),
           child: rewardInfo.icon,
         ),
-        const SizedBox(width: 7),
+        SizedBox(width: dense ? 5 : 7),
         Flexible(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (rewardInfo.label != null) ...[
-                Text(
-                  rewardInfo.label!,
-                  style: TextStyle(
-                    color: color.withValues(alpha: 0.78),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      rewardInfo.label!,
+                      maxLines: 1,
+                      softWrap: false,
+                      style: TextStyle(
+                        color: color.withValues(alpha: 0.78),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
                 ),
                 const SizedBox(height: 2),
               ],
-              Text(
-                rewardInfo.value,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    rewardInfo.value,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
               ),
             ],
           ),
