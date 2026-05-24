@@ -19,13 +19,13 @@ class CombatResolver {
   final double burnDurationSeconds;
 
   ResolvedAttackDamage resolveAttackDamage({
-    required TurretComponent owner,
+    required TurretAttackSnapshot attack,
     required EnemyComponent enemy,
     required double baseDamage,
     double traitMultiplier = 1,
     Set<AttackTag> extraTags = const {},
   }) {
-    final multiplier = damageMultiplier(owner, enemy, extraTags: extraTags);
+    final multiplier = damageMultiplier(attack, enemy, extraTags: extraTags);
     return ResolvedAttackDamage(
       damage: baseDamage * traitMultiplier * multiplier,
       resistanceMultiplier: multiplier,
@@ -33,20 +33,23 @@ class CombatResolver {
   }
 
   double damageMultiplier(
-    TurretComponent owner,
+    TurretAttackSnapshot attack,
     EnemyComponent enemy, {
     Set<AttackTag> extraTags = const {},
   }) {
     final resistance = enemy.definition.resistanceProfile;
-    final tags = {...owner.definition.attackTags, ...extraTags};
+    final tags = extraTags.isEmpty
+        ? attack.definition.attackTags
+        : {...attack.definition.attackTags, ...extraTags};
     var familyResistance = resistance.familyResistance(
-      owner.definition.damageFamily,
+      attack.definition.damageFamily,
     );
-    if (owner.definition.damageFamily == DamageFamily.physical) {
+    if (attack.definition.damageFamily == DamageFamily.physical) {
       familyResistance -=
-          enemy.physicalResistanceReduction + owner.physicalResistanceReduction;
+          enemy.physicalResistanceReduction +
+          attack.physicalResistanceReduction;
     }
-    if (owner.definition.damageFamily == DamageFamily.magical) {
+    if (attack.definition.damageFamily == DamageFamily.magical) {
       familyResistance -= enemy.magicalResistanceReduction;
     }
 
@@ -62,49 +65,49 @@ class CombatResolver {
   }
 
   void applyAttackStatuses({
-    required TurretComponent owner,
+    required TurretAttackSnapshot attack,
     required EnemyComponent enemy,
     double damageScale = 1,
     GridPoint? activeSourceTurretPoint,
   }) {
-    if (owner.definition.attackTags.contains(AttackTag.damageOverTime)) {
-      final burnMultiplier = damageMultiplier(owner, enemy);
+    if (attack.hasDamageOverTime) {
+      final burnMultiplier = damageMultiplier(attack, enemy);
       enemy.applyBurn(
         damagePerSecond:
-            owner.damage *
+            attack.damage *
             burnDamagePerSecondScale *
             damageScale *
             burnMultiplier *
-            owner.damageOverTimeDamageMultiplier,
-        duration: burnDurationSeconds * owner.damageOverTimeDurationMultiplier,
+            attack.damageOverTimeDamageMultiplier,
+        duration: burnDurationSeconds * attack.damageOverTimeDurationMultiplier,
         damageMultiplier: burnMultiplier,
         sourceTurretPoint: activeSourceTurretPoint,
-        ignoreArmorReduction: owner.ignoresArmorReduction,
+        ignoreArmorReduction: attack.ignoresArmorReduction,
       );
     }
-    if (owner.slowDuration > 0 && owner.slowMultiplier < 1) {
+    if (attack.slowDuration > 0 && attack.slowMultiplier < 1) {
       enemy.applySlow(
-        multiplier: owner.slowMultiplier,
-        duration: owner.slowDuration,
+        multiplier: attack.slowMultiplier,
+        duration: attack.slowDuration,
       );
-      if (owner.appliesFrostCrack) {
+      if (attack.appliesFrostCrack) {
         enemy.applyMagicalVulnerability(
           bonus: 0.15,
-          duration: owner.slowDuration,
+          duration: attack.slowDuration,
         );
       }
     }
   }
 
-  double chainProjectileDamage(TurretComponent owner) {
-    return owner.damage * chainDamageMultiplier;
+  double chainProjectileDamage(TurretAttackSnapshot attack) {
+    return attack.damage * chainDamageMultiplier;
   }
 
   double chainStatusDamageScale({
-    required TurretComponent owner,
+    required TurretAttackSnapshot attack,
     required double damage,
   }) {
-    return owner.damage <= 0 ? 0.0 : damage / owner.damage;
+    return attack.damage <= 0 ? 0.0 : damage / attack.damage;
   }
 
   List<EnemyComponent> chainProjectileTargets({

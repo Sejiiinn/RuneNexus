@@ -200,6 +200,38 @@ class TurretComponent extends PositionComponent {
       (_primaryTrait == TurretTraitType.lightweightBarrel ? 1.3 : 1) *
       game.boardDistanceScale;
 
+  TurretAttackSnapshot createAttackSnapshot({double criticalMultiplier = 1}) {
+    return TurretAttackSnapshot(
+      sourceTurretPoint: gridPoint,
+      definition: definition,
+      damage: damage,
+      range: range,
+      splashRadius: splashRadius,
+      splashSecondaryDamageMultiplier: splashSecondaryDamageMultiplier,
+      projectileSpeed: projectileSpeed,
+      criticalMultiplier: criticalMultiplier,
+      physicalResistanceReduction: physicalResistanceReduction,
+      ignoresArmorReduction: ignoresArmorReduction,
+      damageOverTimeDamageMultiplier: damageOverTimeDamageMultiplier,
+      damageOverTimeDurationMultiplier: damageOverTimeDurationMultiplier,
+      slowDuration: slowDuration,
+      slowMultiplier: slowMultiplier,
+      hasChain: hasGem(GemType.chain),
+      appliesFrostCrack: appliesFrostCrack,
+      appliesIgnitionBurst: appliesIgnitionBurst,
+      spreadsChainIgnition: spreadsChainIgnition,
+      appliesChainCleanup: _secondaryTrait == TurretTraitType.chainCleanup,
+      appliesSuppressiveFire:
+          _secondaryTrait == TurretTraitType.suppressiveFire,
+      appliesExposedMark: _secondaryTrait == TurretTraitType.exposedMark,
+      appliesOverheatMagazine:
+          _primaryTrait == TurretTraitType.overheatMagazine,
+      appliesCompressedCharge:
+          _primaryTrait == TurretTraitType.compressedCharge,
+      appliesFinishingShot: _secondaryTrait == TurretTraitType.finishingShot,
+    );
+  }
+
   double get damageOverTimeDamageMultiplier {
     if (!definition.attackTags.contains(AttackTag.damageOverTime)) {
       return 1;
@@ -447,11 +479,15 @@ class TurretComponent extends PositionComponent {
     return true;
   }
 
-  double registerDirectHitTraits(EnemyComponent enemy) {
-    if (_secondaryTrait == TurretTraitType.chainCleanup) {
+  double registerDirectHitTraits(
+    EnemyComponent enemy, {
+    TurretAttackSnapshot? attack,
+  }) {
+    final profile = attack ?? createAttackSnapshot();
+    if (profile.appliesChainCleanup) {
       _recentHitTimers[enemy] = 1.5;
     }
-    if (_secondaryTrait == TurretTraitType.suppressiveFire) {
+    if (profile.appliesSuppressiveFire) {
       if (identical(_suppressiveTarget, enemy)) {
         _suppressiveHits++;
       } else {
@@ -463,11 +499,11 @@ class TurretComponent extends PositionComponent {
         _suppressiveHits = 0;
       }
     }
-    if (_secondaryTrait == TurretTraitType.exposedMark) {
+    if (profile.appliesExposedMark) {
       enemy.applyPhysicalVulnerability(bonus: 0.15, duration: 2);
     }
     var multiplier = 1.0;
-    if (_primaryTrait == TurretTraitType.overheatMagazine) {
+    if (profile.appliesOverheatMagazine) {
       if (identical(_overheatTarget, enemy)) {
         _overheatStacks = math.min(15, _overheatStacks + 1);
       } else {
@@ -476,11 +512,10 @@ class TurretComponent extends PositionComponent {
       }
       multiplier *= 1 + _overheatStacks * 0.02;
     }
-    if (_primaryTrait == TurretTraitType.compressedCharge) {
+    if (profile.appliesCompressedCharge) {
       multiplier *= 1.35;
     }
-    if (_secondaryTrait == TurretTraitType.finishingShot &&
-        _durabilityRatio(enemy) <= 0.35) {
+    if (profile.appliesFinishingShot && _durabilityRatio(enemy) <= 0.35) {
       multiplier *= 1.45;
     }
     return multiplier;
@@ -606,7 +641,11 @@ class TurretComponent extends PositionComponent {
         leadTarget.position.x - position.x,
       );
       _triggerFireFeedback();
-      game.resolveCenteredAreaAttack(owner: this, targets: targets);
+      game.resolveCenteredAreaAttack(
+        owner: this,
+        attack: createAttackSnapshot(),
+        targets: targets,
+      );
       return;
     }
 
@@ -630,11 +669,15 @@ class TurretComponent extends PositionComponent {
             return Vector2(origin.dx, origin.dy);
           })()
         : position.clone();
+    final attack = createAttackSnapshot(
+      criticalMultiplier: rollCriticalHit() ? criticalDamageMultiplier : 1.0,
+    );
     game.add(
       ProjectileComponent(
         origin: projectileOrigin,
         targetPosition: target.position.clone(),
         owner: this,
+        attack: attack,
         game: game,
       ),
     );
@@ -660,16 +703,12 @@ class TurretComponent extends PositionComponent {
       return;
     }
 
-    final criticalMultiplier = rollCriticalHit()
-        ? criticalDamageMultiplier
-        : 1.0;
+    final attack = createAttackSnapshot(
+      criticalMultiplier: rollCriticalHit() ? criticalDamageMultiplier : 1.0,
+    );
     _cooldown = (1 / attackRate) * _nextCooldownVarianceMultiplier();
     _triggerFireFeedback();
-    game.resolveInstantHit(
-      owner: this,
-      target: target,
-      criticalMultiplier: criticalMultiplier,
-    );
+    game.resolveInstantHit(owner: this, target: target, attack: attack);
     _clearAim();
   }
 
@@ -1184,3 +1223,60 @@ class TurretComponent extends PositionComponent {
 }
 
 enum TurretDamageKind { direct, splash, chain, burn }
+
+class TurretAttackSnapshot {
+  const TurretAttackSnapshot({
+    required this.sourceTurretPoint,
+    required this.definition,
+    required this.damage,
+    required this.range,
+    required this.splashRadius,
+    required this.splashSecondaryDamageMultiplier,
+    required this.projectileSpeed,
+    required this.criticalMultiplier,
+    required this.physicalResistanceReduction,
+    required this.ignoresArmorReduction,
+    required this.damageOverTimeDamageMultiplier,
+    required this.damageOverTimeDurationMultiplier,
+    required this.slowDuration,
+    required this.slowMultiplier,
+    required this.hasChain,
+    required this.appliesFrostCrack,
+    required this.appliesIgnitionBurst,
+    required this.spreadsChainIgnition,
+    required this.appliesChainCleanup,
+    required this.appliesSuppressiveFire,
+    required this.appliesExposedMark,
+    required this.appliesOverheatMagazine,
+    required this.appliesCompressedCharge,
+    required this.appliesFinishingShot,
+  });
+
+  final GridPoint sourceTurretPoint;
+  final TurretDefinition definition;
+  final double damage;
+  final double range;
+  final double splashRadius;
+  final double splashSecondaryDamageMultiplier;
+  final double projectileSpeed;
+  final double criticalMultiplier;
+  final double physicalResistanceReduction;
+  final bool ignoresArmorReduction;
+  final double damageOverTimeDamageMultiplier;
+  final double damageOverTimeDurationMultiplier;
+  final double slowDuration;
+  final double slowMultiplier;
+  final bool hasChain;
+  final bool appliesFrostCrack;
+  final bool appliesIgnitionBurst;
+  final bool spreadsChainIgnition;
+  final bool appliesChainCleanup;
+  final bool appliesSuppressiveFire;
+  final bool appliesExposedMark;
+  final bool appliesOverheatMagazine;
+  final bool appliesCompressedCharge;
+  final bool appliesFinishingShot;
+
+  bool get hasDamageOverTime =>
+      definition.attackTags.contains(AttackTag.damageOverTime);
+}

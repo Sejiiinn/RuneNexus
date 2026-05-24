@@ -12,9 +12,10 @@ class ProjectileComponent extends PositionComponent {
     required Vector2 origin,
     required Vector2 targetPosition,
     required this.owner,
+    required this.attack,
     required this.game,
   }) : _direction = _safeDirection(origin, targetPosition),
-       _maxDistance = owner.range + 64 * owner.game.boardDistanceScale,
+       _maxDistance = attack.range + 64 * owner.game.boardDistanceScale,
        super(
          position: origin,
          size: Vector2.all(
@@ -24,6 +25,7 @@ class ProjectileComponent extends PositionComponent {
        );
 
   final TurretComponent owner;
+  final TurretAttackSnapshot attack;
   final RuneNexusGame game;
   final Vector2 _direction;
   final double _maxDistance;
@@ -33,7 +35,7 @@ class ProjectileComponent extends PositionComponent {
   @override
   void update(double dt) {
     super.update(dt);
-    final step = owner.projectileSpeed * dt;
+    final step = attack.projectileSpeed * dt;
     position += _direction * step;
     _travelled += step;
     _trail.insert(0, position.clone());
@@ -45,6 +47,7 @@ class ProjectileComponent extends PositionComponent {
     if (target != null) {
       game.resolveProjectileHit(
         owner: owner,
+        attack: attack,
         target: target,
         hitPosition: position.clone(),
       );

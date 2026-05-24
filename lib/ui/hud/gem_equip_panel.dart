@@ -16,10 +16,10 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
   @override
   Widget build(BuildContext context) {
     final snapshot = widget.snapshot;
-    final canFreelyManageGems = snapshot.phase == GamePhase.preparation;
     final canInstallGems =
         snapshot.phase == GamePhase.preparation ||
         snapshot.phase == GamePhase.wave;
+    final canRemoveGems = canInstallGems;
     final canLevelUp =
         snapshot.phase == GamePhase.preparation ||
         snapshot.phase == GamePhase.wave;
@@ -47,18 +47,15 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
     final selectedInventoryEquipped =
         selectedInventoryGem != null &&
         snapshot.selectedTurretGems.contains(selectedInventoryGem);
-    final selectedSlotIsEmpty =
-        selectedSlotIndex != null && selectedSlotGem == null;
     final selectedSlotCanAcceptGem =
-        selectedSlotIndex != null &&
-        (canFreelyManageGems || selectedSlotIsEmpty);
+        selectedSlotIndex != null && canInstallGems;
     final selectedInventoryBlockReason = selectedInventoryGem == null
         ? null
         : gemEquipBlockReason(selectedInventoryGem, definition);
     final selectedInventoryInstallBlockReason = selectedInventoryEquipped
         ? '이미 이 포탑에 장착됨'
         : !selectedSlotCanAcceptGem
-        ? '전투 중에는 빈 홈에만 장착 가능'
+        ? '링크 홈을 선택하세요'
         : selectedInventoryBlockReason;
     final selectedInventoryCanInstall =
         selectedInventoryGem != null &&
@@ -151,7 +148,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
             _SelectedSlotGemActions(
               type: selectedSlotGem,
               turret: definition,
-              onRemove: canFreelyManageGems
+              onRemove: canRemoveGems
                   ? widget.game.removeSelectedTurretGemSlot
                   : null,
             ),

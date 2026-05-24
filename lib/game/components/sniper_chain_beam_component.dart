@@ -11,6 +11,7 @@ class SniperChainBeamComponent extends PositionComponent {
     required EnemyComponent source,
     required this.target,
     required this.owner,
+    required this.attack,
     required this.damage,
     required this.game,
     double duration = 0.16,
@@ -19,12 +20,18 @@ class SniperChainBeamComponent extends PositionComponent {
        _sourcePosition = source.position.clone(),
        _targetPosition = target.position.clone(),
        super(position: Vector2.zero(), size: Vector2.zero()) {
-    game.resolveChainHit(owner: owner, target: target, damage: damage);
+    game.resolveChainHit(
+      owner: owner,
+      attack: attack,
+      target: target,
+      damage: damage,
+    );
   }
 
   final EnemyComponent _source;
   final EnemyComponent target;
   final TurretComponent owner;
+  final TurretAttackSnapshot attack;
   final double damage;
   final RuneNexusGame game;
   final double _duration;

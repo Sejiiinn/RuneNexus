@@ -58,11 +58,7 @@ class TurretActionController {
     final slotIndex = selectedSlotIndex == null
         ? _defaultGemSlotIndex(turret)
         : selectedSlotIndex.clamp(0, turret.slotLimit - 1).toInt();
-    final isOccupied =
-        slotIndex < turret.equippedGemSlots.length &&
-        turret.equippedGemSlots[slotIndex] != null;
-    if (!turret.canEquipGemAt(slotIndex) ||
-        (phase == GamePhase.wave && isOccupied)) {
+    if (!turret.canEquipGemAt(slotIndex)) {
       return null;
     }
 
@@ -94,7 +90,9 @@ class TurretActionController {
     required int gemShards,
     required GridPoint? levelUpPreviewPoint,
   }) {
-    if (phase != GamePhase.preparation || selectedSlotIndex == null) {
+    final canChangeGem =
+        phase == GamePhase.preparation || phase == GamePhase.wave;
+    if (!canChangeGem || selectedSlotIndex == null) {
       return null;
     }
 

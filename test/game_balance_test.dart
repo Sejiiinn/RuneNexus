@@ -3619,7 +3619,7 @@ void main() {
     },
   );
 
-  test('gem cannot be removed or replaced while a round is running', () async {
+  test('gem can be replaced and removed while a round is running', () async {
     final repository = MemorySaveRepository();
     final game = _LinkResearchUnlockedGame(saveRepository: repository);
 
@@ -3633,14 +3633,69 @@ void main() {
     game.grantGem(GemType.chain);
 
     game.equipSelectedTurret(GemType.chain);
+    var snapshot = game.snapshotNotifier.value;
+    expect(snapshot.phase, GamePhase.wave);
+    expect(snapshot.selectedTurretGems, [GemType.chain]);
+    expect(snapshot.gemInventory[GemType.range], 1);
+    expect(snapshot.gemInventory[GemType.chain], isNull);
+
     game.removeSelectedTurretGemSlot();
 
-    final snapshot = game.snapshotNotifier.value;
+    snapshot = game.snapshotNotifier.value;
     expect(snapshot.phase, GamePhase.wave);
-    expect(snapshot.selectedTurretGems, [GemType.range]);
-    expect(snapshot.gemInventory[GemType.range], isNull);
+    expect(snapshot.selectedTurretGems, [null]);
+    expect(snapshot.gemInventory[GemType.range], 1);
     expect(snapshot.gemInventory[GemType.chain], 1);
   });
+
+  test(
+    'projectile hit keeps launch gem profile after in-combat replacement',
+    () async {
+      final game = _LinkResearchUnlockedGame(
+        saveRepository: MemorySaveRepository(),
+      );
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+
+      game.tryBuildTurret(const GridPoint(2, 0));
+      final turret = game.children.whereType<TurretComponent>().single;
+      turret.equipGem(GemType.explosion, 0);
+      final launchedAttack = turret.createAttackSnapshot();
+      turret
+        ..removeGemAt(0)
+        ..equipGem(GemType.range, 0);
+
+      final target = EnemyComponent(
+        definition: gameEnemies[EnemyType.normal]!,
+        maxHp: 100,
+        path: [Vector2.zero(), Vector2(100, 0)],
+        game: game,
+      )..position = turret.position + Vector2(10, 0);
+      final splashTarget = EnemyComponent(
+        definition: gameEnemies[EnemyType.normal]!,
+        maxHp: 100,
+        path: [Vector2.zero(), Vector2(100, 0)],
+        game: game,
+      )..position = target.position + Vector2(8, 0);
+
+      await game.add(target);
+      await game.add(splashTarget);
+      game.enemies.addAll([target, splashTarget]);
+      game.update(0);
+
+      game.resolveProjectileHit(
+        owner: turret,
+        attack: launchedAttack,
+        target: target,
+        hitPosition: target.position.clone(),
+      );
+
+      expect(turret.hasGem(GemType.range), isTrue);
+      expect(turret.hasGem(GemType.explosion), isFalse);
+      expect(target.hp, lessThan(100));
+      expect(splashTarget.hp, lessThan(100));
+    },
+  );
 
   test('turret refund returns investment and equipped gems', () async {
     final repository = MemorySaveRepository();

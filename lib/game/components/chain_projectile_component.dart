@@ -11,12 +11,14 @@ class ChainProjectileComponent extends PositionComponent {
     required Vector2 origin,
     required this.target,
     required this.owner,
+    required this.attack,
     required this.damage,
     required this.game,
   }) : super(position: origin, size: Vector2.all(7), anchor: Anchor.center);
 
   final EnemyComponent target;
   final TurretComponent owner;
+  final TurretAttackSnapshot attack;
   final double damage;
   final RuneNexusGame game;
   final List<Vector2> _points = [];
@@ -31,10 +33,15 @@ class ChainProjectileComponent extends PositionComponent {
 
     final direction = target.position - position;
     final distance = direction.length;
-    final step = owner.projectileSpeed * 1.25 * dt;
+    final step = attack.projectileSpeed * 1.25 * dt;
 
     if (distance <= step) {
-      game.resolveChainHit(owner: owner, target: target, damage: damage);
+      game.resolveChainHit(
+        owner: owner,
+        attack: attack,
+        target: target,
+        damage: damage,
+      );
       removeFromParent();
       return;
     }

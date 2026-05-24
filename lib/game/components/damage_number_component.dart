@@ -9,6 +9,8 @@ enum DamageNumberMotion { rise, fallArc }
 enum DamageNumberFeedback { neutral, weak, resisted }
 
 class DamageNumberImageCache {
+  static const int _renderScale = 2;
+
   final Map<_DamageNumberImageKey, ui.Image> _images = {};
 
   ui.Image imageFor({
@@ -21,8 +23,8 @@ class DamageNumberImageCache {
       text: text,
       color: color,
       feedback: feedback,
-      width: size.x.ceil(),
-      height: size.y.ceil(),
+      width: size.x.ceil() * _renderScale,
+      height: size.y.ceil() * _renderScale,
     );
     return _images.putIfAbsent(
       key,
@@ -68,13 +70,13 @@ class DamageNumberImageCache {
         text: text,
         style: TextStyle(
           color: textColor,
-          fontSize: 15,
+          fontSize: 15.0 * _renderScale,
           fontWeight: FontWeight.w900,
           shadows: [
             Shadow(
               color: const Color(0xFF02070D).withValues(alpha: 0.42),
-              blurRadius: 3,
-              offset: Offset(1, 1),
+              blurRadius: 3.0 * _renderScale,
+              offset: Offset(1.0 * _renderScale, 1.0 * _renderScale),
             ),
           ],
         ),
@@ -141,7 +143,7 @@ class DamageNumberComponent extends PositionComponent {
   final DamageNumberFeedback _feedback;
   final int _arcDirection;
   final ui.Image _textImage;
-  final Paint _imagePaint = Paint()..filterQuality = FilterQuality.none;
+  final Paint _imagePaint = Paint()..filterQuality = FilterQuality.low;
   double _age = 0;
   final double _lifeTime = 0.75;
 
@@ -189,9 +191,19 @@ class DamageNumberComponent extends PositionComponent {
           (_feedback == DamageNumberFeedback.resisted ? progress * 5 : 0),
     );
     canvas.scale(scale);
-    canvas.drawImage(
+    canvas.drawImageRect(
       _textImage,
-      Offset(-_textImage.width / 2, -_textImage.height / 2),
+      Rect.fromLTWH(
+        0,
+        0,
+        _textImage.width.toDouble(),
+        _textImage.height.toDouble(),
+      ),
+      Rect.fromCenter(
+        center: Offset.zero,
+        width: _textImage.width / DamageNumberImageCache._renderScale,
+        height: _textImage.height / DamageNumberImageCache._renderScale,
+      ),
       _imagePaint,
     );
     canvas.restore();
