@@ -18,6 +18,7 @@ import '../data/save/save_repository.dart';
 import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/game_phase.dart';
 import '../domain/combat/run_panel_tab.dart';
+import '../domain/core/core_ability.dart';
 import '../domain/enemy/enemy_scaling.dart';
 import '../domain/enemy/enemy_type.dart';
 import '../domain/gem/gem_type.dart';
@@ -220,8 +221,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       totalTurretDps: 0,
       nexusCoreBeamIntervalSeconds: _nexusCoreBeamInterval,
       nexusCoreBeamCooldownSeconds: _nexusCoreBeamInterval,
+      nexusCoreBeamAvailable: true,
       nexusCoreBeamActive: false,
       nexusCoreBeamDamage: 0,
+      coreCombatSkill: CoreCombatSkill.guardianBeam,
+      corePassiveSlots: const [null, null],
+      corePassiveSlotCount: 1,
+      unlockedCorePassiveAbilities: const {CorePassiveAbility.stabilityCircuit},
       nextWaveEnemyTypes: _enemyTypesFor(firstWave),
       nextWaveEnemyCounts: _enemyCountsFor(firstWave),
       nextWaveClearRewardGold: firstWave.clearRewardGold,
@@ -374,6 +380,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   );
   final TurretActionController _turretActions = const TurretActionController();
   final RunProgression _progression = RunProgression();
+  CoreCombatSkill? _runCoreCombatSkill = CoreCombatSkill.guardianBeam;
+  final List<CorePassiveAbility?> _runCorePassiveSlots = [null, null];
   late final SaveScheduler _saveScheduler = SaveScheduler(
     saveNow: _writeLocalSave,
   );
@@ -496,14 +504,27 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       });
   double get nexusCoreBeamIntervalSeconds => _nexusCoreBeamInterval;
   double get nexusCoreBeamCooldownSeconds {
+    if (!nexusCoreBeamAvailable) {
+      return 0;
+    }
     if (_nexusCoreBeamActiveRemaining > 0) {
       return 0;
     }
     return _nexusCoreBeamCooldown.clamp(0.0, _nexusCoreBeamInterval).toDouble();
   }
 
-  bool get nexusCoreBeamActive => _nexusCoreBeamActiveRemaining > 0;
-  double get nexusCoreBeamDamage => _nexusCoreBeamTotalDamage();
+  bool get nexusCoreBeamAvailable =>
+      _runCoreCombatSkill == CoreCombatSkill.guardianBeam;
+  bool get nexusCoreBeamActive =>
+      nexusCoreBeamAvailable && _nexusCoreBeamActiveRemaining > 0;
+  double get nexusCoreBeamDamage =>
+      nexusCoreBeamAvailable ? _nexusCoreBeamTotalDamage() : 0;
+  CoreCombatSkill? get coreCombatSkill => _progression.coreCombatSkill;
+  List<CorePassiveAbility?> get corePassiveSlots =>
+      List.unmodifiable(_progression.corePassiveSlots);
+  int get corePassiveSlotCount => _progression.corePassiveSlotCount;
+  Set<CorePassiveAbility> get unlockedCorePassiveAbilities =>
+      Set.unmodifiable(_progression.unlockedCorePassiveAbilities);
 
   int _runUpgradeLevel(RunUpgradeType type) {
     final definition = gameRunUpgrades[type];
@@ -842,6 +863,42 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _maybeAutoStartNextWave();
   }
 
+  bool equipCoreCombatSkill(CoreCombatSkill skill) {
+    if (!_progression.equipCoreCombatSkill(skill)) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
+  }
+
+  bool unequipCoreCombatSkill() {
+    if (!_progression.unequipCoreCombatSkill()) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
+  }
+
+  bool equipCorePassiveAbility(CorePassiveAbility ability, int slotIndex) {
+    if (!_progression.equipCorePassiveAbility(ability, slotIndex)) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
+  }
+
+  bool unequipCorePassiveAbility(int slotIndex) {
+    if (!_progression.unequipCorePassiveAbility(slotIndex)) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
+  }
+
   void startNextWave() {
     if (_phase != GamePhase.preparation || _roundIndex >= _waves.length) {
       return;
@@ -899,6 +956,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _lastRunUnlockedStageNumber = null;
     _lastRunUnlockedSniperTurret = false;
     _progression.resetLastRunReward();
+    _captureRunCoreLoadoutFromProgression();
     _phase = GamePhase.preparation;
     _selectedTurretType = TurretType.arrow;
     _selectedRunPanelTab = RunPanelTab.turrets;
@@ -2418,7 +2476,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _drawNexusCoreCooldownBar(Canvas canvas) {
-    if (_phase != GamePhase.wave || _worldPath.isEmpty) {
+    if (_phase != GamePhase.wave ||
+        _worldPath.isEmpty ||
+        !nexusCoreBeamAvailable) {
       return;
     }
 
@@ -2626,6 +2686,25 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     add(enemy);
   }
 
+  void _captureRunCoreLoadoutFromProgression() {
+    _runCoreCombatSkill = _progression.coreCombatSkill;
+    for (var i = 0; i < _runCorePassiveSlots.length; i++) {
+      _runCorePassiveSlots[i] = i < _progression.corePassiveSlots.length
+          ? _progression.corePassiveSlots[i]
+          : null;
+    }
+  }
+
+  void _restoreRunCoreLoadoutFromSave(GameSaveData data) {
+    _runCoreCombatSkill = data.runCoreCombatSkill;
+    final restoredSlots = data.runCorePassiveSlots;
+    for (var i = 0; i < _runCorePassiveSlots.length; i++) {
+      _runCorePassiveSlots[i] = i < restoredSlots.length
+          ? restoredSlots[i]
+          : null;
+    }
+  }
+
   void _resetNexusCoreBeamCycle() {
     _nexusCoreBeamCooldown = _nexusCoreBeamInterval;
     _nexusCoreBeamActiveRemaining = 0;
@@ -2635,6 +2714,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   void _updateNexusCoreBeam(double dt) {
     if (dt <= 0) {
+      return;
+    }
+    if (_runCoreCombatSkill != CoreCombatSkill.guardianBeam) {
+      _resetNexusCoreBeamCycle();
       return;
     }
     if (_nexusCoreBeamActiveRemaining > 0) {
@@ -3066,6 +3149,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         restoredPhase: _restoredPhase,
         autoStartMode: _autoStartMode,
         progression: _progression,
+        runCoreCombatSkill: _runCoreCombatSkill,
+        runCorePassiveSlots: _runCorePassiveSlots,
         runUpgradeLevels: _runUpgradeLevels,
         killGoldFractionWallet: _killGoldFractionWallet,
         gemInventory: _gemInventory,

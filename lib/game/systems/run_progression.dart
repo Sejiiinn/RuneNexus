@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import '../../data/definitions/game_research_data.dart';
 import '../../data/save/game_save_data.dart';
+import '../../domain/core/core_ability.dart';
 import '../../domain/research/research_progress.dart';
 import '../../domain/research/research_type.dart';
 
@@ -81,6 +82,8 @@ class RunProgression {
   final Map<ResearchType, int> researchLevels = {};
   final Map<ResearchType, int> researchElapsedMillis = {};
   final List<ResearchProgress> activeResearches = [];
+  CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam;
+  final List<CorePassiveAbility?> corePassiveSlots = [null, null];
 
   int get initialGold =>
       baseInitialGold +
@@ -155,6 +158,14 @@ class RunProgression {
       isResearchComplete(ResearchType.linkExpansionOne) ? 4 : 3;
   bool get canSetTurretTargetPriority =>
       isResearchComplete(ResearchType.turretTargetPriority);
+  int get corePassiveSlotCount => unlockedStageCount >= 6 ? 2 : 1;
+  Set<CorePassiveAbility> get unlockedCorePassiveAbilities {
+    return {
+      CorePassiveAbility.stabilityCircuit,
+      if (isStageCleared(1)) CorePassiveAbility.precisionCircuit,
+    };
+  }
+
   double get researchEfficiencyRate =>
       researchLevel(ResearchType.researchEfficiency) *
       researchEfficiencyPerLevel;
@@ -409,6 +420,10 @@ class RunProgression {
           ),
         ),
       ),
+      coreCombatSkill: coreCombatSkill,
+      corePassiveSlots: List<CorePassiveAbility?>.unmodifiable(
+        _sanitizedCorePassiveSlots(),
+      ),
     );
   }
 
@@ -503,6 +518,79 @@ class RunProgression {
               ),
             ),
       );
+    coreCombatSkill = data.coreCombatSkill;
+    final restoredSlots = data.corePassiveSlots;
+    for (var i = 0; i < corePassiveSlots.length; i++) {
+      corePassiveSlots[i] = i < restoredSlots.length ? restoredSlots[i] : null;
+    }
+    _sanitizeCorePassiveSlotsInPlace();
+  }
+
+  bool equipCoreCombatSkill(CoreCombatSkill skill) {
+    if (skill != CoreCombatSkill.guardianBeam || coreCombatSkill == skill) {
+      return skill == CoreCombatSkill.guardianBeam;
+    }
+    coreCombatSkill = skill;
+    return true;
+  }
+
+  bool unequipCoreCombatSkill() {
+    if (coreCombatSkill == null) {
+      return false;
+    }
+    coreCombatSkill = null;
+    return true;
+  }
+
+  bool equipCorePassiveAbility(CorePassiveAbility ability, int slotIndex) {
+    if (slotIndex < 0 ||
+        slotIndex >= corePassiveSlotCount ||
+        !unlockedCorePassiveAbilities.contains(ability)) {
+      return false;
+    }
+    final existingIndex = corePassiveSlots.indexOf(ability);
+    if (existingIndex >= 0 && existingIndex != slotIndex) {
+      return false;
+    }
+    corePassiveSlots[slotIndex] = ability;
+    _sanitizeCorePassiveSlotsInPlace();
+    return true;
+  }
+
+  bool unequipCorePassiveAbility(int slotIndex) {
+    if (slotIndex < 0 || slotIndex >= corePassiveSlotCount) {
+      return false;
+    }
+    if (corePassiveSlots[slotIndex] == null) {
+      return false;
+    }
+    corePassiveSlots[slotIndex] = null;
+    return true;
+  }
+
+  List<CorePassiveAbility?> _sanitizedCorePassiveSlots() {
+    final slots = List<CorePassiveAbility?>.of(corePassiveSlots);
+    final unlocked = unlockedCorePassiveAbilities;
+    final seen = <CorePassiveAbility>{};
+    for (var i = 0; i < slots.length; i++) {
+      final ability = slots[i];
+      if (i >= corePassiveSlotCount ||
+          ability == null ||
+          !unlocked.contains(ability) ||
+          seen.contains(ability)) {
+        slots[i] = null;
+        continue;
+      }
+      seen.add(ability);
+    }
+    return slots;
+  }
+
+  void _sanitizeCorePassiveSlotsInPlace() {
+    final slots = _sanitizedCorePassiveSlots();
+    for (var i = 0; i < corePassiveSlots.length; i++) {
+      corePassiveSlots[i] = slots[i];
+    }
   }
 
   bool upgradeStartingGold() {

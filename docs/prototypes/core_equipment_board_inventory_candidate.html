@@ -1,0 +1,1129 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rune Nexus Core Equipment Board</title>
+    <style>
+      :root {
+        --bg: #03070d;
+        --base: #06101a;
+        --panel: #0c1d2c;
+        --panel-soft: #0a1724;
+        --panel-dark: #050d16;
+        --line: rgba(93, 113, 130, 0.48);
+        --line-soft: rgba(72, 91, 104, 0.42);
+        --line-strong: rgba(142, 230, 255, 0.62);
+        --text: #e8fbff;
+        --muted: #8fa8ba;
+        --dim: #485b68;
+        --cyan: #8ee6ff;
+        --cyan-deep: #155876;
+        --green: #72e0a2;
+        --gold: #e7c66a;
+        --violet: #b68bff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 10px;
+        color: var(--text);
+        background: var(--bg);
+        font-family:
+          Inter,
+          "Noto Sans KR",
+          "Apple SD Gothic Neo",
+          system-ui,
+          sans-serif;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .screen {
+        position: relative;
+        width: min(420px, calc(100vw - 18px));
+        height: min(880px, calc(100vh - 18px));
+        min-height: 690px;
+        overflow: hidden;
+        border: 1px solid rgba(93, 113, 130, 0.54);
+        border-radius: 18px;
+        background: var(--base);
+        box-shadow:
+          inset 0 0 0 1px rgba(142, 230, 255, 0.05),
+          0 22px 52px rgba(0, 0, 0, 0.42);
+      }
+
+      .circuit {
+        pointer-events: none;
+        position: absolute;
+        inset: 56px 16px 66px;
+        opacity: 0.32;
+      }
+
+      .circuit span {
+        position: absolute;
+        background: rgba(51, 216, 255, 0.1);
+      }
+
+      .circuit .h1 {
+        left: 0;
+        right: 0;
+        top: 306px;
+        height: 1px;
+      }
+
+      .circuit .h2 {
+        left: 28px;
+        right: 44px;
+        top: 372px;
+        height: 1px;
+      }
+
+      .circuit .v1 {
+        left: 18px;
+        top: 38px;
+        bottom: 188px;
+        width: 1px;
+      }
+
+      .circuit .v2 {
+        right: 22px;
+        top: 70px;
+        bottom: 210px;
+        width: 1px;
+      }
+
+      .circuit i {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: rgba(142, 230, 255, 0.42);
+      }
+
+      .n1 {
+        left: 17px;
+        top: 306px;
+      }
+
+      .n2 {
+        right: 21px;
+        top: 372px;
+      }
+
+      .n3 {
+        left: 50%;
+        top: 306px;
+      }
+
+      .topbar {
+        height: 54px;
+        display: grid;
+        grid-template-columns: 94px 1fr 86px;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+      }
+
+      .top-icons {
+        display: flex;
+        gap: 6px;
+      }
+
+      .game-icon,
+      .nav-icon {
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(125, 230, 245, 0.18);
+        color: #cdeff4;
+        background: #091624;
+      }
+
+      .game-icon {
+        width: 28px;
+        height: 28px;
+        clip-path: polygon(18% 0, 82% 0, 100% 18%, 100% 82%, 82% 100%, 18% 100%, 0 82%, 0 18%);
+        font-size: 12px;
+      }
+
+      .game-icon::before,
+      .nav-icon::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        background: currentColor;
+      }
+
+      .game-icon.menu::before {
+        width: 12px;
+        height: 7px;
+        background: transparent;
+        border-top: 2px solid currentColor;
+        border-bottom: 2px solid currentColor;
+      }
+
+      .game-icon.map::before,
+      .nav-icon.map::before {
+        border-radius: 50%;
+        background: transparent;
+        border: 2px solid currentColor;
+      }
+
+      .game-icon.core::before,
+      .nav-icon.core::before {
+        transform: rotate(45deg);
+      }
+
+      .nav-icon.home::before {
+        width: 9px;
+        height: 7px;
+        background: transparent;
+        border: 2px solid currentColor;
+        border-top: 0;
+      }
+
+      .nav-icon.research::before {
+        width: 9px;
+        height: 9px;
+        background: transparent;
+        border: 2px solid currentColor;
+        transform: rotate(45deg);
+      }
+
+      .nav-icon.settings::before {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: transparent;
+        border: 2px solid currentColor;
+      }
+
+      .title {
+        text-align: center;
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .wallet {
+        justify-self: end;
+        color: var(--gold);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .board {
+        position: relative;
+        height: 330px;
+        margin: 0 14px;
+        border: 1px solid rgba(93, 113, 130, 0.52);
+        border-radius: 12px;
+        background: #0b1b2b;
+        box-shadow:
+          inset 0 0 0 1px rgba(142, 230, 255, 0.035),
+          inset 0 -20px 36px rgba(0, 0, 0, 0.16);
+      }
+
+      .board-title {
+        position: absolute;
+        left: 14px;
+        top: 12px;
+      }
+
+      .board-title h1 {
+        margin: 0;
+        font-size: 21px;
+        line-height: 1;
+      }
+
+      .board-title p {
+        margin: 5px 0 0;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .level {
+        position: absolute;
+        right: 12px;
+        top: 10px;
+        padding: 5px 10px;
+        border: 1px solid rgba(229, 195, 110, 0.38);
+        color: var(--gold);
+        background: #111e2d;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .connector {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        top: 56px;
+        width: calc(100% - 24px);
+        height: 248px;
+      }
+
+      .connector path {
+        fill: none;
+        stroke: rgba(72, 91, 104, 0.48);
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .connector .active {
+        stroke: rgba(142, 230, 255, 0.62);
+      }
+
+      .connector circle {
+        fill: #06101a;
+        stroke: rgba(93, 113, 130, 0.58);
+        stroke-width: 2;
+      }
+
+      .connector .node-on {
+        fill: var(--cyan);
+        stroke: #12313a;
+      }
+
+      .core-hub {
+        position: absolute;
+        left: 50%;
+        top: 176px;
+        width: 134px;
+        height: 134px;
+        transform: translate(-50%, -50%);
+      }
+
+      .core-ring {
+        position: absolute;
+        inset: 4px;
+        border: 2px solid rgba(142, 230, 255, 0.24);
+        border-radius: 50%;
+      }
+
+      .core-ring::before,
+      .core-ring::after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+      }
+
+      .core-ring::before {
+        inset: 17px;
+        border: 1px solid rgba(93, 113, 130, 0.5);
+      }
+
+      .core-ring::after {
+        inset: 39px;
+        border: 1px solid rgba(231, 198, 106, 0.22);
+      }
+
+      .shard {
+        position: absolute;
+        background: #155876;
+        box-shadow: 0 0 8px rgba(142, 230, 255, 0.16);
+      }
+
+      .s1 {
+        left: 56px;
+        top: 0;
+        width: 18px;
+        height: 28px;
+        clip-path: polygon(50% 0, 100% 36%, 72% 100%, 28% 100%, 0 36%);
+      }
+
+      .s2 {
+        right: 6px;
+        top: 54px;
+        width: 26px;
+        height: 15px;
+        clip-path: polygon(0 25%, 78% 0, 100% 50%, 78% 100%, 0 75%);
+      }
+
+      .s3 {
+        left: 9px;
+        top: 58px;
+        width: 25px;
+        height: 15px;
+        clip-path: polygon(22% 0, 100% 25%, 100% 75%, 22% 100%, 0 50%);
+      }
+
+      .s4 {
+        left: 58px;
+        bottom: 2px;
+        width: 18px;
+        height: 26px;
+        clip-path: polygon(28% 0, 72% 0, 100% 64%, 50% 100%, 0 64%);
+      }
+
+      .core-body {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 58px;
+        height: 78px;
+        transform: translate(-50%, -50%);
+        background: #8ee6ff;
+        clip-path: polygon(50% 0, 88% 24%, 70% 80%, 50% 100%, 30% 80%, 12% 24%);
+        box-shadow:
+          0 0 14px rgba(142, 230, 255, 0.28),
+          inset 0 0 0 2px rgba(236, 248, 251, 0.2);
+      }
+
+      .core-body::before {
+        content: "";
+        position: absolute;
+        left: 26px;
+        top: 8px;
+        width: 6px;
+        height: 60px;
+        background: rgba(236, 248, 251, 0.36);
+      }
+
+      .core-light {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 18px;
+        height: 18px;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: #e8fbff;
+        box-shadow: 0 0 12px rgba(142, 230, 255, 0.6);
+      }
+
+      .socket {
+        position: absolute;
+        width: 104px;
+        height: 78px;
+        border: 0;
+        padding: 0;
+        color: var(--text);
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .socket-shell {
+        position: absolute;
+        inset: 0;
+        background: #0a1724;
+        clip-path: polygon(17% 0, 83% 0, 100% 21%, 100% 79%, 83% 100%, 17% 100%, 0 79%, 0 21%);
+        box-shadow:
+          inset 0 0 0 1px rgba(93, 113, 130, 0.68),
+          inset 0 0 0 7px rgba(0, 0, 0, 0.2),
+          0 8px 16px rgba(0, 0, 0, 0.28);
+      }
+
+      .socket.equipped .socket-shell {
+        background: #0d2433;
+        box-shadow:
+          inset 0 0 0 1px rgba(142, 230, 255, 0.62),
+          inset 0 0 0 7px rgba(0, 0, 0, 0.18),
+          0 0 12px rgba(34, 199, 232, 0.16);
+      }
+
+      .socket.empty .socket-shell {
+        background: #050a10;
+        box-shadow:
+          inset 0 0 0 1px rgba(72, 91, 104, 0.46),
+          inset 0 0 0 7px rgba(0, 0, 0, 0.38);
+      }
+
+      .socket-chip {
+        position: absolute;
+        left: 50%;
+        top: 8px;
+        width: 36px;
+        height: 36px;
+        transform: translateX(-50%);
+        display: grid;
+        place-items: center;
+        color: #051017;
+        background: #8ee6ff;
+        clip-path: polygon(50% 0, 90% 25%, 90% 75%, 50% 100%, 10% 75%, 10% 25%);
+      }
+
+      .socket-chip::before {
+        content: "";
+        width: 13px;
+        height: 13px;
+        background: #051017;
+        clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+      }
+
+      .socket.empty .socket-chip {
+        color: #667781;
+        background: #172535;
+      }
+
+      .contact {
+        position: absolute;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #203b4b;
+      }
+
+      .socket.equipped .contact {
+        background: var(--cyan);
+      }
+
+      .contact.a {
+        left: 12px;
+        top: 36px;
+      }
+
+      .contact.b {
+        right: 12px;
+        top: 36px;
+      }
+
+      .socket-name {
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        bottom: 17px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 12px;
+        line-height: 1.1;
+        font-weight: 900;
+      }
+
+      .socket-type {
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        bottom: 6px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .socket-check {
+        position: absolute;
+        right: 8px;
+        top: 7px;
+        width: 14px;
+        height: 14px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--green);
+        color: #051017;
+      }
+
+      .socket-check::before,
+      .marker::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-right: 2px solid #051017;
+        border-bottom: 2px solid #051017;
+        transform: translateY(-1px) rotate(45deg);
+      }
+
+      .socket.top {
+        left: 50%;
+        top: 66px;
+        transform: translateX(-50%);
+      }
+
+      .socket.left {
+        left: 34px;
+        bottom: 22px;
+      }
+
+      .socket.right {
+        right: 34px;
+        bottom: 22px;
+      }
+
+      .selected-panel {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        top: 394px;
+        height: 66px;
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr) 138px;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border: 1px solid rgba(93, 113, 130, 0.48);
+        border-radius: 10px;
+        background: #0b1b2b;
+        box-shadow: inset 0 0 0 1px rgba(142, 230, 255, 0.03);
+      }
+
+      .selected-icon {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        color: #051017;
+        background: var(--cyan);
+        clip-path: polygon(50% 0, 90% 25%, 90% 75%, 50% 100%, 10% 75%, 10% 25%);
+      }
+
+      .selected-icon::before {
+        content: "";
+        width: 13px;
+        height: 13px;
+        background: #051017;
+        clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+      }
+
+      .selected-copy {
+        min-width: 0;
+      }
+
+      .selected-copy strong,
+      .selected-copy span,
+      .selected-copy small {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .selected-copy strong {
+        font-size: 14px;
+        line-height: 1.1;
+      }
+
+      .selected-copy span {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .selected-copy small {
+        margin-top: 3px;
+        color: #cfeaf0;
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .selected-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 6px;
+      }
+
+      .state-pill {
+        display: grid;
+        place-items: center;
+        height: 28px;
+        padding: 0 8px;
+        color: var(--green);
+        background: #10231d;
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .cta {
+        display: grid;
+        place-items: center;
+        height: 28px;
+        padding: 0 10px;
+        border: 0;
+        color: #051017;
+        background: var(--cyan);
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .cta.secondary {
+        color: #dceff3;
+        background: #15283a;
+      }
+
+      .inventory {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        top: 472px;
+        bottom: 62px;
+        display: grid;
+        grid-template-rows: 30px minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 8px;
+      }
+
+      .tab {
+        width: 96px;
+        border: 1px solid rgba(93, 113, 130, 0.42);
+        color: var(--muted);
+        background: #0a1724;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .tab.active {
+        color: var(--text);
+        border-color: rgba(142, 230, 255, 0.52);
+        background: #123c4e;
+      }
+
+      .module-grid {
+        min-height: 0;
+        overflow-y: auto;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        align-content: start;
+        gap: 8px;
+        padding: 1px 1px 4px;
+      }
+
+      .module-cell {
+        position: relative;
+        min-width: 0;
+        height: 72px;
+        border: 0;
+        padding: 5px 4px 4px;
+        color: var(--text);
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .cell-well {
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        top: 0;
+        height: 48px;
+        background: #0a1724;
+        clip-path: polygon(17% 0, 83% 0, 100% 17%, 100% 83%, 83% 100%, 17% 100%, 0 83%, 0 17%);
+        box-shadow:
+          inset 0 0 0 1px rgba(72, 91, 104, 0.58),
+          inset 0 0 0 5px rgba(0, 0, 0, 0.2);
+      }
+
+      .module-cell.selected .cell-well {
+        box-shadow:
+          inset 0 0 0 1px rgba(142, 230, 255, 0.7),
+          inset 0 0 0 5px rgba(0, 0, 0, 0.2);
+      }
+
+      .rune {
+        position: absolute;
+        left: 50%;
+        top: 7px;
+        width: 34px;
+        height: 34px;
+        transform: translateX(-50%);
+        display: grid;
+        place-items: center;
+        color: #051017;
+        background: var(--cyan);
+        clip-path: polygon(50% 0, 92% 28%, 78% 100%, 22% 100%, 8% 28%);
+      }
+
+      .rune::before {
+        content: "";
+        width: 13px;
+        height: 13px;
+        background: #051017;
+        clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+      }
+
+      .module-cell[data-shape="bar"] .rune::before {
+        width: 15px;
+        height: 7px;
+        clip-path: polygon(0 0, 100% 0, 78% 100%, 0 100%);
+      }
+
+      .module-cell[data-shape="ring"] .rune::before {
+        border-radius: 50%;
+        background: transparent;
+        border: 3px solid #051017;
+      }
+
+      .module-cell[data-shape="split"] .rune::before {
+        width: 14px;
+        height: 14px;
+        clip-path: polygon(0 0, 46% 0, 46% 100%, 0 100%, 0 0, 54% 0, 100% 0, 100% 100%, 54% 100%);
+      }
+
+      .module-cell.passive .rune {
+        background: var(--violet);
+      }
+
+      .module-cell.locked .rune {
+        color: #5f6e76;
+        background: #1d2831;
+      }
+
+      .module-cell.locked .rune::before,
+      .socket.empty .socket-chip::before {
+        background: #667987;
+      }
+
+      .module-cell.locked {
+        opacity: 0.48;
+      }
+
+      .module-name {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #dceff3;
+        font-size: 10px;
+        font-weight: 800;
+        line-height: 1.1;
+      }
+
+      .marker {
+        position: absolute;
+        right: 7px;
+        top: 2px;
+        width: 13px;
+        height: 13px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--green);
+        color: #051017;
+      }
+
+      .lock {
+        position: absolute;
+        right: 5px;
+        top: 1px;
+        width: 13px;
+        height: 12px;
+        border: 2px solid #8fa8ba;
+        border-radius: 2px;
+      }
+
+      .lock::before {
+        content: "";
+        position: absolute;
+        left: 2px;
+        top: -7px;
+        width: 5px;
+        height: 6px;
+        border: 2px solid #8fa8ba;
+        border-bottom: 0;
+        border-radius: 5px 5px 0 0;
+      }
+
+      .bottom-nav {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 56px;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        align-items: center;
+        padding: 6px 10px 7px;
+        border-top: 1px solid rgba(72, 91, 104, 0.44);
+        background: #06101a;
+      }
+
+      .bottom-nav div {
+        display: grid;
+        justify-items: center;
+        gap: 3px;
+        color: #6f858f;
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .nav-icon {
+        width: 24px;
+        height: 24px;
+        clip-path: polygon(18% 0, 82% 0, 100% 18%, 100% 82%, 82% 100%, 18% 100%, 0 82%, 0 18%);
+        font-size: 11px;
+      }
+
+      .bottom-nav .active {
+        color: var(--cyan);
+      }
+
+      .bottom-nav .active .nav-icon {
+        border-color: rgba(142, 230, 255, 0.5);
+        background: #0a1724;
+      }
+
+      @media (max-height: 760px) {
+        .board {
+          height: 312px;
+        }
+
+        .core-hub {
+          top: 160px;
+          width: 118px;
+          height: 118px;
+        }
+
+        .socket.top {
+          top: 62px;
+        }
+
+        .socket.left,
+        .socket.right {
+          bottom: 18px;
+        }
+
+        .selected-panel {
+          top: 374px;
+        }
+
+        .inventory {
+          top: 450px;
+        }
+
+        .module-cell {
+          height: 66px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="screen">
+      <div class="circuit" aria-hidden="true">
+        <span class="h1"></span>
+        <span class="h2"></span>
+        <span class="v1"></span>
+        <span class="v2"></span>
+        <i class="n1"></i>
+        <i class="n2"></i>
+        <i class="n3"></i>
+      </div>
+
+      <header class="topbar">
+        <div class="top-icons" aria-hidden="true">
+          <span class="game-icon menu"></span>
+          <span class="game-icon map"></span>
+          <span class="game-icon core"></span>
+        </div>
+        <div class="title">RUNE NEXUS</div>
+        <div class="wallet">12.4K</div>
+      </header>
+
+      <section class="board" aria-label="코어 장착 보드">
+        <div class="board-title">
+          <h1>넥서스 코어</h1>
+          <p>스킬 모듈 장착</p>
+        </div>
+        <div class="level">Lv. 7</div>
+
+        <svg class="connector" viewBox="0 0 360 248" aria-hidden="true">
+          <path class="active" d="M180 116 L180 57" />
+          <path class="active" d="M156 150 L92 198" />
+          <path d="M204 150 L268 198" />
+          <circle class="node-on" cx="180" cy="116" r="5" />
+          <circle class="node-on" cx="180" cy="57" r="4" />
+          <circle class="node-on" cx="92" cy="198" r="4" />
+          <circle cx="268" cy="198" r="4" />
+        </svg>
+
+        <div class="core-hub" aria-hidden="true">
+          <div class="core-ring"></div>
+          <div class="shard s1"></div>
+          <div class="shard s2"></div>
+          <div class="shard s3"></div>
+          <div class="shard s4"></div>
+          <div class="core-body"></div>
+          <div class="core-light"></div>
+        </div>
+
+        <button class="socket top equipped" type="button">
+          <span class="socket-shell"></span>
+          <span class="socket-check"></span>
+          <span class="contact a"></span>
+          <span class="contact b"></span>
+          <span class="socket-chip"></span>
+          <span class="socket-name">수호 광선</span>
+          <span class="socket-type">전투 소켓</span>
+        </button>
+
+        <button class="socket left equipped" type="button">
+          <span class="socket-shell"></span>
+          <span class="socket-check"></span>
+          <span class="contact a"></span>
+          <span class="contact b"></span>
+          <span class="socket-chip"></span>
+          <span class="socket-name">방벽 증폭</span>
+          <span class="socket-type">패시브 1</span>
+        </button>
+
+        <button class="socket right empty" type="button">
+          <span class="socket-shell"></span>
+          <span class="contact a"></span>
+          <span class="contact b"></span>
+          <span class="socket-chip"></span>
+          <span class="socket-name">비어 있음</span>
+          <span class="socket-type">패시브 2</span>
+        </button>
+      </section>
+
+      <aside class="selected-panel" aria-label="선택 모듈">
+        <div class="selected-icon" data-selected-icon></div>
+        <div class="selected-copy">
+          <strong data-selected-name>수호 광선</strong>
+          <span data-selected-desc>가장 가까운 적에게 집중 광선을 발사</span>
+          <small data-selected-slot>전투 소켓</small>
+        </div>
+        <div class="selected-actions">
+          <span class="state-pill" data-selected-state>장착</span>
+          <button class="cta secondary" type="button">강화</button>
+        </div>
+      </aside>
+
+      <section class="inventory" aria-label="보유 모듈 인벤토리">
+        <div class="tabs">
+          <button class="tab active" type="button" data-tab="combat">전투</button>
+          <button class="tab" type="button" data-tab="passive">패시브</button>
+        </div>
+
+        <div class="module-grid">
+          <button class="module-cell selected" type="button" data-kind="combat" data-shape="diamond" data-name="수호 광선" data-desc="가장 가까운 적에게 집중 광선을 발사" data-slot="전투 소켓" data-state="equipped">
+            <span class="cell-well"></span>
+            <span class="rune"></span>
+            <span class="marker"></span>
+            <span class="module-name">수호 광선</span>
+          </button>
+          <button class="module-cell" type="button" data-kind="combat" data-shape="bar" data-name="연쇄 번개" data-desc="전기 피해가 근처 적에게 이어짐" data-slot="전투 소켓" data-state="ready">
+            <span class="cell-well"></span>
+            <span class="rune"></span>
+            <span class="module-name">연쇄 번개</span>
+          </button>
+          <button class="module-cell" type="button" data-kind="combat" data-shape="ring" data-name="정화 파동" data-desc="주변 적을 밀어내고 약화 효과 제거" data-slot="전투 소켓" data-state="ready">
+            <span class="cell-well"></span>
+            <span class="rune"></span>
+            <span class="module-name">정화 파동</span>
+          </button>
+          <button class="module-cell locked" type="button" data-kind="combat" data-shape="ring" data-name="궤도 포격" data-desc="코어 레벨 9에서 해금" data-slot="잠김" data-state="locked">
+            <span class="cell-well"></span>
+            <span class="rune"></span>
+            <span class="lock"></span>
+            <span class="module-name">궤도 포격</span>
+          </button>
+          <button class="module-cell" type="button" data-kind="combat" data-shape="split" data-name="균열탄" data-desc="작은 범위 폭발을 발생" data-slot="전투 소켓" data-state="ready">
+            <span class="cell-well"></span>
+            <span class="rune"></span>
+            <span class="module-name">균열탄</span>
+          </button>
+          <button class="module-cell locked" type="button" data-kind="combat" data-shape="diamond" data-name="별빛 난사" data-desc="챕터 2 이후 해금" data-slot="잠김" data-state="locked">
+            <span class="cell-well"></span>
+            <span class="rune"></span>
+            <span class="lock"></span>
+            <span class="module-name">별빛 난사</span>
+          </button>
+
+          <button class="module-cell passive" type="button" data-kind="passive" data-shape="diamond" data-name="방벽 증폭" data-desc="보호막 최대치와 재생 효율 증가" data-slot="패시브 1" data-state="equipped" hidden>
+            <span class="cell-well"></span>
+            <span class="rune"></span>
+            <span class="marker"></span>
+            <span class="module-name">방벽 증폭</span>
+          </button>
+          <button class="module-cell passive" type="button" data-kind="passive" data-shape="bar" data-name="연산 가속" data-desc="스킬 재사용 대기시간 감소" data-slot="빈 패시브 소켓" data-state="ready" hidden>
+            <span class="cell-well"></span>
+            <span class="rune"></span>
+            <span class="module-name">연산 가속</span>
+          </button>
+          <button class="module-cell passive" type="button" data-kind="passive" data-shape="ring" data-name="수정 공명" data-desc="전투 시작 시 코어 보너스 증가" data-slot="빈 패시브 소켓" data-state="ready" hidden>
+            <span class="cell-well"></span>
+            <span class="rune"></span>
+            <span class="module-name">수정 공명</span>
+          </button>
+          <button class="module-cell passive locked" type="button" data-kind="passive" data-shape="split" data-name="차원 격벽" data-desc="챕터 2 클리어 후 해금" data-slot="잠김" data-state="locked" hidden>
+            <span class="cell-well"></span>
+            <span class="rune"></span>
+            <span class="lock"></span>
+            <span class="module-name">차원 격벽</span>
+          </button>
+          <button class="module-cell passive" type="button" data-kind="passive" data-shape="diamond" data-name="회복 회로" data-desc="웨이브 종료 시 소량 회복" data-slot="빈 패시브 소켓" data-state="ready" hidden>
+            <span class="cell-well"></span>
+            <span class="rune"></span>
+            <span class="module-name">회복 회로</span>
+          </button>
+          <button class="module-cell passive locked" type="button" data-kind="passive" data-shape="ring" data-name="과충전" data-desc="코어 레벨 10에서 해금" data-slot="잠김" data-state="locked" hidden>
+            <span class="cell-well"></span>
+            <span class="rune"></span>
+            <span class="lock"></span>
+            <span class="module-name">과충전</span>
+          </button>
+        </div>
+      </section>
+
+      <nav class="bottom-nav" aria-label="메인 내비게이션">
+        <div><span class="nav-icon home"></span>기지</div>
+        <div><span class="nav-icon map"></span>전장</div>
+        <div class="active"><span class="nav-icon core"></span>코어</div>
+        <div><span class="nav-icon research"></span>연구</div>
+        <div><span class="nav-icon settings"></span>설정</div>
+      </nav>
+    </main>
+
+    <script>
+      const tabs = [...document.querySelectorAll(".tab")];
+      const modules = [...document.querySelectorAll(".module-cell")];
+      const selectedIcon = document.querySelector("[data-selected-icon]");
+      const selectedName = document.querySelector("[data-selected-name]");
+      const selectedDesc = document.querySelector("[data-selected-desc]");
+      const selectedSlot = document.querySelector("[data-selected-slot]");
+      const selectedState = document.querySelector("[data-selected-state]");
+      const actions = document.querySelector(".selected-actions");
+
+      function selectModule(module) {
+        modules.forEach((item) => item.classList.toggle("selected", item === module));
+        selectedName.textContent = module.dataset.name;
+        selectedDesc.textContent = module.dataset.desc;
+        selectedSlot.textContent = module.dataset.slot;
+
+        if (module.dataset.state === "locked") {
+          selectedState.textContent = "잠김";
+          actions.querySelector(".cta").hidden = true;
+        } else if (module.dataset.state === "equipped") {
+          selectedState.textContent = "장착";
+          actions.querySelector(".cta").hidden = false;
+          actions.querySelector(".cta").textContent = "강화";
+          actions.querySelector(".cta").className = "cta secondary";
+        } else {
+          selectedState.textContent = "선택";
+          actions.querySelector(".cta").hidden = false;
+          actions.querySelector(".cta").textContent = "장착";
+          actions.querySelector(".cta").className = "cta";
+        }
+      }
+
+      function selectTab(kind) {
+        tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === kind));
+        modules.forEach((module) => {
+          module.hidden = module.dataset.kind !== kind;
+        });
+        const first = modules.find((module) => module.dataset.kind === kind);
+        if (first) selectModule(first);
+      }
+
+      tabs.forEach((tab) => tab.addEventListener("click", () => selectTab(tab.dataset.tab)));
+      modules.forEach((module) => module.addEventListener("click", () => selectModule(module)));
+    </script>
+  </body>
+</html>

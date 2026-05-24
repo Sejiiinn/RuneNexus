@@ -11,6 +11,7 @@ import 'package:rune_nexus/data/save/save_repository.dart';
 import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
 import 'package:rune_nexus/domain/combat/run_panel_tab.dart';
+import 'package:rune_nexus/domain/core/core_ability.dart';
 import 'package:rune_nexus/domain/enemy/enemy_definition.dart';
 import 'package:rune_nexus/domain/enemy/enemy_resistance_profile.dart';
 import 'package:rune_nexus/domain/enemy/enemy_scaling.dart';
@@ -1360,6 +1361,238 @@ void main() {
       expect(backEnemy.hp, backEnemy.maxHp);
     },
   );
+
+  test(
+    'nexus core beam stays inactive when combat skill is unequipped',
+    () async {
+      final game = RuneNexusGame(
+        saveRepository: MemorySaveRepository(),
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 0,
+          ),
+        ],
+      );
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      expect(game.unequipCoreCombatSkill(), isTrue);
+      game.restartRun();
+      game.tryBuildTurret(const GridPoint(2, 0));
+
+      final enemy = EnemyComponent(
+        definition: gameEnemies[EnemyType.normal]!,
+        maxHp: 100,
+        path: [Vector2.zero(), Vector2(200, 0)],
+        game: game,
+      )..distanceTravelled = 80;
+      await game.add(enemy);
+      game.update(0);
+      game.startNextWave();
+      game.enemies.add(enemy);
+
+      game.update(5);
+
+      expect(game.snapshotNotifier.value.nexusCoreBeamAvailable, isFalse);
+      expect(game.nexusCoreBeamActive, isFalse);
+      expect(game.nexusCoreBeamCooldownSeconds, 0);
+      expect(enemy.hp, enemy.maxHp);
+    },
+  );
+
+  test(
+    'core combat changes after run start do not affect active run beam',
+    () async {
+      final game = RuneNexusGame(
+        saveRepository: MemorySaveRepository(),
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 0,
+          ),
+        ],
+      );
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      game.restartRun();
+      game.tryBuildTurret(const GridPoint(2, 0));
+      game.startNextWave();
+
+      expect(game.unequipCoreCombatSkill(), isTrue);
+      expect(game.snapshotNotifier.value.coreCombatSkill, isNull);
+
+      final enemy = EnemyComponent(
+        definition: gameEnemies[EnemyType.normal]!,
+        maxHp: 100,
+        path: [Vector2.zero(), Vector2(200, 0)],
+        game: game,
+      )..distanceTravelled = 80;
+      await game.add(enemy);
+      game.enemies.add(enemy);
+
+      game.update(5);
+
+      expect(game.nexusCoreBeamActive, isTrue);
+      expect(enemy.hp, lessThan(enemy.maxHp));
+    },
+  );
+
+  test(
+    'active run core loadout is saved separately from core preset',
+    () async {
+      final repository = MemorySaveRepository();
+      final game = RuneNexusGame(
+        saveRepository: repository,
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 0,
+          ),
+        ],
+      );
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      game.restartRun();
+      game.tryBuildTurret(const GridPoint(2, 0));
+      game.startNextWave();
+      expect(game.unequipCoreCombatSkill(), isTrue);
+      await game.saveNow();
+
+      final saved = repository.data!;
+      expect(saved.progression.coreCombatSkill, isNull);
+      expect(saved.runCoreCombatSkill, CoreCombatSkill.guardianBeam);
+
+      final restoredRepository = MemorySaveRepository()..data = saved;
+      final restored = RuneNexusGame(
+        saveRepository: restoredRepository,
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 0,
+          ),
+        ],
+      );
+      restored.onGameResize(Vector2(400, 800));
+      await restored.onLoad();
+      restored.continueRestoredRun();
+
+      final enemy = EnemyComponent(
+        definition: gameEnemies[EnemyType.normal]!,
+        maxHp: 100,
+        path: [Vector2.zero(), Vector2(200, 0)],
+        game: restored,
+      )..distanceTravelled = 80;
+      await restored.add(enemy);
+      restored.enemies.add(enemy);
+
+      restored.update(5);
+
+      expect(restored.snapshotNotifier.value.coreCombatSkill, isNull);
+      expect(restored.nexusCoreBeamActive, isTrue);
+      expect(enemy.hp, lessThan(enemy.maxHp));
+    },
+  );
+
+  test(
+    'core progression defaults to guardian beam with empty passive slots',
+    () {
+      final saved = SavedProgression.fromJson(const <String, Object?>{
+        'unlockedStageCount': 1,
+      });
+      final progression = RunProgression()..restoreFromSaveData(saved);
+
+      expect(progression.coreCombatSkill, CoreCombatSkill.guardianBeam);
+      expect(progression.corePassiveSlots, const [null, null]);
+      expect(
+        progression.toSaveData().coreCombatSkill,
+        CoreCombatSkill.guardianBeam,
+      );
+    },
+  );
+
+  test('core combat equipment can be saved and restored as empty', () {
+    final saved = SavedProgression.fromJson(const <String, Object?>{
+      'unlockedStageCount': 1,
+      'coreCombatSkill': null,
+    });
+    final progression = RunProgression()..restoreFromSaveData(saved);
+
+    expect(progression.coreCombatSkill, isNull);
+    expect(progression.toSaveData().coreCombatSkill, isNull);
+    expect(progression.toSaveData().toJson()['coreCombatSkill'], isNull);
+    expect(
+      progression.equipCoreCombatSkill(CoreCombatSkill.guardianBeam),
+      isTrue,
+    );
+    expect(progression.coreCombatSkill, CoreCombatSkill.guardianBeam);
+    expect(progression.unequipCoreCombatSkill(), isTrue);
+    expect(progression.coreCombatSkill, isNull);
+  });
+
+  test('core passive equipment is saved and restored when unlocked', () {
+    const saved = SavedProgression(
+      runes: 0,
+      lastRunRuneReward: 0,
+      startingGoldUpgradeLevel: 0,
+      nexusHpUpgradeLevel: 0,
+      supplyUpgradeLevel: 0,
+      fireTrainingUpgradeLevel: 0,
+      criticalChanceUpgradeLevel: 0,
+      criticalDamageUpgradeLevel: 0,
+      killGoldUpgradeLevel: 0,
+      emergencySaleUpgradeLevel: 0,
+      unlockedStageCount: 6,
+      bestRoundsByStage: {},
+      clearedStageNumbers: {1, 2, 3, 4, 5},
+      researchLevels: {},
+      researchElapsedMillis: {},
+      activeResearches: [],
+      corePassiveSlots: [
+        CorePassiveAbility.stabilityCircuit,
+        CorePassiveAbility.precisionCircuit,
+      ],
+    );
+    final progression = RunProgression()..restoreFromSaveData(saved);
+
+    expect(progression.corePassiveSlots, saved.corePassiveSlots);
+    final savedAgain = progression.toSaveData();
+    expect(savedAgain.corePassiveSlots, saved.corePassiveSlots);
+  });
+
+  test('core passive equipment can be unequipped by slot', () {
+    const saved = SavedProgression(
+      runes: 0,
+      lastRunRuneReward: 0,
+      startingGoldUpgradeLevel: 0,
+      nexusHpUpgradeLevel: 0,
+      supplyUpgradeLevel: 0,
+      fireTrainingUpgradeLevel: 0,
+      criticalChanceUpgradeLevel: 0,
+      criticalDamageUpgradeLevel: 0,
+      killGoldUpgradeLevel: 0,
+      emergencySaleUpgradeLevel: 0,
+      unlockedStageCount: 6,
+      bestRoundsByStage: {},
+      clearedStageNumbers: {1, 2, 3, 4, 5},
+      researchLevels: {},
+      researchElapsedMillis: {},
+      activeResearches: [],
+      corePassiveSlots: [CorePassiveAbility.stabilityCircuit, null],
+    );
+    final progression = RunProgression()..restoreFromSaveData(saved);
+
+    expect(progression.unequipCorePassiveAbility(0), isTrue);
+    expect(progression.corePassiveSlots, const [null, null]);
+    expect(progression.toSaveData().corePassiveSlots, const [null, null]);
+  });
 
   test('status gems are removed from the reward pool', () {
     final gemNames = GemType.values.map((type) => type.name);

@@ -1,5 +1,6 @@
 import '../../domain/combat/auto_start_mode.dart';
 import '../../domain/combat/game_phase.dart';
+import '../../domain/core/core_ability.dart';
 import '../../domain/enemy/enemy_type.dart';
 import '../../domain/gem/gem_type.dart';
 import '../../domain/map/grid_point.dart';
@@ -28,6 +29,8 @@ class GameSaveData {
     required this.gemInventory,
     required this.rewardOptions,
     required this.isPurchasedGemReward,
+    this.runCoreCombatSkill = CoreCombatSkill.guardianBeam,
+    this.runCorePassiveSlots = const [null, null],
     required this.turrets,
     required this.enemies,
     required this.spawnQueue,
@@ -52,6 +55,8 @@ class GameSaveData {
   final Map<GemType, int> gemInventory;
   final List<GemType> rewardOptions;
   final bool isPurchasedGemReward;
+  final CoreCombatSkill? runCoreCombatSkill;
+  final List<CorePassiveAbility?> runCorePassiveSlots;
   final List<SavedTurret> turrets;
   final List<SavedEnemy> enemies;
   final List<SavedSpawnRequest> spawnQueue;
@@ -94,6 +99,11 @@ class GameSaveData {
       ),
       'rewardOptions': rewardOptions.map((type) => type.name).toList(),
       'isPurchasedGemReward': isPurchasedGemReward,
+      'runCoreCombatSkill': runCoreCombatSkill?.name,
+      'runCorePassiveSlots': runCorePassiveSlots
+          .take(2)
+          .map((ability) => ability?.name)
+          .toList(),
       'turrets': turrets.map((turret) => turret.toJson()).toList(),
       'enemies': enemies.map((enemy) => enemy.toJson()).toList(),
       'spawnQueue': spawnQueue.map((request) => request.toJson()).toList(),
@@ -109,6 +119,7 @@ class GameSaveData {
       return null;
     }
 
+    final progression = SavedProgression.fromJson(json['progression']);
     return GameSaveData(
       version: version,
       savedAtMillis: _intValue(json['savedAtMillis']),
@@ -124,7 +135,7 @@ class GameSaveData {
       autoStartMode:
           _enumValue(AutoStartMode.values, json['autoStartMode']) ??
           AutoStartMode.pauseEachRound,
-      progression: SavedProgression.fromJson(json['progression']),
+      progression: progression,
       runUpgradeLevels: _enumIntMap(
         RunUpgradeType.values,
         json['runUpgradeLevels'],
@@ -133,6 +144,16 @@ class GameSaveData {
       gemInventory: _enumIntMap(GemType.values, json['gemInventory']),
       rewardOptions: _enumList(GemType.values, json['rewardOptions']),
       isPurchasedGemReward: json['isPurchasedGemReward'] == true,
+      runCoreCombatSkill: _nullableCoreCombatSkillFromSave(
+        json,
+        key: 'runCoreCombatSkill',
+        missingFallback: progression.coreCombatSkill,
+      ),
+      runCorePassiveSlots: _nullableCorePassiveSlotsFromSave(
+        json,
+        key: 'runCorePassiveSlots',
+        missingFallback: progression.corePassiveSlots,
+      ),
       turrets: _objectList(json['turrets'], SavedTurret.fromJson),
       enemies: _objectList(json['enemies'], SavedEnemy.fromJson),
       spawnQueue: _objectList(json['spawnQueue'], SavedSpawnRequest.fromJson),
@@ -158,6 +179,8 @@ class SavedProgression {
     required this.researchLevels,
     required this.researchElapsedMillis,
     required this.activeResearches,
+    this.coreCombatSkill = CoreCombatSkill.guardianBeam,
+    this.corePassiveSlots = const [null, null],
   });
 
   final int runes;
@@ -176,6 +199,8 @@ class SavedProgression {
   final Map<ResearchType, int> researchLevels;
   final Map<ResearchType, int> researchElapsedMillis;
   final List<SavedActiveResearch> activeResearches;
+  final CoreCombatSkill? coreCombatSkill;
+  final List<CorePassiveAbility?> corePassiveSlots;
 
   Map<String, Object?> toJson() {
     return {
@@ -202,6 +227,11 @@ class SavedProgression {
       ),
       'activeResearches': activeResearches
           .map((research) => research.toJson())
+          .toList(),
+      'coreCombatSkill': coreCombatSkill?.name,
+      'corePassiveSlots': corePassiveSlots
+          .take(2)
+          .map((ability) => ability?.name)
           .toList(),
     };
   }
@@ -231,8 +261,59 @@ class SavedProgression {
         map['activeResearches'],
         SavedActiveResearch.fromJson,
       ),
+      coreCombatSkill: _coreCombatSkillFromSave(map),
+      corePassiveSlots: _normalizeCorePassiveSlots(
+        _nullableEnumList(CorePassiveAbility.values, map['corePassiveSlots']),
+      ),
     );
   }
+}
+
+CoreCombatSkill? _coreCombatSkillFromSave(Map<String, Object?> map) {
+  return _nullableCoreCombatSkillFromSave(
+    map,
+    key: 'coreCombatSkill',
+    missingFallback: CoreCombatSkill.guardianBeam,
+  );
+}
+
+CoreCombatSkill? _nullableCoreCombatSkillFromSave(
+  Map<String, Object?> map, {
+  required String key,
+  required CoreCombatSkill? missingFallback,
+}) {
+  if (!map.containsKey(key)) {
+    return missingFallback;
+  }
+  final value = map[key];
+  if (value == null) {
+    return null;
+  }
+  return _enumValue(CoreCombatSkill.values, value) ??
+      CoreCombatSkill.guardianBeam;
+}
+
+List<CorePassiveAbility?> _nullableCorePassiveSlotsFromSave(
+  Map<String, Object?> map, {
+  required String key,
+  required List<CorePassiveAbility?> missingFallback,
+}) {
+  if (!map.containsKey(key)) {
+    return _normalizeCorePassiveSlots(missingFallback);
+  }
+  return _normalizeCorePassiveSlots(
+    _nullableEnumList(CorePassiveAbility.values, map[key]),
+  );
+}
+
+List<CorePassiveAbility?> _normalizeCorePassiveSlots(
+  List<CorePassiveAbility?> slots,
+) {
+  return List<CorePassiveAbility?>.generate(
+    2,
+    (index) => index < slots.length ? slots[index] : null,
+    growable: false,
+  );
 }
 
 class SavedActiveResearch {

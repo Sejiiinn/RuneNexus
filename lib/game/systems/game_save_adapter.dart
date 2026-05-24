@@ -1,6 +1,7 @@
 import '../../data/save/game_save_data.dart';
 import '../../domain/combat/auto_start_mode.dart';
 import '../../domain/combat/game_phase.dart';
+import '../../domain/core/core_ability.dart';
 import '../../domain/gem/gem_type.dart';
 import '../../domain/map/map_definition.dart';
 import '../../domain/run_upgrade/run_upgrade_type.dart';
@@ -38,6 +39,12 @@ class GameSaveAdapter {
       gemInventory: Map.unmodifiable(state.gemInventory),
       rewardOptions: List.unmodifiable(state.rewardOptions),
       isPurchasedGemReward: state.isPurchasedGemReward,
+      runCoreCombatSkill: pendingSave?.hasActiveRun == true
+          ? pendingSave?.runCoreCombatSkill
+          : state.runCoreCombatSkill,
+      runCorePassiveSlots: pendingSave?.hasActiveRun == true
+          ? pendingSave!.runCorePassiveSlots
+          : List.unmodifiable(state.runCorePassiveSlots.take(2)),
       turrets: pendingSave?.turrets ?? state.turrets,
       enemies: pendingSave?.enemies ?? state.enemies,
       spawnQueue: pendingSave?.spawnQueue ?? state.spawnQueue,
@@ -146,6 +153,8 @@ class GameSaveBuildState {
     required this.gemInventory,
     required this.rewardOptions,
     required this.isPurchasedGemReward,
+    required this.runCoreCombatSkill,
+    required this.runCorePassiveSlots,
     required this.turrets,
     required this.enemies,
     required this.spawnQueue,
@@ -170,6 +179,8 @@ class GameSaveBuildState {
   final Map<GemType, int> gemInventory;
   final List<GemType> rewardOptions;
   final bool isPurchasedGemReward;
+  final CoreCombatSkill? runCoreCombatSkill;
+  final List<CorePassiveAbility?> runCorePassiveSlots;
   final List<SavedTurret> turrets;
   final List<SavedEnemy> enemies;
   final List<SavedSpawnRequest> spawnQueue;

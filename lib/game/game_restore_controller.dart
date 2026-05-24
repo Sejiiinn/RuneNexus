@@ -66,6 +66,7 @@ class GameRestoreController {
 
   void _restoreInactiveRunState(GameSaveData data) {
     _game._selectStage(_game._clampedStageNumber(data.stageNumber));
+    _game._captureRunCoreLoadoutFromProgression();
     _game._gold = _game._initialGold;
     _game._gemShards = 0;
     _game._nexusHp = _game._maxNexusHp;
@@ -80,6 +81,7 @@ class GameRestoreController {
   }
 
   void _restoreActiveRunState(GameSaveData data) {
+    _game._restoreRunCoreLoadoutFromSave(data);
     _game._gold = math.max(0, data.gold);
     _game._gemShards = math.max(0, data.gemShards);
     _game._selectStage(_game._clampedStageNumber(data.stageNumber));

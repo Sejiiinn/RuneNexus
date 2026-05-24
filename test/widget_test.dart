@@ -7,6 +7,7 @@ import 'package:rune_nexus/data/save/save_repository.dart';
 import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
 import 'package:rune_nexus/domain/combat/run_panel_tab.dart';
+import 'package:rune_nexus/domain/core/core_ability.dart';
 import 'package:rune_nexus/domain/map/grid_point.dart';
 import 'package:rune_nexus/domain/research/research_progress.dart';
 import 'package:rune_nexus/domain/research/research_type.dart';
@@ -129,12 +130,23 @@ void main() {
 
     expect(find.text('Rune Nexus'), findsOneWidget);
     expect(find.text('넥서스 코어'), findsOneWidget);
-    expect(find.text('영구 패시브'), findsOneWidget);
+    expect(find.text('전투 스킬 1칸 / 패시브 2칸'), findsOneWidget);
+    expect(find.text('전투 스킬'), findsWidgets);
+    expect(find.text('패시브 1'), findsOneWidget);
+    expect(find.text('패시브 2'), findsOneWidget);
     expect(find.text('수호 광선'), findsWidgets);
+    expect(find.text('룬 파동'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('core-ability-룬 파동')),
+        matching: find.text('준비중'),
+      ),
+      findsNothing,
+    );
     expect(find.text('예상 피해'), findsNothing);
     expect(find.text('평균 DPS 8%'), findsNothing);
 
-    await tester.tap(find.text('강화'));
+    await tester.tap(find.byKey(const ValueKey('main-menu-tab-upgrades')));
     await _pumpGameFrames(tester);
 
     expect(find.text('Rune Nexus'), findsOneWidget);
@@ -198,6 +210,346 @@ void main() {
     expect(find.text('스테이지 1'), findsOneWidget);
   });
 
+  testWidgets('core slot board remains anchored when switching ability tabs', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            unlockedStageCount: 6,
+            clearedStageNumbers: const {1, 2, 3, 4, 5},
+          ),
+          selectedTab: MainMenuTab.core,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    final combatTabBoard = _coreSocketBoardBounds(tester);
+    expect(find.text('수호 광선'), findsWidgets);
+    expect(find.text('패시브 1'), findsOneWidget);
+    expect(find.text('패시브 2'), findsOneWidget);
+
+    await tester.tap(find.text('패시브'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('수호 광선'), findsWidgets);
+    expect(find.text('패시브 1'), findsOneWidget);
+    expect(find.text('패시브 2'), findsOneWidget);
+    final passiveTabBoard = _coreSocketBoardBounds(tester);
+    expect(
+      (passiveTabBoard.top - combatTabBoard.top).abs(),
+      lessThanOrEqualTo(4),
+    );
+    expect(
+      (passiveTabBoard.height - combatTabBoard.height).abs(),
+      lessThanOrEqualTo(4),
+    );
+  });
+
+  testWidgets(
+    'core passive tab syncs slot selection and equips selected slot',
+    (tester) async {
+      final game = _CoreEquipGame();
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: const [
+            RuneNexusLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: RuneNexusLocalizations.supportedLocales,
+          home: MainMenuScreen(
+            game: game,
+            snapshot: _resultSnapshot(
+              phase: GamePhase.preparation,
+              currentStageNumber: 1,
+              unlockedStageCount: 6,
+              clearedStageNumbers: const {1, 2, 3, 4, 5},
+            ),
+            selectedTab: MainMenuTab.core,
+            onSelectTab: (_) {},
+            onStartStage: (_) {},
+          ),
+        ),
+      );
+      await _pumpGameFrames(tester);
+
+      await tester.tap(find.text('패시브'));
+      await _pumpGameFrames(tester);
+      expect(find.textContaining('패시브 슬롯 1'), findsOneWidget);
+
+      await tester.tap(find.text('패시브 2'));
+      await _pumpGameFrames(tester);
+      expect(find.textContaining('패시브 슬롯 2'), findsOneWidget);
+
+      final precisionCircuitCard = find.byKey(
+        const ValueKey('core-ability-정밀 회로'),
+      );
+      await tester.ensureVisible(precisionCircuitCard);
+      await _pumpGameFrames(tester);
+      await tester.tap(precisionCircuitCard);
+      await _pumpGameFrames(tester);
+      await tester.tap(
+        find.byKey(const ValueKey('core-selected-ability-action')),
+      );
+      await _pumpGameFrames(tester);
+      expect(game.equippedPassive, CorePassiveAbility.precisionCircuit);
+      expect(game.equippedSlotIndex, 1);
+    },
+  );
+
+  testWidgets('core menu fits 320 wide viewport without overflow', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            unlockedStageCount: 6,
+            clearedStageNumbers: const {1, 2, 3, 4, 5},
+          ),
+          selectedTab: MainMenuTab.core,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.byKey(const ValueKey('core-socket-board')), findsOneWidget);
+    expect(find.text('보유 능력'), findsNothing);
+    expect(find.text('전투 스킬'), findsWidgets);
+    expect(find.text('패시브'), findsWidgets);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('패시브'));
+    await _pumpGameFrames(tester);
+
+    expect(find.textContaining('패시브 슬롯 1'), findsOneWidget);
+    expect(find.text('안정 회로'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('core passive equipped item exposes unequip action', (
+    tester,
+  ) async {
+    final game = _CoreEquipGame();
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: game,
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            unlockedStageCount: 6,
+            clearedStageNumbers: const {1, 2, 3, 4, 5},
+            corePassiveSlots: const [CorePassiveAbility.stabilityCircuit, null],
+          ),
+          selectedTab: MainMenuTab.core,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    await tester.tap(find.text('패시브'));
+    await _pumpGameFrames(tester);
+
+    final stabilityCircuitCard = find.byKey(
+      const ValueKey('core-ability-안정 회로'),
+    );
+    await tester.ensureVisible(stabilityCircuitCard);
+    await _pumpGameFrames(tester);
+    await tester.tap(stabilityCircuitCard);
+    await _pumpGameFrames(tester);
+    final unequipAction = find.byKey(
+      const ValueKey('core-selected-ability-action'),
+    );
+    expect(unequipAction, findsOneWidget);
+
+    await tester.tap(unequipAction);
+    await _pumpGameFrames(tester);
+    expect(game.unequippedSlotIndex, 0);
+  });
+
+  testWidgets('core combat skill can be unequipped and re-equipped', (
+    tester,
+  ) async {
+    final game = _CoreEquipGame();
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: game,
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+          ),
+          selectedTab: MainMenuTab.core,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    final action = find.byKey(const ValueKey('core-selected-ability-action'));
+    expect(action, findsOneWidget);
+    await tester.tap(action);
+    await _pumpGameFrames(tester);
+    expect(game.unequippedCombatSkill, isTrue);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: game,
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            coreCombatSkill: null,
+          ),
+          selectedTab: MainMenuTab.core,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('빈 슬롯'), findsWidgets);
+    await tester.tap(action);
+    await _pumpGameFrames(tester);
+    expect(game.equippedCombatSkill, CoreCombatSkill.guardianBeam);
+  });
+
+  testWidgets('core locked and pending abilities stay non-actionable', (
+    tester,
+  ) async {
+    final game = _CoreEquipGame();
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: game,
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            unlockedStageCount: 6,
+          ),
+          selectedTab: MainMenuTab.core,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    final pendingCombatCard = find.byKey(const ValueKey('core-ability-룬 파동'));
+    await tester.ensureVisible(pendingCombatCard);
+    await _pumpGameFrames(tester);
+    expect(
+      find.descendant(of: pendingCombatCard, matching: find.text('준비중')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: pendingCombatCard, matching: find.text('장착중')),
+      findsNothing,
+    );
+    await tester.tap(pendingCombatCard);
+    await _pumpGameFrames(tester);
+    expect(game.equippedCombatSkill, isNull);
+    expect(game.equippedPassive, isNull);
+    expect(game.unequippedSlotIndex, isNull);
+
+    await tester.tap(find.text('패시브'));
+    await _pumpGameFrames(tester);
+    final lockedPassiveCard = find.byKey(const ValueKey('core-ability-공명 축전'));
+    await tester.ensureVisible(lockedPassiveCard);
+    await _pumpGameFrames(tester);
+    expect(
+      find.descendant(of: lockedPassiveCard, matching: find.text('잠김')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: lockedPassiveCard, matching: find.text('장착 가능')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: lockedPassiveCard, matching: find.text('장착중')),
+      findsNothing,
+    );
+    await tester.tap(lockedPassiveCard);
+    await _pumpGameFrames(tester);
+    expect(game.equippedPassive, isNull);
+    expect(game.unequippedSlotIndex, isNull);
+  });
+
   testWidgets('core menu keeps run-only combat data out of main menu', (
     tester,
   ) async {
@@ -207,19 +559,37 @@ void main() {
     await _pumpGameFrames(tester);
 
     expect(find.text('넥서스 코어'), findsOneWidget);
-    expect(find.text('영구 패시브'), findsOneWidget);
-    expect(find.text('코어 성장'), findsOneWidget);
+    expect(find.text('전투 스킬 1칸 / 패시브 2칸'), findsOneWidget);
+    expect(find.text('보유 능력'), findsNothing);
+    expect(find.text('전투 스킬'), findsWidgets);
+    expect(find.text('패시브'), findsWidgets);
+    expect(find.text('패시브 1'), findsOneWidget);
+    expect(find.text('패시브 2'), findsOneWidget);
+    expect(find.text('수호 광선'), findsWidgets);
+    expect(find.text('룬 파동'), findsOneWidget);
+    expect(find.textContaining('5초마다 자동 발동'), findsWidgets);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('core-ability-룬 파동')),
+        matching: find.text('준비중'),
+      ),
+      findsNothing,
+    );
     expect(find.text('예상 피해'), findsNothing);
     expect(find.text('포탑 배치 필요'), findsNothing);
     expect(find.text('평균 DPS 8%'), findsNothing);
     expect(find.text('코어 젬 슬롯'), findsNothing);
     expect(find.text('젬 공명'), findsNothing);
 
-    await tester.tap(find.text('슬롯 확장'));
+    await tester.ensureVisible(find.text('패시브'));
+    await tester.tap(find.text('패시브'));
     await _pumpGameFrames(tester);
 
-    expect(find.text('슬롯 확장 잠김'), findsOneWidget);
-    expect(find.text('더 많은 코어 패시브를 장착할 수 있게 됩니다.'), findsOneWidget);
+    expect(find.textContaining('패시브 슬롯 1'), findsOneWidget);
+    expect(find.text('안정 회로'), findsWidgets);
+    expect(find.text('정밀 회로'), findsOneWidget);
+    expect(find.textContaining('효과 준비중 / 장착 가능'), findsWidgets);
+    expect(find.byKey(const ValueKey('core-ability-정밀 회로')), findsOneWidget);
   });
 
   testWidgets('stage cards fit on narrow menu width', (tester) async {
@@ -681,7 +1051,7 @@ void main() {
   testWidgets('home button opens stage menu with end confirmation', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(411, 720);
+    tester.view.physicalSize = const Size(384, 854);
     tester.view.devicePixelRatio = 1;
     addTearDown(() {
       tester.view.resetPhysicalSize();
@@ -985,6 +1355,10 @@ Offset _tabLeadingEdge(WidgetTester tester, String key) {
   return Offset(rect.left + 8, rect.center.dy);
 }
 
+Rect _coreSocketBoardBounds(WidgetTester tester) {
+  return tester.getRect(find.byKey(const ValueKey('core-socket-board')));
+}
+
 Finder _stageChipText(String text) {
   return find.descendant(
     of: find.byType(ChoiceChip),
@@ -1047,6 +1421,8 @@ GameSnapshot _resultSnapshot({
   bool canUpgradeEmergencySale = false,
   int turretRefundPercent = 75,
   List<ResearchProgress> activeResearches = const [],
+  CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam,
+  List<CorePassiveAbility?> corePassiveSlots = const [null, null],
 }) {
   return GameSnapshot(
     gold: 0,
@@ -1129,8 +1505,16 @@ GameSnapshot _resultSnapshot({
     totalTurretDps: 0,
     nexusCoreBeamIntervalSeconds: 5,
     nexusCoreBeamCooldownSeconds: 5,
+    nexusCoreBeamAvailable: true,
     nexusCoreBeamActive: false,
     nexusCoreBeamDamage: 0,
+    coreCombatSkill: coreCombatSkill,
+    corePassiveSlots: corePassiveSlots,
+    corePassiveSlotCount: unlockedStageCount >= 6 ? 2 : 1,
+    unlockedCorePassiveAbilities: {
+      CorePassiveAbility.stabilityCircuit,
+      if (clearedStageNumbers.contains(1)) CorePassiveAbility.precisionCircuit,
+    },
     nextWaveEnemyTypes: const [],
     nextWaveEnemyCounts: const {},
     nextWaveClearRewardGold: 0,
@@ -1197,6 +1581,41 @@ class _ResearchRefreshGame extends RuneNexusGame {
   @override
   bool refreshResearchProgress() {
     researchRefreshCount += 1;
+    return true;
+  }
+}
+
+class _CoreEquipGame extends RuneNexusGame {
+  _CoreEquipGame() : super(saveRepository: MemorySaveRepository());
+
+  CoreCombatSkill? equippedCombatSkill;
+  bool unequippedCombatSkill = false;
+  CorePassiveAbility? equippedPassive;
+  int? equippedSlotIndex;
+  int? unequippedSlotIndex;
+
+  @override
+  bool equipCoreCombatSkill(CoreCombatSkill skill) {
+    equippedCombatSkill = skill;
+    return true;
+  }
+
+  @override
+  bool unequipCoreCombatSkill() {
+    unequippedCombatSkill = true;
+    return true;
+  }
+
+  @override
+  bool equipCorePassiveAbility(CorePassiveAbility ability, int slotIndex) {
+    equippedPassive = ability;
+    equippedSlotIndex = slotIndex;
+    return true;
+  }
+
+  @override
+  bool unequipCorePassiveAbility(int slotIndex) {
+    unequippedSlotIndex = slotIndex;
     return true;
   }
 }

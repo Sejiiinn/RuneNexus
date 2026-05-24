@@ -768,16 +768,19 @@ class _StageDialogActionButton extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: enabled
-                        ? colors.foreground
-                        : const Color(0xFF627384),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    softWrap: false,
+                    style: TextStyle(
+                      color: enabled
+                          ? colors.foreground
+                          : const Color(0xFF627384),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ),
               ),

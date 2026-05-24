@@ -1,6 +1,7 @@
 import '../domain/combat/game_phase.dart';
 import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/run_panel_tab.dart';
+import '../domain/core/core_ability.dart';
 import '../domain/enemy/enemy_type.dart';
 import '../domain/gem/gem_type.dart';
 import '../domain/map/grid_point.dart';
@@ -88,8 +89,13 @@ class GameSnapshot {
     required this.totalTurretDps,
     required this.nexusCoreBeamIntervalSeconds,
     required this.nexusCoreBeamCooldownSeconds,
+    required this.nexusCoreBeamAvailable,
     required this.nexusCoreBeamActive,
     required this.nexusCoreBeamDamage,
+    required this.coreCombatSkill,
+    required this.corePassiveSlots,
+    required this.corePassiveSlotCount,
+    required this.unlockedCorePassiveAbilities,
     required this.nextWaveEnemyTypes,
     required this.nextWaveEnemyCounts,
     required this.nextWaveClearRewardGold,
@@ -222,8 +228,13 @@ class GameSnapshot {
   final double totalTurretDps;
   final double nexusCoreBeamIntervalSeconds;
   final double nexusCoreBeamCooldownSeconds;
+  final bool nexusCoreBeamAvailable;
   final bool nexusCoreBeamActive;
   final double nexusCoreBeamDamage;
+  final CoreCombatSkill? coreCombatSkill;
+  final List<CorePassiveAbility?> corePassiveSlots;
+  final int corePassiveSlotCount;
+  final Set<CorePassiveAbility> unlockedCorePassiveAbilities;
   final List<EnemyType> nextWaveEnemyTypes;
   final Map<EnemyType, int> nextWaveEnemyCounts;
   final int nextWaveClearRewardGold;

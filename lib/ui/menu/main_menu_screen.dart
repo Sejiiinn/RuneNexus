@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/definitions/game_research_data.dart';
 import '../../domain/combat/game_phase.dart';
+import '../../domain/core/core_ability.dart';
 import '../../domain/research/research_definition.dart';
 import '../../domain/research/research_progress.dart';
 import '../../domain/research/research_type.dart';
@@ -136,6 +137,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
         child: Stack(
           children: [
             const Positioned.fill(child: _MainMenuBackdrop()),
+            if (!_showMapEditor)
+              const Positioned(top: 14, left: 16, child: _MenuQuickGlyphs()),
             const Positioned(top: 10, left: 0, right: 0, child: _MenuLogo()),
             if (selectedTab == MainMenuTab.stage)
               LayoutBuilder(
@@ -185,7 +188,10 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                       children: [
                         _MainMenuPanel(
                           child: switch (selectedTab) {
-                            MainMenuTab.core => const _CoreMenu(),
+                            MainMenuTab.core => _CoreMenu(
+                              game: widget.game,
+                              snapshot: widget.snapshot,
+                            ),
                             MainMenuTab.permanentUpgrades =>
                               _PermanentUpgradeMenu(
                                 game: widget.game,
@@ -672,39 +678,104 @@ class _MenuLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compactLogo = constraints.maxWidth < 430;
+        return IgnorePointer(
+          child: Center(
+            child: Opacity(
+              opacity: 0.92,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!compactLogo) ...[
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: const Color(0x2233D8FF),
+                        border: Border.all(color: const Color(0xAA33D8FF)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.diamond_outlined,
+                        color: Color(0xFF8EE6FF),
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+                  Text(
+                    l10n.appTitle,
+                    style: TextStyle(
+                      fontSize: compactLogo ? 20 : 23,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _MenuQuickGlyphs extends StatelessWidget {
+  const _MenuQuickGlyphs();
+
+  @override
+  Widget build(BuildContext context) {
     return IgnorePointer(
-      child: Center(
-        child: Opacity(
-          opacity: 0.92,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xAA06101A),
+          border: Border.all(color: const Color(0x5533D8FF)),
+          borderRadius: BorderRadius.circular(4),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x88000000),
+              blurRadius: 10,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: const Color(0x2233D8FF),
-                  border: Border.all(color: const Color(0xAA33D8FF)),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.diamond_outlined,
-                  color: Color(0xFF8EE6FF),
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                l10n.appTitle,
-                style: const TextStyle(
-                  fontSize: 23,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
+              _MenuQuickGlyph(icon: Icons.menu),
+              _MenuQuickGlyph(icon: Icons.map_outlined),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _MenuQuickGlyph extends StatelessWidget {
+  const _MenuQuickGlyph({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    const color = Color(0xFF607486);
+    return Container(
+      width: 23,
+      height: 23,
+      margin: const EdgeInsets.symmetric(horizontal: 1),
+      decoration: ShapeDecoration(
+        color: const Color(0x55101C28),
+        shape: BeveledRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+          side: BorderSide(color: color.withValues(alpha: 0.35)),
+        ),
+      ),
+      child: Icon(icon, color: color, size: 14),
     );
   }
 }
@@ -2085,422 +2156,1090 @@ class _StageIcon extends StatelessWidget {
   }
 }
 
-enum _CoreMenuSelection {
-  guardianBeam,
-  coreBody,
-  passiveSlot,
-  skillTree,
-  passiveExpansion,
-  coreTraining,
+enum _CoreAbilityTab { combatSkill, passive }
+
+enum _CoreMenuSelection { combatSkillSlot, passiveSlotOne, passiveSlotTwo }
+
+abstract final class _CoreUiStyle {
+  static const Color panelTop = Color(0xF20C1D2C);
+  static const Color panelBottom = Color(0xF006101A);
+  static const Color panelLine = Color(0x885D7182);
+  static const Color panelGlow = Color(0x4422C7E8);
+  static const Color itemBase = Color(0xE60A1724);
+  static const Color badgeBase = Color(0xAA111E2D);
+  static const Color lockedLine = Color(0x55485B68);
+  static const double panelRadius = 7;
 }
 
 class _CoreMenu extends StatefulWidget {
-  const _CoreMenu();
+  const _CoreMenu({required this.game, required this.snapshot});
+
+  final RuneNexusGame game;
+  final GameSnapshot snapshot;
 
   @override
   State<_CoreMenu> createState() => _CoreMenuState();
 }
 
 class _CoreMenuState extends State<_CoreMenu> {
-  _CoreMenuSelection _selected = _CoreMenuSelection.guardianBeam;
+  _CoreAbilityTab _selectedTab = _CoreAbilityTab.combatSkill;
+  _CoreMenuSelection _selected = _CoreMenuSelection.combatSkillSlot;
+  String _selectedAbilityName = '수호 광선';
 
   @override
   Widget build(BuildContext context) {
+    final mediaSize = MediaQuery.sizeOf(context);
+    final compact = mediaSize.height < 760 || mediaSize.width < 480;
+    final selectedPassiveSlotIndex = switch (_selected) {
+      _CoreMenuSelection.passiveSlotOne => 0,
+      _CoreMenuSelection.passiveSlotTwo => 1,
+      _CoreMenuSelection.combatSkillSlot => 0,
+    };
+    final selectedAbility = _selectedCoreAbilityData(
+      snapshot: widget.snapshot,
+      tab: _selectedTab,
+      selectedPassiveSlotIndex: selectedPassiveSlotIndex,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Row(
-          children: [
-            Icon(Icons.diamond_outlined, color: Color(0xFF8EE6FF), size: 20),
-            SizedBox(width: 8),
-            Text(
-              '넥서스 코어',
-              style: TextStyle(
-                color: Color(0xFFE8FBFF),
-                fontSize: 17,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ],
+        _CoreSummaryHeader(compact: compact),
+        SizedBox(height: compact ? 7 : 9),
+        _CoreSocketStage(
+          snapshot: widget.snapshot,
+          compact: compact,
+          selected: _selected,
+          onSelect: (selection) {
+            setState(() {
+              _selected = selection;
+              _selectedTab = switch (selection) {
+                _CoreMenuSelection.combatSkillSlot =>
+                  _CoreAbilityTab.combatSkill,
+                _CoreMenuSelection.passiveSlotOne ||
+                _CoreMenuSelection.passiveSlotTwo => _CoreAbilityTab.passive,
+              };
+              final nextPassiveSlotIndex = switch (_selected) {
+                _CoreMenuSelection.passiveSlotOne => 0,
+                _CoreMenuSelection.passiveSlotTwo => 1,
+                _CoreMenuSelection.combatSkillSlot => 0,
+              };
+              _selectedAbilityName = _defaultSelectedAbilityName(
+                snapshot: widget.snapshot,
+                tab: _selectedTab,
+                selectedPassiveSlotIndex: nextPassiveSlotIndex,
+              );
+            });
+          },
         ),
-        const SizedBox(height: 10),
-        _CoreBodyPanel(
-          selected: _selected == _CoreMenuSelection.coreBody,
-          onTap: () => _select(_CoreMenuSelection.coreBody),
+        SizedBox(height: compact ? 7 : 9),
+        _CoreSelectedAbilityPanel(
+          data: selectedAbility,
+          selectedTab: _selectedTab,
+          selectedPassiveSlotIndex: selectedPassiveSlotIndex,
+          compact: compact,
+          onAction: () => _performSelectedAbilityAction(selectedAbility),
         ),
-        const SizedBox(height: 10),
-        const _CoreSectionLabel(label: '영구 패시브'),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            Expanded(
-              child: _CoreSlotButton(
-                icon: Icons.auto_awesome,
-                label: '수호 광선',
-                state: '기본 해금',
-                selected: _selected == _CoreMenuSelection.guardianBeam,
-                onTap: () => _select(_CoreMenuSelection.guardianBeam),
-              ),
-            ),
-            const SizedBox(width: 7),
-            Expanded(
-              child: _CoreSlotButton(
-                icon: Icons.lock_outline,
-                label: '패시브 슬롯',
-                state: '잠김',
-                locked: true,
-                selected: _selected == _CoreMenuSelection.passiveSlot,
-                onTap: () => _select(_CoreMenuSelection.passiveSlot),
-              ),
-            ),
-          ],
+        SizedBox(height: compact ? 7 : 9),
+        _CoreAbilityLibrary(
+          snapshot: widget.snapshot,
+          selectedTab: _selectedTab,
+          selectedPassiveSlotIndex: selectedPassiveSlotIndex,
+          compact: compact,
+          onSelectTab: (tab) {
+            setState(() {
+              _selectedTab = tab;
+              _selected = tab == _CoreAbilityTab.combatSkill
+                  ? _CoreMenuSelection.combatSkillSlot
+                  : _selected == _CoreMenuSelection.passiveSlotTwo
+                  ? _CoreMenuSelection.passiveSlotTwo
+                  : _CoreMenuSelection.passiveSlotOne;
+              final nextPassiveSlotIndex = switch (_selected) {
+                _CoreMenuSelection.passiveSlotOne => 0,
+                _CoreMenuSelection.passiveSlotTwo => 1,
+                _CoreMenuSelection.combatSkillSlot => 0,
+              };
+              _selectedAbilityName = _defaultSelectedAbilityName(
+                snapshot: widget.snapshot,
+                tab: _selectedTab,
+                selectedPassiveSlotIndex: nextPassiveSlotIndex,
+              );
+            });
+          },
+          selectedAbilityName: selectedAbility.name,
+          onSelectAbility: (ability) {
+            setState(() => _selectedAbilityName = ability.name);
+          },
         ),
-        const SizedBox(height: 10),
-        const _CoreSectionLabel(label: '코어 성장'),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 7,
-          runSpacing: 7,
-          children: [
-            _CoreGrowthButton(
-              icon: Icons.account_tree_outlined,
-              label: '스킬 트리',
-              selected: _selected == _CoreMenuSelection.skillTree,
-              onTap: () => _select(_CoreMenuSelection.skillTree),
-            ),
-            _CoreGrowthButton(
-              icon: Icons.add_circle_outline,
-              label: '슬롯 확장',
-              selected: _selected == _CoreMenuSelection.passiveExpansion,
-              onTap: () => _select(_CoreMenuSelection.passiveExpansion),
-            ),
-            _CoreGrowthButton(
-              icon: Icons.upgrade_outlined,
-              label: '코어 강화',
-              selected: _selected == _CoreMenuSelection.coreTraining,
-              onTap: () => _select(_CoreMenuSelection.coreTraining),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        _CoreDetailPanel(selection: _selected),
       ],
     );
   }
 
-  void _select(_CoreMenuSelection selection) {
-    setState(() {
-      _selected = selection;
-    });
+  _CoreAbilityData _selectedCoreAbilityData({
+    required GameSnapshot snapshot,
+    required _CoreAbilityTab tab,
+    required int selectedPassiveSlotIndex,
+  }) {
+    final abilities = _CoreAbilityData.forTab(
+      snapshot: snapshot,
+      tab: tab,
+      selectedPassiveSlotIndex: selectedPassiveSlotIndex,
+    );
+    for (final ability in abilities) {
+      if (ability.name == _selectedAbilityName) {
+        return ability;
+      }
+    }
+    return abilities.firstWhere(
+      (ability) =>
+          ability.name ==
+          _defaultSelectedAbilityName(
+            snapshot: snapshot,
+            tab: tab,
+            selectedPassiveSlotIndex: selectedPassiveSlotIndex,
+          ),
+      orElse: () => abilities.first,
+    );
+  }
+
+  String _defaultSelectedAbilityName({
+    required GameSnapshot snapshot,
+    required _CoreAbilityTab tab,
+    required int selectedPassiveSlotIndex,
+  }) {
+    final abilities = _CoreAbilityData.forTab(
+      snapshot: snapshot,
+      tab: tab,
+      selectedPassiveSlotIndex: selectedPassiveSlotIndex,
+    );
+    if (tab == _CoreAbilityTab.passive) {
+      final slotted = _corePassiveAt(snapshot, selectedPassiveSlotIndex);
+      if (slotted != null) {
+        return abilities
+            .firstWhere(
+              (ability) => ability.passiveAbility == slotted,
+              orElse: () => abilities.first,
+            )
+            .name;
+      }
+      return abilities
+          .firstWhere(
+            (ability) =>
+                ability.enabled && !ability.equipped && !ability.locked,
+            orElse: () => abilities.first,
+          )
+          .name;
+    }
+    return abilities.first.name;
+  }
+
+  void _performSelectedAbilityAction(_CoreAbilityData ability) {
+    final combatSkill = ability.combatSkill;
+    if (combatSkill != null) {
+      if (ability.locked || !ability.enabled) {
+        return;
+      }
+      if (ability.equipped) {
+        widget.game.unequipCoreCombatSkill();
+        return;
+      }
+      widget.game.equipCoreCombatSkill(combatSkill);
+      return;
+    }
+
+    final passive = ability.passiveAbility;
+    if (passive == null || ability.locked || !ability.enabled) {
+      return;
+    }
+    if (ability.equipped) {
+      final slotIndex = widget.snapshot.corePassiveSlots.indexOf(passive);
+      if (slotIndex >= 0) {
+        widget.game.unequipCorePassiveAbility(slotIndex);
+      }
+      return;
+    }
+    final selectedPassiveSlotIndex = switch (_selected) {
+      _CoreMenuSelection.passiveSlotOne => 0,
+      _CoreMenuSelection.passiveSlotTwo => 1,
+      _CoreMenuSelection.combatSkillSlot => 0,
+    };
+    widget.game.equipCorePassiveAbility(passive, selectedPassiveSlotIndex);
   }
 }
 
-class _CoreBodyPanel extends StatelessWidget {
-  const _CoreBodyPanel({required this.selected, required this.onTap});
+class _CoreSummaryHeader extends StatelessWidget {
+  const _CoreSummaryHeader({required this.compact});
 
-  final bool selected;
-  final VoidCallback onTap;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xCC0E263A) : const Color(0xAA0B1B2B),
-            border: Border.all(
-              color: selected
-                  ? const Color(0xFF8EE6FF)
-                  : const Color(0x7733D8FF),
-            ),
-            borderRadius: BorderRadius.circular(8),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [_CoreUiStyle.panelTop, _CoreUiStyle.panelBottom],
+        ),
+        border: Border.all(color: _CoreUiStyle.panelLine),
+        borderRadius: BorderRadius.circular(_CoreUiStyle.panelRadius),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x88000000),
+            blurRadius: 12,
+            offset: Offset(0, 7),
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  gradient: const RadialGradient(
-                    colors: [
-                      Color(0xFF8EE6FF),
-                      Color(0xFF155876),
-                      Color(0xFF07111D),
-                    ],
-                    stops: [0, 0.46, 1],
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: compact ? 9 : 11,
+          vertical: compact ? 8 : 10,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: compact ? 40 : 46,
+              height: compact ? 40 : 46,
+              decoration: const ShapeDecoration(
+                gradient: RadialGradient(
+                  colors: [
+                    Color(0xFFE8FBFF),
+                    Color(0xFF8EE6FF),
+                    Color(0xFF155876),
+                    Color(0xFF06101A),
+                  ],
+                  stops: [0, 0.32, 0.66, 1],
+                ),
+                shape: StarBorder.polygon(sides: 6, pointRounding: 0.12),
+                shadows: [
+                  BoxShadow(
+                    color: Color(0x7722C7E8),
+                    blurRadius: 18,
+                    spreadRadius: 1,
                   ),
-                  border: Border.all(color: const Color(0xCC8EE6FF)),
-                  shape: BoxShape.circle,
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x6622C7E8),
-                      blurRadius: 16,
-                      spreadRadius: 1,
+                ],
+              ),
+              child: const Icon(
+                Icons.diamond_outlined,
+                color: Color(0xFFFFFFFF),
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '넥서스 코어',
+                    style: TextStyle(
+                      color: Color(0xFFE8FBFF),
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
                     ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.diamond_outlined,
-                  color: Color(0xFFFFFFFF),
-                  size: 22,
+                  ),
+                  SizedBox(height: 3),
+                  Text(
+                    '전투 스킬 1칸 / 패시브 2칸',
+                    style: TextStyle(
+                      color: Color(0xFF8FA8BA),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: ShapeDecoration(
+                color: const Color(0x22E7C66A),
+                shape: BeveledRectangleBorder(
+                  borderRadius: BorderRadius.circular(7),
+                  side: const BorderSide(color: Color(0x99E7C66A)),
                 ),
               ),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Lv.1 기본 코어',
-                      style: TextStyle(
-                        color: Color(0xFFE8FBFF),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    SizedBox(height: 3),
-                    Text(
-                      '코어 패시브와 해금된 기능을 확인합니다.',
-                      style: TextStyle(
-                        color: Color(0xFF8FA8BA),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        height: 1.25,
-                      ),
-                    ),
-                  ],
+              child: const Text(
+                'Lv.1',
+                style: TextStyle(
+                  color: Color(0xFFE7C66A),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
-              const Icon(
-                Icons.chevron_right,
-                color: Color(0xFF8EE6FF),
-                size: 18,
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _CoreSectionLabel extends StatelessWidget {
-  const _CoreSectionLabel({required this.label});
+class _CoreSocketStage extends StatelessWidget {
+  const _CoreSocketStage({
+    required this.snapshot,
+    required this.compact,
+    required this.selected,
+    required this.onSelect,
+  });
+
+  final GameSnapshot snapshot;
+  final bool compact;
+  final _CoreMenuSelection selected;
+  final ValueChanged<_CoreMenuSelection> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final dense = constraints.maxWidth < 370;
+        final stageHeight = compact ? 178.0 : 224.0;
+        final skillWidth = dense ? 108.0 : 122.0;
+        final passiveGap = dense ? 8.0 : 10.0;
+        final passiveWidth = dense ? 112.0 : 126.0;
+        final combatSkill = snapshot.coreCombatSkill;
+        final hasCombatSkill = combatSkill != null;
+        return Container(
+          key: const ValueKey('core-socket-board'),
+          padding: EdgeInsets.all(dense ? 8 : 10),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xD00B1B2B), Color(0xE806101A)],
+            ),
+            border: Border.all(color: const Color(0x775D7182), width: 1.2),
+            borderRadius: BorderRadius.circular(_CoreUiStyle.panelRadius),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x77000000),
+                blurRadius: 16,
+                offset: Offset(0, 9),
+              ),
+              BoxShadow(color: _CoreUiStyle.panelGlow, blurRadius: 18),
+            ],
+          ),
+          child: SizedBox(
+            height: stageHeight,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: _CoreSocketStagePainter(
+                      compact: compact,
+                      dense: dense,
+                      passiveSlotCount: snapshot.corePassiveSlotCount,
+                      passiveSlotOne: _corePassiveAt(snapshot, 0),
+                      passiveSlotTwo: _corePassiveAt(snapshot, 1),
+                    ),
+                    child: Center(
+                      child: _CoreBodyGlyph(size: compact ? 84 : 96),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: SizedBox(
+                      width: skillWidth,
+                      child: _CoreSocketButton(
+                        kind: '전투 스킬',
+                        icon: hasCombatSkill ? Icons.auto_awesome : Icons.add,
+                        label: combatSkill?.label ?? '빈 슬롯',
+                        state: hasCombatSkill ? '5초마다 자동 발동' : '스킬을 장착하세요',
+                        accent: hasCombatSkill
+                            ? const Color(0xFF8EE6FF)
+                            : const Color(0xFF8FA8BA),
+                        prominent: true,
+                        compact: compact,
+                        empty: !hasCombatSkill,
+                        muted: !hasCombatSkill,
+                        selected:
+                            selected == _CoreMenuSelection.combatSkillSlot,
+                        onTap: () =>
+                            onSelect(_CoreMenuSelection.combatSkillSlot),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: passiveWidth,
+                        child: _CorePassiveSlotButton(
+                          index: 0,
+                          ability: _corePassiveAt(snapshot, 0),
+                          locked: snapshot.corePassiveSlotCount <= 0,
+                          compact: compact,
+                          selected:
+                              selected == _CoreMenuSelection.passiveSlotOne,
+                          onTap: () =>
+                              onSelect(_CoreMenuSelection.passiveSlotOne),
+                        ),
+                      ),
+                      SizedBox(width: passiveGap),
+                      SizedBox(
+                        width: passiveWidth,
+                        child: _CorePassiveSlotButton(
+                          index: 1,
+                          ability: _corePassiveAt(snapshot, 1),
+                          locked: snapshot.corePassiveSlotCount <= 1,
+                          compact: compact,
+                          selected:
+                              selected == _CoreMenuSelection.passiveSlotTwo,
+                          onTap: () =>
+                              onSelect(_CoreMenuSelection.passiveSlotTwo),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CoreSocketStagePainter extends CustomPainter {
+  const _CoreSocketStagePainter({
+    required this.compact,
+    required this.dense,
+    required this.passiveSlotCount,
+    required this.passiveSlotOne,
+    required this.passiveSlotTwo,
+  });
+
+  final bool compact;
+  final bool dense;
+  final int passiveSlotCount;
+  final CorePassiveAbility? passiveSlotOne;
+  final CorePassiveAbility? passiveSlotTwo;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final gap = dense ? 8.0 : 10.0;
+    final topWidth = dense ? 108.0 : 122.0;
+    final topHeight = compact ? 46.0 : 56.0;
+    final passiveHeight = compact ? 44.0 : 54.0;
+    final passiveWidth = dense ? 112.0 : 126.0;
+    final passiveLeft = (size.width - passiveWidth * 2 - gap) / 2;
+    final topSocket = Offset(center.dx, size.height * 0.28);
+    final bottomHub = Offset(center.dx, size.height * 0.65);
+    final leftSocket = Offset(
+      passiveLeft + passiveWidth / 2,
+      size.height * 0.83,
+    );
+    final rightSocket = Offset(
+      passiveLeft + passiveWidth + gap + passiveWidth / 2,
+      size.height * 0.83,
+    );
+    final passiveOneAccent = _passiveSlotAccent(passiveSlotOne);
+    final passiveTwoAccent = _passiveSlotAccent(passiveSlotTwo);
+    final ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.3
+      ..color = const Color(0x5533D8FF);
+    canvas.drawCircle(
+      center,
+      math.min(size.shortestSide * 0.42, 52),
+      ringPaint,
+    );
+    canvas.drawCircle(center, 43, ringPaint..color = const Color(0x2AE7C66A));
+    final mainLinkPaint = Paint()
+      ..color = const Color(0xAA72E0A2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.8
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(topSocket, center, mainLinkPaint);
+    canvas.drawLine(center, bottomHub, mainLinkPaint);
+    canvas.drawLine(
+      bottomHub,
+      leftSocket,
+      mainLinkPaint..color = passiveOneAccent.withValues(alpha: 0.66),
+    );
+    canvas.drawLine(
+      bottomHub,
+      rightSocket,
+      mainLinkPaint..color = passiveTwoAccent.withValues(alpha: 0.66),
+    );
+
+    _drawSocketFrame(
+      canvas,
+      Rect.fromLTWH((size.width - topWidth) / 2, 0, topWidth, topHeight),
+      accent: const Color(0xFF8EE6FF),
+    );
+    _drawSocketFrame(
+      canvas,
+      Rect.fromLTWH(
+        passiveLeft,
+        size.height - passiveHeight,
+        passiveWidth,
+        passiveHeight,
+      ),
+      accent: passiveOneAccent,
+      muted: passiveSlotCount <= 0 || passiveSlotOne == null,
+    );
+    _drawSocketFrame(
+      canvas,
+      Rect.fromLTWH(
+        passiveLeft + passiveWidth + gap,
+        size.height - passiveHeight,
+        passiveWidth,
+        passiveHeight,
+      ),
+      accent: passiveTwoAccent,
+      muted: passiveSlotCount <= 1 || passiveSlotTwo == null,
+    );
+  }
+
+  Color _passiveSlotAccent(CorePassiveAbility? ability) {
+    return switch (ability) {
+      CorePassiveAbility.stabilityCircuit => const Color(0xFF72E0A2),
+      CorePassiveAbility.precisionCircuit => const Color(0xFF8EE6FF),
+      null => const Color(0xFF8FA8BA),
+    };
+  }
+
+  void _drawSocketFrame(
+    Canvas canvas,
+    Rect rect, {
+    required Color accent,
+    bool muted = false,
+  }) {
+    const bevel = 10.0;
+    final frame = Path()
+      ..moveTo(rect.left + bevel, rect.top)
+      ..lineTo(rect.right - bevel, rect.top)
+      ..lineTo(rect.right, rect.top + bevel)
+      ..lineTo(rect.right, rect.bottom - bevel)
+      ..lineTo(rect.right - bevel, rect.bottom)
+      ..lineTo(rect.left + bevel, rect.bottom)
+      ..lineTo(rect.left, rect.bottom - bevel)
+      ..lineTo(rect.left, rect.top + bevel)
+      ..close();
+    final fillPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          accent.withValues(alpha: muted ? 0.02 : 0.05),
+          const Color(0x00000000),
+        ],
+      ).createShader(rect);
+    canvas.drawPath(frame, fillPaint);
+
+    final borderPaint = Paint()
+      ..color = accent.withValues(alpha: muted ? 0.34 : 0.58)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    canvas.drawPath(frame, borderPaint);
+
+    final insetPaint = Paint()
+      ..color = accent.withValues(alpha: muted ? 0.16 : 0.28)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8;
+    final inset = rect.deflate(6);
+    final insetFrame = Path()
+      ..moveTo(inset.left + bevel * 0.62, inset.top)
+      ..lineTo(inset.right - bevel * 0.62, inset.top)
+      ..lineTo(inset.right, inset.top + bevel * 0.62)
+      ..lineTo(inset.right, inset.bottom - bevel * 0.62)
+      ..lineTo(inset.right - bevel * 0.62, inset.bottom)
+      ..lineTo(inset.left + bevel * 0.62, inset.bottom)
+      ..lineTo(inset.left, inset.bottom - bevel * 0.62)
+      ..lineTo(inset.left, inset.top + bevel * 0.62)
+      ..close();
+    canvas.drawPath(insetFrame, insetPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _CoreSocketStagePainter oldDelegate) {
+    return oldDelegate.compact != compact ||
+        oldDelegate.dense != dense ||
+        oldDelegate.passiveSlotCount != passiveSlotCount ||
+        oldDelegate.passiveSlotOne != passiveSlotOne ||
+        oldDelegate.passiveSlotTwo != passiveSlotTwo;
+  }
+}
+
+class _CoreBodyGlyph extends StatelessWidget {
+  const _CoreBodyGlyph({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: CustomPaint(painter: _NexusCoreGlyphPainter()),
+      ),
+    );
+  }
+}
+
+class _NexusCoreGlyphPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final unit = size.shortestSide;
+    final center = Offset(size.width / 2, size.height / 2);
+    final shadowPaint = Paint()
+      ..color = const Color(0xAA000000)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+    final basePaint = Paint()..color = const Color(0xFF172535);
+    const gemColor = Color(0xFF8EE6FF);
+    const strokeColor = Color(0xFFD6F6FF);
+
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(center.dx, center.dy + unit * 0.35),
+        width: unit * 0.72,
+        height: unit * 0.18,
+      ),
+      shadowPaint,
+    );
+
+    final pedestal = Rect.fromCenter(
+      center: Offset(center.dx, center.dy + unit * 0.26),
+      width: unit * 0.66,
+      height: unit * 0.2,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(pedestal, Radius.circular(unit * 0.04)),
+      Paint()..color = const Color(0xFF0A111A),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        pedestal.deflate(unit * 0.035),
+        Radius.circular(unit * 0.03),
+      ),
+      basePaint,
+    );
+
+    final leftBrace = Path()
+      ..moveTo(center.dx - unit * 0.27, center.dy + unit * 0.03)
+      ..lineTo(center.dx - unit * 0.36, center.dy - unit * 0.15)
+      ..lineTo(center.dx - unit * 0.18, center.dy - unit * 0.27)
+      ..lineTo(center.dx - unit * 0.08, center.dy + unit * 0.02)
+      ..close();
+    final rightBrace = Path()
+      ..moveTo(center.dx + unit * 0.27, center.dy + unit * 0.03)
+      ..lineTo(center.dx + unit * 0.36, center.dy - unit * 0.15)
+      ..lineTo(center.dx + unit * 0.18, center.dy - unit * 0.27)
+      ..lineTo(center.dx + unit * 0.08, center.dy + unit * 0.02)
+      ..close();
+    final bracePaint = Paint()..color = const Color(0xCC203B4B);
+    canvas.drawPath(leftBrace, bracePaint);
+    canvas.drawPath(rightBrace, bracePaint);
+
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(center.dx, center.dy - unit * 0.13),
+        width: unit * 0.64,
+        height: unit * 0.44,
+      ),
+      Paint()..color = gemColor.withValues(alpha: 0.1),
+    );
+
+    final gem = Path()
+      ..moveTo(center.dx, center.dy - unit * 0.42)
+      ..lineTo(center.dx + unit * 0.22, center.dy - unit * 0.08)
+      ..lineTo(center.dx, center.dy + unit * 0.22)
+      ..lineTo(center.dx - unit * 0.22, center.dy - unit * 0.08)
+      ..close();
+    final leftFace = Path()
+      ..moveTo(center.dx, center.dy - unit * 0.42)
+      ..lineTo(center.dx, center.dy + unit * 0.22)
+      ..lineTo(center.dx - unit * 0.22, center.dy - unit * 0.08)
+      ..close();
+    final topFace = Path()
+      ..moveTo(center.dx, center.dy - unit * 0.42)
+      ..lineTo(center.dx + unit * 0.22, center.dy - unit * 0.08)
+      ..lineTo(center.dx, center.dy - unit * 0.16)
+      ..close();
+    final rightFace = Path()
+      ..moveTo(center.dx, center.dy - unit * 0.16)
+      ..lineTo(center.dx + unit * 0.22, center.dy - unit * 0.08)
+      ..lineTo(center.dx, center.dy + unit * 0.22)
+      ..close();
+    final innerFace = Path()
+      ..moveTo(center.dx, center.dy - unit * 0.42)
+      ..lineTo(center.dx - unit * 0.08, center.dy - unit * 0.07)
+      ..lineTo(center.dx, center.dy + unit * 0.22)
+      ..lineTo(center.dx + unit * 0.08, center.dy - unit * 0.07)
+      ..close();
+
+    canvas.drawPath(gem, Paint()..color = gemColor);
+    canvas.drawPath(leftFace, Paint()..color = const Color(0xFF39A9CF));
+    canvas.drawPath(topFace, Paint()..color = const Color(0xFFE8FBFF));
+    canvas.drawPath(rightFace, Paint()..color = const Color(0xFF147AA0));
+    canvas.drawPath(innerFace, Paint()..color = const Color(0x55FFFFFF));
+    canvas.drawPath(
+      gem,
+      Paint()
+        ..color = strokeColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = unit * 0.03
+        ..strokeJoin = StrokeJoin.round,
+    );
+    canvas.drawPath(
+      Path()
+        ..moveTo(center.dx - unit * 0.11, center.dy - unit * 0.05)
+        ..lineTo(center.dx, center.dy - unit * 0.18)
+        ..lineTo(center.dx + unit * 0.11, center.dy - unit * 0.05),
+      Paint()
+        ..color = const Color(0xAAE7C66A)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = unit * 0.024
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _CorePassiveSlotButton extends StatelessWidget {
+  const _CorePassiveSlotButton({
+    required this.index,
+    required this.ability,
+    required this.locked,
+    required this.compact,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final int index;
+  final CorePassiveAbility? ability;
+  final bool locked;
+  final bool compact;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final equipped = ability != null;
+    final passiveIcon = switch (ability) {
+      CorePassiveAbility.stabilityCircuit => Icons.blur_on,
+      CorePassiveAbility.precisionCircuit => Icons.gps_fixed,
+      null => locked ? Icons.lock_outline : Icons.add,
+    };
+    final passiveAccent = switch (ability) {
+      CorePassiveAbility.stabilityCircuit => const Color(0xFF72E0A2),
+      CorePassiveAbility.precisionCircuit => const Color(0xFF8EE6FF),
+      null => const Color(0xFF8FA8BA),
+    };
+    return _CoreSocketButton(
+      kind: '패시브 ${index + 1}',
+      icon: passiveIcon,
+      label: locked ? '잠긴 슬롯' : ability?.label ?? '빈 슬롯',
+      state: locked
+          ? '챕터 2 진입 후 확장'
+          : equipped
+          ? '효과 준비중'
+          : '패시브를 장착하세요',
+      accent: locked ? const Color(0xFF8FA8BA) : passiveAccent,
+      compact: true,
+      empty: !equipped,
+      muted: locked || !equipped,
+      selected: selected,
+      onTap: onTap,
+    );
+  }
+}
+
+class _CoreSocketButton extends StatelessWidget {
+  const _CoreSocketButton({
+    required this.kind,
+    required this.icon,
+    required this.label,
+    required this.state,
+    required this.onTap,
+    this.accent = const Color(0xFF8EE6FF),
+    this.prominent = false,
+    this.compact = false,
+    this.empty = false,
+    this.muted = false,
+    this.selected = false,
+  });
+
+  final String kind;
+  final IconData icon;
+  final String label;
+  final String state;
+  final VoidCallback onTap;
+  final Color accent;
+  final bool prominent;
+  final bool compact;
+  final bool empty;
+  final bool muted;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveAccent = muted ? const Color(0xFF8FA8BA) : accent;
+    final selectedAccent = muted ? const Color(0xFFB4C7D2) : accent;
+    final foreground = empty
+        ? const Color(0xFFBFD0D8)
+        : GamePalette.textPrimary;
+    final iconSize = compact
+        ? prominent
+              ? 10.0
+              : 9.0
+        : prominent
+        ? 14.0
+        : 12.0;
+    final slotHeight = prominent
+        ? (compact ? 46.0 : 56.0)
+        : (compact ? 44.0 : 54.0);
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        height: slotHeight,
+        decoration: selected
+            ? ShapeDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    selectedAccent.withValues(alpha: 0.18),
+                    selectedAccent.withValues(alpha: 0.06),
+                  ],
+                ),
+                shape: BeveledRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(
+                    color: selectedAccent.withValues(alpha: 0.95),
+                    width: 1.4,
+                  ),
+                ),
+                shadows: [
+                  BoxShadow(
+                    color: selectedAccent.withValues(alpha: 0.18),
+                    blurRadius: 11,
+                    spreadRadius: 0.5,
+                  ),
+                ],
+              )
+            : null,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            compact ? 6 : 8,
+            compact ? 5 : 6,
+            compact ? 6 : 8,
+            compact ? 5 : 6,
+          ),
+          child: compact
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _CoreSlotKindLabel(
+                      label: kind,
+                      compact: true,
+                      selected: selected,
+                    ),
+                    const Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(icon, color: effectiveAccent, size: iconSize),
+                        const SizedBox(width: 3),
+                        Flexible(
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: foreground,
+                              fontSize: prominent ? 8 : 7,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                  ],
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _CoreSlotKindLabel(
+                      label: kind,
+                      compact: false,
+                      selected: selected,
+                    ),
+                    const Spacer(),
+                    Container(
+                      width: prominent ? 20 : 18,
+                      height: prominent ? 20 : 18,
+                      decoration: ShapeDecoration(
+                        color: effectiveAccent.withValues(
+                          alpha: empty ? 0.04 : 0.1,
+                        ),
+                        shape: StarBorder.polygon(
+                          sides: prominent ? 6 : 8,
+                          pointRounding: 0.08,
+                          side: BorderSide(
+                            color: effectiveAccent.withValues(alpha: 0.72),
+                            width: 1.1,
+                          ),
+                        ),
+                      ),
+                      child: Icon(icon, color: effectiveAccent, size: iconSize),
+                    ),
+                    const SizedBox(height: 3),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        softWrap: false,
+                        style: TextStyle(
+                          color: foreground,
+                          fontSize: prominent ? 10 : 9,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CoreSlotKindLabel extends StatelessWidget {
+  const _CoreSlotKindLabel({
+    required this.label,
+    required this.compact,
+    required this.selected,
+  });
 
   final String label;
+  final bool compact;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
     return Text(
       label,
-      style: const TextStyle(
-        color: Color(0xFFE8FBFF),
-        fontSize: 12,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        color: selected ? const Color(0xFFE8FBFF) : const Color(0xFFD2E3EA),
+        fontSize: compact ? 8 : 10,
         fontWeight: FontWeight.w900,
       ),
     );
   }
 }
 
-class _CoreSlotButton extends StatelessWidget {
-  const _CoreSlotButton({
-    required this.icon,
+class _CoreStatusBadge extends StatelessWidget {
+  const _CoreStatusBadge({
     required this.label,
-    required this.state,
-    required this.selected,
-    required this.onTap,
-    this.locked = false,
+    required this.color,
+    this.disabled = false,
   });
 
-  final IconData icon;
   final String label;
-  final String state;
-  final bool selected;
-  final bool locked;
-  final VoidCallback onTap;
+  final Color color;
+  final bool disabled;
 
   @override
   Widget build(BuildContext context) {
-    final accent = locked ? const Color(0xFF6D7F8F) : const Color(0xFF8EE6FF);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xAA15384B) : const Color(0x6615283A),
-            border: Border.all(
-              color: selected ? accent : const Color(0x5533D8FF),
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 17, color: accent),
-              const SizedBox(width: 7),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: locked
-                            ? const Color(0xFF9BA8B3)
-                            : const Color(0xFFE8FBFF),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      state,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: locked
-                            ? const Color(0xFF758696)
-                            : const Color(0xFF8EE6FF),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CoreGrowthButton extends StatelessWidget {
-  const _CoreGrowthButton({
-    required this.icon,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          width: 106,
-          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xAA243241) : const Color(0x66111E2D),
-            border: Border.all(
-              color: selected
-                  ? const Color(0xFF8FA8BA)
-                  : const Color(0x445D7182),
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 15, color: const Color(0xFF8FA8BA)),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFFE8FBFF),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              const Icon(
-                Icons.lock_outline,
-                size: 12,
-                color: Color(0xFF758696),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CoreDetailPanel extends StatelessWidget {
-  const _CoreDetailPanel({required this.selection});
-
-  final _CoreMenuSelection selection;
-
-  @override
-  Widget build(BuildContext context) {
-    final detail = _CoreDetailData.forSelection(selection);
     return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0x66111E2D),
-        border: Border.all(color: const Color(0x445D7182)),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(detail.icon, size: 17, color: detail.accent),
-              const SizedBox(width: 7),
-              Expanded(
-                child: Text(
-                  detail.title,
-                  style: const TextStyle(
-                    color: Color(0xFFE8FBFF),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              if (detail.locked)
-                const Icon(
-                  Icons.lock_outline,
-                  color: Color(0xFF758696),
-                  size: 15,
-                ),
-            ],
+      height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      alignment: Alignment.center,
+      decoration: ShapeDecoration(
+        color: disabled ? const Color(0x66101922) : _CoreUiStyle.badgeBase,
+        shape: StadiumBorder(
+          side: BorderSide(
+            color: color.withValues(alpha: disabled ? 0.38 : 0.7),
           ),
-          const SizedBox(height: 8),
-          ...detail.lines.map(
-            (line) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                line,
-                style: const TextStyle(
-                  color: Color(0xFF8FA8BA),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  height: 1.25,
-                ),
-              ),
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: disabled ? const Color(0xFF7A8D9A) : color,
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+  }
+}
+
+class _CoreActionCta extends StatelessWidget {
+  const _CoreActionCta({
+    required this.label,
+    required this.color,
+    required this.secondary,
+  });
+
+  final String label;
+  final Color color;
+  final bool secondary;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = secondary ? const Color(0xFFB4C7D2) : color;
+    return Container(
+      height: 26,
+      constraints: const BoxConstraints(minWidth: 54),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      alignment: Alignment.center,
+      decoration: ShapeDecoration(
+        color: foreground.withValues(alpha: secondary ? 0.06 : 0.1),
+        shape: BeveledRectangleBorder(
+          borderRadius: BorderRadius.circular(7),
+          side: BorderSide(color: foreground.withValues(alpha: 0.72)),
+        ),
+        shadows: [
+          BoxShadow(
+            color: foreground.withValues(alpha: secondary ? 0.04 : 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            secondary ? Icons.remove : Icons.add,
+            color: foreground,
+            size: 13,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              color: foreground,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
             ),
           ),
         ],
@@ -2509,75 +3248,517 @@ class _CoreDetailPanel extends StatelessWidget {
   }
 }
 
-class _CoreDetailData {
-  const _CoreDetailData({
-    required this.title,
-    required this.icon,
-    required this.lines,
-    required this.accent,
-    this.locked = false,
+class _CoreSelectedAbilityPanel extends StatelessWidget {
+  const _CoreSelectedAbilityPanel({
+    required this.data,
+    required this.selectedTab,
+    required this.selectedPassiveSlotIndex,
+    required this.compact,
+    required this.onAction,
   });
 
-  final String title;
-  final IconData icon;
-  final List<String> lines;
-  final Color accent;
-  final bool locked;
+  final _CoreAbilityData data;
+  final _CoreAbilityTab selectedTab;
+  final int selectedPassiveSlotIndex;
+  final bool compact;
+  final VoidCallback onAction;
 
-  static _CoreDetailData forSelection(_CoreMenuSelection selection) {
-    switch (selection) {
-      case _CoreMenuSelection.guardianBeam:
-        return const _CoreDetailData(
-          title: '수호 광선',
-          icon: Icons.auto_awesome,
-          accent: Color(0xFF8EE6FF),
-          lines: [
-            '기본으로 해금된 코어 패시브입니다.',
-            '웨이브 중 5초마다 자동 발사합니다.',
-            '선두 적을 우선 공격합니다.',
-          ],
-        );
-      case _CoreMenuSelection.coreBody:
-        return const _CoreDetailData(
-          title: 'Lv.1 기본 코어',
-          icon: Icons.diamond_outlined,
-          accent: Color(0xFF8EE6FF),
-          lines: ['넥서스를 보조하는 핵심 장치입니다.', '현재는 기본 패시브만 사용할 수 있습니다.'],
-        );
-      case _CoreMenuSelection.passiveSlot:
-        return const _CoreDetailData(
-          title: '패시브 슬롯 잠김',
-          icon: Icons.lock_outline,
-          accent: Color(0xFF8FA8BA),
-          locked: true,
-          lines: ['추후 코어 성장으로 추가 패시브 슬롯을 해금합니다.'],
-        );
-      case _CoreMenuSelection.skillTree:
-        return const _CoreDetailData(
-          title: '스킬 트리 잠김',
-          icon: Icons.account_tree_outlined,
-          accent: Color(0xFF8FA8BA),
-          locked: true,
-          lines: ['코어의 능력을 단계적으로 강화할 수 있게 됩니다.'],
-        );
-      case _CoreMenuSelection.passiveExpansion:
-        return const _CoreDetailData(
-          title: '슬롯 확장 잠김',
-          icon: Icons.add_circle_outline,
-          accent: Color(0xFF8FA8BA),
-          locked: true,
-          lines: ['더 많은 코어 패시브를 장착할 수 있게 됩니다.'],
-        );
-      case _CoreMenuSelection.coreTraining:
-        return const _CoreDetailData(
-          title: '코어 강화 잠김',
-          icon: Icons.upgrade_outlined,
-          accent: Color(0xFF8FA8BA),
-          locked: true,
-          lines: ['코어의 기본 능력을 강화할 수 있게 됩니다.'],
-        );
-    }
+  @override
+  Widget build(BuildContext context) {
+    final actionEnabled =
+        (data.combatSkill != null || data.passiveAbility != null) &&
+        data.enabled &&
+        !data.locked;
+    final detailText = selectedTab == _CoreAbilityTab.combatSkill
+        ? data.state
+        : '패시브 슬롯 ${selectedPassiveSlotIndex + 1} · ${data.state}';
+    final actionLabel = data.passiveAbility == null
+        ? data.equipped
+              ? '해제'
+              : data.actionLabel
+        : data.equipped
+        ? '해제'
+        : data.actionLabel;
+    return Container(
+      key: const ValueKey('core-selected-ability-panel'),
+      height: compact ? 74 : 84,
+      padding: EdgeInsets.fromLTRB(
+        compact ? 9 : 11,
+        compact ? 8 : 10,
+        compact ? 9 : 11,
+        compact ? 8 : 10,
+      ),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xF20B1B2B), Color(0xE606101A)],
+        ),
+        border: Border.all(color: _CoreUiStyle.panelLine),
+        borderRadius: BorderRadius.circular(_CoreUiStyle.panelRadius),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 12,
+            offset: Offset(0, 7),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: compact ? 44 : 50,
+            height: compact ? 44 : 50,
+            decoration: ShapeDecoration(
+              color: data.accent.withValues(alpha: data.locked ? 0.06 : 0.16),
+              shape: StarBorder.polygon(
+                sides: 6,
+                pointRounding: 0.08,
+                side: BorderSide(
+                  color: data.accent.withValues(
+                    alpha: data.locked ? 0.26 : 0.7,
+                  ),
+                ),
+              ),
+            ),
+            child: Icon(data.icon, color: data.accent, size: compact ? 22 : 25),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFE8FBFF),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  detailText,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFFB4C7D2),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          actionEnabled
+              ? GestureDetector(
+                  key: const ValueKey('core-selected-ability-action'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onAction,
+                  child: _CoreActionCta(
+                    label: actionLabel,
+                    color: data.accent,
+                    secondary: data.equipped,
+                  ),
+                )
+              : _CoreStatusBadge(
+                  label: data.locked ? data.actionLabel : actionLabel,
+                  color: data.locked ? const Color(0xFF8FA8BA) : data.accent,
+                  disabled: data.locked,
+                ),
+        ],
+      ),
+    );
   }
+}
+
+class _CoreAbilityLibrary extends StatelessWidget {
+  const _CoreAbilityLibrary({
+    required this.snapshot,
+    required this.selectedTab,
+    required this.selectedPassiveSlotIndex,
+    required this.compact,
+    required this.onSelectTab,
+    required this.selectedAbilityName,
+    required this.onSelectAbility,
+  });
+
+  final GameSnapshot snapshot;
+  final _CoreAbilityTab selectedTab;
+  final int selectedPassiveSlotIndex;
+  final bool compact;
+  final ValueChanged<_CoreAbilityTab> onSelectTab;
+  final String selectedAbilityName;
+  final ValueChanged<_CoreAbilityData> onSelectAbility;
+
+  @override
+  Widget build(BuildContext context) {
+    final abilities = _CoreAbilityData.forTab(
+      snapshot: snapshot,
+      tab: selectedTab,
+      selectedPassiveSlotIndex: selectedPassiveSlotIndex,
+    );
+    final libraryHeight = compact ? 158.0 : 188.0;
+    return Container(
+      height: libraryHeight,
+      padding: EdgeInsets.all(compact ? 8 : 10),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xF20B1B2B), Color(0xF006101A)],
+        ),
+        border: Border.all(color: _CoreUiStyle.panelLine),
+        borderRadius: BorderRadius.circular(_CoreUiStyle.panelRadius),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x88000000),
+            blurRadius: 14,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _CoreAbilityTabButton(
+                  label: '전투 스킬',
+                  selected: selectedTab == _CoreAbilityTab.combatSkill,
+                  onTap: () => onSelectTab(_CoreAbilityTab.combatSkill),
+                ),
+              ),
+              const SizedBox(width: 7),
+              Expanded(
+                child: _CoreAbilityTabButton(
+                  label: '패시브',
+                  selected: selectedTab == _CoreAbilityTab.passive,
+                  onTap: () => onSelectTab(_CoreAbilityTab.passive),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Expanded(
+            child: GridView.builder(
+              padding: EdgeInsets.zero,
+              physics: const ClampingScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 7,
+                mainAxisSpacing: 7,
+                childAspectRatio: 0.95,
+              ),
+              itemCount: abilities.length,
+              itemBuilder: (context, index) {
+                return _CoreAbilityCard(
+                  data: abilities[index],
+                  selected: abilities[index].name == selectedAbilityName,
+                  onTap: () => onSelectAbility(abilities[index]),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CoreAbilityTabButton extends StatelessWidget {
+  const _CoreAbilityTabButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        customBorder: BeveledRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+        ),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          height: 30,
+          alignment: Alignment.center,
+          decoration: ShapeDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: selected
+                  ? const [Color(0xFF123C4E), Color(0xFF071B29)]
+                  : const [Color(0xAA15283A), Color(0xAA081421)],
+            ),
+            shape: BeveledRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
+              side: BorderSide(
+                color: selected
+                    ? const Color(0xCC8EE6FF)
+                    : const Color(0x5533D8FF),
+              ),
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected
+                  ? GamePalette.textPrimary
+                  : const Color(0xFF8FA8BA),
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CoreAbilityCard extends StatelessWidget {
+  const _CoreAbilityCard({
+    required this.data,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final _CoreAbilityData data;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = data.locked || (!data.enabled && !data.equipped);
+    final borderColor = data.equipped
+        ? data.accent.withValues(alpha: 0.82)
+        : selected
+        ? const Color(0xCC8EE6FF)
+        : data.locked
+        ? _CoreUiStyle.lockedLine
+        : const Color(0x6633D8FF);
+    final textColor = data.locked
+        ? const Color(0xFF7A8D9A)
+        : GamePalette.textPrimary;
+    return Opacity(
+      opacity: disabled ? 0.68 : 1,
+      child: Material(
+        key: ValueKey('core-ability-${data.name}'),
+        color: Colors.transparent,
+        child: InkWell(
+          customBorder: BeveledRectangleBorder(
+            borderRadius: BorderRadius.circular(7),
+          ),
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            padding: const EdgeInsets.fromLTRB(5, 7, 5, 6),
+            decoration: ShapeDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: data.equipped
+                    ? [
+                        data.accent.withValues(alpha: 0.22),
+                        const Color(0xE606101A),
+                      ]
+                    : const [_CoreUiStyle.itemBase, Color(0xDD06101A)],
+              ),
+              shape: BeveledRectangleBorder(
+                borderRadius: BorderRadius.circular(7),
+                side: BorderSide(color: borderColor, width: 1.1),
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: ShapeDecoration(
+                    color: data.accent.withValues(
+                      alpha: data.locked ? 0.06 : 0.18,
+                    ),
+                    shape: StarBorder.polygon(
+                      sides: 6,
+                      pointRounding: 0.08,
+                      side: BorderSide(
+                        color: data.accent.withValues(
+                          alpha: data.locked ? 0.24 : 0.68,
+                        ),
+                      ),
+                    ),
+                  ),
+                  child: Icon(data.icon, color: data.accent, size: 18),
+                ),
+                const SizedBox(height: 6),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      data.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        height: 1.08,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CoreAbilityData {
+  const _CoreAbilityData({
+    required this.icon,
+    required this.name,
+    required this.state,
+    required this.actionLabel,
+    required this.accent,
+    this.combatSkill,
+    this.passiveAbility,
+    this.equipped = false,
+    this.locked = false,
+    this.enabled = false,
+  });
+
+  final IconData icon;
+  final String name;
+  final String state;
+  final String actionLabel;
+  final Color accent;
+  final CoreCombatSkill? combatSkill;
+  final CorePassiveAbility? passiveAbility;
+  final bool equipped;
+  final bool locked;
+  final bool enabled;
+
+  static List<_CoreAbilityData> forTab({
+    required GameSnapshot snapshot,
+    required _CoreAbilityTab tab,
+    required int selectedPassiveSlotIndex,
+  }) {
+    return switch (tab) {
+      _CoreAbilityTab.combatSkill => [
+        _CoreAbilityData(
+          icon: Icons.auto_awesome,
+          name: '수호 광선',
+          state: '5초마다 자동 발동',
+          actionLabel: snapshot.coreCombatSkill == CoreCombatSkill.guardianBeam
+              ? '장착중'
+              : '장착',
+          accent: const Color(0xFF8EE6FF),
+          combatSkill: CoreCombatSkill.guardianBeam,
+          equipped: snapshot.coreCombatSkill == CoreCombatSkill.guardianBeam,
+          enabled: true,
+        ),
+        const _CoreAbilityData(
+          icon: Icons.waves,
+          name: '룬 파동',
+          state: '후속 공격 스킬 준비중',
+          actionLabel: '준비중',
+          accent: Color(0xFFE7C66A),
+          locked: true,
+        ),
+        const _CoreAbilityData(
+          icon: Icons.hub_outlined,
+          name: '연쇄 광휘',
+          state: '챕터 2 이후 후보',
+          actionLabel: '준비중',
+          accent: Color(0xFF8FA8BA),
+          locked: true,
+        ),
+      ],
+      _CoreAbilityTab.passive => [
+        _passiveData(
+          snapshot: snapshot,
+          selectedPassiveSlotIndex: selectedPassiveSlotIndex,
+          ability: CorePassiveAbility.stabilityCircuit,
+          icon: Icons.blur_on,
+          unlockText: '기본 해금',
+          accent: const Color(0xFF72E0A2),
+        ),
+        _passiveData(
+          snapshot: snapshot,
+          selectedPassiveSlotIndex: selectedPassiveSlotIndex,
+          ability: CorePassiveAbility.precisionCircuit,
+          icon: Icons.gps_fixed,
+          unlockText: '스테이지 1 클리어',
+          accent: const Color(0xFF8EE6FF),
+        ),
+        const _CoreAbilityData(
+          icon: Icons.add_circle_outline,
+          name: '공명 축전',
+          state: '스테이지 2 클리어',
+          actionLabel: '잠김',
+          accent: Color(0xFF8FA8BA),
+          locked: true,
+        ),
+      ],
+    };
+  }
+
+  static _CoreAbilityData _passiveData({
+    required GameSnapshot snapshot,
+    required int selectedPassiveSlotIndex,
+    required CorePassiveAbility ability,
+    required IconData icon,
+    required String unlockText,
+    required Color accent,
+  }) {
+    final equipped = snapshot.corePassiveSlots.contains(ability);
+    final unlocked = snapshot.unlockedCorePassiveAbilities.contains(ability);
+    final slotUnlocked =
+        selectedPassiveSlotIndex < snapshot.corePassiveSlotCount;
+    return _CoreAbilityData(
+      icon: icon,
+      name: ability.label,
+      state: equipped
+          ? '효과 준비중 / 장착됨'
+          : unlocked
+          ? '효과 준비중 / 장착 가능'
+          : unlockText,
+      actionLabel: equipped
+          ? '장착중'
+          : !unlocked
+          ? '잠김'
+          : !slotUnlocked
+          ? '슬롯 잠김'
+          : '장착',
+      accent: accent,
+      passiveAbility: ability,
+      equipped: equipped,
+      locked: !unlocked || !slotUnlocked,
+      enabled: unlocked && slotUnlocked,
+    );
+  }
+}
+
+CorePassiveAbility? _corePassiveAt(GameSnapshot snapshot, int index) {
+  return index < snapshot.corePassiveSlots.length
+      ? snapshot.corePassiveSlots[index]
+      : null;
 }
 
 class _PermanentUpgradeMenu extends StatelessWidget {
