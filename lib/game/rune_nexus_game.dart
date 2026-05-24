@@ -74,6 +74,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const int primaryTraitRequiredLevel = 3;
   static const int secondaryTraitCost = 24;
   static const int secondaryTraitRequiredLevel = 7;
+  static const int costSavingDesignBuildDiscountPercent = 15;
   static const double burnDamagePerSecondScale = _burnDamagePerSecondScale;
   static const double burnDurationSeconds = _burnDurationSeconds;
   static const double _designTileSize = 48;
@@ -227,7 +228,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       coreCombatSkill: CoreCombatSkill.guardianBeam,
       corePassiveSlots: const [null, null],
       corePassiveSlotCount: 1,
-      unlockedCorePassiveAbilities: const {CorePassiveAbility.stabilityCircuit},
+      corePassiveSlotUnlockCost: RunProgression.corePassiveSlotUnlockCost,
+      canUnlockCorePassiveSlot: false,
+      unlockedCorePassiveAbilities: const {CorePassiveAbility.selfRepair},
       nextWaveEnemyTypes: _enemyTypesFor(firstWave),
       nextWaveEnemyCounts: _enemyCountsFor(firstWave),
       nextWaveClearRewardGold: firstWave.clearRewardGold,
@@ -490,6 +493,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _progression.isStageCleared(2) ? _progression.killGoldBonusRate : 0;
   double get _killGoldTotalBonusRate =>
       _killGoldRunBonusRate + _killGoldProgressionBonusRate;
+  bool get _hasCostSavingDesign =>
+      _runCorePassiveSlots.contains(CorePassiveAbility.costSavingDesign);
   int get _waveClearGoldRunBonus =>
       (_runUpgradeLevel(RunUpgradeType.waveGold) *
               gameRunUpgrades[RunUpgradeType.waveGold]!.effectPerLevel)
@@ -523,8 +528,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   List<CorePassiveAbility?> get corePassiveSlots =>
       List.unmodifiable(_progression.corePassiveSlots);
   int get corePassiveSlotCount => _progression.corePassiveSlotCount;
+  int get corePassiveSlotUnlockCost => RunProgression.corePassiveSlotUnlockCost;
+  bool get canUnlockCorePassiveSlot => _progression.canUnlockCorePassiveSlot;
   Set<CorePassiveAbility> get unlockedCorePassiveAbilities =>
       Set.unmodifiable(_progression.unlockedCorePassiveAbilities);
+  int turretBuildCost(TurretType type) {
+    final baseCost = gameTurrets[type]?.cost;
+    if (baseCost == null) {
+      return 0;
+    }
+    return _turretBuildCostFor(baseCost);
+  }
 
   int _runUpgradeLevel(RunUpgradeType type) {
     final definition = gameRunUpgrades[type];
@@ -892,6 +906,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   bool unequipCorePassiveAbility(int slotIndex) {
     if (!_progression.unequipCorePassiveAbility(slotIndex)) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
+  }
+
+  bool unlockCorePassiveSlot() {
+    if (!_progression.unlockCorePassiveSlot()) {
       return false;
     }
     _publish();
@@ -1359,11 +1382,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     final definition = gameTurrets[_selectedTurretType]!;
-    if (_gold < definition.cost) {
+    final buildCost = _turretBuildCostFor(definition.cost);
+    if (_gold < buildCost) {
       return;
     }
 
-    _gold -= definition.cost;
+    _gold -= buildCost;
     final turret = TurretComponent(
       gridPoint: point,
       definition: definition,
@@ -1380,6 +1404,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     add(turret);
     _publish();
     _requestLocalSave(immediate: true);
+  }
+
+  int _turretBuildCostFor(int baseCost) {
+    if (!_hasCostSavingDesign) {
+      return baseCost;
+    }
+    return math.max(
+      1,
+      (baseCost * (100 - costSavingDesignBuildDiscountPercent) + 50) ~/ 100,
+    );
   }
 
   void selectRewardGem(GemType type) {
@@ -2836,6 +2870,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
   }
 
+  void _applyRoundClearCorePassiveEffects(int completedRound) {
+    if (completedRound % 5 != 0 ||
+        !_runCorePassiveSlots.contains(CorePassiveAbility.selfRepair) ||
+        _nexusHp >= _maxNexusHp) {
+      return;
+    }
+
+    _nexusHp = math.min(_maxNexusHp, _nexusHp + 1);
+  }
+
   void _checkWaveClear() {
     if (!_waveSpawner.isEmpty ||
         enemies.isNotEmpty ||
@@ -2849,6 +2893,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _progression.waveClearGoldBonus +
         _waveClearGoldRunBonus;
     _gemShards += _roundClearGemShardRewardFor(completedRound);
+    _applyRoundClearCorePassiveEffects(completedRound);
     _roundIndex++;
     _completedRounds = completedRound;
     final gemRoundReward = _gemRewards.completeRound(

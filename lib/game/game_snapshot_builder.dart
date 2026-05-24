@@ -188,6 +188,8 @@ class GameSnapshotBuilder {
       coreCombatSkill: _game.coreCombatSkill,
       corePassiveSlots: _game.corePassiveSlots,
       corePassiveSlotCount: _game.corePassiveSlotCount,
+      corePassiveSlotUnlockCost: _game.corePassiveSlotUnlockCost,
+      canUnlockCorePassiveSlot: _game.canUnlockCorePassiveSlot,
       unlockedCorePassiveAbilities: _game.unlockedCorePassiveAbilities,
       nextWaveEnemyTypes: List.unmodifiable(nextWaveEnemyTypes),
       nextWaveEnemyCounts: Map.unmodifiable(nextWaveEnemyCounts),

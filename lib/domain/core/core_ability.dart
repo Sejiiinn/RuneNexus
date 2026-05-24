@@ -8,13 +8,13 @@ extension CoreCombatSkillLabel on CoreCombatSkill {
   }
 }
 
-enum CorePassiveAbility { stabilityCircuit, precisionCircuit }
+enum CorePassiveAbility { selfRepair, costSavingDesign }
 
 extension CorePassiveAbilityLabel on CorePassiveAbility {
   String get label {
     return switch (this) {
-      CorePassiveAbility.stabilityCircuit => '안정 회로',
-      CorePassiveAbility.precisionCircuit => '정밀 회로',
+      CorePassiveAbility.selfRepair => '자가 수복',
+      CorePassiveAbility.costSavingDesign => '절약 설계',
     };
   }
 }

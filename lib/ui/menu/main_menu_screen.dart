@@ -2209,6 +2209,7 @@ class _CoreMenuState extends State<_CoreMenu> {
           snapshot: widget.snapshot,
           compact: compact,
           selected: _selected,
+          onUnlockPassiveSlot: widget.game.unlockCorePassiveSlot,
           onSelect: (selection) {
             setState(() {
               _selected = selection;
@@ -2235,7 +2236,6 @@ class _CoreMenuState extends State<_CoreMenu> {
         _CoreSelectedAbilityPanel(
           data: selectedAbility,
           selectedTab: _selectedTab,
-          selectedPassiveSlotIndex: selectedPassiveSlotIndex,
           compact: compact,
           onAction: () => _performSelectedAbilityAction(selectedAbility),
         ),
@@ -2480,12 +2480,14 @@ class _CoreSocketStage extends StatelessWidget {
     required this.snapshot,
     required this.compact,
     required this.selected,
+    required this.onUnlockPassiveSlot,
     required this.onSelect,
   });
 
   final GameSnapshot snapshot;
   final bool compact;
   final _CoreMenuSelection selected;
+  final VoidCallback onUnlockPassiveSlot;
   final ValueChanged<_CoreMenuSelection> onSelect;
 
   @override
@@ -2579,6 +2581,8 @@ class _CoreSocketStage extends StatelessWidget {
                           index: 0,
                           ability: _corePassiveAt(snapshot, 0),
                           locked: snapshot.corePassiveSlotCount <= 0,
+                          unlockCost: snapshot.corePassiveSlotUnlockCost,
+                          unlockable: false,
                           compact: compact,
                           selected:
                               selected == _CoreMenuSelection.passiveSlotOne,
@@ -2593,11 +2597,20 @@ class _CoreSocketStage extends StatelessWidget {
                           index: 1,
                           ability: _corePassiveAt(snapshot, 1),
                           locked: snapshot.corePassiveSlotCount <= 1,
+                          unlockCost: snapshot.corePassiveSlotUnlockCost,
+                          unlockable: snapshot.canUnlockCorePassiveSlot,
                           compact: compact,
                           selected:
                               selected == _CoreMenuSelection.passiveSlotTwo,
-                          onTap: () =>
-                              onSelect(_CoreMenuSelection.passiveSlotTwo),
+                          onTap: () {
+                            if (snapshot.corePassiveSlotCount <= 1 &&
+                                snapshot.canUnlockCorePassiveSlot) {
+                              onUnlockPassiveSlot();
+                              onSelect(_CoreMenuSelection.passiveSlotTwo);
+                              return;
+                            }
+                            onSelect(_CoreMenuSelection.passiveSlotTwo);
+                          },
                         ),
                       ),
                     ],
@@ -2707,8 +2720,8 @@ class _CoreSocketStagePainter extends CustomPainter {
 
   Color _passiveSlotAccent(CorePassiveAbility? ability) {
     return switch (ability) {
-      CorePassiveAbility.stabilityCircuit => const Color(0xFF72E0A2),
-      CorePassiveAbility.precisionCircuit => const Color(0xFF8EE6FF),
+      CorePassiveAbility.selfRepair => const Color(0xFF72E0A2),
+      CorePassiveAbility.costSavingDesign => const Color(0xFFFFC66A),
       null => const Color(0xFF8FA8BA),
     };
   }
@@ -2919,6 +2932,8 @@ class _CorePassiveSlotButton extends StatelessWidget {
     required this.index,
     required this.ability,
     required this.locked,
+    required this.unlockCost,
+    required this.unlockable,
     required this.compact,
     required this.selected,
     required this.onTap,
@@ -2927,6 +2942,8 @@ class _CorePassiveSlotButton extends StatelessWidget {
   final int index;
   final CorePassiveAbility? ability;
   final bool locked;
+  final int unlockCost;
+  final bool unlockable;
   final bool compact;
   final bool selected;
   final VoidCallback onTap;
@@ -2935,28 +2952,34 @@ class _CorePassiveSlotButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final equipped = ability != null;
     final passiveIcon = switch (ability) {
-      CorePassiveAbility.stabilityCircuit => Icons.blur_on,
-      CorePassiveAbility.precisionCircuit => Icons.gps_fixed,
+      CorePassiveAbility.selfRepair => Icons.healing_outlined,
+      CorePassiveAbility.costSavingDesign => Icons.construction_outlined,
       null => locked ? Icons.lock_outline : Icons.add,
     };
     final passiveAccent = switch (ability) {
-      CorePassiveAbility.stabilityCircuit => const Color(0xFF72E0A2),
-      CorePassiveAbility.precisionCircuit => const Color(0xFF8EE6FF),
+      CorePassiveAbility.selfRepair => const Color(0xFF72E0A2),
+      CorePassiveAbility.costSavingDesign => const Color(0xFFFFC66A),
       null => const Color(0xFF8FA8BA),
     };
     return _CoreSocketButton(
       kind: '패시브 ${index + 1}',
       icon: passiveIcon,
-      label: locked ? '잠긴 슬롯' : ability?.label ?? '빈 슬롯',
+      label: locked ? '슬롯 해금' : ability?.label ?? '빈 슬롯',
       state: locked
-          ? '챕터 2 진입 후 확장'
+          ? unlockable
+                ? '$unlockCost 룬으로 해금'
+                : '$unlockCost 룬 필요'
           : equipped
-          ? '효과 준비중'
+          ? (switch (ability) {
+              CorePassiveAbility.selfRepair => '5라운드마다 체력 회복',
+              CorePassiveAbility.costSavingDesign => '건설 비용 15% 감소',
+              null => '패시브를 장착하세요',
+            })
           : '패시브를 장착하세요',
       accent: locked ? const Color(0xFF8FA8BA) : passiveAccent,
       compact: true,
       empty: !equipped,
-      muted: locked || !equipped,
+      muted: locked ? !unlockable : !equipped,
       selected: selected,
       onTap: onTap,
     );
@@ -3252,14 +3275,12 @@ class _CoreSelectedAbilityPanel extends StatelessWidget {
   const _CoreSelectedAbilityPanel({
     required this.data,
     required this.selectedTab,
-    required this.selectedPassiveSlotIndex,
     required this.compact,
     required this.onAction,
   });
 
   final _CoreAbilityData data;
   final _CoreAbilityTab selectedTab;
-  final int selectedPassiveSlotIndex;
   final bool compact;
   final VoidCallback onAction;
 
@@ -3269,9 +3290,7 @@ class _CoreSelectedAbilityPanel extends StatelessWidget {
         (data.combatSkill != null || data.passiveAbility != null) &&
         data.enabled &&
         !data.locked;
-    final detailText = selectedTab == _CoreAbilityTab.combatSkill
-        ? data.state
-        : '패시브 슬롯 ${selectedPassiveSlotIndex + 1} · ${data.state}';
+    final detailText = data.state;
     final actionLabel = data.passiveAbility == null
         ? data.equipped
               ? '해제'
@@ -3329,25 +3348,32 @@ class _CoreSelectedAbilityPanel extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  data.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFFE8FBFF),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        data.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFFE8FBFF),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 3),
                 Text(
                   detailText,
-                  maxLines: 1,
+                  maxLines: selectedTab == _CoreAbilityTab.combatSkill ? 1 : 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFFB4C7D2),
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
+                    height: 1.14,
                   ),
                 ),
               ],
@@ -3694,18 +3720,18 @@ class _CoreAbilityData {
         _passiveData(
           snapshot: snapshot,
           selectedPassiveSlotIndex: selectedPassiveSlotIndex,
-          ability: CorePassiveAbility.stabilityCircuit,
-          icon: Icons.blur_on,
+          ability: CorePassiveAbility.selfRepair,
+          icon: Icons.healing_outlined,
           unlockText: '기본 해금',
           accent: const Color(0xFF72E0A2),
         ),
         _passiveData(
           snapshot: snapshot,
           selectedPassiveSlotIndex: selectedPassiveSlotIndex,
-          ability: CorePassiveAbility.precisionCircuit,
-          icon: Icons.gps_fixed,
+          ability: CorePassiveAbility.costSavingDesign,
+          icon: Icons.construction_outlined,
           unlockText: '스테이지 1 클리어',
-          accent: const Color(0xFF8EE6FF),
+          accent: const Color(0xFFFFC66A),
         ),
         const _CoreAbilityData(
           icon: Icons.add_circle_outline,
@@ -3731,14 +3757,14 @@ class _CoreAbilityData {
     final unlocked = snapshot.unlockedCorePassiveAbilities.contains(ability);
     final slotUnlocked =
         selectedPassiveSlotIndex < snapshot.corePassiveSlotCount;
+    final effectText = switch (ability) {
+      CorePassiveAbility.selfRepair => '5라운드마다 넥서스 체력 1 회복',
+      CorePassiveAbility.costSavingDesign => '포탑 건설 비용 15% 감소',
+    };
     return _CoreAbilityData(
       icon: icon,
       name: ability.label,
-      state: equipped
-          ? '효과 준비중 / 장착됨'
-          : unlocked
-          ? '효과 준비중 / 장착 가능'
-          : unlockText,
+      state: unlocked ? effectText : unlockText,
       actionLabel: equipped
           ? '장착중'
           : !unlocked

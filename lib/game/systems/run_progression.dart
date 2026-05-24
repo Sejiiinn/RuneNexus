@@ -20,6 +20,7 @@ class RunProgression {
   static const int maxEmergencySaleUpgradeLevel = 5;
   static const int researchSlotCount = 1;
   static const int gemShardsPerGemAttunementLevel = 2;
+  static const int corePassiveSlotUnlockCost = 500;
   static const double researchEfficiencyPerLevel = 0.05;
   static const double researchCostEfficiencyPerLevel = 0.05;
   static const int baseStageOneFullClearRuneReward = 200;
@@ -83,6 +84,7 @@ class RunProgression {
   final Map<ResearchType, int> researchElapsedMillis = {};
   final List<ResearchProgress> activeResearches = [];
   CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam;
+  bool corePassiveSlotTwoUnlocked = false;
   final List<CorePassiveAbility?> corePassiveSlots = [null, null];
 
   int get initialGold =>
@@ -158,11 +160,13 @@ class RunProgression {
       isResearchComplete(ResearchType.linkExpansionOne) ? 4 : 3;
   bool get canSetTurretTargetPriority =>
       isResearchComplete(ResearchType.turretTargetPriority);
-  int get corePassiveSlotCount => unlockedStageCount >= 6 ? 2 : 1;
+  int get corePassiveSlotCount => corePassiveSlotTwoUnlocked ? 2 : 1;
+  bool get canUnlockCorePassiveSlot =>
+      !corePassiveSlotTwoUnlocked && runes >= corePassiveSlotUnlockCost;
   Set<CorePassiveAbility> get unlockedCorePassiveAbilities {
     return {
-      CorePassiveAbility.stabilityCircuit,
-      if (isStageCleared(1)) CorePassiveAbility.precisionCircuit,
+      CorePassiveAbility.selfRepair,
+      if (isStageCleared(1)) CorePassiveAbility.costSavingDesign,
     };
   }
 
@@ -421,6 +425,7 @@ class RunProgression {
         ),
       ),
       coreCombatSkill: coreCombatSkill,
+      corePassiveSlotTwoUnlocked: corePassiveSlotTwoUnlocked,
       corePassiveSlots: List<CorePassiveAbility?>.unmodifiable(
         _sanitizedCorePassiveSlots(),
       ),
@@ -519,6 +524,7 @@ class RunProgression {
             ),
       );
     coreCombatSkill = data.coreCombatSkill;
+    corePassiveSlotTwoUnlocked = data.corePassiveSlotTwoUnlocked;
     final restoredSlots = data.corePassiveSlots;
     for (var i = 0; i < corePassiveSlots.length; i++) {
       corePassiveSlots[i] = i < restoredSlots.length ? restoredSlots[i] : null;
@@ -554,6 +560,15 @@ class RunProgression {
     }
     corePassiveSlots[slotIndex] = ability;
     _sanitizeCorePassiveSlotsInPlace();
+    return true;
+  }
+
+  bool unlockCorePassiveSlot() {
+    if (!canUnlockCorePassiveSlot) {
+      return false;
+    }
+    runes -= corePassiveSlotUnlockCost;
+    corePassiveSlotTwoUnlocked = true;
     return true;
   }
 

@@ -95,6 +95,8 @@ class GameSnapshot {
     required this.coreCombatSkill,
     required this.corePassiveSlots,
     required this.corePassiveSlotCount,
+    required this.corePassiveSlotUnlockCost,
+    required this.canUnlockCorePassiveSlot,
     required this.unlockedCorePassiveAbilities,
     required this.nextWaveEnemyTypes,
     required this.nextWaveEnemyCounts,
@@ -234,6 +236,8 @@ class GameSnapshot {
   final CoreCombatSkill? coreCombatSkill;
   final List<CorePassiveAbility?> corePassiveSlots;
   final int corePassiveSlotCount;
+  final int corePassiveSlotUnlockCost;
+  final bool canUnlockCorePassiveSlot;
   final Set<CorePassiveAbility> unlockedCorePassiveAbilities;
   final List<EnemyType> nextWaveEnemyTypes;
   final Map<EnemyType, int> nextWaveEnemyCounts;

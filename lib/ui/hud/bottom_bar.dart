@@ -77,6 +77,7 @@ class _BottomBar extends StatelessWidget {
                         Row(
                           children: snapshot.availableTurretTypes.map((type) {
                             final definition = gameTurrets[type]!;
+                            final buildCost = game.turretBuildCost(type);
                             return Expanded(
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -85,7 +86,7 @@ class _BottomBar extends StatelessWidget {
                                 child: _TurretButton(
                                   type: type,
                                   label: definition.name,
-                                  cost: definition.cost,
+                                  cost: buildCost,
                                   color: definition.color,
                                   selected:
                                       snapshot.selectedBuildTurretType == type,
@@ -1350,6 +1351,7 @@ class _BuildSelectionPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final type = snapshot.selectedBuildTurretType;
     final definition = type == null ? null : gameTurrets[type]!;
+    final buildCost = type == null ? 0 : game.turretBuildCost(type);
     final canInstall = snapshot.selectedBuildPoint != null;
 
     return Container(
@@ -1385,7 +1387,8 @@ class _BuildSelectionPanel extends StatelessWidget {
                     if (canInstall)
                       _InstallTurretButton(
                         definition: definition,
-                        enabled: snapshot.gold >= definition.cost,
+                        cost: buildCost,
+                        enabled: snapshot.gold >= buildCost,
                         onPressed: game.confirmBuildSelectedTile,
                       ),
                   ],
@@ -1449,11 +1452,13 @@ class _StartWaveButton extends StatelessWidget {
 class _InstallTurretButton extends StatelessWidget {
   const _InstallTurretButton({
     required this.definition,
+    required this.cost,
     required this.enabled,
     required this.onPressed,
   });
 
   final TurretDefinition definition;
+  final int cost;
   final bool enabled;
   final VoidCallback onPressed;
 
@@ -1492,7 +1497,7 @@ class _InstallTurretButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(GamePalette.radiusSmall),
             ),
             child: Text(
-              '${definition.cost}G',
+              '${cost}G',
               style: GameTextStyles.withColor(
                 GameTextStyles.caption,
                 enabled ? accent : GamePalette.textDisabled,

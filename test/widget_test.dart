@@ -16,6 +16,7 @@ import 'package:rune_nexus/domain/turret/turret_trait_type.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/game/game_snapshot.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
+import 'package:rune_nexus/game/systems/run_progression.dart';
 import 'package:rune_nexus/l10n/rune_nexus_localizations.dart';
 import 'package:rune_nexus/ui/game/game_button.dart';
 import 'package:rune_nexus/ui/hud/game_hud.dart';
@@ -282,6 +283,7 @@ void main() {
               currentStageNumber: 1,
               unlockedStageCount: 6,
               clearedStageNumbers: const {1, 2, 3, 4, 5},
+              corePassiveSlotTwoUnlocked: true,
             ),
             selectedTab: MainMenuTab.core,
             onSelectTab: (_) {},
@@ -293,24 +295,24 @@ void main() {
 
       await tester.tap(find.text('패시브'));
       await _pumpGameFrames(tester);
-      expect(find.textContaining('패시브 슬롯 1'), findsOneWidget);
+      expect(find.textContaining('패시브 슬롯'), findsNothing);
 
       await tester.tap(find.text('패시브 2'));
       await _pumpGameFrames(tester);
-      expect(find.textContaining('패시브 슬롯 2'), findsOneWidget);
+      expect(find.textContaining('패시브 슬롯'), findsNothing);
 
-      final precisionCircuitCard = find.byKey(
-        const ValueKey('core-ability-정밀 회로'),
+      final costSavingDesignCard = find.byKey(
+        const ValueKey('core-ability-절약 설계'),
       );
-      await tester.ensureVisible(precisionCircuitCard);
+      await tester.ensureVisible(costSavingDesignCard);
       await _pumpGameFrames(tester);
-      await tester.tap(precisionCircuitCard);
+      await tester.tap(costSavingDesignCard);
       await _pumpGameFrames(tester);
       await tester.tap(
         find.byKey(const ValueKey('core-selected-ability-action')),
       );
       await _pumpGameFrames(tester);
-      expect(game.equippedPassive, CorePassiveAbility.precisionCircuit);
+      expect(game.equippedPassive, CorePassiveAbility.costSavingDesign);
       expect(game.equippedSlotIndex, 1);
     },
   );
@@ -360,9 +362,46 @@ void main() {
     await tester.tap(find.text('패시브'));
     await _pumpGameFrames(tester);
 
-    expect(find.textContaining('패시브 슬롯 1'), findsOneWidget);
-    expect(find.text('안정 회로'), findsWidgets);
+    expect(find.textContaining('패시브 슬롯'), findsNothing);
+    expect(find.text('자가 수복'), findsWidgets);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('core second passive slot can be unlocked with runes', (
+    tester,
+  ) async {
+    final game = _CoreEquipGame();
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: game,
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            runes: 500,
+          ),
+          selectedTab: MainMenuTab.core,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('슬롯 해금'), findsOneWidget);
+
+    await tester.tap(find.text('슬롯 해금'));
+    await _pumpGameFrames(tester);
+
+    expect(game.unlockedCorePassiveSlot, isTrue);
   });
 
   testWidgets('core passive equipped item exposes unequip action', (
@@ -386,7 +425,7 @@ void main() {
             currentStageNumber: 1,
             unlockedStageCount: 6,
             clearedStageNumbers: const {1, 2, 3, 4, 5},
-            corePassiveSlots: const [CorePassiveAbility.stabilityCircuit, null],
+            corePassiveSlots: const [CorePassiveAbility.selfRepair, null],
           ),
           selectedTab: MainMenuTab.core,
           onSelectTab: (_) {},
@@ -399,12 +438,10 @@ void main() {
     await tester.tap(find.text('패시브'));
     await _pumpGameFrames(tester);
 
-    final stabilityCircuitCard = find.byKey(
-      const ValueKey('core-ability-안정 회로'),
-    );
-    await tester.ensureVisible(stabilityCircuitCard);
+    final selfRepairCard = find.byKey(const ValueKey('core-ability-자가 수복'));
+    await tester.ensureVisible(selfRepairCard);
     await _pumpGameFrames(tester);
-    await tester.tap(stabilityCircuitCard);
+    await tester.tap(selfRepairCard);
     await _pumpGameFrames(tester);
     final unequipAction = find.byKey(
       const ValueKey('core-selected-ability-action'),
@@ -585,11 +622,11 @@ void main() {
     await tester.tap(find.text('패시브'));
     await _pumpGameFrames(tester);
 
-    expect(find.textContaining('패시브 슬롯 1'), findsOneWidget);
-    expect(find.text('안정 회로'), findsWidgets);
-    expect(find.text('정밀 회로'), findsOneWidget);
-    expect(find.textContaining('효과 준비중 / 장착 가능'), findsWidgets);
-    expect(find.byKey(const ValueKey('core-ability-정밀 회로')), findsOneWidget);
+    expect(find.textContaining('패시브 슬롯'), findsNothing);
+    expect(find.text('자가 수복'), findsWidgets);
+    expect(find.text('절약 설계'), findsOneWidget);
+    expect(find.text('5라운드마다 넥서스 체력 1 회복'), findsOneWidget);
+    expect(find.byKey(const ValueKey('core-ability-절약 설계')), findsOneWidget);
   });
 
   testWidgets('stage cards fit on narrow menu width', (tester) async {
@@ -1423,6 +1460,7 @@ GameSnapshot _resultSnapshot({
   List<ResearchProgress> activeResearches = const [],
   CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam,
   List<CorePassiveAbility?> corePassiveSlots = const [null, null],
+  bool corePassiveSlotTwoUnlocked = false,
 }) {
   return GameSnapshot(
     gold: 0,
@@ -1510,10 +1548,14 @@ GameSnapshot _resultSnapshot({
     nexusCoreBeamDamage: 0,
     coreCombatSkill: coreCombatSkill,
     corePassiveSlots: corePassiveSlots,
-    corePassiveSlotCount: unlockedStageCount >= 6 ? 2 : 1,
+    corePassiveSlotCount: corePassiveSlotTwoUnlocked ? 2 : 1,
+    corePassiveSlotUnlockCost: RunProgression.corePassiveSlotUnlockCost,
+    canUnlockCorePassiveSlot:
+        !corePassiveSlotTwoUnlocked &&
+        runes >= RunProgression.corePassiveSlotUnlockCost,
     unlockedCorePassiveAbilities: {
-      CorePassiveAbility.stabilityCircuit,
-      if (clearedStageNumbers.contains(1)) CorePassiveAbility.precisionCircuit,
+      CorePassiveAbility.selfRepair,
+      if (clearedStageNumbers.contains(1)) CorePassiveAbility.costSavingDesign,
     },
     nextWaveEnemyTypes: const [],
     nextWaveEnemyCounts: const {},
@@ -1593,6 +1635,7 @@ class _CoreEquipGame extends RuneNexusGame {
   CorePassiveAbility? equippedPassive;
   int? equippedSlotIndex;
   int? unequippedSlotIndex;
+  bool unlockedCorePassiveSlot = false;
 
   @override
   bool equipCoreCombatSkill(CoreCombatSkill skill) {
@@ -1616,6 +1659,12 @@ class _CoreEquipGame extends RuneNexusGame {
   @override
   bool unequipCorePassiveAbility(int slotIndex) {
     unequippedSlotIndex = slotIndex;
+    return true;
+  }
+
+  @override
+  bool unlockCorePassiveSlot() {
+    unlockedCorePassiveSlot = true;
     return true;
   }
 }

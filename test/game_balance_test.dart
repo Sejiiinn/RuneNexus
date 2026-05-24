@@ -1555,9 +1555,10 @@ void main() {
       researchLevels: {},
       researchElapsedMillis: {},
       activeResearches: [],
+      corePassiveSlotTwoUnlocked: true,
       corePassiveSlots: [
-        CorePassiveAbility.stabilityCircuit,
-        CorePassiveAbility.precisionCircuit,
+        CorePassiveAbility.selfRepair,
+        CorePassiveAbility.costSavingDesign,
       ],
     );
     final progression = RunProgression()..restoreFromSaveData(saved);
@@ -1565,6 +1566,18 @@ void main() {
     expect(progression.corePassiveSlots, saved.corePassiveSlots);
     final savedAgain = progression.toSaveData();
     expect(savedAgain.corePassiveSlots, saved.corePassiveSlots);
+  });
+
+  test('second core passive slot unlock spends runes', () {
+    final progression = RunProgression()..runes = 500;
+
+    expect(progression.corePassiveSlotCount, 1);
+    expect(progression.canUnlockCorePassiveSlot, isTrue);
+    expect(progression.unlockCorePassiveSlot(), isTrue);
+    expect(progression.runes, 0);
+    expect(progression.corePassiveSlotCount, 2);
+    expect(progression.toSaveData().corePassiveSlotTwoUnlocked, isTrue);
+    expect(progression.unlockCorePassiveSlot(), isFalse);
   });
 
   test('core passive equipment can be unequipped by slot', () {
@@ -1585,13 +1598,89 @@ void main() {
       researchLevels: {},
       researchElapsedMillis: {},
       activeResearches: [],
-      corePassiveSlots: [CorePassiveAbility.stabilityCircuit, null],
+      corePassiveSlots: [CorePassiveAbility.selfRepair, null],
     );
     final progression = RunProgression()..restoreFromSaveData(saved);
 
     expect(progression.unequipCorePassiveAbility(0), isTrue);
     expect(progression.corePassiveSlots, const [null, null]);
     expect(progression.toSaveData().corePassiveSlots, const [null, null]);
+  });
+
+  test(
+    'self repair core passive restores nexus hp every fifth round',
+    () async {
+      final repository = MemorySaveRepository()
+        ..data = _saveWithCorePassiveRun(
+          nexusHp: 19,
+          roundIndex: 4,
+          completedRounds: 4,
+          passiveSlots: const [CorePassiveAbility.selfRepair, null],
+        );
+      final game = RuneNexusGame(
+        waves: _emptyWaves(5),
+        saveRepository: repository,
+      );
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+
+      expect(game.snapshotNotifier.value.nexusHp, 19);
+
+      game.startNextWave();
+      game.update(0.016);
+
+      expect(game.snapshotNotifier.value.completedRounds, 5);
+      expect(game.snapshotNotifier.value.phase, GamePhase.success);
+      expect(game.snapshotNotifier.value.nexusHp, 20);
+    },
+  );
+
+  test('self repair core passive does not exceed max nexus hp', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithCorePassiveRun(
+        nexusHp: 20,
+        roundIndex: 4,
+        completedRounds: 4,
+        passiveSlots: const [CorePassiveAbility.selfRepair, null],
+      );
+    final game = RuneNexusGame(
+      waves: _emptyWaves(5),
+      saveRepository: repository,
+    );
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    game.startNextWave();
+    game.update(0.016);
+
+    expect(game.snapshotNotifier.value.nexusHp, 20);
+    expect(game.snapshotNotifier.value.maxNexusHp, 20);
+  });
+
+  test('cost saving design only discounts turret construction', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithCorePassiveRun(
+        nexusHp: 20,
+        roundIndex: 0,
+        completedRounds: 0,
+        unlockedStageCount: 2,
+        clearedStageNumbers: const {1},
+        passiveSlots: const [CorePassiveAbility.costSavingDesign, null],
+      );
+    final game = RuneNexusGame(saveRepository: repository);
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    expect(game.turretBuildCost(TurretType.arrow), 51);
+
+    game.tryBuildTurret(const GridPoint(2, 0));
+
+    expect(game.snapshotNotifier.value.gold, 99);
+    expect(game.snapshotNotifier.value.selectedTurretLevelUpCost, 42);
+
+    game.levelUpSelectedTurret();
+
+    expect(game.snapshotNotifier.value.gold, 57);
   });
 
   test('status gems are removed from the reward pool', () {
@@ -4103,6 +4192,69 @@ GameSaveData _saveWithResearch({
     gemInventory: const {},
     rewardOptions: rewardOptions,
     isPurchasedGemReward: isPurchasedGemReward,
+    turrets: const [],
+    enemies: const [],
+    spawnQueue: const [],
+  );
+}
+
+List<WaveDefinition> _emptyWaves(int count) {
+  return List<WaveDefinition>.generate(
+    count,
+    (index) => WaveDefinition(
+      round: index + 1,
+      previewText: 'empty ${index + 1}',
+      groups: const [],
+      clearRewardGold: 0,
+    ),
+  );
+}
+
+GameSaveData _saveWithCorePassiveRun({
+  required int nexusHp,
+  required int roundIndex,
+  required int completedRounds,
+  required List<CorePassiveAbility?> passiveSlots,
+  int unlockedStageCount = 1,
+  Set<int> clearedStageNumbers = const {},
+}) {
+  return GameSaveData(
+    version: GameSaveData.currentVersion,
+    savedAtMillis: 0,
+    gold: 150,
+    gemShards: 0,
+    nexusHp: nexusHp,
+    stageNumber: 1,
+    mapSignature: const GameSaveAdapter().mapSignature(gameMap),
+    roundIndex: roundIndex,
+    completedRounds: completedRounds,
+    phase: GamePhase.preparation,
+    autoStartMode: AutoStartMode.pauseEachRound,
+    progression: SavedProgression(
+      runes: 0,
+      lastRunRuneReward: 0,
+      startingGoldUpgradeLevel: 0,
+      nexusHpUpgradeLevel: 0,
+      supplyUpgradeLevel: 0,
+      fireTrainingUpgradeLevel: 0,
+      criticalChanceUpgradeLevel: 0,
+      criticalDamageUpgradeLevel: 0,
+      killGoldUpgradeLevel: 0,
+      emergencySaleUpgradeLevel: 0,
+      unlockedStageCount: unlockedStageCount,
+      bestRoundsByStage: const {},
+      clearedStageNumbers: clearedStageNumbers,
+      researchLevels: const {},
+      researchElapsedMillis: const {},
+      activeResearches: const [],
+      corePassiveSlots: passiveSlots,
+    ),
+    runUpgradeLevels: const {},
+    killGoldFractionWallet: 0,
+    gemInventory: const {},
+    rewardOptions: const [],
+    isPurchasedGemReward: false,
+    runCorePassiveSlots: passiveSlots,
     turrets: const [],
     enemies: const [],
     spawnQueue: const [],

@@ -180,6 +180,7 @@ class SavedProgression {
     required this.researchElapsedMillis,
     required this.activeResearches,
     this.coreCombatSkill = CoreCombatSkill.guardianBeam,
+    this.corePassiveSlotTwoUnlocked = false,
     this.corePassiveSlots = const [null, null],
   });
 
@@ -200,6 +201,7 @@ class SavedProgression {
   final Map<ResearchType, int> researchElapsedMillis;
   final List<SavedActiveResearch> activeResearches;
   final CoreCombatSkill? coreCombatSkill;
+  final bool corePassiveSlotTwoUnlocked;
   final List<CorePassiveAbility?> corePassiveSlots;
 
   Map<String, Object?> toJson() {
@@ -229,6 +231,7 @@ class SavedProgression {
           .map((research) => research.toJson())
           .toList(),
       'coreCombatSkill': coreCombatSkill?.name,
+      'corePassiveSlotTwoUnlocked': corePassiveSlotTwoUnlocked,
       'corePassiveSlots': corePassiveSlots
           .take(2)
           .map((ability) => ability?.name)
@@ -238,6 +241,9 @@ class SavedProgression {
 
   static SavedProgression fromJson(Object? json) {
     final map = json is Map<String, Object?> ? json : const <String, Object?>{};
+    final corePassiveSlots = _normalizeCorePassiveSlots(
+      _nullableEnumList(CorePassiveAbility.values, map['corePassiveSlots']),
+    );
     return SavedProgression(
       runes: _intValue(map['runes']),
       lastRunRuneReward: _intValue(map['lastRunRuneReward']),
@@ -262,9 +268,11 @@ class SavedProgression {
         SavedActiveResearch.fromJson,
       ),
       coreCombatSkill: _coreCombatSkillFromSave(map),
-      corePassiveSlots: _normalizeCorePassiveSlots(
-        _nullableEnumList(CorePassiveAbility.values, map['corePassiveSlots']),
+      corePassiveSlotTwoUnlocked: _boolValue(
+        map['corePassiveSlotTwoUnlocked'],
+        fallback: corePassiveSlots.length > 1 && corePassiveSlots[1] != null,
       ),
+      corePassiveSlots: corePassiveSlots,
     );
   }
 }
