@@ -196,14 +196,27 @@ class _GameButtonColors {
       );
     }
     if (variant == GameButtonVariant.primary) {
+      final defaultPrimary =
+          accentColor == null || accentColor == GamePalette.cyan;
+      final primaryBorder = defaultPrimary
+          ? GamePalette.cyanBright
+          : Color.lerp(accent, Colors.white, 0.24)!;
+      final primaryStart = defaultPrimary
+          ? accent.withValues(alpha: 0.94)
+          : Color.lerp(accent, GamePalette.voidBlack, 0.16)!;
+      final primaryEnd = defaultPrimary
+          ? GamePalette.cyanDeep
+          : Color.lerp(accent, GamePalette.voidBlack, 0.52)!;
       return _GameButtonColors(
-        foreground: GamePalette.voidBlack,
-        border: GamePalette.cyanBright,
+        foreground: defaultPrimary
+            ? GamePalette.voidBlack
+            : GamePalette.textPrimary,
+        border: primaryBorder,
         background: null,
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [accent.withValues(alpha: 0.94), GamePalette.cyanDeep],
+          colors: [primaryStart, primaryEnd],
         ),
         glow: accent.withValues(alpha: 0.32),
       );

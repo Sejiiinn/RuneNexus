@@ -1218,6 +1218,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
+  void debugResetCorePassiveProgress() {
+    _progression.corePassiveSlotTwoUnlocked = false;
+    for (var i = 0; i < _progression.corePassiveSlots.length; i++) {
+      _progression.corePassiveSlots[i] = null;
+    }
+    for (var i = 0; i < _runCorePassiveSlots.length; i++) {
+      _runCorePassiveSlots[i] = null;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
   void debugResetUpgradeProgress() {
     _progression.startingGoldUpgradeLevel = 0;
     _progression.nexusHpUpgradeLevel = 0;

@@ -489,6 +489,17 @@ class _MainMenuDebugPanel extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               _DebugControlSection(
+                title: '코어',
+                children: [
+                  _DebugActionButton(
+                    label: '패시브 초기화',
+                    danger: true,
+                    onPressed: game.debugResetCorePassiveProgress,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _DebugControlSection(
                 title: '연구',
                 children: [
                   _DebugActionButton(
@@ -2209,7 +2220,11 @@ class _CoreMenuState extends State<_CoreMenu> {
           snapshot: widget.snapshot,
           compact: compact,
           selected: _selected,
-          onUnlockPassiveSlot: widget.game.unlockCorePassiveSlot,
+          onUnlockPassiveSlot: () => _confirmUnlockCorePassiveSlot(
+            context,
+            game: widget.game,
+            snapshot: widget.snapshot,
+          ),
           onSelect: (selection) {
             setState(() {
               _selected = selection;
@@ -2487,7 +2502,7 @@ class _CoreSocketStage extends StatelessWidget {
   final GameSnapshot snapshot;
   final bool compact;
   final _CoreMenuSelection selected;
-  final VoidCallback onUnlockPassiveSlot;
+  final Future<bool> Function() onUnlockPassiveSlot;
   final ValueChanged<_CoreMenuSelection> onSelect;
 
   @override
@@ -2602,11 +2617,13 @@ class _CoreSocketStage extends StatelessWidget {
                           compact: compact,
                           selected:
                               selected == _CoreMenuSelection.passiveSlotTwo,
-                          onTap: () {
+                          onTap: () async {
                             if (snapshot.corePassiveSlotCount <= 1 &&
                                 snapshot.canUnlockCorePassiveSlot) {
-                              onUnlockPassiveSlot();
-                              onSelect(_CoreMenuSelection.passiveSlotTwo);
+                              final unlocked = await onUnlockPassiveSlot();
+                              if (unlocked) {
+                                onSelect(_CoreMenuSelection.passiveSlotTwo);
+                              }
                               return;
                             }
                             onSelect(_CoreMenuSelection.passiveSlotTwo);
@@ -2950,11 +2967,21 @@ class _CorePassiveSlotButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (locked) {
+      return _CorePassiveSlotUnlockButton(
+        index: index,
+        unlockCost: unlockCost,
+        unlockable: unlockable,
+        compact: compact,
+        selected: selected,
+        onTap: onTap,
+      );
+    }
     final equipped = ability != null;
     final passiveIcon = switch (ability) {
       CorePassiveAbility.selfRepair => Icons.healing_outlined,
       CorePassiveAbility.costSavingDesign => Icons.construction_outlined,
-      null => locked ? Icons.lock_outline : Icons.add,
+      null => Icons.add,
     };
     final passiveAccent = switch (ability) {
       CorePassiveAbility.selfRepair => const Color(0xFF72E0A2),
@@ -2964,24 +2991,129 @@ class _CorePassiveSlotButton extends StatelessWidget {
     return _CoreSocketButton(
       kind: '패시브 ${index + 1}',
       icon: passiveIcon,
-      label: locked ? '슬롯 해금' : ability?.label ?? '빈 슬롯',
-      state: locked
-          ? unlockable
-                ? '$unlockCost 룬으로 해금'
-                : '$unlockCost 룬 필요'
-          : equipped
+      label: ability?.label ?? '빈 슬롯',
+      state: equipped
           ? (switch (ability) {
               CorePassiveAbility.selfRepair => '5라운드마다 체력 회복',
               CorePassiveAbility.costSavingDesign => '건설 비용 15% 감소',
               null => '패시브를 장착하세요',
             })
           : '패시브를 장착하세요',
-      accent: locked ? const Color(0xFF8FA8BA) : passiveAccent,
+      accent: passiveAccent,
       compact: true,
       empty: !equipped,
-      muted: locked ? !unlockable : !equipped,
+      muted: !equipped,
       selected: selected,
       onTap: onTap,
+    );
+  }
+}
+
+class _CorePassiveSlotUnlockButton extends StatelessWidget {
+  const _CorePassiveSlotUnlockButton({
+    required this.index,
+    required this.unlockCost,
+    required this.unlockable,
+    required this.compact,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final int index;
+  final int unlockCost;
+  final bool unlockable;
+  final bool compact;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = unlockable
+        ? const Color(0xFFE7C66A)
+        : const Color(0xFF8FA8BA);
+    final label = unlockable ? '해금 가능' : '잠김';
+    final state = unlockable ? '$unlockCost 룬 소모' : '$unlockCost 룬 필요';
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 120),
+        height: compact ? 44 : 54,
+        padding: EdgeInsets.fromLTRB(
+          compact ? 6 : 8,
+          compact ? 5 : 6,
+          compact ? 6 : 8,
+          compact ? 5 : 6,
+        ),
+        decoration: ShapeDecoration(
+          color: unlockable ? const Color(0x22E7C66A) : const Color(0x1A8FA8BA),
+          shape: BeveledRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(
+              color: selected
+                  ? accent.withValues(alpha: 0.95)
+                  : accent.withValues(alpha: unlockable ? 0.72 : 0.42),
+              width: selected ? 1.4 : 1.0,
+            ),
+          ),
+          shadows: selected
+              ? [
+                  BoxShadow(
+                    color: accent.withValues(alpha: 0.18),
+                    blurRadius: 11,
+                    spreadRadius: 0.5,
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _CoreSlotKindLabel(
+              label: '패시브 ${index + 1}',
+              compact: compact,
+              selected: selected,
+            ),
+            const Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  unlockable ? Icons.lock_open_outlined : Icons.lock_outline,
+                  color: accent,
+                  size: compact ? 10 : 13,
+                ),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: unlockable
+                          ? const Color(0xFFE8FBFF)
+                          : const Color(0xFFB4C7D2),
+                      fontSize: compact ? 8 : 10,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Text(
+              state,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: accent,
+                fontSize: compact ? 7 : 9,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -4294,6 +4426,69 @@ Future<void> _confirmCancelResearch(
     return;
   }
   game.cancelResearch(research.type);
+}
+
+Future<bool> _confirmUnlockCorePassiveSlot(
+  BuildContext context, {
+  required RuneNexusGame game,
+  required GameSnapshot snapshot,
+}) async {
+  if (!snapshot.canUnlockCorePassiveSlot) {
+    return false;
+  }
+  final slotNumber = snapshot.corePassiveSlotCount + 1;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: const Color(0xFF0B1725),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: const BorderSide(color: Color(0xAAE7C66A)),
+      ),
+      title: const Text(
+        '패시브 슬롯을 해금할까요?',
+        style: TextStyle(
+          color: Color(0xFFE8FBFF),
+          fontSize: 16,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+      content: Text(
+        '$slotNumber번 코어 패시브 슬롯을 ${snapshot.corePassiveSlotUnlockCost} 룬으로 해금합니다.',
+        style: const TextStyle(
+          color: Color(0xFFB9D6E4),
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      actions: [
+        SizedBox(
+          width: 76,
+          child: GameButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            label: '취소',
+            compact: true,
+            variant: GameButtonVariant.ghost,
+            accentColor: GamePalette.metal,
+          ),
+        ),
+        SizedBox(
+          width: 82,
+          child: GameButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            label: '해금',
+            compact: true,
+            variant: GameButtonVariant.primary,
+            accentColor: GamePalette.gold,
+          ),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true || !context.mounted) {
+    return false;
+  }
+  return game.unlockCorePassiveSlot();
 }
 
 class _ResearchSection extends StatelessWidget {

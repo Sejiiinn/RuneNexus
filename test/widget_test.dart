@@ -396,10 +396,26 @@ void main() {
     );
     await _pumpGameFrames(tester);
 
-    expect(find.text('슬롯 해금'), findsOneWidget);
+    expect(find.text('해금 가능'), findsOneWidget);
+    expect(find.text('500 룬 소모'), findsOneWidget);
 
-    await tester.tap(find.text('슬롯 해금'));
+    await tester.tap(find.text('해금 가능'));
     await _pumpGameFrames(tester);
+
+    expect(find.text('패시브 슬롯을 해금할까요?'), findsOneWidget);
+    expect(find.text('2번 코어 패시브 슬롯을 500 룬으로 해금합니다.'), findsOneWidget);
+    expect(game.unlockedCorePassiveSlot, isFalse);
+
+    await tester.tap(find.widgetWithText(GameButton, '취소'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('패시브 슬롯을 해금할까요?'), findsNothing);
+    expect(game.unlockedCorePassiveSlot, isFalse);
+
+    await tester.tap(find.text('해금 가능'));
+    await _pumpGameFrames(tester);
+    await tester.tap(find.widgetWithText(GameButton, '해금'));
+    await tester.pumpAndSettle();
 
     expect(game.unlockedCorePassiveSlot, isTrue);
   });

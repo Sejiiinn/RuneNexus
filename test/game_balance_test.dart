@@ -1190,6 +1190,23 @@ void main() {
     expect(game.snapshotNotifier.value.activeResearches, isEmpty);
     expect(game.snapshotNotifier.value.researchLevels, isEmpty);
     expect(game.snapshotNotifier.value.researchElapsedMillis, isEmpty);
+    expect(game.snapshotNotifier.value.corePassiveSlotCount, 1);
+
+    game.debugAddRunes(500);
+    expect(game.unlockCorePassiveSlot(), isTrue);
+    expect(
+      game.equipCorePassiveAbility(CorePassiveAbility.selfRepair, 1),
+      isTrue,
+    );
+    expect(game.snapshotNotifier.value.corePassiveSlotCount, 2);
+    expect(
+      game.snapshotNotifier.value.corePassiveSlots[1],
+      CorePassiveAbility.selfRepair,
+    );
+
+    game.debugResetCorePassiveProgress();
+    expect(game.snapshotNotifier.value.corePassiveSlotCount, 1);
+    expect(game.snapshotNotifier.value.corePassiveSlots, const [null, null]);
 
     game.debugSetInstantResearchCompletion(true);
     expect(game.debugInstantResearchCompletion, isTrue);
