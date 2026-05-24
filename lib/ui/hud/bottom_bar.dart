@@ -23,73 +23,90 @@ class _BottomBar extends StatelessWidget {
 
     return Align(
       alignment: Alignment.bottomCenter,
-      child: GamePanel(
-        margin: const EdgeInsets.all(12),
-        padding: const EdgeInsets.all(10),
-        accentColor: GamePalette.cyan,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                _BottomSpeedControl(snapshot: snapshot, game: game),
-                const Spacer(),
-                _AutoStartModeButton(game: game, snapshot: snapshot),
-                const SizedBox(width: 6),
-                _StartWaveButton(
-                  enabled: canPrepare,
-                  onPressed: game.startNextWave,
-                ),
-              ],
-            ),
-            if (snapshot.selectedRunPanelTab != RunPanelTab.closed) ...[
-              const SizedBox(height: 8),
-              if (snapshot.selectedPortalPoint != null) ...[
-                _PortalSummaryCard(snapshot: snapshot, statusText: statusText),
-                const SizedBox(height: 8),
-              ],
-              if (snapshot.selectedRunPanelTab == RunPanelTab.upgrades) ...[
-                _RunUpgradePanel(game: game, snapshot: snapshot),
-              ] else if (snapshot.selectedRunPanelTab == RunPanelTab.gems) ...[
-                _GemInventoryPanel(game: game, snapshot: snapshot),
-              ] else if (snapshot.selectedRunPanelTab ==
-                  RunPanelTab.turrets) ...[
-                if (snapshot.selectedTurretPoint != null && canEditBoard) ...[
-                  _GemEquipPanel(game: game, snapshot: snapshot),
-                ] else if ((snapshot.selectedBuildPoint != null ||
-                        snapshot.selectedBuildTurretType != null) &&
-                    canEditBoard) ...[
-                  _BuildSelectionPanel(game: game, snapshot: snapshot),
-                ],
-                if (snapshot.selectedTurretPoint == null) ...[
-                  const SizedBox(height: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
+            child: GamePanel(
+              padding: const EdgeInsets.all(10),
+              accentColor: GamePalette.cyan,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   Row(
-                    children: snapshot.availableTurretTypes.map((type) {
-                      final definition = gameTurrets[type]!;
-                      return Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 3),
-                          child: _TurretButton(
-                            type: type,
-                            label: definition.name,
-                            cost: definition.cost,
-                            color: definition.color,
-                            selected: snapshot.selectedBuildTurretType == type,
-                            enabled: canEditBoard,
-                            onPressed: () =>
-                                game.previewOrBuildSelectedTile(type),
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                    children: [
+                      _BottomSpeedControl(snapshot: snapshot, game: game),
+                      const Spacer(),
+                      _AutoStartModeButton(game: game, snapshot: snapshot),
+                      const SizedBox(width: 6),
+                      _StartWaveButton(
+                        enabled: canPrepare,
+                        onPressed: game.startNextWave,
+                      ),
+                    ],
                   ),
+                  if (snapshot.selectedRunPanelTab != RunPanelTab.closed) ...[
+                    const SizedBox(height: 8),
+                    if (snapshot.selectedPortalPoint != null) ...[
+                      _PortalSummaryCard(
+                        snapshot: snapshot,
+                        statusText: statusText,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    if (snapshot.selectedRunPanelTab ==
+                        RunPanelTab.upgrades) ...[
+                      _RunUpgradePanel(game: game, snapshot: snapshot),
+                    ] else if (snapshot.selectedRunPanelTab ==
+                        RunPanelTab.gems) ...[
+                      _GemInventoryPanel(game: game, snapshot: snapshot),
+                    ] else if (snapshot.selectedRunPanelTab ==
+                        RunPanelTab.turrets) ...[
+                      if (snapshot.selectedTurretPoint != null &&
+                          canEditBoard) ...[
+                        _GemEquipPanel(game: game, snapshot: snapshot),
+                      ] else if ((snapshot.selectedBuildPoint != null ||
+                              snapshot.selectedBuildTurretType != null) &&
+                          canEditBoard) ...[
+                        _BuildSelectionPanel(game: game, snapshot: snapshot),
+                      ],
+                      if (snapshot.selectedTurretPoint == null) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: snapshot.availableTurretTypes.map((type) {
+                            final definition = gameTurrets[type]!;
+                            return Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 3,
+                                ),
+                                child: _TurretButton(
+                                  type: type,
+                                  label: definition.name,
+                                  cost: definition.cost,
+                                  color: definition.color,
+                                  selected:
+                                      snapshot.selectedBuildTurretType == type,
+                                  enabled: canEditBoard,
+                                  onPressed: () =>
+                                      game.previewOrBuildSelectedTile(type),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ],
+                  ],
                 ],
-              ],
-            ],
-            const SizedBox(height: 8),
-            _RunPanelTabs(game: game, snapshot: snapshot),
-          ],
-        ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          _RunPanelTabs(game: game, snapshot: snapshot),
+        ],
       ),
     );
   }

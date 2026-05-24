@@ -567,73 +567,217 @@ class GridComponent extends Component {
     final theme = map.tileTheme;
     final center = rect.center;
     final hit = nexusHitAlert.clamp(0.0, 1.0);
-    final basePaint = Paint()..color = theme.nexusBaseColor;
-    final shadowPaint = Paint()..color = theme.nexusShadowColor;
+    final unit = tileSize;
+    final pulse = (math.sin(_portalSpin * 2.2) + 1) / 2;
+    final gemColor = Color.lerp(
+      theme.nexusGemColor,
+      theme.nexusGemHitColor,
+      hit,
+    )!;
+    final basePaint = Paint()
+      ..color = Color.lerp(
+        theme.nexusBaseColor,
+        const Color(0xFF365063),
+        hit * 0.28,
+      )!;
+    final shadowPaint = Paint()
+      ..color = theme.nexusShadowColor.withValues(alpha: 0.92);
 
     if (hit > 0) {
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-          rect.deflate(tileSize * 0.05),
-          Radius.circular(tileSize * 0.08),
+          rect.deflate(unit * 0.05),
+          Radius.circular(unit * 0.08),
         ),
         Paint()..color = const Color(0xFFFF3D3D).withValues(alpha: 0.26 * hit),
       );
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-          rect.deflate(tileSize * 0.08),
-          Radius.circular(tileSize * 0.08),
+          rect.deflate(unit * 0.08),
+          Radius.circular(unit * 0.08),
         ),
         Paint()
           ..color = const Color(0xFFFF7A59).withValues(alpha: 0.75 * hit)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = tileSize * 0.045,
+          ..strokeWidth = unit * 0.045,
       );
     }
 
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(center.dx, center.dy + unit * 0.38),
+        width: unit * 0.76,
+        height: unit * 0.2,
+      ),
+      Paint()..color = const Color(0x99000000),
+    );
+
     final pedestal = Rect.fromCenter(
-      center: Offset(center.dx, center.dy + tileSize * 0.18),
-      width: tileSize * 0.58,
-      height: tileSize * 0.22,
+      center: Offset(center.dx, center.dy + unit * 0.27),
+      width: unit * 0.68,
+      height: unit * 0.22,
     );
     canvas.drawRRect(
-      RRect.fromRectAndRadius(pedestal, Radius.circular(tileSize * 0.04)),
+      RRect.fromRectAndRadius(pedestal, Radius.circular(unit * 0.04)),
       shadowPaint,
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        pedestal.deflate(tileSize * 0.035),
-        Radius.circular(tileSize * 0.03),
+        pedestal.deflate(unit * 0.035),
+        Radius.circular(unit * 0.03),
       ),
       basePaint,
     );
+    canvas.drawLine(
+      Offset(pedestal.left + unit * 0.1, pedestal.center.dy),
+      Offset(pedestal.right - unit * 0.1, pedestal.center.dy),
+      Paint()
+        ..color = theme.nexusGemStrokeColor.withValues(alpha: 0.24)
+        ..strokeWidth = unit * 0.022
+        ..strokeCap = StrokeCap.round,
+    );
 
-    final pillar = Path()
-      ..moveTo(center.dx - tileSize * 0.22, center.dy + tileSize * 0.15)
-      ..lineTo(center.dx - tileSize * 0.16, center.dy - tileSize * 0.2)
-      ..lineTo(center.dx + tileSize * 0.16, center.dy - tileSize * 0.2)
-      ..lineTo(center.dx + tileSize * 0.22, center.dy + tileSize * 0.15)
+    final lowerPlinth = Path()
+      ..moveTo(center.dx - unit * 0.28, center.dy + unit * 0.16)
+      ..lineTo(center.dx - unit * 0.18, center.dy - unit * 0.06)
+      ..lineTo(center.dx + unit * 0.18, center.dy - unit * 0.06)
+      ..lineTo(center.dx + unit * 0.28, center.dy + unit * 0.16)
       ..close();
-    canvas.drawPath(pillar, shadowPaint);
-    canvas.drawPath(pillar.shift(Offset(0, -tileSize * 0.025)), basePaint);
+    canvas.drawPath(lowerPlinth, shadowPaint);
+    canvas.drawPath(
+      lowerPlinth.shift(Offset(0, -unit * 0.025)),
+      Paint()
+        ..shader = Gradient.linear(
+          Offset(center.dx, center.dy - unit * 0.08),
+          Offset(center.dx, center.dy + unit * 0.17),
+          [
+            Color.lerp(theme.nexusBaseColor, theme.nexusGemStrokeColor, 0.18)!,
+            theme.nexusBaseColor,
+          ],
+        ),
+    );
+
+    final leftBrace = Path()
+      ..moveTo(center.dx - unit * 0.28, center.dy + unit * 0.03)
+      ..lineTo(center.dx - unit * 0.35, center.dy - unit * 0.16)
+      ..lineTo(center.dx - unit * 0.18, center.dy - unit * 0.28)
+      ..lineTo(center.dx - unit * 0.08, center.dy + unit * 0.02)
+      ..close();
+    final rightBrace = Path()
+      ..moveTo(center.dx + unit * 0.28, center.dy + unit * 0.03)
+      ..lineTo(center.dx + unit * 0.35, center.dy - unit * 0.16)
+      ..lineTo(center.dx + unit * 0.18, center.dy - unit * 0.28)
+      ..lineTo(center.dx + unit * 0.08, center.dy + unit * 0.02)
+      ..close();
+    final bracePaint = Paint()
+      ..color = Color.lerp(
+        theme.nexusBaseColor,
+        theme.nexusGemStrokeColor,
+        0.14,
+      )!.withValues(alpha: 0.82);
+    canvas.drawPath(leftBrace, shadowPaint);
+    canvas.drawPath(rightBrace, shadowPaint);
+    canvas.drawPath(leftBrace.shift(Offset(0, -unit * 0.018)), bracePaint);
+    canvas.drawPath(rightBrace.shift(Offset(0, -unit * 0.018)), bracePaint);
+
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(center.dx, center.dy - unit * 0.16),
+        width: unit * (0.62 + pulse * 0.04),
+        height: unit * (0.42 + pulse * 0.03),
+      ),
+      Paint()..color = gemColor.withValues(alpha: 0.08 + pulse * 0.05),
+    );
 
     final gem = Path()
-      ..moveTo(center.dx, center.dy - tileSize * 0.34)
-      ..lineTo(center.dx + tileSize * 0.16, center.dy - tileSize * 0.08)
-      ..lineTo(center.dx, center.dy + tileSize * 0.16)
-      ..lineTo(center.dx - tileSize * 0.16, center.dy - tileSize * 0.08)
+      ..moveTo(center.dx, center.dy - unit * 0.42)
+      ..lineTo(center.dx + unit * 0.22, center.dy - unit * 0.08)
+      ..lineTo(center.dx, center.dy + unit * 0.22)
+      ..lineTo(center.dx - unit * 0.22, center.dy - unit * 0.08)
       ..close();
+    final leftFace = Path()
+      ..moveTo(center.dx, center.dy - unit * 0.42)
+      ..lineTo(center.dx, center.dy + unit * 0.22)
+      ..lineTo(center.dx - unit * 0.22, center.dy - unit * 0.08)
+      ..close();
+    final topFace = Path()
+      ..moveTo(center.dx, center.dy - unit * 0.42)
+      ..lineTo(center.dx + unit * 0.22, center.dy - unit * 0.08)
+      ..lineTo(center.dx, center.dy - unit * 0.16)
+      ..close();
+    final rightFace = Path()
+      ..moveTo(center.dx, center.dy - unit * 0.16)
+      ..lineTo(center.dx + unit * 0.22, center.dy - unit * 0.08)
+      ..lineTo(center.dx, center.dy + unit * 0.22)
+      ..close();
+    final innerFace = Path()
+      ..moveTo(center.dx, center.dy - unit * 0.42)
+      ..lineTo(center.dx - unit * 0.08, center.dy - unit * 0.07)
+      ..lineTo(center.dx, center.dy + unit * 0.22)
+      ..lineTo(center.dx + unit * 0.08, center.dy - unit * 0.07)
+      ..close();
+
+    canvas.drawPath(gem, Paint()..color = gemColor);
     canvas.drawPath(
-      gem,
+      leftFace,
+      Paint()..color = Color.lerp(gemColor, theme.nexusGemStrokeColor, 0.42)!,
+    );
+    canvas.drawPath(
+      topFace,
+      Paint()..color = Color.lerp(gemColor, const Color(0xFFFFFFFF), 0.68)!,
+    );
+    canvas.drawPath(
+      rightFace,
+      Paint()..color = Color.lerp(gemColor, const Color(0xFF0B5D7D), 0.42)!,
+    );
+    canvas.drawPath(
+      innerFace,
       Paint()
-        ..color = Color.lerp(theme.nexusGemColor, theme.nexusGemHitColor, hit)!,
+        ..color = const Color(
+          0xFFFFFFFF,
+        ).withValues(alpha: 0.18 + pulse * 0.08),
     );
     canvas.drawPath(
       gem,
       Paint()
-        ..color = theme.nexusGemStrokeColor
+        ..color = Color.lerp(
+          theme.nexusGemStrokeColor,
+          const Color(0xFFFFB39C),
+          hit,
+        )!
         ..style = PaintingStyle.stroke
-        ..strokeWidth = tileSize * 0.035,
+        ..strokeWidth = unit * 0.035,
     );
+    canvas.drawPath(
+      Path()
+        ..moveTo(center.dx - unit * 0.11, center.dy - unit * 0.05)
+        ..lineTo(center.dx, center.dy - unit * 0.18)
+        ..lineTo(center.dx + unit * 0.11, center.dy - unit * 0.05),
+      Paint()
+        ..color = theme.portalPulseColor.withValues(alpha: 0.42 + pulse * 0.18)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = unit * 0.026
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round,
+    );
+
+    if (hit > 0) {
+      final crackPaint = Paint()
+        ..color = const Color(0xFFFFD0C6).withValues(alpha: 0.66 * hit)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = unit * 0.018
+        ..strokeCap = StrokeCap.round;
+      canvas.drawLine(
+        Offset(center.dx - unit * 0.05, center.dy - unit * 0.24),
+        Offset(center.dx + unit * 0.03, center.dy - unit * 0.08),
+        crackPaint,
+      );
+      canvas.drawLine(
+        Offset(center.dx + unit * 0.03, center.dy - unit * 0.08),
+        Offset(center.dx - unit * 0.02, center.dy + unit * 0.08),
+        crackPaint,
+      );
+    }
   }
 
   Paint _paintFor(TileType type) {
