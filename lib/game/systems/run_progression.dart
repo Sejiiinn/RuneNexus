@@ -7,7 +7,7 @@ import '../../domain/research/research_progress.dart';
 import '../../domain/research/research_type.dart';
 
 class RunProgression {
-  static const int baseInitialGold = 150;
+  static const int baseInitialGold = 170;
   static const int baseNexusHp = 20;
   static const int maxStageCount = 10;
   static const int maxStartingGoldUpgradeLevel = 20;

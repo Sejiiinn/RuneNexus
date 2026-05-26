@@ -1688,7 +1688,7 @@ class _CoreEquipGame extends RuneNexusGame {
 GameSaveData _saveWithResearch({
   required Set<int> clearedStageNumbers,
   required Map<ResearchType, int> researchLevels,
-  int gold = 150,
+  int gold = 170,
   int gemShards = 0,
 }) {
   return GameSaveData(

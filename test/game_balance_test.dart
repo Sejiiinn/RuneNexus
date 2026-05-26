@@ -154,7 +154,7 @@ void main() {
   test('initial gold supports machine gun and cannon setup', () {
     final game = RuneNexusGame();
 
-    expect(game.snapshotNotifier.value.gold, 150);
+    expect(game.snapshotNotifier.value.gold, 170);
   });
 
   test('run completion grants runes and progression applies next run', () {
@@ -187,7 +187,7 @@ void main() {
     game.upgradeNexusHpProgression();
     game.restartRun();
 
-    expect(game.snapshotNotifier.value.gold, 150);
+    expect(game.snapshotNotifier.value.gold, 170);
     expect(game.snapshotNotifier.value.nexusHp, 20);
     expect(game.snapshotNotifier.value.maxNexusHp, 20);
     expect(game.snapshotNotifier.value.unlockedStageCount, 2);
@@ -228,14 +228,14 @@ void main() {
       progression.nexusHpUpgradeLevel,
       RunProgression.maxNexusHpUpgradeLevel,
     );
-    expect(progression.initialGold, 350);
+    expect(progression.initialGold, 370);
     expect(progression.maxNexusHp, 30);
     expect(progression.runes, 7530);
 
     progression.startingGoldUpgradeLevel = 99;
     progression.nexusHpUpgradeLevel = 99;
 
-    expect(progression.initialGold, 350);
+    expect(progression.initialGold, 370);
     expect(progression.maxNexusHp, 30);
   });
 
@@ -1150,10 +1150,10 @@ void main() {
     final game = RuneNexusGame();
 
     game.debugAddGold(500);
-    expect(game.snapshotNotifier.value.gold, 650);
+    expect(game.snapshotNotifier.value.gold, 670);
 
     game.debugAddGold(-100);
-    expect(game.snapshotNotifier.value.gold, 650);
+    expect(game.snapshotNotifier.value.gold, 670);
   });
 
   test('menu debug controls update progression state', () {
@@ -1264,7 +1264,7 @@ void main() {
     game.restartRun();
 
     expect(game.snapshotNotifier.value.round, 1);
-    expect(game.snapshotNotifier.value.gold, 150);
+    expect(game.snapshotNotifier.value.gold, 170);
     expect(game.snapshotNotifier.value.gemInventory, isEmpty);
   });
 
@@ -1280,7 +1280,7 @@ void main() {
     );
     expect(game.snapshotNotifier.value.selectedBuildPoint, isNull);
     expect(game.snapshotNotifier.value.placedTurretCount, 0);
-    expect(game.snapshotNotifier.value.gold, 150);
+    expect(game.snapshotNotifier.value.gold, 170);
   });
 
   test('run panel tab can be toggled closed', () {
@@ -1692,12 +1692,12 @@ void main() {
 
     game.tryBuildTurret(const GridPoint(2, 0));
 
-    expect(game.snapshotNotifier.value.gold, 99);
+    expect(game.snapshotNotifier.value.gold, 119);
     expect(game.snapshotNotifier.value.selectedTurretLevelUpCost, 42);
 
     game.levelUpSelectedTurret();
 
-    expect(game.snapshotNotifier.value.gold, 57);
+    expect(game.snapshotNotifier.value.gold, 77);
   });
 
   test('status gems are removed from the reward pool', () {
@@ -1791,7 +1791,7 @@ void main() {
     game.buyRunUpgrade(RunUpgradeType.towerDamage);
 
     expect(turret.damage, closeTo(7.21, 0.001));
-    expect(game.snapshotNotifier.value.gold, 118);
+    expect(game.snapshotNotifier.value.gold, 138);
     expect(
       game.snapshotNotifier.value.runUpgradeLevels[RunUpgradeType.towerDamage],
       1,
@@ -1815,7 +1815,7 @@ void main() {
       enemy.receiveDamage(999);
     }
 
-    expect(game.snapshotNotifier.value.gold, 216);
+    expect(game.snapshotNotifier.value.gold, 236);
     expect(
       game.snapshotNotifier.value.killGoldFractionWallet,
       closeTo(0.7, 0.001),
@@ -1840,7 +1840,7 @@ void main() {
     game.update(0.016);
 
     expect(game.snapshotNotifier.value.phase, GamePhase.success);
-    expect(game.snapshotNotifier.value.gold, 144);
+    expect(game.snapshotNotifier.value.gold, 164);
   });
 
   test('permanent supply upgrade adds one gold per cleared wave', () async {
@@ -1871,7 +1871,7 @@ void main() {
     game.update(0.016);
 
     expect(game.snapshotNotifier.value.phase, GamePhase.success);
-    expect(game.snapshotNotifier.value.gold, 151);
+    expect(game.snapshotNotifier.value.gold, 171);
     expect(game.snapshotNotifier.value.waveClearGoldProgressionBonus, 1);
   });
 
@@ -1911,7 +1911,7 @@ void main() {
       enemy.receiveDamage(999);
     }
 
-    expect(game.snapshotNotifier.value.gold, 251);
+    expect(game.snapshotNotifier.value.gold, 271);
     expect(game.snapshotNotifier.value.killGoldUpgradeLevel, 1);
     expect(
       game.snapshotNotifier.value.killGoldProgressionBonusRate,
@@ -2282,7 +2282,7 @@ void main() {
     expect(game.snapshotNotifier.value.selectedTurretRefundGold, 145);
     game.refundSelectedTurret();
 
-    expect(game.snapshotNotifier.value.gold, 203);
+    expect(game.snapshotNotifier.value.gold, 223);
   });
 
   test('new permanent upgrades are saved and restored', () async {
@@ -4054,7 +4054,7 @@ void main() {
     await game.saveNow();
 
     final snapshot = game.snapshotNotifier.value;
-    expect(snapshot.gold, 202);
+    expect(snapshot.gold, 222);
     expect(snapshot.selectedTurretPoint, isNull);
     expect(snapshot.gemInventory[GemType.range], 1);
     expect(repository.data!.turrets, isEmpty);
@@ -4073,7 +4073,7 @@ void main() {
     await game.saveNow();
 
     expect(game.snapshotNotifier.value.phase, GamePhase.wave);
-    expect(game.snapshotNotifier.value.gold, 135);
+    expect(game.snapshotNotifier.value.gold, 155);
     expect(game.snapshotNotifier.value.selectedTurretPoint, isNull);
     expect(repository.data!.turrets, isEmpty);
   });
@@ -4177,7 +4177,7 @@ GameSaveData _saveWithResearch({
   return GameSaveData(
     version: GameSaveData.currentVersion,
     savedAtMillis: 0,
-    gold: 150,
+    gold: 170,
     gemShards: gemShards,
     nexusHp: 20,
     stageNumber: 1,
@@ -4238,7 +4238,7 @@ GameSaveData _saveWithCorePassiveRun({
   return GameSaveData(
     version: GameSaveData.currentVersion,
     savedAtMillis: 0,
-    gold: 150,
+    gold: 170,
     gemShards: 0,
     nexusHp: nexusHp,
     stageNumber: 1,
