@@ -89,6 +89,7 @@ class ProjectileComponent extends PositionComponent {
   @override
   void render(Canvas canvas) {
     final color = owner.definition.color;
+    final visualScale = size.x / _visualSize(owner.definition.type);
     for (var i = 0; i < _trail.length; i++) {
       final point = _trail[i];
       final local = Offset(
@@ -103,6 +104,7 @@ class ProjectileComponent extends PositionComponent {
         TurretType.frost => 3.0 - i * 0.16,
         TurretType.sniper => 2.2 - i * 0.16,
       };
+      final scaledRadius = radius * visualScale;
       if (owner.definition.type == TurretType.arrow && i < _trail.length - 1) {
         final next = _trail[i + 1];
         final nextLocal = Offset(
@@ -114,20 +116,20 @@ class ProjectileComponent extends PositionComponent {
           nextLocal,
           Paint()
             ..color = color.withValues(alpha: alpha * 0.86)
-            ..strokeWidth = 1.5
+            ..strokeWidth = 1.5 * visualScale
             ..strokeCap = StrokeCap.round,
         );
       }
       if (owner.definition.type == TurretType.magic) {
         canvas.drawCircle(
           local,
-          radius * 2.4,
+          scaledRadius * 2.4,
           Paint()..color = color.withValues(alpha: alpha * 0.16),
         );
       }
       canvas.drawCircle(
         local,
-        radius,
+        scaledRadius,
         Paint()..color = color.withValues(alpha: alpha),
       );
     }
@@ -135,62 +137,62 @@ class ProjectileComponent extends PositionComponent {
     final center = Offset(size.x / 2, size.y / 2);
     switch (owner.definition.type) {
       case TurretType.arrow:
-        canvas.drawCircle(center, 2.4, Paint()..color = color);
+        canvas.drawCircle(center, 2.4 * visualScale, Paint()..color = color);
         canvas.drawCircle(
           center,
-          1.0,
+          1.0 * visualScale,
           Paint()..color = const Color(0xFFFFFFFF),
         );
       case TurretType.cannon:
         canvas.drawCircle(
-          center.translate(-2, 1),
-          6.0,
+          center.translate(-2 * visualScale, 1 * visualScale),
+          6.0 * visualScale,
           Paint()..color = color.withValues(alpha: 0.18),
         );
         canvas.drawCircle(
           center,
-          4.0,
+          4.0 * visualScale,
           Paint()..color = const Color(0xFF2D1E18),
         );
-        canvas.drawCircle(center, 2.8, Paint()..color = color);
+        canvas.drawCircle(center, 2.8 * visualScale, Paint()..color = color);
       case TurretType.magic:
         final flame = Path()
-          ..moveTo(center.dx + 1, center.dy - 4)
+          ..moveTo(center.dx + 1 * visualScale, center.dy - 4 * visualScale)
           ..quadraticBezierTo(
-            center.dx + 5,
+            center.dx + 5 * visualScale,
             center.dy,
             center.dx,
-            center.dy + 4,
+            center.dy + 4 * visualScale,
           )
           ..quadraticBezierTo(
-            center.dx - 4,
+            center.dx - 4 * visualScale,
             center.dy,
-            center.dx + 1,
-            center.dy - 4,
+            center.dx + 1 * visualScale,
+            center.dy - 4 * visualScale,
           )
           ..close();
         canvas.drawPath(flame, Paint()..color = color);
         canvas.drawCircle(
           center,
-          1.4,
+          1.4 * visualScale,
           Paint()..color = const Color(0xFFFFD45A),
         );
       case TurretType.frost:
         canvas.drawCircle(
           center,
-          3.6,
+          3.6 * visualScale,
           Paint()..color = color.withValues(alpha: 0.9),
         );
         canvas.drawCircle(
           center,
-          1.5,
+          1.5 * visualScale,
           Paint()..color = const Color(0xFFE8FBFF),
         );
       case TurretType.sniper:
-        canvas.drawCircle(center, 2.4, Paint()..color = color);
+        canvas.drawCircle(center, 2.4 * visualScale, Paint()..color = color);
         canvas.drawCircle(
           center,
-          1.0,
+          1.0 * visualScale,
           Paint()..color = const Color(0xFFFFFFFF),
         );
     }

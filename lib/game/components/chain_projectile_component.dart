@@ -14,7 +14,11 @@ class ChainProjectileComponent extends PositionComponent {
     required this.attack,
     required this.damage,
     required this.game,
-  }) : super(position: origin, size: Vector2.all(7), anchor: Anchor.center);
+  }) : super(
+         position: origin,
+         size: Vector2.all(_visualSize * game.boardDistanceScale),
+         anchor: Anchor.center,
+       );
 
   final EnemyComponent target;
   final TurretComponent owner;
@@ -22,6 +26,7 @@ class ChainProjectileComponent extends PositionComponent {
   final double damage;
   final RuneNexusGame game;
   final List<Vector2> _points = [];
+  static const double _visualSize = 7;
 
   @override
   void update(double dt) {
@@ -57,6 +62,7 @@ class ChainProjectileComponent extends PositionComponent {
   void render(Canvas canvas) {
     final color = game.chainColorFor(owner);
     final trailPaint = Paint();
+    final visualScale = size.x / _visualSize;
     for (var i = 0; i < _points.length; i++) {
       final point = _points[i];
       final local = Offset(
@@ -66,10 +72,10 @@ class ChainProjectileComponent extends PositionComponent {
       trailPaint.color = color.withValues(
         alpha: (0.8 * (1 - i / (_points.length + 1))).clamp(0.0, 0.8),
       );
-      canvas.drawCircle(local, 2.2 - i * 0.18, trailPaint);
+      canvas.drawCircle(local, (2.2 - i * 0.18) * visualScale, trailPaint);
       canvas.drawCircle(
         local,
-        4.4 - i * 0.22,
+        (4.4 - i * 0.22) * visualScale,
         Paint()
           ..color = color.withValues(
             alpha: (0.18 * (1 - i / (_points.length + 1))).clamp(0.0, 0.18),
@@ -80,9 +86,13 @@ class ChainProjectileComponent extends PositionComponent {
     final headPaint = Paint()..color = color;
     canvas.drawCircle(
       Offset(size.x / 2, size.y / 2),
-      5.2,
+      5.2 * visualScale,
       Paint()..color = color.withValues(alpha: 0.24),
     );
-    canvas.drawCircle(Offset(size.x / 2, size.y / 2), 2.8, headPaint);
+    canvas.drawCircle(
+      Offset(size.x / 2, size.y / 2),
+      2.8 * visualScale,
+      headPaint,
+    );
   }
 }
