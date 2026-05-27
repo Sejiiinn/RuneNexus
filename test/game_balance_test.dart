@@ -2040,11 +2040,11 @@ void main() {
     await game.onLoad();
     game.upgradeFireTrainingProgression();
 
-    expect(turret.damage, closeTo(7.07, 0.001));
+    expect(turret.damage, closeTo(7.105, 0.001));
     expect(game.snapshotNotifier.value.fireTrainingUpgradeLevel, 1);
     expect(
       game.snapshotNotifier.value.fireTrainingDamageBonusRate,
-      closeTo(0.01, 0.001),
+      closeTo(0.015, 0.001),
     );
   });
 
@@ -2059,7 +2059,7 @@ void main() {
     }
 
     expect(progression.fireTrainingUpgradeLevel, 20);
-    expect(progression.fireTrainingDamageBonusRate, closeTo(0.20, 0.001));
+    expect(progression.fireTrainingDamageBonusRate, closeTo(0.30, 0.001));
     expect(progression.fireTrainingUpgradeCost, 316);
     expect(progression.canUpgradeFireTraining, isFalse);
     expect(progression.upgradeFireTraining(), isFalse);
@@ -2379,7 +2379,7 @@ void main() {
     expect(snapshot.supplyUpgradeLevel, 1);
     expect(snapshot.waveClearGoldProgressionBonus, 1);
     expect(snapshot.fireTrainingUpgradeLevel, 1);
-    expect(snapshot.fireTrainingDamageBonusRate, closeTo(0.01, 0.001));
+    expect(snapshot.fireTrainingDamageBonusRate, closeTo(0.015, 0.001));
     expect(snapshot.criticalChanceUpgradeLevel, 1);
     expect(snapshot.criticalChanceProgressionBonusRate, closeTo(0.01, 0.001));
     expect(snapshot.criticalDamageUpgradeLevel, 1);

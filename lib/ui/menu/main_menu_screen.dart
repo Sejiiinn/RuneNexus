@@ -3981,9 +3981,10 @@ class _PermanentUpgradeMenu extends StatelessWidget {
         level: snapshot.fireTrainingUpgradeLevel,
         maxLevel: RunProgression.maxFireTrainingUpgradeLevel,
         globalMaxLevel: RunProgression.maxFireTrainingUpgradeLevel,
-        valueText: '+${(snapshot.fireTrainingDamageBonusRate * 100).round()}%',
+        valueText:
+            '+${(snapshot.fireTrainingDamageBonusRate * 100).toStringAsFixed(1)}%',
         nextValueText:
-            '+${(nextFireTrainingLevel * RunProgression.fireTrainingDamagePerUpgradeLevel * 100).round()}%',
+            '+${(nextFireTrainingLevel * RunProgression.fireTrainingDamagePerUpgradeLevel * 100).toStringAsFixed(1)}%',
         cost: snapshot.fireTrainingUpgradeCost,
         enabled: snapshot.canUpgradeFireTraining,
         lockText: l10n.maxLevelReached,

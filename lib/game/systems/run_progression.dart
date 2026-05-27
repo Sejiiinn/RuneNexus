@@ -40,7 +40,7 @@ class RunProgression {
   static const int fireTrainingUpgradeBaseCost = 7;
   static const int fireTrainingUpgradeCostPerLevel = 2;
   static const double fireTrainingUpgradeCostMultiplier = 1.10;
-  static const double fireTrainingDamagePerUpgradeLevel = 0.01;
+  static const double fireTrainingDamagePerUpgradeLevel = 0.015;
   static const int criticalChanceUpgradeBaseCost = 70;
   static const double criticalChanceUpgradeCostMultiplier = 1.2;
   static const double criticalChanceBonusPerUpgradeLevel = 0.01;
