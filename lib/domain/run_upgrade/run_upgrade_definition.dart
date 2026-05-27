@@ -29,4 +29,22 @@ class RunUpgradeDefinition {
     }
     return (baseCost * math.pow(costMultiplier, currentLevel)).round();
   }
+
+  double effectForLevel(int currentLevel) {
+    final level = currentLevel.clamp(0, maxLevel).toInt();
+    if (type != RunUpgradeType.waveGold) {
+      return effectPerLevel * level;
+    }
+
+    var total = 0.0;
+    for (var step = 1; step <= level; step++) {
+      total += switch (step) {
+        <= 5 => 4,
+        <= 10 => 5,
+        <= 15 => 6,
+        _ => 7,
+      };
+    }
+    return total;
+  }
 }

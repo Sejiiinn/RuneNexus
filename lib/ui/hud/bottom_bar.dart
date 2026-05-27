@@ -640,7 +640,7 @@ String _runUpgradeEffectSubject(RunUpgradeType type) {
 }
 
 String _runUpgradeEffectText(RunUpgradeDefinition definition, int level) {
-  final effect = definition.effectPerLevel * level;
+  final effect = definition.effectForLevel(level);
   return switch (definition.type) {
     RunUpgradeType.towerDamage => '+${(effect * 100).round()}%',
     RunUpgradeType.killGold => '+${(effect * 100).round()}%',

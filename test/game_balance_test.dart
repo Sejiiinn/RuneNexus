@@ -4,6 +4,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/definitions/game_enemy_data.dart';
+import 'package:rune_nexus/data/definitions/game_run_upgrade_data.dart';
 import 'package:rune_nexus/data/definitions/game_stage_data.dart';
 import 'package:rune_nexus/data/definitions/game_turret_data.dart';
 import 'package:rune_nexus/data/save/game_save_data.dart';
@@ -1798,6 +1799,39 @@ void main() {
     );
   });
 
+  test('run tower damage upgrade uses softened twenty-level cost curve', () {
+    final definition = gameRunUpgrades[RunUpgradeType.towerDamage]!;
+    const costs = [
+      32,
+      42,
+      54,
+      70,
+      91,
+      119,
+      154,
+      201,
+      261,
+      339,
+      441,
+      573,
+      746,
+      969,
+      1260,
+      1638,
+      2129,
+      2768,
+      3599,
+      4678,
+    ];
+
+    expect(definition.maxLevel, 20);
+    expect(definition.costMultiplier, 1.3);
+    for (var level = 0; level < costs.length; level++) {
+      expect(definition.costForLevel(level), costs[level]);
+    }
+    expect(definition.costForLevel(costs.length), 0);
+  });
+
   test('run kill gold upgrade accumulates fractional rewards', () async {
     final game = RuneNexusGame(saveRepository: MemorySaveRepository());
     game.onGameResize(Vector2(400, 800));
@@ -1841,6 +1875,27 @@ void main() {
 
     expect(game.snapshotNotifier.value.phase, GamePhase.success);
     expect(game.snapshotNotifier.value.gold, 164);
+  });
+
+  test('run wave gold upgrade uses stepped flat reward growth', () {
+    final definition = gameRunUpgrades[RunUpgradeType.waveGold]!;
+    const expectedBonuses = {
+      0: 0,
+      1: 4,
+      5: 20,
+      6: 25,
+      10: 45,
+      11: 51,
+      15: 75,
+      16: 82,
+      20: 110,
+    };
+
+    expect(definition.maxLevel, 20);
+    expect(definition.costMultiplier, 1.2);
+    for (final entry in expectedBonuses.entries) {
+      expect(definition.effectForLevel(entry.key), entry.value);
+    }
   });
 
   test('permanent supply upgrade adds one gold per cleared wave', () async {

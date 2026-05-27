@@ -495,10 +495,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _killGoldRunBonusRate + _killGoldProgressionBonusRate;
   bool get _hasCostSavingDesign =>
       _runCorePassiveSlots.contains(CorePassiveAbility.costSavingDesign);
-  int get _waveClearGoldRunBonus =>
-      (_runUpgradeLevel(RunUpgradeType.waveGold) *
-              gameRunUpgrades[RunUpgradeType.waveGold]!.effectPerLevel)
-          .round();
+  int get _waveClearGoldRunBonus => gameRunUpgrades[RunUpgradeType.waveGold]!
+      .effectForLevel(_runUpgradeLevel(RunUpgradeType.waveGold))
+      .round();
   double get _totalTurretDps =>
       _turrets.values.fold<double>(0, (total, turret) {
         final directDps = turret.attackRate <= 0
