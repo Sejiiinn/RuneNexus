@@ -16,6 +16,7 @@ import '../../domain/turret/turret_type.dart';
 import '../rendering/turret_shape_renderer.dart';
 import '../rune_nexus_game.dart';
 import 'enemy_component.dart';
+import 'lightning_charge_component.dart';
 import 'projectile_component.dart';
 
 class TurretComponent extends PositionComponent {
@@ -346,6 +347,12 @@ class TurretComponent extends PositionComponent {
       _secondaryTrait == TurretTraitType.currentAmplification ? 0.7 : 0.5;
   bool get appliesLightningRecovery =>
       _secondaryTrait == TurretTraitType.lightningRecovery;
+
+  Vector2 get lightningChargePosition {
+    final offset = Vector2(math.cos(_aimAngle), math.sin(_aimAngle));
+    return position + offset * (size.x * 0.58);
+  }
+
   List<GemType> get equippedGems =>
       List.unmodifiable(_gemSlots.whereType<GemType>());
   List<GemType?> get equippedGemSlots =>
@@ -770,6 +777,32 @@ class TurretComponent extends PositionComponent {
     _cooldown = baseCooldown;
     _lastLightningBaseCooldown = baseCooldown;
     _lightningAttackElapsed = 0;
+    _aimAngle = math.atan2(
+      target.position.y - position.y,
+      target.position.x - position.x,
+    );
+    _triggerFireFeedback();
+    game.add(
+      LightningChargeComponent(
+        chargePosition: () => lightningChargePosition,
+        isActive: () => isMounted,
+        onRelease: () => releaseLightningCharge(attack),
+        color: definition.color,
+        visualScale: game.boardDistanceScale,
+      ),
+    );
+  }
+
+  void releaseLightningCharge(TurretAttackSnapshot attack) {
+    final target = _findTarget();
+    if (target == null) {
+      recordLightningChainCompletion(
+        usedJumps: 0,
+        maxJumps: attack.lightningChainMaxJumps,
+      );
+      return;
+    }
+
     _aimAngle = math.atan2(
       target.position.y - position.y,
       target.position.x - position.x,

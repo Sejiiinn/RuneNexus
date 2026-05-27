@@ -1,5 +1,6 @@
 import '../turret/attack_tag.dart';
 import '../turret/turret_definition.dart';
+import '../turret/turret_type.dart';
 import 'gem_type.dart';
 
 bool canEquipGemOnTurret(GemType type, TurretDefinition turret) {
@@ -7,7 +8,9 @@ bool canEquipGemOnTurret(GemType type, TurretDefinition turret) {
 }
 
 String? gemEquipBlockReason(GemType type, TurretDefinition turret) {
-  if (type == GemType.chain && turret.attackTags.contains(AttackTag.heavy)) {
+  if (type == GemType.chain &&
+      turret.attackTags.contains(AttackTag.heavy) &&
+      turret.type != TurretType.lightning) {
     return '중화기 포탑에는 장착 불가';
   }
   if (type == GemType.aimSpeed &&

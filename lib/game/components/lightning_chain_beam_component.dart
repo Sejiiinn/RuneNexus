@@ -12,6 +12,7 @@ class LightningChainBeamComponent extends PositionComponent {
     this.source,
     required this.color,
     double duration = 0.16,
+    this.visualScale = 1,
   }) : _sourcePosition = sourcePosition.clone(),
        _targetPosition = target.position.clone(),
        _duration = duration,
@@ -21,6 +22,7 @@ class LightningChainBeamComponent extends PositionComponent {
   final EnemyComponent? source;
   final EnemyComponent target;
   final Color color;
+  final double visualScale;
   final double _duration;
   final double _seed;
   Vector2 _sourcePosition;
@@ -59,7 +61,7 @@ class LightningChainBeamComponent extends PositionComponent {
       Paint()
         ..color = color.withValues(alpha: alpha * 0.22)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 8.0
+        ..strokeWidth = 8.0 * visualScale
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round,
     );
@@ -69,7 +71,7 @@ class LightningChainBeamComponent extends PositionComponent {
       Paint()
         ..color = const Color(0xFF8CFFF3).withValues(alpha: alpha * 0.52)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 4.2
+        ..strokeWidth = 4.2 * visualScale
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round,
     );
@@ -79,7 +81,7 @@ class LightningChainBeamComponent extends PositionComponent {
       Paint()
         ..color = const Color(0xFFFFFFFF).withValues(alpha: alpha)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.45
+        ..strokeWidth = 1.45 * visualScale
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round,
     );
@@ -105,7 +107,7 @@ class LightningChainBeamComponent extends PositionComponent {
       }
       final t = index / 5;
       final wave = math.sin(_seed + index * 1.7) * 0.5 + 0.5;
-      final offset = (wave - 0.5) * math.min(18.0, length * 0.16);
+      final offset = (wave - 0.5) * math.min(18.0 * visualScale, length * 0.16);
       return Offset(start.dx + dx * t, start.dy + dy * t) + normal * offset;
     });
   }
@@ -121,12 +123,12 @@ class LightningChainBeamComponent extends PositionComponent {
   void _drawSpark(Canvas canvas, Offset center, double alpha) {
     canvas.drawCircle(
       center,
-      6.2,
+      6.2 * visualScale,
       Paint()..color = color.withValues(alpha: alpha * 0.22),
     );
     canvas.drawCircle(
       center,
-      2.4,
+      2.4 * visualScale,
       Paint()..color = const Color(0xFFFFFFFF).withValues(alpha: alpha * 0.9),
     );
   }

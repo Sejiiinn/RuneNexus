@@ -35,6 +35,7 @@ import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/domain/wave/wave_definition.dart';
 import 'package:rune_nexus/game/components/chain_projectile_component.dart';
 import 'package:rune_nexus/game/components/enemy_component.dart';
+import 'package:rune_nexus/game/components/lightning_charge_component.dart';
 import 'package:rune_nexus/game/components/lightning_chain_beam_component.dart';
 import 'package:rune_nexus/game/components/projectile_component.dart';
 import 'package:rune_nexus/game/components/sequential_lightning_chain_component.dart';
@@ -570,7 +571,7 @@ void main() {
     expect(gameTurrets[TurretType.magic]!.attackRate, 0.59);
     expect(gameTurrets[TurretType.frost]!.attackRate, 0.4);
     expect(gameTurrets[TurretType.sniper]!.attackRate, 0.625);
-    expect(gameTurrets[TurretType.lightning]!.attackRate, 0.8);
+    expect(gameTurrets[TurretType.lightning]!.attackRate, 0.55);
   });
 
   test('sniper turret unlocks after stage one clear', () {
@@ -626,9 +627,14 @@ void main() {
       isNot(contains(TurretType.lightning)),
     );
     expect(gameTurrets[TurretType.lightning]!.cost, 140);
+    expect(gameTurrets[TurretType.lightning]!.damage, 24);
     expect(
       gameTurrets[TurretType.lightning]!.damageFamily,
       DamageFamily.magical,
+    );
+    expect(
+      gameTurrets[TurretType.lightning]!.attackTags,
+      contains(AttackTag.heavy),
     );
 
     game.selectTurretType(TurretType.lightning);
@@ -2727,6 +2733,10 @@ void main() {
       isTrue,
     );
     expect(
+      canEquipGemOnTurret(GemType.chain, gameTurrets[TurretType.lightning]!),
+      isTrue,
+    );
+    expect(
       canEquipGemOnTurret(GemType.aimSpeed, gameTurrets[TurretType.arrow]!),
       isFalse,
     );
@@ -3475,7 +3485,7 @@ void main() {
     game.resolveLightningChainAttack(owner: turret, target: first);
     game.update(0);
 
-    expect(first.hp, closeTo(84, 0.001));
+    expect(first.hp, closeTo(76, 0.001));
     expect(second.hp, closeTo(100, 0.001));
     expect(third.hp, closeTo(100, 0.001));
     expect(
@@ -3487,13 +3497,45 @@ void main() {
     expect(second.hp, closeTo(100, 0.001));
 
     game.update(0.002);
-    expect(second.hp, closeTo(92, 0.001));
+    expect(second.hp, closeTo(88, 0.001));
     expect(third.hp, closeTo(100, 0.001));
 
     game.update(0.07);
-    expect(third.hp, closeTo(92, 0.001));
-    expect(turret.directDamageDealt, closeTo(16, 0.001));
-    expect(turret.chainDamageDealt, closeTo(16, 0.001));
+    expect(third.hp, closeTo(88, 0.001));
+    expect(turret.directDamageDealt, closeTo(24, 0.001));
+    expect(turret.chainDamageDealt, closeTo(24, 0.001));
+    expect(game.children.whereType<LightningChainBeamComponent>(), isNotEmpty);
+  });
+
+  test('chain lightning charges before the first strike', () {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    final turret = TurretComponent(
+      gridPoint: const GridPoint(2, 0),
+      definition: gameTurrets[TurretType.lightning]!,
+      game: game,
+      center: Vector2(100, 100),
+      tileSize: 32,
+    );
+    final target = _chainEnemy(game, turret.position + Vector2(20, 0), 30);
+    game.enemies.add(target);
+    var released = false;
+    final charge = LightningChargeComponent(
+      chargePosition: () => turret.lightningChargePosition,
+      isActive: () => true,
+      onRelease: () {
+        released = true;
+        turret.releaseLightningCharge(turret.createAttackSnapshot());
+      },
+      color: turret.definition.color,
+    );
+
+    charge.update(0.299);
+    expect(target.hp, closeTo(100, 0.001));
+    expect(released, isFalse);
+
+    charge.update(0.002);
+    expect(target.hp, closeTo(76, 0.001));
+    expect(released, isTrue);
     expect(game.children.whereType<LightningChainBeamComponent>(), isNotEmpty);
   });
 
@@ -3605,9 +3647,9 @@ void main() {
       target: chainTarget,
     );
 
-    expect(first.hp, closeTo(84, 0.001));
-    expect(splash.hp, closeTo(94.4, 0.001));
-    expect(chainTarget.hp, closeTo(92, 0.001));
+    expect(first.hp, closeTo(76, 0.001));
+    expect(splash.hp, closeTo(91.6, 0.001));
+    expect(chainTarget.hp, closeTo(88, 0.001));
   });
 
   test('chain hit from fire turret applies scaled burn', () async {

@@ -2101,9 +2101,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     add(
       LightningChainBeamComponent(
-        sourcePosition: owner.position,
+        sourcePosition: owner.lightningChargePosition,
         target: target,
         color: owner.definition.color,
+        visualScale: boardDistanceScale,
       ),
     );
     _showImpact(
@@ -2225,6 +2226,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         sourcePosition: sourcePosition,
         target: target,
         color: owner.definition.color,
+        visualScale: boardDistanceScale,
       ),
     );
     final damage = attack.damage * attack.lightningChainDamageMultiplier;
