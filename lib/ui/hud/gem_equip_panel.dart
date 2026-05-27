@@ -935,9 +935,18 @@ String _gemEffectText(GemType type, TurretDefinition turret) {
       turret.attackTags.contains(AttackTag.damageOverTime)
           ? '지속피해 30% 증폭, 지속시간 30% 증가'
           : '현재 적용되는 지속피해 없음',
-    GemType.explosion => turret.splashRadius > 0 ? '폭발 반경 25% 증폭' : '반경 34 폭발',
+    GemType.explosion =>
+      turret.type == TurretType.lightning
+          ? '첫 대상 전기 충격파'
+          : turret.splashRadius > 0
+          ? '폭발 반경 25% 증폭'
+          : '반경 34 폭발',
     GemType.chain =>
-      turret.splashRadius > 0 ? '폭발 미적중 최대 2명에게 50% 연쇄' : '주변 최대 2명에게 50% 연쇄',
+      turret.type == TurretType.lightning
+          ? '후속 연쇄 대상 +2'
+          : turret.splashRadius > 0
+          ? '폭발 미적중 최대 2명에게 50% 연쇄'
+          : '주변 최대 2명에게 50% 연쇄',
     GemType.criticalChance => '치명 확률 +20%p',
     GemType.aimSpeed =>
       turret.instantHit && turret.aimDuration > 0

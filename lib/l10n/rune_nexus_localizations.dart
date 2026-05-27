@@ -108,6 +108,7 @@ class RuneNexusLocalizations {
   String get stageSniperRewardLocked => clearReward(sniperTurret);
   String get stageSniperRewardUnlocked => unlockedReward(sniperTurret);
   String get sniperTurret => _isEnglish ? 'Sniper turret' : '저격 포탑';
+  String get lightningTurret => _isEnglish ? 'Lightning turret' : '라이트닝 포탑';
   String get economicUpgrade => _isEnglish ? 'Economy upgrade' : '경제 강화';
   String get combatUpgrade => _isEnglish ? 'Combat upgrade' : '전투 강화';
   String get upgradeUnlock => _isEnglish ? 'Upgrade unlock' : '강화 해금';

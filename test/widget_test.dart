@@ -90,6 +90,7 @@ void main() {
     expect(find.text('스테이지 6'), findsOneWidget);
     expect(find.text('스테이지 10'), findsOneWidget);
     expect(find.text('스테이지 1'), findsNothing);
+    expect(find.text('라이트닝 포탑'), findsOneWidget);
 
     await tester.tap(find.text('스테이지 6'));
     await _pumpGameFrames(tester);

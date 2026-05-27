@@ -149,6 +149,32 @@ void main() {
     expect(turret.canChoosePrimaryTrait, isTrue);
   });
 
+  test('chain lightning traits expose length and reload paths', () {
+    final game = RuneNexusGame();
+    final turret =
+        TurretComponent(
+            gridPoint: const GridPoint(0, 0),
+            definition: gameTurrets[TurretType.lightning]!,
+            game: game,
+            center: Vector2.zero(),
+            tileSize: 32,
+          )
+          ..upgradeLevel()
+          ..upgradeLevel();
+
+    expect(turret.supportsTraits, isTrue);
+    expect(turret.primaryTraitChoices, [
+      TurretTraitType.branchCurrent,
+      TurretTraitType.focusedLightning,
+    ]);
+    expect(turret.secondaryTraitChoices, [
+      TurretTraitType.lightningRecovery,
+      TurretTraitType.currentAmplification,
+    ]);
+    expect(turret.lightningChainMaxTargets, 3);
+    expect(turret.canChoosePrimaryTrait, isTrue);
+  });
+
   test('shrapnel shell improves cannon splash coverage', () {
     final game = RuneNexusGame();
     final turret =
@@ -558,6 +584,35 @@ void main() {
     expect(turret.registerDirectHitTraits(enemy), closeTo(1.45, 0.001));
   });
 
+  test('chain lightning primary traits adjust chain length and first hit', () {
+    final game = RuneNexusGame();
+    final branchTurret = _levelSevenLightning(game)
+      ..choosePrimaryTrait(TurretTraitType.branchCurrent);
+    final focusedTurret = _levelSevenLightning(game)
+      ..choosePrimaryTrait(TurretTraitType.focusedLightning);
+    final enemy = _enemy(game);
+
+    expect(branchTurret.lightningChainMaxTargets, 4);
+    expect(branchTurret.registerDirectHitTraits(enemy), closeTo(1, 0.001));
+    expect(focusedTurret.lightningChainMaxTargets, 2);
+    expect(focusedTurret.registerDirectHitTraits(enemy), closeTo(1.3, 0.001));
+  });
+
+  test('chain lightning secondary traits amplify chain or recover reload', () {
+    final game = RuneNexusGame();
+    final amplified = _levelSevenLightning(game)
+      ..choosePrimaryTrait(TurretTraitType.branchCurrent)
+      ..chooseSecondaryTrait(TurretTraitType.currentAmplification);
+    final recovery = _levelSevenLightning(game)
+      ..choosePrimaryTrait(TurretTraitType.branchCurrent)
+      ..chooseSecondaryTrait(TurretTraitType.lightningRecovery);
+
+    expect(amplified.lightningChainDamageMultiplier, closeTo(0.7, 0.001));
+    expect(recovery.lightningChainDamageMultiplier, closeTo(0.5, 0.001));
+    recovery.recordLightningChainCompletion(usedJumps: 1, maxJumps: 3);
+    expect(recovery.cooldown, closeTo(0, 0.001));
+  });
+
   test('primary and secondary traits are restored from save data', () {
     final game = RuneNexusGame();
     final turret = _levelSevenMachineGun(game)
@@ -640,6 +695,20 @@ TurretComponent _levelSevenSniper(RuneNexusGame game) {
   final turret = TurretComponent(
     gridPoint: const GridPoint(0, 0),
     definition: gameTurrets[TurretType.sniper]!,
+    game: game,
+    center: Vector2.zero(),
+    tileSize: 32,
+  );
+  for (var i = 0; i < 6; i++) {
+    turret.upgradeLevel();
+  }
+  return turret;
+}
+
+TurretComponent _levelSevenLightning(RuneNexusGame game) {
+  final turret = TurretComponent(
+    gridPoint: const GridPoint(0, 0),
+    definition: gameTurrets[TurretType.lightning]!,
     game: game,
     center: Vector2.zero(),
     tileSize: 32,

@@ -82,6 +82,7 @@ class ProjectileComponent extends PositionComponent {
       TurretType.magic => 4,
       TurretType.frost => 5,
       TurretType.sniper => 3.5,
+      TurretType.lightning => 3.5,
     };
     return baseRadius * owner.game.boardDistanceScale;
   }
@@ -103,6 +104,7 @@ class ProjectileComponent extends PositionComponent {
         TurretType.magic => 3.5 - i * 0.18,
         TurretType.frost => 3.0 - i * 0.16,
         TurretType.sniper => 2.2 - i * 0.16,
+        TurretType.lightning => 2.2 - i * 0.16,
       };
       final scaledRadius = radius * visualScale;
       if (owner.definition.type == TurretType.arrow && i < _trail.length - 1) {
@@ -195,6 +197,18 @@ class ProjectileComponent extends PositionComponent {
           1.0 * visualScale,
           Paint()..color = const Color(0xFFFFFFFF),
         );
+      case TurretType.lightning:
+        canvas.drawCircle(
+          center,
+          4.2 * visualScale,
+          Paint()..color = color.withValues(alpha: 0.28),
+        );
+        canvas.drawCircle(center, 2.4 * visualScale, Paint()..color = color);
+        canvas.drawCircle(
+          center,
+          1.0 * visualScale,
+          Paint()..color = const Color(0xFFFFFFFF),
+        );
     }
   }
 
@@ -213,6 +227,7 @@ class ProjectileComponent extends PositionComponent {
       TurretType.magic => 10,
       TurretType.frost => 10,
       TurretType.sniper => 8,
+      TurretType.lightning => 8,
     };
   }
 }

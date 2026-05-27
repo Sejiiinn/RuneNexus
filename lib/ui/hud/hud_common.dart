@@ -54,13 +54,19 @@ class _TurretButton extends StatelessWidget {
           children: [
             _TurretShapeIcon(type: type, color: enabled ? color : costColor),
             const SizedBox(height: 2),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontWeight: selected ? FontWeight.w900 : FontWeight.w500,
-                color: titleColor,
+            SizedBox(
+              width: double.infinity,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: TextStyle(
+                    fontWeight: selected ? FontWeight.w900 : FontWeight.w500,
+                    color: titleColor,
+                  ),
+                ),
               ),
             ),
             Text(

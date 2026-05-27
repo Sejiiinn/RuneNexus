@@ -935,6 +935,10 @@ IconData _traitIcon(TurretTraitType trait) {
     TurretTraitType.quickScope => Icons.flash_on,
     TurretTraitType.exposedMark => Icons.filter_center_focus,
     TurretTraitType.finishingShot => Icons.offline_bolt,
+    TurretTraitType.branchCurrent => Icons.hub_outlined,
+    TurretTraitType.focusedLightning => Icons.thunderstorm_outlined,
+    TurretTraitType.lightningRecovery => Icons.replay_circle_filled_outlined,
+    TurretTraitType.currentAmplification => Icons.electric_bolt,
   };
 }
 
@@ -960,5 +964,9 @@ Color _traitAccentColor(TurretTraitType trait) {
     TurretTraitType.quickScope => const Color(0xFF8EE6FF),
     TurretTraitType.exposedMark => const Color(0xFFD7F27C),
     TurretTraitType.finishingShot => const Color(0xFFFFD166),
+    TurretTraitType.branchCurrent => const Color(0xFF4DEAFF),
+    TurretTraitType.focusedLightning => const Color(0xFFE8FBFF),
+    TurretTraitType.lightningRecovery => const Color(0xFF8CFFF3),
+    TurretTraitType.currentAmplification => const Color(0xFFB98CFF),
   };
 }

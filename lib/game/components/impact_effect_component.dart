@@ -3,7 +3,15 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 
-enum ImpactEffectStyle { spark, blast, sniperBlast, flame, frost }
+enum ImpactEffectStyle {
+  spark,
+  blast,
+  sniperBlast,
+  flame,
+  frost,
+  lightning,
+  lightningBlast,
+}
 
 class ImpactEffectComponent extends PositionComponent {
   ImpactEffectComponent({
@@ -169,7 +177,73 @@ class ImpactEffectComponent extends PositionComponent {
             shardPaint,
           );
         }
+      case ImpactEffectStyle.lightning:
+        _drawLightning(canvas, center, progress, alpha, radius);
+      case ImpactEffectStyle.lightningBlast:
+        _drawLightningBlast(canvas, center, progress, alpha);
     }
+  }
+
+  void _drawLightning(
+    Canvas canvas,
+    Offset center,
+    double progress,
+    double alpha,
+    double radius,
+  ) {
+    final ring = Paint()
+      ..color = _color.withValues(alpha: alpha * 0.66)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+    canvas.drawCircle(center, radius * (0.22 + progress * 0.62), ring);
+    canvas.drawCircle(
+      center,
+      radius * (0.1 + progress * 0.12),
+      Paint()..color = const Color(0xFFFFFFFF).withValues(alpha: alpha * 0.8),
+    );
+    final spark = Paint()
+      ..color = const Color(0xFF8CFFF3).withValues(alpha: alpha)
+      ..strokeWidth = 1.6
+      ..strokeCap = StrokeCap.round;
+    for (var i = 0; i < 5; i++) {
+      final angle = i * math.pi * 2 / 5 + progress * 0.48;
+      final inner = radius * (0.16 + progress * 0.12);
+      final mid = radius * (0.36 + progress * 0.22);
+      final outer = radius * (0.52 + progress * 0.28);
+      final start = Offset(
+        center.dx + math.cos(angle) * inner,
+        center.dy + math.sin(angle) * inner,
+      );
+      final bend = Offset(
+        center.dx + math.cos(angle + 0.22) * mid,
+        center.dy + math.sin(angle + 0.22) * mid,
+      );
+      final end = Offset(
+        center.dx + math.cos(angle - 0.18) * outer,
+        center.dy + math.sin(angle - 0.18) * outer,
+      );
+      canvas.drawLine(start, bend, spark);
+      canvas.drawLine(bend, end, spark);
+    }
+  }
+
+  void _drawLightningBlast(
+    Canvas canvas,
+    Offset center,
+    double progress,
+    double alpha,
+  ) {
+    _drawBlast(
+      canvas: canvas,
+      center: center,
+      progress: progress,
+      alpha: alpha,
+      shockColor: const Color(0xFFE8FBFF),
+      flashColor: const Color(0xFFFFFFFF),
+      coreColor: const Color(0xFF4DEAFF),
+      shardAltColor: const Color(0xFF8CFFF3),
+      dustColor: const Color(0xFF9DDDEA),
+    );
   }
 
   void _drawBlast({
@@ -244,5 +318,6 @@ class ImpactEffectComponent extends PositionComponent {
 
 bool _isBlastStyle(ImpactEffectStyle style) {
   return style == ImpactEffectStyle.blast ||
-      style == ImpactEffectStyle.sniperBlast;
+      style == ImpactEffectStyle.sniperBlast ||
+      style == ImpactEffectStyle.lightningBlast;
 }

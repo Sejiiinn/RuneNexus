@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>연쇄 번개 포탑 외형 후보</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #071019;
+      --panel: #0b1721;
+      --panel-2: #0f202d;
+      --line: #233748;
+      --text: #e8f8ff;
+      --muted: #94aabd;
+      --steel: #627886;
+      --steel-dark: #172631;
+      --cyan: #4deaff;
+      --cyan-soft: #9dfff8;
+      --amber: #d9b75f;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+        radial-gradient(circle at 50% 14%, rgba(77, 234, 255, 0.13), transparent 30%),
+        linear-gradient(180deg, #091521, var(--bg));
+      background-size: 30px 30px, 30px 30px, 100% 100%, 100% 100%;
+      color: var(--text);
+      font-family: "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+    }
+
+    main {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0 34px;
+    }
+
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .legend {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .chip {
+      border: 1px solid rgba(77, 234, 255, 0.22);
+      background: rgba(77, 234, 255, 0.07);
+      border-radius: 4px;
+      padding: 5px 8px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      min-width: 0;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(13, 27, 38, 0.98), rgba(7, 16, 25, 0.98));
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .card.recommended {
+      border-color: rgba(77, 234, 255, 0.72);
+      box-shadow: 0 0 0 1px rgba(77, 234, 255, 0.12), 0 14px 30px rgba(0, 0, 0, 0.35);
+    }
+
+    .stage {
+      position: relative;
+      display: grid;
+      place-items: center;
+      aspect-ratio: 1 / 1;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,0.04) 1px, transparent 1px),
+        radial-gradient(circle, rgba(77, 234, 255, 0.09), transparent 58%);
+      background-size: 24px 24px, 24px 24px, 100% 100%;
+    }
+
+    svg {
+      width: 88%;
+      height: 88%;
+      overflow: visible;
+    }
+
+    .meta {
+      padding: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .tag {
+      flex: none;
+      padding: 3px 6px;
+      border-radius: 4px;
+      background: rgba(217, 183, 95, 0.14);
+      color: var(--amber);
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .desc {
+      min-height: 44px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .score {
+      display: grid;
+      gap: 5px;
+      margin-top: 11px;
+    }
+
+    .bar {
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      align-items: center;
+      gap: 7px;
+      color: #bdd1de;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .track {
+      height: 5px;
+      border-radius: 999px;
+      background: #142636;
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--cyan), var(--cyan-soft));
+    }
+
+    .note {
+      margin-top: 16px;
+      padding: 12px 14px;
+      border: 1px solid rgba(77, 234, 255, 0.26);
+      background: rgba(77, 234, 255, 0.065);
+      border-radius: 6px;
+      color: #c9e8f0;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .base { fill: #111f2b; stroke: #030812; stroke-width: 5; }
+    .base2 { fill: #1c303c; stroke: #030812; stroke-width: 4; }
+    .armor { fill: #465b69; stroke: #030812; stroke-width: 4; }
+    .dark { fill: #14232e; stroke: #030812; stroke-width: 4; }
+    .muzzle { fill: #6f8792; stroke: #030812; stroke-width: 4; }
+    .accent { fill: var(--cyan); stroke: #030812; stroke-width: 4; }
+    .amber { fill: var(--amber); stroke: #030812; stroke-width: 3; }
+    .coil { fill: none; stroke: var(--cyan-soft); stroke-width: 6; stroke-linecap: square; }
+    .coil-dark { fill: none; stroke: #030812; stroke-width: 10; stroke-linecap: square; }
+    .bolt { fill: none; stroke: var(--cyan); stroke-width: 5; stroke-linecap: square; stroke-linejoin: miter; }
+    .bolt-core { fill: none; stroke: #ffffff; stroke-width: 2; stroke-linecap: square; stroke-linejoin: miter; }
+    .glow { fill: rgba(77, 234, 255, 0.12); stroke: rgba(77, 234, 255, 0.32); stroke-width: 2; }
+    .panel-line { fill: none; stroke: #83a4b4; stroke-width: 2; opacity: 0.55; }
+    .white { fill: #ffffff; }
+
+    @media (max-width: 980px) {
+      .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      header {
+        align-items: start;
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>연쇄 번개 포탑 외형 후보 v2</h1>
+        <p>보라색 링과 둥근 장난감 느낌을 빼고, 노출 코일·금속 장갑·쌍극 전극 중심으로 다시 잡은 후보입니다.</p>
+      </div>
+      <div class="legend">
+        <span class="chip">쌍극 전극</span>
+        <span class="chip">장갑 포신</span>
+        <span class="chip">청록 전류</span>
+      </div>
+    </header>
+
+    <section class="grid">
+      <article class="card">
+        <div class="stage">
+          <svg viewBox="0 0 180 180" aria-label="후보 A 장갑 쌍극 코일포">
+            <polygon class="glow" points="38,112 58,61 116,42 145,82 132,134 72,143" />
+            <polygon class="base" points="48,121 73,104 118,105 138,123 130,145 59,145" />
+            <polygon class="base2" points="58,95 78,67 116,58 137,79 129,113 84,120" />
+            <g transform="translate(91 83) rotate(-20)">
+              <polygon class="dark" points="-27,-23 31,-23 55,-13 55,-5 -27,-5" />
+              <polygon class="dark" points="-27,5 55,5 55,13 31,23 -27,23" />
+              <path class="coil-dark" d="M-13,-28 L-4,-1 M7,-28 L16,-1 M27,-25 L34,-3 M-13,28 L-4,1 M7,28 L16,1 M27,25 L34,3" />
+              <path class="coil" d="M-13,-28 L-4,-1 M7,-28 L16,-1 M27,-25 L34,-3 M-13,28 L-4,1 M7,28 L16,1 M27,25 L34,3" />
+              <polygon class="muzzle" points="54,-17 72,-13 72,-4 54,-4" />
+              <polygon class="muzzle" points="54,4 72,4 72,13 54,17" />
+              <path class="bolt" d="M63,-4 L71,0 L62,5" />
+              <path class="bolt-core" d="M63,-4 L71,0 L62,5" />
+            </g>
+            <circle class="accent" cx="79" cy="94" r="11" />
+            <circle class="white" cx="79" cy="94" r="4" />
+            <path class="panel-line" d="M62 122 H124 M78 67 L58 95 M118 105 L130 145" />
+          </svg>
+        </div>
+        <div class="meta">
+          <div class="title">A. 장갑 쌍극 코일포</div>
+          <p class="desc">D의 쌍극 전극을 유지하되, 포신을 더 각지고 무겁게 만든 방향. 연쇄 전류와 공격 장치가 동시에 읽힌다.</p>
+          <div class="score">
+            <div class="bar"><span>식별</span><div class="track"><div class="fill" style="width:91%"></div></div></div>
+            <div class="bar"><span>구현</span><div class="track"><div class="fill" style="width:78%"></div></div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="stage">
+          <svg viewBox="0 0 180 180" aria-label="후보 B 절연 코일 포신">
+            <polygon class="glow" points="45,126 54,66 104,42 143,72 139,123 98,147" />
+            <polygon class="base" points="48,124 69,104 119,106 139,126 129,146 58,146" />
+            <polygon class="base2" points="60,97 82,66 114,60 132,78 122,112 83,119" />
+            <g transform="translate(92 83) rotate(-34)">
+              <polygon class="armor" points="-20,-18 47,-18 65,-7 65,7 47,18 -20,18" />
+              <polygon class="dark" points="-25,-11 42,-11 55,-4 55,4 42,11 -25,11" />
+              <path class="coil-dark" d="M-8,-21 C0,-10 0,10 -8,21 M9,-21 C17,-10 17,10 9,21 M26,-19 C34,-9 34,9 26,19" />
+              <path class="coil" d="M-8,-21 C0,-10 0,10 -8,21 M9,-21 C17,-10 17,10 9,21 M26,-19 C34,-9 34,9 26,19" />
+              <polygon class="muzzle" points="62,-10 78,-4 78,4 62,10" />
+              <path class="bolt" d="M72 0 L84 -6 L80 4 L91 -1" />
+              <path class="bolt-core" d="M72 0 L84 -6 L80 4 L91 -1" />
+            </g>
+            <rect class="accent" x="72" y="91" width="17" height="17" rx="2" transform="rotate(-18 80.5 99.5)" />
+            <path class="panel-line" d="M62 125 H126 M70 104 L82 119 M114 60 L132 78" />
+          </svg>
+        </div>
+        <div class="meta">
+          <div class="title">B. 절연 코일 포신</div>
+          <p class="desc">E의 코일 포탑 감각을 살리되 링은 제거했다. 포신 요구에는 가장 직접적이지만 쌍극 느낌은 약하다.</p>
+          <div class="score">
+            <div class="bar"><span>식별</span><div class="track"><div class="fill" style="width:86%"></div></div></div>
+            <div class="bar"><span>구현</span><div class="track"><div class="fill" style="width:86%"></div></div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="stage">
+          <svg viewBox="0 0 180 180" aria-label="후보 C 유도 레일 캐논">
+            <polygon class="glow" points="38,111 59,61 113,43 144,80 133,134 73,144" />
+            <polygon class="base" points="47,123 74,103 119,106 138,125 128,145 59,145" />
+            <polygon class="base2" points="57,95 81,64 116,60 136,84 124,113 85,121" />
+            <g transform="translate(91 85) rotate(-16)">
+              <polygon class="armor" points="-30,-15 46,-15 71,-7 71,7 46,15 -30,15" />
+              <line class="coil-dark" x1="-17" y1="-23" x2="55" y2="-23" />
+              <line class="coil-dark" x1="-17" y1="23" x2="55" y2="23" />
+              <line class="coil" x1="-17" y1="-23" x2="55" y2="-23" />
+              <line class="coil" x1="-17" y1="23" x2="55" y2="23" />
+              <polygon class="dark" points="-20,-8 44,-8 58,-3 58,3 44,8 -20,8" />
+              <rect class="amber" x="-7" y="-27" width="10" height="8" rx="1" />
+              <rect class="amber" x="21" y="19" width="10" height="8" rx="1" />
+              <path class="bolt" d="M59,-2 L70,-8 L68,0 L79,-5" />
+              <path class="bolt-core" d="M59,-2 L70,-8 L68,0 L79,-5" />
+            </g>
+            <circle class="accent" cx="79" cy="96" r="9" />
+            <path class="panel-line" d="M58 95 L85 121 M74 103 L119 106 M119 106 L128 145" />
+          </svg>
+        </div>
+        <div class="meta">
+          <div class="title">C. 유도 레일 캐논</div>
+          <p class="desc">군용 레일건처럼 가장 날카로운 실루엣이다. 전기 속성은 잘 읽히지만 연쇄보다는 관통포에 가까울 수 있다.</p>
+          <div class="score">
+            <div class="bar"><span>식별</span><div class="track"><div class="fill" style="width:80%"></div></div></div>
+            <div class="bar"><span>구현</span><div class="track"><div class="fill" style="width:82%"></div></div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card recommended">
+        <div class="stage">
+          <svg viewBox="0 0 180 180" aria-label="후보 D 전극 집속포">
+            <polygon class="glow" points="46,127 58,68 90,41 123,68 136,127 112,149 68,149" />
+            <polygon class="base" points="50,125 66,97 90,87 114,97 130,125 112,146 68,146" />
+            <polygon class="base2" points="62,114 74,97 90,91 106,97 118,114 108,130 72,130" />
+            <polygon class="armor" points="69,81 79,58 101,58 111,81 105,104 75,104" />
+            <polygon class="dark" points="76,83 83,64 97,64 104,83 100,96 80,96" />
+            <polygon class="dark" points="58,103 72,73 82,78 76,111" />
+            <polygon class="dark" points="122,103 108,73 98,78 104,111" />
+            <polygon class="muzzle" points="74,64 81,42 88,42 87,65" />
+            <polygon class="muzzle" points="92,65 92,42 99,42 106,64" />
+            <path class="coil-dark" d="M69,96 L75,77 M80,101 L84,78 M111,96 L105,77 M100,101 L96,78" />
+            <path class="coil" d="M69,96 L75,77 M80,101 L84,78 M111,96 L105,77 M100,101 L96,78" />
+            <path class="bolt" d="M83,45 L90,35 L97,45" />
+            <path class="bolt-core" d="M83,45 L90,35 L97,45" />
+            <rect class="accent" x="79" y="107" width="22" height="22" rx="2" />
+            <circle class="white" cx="90" cy="118" r="4" />
+            <path class="panel-line" d="M66 97 L72 130 M114 97 L108 130 M74 97 H106 M68 146 H112" />
+          </svg>
+        </div>
+        <div class="meta">
+          <div class="title">D. 탑다운 전극 집속포 <span class="tag">추천</span></div>
+          <p class="desc">위에서 본 각진 장갑 토대 위에 두 전극 포신이 놓인 형태다. 원형 베이스 없이도 포탑 방향과 전기 속성이 읽힌다.</p>
+          <div class="score">
+            <div class="bar"><span>식별</span><div class="track"><div class="fill" style="width:90%"></div></div></div>
+            <div class="bar"><span>구현</span><div class="track"><div class="fill" style="width:84%"></div></div></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="stage">
+          <svg viewBox="0 0 180 180" aria-label="후보 E 코일 장갑포">
+            <polygon class="glow" points="42,119 55,66 103,42 144,73 138,126 95,148" />
+            <polygon class="base" points="48,124 72,104 119,105 139,126 129,146 58,146" />
+            <polygon class="base2" points="59,96 82,65 116,61 135,81 124,114 85,121" />
+            <g transform="translate(91 83) rotate(-31)">
+              <polygon class="armor" points="-24,-18 43,-18 62,-8 62,8 43,18 -24,18" />
+              <polygon class="dark" points="-11,-11 37,-11 50,-4 50,4 37,11 -11,11" />
+              <path class="coil-dark" d="M-25,-21 C-16,-8 -16,8 -25,21 M-7,-22 C2,-9 2,9 -7,22 M11,-21 C20,-8 20,8 11,21" />
+              <path class="coil" d="M-25,-21 C-16,-8 -16,8 -25,21 M-7,-22 C2,-9 2,9 -7,22 M11,-21 C20,-8 20,8 11,21" />
+              <polygon class="muzzle" points="58,-10 74,-4 74,4 58,10" />
+              <path class="bolt" d="M69,0 L82,-7 L79,2 L90,-3" />
+              <path class="bolt-core" d="M69,0 L82,-7 L79,2 L90,-3" />
+            </g>
+            <polygon class="accent" points="73,94 83,87 93,96 85,108 73,105" />
+            <path class="panel-line" d="M58 124 H127 M82 65 L59 96 M116 61 L135 81" />
+          </svg>
+        </div>
+        <div class="meta">
+          <div class="title">E. 코일 장갑포</div>
+          <p class="desc">이전 E에서 링을 제거하고 포신 장갑을 키운 버전이다. 구현 난도와 가독성의 균형이 가장 안정적이다.</p>
+          <div class="score">
+            <div class="bar"><span>식별</span><div class="track"><div class="fill" style="width:87%"></div></div></div>
+            <div class="bar"><span>구현</span><div class="track"><div class="fill" style="width:88%"></div></div></div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <div class="note">
+      추천은 D입니다. 인게임 카메라 기준으로 위에서 본 형태가 더 분명하고, 원형 베이스 없이 각진 장갑 토대만으로 포탑 실루엣을 만들 수 있습니다. 실제 적용 시에는 D의 쌍극 포신과 각진 토대를 기본형으로 잡는 편이 가장 좋습니다.
+    </div>
+  </main>
+</body>
+</html>

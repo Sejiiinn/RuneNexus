@@ -53,6 +53,8 @@ class TurretComponent extends PositionComponent {
   double _splashDamageDealt = 0;
   double _chainDamageDealt = 0;
   double _burnDamageDealt = 0;
+  double _lastLightningBaseCooldown = 0;
+  double _lightningAttackElapsed = 0;
   TurretTraitType? _primaryTrait;
   TurretTraitType? _secondaryTrait;
   EnemyComponent? _overheatTarget;
@@ -229,6 +231,11 @@ class TurretComponent extends PositionComponent {
       appliesCompressedCharge:
           _primaryTrait == TurretTraitType.compressedCharge,
       appliesFinishingShot: _secondaryTrait == TurretTraitType.finishingShot,
+      appliesFocusedLightning:
+          _primaryTrait == TurretTraitType.focusedLightning,
+      lightningChainMaxJumps: lightningChainMaxJumps,
+      lightningChainDamageMultiplier: lightningChainDamageMultiplier,
+      lightningChainJumpRange: game.lightningChainJumpRange,
     );
   }
 
@@ -317,6 +324,28 @@ class TurretComponent extends PositionComponent {
 
   bool hasGem(GemType type) => equippedGems.contains(type);
   bool get ignoresArmorReduction => hasGem(GemType.armorPiercing);
+  int get lightningChainMaxTargets => lightningChainMaxJumps + 1;
+  int get lightningChainMaxJumps {
+    if (definition.type != TurretType.lightning) {
+      return 0;
+    }
+    var jumps = 2;
+    if (hasGem(GemType.chain)) {
+      jumps += 2;
+    }
+    if (_primaryTrait == TurretTraitType.branchCurrent) {
+      jumps += 1;
+    }
+    if (_primaryTrait == TurretTraitType.focusedLightning) {
+      jumps -= 1;
+    }
+    return math.max(0, jumps);
+  }
+
+  double get lightningChainDamageMultiplier =>
+      _secondaryTrait == TurretTraitType.currentAmplification ? 0.7 : 0.5;
+  bool get appliesLightningRecovery =>
+      _secondaryTrait == TurretTraitType.lightningRecovery;
   List<GemType> get equippedGems =>
       List.unmodifiable(_gemSlots.whereType<GemType>());
   List<GemType?> get equippedGemSlots =>
@@ -415,6 +444,8 @@ class TurretComponent extends PositionComponent {
     _splashDamageDealt = math.max(0, data.splashDamageDealt);
     _chainDamageDealt = math.max(0, data.chainDamageDealt);
     _burnDamageDealt = math.max(0, data.burnDamageDealt);
+    _lastLightningBaseCooldown = 0;
+    _lightningAttackElapsed = 0;
     _targetPriority = data.targetPriority;
     _primaryTrait = primaryTraitChoices.contains(data.primaryTrait)
         ? data.primaryTrait
@@ -464,6 +495,8 @@ class TurretComponent extends PositionComponent {
     _suppressiveHits = 0;
     _recentHitTimers.clear();
     _chainCleanupTimer = 0;
+    _lastLightningBaseCooldown = 0;
+    _lightningAttackElapsed = 0;
     return true;
   }
 
@@ -476,6 +509,8 @@ class TurretComponent extends PositionComponent {
     _suppressiveHits = 0;
     _recentHitTimers.clear();
     _chainCleanupTimer = 0;
+    _lastLightningBaseCooldown = 0;
+    _lightningAttackElapsed = 0;
     return true;
   }
 
@@ -515,10 +550,41 @@ class TurretComponent extends PositionComponent {
     if (profile.appliesCompressedCharge) {
       multiplier *= 1.35;
     }
+    if (profile.appliesFocusedLightning) {
+      multiplier *= 1.3;
+    }
     if (profile.appliesFinishingShot && _durabilityRatio(enemy) <= 0.35) {
       multiplier *= 1.45;
     }
     return multiplier;
+  }
+
+  void recordLightningChainCompletion({
+    required int usedJumps,
+    required int maxJumps,
+  }) {
+    if (!appliesLightningRecovery) {
+      _lastLightningBaseCooldown = 0;
+      _lightningAttackElapsed = 0;
+      return;
+    }
+    final unusedJumps = math.max(0, maxJumps - usedJumps);
+    final baseCooldown = _lastLightningBaseCooldown > 0
+        ? _lastLightningBaseCooldown
+        : _cooldown;
+    if (unusedJumps <= 0 || baseCooldown <= 0) {
+      _lastLightningBaseCooldown = 0;
+      _lightningAttackElapsed = 0;
+      return;
+    }
+    final reloadEfficiency = unusedJumps * 0.15;
+    final adjustedCooldown = baseCooldown / (1 + reloadEfficiency);
+    _cooldown = math.min(
+      _cooldown,
+      math.max(0.0, adjustedCooldown - _lightningAttackElapsed),
+    );
+    _lastLightningBaseCooldown = 0;
+    _lightningAttackElapsed = 0;
   }
 
   double _durabilityRatio(EnemyComponent enemy) {
@@ -599,6 +665,9 @@ class TurretComponent extends PositionComponent {
   void update(double dt) {
     super.update(dt);
     _fireFeedbackTimer = math.max(0, _fireFeedbackTimer - dt);
+    if (_lastLightningBaseCooldown > 0 && _cooldown > 0) {
+      _lightningAttackElapsed += dt;
+    }
     _cooldown = math.max(0, _cooldown - dt);
     _chainCleanupTimer = math.max(0, _chainCleanupTimer - dt);
     _gemRingPhase = (_gemRingPhase + dt * 0.45) % (math.pi * 2);
@@ -649,6 +718,11 @@ class TurretComponent extends PositionComponent {
       return;
     }
 
+    if (definition.type == TurretType.lightning) {
+      _updateLightningAttack();
+      return;
+    }
+
     final target = _findTarget();
     if (target == null) {
       return;
@@ -680,6 +754,31 @@ class TurretComponent extends PositionComponent {
         attack: attack,
         game: game,
       ),
+    );
+  }
+
+  void _updateLightningAttack() {
+    final target = _findTarget();
+    if (target == null) {
+      return;
+    }
+
+    final attack = createAttackSnapshot(
+      criticalMultiplier: rollCriticalHit() ? criticalDamageMultiplier : 1.0,
+    );
+    final baseCooldown = (1 / attackRate) * _nextCooldownVarianceMultiplier();
+    _cooldown = baseCooldown;
+    _lastLightningBaseCooldown = baseCooldown;
+    _lightningAttackElapsed = 0;
+    _aimAngle = math.atan2(
+      target.position.y - position.y,
+      target.position.x - position.x,
+    );
+    _triggerFireFeedback();
+    game.resolveLightningChainAttack(
+      owner: this,
+      target: target,
+      attack: attack,
     );
   }
 
@@ -1250,6 +1349,10 @@ class TurretAttackSnapshot {
     required this.appliesOverheatMagazine,
     required this.appliesCompressedCharge,
     required this.appliesFinishingShot,
+    required this.appliesFocusedLightning,
+    required this.lightningChainMaxJumps,
+    required this.lightningChainDamageMultiplier,
+    required this.lightningChainJumpRange,
   });
 
   final GridPoint sourceTurretPoint;
@@ -1276,6 +1379,10 @@ class TurretAttackSnapshot {
   final bool appliesOverheatMagazine;
   final bool appliesCompressedCharge;
   final bool appliesFinishingShot;
+  final bool appliesFocusedLightning;
+  final int lightningChainMaxJumps;
+  final double lightningChainDamageMultiplier;
+  final double lightningChainJumpRange;
 
   bool get hasDamageOverTime =>
       definition.attackTags.contains(AttackTag.damageOverTime);

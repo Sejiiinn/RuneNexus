@@ -19,6 +19,10 @@ enum TurretTraitType {
   quickScope,
   exposedMark,
   finishingShot,
+  branchCurrent,
+  focusedLightning,
+  lightningRecovery,
+  currentAmplification,
 }
 
 extension TurretTraitTypeText on TurretTraitType {
@@ -44,6 +48,10 @@ extension TurretTraitTypeText on TurretTraitType {
       TurretTraitType.quickScope => '속사 조준',
       TurretTraitType.exposedMark => '노출 표식',
       TurretTraitType.finishingShot => '마무리 탄환',
+      TurretTraitType.branchCurrent => '분기 전류',
+      TurretTraitType.focusedLightning => '집중 낙뢰',
+      TurretTraitType.lightningRecovery => '낙뢰 회수',
+      TurretTraitType.currentAmplification => '전류 증폭',
     };
   }
 
@@ -69,6 +77,10 @@ extension TurretTraitTypeText on TurretTraitType {
       TurretTraitType.quickScope => '조준 속도 +40%, 치명타 확률 -5%p',
       TurretTraitType.exposedMark => '명중 대상 2초간 물리 저항 -15%',
       TurretTraitType.finishingShot => '내구도 35% 이하 대상 피해 45% 증폭',
+      TurretTraitType.branchCurrent => '후속 연쇄 대상 +1',
+      TurretTraitType.focusedLightning => '첫 대상 피해 +30%, 후속 연쇄 대상 -1',
+      TurretTraitType.lightningRecovery => '남은 연쇄 1회마다 다음 공격 재장전 효율 +15%',
+      TurretTraitType.currentAmplification => '후속 연쇄 피해 배율 50%에서 70%로 증가',
     };
   }
 }

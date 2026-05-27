@@ -39,6 +39,13 @@ const turretTraitCatalog = <TurretType, TurretTraitSet>{
     primary: [TurretTraitType.deadeyeFocus, TurretTraitType.quickScope],
     secondary: [TurretTraitType.exposedMark, TurretTraitType.finishingShot],
   ),
+  TurretType.lightning: TurretTraitSet(
+    primary: [TurretTraitType.branchCurrent, TurretTraitType.focusedLightning],
+    secondary: [
+      TurretTraitType.lightningRecovery,
+      TurretTraitType.currentAmplification,
+    ],
+  ),
 };
 
 TurretTraitSet turretTraitSetFor(TurretType type) {

@@ -1,1 +1,1 @@
-enum TurretType { arrow, cannon, magic, frost, sniper }
+enum TurretType { arrow, cannon, magic, frost, sniper, lightning }

@@ -1888,6 +1888,14 @@ class _StageSelectionRow extends StatelessWidget {
         highlighted: stageCleared,
       );
     }
+    if (stageNumber == 6) {
+      return _StageRewardInfo(
+        label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
+        value: l10n.lightningTurret,
+        icon: const _LightningRewardIcon(),
+        highlighted: stageCleared,
+      );
+    }
     if (stageNumber == 3 || stageNumber == 5) {
       return _StageRewardInfo(
         label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
@@ -2120,6 +2128,37 @@ class _SniperRewardIconPainter extends CustomPainter {
       type: TurretType.sniper,
       color: const Color(0xFFB7F4FF),
       strokeWidth: 1.1,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _LightningRewardIcon extends StatelessWidget {
+  const _LightningRewardIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 18,
+      height: 18,
+      child: CustomPaint(painter: _LightningRewardIconPainter()),
+    );
+  }
+}
+
+class _LightningRewardIconPainter extends CustomPainter {
+  const _LightningRewardIconPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    drawTurretShape(
+      canvas,
+      size: size,
+      type: TurretType.lightning,
+      color: Color(0xFF4DEAFF),
+      strokeWidth: 1,
     );
   }
 

@@ -35,7 +35,9 @@ import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/domain/wave/wave_definition.dart';
 import 'package:rune_nexus/game/components/chain_projectile_component.dart';
 import 'package:rune_nexus/game/components/enemy_component.dart';
+import 'package:rune_nexus/game/components/lightning_chain_beam_component.dart';
 import 'package:rune_nexus/game/components/projectile_component.dart';
+import 'package:rune_nexus/game/components/sequential_lightning_chain_component.dart';
 import 'package:rune_nexus/game/components/sniper_chain_beam_component.dart';
 import 'package:rune_nexus/game/components/turret_component.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
@@ -466,6 +468,7 @@ void main() {
     expect(gameTurrets[TurretType.magic]!.projectileSpeed, 420);
     expect(gameTurrets[TurretType.frost]!.projectileSpeed, 0);
     expect(gameTurrets[TurretType.sniper]!.projectileSpeed, 0);
+    expect(gameTurrets[TurretType.lightning]!.projectileSpeed, 0);
   });
 
   test('enemy movement speeds are tuned down for readable combat', () {
@@ -483,6 +486,7 @@ void main() {
     expect(gameTurrets[TurretType.magic]!.range, 108);
     expect(gameTurrets[TurretType.frost]!.range, 76);
     expect(gameTurrets[TurretType.sniper]!.range, 150);
+    expect(gameTurrets[TurretType.lightning]!.range, 112);
   });
 
   test('runtime combat distances scale with board tile size', () async {
@@ -566,6 +570,7 @@ void main() {
     expect(gameTurrets[TurretType.magic]!.attackRate, 0.59);
     expect(gameTurrets[TurretType.frost]!.attackRate, 0.4);
     expect(gameTurrets[TurretType.sniper]!.attackRate, 0.625);
+    expect(gameTurrets[TurretType.lightning]!.attackRate, 0.8);
   });
 
   test('sniper turret unlocks after stage one clear', () {
@@ -596,6 +601,47 @@ void main() {
     expect(
       game.snapshotNotifier.value.availableTurretTypes,
       contains(TurretType.sniper),
+    );
+  });
+
+  test('chain lightning turret unlocks after stage six clear', () {
+    final game = RuneNexusGame(
+      stage: StageDefinition(
+        id: 6,
+        name: 'Stage 6',
+        map: gameMap,
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 0,
+          ),
+        ],
+      ),
+    );
+
+    expect(
+      game.snapshotNotifier.value.availableTurretTypes,
+      isNot(contains(TurretType.lightning)),
+    );
+    expect(gameTurrets[TurretType.lightning]!.cost, 140);
+    expect(
+      gameTurrets[TurretType.lightning]!.damageFamily,
+      DamageFamily.magical,
+    );
+
+    game.selectTurretType(TurretType.lightning);
+    expect(game.snapshotNotifier.value.selectedTurretType, TurretType.arrow);
+
+    game.startNextWave();
+    game.update(0.016);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.success);
+    expect(game.snapshotNotifier.value.clearedStageNumbers, contains(6));
+    expect(
+      game.snapshotNotifier.value.availableTurretTypes,
+      contains(TurretType.lightning),
     );
   });
 
@@ -3397,6 +3443,173 @@ void main() {
     expect(game.children.whereType<SniperChainBeamComponent>(), hasLength(1));
   });
 
+  testWidgets('chain lightning hits sequential targets with delayed jumps', (
+    tester,
+  ) async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {1, 2, 3, 4, 5, 6},
+        researchLevels: const {},
+        unlockedStageCount: 7,
+      );
+    final game = RuneNexusGame(saveRepository: repository);
+
+    await tester.binding.setSurfaceSize(const Size(400, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(GameWidget(game: game));
+    await tester.pump();
+    game.selectTurretType(TurretType.lightning);
+    game.tryBuildTurret(const GridPoint(2, 0));
+    game.update(0);
+
+    final turret = game.children.whereType<TurretComponent>().single;
+    final first = _chainEnemy(game, turret.position + Vector2(20, 0), 30);
+    final second = _chainEnemy(game, first.position + Vector2(20, 0), 20);
+    final third = _chainEnemy(game, second.position + Vector2(20, 0), 10);
+    await game.add(first);
+    await game.add(second);
+    await game.add(third);
+    await tester.pump();
+    game.enemies.addAll([first, second, third]);
+
+    game.resolveLightningChainAttack(owner: turret, target: first);
+    game.update(0);
+
+    expect(first.hp, closeTo(84, 0.001));
+    expect(second.hp, closeTo(100, 0.001));
+    expect(third.hp, closeTo(100, 0.001));
+    expect(
+      game.children.whereType<SequentialLightningChainComponent>(),
+      hasLength(1),
+    );
+
+    game.update(0.069);
+    expect(second.hp, closeTo(100, 0.001));
+
+    game.update(0.002);
+    expect(second.hp, closeTo(92, 0.001));
+    expect(third.hp, closeTo(100, 0.001));
+
+    game.update(0.07);
+    expect(third.hp, closeTo(92, 0.001));
+    expect(turret.directDamageDealt, closeTo(16, 0.001));
+    expect(turret.chainDamageDealt, closeTo(16, 0.001));
+    expect(game.children.whereType<LightningChainBeamComponent>(), isNotEmpty);
+  });
+
+  test('chain lightning gem and traits set chain target counts', () {
+    final game = _LinkResearchUnlockedGame();
+    final base = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: gameTurrets[TurretType.lightning]!,
+      game: game,
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+    final gemmed = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: gameTurrets[TurretType.lightning]!,
+      game: game,
+      center: Vector2.zero(),
+      tileSize: 32,
+    )..equipGem(GemType.chain, 0);
+    final branched = _levelSevenLightning(game)
+      ..choosePrimaryTrait(TurretTraitType.branchCurrent);
+    final focused = _levelSevenLightning(game)
+      ..choosePrimaryTrait(TurretTraitType.focusedLightning);
+
+    expect(base.lightningChainMaxTargets, 3);
+    expect(gemmed.lightningChainMaxTargets, 5);
+    expect(branched.lightningChainMaxTargets, 4);
+    expect(focused.lightningChainMaxTargets, 2);
+  });
+
+  test('current amplification only improves follow-up lightning damage', () {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    final turret = _levelSevenLightning(game)
+      ..choosePrimaryTrait(TurretTraitType.branchCurrent)
+      ..chooseSecondaryTrait(TurretTraitType.currentAmplification);
+    final first = _chainEnemy(game, Vector2(20, 0), 10);
+    final second = _chainEnemy(game, Vector2(40, 0), 20);
+    game.enemies.addAll([first, second]);
+
+    game.resolveLightningChainAttack(owner: turret, target: first);
+    game.resolveLightningChainJump(
+      owner: turret,
+      attack: turret.createAttackSnapshot(),
+      sourcePosition: first.position,
+      target: second,
+    );
+
+    expect(first.hp, closeTo(100 - turret.damage, 0.001));
+    expect(
+      second.hp,
+      closeTo(
+        100 - turret.damage * turret.lightningChainDamageMultiplier,
+        0.001,
+      ),
+    );
+  });
+
+  test('lightning recovery shortens the current reload from unused jumps', () {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    final turret = _levelSevenLightning(game)
+      ..choosePrimaryTrait(TurretTraitType.branchCurrent)
+      ..chooseSecondaryTrait(TurretTraitType.lightningRecovery);
+
+    turret.restoreFromSaveData(
+      SavedTurret(
+        x: 0,
+        y: 0,
+        type: TurretType.lightning,
+        level: 7,
+        slotLimit: 1,
+        cooldown: 1.25,
+        equippedGems: const [],
+        equippedGemSlots: const [null],
+        damageDealt: 0,
+        directDamageDealt: 0,
+        splashDamageDealt: 0,
+        chainDamageDealt: 0,
+        burnDamageDealt: 0,
+        targetPriority: TurretTargetPriority.first,
+        primaryTrait: TurretTraitType.branchCurrent,
+        secondaryTrait: TurretTraitType.lightningRecovery,
+      ),
+    );
+
+    turret.recordLightningChainCompletion(usedJumps: 1, maxJumps: 3);
+
+    expect(turret.cooldown, closeTo(1.25 / 1.3, 0.001));
+  });
+
+  test('explosion gem only splashes the first chain lightning target', () {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    final turret = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: gameTurrets[TurretType.lightning]!,
+      game: game,
+      center: Vector2.zero(),
+      tileSize: 32,
+    )..equipGem(GemType.explosion, 0);
+    final first = _chainEnemy(game, Vector2(20, 0), 30);
+    final splash = _chainEnemy(game, first.position + Vector2(1, 0), 20);
+    final chainTarget = _chainEnemy(game, first.position + Vector2(50, 0), 10);
+    game.enemies.addAll([first, splash, chainTarget]);
+
+    game.resolveLightningChainAttack(owner: turret, target: first);
+    game.resolveLightningChainJump(
+      owner: turret,
+      attack: turret.createAttackSnapshot(),
+      sourcePosition: first.position,
+      target: chainTarget,
+    );
+
+    expect(first.hp, closeTo(84, 0.001));
+    expect(splash.hp, closeTo(94.4, 0.001));
+    expect(chainTarget.hp, closeTo(92, 0.001));
+  });
+
   test('chain hit from fire turret applies scaled burn', () async {
     final game = RuneNexusGame(saveRepository: MemorySaveRepository());
     game.onGameResize(Vector2(400, 800));
@@ -4195,6 +4408,35 @@ EnemyComponent _targetPriorityEnemy({
     )
     ..position = position
     ..distanceTravelled = progress;
+}
+
+EnemyComponent _chainEnemy(
+  RuneNexusGame game,
+  Vector2 position,
+  double progress,
+) {
+  return EnemyComponent(
+      definition: gameEnemies[EnemyType.normal]!,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(500, 0)],
+      game: game,
+    )
+    ..position = position
+    ..distanceTravelled = progress;
+}
+
+TurretComponent _levelSevenLightning(RuneNexusGame game) {
+  final turret = TurretComponent(
+    gridPoint: const GridPoint(0, 0),
+    definition: gameTurrets[TurretType.lightning]!,
+    game: game,
+    center: Vector2.zero(),
+    tileSize: 32,
+  );
+  for (var i = 0; i < 6; i++) {
+    turret.upgradeLevel();
+  }
+  return turret;
 }
 
 void _expectValidMapPath(MapDefinition map) {

@@ -79,4 +79,17 @@ const gameTurrets = <TurretType, TurretDefinition>{
     attackTags: {},
     color: Color(0xFFB7F4FF),
   ),
+  TurretType.lightning: TurretDefinition(
+    type: TurretType.lightning,
+    name: '라이트닝',
+    cost: 140,
+    damage: 16,
+    range: 112,
+    attackRate: 0.8,
+    projectileSpeed: 0,
+    description: '번개가 근처 적에게 이어지는 마법 포탑입니다. 단일 대상보다 밀집한 적에게 강합니다.',
+    damageFamily: DamageFamily.magical,
+    attackTags: {},
+    color: Color(0xFF4DEAFF),
+  ),
 };
