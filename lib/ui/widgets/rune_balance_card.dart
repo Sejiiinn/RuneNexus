@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'non_truncating_text.dart';
+
 class RuneBalanceCard extends StatelessWidget {
   const RuneBalanceCard({
     required this.runes,
@@ -48,13 +50,12 @@ class RuneBalanceCard extends StatelessWidget {
           ),
           SizedBox(width: compact ? 5 : 7),
           Flexible(
-            child: Text(
+            child: ScaleDownText(
               '$runes',
               style: TextStyle(
                 fontSize: compact ? 13 : 15,
                 fontWeight: FontWeight.w900,
               ),
-              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

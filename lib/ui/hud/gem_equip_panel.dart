@@ -87,7 +87,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                     fontSize: 12,
                     color: Color(0xFFE8F8FF),
                   ),
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                 ),
               ),
             ],
@@ -326,7 +326,7 @@ class _TurretTargetPrioritySelector extends StatelessWidget {
             child: Text(
               _targetPriorityLabel(priority),
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              overflow: TextOverflow.clip,
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w900,
@@ -745,7 +745,7 @@ class _TurretStats extends StatelessWidget {
               : burnDps > 0
               ? RichText(
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                   text: TextSpan(
                     style: const TextStyle(
                       fontSize: 12,
@@ -835,7 +835,7 @@ class _PreviewStatValue extends StatelessWidget {
   Widget build(BuildContext context) {
     return RichText(
       maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+      overflow: TextOverflow.clip,
       text: TextSpan(
         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
         children: [
@@ -886,7 +886,7 @@ class _StatPill extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(fontSize: 10, color: Color(0xFF8AA6B8)),
-            overflow: TextOverflow.ellipsis,
+            overflow: TextOverflow.clip,
           ),
           FittedBox(
             fit: BoxFit.scaleDown,
@@ -898,7 +898,7 @@ class _StatPill extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
                   ),
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                 ),
           ),
         ],

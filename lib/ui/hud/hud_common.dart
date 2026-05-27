@@ -69,10 +69,8 @@ class _TurretButton extends StatelessWidget {
                 ),
               ),
             ),
-            Text(
+            ScaleDownText(
               '$cost G',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: selected ? FontWeight.w800 : FontWeight.w400,

@@ -1456,7 +1456,7 @@ class _StageChapterThemeBanner extends StatelessWidget {
                             GameTextStyles.title,
                             GamePalette.textPrimary,
                           ).copyWith(fontSize: 20),
-                          overflow: TextOverflow.ellipsis,
+                          overflow: TextOverflow.clip,
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -1465,7 +1465,7 @@ class _StageChapterThemeBanner extends StatelessWidget {
                             GameTextStyles.caption,
                             GamePalette.textSecondary,
                           ),
-                          overflow: TextOverflow.ellipsis,
+                          overflow: TextOverflow.clip,
                         ),
                       ],
                     ),
@@ -1566,7 +1566,7 @@ class _StageChapterTab extends StatelessWidget {
                   GameTextStyles.button,
                   enabled ? GamePalette.textPrimary : GamePalette.textDisabled,
                 ),
-                overflow: TextOverflow.ellipsis,
+                overflow: TextOverflow.clip,
               ),
             ),
           ),
@@ -1604,7 +1604,7 @@ class _ActiveRunSummary extends StatelessWidget {
                     fontWeight: FontWeight.w900,
                     color: Color(0xFF5CF9E9),
                   ),
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                 ),
                 const SizedBox(height: 2),
                 Align(
@@ -2094,7 +2094,7 @@ class _StageInfoChip extends StatelessWidget {
                 color: color,
                 fontWeight: highlighted ? FontWeight.w800 : FontWeight.w600,
               ),
-              overflow: TextOverflow.ellipsis,
+              overflow: TextOverflow.clip,
               maxLines: 1,
             ),
           ),
@@ -3128,7 +3128,7 @@ class _CorePassiveSlotUnlockButton extends StatelessWidget {
                   child: Text(
                     label,
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    overflow: TextOverflow.clip,
                     style: TextStyle(
                       color: unlockable
                           ? const Color(0xFFE8FBFF)
@@ -3143,7 +3143,7 @@ class _CorePassiveSlotUnlockButton extends StatelessWidget {
             Text(
               state,
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              overflow: TextOverflow.clip,
               style: TextStyle(
                 color: accent,
                 fontSize: compact ? 7 : 9,
@@ -3260,7 +3260,7 @@ class _CoreSocketButton extends StatelessWidget {
                           child: Text(
                             label,
                             maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            overflow: TextOverflow.clip,
                             style: TextStyle(
                               color: foreground,
                               fontSize: prominent ? 8 : 7,
@@ -3339,7 +3339,7 @@ class _CoreSlotKindLabel extends StatelessWidget {
     return Text(
       label,
       maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+      overflow: TextOverflow.clip,
       style: TextStyle(
         color: selected ? const Color(0xFFE8FBFF) : const Color(0xFFD2E3EA),
         fontSize: compact ? 8 : 10,
@@ -3525,7 +3525,7 @@ class _CoreSelectedAbilityPanel extends StatelessWidget {
                       child: Text(
                         data.name,
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        overflow: TextOverflow.clip,
                         style: const TextStyle(
                           color: Color(0xFFE8FBFF),
                           fontSize: 14,
@@ -3539,7 +3539,7 @@ class _CoreSelectedAbilityPanel extends StatelessWidget {
                 Text(
                   detailText,
                   maxLines: selectedTab == _CoreAbilityTab.combatSkill ? 1 : 2,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                   style: const TextStyle(
                     color: Color(0xFFB4C7D2),
                     fontSize: 10,
@@ -3806,7 +3806,7 @@ class _CoreAbilityCard extends StatelessWidget {
                     child: Text(
                       data.name,
                       maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: TextOverflow.clip,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: textColor,
@@ -4363,7 +4363,7 @@ class _ResearchSlotCard extends StatelessWidget {
                       fontSize: 12,
                       fontWeight: FontWeight.w900,
                     ),
-                    overflow: TextOverflow.ellipsis,
+                    overflow: TextOverflow.clip,
                   ),
                 ),
                 if (active != null)
@@ -4750,7 +4750,7 @@ class _ResearchTile extends StatelessWidget {
                               fontWeight: FontWeight.w900,
                             ),
                             maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            overflow: TextOverflow.clip,
                           ),
                         ),
                         const SizedBox(width: 5),
@@ -5125,7 +5125,7 @@ class _ResearchDetailDialog extends StatelessWidget {
                         fontSize: 17,
                         fontWeight: FontWeight.w900,
                       ),
-                      overflow: TextOverflow.ellipsis,
+                      overflow: TextOverflow.clip,
                     ),
                   ),
                   IconButton(
@@ -5303,7 +5303,7 @@ class _ResearchDialogMetric extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                 ),
                 const SizedBox(height: 1),
                 Text(
@@ -5314,7 +5314,7 @@ class _ResearchDialogMetric extends StatelessWidget {
                     fontWeight: FontWeight.w900,
                   ),
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                 ),
               ],
             ),
@@ -5565,7 +5565,7 @@ class _PermanentUpgradeTile extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
                   ),
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                 ),
               ),
             ],
@@ -5584,7 +5584,7 @@ class _PermanentUpgradeTile extends StatelessWidget {
             description,
             style: const TextStyle(color: Color(0xFF9EB3BF), fontSize: 10),
             maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+            overflow: TextOverflow.clip,
           ),
           const SizedBox(height: 6),
           Column(
@@ -5621,14 +5621,14 @@ class _PermanentUpgradeTile extends StatelessWidget {
       return Text(
         l10n.maxLevelReached,
         style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
-        overflow: TextOverflow.ellipsis,
+        overflow: TextOverflow.clip,
       );
     }
     if (_isTierLocked) {
       return Text(
         lockText,
         style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
-        overflow: TextOverflow.ellipsis,
+        overflow: TextOverflow.clip,
       );
     }
     return Row(
@@ -5638,7 +5638,7 @@ class _PermanentUpgradeTile extends StatelessWidget {
           child: Text(
             l10n.levelUp,
             style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
-            overflow: TextOverflow.ellipsis,
+            overflow: TextOverflow.clip,
           ),
         ),
         const SizedBox(width: 4),
@@ -5675,7 +5675,7 @@ class _PermanentUpgradeStatusChip extends StatelessWidget {
                   fontWeight: FontWeight.w800,
                 ),
                 maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                overflow: TextOverflow.clip,
               ),
             ),
           ],

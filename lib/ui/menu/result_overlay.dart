@@ -286,18 +286,13 @@ class _ResultMetric extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            label,
-            style: GameTextStyles.caption,
-            overflow: TextOverflow.ellipsis,
-          ),
-          Text(
+          ScaleDownText(label, style: GameTextStyles.caption),
+          ScaleDownText(
             value,
             style: GameTextStyles.withColor(
               GameTextStyles.body,
               GamePalette.textPrimary,
             ),
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

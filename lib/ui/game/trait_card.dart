@@ -4,6 +4,7 @@ import 'game_button.dart';
 import 'game_palette.dart';
 import 'game_panel.dart';
 import 'game_text_styles.dart';
+import '../widgets/non_truncating_text.dart';
 
 class TraitCard extends StatefulWidget {
   const TraitCard({
@@ -91,20 +92,18 @@ class _TraitCardState extends State<TraitCard> {
                   ),
                 ),
                 const SizedBox(height: GamePalette.gap),
-                Text(
+                FixedSlotText(
                   widget.title,
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   style: GameTextStyles.sectionTitle,
                 ),
                 const SizedBox(height: GamePalette.gapTiny),
                 SizedBox(
                   height: 36,
-                  child: Text(
+                  child: FixedSlotText(
                     widget.description,
                     maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
                     style: GameTextStyles.caption.copyWith(
                       color: GamePalette.textSecondary,
@@ -154,10 +153,8 @@ class _TraitBadge extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: 0.48)),
         borderRadius: BorderRadius.circular(GamePalette.radiusSmall),
       ),
-      child: Text(
+      child: ScaleDownText(
         text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
         style: GameTextStyles.withColor(GameTextStyles.chip, color),
       ),
     );

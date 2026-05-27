@@ -154,7 +154,7 @@ class _GemShardRewardBar extends StatelessWidget {
                         fontWeight: FontWeight.w900,
                       ),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: TextOverflow.clip,
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -164,7 +164,7 @@ class _GemShardRewardBar extends StatelessWidget {
                         color: Color(0xFF9FB7C8),
                       ),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: TextOverflow.clip,
                     ),
                   ],
                 ),
@@ -357,7 +357,7 @@ class _RewardCard extends StatelessWidget {
                   child: Text(
                     gem.name,
                     maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    overflow: TextOverflow.clip,
                     textAlign: TextAlign.center,
                     style: GameTextStyles.sectionTitle.copyWith(
                       fontSize: 13,
@@ -373,7 +373,7 @@ class _RewardCard extends StatelessWidget {
                   child: Text(
                     _rewardCardEffectText(type),
                     maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    overflow: TextOverflow.clip,
                     textAlign: TextAlign.center,
                     style: GameTextStyles.caption.copyWith(
                       color: GamePalette.textSecondary,
@@ -396,7 +396,7 @@ class _RewardCard extends StatelessWidget {
                 child: Text(
                   '보유 $ownedCount',
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                   style: GameTextStyles.chip.copyWith(fontSize: 10),
                 ),
               ),

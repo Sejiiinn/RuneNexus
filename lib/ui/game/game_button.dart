@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'game_palette.dart';
 import 'game_text_styles.dart';
+import '../widgets/non_truncating_text.dart';
 
 enum GameButtonVariant { primary, secondary, confirm, danger, ghost }
 
@@ -116,7 +117,6 @@ class _GameButtonState extends State<GameButton> {
                       colors.foreground,
                     ),
               maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               child: IconTheme(
                 data: IconThemeData(color: colors.foreground),
                 child: content,
@@ -144,13 +144,7 @@ class _GameButtonState extends State<GameButton> {
             width: widget.compact ? GamePalette.gapTiny : GamePalette.gapSmall,
           ),
         ],
-        Flexible(
-          child: Text(
-            widget.label!,
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
-        ),
+        Flexible(child: ScaleDownText(widget.label!)),
       ],
     );
   }

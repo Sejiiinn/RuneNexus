@@ -468,10 +468,8 @@ class _CombatPowerBadge extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
+            const ScaleDownText(
               '전투력',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: Color(0xFF8FA8BA),
                 fontSize: 9,
@@ -480,10 +478,8 @@ class _CombatPowerBadge extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 2),
-            Text(
+            ScaleDownText(
               _formatDamageValue(totalDps),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFFE8FBFF),
                 fontSize: 13,
@@ -959,7 +955,7 @@ class _GemDebugPanel extends StatelessWidget {
                       label: Text(
                         enemy.name,
                         style: const TextStyle(fontSize: 11),
-                        overflow: TextOverflow.ellipsis,
+                        overflow: TextOverflow.clip,
                       ),
                     ),
                   );
@@ -993,7 +989,7 @@ class _GemDebugPanel extends StatelessWidget {
                       label: Text(
                         gem.name,
                         style: const TextStyle(fontSize: 11),
-                        overflow: TextOverflow.ellipsis,
+                        overflow: TextOverflow.clip,
                       ),
                     ),
                   );

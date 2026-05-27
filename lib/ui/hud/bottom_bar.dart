@@ -334,7 +334,7 @@ class _GemInventoryChip extends StatelessWidget {
             _gemInventoryEffectText(type),
             style: const TextStyle(fontSize: 10, color: Color(0xFF9FB7C8)),
             maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            overflow: TextOverflow.clip,
           ),
         ],
       ),
@@ -397,7 +397,7 @@ class _RunPanelTabButton extends StatelessWidget {
               child: Text(
                 label,
                 maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                overflow: TextOverflow.clip,
                 style: GameTextStyles.withColor(
                   GameTextStyles.button,
                   foreground,
@@ -484,7 +484,7 @@ class _RunUpgradeRow extends StatelessWidget {
                       child: Text(
                         definition.name,
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        overflow: TextOverflow.clip,
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w900,
@@ -506,7 +506,7 @@ class _RunUpgradeRow extends StatelessWidget {
                 Text(
                   definition.description,
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -718,7 +718,7 @@ class _PortalSummaryCard extends StatelessWidget {
                     Text(
                       title,
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: TextOverflow.clip,
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w900,
@@ -729,7 +729,7 @@ class _PortalSummaryCard extends StatelessWidget {
                     Text(
                       subtitle,
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      overflow: TextOverflow.clip,
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -999,7 +999,7 @@ class _EnemyDetailRow extends StatelessWidget {
               Expanded(
                 child: Text(
                   '${enemy.name} x$count',
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                   style: TextStyle(
                     color: enemy.color,
                     fontSize: 12,
@@ -1381,7 +1381,7 @@ class _BuildSelectionPanel extends StatelessWidget {
                           fontWeight: FontWeight.w800,
                           color: definition.color,
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        overflow: TextOverflow.clip,
                       ),
                     ),
                     if (canInstall)
@@ -1401,7 +1401,7 @@ class _BuildSelectionPanel extends StatelessWidget {
                     color: Color(0xFFB9D6E4),
                   ),
                   maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                 ),
                 const SizedBox(height: 6),
                 _TurretAttributeChips(definition: definition),
@@ -1531,7 +1531,7 @@ class _BuildTurretStats extends StatelessWidget {
           valueChild: burnDps > 0
               ? RichText(
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.clip,
                   text: TextSpan(
                     style: const TextStyle(
                       fontSize: 12,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'game_palette.dart';
 import 'game_panel.dart';
 import 'game_text_styles.dart';
+import '../widgets/non_truncating_text.dart';
 
 class HudResourceBar extends StatelessWidget {
   const HudResourceBar({
@@ -52,11 +53,10 @@ class HudResourceBar extends StatelessWidget {
               const SizedBox(width: GamePalette.gapTiny),
               if (label != null) ...[
                 Flexible(
-                  child: Text(
+                  child: ScaleDownText(
                     label!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: GameTextStyles.caption,
+                    alignment: Alignment.centerLeft,
                   ),
                 ),
                 const SizedBox(width: GamePalette.gapTiny),
@@ -70,10 +70,9 @@ class HudResourceBar extends StatelessWidget {
                     GamePalette.textPrimary,
                   ),
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   child:
                       valueChild ??
-                      Text(value, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ScaleDownText(value, alignment: Alignment.centerLeft),
                 ),
               ),
             ],

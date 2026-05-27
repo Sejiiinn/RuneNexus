@@ -468,7 +468,7 @@ class _EditorHeader extends StatelessWidget {
           child: Text(
             '맵 에디터',
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
-            overflow: TextOverflow.ellipsis,
+            overflow: TextOverflow.clip,
           ),
         ),
       ],
@@ -762,7 +762,7 @@ class _ToolButton extends StatelessWidget {
         icon: Icon(icon, size: 14),
         label: Text(
           label,
-          overflow: TextOverflow.ellipsis,
+          overflow: TextOverflow.clip,
           style: const TextStyle(fontSize: 12),
         ),
         style: OutlinedButton.styleFrom(
@@ -802,7 +802,7 @@ class _SizeStepper extends StatelessWidget {
           child: Text(
             label,
             style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
-            overflow: TextOverflow.ellipsis,
+            overflow: TextOverflow.clip,
           ),
         ),
         _StepButton(

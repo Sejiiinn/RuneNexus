@@ -283,7 +283,7 @@ class _TraitDialogHeader extends StatelessWidget {
                 fontWeight: FontWeight.w900,
                 color: Color(0xFFE8F8FF),
               ),
-              overflow: TextOverflow.ellipsis,
+              overflow: TextOverflow.clip,
             ),
           ),
           IconButton(
@@ -379,7 +379,7 @@ class _TraitSlotButton extends StatelessWidget {
                   Text(
                     title,
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    overflow: TextOverflow.clip,
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w900,
@@ -390,7 +390,7 @@ class _TraitSlotButton extends StatelessWidget {
                   Text(
                     statusText,
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    overflow: TextOverflow.clip,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
@@ -653,7 +653,7 @@ class _CompactTraitChoiceButton extends StatelessWidget {
                   Text(
                     trait.nameText,
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    overflow: TextOverflow.clip,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w900,
@@ -666,7 +666,7 @@ class _CompactTraitChoiceButton extends StatelessWidget {
                   Text(
                     trait.shortText,
                     maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    overflow: TextOverflow.clip,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
@@ -756,7 +756,7 @@ class _TraitResourceStrip extends StatelessWidget {
                   child: Text(
                     '젬 파편',
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    overflow: TextOverflow.clip,
                     style: TextStyle(fontSize: 11, color: Color(0xFF8AA6B8)),
                   ),
                 ),
