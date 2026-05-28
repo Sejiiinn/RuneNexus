@@ -23,6 +23,7 @@ class RunProgression {
   static const int corePassiveSlotUnlockCost = 500;
   static const double researchEfficiencyPerLevel = 0.05;
   static const double researchCostEfficiencyPerLevel = 0.05;
+  static const double bossBountyBonusPerLevel = 0.025;
   static const int baseStageOneFullClearRuneReward = 200;
   static const double runeRewardGrowthPerRound = 1.04;
   static const int baseTurretRefundPercent = 75;
@@ -176,6 +177,8 @@ class RunProgression {
   double get researchCostEfficiencyRate =>
       researchLevel(ResearchType.researchCostEfficiency) *
       researchCostEfficiencyPerLevel;
+  double get bossBountyBonusRate =>
+      researchLevel(ResearchType.bossBounty) * bossBountyBonusPerLevel;
   bool get canUpgradeStartingGold =>
       _cappedStartingGoldUpgradeLevel < maxStartingGoldUpgradeLevel &&
       runes >= startingGoldUpgradeCost;

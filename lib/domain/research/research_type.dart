@@ -4,4 +4,5 @@ enum ResearchType {
   turretTargetPriority,
   linkExpansionOne,
   gemAttunement,
+  bossBounty,
 }

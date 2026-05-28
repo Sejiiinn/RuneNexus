@@ -498,6 +498,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _progression.isStageCleared(2) ? _progression.killGoldBonusRate : 0;
   double get _killGoldTotalBonusRate =>
       _killGoldRunBonusRate + _killGoldProgressionBonusRate;
+  double get _bossKillGoldResearchBonusRate => _progression.bossBountyBonusRate;
   bool get _hasCostSavingDesign =>
       _runCorePassiveSlots.contains(CorePassiveAbility.costSavingDesign);
   int get _waveClearGoldRunBonus => gameRunUpgrades[RunUpgradeType.waveGold]!
@@ -2460,7 +2461,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
     if (!isDebugEnemy) {
       final baseReward = enemy.definition.rewardGold;
-      final bonusReward = baseReward * _killGoldTotalBonusRate;
+      final bossBonusRate = enemy.definition.type == EnemyType.boss
+          ? _bossKillGoldResearchBonusRate
+          : 0.0;
+      final bonusReward =
+          baseReward * (_killGoldTotalBonusRate + bossBonusRate);
       final wholeBonus = bonusReward.floor();
       _killGoldFractionWallet += bonusReward - wholeBonus;
       final walletGold = _killGoldFractionWallet.floor();

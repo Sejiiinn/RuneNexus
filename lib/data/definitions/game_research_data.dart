@@ -52,4 +52,13 @@ const gameResearchDefinitions = {
     durationMillis: oneHourResearchDurationMillis,
     durationMultiplier: 1.25,
   ),
+  ResearchType.bossBounty: ResearchDefinition(
+    type: ResearchType.bossBounty,
+    maxLevel: 20,
+    requiredClearedStage: 0,
+    baseRuneCost: 30,
+    costMultiplier: 1.12,
+    durationMillis: halfHourResearchDurationMillis,
+    durationMultiplier: 1.1,
+  ),
 };

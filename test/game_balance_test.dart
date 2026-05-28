@@ -1186,6 +1186,43 @@ void main() {
     expect(progression.activeResearches.single.durationMillis, 3428571);
   });
 
+  test('boss bounty research is open by default with a light cost curve', () {
+    final progression = RunProgression()..runes = 100;
+
+    expect(progression.isResearchUnlocked(ResearchType.bossBounty), isTrue);
+    expect(
+      progression.researchCostForCurrentLevel(ResearchType.bossBounty),
+      30,
+    );
+    expect(
+      progression.researchDurationForCurrentLevel(ResearchType.bossBounty),
+      30 * 60 * 1000,
+    );
+
+    expect(
+      progression.startResearch(ResearchType.bossBounty, nowMillis: 1000),
+      isTrue,
+    );
+    expect(progression.runes, 70);
+    expect(
+      progression.completeFinishedResearches(nowMillis: 1000 + 30 * 60 * 1000),
+      isTrue,
+    );
+    expect(progression.researchLevel(ResearchType.bossBounty), 1);
+    expect(progression.bossBountyBonusRate, closeTo(0.025, 0.001));
+    expect(
+      progression.researchCostForCurrentLevel(ResearchType.bossBounty),
+      34,
+    );
+    expect(
+      progression.researchDurationForCurrentLevel(ResearchType.bossBounty),
+      33 * 60 * 1000,
+    );
+
+    progression.researchLevels[ResearchType.bossBounty] = 20;
+    expect(progression.bossBountyBonusRate, closeTo(0.5, 0.001));
+  });
+
   test('debug round control jumps to requested preparation round', () {
     final game = RuneNexusGame();
 
@@ -2023,6 +2060,47 @@ void main() {
     expect(
       game.snapshotNotifier.value.killGoldProgressionBonusRate,
       closeTo(0.01, 0.001),
+    );
+  });
+
+  test('boss bounty research boosts only boss kill rewards', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {},
+        researchLevels: const {ResearchType.bossBounty: 20},
+        runes: 0,
+        unlockedStageCount: 1,
+      );
+    final game = RuneNexusGame(saveRepository: repository);
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    final normal = EnemyComponent(
+      definition: gameEnemies[EnemyType.normal]!,
+      maxHp: 1,
+      path: [Vector2.zero(), Vector2(1, 0)],
+      game: game,
+    );
+    game.enemies.add(normal);
+    normal.receiveDamage(999);
+
+    expect(game.snapshotNotifier.value.gold, 175);
+    expect(game.snapshotNotifier.value.killGoldFractionWallet, 0);
+
+    final boss = EnemyComponent(
+      definition: gameEnemies[EnemyType.boss]!,
+      maxHp: 1,
+      path: [Vector2.zero(), Vector2(1, 0)],
+      game: game,
+    );
+    game.enemies.add(boss);
+    boss.receiveDamage(999);
+
+    expect(game.snapshotNotifier.value.gold, 227);
+    expect(
+      game.snapshotNotifier.value.killGoldFractionWallet,
+      closeTo(0.5, 0.001),
     );
   });
 

@@ -85,6 +85,7 @@ class RuneNexusLocalizations {
   String get researchEfficiency => _isEnglish ? 'Research Efficiency' : '연구 효율';
   String get researchCostEfficiency =>
       _isEnglish ? 'Research Cost Efficiency' : '연구 비용 효율';
+  String get bossBounty => _isEnglish ? 'Boss Bounty Analysis' : '보스 현상금 분석';
   String get runeResonance => _isEnglish ? 'Rune Resonance' : '룬 공명';
   String get levelUp => _isEnglish ? 'Level Up' : '레벨업';
   String get cleared => _isEnglish ? 'Cleared' : '클리어';
@@ -253,6 +254,10 @@ class RuneNexusLocalizations {
     return _isEnglish ? 'Tower targeting commands' : '포탑 공격 명령 해금';
   }
 
+  String researchBossBountyEffect(String percent) {
+    return _isEnglish ? 'Boss kill gold +$percent%' : '보스 처치 골드 +$percent%';
+  }
+
   String researchRemaining(int remainingMillis) {
     final seconds = (remainingMillis / 1000).ceil();
     final hours = seconds ~/ 3600;
@@ -329,6 +334,11 @@ class RuneNexusLocalizations {
       return _isEnglish
           ? 'Allows each turret to set its preferred attack target.'
           : '포탑별로 우선 공격 대상을 지정할 수 있도록 합니다.';
+    }
+    if (title == bossBounty) {
+      return _isEnglish
+          ? 'Increases gold gained from defeating boss enemies by 2.5% per level.'
+          : '레벨마다 보스 처치 골드를 2.5% 늘립니다.';
     }
     if (title == runeResonance) {
       return _isEnglish

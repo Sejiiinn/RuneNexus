@@ -5381,6 +5381,7 @@ String _researchTitle(RuneNexusLocalizations l10n, ResearchType type) {
     ResearchType.turretTargetPriority => l10n.tacticalCommand,
     ResearchType.linkExpansionOne => l10n.linkExpansionOne,
     ResearchType.gemAttunement => l10n.gemAttunement,
+    ResearchType.bossBounty => l10n.bossBounty,
   };
 }
 
@@ -5421,6 +5422,10 @@ _ResearchEffectText _researchEffectText(
           ? '+${clampedNextLevel * RunProgression.gemShardsPerGemAttunementLevel}'
           : null,
     ),
+    ResearchType.bossBounty => _ResearchEffectText(
+      l10n.researchBossBountyEffect(_bossBountyPercentText(level)),
+      hasNext ? '+${_bossBountyPercentText(clampedNextLevel)}%' : null,
+    ),
   };
 }
 
@@ -5436,6 +5441,11 @@ String _signedPercent(int percent) {
   return '+$percent%';
 }
 
+String _bossBountyPercentText(int level) {
+  final percent = level * RunProgression.bossBountyBonusPerLevel * 100;
+  return percent.toStringAsFixed(percent.truncateToDouble() == percent ? 0 : 1);
+}
+
 IconData _researchIcon(ResearchType type) {
   return switch (type) {
     ResearchType.researchEfficiency => Icons.speed_outlined,
@@ -5443,6 +5453,7 @@ IconData _researchIcon(ResearchType type) {
     ResearchType.turretTargetPriority => Icons.ads_click,
     ResearchType.linkExpansionOne => Icons.hub_outlined,
     ResearchType.gemAttunement => Icons.auto_awesome_outlined,
+    ResearchType.bossBounty => Icons.monetization_on_outlined,
   };
 }
 
