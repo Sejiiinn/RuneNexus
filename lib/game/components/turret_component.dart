@@ -990,6 +990,7 @@ class TurretComponent extends PositionComponent {
         0.0,
         1.0,
       ),
+      strokeWidth: size.x * 0.05,
     );
 
     _drawLevelGlyph(canvas, center);
