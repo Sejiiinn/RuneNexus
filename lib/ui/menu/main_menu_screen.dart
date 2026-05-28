@@ -29,7 +29,8 @@ enum MainMenuTab { stage, core, permanentUpgrades, research }
 enum _PermanentUpgradeGroup { combat, economy }
 
 const int _stageChapterSize = 5;
-const int _visibleStageChapterCount = 3;
+const int _visibleStageChapterCount =
+    (RunProgression.maxStageCount + _stageChapterSize - 1) ~/ _stageChapterSize;
 const double _stageRowHeight = 54;
 const String _stageChapterOneBannerAsset = 'assets/images/chapter_1_banner.png';
 const String _stageChapterTwoBannerAsset = 'assets/images/chapter_2_banner.png';
@@ -1277,7 +1278,6 @@ class _StageMenuState extends State<_StageMenu> {
       children: [
         _StageChapterTabs(
           selectedChapter: _selectedChapter,
-          unlockedStageCount: stageCount,
           selectedTheme: chapterTheme,
           onSelected: (chapter) {
             setState(() {
@@ -1483,13 +1483,11 @@ class _StageChapterThemeBanner extends StatelessWidget {
 class _StageChapterTabs extends StatelessWidget {
   const _StageChapterTabs({
     required this.selectedChapter,
-    required this.unlockedStageCount,
     required this.selectedTheme,
     required this.onSelected,
   });
 
   final int selectedChapter;
-  final int unlockedStageCount;
   final _StageChapterTheme selectedTheme;
   final ValueChanged<int> onSelected;
 
@@ -1522,8 +1520,7 @@ class _StageChapterTabs extends StatelessWidget {
 
   bool _chapterIsPlayable(int chapter) {
     final chapterStart = (chapter - 1) * _stageChapterSize + 1;
-    return chapterStart <= RunProgression.maxStageCount &&
-        chapterStart <= unlockedStageCount;
+    return chapterStart <= RunProgression.maxStageCount;
   }
 }
 

@@ -98,6 +98,55 @@ void main() {
     expect(startedStage, 6);
   });
 
+  testWidgets('stage menu previews chapter two before stage five clear', (
+    tester,
+  ) async {
+    int? startedStage;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            unlockedStageCount: 1,
+          ),
+          selectedTab: MainMenuTab.stage,
+          onSelectTab: (_) {},
+          onStartStage: (stage) {
+            startedStage = stage;
+          },
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('챕터 2'), findsOneWidget);
+    expect(find.text('챕터 3'), findsNothing);
+
+    await tester.tap(find.text('챕터 2'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('균열 장막'), findsOneWidget);
+    expect(find.text('스테이지 6'), findsOneWidget);
+    expect(find.text('스테이지 10'), findsOneWidget);
+    expect(find.text('스테이지 1'), findsNothing);
+    expect(find.text('잠김'), findsNWidgets(5));
+
+    await tester.tap(find.byKey(const ValueKey('stage-selection-row-6')));
+    await _pumpGameFrames(tester);
+
+    expect(startedStage, isNull);
+  });
+
   testWidgets('selected ghost game buttons stay visually restrained', (
     tester,
   ) async {
