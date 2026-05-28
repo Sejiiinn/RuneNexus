@@ -85,7 +85,7 @@ class RuneNexusLocalizations {
   String get researchEfficiency => _isEnglish ? 'Research Efficiency' : '연구 효율';
   String get researchCostEfficiency =>
       _isEnglish ? 'Research Cost Efficiency' : '연구 비용 효율';
-  String get bossBounty => _isEnglish ? 'Boss Bounty Analysis' : '보스 현상금 분석';
+  String get bossBounty => _isEnglish ? 'Boss Reward' : '토벌 보상';
   String get runeResonance => _isEnglish ? 'Rune Resonance' : '룬 공명';
   String get levelUp => _isEnglish ? 'Level Up' : '레벨업';
   String get cleared => _isEnglish ? 'Cleared' : '클리어';
