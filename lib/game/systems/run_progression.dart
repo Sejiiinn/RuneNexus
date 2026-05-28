@@ -167,7 +167,8 @@ class RunProgression {
   Set<CorePassiveAbility> get unlockedCorePassiveAbilities {
     return {
       CorePassiveAbility.selfRepair,
-      if (isStageCleared(1)) CorePassiveAbility.costSavingDesign,
+      CorePassiveAbility.costSavingDesign,
+      CorePassiveAbility.skillAcceleration,
     };
   }
 

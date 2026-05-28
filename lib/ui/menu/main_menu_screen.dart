@@ -2775,6 +2775,7 @@ class _CoreSocketStagePainter extends CustomPainter {
     return switch (ability) {
       CorePassiveAbility.selfRepair => const Color(0xFF72E0A2),
       CorePassiveAbility.costSavingDesign => const Color(0xFFFFC66A),
+      CorePassiveAbility.skillAcceleration => const Color(0xFF8EE6FF),
       null => const Color(0xFF8FA8BA),
     };
   }
@@ -3017,11 +3018,13 @@ class _CorePassiveSlotButton extends StatelessWidget {
     final passiveIcon = switch (ability) {
       CorePassiveAbility.selfRepair => Icons.healing_outlined,
       CorePassiveAbility.costSavingDesign => Icons.construction_outlined,
+      CorePassiveAbility.skillAcceleration => Icons.speed_outlined,
       null => Icons.add,
     };
     final passiveAccent = switch (ability) {
       CorePassiveAbility.selfRepair => const Color(0xFF72E0A2),
       CorePassiveAbility.costSavingDesign => const Color(0xFFFFC66A),
+      CorePassiveAbility.skillAcceleration => const Color(0xFF8EE6FF),
       null => const Color(0xFF8FA8BA),
     };
     return _CoreSocketButton(
@@ -3032,6 +3035,7 @@ class _CorePassiveSlotButton extends StatelessWidget {
           ? (switch (ability) {
               CorePassiveAbility.selfRepair => '5라운드마다 체력 회복',
               CorePassiveAbility.costSavingDesign => '건설 비용 15% 감소',
+              CorePassiveAbility.skillAcceleration => '전투 스킬 쿨타임 10% 감소',
               null => '패시브를 장착하세요',
             })
           : '패시브를 장착하세요',
@@ -3898,16 +3902,16 @@ class _CoreAbilityData {
           selectedPassiveSlotIndex: selectedPassiveSlotIndex,
           ability: CorePassiveAbility.costSavingDesign,
           icon: Icons.construction_outlined,
-          unlockText: '스테이지 1 클리어',
+          unlockText: '기본 해금',
           accent: const Color(0xFFFFC66A),
         ),
-        const _CoreAbilityData(
-          icon: Icons.add_circle_outline,
-          name: '공명 축전',
-          state: '스테이지 2 클리어',
-          actionLabel: '잠김',
-          accent: Color(0xFF8FA8BA),
-          locked: true,
+        _passiveData(
+          snapshot: snapshot,
+          selectedPassiveSlotIndex: selectedPassiveSlotIndex,
+          ability: CorePassiveAbility.skillAcceleration,
+          icon: Icons.speed_outlined,
+          unlockText: '기본 해금',
+          accent: const Color(0xFF8EE6FF),
         ),
       ],
     };
@@ -3928,6 +3932,7 @@ class _CoreAbilityData {
     final effectText = switch (ability) {
       CorePassiveAbility.selfRepair => '5라운드마다 넥서스 체력 1 회복',
       CorePassiveAbility.costSavingDesign => '포탑 건설 비용 15% 감소',
+      CorePassiveAbility.skillAcceleration => '전투 스킬 재사용 대기시간 10% 감소',
     };
     return _CoreAbilityData(
       icon: icon,

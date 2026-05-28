@@ -1470,6 +1470,64 @@ void main() {
   );
 
   test(
+    'skill acceleration core passive reduces combat skill cooldown only',
+    () async {
+      final repository = MemorySaveRepository()
+        ..data = _saveWithCorePassiveRun(
+          nexusHp: 20,
+          roundIndex: 0,
+          completedRounds: 0,
+          unlockedStageCount: 3,
+          clearedStageNumbers: const {1, 2},
+          passiveSlots: const [CorePassiveAbility.skillAcceleration, null],
+        );
+      final game = RuneNexusGame(
+        saveRepository: repository,
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 0,
+          ),
+        ],
+      );
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      game.tryBuildTurret(const GridPoint(2, 0));
+
+      final arrow = gameTurrets[TurretType.arrow]!;
+      final expectedBeamDamage = arrow.damage * arrow.attackRate * 5 * 0.08;
+      expect(game.nexusCoreBeamIntervalSeconds, closeTo(4.5, 0.001));
+      expect(
+        game.snapshotNotifier.value.nexusCoreBeamDamage,
+        closeTo(expectedBeamDamage, 0.001),
+      );
+
+      final enemy = EnemyComponent(
+        definition: gameEnemies[EnemyType.normal]!,
+        maxHp: 100,
+        path: [Vector2.zero(), Vector2(200, 0)],
+        game: game,
+      )..distanceTravelled = 80;
+      await game.add(enemy);
+      game.update(0);
+      game.startNextWave();
+      game.enemies.add(enemy);
+
+      game.update(4.49);
+
+      expect(game.nexusCoreBeamActive, isFalse);
+      expect(enemy.hp, enemy.maxHp);
+
+      game.update(0.02);
+
+      expect(game.nexusCoreBeamActive, isTrue);
+      expect(enemy.hp, lessThan(enemy.maxHp));
+    },
+  );
+
+  test(
     'nexus core beam stays inactive when combat skill is unequipped',
     () async {
       final game = RuneNexusGame(
@@ -1622,6 +1680,14 @@ void main() {
         progression.toSaveData().coreCombatSkill,
         CoreCombatSkill.guardianBeam,
       );
+      expect(
+        progression.unlockedCorePassiveAbilities,
+        containsAll({
+          CorePassiveAbility.selfRepair,
+          CorePassiveAbility.costSavingDesign,
+          CorePassiveAbility.skillAcceleration,
+        }),
+      );
     },
   );
 
@@ -1671,6 +1737,10 @@ void main() {
     final progression = RunProgression()..restoreFromSaveData(saved);
 
     expect(progression.corePassiveSlots, saved.corePassiveSlots);
+    expect(
+      progression.unlockedCorePassiveAbilities,
+      contains(CorePassiveAbility.skillAcceleration),
+    );
     final savedAgain = progression.toSaveData();
     expect(savedAgain.corePassiveSlots, saved.corePassiveSlots);
   });

@@ -630,25 +630,6 @@ void main() {
     expect(game.equippedPassive, isNull);
     expect(game.unequippedSlotIndex, isNull);
 
-    await tester.tap(find.text('패시브'));
-    await _pumpGameFrames(tester);
-    final lockedPassiveCard = find.byKey(const ValueKey('core-ability-공명 축전'));
-    await tester.ensureVisible(lockedPassiveCard);
-    await _pumpGameFrames(tester);
-    expect(
-      find.descendant(of: lockedPassiveCard, matching: find.text('잠김')),
-      findsNothing,
-    );
-    expect(
-      find.descendant(of: lockedPassiveCard, matching: find.text('장착 가능')),
-      findsNothing,
-    );
-    expect(
-      find.descendant(of: lockedPassiveCard, matching: find.text('장착중')),
-      findsNothing,
-    );
-    await tester.tap(lockedPassiveCard);
-    await _pumpGameFrames(tester);
     expect(game.equippedPassive, isNull);
     expect(game.unequippedSlotIndex, isNull);
   });
@@ -1621,7 +1602,8 @@ GameSnapshot _resultSnapshot({
         runes >= RunProgression.corePassiveSlotUnlockCost,
     unlockedCorePassiveAbilities: {
       CorePassiveAbility.selfRepair,
-      if (clearedStageNumbers.contains(1)) CorePassiveAbility.costSavingDesign,
+      CorePassiveAbility.costSavingDesign,
+      CorePassiveAbility.skillAcceleration,
     },
     nextWaveEnemyTypes: const [],
     nextWaveEnemyCounts: const {},

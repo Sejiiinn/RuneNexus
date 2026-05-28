@@ -77,6 +77,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const int secondaryTraitCost = 24;
   static const int secondaryTraitRequiredLevel = 7;
   static const int costSavingDesignBuildDiscountPercent = 15;
+  static const double coreCombatSkillCooldownReductionRate = 0.10;
   static const double burnDamagePerSecondScale = _burnDamagePerSecondScale;
   static const double burnDurationSeconds = _burnDurationSeconds;
   static const double _designTileSize = 48;
@@ -501,6 +502,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double get _bossKillGoldResearchBonusRate => _progression.bossBountyBonusRate;
   bool get _hasCostSavingDesign =>
       _runCorePassiveSlots.contains(CorePassiveAbility.costSavingDesign);
+  bool get _hasSkillAcceleration =>
+      _runCorePassiveSlots.contains(CorePassiveAbility.skillAcceleration);
+  double get _nexusCoreBeamCooldownInterval => _hasSkillAcceleration
+      ? _nexusCoreBeamInterval * (1 - coreCombatSkillCooldownReductionRate)
+      : _nexusCoreBeamInterval;
   int get _waveClearGoldRunBonus => gameRunUpgrades[RunUpgradeType.waveGold]!
       .effectForLevel(_runUpgradeLevel(RunUpgradeType.waveGold))
       .round();
@@ -512,7 +518,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         final burnDps = _turretBurnDamagePerSecondAtLevel(turret, turret.level);
         return total + directDps + burnDps;
       });
-  double get nexusCoreBeamIntervalSeconds => _nexusCoreBeamInterval;
+  double get nexusCoreBeamIntervalSeconds => _nexusCoreBeamCooldownInterval;
   double get nexusCoreBeamCooldownSeconds {
     if (!nexusCoreBeamAvailable) {
       return 0;
@@ -520,7 +526,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_nexusCoreBeamActiveRemaining > 0) {
       return 0;
     }
-    return _nexusCoreBeamCooldown.clamp(0.0, _nexusCoreBeamInterval).toDouble();
+    return _nexusCoreBeamCooldown
+        .clamp(0.0, _nexusCoreBeamCooldownInterval)
+        .toDouble();
   }
 
   bool get nexusCoreBeamAvailable =>
@@ -2731,7 +2739,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final center = _nexusCorePosition();
     final progress = _nexusCoreBeamActiveRemaining > 0
         ? 1.0
-        : (1 - _nexusCoreBeamCooldown / _nexusCoreBeamInterval)
+        : (1 - _nexusCoreBeamCooldown / _nexusCoreBeamCooldownInterval)
               .clamp(0.0, 1.0)
               .toDouble();
     final barWidth = _tileSize * 0.86;
@@ -2952,7 +2960,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _resetNexusCoreBeamCycle() {
-    _nexusCoreBeamCooldown = _nexusCoreBeamInterval;
+    _nexusCoreBeamCooldown = _nexusCoreBeamCooldownInterval;
     _nexusCoreBeamActiveRemaining = 0;
     _nexusCoreBeamTickTimer = 0;
     _nexusCoreBeamTickDamage = 0;
@@ -2997,7 +3005,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     if (_nexusCoreBeamActiveRemaining <= 0) {
-      _nexusCoreBeamCooldown = _nexusCoreBeamInterval;
+      _nexusCoreBeamCooldown = _nexusCoreBeamCooldownInterval;
       _nexusCoreBeamTickTimer = 0;
       _nexusCoreBeamTickDamage = 0;
       _requestCombatStatsPublish();
