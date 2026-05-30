@@ -229,10 +229,19 @@ void main() {
 
     expect(find.text('Rune Nexus'), findsOneWidget);
     expect(find.text('연구 보드'), findsOneWidget);
+    expect(find.text('토벌 보상'), findsOneWidget);
+    expect(find.text('기초 연결 공학'), findsOneWidget);
     expect(find.text('링크 확장 I'), findsOneWidget);
     expect(find.text('젬 감응'), findsOneWidget);
     expect(find.text('연구 슬롯'), findsOneWidget);
     expect(find.text('시작 가능 연구'), findsOneWidget);
+    final bountyTopLeft = tester.getTopLeft(find.text('토벌 보상'));
+    final linkMaintenanceTopLeft = tester.getTopLeft(find.text('기초 연결 공학'));
+    expect(
+      linkMaintenanceTopLeft.dy > bountyTopLeft.dy ||
+          linkMaintenanceTopLeft.dx > bountyTopLeft.dx,
+      isTrue,
+    );
 
     await tester.tap(find.text('스테이지'));
     await _pumpGameFrames(tester);

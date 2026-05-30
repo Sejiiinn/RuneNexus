@@ -5387,6 +5387,7 @@ String _researchTitle(RuneNexusLocalizations l10n, ResearchType type) {
     ResearchType.linkExpansionOne => l10n.linkExpansionOne,
     ResearchType.gemAttunement => l10n.gemAttunement,
     ResearchType.bossBounty => l10n.bossBounty,
+    ResearchType.linkMaintenance => l10n.linkMaintenance,
   };
 }
 
@@ -5431,6 +5432,10 @@ _ResearchEffectText _researchEffectText(
       l10n.researchBossBountyEffect(_bossBountyPercentText(level)),
       hasNext ? '+${_bossBountyPercentText(clampedNextLevel)}%' : null,
     ),
+    ResearchType.linkMaintenance => _ResearchEffectText(
+      l10n.researchLinkMaintenanceEffect(_linkMaintenancePercent(level)),
+      hasNext ? '-${_linkMaintenancePercent(clampedNextLevel)}%' : null,
+    ),
   };
 }
 
@@ -5451,6 +5456,10 @@ String _bossBountyPercentText(int level) {
   return percent.toStringAsFixed(percent.truncateToDouble() == percent ? 0 : 1);
 }
 
+int _linkMaintenancePercent(int level) {
+  return (level * RunProgression.linkMaintenanceDiscountPerLevel * 100).round();
+}
+
 IconData _researchIcon(ResearchType type) {
   return switch (type) {
     ResearchType.researchEfficiency => Icons.speed_outlined,
@@ -5459,6 +5468,7 @@ IconData _researchIcon(ResearchType type) {
     ResearchType.linkExpansionOne => Icons.hub_outlined,
     ResearchType.gemAttunement => Icons.auto_awesome_outlined,
     ResearchType.bossBounty => Icons.monetization_on_outlined,
+    ResearchType.linkMaintenance => Icons.device_hub_outlined,
   };
 }
 

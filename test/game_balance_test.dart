@@ -1036,6 +1036,34 @@ void main() {
     expect(machineGun.hasNextLinkUpgrade, isFalse);
   });
 
+  test('basic link engineering only discounts the first link upgrade', () {
+    final discountedGame = _FirstLinkDiscountGame();
+    final machineGun = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: gameTurrets[TurretType.arrow]!,
+      game: discountedGame,
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+    final cannon = TurretComponent(
+      gridPoint: const GridPoint(1, 0),
+      definition: gameTurrets[TurretType.cannon]!,
+      game: discountedGame,
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+
+    expect(machineGun.linkUpgradeCost, 72);
+    expect(cannon.linkUpgradeCost, 108);
+    expect(machineGun.upgradeLink(), isTrue);
+
+    while (machineGun.level < 5) {
+      expect(machineGun.upgradeLevel(), isTrue);
+    }
+
+    expect(machineGun.linkUpgradeCost, 180);
+  });
+
   test('timed research spends runes and applies effects after completion', () {
     final progression = RunProgression()
       ..runes = 1000
@@ -1238,6 +1266,46 @@ void main() {
 
     progression.researchLevels[ResearchType.bossBounty] = 20;
     expect(progression.bossBountyBonusRate, closeTo(0.5, 0.001));
+  });
+
+  test('basic link engineering research is open by default', () {
+    final progression = RunProgression()..runes = 100;
+
+    expect(
+      progression.isResearchUnlocked(ResearchType.linkMaintenance),
+      isTrue,
+    );
+    expect(
+      progression.researchCostForCurrentLevel(ResearchType.linkMaintenance),
+      30,
+    );
+    expect(
+      progression.researchDurationForCurrentLevel(ResearchType.linkMaintenance),
+      30 * 60 * 1000,
+    );
+
+    expect(
+      progression.startResearch(ResearchType.linkMaintenance, nowMillis: 1000),
+      isTrue,
+    );
+    expect(progression.runes, 70);
+    expect(
+      progression.completeFinishedResearches(nowMillis: 1000 + 30 * 60 * 1000),
+      isTrue,
+    );
+    expect(progression.researchLevel(ResearchType.linkMaintenance), 1);
+    expect(progression.firstLinkUpgradeDiscountRate, closeTo(0.02, 0.001));
+    expect(
+      progression.researchCostForCurrentLevel(ResearchType.linkMaintenance),
+      34,
+    );
+    expect(
+      progression.researchDurationForCurrentLevel(ResearchType.linkMaintenance),
+      2016000,
+    );
+
+    progression.researchLevels[ResearchType.linkMaintenance] = 10;
+    expect(progression.firstLinkUpgradeDiscountRate, closeTo(0.2, 0.001));
   });
 
   test('debug round control jumps to requested preparation round', () {
@@ -4584,6 +4652,11 @@ class _LinkResearchUnlockedGame extends RuneNexusGame {
 
   @override
   int get maxTurretLinkSlotLimit => 4;
+}
+
+class _FirstLinkDiscountGame extends RuneNexusGame {
+  @override
+  double get firstLinkUpgradeDiscountRate => 0.2;
 }
 
 const _targetPriorityTestTurret = TurretDefinition(

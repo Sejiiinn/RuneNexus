@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../../data/save/game_save_data.dart';
 import '../../domain/combat/auto_start_mode.dart';
 import '../../domain/combat/game_phase.dart';
@@ -68,6 +70,7 @@ class GameSaveAdapter {
     required int? Function(TurretType type) baseCostFor,
     required int primaryTraitCost,
     required int secondaryTraitCost,
+    required double firstLinkUpgradeDiscountRate,
   }) {
     var gold = 0;
     var gemShards = 0;
@@ -76,7 +79,11 @@ class GameSaveAdapter {
     for (final savedTurret in savedTurrets) {
       final baseCost = baseCostFor(savedTurret.type);
       if (baseCost != null) {
-        gold += savedTurretInvestedGold(savedTurret, baseCost);
+        gold += savedTurretInvestedGold(
+          savedTurret,
+          baseCost,
+          firstLinkUpgradeDiscountRate: firstLinkUpgradeDiscountRate,
+        );
       }
       for (final gem in savedTurret.equippedGems) {
         gems[gem] = (gems[gem] ?? 0) + 1;
@@ -111,7 +118,11 @@ class GameSaveAdapter {
     return buffer.toString();
   }
 
-  int savedTurretInvestedGold(SavedTurret savedTurret, int baseCost) {
+  int savedTurretInvestedGold(
+    SavedTurret savedTurret,
+    int baseCost, {
+    double firstLinkUpgradeDiscountRate = 0,
+  }) {
     var total = baseCost;
     final level = savedTurret.level.clamp(1, 10).toInt();
     for (var currentLevel = 1; currentLevel < level; currentLevel++) {
@@ -119,7 +130,11 @@ class GameSaveAdapter {
     }
     final slotLimit = savedTurret.slotLimit.clamp(1, 4).toInt();
     for (var slot = 2; slot <= slotLimit; slot++) {
-      total += _turretLinkUpgradeCostForSlot(baseCost, slot);
+      total += _turretLinkUpgradeCostForSlot(
+        baseCost,
+        slot,
+        firstLinkUpgradeDiscountRate: firstLinkUpgradeDiscountRate,
+      );
     }
     return total;
   }
@@ -128,9 +143,18 @@ class GameSaveAdapter {
     return (baseCost * (70 + (level - 1) * 45) + 50) ~/ 100;
   }
 
-  int _turretLinkUpgradeCostForSlot(int baseCost, int slotLimit) {
+  int _turretLinkUpgradeCostForSlot(
+    int baseCost,
+    int slotLimit, {
+    required double firstLinkUpgradeDiscountRate,
+  }) {
     final costPercent = slotLimit == 2 ? 150 : 300;
-    return (baseCost * costPercent + 50) ~/ 100;
+    final linkCost = (baseCost * costPercent + 50) ~/ 100;
+    if (slotLimit != 2) {
+      return linkCost;
+    }
+    final discountRate = firstLinkUpgradeDiscountRate.clamp(0.0, 0.8);
+    return math.max(1, (linkCost * (1 - discountRate)).round());
   }
 }
 

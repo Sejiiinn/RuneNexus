@@ -224,6 +224,7 @@ class GameRestoreController {
       baseCostFor: (type) => gameTurrets[type]?.cost,
       primaryTraitCost: RuneNexusGame.primaryTraitCost,
       secondaryTraitCost: RuneNexusGame.secondaryTraitCost,
+      firstLinkUpgradeDiscountRate: _game.firstLinkUpgradeDiscountRate,
     );
     _game._gold += refund.gold;
     _game._gemShards += refund.gemShards;

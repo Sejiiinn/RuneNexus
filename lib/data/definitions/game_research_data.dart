@@ -61,4 +61,13 @@ const gameResearchDefinitions = {
     durationMillis: halfHourResearchDurationMillis,
     durationMultiplier: 1.1,
   ),
+  ResearchType.linkMaintenance: ResearchDefinition(
+    type: ResearchType.linkMaintenance,
+    maxLevel: 10,
+    requiredClearedStage: 0,
+    baseRuneCost: 30,
+    costMultiplier: 1.13,
+    durationMillis: halfHourResearchDurationMillis,
+    durationMultiplier: 1.12,
+  ),
 };

@@ -77,7 +77,8 @@ class RuneNexusLocalizations {
   String get researchLockedReason => _isEnglish
       ? 'Opens after the tower research direction is fixed.'
       : '포탑 연구 방향이 확정된 뒤 개방됩니다.';
-  String get linkMaintenance => _isEnglish ? 'Link Maintenance' : '링크 정비';
+  String get linkMaintenance =>
+      _isEnglish ? 'Basic Link Engineering' : '기초 연결 공학';
   String get linkExpansionOne => _isEnglish ? 'Link Expansion I' : '링크 확장 I';
   String get linkExpansionTwo => _isEnglish ? 'Link Expansion II' : '링크 확장 II';
   String get gemAttunement => _isEnglish ? 'Gem Attunement' : '젬 감응';
@@ -248,6 +249,10 @@ class RuneNexusLocalizations {
 
   String get researchLinkSlotEffect {
     return _isEnglish ? 'Max links increase' : '최대 링크 증가';
+  }
+
+  String researchLinkMaintenanceEffect(int percent) {
+    return _isEnglish ? 'First link cost -$percent%' : '첫 링크 비용 -$percent%';
   }
 
   String get researchTargetPriorityEffect {

@@ -665,7 +665,12 @@ class TurretComponent extends PositionComponent {
 
   int _linkUpgradeCostForSlot(int slotLimit) {
     final costPercent = slotLimit == 2 ? 150 : 300;
-    return (definition.cost * costPercent + 50) ~/ 100;
+    final baseCost = (definition.cost * costPercent + 50) ~/ 100;
+    if (slotLimit != 2) {
+      return baseCost;
+    }
+    final discountRate = game.firstLinkUpgradeDiscountRate.clamp(0.0, 0.8);
+    return math.max(1, (baseCost * (1 - discountRate)).round());
   }
 
   @override

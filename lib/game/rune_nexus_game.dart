@@ -478,6 +478,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       ? _progression.turretRefundPercent
       : RunProgression.baseTurretRefundPercent;
   int get maxTurretLinkSlotLimit => _progression.maxTurretLinkSlots;
+  double get firstLinkUpgradeDiscountRate =>
+      _progression.firstLinkUpgradeDiscountRate;
   bool get _canEditBoard =>
       _phase == GamePhase.preparation || _phase == GamePhase.wave;
   double get towerDamageRunMultiplier =>
