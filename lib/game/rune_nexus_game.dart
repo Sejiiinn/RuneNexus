@@ -3144,6 +3144,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_phase != GamePhase.preparation || _roundIndex >= _waves.length) {
       return;
     }
+    if (_roundIndex == 0) {
+      return;
+    }
     if (_autoStartMode == AutoStartMode.pauseEachRound) {
       return;
     }

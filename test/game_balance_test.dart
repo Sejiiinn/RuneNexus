@@ -340,6 +340,14 @@ void main() {
 
     game.setAutoStartMode(AutoStartMode.fullAuto);
 
+    expect(game.snapshotNotifier.value.autoStartMode, AutoStartMode.fullAuto);
+    expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+    expect(game.snapshotNotifier.value.round, 1);
+
+    game.update(0.016);
+    expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+
+    game.startNextWave();
     expect(game.snapshotNotifier.value.phase, GamePhase.wave);
 
     game.update(0.016);
@@ -371,6 +379,15 @@ void main() {
     );
 
     game.setAutoStartMode(AutoStartMode.skipBossRounds);
+
+    expect(
+      game.snapshotNotifier.value.autoStartMode,
+      AutoStartMode.skipBossRounds,
+    );
+    expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+    expect(game.snapshotNotifier.value.round, 1);
+
+    game.startNextWave();
     game.update(0.016);
     game.update(0.016);
 
