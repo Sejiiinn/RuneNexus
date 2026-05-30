@@ -5631,17 +5631,21 @@ class _PermanentUpgradeTile extends StatelessWidget {
 
   Widget _buttonChild(RuneNexusLocalizations l10n) {
     if (_isMaxed) {
-      return Text(
-        l10n.maxLevelReached,
-        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
-        overflow: TextOverflow.clip,
+      return Center(
+        child: Text(
+          l10n.maxLevelReached,
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+          overflow: TextOverflow.clip,
+        ),
       );
     }
     if (_isTierLocked) {
-      return Text(
-        lockText,
-        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
-        overflow: TextOverflow.clip,
+      return Center(
+        child: Text(
+          lockText,
+          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+          overflow: TextOverflow.clip,
+        ),
       );
     }
     return Row(

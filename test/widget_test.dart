@@ -818,6 +818,63 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('maxed permanent upgrade labels are centered in buttons', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 720);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            nexusHpUpgradeLevel: RunProgression.maxNexusHpUpgradeLevel,
+            fireTrainingUpgradeLevel:
+                RunProgression.maxFireTrainingUpgradeLevel,
+            fireTrainingDamageBonusRate:
+                RunProgression.maxFireTrainingUpgradeLevel *
+                RunProgression.fireTrainingDamagePerUpgradeLevel,
+          ),
+          selectedTab: MainMenuTab.permanentUpgrades,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    final maxLabels = find.text('최대 레벨');
+    expect(maxLabels, findsNWidgets(2));
+
+    for (var index = 0; index < 2; index++) {
+      final label = maxLabels.at(index);
+      final button = find.ancestor(
+        of: label,
+        matching: find.byType(GameButton),
+      );
+      final labelRect = tester.getRect(label);
+      final buttonRect = tester.getRect(button);
+
+      expect((labelRect.center.dx - buttonRect.center.dx).abs(), lessThan(1));
+      expect((labelRect.center.dy - buttonRect.center.dy).abs(), lessThan(1));
+    }
+  });
+
   testWidgets('research cards keep two columns on narrow menu width', (
     tester,
   ) async {
@@ -1500,6 +1557,9 @@ GameSnapshot _resultSnapshot({
   int criticalDamageUpgradeCost = 60,
   bool canUpgradeCriticalDamage = false,
   double criticalDamageProgressionBonusRate = 0,
+  int nexusHpUpgradeLevel = 0,
+  int fireTrainingUpgradeLevel = 0,
+  double fireTrainingDamageBonusRate = 0,
   int emergencySaleUpgradeLevel = 0,
   int emergencySaleUpgradeCost = 80,
   bool canUpgradeEmergencySale = false,
@@ -1628,17 +1688,17 @@ GameSnapshot _resultSnapshot({
     startingGoldUpgradeLevel: 0,
     startingGoldUpgradeCost: 4,
     canUpgradeStartingGold: false,
-    nexusHpUpgradeLevel: 0,
+    nexusHpUpgradeLevel: nexusHpUpgradeLevel,
     nexusHpUpgradeCost: 14,
     canUpgradeNexusHp: false,
     supplyUpgradeLevel: 0,
     supplyUpgradeCost: 7,
     canUpgradeSupply: false,
     waveClearGoldProgressionBonus: 0,
-    fireTrainingUpgradeLevel: 0,
+    fireTrainingUpgradeLevel: fireTrainingUpgradeLevel,
     fireTrainingUpgradeCost: 7,
     canUpgradeFireTraining: false,
-    fireTrainingDamageBonusRate: 0,
+    fireTrainingDamageBonusRate: fireTrainingDamageBonusRate,
     criticalChanceUpgradeLevel: criticalChanceUpgradeLevel,
     criticalChanceUpgradeCost: criticalChanceUpgradeCost,
     canUpgradeCriticalChance: canUpgradeCriticalChance,
