@@ -25,6 +25,7 @@ class RunProgression {
   static const double researchCostEfficiencyPerLevel = 0.05;
   static const double bossBountyBonusPerLevel = 0.025;
   static const double linkMaintenanceDiscountPerLevel = 0.02;
+  static const int bossGemShardsPerCrystalRecoveryLevel = 1;
   static const int baseStageOneFullClearRuneReward = 200;
   static const double runeRewardGrowthPerRound = 1.04;
   static const int baseTurretRefundPercent = 75;
@@ -184,6 +185,9 @@ class RunProgression {
   double get firstLinkUpgradeDiscountRate =>
       researchLevel(ResearchType.linkMaintenance) *
       linkMaintenanceDiscountPerLevel;
+  int get bossKillGemShardBonus =>
+      researchLevel(ResearchType.crystalRecovery) *
+      bossGemShardsPerCrystalRecoveryLevel;
   bool get canUpgradeStartingGold =>
       _cappedStartingGoldUpgradeLevel < maxStartingGoldUpgradeLevel &&
       runes >= startingGoldUpgradeCost;

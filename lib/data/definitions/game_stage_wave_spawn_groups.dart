@@ -1763,7 +1763,7 @@ List<SpawnGroup> _chapter2Stage10BossEscortGroups(int tier) {
   );
   final boss = SpawnGroup(
     enemyType: EnemyType.boss,
-    count: tier >= 6 ? 2 : 1,
+    count: 1,
     interval: 2.6,
     startDelay: _nextGroupDelay(shielded, gap: 1.0),
   );

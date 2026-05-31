@@ -5388,6 +5388,7 @@ String _researchTitle(RuneNexusLocalizations l10n, ResearchType type) {
     ResearchType.gemAttunement => l10n.gemAttunement,
     ResearchType.bossBounty => l10n.bossBounty,
     ResearchType.linkMaintenance => l10n.linkMaintenance,
+    ResearchType.crystalRecovery => l10n.crystalRecovery,
   };
 }
 
@@ -5436,6 +5437,14 @@ _ResearchEffectText _researchEffectText(
       l10n.researchLinkMaintenanceEffect(_linkMaintenancePercent(level)),
       hasNext ? '-${_linkMaintenancePercent(clampedNextLevel)}%' : null,
     ),
+    ResearchType.crystalRecovery => _ResearchEffectText(
+      l10n.researchCrystalRecoveryEffect(
+        level * RunProgression.bossGemShardsPerCrystalRecoveryLevel,
+      ),
+      hasNext
+          ? '+${clampedNextLevel * RunProgression.bossGemShardsPerCrystalRecoveryLevel}'
+          : null,
+    ),
   };
 }
 
@@ -5469,6 +5478,7 @@ IconData _researchIcon(ResearchType type) {
     ResearchType.gemAttunement => Icons.auto_awesome_outlined,
     ResearchType.bossBounty => Icons.monetization_on_outlined,
     ResearchType.linkMaintenance => Icons.device_hub_outlined,
+    ResearchType.crystalRecovery => Icons.diamond_outlined,
   };
 }
 

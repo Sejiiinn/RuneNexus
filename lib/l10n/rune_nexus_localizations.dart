@@ -87,6 +87,7 @@ class RuneNexusLocalizations {
   String get researchCostEfficiency =>
       _isEnglish ? 'Research Cost Efficiency' : '연구 비용 효율';
   String get bossBounty => _isEnglish ? 'Boss Reward' : '토벌 보상';
+  String get crystalRecovery => _isEnglish ? 'Crystal Recovery' : '결정 회수';
   String get runeResonance => _isEnglish ? 'Rune Resonance' : '룬 공명';
   String get levelUp => _isEnglish ? 'Level Up' : '레벨업';
   String get cleared => _isEnglish ? 'Cleared' : '클리어';
@@ -263,6 +264,12 @@ class RuneNexusLocalizations {
     return _isEnglish ? 'Boss kill gold +$percent%' : '보스 처치 골드 +$percent%';
   }
 
+  String researchCrystalRecoveryEffect(int amount) {
+    return _isEnglish
+        ? 'Boss kill gem shards +$amount'
+        : '보스 처치 시 젬 파편 +$amount';
+  }
+
   String researchRemaining(int remainingMillis) {
     final seconds = (remainingMillis / 1000).ceil();
     final hours = seconds ~/ 3600;
@@ -344,6 +351,11 @@ class RuneNexusLocalizations {
       return _isEnglish
           ? 'Increases gold gained from defeating boss enemies by 2.5% per level.'
           : '레벨마다 보스 처치 골드를 2.5% 늘립니다.';
+    }
+    if (title == crystalRecovery) {
+      return _isEnglish
+          ? 'Adds +1 gem shard per level when defeating boss enemies.'
+          : '레벨마다 보스 처치 시 획득하는 젬 파편이 1 증가합니다.';
     }
     if (title == runeResonance) {
       return _isEnglish

@@ -6,4 +6,5 @@ enum ResearchType {
   gemAttunement,
   bossBounty,
   linkMaintenance,
+  crystalRecovery,
 }

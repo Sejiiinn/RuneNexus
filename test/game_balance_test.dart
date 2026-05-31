@@ -80,6 +80,18 @@ void main() {
     expect(gameStages[9].map.tileTheme.kind, MapTileThemeKind.chapterTwoRift);
   });
 
+  test('boss waves spawn exactly one boss in every stage', () {
+    for (final stage in gameStages) {
+      for (final wave in stage.waves.where((wave) => wave.round % 10 == 0)) {
+        final bossCount = wave.groups
+            .where((group) => group.enemyType == EnemyType.boss)
+            .fold<int>(0, (total, group) => total + group.count);
+
+        expect(bossCount, 1, reason: 'Stage ${stage.id} round ${wave.round}');
+      }
+    }
+  });
+
   test('chapter two maps use altered paths with rift theme', () {
     final chapterOneMaps = [
       gameMap,
@@ -1268,6 +1280,53 @@ void main() {
     expect(progression.bossBountyBonusRate, closeTo(0.5, 0.001));
   });
 
+  test('crystal recovery research unlocks after stage five clear', () {
+    final progression = RunProgression()..runes = 2000;
+
+    expect(
+      progression.isResearchUnlocked(ResearchType.crystalRecovery),
+      isFalse,
+    );
+
+    progression.clearedStageNumbers.add(5);
+
+    expect(
+      progression.isResearchUnlocked(ResearchType.crystalRecovery),
+      isTrue,
+    );
+    expect(
+      progression.researchCostForCurrentLevel(ResearchType.crystalRecovery),
+      150,
+    );
+    expect(
+      progression.researchDurationForCurrentLevel(ResearchType.crystalRecovery),
+      90 * 60 * 1000,
+    );
+
+    expect(
+      progression.startResearch(ResearchType.crystalRecovery, nowMillis: 1000),
+      isTrue,
+    );
+    expect(progression.runes, 1850);
+    expect(
+      progression.completeFinishedResearches(nowMillis: 1000 + 90 * 60 * 1000),
+      isTrue,
+    );
+    expect(progression.researchLevel(ResearchType.crystalRecovery), 1);
+    expect(progression.bossKillGemShardBonus, 1);
+    expect(
+      progression.researchCostForCurrentLevel(ResearchType.crystalRecovery),
+      207,
+    );
+    expect(
+      progression.researchDurationForCurrentLevel(ResearchType.crystalRecovery),
+      (90 * 60 * 1000 * 1.25).round(),
+    );
+
+    progression.researchLevels[ResearchType.crystalRecovery] = 5;
+    expect(progression.bossKillGemShardBonus, 5);
+  });
+
   test('basic link engineering research is open by default', () {
     final progression = RunProgression()..runes = 100;
 
@@ -2259,6 +2318,42 @@ void main() {
     );
   });
 
+  test('crystal recovery research boosts only boss kill gem shards', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {1, 2, 3, 4, 5},
+        researchLevels: const {ResearchType.crystalRecovery: 5},
+        runes: 0,
+        unlockedStageCount: 6,
+      );
+    final game = RuneNexusGame(saveRepository: repository);
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    final normal = EnemyComponent(
+      definition: gameEnemies[EnemyType.normal]!,
+      maxHp: 1,
+      path: [Vector2.zero(), Vector2(1, 0)],
+      game: game,
+    );
+    game.enemies.add(normal);
+    normal.receiveDamage(999);
+
+    expect(game.snapshotNotifier.value.gemShards, 0);
+
+    final boss = EnemyComponent(
+      definition: gameEnemies[EnemyType.boss]!,
+      maxHp: 1,
+      path: [Vector2.zero(), Vector2(1, 0)],
+      game: game,
+    );
+    game.enemies.add(boss);
+    boss.receiveDamage(999);
+
+    expect(game.snapshotNotifier.value.gemShards, 5);
+  });
+
   test('permanent kill reward unlocks after stage two clear', () async {
     final repository = MemorySaveRepository()
       ..data = _saveWithResearch(
@@ -3173,7 +3268,7 @@ void main() {
       );
       expect(
         countType(gameChapter2Stage10Waves, 50, EnemyType.boss),
-        greaterThan(countType(gameChapter2Waves, 50, EnemyType.boss)),
+        countType(gameChapter2Waves, 50, EnemyType.boss),
       );
     },
   );

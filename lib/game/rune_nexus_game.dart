@@ -502,6 +502,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double get _killGoldTotalBonusRate =>
       _killGoldRunBonusRate + _killGoldProgressionBonusRate;
   double get _bossKillGoldResearchBonusRate => _progression.bossBountyBonusRate;
+  int get _bossKillGemShardResearchBonus => _progression.bossKillGemShardBonus;
   bool get _hasCostSavingDesign =>
       _runCorePassiveSlots.contains(CorePassiveAbility.costSavingDesign);
   bool get _hasSkillAcceleration =>
@@ -2483,6 +2484,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _killGoldFractionWallet -= walletGold;
       }
       _gold += baseReward + wholeBonus + walletGold;
+      if (enemy.definition.type == EnemyType.boss &&
+          _bossKillGemShardResearchBonus > 0) {
+        _gemShards += _bossKillGemShardResearchBonus;
+      }
     }
     enemies.remove(enemy);
     _finishDebugCombatIfIdle();

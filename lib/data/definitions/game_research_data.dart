@@ -5,6 +5,7 @@ const int oneHourResearchDurationMillis = 60 * 60 * 1000;
 const int halfHourResearchDurationMillis = 30 * 60 * 1000;
 const int fortyFiveMinuteResearchDurationMillis = 45 * 60 * 1000;
 const int twentyMinuteResearchDurationMillis = 20 * 60 * 1000;
+const int ninetyMinuteResearchDurationMillis = 90 * 60 * 1000;
 
 const gameResearchDefinitions = {
   ResearchType.researchEfficiency: ResearchDefinition(
@@ -69,5 +70,14 @@ const gameResearchDefinitions = {
     costMultiplier: 1.13,
     durationMillis: halfHourResearchDurationMillis,
     durationMultiplier: 1.12,
+  ),
+  ResearchType.crystalRecovery: ResearchDefinition(
+    type: ResearchType.crystalRecovery,
+    maxLevel: 5,
+    requiredClearedStage: 5,
+    baseRuneCost: 150,
+    costMultiplier: 1.38,
+    durationMillis: ninetyMinuteResearchDurationMillis,
+    durationMultiplier: 1.25,
   ),
 };
