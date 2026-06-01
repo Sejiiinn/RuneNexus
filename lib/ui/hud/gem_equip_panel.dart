@@ -919,10 +919,10 @@ String _gemEffectText(GemType type, TurretDefinition turret) {
       turret.damageFamily == DamageFamily.physical
           ? '물리 피해 40% 증폭'
           : '현재 적용되는 물리 피해 없음',
-    GemType.magicalDamage =>
-      turret.damageFamily == DamageFamily.magical
-          ? '마법 피해 40% 증폭'
-          : '현재 적용되는 마법 피해 없음',
+    GemType.elementalDamage =>
+      turret.damageFamily == DamageFamily.elemental
+          ? '원소 피해 40% 증폭'
+          : '현재 적용되는 원소 피해 없음',
     GemType.lightWeapon =>
       turret.attackTags.contains(AttackTag.light)
           ? '경량화기 피해 20% 증폭, 초당 발사 20% 증폭'

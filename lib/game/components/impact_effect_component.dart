@@ -240,7 +240,7 @@ class ImpactEffectComponent extends PositionComponent {
       alpha: alpha,
       shockColor: const Color(0xFFE8FBFF),
       flashColor: const Color(0xFFFFFFFF),
-      coreColor: const Color(0xFF4DEAFF),
+      coreColor: const Color(0xFFCFA7FF),
       shardAltColor: const Color(0xFF8CFFF3),
       dustColor: const Color(0xFF9DDDEA),
     );

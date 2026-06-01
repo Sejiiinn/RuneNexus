@@ -39,6 +39,7 @@ class GameRestoreController {
       _game._restoredPhase = null;
       _game._rewardOptions.clear();
       _game._isPurchasedGemReward = false;
+      _game._rewardReturnPhase = null;
       _resetBoardSelection();
       _game._requestLocalSave(immediate: true);
       return;
@@ -62,6 +63,9 @@ class GameRestoreController {
       ..addAll(data.rewardOptions);
     _game._gemShards = math.max(0, data.gemShards);
     _game._isPurchasedGemReward = data.isPurchasedGemReward;
+    _game._rewardReturnPhase = data.isPurchasedGemReward
+        ? data.rewardReturnPhase
+        : null;
   }
 
   void _restoreInactiveRunState(GameSaveData data) {
@@ -78,6 +82,7 @@ class GameRestoreController {
     _game._phase = GamePhase.preparation;
     _game._restoredPhase = null;
     _game._isPurchasedGemReward = false;
+    _game._rewardReturnPhase = null;
   }
 
   void _restoreActiveRunState(GameSaveData data) {
@@ -126,6 +131,9 @@ class GameRestoreController {
     if (restoredPhase != GamePhase.wave || !restoreWaveAsPaused) {
       _game._phase = restoredPhase;
       _game._restoredPhase = null;
+      if (restoredPhase != GamePhase.reward || !_game._isPurchasedGemReward) {
+        _game._rewardReturnPhase = null;
+      }
       _restoreEmptyRewardOptionsIfNeeded();
       return;
     }
@@ -133,6 +141,7 @@ class GameRestoreController {
     _game._phase = GamePhase.restored;
     _game._restoredPhase = restoredPhase;
     _game._isPurchasedGemReward = false;
+    _game._rewardReturnPhase = null;
     _restoreEmptyRewardOptionsIfNeeded();
   }
 
@@ -151,6 +160,7 @@ class GameRestoreController {
     _game._phase = GamePhase.preparation;
     _game._restoredPhase = null;
     _game._isPurchasedGemReward = false;
+    _game._rewardReturnPhase = null;
     _game._requestLocalSave(immediate: true);
   }
 

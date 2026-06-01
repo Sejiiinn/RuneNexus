@@ -2,7 +2,7 @@ enum GemType {
   attackSpeed,
   range,
   physicalDamage,
-  magicalDamage,
+  elementalDamage,
   lightWeapon,
   heavyWeapon,
   damageOverTime,

@@ -416,6 +416,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   bool _debugCombatActive = false;
   bool _debugInstantResearchCompletion = false;
   GamePhase? _restoredPhase;
+  GamePhase? _rewardReturnPhase;
   bool _isPurchasedGemReward = false;
   TurretType _selectedTurretType = TurretType.arrow;
   RunPanelTab _selectedRunPanelTab = RunPanelTab.turrets;
@@ -490,6 +491,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _progression.isStageCleared(4) ? _progression.criticalDamageBonusRate : 0;
   double get lightningChainJumpRange =>
       _lightningChainJumpRange * boardDistanceScale;
+  bool get _isRewardPausingWave =>
+      _phase == GamePhase.reward && _rewardReturnPhase == GamePhase.wave;
 
   double get _towerDamageRunBonusRate =>
       _runUpgradeLevel(RunUpgradeType.towerDamage) *
@@ -657,7 +660,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _updateResearchProgress();
     _spaceTime = (_spaceTime + dt) % 1200;
     _updateVisualAlerts(dt);
-    if (_phase == GamePhase.restored) {
+    if (_phase == GamePhase.restored || _isRewardPausingWave) {
       super.update(0);
       return;
     }
@@ -833,7 +836,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _publish();
   }
 
-  void purchaseGemChoice() {
+  bool purchaseGemChoice() {
+    final returnPhase = _phase == GamePhase.wave ? GamePhase.wave : null;
     final purchase = _gemRewards.purchaseGemChoice(
       phase: _phase,
       gemShards: _gemShards,
@@ -841,17 +845,19 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       availableGems: _availableGemTypes(),
     );
     if (purchase == null) {
-      return;
+      return false;
     }
 
     _gemShards = purchase.gemShards;
     _isPurchasedGemReward = true;
+    _rewardReturnPhase = returnPhase;
     _rewardOptions
       ..clear()
       ..addAll(purchase.rewardOptions);
     _phase = GamePhase.reward;
     _publish();
     _requestLocalSave(immediate: true);
+    return true;
   }
 
   void buyRunUpgrade(RunUpgradeType type) {
@@ -981,6 +987,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _runUpgradeLevels.clear();
     _rewardOptions.clear();
     _isPurchasedGemReward = false;
+    _rewardReturnPhase = null;
     _killGoldFractionWallet = 0;
     _pendingFullSaveData = null;
     _savedTurretCountForMenu = 0;
@@ -1169,6 +1176,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _clearActiveCombat();
     _roundIndex = clampedRound - 1;
     _phase = GamePhase.preparation;
+    _rewardReturnPhase = null;
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
     _selectedPortalPoint = null;
@@ -1323,6 +1331,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _clearActiveCombat();
     _phase = GamePhase.reward;
     _isPurchasedGemReward = false;
+    _rewardReturnPhase = null;
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
     _selectedPortalPoint = null;
@@ -1389,6 +1398,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _clearActiveCombat();
     _roundIndex = bossRoundIndex;
     _phase = GamePhase.preparation;
+    _rewardReturnPhase = null;
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
     _selectedPortalPoint = null;
@@ -1455,9 +1465,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
 
+    final nextPhase = _rewardReturnPhase ?? GamePhase.preparation;
+    final shouldResumeCombat = nextPhase == GamePhase.wave;
     _isPurchasedGemReward = false;
-    _phase = GamePhase.preparation;
+    _rewardReturnPhase = null;
+    _phase = nextPhase;
     _publish();
+    if (shouldResumeCombat) {
+      resumeEngine();
+    }
     _requestLocalSave(immediate: true);
   }
 
@@ -1475,6 +1491,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _gemShards = gemShards;
     _isPurchasedGemReward = false;
+    _rewardReturnPhase = null;
     _phase = GamePhase.preparation;
     _publish();
     _requestLocalSave(immediate: true);
@@ -3129,11 +3146,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
     if (_roundIndex >= _waves.length) {
       _rewardOptions.clear();
+      _rewardReturnPhase = null;
       _finishRun(GamePhase.success);
       unawaited(_saveRoundCheckpoint());
     } else if (gemRoundReward != null) {
       _phase = GamePhase.reward;
       _isPurchasedGemReward = false;
+      _rewardReturnPhase = null;
       _rewardOptions
         ..clear()
         ..addAll(gemRoundReward.rewardOptions);
@@ -3142,6 +3161,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _phase = GamePhase.preparation;
       _rewardOptions.clear();
       _isPurchasedGemReward = false;
+      _rewardReturnPhase = null;
       unawaited(_saveRoundCheckpoint());
     }
     _publish();
@@ -3391,6 +3411,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final pendingRewardPhase = _phase;
     final pendingRewardGemShards = _gemShards;
     final pendingRewardIsPurchase = _isPurchasedGemReward;
+    final pendingRewardReturnPhase = _rewardReturnPhase;
     _savedDataLoaded = true;
     final savedData = _pendingFullSaveData ?? await _saveRepository.load();
     _pendingFullSaveData = null;
@@ -3404,6 +3425,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _restoredPhase = null;
       _gemShards = pendingRewardGemShards;
       _isPurchasedGemReward = pendingRewardIsPurchase;
+      _rewardReturnPhase = pendingRewardIsPurchase
+          ? pendingRewardReturnPhase
+          : null;
       _rewardOptions
         ..clear()
         ..addAll(pendingRewardOptions);
@@ -3434,6 +3458,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         gemInventory: _gemInventory,
         rewardOptions: _rewardOptions,
         isPurchasedGemReward: _isPurchasedGemReward,
+        rewardReturnPhase: _rewardReturnPhase,
         turrets: [for (final turret in _turrets.values) turret.toSaveData()],
         enemies: [
           for (final enemy in enemies)

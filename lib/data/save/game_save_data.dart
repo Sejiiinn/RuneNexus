@@ -29,6 +29,7 @@ class GameSaveData {
     required this.gemInventory,
     required this.rewardOptions,
     required this.isPurchasedGemReward,
+    this.rewardReturnPhase,
     this.runCoreCombatSkill = CoreCombatSkill.guardianBeam,
     this.runCorePassiveSlots = const [null, null],
     required this.turrets,
@@ -55,6 +56,7 @@ class GameSaveData {
   final Map<GemType, int> gemInventory;
   final List<GemType> rewardOptions;
   final bool isPurchasedGemReward;
+  final GamePhase? rewardReturnPhase;
   final CoreCombatSkill? runCoreCombatSkill;
   final List<CorePassiveAbility?> runCorePassiveSlots;
   final List<SavedTurret> turrets;
@@ -99,6 +101,7 @@ class GameSaveData {
       ),
       'rewardOptions': rewardOptions.map((type) => type.name).toList(),
       'isPurchasedGemReward': isPurchasedGemReward,
+      'rewardReturnPhase': rewardReturnPhase?.name,
       'runCoreCombatSkill': runCoreCombatSkill?.name,
       'runCorePassiveSlots': runCorePassiveSlots
           .take(2)
@@ -120,6 +123,21 @@ class GameSaveData {
     }
 
     final progression = SavedProgression.fromJson(json['progression']);
+    final phase =
+        _enumValue(GamePhase.values, json['phase']) ?? GamePhase.preparation;
+    final isPurchasedGemReward = json['isPurchasedGemReward'] == true;
+    final enemies = _objectList(json['enemies'], SavedEnemy.fromJson);
+    final spawnQueue = _objectList(
+      json['spawnQueue'],
+      SavedSpawnRequest.fromJson,
+    );
+    final rewardReturnPhase =
+        _enumValue(GamePhase.values, json['rewardReturnPhase']) ??
+        (phase == GamePhase.reward &&
+                isPurchasedGemReward &&
+                (enemies.isNotEmpty || spawnQueue.isNotEmpty)
+            ? GamePhase.wave
+            : null);
     return GameSaveData(
       version: version,
       savedAtMillis: _intValue(json['savedAtMillis']),
@@ -130,8 +148,7 @@ class GameSaveData {
       mapSignature: _stringValue(json['mapSignature']),
       roundIndex: _intValue(json['roundIndex']),
       completedRounds: _intValue(json['completedRounds']),
-      phase:
-          _enumValue(GamePhase.values, json['phase']) ?? GamePhase.preparation,
+      phase: phase,
       autoStartMode:
           _enumValue(AutoStartMode.values, json['autoStartMode']) ??
           AutoStartMode.pauseEachRound,
@@ -143,7 +160,8 @@ class GameSaveData {
       killGoldFractionWallet: _doubleValue(json['killGoldFractionWallet']),
       gemInventory: _enumIntMap(GemType.values, json['gemInventory']),
       rewardOptions: _enumList(GemType.values, json['rewardOptions']),
-      isPurchasedGemReward: json['isPurchasedGemReward'] == true,
+      isPurchasedGemReward: isPurchasedGemReward,
+      rewardReturnPhase: rewardReturnPhase,
       runCoreCombatSkill: _nullableCoreCombatSkillFromSave(
         json,
         key: 'runCoreCombatSkill',
@@ -155,8 +173,8 @@ class GameSaveData {
         missingFallback: progression.corePassiveSlots,
       ),
       turrets: _objectList(json['turrets'], SavedTurret.fromJson),
-      enemies: _objectList(json['enemies'], SavedEnemy.fromJson),
-      spawnQueue: _objectList(json['spawnQueue'], SavedSpawnRequest.fromJson),
+      enemies: enemies,
+      spawnQueue: spawnQueue,
     );
   }
 }
@@ -540,8 +558,8 @@ class SavedEnemy {
     required this.slowMultiplier,
     required this.physicalVulnerabilityRemaining,
     required this.physicalVulnerabilityBonus,
-    required this.magicalVulnerabilityRemaining,
-    required this.magicalVulnerabilityBonus,
+    required this.elementalVulnerabilityRemaining,
+    required this.elementalVulnerabilityBonus,
   });
 
   final EnemyType type;
@@ -563,8 +581,8 @@ class SavedEnemy {
   final double slowMultiplier;
   final double physicalVulnerabilityRemaining;
   final double physicalVulnerabilityBonus;
-  final double magicalVulnerabilityRemaining;
-  final double magicalVulnerabilityBonus;
+  final double elementalVulnerabilityRemaining;
+  final double elementalVulnerabilityBonus;
 
   Map<String, Object?> toJson() {
     return {
@@ -589,8 +607,8 @@ class SavedEnemy {
       'slowMultiplier': slowMultiplier,
       'physicalVulnerabilityRemaining': physicalVulnerabilityRemaining,
       'physicalVulnerabilityBonus': physicalVulnerabilityBonus,
-      'magicalVulnerabilityRemaining': magicalVulnerabilityRemaining,
-      'magicalVulnerabilityBonus': magicalVulnerabilityBonus,
+      'elementalVulnerabilityRemaining': elementalVulnerabilityRemaining,
+      'elementalVulnerabilityBonus': elementalVulnerabilityBonus,
     };
   }
 
@@ -655,11 +673,11 @@ class SavedEnemy {
       physicalVulnerabilityBonus: _doubleValue(
         json['physicalVulnerabilityBonus'],
       ),
-      magicalVulnerabilityRemaining: _doubleValue(
-        json['magicalVulnerabilityRemaining'],
+      elementalVulnerabilityRemaining: _doubleValue(
+        json['elementalVulnerabilityRemaining'],
       ),
-      magicalVulnerabilityBonus: _doubleValue(
-        json['magicalVulnerabilityBonus'],
+      elementalVulnerabilityBonus: _doubleValue(
+        json['elementalVulnerabilityBonus'],
       ),
     );
   }

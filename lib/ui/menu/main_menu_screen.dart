@@ -2154,7 +2154,7 @@ class _LightningRewardIconPainter extends CustomPainter {
       canvas,
       size: size,
       type: TurretType.lightning,
-      color: Color(0xFF4DEAFF),
+      color: Color(0xFFCFA7FF),
       strokeWidth: 1,
     );
   }

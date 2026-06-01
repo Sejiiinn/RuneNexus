@@ -337,6 +337,133 @@ void main() {
     );
   });
 
+  test('purchased gem choice can be selected during combat', () {
+    final game = RuneNexusGame(
+      waves: List<WaveDefinition>.generate(
+        21,
+        (index) => WaveDefinition(
+          round: index + 1,
+          previewText: 'test',
+          groups: const [],
+          clearRewardGold: 0,
+        ),
+      ),
+    );
+
+    while (game.snapshotNotifier.value.gemShards <
+        RuneNexusGame.gemChoicePurchaseCost) {
+      game.startNextWave();
+      game.update(0.016);
+      final snapshot = game.snapshotNotifier.value;
+      if (snapshot.phase == GamePhase.reward) {
+        game.selectRewardGem(snapshot.rewardOptions.first);
+      }
+    }
+
+    game.startNextWave();
+    expect(game.snapshotNotifier.value.phase, GamePhase.wave);
+
+    expect(game.purchaseGemChoice(), isTrue);
+
+    final purchaseSnapshot = game.snapshotNotifier.value;
+    expect(purchaseSnapshot.phase, GamePhase.reward);
+    expect(purchaseSnapshot.isPurchasedGemReward, isTrue);
+
+    final selectedGem = purchaseSnapshot.rewardOptions.first;
+    game.selectRewardGem(selectedGem);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.wave);
+    expect(game.snapshotNotifier.value.gemInventory[selectedGem], isNotNull);
+  });
+
+  test('purchased gem reward pauses active combat updates', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {},
+        researchLevels: const {},
+        gemShards: RuneNexusGame.gemChoicePurchaseCost,
+        mapSignature: const GameSaveAdapter().mapSignature(gameMap),
+      );
+    final game = RuneNexusGame(saveRepository: repository);
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+
+    final enemy = EnemyComponent(
+      definition: gameEnemies[EnemyType.normal]!,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(500, 0)],
+      game: game,
+    );
+    game.enemies.add(enemy);
+    await game.add(enemy);
+    final previousDistance = enemy.distanceTravelled;
+
+    expect(game.purchaseGemChoice(), isTrue);
+    await game.saveNow();
+    game.update(1);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.reward);
+    expect(repository.data!.rewardReturnPhase, GamePhase.wave);
+    expect(enemy.distanceTravelled, previousDistance);
+  });
+
+  test('combat gem reward restore resumes wave after selection', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {},
+        researchLevels: const {},
+        gemShards: RuneNexusGame.gemChoicePurchaseCost,
+        mapSignature: const GameSaveAdapter().mapSignature(gameMap),
+      );
+    final game = RuneNexusGame(saveRepository: repository);
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+
+    final enemy = EnemyComponent(
+      definition: gameEnemies[EnemyType.normal]!,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(500, 0)],
+      game: game,
+    );
+    game.enemies.add(enemy);
+    await game.add(enemy);
+
+    expect(game.purchaseGemChoice(), isTrue);
+    await game.saveNow();
+
+    final saved = repository.data!;
+    expect(saved.phase, GamePhase.reward);
+    expect(saved.rewardReturnPhase, GamePhase.wave);
+    expect(saved.enemies, isNotEmpty);
+
+    final legacyJson = Map<String, Object?>.of(saved.toJson())
+      ..remove('rewardReturnPhase');
+    final parsedLegacySave = GameSaveData.fromJson(legacyJson)!;
+    expect(parsedLegacySave.rewardReturnPhase, GamePhase.wave);
+
+    final restoredRepository = MemorySaveRepository()..data = parsedLegacySave;
+    final restored = RuneNexusGame(saveRepository: restoredRepository);
+    restored.onGameResize(Vector2(400, 800));
+    await restored.onLoad();
+
+    final rewardSnapshot = restored.snapshotNotifier.value;
+    expect(rewardSnapshot.phase, GamePhase.reward);
+    expect(rewardSnapshot.isPurchasedGemReward, isTrue);
+    expect(restored.enemies, hasLength(1));
+
+    final restoredEnemy = restored.enemies.single;
+    final pausedDistance = restoredEnemy.distanceTravelled;
+    restored.update(1);
+    expect(restoredEnemy.distanceTravelled, pausedDistance);
+
+    restored.selectRewardGem(rewardSnapshot.rewardOptions.first);
+    expect(restored.snapshotNotifier.value.phase, GamePhase.wave);
+    restored.update(1);
+    expect(restoredEnemy.distanceTravelled, greaterThan(pausedDistance));
+  });
+
   test('auto start can continue non-boss preparation rounds', () {
     final game = RuneNexusGame(
       waves: List<WaveDefinition>.generate(
@@ -659,7 +786,7 @@ void main() {
     expect(gameTurrets[TurretType.lightning]!.damage, 24);
     expect(
       gameTurrets[TurretType.lightning]!.damageFamily,
-      DamageFamily.magical,
+      DamageFamily.elemental,
     );
     expect(
       gameTurrets[TurretType.lightning]!.attackTags,
@@ -2010,7 +2137,7 @@ void main() {
     expect(gemNames, isNot(contains('poison')));
     expect(gemNames, isNot(contains('slow')));
     expect(GemType.values, contains(GemType.physicalDamage));
-    expect(GemType.values, contains(GemType.magicalDamage));
+    expect(GemType.values, contains(GemType.elementalDamage));
     expect(GemType.values, contains(GemType.lightWeapon));
     expect(GemType.values, contains(GemType.heavyWeapon));
     expect(GemType.values, contains(GemType.damageOverTime));
@@ -2828,7 +2955,7 @@ void main() {
     expect(fireTurret.damage, closeTo(16, 0.001));
   });
 
-  test('magical damage gem boosts magical turrets only', () {
+  test('elemental damage gem boosts elemental turrets only', () {
     final game = RuneNexusGame();
     final machineGun = TurretComponent(
       gridPoint: const GridPoint(0, 0),
@@ -2845,8 +2972,8 @@ void main() {
       tileSize: 32,
     );
 
-    machineGun.equipGem(GemType.magicalDamage, 0);
-    fireTurret.equipGem(GemType.magicalDamage, 0);
+    machineGun.equipGem(GemType.elementalDamage, 0);
+    fireTurret.equipGem(GemType.elementalDamage, 0);
 
     expect(machineGun.damage, closeTo(7, 0.001));
     expect(fireTurret.damage, closeTo(22.4, 0.001));
@@ -3014,14 +3141,14 @@ void main() {
   test('scaling gems can be equipped before matching conversion exists', () {
     expect(
       canEquipGemOnTurret(
-        GemType.magicalDamage,
+        GemType.elementalDamage,
         gameTurrets[TurretType.cannon]!,
       ),
       isTrue,
     );
     expect(
       canEquipGemOnTurret(
-        GemType.magicalDamage,
+        GemType.elementalDamage,
         gameTurrets[TurretType.magic]!,
       ),
       isTrue,
@@ -3321,7 +3448,7 @@ void main() {
     final frost = gameTurrets[TurretType.frost]!;
 
     expect(frost.centeredAreaAttack, isTrue);
-    expect(frost.damageFamily, DamageFamily.magical);
+    expect(frost.damageFamily, DamageFamily.elemental);
     expect(frost.attackTags, contains(AttackTag.cooling));
     expect(frost.slowMultiplier, closeTo(0.7, 0.001));
     expect(frost.slowDuration, closeTo(1, 0.001));
@@ -3348,7 +3475,7 @@ void main() {
       );
       expect(
         tank.resistanceProfile.multiplierFor(
-          family: DamageFamily.magical,
+          family: DamageFamily.elemental,
           tags: const {AttackTag.damageOverTime},
         ),
         closeTo(1, 0.001),
@@ -3384,7 +3511,7 @@ void main() {
 
     expect(
       boss.resistanceProfile.multiplierFor(
-        family: DamageFamily.magical,
+        family: DamageFamily.elemental,
         tags: const {AttackTag.damageOverTime},
       ),
       closeTo(0.9, 0.001),
@@ -3410,7 +3537,7 @@ void main() {
     );
     expect(
       fast.resistanceProfile.multiplierFor(
-        family: DamageFamily.magical,
+        family: DamageFamily.elemental,
         tags: const {AttackTag.damageOverTime},
       ),
       closeTo(1, 0.001),
@@ -4843,6 +4970,7 @@ GameSaveData _saveWithResearch({
   int gemShards = 0,
   GamePhase phase = GamePhase.preparation,
   bool isPurchasedGemReward = false,
+  GamePhase? rewardReturnPhase,
   List<GemType> rewardOptions = const [],
   String? mapSignature,
 }) {
@@ -4881,6 +5009,7 @@ GameSaveData _saveWithResearch({
     gemInventory: const {},
     rewardOptions: rewardOptions,
     isPurchasedGemReward: isPurchasedGemReward,
+    rewardReturnPhase: rewardReturnPhase,
     turrets: const [],
     enemies: const [],
     spawnQueue: const [],

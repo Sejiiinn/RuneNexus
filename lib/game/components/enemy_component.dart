@@ -54,8 +54,8 @@ class EnemyComponent extends PositionComponent {
   double _slowMultiplier = 1;
   double _physicalVulnerabilityRemaining = 0;
   double _physicalVulnerabilityBonus = 0;
-  double _magicalVulnerabilityRemaining = 0;
-  double _magicalVulnerabilityBonus = 0;
+  double _elementalVulnerabilityRemaining = 0;
+  double _elementalVulnerabilityBonus = 0;
   double _facingAngle = 0;
   double _hitFlashTimer = 0;
   Color _hitFlashColor = const Color(0xFFFFFFFF);
@@ -90,8 +90,8 @@ class EnemyComponent extends PositionComponent {
   double get slowMultiplier => _slowMultiplier;
   double get physicalResistanceReduction =>
       _physicalVulnerabilityRemaining > 0 ? _physicalVulnerabilityBonus : 0;
-  double get magicalResistanceReduction =>
-      _magicalVulnerabilityRemaining > 0 ? _magicalVulnerabilityBonus : 0;
+  double get elementalResistanceReduction =>
+      _elementalVulnerabilityRemaining > 0 ? _elementalVulnerabilityBonus : 0;
   double get totalBurnDamagePerSecond => _burnInstances.fold(
     0,
     (strongest, instance) => math.max(strongest, instance.damagePerSecond),
@@ -130,8 +130,8 @@ class EnemyComponent extends PositionComponent {
       slowMultiplier: _slowMultiplier,
       physicalVulnerabilityRemaining: _physicalVulnerabilityRemaining,
       physicalVulnerabilityBonus: _physicalVulnerabilityBonus,
-      magicalVulnerabilityRemaining: _magicalVulnerabilityRemaining,
-      magicalVulnerabilityBonus: _magicalVulnerabilityBonus,
+      elementalVulnerabilityRemaining: _elementalVulnerabilityRemaining,
+      elementalVulnerabilityBonus: _elementalVulnerabilityBonus,
     );
   }
 
@@ -163,11 +163,14 @@ class EnemyComponent extends PositionComponent {
       data.physicalVulnerabilityRemaining,
     );
     _physicalVulnerabilityBonus = math.max(0, data.physicalVulnerabilityBonus);
-    _magicalVulnerabilityRemaining = math.max(
+    _elementalVulnerabilityRemaining = math.max(
       0,
-      data.magicalVulnerabilityRemaining,
+      data.elementalVulnerabilityRemaining,
     );
-    _magicalVulnerabilityBonus = math.max(0, data.magicalVulnerabilityBonus);
+    _elementalVulnerabilityBonus = math.max(
+      0,
+      data.elementalVulnerabilityBonus,
+    );
     _placeAtDistance(distanceTravelled);
   }
 
@@ -431,16 +434,19 @@ class EnemyComponent extends PositionComponent {
     );
   }
 
-  void applyMagicalVulnerability({
+  void applyElementalVulnerability({
     required double bonus,
     required double duration,
   }) {
     if (bonus <= 0 || duration <= 0) {
       return;
     }
-    _magicalVulnerabilityBonus = math.max(_magicalVulnerabilityBonus, bonus);
-    _magicalVulnerabilityRemaining = math.max(
-      _magicalVulnerabilityRemaining,
+    _elementalVulnerabilityBonus = math.max(
+      _elementalVulnerabilityBonus,
+      bonus,
+    );
+    _elementalVulnerabilityRemaining = math.max(
+      _elementalVulnerabilityRemaining,
       duration,
     );
   }
@@ -534,13 +540,13 @@ class EnemyComponent extends PositionComponent {
         _physicalVulnerabilityBonus = 0;
       }
     }
-    if (_magicalVulnerabilityRemaining > 0) {
-      _magicalVulnerabilityRemaining = math.max(
+    if (_elementalVulnerabilityRemaining > 0) {
+      _elementalVulnerabilityRemaining = math.max(
         0,
-        _magicalVulnerabilityRemaining - dt,
+        _elementalVulnerabilityRemaining - dt,
       );
-      if (_magicalVulnerabilityRemaining == 0) {
-        _magicalVulnerabilityBonus = 0;
+      if (_elementalVulnerabilityRemaining == 0) {
+        _elementalVulnerabilityBonus = 0;
       }
     }
   }

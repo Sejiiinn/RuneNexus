@@ -18,7 +18,8 @@ class GemRewardController {
     required int purchaseCost,
     required Iterable<GemType> availableGems,
   }) {
-    if (phase != GamePhase.preparation || gemShards < purchaseCost) {
+    if ((phase != GamePhase.preparation && phase != GamePhase.wave) ||
+        gemShards < purchaseCost) {
       return null;
     }
 

@@ -140,8 +140,8 @@ class TurretComponent extends PositionComponent {
         hasGem(GemType.physicalDamage)) {
       levelDamage *= 1.4;
     }
-    if (definition.damageFamily == DamageFamily.magical &&
-        hasGem(GemType.magicalDamage)) {
+    if (definition.damageFamily == DamageFamily.elemental &&
+        hasGem(GemType.elementalDamage)) {
       levelDamage *= 1.4;
     }
     if (definition.attackTags.contains(AttackTag.light) &&

@@ -421,7 +421,7 @@ void main() {
     expect(turret.range, closeTo(baseRange * 1.15, 0.001));
   });
 
-  test('frost crack reduces slowed enemy magical resistance', () {
+  test('frost crack reduces slowed enemy elemental resistance', () {
     final game = RuneNexusGame();
     final turret = _levelSevenFrost(game)
       ..choosePrimaryTrait(TurretTraitType.coolingCycle);
@@ -437,7 +437,7 @@ void main() {
 
     game.resolveCenteredAreaAttack(owner: turret, targets: [enemy]);
 
-    expect(enemy.magicalResistanceReduction, closeTo(0.15, 0.001));
+    expect(enemy.elementalResistanceReduction, closeTo(0.15, 0.001));
   });
 
   test(

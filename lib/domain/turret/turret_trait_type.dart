@@ -67,7 +67,7 @@ extension TurretTraitTypeText on TurretTraitType {
       TurretTraitType.chainIgnition => '화상 처치 시 주변 1명에게 남은 화상 60% 전이',
       TurretTraitType.rapidCooling => '둔화율 강화',
       TurretTraitType.spreadingChill => '사거리 15% 증폭, 피해 -10%',
-      TurretTraitType.frostCrack => '둔화 대상 마법 저항 -15%',
+      TurretTraitType.frostCrack => '둔화 대상 원소 저항 -15%',
       TurretTraitType.coolingCycle => '공격 속도 20% 증폭, 둔화 지속시간 -15%',
       TurretTraitType.suppressiveFire => '같은 대상 5회 명중 시 2초간 물리 저항 -20%',
       TurretTraitType.chainCleanup => '최근 명중 관여 처치 시 3초간 공격 속도 40% 증폭',

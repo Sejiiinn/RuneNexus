@@ -41,6 +41,7 @@ class GameSaveAdapter {
       gemInventory: Map.unmodifiable(state.gemInventory),
       rewardOptions: List.unmodifiable(state.rewardOptions),
       isPurchasedGemReward: state.isPurchasedGemReward,
+      rewardReturnPhase: state.rewardReturnPhase,
       runCoreCombatSkill: pendingSave?.hasActiveRun == true
           ? pendingSave?.runCoreCombatSkill
           : state.runCoreCombatSkill,
@@ -177,6 +178,7 @@ class GameSaveBuildState {
     required this.gemInventory,
     required this.rewardOptions,
     required this.isPurchasedGemReward,
+    required this.rewardReturnPhase,
     required this.runCoreCombatSkill,
     required this.runCorePassiveSlots,
     required this.turrets,
@@ -203,6 +205,7 @@ class GameSaveBuildState {
   final Map<GemType, int> gemInventory;
   final List<GemType> rewardOptions;
   final bool isPurchasedGemReward;
+  final GamePhase? rewardReturnPhase;
   final CoreCombatSkill? runCoreCombatSkill;
   final List<CorePassiveAbility?> runCorePassiveSlots;
   final List<SavedTurret> turrets;

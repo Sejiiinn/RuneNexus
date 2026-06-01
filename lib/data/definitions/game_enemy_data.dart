@@ -76,7 +76,7 @@ const gameEnemies = <EnemyType, EnemyDefinition>{
     resistanceProfile: EnemyResistanceProfile(
       familyResistances: {
         DamageFamily.physical: 0.1,
-        DamageFamily.magical: 0.1,
+        DamageFamily.elemental: 0.1,
       },
     ),
   ),

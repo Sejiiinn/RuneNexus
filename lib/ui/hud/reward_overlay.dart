@@ -465,7 +465,7 @@ String _rewardCardEffectText(GemType type) {
     GemType.attackSpeed => '공격 속도 40% 증가',
     GemType.range => '사거리 20% 증가',
     GemType.physicalDamage => '물리 포탑 피해 40% 증가',
-    GemType.magicalDamage => '마법 포탑 피해 40% 증가',
+    GemType.elementalDamage => '원소 포탑 피해 40% 증가',
     GemType.lightWeapon => '경량화기 피해와 연사 강화',
     GemType.heavyWeapon => '중화기 피해와 범위 강화',
     GemType.damageOverTime => '지속피해와 시간 강화',

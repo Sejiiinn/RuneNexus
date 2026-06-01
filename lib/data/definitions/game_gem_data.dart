@@ -32,13 +32,13 @@ const gameGems = <GemType, GemDefinition>{
     color: Color(0xFFF4F7FA),
     icon: Icons.fitness_center,
   ),
-  GemType.magicalDamage: GemDefinition(
-    type: GemType.magicalDamage,
-    name: '마법 피해 증폭',
-    shortText: '마법 피해 증폭',
+  GemType.elementalDamage: GemDefinition(
+    type: GemType.elementalDamage,
+    name: '원소 피해 증폭',
+    shortText: '원소 피해 증폭',
     effectType: GemEffectType.damageFamilyMultiplier,
     value: 1.4,
-    color: Color(0xFF64D8FF),
+    color: Color(0xFF9FFFE8),
     icon: Icons.auto_awesome,
   ),
   GemType.lightWeapon: GemDefinition(

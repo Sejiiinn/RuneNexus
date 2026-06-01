@@ -166,7 +166,8 @@ class _GemInventoryPanel extends StatelessWidget {
         .where((type) => (snapshot.gemInventory[type] ?? 0) > 0)
         .toList();
     final canPurchase =
-        snapshot.phase == GamePhase.preparation &&
+        (snapshot.phase == GamePhase.preparation ||
+            snapshot.phase == GamePhase.wave) &&
         snapshot.gemShards >= RuneNexusGame.gemChoicePurchaseCost;
 
     return Container(
@@ -198,7 +199,18 @@ class _GemInventoryPanel extends StatelessWidget {
               SizedBox(
                 height: 32,
                 child: GameButton(
-                  onPressed: canPurchase ? game.purchaseGemChoice : null,
+                  onPressed: canPurchase
+                      ? () {
+                          final pauseCombat = snapshot.phase == GamePhase.wave;
+                          if (pauseCombat) {
+                            game.pauseEngine();
+                          }
+                          final purchased = game.purchaseGemChoice();
+                          if (pauseCombat && !purchased) {
+                            game.resumeEngine();
+                          }
+                        }
+                      : null,
                   compact: true,
                   variant: GameButtonVariant.confirm,
                   accentColor: GamePalette.green,
@@ -347,7 +359,7 @@ String _gemInventoryEffectText(GemType type) {
     GemType.attackSpeed => '초당 발사 +40%',
     GemType.range => '사거리 +20%',
     GemType.physicalDamage => '물리 피해 +40%',
-    GemType.magicalDamage => '마법 피해 +40%',
+    GemType.elementalDamage => '원소 피해 +40%',
     GemType.lightWeapon => '경량화기 강화',
     GemType.heavyWeapon => '중화기 강화',
     GemType.damageOverTime => '지속피해 강화',

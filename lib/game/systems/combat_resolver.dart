@@ -49,8 +49,8 @@ class CombatResolver {
           enemy.physicalResistanceReduction +
           attack.physicalResistanceReduction;
     }
-    if (attack.definition.damageFamily == DamageFamily.magical) {
-      familyResistance -= enemy.magicalResistanceReduction;
+    if (attack.definition.damageFamily == DamageFamily.elemental) {
+      familyResistance -= enemy.elementalResistanceReduction;
     }
 
     var multiplier = EnemyResistanceProfile.multiplierForResistance(
@@ -91,7 +91,7 @@ class CombatResolver {
         duration: attack.slowDuration,
       );
       if (attack.appliesFrostCrack) {
-        enemy.applyMagicalVulnerability(
+        enemy.applyElementalVulnerability(
           bonus: 0.15,
           duration: attack.slowDuration,
         );

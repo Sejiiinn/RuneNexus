@@ -964,7 +964,7 @@ Color _traitAccentColor(TurretTraitType trait) {
     TurretTraitType.quickScope => const Color(0xFF8EE6FF),
     TurretTraitType.exposedMark => const Color(0xFFD7F27C),
     TurretTraitType.finishingShot => const Color(0xFFFFD166),
-    TurretTraitType.branchCurrent => const Color(0xFF4DEAFF),
+    TurretTraitType.branchCurrent => const Color(0xFFCFA7FF),
     TurretTraitType.focusedLightning => const Color(0xFFE8FBFF),
     TurretTraitType.lightningRecovery => const Color(0xFF8CFFF3),
     TurretTraitType.currentAmplification => const Color(0xFFB98CFF),
