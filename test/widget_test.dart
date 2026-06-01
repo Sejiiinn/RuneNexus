@@ -1380,13 +1380,20 @@ void main() {
       game.snapshotNotifier.value.selectedCorePoint,
       const GridPoint(6, 9),
     );
+    expect(
+      game.snapshotNotifier.value.selectedRunPanelTab,
+      RunPanelTab.turrets,
+    );
     expect(find.text('넥서스 코어'), findsOneWidget);
-    expect(find.textContaining('내구도'), findsOneWidget);
-    expect(find.text('전투 스킬 균열 낙인'), findsOneWidget);
-    expect(find.byIcon(Icons.blur_on), findsOneWidget);
+    expect(find.text('내구도'), findsOneWidget);
+    expect(find.text('전투 스킬'), findsOneWidget);
+    expect(find.text('균열 낙인'), findsOneWidget);
+    expect(find.text('내구도 높은 적 4명에게 받는 피해 25% 증가 낙인 부여'), findsOneWidget);
+    expect(find.text('코어'), findsNothing);
     expect(find.text('패시브 없음'), findsOneWidget);
-    expect(find.text('추가 피해 0.00'), findsOneWidget);
-    expect(find.text('발동 0회'), findsOneWidget);
+    expect(find.text('효과 +25%'), findsNothing);
+    expect(find.text('총 추가 피해 0.00'), findsOneWidget);
+    expect(find.text('발동 0회'), findsNothing);
     expect(find.text('포탈 1'), findsNothing);
     expect(tester.takeException(), isNull);
   });

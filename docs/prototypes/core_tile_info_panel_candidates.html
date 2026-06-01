@@ -1,0 +1,1049 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rune Nexus Core Tile Info Panel Candidates</title>
+    <style>
+      :root {
+        --bg: #02070d;
+        --field: #07111d;
+        --field2: #091624;
+        --panel: rgba(7, 17, 29, 0.94);
+        --panel2: rgba(10, 24, 36, 0.96);
+        --line: rgba(142, 230, 255, 0.22);
+        --line-strong: rgba(142, 230, 255, 0.5);
+        --text: #e8f8ff;
+        --sub: #b8d4e2;
+        --muted: #87a2b4;
+        --dim: #516779;
+        --cyan: #8ee6ff;
+        --cyan-deep: #125875;
+        --green: #72e0a2;
+        --gold: #e7c66a;
+        --violet: #b68bff;
+        --danger: #ff7488;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          linear-gradient(90deg, rgba(142, 230, 255, 0.045) 1px, transparent 1px),
+          linear-gradient(rgba(142, 230, 255, 0.045) 1px, transparent 1px),
+          linear-gradient(135deg, #03070d, #0b1520 58%, #02070d);
+        background-size: 36px 36px, 36px 36px, auto;
+        color: var(--text);
+        font-family:
+          Inter,
+          Pretendard,
+          "Noto Sans KR",
+          "Apple SD Gothic Neo",
+          system-ui,
+          sans-serif;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      main {
+        width: min(1240px, calc(100vw - 20px));
+        margin: 0 auto;
+        padding: 18px 0 28px;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 14px;
+        margin-bottom: 14px;
+      }
+
+      h1 {
+        font-size: 23px;
+        letter-spacing: 0;
+      }
+
+      .lead {
+        margin-top: 7px;
+        color: var(--sub);
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.45;
+      }
+
+      .criteria {
+        flex: 0 0 auto;
+        display: grid;
+        gap: 5px;
+        width: min(360px, 42vw);
+        padding: 9px 10px;
+        border: 1px solid rgba(142, 230, 255, 0.26);
+        border-radius: 8px;
+        background: rgba(7, 17, 29, 0.72);
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 850;
+        line-height: 1.35;
+      }
+
+      .criteria b {
+        color: var(--cyan);
+      }
+
+      .frames {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .candidate-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        min-height: 28px;
+        margin-bottom: 7px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .candidate-label span:last-child {
+        color: var(--dim);
+        font-size: 10px;
+      }
+
+      .phone {
+        position: relative;
+        overflow: hidden;
+        min-height: 620px;
+        border: 1px solid rgba(142, 230, 255, 0.22);
+        border-radius: 18px;
+        background:
+          linear-gradient(180deg, rgba(8, 22, 35, 0.88), rgba(2, 7, 13, 0.96)),
+          var(--field);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.025),
+          0 18px 42px rgba(0, 0, 0, 0.38);
+      }
+
+      .top {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+      }
+
+      .res {
+        display: grid;
+        gap: 4px;
+      }
+
+      .res span,
+      .round,
+      .power {
+        min-height: 23px;
+        padding: 5px 8px;
+        border: 1px solid rgba(142, 230, 255, 0.18);
+        border-radius: 8px;
+        background: rgba(5, 12, 20, 0.82);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .round {
+        color: var(--cyan);
+      }
+
+      .power {
+        margin-top: 5px;
+        color: var(--gold);
+      }
+
+      .board {
+        position: absolute;
+        inset: 78px 34px 194px;
+        display: grid;
+        place-items: center;
+      }
+
+      .map {
+        width: min(315px, 78vw);
+        aspect-ratio: 1 / 1.42;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-template-rows: repeat(10, 1fr);
+        gap: 3px;
+        transform: perspective(780px) rotateX(48deg) rotateZ(-1deg);
+        transform-origin: center;
+      }
+
+      .tile {
+        border: 1px solid rgba(142, 230, 255, 0.09);
+        background: rgba(16, 42, 59, 0.46);
+      }
+
+      .path {
+        background: rgba(52, 73, 91, 0.72);
+      }
+
+      .build {
+        background: rgba(31, 73, 55, 0.52);
+      }
+
+      .blocked {
+        background: rgba(8, 17, 26, 0.72);
+      }
+
+      .core {
+        position: relative;
+        border-color: rgba(142, 230, 255, 0.82);
+        background: linear-gradient(135deg, rgba(20, 89, 112, 0.9), rgba(6, 18, 28, 0.9));
+        box-shadow:
+          0 0 0 2px rgba(142, 230, 255, 0.24),
+          0 0 18px rgba(142, 230, 255, 0.22);
+      }
+
+      .core::after {
+        content: "";
+        position: absolute;
+        inset: 28%;
+        border: 1px solid rgba(232, 248, 255, 0.7);
+        transform: rotate(45deg);
+        background: rgba(142, 230, 255, 0.2);
+      }
+
+      .spawn {
+        border-color: rgba(182, 139, 255, 0.65);
+        background: rgba(79, 38, 124, 0.7);
+      }
+
+      .turret {
+        position: relative;
+        background: rgba(17, 53, 64, 0.74);
+      }
+
+      .turret::after {
+        content: "";
+        position: absolute;
+        inset: 22%;
+        border-radius: 50%;
+        border: 2px solid rgba(114, 224, 162, 0.75);
+      }
+
+      .selected-ring {
+        position: absolute;
+        left: 50%;
+        bottom: 190px;
+        width: 34px;
+        height: 34px;
+        border: 2px solid rgba(142, 230, 255, 0.92);
+        background: rgba(142, 230, 255, 0.13);
+        transform: translateX(82px) rotate(45deg);
+        box-shadow: 0 0 18px rgba(142, 230, 255, 0.22);
+      }
+
+      .bottom-tabs {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 10px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 5px;
+      }
+
+      .tab {
+        min-height: 34px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(142, 230, 255, 0.16);
+        border-radius: 8px;
+        background: rgba(5, 12, 20, 0.9);
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .tab.core-tab {
+        border-color: rgba(142, 230, 255, 0.62);
+        color: var(--text);
+        background: rgba(18, 88, 117, 0.42);
+      }
+
+      .panel {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 49px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 -12px 28px rgba(0, 0, 0, 0.24);
+      }
+
+      .title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .title-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .core-icon {
+        flex: 0 0 auto;
+        width: 31px;
+        height: 31px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(142, 230, 255, 0.6);
+        border-radius: 7px;
+        background: linear-gradient(135deg, rgba(18, 88, 117, 0.9), rgba(6, 18, 28, 0.94));
+      }
+
+      .core-icon i {
+        width: 14px;
+        height: 14px;
+        border: 1px solid var(--text);
+        transform: rotate(45deg);
+        background: rgba(142, 230, 255, 0.2);
+      }
+
+      .title-text {
+        min-width: 0;
+      }
+
+      .title-text h2 {
+        color: var(--text);
+        font-size: 13px;
+        font-weight: 950;
+        letter-spacing: 0;
+      }
+
+      .title-text p {
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .hp {
+        flex: 0 0 auto;
+        min-width: 64px;
+        text-align: right;
+      }
+
+      .hp strong {
+        display: block;
+        color: var(--green);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .hp span {
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 900;
+      }
+
+      .hpbar {
+        overflow: hidden;
+        height: 5px;
+        margin-top: 6px;
+        border-radius: 5px;
+        background: rgba(232, 248, 255, 0.1);
+      }
+
+      .hpbar i {
+        display: block;
+        width: 80%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--green), var(--cyan));
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 950;
+      }
+
+      .section-title::before {
+        content: "";
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .name {
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 950;
+        line-height: 1.25;
+      }
+
+      .desc {
+        color: var(--sub);
+        font-size: 10px;
+        font-weight: 750;
+        line-height: 1.35;
+      }
+
+      .metric {
+        color: var(--cyan);
+        font-size: 11px;
+        font-weight: 950;
+        white-space: nowrap;
+      }
+
+      .metric.gold {
+        color: var(--gold);
+      }
+
+      .metric.green {
+        color: var(--green);
+      }
+
+      .empty {
+        color: var(--dim);
+      }
+
+      .a-panel {
+        padding: 10px;
+      }
+
+      .a-body {
+        display: grid;
+        gap: 8px;
+        margin-top: 9px;
+      }
+
+      .a-card {
+        display: grid;
+        grid-template-columns: 84px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        border: 1px solid rgba(142, 230, 255, 0.16);
+        border-radius: 8px;
+        background: rgba(5, 12, 20, 0.56);
+      }
+
+      .a-card.passive {
+        grid-template-columns: 84px minmax(0, 1fr);
+      }
+
+      .passive-list {
+        display: grid;
+        gap: 6px;
+      }
+
+      .passive-row {
+        display: grid;
+        grid-template-columns: 70px minmax(0, 1fr);
+        gap: 7px;
+        align-items: baseline;
+      }
+
+      .b-panel {
+        padding: 10px;
+      }
+
+      .b-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 8px;
+        margin-top: 9px;
+      }
+
+      .b-block {
+        min-height: 104px;
+        padding: 9px;
+        border: 1px solid rgba(142, 230, 255, 0.16);
+        border-radius: 8px;
+        background: rgba(5, 12, 20, 0.52);
+      }
+
+      .b-block .name {
+        margin-top: 7px;
+        font-size: 14px;
+      }
+
+      .b-block .desc {
+        margin-top: 4px;
+      }
+
+      .b-metrics {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        margin-top: 8px;
+      }
+
+      .b-metric {
+        padding: 6px;
+        border: 1px solid rgba(142, 230, 255, 0.13);
+        border-radius: 7px;
+        background: rgba(142, 230, 255, 0.06);
+      }
+
+      .b-metric span {
+        display: block;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 850;
+      }
+
+      .b-metric strong {
+        display: block;
+        margin-top: 2px;
+        color: var(--cyan);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .passive-compact {
+        display: grid;
+        gap: 7px;
+        margin-top: 7px;
+      }
+
+      .passive-compact div {
+        padding-bottom: 7px;
+        border-bottom: 1px solid rgba(142, 230, 255, 0.12);
+      }
+
+      .passive-compact div:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
+
+      .c-panel {
+        padding: 9px;
+      }
+
+      .c-header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        padding: 8px;
+        border: 1px solid rgba(142, 230, 255, 0.17);
+        border-radius: 8px;
+        background: rgba(7, 20, 31, 0.72);
+      }
+
+      .c-list {
+        display: grid;
+        gap: 6px;
+        margin-top: 7px;
+      }
+
+      .c-row {
+        display: grid;
+        grid-template-columns: 24px minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: center;
+        min-height: 44px;
+        padding: 7px 8px;
+        border: 1px solid rgba(142, 230, 255, 0.13);
+        border-radius: 8px;
+        background: rgba(5, 12, 20, 0.52);
+      }
+
+      .mini-icon {
+        width: 24px;
+        height: 24px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(142, 230, 255, 0.38);
+        border-radius: 7px;
+        color: var(--cyan);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .c-row.passive .mini-icon {
+        border-color: rgba(114, 224, 162, 0.38);
+        color: var(--green);
+      }
+
+      .d-panel {
+        padding: 10px;
+      }
+
+      .d-summary {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+        align-items: end;
+        margin-top: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(142, 230, 255, 0.14);
+      }
+
+      .d-summary h3 {
+        color: var(--text);
+        font-size: 15px;
+        font-weight: 950;
+      }
+
+      .d-summary p {
+        margin-top: 4px;
+        color: var(--sub);
+        font-size: 10px;
+        font-weight: 750;
+        line-height: 1.35;
+      }
+
+      .d-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 7px;
+        margin-top: 8px;
+      }
+
+      .d-stat {
+        min-height: 47px;
+        padding: 7px;
+        border: 1px solid rgba(142, 230, 255, 0.14);
+        border-radius: 8px;
+        background: rgba(5, 12, 20, 0.52);
+      }
+
+      .d-stat span {
+        display: block;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 850;
+      }
+
+      .d-stat strong {
+        display: block;
+        margin-top: 3px;
+        color: var(--cyan);
+        font-size: 13px;
+        font-weight: 950;
+      }
+
+      .d-passives {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 7px;
+        margin-top: 8px;
+      }
+
+      .d-passive {
+        min-height: 55px;
+        padding: 8px;
+        border: 1px solid rgba(114, 224, 162, 0.18);
+        border-radius: 8px;
+        background: rgba(17, 52, 42, 0.26);
+      }
+
+      .d-passive .name {
+        color: var(--green);
+      }
+
+      @media (max-width: 860px) {
+        header {
+          display: block;
+        }
+
+        .criteria {
+          width: auto;
+          margin-top: 10px;
+        }
+
+        .frames {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 420px) {
+        main {
+          width: calc(100vw - 12px);
+          padding-top: 10px;
+        }
+
+        .phone {
+          min-height: 600px;
+        }
+
+        .board {
+          inset-inline: 24px;
+        }
+
+        .a-card,
+        .a-card.passive {
+          grid-template-columns: 1fr;
+        }
+
+        .b-grid,
+        .d-passives {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>코어 타일 정보 패널 후보</h1>
+          <p class="lead">
+            코어 타일을 눌렀을 때 전투 스킬과 패시브 효과만 빠르게 읽히도록 정리한 하단 HUD 후보입니다.
+          </p>
+        </div>
+        <div class="criteria">
+          <div><b>제외:</b> 실시간 진행 상태와 전투 진행 로그</div>
+          <div><b>유지:</b> 내구도, 장착 전투 스킬, 패시브, 현재 효과, 누적 기여</div>
+        </div>
+      </header>
+
+      <section class="frames">
+        <article>
+          <div class="candidate-label">
+            <span>A. 균형형</span>
+            <span>이름과 설명을 같은 깊이로 노출</span>
+          </div>
+          <div class="phone">
+            <div class="top">
+              <div class="res">
+                <span>G 420</span>
+                <span>결정 18</span>
+              </div>
+              <div>
+                <div class="round">웨이브 6 / 20</div>
+                <div class="power">전투력 142.8</div>
+              </div>
+            </div>
+            <div class="board">
+              <div class="map" aria-hidden="true">
+                <span class="tile spawn"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile build"></span><span class="tile blocked"></span>
+                <span class="tile blocked"></span><span class="tile build turret"></span><span class="tile path"></span><span class="tile build"></span><span class="tile build"></span><span class="tile path"></span><span class="tile blocked"></span>
+                <span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile build turret"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build turret"></span><span class="tile path"></span><span class="tile blocked"></span>
+                <span class="tile build"></span><span class="tile path"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile build"></span><span class="tile path"></span><span class="tile build turret"></span><span class="tile build"></span><span class="tile path"></span><span class="tile blocked"></span><span class="tile build"></span>
+                <span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile build turret"></span><span class="tile build"></span><span class="tile path"></span><span class="tile core"></span>
+                <span class="tile blocked"></span><span class="tile build"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span>
+              </div>
+            </div>
+            <div class="selected-ring"></div>
+            <section class="panel a-panel">
+              <div class="title-row">
+                <div class="title-left">
+                  <div class="core-icon"><i></i></div>
+                  <div class="title-text">
+                    <h2>넥서스 코어</h2>
+                    <p>전투 스킬 1개 · 패시브 2개 장착</p>
+                  </div>
+                </div>
+                <div class="hp">
+                  <strong>18 / 20</strong>
+                  <span>내구도</span>
+                </div>
+              </div>
+              <div class="hpbar"><i></i></div>
+              <div class="a-body">
+                <div class="a-card">
+                  <div class="section-title">전투 스킬</div>
+                  <div>
+                    <div class="name">수호 광선</div>
+                    <div class="desc">코어에 가까운 적에게 주기적으로 집중 피해</div>
+                  </div>
+                  <div class="metric">현재 피해 12.4</div>
+                </div>
+                <div class="a-card passive">
+                  <div class="section-title">패시브</div>
+                  <div class="passive-list">
+                    <div class="passive-row">
+                      <div class="name">자가 수복</div>
+                      <div class="desc">5라운드마다 내구도 1 회복</div>
+                    </div>
+                    <div class="passive-row">
+                      <div class="name">연산 가속</div>
+                      <div class="desc">전투 스킬 재사용 대기시간 10% 감소</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <div class="bottom-tabs">
+              <div class="tab">포탑</div>
+              <div class="tab">강화</div>
+              <div class="tab">젬</div>
+              <div class="tab core-tab">코어</div>
+            </div>
+          </div>
+        </article>
+
+        <article>
+          <div class="candidate-label">
+            <span>B. 좌우 분리형</span>
+            <span>스킬과 패시브를 한눈에 비교</span>
+          </div>
+          <div class="phone">
+            <div class="top">
+              <div class="res">
+                <span>G 420</span>
+                <span>결정 18</span>
+              </div>
+              <div>
+                <div class="round">웨이브 6 / 20</div>
+                <div class="power">전투력 142.8</div>
+              </div>
+            </div>
+            <div class="board">
+              <div class="map" aria-hidden="true">
+                <span class="tile spawn"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile build"></span><span class="tile blocked"></span>
+                <span class="tile blocked"></span><span class="tile build turret"></span><span class="tile path"></span><span class="tile build"></span><span class="tile build"></span><span class="tile path"></span><span class="tile blocked"></span>
+                <span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile build turret"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build turret"></span><span class="tile path"></span><span class="tile blocked"></span>
+                <span class="tile build"></span><span class="tile path"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile build"></span><span class="tile path"></span><span class="tile build turret"></span><span class="tile build"></span><span class="tile path"></span><span class="tile blocked"></span><span class="tile build"></span>
+                <span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile build turret"></span><span class="tile build"></span><span class="tile path"></span><span class="tile core"></span>
+                <span class="tile blocked"></span><span class="tile build"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span>
+              </div>
+            </div>
+            <div class="selected-ring"></div>
+            <section class="panel b-panel">
+              <div class="title-row">
+                <div class="title-left">
+                  <div class="core-icon"><i></i></div>
+                  <div class="title-text">
+                    <h2>넥서스 코어</h2>
+                    <p>내구도 18 / 20</p>
+                  </div>
+                </div>
+                <div class="hpbar" style="width: 92px; margin-top: 0"><i></i></div>
+              </div>
+              <div class="b-grid">
+                <div class="b-block">
+                  <div class="section-title">전투 스킬</div>
+                  <div class="name">균열 낙인</div>
+                  <div class="desc">체력이 높은 적에게 받는 피해 증가 낙인 부여</div>
+                  <div class="b-metrics">
+                    <div class="b-metric">
+                      <span>효과</span>
+                      <strong>+25%</strong>
+                    </div>
+                    <div class="b-metric">
+                      <span>누적</span>
+                      <strong>84.6</strong>
+                    </div>
+                  </div>
+                </div>
+                <div class="b-block">
+                  <div class="section-title">패시브</div>
+                  <div class="passive-compact">
+                    <div>
+                      <div class="name">자가 수복</div>
+                      <div class="desc">5라운드마다 내구도 1 회복</div>
+                    </div>
+                    <div>
+                      <div class="name">연산 가속</div>
+                      <div class="desc">전투 스킬 재사용 대기시간 10% 감소</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <div class="bottom-tabs">
+              <div class="tab">포탑</div>
+              <div class="tab">강화</div>
+              <div class="tab">젬</div>
+              <div class="tab core-tab">코어</div>
+            </div>
+          </div>
+        </article>
+
+        <article>
+          <div class="candidate-label">
+            <span>C. 목록형</span>
+            <span>가장 낮은 높이, 구현 단순</span>
+          </div>
+          <div class="phone">
+            <div class="top">
+              <div class="res">
+                <span>G 420</span>
+                <span>결정 18</span>
+              </div>
+              <div>
+                <div class="round">웨이브 6 / 20</div>
+                <div class="power">전투력 142.8</div>
+              </div>
+            </div>
+            <div class="board">
+              <div class="map" aria-hidden="true">
+                <span class="tile spawn"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile build"></span><span class="tile blocked"></span>
+                <span class="tile blocked"></span><span class="tile build turret"></span><span class="tile path"></span><span class="tile build"></span><span class="tile build"></span><span class="tile path"></span><span class="tile blocked"></span>
+                <span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile build turret"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build turret"></span><span class="tile path"></span><span class="tile blocked"></span>
+                <span class="tile build"></span><span class="tile path"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile build"></span><span class="tile path"></span><span class="tile build turret"></span><span class="tile build"></span><span class="tile path"></span><span class="tile blocked"></span><span class="tile build"></span>
+                <span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile build turret"></span><span class="tile build"></span><span class="tile path"></span><span class="tile core"></span>
+                <span class="tile blocked"></span><span class="tile build"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span>
+              </div>
+            </div>
+            <div class="selected-ring"></div>
+            <section class="panel c-panel">
+              <div class="c-header">
+                <div class="title-left">
+                  <div class="core-icon"><i></i></div>
+                  <div class="title-text">
+                    <h2>넥서스 코어</h2>
+                    <p>내구도 18 / 20</p>
+                  </div>
+                </div>
+                <div class="hpbar" style="width: 82px; margin-top: 0"><i></i></div>
+              </div>
+              <div class="c-list">
+                <div class="c-row">
+                  <div class="mini-icon">S</div>
+                  <div>
+                    <div class="name">수호 광선</div>
+                    <div class="desc">코어에 가까운 적에게 주기적으로 집중 피해</div>
+                  </div>
+                  <div class="metric">피해 12.4</div>
+                </div>
+                <div class="c-row passive">
+                  <div class="mini-icon">P</div>
+                  <div>
+                    <div class="name">자가 수복</div>
+                    <div class="desc">5라운드마다 내구도 1 회복</div>
+                  </div>
+                  <div class="metric green">회복</div>
+                </div>
+                <div class="c-row passive">
+                  <div class="mini-icon">P</div>
+                  <div>
+                    <div class="name">연산 가속</div>
+                    <div class="desc">전투 스킬 재사용 대기시간 10% 감소</div>
+                  </div>
+                  <div class="metric gold">-10%</div>
+                </div>
+              </div>
+            </section>
+            <div class="bottom-tabs">
+              <div class="tab">포탑</div>
+              <div class="tab">강화</div>
+              <div class="tab">젬</div>
+              <div class="tab core-tab">코어</div>
+            </div>
+          </div>
+        </article>
+
+        <article>
+          <div class="candidate-label">
+            <span>D. 성과 강조형</span>
+            <span>스킬 기여도를 가장 잘 드러냄</span>
+          </div>
+          <div class="phone">
+            <div class="top">
+              <div class="res">
+                <span>G 420</span>
+                <span>결정 18</span>
+              </div>
+              <div>
+                <div class="round">웨이브 6 / 20</div>
+                <div class="power">전투력 142.8</div>
+              </div>
+            </div>
+            <div class="board">
+              <div class="map" aria-hidden="true">
+                <span class="tile spawn"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile build"></span><span class="tile blocked"></span>
+                <span class="tile blocked"></span><span class="tile build turret"></span><span class="tile path"></span><span class="tile build"></span><span class="tile build"></span><span class="tile path"></span><span class="tile blocked"></span>
+                <span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile build turret"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build turret"></span><span class="tile path"></span><span class="tile blocked"></span>
+                <span class="tile build"></span><span class="tile path"></span><span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile build"></span><span class="tile path"></span><span class="tile build turret"></span><span class="tile build"></span><span class="tile path"></span><span class="tile blocked"></span><span class="tile build"></span>
+                <span class="tile blocked"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span><span class="tile path"></span><span class="tile path"></span><span class="tile build"></span>
+                <span class="tile build"></span><span class="tile blocked"></span><span class="tile path"></span><span class="tile build turret"></span><span class="tile build"></span><span class="tile path"></span><span class="tile core"></span>
+                <span class="tile blocked"></span><span class="tile build"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span><span class="tile path"></span>
+              </div>
+            </div>
+            <div class="selected-ring"></div>
+            <section class="panel d-panel">
+              <div class="title-row">
+                <div class="title-left">
+                  <div class="core-icon"><i></i></div>
+                  <div class="title-text">
+                    <h2>넥서스 코어</h2>
+                    <p>내구도 18 / 20</p>
+                  </div>
+                </div>
+                <div class="hpbar" style="width: 84px; margin-top: 0"><i></i></div>
+              </div>
+              <div class="d-summary">
+                <div>
+                  <div class="section-title">전투 스킬</div>
+                  <h3>수호 광선</h3>
+                  <p>코어에 가까운 적에게 주기적으로 집중 피해</p>
+                </div>
+                <div class="metric">코어 스킬</div>
+              </div>
+              <div class="d-stats">
+                <div class="d-stat">
+                  <span>현재 피해</span>
+                  <strong>12.4</strong>
+                </div>
+                <div class="d-stat">
+                  <span>누적 피해</span>
+                  <strong>183.2</strong>
+                </div>
+              </div>
+              <div class="d-passives">
+                <div class="d-passive">
+                  <div class="name">자가 수복</div>
+                  <div class="desc">5라운드마다 내구도 1 회복</div>
+                </div>
+                <div class="d-passive">
+                  <div class="name">연산 가속</div>
+                  <div class="desc">전투 스킬 재사용 대기시간 10% 감소</div>
+                </div>
+              </div>
+            </section>
+            <div class="bottom-tabs">
+              <div class="tab">포탑</div>
+              <div class="tab">강화</div>
+              <div class="tab">젬</div>
+              <div class="tab core-tab">코어</div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
