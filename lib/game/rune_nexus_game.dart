@@ -183,6 +183,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       selectedBuildPoint: null,
       selectedBuildTurretType: null,
       selectedPortalPoint: null,
+      selectedCorePoint: null,
       selectedTurretPoint: null,
       selectedTurretName: null,
       selectedTurretGems: const [],
@@ -236,6 +237,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       nexusCoreBeamAvailable: true,
       nexusCoreBeamActive: false,
       nexusCoreBeamDamage: 0,
+      coreCombatSkillDirectDamageDealt: 0,
+      coreCombatSkillBonusDamageDealt: 0,
+      coreCombatSkillActivationCount: 0,
       coreCombatSkill: CoreCombatSkill.guardianBeam,
       corePassiveSlots: const [null, null],
       corePassiveSlotCount: 1,
@@ -396,6 +400,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   final RunProgression _progression = RunProgression();
   CoreCombatSkill? _runCoreCombatSkill = CoreCombatSkill.guardianBeam;
   final List<CorePassiveAbility?> _runCorePassiveSlots = [null, null];
+  double _coreCombatSkillDirectDamageDealt = 0;
+  double _coreCombatSkillBonusDamageDealt = 0;
+  int _coreCombatSkillActivationCount = 0;
   late final SaveScheduler _saveScheduler = SaveScheduler(
     saveNow: _writeLocalSave,
   );
@@ -430,6 +437,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   TurretType? _selectedBuildTurretType;
   GridPoint? _selectedBuildPoint;
   GridPoint? _selectedPortalPoint;
+  GridPoint? _selectedCorePoint;
   GridPoint? _selectedTurretPoint;
   GridPoint? _levelUpPreviewPoint;
   int? _selectedTurretGemSlotIndex;
@@ -563,6 +571,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _runCoreCombatSkill == CoreCombatSkill.guardianBeam
       ? _nexusCoreBeamTotalDamage()
       : 0;
+  double get coreCombatSkillDirectDamageDealt =>
+      _coreCombatSkillDirectDamageDealt;
+  double get coreCombatSkillBonusDamageDealt =>
+      _coreCombatSkillBonusDamageDealt;
+  int get coreCombatSkillActivationCount => _coreCombatSkillActivationCount;
   CoreCombatSkill? get coreCombatSkill => _progression.coreCombatSkill;
   List<CorePassiveAbility?> get corePassiveSlots =>
       List.unmodifiable(_progression.corePassiveSlots);
@@ -762,6 +775,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _selectedBuildPoint = null;
       _selectedBuildTurretType = null;
       _selectedPortalPoint = null;
+      _selectedCorePoint = null;
       _selectedTurretType = turret.definition.type;
       _selectedRunPanelTab = RunPanelTab.turrets;
       _selectedTurretPoint = point;
@@ -773,6 +787,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _selectedBuildPoint = null;
       _selectedBuildTurretType = null;
       _selectedPortalPoint = point;
+      _selectedCorePoint = null;
+      _selectedTurretPoint = null;
+      _selectedTurretGemSlotIndex = null;
+      _selectedRunPanelTab = RunPanelTab.turrets;
+      _publish();
+      return;
+    }
+    if (_map.tileAt(point) == TileType.core) {
+      _selectedBuildPoint = null;
+      _selectedBuildTurretType = null;
+      _selectedPortalPoint = null;
+      _selectedCorePoint = point;
       _selectedTurretPoint = null;
       _selectedTurretGemSlotIndex = null;
       _selectedRunPanelTab = RunPanelTab.turrets;
@@ -782,6 +808,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_canEditBoard && _map.canBuildAt(point)) {
       _selectedBuildPoint = point;
       _selectedPortalPoint = null;
+      _selectedCorePoint = null;
       _selectedRunPanelTab = RunPanelTab.turrets;
       _selectedTurretPoint = null;
       _selectedTurretGemSlotIndex = null;
@@ -797,6 +824,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
     _selectedPortalPoint = null;
+    _selectedCorePoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
     if (closePanel) {
@@ -812,6 +840,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedRunPanelTab = RunPanelTab.turrets;
     _selectedBuildTurretType = type;
     _selectedPortalPoint = null;
+    _selectedCorePoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
     final point = _selectedBuildPoint;
@@ -971,6 +1000,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _phase = GamePhase.wave;
     _selectedPortalPoint = null;
+    _selectedCorePoint = null;
     if (_selectedTurretPoint == null ||
         !_turrets.containsKey(_selectedTurretPoint)) {
       _selectedTurretPoint = null;
@@ -1030,6 +1060,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedBuildTurretType = null;
     _selectedBuildPoint = null;
     _selectedPortalPoint = null;
+    _selectedCorePoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
     _restoredPhase = null;
@@ -1201,6 +1232,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
     _selectedPortalPoint = null;
+    _selectedCorePoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
     _publish();
@@ -1356,6 +1388,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
     _selectedPortalPoint = null;
+    _selectedCorePoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
     final reward = _gemRewards.openDebugReward(
@@ -1423,6 +1456,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
     _selectedPortalPoint = null;
+    _selectedCorePoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
     _publish();
@@ -1458,6 +1492,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
     _selectedPortalPoint = null;
+    _selectedCorePoint = null;
     _selectedTurretPoint = point;
     _selectedTurretGemSlotIndex = null;
     add(turret);
@@ -1530,6 +1565,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
     _selectedPortalPoint = null;
+    _selectedCorePoint = null;
     _selectedTurretGemSlotIndex = null;
     _selectedRunPanelTab = RunPanelTab.gems;
 
@@ -2733,6 +2769,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   void _drawBuildSelection(Canvas canvas) {
     final point = _selectedBuildPoint;
     final portalPoint = _selectedPortalPoint;
+    final corePoint = _selectedCorePoint;
     if (portalPoint != null) {
       final rect = Rect.fromLTWH(
         _origin.x + portalPoint.x * _tileSize + 2,
@@ -2744,6 +2781,28 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         rect,
         Paint()
           ..color = const Color(0xCCB16DFF)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3,
+      );
+    }
+
+    if (corePoint != null) {
+      final rect = Rect.fromLTWH(
+        _origin.x + corePoint.x * _tileSize + 2,
+        _origin.y + corePoint.y * _tileSize + 2,
+        _tileSize - 4,
+        _tileSize - 4,
+      );
+      canvas.drawRect(
+        rect,
+        Paint()
+          ..color = const Color(0x228EE6FF)
+          ..style = PaintingStyle.fill,
+      );
+      canvas.drawRect(
+        rect,
+        Paint()
+          ..color = const Color(0xCC8EE6FF)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 3,
       );
@@ -2991,6 +3050,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
           ? _progression.corePassiveSlots[i]
           : null;
     }
+    _resetCoreCombatSkillStats();
   }
 
   void _restoreRunCoreLoadoutFromSave(GameSaveData data) {
@@ -3001,6 +3061,35 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
           ? restoredSlots[i]
           : null;
     }
+    _restoreCoreCombatSkillStats(data.runCoreCombatSkillStats);
+  }
+
+  void _resetCoreCombatSkillStats() {
+    _coreCombatSkillDirectDamageDealt = 0;
+    _coreCombatSkillBonusDamageDealt = 0;
+    _coreCombatSkillActivationCount = 0;
+  }
+
+  void _restoreCoreCombatSkillStats(SavedCoreCombatSkillStats stats) {
+    _coreCombatSkillDirectDamageDealt = math.max(0, stats.directDamageDealt);
+    _coreCombatSkillBonusDamageDealt = math.max(0, stats.bonusDamageDealt);
+    _coreCombatSkillActivationCount = math.max(0, stats.activationCount);
+  }
+
+  SavedCoreCombatSkillStats _coreCombatSkillStatsToSaveData() {
+    return SavedCoreCombatSkillStats(
+      directDamageDealt: _coreCombatSkillDirectDamageDealt,
+      bonusDamageDealt: _coreCombatSkillBonusDamageDealt,
+      activationCount: _coreCombatSkillActivationCount,
+    );
+  }
+
+  void recordCoreCombatSkillBonusDamage(double damage) {
+    if (damage <= 0) {
+      return;
+    }
+    _coreCombatSkillBonusDamageDealt += damage;
+    _requestCombatStatsPublish();
   }
 
   void _resetNexusCoreBeamCycle() {
@@ -3040,6 +3129,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _nexusCoreBeamTickDamage =
         _nexusCoreBeamTotalDamage() /
         (_nexusCoreBeamDuration / _nexusCoreBeamTickInterval);
+    _coreCombatSkillActivationCount++;
     _updateActiveNexusCoreBeam(0);
     _requestCombatStatsPublish();
   }
@@ -3082,6 +3172,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (targets.isEmpty) {
       return;
     }
+    _coreCombatSkillActivationCount++;
     add(
       RiftMarkPulseComponent(
         source: _nexusCorePosition(),
@@ -3138,6 +3229,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (actualDamage <= 0) {
       return;
     }
+    _coreCombatSkillDirectDamageDealt += actualDamage;
     add(
       NexusCoreBeamComponent(
         start: _nexusCorePosition(),
@@ -3533,6 +3625,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         progression: _progression,
         runCoreCombatSkill: _runCoreCombatSkill,
         runCorePassiveSlots: _runCorePassiveSlots,
+        runCoreCombatSkillStats: _coreCombatSkillStatsToSaveData(),
         runUpgradeLevels: _runUpgradeLevels,
         killGoldFractionWallet: _killGoldFractionWallet,
         gemInventory: _gemInventory,

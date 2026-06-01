@@ -105,6 +105,7 @@ class GameSnapshotBuilder {
       selectedBuildPoint: _game._selectedBuildPoint,
       selectedBuildTurretType: _game._selectedBuildTurretType,
       selectedPortalPoint: _game._selectedPortalPoint,
+      selectedCorePoint: _game._selectedCorePoint,
       selectedTurretPoint: _game._selectedTurretPoint,
       selectedTurretName: selectedTurret?.definition.name,
       selectedTurretGems: List.unmodifiable(
@@ -185,6 +186,9 @@ class GameSnapshotBuilder {
       nexusCoreBeamAvailable: _game.nexusCoreBeamAvailable,
       nexusCoreBeamActive: _game.nexusCoreBeamActive,
       nexusCoreBeamDamage: _game.nexusCoreBeamDamage,
+      coreCombatSkillDirectDamageDealt: _game.coreCombatSkillDirectDamageDealt,
+      coreCombatSkillBonusDamageDealt: _game.coreCombatSkillBonusDamageDealt,
+      coreCombatSkillActivationCount: _game.coreCombatSkillActivationCount,
       coreCombatSkill: _game.coreCombatSkill,
       corePassiveSlots: _game.corePassiveSlots,
       corePassiveSlotCount: _game.corePassiveSlotCount,

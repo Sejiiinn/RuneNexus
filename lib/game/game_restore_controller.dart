@@ -117,6 +117,7 @@ class GameRestoreController {
     _game._selectedBuildTurretType = null;
     _game._selectedBuildPoint = null;
     _game._selectedPortalPoint = null;
+    _game._selectedCorePoint = null;
     _game._selectedTurretPoint = null;
     _game._selectedTurretGemSlotIndex = null;
   }

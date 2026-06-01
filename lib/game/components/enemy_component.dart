@@ -273,6 +273,13 @@ class EnemyComponent extends PositionComponent {
     if (damage <= 0 || isDead) {
       return 0;
     }
+    final baseActualDamage = riftMarkDamageAmplification <= 0
+        ? 0.0
+        : _actualDamageFor(
+            damage,
+            multiplier: 1,
+            ignoreArmorReduction: ignoreArmorReduction,
+          );
     var remainingDamage = damage * finalDamageMultiplier;
     var actualDamage = 0.0;
 
@@ -300,16 +307,72 @@ class EnemyComponent extends PositionComponent {
     }
 
     if (remainingDamage <= 0) {
+      _recordRiftMarkBonusDamage(actualDamage, baseActualDamage);
       return actualDamage;
     }
 
     final previousHp = hp;
     hp = math.max(0, hp - remainingDamage);
     actualDamage += previousHp - hp;
+    _recordRiftMarkBonusDamage(actualDamage, baseActualDamage);
     if (isDead) {
       game.enemyKilled(this, burnTransfer: burnTransfer);
     }
     return actualDamage;
+  }
+
+  double _actualDamageFor(
+    double damage, {
+    required double multiplier,
+    required bool ignoreArmorReduction,
+  }) {
+    var remainingDamage = damage * multiplier;
+    var actualDamage = 0.0;
+    var simulatedShield = shield;
+    var simulatedArmor = armor;
+    var simulatedHp = hp;
+
+    if (simulatedShield > 0) {
+      final shieldDamage = math.min(simulatedShield, remainingDamage);
+      simulatedShield = math.max(0, simulatedShield - shieldDamage);
+      actualDamage += shieldDamage;
+      remainingDamage -= shieldDamage;
+    }
+
+    if (remainingDamage > 0 && simulatedArmor > 0) {
+      final armorDamage = ignoreArmorReduction
+          ? remainingDamage
+          : math.max(
+              remainingDamage * definition.armorMinimumDamageRate,
+              remainingDamage - simulatedArmor * definition.armorReductionRate,
+            );
+      final actualArmorDamage = math.min(simulatedArmor, armorDamage);
+      simulatedArmor = math.max(0, simulatedArmor - actualArmorDamage);
+      actualDamage += actualArmorDamage;
+      remainingDamage = math.max(0, armorDamage - actualArmorDamage);
+    }
+
+    if (remainingDamage <= 0) {
+      return actualDamage;
+    }
+
+    final previousHp = simulatedHp;
+    simulatedHp = math.max(0, simulatedHp - remainingDamage);
+    return actualDamage + previousHp - simulatedHp;
+  }
+
+  void _recordRiftMarkBonusDamage(
+    double actualDamage,
+    double baseActualDamage,
+  ) {
+    if (riftMarkDamageAmplification <= 0) {
+      return;
+    }
+    final bonusDamage = actualDamage - baseActualDamage;
+    if (bonusDamage <= 0) {
+      return;
+    }
+    game.recordCoreCombatSkillBonusDamage(bonusDamage);
   }
 
   void showHitFlash(Color color) {

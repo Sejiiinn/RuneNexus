@@ -32,6 +32,7 @@ class GameSaveData {
     this.rewardReturnPhase,
     this.runCoreCombatSkill = CoreCombatSkill.guardianBeam,
     this.runCorePassiveSlots = const [null, null],
+    this.runCoreCombatSkillStats = SavedCoreCombatSkillStats.empty,
     required this.turrets,
     required this.enemies,
     required this.spawnQueue,
@@ -59,6 +60,7 @@ class GameSaveData {
   final GamePhase? rewardReturnPhase;
   final CoreCombatSkill? runCoreCombatSkill;
   final List<CorePassiveAbility?> runCorePassiveSlots;
+  final SavedCoreCombatSkillStats runCoreCombatSkillStats;
   final List<SavedTurret> turrets;
   final List<SavedEnemy> enemies;
   final List<SavedSpawnRequest> spawnQueue;
@@ -107,6 +109,7 @@ class GameSaveData {
           .take(2)
           .map((ability) => ability?.name)
           .toList(),
+      'runCoreCombatSkillStats': runCoreCombatSkillStats.toJson(),
       'turrets': turrets.map((turret) => turret.toJson()).toList(),
       'enemies': enemies.map((enemy) => enemy.toJson()).toList(),
       'spawnQueue': spawnQueue.map((request) => request.toJson()).toList(),
@@ -172,9 +175,49 @@ class GameSaveData {
         key: 'runCorePassiveSlots',
         missingFallback: progression.corePassiveSlots,
       ),
+      runCoreCombatSkillStats: SavedCoreCombatSkillStats.fromJson(
+        json['runCoreCombatSkillStats'],
+      ),
       turrets: _objectList(json['turrets'], SavedTurret.fromJson),
       enemies: enemies,
       spawnQueue: spawnQueue,
+    );
+  }
+}
+
+class SavedCoreCombatSkillStats {
+  const SavedCoreCombatSkillStats({
+    required this.directDamageDealt,
+    required this.bonusDamageDealt,
+    required this.activationCount,
+  });
+
+  static const empty = SavedCoreCombatSkillStats(
+    directDamageDealt: 0,
+    bonusDamageDealt: 0,
+    activationCount: 0,
+  );
+
+  final double directDamageDealt;
+  final double bonusDamageDealt;
+  final int activationCount;
+
+  Map<String, Object?> toJson() {
+    return {
+      'directDamageDealt': directDamageDealt,
+      'bonusDamageDealt': bonusDamageDealt,
+      'activationCount': activationCount,
+    };
+  }
+
+  static SavedCoreCombatSkillStats fromJson(Object? json) {
+    if (json is! Map<String, Object?>) {
+      return empty;
+    }
+    return SavedCoreCombatSkillStats(
+      directDamageDealt: _doubleValue(json['directDamageDealt']),
+      bonusDamageDealt: _doubleValue(json['bonusDamageDealt']),
+      activationCount: _intValue(json['activationCount']),
     );
   }
 }

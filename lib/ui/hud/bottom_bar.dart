@@ -49,6 +49,10 @@ class _BottomBar extends StatelessWidget {
                   ),
                   if (snapshot.selectedRunPanelTab != RunPanelTab.closed) ...[
                     const SizedBox(height: 8),
+                    if (snapshot.selectedCorePoint != null) ...[
+                      _CoreCombatSkillSummaryCard(snapshot: snapshot),
+                      const SizedBox(height: 8),
+                    ],
                     if (snapshot.selectedPortalPoint != null) ...[
                       _PortalSummaryCard(
                         snapshot: snapshot,
@@ -72,7 +76,8 @@ class _BottomBar extends StatelessWidget {
                           canEditBoard) ...[
                         _BuildSelectionPanel(game: game, snapshot: snapshot),
                       ],
-                      if (snapshot.selectedTurretPoint == null) ...[
+                      if (snapshot.selectedTurretPoint == null &&
+                          snapshot.selectedCorePoint == null) ...[
                         const SizedBox(height: 8),
                         Row(
                           children: snapshot.availableTurretTypes.map((type) {
@@ -666,6 +671,175 @@ IconData _runUpgradeIcon(RunUpgradeType type) {
     RunUpgradeType.killGold => Icons.toll_outlined,
     RunUpgradeType.waveGold => Icons.inventory_2_outlined,
   };
+}
+
+class _CoreCombatSkillSummaryCard extends StatelessWidget {
+  const _CoreCombatSkillSummaryCard({required this.snapshot});
+
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final skill = snapshot.coreCombatSkill;
+    final skillLabel = skill?.label ?? '미장착';
+    final passiveLabels = snapshot.corePassiveSlots
+        .whereType<CorePassiveAbility>()
+        .map((ability) => ability.label)
+        .toList();
+    final passiveText = passiveLabels.isEmpty
+        ? '패시브 없음'
+        : '패시브 ${passiveLabels.join(' / ')}';
+    final contributionText = switch (skill) {
+      CoreCombatSkill.guardianBeam =>
+        '입힌 피해 ${_formatCoreCombatStat(snapshot.coreCombatSkillDirectDamageDealt)}',
+      CoreCombatSkill.riftMark =>
+        '추가 피해 ${_formatCoreCombatStat(snapshot.coreCombatSkillBonusDamageDealt)}',
+      null => null,
+    };
+    final currentText = skill == CoreCombatSkill.guardianBeam
+        ? '현재 피해 ${_formatCoreCombatStat(snapshot.nexusCoreBeamDamage)}'
+        : null;
+    final nexusHpText =
+        '내구도 ${snapshot.nexusHp.round()}/${snapshot.maxNexusHp.round()}';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 9),
+      decoration: BoxDecoration(
+        color: const Color(0xAA0B1B2B),
+        border: Border.all(color: const Color(0x778EE6FF)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: const Color(0xFF103041),
+              border: Border.all(color: const Color(0xFF8EE6FF), width: 1.4),
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: const Icon(
+              Icons.diamond_outlined,
+              size: 18,
+              color: Color(0xFFE8FBFF),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '넥서스 코어',
+                  maxLines: 1,
+                  overflow: TextOverflow.clip,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFFE8F8FF),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  nexusHpText,
+                  maxLines: 1,
+                  overflow: TextOverflow.clip,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF8FA8BA),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 5,
+                  runSpacing: 4,
+                  children: [
+                    _CoreCombatStatChip(
+                      text: '전투 스킬 $skillLabel',
+                      icon: _coreCombatSkillIcon(skill),
+                    ),
+                    _CoreCombatStatChip(text: passiveText),
+                    if (currentText != null)
+                      _CoreCombatStatChip(text: currentText),
+                    if (contributionText != null)
+                      _CoreCombatStatChip(text: contributionText),
+                    if (skill != null)
+                      _CoreCombatStatChip(
+                        text: '발동 ${snapshot.coreCombatSkillActivationCount}회',
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CoreCombatStatChip extends StatelessWidget {
+  const _CoreCombatStatChip({required this.text, this.icon});
+
+  final String text;
+  final IconData? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    const color = Color(0xFF8EE6FF);
+    return Container(
+      height: 22,
+      padding: const EdgeInsets.symmetric(horizontal: 7),
+      alignment: Alignment.center,
+      decoration: ShapeDecoration(
+        color: color.withValues(alpha: 0.09),
+        shape: StadiumBorder(
+          side: BorderSide(color: color.withValues(alpha: 0.42)),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 12, color: color),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            style: TextStyle(
+              color: color,
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+IconData _coreCombatSkillIcon(CoreCombatSkill? skill) {
+  return switch (skill) {
+    CoreCombatSkill.guardianBeam => Icons.auto_awesome,
+    CoreCombatSkill.riftMark => Icons.blur_on,
+    null => Icons.block_outlined,
+  };
+}
+
+String _formatCoreCombatStat(double value) {
+  if (value >= 100) {
+    return value.round().toString();
+  }
+  if (value >= 10) {
+    return value.toStringAsFixed(1);
+  }
+  return value.toStringAsFixed(2);
 }
 
 class _PortalSummaryCard extends StatelessWidget {

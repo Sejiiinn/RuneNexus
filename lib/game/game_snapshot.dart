@@ -39,6 +39,7 @@ class GameSnapshot {
     required this.selectedBuildPoint,
     required this.selectedBuildTurretType,
     required this.selectedPortalPoint,
+    required this.selectedCorePoint,
     required this.selectedTurretPoint,
     required this.selectedTurretName,
     required this.selectedTurretGems,
@@ -92,6 +93,9 @@ class GameSnapshot {
     required this.nexusCoreBeamAvailable,
     required this.nexusCoreBeamActive,
     required this.nexusCoreBeamDamage,
+    required this.coreCombatSkillDirectDamageDealt,
+    required this.coreCombatSkillBonusDamageDealt,
+    required this.coreCombatSkillActivationCount,
     required this.coreCombatSkill,
     required this.corePassiveSlots,
     required this.corePassiveSlotCount,
@@ -180,6 +184,7 @@ class GameSnapshot {
   final GridPoint? selectedBuildPoint;
   final TurretType? selectedBuildTurretType;
   final GridPoint? selectedPortalPoint;
+  final GridPoint? selectedCorePoint;
   final GridPoint? selectedTurretPoint;
   final String? selectedTurretName;
   final List<GemType?> selectedTurretGems;
@@ -233,6 +238,9 @@ class GameSnapshot {
   final bool nexusCoreBeamAvailable;
   final bool nexusCoreBeamActive;
   final double nexusCoreBeamDamage;
+  final double coreCombatSkillDirectDamageDealt;
+  final double coreCombatSkillBonusDamageDealt;
+  final int coreCombatSkillActivationCount;
   final CoreCombatSkill? coreCombatSkill;
   final List<CorePassiveAbility?> corePassiveSlots;
   final int corePassiveSlotCount;

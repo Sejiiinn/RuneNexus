@@ -11,6 +11,7 @@ import '../../data/definitions/game_turret_data.dart';
 import '../../domain/combat/auto_start_mode.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../domain/combat/run_panel_tab.dart';
+import '../../domain/core/core_ability.dart';
 import '../../domain/enemy/enemy_definition.dart';
 import '../../domain/enemy/enemy_scaling.dart';
 import '../../domain/enemy/enemy_type.dart';

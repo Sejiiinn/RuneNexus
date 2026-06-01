@@ -1348,6 +1348,49 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('core tile selection shows combat skill contribution in HUD', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          backgroundColor: const Color(0xFF07111D),
+          body: GameHud(game: game),
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester, frameCount: 10);
+    game.debugSetClearedStageCount(5);
+    expect(game.equipCoreCombatSkill(CoreCombatSkill.riftMark), isTrue);
+    game.restartRun();
+    await _pumpGameFrames(tester);
+
+    await tester.tapAt(const Offset(305, 474));
+    await _pumpGameFrames(tester);
+
+    expect(
+      game.snapshotNotifier.value.selectedCorePoint,
+      const GridPoint(6, 9),
+    );
+    expect(find.text('넥서스 코어'), findsOneWidget);
+    expect(find.textContaining('내구도'), findsOneWidget);
+    expect(find.text('전투 스킬 균열 낙인'), findsOneWidget);
+    expect(find.byIcon(Icons.blur_on), findsOneWidget);
+    expect(find.text('패시브 없음'), findsOneWidget);
+    expect(find.text('추가 피해 0.00'), findsOneWidget);
+    expect(find.text('발동 0회'), findsOneWidget);
+    expect(find.text('포탈 1'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'selected turret panel gates target priority selector by research',
     (tester) async {
@@ -1625,6 +1668,11 @@ GameSnapshot _resultSnapshot({
   List<ResearchProgress> activeResearches = const [],
   CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam,
   List<CorePassiveAbility?> corePassiveSlots = const [null, null],
+  GridPoint? selectedCorePoint,
+  double nexusCoreBeamDamage = 0,
+  double coreCombatSkillDirectDamageDealt = 0,
+  double coreCombatSkillBonusDamageDealt = 0,
+  int coreCombatSkillActivationCount = 0,
   bool corePassiveSlotTwoUnlocked = false,
 }) {
   return GameSnapshot(
@@ -1658,6 +1706,7 @@ GameSnapshot _resultSnapshot({
     selectedBuildPoint: null,
     selectedBuildTurretType: null,
     selectedPortalPoint: null,
+    selectedCorePoint: selectedCorePoint,
     selectedTurretPoint: null,
     selectedTurretName: null,
     selectedTurretGems: const [],
@@ -1710,7 +1759,10 @@ GameSnapshot _resultSnapshot({
     nexusCoreBeamCooldownSeconds: 5,
     nexusCoreBeamAvailable: true,
     nexusCoreBeamActive: false,
-    nexusCoreBeamDamage: 0,
+    nexusCoreBeamDamage: nexusCoreBeamDamage,
+    coreCombatSkillDirectDamageDealt: coreCombatSkillDirectDamageDealt,
+    coreCombatSkillBonusDamageDealt: coreCombatSkillBonusDamageDealt,
+    coreCombatSkillActivationCount: coreCombatSkillActivationCount,
     coreCombatSkill: coreCombatSkill,
     corePassiveSlots: corePassiveSlots,
     corePassiveSlotCount: corePassiveSlotTwoUnlocked ? 2 : 1,

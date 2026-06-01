@@ -1813,6 +1813,9 @@ void main() {
       expect(game.nexusCoreBeamCooldownSeconds, 0);
       expect(frontEnemy.hp, lessThan(frontEnemy.maxHp));
       expect(backEnemy.hp, backEnemy.maxHp);
+      expect(game.coreCombatSkillActivationCount, 1);
+      expect(game.coreCombatSkillDirectDamageDealt, greaterThan(0));
+      expect(game.coreCombatSkillBonusDamageDealt, 0);
     },
   );
 
@@ -2000,6 +2003,21 @@ void main() {
     expect(armored.hp, 100);
   });
 
+  test('rift mark records actual bonus damage without direct skill damage', () {
+    final game = RuneNexusGame();
+    final enemy = EnemyComponent(
+      definition: gameEnemies[EnemyType.normal]!,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(100, 0)],
+      game: game,
+    )..applyRiftMark(damageAmplification: 0.25, duration: 5);
+
+    expect(enemy.receiveDamage(20), closeTo(25, 0.001));
+
+    expect(game.coreCombatSkillBonusDamageDealt, closeTo(5, 0.001));
+    expect(game.coreCombatSkillDirectDamageDealt, 0);
+  });
+
   test('rift mark cooldown is reduced by skill acceleration', () async {
     final repository = MemorySaveRepository()
       ..data = _saveWithCorePassiveRun(
@@ -2036,6 +2054,7 @@ void main() {
 
     game.update(0.02);
     expect(enemy.hasRiftMark, isTrue);
+    expect(game.coreCombatSkillActivationCount, 1);
   });
 
   test('rift mark state is saved and restored', () async {
@@ -2091,6 +2110,35 @@ void main() {
     expect(restored.enemies.single.hasRiftMark, isTrue);
     expect(restored.enemies.single.riftMarkDamageAmplification, 0.25);
   });
+
+  test(
+    'core combat skill stats are saved and restored with legacy fallback',
+    () {
+      final saved = _saveWithCorePassiveRun(
+        nexusHp: 20,
+        roundIndex: 1,
+        completedRounds: 1,
+        passiveSlots: const [],
+        coreCombatSkillStats: const SavedCoreCombatSkillStats(
+          directDamageDealt: 12.5,
+          bonusDamageDealt: 7.25,
+          activationCount: 3,
+        ),
+      );
+
+      final restored = GameSaveData.fromJson(saved.toJson())!;
+      expect(restored.runCoreCombatSkillStats.directDamageDealt, 12.5);
+      expect(restored.runCoreCombatSkillStats.bonusDamageDealt, 7.25);
+      expect(restored.runCoreCombatSkillStats.activationCount, 3);
+
+      final legacyJson = Map<String, Object?>.of(saved.toJson())
+        ..remove('runCoreCombatSkillStats');
+      final legacy = GameSaveData.fromJson(legacyJson)!;
+      expect(legacy.runCoreCombatSkillStats.directDamageDealt, 0);
+      expect(legacy.runCoreCombatSkillStats.bonusDamageDealt, 0);
+      expect(legacy.runCoreCombatSkillStats.activationCount, 0);
+    },
+  );
 
   test(
     'nexus core beam stays inactive when combat skill is unequipped',
@@ -5350,6 +5398,8 @@ GameSaveData _saveWithCorePassiveRun({
   int unlockedStageCount = 1,
   Set<int> clearedStageNumbers = const {},
   CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam,
+  SavedCoreCombatSkillStats coreCombatSkillStats =
+      SavedCoreCombatSkillStats.empty,
 }) {
   return GameSaveData(
     version: GameSaveData.currentVersion,
@@ -5390,6 +5440,7 @@ GameSaveData _saveWithCorePassiveRun({
     isPurchasedGemReward: false,
     runCoreCombatSkill: coreCombatSkill,
     runCorePassiveSlots: passiveSlots,
+    runCoreCombatSkillStats: coreCombatSkillStats,
     turrets: const [],
     enemies: const [],
     spawnQueue: const [],
