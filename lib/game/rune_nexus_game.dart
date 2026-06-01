@@ -42,6 +42,7 @@ import 'components/impact_effect_component.dart';
 import 'components/lightning_chain_beam_component.dart';
 import 'components/nexus_core_beam_component.dart';
 import 'components/projectile_component.dart';
+import 'components/rift_mark_pulse_component.dart';
 import 'components/sequential_lightning_chain_component.dart';
 import 'components/sniper_chain_beam_component.dart';
 import 'components/turret_component.dart';
@@ -99,6 +100,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _nexusCoreBeamEnemyHpCapRate = 0.35;
   static const double _nexusCoreBeamBossHpCapRate = 0.025;
   static const Color _nexusCoreBeamColor = Color(0xFF8EE6FF);
+  static const double _riftMarkInterval = 10;
+  static const double _riftMarkDuration = 5;
+  static const int _riftMarkTargetCount = 4;
+  static const double _riftMarkDamageAmplification = 0.25;
+  static const double _riftMarkBossDamageAmplification = 0.125;
+  static const Color _riftMarkColor = Color(0xFFCFA7FF);
 
   static List<StageDefinition> _buildInitialStages({
     StageDefinition? stage,
@@ -513,6 +520,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double get _nexusCoreBeamCooldownInterval => _hasSkillAcceleration
       ? _nexusCoreBeamInterval * (1 - coreCombatSkillCooldownReductionRate)
       : _nexusCoreBeamInterval;
+  double get _riftMarkCooldownInterval => _hasSkillAcceleration
+      ? _riftMarkInterval * (1 - coreCombatSkillCooldownReductionRate)
+      : _riftMarkInterval;
+  double get _coreCombatSkillCooldownInterval {
+    return switch (_runCoreCombatSkill) {
+      CoreCombatSkill.guardianBeam => _nexusCoreBeamCooldownInterval,
+      CoreCombatSkill.riftMark => _riftMarkCooldownInterval,
+      null => 0,
+    };
+  }
+
   int get _waveClearGoldRunBonus => gameRunUpgrades[RunUpgradeType.waveGold]!
       .effectForLevel(_runUpgradeLevel(RunUpgradeType.waveGold))
       .round();
@@ -524,25 +542,27 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         final burnDps = _turretBurnDamagePerSecondAtLevel(turret, turret.level);
         return total + directDps + burnDps;
       });
-  double get nexusCoreBeamIntervalSeconds => _nexusCoreBeamCooldownInterval;
+  double get nexusCoreBeamIntervalSeconds => _coreCombatSkillCooldownInterval;
   double get nexusCoreBeamCooldownSeconds {
-    if (!nexusCoreBeamAvailable) {
+    if (_runCoreCombatSkill == null) {
       return 0;
     }
     if (_nexusCoreBeamActiveRemaining > 0) {
       return 0;
     }
     return _nexusCoreBeamCooldown
-        .clamp(0.0, _nexusCoreBeamCooldownInterval)
+        .clamp(0.0, _coreCombatSkillCooldownInterval)
         .toDouble();
   }
 
-  bool get nexusCoreBeamAvailable =>
-      _runCoreCombatSkill == CoreCombatSkill.guardianBeam;
+  bool get nexusCoreBeamAvailable => _runCoreCombatSkill != null;
   bool get nexusCoreBeamActive =>
-      nexusCoreBeamAvailable && _nexusCoreBeamActiveRemaining > 0;
+      _runCoreCombatSkill == CoreCombatSkill.guardianBeam &&
+      _nexusCoreBeamActiveRemaining > 0;
   double get nexusCoreBeamDamage =>
-      nexusCoreBeamAvailable ? _nexusCoreBeamTotalDamage() : 0;
+      _runCoreCombatSkill == CoreCombatSkill.guardianBeam
+      ? _nexusCoreBeamTotalDamage()
+      : 0;
   CoreCombatSkill? get coreCombatSkill => _progression.coreCombatSkill;
   List<CorePassiveAbility?> get corePassiveSlots =>
       List.unmodifiable(_progression.corePassiveSlots);
@@ -675,7 +695,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     _updateWaveSpawns(scaledDt);
-    _updateNexusCoreBeam(scaledDt);
+    _updateCoreCombatSkill(scaledDt);
     _checkWaveClear();
     _requestLocalSave();
   }
@@ -950,11 +970,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     _phase = GamePhase.wave;
-    _selectedTurretPoint = null;
-    _selectedBuildPoint = null;
-    _selectedBuildTurretType = null;
     _selectedPortalPoint = null;
-    _selectedTurretGemSlotIndex = null;
+    if (_selectedTurretPoint == null ||
+        !_turrets.containsKey(_selectedTurretPoint)) {
+      _selectedTurretPoint = null;
+      _selectedTurretGemSlotIndex = null;
+    }
     _resetNexusCoreBeamCycle();
     _triggerPortalAlert();
     final initialSpawnDelay = _boardConfigured
@@ -2763,9 +2784,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final center = _nexusCorePosition();
     final progress = _nexusCoreBeamActiveRemaining > 0
         ? 1.0
-        : (1 - _nexusCoreBeamCooldown / _nexusCoreBeamCooldownInterval)
+        : (1 - _nexusCoreBeamCooldown / _coreCombatSkillCooldownInterval)
               .clamp(0.0, 1.0)
               .toDouble();
+    final accent = _runCoreCombatSkill == CoreCombatSkill.riftMark
+        ? _riftMarkColor
+        : _nexusCoreBeamColor;
     final barWidth = _tileSize * 0.86;
     final barHeight = math.max(4.0, _tileSize * 0.11);
     final topLeft = Offset(
@@ -2790,12 +2814,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         Paint()
           ..shader = LinearGradient(
             colors: [
-              const Color(0xFF2BA9C9),
-              Color.lerp(
-                const Color(0xFF75EAFF),
-                const Color(0xFFFFFFFF),
-                activeGlow,
-              )!,
+              Color.lerp(accent, const Color(0xFF02070D), 0.35)!,
+              Color.lerp(accent, const Color(0xFFFFFFFF), activeGlow * 0.55)!,
             ],
           ).createShader(rect),
       );
@@ -2803,7 +2823,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     canvas.drawRRect(
       background,
       Paint()
-        ..color = const Color(0xAA8EE6FF)
+        ..color = accent.withValues(alpha: 0.68)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.2,
     );
@@ -2984,18 +3004,25 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _resetNexusCoreBeamCycle() {
-    _nexusCoreBeamCooldown = _nexusCoreBeamCooldownInterval;
+    _nexusCoreBeamCooldown = _coreCombatSkillCooldownInterval;
     _nexusCoreBeamActiveRemaining = 0;
     _nexusCoreBeamTickTimer = 0;
     _nexusCoreBeamTickDamage = 0;
   }
 
-  void _updateNexusCoreBeam(double dt) {
+  void _updateCoreCombatSkill(double dt) {
     if (dt <= 0) {
       return;
     }
-    if (_runCoreCombatSkill != CoreCombatSkill.guardianBeam) {
+    if (_runCoreCombatSkill == null) {
       _resetNexusCoreBeamCycle();
+      return;
+    }
+    if (_runCoreCombatSkill == CoreCombatSkill.riftMark) {
+      _updateRiftMark(dt);
+      return;
+    }
+    if (_runCoreCombatSkill != CoreCombatSkill.guardianBeam) {
       return;
     }
     if (_nexusCoreBeamActiveRemaining > 0) {
@@ -3029,11 +3056,64 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     if (_nexusCoreBeamActiveRemaining <= 0) {
-      _nexusCoreBeamCooldown = _nexusCoreBeamCooldownInterval;
+      _nexusCoreBeamCooldown = _coreCombatSkillCooldownInterval;
       _nexusCoreBeamTickTimer = 0;
       _nexusCoreBeamTickDamage = 0;
       _requestCombatStatsPublish();
     }
+  }
+
+  void _updateRiftMark(double dt) {
+    _nexusCoreBeamActiveRemaining = 0;
+    _nexusCoreBeamTickTimer = 0;
+    _nexusCoreBeamTickDamage = 0;
+    _nexusCoreBeamCooldown = math.max(0, _nexusCoreBeamCooldown - dt);
+    if (_nexusCoreBeamCooldown > 0 || enemies.isEmpty) {
+      return;
+    }
+
+    _applyRiftMark();
+    _nexusCoreBeamCooldown = _coreCombatSkillCooldownInterval;
+    _requestCombatStatsPublish();
+  }
+
+  void _applyRiftMark() {
+    final targets = _riftMarkTargets();
+    if (targets.isEmpty) {
+      return;
+    }
+    add(
+      RiftMarkPulseComponent(
+        source: _nexusCorePosition(),
+        targets: targets,
+        color: _riftMarkColor,
+        game: this,
+      ),
+    );
+    for (final target in targets) {
+      final amplification = target.definition.type == EnemyType.boss
+          ? _riftMarkBossDamageAmplification
+          : _riftMarkDamageAmplification;
+      target.applyRiftMark(
+        damageAmplification: amplification,
+        duration: _riftMarkDuration,
+      );
+      target.showHitFlash(_riftMarkColor);
+    }
+  }
+
+  List<EnemyComponent> _riftMarkTargets() {
+    final candidates = enemies.where((enemy) => !enemy.isDead).toList();
+    candidates.sort((a, b) {
+      final durabilityCompare = b.currentDurability.compareTo(
+        a.currentDurability,
+      );
+      if (durabilityCompare != 0) {
+        return durabilityCompare;
+      }
+      return b.distanceTravelled.compareTo(a.distanceTravelled);
+    });
+    return candidates.take(_riftMarkTargetCount).toList();
   }
 
   void _applyNexusCoreBeamTick() {

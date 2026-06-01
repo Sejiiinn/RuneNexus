@@ -38,6 +38,7 @@ import 'package:rune_nexus/game/components/enemy_component.dart';
 import 'package:rune_nexus/game/components/lightning_charge_component.dart';
 import 'package:rune_nexus/game/components/lightning_chain_beam_component.dart';
 import 'package:rune_nexus/game/components/projectile_component.dart';
+import 'package:rune_nexus/game/components/rift_mark_pulse_component.dart';
 import 'package:rune_nexus/game/components/sequential_lightning_chain_component.dart';
 import 'package:rune_nexus/game/components/sniper_chain_beam_component.dart';
 import 'package:rune_nexus/game/components/turret_component.dart';
@@ -495,6 +496,81 @@ void main() {
 
     game.update(0.016);
     expect(game.snapshotNotifier.value.phase, GamePhase.wave);
+  });
+
+  test('auto start keeps selected turret upgrade panel open', () async {
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      waves: List<WaveDefinition>.generate(
+        2,
+        (index) => WaveDefinition(
+          round: index + 1,
+          previewText: 'test',
+          groups: const [],
+          clearRewardGold: 0,
+        ),
+      ),
+    );
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    const selectedPoint = GridPoint(2, 0);
+    game.tryBuildTurret(selectedPoint);
+    game.debugAddGold(200);
+    game.startNextWave();
+    game.update(0.016);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+    expect(game.snapshotNotifier.value.round, 2);
+    game.previewOrLevelUpSelectedTurret();
+    expect(
+      game.snapshotNotifier.value.selectedTurretLevelUpPreviewActive,
+      isTrue,
+    );
+
+    game.setAutoStartMode(AutoStartMode.fullAuto);
+
+    final snapshot = game.snapshotNotifier.value;
+    expect(snapshot.phase, GamePhase.wave);
+    expect(snapshot.selectedTurretPoint, selectedPoint);
+    expect(snapshot.selectedTurretLevelUpPreviewActive, isTrue);
+  });
+
+  test('auto start keeps turret placement panel open', () async {
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      waves: List<WaveDefinition>.generate(
+        2,
+        (index) => WaveDefinition(
+          round: index + 1,
+          previewText: 'test',
+          groups: const [],
+          clearRewardGold: 0,
+        ),
+      ),
+    );
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    const buildPoint = GridPoint(2, 0);
+    game.tryBuildTurret(buildPoint);
+    game.startNextWave();
+    game.update(0.016);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+    expect(game.snapshotNotifier.value.round, 2);
+    game.previewOrBuildSelectedTile(TurretType.cannon);
+    expect(
+      game.snapshotNotifier.value.selectedBuildTurretType,
+      TurretType.cannon,
+    );
+
+    game.setAutoStartMode(AutoStartMode.fullAuto);
+
+    final snapshot = game.snapshotNotifier.value;
+    expect(snapshot.phase, GamePhase.wave);
+    expect(snapshot.selectedBuildTurretType, TurretType.cannon);
+    expect(snapshot.selectedTurretPoint, isNull);
   });
 
   test('auto start can pause before boss rounds', () {
@@ -1797,6 +1873,224 @@ void main() {
       expect(enemy.hp, lessThan(enemy.maxHp));
     },
   );
+
+  test('rift mark core skill unlocks with chapter two', () {
+    final earlyProgression = RunProgression();
+    expect(
+      earlyProgression.equipCoreCombatSkill(CoreCombatSkill.riftMark),
+      isFalse,
+    );
+    expect(earlyProgression.coreCombatSkill, CoreCombatSkill.guardianBeam);
+
+    final chapterTwoProgression = RunProgression()
+      ..restoreFromSaveData(
+        const SavedProgression(
+          runes: 0,
+          lastRunRuneReward: 0,
+          startingGoldUpgradeLevel: 0,
+          nexusHpUpgradeLevel: 0,
+          supplyUpgradeLevel: 0,
+          fireTrainingUpgradeLevel: 0,
+          criticalChanceUpgradeLevel: 0,
+          criticalDamageUpgradeLevel: 0,
+          killGoldUpgradeLevel: 0,
+          emergencySaleUpgradeLevel: 0,
+          unlockedStageCount: 6,
+          bestRoundsByStage: {},
+          clearedStageNumbers: {1, 2, 3, 4, 5},
+          researchLevels: {},
+          researchElapsedMillis: {},
+          activeResearches: [],
+        ),
+      );
+
+    expect(
+      chapterTwoProgression.equipCoreCombatSkill(CoreCombatSkill.riftMark),
+      isTrue,
+    );
+    expect(chapterTwoProgression.coreCombatSkill, CoreCombatSkill.riftMark);
+  });
+
+  test(
+    'rift mark targets highest durability enemies and refreshes mark',
+    () async {
+      final repository = MemorySaveRepository()
+        ..data = _saveWithCorePassiveRun(
+          nexusHp: 20,
+          roundIndex: 0,
+          completedRounds: 0,
+          unlockedStageCount: 6,
+          clearedStageNumbers: const {1, 2, 3, 4, 5},
+          passiveSlots: const [],
+        );
+      final game = RuneNexusGame(
+        saveRepository: repository,
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 0,
+          ),
+        ],
+      );
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      expect(game.equipCoreCombatSkill(CoreCombatSkill.riftMark), isTrue);
+      game.restartRun();
+      game.startNextWave();
+
+      final enemies = [
+        _durabilityEnemy(game, hp: 10, progress: 10),
+        _durabilityEnemy(game, hp: 80, progress: 20),
+        _durabilityEnemy(game, hp: 40, armor: 30, progress: 30),
+        _durabilityEnemy(game, hp: 80, progress: 40),
+        _durabilityEnemy(game, hp: 60, progress: 50),
+      ];
+      for (final enemy in enemies) {
+        await game.add(enemy);
+      }
+      game.enemies.addAll(enemies);
+
+      game.update(10);
+
+      expect(enemies[0].hasRiftMark, isFalse);
+      expect(enemies.skip(1).every((enemy) => enemy.hasRiftMark), isTrue);
+      game.update(0);
+      expect(game.children.whereType<RiftMarkPulseComponent>(), hasLength(1));
+      expect(enemies[3].riftMarkRemaining, closeTo(5, 0.001));
+
+      enemies[3].update(2);
+      expect(enemies[3].riftMarkRemaining, closeTo(3, 0.001));
+      enemies[3].applyRiftMark(damageAmplification: 0.25, duration: 5);
+      expect(enemies[3].riftMarkRemaining, closeTo(5, 0.001));
+      expect(enemies[3].riftMarkDamageAmplification, closeTo(0.25, 0.001));
+    },
+  );
+
+  test('rift mark amplifies final damage before durability tiers', () {
+    final game = RuneNexusGame();
+    final normal = EnemyComponent(
+      definition: gameEnemies[EnemyType.normal]!,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(100, 0)],
+      game: game,
+    )..applyRiftMark(damageAmplification: 0.25, duration: 5);
+    final boss = EnemyComponent(
+      definition: gameEnemies[EnemyType.boss]!,
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(100, 0)],
+      game: game,
+    )..applyRiftMark(damageAmplification: 0.125, duration: 5);
+    final armored = EnemyComponent(
+      definition: gameEnemies[EnemyType.armored]!,
+      maxHp: 100,
+      maxArmor: 20,
+      path: [Vector2.zero(), Vector2(100, 0)],
+      game: game,
+    )..applyRiftMark(damageAmplification: 0.25, duration: 5);
+
+    normal.receiveDamage(10);
+    boss.receiveDamage(10);
+    armored.receiveDamage(10);
+
+    expect(normal.hp, closeTo(87.5, 0.001));
+    expect(boss.hp, closeTo(88.75, 0.001));
+    expect(armored.armor, lessThan(20));
+    expect(armored.hp, 100);
+  });
+
+  test('rift mark cooldown is reduced by skill acceleration', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithCorePassiveRun(
+        nexusHp: 20,
+        roundIndex: 0,
+        completedRounds: 0,
+        unlockedStageCount: 6,
+        clearedStageNumbers: const {1, 2, 3, 4, 5},
+        passiveSlots: const [CorePassiveAbility.skillAcceleration, null],
+        coreCombatSkill: CoreCombatSkill.riftMark,
+      );
+    final game = RuneNexusGame(
+      saveRepository: repository,
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+
+    final enemy = _durabilityEnemy(game, hp: 100, progress: 10);
+    await game.add(enemy);
+    game.enemies.add(enemy);
+
+    expect(game.nexusCoreBeamIntervalSeconds, closeTo(9, 0.001));
+    game.update(8.99);
+    expect(enemy.hasRiftMark, isFalse);
+
+    game.update(0.02);
+    expect(enemy.hasRiftMark, isTrue);
+  });
+
+  test('rift mark state is saved and restored', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithCorePassiveRun(
+        nexusHp: 20,
+        roundIndex: 0,
+        completedRounds: 0,
+        unlockedStageCount: 6,
+        clearedStageNumbers: const {1, 2, 3, 4, 5},
+        passiveSlots: const [],
+        coreCombatSkill: CoreCombatSkill.riftMark,
+      );
+    final game = RuneNexusGame(
+      saveRepository: repository,
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+
+    final enemy = _durabilityEnemy(game, hp: 100, progress: 10)
+      ..applyRiftMark(damageAmplification: 0.25, duration: 5);
+    await game.add(enemy);
+    game.enemies.add(enemy);
+    await game.saveNow();
+
+    final saved = repository.data!;
+    expect(saved.runCoreCombatSkill, CoreCombatSkill.riftMark);
+    expect(saved.enemies.single.riftMarkRemaining, closeTo(5, 0.001));
+
+    final restoredRepository = MemorySaveRepository()..data = saved;
+    final restored = RuneNexusGame(
+      saveRepository: restoredRepository,
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+    restored.onGameResize(Vector2(400, 800));
+    await restored.onLoad();
+    expect(restored.enemies.single.hasRiftMark, isTrue);
+    expect(restored.enemies.single.riftMarkDamageAmplification, 0.25);
+  });
 
   test(
     'nexus core beam stays inactive when combat skill is unequipped',
@@ -4912,6 +5206,26 @@ EnemyComponent _targetPriorityEnemy({
     ..distanceTravelled = progress;
 }
 
+EnemyComponent _durabilityEnemy(
+  RuneNexusGame game, {
+  required double hp,
+  double armor = 0,
+  required double progress,
+}) {
+  return EnemyComponent(
+      definition: armor > 0
+          ? gameEnemies[EnemyType.armored]!
+          : gameEnemies[EnemyType.normal]!,
+      maxHp: math.max(100, hp),
+      maxArmor: armor,
+      path: [Vector2.zero(), Vector2(500, 0)],
+      game: game,
+    )
+    ..hp = hp
+    ..armor = armor
+    ..distanceTravelled = progress;
+}
+
 EnemyComponent _chainEnemy(
   RuneNexusGame game,
   Vector2 position,
@@ -5035,6 +5349,7 @@ GameSaveData _saveWithCorePassiveRun({
   required List<CorePassiveAbility?> passiveSlots,
   int unlockedStageCount = 1,
   Set<int> clearedStageNumbers = const {},
+  CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam,
 }) {
   return GameSaveData(
     version: GameSaveData.currentVersion,
@@ -5065,6 +5380,7 @@ GameSaveData _saveWithCorePassiveRun({
       researchLevels: const {},
       researchElapsedMillis: const {},
       activeResearches: const [],
+      coreCombatSkill: coreCombatSkill,
       corePassiveSlots: passiveSlots,
     ),
     runUpgradeLevels: const {},
@@ -5072,6 +5388,7 @@ GameSaveData _saveWithCorePassiveRun({
     gemInventory: const {},
     rewardOptions: const [],
     isPurchasedGemReward: false,
+    runCoreCombatSkill: coreCombatSkill,
     runCorePassiveSlots: passiveSlots,
     turrets: const [],
     enemies: const [],

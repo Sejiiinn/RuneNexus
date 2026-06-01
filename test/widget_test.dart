@@ -186,14 +186,17 @@ void main() {
     expect(find.text('패시브 1'), findsOneWidget);
     expect(find.text('패시브 2'), findsOneWidget);
     expect(find.text('수호 광선'), findsWidgets);
-    expect(find.text('룬 파동'), findsOneWidget);
+    expect(find.text('균열 낙인'), findsOneWidget);
+    final riftMarkCard = find.byKey(const ValueKey('core-ability-균열 낙인'));
+    await tester.ensureVisible(riftMarkCard);
+    await _pumpGameFrames(tester);
+    await tester.tap(riftMarkCard);
+    await _pumpGameFrames(tester);
     expect(
-      find.descendant(
-        of: find.byKey(const ValueKey('core-ability-룬 파동')),
-        matching: find.text('준비중'),
-      ),
-      findsNothing,
+      find.textContaining('챕터 2 해금. 내구도 높은 적에게 받는 피해 증가 낙인 부여.'),
+      findsOneWidget,
     );
+    expect(find.text('잠김'), findsWidgets);
     expect(find.text('예상 피해'), findsNothing);
     expect(find.text('평균 DPS 8%'), findsNothing);
 
@@ -612,6 +615,51 @@ void main() {
           snapshot: _resultSnapshot(
             phase: GamePhase.preparation,
             currentStageNumber: 1,
+            unlockedStageCount: 1,
+          ),
+          selectedTab: MainMenuTab.core,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    final riftMarkCard = find.byKey(const ValueKey('core-ability-균열 낙인'));
+    await tester.ensureVisible(riftMarkCard);
+    await _pumpGameFrames(tester);
+    await tester.tap(riftMarkCard);
+    await _pumpGameFrames(tester);
+    expect(
+      find.textContaining('챕터 2 해금. 내구도 높은 적에게 받는 피해 증가 낙인 부여.'),
+      findsOneWidget,
+    );
+    expect(find.text('잠김'), findsWidgets);
+    expect(game.equippedCombatSkill, isNull);
+    expect(game.equippedPassive, isNull);
+    expect(game.unequippedSlotIndex, isNull);
+
+    expect(game.equippedPassive, isNull);
+    expect(game.unequippedSlotIndex, isNull);
+  });
+
+  testWidgets('core rift mark equips after chapter two unlock', (tester) async {
+    final game = _CoreEquipGame();
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: game,
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
             unlockedStageCount: 6,
           ),
           selectedTab: MainMenuTab.core,
@@ -622,23 +670,20 @@ void main() {
     );
     await _pumpGameFrames(tester);
 
-    final pendingCombatCard = find.byKey(const ValueKey('core-ability-룬 파동'));
-    await tester.ensureVisible(pendingCombatCard);
+    final riftMarkCard = find.byKey(const ValueKey('core-ability-균열 낙인'));
+    await tester.ensureVisible(riftMarkCard);
     await _pumpGameFrames(tester);
-    expect(
-      find.descendant(of: pendingCombatCard, matching: find.text('준비중')),
-      findsNothing,
-    );
-    expect(
-      find.descendant(of: pendingCombatCard, matching: find.text('장착중')),
-      findsNothing,
-    );
-    await tester.tap(pendingCombatCard);
+    await tester.tap(riftMarkCard);
     await _pumpGameFrames(tester);
-    expect(game.equippedCombatSkill, isNull);
-    expect(game.equippedPassive, isNull);
-    expect(game.unequippedSlotIndex, isNull);
+    expect(find.textContaining('10초마다 내구도 높은 적 4명에게 5초 낙인'), findsOneWidget);
+    expect(find.textContaining('대상이 받는 모든 피해 증가.'), findsOneWidget);
 
+    await tester.tap(
+      find.byKey(const ValueKey('core-selected-ability-action')),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(game.equippedCombatSkill, CoreCombatSkill.riftMark);
     expect(game.equippedPassive, isNull);
     expect(game.unequippedSlotIndex, isNull);
   });
@@ -659,15 +704,19 @@ void main() {
     expect(find.text('패시브 1'), findsOneWidget);
     expect(find.text('패시브 2'), findsOneWidget);
     expect(find.text('수호 광선'), findsWidgets);
-    expect(find.text('룬 파동'), findsOneWidget);
-    expect(find.textContaining('5초마다 자동 발동'), findsWidgets);
+    expect(find.text('균열 낙인'), findsOneWidget);
+    expect(find.textContaining('5초마다 가장 앞선 적에게 1초간 광선 피해'), findsOneWidget);
+    expect(find.textContaining('포탑 화력이 높을수록 피해 증가.'), findsOneWidget);
+    final riftMarkCard = find.byKey(const ValueKey('core-ability-균열 낙인'));
+    await tester.ensureVisible(riftMarkCard);
+    await _pumpGameFrames(tester);
+    await tester.tap(riftMarkCard);
+    await _pumpGameFrames(tester);
     expect(
-      find.descendant(
-        of: find.byKey(const ValueKey('core-ability-룬 파동')),
-        matching: find.text('준비중'),
-      ),
-      findsNothing,
+      find.textContaining('챕터 2 해금. 내구도 높은 적에게 받는 피해 증가 낙인 부여.'),
+      findsOneWidget,
     );
+    expect(find.text('잠김'), findsWidgets);
     expect(find.text('예상 피해'), findsNothing);
     expect(find.text('포탑 배치 필요'), findsNothing);
     expect(find.text('평균 DPS 8%'), findsNothing);

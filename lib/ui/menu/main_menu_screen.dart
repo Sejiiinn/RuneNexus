@@ -3462,7 +3462,9 @@ class _CoreSelectedAbilityPanel extends StatelessWidget {
         (data.combatSkill != null || data.passiveAbility != null) &&
         data.enabled &&
         !data.locked;
-    final detailText = data.state;
+    final detailText = data.descriptionLines.isEmpty
+        ? data.state
+        : data.descriptionLines.join('\n');
     final actionLabel = data.passiveAbility == null
         ? data.equipped
               ? '해제'
@@ -3472,7 +3474,7 @@ class _CoreSelectedAbilityPanel extends StatelessWidget {
         : data.actionLabel;
     return Container(
       key: const ValueKey('core-selected-ability-panel'),
-      height: compact ? 74 : 84,
+      constraints: BoxConstraints(minHeight: compact ? 86 : 98),
       padding: EdgeInsets.fromLTRB(
         compact ? 9 : 11,
         compact ? 8 : 10,
@@ -3539,8 +3541,6 @@ class _CoreSelectedAbilityPanel extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   detailText,
-                  maxLines: selectedTab == _CoreAbilityTab.combatSkill ? 1 : 2,
-                  overflow: TextOverflow.clip,
                   style: const TextStyle(
                     color: Color(0xFFB4C7D2),
                     fontSize: 10,
@@ -3834,6 +3834,7 @@ class _CoreAbilityData {
     required this.state,
     required this.actionLabel,
     required this.accent,
+    this.descriptionLines = const [],
     this.combatSkill,
     this.passiveAbility,
     this.equipped = false,
@@ -3846,6 +3847,7 @@ class _CoreAbilityData {
   final String state;
   final String actionLabel;
   final Color accent;
+  final List<String> descriptionLines;
   final CoreCombatSkill? combatSkill;
   final CorePassiveAbility? passiveAbility;
   final bool equipped;
@@ -3857,12 +3859,16 @@ class _CoreAbilityData {
     required _CoreAbilityTab tab,
     required int selectedPassiveSlotIndex,
   }) {
+    final riftMarkUnlocked = snapshot.unlockedStageCount >= 6;
     return switch (tab) {
       _CoreAbilityTab.combatSkill => [
         _CoreAbilityData(
           icon: Icons.auto_awesome,
           name: '수호 광선',
           state: '5초마다 자동 발동',
+          descriptionLines: const [
+            '5초마다 가장 앞선 적에게 1초간 광선 피해. 포탑 화력이 높을수록 피해 증가.',
+          ],
           actionLabel: snapshot.coreCombatSkill == CoreCombatSkill.guardianBeam
               ? '장착중'
               : '장착',
@@ -3871,13 +3877,23 @@ class _CoreAbilityData {
           equipped: snapshot.coreCombatSkill == CoreCombatSkill.guardianBeam,
           enabled: true,
         ),
-        const _CoreAbilityData(
-          icon: Icons.waves,
-          name: '룬 파동',
-          state: '후속 공격 스킬 준비중',
-          actionLabel: '준비중',
-          accent: Color(0xFFE7C66A),
-          locked: true,
+        _CoreAbilityData(
+          icon: Icons.blur_on,
+          name: '균열 낙인',
+          state: riftMarkUnlocked ? '체력이 높은 적에게 받는 피해 증가' : '챕터 2 해금',
+          descriptionLines: riftMarkUnlocked
+              ? const ['10초마다 내구도 높은 적 4명에게 5초 낙인. 대상이 받는 모든 피해 증가.']
+              : const ['챕터 2 해금. 내구도 높은 적에게 받는 피해 증가 낙인 부여.'],
+          actionLabel: snapshot.coreCombatSkill == CoreCombatSkill.riftMark
+              ? '장착중'
+              : riftMarkUnlocked
+              ? '장착'
+              : '잠김',
+          accent: const Color(0xFFCFA7FF),
+          combatSkill: CoreCombatSkill.riftMark,
+          equipped: snapshot.coreCombatSkill == CoreCombatSkill.riftMark,
+          locked: !riftMarkUnlocked,
+          enabled: riftMarkUnlocked,
         ),
         const _CoreAbilityData(
           icon: Icons.hub_outlined,

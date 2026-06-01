@@ -560,6 +560,8 @@ class SavedEnemy {
     required this.physicalVulnerabilityBonus,
     required this.elementalVulnerabilityRemaining,
     required this.elementalVulnerabilityBonus,
+    this.riftMarkRemaining = 0,
+    this.riftMarkDamageAmplification = 0,
   });
 
   final EnemyType type;
@@ -583,6 +585,8 @@ class SavedEnemy {
   final double physicalVulnerabilityBonus;
   final double elementalVulnerabilityRemaining;
   final double elementalVulnerabilityBonus;
+  final double riftMarkRemaining;
+  final double riftMarkDamageAmplification;
 
   Map<String, Object?> toJson() {
     return {
@@ -609,6 +613,8 @@ class SavedEnemy {
       'physicalVulnerabilityBonus': physicalVulnerabilityBonus,
       'elementalVulnerabilityRemaining': elementalVulnerabilityRemaining,
       'elementalVulnerabilityBonus': elementalVulnerabilityBonus,
+      'riftMarkRemaining': riftMarkRemaining,
+      'riftMarkDamageAmplification': riftMarkDamageAmplification,
     };
   }
 
@@ -678,6 +684,10 @@ class SavedEnemy {
       ),
       elementalVulnerabilityBonus: _doubleValue(
         json['elementalVulnerabilityBonus'],
+      ),
+      riftMarkRemaining: _doubleValue(json['riftMarkRemaining']),
+      riftMarkDamageAmplification: _doubleValue(
+        json['riftMarkDamageAmplification'],
       ),
     );
   }

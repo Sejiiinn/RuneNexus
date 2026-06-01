@@ -56,6 +56,8 @@ class EnemyComponent extends PositionComponent {
   double _physicalVulnerabilityBonus = 0;
   double _elementalVulnerabilityRemaining = 0;
   double _elementalVulnerabilityBonus = 0;
+  double _riftMarkRemaining = 0;
+  double _riftMarkDamageAmplification = 0;
   double _facingAngle = 0;
   double _hitFlashTimer = 0;
   Color _hitFlashColor = const Color(0xFFFFFFFF);
@@ -92,6 +94,12 @@ class EnemyComponent extends PositionComponent {
       _physicalVulnerabilityRemaining > 0 ? _physicalVulnerabilityBonus : 0;
   double get elementalResistanceReduction =>
       _elementalVulnerabilityRemaining > 0 ? _elementalVulnerabilityBonus : 0;
+  bool get hasRiftMark => _riftMarkRemaining > 0;
+  double get riftMarkRemaining => _riftMarkRemaining;
+  double get riftMarkDamageAmplification =>
+      hasRiftMark ? _riftMarkDamageAmplification : 0;
+  double get finalDamageMultiplier => 1 + riftMarkDamageAmplification;
+  double get currentDurability => hp + shield + armor;
   double get totalBurnDamagePerSecond => _burnInstances.fold(
     0,
     (strongest, instance) => math.max(strongest, instance.damagePerSecond),
@@ -132,6 +140,8 @@ class EnemyComponent extends PositionComponent {
       physicalVulnerabilityBonus: _physicalVulnerabilityBonus,
       elementalVulnerabilityRemaining: _elementalVulnerabilityRemaining,
       elementalVulnerabilityBonus: _elementalVulnerabilityBonus,
+      riftMarkRemaining: _riftMarkRemaining,
+      riftMarkDamageAmplification: _riftMarkDamageAmplification,
     );
   }
 
@@ -170,6 +180,11 @@ class EnemyComponent extends PositionComponent {
     _elementalVulnerabilityBonus = math.max(
       0,
       data.elementalVulnerabilityBonus,
+    );
+    _riftMarkRemaining = math.max(0, data.riftMarkRemaining);
+    _riftMarkDamageAmplification = math.max(
+      0,
+      data.riftMarkDamageAmplification,
     );
     _placeAtDistance(distanceTravelled);
   }
@@ -258,7 +273,7 @@ class EnemyComponent extends PositionComponent {
     if (damage <= 0 || isDead) {
       return 0;
     }
-    var remainingDamage = damage;
+    var remainingDamage = damage * finalDamageMultiplier;
     var actualDamage = 0.0;
 
     if (shield > 0) {
@@ -451,6 +466,20 @@ class EnemyComponent extends PositionComponent {
     );
   }
 
+  void applyRiftMark({
+    required double damageAmplification,
+    required double duration,
+  }) {
+    if (damageAmplification <= 0 || duration <= 0) {
+      return;
+    }
+    _riftMarkDamageAmplification = math.max(
+      _riftMarkDamageAmplification,
+      damageAmplification,
+    );
+    _riftMarkRemaining = math.max(_riftMarkRemaining, duration);
+  }
+
   void _updateStatusEffects(double dt) {
     if (_burnInstances.isNotEmpty) {
       _burnNumberTimer += dt;
@@ -549,6 +578,12 @@ class EnemyComponent extends PositionComponent {
         _elementalVulnerabilityBonus = 0;
       }
     }
+    if (_riftMarkRemaining > 0) {
+      _riftMarkRemaining = math.max(0, _riftMarkRemaining - dt);
+      if (_riftMarkRemaining == 0) {
+        _riftMarkDamageAmplification = 0;
+      }
+    }
   }
 
   void _updateShield(double dt) {
@@ -600,6 +635,9 @@ class EnemyComponent extends PositionComponent {
     }
     if (_slowRemaining > 0) {
       _drawSlowStatus(canvas);
+    }
+    if (_riftMarkRemaining > 0) {
+      _drawRiftMarkStatus(canvas);
     }
 
     _drawDurabilityBars(canvas);
@@ -759,6 +797,43 @@ class EnemyComponent extends PositionComponent {
         radius: shardSize / 0.34,
       );
     }
+  }
+
+  void _drawRiftMarkStatus(Canvas canvas) {
+    final center = Offset(size.x / 2, size.y / 2);
+    final phase = (_statusEffectTime * 1.45) % 1;
+    final baseRadius = size.x * (0.55 + phase * 0.08);
+    final color = const Color(0xFFCFA7FF);
+    final ringPaint = Paint()
+      ..color = color.withValues(alpha: 0.58 - phase * 0.2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.x * 0.055
+      ..strokeCap = StrokeCap.round;
+    final glowPaint = Paint()
+      ..color = color.withValues(alpha: 0.13)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.x * 0.16;
+    final rect = Rect.fromCircle(center: center, radius: baseRadius);
+    canvas.drawCircle(center, baseRadius, glowPaint);
+    for (var i = 0; i < 4; i++) {
+      canvas.drawArc(
+        rect,
+        phase * math.pi * 2 + i * math.pi / 2,
+        math.pi * 0.26,
+        false,
+        ringPaint,
+      );
+    }
+    canvas.drawLine(
+      center.translate(-size.x * 0.16, -size.y * 0.16),
+      center.translate(size.x * 0.16, size.y * 0.16),
+      ringPaint,
+    );
+    canvas.drawLine(
+      center.translate(size.x * 0.16, -size.y * 0.16),
+      center.translate(-size.x * 0.16, size.y * 0.16),
+      ringPaint,
+    );
   }
 
   void _drawStatusSprite(

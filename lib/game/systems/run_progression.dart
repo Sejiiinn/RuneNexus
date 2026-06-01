@@ -541,15 +541,23 @@ class RunProgression {
     for (var i = 0; i < corePassiveSlots.length; i++) {
       corePassiveSlots[i] = i < restoredSlots.length ? restoredSlots[i] : null;
     }
+    _sanitizeCoreCombatSkill();
     _sanitizeCorePassiveSlotsInPlace();
   }
 
   bool equipCoreCombatSkill(CoreCombatSkill skill) {
-    if (skill != CoreCombatSkill.guardianBeam || coreCombatSkill == skill) {
-      return skill == CoreCombatSkill.guardianBeam;
+    if (!_isCoreCombatSkillUnlocked(skill) || coreCombatSkill == skill) {
+      return _isCoreCombatSkillUnlocked(skill);
     }
     coreCombatSkill = skill;
     return true;
+  }
+
+  bool _isCoreCombatSkillUnlocked(CoreCombatSkill skill) {
+    return switch (skill) {
+      CoreCombatSkill.guardianBeam => true,
+      CoreCombatSkill.riftMark => unlockedStageCount >= 6,
+    };
   }
 
   bool unequipCoreCombatSkill() {
@@ -558,6 +566,13 @@ class RunProgression {
     }
     coreCombatSkill = null;
     return true;
+  }
+
+  void _sanitizeCoreCombatSkill() {
+    final skill = coreCombatSkill;
+    if (skill != null && !_isCoreCombatSkillUnlocked(skill)) {
+      coreCombatSkill = CoreCombatSkill.guardianBeam;
+    }
   }
 
   bool equipCorePassiveAbility(CorePassiveAbility ability, int slotIndex) {
