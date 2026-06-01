@@ -1583,6 +1583,22 @@ void main() {
     expect(game.snapshotNotifier.value.round, 50);
   });
 
+  test('debug force victory completes current stage', () {
+    final game = RuneNexusGame();
+
+    game.debugSetRound(25);
+    game.debugForceVictory();
+
+    final snapshot = game.snapshotNotifier.value;
+    expect(snapshot.phase, GamePhase.success);
+    expect(snapshot.completedRounds, 50);
+    expect(snapshot.lastRunRuneReward, 200);
+    expect(snapshot.lastRunWasNewBestRound, isTrue);
+    expect(snapshot.lastRunUnlockedStageNumber, 2);
+    expect(snapshot.unlockedStageCount, 2);
+    expect(snapshot.clearedStageNumbers, contains(1));
+  });
+
   test('debug gold control adds gold without accepting negative values', () {
     final game = RuneNexusGame();
 

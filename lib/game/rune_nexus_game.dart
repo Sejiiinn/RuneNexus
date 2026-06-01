@@ -1463,6 +1463,22 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
+  void debugForceVictory() {
+    _clearActiveCombat();
+    _rewardReturnPhase = null;
+    _rewardOptions.clear();
+    _isPurchasedGemReward = false;
+    _selectedBuildPoint = null;
+    _selectedBuildTurretType = null;
+    _selectedPortalPoint = null;
+    _selectedCorePoint = null;
+    _selectedTurretPoint = null;
+    _selectedTurretGemSlotIndex = null;
+    _finishRun(GamePhase.success);
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
   void tryBuildTurret(GridPoint point) {
     if (!_canEditBoard) {
       return;

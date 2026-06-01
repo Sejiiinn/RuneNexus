@@ -1167,10 +1167,8 @@ void main() {
     expect(find.text('다음 +16%p'), findsNWidgets(2));
   });
 
-  testWidgets('result overlay exposes next stage and growth actions', (
-    tester,
-  ) async {
-    int? startedStage;
+  testWidgets('result overlay summarizes rewards and unlocks', (tester) async {
+    var openedStageSelect = false;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -1190,36 +1188,42 @@ void main() {
             bestRoundsByStage: const {1: 50},
             clearedStageNumbers: const {1},
           ),
-          onOpenStageSelect: () {},
-          onOpenPermanentUpgrades: () {},
-          onStartStage: (stageNumber) {
-            startedStage = stageNumber;
+          onOpenStageSelect: () {
+            openedStageSelect = true;
           },
+          onOpenPermanentUpgrades: () {},
+          onStartStage: (_) {},
         ),
       ),
     );
 
-    expect(find.text('스테이지 2 신규 해금'), findsOneWidget);
-    expect(find.text('신기록'), findsOneWidget);
+    expect(find.text('Nexus 방어 성공'), findsOneWidget);
+    expect(find.text('스테이지 1 클리어'), findsOneWidget);
+    expect(find.text('보상 획득'), findsOneWidget);
+    expect(find.text('+140 룬'), findsOneWidget);
+    expect(find.text('포탑 1개 해금'), findsOneWidget);
+    expect(find.text('전투 기록'), findsOneWidget);
+    expect(find.text('기록'), findsOneWidget);
     expect(find.text('20R → 50R'), findsOneWidget);
-    expect(find.text('포탑 해금'), findsOneWidget);
-    expect(find.text('저격'), findsOneWidget);
-    expect(find.text('신규 해금'), findsOneWidget);
-    expect(find.text('스테이지 2 시작'), findsOneWidget);
-    expect(find.text('업그레이드'), findsOneWidget);
-    expect(find.text('현재 스테이지 재도전'), findsOneWidget);
+    expect(find.text('해금 항목'), findsOneWidget);
+    expect(find.text('포탑'), findsOneWidget);
+    expect(find.text('저격 포탑'), findsOneWidget);
+    expect(find.text('확인'), findsOneWidget);
+    expect(find.text('다시 시작'), findsOneWidget);
+    expect(find.text('스테이지 2 시작'), findsNothing);
+    expect(find.text('현재 스테이지 재도전'), findsNothing);
 
     await tester.drag(
       find.byType(SingleChildScrollView),
       const Offset(0, -160),
     );
     await tester.pump();
-    await tester.tap(find.text('스테이지 2 시작'));
+    await tester.tap(find.text('확인'));
 
-    expect(startedStage, 2);
+    expect(openedStageSelect, isTrue);
   });
 
-  testWidgets('failed result keeps stage selection and retry actions', (
+  testWidgets('failed result keeps reward summary and retry action', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -1241,10 +1245,15 @@ void main() {
       ),
     );
 
-    expect(find.text('기록 최고 12R'), findsOneWidget);
+    expect(find.text('Nexus 붕괴'), findsOneWidget);
+    expect(find.text('스테이지 1 종료'), findsOneWidget);
+    expect(find.text('+24 룬'), findsOneWidget);
+    expect(find.text('도달 기록 기준 정산'), findsOneWidget);
+    expect(find.text('최고 12R'), findsOneWidget);
+    expect(find.text('해금 항목'), findsNothing);
     expect(find.text('스테이지 2 시작'), findsNothing);
-    expect(find.text('스테이지'), findsWidgets);
-    expect(find.text('현재 스테이지 재도전'), findsOneWidget);
+    expect(find.text('확인'), findsOneWidget);
+    expect(find.text('다시 시작'), findsOneWidget);
   });
 
   testWidgets('home button opens stage menu with end confirmation', (

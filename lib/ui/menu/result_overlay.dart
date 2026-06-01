@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../game/game_snapshot.dart';
 import '../../game/rune_nexus_game.dart';
+import '../../l10n/rune_nexus_localizations.dart';
 import '../game/game_ui.dart';
-import '../widgets/rune_balance_card.dart';
 
 class ResultOverlay extends StatelessWidget {
   const ResultOverlay({
@@ -24,28 +24,17 @@ class ResultOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final success = snapshot.phase == GamePhase.success;
-    final nextStageNumber = snapshot.currentStageNumber + 1;
-    final canStartNextStage =
-        success && nextStageNumber <= snapshot.unlockedStageCount;
+    final unlockGroups = _unlockGroupsFor(l10n, snapshot);
     final bestRound =
         snapshot.bestRoundsByStage[snapshot.currentStageNumber] ??
         snapshot.completedRounds;
-    final recordText = snapshot.lastRunWasNewBestRound
-        ? '신기록 ${snapshot.completedRounds}R'
-        : snapshot.clearedStageNumbers.contains(snapshot.currentStageNumber)
-        ? '클리어'
-        : '최고 ${bestRound}R';
-    final stageStatusText = success
-        ? snapshot.lastRunUnlockedStageNumber != null
-              ? '스테이지 ${snapshot.lastRunUnlockedStageNumber} 신규 해금'
-              : canStartNextStage
-              ? '스테이지 $nextStageNumber 이용 가능'
-              : '스테이지 ${snapshot.currentStageNumber} 클리어'
-        : '기록 $recordText';
+    final recordText = _recordText(snapshot, bestRound);
     final topDamageText = snapshot.topDamageTurretName == null
         ? '없음'
         : '${snapshot.topDamageTurretName} ${_formatDamageValue(snapshot.topDamageTurretDamageDealt)}';
+    final rewardSubText = _rewardSubText(success, unlockGroups);
 
     return Container(
       color: const Color(0xAA02070D),
@@ -54,8 +43,9 @@ class ResultOverlay extends StatelessWidget {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(14),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 360),
+              constraints: const BoxConstraints(maxWidth: 390),
               child: GamePanel(
+                width: double.infinity,
                 padding: const EdgeInsets.all(18),
                 selected: true,
                 variant: success
@@ -65,139 +55,44 @@ class ResultOverlay extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      success
-                          ? Icons.diamond_outlined
-                          : Icons.warning_amber_rounded,
-                      color: success ? GamePalette.cyan : GamePalette.danger,
-                      size: 40,
+                    _ResultHeader(success: success, snapshot: snapshot),
+                    const SizedBox(height: 12),
+                    _RewardSummary(
+                      runeReward: snapshot.lastRunRuneReward,
+                      subText: rewardSubText,
+                      success: success,
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      success ? 'Nexus 방어 성공' : 'Nexus 붕괴',
-                      style: GameTextStyles.title,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      stageStatusText,
-                      textAlign: TextAlign.center,
-                      style: GameTextStyles.body,
-                    ),
-                    if (snapshot.lastRunWasNewBestRound ||
-                        snapshot.lastRunUnlockedStageNumber != null ||
-                        snapshot.lastRunUnlockedSniperTurret) ...[
-                      const SizedBox(height: 10),
-                      Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          if (snapshot.lastRunWasNewBestRound)
-                            _ResultHighlight(
-                              icon: Icons.trending_up,
-                              label: '신기록',
-                              value: snapshot.lastRunPreviousBestRound > 0
-                                  ? '${snapshot.lastRunPreviousBestRound}R → ${snapshot.completedRounds}R'
-                                  : '${snapshot.completedRounds}R 첫 기록',
-                            ),
-                          if (snapshot.lastRunUnlockedStageNumber != null)
-                            _ResultHighlight(
-                              icon: Icons.lock_open,
-                              label: '신규 해금',
-                              value:
-                                  '스테이지 ${snapshot.lastRunUnlockedStageNumber}',
-                            ),
-                          if (snapshot.lastRunUnlockedSniperTurret)
-                            const _ResultHighlight(
-                              icon: Icons.my_location,
-                              label: '포탑 해금',
-                              value: '저격',
-                            ),
+                    const SizedBox(height: 12),
+                    _ResultSection(
+                      title: '전투 기록',
+                      child: _CompactStatList(
+                        rows: [
+                          _CompactStatRow(
+                            label: '도달 라운드',
+                            value: '${snapshot.completedRounds}R',
+                          ),
+                          _CompactStatRow(
+                            label: '기록',
+                            value: recordText,
+                            highlight: snapshot.lastRunWasNewBestRound,
+                          ),
+                          _CompactStatRow(label: '최고 피해', value: topDamageText),
+                          _CompactStatRow(
+                            label: '현재 룬',
+                            value: _formatInteger(snapshot.runes),
+                          ),
                         ],
                       ),
-                    ],
-                    const SizedBox(height: 12),
-                    GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                      childAspectRatio: 2.55,
-                      children: [
-                        _ResultMetric(
-                          label: '스테이지',
-                          value: '${snapshot.currentStageNumber}',
-                        ),
-                        _ResultMetric(
-                          label: '도달',
-                          value: '${snapshot.completedRounds}R',
-                        ),
-                        _ResultMetric(label: '기록', value: recordText),
-                        _ResultMetric(
-                          label: '획득 룬',
-                          value: '+${snapshot.lastRunRuneReward}',
-                        ),
-                        _ResultMetric(label: '최고 피해', value: topDamageText),
-                      ],
                     ),
-                    const SizedBox(height: 10),
-                    RuneBalanceCard(runes: snapshot.runes, compact: true),
+                    if (unlockGroups.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _UnlockSection(groups: unlockGroups),
+                    ],
                     const SizedBox(height: 16),
-                    if (canStartNextStage) ...[
-                      SizedBox(
-                        width: double.infinity,
-                        child: GameButton(
-                          onPressed: onStartStage == null
-                              ? null
-                              : () => onStartStage!(nextStageNumber),
-                          icon: const Icon(Icons.flag_outlined, size: 17),
-                          label: '스테이지 $nextStageNumber 시작',
-                          variant: GameButtonVariant.primary,
-                          accentColor: GamePalette.cyan,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GameButton(
-                            onPressed: onOpenStageSelect,
-                            icon: const Icon(Icons.map_outlined, size: 16),
-                            label: '스테이지',
-                            compact: true,
-                            variant: GameButtonVariant.ghost,
-                            accentColor: GamePalette.cyan,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: GameButton(
-                            onPressed: onOpenPermanentUpgrades,
-                            icon: const Icon(Icons.auto_awesome, size: 16),
-                            label: '업그레이드',
-                            compact: true,
-                            variant: GameButtonVariant.ghost,
-                            accentColor: GamePalette.gold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: GameButton(
-                        onPressed: game.restartRun,
-                        icon: const Icon(Icons.replay, size: 17),
-                        label: '현재 스테이지 재도전',
-                        variant: success
-                            ? GameButtonVariant.secondary
-                            : GameButtonVariant.danger,
-                        accentColor: success
-                            ? GamePalette.cyan
-                            : GamePalette.danger,
-                      ),
+                    _ResultActions(
+                      success: success,
+                      onConfirm: onOpenStageSelect,
+                      onRestart: game.restartRun,
                     ),
                   ],
                 ),
@@ -210,6 +105,70 @@ class ResultOverlay extends StatelessWidget {
   }
 }
 
+bool _isFirstStageClear(GameSnapshot snapshot) {
+  return snapshot.phase == GamePhase.success &&
+      snapshot.completedRounds >= snapshot.maxRound &&
+      snapshot.lastRunPreviousBestRound < snapshot.maxRound;
+}
+
+String _recordText(GameSnapshot snapshot, int bestRound) {
+  if (snapshot.lastRunWasNewBestRound) {
+    return snapshot.lastRunPreviousBestRound > 0
+        ? '${snapshot.lastRunPreviousBestRound}R → ${snapshot.completedRounds}R'
+        : '${snapshot.completedRounds}R 첫 기록';
+  }
+  if (snapshot.clearedStageNumbers.contains(snapshot.currentStageNumber)) {
+    return '클리어';
+  }
+  return '최고 ${bestRound}R';
+}
+
+String _rewardSubText(bool success, List<_UnlockGroup> unlockGroups) {
+  if (!success) {
+    return '도달 기록 기준 정산';
+  }
+  if (unlockGroups.isEmpty) {
+    return '룬 보상이 정산되었습니다';
+  }
+  final unlockSummary = unlockGroups
+      .map((group) => '${group.label} ${group.items.length}개')
+      .join(' · ');
+  return '$unlockSummary 해금';
+}
+
+List<_UnlockGroup> _unlockGroupsFor(
+  RuneNexusLocalizations l10n,
+  GameSnapshot snapshot,
+) {
+  if (!_isFirstStageClear(snapshot)) {
+    return const [];
+  }
+  return switch (snapshot.currentStageNumber) {
+    1 => [
+      _UnlockGroup('포탑', [l10n.sniperTurret]),
+    ],
+    2 => [
+      _UnlockGroup('강화', [l10n.killRewardBonus, l10n.emergencySale]),
+    ],
+    3 => [
+      _UnlockGroup('연구', [l10n.tacticalCommand, l10n.gemAttunement]),
+    ],
+    4 => [
+      _UnlockGroup('강화', [
+        l10n.criticalChanceTraining,
+        l10n.criticalDamageTraining,
+      ]),
+    ],
+    5 => [
+      _UnlockGroup('연구', [l10n.linkExpansionOne, l10n.crystalRecovery]),
+    ],
+    6 => [
+      _UnlockGroup('포탑', [l10n.lightningTurret]),
+    ],
+    _ => const [],
+  };
+}
+
 String _formatDamageValue(double value) {
   if (value >= 1000) {
     return '${(value / 1000).toStringAsFixed(1)}K';
@@ -220,46 +179,111 @@ String _formatDamageValue(double value) {
   return value.toStringAsFixed(1);
 }
 
-class _ResultHighlight extends StatelessWidget {
-  const _ResultHighlight({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
+String _formatInteger(int value) {
+  final raw = value.abs().toString();
+  final buffer = StringBuffer();
+  for (var i = 0; i < raw.length; i++) {
+    if (i > 0 && (raw.length - i) % 3 == 0) {
+      buffer.write(',');
+    }
+    buffer.write(raw[i]);
+  }
+  return value < 0 ? '-$buffer' : buffer.toString();
+}
 
-  final IconData icon;
-  final String label;
-  final String value;
+class _ResultHeader extends StatelessWidget {
+  const _ResultHeader({required this.success, required this.snapshot});
+
+  final bool success;
+  final GameSnapshot snapshot;
 
   @override
   Widget build(BuildContext context) {
+    final accent = success ? GamePalette.cyan : GamePalette.danger;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          success ? Icons.diamond_outlined : Icons.warning_amber_rounded,
+          color: accent,
+          size: 40,
+        ),
+        const SizedBox(height: 10),
+        Text(
+          success ? 'Nexus 방어 성공' : 'Nexus 붕괴',
+          textAlign: TextAlign.center,
+          style: GameTextStyles.title,
+        ),
+        const SizedBox(height: 7),
+        Text(
+          success
+              ? '스테이지 ${snapshot.currentStageNumber} 클리어'
+              : '스테이지 ${snapshot.currentStageNumber} 종료',
+          textAlign: TextAlign.center,
+          style: GameTextStyles.withColor(GameTextStyles.body, accent),
+        ),
+      ],
+    );
+  }
+}
+
+class _RewardSummary extends StatelessWidget {
+  const _RewardSummary({
+    required this.runeReward,
+    required this.subText,
+    required this.success,
+  });
+
+  final int runeReward;
+  final String subText;
+  final bool success;
+
+  @override
+  Widget build(BuildContext context) {
+    final borderColor = success ? GamePalette.gold : GamePalette.warning;
+    final amountColor = success ? GamePalette.goldBright : GamePalette.warning;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       decoration: BoxDecoration(
-        color: GamePalette.backdrop.withValues(alpha: 0.72),
-        border: Border.all(color: GamePalette.gold),
+        color: GamePalette.backdrop.withValues(alpha: 0.62),
+        border: Border.all(color: borderColor.withValues(alpha: 0.52)),
         borderRadius: BorderRadius.circular(GamePalette.radius),
+        boxShadow: [
+          BoxShadow(
+            color: borderColor.withValues(alpha: success ? 0.14 : 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: GamePalette.gold),
-          const SizedBox(width: 6),
           Text(
-            label,
-            style: const TextStyle(
-              color: GamePalette.gold,
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
+            '보상 획득',
+            style: GameTextStyles.withColor(
+              GameTextStyles.caption,
+              borderColor,
             ),
           ),
-          const SizedBox(width: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              color: GamePalette.textPrimary,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
+          const SizedBox(height: 4),
+          ScaleDownText(
+            '+${_formatInteger(runeReward)} 룬',
+            style: TextStyle(
+              color: amountColor,
+              fontSize: 30,
+              fontWeight: FontWeight.w900,
+              height: 1,
+              shadows: GameTextStyles.textShadow,
+            ),
+          ),
+          const SizedBox(height: 7),
+          ScaleDownText(
+            subText,
+            style: GameTextStyles.withColor(
+              GameTextStyles.body,
+              GamePalette.textSecondary,
             ),
           ),
         ],
@@ -268,34 +292,217 @@ class _ResultHighlight extends StatelessWidget {
   }
 }
 
-class _ResultMetric extends StatelessWidget {
-  const _ResultMetric({required this.label, required this.value});
+class _ResultActions extends StatelessWidget {
+  const _ResultActions({
+    required this.success,
+    required this.onConfirm,
+    required this.onRestart,
+  });
 
-  final String label;
-  final String value;
+  final bool success;
+  final VoidCallback? onConfirm;
+  final VoidCallback onRestart;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
-      decoration: BoxDecoration(
-        color: GamePalette.backdrop.withValues(alpha: 0.72),
-        border: Border.all(color: GamePalette.cyan.withValues(alpha: 0.34)),
-        borderRadius: BorderRadius.circular(GamePalette.radiusSmall),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ScaleDownText(label, style: GameTextStyles.caption),
-          ScaleDownText(
-            value,
-            style: GameTextStyles.withColor(
-              GameTextStyles.body,
-              GamePalette.textPrimary,
+    final accent = success ? GamePalette.cyan : GamePalette.danger;
+    final restartAccent = success ? GamePalette.cyan : GamePalette.warning;
+    const buttonWidth = 208.0;
+    const buttonHeight = 34.0;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GameButton(
+          onPressed: onConfirm,
+          label: '확인',
+          variant: GameButtonVariant.primary,
+          accentColor: accent,
+          width: buttonWidth,
+          height: buttonHeight,
+        ),
+        const SizedBox(height: 6),
+        GameButton(
+          onPressed: onRestart,
+          icon: const Icon(Icons.replay, size: 13),
+          label: '다시 시작',
+          variant: GameButtonVariant.ghost,
+          compact: true,
+          width: buttonWidth,
+          height: buttonHeight,
+          accentColor: restartAccent,
+        ),
+      ],
+    );
+  }
+}
+
+class _ResultSection extends StatelessWidget {
+  const _ResultSection({required this.title, required this.child});
+
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return FractionallySizedBox(
+      widthFactor: 0.78,
+      alignment: Alignment.center,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              title,
+              style: GameTextStyles.withColor(
+                GameTextStyles.sectionTitle,
+                GamePalette.cyanBright,
+              ),
             ),
+            const SizedBox(height: 7),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CompactStatList extends StatelessWidget {
+  const _CompactStatList({required this.rows});
+
+  final List<_CompactStatRow> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    return Table(
+      columnWidths: const {0: FixedColumnWidth(86), 1: FlexColumnWidth()},
+      children: [
+        for (final row in rows)
+          TableRow(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2.5),
+                child: Text(row.label, style: GameTextStyles.caption),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2.5),
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: ScaleDownText(
+                    row.value,
+                    textAlign: TextAlign.right,
+                    alignment: Alignment.centerRight,
+                    style: GameTextStyles.withColor(
+                      GameTextStyles.body,
+                      row.highlight
+                          ? GamePalette.green
+                          : GamePalette.textPrimary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+class _CompactStatRow {
+  const _CompactStatRow({
+    required this.label,
+    required this.value,
+    this.highlight = false,
+  });
+
+  final String label;
+  final String value;
+  final bool highlight;
+}
+
+class _UnlockSection extends StatelessWidget {
+  const _UnlockSection({required this.groups});
+
+  final List<_UnlockGroup> groups;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ResultSection(
+      title: '해금 항목',
+      child: Column(
+        children: [
+          for (final group in groups)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 44,
+                    child: Text(group.label, style: GameTextStyles.caption),
+                  ),
+                  Expanded(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 5,
+                      children: [
+                        for (final item in group.items)
+                          _UnlockItem(label: item),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 6),
+          Text(
+            '각 탭에서 상세 확인 가능',
+            textAlign: TextAlign.center,
+            style: GameTextStyles.caption,
           ),
         ],
       ),
     );
   }
+}
+
+class _UnlockItem extends StatelessWidget {
+  const _UnlockItem({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Text(
+          '◆',
+          style: TextStyle(
+            color: GamePalette.gold,
+            fontSize: 8,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(width: 5),
+        Text(
+          label,
+          style: const TextStyle(
+            color: GamePalette.goldBright,
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+            height: 1.1,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _UnlockGroup {
+  const _UnlockGroup(this.label, this.items);
+
+  final String label;
+  final List<String> items;
 }

@@ -847,6 +847,18 @@ class _GemDebugPanel extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 5),
+              Row(
+                children: [
+                  _DebugRoundButton(
+                    label: '강제 승리',
+                    enabled:
+                        snapshot.phase != GamePhase.success &&
+                        snapshot.phase != GamePhase.failure,
+                    onPressed: game.debugForceVictory,
+                  ),
+                ],
+              ),
               const SizedBox(height: 10),
               const Text(
                 '테스트 웨이브',
