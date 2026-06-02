@@ -2930,6 +2930,135 @@ void main() {
     expect(progression.upgradeFireTraining(), isFalse);
   });
 
+  test('family damage training uses stage seven long term cost curve', () {
+    final progression = RunProgression()..runes = 20000;
+    const costs = [
+      55,
+      65,
+      77,
+      89,
+      104,
+      119,
+      137,
+      156,
+      177,
+      200,
+      226,
+      255,
+      286,
+      321,
+      358,
+      400,
+      446,
+      496,
+      551,
+      611,
+    ];
+
+    expect(RunProgression.maxPhysicalDamageTrainingUpgradeLevel, 20);
+    expect(RunProgression.maxElementalDamageTrainingUpgradeLevel, 20);
+    expect(costs.reduce((value, cost) => value + cost), 5129);
+
+    for (final cost in costs) {
+      expect(progression.physicalDamageTrainingUpgradeCost, cost);
+      expect(progression.upgradePhysicalDamageTraining(), isTrue);
+    }
+    for (final cost in costs) {
+      expect(progression.elementalDamageTrainingUpgradeCost, cost);
+      expect(progression.upgradeElementalDamageTraining(), isTrue);
+    }
+
+    expect(progression.physicalDamageTrainingUpgradeLevel, 20);
+    expect(progression.physicalDamageTrainingBonusRate, closeTo(0.40, 0.001));
+    expect(progression.canUpgradePhysicalDamageTraining, isFalse);
+    expect(progression.upgradePhysicalDamageTraining(), isFalse);
+    expect(progression.elementalDamageTrainingUpgradeLevel, 20);
+    expect(progression.elementalDamageTrainingBonusRate, closeTo(0.40, 0.001));
+    expect(progression.canUpgradeElementalDamageTraining, isFalse);
+    expect(progression.upgradeElementalDamageTraining(), isFalse);
+  });
+
+  test('family damage training unlocks after stage seven clear', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {1, 2, 3, 4, 5, 6},
+        researchLevels: const {},
+        runes: 1000,
+        unlockedStageCount: 7,
+      );
+    final game = RuneNexusGame(saveRepository: repository);
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.upgradePhysicalDamageTrainingProgression();
+    game.upgradeElementalDamageTrainingProgression();
+
+    expect(
+      game.snapshotNotifier.value.canUpgradePhysicalDamageTraining,
+      isFalse,
+    );
+    expect(
+      game.snapshotNotifier.value.canUpgradeElementalDamageTraining,
+      isFalse,
+    );
+    expect(game.snapshotNotifier.value.physicalDamageTrainingUpgradeLevel, 0);
+    expect(game.snapshotNotifier.value.elementalDamageTrainingUpgradeLevel, 0);
+
+    game.debugSetClearedStageCount(7);
+    game.upgradePhysicalDamageTrainingProgression();
+    game.upgradeElementalDamageTrainingProgression();
+
+    expect(
+      game.snapshotNotifier.value.canUpgradePhysicalDamageTraining,
+      isTrue,
+    );
+    expect(
+      game.snapshotNotifier.value.canUpgradeElementalDamageTraining,
+      isTrue,
+    );
+    expect(game.snapshotNotifier.value.physicalDamageTrainingUpgradeLevel, 1);
+    expect(game.snapshotNotifier.value.elementalDamageTrainingUpgradeLevel, 1);
+    expect(game.snapshotNotifier.value.runes, 890);
+  });
+
+  test('family damage training boosts only matching damage family', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7},
+        researchLevels: const {},
+        runes: 1000,
+        unlockedStageCount: 8,
+      );
+    final game = RuneNexusGame(saveRepository: repository);
+    final arrow = TurretComponent(
+      gridPoint: const GridPoint(0, 0),
+      definition: gameTurrets[TurretType.arrow]!,
+      game: game,
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+    final fire = TurretComponent(
+      gridPoint: const GridPoint(1, 0),
+      definition: gameTurrets[TurretType.magic]!,
+      game: game,
+      center: Vector2.zero(),
+      tileSize: 32,
+    );
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.upgradeFireTrainingProgression();
+    game.upgradePhysicalDamageTrainingProgression();
+
+    expect(arrow.damage, closeTo(7.245, 0.001));
+    expect(fire.damage, closeTo(16.24, 0.001));
+
+    game.upgradeElementalDamageTrainingProgression();
+
+    expect(arrow.damage, closeTo(7.245, 0.001));
+    expect(fire.damage, closeTo(16.56, 0.001));
+  });
+
   test('critical progression uses requested level caps and scaling', () {
     final progression = RunProgression()..runes = 20000;
     const chanceCosts = [
@@ -3208,10 +3337,10 @@ void main() {
   test('new permanent upgrades are saved and restored', () async {
     final repository = MemorySaveRepository()
       ..data = _saveWithResearch(
-        clearedStageNumbers: const {1, 2, 3, 4},
+        clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7},
         researchLevels: const {},
         runes: 1000,
-        unlockedStageCount: 5,
+        unlockedStageCount: 8,
       );
     final game = RuneNexusGame(
       saveRepository: repository,
@@ -3229,6 +3358,8 @@ void main() {
     await game.onLoad();
     game.upgradeSupplyProgression();
     game.upgradeFireTrainingProgression();
+    game.upgradePhysicalDamageTrainingProgression();
+    game.upgradeElementalDamageTrainingProgression();
     game.upgradeCriticalChanceProgression();
     game.upgradeCriticalDamageProgression();
     game.upgradeKillGoldProgression();
@@ -3245,6 +3376,10 @@ void main() {
     expect(snapshot.waveClearGoldProgressionBonus, 1);
     expect(snapshot.fireTrainingUpgradeLevel, 1);
     expect(snapshot.fireTrainingDamageBonusRate, closeTo(0.015, 0.001));
+    expect(snapshot.physicalDamageTrainingUpgradeLevel, 1);
+    expect(snapshot.physicalDamageTrainingBonusRate, closeTo(0.02, 0.001));
+    expect(snapshot.elementalDamageTrainingUpgradeLevel, 1);
+    expect(snapshot.elementalDamageTrainingBonusRate, closeTo(0.02, 0.001));
     expect(snapshot.criticalChanceUpgradeLevel, 1);
     expect(snapshot.criticalChanceProgressionBonusRate, closeTo(0.01, 0.001));
     expect(snapshot.criticalDamageUpgradeLevel, 1);

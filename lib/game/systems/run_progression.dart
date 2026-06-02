@@ -14,6 +14,8 @@ class RunProgression {
   static const int maxNexusHpUpgradeLevel = 10;
   static const int maxSupplyUpgradeLevel = 20;
   static const int maxFireTrainingUpgradeLevel = 20;
+  static const int maxPhysicalDamageTrainingUpgradeLevel = 20;
+  static const int maxElementalDamageTrainingUpgradeLevel = 20;
   static const int maxCriticalChanceUpgradeLevel = 20;
   static const int maxCriticalDamageUpgradeLevel = 20;
   static const int maxKillGoldUpgradeLevel = 20;
@@ -44,6 +46,10 @@ class RunProgression {
   static const int fireTrainingUpgradeCostPerLevel = 2;
   static const double fireTrainingUpgradeCostMultiplier = 1.10;
   static const double fireTrainingDamagePerUpgradeLevel = 0.015;
+  static const int familyDamageTrainingUpgradeBaseCost = 55;
+  static const int familyDamageTrainingUpgradeCostPerLevel = 6;
+  static const double familyDamageTrainingUpgradeCostMultiplier = 1.07;
+  static const double familyDamageTrainingBonusPerUpgradeLevel = 0.02;
   static const int criticalChanceUpgradeBaseCost = 70;
   static const double criticalChanceUpgradeCostMultiplier = 1.2;
   static const double criticalChanceBonusPerUpgradeLevel = 0.01;
@@ -76,6 +82,8 @@ class RunProgression {
   int nexusHpUpgradeLevel = 0;
   int supplyUpgradeLevel = 0;
   int fireTrainingUpgradeLevel = 0;
+  int physicalDamageTrainingUpgradeLevel = 0;
+  int elementalDamageTrainingUpgradeLevel = 0;
   int criticalChanceUpgradeLevel = 0;
   int criticalDamageUpgradeLevel = 0;
   int killGoldUpgradeLevel = 0;
@@ -118,6 +126,18 @@ class RunProgression {
     multiplier: fireTrainingUpgradeCostMultiplier,
     level: _cappedFireTrainingUpgradeLevel,
   );
+  int get physicalDamageTrainingUpgradeCost => _hybridUpgradeCost(
+    baseCost: familyDamageTrainingUpgradeBaseCost,
+    costPerLevel: familyDamageTrainingUpgradeCostPerLevel,
+    multiplier: familyDamageTrainingUpgradeCostMultiplier,
+    level: _cappedPhysicalDamageTrainingUpgradeLevel,
+  );
+  int get elementalDamageTrainingUpgradeCost => _hybridUpgradeCost(
+    baseCost: familyDamageTrainingUpgradeBaseCost,
+    costPerLevel: familyDamageTrainingUpgradeCostPerLevel,
+    multiplier: familyDamageTrainingUpgradeCostMultiplier,
+    level: _cappedElementalDamageTrainingUpgradeLevel,
+  );
   int get criticalChanceUpgradeCost =>
       (criticalChanceUpgradeBaseCost *
               math.pow(
@@ -147,6 +167,12 @@ class RunProgression {
       _cappedSupplyUpgradeLevel * supplyGoldPerUpgradeLevel;
   double get fireTrainingDamageBonusRate =>
       _cappedFireTrainingUpgradeLevel * fireTrainingDamagePerUpgradeLevel;
+  double get physicalDamageTrainingBonusRate =>
+      _cappedPhysicalDamageTrainingUpgradeLevel *
+      familyDamageTrainingBonusPerUpgradeLevel;
+  double get elementalDamageTrainingBonusRate =>
+      _cappedElementalDamageTrainingUpgradeLevel *
+      familyDamageTrainingBonusPerUpgradeLevel;
   double get criticalChanceBonusRate =>
       _cappedCriticalChanceUpgradeLevel * criticalChanceBonusPerUpgradeLevel;
   double get criticalDamageBonusRate =>
@@ -200,6 +226,14 @@ class RunProgression {
   bool get canUpgradeFireTraining =>
       _cappedFireTrainingUpgradeLevel < maxFireTrainingUpgradeLevel &&
       runes >= fireTrainingUpgradeCost;
+  bool get canUpgradePhysicalDamageTraining =>
+      _cappedPhysicalDamageTrainingUpgradeLevel <
+          maxPhysicalDamageTrainingUpgradeLevel &&
+      runes >= physicalDamageTrainingUpgradeCost;
+  bool get canUpgradeElementalDamageTraining =>
+      _cappedElementalDamageTrainingUpgradeLevel <
+          maxElementalDamageTrainingUpgradeLevel &&
+      runes >= elementalDamageTrainingUpgradeCost;
   bool get canUpgradeCriticalChance =>
       _cappedCriticalChanceUpgradeLevel < maxCriticalChanceUpgradeLevel &&
       runes >= criticalChanceUpgradeCost;
@@ -221,6 +255,14 @@ class RunProgression {
       supplyUpgradeLevel.clamp(0, maxSupplyUpgradeLevel).toInt();
   int get _cappedFireTrainingUpgradeLevel =>
       fireTrainingUpgradeLevel.clamp(0, maxFireTrainingUpgradeLevel).toInt();
+  int get _cappedPhysicalDamageTrainingUpgradeLevel =>
+      physicalDamageTrainingUpgradeLevel
+          .clamp(0, maxPhysicalDamageTrainingUpgradeLevel)
+          .toInt();
+  int get _cappedElementalDamageTrainingUpgradeLevel =>
+      elementalDamageTrainingUpgradeLevel
+          .clamp(0, maxElementalDamageTrainingUpgradeLevel)
+          .toInt();
   int get _cappedCriticalChanceUpgradeLevel => criticalChanceUpgradeLevel
       .clamp(0, maxCriticalChanceUpgradeLevel)
       .toInt();
@@ -414,6 +456,10 @@ class RunProgression {
       nexusHpUpgradeLevel: _cappedNexusHpUpgradeLevel,
       supplyUpgradeLevel: _cappedSupplyUpgradeLevel,
       fireTrainingUpgradeLevel: _cappedFireTrainingUpgradeLevel,
+      physicalDamageTrainingUpgradeLevel:
+          _cappedPhysicalDamageTrainingUpgradeLevel,
+      elementalDamageTrainingUpgradeLevel:
+          _cappedElementalDamageTrainingUpgradeLevel,
       criticalChanceUpgradeLevel: _cappedCriticalChanceUpgradeLevel,
       criticalDamageUpgradeLevel: _cappedCriticalDamageUpgradeLevel,
       killGoldUpgradeLevel: _cappedKillGoldUpgradeLevel,
@@ -458,6 +504,13 @@ class RunProgression {
         .toInt();
     fireTrainingUpgradeLevel = data.fireTrainingUpgradeLevel
         .clamp(0, maxFireTrainingUpgradeLevel)
+        .toInt();
+    physicalDamageTrainingUpgradeLevel = data.physicalDamageTrainingUpgradeLevel
+        .clamp(0, maxPhysicalDamageTrainingUpgradeLevel)
+        .toInt();
+    elementalDamageTrainingUpgradeLevel = data
+        .elementalDamageTrainingUpgradeLevel
+        .clamp(0, maxElementalDamageTrainingUpgradeLevel)
         .toInt();
     criticalChanceUpgradeLevel = data.criticalChanceUpgradeLevel
         .clamp(0, maxCriticalChanceUpgradeLevel)
@@ -672,6 +725,26 @@ class RunProgression {
 
     runes -= fireTrainingUpgradeCost;
     fireTrainingUpgradeLevel++;
+    return true;
+  }
+
+  bool upgradePhysicalDamageTraining() {
+    if (!canUpgradePhysicalDamageTraining) {
+      return false;
+    }
+
+    runes -= physicalDamageTrainingUpgradeCost;
+    physicalDamageTrainingUpgradeLevel++;
+    return true;
+  }
+
+  bool upgradeElementalDamageTraining() {
+    if (!canUpgradeElementalDamageTraining) {
+      return false;
+    }
+
+    runes -= elementalDamageTrainingUpgradeCost;
+    elementalDamageTrainingUpgradeLevel++;
     return true;
   }
 

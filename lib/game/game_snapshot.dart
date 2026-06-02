@@ -136,6 +136,14 @@ class GameSnapshot {
     required this.fireTrainingUpgradeCost,
     required this.canUpgradeFireTraining,
     required this.fireTrainingDamageBonusRate,
+    required this.physicalDamageTrainingUpgradeLevel,
+    required this.physicalDamageTrainingUpgradeCost,
+    required this.canUpgradePhysicalDamageTraining,
+    required this.physicalDamageTrainingBonusRate,
+    required this.elementalDamageTrainingUpgradeLevel,
+    required this.elementalDamageTrainingUpgradeCost,
+    required this.canUpgradeElementalDamageTraining,
+    required this.elementalDamageTrainingBonusRate,
     required this.criticalChanceUpgradeLevel,
     required this.criticalChanceUpgradeCost,
     required this.canUpgradeCriticalChance,
@@ -281,6 +289,14 @@ class GameSnapshot {
   final int fireTrainingUpgradeCost;
   final bool canUpgradeFireTraining;
   final double fireTrainingDamageBonusRate;
+  final int physicalDamageTrainingUpgradeLevel;
+  final int physicalDamageTrainingUpgradeCost;
+  final bool canUpgradePhysicalDamageTraining;
+  final double physicalDamageTrainingBonusRate;
+  final int elementalDamageTrainingUpgradeLevel;
+  final int elementalDamageTrainingUpgradeCost;
+  final bool canUpgradeElementalDamageTraining;
+  final double elementalDamageTrainingBonusRate;
   final int criticalChanceUpgradeLevel;
   final int criticalChanceUpgradeCost;
   final bool canUpgradeCriticalChance;

@@ -1893,6 +1893,14 @@ class _StageSelectionRow extends StatelessWidget {
         highlighted: stageCleared,
       );
     }
+    if (stageNumber == 7) {
+      return _StageRewardInfo(
+        label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
+        value: l10n.combatUpgrade,
+        icon: const Icon(Icons.bolt_outlined, size: 16),
+        highlighted: stageCleared,
+      );
+    }
     if (stageNumber == 3 || stageNumber == 5) {
       return _StageRewardInfo(
         label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
@@ -4008,6 +4016,14 @@ class _PermanentUpgradeMenu extends StatelessWidget {
     final nextFireTrainingLevel = (snapshot.fireTrainingUpgradeLevel + 1)
         .clamp(0, RunProgression.maxFireTrainingUpgradeLevel)
         .toInt();
+    final nextPhysicalDamageTrainingLevel =
+        (snapshot.physicalDamageTrainingUpgradeLevel + 1)
+            .clamp(0, RunProgression.maxPhysicalDamageTrainingUpgradeLevel)
+            .toInt();
+    final nextElementalDamageTrainingLevel =
+        (snapshot.elementalDamageTrainingUpgradeLevel + 1)
+            .clamp(0, RunProgression.maxElementalDamageTrainingUpgradeLevel)
+            .toInt();
     final nextCriticalChanceLevel = (snapshot.criticalChanceUpgradeLevel + 1)
         .clamp(0, RunProgression.maxCriticalChanceUpgradeLevel)
         .toInt();
@@ -4016,6 +4032,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
         .toInt();
     final stageTwoCleared = snapshot.clearedStageNumbers.contains(2);
     final stageFourCleared = snapshot.clearedStageNumbers.contains(4);
+    final stageSevenCleared = snapshot.clearedStageNumbers.contains(7);
     final combatTiles = [
       _PermanentUpgradeTile(
         icon: Icons.favorite_border,
@@ -4047,6 +4064,44 @@ class _PermanentUpgradeMenu extends StatelessWidget {
         lockText: l10n.maxLevelReached,
         onPressed: game.upgradeFireTrainingProgression,
       ),
+      if (stageSevenCleared)
+        _PermanentUpgradeTile(
+          icon: Icons.hardware_outlined,
+          title: l10n.physicalDamageTraining,
+          description: l10n.permanentUpgradeDescription(
+            l10n.physicalDamageTraining,
+          ),
+          level: snapshot.physicalDamageTrainingUpgradeLevel,
+          maxLevel: RunProgression.maxPhysicalDamageTrainingUpgradeLevel,
+          globalMaxLevel: RunProgression.maxPhysicalDamageTrainingUpgradeLevel,
+          valueText:
+              '+${(snapshot.physicalDamageTrainingBonusRate * 100).toStringAsFixed(1)}%',
+          nextValueText:
+              '+${(nextPhysicalDamageTrainingLevel * RunProgression.familyDamageTrainingBonusPerUpgradeLevel * 100).toStringAsFixed(1)}%',
+          cost: snapshot.physicalDamageTrainingUpgradeCost,
+          enabled: snapshot.canUpgradePhysicalDamageTraining,
+          lockText: l10n.maxLevelReached,
+          onPressed: game.upgradePhysicalDamageTrainingProgression,
+        ),
+      if (stageSevenCleared)
+        _PermanentUpgradeTile(
+          icon: Icons.auto_awesome_outlined,
+          title: l10n.elementalDamageTraining,
+          description: l10n.permanentUpgradeDescription(
+            l10n.elementalDamageTraining,
+          ),
+          level: snapshot.elementalDamageTrainingUpgradeLevel,
+          maxLevel: RunProgression.maxElementalDamageTrainingUpgradeLevel,
+          globalMaxLevel: RunProgression.maxElementalDamageTrainingUpgradeLevel,
+          valueText:
+              '+${(snapshot.elementalDamageTrainingBonusRate * 100).toStringAsFixed(1)}%',
+          nextValueText:
+              '+${(nextElementalDamageTrainingLevel * RunProgression.familyDamageTrainingBonusPerUpgradeLevel * 100).toStringAsFixed(1)}%',
+          cost: snapshot.elementalDamageTrainingUpgradeCost,
+          enabled: snapshot.canUpgradeElementalDamageTraining,
+          lockText: l10n.maxLevelReached,
+          onPressed: game.upgradeElementalDamageTrainingProgression,
+        ),
       if (stageFourCleared)
         _PermanentUpgradeTile(
           icon: Icons.gps_fixed,

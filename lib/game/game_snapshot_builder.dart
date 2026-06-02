@@ -238,6 +238,24 @@ class GameSnapshotBuilder {
       canUpgradeFireTraining: _game._progression.canUpgradeFireTraining,
       fireTrainingDamageBonusRate:
           _game._progression.fireTrainingDamageBonusRate,
+      physicalDamageTrainingUpgradeLevel:
+          _game._progression.physicalDamageTrainingUpgradeLevel,
+      physicalDamageTrainingUpgradeCost:
+          _game._progression.physicalDamageTrainingUpgradeCost,
+      canUpgradePhysicalDamageTraining:
+          _game._progression.isStageCleared(7) &&
+          _game._progression.canUpgradePhysicalDamageTraining,
+      physicalDamageTrainingBonusRate:
+          _game._progression.physicalDamageTrainingBonusRate,
+      elementalDamageTrainingUpgradeLevel:
+          _game._progression.elementalDamageTrainingUpgradeLevel,
+      elementalDamageTrainingUpgradeCost:
+          _game._progression.elementalDamageTrainingUpgradeCost,
+      canUpgradeElementalDamageTraining:
+          _game._progression.isStageCleared(7) &&
+          _game._progression.canUpgradeElementalDamageTraining,
+      elementalDamageTrainingBonusRate:
+          _game._progression.elementalDamageTrainingBonusRate,
       criticalChanceUpgradeLevel: _game._progression.criticalChanceUpgradeLevel,
       criticalChanceUpgradeCost: _game._progression.criticalChanceUpgradeCost,
       canUpgradeCriticalChance:

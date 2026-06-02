@@ -1167,6 +1167,82 @@ void main() {
     expect(find.text('다음 +16%p'), findsNWidgets(2));
   });
 
+  testWidgets('family damage upgrades are hidden before stage seven clear', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            runes: 1000,
+            clearedStageNumbers: const {1, 2, 3, 4, 5, 6},
+            physicalDamageTrainingUpgradeLevel: 15,
+            physicalDamageTrainingBonusRate: 0.30,
+            elementalDamageTrainingUpgradeLevel: 15,
+            elementalDamageTrainingBonusRate: 0.30,
+          ),
+          selectedTab: MainMenuTab.permanentUpgrades,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('물리 화력 훈련'), findsNothing);
+    expect(find.text('원소 화력 훈련'), findsNothing);
+  });
+
+  testWidgets('family damage upgrades unlock after stage seven clear', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            runes: 1000,
+            clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7},
+            physicalDamageTrainingUpgradeLevel: 15,
+            physicalDamageTrainingBonusRate: 0.30,
+            elementalDamageTrainingUpgradeLevel: 15,
+            elementalDamageTrainingBonusRate: 0.30,
+          ),
+          selectedTab: MainMenuTab.permanentUpgrades,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('물리 화력 훈련'), findsOneWidget);
+    expect(find.text('원소 화력 훈련'), findsOneWidget);
+    expect(find.text('현재 +30.0%'), findsNWidgets(2));
+    expect(find.text('다음 +32.0%'), findsNWidgets(2));
+  });
+
   testWidgets('result overlay summarizes rewards and unlocks', (tester) async {
     var openedStageSelect = false;
 
@@ -1221,6 +1297,48 @@ void main() {
     await tester.tap(find.text('확인'));
 
     expect(openedStageSelect, isTrue);
+  });
+
+  testWidgets('result overlay shows stage seven family damage unlocks', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: ResultOverlay(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.success,
+            currentStageNumber: 7,
+            unlockedStageCount: 8,
+            completedRounds: 50,
+            runes: 590,
+            lastRunRuneReward: 590,
+            lastRunPreviousBestRound: 30,
+            lastRunWasNewBestRound: true,
+            lastRunUnlockedStageNumber: 8,
+            bestRoundsByStage: const {7: 50},
+            clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7},
+          ),
+          onOpenStageSelect: () {},
+          onOpenPermanentUpgrades: () {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+
+    expect(find.text('강화 2개 해금'), findsOneWidget);
+    expect(find.text('해금 항목'), findsOneWidget);
+    expect(find.text('강화'), findsOneWidget);
+    expect(find.text('물리 화력 훈련'), findsOneWidget);
+    expect(find.text('원소 화력 훈련'), findsOneWidget);
   });
 
   testWidgets('failed result keeps reward summary and retry action', (
@@ -1677,6 +1795,10 @@ GameSnapshot _resultSnapshot({
   int nexusHpUpgradeLevel = 0,
   int fireTrainingUpgradeLevel = 0,
   double fireTrainingDamageBonusRate = 0,
+  int physicalDamageTrainingUpgradeLevel = 0,
+  double physicalDamageTrainingBonusRate = 0,
+  int elementalDamageTrainingUpgradeLevel = 0,
+  double elementalDamageTrainingBonusRate = 0,
   int emergencySaleUpgradeLevel = 0,
   int emergencySaleUpgradeCost = 80,
   bool canUpgradeEmergencySale = false,
@@ -1825,6 +1947,16 @@ GameSnapshot _resultSnapshot({
     fireTrainingUpgradeCost: 7,
     canUpgradeFireTraining: false,
     fireTrainingDamageBonusRate: fireTrainingDamageBonusRate,
+    physicalDamageTrainingUpgradeLevel: physicalDamageTrainingUpgradeLevel,
+    physicalDamageTrainingUpgradeCost:
+        RunProgression.familyDamageTrainingUpgradeBaseCost,
+    canUpgradePhysicalDamageTraining: false,
+    physicalDamageTrainingBonusRate: physicalDamageTrainingBonusRate,
+    elementalDamageTrainingUpgradeLevel: elementalDamageTrainingUpgradeLevel,
+    elementalDamageTrainingUpgradeCost:
+        RunProgression.familyDamageTrainingUpgradeBaseCost,
+    canUpgradeElementalDamageTraining: false,
+    elementalDamageTrainingBonusRate: elementalDamageTrainingBonusRate,
     criticalChanceUpgradeLevel: criticalChanceUpgradeLevel,
     criticalChanceUpgradeCost: criticalChanceUpgradeCost,
     canUpgradeCriticalChance: canUpgradeCriticalChance,

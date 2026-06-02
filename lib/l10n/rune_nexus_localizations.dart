@@ -33,6 +33,10 @@ class RuneNexusLocalizations {
   String get emergencySale => _isEnglish ? 'Emergency Sale' : '긴급 매각';
   String get basicFireTraining =>
       _isEnglish ? 'Basic Fire Training' : '기초 화력 훈련';
+  String get physicalDamageTraining =>
+      _isEnglish ? 'Physical Damage Training' : '물리 화력 훈련';
+  String get elementalDamageTraining =>
+      _isEnglish ? 'Elemental Damage Training' : '원소 화력 훈련';
   String get criticalChanceTraining => _isEnglish ? 'Critical Focus' : '치명 집중';
   String get criticalDamageTraining => _isEnglish ? 'Critical Impact' : '치명 충격';
   String get growthHubTitle => _isEnglish ? 'Growth Hub' : '성장 허브';
@@ -400,6 +404,16 @@ class RuneNexusLocalizations {
       return _isEnglish
           ? 'Increases the damage of all turrets in every run.'
           : '모든 런에서 모든 포탑의 피해량이 증가합니다.';
+    }
+    if (title == physicalDamageTraining) {
+      return _isEnglish
+          ? 'Increases the damage of physical turrets.'
+          : '물리 포탑의 피해량이 증가합니다.';
+    }
+    if (title == elementalDamageTraining) {
+      return _isEnglish
+          ? 'Increases the damage of elemental turrets.'
+          : '원소 포탑의 피해량이 증가합니다.';
     }
     if (title == criticalChanceTraining) {
       return _isEnglish

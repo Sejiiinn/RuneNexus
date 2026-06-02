@@ -29,6 +29,7 @@ import '../domain/research/research_type.dart';
 import '../domain/run_upgrade/run_upgrade_type.dart';
 import '../domain/stage/stage_definition.dart';
 import '../domain/turret/attack_tag.dart';
+import '../domain/turret/damage_family.dart';
 import '../domain/turret/turret_target_priority.dart';
 import '../domain/turret/turret_trait_type.dart';
 import '../domain/turret/turret_type.dart';
@@ -280,6 +281,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       fireTrainingUpgradeCost: RunProgression.fireTrainingUpgradeBaseCost,
       canUpgradeFireTraining: false,
       fireTrainingDamageBonusRate: 0,
+      physicalDamageTrainingUpgradeLevel: 0,
+      physicalDamageTrainingUpgradeCost:
+          RunProgression.familyDamageTrainingUpgradeBaseCost,
+      canUpgradePhysicalDamageTraining: false,
+      physicalDamageTrainingBonusRate: 0,
+      elementalDamageTrainingUpgradeLevel: 0,
+      elementalDamageTrainingUpgradeCost:
+          RunProgression.familyDamageTrainingUpgradeBaseCost,
+      canUpgradeElementalDamageTraining: false,
+      elementalDamageTrainingBonusRate: 0,
       criticalChanceUpgradeLevel: 0,
       criticalChanceUpgradeCost: RunProgression.criticalChanceUpgradeBaseCost,
       canUpgradeCriticalChance: false,
@@ -498,8 +509,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _progression.firstLinkUpgradeDiscountRate;
   bool get _canEditBoard =>
       _phase == GamePhase.preparation || _phase == GamePhase.wave;
-  double get towerDamageRunMultiplier =>
-      1 + _towerDamageRunBonusRate + _progression.fireTrainingDamageBonusRate;
+  double towerDamageMultiplierFor(DamageFamily family) {
+    final familyBonus = switch (family) {
+      DamageFamily.physical => _progression.physicalDamageTrainingBonusRate,
+      DamageFamily.elemental => _progression.elementalDamageTrainingBonusRate,
+    };
+    return 1 +
+        _towerDamageRunBonusRate +
+        _progression.fireTrainingDamageBonusRate +
+        familyBonus;
+  }
+
   double get criticalChanceProgressionBonusRate =>
       _progression.isStageCleared(4) ? _progression.criticalChanceBonusRate : 0;
   double get criticalDamageProgressionBonusRate =>
@@ -1175,6 +1195,30 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
+  void upgradePhysicalDamageTrainingProgression() {
+    if (!_progression.isStageCleared(7)) {
+      return;
+    }
+    if (!_progression.upgradePhysicalDamageTraining()) {
+      return;
+    }
+
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void upgradeElementalDamageTrainingProgression() {
+    if (!_progression.isStageCleared(7)) {
+      return;
+    }
+    if (!_progression.upgradeElementalDamageTraining()) {
+      return;
+    }
+
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
   void upgradeCriticalChanceProgression() {
     if (!_progression.isStageCleared(4)) {
       return;
@@ -1312,6 +1356,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _progression.nexusHpUpgradeLevel = 0;
     _progression.supplyUpgradeLevel = 0;
     _progression.fireTrainingUpgradeLevel = 0;
+    _progression.physicalDamageTrainingUpgradeLevel = 0;
+    _progression.elementalDamageTrainingUpgradeLevel = 0;
     _progression.criticalChanceUpgradeLevel = 0;
     _progression.criticalDamageUpgradeLevel = 0;
     _progression.killGoldUpgradeLevel = 0;

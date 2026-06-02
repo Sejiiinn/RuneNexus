@@ -230,6 +230,8 @@ class SavedProgression {
     required this.nexusHpUpgradeLevel,
     required this.supplyUpgradeLevel,
     required this.fireTrainingUpgradeLevel,
+    this.physicalDamageTrainingUpgradeLevel = 0,
+    this.elementalDamageTrainingUpgradeLevel = 0,
     required this.criticalChanceUpgradeLevel,
     required this.criticalDamageUpgradeLevel,
     required this.killGoldUpgradeLevel,
@@ -251,6 +253,8 @@ class SavedProgression {
   final int nexusHpUpgradeLevel;
   final int supplyUpgradeLevel;
   final int fireTrainingUpgradeLevel;
+  final int physicalDamageTrainingUpgradeLevel;
+  final int elementalDamageTrainingUpgradeLevel;
   final int criticalChanceUpgradeLevel;
   final int criticalDamageUpgradeLevel;
   final int killGoldUpgradeLevel;
@@ -273,6 +277,9 @@ class SavedProgression {
       'nexusHpUpgradeLevel': nexusHpUpgradeLevel,
       'supplyUpgradeLevel': supplyUpgradeLevel,
       'fireTrainingUpgradeLevel': fireTrainingUpgradeLevel,
+      'physicalDamageTrainingUpgradeLevel': physicalDamageTrainingUpgradeLevel,
+      'elementalDamageTrainingUpgradeLevel':
+          elementalDamageTrainingUpgradeLevel,
       'criticalChanceUpgradeLevel': criticalChanceUpgradeLevel,
       'criticalDamageUpgradeLevel': criticalDamageUpgradeLevel,
       'killGoldUpgradeLevel': killGoldUpgradeLevel,
@@ -312,6 +319,12 @@ class SavedProgression {
       nexusHpUpgradeLevel: _intValue(map['nexusHpUpgradeLevel']),
       supplyUpgradeLevel: _intValue(map['supplyUpgradeLevel']),
       fireTrainingUpgradeLevel: _intValue(map['fireTrainingUpgradeLevel']),
+      physicalDamageTrainingUpgradeLevel: _intValue(
+        map['physicalDamageTrainingUpgradeLevel'],
+      ),
+      elementalDamageTrainingUpgradeLevel: _intValue(
+        map['elementalDamageTrainingUpgradeLevel'],
+      ),
       criticalChanceUpgradeLevel: _intValue(map['criticalChanceUpgradeLevel']),
       criticalDamageUpgradeLevel: _intValue(map['criticalDamageUpgradeLevel']),
       killGoldUpgradeLevel: _intValue(map['killGoldUpgradeLevel']),

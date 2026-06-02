@@ -165,6 +165,12 @@ List<_UnlockGroup> _unlockGroupsFor(
     6 => [
       _UnlockGroup('포탑', [l10n.lightningTurret]),
     ],
+    7 => [
+      _UnlockGroup('강화', [
+        l10n.physicalDamageTraining,
+        l10n.elementalDamageTraining,
+      ]),
+    ],
     _ => const [],
   };
 }
