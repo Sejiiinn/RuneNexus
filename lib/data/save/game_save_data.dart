@@ -225,6 +225,8 @@ class SavedCoreCombatSkillStats {
 class SavedProgression {
   const SavedProgression({
     required this.runes,
+    this.freeDiamonds = 0,
+    this.paidDiamonds = 0,
     required this.lastRunRuneReward,
     required this.startingGoldUpgradeLevel,
     required this.nexusHpUpgradeLevel,
@@ -248,6 +250,8 @@ class SavedProgression {
   });
 
   final int runes;
+  final int freeDiamonds;
+  final int paidDiamonds;
   final int lastRunRuneReward;
   final int startingGoldUpgradeLevel;
   final int nexusHpUpgradeLevel;
@@ -272,6 +276,8 @@ class SavedProgression {
   Map<String, Object?> toJson() {
     return {
       'runes': runes,
+      'freeDiamonds': freeDiamonds,
+      'paidDiamonds': paidDiamonds,
       'lastRunRuneReward': lastRunRuneReward,
       'startingGoldUpgradeLevel': startingGoldUpgradeLevel,
       'nexusHpUpgradeLevel': nexusHpUpgradeLevel,
@@ -314,6 +320,8 @@ class SavedProgression {
     );
     return SavedProgression(
       runes: _intValue(map['runes']),
+      freeDiamonds: _intValue(map['freeDiamonds']),
+      paidDiamonds: _intValue(map['paidDiamonds']),
       lastRunRuneReward: _intValue(map['lastRunRuneReward']),
       startingGoldUpgradeLevel: _intValue(map['startingGoldUpgradeLevel']),
       nexusHpUpgradeLevel: _intValue(map['nexusHpUpgradeLevel']),

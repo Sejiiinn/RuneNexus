@@ -210,6 +210,7 @@ class GameSnapshotBuilder {
       killGoldRunBonusRate: _game._killGoldRunBonusRate,
       waveClearGoldRunBonus: _game._waveClearGoldRunBonus,
       runes: _game._progression.runes,
+      diamonds: _game._progression.diamonds,
       lastRunRuneReward: _game._progression.lastRunRuneReward,
       projectedFailureRuneReward: hasStageProgress
           ? _game._progression.runeRewardFor(

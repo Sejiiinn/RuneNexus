@@ -115,6 +115,7 @@ class GameSnapshot {
     required this.killGoldRunBonusRate,
     required this.waveClearGoldRunBonus,
     required this.runes,
+    this.diamonds = 0,
     required this.lastRunRuneReward,
     required this.projectedFailureRuneReward,
     required this.lastRunPreviousBestRound,
@@ -268,6 +269,7 @@ class GameSnapshot {
   final double killGoldRunBonusRate;
   final int waveClearGoldRunBonus;
   final int runes;
+  final int diamonds;
   final int lastRunRuneReward;
   final int projectedFailureRuneReward;
   final int lastRunPreviousBestRound;

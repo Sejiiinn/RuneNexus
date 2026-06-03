@@ -25,6 +25,7 @@ class RuneNexusLocalizations {
   String get permanentUpgradeTab => _isEnglish ? 'Upgrade' : '강화';
   String get researchTab => _isEnglish ? 'Research' : '연구';
   String get runes => _isEnglish ? 'Runes' : '룬';
+  String get diamonds => _isEnglish ? 'Diamonds' : '다이아';
   String get ownedRunes => _isEnglish ? 'Owned Runes' : '보유 룬';
   String get startGold => _isEnglish ? 'Starting Gold' : '시작 골드';
   String get nexusHp => _isEnglish ? 'Nexus HP' : '넥서스 체력';
@@ -54,6 +55,7 @@ class RuneNexusLocalizations {
   String get emptyResearchSlot =>
       _isEnglish ? 'Empty research slot' : '빈 연구 슬롯';
   String get startResearch => _isEnglish ? 'Start' : '연구 시작';
+  String get completeResearchInstantly => _isEnglish ? 'Complete now' : '즉시 완료';
   String get researchInProgress => _isEnglish ? 'Researching' : '연구 중';
   String get researchComplete => _isEnglish ? 'Completed' : '완료';
   String get researchSlotBusy => _isEnglish ? 'Slot in use' : '슬롯 사용 중';
@@ -61,6 +63,8 @@ class RuneNexusLocalizations {
   String get cancelResearchTitle =>
       _isEnglish ? 'Cancel research?' : '연구를 취소할까요?';
   String get cancelResearchConfirm => _isEnglish ? 'Cancel research' : '연구 취소';
+  String get completeResearchInstantlyTitle =>
+      _isEnglish ? 'Complete research now?' : '연구를 즉시 완료할까요?';
   String get researchLevelLabel => _isEnglish ? 'Level' : '레벨';
   String get researchRequirementLabel => _isEnglish ? 'Requirement' : '조건';
   String get researchCostLabel => _isEnglish ? 'Cost' : '비용';
@@ -69,6 +73,7 @@ class RuneNexusLocalizations {
   String get selectedUpgrade => _isEnglish ? 'Selected Upgrade' : '선택한 성장';
   String get maxLevelReached => _isEnglish ? 'Max level' : '최대 레벨';
   String get notEnoughRunes => _isEnglish ? 'Need more runes' : '룬 부족';
+  String get notEnoughDiamonds => _isEnglish ? 'Need more diamonds' : '다이아 부족';
   String get upgradeAvailable => _isEnglish ? 'Ready' : '구매 가능';
   String get plannedUpgrade => _isEnglish ? 'Planned' : '준비 중';
   String get researchPending => _isEnglish ? 'Future update' : '이후 개발';
@@ -282,6 +287,16 @@ class RuneNexusLocalizations {
     return _isEnglish
         ? '${hours}h ${minutes}m ${restSeconds}s'
         : '$hours시간 $minutes분 $restSeconds초';
+  }
+
+  String researchInstantCompleteCost(int cost) {
+    return _isEnglish ? '$cost diamonds' : '다이아 $cost';
+  }
+
+  String completeResearchInstantlyMessage(String title, int cost) {
+    return _isEnglish
+        ? 'Spend $cost diamonds to complete $title now.'
+        : '$title 연구를 다이아 $cost로 즉시 완료합니다.';
   }
 
   String stageReachRequirement(int stageNumber) {

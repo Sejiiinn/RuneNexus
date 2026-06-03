@@ -49,6 +49,37 @@ void main() {
     expect(find.text('잠김'), findsNWidgets(4));
     expect(find.text('강화'), findsOneWidget);
     expect(find.text('연구'), findsWidgets);
+    expect(find.text('다이아'), findsNothing);
+
+    final logoRect = tester.getRect(find.text('Rune Nexus'));
+    final currencyRect = tester.getRect(
+      find.byKey(const ValueKey('menu-currency-balance')),
+    );
+    expect(currencyRect.overlaps(logoRect), isFalse);
+  });
+
+  testWidgets('main menu currency does not overlap logo on narrow viewport', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await _pumpLoadedApp(tester);
+
+    final logoRect = tester.getRect(find.text('Rune Nexus'));
+    final currencyRect = tester.getRect(
+      find.byKey(const ValueKey('menu-currency-balance')),
+    );
+    final viewportCenterX =
+        tester.view.physicalSize.width / tester.view.devicePixelRatio / 2;
+    expect((logoRect.center.dx - viewportCenterX).abs(), lessThanOrEqualTo(1));
+    expect(currencyRect.top, lessThan(logoRect.top));
+    expect(currencyRect.overlaps(logoRect), isFalse);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('stage menu opens chapter two as stages six to ten', (
@@ -1717,6 +1748,118 @@ void main() {
 
     expect(game.researchRefreshCount, 1);
   });
+
+  testWidgets('active research slot shows diamond instant completion', (
+    tester,
+  ) async {
+    final game = _ResearchInstantCompleteGame();
+    final nowMillis = DateTime.now().millisecondsSinceEpoch;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: game,
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            diamonds: 2,
+            activeResearches: [
+              ResearchProgress(
+                type: ResearchType.gemAttunement,
+                targetLevel: 1,
+                startedAtMillis: nowMillis,
+                durationMillis: 61000,
+              ),
+            ],
+          ),
+          selectedTab: MainMenuTab.research,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('즉시 완료'), findsOneWidget);
+    expect(find.text('2'), findsWidgets);
+    expect(find.text('즉시 완료 · 다이아 2'), findsNothing);
+    expect(find.text('다이아 2'), findsNothing);
+    expect(find.text('0시간 1분 1초'), findsOneWidget);
+
+    final remainingRect = tester.getRect(find.text('0시간 1분 1초'));
+    final instantCompleteRect = tester.getRect(find.text('즉시 완료'));
+    final instantCompleteButtonRect = tester.getRect(
+      find.byKey(const ValueKey('research-instant-complete-button')),
+    );
+    final instantCompleteCostRect = tester.getRect(
+      find.descendant(
+        of: find.byKey(const ValueKey('research-instant-complete-button')),
+        matching: find.text('2'),
+      ),
+    );
+    expect(instantCompleteRect.left, greaterThan(remainingRect.right));
+    expect(instantCompleteButtonRect.width, 104);
+    expect(
+      (instantCompleteRect.left + instantCompleteCostRect.right) / 2,
+      closeTo(instantCompleteButtonRect.center.dx, 3),
+    );
+
+    await tester.tap(find.text('즉시 완료'));
+    await _pumpGameFrames(tester);
+
+    expect(game.completedResearchType, isNull);
+    expect(find.text('연구를 즉시 완료할까요?'), findsOneWidget);
+    expect(find.text('젬 감응 연구를 다이아 2로 즉시 완료합니다.'), findsOneWidget);
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.widgetWithText(GameButton, '즉시 완료'),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(game.completedResearchType, ResearchType.gemAttunement);
+  });
+
+  testWidgets('empty research slot does not show instant completion', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            diamonds: 10,
+          ),
+          selectedTab: MainMenuTab.research,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('빈 연구 슬롯'), findsOneWidget);
+    expect(find.text('즉시 완료'), findsNothing);
+  });
 }
 
 Future<void> _pumpLoadedApp(WidgetTester tester) async {
@@ -1775,6 +1918,7 @@ GameSnapshot _resultSnapshot({
   int unlockedStageCount = 1,
   int completedRounds = 0,
   int runes = 0,
+  int diamonds = 0,
   int lastRunRuneReward = 0,
   int lastRunPreviousBestRound = 0,
   bool lastRunWasNewBestRound = false,
@@ -1926,6 +2070,7 @@ GameSnapshot _resultSnapshot({
     killGoldRunBonusRate: 0,
     waveClearGoldRunBonus: 0,
     runes: runes,
+    diamonds: diamonds,
     lastRunRuneReward: lastRunRuneReward,
     projectedFailureRuneReward: completedRounds * 2,
     lastRunPreviousBestRound: lastRunPreviousBestRound,
@@ -1990,6 +2135,18 @@ class _ResearchRefreshGame extends RuneNexusGame {
   bool refreshResearchProgress() {
     researchRefreshCount += 1;
     return true;
+  }
+}
+
+class _ResearchInstantCompleteGame extends RuneNexusGame {
+  _ResearchInstantCompleteGame()
+    : super(saveRepository: MemorySaveRepository());
+
+  ResearchType? completedResearchType;
+
+  @override
+  void completeResearchWithDiamonds(ResearchType type) {
+    completedResearchType = type;
   }
 }
 

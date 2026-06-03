@@ -23,6 +23,7 @@ import 'package:rune_nexus/domain/map/grid_point.dart';
 import 'package:rune_nexus/domain/map/map_definition.dart';
 import 'package:rune_nexus/domain/map/map_tile_theme.dart';
 import 'package:rune_nexus/domain/map/tile_type.dart';
+import 'package:rune_nexus/domain/research/research_progress.dart';
 import 'package:rune_nexus/domain/research/research_type.dart';
 import 'package:rune_nexus/domain/run_upgrade/run_upgrade_type.dart';
 import 'package:rune_nexus/domain/stage/stage_definition.dart';
@@ -1313,6 +1314,124 @@ void main() {
     expect(progression.runes, 758);
     expect(progression.activeResearches.single.durationMillis, 4500000);
   });
+
+  test('diamonds save separately and spend free balance first', () {
+    final progression = RunProgression()
+      ..freeDiamonds = 3
+      ..paidDiamonds = 4;
+
+    final saved = SavedProgression.fromJson(progression.toSaveData().toJson());
+    final restored = RunProgression()..restoreFromSaveData(saved);
+
+    expect(restored.freeDiamonds, 3);
+    expect(restored.paidDiamonds, 4);
+    expect(restored.diamonds, 7);
+
+    final legacySaved = SavedProgression.fromJson(const <String, Object?>{
+      'unlockedStageCount': 1,
+    });
+    final legacyProgression = RunProgression()
+      ..restoreFromSaveData(legacySaved);
+
+    expect(legacyProgression.freeDiamonds, 0);
+    expect(legacyProgression.paidDiamonds, 0);
+    expect(legacyProgression.diamonds, 0);
+  });
+
+  test(
+    'research instant completion costs one diamond per remaining minute',
+    () {
+      const sixtySeconds = ResearchProgress(
+        type: ResearchType.gemAttunement,
+        targetLevel: 1,
+        startedAtMillis: 0,
+        durationMillis: 60000,
+      );
+      const sixtyOneSeconds = ResearchProgress(
+        type: ResearchType.gemAttunement,
+        targetLevel: 1,
+        startedAtMillis: 0,
+        durationMillis: 61000,
+      );
+
+      expect(
+        RunProgression.researchInstantCompleteCostFor(
+          sixtySeconds,
+          nowMillis: 0,
+        ),
+        1,
+      );
+      expect(
+        RunProgression.researchInstantCompleteCostFor(
+          sixtyOneSeconds,
+          nowMillis: 0,
+        ),
+        2,
+      );
+    },
+  );
+
+  test(
+    'research instant completion uses diamonds and only completes target',
+    () {
+      final progression = RunProgression()
+        ..runes = 1000
+        ..freeDiamonds = 1
+        ..paidDiamonds = 1
+        ..clearedStageNumbers.addAll({1, 2, 3});
+
+      expect(
+        progression.startResearch(ResearchType.gemAttunement, nowMillis: 1000),
+        isTrue,
+      );
+      progression.activeResearches.add(
+        const ResearchProgress(
+          type: ResearchType.researchEfficiency,
+          targetLevel: 1,
+          startedAtMillis: 1000,
+          durationMillis: 1800000,
+        ),
+      );
+
+      expect(
+        progression.completeResearchWithDiamonds(
+          ResearchType.gemAttunement,
+          nowMillis: 1000 + 3600000 - 61000,
+        ),
+        isTrue,
+      );
+      expect(progression.freeDiamonds, 0);
+      expect(progression.paidDiamonds, 0);
+      expect(progression.researchLevel(ResearchType.gemAttunement), 1);
+      expect(progression.activeResearches, hasLength(1));
+      expect(
+        progression.activeResearches.single.type,
+        ResearchType.researchEfficiency,
+      );
+
+      final shortProgression = RunProgression()
+        ..runes = 1000
+        ..freeDiamonds = 1
+        ..clearedStageNumbers.addAll({1, 2, 3});
+      expect(
+        shortProgression.startResearch(
+          ResearchType.gemAttunement,
+          nowMillis: 1000,
+        ),
+        isTrue,
+      );
+      expect(
+        shortProgression.completeResearchWithDiamonds(
+          ResearchType.gemAttunement,
+          nowMillis: 1000 + 3600000 - 61000,
+        ),
+        isFalse,
+      );
+      expect(shortProgression.freeDiamonds, 1);
+      expect(shortProgression.researchLevel(ResearchType.gemAttunement), 0);
+      expect(shortProgression.activeResearches, hasLength(1));
+    },
+  );
 
   test('target priority research unlocks after stage three clear', () {
     final progression = RunProgression()..runes = 100;

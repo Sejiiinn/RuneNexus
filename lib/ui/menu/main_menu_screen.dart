@@ -38,6 +38,8 @@ const List<String> _stageChapterBannerAssets = [
   _stageChapterOneBannerAsset,
   _stageChapterTwoBannerAsset,
 ];
+const Color _diamondCurrencyColor = Color(0xFF8EE6FF);
+const Color _researchInstantCompleteAccent = Color(0xFF0F5D72);
 
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({
@@ -126,6 +128,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   @override
   Widget build(BuildContext context) {
     final selectedTab = widget.selectedTab;
+    final compactTopBar = MediaQuery.sizeOf(context).width < 430;
     const menuTopPadding = 76.0;
     final menuBottomPadding = selectedTab == MainMenuTab.permanentUpgrades
         ? 146.0
@@ -215,10 +218,13 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                 ),
               ),
             Positioned(
-              top: 10,
+              top: compactTopBar ? 4 : 10,
               right: 16,
               child: RuneBalanceCard(
+                key: const ValueKey('menu-currency-balance'),
                 runes: widget.snapshot.runes,
+                diamonds: widget.snapshot.diamonds,
+                compact: compactTopBar,
                 frameless: true,
               ),
             ),
@@ -432,6 +438,11 @@ class _MainMenuDebugPanel extends StatelessWidget {
                     value: '${snapshot.runes}',
                   ),
                   _DebugStatusChip(
+                    icon: Icons.diamond,
+                    label: '다이아',
+                    value: '${snapshot.diamonds}',
+                  ),
+                  _DebugStatusChip(
                     icon: Icons.flag_outlined,
                     label: '해금',
                     value: '${snapshot.unlockedStageCount}',
@@ -462,6 +473,20 @@ class _MainMenuDebugPanel extends StatelessWidget {
                   _DebugActionButton(
                     label: '0으로',
                     onPressed: () => game.debugSetRunes(0),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _DebugControlSection(
+                title: '다이아',
+                children: [
+                  _DebugActionButton(
+                    label: '+10',
+                    onPressed: () => game.debugAddDiamonds(10),
+                  ),
+                  _DebugActionButton(
+                    label: '+100',
+                    onPressed: () => game.debugAddDiamonds(100),
                   ),
                 ],
               ),
@@ -697,34 +722,37 @@ class _MenuLogo extends StatelessWidget {
           child: Center(
             child: Opacity(
               opacity: 0.92,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (!compactLogo) ...[
-                    Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        color: const Color(0x2233D8FF),
-                        border: Border.all(color: const Color(0xAA33D8FF)),
-                        borderRadius: BorderRadius.circular(8),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (!compactLogo) ...[
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: const Color(0x2233D8FF),
+                          border: Border.all(color: const Color(0xAA33D8FF)),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.diamond_outlined,
+                          color: Color(0xFF8EE6FF),
+                          size: 20,
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.diamond_outlined,
-                        color: Color(0xFF8EE6FF),
-                        size: 20,
+                      const SizedBox(width: 10),
+                    ],
+                    Text(
+                      l10n.appTitle,
+                      style: TextStyle(
+                        fontSize: compactLogo ? 20 : 23,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(width: 10),
                   ],
-                  Text(
-                    l10n.appTitle,
-                    style: TextStyle(
-                      fontSize: compactLogo ? 20 : 23,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -4272,6 +4300,7 @@ class _ResearchMenuState extends State<_ResearchMenu> {
           activeResearches: activeResearches,
           nowMillis: nowMillis,
           game: widget.game,
+          diamonds: widget.snapshot.diamonds,
         ),
         const SizedBox(height: 10),
         _ResearchSection(
@@ -4336,12 +4365,14 @@ class _ResearchSlotPanel extends StatelessWidget {
     required this.activeResearches,
     required this.nowMillis,
     required this.game,
+    required this.diamonds,
   });
 
   final int slots;
   final List<ResearchProgress> activeResearches;
   final int nowMillis;
   final RuneNexusGame game;
+  final int diamonds;
 
   @override
   Widget build(BuildContext context) {
@@ -4358,6 +4389,7 @@ class _ResearchSlotPanel extends StatelessWidget {
                 : null,
             nowMillis: nowMillis,
             game: game,
+            diamonds: diamonds,
           ),
         ],
       ],
@@ -4370,11 +4402,13 @@ class _ResearchSlotCard extends StatelessWidget {
     required this.research,
     required this.nowMillis,
     required this.game,
+    required this.diamonds,
   });
 
   final ResearchProgress? research;
   final int nowMillis;
   final RuneNexusGame game;
+  final int diamonds;
 
   @override
   Widget build(BuildContext context) {
@@ -4383,6 +4417,14 @@ class _ResearchSlotCard extends StatelessWidget {
     final progress = active == null || active.durationMillis <= 0
         ? 0.0
         : active.progressRatioAt(nowMillis);
+    final instantCompleteCost = active == null
+        ? 0
+        : RunProgression.researchInstantCompleteCostFor(
+            active,
+            nowMillis: nowMillis,
+          );
+    final canCompleteInstantly =
+        active != null && diamonds >= instantCompleteCost;
     return Container(
       decoration: BoxDecoration(
         color: const Color(0x22000000),
@@ -4414,50 +4456,44 @@ class _ResearchSlotCard extends StatelessWidget {
             ),
           Padding(
             padding: const EdgeInsets.all(9),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(
-                  active == null
-                      ? Icons.add_circle_outline
-                      : Icons.hourglass_bottom,
-                  color: active == null
-                      ? const Color(0xFF607587)
-                      : const Color(0xFFE7C66A),
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    active == null
-                        ? l10n.emptyResearchSlot
-                        : '${_researchTitle(l10n, active.type)} ${l10n.researchLevel(active.targetLevel - 1, gameResearchDefinitions[active.type]!.maxLevel)}',
-                    style: const TextStyle(
-                      color: Color(0xFFE8FBFF),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
+                Row(
+                  children: [
+                    Icon(
+                      active == null
+                          ? Icons.add_circle_outline
+                          : Icons.hourglass_bottom,
+                      color: active == null
+                          ? const Color(0xFF607587)
+                          : const Color(0xFFE7C66A),
+                      size: 18,
                     ),
-                    overflow: TextOverflow.clip,
-                  ),
-                ),
-                if (active != null)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _PermanentUpgradeStatusChip(
-                        text: l10n.researchRemaining(
-                          active.remainingMillisAt(nowMillis),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        active == null
+                            ? l10n.emptyResearchSlot
+                            : '${_researchTitle(l10n, active.type)} ${l10n.researchLevel(active.targetLevel - 1, gameResearchDefinitions[active.type]!.maxLevel)}',
+                        style: const TextStyle(
+                          color: Color(0xFFE8FBFF),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
                         ),
+                        overflow: TextOverflow.clip,
                       ),
-                      const SizedBox(width: 6),
+                    ),
+                    if (active != null)
                       Tooltip(
                         message: l10n.cancel,
-                        child: InkResponse(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: () => _confirmCancelResearch(
                             context,
                             game: game,
                             research: active,
                           ),
-                          radius: 15,
                           child: const SizedBox(
                             width: 24,
                             height: 24,
@@ -4469,8 +4505,60 @@ class _ResearchSlotCard extends StatelessWidget {
                           ),
                         ),
                       ),
-                    ],
+                  ],
+                ),
+                if (active != null) ...[
+                  const SizedBox(height: 7),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: _PermanentUpgradeStatusChip(
+                              text: l10n.researchRemaining(
+                                active.remainingMillisAt(nowMillis),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GameButton(
+                            key: const ValueKey(
+                              'research-instant-complete-button',
+                            ),
+                            onPressed: canCompleteInstantly
+                                ? () => _confirmInstantCompleteResearch(
+                                    context,
+                                    game: game,
+                                    research: active,
+                                    cost: instantCompleteCost,
+                                  )
+                                : null,
+                            label:
+                                '${l10n.completeResearchInstantly} ${l10n.researchInstantCompleteCost(instantCompleteCost)}',
+                            compact: true,
+                            height: 26,
+                            width: 104,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 6,
+                            ),
+                            variant: GameButtonVariant.primary,
+                            accentColor: _researchInstantCompleteAccent,
+                            tooltip: canCompleteInstantly
+                                ? l10n.researchInstantCompleteCost(
+                                    instantCompleteCost,
+                                  )
+                                : l10n.notEnoughDiamonds,
+                            child: _ResearchInstantCompleteButtonLabel(
+                              text: l10n.completeResearchInstantly,
+                              cost: instantCompleteCost,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
+                ],
               ],
             ),
           ),
@@ -4478,6 +4566,98 @@ class _ResearchSlotCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ResearchInstantCompleteButtonLabel extends StatelessWidget {
+  const _ResearchInstantCompleteButtonLabel({
+    required this.text,
+    required this.cost,
+  });
+
+  final String text;
+  final int cost;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.center,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(text, maxLines: 1),
+            const SizedBox(width: 5),
+            const Icon(Icons.diamond, size: 12, color: _diamondCurrencyColor),
+            const SizedBox(width: 2),
+            Text('$cost', maxLines: 1),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Future<void> _confirmInstantCompleteResearch(
+  BuildContext context, {
+  required RuneNexusGame game,
+  required ResearchProgress research,
+  required int cost,
+}) async {
+  final l10n = context.l10n;
+  final title = _researchTitle(l10n, research.type);
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: const Color(0xFF0B1725),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: const BorderSide(color: Color(0xAA33D8FF)),
+      ),
+      title: Text(
+        l10n.completeResearchInstantlyTitle,
+        style: const TextStyle(
+          color: Color(0xFFE8FBFF),
+          fontSize: 16,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+      content: Text(
+        l10n.completeResearchInstantlyMessage(title, cost),
+        style: const TextStyle(
+          color: Color(0xFFB9D6E4),
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      actions: [
+        SizedBox(
+          width: 86,
+          child: GameButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            label: l10n.cancel,
+            compact: true,
+            variant: GameButtonVariant.ghost,
+            accentColor: GamePalette.metal,
+          ),
+        ),
+        SizedBox(
+          width: 94,
+          child: GameButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            label: l10n.completeResearchInstantly,
+            compact: true,
+            variant: GameButtonVariant.primary,
+            accentColor: _researchInstantCompleteAccent,
+          ),
+        ),
+      ],
+    ),
+  );
+  if (confirmed != true) {
+    return;
+  }
+  game.completeResearchWithDiamonds(research.type);
 }
 
 Future<void> _confirmCancelResearch(

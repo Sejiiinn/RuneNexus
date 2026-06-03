@@ -260,6 +260,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       killGoldRunBonusRate: 0,
       waveClearGoldRunBonus: 0,
       runes: 0,
+      diamonds: 0,
       lastRunRuneReward: 0,
       projectedFailureRuneReward: 0,
       lastRunPreviousBestRound: 0,
@@ -1113,6 +1114,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
+  void completeResearchWithDiamonds(ResearchType type) {
+    final completed = _progression.completeResearchWithDiamonds(
+      type,
+      nowMillis: DateTime.now().millisecondsSinceEpoch,
+    );
+    if (!completed) {
+      return;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
   Future<void> settleCurrentRunAsFailure() async {
     if (_phase == GamePhase.success || _phase == GamePhase.failure) {
       return;
@@ -1305,6 +1318,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   void debugSetRunes(int amount) {
     _progression.runes = math.max(0, amount);
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void debugAddDiamonds(int amount) {
+    if (amount <= 0) {
+      return;
+    }
+    _progression.addFreeDiamonds(amount);
     _publish();
     _requestLocalSave(immediate: true);
   }

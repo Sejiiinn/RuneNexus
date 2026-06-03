@@ -23,6 +23,7 @@ class RunProgression {
   static const int researchSlotCount = 1;
   static const int gemShardsPerGemAttunementLevel = 2;
   static const int corePassiveSlotUnlockCost = 500;
+  static const int diamondMillisPerResearchMinute = 60000;
   static const double researchEfficiencyPerLevel = 0.05;
   static const double researchCostEfficiencyPerLevel = 0.05;
   static const double bossBountyBonusPerLevel = 0.025;
@@ -77,6 +78,8 @@ class RunProgression {
   ];
 
   int runes = 0;
+  int freeDiamonds = 0;
+  int paidDiamonds = 0;
   int lastRunRuneReward = 0;
   int startingGoldUpgradeLevel = 0;
   int nexusHpUpgradeLevel = 0;
@@ -246,6 +249,7 @@ class RunProgression {
   bool get canUpgradeEmergencySale =>
       _cappedEmergencySaleUpgradeLevel < maxEmergencySaleUpgradeLevel &&
       runes >= emergencySaleUpgradeCost;
+  int get diamonds => freeDiamonds + paidDiamonds;
 
   int get _cappedStartingGoldUpgradeLevel =>
       startingGoldUpgradeLevel.clamp(0, maxStartingGoldUpgradeLevel).toInt();
@@ -288,6 +292,18 @@ class RunProgression {
 
   static int applyResearchCostEfficiency(int cost, double efficiencyRate) {
     return math.max(1, (cost / (1 + efficiencyRate)).round());
+  }
+
+  static int researchInstantCompleteCostFor(
+    ResearchProgress research, {
+    required int nowMillis,
+  }) {
+    final remainingMillis = research.remainingMillisAt(nowMillis);
+    if (remainingMillis <= 0) {
+      return 0;
+    }
+    return (remainingMillis + diamondMillisPerResearchMinute - 1) ~/
+        diamondMillisPerResearchMinute;
   }
 
   static int _hybridUpgradeCost({
@@ -426,6 +442,50 @@ class RunProgression {
     return true;
   }
 
+  bool completeResearchWithDiamonds(
+    ResearchType type, {
+    required int nowMillis,
+  }) {
+    final activeIndex = activeResearches.indexWhere(
+      (research) => research.type == type,
+    );
+    if (activeIndex < 0) {
+      return false;
+    }
+    final active = activeResearches[activeIndex];
+    final definition = gameResearchDefinitions[type];
+    if (definition == null) {
+      return false;
+    }
+    final cost = researchInstantCompleteCostFor(active, nowMillis: nowMillis);
+    if (!_spendDiamonds(cost)) {
+      return false;
+    }
+    researchLevels[type] = active.targetLevel
+        .clamp(0, definition.maxLevel)
+        .toInt();
+    activeResearches.removeAt(activeIndex);
+    researchElapsedMillis.remove(type);
+    return true;
+  }
+
+  void addFreeDiamonds(int amount) {
+    if (amount <= 0) {
+      return;
+    }
+    freeDiamonds += amount;
+  }
+
+  bool _spendDiamonds(int amount) {
+    if (amount < 0 || diamonds < amount) {
+      return false;
+    }
+    final freeSpend = math.min(freeDiamonds, amount);
+    freeDiamonds -= freeSpend;
+    paidDiamonds -= amount - freeSpend;
+    return true;
+  }
+
   bool completeFinishedResearches({required int nowMillis}) {
     var changed = false;
     for (final research in activeResearches.toList()) {
@@ -451,6 +511,8 @@ class RunProgression {
   SavedProgression toSaveData() {
     return SavedProgression(
       runes: runes,
+      freeDiamonds: freeDiamonds,
+      paidDiamonds: paidDiamonds,
       lastRunRuneReward: lastRunRuneReward,
       startingGoldUpgradeLevel: _cappedStartingGoldUpgradeLevel,
       nexusHpUpgradeLevel: _cappedNexusHpUpgradeLevel,
@@ -492,6 +554,8 @@ class RunProgression {
 
   void restoreFromSaveData(SavedProgression data) {
     runes = math.max(0, data.runes);
+    freeDiamonds = math.max(0, data.freeDiamonds);
+    paidDiamonds = math.max(0, data.paidDiamonds);
     lastRunRuneReward = math.max(0, data.lastRunRuneReward);
     startingGoldUpgradeLevel = data.startingGoldUpgradeLevel
         .clamp(0, maxStartingGoldUpgradeLevel)
