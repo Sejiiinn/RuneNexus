@@ -6,23 +6,32 @@ import '../../domain/wave/wave_definition.dart';
 
 class WaveSpawner {
   final List<SpawnRequest> _queue = [];
+  double _elapsed = 0;
+  int _nextIndex = 0;
 
-  bool get isEmpty => _queue.isEmpty;
+  bool get isEmpty => _nextIndex >= _queue.length;
 
   void start(WaveDefinition wave, {double initialDelay = 0}) {
     _queue
       ..clear()
       ..addAll(_buildSpawnQueue(wave, initialDelay: initialDelay));
+    _elapsed = 0;
+    _nextIndex = 0;
   }
 
   void clear() {
     _queue.clear();
+    _elapsed = 0;
+    _nextIndex = 0;
   }
 
   List<SavedSpawnRequest> toSaveData() {
     return [
-      for (final request in _queue)
-        SavedSpawnRequest(enemyType: request.enemyType, delay: request.delay),
+      for (var i = _nextIndex; i < _queue.length; i++)
+        SavedSpawnRequest(
+          enemyType: _queue[i].enemyType,
+          delay: math.max(0, _queue[i].delay - _elapsed),
+        ),
     ];
   }
 
@@ -35,16 +44,29 @@ class WaveSpawner {
               SpawnRequest(enemyType: request.enemyType, delay: request.delay),
         ),
       );
+    _queue.sort((a, b) => a.delay.compareTo(b.delay));
+    _elapsed = 0;
+    _nextIndex = 0;
   }
 
   List<EnemyType> update(double dt) {
-    for (final request in _queue) {
-      request.delay -= dt;
+    if (dt < 0) {
+      return const [];
+    }
+    if (dt > 0) {
+      _elapsed += dt;
     }
 
-    final ready = _queue.where((request) => request.delay <= 0).toList();
-    _queue.removeWhere((request) => request.delay <= 0);
-    return ready.map((request) => request.enemyType).toList();
+    if (isEmpty || _queue[_nextIndex].delay > _elapsed) {
+      return const [];
+    }
+
+    final ready = <EnemyType>[];
+    while (_nextIndex < _queue.length && _queue[_nextIndex].delay <= _elapsed) {
+      ready.add(_queue[_nextIndex].enemyType);
+      _nextIndex++;
+    }
+    return ready;
   }
 
   List<SpawnRequest> _buildSpawnQueue(

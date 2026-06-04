@@ -3966,6 +3966,95 @@ void main() {
     );
   });
 
+  test('wave spawner saves remaining delays and restores cursor timing', () {
+    const wave = WaveDefinition(
+      round: 1,
+      previewText: 'Wave spawner timing test',
+      clearRewardGold: 0,
+      groups: [
+        SpawnGroup(
+          enemyType: EnemyType.normal,
+          count: 1,
+          interval: 1,
+          startDelay: 1,
+        ),
+        SpawnGroup(
+          enemyType: EnemyType.fast,
+          count: 1,
+          interval: 1,
+          startDelay: 2,
+        ),
+        SpawnGroup(
+          enemyType: EnemyType.tank,
+          count: 1,
+          interval: 1,
+          startDelay: 3,
+        ),
+      ],
+    );
+
+    final spawner = WaveSpawner()..start(wave);
+
+    expect(spawner.update(1.5), orderedEquals([EnemyType.normal]));
+
+    final saved = spawner.toSaveData();
+    expect(
+      saved.map((request) => request.enemyType),
+      orderedEquals([EnemyType.fast, EnemyType.tank]),
+    );
+    expect(saved[0].delay, closeTo(0.5, 0.001));
+    expect(saved[1].delay, closeTo(1.5, 0.001));
+
+    final restored = WaveSpawner()..restoreFromSaveData(saved);
+    expect(restored.update(0.49), isEmpty);
+    expect(restored.update(0.01), orderedEquals([EnemyType.fast]));
+    expect(restored.toSaveData().single.delay, closeTo(1, 0.001));
+    expect(restored.update(1), orderedEquals([EnemyType.tank]));
+    expect(restored.isEmpty, isTrue);
+  });
+
+  test('wave spawner returns every request ready in one large update', () {
+    const wave = WaveDefinition(
+      round: 1,
+      previewText: 'Wave spawner batch test',
+      clearRewardGold: 0,
+      groups: [
+        SpawnGroup(
+          enemyType: EnemyType.normal,
+          count: 1,
+          interval: 1,
+          startDelay: 0.5,
+        ),
+        SpawnGroup(
+          enemyType: EnemyType.fast,
+          count: 1,
+          interval: 1,
+          startDelay: 1,
+        ),
+        SpawnGroup(
+          enemyType: EnemyType.armored,
+          count: 1,
+          interval: 1,
+          startDelay: 1.5,
+        ),
+        SpawnGroup(
+          enemyType: EnemyType.boss,
+          count: 1,
+          interval: 1,
+          startDelay: 3,
+        ),
+      ],
+    );
+
+    final spawner = WaveSpawner()..start(wave);
+
+    expect(
+      spawner.update(1.5),
+      orderedEquals([EnemyType.normal, EnemyType.fast, EnemyType.armored]),
+    );
+    expect(spawner.toSaveData().single.delay, closeTo(1.5, 0.001));
+  });
+
   test(
     'chapter two waves introduce shielded enemies without changing chapter one',
     () {

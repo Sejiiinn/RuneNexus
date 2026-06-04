@@ -684,14 +684,10 @@ class TurretComponent extends PositionComponent {
     _chainCleanupTimer = math.max(0, _chainCleanupTimer - dt);
     _gemRingPhase = (_gemRingPhase + dt * 0.45) % (math.pi * 2);
     if (_recentHitTimers.isNotEmpty) {
-      for (final entry in _recentHitTimers.entries.toList()) {
-        final remaining = entry.value - dt;
-        if (remaining <= 0 || entry.key.isDead) {
-          _recentHitTimers.remove(entry.key);
-        } else {
-          _recentHitTimers[entry.key] = remaining;
-        }
-      }
+      _recentHitTimers.updateAll((_, timer) => timer - dt);
+      _recentHitTimers.removeWhere(
+        (enemy, remaining) => remaining <= 0 || enemy.isDead,
+      );
     }
     if (!game.isWaveRunning) {
       _clearAim();
@@ -854,9 +850,7 @@ class TurretComponent extends PositionComponent {
     var selectedDistanceSquared = double.infinity;
     var selectedDurability = 0.0;
     for (final enemy in game.enemies) {
-      if ((!enemy.isMounted && !game.enemies.contains(enemy)) ||
-          enemy.isDead ||
-          !isEnemyBodyInRange(enemy)) {
+      if (enemy.isDead || !isEnemyBodyInRange(enemy)) {
         continue;
       }
       final distanceSquared = _distanceSquaredTo(enemy);
@@ -920,11 +914,13 @@ class TurretComponent extends PositionComponent {
   }
 
   List<EnemyComponent> _findTargetsInRange() {
-    return game.enemies.where((enemy) {
-      return (enemy.isMounted || game.enemies.contains(enemy)) &&
-          !enemy.isDead &&
-          isEnemyBodyInRange(enemy);
-    }).toList();
+    final targets = <EnemyComponent>[];
+    for (final enemy in game.enemies) {
+      if (!enemy.isDead && isEnemyBodyInRange(enemy)) {
+        targets.add(enemy);
+      }
+    }
+    return targets;
   }
 
   bool _isValidAimTarget(EnemyComponent enemy) {
