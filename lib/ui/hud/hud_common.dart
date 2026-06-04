@@ -6,6 +6,9 @@ import 'package:flutter/material.dart';
 import '../../data/definitions/game_enemy_data.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../domain/enemy/enemy_type.dart';
+import '../../domain/turret/attack_tag.dart';
+import '../../domain/turret/damage_family.dart';
+import '../../domain/turret/turret_definition.dart';
 import '../../domain/turret/turret_type.dart';
 import '../../game/game_snapshot.dart';
 import '../../game/rendering/enemy_shape_renderer.dart';
@@ -76,6 +79,113 @@ class _GemShardPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _GemShardPainter oldDelegate) => false;
+}
+
+String hudFormatDamageValue(double value) {
+  if (value >= 1000) {
+    return '${(value / 1000).toStringAsFixed(1)}K';
+  }
+  if (value >= 100) {
+    return value.round().toString();
+  }
+  return value.toStringAsFixed(1);
+}
+
+class HudTurretAttributeChips extends StatelessWidget {
+  const HudTurretAttributeChips({required this.definition, super.key});
+
+  final TurretDefinition definition;
+
+  @override
+  Widget build(BuildContext context) {
+    final labels = [
+      (
+        label: definition.damageFamily.label,
+        color: definition.damageFamily.color,
+      ),
+      ...definition.attackTags.map(
+        (tag) => (label: tag.label, color: tag.color),
+      ),
+    ];
+
+    return Wrap(
+      spacing: 5,
+      runSpacing: 5,
+      children: labels.map((label) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          decoration: BoxDecoration(
+            color: label.color.withValues(alpha: 0.12),
+            border: Border.all(color: label.color.withValues(alpha: 0.75)),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            label.label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: label.color,
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class HudStatPill extends StatelessWidget {
+  const HudStatPill({
+    required this.label,
+    required this.value,
+    this.valueChild,
+    this.expand = true,
+    super.key,
+  });
+
+  final String label;
+  final String value;
+  final Widget? valueChild;
+  final bool expand;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = Container(
+      constraints: expand ? null : const BoxConstraints(minWidth: 58),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+      decoration: BoxDecoration(
+        color: const Color(0xAA07111D),
+        border: Border.all(color: const Color(0x3333D8FF)),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 10, color: Color(0xFF8AA6B8)),
+            overflow: TextOverflow.clip,
+          ),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child:
+                valueChild ??
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  overflow: TextOverflow.clip,
+                ),
+          ),
+        ],
+      ),
+    );
+    if (!expand) {
+      return content;
+    }
+    return Expanded(child: content);
+  }
 }
 
 class HudEnemyIconPainter extends CustomPainter {

@@ -8,9 +8,8 @@ import '../../domain/gem/gem_type.dart';
 import '../../game/game_snapshot.dart';
 import '../../game/rune_nexus_game.dart';
 import '../game/game_ui.dart';
-import 'bottom_bar.dart';
-import 'gem_equip_panel.dart';
 import 'hud_common.dart';
+import 'portal_summary_panel.dart';
 
 class HudTopBar extends StatelessWidget {
   const HudTopBar({
