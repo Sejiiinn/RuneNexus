@@ -64,6 +64,17 @@ build_web() {
   "$FLUTTER" build web --pwa-strategy=none --no-tree-shake-icons --dart-define=RUNE_NEXUS_DEBUG_PANEL=true
 }
 
+dev_server() {
+  require_file "$FLUTTER" FLUTTER
+  cd "$WORK_DIR"
+  printf 'DEV_READY_PENDING port=%s\n' "$PORT"
+  printf 'HOT_RELOAD=type r in this terminal after Dart changes\n'
+  exec "$FLUTTER" run -d web-server \
+    --web-hostname=127.0.0.1 \
+    --web-port="$PORT" \
+    --dart-define=RUNE_NEXUS_DEBUG_PANEL=true
+}
+
 serve_foreground() {
   require_file "$BUILD_DIR/index.html" BUILD_INDEX
   cd "$WORK_DIR"
@@ -88,6 +99,10 @@ case "$ACTION" in
     else
       serve_foreground
     fi
+    ;;
+  dev)
+    stop_server
+    dev_server
     ;;
   restart)
     stop_server
@@ -114,6 +129,7 @@ Usage: scripts/in_app_server_macos.sh <action>
 Actions:
   status   Show 53000 listener, HTTP status, and cache-bust URL.
   build    Build Flutter Web with --pwa-strategy=none.
+  dev      Run Flutter web-server in the foreground for hot reload.
   start    Serve existing build/web in the foreground unless 53000 is already healthy.
   restart  Stop 53000, build web, then serve build/web in the foreground.
   stop     Stop the process listening on 53000.

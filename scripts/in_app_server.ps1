@@ -1,5 +1,5 @@
 param(
-  [ValidateSet('status', 'start', 'restart', 'stop', 'build')]
+  [ValidateSet('status', 'start', 'restart', 'stop', 'build', 'dev')]
   [string]$Action = 'status',
   [int]$Port = 53000,
   [string]$WorkDir = 'C:\Users\rlatp\Documents\RuneNexus',
@@ -135,6 +135,22 @@ function Build-Web {
   }
 }
 
+function Start-DevServer {
+  Stop-InAppServer
+  Push-Location $WorkDir
+  try {
+    Write-Output "DEV_READY_PENDING port=$Port"
+    Write-Output 'HOT_RELOAD=type r in this terminal after Dart changes'
+    & $FlutterPath run `
+      -d web-server `
+      --web-hostname=127.0.0.1 `
+      --web-port=$Port `
+      --dart-define=RUNE_NEXUS_DEBUG_PANEL=true
+  } finally {
+    Pop-Location
+  }
+}
+
 switch ($Action) {
   'status' {
     $listener = @(Get-ListeningPids)
@@ -154,6 +170,9 @@ switch ($Action) {
   }
   'build' {
     Build-Web
+  }
+  'dev' {
+    Start-DevServer
   }
   'restart' {
     Stop-InAppServer
