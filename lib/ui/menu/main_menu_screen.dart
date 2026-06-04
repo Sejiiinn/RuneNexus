@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/definitions/game_research_data.dart';
@@ -45,6 +46,7 @@ class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({
     required this.game,
     required this.snapshot,
+    this.snapshotListenable,
     required this.selectedTab,
     required this.onSelectTab,
     required this.onStartStage,
@@ -54,6 +56,7 @@ class MainMenuScreen extends StatefulWidget {
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
+  final ValueListenable<GameSnapshot>? snapshotListenable;
   final MainMenuTab selectedTab;
   final ValueChanged<MainMenuTab> onSelectTab;
   final ValueChanged<int> onStartStage;
@@ -69,9 +72,13 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   bool _chapterBannersPrecached = false;
   Timer? _researchClockTimer;
 
+  GameSnapshot get _currentSnapshot =>
+      widget.snapshotListenable?.value ?? widget.snapshot;
+
   @override
   void initState() {
     super.initState();
+    widget.snapshotListenable?.addListener(_handleSnapshotChanged);
     _syncResearchClockTimer();
   }
 
@@ -90,17 +97,28 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   @override
   void didUpdateWidget(covariant MainMenuScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.snapshotListenable != widget.snapshotListenable) {
+      oldWidget.snapshotListenable?.removeListener(_handleSnapshotChanged);
+      widget.snapshotListenable?.addListener(_handleSnapshotChanged);
+    }
     _syncResearchClockTimer();
   }
 
   @override
   void dispose() {
+    widget.snapshotListenable?.removeListener(_handleSnapshotChanged);
     _researchClockTimer?.cancel();
     super.dispose();
   }
 
+  void _handleSnapshotChanged() {
+    _syncResearchClockTimer();
+  }
+
   void _syncResearchClockTimer() {
-    final needsClock = widget.snapshot.activeResearches.isNotEmpty;
+    final needsClock =
+        widget.selectedTab != MainMenuTab.research &&
+        _currentSnapshot.activeResearches.isNotEmpty;
     if (!needsClock) {
       _researchClockTimer?.cancel();
       _researchClockTimer = null;
@@ -113,15 +131,13 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
       if (!mounted) {
         return;
       }
-      if (widget.snapshot.activeResearches.isEmpty) {
+      if (widget.selectedTab == MainMenuTab.research ||
+          _currentSnapshot.activeResearches.isEmpty) {
         _researchClockTimer?.cancel();
         _researchClockTimer = null;
         return;
       }
-      if (!widget.game.refreshResearchProgress() &&
-          widget.selectedTab == MainMenuTab.research) {
-        setState(() {});
-      }
+      widget.game.refreshResearchProgress();
     });
   }
 
@@ -130,11 +146,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     final selectedTab = widget.selectedTab;
     final compactTopBar = MediaQuery.sizeOf(context).width < 430;
     const menuTopPadding = 76.0;
-    final menuBottomPadding = selectedTab == MainMenuTab.permanentUpgrades
-        ? 146.0
-        : selectedTab == MainMenuTab.stage
-        ? 62.0
-        : 92.0;
     return Container(
       color: GamePalette.backdrop,
       child: SafeArea(
@@ -144,88 +155,22 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
             if (!_showMapEditor)
               const Positioned(top: 14, left: 16, child: _MenuQuickGlyphs()),
             const Positioned(top: 10, left: 0, right: 0, child: _MenuLogo()),
-            if (selectedTab == MainMenuTab.stage)
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final panelHeight = math.max(
-                    0.0,
-                    constraints.maxHeight - menuTopPadding - menuBottomPadding,
-                  );
-                  return Center(
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        16,
-                        menuTopPadding,
-                        16,
-                        menuBottomPadding,
-                      ),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 430),
-                        child: SizedBox(
-                          height: panelHeight,
-                          child: _MainMenuPanel(
-                            child: _StageMenu(
-                              snapshot: widget.snapshot,
-                              onStartStage: widget.onStartStage,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
+            Positioned.fill(
+              child: _MainMenuSnapshotLayer(
+                game: widget.game,
+                snapshot: widget.snapshot,
+                snapshotListenable: widget.snapshotListenable,
+                selectedTab: selectedTab,
+                selectedUpgradeGroup: _selectedUpgradeGroup,
+                showMenuDebugPanel: _showMenuDebugPanel,
+                compactTopBar: compactTopBar,
+                menuTopPadding: menuTopPadding,
+                onStartStage: widget.onStartStage,
+                onCloseDebugPanel: () {
+                  setState(() {
+                    _showMenuDebugPanel = false;
+                  });
                 },
-              )
-            else
-              Center(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(
-                    16,
-                    menuTopPadding,
-                    16,
-                    menuBottomPadding,
-                  ),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 430),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _MainMenuPanel(
-                          child: switch (selectedTab) {
-                            MainMenuTab.core => _CoreMenu(
-                              game: widget.game,
-                              snapshot: widget.snapshot,
-                            ),
-                            MainMenuTab.permanentUpgrades =>
-                              _PermanentUpgradeMenu(
-                                game: widget.game,
-                                snapshot: widget.snapshot,
-                                group: _selectedUpgradeGroup,
-                              ),
-                            MainMenuTab.research => _ResearchMenu(
-                              game: widget.game,
-                              snapshot: widget.snapshot,
-                            ),
-                            MainMenuTab.stage => _StageMenu(
-                              snapshot: widget.snapshot,
-                              onStartStage: widget.onStartStage,
-                            ),
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            Positioned(
-              top: compactTopBar ? 4 : 10,
-              right: 16,
-              child: RuneBalanceCard(
-                key: const ValueKey('menu-currency-balance'),
-                runes: widget.snapshot.runes,
-                diamonds: widget.snapshot.diamonds,
-                compact: compactTopBar,
-                frameless: true,
               ),
             ),
             if (_showMapEditor)
@@ -240,26 +185,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                     });
                   },
                   onOpenMapEditor: widget.onOpenMapEditor,
-                ),
-              ),
-            if (_showMapEditor && _showMenuDebugPanel)
-              Positioned(
-                top: 58,
-                left: 16,
-                right: 16,
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 430),
-                    child: _MainMenuDebugPanel(
-                      game: widget.game,
-                      snapshot: widget.snapshot,
-                      onClose: () {
-                        setState(() {
-                          _showMenuDebugPanel = false;
-                        });
-                      },
-                    ),
-                  ),
                 ),
               ),
             if (selectedTab == MainMenuTab.permanentUpgrades)
@@ -286,6 +211,202 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MainMenuSnapshotLayer extends StatelessWidget {
+  const _MainMenuSnapshotLayer({
+    required this.game,
+    required this.snapshot,
+    required this.snapshotListenable,
+    required this.selectedTab,
+    required this.selectedUpgradeGroup,
+    required this.showMenuDebugPanel,
+    required this.compactTopBar,
+    required this.menuTopPadding,
+    required this.onStartStage,
+    required this.onCloseDebugPanel,
+  });
+
+  final RuneNexusGame game;
+  final GameSnapshot snapshot;
+  final ValueListenable<GameSnapshot>? snapshotListenable;
+  final MainMenuTab selectedTab;
+  final _PermanentUpgradeGroup selectedUpgradeGroup;
+  final bool showMenuDebugPanel;
+  final bool compactTopBar;
+  final double menuTopPadding;
+  final ValueChanged<int> onStartStage;
+  final VoidCallback onCloseDebugPanel;
+
+  @override
+  Widget build(BuildContext context) {
+    final listenable = snapshotListenable;
+    if (listenable == null) {
+      return _MainMenuSnapshotContent(
+        game: game,
+        snapshot: snapshot,
+        selectedTab: selectedTab,
+        selectedUpgradeGroup: selectedUpgradeGroup,
+        showMenuDebugPanel: showMenuDebugPanel,
+        compactTopBar: compactTopBar,
+        menuTopPadding: menuTopPadding,
+        onStartStage: onStartStage,
+        onCloseDebugPanel: onCloseDebugPanel,
+      );
+    }
+    return ValueListenableBuilder<GameSnapshot>(
+      valueListenable: listenable,
+      builder: (context, snapshot, _) {
+        return _MainMenuSnapshotContent(
+          game: game,
+          snapshot: snapshot,
+          selectedTab: selectedTab,
+          selectedUpgradeGroup: selectedUpgradeGroup,
+          showMenuDebugPanel: showMenuDebugPanel,
+          compactTopBar: compactTopBar,
+          menuTopPadding: menuTopPadding,
+          onStartStage: onStartStage,
+          onCloseDebugPanel: onCloseDebugPanel,
+        );
+      },
+    );
+  }
+}
+
+class _MainMenuSnapshotContent extends StatelessWidget {
+  const _MainMenuSnapshotContent({
+    required this.game,
+    required this.snapshot,
+    required this.selectedTab,
+    required this.selectedUpgradeGroup,
+    required this.showMenuDebugPanel,
+    required this.compactTopBar,
+    required this.menuTopPadding,
+    required this.onStartStage,
+    required this.onCloseDebugPanel,
+  });
+
+  final RuneNexusGame game;
+  final GameSnapshot snapshot;
+  final MainMenuTab selectedTab;
+  final _PermanentUpgradeGroup selectedUpgradeGroup;
+  final bool showMenuDebugPanel;
+  final bool compactTopBar;
+  final double menuTopPadding;
+  final ValueChanged<int> onStartStage;
+  final VoidCallback onCloseDebugPanel;
+
+  @override
+  Widget build(BuildContext context) {
+    final menuBottomPadding = selectedTab == MainMenuTab.permanentUpgrades
+        ? 146.0
+        : selectedTab == MainMenuTab.stage
+        ? 62.0
+        : 92.0;
+    return Stack(
+      children: [
+        if (selectedTab == MainMenuTab.stage)
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final panelHeight = math.max(
+                0.0,
+                constraints.maxHeight - menuTopPadding - menuBottomPadding,
+              );
+              return Center(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    menuTopPadding,
+                    16,
+                    menuBottomPadding,
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 430),
+                    child: SizedBox(
+                      height: panelHeight,
+                      child: _MainMenuPanel(
+                        child: _StageMenu(
+                          snapshot: snapshot,
+                          onStartStage: onStartStage,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          )
+        else
+          Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                menuTopPadding,
+                16,
+                menuBottomPadding,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 430),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _MainMenuPanel(
+                      child: switch (selectedTab) {
+                        MainMenuTab.core => _CoreMenu(
+                          game: game,
+                          snapshot: snapshot,
+                        ),
+                        MainMenuTab.permanentUpgrades => _PermanentUpgradeMenu(
+                          game: game,
+                          snapshot: snapshot,
+                          group: selectedUpgradeGroup,
+                        ),
+                        MainMenuTab.research => _ResearchMenu(
+                          game: game,
+                          snapshot: snapshot,
+                        ),
+                        MainMenuTab.stage => _StageMenu(
+                          snapshot: snapshot,
+                          onStartStage: onStartStage,
+                        ),
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        Positioned(
+          top: compactTopBar ? 4 : 10,
+          right: 16,
+          child: RuneBalanceCard(
+            key: const ValueKey('menu-currency-balance'),
+            runes: snapshot.runes,
+            diamonds: snapshot.diamonds,
+            compact: compactTopBar,
+            frameless: true,
+          ),
+        ),
+        if (_showMapEditor && showMenuDebugPanel)
+          Positioned(
+            top: 58,
+            left: 16,
+            right: 16,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 430),
+                child: _MainMenuDebugPanel(
+                  game: game,
+                  snapshot: snapshot,
+                  onClose: onCloseDebugPanel,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -4254,6 +4375,50 @@ class _ResearchMenu extends StatefulWidget {
 }
 
 class _ResearchMenuState extends State<_ResearchMenu> {
+  Timer? _clockTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncClockTimer();
+  }
+
+  @override
+  void didUpdateWidget(covariant _ResearchMenu oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncClockTimer();
+  }
+
+  @override
+  void dispose() {
+    _clockTimer?.cancel();
+    super.dispose();
+  }
+
+  void _syncClockTimer() {
+    if (widget.snapshot.activeResearches.isEmpty) {
+      _clockTimer?.cancel();
+      _clockTimer = null;
+      return;
+    }
+    if (_clockTimer != null) {
+      return;
+    }
+    _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) {
+        return;
+      }
+      if (widget.snapshot.activeResearches.isEmpty) {
+        _clockTimer?.cancel();
+        _clockTimer = null;
+        return;
+      }
+      if (!widget.game.refreshResearchProgress()) {
+        setState(() {});
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;

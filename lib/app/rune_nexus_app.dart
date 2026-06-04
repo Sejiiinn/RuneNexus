@@ -154,26 +154,22 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
                 onBack: () => _openMainScreen(),
               );
             }
-            return ValueListenableBuilder(
-              valueListenable: game.snapshotNotifier,
-              builder: (context, snapshot, _) {
-                return MainMenuScreen(
-                  game: game,
-                  snapshot: snapshot,
-                  selectedTab: _selectedMainMenuTab,
-                  onSelectTab: (tab) {
-                    setState(() {
-                      _selectedMainMenuTab = tab;
-                    });
-                  },
-                  onStartStage: (stageNumber) =>
-                      _startStage(stageNumber, snapshot),
-                  onOpenMapEditor: () {
-                    setState(() {
-                      _screen = _AppScreen.mapEditor;
-                    });
-                  },
-                );
+            return MainMenuScreen(
+              game: game,
+              snapshot: game.snapshotNotifier.value,
+              snapshotListenable: game.snapshotNotifier,
+              selectedTab: _selectedMainMenuTab,
+              onSelectTab: (tab) {
+                setState(() {
+                  _selectedMainMenuTab = tab;
+                });
+              },
+              onStartStage: (stageNumber) =>
+                  _startStage(stageNumber, game.snapshotNotifier.value),
+              onOpenMapEditor: () {
+                setState(() {
+                  _screen = _AppScreen.mapEditor;
+                });
               },
             );
           },
