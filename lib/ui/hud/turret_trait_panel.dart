@@ -1,9 +1,15 @@
-part of 'game_hud.dart';
+import 'package:flutter/material.dart';
 
-class _TurretTraitActionButton extends StatelessWidget {
-  const _TurretTraitActionButton({
+import '../../domain/turret/turret_trait_type.dart';
+import '../../game/game_snapshot.dart';
+import '../game/game_ui.dart';
+import 'hud_common.dart';
+
+class HudTurretTraitActionButton extends StatelessWidget {
+  const HudTurretTraitActionButton({
     required this.snapshot,
     required this.onPressed,
+    super.key,
   });
 
   final GameSnapshot snapshot;
@@ -80,16 +86,16 @@ class _TraitActionBadge extends StatelessWidget {
   }
 }
 
-class _TurretTraitDialog extends StatefulWidget {
-  const _TurretTraitDialog({required this.snapshot});
+class HudTurretTraitDialog extends StatefulWidget {
+  const HudTurretTraitDialog({required this.snapshot, super.key});
 
   final GameSnapshot snapshot;
 
   @override
-  State<_TurretTraitDialog> createState() => _TurretTraitDialogState();
+  State<HudTurretTraitDialog> createState() => _TurretTraitDialogState();
 }
 
-class _TurretTraitDialogState extends State<_TurretTraitDialog> {
+class _TurretTraitDialogState extends State<HudTurretTraitDialog> {
   late int _selectedTier = widget.snapshot.selectedTurretPrimaryTrait != null
       ? 2
       : 1;
@@ -249,7 +255,7 @@ class _TurretTraitDialogState extends State<_TurretTraitDialog> {
 
   void _previewOrConfirmTrait(int tier, TurretTraitType trait) {
     if (_previewTier == tier && _previewTrait == trait) {
-      Navigator.of(context).pop(_TraitSelection(tier: tier, trait: trait));
+      Navigator.of(context).pop(HudTraitSelection(tier: tier, trait: trait));
       return;
     }
     setState(() {
@@ -718,8 +724,8 @@ class _TraitPreviewBadge extends StatelessWidget {
   }
 }
 
-class _TraitSelection {
-  const _TraitSelection({required this.tier, required this.trait});
+class HudTraitSelection {
+  const HudTraitSelection({required this.tier, required this.trait});
 
   final int tier;
   final TurretTraitType trait;
@@ -750,7 +756,7 @@ class _TraitResourceStrip extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                const SizedBox(width: 15, height: 15, child: _GemShardIcon()),
+                const SizedBox(width: 15, height: 15, child: HudGemShardIcon()),
                 const SizedBox(width: 6),
                 const Flexible(
                   child: Text(

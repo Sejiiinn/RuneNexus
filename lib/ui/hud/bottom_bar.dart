@@ -1,7 +1,29 @@
-part of 'game_hud.dart';
+import 'package:flutter/material.dart';
 
-class _BottomBar extends StatelessWidget {
-  const _BottomBar({required this.game, required this.snapshot});
+import '../../data/definitions/game_enemy_data.dart';
+import '../../data/definitions/game_gem_data.dart';
+import '../../data/definitions/game_run_upgrade_data.dart';
+import '../../data/definitions/game_turret_data.dart';
+import '../../domain/combat/auto_start_mode.dart';
+import '../../domain/combat/game_phase.dart';
+import '../../domain/combat/run_panel_tab.dart';
+import '../../domain/core/core_ability.dart';
+import '../../domain/enemy/enemy_definition.dart';
+import '../../domain/enemy/enemy_scaling.dart';
+import '../../domain/gem/gem_type.dart';
+import '../../domain/run_upgrade/run_upgrade_definition.dart';
+import '../../domain/run_upgrade/run_upgrade_type.dart';
+import '../../domain/turret/attack_tag.dart';
+import '../../domain/turret/damage_family.dart';
+import '../../domain/turret/turret_definition.dart';
+import '../../game/game_snapshot.dart';
+import '../../game/rune_nexus_game.dart';
+import '../game/game_ui.dart';
+import 'gem_equip_panel.dart';
+import 'hud_common.dart';
+
+class HudBottomBar extends StatelessWidget {
+  const HudBottomBar({required this.game, required this.snapshot, super.key});
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
@@ -72,7 +94,7 @@ class _BottomBar extends StatelessWidget {
                         RunPanelTab.turrets) ...[
                       if (snapshot.selectedTurretPoint != null &&
                           canEditBoard) ...[
-                        _GemEquipPanel(game: game, snapshot: snapshot),
+                        HudGemEquipPanel(game: game, snapshot: snapshot),
                       ] else if ((snapshot.selectedBuildPoint != null ||
                               snapshot.selectedBuildTurretType != null) &&
                           canEditBoard) ...[
@@ -90,7 +112,7 @@ class _BottomBar extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 3,
                                 ),
-                                child: _TurretButton(
+                                child: HudTurretButton(
                                   type: type,
                                   label: definition.name,
                                   cost: buildCost,
@@ -191,7 +213,7 @@ class _GemInventoryPanel extends StatelessWidget {
         children: [
           Row(
             children: [
-              const _GemShardIcon(),
+              const HudGemShardIcon(),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
@@ -238,7 +260,7 @@ class _GemInventoryPanel extends StatelessWidget {
                       const SizedBox(
                         width: 12,
                         height: 12,
-                        child: _GemShardIcon(),
+                        child: HudGemShardIcon(),
                       ),
                       const SizedBox(width: 2),
                       Text(
@@ -1030,7 +1052,7 @@ class _PortalSummaryCard extends StatelessWidget {
                 context: context,
                 backgroundColor: Colors.transparent,
                 builder: (context) =>
-                    _PortalWaveDetailSheet(snapshot: snapshot),
+                    HudPortalWaveDetailSheet(snapshot: snapshot),
               )
             : null,
         borderRadius: BorderRadius.circular(8),
@@ -1128,7 +1150,7 @@ class _NextWaveEnemySummary extends StatelessWidget {
             child: SizedBox(
               width: 25,
               height: 25,
-              child: _EnemyIcon(type: type, selected: false, size: 25),
+              child: HudEnemyIcon(type: type, selected: false, size: 25),
             ),
           ),
         ),
@@ -1149,8 +1171,8 @@ class _NextWaveEnemySummary extends StatelessWidget {
   }
 }
 
-class _PortalWaveDetailSheet extends StatelessWidget {
-  const _PortalWaveDetailSheet({required this.snapshot});
+class HudPortalWaveDetailSheet extends StatelessWidget {
+  const HudPortalWaveDetailSheet({required this.snapshot, super.key});
 
   final GameSnapshot snapshot;
 
@@ -1271,7 +1293,7 @@ class _EnemyCountChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _EnemyIcon(type: enemy.type, selected: false, size: 18),
+          HudEnemyIcon(type: enemy.type, selected: false, size: 18),
           const SizedBox(width: 5),
           Text(
             '${enemy.name} x$count',
@@ -1346,7 +1368,7 @@ class _EnemyDetailRow extends StatelessWidget {
         children: [
           Row(
             children: [
-              _EnemyIcon(type: enemy.type, selected: false),
+              HudEnemyIcon(type: enemy.type, selected: false),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -1366,29 +1388,29 @@ class _EnemyDetailRow extends StatelessWidget {
             spacing: 5,
             runSpacing: 5,
             children: [
-              _StatPill(
+              HudStatPill(
                 label: '체력',
                 value: maxHp.round().toString(),
                 expand: false,
               ),
               if (maxArmor > 0)
-                _StatPill(
+                HudStatPill(
                   label: '방어구',
                   value: maxArmor.round().toString(),
                   expand: false,
                 ),
               if (maxShield > 0)
-                _StatPill(
+                HudStatPill(
                   label: '보호막',
                   value: maxShield.round().toString(),
                   expand: false,
                 ),
-              _StatPill(
+              HudStatPill(
                 label: '속도',
                 value: enemy.speed.round().toString(),
                 expand: false,
               ),
-              _StatPill(
+              HudStatPill(
                 label: '넥서스 피해',
                 value: '-${enemy.coreDamage}',
                 expand: false,
@@ -1412,7 +1434,7 @@ class _EnemyDetailRow extends StatelessWidget {
                   ],
                 ),
               ),
-              _StatPill(
+              HudStatPill(
                 label: '보상',
                 value: '+${enemy.rewardGold}',
                 expand: false,
@@ -1595,69 +1617,6 @@ String _autoStartModeLabel(AutoStartMode mode) {
   };
 }
 
-class _EnemyIcon extends StatelessWidget {
-  const _EnemyIcon({
-    required this.type,
-    required this.selected,
-    this.size = 30,
-  });
-
-  final EnemyType type;
-  final bool selected;
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final enemy = gameEnemies[type]!;
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 110),
-      width: size,
-      height: size,
-      padding: EdgeInsets.all(math.max(2, size * 0.1)),
-      decoration: BoxDecoration(
-        color: selected
-            ? enemy.color.withValues(alpha: 0.16)
-            : Colors.transparent,
-        border: Border.all(
-          color: selected ? enemy.color : Colors.transparent,
-          width: 1.2,
-        ),
-        borderRadius: BorderRadius.circular(7),
-      ),
-      child: CustomPaint(
-        painter: _EnemyIconPainter(color: enemy.color, type: type),
-      ),
-    );
-  }
-}
-
-class _EnemyIconPainter extends CustomPainter {
-  const _EnemyIconPainter({required this.color, required this.type});
-
-  final Color color;
-  final EnemyType type;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.save();
-    canvas.clipRect(Offset.zero & size);
-    drawEnemyShape(
-      canvas,
-      size: size,
-      type: type,
-      color: color,
-      strokeWidth: 2,
-    );
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant _EnemyIconPainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.type != type;
-  }
-}
-
 class _ResistanceChip extends StatelessWidget {
   const _ResistanceChip({
     required this.label,
@@ -1756,7 +1715,7 @@ class _BuildSelectionPanel extends StatelessWidget {
                   overflow: TextOverflow.clip,
                 ),
                 const SizedBox(height: 6),
-                _TurretAttributeChips(definition: definition),
+                HudTurretAttributeChips(definition: definition),
                 const SizedBox(height: 6),
                 _BuildTurretStats(definition: definition),
               ],
@@ -1875,9 +1834,9 @@ class _BuildTurretStats extends StatelessWidget {
         : 0.0;
     return Row(
       children: [
-        _StatPill(label: '피해', value: definition.damage.toStringAsFixed(1)),
+        HudStatPill(label: '피해', value: definition.damage.toStringAsFixed(1)),
         const SizedBox(width: 5),
-        _StatPill(
+        HudStatPill(
           label: 'DPS',
           value: dps.toStringAsFixed(1),
           valueChild: burnDps > 0
@@ -1903,69 +1862,27 @@ class _BuildTurretStats extends StatelessWidget {
         ),
         if (burnDps > 0) ...[
           const SizedBox(width: 5),
-          _StatPill(
+          HudStatPill(
             label: '화상',
             value: '${RuneNexusGame.burnDurationSeconds.toStringAsFixed(1)}초',
           ),
         ],
         if (definition.slowDuration > 0) ...[
           const SizedBox(width: 5),
-          _StatPill(
+          HudStatPill(
             label: '감속',
             value:
                 '${((1 - definition.slowMultiplier) * 100).round()}%/${definition.slowDuration.toStringAsFixed(1)}초',
           ),
         ],
         const SizedBox(width: 5),
-        _StatPill(label: '사거리', value: definition.range.round().toString()),
+        HudStatPill(label: '사거리', value: definition.range.round().toString()),
         const SizedBox(width: 5),
-        _StatPill(
+        HudStatPill(
           label: '초당',
           value: '${definition.attackRate.toStringAsFixed(2)}회',
         ),
       ],
-    );
-  }
-}
-
-class _TurretAttributeChips extends StatelessWidget {
-  const _TurretAttributeChips({required this.definition});
-
-  final TurretDefinition definition;
-
-  @override
-  Widget build(BuildContext context) {
-    final labels = [
-      (
-        label: definition.damageFamily.label,
-        color: definition.damageFamily.color,
-      ),
-      ...definition.attackTags.map(
-        (tag) => (label: tag.label, color: tag.color),
-      ),
-    ];
-
-    return Wrap(
-      spacing: 5,
-      runSpacing: 5,
-      children: labels.map((label) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-          decoration: BoxDecoration(
-            color: label.color.withValues(alpha: 0.12),
-            border: Border.all(color: label.color.withValues(alpha: 0.75)),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            label.label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              color: label.color,
-            ),
-          ),
-        );
-      }).toList(),
     );
   }
 }

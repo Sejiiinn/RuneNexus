@@ -1,12 +1,22 @@
-part of 'game_hud.dart';
+import 'package:flutter/material.dart';
 
-class _TurretLinkSocketStrip extends StatelessWidget {
-  const _TurretLinkSocketStrip({
+import '../../data/definitions/game_gem_data.dart';
+import '../../domain/gem/gem_definition.dart';
+import '../../domain/gem/gem_type.dart';
+import '../../domain/turret/attack_tag.dart';
+import '../../domain/turret/damage_family.dart';
+import '../../domain/turret/turret_definition.dart';
+import '../../domain/turret/turret_type.dart';
+import '../../game/game_snapshot.dart';
+
+class HudTurretLinkSocketStrip extends StatelessWidget {
+  const HudTurretLinkSocketStrip({
     required this.snapshot,
     required this.canInstallGems,
     required this.selectedSlotIndex,
     required this.onSelectSlot,
     required this.onUpgradeLink,
+    super.key,
   });
 
   final GameSnapshot snapshot;
@@ -188,8 +198,8 @@ class _LinkSocketButton extends StatelessWidget {
   }
 }
 
-class _InventoryGemChip extends StatelessWidget {
-  const _InventoryGemChip({
+class HudInventoryGemChip extends StatelessWidget {
+  const HudInventoryGemChip({
     required this.gem,
     required this.count,
     required this.selected,
@@ -197,6 +207,7 @@ class _InventoryGemChip extends StatelessWidget {
     required this.blocked,
     required this.enabled,
     required this.onTap,
+    super.key,
   });
 
   final GemDefinition gem;
@@ -254,8 +265,8 @@ class _InventoryGemChip extends StatelessWidget {
   }
 }
 
-class _SelectedInventoryGemActions extends StatelessWidget {
-  const _SelectedInventoryGemActions({
+class HudSelectedInventoryGemActions extends StatelessWidget {
+  const HudSelectedInventoryGemActions({
     required this.type,
     required this.turret,
     required this.gem,
@@ -263,6 +274,7 @@ class _SelectedInventoryGemActions extends StatelessWidget {
     required this.canInstall,
     required this.enabled,
     required this.onInstall,
+    super.key,
   });
 
   final GemType type;
@@ -302,7 +314,7 @@ class _SelectedInventoryGemActions extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  blockReason ?? _gemEffectText(type, turret),
+                  blockReason ?? hudGemEffectText(type, turret),
                   style: TextStyle(
                     fontSize: 10,
                     color: blockReason == null
@@ -340,11 +352,12 @@ class _SelectedInventoryGemActions extends StatelessWidget {
   }
 }
 
-class _SelectedSlotGemActions extends StatelessWidget {
-  const _SelectedSlotGemActions({
+class HudSelectedSlotGemActions extends StatelessWidget {
+  const HudSelectedSlotGemActions({
     required this.type,
     required this.turret,
     required this.onRemove,
+    super.key,
   });
 
   final GemType type;
@@ -381,7 +394,7 @@ class _SelectedSlotGemActions extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  _gemEffectText(type, turret),
+                  hudGemEffectText(type, turret),
                   style: const TextStyle(
                     fontSize: 10,
                     color: Color(0xFFD6ECF6),
@@ -412,4 +425,50 @@ class _SelectedSlotGemActions extends StatelessWidget {
       ),
     );
   }
+}
+
+String hudGemEffectText(GemType type, TurretDefinition turret) {
+  return switch (type) {
+    GemType.attackSpeed => turret.instantHit ? '쿨타임 40% 단축' : '초당 발사 40% 증폭',
+    GemType.range => '사거리 20% 증폭',
+    GemType.physicalDamage =>
+      turret.damageFamily == DamageFamily.physical
+          ? '물리 피해 40% 증폭'
+          : '현재 적용되는 물리 피해 없음',
+    GemType.elementalDamage =>
+      turret.damageFamily == DamageFamily.elemental
+          ? '원소 피해 40% 증폭'
+          : '현재 적용되는 원소 피해 없음',
+    GemType.lightWeapon =>
+      turret.attackTags.contains(AttackTag.light)
+          ? '경량화기 피해 20% 증폭, 초당 발사 20% 증폭'
+          : '현재 적용되는 경량화기 피해 없음',
+    GemType.heavyWeapon =>
+      turret.attackTags.contains(AttackTag.heavy)
+          ? '중화기 피해 30% 증폭, 효과 범위 20% 증가'
+          : '현재 적용되는 중화기 피해 없음',
+    GemType.damageOverTime =>
+      turret.attackTags.contains(AttackTag.damageOverTime)
+          ? '지속피해 30% 증폭, 지속시간 30% 증가'
+          : '현재 적용되는 지속피해 없음',
+    GemType.explosion =>
+      turret.type == TurretType.lightning
+          ? '첫 대상 전기 충격파'
+          : turret.splashRadius > 0
+          ? '폭발 반경 25% 증폭'
+          : '반경 34 폭발',
+    GemType.chain =>
+      turret.type == TurretType.lightning
+          ? '후속 연쇄 대상 +2'
+          : turret.splashRadius > 0
+          ? '폭발 미적중 최대 2명에게 50% 연쇄'
+          : '주변 최대 2명에게 50% 연쇄',
+    GemType.criticalChance => '치명 확률 +20%p',
+    GemType.aimSpeed =>
+      turret.instantHit && turret.aimDuration > 0
+          ? '조준 속도 75% 증가'
+          : '현재 적용되는 조준 속도 없음',
+    GemType.damageAmplifier => '타격 피해 25% 증폭',
+    GemType.armorPiercing => '방어구 감쇄 무시',
+  };
 }

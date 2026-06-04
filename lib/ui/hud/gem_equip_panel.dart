@@ -1,16 +1,34 @@
-part of 'game_hud.dart';
+import 'package:flutter/material.dart';
 
-class _GemEquipPanel extends StatefulWidget {
-  const _GemEquipPanel({required this.game, required this.snapshot});
+import '../../data/definitions/game_gem_data.dart';
+import '../../data/definitions/game_turret_data.dart';
+import '../../domain/combat/game_phase.dart';
+import '../../domain/gem/gem_equip_rules.dart';
+import '../../domain/gem/gem_type.dart';
+import '../../domain/turret/attack_tag.dart';
+import '../../domain/turret/damage_family.dart';
+import '../../domain/turret/turret_definition.dart';
+import '../../domain/turret/turret_target_priority.dart';
+import '../../game/game_snapshot.dart';
+import '../../game/rune_nexus_game.dart';
+import 'gem_socket_section.dart';
+import 'turret_trait_panel.dart';
+
+class HudGemEquipPanel extends StatefulWidget {
+  const HudGemEquipPanel({
+    required this.game,
+    required this.snapshot,
+    super.key,
+  });
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
 
   @override
-  State<_GemEquipPanel> createState() => _GemEquipPanelState();
+  State<HudGemEquipPanel> createState() => _GemEquipPanelState();
 }
 
-class _GemEquipPanelState extends State<_GemEquipPanel> {
+class _GemEquipPanelState extends State<HudGemEquipPanel> {
   GemType? _selectedInventoryGem;
 
   @override
@@ -114,7 +132,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                     refundLabel: '${snapshot.selectedTurretRefundGold}G',
                     onRefund: () => _confirmRefundSelectedTurret(snapshot),
                     traitButton: snapshot.selectedTurretSupportsTraits
-                        ? _TurretTraitActionButton(
+                        ? HudTurretTraitActionButton(
                             snapshot: snapshot,
                             onPressed: () => _showTraitDialog(snapshot),
                           )
@@ -125,7 +143,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
             ],
           ),
           const SizedBox(height: 6),
-          _TurretAttributeChips(definition: definition),
+          HudTurretAttributeChips(definition: definition),
           if (snapshot.canSetTurretTargetPriority) ...[
             const SizedBox(height: 6),
             _TurretTargetPrioritySelector(
@@ -136,7 +154,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
           const SizedBox(height: 6),
           _TurretStats(snapshot: snapshot, definition: definition),
           const SizedBox(height: 6),
-          _TurretLinkSocketStrip(
+          HudTurretLinkSocketStrip(
             snapshot: snapshot,
             canInstallGems: canInstallGems,
             selectedSlotIndex: selectedSlotIndex,
@@ -145,7 +163,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
           ),
           if (showGemInventory && selectedSlotGem != null) ...[
             const SizedBox(height: 6),
-            _SelectedSlotGemActions(
+            HudSelectedSlotGemActions(
               type: selectedSlotGem,
               turret: definition,
               onRemove: canRemoveGems
@@ -184,7 +202,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                           selectedSlotCanAcceptGem &&
                           !equipped &&
                           blockReason == null;
-                      return _InventoryGemChip(
+                      return HudInventoryGemChip(
                         gem: gem,
                         count: count,
                         selected: selected,
@@ -212,7 +230,7 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
                   if (selectedInventoryGem != null &&
                       selectedInventoryGemDefinition != null) ...[
                     const SizedBox(height: 6),
-                    _SelectedInventoryGemActions(
+                    HudSelectedInventoryGemActions(
                       type: selectedInventoryGem,
                       turret: definition,
                       gem: selectedInventoryGemDefinition,
@@ -269,9 +287,9 @@ class _GemEquipPanelState extends State<_GemEquipPanel> {
       widget.game.pauseEngine();
     }
     try {
-      final selected = await showDialog<_TraitSelection>(
+      final selected = await showDialog<HudTraitSelection>(
         context: context,
-        builder: (context) => _TurretTraitDialog(snapshot: snapshot),
+        builder: (context) => HudTurretTraitDialog(snapshot: snapshot),
       );
       if (!mounted || selected == null) {
         return;
@@ -599,7 +617,7 @@ class _DamageSummaryRow extends StatelessWidget {
                 ),
                 const SizedBox(width: 7),
                 Text(
-                  _formatDamageValue(snapshot.selectedTurretDamageDealt),
+                  hudFormatDamageValue(snapshot.selectedTurretDamageDealt),
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
@@ -687,7 +705,7 @@ class _DamageDetailLine extends StatelessWidget {
             ),
           ),
           Text(
-            _formatDamageValue(value),
+            hudFormatDamageValue(value),
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w800,
@@ -723,7 +741,7 @@ class _TurretStats extends StatelessWidget {
 
     return Row(
       children: [
-        _StatPill(
+        HudStatPill(
           label: '피해',
           value: snapshot.selectedTurretDamage.toStringAsFixed(1),
           valueChild: previewActive
@@ -734,7 +752,7 @@ class _TurretStats extends StatelessWidget {
               : null,
         ),
         const SizedBox(width: 5),
-        _StatPill(
+        HudStatPill(
           label: 'DPS',
           value: totalDps.toStringAsFixed(1),
           valueChild: previewActive
@@ -765,7 +783,7 @@ class _TurretStats extends StatelessWidget {
         ),
         if (burnDps > 0) ...[
           const SizedBox(width: 5),
-          _StatPill(
+          HudStatPill(
             label: '화상',
             value: '${snapshot.selectedTurretBurnDuration.toStringAsFixed(1)}초',
             valueChild: previewActive
@@ -780,14 +798,14 @@ class _TurretStats extends StatelessWidget {
         ],
         if (definition.slowDuration > 0) ...[
           const SizedBox(width: 5),
-          _StatPill(
+          HudStatPill(
             label: '감속',
             value:
                 '${((1 - definition.slowMultiplier) * 100).round()}%/${definition.slowDuration.toStringAsFixed(1)}초',
           ),
         ],
         const SizedBox(width: 5),
-        _StatPill(
+        HudStatPill(
           label: '사거리',
           value: snapshot.selectedTurretRange.round().toString(),
           valueChild: previewActive
@@ -798,7 +816,7 @@ class _TurretStats extends StatelessWidget {
               : null,
         ),
         const SizedBox(width: 5),
-        _StatPill(
+        HudStatPill(
           label: '초당',
           value: '${snapshot.selectedTurretAttackRate.toStringAsFixed(2)}회',
           valueChild: previewActive
@@ -815,7 +833,7 @@ class _TurretStats extends StatelessWidget {
   }
 }
 
-String _formatDamageValue(double value) {
+String hudFormatDamageValue(double value) {
   if (value >= 1000) {
     return '${(value / 1000).toStringAsFixed(1)}K';
   }
@@ -823,6 +841,48 @@ String _formatDamageValue(double value) {
     return value.round().toString();
   }
   return value.toStringAsFixed(1);
+}
+
+class HudTurretAttributeChips extends StatelessWidget {
+  const HudTurretAttributeChips({required this.definition, super.key});
+
+  final TurretDefinition definition;
+
+  @override
+  Widget build(BuildContext context) {
+    final labels = [
+      (
+        label: definition.damageFamily.label,
+        color: definition.damageFamily.color,
+      ),
+      ...definition.attackTags.map(
+        (tag) => (label: tag.label, color: tag.color),
+      ),
+    ];
+
+    return Wrap(
+      spacing: 5,
+      runSpacing: 5,
+      children: labels.map((label) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          decoration: BoxDecoration(
+            color: label.color.withValues(alpha: 0.12),
+            border: Border.all(color: label.color.withValues(alpha: 0.75)),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            label.label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: label.color,
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
 }
 
 class _PreviewStatValue extends StatelessWidget {
@@ -857,12 +917,13 @@ class _PreviewStatValue extends StatelessWidget {
   }
 }
 
-class _StatPill extends StatelessWidget {
-  const _StatPill({
+class HudStatPill extends StatelessWidget {
+  const HudStatPill({
     required this.label,
     required this.value,
     this.valueChild,
     this.expand = true,
+    super.key,
   });
 
   final String label;
@@ -909,50 +970,4 @@ class _StatPill extends StatelessWidget {
     }
     return Expanded(child: content);
   }
-}
-
-String _gemEffectText(GemType type, TurretDefinition turret) {
-  return switch (type) {
-    GemType.attackSpeed => turret.instantHit ? '쿨타임 40% 단축' : '초당 발사 40% 증폭',
-    GemType.range => '사거리 20% 증폭',
-    GemType.physicalDamage =>
-      turret.damageFamily == DamageFamily.physical
-          ? '물리 피해 40% 증폭'
-          : '현재 적용되는 물리 피해 없음',
-    GemType.elementalDamage =>
-      turret.damageFamily == DamageFamily.elemental
-          ? '원소 피해 40% 증폭'
-          : '현재 적용되는 원소 피해 없음',
-    GemType.lightWeapon =>
-      turret.attackTags.contains(AttackTag.light)
-          ? '경량화기 피해 20% 증폭, 초당 발사 20% 증폭'
-          : '현재 적용되는 경량화기 피해 없음',
-    GemType.heavyWeapon =>
-      turret.attackTags.contains(AttackTag.heavy)
-          ? '중화기 피해 30% 증폭, 효과 범위 20% 증가'
-          : '현재 적용되는 중화기 피해 없음',
-    GemType.damageOverTime =>
-      turret.attackTags.contains(AttackTag.damageOverTime)
-          ? '지속피해 30% 증폭, 지속시간 30% 증가'
-          : '현재 적용되는 지속피해 없음',
-    GemType.explosion =>
-      turret.type == TurretType.lightning
-          ? '첫 대상 전기 충격파'
-          : turret.splashRadius > 0
-          ? '폭발 반경 25% 증폭'
-          : '반경 34 폭발',
-    GemType.chain =>
-      turret.type == TurretType.lightning
-          ? '후속 연쇄 대상 +2'
-          : turret.splashRadius > 0
-          ? '폭발 미적중 최대 2명에게 50% 연쇄'
-          : '주변 최대 2명에게 50% 연쇄',
-    GemType.criticalChance => '치명 확률 +20%p',
-    GemType.aimSpeed =>
-      turret.instantHit && turret.aimDuration > 0
-          ? '조준 속도 75% 증가'
-          : '현재 적용되는 조준 속도 없음',
-    GemType.damageAmplifier => '타격 피해 25% 증폭',
-    GemType.armorPiercing => '방어구 감쇄 무시',
-  };
 }

@@ -1,16 +1,29 @@
-part of 'game_hud.dart';
+import 'dart:math' as math;
 
-class _RewardOverlay extends StatefulWidget {
-  const _RewardOverlay({required this.game, required this.snapshot});
+import 'package:flutter/material.dart';
+
+import '../../data/definitions/game_gem_data.dart';
+import '../../domain/gem/gem_type.dart';
+import '../../game/game_snapshot.dart';
+import '../../game/rune_nexus_game.dart';
+import '../game/game_ui.dart';
+import 'hud_common.dart';
+
+class HudRewardOverlay extends StatefulWidget {
+  const HudRewardOverlay({
+    required this.game,
+    required this.snapshot,
+    super.key,
+  });
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
 
   @override
-  State<_RewardOverlay> createState() => _RewardOverlayState();
+  State<HudRewardOverlay> createState() => _RewardOverlayState();
 }
 
-class _RewardOverlayState extends State<_RewardOverlay> {
+class _RewardOverlayState extends State<HudRewardOverlay> {
   GemType? _selectedGem;
   bool _selectedGemShards = false;
 
@@ -139,7 +152,7 @@ class _GemShardRewardBar extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const _GemShardIcon(),
+              const HudGemShardIcon(),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(

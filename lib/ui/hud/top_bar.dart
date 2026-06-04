@@ -1,12 +1,25 @@
-part of 'game_hud.dart';
+import 'package:flutter/material.dart';
 
-class _TopBar extends StatelessWidget {
-  const _TopBar({
+import '../../data/definitions/game_enemy_data.dart';
+import '../../data/definitions/game_gem_data.dart';
+import '../../domain/combat/game_phase.dart';
+import '../../domain/enemy/enemy_type.dart';
+import '../../domain/gem/gem_type.dart';
+import '../../game/game_snapshot.dart';
+import '../../game/rune_nexus_game.dart';
+import '../game/game_ui.dart';
+import 'bottom_bar.dart';
+import 'gem_equip_panel.dart';
+import 'hud_common.dart';
+
+class HudTopBar extends StatelessWidget {
+  const HudTopBar({
     required this.snapshot,
     required this.showDebugButton,
     required this.showGemDebugPanel,
     required this.onToggleGemDebugPanel,
     this.onOpenMainMenu,
+    super.key,
   });
 
   final GameSnapshot snapshot;
@@ -92,7 +105,7 @@ class _ResourceStrip extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           _ResourceValue(
-            iconWidget: const _GemShardIcon(),
+            iconWidget: const HudGemShardIcon(),
             valueText: '${snapshot.gemShards}',
           ),
         ],
@@ -127,71 +140,6 @@ class _ResourceValue extends StatelessWidget {
       valueChild: valueChild,
     );
   }
-}
-
-class _GemShardIcon extends StatelessWidget {
-  const _GemShardIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox(
-      width: 16,
-      height: 16,
-      child: CustomPaint(painter: _GemShardPainter()),
-    );
-  }
-}
-
-class _GemShardPainter extends CustomPainter {
-  const _GemShardPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final shard = Path()
-      ..moveTo(size.width * 0.48, size.height * 0.08)
-      ..lineTo(size.width * 0.88, size.height * 0.26)
-      ..lineTo(size.width * 0.78, size.height * 0.62)
-      ..lineTo(size.width * 0.36, size.height * 0.94)
-      ..lineTo(size.width * 0.08, size.height * 0.5)
-      ..close();
-    final paint = Paint()
-      ..shader = const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xFFA8FFB8), Color(0xFF28D66F), Color(0xFF0E7F47)],
-      ).createShader(Offset.zero & size);
-    canvas.drawPath(shard, paint);
-
-    final edgePaint = Paint()
-      ..color = const Color(0xFFBFFFF0)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2
-      ..strokeJoin = StrokeJoin.round;
-    canvas.drawPath(shard, edgePaint);
-
-    final facetPaint = Paint()
-      ..color = const Color(0x665CFFAA)
-      ..style = PaintingStyle.fill;
-    final facet = Path()
-      ..moveTo(size.width * 0.48, size.height * 0.08)
-      ..lineTo(size.width * 0.88, size.height * 0.26)
-      ..lineTo(size.width * 0.52, size.height * 0.38)
-      ..close();
-    canvas.drawPath(facet, facetPaint);
-
-    final glintPaint = Paint()
-      ..color = const Color(0xDDFFFFFF)
-      ..strokeWidth = 1.1
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(
-      Offset(size.width * 0.3, size.height * 0.32),
-      Offset(size.width * 0.5, size.height * 0.16),
-      glintPaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _GemShardPainter oldDelegate) => false;
 }
 
 class _GoldValue extends StatelessWidget {
@@ -348,7 +296,7 @@ class _EnemyIntelButton extends StatelessWidget {
         onTap: () => showModalBottomSheet<void>(
           context: context,
           backgroundColor: Colors.transparent,
-          builder: (context) => _PortalWaveDetailSheet(snapshot: snapshot),
+          builder: (context) => HudPortalWaveDetailSheet(snapshot: snapshot),
         ),
         borderRadius: BorderRadius.circular(5),
         child: Container(
@@ -369,7 +317,7 @@ class _EnemyIntelButton extends StatelessWidget {
                     width: 18,
                     height: 18,
                     child: CustomPaint(
-                      painter: _EnemyIconPainter(
+                      painter: HudEnemyIconPainter(
                         color: gameEnemies[type]!.color,
                         type: type,
                       ),
@@ -412,7 +360,7 @@ class _WaveRewardSummary extends StatelessWidget {
             const Icon(Icons.flag_outlined, size: 12, color: Color(0xFFFFD166)),
             _RewardValue(value: snapshot.nextWaveClearRewardGold),
             const SizedBox(width: 5),
-            const SizedBox(width: 12, height: 12, child: _GemShardIcon()),
+            const SizedBox(width: 12, height: 12, child: HudGemShardIcon()),
             _RewardValue(value: snapshot.nextWaveClearRewardGemShards),
           ],
         ),
@@ -479,7 +427,7 @@ class _CombatPowerBadge extends StatelessWidget {
             ),
             const SizedBox(height: 2),
             ScaleDownText(
-              _formatDamageValue(totalDps),
+              hudFormatDamageValue(totalDps),
               style: const TextStyle(
                 color: Color(0xFFE8FBFF),
                 fontSize: 13,
@@ -532,10 +480,10 @@ class _TopIconButton extends StatelessWidget {
   }
 }
 
-enum _StageMenuAction { openMainMenu, endStage }
+enum HudStageMenuAction { openMainMenu, endStage }
 
-class _StageMenuDialog extends StatelessWidget {
-  const _StageMenuDialog({required this.snapshot});
+class HudStageMenuDialog extends StatelessWidget {
+  const HudStageMenuDialog({required this.snapshot, super.key});
 
   final GameSnapshot snapshot;
 
@@ -644,8 +592,9 @@ class _StageMenuDialog extends StatelessWidget {
                   label: '스테이지 종료',
                   style: _StageDialogActionStyle.danger,
                   onPressed: canEndStage
-                      ? () =>
-                            Navigator.of(context).pop(_StageMenuAction.endStage)
+                      ? () => Navigator.of(
+                          context,
+                        ).pop(HudStageMenuAction.endStage)
                       : null,
                 ),
               ),
@@ -656,8 +605,9 @@ class _StageMenuDialog extends StatelessWidget {
                   icon: Icons.home_outlined,
                   label: '메인화면으로 이동',
                   style: _StageDialogActionStyle.primary,
-                  onPressed: () =>
-                      Navigator.of(context).pop(_StageMenuAction.openMainMenu),
+                  onPressed: () => Navigator.of(
+                    context,
+                  ).pop(HudStageMenuAction.openMainMenu),
                 ),
               ),
             ],
@@ -668,8 +618,8 @@ class _StageMenuDialog extends StatelessWidget {
   }
 }
 
-class _StageEndConfirmDialog extends StatelessWidget {
-  const _StageEndConfirmDialog({required this.snapshot});
+class HudStageEndConfirmDialog extends StatelessWidget {
+  const HudStageEndConfirmDialog({required this.snapshot, super.key});
 
   final GameSnapshot snapshot;
 
@@ -788,8 +738,12 @@ class _StageDialogActionButton extends StatelessWidget {
   }
 }
 
-class _GemDebugPanel extends StatelessWidget {
-  const _GemDebugPanel({required this.game, required this.snapshot});
+class HudGemDebugPanel extends StatelessWidget {
+  const HudGemDebugPanel({
+    required this.game,
+    required this.snapshot,
+    super.key,
+  });
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
@@ -963,7 +917,7 @@ class _GemDebugPanel extends StatelessWidget {
                           borderRadius: BorderRadius.circular(7),
                         ),
                       ),
-                      icon: _EnemyIcon(type: type, selected: false, size: 17),
+                      icon: HudEnemyIcon(type: type, selected: false, size: 17),
                       label: Text(
                         enemy.name,
                         style: const TextStyle(fontSize: 11),

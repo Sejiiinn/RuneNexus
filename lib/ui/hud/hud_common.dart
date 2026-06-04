@@ -1,7 +1,149 @@
-part of 'game_hud.dart';
+import 'dart:async';
+import 'dart:math' as math;
 
-class _TurretButton extends StatelessWidget {
-  const _TurretButton({
+import 'package:flutter/material.dart';
+
+import '../../data/definitions/game_enemy_data.dart';
+import '../../domain/combat/game_phase.dart';
+import '../../domain/enemy/enemy_type.dart';
+import '../../domain/turret/turret_type.dart';
+import '../../game/game_snapshot.dart';
+import '../../game/rendering/enemy_shape_renderer.dart';
+import '../../game/rendering/turret_shape_renderer.dart';
+import '../../game/rune_nexus_game.dart';
+import '../game/game_ui.dart';
+
+class HudGemShardIcon extends StatelessWidget {
+  const HudGemShardIcon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 16,
+      height: 16,
+      child: CustomPaint(painter: _GemShardPainter()),
+    );
+  }
+}
+
+class _GemShardPainter extends CustomPainter {
+  const _GemShardPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final shard = Path()
+      ..moveTo(size.width * 0.48, size.height * 0.08)
+      ..lineTo(size.width * 0.88, size.height * 0.26)
+      ..lineTo(size.width * 0.78, size.height * 0.62)
+      ..lineTo(size.width * 0.36, size.height * 0.94)
+      ..lineTo(size.width * 0.08, size.height * 0.5)
+      ..close();
+    final paint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFA8FFB8), Color(0xFF28D66F), Color(0xFF0E7F47)],
+      ).createShader(Offset.zero & size);
+    canvas.drawPath(shard, paint);
+
+    final edgePaint = Paint()
+      ..color = const Color(0xFFBFFFF0)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..strokeJoin = StrokeJoin.round;
+    canvas.drawPath(shard, edgePaint);
+
+    final facetPaint = Paint()
+      ..color = const Color(0x665CFFAA)
+      ..style = PaintingStyle.fill;
+    final facet = Path()
+      ..moveTo(size.width * 0.48, size.height * 0.08)
+      ..lineTo(size.width * 0.88, size.height * 0.26)
+      ..lineTo(size.width * 0.52, size.height * 0.38)
+      ..close();
+    canvas.drawPath(facet, facetPaint);
+
+    final glintPaint = Paint()
+      ..color = const Color(0xDDFFFFFF)
+      ..strokeWidth = 1.1
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(size.width * 0.3, size.height * 0.32),
+      Offset(size.width * 0.5, size.height * 0.16),
+      glintPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _GemShardPainter oldDelegate) => false;
+}
+
+class HudEnemyIconPainter extends CustomPainter {
+  const HudEnemyIconPainter({required this.color, required this.type});
+
+  final Color color;
+  final EnemyType type;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.clipRect(Offset.zero & size);
+    drawEnemyShape(
+      canvas,
+      size: size,
+      type: type,
+      color: color,
+      strokeWidth: 2,
+    );
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant HudEnemyIconPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.type != type;
+  }
+}
+
+class HudEnemyIcon extends StatelessWidget {
+  const HudEnemyIcon({
+    required this.type,
+    required this.selected,
+    this.size = 30,
+    super.key,
+  });
+
+  final EnemyType type;
+  final bool selected;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final enemy = gameEnemies[type]!;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 110),
+      width: size,
+      height: size,
+      padding: EdgeInsets.all(math.max(2, size * 0.1)),
+      decoration: BoxDecoration(
+        color: selected
+            ? enemy.color.withValues(alpha: 0.16)
+            : Colors.transparent,
+        border: Border.all(
+          color: selected ? enemy.color : Colors.transparent,
+          width: 1.2,
+        ),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: CustomPaint(
+        painter: HudEnemyIconPainter(color: enemy.color, type: type),
+      ),
+    );
+  }
+}
+
+class HudTurretButton extends StatelessWidget {
+  const HudTurretButton({
     required this.type,
     required this.label,
     required this.cost,
@@ -9,6 +151,7 @@ class _TurretButton extends StatelessWidget {
     required this.selected,
     required this.enabled,
     required this.onPressed,
+    super.key,
   });
 
   final TurretType type;
@@ -125,17 +268,21 @@ class _TurretShapePainter extends CustomPainter {
   }
 }
 
-class _RestoreRunOverlay extends StatefulWidget {
-  const _RestoreRunOverlay({required this.game, required this.snapshot});
+class HudRestoreRunOverlay extends StatefulWidget {
+  const HudRestoreRunOverlay({
+    required this.game,
+    required this.snapshot,
+    super.key,
+  });
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
 
   @override
-  State<_RestoreRunOverlay> createState() => _RestoreRunOverlayState();
+  State<HudRestoreRunOverlay> createState() => _RestoreRunOverlayState();
 }
 
-class _RestoreRunOverlayState extends State<_RestoreRunOverlay> {
+class _RestoreRunOverlayState extends State<HudRestoreRunOverlay> {
   Timer? _countdownTimer;
   int? _countdown;
 

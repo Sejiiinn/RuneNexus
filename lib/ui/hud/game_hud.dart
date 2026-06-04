@@ -1,45 +1,14 @@
-import 'dart:async';
-import 'dart:math' as math;
-
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
-import '../../data/definitions/game_enemy_data.dart';
-import '../../data/definitions/game_gem_data.dart';
-import '../../data/definitions/game_run_upgrade_data.dart';
-import '../../data/definitions/game_turret_data.dart';
-import '../../domain/combat/auto_start_mode.dart';
 import '../../domain/combat/game_phase.dart';
-import '../../domain/combat/run_panel_tab.dart';
-import '../../domain/core/core_ability.dart';
-import '../../domain/enemy/enemy_definition.dart';
-import '../../domain/enemy/enemy_scaling.dart';
-import '../../domain/enemy/enemy_type.dart';
-import '../../domain/gem/gem_definition.dart';
-import '../../domain/gem/gem_equip_rules.dart';
-import '../../domain/gem/gem_type.dart';
-import '../../domain/run_upgrade/run_upgrade_definition.dart';
-import '../../domain/run_upgrade/run_upgrade_type.dart';
-import '../../domain/turret/attack_tag.dart';
-import '../../domain/turret/damage_family.dart';
-import '../../domain/turret/turret_definition.dart';
-import '../../domain/turret/turret_target_priority.dart';
-import '../../domain/turret/turret_trait_type.dart';
-import '../../domain/turret/turret_type.dart';
 import '../../game/game_snapshot.dart';
-import '../../game/rendering/enemy_shape_renderer.dart';
-import '../../game/rendering/turret_shape_renderer.dart';
 import '../../game/rune_nexus_game.dart';
-import '../game/game_ui.dart';
 import '../menu/result_overlay.dart';
-
-part 'top_bar.dart';
-part 'bottom_bar.dart';
-part 'gem_equip_panel.dart';
-part 'gem_socket_section.dart';
-part 'turret_trait_panel.dart';
-part 'reward_overlay.dart';
-part 'hud_common.dart';
+import 'bottom_bar.dart';
+import 'hud_common.dart';
+import 'reward_overlay.dart';
+import 'top_bar.dart';
 
 const _showDebugPanel = bool.fromEnvironment(
   'RUNE_NEXUS_DEBUG_PANEL',
@@ -96,45 +65,53 @@ class _GameHudState extends State<GameHud> {
       widget.game.pauseEngine();
     }
     try {
-      final action = await showDialog<_StageMenuAction>(
+      final action = await showDialog<HudStageMenuAction>(
         context: context,
-        builder: (context) => _StageMenuDialog(snapshot: snapshot),
+        builder: (context) => HudStageMenuDialog(snapshot: snapshot),
       );
       if (!mounted || action == null) {
         return;
       }
 
-      if (action == _StageMenuAction.openMainMenu) {
-        widget.game.suspendCurrentRunForMenu();
-        await widget.game.saveNow();
-        if (!mounted) {
-          return;
-        }
-        shouldResumeCombat = false;
-        widget.onOpenStageSelect?.call();
+      if (action == HudStageMenuAction.openMainMenu) {
+        shouldResumeCombat = !await _confirmReturnToMenu();
         return;
       }
 
       final confirmed = await showDialog<bool>(
         context: context,
-        builder: (context) => _StageEndConfirmDialog(snapshot: snapshot),
+        builder: (context) => HudStageEndConfirmDialog(snapshot: snapshot),
       );
       if (!mounted || confirmed != true) {
         return;
       }
 
-      await widget.game.settleCurrentRunAsFailure();
-      await widget.game.saveNow();
-      if (!mounted) {
-        return;
-      }
-      shouldResumeCombat = false;
-      widget.onOpenStageSelect?.call();
+      shouldResumeCombat = !await _confirmEndStage();
     } finally {
       if (shouldResumeCombat) {
         widget.game.resumeEngine();
       }
     }
+  }
+
+  Future<bool> _confirmReturnToMenu() async {
+    widget.game.suspendCurrentRunForMenu();
+    await widget.game.saveNow();
+    if (!mounted) {
+      return false;
+    }
+    widget.onOpenStageSelect?.call();
+    return true;
+  }
+
+  Future<bool> _confirmEndStage() async {
+    await widget.game.settleCurrentRunAsFailure();
+    await widget.game.saveNow();
+    if (!mounted) {
+      return false;
+    }
+    widget.onOpenStageSelect?.call();
+    return true;
   }
 
   @override
@@ -159,65 +136,147 @@ class _GameHudState extends State<GameHud> {
         ),
         if (widget.showControls)
           SafeArea(
-            child: ValueListenableBuilder<GameSnapshot>(
-              valueListenable: widget.game.snapshotNotifier,
-              builder: (context, snapshot, _) {
-                return Stack(
-                  children: [
-                    _TopBar(
-                      snapshot: snapshot,
-                      showDebugButton: _showDebugPanel,
-                      showGemDebugPanel: _showGemDebugPanel,
-                      onOpenMainMenu: () => _handleOpenMainMenu(snapshot),
-                      onToggleGemDebugPanel: () {
-                        setState(() {
-                          _showGemDebugPanel = !_showGemDebugPanel;
-                        });
-                      },
-                    ),
-                    if (_showDebugPanel && _showGemDebugPanel)
-                      Positioned(
-                        top: 112,
-                        right: 12,
-                        bottom: 212,
-                        child: _GemDebugPanel(
-                          game: widget.game,
-                          snapshot: snapshot,
-                        ),
-                      ),
-                    _BottomBar(game: widget.game, snapshot: snapshot),
-                    if (snapshot.phase == GamePhase.reward)
-                      Positioned.fill(
-                        child: _RewardOverlay(
-                          game: widget.game,
-                          snapshot: snapshot,
-                        ),
-                      ),
-                    if (snapshot.phase == GamePhase.restored)
-                      Positioned.fill(
-                        child: _RestoreRunOverlay(
-                          game: widget.game,
-                          snapshot: snapshot,
-                        ),
-                      ),
-                    if (snapshot.phase == GamePhase.success ||
-                        snapshot.phase == GamePhase.failure)
-                      Positioned.fill(
-                        child: ResultOverlay(
-                          game: widget.game,
-                          snapshot: snapshot,
-                          onOpenStageSelect: widget.onOpenStageSelect,
-                          onOpenPermanentUpgrades:
-                              widget.onOpenPermanentUpgrades,
-                          onStartStage: widget.onStartStage,
-                        ),
-                      ),
-                  ],
-                );
-              },
+            child: Stack(
+              children: [
+                _HudTopBarLayer(
+                  game: widget.game,
+                  showDebugButton: _showDebugPanel,
+                  showGemDebugPanel: _showGemDebugPanel,
+                  onOpenMainMenu: _handleOpenMainMenu,
+                  onToggleGemDebugPanel: () {
+                    setState(() {
+                      _showGemDebugPanel = !_showGemDebugPanel;
+                    });
+                  },
+                ),
+                if (_showDebugPanel && _showGemDebugPanel)
+                  _HudGemDebugLayer(game: widget.game),
+                _HudBottomBarLayer(game: widget.game),
+                _HudOverlayLayer(
+                  game: widget.game,
+                  onOpenStageSelect: widget.onOpenStageSelect,
+                  onOpenPermanentUpgrades: widget.onOpenPermanentUpgrades,
+                  onStartStage: widget.onStartStage,
+                ),
+              ],
             ),
           ),
       ],
+    );
+  }
+}
+
+class _HudTopBarLayer extends StatelessWidget {
+  const _HudTopBarLayer({
+    required this.game,
+    required this.showDebugButton,
+    required this.showGemDebugPanel,
+    required this.onOpenMainMenu,
+    required this.onToggleGemDebugPanel,
+  });
+
+  final RuneNexusGame game;
+  final bool showDebugButton;
+  final bool showGemDebugPanel;
+  final ValueChanged<GameSnapshot> onOpenMainMenu;
+  final VoidCallback onToggleGemDebugPanel;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<GameSnapshot>(
+      valueListenable: game.snapshotNotifier,
+      builder: (context, snapshot, _) {
+        return HudTopBar(
+          snapshot: snapshot,
+          showDebugButton: showDebugButton,
+          showGemDebugPanel: showGemDebugPanel,
+          onOpenMainMenu: () => onOpenMainMenu(snapshot),
+          onToggleGemDebugPanel: onToggleGemDebugPanel,
+        );
+      },
+    );
+  }
+}
+
+class _HudGemDebugLayer extends StatelessWidget {
+  const _HudGemDebugLayer({required this.game});
+
+  final RuneNexusGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<GameSnapshot>(
+      valueListenable: game.snapshotNotifier,
+      builder: (context, snapshot, _) {
+        return Positioned(
+          top: 112,
+          right: 12,
+          bottom: 212,
+          child: HudGemDebugPanel(game: game, snapshot: snapshot),
+        );
+      },
+    );
+  }
+}
+
+class _HudBottomBarLayer extends StatelessWidget {
+  const _HudBottomBarLayer({required this.game});
+
+  final RuneNexusGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<GameSnapshot>(
+      valueListenable: game.snapshotNotifier,
+      builder: (context, snapshot, _) {
+        return HudBottomBar(game: game, snapshot: snapshot);
+      },
+    );
+  }
+}
+
+class _HudOverlayLayer extends StatelessWidget {
+  const _HudOverlayLayer({
+    required this.game,
+    required this.onOpenStageSelect,
+    required this.onOpenPermanentUpgrades,
+    required this.onStartStage,
+  });
+
+  final RuneNexusGame game;
+  final VoidCallback? onOpenStageSelect;
+  final VoidCallback? onOpenPermanentUpgrades;
+  final ValueChanged<int>? onStartStage;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<GameSnapshot>(
+      valueListenable: game.snapshotNotifier,
+      builder: (context, snapshot, _) {
+        if (snapshot.phase == GamePhase.reward) {
+          return Positioned.fill(
+            child: HudRewardOverlay(game: game, snapshot: snapshot),
+          );
+        }
+        if (snapshot.phase == GamePhase.restored) {
+          return Positioned.fill(
+            child: HudRestoreRunOverlay(game: game, snapshot: snapshot),
+          );
+        }
+        if (snapshot.phase == GamePhase.success ||
+            snapshot.phase == GamePhase.failure) {
+          return Positioned.fill(
+            child: ResultOverlay(
+              game: game,
+              snapshot: snapshot,
+              onOpenStageSelect: onOpenStageSelect,
+              onOpenPermanentUpgrades: onOpenPermanentUpgrades,
+              onStartStage: onStartStage,
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      },
     );
   }
 }
