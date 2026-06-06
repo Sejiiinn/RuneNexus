@@ -1,8 +1,10 @@
 import 'dart:math' as math;
 
+import '../../data/definitions/game_daily_quest_data.dart';
 import '../../data/definitions/game_research_data.dart';
 import '../../data/save/game_save_data.dart';
 import '../../domain/core/core_ability.dart';
+import '../../domain/daily_quest/daily_quest_type.dart';
 import '../../domain/research/research_progress.dart';
 import '../../domain/research/research_type.dart';
 
@@ -24,6 +26,12 @@ class RunProgression {
   static const int gemShardsPerGemAttunementLevel = 2;
   static const int corePassiveSlotUnlockCost = 500;
   static const int diamondMillisPerResearchMinute = 60000;
+  static const int uninitializedDailyQuestDayKey = -1;
+  static const int dailyQuestResetHourKst = 5;
+  static const int dailyQuestClockRollbackGraceMillis = 5 * 60 * 1000;
+  static const int _hourMillis = 60 * 60 * 1000;
+  static const int _dayMillis = 24 * _hourMillis;
+  static const int _kstOffsetHours = 9;
   static const double researchEfficiencyPerLevel = 0.05;
   static const double researchCostEfficiencyPerLevel = 0.05;
   static const double bossBountyBonusPerLevel = 0.025;
@@ -80,6 +88,12 @@ class RunProgression {
   int runes = 0;
   int freeDiamonds = 0;
   int paidDiamonds = 0;
+  int dailyQuestDayKey = uninitializedDailyQuestDayKey;
+  int lastDailyQuestSeenMillis = 0;
+  bool dailyQuestClockRollbackDetected = false;
+  final Map<DailyQuestType, int> dailyQuestProgress = {};
+  final Set<DailyQuestType> claimedDailyQuestRewards = {};
+  bool dailyQuestAllCompleteClaimed = false;
   int lastRunRuneReward = 0;
   int startingGoldUpgradeLevel = 0;
   int nexusHpUpgradeLevel = 0;
@@ -250,6 +264,10 @@ class RunProgression {
       _cappedEmergencySaleUpgradeLevel < maxEmergencySaleUpgradeLevel &&
       runes >= emergencySaleUpgradeCost;
   int get diamonds => freeDiamonds + paidDiamonds;
+  int get completedDailyQuestCount =>
+      gameDailyQuestDefinitions.keys.where(isDailyQuestComplete).length;
+  bool get allDailyQuestsComplete =>
+      completedDailyQuestCount == gameDailyQuestDefinitions.length;
 
   int get _cappedStartingGoldUpgradeLevel =>
       startingGoldUpgradeLevel.clamp(0, maxStartingGoldUpgradeLevel).toInt();
@@ -304,6 +322,12 @@ class RunProgression {
     }
     return (remainingMillis + diamondMillisPerResearchMinute - 1) ~/
         diamondMillisPerResearchMinute;
+  }
+
+  static int dailyQuestDayKeyFor(int nowMillis) {
+    final adjustedMillis =
+        nowMillis + (_kstOffsetHours - dailyQuestResetHourKst) * _hourMillis;
+    return adjustedMillis ~/ _dayMillis;
   }
 
   static int _hybridUpgradeCost({
@@ -476,6 +500,94 @@ class RunProgression {
     freeDiamonds += amount;
   }
 
+  bool refreshDailyQuests({required int nowMillis}) {
+    var changed = false;
+    final currentDayKey = dailyQuestDayKeyFor(nowMillis);
+    if (dailyQuestDayKey != currentDayKey) {
+      dailyQuestDayKey = currentDayKey;
+      dailyQuestProgress.clear();
+      claimedDailyQuestRewards.clear();
+      dailyQuestAllCompleteClaimed = false;
+      dailyQuestClockRollbackDetected = false;
+      changed = true;
+    } else if (lastDailyQuestSeenMillis > 0 &&
+        nowMillis + dailyQuestClockRollbackGraceMillis <
+            lastDailyQuestSeenMillis) {
+      if (!dailyQuestClockRollbackDetected) {
+        dailyQuestClockRollbackDetected = true;
+        changed = true;
+      }
+    }
+
+    if (lastDailyQuestSeenMillis == 0 || nowMillis > lastDailyQuestSeenMillis) {
+      lastDailyQuestSeenMillis = nowMillis;
+      changed = true;
+    }
+    return changed;
+  }
+
+  void recordDailyQuestProgress(
+    DailyQuestType type, {
+    int amount = 1,
+    required int nowMillis,
+  }) {
+    if (amount <= 0) {
+      return;
+    }
+    refreshDailyQuests(nowMillis: nowMillis);
+    final definition = gameDailyQuestDefinitions[type];
+    if (definition == null) {
+      return;
+    }
+    final current = dailyQuestProgress[type] ?? 0;
+    dailyQuestProgress[type] = math.min(
+      definition.targetCount,
+      current + amount,
+    );
+  }
+
+  bool isDailyQuestComplete(DailyQuestType type) {
+    final definition = gameDailyQuestDefinitions[type];
+    if (definition == null) {
+      return false;
+    }
+    return (dailyQuestProgress[type] ?? 0) >= definition.targetCount;
+  }
+
+  bool canClaimDailyQuestReward(DailyQuestType type, {required int nowMillis}) {
+    refreshDailyQuests(nowMillis: nowMillis);
+    return !dailyQuestClockRollbackDetected &&
+        isDailyQuestComplete(type) &&
+        !claimedDailyQuestRewards.contains(type);
+  }
+
+  bool claimDailyQuestReward(DailyQuestType type, {required int nowMillis}) {
+    final definition = gameDailyQuestDefinitions[type];
+    if (definition == null ||
+        !canClaimDailyQuestReward(type, nowMillis: nowMillis)) {
+      return false;
+    }
+    addFreeDiamonds(definition.rewardDiamonds);
+    claimedDailyQuestRewards.add(type);
+    return true;
+  }
+
+  bool canClaimDailyQuestAllCompleteReward({required int nowMillis}) {
+    refreshDailyQuests(nowMillis: nowMillis);
+    return !dailyQuestClockRollbackDetected &&
+        allDailyQuestsComplete &&
+        !dailyQuestAllCompleteClaimed;
+  }
+
+  bool claimDailyQuestAllCompleteReward({required int nowMillis}) {
+    if (!canClaimDailyQuestAllCompleteReward(nowMillis: nowMillis)) {
+      return false;
+    }
+    addFreeDiamonds(dailyQuestAllCompleteRewardDiamonds);
+    dailyQuestAllCompleteClaimed = true;
+    return true;
+  }
+
   bool _spendDiamonds(int amount) {
     if (amount < 0 || diamonds < amount) {
       return false;
@@ -513,6 +625,12 @@ class RunProgression {
       runes: runes,
       freeDiamonds: freeDiamonds,
       paidDiamonds: paidDiamonds,
+      dailyQuestDayKey: dailyQuestDayKey,
+      lastDailyQuestSeenMillis: lastDailyQuestSeenMillis,
+      dailyQuestClockRollbackDetected: dailyQuestClockRollbackDetected,
+      dailyQuestProgress: Map.unmodifiable(dailyQuestProgress),
+      claimedDailyQuestRewards: Set.unmodifiable(claimedDailyQuestRewards),
+      dailyQuestAllCompleteClaimed: dailyQuestAllCompleteClaimed,
       lastRunRuneReward: lastRunRuneReward,
       startingGoldUpgradeLevel: _cappedStartingGoldUpgradeLevel,
       nexusHpUpgradeLevel: _cappedNexusHpUpgradeLevel,
@@ -556,6 +674,27 @@ class RunProgression {
     runes = math.max(0, data.runes);
     freeDiamonds = math.max(0, data.freeDiamonds);
     paidDiamonds = math.max(0, data.paidDiamonds);
+    dailyQuestDayKey = data.dailyQuestDayKey;
+    lastDailyQuestSeenMillis = math.max(0, data.lastDailyQuestSeenMillis);
+    dailyQuestClockRollbackDetected = data.dailyQuestClockRollbackDetected;
+    dailyQuestProgress
+      ..clear()
+      ..addEntries(
+        data.dailyQuestProgress.entries
+            .where((entry) => gameDailyQuestDefinitions.containsKey(entry.key))
+            .map((entry) {
+              final target = gameDailyQuestDefinitions[entry.key]!.targetCount;
+              return MapEntry(entry.key, entry.value.clamp(0, target).toInt());
+            }),
+      );
+    claimedDailyQuestRewards
+      ..clear()
+      ..addAll(
+        data.claimedDailyQuestRewards.where(
+          gameDailyQuestDefinitions.containsKey,
+        ),
+      );
+    dailyQuestAllCompleteClaimed = data.dailyQuestAllCompleteClaimed;
     lastRunRuneReward = math.max(0, data.lastRunRuneReward);
     startingGoldUpgradeLevel = data.startingGoldUpgradeLevel
         .clamp(0, maxStartingGoldUpgradeLevel)

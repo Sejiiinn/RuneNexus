@@ -82,6 +82,46 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('stage menu opens daily quest dialog', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+          ),
+          selectedTab: MainMenuTab.stage,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(
+      find.byKey(const ValueKey('daily-quest-entry-button')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('daily-quest-entry-button')));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('웨이브 30회 클리어'), findsOneWidget);
+    expect(find.text('보스 3회 처치'), findsOneWidget);
+    expect(find.text('몹 100회 처치'), findsOneWidget);
+    expect(find.text('런 강화 5회'), findsOneWidget);
+    expect(find.text('+10'), findsNWidgets(4));
+  });
+
   testWidgets('stage menu opens chapter two as stages six to ten', (
     tester,
   ) async {
@@ -2071,6 +2111,12 @@ GameSnapshot _resultSnapshot({
     waveClearGoldRunBonus: 0,
     runes: runes,
     diamonds: diamonds,
+    dailyQuestDayKey: RunProgression.uninitializedDailyQuestDayKey,
+    dailyQuestProgress: const {},
+    claimedDailyQuestRewards: const {},
+    completedDailyQuestCount: 0,
+    dailyQuestAllCompleteClaimed: false,
+    dailyQuestClockRollbackDetected: false,
     lastRunRuneReward: lastRunRuneReward,
     projectedFailureRuneReward: completedRounds * 2,
     lastRunPreviousBestRound: lastRunPreviousBestRound,

@@ -1,0 +1,992 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rune Nexus Daily Quest Stage Popup Candidate</title>
+  <style>
+    :root {
+      --void: #02070d;
+      --backdrop: #07111d;
+      --panel: #0b1b2b;
+      --panel-inset: #07111d;
+      --panel-raised: #102236;
+      --stone: #4a6172;
+      --metal: #8fa8ba;
+      --metal-dim: #607486;
+      --cyan: #8ee6ff;
+      --cyan-deep: #22c7e8;
+      --cyan-bright: #bff4ff;
+      --gold: #e7c66a;
+      --gold-bright: #ffd166;
+      --green: #63e6a5;
+      --danger: #ff7043;
+      --warning: #ffc285;
+      --text: #e8f8ff;
+      --text-sub: #b9d6e4;
+      --text-muted: #8aa6b8;
+      --disabled: #667987;
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", Arial, sans-serif;
+      line-height: 1.25;
+      background:
+        radial-gradient(circle at 16% 8%, rgba(142, 230, 255, 0.14), transparent 28%),
+        radial-gradient(circle at 92% 22%, rgba(231, 198, 106, 0.1), transparent 28%),
+        linear-gradient(135deg, #03080f, #07111d 54%, #02070d);
+    }
+
+    .page {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 26px 14px 42px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 7px;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin: 0;
+      max-width: 720px;
+      color: var(--text-sub);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .legend {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 34px;
+      padding: 7px 10px;
+      border: 1px solid rgba(142, 230, 255, 0.34);
+      border-radius: var(--radius);
+      color: var(--cyan);
+      background: rgba(7, 17, 29, 0.78);
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .diamond {
+      width: 13px;
+      height: 13px;
+      flex: 0 0 auto;
+      transform: rotate(45deg);
+      border: 1px solid rgba(191, 244, 255, 0.9);
+      background: linear-gradient(135deg, var(--cyan), #d8fbff);
+      box-shadow: 0 0 10px rgba(142, 230, 255, 0.34);
+    }
+
+    .diamond.mini {
+      width: 9px;
+      height: 9px;
+      display: inline-block;
+      margin-right: 5px;
+      vertical-align: -1px;
+      box-shadow: 0 0 7px rgba(142, 230, 255, 0.28);
+    }
+
+    .frames {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+
+    .frame-label {
+      margin: 0 0 8px;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .phone {
+      position: relative;
+      width: min(100%, 390px);
+      height: 760px;
+      overflow: hidden;
+      border: 1px solid rgba(142, 230, 255, 0.24);
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 52% 22%, rgba(142, 230, 255, 0.09), transparent 20%),
+        linear-gradient(180deg, #081421, #02070d);
+      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.48);
+    }
+
+    .screen {
+      height: 100%;
+      padding: 12px;
+      display: grid;
+      grid-template-rows: auto auto auto 1fr;
+      gap: 10px;
+    }
+
+    .top-currency {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 5px 8px;
+      border: 1px solid rgba(142, 230, 255, 0.16);
+      border-radius: 999px;
+      background: rgba(2, 7, 13, 0.6);
+      color: var(--text-sub);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .menu-panel {
+      margin-top: 38px;
+      padding: 11px;
+      border: 1px solid rgba(85, 106, 120, 0.54);
+      border-radius: var(--radius);
+      background: linear-gradient(145deg, rgba(11, 27, 43, 0.96), rgba(7, 17, 29, 0.94));
+      box-shadow:
+        0 0 0 1px rgba(142, 230, 255, 0.04) inset,
+        0 14px 32px rgba(0, 0, 0, 0.42);
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .tab {
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(143, 191, 255, 0.22);
+      border-radius: var(--radius);
+      background: rgba(4, 11, 24, 0.66);
+      color: #98abc8;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .tab.active {
+      color: var(--text);
+      border-color: rgba(142, 230, 255, 0.78);
+      background: rgba(34, 199, 232, 0.17);
+      box-shadow: inset 0 -2px 0 var(--cyan);
+    }
+
+    .chapter-banner {
+      min-height: 66px;
+      padding: 11px;
+      border: 1px solid rgba(142, 230, 255, 0.34);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(90deg, rgba(2, 7, 13, 0.12), rgba(2, 7, 13, 0.7)),
+        radial-gradient(circle at 0% 0%, rgba(142, 230, 255, 0.28), transparent 42%),
+        linear-gradient(135deg, #0c2635, #091321);
+      box-shadow: inset 0 0 0 1px rgba(191, 244, 255, 0.05);
+    }
+
+    .chapter-banner h2 {
+      margin: 0 0 5px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .chapter-banner p {
+      margin: 0;
+      color: var(--text-sub);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .daily-entry {
+      position: relative;
+      overflow: hidden;
+      min-height: 52px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 10px;
+      border: 1px solid rgba(142, 230, 255, 0.36);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(14, 35, 51, 0.96), rgba(5, 13, 24, 0.96));
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+    }
+
+    .daily-entry.ready {
+      border-color: rgba(231, 198, 106, 0.78);
+      background:
+        radial-gradient(circle at 100% 0%, rgba(231, 198, 106, 0.2), transparent 44%),
+        linear-gradient(135deg, rgba(36, 30, 13, 0.96), rgba(6, 14, 22, 0.96));
+    }
+
+    .daily-entry::after {
+      content: "";
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 6px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(142, 230, 255, 0.34), transparent);
+    }
+
+    .daily-icon {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(142, 230, 255, 0.48);
+      border-radius: 7px;
+      background: rgba(2, 7, 13, 0.46);
+      color: var(--cyan);
+      font-size: 18px;
+    }
+
+    .daily-entry.ready .daily-icon {
+      border-color: rgba(231, 198, 106, 0.7);
+      color: var(--gold-bright);
+    }
+
+    .daily-title {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+    }
+
+    .daily-title strong {
+      font-size: 13px;
+      font-weight: 950;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: clip;
+    }
+
+    .daily-title span {
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .daily-reward {
+      display: grid;
+      justify-items: end;
+      gap: 3px;
+      color: var(--gold-bright);
+      font-size: 11px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .daily-reward .sub {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    .stage-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .stage-row {
+      min-height: 72px;
+      display: grid;
+      grid-template-columns: 44px 1px 1fr 58px 76px 16px;
+      gap: 8px;
+      align-items: center;
+      padding: 0 8px 0 0;
+      border: 1px solid rgba(142, 230, 255, 0.25);
+      border-radius: var(--radius);
+      background: rgba(4, 11, 24, 0.58);
+    }
+
+    .stage-row.locked {
+      opacity: 0.56;
+      border-color: rgba(74, 97, 114, 0.28);
+    }
+
+    .stage-num {
+      text-align: center;
+      color: var(--text-sub);
+      font-size: 18px;
+      font-weight: 950;
+    }
+
+    .divider {
+      height: 32px;
+      background: rgba(142, 230, 255, 0.24);
+    }
+
+    .stage-main {
+      min-width: 0;
+      display: grid;
+      gap: 5px;
+    }
+
+    .stage-name {
+      font-size: 14px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .chip {
+      width: fit-content;
+      min-height: 20px;
+      padding: 3px 7px;
+      border: 1px solid rgba(142, 230, 255, 0.36);
+      border-radius: 999px;
+      color: var(--cyan);
+      background: rgba(142, 230, 255, 0.09);
+      font-size: 10px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .rune {
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 950;
+      text-align: right;
+    }
+
+    .reward {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+      color: var(--text-sub);
+      font-size: 10px;
+      font-weight: 900;
+      text-align: left;
+    }
+
+    .reward strong {
+      color: var(--text);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: clip;
+    }
+
+    .chev {
+      color: var(--cyan);
+      font-size: 22px;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .modal-layer {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 18px 12px;
+      background: rgba(0, 0, 0, 0.54);
+      backdrop-filter: blur(1px);
+    }
+
+    .quest-dialog {
+      width: min(100%, 354px);
+      max-height: 690px;
+      display: grid;
+      grid-template-rows: auto auto auto 1fr auto;
+      border: 1px solid rgba(142, 230, 255, 0.5);
+      border-radius: var(--radius);
+      background: linear-gradient(145deg, rgba(11, 27, 43, 0.98), rgba(5, 13, 24, 0.98));
+      box-shadow:
+        0 0 0 3px rgba(142, 230, 255, 0.05),
+        0 22px 44px rgba(0, 0, 0, 0.64);
+      overflow: hidden;
+    }
+
+    .dialog-head {
+      min-height: 54px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: start;
+      padding: 12px 12px 9px;
+      border-bottom: 1px solid rgba(142, 230, 255, 0.16);
+    }
+
+    .dialog-head h3 {
+      margin: 0 0 4px;
+      font-size: 16px;
+      font-weight: 950;
+    }
+
+    .dialog-head p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .close {
+      width: 28px;
+      height: 28px;
+      border: 1px solid rgba(142, 230, 255, 0.22);
+      border-radius: 6px;
+      background: rgba(7, 17, 29, 0.76);
+      color: var(--text-sub);
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .summary-strip {
+      margin: 10px 12px 0;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 42px;
+      padding: 8px;
+      border: 1px solid rgba(142, 230, 255, 0.24);
+      border-radius: 7px;
+      background: rgba(7, 17, 29, 0.68);
+    }
+
+    .summary-strip.claimable {
+      border-color: rgba(231, 198, 106, 0.86);
+      background:
+        radial-gradient(circle at 100% 0%, rgba(231, 198, 106, 0.18), transparent 46%),
+        linear-gradient(135deg, rgba(35, 27, 12, 0.84), rgba(7, 17, 29, 0.82));
+    }
+
+    .summary-strip.done {
+      border-color: rgba(99, 230, 165, 0.56);
+      background: rgba(6, 23, 18, 0.74);
+    }
+
+    .summary-copy {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .summary-copy strong {
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .summary-copy span {
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .summary-claim {
+      min-height: 30px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0 8px;
+      border: 1px solid rgba(231, 198, 106, 0.9);
+      border-radius: 7px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+      color: #151006;
+      font-size: 11px;
+      font-weight: 950;
+      white-space: nowrap;
+      box-shadow: 0 0 12px rgba(231, 198, 106, 0.22);
+    }
+
+    .summary-claim.locked {
+      border-color: rgba(142, 230, 255, 0.26);
+      background: rgba(7, 17, 29, 0.78);
+      color: var(--text-muted);
+      box-shadow: none;
+    }
+
+    .summary-claim.done {
+      border-color: rgba(99, 230, 165, 0.52);
+      background: rgba(6, 23, 18, 0.82);
+      color: var(--green);
+      box-shadow: none;
+    }
+
+    .quest-list {
+      padding: 10px 12px;
+      display: grid;
+      gap: 7px;
+      overflow: auto;
+    }
+
+    .quest-card {
+      min-height: 66px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 9px;
+      align-items: center;
+      padding: 9px;
+      border: 1px solid rgba(74, 97, 114, 0.74);
+      border-radius: 7px;
+      background: rgba(7, 17, 29, 0.74);
+    }
+
+    .quest-card.claimable {
+      border-color: rgba(231, 198, 106, 0.78);
+      background:
+        radial-gradient(circle at 100% 0%, rgba(231, 198, 106, 0.16), transparent 48%),
+        rgba(24, 21, 12, 0.76);
+    }
+
+    .quest-card.done {
+      border-color: rgba(99, 230, 165, 0.56);
+      background: rgba(6, 23, 18, 0.74);
+    }
+
+    .quest-main {
+      min-width: 0;
+      display: grid;
+      gap: 7px;
+    }
+
+    .quest-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .quest-title strong {
+      font-size: 12px;
+      font-weight: 950;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: clip;
+    }
+
+    .quest-title span {
+      flex: 0 0 auto;
+      color: var(--gold-bright);
+      font-size: 11px;
+      font-weight: 950;
+    }
+
+    .reward-amount {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .progress {
+      height: 7px;
+      overflow: hidden;
+      border: 1px solid rgba(210, 238, 255, 0.24);
+      border-radius: 999px;
+      background: rgba(2, 7, 13, 0.64);
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      width: calc(var(--value) * 1%);
+      background: linear-gradient(90deg, var(--cyan), var(--cyan-bright));
+    }
+
+    .quest-card.claimable .progress span {
+      background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+    }
+
+    .quest-card.done .progress span {
+      background: linear-gradient(90deg, var(--green), #c9ffe6);
+    }
+
+    .quest-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .claim-button,
+    .state-pill {
+      min-width: 50px;
+      min-height: 30px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(142, 230, 255, 0.28);
+      border-radius: 7px;
+      background: rgba(12, 28, 42, 0.82);
+      color: var(--text-sub);
+      font-size: 11px;
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .claim-button {
+      border-color: rgba(231, 198, 106, 0.9);
+      background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+      color: #151006;
+      box-shadow: 0 0 12px rgba(231, 198, 106, 0.22);
+    }
+
+    .state-pill.done {
+      border-color: rgba(99, 230, 165, 0.52);
+      color: var(--green);
+      background: rgba(6, 23, 18, 0.82);
+    }
+
+    .footer {
+      min-height: 48px;
+      padding: 0 12px 12px;
+      display: grid;
+    }
+
+    .footer button {
+      border: 1px solid rgba(142, 230, 255, 0.34);
+      border-radius: 7px;
+      background: rgba(7, 17, 29, 0.82);
+      color: var(--text-sub);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 950;
+    }
+
+    .scenario-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 0 12px 10px;
+    }
+
+    .scenario-tabs button {
+      flex: 1;
+      height: 27px;
+      border: 1px solid rgba(142, 230, 255, 0.24);
+      border-radius: 7px;
+      background: rgba(7, 17, 29, 0.72);
+      color: var(--text-muted);
+      font: inherit;
+      font-size: 10px;
+      font-weight: 950;
+    }
+
+    .scenario-tabs button.active {
+      color: var(--void);
+      border-color: var(--cyan-bright);
+      background: linear-gradient(135deg, var(--cyan), var(--cyan-bright));
+    }
+
+    @media (max-width: 1040px) {
+      .frames {
+        grid-template-columns: 1fr;
+      }
+
+      .phone {
+        margin: 0 auto;
+      }
+
+      header {
+        display: grid;
+        align-items: start;
+      }
+
+      .legend {
+        width: fit-content;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .page {
+        padding: 16px 8px 28px;
+      }
+
+      .phone {
+        height: 720px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div>
+        <h1>일일 임무 버튼/팝업 1차 시안</h1>
+        <p class="lead">메인 메뉴 스테이지 화면의 챕터 배너 아래에 일일 임무 진입 버튼을 두고, 팝업에서 진행도와 다이아 보상을 수령하는 흐름입니다.</p>
+      </div>
+      <div class="legend"><span class="diamond"></span> 무료 다이아 보상</div>
+    </header>
+
+    <section class="frames">
+      <div>
+        <p class="frame-label">A. 스테이지 화면 버튼 위치</p>
+        <div class="phone">
+          <div class="top-currency"><span>룬 1,280</span><span class="diamond"></span><span>42</span></div>
+          <div class="screen">
+            <div class="menu-panel">
+              <div class="tabs">
+                <div class="tab active">스테이지</div>
+                <div class="tab">강화</div>
+                <div class="tab">연구</div>
+                <div class="tab">코어</div>
+              </div>
+
+              <div class="chapter-banner">
+                <h2>챕터 2 · 균열 전선</h2>
+                <p>스테이지 06-10 · 보호막병 중심 압박</p>
+              </div>
+
+              <div style="height:10px"></div>
+
+              <div class="daily-entry ready">
+                <div class="daily-icon">◆</div>
+                <div class="daily-title">
+                  <strong>일일 임무</strong>
+                  <span>2/4 완료 · 05:00 갱신</span>
+                </div>
+                <div class="daily-reward">
+                  <span>수령 가능</span>
+                  <span class="sub">보상 대기</span>
+                </div>
+              </div>
+
+              <div style="height:10px"></div>
+
+              <div class="stage-list">
+                <div class="stage-row">
+                  <div class="stage-num">06</div>
+                  <div class="divider"></div>
+                  <div class="stage-main">
+                    <div class="stage-name">스테이지 6</div>
+                    <div class="chip">클리어</div>
+                  </div>
+                  <div class="rune">+150%</div>
+                  <div class="reward"><span>해금 보상</span><strong>라이트닝</strong></div>
+                  <div class="chev">›</div>
+                </div>
+                <div class="stage-row">
+                  <div class="stage-num">07</div>
+                  <div class="divider"></div>
+                  <div class="stage-main">
+                    <div class="stage-name">스테이지 7</div>
+                    <div class="chip">진행 가능</div>
+                  </div>
+                  <div class="rune">+195%</div>
+                  <div class="reward"><span>클리어 보상</span><strong>전투 강화</strong></div>
+                  <div class="chev">›</div>
+                </div>
+                <div class="stage-row locked">
+                  <div class="stage-num">08</div>
+                  <div class="divider"></div>
+                  <div class="stage-main">
+                    <div class="stage-name">스테이지 8</div>
+                    <div class="chip">잠김</div>
+                  </div>
+                  <div class="rune">+245%</div>
+                  <div class="reward"><span>클리어 보상</span><strong>연구</strong></div>
+                  <div class="chev">›</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="frame-label">B. 팝업 · 진행 중</p>
+        <div class="phone">
+          <div class="screen">
+            <div class="menu-panel">
+              <div class="tabs">
+                <div class="tab active">스테이지</div>
+                <div class="tab">강화</div>
+                <div class="tab">연구</div>
+                <div class="tab">코어</div>
+              </div>
+              <div class="chapter-banner">
+                <h2>챕터 2 · 균열 전선</h2>
+                <p>스테이지 06-10 · 보호막병 중심 압박</p>
+              </div>
+              <div style="height:10px"></div>
+              <div class="daily-entry">
+                <div class="daily-icon">◆</div>
+                <div class="daily-title">
+                  <strong>일일 임무</strong>
+                  <span>0/4 완료 · 05:00 갱신</span>
+                </div>
+                <div class="daily-reward">
+                  <span>진행 중</span>
+                  <span class="sub">05:00 갱신</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-layer">
+            <div class="quest-dialog">
+              <div class="dialog-head">
+                <div>
+                  <h3>일일 임무</h3>
+                  <p>매일 05:00 갱신</p>
+                </div>
+                <button class="close">×</button>
+              </div>
+
+              <div class="summary-strip">
+                <div class="summary-copy">
+                  <strong>오늘 진행 0/4</strong>
+                  <span>전체 완료 보상 · 다이아 20</span>
+                </div>
+                <div class="summary-claim locked">+20 <span class="diamond mini"></span>다이아</div>
+              </div>
+
+              <div class="quest-list">
+                <div class="quest-card">
+                  <div class="quest-main">
+                    <div class="quest-title"><strong>웨이브 30회 클리어</strong><span class="reward-amount">+10 <span class="diamond mini"></span>다이아</span></div>
+                    <div class="progress" style="--value:40"><span></span></div>
+                    <div class="quest-meta"><span>12 / 30</span><span>진행 중</span></div>
+                  </div>
+                  <div class="state-pill">진행</div>
+                </div>
+                <div class="quest-card">
+                  <div class="quest-main">
+                    <div class="quest-title"><strong>보스 3회 처치</strong><span class="reward-amount">+10 <span class="diamond mini"></span>다이아</span></div>
+                    <div class="progress" style="--value:33"><span></span></div>
+                    <div class="quest-meta"><span>1 / 3</span><span>진행 중</span></div>
+                  </div>
+                  <div class="state-pill">진행</div>
+                </div>
+                <div class="quest-card">
+                  <div class="quest-main">
+                    <div class="quest-title"><strong>몹 100회 처치</strong><span class="reward-amount">+10 <span class="diamond mini"></span>다이아</span></div>
+                    <div class="progress" style="--value:67"><span></span></div>
+                    <div class="quest-meta"><span>67 / 100</span><span>진행 중</span></div>
+                  </div>
+                  <div class="state-pill">진행</div>
+                </div>
+                <div class="quest-card">
+                  <div class="quest-main">
+                    <div class="quest-title"><strong>런 강화 5회</strong><span class="reward-amount">+10 <span class="diamond mini"></span>다이아</span></div>
+                    <div class="progress" style="--value:20"><span></span></div>
+                    <div class="quest-meta"><span>1 / 5</span><span>진행 중</span></div>
+                  </div>
+                  <div class="state-pill">진행</div>
+                </div>
+              </div>
+
+              <div class="footer"><button>닫기</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="frame-label">C. 팝업 · 수령 가능/완료</p>
+        <div class="phone">
+          <div class="screen">
+            <div class="menu-panel">
+              <div class="tabs">
+                <div class="tab active">스테이지</div>
+                <div class="tab">강화</div>
+                <div class="tab">연구</div>
+                <div class="tab">코어</div>
+              </div>
+              <div class="chapter-banner">
+                <h2>챕터 2 · 균열 전선</h2>
+                <p>스테이지 06-10 · 보호막병 중심 압박</p>
+              </div>
+              <div style="height:10px"></div>
+              <div class="daily-entry ready">
+                <div class="daily-icon">◆</div>
+                <div class="daily-title">
+                  <strong>일일 임무</strong>
+                  <span>4/4 완료 · 05:00 갱신</span>
+                </div>
+                <div class="daily-reward">
+                  <span>수령 가능</span>
+                  <span class="sub">보상 대기</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-layer">
+            <div class="quest-dialog">
+              <div class="dialog-head">
+                <div>
+                  <h3>일일 임무</h3>
+                  <p>매일 05:00 갱신</p>
+                </div>
+                <button class="close">×</button>
+              </div>
+
+              <div class="summary-strip claimable">
+                <div class="summary-copy">
+                  <strong>오늘 진행 4/4</strong>
+                  <span>전체 완료 보상 수령 가능</span>
+                </div>
+                <div class="summary-claim">+20 <span class="diamond mini"></span>다이아 수령</div>
+              </div>
+
+              <div class="quest-list">
+                <div class="quest-card done">
+                  <div class="quest-main">
+                    <div class="quest-title"><strong>웨이브 30회 클리어</strong><span class="reward-amount">+10 <span class="diamond mini"></span>다이아</span></div>
+                    <div class="progress" style="--value:100"><span></span></div>
+                    <div class="quest-meta"><span>30 / 30</span><span>수령 완료</span></div>
+                  </div>
+                  <div class="state-pill done">완료</div>
+                </div>
+                <div class="quest-card done">
+                  <div class="quest-main">
+                    <div class="quest-title"><strong>보스 3회 처치</strong><span class="reward-amount">+10 <span class="diamond mini"></span>다이아</span></div>
+                    <div class="progress" style="--value:100"><span></span></div>
+                    <div class="quest-meta"><span>3 / 3</span><span>수령 완료</span></div>
+                  </div>
+                  <div class="state-pill done">완료</div>
+                </div>
+                <div class="quest-card claimable">
+                  <div class="quest-main">
+                    <div class="quest-title"><strong>몹 100회 처치</strong><span class="reward-amount">+10 <span class="diamond mini"></span>다이아</span></div>
+                    <div class="progress" style="--value:100"><span></span></div>
+                    <div class="quest-meta"><span>100 / 100</span><span>보상 대기</span></div>
+                  </div>
+                  <div class="claim-button">수령</div>
+                </div>
+                <div class="quest-card claimable">
+                  <div class="quest-main">
+                    <div class="quest-title"><strong>런 강화 5회</strong><span class="reward-amount">+10 <span class="diamond mini"></span>다이아</span></div>
+                    <div class="progress" style="--value:100"><span></span></div>
+                    <div class="quest-meta"><span>5 / 5</span><span>보상 대기</span></div>
+                  </div>
+                  <div class="claim-button">수령</div>
+                </div>
+              </div>
+
+              <div class="footer"><button>닫기</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -19,6 +19,7 @@ import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/game_phase.dart';
 import '../domain/combat/run_panel_tab.dart';
 import '../domain/core/core_ability.dart';
+import '../domain/daily_quest/daily_quest_type.dart';
 import '../domain/enemy/enemy_scaling.dart';
 import '../domain/enemy/enemy_type.dart';
 import '../domain/gem/gem_type.dart';
@@ -261,6 +262,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       waveClearGoldRunBonus: 0,
       runes: 0,
       diamonds: 0,
+      dailyQuestDayKey: RunProgression.uninitializedDailyQuestDayKey,
+      dailyQuestProgress: const {},
+      claimedDailyQuestRewards: const {},
+      completedDailyQuestCount: 0,
+      dailyQuestAllCompleteClaimed: false,
+      dailyQuestClockRollbackDetected: false,
       lastRunRuneReward: 0,
       projectedFailureRuneReward: 0,
       lastRunPreviousBestRound: 0,
@@ -739,10 +746,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   bool _updateResearchProgress() {
+    final nowMillis = DateTime.now().millisecondsSinceEpoch;
+    final dailyChanged = _progression.refreshDailyQuests(nowMillis: nowMillis);
     final completed = _progression.completeFinishedResearches(
-      nowMillis: DateTime.now().millisecondsSinceEpoch,
+      nowMillis: nowMillis,
     );
-    if (!completed) {
+    if (!dailyChanged && !completed) {
       return false;
     }
     _publish();
@@ -949,9 +958,38 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _gold -= cost;
     _runUpgradeLevels[type] = currentLevel + 1;
+    _progression.recordDailyQuestProgress(
+      DailyQuestType.buyRunUpgrades,
+      nowMillis: DateTime.now().millisecondsSinceEpoch,
+    );
     _selectedRunPanelTab = RunPanelTab.upgrades;
     _publish();
     _requestLocalSave(immediate: true);
+  }
+
+  bool claimDailyQuestReward(DailyQuestType type) {
+    final claimed = _progression.claimDailyQuestReward(
+      type,
+      nowMillis: DateTime.now().millisecondsSinceEpoch,
+    );
+    if (!claimed) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
+  }
+
+  bool claimDailyQuestAllCompleteReward() {
+    final claimed = _progression.claimDailyQuestAllCompleteReward(
+      nowMillis: DateTime.now().millisecondsSinceEpoch,
+    );
+    if (!claimed) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
   }
 
   void setSpeedMultiplier(double value) {
@@ -2629,6 +2667,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       turret.handleEnemyKilled(enemy);
     }
     if (!isDebugEnemy) {
+      final nowMillis = DateTime.now().millisecondsSinceEpoch;
+      _progression.recordDailyQuestProgress(
+        DailyQuestType.killEnemies,
+        nowMillis: nowMillis,
+      );
+      if (enemy.definition.type == EnemyType.boss) {
+        _progression.recordDailyQuestProgress(
+          DailyQuestType.killBosses,
+          nowMillis: nowMillis,
+        );
+      }
       final baseReward = enemy.definition.rewardGold;
       final bossBonusRate = enemy.definition.type == EnemyType.boss
           ? _bossKillGoldResearchBonusRate
@@ -3396,6 +3445,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _applyRoundClearCorePassiveEffects(completedRound);
     _roundIndex++;
     _completedRounds = completedRound;
+    _progression.recordDailyQuestProgress(
+      DailyQuestType.clearWaves,
+      nowMillis: DateTime.now().millisecondsSinceEpoch,
+    );
     final gemRoundReward = _gemRewards.completeRound(
       completedRound: completedRound,
       availableGems: _availableGemTypes(),

@@ -1,6 +1,7 @@
 import '../../domain/combat/auto_start_mode.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../domain/core/core_ability.dart';
+import '../../domain/daily_quest/daily_quest_type.dart';
 import '../../domain/enemy/enemy_type.dart';
 import '../../domain/gem/gem_type.dart';
 import '../../domain/map/grid_point.dart';
@@ -227,6 +228,12 @@ class SavedProgression {
     required this.runes,
     this.freeDiamonds = 0,
     this.paidDiamonds = 0,
+    this.dailyQuestDayKey = -1,
+    this.lastDailyQuestSeenMillis = 0,
+    this.dailyQuestClockRollbackDetected = false,
+    this.dailyQuestProgress = const {},
+    this.claimedDailyQuestRewards = const {},
+    this.dailyQuestAllCompleteClaimed = false,
     required this.lastRunRuneReward,
     required this.startingGoldUpgradeLevel,
     required this.nexusHpUpgradeLevel,
@@ -252,6 +259,12 @@ class SavedProgression {
   final int runes;
   final int freeDiamonds;
   final int paidDiamonds;
+  final int dailyQuestDayKey;
+  final int lastDailyQuestSeenMillis;
+  final bool dailyQuestClockRollbackDetected;
+  final Map<DailyQuestType, int> dailyQuestProgress;
+  final Set<DailyQuestType> claimedDailyQuestRewards;
+  final bool dailyQuestAllCompleteClaimed;
   final int lastRunRuneReward;
   final int startingGoldUpgradeLevel;
   final int nexusHpUpgradeLevel;
@@ -278,6 +291,16 @@ class SavedProgression {
       'runes': runes,
       'freeDiamonds': freeDiamonds,
       'paidDiamonds': paidDiamonds,
+      'dailyQuestDayKey': dailyQuestDayKey,
+      'lastDailyQuestSeenMillis': lastDailyQuestSeenMillis,
+      'dailyQuestClockRollbackDetected': dailyQuestClockRollbackDetected,
+      'dailyQuestProgress': dailyQuestProgress.map(
+        (key, value) => MapEntry(key.name, value),
+      ),
+      'claimedDailyQuestRewards': claimedDailyQuestRewards
+          .map((type) => type.name)
+          .toList(),
+      'dailyQuestAllCompleteClaimed': dailyQuestAllCompleteClaimed,
       'lastRunRuneReward': lastRunRuneReward,
       'startingGoldUpgradeLevel': startingGoldUpgradeLevel,
       'nexusHpUpgradeLevel': nexusHpUpgradeLevel,
@@ -322,6 +345,22 @@ class SavedProgression {
       runes: _intValue(map['runes']),
       freeDiamonds: _intValue(map['freeDiamonds']),
       paidDiamonds: _intValue(map['paidDiamonds']),
+      dailyQuestDayKey: _intValue(map['dailyQuestDayKey'], fallback: -1),
+      lastDailyQuestSeenMillis: _intValue(map['lastDailyQuestSeenMillis']),
+      dailyQuestClockRollbackDetected: _boolValue(
+        map['dailyQuestClockRollbackDetected'],
+      ),
+      dailyQuestProgress: _enumIntMap(
+        DailyQuestType.values,
+        map['dailyQuestProgress'],
+      ),
+      claimedDailyQuestRewards: _enumSet(
+        DailyQuestType.values,
+        map['claimedDailyQuestRewards'],
+      ),
+      dailyQuestAllCompleteClaimed: _boolValue(
+        map['dailyQuestAllCompleteClaimed'],
+      ),
       lastRunRuneReward: _intValue(map['lastRunRuneReward']),
       startingGoldUpgradeLevel: _intValue(map['startingGoldUpgradeLevel']),
       nexusHpUpgradeLevel: _intValue(map['nexusHpUpgradeLevel']),
@@ -874,6 +913,20 @@ List<T> _enumList<T extends Enum>(List<T> values, Object? json) {
     return [];
   }
   final result = <T>[];
+  for (final item in json) {
+    final value = _enumValue(values, item);
+    if (value != null) {
+      result.add(value);
+    }
+  }
+  return result;
+}
+
+Set<T> _enumSet<T extends Enum>(List<T> values, Object? json) {
+  if (json is! List) {
+    return {};
+  }
+  final result = <T>{};
   for (final item in json) {
     final value = _enumValue(values, item);
     if (value != null) {

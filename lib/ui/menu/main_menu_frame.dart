@@ -87,64 +87,6 @@ class _MenuLogo extends StatelessWidget {
   }
 }
 
-class _MenuQuickGlyphs extends StatelessWidget {
-  const _MenuQuickGlyphs();
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: const Color(0xAA06101A),
-          border: Border.all(color: const Color(0x5533D8FF)),
-          borderRadius: BorderRadius.circular(4),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x88000000),
-              blurRadius: 10,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _MenuQuickGlyph(icon: Icons.menu),
-              _MenuQuickGlyph(icon: Icons.map_outlined),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MenuQuickGlyph extends StatelessWidget {
-  const _MenuQuickGlyph({required this.icon});
-
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    const color = Color(0xFF607486);
-    return Container(
-      width: 23,
-      height: 23,
-      margin: const EdgeInsets.symmetric(horizontal: 1),
-      decoration: ShapeDecoration(
-        color: const Color(0x55101C28),
-        shape: BeveledRectangleBorder(
-          borderRadius: BorderRadius.circular(5),
-          side: BorderSide(color: color.withValues(alpha: 0.35)),
-        ),
-      ),
-      child: Icon(icon, color: color, size: 14),
-    );
-  }
-}
-
 class _MenuTabs extends StatelessWidget {
   const _MenuTabs({required this.selectedTab, required this.onSelectTab});
 

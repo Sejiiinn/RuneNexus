@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rune Nexus - Daily Quest Debug Bar Candidate</title>
+  <style>
+    :root {
+      --bg: #07111d;
+      --panel: rgba(9, 22, 36, 0.92);
+      --panel-2: rgba(12, 29, 47, 0.86);
+      --line: rgba(83, 249, 233, 0.42);
+      --line-soft: rgba(118, 149, 168, 0.28);
+      --text: #e8fbff;
+      --muted: #8faec0;
+      --cyan: #53f9e9;
+      --diamond: #8ee6ff;
+      --gold: #e7c66a;
+      --purple: #b68bff;
+      --danger: #ffb55e;
+      --radius: 7px;
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+      font-family: Inter, "Segoe UI", system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 72% 22%, rgba(83, 249, 233, 0.14), transparent 26%),
+        radial-gradient(circle at 34% 42%, rgba(182, 139, 255, 0.12), transparent 22%),
+        linear-gradient(160deg, #081520 0%, #07111d 46%, #03070e 100%);
+      display: grid;
+      place-items: center;
+      padding: 22px;
+    }
+
+    .phone {
+      position: relative;
+      width: min(390px, 100vw);
+      height: min(760px, calc(100vh - 44px));
+      min-height: 660px;
+      overflow: hidden;
+      border: 1px solid rgba(142, 230, 255, 0.24);
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, rgba(142, 230, 255, 0.04) 1px, transparent 1px) 0 0 / 35px 35px,
+        linear-gradient(165deg, rgba(12, 30, 48, 0.92), rgba(4, 9, 17, 0.96));
+      box-shadow: var(--shadow);
+    }
+
+    .debug-bar {
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 44px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(4, 9, 17, 0.92);
+      border-bottom: 1px solid rgba(255, 181, 94, 0.44);
+      z-index: 4;
+    }
+
+    .debug-chip {
+      height: 30px;
+      border: 1px solid rgba(255, 181, 94, 0.55);
+      border-radius: var(--radius);
+      color: #ffd59a;
+      background: rgba(255, 181, 94, 0.08);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 9px;
+      font-size: 11px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .menu {
+      position: absolute;
+      inset: 44px 0 0 0;
+      padding: 10px 16px 62px;
+    }
+
+    .top-row {
+      height: 52px;
+      display: grid;
+      grid-template-columns: 44px 1fr 72px;
+      align-items: start;
+      gap: 8px;
+    }
+
+    .daily-button {
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(83, 249, 233, 0.66);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(83, 249, 233, 0.16), rgba(7, 17, 29, 0.62));
+      box-shadow: 0 0 16px rgba(83, 249, 233, 0.14);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 900;
+      position: relative;
+    }
+
+    .daily-button.ready {
+      border-color: rgba(142, 230, 255, 0.9);
+      box-shadow:
+        0 0 0 1px rgba(142, 230, 255, 0.2),
+        0 0 18px rgba(142, 230, 255, 0.34);
+    }
+
+    .daily-button.ready::after {
+      content: "";
+      position: absolute;
+      inset: -5px;
+      border: 1px solid rgba(142, 230, 255, 0.66);
+      border-radius: 9px;
+      animation: quest-ready-pulse 1.6s ease-out infinite;
+      pointer-events: none;
+    }
+
+    .daily-icon {
+      position: relative;
+      font-size: 19px;
+      line-height: 1;
+      color: var(--diamond);
+    }
+
+    .daily-icon::after {
+      content: "";
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      right: -4px;
+      top: -3px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 8px rgba(231, 198, 106, 0.8);
+    }
+
+    @keyframes quest-ready-pulse {
+      0% {
+        opacity: 0.8;
+        transform: scale(0.94);
+      }
+      70% {
+        opacity: 0;
+        transform: scale(1.16);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.16);
+      }
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 22px;
+      line-height: 34px;
+      font-weight: 1000;
+      color: #dff5ff;
+      text-shadow: 0 0 20px rgba(83, 249, 233, 0.18);
+    }
+
+    .currency {
+      justify-self: end;
+      display: grid;
+      gap: 2px;
+      font-size: 13px;
+      font-weight: 1000;
+      text-align: right;
+    }
+
+    .currency div {
+      display: flex;
+      justify-content: flex-end;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .panel {
+      height: calc(100% - 54px);
+      border: 1px solid rgba(83, 249, 233, 0.24);
+      border-radius: var(--radius);
+      background: rgba(7, 17, 29, 0.72);
+      padding: 12px;
+      overflow: hidden;
+    }
+
+    .chapter-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .chapter-tab {
+      height: 42px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line-soft);
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 1000;
+      background: rgba(8, 19, 31, 0.8);
+    }
+
+    .chapter-tab.active {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: inset 0 0 0 1px rgba(83, 249, 233, 0.22);
+    }
+
+    .banner {
+      height: 88px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(83, 249, 233, 0.28);
+      background:
+        linear-gradient(90deg, rgba(8, 19, 31, 0.98), rgba(8, 19, 31, 0.16)),
+        radial-gradient(circle at 72% 50%, rgba(83, 249, 233, 0.56), transparent 24%),
+        radial-gradient(circle at 48% 42%, rgba(182, 139, 255, 0.48), transparent 28%),
+        #08131f;
+      padding: 24px 16px;
+      margin-bottom: 10px;
+    }
+
+    .banner strong {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 3px;
+    }
+
+    .banner span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .active-run {
+      height: 58px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(231, 198, 106, 0.58);
+      background: rgba(12, 29, 47, 0.74);
+      display: grid;
+      grid-template-columns: 46px 1fr 94px;
+      align-items: center;
+      gap: 8px;
+      padding: 9px;
+      margin-bottom: 10px;
+    }
+
+    .flag {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid rgba(231, 198, 106, 0.74);
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+    }
+
+    .active-title {
+      font-size: 15px;
+      font-weight: 1000;
+    }
+
+    .active-sub {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .continue {
+      height: 32px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(142, 230, 255, 0.6);
+      color: var(--text);
+      background: rgba(142, 230, 255, 0.1);
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .stage-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .stage {
+      height: 54px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(83, 249, 233, 0.36);
+      background: rgba(8, 19, 31, 0.72);
+      display: grid;
+      grid-template-columns: 40px 1fr 58px 76px 20px;
+      align-items: center;
+      gap: 8px;
+      padding: 0 8px;
+      font-weight: 900;
+    }
+
+    .stage.current {
+      border-color: rgba(231, 198, 106, 0.78);
+    }
+
+    .stage.locked {
+      opacity: 0.46;
+    }
+
+    .stage-no {
+      font-size: 18px;
+      color: var(--cyan);
+    }
+
+    .stage-name {
+      font-size: 15px;
+    }
+
+    .stage-pill {
+      display: inline-flex;
+      width: fit-content;
+      margin-top: 3px;
+      border: 1px solid rgba(83, 249, 233, 0.46);
+      border-radius: 5px;
+      padding: 1px 5px;
+      color: var(--cyan);
+      font-size: 10px;
+    }
+
+    .bonus {
+      color: var(--purple);
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .unlock {
+      color: var(--purple);
+      font-size: 11px;
+      text-align: left;
+    }
+
+    .bottom-tabs {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      height: 44px;
+      border: 1px solid rgba(83, 249, 233, 0.34);
+      border-radius: 6px;
+      background: rgba(7, 17, 29, 0.9);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      overflow: hidden;
+    }
+
+    .bottom-tabs div {
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 1000;
+      border-right: 1px solid rgba(83, 249, 233, 0.16);
+    }
+
+    .bottom-tabs div:last-child {
+      border-right: 0;
+    }
+
+    .bottom-tabs .active {
+      color: var(--cyan);
+      background: rgba(83, 249, 233, 0.08);
+    }
+
+    .callout {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 68px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      z-index: 5;
+    }
+
+    .note {
+      border: 1px solid rgba(142, 230, 255, 0.28);
+      border-radius: var(--radius);
+      background: rgba(3, 7, 14, 0.76);
+      padding: 9px 10px;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .note strong {
+      display: block;
+      color: var(--text);
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+
+    @media (max-width: 420px) {
+      body {
+        padding: 0;
+      }
+
+      .phone {
+        width: 100vw;
+        height: 100vh;
+        min-height: 640px;
+        border: 0;
+        border-radius: 0;
+      }
+
+      .callout {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="phone" aria-label="Rune Nexus main menu candidate">
+    <section class="debug-bar" aria-label="디버그 모드 전용 상단 바">
+      <button class="debug-chip" type="button">☷ 테스트 패널</button>
+      <button class="debug-chip" type="button">▧ 맵 에디터</button>
+    </section>
+
+    <section class="menu">
+      <div class="top-row">
+        <button class="daily-button ready" type="button" aria-label="일일 임무 열기">
+          <span class="daily-icon">◫</span>
+        </button>
+        <div class="logo">Rune Nexus</div>
+        <div class="currency" aria-label="재화">
+          <div><span style="color: var(--diamond)">◆</span><span>10</span></div>
+          <div><span style="color: var(--gold)">◇</span><span>10175</span></div>
+        </div>
+      </div>
+
+      <section class="panel">
+        <div class="chapter-tabs">
+          <div class="chapter-tab">챕터 1</div>
+          <div class="chapter-tab active">챕터 2</div>
+        </div>
+
+        <div class="banner">
+          <strong>균열 장막</strong>
+          <span>스테이지 6-10</span>
+        </div>
+
+        <div class="active-run">
+          <div class="flag">⚑</div>
+          <div>
+            <div class="active-title">스테이지 8</div>
+            <div class="active-sub">라운드 1/50 · 포탑 0 · 골드 370</div>
+          </div>
+          <button class="continue" type="button">▶ 이어서 진행</button>
+        </div>
+
+        <div class="stage-list">
+          <div class="stage">
+            <div class="stage-no">06</div>
+            <div>
+              <div class="stage-name">스테이지 6</div>
+              <div class="stage-pill">클리어</div>
+            </div>
+            <div class="bonus">룬 +150%</div>
+            <div class="unlock">해금됨<br />라이트닝 포탑</div>
+            <div>›</div>
+          </div>
+          <div class="stage">
+            <div class="stage-no">07</div>
+            <div>
+              <div class="stage-name">스테이지 7</div>
+              <div class="stage-pill">클리어</div>
+            </div>
+            <div class="bonus">룬 +195%</div>
+            <div class="unlock">해금됨<br />전투 강화</div>
+            <div>›</div>
+          </div>
+          <div class="stage current">
+            <div class="stage-no">08</div>
+            <div>
+              <div class="stage-name">스테이지 8</div>
+              <div class="stage-pill" style="color: var(--gold); border-color: rgba(231, 198, 106, 0.5)">진행 중</div>
+            </div>
+            <div class="bonus" style="color: var(--gold)">룬 +245%</div>
+            <div class="unlock"></div>
+            <div>›</div>
+          </div>
+          <div class="stage locked">
+            <div class="stage-no">09</div>
+            <div>
+              <div class="stage-name">스테이지 9</div>
+              <div class="stage-pill">잠김</div>
+            </div>
+            <div class="bonus">룬 +300%</div>
+            <div class="unlock"></div>
+            <div>›</div>
+          </div>
+          <div class="stage locked">
+            <div class="stage-no">10</div>
+            <div>
+              <div class="stage-name">스테이지 10</div>
+              <div class="stage-pill">잠김</div>
+            </div>
+            <div class="bonus">룬 +360%</div>
+            <div class="unlock"></div>
+            <div>›</div>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <section class="callout" aria-label="설계 메모">
+      <div class="note">
+        <strong>디버그 바</strong>
+        테스트 패널과 맵 에디터는 디버그 빌드에서만 상단 바로 노출.
+      </div>
+      <div class="note">
+        <strong>일일 임무</strong>
+        실제 유저가 보는 좌상단 주요 액션으로 이동. 수령 가능 개수만 배지 표시.
+      </div>
+    </section>
+
+    <nav class="bottom-tabs">
+      <div class="active">⚑ 스테이지</div>
+      <div>◇ 코어</div>
+      <div>✦ 강화</div>
+      <div>♜ 연구</div>
+    </nav>
+  </main>
+</body>
+</html>

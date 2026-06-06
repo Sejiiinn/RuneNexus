@@ -13,36 +13,43 @@ class _MenuDebugShortcuts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _DebugShortcutButton(
-          tooltip: '메뉴 테스트 패널',
-          icon: Icons.tune,
-          selected: testPanelOpen,
-          onPressed: onToggleTestPanel,
-        ),
-        const SizedBox(width: 6),
-        _DebugShortcutButton(
-          tooltip: '맵 에디터',
-          icon: Icons.map_outlined,
-          selected: false,
-          onPressed: onOpenMapEditor,
-        ),
-      ],
+    return Container(
+      height: 44,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: const BoxDecoration(
+        color: Color(0xF203070E),
+        border: Border(bottom: BorderSide(color: Color(0x66FFB55E))),
+      ),
+      child: Row(
+        children: [
+          _DebugShortcutButton(
+            label: '테스트 패널',
+            icon: Icons.tune,
+            selected: testPanelOpen,
+            onPressed: onToggleTestPanel,
+          ),
+          const SizedBox(width: 7),
+          _DebugShortcutButton(
+            label: '맵 에디터',
+            icon: Icons.map_outlined,
+            selected: false,
+            onPressed: onOpenMapEditor,
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _DebugShortcutButton extends StatelessWidget {
   const _DebugShortcutButton({
-    required this.tooltip,
+    required this.label,
     required this.icon,
     required this.selected,
     required this.onPressed,
   });
 
-  final String tooltip;
+  final String label;
   final IconData icon;
   final bool selected;
   final VoidCallback? onPressed;
@@ -50,24 +57,17 @@ class _DebugShortcutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 40,
-      height: 40,
-      child: IconButton(
-        tooltip: tooltip,
+      width: 102,
+      child: GameButton(
         onPressed: onPressed,
-        style: IconButton.styleFrom(
-          foregroundColor: selected
-              ? const Color(0xFF07111D)
-              : const Color(0xFFE8FBFF),
-          backgroundColor: selected
-              ? const Color(0xFF8EE6FF)
-              : const Color(0xE607111D),
-          side: BorderSide(
-            color: selected ? const Color(0xFF8EE6FF) : const Color(0x6650E6FF),
-          ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        icon: Icon(icon, size: 20),
+        label: label,
+        icon: Icon(icon, size: 15),
+        compact: true,
+        selected: selected,
+        variant: GameButtonVariant.ghost,
+        accentColor: const Color(0xFFFFB55E),
+        height: 30,
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
       ),
     );
   }

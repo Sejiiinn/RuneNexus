@@ -4,6 +4,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/definitions/game_enemy_data.dart';
+import 'package:rune_nexus/data/definitions/game_daily_quest_data.dart';
 import 'package:rune_nexus/data/definitions/game_run_upgrade_data.dart';
 import 'package:rune_nexus/data/definitions/game_stage_data.dart';
 import 'package:rune_nexus/data/definitions/game_turret_data.dart';
@@ -13,6 +14,7 @@ import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
 import 'package:rune_nexus/domain/combat/run_panel_tab.dart';
 import 'package:rune_nexus/domain/core/core_ability.dart';
+import 'package:rune_nexus/domain/daily_quest/daily_quest_type.dart';
 import 'package:rune_nexus/domain/enemy/enemy_definition.dart';
 import 'package:rune_nexus/domain/enemy/enemy_resistance_profile.dart';
 import 'package:rune_nexus/domain/enemy/enemy_scaling.dart';
@@ -1336,6 +1338,164 @@ void main() {
     expect(legacyProgression.freeDiamonds, 0);
     expect(legacyProgression.paidDiamonds, 0);
     expect(legacyProgression.diamonds, 0);
+  });
+
+  test('daily quests grant free diamonds once and persist state', () {
+    const nowMillis = 1780675200000;
+    final progression = RunProgression();
+
+    progression.recordDailyQuestProgress(
+      DailyQuestType.clearWaves,
+      amount: 30,
+      nowMillis: nowMillis,
+    );
+
+    expect(
+      progression.claimDailyQuestReward(
+        DailyQuestType.clearWaves,
+        nowMillis: nowMillis,
+      ),
+      isTrue,
+    );
+    expect(
+      progression.claimDailyQuestReward(
+        DailyQuestType.clearWaves,
+        nowMillis: nowMillis,
+      ),
+      isFalse,
+    );
+    expect(progression.freeDiamonds, 10);
+    expect(progression.paidDiamonds, 0);
+
+    final saved = SavedProgression.fromJson(progression.toSaveData().toJson());
+    final restored = RunProgression()..restoreFromSaveData(saved);
+
+    expect(restored.dailyQuestDayKey, progression.dailyQuestDayKey);
+    expect(restored.dailyQuestProgress[DailyQuestType.clearWaves], 30);
+    expect(
+      restored.claimedDailyQuestRewards,
+      contains(DailyQuestType.clearWaves),
+    );
+    expect(restored.freeDiamonds, 10);
+  });
+
+  test('daily all complete reward grants twenty free diamonds once', () {
+    const nowMillis = 1780675200000;
+    final progression = RunProgression();
+
+    for (final entry in gameDailyQuestDefinitions.entries) {
+      progression.recordDailyQuestProgress(
+        entry.key,
+        amount: entry.value.targetCount,
+        nowMillis: nowMillis,
+      );
+    }
+
+    expect(progression.completedDailyQuestCount, 4);
+    expect(
+      progression.claimDailyQuestAllCompleteReward(nowMillis: nowMillis),
+      isTrue,
+    );
+    expect(
+      progression.claimDailyQuestAllCompleteReward(nowMillis: nowMillis),
+      isFalse,
+    );
+    expect(progression.freeDiamonds, 20);
+  });
+
+  test('daily quests reset at KST five and block clock rollback claims', () {
+    final beforeReset = DateTime.utc(2026, 6, 5, 19, 59).millisecondsSinceEpoch;
+    final afterReset = DateTime.utc(2026, 6, 5, 20).millisecondsSinceEpoch;
+    final progression = RunProgression();
+
+    progression.recordDailyQuestProgress(
+      DailyQuestType.killEnemies,
+      amount: 100,
+      nowMillis: beforeReset,
+    );
+    final previousDayKey = progression.dailyQuestDayKey;
+
+    expect(progression.refreshDailyQuests(nowMillis: afterReset), isTrue);
+    expect(progression.dailyQuestDayKey, isNot(previousDayKey));
+    expect(progression.dailyQuestProgress, isEmpty);
+    expect(progression.dailyQuestClockRollbackDetected, isFalse);
+
+    progression.refreshDailyQuests(nowMillis: afterReset + 3600000);
+    progression.recordDailyQuestProgress(
+      DailyQuestType.killEnemies,
+      amount: 100,
+      nowMillis: afterReset,
+    );
+
+    expect(progression.dailyQuestClockRollbackDetected, isTrue);
+    expect(
+      progression.claimDailyQuestReward(
+        DailyQuestType.killEnemies,
+        nowMillis: afterReset,
+      ),
+      isFalse,
+    );
+    expect(progression.freeDiamonds, 0);
+  });
+
+  test('daily quests track wave, boss, enemy, and run upgrades', () async {
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    game.buyRunUpgrade(RunUpgradeType.towerDamage);
+    expect(
+      game.snapshotNotifier.value.dailyQuestProgress[DailyQuestType
+          .buyRunUpgrades],
+      1,
+    );
+
+    final normal = EnemyComponent(
+      definition: gameEnemies[EnemyType.normal]!,
+      maxHp: 1,
+      path: [Vector2.zero(), Vector2(1, 0)],
+      game: game,
+    );
+    game.enemies.add(normal);
+    normal.receiveDamage(999);
+
+    final boss = EnemyComponent(
+      definition: gameEnemies[EnemyType.boss]!,
+      maxHp: 1,
+      path: [Vector2.zero(), Vector2(1, 0)],
+      game: game,
+    );
+    game.enemies.add(boss);
+    boss.receiveDamage(999);
+
+    expect(
+      game.snapshotNotifier.value.dailyQuestProgress[DailyQuestType
+          .killEnemies],
+      2,
+    );
+    expect(
+      game.snapshotNotifier.value.dailyQuestProgress[DailyQuestType.killBosses],
+      1,
+    );
+
+    game.startNextWave();
+    game.update(0.016);
+
+    expect(
+      game.snapshotNotifier.value.dailyQuestProgress[DailyQuestType.clearWaves],
+      1,
+    );
   });
 
   test(

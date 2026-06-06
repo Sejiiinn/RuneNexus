@@ -2,6 +2,7 @@ import '../domain/combat/game_phase.dart';
 import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/run_panel_tab.dart';
 import '../domain/core/core_ability.dart';
+import '../domain/daily_quest/daily_quest_type.dart';
 import '../domain/enemy/enemy_type.dart';
 import '../domain/gem/gem_type.dart';
 import '../domain/map/grid_point.dart';
@@ -116,6 +117,12 @@ class GameSnapshot {
     required this.waveClearGoldRunBonus,
     required this.runes,
     this.diamonds = 0,
+    required this.dailyQuestDayKey,
+    required this.dailyQuestProgress,
+    required this.claimedDailyQuestRewards,
+    required this.completedDailyQuestCount,
+    required this.dailyQuestAllCompleteClaimed,
+    required this.dailyQuestClockRollbackDetected,
     required this.lastRunRuneReward,
     required this.projectedFailureRuneReward,
     required this.lastRunPreviousBestRound,
@@ -270,6 +277,12 @@ class GameSnapshot {
   final int waveClearGoldRunBonus;
   final int runes;
   final int diamonds;
+  final int dailyQuestDayKey;
+  final Map<DailyQuestType, int> dailyQuestProgress;
+  final Set<DailyQuestType> claimedDailyQuestRewards;
+  final int completedDailyQuestCount;
+  final bool dailyQuestAllCompleteClaimed;
+  final bool dailyQuestClockRollbackDetected;
   final int lastRunRuneReward;
   final int projectedFailureRuneReward;
   final int lastRunPreviousBestRound;

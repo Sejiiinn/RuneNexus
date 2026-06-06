@@ -211,6 +211,18 @@ class GameSnapshotBuilder {
       waveClearGoldRunBonus: _game._waveClearGoldRunBonus,
       runes: _game._progression.runes,
       diamonds: _game._progression.diamonds,
+      dailyQuestDayKey: _game._progression.dailyQuestDayKey,
+      dailyQuestProgress: Map.unmodifiable(
+        _game._progression.dailyQuestProgress,
+      ),
+      claimedDailyQuestRewards: Set.unmodifiable(
+        _game._progression.claimedDailyQuestRewards,
+      ),
+      completedDailyQuestCount: _game._progression.completedDailyQuestCount,
+      dailyQuestAllCompleteClaimed:
+          _game._progression.dailyQuestAllCompleteClaimed,
+      dailyQuestClockRollbackDetected:
+          _game._progression.dailyQuestClockRollbackDetected,
       lastRunRuneReward: _game._progression.lastRunRuneReward,
       projectedFailureRuneReward: hasStageProgress
           ? _game._progression.runeRewardFor(
