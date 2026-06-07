@@ -91,6 +91,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _baseBoardPanRatio = 0.2;
   static const int _spaceStarCount = 86;
   static const double _nexusHitAlertDuration = 0.65;
+  static const double _coreDestructionCameraDuration = 1.15;
+  static const double _coreDestructionTotalDuration = 3.2;
+  static const double _coreDestructionSlowMotionScale = 0.25;
+  static const double _coreDestructionTargetZoom = 1.75;
+  static const double _coreDestructionFocusYRatio = 0.56;
   static const double _portalAlertDuration = 0.55;
   static const double _postPortalAlertSpawnDelay = 0.15;
   static const double _combatStatsPublishInterval = 0.2;
@@ -477,6 +482,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double _dragDistance = 0;
   bool _suppressNextTap = false;
   double _nexusHitAlertTimer = 0;
+  double _coreDestructionElapsed = 0;
+  double _coreDestructionStartZoom = _minBoardZoom;
+  Vector2 _coreDestructionStartOffset = Vector2.zero();
+  Vector2 _coreDestructionTargetOffset = Vector2.zero();
   double _portalAlertTimer = 0;
   bool _savedDataLoaded = false;
   bool _menuSaveDataLoaded = false;
@@ -721,6 +730,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _updateResearchProgress();
     _spaceTime = (_spaceTime + dt) % 1200;
     _updateVisualAlerts(dt);
+    if (_phase == GamePhase.coreDestruction) {
+      super.update(dt * _coreDestructionSlowMotionScale);
+      _updateCoreDestructionSequence(dt);
+      return;
+    }
     if (_phase == GamePhase.restored || _isRewardPausingWave) {
       super.update(0);
       return;
@@ -761,6 +775,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void onScaleStart(ScaleStartInfo info) {
+    if (_phase == GamePhase.coreDestruction) {
+      return;
+    }
     if (info.pointerCount < 2) {
       return;
     }
@@ -771,6 +788,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void onScaleUpdate(ScaleUpdateInfo info) {
+    if (_phase == GamePhase.coreDestruction) {
+      return;
+    }
     if (info.pointerCount < 2) {
       return;
     }
@@ -790,7 +810,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _suppressNextTap = false;
       return;
     }
-    if (_phase == GamePhase.restored) {
+    if (_phase == GamePhase.restored || _phase == GamePhase.coreDestruction) {
       return;
     }
 
@@ -897,6 +917,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void selectTurretType(TurretType type) {
+    if (_phase == GamePhase.coreDestruction) {
+      return;
+    }
     if (!_isTurretUnlocked(type)) {
       return;
     }
@@ -906,6 +929,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void selectRunPanelTab(RunPanelTab tab) {
+    if (_phase == GamePhase.coreDestruction) {
+      return;
+    }
     if (_selectedRunPanelTab == tab) {
       _selectedRunPanelTab = RunPanelTab.closed;
       _publish();
@@ -993,11 +1019,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void setSpeedMultiplier(double value) {
+    if (_phase == GamePhase.coreDestruction) {
+      return;
+    }
     _speedMultiplier = value;
     _publish();
   }
 
   void setAutoStartMode(AutoStartMode mode) {
+    if (_phase == GamePhase.coreDestruction) {
+      return;
+    }
     if (_autoStartMode == mode) {
       return;
     }
@@ -1083,7 +1115,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final targetStageNumber = stageNumber == null
         ? null
         : _clampedStageNumber(stageNumber);
+    final resetDestructionCamera =
+        _phase == GamePhase.coreDestruction || _phase == GamePhase.failure;
     _clearActiveCombat();
+    _resetCoreDestructionSequence(resetCamera: resetDestructionCamera);
 
     for (final turret in _turrets.values.toList()) {
       turret.removeFromParent();
@@ -1585,6 +1620,23 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
+  void debugForceDefeat() {
+    if (_phase == GamePhase.success ||
+        _phase == GamePhase.failure ||
+        _phase == GamePhase.coreDestruction) {
+      return;
+    }
+
+    _clearActiveCombat();
+    _rewardReturnPhase = null;
+    _rewardOptions.clear();
+    _isPurchasedGemReward = false;
+    _nexusHp = 0;
+    _triggerNexusHitAlert();
+    _startCoreDestructionSequence();
+    _publish();
+  }
+
   void tryBuildTurret(GridPoint point) {
     if (!_canEditBoard) {
       return;
@@ -1972,6 +2024,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void handleTrackpadZoomStart(gestures.PointerPanZoomStartEvent event) {
+    if (_phase == GamePhase.coreDestruction) {
+      return;
+    }
     _trackpadStartZoom = _boardZoom;
     _trackpadStartOffset = _boardOffset.clone();
     _trackpadStartFocal = Vector2(
@@ -1981,6 +2036,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void handleTrackpadZoomUpdate(gestures.PointerPanZoomUpdateEvent event) {
+    if (_phase == GamePhase.coreDestruction) {
+      return;
+    }
     _zoomBoardAround(
       zoom: (_trackpadStartZoom * event.scale).clamp(
         _minBoardZoom,
@@ -1994,6 +2052,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void handleBoardPointerDown(gestures.PointerDownEvent event) {
+    if (_phase == GamePhase.coreDestruction) {
+      return;
+    }
     _boardPointers.add(event.pointer);
     if (_boardPointers.length != 1) {
       _dragPointer = null;
@@ -2008,6 +2069,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void handleBoardPointerMove(gestures.PointerMoveEvent event) {
+    if (_phase == GamePhase.coreDestruction) {
+      return;
+    }
     if (_boardPointers.length != 1 || _dragPointer != event.pointer) {
       return;
     }
@@ -2711,7 +2775,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void enemyReachedCore(EnemyComponent enemy) {
-    if (!enemy.isMounted) {
+    if (_phase == GamePhase.coreDestruction ||
+        _phase == GamePhase.success ||
+        _phase == GamePhase.failure) {
+      return;
+    }
+    if (!enemy.isMounted && !enemies.contains(enemy)) {
       return;
     }
     _triggerNexusHitAlert();
@@ -2724,15 +2793,87 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     enemy.removeFromParent();
 
     if (!isDebugEnemy && _nexusHp <= 0) {
-      _waveSpawner.clear();
-      for (final activeEnemy in enemies.toList()) {
-        activeEnemy.removeFromParent();
-      }
-      enemies.clear();
-      _finishRun(GamePhase.failure);
-      unawaited(_saveRoundCheckpoint());
+      _startCoreDestructionSequence();
     }
     _publish();
+  }
+
+  void _startCoreDestructionSequence() {
+    if (_phase == GamePhase.coreDestruction ||
+        _phase == GamePhase.success ||
+        _phase == GamePhase.failure) {
+      return;
+    }
+    _waveSpawner.clear();
+    _debugEnemies.clear();
+    _debugCombatActive = false;
+    _clearBoardSelection(closePanel: true);
+    _phase = GamePhase.coreDestruction;
+    _coreDestructionElapsed = 0;
+    _coreDestructionStartZoom = _boardZoom;
+    _coreDestructionStartOffset = _boardOffset.clone();
+    _boardZoom = math.max(_boardZoom, _minBoardZoom);
+    final targetZoom = math.min(_coreDestructionTargetZoom, _maxBoardZoom);
+    final boardCenter = _boardCenter();
+    final coreCenter = _nexusCorePosition();
+    final focus = Vector2(size.x * 0.5, size.y * _coreDestructionFocusYRatio);
+    _coreDestructionTargetOffset = _clampBoardOffsetForZoom(
+      focus - boardCenter - (coreCenter - boardCenter) * targetZoom,
+      targetZoom,
+    );
+    if (_gridComponentReady) {
+      _gridComponent.nexusDestructionProgress = 0;
+    }
+  }
+
+  void _updateCoreDestructionSequence(double dt) {
+    _coreDestructionElapsed = math.min(
+      _coreDestructionTotalDuration,
+      _coreDestructionElapsed + dt,
+    );
+    final targetZoom = math.min(_coreDestructionTargetZoom, _maxBoardZoom);
+    final cameraProgress =
+        (_coreDestructionElapsed / _coreDestructionCameraDuration).clamp(
+          0.0,
+          1.0,
+        );
+    final easedCamera = _easeOutCubic(cameraProgress);
+    _boardZoom = _lerpDouble(
+      _coreDestructionStartZoom,
+      targetZoom,
+      easedCamera,
+    );
+    _boardOffset = _lerpVector(
+      _coreDestructionStartOffset,
+      _coreDestructionTargetOffset,
+      easedCamera,
+    );
+    if (_gridComponentReady) {
+      _gridComponent.nexusDestructionProgress =
+          (_coreDestructionElapsed / _coreDestructionTotalDuration).clamp(
+            0.0,
+            1.0,
+          );
+    }
+    if (_coreDestructionElapsed >= _coreDestructionTotalDuration) {
+      _completeCoreDestructionSequence();
+    }
+  }
+
+  void _completeCoreDestructionSequence() {
+    if (_phase != GamePhase.coreDestruction) {
+      return;
+    }
+    if (_gridComponentReady) {
+      _gridComponent.nexusDestructionProgress = 1;
+    }
+    _clearActiveCombat();
+    if (_gridComponentReady) {
+      _gridComponent.nexusDestructionProgress = 1;
+    }
+    _finishRun(GamePhase.failure);
+    _publish();
+    unawaited(_saveRoundCheckpoint());
   }
 
   void _finishDebugCombatIfIdle() {
@@ -2792,6 +2933,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _rewardOptions.clear();
     _nexusHitAlertTimer = 0;
     _portalAlertTimer = 0;
+    if (_gridComponentReady) {
+      _gridComponent.nexusDestructionProgress = 0;
+    }
     _syncVisualAlerts();
 
     for (final component
@@ -2821,10 +2965,34 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _resetNexusCoreBeamCycle();
   }
 
+  void _resetCoreDestructionSequence({required bool resetCamera}) {
+    _coreDestructionElapsed = 0;
+    _coreDestructionStartZoom = _minBoardZoom;
+    _coreDestructionStartOffset = Vector2.zero();
+    _coreDestructionTargetOffset = Vector2.zero();
+    if (resetCamera) {
+      _boardZoom = _minBoardZoom;
+      _boardOffset = Vector2.zero();
+    }
+    if (_gridComponentReady) {
+      _gridComponent.nexusDestructionProgress = 0;
+    }
+  }
+
   @override
   void render(Canvas canvas) {
     _drawSpaceBackground(canvas);
     canvas.save();
+    if (_phase == GamePhase.coreDestruction) {
+      final progress = (_coreDestructionElapsed / _coreDestructionTotalDuration)
+          .clamp(0.0, 1.0);
+      final shake =
+          math.sin(_coreDestructionElapsed * 78) *
+          (1 - progress) *
+          3.4 *
+          boardDistanceScale;
+      canvas.translate(shake, -shake * 0.45);
+    }
     _applyBoardZoom(canvas);
     super.render(canvas);
     _drawNexusCoreCooldownBar(canvas);
@@ -3079,7 +3247,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Vector2 _clampBoardOffset(Vector2 offset) {
-    final limit = _boardPanLimit();
+    return _clampBoardOffsetForZoom(offset, _boardZoom);
+  }
+
+  Vector2 _clampBoardOffsetForZoom(Vector2 offset, double zoom) {
+    final limit = _boardPanLimitForZoom(zoom);
     return Vector2(
       offset.x.clamp(-limit.x, limit.x).toDouble(),
       offset.y.clamp(-limit.y, limit.y).toDouble(),
@@ -3087,9 +3259,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Vector2 _boardPanLimit() {
+    return _boardPanLimitForZoom(_boardZoom);
+  }
+
+  Vector2 _boardPanLimitForZoom(double zoom) {
     final boardWidth = _tileSize * _map.columns;
     final boardHeight = _tileSize * _map.rows;
-    final zoomOverflow = math.max(0, _boardZoom - _minBoardZoom);
+    final zoomOverflow = math.max(0, zoom - _minBoardZoom);
     final zoomPanX = boardWidth * zoomOverflow / 2;
     final zoomPanY = boardHeight * zoomOverflow / 2;
     final basePanX = math.max(_tileSize * 0.8, boardWidth * _baseBoardPanRatio);
@@ -3102,6 +3278,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @visibleForTesting
   Vector2 debugBoardPanLimit() => _boardPanLimit();
+
+  @visibleForTesting
+  double debugBoardZoom() => _boardZoom;
+
+  @visibleForTesting
+  Vector2 debugBoardOffset() => _boardOffset.clone();
 
   void _zoomBoardAround({
     required double zoom,
@@ -3124,6 +3306,21 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _origin.x + _tileSize * _map.columns / 2,
       _origin.y + _tileSize * _map.rows / 2,
     );
+  }
+
+  double _lerpDouble(double start, double end, double t) =>
+      start + (end - start) * t;
+
+  Vector2 _lerpVector(Vector2 start, Vector2 end, double t) {
+    return Vector2(
+      _lerpDouble(start.x, end.x, t),
+      _lerpDouble(start.y, end.y, t),
+    );
+  }
+
+  double _easeOutCubic(double t) {
+    final inverse = 1 - t;
+    return 1 - inverse * inverse * inverse;
   }
 
   GridPoint? _gridPointAt(Vector2 position) {
@@ -3522,10 +3719,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _drawNexusScreenAlert(Canvas canvas) {
-    final alert = (_nexusHitAlertTimer / _nexusHitAlertDuration).clamp(
+    final hitAlert = (_nexusHitAlertTimer / _nexusHitAlertDuration).clamp(
       0.0,
       1.0,
     );
+    final destructionAlert = _phase == GamePhase.coreDestruction
+        ? (0.36 +
+              0.56 *
+                  (_coreDestructionElapsed / _coreDestructionTotalDuration)
+                      .clamp(0.0, 1.0))
+        : 0.0;
+    final alert = math.max(hitAlert, destructionAlert);
     if (alert <= 0) {
       return;
     }
@@ -3697,6 +3901,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Future<void> _writeLocalSave() {
+    if (_phase == GamePhase.coreDestruction) {
+      return Future<void>.value();
+    }
     final data = _buildSaveData();
     if (!_savedDataLoaded) {
       _pendingFullSaveData = data;

@@ -671,6 +671,88 @@ void main() {
     expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(1)));
   });
 
+  test('nexus defeat plays core destruction before failure panel', () async {
+    final repository = MemorySaveRepository();
+    final game = RuneNexusGame(
+      saveRepository: repository,
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+
+    final normal = gameEnemies[EnemyType.normal]!;
+    final enemy = EnemyComponent(
+      definition: EnemyDefinition(
+        type: EnemyType.normal,
+        name: 'Core Breaker',
+        maxHp: 100,
+        speed: normal.speed,
+        rewardGold: 0,
+        coreDamage: 20,
+        color: normal.color,
+        resistanceProfile: normal.resistanceProfile,
+      ),
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(500, 0)],
+      game: game,
+    );
+    final lingeringEnemy = EnemyComponent(
+      definition: EnemyDefinition(
+        type: EnemyType.normal,
+        name: 'Lingering Invader',
+        maxHp: 100,
+        speed: normal.speed,
+        rewardGold: 0,
+        coreDamage: 1,
+        color: normal.color,
+        resistanceProfile: normal.resistanceProfile,
+      ),
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(500, 0)],
+      game: game,
+    );
+    game.enemies.add(enemy);
+    game.enemies.add(lingeringEnemy);
+    await game.add(enemy);
+    await game.add(lingeringEnemy);
+    game.update(0);
+
+    game.enemyReachedCore(enemy);
+
+    expect(game.snapshotNotifier.value.nexusHp, 0);
+    expect(game.snapshotNotifier.value.phase, GamePhase.coreDestruction);
+    expect(repository.data?.phase, isNot(GamePhase.coreDestruction));
+    expect(game.enemies, contains(lingeringEnemy));
+
+    game.update(1.6);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.coreDestruction);
+    expect(game.debugBoardZoom(), greaterThan(1));
+    expect(game.enemies, contains(lingeringEnemy));
+
+    game.update(1.7);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.failure);
+    expect(game.snapshotNotifier.value.completedRounds, 0);
+    expect(game.snapshotNotifier.value.lastRunRuneReward, 0);
+    expect(game.debugBoardZoom(), greaterThan(1));
+    expect(game.enemies, isNot(contains(lingeringEnemy)));
+
+    game.restartRun();
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+    expect(game.debugBoardZoom(), 1);
+    expect(game.debugBoardOffset().length2, 0);
+  });
+
   test('enemy hp scaling grows by round', () {
     final normal = gameEnemies[EnemyType.normal]!;
     final round1Hp = scaledEnemyMaxHp(normal, 1);
@@ -1876,6 +1958,27 @@ void main() {
     expect(snapshot.lastRunUnlockedStageNumber, 2);
     expect(snapshot.unlockedStageCount, 2);
     expect(snapshot.clearedStageNumbers, contains(1));
+  });
+
+  test('debug force defeat starts core destruction sequence', () async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    game.debugSetRound(25);
+    game.debugForceDefeat();
+
+    expect(game.snapshotNotifier.value.nexusHp, 0);
+    expect(game.snapshotNotifier.value.phase, GamePhase.coreDestruction);
+
+    game.update(1.6);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.coreDestruction);
+
+    game.update(1.7);
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.failure);
+    expect(game.snapshotNotifier.value.completedRounds, 24);
   });
 
   test('debug gold control adds gold without accepting negative values', () {

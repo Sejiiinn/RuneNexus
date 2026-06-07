@@ -807,8 +807,18 @@ class HudGemDebugPanel extends StatelessWidget {
                     label: '강제 승리',
                     enabled:
                         snapshot.phase != GamePhase.success &&
-                        snapshot.phase != GamePhase.failure,
+                        snapshot.phase != GamePhase.failure &&
+                        snapshot.phase != GamePhase.coreDestruction,
                     onPressed: game.debugForceVictory,
+                  ),
+                  const SizedBox(width: 5),
+                  _DebugRoundButton(
+                    label: '강제 패배',
+                    enabled:
+                        snapshot.phase != GamePhase.success &&
+                        snapshot.phase != GamePhase.failure &&
+                        snapshot.phase != GamePhase.coreDestruction,
+                    onPressed: game.debugForceDefeat,
                   ),
                 ],
               ),

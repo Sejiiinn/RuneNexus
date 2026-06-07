@@ -1,0 +1,1158 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rune Nexus Core Destruction Sequence</title>
+    <style>
+      :root {
+        --bg: #03070d;
+        --field: #07111d;
+        --field-deep: #040a12;
+        --panel: rgba(6, 14, 24, 0.9);
+        --panel-2: rgba(10, 22, 34, 0.96);
+        --line: rgba(142, 230, 255, 0.24);
+        --line-strong: rgba(142, 230, 255, 0.56);
+        --text: #eaf9ff;
+        --sub: #a8c5d4;
+        --muted: #6f8798;
+        --cyan: #8ee6ff;
+        --cyan-2: #28bddd;
+        --danger: #ff6658;
+        --danger-2: #ff9b64;
+        --gold: #f0c96e;
+        --green: #78dda7;
+        --stone: #2b4052;
+        --path: #263649;
+        --build: #182a3a;
+        --blocked: #101923;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          linear-gradient(90deg, rgba(142, 230, 255, 0.04) 1px, transparent 1px),
+          linear-gradient(rgba(142, 230, 255, 0.04) 1px, transparent 1px),
+          linear-gradient(135deg, #02060c, #0a1722 58%, #02060c);
+        background-size: 38px 38px, 38px 38px, auto;
+        color: var(--text);
+        font-family:
+          Inter,
+          Pretendard,
+          "Noto Sans KR",
+          system-ui,
+          sans-serif;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      main {
+        width: min(1180px, calc(100vw - 24px));
+        margin: 0 auto;
+        padding: 22px 0 34px;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+
+      h1 {
+        font-size: 24px;
+        letter-spacing: 0;
+      }
+
+      .lead {
+        margin-top: 7px;
+        color: var(--sub);
+        font-size: 13px;
+        font-weight: 750;
+        line-height: 1.48;
+      }
+
+      .spec {
+        flex: 0 0 auto;
+        display: grid;
+        gap: 5px;
+        width: min(390px, 42vw);
+        padding: 9px 10px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(7, 17, 29, 0.72);
+        color: var(--sub);
+        font-size: 11px;
+        font-weight: 850;
+        line-height: 1.36;
+      }
+
+      .spec b {
+        color: var(--cyan);
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(320px, 430px) minmax(0, 1fr);
+        gap: 14px;
+        align-items: start;
+      }
+
+      .preview-card,
+      .frames-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent),
+          rgba(7, 17, 29, 0.92);
+        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.36);
+        overflow: hidden;
+      }
+
+      .card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 11px 12px;
+        border-bottom: 1px solid rgba(142, 230, 255, 0.14);
+      }
+
+      .card-head h2 {
+        font-size: 15px;
+      }
+
+      .chip {
+        min-height: 25px;
+        padding: 5px 8px;
+        border: 1px solid rgba(255, 155, 100, 0.5);
+        border-radius: 8px;
+        color: #ffd0bd;
+        background: rgba(255, 102, 88, 0.11);
+        font-size: 11px;
+        font-weight: 950;
+      }
+
+      .phone-wrap {
+        display: grid;
+        place-items: center;
+        padding: 14px;
+      }
+
+      .phone {
+        position: relative;
+        width: min(360px, calc(100vw - 56px));
+        aspect-ratio: 9 / 16;
+        border: 1px solid rgba(142, 230, 255, 0.32);
+        border-radius: 8px;
+        overflow: hidden;
+        background: #02060c;
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+          0 24px 46px rgba(0, 0, 0, 0.5);
+      }
+
+      .game-screen {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 56% 18%, rgba(91, 184, 218, 0.16), transparent 36%),
+          radial-gradient(circle at 20% 90%, rgba(255, 102, 88, 0.11), transparent 36%),
+          linear-gradient(#07111d, #03070d 68%, #02050a);
+      }
+
+      .stars,
+      .scan,
+      .red-vignette,
+      .white-flash {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .stars {
+        opacity: 0.58;
+        background-image:
+          radial-gradient(circle at 12% 14%, #d6f8ff 0 1px, transparent 2px),
+          radial-gradient(circle at 74% 7%, #8ee6ff 0 1px, transparent 2px),
+          radial-gradient(circle at 92% 24%, #ffffff 0 1px, transparent 2px),
+          radial-gradient(circle at 30% 36%, #d6f8ff 0 1px, transparent 2px),
+          radial-gradient(circle at 58% 78%, #ffffff 0 1px, transparent 2px),
+          radial-gradient(circle at 82% 88%, #8ee6ff 0 1px, transparent 2px);
+      }
+
+      .scan {
+        opacity: 0.16;
+        background: repeating-linear-gradient(
+          180deg,
+          transparent 0 5px,
+          rgba(142, 230, 255, 0.18) 6px,
+          transparent 7px
+        );
+        mix-blend-mode: screen;
+      }
+
+      .red-vignette {
+        opacity: 0;
+        background:
+          radial-gradient(circle at center, transparent 42%, rgba(255, 76, 61, 0.2) 72%, rgba(255, 76, 61, 0.56)),
+          linear-gradient(180deg, rgba(255, 76, 61, 0.16), transparent 28%, transparent 72%, rgba(255, 76, 61, 0.2));
+      }
+
+      .white-flash {
+        opacity: 0;
+        background: rgba(230, 251, 255, 0.86);
+        mix-blend-mode: screen;
+      }
+
+      .hud-top,
+      .hud-bottom {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        z-index: 8;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 7px;
+        transition: opacity 180ms ease;
+      }
+
+      .hud-top {
+        top: 10px;
+      }
+
+      .hud-bottom {
+        bottom: 10px;
+        align-items: end;
+      }
+
+      .pill,
+      .panel {
+        border: 1px solid rgba(142, 230, 255, 0.24);
+        border-radius: 8px;
+        background: rgba(5, 12, 20, 0.82);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        min-height: 27px;
+        padding: 5px 8px;
+        color: var(--text);
+        font-size: 10px;
+        font-weight: 950;
+      }
+
+      .hp-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 99px;
+        background: var(--danger);
+        box-shadow: 0 0 10px rgba(255, 102, 88, 0.8);
+      }
+
+      .panel {
+        width: 130px;
+        padding: 8px;
+      }
+
+      .panel-title {
+        color: var(--cyan);
+        font-size: 10px;
+        font-weight: 950;
+      }
+
+      .panel-line {
+        height: 5px;
+        margin-top: 6px;
+        border-radius: 99px;
+        background: rgba(142, 230, 255, 0.16);
+      }
+
+      .panel-line:nth-child(3) {
+        width: 70%;
+        background: rgba(255, 201, 110, 0.22);
+      }
+
+      .board-camera {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 410px;
+        height: 530px;
+        transform: translate(-50%, -50%) scale(1);
+        transform-origin: center;
+        transition: transform 280ms ease;
+      }
+
+      .board {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        display: grid;
+        grid-template-columns: repeat(7, 48px);
+        grid-template-rows: repeat(9, 48px);
+        gap: 2px;
+        transform: translate(-50%, -50%);
+      }
+
+      .tile {
+        position: relative;
+        border: 1px solid rgba(142, 230, 255, 0.13);
+        border-radius: 5px;
+        background: var(--build);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+      }
+
+      .tile.path {
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.035), transparent),
+          var(--path);
+      }
+
+      .tile.blocked {
+        background: var(--blocked);
+        opacity: 0.74;
+      }
+
+      .tile.spawn {
+        background:
+          radial-gradient(circle, rgba(182, 139, 255, 0.4), transparent 54%),
+          var(--path);
+      }
+
+      .tile.spawn::after {
+        content: "";
+        position: absolute;
+        inset: 10px;
+        border: 2px solid rgba(184, 139, 255, 0.62);
+        border-radius: 999px;
+        box-shadow: 0 0 14px rgba(184, 139, 255, 0.46);
+      }
+
+      .turret::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 25px;
+        height: 25px;
+        transform: translate(-50%, -50%);
+        border: 2px solid rgba(232, 251, 255, 0.72);
+        border-radius: 999px;
+        background:
+          linear-gradient(90deg, transparent 47%, rgba(232, 251, 255, 0.86) 48% 52%, transparent 53%),
+          radial-gradient(circle, #ffcf72, #99633a 58%, #372b22 60%);
+        box-shadow: 0 0 14px rgba(255, 207, 114, 0.36);
+      }
+
+      .enemy {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(255, 214, 190, 0.8);
+        border-radius: 999px 999px 999px 2px;
+        background: #ff765d;
+        box-shadow: 0 0 12px rgba(255, 102, 88, 0.5);
+        transform: rotate(45deg);
+        opacity: 0.74;
+      }
+
+      .enemy.e1 {
+        left: 106px;
+        top: 94px;
+      }
+
+      .enemy.e2 {
+        left: 210px;
+        top: 191px;
+      }
+
+      .enemy.e3 {
+        left: 258px;
+        top: 331px;
+      }
+
+      .core-tile {
+        background:
+          radial-gradient(circle at 50% 46%, rgba(142, 230, 255, 0.18), transparent 62%),
+          var(--stone);
+        overflow: visible;
+        z-index: 3;
+      }
+
+      .core {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 38px;
+        height: 44px;
+        transform: translate(-50%, -54%);
+        filter: drop-shadow(0 0 16px rgba(142, 230, 255, 0.54));
+      }
+
+      .pedestal {
+        position: absolute;
+        left: 50%;
+        bottom: 2px;
+        width: 36px;
+        height: 14px;
+        transform: translateX(-50%);
+        border: 2px solid rgba(142, 230, 255, 0.28);
+        border-radius: 4px;
+        background: linear-gradient(#415a6b, #182634);
+      }
+
+      .gem {
+        position: absolute;
+        left: 50%;
+        top: 3px;
+        width: 28px;
+        height: 35px;
+        transform: translateX(-50%);
+        clip-path: polygon(50% 0, 90% 36%, 50% 100%, 10% 36%);
+        background:
+          linear-gradient(110deg, rgba(255, 255, 255, 0.55), transparent 30%),
+          linear-gradient(135deg, #effdff, #8ee6ff 30%, #146f91 78%);
+        box-shadow:
+          inset 0 0 0 2px rgba(226, 251, 255, 0.36),
+          0 0 22px rgba(142, 230, 255, 0.62);
+      }
+
+      .cracks {
+        position: absolute;
+        left: 50%;
+        top: 7px;
+        width: 22px;
+        height: 29px;
+        transform: translateX(-50%);
+        opacity: 0;
+      }
+
+      .cracks i {
+        position: absolute;
+        width: 2px;
+        border-radius: 99px;
+        background: rgba(255, 246, 234, 0.95);
+        box-shadow: 0 0 7px rgba(255, 142, 105, 0.86);
+        transform-origin: top;
+      }
+
+      .cracks i:nth-child(1) {
+        left: 10px;
+        top: 2px;
+        height: 17px;
+        transform: rotate(-18deg);
+      }
+
+      .cracks i:nth-child(2) {
+        left: 12px;
+        top: 15px;
+        height: 12px;
+        transform: rotate(26deg);
+      }
+
+      .cracks i:nth-child(3) {
+        left: 7px;
+        top: 13px;
+        height: 10px;
+        transform: rotate(-46deg);
+      }
+
+      .shockwave {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 42px;
+        height: 42px;
+        transform: translate(-50%, -50%) scale(0.45);
+        border: 2px solid rgba(255, 155, 100, 0.82);
+        border-radius: 999px;
+        opacity: 0;
+        box-shadow:
+          0 0 18px rgba(255, 102, 88, 0.55),
+          inset 0 0 16px rgba(255, 102, 88, 0.3);
+      }
+
+      .fragment {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 7px;
+        height: 9px;
+        border: 1px solid rgba(236, 253, 255, 0.75);
+        background: linear-gradient(135deg, #e7fbff, #46cbe3 54%, #15677e);
+        opacity: 0;
+        clip-path: polygon(48% 0, 100% 46%, 62% 100%, 8% 72%);
+        box-shadow: 0 0 10px rgba(142, 230, 255, 0.72);
+      }
+
+      .f1 {
+        --x: -31px;
+        --y: -42px;
+        --r: -28deg;
+      }
+
+      .f2 {
+        --x: 35px;
+        --y: -27px;
+        --r: 38deg;
+      }
+
+      .f3 {
+        --x: -39px;
+        --y: 18px;
+        --r: 74deg;
+      }
+
+      .f4 {
+        --x: 27px;
+        --y: 34px;
+        --r: -62deg;
+      }
+
+      .f5 {
+        --x: 4px;
+        --y: -55px;
+        --r: 12deg;
+      }
+
+      .stage-label {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        top: 58px;
+        z-index: 9;
+        display: flex;
+        justify-content: center;
+        pointer-events: none;
+      }
+
+      .stage-label span {
+        min-height: 28px;
+        padding: 6px 10px;
+        border: 1px solid rgba(255, 155, 100, 0.48);
+        border-radius: 8px;
+        background: rgba(30, 10, 12, 0.72);
+        color: #ffd6c8;
+        font-size: 11px;
+        font-weight: 950;
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+
+      .timeline-controls {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 7px;
+        padding: 0 14px 14px;
+      }
+
+      .timeline-controls button {
+        min-height: 38px;
+        border: 1px solid rgba(142, 230, 255, 0.24);
+        border-radius: 8px;
+        background: rgba(9, 20, 32, 0.84);
+        color: var(--sub);
+        font: inherit;
+        font-size: 11px;
+        font-weight: 950;
+        cursor: pointer;
+      }
+
+      .timeline-controls button.active {
+        border-color: rgba(255, 155, 100, 0.72);
+        color: #ffe0d4;
+        background: rgba(255, 102, 88, 0.14);
+      }
+
+      .frames-card {
+        padding-bottom: 12px;
+      }
+
+      .frames {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 11px;
+        padding: 12px;
+      }
+
+      .frame {
+        border: 1px solid rgba(142, 230, 255, 0.16);
+        border-radius: 8px;
+        background: rgba(5, 12, 20, 0.54);
+        overflow: hidden;
+      }
+
+      .mini {
+        position: relative;
+        height: 176px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 52% 45%, rgba(142, 230, 255, 0.14), transparent 36%),
+          linear-gradient(#07111d, #02060c);
+      }
+
+      .mini .board-camera {
+        width: 300px;
+        height: 320px;
+      }
+
+      .mini .board {
+        grid-template-columns: repeat(7, 30px);
+        grid-template-rows: repeat(9, 30px);
+        gap: 1px;
+      }
+
+      .mini .tile {
+        border-radius: 3px;
+      }
+
+      .mini .core {
+        width: 28px;
+        height: 32px;
+      }
+
+      .mini .pedestal {
+        width: 26px;
+        height: 10px;
+      }
+
+      .mini .gem {
+        width: 20px;
+        height: 25px;
+      }
+
+      .mini .enemy,
+      .mini .hud-top,
+      .mini .hud-bottom,
+      .mini .stage-label,
+      .mini .scan {
+        display: none;
+      }
+
+      .frame-body {
+        padding: 10px;
+      }
+
+      .frame-body h3 {
+        font-size: 13px;
+      }
+
+      .frame-body p {
+        margin-top: 5px;
+        color: var(--sub);
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.42;
+      }
+
+      .phone[data-step="0"] .board-camera {
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .phone[data-step="1"] .board-camera {
+        transform: translate(-50%, -58%) scale(1.34);
+      }
+
+      .phone[data-step="2"] .board-camera {
+        transform: translate(-50%, -64%) scale(1.72);
+      }
+
+      .phone[data-step="3"] .board-camera {
+        transform: translate(-50%, -64%) scale(1.75);
+      }
+
+      .phone[data-step="1"] .hud-top,
+      .phone[data-step="1"] .hud-bottom,
+      .phone[data-step="2"] .hud-top,
+      .phone[data-step="2"] .hud-bottom,
+      .phone[data-step="3"] .hud-top,
+      .phone[data-step="3"] .hud-bottom {
+        opacity: 0.34;
+      }
+
+      .phone[data-step="1"] .red-vignette {
+        opacity: 0.42;
+      }
+
+      .phone[data-step="2"] .red-vignette,
+      .phone[data-step="3"] .red-vignette {
+        opacity: 0.72;
+      }
+
+      .phone[data-step="1"] .stage-label span,
+      .phone[data-step="2"] .stage-label span,
+      .phone[data-step="3"] .stage-label span {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .phone[data-step="1"] .cracks {
+        opacity: 0.64;
+      }
+
+      .phone[data-step="2"] .cracks,
+      .phone[data-step="3"] .cracks {
+        opacity: 1;
+      }
+
+      .phone[data-step="1"] .gem {
+        background:
+          linear-gradient(110deg, rgba(255, 255, 255, 0.48), transparent 30%),
+          linear-gradient(135deg, #fff8ec, #8ee6ff 24%, #ff775f 78%);
+      }
+
+      .phone[data-step="2"] .gem {
+        filter: saturate(1.45);
+        background:
+          linear-gradient(110deg, rgba(255, 255, 255, 0.62), transparent 30%),
+          linear-gradient(135deg, #fff3e8, #49d6ec 26%, #ff6658 76%);
+        animation: coreFlicker 0.18s steps(2, end) infinite;
+      }
+
+      .phone[data-step="3"] .gem {
+        opacity: 0.42;
+        background:
+          linear-gradient(110deg, rgba(255, 255, 255, 0.28), transparent 30%),
+          linear-gradient(135deg, #7895a1, #225568 46%, #311a20);
+        box-shadow: 0 0 12px rgba(255, 102, 88, 0.28);
+      }
+
+      .phone[data-step="2"] .shockwave {
+        opacity: 0.92;
+        transform: translate(-50%, -50%) scale(2.15);
+      }
+
+      .phone[data-step="3"] .shockwave {
+        opacity: 0.2;
+        transform: translate(-50%, -50%) scale(3.1);
+      }
+
+      .phone[data-step="2"] .fragment,
+      .phone[data-step="3"] .fragment {
+        opacity: 1;
+        transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--r));
+      }
+
+      .phone[data-step="3"] .fragment {
+        opacity: 0.62;
+        filter: grayscale(0.35);
+      }
+
+      .phone[data-step="3"] .white-flash {
+        opacity: 0.1;
+      }
+
+      .mini.step-0 .board-camera {
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      .mini.step-1 .board-camera {
+        transform: translate(-50%, -58%) scale(1.34);
+      }
+
+      .mini.step-2 .board-camera {
+        transform: translate(-50%, -64%) scale(1.72);
+      }
+
+      .mini.step-3 .board-camera {
+        transform: translate(-50%, -64%) scale(1.75);
+      }
+
+      .mini.step-1 .red-vignette,
+      .mini.step-2 .red-vignette,
+      .mini.step-3 .red-vignette {
+        opacity: 0.58;
+      }
+
+      .mini.step-1 .cracks,
+      .mini.step-2 .cracks,
+      .mini.step-3 .cracks {
+        opacity: 1;
+      }
+
+      .mini.step-2 .shockwave,
+      .mini.step-3 .shockwave {
+        opacity: 0.75;
+        transform: translate(-50%, -50%) scale(2.15);
+      }
+
+      .mini.step-2 .fragment,
+      .mini.step-3 .fragment {
+        opacity: 1;
+        transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--r));
+      }
+
+      @keyframes coreFlicker {
+        0% {
+          filter: brightness(1.1) saturate(1.25);
+        }
+        100% {
+          filter: brightness(1.75) saturate(1.7);
+        }
+      }
+
+      @media (max-width: 880px) {
+        header {
+          display: grid;
+          align-items: start;
+        }
+
+        .spec {
+          width: 100%;
+        }
+
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .frames {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>패배 직전 코어 파괴 연출 프로토타입</h1>
+          <p class="lead">
+            결과 패널을 바로 띄우지 않고, 코어로 카메라를 당긴 뒤 파괴 모션이 끝나는 순간
+            기존 실패 결과 화면으로 넘어가는 흐름을 기준으로 잡았다.
+          </p>
+        </div>
+        <div class="spec">
+          <span><b>카메라</b> 코어 중심 1.7~1.8배 확대</span>
+          <span><b>연출</b> 입력 잠금, HUD 감광, 붉은 경고광, 균열, 충격파</span>
+          <span><b>전환</b> 파괴 잔광 이후에만 실패 결과 패널 표시</span>
+        </div>
+      </header>
+
+      <section class="layout">
+        <article class="preview-card">
+          <div class="card-head">
+            <h2>재생 예시</h2>
+            <span class="chip" id="step-chip">0.00s · HP 0</span>
+          </div>
+          <div class="phone-wrap">
+            <div class="phone" id="phone" data-step="0">
+              <div class="game-screen">
+                <div class="stars"></div>
+                <div class="board-camera">
+                  <div class="board" aria-hidden="true">
+                    <span class="tile blocked"></span>
+                    <span class="tile build"></span>
+                    <span class="tile path spawn"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build turret"></span>
+                    <span class="tile build"></span>
+                    <span class="tile blocked"></span>
+                    <span class="tile build"></span>
+                    <span class="tile build"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build"></span>
+                    <span class="tile build"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build"></span>
+                    <span class="tile build turret"></span>
+                    <span class="tile path"></span>
+                    <span class="tile path"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build"></span>
+                    <span class="tile build"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build turret"></span>
+                    <span class="tile path"></span>
+                    <span class="tile path"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build"></span>
+                    <span class="tile blocked"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build"></span>
+                    <span class="tile build"></span>
+                    <span class="tile build turret"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build"></span>
+                    <span class="tile build"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build"></span>
+                    <span class="tile blocked"></span>
+                    <span class="tile build"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build"></span>
+                    <span class="tile build turret"></span>
+                    <span class="tile path"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build"></span>
+                    <span class="tile blocked"></span>
+                    <span class="tile build"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build"></span>
+                    <span class="tile build"></span>
+                    <span class="tile build turret"></span>
+                    <span class="tile path"></span>
+                    <span class="tile build"></span>
+                    <span class="tile build"></span>
+                    <span class="tile path"></span>
+                    <span class="tile path core-tile">
+                      <span class="shockwave"></span>
+                      <span class="fragment f1"></span>
+                      <span class="fragment f2"></span>
+                      <span class="fragment f3"></span>
+                      <span class="fragment f4"></span>
+                      <span class="fragment f5"></span>
+                      <span class="core">
+                        <span class="gem"></span>
+                        <span class="cracks"><i></i><i></i><i></i></span>
+                        <span class="pedestal"></span>
+                      </span>
+                    </span>
+                    <span class="tile blocked"></span>
+                    <span class="tile build"></span>
+                    <span class="enemy e1"></span>
+                    <span class="enemy e2"></span>
+                    <span class="enemy e3"></span>
+                  </div>
+                </div>
+                <div class="hud-top">
+                  <span class="pill"><span class="hp-dot"></span>0 / 20</span>
+                  <span class="pill">Wave 17</span>
+                  <span class="pill">1.0x</span>
+                </div>
+                <div class="hud-bottom">
+                  <div class="panel">
+                    <div class="panel-title">포탑</div>
+                    <div class="panel-line"></div>
+                    <div class="panel-line"></div>
+                  </div>
+                  <div class="panel">
+                    <div class="panel-title">코어</div>
+                    <div class="panel-line"></div>
+                    <div class="panel-line"></div>
+                  </div>
+                </div>
+                <div class="stage-label"><span id="step-label">코어 피격</span></div>
+                <div class="red-vignette"></div>
+                <div class="white-flash"></div>
+                <div class="scan"></div>
+              </div>
+            </div>
+          </div>
+          <div class="timeline-controls" aria-label="연출 단계">
+            <button class="active" data-step="0" type="button">HP 0</button>
+            <button data-step="1" type="button">카메라 이동</button>
+            <button data-step="2" type="button">파괴 순간</button>
+            <button data-step="3" type="button">패널 직전</button>
+          </div>
+        </article>
+
+        <article class="frames-card">
+          <div class="card-head">
+            <h2>구현 기준 프레임</h2>
+            <span class="chip">1.5초 내외</span>
+          </div>
+          <div class="frames">
+            <section class="frame">
+              <div class="mini step-0">
+                <div class="stars"></div>
+                <div class="board-camera">
+                  <div class="board" aria-hidden="true"></div>
+                </div>
+              </div>
+              <div class="frame-body">
+                <h3>0.00s · 패배 확정</h3>
+                <p>HP가 0이 되는 순간 결과 정산은 보류하고 스폰과 입력을 먼저 멈춘다.</p>
+              </div>
+            </section>
+            <section class="frame">
+              <div class="mini step-1">
+                <div class="stars"></div>
+                <div class="board-camera">
+                  <div class="board" aria-hidden="true"></div>
+                </div>
+                <div class="red-vignette"></div>
+              </div>
+              <div class="frame-body">
+                <h3>0.45s · 코어로 확대</h3>
+                <p>기존 보드 줌/팬 값을 보간해 코어를 화면 중앙보다 살짝 아래로 둔다.</p>
+              </div>
+            </section>
+            <section class="frame">
+              <div class="mini step-2">
+                <div class="stars"></div>
+                <div class="board-camera">
+                  <div class="board" aria-hidden="true"></div>
+                </div>
+                <div class="red-vignette"></div>
+              </div>
+              <div class="frame-body">
+                <h3>1.10s · 균열과 충격파</h3>
+                <p>코어 렌더링에 파괴 진행도를 넘겨 균열, 파편, 붉은 충격파를 그린다.</p>
+              </div>
+            </section>
+            <section class="frame">
+              <div class="mini step-3">
+                <div class="stars"></div>
+                <div class="board-camera">
+                  <div class="board" aria-hidden="true"></div>
+                </div>
+                <div class="red-vignette"></div>
+              </div>
+              <div class="frame-body">
+                <h3>1.55s · 실패 패널 전환</h3>
+                <p>잔광이 꺼진 뒤 기존 실패 결과 패널을 띄워 정산 흐름을 재사용한다.</p>
+              </div>
+            </section>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <template id="board-template">
+      <span class="tile blocked"></span>
+      <span class="tile build"></span>
+      <span class="tile path spawn"></span>
+      <span class="tile path"></span>
+      <span class="tile build turret"></span>
+      <span class="tile build"></span>
+      <span class="tile blocked"></span>
+      <span class="tile build"></span>
+      <span class="tile build"></span>
+      <span class="tile path"></span>
+      <span class="tile build"></span>
+      <span class="tile build"></span>
+      <span class="tile path"></span>
+      <span class="tile build"></span>
+      <span class="tile build turret"></span>
+      <span class="tile path"></span>
+      <span class="tile path"></span>
+      <span class="tile path"></span>
+      <span class="tile build"></span>
+      <span class="tile path"></span>
+      <span class="tile build"></span>
+      <span class="tile build"></span>
+      <span class="tile path"></span>
+      <span class="tile build turret"></span>
+      <span class="tile path"></span>
+      <span class="tile path"></span>
+      <span class="tile path"></span>
+      <span class="tile build"></span>
+      <span class="tile blocked"></span>
+      <span class="tile path"></span>
+      <span class="tile build"></span>
+      <span class="tile build"></span>
+      <span class="tile build turret"></span>
+      <span class="tile path"></span>
+      <span class="tile build"></span>
+      <span class="tile build"></span>
+      <span class="tile path"></span>
+      <span class="tile build"></span>
+      <span class="tile blocked"></span>
+      <span class="tile build"></span>
+      <span class="tile path"></span>
+      <span class="tile build"></span>
+      <span class="tile build turret"></span>
+      <span class="tile path"></span>
+      <span class="tile path"></span>
+      <span class="tile build"></span>
+      <span class="tile path"></span>
+      <span class="tile build"></span>
+      <span class="tile blocked"></span>
+      <span class="tile build"></span>
+      <span class="tile path"></span>
+      <span class="tile build"></span>
+      <span class="tile build"></span>
+      <span class="tile build turret"></span>
+      <span class="tile path"></span>
+      <span class="tile build"></span>
+      <span class="tile build"></span>
+      <span class="tile path"></span>
+      <span class="tile path core-tile">
+        <span class="shockwave"></span>
+        <span class="fragment f1"></span>
+        <span class="fragment f2"></span>
+        <span class="fragment f3"></span>
+        <span class="fragment f4"></span>
+        <span class="fragment f5"></span>
+        <span class="core">
+          <span class="gem"></span>
+          <span class="cracks"><i></i><i></i><i></i></span>
+          <span class="pedestal"></span>
+        </span>
+      </span>
+      <span class="tile blocked"></span>
+      <span class="tile build"></span>
+    </template>
+
+    <script>
+      const phone = document.querySelector("#phone");
+      const buttons = [...document.querySelectorAll("[data-step]")];
+      const chip = document.querySelector("#step-chip");
+      const label = document.querySelector("#step-label");
+      const template = document.querySelector("#board-template");
+      const miniBoards = document.querySelectorAll(".mini .board");
+
+      const steps = [
+        { chip: "0.00s · HP 0", label: "코어 피격" },
+        { chip: "0.45s · 카메라 이동", label: "코어로 시점 이동" },
+        { chip: "1.10s · 파괴 순간", label: "코어 붕괴" },
+        { chip: "1.55s · 패널 직전", label: "결과 화면 전환" },
+      ];
+
+      miniBoards.forEach((board) => {
+        board.innerHTML = template.innerHTML;
+      });
+
+      let step = 0;
+      let timer = null;
+
+      function setStep(nextStep) {
+        step = nextStep;
+        phone.dataset.step = String(step);
+        chip.textContent = steps[step].chip;
+        label.textContent = steps[step].label;
+        buttons.forEach((button) => {
+          button.classList.toggle("active", Number(button.dataset.step) === step);
+        });
+      }
+
+      function startLoop() {
+        window.clearInterval(timer);
+        timer = window.setInterval(() => {
+          setStep((step + 1) % steps.length);
+        }, 1200);
+      }
+
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+          setStep(Number(button.dataset.step));
+          startLoop();
+        });
+      });
+
+      setStep(0);
+      startLoop();
+    </script>
+  </body>
+</html>

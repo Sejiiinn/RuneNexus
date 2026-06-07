@@ -22,6 +22,7 @@ class GridComponent extends Component {
   double _portalSpin = 0;
   double portalAlert = 0;
   double nexusHitAlert = 0;
+  double nexusDestructionProgress = 0;
   Picture? _staticBoardPicture;
   late final List<GridPoint> _dynamicTilePoints = _collectDynamicTilePoints();
 
@@ -567,29 +568,38 @@ class GridComponent extends Component {
     final theme = map.tileTheme;
     final center = rect.center;
     final hit = nexusHitAlert.clamp(0.0, 1.0);
+    final destruction = nexusDestructionProgress.clamp(0.0, 1.0);
+    final damage = math.max(hit, destruction);
     final unit = tileSize;
-    final pulse = (math.sin(_portalSpin * 2.2) + 1) / 2;
-    final gemColor = Color.lerp(
+    final pulse =
+        ((math.sin(_portalSpin * 2.2) + 1) / 2) * (1 - destruction * 0.45);
+    final activeGemColor = Color.lerp(
       theme.nexusGemColor,
       theme.nexusGemHitColor,
-      hit,
+      damage,
+    )!;
+    final gemColor = Color.lerp(
+      activeGemColor,
+      const Color(0xFF51616B),
+      destruction * 0.55,
     )!;
     final basePaint = Paint()
       ..color = Color.lerp(
         theme.nexusBaseColor,
         const Color(0xFF365063),
-        hit * 0.28,
+        damage * 0.28,
       )!;
     final shadowPaint = Paint()
       ..color = theme.nexusShadowColor.withValues(alpha: 0.92);
 
-    if (hit > 0) {
+    if (damage > 0) {
       canvas.drawRRect(
         RRect.fromRectAndRadius(
           rect.deflate(unit * 0.05),
           Radius.circular(unit * 0.08),
         ),
-        Paint()..color = const Color(0xFFFF3D3D).withValues(alpha: 0.26 * hit),
+        Paint()
+          ..color = const Color(0xFFFF3D3D).withValues(alpha: 0.26 * damage),
       );
       canvas.drawRRect(
         RRect.fromRectAndRadius(
@@ -597,7 +607,7 @@ class GridComponent extends Component {
           Radius.circular(unit * 0.08),
         ),
         Paint()
-          ..color = const Color(0xFFFF7A59).withValues(alpha: 0.75 * hit)
+          ..color = const Color(0xFFFF7A59).withValues(alpha: 0.75 * damage)
           ..style = PaintingStyle.stroke
           ..strokeWidth = unit * 0.045,
       );
@@ -743,7 +753,7 @@ class GridComponent extends Component {
         ..color = Color.lerp(
           theme.nexusGemStrokeColor,
           const Color(0xFFFFB39C),
-          hit,
+          damage,
         )!
         ..style = PaintingStyle.stroke
         ..strokeWidth = unit * 0.035,
@@ -761,9 +771,10 @@ class GridComponent extends Component {
         ..strokeJoin = StrokeJoin.round,
     );
 
-    if (hit > 0) {
+    final crack = math.max(hit, destruction);
+    if (crack > 0) {
       final crackPaint = Paint()
-        ..color = const Color(0xFFFFD0C6).withValues(alpha: 0.66 * hit)
+        ..color = const Color(0xFFFFD0C6).withValues(alpha: 0.66 * crack)
         ..style = PaintingStyle.stroke
         ..strokeWidth = unit * 0.018
         ..strokeCap = StrokeCap.round;
@@ -777,7 +788,111 @@ class GridComponent extends Component {
         Offset(center.dx - unit * 0.02, center.dy + unit * 0.08),
         crackPaint,
       );
+      if (destruction > 0.25) {
+        canvas.drawLine(
+          Offset(center.dx + unit * 0.08, center.dy - unit * 0.22),
+          Offset(center.dx - unit * 0.01, center.dy - unit * 0.02),
+          crackPaint,
+        );
+        canvas.drawLine(
+          Offset(center.dx - unit * 0.1, center.dy - unit * 0.12),
+          Offset(center.dx + unit * 0.09, center.dy + unit * 0.09),
+          crackPaint,
+        );
+      }
     }
+
+    if (destruction > 0) {
+      _drawNexusDestruction(canvas, rect, destruction);
+    }
+  }
+
+  void _drawNexusDestruction(Canvas canvas, Rect rect, double progress) {
+    final center = rect.center;
+    final unit = tileSize;
+    final burst = ((progress - 0.35) / 0.45).clamp(0.0, 1.0);
+    final fade = (1 - progress).clamp(0.0, 1.0);
+
+    if (burst > 0) {
+      final radius = unit * (0.28 + burst * 0.92);
+      canvas.drawCircle(
+        center,
+        radius,
+        Paint()
+          ..color = const Color(0xFFFF8A5F).withValues(alpha: 0.38 * fade)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = unit * (0.03 + 0.02 * fade),
+      );
+      canvas.drawCircle(
+        center,
+        unit * (0.16 + burst * 0.28),
+        Paint()..color = const Color(0xFFFF594A).withValues(alpha: 0.14 * fade),
+      );
+    }
+
+    if (progress < 0.3) {
+      return;
+    }
+
+    final fragmentProgress = ((progress - 0.3) / 0.7).clamp(0.0, 1.0);
+    final fragmentAlpha = (1 - progress * 0.52).clamp(0.0, 1.0);
+    final offsets = <Offset>[
+      Offset(-0.36, -0.48),
+      Offset(0.38, -0.31),
+      Offset(-0.44, 0.18),
+      Offset(0.3, 0.34),
+      Offset(0.04, -0.6),
+    ];
+    for (var i = 0; i < offsets.length; i++) {
+      final offset = offsets[i];
+      final fragmentCenter = Offset(
+        center.dx + offset.dx * unit * fragmentProgress,
+        center.dy + offset.dy * unit * fragmentProgress,
+      );
+      final angle = (i * 0.9 - 0.8) + fragmentProgress * (0.7 + i * 0.11);
+      _drawNexusFragment(
+        canvas,
+        center: fragmentCenter,
+        size: unit * (0.08 + (i % 2) * 0.018),
+        angle: angle,
+        alpha: fragmentAlpha,
+      );
+    }
+  }
+
+  void _drawNexusFragment(
+    Canvas canvas, {
+    required Offset center,
+    required double size,
+    required double angle,
+    required double alpha,
+  }) {
+    final path = Path()
+      ..moveTo(0, -size)
+      ..lineTo(size * 0.72, -size * 0.12)
+      ..lineTo(size * 0.28, size)
+      ..lineTo(-size * 0.68, size * 0.42)
+      ..close();
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(angle);
+    canvas.drawPath(
+      path,
+      Paint()
+        ..shader = Gradient.linear(Offset(-size, -size), Offset(size, size), [
+          const Color(0xFFE9FDFF).withValues(alpha: alpha),
+          const Color(0xFF38C9E6).withValues(alpha: alpha),
+          const Color(0xFFFF7A59).withValues(alpha: alpha * 0.72),
+        ]),
+    );
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = const Color(0xFFE9FDFF).withValues(alpha: alpha * 0.68)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.0, size * 0.16),
+    );
+    canvas.restore();
   }
 
   Paint _paintFor(TileType type) {

@@ -29,6 +29,7 @@ class HudBottomBar extends StatelessWidget {
       GamePhase.preparation => '다음 웨이브',
       GamePhase.wave => '전투 진행 중',
       GamePhase.reward => '젬 보상 선택 대기',
+      GamePhase.coreDestruction => '코어 붕괴',
       GamePhase.success => '방어 성공',
       GamePhase.failure => '방어 실패',
       GamePhase.restored => '저장된 진행 대기',

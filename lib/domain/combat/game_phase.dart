@@ -1,1 +1,9 @@
-enum GamePhase { preparation, wave, reward, success, failure, restored }
+enum GamePhase {
+  preparation,
+  wave,
+  reward,
+  coreDestruction,
+  success,
+  failure,
+  restored,
+}
