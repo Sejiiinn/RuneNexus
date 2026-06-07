@@ -35,72 +35,102 @@ class ResultOverlay extends StatelessWidget {
         ? '없음'
         : '${snapshot.topDamageTurretName} ${_formatDamageValue(snapshot.topDamageTurretDamageDealt)}';
     final rewardSubText = _rewardSubText(success, unlockGroups);
+    final disableMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
 
-    return Container(
-      color: const Color(0xAA02070D),
-      child: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(14),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 390),
-              child: GamePanel(
-                width: double.infinity,
-                padding: const EdgeInsets.all(18),
-                selected: true,
-                variant: success
-                    ? GamePanelVariant.stone
-                    : GamePanelVariant.danger,
-                accentColor: success ? GamePalette.cyan : GamePalette.danger,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _ResultHeader(success: success, snapshot: snapshot),
-                    const SizedBox(height: 12),
-                    _RewardSummary(
-                      runeReward: snapshot.lastRunRuneReward,
-                      subText: rewardSubText,
-                      success: success,
-                    ),
-                    const SizedBox(height: 12),
-                    _ResultSection(
-                      title: '전투 기록',
-                      child: _CompactStatList(
-                        rows: [
-                          _CompactStatRow(
-                            label: '도달 라운드',
-                            value: '${snapshot.completedRounds}R',
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: disableMotion
+          ? Duration.zero
+          : const Duration(milliseconds: 420),
+      curve: Curves.easeOutCubic,
+      builder: (context, progress, child) {
+        final panelOffset = Offset(0, (success ? 18 : 26) * (1 - progress));
+        return Container(
+          color: const Color(0xFF02070D).withValues(alpha: 0.67 * progress),
+          child: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(14),
+                child: Transform.translate(
+                  offset: panelOffset,
+                  child: Transform.scale(
+                    scale: 0.96 + progress * 0.04,
+                    child: Opacity(
+                      opacity: progress,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 390),
+                        child: GamePanel(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(18),
+                          selected: true,
+                          variant: success
+                              ? GamePanelVariant.stone
+                              : GamePanelVariant.danger,
+                          accentColor: success
+                              ? GamePalette.cyan
+                              : GamePalette.danger,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _ResultHeader(
+                                success: success,
+                                snapshot: snapshot,
+                              ),
+                              const SizedBox(height: 12),
+                              _RewardSummary(
+                                runeReward: snapshot.lastRunRuneReward,
+                                subText: rewardSubText,
+                                success: success,
+                              ),
+                              const SizedBox(height: 12),
+                              _ResultSection(
+                                title: '전투 기록',
+                                child: _CompactStatList(
+                                  rows: [
+                                    _CompactStatRow(
+                                      label: '도달 라운드',
+                                      value: '${snapshot.completedRounds}R',
+                                    ),
+                                    _CompactStatRow(
+                                      label: '기록',
+                                      value: recordText,
+                                      highlight:
+                                          snapshot.lastRunWasNewBestRound,
+                                    ),
+                                    _CompactStatRow(
+                                      label: '최고 피해',
+                                      value: topDamageText,
+                                    ),
+                                    _CompactStatRow(
+                                      label: '현재 룬',
+                                      value: _formatInteger(snapshot.runes),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (unlockGroups.isNotEmpty) ...[
+                                const SizedBox(height: 12),
+                                _UnlockSection(groups: unlockGroups),
+                              ],
+                              const SizedBox(height: 16),
+                              _ResultActions(
+                                success: success,
+                                onConfirm: onOpenStageSelect,
+                                onRestart: game.restartRun,
+                              ),
+                            ],
                           ),
-                          _CompactStatRow(
-                            label: '기록',
-                            value: recordText,
-                            highlight: snapshot.lastRunWasNewBestRound,
-                          ),
-                          _CompactStatRow(label: '최고 피해', value: topDamageText),
-                          _CompactStatRow(
-                            label: '현재 룬',
-                            value: _formatInteger(snapshot.runes),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                    if (unlockGroups.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      _UnlockSection(groups: unlockGroups),
-                    ],
-                    const SizedBox(height: 16),
-                    _ResultActions(
-                      success: success,
-                      onConfirm: onOpenStageSelect,
-                      onRestart: game.restartRun,
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
