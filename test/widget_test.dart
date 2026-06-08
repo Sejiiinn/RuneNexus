@@ -19,6 +19,7 @@ import 'package:rune_nexus/game/rune_nexus_game.dart';
 import 'package:rune_nexus/game/systems/run_progression.dart';
 import 'package:rune_nexus/l10n/rune_nexus_localizations.dart';
 import 'package:rune_nexus/ui/game/game_button.dart';
+import 'package:rune_nexus/ui/hud/core_info_panel.dart';
 import 'package:rune_nexus/ui/hud/game_hud.dart';
 import 'package:rune_nexus/ui/menu/main_menu_screen.dart';
 import 'package:rune_nexus/ui/menu/map_editor_panel.dart';
@@ -805,6 +806,54 @@ void main() {
     expect(find.byKey(const ValueKey('core-ability-절약 설계')), findsOneWidget);
   });
 
+  testWidgets('guardian beam core panel shows beam and saved total damage', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          backgroundColor: const Color(0xFF07111D),
+          body: HudCoreInfoPanel(
+            snapshot: _resultSnapshot(
+              phase: GamePhase.preparation,
+              currentStageNumber: 1,
+              coreCombatSkill: CoreCombatSkill.guardianBeam,
+              nexusCoreBeamDamage: 6.25,
+              coreCombatSkillDirectDamageDealt: 12.5,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('광선 피해 6.25'), findsOneWidget);
+    expect(find.text('총 피해 12.5'), findsOneWidget);
+    expect(find.textContaining('현재 피해'), findsNothing);
+  });
+
+  testWidgets('rift mark core panel shows effect and saved bonus damage', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          backgroundColor: const Color(0xFF07111D),
+          body: HudCoreInfoPanel(
+            snapshot: _resultSnapshot(
+              phase: GamePhase.preparation,
+              currentStageNumber: 1,
+              coreCombatSkill: CoreCombatSkill.riftMark,
+              coreCombatSkillBonusDamageDealt: 7.25,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('현재 효과 +25%'), findsOneWidget);
+    expect(find.text('총 추가 피해 7.25'), findsOneWidget);
+  });
+
   testWidgets('stage cards fit on narrow menu width', (tester) async {
     tester.view.physicalSize = const Size(320, 720);
     tester.view.devicePixelRatio = 1;
@@ -1589,7 +1638,7 @@ void main() {
     expect(find.text('내구도 높은 적 4명에게 받는 피해 25% 증가 낙인 부여'), findsOneWidget);
     expect(find.text('코어'), findsNothing);
     expect(find.text('패시브 없음'), findsOneWidget);
-    expect(find.text('효과 +25%'), findsNothing);
+    expect(find.text('현재 효과 +25%'), findsOneWidget);
     expect(find.text('총 추가 피해 0.00'), findsOneWidget);
     expect(find.text('발동 0회'), findsNothing);
     expect(find.text('포탈 1'), findsNothing);

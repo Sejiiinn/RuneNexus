@@ -132,22 +132,7 @@ class _CoreSkillInfoRow extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _CoreInfoText(title: title, description: description),
-          if (metric != null) ...[
-            const SizedBox(height: 5),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                metric,
-                maxLines: 1,
-                overflow: TextOverflow.clip,
-                style: const TextStyle(
-                  color: Color(0xFF8EE6FF),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-          ],
+          if (metric != null) ...[const SizedBox(height: 5), metric],
         ],
       ),
     );
@@ -308,15 +293,61 @@ String _coreCombatSkillDescription(CoreCombatSkill skill) {
   };
 }
 
-String? _coreCombatSkillMetric(CoreCombatSkill? skill, GameSnapshot snapshot) {
+Widget? _coreCombatSkillMetric(CoreCombatSkill? skill, GameSnapshot snapshot) {
   return switch (skill) {
-    CoreCombatSkill.guardianBeam =>
-      '현재 피해 ${_formatCoreCombatStat(snapshot.nexusCoreBeamDamage)}',
-    CoreCombatSkill.riftMark =>
-      '총 추가 피해 ${_formatCoreCombatStat(snapshot.coreCombatSkillBonusDamageDealt)}',
+    CoreCombatSkill.guardianBeam => Row(
+      children: [
+        Flexible(
+          child: Text(
+            '광선 피해 ${_formatCoreCombatStat(snapshot.nexusCoreBeamDamage)}',
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            style: _coreCombatMetricTextStyle,
+          ),
+        ),
+        const Spacer(),
+        Flexible(
+          child: Text(
+            '총 피해 ${_formatCoreCombatStat(snapshot.coreCombatSkillDirectDamageDealt)}',
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            textAlign: TextAlign.right,
+            style: _coreCombatMetricTextStyle,
+          ),
+        ),
+      ],
+    ),
+    CoreCombatSkill.riftMark => Row(
+      children: [
+        Flexible(
+          child: Text(
+            '현재 효과 +25%',
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            style: _coreCombatMetricTextStyle,
+          ),
+        ),
+        const Spacer(),
+        Flexible(
+          child: Text(
+            '총 추가 피해 ${_formatCoreCombatStat(snapshot.coreCombatSkillBonusDamageDealt)}',
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            textAlign: TextAlign.right,
+            style: _coreCombatMetricTextStyle,
+          ),
+        ),
+      ],
+    ),
     null => null,
   };
 }
+
+const _coreCombatMetricTextStyle = TextStyle(
+  color: Color(0xFF8EE6FF),
+  fontSize: 10,
+  fontWeight: FontWeight.w900,
+);
 
 String _corePassiveDescription(CorePassiveAbility ability) {
   return switch (ability) {
