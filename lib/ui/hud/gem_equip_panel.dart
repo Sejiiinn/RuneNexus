@@ -9,6 +9,7 @@ import '../../domain/turret/turret_definition.dart';
 import '../../domain/turret/turret_target_priority.dart';
 import '../../game/game_snapshot.dart';
 import '../../game/rune_nexus_game.dart';
+import '../game/game_ui.dart';
 import 'gem_socket_section.dart';
 import 'hud_common.dart';
 import 'turret_trait_panel.dart';
@@ -554,31 +555,68 @@ class _TurretRefundConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gemCount = snapshot.selectedTurretGems.length;
+    final gemCount = snapshot.selectedTurretGems.whereType<GemType>().length;
     final traitWarning = snapshot.selectedTurretPrimaryTrait == null
         ? ''
         : '\n특성에 사용한 젬 파편은 반환되지 않습니다.';
     return AlertDialog(
-      backgroundColor: const Color(0xFF102235),
-      title: Text(
-        '${snapshot.selectedTurretName ?? '선택한'} 포탑 환불',
-        style: const TextStyle(color: Color(0xFFE8F8FF)),
+      backgroundColor: const Color(0xFF0B1725),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: const BorderSide(color: Color(0xAAFF7043)),
+      ),
+      titlePadding: const EdgeInsets.fromLTRB(18, 16, 14, 0),
+      contentPadding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
+      actionsPadding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
+      title: Row(
+        children: [
+          const Icon(Icons.sell_outlined, color: GamePalette.danger, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '${snapshot.selectedTurretName ?? '선택한'} 포탑 환불',
+              style: const TextStyle(
+                color: Color(0xFFE8FBFF),
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
       ),
       content: Text(
-        '설치 및 업그레이드 비용의 75%인 '
+        '설치 및 업그레이드 비용의 ${snapshot.turretRefundPercent}%인 '
         '${snapshot.selectedTurretRefundGold}골드를 돌려받습니다.'
         '${gemCount > 0 ? '\n장착된 젬 $gemCount개는 인벤토리로 반환됩니다.' : ''}'
         '$traitWarning',
-        style: const TextStyle(color: Color(0xFFC9DCE8), height: 1.35),
+        style: const TextStyle(
+          color: Color(0xFFB9D6E4),
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          height: 1.35,
+        ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('취소'),
+        SizedBox(
+          width: 76,
+          child: GameButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            label: '취소',
+            compact: true,
+            variant: GameButtonVariant.ghost,
+            accentColor: GamePalette.metal,
+          ),
         ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('환불', style: TextStyle(color: Color(0xFFFF8A2A))),
+        SizedBox(
+          width: 82,
+          child: GameButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            label: '환불',
+            compact: true,
+            variant: GameButtonVariant.danger,
+            accentColor: GamePalette.danger,
+          ),
         ),
       ],
     );

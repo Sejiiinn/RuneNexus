@@ -28,7 +28,9 @@ class TurretComponent extends PositionComponent {
     required this.game,
     required Vector2 center,
     required double tileSize,
+    int? investedGold,
   }) : _tileSize = tileSize,
+       _investedGold = investedGold ?? definition.cost,
        super(
          position: center,
          size: Vector2.all(tileSize * _visualSizeScale),
@@ -54,6 +56,7 @@ class TurretComponent extends PositionComponent {
   double _splashDamageDealt = 0;
   double _chainDamageDealt = 0;
   double _burnDamageDealt = 0;
+  int _investedGold;
   double _lastLightningBaseCooldown = 0;
   double _lightningAttackElapsed = 0;
   TurretTraitType? _primaryTrait;
@@ -90,7 +93,9 @@ class TurretComponent extends PositionComponent {
       _burnDamageDealt;
   int get levelUpCost =>
       (definition.cost * (70 + (_level - 1) * 45) + 50) ~/ 100;
-  int get investedGold {
+  int get investedGold => _investedGold;
+
+  int get _calculatedInvestedGold {
     var total = definition.cost;
     for (var level = 1; level < _level; level++) {
       total += _levelUpCostAt(level);
@@ -432,6 +437,7 @@ class TurretComponent extends PositionComponent {
       cooldown: _cooldown,
       equippedGems: List.unmodifiable(equippedGems),
       equippedGemSlots: List.unmodifiable(equippedGemSlots),
+      investedGold: _investedGold,
       damageDealt: damageDealt,
       directDamageDealt: _directDamageDealt,
       splashDamageDealt: _splashDamageDealt,
@@ -446,6 +452,9 @@ class TurretComponent extends PositionComponent {
   void restoreFromSaveData(SavedTurret data) {
     _level = data.level.clamp(1, maxLevel).toInt();
     _slotLimit = data.slotLimit.clamp(1, maxSlotLimit).toInt();
+    _investedGold = data.investedGold > 0
+        ? data.investedGold
+        : _calculatedInvestedGold;
     _cooldown = math.max(0, data.cooldown);
     _directDamageDealt = math.max(0, data.directDamageDealt);
     _splashDamageDealt = math.max(0, data.splashDamageDealt);
@@ -642,18 +651,20 @@ class TurretComponent extends PositionComponent {
     return removed;
   }
 
-  bool upgradeLevel() {
+  bool upgradeLevel({int? paidGold}) {
     if (!canLevelUp) {
       return false;
     }
+    _investedGold += paidGold ?? levelUpCost;
     _level++;
     return true;
   }
 
-  bool upgradeLink() {
+  bool upgradeLink({int? paidGold}) {
     if (!canUpgradeLink) {
       return false;
     }
+    _investedGold += paidGold ?? linkUpgradeCost;
     _slotLimit++;
     _syncGemSlotLength();
     return true;

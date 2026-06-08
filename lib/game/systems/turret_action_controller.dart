@@ -136,8 +136,9 @@ class TurretActionController {
       return null;
     }
 
-    final nextGold = gold - turret.levelUpCost;
-    turret.upgradeLevel();
+    final levelUpCost = turret.levelUpCost;
+    final nextGold = gold - levelUpCost;
+    turret.upgradeLevel(paidGold: levelUpCost);
     final nextPreviewPoint =
         levelUpPreviewPoint == selectedPoint &&
             (!turret.canLevelUp || nextGold < turret.levelUpCost)
@@ -212,8 +213,9 @@ class TurretActionController {
       return null;
     }
 
-    final nextGold = gold - turret.linkUpgradeCost;
-    turret.upgradeLink();
+    final linkUpgradeCost = turret.linkUpgradeCost;
+    final nextGold = gold - linkUpgradeCost;
+    turret.upgradeLink(paidGold: linkUpgradeCost);
     return TurretActionResult(
       gold: nextGold,
       gemShards: gemShards,

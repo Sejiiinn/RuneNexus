@@ -127,6 +127,9 @@ class GameSaveAdapter {
     int baseCost, {
     double firstLinkUpgradeDiscountRate = 0,
   }) {
+    if (savedTurret.investedGold > 0) {
+      return savedTurret.investedGold;
+    }
     var total = baseCost;
     final level = savedTurret.level.clamp(1, 10).toInt();
     for (var currentLevel = 1; currentLevel < level; currentLevel++) {

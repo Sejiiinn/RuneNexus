@@ -2864,11 +2864,17 @@ void main() {
     game.tryBuildTurret(const GridPoint(2, 0));
 
     expect(game.snapshotNotifier.value.gold, 119);
+    expect(game.snapshotNotifier.value.selectedTurretRefundGold, 38);
     expect(game.snapshotNotifier.value.selectedTurretLevelUpCost, 42);
 
     game.levelUpSelectedTurret();
 
     expect(game.snapshotNotifier.value.gold, 77);
+    expect(game.snapshotNotifier.value.selectedTurretRefundGold, 69);
+
+    game.refundSelectedTurret();
+
+    expect(game.snapshotNotifier.value.gold, 146);
   });
 
   test('status gems are removed from the reward pool', () {
@@ -5028,6 +5034,7 @@ void main() {
         cooldown: 1.25,
         equippedGems: const [],
         equippedGemSlots: const [null],
+        investedGold: 140,
         damageDealt: 0,
         directDamageDealt: 0,
         splashDamageDealt: 0,
@@ -5379,6 +5386,7 @@ void main() {
     expect(saved.turrets.single.slotLimit, 2);
     expect(saved.turrets.single.equippedGems, [GemType.range]);
     expect(saved.turrets.single.equippedGemSlots, [GemType.range, null]);
+    expect(saved.turrets.single.investedGold, 192);
     expect(saved.turrets.single.damageDealt, closeTo(123, 0.001));
     expect(saved.turrets.single.directDamageDealt, closeTo(123, 0.001));
 

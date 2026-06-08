@@ -498,6 +498,7 @@ class SavedTurret {
     required this.cooldown,
     required this.equippedGems,
     required this.equippedGemSlots,
+    required this.investedGold,
     required this.damageDealt,
     required this.directDamageDealt,
     required this.splashDamageDealt,
@@ -516,6 +517,7 @@ class SavedTurret {
   final double cooldown;
   final List<GemType> equippedGems;
   final List<GemType?> equippedGemSlots;
+  final int investedGold;
   final double damageDealt;
   final double directDamageDealt;
   final double splashDamageDealt;
@@ -537,6 +539,7 @@ class SavedTurret {
       'cooldown': cooldown,
       'equippedGems': equippedGems.map((type) => type.name).toList(),
       'equippedGemSlots': equippedGemSlots.map((type) => type?.name).toList(),
+      'investedGold': investedGold,
       'damageDealt': damageDealt,
       'directDamageDealt': directDamageDealt,
       'splashDamageDealt': splashDamageDealt,
@@ -569,6 +572,7 @@ class SavedTurret {
       cooldown: _doubleValue(json['cooldown']),
       equippedGems: equippedGems,
       equippedGemSlots: equippedGemSlots,
+      investedGold: _intValue(json['investedGold']),
       damageDealt: _doubleValue(json['damageDealt']),
       directDamageDealt: _doubleValue(json['directDamageDealt']),
       splashDamageDealt: _doubleValue(json['splashDamageDealt']),

@@ -1661,6 +1661,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       game: this,
       center: _centerOf(point),
       tileSize: _tileSize,
+      investedGold: buildCost,
     );
     _turrets[point] = turret;
     _selectedBuildPoint = null;
