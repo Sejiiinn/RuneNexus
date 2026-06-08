@@ -7,6 +7,10 @@ abstract final class GameTextStyles {
     Shadow(color: GamePalette.voidBlack, blurRadius: 5, offset: Offset(0, 1.5)),
   ];
 
+  static const List<Shadow> buttonTextShadow = [
+    Shadow(color: Color(0x3302070D), blurRadius: 1.5, offset: Offset(0, 0.6)),
+  ];
+
   static const TextStyle title = TextStyle(
     color: GamePalette.textPrimary,
     fontSize: 20,
@@ -50,7 +54,7 @@ abstract final class GameTextStyles {
     fontSize: 12,
     fontWeight: FontWeight.w900,
     height: 1,
-    shadows: textShadow,
+    shadows: buttonTextShadow,
   );
 
   static const TextStyle buttonSmall = TextStyle(
@@ -58,7 +62,7 @@ abstract final class GameTextStyles {
     fontSize: 10,
     fontWeight: FontWeight.w900,
     height: 1,
-    shadows: textShadow,
+    shadows: buttonTextShadow,
   );
 
   static TextStyle withColor(TextStyle style, Color color) {

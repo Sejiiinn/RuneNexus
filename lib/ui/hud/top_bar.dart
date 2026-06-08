@@ -496,14 +496,28 @@ class HudStageMenuDialog extends StatelessWidget {
     final reward = canEndStage ? snapshot.projectedFailureRuneReward : 0;
 
     return AlertDialog(
-      backgroundColor: const Color(0xFF0B1827),
+      backgroundColor: const Color(0xFF0B1725),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
       shape: RoundedRectangleBorder(
-        side: const BorderSide(color: Color(0x8833D8FF)),
-        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: Color(0xAA33D8FF)),
+        borderRadius: BorderRadius.circular(8),
       ),
+      titlePadding: const EdgeInsets.fromLTRB(18, 16, 14, 0),
+      contentPadding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
       title: Row(
         children: [
-          const Expanded(child: Text('스테이지 메뉴')),
+          const Icon(Icons.home_outlined, color: Color(0xFF8EE6FF), size: 20),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              '스테이지 메뉴',
+              style: TextStyle(
+                color: Color(0xFFE8FBFF),
+                fontSize: 17,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
           SizedBox(
             width: 32,
             height: 32,
@@ -524,94 +538,108 @@ class HudStageMenuDialog extends StatelessWidget {
           ),
         ],
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text('메인화면으로 이동해도 현재 진행 상황은 저장됩니다.'),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF07111D),
-              border: Border.all(color: const Color(0x7733D8FF)),
-              borderRadius: BorderRadius.circular(8),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 390),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              '메인화면으로 이동해도 현재 진행 상황은 저장됩니다.',
+              style: TextStyle(
+                color: Color(0xFFE0F4FF),
+                fontSize: 12,
+                height: 1.28,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-            child: Row(
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.all(11),
+              decoration: BoxDecoration(
+                color: const Color(0xAA08131F),
+                border: Border.all(color: const Color(0x6633D8FF)),
+                borderRadius: BorderRadius.circular(7),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.diamond_outlined,
+                    color: Color(0xFF8EE6FF),
+                    size: 22,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '종료 시 보상',
+                          style: TextStyle(
+                            color: Color(0xFF8FA8BA),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          canEndStage
+                              ? '$completedRounds웨이브 기준'
+                              : '종료할 진행 상황 없음',
+                          style: const TextStyle(
+                            color: Color(0xFFB7C8D8),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '+$reward 룬',
+                    style: TextStyle(
+                      color: canEndStage
+                          ? const Color(0xFF8EE6FF)
+                          : const Color(0xFF627384),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
               children: [
-                const Icon(
-                  Icons.diamond_outlined,
-                  color: Color(0xFF8EE6FF),
-                  size: 22,
-                ),
-                const SizedBox(width: 10),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '종료 시 보상',
-                        style: TextStyle(
-                          color: Color(0xFF8FA8BA),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        canEndStage ? '$completedRounds웨이브 기준' : '종료할 진행 상황 없음',
-                        style: const TextStyle(
-                          color: Color(0xFFB7C8D8),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
+                  flex: 5,
+                  child: _StageDialogActionButton(
+                    icon: Icons.flag_outlined,
+                    label: '스테이지 종료',
+                    style: _StageDialogActionStyle.danger,
+                    onPressed: canEndStage
+                        ? () => Navigator.of(
+                            context,
+                          ).pop(HudStageMenuAction.endStage)
+                        : null,
                   ),
                 ),
-                Text(
-                  '+$reward 룬',
-                  style: TextStyle(
-                    color: canEndStage
-                        ? const Color(0xFF8EE6FF)
-                        : const Color(0xFF627384),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 6,
+                  child: _StageDialogActionButton(
+                    icon: Icons.home_outlined,
+                    label: '메인화면으로 이동',
+                    style: _StageDialogActionStyle.primary,
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pop(HudStageMenuAction.openMainMenu),
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                flex: 5,
-                child: _StageDialogActionButton(
-                  icon: Icons.flag_outlined,
-                  label: '스테이지 종료',
-                  style: _StageDialogActionStyle.danger,
-                  onPressed: canEndStage
-                      ? () => Navigator.of(
-                          context,
-                        ).pop(HudStageMenuAction.endStage)
-                      : null,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 6,
-                child: _StageDialogActionButton(
-                  icon: Icons.home_outlined,
-                  label: '메인화면으로 이동',
-                  style: _StageDialogActionStyle.primary,
-                  onPressed: () => Navigator.of(
-                    context,
-                  ).pop(HudStageMenuAction.openMainMenu),
-                ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -670,69 +698,24 @@ class _StageDialogActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final enabled = onPressed != null;
-    final colors = switch (style) {
-      _StageDialogActionStyle.neutral => (
-        background: Colors.transparent,
-        border: const Color(0x664A6172),
-        foreground: const Color(0xFFC6D6E4),
-      ),
-      _StageDialogActionStyle.primary => (
-        background: const Color(0xFF8EE6FF),
-        border: const Color(0xFF8EE6FF),
-        foreground: const Color(0xFF07111D),
-      ),
-      _StageDialogActionStyle.danger => (
-        background: const Color(0xFFFF7043),
-        border: const Color(0xFFFF9B72),
-        foreground: const Color(0xFF07111D),
-      ),
+    final variant = switch (style) {
+      _StageDialogActionStyle.neutral => GameButtonVariant.ghost,
+      _StageDialogActionStyle.primary => GameButtonVariant.primary,
+      _StageDialogActionStyle.danger => GameButtonVariant.danger,
+    };
+    final accentColor = switch (style) {
+      _StageDialogActionStyle.neutral => GamePalette.metal,
+      _StageDialogActionStyle.primary => GamePalette.cyan,
+      _StageDialogActionStyle.danger => GamePalette.danger,
     };
 
-    return Material(
-      color: enabled ? colors.background : const Color(0xFF182433),
-      shape: RoundedRectangleBorder(
-        side: BorderSide(
-          color: enabled ? colors.border : const Color(0x334A6172),
-        ),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onPressed,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Icon(
-                icon,
-                size: 17,
-                color: enabled ? colors.foreground : const Color(0xFF627384),
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    softWrap: false,
-                    style: TextStyle(
-                      color: enabled
-                          ? colors.foreground
-                          : const Color(0xFF627384),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return GameButton(
+      onPressed: onPressed,
+      label: label,
+      icon: Icon(icon, size: 17),
+      variant: variant,
+      accentColor: accentColor,
+      height: 38,
     );
   }
 }
