@@ -57,20 +57,20 @@ class HudTopBar extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _TopIconButton(
-                      tooltip: '스테이지 메뉴',
-                      icon: Icons.home_outlined,
-                      onPressed: onOpenMainMenu,
-                    ),
                     if (showDebugButton) ...[
-                      const SizedBox(width: 6),
                       _TopIconButton(
                         tooltip: '인앱 테스트 패널',
                         icon: Icons.construction_outlined,
                         selected: showGemDebugPanel,
                         onPressed: onToggleGemDebugPanel,
                       ),
+                      const SizedBox(width: 6),
                     ],
+                    _TopIconButton(
+                      tooltip: '스테이지 메뉴',
+                      icon: Icons.home_outlined,
+                      onPressed: onOpenMainMenu,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 5),
