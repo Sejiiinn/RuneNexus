@@ -680,41 +680,77 @@ class _DamageSummaryRow extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF091624),
+          backgroundColor: const Color(0xFF0B1725),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 18,
+            vertical: 24,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
-            side: const BorderSide(color: Color(0x8833D8FF)),
+            side: const BorderSide(color: Color(0xAA33D8FF)),
           ),
-          title: const Text('피해 기록', style: TextStyle(fontSize: 16)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
+          titlePadding: const EdgeInsets.fromLTRB(18, 16, 14, 0),
+          contentPadding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
+          actionsPadding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
+          title: const Row(
             children: [
-              _DamageDetailLine(
-                label: '총 피해',
-                value: snapshot.selectedTurretDamageDealt,
+              Icon(
+                Icons.query_stats_outlined,
+                color: Color(0xFF8EE6FF),
+                size: 20,
               ),
-              _DamageDetailLine(
-                label: '직접 피해',
-                value: snapshot.selectedTurretDirectDamageDealt,
-              ),
-              _DamageDetailLine(
-                label: '범위 피해',
-                value: snapshot.selectedTurretSplashDamageDealt,
-              ),
-              _DamageDetailLine(
-                label: '연쇄 피해',
-                value: snapshot.selectedTurretChainDamageDealt,
-              ),
-              _DamageDetailLine(
-                label: '화상 피해',
-                value: snapshot.selectedTurretBurnDamageDealt,
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '피해 기록',
+                  style: TextStyle(
+                    color: Color(0xFFE8FBFF),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
               ),
             ],
           ),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 320),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _DamageDetailLine(
+                  label: '총 피해',
+                  value: snapshot.selectedTurretDamageDealt,
+                  highlighted: true,
+                ),
+                _DamageDetailLine(
+                  label: '직접 피해',
+                  value: snapshot.selectedTurretDirectDamageDealt,
+                ),
+                _DamageDetailLine(
+                  label: '범위 피해',
+                  value: snapshot.selectedTurretSplashDamageDealt,
+                ),
+                _DamageDetailLine(
+                  label: '연쇄 피해',
+                  value: snapshot.selectedTurretChainDamageDealt,
+                ),
+                _DamageDetailLine(
+                  label: '화상 피해',
+                  value: snapshot.selectedTurretBurnDamageDealt,
+                ),
+              ],
+            ),
+          ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('닫기'),
+            SizedBox(
+              width: 76,
+              child: GameButton(
+                onPressed: () => Navigator.of(context).pop(),
+                label: '닫기',
+                compact: true,
+                variant: GameButtonVariant.ghost,
+                accentColor: GamePalette.metal,
+              ),
             ),
           ],
         );
@@ -724,13 +760,52 @@ class _DamageSummaryRow extends StatelessWidget {
 }
 
 class _DamageDetailLine extends StatelessWidget {
-  const _DamageDetailLine({required this.label, required this.value});
+  const _DamageDetailLine({
+    required this.label,
+    required this.value,
+    this.highlighted = false,
+  });
 
   final String label;
   final double value;
+  final bool highlighted;
 
   @override
   Widget build(BuildContext context) {
+    if (highlighted) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0x5533D8FF),
+          border: Border.all(color: const Color(0x9933D8FF)),
+          borderRadius: BorderRadius.circular(7),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFFE0F4FF),
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            Text(
+              hudFormatDamageValue(value),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF8EE6FF),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
