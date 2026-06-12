@@ -410,6 +410,8 @@ class _DebugMapEditorPanelState extends State<DebugMapEditorPanel> {
     buffer.writeln('  ],');
     if (_tileTheme.kind == MapTileThemeKind.chapterTwoRift) {
       buffer.writeln('  tileTheme: chapterTwoRiftTileTheme,');
+    } else if (_tileTheme.kind == MapTileThemeKind.chapterThreeForge) {
+      buffer.writeln('  tileTheme: chapterThreeForgeTileTheme,');
     }
     buffer.writeln(');');
     return buffer.toString();
@@ -1194,12 +1196,21 @@ class _EditorTileArt {
     required Color accentColor,
     required bool isPath,
   }) {
+    final face = rect.deflate(rect.shortestSide * 0.04);
+    if (theme.usesForgeHeat) {
+      if (isPath) {
+        _drawForgePathPreview(canvas, rect, face, theme);
+      } else {
+        _drawForgeBuildPreview(canvas, rect, face, theme);
+      }
+      return;
+    }
+
     final radius = Radius.circular(rect.shortestSide * 0.05);
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, radius),
       Paint()..color = rimColor.withValues(alpha: 0.72),
     );
-    final face = rect.deflate(rect.shortestSide * 0.04);
     canvas.drawRRect(
       RRect.fromRectAndRadius(face, Radius.circular(rect.shortestSide * 0.04)),
       Paint()
@@ -1234,6 +1245,214 @@ class _EditorTileArt {
     }
     if (theme.usesRiftEnergy) {
       _drawRiftMark(canvas, face, point, theme, isPath: isPath);
+    }
+  }
+
+  static void _drawForgeTerrainFrame(
+    Canvas canvas,
+    Rect rect,
+    Rect face, {
+    required Color topColor,
+    required Color midColor,
+    required Color bottomColor,
+    required Color rimColor,
+  }) {
+    final radius = Radius.circular(rect.shortestSide * 0.05);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, radius),
+      Paint()..color = rimColor.withValues(alpha: 0.8),
+    );
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(face, Radius.circular(rect.shortestSide * 0.04)),
+      Paint()
+        ..shader = ui.Gradient.linear(
+          face.topLeft,
+          face.bottomRight,
+          [topColor, midColor, bottomColor],
+          const [0, 0.58, 1],
+        ),
+    );
+
+    final highlight = Paint()
+      ..color = const Color(0x24FFFFFF)
+      ..strokeWidth = math.max(1, face.shortestSide * 0.018)
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(face.left + face.width * 0.2, face.top + face.height * 0.08),
+      Offset(face.right - face.width * 0.2, face.top + face.height * 0.08),
+      highlight,
+    );
+    canvas.drawLine(
+      Offset(face.left + face.width * 0.08, face.top + face.height * 0.2),
+      Offset(face.left + face.width * 0.08, face.bottom - face.height * 0.2),
+      highlight..color = const Color(0x18FFFFFF),
+    );
+  }
+
+  static void _drawForgePathPreview(
+    Canvas canvas,
+    Rect rect,
+    Rect face,
+    MapTileTheme theme,
+  ) {
+    _drawForgeTerrainFrame(
+      canvas,
+      rect,
+      face,
+      topColor: theme.pathTopColor,
+      midColor: theme.pathMidColor,
+      bottomColor: theme.pathBottomColor,
+      rimColor: theme.pathRimColor,
+    );
+
+    final inset = face.deflate(face.shortestSide * 0.12);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(inset, Radius.circular(face.shortestSide * 0.04)),
+      Paint()
+        ..color = theme.pathInsetStrokeColor.withValues(alpha: 0.7)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1, face.shortestSide * 0.02),
+    );
+
+    final seam = Paint()
+      ..color = theme.energySoftColor.withValues(alpha: 0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1, face.shortestSide * 0.018)
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(face.left + face.width * 0.2, face.top + face.height * 0.36),
+      Offset(face.right - face.width * 0.2, face.top + face.height * 0.36),
+      seam,
+    );
+    canvas.drawLine(
+      Offset(face.left + face.width * 0.2, face.bottom - face.height * 0.32),
+      Offset(face.right - face.width * 0.2, face.bottom - face.height * 0.32),
+      seam..color = theme.energySoftColor.withValues(alpha: 0.2),
+    );
+
+    _drawForgeEdgeHeat(canvas, face, theme, intensity: 0.78);
+
+    final emberPaint = Paint()
+      ..color = theme.energyPrimaryColor.withValues(alpha: 0.32);
+    canvas.drawCircle(
+      Offset(face.left + face.width * 0.28, face.top + face.height * 0.68),
+      face.shortestSide * 0.018,
+      emberPaint,
+    );
+    canvas.drawCircle(
+      Offset(face.right - face.width * 0.25, face.top + face.height * 0.3),
+      face.shortestSide * 0.014,
+      emberPaint,
+    );
+  }
+
+  static void _drawForgeBuildPreview(
+    Canvas canvas,
+    Rect rect,
+    Rect face,
+    MapTileTheme theme,
+  ) {
+    _drawForgeTerrainFrame(
+      canvas,
+      rect,
+      face,
+      topColor: theme.buildTopColor,
+      midColor: theme.buildMidColor,
+      bottomColor: theme.buildBottomColor,
+      rimColor: theme.buildRimColor,
+    );
+
+    final socket = Rect.fromCenter(
+      center: face.center,
+      width: face.width * 0.44,
+      height: face.height * 0.44,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        socket,
+        Radius.circular(face.shortestSide * 0.05),
+      ),
+      Paint()..color = const Color(0x8A061018),
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        socket,
+        Radius.circular(face.shortestSide * 0.05),
+      ),
+      Paint()
+        ..color = theme.energySecondaryColor.withValues(alpha: 0.32)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1, face.shortestSide * 0.02),
+    );
+
+    final inner = socket.deflate(face.shortestSide * 0.1);
+    canvas.drawOval(
+      inner,
+      Paint()
+        ..color = theme.energySoftColor.withValues(alpha: 0.18)
+        ..style = PaintingStyle.fill,
+    );
+
+    _drawForgeEdgeHeat(canvas, face, theme, intensity: 0.5);
+
+    final rivetPaint = Paint()
+      ..color = theme.energyPrimaryColor.withValues(alpha: 0.34);
+    for (final center in [
+      Offset(face.left + face.width * 0.2, face.top + face.height * 0.2),
+      Offset(face.right - face.width * 0.2, face.top + face.height * 0.2),
+      Offset(face.left + face.width * 0.2, face.bottom - face.height * 0.2),
+      Offset(face.right - face.width * 0.2, face.bottom - face.height * 0.2),
+    ]) {
+      canvas.drawCircle(center, face.shortestSide * 0.026, rivetPaint);
+    }
+  }
+
+  static void _drawForgeEdgeHeat(
+    Canvas canvas,
+    Rect face,
+    MapTileTheme theme, {
+    required double intensity,
+  }) {
+    final glowPaint = Paint()
+      ..color = theme.energyPrimaryColor.withValues(alpha: 0.18 * intensity)
+      ..maskFilter = MaskFilter.blur(
+        BlurStyle.normal,
+        face.shortestSide * 0.03,
+      );
+    final heatPaint = Paint()
+      ..shader = ui.Gradient.linear(
+        face.centerLeft,
+        face.centerRight,
+        [
+          theme.energyPrimaryColor.withValues(alpha: 0.18 * intensity),
+          const Color(0xFFFFD58A).withValues(alpha: 0.55 * intensity),
+          theme.energyPrimaryColor.withValues(alpha: 0.24 * intensity),
+        ],
+        const [0, 0.52, 1],
+      );
+    final vents = [
+      Rect.fromLTWH(
+        face.left + face.width * 0.2,
+        face.bottom - face.height * 0.18,
+        face.width * 0.2,
+        face.shortestSide * 0.028,
+      ),
+      Rect.fromLTWH(
+        face.right - face.width * 0.36,
+        face.top + face.height * 0.17,
+        face.width * 0.16,
+        face.shortestSide * 0.022,
+      ),
+    ];
+
+    for (final vent in vents) {
+      final slit = RRect.fromRectAndRadius(
+        vent,
+        Radius.circular(face.shortestSide * 0.012),
+      );
+      canvas.drawRRect(slit.inflate(face.shortestSide * 0.016), glowPaint);
+      canvas.drawRRect(slit, heatPaint);
     }
   }
 

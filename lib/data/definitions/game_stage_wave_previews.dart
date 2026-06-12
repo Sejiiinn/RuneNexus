@@ -204,6 +204,181 @@ String _chapter2Stage10PreviewTextFor(int round) {
   return '정예 적 중심';
 }
 
+String _chapter3Stage11PreviewTextFor(int round) {
+  if (round == 2) {
+    return '용광로 장갑병';
+  }
+  if (round == 3) {
+    return '가열 내구 대열';
+  }
+  if (round == 4) {
+    return '보호막 보조 압박';
+  }
+  if (round == 5) {
+    return '장갑병과 탱커';
+  }
+  if (round % 10 == 0) {
+    return '용광로 보스 호위';
+  }
+  final cycleStep = _cycleStepFor(round);
+  if (cycleStep == 1) {
+    return '장갑 혼합';
+  }
+  if (cycleStep == 2) {
+    return '장갑 돌입';
+  }
+  if (cycleStep == 3) {
+    return '차폐 장갑선';
+  }
+  if (cycleStep == 4) {
+    return '탱커 압박';
+  }
+  if (cycleStep == 5) {
+    return '용광로 압축';
+  }
+  return '장갑 적 중심';
+}
+
+String _chapter3Stage12PreviewTextFor(int round) {
+  if (round == 2) {
+    return '긴 통로 장갑병';
+  }
+  if (round == 3) {
+    return '직선 압박';
+  }
+  if (round == 4) {
+    return '후속 보호막';
+  }
+  if (round == 5) {
+    return '제련 대열';
+  }
+  if (round % 10 == 0) {
+    return '긴 통로 보스';
+  }
+  final cycleStep = _cycleStepFor(round);
+  if (cycleStep == 1) {
+    return '긴 직선 혼합';
+  }
+  if (cycleStep == 2) {
+    return '장갑 러시';
+  }
+  if (cycleStep == 3) {
+    return '제련 장갑선';
+  }
+  if (cycleStep == 4) {
+    return '탱커 행렬';
+  }
+  if (cycleStep == 5) {
+    return '직선 압축';
+  }
+  return '긴 통로 압박';
+}
+
+String _chapter3Stage13PreviewTextFor(int round) {
+  if (round == 2) {
+    return '좁은 목 예열';
+  }
+  if (round == 3) {
+    return '장갑 병목';
+  }
+  if (round == 4) {
+    return '차폐 병목';
+  }
+  if (round == 5) {
+    return '탱커 병목';
+  }
+  if (round % 10 == 0) {
+    return '병목 보스 호위';
+  }
+  final cycleStep = _cycleStepFor(round);
+  if (cycleStep == 1) {
+    return '병목 혼합';
+  }
+  if (cycleStep == 2) {
+    return '차폐 쐐기';
+  }
+  if (cycleStep == 3) {
+    return '장갑 병목선';
+  }
+  if (cycleStep == 4) {
+    return '탱커 고정';
+  }
+  if (cycleStep == 5) {
+    return '병목 압축';
+  }
+  return '좁은 목 압박';
+}
+
+String _chapter3Stage14PreviewTextFor(int round) {
+  if (round == 2) {
+    return '급회전 장갑병';
+  }
+  if (round == 3) {
+    return '회전 압박';
+  }
+  if (round == 4) {
+    return '빠른 적 삽입';
+  }
+  if (round == 5) {
+    return '분산 탱커';
+  }
+  if (round % 10 == 0) {
+    return '급회전 보스';
+  }
+  final cycleStep = _cycleStepFor(round);
+  if (cycleStep == 1) {
+    return '회전 혼합';
+  }
+  if (cycleStep == 2) {
+    return '가열 러시';
+  }
+  if (cycleStep == 3) {
+    return '회전 장갑선';
+  }
+  if (cycleStep == 4) {
+    return '분산 탱커';
+  }
+  if (cycleStep == 5) {
+    return '급회전 압축';
+  }
+  return '급회전 압박';
+}
+
+String _chapter3Stage15PreviewTextFor(int round) {
+  if (round == 2) {
+    return '코어 앞 예열';
+  }
+  if (round == 3) {
+    return '코어 압박선';
+  }
+  if (round == 4) {
+    return '보호막 호위';
+  }
+  if (round == 5) {
+    return '용광로 정예';
+  }
+  if (round % 10 == 0) {
+    return '코어 앞 보스';
+  }
+  final cycleStep = _cycleStepFor(round);
+  if (cycleStep == 1) {
+    return '코어 앞 혼합';
+  }
+  if (cycleStep == 2) {
+    return '장갑 돌입';
+  }
+  if (cycleStep == 3) {
+    return '정예 호위선';
+  }
+  if (cycleStep == 4) {
+    return '분산 내구 압박';
+  }
+  if (cycleStep == 5) {
+    return '코어 앞 압축';
+  }
+  return '코어 앞 압박';
+}
+
 String _stage2ArmoredPreviewTextFor(int round) {
   if (round == 2) {
     return '장갑병 첫 등장';

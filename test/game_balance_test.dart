@@ -53,9 +53,9 @@ import 'package:rune_nexus/game/systems/wave_spawner.dart';
 
 void main() {
   test('game stage uses 50 survival rounds', () {
-    expect(gameStages, hasLength(10));
+    expect(gameStages, hasLength(15));
     expect(gameStages.first.id, 1);
-    expect(gameStages.last.id, 10);
+    expect(gameStages.last.id, 15);
     expect(gameWaves, hasLength(50));
     expect(gameWaves.first.round, 1);
     expect(gameWaves.last.round, 50);
@@ -69,6 +69,11 @@ void main() {
     expect(gameChapter2Stage8Waves, hasLength(50));
     expect(gameChapter2Stage9Waves, hasLength(50));
     expect(gameChapter2Stage10Waves, hasLength(50));
+    expect(gameChapter3Waves, hasLength(50));
+    expect(gameChapter3Stage12Waves, hasLength(50));
+    expect(gameChapter3Stage13Waves, hasLength(50));
+    expect(gameChapter3Stage14Waves, hasLength(50));
+    expect(gameChapter3Stage15Waves, hasLength(50));
     expect(gameStages.first.map.tileTheme.kind, MapTileThemeKind.chapterOne);
     expect(gameStages[1].map.tileTheme.kind, MapTileThemeKind.chapterOne);
     expect(gameStages[1].waves, same(gameStage2Waves));
@@ -80,8 +85,21 @@ void main() {
     expect(gameStages[7].waves, same(gameChapter2Stage8Waves));
     expect(gameStages[8].waves, same(gameChapter2Stage9Waves));
     expect(gameStages[9].waves, same(gameChapter2Stage10Waves));
+    expect(gameStages[10].waves, same(gameChapter3Waves));
+    expect(gameStages[11].waves, same(gameChapter3Stage12Waves));
+    expect(gameStages[12].waves, same(gameChapter3Stage13Waves));
+    expect(gameStages[13].waves, same(gameChapter3Stage14Waves));
+    expect(gameStages[14].waves, same(gameChapter3Stage15Waves));
     expect(gameStages[5].map.tileTheme.kind, MapTileThemeKind.chapterTwoRift);
     expect(gameStages[9].map.tileTheme.kind, MapTileThemeKind.chapterTwoRift);
+    expect(
+      gameStages[10].map.tileTheme.kind,
+      MapTileThemeKind.chapterThreeForge,
+    );
+    expect(
+      gameStages[14].map.tileTheme.kind,
+      MapTileThemeKind.chapterThreeForge,
+    );
   });
 
   test('boss waves spawn exactly one boss in every stage', () {
@@ -120,6 +138,33 @@ void main() {
       expect(chapterTwo.tileTheme.kind, MapTileThemeKind.chapterTwoRift);
       expect(chapterTwo.path, isNot(orderedEquals(source.path)));
       _expectValidMapPath(chapterTwo);
+    }
+  });
+
+  test('chapter three maps use forge theme and distinct layouts', () {
+    final chapterTwoMaps = [
+      chapterTwoStage6Map,
+      chapterTwoStage7Map,
+      chapterTwoStage8Map,
+      chapterTwoStage9Map,
+      chapterTwoStage10Map,
+    ];
+    final chapterThreeMaps = [
+      chapterThreeStage11Map,
+      chapterThreeStage12Map,
+      chapterThreeStage13Map,
+      chapterThreeStage14Map,
+      chapterThreeStage15Map,
+    ];
+
+    for (var i = 0; i < chapterThreeMaps.length; i++) {
+      final source = chapterTwoMaps[i];
+      final chapterThree = chapterThreeMaps[i];
+      expect(chapterThree.columns, source.columns);
+      expect(chapterThree.rows, source.rows);
+      expect(chapterThree.tileTheme.kind, MapTileThemeKind.chapterThreeForge);
+      expect(chapterThree.path, isNot(orderedEquals(source.path)));
+      _expectValidMapPath(chapterThree);
     }
   });
 
@@ -776,7 +821,8 @@ void main() {
     expect(enemyHpMultiplierForStage(2), closeTo(1.2, 0.001));
     expect(enemyHpMultiplierForStage(5), closeTo(2.0736, 0.001));
     expect(enemyHpMultiplierForStage(10), closeTo(5.1598, 0.001));
-    expect(enemyHpMultiplierForStage(11), closeTo(5.1598, 0.001));
+    expect(enemyHpMultiplierForStage(15), closeTo(12.8392, 0.001));
+    expect(enemyHpMultiplierForStage(16), closeTo(12.8392, 0.001));
     expect(scaledEnemyMaxHp(normal, 1, stageNumber: 2), closeTo(42, 0.001));
   });
 
@@ -3614,6 +3660,8 @@ void main() {
     expect(progression.runeRewardFor(50, success: true, stageNumber: 3), 290);
     expect(progression.runeRewardFor(50, success: true, stageNumber: 4), 350);
     expect(progression.runeRewardFor(50, success: true, stageNumber: 5), 420);
+    expect(progression.runeRewardFor(50, success: true, stageNumber: 15), 1670);
+    expect(progression.runeRewardFor(50, success: true, stageNumber: 16), 1670);
   });
 
   test('stage rune reward bonus applies to first clear rewards', () {
@@ -4369,6 +4417,31 @@ void main() {
       );
     },
   );
+
+  test('chapter three waves reuse existing enemies with forge pressure', () {
+    int countType(List<WaveDefinition> waves, int round, EnemyType type) =>
+        waves[round - 1].groups
+            .where((group) => group.enemyType == type)
+            .fold(0, (total, group) => total + group.count);
+
+    final chapterThreeTypes = [
+      ...gameChapter3Waves,
+      ...gameChapter3Stage12Waves,
+      ...gameChapter3Stage13Waves,
+      ...gameChapter3Stage14Waves,
+      ...gameChapter3Stage15Waves,
+    ].expand((wave) => wave.groups).map((group) => group.enemyType).toSet();
+
+    expect(EnemyType.values, hasLength(6));
+    expect(chapterThreeTypes, containsAll(EnemyType.values));
+    expect(countType(gameChapter3Waves, 6, EnemyType.armored), greaterThan(0));
+    expect(countType(gameChapter3Waves, 9, EnemyType.tank), greaterThan(0));
+    expect(
+      countType(gameChapter3Stage15Waves, 8, EnemyType.shielded),
+      greaterThan(0),
+    );
+    expect(countType(gameChapter3Stage15Waves, 50, EnemyType.boss), 1);
+  });
 
   test('late wave enemy counts stay within the planned pressure range', () {
     int totalCount(WaveDefinition wave) =>

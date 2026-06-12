@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-enum MapTileThemeKind { chapterOne, chapterTwoRift }
+enum MapTileThemeKind { chapterOne, chapterTwoRift, chapterThreeForge }
 
 class MapTileTheme {
   const MapTileTheme({
@@ -84,6 +84,7 @@ class MapTileTheme {
   final Color energySoftColor;
 
   bool get usesRiftEnergy => kind == MapTileThemeKind.chapterTwoRift;
+  bool get usesForgeHeat => kind == MapTileThemeKind.chapterThreeForge;
 }
 
 const chapterOneTileTheme = MapTileTheme(
@@ -166,4 +167,45 @@ const chapterTwoRiftTileTheme = MapTileTheme(
   energyPrimaryColor: Color(0xFF5CF9E9),
   energySecondaryColor: Color(0xFFB68BFF),
   energySoftColor: Color(0x665CF9E9),
+);
+
+const chapterThreeForgeTileTheme = MapTileTheme(
+  kind: MapTileThemeKind.chapterThreeForge,
+  pathTopColor: Color(0xFF52433A),
+  pathMidColor: Color(0xFF342D2B),
+  pathBottomColor: Color(0xFF1B1818),
+  pathRimColor: Color(0xFF0E5554),
+  pathStainColor: Color(0x55431A12),
+  pathChipColor: Color(0x885E3C2C),
+  pathLightChipColor: Color(0x66FF8A3D),
+  pathInsetStrokeColor: Color(0x777A3B24),
+  buildTopColor: Color(0xFF243C42),
+  buildMidColor: Color(0xFF192D34),
+  buildBottomColor: Color(0xFF0E1B22),
+  buildRimColor: Color(0xFF7A321F),
+  buildMossColor: Color(0x444B1A12),
+  buildDarkScuffColor: Color(0x9910181D),
+  buildMutedLeafColor: Color(0x77FF7A32),
+  gridStrokeColor: Color(0x66563B31),
+  spawnTileColor: Color(0xFF5A2015),
+  coreTileColor: Color(0xFF0B5A62),
+  stoneMortarColor: Color(0x66411C14),
+  stoneHighlightColor: Color(0x55FFC06A),
+  portalOuterColor: Color(0xFFFF7A32),
+  portalOuterAlertColor: Color(0xFFFFD28A),
+  portalInnerColor: Color(0xFF1B0905),
+  portalInnerAlertColor: Color(0xFF5E190D),
+  portalBaseColor: Color(0xFF100706),
+  portalGlowColor: Color(0xFFFF8A3D),
+  portalSpiralColor: Color(0xFF5CF9E9),
+  portalCoreColor: Color(0xFFFFE2A8),
+  portalPulseColor: Color(0xFFFF5A24),
+  nexusBaseColor: Color(0xFF1B3038),
+  nexusShadowColor: Color(0xFF060B0F),
+  nexusGemColor: Color(0xFF71FFF0),
+  nexusGemHitColor: Color(0xFFFFB06A),
+  nexusGemStrokeColor: Color(0xFFFF8A3D),
+  energyPrimaryColor: Color(0xFFFF7A32),
+  energySecondaryColor: Color(0xFF5CF9E9),
+  energySoftColor: Color(0x66FF7A32),
 );

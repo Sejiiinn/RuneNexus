@@ -61,4 +61,34 @@ final gameStages = List<StageDefinition>.unmodifiable([
     map: chapterTwoStage10Map,
     waves: gameChapter2Stage10Waves,
   ),
+  StageDefinition(
+    id: 11,
+    name: 'Stage 11',
+    map: chapterThreeStage11Map,
+    waves: gameChapter3Waves,
+  ),
+  StageDefinition(
+    id: 12,
+    name: 'Stage 12',
+    map: chapterThreeStage12Map,
+    waves: gameChapter3Stage12Waves,
+  ),
+  StageDefinition(
+    id: 13,
+    name: 'Stage 13',
+    map: chapterThreeStage13Map,
+    waves: gameChapter3Stage13Waves,
+  ),
+  StageDefinition(
+    id: 14,
+    name: 'Stage 14',
+    map: chapterThreeStage14Map,
+    waves: gameChapter3Stage14Waves,
+  ),
+  StageDefinition(
+    id: 15,
+    name: 'Stage 15',
+    map: chapterThreeStage15Map,
+    waves: gameChapter3Stage15Waves,
+  ),
 ]);

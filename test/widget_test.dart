@@ -202,7 +202,7 @@ void main() {
     await _pumpGameFrames(tester);
 
     expect(find.text('챕터 2'), findsOneWidget);
-    expect(find.text('챕터 3'), findsNothing);
+    expect(find.text('챕터 3'), findsOneWidget);
 
     await tester.tap(find.text('챕터 2'));
     await _pumpGameFrames(tester);
@@ -217,6 +217,52 @@ void main() {
     await _pumpGameFrames(tester);
 
     expect(startedStage, isNull);
+  });
+
+  testWidgets('stage menu opens chapter three as stages eleven to fifteen', (
+    tester,
+  ) async {
+    int? startedStage;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            unlockedStageCount: 11,
+            clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+          ),
+          selectedTab: MainMenuTab.stage,
+          onSelectTab: (_) {},
+          onStartStage: (stage) {
+            startedStage = stage;
+          },
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    await tester.tap(find.text('챕터 3'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('공명 용광로'), findsOneWidget);
+    expect(find.text('스테이지 11'), findsOneWidget);
+    expect(find.text('스테이지 15'), findsOneWidget);
+    expect(find.text('스테이지 6'), findsNothing);
+
+    await tester.tap(find.text('스테이지 11'));
+    await _pumpGameFrames(tester);
+
+    expect(startedStage, 11);
   });
 
   testWidgets('selected ghost game buttons stay visually restrained', (
@@ -952,6 +998,7 @@ void main() {
     expect(_stageChipText('6'), findsOneWidget);
     expect(_stageChipText('10'), findsOneWidget);
     expect(find.text('챕터 1 · 1-5'), findsOneWidget);
+    expect(find.text('챕터 3 · 11-15'), findsOneWidget);
 
     await tester.ensureVisible(find.text('Export 표시'));
     await tester.tap(find.text('Export 표시'));
@@ -959,6 +1006,22 @@ void main() {
 
     expect(
       find.textContaining('tileTheme: chapterTwoRiftTileTheme'),
+      findsOneWidget,
+    );
+
+    await tester.ensureVisible(find.text('챕터 3 · 11-15'));
+    await tester.tap(find.text('챕터 3 · 11-15'));
+    await _pumpGameFrames(tester);
+
+    expect(_stageChipText('11'), findsOneWidget);
+    expect(_stageChipText('15'), findsOneWidget);
+
+    await tester.ensureVisible(find.text('Export 표시'));
+    await tester.tap(find.text('Export 표시'));
+    await _pumpGameFrames(tester);
+
+    expect(
+      find.textContaining('tileTheme: chapterThreeForgeTileTheme'),
       findsOneWidget,
     );
 

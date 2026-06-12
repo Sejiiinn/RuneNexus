@@ -9,7 +9,7 @@ double enemyHpMultiplierForRound(int round) {
 
 double enemyHpMultiplierForStage(int stageNumber) {
   return math
-      .pow(stageEnemyDurabilityGrowth, (stageNumber - 1).clamp(0, 9))
+      .pow(stageEnemyDurabilityGrowth, (stageNumber - 1).clamp(0, 14))
       .toDouble();
 }
 

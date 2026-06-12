@@ -40,9 +40,12 @@ const int _visibleStageChapterCount =
 const double _stageRowHeight = 54;
 const String _stageChapterOneBannerAsset = 'assets/images/chapter_1_banner.png';
 const String _stageChapterTwoBannerAsset = 'assets/images/chapter_2_banner.png';
+const String _stageChapterThreeBannerAsset =
+    'assets/images/chapter_3_banner.png';
 const List<String> _stageChapterBannerAssets = [
   _stageChapterOneBannerAsset,
   _stageChapterTwoBannerAsset,
+  _stageChapterThreeBannerAsset,
 ];
 const Color _diamondCurrencyColor = Color(0xFF8EE6FF);
 const Color _researchInstantCompleteAccent = Color(0xFF0F5D72);
@@ -1134,6 +1137,13 @@ class _StageChapterTheme {
   final String bannerAsset;
 
   static _StageChapterTheme forChapter(int chapter) {
+    if (chapter == 3) {
+      return const _StageChapterTheme(
+        accent: Color(0xFFFF8A3D),
+        secondary: Color(0xFF5CF9E9),
+        bannerAsset: _stageChapterThreeBannerAsset,
+      );
+    }
     if (chapter == 2) {
       return const _StageChapterTheme(
         accent: Color(0xFF5CF9E9),

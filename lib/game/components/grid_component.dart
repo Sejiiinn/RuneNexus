@@ -142,6 +142,11 @@ class GridComponent extends Component {
   void _drawDirtTile(Canvas canvas, Rect rect, GridPoint point) {
     final tile = _tileFace(rect);
     final theme = map.tileTheme;
+    if (theme.usesForgeHeat) {
+      _drawForgePathTile(canvas, rect, tile, point, theme);
+      return;
+    }
+
     _drawPolishedTileFrame(
       canvas,
       rect,
@@ -207,6 +212,11 @@ class GridComponent extends Component {
   void _drawGrassTile(Canvas canvas, Rect rect, GridPoint point) {
     final tile = _tileFace(rect);
     final theme = map.tileTheme;
+    if (theme.usesForgeHeat) {
+      _drawForgeBuildTile(canvas, rect, tile, point, theme);
+      return;
+    }
+
     _drawPolishedTileFrame(
       canvas,
       rect,
@@ -431,6 +441,178 @@ class GridComponent extends Component {
       ..lineTo(shardCenter.dx - tileSize * 0.035, shardCenter.dy)
       ..close();
     canvas.drawPath(shardPath, shardPaint);
+  }
+
+  void _drawForgePathTile(
+    Canvas canvas,
+    Rect rect,
+    Rect tile,
+    GridPoint point,
+    MapTileTheme theme,
+  ) {
+    _drawPolishedTileFrame(
+      canvas,
+      rect,
+      tile,
+      topColor: theme.pathTopColor,
+      midColor: theme.pathMidColor,
+      bottomColor: theme.pathBottomColor,
+      rimColor: theme.pathRimColor,
+    );
+
+    final seamPaint = Paint()
+      ..color = theme.energySoftColor.withValues(alpha: 0.34)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = tileSize * 0.01
+      ..strokeCap = StrokeCap.round;
+    final inset = tile.deflate(tileSize * 0.07);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(inset, Radius.circular(tileSize * 0.03)),
+      Paint()
+        ..color = theme.pathInsetStrokeColor.withValues(alpha: 0.7)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = tileSize * 0.012,
+    );
+    canvas.drawLine(
+      Offset(tile.left + tile.width * 0.18, tile.top + tile.height * 0.36),
+      Offset(tile.right - tile.width * 0.18, tile.top + tile.height * 0.36),
+      seamPaint,
+    );
+    canvas.drawLine(
+      Offset(tile.left + tile.width * 0.18, tile.bottom - tile.height * 0.32),
+      Offset(tile.right - tile.width * 0.18, tile.bottom - tile.height * 0.32),
+      seamPaint..color = theme.energySoftColor.withValues(alpha: 0.22),
+    );
+
+    _drawForgeEdgeHeat(canvas, tile, theme, intensity: 0.78);
+
+    final emberPaint = Paint()
+      ..color = theme.energyPrimaryColor.withValues(alpha: 0.32)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(
+      Offset(tile.left + tile.width * 0.28, tile.top + tile.height * 0.68),
+      tileSize * 0.01,
+      emberPaint,
+    );
+    canvas.drawCircle(
+      Offset(tile.right - tile.width * 0.25, tile.top + tile.height * 0.3),
+      tileSize * 0.008,
+      emberPaint,
+    );
+  }
+
+  void _drawForgeBuildTile(
+    Canvas canvas,
+    Rect rect,
+    Rect tile,
+    GridPoint point,
+    MapTileTheme theme,
+  ) {
+    _drawPolishedTileFrame(
+      canvas,
+      rect,
+      tile,
+      topColor: theme.buildTopColor,
+      midColor: theme.buildMidColor,
+      bottomColor: theme.buildBottomColor,
+      rimColor: theme.buildRimColor,
+    );
+
+    final socket = Rect.fromCenter(
+      center: tile.center,
+      width: tile.width * 0.44,
+      height: tile.height * 0.44,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(socket, Radius.circular(tileSize * 0.035)),
+      Paint()
+        ..color = const Color(0x8A061018)
+        ..style = PaintingStyle.fill,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(socket, Radius.circular(tileSize * 0.035)),
+      Paint()
+        ..color = theme.energySecondaryColor.withValues(alpha: 0.32)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = tileSize * 0.011,
+    );
+
+    final inner = socket.deflate(tileSize * 0.055);
+    canvas.drawOval(
+      inner,
+      Paint()
+        ..color = theme.energySoftColor.withValues(alpha: 0.18)
+        ..style = PaintingStyle.fill,
+    );
+
+    _drawForgeEdgeHeat(canvas, tile, theme, intensity: 0.5);
+
+    final rivetPaint = Paint()
+      ..color = theme.energyPrimaryColor.withValues(alpha: 0.34)
+      ..style = PaintingStyle.fill;
+    final rivetShadow = Paint()
+      ..color = const Color(0x99000000)
+      ..style = PaintingStyle.fill;
+    final rivets = [
+      Offset(tile.left + tile.width * 0.2, tile.top + tile.height * 0.2),
+      Offset(tile.right - tile.width * 0.2, tile.top + tile.height * 0.2),
+      Offset(tile.left + tile.width * 0.2, tile.bottom - tile.height * 0.2),
+      Offset(tile.right - tile.width * 0.2, tile.bottom - tile.height * 0.2),
+    ];
+
+    for (final center in rivets) {
+      canvas.drawCircle(
+        center.translate(0, tileSize * 0.006),
+        tileSize * 0.02,
+        rivetShadow,
+      );
+      canvas.drawCircle(center, tileSize * 0.014, rivetPaint);
+    }
+  }
+
+  void _drawForgeEdgeHeat(
+    Canvas canvas,
+    Rect tile,
+    MapTileTheme theme, {
+    required double intensity,
+  }) {
+    final glowPaint = Paint()
+      ..color = theme.energyPrimaryColor.withValues(alpha: 0.18 * intensity)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, tileSize * 0.018);
+    final heatPaint = Paint()
+      ..shader = Gradient.linear(
+        tile.centerLeft,
+        tile.centerRight,
+        [
+          theme.energyPrimaryColor.withValues(alpha: 0.18 * intensity),
+          const Color(0xFFFFD58A).withValues(alpha: 0.55 * intensity),
+          theme.energyPrimaryColor.withValues(alpha: 0.24 * intensity),
+        ],
+        const [0, 0.52, 1],
+      );
+    final vents = [
+      Rect.fromLTWH(
+        tile.left + tile.width * 0.2,
+        tile.bottom - tile.height * 0.18,
+        tile.width * 0.2,
+        tileSize * 0.018,
+      ),
+      Rect.fromLTWH(
+        tile.right - tile.width * 0.36,
+        tile.top + tile.height * 0.17,
+        tile.width * 0.16,
+        tileSize * 0.014,
+      ),
+    ];
+
+    for (final vent in vents) {
+      final slit = RRect.fromRectAndRadius(
+        vent,
+        Radius.circular(tileSize * 0.008),
+      );
+      canvas.drawRRect(slit.inflate(tileSize * 0.01), glowPaint);
+      canvas.drawRRect(slit, heatPaint);
+    }
   }
 
   double _tileUnit(GridPoint point, int salt) {

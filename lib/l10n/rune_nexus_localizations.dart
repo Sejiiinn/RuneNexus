@@ -167,6 +167,9 @@ class RuneNexusLocalizations {
     if (chapterNumber == 2) {
       return _isEnglish ? 'Rift Veil' : '균열 장막';
     }
+    if (chapterNumber == 3) {
+      return _isEnglish ? 'Resonant Forge' : '공명 용광로';
+    }
     return _isEnglish ? 'Planned Area' : '준비 중인 지역';
   }
 
@@ -176,6 +179,9 @@ class RuneNexusLocalizations {
     }
     if (chapterNumber == 2) {
       return _isEnglish ? 'Rift Portal Zone' : '균열 포탈 지대';
+    }
+    if (chapterNumber == 3) {
+      return _isEnglish ? 'Overheated Forge Zone' : '과열 제련 구역';
     }
     return plannedUpgrade;
   }
