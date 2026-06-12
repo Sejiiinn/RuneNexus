@@ -71,13 +71,9 @@ class GameSaveData {
         phase == GamePhase.reward ||
         roundIndex > 0 ||
         completedRounds > 0 ||
-        turrets.isNotEmpty ||
         enemies.isNotEmpty ||
         spawnQueue.isNotEmpty ||
-        runUpgradeLevels.isNotEmpty ||
         killGoldFractionWallet > 0 ||
-        gemShards > 0 ||
-        gemInventory.isNotEmpty ||
         rewardOptions.isNotEmpty;
   }
 

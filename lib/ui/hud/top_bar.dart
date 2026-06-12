@@ -492,154 +492,208 @@ class HudStageMenuDialog extends StatelessWidget {
         snapshot.hasStageProgress &&
         snapshot.phase != GamePhase.success &&
         snapshot.phase != GamePhase.failure;
-    final completedRounds = canEndStage ? snapshot.completedRounds : 0;
-    final reward = canEndStage ? snapshot.projectedFailureRuneReward : 0;
-
-    return AlertDialog(
-      backgroundColor: const Color(0xFF0B1725),
+    return Dialog(
+      backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-      shape: RoundedRectangleBorder(
-        side: const BorderSide(color: Color(0xAA33D8FF)),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      titlePadding: const EdgeInsets.fromLTRB(18, 16, 14, 0),
-      contentPadding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
-      title: Row(
-        children: [
-          const Icon(Icons.home_outlined, color: Color(0xFF8EE6FF), size: 20),
-          const SizedBox(width: 8),
-          const Expanded(
-            child: Text(
-              '스테이지 메뉴',
-              style: TextStyle(
-                color: Color(0xFFE8FBFF),
-                fontSize: 17,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 32,
-            height: 32,
-            child: IconButton(
-              tooltip: '취소',
-              onPressed: () => Navigator.of(context).pop(),
-              style: IconButton.styleFrom(
-                padding: EdgeInsets.zero,
-                foregroundColor: const Color(0xFFC6D6E4),
-                backgroundColor: Colors.transparent,
-                side: const BorderSide(color: Color(0x664A6172)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              icon: const Icon(Icons.close, size: 17),
-            ),
-          ),
-        ],
-      ),
-      content: ConstrainedBox(
+      child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 390),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              '메인화면으로 이동해도 현재 진행 상황은 저장됩니다.',
-              style: TextStyle(
-                color: Color(0xFFE0F4FF),
-                fontSize: 12,
-                height: 1.28,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              padding: const EdgeInsets.all(11),
-              decoration: BoxDecoration(
-                color: const Color(0xAA08131F),
-                border: Border.all(color: const Color(0x6633D8FF)),
-                borderRadius: BorderRadius.circular(7),
-              ),
-              child: Row(
+        child: GamePanel(
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
                 children: [
                   const Icon(
-                    Icons.diamond_outlined,
+                    Icons.home_outlined,
                     color: Color(0xFF8EE6FF),
-                    size: 22,
+                    size: 20,
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          '종료 시 보상',
-                          style: TextStyle(
-                            color: Color(0xFF8FA8BA),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          canEndStage
-                              ? '$completedRounds웨이브 기준'
-                              : '종료할 진행 상황 없음',
-                          style: const TextStyle(
-                            color: Color(0xFFB7C8D8),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text('스테이지 메뉴', style: GameTextStyles.title),
                   ),
-                  Text(
-                    '+$reward 룬',
-                    style: TextStyle(
-                      color: canEndStage
-                          ? const Color(0xFF8EE6FF)
-                          : const Color(0xFF627384),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
+                  SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: IconButton(
+                      tooltip: '취소',
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: IconButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        foregroundColor: const Color(0xFFC6D6E4),
+                        backgroundColor: Colors.transparent,
+                        side: const BorderSide(color: Color(0x664A6172)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      icon: const Icon(Icons.close, size: 17),
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: _StageDialogActionButton(
-                    icon: Icons.flag_outlined,
-                    label: '스테이지 종료',
-                    style: _StageDialogActionStyle.danger,
-                    onPressed: canEndStage
-                        ? () => Navigator.of(
-                            context,
-                          ).pop(HudStageMenuAction.endStage)
-                        : null,
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 5,
+                    child: _StageDialogActionButton(
+                      icon: Icons.flag_outlined,
+                      label: '스테이지 종료',
+                      style: _StageDialogActionStyle.danger,
+                      onPressed: canEndStage
+                          ? () => Navigator.of(
+                              context,
+                            ).pop(HudStageMenuAction.endStage)
+                          : null,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  flex: 6,
-                  child: _StageDialogActionButton(
-                    icon: Icons.home_outlined,
-                    label: '메인화면으로 이동',
-                    style: _StageDialogActionStyle.primary,
-                    onPressed: () => Navigator.of(
-                      context,
-                    ).pop(HudStageMenuAction.openMainMenu),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 6,
+                    child: _StageDialogActionButton(
+                      icon: Icons.home_outlined,
+                      label: '메인화면으로 이동',
+                      style: _StageDialogActionStyle.primary,
+                      onPressed: () => Navigator.of(
+                        context,
+                      ).pop(HudStageMenuAction.openMainMenu),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _StageRewardPreviewCard extends StatelessWidget {
+  const _StageRewardPreviewCard({
+    required this.completedRounds,
+    required this.reward,
+  });
+
+  final int completedRounds;
+  final int reward;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xF0221D12), Color(0xF0091624)],
+        ),
+        border: Border.all(color: const Color(0x88E7C66A)),
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 14,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const _RuneRewardIcon(size: 24),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  '종료 시 보상',
+                  style: TextStyle(
+                    color: Color(0xFF8FA8BA),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0x661A2A39),
+                  border: Border.all(color: const Color(0x55E7C66A)),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text('정산 예상', style: GameTextStyles.caption),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Text(
+                  '$completedRounds웨이브 기준',
+                  style: const TextStyle(
+                    color: Color(0xFFB7C8D8),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    height: 1.15,
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(right: 5, bottom: 1),
+                    child: _RuneRewardIcon(size: 22),
+                  ),
+                  Text(
+                    '+$reward 룬',
+                    style: const TextStyle(
+                      color: GamePalette.goldBright,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      height: 1,
+                      shadows: GameTextStyles.textShadow,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RuneRewardIcon extends StatelessWidget {
+  const _RuneRewardIcon({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: const Color(0x33221D12),
+        border: Border.all(color: const Color(0x88E7C66A)),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        Icons.diamond_outlined,
+        size: size * 0.62,
+        color: GamePalette.goldBright,
       ),
     );
   }
@@ -652,31 +706,68 @@ class HudStageEndConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: const Color(0xFF0B1827),
-      shape: RoundedRectangleBorder(
-        side: const BorderSide(color: Color(0x99FF7043)),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      title: const Text('정말 종료할까요?'),
-      content: Text(
-        '스테이지 ${snapshot.currentStageNumber} 진행을 종료하고 '
-        '+${snapshot.projectedFailureRuneReward} 룬을 정산합니다.',
-      ),
-      actions: [
-        _StageDialogActionButton(
-          icon: Icons.arrow_back,
-          label: '계속 진행',
-          style: _StageDialogActionStyle.neutral,
-          onPressed: () => Navigator.of(context).pop(false),
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: GamePanel(
+          variant: GamePanelVariant.danger,
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Row(
+                children: [
+                  Icon(
+                    Icons.flag_outlined,
+                    color: GamePalette.danger,
+                    size: 20,
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text('정말 종료할까요?', style: GameTextStyles.title),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '스테이지 ${snapshot.currentStageNumber} 진행을 종료하고 '
+                '+${snapshot.projectedFailureRuneReward} 룬을 정산합니다.',
+                style: GameTextStyles.body,
+              ),
+              const SizedBox(height: 12),
+              _StageRewardPreviewCard(
+                completedRounds: snapshot.completedRounds,
+                reward: snapshot.projectedFailureRuneReward,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _StageDialogActionButton(
+                      icon: Icons.arrow_back,
+                      label: '계속 진행',
+                      style: _StageDialogActionStyle.neutral,
+                      onPressed: () => Navigator.of(context).pop(false),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _StageDialogActionButton(
+                      icon: Icons.flag_outlined,
+                      label: '종료',
+                      style: _StageDialogActionStyle.danger,
+                      onPressed: () => Navigator.of(context).pop(true),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        _StageDialogActionButton(
-          icon: Icons.flag_outlined,
-          label: '종료',
-          style: _StageDialogActionStyle.danger,
-          onPressed: () => Navigator.of(context).pop(true),
-        ),
-      ],
+      ),
     );
   }
 }

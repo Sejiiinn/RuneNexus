@@ -61,17 +61,10 @@ class GameSnapshotBuilder {
         _game._phase == GamePhase.restored ||
         _game._roundIndex > 0 ||
         _game._completedRounds > 0 ||
-        _game._turrets.isNotEmpty ||
         _game.enemies.isNotEmpty ||
         !_game._waveSpawner.isEmpty ||
-        _game._runUpgradeLevels.isNotEmpty ||
         _game._killGoldFractionWallet > 0 ||
-        _game._savedTurretCountForMenu > 0 ||
-        _game._gemShards > 0 ||
-        _game._gemInventory.isNotEmpty ||
-        _game._rewardOptions.isNotEmpty ||
-        _game._gold != _game._initialGold ||
-        _game._nexusHp != _game._maxNexusHp;
+        _game._rewardOptions.isNotEmpty;
     final placedTurretCount = _game._turrets.isNotEmpty
         ? _game._turrets.length
         : _game._savedTurretCountForMenu;

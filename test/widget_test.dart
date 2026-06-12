@@ -1578,14 +1578,16 @@ void main() {
 
     expect(find.text('스테이지 메뉴'), findsOneWidget);
     expect(find.text('메인화면으로 이동'), findsOneWidget);
-    expect(find.text('종료 시 보상'), findsOneWidget);
-    expect(find.text('+0 룬'), findsOneWidget);
+    expect(find.text('종료 시 보상'), findsNothing);
+    expect(find.text('+0 룬'), findsNothing);
     expect(tester.takeException(), isNull);
 
     await tester.tap(find.text('스테이지 종료'));
     await _pumpGameFrames(tester);
 
     expect(find.text('정말 종료할까요?'), findsOneWidget);
+    expect(find.text('종료 시 보상'), findsOneWidget);
+    expect(find.text('0웨이브 기준'), findsOneWidget);
     expect(find.textContaining('+0 룬'), findsWidgets);
   });
 
@@ -1622,6 +1624,39 @@ void main() {
     expect(find.text('저장된 진행 발견'), findsOneWidget);
     expect(find.text('계속 진행하시겠습니까?'), findsOneWidget);
   });
+
+  testWidgets(
+    'main menu return before first wave does not create restore flow',
+    (tester) async {
+      tester.view.physicalSize = const Size(411, 720);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+
+      await tester.pumpWidget(RuneNexusApp(game: game));
+      await _pumpUntilFound(tester, find.text('Rune Nexus'));
+
+      await _tapStageCard(tester, '스테이지 1');
+      await _pumpGameFrames(tester);
+      expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+      expect(game.snapshotNotifier.value.hasStageProgress, isFalse);
+
+      await tester.tap(find.byIcon(Icons.home_outlined));
+      await _pumpGameFrames(tester);
+      await tester.tap(find.text('메인화면으로 이동'));
+      await _pumpGameFrames(tester);
+
+      expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+      expect(game.snapshotNotifier.value.hasStageProgress, isFalse);
+      expect(find.text('진행 중'), findsNothing);
+      expect(find.text('저장된 전투'), findsNothing);
+      expect(find.text('이어서 진행'), findsNothing);
+      expect(find.text('스테이지 1'), findsWidgets);
+    },
+  );
 
   testWidgets('debug panel button is hidden by default', (tester) async {
     await _pumpLoadedApp(tester);
