@@ -20,6 +20,7 @@ class GridComponent extends Component {
   double tileSize;
 
   double _portalSpin = 0;
+  double _pathGuidePhase = 0;
   double portalAlert = 0;
   double nexusHitAlert = 0;
   double nexusDestructionProgress = 0;
@@ -40,12 +41,14 @@ class GridComponent extends Component {
   @override
   void update(double dt) {
     _portalSpin = (_portalSpin + dt * 0.75) % (math.pi * 2);
+    _pathGuidePhase = (_pathGuidePhase + dt * 0.42) % 1;
   }
 
   @override
   void render(Canvas canvas) {
     final staticBoard = _staticBoardPicture ??= _buildStaticBoardPicture();
     canvas.drawPicture(staticBoard);
+    _drawPathGuide(canvas);
 
     for (final point in _dynamicTilePoints) {
       final rect = _tileRect(point);
@@ -120,6 +123,122 @@ class GridComponent extends Component {
   void _invalidateStaticBoardPicture() {
     _staticBoardPicture?.dispose();
     _staticBoardPicture = null;
+  }
+
+  void _drawPathGuide(Canvas canvas) {
+    if (map.path.length < 2) {
+      return;
+    }
+
+    final centers = map.path
+        .map((point) => _tileRect(point).center)
+        .toList(growable: false);
+    final guidePath = Path();
+    for (var i = 0; i < centers.length; i++) {
+      final center = centers[i];
+      if (i == 0) {
+        guidePath.moveTo(center.dx, center.dy);
+      } else {
+        guidePath.lineTo(center.dx, center.dy);
+      }
+    }
+
+    final glowPaint = Paint()
+      ..color = const Color(0xFF8EE6FF).withValues(alpha: 0.05)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = tileSize * 0.13
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, tileSize * 0.025);
+    final linePaint = Paint()
+      ..color = const Color(0xFFE9FDFF).withValues(alpha: 0.13)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.2, tileSize * 0.05)
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    canvas.drawPath(guidePath, glowPaint);
+    canvas.drawPath(guidePath, linePaint);
+    _drawPathGuideCorners(canvas, centers);
+    _drawPathGuidePulses(canvas, guidePath);
+  }
+
+  void _drawPathGuideCorners(Canvas canvas, List<Offset> centers) {
+    if (centers.length < 3) {
+      return;
+    }
+
+    final cornerPaint = Paint()
+      ..color = const Color(0xFFBFF4FF).withValues(alpha: 0.035)
+      ..style = PaintingStyle.fill
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, tileSize * 0.02);
+    for (var i = 1; i < centers.length - 1; i++) {
+      canvas.drawCircle(centers[i], tileSize * 0.11, cornerPaint);
+    }
+  }
+
+  void _drawPathGuidePulses(Canvas canvas, Path guidePath) {
+    final metrics = guidePath.computeMetrics().toList(growable: false);
+    if (metrics.isEmpty) {
+      return;
+    }
+
+    final metric = metrics.first;
+    final totalLength = metric.length;
+    if (totalLength <= 0) {
+      return;
+    }
+
+    final spacing = tileSize * 1.32;
+    final dashLength = tileSize * 0.36;
+    final pulseCount = math.max(1, (totalLength / spacing).floor());
+    final pulsePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.4, tileSize * 0.085)
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, tileSize * 0.012);
+    final corePaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(0.8, tileSize * 0.03)
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    for (var i = 0; i < pulseCount; i++) {
+      final center = (_pathGuidePhase * spacing + i * spacing) % totalLength;
+      final wave = math.sin((i / pulseCount + _pathGuidePhase) * math.pi * 2);
+      final alpha = 0.07 + (wave + 1) * 0.025;
+      pulsePaint.color = const Color(0xFFBFF4FF).withValues(alpha: alpha);
+      corePaint.color = const Color(0xFFFFFFFF).withValues(alpha: alpha * 0.35);
+
+      var start = center - dashLength * 0.5;
+      var end = center + dashLength * 0.5;
+      if (start < 0) {
+        canvas.drawPath(
+          metric.extractPath(totalLength + start, totalLength),
+          pulsePaint,
+        );
+        canvas.drawPath(metric.extractPath(0, end), pulsePaint);
+        canvas.drawPath(
+          metric.extractPath(totalLength + start, totalLength),
+          corePaint,
+        );
+        canvas.drawPath(metric.extractPath(0, end), corePaint);
+        continue;
+      }
+      if (end > totalLength) {
+        canvas.drawPath(metric.extractPath(start, totalLength), pulsePaint);
+        canvas.drawPath(metric.extractPath(0, end - totalLength), pulsePaint);
+        canvas.drawPath(metric.extractPath(start, totalLength), corePaint);
+        canvas.drawPath(metric.extractPath(0, end - totalLength), corePaint);
+        continue;
+      }
+
+      start = start.clamp(0.0, totalLength);
+      end = end.clamp(0.0, totalLength);
+      canvas.drawPath(metric.extractPath(start, end), pulsePaint);
+      canvas.drawPath(metric.extractPath(start, end), corePaint);
+    }
   }
 
   void _drawTile(Canvas canvas, Rect rect, GridPoint point, TileType tileType) {
