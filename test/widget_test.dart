@@ -1622,7 +1622,17 @@ void main() {
     await _pumpGameFrames(tester);
 
     expect(find.text('저장된 진행 발견'), findsOneWidget);
-    expect(find.text('계속 진행하시겠습니까?'), findsOneWidget);
+    expect(find.text('이전 진행을 이어갈까요?'), findsOneWidget);
+    expect(find.text('새로 시작'), findsNothing);
+    expect(find.text('메인 메뉴'), findsOneWidget);
+    expect(find.text('재개'), findsOneWidget);
+
+    await tester.tap(find.text('메인 메뉴'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('저장된 진행 발견'), findsNothing);
+    expect(find.text('저장된 전투'), findsOneWidget);
+    expect(find.text('이어서 진행'), findsOneWidget);
   });
 
   testWidgets(

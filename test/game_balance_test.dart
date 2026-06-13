@@ -5530,6 +5530,28 @@ void main() {
     );
   });
 
+  test('preparation actions mark stage progress before first wave', () async {
+    final turretGame = RuneNexusGame(saveRepository: MemorySaveRepository());
+    turretGame.onGameResize(Vector2(400, 800));
+    await turretGame.onLoad();
+
+    expect(turretGame.snapshotNotifier.value.hasStageProgress, isFalse);
+
+    turretGame.tryBuildTurret(const GridPoint(2, 0));
+
+    expect(turretGame.snapshotNotifier.value.hasStageProgress, isTrue);
+
+    final upgradeGame = RuneNexusGame(saveRepository: MemorySaveRepository());
+    upgradeGame.onGameResize(Vector2(400, 800));
+    await upgradeGame.onLoad();
+
+    expect(upgradeGame.snapshotNotifier.value.hasStageProgress, isFalse);
+
+    upgradeGame.buyRunUpgrade(RunUpgradeType.waveGold);
+
+    expect(upgradeGame.snapshotNotifier.value.hasStageProgress, isTrue);
+  });
+
   test(
     'menu preparation loads saved stage progress before game widget',
     () async {

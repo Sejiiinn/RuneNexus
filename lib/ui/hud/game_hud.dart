@@ -260,7 +260,11 @@ class _HudOverlayLayer extends StatelessWidget {
         }
         if (snapshot.phase == GamePhase.restored) {
           return Positioned.fill(
-            child: HudRestoreRunOverlay(game: game, snapshot: snapshot),
+            child: HudRestoreRunOverlay(
+              game: game,
+              snapshot: snapshot,
+              onOpenStageSelect: onOpenStageSelect,
+            ),
           );
         }
         if (snapshot.phase == GamePhase.success ||

@@ -382,11 +382,13 @@ class HudRestoreRunOverlay extends StatefulWidget {
   const HudRestoreRunOverlay({
     required this.game,
     required this.snapshot,
+    this.onOpenStageSelect,
     super.key,
   });
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
+  final VoidCallback? onOpenStageSelect;
 
   @override
   State<HudRestoreRunOverlay> createState() => _RestoreRunOverlayState();
@@ -426,6 +428,13 @@ class _RestoreRunOverlayState extends State<HudRestoreRunOverlay> {
         _countdown = nextValue;
       });
     });
+  }
+
+  void _openMainMenu() {
+    _countdownTimer?.cancel();
+    _countdownTimer = null;
+    unawaited(widget.game.saveNow());
+    widget.onOpenStageSelect?.call();
   }
 
   @override
@@ -533,7 +542,7 @@ class _RestoreRunOverlayState extends State<HudRestoreRunOverlay> {
               ),
               const SizedBox(height: 10),
               const Text(
-                '계속 진행하시겠습니까?',
+                '이전 진행을 이어갈까요?',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Color(0xFFC5DCE8)),
               ),
@@ -542,9 +551,11 @@ class _RestoreRunOverlayState extends State<HudRestoreRunOverlay> {
                 children: [
                   Expanded(
                     child: GameButton(
-                      onPressed: () =>
-                          unawaited(widget.game.discardRestoredRun()),
-                      label: '새로 시작',
+                      onPressed: widget.onOpenStageSelect == null
+                          ? null
+                          : _openMainMenu,
+                      label: '메인 메뉴',
+                      icon: const Icon(Icons.home_outlined, size: 16),
                       compact: true,
                       variant: GameButtonVariant.ghost,
                       accentColor: GamePalette.metal,
@@ -554,7 +565,8 @@ class _RestoreRunOverlayState extends State<HudRestoreRunOverlay> {
                   Expanded(
                     child: GameButton(
                       onPressed: _startCountdown,
-                      label: '예',
+                      label: '재개',
+                      icon: const Icon(Icons.play_arrow_rounded, size: 16),
                       compact: true,
                       variant: GameButtonVariant.primary,
                       accentColor: GamePalette.cyan,
