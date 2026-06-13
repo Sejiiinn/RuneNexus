@@ -7,4 +7,6 @@ enum ResearchType {
   bossBounty,
   linkMaintenance,
   crystalRecovery,
+  runeResonance,
+  tacticalLimitExpansion,
 }

@@ -6,6 +6,7 @@ const int halfHourResearchDurationMillis = 30 * 60 * 1000;
 const int fortyFiveMinuteResearchDurationMillis = 45 * 60 * 1000;
 const int twentyMinuteResearchDurationMillis = 20 * 60 * 1000;
 const int ninetyMinuteResearchDurationMillis = 90 * 60 * 1000;
+const int threeHourResearchDurationMillis = 3 * oneHourResearchDurationMillis;
 
 const gameResearchDefinitions = {
   ResearchType.researchEfficiency: ResearchDefinition(
@@ -29,7 +30,7 @@ const gameResearchDefinitions = {
   ResearchType.turretTargetPriority: ResearchDefinition(
     type: ResearchType.turretTargetPriority,
     maxLevel: 1,
-    requiredClearedStage: 3,
+    requiredClearedStage: 2,
     baseRuneCost: 80,
     costMultiplier: 1,
     durationMillis: twentyMinuteResearchDurationMillis,
@@ -47,7 +48,7 @@ const gameResearchDefinitions = {
   ResearchType.gemAttunement: ResearchDefinition(
     type: ResearchType.gemAttunement,
     maxLevel: 5,
-    requiredClearedStage: 3,
+    requiredClearedStage: 2,
     baseRuneCost: 105,
     costMultiplier: 1.3,
     durationMillis: oneHourResearchDurationMillis,
@@ -79,5 +80,23 @@ const gameResearchDefinitions = {
     costMultiplier: 1.38,
     durationMillis: ninetyMinuteResearchDurationMillis,
     durationMultiplier: 1.25,
+  ),
+  ResearchType.runeResonance: ResearchDefinition(
+    type: ResearchType.runeResonance,
+    maxLevel: 20,
+    requiredClearedStage: 8,
+    baseRuneCost: 180,
+    costMultiplier: 1.18,
+    durationMillis: threeHourResearchDurationMillis,
+    durationMultiplier: 1.08,
+  ),
+  ResearchType.tacticalLimitExpansion: ResearchDefinition(
+    type: ResearchType.tacticalLimitExpansion,
+    maxLevel: 10,
+    requiredClearedStage: 8,
+    baseRuneCost: 220,
+    costMultiplier: 1.25,
+    durationMillis: threeHourResearchDurationMillis,
+    durationMultiplier: 1.12,
   ),
 };

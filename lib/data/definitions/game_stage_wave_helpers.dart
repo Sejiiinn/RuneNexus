@@ -43,3 +43,20 @@ double _nextGroupDelay(SpawnGroup previous, {required double gap}) {
   final lastSpawnIndex = previous.count > 0 ? previous.count - 1 : 0;
   return previous.startDelay + previous.interval * lastSpawnIndex + gap;
 }
+
+List<SpawnGroup> _chapterTwoDurabilityGroups(List<SpawnGroup> groups) {
+  return [
+    for (final group in groups)
+      if (group.enemyType == EnemyType.armored)
+        SpawnGroup(
+          enemyType: EnemyType.shielded,
+          count: group.count,
+          interval: group.interval,
+          startDelay: group.startDelay,
+          startAfterPrevious: group.startAfterPrevious,
+          followDelay: group.followDelay,
+        )
+      else
+        group,
+  ];
+}

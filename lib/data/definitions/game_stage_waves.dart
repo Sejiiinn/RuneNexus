@@ -7,7 +7,7 @@ part 'game_stage_wave_spawn_groups.dart';
 
 final gameWaves = List<WaveDefinition>.unmodifiable(_buildGameWaves());
 final gameStage2Waves = List<WaveDefinition>.unmodifiable(
-  _buildStage2ArmoredWaves(),
+  _buildChapterOneLateWaves(),
 );
 final gameChapter2Waves = List<WaveDefinition>.unmodifiable(
   _buildStage2Waves(),
@@ -59,7 +59,7 @@ List<WaveDefinition> _buildStage2Waves() {
       round: round,
       previewText: _stage2PreviewTextFor(round),
       clearRewardGold: _clearRewardGoldFor(round),
-      groups: _stage2GroupsFor(round),
+      groups: _chapterTwoDurabilityGroups(_stage2GroupsFor(round)),
     );
   });
 }
@@ -71,7 +71,7 @@ List<WaveDefinition> _buildChapter2Stage7Waves() {
       round: round,
       previewText: _chapter2Stage7PreviewTextFor(round),
       clearRewardGold: _clearRewardGoldFor(round),
-      groups: _chapter2Stage7GroupsFor(round),
+      groups: _chapterTwoDurabilityGroups(_chapter2Stage7GroupsFor(round)),
     );
   });
 }
@@ -83,7 +83,7 @@ List<WaveDefinition> _buildChapter2Stage8Waves() {
       round: round,
       previewText: _chapter2Stage8PreviewTextFor(round),
       clearRewardGold: _clearRewardGoldFor(round),
-      groups: _chapter2Stage8GroupsFor(round),
+      groups: _chapterTwoDurabilityGroups(_chapter2Stage8GroupsFor(round)),
     );
   });
 }
@@ -95,7 +95,7 @@ List<WaveDefinition> _buildChapter2Stage9Waves() {
       round: round,
       previewText: _chapter2Stage9PreviewTextFor(round),
       clearRewardGold: _clearRewardGoldFor(round),
-      groups: _chapter2Stage9GroupsFor(round),
+      groups: _chapterTwoDurabilityGroups(_chapter2Stage9GroupsFor(round)),
     );
   });
 }
@@ -107,7 +107,7 @@ List<WaveDefinition> _buildChapter2Stage10Waves() {
       round: round,
       previewText: _chapter2Stage10PreviewTextFor(round),
       clearRewardGold: _clearRewardGoldFor(round),
-      groups: _chapter2Stage10GroupsFor(round),
+      groups: _chapterTwoDurabilityGroups(_chapter2Stage10GroupsFor(round)),
     );
   });
 }
@@ -172,14 +172,14 @@ List<WaveDefinition> _buildChapter3Stage15Waves() {
   });
 }
 
-List<WaveDefinition> _buildStage2ArmoredWaves() {
+List<WaveDefinition> _buildChapterOneLateWaves() {
   return List<WaveDefinition>.generate(50, (index) {
     final round = index + 1;
     return WaveDefinition(
       round: round,
-      previewText: _stage2ArmoredPreviewTextFor(round),
+      previewText: _previewTextFor(round),
       clearRewardGold: _clearRewardGoldFor(round),
-      groups: _stage2ArmoredGroupsFor(round),
+      groups: _groupsFor(round),
     );
   });
 }

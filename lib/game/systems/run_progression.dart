@@ -36,6 +36,8 @@ class RunProgression {
   static const double researchCostEfficiencyPerLevel = 0.05;
   static const double bossBountyBonusPerLevel = 0.025;
   static const double linkMaintenanceDiscountPerLevel = 0.02;
+  static const double runeResonanceBonusPerLevel = 0.02;
+  static const int tacticalLimitExpansionRunUpgradeMaxLevelPerLevel = 1;
   static const int bossGemShardsPerCrystalRecoveryLevel = 1;
   static const int baseStageOneFullClearRuneReward = 200;
   static const double runeRewardGrowthPerRound = 1.04;
@@ -236,6 +238,11 @@ class RunProgression {
   int get bossKillGemShardBonus =>
       researchLevel(ResearchType.crystalRecovery) *
       bossGemShardsPerCrystalRecoveryLevel;
+  double get runeResonanceBonusRate =>
+      researchLevel(ResearchType.runeResonance) * runeResonanceBonusPerLevel;
+  int get runUpgradeMaxLevelBonus =>
+      researchLevel(ResearchType.tacticalLimitExpansion) *
+      tacticalLimitExpansionRunUpgradeMaxLevelPerLevel;
   bool get canUpgradeStartingGold =>
       _cappedStartingGoldUpgradeLevel < maxStartingGoldUpgradeLevel &&
       runes >= startingGoldUpgradeCost;
@@ -1058,7 +1065,11 @@ class RunProgression {
         (math.pow(runeRewardGrowthPerRound, 50) - 1);
     final baseReward = baseStageOneFullClearRuneReward * rewardProgress;
     final bonusRate = stageRuneRewardBonusRateFor(stageNumber);
-    return math.max(1, (baseReward * (1 + bonusRate)).round());
+    final resonanceMultiplier = 1 + runeResonanceBonusRate;
+    return math.max(
+      1,
+      (baseReward * (1 + bonusRate) * resonanceMultiplier).round(),
+    );
   }
 
   void resetLastRunReward() {

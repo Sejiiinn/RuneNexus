@@ -23,15 +23,17 @@ class RunUpgradeDefinition {
   final double costMultiplier;
   final double effectPerLevel;
 
-  int costForLevel(int currentLevel) {
-    if (currentLevel >= maxLevel) {
+  int costForLevel(int currentLevel, {int? maxLevel}) {
+    final effectiveMaxLevel = maxLevel ?? this.maxLevel;
+    if (currentLevel >= effectiveMaxLevel) {
       return 0;
     }
     return (baseCost * math.pow(costMultiplier, currentLevel)).round();
   }
 
-  double effectForLevel(int currentLevel) {
-    final level = currentLevel.clamp(0, maxLevel).toInt();
+  double effectForLevel(int currentLevel, {int? maxLevel}) {
+    final effectiveMaxLevel = maxLevel ?? this.maxLevel;
+    final level = currentLevel.clamp(0, effectiveMaxLevel).toInt();
     if (type != RunUpgradeType.waveGold) {
       return effectPerLevel * level;
     }

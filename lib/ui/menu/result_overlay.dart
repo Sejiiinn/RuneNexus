@@ -175,13 +175,14 @@ List<_UnlockGroup> _unlockGroupsFor(
   }
   return switch (snapshot.currentStageNumber) {
     1 => [
-      _UnlockGroup('포탑', [l10n.sniperTurret]),
-    ],
-    2 => [
       _UnlockGroup('강화', [l10n.killRewardBonus, l10n.emergencySale]),
     ],
-    3 => [
+    2 => [
       _UnlockGroup('연구', [l10n.tacticalCommand, l10n.gemAttunement]),
+    ],
+    3 => [
+      _UnlockGroup('포탑', [l10n.sniperTurret]),
+      _UnlockGroup('젬', [l10n.aimSpeedGem]),
     ],
     4 => [
       _UnlockGroup('강화', [
@@ -191,6 +192,7 @@ List<_UnlockGroup> _unlockGroupsFor(
     ],
     5 => [
       _UnlockGroup('연구', [l10n.linkExpansionOne, l10n.crystalRecovery]),
+      _UnlockGroup('코어', [l10n.riftMarkSkill]),
     ],
     6 => [
       _UnlockGroup('포탑', [l10n.lightningTurret]),
@@ -200,6 +202,12 @@ List<_UnlockGroup> _unlockGroupsFor(
         l10n.physicalDamageTraining,
         l10n.elementalDamageTraining,
       ]),
+    ],
+    8 => [
+      _UnlockGroup('연구', [l10n.runeResonance, l10n.tacticalLimitExpansion]),
+    ],
+    10 => [
+      _UnlockGroup('젬', [l10n.armorPiercingGem]),
     ],
     _ => const [],
   };

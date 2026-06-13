@@ -101,13 +101,13 @@ String _chapter2Stage7PreviewTextFor(int round) {
 
 String _chapter2Stage8PreviewTextFor(int round) {
   if (round == 2) {
-    return '보호막 장갑병';
+    return '보호막 압박';
   }
   if (round == 3) {
     return '내구 대열';
   }
   if (round == 4) {
-    return '장갑 재압박';
+    return '보호막 재압박';
   }
   if (round == 5) {
     return '보호막 탱커';
@@ -120,7 +120,7 @@ String _chapter2Stage8PreviewTextFor(int round) {
     return '내구 혼합';
   }
   if (cycleStep == 2) {
-    return '장갑 돌파';
+    return '보호막 돌파';
   }
   if (cycleStep == 3) {
     return '보호막 장벽';
@@ -377,39 +377,4 @@ String _chapter3Stage15PreviewTextFor(int round) {
     return '코어 앞 압축';
   }
   return '코어 앞 압박';
-}
-
-String _stage2ArmoredPreviewTextFor(int round) {
-  if (round == 2) {
-    return '장갑병 첫 등장';
-  }
-  if (round == 3) {
-    return '장갑 대열';
-  }
-  if (round == 4) {
-    return '빠른 적 재압박';
-  }
-  if (round == 5) {
-    return '장갑병과 탱커';
-  }
-  if (round % 10 == 0) {
-    return '장갑 호위 보스';
-  }
-  final cycleStep = _cycleStepFor(round);
-  if (cycleStep == 1) {
-    return '장갑 혼합';
-  }
-  if (cycleStep == 2) {
-    return '빠른 적 러시';
-  }
-  if (cycleStep == 3) {
-    return '장갑 대열';
-  }
-  if (cycleStep == 4) {
-    return '분산 압박';
-  }
-  if (cycleStep == 5) {
-    return '장갑 압축';
-  }
-  return '일반 적 중심';
 }

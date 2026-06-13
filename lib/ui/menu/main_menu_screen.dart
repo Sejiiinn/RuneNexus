@@ -1635,20 +1635,28 @@ class _StageSelectionRow extends StatelessWidget {
     final l10n = context.l10n;
     if (stageNumber == 1) {
       return _StageRewardInfo(
-        label: sniperRewardUnlocked
-            ? l10n.unlockedRewardLabel
-            : l10n.clearRewardLabel,
-        value: l10n.sniperTurret,
-        icon: const _SniperRewardIcon(),
-        highlighted: sniperRewardUnlocked,
+        label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
+        value: l10n.economicUpgrade,
+        icon: const Icon(Icons.paid_outlined, size: 16),
+        highlighted: stageCleared,
       );
     }
     if (stageNumber == 2) {
       return _StageRewardInfo(
         label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-        value: l10n.economicUpgrade,
-        icon: const Icon(Icons.paid_outlined, size: 16),
+        value: l10n.researchTab,
+        icon: const Icon(Icons.science_outlined, size: 16),
         highlighted: stageCleared,
+      );
+    }
+    if (stageNumber == 3) {
+      return _StageRewardInfo(
+        label: sniperRewardUnlocked
+            ? l10n.unlockedRewardLabel
+            : l10n.clearRewardLabel,
+        value: l10n.precisionReward,
+        icon: const _SniperRewardIcon(),
+        highlighted: sniperRewardUnlocked,
       );
     }
     if (stageNumber == 4) {
@@ -1675,10 +1683,26 @@ class _StageSelectionRow extends StatelessWidget {
         highlighted: stageCleared,
       );
     }
-    if (stageNumber == 3 || stageNumber == 5) {
+    if (stageNumber == 8) {
       return _StageRewardInfo(
         label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
         value: l10n.researchTab,
+        icon: const Icon(Icons.science_outlined, size: 16),
+        highlighted: stageCleared,
+      );
+    }
+    if (stageNumber == 10) {
+      return _StageRewardInfo(
+        label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
+        value: l10n.armorPiercingGem,
+        icon: const Icon(Icons.gps_fixed_outlined, size: 16),
+        highlighted: stageCleared,
+      );
+    }
+    if (stageNumber == 5) {
+      return _StageRewardInfo(
+        label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
+        value: '${l10n.researchTab}+${l10n.coreTab}',
         icon: const Icon(Icons.science_outlined, size: 16),
         highlighted: stageCleared,
       );
@@ -3804,7 +3828,9 @@ class _PermanentUpgradeMenu extends StatelessWidget {
     final nextCriticalDamageLevel = (snapshot.criticalDamageUpgradeLevel + 1)
         .clamp(0, RunProgression.maxCriticalDamageUpgradeLevel)
         .toInt();
-    final stageTwoCleared = snapshot.clearedStageNumbers.contains(2);
+    final economyUpgradeUnlocked = snapshot.clearedStageNumbers.contains(
+      RuneNexusGame.economyUpgradeUnlockStage,
+    );
     final stageFourCleared = snapshot.clearedStageNumbers.contains(4);
     final stageSevenCleared = snapshot.clearedStageNumbers.contains(7);
     final combatTiles = [
@@ -3947,7 +3973,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
         lockText: l10n.maxLevelReached,
         onPressed: game.upgradeSupplyProgression,
       ),
-      if (stageTwoCleared)
+      if (economyUpgradeUnlocked)
         _PermanentUpgradeTile(
           icon: Icons.monetization_on_outlined,
           title: l10n.killRewardBonus,
@@ -3964,7 +3990,7 @@ class _PermanentUpgradeMenu extends StatelessWidget {
           lockText: l10n.maxLevelReached,
           onPressed: game.upgradeKillGoldProgression,
         ),
-      if (stageTwoCleared)
+      if (economyUpgradeUnlocked)
         _PermanentUpgradeTile(
           icon: Icons.sell_outlined,
           title: l10n.emergencySale,
@@ -5430,6 +5456,8 @@ String _researchTitle(RuneNexusLocalizations l10n, ResearchType type) {
     ResearchType.bossBounty => l10n.bossBounty,
     ResearchType.linkMaintenance => l10n.linkMaintenance,
     ResearchType.crystalRecovery => l10n.crystalRecovery,
+    ResearchType.runeResonance => l10n.runeResonance,
+    ResearchType.tacticalLimitExpansion => l10n.tacticalLimitExpansion,
   };
 }
 
@@ -5486,6 +5514,18 @@ _ResearchEffectText _researchEffectText(
           ? '+${clampedNextLevel * RunProgression.bossGemShardsPerCrystalRecoveryLevel}'
           : null,
     ),
+    ResearchType.runeResonance => _ResearchEffectText(
+      l10n.researchRuneResonanceEffect(_runeResonancePercent(level)),
+      hasNext ? _signedPercent(_runeResonancePercent(clampedNextLevel)) : null,
+    ),
+    ResearchType.tacticalLimitExpansion => _ResearchEffectText(
+      l10n.researchTacticalLimitExpansionEffect(
+        _tacticalLimitExpansionLevelBonus(level),
+      ),
+      hasNext
+          ? '+${_tacticalLimitExpansionLevelBonus(clampedNextLevel)}'
+          : null,
+    ),
   };
 }
 
@@ -5510,6 +5550,15 @@ int _linkMaintenancePercent(int level) {
   return (level * RunProgression.linkMaintenanceDiscountPerLevel * 100).round();
 }
 
+int _runeResonancePercent(int level) {
+  return (level * RunProgression.runeResonanceBonusPerLevel * 100).round();
+}
+
+int _tacticalLimitExpansionLevelBonus(int level) {
+  return level *
+      RunProgression.tacticalLimitExpansionRunUpgradeMaxLevelPerLevel;
+}
+
 IconData _researchIcon(ResearchType type) {
   return switch (type) {
     ResearchType.researchEfficiency => Icons.speed_outlined,
@@ -5520,6 +5569,8 @@ IconData _researchIcon(ResearchType type) {
     ResearchType.bossBounty => Icons.monetization_on_outlined,
     ResearchType.linkMaintenance => Icons.device_hub_outlined,
     ResearchType.crystalRecovery => Icons.diamond_outlined,
+    ResearchType.runeResonance => Icons.all_inclusive,
+    ResearchType.tacticalLimitExpansion => Icons.trending_up,
   };
 }
 

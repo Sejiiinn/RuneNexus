@@ -80,6 +80,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const int secondaryTraitCost = 24;
   static const int secondaryTraitRequiredLevel = 7;
   static const int costSavingDesignBuildDiscountPercent = 15;
+  static const int economyUpgradeUnlockStage = 1;
+  static const int sniperUnlockStage = 3;
+  static const int aimSpeedGemUnlockStage = 3;
+  static const int armorPiercingGemUnlockStage = 10;
   static const double coreCombatSkillCooldownReductionRate = 0.10;
   static const double burnDamagePerSecondScale = _burnDamagePerSecondScale;
   static const double burnDurationSeconds = _burnDurationSeconds;
@@ -519,7 +523,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   int get _initialGold => _progression.initialGold;
   int get _maxNexusHp => _progression.maxNexusHp;
-  int get turretRefundPercent => _progression.isStageCleared(2)
+  int get turretRefundPercent =>
+      _progression.isStageCleared(economyUpgradeUnlockStage)
       ? _progression.turretRefundPercent
       : RunProgression.baseTurretRefundPercent;
   int get maxTurretLinkSlotLimit => _progression.maxTurretLinkSlots;
@@ -554,7 +559,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _runUpgradeLevel(RunUpgradeType.killGold) *
       gameRunUpgrades[RunUpgradeType.killGold]!.effectPerLevel;
   double get _killGoldProgressionBonusRate =>
-      _progression.isStageCleared(2) ? _progression.killGoldBonusRate : 0;
+      _progression.isStageCleared(economyUpgradeUnlockStage)
+      ? _progression.killGoldBonusRate
+      : 0;
   double get _killGoldTotalBonusRate =>
       _killGoldRunBonusRate + _killGoldProgressionBonusRate;
   double get _bossKillGoldResearchBonusRate => _progression.bossBountyBonusRate;
@@ -578,7 +585,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   int get _waveClearGoldRunBonus => gameRunUpgrades[RunUpgradeType.waveGold]!
-      .effectForLevel(_runUpgradeLevel(RunUpgradeType.waveGold))
+      .effectForLevel(
+        _runUpgradeLevel(RunUpgradeType.waveGold),
+        maxLevel: runUpgradeMaxLevelFor(RunUpgradeType.waveGold),
+      )
       .round();
   double get _totalTurretDps =>
       _turrets.values.fold<double>(0, (total, turret) {
@@ -630,10 +640,31 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return _turretBuildCostFor(baseCost);
   }
 
+  int runUpgradeMaxLevelFor(RunUpgradeType type) {
+    final definition = gameRunUpgrades[type];
+    if (definition == null) {
+      return 0;
+    }
+    return definition.maxLevel + _progression.runUpgradeMaxLevelBonus;
+  }
+
+  int runUpgradeCostFor(RunUpgradeType type, int currentLevel) {
+    final definition = gameRunUpgrades[type];
+    if (definition == null) {
+      return 0;
+    }
+    return definition.costForLevel(
+      currentLevel,
+      maxLevel: runUpgradeMaxLevelFor(type),
+    );
+  }
+
   int _runUpgradeLevel(RunUpgradeType type) {
     final definition = gameRunUpgrades[type];
     final level = _runUpgradeLevels[type] ?? 0;
-    return definition == null ? 0 : level.clamp(0, definition.maxLevel).toInt();
+    return definition == null
+        ? 0
+        : level.clamp(0, runUpgradeMaxLevelFor(type)).toInt();
   }
 
   @override
@@ -975,10 +1006,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
     final currentLevel = _runUpgradeLevel(type);
-    if (currentLevel >= definition.maxLevel) {
+    if (currentLevel >= runUpgradeMaxLevelFor(type)) {
       return;
     }
-    final cost = definition.costForLevel(currentLevel);
+    final cost = runUpgradeCostFor(type, currentLevel);
     if (_gold < cost) {
       return;
     }
@@ -1329,7 +1360,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void upgradeKillGoldProgression() {
-    if (!_progression.isStageCleared(2)) {
+    if (!_progression.isStageCleared(economyUpgradeUnlockStage)) {
       return;
     }
     if (!_progression.upgradeKillGold()) {
@@ -1341,7 +1372,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void upgradeEmergencySaleProgression() {
-    if (!_progression.isStageCleared(2)) {
+    if (!_progression.isStageCleared(economyUpgradeUnlockStage)) {
       return;
     }
     if (!_progression.upgradeEmergencySale()) {
@@ -3871,7 +3902,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _currentStageNumber,
     );
     final previousUnlockedStageCount = _progression.unlockedStageCount;
-    final stageOneWasCleared = _progression.isStageCleared(1);
+    final sniperWasUnlocked = _progression.isStageCleared(sniperUnlockStage);
     _progression.finishRun(
       completedRounds: _completedRounds,
       success: success,
@@ -3884,7 +3915,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         ? _progression.unlockedStageCount
         : null;
     _lastRunUnlockedSniperTurret =
-        success && !stageOneWasCleared && _progression.isStageCleared(1);
+        success &&
+        !sniperWasUnlocked &&
+        _progression.isStageCleared(sniperUnlockStage);
     _phase = resultPhase;
   }
 
@@ -3911,7 +3944,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       TurretType.magic,
       TurretType.frost,
     ];
-    if (_progression.isStageCleared(1)) {
+    if (_progression.isStageCleared(sniperUnlockStage)) {
       types.add(TurretType.sniper);
     }
     if (_progression.isStageCleared(6)) {
@@ -3922,9 +3955,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   List<GemType> _availableGemTypes() {
     return GemType.values.where((type) {
-      final stageOneReward =
-          type == GemType.aimSpeed || type == GemType.armorPiercing;
-      return !stageOneReward || _progression.isStageCleared(1);
+      if (type == GemType.aimSpeed) {
+        return _progression.isStageCleared(aimSpeedGemUnlockStage);
+      }
+      if (type == GemType.armorPiercing) {
+        return _progression.isStageCleared(armorPiercingGemUnlockStage);
+      }
+      return true;
     }).toList();
   }
 

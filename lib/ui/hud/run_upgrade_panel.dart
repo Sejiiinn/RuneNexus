@@ -27,11 +27,15 @@ class HudRunUpgradePanel extends StatelessWidget {
           children: RunUpgradeType.values.map((type) {
             final definition = gameRunUpgrades[type]!;
             final level = snapshot.runUpgradeLevels[type] ?? 0;
+            final maxLevel = game.runUpgradeMaxLevelFor(type);
+            final cost = game.runUpgradeCostFor(type, level);
             return Padding(
               padding: const EdgeInsets.only(bottom: 6),
               child: _RunUpgradeRow(
                 definition: definition,
                 level: level,
+                maxLevel: maxLevel,
+                cost: cost,
                 gold: snapshot.gold,
                 onPressed: () => game.buyRunUpgrade(type),
               ),
@@ -47,19 +51,22 @@ class _RunUpgradeRow extends StatelessWidget {
   const _RunUpgradeRow({
     required this.definition,
     required this.level,
+    required this.maxLevel,
+    required this.cost,
     required this.gold,
     required this.onPressed,
   });
 
   final RunUpgradeDefinition definition;
   final int level;
+  final int maxLevel;
+  final int cost;
   final int gold;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    final isMax = level >= definition.maxLevel;
-    final cost = definition.costForLevel(level);
+    final isMax = level >= maxLevel;
     final enabled = !isMax && gold >= cost;
     return GamePanel(
       padding: const EdgeInsets.all(8),
@@ -93,7 +100,7 @@ class _RunUpgradeRow extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Lv $level/${definition.maxLevel}',
+                      'Lv $level/$maxLevel',
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
@@ -117,6 +124,7 @@ class _RunUpgradeRow extends StatelessWidget {
                 _RunUpgradeEffectPreview(
                   definition: definition,
                   level: level,
+                  maxLevel: maxLevel,
                   isMax: isMax,
                 ),
               ],
@@ -143,20 +151,22 @@ class _RunUpgradeEffectPreview extends StatelessWidget {
   const _RunUpgradeEffectPreview({
     required this.definition,
     required this.level,
+    required this.maxLevel,
     required this.isMax,
   });
 
   final RunUpgradeDefinition definition;
   final int level;
+  final int maxLevel;
   final bool isMax;
 
   @override
   Widget build(BuildContext context) {
     final subject = _runUpgradeEffectSubject(definition.type);
-    final currentText = _runUpgradeEffectText(definition, level);
+    final currentText = _runUpgradeEffectText(definition, level, maxLevel);
     final nextText = isMax
         ? 'MAX'
-        : _runUpgradeEffectText(definition, level + 1);
+        : _runUpgradeEffectText(definition, level + 1, maxLevel);
     return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
       spacing: 5,
@@ -239,8 +249,12 @@ String _runUpgradeEffectSubject(RunUpgradeType type) {
   };
 }
 
-String _runUpgradeEffectText(RunUpgradeDefinition definition, int level) {
-  final effect = definition.effectForLevel(level);
+String _runUpgradeEffectText(
+  RunUpgradeDefinition definition,
+  int level,
+  int maxLevel,
+) {
+  final effect = definition.effectForLevel(level, maxLevel: maxLevel);
   return switch (definition.type) {
     RunUpgradeType.towerDamage => '+${(effect * 100).round()}%',
     RunUpgradeType.killGold => '+${(effect * 100).round()}%',

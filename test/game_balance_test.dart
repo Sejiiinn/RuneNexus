@@ -976,16 +976,21 @@ void main() {
     expect(gameTurrets[TurretType.lightning]!.attackRate, 0.55);
   });
 
-  test('sniper turret unlocks after stage one clear', () {
+  test('sniper turret unlocks after stage three clear', () {
     final game = RuneNexusGame(
-      waves: const [
-        WaveDefinition(
-          round: 1,
-          previewText: 'test',
-          groups: [],
-          clearRewardGold: 0,
-        ),
-      ],
+      stage: StageDefinition(
+        id: 3,
+        name: 'Stage 3',
+        map: gameMap,
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 0,
+          ),
+        ],
+      ),
     );
 
     expect(
@@ -1760,7 +1765,7 @@ void main() {
     },
   );
 
-  test('target priority research unlocks after stage three clear', () {
+  test('target priority research unlocks after stage two clear', () {
     final progression = RunProgression()..runes = 100;
 
     expect(
@@ -1776,7 +1781,7 @@ void main() {
       isFalse,
     );
 
-    progression.clearedStageNumbers.add(3);
+    progression.clearedStageNumbers.add(2);
 
     expect(
       progression.isResearchUnlocked(ResearchType.turretTargetPriority),
@@ -1974,6 +1979,109 @@ void main() {
 
     progression.researchLevels[ResearchType.crystalRecovery] = 5;
     expect(progression.bossKillGemShardBonus, 5);
+  });
+
+  test('rune resonance research unlocks after stage eight clear', () {
+    final progression = RunProgression()..runes = 1000;
+
+    expect(progression.isResearchUnlocked(ResearchType.runeResonance), isFalse);
+
+    progression.clearedStageNumbers.add(8);
+
+    expect(progression.isResearchUnlocked(ResearchType.runeResonance), isTrue);
+    expect(
+      progression.researchCostForCurrentLevel(ResearchType.runeResonance),
+      180,
+    );
+    expect(
+      progression.researchDurationForCurrentLevel(ResearchType.runeResonance),
+      3 * 60 * 60 * 1000,
+    );
+
+    expect(
+      progression.startResearch(ResearchType.runeResonance, nowMillis: 1000),
+      isTrue,
+    );
+    expect(progression.runes, 820);
+    expect(
+      progression.completeFinishedResearches(
+        nowMillis: 1000 + 3 * 60 * 60 * 1000,
+      ),
+      isTrue,
+    );
+    expect(progression.researchLevel(ResearchType.runeResonance), 1);
+    expect(progression.runeResonanceBonusRate, closeTo(0.02, 0.001));
+    expect(
+      progression.researchCostForCurrentLevel(ResearchType.runeResonance),
+      212,
+    );
+    expect(
+      progression.researchDurationForCurrentLevel(ResearchType.runeResonance),
+      (3 * 60 * 60 * 1000 * 1.08).round(),
+    );
+
+    progression.researchLevels[ResearchType.runeResonance] = 20;
+    expect(progression.runeResonanceBonusRate, closeTo(0.4, 0.001));
+  });
+
+  test('tactical limit expansion unlocks after stage eight clear', () {
+    final progression = RunProgression()..runes = 1000;
+
+    expect(
+      progression.isResearchUnlocked(ResearchType.tacticalLimitExpansion),
+      isFalse,
+    );
+
+    progression.clearedStageNumbers.add(8);
+
+    expect(
+      progression.isResearchUnlocked(ResearchType.tacticalLimitExpansion),
+      isTrue,
+    );
+    expect(
+      progression.researchCostForCurrentLevel(
+        ResearchType.tacticalLimitExpansion,
+      ),
+      220,
+    );
+    expect(
+      progression.researchDurationForCurrentLevel(
+        ResearchType.tacticalLimitExpansion,
+      ),
+      3 * 60 * 60 * 1000,
+    );
+
+    expect(
+      progression.startResearch(
+        ResearchType.tacticalLimitExpansion,
+        nowMillis: 1000,
+      ),
+      isTrue,
+    );
+    expect(progression.runes, 780);
+    expect(
+      progression.completeFinishedResearches(
+        nowMillis: 1000 + 3 * 60 * 60 * 1000,
+      ),
+      isTrue,
+    );
+    expect(progression.researchLevel(ResearchType.tacticalLimitExpansion), 1);
+    expect(progression.runUpgradeMaxLevelBonus, 1);
+    expect(
+      progression.researchCostForCurrentLevel(
+        ResearchType.tacticalLimitExpansion,
+      ),
+      275,
+    );
+    expect(
+      progression.researchDurationForCurrentLevel(
+        ResearchType.tacticalLimitExpansion,
+      ),
+      (3 * 60 * 60 * 1000 * 1.12).round(),
+    );
+
+    progression.researchLevels[ResearchType.tacticalLimitExpansion] = 10;
+    expect(progression.runUpgradeMaxLevelBonus, 10);
   });
 
   test('basic link engineering research is open by default', () {
@@ -2978,7 +3086,7 @@ void main() {
     expect(GemType.values, contains(GemType.armorPiercing));
   });
 
-  test('stage one reward gems are gated by the provided reward pool', () {
+  test('staged reward gems are gated by the provided reward pool', () {
     final generator = GemRewardGenerator();
     final lockedPool = GemType.values.where(
       (type) => type != GemType.aimSpeed && type != GemType.armorPiercing,
@@ -3091,6 +3199,40 @@ void main() {
       expect(definition.costForLevel(level), costs[level]);
     }
     expect(definition.costForLevel(costs.length), 0);
+  });
+
+  test('tactical limit expansion lets run upgrades exceed base cap', () async {
+    final definition = gameRunUpgrades[RunUpgradeType.towerDamage]!;
+    final costAtBaseCap = definition.costForLevel(20, maxLevel: 30);
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8},
+        researchLevels: const {ResearchType.tacticalLimitExpansion: 10},
+        gold: costAtBaseCap,
+        runUpgradeLevels: const {RunUpgradeType.towerDamage: 20},
+      );
+    final game = RuneNexusGame(saveRepository: repository);
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    expect(game.runUpgradeMaxLevelFor(RunUpgradeType.towerDamage), 30);
+    expect(
+      game.snapshotNotifier.value.runUpgradeLevels[RunUpgradeType.towerDamage],
+      20,
+    );
+
+    game.buyRunUpgrade(RunUpgradeType.towerDamage);
+
+    expect(game.snapshotNotifier.value.gold, 0);
+    expect(
+      game.snapshotNotifier.value.runUpgradeLevels[RunUpgradeType.towerDamage],
+      21,
+    );
+    expect(
+      game.snapshotNotifier.value.towerDamageRunBonusRate,
+      closeTo(0.63, 0.001),
+    );
   });
 
   test('run kill gold upgrade accumulates fractional rewards', () async {
@@ -3312,13 +3454,13 @@ void main() {
     expect(game.snapshotNotifier.value.gemShards, 5);
   });
 
-  test('permanent kill reward unlocks after stage two clear', () async {
+  test('permanent kill reward unlocks after stage one clear', () async {
     final repository = MemorySaveRepository()
       ..data = _saveWithResearch(
-        clearedStageNumbers: const {1},
+        clearedStageNumbers: const {},
         researchLevels: const {},
         runes: 1000,
-        unlockedStageCount: 2,
+        unlockedStageCount: 1,
       );
     final game = RuneNexusGame(
       saveRepository: repository,
@@ -3336,15 +3478,15 @@ void main() {
     await game.onLoad();
     game.upgradeKillGoldProgression();
 
-    expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(2)));
+    expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(1)));
     expect(game.snapshotNotifier.value.killGoldUpgradeLevel, 0);
     expect(game.snapshotNotifier.value.canUpgradeKillGold, isFalse);
 
-    game.startStage(2);
+    game.startStage(1);
     game.startNextWave();
     game.update(0.016);
 
-    expect(game.snapshotNotifier.value.clearedStageNumbers, contains(2));
+    expect(game.snapshotNotifier.value.clearedStageNumbers, contains(1));
     expect(game.snapshotNotifier.value.canUpgradeKillGold, isTrue);
   });
 
@@ -3701,6 +3843,10 @@ void main() {
     expect(progression.runeRewardFor(50, success: true, stageNumber: 5), 420);
     expect(progression.runeRewardFor(50, success: true, stageNumber: 15), 1670);
     expect(progression.runeRewardFor(50, success: true, stageNumber: 16), 1670);
+
+    progression.researchLevels[ResearchType.runeResonance] = 20;
+    expect(progression.runeRewardFor(50, success: true), 280);
+    expect(progression.runeRewardFor(50, success: true, stageNumber: 8), 966);
   });
 
   test('stage rune reward bonus applies to first clear rewards', () {
@@ -3732,13 +3878,13 @@ void main() {
     expect(progression.upgradeEmergencySale(), isFalse);
   });
 
-  test('permanent emergency sale unlocks after stage two clear', () async {
+  test('permanent emergency sale unlocks after stage one clear', () async {
     final repository = MemorySaveRepository()
       ..data = _saveWithResearch(
-        clearedStageNumbers: const {1},
+        clearedStageNumbers: const {},
         researchLevels: const {},
         runes: 1000,
-        unlockedStageCount: 2,
+        unlockedStageCount: 1,
       );
     final game = RuneNexusGame(
       saveRepository: repository,
@@ -3756,19 +3902,16 @@ void main() {
     await game.onLoad();
     game.upgradeEmergencySaleProgression();
 
-    expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(2)));
+    expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(1)));
     expect(game.snapshotNotifier.value.emergencySaleUpgradeLevel, 0);
     expect(game.snapshotNotifier.value.canUpgradeEmergencySale, isFalse);
     expect(game.snapshotNotifier.value.turretRefundPercent, 75);
 
-    game.startStage(2);
-    game.startNextWave();
-    game.update(0.016);
-    game.startStage(2);
+    game.startStage(1);
     game.startNextWave();
     game.update(0.016);
 
-    expect(game.snapshotNotifier.value.clearedStageNumbers, contains(2));
+    expect(game.snapshotNotifier.value.clearedStageNumbers, contains(1));
     expect(game.snapshotNotifier.value.canUpgradeEmergencySale, isTrue);
   });
 
@@ -4281,45 +4424,26 @@ void main() {
     expect(wave30RearGuard.startDelay, lessThan(wave30Boss.startDelay + 1.5));
   });
 
-  test(
-    'stage two waves introduce armored enemies without changing stage one',
-    () {
-      expect(
-        gameWaves.expand((wave) => wave.groups).map((group) => group.enemyType),
-        isNot(contains(EnemyType.armored)),
-      );
-
-      final stage2Round2Types = gameStage2Waves[1].groups.map(
-        (group) => group.enemyType,
-      );
-      final stage2Round3Types = gameStage2Waves[2].groups.map(
-        (group) => group.enemyType,
-      );
-      final stage2Round10Types = gameStage2Waves[9].groups.map(
-        (group) => group.enemyType,
-      );
-
-      expect(stage2Round2Types, contains(EnemyType.armored));
-      expect(stage2Round3Types.first, EnemyType.armored);
-      expect(stage2Round10Types, contains(EnemyType.armored));
-      expect(stage2Round10Types, contains(EnemyType.boss));
-    },
-  );
-
-  test('stage two learning armored group starts after normal group', () {
-    final spawner = WaveSpawner()..start(gameStage2Waves[1]);
-    final queue = spawner.toSaveData();
-    final normalDelays = queue
-        .where((request) => request.enemyType == EnemyType.normal)
-        .map((request) => request.delay);
-    final armoredDelays = queue
-        .where((request) => request.enemyType == EnemyType.armored)
-        .map((request) => request.delay);
-
-    expect(
-      armoredDelays.reduce(math.min),
-      greaterThan(normalDelays.reduce(math.max)),
+  test('chapter one waves stay health-only through stage five', () {
+    final chapterOneTypes = [
+      ...gameWaves,
+      ...gameStage2Waves,
+    ].expand((wave) => wave.groups).map((group) => group.enemyType);
+    final stage2Round4Types = gameStage2Waves[3].groups.map(
+      (group) => group.enemyType,
     );
+    final stage2Round5Types = gameStage2Waves[4].groups.map(
+      (group) => group.enemyType,
+    );
+    final stage2Round10Types = gameStage2Waves[9].groups.map(
+      (group) => group.enemyType,
+    );
+
+    expect(chapterOneTypes, isNot(contains(EnemyType.armored)));
+    expect(chapterOneTypes, isNot(contains(EnemyType.shielded)));
+    expect(stage2Round4Types, contains(EnemyType.fast));
+    expect(stage2Round5Types, contains(EnemyType.tank));
+    expect(stage2Round10Types, contains(EnemyType.boss));
   });
 
   test('wave spawner saves remaining delays and restores cursor timing', () {
@@ -4423,6 +4547,20 @@ void main() {
         ...gameWaves.expand((wave) => wave.groups),
         ...gameStage2Waves.expand((wave) => wave.groups),
       ].map((group) => group.enemyType);
+      final chapterTwoTypes = [
+        ...gameChapter2Waves,
+        ...gameChapter2Stage7Waves,
+        ...gameChapter2Stage8Waves,
+        ...gameChapter2Stage9Waves,
+        ...gameChapter2Stage10Waves,
+      ].expand((wave) => wave.groups).map((group) => group.enemyType);
+      final chapterTwoPreviews = [
+        ...gameChapter2Waves,
+        ...gameChapter2Stage7Waves,
+        ...gameChapter2Stage8Waves,
+        ...gameChapter2Stage9Waves,
+        ...gameChapter2Stage10Waves,
+      ].map((wave) => wave.previewText);
       final chapter2Round2Types = gameChapter2Waves[1].groups.map(
         (group) => group.enemyType,
       );
@@ -4434,6 +4572,9 @@ void main() {
       );
 
       expect(chapterOneTypes, isNot(contains(EnemyType.shielded)));
+      expect(chapterOneTypes, isNot(contains(EnemyType.armored)));
+      expect(chapterTwoTypes, isNot(contains(EnemyType.armored)));
+      expect(chapterTwoPreviews.any((text) => text.contains('장갑')), isFalse);
       expect(chapter2Round2Types, contains(EnemyType.shielded));
       expect(chapter2Round3Types.first, EnemyType.shielded);
       expect(chapter2Round10Types, contains(EnemyType.shielded));
@@ -4443,8 +4584,8 @@ void main() {
         greaterThan(countType(gameChapter2Waves, 7, EnemyType.fast)),
       );
       expect(
-        countType(gameChapter2Stage8Waves, 8, EnemyType.armored),
-        greaterThan(countType(gameChapter2Waves, 8, EnemyType.armored)),
+        countType(gameChapter2Stage8Waves, 8, EnemyType.shielded),
+        greaterThan(countType(gameChapter2Waves, 8, EnemyType.shielded)),
       );
       expect(
         countType(gameChapter2Stage9Waves, 8, EnemyType.shielded),
@@ -6168,8 +6309,10 @@ GameSaveData _saveWithResearch({
   required Set<int> clearedStageNumbers,
   required Map<ResearchType, int> researchLevels,
   int runes = 0,
+  int gold = 170,
   int unlockedStageCount = 4,
   int gemShards = 0,
+  Map<RunUpgradeType, int> runUpgradeLevels = const {},
   GamePhase phase = GamePhase.preparation,
   bool isPurchasedGemReward = false,
   GamePhase? rewardReturnPhase,
@@ -6179,7 +6322,7 @@ GameSaveData _saveWithResearch({
   return GameSaveData(
     version: GameSaveData.currentVersion,
     savedAtMillis: 0,
-    gold: 170,
+    gold: gold,
     gemShards: gemShards,
     nexusHp: 20,
     stageNumber: 1,
@@ -6206,7 +6349,7 @@ GameSaveData _saveWithResearch({
       researchElapsedMillis: const {},
       activeResearches: const [],
     ),
-    runUpgradeLevels: const {},
+    runUpgradeLevels: runUpgradeLevels,
     killGoldFractionWallet: 0,
     gemInventory: const {},
     rewardOptions: rewardOptions,

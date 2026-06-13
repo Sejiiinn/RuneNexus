@@ -98,6 +98,8 @@ class RuneNexusLocalizations {
   String get bossBounty => _isEnglish ? 'Boss Reward' : '토벌 보상';
   String get crystalRecovery => _isEnglish ? 'Crystal Recovery' : '결정 회수';
   String get runeResonance => _isEnglish ? 'Rune Resonance' : '룬 공명';
+  String get tacticalLimitExpansion =>
+      _isEnglish ? 'Tactical Limit Expansion' : '전술 한계 확장';
   String get levelUp => _isEnglish ? 'Level Up' : '레벨업';
   String get cleared => _isEnglish ? 'Cleared' : '클리어';
   String get settled => _isEnglish ? 'Settled' : '정산 완료';
@@ -121,6 +123,10 @@ class RuneNexusLocalizations {
   String get stageSniperRewardUnlocked => unlockedReward(sniperTurret);
   String get sniperTurret => _isEnglish ? 'Sniper turret' : '저격 포탑';
   String get lightningTurret => _isEnglish ? 'Lightning turret' : '라이트닝 포탑';
+  String get aimSpeedGem => _isEnglish ? 'Scope gem' : '조준경 젬';
+  String get armorPiercingGem => _isEnglish ? 'Armor Pierce gem' : '장갑 관통 젬';
+  String get riftMarkSkill => _isEnglish ? 'Rift Mark' : '균열 낙인';
+  String get precisionReward => _isEnglish ? 'Sniper + Scope' : '저격+조준경';
   String get economicUpgrade => _isEnglish ? 'Economy upgrade' : '경제 강화';
   String get combatUpgrade => _isEnglish ? 'Combat upgrade' : '전투 강화';
   String get upgradeUnlock => _isEnglish ? 'Upgrade unlock' : '강화 해금';
@@ -285,6 +291,16 @@ class RuneNexusLocalizations {
         : '보스 처치 시 젬 파편 +$amount';
   }
 
+  String researchRuneResonanceEffect(int percent) {
+    return _isEnglish ? 'Rune reward boost +$percent%' : '룬 보상 증폭 +$percent%';
+  }
+
+  String researchTacticalLimitExpansionEffect(int amount) {
+    return _isEnglish
+        ? 'Run upgrade max level +$amount'
+        : '런 강화 최대 레벨 +$amount';
+  }
+
   String researchRemaining(int remainingMillis) {
     final seconds = (remainingMillis / 1000).ceil();
     final hours = seconds ~/ 3600;
@@ -384,8 +400,13 @@ class RuneNexusLocalizations {
     }
     if (title == runeResonance) {
       return _isEnglish
-          ? 'Opens research for improving rune rewards after a run.'
-          : '런 종료 후 룬 보상을 개선하는 연구를 개방합니다.';
+          ? 'Increases runes gained after a run by 2% per level.'
+          : '레벨마다 런 종료 후 획득하는 룬이 2% 증가합니다.';
+    }
+    if (title == tacticalLimitExpansion) {
+      return _isEnglish
+          ? 'Raises the maximum level of in-run upgrades by 1 per level.'
+          : '레벨마다 런 중 강화의 최대 레벨이 1 증가합니다.';
     }
     if (title == towerResearch) {
       return _isEnglish

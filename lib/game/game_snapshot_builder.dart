@@ -282,13 +282,17 @@ class GameSnapshotBuilder {
       killGoldUpgradeLevel: _game._progression.killGoldUpgradeLevel,
       killGoldUpgradeCost: _game._progression.killGoldUpgradeCost,
       canUpgradeKillGold:
-          _game._progression.isStageCleared(2) &&
+          _game._progression.isStageCleared(
+            RuneNexusGame.economyUpgradeUnlockStage,
+          ) &&
           _game._progression.canUpgradeKillGold,
       killGoldProgressionBonusRate: _game._killGoldProgressionBonusRate,
       emergencySaleUpgradeLevel: _game._progression.emergencySaleUpgradeLevel,
       emergencySaleUpgradeCost: _game._progression.emergencySaleUpgradeCost,
       canUpgradeEmergencySale:
-          _game._progression.isStageCleared(2) &&
+          _game._progression.isStageCleared(
+            RuneNexusGame.economyUpgradeUnlockStage,
+          ) &&
           _game._progression.canUpgradeEmergencySale,
       turretRefundPercent: _game.turretRefundPercent,
       researchSlotCount: RunProgression.researchSlotCount,

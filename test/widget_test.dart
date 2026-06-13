@@ -924,9 +924,10 @@ void main() {
     await _pumpLoadedApp(tester);
 
     expect(find.text('클리어 보상'), findsNWidgets(5));
-    expect(find.text('저격 포탑'), findsOneWidget);
+    expect(find.text('저격+조준경'), findsOneWidget);
     expect(find.text('경제 강화'), findsOneWidget);
-    expect(find.text('연구'), findsNWidgets(3));
+    expect(find.text('연구'), findsNWidgets(2));
+    expect(find.text('연구+코어'), findsOneWidget);
     expect(find.text('전투 강화'), findsOneWidget);
     expect(find.text('룬 +0%'), findsOneWidget);
     expect(find.text('룬 +20%'), findsOneWidget);
@@ -965,7 +966,9 @@ void main() {
 
     expect(find.text('해금됨'), findsNWidgets(4));
     expect(find.text('경제 강화'), findsOneWidget);
-    expect(find.text('연구'), findsNWidgets(3));
+    expect(find.text('연구'), findsNWidgets(2));
+    expect(find.text('연구+코어'), findsOneWidget);
+    expect(find.text('저격+조준경'), findsOneWidget);
     expect(find.text('전투 강화'), findsOneWidget);
     expect(find.text('클리어 보상: 경제 강화'), findsNothing);
     expect(find.text('클리어 보상: 연구'), findsNothing);
@@ -1153,7 +1156,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('kill reward is hidden before stage two clear', (tester) async {
+  testWidgets('kill reward is hidden before stage one clear', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ko'),
@@ -1190,7 +1193,7 @@ void main() {
     expect(find.text('Lv.3/10'), findsNothing);
   });
 
-  testWidgets('emergency sale is hidden before stage two clear', (
+  testWidgets('emergency sale is hidden before stage one clear', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -1229,7 +1232,7 @@ void main() {
     expect(find.text('Lv.3/5'), findsNothing);
   });
 
-  testWidgets('emergency sale shows refund percent after stage two clear', (
+  testWidgets('emergency sale shows refund percent after stage one clear', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -1248,7 +1251,7 @@ void main() {
             phase: GamePhase.preparation,
             currentStageNumber: 1,
             runes: 181,
-            clearedStageNumbers: const {2},
+            clearedStageNumbers: const {1},
             emergencySaleUpgradeLevel: 0,
             emergencySaleUpgradeCost: 80,
             canUpgradeEmergencySale: true,
@@ -1460,13 +1463,14 @@ void main() {
     expect(find.text('스테이지 1 클리어'), findsOneWidget);
     expect(find.text('보상 획득'), findsOneWidget);
     expect(find.text('+140 룬'), findsOneWidget);
-    expect(find.text('포탑 1개 해금'), findsOneWidget);
+    expect(find.text('강화 2개 해금'), findsOneWidget);
     expect(find.text('전투 기록'), findsOneWidget);
     expect(find.text('기록'), findsOneWidget);
     expect(find.text('20R → 50R'), findsOneWidget);
     expect(find.text('해금 항목'), findsOneWidget);
-    expect(find.text('포탑'), findsOneWidget);
-    expect(find.text('저격 포탑'), findsOneWidget);
+    expect(find.text('강화'), findsOneWidget);
+    expect(find.text('처치 보상'), findsOneWidget);
+    expect(find.text('긴급 매각'), findsOneWidget);
     expect(find.text('확인'), findsOneWidget);
     expect(find.text('다시 시작'), findsOneWidget);
     expect(find.text('스테이지 2 시작'), findsNothing);
@@ -1480,6 +1484,94 @@ void main() {
     await tester.tap(find.text('확인'));
 
     expect(openedStageSelect, isTrue);
+  });
+
+  testWidgets('result overlay shows stage three precision unlocks', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: ResultOverlay(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.success,
+            currentStageNumber: 3,
+            unlockedStageCount: 4,
+            completedRounds: 50,
+            runes: 220,
+            lastRunRuneReward: 220,
+            lastRunPreviousBestRound: 18,
+            lastRunWasNewBestRound: true,
+            lastRunUnlockedStageNumber: 4,
+            lastRunUnlockedSniperTurret: true,
+            bestRoundsByStage: const {3: 50},
+            clearedStageNumbers: const {1, 2, 3},
+          ),
+          onOpenStageSelect: () {},
+          onOpenPermanentUpgrades: () {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+
+    expect(find.text('포탑 1개 · 젬 1개 해금'), findsOneWidget);
+    expect(find.text('해금 항목'), findsOneWidget);
+    expect(find.text('포탑'), findsOneWidget);
+    expect(find.text('저격 포탑'), findsOneWidget);
+    expect(find.text('젬'), findsOneWidget);
+    expect(find.text('조준경 젬'), findsOneWidget);
+  });
+
+  testWidgets('result overlay shows stage five chapter two unlocks', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: ResultOverlay(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.success,
+            currentStageNumber: 5,
+            unlockedStageCount: 6,
+            completedRounds: 50,
+            runes: 420,
+            lastRunRuneReward: 420,
+            lastRunPreviousBestRound: 32,
+            lastRunWasNewBestRound: true,
+            lastRunUnlockedStageNumber: 6,
+            bestRoundsByStage: const {5: 50},
+            clearedStageNumbers: const {1, 2, 3, 4, 5},
+          ),
+          onOpenStageSelect: () {},
+          onOpenPermanentUpgrades: () {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+
+    expect(find.text('연구 2개 · 코어 1개 해금'), findsOneWidget);
+    expect(find.text('해금 항목'), findsOneWidget);
+    expect(find.text('연구'), findsOneWidget);
+    expect(find.text('링크 확장 I'), findsOneWidget);
+    expect(find.text('결정 회수'), findsOneWidget);
+    expect(find.text('코어'), findsOneWidget);
+    expect(find.text('균열 낙인'), findsOneWidget);
   });
 
   testWidgets('result overlay shows stage seven family damage unlocks', (
@@ -1522,6 +1614,48 @@ void main() {
     expect(find.text('강화'), findsOneWidget);
     expect(find.text('물리 화력 훈련'), findsOneWidget);
     expect(find.text('원소 화력 훈련'), findsOneWidget);
+  });
+
+  testWidgets('result overlay shows stage eight rune resonance unlock', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: ResultOverlay(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.success,
+            currentStageNumber: 8,
+            unlockedStageCount: 9,
+            completedRounds: 50,
+            runes: 690,
+            lastRunRuneReward: 690,
+            lastRunPreviousBestRound: 30,
+            lastRunWasNewBestRound: true,
+            lastRunUnlockedStageNumber: 9,
+            bestRoundsByStage: const {8: 50},
+            clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8},
+          ),
+          onOpenStageSelect: () {},
+          onOpenPermanentUpgrades: () {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+
+    expect(find.text('연구 2개 해금'), findsOneWidget);
+    expect(find.text('해금 항목'), findsOneWidget);
+    expect(find.text('연구'), findsOneWidget);
+    expect(find.text('룬 공명'), findsOneWidget);
+    expect(find.text('전술 한계 확장'), findsOneWidget);
   });
 
   testWidgets('failed result keeps reward summary and retry action', (
@@ -2169,11 +2303,13 @@ GameSnapshot _resultSnapshot({
     unlockedStageCount: unlockedStageCount,
     bestRoundsByStage: bestRoundsByStage,
     clearedStageNumbers: clearedStageNumbers,
-    availableTurretTypes: const [
+    availableTurretTypes: [
       TurretType.arrow,
       TurretType.cannon,
       TurretType.magic,
       TurretType.frost,
+      if (clearedStageNumbers.contains(3)) TurretType.sniper,
+      if (clearedStageNumbers.contains(6)) TurretType.lightning,
     ],
     selectedTurretType: TurretType.arrow,
     selectedRunPanelTab: RunPanelTab.turrets,

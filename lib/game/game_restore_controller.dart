@@ -258,7 +258,7 @@ class GameRestoreController {
               return definition != null && entry.value > 0;
             })
             .map((entry) {
-              final maxLevel = gameRunUpgrades[entry.key]!.maxLevel;
+              final maxLevel = _game.runUpgradeMaxLevelFor(entry.key);
               return MapEntry(
                 entry.key,
                 entry.value.clamp(0, maxLevel).toInt(),
