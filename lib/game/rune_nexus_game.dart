@@ -1115,10 +1115,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final targetStageNumber = stageNumber == null
         ? null
         : _clampedStageNumber(stageNumber);
-    final resetDestructionCamera =
-        _phase == GamePhase.coreDestruction || _phase == GamePhase.failure;
     _clearActiveCombat();
-    _resetCoreDestructionSequence(resetCamera: resetDestructionCamera);
+    _resetCoreDestructionSequence(resetCamera: true);
 
     for (final turret in _turrets.values.toList()) {
       turret.removeFromParent();
@@ -2886,21 +2884,39 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   void _configureBoard() {
     const topReservedHeight = 76.0;
     const bottomReservedHeight = 305.0;
+    final activeBounds = _activeTileBounds();
+    final activeColumns = math.max(1.0, activeBounds.width);
+    final activeRows = math.max(1.0, activeBounds.height);
+    final horizontalReservedWidth = (size.x * 0.12).clamp(36.0, 56.0);
     final availableHeight = math.max(
       160.0,
       size.y - topReservedHeight - bottomReservedHeight,
     );
-    final availableWidth = math.max(1.0, size.x);
+    final verticalReservedHeight = (availableHeight * 0.1).clamp(18.0, 36.0);
+    final availableWidth = math.max(1.0, size.x - horizontalReservedWidth);
+    final boardAvailableHeight = math.max(
+      1.0,
+      availableHeight - verticalReservedHeight,
+    );
     _tileSize = math.max(
       12.0,
-      math.min(availableWidth / _map.columns, availableHeight / _map.rows),
+      math.min(
+        availableWidth / activeColumns,
+        boardAvailableHeight / activeRows,
+      ),
     );
     _boardConfigured = true;
-    final width = _tileSize * _map.columns;
-    final height = _tileSize * _map.rows;
+    final activeWidth = _tileSize * activeColumns;
+    final activeHeight = _tileSize * activeRows;
+    final activeOriginX =
+        horizontalReservedWidth / 2 + (availableWidth - activeWidth) / 2;
+    final activeOriginY =
+        topReservedHeight +
+        verticalReservedHeight / 2 +
+        (boardAvailableHeight - activeHeight) / 2;
     _origin = Vector2(
-      (size.x - width) / 2,
-      topReservedHeight + (availableHeight - height) / 2,
+      activeOriginX - activeBounds.left * _tileSize,
+      activeOriginY - activeBounds.top * _tileSize,
     );
     if (_boardZoom <= _minBoardZoom) {
       _boardOffset = Vector2.zero();
@@ -2908,6 +2924,33 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _boardOffset = _clampBoardOffset(_boardOffset);
     }
     _worldPath = _map.path.map(_centerOf).toList();
+  }
+
+  Rect _activeTileBounds() {
+    var minX = _map.columns;
+    var minY = _map.rows;
+    var maxX = -1;
+    var maxY = -1;
+    for (var y = 0; y < _map.rows; y++) {
+      for (var x = 0; x < _map.columns; x++) {
+        if (_map.tileAt(GridPoint(x, y)) == TileType.blocked) {
+          continue;
+        }
+        minX = math.min(minX, x);
+        minY = math.min(minY, y);
+        maxX = math.max(maxX, x);
+        maxY = math.max(maxY, y);
+      }
+    }
+    if (maxX < minX || maxY < minY) {
+      return Rect.fromLTWH(0, 0, _map.columns.toDouble(), _map.rows.toDouble());
+    }
+    return Rect.fromLTRB(
+      minX.toDouble(),
+      minY.toDouble(),
+      (maxX + 1).toDouble(),
+      (maxY + 1).toDouble(),
+    );
   }
 
   void _syncBoardComponents() {
@@ -3264,8 +3307,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Vector2 _boardPanLimitForZoom(double zoom) {
-    final boardWidth = _tileSize * _map.columns;
-    final boardHeight = _tileSize * _map.rows;
+    final activeBounds = _activeTileBounds();
+    final boardWidth = _tileSize * activeBounds.width;
+    final boardHeight = _tileSize * activeBounds.height;
     final zoomOverflow = math.max(0, zoom - _minBoardZoom);
     final zoomPanX = boardWidth * zoomOverflow / 2;
     final zoomPanY = boardHeight * zoomOverflow / 2;
@@ -3286,6 +3330,31 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   @visibleForTesting
   Vector2 debugBoardOffset() => _boardOffset.clone();
 
+  @visibleForTesting
+  Vector2 debugBoardOrigin() => _origin.clone();
+
+  @visibleForTesting
+  Vector2 debugBoardSize() =>
+      Vector2(_tileSize * _map.columns, _tileSize * _map.rows);
+
+  @visibleForTesting
+  Vector2 debugActiveBoardOrigin() {
+    final activeBounds = _activeTileBounds();
+    return Vector2(
+      _origin.x + activeBounds.left * _tileSize,
+      _origin.y + activeBounds.top * _tileSize,
+    );
+  }
+
+  @visibleForTesting
+  Vector2 debugActiveBoardSize() {
+    final activeBounds = _activeTileBounds();
+    return Vector2(
+      _tileSize * activeBounds.width,
+      _tileSize * activeBounds.height,
+    );
+  }
+
   void _zoomBoardAround({
     required double zoom,
     required Vector2 focal,
@@ -3303,9 +3372,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Vector2 _boardCenter() {
+    final activeBounds = _activeTileBounds();
     return Vector2(
-      _origin.x + _tileSize * _map.columns / 2,
-      _origin.y + _tileSize * _map.rows / 2,
+      _origin.x + _tileSize * (activeBounds.left + activeBounds.width / 2),
+      _origin.y + _tileSize * (activeBounds.top + activeBounds.height / 2),
     );
   }
 

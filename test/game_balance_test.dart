@@ -924,8 +924,47 @@ void main() {
     final tileSize = game.boardDistanceScale * 48;
     final panLimit = game.debugBoardPanLimit();
 
-    expect(panLimit.x, closeTo(80, 0.001));
-    expect(panLimit.x, greaterThan(tileSize * 2));
+    expect(panLimit.x, closeTo(70.4, 0.001));
+    expect(panLimit.x, greaterThan(tileSize * 1.5));
+  });
+
+  test('wide maps frame active board area with horizontal padding', () async {
+    final game = RuneNexusGame(
+      stage: gameStages[1],
+      saveRepository: MemorySaveRepository(),
+    );
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    final origin = game.debugActiveBoardOrigin();
+    final boardSize = game.debugActiveBoardSize();
+
+    expect(origin.x, closeTo(24, 0.001));
+    expect(origin.x + boardSize.x, closeTo(376, 0.001));
+  });
+
+  test('stage start resets board pan offset', () async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.handleBoardPointerDown(
+      const PointerDownEvent(pointer: 1, position: Offset(200, 200)),
+    );
+    game.handleBoardPointerMove(
+      const PointerMoveEvent(pointer: 1, position: Offset(235, 200)),
+    );
+    game.handleBoardPointerUp(
+      const PointerUpEvent(pointer: 1, position: Offset(235, 200)),
+    );
+
+    expect(game.debugBoardOffset().x, greaterThan(0));
+
+    game.startStage(1);
+
+    expect(game.debugBoardZoom(), 1);
+    expect(game.debugBoardOffset().length2, 0);
   });
 
   test('turret fire rate is represented as shots per second', () {
