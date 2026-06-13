@@ -17,6 +17,8 @@ class EnemyComponent extends PositionComponent {
     required this.maxHp,
     this.maxShield = 0,
     this.maxArmor = 0,
+    this.laneOffsetRatio = 0,
+    this.visualPhase = 0,
     required this.path,
     required this.game,
   }) : hp = maxHp,
@@ -32,6 +34,8 @@ class EnemyComponent extends PositionComponent {
   final double maxHp;
   final double maxShield;
   final double maxArmor;
+  final double laneOffsetRatio;
+  final double visualPhase;
   final RuneNexusGame game;
   List<Vector2> path;
   double hp;
@@ -100,6 +104,7 @@ class EnemyComponent extends PositionComponent {
       hasRiftMark ? _riftMarkDamageAmplification : 0;
   double get finalDamageMultiplier => 1 + riftMarkDamageAmplification;
   double get currentDurability => hp + shield + armor;
+  Vector2 get visualPosition => position + _visualRenderOffset();
   double get totalBurnDamagePerSecond => _burnInstances.fold(
     0,
     (strongest, instance) => math.max(strongest, instance.damagePerSecond),
@@ -140,6 +145,7 @@ class EnemyComponent extends PositionComponent {
       physicalVulnerabilityBonus: _physicalVulnerabilityBonus,
       elementalVulnerabilityRemaining: _elementalVulnerabilityRemaining,
       elementalVulnerabilityBonus: _elementalVulnerabilityBonus,
+      laneOffsetRatio: laneOffsetRatio,
       riftMarkRemaining: _riftMarkRemaining,
       riftMarkDamageAmplification: _riftMarkDamageAmplification,
     );
@@ -581,7 +587,7 @@ class EnemyComponent extends PositionComponent {
           (_burnNumberTimer >= _burnNumberInterval || _burnInstances.isEmpty) &&
           _burnNumberDamage > 0) {
         game.showDamageNumber(
-          position: position.clone(),
+          position: visualPosition,
           damage: _burnNumberDamage,
           color: const Color(0xFFFF8A2A),
           motion: DamageNumberMotion.fallArc,
@@ -601,7 +607,7 @@ class EnemyComponent extends PositionComponent {
           (_poisonNumberTimer >= _poisonNumberInterval ||
               _poisonRemaining == 0)) {
         game.showDamageNumber(
-          position: position.clone(),
+          position: visualPosition,
           damage: _poisonNumberDamage,
           color: const Color(0xFF9DFF4A),
           motion: DamageNumberMotion.fallArc,
@@ -680,7 +686,12 @@ class EnemyComponent extends PositionComponent {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
 
+    final visualOffset = _visualRenderOffset();
+    canvas.save();
+    canvas.translate(visualOffset.x, visualOffset.y);
+    _drawMotionEffects(canvas);
     _drawBody(canvas, body, outline);
+    _drawBodyOverlayEffects(canvas);
     _drawHitFlash(canvas);
 
     if (_burnInstances.isNotEmpty) {
@@ -704,6 +715,7 @@ class EnemyComponent extends PositionComponent {
     }
 
     _drawDurabilityBars(canvas);
+    canvas.restore();
   }
 
   void _drawDurabilityBars(Canvas canvas) {
@@ -765,6 +777,289 @@ class EnemyComponent extends PositionComponent {
       strokeWidth: outline.strokeWidth,
       facingAngle: _facingAngle,
     );
+  }
+
+  void _drawMotionEffects(Canvas canvas) {
+    if (isDead) {
+      return;
+    }
+    switch (definition.type) {
+      case EnemyType.normal:
+        _drawRearFlickerLight(
+          canvas,
+          glowColor: const Color(0xFFD7CFC0),
+          coreColor: const Color(0xFFFFE6BD),
+          speed: 29,
+          widthScale: 0.92,
+          alphaScale: 0.86,
+        );
+      case EnemyType.fast:
+        _drawRearFlickerLight(
+          canvas,
+          glowColor: const Color(0xFF7CE8FF),
+          coreColor: const Color(0xFFE8FBFF),
+          speed: 34,
+          widthScale: 1.08,
+          alphaScale: 1,
+        );
+      case EnemyType.shielded:
+        _drawRearFlickerLight(
+          canvas,
+          glowColor: const Color(0xFF7FDFFF),
+          coreColor: const Color(0xFFEAFBFF),
+          speed: 27,
+          widthScale: 0.98,
+          alphaScale: 0.82,
+        );
+      case EnemyType.armored:
+      case EnemyType.tank:
+        return;
+      case EnemyType.boss:
+        _drawBossCoreThrum(canvas);
+        return;
+    }
+  }
+
+  void _drawBodyOverlayEffects(Canvas canvas) {
+    if (isDead || definition.type != EnemyType.boss) {
+      return;
+    }
+    _drawBossCoreThrum(canvas, foreground: true);
+  }
+
+  void _drawRearFlickerLight(
+    Canvas canvas, {
+    required Color glowColor,
+    required Color coreColor,
+    required double speed,
+    required double widthScale,
+    required double alphaScale,
+  }) {
+    final loadFade = game.enemies.length >= 80 ? 0.5 : 1.0;
+    final phase = _statusEffectTime * speed + visualPhase * math.pi * 2;
+    final flicker =
+        (0.62 + math.sin(phase) * 0.23 + math.sin(phase * 1.73 + 0.8) * 0.12)
+            .clamp(0.22, 1.0)
+            .toDouble();
+    canvas.save();
+    canvas.translate(size.x / 2, size.y / 2);
+    canvas.rotate(_facingAngle);
+
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(-size.x * 0.63, 0),
+        width: size.x * (0.44 + flicker * 0.13) * widthScale,
+        height: size.y * 0.3,
+      ),
+      Paint()
+        ..color = glowColor.withValues(
+          alpha: 0.34 * flicker * alphaScale * loadFade,
+        )
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.04),
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(-size.x * 0.47, 0),
+        width: size.x * (0.24 + flicker * 0.05) * widthScale,
+        height: size.y * 0.15,
+      ),
+      Paint()
+        ..color = coreColor.withValues(
+          alpha: 0.46 * flicker * alphaScale * loadFade,
+        )
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.018),
+    );
+    for (final side in [-1.0, 1.0]) {
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(-size.x * 0.26, side * size.y * 0.2),
+          width: size.x * 0.105 * widthScale,
+          height: size.y * 0.067,
+        ),
+        Paint()
+          ..color = coreColor.withValues(
+            alpha: 0.3 * flicker * alphaScale * loadFade,
+          )
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.012),
+      );
+    }
+
+    canvas.restore();
+  }
+
+  void _drawBossCoreThrum(Canvas canvas, {bool foreground = false}) {
+    final loadFade = game.enemies.length >= 80 ? 0.82 : 1.0;
+    final hpRatio = maxHp <= 0 ? 1.0 : (hp / maxHp).clamp(0.0, 1.0).toDouble();
+    final stress = 1 - hpRatio;
+    final phase =
+        _statusEffectTime * (5.5 + stress * 1.8) + visualPhase * math.pi * 2;
+    final pulseBase = (math.sin(phase) + 1) * 0.5;
+    final pulse = math.pow(pulseBase, 1.85).toDouble();
+    final shimmer = (math.sin(phase * 2.25 + 0.7) + 1) * 0.5;
+    final thrum = (0.42 + pulse * 0.46 + shimmer * 0.12)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    final alphaBoost = 1 + stress * 0.32;
+
+    canvas.save();
+    canvas.translate(size.x / 2, size.y / 2);
+    canvas.rotate(_facingAngle);
+
+    if (foreground) {
+      _drawBossCoreHighlights(
+        canvas,
+        pulse: pulse,
+        thrum: thrum,
+        alphaBoost: alphaBoost,
+        loadFade: loadFade,
+      );
+      canvas.restore();
+      return;
+    }
+
+    // 보스 동력 맥동
+    canvas.drawCircle(
+      Offset.zero,
+      size.x * (0.56 + thrum * 0.045),
+      Paint()
+        ..color = const Color(
+          0xFFFF5A66,
+        ).withValues(alpha: 0.32 * thrum * alphaBoost * loadFade)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size.x * (0.055 + thrum * 0.022)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.034),
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(-size.x * 0.58, 0),
+        width: size.x * (0.58 + thrum * 0.14),
+        height: size.y * (0.4 + thrum * 0.055),
+      ),
+      Paint()
+        ..color = const Color(
+          0xFFB6394B,
+        ).withValues(alpha: 0.58 * thrum * alphaBoost * loadFade)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.07),
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(-size.x * 0.46, 0),
+        width: size.x * (0.28 + thrum * 0.07),
+        height: size.y * (0.18 + thrum * 0.032),
+      ),
+      Paint()
+        ..color = const Color(
+          0xFFFF8791,
+        ).withValues(alpha: 0.72 * thrum * alphaBoost * loadFade)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.024),
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(-size.x * 0.38, 0),
+        width: size.x * 0.11,
+        height: size.y * 0.074,
+      ),
+      Paint()
+        ..color = const Color(
+          0xFFFFE1E5,
+        ).withValues(alpha: 0.65 * pulse * alphaBoost * loadFade)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.01),
+    );
+    for (final side in [-1.0, 1.0]) {
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(-size.x * 0.24, side * size.y * 0.25),
+          width: size.x * (0.2 + thrum * 0.04),
+          height: size.y * 0.088,
+        ),
+        Paint()
+          ..color = const Color(
+            0xFFFF8791,
+          ).withValues(alpha: 0.56 * thrum * alphaBoost * loadFade)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.018),
+      );
+    }
+
+    canvas.restore();
+  }
+
+  void _drawBossCoreHighlights(
+    Canvas canvas, {
+    required double pulse,
+    required double thrum,
+    required double alphaBoost,
+    required double loadFade,
+  }) {
+    final ringAlpha = (0.46 * thrum * alphaBoost * loadFade)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    final coreAlpha = (0.95 * thrum * alphaBoost * loadFade)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    final ventAlpha = (0.82 * thrum * alphaBoost * loadFade)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    final hotCoreAlpha = (1.0 * pulse * alphaBoost * loadFade)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    final hotVentAlpha = (0.78 * pulse * alphaBoost * loadFade)
+        .clamp(0.0, 1.0)
+        .toDouble();
+    canvas.drawCircle(
+      Offset.zero,
+      size.x * (0.28 + thrum * 0.025),
+      Paint()
+        ..color = const Color(0xFFFF5A66).withValues(alpha: ringAlpha)
+        ..blendMode = BlendMode.plus
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size.x * 0.04
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.016),
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(-size.x * 0.12, 0),
+        width: size.x * (0.38 + thrum * 0.08),
+        height: size.y * (0.2 + thrum * 0.035),
+      ),
+      Paint()
+        ..color = const Color(0xFFFF8791).withValues(alpha: coreAlpha)
+        ..blendMode = BlendMode.plus
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.016),
+    );
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(-size.x * 0.12, 0),
+        width: size.x * 0.17,
+        height: size.y * 0.09,
+      ),
+      Paint()
+        ..color = const Color(0xFFFFE1E5).withValues(alpha: hotCoreAlpha)
+        ..blendMode = BlendMode.plus
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.006),
+    );
+    for (final side in [-1.0, 1.0]) {
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(size.x * 0.02, side * size.y * 0.22),
+          width: size.x * (0.24 + thrum * 0.045),
+          height: size.y * 0.105,
+        ),
+        Paint()
+          ..color = const Color(0xFFFF8791).withValues(alpha: ventAlpha)
+          ..blendMode = BlendMode.plus
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.01),
+      );
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset(size.x * 0.02, side * size.y * 0.22),
+          width: size.x * 0.082,
+          height: size.y * 0.038,
+        ),
+        Paint()
+          ..color = const Color(0xFFFFE1E5).withValues(alpha: hotVentAlpha)
+          ..blendMode = BlendMode.plus,
+      );
+    }
   }
 
   void _drawHitFlash(Canvas canvas) {
@@ -946,6 +1241,82 @@ class EnemyComponent extends PositionComponent {
     _targetIndex = path.length - 1;
   }
 
+  Vector2 _visualRenderOffset() {
+    return _visualLaneOffset() + Vector2(0, _visualBobOffset());
+  }
+
+  double _visualBobOffset() {
+    final amplitude = _bobAmplitudeByType * game.boardDistanceScale;
+    if (amplitude <= 0) {
+      return 0;
+    }
+    final horizontalFacing = math.cos(_facingAngle).abs();
+    return math.sin(
+          _statusEffectTime * _bobSpeedByType + visualPhase * math.pi * 2,
+        ) *
+        amplitude *
+        horizontalFacing;
+  }
+
+  Vector2 _visualLaneOffset() {
+    if (laneOffsetRatio == 0 || path.length < 2) {
+      return Vector2.zero();
+    }
+    final sampleDistance =
+        _designTileSize * game.boardDistanceScale * _laneCornerSampleTiles;
+    final before = _pointAtDistance(distanceTravelled - sampleDistance);
+    final after = _pointAtDistance(distanceTravelled + sampleDistance);
+    var tangent = after - before;
+    if (tangent.length2 <= 0.001) {
+      final target = _targetIndex < path.length
+          ? path[_targetIndex]
+          : path.last;
+      tangent = target - position;
+    }
+    if (tangent.length2 <= 0.001) {
+      return Vector2.zero();
+    }
+    final normal = Vector2(-tangent.y, tangent.x)..normalize();
+    final distanceFromStart = distanceTravelled;
+    final distanceFromEnd = _pathLength(path) - distanceTravelled;
+    final endpointFadeDistance =
+        _designTileSize * game.boardDistanceScale * _laneEndpointFadeTiles;
+    final endpointFade = endpointFadeDistance <= 0
+        ? 1.0
+        : (math.min(distanceFromStart, distanceFromEnd) / endpointFadeDistance)
+              .clamp(0.0, 1.0)
+              .toDouble();
+    return normal *
+        laneOffsetRatio *
+        _designTileSize *
+        game.boardDistanceScale *
+        endpointFade;
+  }
+
+  Vector2 _pointAtDistance(double targetDistance) {
+    final clampedDistance = targetDistance
+        .clamp(0.0, _pathLength(path))
+        .toDouble();
+    var travelled = 0.0;
+    for (var i = 1; i < path.length; i++) {
+      final from = path[i - 1];
+      final to = path[i];
+      final segment = to - from;
+      final segmentLength = segment.length;
+      if (segmentLength == 0) {
+        continue;
+      }
+      if (travelled + segmentLength >= clampedDistance) {
+        final ratio = ((clampedDistance - travelled) / segmentLength)
+            .clamp(0.0, 1.0)
+            .toDouble();
+        return from + segment * ratio;
+      }
+      travelled += segmentLength;
+    }
+    return path.last.clone();
+  }
+
   double _pathLength(List<Vector2> points) {
     var length = 0.0;
     for (var i = 1; i < points.length; i++) {
@@ -953,6 +1324,27 @@ class EnemyComponent extends PositionComponent {
     }
     return length;
   }
+
+  double get _bobAmplitudeByType {
+    return switch (definition.type) {
+      EnemyType.fast => 2.8,
+      EnemyType.boss => 1.35,
+      EnemyType.tank => 1.5,
+      _ => 2.1,
+    };
+  }
+
+  double get _bobSpeedByType {
+    return switch (definition.type) {
+      EnemyType.fast => 5.4,
+      EnemyType.boss => 2.2,
+      EnemyType.tank => 2.8,
+      _ => 3.7,
+    };
+  }
+
+  static const double _laneCornerSampleTiles = 0.4;
+  static const double _laneEndpointFadeTiles = 0.55;
 }
 
 class _BurnInstance {

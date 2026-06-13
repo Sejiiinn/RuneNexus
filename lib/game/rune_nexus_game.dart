@@ -415,6 +415,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     burnDurationSeconds: _burnDurationSeconds,
   );
   final WaveSpawner _waveSpawner = WaveSpawner();
+  final math.Random _enemyLaneRandom = math.Random();
   final GemRewardController _gemRewards = GemRewardController();
   final GameSaveAdapter _saveAdapter = const GameSaveAdapter();
   late final GameRestoreController _restoreController = GameRestoreController(
@@ -3433,6 +3434,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _waves[_roundIndex].round,
         stageNumber: _currentStageNumber,
       ),
+      laneOffsetRatio: _enemyLaneOffsetRatioFor(type),
+      visualPhase: _enemyVisualPhase(),
       path: _worldPath,
       game: this,
     );
@@ -3443,6 +3446,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
     add(enemy);
   }
+
+  double _enemyLaneOffsetRatioFor(EnemyType type) {
+    final amplitude = switch (type) {
+      EnemyType.fast => 0.18,
+      EnemyType.boss => 0.055,
+      EnemyType.tank => 0.12,
+      _ => 0.14,
+    };
+    return (_enemyLaneRandom.nextDouble() * 2 - 1) * amplitude;
+  }
+
+  double _enemyVisualPhase() => _enemyLaneRandom.nextDouble();
 
   void _captureRunCoreLoadoutFromProgression() {
     _runCoreCombatSkill = _progression.coreCombatSkill;

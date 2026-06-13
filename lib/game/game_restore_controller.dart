@@ -221,6 +221,8 @@ class GameRestoreController {
           _game._waves[_game._roundIndex].round,
           stageNumber: _game._currentStageNumber,
         ),
+        laneOffsetRatio: savedEnemy.laneOffsetRatio,
+        visualPhase: _game._enemyVisualPhase(),
         path: _game._worldPath,
         game: _game,
       )..restoreFromSaveData(savedEnemy);

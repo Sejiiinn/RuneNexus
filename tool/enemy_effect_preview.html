@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rune Nexus Enemy Rear Light Preview</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0a1019;
+      --panel: #111a26;
+      --panel-2: #0d1520;
+      --line: #263545;
+      --text: #e7eef8;
+      --muted: #9caaba;
+      --cyan: #7ce8ff;
+      --warm: #d7cfc0;
+      --shield: #86e0ff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(124, 232, 255, 0.10), transparent 24rem),
+        linear-gradient(180deg, #08101a 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    main {
+      width: min(1160px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 28px 0 36px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 25px;
+      font-weight: 750;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: #152130;
+      color: var(--text);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    button.active {
+      border-color: #5fcce8;
+      background: #163246;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+      overflow: hidden;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      height: 252px;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        #0b121c;
+      background-size: 36px 36px;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .meta {
+      display: grid;
+      gap: 5px;
+      padding: 12px 14px 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .meta strong {
+      font-size: 15px;
+    }
+
+    .meta span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .swatches {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .swatch {
+      width: 28px;
+      height: 6px;
+      border-radius: 999px;
+      box-shadow: 0 0 14px currentColor;
+    }
+
+    @media (max-width: 760px) {
+      header {
+        display: block;
+      }
+
+      .controls {
+        justify-content: flex-start;
+        margin-top: 14px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>적 후방 이펙트 추천 예시</h1>
+        <p>팔랑거리는 꼬리 대신, 몸체 뒤에 고정된 발광과 짧은 잔광이 빠르게 점멸하는 방향입니다.</p>
+      </div>
+      <div class="controls" aria-label="enemy color controls">
+        <button class="active" data-type="normal">일반몹</button>
+        <button data-type="fast">빠른몹</button>
+        <button data-type="shielded">보호막병</button>
+      </div>
+    </header>
+
+    <section class="grid">
+      <article class="card">
+        <div class="canvas-wrap">
+          <canvas data-effect="nozzle"></canvas>
+        </div>
+        <div class="meta">
+          <strong>A. 짧은 노즐광</strong>
+          <span>몸 뒤에 붙은 짧은 발광. 가장 덜 산만하고 현재 몹 실루엣을 잘 보존합니다.</span>
+          <div class="swatches"><i class="swatch" data-swatch></i></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="canvas-wrap">
+          <canvas data-effect="pulse"></canvas>
+        </div>
+        <div class="meta">
+          <strong>B. 압축 펄스</strong>
+          <span>꼬리 형태가 아니라 엔진 불빛처럼 안쪽 코어가 빠르게 맥동합니다. 추천 1순위입니다.</span>
+          <div class="swatches"><i class="swatch" data-swatch></i></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="canvas-wrap">
+          <canvas data-effect="embers"></canvas>
+        </div>
+        <div class="meta">
+          <strong>C. 미세 잔광</strong>
+          <span>후방광 주변에 아주 짧은 입자만 붙입니다. 디테일은 있으나 움직임은 적게 유지합니다.</span>
+          <div class="swatches"><i class="swatch" data-swatch></i></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="canvas-wrap">
+          <canvas data-effect="stacked"></canvas>
+        </div>
+        <div class="meta">
+          <strong>D. 이중 코어</strong>
+          <span>두 개의 작은 발광 슬롯을 둬 기계적인 느낌을 냅니다. 보호막병에도 잘 맞습니다.</span>
+          <div class="swatches"><i class="swatch" data-swatch></i></div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const palettes = {
+      normal: {
+        body: "#d9b07a",
+        outline: "#07111d",
+        glow: "#d7cfc0",
+        core: "#ffe6bd",
+        label: "일반몹",
+      },
+      fast: {
+        body: "#72d8ff",
+        outline: "#07111d",
+        glow: "#7ce8ff",
+        core: "#e8fbff",
+        label: "빠른몹",
+      },
+      shielded: {
+        body: "#7bd6e7",
+        outline: "#07111d",
+        glow: "#86e0ff",
+        core: "#eafcff",
+        label: "보호막병",
+      },
+    };
+
+    let enemyType = "normal";
+    const canvases = [...document.querySelectorAll("canvas")];
+
+    function resizeCanvas(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.round(rect.width * dpr);
+      canvas.height = Math.round(rect.height * dpr);
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx, width: rect.width, height: rect.height };
+    }
+
+    function colorToRgb(hex) {
+      const value = parseInt(hex.slice(1), 16);
+      return {
+        r: (value >> 16) & 255,
+        g: (value >> 8) & 255,
+        b: value & 255,
+      };
+    }
+
+    function rgba(hex, alpha) {
+      const { r, g, b } = colorToRgb(hex);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function ellipse(ctx, x, y, rx, ry, color, blur = 0) {
+      ctx.save();
+      ctx.shadowBlur = blur;
+      ctx.shadowColor = color;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawEnemy(ctx, x, y, palette, t) {
+      const bob = Math.sin(t * 2.1) * 2;
+      ctx.save();
+      ctx.translate(x, y + bob);
+      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = palette.outline;
+      ctx.fillStyle = palette.body;
+      ctx.beginPath();
+      ctx.moveTo(18, 0);
+      ctx.lineTo(2, 15);
+      ctx.lineTo(-15, 11);
+      ctx.lineTo(-19, 0);
+      ctx.lineTo(-15, -11);
+      ctx.lineTo(2, -15);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255,255,255,0.45)";
+      ctx.beginPath();
+      ctx.arc(4, -4, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawNozzle(ctx, x, y, palette, t) {
+      const f = 0.7 + Math.sin(t * 24) * 0.16 + Math.sin(t * 41) * 0.08;
+      ellipse(ctx, x - 24, y, 17 + f * 5, 9, rgba(palette.glow, 0.34 * f), 15);
+      ellipse(ctx, x - 18, y, 9 + f * 2, 4.5, rgba(palette.core, 0.46 * f), 7);
+      ellipse(ctx, x - 10, y - 6, 4, 2, rgba(palette.core, 0.30 * f), 3);
+      ellipse(ctx, x - 10, y + 6, 4, 2, rgba(palette.core, 0.30 * f), 3);
+    }
+
+    function drawPulse(ctx, x, y, palette, t) {
+      const f = 0.64 + Math.sin(t * 30) * 0.2 + Math.sin(t * 53) * 0.1;
+      ellipse(ctx, x - 28, y, 24 + f * 6, 11 + f * 2, rgba(palette.glow, 0.28 * f), 18);
+      ellipse(ctx, x - 19, y, 13 + f * 4, 5.4, rgba(palette.core, 0.5 * f), 8);
+      ctx.strokeStyle = rgba(palette.core, 0.25 * f);
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - 16, y - 7);
+      ctx.lineTo(x - 29, y - 7);
+      ctx.moveTo(x - 16, y + 7);
+      ctx.lineTo(x - 29, y + 7);
+      ctx.stroke();
+    }
+
+    function drawEmbers(ctx, x, y, palette, t) {
+      drawNozzle(ctx, x, y, palette, t);
+      for (let i = 0; i < 8; i++) {
+        const p = (t * 2.8 + i * 0.17) % 1;
+        const alpha = (1 - p) * 0.34;
+        const sx = x - 31 - p * 25 - i * 1.2;
+        const sy = y + Math.sin(i * 2.3) * 8 + Math.sin(t * 9 + i) * 1.4;
+        ellipse(ctx, sx, sy, 1.5 + (1 - p) * 1.1, 1.5, rgba(palette.core, alpha), 4);
+      }
+    }
+
+    function drawStacked(ctx, x, y, palette, t) {
+      const f = 0.66 + Math.sin(t * 27) * 0.17 + Math.sin(t * 47) * 0.08;
+      ellipse(ctx, x - 27, y, 21, 12, rgba(palette.glow, 0.24 * f), 18);
+      for (const side of [-1, 1]) {
+        ellipse(ctx, x - 17, y + side * 6.5, 9.5, 3.2, rgba(palette.core, 0.46 * f), 7);
+        ellipse(ctx, x - 31, y + side * 6.5, 8, 2.4, rgba(palette.glow, 0.20 * f), 6);
+      }
+      ellipse(ctx, x - 38, y, 7, 3, rgba(palette.glow, 0.18 * f), 6);
+    }
+
+    const effectDrawers = {
+      nozzle: drawNozzle,
+      pulse: drawPulse,
+      embers: drawEmbers,
+      stacked: drawStacked,
+    };
+
+    function drawScene(canvas, t) {
+      const { ctx, width, height } = resizeCanvas(canvas);
+      const palette = palettes[enemyType];
+      const effect = canvas.dataset.effect;
+      const x = width * 0.55;
+      const y = height * 0.52;
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.save();
+      ctx.translate(0.5, 0.5);
+      ctx.strokeStyle = "rgba(124, 232, 255, 0.10)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(42, y);
+      ctx.lineTo(width - 42, y);
+      ctx.stroke();
+      ctx.restore();
+
+      effectDrawers[effect](ctx, x, y, palette, t);
+      drawEnemy(ctx, x, y, palette, t);
+    }
+
+    function tick(now) {
+      const t = now / 1000;
+      for (const canvas of canvases) {
+        drawScene(canvas, t);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    document.querySelectorAll("button[data-type]").forEach((button) => {
+      button.addEventListener("click", () => {
+        enemyType = button.dataset.type;
+        document.querySelectorAll("button[data-type]").forEach((target) => {
+          target.classList.toggle("active", target === button);
+        });
+        updateSwatches();
+      });
+    });
+
+    function updateSwatches() {
+      const palette = palettes[enemyType];
+      document.querySelectorAll("[data-swatch]").forEach((swatch) => {
+        swatch.style.color = palette.glow;
+        swatch.style.background = `linear-gradient(90deg, ${palette.glow}, ${palette.core})`;
+      });
+    }
+
+    window.addEventListener("resize", () => {
+      for (const canvas of canvases) {
+        drawScene(canvas, performance.now() / 1000);
+      }
+    });
+
+    updateSwatches();
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>

@@ -71,6 +71,8 @@ class GameSaveData {
         phase == GamePhase.reward ||
         roundIndex > 0 ||
         completedRounds > 0 ||
+        runUpgradeLevels.isNotEmpty ||
+        turrets.isNotEmpty ||
         enemies.isNotEmpty ||
         spawnQueue.isNotEmpty ||
         killGoldFractionWallet > 0 ||
@@ -663,6 +665,7 @@ class SavedEnemy {
     required this.physicalVulnerabilityBonus,
     required this.elementalVulnerabilityRemaining,
     required this.elementalVulnerabilityBonus,
+    this.laneOffsetRatio = 0,
     this.riftMarkRemaining = 0,
     this.riftMarkDamageAmplification = 0,
   });
@@ -688,6 +691,7 @@ class SavedEnemy {
   final double physicalVulnerabilityBonus;
   final double elementalVulnerabilityRemaining;
   final double elementalVulnerabilityBonus;
+  final double laneOffsetRatio;
   final double riftMarkRemaining;
   final double riftMarkDamageAmplification;
 
@@ -716,6 +720,7 @@ class SavedEnemy {
       'physicalVulnerabilityBonus': physicalVulnerabilityBonus,
       'elementalVulnerabilityRemaining': elementalVulnerabilityRemaining,
       'elementalVulnerabilityBonus': elementalVulnerabilityBonus,
+      'laneOffsetRatio': laneOffsetRatio,
       'riftMarkRemaining': riftMarkRemaining,
       'riftMarkDamageAmplification': riftMarkDamageAmplification,
     };
@@ -788,6 +793,7 @@ class SavedEnemy {
       elementalVulnerabilityBonus: _doubleValue(
         json['elementalVulnerabilityBonus'],
       ),
+      laneOffsetRatio: _doubleValue(json['laneOffsetRatio']),
       riftMarkRemaining: _doubleValue(json['riftMarkRemaining']),
       riftMarkDamageAmplification: _doubleValue(
         json['riftMarkDamageAmplification'],

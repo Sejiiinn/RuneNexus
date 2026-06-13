@@ -5475,6 +5475,82 @@ void main() {
     expect(enemy.position.y, closeTo(0, 0.001));
   });
 
+  test('enemy lane offset changes only visual path position', () {
+    final game = RuneNexusGame();
+    final normal = gameEnemies[EnemyType.normal]!;
+    final enemy = EnemyComponent(
+      definition: normal,
+      maxHp: 100,
+      laneOffsetRatio: 0.12,
+      path: [Vector2.zero(), Vector2(500, 0)],
+      game: game,
+    );
+
+    enemy.update(1);
+
+    expect(enemy.position.x, closeTo(31.5, 0.001));
+    expect(enemy.position.y, closeTo(0, 0.001));
+    expect(enemy.visualPosition.x, closeTo(enemy.position.x, 0.001));
+    expect(enemy.visualPosition.y, closeTo(5.76 + math.sin(3.7) * 2.1, 0.001));
+  });
+
+  test('enemy visual bob is suppressed while moving vertically', () {
+    final game = RuneNexusGame();
+    final normal = gameEnemies[EnemyType.normal]!;
+    final enemy = EnemyComponent(
+      definition: normal,
+      maxHp: 100,
+      laneOffsetRatio: 0.12,
+      path: [Vector2.zero(), Vector2(0, 500)],
+      game: game,
+    );
+
+    enemy.update(1);
+
+    expect(enemy.position.x, closeTo(0, 0.001));
+    expect(enemy.position.y, closeTo(31.5, 0.001));
+    expect(enemy.visualPosition.x, closeTo(-5.76, 0.001));
+    expect(enemy.visualPosition.y, closeTo(enemy.position.y, 0.001));
+  });
+
+  test('enemy lane offset is saved and restored', () {
+    final saved = SavedEnemy(
+      type: EnemyType.normal,
+      maxHp: 100,
+      hp: 90,
+      shield: 0,
+      shieldBroken: false,
+      armor: 0,
+      distanceTravelled: 10,
+      burnRemaining: 0,
+      burnDamagePerSecond: 0,
+      burnDamageMultiplier: 1,
+      burnInstances: const [],
+      poisonRemaining: 0,
+      poisonDamagePerSecond: 0,
+      poisonDamageMultiplier: 1,
+      poisonStacks: 0,
+      slowRemaining: 0,
+      slowMultiplier: 1,
+      physicalVulnerabilityRemaining: 0,
+      physicalVulnerabilityBonus: 0,
+      elementalVulnerabilityRemaining: 0,
+      elementalVulnerabilityBonus: 0,
+      laneOffsetRatio: -0.11,
+    );
+
+    final restored = SavedEnemy.fromJson(saved.toJson());
+
+    expect(restored, isNotNull);
+    expect(restored!.laneOffsetRatio, closeTo(-0.11, 0.001));
+    expect(
+      SavedEnemy.fromJson(
+        Map<String, Object?>.of(saved.toJson())..remove('laneOffsetRatio'),
+      )!.laneOffsetRatio,
+      0,
+    );
+  });
+
   test('local save restores preparation setup without resume prompt', () async {
     final repository = MemorySaveRepository();
     final game = _LinkResearchUnlockedGame(saveRepository: repository);

@@ -64,7 +64,6 @@ class GameSnapshotBuilder {
         _game._turrets.isNotEmpty ||
         _game._savedTurretCountForMenu > 0 ||
         _game._runUpgradeLevels.isNotEmpty ||
-        _game._gold != _game._initialGold ||
         _game.enemies.isNotEmpty ||
         !_game._waveSpawner.isEmpty ||
         _game._killGoldFractionWallet > 0 ||
