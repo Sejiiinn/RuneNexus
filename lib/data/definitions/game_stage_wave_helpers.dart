@@ -56,6 +56,15 @@ List<SpawnGroup> _chapterTwoDurabilityGroups(List<SpawnGroup> groups) {
           startAfterPrevious: group.startAfterPrevious,
           followDelay: group.followDelay,
         )
+      else if (group.enemyType == EnemyType.boss)
+        SpawnGroup(
+          enemyType: EnemyType.shieldBoss,
+          count: group.count,
+          interval: group.interval,
+          startDelay: group.startDelay,
+          startAfterPrevious: group.startAfterPrevious,
+          followDelay: group.followDelay,
+        )
       else
         group,
   ];

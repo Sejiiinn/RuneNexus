@@ -229,6 +229,8 @@ class EnemyComponent extends PositionComponent {
       EnemyType.shielded => 0.59,
       EnemyType.tank => 0.65,
       EnemyType.boss => 0.79,
+      EnemyType.shieldBoss => 0.81,
+      EnemyType.forgeBoss => 0.83,
     };
   }
 
@@ -815,13 +817,15 @@ class EnemyComponent extends PositionComponent {
       case EnemyType.tank:
         return;
       case EnemyType.boss:
+      case EnemyType.shieldBoss:
+      case EnemyType.forgeBoss:
         _drawBossCoreThrum(canvas);
         return;
     }
   }
 
   void _drawBodyOverlayEffects(Canvas canvas) {
-    if (isDead || definition.type != EnemyType.boss) {
+    if (isDead || !definition.type.isBoss) {
       return;
     }
     _drawBossCoreThrum(canvas, foreground: true);
@@ -900,6 +904,10 @@ class EnemyComponent extends PositionComponent {
         .clamp(0.0, 1.0)
         .toDouble();
     final alphaBoost = 1 + stress * 0.32;
+    final ringColor = _bossPulseRingColor;
+    final glowColor = _bossPulseGlowColor;
+    final coreColor = _bossPulseCoreColor;
+    final hotCoreColor = _bossPulseHotCoreColor;
 
     canvas.save();
     canvas.translate(size.x / 2, size.y / 2);
@@ -912,6 +920,10 @@ class EnemyComponent extends PositionComponent {
         thrum: thrum,
         alphaBoost: alphaBoost,
         loadFade: loadFade,
+        ringColor: ringColor,
+        glowColor: glowColor,
+        coreColor: coreColor,
+        hotCoreColor: hotCoreColor,
       );
       canvas.restore();
       return;
@@ -922,9 +934,9 @@ class EnemyComponent extends PositionComponent {
       Offset.zero,
       size.x * (0.56 + thrum * 0.045),
       Paint()
-        ..color = const Color(
-          0xFFFF5A66,
-        ).withValues(alpha: 0.32 * thrum * alphaBoost * loadFade)
+        ..color = ringColor.withValues(
+          alpha: 0.32 * thrum * alphaBoost * loadFade,
+        )
         ..style = PaintingStyle.stroke
         ..strokeWidth = size.x * (0.055 + thrum * 0.022)
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.034),
@@ -936,9 +948,9 @@ class EnemyComponent extends PositionComponent {
         height: size.y * (0.4 + thrum * 0.055),
       ),
       Paint()
-        ..color = const Color(
-          0xFFB6394B,
-        ).withValues(alpha: 0.58 * thrum * alphaBoost * loadFade)
+        ..color = glowColor.withValues(
+          alpha: 0.58 * thrum * alphaBoost * loadFade,
+        )
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.07),
     );
     canvas.drawOval(
@@ -948,9 +960,9 @@ class EnemyComponent extends PositionComponent {
         height: size.y * (0.18 + thrum * 0.032),
       ),
       Paint()
-        ..color = const Color(
-          0xFFFF8791,
-        ).withValues(alpha: 0.72 * thrum * alphaBoost * loadFade)
+        ..color = coreColor.withValues(
+          alpha: 0.72 * thrum * alphaBoost * loadFade,
+        )
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.024),
     );
     canvas.drawOval(
@@ -960,9 +972,9 @@ class EnemyComponent extends PositionComponent {
         height: size.y * 0.074,
       ),
       Paint()
-        ..color = const Color(
-          0xFFFFE1E5,
-        ).withValues(alpha: 0.65 * pulse * alphaBoost * loadFade)
+        ..color = hotCoreColor.withValues(
+          alpha: 0.65 * pulse * alphaBoost * loadFade,
+        )
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.01),
     );
     for (final side in [-1.0, 1.0]) {
@@ -973,9 +985,9 @@ class EnemyComponent extends PositionComponent {
           height: size.y * 0.088,
         ),
         Paint()
-          ..color = const Color(
-            0xFFFF8791,
-          ).withValues(alpha: 0.56 * thrum * alphaBoost * loadFade)
+          ..color = coreColor.withValues(
+            alpha: 0.56 * thrum * alphaBoost * loadFade,
+          )
           ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.018),
       );
     }
@@ -989,6 +1001,10 @@ class EnemyComponent extends PositionComponent {
     required double thrum,
     required double alphaBoost,
     required double loadFade,
+    required Color ringColor,
+    required Color glowColor,
+    required Color coreColor,
+    required Color hotCoreColor,
   }) {
     final ringAlpha = (0.46 * thrum * alphaBoost * loadFade)
         .clamp(0.0, 1.0)
@@ -1009,7 +1025,7 @@ class EnemyComponent extends PositionComponent {
       Offset.zero,
       size.x * (0.28 + thrum * 0.025),
       Paint()
-        ..color = const Color(0xFFFF5A66).withValues(alpha: ringAlpha)
+        ..color = ringColor.withValues(alpha: ringAlpha)
         ..blendMode = BlendMode.plus
         ..style = PaintingStyle.stroke
         ..strokeWidth = size.x * 0.04
@@ -1022,7 +1038,7 @@ class EnemyComponent extends PositionComponent {
         height: size.y * (0.2 + thrum * 0.035),
       ),
       Paint()
-        ..color = const Color(0xFFFF8791).withValues(alpha: coreAlpha)
+        ..color = coreColor.withValues(alpha: coreAlpha)
         ..blendMode = BlendMode.plus
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.016),
     );
@@ -1033,7 +1049,7 @@ class EnemyComponent extends PositionComponent {
         height: size.y * 0.09,
       ),
       Paint()
-        ..color = const Color(0xFFFFE1E5).withValues(alpha: hotCoreAlpha)
+        ..color = hotCoreColor.withValues(alpha: hotCoreAlpha)
         ..blendMode = BlendMode.plus
         ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.006),
     );
@@ -1045,7 +1061,7 @@ class EnemyComponent extends PositionComponent {
           height: size.y * 0.105,
         ),
         Paint()
-          ..color = const Color(0xFFFF8791).withValues(alpha: ventAlpha)
+          ..color = glowColor.withValues(alpha: ventAlpha)
           ..blendMode = BlendMode.plus
           ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.01),
       );
@@ -1056,10 +1072,42 @@ class EnemyComponent extends PositionComponent {
           height: size.y * 0.038,
         ),
         Paint()
-          ..color = const Color(0xFFFFE1E5).withValues(alpha: hotVentAlpha)
+          ..color = hotCoreColor.withValues(alpha: hotVentAlpha)
           ..blendMode = BlendMode.plus,
       );
     }
+  }
+
+  Color get _bossPulseRingColor {
+    return switch (definition.type) {
+      EnemyType.shieldBoss => const Color(0xFF67E4FF),
+      EnemyType.forgeBoss => const Color(0xFFFF9D55),
+      _ => const Color(0xFFFF5A66),
+    };
+  }
+
+  Color get _bossPulseGlowColor {
+    return switch (definition.type) {
+      EnemyType.shieldBoss => const Color(0xFF9B8CFF),
+      EnemyType.forgeBoss => const Color(0xFFFF6A2A),
+      _ => const Color(0xFFB6394B),
+    };
+  }
+
+  Color get _bossPulseCoreColor {
+    return switch (definition.type) {
+      EnemyType.shieldBoss => const Color(0xFFB692FF),
+      EnemyType.forgeBoss => const Color(0xFF62E8D6),
+      _ => const Color(0xFFFF8791),
+    };
+  }
+
+  Color get _bossPulseHotCoreColor {
+    return switch (definition.type) {
+      EnemyType.shieldBoss => const Color(0xFFEAFBFF),
+      EnemyType.forgeBoss => const Color(0xFFE9FFFA),
+      _ => const Color(0xFFFFE1E5),
+    };
   }
 
   void _drawHitFlash(Canvas canvas) {
@@ -1329,6 +1377,8 @@ class EnemyComponent extends PositionComponent {
     return switch (definition.type) {
       EnemyType.fast => 2.8,
       EnemyType.boss => 1.35,
+      EnemyType.shieldBoss => 1.25,
+      EnemyType.forgeBoss => 1.1,
       EnemyType.tank => 1.5,
       _ => 2.1,
     };
@@ -1338,6 +1388,8 @@ class EnemyComponent extends PositionComponent {
     return switch (definition.type) {
       EnemyType.fast => 5.4,
       EnemyType.boss => 2.2,
+      EnemyType.shieldBoss => 2.0,
+      EnemyType.forgeBoss => 1.8,
       EnemyType.tank => 2.8,
       _ => 3.7,
     };

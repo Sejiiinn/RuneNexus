@@ -106,7 +106,7 @@ void main() {
     for (final stage in gameStages) {
       for (final wave in stage.waves.where((wave) => wave.round % 10 == 0)) {
         final bossCount = wave.groups
-            .where((group) => group.enemyType == EnemyType.boss)
+            .where((group) => group.enemyType.isBoss)
             .fold<int>(0, (total, group) => total + group.count);
 
         expect(bossCount, 1, reason: 'Stage ${stage.id} round ${wave.round}');
@@ -842,6 +842,7 @@ void main() {
     expect(gameEnemies[EnemyType.fast]!.speed, 54.6);
     expect(gameEnemies[EnemyType.tank]!.speed, 21);
     expect(gameEnemies[EnemyType.boss]!.speed, 16.8);
+    expect(gameEnemies[EnemyType.forgeBoss]!.speed, 13.5);
   });
 
   test('turret base ranges are reduced to tighten placement choices', () {
@@ -3112,6 +3113,8 @@ void main() {
     expect(gameEnemies[EnemyType.fast]!.rewardGold, 5);
     expect(gameEnemies[EnemyType.tank]!.rewardGold, 9);
     expect(gameEnemies[EnemyType.boss]!.rewardGold, 35);
+    expect(gameEnemies[EnemyType.shieldBoss]!.rewardGold, 48);
+    expect(gameEnemies[EnemyType.forgeBoss]!.rewardGold, 58);
   });
 
   test('shielded enemy is defined and starts appearing from chapter two', () {
@@ -3146,6 +3149,98 @@ void main() {
     expect(chapterOneLateWaveTypes, isNot(contains(EnemyType.shielded)));
     expect(chapterTwoWaveTypes, contains(EnemyType.shielded));
     expect(chapterTwoLaterWaveTypes, contains(EnemyType.shielded));
+  });
+
+  test('shield boss is defined and replaces boss waves in chapter two', () {
+    int countType(List<WaveDefinition> waves, int round, EnemyType type) =>
+        waves[round - 1].groups
+            .where((group) => group.enemyType == type)
+            .fold(0, (total, group) => total + group.count);
+
+    final shieldBoss = gameEnemies[EnemyType.shieldBoss]!;
+    final chapterOneTypes = [
+      ...gameWaves,
+      ...gameStage2Waves,
+    ].expand((wave) => wave.groups).map((group) => group.enemyType);
+    final chapterTwoTypes = [
+      ...gameChapter2Waves,
+      ...gameChapter2Stage7Waves,
+      ...gameChapter2Stage8Waves,
+      ...gameChapter2Stage9Waves,
+      ...gameChapter2Stage10Waves,
+    ].expand((wave) => wave.groups).map((group) => group.enemyType);
+
+    expect(shieldBoss.name, '균열 방벽체');
+    expect(shieldBoss.maxHp, 820);
+    expect(shieldBoss.maxShield, 360);
+    expect(shieldBoss.shieldRegenRate, 0.025);
+    expect(shieldBoss.maxArmor, 0);
+    expect(shieldBoss.speed, 15);
+    expect(shieldBoss.coreDamage, 10);
+    expect(
+      shieldBoss.resistanceProfile.multiplierFor(
+        family: DamageFamily.physical,
+        tags: const {},
+      ),
+      closeTo(1, 0.001),
+    );
+    expect(chapterOneTypes, isNot(contains(EnemyType.shieldBoss)));
+    expect(chapterTwoTypes, contains(EnemyType.shieldBoss));
+    expect(
+      gameChapter2Waves[9].groups.map((group) => group.enemyType),
+      contains(EnemyType.shieldBoss),
+    );
+    expect(countType(gameChapter2Waves, 10, EnemyType.boss), 0);
+    expect(countType(gameChapter2Stage10Waves, 50, EnemyType.shieldBoss), 1);
+  });
+
+  test('forge boss is defined and replaces boss waves in chapter three', () {
+    int countType(List<WaveDefinition> waves, int round, EnemyType type) =>
+        waves[round - 1].groups
+            .where((group) => group.enemyType == type)
+            .fold(0, (total, group) => total + group.count);
+
+    final forgeBoss = gameEnemies[EnemyType.forgeBoss]!;
+    final chapterOneTypes = [
+      ...gameWaves,
+      ...gameStage2Waves,
+    ].expand((wave) => wave.groups).map((group) => group.enemyType);
+    final chapterTwoTypes = [
+      ...gameChapter2Waves,
+      ...gameChapter2Stage7Waves,
+      ...gameChapter2Stage8Waves,
+      ...gameChapter2Stage9Waves,
+      ...gameChapter2Stage10Waves,
+    ].expand((wave) => wave.groups).map((group) => group.enemyType);
+    final chapterThreeTypes = [
+      ...gameChapter3Waves,
+      ...gameChapter3Stage12Waves,
+      ...gameChapter3Stage13Waves,
+      ...gameChapter3Stage14Waves,
+      ...gameChapter3Stage15Waves,
+    ].expand((wave) => wave.groups).map((group) => group.enemyType);
+
+    expect(forgeBoss.name, '용광로 파쇄자');
+    expect(forgeBoss.maxHp, 760);
+    expect(forgeBoss.maxArmor, 520);
+    expect(forgeBoss.maxShield, 0);
+    expect(forgeBoss.armorReductionRate, 0.05);
+    expect(forgeBoss.armorMinimumDamageRate, 0.25);
+    expect(forgeBoss.speed, 13.5);
+    expect(forgeBoss.coreDamage, 12);
+    expect(
+      forgeBoss.resistanceProfile.multiplierFor(
+        family: DamageFamily.elemental,
+        tags: const {},
+      ),
+      closeTo(1, 0.001),
+    );
+    expect(chapterOneTypes, isNot(contains(EnemyType.forgeBoss)));
+    expect(chapterTwoTypes, isNot(contains(EnemyType.forgeBoss)));
+    expect(chapterThreeTypes, contains(EnemyType.forgeBoss));
+    expect(countType(gameChapter3Waves, 10, EnemyType.boss), 0);
+    expect(countType(gameChapter3Waves, 10, EnemyType.forgeBoss), 1);
+    expect(countType(gameChapter3Stage15Waves, 50, EnemyType.forgeBoss), 1);
   });
 
   test('run tower damage upgrade boosts all turret damage', () {
@@ -3416,6 +3511,36 @@ void main() {
       game.snapshotNotifier.value.killGoldFractionWallet,
       closeTo(0.5, 0.001),
     );
+
+    final shieldBoss = EnemyComponent(
+      definition: gameEnemies[EnemyType.shieldBoss]!,
+      maxHp: 1,
+      path: [Vector2.zero(), Vector2(1, 0)],
+      game: game,
+    );
+    game.enemies.add(shieldBoss);
+    shieldBoss.receiveDamage(999);
+
+    expect(game.snapshotNotifier.value.gold, 299);
+    expect(
+      game.snapshotNotifier.value.killGoldFractionWallet,
+      closeTo(0.5, 0.001),
+    );
+
+    final forgeBoss = EnemyComponent(
+      definition: gameEnemies[EnemyType.forgeBoss]!,
+      maxHp: 1,
+      path: [Vector2.zero(), Vector2(1, 0)],
+      game: game,
+    );
+    game.enemies.add(forgeBoss);
+    forgeBoss.receiveDamage(999);
+
+    expect(game.snapshotNotifier.value.gold, 386);
+    expect(
+      game.snapshotNotifier.value.killGoldFractionWallet,
+      closeTo(0.5, 0.001),
+    );
   });
 
   test('crystal recovery research boosts only boss kill gem shards', () async {
@@ -3452,6 +3577,28 @@ void main() {
     boss.receiveDamage(999);
 
     expect(game.snapshotNotifier.value.gemShards, 5);
+
+    final shieldBoss = EnemyComponent(
+      definition: gameEnemies[EnemyType.shieldBoss]!,
+      maxHp: 1,
+      path: [Vector2.zero(), Vector2(1, 0)],
+      game: game,
+    );
+    game.enemies.add(shieldBoss);
+    shieldBoss.receiveDamage(999);
+
+    expect(game.snapshotNotifier.value.gemShards, 10);
+
+    final forgeBoss = EnemyComponent(
+      definition: gameEnemies[EnemyType.forgeBoss]!,
+      maxHp: 1,
+      path: [Vector2.zero(), Vector2(1, 0)],
+      game: game,
+    );
+    game.enemies.add(forgeBoss);
+    forgeBoss.receiveDamage(999);
+
+    expect(game.snapshotNotifier.value.gemShards, 15);
   });
 
   test('permanent kill reward unlocks after stage one clear', () async {
@@ -4578,7 +4725,7 @@ void main() {
       expect(chapter2Round2Types, contains(EnemyType.shielded));
       expect(chapter2Round3Types.first, EnemyType.shielded);
       expect(chapter2Round10Types, contains(EnemyType.shielded));
-      expect(chapter2Round10Types, contains(EnemyType.boss));
+      expect(chapter2Round10Types, contains(EnemyType.shieldBoss));
       expect(
         countType(gameChapter2Stage7Waves, 7, EnemyType.fast),
         greaterThan(countType(gameChapter2Waves, 7, EnemyType.fast)),
@@ -4592,8 +4739,8 @@ void main() {
         greaterThan(countType(gameChapter2Waves, 8, EnemyType.shielded)),
       );
       expect(
-        countType(gameChapter2Stage10Waves, 50, EnemyType.boss),
-        countType(gameChapter2Waves, 50, EnemyType.boss),
+        countType(gameChapter2Stage10Waves, 50, EnemyType.shieldBoss),
+        countType(gameChapter2Waves, 50, EnemyType.shieldBoss),
       );
     },
   );
@@ -4612,15 +4759,24 @@ void main() {
       ...gameChapter3Stage15Waves,
     ].expand((wave) => wave.groups).map((group) => group.enemyType).toSet();
 
-    expect(EnemyType.values, hasLength(6));
-    expect(chapterThreeTypes, containsAll(EnemyType.values));
+    expect(EnemyType.values, hasLength(8));
+    expect(
+      chapterThreeTypes,
+      containsAll(
+        EnemyType.values.where(
+          (type) => type != EnemyType.boss && type != EnemyType.shieldBoss,
+        ),
+      ),
+    );
+    expect(chapterThreeTypes, isNot(contains(EnemyType.boss)));
+    expect(chapterThreeTypes, isNot(contains(EnemyType.shieldBoss)));
     expect(countType(gameChapter3Waves, 6, EnemyType.armored), greaterThan(0));
     expect(countType(gameChapter3Waves, 9, EnemyType.tank), greaterThan(0));
     expect(
       countType(gameChapter3Stage15Waves, 8, EnemyType.shielded),
       greaterThan(0),
     );
-    expect(countType(gameChapter3Stage15Waves, 50, EnemyType.boss), 1);
+    expect(countType(gameChapter3Stage15Waves, 50, EnemyType.forgeBoss), 1);
   });
 
   test('late wave enemy counts stay within the planned pressure range', () {
@@ -4717,7 +4873,7 @@ void main() {
     );
   });
 
-  test('boss enemies do not resist light weapons', () {
+  test('boss enemies use neutral base resistance', () {
     final boss = gameEnemies[EnemyType.boss]!;
 
     expect(
@@ -4725,11 +4881,11 @@ void main() {
         family: DamageFamily.physical,
         tags: const {AttackTag.light},
       ),
-      closeTo(0.9, 0.001),
+      closeTo(1, 0.001),
     );
   });
 
-  test('boss enemies do not additionally resist damage over time', () {
+  test('boss enemies do not resist damage over time', () {
     final boss = gameEnemies[EnemyType.boss]!;
 
     expect(
@@ -4737,7 +4893,7 @@ void main() {
         family: DamageFamily.elemental,
         tags: const {AttackTag.damageOverTime},
       ),
-      closeTo(0.9, 0.001),
+      closeTo(1, 0.001),
     );
   });
 

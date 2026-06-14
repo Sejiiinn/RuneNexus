@@ -218,7 +218,7 @@ String _chapter3Stage11PreviewTextFor(int round) {
     return '장갑병과 탱커';
   }
   if (round % 10 == 0) {
-    return '용광로 보스 호위';
+    return '용광로 파쇄자';
   }
   final cycleStep = _cycleStepFor(round);
   if (cycleStep == 1) {
@@ -253,7 +253,7 @@ String _chapter3Stage12PreviewTextFor(int round) {
     return '제련 대열';
   }
   if (round % 10 == 0) {
-    return '긴 통로 보스';
+    return '긴 통로 파쇄자';
   }
   final cycleStep = _cycleStepFor(round);
   if (cycleStep == 1) {
@@ -288,7 +288,7 @@ String _chapter3Stage13PreviewTextFor(int round) {
     return '탱커 병목';
   }
   if (round % 10 == 0) {
-    return '병목 보스 호위';
+    return '병목 파쇄자';
   }
   final cycleStep = _cycleStepFor(round);
   if (cycleStep == 1) {
@@ -323,7 +323,7 @@ String _chapter3Stage14PreviewTextFor(int round) {
     return '분산 탱커';
   }
   if (round % 10 == 0) {
-    return '급회전 보스';
+    return '급회전 파쇄자';
   }
   final cycleStep = _cycleStepFor(round);
   if (cycleStep == 1) {
@@ -358,7 +358,7 @@ String _chapter3Stage15PreviewTextFor(int round) {
     return '용광로 정예';
   }
   if (round % 10 == 0) {
-    return '코어 앞 보스';
+    return '코어 앞 파쇄자';
   }
   final cycleStep = _cycleStepFor(round);
   if (cycleStep == 1) {

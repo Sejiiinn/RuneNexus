@@ -27,14 +27,14 @@ class DeathBurstEffectComponent extends PositionComponent {
   double _age = 0;
 
   double get _lifeTime => switch (_type) {
-    EnemyType.boss => 0.68,
+    EnemyType.boss || EnemyType.shieldBoss || EnemyType.forgeBoss => 0.68,
     EnemyType.tank => 0.54,
     EnemyType.shielded => 0.48,
     EnemyType.normal || EnemyType.armored || EnemyType.fast => 0.42,
   };
 
   int get _pixelCount => switch (_type) {
-    EnemyType.boss => 18,
+    EnemyType.boss || EnemyType.shieldBoss || EnemyType.forgeBoss => 18,
     EnemyType.tank => 13,
     EnemyType.fast => 10,
     EnemyType.shielded => 11,
@@ -114,7 +114,9 @@ class DeathBurstEffectComponent extends PositionComponent {
       final drift =
           _radius *
           switch (_type) {
-            EnemyType.boss => 0.96,
+            EnemyType.boss ||
+            EnemyType.shieldBoss ||
+            EnemyType.forgeBoss => 0.96,
             EnemyType.tank => 0.82,
             EnemyType.fast => 0.92,
             EnemyType.shielded => 0.78,
@@ -130,7 +132,9 @@ class DeathBurstEffectComponent extends PositionComponent {
       final pixelSize =
           _radius *
           switch (_type) {
-            EnemyType.boss => 0.3,
+            EnemyType.boss ||
+            EnemyType.shieldBoss ||
+            EnemyType.forgeBoss => 0.3,
             EnemyType.tank => 0.28,
             EnemyType.fast => 0.2,
             EnemyType.shielded => 0.24,

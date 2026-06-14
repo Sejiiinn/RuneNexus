@@ -1614,7 +1614,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     final bossRoundIndex = _waves.indexWhere(
-      (wave) => wave.groups.any((group) => group.enemyType == EnemyType.boss),
+      (wave) => wave.groups.any((group) => group.enemyType.isBoss),
     );
     if (bossRoundIndex < 0) {
       return;
@@ -2767,14 +2767,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         DailyQuestType.killEnemies,
         nowMillis: nowMillis,
       );
-      if (enemy.definition.type == EnemyType.boss) {
+      if (enemy.definition.type.isBoss) {
         _progression.recordDailyQuestProgress(
           DailyQuestType.killBosses,
           nowMillis: nowMillis,
         );
       }
       final baseReward = enemy.definition.rewardGold;
-      final bossBonusRate = enemy.definition.type == EnemyType.boss
+      final bossBonusRate = enemy.definition.type.isBoss
           ? _bossKillGoldResearchBonusRate
           : 0.0;
       final bonusReward =
@@ -2786,8 +2786,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _killGoldFractionWallet -= walletGold;
       }
       _gold += baseReward + wholeBonus + walletGold;
-      if (enemy.definition.type == EnemyType.boss &&
-          _bossKillGemShardResearchBonus > 0) {
+      if (enemy.definition.type.isBoss && _bossKillGemShardResearchBonus > 0) {
         _gemShards += _bossKillGemShardResearchBonus;
       }
     }
@@ -3482,6 +3481,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final amplitude = switch (type) {
       EnemyType.fast => 0.18,
       EnemyType.boss => 0.055,
+      EnemyType.shieldBoss => 0.055,
+      EnemyType.forgeBoss => 0.045,
       EnemyType.tank => 0.12,
       _ => 0.14,
     };
@@ -3629,7 +3630,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       ),
     );
     for (final target in targets) {
-      final amplification = target.definition.type == EnemyType.boss
+      final amplification = target.definition.type.isBoss
           ? _riftMarkBossDamageAmplification
           : _riftMarkDamageAmplification;
       target.applyRiftMark(
@@ -3659,7 +3660,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (target == null) {
       return;
     }
-    final capRate = target.definition.type == EnemyType.boss
+    final capRate = target.definition.type.isBoss
         ? _nexusCoreBeamBossHpCapRate
         : _nexusCoreBeamEnemyHpCapRate;
     final tickCap =
@@ -3801,7 +3802,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
     final nextWaveHasBoss = _waves[_roundIndex].groups.any(
-      (group) => group.enemyType == EnemyType.boss,
+      (group) => group.enemyType.isBoss,
     );
     if (_autoStartMode == AutoStartMode.skipBossRounds && nextWaveHasBoss) {
       return;

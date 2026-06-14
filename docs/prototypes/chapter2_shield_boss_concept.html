@@ -1,0 +1,953 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rune Nexus Chapter 2 Shield Boss Concept</title>
+    <style>
+      :root {
+        --bg: #06111d;
+        --panel: #091b2a;
+        --panel-soft: #0d2537;
+        --line: #67e4ff;
+        --line-soft: rgba(103, 228, 255, 0.32);
+        --text: #e9f8ff;
+        --muted: #91a9ba;
+        --shield: #67e4ff;
+        --shield-deep: #1e7f9d;
+        --core: #dffbff;
+        --hp: #9b8cff;
+        --accent: #b692ff;
+        --violet: #b692ff;
+        --warning: #b692ff;
+        --track: #132b3f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 50% 0%, rgba(103, 228, 255, 0.16), transparent 30rem),
+          radial-gradient(circle at 86% 18%, rgba(182, 146, 255, 0.12), transparent 24rem),
+          linear-gradient(135deg, rgba(103, 228, 255, 0.08) 0 1px, transparent 1px 44px),
+          var(--bg);
+        color: var(--text);
+        font-family:
+          "Noto Sans KR",
+          Inter,
+          system-ui,
+          sans-serif;
+      }
+
+      main {
+        width: min(1220px, calc(100vw - 28px));
+        margin: 0 auto;
+        padding: 30px 0 46px;
+      }
+
+      header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px;
+        align-items: end;
+        margin-bottom: 16px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 30px;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 750;
+        line-height: 1.55;
+      }
+
+      .badge {
+        border: 1px solid var(--line-soft);
+        background: rgba(7, 20, 33, 0.78);
+        border-radius: 8px;
+        padding: 10px 12px;
+        color: #c9f4ff;
+        font-size: 13px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(390px, 0.98fr) minmax(0, 1.02fr);
+        gap: 14px;
+      }
+
+      .panel,
+      .card {
+        border: 1px solid var(--line-soft);
+        background: rgba(9, 27, 42, 0.94);
+        border-radius: 8px;
+        box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28);
+      }
+
+      .panel {
+        padding: 16px;
+      }
+
+      .art-stage {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 476px;
+        border: 1px solid rgba(201, 244, 255, 0.18);
+        border-radius: 8px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 43%, rgba(103, 228, 255, 0.13), transparent 13rem),
+          radial-gradient(circle at 54% 58%, rgba(182, 146, 255, 0.11), transparent 16rem),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+          var(--panel-soft);
+      }
+
+      .view-stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .view-label {
+        position: absolute;
+        z-index: 3;
+        top: 14px;
+        left: 14px;
+        border: 1px solid rgba(201, 244, 255, 0.22);
+        background: rgba(7, 17, 29, 0.72);
+        border-radius: 8px;
+        padding: 6px 9px;
+        color: #c9f4ff;
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .art-stage::before,
+      .art-stage::after {
+        content: "";
+        position: absolute;
+        inset: auto;
+        border: 1px solid rgba(103, 228, 255, 0.2);
+        border-radius: 999px;
+        transform: rotate(-12deg);
+      }
+
+      .art-stage::before {
+        width: 520px;
+        height: 180px;
+      }
+
+      .art-stage::after {
+        width: 420px;
+        height: 128px;
+        transform: rotate(18deg);
+      }
+
+      .boss-art {
+        position: relative;
+        z-index: 2;
+        width: min(430px, 96%);
+        height: auto;
+        overflow: visible;
+      }
+
+      .side-art {
+        position: relative;
+        z-index: 2;
+        width: min(410px, 96%);
+        height: auto;
+        overflow: visible;
+      }
+
+      .art-stage.side {
+        min-height: 272px;
+      }
+
+      .caption-row {
+        position: absolute;
+        z-index: 3;
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        border: 1px solid rgba(201, 244, 255, 0.26);
+        background: rgba(7, 17, 29, 0.74);
+        border-radius: 999px;
+        padding: 6px 9px;
+        color: #d5f7ff;
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .chip.hot {
+        border-color: rgba(255, 157, 116, 0.5);
+        color: #ffd2c0;
+      }
+
+      .spec {
+        display: grid;
+        gap: 12px;
+      }
+
+      .title-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: start;
+      }
+
+      h2 {
+        font-size: 22px;
+        letter-spacing: 0;
+      }
+
+      .role {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 750;
+        line-height: 1.55;
+        margin-top: 5px;
+      }
+
+      .tag {
+        border: 1px solid rgba(240, 216, 120, 0.42);
+        background: rgba(240, 216, 120, 0.1);
+        border-radius: 8px;
+        padding: 7px 9px;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .stat {
+        border: 1px solid rgba(201, 244, 255, 0.16);
+        background: rgba(6, 17, 29, 0.62);
+        border-radius: 8px;
+        padding: 10px;
+        min-height: 76px;
+      }
+
+      .stat span {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .stat strong {
+        display: block;
+        margin-top: 7px;
+        color: var(--text);
+        font-size: 19px;
+        line-height: 1.05;
+      }
+
+      .bar-stack {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+        border: 1px solid rgba(201, 244, 255, 0.16);
+        background: rgba(6, 17, 29, 0.62);
+        border-radius: 8px;
+      }
+
+      .bar-label {
+        display: flex;
+        justify-content: space-between;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .bar {
+        height: 10px;
+        border-radius: 999px;
+        background: var(--track);
+        overflow: hidden;
+      }
+
+      .fill {
+        height: 100%;
+        border-radius: inherit;
+      }
+
+      .fill.shield {
+        width: 100%;
+        background: linear-gradient(90deg, var(--shield-deep), var(--shield));
+      }
+
+      .fill.hp {
+        width: 100%;
+        background: linear-gradient(90deg, #4b4aa8, var(--hp));
+      }
+
+      .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .card {
+        padding: 13px;
+      }
+
+      .card h3 {
+        font-size: 15px;
+        letter-spacing: 0;
+        margin-bottom: 9px;
+      }
+
+      .card p,
+      .card li {
+        color: #bfd4df;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.55;
+      }
+
+      ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+
+      .phase-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .phase {
+        display: grid;
+        grid-template-columns: 70px minmax(0, 1fr);
+        gap: 10px;
+        align-items: center;
+        border: 1px solid rgba(201, 244, 255, 0.14);
+        background: rgba(6, 17, 29, 0.54);
+        border-radius: 8px;
+        padding: 9px;
+      }
+
+      .phase-index {
+        display: grid;
+        place-items: center;
+        height: 44px;
+        border-radius: 8px;
+        border: 1px solid rgba(103, 228, 255, 0.32);
+        color: var(--shield);
+        font-size: 12px;
+        font-weight: 950;
+      }
+
+      .phase strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 13px;
+      }
+
+      .wave {
+        display: grid;
+        gap: 8px;
+      }
+
+      .lane {
+        position: relative;
+        height: 42px;
+        border: 1px solid rgba(201, 244, 255, 0.12);
+        border-radius: 8px;
+        background:
+          linear-gradient(90deg, rgba(103, 228, 255, 0.1), transparent 26%),
+          rgba(6, 17, 29, 0.56);
+        overflow: hidden;
+      }
+
+      .lane span {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        color: #06202b;
+        font-size: 10px;
+        font-weight: 950;
+      }
+
+      .mob {
+        background: #c7ced6;
+      }
+
+      .fast {
+        background: #9cebff;
+      }
+
+      .shielded {
+        background: var(--shield);
+      }
+
+      .boss {
+        width: 32px;
+        height: 32px;
+        background: var(--hp);
+        color: #fff;
+      }
+
+      .note {
+        border-left: 3px solid var(--shield);
+        padding: 10px 12px;
+        background: rgba(103, 228, 255, 0.08);
+        color: #d8f7ff;
+        font-size: 12px;
+        font-weight: 760;
+        line-height: 1.55;
+      }
+
+      .footer-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .candidate-section {
+        display: none;
+        margin-top: 14px;
+      }
+
+      .section-title {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: end;
+        margin: 0 0 10px;
+      }
+
+      .section-title h2 {
+        font-size: 20px;
+      }
+
+      .section-title p {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+        line-height: 1.45;
+      }
+
+      .candidate-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .candidate-card {
+        display: grid;
+        gap: 10px;
+      }
+
+      .candidate-art {
+        height: 236px;
+        border: 1px solid rgba(201, 244, 255, 0.14);
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 50% 36%, rgba(103, 228, 255, 0.11), transparent 9rem),
+          rgba(6, 17, 29, 0.56);
+        overflow: hidden;
+      }
+
+      .candidate-art svg {
+        width: 94%;
+        height: auto;
+        overflow: visible;
+      }
+
+      .candidate-card h3 {
+        margin: 0;
+        font-size: 14px;
+      }
+
+      .candidate-card p {
+        color: #bfd4df;
+        font-size: 12px;
+        font-weight: 720;
+        line-height: 1.5;
+      }
+
+      .candidate-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .mini-tag {
+        border: 1px solid rgba(201, 244, 255, 0.2);
+        border-radius: 999px;
+        padding: 4px 7px;
+        color: #d8f7ff;
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .decision strong {
+        color: var(--text);
+      }
+
+      .decision em {
+        color: var(--accent);
+        font-style: normal;
+      }
+
+      @media (max-width: 940px) {
+        header,
+        .layout,
+        .content-grid,
+        .candidate-grid,
+        .footer-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .badge {
+          justify-self: start;
+          white-space: normal;
+        }
+
+        .art-stage {
+          min-height: 410px;
+        }
+
+        .stat-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 520px) {
+        main {
+          width: min(100vw - 18px, 1220px);
+          padding-top: 18px;
+        }
+
+        h1 {
+          font-size: 24px;
+        }
+
+        .panel {
+          padding: 12px;
+        }
+
+        .stat-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>챕터 2 보호막 보스 콘셉트</h1>
+          <p class="subtitle">
+            챕터 1 보스의 다각 실루엣과 코어 맥동은 유지하고,
+            챕터 2 보호막 외피와 호위 패턴만 얹은 보스 후보입니다.
+          </p>
+        </div>
+        <div class="badge">Stage 10 후보 · 보호막 계위 전용 · 방어구 없음</div>
+      </header>
+
+      <section class="layout">
+        <section class="panel">
+          <div class="view-stack">
+          <div class="art-stage" aria-label="균열 방벽체 정면 콘셉트 아트">
+            <div class="view-label">정면</div>
+            <svg class="boss-art" viewBox="0 0 420 420" role="img" aria-label="챕터 1 보스 기반 보호막 보스 정면">
+              <defs>
+                <radialGradient id="shieldGlow" cx="50%" cy="42%" r="52%">
+                  <stop offset="0%" stop-color="#dffbff" stop-opacity="0.42" />
+                  <stop offset="48%" stop-color="#67e4ff" stop-opacity="0.18" />
+                  <stop offset="100%" stop-color="#67e4ff" stop-opacity="0.04" />
+                </radialGradient>
+                <linearGradient id="bodyGrad" x1="0%" x2="100%">
+                  <stop offset="0%" stop-color="#17245f" />
+                  <stop offset="48%" stop-color="#3340a4" />
+                  <stop offset="100%" stop-color="#211a5f" />
+                </linearGradient>
+                <linearGradient id="coreGrad" x1="0%" x2="100%">
+                  <stop offset="0%" stop-color="#67e4ff" />
+                  <stop offset="52%" stop-color="#ffffff" />
+                  <stop offset="100%" stop-color="#b692ff" />
+                </linearGradient>
+                <filter id="softGlow">
+                  <feGaussianBlur stdDeviation="5" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
+              <ellipse cx="210" cy="356" rx="112" ry="22" fill="rgba(0,0,0,0.42)" />
+              <path
+                d="M210 34 C298 42 360 104 364 198 C368 294 301 360 210 374 C119 360 52 294 56 198 C60 104 122 42 210 34Z"
+                fill="url(#shieldGlow)"
+                stroke="#67e4ff"
+                stroke-width="5"
+              />
+              <path d="M210 50 L232 118 L210 172 L188 118Z" fill="#17245f" stroke="#7f8fe8" stroke-width="4" stroke-linejoin="round" />
+              <path d="M82 142 L154 122 L132 170Z" fill="#17245f" stroke="#7f8fe8" stroke-width="4" stroke-linejoin="round" />
+              <path d="M338 142 L266 122 L288 170Z" fill="#17245f" stroke="#7f8fe8" stroke-width="4" stroke-linejoin="round" />
+              <path d="M130 320 L170 238 L187 340Z" fill="#17245f" stroke="#7f8fe8" stroke-width="4" stroke-linejoin="round" />
+              <path d="M290 320 L250 238 L233 340Z" fill="#17245f" stroke="#7f8fe8" stroke-width="4" stroke-linejoin="round" />
+              <path
+                d="M210 88 L292 124 L324 206 L292 288 L210 330 L128 288 L96 206 L128 124Z"
+                fill="url(#bodyGrad)"
+                stroke="#b692ff"
+                stroke-width="5"
+                stroke-linejoin="round"
+              />
+              <path d="M142 130 L205 100 L192 178 L108 188Z" fill="#4b4aa8" stroke="#f1f5f9" stroke-width="3" stroke-linejoin="round" opacity="0.9" />
+              <path d="M278 130 L215 100 L228 178 L312 188Z" fill="#4b4aa8" stroke="#f1f5f9" stroke-width="3" stroke-linejoin="round" opacity="0.9" />
+              <path d="M132 282 L196 244 L210 320 L160 304Z" fill="#4b4aa8" stroke="#f1f5f9" stroke-width="3" stroke-linejoin="round" opacity="0.82" />
+              <path d="M288 282 L224 244 L210 320 L260 304Z" fill="#4b4aa8" stroke="#f1f5f9" stroke-width="3" stroke-linejoin="round" opacity="0.82" />
+              <circle cx="210" cy="206" r="92" fill="none" stroke="rgba(103,228,255,0.44)" stroke-width="7" />
+              <circle cx="210" cy="206" r="64" fill="rgba(182,146,255,0.18)" filter="url(#softGlow)" />
+              <circle cx="210" cy="206" r="43" fill="url(#coreGrad)" stroke="#f7fbff" stroke-width="5" />
+              <circle cx="210" cy="206" r="18" fill="#fff3f5" opacity="0.92" />
+              <path d="M110 116 C148 74 272 74 310 116" fill="none" stroke="rgba(103,228,255,0.58)" stroke-width="5" stroke-linecap="round" />
+              <path d="M92 206 C102 150 142 108 210 88 C278 108 318 150 328 206" fill="none" stroke="rgba(103,228,255,0.28)" stroke-width="4" stroke-linecap="round" />
+            </svg>
+            <div class="caption-row">
+              <span class="chip">재생 보호막</span>
+              <span class="chip">호위 소환</span>
+              <span class="chip hot">코어 노출 6초</span>
+              <span class="chip">방어구 없음</span>
+            </div>
+          </div>
+          <div class="art-stage side" aria-label="균열 방벽체 측면 콘셉트 아트">
+            <div class="view-label">측면</div>
+            <svg class="side-art" viewBox="0 0 420 240" role="img" aria-label="챕터 1 보스 기반 보호막 보스 측면">
+              <defs>
+                <linearGradient id="sideBody" x1="0%" x2="100%">
+                  <stop offset="0%" stop-color="#17245f" />
+                  <stop offset="52%" stop-color="#3340a4" />
+                  <stop offset="100%" stop-color="#211a5f" />
+                </linearGradient>
+              </defs>
+              <ellipse cx="214" cy="210" rx="112" ry="17" fill="rgba(0,0,0,0.38)" />
+              <path
+                d="M67 122 C81 45 156 24 247 39 C322 51 367 86 381 122 C367 158 322 193 247 205 C156 220 81 199 67 122Z"
+                fill="rgba(103,228,255,0.08)"
+                stroke="#67e4ff"
+                stroke-width="4"
+              />
+              <path d="M92 39 L143 86 L105 112Z" fill="#17245f" stroke="#7f8fe8" stroke-width="4" stroke-linejoin="round" />
+              <path d="M92 205 L143 158 L105 132Z" fill="#17245f" stroke="#7f8fe8" stroke-width="4" stroke-linejoin="round" />
+              <path d="M350 122 L286 82 L286 162Z" fill="#17245f" stroke="#7f8fe8" stroke-width="4" stroke-linejoin="round" />
+              <path d="M196 29 L228 74 L178 70Z" fill="#17245f" stroke="#7f8fe8" stroke-width="4" stroke-linejoin="round" />
+              <path d="M196 215 L228 170 L178 174Z" fill="#17245f" stroke="#7f8fe8" stroke-width="4" stroke-linejoin="round" />
+              <path
+                d="M88 122 L139 58 L268 74 L344 122 L268 170 L139 186Z"
+                fill="url(#sideBody)"
+                stroke="#b692ff"
+                stroke-width="5"
+                stroke-linejoin="round"
+              />
+              <path d="M127 68 L210 82 L184 115 L102 122Z" fill="#4b4aa8" stroke="#f1f5f9" stroke-width="3" stroke-linejoin="round" opacity="0.9" />
+              <path d="M127 176 L210 162 L184 129 L102 122Z" fill="#4b4aa8" stroke="#f1f5f9" stroke-width="3" stroke-linejoin="round" opacity="0.78" />
+              <path d="M218 87 L286 104 L316 122 L286 140 L218 157 L240 122Z" fill="rgba(103,228,255,0.42)" stroke="#f1f5f9" stroke-width="3" stroke-linejoin="round" />
+              <ellipse cx="238" cy="122" rx="42" ry="36" fill="rgba(182,146,255,0.2)" filter="url(#softGlow)" />
+              <ellipse cx="238" cy="122" rx="27" ry="23" fill="#9b8cff" stroke="#f7fbff" stroke-width="3" />
+              <ellipse cx="238" cy="122" rx="11" ry="10" fill="#fff3f5" />
+              <path d="M91 122 C116 55 310 55 354 122" fill="none" stroke="rgba(103,228,255,0.48)" stroke-width="5" stroke-linecap="round" />
+              <path d="M91 122 C116 189 310 189 354 122" fill="none" stroke="rgba(103,228,255,0.3)" stroke-width="4" stroke-linecap="round" />
+            </svg>
+            <div class="caption-row">
+              <span class="chip">챕터 1 보스 측면</span>
+              <span class="chip">보호막 외피</span>
+              <span class="chip">보라 코어 유지</span>
+            </div>
+          </div>
+          </div>
+        </section>
+
+        <section class="spec">
+          <div class="panel">
+            <div class="title-row">
+              <div>
+                <h2>균열 방벽체</h2>
+                <p class="role">
+                  보호막병의 학습을 보스전으로 확장합니다. 보호막은 지속 화력으로 돌파하고,
+                  보호막이 깨진 순간에는 단타 포탑이 강하게 보상받는 구조입니다.
+                </p>
+              </div>
+              <span class="tag">보호막 보스</span>
+            </div>
+          </div>
+
+          <div class="stat-grid">
+            <div class="stat"><span>체력</span><strong>820</strong></div>
+            <div class="stat"><span>보호막</span><strong>360</strong></div>
+            <div class="stat"><span>재생률</span><strong>2.5%</strong></div>
+            <div class="stat"><span>코어 피해</span><strong>10</strong></div>
+            <div class="stat"><span>속도</span><strong>15</strong></div>
+            <div class="stat"><span>처치 골드</span><strong>48G</strong></div>
+            <div class="stat"><span>방어구</span><strong>0</strong></div>
+            <div class="stat"><span>저항</span><strong>10%</strong></div>
+          </div>
+
+          <div class="bar-stack">
+            <div class="bar-label"><span>보호막 계위</span><strong>360 / 360</strong></div>
+            <div class="bar"><div class="fill shield"></div></div>
+            <div class="bar-label"><span>체력 계위</span><strong>820 / 820</strong></div>
+            <div class="bar"><div class="fill hp"></div></div>
+          </div>
+
+          <div class="content-grid">
+            <div class="card">
+              <h3>플레이어에게 주는 메시지</h3>
+              <ul>
+                <li>보호막은 재생되지만 한 번 깨지면 짧은 화력 창이 열린다.</li>
+                <li>호위 보호막병을 무시하면 보스 딜 타이밍이 늦어진다.</li>
+                <li>챕터 3 장갑 학습 전이므로 방어구는 넣지 않는다.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>포탑 상성 기대</h3>
+              <ul>
+                <li>기관총/화염: 보호막 재생을 밀어붙이는 지속 화력.</li>
+                <li>저격/대포: 코어 노출 6초 동안 큰 보상.</li>
+                <li>냉각: 보스 이동과 호위 겹침을 늦추는 안정화.</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>측면 실루엣 기준</h3>
+              <ul>
+                <li>챕터 1 보스와 같은 다각 몸체와 측면 가시를 유지한다.</li>
+                <li>챕터 2 차이는 파란 보호막 외피와 호위 웨이브에서만 만든다.</li>
+                <li>새 보스처럼 보이기보다 기존 보스의 보호막 변종으로 읽히게 둔다.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="candidate-section panel">
+        <div class="section-title">
+          <div>
+            <h2>외계인 느낌을 뺀 스타일 후보 4종</h2>
+            <p>얼굴, 눈, 몸통으로 읽히는 요소를 줄이고 보스의 정체성을 방벽 장치로 분리한 방향입니다.</p>
+          </div>
+          <span class="tag">비교용 시안</span>
+        </div>
+
+        <div class="candidate-grid">
+          <article class="card candidate-card">
+            <div class="candidate-art" aria-label="방벽 관문형 후보">
+              <svg viewBox="0 0 260 236" role="img" aria-label="방벽 관문형 보호막 보스">
+                <defs>
+                  <linearGradient id="gateBody" x1="0%" x2="100%">
+                    <stop offset="0%" stop-color="#10283a" />
+                    <stop offset="52%" stop-color="#28506a" />
+                    <stop offset="100%" stop-color="#10283a" />
+                  </linearGradient>
+                </defs>
+                <ellipse cx="130" cy="209" rx="82" ry="12" fill="rgba(0,0,0,0.38)" />
+                <path d="M54 72 L130 28 L206 72 L216 178 L184 198 L184 91 L130 62 L76 91 L76 198 L44 178Z" fill="url(#gateBody)" stroke="#dffbff" stroke-width="4" stroke-linejoin="round" />
+                <path d="M86 98 L130 74 L174 98 L174 184 L86 184Z" fill="rgba(103,228,255,0.1)" stroke="#67e4ff" stroke-width="3" stroke-linejoin="round" />
+                <path d="M105 111 H155 M99 132 H161 M105 153 H155" stroke="#67e4ff" stroke-width="5" stroke-linecap="round" />
+                <path d="M42 103 C70 74 101 58 130 58 C159 58 190 74 218 103" fill="none" stroke="rgba(103,228,255,0.44)" stroke-width="5" stroke-linecap="round" />
+                <circle cx="54" cy="72" r="7" fill="#b692ff" />
+                <circle cx="206" cy="72" r="7" fill="#b692ff" />
+              </svg>
+            </div>
+            <h3>1. 방벽 관문형</h3>
+            <p>보스가 적 개체라기보다 움직이는 관문처럼 보입니다. Stage 10의 최종 문지기 느낌이 가장 강합니다.</p>
+            <div class="candidate-tags">
+              <span class="mini-tag">비생물형</span>
+              <span class="mini-tag">보스감 강함</span>
+              <span class="mini-tag">정면 명확</span>
+            </div>
+          </article>
+
+          <article class="card candidate-card">
+            <div class="candidate-art" aria-label="공명 프리즘형 후보">
+              <svg viewBox="0 0 260 236" role="img" aria-label="공명 프리즘형 보호막 보스">
+                <defs>
+                  <linearGradient id="prismBody" x1="0%" x2="100%">
+                    <stop offset="0%" stop-color="#2a4d64" />
+                    <stop offset="45%" stop-color="#dffbff" />
+                    <stop offset="100%" stop-color="#5f78a4" />
+                  </linearGradient>
+                </defs>
+                <ellipse cx="130" cy="207" rx="72" ry="12" fill="rgba(0,0,0,0.36)" />
+                <path d="M130 28 L193 86 L173 178 L130 209 L87 178 L67 86Z" fill="rgba(103,228,255,0.07)" stroke="#67e4ff" stroke-width="4" stroke-linejoin="round" />
+                <path d="M130 47 L171 92 L157 164 L130 190 L103 164 L89 92Z" fill="url(#prismBody)" stroke="#ffffff" stroke-width="3" stroke-linejoin="round" />
+                <path d="M130 47 V190 M89 92 H171 M103 164 H157" stroke="#06111d" stroke-width="3" opacity="0.28" />
+                <path d="M64 116 H31 M196 116 H229 M130 25 V5 M130 212 V232" stroke="#b692ff" stroke-width="5" stroke-linecap="round" />
+                <path d="M80 72 L50 45 M180 72 L210 45 M80 164 L50 191 M180 164 L210 191" stroke="#67e4ff" stroke-width="4" stroke-linecap="round" />
+              </svg>
+            </div>
+            <h3>2. 공명 프리즘형</h3>
+            <p>보호막 재생과 코어 노출을 결정 구조로 표현합니다. 적보다는 떠 있는 방벽 핵처럼 읽힙니다.</p>
+            <div class="candidate-tags">
+              <span class="mini-tag">수정 방벽</span>
+              <span class="mini-tag">고급 자원감</span>
+              <span class="mini-tag">실루엣 단순</span>
+            </div>
+          </article>
+
+          <article class="card candidate-card">
+            <div class="candidate-art" aria-label="차폐 발전기형 후보">
+              <svg viewBox="0 0 260 236" role="img" aria-label="차폐 발전기형 보호막 보스">
+                <defs>
+                  <linearGradient id="generatorBody" x1="0%" x2="100%">
+                    <stop offset="0%" stop-color="#1a2b37" />
+                    <stop offset="50%" stop-color="#2f6d7d" />
+                    <stop offset="100%" stop-color="#1a2b37" />
+                  </linearGradient>
+                </defs>
+                <ellipse cx="130" cy="210" rx="86" ry="13" fill="rgba(0,0,0,0.38)" />
+                <rect x="67" y="68" width="126" height="108" rx="10" fill="url(#generatorBody)" stroke="#dffbff" stroke-width="4" />
+                <rect x="92" y="92" width="76" height="62" rx="5" fill="rgba(103,228,255,0.14)" stroke="#67e4ff" stroke-width="3" />
+                <path d="M106 106 H154 M106 123 H154 M106 140 H154" stroke="#dffbff" stroke-width="4" stroke-linecap="round" />
+                <path d="M67 88 L33 70 M67 157 L33 176 M193 88 L227 70 M193 157 L227 176" stroke="#67e4ff" stroke-width="6" stroke-linecap="round" />
+                <rect x="50" y="46" width="35" height="38" rx="6" fill="#0d2537" stroke="#67e4ff" stroke-width="3" />
+                <rect x="175" y="46" width="35" height="38" rx="6" fill="#0d2537" stroke="#67e4ff" stroke-width="3" />
+                <path d="M51 190 H209" stroke="rgba(103,228,255,0.5)" stroke-width="5" stroke-linecap="round" />
+              </svg>
+            </div>
+            <h3>3. 차폐 발전기형</h3>
+            <p>가장 기계 장치에 가까운 방향입니다. 보호막 보스라는 기능은 명확하지만 몬스터 감은 가장 약합니다.</p>
+            <div class="candidate-tags">
+              <span class="mini-tag">기계 장치</span>
+              <span class="mini-tag">눈 느낌 없음</span>
+              <span class="mini-tag">기능 명확</span>
+            </div>
+          </article>
+
+          <article class="card candidate-card">
+            <div class="candidate-art" aria-label="균열 방첨탑형 후보">
+              <svg viewBox="0 0 260 236" role="img" aria-label="균열 방첨탑형 보호막 보스">
+                <defs>
+                  <linearGradient id="spireBody" x1="0%" x2="100%">
+                    <stop offset="0%" stop-color="#112b40" />
+                    <stop offset="48%" stop-color="#1c6580" />
+                    <stop offset="100%" stop-color="#112b40" />
+                  </linearGradient>
+                </defs>
+                <ellipse cx="130" cy="211" rx="78" ry="12" fill="rgba(0,0,0,0.38)" />
+                <path d="M130 18 L175 88 L159 190 L130 213 L101 190 L85 88Z" fill="url(#spireBody)" stroke="#dffbff" stroke-width="4" stroke-linejoin="round" />
+                <path d="M130 43 L151 93 L145 170 L130 186 L115 170 L109 93Z" fill="rgba(103,228,255,0.18)" stroke="#67e4ff" stroke-width="3" stroke-linejoin="round" />
+                <path d="M130 43 V186 M109 93 H151 M115 170 H145" stroke="#06111d" stroke-width="3" opacity="0.3" />
+                <path d="M85 88 L47 66 M175 88 L213 66 M101 190 L61 204 M159 190 L199 204" stroke="#b692ff" stroke-width="5" stroke-linecap="round" />
+                <path d="M71 118 C103 103 157 103 189 118 M77 146 C106 132 154 132 183 146" fill="none" stroke="rgba(103,228,255,0.44)" stroke-width="4" stroke-linecap="round" />
+                <circle cx="130" cy="18" r="8" fill="#b692ff" />
+              </svg>
+            </div>
+            <h3>4. 균열 방첨탑형</h3>
+            <p>타워디펜스 보스답게 길 위를 밀고 오는 첨탑 실루엣입니다. 보스라기보다 이동식 방벽에 가깝습니다.</p>
+            <div class="candidate-tags">
+              <span class="mini-tag">첨탑 실루엣</span>
+              <span class="mini-tag">챕터 보스감</span>
+              <span class="mini-tag">연출 확장 좋음</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="footer-grid">
+        <div class="card">
+          <h3>페이즈 흐름</h3>
+          <div class="phase-list">
+            <div class="phase">
+              <div class="phase-index">1</div>
+              <p><strong>방벽 전개</strong>보호막 360, 초당 9 재생. 지속 DPS 요구.</p>
+            </div>
+            <div class="phase">
+              <div class="phase-index">2</div>
+              <p><strong>과충전 호위</strong>체력 65% 이하에서 보호막병 2~3마리 호출.</p>
+            </div>
+            <div class="phase">
+              <div class="phase-index">3</div>
+              <p><strong>코어 노출</strong>보호막 파괴 후 6초간 받는 최종 피해 +12.5%.</p>
+            </div>
+            <div class="phase">
+              <div class="phase-index">4</div>
+              <p><strong>최후 방벽</strong>체력 30% 이하에서 보호막 120 재생성, 빠른 적 후속.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>보스 웨이브 배치</h3>
+          <div class="wave" aria-label="보스 웨이브 타임라인">
+            <div class="lane">
+              <span class="mob" style="left: 8%">N</span>
+              <span class="mob" style="left: 18%">N</span>
+              <span class="shielded" style="left: 30%">S</span>
+              <span class="shielded" style="left: 40%">S</span>
+            </div>
+            <div class="lane">
+              <span class="boss" style="left: 49%">B</span>
+              <span class="shielded" style="left: 63%">S</span>
+              <span class="fast" style="left: 74%">F</span>
+              <span class="fast" style="left: 84%">F</span>
+            </div>
+            <div class="lane">
+              <span class="mob" style="left: 14%">N</span>
+              <span class="shielded" style="left: 28%">S</span>
+              <span class="fast" style="left: 58%">F</span>
+              <span class="mob" style="left: 72%">N</span>
+              <span class="mob" style="left: 84%">N</span>
+            </div>
+          </div>
+          <p style="margin-top: 10px">
+            N 일반, S 보호막병, F 빠른 적, B 균열 방벽체. 보스 수는 1마리만 유지합니다.
+          </p>
+        </div>
+
+        <div class="card decision">
+          <h3>구현 전 결정</h3>
+          <p class="note">
+            첫 구현은 <strong>스테이지 10 전용 보스 변형</strong>이 적절합니다.
+            챕터 2 전체에 바로 적용하기보다 마지막 스테이지에서 보호막 문법의 졸업 시험으로 보여주는 쪽이 체감이 선명합니다.
+          </p>
+          <ul style="margin-top: 10px">
+            <li><em>확정 추천:</em> 방어구 없음, 보호막 재생 낮게.</li>
+            <li><em>보류:</em> 주변 적 무한 보호 오라.</li>
+            <li><em>추가 후보:</em> 보스 코어 노출 연출과 사운드 큐.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -72,6 +72,26 @@ void drawEnemyShape(
       } else {
         _drawBossSide(canvas, scale, palette, strokeWidth);
       }
+    case EnemyType.shieldBoss:
+      _drawShieldBossBarrier(canvas, scale, strokeWidth, facing);
+      if (facing == _EnemyFacing.front) {
+        _drawBoss(canvas, scale, palette, strokeWidth);
+      } else if (facing == _EnemyFacing.back) {
+        _drawBossBack(canvas, scale, palette, strokeWidth);
+      } else {
+        _drawBossSide(canvas, scale, palette, strokeWidth);
+      }
+    case EnemyType.forgeBoss:
+      if (facing == _EnemyFacing.front) {
+        _drawBoss(canvas, scale, palette, strokeWidth);
+        _drawForgeBossArmor(canvas, scale, palette, strokeWidth);
+      } else if (facing == _EnemyFacing.back) {
+        _drawBossBack(canvas, scale, palette, strokeWidth);
+        _drawForgeBossBackArmor(canvas, scale, palette, strokeWidth);
+      } else {
+        _drawBossSide(canvas, scale, palette, strokeWidth);
+        _drawForgeBossSideArmor(canvas, scale, palette, strokeWidth);
+      }
   }
 
   canvas.restore();
@@ -1142,6 +1162,200 @@ void _drawBoss(
   _drawCore(canvas, scale, palette.accent, radius: 0.23);
 }
 
+void _drawShieldBossBarrier(
+  Canvas canvas,
+  double scale,
+  double strokeWidth,
+  _EnemyFacing facing,
+) {
+  final sideFacing =
+      facing == _EnemyFacing.right || facing == _EnemyFacing.left;
+  final shellRect = Rect.fromCenter(
+    center: Offset.zero,
+    width: scale * (sideFacing ? 1.34 : 1.18),
+    height: scale * (sideFacing ? 0.78 : 1.2),
+  );
+  canvas.drawOval(
+    shellRect,
+    Paint()
+      ..color = const Color(0xFF67E4FF).withValues(alpha: 0.08)
+      ..style = PaintingStyle.fill,
+  );
+  canvas.drawOval(
+    shellRect,
+    Paint()
+      ..color = const Color(0xFF67E4FF).withValues(alpha: 0.5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth * 1.8,
+  );
+  final innerRect = shellRect.deflate(scale * 0.06);
+  canvas.drawArc(
+    innerRect,
+    sideFacing ? -math.pi * 0.84 : -math.pi * 0.78,
+    sideFacing ? math.pi * 0.62 : math.pi * 0.56,
+    false,
+    Paint()
+      ..color = const Color(0xFFB692FF).withValues(alpha: 0.42)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth * 1.1
+      ..strokeCap = StrokeCap.round,
+  );
+  canvas.drawArc(
+    innerRect,
+    sideFacing ? math.pi * 0.22 : math.pi * 0.28,
+    sideFacing ? math.pi * 0.52 : math.pi * 0.46,
+    false,
+    Paint()
+      ..color = const Color(0xFF67E4FF).withValues(alpha: 0.34)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth * 0.9
+      ..strokeCap = StrokeCap.round,
+  );
+}
+
+void _drawForgeBossArmor(
+  Canvas canvas,
+  double scale,
+  _EnemyVisualPalette palette,
+  double strokeWidth,
+) {
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(-0.48, -0.12),
+      const Offset(-0.18, -0.34),
+      const Offset(-0.1, 0.06),
+      const Offset(-0.43, 0.12),
+    ],
+    palette.armor,
+    strokeWidth * 0.72,
+  );
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(0.48, -0.12),
+      const Offset(0.18, -0.34),
+      const Offset(0.1, 0.06),
+      const Offset(0.43, 0.12),
+    ],
+    palette.armor,
+    strokeWidth * 0.72,
+  );
+  _drawForgeHeatCracks(canvas, scale, strokeWidth, sideFacing: false);
+}
+
+void _drawForgeBossSideArmor(
+  Canvas canvas,
+  double scale,
+  _EnemyVisualPalette palette,
+  double strokeWidth,
+) {
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(-0.44, -0.2),
+      const Offset(-0.06, -0.36),
+      const Offset(0.08, -0.06),
+      const Offset(-0.42, 0.02),
+    ],
+    palette.armor,
+    strokeWidth * 0.72,
+  );
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(-0.38, 0.2),
+      const Offset(0.05, 0.34),
+      const Offset(0.1, 0.07),
+      const Offset(-0.41, 0.04),
+    ],
+    palette.armor.withValues(alpha: 0.86),
+    strokeWidth * 0.66,
+  );
+  _drawForgeHeatCracks(canvas, scale, strokeWidth, sideFacing: true);
+}
+
+void _drawForgeBossBackArmor(
+  Canvas canvas,
+  double scale,
+  _EnemyVisualPalette palette,
+  double strokeWidth,
+) {
+  _drawPlate(
+    canvas,
+    scale,
+    [
+      const Offset(-0.34, -0.28),
+      const Offset(0.34, -0.28),
+      const Offset(0.24, 0.32),
+      const Offset(0, 0.46),
+      const Offset(-0.24, 0.32),
+    ],
+    palette.armor.withValues(alpha: 0.9),
+    strokeWidth * 0.66,
+  );
+  _drawForgeHeatCracks(canvas, scale, strokeWidth, sideFacing: false);
+}
+
+void _drawForgeHeatCracks(
+  Canvas canvas,
+  double scale,
+  double strokeWidth, {
+  required bool sideFacing,
+}) {
+  final crackPaint = Paint()
+    ..color = const Color(0xFFFF9D55).withValues(alpha: 0.82)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = strokeWidth * 0.55
+    ..strokeCap = StrokeCap.round
+    ..strokeJoin = StrokeJoin.round;
+  final glowPaint = Paint()
+    ..color = const Color(0xFFFF6A2A).withValues(alpha: 0.18)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = strokeWidth * 1.7
+    ..strokeCap = StrokeCap.round
+    ..maskFilter = MaskFilter.blur(BlurStyle.normal, scale * 0.018);
+  final paths = sideFacing
+      ? [
+          [
+            const Offset(-0.22, -0.18),
+            const Offset(0.01, -0.03),
+            const Offset(-0.1, 0.15),
+          ],
+          [
+            const Offset(0.19, -0.14),
+            const Offset(0.32, 0),
+            const Offset(0.18, 0.18),
+          ],
+        ]
+      : [
+          [
+            const Offset(-0.18, -0.22),
+            const Offset(-0.02, -0.04),
+            const Offset(-0.13, 0.18),
+          ],
+          [
+            const Offset(0.2, -0.2),
+            const Offset(0.04, 0.01),
+            const Offset(0.16, 0.2),
+          ],
+          [const Offset(0, 0.22), const Offset(0.08, 0.36)],
+        ];
+  for (final points in paths) {
+    final path = Path()
+      ..moveTo(points.first.dx * scale, points.first.dy * scale);
+    for (final point in points.skip(1)) {
+      path.lineTo(point.dx * scale, point.dy * scale);
+    }
+    canvas.drawPath(path, glowPaint);
+    canvas.drawPath(path, crackPaint);
+  }
+}
+
 void _drawBossSide(
   Canvas canvas,
   double scale,
@@ -1464,6 +1678,20 @@ class _EnemyVisualPalette {
         spike: const Color(0xFF35121C),
         edge: const Color(0xFFFF8791),
         armor: const Color(0xFFB6394B),
+        accent: fallbackAccent,
+      ),
+      EnemyType.shieldBoss => _EnemyVisualPalette(
+        body: const Color(0xFF3340A4),
+        spike: const Color(0xFF17245F),
+        edge: const Color(0xFF7F8FE8),
+        armor: const Color(0xFF4B4AA8),
+        accent: fallbackAccent,
+      ),
+      EnemyType.forgeBoss => _EnemyVisualPalette(
+        body: const Color(0xFF2D3438),
+        spike: const Color(0xFF171A1D),
+        edge: const Color(0xFFFF9D55),
+        armor: const Color(0xFF5F5550),
         accent: fallbackAccent,
       ),
     };

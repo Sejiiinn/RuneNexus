@@ -1528,7 +1528,7 @@ List<SpawnGroup> _forgeBossEscortGroups(int tier) {
     startDelay: _nextGroupDelay(armored, gap: _tightGroupGap),
   );
   final boss = SpawnGroup(
-    enemyType: EnemyType.boss,
+    enemyType: EnemyType.forgeBoss,
     count: 1,
     interval: 2.4,
     startDelay: _nextGroupDelay(tank, gap: 1.0),
@@ -1559,7 +1559,7 @@ List<SpawnGroup> _forgeLongBossEscortGroups(int tier) {
     startDelay: _nextGroupDelay(armored, gap: _tightGroupGap),
   );
   final boss = SpawnGroup(
-    enemyType: EnemyType.boss,
+    enemyType: EnemyType.forgeBoss,
     count: 1,
     interval: 2.4,
     startDelay: _nextGroupDelay(shielded, gap: 1.0),
@@ -1590,7 +1590,7 @@ List<SpawnGroup> _forgeCoreBossEscortGroups(int tier) {
     startDelay: _nextGroupDelay(tank, gap: _tightGroupGap),
   );
   final boss = SpawnGroup(
-    enemyType: EnemyType.boss,
+    enemyType: EnemyType.forgeBoss,
     count: 1,
     interval: 2.6,
     startDelay: _nextGroupDelay(armored, gap: 0.9),
