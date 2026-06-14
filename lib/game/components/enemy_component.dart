@@ -12,6 +12,9 @@ import '../rune_nexus_game.dart';
 import 'damage_number_component.dart';
 
 class EnemyComponent extends PositionComponent {
+  static const double _armorScratchDamageRate = 0.12;
+  static const double _armorPressureScale = 3.0;
+
   EnemyComponent({
     required this.definition,
     required this.maxHp,
@@ -302,12 +305,11 @@ class EnemyComponent extends PositionComponent {
     }
 
     if (remainingDamage > 0 && armor > 0) {
-      final armorDamage = ignoreArmorReduction
-          ? remainingDamage
-          : math.max(
-              remainingDamage * definition.armorMinimumDamageRate,
-              remainingDamage - armor * definition.armorReductionRate,
-            );
+      final armorDamage = _armorDamageFor(
+        remainingDamage,
+        currentArmor: armor,
+        ignoreArmorReduction: ignoreArmorReduction,
+      );
       final actualArmorDamage = math.min(armor, armorDamage);
       armor = math.max(0, armor - actualArmorDamage);
       actualDamage += actualArmorDamage;
@@ -348,12 +350,11 @@ class EnemyComponent extends PositionComponent {
     }
 
     if (remainingDamage > 0 && simulatedArmor > 0) {
-      final armorDamage = ignoreArmorReduction
-          ? remainingDamage
-          : math.max(
-              remainingDamage * definition.armorMinimumDamageRate,
-              remainingDamage - simulatedArmor * definition.armorReductionRate,
-            );
+      final armorDamage = _armorDamageFor(
+        remainingDamage,
+        currentArmor: simulatedArmor,
+        ignoreArmorReduction: ignoreArmorReduction,
+      );
       final actualArmorDamage = math.min(simulatedArmor, armorDamage);
       simulatedArmor = math.max(0, simulatedArmor - actualArmorDamage);
       actualDamage += actualArmorDamage;
@@ -367,6 +368,27 @@ class EnemyComponent extends PositionComponent {
     final previousHp = simulatedHp;
     simulatedHp = math.max(0, simulatedHp - remainingDamage);
     return actualDamage + previousHp - simulatedHp;
+  }
+
+  double _armorDamageFor(
+    double incomingDamage, {
+    required double currentArmor,
+    required bool ignoreArmorReduction,
+  }) {
+    if (incomingDamage <= 0 || currentArmor <= 0) {
+      return 0;
+    }
+    if (ignoreArmorReduction) {
+      return incomingDamage;
+    }
+
+    final armorPressure = math.sqrt(maxArmor) * _armorPressureScale;
+    final armorDamageRate =
+        _armorScratchDamageRate +
+        (1 - _armorScratchDamageRate) *
+            incomingDamage /
+            (incomingDamage + armorPressure);
+    return incomingDamage * armorDamageRate;
   }
 
   void _recordRiftMarkBonusDamage(

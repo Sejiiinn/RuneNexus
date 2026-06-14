@@ -3224,8 +3224,6 @@ void main() {
     expect(forgeBoss.maxHp, 760);
     expect(forgeBoss.maxArmor, 520);
     expect(forgeBoss.maxShield, 0);
-    expect(forgeBoss.armorReductionRate, 0.05);
-    expect(forgeBoss.armorMinimumDamageRate, 0.25);
     expect(forgeBoss.speed, 13.5);
     expect(forgeBoss.coreDamage, 12);
     expect(
@@ -4964,13 +4962,13 @@ void main() {
       game: game,
     );
 
-    expect(enemy.receiveDamage(20), closeTo(17.5, 0.001));
-    expect(enemy.armor, closeTo(32.5, 0.001));
+    expect(enemy.receiveDamage(20), closeTo(10.940952, 0.001));
+    expect(enemy.armor, closeTo(39.059048, 0.001));
     expect(enemy.hp, closeTo(100, 0.001));
 
-    expect(enemy.receiveDamage(100), closeTo(98.375, 0.001));
+    expect(enemy.receiveDamage(100), closeTo(84.599352, 0.001));
     expect(enemy.armor, closeTo(0, 0.001));
-    expect(enemy.hp, closeTo(34.125, 0.001));
+    expect(enemy.hp, closeTo(54.459696, 0.001));
   });
 
   test('armor 54 reduces machine gun base damage before hp', () {
@@ -4984,8 +4982,8 @@ void main() {
       game: game,
     );
 
-    expect(enemy.receiveDamage(7), closeTo(4.3, 0.001));
-    expect(enemy.armor, closeTo(49.7, 0.001));
+    expect(enemy.receiveDamage(7), closeTo(2.324572, 0.001));
+    expect(enemy.armor, closeTo(51.675428, 0.001));
     expect(enemy.hp, closeTo(100, 0.001));
   });
 
@@ -5041,10 +5039,10 @@ void main() {
         game: game,
       );
 
-      expect(enemy.receiveDamage(120), closeTo(117.5, 0.001));
+      expect(enemy.receiveDamage(120), closeTo(110.940952, 0.001));
       expect(enemy.shield, closeTo(0, 0.001));
       expect(enemy.shieldBroken, isTrue);
-      expect(enemy.armor, closeTo(32.5, 0.001));
+      expect(enemy.armor, closeTo(39.059048, 0.001));
       expect(enemy.hp, closeTo(100, 0.001));
 
       enemy.update(1);
@@ -5089,7 +5087,7 @@ void main() {
 
     expect(restored.shield, closeTo(0, 0.001));
     expect(restored.shieldBroken, isTrue);
-    expect(restored.armor, closeTo(32.5, 0.001));
+    expect(restored.armor, closeTo(39.059048, 0.001));
     expect(restored.hp, closeTo(100, 0.001));
   });
 
