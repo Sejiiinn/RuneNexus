@@ -4288,8 +4288,8 @@ class _ResearchSlotCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(
-                        active == null
+                      child: _AdaptiveResearchTitle(
+                        text: active == null
                             ? l10n.emptyResearchSlot
                             : '${_researchTitle(l10n, active.type)} ${l10n.researchLevel(active.targetLevel - 1, gameResearchDefinitions[active.type]!.maxLevel)}',
                         style: const TextStyle(
@@ -4297,7 +4297,6 @@ class _ResearchSlotCard extends StatelessWidget {
                           fontSize: 12,
                           fontWeight: FontWeight.w900,
                         ),
-                        overflow: TextOverflow.clip,
                       ),
                     ),
                     if (active != null)
@@ -4696,6 +4695,61 @@ class _ResearchCardGrid extends StatelessWidget {
   }
 }
 
+class _AdaptiveResearchTitle extends StatelessWidget {
+  const _AdaptiveResearchTitle({
+    required this.text,
+    required this.style,
+    this.minSingleLineScale = 0.76,
+  });
+
+  final String text;
+  final TextStyle style;
+  final double minSingleLineScale;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth;
+        if (maxWidth <= 0) {
+          return _buildWrappedText();
+        }
+
+        final inheritedStyle = DefaultTextStyle.of(context).style.merge(style);
+        final textPainter = TextPainter(
+          text: TextSpan(text: text, style: inheritedStyle),
+          maxLines: 1,
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout();
+        final textWidth = textPainter.width;
+        if (textWidth <= maxWidth) {
+          return _buildSingleLineText();
+        }
+
+        final singleLineScale = maxWidth / textWidth;
+        if (singleLineScale >= minSingleLineScale) {
+          return FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: _buildSingleLineText(),
+          );
+        }
+
+        return _buildWrappedText();
+      },
+    );
+  }
+
+  Text _buildSingleLineText() {
+    return Text(text, style: style, maxLines: 1, softWrap: false);
+  }
+
+  Text _buildWrappedText() {
+    return Text(text, style: style, softWrap: true);
+  }
+}
+
 class _ResearchTile extends StatelessWidget {
   const _ResearchTile({
     required this.game,
@@ -4811,15 +4865,13 @@ class _ResearchTile extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Expanded(
-                          child: Text(
-                            _researchTitle(l10n, type),
+                          child: _AdaptiveResearchTitle(
+                            text: _researchTitle(l10n, type),
                             style: TextStyle(
                               color: titleColor,
                               fontSize: 12,
                               fontWeight: FontWeight.w900,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.clip,
                           ),
                         ),
                         const SizedBox(width: 5),
@@ -5187,14 +5239,14 @@ class _ResearchDetailDialog extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Text(
-                      _researchTitle(l10n, type),
+                    child: _AdaptiveResearchTitle(
+                      text: _researchTitle(l10n, type),
                       style: const TextStyle(
                         color: Color(0xFFE8FBFF),
                         fontSize: 17,
                         fontWeight: FontWeight.w900,
                       ),
-                      overflow: TextOverflow.clip,
+                      minSingleLineScale: 0.82,
                     ),
                   ),
                   IconButton(
