@@ -547,7 +547,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('core second passive slot can be unlocked with runes', (
+  testWidgets('core second passive slot can be unlocked with diamonds', (
     tester,
   ) async {
     final game = _CoreEquipGame();
@@ -566,7 +566,7 @@ void main() {
           snapshot: _resultSnapshot(
             phase: GamePhase.preparation,
             currentStageNumber: 1,
-            runes: 500,
+            diamonds: 200,
           ),
           selectedTab: MainMenuTab.core,
           onSelectTab: (_) {},
@@ -577,13 +577,13 @@ void main() {
     await _pumpGameFrames(tester);
 
     expect(find.text('해금 가능'), findsOneWidget);
-    expect(find.text('500 룬 소모'), findsOneWidget);
+    expect(find.text('200 다이아 소모'), findsOneWidget);
 
     await tester.tap(find.text('해금 가능'));
     await _pumpGameFrames(tester);
 
     expect(find.text('패시브 슬롯을 해금할까요?'), findsOneWidget);
-    expect(find.text('2번 코어 패시브 슬롯을 500 룬으로 해금합니다.'), findsOneWidget);
+    expect(find.text('2번 코어 패시브 슬롯을 200 다이아로 해금합니다.'), findsOneWidget);
     expect(game.unlockedCorePassiveSlot, isFalse);
 
     await tester.tap(find.widgetWithText(GameButton, '취소'));
@@ -2384,7 +2384,7 @@ GameSnapshot _resultSnapshot({
     corePassiveSlotUnlockCost: RunProgression.corePassiveSlotUnlockCost,
     canUnlockCorePassiveSlot:
         !corePassiveSlotTwoUnlocked &&
-        runes >= RunProgression.corePassiveSlotUnlockCost,
+        diamonds >= RunProgression.corePassiveSlotUnlockCost,
     unlockedCorePassiveAbilities: {
       CorePassiveAbility.selfRepair,
       CorePassiveAbility.costSavingDesign,

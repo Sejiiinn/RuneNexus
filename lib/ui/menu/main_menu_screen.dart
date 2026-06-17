@@ -2878,7 +2878,7 @@ class _CorePassiveSlotUnlockButton extends StatelessWidget {
         ? const Color(0xFFE7C66A)
         : const Color(0xFF8FA8BA);
     final label = unlockable ? '해금 가능' : '잠김';
-    final state = unlockable ? '$unlockCost 룬 소모' : '$unlockCost 룬 필요';
+    final state = unlockable ? '$unlockCost 다이아 소모' : '$unlockCost 다이아 필요';
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -4562,7 +4562,7 @@ Future<bool> _confirmUnlockCorePassiveSlot(
         ),
       ),
       content: Text(
-        '$slotNumber번 코어 패시브 슬롯을 ${snapshot.corePassiveSlotUnlockCost} 룬으로 해금합니다.',
+        '$slotNumber번 코어 패시브 슬롯을 ${snapshot.corePassiveSlotUnlockCost} 다이아로 해금합니다.',
         style: const TextStyle(
           color: Color(0xFFB9D6E4),
           fontSize: 12,

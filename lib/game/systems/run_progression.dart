@@ -4,6 +4,7 @@ import '../../data/definitions/game_daily_quest_data.dart';
 import '../../data/definitions/game_research_data.dart';
 import '../../data/save/game_save_data.dart';
 import '../../domain/core/core_ability.dart';
+import '../../domain/currency/diamond_wallet.dart';
 import '../../domain/daily_quest/daily_quest_type.dart';
 import '../../domain/research/research_progress.dart';
 import '../../domain/research/research_type.dart';
@@ -24,7 +25,7 @@ class RunProgression {
   static const int maxEmergencySaleUpgradeLevel = 5;
   static const int researchSlotCount = 1;
   static const int gemShardsPerGemAttunementLevel = 2;
-  static const int corePassiveSlotUnlockCost = 500;
+  static const int corePassiveSlotUnlockCost = 200;
   static const int diamondMillisPerResearchMinute = 60000;
   static const int uninitializedDailyQuestDayKey = -1;
   static const int dailyQuestResetHourKst = 5;
@@ -93,8 +94,7 @@ class RunProgression {
   ];
 
   int runes = 0;
-  int freeDiamonds = 0;
-  int paidDiamonds = 0;
+  final DiamondWallet _diamondWallet = DiamondWallet();
   int dailyQuestDayKey = uninitializedDailyQuestDayKey;
   int lastDailyQuestSeenMillis = 0;
   bool dailyQuestClockRollbackDetected = false;
@@ -121,6 +121,16 @@ class RunProgression {
   CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam;
   bool corePassiveSlotTwoUnlocked = false;
   final List<CorePassiveAbility?> corePassiveSlots = [null, null];
+
+  int get freeDiamonds => _diamondWallet.free;
+  set freeDiamonds(int value) {
+    _diamondWallet.free = value;
+  }
+
+  int get paidDiamonds => _diamondWallet.paid;
+  set paidDiamonds(int value) {
+    _diamondWallet.paid = value;
+  }
 
   int get initialGold =>
       baseInitialGold +
@@ -215,7 +225,8 @@ class RunProgression {
       isResearchComplete(ResearchType.turretTargetPriority);
   int get corePassiveSlotCount => corePassiveSlotTwoUnlocked ? 2 : 1;
   bool get canUnlockCorePassiveSlot =>
-      !corePassiveSlotTwoUnlocked && runes >= corePassiveSlotUnlockCost;
+      !corePassiveSlotTwoUnlocked &&
+      canSpendDiamonds(corePassiveSlotUnlockCost);
   Set<CorePassiveAbility> get unlockedCorePassiveAbilities {
     return {
       CorePassiveAbility.selfRepair,
@@ -275,7 +286,7 @@ class RunProgression {
   bool get canUpgradeEmergencySale =>
       _cappedEmergencySaleUpgradeLevel < maxEmergencySaleUpgradeLevel &&
       runes >= emergencySaleUpgradeCost;
-  int get diamonds => freeDiamonds + paidDiamonds;
+  int get diamonds => _diamondWallet.total;
   int get completedDailyQuestCount =>
       gameDailyQuestDefinitions.keys.where(isDailyQuestComplete).length;
   bool get allDailyQuestsComplete =>
@@ -494,7 +505,7 @@ class RunProgression {
       return false;
     }
     final cost = researchInstantCompleteCostFor(active, nowMillis: nowMillis);
-    if (!_spendDiamonds(cost)) {
+    if (spendDiamonds(cost) == null) {
       return false;
     }
     researchLevels[type] = active.targetLevel
@@ -509,7 +520,7 @@ class RunProgression {
     if (amount <= 0) {
       return;
     }
-    freeDiamonds += amount;
+    _diamondWallet.addFree(amount);
   }
 
   bool refreshDailyQuests({required int nowMillis}) {
@@ -600,14 +611,12 @@ class RunProgression {
     return true;
   }
 
-  bool _spendDiamonds(int amount) {
-    if (amount < 0 || diamonds < amount) {
-      return false;
-    }
-    final freeSpend = math.min(freeDiamonds, amount);
-    freeDiamonds -= freeSpend;
-    paidDiamonds -= amount - freeSpend;
-    return true;
+  bool canSpendDiamonds(int amount) {
+    return _diamondWallet.canSpend(amount);
+  }
+
+  DiamondSpendResult? spendDiamonds(int amount) {
+    return _diamondWallet.spend(amount);
   }
 
   bool completeFinishedResearches({required int nowMillis}) {
@@ -684,8 +693,10 @@ class RunProgression {
 
   void restoreFromSaveData(SavedProgression data) {
     runes = math.max(0, data.runes);
-    freeDiamonds = math.max(0, data.freeDiamonds);
-    paidDiamonds = math.max(0, data.paidDiamonds);
+    _diamondWallet.setBalances(
+      free: data.freeDiamonds,
+      paid: data.paidDiamonds,
+    );
     dailyQuestDayKey = data.dailyQuestDayKey;
     lastDailyQuestSeenMillis = math.max(0, data.lastDailyQuestSeenMillis);
     dailyQuestClockRollbackDetected = data.dailyQuestClockRollbackDetected;
@@ -862,7 +873,9 @@ class RunProgression {
     if (!canUnlockCorePassiveSlot) {
       return false;
     }
-    runes -= corePassiveSlotUnlockCost;
+    if (spendDiamonds(corePassiveSlotUnlockCost) == null) {
+      return false;
+    }
     corePassiveSlotTwoUnlocked = true;
     return true;
   }

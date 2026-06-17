@@ -1495,12 +1495,21 @@ void main() {
       ..freeDiamonds = 3
       ..paidDiamonds = 4;
 
+    final spend = progression.spendDiamonds(5);
+
+    expect(spend, isNotNull);
+    expect(spend!.amount, 5);
+    expect(spend.freeSpent, 3);
+    expect(spend.paidSpent, 2);
+    expect(progression.freeDiamonds, 0);
+    expect(progression.paidDiamonds, 2);
+
     final saved = SavedProgression.fromJson(progression.toSaveData().toJson());
     final restored = RunProgression()..restoreFromSaveData(saved);
 
-    expect(restored.freeDiamonds, 3);
-    expect(restored.paidDiamonds, 4);
-    expect(restored.diamonds, 7);
+    expect(restored.freeDiamonds, 0);
+    expect(restored.paidDiamonds, 2);
+    expect(restored.diamonds, 2);
 
     final legacySaved = SavedProgression.fromJson(const <String, Object?>{
       'unlockedStageCount': 1,
@@ -2221,7 +2230,7 @@ void main() {
     expect(game.snapshotNotifier.value.researchElapsedMillis, isEmpty);
     expect(game.snapshotNotifier.value.corePassiveSlotCount, 1);
 
-    game.debugAddRunes(500);
+    game.debugAddDiamonds(200);
     expect(game.unlockCorePassiveSlot(), isTrue);
     expect(
       game.equipCorePassiveAbility(CorePassiveAbility.selfRepair, 1),
@@ -2950,13 +2959,18 @@ void main() {
     expect(savedAgain.corePassiveSlots, saved.corePassiveSlots);
   });
 
-  test('second core passive slot unlock spends runes', () {
-    final progression = RunProgression()..runes = 500;
+  test('second core passive slot unlock spends diamonds', () {
+    final progression = RunProgression()
+      ..runes = 500
+      ..freeDiamonds = 120
+      ..paidDiamonds = 80;
 
     expect(progression.corePassiveSlotCount, 1);
     expect(progression.canUnlockCorePassiveSlot, isTrue);
     expect(progression.unlockCorePassiveSlot(), isTrue);
-    expect(progression.runes, 0);
+    expect(progression.runes, 500);
+    expect(progression.freeDiamonds, 0);
+    expect(progression.paidDiamonds, 0);
     expect(progression.corePassiveSlotCount, 2);
     expect(progression.toSaveData().corePassiveSlotTwoUnlocked, isTrue);
     expect(progression.unlockCorePassiveSlot(), isFalse);
