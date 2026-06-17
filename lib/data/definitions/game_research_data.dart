@@ -6,6 +6,7 @@ const int halfHourResearchDurationMillis = 30 * 60 * 1000;
 const int fortyFiveMinuteResearchDurationMillis = 45 * 60 * 1000;
 const int twentyMinuteResearchDurationMillis = 20 * 60 * 1000;
 const int ninetyMinuteResearchDurationMillis = 90 * 60 * 1000;
+const int twoHourResearchDurationMillis = 2 * oneHourResearchDurationMillis;
 const int threeHourResearchDurationMillis = 3 * oneHourResearchDurationMillis;
 
 const gameResearchDefinitions = {
@@ -90,13 +91,31 @@ const gameResearchDefinitions = {
     durationMillis: threeHourResearchDurationMillis,
     durationMultiplier: 1.08,
   ),
-  ResearchType.tacticalLimitExpansion: ResearchDefinition(
-    type: ResearchType.tacticalLimitExpansion,
+  ResearchType.towerDamageLimitExpansion: ResearchDefinition(
+    type: ResearchType.towerDamageLimitExpansion,
     maxLevel: 10,
     requiredClearedStage: 8,
-    baseRuneCost: 220,
-    costMultiplier: 1.25,
-    durationMillis: threeHourResearchDurationMillis,
-    durationMultiplier: 1.12,
+    baseRuneCost: 150,
+    costMultiplier: 1.18,
+    durationMillis: twoHourResearchDurationMillis,
+    durationMultiplier: 1.08,
+  ),
+  ResearchType.killGoldLimitExpansion: ResearchDefinition(
+    type: ResearchType.killGoldLimitExpansion,
+    maxLevel: 10,
+    requiredClearedStage: 8,
+    baseRuneCost: 150,
+    costMultiplier: 1.18,
+    durationMillis: twoHourResearchDurationMillis,
+    durationMultiplier: 1.08,
+  ),
+  ResearchType.waveGoldLimitExpansion: ResearchDefinition(
+    type: ResearchType.waveGoldLimitExpansion,
+    maxLevel: 10,
+    requiredClearedStage: 8,
+    baseRuneCost: 150,
+    costMultiplier: 1.18,
+    durationMillis: twoHourResearchDurationMillis,
+    durationMultiplier: 1.08,
   ),
 };

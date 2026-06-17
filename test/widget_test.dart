@@ -167,6 +167,14 @@ void main() {
     await tester.tap(find.text('스테이지 6'));
     await _pumpGameFrames(tester);
 
+    expect(find.text('총 라운드'), findsOneWidget);
+    expect(find.text('룬 보상'), findsOneWidget);
+    expect(find.text('라이트닝 포탑'), findsWidgets);
+    expect(startedStage, isNull);
+
+    await tester.tap(find.text('시작하기'));
+    await _pumpGameFrames(tester);
+
     expect(startedStage, 6);
   });
 
@@ -216,6 +224,8 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('stage-selection-row-6')));
     await _pumpGameFrames(tester);
 
+    expect(find.text('스테이지 5 클리어 후 시작할 수 있습니다.'), findsOneWidget);
+    expect(find.text('시작 불가'), findsOneWidget);
     expect(startedStage, isNull);
   });
 
@@ -260,6 +270,12 @@ void main() {
     expect(find.text('스테이지 6'), findsNothing);
 
     await tester.tap(find.text('스테이지 11'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('총 라운드'), findsOneWidget);
+    expect(startedStage, isNull);
+
+    await tester.tap(find.text('시작하기'));
     await _pumpGameFrames(tester);
 
     expect(startedStage, 11);
@@ -975,6 +991,66 @@ void main() {
     expect(find.text('클리어 보상: 전투 강화'), findsNothing);
   });
 
+  testWidgets('stage details show actual unlock items', (tester) async {
+    await _pumpLoadedApp(tester);
+
+    expect(find.text('전술 명령'), findsNothing);
+    expect(find.text('젬 감응'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('stage-selection-row-2')));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('전술 명령'), findsOneWidget);
+    expect(find.text('젬 감응'), findsOneWidget);
+    expect(find.text('연구 해금'), findsNothing);
+  });
+
+  testWidgets('active stage details only offer continue action', (
+    tester,
+  ) async {
+    int? continuedStage;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            hasStageProgress: true,
+            completedRounds: 8,
+          ),
+          selectedTab: MainMenuTab.stage,
+          onSelectTab: (_) {},
+          onStartStage: (stage) {
+            continuedStage = stage;
+          },
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    await tester.tap(find.byKey(const ValueKey('stage-selection-row-1')));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('이어서 진행'), findsWidgets);
+    expect(find.text('처음부터 시작'), findsNothing);
+
+    await tester.tap(
+      find.descendant(of: find.byType(Dialog), matching: find.text('이어서 진행')),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(continuedStage, 1);
+  });
+
   testWidgets('map editor scopes stage chips by chapter and preserves theme', (
     tester,
   ) async {
@@ -1651,11 +1727,13 @@ void main() {
       ),
     );
 
-    expect(find.text('연구 2개 해금'), findsOneWidget);
+    expect(find.text('연구 4개 해금'), findsOneWidget);
     expect(find.text('해금 항목'), findsOneWidget);
     expect(find.text('연구'), findsOneWidget);
     expect(find.text('룬 공명'), findsOneWidget);
-    expect(find.text('전술 한계 확장'), findsOneWidget);
+    expect(find.text('포탑 화력 한계 확장'), findsOneWidget);
+    expect(find.text('처치 보너스 한계 확장'), findsOneWidget);
+    expect(find.text('정비 보급 한계 확장'), findsOneWidget);
   });
 
   testWidgets('failed result keeps reward summary and retry action', (
@@ -1704,6 +1782,8 @@ void main() {
     await _pumpLoadedApp(tester);
 
     await _tapStageCard(tester, '스테이지 1');
+    await _pumpUntilFound(tester, find.text('시작하기'));
+    await tester.tap(find.text('시작하기'));
     await _pumpUntilFound(tester, find.text('시작'));
     await tester.tap(find.text('시작'));
     await tester.pump();
@@ -1738,6 +1818,8 @@ void main() {
     await _pumpLoadedApp(tester);
 
     await _tapStageCard(tester, '스테이지 1');
+    await _pumpUntilFound(tester, find.text('시작하기'));
+    await tester.tap(find.text('시작하기'));
     await _pumpUntilFound(tester, find.text('시작'));
     await tester.tap(find.text('시작'));
     await tester.pump();
@@ -1749,7 +1831,7 @@ void main() {
     expect(find.text('진행 중 · 스테이지 1'), findsNothing);
     expect(find.text('진행 중'), findsWidgets);
     expect(find.text('스테이지 1'), findsWidgets);
-    expect(find.text('저장된 전투'), findsOneWidget);
+    expect(find.text('저장된 전투'), findsNothing);
     expect(find.text('이어서 진행'), findsOneWidget);
 
     await tester.tap(find.text('이어서 진행'));
@@ -1765,8 +1847,49 @@ void main() {
     await _pumpGameFrames(tester);
 
     expect(find.text('저장된 진행 발견'), findsNothing);
-    expect(find.text('저장된 전투'), findsOneWidget);
+    expect(find.text('저장된 전투'), findsNothing);
     expect(find.text('이어서 진행'), findsOneWidget);
+  });
+
+  testWidgets('active run can settle and switch to another stage', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(411, 720);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    game.debugSetClearedStageCount(1);
+
+    await tester.pumpWidget(RuneNexusApp(game: game));
+    await _pumpUntilFound(tester, find.text('Rune Nexus'));
+
+    await _tapStageCard(tester, '스테이지 1');
+    await _pumpUntilFound(tester, find.text('시작하기'));
+    await tester.tap(find.text('시작하기'));
+    await _pumpUntilFound(tester, find.text('시작'));
+    await tester.tap(find.text('시작'));
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.home_outlined));
+    await _pumpGameFrames(tester);
+    await tester.tap(find.text('메인화면으로 이동'));
+    await _pumpGameFrames(tester);
+
+    await tester.tap(find.byKey(const ValueKey('stage-selection-row-2')));
+    await _pumpGameFrames(tester);
+    await tester.tap(find.text('시작하기'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('진행 중인 스테이지 종료'), findsOneWidget);
+    expect(find.text('현재 보상 0룬 정산 후 스테이지 2 시작'), findsOneWidget);
+
+    await tester.tap(find.text('정산 후 시작'));
+    await _pumpGameFrames(tester);
+
+    expect(game.snapshotNotifier.value.currentStageNumber, 2);
+    expect(find.byIcon(Icons.home_outlined), findsOneWidget);
   });
 
   testWidgets(
@@ -1784,6 +1907,8 @@ void main() {
       await _pumpUntilFound(tester, find.text('Rune Nexus'));
 
       await _tapStageCard(tester, '스테이지 1');
+      await _pumpGameFrames(tester);
+      await tester.tap(find.text('시작하기'));
       await _pumpGameFrames(tester);
       expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
       expect(game.snapshotNotifier.value.hasStageProgress, isFalse);
@@ -2247,6 +2372,7 @@ GameSnapshot _resultSnapshot({
   required GamePhase phase,
   required int currentStageNumber,
   int unlockedStageCount = 1,
+  bool hasStageProgress = false,
   int completedRounds = 0,
   int runes = 0,
   int diamonds = 0,
@@ -2297,7 +2423,7 @@ GameSnapshot _resultSnapshot({
     maxRound: 50,
     phase: phase,
     restoredPhase: null,
-    hasStageProgress: false,
+    hasStageProgress: hasStageProgress,
     placedTurretCount: 0,
     currentStageNumber: currentStageNumber,
     unlockedStageCount: unlockedStageCount,

@@ -8,6 +8,7 @@ import '../../domain/currency/diamond_wallet.dart';
 import '../../domain/daily_quest/daily_quest_type.dart';
 import '../../domain/research/research_progress.dart';
 import '../../domain/research/research_type.dart';
+import '../../domain/run_upgrade/run_upgrade_type.dart';
 
 class RunProgression {
   static const int baseInitialGold = 170;
@@ -38,7 +39,7 @@ class RunProgression {
   static const double bossBountyBonusPerLevel = 0.025;
   static const double linkMaintenanceDiscountPerLevel = 0.02;
   static const double runeResonanceBonusPerLevel = 0.02;
-  static const int tacticalLimitExpansionRunUpgradeMaxLevelPerLevel = 1;
+  static const int runUpgradeLimitExpansionMaxLevelPerLevel = 1;
   static const int bossGemShardsPerCrystalRecoveryLevel = 1;
   static const int baseStageOneFullClearRuneReward = 200;
   static const double runeRewardGrowthPerRound = 1.04;
@@ -251,9 +252,16 @@ class RunProgression {
       bossGemShardsPerCrystalRecoveryLevel;
   double get runeResonanceBonusRate =>
       researchLevel(ResearchType.runeResonance) * runeResonanceBonusPerLevel;
-  int get runUpgradeMaxLevelBonus =>
-      researchLevel(ResearchType.tacticalLimitExpansion) *
-      tacticalLimitExpansionRunUpgradeMaxLevelPerLevel;
+  int runUpgradeMaxLevelBonusFor(RunUpgradeType type) {
+    final researchType = switch (type) {
+      RunUpgradeType.towerDamage => ResearchType.towerDamageLimitExpansion,
+      RunUpgradeType.killGold => ResearchType.killGoldLimitExpansion,
+      RunUpgradeType.waveGold => ResearchType.waveGoldLimitExpansion,
+    };
+    return researchLevel(researchType) *
+        runUpgradeLimitExpansionMaxLevelPerLevel;
+  }
+
   bool get canUpgradeStartingGold =>
       _cappedStartingGoldUpgradeLevel < maxStartingGoldUpgradeLevel &&
       runes >= startingGoldUpgradeCost;

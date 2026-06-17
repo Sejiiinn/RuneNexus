@@ -5,6 +5,10 @@ import '../domain/combat/game_phase.dart';
 import '../game/game_snapshot.dart';
 import '../game/rune_nexus_game.dart';
 import '../l10n/rune_nexus_localizations.dart';
+import '../ui/game/game_button.dart';
+import '../ui/game/game_palette.dart';
+import '../ui/game/game_panel.dart';
+import '../ui/game/game_text_styles.dart';
 import '../ui/hud/game_hud.dart';
 import '../ui/menu/main_menu_screen.dart';
 import '../ui/menu/map_editor_panel.dart';
@@ -46,41 +50,57 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
     super.dispose();
   }
 
-  Future<void> _startStage(int stageNumber, GameSnapshot snapshot) async {
-    final activeRunInProgress =
-        snapshot.hasStageProgress &&
+  bool _activeRunInProgress(GameSnapshot snapshot) {
+    return snapshot.hasStageProgress &&
         snapshot.phase != GamePhase.success &&
         snapshot.phase != GamePhase.failure;
+  }
+
+  Future<bool> _confirmActiveRunSettlement({
+    required BuildContext dialogContext,
+    required GameSnapshot snapshot,
+    required int nextStageNumber,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: dialogContext,
+      builder: (context) {
+        return _ActiveRunSettlementDialog(
+          snapshot: snapshot,
+          nextStageNumber: nextStageNumber,
+        );
+      },
+    );
+    return confirmed == true;
+  }
+
+  Future<void> _enterStageScreen() async {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _screen = _AppScreen.stage;
+    });
+    if (game.snapshotNotifier.value.phase != GamePhase.restored) {
+      game.resumeEngine();
+    }
+  }
+
+  Future<void> _startStage(
+    int stageNumber,
+    GameSnapshot snapshot,
+    BuildContext dialogContext,
+  ) async {
+    final activeRunInProgress = _activeRunInProgress(snapshot);
     final switchingStage =
         activeRunInProgress && stageNumber != snapshot.currentStageNumber;
 
     if (switchingStage) {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) {
-          final l10n = context.l10n;
-          return AlertDialog(
-            title: Text(l10n.endActiveStageTitle),
-            content: Text(
-              l10n.endActiveStageBody(
-                currentStageNumber: snapshot.currentStageNumber,
-                nextStageNumber: stageNumber,
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.cancel),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.settleAndStart),
-              ),
-            ],
-          );
-        },
+      final confirmed = await _confirmActiveRunSettlement(
+        dialogContext: dialogContext,
+        snapshot: snapshot,
+        nextStageNumber: stageNumber,
       );
-      if (confirmed != true || !mounted) {
+      if (!confirmed || !mounted) {
         return;
       }
       await game.settleCurrentRunAsFailure();
@@ -93,15 +113,7 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
       game.startStage(stageNumber);
       await game.saveNow();
     }
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _screen = _AppScreen.stage;
-    });
-    if (game.snapshotNotifier.value.phase != GamePhase.restored) {
-      game.resumeEngine();
-    }
+    await _enterStageScreen();
   }
 
   @override
@@ -143,8 +155,11 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
                 onOpenStageSelect: () => _openMainScreen(),
                 onOpenPermanentUpgrades: () =>
                     _openMainScreen(tab: MainMenuTab.permanentUpgrades),
-                onStartStage: (stageNumber) =>
-                    _startStage(stageNumber, game.snapshotNotifier.value),
+                onStartStage: (stageNumber) => _startStage(
+                  stageNumber,
+                  game.snapshotNotifier.value,
+                  context,
+                ),
               );
             }
             if (_screen == _AppScreen.mapEditor) {
@@ -164,8 +179,11 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
                   _selectedMainMenuTab = tab;
                 });
               },
-              onStartStage: (stageNumber) =>
-                  _startStage(stageNumber, game.snapshotNotifier.value),
+              onStartStage: (stageNumber) => _startStage(
+                stageNumber,
+                game.snapshotNotifier.value,
+                context,
+              ),
               onOpenMapEditor: () {
                 setState(() {
                   _screen = _AppScreen.mapEditor;
@@ -173,6 +191,128 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
               },
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _ActiveRunSettlementDialog extends StatelessWidget {
+  const _ActiveRunSettlementDialog({
+    required this.snapshot,
+    required this.nextStageNumber,
+  });
+
+  final GameSnapshot snapshot;
+  final int nextStageNumber;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: GamePanel(
+          variant: GamePanelVariant.danger,
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.flag_outlined,
+                    color: GamePalette.danger,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.endActiveStageTitle,
+                      style: GameTextStyles.title,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                l10n.endActiveStageBody(
+                  currentStageNumber: snapshot.currentStageNumber,
+                  nextStageNumber: nextStageNumber,
+                  runeReward: snapshot.projectedFailureRuneReward,
+                ),
+                style: GameTextStyles.body,
+              ),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 9,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0x3302070D),
+                  border: Border.all(color: const Color(0x558FA8BA)),
+                  borderRadius: BorderRadius.circular(GamePalette.radius),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.diamond_outlined,
+                      size: 17,
+                      color: GamePalette.goldBright,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '+${snapshot.projectedFailureRuneReward} ${l10n.runes}',
+                        style: GameTextStyles.withColor(
+                          GameTextStyles.sectionTitle,
+                          GamePalette.goldBright,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${l10n.stageName(snapshot.currentStageNumber)} -> '
+                      '${l10n.stageName(nextStageNumber)}',
+                      style: GameTextStyles.withColor(
+                        GameTextStyles.caption,
+                        GamePalette.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: GameButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      label: l10n.cancel,
+                      icon: const Icon(Icons.arrow_back, size: 17),
+                      variant: GameButtonVariant.ghost,
+                      accentColor: GamePalette.metal,
+                      height: 38,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: GameButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      label: l10n.settleAndStart,
+                      icon: const Icon(Icons.play_arrow_rounded, size: 17),
+                      variant: GameButtonVariant.primary,
+                      accentColor: GamePalette.cyan,
+                      height: 38,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

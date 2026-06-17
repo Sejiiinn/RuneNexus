@@ -30,6 +30,9 @@ class RuneNexusLocalizations {
   String get startGold => _isEnglish ? 'Starting Gold' : '시작 골드';
   String get nexusHp => _isEnglish ? 'Nexus HP' : '넥서스 체력';
   String get maintenanceSupply => _isEnglish ? 'Maintenance Supply' : '정비 보급';
+  String get towerDamageRunUpgrade => _isEnglish ? 'Tower Damage' : '포탑 화력';
+  String get killGoldRunUpgrade => _isEnglish ? 'Kill Bonus' : '처치 보너스';
+  String get waveGoldRunUpgrade => _isEnglish ? 'Supply' : '정비 보급';
   String get killRewardBonus => _isEnglish ? 'Kill Reward' : '처치 보상';
   String get emergencySale => _isEnglish ? 'Emergency Sale' : '긴급 매각';
   String get basicFireTraining =>
@@ -98,8 +101,12 @@ class RuneNexusLocalizations {
   String get bossBounty => _isEnglish ? 'Boss Reward' : '토벌 보상';
   String get crystalRecovery => _isEnglish ? 'Crystal Recovery' : '결정 회수';
   String get runeResonance => _isEnglish ? 'Rune Resonance' : '룬 공명';
-  String get tacticalLimitExpansion =>
-      _isEnglish ? 'Tactical Limit Expansion' : '전술 한계 확장';
+  String get towerDamageLimitExpansion =>
+      _isEnglish ? 'Tower Damage Limit Expansion' : '포탑 화력 한계 확장';
+  String get killGoldLimitExpansion =>
+      _isEnglish ? 'Kill Bonus Limit Expansion' : '처치 보너스 한계 확장';
+  String get waveGoldLimitExpansion =>
+      _isEnglish ? 'Supply Limit Expansion' : '정비 보급 한계 확장';
   String get levelUp => _isEnglish ? 'Level Up' : '레벨업';
   String get cleared => _isEnglish ? 'Cleared' : '클리어';
   String get settled => _isEnglish ? 'Settled' : '정산 완료';
@@ -111,12 +118,17 @@ class RuneNexusLocalizations {
   String get restartRun => _isEnglish ? 'Start new run' : '새 런 시작';
   String get continueRun => _isEnglish ? 'Continue' : '이어서 진행';
   String get startStage => _isEnglish ? 'Start stage' : '스테이지 시작';
+  String get startStageAction => _isEnglish ? 'Start' : '시작하기';
+  String get stageUnavailableAction => _isEnglish ? 'Unavailable' : '시작 불가';
   String get startAfterSettling =>
       _isEnglish ? 'Start after settling' : '종료 후 시작';
   String get unlocked => _isEnglish ? 'Unlocked' : '해금됨';
   String get locked => _isEnglish ? 'Locked' : '잠김';
   String get recordNone => _isEnglish ? 'No record' : '기록 없음';
   String get recordCleared => _isEnglish ? 'Cleared' : '클리어';
+  String get stageBestRecordLabel => _isEnglish ? 'Best record' : '최고 기록';
+  String get stageTotalRoundsLabel => _isEnglish ? 'Rounds' : '총 라운드';
+  String get stageRuneRewardLabel => _isEnglish ? 'Rune reward' : '룬 보상';
   String get clearRewardLabel => _isEnglish ? 'Clear reward' : '클리어 보상';
   String get unlockedRewardLabel => _isEnglish ? 'Unlocked' : '해금됨';
   String get stageSniperRewardLocked => clearReward(sniperTurret);
@@ -207,6 +219,21 @@ class RuneNexusLocalizations {
     return _isEnglish ? 'Best ${round}R' : '최고 ${round}R';
   }
 
+  String stageTotalRounds(int maxRound) {
+    return _isEnglish ? '$maxRound rounds' : '$maxRound라운드';
+  }
+
+  String stageFullClearRuneReward(int runes) {
+    return _isEnglish ? '$runes runes on clear' : '완주 시 $runes룬';
+  }
+
+  String stageLockedRequirement(int stageNumber) {
+    final requiredStage = stageNumber - 1;
+    return _isEnglish
+        ? 'Clear Stage $requiredStage to start this stage.'
+        : '스테이지 $requiredStage 클리어 후 시작할 수 있습니다.';
+  }
+
   String stageProgressDetail({
     required int round,
     required int maxRound,
@@ -295,10 +322,10 @@ class RuneNexusLocalizations {
     return _isEnglish ? 'Rune reward boost +$percent%' : '룬 보상 증폭 +$percent%';
   }
 
-  String researchTacticalLimitExpansionEffect(int amount) {
+  String researchRunUpgradeLimitExpansionEffect(String subject, int amount) {
     return _isEnglish
-        ? 'Run upgrade max level +$amount'
-        : '런 강화 최대 레벨 +$amount';
+        ? '$subject max level +$amount'
+        : '$subject 최대 레벨 +$amount';
   }
 
   String researchRemaining(int remainingMillis) {
@@ -403,10 +430,20 @@ class RuneNexusLocalizations {
           ? 'Increases runes gained after a run by 2% per level.'
           : '레벨마다 런 종료 후 획득하는 룬이 2% 증가합니다.';
     }
-    if (title == tacticalLimitExpansion) {
+    if (title == towerDamageLimitExpansion) {
       return _isEnglish
-          ? 'Raises the maximum level of in-run upgrades by 1 per level.'
-          : '레벨마다 런 중 강화의 최대 레벨이 1 증가합니다.';
+          ? 'Raises the maximum level of Tower Damage by 1 per level.'
+          : '레벨마다 포탑 화력의 최대 레벨이 1 증가합니다.';
+    }
+    if (title == killGoldLimitExpansion) {
+      return _isEnglish
+          ? 'Raises the maximum level of Kill Bonus by 1 per level.'
+          : '레벨마다 처치 보너스의 최대 레벨이 1 증가합니다.';
+    }
+    if (title == waveGoldLimitExpansion) {
+      return _isEnglish
+          ? 'Raises the maximum level of Supply by 1 per level.'
+          : '레벨마다 정비 보급의 최대 레벨이 1 증가합니다.';
     }
     if (title == towerResearch) {
       return _isEnglish
@@ -473,13 +510,12 @@ class RuneNexusLocalizations {
   String endActiveStageBody({
     required int currentStageNumber,
     required int nextStageNumber,
+    required int runeReward,
   }) {
     if (_isEnglish) {
-      return 'End Stage $currentStageNumber, settle runes based on cleared '
-          'rounds, then start Stage $nextStageNumber.';
+      return 'Settle $runeReward runes, then start Stage $nextStageNumber.';
     }
-    return '스테이지 $currentStageNumber 진행 상황을 종료하고 현재 클리어 라운드 '
-        '기준으로 룬을 정산한 뒤 스테이지 $nextStageNumber를 시작합니다.';
+    return '현재 보상 $runeReward룬 정산 후 스테이지 $nextStageNumber 시작';
   }
 }
 

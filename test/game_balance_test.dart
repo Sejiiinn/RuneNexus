@@ -2034,64 +2034,67 @@ void main() {
     expect(progression.runeResonanceBonusRate, closeTo(0.4, 0.001));
   });
 
-  test('tactical limit expansion unlocks after stage eight clear', () {
+  test('run upgrade limit researches unlock after stage eight clear', () {
     final progression = RunProgression()..runes = 1000;
+    const researchTypes = [
+      ResearchType.towerDamageLimitExpansion,
+      ResearchType.killGoldLimitExpansion,
+      ResearchType.waveGoldLimitExpansion,
+    ];
 
-    expect(
-      progression.isResearchUnlocked(ResearchType.tacticalLimitExpansion),
-      isFalse,
-    );
+    for (final type in researchTypes) {
+      expect(progression.isResearchUnlocked(type), isFalse);
+    }
 
     progression.clearedStageNumbers.add(8);
 
-    expect(
-      progression.isResearchUnlocked(ResearchType.tacticalLimitExpansion),
-      isTrue,
-    );
-    expect(
-      progression.researchCostForCurrentLevel(
-        ResearchType.tacticalLimitExpansion,
-      ),
-      220,
-    );
-    expect(
-      progression.researchDurationForCurrentLevel(
-        ResearchType.tacticalLimitExpansion,
-      ),
-      3 * 60 * 60 * 1000,
-    );
+    for (final type in researchTypes) {
+      expect(progression.isResearchUnlocked(type), isTrue);
+      expect(progression.researchCostForCurrentLevel(type), 150);
+      expect(
+        progression.researchDurationForCurrentLevel(type),
+        2 * 60 * 60 * 1000,
+      );
+    }
 
     expect(
       progression.startResearch(
-        ResearchType.tacticalLimitExpansion,
+        ResearchType.towerDamageLimitExpansion,
         nowMillis: 1000,
       ),
       isTrue,
     );
-    expect(progression.runes, 780);
+    expect(progression.runes, 850);
     expect(
       progression.completeFinishedResearches(
-        nowMillis: 1000 + 3 * 60 * 60 * 1000,
+        nowMillis: 1000 + 2 * 60 * 60 * 1000,
       ),
       isTrue,
     );
-    expect(progression.researchLevel(ResearchType.tacticalLimitExpansion), 1);
-    expect(progression.runUpgradeMaxLevelBonus, 1);
+    expect(
+      progression.researchLevel(ResearchType.towerDamageLimitExpansion),
+      1,
+    );
     expect(
       progression.researchCostForCurrentLevel(
-        ResearchType.tacticalLimitExpansion,
+        ResearchType.towerDamageLimitExpansion,
       ),
-      275,
+      177,
     );
     expect(
       progression.researchDurationForCurrentLevel(
-        ResearchType.tacticalLimitExpansion,
+        ResearchType.towerDamageLimitExpansion,
       ),
-      (3 * 60 * 60 * 1000 * 1.12).round(),
+      (2 * 60 * 60 * 1000 * 1.08).round(),
     );
 
-    progression.researchLevels[ResearchType.tacticalLimitExpansion] = 10;
-    expect(progression.runUpgradeMaxLevelBonus, 10);
+    progression.researchLevels[ResearchType.towerDamageLimitExpansion] = 10;
+    expect(
+      progression.runUpgradeMaxLevelBonusFor(RunUpgradeType.towerDamage),
+      10,
+    );
+    expect(progression.runUpgradeMaxLevelBonusFor(RunUpgradeType.killGold), 0);
+    expect(progression.runUpgradeMaxLevelBonusFor(RunUpgradeType.waveGold), 0);
   });
 
   test('basic link engineering research is open by default', () {
@@ -3308,39 +3311,43 @@ void main() {
     expect(definition.costForLevel(costs.length), 0);
   });
 
-  test('tactical limit expansion lets run upgrades exceed base cap', () async {
-    final definition = gameRunUpgrades[RunUpgradeType.towerDamage]!;
-    final costAtBaseCap = definition.costForLevel(20, maxLevel: 30);
-    final repository = MemorySaveRepository()
-      ..data = _saveWithResearch(
-        clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8},
-        researchLevels: const {ResearchType.tacticalLimitExpansion: 10},
-        gold: costAtBaseCap,
-        runUpgradeLevels: const {RunUpgradeType.towerDamage: 20},
+  test(
+    'run upgrade limit research lets only matching upgrade exceed base cap',
+    () async {
+      final definition = gameRunUpgrades[RunUpgradeType.towerDamage]!;
+      final costAtBaseCap = definition.costForLevel(20, maxLevel: 30);
+      final repository = MemorySaveRepository()
+        ..data = _saveWithResearch(
+          clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8},
+          researchLevels: const {ResearchType.towerDamageLimitExpansion: 10},
+          gold: costAtBaseCap,
+          runUpgradeLevels: const {RunUpgradeType.towerDamage: 20},
+        );
+      final game = RuneNexusGame(saveRepository: repository);
+
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+
+      final snapshot = game.snapshotNotifier.value;
+      expect(game.runUpgradeMaxLevelFor(RunUpgradeType.towerDamage), 30);
+      expect(game.runUpgradeMaxLevelFor(RunUpgradeType.killGold), 20);
+      expect(game.runUpgradeMaxLevelFor(RunUpgradeType.waveGold), 20);
+      expect(snapshot.runUpgradeLevels[RunUpgradeType.towerDamage], 20);
+
+      game.buyRunUpgrade(RunUpgradeType.towerDamage);
+
+      expect(game.snapshotNotifier.value.gold, 0);
+      expect(
+        game.snapshotNotifier.value.runUpgradeLevels[RunUpgradeType
+            .towerDamage],
+        21,
       );
-    final game = RuneNexusGame(saveRepository: repository);
-
-    game.onGameResize(Vector2(400, 800));
-    await game.onLoad();
-
-    expect(game.runUpgradeMaxLevelFor(RunUpgradeType.towerDamage), 30);
-    expect(
-      game.snapshotNotifier.value.runUpgradeLevels[RunUpgradeType.towerDamage],
-      20,
-    );
-
-    game.buyRunUpgrade(RunUpgradeType.towerDamage);
-
-    expect(game.snapshotNotifier.value.gold, 0);
-    expect(
-      game.snapshotNotifier.value.runUpgradeLevels[RunUpgradeType.towerDamage],
-      21,
-    );
-    expect(
-      game.snapshotNotifier.value.towerDamageRunBonusRate,
-      closeTo(0.63, 0.001),
-    );
-  });
+      expect(
+        game.snapshotNotifier.value.towerDamageRunBonusRate,
+        closeTo(0.63, 0.001),
+      );
+    },
+  );
 
   test('run kill gold upgrade accumulates fractional rewards', () async {
     final game = RuneNexusGame(saveRepository: MemorySaveRepository());

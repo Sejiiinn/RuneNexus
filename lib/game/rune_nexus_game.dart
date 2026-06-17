@@ -645,7 +645,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (definition == null) {
       return 0;
     }
-    return definition.maxLevel + _progression.runUpgradeMaxLevelBonus;
+    return definition.maxLevel + _progression.runUpgradeMaxLevelBonusFor(type);
   }
 
   int runUpgradeCostFor(RunUpgradeType type, int currentLevel) {

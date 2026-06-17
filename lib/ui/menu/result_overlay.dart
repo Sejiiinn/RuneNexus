@@ -204,7 +204,12 @@ List<_UnlockGroup> _unlockGroupsFor(
       ]),
     ],
     8 => [
-      _UnlockGroup('연구', [l10n.runeResonance, l10n.tacticalLimitExpansion]),
+      _UnlockGroup('연구', [
+        l10n.runeResonance,
+        l10n.towerDamageLimitExpansion,
+        l10n.killGoldLimitExpansion,
+        l10n.waveGoldLimitExpansion,
+      ]),
     ],
     10 => [
       _UnlockGroup('젬', [l10n.armorPiercingGem]),
