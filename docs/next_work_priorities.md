@@ -24,6 +24,7 @@
 - 포탑별 1차/2차 특성 선택과 전투 효과
 - 특성 후보 첫 선택 상태와 같은 후보 재선택 확정 흐름
 - 저격 포탑 1차/2차 특성 선택지
+- 포탑별 공격 명령 우선순위와 `전술 명령` 연구 게이트
 - 보스 웨이브 순서, 호위 몹, 보스 수 정리
 - 공통 게임 UI 컴포넌트 기반의 주요 화면 정리
 - 메인 메뉴 스테이지/강화/연구 화면의 모바일 폭 대응
@@ -113,32 +114,7 @@
 - `test/game_balance_test.dart`
 - `test/widget_test.dart`
 
-### 3. 포탑 공격 명령 우선순위 구현
-
-작업 후보:
-
-- `docs/turret_target_priority_design.md` 기준으로 포탑별 공격 명령 저장/복구 추가
-- 선두, 후방, 강한 적, 약한 적, 근접 명령 지원
-- 선택 포탑 상세 패널에 명령 선택 UI 추가
-- 저격 포탑 조준 유지 규칙과 충돌하지 않는지 테스트
-
-이유:
-
-- 주변 보호형 적을 추가하기 전에 플레이어가 타겟 우선순위를 조정할 수 있어야 한다.
-- 보호막병과 보스 호위가 섞이는 챕터 2, 장갑병과 탱커가 본격화되는 챕터 3에서 포탑별 역할 지정이 더 중요해진다.
-- 내부적으로 `first`, `last`, `nearest` 기반이 이미 있어 신규 시스템보다 확장 작업에 가깝다.
-
-관련 파일:
-
-- `docs/turret_target_priority_design.md`
-- `lib/game/components/turret_component.dart`
-- `lib/data/save/game_save_data.dart`
-- `lib/game/game_snapshot.dart`
-- `lib/ui/hud/gem_equip_panel.dart`
-- `test/game_balance_test.dart`
-- `test/widget_test.dart`
-
-### 4. 50라운드 보상/난이도 곡선 재점검
+### 3. 50라운드 보상/난이도 곡선 재점검
 
 작업 후보:
 
@@ -162,7 +138,7 @@
 - `test/game_balance_test.dart`
 - `docs/gameplay_balance_reference.md`
 
-### 5. 보스 웨이브 연출과 피드백 강화
+### 4. 보스 웨이브 연출과 피드백 강화
 
 작업 후보:
 
@@ -183,6 +159,28 @@
 - `lib/game/rendering/enemy_shape_renderer.dart`
 - `lib/data/definitions/game_stage_data.dart`
 - `test/widget_test.dart`
+
+### 5. 보호형 적 후속 설계
+
+작업 후보:
+
+- 방벽 수호병처럼 주변 적을 보호하는 후속 적의 필요성 검토
+- 기존 공격 명령 5종으로 보호형 적 대응이 충분한지 플레이 검증
+- 필요하면 `지원 적 우선`, `보호막 우선` 같은 특수 명령을 별도 후보로 설계
+- 보호 범위와 보호 대상의 전투 화면 표시 방식 검토
+
+이유:
+
+- 포탑 공격 명령 우선순위는 이미 구현됐으므로, 다음 판단 지점은 그 기능이 보호형 적과 섞였을 때 충분한지다.
+- 주변 보호형 적은 자동 타겟팅 게임에서 불쾌감이 생기기 쉬워, 새 적 구현보다 플레이어 통제감 검증을 먼저 해야 한다.
+
+관련 파일:
+
+- `docs/chapter2_wave_enemy_design.md`
+- `docs/turret_target_priority_design.md`
+- `lib/game/components/turret_component.dart`
+- `lib/ui/hud/gem_equip_panel.dart`
+- `test/game_balance_test.dart`
 
 ### 6. `RuneNexusGame` 책임 분리 리팩토링
 
@@ -210,9 +208,9 @@
 
 1. 챕터 2~3 보상과 연구 조건 연결
 2. 연구/영구 성장 해금 단계 정리
-3. 포탑 공격 명령 우선순위 구현
-4. 50라운드 보상/난이도 곡선 재점검
-5. 보스 웨이브 연출과 피드백 강화
+3. 50라운드 보상/난이도 곡선 재점검
+4. 보스 웨이브 연출과 피드백 강화
+5. 보호형 적 후속 설계
 6. `RuneNexusGame` 책임 분리 리팩토링
 
 ## 보류 기준
@@ -238,5 +236,5 @@ docs/next_work_priorities.md 기준으로 최우선 과제인 챕터 2~3 보상�
 영구 성장부터 확장하려면 다음 문장이 적합하다.
 
 ```text
-docs/next_work_priorities.md 기준으로 3순위인 연구/영구 성장 해금 단계 정리를 진행해줘.
+docs/next_work_priorities.md 기준으로 2순위인 연구/영구 성장 해금 단계 정리를 진행해줘.
 ```
