@@ -42,6 +42,16 @@ const String _stageChapterOneBannerAsset = 'assets/images/chapter_1_banner.png';
 const String _stageChapterTwoBannerAsset = 'assets/images/chapter_2_banner.png';
 const String _stageChapterThreeBannerAsset =
     'assets/images/chapter_3_banner.png';
+const String _stageRewardUpgradeIconAsset =
+    'assets/images/stage_rewards/reward_upgrade.png';
+const String _stageRewardResearchIconAsset =
+    'assets/images/stage_rewards/reward_research.png';
+const String _stageRewardGemIconAsset =
+    'assets/images/stage_rewards/reward_gem.png';
+const String _stageRewardCoreIconAsset =
+    'assets/images/stage_rewards/reward_core.png';
+const String _stageRewardStageIconAsset =
+    'assets/images/stage_rewards/reward_stage.png';
 const List<String> _stageChapterBannerAssets = [
   _stageChapterOneBannerAsset,
   _stageChapterTwoBannerAsset,
@@ -2144,7 +2154,7 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 1) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const Icon(Icons.upgrade_outlined, size: 16),
+      icon: const _StageRewardAssetIcon(asset: _stageRewardUpgradeIconAsset),
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
@@ -2165,7 +2175,7 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 2) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const Icon(Icons.science_outlined, size: 16),
+      icon: const _StageRewardAssetIcon(asset: _stageRewardResearchIconAsset),
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
@@ -2189,7 +2199,9 @@ _StageRewardInfo? _stageRewardInfoFor({
           ? l10n.unlockedRewardLabel
           : l10n.clearRewardLabel,
       icon: const _SniperRewardIcon(),
-      extraIcons: const [Icon(Icons.hexagon_outlined, size: 16)],
+      extraIcons: const [
+        _StageRewardAssetIcon(asset: _stageRewardGemIconAsset),
+      ],
       highlighted: sniperRewardUnlocked,
       items: [
         _StageUnlockItem(
@@ -2210,7 +2222,7 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 4) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const Icon(Icons.upgrade_outlined, size: 16),
+      icon: const _StageRewardAssetIcon(asset: _stageRewardUpgradeIconAsset),
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
@@ -2231,8 +2243,10 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 5) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const Icon(Icons.science_outlined, size: 16),
-      extraIcons: const [Icon(Icons.blur_circular_outlined, size: 16)],
+      icon: const _StageRewardAssetIcon(asset: _stageRewardResearchIconAsset),
+      extraIcons: const [
+        _StageRewardAssetIcon(asset: _stageRewardCoreIconAsset),
+      ],
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
@@ -2274,7 +2288,7 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 7) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const Icon(Icons.upgrade_outlined, size: 16),
+      icon: const _StageRewardAssetIcon(asset: _stageRewardUpgradeIconAsset),
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
@@ -2295,7 +2309,7 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 8) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const Icon(Icons.science_outlined, size: 16),
+      icon: const _StageRewardAssetIcon(asset: _stageRewardResearchIconAsset),
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
@@ -2328,7 +2342,7 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 10) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const Icon(Icons.gps_fixed_outlined, size: 16),
+      icon: const _StageRewardAssetIcon(asset: _stageRewardGemIconAsset),
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
@@ -2520,6 +2534,24 @@ class _StageRewardIconBadge extends StatelessWidget {
           child: icon,
         ),
       ),
+    );
+  }
+}
+
+class _StageRewardAssetIcon extends StatelessWidget {
+  const _StageRewardAssetIcon({required this.asset});
+
+  final String asset;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = IconTheme.of(context).size ?? 16;
+    return Image.asset(
+      asset,
+      width: size + 2,
+      height: size + 2,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
     );
   }
 }

@@ -131,7 +131,9 @@ class _MenuTabs extends StatelessWidget {
               Expanded(
                 child: _TabButton(
                   key: const ValueKey('main-menu-tab-stage'),
-                  icon: Icons.flag_outlined,
+                  icon: const _MainMenuTabAssetIcon(
+                    asset: _stageRewardStageIconAsset,
+                  ),
                   label: l10n.stageTab,
                   selected: selectedTab == MainMenuTab.stage,
                   onPressed: () => onSelectTab(MainMenuTab.stage),
@@ -141,7 +143,9 @@ class _MenuTabs extends StatelessWidget {
               Expanded(
                 child: _TabButton(
                   key: const ValueKey('main-menu-tab-core'),
-                  icon: Icons.diamond_outlined,
+                  icon: const _MainMenuTabAssetIcon(
+                    asset: _stageRewardCoreIconAsset,
+                  ),
                   label: l10n.coreTab,
                   selected: selectedTab == MainMenuTab.core,
                   onPressed: () => onSelectTab(MainMenuTab.core),
@@ -151,7 +155,9 @@ class _MenuTabs extends StatelessWidget {
               Expanded(
                 child: _TabButton(
                   key: const ValueKey('main-menu-tab-upgrades'),
-                  icon: Icons.auto_awesome,
+                  icon: const _MainMenuTabAssetIcon(
+                    asset: _stageRewardUpgradeIconAsset,
+                  ),
                   label: l10n.permanentUpgradeTab,
                   selected: selectedTab == MainMenuTab.permanentUpgrades,
                   onPressed: () => onSelectTab(MainMenuTab.permanentUpgrades),
@@ -161,7 +167,9 @@ class _MenuTabs extends StatelessWidget {
               Expanded(
                 child: _TabButton(
                   key: const ValueKey('main-menu-tab-research'),
-                  icon: Icons.science_outlined,
+                  icon: const _MainMenuTabAssetIcon(
+                    asset: _stageRewardResearchIconAsset,
+                  ),
                   label: l10n.researchTab,
                   selected: selectedTab == MainMenuTab.research,
                   onPressed: () => onSelectTab(MainMenuTab.research),
@@ -389,7 +397,7 @@ class _TabButton extends StatelessWidget {
     required this.onPressed,
   });
 
-  final IconData icon;
+  final Widget icon;
   final String label;
   final bool selected;
   final VoidCallback onPressed;
@@ -477,18 +485,23 @@ class _TabButton extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            icon,
-                            size: iconSize,
-                            color: foregroundColor,
-                            shadows: selected
-                                ? const [
-                                    Shadow(
-                                      color: Color(0xAA22C7E8),
-                                      blurRadius: 8,
-                                    ),
-                                  ]
-                                : null,
+                          IconTheme(
+                            data: IconThemeData(
+                              color: foregroundColor,
+                              size: iconSize,
+                              shadows: selected
+                                  ? const [
+                                      Shadow(
+                                        color: Color(0xAA22C7E8),
+                                        blurRadius: 8,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Opacity(
+                              opacity: selected ? 1 : 0.68,
+                              child: icon,
+                            ),
                           ),
                           SizedBox(width: labelGap),
                           Flexible(
@@ -518,6 +531,24 @@ class _TabButton extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _MainMenuTabAssetIcon extends StatelessWidget {
+  const _MainMenuTabAssetIcon({required this.asset});
+
+  final String asset;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = IconTheme.of(context).size ?? 18;
+    return Image.asset(
+      asset,
+      width: size + 5,
+      height: size + 5,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
     );
   }
 }
