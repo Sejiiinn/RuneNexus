@@ -24,6 +24,8 @@ class RuneNexusLocalizations {
   String get coreTab => _isEnglish ? 'Core' : '코어';
   String get permanentUpgradeTab => _isEnglish ? 'Upgrade' : '강화';
   String get researchTab => _isEnglish ? 'Research' : '연구';
+  String get turretSection => _isEnglish ? 'Turret' : '포탑';
+  String get gemSection => _isEnglish ? 'Gem' : '젬';
   String get runes => _isEnglish ? 'Runes' : '룬';
   String get diamonds => _isEnglish ? 'Diamonds' : '다이아';
   String get ownedRunes => _isEnglish ? 'Owned Runes' : '보유 룬';

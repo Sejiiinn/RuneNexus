@@ -162,7 +162,7 @@ void main() {
     expect(find.text('스테이지 6'), findsOneWidget);
     expect(find.text('스테이지 10'), findsOneWidget);
     expect(find.text('스테이지 1'), findsNothing);
-    expect(find.text('라이트닝 포탑'), findsOneWidget);
+    expect(find.text('라이트닝 포탑'), findsNothing);
 
     await tester.tap(find.text('스테이지 6'));
     await _pumpGameFrames(tester);
@@ -929,22 +929,21 @@ void main() {
     expect(find.text('스테이지'), findsOneWidget);
     expect(find.text('코어'), findsOneWidget);
     expect(find.text('강화'), findsOneWidget);
-    expect(find.text('클리어 보상'), findsNWidgets(5));
+    expect(find.text('클리어 보상'), findsNothing);
     expect(find.text('스테이지 1 클리어 필요'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('stage cards clarify clear rewards and unlocked rewards', (
+  testWidgets('stage cards keep clear rewards icon-only until details', (
     tester,
   ) async {
     await _pumpLoadedApp(tester);
 
-    expect(find.text('클리어 보상'), findsNWidgets(5));
-    expect(find.text('저격+조준경'), findsOneWidget);
-    expect(find.text('경제 강화'), findsOneWidget);
-    expect(find.text('연구'), findsNWidgets(2));
-    expect(find.text('연구+코어'), findsOneWidget);
-    expect(find.text('전투 강화'), findsOneWidget);
+    expect(find.text('클리어 보상'), findsNothing);
+    expect(find.text('저격+조준경'), findsNothing);
+    expect(find.text('경제 강화'), findsNothing);
+    expect(find.text('연구+코어'), findsNothing);
+    expect(find.text('전투 강화'), findsNothing);
     expect(find.text('룬 +0%'), findsOneWidget);
     expect(find.text('룬 +20%'), findsOneWidget);
     expect(find.text('룬 +45%'), findsOneWidget);
@@ -980,12 +979,11 @@ void main() {
     );
     await _pumpGameFrames(tester);
 
-    expect(find.text('해금됨'), findsNWidgets(4));
-    expect(find.text('경제 강화'), findsOneWidget);
-    expect(find.text('연구'), findsNWidgets(2));
-    expect(find.text('연구+코어'), findsOneWidget);
-    expect(find.text('저격+조준경'), findsOneWidget);
-    expect(find.text('전투 강화'), findsOneWidget);
+    expect(find.text('해금됨'), findsNothing);
+    expect(find.text('경제 강화'), findsNothing);
+    expect(find.text('연구+코어'), findsNothing);
+    expect(find.text('저격+조준경'), findsNothing);
+    expect(find.text('전투 강화'), findsNothing);
     expect(find.text('클리어 보상: 경제 강화'), findsNothing);
     expect(find.text('클리어 보상: 연구'), findsNothing);
     expect(find.text('클리어 보상: 전투 강화'), findsNothing);
@@ -1000,9 +998,78 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('stage-selection-row-2')));
     await _pumpGameFrames(tester);
 
+    expect(find.text('클리어 보상'), findsOneWidget);
     expect(find.text('전술 명령'), findsOneWidget);
     expect(find.text('젬 감응'), findsOneWidget);
     expect(find.text('연구 해금'), findsNothing);
+  });
+
+  testWidgets('stage details group unlock rewards by system section', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            unlockedStageCount: 5,
+            clearedStageNumbers: const {1, 2, 3, 4},
+          ),
+          selectedTab: MainMenuTab.stage,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('stage-selection-row-5')),
+    );
+    await tester.tap(find.byKey(const ValueKey('stage-selection-row-5')));
+    await _pumpGameFrames(tester);
+
+    final researchSection = find.byKey(
+      const ValueKey('stage-unlock-section-research'),
+    );
+    final coreSection = find.byKey(const ValueKey('stage-unlock-section-core'));
+
+    expect(researchSection, findsOneWidget);
+    expect(coreSection, findsOneWidget);
+    expect(
+      find.descendant(of: researchSection, matching: find.text('연구')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: researchSection, matching: find.text('링크 확장 I')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: researchSection, matching: find.text('결정 회수')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: coreSection, matching: find.text('코어')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: coreSection, matching: find.text('균열 낙인')),
+      findsOneWidget,
+    );
+    expect(
+      tester.getTopLeft(researchSection).dy,
+      lessThan(tester.getTopLeft(coreSection).dy),
+    );
   });
 
   testWidgets('active stage details only offer continue action', (

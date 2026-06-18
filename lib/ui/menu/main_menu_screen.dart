@@ -1660,7 +1660,6 @@ class _StageSelectionRow extends StatelessWidget {
                   child: _StageRewardSummary(
                     rewardInfo: rewardInfo,
                     unlocked: unlocked,
-                    theme: theme,
                     dense: dense,
                   ),
                 ),
@@ -1919,6 +1918,7 @@ class _StageUnlockPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sections = _stageUnlockSections(context, items);
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -1943,18 +1943,79 @@ class _StageUnlockPanel extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final item in items)
-                _StageUnlockChip(item: item, theme: theme),
-            ],
-          ),
+          for (final section in sections) ...[
+            _StageUnlockSection(section: section, theme: theme),
+            if (section != sections.last) const SizedBox(height: 8),
+          ],
         ],
       ),
     );
   }
+}
+
+class _StageUnlockSection extends StatelessWidget {
+  const _StageUnlockSection({required this.section, required this.theme});
+
+  final _StageUnlockSectionData section;
+  final _StageChapterTheme theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      key: ValueKey('stage-unlock-section-${section.category.name}'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              section.label,
+              style: GameTextStyles.withColor(
+                GameTextStyles.caption,
+                GamePalette.textSecondary,
+              ).copyWith(fontSize: 10, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Container(height: 1, color: const Color(0x33485B68)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 5),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final item in section.items)
+              _StageUnlockChip(item: item, theme: theme),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+List<_StageUnlockSectionData> _stageUnlockSections(
+  BuildContext context,
+  List<_StageUnlockItem> items,
+) {
+  final l10n = context.l10n;
+  final result = <_StageUnlockSectionData>[];
+  for (final category in _StageUnlockCategory.values) {
+    final sectionItems = items
+        .where((item) => item.category == category)
+        .toList(growable: false);
+    if (sectionItems.isEmpty) {
+      continue;
+    }
+    result.add(
+      _StageUnlockSectionData(
+        category: category,
+        label: category.label(l10n),
+        items: sectionItems,
+      ),
+    );
+  }
+  return result;
 }
 
 class _StageUnlockChip extends StatelessWidget {
@@ -2083,18 +2144,19 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 1) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      value: l10n.economicUpgrade,
-      icon: const Icon(Icons.paid_outlined, size: 16),
+      icon: const Icon(Icons.upgrade_outlined, size: 16),
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
           label: l10n.killRewardBonus,
           icon: Icons.monetization_on_outlined,
+          category: _StageUnlockCategory.upgrade,
           highlighted: stageCleared,
         ),
         _StageUnlockItem(
           label: l10n.emergencySale,
           icon: Icons.sell_outlined,
+          category: _StageUnlockCategory.upgrade,
           highlighted: stageCleared,
         ),
       ],
@@ -2103,18 +2165,19 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 2) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      value: l10n.researchTab,
       icon: const Icon(Icons.science_outlined, size: 16),
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
           label: l10n.tacticalCommand,
           icon: Icons.rule_outlined,
+          category: _StageUnlockCategory.research,
           highlighted: stageCleared,
         ),
         _StageUnlockItem(
           label: l10n.gemAttunement,
           icon: Icons.auto_awesome_outlined,
+          category: _StageUnlockCategory.research,
           highlighted: stageCleared,
         ),
       ],
@@ -2125,18 +2188,20 @@ _StageRewardInfo? _stageRewardInfoFor({
       label: sniperRewardUnlocked
           ? l10n.unlockedRewardLabel
           : l10n.clearRewardLabel,
-      value: l10n.precisionReward,
       icon: const _SniperRewardIcon(),
+      extraIcons: const [Icon(Icons.hexagon_outlined, size: 16)],
       highlighted: sniperRewardUnlocked,
       items: [
         _StageUnlockItem(
           label: l10n.sniperTurret,
           icon: Icons.center_focus_strong_outlined,
+          category: _StageUnlockCategory.turret,
           highlighted: sniperRewardUnlocked,
         ),
         _StageUnlockItem(
           label: l10n.aimSpeedGem,
           icon: Icons.zoom_in_outlined,
+          category: _StageUnlockCategory.gem,
           highlighted: sniperRewardUnlocked,
         ),
       ],
@@ -2145,18 +2210,19 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 4) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      value: l10n.combatUpgrade,
-      icon: const Icon(Icons.bolt_outlined, size: 16),
+      icon: const Icon(Icons.upgrade_outlined, size: 16),
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
           label: l10n.criticalChanceTraining,
           icon: Icons.gps_fixed,
+          category: _StageUnlockCategory.upgrade,
           highlighted: stageCleared,
         ),
         _StageUnlockItem(
           label: l10n.criticalDamageTraining,
           icon: Icons.bolt,
+          category: _StageUnlockCategory.upgrade,
           highlighted: stageCleared,
         ),
       ],
@@ -2165,23 +2231,26 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 5) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      value: '${l10n.researchTab}+${l10n.coreTab}',
       icon: const Icon(Icons.science_outlined, size: 16),
+      extraIcons: const [Icon(Icons.blur_circular_outlined, size: 16)],
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
           label: l10n.linkExpansionOne,
           icon: Icons.hub_outlined,
+          category: _StageUnlockCategory.research,
           highlighted: stageCleared,
         ),
         _StageUnlockItem(
           label: l10n.crystalRecovery,
           icon: Icons.diamond_outlined,
+          category: _StageUnlockCategory.research,
           highlighted: stageCleared,
         ),
         _StageUnlockItem(
           label: l10n.riftMarkSkill,
           icon: Icons.track_changes,
+          category: _StageUnlockCategory.core,
           highlighted: stageCleared,
         ),
       ],
@@ -2190,13 +2259,13 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 6) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      value: l10n.lightningTurret,
       icon: const _LightningRewardIcon(),
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
           label: l10n.lightningTurret,
           icon: Icons.bolt_outlined,
+          category: _StageUnlockCategory.turret,
           highlighted: stageCleared,
         ),
       ],
@@ -2205,18 +2274,19 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 7) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      value: l10n.combatUpgrade,
-      icon: const Icon(Icons.bolt_outlined, size: 16),
+      icon: const Icon(Icons.upgrade_outlined, size: 16),
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
           label: l10n.physicalDamageTraining,
           icon: Icons.hardware_outlined,
+          category: _StageUnlockCategory.upgrade,
           highlighted: stageCleared,
         ),
         _StageUnlockItem(
           label: l10n.elementalDamageTraining,
           icon: Icons.auto_awesome_outlined,
+          category: _StageUnlockCategory.upgrade,
           highlighted: stageCleared,
         ),
       ],
@@ -2225,28 +2295,31 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 8) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      value: l10n.researchTab,
       icon: const Icon(Icons.science_outlined, size: 16),
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
           label: l10n.runeResonance,
           icon: Icons.all_inclusive,
+          category: _StageUnlockCategory.research,
           highlighted: stageCleared,
         ),
         _StageUnlockItem(
           label: l10n.towerDamageLimitExpansion,
           icon: Icons.local_fire_department_outlined,
+          category: _StageUnlockCategory.research,
           highlighted: stageCleared,
         ),
         _StageUnlockItem(
           label: l10n.killGoldLimitExpansion,
           icon: Icons.toll_outlined,
+          category: _StageUnlockCategory.research,
           highlighted: stageCleared,
         ),
         _StageUnlockItem(
           label: l10n.waveGoldLimitExpansion,
           icon: Icons.inventory_2_outlined,
+          category: _StageUnlockCategory.research,
           highlighted: stageCleared,
         ),
       ],
@@ -2255,13 +2328,13 @@ _StageRewardInfo? _stageRewardInfoFor({
   if (stageNumber == 10) {
     return _StageRewardInfo(
       label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      value: l10n.armorPiercingGem,
       icon: const Icon(Icons.gps_fixed_outlined, size: 16),
       highlighted: stageCleared,
       items: [
         _StageUnlockItem(
           label: l10n.armorPiercingGem,
           icon: Icons.gps_fixed_outlined,
+          category: _StageUnlockCategory.gem,
           highlighted: stageCleared,
         ),
       ],
@@ -2329,15 +2402,15 @@ class _StageRuneBonusText extends StatelessWidget {
 class _StageRewardInfo {
   const _StageRewardInfo({
     this.label,
-    required this.value,
     required this.icon,
+    this.extraIcons = const [],
     required this.highlighted,
     this.items = const [],
   });
 
   final String? label;
-  final String value;
   final Widget icon;
+  final List<Widget> extraIcons;
   final bool highlighted;
   final List<_StageUnlockItem> items;
 }
@@ -2346,25 +2419,55 @@ class _StageUnlockItem {
   const _StageUnlockItem({
     required this.label,
     required this.icon,
+    required this.category,
     this.highlighted = false,
   });
 
   final String label;
   final IconData icon;
+  final _StageUnlockCategory category;
   final bool highlighted;
+}
+
+class _StageUnlockSectionData {
+  const _StageUnlockSectionData({
+    required this.category,
+    required this.label,
+    required this.items,
+  });
+
+  final _StageUnlockCategory category;
+  final String label;
+  final List<_StageUnlockItem> items;
+}
+
+enum _StageUnlockCategory {
+  upgrade,
+  research,
+  turret,
+  gem,
+  core;
+
+  String label(RuneNexusLocalizations l10n) {
+    return switch (this) {
+      _StageUnlockCategory.upgrade => l10n.permanentUpgradeTab,
+      _StageUnlockCategory.research => l10n.researchTab,
+      _StageUnlockCategory.turret => l10n.turretSection,
+      _StageUnlockCategory.gem => l10n.gemSection,
+      _StageUnlockCategory.core => l10n.coreTab,
+    };
+  }
 }
 
 class _StageRewardSummary extends StatelessWidget {
   const _StageRewardSummary({
     required this.rewardInfo,
     required this.unlocked,
-    required this.theme,
     required this.dense,
   });
 
   final _StageRewardInfo? rewardInfo;
   final bool unlocked;
-  final _StageChapterTheme theme;
   final bool dense;
 
   @override
@@ -2373,63 +2476,50 @@ class _StageRewardSummary extends StatelessWidget {
     if (rewardInfo == null) {
       return const SizedBox.shrink();
     }
-    final color = unlocked
-        ? rewardInfo.highlighted
-              ? theme.secondary
-              : GamePalette.textSecondary
-        : const Color(0xFF667987);
+    final color = unlocked ? GamePalette.textPrimary : const Color(0xFF7F93A1);
+    final icons = [rewardInfo.icon, ...rewardInfo.extraIcons];
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        IconTheme(
-          data: IconThemeData(color: color, size: dense ? 14 : 16),
-          child: rewardInfo.icon,
-        ),
-        SizedBox(width: dense ? 5 : 7),
-        Flexible(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (rewardInfo.label != null) ...[
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      rewardInfo.label!,
-                      maxLines: 1,
-                      softWrap: false,
-                      style: TextStyle(
-                        color: color.withValues(alpha: 0.78),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 2),
-              ],
-              Align(
-                alignment: Alignment.centerLeft,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    rewardInfo.value,
-                    maxLines: 1,
-                    softWrap: false,
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        for (var index = 0; index < icons.length; index++) ...[
+          if (index > 0) SizedBox(width: dense ? 4 : 6),
+          _StageRewardIconBadge(icon: icons[index], color: color, dense: dense),
+        ],
       ],
+    );
+  }
+}
+
+class _StageRewardIconBadge extends StatelessWidget {
+  const _StageRewardIconBadge({
+    required this.icon,
+    required this.color,
+    required this.dense,
+  });
+
+  final Widget icon;
+  final Color color;
+  final bool dense;
+
+  @override
+  Widget build(BuildContext context) {
+    final size = dense ? 24.0 : 28.0;
+    return Semantics(
+      label: context.l10n.clearRewardLabel,
+      child: Container(
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: const Color(0x14E8F8FF),
+          border: Border.all(color: color.withValues(alpha: 0.34)),
+          borderRadius: BorderRadius.circular(7),
+        ),
+        child: IconTheme(
+          data: IconThemeData(color: color, size: dense ? 14 : 16),
+          child: icon,
+        ),
+      ),
     );
   }
 }
