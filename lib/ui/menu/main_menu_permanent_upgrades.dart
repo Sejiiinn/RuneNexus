@@ -557,7 +557,7 @@ class _RuneCostChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.diamond_outlined, size: 12, color: foreground),
+          CurrencyAssetIcon.rune(size: 12, opacity: enabled ? 1 : 0.45),
           const SizedBox(width: 2),
           Text(
             '$cost',

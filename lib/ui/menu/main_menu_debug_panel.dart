@@ -127,12 +127,12 @@ class _MainMenuDebugPanel extends StatelessWidget {
                 runSpacing: 5,
                 children: [
                   _DebugStatusChip(
-                    icon: Icons.diamond_outlined,
+                    iconWidget: const CurrencyAssetIcon.rune(size: 13),
                     label: '룬',
                     value: '${snapshot.runes}',
                   ),
                   _DebugStatusChip(
-                    icon: Icons.diamond,
+                    iconWidget: const CurrencyAssetIcon.diamond(size: 13),
                     label: '다이아',
                     value: '${snapshot.diamonds}',
                   ),
@@ -248,12 +248,14 @@ class _MainMenuDebugPanel extends StatelessWidget {
 
 class _DebugStatusChip extends StatelessWidget {
   const _DebugStatusChip({
-    required this.icon,
+    this.icon,
+    this.iconWidget,
     required this.label,
     required this.value,
   });
 
-  final IconData icon;
+  final IconData? icon;
+  final Widget? iconWidget;
   final String label;
   final String value;
 
@@ -270,7 +272,7 @@ class _DebugStatusChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: const Color(0xFF8EE6FF), size: 13),
+          iconWidget ?? Icon(icon, color: const Color(0xFF8EE6FF), size: 13),
           const SizedBox(width: 5),
           Text(
             label,

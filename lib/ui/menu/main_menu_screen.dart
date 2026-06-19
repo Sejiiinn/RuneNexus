@@ -20,6 +20,7 @@ import '../../game/rune_nexus_game.dart';
 import '../../game/systems/run_progression.dart';
 import '../../l10n/rune_nexus_localizations.dart';
 import '../game/game_ui.dart';
+import '../widgets/currency_icon.dart';
 import '../widgets/rune_balance_card.dart';
 
 part 'main_menu_core.dart';

@@ -7,6 +7,7 @@ import '../../domain/enemy/enemy_scaling.dart';
 import '../../domain/turret/attack_tag.dart';
 import '../../domain/turret/damage_family.dart';
 import '../../game/game_snapshot.dart';
+import '../widgets/currency_icon.dart';
 import 'hud_common.dart';
 
 class HudPortalSummaryCard extends StatelessWidget {
@@ -424,11 +425,7 @@ class _EnemyDetailRow extends StatelessWidget {
                 valueChild: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.paid_outlined,
-                      size: 12,
-                      color: Color(0xFFFFD166),
-                    ),
+                    const CurrencyAssetIcon.gold(size: 12),
                     const SizedBox(width: 2),
                     Text(
                       '+${enemy.rewardGold}',
