@@ -14,229 +14,271 @@ class _PermanentUpgradeMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final nextStartingGoldLevel = (snapshot.startingGoldUpgradeLevel + 1)
-        .clamp(0, RunProgression.maxStartingGoldUpgradeLevel)
-        .toInt();
-    final nextNexusHpLevel = (snapshot.nexusHpUpgradeLevel + 1)
-        .clamp(0, RunProgression.maxNexusHpUpgradeLevel)
-        .toInt();
-    final nextSupplyLevel = (snapshot.supplyUpgradeLevel + 1)
-        .clamp(0, RunProgression.maxSupplyUpgradeLevel)
-        .toInt();
-    final nextKillGoldLevel = (snapshot.killGoldUpgradeLevel + 1)
-        .clamp(0, RunProgression.maxKillGoldUpgradeLevel)
-        .toInt();
-    final nextEmergencySaleLevel = (snapshot.emergencySaleUpgradeLevel + 1)
-        .clamp(0, RunProgression.maxEmergencySaleUpgradeLevel)
-        .toInt();
-    final nextFireTrainingLevel = (snapshot.fireTrainingUpgradeLevel + 1)
-        .clamp(0, RunProgression.maxFireTrainingUpgradeLevel)
-        .toInt();
-    final nextPhysicalDamageTrainingLevel =
-        (snapshot.physicalDamageTrainingUpgradeLevel + 1)
-            .clamp(0, RunProgression.maxPhysicalDamageTrainingUpgradeLevel)
-            .toInt();
-    final nextElementalDamageTrainingLevel =
-        (snapshot.elementalDamageTrainingUpgradeLevel + 1)
-            .clamp(0, RunProgression.maxElementalDamageTrainingUpgradeLevel)
-            .toInt();
-    final nextCriticalChanceLevel = (snapshot.criticalChanceUpgradeLevel + 1)
-        .clamp(0, RunProgression.maxCriticalChanceUpgradeLevel)
-        .toInt();
-    final nextCriticalDamageLevel = (snapshot.criticalDamageUpgradeLevel + 1)
-        .clamp(0, RunProgression.maxCriticalDamageUpgradeLevel)
-        .toInt();
-    final economyUpgradeUnlocked = snapshot.clearedStageNumbers.contains(
-      RuneNexusGame.economyUpgradeUnlockStage,
-    );
-    final stageFourCleared = snapshot.clearedStageNumbers.contains(4);
-    final stageSevenCleared = snapshot.clearedStageNumbers.contains(7);
-    final combatTiles = [
-      _PermanentUpgradeTile(
-        icon: Icons.favorite_border,
-        title: l10n.nexusHp,
-        description: l10n.permanentUpgradeDescription(l10n.nexusHp),
-        level: snapshot.nexusHpUpgradeLevel,
-        maxLevel: RunProgression.maxNexusHpUpgradeLevel,
-        globalMaxLevel: RunProgression.maxNexusHpUpgradeLevel,
-        valueText: '+${snapshot.nexusHpUpgradeLevel}',
-        nextValueText: '+$nextNexusHpLevel',
-        cost: snapshot.nexusHpUpgradeCost,
-        enabled: snapshot.canUpgradeNexusHp,
-        lockText: l10n.maxLevelReached,
-        onPressed: game.upgradeNexusHpProgression,
-      ),
-      _PermanentUpgradeTile(
-        icon: Icons.local_fire_department_outlined,
-        title: l10n.basicFireTraining,
-        description: l10n.permanentUpgradeDescription(l10n.basicFireTraining),
-        level: snapshot.fireTrainingUpgradeLevel,
-        maxLevel: RunProgression.maxFireTrainingUpgradeLevel,
-        globalMaxLevel: RunProgression.maxFireTrainingUpgradeLevel,
-        valueText:
-            '+${(snapshot.fireTrainingDamageBonusRate * 100).toStringAsFixed(1)}%',
-        nextValueText:
-            '+${(nextFireTrainingLevel * RunProgression.fireTrainingDamagePerUpgradeLevel * 100).toStringAsFixed(1)}%',
-        cost: snapshot.fireTrainingUpgradeCost,
-        enabled: snapshot.canUpgradeFireTraining,
-        lockText: l10n.maxLevelReached,
-        onPressed: game.upgradeFireTrainingProgression,
-      ),
-      if (stageSevenCleared)
-        _PermanentUpgradeTile(
-          icon: Icons.hardware_outlined,
-          title: l10n.physicalDamageTraining,
-          description: l10n.permanentUpgradeDescription(
-            l10n.physicalDamageTraining,
-          ),
-          level: snapshot.physicalDamageTrainingUpgradeLevel,
-          maxLevel: RunProgression.maxPhysicalDamageTrainingUpgradeLevel,
-          globalMaxLevel: RunProgression.maxPhysicalDamageTrainingUpgradeLevel,
-          valueText:
-              '+${(snapshot.physicalDamageTrainingBonusRate * 100).toStringAsFixed(1)}%',
-          nextValueText:
-              '+${(nextPhysicalDamageTrainingLevel * RunProgression.familyDamageTrainingBonusPerUpgradeLevel * 100).toStringAsFixed(1)}%',
-          cost: snapshot.physicalDamageTrainingUpgradeCost,
-          enabled: snapshot.canUpgradePhysicalDamageTraining,
-          lockText: l10n.maxLevelReached,
-          onPressed: game.upgradePhysicalDamageTrainingProgression,
-        ),
-      if (stageSevenCleared)
-        _PermanentUpgradeTile(
-          icon: Icons.auto_awesome_outlined,
-          title: l10n.elementalDamageTraining,
-          description: l10n.permanentUpgradeDescription(
-            l10n.elementalDamageTraining,
-          ),
-          level: snapshot.elementalDamageTrainingUpgradeLevel,
-          maxLevel: RunProgression.maxElementalDamageTrainingUpgradeLevel,
-          globalMaxLevel: RunProgression.maxElementalDamageTrainingUpgradeLevel,
-          valueText:
-              '+${(snapshot.elementalDamageTrainingBonusRate * 100).toStringAsFixed(1)}%',
-          nextValueText:
-              '+${(nextElementalDamageTrainingLevel * RunProgression.familyDamageTrainingBonusPerUpgradeLevel * 100).toStringAsFixed(1)}%',
-          cost: snapshot.elementalDamageTrainingUpgradeCost,
-          enabled: snapshot.canUpgradeElementalDamageTraining,
-          lockText: l10n.maxLevelReached,
-          onPressed: game.upgradeElementalDamageTrainingProgression,
-        ),
-      if (stageFourCleared)
-        _PermanentUpgradeTile(
-          icon: Icons.gps_fixed,
-          title: l10n.criticalChanceTraining,
-          description: l10n.permanentUpgradeDescription(
-            l10n.criticalChanceTraining,
-          ),
-          level: snapshot.criticalChanceUpgradeLevel,
-          maxLevel: RunProgression.maxCriticalChanceUpgradeLevel,
-          globalMaxLevel: RunProgression.maxCriticalChanceUpgradeLevel,
-          valueText:
-              '+${(snapshot.criticalChanceProgressionBonusRate * 100).round()}%p',
-          nextValueText:
-              '+${(nextCriticalChanceLevel * RunProgression.criticalChanceBonusPerUpgradeLevel * 100).round()}%p',
-          cost: snapshot.criticalChanceUpgradeCost,
-          enabled: snapshot.canUpgradeCriticalChance,
-          lockText: l10n.maxLevelReached,
-          onPressed: game.upgradeCriticalChanceProgression,
-        ),
-      if (stageFourCleared)
-        _PermanentUpgradeTile(
-          icon: Icons.bolt,
-          title: l10n.criticalDamageTraining,
-          description: l10n.permanentUpgradeDescription(
-            l10n.criticalDamageTraining,
-          ),
-          level: snapshot.criticalDamageUpgradeLevel,
-          maxLevel: RunProgression.maxCriticalDamageUpgradeLevel,
-          globalMaxLevel: RunProgression.maxCriticalDamageUpgradeLevel,
-          valueText:
-              '+${(snapshot.criticalDamageProgressionBonusRate * 100).round()}%p',
-          nextValueText:
-              '+${(nextCriticalDamageLevel * RunProgression.criticalDamageBonusPerUpgradeLevel * 100).round()}%p',
-          cost: snapshot.criticalDamageUpgradeCost,
-          enabled: snapshot.canUpgradeCriticalDamage,
-          lockText: l10n.maxLevelReached,
-          onPressed: game.upgradeCriticalDamageProgression,
-        ),
-    ];
-    final economyTiles = [
-      _PermanentUpgradeTile(
-        icon: Icons.toll_outlined,
-        title: l10n.startGold,
-        description: l10n.permanentUpgradeDescription(l10n.startGold),
-        level: snapshot.startingGoldUpgradeLevel,
-        maxLevel: RunProgression.maxStartingGoldUpgradeLevel,
-        globalMaxLevel: RunProgression.maxStartingGoldUpgradeLevel,
-        valueText:
-            '+${snapshot.startingGoldUpgradeLevel * RunProgression.startingGoldPerUpgradeLevel}G',
-        nextValueText:
-            '+${nextStartingGoldLevel * RunProgression.startingGoldPerUpgradeLevel}G',
-        cost: snapshot.startingGoldUpgradeCost,
-        enabled: snapshot.canUpgradeStartingGold,
-        lockText: l10n.maxLevelReached,
-        onPressed: game.upgradeStartingGoldProgression,
-      ),
-      _PermanentUpgradeTile(
-        icon: Icons.inventory_2_outlined,
-        title: l10n.maintenanceSupply,
-        description: l10n.permanentUpgradeDescription(l10n.maintenanceSupply),
-        level: snapshot.supplyUpgradeLevel,
-        maxLevel: RunProgression.maxSupplyUpgradeLevel,
-        globalMaxLevel: RunProgression.maxSupplyUpgradeLevel,
-        valueText: '+${snapshot.waveClearGoldProgressionBonus}G',
-        nextValueText:
-            '+${nextSupplyLevel * RunProgression.supplyGoldPerUpgradeLevel}G',
-        cost: snapshot.supplyUpgradeCost,
-        enabled: snapshot.canUpgradeSupply,
-        lockText: l10n.maxLevelReached,
-        onPressed: game.upgradeSupplyProgression,
-      ),
-      if (economyUpgradeUnlocked)
-        _PermanentUpgradeTile(
-          icon: Icons.monetization_on_outlined,
-          title: l10n.killRewardBonus,
-          description: l10n.permanentUpgradeDescription(l10n.killRewardBonus),
-          level: snapshot.killGoldUpgradeLevel,
-          maxLevel: RunProgression.maxKillGoldUpgradeLevel,
-          globalMaxLevel: RunProgression.maxKillGoldUpgradeLevel,
-          valueText:
-              '+${(snapshot.killGoldProgressionBonusRate * 100).round()}%',
-          nextValueText:
-              '+${(nextKillGoldLevel * RunProgression.killGoldBonusPerUpgradeLevel * 100).round()}%',
-          cost: snapshot.killGoldUpgradeCost,
-          enabled: snapshot.canUpgradeKillGold,
-          lockText: l10n.maxLevelReached,
-          onPressed: game.upgradeKillGoldProgression,
-        ),
-      if (economyUpgradeUnlocked)
-        _PermanentUpgradeTile(
-          icon: Icons.sell_outlined,
-          title: l10n.emergencySale,
-          description: l10n.permanentUpgradeDescription(l10n.emergencySale),
-          level: snapshot.emergencySaleUpgradeLevel,
-          maxLevel: RunProgression.maxEmergencySaleUpgradeLevel,
-          globalMaxLevel: RunProgression.maxEmergencySaleUpgradeLevel,
-          valueText: '${snapshot.turretRefundPercent}%',
-          nextValueText:
-              '${RunProgression.baseTurretRefundPercent + nextEmergencySaleLevel * RunProgression.emergencySaleRefundPercentPerLevel}%',
-          cost: snapshot.emergencySaleUpgradeCost,
-          enabled: snapshot.canUpgradeEmergencySale,
-          lockText: l10n.maxLevelReached,
-          onPressed: game.upgradeEmergencySaleProgression,
-        ),
-    ];
-    return _PermanentUpgradeBoard(
-      tiles: group == _PermanentUpgradeGroup.combat
-          ? combatTiles
-          : economyTiles,
-    );
+    final tiles = group == _PermanentUpgradeGroup.combat
+        ? _combatUpgradeTiles(l10n: l10n, game: game, snapshot: snapshot)
+        : _economyUpgradeTiles(l10n: l10n, game: game, snapshot: snapshot);
+    return _PermanentUpgradeBoard(tiles: tiles);
   }
+}
+
+List<_PermanentUpgradeTileData> _combatUpgradeTiles({
+  required RuneNexusLocalizations l10n,
+  required RuneNexusGame game,
+  required GameSnapshot snapshot,
+}) {
+  final nextNexusHpLevel = (snapshot.nexusHpUpgradeLevel + 1)
+      .clamp(0, RunProgression.maxNexusHpUpgradeLevel)
+      .toInt();
+  final nextFireTrainingLevel = (snapshot.fireTrainingUpgradeLevel + 1)
+      .clamp(0, RunProgression.maxFireTrainingUpgradeLevel)
+      .toInt();
+  final nextPhysicalDamageTrainingLevel =
+      (snapshot.physicalDamageTrainingUpgradeLevel + 1)
+          .clamp(0, RunProgression.maxPhysicalDamageTrainingUpgradeLevel)
+          .toInt();
+  final nextElementalDamageTrainingLevel =
+      (snapshot.elementalDamageTrainingUpgradeLevel + 1)
+          .clamp(0, RunProgression.maxElementalDamageTrainingUpgradeLevel)
+          .toInt();
+  final nextCriticalChanceLevel = (snapshot.criticalChanceUpgradeLevel + 1)
+      .clamp(0, RunProgression.maxCriticalChanceUpgradeLevel)
+      .toInt();
+  final nextCriticalDamageLevel = (snapshot.criticalDamageUpgradeLevel + 1)
+      .clamp(0, RunProgression.maxCriticalDamageUpgradeLevel)
+      .toInt();
+  final stageFourCleared = snapshot.clearedStageNumbers.contains(4);
+  final stageSevenCleared = snapshot.clearedStageNumbers.contains(7);
+  return [
+    _PermanentUpgradeTileData(
+      icon: Icons.favorite_border,
+      title: l10n.nexusHp,
+      description: l10n.permanentUpgradeDescription(l10n.nexusHp),
+      level: snapshot.nexusHpUpgradeLevel,
+      maxLevel: RunProgression.maxNexusHpUpgradeLevel,
+      globalMaxLevel: RunProgression.maxNexusHpUpgradeLevel,
+      valueText: '+${snapshot.nexusHpUpgradeLevel}',
+      nextValueText: '+$nextNexusHpLevel',
+      cost: snapshot.nexusHpUpgradeCost,
+      enabled: snapshot.canUpgradeNexusHp,
+      lockText: l10n.maxLevelReached,
+      onPressed: game.upgradeNexusHpProgression,
+    ),
+    _PermanentUpgradeTileData(
+      icon: Icons.local_fire_department_outlined,
+      title: l10n.basicFireTraining,
+      description: l10n.permanentUpgradeDescription(l10n.basicFireTraining),
+      level: snapshot.fireTrainingUpgradeLevel,
+      maxLevel: RunProgression.maxFireTrainingUpgradeLevel,
+      globalMaxLevel: RunProgression.maxFireTrainingUpgradeLevel,
+      valueText:
+          '+${(snapshot.fireTrainingDamageBonusRate * 100).toStringAsFixed(1)}%',
+      nextValueText:
+          '+${(nextFireTrainingLevel * RunProgression.fireTrainingDamagePerUpgradeLevel * 100).toStringAsFixed(1)}%',
+      cost: snapshot.fireTrainingUpgradeCost,
+      enabled: snapshot.canUpgradeFireTraining,
+      lockText: l10n.maxLevelReached,
+      onPressed: game.upgradeFireTrainingProgression,
+    ),
+    if (stageSevenCleared)
+      _PermanentUpgradeTileData(
+        icon: Icons.hardware_outlined,
+        title: l10n.physicalDamageTraining,
+        description: l10n.permanentUpgradeDescription(
+          l10n.physicalDamageTraining,
+        ),
+        level: snapshot.physicalDamageTrainingUpgradeLevel,
+        maxLevel: RunProgression.maxPhysicalDamageTrainingUpgradeLevel,
+        globalMaxLevel: RunProgression.maxPhysicalDamageTrainingUpgradeLevel,
+        valueText:
+            '+${(snapshot.physicalDamageTrainingBonusRate * 100).toStringAsFixed(1)}%',
+        nextValueText:
+            '+${(nextPhysicalDamageTrainingLevel * RunProgression.familyDamageTrainingBonusPerUpgradeLevel * 100).toStringAsFixed(1)}%',
+        cost: snapshot.physicalDamageTrainingUpgradeCost,
+        enabled: snapshot.canUpgradePhysicalDamageTraining,
+        lockText: l10n.maxLevelReached,
+        onPressed: game.upgradePhysicalDamageTrainingProgression,
+      ),
+    if (stageSevenCleared)
+      _PermanentUpgradeTileData(
+        icon: Icons.auto_awesome_outlined,
+        title: l10n.elementalDamageTraining,
+        description: l10n.permanentUpgradeDescription(
+          l10n.elementalDamageTraining,
+        ),
+        level: snapshot.elementalDamageTrainingUpgradeLevel,
+        maxLevel: RunProgression.maxElementalDamageTrainingUpgradeLevel,
+        globalMaxLevel: RunProgression.maxElementalDamageTrainingUpgradeLevel,
+        valueText:
+            '+${(snapshot.elementalDamageTrainingBonusRate * 100).toStringAsFixed(1)}%',
+        nextValueText:
+            '+${(nextElementalDamageTrainingLevel * RunProgression.familyDamageTrainingBonusPerUpgradeLevel * 100).toStringAsFixed(1)}%',
+        cost: snapshot.elementalDamageTrainingUpgradeCost,
+        enabled: snapshot.canUpgradeElementalDamageTraining,
+        lockText: l10n.maxLevelReached,
+        onPressed: game.upgradeElementalDamageTrainingProgression,
+      ),
+    if (stageFourCleared)
+      _PermanentUpgradeTileData(
+        icon: Icons.gps_fixed,
+        title: l10n.criticalChanceTraining,
+        description: l10n.permanentUpgradeDescription(
+          l10n.criticalChanceTraining,
+        ),
+        level: snapshot.criticalChanceUpgradeLevel,
+        maxLevel: RunProgression.maxCriticalChanceUpgradeLevel,
+        globalMaxLevel: RunProgression.maxCriticalChanceUpgradeLevel,
+        valueText:
+            '+${(snapshot.criticalChanceProgressionBonusRate * 100).round()}%p',
+        nextValueText:
+            '+${(nextCriticalChanceLevel * RunProgression.criticalChanceBonusPerUpgradeLevel * 100).round()}%p',
+        cost: snapshot.criticalChanceUpgradeCost,
+        enabled: snapshot.canUpgradeCriticalChance,
+        lockText: l10n.maxLevelReached,
+        onPressed: game.upgradeCriticalChanceProgression,
+      ),
+    if (stageFourCleared)
+      _PermanentUpgradeTileData(
+        icon: Icons.bolt,
+        title: l10n.criticalDamageTraining,
+        description: l10n.permanentUpgradeDescription(
+          l10n.criticalDamageTraining,
+        ),
+        level: snapshot.criticalDamageUpgradeLevel,
+        maxLevel: RunProgression.maxCriticalDamageUpgradeLevel,
+        globalMaxLevel: RunProgression.maxCriticalDamageUpgradeLevel,
+        valueText:
+            '+${(snapshot.criticalDamageProgressionBonusRate * 100).round()}%p',
+        nextValueText:
+            '+${(nextCriticalDamageLevel * RunProgression.criticalDamageBonusPerUpgradeLevel * 100).round()}%p',
+        cost: snapshot.criticalDamageUpgradeCost,
+        enabled: snapshot.canUpgradeCriticalDamage,
+        lockText: l10n.maxLevelReached,
+        onPressed: game.upgradeCriticalDamageProgression,
+      ),
+  ];
+}
+
+List<_PermanentUpgradeTileData> _economyUpgradeTiles({
+  required RuneNexusLocalizations l10n,
+  required RuneNexusGame game,
+  required GameSnapshot snapshot,
+}) {
+  final nextStartingGoldLevel = (snapshot.startingGoldUpgradeLevel + 1)
+      .clamp(0, RunProgression.maxStartingGoldUpgradeLevel)
+      .toInt();
+  final nextSupplyLevel = (snapshot.supplyUpgradeLevel + 1)
+      .clamp(0, RunProgression.maxSupplyUpgradeLevel)
+      .toInt();
+  final nextKillGoldLevel = (snapshot.killGoldUpgradeLevel + 1)
+      .clamp(0, RunProgression.maxKillGoldUpgradeLevel)
+      .toInt();
+  final nextEmergencySaleLevel = (snapshot.emergencySaleUpgradeLevel + 1)
+      .clamp(0, RunProgression.maxEmergencySaleUpgradeLevel)
+      .toInt();
+  final economyUpgradeUnlocked = snapshot.clearedStageNumbers.contains(
+    RuneNexusGame.economyUpgradeUnlockStage,
+  );
+  return [
+    _PermanentUpgradeTileData(
+      icon: Icons.toll_outlined,
+      title: l10n.startGold,
+      description: l10n.permanentUpgradeDescription(l10n.startGold),
+      level: snapshot.startingGoldUpgradeLevel,
+      maxLevel: RunProgression.maxStartingGoldUpgradeLevel,
+      globalMaxLevel: RunProgression.maxStartingGoldUpgradeLevel,
+      valueText:
+          '+${snapshot.startingGoldUpgradeLevel * RunProgression.startingGoldPerUpgradeLevel}G',
+      nextValueText:
+          '+${nextStartingGoldLevel * RunProgression.startingGoldPerUpgradeLevel}G',
+      cost: snapshot.startingGoldUpgradeCost,
+      enabled: snapshot.canUpgradeStartingGold,
+      lockText: l10n.maxLevelReached,
+      onPressed: game.upgradeStartingGoldProgression,
+    ),
+    _PermanentUpgradeTileData(
+      icon: Icons.inventory_2_outlined,
+      title: l10n.maintenanceSupply,
+      description: l10n.permanentUpgradeDescription(l10n.maintenanceSupply),
+      level: snapshot.supplyUpgradeLevel,
+      maxLevel: RunProgression.maxSupplyUpgradeLevel,
+      globalMaxLevel: RunProgression.maxSupplyUpgradeLevel,
+      valueText: '+${snapshot.waveClearGoldProgressionBonus}G',
+      nextValueText:
+          '+${nextSupplyLevel * RunProgression.supplyGoldPerUpgradeLevel}G',
+      cost: snapshot.supplyUpgradeCost,
+      enabled: snapshot.canUpgradeSupply,
+      lockText: l10n.maxLevelReached,
+      onPressed: game.upgradeSupplyProgression,
+    ),
+    if (economyUpgradeUnlocked)
+      _PermanentUpgradeTileData(
+        icon: Icons.monetization_on_outlined,
+        title: l10n.killRewardBonus,
+        description: l10n.permanentUpgradeDescription(l10n.killRewardBonus),
+        level: snapshot.killGoldUpgradeLevel,
+        maxLevel: RunProgression.maxKillGoldUpgradeLevel,
+        globalMaxLevel: RunProgression.maxKillGoldUpgradeLevel,
+        valueText: '+${(snapshot.killGoldProgressionBonusRate * 100).round()}%',
+        nextValueText:
+            '+${(nextKillGoldLevel * RunProgression.killGoldBonusPerUpgradeLevel * 100).round()}%',
+        cost: snapshot.killGoldUpgradeCost,
+        enabled: snapshot.canUpgradeKillGold,
+        lockText: l10n.maxLevelReached,
+        onPressed: game.upgradeKillGoldProgression,
+      ),
+    if (economyUpgradeUnlocked)
+      _PermanentUpgradeTileData(
+        icon: Icons.sell_outlined,
+        title: l10n.emergencySale,
+        description: l10n.permanentUpgradeDescription(l10n.emergencySale),
+        level: snapshot.emergencySaleUpgradeLevel,
+        maxLevel: RunProgression.maxEmergencySaleUpgradeLevel,
+        globalMaxLevel: RunProgression.maxEmergencySaleUpgradeLevel,
+        valueText: '${snapshot.turretRefundPercent}%',
+        nextValueText:
+            '${RunProgression.baseTurretRefundPercent + nextEmergencySaleLevel * RunProgression.emergencySaleRefundPercentPerLevel}%',
+        cost: snapshot.emergencySaleUpgradeCost,
+        enabled: snapshot.canUpgradeEmergencySale,
+        lockText: l10n.maxLevelReached,
+        onPressed: game.upgradeEmergencySaleProgression,
+      ),
+  ];
+}
+
+class _PermanentUpgradeTileData {
+  const _PermanentUpgradeTileData({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.level,
+    required this.maxLevel,
+    required this.globalMaxLevel,
+    required this.valueText,
+    required this.nextValueText,
+    required this.cost,
+    required this.enabled,
+    required this.lockText,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final int level;
+  final int maxLevel;
+  final int globalMaxLevel;
+  final String valueText;
+  final String nextValueText;
+  final int cost;
+  final bool enabled;
+  final String lockText;
+  final VoidCallback onPressed;
 }
 
 class _PermanentUpgradeBoard extends StatelessWidget {
   const _PermanentUpgradeBoard({required this.tiles});
 
-  final List<_PermanentUpgradeTile> tiles;
+  final List<_PermanentUpgradeTileData> tiles;
 
   @override
   Widget build(BuildContext context) {
@@ -275,7 +317,10 @@ class _PermanentUpgradeBoard extends StatelessWidget {
               runSpacing: 8,
               children: [
                 for (final tile in tiles)
-                  SizedBox(width: tileWidth, child: tile),
+                  SizedBox(
+                    width: tileWidth,
+                    child: _PermanentUpgradeTile(data: tile),
+                  ),
               ],
             );
           },
@@ -286,44 +331,21 @@ class _PermanentUpgradeBoard extends StatelessWidget {
 }
 
 class _PermanentUpgradeTile extends StatelessWidget {
-  const _PermanentUpgradeTile({
-    required this.icon,
-    required this.title,
-    required this.description,
-    required this.level,
-    required this.maxLevel,
-    required this.globalMaxLevel,
-    required this.valueText,
-    required this.nextValueText,
-    required this.cost,
-    required this.enabled,
-    required this.lockText,
-    required this.onPressed,
-  });
+  const _PermanentUpgradeTile({required this.data});
 
-  final IconData icon;
-  final String title;
-  final String description;
-  final int level;
-  final int maxLevel;
-  final int globalMaxLevel;
-  final String valueText;
-  final String nextValueText;
-  final int cost;
-  final bool enabled;
-  final String lockText;
-  final VoidCallback onPressed;
+  final _PermanentUpgradeTileData data;
 
-  bool get _isMaxed => level >= globalMaxLevel;
-  bool get _isTierLocked => level >= maxLevel && level < globalMaxLevel;
+  bool get _isMaxed => data.level >= data.globalMaxLevel;
+  bool get _isTierLocked =>
+      data.level >= data.maxLevel && data.level < data.globalMaxLevel;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final borderColor = enabled
+    final borderColor = data.enabled
         ? const Color(0xFFE7C66A)
         : const Color(0x55485B68);
-    final titleColor = enabled
+    final titleColor = data.enabled
         ? const Color(0xFFE8FBFF)
         : const Color(0xFFB9D6E4);
     return Container(
@@ -339,11 +361,11 @@ class _PermanentUpgradeTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: titleColor, size: 17),
+              Icon(data.icon, color: titleColor, size: 17),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  title,
+                  data.title,
                   style: TextStyle(
                     color: titleColor,
                     fontSize: 12,
@@ -356,7 +378,7 @@ class _PermanentUpgradeTile extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           Text(
-            'Lv.$level/$maxLevel',
+            'Lv.${data.level}/${data.maxLevel}',
             style: const TextStyle(
               color: Color(0xFFB9D6E4),
               fontSize: 11,
@@ -365,7 +387,7 @@ class _PermanentUpgradeTile extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           Text(
-            description,
+            data.description,
             style: const TextStyle(color: Color(0xFF9EB3BF), fontSize: 10),
             maxLines: 2,
             overflow: TextOverflow.clip,
@@ -375,18 +397,18 @@ class _PermanentUpgradeTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _CompactUpgradeValueSummary(
-                currentValueText: valueText,
-                nextValueText: nextValueText,
-                enabled: enabled,
+                currentValueText: data.valueText,
+                nextValueText: data.nextValueText,
+                enabled: data.enabled,
               ),
               const SizedBox(height: 6),
               SizedBox(
                 height: 30,
                 child: GameButton(
-                  onPressed: enabled ? onPressed : null,
+                  onPressed: data.enabled ? data.onPressed : null,
                   compact: true,
                   variant: GameButtonVariant.secondary,
-                  accentColor: enabled
+                  accentColor: data.enabled
                       ? GamePalette.gold
                       : GamePalette.metalDim,
                   padding: const EdgeInsets.symmetric(horizontal: 7),
@@ -413,7 +435,7 @@ class _PermanentUpgradeTile extends StatelessWidget {
     if (_isTierLocked) {
       return Center(
         child: Text(
-          lockText,
+          data.lockText,
           style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
           overflow: TextOverflow.clip,
         ),
@@ -430,7 +452,7 @@ class _PermanentUpgradeTile extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 4),
-        _RuneCostChip(cost: cost, enabled: enabled),
+        _RuneCostChip(cost: data.cost, enabled: data.enabled),
       ],
     );
   }
