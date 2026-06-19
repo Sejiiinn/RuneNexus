@@ -25,7 +25,28 @@ class GridComponent extends Component {
   double nexusHitAlert = 0;
   double nexusDestructionProgress = 0;
   Picture? _staticBoardPicture;
+  List<Offset>? _pathGuideCenters;
+  Path? _pathGuidePath;
+  PathMetric? _pathGuideMetric;
+  double _pathGuideTotalLength = 0;
   late final List<GridPoint> _dynamicTilePoints = _collectDynamicTilePoints();
+  final Paint _pathGuideGlowPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round
+    ..strokeJoin = StrokeJoin.round;
+  final Paint _pathGuideLinePaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round
+    ..strokeJoin = StrokeJoin.round;
+  final Paint _pathGuideCornerPaint = Paint()..style = PaintingStyle.fill;
+  final Paint _pathGuidePulsePaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round
+    ..strokeJoin = StrokeJoin.round;
+  final Paint _pathGuidePulseCorePaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round
+    ..strokeJoin = StrokeJoin.round;
 
   void updateLayout({required Vector2 origin, required double tileSize}) {
     if (this.origin.x == origin.x &&
@@ -36,6 +57,7 @@ class GridComponent extends Component {
     this.origin = origin;
     this.tileSize = tileSize;
     _invalidateStaticBoardPicture();
+    _invalidatePathGuideGeometry();
   }
 
   @override
@@ -125,42 +147,53 @@ class GridComponent extends Component {
     _staticBoardPicture = null;
   }
 
+  void _invalidatePathGuideGeometry() {
+    _pathGuideCenters = null;
+    _pathGuidePath = null;
+    _pathGuideMetric = null;
+    _pathGuideTotalLength = 0;
+  }
+
   void _drawPathGuide(Canvas canvas) {
     if (map.path.length < 2) {
       return;
     }
 
-    final centers = map.path
+    final centers = _pathGuideCenters ??= _buildPathGuideCenters();
+    final guidePath = _pathGuidePath ??= _buildPathGuidePath(centers);
+
+    _pathGuideGlowPaint
+      ..color = const Color(0xFF8EE6FF).withValues(alpha: 0.05)
+      ..strokeWidth = tileSize * 0.13
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, tileSize * 0.025);
+    _pathGuideLinePaint
+      ..color = const Color(0xFFE9FDFF).withValues(alpha: 0.13)
+      ..strokeWidth = math.max(1.2, tileSize * 0.05)
+      ..maskFilter = null;
+
+    canvas.drawPath(guidePath, _pathGuideGlowPaint);
+    canvas.drawPath(guidePath, _pathGuideLinePaint);
+    _drawPathGuideCorners(canvas, centers);
+    _drawPathGuidePulses(canvas);
+  }
+
+  List<Offset> _buildPathGuideCenters() {
+    return map.path
         .map((point) => _tileRect(point).center)
         .toList(growable: false);
-    final guidePath = Path();
+  }
+
+  Path _buildPathGuidePath(List<Offset> centers) {
+    final path = Path();
     for (var i = 0; i < centers.length; i++) {
       final center = centers[i];
       if (i == 0) {
-        guidePath.moveTo(center.dx, center.dy);
+        path.moveTo(center.dx, center.dy);
       } else {
-        guidePath.lineTo(center.dx, center.dy);
+        path.lineTo(center.dx, center.dy);
       }
     }
-
-    final glowPaint = Paint()
-      ..color = const Color(0xFF8EE6FF).withValues(alpha: 0.05)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = tileSize * 0.13
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..maskFilter = MaskFilter.blur(BlurStyle.normal, tileSize * 0.025);
-    final linePaint = Paint()
-      ..color = const Color(0xFFE9FDFF).withValues(alpha: 0.13)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(1.2, tileSize * 0.05)
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    canvas.drawPath(guidePath, glowPaint);
-    canvas.drawPath(guidePath, linePaint);
-    _drawPathGuideCorners(canvas, centers);
-    _drawPathGuidePulses(canvas, guidePath);
+    return path;
   }
 
   void _drawPathGuideCorners(Canvas canvas, List<Offset> centers) {
@@ -168,23 +201,17 @@ class GridComponent extends Component {
       return;
     }
 
-    final cornerPaint = Paint()
+    _pathGuideCornerPaint
       ..color = const Color(0xFFBFF4FF).withValues(alpha: 0.035)
-      ..style = PaintingStyle.fill
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, tileSize * 0.02);
     for (var i = 1; i < centers.length - 1; i++) {
-      canvas.drawCircle(centers[i], tileSize * 0.11, cornerPaint);
+      canvas.drawCircle(centers[i], tileSize * 0.11, _pathGuideCornerPaint);
     }
   }
 
-  void _drawPathGuidePulses(Canvas canvas, Path guidePath) {
-    final metrics = guidePath.computeMetrics().toList(growable: false);
-    if (metrics.isEmpty) {
-      return;
-    }
-
-    final metric = metrics.first;
-    final totalLength = metric.length;
+  void _drawPathGuidePulses(Canvas canvas) {
+    final metric = _pathGuideMetric ??= _buildPathGuideMetric();
+    final totalLength = _pathGuideTotalLength;
     if (totalLength <= 0) {
       return;
     }
@@ -192,53 +219,74 @@ class GridComponent extends Component {
     final spacing = tileSize * 1.32;
     final dashLength = tileSize * 0.36;
     final pulseCount = math.max(1, (totalLength / spacing).floor());
-    final pulsePaint = Paint()
-      ..style = PaintingStyle.stroke
+    _pathGuidePulsePaint
       ..strokeWidth = math.max(1.4, tileSize * 0.085)
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, tileSize * 0.012);
-    final corePaint = Paint()
-      ..style = PaintingStyle.stroke
+    _pathGuidePulseCorePaint
       ..strokeWidth = math.max(0.8, tileSize * 0.03)
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+      ..maskFilter = null;
 
     for (var i = 0; i < pulseCount; i++) {
       final center = (_pathGuidePhase * spacing + i * spacing) % totalLength;
       final wave = math.sin((i / pulseCount + _pathGuidePhase) * math.pi * 2);
       final alpha = 0.07 + (wave + 1) * 0.025;
-      pulsePaint.color = const Color(0xFFBFF4FF).withValues(alpha: alpha);
-      corePaint.color = const Color(0xFFFFFFFF).withValues(alpha: alpha * 0.35);
+      _pathGuidePulsePaint.color = const Color(
+        0xFFBFF4FF,
+      ).withValues(alpha: alpha);
+      _pathGuidePulseCorePaint.color = const Color(
+        0xFFFFFFFF,
+      ).withValues(alpha: alpha * 0.35);
 
       var start = center - dashLength * 0.5;
       var end = center + dashLength * 0.5;
       if (start < 0) {
         canvas.drawPath(
           metric.extractPath(totalLength + start, totalLength),
-          pulsePaint,
+          _pathGuidePulsePaint,
         );
-        canvas.drawPath(metric.extractPath(0, end), pulsePaint);
+        canvas.drawPath(metric.extractPath(0, end), _pathGuidePulsePaint);
         canvas.drawPath(
           metric.extractPath(totalLength + start, totalLength),
-          corePaint,
+          _pathGuidePulseCorePaint,
         );
-        canvas.drawPath(metric.extractPath(0, end), corePaint);
+        canvas.drawPath(metric.extractPath(0, end), _pathGuidePulseCorePaint);
         continue;
       }
       if (end > totalLength) {
-        canvas.drawPath(metric.extractPath(start, totalLength), pulsePaint);
-        canvas.drawPath(metric.extractPath(0, end - totalLength), pulsePaint);
-        canvas.drawPath(metric.extractPath(start, totalLength), corePaint);
-        canvas.drawPath(metric.extractPath(0, end - totalLength), corePaint);
+        canvas.drawPath(
+          metric.extractPath(start, totalLength),
+          _pathGuidePulsePaint,
+        );
+        canvas.drawPath(
+          metric.extractPath(0, end - totalLength),
+          _pathGuidePulsePaint,
+        );
+        canvas.drawPath(
+          metric.extractPath(start, totalLength),
+          _pathGuidePulseCorePaint,
+        );
+        canvas.drawPath(
+          metric.extractPath(0, end - totalLength),
+          _pathGuidePulseCorePaint,
+        );
         continue;
       }
 
       start = start.clamp(0.0, totalLength);
       end = end.clamp(0.0, totalLength);
-      canvas.drawPath(metric.extractPath(start, end), pulsePaint);
-      canvas.drawPath(metric.extractPath(start, end), corePaint);
+      canvas.drawPath(metric.extractPath(start, end), _pathGuidePulsePaint);
+      canvas.drawPath(metric.extractPath(start, end), _pathGuidePulseCorePaint);
     }
+  }
+
+  PathMetric _buildPathGuideMetric() {
+    final guidePath = _pathGuidePath ??= _buildPathGuidePath(
+      _pathGuideCenters ??= _buildPathGuideCenters(),
+    );
+    final metrics = guidePath.computeMetrics();
+    final metric = metrics.first;
+    _pathGuideTotalLength = metric.length;
+    return metric;
   }
 
   void _drawTile(Canvas canvas, Rect rect, GridPoint point, TileType tileType) {
