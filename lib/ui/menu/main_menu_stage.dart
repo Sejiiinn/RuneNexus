@@ -1152,210 +1152,203 @@ _StageRewardInfo? _stageRewardInfoFor({
   required bool stageCleared,
   required bool sniperRewardUnlocked,
 }) {
-  if (stageNumber == 1) {
-    return _StageRewardInfo(
-      label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const _StageRewardAssetIcon(asset: _stageRewardUpgradeIconAsset),
-      highlighted: stageCleared,
-      items: [
-        _StageUnlockItem(
-          label: l10n.killRewardBonus,
-          icon: Icons.monetization_on_outlined,
-          category: _StageUnlockCategory.upgrade,
-          highlighted: stageCleared,
-        ),
-        _StageUnlockItem(
-          label: l10n.emergencySale,
-          icon: Icons.sell_outlined,
-          category: _StageUnlockCategory.upgrade,
-          highlighted: stageCleared,
-        ),
-      ],
-    );
+  final visual = _stageRewardVisualFor(stageNumber);
+  if (visual == null) {
+    return null;
   }
-  if (stageNumber == 2) {
-    return _StageRewardInfo(
-      label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const _StageRewardAssetIcon(asset: _stageRewardResearchIconAsset),
-      highlighted: stageCleared,
-      items: [
-        _StageUnlockItem(
-          label: l10n.tacticalCommand,
-          icon: Icons.rule_outlined,
-          category: _StageUnlockCategory.research,
-          highlighted: stageCleared,
-        ),
-        _StageUnlockItem(
-          label: l10n.gemAttunement,
-          icon: Icons.auto_awesome_outlined,
-          category: _StageUnlockCategory.research,
-          highlighted: stageCleared,
-        ),
-      ],
-    );
-  }
+  final highlighted = _stageRewardHighlightedFor(
+    stageNumber: stageNumber,
+    stageCleared: stageCleared,
+    sniperRewardUnlocked: sniperRewardUnlocked,
+  );
+  return _StageRewardInfo(
+    label: highlighted ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
+    icon: visual.icon,
+    extraIcons: visual.extraIcons,
+    highlighted: highlighted,
+    items: _stageUnlockItemsFor(
+      l10n: l10n,
+      stageNumber: stageNumber,
+      highlighted: highlighted,
+    ),
+  );
+}
+
+_StageRewardVisual? _stageRewardVisualFor(int stageNumber) {
+  return switch (stageNumber) {
+    1 || 4 || 7 => const _StageRewardVisual(
+      icon: _StageRewardAssetIcon(asset: _stageRewardUpgradeIconAsset),
+    ),
+    2 || 8 => const _StageRewardVisual(
+      icon: _StageRewardAssetIcon(asset: _stageRewardResearchIconAsset),
+    ),
+    3 => const _StageRewardVisual(
+      icon: _SniperRewardIcon(),
+      extraIcons: [_StageRewardAssetIcon(asset: _stageRewardGemIconAsset)],
+    ),
+    5 => const _StageRewardVisual(
+      icon: _StageRewardAssetIcon(asset: _stageRewardResearchIconAsset),
+      extraIcons: [_StageRewardAssetIcon(asset: _stageRewardCoreIconAsset)],
+    ),
+    6 => const _StageRewardVisual(icon: _LightningRewardIcon()),
+    10 => const _StageRewardVisual(
+      icon: _StageRewardAssetIcon(asset: _stageRewardGemIconAsset),
+    ),
+    _ => null,
+  };
+}
+
+bool _stageRewardHighlightedFor({
+  required int stageNumber,
+  required bool stageCleared,
+  required bool sniperRewardUnlocked,
+}) {
   if (stageNumber == 3) {
-    return _StageRewardInfo(
-      label: sniperRewardUnlocked
-          ? l10n.unlockedRewardLabel
-          : l10n.clearRewardLabel,
-      icon: const _SniperRewardIcon(),
-      extraIcons: const [
-        _StageRewardAssetIcon(asset: _stageRewardGemIconAsset),
-      ],
-      highlighted: sniperRewardUnlocked,
-      items: [
-        _StageUnlockItem(
-          label: l10n.sniperTurret,
-          icon: Icons.center_focus_strong_outlined,
-          category: _StageUnlockCategory.turret,
-          highlighted: sniperRewardUnlocked,
-        ),
-        _StageUnlockItem(
-          label: l10n.aimSpeedGem,
-          icon: Icons.zoom_in_outlined,
-          category: _StageUnlockCategory.gem,
-          highlighted: sniperRewardUnlocked,
-        ),
-      ],
-    );
+    return sniperRewardUnlocked;
   }
-  if (stageNumber == 4) {
-    return _StageRewardInfo(
-      label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const _StageRewardAssetIcon(asset: _stageRewardUpgradeIconAsset),
-      highlighted: stageCleared,
-      items: [
-        _StageUnlockItem(
-          label: l10n.criticalChanceTraining,
-          icon: Icons.gps_fixed,
-          category: _StageUnlockCategory.upgrade,
-          highlighted: stageCleared,
-        ),
-        _StageUnlockItem(
-          label: l10n.criticalDamageTraining,
-          icon: Icons.bolt,
-          category: _StageUnlockCategory.upgrade,
-          highlighted: stageCleared,
-        ),
-      ],
-    );
-  }
-  if (stageNumber == 5) {
-    return _StageRewardInfo(
-      label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const _StageRewardAssetIcon(asset: _stageRewardResearchIconAsset),
-      extraIcons: const [
-        _StageRewardAssetIcon(asset: _stageRewardCoreIconAsset),
-      ],
-      highlighted: stageCleared,
-      items: [
-        _StageUnlockItem(
-          label: l10n.linkExpansionOne,
-          icon: Icons.hub_outlined,
-          category: _StageUnlockCategory.research,
-          highlighted: stageCleared,
-        ),
-        _StageUnlockItem(
-          label: l10n.crystalRecovery,
-          icon: Icons.diamond_outlined,
-          category: _StageUnlockCategory.research,
-          highlighted: stageCleared,
-        ),
-        _StageUnlockItem(
-          label: l10n.riftMarkSkill,
-          icon: Icons.track_changes,
-          category: _StageUnlockCategory.core,
-          highlighted: stageCleared,
-        ),
-      ],
-    );
-  }
-  if (stageNumber == 6) {
-    return _StageRewardInfo(
-      label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const _LightningRewardIcon(),
-      highlighted: stageCleared,
-      items: [
-        _StageUnlockItem(
-          label: l10n.lightningTurret,
-          icon: Icons.bolt_outlined,
-          category: _StageUnlockCategory.turret,
-          highlighted: stageCleared,
-        ),
-      ],
-    );
-  }
-  if (stageNumber == 7) {
-    return _StageRewardInfo(
-      label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const _StageRewardAssetIcon(asset: _stageRewardUpgradeIconAsset),
-      highlighted: stageCleared,
-      items: [
-        _StageUnlockItem(
-          label: l10n.physicalDamageTraining,
-          icon: Icons.hardware_outlined,
-          category: _StageUnlockCategory.upgrade,
-          highlighted: stageCleared,
-        ),
-        _StageUnlockItem(
-          label: l10n.elementalDamageTraining,
-          icon: Icons.auto_awesome_outlined,
-          category: _StageUnlockCategory.upgrade,
-          highlighted: stageCleared,
-        ),
-      ],
-    );
-  }
-  if (stageNumber == 8) {
-    return _StageRewardInfo(
-      label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const _StageRewardAssetIcon(asset: _stageRewardResearchIconAsset),
-      highlighted: stageCleared,
-      items: [
-        _StageUnlockItem(
-          label: l10n.runeResonance,
-          icon: Icons.all_inclusive,
-          category: _StageUnlockCategory.research,
-          highlighted: stageCleared,
-        ),
-        _StageUnlockItem(
-          label: l10n.towerDamageLimitExpansion,
-          icon: Icons.local_fire_department_outlined,
-          category: _StageUnlockCategory.research,
-          highlighted: stageCleared,
-        ),
-        _StageUnlockItem(
-          label: l10n.killGoldLimitExpansion,
-          icon: Icons.toll_outlined,
-          category: _StageUnlockCategory.research,
-          highlighted: stageCleared,
-        ),
-        _StageUnlockItem(
-          label: l10n.waveGoldLimitExpansion,
-          icon: Icons.inventory_2_outlined,
-          category: _StageUnlockCategory.research,
-          highlighted: stageCleared,
-        ),
-      ],
-    );
-  }
-  if (stageNumber == 10) {
-    return _StageRewardInfo(
-      label: stageCleared ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
-      icon: const _StageRewardAssetIcon(asset: _stageRewardGemIconAsset),
-      highlighted: stageCleared,
-      items: [
-        _StageUnlockItem(
-          label: l10n.armorPiercingGem,
-          icon: Icons.gps_fixed_outlined,
-          category: _StageUnlockCategory.gem,
-          highlighted: stageCleared,
-        ),
-      ],
-    );
-  }
-  return null;
+  return stageCleared;
+}
+
+List<_StageUnlockItem> _stageUnlockItemsFor({
+  required RuneNexusLocalizations l10n,
+  required int stageNumber,
+  required bool highlighted,
+}) {
+  return switch (stageNumber) {
+    1 => [
+      _StageUnlockItem(
+        label: l10n.killRewardBonus,
+        icon: Icons.monetization_on_outlined,
+        category: _StageUnlockCategory.upgrade,
+        highlighted: highlighted,
+      ),
+      _StageUnlockItem(
+        label: l10n.emergencySale,
+        icon: Icons.sell_outlined,
+        category: _StageUnlockCategory.upgrade,
+        highlighted: highlighted,
+      ),
+    ],
+    2 => [
+      _StageUnlockItem(
+        label: l10n.tacticalCommand,
+        icon: Icons.rule_outlined,
+        category: _StageUnlockCategory.research,
+        highlighted: highlighted,
+      ),
+      _StageUnlockItem(
+        label: l10n.gemAttunement,
+        icon: Icons.auto_awesome_outlined,
+        category: _StageUnlockCategory.research,
+        highlighted: highlighted,
+      ),
+    ],
+    3 => [
+      _StageUnlockItem(
+        label: l10n.sniperTurret,
+        icon: Icons.center_focus_strong_outlined,
+        category: _StageUnlockCategory.turret,
+        highlighted: highlighted,
+      ),
+      _StageUnlockItem(
+        label: l10n.aimSpeedGem,
+        icon: Icons.zoom_in_outlined,
+        category: _StageUnlockCategory.gem,
+        highlighted: highlighted,
+      ),
+    ],
+    4 => [
+      _StageUnlockItem(
+        label: l10n.criticalChanceTraining,
+        icon: Icons.gps_fixed,
+        category: _StageUnlockCategory.upgrade,
+        highlighted: highlighted,
+      ),
+      _StageUnlockItem(
+        label: l10n.criticalDamageTraining,
+        icon: Icons.bolt,
+        category: _StageUnlockCategory.upgrade,
+        highlighted: highlighted,
+      ),
+    ],
+    5 => [
+      _StageUnlockItem(
+        label: l10n.linkExpansionOne,
+        icon: Icons.hub_outlined,
+        category: _StageUnlockCategory.research,
+        highlighted: highlighted,
+      ),
+      _StageUnlockItem(
+        label: l10n.crystalRecovery,
+        icon: Icons.diamond_outlined,
+        category: _StageUnlockCategory.research,
+        highlighted: highlighted,
+      ),
+      _StageUnlockItem(
+        label: l10n.riftMarkSkill,
+        icon: Icons.track_changes,
+        category: _StageUnlockCategory.core,
+        highlighted: highlighted,
+      ),
+    ],
+    6 => [
+      _StageUnlockItem(
+        label: l10n.lightningTurret,
+        icon: Icons.bolt_outlined,
+        category: _StageUnlockCategory.turret,
+        highlighted: highlighted,
+      ),
+    ],
+    7 => [
+      _StageUnlockItem(
+        label: l10n.physicalDamageTraining,
+        icon: Icons.hardware_outlined,
+        category: _StageUnlockCategory.upgrade,
+        highlighted: highlighted,
+      ),
+      _StageUnlockItem(
+        label: l10n.elementalDamageTraining,
+        icon: Icons.auto_awesome_outlined,
+        category: _StageUnlockCategory.upgrade,
+        highlighted: highlighted,
+      ),
+    ],
+    8 => [
+      _StageUnlockItem(
+        label: l10n.runeResonance,
+        icon: Icons.all_inclusive,
+        category: _StageUnlockCategory.research,
+        highlighted: highlighted,
+      ),
+      _StageUnlockItem(
+        label: l10n.towerDamageLimitExpansion,
+        icon: Icons.local_fire_department_outlined,
+        category: _StageUnlockCategory.research,
+        highlighted: highlighted,
+      ),
+      _StageUnlockItem(
+        label: l10n.killGoldLimitExpansion,
+        icon: Icons.toll_outlined,
+        category: _StageUnlockCategory.research,
+        highlighted: highlighted,
+      ),
+      _StageUnlockItem(
+        label: l10n.waveGoldLimitExpansion,
+        icon: Icons.inventory_2_outlined,
+        category: _StageUnlockCategory.research,
+        highlighted: highlighted,
+      ),
+    ],
+    10 => [
+      _StageUnlockItem(
+        label: l10n.armorPiercingGem,
+        icon: Icons.gps_fixed_outlined,
+        category: _StageUnlockCategory.gem,
+        highlighted: highlighted,
+      ),
+    ],
+    _ => const [],
+  };
 }
 
 int _fullClearRuneReward(GameSnapshot snapshot, int stageNumber) {
@@ -1428,6 +1421,13 @@ class _StageRewardInfo {
   final List<Widget> extraIcons;
   final bool highlighted;
   final List<_StageUnlockItem> items;
+}
+
+class _StageRewardVisual {
+  const _StageRewardVisual({required this.icon, this.extraIcons = const []});
+
+  final Widget icon;
+  final List<Widget> extraIcons;
 }
 
 class _StageUnlockItem {
