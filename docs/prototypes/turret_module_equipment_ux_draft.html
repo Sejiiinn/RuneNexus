@@ -1,0 +1,964 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rune Nexus - Turret Module Equipment UX Draft</title>
+    <style>
+      :root {
+        --bg: #03070d;
+        --base: #07111d;
+        --panel: #0a1826;
+        --panel-soft: #0d2132;
+        --panel-deep: #050c14;
+        --line: rgba(117, 146, 164, 0.32);
+        --line-strong: rgba(83, 249, 233, 0.48);
+        --text: #e8fbff;
+        --muted: #8faec0;
+        --dim: #607987;
+        --cyan: #53f9e9;
+        --blue: #8ee6ff;
+        --gold: #e7c66a;
+        --green: #72e0a2;
+        --orange: #ff9f5c;
+        --violet: #cfa7ff;
+        --rare: #69d7ff;
+        --radius: 7px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 16px;
+        color: var(--text);
+        background:
+          linear-gradient(90deg, rgba(142, 230, 255, 0.035) 1px, transparent 1px) 0 0 / 38px 38px,
+          linear-gradient(165deg, #081520, #050b12 62%, #03070d);
+        font-family:
+          Inter,
+          "Noto Sans KR",
+          "Apple SD Gothic Neo",
+          system-ui,
+          sans-serif;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .phone {
+        position: relative;
+        width: min(390px, calc(100vw - 24px));
+        height: min(810px, calc(100vh - 24px));
+        min-height: 690px;
+        overflow: hidden;
+        border: 1px solid rgba(142, 230, 255, 0.24);
+        border-radius: 8px;
+        background:
+          radial-gradient(circle at 50% 23%, rgba(83, 249, 233, 0.1), transparent 32%),
+          linear-gradient(180deg, #0a1927, #050b12 72%);
+        box-shadow: 0 20px 52px rgba(0, 0, 0, 0.38);
+      }
+
+      .screen {
+        position: absolute;
+        inset: 0 0 56px;
+        padding: 11px 14px 12px;
+        display: grid;
+        grid-template-rows: 48px minmax(0, 1fr);
+        gap: 9px;
+      }
+
+      .top-row {
+        display: grid;
+        grid-template-columns: 44px 1fr 82px;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .daily {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(83, 249, 233, 0.48);
+        border-radius: var(--radius);
+        background: rgba(83, 249, 233, 0.08);
+        color: var(--blue);
+        font-size: 18px;
+        font-weight: 1000;
+      }
+
+      .logo {
+        text-align: center;
+        font-size: 22px;
+        line-height: 30px;
+        font-weight: 1000;
+        color: #dff5ff;
+      }
+
+      .wallet {
+        display: grid;
+        gap: 2px;
+        justify-items: end;
+        font-size: 12px;
+        line-height: 15px;
+        font-weight: 1000;
+      }
+
+      .wallet .rune {
+        color: var(--gold);
+      }
+
+      .wallet .diamond {
+        color: var(--blue);
+      }
+
+      .panel {
+        min-height: 0;
+        border: 1px solid rgba(83, 249, 233, 0.22);
+        border-radius: var(--radius);
+        background: rgba(7, 17, 29, 0.72);
+        display: grid;
+        grid-template-rows: auto auto auto minmax(0, 1fr);
+        overflow: hidden;
+      }
+
+      .panel-head {
+        padding: 11px 12px 8px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: center;
+        border-bottom: 1px solid rgba(117, 146, 164, 0.2);
+      }
+
+      .heading strong {
+        display: block;
+        font-size: 15px;
+        line-height: 18px;
+        font-weight: 1000;
+      }
+
+      .heading span {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 13px;
+        font-weight: 800;
+      }
+
+      .ticket {
+        min-height: 28px;
+        padding: 0 9px;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid rgba(231, 198, 106, 0.42);
+        border-radius: 999px;
+        background: rgba(231, 198, 106, 0.08);
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 1000;
+        white-space: nowrap;
+      }
+
+      .turret-rail {
+        padding: 9px 10px;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 6px;
+        border-bottom: 1px solid rgba(117, 146, 164, 0.2);
+      }
+
+      .turret-token {
+        min-width: 0;
+        height: 52px;
+        display: grid;
+        place-items: center;
+        gap: 3px;
+        border: 1px solid rgba(117, 146, 164, 0.26);
+        border-radius: var(--radius);
+        background: rgba(5, 13, 22, 0.52);
+        color: var(--muted);
+        font-size: 9px;
+        line-height: 10px;
+        font-weight: 900;
+      }
+
+      .turret-token.active {
+        color: var(--text);
+        border-color: rgba(83, 249, 233, 0.62);
+        background: rgba(83, 249, 233, 0.1);
+      }
+
+      .turret-token.new {
+        border-color: rgba(114, 224, 162, 0.4);
+        color: #b8ffd0;
+      }
+
+      .turret-token i {
+        width: 25px;
+        height: 25px;
+        display: grid;
+        place-items: center;
+        border-radius: 7px;
+        border: 1px solid color-mix(in srgb, var(--turret), transparent 22%);
+        background: color-mix(in srgb, var(--turret), transparent 86%);
+        color: var(--turret);
+        font-style: normal;
+        font-size: 11px;
+        font-weight: 1000;
+      }
+
+      .content {
+        min-height: 0;
+        padding: 11px 12px 12px;
+        overflow: auto;
+        scrollbar-width: none;
+      }
+
+      .content::-webkit-scrollbar {
+        display: none;
+      }
+
+      .equipment-stage {
+        position: relative;
+        min-height: 250px;
+        border: 1px solid rgba(117, 146, 164, 0.28);
+        border-radius: var(--radius);
+        background:
+          linear-gradient(90deg, rgba(142, 230, 255, 0.035) 1px, transparent 1px) 0 0 / 26px 26px,
+          linear-gradient(180deg, rgba(12, 29, 47, 0.78), rgba(5, 13, 22, 0.9));
+        overflow: hidden;
+      }
+
+      .stage-title {
+        position: absolute;
+        left: 10px;
+        top: 9px;
+        z-index: 2;
+      }
+
+      .stage-title strong {
+        display: block;
+        font-size: 14px;
+        line-height: 17px;
+        font-weight: 1000;
+      }
+
+      .stage-title span {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 13px;
+        font-weight: 800;
+      }
+
+      .turret-art {
+        position: absolute;
+        left: 24px;
+        top: 74px;
+        width: 122px;
+        height: 122px;
+        border: 1px solid rgba(231, 198, 106, 0.4);
+        border-radius: 50%;
+        background:
+          radial-gradient(circle, rgba(231, 198, 106, 0.14), rgba(231, 198, 106, 0.04) 58%, transparent 59%),
+          rgba(5, 13, 22, 0.66);
+        box-shadow:
+          inset 0 0 0 10px rgba(231, 198, 106, 0.04),
+          0 0 24px rgba(231, 198, 106, 0.09);
+      }
+
+      .turret-art span {
+        position: absolute;
+        left: 50%;
+        bottom: 16px;
+        z-index: 2;
+        transform: translateX(-50%);
+        color: var(--gold);
+        font-size: 11px;
+        line-height: 13px;
+        font-weight: 1000;
+        white-space: nowrap;
+      }
+
+      .turret-art::before {
+        content: "";
+        position: absolute;
+        left: 52px;
+        top: 16px;
+        width: 21px;
+        height: 72px;
+        border: 1px solid rgba(231, 198, 106, 0.8);
+        border-radius: 9px 9px 3px 3px;
+        background: linear-gradient(180deg, rgba(231, 198, 106, 0.44), rgba(231, 198, 106, 0.12));
+        transform-origin: 50% 80%;
+        transform: rotate(34deg);
+      }
+
+      .turret-art::after {
+        content: "";
+        position: absolute;
+        left: 37px;
+        top: 52px;
+        width: 48px;
+        height: 48px;
+        border: 2px solid rgba(231, 198, 106, 0.78);
+        border-radius: 50%;
+        background: #0a1826;
+      }
+
+      .link-line {
+        position: absolute;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(231, 198, 106, 0.38), rgba(83, 249, 233, 0.32));
+        transform-origin: left center;
+      }
+
+      .link-line::after {
+        content: "";
+        position: absolute;
+        right: -3px;
+        top: -3px;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgba(83, 249, 233, 0.72);
+        box-shadow: 0 0 10px rgba(83, 249, 233, 0.35);
+      }
+
+      .line-core {
+        left: 136px;
+        top: 94px;
+        width: 80px;
+        transform: rotate(-31deg);
+      }
+
+      .line-barrel {
+        left: 144px;
+        top: 134px;
+        width: 62px;
+        transform: rotate(-6deg);
+      }
+
+      .line-frame {
+        left: 136px;
+        top: 178px;
+        width: 76px;
+        transform: rotate(16deg);
+      }
+
+      .socket {
+        position: absolute;
+        right: 10px;
+        width: 126px;
+        min-height: 66px;
+        padding: 7px;
+        border: 1px solid rgba(117, 146, 164, 0.34);
+        border-radius: var(--radius);
+        background: rgba(5, 13, 22, 0.72);
+      }
+
+      .socket.active {
+        border-color: rgba(83, 249, 233, 0.62);
+        background: rgba(83, 249, 233, 0.08);
+        box-shadow: 0 0 18px rgba(83, 249, 233, 0.1);
+      }
+
+      .socket.core {
+        top: 16px;
+      }
+
+      .socket.barrel {
+        top: 91px;
+      }
+
+      .socket.frame {
+        top: 166px;
+      }
+
+      .socket-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 5px;
+        color: var(--muted);
+        font-size: 9px;
+        line-height: 12px;
+        font-weight: 1000;
+      }
+
+      .grade-normal {
+        color: #c8d5dd;
+      }
+
+      .grade-magic {
+        color: var(--green);
+      }
+
+      .grade-rare {
+        color: var(--rare);
+      }
+
+      .socket-name {
+        margin-top: 5px;
+        color: var(--text);
+        font-size: 10px;
+        line-height: 13px;
+        font-weight: 1000;
+      }
+
+      .socket-stat {
+        margin-top: 4px;
+        color: var(--gold);
+        font-size: 9px;
+        line-height: 12px;
+        font-weight: 900;
+      }
+
+      .stars {
+        margin-top: 5px;
+        color: var(--gold);
+        font-size: 10px;
+        letter-spacing: 0;
+      }
+
+      .module-section {
+        margin-top: 10px;
+        padding: 7px;
+        border: 1px solid rgba(117, 146, 164, 0.28);
+        border-radius: var(--radius);
+        background: rgba(9, 22, 36, 0.72);
+        overflow: hidden;
+      }
+
+      .module-tray {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .module-chip {
+        position: relative;
+        min-height: 88px;
+        padding: 3px 4px 5px;
+        display: grid;
+        grid-template-rows: 16px 34px 12px 12px;
+        gap: 2px;
+        align-items: center;
+        border: 2px solid rgba(117, 146, 164, 0.5);
+        border-radius: 6px;
+        background:
+          linear-gradient(180deg, rgba(13, 33, 50, 0.95), rgba(5, 13, 22, 0.96)),
+          rgba(5, 13, 22, 0.88);
+        color: var(--text);
+        text-align: center;
+        box-shadow: inset 0 -10px 0 rgba(0, 0, 0, 0.16);
+      }
+
+      .module-chip.normal {
+        border-color: rgba(173, 193, 198, 0.62);
+      }
+
+      .module-chip.magic {
+        border-color: rgba(114, 224, 162, 0.72);
+      }
+
+      .module-chip.rare {
+        border-color: rgba(105, 215, 255, 0.78);
+      }
+
+      .module-chip.active {
+        border-color: var(--cyan);
+        box-shadow:
+          0 0 0 2px rgba(83, 249, 233, 0.28),
+          inset 0 -10px 0 rgba(0, 0, 0, 0.16);
+      }
+
+      .chip-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .chip-rank {
+        min-width: 22px;
+        padding: 1px 3px;
+        border-radius: 3px;
+        background: rgba(173, 193, 198, 0.2);
+        color: #d8e5ea;
+        font-size: 8px;
+        line-height: 11px;
+        font-weight: 1000;
+      }
+
+      .module-chip.magic .chip-rank {
+        background: rgba(114, 224, 162, 0.22);
+        color: #b8ffd0;
+      }
+
+      .module-chip.rare .chip-rank {
+        background: rgba(105, 215, 255, 0.22);
+        color: #b9efff;
+      }
+
+      .chip-level {
+        color: var(--muted);
+        font-size: 8px;
+        line-height: 11px;
+        font-weight: 1000;
+        white-space: nowrap;
+      }
+
+      .item-art {
+        position: relative;
+        width: 42px;
+        height: 30px;
+        margin: 0 auto;
+        display: block;
+      }
+
+      .item-art::before {
+        content: "";
+        position: absolute;
+        left: 7px;
+        top: 7px;
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(231, 198, 106, 0.72);
+        border-radius: 50%;
+        background:
+          radial-gradient(circle, var(--core-glow, #ffe271) 0 35%, transparent 36%),
+          #20313a;
+        box-shadow: 0 0 10px rgba(231, 198, 106, 0.12);
+      }
+
+      .item-art::after {
+        content: "";
+        position: absolute;
+        left: 22px;
+        top: 12px;
+        width: 15px;
+        height: 7px;
+        border: 1px solid rgba(231, 198, 106, 0.7);
+        border-radius: 4px;
+        background: linear-gradient(180deg, rgba(231, 198, 106, 0.9), rgba(166, 126, 51, 0.9));
+        transform: rotate(-22deg);
+      }
+
+      .item-art.burst {
+        --core-glow: #ffd75f;
+      }
+
+      .item-art.focus {
+        --core-glow: #72e0a2;
+      }
+
+      .item-art.chain {
+        --core-glow: #69d7ff;
+      }
+
+      .item-art.elite {
+        --core-glow: #ff8d6e;
+      }
+
+      .chip-stars {
+        color: #f0bd20;
+        font-size: 10px;
+        line-height: 12px;
+        letter-spacing: 0;
+        white-space: nowrap;
+        text-shadow: 0 1px 0 rgba(93, 60, 0, 0.35);
+      }
+
+      .chip-count {
+        position: relative;
+        display: block;
+        height: 12px;
+        overflow: hidden;
+        border-radius: 99px;
+        background: rgba(117, 146, 164, 0.28);
+        color: var(--text);
+        font-size: 8px;
+        line-height: 12px;
+        font-weight: 1000;
+      }
+
+      .chip-count::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: var(--owned, 50%);
+        background: #16a6b8;
+      }
+
+      .chip-count span {
+        position: relative;
+        z-index: 1;
+      }
+
+      .module-detail {
+        margin: 8px 0;
+        min-height: 70px;
+        padding: 8px 9px;
+        display: grid;
+        grid-template-columns: 1fr 52px;
+        gap: 8px;
+        align-items: center;
+        border: 1px solid rgba(231, 198, 106, 0.3);
+        border-radius: var(--radius);
+        background:
+          linear-gradient(90deg, rgba(231, 198, 106, 0.09), rgba(83, 249, 233, 0.045)),
+          rgba(5, 13, 22, 0.68);
+      }
+
+      .detail-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+      }
+
+      .detail-rank {
+        flex: 0 0 auto;
+        font-size: 10px;
+        line-height: 12px;
+        font-weight: 1000;
+      }
+
+      .detail-copy strong {
+        display: block;
+        font-size: 12px;
+        line-height: 15px;
+        font-weight: 1000;
+      }
+
+      .detail-copy span {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 9px;
+        line-height: 12px;
+        font-weight: 800;
+      }
+
+      .detail-copy .detail-effect {
+        color: var(--gold);
+        font-weight: 1000;
+      }
+
+      .detail-actions {
+        display: grid;
+        gap: 5px;
+      }
+
+      .detail-actions button {
+        min-width: 48px;
+        height: 32px;
+        border: 1px solid rgba(231, 198, 106, 0.4);
+        border-radius: var(--radius);
+        background: rgba(231, 198, 106, 0.08);
+        color: var(--gold);
+        font-size: 10px;
+        font-weight: 1000;
+      }
+
+      .draw-dock {
+        margin-top: 10px;
+        min-height: 64px;
+        padding: 8px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: center;
+        border: 1px solid rgba(231, 198, 106, 0.28);
+        border-radius: var(--radius);
+        background: rgba(231, 198, 106, 0.06);
+      }
+
+      .draw-dock.top-draw {
+        margin: 8px 10px 0;
+        min-height: 54px;
+        border-color: rgba(231, 198, 106, 0.38);
+        background: linear-gradient(180deg, rgba(231, 198, 106, 0.1), rgba(5, 13, 22, 0.56));
+      }
+
+      .draw-dock strong {
+        display: block;
+        font-size: 11px;
+        line-height: 14px;
+        font-weight: 1000;
+      }
+
+      .draw-dock span {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 9px;
+        line-height: 12px;
+        font-weight: 800;
+      }
+
+      .draw-actions {
+        display: grid;
+        grid-template-columns: 54px 54px;
+        gap: 6px;
+      }
+
+      .draw-actions button {
+        height: 34px;
+        border: 1px solid rgba(231, 198, 106, 0.46);
+        border-radius: var(--radius);
+        background: rgba(231, 198, 106, 0.1);
+        color: var(--gold);
+        font-size: 10px;
+        font-weight: 1000;
+      }
+
+      .bottom-tabs {
+        position: absolute;
+        inset: auto 0 0;
+        height: 56px;
+        padding: 5px 9px 6px;
+        background: linear-gradient(180deg, #0d2433, #06101a);
+        border-top: 1px solid rgba(83, 249, 233, 0.58);
+        box-shadow: 0 -8px 18px rgba(0, 0, 0, 0.58);
+      }
+
+      .tab-shell {
+        height: 45px;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        border: 1px solid rgba(51, 216, 255, 0.28);
+        border-radius: 4px;
+        background: rgba(7, 17, 29, 0.55);
+        overflow: hidden;
+      }
+
+      .tab {
+        border: 0;
+        border-left: 1px solid rgba(51, 216, 255, 0.18);
+        display: grid;
+        place-items: center;
+        gap: 1px;
+        color: #8faec0;
+        background: transparent;
+        font-size: 9px;
+        font-weight: 1000;
+      }
+
+      .tab:first-child {
+        border-left: 0;
+      }
+
+      .tab.active {
+        color: var(--text);
+        background: rgba(83, 249, 233, 0.14);
+        box-shadow: inset 0 2px 0 rgba(83, 249, 233, 0.7);
+      }
+
+      .tab i {
+        font-style: normal;
+        font-size: 15px;
+        line-height: 16px;
+      }
+
+      @media (max-width: 360px) {
+        body {
+          padding: 8px;
+        }
+
+        .phone {
+          width: calc(100vw - 12px);
+          height: calc(100vh - 12px);
+          min-height: 660px;
+        }
+
+        .screen {
+          padding-inline: 10px;
+        }
+
+        .turret-rail {
+          gap: 5px;
+          padding-inline: 8px;
+        }
+
+        .socket {
+          right: 8px;
+          width: 118px;
+          padding-inline: 6px;
+        }
+
+        .turret-art {
+          left: 18px;
+          width: 116px;
+          height: 116px;
+        }
+
+        .line-core {
+          left: 126px;
+          width: 74px;
+        }
+
+        .line-barrel {
+          left: 134px;
+          width: 58px;
+        }
+
+        .line-frame {
+          left: 126px;
+          width: 72px;
+        }
+
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" aria-label="Rune Nexus turret module equipment UX draft">
+      <section class="screen">
+        <header class="top-row">
+          <button class="daily" aria-label="daily quest">◆</button>
+          <div class="logo">Rune Nexus</div>
+          <div class="wallet" aria-label="currency">
+            <div class="rune">룬 1,820</div>
+            <div class="diamond">다이아 340</div>
+          </div>
+        </header>
+
+        <section class="panel" aria-label="turret module panel">
+          <div class="panel-head">
+            <div class="heading">
+              <strong>포탑 모듈</strong>
+            </div>
+            <div class="ticket">모듈권 12</div>
+          </div>
+
+          <section class="draw-dock top-draw" aria-label="module draw">
+            <div>
+              <strong>모듈 뽑기</strong>
+              <span>희귀 보정 12 / 35</span>
+            </div>
+            <div class="draw-actions">
+              <button>1회</button>
+              <button>5회</button>
+            </div>
+          </section>
+
+          <nav class="turret-rail" aria-label="turret selector">
+            <button class="turret-token active"><i style="--turret: #e7c66a">기</i>기관총</button>
+            <button class="turret-token"><i style="--turret: #ff7b2f">대</i>대포</button>
+            <button class="turret-token"><i style="--turret: #ff5e3a">화</i>화염</button>
+            <button class="turret-token"><i style="--turret: #7fd8ff">냉</i>냉각</button>
+            <button class="turret-token"><i style="--turret: #b7f4ff">저</i>저격</button>
+            <button class="turret-token new"><i style="--turret: #cfa7ff">라</i>신규</button>
+          </nav>
+
+          <div class="content">
+            <section class="equipment-stage" aria-label="selected turret equipment">
+              <div class="stage-title">
+                <strong>기관총</strong>
+                <span>탄도 · 경량</span>
+              </div>
+              <div class="link-line line-core"></div>
+              <div class="link-line line-barrel"></div>
+              <div class="link-line line-frame"></div>
+              <div class="turret-art" aria-label="selected turret preview">
+                <span>기관총</span>
+              </div>
+
+              <article class="socket core active">
+                <div class="socket-label"><span>코어</span><span class="grade-rare">희귀</span></div>
+                <div class="socket-name">과열 연산</div>
+                <div class="socket-stat">8타 후 공속 +18%</div>
+                <div class="stars">★ ★ ☆</div>
+              </article>
+
+              <article class="socket barrel">
+                <div class="socket-label"><span>포신</span><span class="grade-magic">마법</span></div>
+                <div class="socket-name">경량 총열</div>
+                <div class="socket-stat">공격속도 +5%</div>
+                <div class="stars">★ ☆ ☆</div>
+              </article>
+
+              <article class="socket frame">
+                <div class="socket-label"><span>프레임</span><span class="grade-normal">일반</span></div>
+                <div class="socket-name">안정 프레임</div>
+                <div class="socket-stat">설치 비용 -2%</div>
+                <div class="stars">☆ ☆ ☆</div>
+              </article>
+
+            </section>
+
+            <div class="module-detail" aria-label="selected module detail">
+              <div class="detail-copy">
+                <div class="detail-title">
+                  <span class="detail-rank grade-rare">희귀</span>
+                  <strong>과열 연산 코어</strong>
+                </div>
+                <span>코어 · 기관총</span>
+                <span class="detail-effect">장착 효과: 8타 후 2초간 공격속도 +18%</span>
+              </div>
+              <div class="detail-actions">
+                <button>장착</button>
+              </div>
+            </div>
+
+            <section class="module-section" aria-label="compatible modules">
+              <div class="module-tray">
+                <button class="module-chip normal" aria-label="기본 연산 코어">
+                  <span class="chip-top">
+                    <span class="chip-rank">일반</span>
+                    <span class="chip-level">Lv.20</span>
+                  </span>
+                  <span class="item-art" aria-hidden="true"></span>
+                  <span class="chip-stars">☆☆☆</span>
+                  <span class="chip-count" style="--owned: 100%"><span>5/5</span></span>
+                </button>
+                <button class="module-chip magic" aria-label="약점 추적 코어">
+                  <span class="chip-top">
+                    <span class="chip-rank">마법</span>
+                    <span class="chip-level">Lv.30</span>
+                  </span>
+                  <span class="item-art focus" aria-hidden="true"></span>
+                  <span class="chip-stars">★☆☆</span>
+                  <span class="chip-count" style="--owned: 80%"><span>4/5</span></span>
+                </button>
+                <button class="module-chip rare active" aria-label="과열 연산 코어">
+                  <span class="chip-top">
+                    <span class="chip-rank">희귀</span>
+                    <span class="chip-level">Lv.80</span>
+                  </span>
+                  <span class="item-art burst" aria-hidden="true"></span>
+                  <span class="chip-stars">★★☆</span>
+                  <span class="chip-count" style="--owned: 60%"><span>3/5</span></span>
+                </button>
+              </div>
+            </section>
+
+          </div>
+        </section>
+      </section>
+
+      <nav class="bottom-tabs" aria-label="main menu tabs">
+        <div class="tab-shell">
+          <button class="tab"><i>◆</i>스테이지</button>
+          <button class="tab"><i>◇</i>코어</button>
+          <button class="tab"><i>▣</i>강화</button>
+          <button class="tab"><i>◈</i>연구</button>
+          <button class="tab active"><i>▲</i>포탑</button>
+        </div>
+      </nav>
+    </main>
+  </body>
+</html>

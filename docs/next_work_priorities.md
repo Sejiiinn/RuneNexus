@@ -34,6 +34,7 @@
 
 남은 핵심 약점은 다음과 같다.
 
+- 포탑별 장기 성장 목표가 아직 약하다. 다음 최우선 과제는 포탑 모듈 MVP를 구현해 모듈권 뽑기, 3부위 장착, 일반/마법/희귀 성장, 수동 합성, 희귀 보정 루프를 검증하는 것이다.
 - 챕터 2~3 클리어 보상과 연구 조건의 1차 연결은 들어갔다. 다음 최우선 과제는 실제 플레이에서 해금 체감, 연구 비용, 젬 등장 타이밍이 맞는지 검증하는 것이다.
 - 스테이지 2~5는 챕터 1 후반 구간으로 묶어도 된다. 신규 몹이나 신규 기믹 없이 스테이지 3~5의 웨이브만 억지로 갈라봤자 체감 차이가 작다.
 - 영구 업그레이드는 정비 보급, 기초 화력 훈련, 처치 보상, 긴급 매각까지 확장됐지만, 해금 단계와 젬/링크 계열 선택지는 아직 얕다.
@@ -46,9 +47,42 @@
 
 ## 권장 우선순위
 
-### 1. 챕터 2~3 보상과 연구 조건 연결
+### 1. 포탑 모듈 MVP 구현
 
 가장 먼저 추천하는 작업이다.
+설계 기준은 `docs/turret_module_design.md`에 유지한다.
+현재 UX 초안은 `docs/prototypes/turret_module_equipment_ux_draft.html`에 유지한다.
+
+작업 후보:
+
+- 메인 메뉴 하단 탭에서 포탑 모듈 화면 진입
+- 모듈권 기반 1회/5회 뽑기
+- 모듈권 부족 시 다이아로 부족분 구매 후 뽑기
+- 해금된 포탑 전체 풀 대상 랜덤 뽑기
+- 희귀 보정 게이지
+- 포탑별 `코어`, `포신`, `프레임` 3부위 장착
+- 선택 부위별 모듈 후보 표시
+- 일반/마법/희귀 3등급
+- 중복 조각 수집과 수동 합성
+
+이유:
+
+- 포탑별 장기 성장 목표가 생긴다.
+- 유니크와 특수 능력을 제외해 1차 구현 범위를 통제할 수 있다.
+- 모듈권과 희귀 보정으로 반복 플레이 보상과 뽑기 피로도를 함께 조절할 수 있다.
+- 프레임/포신/코어 역할을 분리하면 효과 설계와 밸런싱 범위가 명확해진다.
+
+관련 파일:
+
+- `docs/turret_module_design.md`
+- `docs/prototypes/turret_module_equipment_ux_draft.html`
+- `lib/ui/menu/main_menu_screen.dart`
+- `lib/data/save/game_save_data.dart`
+- `lib/domain/turret/turret_type.dart`
+- `test/widget_test.dart`
+
+### 2. 챕터 2~3 보상과 연구 조건 연결
+
 설계 기준은 `docs/chapter2_wave_enemy_design.md`에 유지한다.
 보호막병 시각/역할 기준은 `docs/prototypes/shielded_enemy_design_preview.html`에 정리했다.
 챕터 3의 맵/웨이브 범위는 `docs/chapter3_forge_design.md`에 유지한다.
@@ -82,7 +116,7 @@
 - `test/game_balance_test.dart`
 - `test/widget_test.dart`
 
-### 2. 연구/영구 성장 해금 단계 정리
+### 3. 연구/영구 성장 해금 단계 정리
 
 작업 후보:
 
@@ -114,7 +148,7 @@
 - `test/game_balance_test.dart`
 - `test/widget_test.dart`
 
-### 3. 50라운드 보상/난이도 곡선 재점검
+### 4. 50라운드 보상/난이도 곡선 재점검
 
 작업 후보:
 
@@ -138,7 +172,7 @@
 - `test/game_balance_test.dart`
 - `docs/gameplay_balance_reference.md`
 
-### 4. 보스 웨이브 연출과 피드백 강화
+### 5. 보스 웨이브 연출과 피드백 강화
 
 작업 후보:
 
@@ -160,7 +194,7 @@
 - `lib/data/definitions/game_stage_data.dart`
 - `test/widget_test.dart`
 
-### 5. 보호형 적 후속 설계
+### 6. 보호형 적 후속 설계
 
 작업 후보:
 
@@ -182,7 +216,7 @@
 - `lib/ui/hud/gem_equip_panel.dart`
 - `test/game_balance_test.dart`
 
-### 6. `RuneNexusGame` 책임 분리 리팩토링
+### 7. `RuneNexusGame` 책임 분리 리팩토링
 
 작업 후보:
 
