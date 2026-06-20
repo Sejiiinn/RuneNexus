@@ -8,7 +8,6 @@ import '../../domain/gem/gem_type.dart';
 import '../../game/game_snapshot.dart';
 import '../../game/rune_nexus_game.dart';
 import '../game/game_ui.dart';
-import '../widgets/currency_icon.dart';
 import 'hud_common.dart';
 import 'portal_summary_panel.dart';
 
@@ -99,7 +98,7 @@ class _ResourceStrip extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _ResourceValue(
-            iconWidget: const CurrencyAssetIcon.gold(size: 15),
+            icon: Icons.paid_outlined,
             iconColor: const Color(0xFFFFD166),
             valueChild: _GoldValue(snapshot: snapshot),
           ),
@@ -357,7 +356,7 @@ class _WaveRewardSummary extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CurrencyAssetIcon.gold(size: 12),
+            const Icon(Icons.flag_outlined, size: 12, color: Color(0xFFFFD166)),
             _RewardValue(value: snapshot.nextWaveClearRewardGold),
             const SizedBox(width: 5),
             const SizedBox(width: 12, height: 12, child: HudGemShardIcon()),
@@ -691,7 +690,11 @@ class _RuneRewardIcon extends StatelessWidget {
         border: Border.all(color: const Color(0x88E7C66A)),
         shape: BoxShape.circle,
       ),
-      child: CurrencyAssetIcon.rune(size: size * 0.72),
+      child: Icon(
+        Icons.diamond_outlined,
+        size: size * 0.62,
+        color: GamePalette.goldBright,
+      ),
     );
   }
 }

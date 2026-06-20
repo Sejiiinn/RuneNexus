@@ -388,7 +388,7 @@ class _ResearchInstantCompleteButtonLabel extends StatelessWidget {
           children: [
             Text(text, maxLines: 1),
             const SizedBox(width: 5),
-            const CurrencyAssetIcon.diamond(size: 12),
+            const Icon(Icons.diamond, size: 12, color: _diamondCurrencyColor),
             const SizedBox(width: 2),
             Text('$cost', maxLines: 1),
           ],
@@ -1106,7 +1106,7 @@ class _ResearchMetaStrip extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CurrencyAssetIcon.rune(size: 12, opacity: enabled ? 1 : 0.45),
+                Icon(Icons.diamond_outlined, size: 12, color: foreground),
                 const SizedBox(width: 2),
                 Text(
                   '$cost',
@@ -1307,10 +1307,7 @@ class _ResearchDetailDialog extends StatelessWidget {
                             SizedBox(
                               width: itemWidth,
                               child: _ResearchDialogMetric(
-                                iconWidget: CurrencyAssetIcon.rune(
-                                  size: 14,
-                                  opacity: canStart ? 1 : 0.45,
-                                ),
+                                icon: Icons.diamond_outlined,
                                 label: l10n.researchCostLabel,
                                 value: '$cost',
                                 accent: canStart
@@ -1374,15 +1371,13 @@ class _ResearchDetailDialog extends StatelessWidget {
 
 class _ResearchDialogMetric extends StatelessWidget {
   const _ResearchDialogMetric({
-    this.icon,
-    this.iconWidget,
+    required this.icon,
     required this.label,
     required this.value,
     required this.accent,
   });
 
-  final IconData? icon;
-  final Widget? iconWidget;
+  final IconData icon;
   final String label;
   final String value;
   final Color accent;
@@ -1399,7 +1394,7 @@ class _ResearchDialogMetric extends StatelessWidget {
       ),
       child: Row(
         children: [
-          iconWidget ?? Icon(icon, color: accent, size: 14),
+          Icon(icon, color: accent, size: 14),
           const SizedBox(width: 6),
           Expanded(
             child: Column(
