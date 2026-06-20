@@ -1,0 +1,1101 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rune Nexus - Turret Module MVP</title>
+    <style>
+      :root {
+        --bg: #03070d;
+        --base: #06101a;
+        --panel: rgba(9, 22, 36, 0.92);
+        --panel-2: rgba(12, 29, 47, 0.86);
+        --panel-3: rgba(7, 17, 29, 0.82);
+        --line: rgba(83, 249, 233, 0.42);
+        --line-soft: rgba(118, 149, 168, 0.28);
+        --text: #e8fbff;
+        --muted: #8faec0;
+        --dim: #647987;
+        --cyan: #53f9e9;
+        --diamond: #8ee6ff;
+        --gold: #e7c66a;
+        --violet: #b68bff;
+        --green: #72e0a2;
+        --orange: #ff9f5c;
+        --rare: #69d7ff;
+        --unique: #ffcf6e;
+        --radius: 7px;
+        --shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 16px;
+        color: var(--text);
+        background:
+          linear-gradient(90deg, rgba(142, 230, 255, 0.04) 1px, transparent 1px) 0 0 / 36px 36px,
+          linear-gradient(160deg, #081520 0%, #07111d 48%, #03070e 100%);
+        font-family:
+          Inter,
+          "Noto Sans KR",
+          "Apple SD Gothic Neo",
+          system-ui,
+          sans-serif;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .phone {
+        position: relative;
+        width: min(390px, calc(100vw - 24px));
+        height: min(810px, calc(100vh - 24px));
+        min-height: 700px;
+        overflow: hidden;
+        border: 1px solid rgba(142, 230, 255, 0.24);
+        border-radius: 8px;
+        background:
+          linear-gradient(90deg, rgba(142, 230, 255, 0.035) 1px, transparent 1px) 0 0 / 35px 35px,
+          linear-gradient(165deg, rgba(12, 30, 48, 0.92), rgba(4, 9, 17, 0.96));
+        box-shadow: var(--shadow);
+      }
+
+      .menu {
+        position: absolute;
+        inset: 0 0 56px;
+        padding: 11px 14px 12px;
+        display: grid;
+        grid-template-rows: 52px 42px minmax(0, 1fr);
+        gap: 10px;
+      }
+
+      .top-row {
+        display: grid;
+        grid-template-columns: 48px 1fr 82px;
+        align-items: start;
+        gap: 8px;
+      }
+
+      .daily-button,
+      .icon-button {
+        width: 40px;
+        height: 40px;
+        border: 1px solid rgba(83, 249, 233, 0.55);
+        border-radius: var(--radius);
+        background: linear-gradient(180deg, rgba(83, 249, 233, 0.15), rgba(7, 17, 29, 0.64));
+        color: var(--diamond);
+        display: grid;
+        place-items: center;
+        font-size: 19px;
+        font-weight: 900;
+      }
+
+      .logo {
+        align-self: center;
+        text-align: center;
+        font-size: 22px;
+        line-height: 34px;
+        font-weight: 1000;
+        color: #dff5ff;
+        text-shadow: 0 0 20px rgba(83, 249, 233, 0.18);
+      }
+
+      .currency {
+        justify-self: end;
+        display: grid;
+        gap: 2px;
+        font-size: 12px;
+        font-weight: 1000;
+        text-align: right;
+      }
+
+      .currency div {
+        display: flex;
+        justify-content: flex-end;
+        gap: 5px;
+        align-items: center;
+      }
+
+      .gem {
+        color: var(--diamond);
+      }
+
+      .rune {
+        color: var(--gold);
+      }
+
+      .sub-tabs {
+        width: 206px;
+        justify-self: center;
+        height: 42px;
+        padding: 4px;
+        border: 1px solid rgba(83, 249, 233, 0.42);
+        border-radius: 10px;
+        background: rgba(5, 13, 22, 0.92);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+      }
+
+      .sub-tab {
+        border: 0;
+        border-radius: var(--radius);
+        color: var(--muted);
+        background: transparent;
+        font-size: 12px;
+        font-weight: 1000;
+      }
+
+      .sub-tab.active {
+        color: var(--text);
+        background: linear-gradient(180deg, rgba(83, 249, 233, 0.22), rgba(21, 88, 118, 0.4));
+        box-shadow: inset 0 0 0 1px rgba(83, 249, 233, 0.52);
+      }
+
+      .sub-tab.locked {
+        color: #687c89;
+      }
+
+      .panel {
+        min-height: 0;
+        border: 1px solid rgba(83, 249, 233, 0.24);
+        border-radius: var(--radius);
+        background: rgba(7, 17, 29, 0.72);
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr);
+      }
+
+      .panel-head {
+        padding: 12px 12px 9px;
+        border-bottom: 1px solid rgba(118, 149, 168, 0.2);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-width: 0;
+      }
+
+      .title-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        display: grid;
+        place-items: center;
+        background: rgba(83, 249, 233, 0.14);
+        border: 1px solid rgba(83, 249, 233, 0.42);
+        color: var(--cyan);
+        font-weight: 1000;
+      }
+
+      .title strong {
+        display: block;
+        font-size: 15px;
+        line-height: 18px;
+        font-weight: 1000;
+      }
+
+      .title span {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 14px;
+        font-weight: 800;
+      }
+
+      .chip {
+        min-height: 26px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 0 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(231, 198, 106, 0.42);
+        background: rgba(231, 198, 106, 0.08);
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 1000;
+        white-space: nowrap;
+      }
+
+      .summaries {
+        padding: 10px 12px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+        border-bottom: 1px solid rgba(118, 149, 168, 0.2);
+      }
+
+      .summary {
+        min-height: 56px;
+        padding: 8px 7px;
+        border: 1px solid var(--line-soft);
+        border-radius: var(--radius);
+        background: rgba(9, 22, 36, 0.64);
+      }
+
+      .summary span {
+        display: block;
+        color: var(--muted);
+        font-size: 9px;
+        line-height: 12px;
+        font-weight: 900;
+      }
+
+      .summary strong {
+        display: block;
+        margin-top: 3px;
+        color: var(--text);
+        font-size: 13px;
+        line-height: 16px;
+        font-weight: 1000;
+      }
+
+      .content {
+        min-height: 0;
+        padding: 10px 12px 12px;
+        overflow: auto;
+        scrollbar-width: none;
+      }
+
+      .content::-webkit-scrollbar {
+        display: none;
+      }
+
+      .draw-card {
+        padding: 10px;
+        border: 1px solid rgba(83, 249, 233, 0.34);
+        border-radius: var(--radius);
+        background: linear-gradient(180deg, rgba(12, 29, 47, 0.86), rgba(6, 16, 26, 0.88));
+      }
+
+      .draw-card.compact {
+        margin-top: 12px;
+      }
+
+      .draw-top {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section-title {
+        font-size: 12px;
+        line-height: 15px;
+        font-weight: 1000;
+      }
+
+      .section-sub {
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 13px;
+        font-weight: 800;
+      }
+
+      .draw-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .draw-button {
+        height: 42px;
+        border-radius: var(--radius);
+        border: 1px solid rgba(231, 198, 106, 0.62);
+        color: var(--text);
+        background: linear-gradient(180deg, rgba(231, 198, 106, 0.18), rgba(83, 63, 18, 0.28));
+        font-size: 12px;
+        font-weight: 1000;
+      }
+
+      .draw-button span {
+        display: block;
+        margin-top: 2px;
+        color: var(--gold);
+        font-size: 10px;
+        font-weight: 900;
+      }
+
+      .pool-row {
+        margin-top: 9px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+
+      .pool-chip {
+        height: 24px;
+        padding: 0 7px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid rgba(118, 149, 168, 0.34);
+        border-radius: 999px;
+        background: rgba(5, 13, 22, 0.52);
+        color: #cfe9f1;
+        font-size: 10px;
+        font-weight: 900;
+      }
+
+      .pool-chip.new {
+        border-color: rgba(114, 224, 162, 0.46);
+        color: var(--green);
+      }
+
+      .turret-picker {
+        margin-top: 8px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+      }
+
+      .turret-pick {
+        min-height: 72px;
+        padding: 7px;
+        border: 1px solid rgba(118, 149, 168, 0.32);
+        border-radius: var(--radius);
+        background: rgba(9, 22, 36, 0.66);
+        color: var(--text);
+        text-align: left;
+      }
+
+      .turret-pick.active {
+        border-color: rgba(83, 249, 233, 0.78);
+        background: linear-gradient(180deg, rgba(83, 249, 233, 0.16), rgba(9, 22, 36, 0.76));
+        box-shadow: inset 0 0 0 1px rgba(83, 249, 233, 0.18);
+      }
+
+      .turret-pick.locked {
+        opacity: 0.58;
+      }
+
+      .turret-pick-top {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .turret-pick-name {
+        min-width: 0;
+      }
+
+      .turret-pick-name strong {
+        display: block;
+        font-size: 11px;
+        line-height: 14px;
+        font-weight: 1000;
+      }
+
+      .turret-pick-name span {
+        display: block;
+        color: var(--muted);
+        font-size: 9px;
+        line-height: 12px;
+        font-weight: 800;
+      }
+
+      .turret-pick-meta {
+        margin-top: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--gold);
+        font-size: 10px;
+        line-height: 12px;
+        font-weight: 1000;
+      }
+
+      .supply {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: 44px 1fr auto;
+        gap: 9px;
+        align-items: center;
+        padding: 8px;
+        border: 1px solid rgba(114, 224, 162, 0.4);
+        border-radius: var(--radius);
+        background: rgba(114, 224, 162, 0.07);
+      }
+
+      .supply-icon {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(114, 224, 162, 0.44);
+        border-radius: var(--radius);
+        color: var(--green);
+        background: rgba(5, 13, 22, 0.46);
+        font-weight: 1000;
+      }
+
+      .small-button {
+        height: 30px;
+        padding: 0 9px;
+        border: 1px solid rgba(114, 224, 162, 0.56);
+        border-radius: var(--radius);
+        background: rgba(114, 224, 162, 0.1);
+        color: #b9ffd2;
+        font-size: 10px;
+        font-weight: 1000;
+        white-space: nowrap;
+      }
+
+      .section-row {
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .filter {
+        height: 28px;
+        display: flex;
+        border: 1px solid rgba(118, 149, 168, 0.32);
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: rgba(5, 13, 22, 0.72);
+      }
+
+      .filter button {
+        width: 45px;
+        border: 0;
+        border-left: 1px solid rgba(118, 149, 168, 0.18);
+        color: var(--muted);
+        background: transparent;
+        font-size: 10px;
+        font-weight: 900;
+      }
+
+      .filter button:first-child {
+        border-left: 0;
+      }
+
+      .filter .active {
+        color: var(--text);
+        background: rgba(83, 249, 233, 0.14);
+      }
+
+      .turret-list {
+        margin-top: 8px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .turret-card {
+        border: 1px solid rgba(118, 149, 168, 0.32);
+        border-radius: var(--radius);
+        background: rgba(9, 22, 36, 0.72);
+        overflow: hidden;
+      }
+
+      .turret-head {
+        height: 42px;
+        padding: 7px 8px;
+        display: grid;
+        grid-template-columns: 30px 1fr auto;
+        align-items: center;
+        gap: 7px;
+        border-bottom: 1px solid rgba(118, 149, 168, 0.18);
+      }
+
+      .turret-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 7px;
+        display: grid;
+        place-items: center;
+        border: 1px solid color-mix(in srgb, var(--turret), transparent 28%);
+        background: color-mix(in srgb, var(--turret), transparent 86%);
+        color: var(--turret);
+        font-size: 12px;
+        font-weight: 1000;
+      }
+
+      .turret-name {
+        min-width: 0;
+      }
+
+      .turret-name strong {
+        display: block;
+        font-size: 12px;
+        line-height: 15px;
+        font-weight: 1000;
+      }
+
+      .turret-name span {
+        display: block;
+        color: var(--muted);
+        font-size: 9px;
+        line-height: 12px;
+        font-weight: 800;
+      }
+
+      .power {
+        color: var(--gold);
+        font-size: 11px;
+        font-weight: 1000;
+      }
+
+      .slots {
+        padding: 8px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+      }
+
+      .slot {
+        min-height: 72px;
+        border: 1px solid rgba(118, 149, 168, 0.3);
+        border-radius: var(--radius);
+        background: rgba(5, 13, 22, 0.54);
+        padding: 7px;
+      }
+
+      .slot.selected {
+        border-color: rgba(83, 249, 233, 0.58);
+        background: rgba(83, 249, 233, 0.08);
+      }
+
+      .slot.empty {
+        display: grid;
+        place-items: center;
+        color: #657987;
+        border-style: dashed;
+        font-size: 10px;
+        font-weight: 900;
+      }
+
+      .slot-label {
+        display: flex;
+        justify-content: space-between;
+        gap: 4px;
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 900;
+      }
+
+      .grade {
+        font-size: 9px;
+        font-weight: 1000;
+      }
+
+      .normal {
+        color: #c8d5dd;
+      }
+
+      .magic {
+        color: var(--green);
+      }
+
+      .rare {
+        color: var(--rare);
+      }
+
+      .unique {
+        color: var(--unique);
+      }
+
+      .module-name {
+        margin-top: 5px;
+        min-height: 26px;
+        color: var(--text);
+        font-size: 10px;
+        line-height: 13px;
+        font-weight: 1000;
+      }
+
+      .module-stat {
+        margin-top: 5px;
+        color: var(--gold);
+        font-size: 10px;
+        line-height: 12px;
+        font-weight: 1000;
+      }
+
+      .stars {
+        margin-top: 5px;
+        color: var(--gold);
+        font-size: 10px;
+        letter-spacing: 0;
+      }
+
+      .slot-action {
+        width: 100%;
+        height: 24px;
+        margin-top: 6px;
+        border: 1px solid rgba(83, 249, 233, 0.42);
+        border-radius: 6px;
+        background: rgba(83, 249, 233, 0.08);
+        color: #cbf8ff;
+        font-size: 9px;
+        font-weight: 1000;
+      }
+
+      .module-list {
+        margin-top: 8px;
+        display: grid;
+        gap: 7px;
+      }
+
+      .module-card {
+        min-height: 64px;
+        padding: 8px;
+        display: grid;
+        grid-template-columns: 34px 1fr auto;
+        gap: 8px;
+        align-items: center;
+        border: 1px solid rgba(118, 149, 168, 0.3);
+        border-radius: var(--radius);
+        background: rgba(9, 22, 36, 0.66);
+      }
+
+      .module-card.equipped {
+        border-color: rgba(83, 249, 233, 0.5);
+        background: rgba(83, 249, 233, 0.08);
+      }
+
+      .module-rank {
+        width: 32px;
+        height: 32px;
+        display: grid;
+        place-items: center;
+        border-radius: 7px;
+        border: 1px solid currentColor;
+        background: rgba(5, 13, 22, 0.62);
+        font-size: 10px;
+        font-weight: 1000;
+      }
+
+      .module-info strong {
+        display: block;
+        font-size: 11px;
+        line-height: 14px;
+        font-weight: 1000;
+      }
+
+      .module-info span {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 9px;
+        line-height: 12px;
+        font-weight: 800;
+      }
+
+      .module-action {
+        width: 50px;
+        height: 30px;
+        border: 1px solid rgba(231, 198, 106, 0.48);
+        border-radius: var(--radius);
+        background: rgba(231, 198, 106, 0.08);
+        color: var(--gold);
+        font-size: 10px;
+        font-weight: 1000;
+      }
+
+      .result-strip {
+        margin-top: 10px;
+        padding: 8px;
+        border: 1px solid rgba(182, 139, 255, 0.35);
+        border-radius: var(--radius);
+        background: rgba(182, 139, 255, 0.07);
+      }
+
+      .result-grid {
+        margin-top: 8px;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+      }
+
+      .result {
+        min-height: 64px;
+        padding: 6px 5px;
+        border: 1px solid rgba(118, 149, 168, 0.3);
+        border-radius: var(--radius);
+        background: rgba(5, 13, 22, 0.56);
+      }
+
+      .result .mark {
+        width: 22px;
+        height: 22px;
+        margin-bottom: 5px;
+        display: grid;
+        place-items: center;
+        border-radius: 6px;
+        border: 1px solid currentColor;
+        font-size: 9px;
+        font-weight: 1000;
+      }
+
+      .result strong {
+        display: block;
+        font-size: 9px;
+        line-height: 11px;
+        font-weight: 1000;
+      }
+
+      .result span {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 8px;
+        line-height: 10px;
+        font-weight: 800;
+      }
+
+      .bottom-tabs {
+        position: absolute;
+        inset: auto 0 0;
+        height: 56px;
+        padding: 5px 9px 6px;
+        background: linear-gradient(180deg, #0d2433, #06101a);
+        border-top: 1px solid rgba(83, 249, 233, 0.66);
+        box-shadow: 0 -8px 18px rgba(0, 0, 0, 0.58);
+      }
+
+      .tab-shell {
+        height: 45px;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        border: 1px solid rgba(51, 216, 255, 0.28);
+        border-radius: 4px;
+        background: rgba(7, 17, 29, 0.55);
+        overflow: hidden;
+      }
+
+      .tab {
+        border: 0;
+        border-left: 1px solid rgba(51, 216, 255, 0.18);
+        display: grid;
+        place-items: center;
+        gap: 1px;
+        color: #8faec0;
+        background: transparent;
+        font-size: 9px;
+        font-weight: 1000;
+      }
+
+      .tab:first-child {
+        border-left: 0;
+      }
+
+      .tab.active {
+        color: var(--text);
+        background: linear-gradient(180deg, rgba(83, 249, 233, 0.2), rgba(5, 13, 22, 0.4));
+        box-shadow: inset 0 2px 0 rgba(83, 249, 233, 0.72);
+      }
+
+      .tab i {
+        font-style: normal;
+        font-size: 15px;
+        line-height: 16px;
+      }
+
+      @media (max-width: 360px) {
+        body {
+          padding: 8px;
+        }
+
+        .phone {
+          width: calc(100vw - 12px);
+          height: calc(100vh - 12px);
+          min-height: 640px;
+        }
+
+        .menu {
+          padding-inline: 10px;
+          gap: 8px;
+        }
+
+        .summaries {
+          gap: 5px;
+          padding-inline: 9px;
+        }
+
+        .summary {
+          padding-inline: 5px;
+        }
+
+        .slots,
+        .result-grid {
+          gap: 5px;
+        }
+
+        .slot {
+          padding: 6px 5px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="phone" aria-label="Rune Nexus turret module MVP">
+      <section class="menu">
+        <header class="top-row">
+          <button class="daily-button" aria-label="daily quest">◆</button>
+          <div class="logo">Rune Nexus</div>
+          <div class="currency" aria-label="currency">
+            <div class="rune">룬 1,820</div>
+            <div class="gem">다이아 340</div>
+          </div>
+        </header>
+
+        <nav class="sub-tabs" aria-label="turret upgrade sections">
+          <button class="sub-tab active">모듈</button>
+          <button class="sub-tab locked">스킬 트리 🔒</button>
+        </nav>
+
+        <section class="panel" aria-label="module screen">
+          <div class="panel-head">
+            <div class="title">
+              <div class="title-icon">T</div>
+              <div>
+                <strong>포탑 모듈</strong>
+                <span>해금 포탑 풀 · 3부위 장착</span>
+              </div>
+            </div>
+            <div class="chip">모듈권 12</div>
+          </div>
+
+          <div class="summaries">
+            <div class="summary">
+              <span>장착</span>
+              <strong>12 / 18</strong>
+            </div>
+            <div class="summary">
+              <span>유니크</span>
+              <strong>2개</strong>
+            </div>
+            <div class="summary">
+              <span>분해 조각</span>
+              <strong>580</strong>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="section-row">
+              <div>
+                <div class="section-title">포탑 선택</div>
+                <div class="section-sub">선택한 포탑에 장착 가능한 모듈만 표시</div>
+              </div>
+              <div class="filter" aria-label="turret filter">
+                <button class="active">전체</button>
+                <button>물리</button>
+                <button>원소</button>
+              </div>
+            </div>
+
+            <section class="turret-picker" aria-label="turret selector">
+              <button class="turret-pick active">
+                <div class="turret-pick-top">
+                  <div class="turret-icon" style="--turret: #e7c66a">기</div>
+                  <div class="turret-pick-name">
+                    <strong>기관총</strong>
+                    <span>탄도 · 경량</span>
+                  </div>
+                </div>
+                <div class="turret-pick-meta"><span>3/3 장착</span><span>+18%</span></div>
+              </button>
+              <button class="turret-pick">
+                <div class="turret-pick-top">
+                  <div class="turret-icon" style="--turret: #ff7b2f">대</div>
+                  <div class="turret-pick-name">
+                    <strong>대포</strong>
+                    <span>폭발 · 중화기</span>
+                  </div>
+                </div>
+                <div class="turret-pick-meta"><span>2/3 장착</span><span>+11%</span></div>
+              </button>
+              <button class="turret-pick">
+                <div class="turret-pick-top">
+                  <div class="turret-icon" style="--turret: #ff5e3a">화</div>
+                  <div class="turret-pick-name">
+                    <strong>화염</strong>
+                    <span>원소 · 지속</span>
+                  </div>
+                </div>
+                <div class="turret-pick-meta"><span>2/3 장착</span><span>유니크</span></div>
+              </button>
+              <button class="turret-pick">
+                <div class="turret-pick-top">
+                  <div class="turret-icon" style="--turret: #7fd8ff">냉</div>
+                  <div class="turret-pick-name">
+                    <strong>냉각</strong>
+                    <span>원소 · 제어</span>
+                  </div>
+                </div>
+                <div class="turret-pick-meta"><span>1/3 장착</span><span>+4%</span></div>
+              </button>
+              <button class="turret-pick">
+                <div class="turret-pick-top">
+                  <div class="turret-icon" style="--turret: #b7f4ff">저</div>
+                  <div class="turret-pick-name">
+                    <strong>저격</strong>
+                    <span>탄도 · 치명</span>
+                  </div>
+                </div>
+                <div class="turret-pick-meta"><span>1/3 장착</span><span>+3%</span></div>
+              </button>
+              <button class="turret-pick">
+                <div class="turret-pick-top">
+                  <div class="turret-icon" style="--turret: #cfa7ff">라</div>
+                  <div class="turret-pick-name">
+                    <strong>라이트닝</strong>
+                    <span>신규 해금</span>
+                  </div>
+                </div>
+                <div class="turret-pick-meta"><span>0/3 장착</span><span>보급</span></div>
+              </button>
+            </section>
+
+            <div class="supply">
+              <div class="supply-icon">보급</div>
+              <div>
+                <div class="section-title">라이트닝 보급 세트</div>
+                <div class="section-sub">신규 포탑 3부위 기본 장비 지급</div>
+              </div>
+              <button class="small-button">수령</button>
+            </div>
+
+            <section class="turret-list">
+              <article class="turret-card">
+                <div class="turret-head">
+                  <div class="turret-icon" style="--turret: #e7c66a">기</div>
+                  <div class="turret-name">
+                    <strong>기관총 모듈 장착</strong>
+                    <span>선택 포탑 · 모든 기관총에 적용</span>
+                  </div>
+                  <div class="power">+18%</div>
+                </div>
+                <div class="slots">
+                  <div class="slot selected">
+                    <div class="slot-label"><span>코어</span><span class="grade rare">희귀</span></div>
+                    <div class="module-name">과열 연산 코어</div>
+                    <div class="module-stat">동일 대상 피해 +6%</div>
+                    <div class="stars">★ ★ ☆</div>
+                    <button class="slot-action">교체</button>
+                  </div>
+                  <div class="slot">
+                    <div class="slot-label"><span>포신</span><span class="grade magic">마법</span></div>
+                    <div class="module-name">경량 총열</div>
+                    <div class="module-stat">공격속도 +5%</div>
+                    <div class="stars">★ ☆ ☆</div>
+                    <button class="slot-action">교체</button>
+                  </div>
+                  <div class="slot">
+                    <div class="slot-label"><span>프레임</span><span class="grade normal">일반</span></div>
+                    <div class="module-name">안정 프레임</div>
+                    <div class="module-stat">설치 비용 -2%</div>
+                    <div class="stars">☆ ☆ ☆</div>
+                    <button class="slot-action">교체</button>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <div class="section-row">
+              <div>
+                <div class="section-title">기관총 장착 가능 모듈</div>
+                <div class="section-sub">선택한 부위: 코어</div>
+              </div>
+              <div class="filter" aria-label="part filter">
+                <button class="active">코어</button>
+                <button>포신</button>
+                <button>프레임</button>
+              </div>
+            </div>
+
+            <section class="module-list" aria-label="selected turret modules">
+              <article class="module-card equipped">
+                <div class="module-rank rare">희</div>
+                <div class="module-info">
+                  <strong>과열 연산 코어</strong>
+                  <span>장착 중 · 동일 대상 피해 +6% · ★★☆</span>
+                </div>
+                <button class="module-action">강화</button>
+              </article>
+              <article class="module-card">
+                <div class="module-rank unique">유</div>
+                <div class="module-info">
+                  <strong>탄막 지휘 코어</strong>
+                  <span>공격 대상 변경 시 2초간 공속 증가 · ☆☆☆</span>
+                </div>
+                <button class="module-action">장착</button>
+              </article>
+              <article class="module-card">
+                <div class="module-rank magic">마</div>
+                <div class="module-info">
+                  <strong>속사 보조 코어</strong>
+                  <span>공격속도 +3% · 중복 1/2</span>
+                </div>
+                <button class="module-action">장착</button>
+              </article>
+              <article class="module-card">
+                <div class="module-rank normal">일</div>
+                <div class="module-info">
+                  <strong>기초 동력 코어</strong>
+                  <span>피해 +2% · 최대 별 도달 시 분해 가능</span>
+                </div>
+                <button class="module-action">분해</button>
+              </article>
+            </section>
+
+            <section class="draw-card compact">
+              <div class="draw-top">
+                <div>
+                  <div class="section-title">모듈 뽑기</div>
+                  <div class="section-sub">해금된 포탑 전체 풀에서 획득</div>
+                </div>
+                <div class="chip">천장 31 / 50</div>
+              </div>
+
+              <div class="draw-buttons">
+                <button class="draw-button">1회 뽑기<span>모듈권 1</span></button>
+                <button class="draw-button">5회 뽑기<span>모듈권 5</span></button>
+              </div>
+
+              <div class="pool-row" aria-label="draw pool">
+                <span class="pool-chip">기관총</span>
+                <span class="pool-chip">대포</span>
+                <span class="pool-chip">화염</span>
+                <span class="pool-chip">냉각</span>
+                <span class="pool-chip">저격</span>
+                <span class="pool-chip new">라이트닝 신규</span>
+              </div>
+            </section>
+          </div>
+        </section>
+      </section>
+
+      <nav class="bottom-tabs" aria-label="main menu tabs">
+        <div class="tab-shell">
+          <button class="tab"><i>◆</i>스테이지</button>
+          <button class="tab"><i>◇</i>코어</button>
+          <button class="tab"><i>▣</i>강화</button>
+          <button class="tab"><i>◈</i>연구</button>
+          <button class="tab active"><i>▲</i>포탑</button>
+        </div>
+      </nav>
+    </main>
+  </body>
+</html>
