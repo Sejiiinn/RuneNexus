@@ -557,7 +557,7 @@ class _RuneCostChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.diamond_outlined, size: 12, color: foreground),
+          const RuneCurrencyIcon(size: 12),
           const SizedBox(width: 2),
           Text(
             '$cost',

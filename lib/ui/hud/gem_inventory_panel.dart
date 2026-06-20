@@ -187,7 +187,7 @@ class _GemInventoryChip extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(gem.icon, color: gem.color, size: 14),
+              GemIcon(gem.type, size: 14),
               const SizedBox(width: 4),
               Text(
                 '${gem.name} x$count',

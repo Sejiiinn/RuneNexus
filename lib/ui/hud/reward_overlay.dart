@@ -272,7 +272,7 @@ class _OwnedGemChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(gem.icon, size: 13, color: gem.color),
+          GemIcon(gem.type, size: 13),
           const SizedBox(width: 4),
           Text(
             gem.name,
@@ -361,7 +361,7 @@ class _RewardCard extends StatelessWidget {
                   border: Border.all(color: gem.color.withValues(alpha: 0.78)),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(gem.icon, color: gem.color, size: 21),
+                child: GemIcon(gem.type, size: 21),
               ),
               const SizedBox(height: 8),
               SizedBox(

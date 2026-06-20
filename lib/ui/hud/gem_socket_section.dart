@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/definitions/game_gem_data.dart';
 import '../../domain/gem/gem_definition.dart';
 import '../../domain/gem/gem_type.dart';
+import '../game/game_icons.dart';
 import '../../domain/turret/attack_tag.dart';
 import '../../domain/turret/damage_family.dart';
 import '../../domain/turret/turret_definition.dart';
@@ -175,7 +176,7 @@ class _LinkSocketButton extends StatelessWidget {
                     else if (gem == null)
                       Icon(Icons.add, size: 17, color: accent)
                     else
-                      Icon(gem.icon, size: 17, color: gem.color),
+                      GemIcon(gem.type, size: 17),
                   ],
                 ),
               ),
@@ -241,7 +242,7 @@ class HudInventoryGemChip extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(gem.icon, color: gem.color, size: 15),
+              GemIcon(gem.type, size: 15),
               const SizedBox(width: 5),
               Expanded(
                 child: Text(
@@ -296,7 +297,7 @@ class HudSelectedInventoryGemActions extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(gem.icon, color: gem.color, size: 15),
+          GemIcon(gem.type, size: 15),
           const SizedBox(width: 6),
           Expanded(
             child: Column(
@@ -376,7 +377,7 @@ class HudSelectedSlotGemActions extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(gem.icon, color: gem.color, size: 14),
+          GemIcon(gem.type, size: 14),
           const SizedBox(width: 6),
           Expanded(
             child: Column(

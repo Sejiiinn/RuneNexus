@@ -388,7 +388,7 @@ class _ResearchInstantCompleteButtonLabel extends StatelessWidget {
           children: [
             Text(text, maxLines: 1),
             const SizedBox(width: 5),
-            const Icon(Icons.diamond, size: 12, color: _diamondCurrencyColor),
+            const DiamondCurrencyIcon(size: 12),
             const SizedBox(width: 2),
             Text('$cost', maxLines: 1),
           ],
@@ -1106,7 +1106,7 @@ class _ResearchMetaStrip extends StatelessWidget {
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.diamond_outlined, size: 12, color: foreground),
+                const RuneCurrencyIcon(size: 12),
                 const SizedBox(width: 2),
                 Text(
                   '$cost',

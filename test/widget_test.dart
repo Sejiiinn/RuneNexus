@@ -367,7 +367,7 @@ void main() {
     expect(find.text('기초 화력 훈련'), findsOneWidget);
     expect(find.text('레벨업'), findsNWidgets(2));
 
-    await tester.tap(find.byIcon(Icons.paid_outlined));
+    await tester.tap(find.byTooltip('경제'));
     await _pumpGameFrames(tester);
 
     expect(find.text('시작 골드'), findsOneWidget);
@@ -1298,7 +1298,7 @@ void main() {
     );
     await _pumpGameFrames(tester);
 
-    await tester.tap(find.byKey(const ValueKey('stage-selection-row-1')));
+    await _tapStageCard(tester, '스테이지 1');
     await _pumpGameFrames(tester);
 
     expect(find.text('이어서 진행'), findsWidgets);
@@ -1521,7 +1521,7 @@ void main() {
     );
     await _pumpGameFrames(tester);
 
-    await tester.tap(find.byIcon(Icons.paid_outlined));
+    await tester.tap(find.byTooltip('경제'));
     await _pumpGameFrames(tester);
 
     expect(find.text('처치 보상'), findsNothing);
@@ -1560,7 +1560,7 @@ void main() {
     );
     await _pumpGameFrames(tester);
 
-    await tester.tap(find.byIcon(Icons.paid_outlined));
+    await tester.tap(find.byTooltip('경제'));
     await _pumpGameFrames(tester);
 
     expect(find.text('긴급 매각'), findsNothing);
@@ -1602,7 +1602,7 @@ void main() {
     );
     await _pumpGameFrames(tester);
 
-    await tester.tap(find.byIcon(Icons.paid_outlined));
+    await tester.tap(find.byTooltip('경제'));
     await _pumpGameFrames(tester);
 
     expect(find.text('긴급 매각'), findsOneWidget);
@@ -2605,7 +2605,12 @@ Finder _stageChipText(String text) {
 Future<void> _tapStageCard(WidgetTester tester, String stageName) async {
   final stageNumber = RegExp(r'\d+').firstMatch(stageName)?.group(0);
   expect(stageNumber, isNotNull);
-  await tester.tap(find.byKey(ValueKey('stage-selection-row-$stageNumber')));
+  final row = find.byKey(ValueKey('stage-selection-row-$stageNumber'));
+  if (row.evaluate().isNotEmpty) {
+    await tester.tap(row);
+  } else {
+    await tester.tap(find.text(stageName).first);
+  }
   await tester.pump();
 }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../game/game_icons.dart';
 import 'non_truncating_text.dart';
 
 class RuneBalanceCard extends StatelessWidget {
@@ -46,17 +47,15 @@ class RuneBalanceCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           _CurrencyRow(
-            icon: Icons.diamond,
+            icon: DiamondCurrencyIcon(size: compact ? 13 : 14),
             value: diamonds,
             compact: compact,
-            color: const Color(0xFF8EE6FF),
           ),
           SizedBox(height: compact ? 2 : 3),
           _CurrencyRow(
-            icon: Icons.diamond_outlined,
+            icon: RuneCurrencyIcon(size: compact ? 13 : 14),
             value: runes,
             compact: compact,
-            color: const Color(0xFFE7C66A),
           ),
         ],
       ),
@@ -69,13 +68,11 @@ class _CurrencyRow extends StatelessWidget {
     required this.icon,
     required this.value,
     required this.compact,
-    required this.color,
   });
 
-  final IconData icon;
+  final Widget icon;
   final int value;
   final bool compact;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +80,7 @@ class _CurrencyRow extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        Icon(icon, size: compact ? 13 : 14, color: color),
+        icon,
         SizedBox(width: compact ? 3 : 5),
         SizedBox(
           width: compact ? 42 : 58,

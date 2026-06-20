@@ -492,7 +492,7 @@ class _DailyQuestRewardText extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 3),
-        const Icon(Icons.diamond, color: _diamondCurrencyColor, size: 12),
+        const DiamondCurrencyIcon(size: 12),
       ],
     );
   }

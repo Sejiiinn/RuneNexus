@@ -263,7 +263,7 @@ class _PermanentUpgradeGroupTabs extends StatelessWidget {
             Container(width: 1, height: 24, color: const Color(0x5533D8FF)),
             Expanded(
               child: _UpgradeGroupTabButton(
-                icon: const Icon(Icons.paid_outlined, size: 19),
+                icon: const GoldCurrencyIcon(size: 19),
                 label: l10n.economyUpgradeGroup,
                 activeColor: const Color(0xFFE7C66A),
                 inactiveColor: const Color(0xFFB6A36D),

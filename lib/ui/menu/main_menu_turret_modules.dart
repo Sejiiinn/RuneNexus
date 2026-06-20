@@ -218,11 +218,9 @@ class _ModuleDrawPanel extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.diamond_outlined,
+                    DiamondCurrencyIcon(
                       key: ValueKey('turret-module-draw-diamond-cost-$count'),
                       size: 10,
-                      color: costColor,
                     ),
                     const SizedBox(width: 2),
                     Text(
@@ -314,11 +312,7 @@ class _ModuleDrawPanel extends StatelessWidget {
                     _ModulePurchaseSummaryRow(
                       label: '결제',
                       value: '$diamondCost',
-                      valuePrefix: const Icon(
-                        Icons.diamond_outlined,
-                        size: 12,
-                        color: _diamondCurrencyColor,
-                      ),
+                      valuePrefix: const DiamondCurrencyIcon(size: 12),
                       valueColor: _diamondCurrencyColor,
                     ),
                     const SizedBox(height: 6),

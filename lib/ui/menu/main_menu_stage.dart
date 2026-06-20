@@ -71,13 +71,6 @@ class _StageMenuState extends State<_StageMenu> {
           theme: chapterTheme,
         ),
         const SizedBox(height: 10),
-        if (activeRunInProgress) ...[
-          _ActiveRunSummary(
-            snapshot: snapshot,
-            onPressed: () => widget.onStartStage(snapshot.currentStageNumber),
-          ),
-          const SizedBox(height: 10),
-        ],
         Expanded(
           child: SingleChildScrollView(
             child: Column(
@@ -88,35 +81,53 @@ class _StageMenuState extends State<_StageMenu> {
                     padding: EdgeInsets.only(
                       bottom: stage == chapterEnd ? 0 : 8,
                     ),
-                    child: _StageSelectionRow(
-                      stageNumber: stage,
-                      unlocked: stage <= stageCount,
-                      active:
-                          activeRunInProgress &&
-                          stage == snapshot.currentStageNumber,
-                      theme: chapterTheme,
-                      sniperRewardUnlocked: snapshot.availableTurretTypes
-                          .contains(TurretType.sniper),
-                      stageCleared: snapshot.clearedStageNumbers.contains(
-                        stage,
-                      ),
-                      statusText: _stageStatusText(
-                        l10n: l10n,
-                        snapshot: snapshot,
-                        stageNumber: stage,
-                        activeRunInProgress: activeRunInProgress,
-                      ),
-                      runeBonusText: l10n.stageRuneBonus(
-                        RunProgression.stageRuneRewardBonusRateFor(stage),
-                      ),
-                      onPressed: () => _openStageDetails(
-                        context: context,
-                        stageNumber: stage,
-                        unlocked: stage <= stageCount,
-                        activeRunInProgress: activeRunInProgress,
-                        theme: chapterTheme,
-                      ),
-                    ),
+                    child:
+                        activeRunInProgress &&
+                            stage == snapshot.currentStageNumber
+                        // 진행 중 스테이지는 별도 패널 대신 목록 내 리치 카드로 통합.
+                        ? _ActiveStageCard(
+                            snapshot: snapshot,
+                            runeBonusText: l10n.stageRuneBonus(
+                              RunProgression.stageRuneRewardBonusRateFor(stage),
+                            ),
+                            onContinue: () => widget.onStartStage(
+                              snapshot.currentStageNumber,
+                            ),
+                            onDetails: () => _openStageDetails(
+                              context: context,
+                              stageNumber: stage,
+                              unlocked: stage <= stageCount,
+                              activeRunInProgress: activeRunInProgress,
+                              theme: chapterTheme,
+                            ),
+                          )
+                        : _StageSelectionRow(
+                            stageNumber: stage,
+                            unlocked: stage <= stageCount,
+                            active: false,
+                            theme: chapterTheme,
+                            sniperRewardUnlocked: snapshot.availableTurretTypes
+                                .contains(TurretType.sniper),
+                            stageCleared: snapshot.clearedStageNumbers.contains(
+                              stage,
+                            ),
+                            statusText: _stageStatusText(
+                              l10n: l10n,
+                              snapshot: snapshot,
+                              stageNumber: stage,
+                              activeRunInProgress: activeRunInProgress,
+                            ),
+                            runeBonusText: l10n.stageRuneBonus(
+                              RunProgression.stageRuneRewardBonusRateFor(stage),
+                            ),
+                            onPressed: () => _openStageDetails(
+                              context: context,
+                              stageNumber: stage,
+                              unlocked: stage <= stageCount,
+                              activeRunInProgress: activeRunInProgress,
+                              theme: chapterTheme,
+                            ),
+                          ),
                   ),
               ],
             ),
@@ -407,90 +418,191 @@ class _StageChapterTab extends StatelessWidget {
   }
 }
 
-class _ActiveRunSummary extends StatelessWidget {
-  const _ActiveRunSummary({required this.snapshot, required this.onPressed});
+// 진행 중 스테이지를 목록 안에서 리치 카드로 표시(이어서 진행 버튼 내장).
+class _ActiveStageCard extends StatelessWidget {
+  const _ActiveStageCard({
+    required this.snapshot,
+    required this.runeBonusText,
+    required this.onContinue,
+    required this.onDetails,
+  });
 
   final GameSnapshot snapshot;
-  final VoidCallback onPressed;
+  final String runeBonusText;
+  final VoidCallback onContinue;
+  final VoidCallback onDetails;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return GamePanel(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.all(11),
       selected: true,
-      accentColor: GamePalette.metalDim,
-      child: Row(
+      accentColor: GamePalette.cyan,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const _StageIcon(unlocked: true, active: true),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: onDetails,
+            child: Row(
               children: [
-                Text(
-                  l10n.inProgress,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF5CF9E9),
-                  ),
-                  overflow: TextOverflow.clip,
-                ),
-                const SizedBox(height: 2),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      l10n.stageName(snapshot.currentStageNumber),
-                      maxLines: 1,
-                      softWrap: false,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFFE8F8FF),
+                _buildMedallion(snapshot.currentStageNumber),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: GamePalette.cyan.withValues(alpha: 0.16),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: Text(
+                          l10n.inProgress,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF5CF9E9),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      l10n.stageProgressDetail(
-                        round: snapshot.round,
-                        maxRound: snapshot.maxRound,
-                        turretCount: snapshot.placedTurretCount,
-                        gold: snapshot.gold,
+                      const SizedBox(height: 3),
+                      Text(
+                        l10n.stageName(snapshot.currentStageNumber),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFFE8F8FF),
+                        ),
                       ),
-                      maxLines: 1,
-                      softWrap: false,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFFB9D6E4),
-                      ),
-                    ),
+                    ],
                   ),
                 ),
+                const SizedBox(width: 8),
+                _buildRuneChip(runeBonusText),
               ],
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _buildStatBox('라운드', '${snapshot.round}/${snapshot.maxRound}'),
+              const SizedBox(width: 6),
+              _buildStatBox('포탑', '${snapshot.placedTurretCount}'),
+              const SizedBox(width: 6),
+              _buildStatBox(
+                '골드',
+                _formatGold(snapshot.gold),
+                valueColor: GamePalette.goldBright,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           GameButton(
-            onPressed: onPressed,
+            onPressed: onContinue,
             label: l10n.continueRun,
-            icon: const Icon(Icons.play_arrow_rounded, size: 16),
-            compact: true,
-            variant: GameButtonVariant.secondary,
+            icon: const Icon(Icons.play_arrow_rounded, size: 17),
+            variant: GameButtonVariant.primary,
             accentColor: GamePalette.cyan,
+            height: 38,
           ),
         ],
       ),
     );
   }
+
+  Widget _buildMedallion(int n) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        color: const Color(0xFF103247),
+        shape: BoxShape.circle,
+        border: Border.all(color: GamePalette.cyan, width: 1.6),
+        boxShadow: [
+          BoxShadow(
+            color: GamePalette.cyanDeep.withValues(alpha: 0.5),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        n.toString().padLeft(2, '0'),
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w900,
+          color: Color(0xFFE8F8FF),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatBox(String label, String value, {Color? valueColor}) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        decoration: BoxDecoration(
+          color: GamePalette.voidBlack.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(GamePalette.radiusSmall),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                height: 1,
+                color: valueColor ?? GamePalette.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                height: 1,
+                color: GamePalette.textMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRuneChip(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: GamePalette.gold.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(GamePalette.radiusSmall),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: GamePalette.goldBright,
+        ),
+      ),
+    );
+  }
+
+  String _formatGold(int gold) =>
+      gold >= 1000 ? '${(gold / 1000).toStringAsFixed(1)}K' : '$gold';
 }
 
 String _stageStatusText({

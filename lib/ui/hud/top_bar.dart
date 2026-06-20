@@ -98,8 +98,7 @@ class _ResourceStrip extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _ResourceValue(
-            icon: Icons.paid_outlined,
-            iconColor: const Color(0xFFFFD166),
+            iconWidget: const GoldCurrencyIcon(size: 16),
             valueChild: _GoldValue(snapshot: snapshot),
           ),
           const SizedBox(height: 5),
@@ -114,16 +113,8 @@ class _ResourceStrip extends StatelessWidget {
 }
 
 class _ResourceValue extends StatelessWidget {
-  const _ResourceValue({
-    this.icon,
-    this.iconColor,
-    this.iconWidget,
-    this.valueText,
-    this.valueChild,
-  });
+  const _ResourceValue({this.iconWidget, this.valueText, this.valueChild});
 
-  final IconData? icon;
-  final Color? iconColor;
   final Widget? iconWidget;
   final String? valueText;
   final Widget? valueChild;
@@ -132,8 +123,7 @@ class _ResourceValue extends StatelessWidget {
   Widget build(BuildContext context) {
     return HudResourceBar(
       compact: true,
-      color: iconColor ?? GamePalette.green,
-      icon: icon,
+      color: GamePalette.green,
       iconWidget: iconWidget,
       value: valueText ?? '0',
       valueChild: valueChild,
@@ -1034,7 +1024,7 @@ class HudGemDebugPanel extends StatelessWidget {
                           borderRadius: BorderRadius.circular(7),
                         ),
                       ),
-                      icon: Icon(gem.icon, color: gem.color, size: 14),
+                      icon: GemIcon(gem.type, size: 14),
                       label: Text(
                         gem.name,
                         style: const TextStyle(fontSize: 11),
