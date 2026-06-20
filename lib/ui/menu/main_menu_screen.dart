@@ -97,6 +97,8 @@ class MainMenuScreen extends StatefulWidget {
 
 class _MainMenuScreenState extends State<MainMenuScreen> {
   _PermanentUpgradeGroup _selectedUpgradeGroup = _PermanentUpgradeGroup.combat;
+  final _turretModuleMenuKey = GlobalKey<_TurretModuleMenuState>();
+  List<TurretModuleInventoryItem> _turretModuleDrawResults = const [];
   bool _showMenuDebugPanel = false;
   bool _chapterBannersPrecached = false;
   Timer? _researchClockTimer;
@@ -200,6 +202,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                 headerTopOffset: debugBarHeight,
                 menuTopPadding: menuTopPadding,
                 onStartStage: widget.onStartStage,
+                turretModuleMenuKey: _turretModuleMenuKey,
+                onTurretModuleDrawResults: _showTurretModuleDrawResults,
                 onCloseDebugPanel: () {
                   setState(() {
                     _showMenuDebugPanel = false;
@@ -243,10 +247,37 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                 onSelectTab: widget.onSelectTab,
               ),
             ),
+            if (selectedTab == MainMenuTab.turretModules &&
+                _turretModuleDrawResults.isNotEmpty)
+              Positioned.fill(
+                child: _TurretModuleDrawResultLayer(
+                  results: _turretModuleDrawResults,
+                  onClose: _closeTurretModuleDrawResults,
+                ),
+              ),
           ],
         ),
       ),
     );
+  }
+
+  void _showTurretModuleDrawResults(List<TurretModuleInventoryItem> results) {
+    if (results.isEmpty) {
+      return;
+    }
+    setState(() {
+      _turretModuleDrawResults = List.unmodifiable(results);
+    });
+  }
+
+  void _closeTurretModuleDrawResults() {
+    final best = _bestDrawResult(_turretModuleDrawResults);
+    if (best != null) {
+      _turretModuleMenuKey.currentState?.focusDrawResult(best);
+    }
+    setState(() {
+      _turretModuleDrawResults = const [];
+    });
   }
 }
 
@@ -262,6 +293,8 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
     required this.headerTopOffset,
     required this.menuTopPadding,
     required this.onStartStage,
+    required this.turretModuleMenuKey,
+    required this.onTurretModuleDrawResults,
     required this.onCloseDebugPanel,
   });
 
@@ -275,6 +308,8 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
   final double headerTopOffset;
   final double menuTopPadding;
   final ValueChanged<int> onStartStage;
+  final GlobalKey<_TurretModuleMenuState> turretModuleMenuKey;
+  final ValueChanged<List<TurretModuleInventoryItem>> onTurretModuleDrawResults;
   final VoidCallback onCloseDebugPanel;
 
   @override
@@ -291,6 +326,8 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
         headerTopOffset: headerTopOffset,
         menuTopPadding: menuTopPadding,
         onStartStage: onStartStage,
+        turretModuleMenuKey: turretModuleMenuKey,
+        onTurretModuleDrawResults: onTurretModuleDrawResults,
         onCloseDebugPanel: onCloseDebugPanel,
       );
     }
@@ -307,6 +344,8 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
           headerTopOffset: headerTopOffset,
           menuTopPadding: menuTopPadding,
           onStartStage: onStartStage,
+          turretModuleMenuKey: turretModuleMenuKey,
+          onTurretModuleDrawResults: onTurretModuleDrawResults,
           onCloseDebugPanel: onCloseDebugPanel,
         );
       },
@@ -325,6 +364,8 @@ class _MainMenuSnapshotContent extends StatelessWidget {
     required this.headerTopOffset,
     required this.menuTopPadding,
     required this.onStartStage,
+    required this.turretModuleMenuKey,
+    required this.onTurretModuleDrawResults,
     required this.onCloseDebugPanel,
   });
 
@@ -337,6 +378,8 @@ class _MainMenuSnapshotContent extends StatelessWidget {
   final double headerTopOffset;
   final double menuTopPadding;
   final ValueChanged<int> onStartStage;
+  final GlobalKey<_TurretModuleMenuState> turretModuleMenuKey;
+  final ValueChanged<List<TurretModuleInventoryItem>> onTurretModuleDrawResults;
   final VoidCallback onCloseDebugPanel;
 
   @override
@@ -411,8 +454,10 @@ class _MainMenuSnapshotContent extends StatelessWidget {
                           snapshot: snapshot,
                         ),
                         MainMenuTab.turretModules => _TurretModuleMenu(
+                          key: turretModuleMenuKey,
                           game: game,
                           snapshot: snapshot,
+                          onDrawResults: onTurretModuleDrawResults,
                         ),
                         MainMenuTab.stage => _StageMenu(
                           game: game,

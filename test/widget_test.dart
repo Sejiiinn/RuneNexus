@@ -15,6 +15,7 @@ import 'package:rune_nexus/domain/turret/turret_target_priority.dart';
 import 'package:rune_nexus/domain/turret/turret_trait_type.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/domain/turret_module/turret_module_type.dart';
+import 'package:rune_nexus/data/definitions/game_turret_module_data.dart';
 import 'package:rune_nexus/game/game_snapshot.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
 import 'package:rune_nexus/game/systems/run_progression.dart';
@@ -438,6 +439,15 @@ void main() {
     tester.view.physicalSize = const Size(320, 720);
     tester.view.devicePixelRatio = 1;
 
+    final game = _TurretModuleDrawGame();
+    final initialSnapshot = _resultSnapshot(
+      phase: GamePhase.preparation,
+      currentStageNumber: 1,
+      diamonds: 160,
+      turretModuleTickets: 3,
+    );
+    game.snapshotNotifier.value = initialSnapshot;
+
     await tester.pumpWidget(
       MaterialApp(
         locale: const Locale('ko'),
@@ -449,13 +459,9 @@ void main() {
         ],
         supportedLocales: RuneNexusLocalizations.supportedLocales,
         home: MainMenuScreen(
-          game: RuneNexusGame(),
-          snapshot: _resultSnapshot(
-            phase: GamePhase.preparation,
-            currentStageNumber: 1,
-            diamonds: 160,
-            turretModuleTickets: 3,
-          ),
+          game: game,
+          snapshot: initialSnapshot,
+          snapshotListenable: game.snapshotNotifier,
           selectedTab: MainMenuTab.turretModules,
           onSelectTab: (_) {},
           onStartStage: (_) {},
@@ -475,17 +481,124 @@ void main() {
     expect(find.text('0성'), findsNothing);
     expect(find.text('☆☆☆'), findsNothing);
     expect(find.textContaining('장착 효과:'), findsOneWidget);
-    expect(find.text('부족 2장 · 다이아 160'), findsOneWidget);
+    final drawTitleRect = tester.getRect(find.text('모듈 뽑기'));
+    final fiveDrawButton = find.byKey(
+      const ValueKey('turret-module-draw-button-5'),
+    );
+    final fiveDrawButtonRect = tester.getRect(fiveDrawButton);
+    expect(fiveDrawButtonRect.width, lessThanOrEqualTo(72));
+    expect(
+      (fiveDrawButtonRect.center.dy - drawTitleRect.center.dy).abs(),
+      lessThanOrEqualTo(6),
+    );
+    expect(find.text('부족 2장 · 다이아 160'), findsNothing);
+    expect(
+      find.descendant(of: fiveDrawButton, matching: find.text('160')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: fiveDrawButton,
+        matching: find.byKey(
+          const ValueKey('turret-module-draw-diamond-cost-5'),
+        ),
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.text('5회'));
+    await tester.tap(fiveDrawButton);
     await _pumpGameFrames(tester);
 
     expect(find.text('모듈권 구매'), findsOneWidget);
-    expect(find.text('부족 모듈권'), findsOneWidget);
-    expect(find.text('2장'), findsOneWidget);
-    expect(find.text('결제 다이아'), findsOneWidget);
-    expect(find.text('160개'), findsOneWidget);
+    final purchaseDialog = find.byType(AlertDialog);
+    expect(
+      find.descendant(of: purchaseDialog, matching: find.text('구매 모듈권')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: purchaseDialog, matching: find.text('부족 모듈권')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: purchaseDialog, matching: find.text('2장')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: purchaseDialog, matching: find.text('결제')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: purchaseDialog, matching: find.text('결제 다이아')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: purchaseDialog, matching: find.text('160')),
+      findsOneWidget,
+    );
+    expect(find.text('160개'), findsNothing);
+
+    await tester.tap(find.text('구매'));
+    await _pumpGameFrames(tester);
+    await tester.pump(const Duration(milliseconds: 240));
+
+    final resultLayer = find.byKey(
+      const ValueKey('turret-module-draw-result-layer'),
+    );
+    expect(resultLayer, findsOneWidget);
+    final layerRect = tester.getRect(resultLayer);
+    final screenRect = tester.getRect(find.byType(MainMenuScreen));
+    final moduleTabRect = tester.getRect(
+      find.byKey(const ValueKey('main-menu-tab-modules')),
+    );
+    expect((layerRect.top - screenRect.top).abs(), lessThanOrEqualTo(1));
+    expect((layerRect.bottom - screenRect.bottom).abs(), lessThanOrEqualTo(1));
+    expect(layerRect.overlaps(moduleTabRect), isTrue);
+    expect(game.drawCount, 5);
+    expect(game.boughtMissingTicketsWithDiamonds, isTrue);
+    for (var i = 0; i < 5; i++) {
+      expect(
+        find.byKey(ValueKey('turret-module-draw-result-card-$i')),
+        findsOneWidget,
+      );
+    }
+    expect(
+      find.descendant(of: resultLayer, matching: find.text('희귀')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: resultLayer, matching: find.text('화염')),
+      findsWidgets,
+    );
+    expect(
+      find.descendant(of: resultLayer, matching: find.text('프레임')),
+      findsWidgets,
+    );
+    expect(
+      find.descendant(of: resultLayer, matching: find.text('방열 프레임')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: resultLayer, matching: find.textContaining('장착 효과')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: resultLayer, matching: find.text('장착')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: resultLayer, matching: find.text('합성')),
+      findsNothing,
+    );
+
+    await tester.tap(
+      find.descendant(of: resultLayer, matching: find.text('확인')),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(resultLayer, findsNothing);
+    expect(find.text('방열 프레임'), findsWidgets);
+    expect(find.textContaining('프레임 · 화염 · 희귀 보유'), findsOneWidget);
   });
 
   testWidgets('core slot board remains anchored when switching ability tabs', (
@@ -2806,6 +2919,91 @@ class _CoreEquipGame extends RuneNexusGame {
   bool unlockCorePassiveSlot() {
     unlockedCorePassiveSlot = true;
     return true;
+  }
+}
+
+class _TurretModuleDrawGame extends RuneNexusGame {
+  _TurretModuleDrawGame() : super(saveRepository: MemorySaveRepository());
+
+  int? drawCount;
+  bool? boughtMissingTicketsWithDiamonds;
+
+  static final List<TurretModuleInventoryItem> results = [
+    TurretModuleInventoryItem(
+      key: TurretModuleKey(
+        turretType: TurretType.arrow,
+        part: TurretModulePart.core,
+        family: turretModuleFamilyFor(TurretType.arrow, TurretModulePart.core),
+        grade: TurretModuleGrade.normal,
+      ),
+      stars: 0,
+      shards: 0,
+      equipped: false,
+    ),
+    TurretModuleInventoryItem(
+      key: TurretModuleKey(
+        turretType: TurretType.cannon,
+        part: TurretModulePart.barrel,
+        family: turretModuleFamilyFor(
+          TurretType.cannon,
+          TurretModulePart.barrel,
+        ),
+        grade: TurretModuleGrade.magic,
+      ),
+      stars: 0,
+      shards: 5,
+      equipped: false,
+    ),
+    TurretModuleInventoryItem(
+      key: TurretModuleKey(
+        turretType: TurretType.magic,
+        part: TurretModulePart.frame,
+        family: turretModuleFamilyFor(TurretType.magic, TurretModulePart.frame),
+        grade: TurretModuleGrade.rare,
+      ),
+      stars: 0,
+      shards: 0,
+      equipped: false,
+    ),
+    TurretModuleInventoryItem(
+      key: TurretModuleKey(
+        turretType: TurretType.frost,
+        part: TurretModulePart.core,
+        family: turretModuleFamilyFor(TurretType.frost, TurretModulePart.core),
+        grade: TurretModuleGrade.normal,
+      ),
+      stars: 0,
+      shards: 1,
+      equipped: false,
+    ),
+    TurretModuleInventoryItem(
+      key: TurretModuleKey(
+        turretType: TurretType.arrow,
+        part: TurretModulePart.frame,
+        family: turretModuleFamilyFor(TurretType.arrow, TurretModulePart.frame),
+        grade: TurretModuleGrade.magic,
+      ),
+      stars: 0,
+      shards: 1,
+      equipped: false,
+    ),
+  ];
+
+  @override
+  List<TurretModuleInventoryItem> drawTurretModules(
+    int count, {
+    bool buyMissingTicketsWithDiamonds = false,
+  }) {
+    drawCount = count;
+    boughtMissingTicketsWithDiamonds = buyMissingTicketsWithDiamonds;
+    snapshotNotifier.value = _resultSnapshot(
+      phase: GamePhase.preparation,
+      currentStageNumber: 1,
+      diamonds: 0,
+      turretModuleTickets: 0,
+      ownedTurretModules: results,
+    );
+    return results;
   }
 }
 

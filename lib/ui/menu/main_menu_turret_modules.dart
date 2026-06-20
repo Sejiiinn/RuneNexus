@@ -1,10 +1,16 @@
 part of 'main_menu_screen.dart';
 
 class _TurretModuleMenu extends StatefulWidget {
-  const _TurretModuleMenu({required this.game, required this.snapshot});
+  const _TurretModuleMenu({
+    required this.game,
+    required this.snapshot,
+    required this.onDrawResults,
+    super.key,
+  });
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
+  final ValueChanged<List<TurretModuleInventoryItem>> onDrawResults;
 
   @override
   State<_TurretModuleMenu> createState() => _TurretModuleMenuState();
@@ -59,7 +65,11 @@ class _TurretModuleMenuState extends State<_TurretModuleMenu> {
           ],
         ),
         const SizedBox(height: 10),
-        _ModuleDrawPanel(game: widget.game, snapshot: snapshot),
+        _ModuleDrawPanel(
+          game: widget.game,
+          snapshot: snapshot,
+          onDrawResults: widget.onDrawResults,
+        ),
         const SizedBox(height: 10),
         _TurretModuleSelector(
           availableTurretTypes: snapshot.availableTurretTypes,
@@ -108,6 +118,14 @@ class _TurretModuleMenuState extends State<_TurretModuleMenu> {
     );
   }
 
+  void focusDrawResult(TurretModuleInventoryItem item) {
+    setState(() {
+      _selectedTurretType = item.key.turretType;
+      _selectedPart = item.key.part;
+      _selectedGrade = item.key.grade;
+    });
+  }
+
   Map<TurretModulePart, TurretModuleInventoryItem> _equippedModulesFor(
     GameSnapshot snapshot,
     TurretType turretType,
@@ -123,10 +141,15 @@ class _TurretModuleMenuState extends State<_TurretModuleMenu> {
 }
 
 class _ModuleDrawPanel extends StatelessWidget {
-  const _ModuleDrawPanel({required this.game, required this.snapshot});
+  const _ModuleDrawPanel({
+    required this.game,
+    required this.snapshot,
+    required this.onDrawResults,
+  });
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
+  final ValueChanged<List<TurretModuleInventoryItem>> onDrawResults;
 
   @override
   Widget build(BuildContext context) {
@@ -137,34 +160,20 @@ class _ModuleDrawPanel extends StatelessWidget {
         border: Border.all(color: const Color(0x55485B68)),
         borderRadius: BorderRadius.circular(7),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: Row(
         children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.inventory_2_outlined,
-                color: GamePalette.goldBright,
-                size: 17,
-              ),
-              const SizedBox(width: 7),
-              const Expanded(
-                child: Text('모듈 뽑기', style: GameTextStyles.sectionTitle),
-              ),
-            ],
+          const Icon(
+            Icons.inventory_2_outlined,
+            color: GamePalette.goldBright,
+            size: 17,
           ),
-          const SizedBox(height: 9),
-          Row(
-            children: [
-              Expanded(
-                child: _drawButton(context, 1, Icons.add_circle_outline),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _drawButton(context, 5, Icons.control_point_duplicate),
-              ),
-            ],
+          const SizedBox(width: 7),
+          const Expanded(
+            child: Text('모듈 뽑기', style: GameTextStyles.sectionTitle),
           ),
+          _drawButton(context, 1, Icons.add_circle_outline),
+          const SizedBox(width: 6),
+          _drawButton(context, 5, Icons.control_point_duplicate),
         ],
       ),
     );
@@ -175,44 +184,77 @@ class _ModuleDrawPanel extends StatelessWidget {
     final diamondCost =
         missingTickets * RunProgression.turretModuleTicketDiamondCost;
     final canDraw = missingTickets == 0 || snapshot.diamonds >= diamondCost;
-    final costText = missingTickets == 0
-        ? '모듈권 $count'
-        : '부족 $missingTickets장 · 다이아 $diamondCost';
+    final requiresDiamonds = diamondCost > 0;
+    final costColor = canDraw
+        ? _diamondCurrencyColor
+        : GamePalette.textDisabled;
 
     return GameButton(
+      key: ValueKey('turret-module-draw-button-$count'),
       onPressed: canDraw ? () => _drawModules(context, count) : null,
       compact: true,
       accentColor: GamePalette.gold,
-      height: 42,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 15),
-          const SizedBox(width: 5),
-          Flexible(
-            child: Column(
+      height: 36,
+      width: requiresDiamonds ? 68 : 54,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      child: requiresDiamonds
+          ? Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('$count회', maxLines: 1, overflow: TextOverflow.clip),
-                Text(
-                  costText,
-                  maxLines: 1,
-                  overflow: TextOverflow.clip,
-                  style: const TextStyle(fontSize: 9, height: 1.1),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(icon, size: 12),
+                    const SizedBox(width: 3),
+                    Text(
+                      '$count회',
+                      maxLines: 1,
+                      overflow: TextOverflow.clip,
+                      style: const TextStyle(fontSize: 10, height: 1),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.diamond_outlined,
+                      key: ValueKey('turret-module-draw-diamond-cost-$count'),
+                      size: 10,
+                      color: costColor,
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      '$diamondCost',
+                      maxLines: 1,
+                      overflow: TextOverflow.clip,
+                      style: TextStyle(
+                        color: costColor,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        height: 1,
+                      ),
+                    ),
+                  ],
                 ),
               ],
+            )
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 13),
+                const SizedBox(width: 3),
+                Text('$count회', maxLines: 1, overflow: TextOverflow.clip),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
   Future<void> _drawModules(BuildContext context, int count) async {
     final missingTickets = math.max(0, count - snapshot.turretModuleTickets);
     if (missingTickets == 0) {
-      game.drawTurretModules(count);
+      onDrawResults(game.drawTurretModules(count));
       return;
     }
 
@@ -263,15 +305,20 @@ class _ModuleDrawPanel extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     _ModulePurchaseSummaryRow(
-                      label: '부족 모듈권',
+                      label: '구매 모듈권',
                       value: '$missingTickets장',
                     ),
                     const SizedBox(height: 7),
                     Container(height: 1, color: const Color(0x33485B68)),
                     const SizedBox(height: 7),
                     _ModulePurchaseSummaryRow(
-                      label: '결제 다이아',
-                      value: '$diamondCost개',
+                      label: '결제',
+                      value: '$diamondCost',
+                      valuePrefix: const Icon(
+                        Icons.diamond_outlined,
+                        size: 12,
+                        color: _diamondCurrencyColor,
+                      ),
                       valueColor: _diamondCurrencyColor,
                     ),
                     const SizedBox(height: 6),
@@ -307,8 +354,172 @@ class _ModuleDrawPanel extends StatelessWidget {
       },
     );
     if (confirmed == true) {
-      game.drawTurretModules(count, buyMissingTicketsWithDiamonds: true);
+      onDrawResults(
+        game.drawTurretModules(count, buyMissingTicketsWithDiamonds: true),
+      );
     }
+  }
+}
+
+class _TurretModuleDrawResultLayer extends StatefulWidget {
+  const _TurretModuleDrawResultLayer({
+    required this.results,
+    required this.onClose,
+  });
+
+  final List<TurretModuleInventoryItem> results;
+  final VoidCallback onClose;
+
+  @override
+  State<_TurretModuleDrawResultLayer> createState() =>
+      _TurretModuleDrawResultLayerState();
+}
+
+class _TurretModuleDrawResultLayerState
+    extends State<_TurretModuleDrawResultLayer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 220),
+  )..forward();
+  late final Animation<double> _cardAnimation = CurvedAnimation(
+    parent: _controller,
+    curve: Curves.easeOutCubic,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const ValueKey('turret-module-draw-result-layer'),
+      padding: const EdgeInsets.all(12),
+      color: Colors.black.withValues(alpha: 0.72),
+      child: Center(
+        child: FadeTransition(
+          opacity: _cardAnimation,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.94, end: 1).animate(_cardAnimation),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  '획득 결과',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: GamePalette.textPrimary,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  runAlignment: WrapAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (var i = 0; i < widget.results.length; i++)
+                      _TurretModuleDrawResultCard(
+                        key: ValueKey('turret-module-draw-result-card-$i'),
+                        item: widget.results[i],
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    width: 96,
+                    child: GameButton(
+                      onPressed: widget.onClose,
+                      label: '확인',
+                      compact: true,
+                      accentColor: GamePalette.gold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TurretModuleDrawResultCard extends StatelessWidget {
+  const _TurretModuleDrawResultCard({super.key, required this.item});
+
+  final TurretModuleInventoryItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final definition = gameTurretModuleDefinitions[item.key]!;
+    final gradeColor = _gradeColor(item.key.grade);
+    return Container(
+      width: 122,
+      height: 86,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: const Color(0xEE07111D),
+        border: Border.all(color: gradeColor.withValues(alpha: 0.86)),
+        borderRadius: BorderRadius.circular(7),
+        boxShadow: [
+          BoxShadow(
+            color: gradeColor.withValues(alpha: 0.24),
+            blurRadius: 12,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            item.key.grade.label,
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            style: TextStyle(
+              color: gradeColor,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            gameTurrets[item.key.turretType]!.name,
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            style: GameTextStyles.caption,
+          ),
+          const SizedBox(height: 3),
+          Text(
+            item.key.part.label,
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            style: GameTextStyles.caption,
+          ),
+          const SizedBox(height: 3),
+          Text(
+            definition.name,
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            style: const TextStyle(
+              color: GamePalette.textPrimary,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -1137,11 +1348,13 @@ class _ModulePurchaseSummaryRow extends StatelessWidget {
   const _ModulePurchaseSummaryRow({
     required this.label,
     required this.value,
+    this.valuePrefix,
     this.valueColor = GamePalette.textPrimary,
   });
 
   final String label;
   final String value;
+  final Widget? valuePrefix;
   final Color valueColor;
 
   @override
@@ -1149,6 +1362,7 @@ class _ModulePurchaseSummaryRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(child: Text(label, style: GameTextStyles.caption)),
+        if (valuePrefix != null) ...[valuePrefix!, const SizedBox(width: 3)],
         Text(
           value,
           style: TextStyle(
@@ -1225,4 +1439,28 @@ String _moduleOwnershipLabel(TurretModuleInventoryItem? item) {
     return '장착 중';
   }
   return '보유';
+}
+
+TurretModuleInventoryItem? _bestDrawResult(
+  List<TurretModuleInventoryItem> results,
+) {
+  TurretModuleInventoryItem? best;
+  for (final result in results) {
+    if (best == null ||
+        _drawResultPriority(result) > _drawResultPriority(best)) {
+      best = result;
+    }
+  }
+  return best;
+}
+
+int _drawResultPriority(TurretModuleInventoryItem item) {
+  final gradePriority = switch (item.key.grade) {
+    TurretModuleGrade.normal => 0,
+    TurretModuleGrade.magic => 1,
+    TurretModuleGrade.rare => 2,
+  };
+  final acquisitionPriority =
+      item.shards == 0 || item.shards >= turretModuleFusionShardCost ? 1 : 0;
+  return gradePriority * 10 + acquisitionPriority;
 }
