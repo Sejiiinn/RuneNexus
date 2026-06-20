@@ -31,6 +31,7 @@ class RunProgression {
   static const int gemShardsPerGemAttunementLevel = 2;
   static const int corePassiveSlotUnlockCost = 200;
   static const int turretModuleTicketsPerStageClear = 1;
+  static const int turretModuleTicketDiamondCost = 80;
   static const int diamondMillisPerResearchMinute = 60000;
   static const int uninitializedDailyQuestDayKey = -1;
   static const int dailyQuestResetHourKst = 5;
@@ -124,7 +125,6 @@ class RunProgression {
   final Map<ResearchType, int> researchElapsedMillis = {};
   final List<ResearchProgress> activeResearches = [];
   int turretModuleTickets = 0;
-  int turretModuleRarePityCounter = 0;
   final Map<TurretModuleKey, TurretModuleInventoryItem> turretModules = {};
   CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam;
   bool corePassiveSlotTwoUnlocked = false;
@@ -569,9 +569,10 @@ class RunProgression {
   List<TurretModuleInventoryItem> drawTurretModules({
     required int count,
     required List<TurretType> availableTurretTypes,
+    bool buyMissingTicketsWithDiamonds = false,
     math.Random? random,
   }) {
-    if (count <= 0 || turretModuleTickets < count) {
+    if (count <= 0) {
       return const [];
     }
     final turretPool = availableTurretTypes
@@ -583,6 +584,17 @@ class RunProgression {
         .toList(growable: false);
     if (turretPool.isEmpty) {
       return const [];
+    }
+    final missingTickets = math.max(0, count - turretModuleTickets);
+    if (missingTickets > 0) {
+      if (!buyMissingTicketsWithDiamonds) {
+        return const [];
+      }
+      final ticketCost = missingTickets * turretModuleTicketDiamondCost;
+      if (spendDiamonds(ticketCost) == null) {
+        return const [];
+      }
+      turretModuleTickets += missingTickets;
     }
 
     final rollRandom = random ?? math.Random();
@@ -864,7 +876,6 @@ class RunProgression {
         ),
       ),
       turretModuleTickets: turretModuleTickets,
-      turretModuleRarePityCounter: turretModuleRarePityCounter,
       ownedTurretModules: List.unmodifiable(
         ownedTurretModules.map(
           (module) => SavedTurretModule(
@@ -1010,9 +1021,6 @@ class RunProgression {
             ),
       );
     turretModuleTickets = math.max(0, data.turretModuleTickets);
-    turretModuleRarePityCounter = data.turretModuleRarePityCounter
-        .clamp(0, 34)
-        .toInt();
     turretModules
       ..clear()
       ..addEntries(
@@ -1308,21 +1316,14 @@ class RunProgression {
   }
 
   TurretModuleGrade _rollTurretModuleGrade(math.Random random) {
-    final rareChance = turretModuleRarePityCounter >= 34
-        ? 1.0
-        : 0.05 + math.max(0, turretModuleRarePityCounter - 14) * 0.03;
-    if (random.nextDouble() < rareChance.clamp(0.05, 1.0)) {
-      turretModuleRarePityCounter = 0;
+    final roll = random.nextInt(100);
+    if (roll < 5) {
       return TurretModuleGrade.rare;
     }
-    turretModuleRarePityCounter++;
-
-    const normalWeight = 68;
-    const magicWeight = 27;
-    final roll = random.nextInt(normalWeight + magicWeight);
-    return roll < normalWeight
-        ? TurretModuleGrade.normal
-        : TurretModuleGrade.magic;
+    if (roll < 32) {
+      return TurretModuleGrade.magic;
+    }
+    return TurretModuleGrade.normal;
   }
 
   void _sanitizeTurretModules() {

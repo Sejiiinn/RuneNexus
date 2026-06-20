@@ -251,7 +251,6 @@ class SavedProgression {
     required this.researchElapsedMillis,
     required this.activeResearches,
     this.turretModuleTickets = 0,
-    this.turretModuleRarePityCounter = 0,
     this.ownedTurretModules = const [],
     this.coreCombatSkill = CoreCombatSkill.guardianBeam,
     this.corePassiveSlotTwoUnlocked = false,
@@ -285,7 +284,6 @@ class SavedProgression {
   final Map<ResearchType, int> researchElapsedMillis;
   final List<SavedActiveResearch> activeResearches;
   final int turretModuleTickets;
-  final int turretModuleRarePityCounter;
   final List<SavedTurretModule> ownedTurretModules;
   final CoreCombatSkill? coreCombatSkill;
   final bool corePassiveSlotTwoUnlocked;
@@ -333,7 +331,6 @@ class SavedProgression {
           .map((research) => research.toJson())
           .toList(),
       'turretModuleTickets': turretModuleTickets,
-      'turretModuleRarePityCounter': turretModuleRarePityCounter,
       'ownedTurretModules': ownedTurretModules
           .map((module) => module.toJson())
           .toList(),
@@ -399,9 +396,6 @@ class SavedProgression {
         SavedActiveResearch.fromJson,
       ),
       turretModuleTickets: _intValue(map['turretModuleTickets']),
-      turretModuleRarePityCounter: _intValue(
-        map['turretModuleRarePityCounter'],
-      ),
       ownedTurretModules: _objectList(
         map['ownedTurretModules'],
         SavedTurretModule.fromJson,

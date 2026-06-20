@@ -64,6 +64,32 @@ void main() {
     expect(fused.shards, 0);
   });
 
+  test('draw can buy missing turret module tickets with diamonds', () {
+    final progression = RunProgression()
+      ..turretModuleTickets = 3
+      ..addFreeDiamonds(160);
+
+    expect(
+      progression.drawTurretModules(
+        count: 5,
+        availableTurretTypes: const [TurretType.arrow],
+      ),
+      isEmpty,
+    );
+    expect(progression.turretModuleTickets, 3);
+    expect(progression.diamonds, 160);
+
+    final results = progression.drawTurretModules(
+      count: 5,
+      availableTurretTypes: const [TurretType.arrow],
+      buyMissingTicketsWithDiamonds: true,
+    );
+
+    expect(results, hasLength(5));
+    expect(progression.turretModuleTickets, 0);
+    expect(progression.diamonds, 0);
+  });
+
   test('equipped turret modules affect turret stats and level up cost', () {
     final progression = RunProgression();
     final barrelKey = TurretModuleKey(

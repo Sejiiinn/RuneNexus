@@ -273,7 +273,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       runes: 0,
       diamonds: 0,
       turretModuleTickets: 0,
-      turretModuleRarePityCounter: 0,
       ownedTurretModules: const [],
       dailyQuestDayKey: RunProgression.uninitializedDailyQuestDayKey,
       dailyQuestProgress: const {},
@@ -648,10 +647,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return _progression.turretModuleEffectFor(type);
   }
 
-  List<TurretModuleInventoryItem> drawTurretModules(int count) {
+  List<TurretModuleInventoryItem> drawTurretModules(
+    int count, {
+    bool buyMissingTicketsWithDiamonds = false,
+  }) {
     final results = _progression.drawTurretModules(
       count: count,
       availableTurretTypes: _availableTurretTypes(),
+      buyMissingTicketsWithDiamonds: buyMissingTicketsWithDiamonds,
     );
     if (results.isEmpty) {
       return const [];

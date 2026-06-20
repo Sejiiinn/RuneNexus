@@ -14,6 +14,7 @@ import 'package:rune_nexus/domain/research/research_type.dart';
 import 'package:rune_nexus/domain/turret/turret_target_priority.dart';
 import 'package:rune_nexus/domain/turret/turret_trait_type.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
+import 'package:rune_nexus/domain/turret_module/turret_module_type.dart';
 import 'package:rune_nexus/game/game_snapshot.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
 import 'package:rune_nexus/game/systems/run_progression.dart';
@@ -309,6 +310,28 @@ void main() {
     await _pumpLoadedApp(tester);
 
     expect(find.text('Rune Nexus'), findsOneWidget);
+    final stageTabRect = tester.getRect(
+      find.byKey(const ValueKey('main-menu-tab-stage')),
+    );
+    final turretTabRect = tester.getRect(
+      find.byKey(const ValueKey('main-menu-tab-modules')),
+    );
+    final screenRect = tester.getRect(find.byType(MainMenuScreen));
+    expect(stageTabRect.left, screenRect.left);
+    expect(turretTabRect.right, screenRect.right);
+    expect(turretTabRect.bottom, closeTo(screenRect.bottom, 1));
+    expect(find.text('모듈'), findsNothing);
+    expect(find.text('포탑'), findsWidgets);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName ==
+                'assets/images/stage_rewards/reward_turret.png',
+      ),
+      findsOneWidget,
+    );
 
     await tester.tap(find.text('코어'));
     await _pumpGameFrames(tester);
@@ -405,6 +428,64 @@ void main() {
     await _pumpGameFrames(tester);
 
     expect(find.text('스테이지 1'), findsOneWidget);
+  });
+
+  testWidgets('turret module menu shows equipment flow and ticket purchase', (
+    tester,
+  ) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    tester.view.physicalSize = const Size(320, 720);
+    tester.view.devicePixelRatio = 1;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            diamonds: 160,
+            turretModuleTickets: 3,
+          ),
+          selectedTab: MainMenuTab.turretModules,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('모듈 뽑기'), findsOneWidget);
+    expect(find.text('희귀 5%'), findsNothing);
+    expect(find.text('희귀 보정'), findsNothing);
+    expect(find.text('선택 포탑 · 모든 기관총에 적용'), findsNothing);
+    expect(find.text('기'), findsNothing);
+    expect(find.text('코어 장착 모듈'), findsOneWidget);
+    expect(find.textContaining('아직 보유하지 않음'), findsOneWidget);
+    expect(find.text('획득 필요'), findsWidgets);
+    expect(find.text('0성'), findsNothing);
+    expect(find.text('☆☆☆'), findsNothing);
+    expect(find.textContaining('장착 효과:'), findsOneWidget);
+    expect(find.text('부족 2장 · 다이아 160'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('5회'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('모듈권 구매'), findsOneWidget);
+    expect(find.text('부족 모듈권'), findsOneWidget);
+    expect(find.text('2장'), findsOneWidget);
+    expect(find.text('결제 다이아'), findsOneWidget);
+    expect(find.text('160개'), findsOneWidget);
   });
 
   testWidgets('core slot board remains anchored when switching ability tabs', (
@@ -2480,6 +2561,8 @@ GameSnapshot _resultSnapshot({
   double coreCombatSkillBonusDamageDealt = 0,
   int coreCombatSkillActivationCount = 0,
   bool corePassiveSlotTwoUnlocked = false,
+  int turretModuleTickets = 0,
+  List<TurretModuleInventoryItem> ownedTurretModules = const [],
 }) {
   return GameSnapshot(
     gold: 0,
@@ -2597,9 +2680,8 @@ GameSnapshot _resultSnapshot({
     waveClearGoldRunBonus: 0,
     runes: runes,
     diamonds: diamonds,
-    turretModuleTickets: 0,
-    turretModuleRarePityCounter: 0,
-    ownedTurretModules: const [],
+    turretModuleTickets: turretModuleTickets,
+    ownedTurretModules: ownedTurretModules,
     dailyQuestDayKey: RunProgression.uninitializedDailyQuestDayKey,
     dailyQuestProgress: const {},
     claimedDailyQuestRewards: const {},

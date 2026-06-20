@@ -108,7 +108,6 @@ class _MenuTabs extends StatelessWidget {
       ),
       child: Container(
         height: 56,
-        padding: const EdgeInsets.fromLTRB(10, 5, 10, 6),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -120,73 +119,68 @@ class _MenuTabs extends StatelessWidget {
             bottom: BorderSide(color: Color(0x6607111D)),
           ),
         ),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: const Color(0x6607111D),
-            border: Border.all(color: const Color(0x4433D8FF)),
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: _TabButton(
-                  key: const ValueKey('main-menu-tab-stage'),
-                  icon: const _MainMenuTabAssetIcon(
-                    asset: _stageRewardStageIconAsset,
-                  ),
-                  label: l10n.stageTab,
-                  selected: selectedTab == MainMenuTab.stage,
-                  onPressed: () => onSelectTab(MainMenuTab.stage),
+        child: Row(
+          children: [
+            Expanded(
+              child: _TabButton(
+                key: const ValueKey('main-menu-tab-stage'),
+                icon: const _MainMenuTabAssetIcon(
+                  asset: _stageRewardStageIconAsset,
                 ),
+                label: l10n.stageTab,
+                selected: selectedTab == MainMenuTab.stage,
+                onPressed: () => onSelectTab(MainMenuTab.stage),
               ),
-              const _MenuTabGroove(),
-              Expanded(
-                child: _TabButton(
-                  key: const ValueKey('main-menu-tab-core'),
-                  icon: const _MainMenuTabAssetIcon(
-                    asset: _stageRewardCoreIconAsset,
-                  ),
-                  label: l10n.coreTab,
-                  selected: selectedTab == MainMenuTab.core,
-                  onPressed: () => onSelectTab(MainMenuTab.core),
+            ),
+            const _MenuTabGroove(),
+            Expanded(
+              child: _TabButton(
+                key: const ValueKey('main-menu-tab-core'),
+                icon: const _MainMenuTabAssetIcon(
+                  asset: _stageRewardCoreIconAsset,
                 ),
+                label: l10n.coreTab,
+                selected: selectedTab == MainMenuTab.core,
+                onPressed: () => onSelectTab(MainMenuTab.core),
               ),
-              const _MenuTabGroove(),
-              Expanded(
-                child: _TabButton(
-                  key: const ValueKey('main-menu-tab-upgrades'),
-                  icon: const _MainMenuTabAssetIcon(
-                    asset: _stageRewardUpgradeIconAsset,
-                  ),
-                  label: l10n.permanentUpgradeTab,
-                  selected: selectedTab == MainMenuTab.permanentUpgrades,
-                  onPressed: () => onSelectTab(MainMenuTab.permanentUpgrades),
+            ),
+            const _MenuTabGroove(),
+            Expanded(
+              child: _TabButton(
+                key: const ValueKey('main-menu-tab-upgrades'),
+                icon: const _MainMenuTabAssetIcon(
+                  asset: _stageRewardUpgradeIconAsset,
                 ),
+                label: l10n.permanentUpgradeTab,
+                selected: selectedTab == MainMenuTab.permanentUpgrades,
+                onPressed: () => onSelectTab(MainMenuTab.permanentUpgrades),
               ),
-              const _MenuTabGroove(),
-              Expanded(
-                child: _TabButton(
-                  key: const ValueKey('main-menu-tab-research'),
-                  icon: const _MainMenuTabAssetIcon(
-                    asset: _stageRewardResearchIconAsset,
-                  ),
-                  label: l10n.researchTab,
-                  selected: selectedTab == MainMenuTab.research,
-                  onPressed: () => onSelectTab(MainMenuTab.research),
+            ),
+            const _MenuTabGroove(),
+            Expanded(
+              child: _TabButton(
+                key: const ValueKey('main-menu-tab-research'),
+                icon: const _MainMenuTabAssetIcon(
+                  asset: _stageRewardResearchIconAsset,
                 ),
+                label: l10n.researchTab,
+                selected: selectedTab == MainMenuTab.research,
+                onPressed: () => onSelectTab(MainMenuTab.research),
               ),
-              const _MenuTabGroove(),
-              Expanded(
-                child: _TabButton(
-                  key: const ValueKey('main-menu-tab-modules'),
-                  icon: const Icon(Icons.extension_outlined),
-                  label: l10n.turretModuleTab,
-                  selected: selectedTab == MainMenuTab.turretModules,
-                  onPressed: () => onSelectTab(MainMenuTab.turretModules),
+            ),
+            const _MenuTabGroove(),
+            Expanded(
+              child: _TabButton(
+                key: const ValueKey('main-menu-tab-modules'),
+                icon: const _MainMenuTabAssetIcon(
+                  asset: _stageRewardTurretIconAsset,
                 ),
+                label: l10n.turretModuleTab,
+                selected: selectedTab == MainMenuTab.turretModules,
+                onPressed: () => onSelectTab(MainMenuTab.turretModules),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

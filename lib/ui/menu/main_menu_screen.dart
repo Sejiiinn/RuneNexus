@@ -61,6 +61,8 @@ const String _stageRewardCoreIconAsset =
     'assets/images/stage_rewards/reward_core.png';
 const String _stageRewardStageIconAsset =
     'assets/images/stage_rewards/reward_stage.png';
+const String _stageRewardTurretIconAsset =
+    'assets/images/stage_rewards/reward_turret.png';
 const List<String> _stageChapterBannerAssets = [
   _stageChapterOneBannerAsset,
   _stageChapterTwoBannerAsset,

@@ -519,6 +519,7 @@
       }
 
       .turret-icon {
+        position: relative;
         width: 28px;
         height: 28px;
         border-radius: 7px;
@@ -527,8 +528,35 @@
         border: 1px solid color-mix(in srgb, var(--turret), transparent 28%);
         background: color-mix(in srgb, var(--turret), transparent 86%);
         color: var(--turret);
-        font-size: 12px;
-        font-weight: 1000;
+        overflow: hidden;
+      }
+
+      .turret-icon::before,
+      .turret-icon::after {
+        content: "";
+        position: absolute;
+        border: 1px solid rgba(5, 10, 18, 0.92);
+      }
+
+      .turret-icon::before {
+        left: 6px;
+        bottom: 5px;
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: #1a2533;
+        box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--turret), transparent 70%);
+      }
+
+      .turret-icon::after {
+        left: 13px;
+        top: 8px;
+        width: 14px;
+        height: 5px;
+        border-radius: 999px;
+        background: var(--turret);
+        transform: rotate(-20deg);
+        transform-origin: 2px 50%;
       }
 
       .turret-name {
@@ -862,7 +890,7 @@
 
         <nav class="sub-tabs" aria-label="turret upgrade sections">
           <button class="sub-tab active">모듈</button>
-          <button class="sub-tab locked">스킬 트리 🔒</button>
+          <button class="sub-tab locked">장착</button>
         </nav>
 
         <section class="panel" aria-label="module screen">
@@ -883,12 +911,12 @@
               <strong>12 / 18</strong>
             </div>
             <div class="summary">
-              <span>유니크</span>
+              <span>희귀</span>
               <strong>2개</strong>
             </div>
             <div class="summary">
-              <span>분해 조각</span>
-              <strong>580</strong>
+              <span>합성 가능</span>
+              <strong>3개</strong>
             </div>
           </div>
 
@@ -908,7 +936,7 @@
             <section class="turret-picker" aria-label="turret selector">
               <button class="turret-pick active">
                 <div class="turret-pick-top">
-                  <div class="turret-icon" style="--turret: #e7c66a">기</div>
+                  <div class="turret-icon" style="--turret: #e7c66a" aria-hidden="true"></div>
                   <div class="turret-pick-name">
                     <strong>기관총</strong>
                     <span>탄도 · 경량</span>
@@ -918,7 +946,7 @@
               </button>
               <button class="turret-pick">
                 <div class="turret-pick-top">
-                  <div class="turret-icon" style="--turret: #ff7b2f">대</div>
+                  <div class="turret-icon" style="--turret: #ff7b2f" aria-hidden="true"></div>
                   <div class="turret-pick-name">
                     <strong>대포</strong>
                     <span>폭발 · 중화기</span>
@@ -928,17 +956,17 @@
               </button>
               <button class="turret-pick">
                 <div class="turret-pick-top">
-                  <div class="turret-icon" style="--turret: #ff5e3a">화</div>
+                  <div class="turret-icon" style="--turret: #ff5e3a" aria-hidden="true"></div>
                   <div class="turret-pick-name">
                     <strong>화염</strong>
                     <span>원소 · 지속</span>
                   </div>
                 </div>
-                <div class="turret-pick-meta"><span>2/3 장착</span><span>유니크</span></div>
+                <div class="turret-pick-meta"><span>2/3 장착</span><span>희귀</span></div>
               </button>
               <button class="turret-pick">
                 <div class="turret-pick-top">
-                  <div class="turret-icon" style="--turret: #7fd8ff">냉</div>
+                  <div class="turret-icon" style="--turret: #7fd8ff" aria-hidden="true"></div>
                   <div class="turret-pick-name">
                     <strong>냉각</strong>
                     <span>원소 · 제어</span>
@@ -948,7 +976,7 @@
               </button>
               <button class="turret-pick">
                 <div class="turret-pick-top">
-                  <div class="turret-icon" style="--turret: #b7f4ff">저</div>
+                  <div class="turret-icon" style="--turret: #b7f4ff" aria-hidden="true"></div>
                   <div class="turret-pick-name">
                     <strong>저격</strong>
                     <span>탄도 · 치명</span>
@@ -958,32 +986,22 @@
               </button>
               <button class="turret-pick">
                 <div class="turret-pick-top">
-                  <div class="turret-icon" style="--turret: #cfa7ff">라</div>
+                  <div class="turret-icon" style="--turret: #cfa7ff" aria-hidden="true"></div>
                   <div class="turret-pick-name">
                     <strong>라이트닝</strong>
                     <span>신규 해금</span>
                   </div>
                 </div>
-                <div class="turret-pick-meta"><span>0/3 장착</span><span>보급</span></div>
+                <div class="turret-pick-meta"><span>0/3 장착</span><span>미장착</span></div>
               </button>
             </section>
-
-            <div class="supply">
-              <div class="supply-icon">보급</div>
-              <div>
-                <div class="section-title">라이트닝 보급 세트</div>
-                <div class="section-sub">신규 포탑 3부위 기본 장비 지급</div>
-              </div>
-              <button class="small-button">수령</button>
-            </div>
 
             <section class="turret-list">
               <article class="turret-card">
                 <div class="turret-head">
-                  <div class="turret-icon" style="--turret: #e7c66a">기</div>
+                  <div class="turret-icon" style="--turret: #e7c66a" aria-hidden="true"></div>
                   <div class="turret-name">
                     <strong>기관총 모듈 장착</strong>
-                    <span>선택 포탑 · 모든 기관총에 적용</span>
                   </div>
                   <div class="power">+18%</div>
                 </div>
@@ -1035,10 +1053,10 @@
                 <button class="module-action">강화</button>
               </article>
               <article class="module-card">
-                <div class="module-rank unique">유</div>
+                <div class="module-rank rare">희</div>
                 <div class="module-info">
-                  <strong>탄막 지휘 코어</strong>
-                  <span>공격 대상 변경 시 2초간 공속 증가 · ☆☆☆</span>
+                  <strong>약점 추적 코어</strong>
+                  <span>피해 +8% · ☆☆☆</span>
                 </div>
                 <button class="module-action">장착</button>
               </article>
@@ -1054,9 +1072,9 @@
                 <div class="module-rank normal">일</div>
                 <div class="module-info">
                   <strong>기초 동력 코어</strong>
-                  <span>피해 +2% · 최대 별 도달 시 분해 가능</span>
+                  <span>피해 +2% · 조각 5/5</span>
                 </div>
-                <button class="module-action">분해</button>
+                <button class="module-action">합성</button>
               </article>
             </section>
 
@@ -1066,7 +1084,6 @@
                   <div class="section-title">모듈 뽑기</div>
                   <div class="section-sub">해금된 포탑 전체 풀에서 획득</div>
                 </div>
-                <div class="chip">천장 31 / 50</div>
               </div>
 
               <div class="draw-buttons">

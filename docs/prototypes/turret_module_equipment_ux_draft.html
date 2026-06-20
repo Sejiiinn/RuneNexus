@@ -204,6 +204,7 @@
       }
 
       .turret-token i {
+        position: relative;
         width: 25px;
         height: 25px;
         display: grid;
@@ -213,8 +214,35 @@
         background: color-mix(in srgb, var(--turret), transparent 86%);
         color: var(--turret);
         font-style: normal;
-        font-size: 11px;
-        font-weight: 1000;
+        overflow: hidden;
+      }
+
+      .turret-token i::before,
+      .turret-token i::after {
+        content: "";
+        position: absolute;
+        border: 1px solid rgba(5, 10, 18, 0.92);
+      }
+
+      .turret-token i::before {
+        left: 5px;
+        bottom: 5px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #1a2533;
+        box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--turret), transparent 70%);
+      }
+
+      .turret-token i::after {
+        left: 12px;
+        top: 8px;
+        width: 13px;
+        height: 5px;
+        border-radius: 999px;
+        background: var(--turret);
+        transform: rotate(-20deg);
+        transform-origin: 2px 50%;
       }
 
       .content {
@@ -847,7 +875,6 @@
           <section class="draw-dock top-draw" aria-label="module draw">
             <div>
               <strong>모듈 뽑기</strong>
-              <span>희귀 보정 12 / 35</span>
             </div>
             <div class="draw-actions">
               <button>1회</button>
@@ -856,12 +883,12 @@
           </section>
 
           <nav class="turret-rail" aria-label="turret selector">
-            <button class="turret-token active"><i style="--turret: #e7c66a">기</i>기관총</button>
-            <button class="turret-token"><i style="--turret: #ff7b2f">대</i>대포</button>
-            <button class="turret-token"><i style="--turret: #ff5e3a">화</i>화염</button>
-            <button class="turret-token"><i style="--turret: #7fd8ff">냉</i>냉각</button>
-            <button class="turret-token"><i style="--turret: #b7f4ff">저</i>저격</button>
-            <button class="turret-token new"><i style="--turret: #cfa7ff">라</i>신규</button>
+            <button class="turret-token active"><i style="--turret: #e7c66a" aria-hidden="true"></i>기관총</button>
+            <button class="turret-token"><i style="--turret: #ff7b2f" aria-hidden="true"></i>대포</button>
+            <button class="turret-token"><i style="--turret: #ff5e3a" aria-hidden="true"></i>화염</button>
+            <button class="turret-token"><i style="--turret: #7fd8ff" aria-hidden="true"></i>냉각</button>
+            <button class="turret-token"><i style="--turret: #b7f4ff" aria-hidden="true"></i>저격</button>
+            <button class="turret-token new"><i style="--turret: #cfa7ff" aria-hidden="true"></i>신규</button>
           </nav>
 
           <div class="content">

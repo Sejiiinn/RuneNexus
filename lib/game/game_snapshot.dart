@@ -119,7 +119,6 @@ class GameSnapshot {
     required this.runes,
     this.diamonds = 0,
     required this.turretModuleTickets,
-    required this.turretModuleRarePityCounter,
     required this.ownedTurretModules,
     required this.dailyQuestDayKey,
     required this.dailyQuestProgress,
@@ -282,7 +281,6 @@ class GameSnapshot {
   final int runes;
   final int diamonds;
   final int turretModuleTickets;
-  final int turretModuleRarePityCounter;
   final List<TurretModuleInventoryItem> ownedTurretModules;
   final int dailyQuestDayKey;
   final Map<DailyQuestType, int> dailyQuestProgress;
