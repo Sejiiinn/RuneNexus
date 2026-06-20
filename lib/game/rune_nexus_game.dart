@@ -34,6 +34,7 @@ import '../domain/turret/damage_family.dart';
 import '../domain/turret/turret_target_priority.dart';
 import '../domain/turret/turret_trait_type.dart';
 import '../domain/turret/turret_type.dart';
+import '../domain/turret_module/turret_module_type.dart';
 import '../domain/wave/wave_definition.dart';
 import 'components/chain_projectile_component.dart';
 import 'components/damage_number_component.dart';
@@ -271,6 +272,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       waveClearGoldRunBonus: 0,
       runes: 0,
       diamonds: 0,
+      turretModuleTickets: 0,
+      turretModuleRarePityCounter: 0,
+      ownedTurretModules: const [],
       dailyQuestDayKey: RunProgression.uninitializedDailyQuestDayKey,
       dailyQuestProgress: const {},
       claimedDailyQuestRewards: const {},
@@ -638,6 +642,41 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return 0;
     }
     return _turretBuildCostFor(baseCost);
+  }
+
+  TurretModuleEffect turretModuleEffectFor(TurretType type) {
+    return _progression.turretModuleEffectFor(type);
+  }
+
+  List<TurretModuleInventoryItem> drawTurretModules(int count) {
+    final results = _progression.drawTurretModules(
+      count: count,
+      availableTurretTypes: _availableTurretTypes(),
+    );
+    if (results.isEmpty) {
+      return const [];
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return results;
+  }
+
+  bool equipTurretModule(TurretModuleKey key) {
+    if (!_progression.equipTurretModule(key)) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
+  }
+
+  bool fuseTurretModule(TurretModuleKey key) {
+    if (!_progression.fuseTurretModule(key)) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
   }
 
   int runUpgradeMaxLevelFor(RunUpgradeType type) {

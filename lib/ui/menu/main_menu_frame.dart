@@ -175,6 +175,16 @@ class _MenuTabs extends StatelessWidget {
                   onPressed: () => onSelectTab(MainMenuTab.research),
                 ),
               ),
+              const _MenuTabGroove(),
+              Expanded(
+                child: _TabButton(
+                  key: const ValueKey('main-menu-tab-modules'),
+                  icon: const Icon(Icons.extension_outlined),
+                  label: l10n.turretModuleTab,
+                  selected: selectedTab == MainMenuTab.turretModules,
+                  onPressed: () => onSelectTab(MainMenuTab.turretModules),
+                ),
+              ),
             ],
           ),
         ),

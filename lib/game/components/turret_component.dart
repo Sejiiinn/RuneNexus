@@ -91,8 +91,7 @@ class TurretComponent extends PositionComponent {
       _splashDamageDealt +
       _chainDamageDealt +
       _burnDamageDealt;
-  int get levelUpCost =>
-      (definition.cost * (70 + (_level - 1) * 45) + 50) ~/ 100;
+  int get levelUpCost => _levelUpCostAt(_level);
   int get investedGold => _investedGold;
 
   int get _calculatedInvestedGold {
@@ -164,7 +163,10 @@ class TurretComponent extends PositionComponent {
       levelDamage *= 1.25;
     }
 
-    return levelDamage * game.towerDamageMultiplierFor(definition.damageFamily);
+    final moduleEffect = game.turretModuleEffectFor(definition.type);
+    return levelDamage *
+        (1 + moduleEffect.damageIncreaseRate) *
+        game.towerDamageMultiplierFor(definition.damageFamily);
   }
 
   double get range => rangeAtLevel(_level);
@@ -196,7 +198,9 @@ class TurretComponent extends PositionComponent {
             : 1) *
         (_primaryTrait == TurretTraitType.lightweightBarrel ? 1.1 : 1) *
         (_primaryTrait == TurretTraitType.compressedCharge ? 0.9 : 1) *
-        (_primaryTrait == TurretTraitType.coolingCycle ? 1.2 : 1);
+        (_primaryTrait == TurretTraitType.coolingCycle ? 1.2 : 1) *
+        (1 +
+            game.turretModuleEffectFor(definition.type).attackRateIncreaseRate);
     if (_chainCleanupTimer > 0) {
       rate *= 1.4;
     }
@@ -256,6 +260,9 @@ class TurretComponent extends PositionComponent {
     if (_primaryTrait == TurretTraitType.highHeatBurn) {
       bonus += 0.25;
     }
+    bonus += game
+        .turretModuleEffectFor(definition.type)
+        .damageOverTimeIncreaseRate;
     return 1 + bonus;
   }
 
@@ -282,7 +289,9 @@ class TurretComponent extends PositionComponent {
 
   double get slowDuration =>
       definition.slowDuration *
-      (_primaryTrait == TurretTraitType.coolingCycle ? 0.85 : 1);
+      (_primaryTrait == TurretTraitType.coolingCycle ? 0.85 : 1) *
+      (1 +
+          game.turretModuleEffectFor(definition.type).slowDurationIncreaseRate);
 
   bool get appliesFrostCrack => _secondaryTrait == TurretTraitType.frostCrack;
   bool get appliesIgnitionBurst =>
@@ -315,12 +324,16 @@ class TurretComponent extends PositionComponent {
         _secondaryTrait == TurretTraitType.expandedBlastCore
         ? definition.splashRadius * 0.4
         : 0.0;
+    final moduleRadiusBonus =
+        definition.splashRadius *
+        game.turretModuleEffectFor(definition.type).splashRadiusIncreaseRate;
     if (definition.splashRadius > 0) {
       final additiveRadius =
           definition.splashRadius +
           heavyRadiusBonus +
           traitRadiusBonus +
-          secondaryTraitRadiusBonus;
+          secondaryTraitRadiusBonus +
+          moduleRadiusBonus;
       return additiveRadius *
           (hasGem(GemType.explosion) ? 1.25 : 1) *
           game.boardDistanceScale;
@@ -348,8 +361,17 @@ class TurretComponent extends PositionComponent {
     return math.max(0, jumps);
   }
 
-  double get lightningChainDamageMultiplier =>
-      _secondaryTrait == TurretTraitType.currentAmplification ? 0.7 : 0.5;
+  double get lightningChainDamageMultiplier {
+    final base = _secondaryTrait == TurretTraitType.currentAmplification
+        ? 0.7
+        : 0.5;
+    return base *
+        (1 +
+            game
+                .turretModuleEffectFor(definition.type)
+                .lightningChainDamageIncreaseRate);
+  }
+
   bool get appliesLightningRecovery =>
       _secondaryTrait == TurretTraitType.lightningRecovery;
 
@@ -373,7 +395,8 @@ class TurretComponent extends PositionComponent {
 
   double get criticalDamageMultiplier =>
       definition.criticalDamageMultiplier +
-      game.criticalDamageProgressionBonusRate;
+      game.criticalDamageProgressionBonusRate +
+      game.turretModuleEffectFor(definition.type).criticalDamageBonusRate;
 
   double get aimDuration {
     return aimDurationAtLevel(_level);
@@ -671,7 +694,12 @@ class TurretComponent extends PositionComponent {
   }
 
   int _levelUpCostAt(int level) {
-    return (definition.cost * (70 + (level - 1) * 45) + 50) ~/ 100;
+    final baseCost = (definition.cost * (70 + (level - 1) * 45) + 50) ~/ 100;
+    final discountRate = game
+        .turretModuleEffectFor(definition.type)
+        .levelUpCostDiscountRate
+        .clamp(0.0, 0.8);
+    return math.max(1, (baseCost * (1 - discountRate)).round());
   }
 
   int _linkUpgradeCostForSlot(int slotLimit) {

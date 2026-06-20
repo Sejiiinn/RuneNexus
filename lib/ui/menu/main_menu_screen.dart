@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 
 import '../../data/definitions/game_daily_quest_data.dart';
 import '../../data/definitions/game_research_data.dart';
+import '../../data/definitions/game_turret_data.dart';
+import '../../data/definitions/game_turret_module_data.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../domain/core/core_ability.dart';
 import '../../domain/daily_quest/daily_quest_type.dart';
@@ -14,6 +16,7 @@ import '../../domain/research/research_definition.dart';
 import '../../domain/research/research_progress.dart';
 import '../../domain/research/research_type.dart';
 import '../../domain/turret/turret_type.dart';
+import '../../domain/turret_module/turret_module_type.dart';
 import '../../game/game_snapshot.dart';
 import '../../game/rendering/turret_shape_renderer.dart';
 import '../../game/rune_nexus_game.dart';
@@ -29,13 +32,14 @@ part 'main_menu_frame.dart';
 part 'main_menu_permanent_upgrades.dart';
 part 'main_menu_research.dart';
 part 'main_menu_stage.dart';
+part 'main_menu_turret_modules.dart';
 
 const _showMapEditor = bool.fromEnvironment(
   'RUNE_NEXUS_DEBUG_PANEL',
   defaultValue: false,
 );
 
-enum MainMenuTab { stage, core, permanentUpgrades, research }
+enum MainMenuTab { stage, core, permanentUpgrades, research, turretModules }
 
 enum _PermanentUpgradeGroup { combat, economy }
 
@@ -401,6 +405,10 @@ class _MainMenuSnapshotContent extends StatelessWidget {
                           group: selectedUpgradeGroup,
                         ),
                         MainMenuTab.research => _ResearchMenu(
+                          game: game,
+                          snapshot: snapshot,
+                        ),
+                        MainMenuTab.turretModules => _TurretModuleMenu(
                           game: game,
                           snapshot: snapshot,
                         ),

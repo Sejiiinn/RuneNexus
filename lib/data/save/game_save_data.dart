@@ -10,6 +10,7 @@ import '../../domain/run_upgrade/run_upgrade_type.dart';
 import '../../domain/turret/turret_trait_type.dart';
 import '../../domain/turret/turret_type.dart';
 import '../../domain/turret/turret_target_priority.dart';
+import '../../domain/turret_module/turret_module_type.dart';
 
 class GameSaveData {
   const GameSaveData({
@@ -249,6 +250,9 @@ class SavedProgression {
     required this.researchLevels,
     required this.researchElapsedMillis,
     required this.activeResearches,
+    this.turretModuleTickets = 0,
+    this.turretModuleRarePityCounter = 0,
+    this.ownedTurretModules = const [],
     this.coreCombatSkill = CoreCombatSkill.guardianBeam,
     this.corePassiveSlotTwoUnlocked = false,
     this.corePassiveSlots = const [null, null],
@@ -280,6 +284,9 @@ class SavedProgression {
   final Map<ResearchType, int> researchLevels;
   final Map<ResearchType, int> researchElapsedMillis;
   final List<SavedActiveResearch> activeResearches;
+  final int turretModuleTickets;
+  final int turretModuleRarePityCounter;
+  final List<SavedTurretModule> ownedTurretModules;
   final CoreCombatSkill? coreCombatSkill;
   final bool corePassiveSlotTwoUnlocked;
   final List<CorePassiveAbility?> corePassiveSlots;
@@ -324,6 +331,11 @@ class SavedProgression {
       ),
       'activeResearches': activeResearches
           .map((research) => research.toJson())
+          .toList(),
+      'turretModuleTickets': turretModuleTickets,
+      'turretModuleRarePityCounter': turretModuleRarePityCounter,
+      'ownedTurretModules': ownedTurretModules
+          .map((module) => module.toJson())
           .toList(),
       'coreCombatSkill': coreCombatSkill?.name,
       'corePassiveSlotTwoUnlocked': corePassiveSlotTwoUnlocked,
@@ -385,6 +397,14 @@ class SavedProgression {
       activeResearches: _objectList(
         map['activeResearches'],
         SavedActiveResearch.fromJson,
+      ),
+      turretModuleTickets: _intValue(map['turretModuleTickets']),
+      turretModuleRarePityCounter: _intValue(
+        map['turretModuleRarePityCounter'],
+      ),
+      ownedTurretModules: _objectList(
+        map['ownedTurretModules'],
+        SavedTurretModule.fromJson,
       ),
       coreCombatSkill: _coreCombatSkillFromSave(map),
       corePassiveSlotTwoUnlocked: _boolValue(
@@ -482,6 +502,69 @@ class SavedActiveResearch {
       startedAtMillis: _intValue(json['startedAtMillis']),
       durationMillis: _intValue(json['durationMillis']),
       initialElapsedMillis: _intValue(json['initialElapsedMillis']),
+    );
+  }
+}
+
+class SavedTurretModule {
+  const SavedTurretModule({
+    required this.turretType,
+    required this.part,
+    required this.family,
+    required this.grade,
+    required this.stars,
+    required this.shards,
+    required this.equipped,
+  });
+
+  final TurretType turretType;
+  final TurretModulePart part;
+  final TurretModuleFamily family;
+  final TurretModuleGrade grade;
+  final int stars;
+  final int shards;
+  final bool equipped;
+
+  TurretModuleKey get key {
+    return TurretModuleKey(
+      turretType: turretType,
+      part: part,
+      family: family,
+      grade: grade,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'turretType': turretType.name,
+      'part': part.name,
+      'family': family.name,
+      'grade': grade.name,
+      'stars': stars,
+      'shards': shards,
+      'equipped': equipped,
+    };
+  }
+
+  static SavedTurretModule? fromJson(Object? json) {
+    if (json is! Map<String, Object?>) {
+      return null;
+    }
+    final turretType = _enumValue(TurretType.values, json['turretType']);
+    final part = _enumValue(TurretModulePart.values, json['part']);
+    final family = _enumValue(TurretModuleFamily.values, json['family']);
+    final grade = _enumValue(TurretModuleGrade.values, json['grade']);
+    if (turretType == null || part == null || family == null || grade == null) {
+      return null;
+    }
+    return SavedTurretModule(
+      turretType: turretType,
+      part: part,
+      family: family,
+      grade: grade,
+      stars: _intValue(json['stars']),
+      shards: _intValue(json['shards']),
+      equipped: _boolValue(json['equipped']),
     );
   }
 }

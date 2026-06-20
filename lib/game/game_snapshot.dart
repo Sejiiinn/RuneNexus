@@ -12,6 +12,7 @@ import '../domain/run_upgrade/run_upgrade_type.dart';
 import '../domain/turret/turret_target_priority.dart';
 import '../domain/turret/turret_trait_type.dart';
 import '../domain/turret/turret_type.dart';
+import '../domain/turret_module/turret_module_type.dart';
 
 class GameSnapshot {
   const GameSnapshot({
@@ -117,6 +118,9 @@ class GameSnapshot {
     required this.waveClearGoldRunBonus,
     required this.runes,
     this.diamonds = 0,
+    required this.turretModuleTickets,
+    required this.turretModuleRarePityCounter,
+    required this.ownedTurretModules,
     required this.dailyQuestDayKey,
     required this.dailyQuestProgress,
     required this.claimedDailyQuestRewards,
@@ -277,6 +281,9 @@ class GameSnapshot {
   final int waveClearGoldRunBonus;
   final int runes;
   final int diamonds;
+  final int turretModuleTickets;
+  final int turretModuleRarePityCounter;
+  final List<TurretModuleInventoryItem> ownedTurretModules;
   final int dailyQuestDayKey;
   final Map<DailyQuestType, int> dailyQuestProgress;
   final Set<DailyQuestType> claimedDailyQuestRewards;

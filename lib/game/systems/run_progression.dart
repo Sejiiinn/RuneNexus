@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import '../../data/definitions/game_daily_quest_data.dart';
 import '../../data/definitions/game_research_data.dart';
+import '../../data/definitions/game_turret_module_data.dart';
 import '../../data/save/game_save_data.dart';
 import '../../domain/core/core_ability.dart';
 import '../../domain/currency/diamond_wallet.dart';
@@ -9,6 +10,8 @@ import '../../domain/daily_quest/daily_quest_type.dart';
 import '../../domain/research/research_progress.dart';
 import '../../domain/research/research_type.dart';
 import '../../domain/run_upgrade/run_upgrade_type.dart';
+import '../../domain/turret/turret_type.dart';
+import '../../domain/turret_module/turret_module_type.dart';
 
 class RunProgression {
   static const int baseInitialGold = 170;
@@ -27,6 +30,7 @@ class RunProgression {
   static const int researchSlotCount = 1;
   static const int gemShardsPerGemAttunementLevel = 2;
   static const int corePassiveSlotUnlockCost = 200;
+  static const int turretModuleTicketsPerStageClear = 1;
   static const int diamondMillisPerResearchMinute = 60000;
   static const int uninitializedDailyQuestDayKey = -1;
   static const int dailyQuestResetHourKst = 5;
@@ -119,6 +123,9 @@ class RunProgression {
   final Map<ResearchType, int> researchLevels = {};
   final Map<ResearchType, int> researchElapsedMillis = {};
   final List<ResearchProgress> activeResearches = [];
+  int turretModuleTickets = 0;
+  int turretModuleRarePityCounter = 0;
+  final Map<TurretModuleKey, TurretModuleInventoryItem> turretModules = {};
   CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam;
   bool corePassiveSlotTwoUnlocked = false;
   final List<CorePassiveAbility?> corePassiveSlots = [null, null];
@@ -234,6 +241,41 @@ class RunProgression {
       CorePassiveAbility.costSavingDesign,
       CorePassiveAbility.skillAcceleration,
     };
+  }
+
+  List<TurretModuleInventoryItem> get ownedTurretModules {
+    final items = turretModules.values.toList()
+      ..sort(_compareTurretModuleItems);
+    return List.unmodifiable(items);
+  }
+
+  TurretModuleInventoryItem? turretModuleFor(TurretModuleKey key) {
+    return turretModules[key];
+  }
+
+  TurretModuleInventoryItem? equippedTurretModuleFor(
+    TurretType turretType,
+    TurretModulePart part,
+  ) {
+    for (final item in turretModules.values) {
+      if (item.equipped &&
+          item.key.turretType == turretType &&
+          item.key.part == part) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  TurretModuleEffect turretModuleEffectFor(TurretType turretType) {
+    var effect = TurretModuleEffect.zero;
+    for (final item in turretModules.values) {
+      if (!item.equipped || item.key.turretType != turretType) {
+        continue;
+      }
+      effect += effectiveTurretModuleEffect(item);
+    }
+    return effect;
   }
 
   double get researchEfficiencyRate =>
@@ -524,6 +566,136 @@ class RunProgression {
     return true;
   }
 
+  List<TurretModuleInventoryItem> drawTurretModules({
+    required int count,
+    required List<TurretType> availableTurretTypes,
+    math.Random? random,
+  }) {
+    if (count <= 0 || turretModuleTickets < count) {
+      return const [];
+    }
+    final turretPool = availableTurretTypes
+        .where(
+          (type) => gameTurretModuleDefinitions.keys.any(
+            (key) => key.turretType == type,
+          ),
+        )
+        .toList(growable: false);
+    if (turretPool.isEmpty) {
+      return const [];
+    }
+
+    final rollRandom = random ?? math.Random();
+    turretModuleTickets -= count;
+    final results = <TurretModuleInventoryItem>[];
+    for (var i = 0; i < count; i++) {
+      final turretType = turretPool[rollRandom.nextInt(turretPool.length)];
+      final part = TurretModulePart
+          .values[rollRandom.nextInt(TurretModulePart.values.length)];
+      final grade = _rollTurretModuleGrade(rollRandom);
+      final key = TurretModuleKey(
+        turretType: turretType,
+        part: part,
+        family: turretModuleFamilyFor(turretType, part),
+        grade: grade,
+      );
+      results.add(grantTurretModule(key));
+    }
+    return List.unmodifiable(results);
+  }
+
+  TurretModuleInventoryItem grantTurretModule(TurretModuleKey key) {
+    if (!gameTurretModuleDefinitions.containsKey(key)) {
+      return TurretModuleInventoryItem(
+        key: key,
+        stars: 0,
+        shards: 0,
+        equipped: false,
+      );
+    }
+    final existing = turretModules[key];
+    final item = existing == null
+        ? TurretModuleInventoryItem(
+            key: key,
+            stars: 0,
+            shards: 0,
+            equipped: false,
+          )
+        : existing.copyWith(shards: existing.shards + 1);
+    turretModules[key] = item;
+    _sanitizeTurretModules();
+    return turretModules[key]!;
+  }
+
+  bool equipTurretModule(TurretModuleKey key) {
+    final item = turretModules[key];
+    if (item == null) {
+      return false;
+    }
+    for (final entry in turretModules.entries.toList()) {
+      final candidate = entry.value;
+      if (candidate.key.turretType != key.turretType ||
+          candidate.key.part != key.part) {
+        continue;
+      }
+      turretModules[entry.key] = candidate.copyWith(
+        equipped: candidate.key == key,
+      );
+    }
+    _sanitizeTurretModules();
+    return true;
+  }
+
+  bool fuseTurretModule(TurretModuleKey key) {
+    final item = turretModules[key];
+    if (item == null ||
+        item.shards < turretModuleFusionShardCost ||
+        (item.key.grade == TurretModuleGrade.rare &&
+            item.stars >= turretModuleMaxStars)) {
+      return false;
+    }
+
+    final remainingShards = item.shards - turretModuleFusionShardCost;
+    if (item.stars < turretModuleMaxStars) {
+      turretModules[key] = item.copyWith(
+        stars: item.stars + 1,
+        shards: remainingShards,
+      );
+      _sanitizeTurretModules();
+      return true;
+    }
+
+    final nextGrade = item.key.grade.nextGrade;
+    if (nextGrade == null) {
+      return false;
+    }
+    final nextKey = TurretModuleKey(
+      turretType: item.key.turretType,
+      part: item.key.part,
+      family: item.key.family,
+      grade: nextGrade,
+    );
+    final existingNext = turretModules[nextKey];
+    turretModules.remove(key);
+    turretModules[nextKey] = existingNext == null
+        ? TurretModuleInventoryItem(
+            key: nextKey,
+            stars: 0,
+            shards: remainingShards,
+            equipped: item.equipped,
+          )
+        : existingNext.copyWith(
+            shards: existingNext.shards + remainingShards,
+            equipped: existingNext.equipped || item.equipped,
+          );
+    if (item.equipped) {
+      equipTurretModule(nextKey);
+    } else {
+      _sanitizeTurretModules();
+    }
+    return true;
+  }
+
   void addFreeDiamonds(int amount) {
     if (amount <= 0) {
       return;
@@ -691,6 +863,21 @@ class RunProgression {
           ),
         ),
       ),
+      turretModuleTickets: turretModuleTickets,
+      turretModuleRarePityCounter: turretModuleRarePityCounter,
+      ownedTurretModules: List.unmodifiable(
+        ownedTurretModules.map(
+          (module) => SavedTurretModule(
+            turretType: module.key.turretType,
+            part: module.key.part,
+            family: module.key.family,
+            grade: module.key.grade,
+            stars: module.stars,
+            shards: module.shards,
+            equipped: module.equipped,
+          ),
+        ),
+      ),
       coreCombatSkill: coreCombatSkill,
       corePassiveSlotTwoUnlocked: corePassiveSlotTwoUnlocked,
       corePassiveSlots: List<CorePassiveAbility?>.unmodifiable(
@@ -822,6 +1009,30 @@ class RunProgression {
               ),
             ),
       );
+    turretModuleTickets = math.max(0, data.turretModuleTickets);
+    turretModuleRarePityCounter = data.turretModuleRarePityCounter
+        .clamp(0, 34)
+        .toInt();
+    turretModules
+      ..clear()
+      ..addEntries(
+        data.ownedTurretModules
+            .where(
+              (module) => gameTurretModuleDefinitions.containsKey(module.key),
+            )
+            .map(
+              (module) => MapEntry(
+                module.key,
+                TurretModuleInventoryItem(
+                  key: module.key,
+                  stars: module.stars.clamp(0, turretModuleMaxStars).toInt(),
+                  shards: math.max(0, module.shards),
+                  equipped: module.equipped,
+                ),
+              ),
+            ),
+      );
+    _sanitizeTurretModules();
     coreCombatSkill = data.coreCombatSkill;
     corePassiveSlotTwoUnlocked = data.corePassiveSlotTwoUnlocked;
     final restoredSlots = data.corePassiveSlots;
@@ -1045,6 +1256,9 @@ class RunProgression {
         unlockedStageCount < maxStageCount) {
       unlockedStageCount = math.min(maxStageCount, stageNumber + 1);
     }
+    if (success) {
+      turretModuleTickets += turretModuleTicketsPerStageClear;
+    }
   }
 
   int bestRoundForStage(int stageNumber) {
@@ -1093,7 +1307,73 @@ class RunProgression {
     );
   }
 
+  TurretModuleGrade _rollTurretModuleGrade(math.Random random) {
+    final rareChance = turretModuleRarePityCounter >= 34
+        ? 1.0
+        : 0.05 + math.max(0, turretModuleRarePityCounter - 14) * 0.03;
+    if (random.nextDouble() < rareChance.clamp(0.05, 1.0)) {
+      turretModuleRarePityCounter = 0;
+      return TurretModuleGrade.rare;
+    }
+    turretModuleRarePityCounter++;
+
+    const normalWeight = 68;
+    const magicWeight = 27;
+    final roll = random.nextInt(normalWeight + magicWeight);
+    return roll < normalWeight
+        ? TurretModuleGrade.normal
+        : TurretModuleGrade.magic;
+  }
+
+  void _sanitizeTurretModules() {
+    final equippedParts = <String, TurretModuleKey>{};
+    for (final entry in turretModules.entries.toList()) {
+      final item = entry.value;
+      if (!gameTurretModuleDefinitions.containsKey(item.key)) {
+        turretModules.remove(entry.key);
+        continue;
+      }
+      final sanitized = item.copyWith(
+        stars: item.stars.clamp(0, turretModuleMaxStars).toInt(),
+        shards: math.max(0, item.shards),
+      );
+      turretModules[entry.key] = sanitized;
+      if (!sanitized.equipped) {
+        continue;
+      }
+      final slotKey =
+          '${sanitized.key.turretType.name}:${sanitized.key.part.name}';
+      final previous = equippedParts[slotKey];
+      if (previous != null) {
+        turretModules[entry.key] = sanitized.copyWith(equipped: false);
+        continue;
+      }
+      equippedParts[slotKey] = sanitized.key;
+    }
+  }
+
   void resetLastRunReward() {
     lastRunRuneReward = 0;
   }
+}
+
+int _compareTurretModuleItems(
+  TurretModuleInventoryItem a,
+  TurretModuleInventoryItem b,
+) {
+  final turretCompare = a.key.turretType.index.compareTo(
+    b.key.turretType.index,
+  );
+  if (turretCompare != 0) {
+    return turretCompare;
+  }
+  final partCompare = a.key.part.index.compareTo(b.key.part.index);
+  if (partCompare != 0) {
+    return partCompare;
+  }
+  final familyCompare = a.key.family.index.compareTo(b.key.family.index);
+  if (familyCompare != 0) {
+    return familyCompare;
+  }
+  return a.key.grade.index.compareTo(b.key.grade.index);
 }
