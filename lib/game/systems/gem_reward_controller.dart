@@ -94,20 +94,6 @@ class GemRewardController {
     gemInventory[type] = (gemInventory[type] ?? 0) + 1;
   }
 
-  void seedDebugGemInventory(Map<GemType, int> gemInventory) {
-    const seeds = {
-      GemType.attackSpeed: 1,
-      GemType.range: 2,
-      GemType.physicalDamage: 1,
-      GemType.lightWeapon: 1,
-    };
-
-    for (final entry in seeds.entries) {
-      final current = gemInventory[entry.key] ?? 0;
-      gemInventory[entry.key] = current > entry.value ? current : entry.value;
-    }
-  }
-
   List<GemType> _generateOptions(Iterable<GemType> availableGems) {
     return _rewardGenerator.generateOptions(availableGems: availableGems);
   }

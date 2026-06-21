@@ -1610,7 +1610,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       availableGems: _availableGemTypes(),
     );
     _completedRounds = reward.completedRounds;
-    _gemRewards.seedDebugGemInventory(_gemInventory);
     _rewardOptions
       ..clear()
       ..addAll(reward.rewardOptions);

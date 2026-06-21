@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../game/game_snapshot.dart';
 import '../../game/rune_nexus_game.dart';
+import '../game/game_ui.dart';
 import '../menu/result_overlay.dart';
 import 'bottom_bar.dart';
 import 'hud_common.dart';
@@ -14,6 +15,7 @@ const _showDebugPanel = bool.fromEnvironment(
   'RUNE_NEXUS_DEBUG_PANEL',
   defaultValue: false,
 );
+const _hudDebugBarHeight = 44.0;
 
 class GameHud extends StatefulWidget {
   const GameHud({
@@ -138,19 +140,25 @@ class _GameHudState extends State<GameHud> {
           SafeArea(
             child: Stack(
               children: [
+                if (_showDebugPanel)
+                  _HudDebugShortcuts(
+                    testPanelOpen: _showGemDebugPanel,
+                    onToggleTestPanel: () {
+                      setState(() {
+                        _showGemDebugPanel = !_showGemDebugPanel;
+                      });
+                    },
+                  ),
                 _HudTopBarLayer(
                   game: widget.game,
-                  showDebugButton: _showDebugPanel,
-                  showGemDebugPanel: _showGemDebugPanel,
+                  topInset: _showDebugPanel ? _hudDebugBarHeight : 0,
                   onOpenMainMenu: _handleOpenMainMenu,
-                  onToggleGemDebugPanel: () {
-                    setState(() {
-                      _showGemDebugPanel = !_showGemDebugPanel;
-                    });
-                  },
                 ),
                 if (_showDebugPanel && _showGemDebugPanel)
-                  _HudGemDebugLayer(game: widget.game),
+                  _HudGemDebugLayer(
+                    game: widget.game,
+                    topInset: _hudDebugBarHeight,
+                  ),
                 _HudBottomBarLayer(game: widget.game),
                 _HudOverlayLayer(
                   game: widget.game,
@@ -169,17 +177,13 @@ class _GameHudState extends State<GameHud> {
 class _HudTopBarLayer extends StatelessWidget {
   const _HudTopBarLayer({
     required this.game,
-    required this.showDebugButton,
-    required this.showGemDebugPanel,
+    required this.topInset,
     required this.onOpenMainMenu,
-    required this.onToggleGemDebugPanel,
   });
 
   final RuneNexusGame game;
-  final bool showDebugButton;
-  final bool showGemDebugPanel;
+  final double topInset;
   final ValueChanged<GameSnapshot> onOpenMainMenu;
-  final VoidCallback onToggleGemDebugPanel;
 
   @override
   Widget build(BuildContext context) {
@@ -188,20 +192,64 @@ class _HudTopBarLayer extends StatelessWidget {
       builder: (context, snapshot, _) {
         return HudTopBar(
           snapshot: snapshot,
-          showDebugButton: showDebugButton,
-          showGemDebugPanel: showGemDebugPanel,
+          topInset: topInset,
           onOpenMainMenu: () => onOpenMainMenu(snapshot),
-          onToggleGemDebugPanel: onToggleGemDebugPanel,
         );
       },
     );
   }
 }
 
+class _HudDebugShortcuts extends StatelessWidget {
+  const _HudDebugShortcuts({
+    required this.testPanelOpen,
+    required this.onToggleTestPanel,
+  });
+
+  final bool testPanelOpen;
+  final VoidCallback onToggleTestPanel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        height: _hudDebugBarHeight,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: const BoxDecoration(
+          color: Color(0xF203070E),
+          border: Border(bottom: BorderSide(color: Color(0x66FFB55E))),
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 102,
+              child: GameButton(
+                onPressed: onToggleTestPanel,
+                label: '테스트 패널',
+                icon: const Icon(Icons.tune, size: 15),
+                compact: true,
+                selected: testPanelOpen,
+                variant: GameButtonVariant.ghost,
+                accentColor: const Color(0xFFFFB55E),
+                height: 30,
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _HudGemDebugLayer extends StatelessWidget {
-  const _HudGemDebugLayer({required this.game});
+  const _HudGemDebugLayer({required this.game, required this.topInset});
 
   final RuneNexusGame game;
+  final double topInset;
 
   @override
   Widget build(BuildContext context) {
@@ -209,7 +257,7 @@ class _HudGemDebugLayer extends StatelessWidget {
       valueListenable: game.snapshotNotifier,
       builder: (context, snapshot, _) {
         return Positioned(
-          top: 112,
+          top: 112 + topInset,
           right: 12,
           bottom: 212,
           child: HudGemDebugPanel(game: game, snapshot: snapshot),

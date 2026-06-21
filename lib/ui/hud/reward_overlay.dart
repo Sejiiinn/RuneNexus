@@ -63,32 +63,39 @@ class _RewardOverlayState extends State<HudRewardOverlay> {
                 builder: (context, constraints) {
                   final optionCount = snapshot.rewardOptions.length;
                   const spacing = 8.0;
+                  final availableWidth =
+                      constraints.maxWidth - spacing * (optionCount - 1);
                   final cardWidth = optionCount <= 1
                       ? math.min(112.0, constraints.maxWidth)
-                      : ((constraints.maxWidth - spacing * (optionCount - 1)) /
-                                optionCount)
-                            .clamp(96.0, 110.0)
-                            .toDouble();
-                  return Wrap(
-                    alignment: WrapAlignment.center,
-                    spacing: spacing,
-                    runSpacing: spacing,
+                      : math.min(110.0, availableWidth / optionCount);
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ...snapshot.rewardOptions.map((type) {
-                        return _RewardCard(
-                          type: type,
+                      for (
+                        var i = 0;
+                        i < snapshot.rewardOptions.length;
+                        i++
+                      ) ...[
+                        if (i > 0) const SizedBox(width: spacing),
+                        _RewardCard(
+                          type: snapshot.rewardOptions[i],
                           width: cardWidth,
-                          ownedCount: snapshot.gemCollection[type] ?? 0,
-                          selected: selectedGem == type,
+                          ownedCount:
+                              snapshot.gemCollection[snapshot
+                                  .rewardOptions[i]] ??
+                              0,
+                          selected: selectedGem == snapshot.rewardOptions[i],
                           onPressed: () {
                             setState(() {
-                              _selectedGem = type;
+                              _selectedGem = snapshot.rewardOptions[i];
                               _selectedGemShards = false;
                             });
                           },
-                          onConfirm: () => widget.game.selectRewardGem(type),
-                        );
-                      }),
+                          onConfirm: () => widget.game.selectRewardGem(
+                            snapshot.rewardOptions[i],
+                          ),
+                        ),
+                      ],
                     ],
                   );
                 },
@@ -317,6 +324,8 @@ class _RewardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gem = gameGems[type]!;
+    final compact = width < 96;
+    final dense = width < 88;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -325,8 +334,8 @@ class _RewardCard extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
           width: width,
-          height: 216,
-          padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
+          height: compact ? 204 : 216,
+          padding: EdgeInsets.fromLTRB(6, compact ? 8 : 10, 6, 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: gem.color, width: selected ? 2 : 1),
@@ -354,18 +363,18 @@ class _RewardCard extends StatelessWidget {
           child: Column(
             children: [
               Container(
-                width: 38,
-                height: 38,
+                width: compact ? 34 : 38,
+                height: compact ? 34 : 38,
                 decoration: BoxDecoration(
                   color: gem.color.withValues(alpha: 0.18),
                   border: Border.all(color: gem.color.withValues(alpha: 0.78)),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: GemIcon(gem.type, size: 21),
+                child: GemIcon(gem.type, size: compact ? 19 : 21),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: compact ? 6 : 8),
               SizedBox(
-                height: 36,
+                height: compact ? 32 : 36,
                 child: Center(
                   child: Text(
                     gem.name,
@@ -373,15 +382,15 @@ class _RewardCard extends StatelessWidget {
                     overflow: TextOverflow.clip,
                     textAlign: TextAlign.center,
                     style: GameTextStyles.sectionTitle.copyWith(
-                      fontSize: 13,
+                      fontSize: dense ? 11 : 13,
                       height: 1.12,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: compact ? 4 : 6),
               SizedBox(
-                height: 32,
+                height: compact ? 36 : 32,
                 child: Center(
                   child: Text(
                     _rewardCardEffectText(type),
@@ -390,16 +399,16 @@ class _RewardCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: GameTextStyles.caption.copyWith(
                       color: GamePalette.textSecondary,
-                      fontSize: 10.5,
+                      fontSize: dense ? 9 : 10.5,
                       height: 1.18,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 7),
+              SizedBox(height: compact ? 5 : 7),
               Container(
                 height: 22,
-                padding: const EdgeInsets.symmetric(horizontal: 7),
+                padding: const EdgeInsets.symmetric(horizontal: 5),
                 decoration: BoxDecoration(
                   color: const Color(0x8802070D),
                   border: Border.all(color: const Color(0x5533D8FF)),
@@ -410,10 +419,10 @@ class _RewardCard extends StatelessWidget {
                   '보유 $ownedCount',
                   maxLines: 1,
                   overflow: TextOverflow.clip,
-                  style: GameTextStyles.chip.copyWith(fontSize: 10),
+                  style: GameTextStyles.chip.copyWith(fontSize: dense ? 9 : 10),
                 ),
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: compact ? 6 : 8),
               _RewardConfirmArea(selected: selected, onConfirm: onConfirm),
             ],
           ),

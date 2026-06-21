@@ -8,6 +8,7 @@ import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
 import 'package:rune_nexus/domain/combat/run_panel_tab.dart';
 import 'package:rune_nexus/domain/core/core_ability.dart';
+import 'package:rune_nexus/domain/gem/gem_type.dart';
 import 'package:rune_nexus/domain/map/grid_point.dart';
 import 'package:rune_nexus/domain/research/research_progress.dart';
 import 'package:rune_nexus/domain/research/research_type.dart';
@@ -23,6 +24,7 @@ import 'package:rune_nexus/l10n/rune_nexus_localizations.dart';
 import 'package:rune_nexus/ui/game/game_button.dart';
 import 'package:rune_nexus/ui/hud/core_info_panel.dart';
 import 'package:rune_nexus/ui/hud/game_hud.dart';
+import 'package:rune_nexus/ui/hud/reward_overlay.dart';
 import 'package:rune_nexus/ui/menu/main_menu_screen.dart';
 import 'package:rune_nexus/ui/menu/map_editor_panel.dart';
 import 'package:rune_nexus/ui/menu/result_overlay.dart';
@@ -2197,6 +2199,46 @@ void main() {
     expect(find.text('테스트 라운드'), findsNothing);
   });
 
+  testWidgets('gem reward choices stay in one row on narrow combat width', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(360, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    final snapshot = _resultSnapshot(
+      phase: GamePhase.reward,
+      currentStageNumber: 1,
+      completedRounds: 1,
+      gemShards: 12,
+      rewardOptions: const [
+        GemType.chain,
+        GemType.heavyWeapon,
+        GemType.attackSpeed,
+      ],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          backgroundColor: const Color(0xFF07111D),
+          body: HudRewardOverlay(game: game, snapshot: snapshot),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final chainTop = tester.getTopLeft(find.text('연쇄')).dy;
+    final heavyTop = tester.getTopLeft(find.text('중화기 증폭')).dy;
+    final speedTop = tester.getTopLeft(find.text('가속')).dy;
+    expect(heavyTop, closeTo(chainTop, 0.1));
+    expect(speedTop, closeTo(chainTop, 0.1));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('combat HUD shows total turret DPS under the home button', (
     tester,
   ) async {
@@ -2681,10 +2723,13 @@ GameSnapshot _resultSnapshot({
   bool corePassiveSlotTwoUnlocked = false,
   int turretModuleTickets = 0,
   List<TurretModuleInventoryItem> ownedTurretModules = const [],
+  int gemShards = 0,
+  List<GemType> rewardOptions = const [],
+  Map<GemType, int> gemCollection = const {},
 }) {
   return GameSnapshot(
     gold: 0,
-    gemShards: 0,
+    gemShards: gemShards,
     nexusHp: 0,
     maxNexusHp: 20,
     round: completedRounds,
@@ -2708,10 +2753,10 @@ GameSnapshot _resultSnapshot({
     selectedTurretType: TurretType.arrow,
     selectedRunPanelTab: RunPanelTab.turrets,
     previewText: '',
-    rewardOptions: const [],
+    rewardOptions: rewardOptions,
     isPurchasedGemReward: false,
     gemInventory: const {},
-    gemCollection: const {},
+    gemCollection: gemCollection,
     selectedBuildPoint: null,
     selectedBuildTurretType: null,
     selectedPortalPoint: null,

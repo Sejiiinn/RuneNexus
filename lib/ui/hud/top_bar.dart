@@ -14,17 +14,13 @@ import 'portal_summary_panel.dart';
 class HudTopBar extends StatelessWidget {
   const HudTopBar({
     required this.snapshot,
-    required this.showDebugButton,
-    required this.showGemDebugPanel,
-    required this.onToggleGemDebugPanel,
+    this.topInset = 0,
     this.onOpenMainMenu,
     super.key,
   });
 
   final GameSnapshot snapshot;
-  final bool showDebugButton;
-  final bool showGemDebugPanel;
-  final VoidCallback onToggleGemDebugPanel;
+  final double topInset;
   final VoidCallback? onOpenMainMenu;
 
   @override
@@ -32,24 +28,22 @@ class HudTopBar extends StatelessWidget {
     return Align(
       alignment: Alignment.topCenter,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.fromLTRB(12, 12 + topInset, 12, 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _ResourceStrip(snapshot: snapshot),
-            const SizedBox(width: 8),
+            _ResourceTabStrip(snapshot: snapshot),
+            const SizedBox(width: 6),
             Expanded(
               child: Align(
                 alignment: Alignment.topCenter,
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: showDebugButton ? 190 : 214,
-                  ),
+                  constraints: BoxConstraints(maxWidth: 214),
                   child: _RunStatusPanel(snapshot: snapshot),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,15 +51,6 @@ class HudTopBar extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (showDebugButton) ...[
-                      _TopIconButton(
-                        tooltip: '인앱 테스트 패널',
-                        icon: Icons.construction_outlined,
-                        selected: showGemDebugPanel,
-                        onPressed: onToggleGemDebugPanel,
-                      ),
-                      const SizedBox(width: 6),
-                    ],
                     _TopIconButton(
                       tooltip: '스테이지 메뉴',
                       icon: Icons.home_outlined,
@@ -73,8 +58,6 @@ class HudTopBar extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 5),
-                _CombatPowerBadge(totalDps: snapshot.totalTurretDps),
               ],
             ),
           ],
@@ -84,27 +67,41 @@ class HudTopBar extends StatelessWidget {
   }
 }
 
-class _ResourceStrip extends StatelessWidget {
-  const _ResourceStrip({required this.snapshot});
+class _ResourceTabStrip extends StatelessWidget {
+  const _ResourceTabStrip({required this.snapshot});
 
   final GameSnapshot snapshot;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 2),
+    return SizedBox(
+      width: 86,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _ResourceValue(
-            iconWidget: const GoldCurrencyIcon(size: 16),
-            valueChild: _GoldValue(snapshot: snapshot),
+          _ResourceTab(
+            icon: const GoldCurrencyIcon(size: 12),
+            value: _GoldValue(snapshot: snapshot),
           ),
-          const SizedBox(height: 5),
-          _ResourceValue(
-            iconWidget: const HudGemShardIcon(),
+          const SizedBox(height: 4),
+          _ResourceTab(
+            icon: const SizedBox(
+              width: 12,
+              height: 12,
+              child: HudGemShardIcon(),
+            ),
             valueText: '${snapshot.gemShards}',
+          ),
+          const SizedBox(height: 4),
+          _ResourceTab(
+            icon: const Icon(
+              Icons.flash_on_outlined,
+              size: 12,
+              color: Color(0xFF5CF9E9),
+            ),
+            label: '전투력',
+            valueText: hudFormatDamageValue(snapshot.totalTurretDps),
+            tooltip: '배치 포탑 전체 DPS',
           ),
         ],
       ),
@@ -112,22 +109,70 @@ class _ResourceStrip extends StatelessWidget {
   }
 }
 
-class _ResourceValue extends StatelessWidget {
-  const _ResourceValue({this.iconWidget, this.valueText, this.valueChild});
+class _ResourceTab extends StatelessWidget {
+  const _ResourceTab({
+    required this.icon,
+    this.label,
+    this.value,
+    this.valueText,
+    this.tooltip,
+  }) : assert(value != null || valueText != null);
 
-  final Widget? iconWidget;
+  final Widget icon;
+  final String? label;
+  final Widget? value;
   final String? valueText;
-  final Widget? valueChild;
+  final String? tooltip;
 
   @override
   Widget build(BuildContext context) {
-    return HudResourceBar(
-      compact: true,
-      color: GamePalette.green,
-      iconWidget: iconWidget,
-      value: valueText ?? '0',
-      valueChild: valueChild,
+    final label = this.label;
+    final tab = SizedBox(
+      height: 18,
+      child: Row(
+        children: [
+          icon,
+          const SizedBox(width: 4),
+          if (label != null) ...[
+            Text(
+              label,
+              style: const TextStyle(
+                color: Color(0xFF8FA8BA),
+                fontSize: 8,
+                fontWeight: FontWeight.w800,
+                height: 1,
+                shadows: GameTextStyles.textShadow,
+              ),
+            ),
+            const SizedBox(width: 3),
+          ],
+          Expanded(
+            child: DefaultTextStyle(
+              style: const TextStyle(
+                color: Color(0xFFE8FBFF),
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                height: 1,
+                shadows: GameTextStyles.textShadow,
+              ),
+              maxLines: 1,
+              child: value == null
+                  ? ScaleDownText(valueText!, alignment: Alignment.centerLeft)
+                  : FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: value,
+                    ),
+            ),
+          ),
+        ],
+      ),
     );
+
+    if (tooltip == null) {
+      return tab;
+    }
+    return Tooltip(message: tooltip!, child: tab);
   }
 }
 
@@ -146,6 +191,7 @@ class _GoldValue extends StatelessWidget {
           fontWeight: FontWeight.w900,
           color: Color(0xFFE8FBFF),
           height: 1,
+          shadows: GameTextStyles.textShadow,
         ),
         children: [
           TextSpan(text: '${snapshot.gold}'),
@@ -156,6 +202,7 @@ class _GoldValue extends StatelessWidget {
                 fontSize: 11,
                 color: Color(0xFF8FA8BA),
                 fontWeight: FontWeight.w800,
+                shadows: GameTextStyles.textShadow,
               ),
             ),
         ],
@@ -341,15 +388,21 @@ class _WaveRewardSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: '웨이브 클리어 보상',
-      child: Padding(
-        padding: const EdgeInsets.only(right: 2, bottom: 1),
+      child: Container(
+        height: 20,
+        padding: const EdgeInsets.symmetric(horizontal: 5),
+        decoration: BoxDecoration(
+          color: const Color(0x661A2A39),
+          border: Border.all(color: const Color(0x44E7C66A)),
+          borderRadius: BorderRadius.circular(5),
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.flag_outlined, size: 12, color: Color(0xFFFFD166)),
+            const Icon(Icons.flag_outlined, size: 10, color: Color(0xFFFFD166)),
             _RewardValue(value: snapshot.nextWaveClearRewardGold),
-            const SizedBox(width: 5),
-            const SizedBox(width: 12, height: 12, child: HudGemShardIcon()),
+            const SizedBox(width: 4),
+            const SizedBox(width: 10, height: 10, child: HudGemShardIcon()),
             _RewardValue(value: snapshot.nextWaveClearRewardGemShards),
           ],
         ),
@@ -369,63 +422,9 @@ class _RewardValue extends StatelessWidget {
       '+$value',
       style: const TextStyle(
         color: Color(0xFFE8FBFF),
-        fontSize: 10,
+        fontSize: 9,
         fontWeight: FontWeight.w900,
         height: 1,
-      ),
-    );
-  }
-}
-
-class _CombatPowerBadge extends StatelessWidget {
-  const _CombatPowerBadge({required this.totalDps});
-
-  final double totalDps;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: '배치 포탑 전체 DPS',
-      child: Container(
-        width: 72,
-        height: 32,
-        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
-        decoration: BoxDecoration(
-          color: const Color(0xE607111D),
-          border: Border.all(color: const Color(0x665CF9E9)),
-          borderRadius: BorderRadius.circular(6),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x66000000),
-              blurRadius: 8,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const ScaleDownText(
-              '전투력',
-              style: TextStyle(
-                color: Color(0xFF8FA8BA),
-                fontSize: 9,
-                fontWeight: FontWeight.w800,
-                height: 1,
-              ),
-            ),
-            const SizedBox(height: 2),
-            ScaleDownText(
-              hudFormatDamageValue(totalDps),
-              style: const TextStyle(
-                color: Color(0xFFE8FBFF),
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-                height: 1,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -436,13 +435,11 @@ class _TopIconButton extends StatelessWidget {
     required this.tooltip,
     required this.icon,
     required this.onPressed,
-    this.selected = false,
   });
 
   final String tooltip;
   final IconData icon;
   final VoidCallback? onPressed;
-  final bool selected;
 
   @override
   Widget build(BuildContext context) {
@@ -452,17 +449,12 @@ class _TopIconButton extends StatelessWidget {
       child: GameButton(
         tooltip: tooltip,
         onPressed: onPressed,
-        selected: selected,
         compact: true,
-        variant: selected ? GameButtonVariant.primary : GameButtonVariant.ghost,
+        variant: GameButtonVariant.ghost,
         accentColor: GamePalette.cyan,
         padding: EdgeInsets.zero,
         child: Center(
-          child: Icon(
-            icon,
-            size: 18,
-            color: selected ? GamePalette.voidBlack : GamePalette.textPrimary,
-          ),
+          child: Icon(icon, size: 18, color: GamePalette.textPrimary),
         ),
       ),
     );

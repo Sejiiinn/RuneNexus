@@ -6056,6 +6056,24 @@ void main() {
     },
   );
 
+  test('debug gem reward opens choices without seeding owned gems', () async {
+    const debugPanelEnabled = bool.fromEnvironment('RUNE_NEXUS_DEBUG_PANEL');
+    if (!debugPanelEnabled) {
+      return;
+    }
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.debugOpenGemReward();
+
+    final snapshot = game.snapshotNotifier.value;
+    expect(snapshot.phase, GamePhase.reward);
+    expect(snapshot.rewardOptions, isNotEmpty);
+    expect(snapshot.gemInventory, isEmpty);
+    expect(snapshot.gemCollection, isEmpty);
+  });
+
   test(
     'local save restores active enemy durability and path progress',
     () async {
