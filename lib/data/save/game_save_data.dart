@@ -251,6 +251,7 @@ class SavedProgression {
     required this.researchElapsedMillis,
     required this.activeResearches,
     this.turretModuleTickets = 0,
+    this.turretModuleItemSequence = 0,
     this.ownedTurretModules = const [],
     this.coreCombatSkill = CoreCombatSkill.guardianBeam,
     this.corePassiveSlotTwoUnlocked = false,
@@ -284,6 +285,7 @@ class SavedProgression {
   final Map<ResearchType, int> researchElapsedMillis;
   final List<SavedActiveResearch> activeResearches;
   final int turretModuleTickets;
+  final int turretModuleItemSequence;
   final List<SavedTurretModule> ownedTurretModules;
   final CoreCombatSkill? coreCombatSkill;
   final bool corePassiveSlotTwoUnlocked;
@@ -331,6 +333,7 @@ class SavedProgression {
           .map((research) => research.toJson())
           .toList(),
       'turretModuleTickets': turretModuleTickets,
+      'turretModuleItemSequence': turretModuleItemSequence,
       'ownedTurretModules': ownedTurretModules
           .map((module) => module.toJson())
           .toList(),
@@ -396,6 +399,7 @@ class SavedProgression {
         SavedActiveResearch.fromJson,
       ),
       turretModuleTickets: _intValue(map['turretModuleTickets']),
+      turretModuleItemSequence: _intValue(map['turretModuleItemSequence']),
       ownedTurretModules: _objectList(
         map['ownedTurretModules'],
         SavedTurretModule.fromJson,
@@ -502,21 +506,23 @@ class SavedActiveResearch {
 
 class SavedTurretModule {
   const SavedTurretModule({
+    required this.id,
     required this.turretType,
     required this.part,
     required this.family,
     required this.grade,
-    required this.stars,
-    required this.shards,
+    required this.options,
+    required this.acquiredOrder,
     required this.equipped,
   });
 
+  final String id;
   final TurretType turretType;
   final TurretModulePart part;
   final TurretModuleFamily family;
   final TurretModuleGrade grade;
-  final int stars;
-  final int shards;
+  final List<SavedTurretModuleOption> options;
+  final int acquiredOrder;
   final bool equipped;
 
   TurretModuleKey get key {
@@ -530,12 +536,13 @@ class SavedTurretModule {
 
   Map<String, Object?> toJson() {
     return {
+      'id': id,
       'turretType': turretType.name,
       'part': part.name,
       'family': family.name,
       'grade': grade.name,
-      'stars': stars,
-      'shards': shards,
+      'options': options.map((option) => option.toJson()).toList(),
+      'acquiredOrder': acquiredOrder,
       'equipped': equipped,
     };
   }
@@ -544,22 +551,55 @@ class SavedTurretModule {
     if (json is! Map<String, Object?>) {
       return null;
     }
+    final id = _stringValue(json['id']);
     final turretType = _enumValue(TurretType.values, json['turretType']);
     final part = _enumValue(TurretModulePart.values, json['part']);
     final family = _enumValue(TurretModuleFamily.values, json['family']);
     final grade = _enumValue(TurretModuleGrade.values, json['grade']);
-    if (turretType == null || part == null || family == null || grade == null) {
+    final options = _objectList(
+      json['options'],
+      SavedTurretModuleOption.fromJson,
+    );
+    if (id == null ||
+        turretType == null ||
+        part == null ||
+        family == null ||
+        grade == null ||
+        options.isEmpty) {
       return null;
     }
     return SavedTurretModule(
+      id: id,
       turretType: turretType,
       part: part,
       family: family,
       grade: grade,
-      stars: _intValue(json['stars']),
-      shards: _intValue(json['shards']),
+      options: List.unmodifiable(options),
+      acquiredOrder: _intValue(json['acquiredOrder']),
       equipped: _boolValue(json['equipped']),
     );
+  }
+}
+
+class SavedTurretModuleOption {
+  const SavedTurretModuleOption({required this.type, required this.value});
+
+  final TurretModuleOptionType type;
+  final int value;
+
+  Map<String, Object?> toJson() {
+    return {'type': type.name, 'value': value};
+  }
+
+  static SavedTurretModuleOption? fromJson(Object? json) {
+    if (json is! Map<String, Object?>) {
+      return null;
+    }
+    final type = _enumValue(TurretModuleOptionType.values, json['type']);
+    if (type == null) {
+      return null;
+    }
+    return SavedTurretModuleOption(type: type, value: _intValue(json['value']));
   }
 }
 

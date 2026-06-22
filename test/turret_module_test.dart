@@ -24,8 +24,16 @@ void main() {
         family: turretModuleFamilyFor(TurretType.arrow, TurretModulePart.frame),
         grade: TurretModuleGrade.rare,
       );
-      progression.grantTurretModule(key);
-      expect(progression.equipTurretModule(key), isTrue);
+      final item = progression.grantTurretModule(
+        key,
+        options: const [
+          TurretModuleOptionRoll(
+            type: TurretModuleOptionType.levelUpCostDiscount,
+            value: 10,
+          ),
+        ],
+      );
+      expect(progression.equipTurretModule(item.id), isTrue);
 
       final saved = SavedProgression.fromJson(
         progression.toSaveData().toJson(),
@@ -33,13 +41,18 @@ void main() {
       final restored = RunProgression()..restoreFromSaveData(saved);
 
       expect(restored.turretModuleTickets, 1);
-      final restoredModule = restored.turretModuleFor(key);
+      final restoredModule = restored.turretModuleFor(item.id);
       expect(restoredModule, isNotNull);
       expect(restoredModule!.equipped, isTrue);
+      expect(
+        restoredModule.options.single.type,
+        TurretModuleOptionType.levelUpCostDiscount,
+      );
+      expect(restoredModule.options.single.value, 10);
     },
   );
 
-  test('duplicate turret modules fuse manually and keep remaining shards', () {
+  test('turret modules disassemble into diamonds except equipped items', () {
     final progression = RunProgression();
     final key = TurretModuleKey(
       turretType: TurretType.arrow,
@@ -48,20 +61,55 @@ void main() {
       grade: TurretModuleGrade.normal,
     );
 
-    progression.grantTurretModule(key);
-    for (var i = 0; i < turretModuleFusionShardCost; i++) {
-      progression.grantTurretModule(key);
-    }
+    final equipped = progression.grantTurretModule(key);
+    final spare = progression.grantTurretModule(key);
+    expect(progression.equipTurretModule(equipped.id), isTrue);
 
-    expect(
-      progression.turretModuleFor(key)!.shards,
-      turretModuleFusionShardCost,
+    expect(progression.disassembleTurretModule(equipped.id), isFalse);
+    expect(progression.disassembleTurretModule(spare.id), isTrue);
+
+    expect(progression.diamonds, 2);
+    expect(progression.turretModuleFor(spare.id), isNull);
+    expect(progression.turretModuleFor(equipped.id), isNotNull);
+  });
+
+  test('turret modules can be unequipped and then disassembled', () {
+    final progression = RunProgression();
+    final key = TurretModuleKey(
+      turretType: TurretType.arrow,
+      part: TurretModulePart.barrel,
+      family: turretModuleFamilyFor(TurretType.arrow, TurretModulePart.barrel),
+      grade: TurretModuleGrade.rare,
     );
-    expect(progression.fuseTurretModule(key), isTrue);
+    final item = progression.grantTurretModule(
+      key,
+      options: const [
+        TurretModuleOptionRoll(
+          type: TurretModuleOptionType.damageIncrease,
+          value: 18,
+        ),
+      ],
+    );
 
-    final fused = progression.turretModuleFor(key)!;
-    expect(fused.stars, 1);
-    expect(fused.shards, 0);
+    expect(progression.unequipTurretModule('missing'), isFalse);
+    expect(progression.unequipTurretModule(item.id), isFalse);
+    expect(progression.equipTurretModule(item.id), isTrue);
+    expect(progression.turretModuleFor(item.id)!.equipped, isTrue);
+    expect(
+      progression.turretModuleEffectFor(TurretType.arrow).damageIncreaseRate,
+      closeTo(0.18, 0.001),
+    );
+
+    expect(progression.unequipTurretModule(item.id), isTrue);
+    expect(progression.turretModuleFor(item.id)!.equipped, isFalse);
+    expect(progression.unequipTurretModule(item.id), isFalse);
+    expect(
+      progression.turretModuleEffectFor(TurretType.arrow).damageIncreaseRate,
+      0,
+    );
+    expect(progression.disassembleTurretModule(item.id), isTrue);
+    expect(progression.diamonds, key.grade.disassembleDiamondValue);
+    expect(progression.turretModuleFor(item.id), isNull);
   });
 
   test('draw can buy missing turret module tickets with diamonds', () {
@@ -90,6 +138,54 @@ void main() {
     expect(progression.diamonds, 0);
   });
 
+  test('turret module roll tables keep unique and core damage ranges', () {
+    expect(turretModuleDisassembleDiamonds[TurretModuleGrade.unique], 50);
+    expect(turretModuleOptionCountWeights[TurretModuleGrade.normal], [
+      85,
+      15,
+      0,
+    ]);
+    expect(turretModuleOptionCountWeights[TurretModuleGrade.magic], [
+      40,
+      60,
+      0,
+    ]);
+    expect(turretModuleOptionCountWeights[TurretModuleGrade.rare], [
+      10,
+      55,
+      35,
+    ]);
+    expect(turretModuleOptionCountWeights[TurretModuleGrade.unique], [
+      0,
+      40,
+      60,
+    ]);
+
+    final barrelDamageRange = turretModuleOptionRollRangeFor(
+      part: TurretModulePart.barrel,
+      grade: TurretModuleGrade.unique,
+      type: TurretModuleOptionType.damageIncrease,
+    );
+    final coreDamageRange = turretModuleOptionRollRangeFor(
+      part: TurretModulePart.core,
+      grade: TurretModuleGrade.unique,
+      type: TurretModuleOptionType.damageIncrease,
+    );
+
+    expect(barrelDamageRange.min, 22);
+    expect(barrelDamageRange.max, 30);
+    expect(coreDamageRange.min, 25);
+    expect(coreDamageRange.max, 36);
+    expect(
+      turretModuleOptionPoolFor(TurretType.arrow, TurretModulePart.barrel),
+      hasLength(greaterThanOrEqualTo(4)),
+    );
+    expect(
+      turretModuleOptionPoolFor(TurretType.arrow, TurretModulePart.frame),
+      hasLength(greaterThanOrEqualTo(4)),
+    );
+  });
+
   test('equipped turret modules affect turret stats and level up cost', () {
     final progression = RunProgression();
     final barrelKey = TurretModuleKey(
@@ -104,11 +200,31 @@ void main() {
       family: turretModuleFamilyFor(TurretType.arrow, TurretModulePart.frame),
       grade: TurretModuleGrade.rare,
     );
+    final barrel = progression.grantTurretModule(
+      barrelKey,
+      options: const [
+        TurretModuleOptionRoll(
+          type: TurretModuleOptionType.damageIncrease,
+          value: 18,
+        ),
+        TurretModuleOptionRoll(
+          type: TurretModuleOptionType.attackRateIncrease,
+          value: 8,
+        ),
+      ],
+    );
+    final frame = progression.grantTurretModule(
+      frameKey,
+      options: const [
+        TurretModuleOptionRoll(
+          type: TurretModuleOptionType.levelUpCostDiscount,
+          value: 10,
+        ),
+      ],
+    );
     progression
-      ..grantTurretModule(barrelKey)
-      ..grantTurretModule(frameKey)
-      ..equipTurretModule(barrelKey)
-      ..equipTurretModule(frameKey);
+      ..equipTurretModule(barrel.id)
+      ..equipTurretModule(frame.id);
 
     final base = TurretComponent(
       gridPoint: const GridPoint(0, 0),
@@ -126,9 +242,9 @@ void main() {
       tileSize: 32,
     );
 
-    expect(moduleTurret.damage, closeTo(base.damage * 1.06, 0.001));
-    expect(moduleTurret.attackRate, closeTo(base.attackRate * 1.02, 0.001));
-    expect(moduleTurret.levelUpCost, 41);
+    expect(moduleTurret.damage, closeTo(base.damage * 1.18, 0.001));
+    expect(moduleTurret.attackRate, closeTo(base.attackRate * 1.08, 0.001));
+    expect(moduleTurret.levelUpCost, 38);
   });
 }
 

@@ -125,7 +125,8 @@ class RunProgression {
   final Map<ResearchType, int> researchElapsedMillis = {};
   final List<ResearchProgress> activeResearches = [];
   int turretModuleTickets = 0;
-  final Map<TurretModuleKey, TurretModuleInventoryItem> turretModules = {};
+  int turretModuleItemSequence = 0;
+  final Map<String, TurretModuleInventoryItem> turretModules = {};
   CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam;
   bool corePassiveSlotTwoUnlocked = false;
   final List<CorePassiveAbility?> corePassiveSlots = [null, null];
@@ -249,8 +250,8 @@ class RunProgression {
     return List.unmodifiable(items);
   }
 
-  TurretModuleInventoryItem? turretModuleFor(TurretModuleKey key) {
-    return turretModules[key];
+  TurretModuleInventoryItem? turretModuleFor(String id) {
+    return turretModules[id];
   }
 
   TurretModuleInventoryItem? equippedTurretModuleFor(
@@ -611,100 +612,88 @@ class RunProgression {
         family: turretModuleFamilyFor(turretType, part),
         grade: grade,
       );
-      results.add(grantTurretModule(key));
+      results.add(
+        grantTurretModule(
+          key,
+          options: rollTurretModuleOptions(
+            turretType: turretType,
+            part: part,
+            grade: grade,
+            random: rollRandom,
+          ),
+        ),
+      );
     }
     return List.unmodifiable(results);
   }
 
-  TurretModuleInventoryItem grantTurretModule(TurretModuleKey key) {
+  TurretModuleInventoryItem grantTurretModule(
+    TurretModuleKey key, {
+    List<TurretModuleOptionRoll>? options,
+  }) {
+    final id = _createTurretModuleItemId();
+    final itemOptions = List<TurretModuleOptionRoll>.unmodifiable(
+      _sanitizeTurretModuleOptions(
+        key,
+        options ?? minimumTurretModuleOptionsFor(key),
+      ),
+    );
     if (!gameTurretModuleDefinitions.containsKey(key)) {
       return TurretModuleInventoryItem(
+        id: id,
         key: key,
-        stars: 0,
-        shards: 0,
+        options: itemOptions,
+        acquiredOrder: turretModuleItemSequence,
         equipped: false,
       );
     }
-    final existing = turretModules[key];
-    final item = existing == null
-        ? TurretModuleInventoryItem(
-            key: key,
-            stars: 0,
-            shards: 0,
-            equipped: false,
-          )
-        : existing.copyWith(shards: existing.shards + 1);
-    turretModules[key] = item;
+    turretModules[id] = TurretModuleInventoryItem(
+      id: id,
+      key: key,
+      options: itemOptions,
+      acquiredOrder: turretModuleItemSequence,
+      equipped: false,
+    );
     _sanitizeTurretModules();
-    return turretModules[key]!;
+    return turretModules[id]!;
   }
 
-  bool equipTurretModule(TurretModuleKey key) {
-    final item = turretModules[key];
+  bool equipTurretModule(String id) {
+    final item = turretModules[id];
     if (item == null) {
       return false;
     }
     for (final entry in turretModules.entries.toList()) {
       final candidate = entry.value;
-      if (candidate.key.turretType != key.turretType ||
-          candidate.key.part != key.part) {
+      if (candidate.key.turretType != item.key.turretType ||
+          candidate.key.part != item.key.part) {
         continue;
       }
       turretModules[entry.key] = candidate.copyWith(
-        equipped: candidate.key == key,
+        equipped: candidate.id == id,
       );
     }
     _sanitizeTurretModules();
     return true;
   }
 
-  bool fuseTurretModule(TurretModuleKey key) {
-    final item = turretModules[key];
-    if (item == null ||
-        item.shards < turretModuleFusionShardCost ||
-        (item.key.grade == TurretModuleGrade.rare &&
-            item.stars >= turretModuleMaxStars)) {
+  bool unequipTurretModule(String id) {
+    final item = turretModules[id];
+    if (item == null || !item.equipped) {
       return false;
     }
+    turretModules[id] = item.copyWith(equipped: false);
+    _sanitizeTurretModules();
+    return true;
+  }
 
-    final remainingShards = item.shards - turretModuleFusionShardCost;
-    if (item.stars < turretModuleMaxStars) {
-      turretModules[key] = item.copyWith(
-        stars: item.stars + 1,
-        shards: remainingShards,
-      );
-      _sanitizeTurretModules();
-      return true;
-    }
-
-    final nextGrade = item.key.grade.nextGrade;
-    if (nextGrade == null) {
+  bool disassembleTurretModule(String id) {
+    final item = turretModules[id];
+    if (item == null || item.equipped) {
       return false;
     }
-    final nextKey = TurretModuleKey(
-      turretType: item.key.turretType,
-      part: item.key.part,
-      family: item.key.family,
-      grade: nextGrade,
-    );
-    final existingNext = turretModules[nextKey];
-    turretModules.remove(key);
-    turretModules[nextKey] = existingNext == null
-        ? TurretModuleInventoryItem(
-            key: nextKey,
-            stars: 0,
-            shards: remainingShards,
-            equipped: item.equipped,
-          )
-        : existingNext.copyWith(
-            shards: existingNext.shards + remainingShards,
-            equipped: existingNext.equipped || item.equipped,
-          );
-    if (item.equipped) {
-      equipTurretModule(nextKey);
-    } else {
-      _sanitizeTurretModules();
-    }
+    turretModules.remove(id);
+    addFreeDiamonds(item.key.grade.disassembleDiamondValue);
     return true;
   }
 
@@ -876,15 +865,24 @@ class RunProgression {
         ),
       ),
       turretModuleTickets: turretModuleTickets,
+      turretModuleItemSequence: turretModuleItemSequence,
       ownedTurretModules: List.unmodifiable(
         ownedTurretModules.map(
           (module) => SavedTurretModule(
+            id: module.id,
             turretType: module.key.turretType,
             part: module.key.part,
             family: module.key.family,
             grade: module.key.grade,
-            stars: module.stars,
-            shards: module.shards,
+            options: List.unmodifiable(
+              module.options.map(
+                (option) => SavedTurretModuleOption(
+                  type: option.type,
+                  value: option.value,
+                ),
+              ),
+            ),
+            acquiredOrder: module.acquiredOrder,
             equipped: module.equipped,
           ),
         ),
@@ -1021,6 +1019,7 @@ class RunProgression {
             ),
       );
     turretModuleTickets = math.max(0, data.turretModuleTickets);
+    turretModuleItemSequence = math.max(0, data.turretModuleItemSequence);
     turretModules
       ..clear()
       ..addEntries(
@@ -1030,11 +1029,22 @@ class RunProgression {
             )
             .map(
               (module) => MapEntry(
-                module.key,
+                module.id,
                 TurretModuleInventoryItem(
+                  id: module.id,
                   key: module.key,
-                  stars: module.stars.clamp(0, turretModuleMaxStars).toInt(),
-                  shards: math.max(0, module.shards),
+                  options: List.unmodifiable(
+                    _sanitizeTurretModuleOptions(
+                      module.key,
+                      module.options.map(
+                        (option) => TurretModuleOptionRoll(
+                          type: option.type,
+                          value: option.value,
+                        ),
+                      ),
+                    ),
+                  ),
+                  acquiredOrder: math.max(0, module.acquiredOrder),
                   equipped: module.equipped,
                 ),
               ),
@@ -1317,28 +1327,36 @@ class RunProgression {
 
   TurretModuleGrade _rollTurretModuleGrade(math.Random random) {
     final roll = random.nextInt(100);
-    if (roll < 5) {
+    if (roll < 2) {
+      return TurretModuleGrade.unique;
+    }
+    if (roll < 9) {
       return TurretModuleGrade.rare;
     }
-    if (roll < 32) {
+    if (roll < 35) {
       return TurretModuleGrade.magic;
     }
     return TurretModuleGrade.normal;
   }
 
   void _sanitizeTurretModules() {
-    final equippedParts = <String, TurretModuleKey>{};
+    final equippedParts = <String, String>{};
     for (final entry in turretModules.entries.toList()) {
       final item = entry.value;
-      if (!gameTurretModuleDefinitions.containsKey(item.key)) {
+      final options = _sanitizeTurretModuleOptions(item.key, item.options);
+      if (!gameTurretModuleDefinitions.containsKey(item.key) ||
+          entry.key.isEmpty ||
+          item.id != entry.key ||
+          options.isEmpty) {
         turretModules.remove(entry.key);
         continue;
       }
-      final sanitized = item.copyWith(
-        stars: item.stars.clamp(0, turretModuleMaxStars).toInt(),
-        shards: math.max(0, item.shards),
-      );
+      final sanitized = item.copyWith(options: List.unmodifiable(options));
       turretModules[entry.key] = sanitized;
+      turretModuleItemSequence = math.max(
+        turretModuleItemSequence,
+        sanitized.acquiredOrder,
+      );
       if (!sanitized.equipped) {
         continue;
       }
@@ -1349,8 +1367,15 @@ class RunProgression {
         turretModules[entry.key] = sanitized.copyWith(equipped: false);
         continue;
       }
-      equippedParts[slotKey] = sanitized.key;
+      equippedParts[slotKey] = sanitized.id;
     }
+  }
+
+  String _createTurretModuleItemId() {
+    do {
+      turretModuleItemSequence++;
+    } while (turretModules.containsKey('tm_$turretModuleItemSequence'));
+    return 'tm_$turretModuleItemSequence';
   }
 
   void resetLastRunReward() {
@@ -1368,13 +1393,42 @@ int _compareTurretModuleItems(
   if (turretCompare != 0) {
     return turretCompare;
   }
-  final partCompare = a.key.part.index.compareTo(b.key.part.index);
-  if (partCompare != 0) {
-    return partCompare;
+  final gradeCompare = b.key.grade.order.compareTo(a.key.grade.order);
+  if (gradeCompare != 0) {
+    return gradeCompare;
   }
-  final familyCompare = a.key.family.index.compareTo(b.key.family.index);
-  if (familyCompare != 0) {
-    return familyCompare;
+  final optionCountCompare = b.options.length.compareTo(a.options.length);
+  if (optionCountCompare != 0) {
+    return optionCountCompare;
   }
-  return a.key.grade.index.compareTo(b.key.grade.index);
+  final acquiredCompare = b.acquiredOrder.compareTo(a.acquiredOrder);
+  if (acquiredCompare != 0) {
+    return acquiredCompare;
+  }
+  return a.key.part.index.compareTo(b.key.part.index);
+}
+
+List<TurretModuleOptionRoll> _sanitizeTurretModuleOptions(
+  TurretModuleKey key,
+  Iterable<TurretModuleOptionRoll> options,
+) {
+  final pool = turretModuleOptionPoolFor(key.turretType, key.part).toSet();
+  final seen = <TurretModuleOptionType>{};
+  final sanitized = <TurretModuleOptionRoll>[];
+  for (final option in options) {
+    if (!pool.contains(option.type) || !seen.add(option.type)) {
+      continue;
+    }
+    final range = turretModuleOptionRollRanges[option.type]?[key.grade];
+    if (range == null) {
+      continue;
+    }
+    sanitized.add(
+      TurretModuleOptionRoll(
+        type: option.type,
+        value: option.value.clamp(range.min, range.max).toInt(),
+      ),
+    );
+  }
+  return sanitized;
 }

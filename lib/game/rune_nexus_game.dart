@@ -640,7 +640,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (baseCost == null) {
       return 0;
     }
-    return _turretBuildCostFor(baseCost);
+    return _turretBuildCostFor(type, baseCost);
   }
 
   TurretModuleEffect turretModuleEffectFor(TurretType type) {
@@ -664,8 +664,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return results;
   }
 
-  bool equipTurretModule(TurretModuleKey key) {
-    if (!_progression.equipTurretModule(key)) {
+  bool equipTurretModule(String id) {
+    if (!_progression.equipTurretModule(id)) {
       return false;
     }
     _publish();
@@ -673,8 +673,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return true;
   }
 
-  bool fuseTurretModule(TurretModuleKey key) {
-    if (!_progression.fuseTurretModule(key)) {
+  bool unequipTurretModule(String id) {
+    if (!_progression.unequipTurretModule(id)) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
+  }
+
+  bool disassembleTurretModule(String id) {
+    if (!_progression.disassembleTurretModule(id)) {
       return false;
     }
     _publish();
@@ -1720,7 +1729,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     final definition = gameTurrets[_selectedTurretType]!;
-    final buildCost = _turretBuildCostFor(definition.cost);
+    final buildCost = _turretBuildCostFor(definition.type, definition.cost);
     if (_gold < buildCost) {
       return;
     }
@@ -1746,14 +1755,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
-  int _turretBuildCostFor(int baseCost) {
-    if (!_hasCostSavingDesign) {
-      return baseCost;
-    }
-    return math.max(
+  int _turretBuildCostFor(TurretType type, int baseCost) {
+    final discountRate =
+        (_hasCostSavingDesign
+            ? costSavingDesignBuildDiscountPercent / 100
+            : 0) +
+        turretModuleEffectFor(type).buildCostDiscountRate;
+    final discountedCost = math.max(
       1,
-      (baseCost * (100 - costSavingDesignBuildDiscountPercent) + 50) ~/ 100,
+      (baseCost * (1 - discountRate.clamp(0.0, 0.8))).round(),
     );
+    final minimumCost = math.max(1, (baseCost * 0.8).round());
+    return math.max(minimumCost, discountedCost);
   }
 
   void selectRewardGem(GemType type) {

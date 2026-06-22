@@ -477,9 +477,9 @@ void main() {
     expect(find.text('희귀 보정'), findsNothing);
     expect(find.text('선택 포탑 · 모든 기관총에 적용'), findsNothing);
     expect(find.text('기'), findsNothing);
-    expect(find.text('코어 장착 모듈'), findsOneWidget);
-    expect(find.textContaining('아직 보유하지 않음'), findsOneWidget);
-    expect(find.text('획득 필요'), findsWidgets);
+    expect(find.text('기관총 모듈 인벤토리'), findsOneWidget);
+    expect(find.textContaining('보유 모듈 0개'), findsOneWidget);
+    expect(find.text('획득 필요'), findsNothing);
     expect(find.text('0성'), findsNothing);
     expect(find.text('☆☆☆'), findsNothing);
     expect(find.textContaining('장착 효과:'), findsOneWidget);
@@ -589,7 +589,7 @@ void main() {
       findsNothing,
     );
     expect(
-      find.descendant(of: resultLayer, matching: find.text('합성')),
+      find.descendant(of: resultLayer, matching: find.text('분해')),
       findsNothing,
     );
 
@@ -600,7 +600,98 @@ void main() {
 
     expect(resultLayer, findsNothing);
     expect(find.text('방열 프레임'), findsWidgets);
-    expect(find.textContaining('프레임 · 화염 · 희귀 보유'), findsOneWidget);
+    expect(find.textContaining('프레임 · 화염 · 1옵션'), findsOneWidget);
+    expect(find.text('등급순'), findsOneWidget);
+    expect(find.text('보유 1개'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('turret-module-inventory-slot-test-module-3')),
+      findsOneWidget,
+    );
+    expect(find.textContaining('피해 +18%'), findsNothing);
+  });
+
+  testWidgets('turret module socket focuses equipped inventory item', (
+    tester,
+  ) async {
+    final equippedFrame = TurretModuleInventoryItem(
+      id: 'equipped-frame-module',
+      key: TurretModuleKey(
+        turretType: TurretType.arrow,
+        part: TurretModulePart.frame,
+        family: turretModuleFamilyFor(TurretType.arrow, TurretModulePart.frame),
+        grade: TurretModuleGrade.magic,
+      ),
+      options: const [
+        TurretModuleOptionRoll(
+          type: TurretModuleOptionType.levelUpCostDiscount,
+          value: 10,
+        ),
+        TurretModuleOptionRoll(
+          type: TurretModuleOptionType.buildCostDiscount,
+          value: 6,
+        ),
+      ],
+      acquiredOrder: 1,
+      equipped: true,
+    );
+    final spareCore = TurretModuleInventoryItem(
+      id: 'spare-core-module',
+      key: TurretModuleKey(
+        turretType: TurretType.arrow,
+        part: TurretModulePart.core,
+        family: turretModuleFamilyFor(TurretType.arrow, TurretModulePart.core),
+        grade: TurretModuleGrade.normal,
+      ),
+      options: const [
+        TurretModuleOptionRoll(
+          type: TurretModuleOptionType.damageIncrease,
+          value: 5,
+        ),
+      ],
+      acquiredOrder: 2,
+      equipped: false,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            ownedTurretModules: [equippedFrame, spareCore],
+          ),
+          selectedTab: MainMenuTab.turretModules,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('선택한 모듈 없음'), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('turret-module-socket-frame')));
+    await _pumpGameFrames(tester);
+
+    expect(find.textContaining('프레임 · 기관총 · 2옵션 · 장착됨'), findsOneWidget);
+    expect(find.text('레벨업 비용 -10%'), findsWidgets);
+    expect(find.text('설치 비용 -6%'), findsWidgets);
+    expect(find.textContaining('레벨업 비용 -10% · 설치 비용 -6%'), findsNothing);
+    expect(
+      find.byKey(
+        const ValueKey('turret-module-inventory-slot-equipped-frame-module'),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('core slot board remains anchored when switching ability tabs', (
@@ -2980,17 +3071,24 @@ class _TurretModuleDrawGame extends RuneNexusGame {
 
   static final List<TurretModuleInventoryItem> results = [
     TurretModuleInventoryItem(
+      id: 'test-module-1',
       key: TurretModuleKey(
         turretType: TurretType.arrow,
         part: TurretModulePart.core,
         family: turretModuleFamilyFor(TurretType.arrow, TurretModulePart.core),
         grade: TurretModuleGrade.normal,
       ),
-      stars: 0,
-      shards: 0,
+      options: const [
+        TurretModuleOptionRoll(
+          type: TurretModuleOptionType.damageIncrease,
+          value: 5,
+        ),
+      ],
+      acquiredOrder: 1,
       equipped: false,
     ),
     TurretModuleInventoryItem(
+      id: 'test-module-2',
       key: TurretModuleKey(
         turretType: TurretType.cannon,
         part: TurretModulePart.barrel,
@@ -3000,41 +3098,64 @@ class _TurretModuleDrawGame extends RuneNexusGame {
         ),
         grade: TurretModuleGrade.magic,
       ),
-      stars: 0,
-      shards: 5,
+      options: const [
+        TurretModuleOptionRoll(
+          type: TurretModuleOptionType.attackRateIncrease,
+          value: 5,
+        ),
+      ],
+      acquiredOrder: 2,
       equipped: false,
     ),
     TurretModuleInventoryItem(
+      id: 'test-module-3',
       key: TurretModuleKey(
         turretType: TurretType.magic,
         part: TurretModulePart.frame,
         family: turretModuleFamilyFor(TurretType.magic, TurretModulePart.frame),
         grade: TurretModuleGrade.rare,
       ),
-      stars: 0,
-      shards: 0,
+      options: const [
+        TurretModuleOptionRoll(
+          type: TurretModuleOptionType.levelUpCostDiscount,
+          value: 10,
+        ),
+      ],
+      acquiredOrder: 3,
       equipped: false,
     ),
     TurretModuleInventoryItem(
+      id: 'test-module-4',
       key: TurretModuleKey(
         turretType: TurretType.frost,
         part: TurretModulePart.core,
         family: turretModuleFamilyFor(TurretType.frost, TurretModulePart.core),
         grade: TurretModuleGrade.normal,
       ),
-      stars: 0,
-      shards: 1,
+      options: const [
+        TurretModuleOptionRoll(
+          type: TurretModuleOptionType.slowDurationIncrease,
+          value: 4,
+        ),
+      ],
+      acquiredOrder: 4,
       equipped: false,
     ),
     TurretModuleInventoryItem(
+      id: 'test-module-5',
       key: TurretModuleKey(
         turretType: TurretType.arrow,
         part: TurretModulePart.frame,
         family: turretModuleFamilyFor(TurretType.arrow, TurretModulePart.frame),
         grade: TurretModuleGrade.magic,
       ),
-      stars: 0,
-      shards: 1,
+      options: const [
+        TurretModuleOptionRoll(
+          type: TurretModuleOptionType.buildCostDiscount,
+          value: 6,
+        ),
+      ],
+      acquiredOrder: 5,
       equipped: false,
     ),
   ];

@@ -13,6 +13,7 @@ import '../../domain/turret/turret_target_priority.dart';
 import '../../domain/turret/turret_trait_catalog.dart';
 import '../../domain/turret/turret_trait_type.dart';
 import '../../domain/turret/turret_type.dart';
+import '../../domain/turret_module/turret_module_type.dart';
 import '../rendering/turret_shape_renderer.dart';
 import '../rune_nexus_game.dart';
 import 'enemy_component.dart';
@@ -132,38 +133,43 @@ class TurretComponent extends PositionComponent {
       _primaryTrait != null &&
       _secondaryTrait == null &&
       _level >= 7;
+  TurretModuleEffect get _moduleEffect =>
+      game.turretModuleEffectFor(definition.type);
+  double get _numericGemEffectMultiplier =>
+      1 + _moduleEffect.gemEffectIncreaseRate;
 
   double get damage => damageAtLevel(_level);
 
   double damageAtLevel(int level) {
     final targetLevel = level.clamp(1, maxLevel).toInt();
+    final moduleEffect = _moduleEffect;
+    final gemEffectMultiplier = _numericGemEffectMultiplier;
     var levelDamage =
         definition.damage *
         math.pow(1 + _damageGrowthPerLevel, targetLevel - 1).toDouble();
     if (definition.damageFamily == DamageFamily.physical &&
         hasGem(GemType.physicalDamage)) {
-      levelDamage *= 1.4;
+      levelDamage *= 1 + 0.4 * gemEffectMultiplier;
     }
     if (definition.damageFamily == DamageFamily.elemental &&
         hasGem(GemType.elementalDamage)) {
-      levelDamage *= 1.4;
+      levelDamage *= 1 + 0.4 * gemEffectMultiplier;
     }
     if (definition.attackTags.contains(AttackTag.light) &&
         hasGem(GemType.lightWeapon)) {
-      levelDamage *= 1.2;
+      levelDamage *= 1 + 0.2 * gemEffectMultiplier;
     }
     if (definition.attackTags.contains(AttackTag.heavy) &&
         hasGem(GemType.heavyWeapon)) {
-      levelDamage *= 1.3;
+      levelDamage *= 1 + 0.3 * gemEffectMultiplier;
     }
     if (_primaryTrait == TurretTraitType.spreadingChill) {
       levelDamage *= 0.9;
     }
     if (hasGem(GemType.damageAmplifier)) {
-      levelDamage *= 1.25;
+      levelDamage *= 1 + 0.25 * gemEffectMultiplier;
     }
 
-    final moduleEffect = game.turretModuleEffectFor(definition.type);
     return levelDamage *
         (1 + moduleEffect.damageIncreaseRate) *
         game.towerDamageMultiplierFor(definition.damageFamily);
@@ -174,10 +180,12 @@ class TurretComponent extends PositionComponent {
   double rangeAtLevel(int level) {
     final targetLevel = level.clamp(1, maxLevel).toInt();
     final levelMultiplier = 1 + (targetLevel - 1) * _rangeGrowthPerLevel;
+    final moduleEffect = _moduleEffect;
     return definition.range *
         levelMultiplier *
-        (hasGem(GemType.range) ? 1.2 : 1) *
+        (hasGem(GemType.range) ? 1 + 0.2 * _numericGemEffectMultiplier : 1) *
         (_primaryTrait == TurretTraitType.spreadingChill ? 1.15 : 1) *
+        (1 + moduleEffect.rangeIncreaseRate) *
         game.boardDistanceScale;
   }
 
@@ -188,19 +196,20 @@ class TurretComponent extends PositionComponent {
     final levelMultiplier = math
         .pow(1 + _attackRateGrowthPerLevel, targetLevel - 1)
         .toDouble();
+    final moduleEffect = _moduleEffect;
+    final gemEffectMultiplier = _numericGemEffectMultiplier;
     var rate =
         definition.attackRate *
         levelMultiplier *
-        (hasGem(GemType.attackSpeed) ? 1.4 : 1) *
+        (hasGem(GemType.attackSpeed) ? 1 + 0.4 * gemEffectMultiplier : 1) *
         (definition.attackTags.contains(AttackTag.light) &&
                 hasGem(GemType.lightWeapon)
-            ? 1.2
+            ? 1 + 0.2 * gemEffectMultiplier
             : 1) *
         (_primaryTrait == TurretTraitType.lightweightBarrel ? 1.1 : 1) *
         (_primaryTrait == TurretTraitType.compressedCharge ? 0.9 : 1) *
         (_primaryTrait == TurretTraitType.coolingCycle ? 1.2 : 1) *
-        (1 +
-            game.turretModuleEffectFor(definition.type).attackRateIncreaseRate);
+        (1 + moduleEffect.attackRateIncreaseRate);
     if (_chainCleanupTimer > 0) {
       rate *= 1.4;
     }
@@ -210,6 +219,7 @@ class TurretComponent extends PositionComponent {
   double get projectileSpeed =>
       definition.projectileSpeed *
       (_primaryTrait == TurretTraitType.lightweightBarrel ? 1.3 : 1) *
+      (1 + _moduleEffect.projectileSpeedIncreaseRate) *
       game.boardDistanceScale;
 
   TurretAttackSnapshot createAttackSnapshot({double criticalMultiplier = 1}) {
@@ -245,7 +255,9 @@ class TurretComponent extends PositionComponent {
           _primaryTrait == TurretTraitType.focusedLightning,
       lightningChainMaxJumps: lightningChainMaxJumps,
       lightningChainDamageMultiplier: lightningChainDamageMultiplier,
-      lightningChainJumpRange: game.lightningChainJumpRange,
+      lightningChainJumpRange:
+          game.lightningChainJumpRange *
+          (1 + _moduleEffect.lightningChainRangeIncreaseRate),
     );
   }
 
@@ -255,14 +267,12 @@ class TurretComponent extends PositionComponent {
     }
     var bonus = 0.0;
     if (hasGem(GemType.damageOverTime)) {
-      bonus += 0.3;
+      bonus += 0.3 * _numericGemEffectMultiplier;
     }
     if (_primaryTrait == TurretTraitType.highHeatBurn) {
       bonus += 0.25;
     }
-    bonus += game
-        .turretModuleEffectFor(definition.type)
-        .damageOverTimeIncreaseRate;
+    bonus += _moduleEffect.damageOverTimeIncreaseRate;
     return 1 + bonus;
   }
 
@@ -272,26 +282,30 @@ class TurretComponent extends PositionComponent {
     }
     var bonus = 0.0;
     if (hasGem(GemType.damageOverTime)) {
-      bonus += 0.3;
+      bonus += 0.3 * _numericGemEffectMultiplier;
     }
     if (_primaryTrait == TurretTraitType.lingeringEmbers) {
       bonus += 0.4;
     }
+    bonus += _moduleEffect.burnDurationIncreaseRate;
     return 1 + bonus;
   }
 
   double get slowMultiplier {
-    if (_secondaryTrait == TurretTraitType.rapidCooling) {
-      return 0.62;
+    final strengthBonus = _moduleEffect.slowStrengthBonusRate;
+    final base = _secondaryTrait == TurretTraitType.rapidCooling
+        ? 0.62
+        : definition.slowMultiplier;
+    if (base <= 0) {
+      return base;
     }
-    return definition.slowMultiplier;
+    return (base - strengthBonus).clamp(0.1, 1.0).toDouble();
   }
 
   double get slowDuration =>
       definition.slowDuration *
       (_primaryTrait == TurretTraitType.coolingCycle ? 0.85 : 1) *
-      (1 +
-          game.turretModuleEffectFor(definition.type).slowDurationIncreaseRate);
+      (1 + _moduleEffect.slowDurationIncreaseRate);
 
   bool get appliesFrostCrack => _secondaryTrait == TurretTraitType.frostCrack;
   bool get appliesIgnitionBurst =>
@@ -302,20 +316,23 @@ class TurretComponent extends PositionComponent {
       _secondaryTrait == TurretTraitType.fractureImpact ? 0.2 : 0;
 
   double get splashSecondaryDamageMultiplier {
+    final moduleBonus = _moduleEffect.splashSecondaryDamageBonusRate;
     if (_secondaryTrait == TurretTraitType.expandedBlastCore) {
-      return definition.splashRadius > 0 ? 0.6 : 1;
+      return definition.splashRadius > 0 ? 0.6 + moduleBonus : 1;
     }
     if (hasGem(GemType.explosion)) {
-      return definition.splashRadius > 0 ? 0.5 : 0.35;
+      return definition.splashRadius > 0
+          ? 0.5 + moduleBonus
+          : 0.35 + moduleBonus;
     }
-    return definition.splashRadius > 0 ? 0.5 : 1;
+    return definition.splashRadius > 0 ? 0.5 + moduleBonus : 1;
   }
 
   double get splashRadius {
     final heavyRadiusBonus =
         definition.attackTags.contains(AttackTag.heavy) &&
             hasGem(GemType.heavyWeapon)
-        ? definition.splashRadius * 0.2
+        ? definition.splashRadius * 0.2 * _numericGemEffectMultiplier
         : 0.0;
     final traitRadiusBonus = _primaryTrait == TurretTraitType.shrapnelShell
         ? definition.splashRadius * 0.3
@@ -325,8 +342,7 @@ class TurretComponent extends PositionComponent {
         ? definition.splashRadius * 0.4
         : 0.0;
     final moduleRadiusBonus =
-        definition.splashRadius *
-        game.turretModuleEffectFor(definition.type).splashRadiusIncreaseRate;
+        definition.splashRadius * _moduleEffect.splashRadiusIncreaseRate;
     if (definition.splashRadius > 0) {
       final additiveRadius =
           definition.splashRadius +
@@ -335,10 +351,13 @@ class TurretComponent extends PositionComponent {
           secondaryTraitRadiusBonus +
           moduleRadiusBonus;
       return additiveRadius *
-          (hasGem(GemType.explosion) ? 1.25 : 1) *
+          (hasGem(GemType.explosion)
+              ? 1 + 0.25 * _numericGemEffectMultiplier
+              : 1) *
           game.boardDistanceScale;
     }
-    return (hasGem(GemType.explosion) ? 34 : 0) * game.boardDistanceScale;
+    return (hasGem(GemType.explosion) ? 34 * _numericGemEffectMultiplier : 0) *
+        game.boardDistanceScale;
   }
 
   bool hasGem(GemType type) => equippedGems.contains(type);
@@ -365,11 +384,7 @@ class TurretComponent extends PositionComponent {
     final base = _secondaryTrait == TurretTraitType.currentAmplification
         ? 0.7
         : 0.5;
-    return base *
-        (1 +
-            game
-                .turretModuleEffectFor(definition.type)
-                .lightningChainDamageIncreaseRate);
+    return base * (1 + _moduleEffect.lightningChainDamageIncreaseRate);
   }
 
   bool get appliesLightningRecovery =>
@@ -386,8 +401,11 @@ class TurretComponent extends PositionComponent {
       List.unmodifiable(_gemSlots.take(_slotLimit));
   double get criticalChance {
     final bonus =
-        (hasGem(GemType.criticalChance) ? 0.2 : 0.0) +
+        (hasGem(GemType.criticalChance)
+            ? 0.2 * _numericGemEffectMultiplier
+            : 0.0) +
         game.criticalChanceProgressionBonusRate +
+        _moduleEffect.criticalChanceBonusRate +
         (_primaryTrait == TurretTraitType.deadeyeFocus ? 0.2 : 0.0) -
         (_primaryTrait == TurretTraitType.quickScope ? 0.05 : 0.0);
     return (definition.criticalChance + bonus).clamp(0.0, 1.0).toDouble();
@@ -396,7 +414,7 @@ class TurretComponent extends PositionComponent {
   double get criticalDamageMultiplier =>
       definition.criticalDamageMultiplier +
       game.criticalDamageProgressionBonusRate +
-      game.turretModuleEffectFor(definition.type).criticalDamageBonusRate;
+      _moduleEffect.criticalDamageBonusRate;
 
   double get aimDuration {
     return aimDurationAtLevel(_level);
@@ -407,7 +425,9 @@ class TurretComponent extends PositionComponent {
       return definition.aimDuration;
     }
     final targetLevel = level.clamp(1, maxLevel).toInt();
-    final gemAimSpeedBonus = hasGem(GemType.aimSpeed) ? 0.75 : 0.0;
+    final gemAimSpeedBonus = hasGem(GemType.aimSpeed)
+        ? 0.75 * _numericGemEffectMultiplier
+        : 0.0;
     final traitAimSpeedBonus = switch (_primaryTrait) {
       TurretTraitType.deadeyeFocus => -0.2,
       TurretTraitType.quickScope => 0.4,
@@ -417,6 +437,7 @@ class TurretComponent extends PositionComponent {
         1 +
         (targetLevel - 1) * _aimSpeedGrowthPerLevel +
         gemAimSpeedBonus +
+        _moduleEffect.aimSpeedIncreaseRate +
         traitAimSpeedBonus;
     return definition.aimDuration / math.max(0.1, aimSpeedMultiplier);
   }
@@ -695,20 +716,23 @@ class TurretComponent extends PositionComponent {
 
   int _levelUpCostAt(int level) {
     final baseCost = (definition.cost * (70 + (level - 1) * 45) + 50) ~/ 100;
-    final discountRate = game
-        .turretModuleEffectFor(definition.type)
-        .levelUpCostDiscountRate
-        .clamp(0.0, 0.8);
+    final moduleEffect = _moduleEffect;
+    final discountRate =
+        (moduleEffect.levelUpCostDiscountRate +
+                (level >= 5
+                    ? moduleEffect.highLevelUpgradeCostDiscountRate
+                    : 0.0))
+            .clamp(0.0, 0.8);
     return math.max(1, (baseCost * (1 - discountRate)).round());
   }
 
   int _linkUpgradeCostForSlot(int slotLimit) {
     final costPercent = slotLimit == 2 ? 150 : 300;
     final baseCost = (definition.cost * costPercent + 50) ~/ 100;
-    if (slotLimit != 2) {
-      return baseCost;
-    }
-    final discountRate = game.firstLinkUpgradeDiscountRate.clamp(0.0, 0.8);
+    final discountRate =
+        (_moduleEffect.linkUpgradeCostDiscountRate +
+                (slotLimit == 2 ? game.firstLinkUpgradeDiscountRate : 0.0))
+            .clamp(0.0, 0.8);
     return math.max(1, (baseCost * (1 - discountRate)).round());
   }
 

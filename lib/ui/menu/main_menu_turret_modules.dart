@@ -18,8 +18,8 @@ class _TurretModuleMenu extends StatefulWidget {
 
 class _TurretModuleMenuState extends State<_TurretModuleMenu> {
   TurretType? _selectedTurretType;
-  TurretModulePart _selectedPart = TurretModulePart.core;
-  TurretModuleGrade _selectedGrade = TurretModuleGrade.rare;
+  TurretModulePart? _selectedPartFilter;
+  String? _selectedItemId;
 
   TurretType _activeTurretType(GameSnapshot snapshot) {
     final selected = _selectedTurretType;
@@ -35,17 +35,12 @@ class _TurretModuleMenuState extends State<_TurretModuleMenu> {
     final selectedTurretType = _activeTurretType(snapshot);
     final selectedTurret = gameTurrets[selectedTurretType]!;
     final equipped = _equippedModulesFor(snapshot, selectedTurretType);
-    final selectedFamily = turretModuleFamilyFor(
+    final inventoryItems = _filteredModulesFor(
+      snapshot,
       selectedTurretType,
-      _selectedPart,
+      _selectedPartFilter,
     );
-    final selectedKey = TurretModuleKey(
-      turretType: selectedTurretType,
-      part: _selectedPart,
-      family: selectedFamily,
-      grade: _selectedGrade,
-    );
-    final selectedItem = _moduleFor(snapshot, selectedKey);
+    final selectedItem = _selectedInventoryItem(inventoryItems);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -77,7 +72,8 @@ class _TurretModuleMenuState extends State<_TurretModuleMenu> {
           onSelect: (type) {
             setState(() {
               _selectedTurretType = type;
-              _selectedGrade = TurretModuleGrade.rare;
+              _selectedPartFilter = null;
+              _selectedItemId = null;
             });
           },
         ),
@@ -86,13 +82,11 @@ class _TurretModuleMenuState extends State<_TurretModuleMenu> {
           turretName: selectedTurret.name,
           turretType: selectedTurretType,
           turretColor: selectedTurret.color,
-          selectedPart: _selectedPart,
           equippedModules: equipped,
-          onSelectPart: (part) {
+          onSelectEquippedModule: (item) {
             setState(() {
-              _selectedPart = part;
-              _selectedGrade =
-                  equipped[part]?.key.grade ?? TurretModuleGrade.rare;
+              _selectedPartFilter = item.key.part;
+              _selectedItemId = item.id;
             });
           },
         ),
@@ -100,19 +94,23 @@ class _TurretModuleMenuState extends State<_TurretModuleMenu> {
         _TurretModuleDetailStrip(
           game: widget.game,
           item: selectedItem,
-          keyData: selectedKey,
+          turretType: selectedTurretType,
+          partFilter: _selectedPartFilter,
+          itemCount: inventoryItems.length,
         ),
         const SizedBox(height: 8),
-        _TurretModuleCandidates(
-          snapshot: snapshot,
+        _TurretModuleInventoryList(
           turretType: selectedTurretType,
-          selectedPart: _selectedPart,
-          selectedGrade: _selectedGrade,
-          onSelectGrade: (grade) {
+          selectedPartFilter: _selectedPartFilter,
+          selectedItemId: _selectedItemId,
+          items: inventoryItems,
+          onSelectPartFilter: (part) {
             setState(() {
-              _selectedGrade = grade;
+              _selectedPartFilter = part;
+              _selectedItemId = null;
             });
           },
+          onSelectItem: (item) => setState(() => _selectedItemId = item.id),
         ),
       ],
     );
@@ -121,9 +119,24 @@ class _TurretModuleMenuState extends State<_TurretModuleMenu> {
   void focusDrawResult(TurretModuleInventoryItem item) {
     setState(() {
       _selectedTurretType = item.key.turretType;
-      _selectedPart = item.key.part;
-      _selectedGrade = item.key.grade;
+      _selectedPartFilter = null;
+      _selectedItemId = item.id;
     });
+  }
+
+  TurretModuleInventoryItem? _selectedInventoryItem(
+    List<TurretModuleInventoryItem> items,
+  ) {
+    final selectedId = _selectedItemId;
+    if (selectedId == null) {
+      return null;
+    }
+    for (final item in items) {
+      if (item.id == selectedId) {
+        return item;
+      }
+    }
+    return null;
   }
 
   Map<TurretModulePart, TurretModuleInventoryItem> _equippedModulesFor(
@@ -137,6 +150,19 @@ class _TurretModuleMenuState extends State<_TurretModuleMenu> {
       }
     }
     return equipped;
+  }
+
+  List<TurretModuleInventoryItem> _filteredModulesFor(
+    GameSnapshot snapshot,
+    TurretType turretType,
+    TurretModulePart? partFilter,
+  ) {
+    return List.unmodifiable(
+      snapshot.ownedTurretModules.where((item) {
+        return item.key.turretType == turretType &&
+            (partFilter == null || item.key.part == partFilter);
+      }),
+    );
   }
 }
 
@@ -206,11 +232,13 @@ class _ModuleDrawPanel extends StatelessWidget {
                   children: [
                     Icon(icon, size: 12),
                     const SizedBox(width: 3),
-                    Text(
-                      '$count회',
-                      maxLines: 1,
-                      overflow: TextOverflow.clip,
-                      style: const TextStyle(fontSize: 10, height: 1),
+                    Flexible(
+                      child: _ModuleSingleLineText(
+                        '$count회',
+                        alignment: Alignment.center,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 10, height: 1),
+                      ),
                     ),
                   ],
                 ),
@@ -223,15 +251,17 @@ class _ModuleDrawPanel extends StatelessWidget {
                       size: 10,
                     ),
                     const SizedBox(width: 2),
-                    Text(
-                      '$diamondCost',
-                      maxLines: 1,
-                      overflow: TextOverflow.clip,
-                      style: TextStyle(
-                        color: costColor,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                        height: 1,
+                    Flexible(
+                      child: _ModuleSingleLineText(
+                        '$diamondCost',
+                        alignment: Alignment.center,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: costColor,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          height: 1,
+                        ),
                       ),
                     ),
                   ],
@@ -243,7 +273,14 @@ class _ModuleDrawPanel extends StatelessWidget {
               children: [
                 Icon(icon, size: 13),
                 const SizedBox(width: 3),
-                Text('$count회', maxLines: 1, overflow: TextOverflow.clip),
+                Flexible(
+                  child: _ModuleSingleLineText(
+                    '$count회',
+                    alignment: Alignment.center,
+                    textAlign: TextAlign.center,
+                    style: DefaultTextStyle.of(context).style,
+                  ),
+                ),
               ],
             ),
     );
@@ -476,10 +513,8 @@ class _TurretModuleDrawResultCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
+          _ModuleSingleLineText(
             item.key.grade.label,
-            maxLines: 1,
-            overflow: TextOverflow.clip,
             style: TextStyle(
               color: gradeColor,
               fontSize: 11,
@@ -487,24 +522,18 @@ class _TurretModuleDrawResultCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 5),
-          Text(
+          _ModuleSingleLineText(
             gameTurrets[item.key.turretType]!.name,
-            maxLines: 1,
-            overflow: TextOverflow.clip,
             style: GameTextStyles.caption,
           ),
           const SizedBox(height: 3),
-          Text(
+          _ModuleSingleLineText(
             item.key.part.label,
-            maxLines: 1,
-            overflow: TextOverflow.clip,
             style: GameTextStyles.caption,
           ),
           const SizedBox(height: 3),
-          Text(
+          _ModuleSingleLineText(
             definition.name,
-            maxLines: 1,
-            overflow: TextOverflow.clip,
             style: const TextStyle(
               color: GamePalette.textPrimary,
               fontSize: 12,
@@ -601,10 +630,10 @@ class _TurretModuleTurretToken extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 3),
-              Text(
+              _ModuleSingleLineText(
                 turret.name,
-                maxLines: 1,
-                overflow: TextOverflow.clip,
+                alignment: Alignment.center,
+                textAlign: TextAlign.center,
                 style: GameTextStyles.caption,
               ),
             ],
@@ -620,17 +649,15 @@ class _TurretModuleEquipmentStage extends StatelessWidget {
     required this.turretName,
     required this.turretType,
     required this.turretColor,
-    required this.selectedPart,
     required this.equippedModules,
-    required this.onSelectPart,
+    required this.onSelectEquippedModule,
   });
 
   final String turretName;
   final TurretType turretType;
   final Color turretColor;
-  final TurretModulePart selectedPart;
   final Map<TurretModulePart, TurretModuleInventoryItem> equippedModules;
-  final ValueChanged<TurretModulePart> onSelectPart;
+  final ValueChanged<TurretModuleInventoryItem> onSelectEquippedModule;
 
   @override
   Widget build(BuildContext context) {
@@ -651,7 +678,7 @@ class _TurretModuleEquipmentStage extends StatelessWidget {
               Positioned.fill(
                 child: CustomPaint(
                   painter: _EquipmentLinkPainter(
-                    selectedPart: selectedPart,
+                    selectedParts: equippedModules.keys.toSet(),
                     socketWidth: socketWidth,
                     socketRight: compact ? 8 : 10,
                   ),
@@ -679,10 +706,15 @@ class _TurretModuleEquipmentStage extends StatelessWidget {
                   right: compact ? 8 : 10,
                   width: socketWidth,
                   child: _TurretModuleSocketButton(
+                    key: ValueKey('turret-module-socket-${entry.key.name}'),
                     part: entry.key,
                     item: equippedModules[entry.key],
-                    selected: selectedPart == entry.key,
-                    onPressed: () => onSelectPart(entry.key),
+                    selected: equippedModules[entry.key] != null,
+                    onPressed: equippedModules[entry.key] == null
+                        ? null
+                        : () => onSelectEquippedModule(
+                            equippedModules[entry.key]!,
+                          ),
                   ),
                 ),
             ],
@@ -723,9 +755,13 @@ class _TurretPreview extends StatelessWidget {
             ),
           ),
           Positioned(
+            left: 12,
+            right: 12,
             bottom: 14,
-            child: Text(
+            child: _ModuleSingleLineText(
               name,
+              alignment: Alignment.center,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 color: color,
                 fontSize: 10,
@@ -764,12 +800,12 @@ class _TurretShapePainter extends CustomPainter {
 
 class _EquipmentLinkPainter extends CustomPainter {
   const _EquipmentLinkPainter({
-    required this.selectedPart,
+    required this.selectedParts,
     required this.socketWidth,
     required this.socketRight,
   });
 
-  final TurretModulePart selectedPart;
+  final Set<TurretModulePart> selectedParts;
   final double socketWidth;
   final double socketRight;
 
@@ -802,7 +838,7 @@ class _EquipmentLinkPainter extends CustomPainter {
 
     for (final part in TurretModulePart.values) {
       final socketCenterY = _partSocketCenterY(part);
-      final selected = selectedPart == part;
+      final selected = selectedParts.contains(part);
       final path = Path()
         ..moveTo(hubX, hubY)
         ..lineTo(laneX, hubY)
@@ -844,7 +880,7 @@ class _EquipmentLinkPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_EquipmentLinkPainter oldDelegate) {
-    return oldDelegate.selectedPart != selectedPart ||
+    return oldDelegate.selectedParts != selectedParts ||
         oldDelegate.socketWidth != socketWidth ||
         oldDelegate.socketRight != socketRight;
   }
@@ -852,6 +888,7 @@ class _EquipmentLinkPainter extends CustomPainter {
 
 class _TurretModuleSocketButton extends StatelessWidget {
   const _TurretModuleSocketButton({
+    super.key,
     required this.part,
     required this.item,
     required this.selected,
@@ -861,7 +898,7 @@ class _TurretModuleSocketButton extends StatelessWidget {
   final TurretModulePart part;
   final TurretModuleInventoryItem? item;
   final bool selected;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -869,7 +906,6 @@ class _TurretModuleSocketButton extends StatelessWidget {
     final definition = item == null
         ? null
         : gameTurretModuleDefinitions[item.key];
-    final effect = item == null ? null : effectiveTurretModuleEffect(item);
     final borderColor = selected ? GamePalette.cyan : const Color(0x55485B68);
     return Material(
       color: Colors.transparent,
@@ -901,10 +937,8 @@ class _TurretModuleSocketButton extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 4),
-              Text(
+              _ModuleSingleLineText(
                 definition?.name ?? '장착 없음',
-                maxLines: 1,
-                overflow: TextOverflow.clip,
                 style: const TextStyle(
                   color: GamePalette.textPrimary,
                   fontSize: 10,
@@ -912,10 +946,8 @@ class _TurretModuleSocketButton extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 3),
-              Text(
-                effect == null ? '비어 있음' : turretModuleEffectText(effect),
-                maxLines: 1,
-                overflow: TextOverflow.clip,
+              _ModuleSingleLineText(
+                item == null ? '비어 있음' : '${item.options.length}옵션',
                 style: GameTextStyles.caption,
               ),
             ],
@@ -926,42 +958,75 @@ class _TurretModuleSocketButton extends StatelessWidget {
   }
 }
 
+class _TurretModuleOptionLines extends StatelessWidget {
+  const _TurretModuleOptionLines({
+    required this.options,
+    required this.emptyText,
+    required this.style,
+  });
+
+  final List<TurretModuleOptionRoll> options;
+  final String emptyText;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    if (options.isEmpty) {
+      return Text(emptyText, softWrap: true, style: style);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var index = 0; index < options.length; index++) ...[
+          if (index > 0) const SizedBox(height: 2),
+          Text(
+            turretModuleOptionText(options[index]),
+            softWrap: true,
+            style: style,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _TurretModuleDetailStrip extends StatelessWidget {
   const _TurretModuleDetailStrip({
     required this.game,
     required this.item,
-    required this.keyData,
+    required this.turretType,
+    required this.partFilter,
+    required this.itemCount,
   });
 
   final RuneNexusGame game;
   final TurretModuleInventoryItem? item;
-  final TurretModuleKey keyData;
+  final TurretType turretType;
+  final TurretModulePart? partFilter;
+  final int itemCount;
 
   @override
   Widget build(BuildContext context) {
-    final definition = gameTurretModuleDefinitions[keyData]!;
-    final owned = item != null;
-    final effect = owned
-        ? effectiveTurretModuleEffect(item!)
-        : definition.effect;
-    final accentColor = owned ? _gradeColor(keyData.grade) : GamePalette.metal;
-    final canFuse =
-        item != null &&
-        item!.shards >= turretModuleFusionShardCost &&
-        !(item!.key.grade == TurretModuleGrade.rare &&
-            item!.stars >= turretModuleMaxStars);
+    final item = this.item;
+    final definition = item == null
+        ? null
+        : gameTurretModuleDefinitions[item.key];
+    final accentColor = item == null
+        ? GamePalette.metal
+        : _gradeColor(item.key.grade);
 
     return Container(
       constraints: const BoxConstraints(minHeight: 72),
       padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
-        color: owned
+        color: item != null
             ? accentColor.withValues(alpha: 0.13)
             : const Color(0x2207111D),
         border: Border.all(
           color: item?.equipped == true
               ? GamePalette.cyan
-              : accentColor.withValues(alpha: owned ? 0.48 : 0.36),
+              : accentColor.withValues(alpha: item != null ? 0.48 : 0.36),
         ),
         borderRadius: BorderRadius.circular(7),
       ),
@@ -974,19 +1039,20 @@ class _TurretModuleDetailStrip extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      keyData.grade.label,
-                      style: GameTextStyles.withColor(
-                        GameTextStyles.chip,
-                        _gradeColor(keyData.grade),
+                    if (item != null) ...[
+                      Text(
+                        item.key.grade.label,
+                        style: GameTextStyles.withColor(
+                          GameTextStyles.chip,
+                          _gradeColor(item.key.grade),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 6),
+                      const SizedBox(width: 6),
+                    ],
                     Expanded(
                       child: Text(
-                        definition.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.clip,
+                        definition?.name ?? '선택한 모듈 없음',
+                        softWrap: true,
                         style: const TextStyle(
                           color: GamePalette.textPrimary,
                           fontSize: 12,
@@ -998,17 +1064,17 @@ class _TurretModuleDetailStrip extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${keyData.part.label} · ${gameTurrets[keyData.turretType]!.name} · '
-                  '${owned ? _moduleGradeStarText(item!) : '아직 보유하지 않음'}',
-                  maxLines: 1,
-                  overflow: TextOverflow.clip,
+                  item == null
+                      ? '${gameTurrets[turretType]!.name} · ${_partFilterLabel(partFilter)} · 보유 모듈 $itemCount개'
+                      : '${item.key.part.label} · ${gameTurrets[item.key.turretType]!.name} · '
+                            '${item.options.length}옵션${item.equipped ? ' · 장착됨' : ''}',
+                  softWrap: true,
                   style: GameTextStyles.caption,
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  '장착 효과: ${turretModuleEffectText(effect)}',
-                  maxLines: 1,
-                  overflow: TextOverflow.clip,
+                _TurretModuleOptionLines(
+                  options: item?.options ?? const [],
+                  emptyText: '장착 효과: 비어 있음',
                   style: GameTextStyles.withColor(
                     GameTextStyles.body,
                     GamePalette.goldBright,
@@ -1018,186 +1084,385 @@ class _TurretModuleDetailStrip extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          SizedBox(width: 58, child: _detailAction(canFuse)),
+          _detailAction(context),
         ],
       ),
     );
   }
 
-  Widget _detailAction(bool canFuse) {
+  Widget _detailAction(BuildContext context) {
     final item = this.item;
     if (item == null) {
-      return const _ModuleInfoChip(text: '미보유');
-    }
-    if (canFuse) {
-      return GameButton(
-        onPressed: () => game.fuseTurretModule(item.key),
-        label: '합성',
-        compact: true,
-        accentColor: GamePalette.green,
-      );
+      return const SizedBox(width: 58, child: _ModuleInfoChip(text: '미선택'));
     }
     if (item.equipped) {
-      return const _ModuleInfoChip(text: '장착 중');
+      return SizedBox(
+        width: 58,
+        child: GameButton(
+          onPressed: () => game.unequipTurretModule(item.id),
+          label: '해제',
+          compact: true,
+          variant: GameButtonVariant.ghost,
+          accentColor: GamePalette.cyan,
+        ),
+      );
     }
-    return GameButton(
-      onPressed: () => game.equipTurretModule(item.key),
-      label: '장착',
-      compact: true,
-      accentColor: GamePalette.cyan,
+    return SizedBox(
+      width: 116,
+      child: Row(
+        children: [
+          Expanded(
+            child: GameButton(
+              onPressed: () => game.equipTurretModule(item.id),
+              label: '장착',
+              compact: true,
+              accentColor: GamePalette.cyan,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: GameButton(
+              onPressed: () => _confirmDisassemble(context, item),
+              label: '분해',
+              compact: true,
+              variant: GameButtonVariant.ghost,
+              accentColor: GamePalette.gold,
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  Future<void> _confirmDisassemble(
+    BuildContext context,
+    TurretModuleInventoryItem item,
+  ) async {
+    var confirmed = true;
+    if (item.key.grade == TurretModuleGrade.rare ||
+        item.key.grade == TurretModuleGrade.unique) {
+      confirmed =
+          await showDialog<bool>(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                backgroundColor: const Color(0xFF0B1725),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(color: _gradeColor(item.key.grade)),
+                ),
+                title: const Text(
+                  '모듈 분해',
+                  style: TextStyle(
+                    color: GamePalette.textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                content: Text(
+                  '${item.key.grade.label} 모듈을 분해하고 '
+                  '${item.key.grade.disassembleDiamondValue} 다이아를 획득합니다.',
+                  style: GameTextStyles.body,
+                ),
+                actions: [
+                  SizedBox(
+                    width: 76,
+                    child: GameButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      label: '취소',
+                      compact: true,
+                      variant: GameButtonVariant.ghost,
+                      accentColor: GamePalette.metal,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 76,
+                    child: GameButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      label: '분해',
+                      compact: true,
+                      accentColor: GamePalette.gold,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ) ??
+          false;
+    }
+    if (confirmed) {
+      game.disassembleTurretModule(item.id);
+    }
   }
 }
 
-class _TurretModuleCandidates extends StatelessWidget {
-  const _TurretModuleCandidates({
-    required this.snapshot,
+class _TurretModuleInventoryList extends StatelessWidget {
+  const _TurretModuleInventoryList({
     required this.turretType,
-    required this.selectedPart,
-    required this.selectedGrade,
-    required this.onSelectGrade,
+    required this.selectedPartFilter,
+    required this.selectedItemId,
+    required this.items,
+    required this.onSelectPartFilter,
+    required this.onSelectItem,
   });
 
-  final GameSnapshot snapshot;
   final TurretType turretType;
-  final TurretModulePart selectedPart;
-  final TurretModuleGrade selectedGrade;
-  final ValueChanged<TurretModuleGrade> onSelectGrade;
+  final TurretModulePart? selectedPartFilter;
+  final String? selectedItemId;
+  final List<TurretModuleInventoryItem> items;
+  final ValueChanged<TurretModulePart?> onSelectPartFilter;
+  final ValueChanged<TurretModuleInventoryItem> onSelectItem;
 
   @override
   Widget build(BuildContext context) {
-    final family = turretModuleFamilyFor(turretType, selectedPart);
+    final turretName = gameTurrets[turretType]!.name;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('${selectedPart.label} 장착 모듈', style: GameTextStyles.sectionTitle),
-        const SizedBox(height: 8),
+        Text('$turretName 모듈 인벤토리', style: GameTextStyles.sectionTitle),
+        const SizedBox(height: 7),
         Row(
           children: [
-            for (final grade in TurretModuleGrade.values) ...[
+            Expanded(
+              child: _TurretModulePartFilterChip(
+                label: '전체',
+                selected: selectedPartFilter == null,
+                onPressed: () => onSelectPartFilter(null),
+              ),
+            ),
+            const SizedBox(width: 5),
+            for (final part in TurretModulePart.values) ...[
               Expanded(
-                child: _TurretModuleCandidateChip(
-                  grade: grade,
-                  part: selectedPart,
-                  item: _itemFor(grade, family),
-                  selected: selectedGrade == grade,
-                  onPressed: () => onSelectGrade(grade),
+                child: _TurretModulePartFilterChip(
+                  label: part.label,
+                  selected: selectedPartFilter == part,
+                  onPressed: () => onSelectPartFilter(part),
                 ),
               ),
-              if (grade != TurretModuleGrade.values.last)
-                const SizedBox(width: 7),
+              if (part != TurretModulePart.values.last)
+                const SizedBox(width: 5),
             ],
           ],
         ),
+        const SizedBox(height: 8),
+        if (items.isEmpty)
+          _TurretModuleEmptyInventoryHint(
+            text: selectedPartFilter == null
+                ? '획득한 $turretName 모듈 없음'
+                : '획득한 $turretName ${selectedPartFilter!.label} 없음',
+          )
+        else
+          _TurretModuleInventoryGrid(
+            items: items,
+            selectedItemId: selectedItemId,
+            onSelectItem: onSelectItem,
+          ),
       ],
     );
   }
+}
 
-  TurretModuleInventoryItem? _itemFor(
-    TurretModuleGrade grade,
-    TurretModuleFamily family,
-  ) {
-    for (final item in snapshot.ownedTurretModules) {
-      if (item.key.turretType == turretType &&
-          item.key.part == selectedPart &&
-          item.key.family == family &&
-          item.key.grade == grade) {
-        return item;
-      }
-    }
-    return null;
+class _TurretModuleInventoryGrid extends StatelessWidget {
+  const _TurretModuleInventoryGrid({
+    required this.items,
+    required this.selectedItemId,
+    required this.onSelectItem,
+  });
+
+  final List<TurretModuleInventoryItem> items;
+  final String? selectedItemId;
+  final ValueChanged<TurretModuleInventoryItem> onSelectItem;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gridPadding = 8.0;
+        const gap = 6.0;
+        final innerWidth = math.max(
+          0.0,
+          constraints.maxWidth - (gridPadding * 2),
+        );
+        final columnCount = innerWidth < 324 ? 5 : 6;
+        final trailingEmptySlotCount = items.length % columnCount == 0
+            ? 0
+            : columnCount - (items.length % columnCount);
+        final visibleSlotCount = items.length + trailingEmptySlotCount;
+        return Container(
+          padding: const EdgeInsets.all(gridPadding),
+          decoration: BoxDecoration(
+            color: const Color(0x2207111D),
+            border: Border.all(color: const Color(0x55485B68)),
+            borderRadius: BorderRadius.circular(7),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _ModuleSingleLineText(
+                      '보유 ${items.length}개',
+                      style: GameTextStyles.caption,
+                    ),
+                  ),
+                  _ModuleInfoChip(text: '등급순'),
+                ],
+              ),
+              const SizedBox(height: 7),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columnCount,
+                  mainAxisSpacing: gap,
+                  crossAxisSpacing: gap,
+                ),
+                itemCount: visibleSlotCount,
+                itemBuilder: (context, index) {
+                  if (index >= items.length) {
+                    return const _TurretModuleEmptySlot();
+                  }
+                  final item = items[index];
+                  return _TurretModuleInventorySlot(
+                    key: ValueKey('turret-module-inventory-slot-${item.id}'),
+                    item: item,
+                    selected: item.id == selectedItemId,
+                    onPressed: () => onSelectItem(item),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
-class _TurretModuleCandidateChip extends StatelessWidget {
-  const _TurretModuleCandidateChip({
-    required this.grade,
-    required this.part,
-    required this.item,
+class _TurretModulePartFilterChip extends StatelessWidget {
+  const _TurretModulePartFilterChip({
+    required this.label,
     required this.selected,
     required this.onPressed,
   });
 
-  final TurretModuleGrade grade;
-  final TurretModulePart part;
-  final TurretModuleInventoryItem? item;
+  final String label;
   final bool selected;
   final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
-    final item = this.item;
-    final owned = item != null;
-    final gradeColor = _gradeColor(grade);
-    final borderColor = selected
-        ? GamePalette.cyan
-        : item?.equipped == true
-        ? GamePalette.cyan.withValues(alpha: 0.58)
-        : owned
-        ? gradeColor.withValues(alpha: 0.58)
-        : const Color(0x55485B68);
-    final iconColor = owned
-        ? gradeColor
-        : GamePalette.textDisabled.withValues(alpha: 0.78);
-    final starText = _moduleStarText(item?.stars ?? 0);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(6),
+        child: Container(
+          height: 24,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 7),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0x2233D8FF) : const Color(0x2207111D),
+            border: Border.all(
+              color: selected ? GamePalette.cyan : const Color(0x55485B68),
+            ),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: _ModuleSingleLineText(
+            label,
+            alignment: Alignment.center,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: selected ? GamePalette.textPrimary : GamePalette.textMuted,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              height: 1,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TurretModuleInventorySlot extends StatelessWidget {
+  const _TurretModuleInventorySlot({
+    super.key,
+    required this.item,
+    required this.selected,
+    required this.onPressed,
+  });
+
+  final TurretModuleInventoryItem item;
+  final bool selected;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final gradeColor = _gradeColor(item.key.grade);
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(7),
         child: Container(
-          height: 88,
-          padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
             color: selected
                 ? const Color(0x2233D8FF)
-                : owned
-                ? const Color(0x3307111D)
-                : const Color(0x1A07111D),
-            border: Border.all(color: borderColor, width: selected ? 1.6 : 1.1),
+                : item.equipped
+                ? const Color(0x2233D8FF)
+                : const Color(0xAA07111D),
+            border: Border.all(
+              color: selected
+                  ? GamePalette.cyan
+                  : gradeColor.withValues(alpha: item.equipped ? 0.82 : 0.62),
+              width: selected ? 1.8 : 1.1,
+            ),
             borderRadius: BorderRadius.circular(7),
-          ),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Text(
-                    grade.label,
-                    style: GameTextStyles.withColor(
-                      GameTextStyles.chip,
-                      gradeColor,
+            boxShadow: item.key.grade == TurretModuleGrade.unique
+                ? [
+                    BoxShadow(
+                      color: gradeColor.withValues(alpha: 0.22),
+                      blurRadius: 10,
+                      spreadRadius: 0.5,
                     ),
-                  ),
-                  const Spacer(),
-                  _ModuleOwnershipBadge(
-                    label: _moduleOwnershipLabel(item),
-                    owned: owned,
-                    equipped: item?.equipped == true,
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Icon(_partIcon(part), color: iconColor, size: 25),
-              const Spacer(),
-              SizedBox(
-                height: 12,
+                  ]
+                : null,
+          ),
+          child: Stack(
+            children: [
+              Positioned.fill(
                 child: Center(
-                  child: starText.isEmpty
-                      ? const SizedBox.shrink()
-                      : Text(
-                          starText,
-                          maxLines: 1,
-                          overflow: TextOverflow.clip,
-                          style: const TextStyle(
-                            color: GamePalette.goldBright,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
+                  child: _TurretModuleItemIcon(
+                    part: item.key.part,
+                    color: gradeColor,
+                  ),
                 ),
               ),
-              const SizedBox(height: 3),
-              owned ? _ShardMeter(item: item) : const _MissingModuleHint(),
+              Positioned(
+                top: 3,
+                left: 3,
+                child: _TurretModulePartBadge(
+                  part: item.key.part,
+                  color: gradeColor,
+                ),
+              ),
+              if (item.equipped)
+                Positioned(
+                  top: 3,
+                  right: 3,
+                  child: _TurretModuleEquippedBadge(color: GamePalette.cyan),
+                ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 4,
+                child: _TurretModuleOptionDots(
+                  count: item.options.length,
+                  color: gradeColor,
+                ),
+              ),
             ],
           ),
         ),
@@ -1206,37 +1471,40 @@ class _TurretModuleCandidateChip extends StatelessWidget {
   }
 }
 
-class _ModuleOwnershipBadge extends StatelessWidget {
-  const _ModuleOwnershipBadge({
-    required this.label,
-    required this.owned,
-    required this.equipped,
-  });
-
-  final String label;
-  final bool owned;
-  final bool equipped;
+class _TurretModuleEmptySlot extends StatelessWidget {
+  const _TurretModuleEmptySlot();
 
   @override
   Widget build(BuildContext context) {
-    final color = equipped
-        ? GamePalette.cyan
-        : owned
-        ? GamePalette.green
-        : GamePalette.textDisabled;
     return Container(
-      height: 17,
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: owned ? 0.13 : 0.08),
-        border: Border.all(color: color.withValues(alpha: owned ? 0.5 : 0.32)),
-        borderRadius: BorderRadius.circular(5),
+        color: const Color(0x3307111D),
+        border: Border.all(color: const Color(0x33485B68)),
+        borderRadius: BorderRadius.circular(7),
+      ),
+    );
+  }
+}
+
+class _TurretModulePartBadge extends StatelessWidget {
+  const _TurretModulePartBadge({required this.part, required this.color});
+
+  final TurretModulePart part;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 16,
+      height: 14,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: const Color(0xAA02070D),
+        border: Border.all(color: color.withValues(alpha: 0.42)),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.clip,
+        _partShortLabel(part),
         style: TextStyle(
           color: color,
           fontSize: 8,
@@ -1248,64 +1516,236 @@ class _ModuleOwnershipBadge extends StatelessWidget {
   }
 }
 
-class _ShardMeter extends StatelessWidget {
-  const _ShardMeter({required this.item});
+class _TurretModuleEquippedBadge extends StatelessWidget {
+  const _TurretModuleEquippedBadge({required this.color});
 
-  final TurretModuleInventoryItem? item;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
-    final shards = item?.shards ?? 0;
-    final progress = (shards / turretModuleFusionShardCost).clamp(0.0, 1.0);
     return Container(
-      height: 12,
-      clipBehavior: Clip.antiAlias,
+      width: 15,
+      height: 14,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(0x33485B68),
-        borderRadius: BorderRadius.circular(99),
+        color: color.withValues(alpha: 0.18),
+        border: Border.all(color: color.withValues(alpha: 0.68)),
+        borderRadius: BorderRadius.circular(4),
       ),
-      child: Stack(
-        children: [
-          FractionallySizedBox(
-            widthFactor: progress,
-            child: Container(color: GamePalette.cyan.withValues(alpha: 0.62)),
-          ),
-          Center(
-            child: Text(
-              '$shards/$turretModuleFusionShardCost',
-              style: const TextStyle(
-                color: GamePalette.textPrimary,
-                fontSize: 8,
-                fontWeight: FontWeight.w900,
-                height: 1,
-              ),
-            ),
-          ),
-        ],
+      child: Text(
+        '장',
+        style: TextStyle(
+          color: color,
+          fontSize: 8,
+          fontWeight: FontWeight.w900,
+          height: 1,
+        ),
       ),
     );
   }
 }
 
-class _MissingModuleHint extends StatelessWidget {
-  const _MissingModuleHint();
+class _TurretModuleOptionDots extends StatelessWidget {
+  const _TurretModuleOptionDots({required this.count, required this.color});
+
+  final int count;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (var index = 0; index < count; index++) ...[
+          Container(
+            width: 4,
+            height: 4,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(color: color.withValues(alpha: 0.28), blurRadius: 4),
+              ],
+            ),
+          ),
+          if (index != count - 1) const SizedBox(width: 3),
+        ],
+      ],
+    );
+  }
+}
+
+class _TurretModuleItemIcon extends StatelessWidget {
+  const _TurretModuleItemIcon({required this.part, required this.color});
+
+  final TurretModulePart part;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _TurretModulePartGlyphPainter(part: part, color: color),
+      child: const SizedBox(width: 30, height: 30),
+    );
+  }
+}
+
+class _TurretModulePartGlyphPainter extends CustomPainter {
+  const _TurretModulePartGlyphPainter({
+    required this.part,
+    required this.color,
+  });
+
+  final TurretModulePart part;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final stroke = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    final fill = Paint()
+      ..color = color.withValues(alpha: 0.82)
+      ..style = PaintingStyle.fill;
+    final glow = Paint()
+      ..color = color.withValues(alpha: 0.14)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(size.center(Offset.zero), size.shortestSide * 0.48, glow);
+
+    switch (part) {
+      case TurretModulePart.core:
+        _paintCore(canvas, size, stroke, fill);
+      case TurretModulePart.barrel:
+        _paintBarrel(canvas, size, fill);
+      case TurretModulePart.frame:
+        _paintFrame(canvas, size, stroke);
+    }
+  }
+
+  void _paintCore(Canvas canvas, Size size, Paint stroke, Paint fill) {
+    final outer = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        size.width * 0.18,
+        size.height * 0.18,
+        size.width * 0.64,
+        size.height * 0.64,
+      ),
+      const Radius.circular(5),
+    );
+    canvas.drawRRect(outer, stroke);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: size.center(Offset.zero),
+          width: size.width * 0.28,
+          height: size.height * 0.28,
+        ),
+        const Radius.circular(3),
+      ),
+      fill,
+    );
+    for (final x in [0.31, 0.50, 0.69]) {
+      canvas.drawLine(
+        Offset(size.width * x, size.height * 0.04),
+        Offset(size.width * x, size.height * 0.18),
+        stroke,
+      );
+      canvas.drawLine(
+        Offset(size.width * x, size.height * 0.82),
+        Offset(size.width * x, size.height * 0.96),
+        stroke,
+      );
+    }
+    for (final y in [0.34, 0.66]) {
+      canvas.drawLine(
+        Offset(size.width * 0.04, size.height * y),
+        Offset(size.width * 0.18, size.height * y),
+        stroke,
+      );
+      canvas.drawLine(
+        Offset(size.width * 0.82, size.height * y),
+        Offset(size.width * 0.96, size.height * y),
+        stroke,
+      );
+    }
+  }
+
+  void _paintBarrel(Canvas canvas, Size size, Paint fill) {
+    final barrelWidth = size.width * 0.20;
+    final barrelHeight = size.height * 0.72;
+    final top = size.height * 0.08;
+    for (final left in [size.width * 0.25, size.width * 0.55]) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(left, top, barrelWidth, barrelHeight),
+          const Radius.circular(4),
+        ),
+        fill,
+      );
+    }
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * 0.18,
+          size.height * 0.65,
+          size.width * 0.64,
+          size.height * 0.25,
+        ),
+        const Radius.circular(6),
+      ),
+      Paint()
+        ..color = color.withValues(alpha: 0.58)
+        ..style = PaintingStyle.fill,
+    );
+  }
+
+  void _paintFrame(Canvas canvas, Size size, Paint stroke) {
+    canvas.drawCircle(size.center(Offset.zero), size.width * 0.34, stroke);
+    final center = size.center(Offset.zero);
+    for (final angle in [math.pi / 4, math.pi * 3 / 4]) {
+      final dx = math.cos(angle) * size.width * 0.32;
+      final dy = math.sin(angle) * size.height * 0.32;
+      canvas.drawLine(
+        Offset(center.dx - dx, center.dy - dy),
+        Offset(center.dx + dx, center.dy + dy),
+        stroke,
+      );
+    }
+    canvas.drawCircle(center, size.width * 0.08, stroke);
+  }
+
+  @override
+  bool shouldRepaint(_TurretModulePartGlyphPainter oldDelegate) {
+    return oldDelegate.part != part || oldDelegate.color != color;
+  }
+}
+
+class _TurretModuleEmptyInventoryHint extends StatelessWidget {
+  const _TurretModuleEmptyInventoryHint({required this.text});
+
+  final String text;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 12,
+      height: 42,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(0x22485B68),
-        borderRadius: BorderRadius.circular(99),
+        color: const Color(0x2207111D),
+        border: Border.all(color: const Color(0x55485B68)),
+        borderRadius: BorderRadius.circular(7),
       ),
-      child: const Text(
-        '획득 필요',
-        style: TextStyle(
-          color: GamePalette.textDisabled,
-          fontSize: 8,
+      child: _ModuleSingleLineText(
+        text,
+        alignment: Alignment.center,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: GamePalette.textPrimary,
+          fontSize: 12,
           fontWeight: FontWeight.w900,
-          height: 1,
         ),
       ),
     );
@@ -1328,12 +1768,52 @@ class _ModuleInfoChip extends StatelessWidget {
         border: Border.all(color: const Color(0x55485B68)),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Text(
+      child: _ModuleSingleLineText(
         text,
-        maxLines: 1,
-        overflow: TextOverflow.clip,
+        alignment: Alignment.center,
+        textAlign: TextAlign.center,
         style: GameTextStyles.caption,
       ),
+    );
+  }
+}
+
+class _ModuleSingleLineText extends StatelessWidget {
+  const _ModuleSingleLineText(
+    this.text, {
+    required this.style,
+    this.alignment = Alignment.centerLeft,
+    this.textAlign,
+  });
+
+  final String text;
+  final TextStyle style;
+  final Alignment alignment;
+  final TextAlign? textAlign;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final child = Text(
+          text,
+          maxLines: 1,
+          softWrap: false,
+          textAlign: textAlign,
+          style: style,
+        );
+        if (!constraints.hasBoundedWidth) {
+          return child;
+        }
+        return SizedBox(
+          width: constraints.maxWidth,
+          child: FittedBox(
+            alignment: alignment,
+            fit: BoxFit.scaleDown,
+            child: child,
+          ),
+        );
+      },
     );
   }
 }
@@ -1384,55 +1864,25 @@ double _partSocketCenterY(TurretModulePart part) {
   return _partPositions[part]! + (_moduleSocketHeight / 2);
 }
 
-TurretModuleInventoryItem? _moduleFor(
-  GameSnapshot snapshot,
-  TurretModuleKey key,
-) {
-  for (final item in snapshot.ownedTurretModules) {
-    if (item.key == key) {
-      return item;
-    }
-  }
-  return null;
-}
-
 Color _gradeColor(TurretModuleGrade grade) {
   return switch (grade) {
     TurretModuleGrade.normal => const Color(0xFFB8C7D0),
     TurretModuleGrade.magic => const Color(0xFF72E0A2),
     TurretModuleGrade.rare => GamePalette.goldBright,
+    TurretModuleGrade.unique => const Color(0xFFFF8AE8),
   };
 }
 
-IconData _partIcon(TurretModulePart part) {
+String _partShortLabel(TurretModulePart part) {
   return switch (part) {
-    TurretModulePart.core => Icons.memory_outlined,
-    TurretModulePart.barrel => Icons.speed_outlined,
-    TurretModulePart.frame => Icons.account_tree_outlined,
+    TurretModulePart.core => '코',
+    TurretModulePart.barrel => '포',
+    TurretModulePart.frame => '프',
   };
 }
 
-String _moduleGradeStarText(TurretModuleInventoryItem item) {
-  final starLabel = item.stars > 0 ? '${item.stars}성' : '보유';
-  return '${item.key.grade.label} $starLabel · 조각 ${item.shards}/$turretModuleFusionShardCost';
-}
-
-String _moduleStarText(int stars) {
-  final clampedStars = stars.clamp(0, turretModuleMaxStars).toInt();
-  if (clampedStars == 0) {
-    return '';
-  }
-  return List.filled(clampedStars, '★').join();
-}
-
-String _moduleOwnershipLabel(TurretModuleInventoryItem? item) {
-  if (item == null) {
-    return '미보유';
-  }
-  if (item.equipped) {
-    return '장착 중';
-  }
-  return '보유';
+String _partFilterLabel(TurretModulePart? part) {
+  return part?.label ?? '전체';
 }
 
 TurretModuleInventoryItem? _bestDrawResult(
@@ -1449,12 +1899,7 @@ TurretModuleInventoryItem? _bestDrawResult(
 }
 
 int _drawResultPriority(TurretModuleInventoryItem item) {
-  final gradePriority = switch (item.key.grade) {
-    TurretModuleGrade.normal => 0,
-    TurretModuleGrade.magic => 1,
-    TurretModuleGrade.rare => 2,
-  };
-  final acquisitionPriority =
-      item.shards == 0 || item.shards >= turretModuleFusionShardCost ? 1 : 0;
-  return gradePriority * 10 + acquisitionPriority;
+  return item.key.grade.order * 1000 +
+      item.options.length * 100 +
+      item.acquiredOrder;
 }
