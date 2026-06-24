@@ -60,20 +60,24 @@ class _ResearchMenuState extends State<_ResearchMenu> {
     final l10n = context.l10n;
     final nowMillis = DateTime.now().millisecondsSinceEpoch;
     final activeResearches = widget.snapshot.activeResearches;
-    final completedTypes =
-        ResearchType.values
-            .where(
-              (type) =>
-                  _researchLevel(widget.snapshot, type) >=
-                  gameResearchDefinitions[type]!.maxLevel,
-            )
-            .toList()
-          ..sort(_compareResearchRequirement);
-    final availableTypes =
-        ResearchType.values
-            .where((type) => !completedTypes.contains(type))
-            .toList()
-          ..sort(_compareResearchRequirement);
+    final unlockedIncompleteTypes = <ResearchType>[];
+    final lockedIncompleteTypes = <ResearchType>[];
+    final completedTypes = <ResearchType>[];
+    for (final type in ResearchType.values) {
+      final definition = gameResearchDefinitions[type]!;
+      final complete =
+          _researchLevel(widget.snapshot, type) >= definition.maxLevel;
+      if (complete) {
+        completedTypes.add(type);
+      } else if (_researchUnlocked(widget.snapshot, definition)) {
+        unlockedIncompleteTypes.add(type);
+      } else {
+        lockedIncompleteTypes.add(type);
+      }
+    }
+    unlockedIncompleteTypes.sort(_compareResearchRequirement);
+    lockedIncompleteTypes.sort(_compareResearchRequirement);
+    completedTypes.sort(_compareResearchRequirement);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -107,9 +111,10 @@ class _ResearchMenuState extends State<_ResearchMenu> {
         _ResearchSection(
           icon: Icons.science_outlined,
           title: l10n.availableResearch,
+          tone: _ResearchSectionTone.available,
           children: [
             _ResearchCardGrid(
-              types: availableTypes,
+              types: unlockedIncompleteTypes,
               game: widget.game,
               snapshot: widget.snapshot,
               nowMillis: nowMillis,
@@ -117,22 +122,36 @@ class _ResearchMenuState extends State<_ResearchMenu> {
             ),
           ],
         ),
-        if (completedTypes.isNotEmpty) ...[
-          const SizedBox(height: 10),
-          _ResearchSection(
-            icon: Icons.done_all,
-            title: l10n.completedResearch,
-            children: [
-              _ResearchCardGrid(
-                types: completedTypes,
-                game: widget.game,
-                snapshot: widget.snapshot,
-                nowMillis: nowMillis,
-                onSelectType: _openResearchDetails,
-              ),
-            ],
-          ),
-        ],
+        const SizedBox(height: 10),
+        _ResearchSection(
+          icon: Icons.lock_outline,
+          title: l10n.lockedResearchSection,
+          tone: _ResearchSectionTone.locked,
+          children: [
+            _ResearchCardGrid(
+              types: lockedIncompleteTypes,
+              game: widget.game,
+              snapshot: widget.snapshot,
+              nowMillis: nowMillis,
+              onSelectType: _openResearchDetails,
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        _ResearchSection(
+          icon: Icons.done_all,
+          title: l10n.completedResearch,
+          tone: _ResearchSectionTone.completed,
+          children: [
+            _ResearchCardGrid(
+              types: completedTypes,
+              game: widget.game,
+              snapshot: widget.snapshot,
+              nowMillis: nowMillis,
+              onSelectType: _openResearchDetails,
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -181,6 +200,7 @@ class _ResearchSlotPanel extends StatelessWidget {
     return _ResearchSection(
       icon: Icons.view_module_outlined,
       title: l10n.researchSlot,
+      tone: _ResearchSectionTone.slots,
       children: [
         for (var index = 0; index < slots; index++) ...[
           if (index > 0) const SizedBox(height: 7),
@@ -588,11 +608,13 @@ class _ResearchSection extends StatelessWidget {
   const _ResearchSection({
     required this.icon,
     required this.title,
+    required this.tone,
     required this.children,
   });
 
   final IconData icon;
   final String title;
+  final _ResearchSectionTone tone;
   final List<Widget> children;
 
   @override
@@ -603,8 +625,8 @@ class _ResearchSection extends StatelessWidget {
         return Container(
           padding: EdgeInsets.all(padding),
           decoration: BoxDecoration(
-            color: const Color(0x3307111D),
-            border: Border.all(color: const Color(0x55485B68)),
+            color: tone.backgroundColor,
+            border: Border.all(color: tone.borderColor),
             borderRadius: BorderRadius.circular(7),
           ),
           child: Column(
@@ -612,7 +634,7 @@ class _ResearchSection extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(icon, color: const Color(0xFFB9D6E4), size: 17),
+                  Icon(icon, color: tone.iconColor, size: 17),
                   const SizedBox(width: 7),
                   Text(
                     title,
@@ -620,6 +642,19 @@ class _ResearchSection extends StatelessWidget {
                       color: Color(0xFFE8FBFF),
                       fontSize: 13,
                       fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: SizedBox(
+                      height: 1,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [tone.lineColor, const Color(0x00000000)],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -632,6 +667,48 @@ class _ResearchSection extends StatelessWidget {
       },
     );
   }
+}
+
+class _ResearchSectionTone {
+  const _ResearchSectionTone({
+    required this.backgroundColor,
+    required this.borderColor,
+    required this.iconColor,
+    required this.lineColor,
+  });
+
+  final Color backgroundColor;
+  final Color borderColor;
+  final Color iconColor;
+  final Color lineColor;
+
+  static const available = _ResearchSectionTone(
+    backgroundColor: Color(0x3307111D),
+    borderColor: Color(0x66E7C66A),
+    iconColor: Color(0xFFE7C66A),
+    lineColor: Color(0x88E7C66A),
+  );
+
+  static const slots = _ResearchSectionTone(
+    backgroundColor: Color(0x3307111D),
+    borderColor: Color(0x55485B68),
+    iconColor: Color(0xFFB9D6E4),
+    lineColor: Color(0x5533D8FF),
+  );
+
+  static const locked = _ResearchSectionTone(
+    backgroundColor: Color(0x26050B12),
+    borderColor: Color(0x55485B68),
+    iconColor: Color(0xFF8DA5B3),
+    lineColor: Color(0x66485B68),
+  );
+
+  static const completed = _ResearchSectionTone(
+    backgroundColor: Color(0x22071412),
+    borderColor: Color(0x6657C88B),
+    iconColor: Color(0xFFBDEFCF),
+    lineColor: Color(0x6657C88B),
+  );
 }
 
 class _ResearchCardGrid extends StatelessWidget {

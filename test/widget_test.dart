@@ -1586,6 +1586,63 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('research tab separates unlocked locked and completed sections', (
+    tester,
+  ) async {
+    final nowMillis = DateTime.now().millisecondsSinceEpoch;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            clearedStageNumbers: const {1, 2},
+            researchLevels: const {ResearchType.turretTargetPriority: 1},
+            activeResearches: [
+              ResearchProgress(
+                type: ResearchType.gemAttunement,
+                targetLevel: 1,
+                startedAtMillis: nowMillis,
+                durationMillis: 61000,
+              ),
+            ],
+          ),
+          selectedTab: MainMenuTab.research,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('시작 가능 연구'), findsOneWidget);
+    expect(find.text('아직 해금되지 않음'), findsOneWidget);
+    expect(find.text('완료된 연구'), findsOneWidget);
+
+    final availableTop = tester.getTopLeft(find.text('시작 가능 연구'));
+    final lockedTop = tester.getTopLeft(find.text('아직 해금되지 않음'));
+    final completedTop = tester.getTopLeft(find.text('완료된 연구'));
+    final gemAttunementTop = tester.getTopLeft(find.text('젬 감응'));
+    final linkExpansionTop = tester.getTopLeft(find.text('링크 확장 I'));
+    final tacticalCommandTop = tester.getTopLeft(find.text('전술 명령'));
+
+    expect(gemAttunementTop.dy, greaterThan(availableTop.dy));
+    expect(gemAttunementTop.dy, lessThan(lockedTop.dy));
+    expect(linkExpansionTop.dy, greaterThan(lockedTop.dy));
+    expect(linkExpansionTop.dy, lessThan(completedTop.dy));
+    expect(tacticalCommandTop.dy, greaterThan(completedTop.dy));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('kill reward is hidden before stage one clear', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -2804,6 +2861,7 @@ GameSnapshot _resultSnapshot({
   bool canUpgradeEmergencySale = false,
   int turretRefundPercent = 75,
   List<ResearchProgress> activeResearches = const [],
+  Map<ResearchType, int> researchLevels = const {},
   CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam,
   List<CorePassiveAbility?> corePassiveSlots = const [null, null],
   GridPoint? selectedCorePoint,
@@ -2990,7 +3048,7 @@ GameSnapshot _resultSnapshot({
     canUpgradeEmergencySale: canUpgradeEmergencySale,
     turretRefundPercent: turretRefundPercent,
     researchSlotCount: 1,
-    researchLevels: const {},
+    researchLevels: researchLevels,
     researchElapsedMillis: const {},
     activeResearches: activeResearches,
     startingGemShards: 0,

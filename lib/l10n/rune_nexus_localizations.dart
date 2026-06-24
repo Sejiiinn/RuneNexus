@@ -57,6 +57,8 @@ class RuneNexusLocalizations {
   String get researchSlot => _isEnglish ? 'Research Slot' : '연구 슬롯';
   String get availableResearch =>
       _isEnglish ? 'Available Research' : '시작 가능 연구';
+  String get lockedResearchSection =>
+      _isEnglish ? 'Locked Research' : '아직 해금되지 않음';
   String get completedResearch => _isEnglish ? 'Completed Research' : '완료된 연구';
   String get emptyResearchSlot =>
       _isEnglish ? 'Empty research slot' : '빈 연구 슬롯';
