@@ -471,14 +471,15 @@ class _MainMenuSnapshotContent extends StatelessWidget {
               ),
             ),
           ),
-        Positioned(
-          top: headerTopOffset + (compactTopBar ? 4 : 10),
-          left: 16,
-          child: _DailyQuestEntryButton(
-            snapshot: snapshot,
-            onPressed: () => _openDailyQuestDialog(context, game),
+        if (selectedTab == MainMenuTab.stage)
+          Positioned(
+            top: headerTopOffset + (compactTopBar ? 4 : 10),
+            left: 16,
+            child: _DailyQuestEntryButton(
+              snapshot: snapshot,
+              onPressed: () => _openDailyQuestDialog(context, game),
+            ),
           ),
-        ),
         Positioned(
           top: headerTopOffset + (compactTopBar ? 4 : 10),
           right: 16,

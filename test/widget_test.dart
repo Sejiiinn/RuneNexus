@@ -127,6 +127,55 @@ void main() {
     expect(find.text('+10'), findsNWidgets(4));
   });
 
+  testWidgets('daily quest entry only appears on stage tab', (tester) async {
+    await _pumpLoadedApp(tester);
+
+    expect(
+      find.byKey(const ValueKey('daily-quest-entry-button')),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('main-menu-tab-research')));
+    await _pumpGameFrames(tester);
+
+    expect(
+      find.byKey(const ValueKey('daily-quest-entry-button')),
+      findsNothing,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('main-menu-tab-core')));
+    await _pumpGameFrames(tester);
+
+    expect(
+      find.byKey(const ValueKey('daily-quest-entry-button')),
+      findsNothing,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('main-menu-tab-upgrades')));
+    await _pumpGameFrames(tester);
+
+    expect(
+      find.byKey(const ValueKey('daily-quest-entry-button')),
+      findsNothing,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('main-menu-tab-modules')));
+    await _pumpGameFrames(tester);
+
+    expect(
+      find.byKey(const ValueKey('daily-quest-entry-button')),
+      findsNothing,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('main-menu-tab-stage')));
+    await _pumpGameFrames(tester);
+
+    expect(
+      find.byKey(const ValueKey('daily-quest-entry-button')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('stage menu opens chapter two as stages six to ten', (
     tester,
   ) async {
