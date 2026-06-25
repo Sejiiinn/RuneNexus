@@ -40,6 +40,7 @@ import 'components/chain_projectile_component.dart';
 import 'components/damage_number_component.dart';
 import 'components/death_burst_effect_component.dart';
 import 'components/enemy_component.dart';
+import 'components/gem_equip_effect_component.dart';
 import 'components/grid_component.dart';
 import 'components/impact_effect_component.dart';
 import 'components/lightning_chain_beam_component.dart';
@@ -1886,19 +1887,24 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void equipSelectedTurret(GemType type) {
-    _applyTurretAction(
-      _turretActions.equipGem(
-        phase: _phase,
-        selectedPoint: _selectedTurretPoint,
-        selectedSlotIndex: _selectedTurretGemSlotIndex,
-        turrets: _turrets,
-        gemInventory: _gemInventory,
-        type: type,
-        gold: _gold,
-        gemShards: _gemShards,
-        levelUpPreviewPoint: _levelUpPreviewPoint,
-      ),
+    final result = _turretActions.equipGem(
+      phase: _phase,
+      selectedPoint: _selectedTurretPoint,
+      selectedSlotIndex: _selectedTurretGemSlotIndex,
+      turrets: _turrets,
+      gemInventory: _gemInventory,
+      type: type,
+      gold: _gold,
+      gemShards: _gemShards,
+      levelUpPreviewPoint: _levelUpPreviewPoint,
     );
+    _applyTurretAction(result);
+
+    final selectedPoint = result?.selectedTurretPoint;
+    final turret = selectedPoint == null ? null : _turrets[selectedPoint];
+    if (turret != null) {
+      _spawnGemEquipEffect(turret, type);
+    }
   }
 
   void removeSelectedTurretGemSlot() {
@@ -2038,6 +2044,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Color colorForGem(GemType type) => gameGems[type]!.color;
+
+  void _spawnGemEquipEffect(TurretComponent turret, GemType type) {
+    add(
+      GemEquipEffectComponent(
+        position: turret.position.clone(),
+        gemColor: colorForGem(type),
+        visualScale: boardDistanceScale,
+      ),
+    );
+  }
 
   void showDamageNumber({
     required Vector2 position,
@@ -3085,6 +3101,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
     for (final component
         in children.whereType<ImpactEffectComponent>().toList()) {
+      component.removeFromParent();
+    }
+    for (final component
+        in children.whereType<GemEquipEffectComponent>().toList()) {
       component.removeFromParent();
     }
     for (final component

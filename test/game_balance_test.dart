@@ -38,6 +38,7 @@ import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/domain/wave/wave_definition.dart';
 import 'package:rune_nexus/game/components/chain_projectile_component.dart';
 import 'package:rune_nexus/game/components/enemy_component.dart';
+import 'package:rune_nexus/game/components/gem_equip_effect_component.dart';
 import 'package:rune_nexus/game/components/lightning_charge_component.dart';
 import 'package:rune_nexus/game/components/lightning_chain_beam_component.dart';
 import 'package:rune_nexus/game/components/projectile_component.dart';
@@ -4516,6 +4517,33 @@ void main() {
     expect(snapshot.selectedTurretGems, [null, GemType.range]);
     expect(snapshot.gemInventory[GemType.range], isNull);
     expect(snapshot.gemCollection[GemType.range], 1);
+  });
+
+  test('equipping a gem plays a transient socket effect on success', () async {
+    final game = _LinkResearchUnlockedGame(
+      saveRepository: MemorySaveRepository(),
+    );
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    game.tryBuildTurret(const GridPoint(2, 0));
+    game.grantGem(GemType.range);
+    game.equipSelectedTurret(GemType.range);
+    game.update(0);
+
+    final effect = game.children.whereType<GemEquipEffectComponent>().single;
+    expect(effect.gemColor, game.colorForGem(GemType.range));
+
+    game.equipSelectedTurret(GemType.range);
+    game.update(0);
+    expect(game.children.whereType<GemEquipEffectComponent>(), hasLength(1));
+
+    effect.update(1);
+    expect(game.children.whereType<GemEquipEffectComponent>(), isEmpty);
+
+    game.removeSelectedTurretGemSlot();
+    game.update(0);
+    expect(game.children.whereType<GemEquipEffectComponent>(), isEmpty);
   });
 
   test('removing a gem keeps other gem socket positions fixed', () async {
