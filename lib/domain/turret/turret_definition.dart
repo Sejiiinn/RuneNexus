@@ -21,7 +21,7 @@ class TurretDefinition {
     this.centeredAreaAttack = false,
     this.instantHit = false,
     this.aimDuration = 0,
-    this.criticalChance = 0,
+    this.criticalChance = 0.05,
     this.criticalDamageMultiplier = 1.5,
     this.slowMultiplier = 1,
     this.slowDuration = 0,

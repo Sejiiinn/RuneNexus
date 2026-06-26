@@ -1060,9 +1060,11 @@ void main() {
     );
   });
 
-  test('turret critical damage uses base multiplier and sniper bonus', () {
+  test('turrets use base critical stats and sniper bonus', () {
     for (final entry in gameTurrets.entries) {
+      final expectedChance = entry.key == TurretType.sniper ? 0.15 : 0.05;
       final expectedMultiplier = entry.key == TurretType.sniper ? 2.0 : 1.5;
+      expect(entry.value.criticalChance, closeTo(expectedChance, 0.001));
       expect(
         entry.value.criticalDamageMultiplier,
         closeTo(expectedMultiplier, 0.001),
@@ -3962,7 +3964,7 @@ void main() {
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(4));
     expect(game.snapshotNotifier.value.criticalChanceUpgradeLevel, 1);
     expect(game.snapshotNotifier.value.criticalDamageUpgradeLevel, 1);
-    expect(arrow.criticalChance, closeTo(0.01, 0.001));
+    expect(arrow.criticalChance, closeTo(0.06, 0.001));
     expect(arrow.criticalDamageMultiplier, closeTo(1.51, 0.001));
     expect(sniper.criticalChance, closeTo(0.16, 0.001));
     expect(sniper.criticalDamageMultiplier, closeTo(2.01, 0.001));
@@ -4370,7 +4372,7 @@ void main() {
     arrow.equipGem(GemType.criticalChance, 0);
     sniper.equipGem(GemType.criticalChance, 0);
 
-    expect(arrow.criticalChance, closeTo(0.2, 0.001));
+    expect(arrow.criticalChance, closeTo(0.25, 0.001));
     expect(sniper.criticalChance, closeTo(0.35, 0.001));
   });
 
