@@ -139,6 +139,7 @@ class HudStatPill extends StatelessWidget {
     required this.value,
     this.valueChild,
     this.expand = true,
+    this.accent,
     super.key,
   });
 
@@ -146,15 +147,24 @@ class HudStatPill extends StatelessWidget {
   final String value;
   final Widget? valueChild;
   final bool expand;
+  // null이면 기본(시안) 스타일, 지정하면 해당 색으로 강조(예: 치명타 계열).
+  final Color? accent;
 
   @override
   Widget build(BuildContext context) {
+    final accentColor = accent;
     final content = Container(
       constraints: expand ? null : const BoxConstraints(minWidth: 58),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
       decoration: BoxDecoration(
-        color: const Color(0xAA07111D),
-        border: Border.all(color: const Color(0x3333D8FF)),
+        color: accentColor != null
+            ? accentColor.withValues(alpha: 0.10)
+            : const Color(0xAA07111D),
+        border: Border.all(
+          color: accentColor != null
+              ? accentColor.withValues(alpha: 0.5)
+              : const Color(0x3333D8FF),
+        ),
         borderRadius: BorderRadius.circular(7),
       ),
       child: Column(
@@ -171,9 +181,10 @@ class HudStatPill extends StatelessWidget {
                 valueChild ??
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
+                    color: accentColor ?? const Color(0xFFE8F8FF),
                   ),
                   overflow: TextOverflow.clip,
                 ),

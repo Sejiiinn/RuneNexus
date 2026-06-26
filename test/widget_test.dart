@@ -2984,6 +2984,8 @@ GameSnapshot _resultSnapshot({
     selectedTurretDamage: 0,
     selectedTurretRange: 0,
     selectedTurretAttackRate: 0,
+    selectedTurretCriticalChance: 0,
+    selectedTurretCriticalDamageMultiplier: 1.5,
     selectedTurretBurnDamagePerSecond: 0,
     selectedTurretBurnDuration: 0,
     selectedTurretDamageDealt: 0,

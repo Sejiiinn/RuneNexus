@@ -142,6 +142,9 @@ class GameSnapshotBuilder {
       selectedTurretDamage: selectedTurret?.damage ?? 0,
       selectedTurretRange: selectedTurret?.range ?? 0,
       selectedTurretAttackRate: selectedTurret?.attackRate ?? 0,
+      selectedTurretCriticalChance: selectedTurret?.criticalChance ?? 0,
+      selectedTurretCriticalDamageMultiplier:
+          selectedTurret?.criticalDamageMultiplier ?? 1.5,
       selectedTurretBurnDamagePerSecond: selectedTurretBurnDamagePerSecond,
       selectedTurretBurnDuration: selectedTurretBurnDuration,
       selectedTurretDamageDealt: selectedTurret?.damageDealt ?? 0,

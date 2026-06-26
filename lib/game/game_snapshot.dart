@@ -67,6 +67,8 @@ class GameSnapshot {
     required this.selectedTurretDamage,
     required this.selectedTurretRange,
     required this.selectedTurretAttackRate,
+    required this.selectedTurretCriticalChance,
+    required this.selectedTurretCriticalDamageMultiplier,
     required this.selectedTurretBurnDamagePerSecond,
     required this.selectedTurretBurnDuration,
     required this.selectedTurretDamageDealt,
@@ -229,6 +231,8 @@ class GameSnapshot {
   final double selectedTurretDamage;
   final double selectedTurretRange;
   final double selectedTurretAttackRate;
+  final double selectedTurretCriticalChance;
+  final double selectedTurretCriticalDamageMultiplier;
   final double selectedTurretBurnDamagePerSecond;
   final double selectedTurretBurnDuration;
   final double selectedTurretDamageDealt;

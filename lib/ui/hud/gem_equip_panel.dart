@@ -28,8 +28,11 @@ class HudGemEquipPanel extends StatefulWidget {
   State<HudGemEquipPanel> createState() => _GemEquipPanelState();
 }
 
+enum _TurretTab { stats, gems }
+
 class _GemEquipPanelState extends State<HudGemEquipPanel> {
   GemType? _selectedInventoryGem;
+  _TurretTab _activeTab = _TurretTab.stats;
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +85,137 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
         selectedInventoryBlockReason == null;
     final showGemInventory = selectedSlotIndex != null && canInstallGems;
 
+    // 레벨업 미리보기 중에는 스탯 변화를 봐야 하므로 스탯 탭을 강제한다.
+    final activeTab = levelUpPreviewActive ? _TurretTab.stats : _activeTab;
+
+    final statsBody = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 포탑 태그를 위로 올리고 누적 피해는 같은 줄 오른쪽으로 정렬.
+        Row(
+          children: [
+            Expanded(child: HudTurretAttributeChips(definition: definition)),
+            const SizedBox(width: 8),
+            _DamageSummaryRow(snapshot: snapshot),
+          ],
+        ),
+        const SizedBox(height: 7),
+        _TurretStats(snapshot: snapshot, definition: definition),
+      ],
+    );
+
+    final gemsBody = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HudTurretLinkSocketStrip(
+          snapshot: snapshot,
+          canInstallGems: canInstallGems,
+          selectedSlotIndex: selectedSlotIndex,
+          onSelectSlot: widget.game.selectSelectedTurretGemSlot,
+          onUpgradeLink: widget.game.upgradeSelectedTurretLink,
+        ),
+        if (showGemInventory && selectedSlotGem != null) ...[
+          const SizedBox(height: 6),
+          HudSelectedSlotGemActions(
+            type: selectedSlotGem,
+            turret: definition,
+            onRemove: canRemoveGems
+                ? widget.game.removeSelectedTurretGemSlot
+                : null,
+          ),
+        ],
+        if (showGemInventory) ...[
+          const SizedBox(height: 6),
+          if (inventory.isEmpty)
+            const Text(
+              '보유 젬 없음',
+              style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '보유 젬',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
+                ),
+                const SizedBox(height: 5),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: inventory.map((type) {
+                    final gem = gameGems[type]!;
+                    final count = snapshot.gemInventory[type]!;
+                    final equipped = snapshot.selectedTurretGems.contains(type);
+                    final selected = selectedInventoryGem == type;
+                    final blockReason = gemEquipBlockReason(type, definition);
+                    final canInstall =
+                        selectedSlotCanAcceptGem &&
+                        !equipped &&
+                        blockReason == null;
+                    return HudInventoryGemChip(
+                      gem: gem,
+                      count: count,
+                      selected: selected,
+                      equipped: equipped,
+                      blocked: blockReason != null,
+                      enabled: canInstallGems,
+                      onTap: () {
+                        if (!canInstallGems) {
+                          return;
+                        }
+                        if (selected && canInstall) {
+                          widget.game.equipSelectedTurret(type);
+                          setState(() {
+                            _selectedInventoryGem = null;
+                          });
+                          return;
+                        }
+                        setState(() {
+                          _selectedInventoryGem = type;
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+                if (selectedInventoryGem != null &&
+                    selectedInventoryGemDefinition != null) ...[
+                  const SizedBox(height: 6),
+                  HudSelectedInventoryGemActions(
+                    type: selectedInventoryGem,
+                    turret: definition,
+                    gem: selectedInventoryGemDefinition,
+                    blockReason: selectedInventoryInstallBlockReason,
+                    canInstall: selectedInventoryCanInstall,
+                    enabled: canInstallGems,
+                    onInstall: () {
+                      widget.game.equipSelectedTurret(selectedInventoryGem);
+                      setState(() {
+                        _selectedInventoryGem = null;
+                      });
+                    },
+                  ),
+                ],
+              ],
+            ),
+        ] else if (canInstallGems) ...[
+          const SizedBox(height: 6),
+          const Text(
+            '링크를 선택하면 젬을 관리할 수 있습니다',
+            style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
+          ),
+        ],
+      ],
+    );
+
+    // 패널이 전장을 끝없이 덮지 않도록 본문 높이를 화면 비율로 제한하고 내부 스크롤.
+    final maxBodyHeight = (MediaQuery.sizeOf(context).height * 0.28).clamp(
+      150.0,
+      280.0,
+    );
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(8),
@@ -101,49 +235,38 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
                   levelUpPreviewActive
                       ? '${snapshot.selectedTurretName} 포탑  Lv.${snapshot.selectedTurretLevel} -> ${snapshot.selectedTurretNextLevel}'
                       : '${snapshot.selectedTurretName} 포탑  Lv.${snapshot.selectedTurretLevel}/${snapshot.selectedTurretMaxLevel}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFFE8F8FF),
-                  ),
+                  style: const TextStyle(fontSize: 12, color: Color(0xFFE8F8FF)),
                   overflow: TextOverflow.clip,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(child: _DamageSummaryRow(snapshot: snapshot)),
               const SizedBox(width: 6),
-              Flexible(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: _TurretActionBar(
-                    canLevelUp:
-                        snapshot.selectedTurretCanLevelUp &&
-                        canLevelUp &&
-                        snapshot.gold >= snapshot.selectedTurretLevelUpCost,
-                    levelUpLabel: snapshot.selectedTurretCanLevelUp
-                        ? '${snapshot.selectedTurretLevelUpCost}G'
-                        : 'MAX',
-                    levelUpPreviewActive: levelUpPreviewActive,
-                    onLevelUp: widget.game.previewOrLevelUpSelectedTurret,
-                    canRefund: canRefund,
-                    refundLabel: '${snapshot.selectedTurretRefundGold}G',
-                    onRefund: () => _confirmRefundSelectedTurret(snapshot),
-                    traitButton: snapshot.selectedTurretSupportsTraits
-                        ? HudTurretTraitActionButton(
-                            snapshot: snapshot,
-                            onPressed: () => _showTraitDialog(snapshot),
-                          )
-                        : null,
-                  ),
-                ),
+              _TurretActionBar(
+                canLevelUp:
+                    snapshot.selectedTurretCanLevelUp &&
+                    canLevelUp &&
+                    snapshot.gold >= snapshot.selectedTurretLevelUpCost,
+                levelUpLabel: snapshot.selectedTurretCanLevelUp
+                    ? '${snapshot.selectedTurretLevelUpCost}G'
+                    : 'MAX',
+                levelUpPreviewActive: levelUpPreviewActive,
+                onLevelUp: widget.game.previewOrLevelUpSelectedTurret,
+                canRefund: canRefund,
+                refundLabel: '${snapshot.selectedTurretRefundGold}G',
+                onRefund: () => _confirmRefundSelectedTurret(snapshot),
+                traitButton: snapshot.selectedTurretSupportsTraits
+                    ? HudTurretTraitActionButton(
+                        snapshot: snapshot,
+                        onPressed: () => _showTraitDialog(snapshot),
+                      )
+                    : null,
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          HudTurretAttributeChips(definition: definition),
+          const SizedBox(height: 8),
+          _TurretInspectorTabs(
+            activeTab: activeTab,
+            onSelect: (tab) => setState(() => _activeTab = tab),
+          ),
           if (snapshot.canSetTurretTargetPriority) ...[
             const SizedBox(height: 6),
             _TurretTargetPrioritySelector(
@@ -152,108 +275,12 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
             ),
           ],
           const SizedBox(height: 6),
-          _TurretStats(snapshot: snapshot, definition: definition),
-          const SizedBox(height: 6),
-          HudTurretLinkSocketStrip(
-            snapshot: snapshot,
-            canInstallGems: canInstallGems,
-            selectedSlotIndex: selectedSlotIndex,
-            onSelectSlot: widget.game.selectSelectedTurretGemSlot,
-            onUpgradeLink: widget.game.upgradeSelectedTurretLink,
+          ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxBodyHeight),
+            child: SingleChildScrollView(
+              child: activeTab == _TurretTab.stats ? statsBody : gemsBody,
+            ),
           ),
-          if (showGemInventory && selectedSlotGem != null) ...[
-            const SizedBox(height: 6),
-            HudSelectedSlotGemActions(
-              type: selectedSlotGem,
-              turret: definition,
-              onRemove: canRemoveGems
-                  ? widget.game.removeSelectedTurretGemSlot
-                  : null,
-            ),
-          ],
-          if (showGemInventory) ...[
-            const SizedBox(height: 6),
-            if (inventory.isEmpty)
-              const Text(
-                '보유 젬 없음',
-                style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
-              )
-            else
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '보유 젬',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
-                  ),
-                  const SizedBox(height: 5),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: inventory.map((type) {
-                      final gem = gameGems[type]!;
-                      final count = snapshot.gemInventory[type]!;
-                      final equipped = snapshot.selectedTurretGems.contains(
-                        type,
-                      );
-                      final selected = selectedInventoryGem == type;
-                      final blockReason = gemEquipBlockReason(type, definition);
-                      final canInstall =
-                          selectedSlotCanAcceptGem &&
-                          !equipped &&
-                          blockReason == null;
-                      return HudInventoryGemChip(
-                        gem: gem,
-                        count: count,
-                        selected: selected,
-                        equipped: equipped,
-                        blocked: blockReason != null,
-                        enabled: canInstallGems,
-                        onTap: () {
-                          if (!canInstallGems) {
-                            return;
-                          }
-                          if (selected && canInstall) {
-                            widget.game.equipSelectedTurret(type);
-                            setState(() {
-                              _selectedInventoryGem = null;
-                            });
-                            return;
-                          }
-                          setState(() {
-                            _selectedInventoryGem = type;
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-                  if (selectedInventoryGem != null &&
-                      selectedInventoryGemDefinition != null) ...[
-                    const SizedBox(height: 6),
-                    HudSelectedInventoryGemActions(
-                      type: selectedInventoryGem,
-                      turret: definition,
-                      gem: selectedInventoryGemDefinition,
-                      blockReason: selectedInventoryInstallBlockReason,
-                      canInstall: selectedInventoryCanInstall,
-                      enabled: canInstallGems,
-                      onInstall: () {
-                        widget.game.equipSelectedTurret(selectedInventoryGem);
-                        setState(() {
-                          _selectedInventoryGem = null;
-                        });
-                      },
-                    ),
-                  ],
-                ],
-              ),
-          ] else if (canInstallGems) ...[
-            const SizedBox(height: 6),
-            const Text(
-              '링크를 선택하면 젬을 관리할 수 있습니다',
-              style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
-            ),
-          ],
         ],
       ),
     );
@@ -305,6 +332,64 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
         widget.game.resumeEngine();
       }
     }
+  }
+}
+
+class _TurretInspectorTabs extends StatelessWidget {
+  const _TurretInspectorTabs({
+    required this.activeTab,
+    required this.onSelect,
+  });
+
+  final _TurretTab activeTab;
+  final ValueChanged<_TurretTab> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _tab(_TurretTab.stats, Icons.bar_chart_rounded, '스탯'),
+        ),
+        const SizedBox(width: 5),
+        Expanded(
+          child: _tab(_TurretTab.gems, Icons.diamond_outlined, '젬 · 링크'),
+        ),
+      ],
+    );
+  }
+
+  Widget _tab(_TurretTab tab, IconData icon, String label) {
+    final selected = activeTab == tab;
+    final foreground = selected
+        ? GamePalette.textPrimary
+        : GamePalette.textSecondary;
+    final accentColor = selected ? GamePalette.cyan : GamePalette.metalDim;
+    // 하단 런 패널 탭과 동일한 게임 버튼 컴포넌트로 톤을 맞춘다.
+    return GameButton(
+      onPressed: () => onSelect(tab),
+      selected: selected,
+      compact: true,
+      variant: GameButtonVariant.secondary,
+      accentColor: accentColor,
+      height: 36,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 16, color: foreground),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.clip,
+              style: GameTextStyles.withColor(GameTextStyles.button, foreground),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -840,108 +925,142 @@ class _TurretStats extends StatelessWidget {
   Widget build(BuildContext context) {
     final previewActive = snapshot.selectedTurretLevelUpPreviewActive;
     final dps = snapshot.selectedTurretAttackRate <= 0
-        ? 0
+        ? 0.0
         : snapshot.selectedTurretDamage * snapshot.selectedTurretAttackRate;
     final nextDps = snapshot.selectedTurretNextAttackRate <= 0
-        ? 0
+        ? 0.0
         : snapshot.selectedTurretNextDamage *
               snapshot.selectedTurretNextAttackRate;
     final burnDps = snapshot.selectedTurretBurnDamagePerSecond;
     final totalDps = dps + burnDps;
     final nextTotalDps =
         nextDps + snapshot.selectedTurretNextBurnDamagePerSecond;
+    const critColor = Color(0xFFE7C66A);
 
-    return Row(
-      children: [
-        HudStatPill(
-          label: '피해',
-          value: snapshot.selectedTurretDamage.toStringAsFixed(1),
-          valueChild: previewActive
-              ? _PreviewStatValue(
-                  current: snapshot.selectedTurretDamage.toStringAsFixed(1),
-                  next: snapshot.selectedTurretNextDamage.toStringAsFixed(1),
-                )
-              : null,
-        ),
-        const SizedBox(width: 5),
-        HudStatPill(
-          label: 'DPS',
-          value: totalDps.toStringAsFixed(1),
-          valueChild: previewActive
-              ? _PreviewStatValue(
-                  current: totalDps.toStringAsFixed(1),
-                  next: nextTotalDps.toStringAsFixed(1),
-                )
-              : burnDps > 0
-              ? RichText(
-                  maxLines: 1,
-                  overflow: TextOverflow.clip,
-                  text: TextSpan(
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFFE8F8FF),
-                    ),
-                    children: [
-                      TextSpan(text: dps.toStringAsFixed(1)),
-                      TextSpan(
-                        text: ' +${burnDps.toStringAsFixed(1)}',
-                        style: const TextStyle(color: Color(0xFFFFA24A)),
-                      ),
-                    ],
+    // 카드형 1줄 나열 대신 3열 그리드로 정렬해 부가 스탯(치명타)까지 담는다.
+    final cells = <Widget>[
+      HudStatPill(
+        label: '피해',
+        value: snapshot.selectedTurretDamage.toStringAsFixed(1),
+        valueChild: previewActive
+            ? _PreviewStatValue(
+                current: snapshot.selectedTurretDamage.toStringAsFixed(1),
+                next: snapshot.selectedTurretNextDamage.toStringAsFixed(1),
+              )
+            : null,
+      ),
+      HudStatPill(
+        label: '초당',
+        value: '${snapshot.selectedTurretAttackRate.toStringAsFixed(2)}회',
+        valueChild: previewActive
+            ? _PreviewStatValue(
+                current:
+                    '${snapshot.selectedTurretAttackRate.toStringAsFixed(2)}회',
+                next:
+                    '${snapshot.selectedTurretNextAttackRate.toStringAsFixed(2)}회',
+              )
+            : null,
+      ),
+      HudStatPill(
+        label: '사거리',
+        value: snapshot.selectedTurretRange.round().toString(),
+        valueChild: previewActive
+            ? _PreviewStatValue(
+                current: snapshot.selectedTurretRange.round().toString(),
+                next: snapshot.selectedTurretNextRange.round().toString(),
+              )
+            : null,
+      ),
+      HudStatPill(
+        label: 'DPS',
+        value: totalDps.toStringAsFixed(1),
+        valueChild: previewActive
+            ? _PreviewStatValue(
+                current: totalDps.toStringAsFixed(1),
+                next: nextTotalDps.toStringAsFixed(1),
+              )
+            : burnDps > 0
+            ? RichText(
+                maxLines: 1,
+                overflow: TextOverflow.clip,
+                text: TextSpan(
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFFE8F8FF),
                   ),
-                )
-              : null,
-        ),
-        if (burnDps > 0) ...[
-          const SizedBox(width: 5),
-          HudStatPill(
-            label: '화상',
-            value: '${snapshot.selectedTurretBurnDuration.toStringAsFixed(1)}초',
-            valueChild: previewActive
-                ? _PreviewStatValue(
-                    current:
-                        '${snapshot.selectedTurretBurnDuration.toStringAsFixed(1)}초',
-                    next:
-                        '${snapshot.selectedTurretNextBurnDuration.toStringAsFixed(1)}초',
-                  )
-                : null,
-          ),
-        ],
-        if (definition.slowDuration > 0) ...[
-          const SizedBox(width: 5),
-          HudStatPill(
-            label: '감속',
-            value:
-                '${((1 - definition.slowMultiplier) * 100).round()}%/${definition.slowDuration.toStringAsFixed(1)}초',
-          ),
-        ],
-        const SizedBox(width: 5),
+                  children: [
+                    TextSpan(text: dps.toStringAsFixed(1)),
+                    TextSpan(
+                      text: ' +${burnDps.toStringAsFixed(1)}',
+                      style: const TextStyle(color: Color(0xFFFFA24A)),
+                    ),
+                  ],
+                ),
+              )
+            : null,
+      ),
+      HudStatPill(
+        label: '치명 확률',
+        value: '${(snapshot.selectedTurretCriticalChance * 100).round()}%',
+        accent: critColor,
+      ),
+      HudStatPill(
+        label: '치명 피해',
+        value:
+            '${(snapshot.selectedTurretCriticalDamageMultiplier * 100).round()}%',
+        accent: critColor,
+      ),
+    ];
+
+    if (burnDps > 0) {
+      cells.add(
         HudStatPill(
-          label: '사거리',
-          value: snapshot.selectedTurretRange.round().toString(),
-          valueChild: previewActive
-              ? _PreviewStatValue(
-                  current: snapshot.selectedTurretRange.round().toString(),
-                  next: snapshot.selectedTurretNextRange.round().toString(),
-                )
-              : null,
-        ),
-        const SizedBox(width: 5),
-        HudStatPill(
-          label: '초당',
-          value: '${snapshot.selectedTurretAttackRate.toStringAsFixed(2)}회',
+          label: '화상',
+          value: '${snapshot.selectedTurretBurnDuration.toStringAsFixed(1)}초',
           valueChild: previewActive
               ? _PreviewStatValue(
                   current:
-                      '${snapshot.selectedTurretAttackRate.toStringAsFixed(2)}회',
+                      '${snapshot.selectedTurretBurnDuration.toStringAsFixed(1)}초',
                   next:
-                      '${snapshot.selectedTurretNextAttackRate.toStringAsFixed(2)}회',
+                      '${snapshot.selectedTurretNextBurnDuration.toStringAsFixed(1)}초',
                 )
               : null,
         ),
-      ],
-    );
+      );
+    }
+    if (definition.slowDuration > 0) {
+      cells.add(
+        HudStatPill(
+          label: '감속',
+          value:
+              '${((1 - definition.slowMultiplier) * 100).round()}%/${definition.slowDuration.toStringAsFixed(1)}초',
+        ),
+      );
+    }
+
+    const columns = 3;
+    final rows = <Widget>[];
+    for (var i = 0; i < cells.length; i += columns) {
+      final rowChildren = <Widget>[];
+      for (var j = 0; j < columns; j++) {
+        if (j > 0) {
+          rowChildren.add(const SizedBox(width: 5));
+        }
+        final index = i + j;
+        rowChildren.add(
+          index < cells.length
+              ? cells[index]
+              : const Expanded(child: SizedBox.shrink()),
+        );
+      }
+      if (rows.isNotEmpty) {
+        rows.add(const SizedBox(height: 5));
+      }
+      rows.add(Row(children: rowChildren));
+    }
+
+    return Column(mainAxisSize: MainAxisSize.min, children: rows);
   }
 }
 
