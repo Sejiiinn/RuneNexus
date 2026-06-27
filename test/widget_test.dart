@@ -743,6 +743,107 @@ void main() {
     );
   });
 
+  testWidgets('turret module disassemble asks confirmation first', (
+    tester,
+  ) async {
+    final spareCore = TurretModuleInventoryItem(
+      id: 'spare-core-module',
+      key: TurretModuleKey(
+        turretType: TurretType.arrow,
+        part: TurretModulePart.core,
+        family: turretModuleFamilyFor(TurretType.arrow, TurretModulePart.core),
+        grade: TurretModuleGrade.normal,
+      ),
+      options: const [
+        TurretModuleOptionRoll(
+          type: TurretModuleOptionType.damageIncrease,
+          value: 5,
+        ),
+      ],
+      acquiredOrder: 1,
+      equipped: false,
+    );
+    final game = _TurretModuleDisassembleGame();
+    final snapshot = _resultSnapshot(
+      phase: GamePhase.preparation,
+      currentStageNumber: 1,
+      ownedTurretModules: [spareCore],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: game,
+          snapshot: snapshot,
+          selectedTab: MainMenuTab.turretModules,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    final inventorySlot = find.byKey(
+      const ValueKey('turret-module-inventory-slot-spare-core-module'),
+    );
+    await tester.ensureVisible(inventorySlot);
+    await _pumpGameFrames(tester);
+    await tester.tap(inventorySlot);
+    await _pumpGameFrames(tester);
+
+    final disassembleButton = find.byKey(
+      const ValueKey('turret-module-disassemble-button-spare-core-module'),
+    );
+    await tester.ensureVisible(disassembleButton);
+    await _pumpGameFrames(tester);
+    await tester.tap(disassembleButton);
+    await _pumpGameFrames(tester);
+
+    expect(game.disassembledId, isNull);
+    final dialog = find.byKey(
+      const ValueKey('turret-module-disassemble-dialog'),
+    );
+    expect(dialog, findsOneWidget);
+    expect(
+      find.descendant(
+        of: dialog,
+        matching: find.text('이 모듈 분해 시 2 다이아가 반환됩니다. 진행하시겠습니까?'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: dialog, matching: find.text('반환 다이아')),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('turret-module-disassemble-cancel')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(dialog, findsNothing);
+    expect(game.disassembledId, isNull);
+
+    await tester.ensureVisible(disassembleButton);
+    await _pumpGameFrames(tester);
+    await tester.tap(disassembleButton);
+    await _pumpGameFrames(tester);
+    await tester.tap(
+      find.byKey(const ValueKey('turret-module-disassemble-confirm')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(game.disassembledId, 'spare-core-module');
+  });
+
   testWidgets('core slot board remains anchored when switching ability tabs', (
     tester,
   ) async {
@@ -3284,6 +3385,19 @@ class _TurretModuleDrawGame extends RuneNexusGame {
       ownedTurretModules: results,
     );
     return results;
+  }
+}
+
+class _TurretModuleDisassembleGame extends RuneNexusGame {
+  _TurretModuleDisassembleGame()
+    : super(saveRepository: MemorySaveRepository());
+
+  String? disassembledId;
+
+  @override
+  bool disassembleTurretModule(String id) {
+    disassembledId = id;
+    return true;
   }
 }
 

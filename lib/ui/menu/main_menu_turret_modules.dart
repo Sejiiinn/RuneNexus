@@ -1122,6 +1122,7 @@ class _TurretModuleDetailStrip extends StatelessWidget {
           const SizedBox(width: 6),
           Expanded(
             child: GameButton(
+              key: ValueKey('turret-module-disassemble-button-${item.id}'),
               onPressed: () => _confirmDisassemble(context, item),
               label: '분해',
               compact: true,
@@ -1138,61 +1139,119 @@ class _TurretModuleDetailStrip extends StatelessWidget {
     BuildContext context,
     TurretModuleInventoryItem item,
   ) async {
-    var confirmed = true;
-    if (item.key.grade == TurretModuleGrade.rare ||
-        item.key.grade == TurretModuleGrade.unique) {
-      confirmed =
-          await showDialog<bool>(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                backgroundColor: const Color(0xFF0B1725),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  side: BorderSide(color: _gradeColor(item.key.grade)),
-                ),
-                title: const Text(
-                  '모듈 분해',
-                  style: TextStyle(
-                    color: GamePalette.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                content: Text(
-                  '${item.key.grade.label} 모듈을 분해하고 '
-                  '${item.key.grade.disassembleDiamondValue} 다이아를 획득합니다.',
-                  style: GameTextStyles.body,
-                ),
-                actions: [
-                  SizedBox(
-                    width: 76,
-                    child: GameButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      label: '취소',
-                      compact: true,
-                      variant: GameButtonVariant.ghost,
-                      accentColor: GamePalette.metal,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 76,
-                    child: GameButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      label: '분해',
-                      compact: true,
-                      accentColor: GamePalette.gold,
-                    ),
-                  ),
-                ],
-              );
-            },
-          ) ??
-          false;
-    }
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (context) => _TurretModuleDisassembleDialog(item: item),
+        ) ??
+        false;
     if (confirmed) {
       game.disassembleTurretModule(item.id);
     }
+  }
+}
+
+class _TurretModuleDisassembleDialog extends StatelessWidget {
+  const _TurretModuleDisassembleDialog({required this.item});
+
+  final TurretModuleInventoryItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final returnDiamonds = item.key.grade.disassembleDiamondValue;
+    final gradeColor = _gradeColor(item.key.grade);
+    return Dialog(
+      key: const ValueKey('turret-module-disassemble-dialog'),
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: GamePanel(
+          variant: GamePanelVariant.danger,
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: GamePalette.danger,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text('모듈 분해', style: GameTextStyles.title),
+                  ),
+                  _ModuleInfoChip(text: item.key.grade.label),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '이 모듈 분해 시 $returnDiamonds 다이아가 반환됩니다. 진행하시겠습니까?',
+                style: GameTextStyles.body,
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 9,
+                ),
+                decoration: BoxDecoration(
+                  color: gradeColor.withValues(alpha: 0.13),
+                  border: Border.all(color: gradeColor.withValues(alpha: 0.44)),
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                child: Row(
+                  children: [
+                    const DiamondCurrencyIcon(size: 18),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text('반환 다이아', style: GameTextStyles.caption),
+                    ),
+                    Text(
+                      '$returnDiamonds',
+                      style: GameTextStyles.withColor(
+                        GameTextStyles.sectionTitle,
+                        _diamondCurrencyColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: GameButton(
+                      key: const ValueKey('turret-module-disassemble-cancel'),
+                      onPressed: () => Navigator.of(context).pop(false),
+                      label: '취소',
+                      icon: const Icon(Icons.arrow_back, size: 17),
+                      variant: GameButtonVariant.ghost,
+                      accentColor: GamePalette.metal,
+                      height: 38,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: GameButton(
+                      key: const ValueKey('turret-module-disassemble-confirm'),
+                      onPressed: () => Navigator.of(context).pop(true),
+                      label: '분해',
+                      icon: const Icon(Icons.delete_outline, size: 17),
+                      variant: GameButtonVariant.danger,
+                      height: 38,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
