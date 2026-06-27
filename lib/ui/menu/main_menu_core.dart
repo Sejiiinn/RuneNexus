@@ -1692,14 +1692,6 @@ class _CoreAbilityData {
           locked: !riftMarkUnlocked,
           enabled: riftMarkUnlocked,
         ),
-        const _CoreAbilityData(
-          icon: Icons.hub_outlined,
-          name: '연쇄 광휘',
-          state: '챕터 2 이후 후보',
-          actionLabel: '준비중',
-          accent: Color(0xFF8FA8BA),
-          locked: true,
-        ),
       ],
       _CoreAbilityTab.passive => [
         _passiveData(

@@ -396,6 +396,7 @@ void main() {
     expect(find.text('패시브 2'), findsOneWidget);
     expect(find.text('수호 광선'), findsWidgets);
     expect(find.text('균열 낙인'), findsOneWidget);
+    expect(find.text('연쇄 광휘'), findsNothing);
     final riftMarkCard = find.byKey(const ValueKey('core-ability-균열 낙인'));
     await tester.ensureVisible(riftMarkCard);
     await _pumpGameFrames(tester);
