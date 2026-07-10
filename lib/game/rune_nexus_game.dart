@@ -2910,6 +2910,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _debugEnemies.clear();
     _debugCombatActive = false;
     _clearBoardSelection(closePanel: true);
+    _settleRunResult(GamePhase.failure);
     _phase = GamePhase.coreDestruction;
     _coreDestructionElapsed = 0;
     _coreDestructionStartZoom = _boardZoom;
@@ -2926,6 +2927,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_gridComponentReady) {
       _gridComponent.nexusDestructionProgress = 0;
     }
+    _requestLocalSave(immediate: true);
   }
 
   void _updateCoreDestructionSequence(double dt) {
@@ -2973,7 +2975,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_gridComponentReady) {
       _gridComponent.nexusDestructionProgress = 1;
     }
-    _finishRun(GamePhase.failure);
+    _phase = GamePhase.failure;
     _publish();
     unawaited(_saveRoundCheckpoint());
   }
@@ -3969,10 +3971,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _finishRun(GamePhase resultPhase) {
-    if (_phase == GamePhase.success || _phase == GamePhase.failure) {
+    if (_phase == GamePhase.success ||
+        _phase == GamePhase.failure ||
+        _phase == GamePhase.coreDestruction) {
       return;
     }
 
+    _settleRunResult(resultPhase);
+    _phase = resultPhase;
+  }
+
+  void _settleRunResult(GamePhase resultPhase) {
     final success = resultPhase == GamePhase.success;
     _completedRounds = success ? _waves.length : _roundIndex;
     final previousBestRound = _progression.bestRoundForStage(
@@ -3995,7 +4004,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         success &&
         !sniperWasUnlocked &&
         _progression.isStageCleared(sniperUnlockStage);
-    _phase = resultPhase;
   }
 
   int _clampedStageNumber(int stageNumber) {
@@ -4101,9 +4109,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Future<void> _writeLocalSave() {
-    if (_phase == GamePhase.coreDestruction) {
-      return Future<void>.value();
-    }
     final data = _buildSaveData();
     if (!_savedDataLoaded) {
       _pendingFullSaveData = data;

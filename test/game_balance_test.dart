@@ -792,8 +792,16 @@ void main() {
 
     expect(game.snapshotNotifier.value.nexusHp, 0);
     expect(game.snapshotNotifier.value.phase, GamePhase.coreDestruction);
-    expect(repository.data?.phase, isNot(GamePhase.coreDestruction));
+    await game.saveNow();
+    expect(repository.data?.phase, GamePhase.failure);
     expect(game.enemies, contains(lingeringEnemy));
+
+    final restoredGame = RuneNexusGame(saveRepository: repository);
+    restoredGame.onGameResize(Vector2(400, 800));
+    await restoredGame.onLoad();
+    restoredGame.continueRestoredRun();
+
+    expect(restoredGame.snapshotNotifier.value.phase, GamePhase.failure);
 
     game.update(1.6);
 
@@ -2188,7 +2196,8 @@ void main() {
   });
 
   test('debug force defeat starts core destruction sequence', () async {
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    final repository = MemorySaveRepository();
+    final game = RuneNexusGame(saveRepository: repository);
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
 
@@ -2197,6 +2206,16 @@ void main() {
 
     expect(game.snapshotNotifier.value.nexusHp, 0);
     expect(game.snapshotNotifier.value.phase, GamePhase.coreDestruction);
+    expect(game.snapshotNotifier.value.completedRounds, 24);
+    final settledRunes = game.snapshotNotifier.value.runes;
+    final settledReward = game.snapshotNotifier.value.lastRunRuneReward;
+    expect(settledReward, greaterThan(0));
+
+    await game.saveNow();
+
+    expect(repository.data?.phase, GamePhase.failure);
+    expect(repository.data?.progression.runes, settledRunes);
+    expect(repository.data?.progression.lastRunRuneReward, settledReward);
 
     game.update(1.6);
 
@@ -2206,6 +2225,8 @@ void main() {
 
     expect(game.snapshotNotifier.value.phase, GamePhase.failure);
     expect(game.snapshotNotifier.value.completedRounds, 24);
+    expect(game.snapshotNotifier.value.runes, settledRunes);
+    expect(game.snapshotNotifier.value.lastRunRuneReward, settledReward);
   });
 
   test('debug gold control adds gold without accepting negative values', () {

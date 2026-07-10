@@ -14,9 +14,12 @@ class GameSaveAdapter {
   const GameSaveAdapter();
 
   GameSaveData buildSaveData(GameSaveBuildState state) {
-    final savedPhase = state.phase == GamePhase.restored
-        ? state.restoredPhase ?? GamePhase.preparation
-        : state.phase;
+    // 파괴 연출은 런타임 전용이며 저장 시 확정된 패배로 기록한다.
+    final savedPhase = switch (state.phase) {
+      GamePhase.coreDestruction => GamePhase.failure,
+      GamePhase.restored => state.restoredPhase ?? GamePhase.preparation,
+      _ => state.phase,
+    };
     final pendingSave = !state.savedDataLoaded
         ? state.pendingFullSaveData
         : null;
