@@ -972,6 +972,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (!_isTurretUnlocked(type)) {
       return;
     }
+    final shouldBuildSelectedTile =
+        _selectedBuildPoint != null && _selectedBuildTurretType == type;
     _selectedTurretType = type;
     _selectedRunPanelTab = RunPanelTab.turrets;
     _selectedBuildTurretType = type;
@@ -979,9 +981,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedCorePoint = null;
     _selectedTurretPoint = null;
     _selectedTurretGemSlotIndex = null;
-    final point = _selectedBuildPoint;
-    if (point == null) {
-      _publish();
+    if (shouldBuildSelectedTile) {
+      confirmBuildSelectedTile();
       return;
     }
 

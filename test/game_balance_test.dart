@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flame/events.dart' show TapDownEvent;
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -53,6 +54,22 @@ import 'package:rune_nexus/game/systems/run_progression.dart';
 import 'package:rune_nexus/game/systems/wave_spawner.dart';
 
 void main() {
+  void tapBuildTile(RuneNexusGame game, GridPoint point) {
+    final origin = game.debugBoardOrigin();
+    final tileSize = game.debugBoardSize().x / gameMap.columns;
+    final position = Offset(
+      origin.x + (point.x + 0.5) * tileSize,
+      origin.y + (point.y + 0.5) * tileSize,
+    );
+    final event = TapDownEvent(
+      1,
+      game,
+      TapDownDetails(globalPosition: position),
+    )..renderingTrace.add(Vector2(position.dx, position.dy));
+
+    game.onTapDown(event);
+  }
+
   test('game stage uses 50 survival rounds', () {
     expect(gameStages, hasLength(15));
     expect(gameStages.first.id, 1);
@@ -2365,6 +2382,56 @@ void main() {
     expect(game.snapshotNotifier.value.placedTurretCount, 0);
     expect(game.snapshotNotifier.value.gold, 170);
   });
+
+  test('same turret button confirms the selected build tile', () async {
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    const buildPoint = GridPoint(2, 0);
+    tapBuildTile(game, buildPoint);
+
+    expect(game.snapshotNotifier.value.selectedBuildPoint, buildPoint);
+
+    final buildCost = game.turretBuildCost(TurretType.cannon);
+    game.previewOrBuildSelectedTile(TurretType.cannon);
+
+    var snapshot = game.snapshotNotifier.value;
+    expect(snapshot.selectedBuildPoint, buildPoint);
+    expect(snapshot.selectedBuildTurretType, TurretType.cannon);
+    expect(snapshot.placedTurretCount, 0);
+    expect(snapshot.gold, 170);
+
+    game.previewOrBuildSelectedTile(TurretType.cannon);
+
+    snapshot = game.snapshotNotifier.value;
+    expect(snapshot.placedTurretCount, 1);
+    expect(snapshot.gold, 170 - buildCost);
+    expect(snapshot.selectedBuildPoint, isNull);
+    expect(snapshot.selectedBuildTurretType, isNull);
+    expect(snapshot.selectedTurretPoint, buildPoint);
+  });
+
+  test(
+    'different turret button switches build preview without installing',
+    () async {
+      final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+
+      const buildPoint = GridPoint(2, 0);
+      tapBuildTile(game, buildPoint);
+
+      game.previewOrBuildSelectedTile(TurretType.cannon);
+      game.previewOrBuildSelectedTile(TurretType.magic);
+
+      final snapshot = game.snapshotNotifier.value;
+      expect(snapshot.selectedBuildPoint, buildPoint);
+      expect(snapshot.selectedBuildTurretType, TurretType.magic);
+      expect(snapshot.placedTurretCount, 0);
+      expect(snapshot.gold, 170);
+    },
+  );
 
   test('run panel tab can be toggled closed', () {
     final game = RuneNexusGame();
