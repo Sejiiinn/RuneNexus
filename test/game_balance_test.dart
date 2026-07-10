@@ -351,8 +351,13 @@ void main() {
       ),
     );
 
-    while (game.snapshotNotifier.value.gemShards <
-        RuneNexusGame.gemChoicePurchaseCost) {
+    for (
+      var completedRound = 0;
+      game.snapshotNotifier.value.gemShards <
+              RuneNexusGame.gemChoicePurchaseCost &&
+          completedRound < game.snapshotNotifier.value.maxRound;
+      completedRound++
+    ) {
       game.startNextWave();
       game.update(0.016);
       final snapshot = game.snapshotNotifier.value;
@@ -400,8 +405,13 @@ void main() {
       ),
     );
 
-    while (game.snapshotNotifier.value.gemShards <
-        RuneNexusGame.gemChoicePurchaseCost) {
+    for (
+      var completedRound = 0;
+      game.snapshotNotifier.value.gemShards <
+              RuneNexusGame.gemChoicePurchaseCost &&
+          completedRound < game.snapshotNotifier.value.maxRound;
+      completedRound++
+    ) {
       game.startNextWave();
       game.update(0.016);
       final snapshot = game.snapshotNotifier.value;
@@ -409,6 +419,11 @@ void main() {
         game.selectRewardGem(snapshot.rewardOptions.first);
       }
     }
+
+    expect(
+      game.snapshotNotifier.value.gemShards,
+      RuneNexusGame.gemChoicePurchaseCost,
+    );
 
     game.startNextWave();
     expect(game.snapshotNotifier.value.phase, GamePhase.wave);
@@ -432,12 +447,13 @@ void main() {
         clearedStageNumbers: const {},
         researchLevels: const {},
         gemShards: RuneNexusGame.gemChoicePurchaseCost,
+        phase: GamePhase.wave,
         mapSignature: const GameSaveAdapter().mapSignature(gameMap),
       );
     final game = RuneNexusGame(saveRepository: repository);
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
-    game.startNextWave();
+    game.continueRestoredRun();
 
     final enemy = EnemyComponent(
       definition: gameEnemies[EnemyType.normal]!,
@@ -464,6 +480,7 @@ void main() {
         clearedStageNumbers: const {},
         researchLevels: const {},
         gemShards: RuneNexusGame.gemChoicePurchaseCost,
+        roundIndex: 1,
         mapSignature: const GameSaveAdapter().mapSignature(gameMap),
       );
     final game = RuneNexusGame(saveRepository: repository);
@@ -862,7 +879,8 @@ void main() {
     await game.onLoad();
     game.tryBuildTurret(const GridPoint(2, 0));
     final turret = game.children.whereType<TurretComponent>().single;
-    final expectedScale = 41.9 / 48;
+    final expectedTileSize = game.debugBoardSize().x / gameMap.columns;
+    final expectedScale = expectedTileSize / 48;
 
     expect(game.boardDistanceScale, closeTo(expectedScale, 0.001));
     expect(turret.range, closeTo(96 * expectedScale, 0.001));
@@ -5145,7 +5163,7 @@ void main() {
   test(
     'fire turret exposes burn damage in the selected turret stats',
     () async {
-      final game = RuneNexusGame();
+      final game = RuneNexusGame(saveRepository: MemorySaveRepository());
 
       game.onGameResize(Vector2(400, 800));
       await game.onLoad();
@@ -5257,6 +5275,7 @@ void main() {
       game.startNextWave();
       game.update(0.016);
       game.restartRun();
+      game.debugSetClearedStageCount(RuneNexusGame.sniperUnlockStage);
       game.selectTurretType(TurretType.sniper);
       game.tryBuildTurret(const GridPoint(2, 0));
 
@@ -5295,7 +5314,7 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(GameWidget(game: game));
     await tester.pump();
-    game.debugSetClearedStageCount(1);
+    game.debugSetClearedStageCount(RuneNexusGame.sniperUnlockStage);
     game.selectTurretType(TurretType.sniper);
     game.tryBuildTurret(const GridPoint(2, 0));
     game.update(0);
@@ -5597,6 +5616,7 @@ void main() {
       game.update(0);
       game.resolveProjectileHit(
         owner: fireTurret,
+        attack: fireTurret.createAttackSnapshot(),
         target: enemy,
         hitPosition: enemy.position.clone(),
       );
@@ -5704,6 +5724,7 @@ void main() {
 
       game.resolveProjectileHit(
         owner: fireTurret,
+        attack: fireTurret.createAttackSnapshot(),
         target: source,
         hitPosition: source.position.clone(),
       );
@@ -6032,6 +6053,7 @@ void main() {
           clearedStageNumbers: const {},
           researchLevels: const {},
           gemShards: RuneNexusGame.gemChoicePurchaseCost,
+          roundIndex: 1,
           mapSignature: const GameSaveAdapter().mapSignature(gameMap),
         );
       final game = RuneNexusGame(saveRepository: repository);
@@ -6440,6 +6462,7 @@ const _targetPriorityTestTurret = TurretDefinition(
   attackTags: {AttackTag.heavy},
   color: Color(0xFFFFFFFF),
   instantHit: true,
+  criticalChance: 0,
 );
 
 EnemyComponent _targetPriorityEnemy({
@@ -6535,6 +6558,7 @@ GameSaveData _saveWithResearch({
   int gold = 170,
   int unlockedStageCount = 4,
   int gemShards = 0,
+  int roundIndex = 0,
   Map<RunUpgradeType, int> runUpgradeLevels = const {},
   GamePhase phase = GamePhase.preparation,
   bool isPurchasedGemReward = false,
@@ -6550,7 +6574,7 @@ GameSaveData _saveWithResearch({
     nexusHp: 20,
     stageNumber: 1,
     mapSignature: mapSignature,
-    roundIndex: 0,
+    roundIndex: roundIndex,
     completedRounds: 0,
     phase: phase,
     autoStartMode: AutoStartMode.pauseEachRound,

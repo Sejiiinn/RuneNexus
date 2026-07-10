@@ -240,7 +240,7 @@ void main() {
     expect(turret.splashRadius, closeTo(baseSplashRadius * 2.375, 0.001));
   });
 
-  test('fracture impact improves cannon hit damage multiplier', () {
+  test('fracture impact applies attack-local physical vulnerability', () {
     final game = RuneNexusGame();
     final turret = _levelSevenCannon(game)
       ..choosePrimaryTrait(TurretTraitType.shrapnelShell);
@@ -252,15 +252,16 @@ void main() {
 
     game.resolveProjectileHit(
       owner: turret,
+      attack: turret.createAttackSnapshot(),
       target: directEnemy,
       hitPosition: directEnemy.position.clone(),
     );
 
-    expect(directEnemy.hp, closeTo(100 - turret.damage * 1.1, 0.001));
+    expect(directEnemy.hp, closeTo(100 - turret.damage * 1.2, 0.001));
     expect(
       splashEnemy.hp,
       closeTo(
-        100 - turret.damage * turret.splashSecondaryDamageMultiplier * 1.1,
+        100 - turret.damage * turret.splashSecondaryDamageMultiplier * 1.2,
         0.001,
       ),
     );

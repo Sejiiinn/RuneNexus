@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/app/rune_nexus_app.dart';
+import 'package:rune_nexus/data/definitions/game_stage_maps.dart';
 import 'package:rune_nexus/data/save/game_save_data.dart';
 import 'package:rune_nexus/data/save/save_repository.dart';
 import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
@@ -19,6 +20,7 @@ import 'package:rune_nexus/domain/turret_module/turret_module_type.dart';
 import 'package:rune_nexus/data/definitions/game_turret_module_data.dart';
 import 'package:rune_nexus/game/game_snapshot.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
+import 'package:rune_nexus/game/systems/game_save_adapter.dart';
 import 'package:rune_nexus/game/systems/run_progression.dart';
 import 'package:rune_nexus/l10n/rune_nexus_localizations.dart';
 import 'package:rune_nexus/ui/game/game_button.dart';
@@ -2687,9 +2689,14 @@ void main() {
     await _pumpGameFrames(tester, frameCount: 10);
     game.debugAddGold(1000);
     game.tryBuildTurret(const GridPoint(2, 0));
-    while (game.snapshotNotifier.value.selectedTurretLevel < 3) {
+    for (
+      var level = game.snapshotNotifier.value.selectedTurretLevel;
+      level < 3;
+      level++
+    ) {
       game.levelUpSelectedTurret();
     }
+    expect(game.snapshotNotifier.value.selectedTurretLevel, 3);
     await _pumpGameFrames(tester);
 
     await tester.tap(find.byTooltip('특성'));
@@ -2726,6 +2733,8 @@ void main() {
         researchLevels: const {},
         gold: 1000,
         gemShards: RuneNexusGame.primaryTraitCost,
+        roundIndex: 1,
+        mapSignature: const GameSaveAdapter().mapSignature(gameMap),
       );
     final game = RuneNexusGame(saveRepository: repository);
 
@@ -2739,9 +2748,14 @@ void main() {
     );
     await _pumpGameFrames(tester, frameCount: 10);
     game.tryBuildTurret(const GridPoint(2, 0));
-    while (game.snapshotNotifier.value.selectedTurretLevel < 3) {
+    for (
+      var level = game.snapshotNotifier.value.selectedTurretLevel;
+      level < 3;
+      level++
+    ) {
       game.levelUpSelectedTurret();
     }
+    expect(game.snapshotNotifier.value.selectedTurretLevel, 3);
     await _pumpGameFrames(tester);
 
     await tester.tap(find.byTooltip('특성'));
@@ -3407,6 +3421,9 @@ GameSaveData _saveWithResearch({
   required Map<ResearchType, int> researchLevels,
   int gold = 170,
   int gemShards = 0,
+  int roundIndex = 0,
+  GamePhase phase = GamePhase.preparation,
+  String? mapSignature,
 }) {
   return GameSaveData(
     version: GameSaveData.currentVersion,
@@ -3415,10 +3432,10 @@ GameSaveData _saveWithResearch({
     gemShards: gemShards,
     nexusHp: 20,
     stageNumber: 1,
-    mapSignature: null,
-    roundIndex: 0,
+    mapSignature: mapSignature,
+    roundIndex: roundIndex,
     completedRounds: 0,
-    phase: GamePhase.preparation,
+    phase: phase,
     autoStartMode: AutoStartMode.pauseEachRound,
     progression: SavedProgression(
       runes: 0,
