@@ -63,6 +63,7 @@ class _TurretModuleMenuState extends State<_TurretModuleMenu> {
         _ModuleDrawPanel(
           game: widget.game,
           snapshot: snapshot,
+          turretType: selectedTurretType,
           onDrawResults: widget.onDrawResults,
         ),
         const SizedBox(height: 10),
@@ -170,11 +171,13 @@ class _ModuleDrawPanel extends StatelessWidget {
   const _ModuleDrawPanel({
     required this.game,
     required this.snapshot,
+    required this.turretType,
     required this.onDrawResults,
   });
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
+  final TurretType turretType;
   final ValueChanged<List<TurretModuleInventoryItem>> onDrawResults;
 
   @override
@@ -289,7 +292,7 @@ class _ModuleDrawPanel extends StatelessWidget {
   Future<void> _drawModules(BuildContext context, int count) async {
     final missingTickets = math.max(0, count - snapshot.turretModuleTickets);
     if (missingTickets == 0) {
-      onDrawResults(game.drawTurretModules(count));
+      onDrawResults(game.drawTurretModules(count, turretType: turretType));
       return;
     }
 
@@ -386,7 +389,11 @@ class _ModuleDrawPanel extends StatelessWidget {
     );
     if (confirmed == true) {
       onDrawResults(
-        game.drawTurretModules(count, buyMissingTicketsWithDiamonds: true),
+        game.drawTurretModules(
+          count,
+          turretType: turretType,
+          buyMissingTicketsWithDiamonds: true,
+        ),
       );
     }
   }

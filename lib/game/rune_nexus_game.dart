@@ -652,11 +652,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   List<TurretModuleInventoryItem> drawTurretModules(
     int count, {
+    TurretType? turretType,
     bool buyMissingTicketsWithDiamonds = false,
   }) {
+    final availableTurretTypes = _availableTurretTypes();
+    if (turretType != null && !availableTurretTypes.contains(turretType)) {
+      return const [];
+    }
     final results = _progression.drawTurretModules(
       count: count,
-      availableTurretTypes: _availableTurretTypes(),
+      availableTurretTypes: turretType == null
+          ? availableTurretTypes
+          : [turretType],
       buyMissingTicketsWithDiamonds: buyMissingTicketsWithDiamonds,
     );
     if (results.isEmpty) {

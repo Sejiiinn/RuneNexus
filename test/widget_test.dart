@@ -561,6 +561,11 @@ void main() {
     );
     expect(tester.takeException(), isNull);
 
+    await tester.tap(find.text('대포'));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('대포 모듈 인벤토리'), findsOneWidget);
+
     await tester.tap(fiveDrawButton);
     await _pumpGameFrames(tester);
 
@@ -609,6 +614,7 @@ void main() {
     expect((layerRect.bottom - screenRect.bottom).abs(), lessThanOrEqualTo(1));
     expect(layerRect.overlaps(moduleTabRect), isTrue);
     expect(game.drawCount, 5);
+    expect(game.requestedTurretType, TurretType.cannon);
     expect(game.boughtMissingTicketsWithDiamonds, isTrue);
     for (var i = 0; i < 5; i++) {
       expect(
@@ -3292,6 +3298,7 @@ class _TurretModuleDrawGame extends RuneNexusGame {
   _TurretModuleDrawGame() : super(saveRepository: MemorySaveRepository());
 
   int? drawCount;
+  TurretType? requestedTurretType;
   bool? boughtMissingTicketsWithDiamonds;
 
   static final List<TurretModuleInventoryItem> results = [
@@ -3388,9 +3395,11 @@ class _TurretModuleDrawGame extends RuneNexusGame {
   @override
   List<TurretModuleInventoryItem> drawTurretModules(
     int count, {
+    TurretType? turretType,
     bool buyMissingTicketsWithDiamonds = false,
   }) {
     drawCount = count;
+    requestedTurretType = turretType;
     boughtMissingTicketsWithDiamonds = buyMissingTicketsWithDiamonds;
     snapshotNotifier.value = _resultSnapshot(
       phase: GamePhase.preparation,
