@@ -627,17 +627,54 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.descendant(of: resultLayer, matching: find.text('화염')),
-      findsWidgets,
+      find.descendant(
+        of: resultLayer,
+        matching: find.textContaining('화염 포탑 ·'),
+      ),
+      findsOneWidget,
     );
     expect(
-      find.descendant(of: resultLayer, matching: find.text('프레임')),
+      find.descendant(of: resultLayer, matching: find.textContaining('· 프레임')),
       findsWidgets,
     );
     expect(
       find.descendant(of: resultLayer, matching: find.text('방열 프레임')),
       findsOneWidget,
     );
+    expect(
+      find.descendant(of: resultLayer, matching: find.text('포탑 모듈 5개')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: resultLayer, matching: find.text('피해 +5%')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: resultLayer, matching: find.text('레벨업 비용 -10%')),
+      findsOneWidget,
+    );
+    final firstCardRect = tester.getRect(
+      find.byKey(const ValueKey('turret-module-draw-result-card-0')),
+    );
+    final secondCardRect = tester.getRect(
+      find.byKey(const ValueKey('turret-module-draw-result-card-1')),
+    );
+    final fifthCardRect = tester.getRect(
+      find.byKey(const ValueKey('turret-module-draw-result-card-4')),
+    );
+    final rareGradeRect = tester.getRect(
+      find.byKey(const ValueKey('turret-module-draw-grade-test-module-3')),
+    );
+    expect(
+      (firstCardRect.top - secondCardRect.top).abs(),
+      lessThanOrEqualTo(1),
+    );
+    expect(firstCardRect.right, lessThan(secondCardRect.left));
+    expect(
+      (fifthCardRect.center.dx - layerRect.center.dx).abs(),
+      lessThanOrEqualTo(1),
+    );
+    expect(rareGradeRect.width, lessThan(firstCardRect.width / 2));
     expect(
       find.descendant(of: resultLayer, matching: find.textContaining('장착 효과')),
       findsNothing,
