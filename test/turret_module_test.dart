@@ -112,6 +112,54 @@ void main() {
     expect(progression.turretModuleFor(item.id), isNull);
   });
 
+  test(
+    'bulk disassembly refunds selected modules but protects equipped and unique items',
+    () {
+      final progression = RunProgression();
+
+      TurretModuleInventoryItem grant(
+        TurretModuleGrade grade, {
+        TurretModulePart part = TurretModulePart.core,
+      }) {
+        return progression.grantTurretModule(
+          TurretModuleKey(
+            turretType: TurretType.arrow,
+            part: part,
+            family: turretModuleFamilyFor(TurretType.arrow, part),
+            grade: grade,
+          ),
+        );
+      }
+
+      final equippedNormal = grant(TurretModuleGrade.normal);
+      final spareNormal = grant(
+        TurretModuleGrade.normal,
+        part: TurretModulePart.barrel,
+      );
+      final spareMagic = grant(TurretModuleGrade.magic);
+      final spareRare = grant(TurretModuleGrade.rare);
+      final spareUnique = grant(TurretModuleGrade.unique);
+      expect(progression.equipTurretModule(equippedNormal.id), isTrue);
+
+      final disassembledCount = progression.disassembleTurretModules([
+        equippedNormal.id,
+        spareNormal.id,
+        spareMagic.id,
+        spareRare.id,
+        spareUnique.id,
+        spareNormal.id,
+      ]);
+
+      expect(disassembledCount, 3);
+      expect(progression.diamonds, 2 + 5 + 20);
+      expect(progression.turretModuleFor(spareNormal.id), isNull);
+      expect(progression.turretModuleFor(spareMagic.id), isNull);
+      expect(progression.turretModuleFor(spareRare.id), isNull);
+      expect(progression.turretModuleFor(equippedNormal.id), isNotNull);
+      expect(progression.turretModuleFor(spareUnique.id), isNotNull);
+    },
+  );
+
   test('draw can buy missing turret module tickets with diamonds', () {
     final progression = RunProgression()
       ..turretModuleTickets = 3

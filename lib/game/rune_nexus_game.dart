@@ -701,6 +701,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return true;
   }
 
+  int disassembleTurretModules(Iterable<String> ids) {
+    final disassembledCount = _progression.disassembleTurretModules(ids);
+    if (disassembledCount == 0) {
+      return 0;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return disassembledCount;
+  }
+
   int runUpgradeMaxLevelFor(RunUpgradeType type) {
     final definition = gameRunUpgrades[type];
     if (definition == null) {

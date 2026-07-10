@@ -697,6 +697,24 @@ class RunProgression {
     return true;
   }
 
+  int disassembleTurretModules(Iterable<String> ids) {
+    var disassembledCount = 0;
+    var returnDiamonds = 0;
+    for (final id in ids.toSet()) {
+      final item = turretModules[id];
+      if (item == null ||
+          item.equipped ||
+          item.key.grade == TurretModuleGrade.unique) {
+        continue;
+      }
+      turretModules.remove(id);
+      disassembledCount += 1;
+      returnDiamonds += item.key.grade.disassembleDiamondValue;
+    }
+    addFreeDiamonds(returnDiamonds);
+    return disassembledCount;
+  }
+
   void addFreeDiamonds(int amount) {
     if (amount <= 0) {
       return;

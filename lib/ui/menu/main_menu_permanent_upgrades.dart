@@ -282,50 +282,25 @@ class _PermanentUpgradeBoard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final spacing = constraints.maxWidth <= 320 ? 6.0 : 8.0;
+        final useTwoColumns = constraints.maxWidth >= 280;
+        final tileWidth = useTwoColumns
+            ? (constraints.maxWidth - spacing) / 2
+            : constraints.maxWidth;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: 8,
           children: [
-            const Icon(
-              Icons.grid_view_rounded,
-              color: Color(0xFF8EE6FF),
-              size: 19,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              l10n.upgradeBoard,
-              style: const TextStyle(
-                color: Color(0xFFE8FBFF),
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
+            for (final tile in tiles)
+              SizedBox(
+                width: tileWidth,
+                child: _PermanentUpgradeTile(data: tile),
               ),
-            ),
           ],
-        ),
-        const SizedBox(height: 10),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final spacing = constraints.maxWidth <= 320 ? 6.0 : 8.0;
-            final useTwoColumns = constraints.maxWidth >= 280;
-            final tileWidth = useTwoColumns
-                ? (constraints.maxWidth - spacing) / 2
-                : constraints.maxWidth;
-            return Wrap(
-              spacing: spacing,
-              runSpacing: 8,
-              children: [
-                for (final tile in tiles)
-                  SizedBox(
-                    width: tileWidth,
-                    child: _PermanentUpgradeTile(data: tile),
-                  ),
-              ],
-            );
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 }

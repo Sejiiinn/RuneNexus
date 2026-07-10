@@ -5,8 +5,6 @@ enum _CoreAbilityTab { combatSkill, passive }
 enum _CoreMenuSelection { combatSkillSlot, passiveSlotOne, passiveSlotTwo }
 
 abstract final class _CoreUiStyle {
-  static const Color panelTop = Color(0xF20C1D2C);
-  static const Color panelBottom = Color(0xF006101A);
   static const Color panelLine = Color(0x885D7182);
   static const Color panelGlow = Color(0x4422C7E8);
   static const Color itemBase = Color(0xE60A1724);
@@ -47,8 +45,6 @@ class _CoreMenuState extends State<_CoreMenu> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _CoreSummaryHeader(compact: compact),
-        SizedBox(height: compact ? 7 : 9),
         _CoreSocketStage(
           snapshot: widget.snapshot,
           compact: compact,
@@ -214,115 +210,6 @@ class _CoreMenuState extends State<_CoreMenu> {
   }
 }
 
-class _CoreSummaryHeader extends StatelessWidget {
-  const _CoreSummaryHeader({required this.compact});
-
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [_CoreUiStyle.panelTop, _CoreUiStyle.panelBottom],
-        ),
-        border: Border.all(color: _CoreUiStyle.panelLine),
-        borderRadius: BorderRadius.circular(_CoreUiStyle.panelRadius),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x88000000),
-            blurRadius: 12,
-            offset: Offset(0, 7),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: compact ? 9 : 11,
-          vertical: compact ? 8 : 10,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: compact ? 40 : 46,
-              height: compact ? 40 : 46,
-              decoration: const ShapeDecoration(
-                gradient: RadialGradient(
-                  colors: [
-                    Color(0xFFE8FBFF),
-                    Color(0xFF8EE6FF),
-                    Color(0xFF155876),
-                    Color(0xFF06101A),
-                  ],
-                  stops: [0, 0.32, 0.66, 1],
-                ),
-                shape: StarBorder.polygon(sides: 6, pointRounding: 0.12),
-                shadows: [
-                  BoxShadow(
-                    color: Color(0x7722C7E8),
-                    blurRadius: 18,
-                    spreadRadius: 1,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.diamond_outlined,
-                color: Color(0xFFFFFFFF),
-                size: 22,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '넥서스 코어',
-                    style: TextStyle(
-                      color: Color(0xFFE8FBFF),
-                      fontSize: 17,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  SizedBox(height: 3),
-                  Text(
-                    '전투 스킬 1칸 / 패시브 2칸',
-                    style: TextStyle(
-                      color: Color(0xFF8FA8BA),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: ShapeDecoration(
-                color: const Color(0x22E7C66A),
-                shape: BeveledRectangleBorder(
-                  borderRadius: BorderRadius.circular(7),
-                  side: const BorderSide(color: Color(0x99E7C66A)),
-                ),
-              ),
-              child: const Text(
-                'Lv.1',
-                style: TextStyle(
-                  color: Color(0xFFE7C66A),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _CoreSocketStage extends StatelessWidget {
   const _CoreSocketStage({
     required this.snapshot,
@@ -396,10 +283,19 @@ class _CoreSocketStage extends StatelessWidget {
                     child: SizedBox(
                       width: skillWidth,
                       child: _CoreSocketButton(
+                        key: const ValueKey('core-combat-skill-slot'),
                         kind: '전투 스킬',
-                        icon: hasCombatSkill ? Icons.auto_awesome : Icons.add,
+                        icon: switch (combatSkill) {
+                          CoreCombatSkill.guardianBeam => Icons.auto_awesome,
+                          CoreCombatSkill.riftMark => Icons.blur_on,
+                          null => Icons.add,
+                        },
                         label: combatSkill?.label ?? '빈 슬롯',
-                        state: hasCombatSkill ? '5초마다 자동 발동' : '스킬을 장착하세요',
+                        state: switch (combatSkill) {
+                          CoreCombatSkill.guardianBeam => '5초마다 자동 발동',
+                          CoreCombatSkill.riftMark => '10초마다 자동 발동',
+                          null => '스킬을 장착하세요',
+                        },
                         accent: hasCombatSkill
                             ? const Color(0xFF8EE6FF)
                             : const Color(0xFF8FA8BA),
@@ -957,6 +853,7 @@ class _CorePassiveSlotUnlockButton extends StatelessWidget {
 
 class _CoreSocketButton extends StatelessWidget {
   const _CoreSocketButton({
+    super.key,
     required this.kind,
     required this.icon,
     required this.label,

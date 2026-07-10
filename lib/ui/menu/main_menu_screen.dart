@@ -177,19 +177,21 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     final selectedTab = widget.selectedTab;
     final compactTopBar = MediaQuery.sizeOf(context).width < 430;
     const debugBarHeight = _showMapEditor ? 44.0 : 0.0;
-    const menuTopPadding = _showMapEditor ? 120.0 : 76.0;
+    final menuTopPadding =
+        debugBarHeight + (selectedTab == MainMenuTab.stage ? 76.0 : 54.0);
     return Container(
       color: GamePalette.backdrop,
       child: SafeArea(
         child: Stack(
           children: [
             const Positioned.fill(child: _MainMenuBackdrop()),
-            const Positioned(
-              top: 10 + debugBarHeight,
-              left: 0,
-              right: 0,
-              child: _MenuLogo(),
-            ),
+            if (selectedTab == MainMenuTab.stage)
+              const Positioned(
+                top: 10 + debugBarHeight,
+                left: 0,
+                right: 0,
+                child: _MenuLogo(),
+              ),
             Positioned.fill(
               child: _MainMenuSnapshotLayer(
                 game: widget.game,
@@ -411,6 +413,7 @@ class _MainMenuSnapshotContent extends StatelessWidget {
                     child: SizedBox(
                       height: panelHeight,
                       child: _MainMenuPanel(
+                        key: const ValueKey('main-menu-content-panel'),
                         child: _StageMenu(
                           game: game,
                           snapshot: snapshot,
@@ -439,6 +442,7 @@ class _MainMenuSnapshotContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _MainMenuPanel(
+                      key: const ValueKey('main-menu-content-panel'),
                       child: switch (selectedTab) {
                         MainMenuTab.core => _CoreMenu(
                           game: game,
@@ -480,17 +484,31 @@ class _MainMenuSnapshotContent extends StatelessWidget {
               onPressed: () => _openDailyQuestDialog(context, game),
             ),
           ),
-        Positioned(
-          top: headerTopOffset + (compactTopBar ? 4 : 10),
-          right: 16,
-          child: RuneBalanceCard(
-            key: const ValueKey('menu-currency-balance'),
-            runes: snapshot.runes,
-            diamonds: snapshot.diamonds,
-            compact: compactTopBar,
-            frameless: true,
+        if (selectedTab == MainMenuTab.stage)
+          Positioned(
+            top: headerTopOffset + (compactTopBar ? 4 : 10),
+            right: 16,
+            child: RuneBalanceCard(
+              key: const ValueKey('menu-currency-balance'),
+              runes: snapshot.runes,
+              diamonds: snapshot.diamonds,
+              compact: compactTopBar,
+              frameless: true,
+            ),
+          )
+        else
+          Positioned(
+            top: headerTopOffset,
+            left: 0,
+            right: 0,
+            child: _MenuResourceBar(
+              key: const ValueKey('menu-resource-bar'),
+              selectedTab: selectedTab,
+              runes: snapshot.runes,
+              diamonds: snapshot.diamonds,
+              turretModuleTickets: snapshot.turretModuleTickets,
+            ),
           ),
-        ),
         if (_showMapEditor && showMenuDebugPanel)
           Positioned(
             top: headerTopOffset + 58,
@@ -513,7 +531,7 @@ class _MainMenuSnapshotContent extends StatelessWidget {
 }
 
 class _MainMenuPanel extends StatelessWidget {
-  const _MainMenuPanel({required this.child});
+  const _MainMenuPanel({required this.child, super.key});
 
   final Widget child;
 

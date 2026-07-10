@@ -358,12 +358,16 @@ void main() {
     expect(decoration.gradient, isNull);
   });
 
-  testWidgets('main menu keeps tabs on bottom and keeps logo across tabs', (
+  testWidgets('main menu keeps the logo on stage and compacts other headers', (
     tester,
   ) async {
     await _pumpLoadedApp(tester);
 
     expect(find.text('Rune Nexus'), findsOneWidget);
+    expect(find.byKey(const ValueKey('menu-resource-bar')), findsNothing);
+    final stagePanelTop = tester
+        .getRect(find.byKey(const ValueKey('main-menu-content-panel')))
+        .top;
     final stageTabRect = tester.getRect(
       find.byKey(const ValueKey('main-menu-tab-stage')),
     );
@@ -390,9 +394,31 @@ void main() {
     await tester.tap(find.text('코어'));
     await _pumpGameFrames(tester);
 
-    expect(find.text('Rune Nexus'), findsOneWidget);
+    expect(find.text('Rune Nexus'), findsNothing);
+    final resourceBar = find.byKey(const ValueKey('menu-resource-bar'));
+    expect(resourceBar, findsOneWidget);
+    expect(
+      find.descendant(
+        of: resourceBar,
+        matching: find.byKey(const ValueKey('menu-currency-balance')),
+      ),
+      findsOneWidget,
+    );
+    final resourceBarRect = tester.getRect(resourceBar);
+    final corePanelRect = tester.getRect(
+      find.byKey(const ValueKey('main-menu-content-panel')),
+    );
+    expect(corePanelRect.top, greaterThanOrEqualTo(resourceBarRect.bottom));
+    expect(corePanelRect.top, lessThan(stagePanelTop));
     expect(find.text('넥서스 코어'), findsOneWidget);
-    expect(find.text('전투 스킬 1칸 / 패시브 2칸'), findsOneWidget);
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey('menu-resource-title')))
+          .data,
+      '넥서스 코어',
+    );
+    expect(find.text('전투 스킬 1칸 / 패시브 2칸'), findsNothing);
+    expect(find.text('Lv.1'), findsNothing);
     expect(find.text('전투 스킬'), findsWidgets);
     expect(find.text('패시브 1'), findsOneWidget);
     expect(find.text('패시브 2'), findsOneWidget);
@@ -415,8 +441,14 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('main-menu-tab-upgrades')));
     await _pumpGameFrames(tester);
 
-    expect(find.text('Rune Nexus'), findsOneWidget);
-    expect(find.text('업그레이드 보드'), findsOneWidget);
+    expect(find.text('Rune Nexus'), findsNothing);
+    expect(find.text('업그레이드 보드'), findsNothing);
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey('menu-resource-title')))
+          .data,
+      '업그레이드',
+    );
     expect(find.text('넥서스 체력'), findsOneWidget);
     expect(find.text('기초 화력 훈련'), findsOneWidget);
     expect(find.text('레벨업'), findsNWidgets(2));
@@ -442,8 +474,14 @@ void main() {
     await tester.tap(find.text('연구').last);
     await _pumpGameFrames(tester);
 
-    expect(find.text('Rune Nexus'), findsOneWidget);
-    expect(find.text('연구 보드'), findsOneWidget);
+    expect(find.text('Rune Nexus'), findsNothing);
+    expect(find.text('연구 보드'), findsNothing);
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey('menu-resource-title')))
+          .data,
+      '연구',
+    );
     expect(find.text('토벌 보상'), findsOneWidget);
     expect(find.text('기초 연결 공학'), findsOneWidget);
     expect(find.text('링크 확장 I'), findsOneWidget);
@@ -462,6 +500,7 @@ void main() {
     await _pumpGameFrames(tester);
 
     expect(find.text('Rune Nexus'), findsOneWidget);
+    expect(find.byKey(const ValueKey('menu-resource-bar')), findsNothing);
   });
 
   testWidgets('main menu tabs respond across the whole button area', (
@@ -472,7 +511,12 @@ void main() {
     await tester.tapAt(_tabLeadingEdge(tester, 'main-menu-tab-research'));
     await _pumpGameFrames(tester);
 
-    expect(find.text('연구 보드'), findsOneWidget);
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey('menu-resource-title')))
+          .data,
+      '연구',
+    );
 
     await tester.tapAt(_tabLeadingEdge(tester, 'main-menu-tab-core'));
     await _pumpGameFrames(tester);
@@ -524,6 +568,19 @@ void main() {
     );
     await _pumpGameFrames(tester);
 
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey('menu-resource-title')))
+          .data,
+      '포탑 모듈',
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('menu-turret-module-tickets')),
+        matching: find.text('모듈권 3'),
+      ),
+      findsOneWidget,
+    );
     expect(find.text('모듈 뽑기'), findsOneWidget);
     expect(find.text('희귀 5%'), findsNothing);
     expect(find.text('희귀 보정'), findsNothing);
@@ -696,7 +753,7 @@ void main() {
     expect(resultLayer, findsNothing);
     expect(find.text('방열 프레임'), findsWidgets);
     expect(find.textContaining('프레임 · 화염 · 1옵션'), findsOneWidget);
-    expect(find.text('등급순'), findsOneWidget);
+    expect(find.text('일괄 분해'), findsOneWidget);
     expect(find.text('보유 1개'), findsOneWidget);
     expect(
       find.byKey(const ValueKey('turret-module-inventory-slot-test-module-3')),
@@ -889,6 +946,217 @@ void main() {
 
     expect(game.disassembledId, 'spare-core-module');
   });
+
+  testWidgets(
+    'turret module bulk disassembly uses the visible filter and selected items',
+    (tester) async {
+      TurretModuleInventoryItem item({
+        required String id,
+        required TurretModulePart part,
+        required TurretModuleGrade grade,
+        bool equipped = false,
+      }) {
+        return TurretModuleInventoryItem(
+          id: id,
+          key: TurretModuleKey(
+            turretType: TurretType.arrow,
+            part: part,
+            family: turretModuleFamilyFor(TurretType.arrow, part),
+            grade: grade,
+          ),
+          options: const [
+            TurretModuleOptionRoll(
+              type: TurretModuleOptionType.damageIncrease,
+              value: 5,
+            ),
+          ],
+          acquiredOrder: 1,
+          equipped: equipped,
+        );
+      }
+
+      final normalCore = item(
+        id: 'bulk-normal-core',
+        part: TurretModulePart.core,
+        grade: TurretModuleGrade.normal,
+      );
+      final magicCore = item(
+        id: 'bulk-magic-core',
+        part: TurretModulePart.core,
+        grade: TurretModuleGrade.magic,
+      );
+      final rareCore = item(
+        id: 'bulk-rare-core',
+        part: TurretModulePart.core,
+        grade: TurretModuleGrade.rare,
+      );
+      final uniqueCore = item(
+        id: 'bulk-unique-core',
+        part: TurretModulePart.core,
+        grade: TurretModuleGrade.unique,
+      );
+      final equippedCore = item(
+        id: 'bulk-equipped-core',
+        part: TurretModulePart.core,
+        grade: TurretModuleGrade.normal,
+        equipped: true,
+      );
+      final normalBarrel = item(
+        id: 'bulk-normal-barrel',
+        part: TurretModulePart.barrel,
+        grade: TurretModuleGrade.normal,
+      );
+      final game = _TurretModuleDisassembleGame();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: const [
+            RuneNexusLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: RuneNexusLocalizations.supportedLocales,
+          home: MainMenuScreen(
+            game: game,
+            snapshot: _resultSnapshot(
+              phase: GamePhase.preparation,
+              currentStageNumber: 1,
+              ownedTurretModules: [
+                normalCore,
+                magicCore,
+                rareCore,
+                uniqueCore,
+                equippedCore,
+                normalBarrel,
+              ],
+            ),
+            selectedTab: MainMenuTab.turretModules,
+            onSelectTab: (_) {},
+            onStartStage: (_) {},
+          ),
+        ),
+      );
+      await _pumpGameFrames(tester);
+
+      final coreFilter = find.byKey(
+        const ValueKey('turret-module-part-filter-core'),
+      );
+      await tester.ensureVisible(coreFilter);
+      await tester.tap(coreFilter);
+      await _pumpGameFrames(tester);
+
+      final bulkOpen = find.byKey(
+        const ValueKey('turret-module-bulk-disassemble-open'),
+      );
+      await tester.ensureVisible(bulkOpen);
+      await tester.tap(bulkOpen);
+      await tester.pumpAndSettle();
+
+      final dialog = find.byKey(
+        const ValueKey('turret-module-bulk-disassemble-dialog'),
+      );
+      expect(dialog, findsOneWidget);
+      expect(
+        find.byKey(
+          const ValueKey('turret-module-bulk-target-bulk-normal-core'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const ValueKey('turret-module-bulk-target-bulk-normal-barrel'),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.byKey(
+          const ValueKey('turret-module-bulk-target-bulk-equipped-core'),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.byKey(
+          const ValueKey('turret-module-bulk-target-bulk-unique-core'),
+        ),
+        findsNothing,
+      );
+      expect(find.text('선택 1개'), findsOneWidget);
+      final normalGradeChip = find.byKey(
+        const ValueKey('turret-module-bulk-grade-normal'),
+      );
+      expect(tester.getSize(normalGradeChip).height, 25);
+      expect(tester.getSize(normalGradeChip).width, lessThan(80));
+      expect(
+        find.byKey(const ValueKey('turret-module-bulk-return-diamonds')),
+        findsOneWidget,
+      );
+
+      await tester.tap(normalGradeChip);
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(
+          const ValueKey('turret-module-bulk-target-bulk-normal-core'),
+        ),
+        findsNothing,
+      );
+      expect(find.text('선택 0개'), findsOneWidget);
+      expect(
+        tester
+            .widget<GameButton>(
+              find.byKey(
+                const ValueKey('turret-module-bulk-disassemble-confirm'),
+              ),
+            )
+            .onPressed,
+        isNull,
+      );
+
+      await tester.tap(normalGradeChip);
+      await tester.pumpAndSettle();
+      expect(find.text('선택 1개'), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(const ValueKey('turret-module-bulk-grade-magic')),
+      );
+      await tester.pumpAndSettle();
+      final magicTarget = find.byKey(
+        const ValueKey('turret-module-bulk-target-bulk-magic-core'),
+      );
+      expect(magicTarget, findsOneWidget);
+      expect(find.text('선택 2개'), findsOneWidget);
+
+      await tester.tap(magicTarget);
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey('turret-module-bulk-grade-rare')),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('turret-module-bulk-target-bulk-rare-core')),
+        findsOneWidget,
+      );
+      expect(find.text('선택 2개'), findsOneWidget);
+      expect(
+        tester
+            .widget<Text>(
+              find.byKey(const ValueKey('turret-module-bulk-return-diamonds')),
+            )
+            .data,
+        '22',
+      );
+
+      final confirm = find.byKey(
+        const ValueKey('turret-module-bulk-disassemble-confirm'),
+      );
+      await tester.ensureVisible(confirm);
+      await tester.tap(confirm);
+      await tester.pumpAndSettle();
+
+      expect(game.bulkDisassembledIds, {'bulk-normal-core', 'bulk-rare-core'});
+    },
+  );
 
   testWidgets('core slot board remains anchored when switching ability tabs', (
     tester,
@@ -1305,6 +1573,67 @@ void main() {
     expect(game.unequippedSlotIndex, isNull);
   });
 
+  testWidgets('core combat skill slot reflects the equipped skill icon', (
+    tester,
+  ) async {
+    Future<void> pumpWithSkill(CoreCombatSkill skill) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: const [
+            RuneNexusLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: RuneNexusLocalizations.supportedLocales,
+          home: MainMenuScreen(
+            game: RuneNexusGame(),
+            snapshot: _resultSnapshot(
+              phase: GamePhase.preparation,
+              currentStageNumber: 1,
+              unlockedStageCount: 6,
+              coreCombatSkill: skill,
+            ),
+            selectedTab: MainMenuTab.core,
+            onSelectTab: (_) {},
+            onStartStage: (_) {},
+          ),
+        ),
+      );
+      await _pumpGameFrames(tester);
+    }
+
+    final combatSkillSlot = find.byKey(
+      const ValueKey('core-combat-skill-slot'),
+    );
+
+    await pumpWithSkill(CoreCombatSkill.riftMark);
+    expect(
+      find.descendant(
+        of: combatSkillSlot,
+        matching: find.byIcon(Icons.blur_on),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: combatSkillSlot,
+        matching: find.byIcon(Icons.auto_awesome),
+      ),
+      findsNothing,
+    );
+
+    await pumpWithSkill(CoreCombatSkill.guardianBeam);
+    expect(
+      find.descendant(
+        of: combatSkillSlot,
+        matching: find.byIcon(Icons.auto_awesome),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('core menu keeps run-only combat data out of main menu', (
     tester,
   ) async {
@@ -1314,7 +1643,8 @@ void main() {
     await _pumpGameFrames(tester);
 
     expect(find.text('넥서스 코어'), findsOneWidget);
-    expect(find.text('전투 스킬 1칸 / 패시브 2칸'), findsOneWidget);
+    expect(find.text('전투 스킬 1칸 / 패시브 2칸'), findsNothing);
+    expect(find.text('Lv.1'), findsNothing);
     expect(find.text('보유 능력'), findsNothing);
     expect(find.text('전투 스킬'), findsWidgets);
     expect(find.text('패시브'), findsWidgets);
@@ -1681,7 +2011,12 @@ void main() {
     final nexusHpTopLeft = tester.getTopLeft(find.text('넥서스 체력'));
     final fireTrainingTopLeft = tester.getTopLeft(find.text('기초 화력 훈련'));
 
-    expect(find.text('업그레이드 보드'), findsOneWidget);
+    expect(
+      tester
+          .widget<Text>(find.byKey(const ValueKey('menu-resource-title')))
+          .data,
+      '업그레이드',
+    );
     expect(find.text('레벨업'), findsNWidgets(2));
     expect((nexusHpTopLeft.dy - fireTrainingTopLeft.dy).abs(), lessThan(4));
     expect(fireTrainingTopLeft.dx, greaterThan(nexusHpTopLeft.dx));
@@ -3454,11 +3789,18 @@ class _TurretModuleDisassembleGame extends RuneNexusGame {
     : super(saveRepository: MemorySaveRepository());
 
   String? disassembledId;
+  Set<String>? bulkDisassembledIds;
 
   @override
   bool disassembleTurretModule(String id) {
     disassembledId = id;
     return true;
+  }
+
+  @override
+  int disassembleTurretModules(Iterable<String> ids) {
+    bulkDisassembledIds = ids.toSet();
+    return bulkDisassembledIds!.length;
   }
 }
 

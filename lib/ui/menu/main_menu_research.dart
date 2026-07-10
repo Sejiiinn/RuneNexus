@@ -81,25 +81,6 @@ class _ResearchMenuState extends State<_ResearchMenu> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            const Icon(
-              Icons.science_outlined,
-              color: Color(0xFF8EE6FF),
-              size: 19,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              l10n.researchBoard,
-              style: const TextStyle(
-                color: Color(0xFFE8FBFF),
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
         _ResearchSlotPanel(
           slots: widget.snapshot.researchSlotCount,
           activeResearches: activeResearches,

@@ -87,6 +87,169 @@ class _MenuLogo extends StatelessWidget {
   }
 }
 
+class _MenuResourceBar extends StatelessWidget {
+  const _MenuResourceBar({
+    required this.selectedTab,
+    required this.runes,
+    required this.diamonds,
+    required this.turretModuleTickets,
+    super.key,
+  });
+
+  final MainMenuTab selectedTab;
+  final int runes;
+  final int diamonds;
+  final int turretModuleTickets;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xCC0D2433), Color(0xE606101A)],
+        ),
+        border: Border(bottom: BorderSide(color: Color(0x665CF9E9))),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          if (selectedTab == MainMenuTab.core) ...[
+            const _MenuCoreTitleIcon(),
+            const SizedBox(width: 8),
+            const Text(
+              '넥서스 코어',
+              key: ValueKey('menu-resource-title'),
+              style: TextStyle(
+                color: Color(0xFFE8FBFF),
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ] else if (selectedTab == MainMenuTab.permanentUpgrades) ...[
+            const Icon(
+              Icons.grid_view_rounded,
+              color: Color(0xFF8EE6FF),
+              size: 18,
+            ),
+            const SizedBox(width: 7),
+            Text(
+              context.l10n.upgradeBoard,
+              key: const ValueKey('menu-resource-title'),
+              style: const TextStyle(
+                color: Color(0xFFE8FBFF),
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ] else if (selectedTab == MainMenuTab.research) ...[
+            const Icon(
+              Icons.science_outlined,
+              color: Color(0xFF8EE6FF),
+              size: 18,
+            ),
+            const SizedBox(width: 7),
+            Text(
+              context.l10n.researchBoard,
+              key: const ValueKey('menu-resource-title'),
+              style: const TextStyle(
+                color: Color(0xFFE8FBFF),
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ] else if (selectedTab == MainMenuTab.turretModules) ...[
+            const Icon(
+              Icons.extension_outlined,
+              color: Color(0xFF8EE6FF),
+              size: 18,
+            ),
+            const SizedBox(width: 7),
+            const Text(
+              '포탑 모듈',
+              key: ValueKey('menu-resource-title'),
+              style: TextStyle(
+                color: Color(0xFFE8FBFF),
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(width: 7),
+            Container(
+              key: const ValueKey('menu-turret-module-tickets'),
+              height: 22,
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: const Color(0x2207111D),
+                border: Border.all(color: const Color(0x55485B68)),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                '모듈권 $turretModuleTickets',
+                maxLines: 1,
+                softWrap: false,
+                style: const TextStyle(
+                  color: Color(0xFFB4C7D2),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+          const Spacer(),
+          RuneBalanceCard(
+            key: const ValueKey('menu-currency-balance'),
+            runes: runes,
+            diamonds: diamonds,
+            compact: true,
+            frameless: true,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MenuCoreTitleIcon extends StatelessWidget {
+  const _MenuCoreTitleIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: const ShapeDecoration(
+        gradient: RadialGradient(
+          colors: [
+            Color(0xFFE8FBFF),
+            Color(0xFF8EE6FF),
+            Color(0xFF155876),
+            Color(0xFF06101A),
+          ],
+          stops: [0, 0.32, 0.66, 1],
+        ),
+        shape: StarBorder.polygon(sides: 6, pointRounding: 0.12),
+        shadows: [BoxShadow(color: Color(0x6622C7E8), blurRadius: 10)],
+      ),
+      child: const Icon(
+        Icons.diamond_outlined,
+        color: Color(0xFFFFFFFF),
+        size: 15,
+      ),
+    );
+  }
+}
+
 class _MenuTabs extends StatelessWidget {
   const _MenuTabs({required this.selectedTab, required this.onSelectTab});
 

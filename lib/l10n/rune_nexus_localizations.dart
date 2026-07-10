@@ -51,8 +51,8 @@ class RuneNexusLocalizations {
   String get stageUnlockPreview => _isEnglish ? 'Stage Unlocks' : '스테이지 해금';
   String get towerResearch => _isEnglish ? 'Tower Research' : '계열 연구';
   String get designLocked => _isEnglish ? 'Design locked' : '설계 잠금';
-  String get upgradeBoard => _isEnglish ? 'Upgrade Board' : '업그레이드 보드';
-  String get researchBoard => _isEnglish ? 'Research Board' : '연구 보드';
+  String get upgradeBoard => _isEnglish ? 'Upgrade' : '업그레이드';
+  String get researchBoard => _isEnglish ? 'Research' : '연구';
   String get systemResearch => _isEnglish ? 'System Research' : '시스템 연구';
   String get researchSlot => _isEnglish ? 'Research Slot' : '연구 슬롯';
   String get availableResearch =>
