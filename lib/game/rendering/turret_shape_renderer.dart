@@ -63,6 +63,19 @@ void drawTurretShape(
     return;
   }
 
+  if (type == TurretType.sniper) {
+    _drawSniperTurretShape(
+      canvas,
+      center,
+      scale,
+      accent,
+      outline,
+      aimAngle,
+      fireFeedback,
+    );
+    return;
+  }
+
   if (type == TurretType.magic) {
     _drawFireTurretShape(
       canvas,
@@ -112,7 +125,7 @@ void drawTurretShape(
     case TurretType.cannon:
       break;
     case TurretType.sniper:
-      _drawSniperHead(canvas, scale, accent, outline, fireFeedback);
+      break;
     case TurretType.magic:
       break;
     case TurretType.frost:
@@ -296,46 +309,274 @@ void _drawMachineGunTurretShape(
   canvas.restore();
 }
 
-void _drawSniperHead(
+void _drawSniperTurretShape(
   Canvas canvas,
+  Offset center,
   double scale,
   Paint accent,
   Paint outline,
+  double aimAngle,
   double fireFeedback,
 ) {
-  final barrel = RRect.fromRectAndRadius(
-    Rect.fromLTWH(-scale * 0.12, -scale * 0.055, scale * 0.78, scale * 0.11),
-    Radius.circular(scale * 0.025),
+  final base = Paint()..color = const Color(0xFF0D1721);
+  final mount = Paint()..color = const Color(0xFF274451);
+  final armor = Paint()..color = const Color(0xFF91A2A9);
+  final receiver = Paint()..color = const Color(0xFF506A78);
+  final receiverPanel = Paint()..color = const Color(0xFF152630);
+  final stock = Paint()..color = const Color(0xFF2B3944);
+  final barrel = Paint()..color = accent.color.withValues(alpha: 0.96);
+  final muzzle = Paint()..color = const Color(0xFFE8FBFF);
+  final lens = Paint()..color = const Color(0xFFFFFFFF);
+  final frameOutline = Paint()
+    ..color = outline.color
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = outline.strokeWidth * 0.52;
+  final detailOutline = Paint()
+    ..color = outline.color.withValues(alpha: 0.9)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = outline.strokeWidth * 0.38;
+  final panelLine = Paint()
+    ..color = const Color(0xFFDDF8FF).withValues(alpha: 0.76)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = scale * 0.011
+    ..strokeCap = StrokeCap.round;
+
+  canvas.save();
+  canvas.translate(center.dx, center.dy);
+
+  canvas.drawCircle(Offset.zero, scale * 0.38, base);
+  canvas.drawCircle(Offset.zero, scale * 0.38, outline);
+  canvas.drawCircle(Offset.zero, scale * 0.3, mount);
+  canvas.drawCircle(Offset.zero, scale * 0.3, frameOutline);
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-40, 5),
+      Offset(-29, 21),
+      Offset(-17, 35),
+      Offset(-30, 31),
+      Offset(-43, 17),
+    ],
+    armor,
+    frameOutline,
   );
-  final stock = Path()
-    ..moveTo(-scale * 0.24, -scale * 0.13)
-    ..lineTo(scale * 0.08, -scale * 0.08)
-    ..lineTo(scale * 0.08, scale * 0.08)
-    ..lineTo(-scale * 0.24, scale * 0.13)
-    ..close();
-  final lens = Rect.fromCenter(
-    center: Offset(scale * 0.14, -scale * 0.13),
-    width: scale * 0.28,
-    height: scale * 0.08,
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(40, 5),
+      Offset(29, 21),
+      Offset(17, 35),
+      Offset(30, 31),
+      Offset(43, 17),
+    ],
+    armor,
+    frameOutline,
   );
-  canvas.drawPath(stock, Paint()..color = const Color(0xFF223347));
-  canvas.drawPath(stock, outline);
-  canvas.drawRRect(barrel, accent);
-  canvas.drawRRect(barrel, outline);
-  canvas.drawOval(lens, Paint()..color = const Color(0xFFE8FBFF));
-  canvas.drawOval(lens, outline);
-  canvas.drawCircle(Offset.zero, scale * 0.14, accent);
-  canvas.drawCircle(Offset.zero, scale * 0.14, outline);
+  _drawLocalLine(
+    canvas,
+    scale,
+    const Offset(-35, 10),
+    const Offset(-23, 26),
+    panelLine,
+  );
+  _drawLocalLine(
+    canvas,
+    scale,
+    const Offset(35, 10),
+    const Offset(23, 26),
+    panelLine,
+  );
+
+  canvas.save();
+  canvas.rotate(aimAngle + math.pi / 2);
+  canvas.translate(0, scale * 0.08 * fireFeedback);
+
+  // 후방 균형추
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-15, 10),
+      Offset(-18, 37),
+      Offset(-9, 48),
+      Offset(0, 38),
+      Offset(9, 48),
+      Offset(18, 37),
+      Offset(15, 10),
+      Offset(8, 4),
+      Offset(-8, 4),
+    ],
+    stock,
+    frameOutline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-10, 14),
+      Offset(-12, 34),
+      Offset(-6, 40),
+      Offset(0, 32),
+      Offset(6, 40),
+      Offset(12, 34),
+      Offset(10, 14),
+    ],
+    receiverPanel,
+    detailOutline,
+  );
+
+  // 포신을 지지하는 비대칭 프레임
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [Offset(-17, -2), Offset(-29, 11), Offset(-22, 22), Offset(-10, 12)],
+    armor,
+    detailOutline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [Offset(17, -2), Offset(29, 11), Offset(22, 22), Offset(10, 12)],
+    armor,
+    detailOutline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-17, 10),
+      Offset(-14, -18),
+      Offset(-8, -25),
+      Offset(8, -25),
+      Offset(14, -18),
+      Offset(17, 10),
+      Offset(9, 20),
+      Offset(-9, 20),
+    ],
+    receiver,
+    frameOutline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-10, 7),
+      Offset(-8, -15),
+      Offset(-4, -20),
+      Offset(4, -20),
+      Offset(8, -15),
+      Offset(10, 7),
+      Offset(5, 13),
+      Offset(-5, 13),
+    ],
+    receiverPanel,
+    detailOutline,
+  );
+
+  // 장거리 포신과 가로형 포구 제동기
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-7, -18),
+      Offset(-6, -48),
+      Offset(-3, -55),
+      Offset(3, -55),
+      Offset(6, -48),
+      Offset(7, -18),
+    ],
+    barrel,
+    detailOutline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-11, -48),
+      Offset(-9, -58),
+      Offset(9, -58),
+      Offset(11, -48),
+      Offset(6, -43),
+      Offset(-6, -43),
+    ],
+    muzzle,
+    detailOutline,
+  );
+  _drawLocalLine(
+    canvas,
+    scale,
+    const Offset(-7, -53),
+    const Offset(7, -53),
+    Paint()
+      ..color = const Color(0xFF10212C)
+      ..strokeWidth = scale * 0.025
+      ..strokeCap = StrokeCap.round,
+  );
+  _drawLocalLine(
+    canvas,
+    scale,
+    const Offset(0, -43),
+    const Offset(0, -22),
+    panelLine,
+  );
+
+  // 우측에 치우친 조준 렌즈
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(13, -17),
+      Offset(21, -24),
+      Offset(30, -20),
+      Offset(31, -6),
+      Offset(23, -1),
+      Offset(14, -7),
+    ],
+    mount,
+    detailOutline,
+  );
+  final unit = scale / _turretShapeCoordinateSize;
+  canvas.drawCircle(Offset(23 * unit, -13 * unit), 5.5 * unit, lens);
+  canvas.drawCircle(Offset(23 * unit, -13 * unit), 5.5 * unit, detailOutline);
+  _drawLocalLine(
+    canvas,
+    scale,
+    const Offset(20, -16),
+    const Offset(26, -10),
+    panelLine,
+  );
+  canvas.drawCircle(Offset.zero, scale * 0.075, barrel);
+  canvas.drawCircle(Offset.zero, scale * 0.075, detailOutline);
+
   if (fireFeedback > 0) {
-    canvas.drawLine(
-      Offset(scale * 0.66, 0),
-      Offset(scale * (0.9 + fireFeedback * 0.25), 0),
+    final flash = Path()
+      ..moveTo(0, -61 * unit)
+      ..lineTo(-8 * unit, -54 * unit)
+      ..lineTo(-3 * unit, -68 * unit)
+      ..lineTo(0, -78 * unit)
+      ..lineTo(3 * unit, -68 * unit)
+      ..lineTo(8 * unit, -54 * unit)
+      ..close();
+    canvas.drawPath(
+      flash,
+      Paint()..color = const Color(0xFFE9FCFF).withValues(alpha: fireFeedback),
+    );
+    _drawLocalLine(
+      canvas,
+      scale,
+      const Offset(0, -62),
+      Offset(0, -78 - fireFeedback * 13),
       Paint()
-        ..color = const Color(0xFFFFFFFF).withValues(alpha: fireFeedback)
-        ..strokeCap = StrokeCap.round
-        ..strokeWidth = scale * 0.045,
+        ..color = accent.color.withValues(alpha: fireFeedback)
+        ..strokeWidth = scale * 0.026
+        ..strokeCap = StrokeCap.round,
     );
   }
+
+  canvas.restore();
+  canvas.restore();
 }
 
 void _drawCannonTurretShape(
