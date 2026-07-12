@@ -48,6 +48,7 @@ class TurretComponent extends PositionComponent {
   double _cooldown = 0;
   double _aimAngle = -math.pi / 2;
   double _fireFeedbackTimer = 0;
+  double _shapeAnimationTime = 0;
   double _gemRingPhase = 0;
   EnemyComponent? _aimTarget;
   double _aimProgress = 0;
@@ -740,6 +741,7 @@ class TurretComponent extends PositionComponent {
   void update(double dt) {
     super.update(dt);
     _fireFeedbackTimer = math.max(0, _fireFeedbackTimer - dt);
+    _shapeAnimationTime = (_shapeAnimationTime + dt) % 1000;
     if (_lastLightningBaseCooldown > 0 && _cooldown > 0) {
       _lightningAttackElapsed += dt;
     }
@@ -810,6 +812,7 @@ class TurretComponent extends PositionComponent {
             final origin = fireballOriginForTurret(
               center: Offset(position.x, position.y),
               size: size.y,
+              aimAngle: _aimAngle,
             );
             return Vector2(origin.dx, origin.dy);
           })()
@@ -1054,6 +1057,7 @@ class TurretComponent extends PositionComponent {
         0.0,
         1.0,
       ),
+      animationTime: _shapeAnimationTime,
       strokeWidth: size.x * 0.05,
     );
 

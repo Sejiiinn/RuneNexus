@@ -3,7 +3,7 @@ import 'dart:ui';
 
 import '../../domain/turret/turret_type.dart';
 
-const double _lightningShapeCoordinateSize = 112;
+const double _turretShapeCoordinateSize = 112;
 
 void drawTurretShape(
   Canvas canvas, {
@@ -12,6 +12,7 @@ void drawTurretShape(
   required Color color,
   double aimAngle = -math.pi / 2,
   double fireFeedback = 0,
+  double animationTime = 0,
   double strokeWidth = 2,
 }) {
   final center = Offset(size.width / 2, size.height / 2);
@@ -32,6 +33,46 @@ void drawTurretShape(
       outline,
       aimAngle,
       fireFeedback,
+    );
+    return;
+  }
+
+  if (type == TurretType.arrow) {
+    _drawMachineGunTurretShape(
+      canvas,
+      center,
+      scale,
+      accent,
+      outline,
+      aimAngle,
+      fireFeedback,
+    );
+    return;
+  }
+
+  if (type == TurretType.cannon) {
+    _drawCannonTurretShape(
+      canvas,
+      center,
+      scale,
+      accent,
+      outline,
+      aimAngle,
+      fireFeedback,
+    );
+    return;
+  }
+
+  if (type == TurretType.magic) {
+    _drawFireTurretShape(
+      canvas,
+      center,
+      scale * 1.06,
+      accent,
+      outline,
+      aimAngle,
+      fireFeedback,
+      animationTime,
     );
     return;
   }
@@ -57,10 +98,6 @@ void drawTurretShape(
     Paint()..color = color.withValues(alpha: 0.26),
   );
 
-  if (type == TurretType.magic) {
-    _drawFireHead(canvas, center, scale, accent, outline, fireFeedback);
-    return;
-  }
   if (type == TurretType.frost) {
     _drawFrostHead(canvas, center, scale, accent, outline, fireFeedback);
     return;
@@ -71,9 +108,9 @@ void drawTurretShape(
   canvas.translate(-scale * 0.08 * fireFeedback, 0);
   switch (type) {
     case TurretType.arrow:
-      _drawMachineGunHead(canvas, scale, accent, outline, fireFeedback);
+      break;
     case TurretType.cannon:
-      _drawCannonHead(canvas, scale, accent, outline, fireFeedback);
+      break;
     case TurretType.sniper:
       _drawSniperHead(canvas, scale, accent, outline, fireFeedback);
     case TurretType.magic:
@@ -86,36 +123,177 @@ void drawTurretShape(
   canvas.restore();
 }
 
-Offset fireballOriginForTurret({required Offset center, required double size}) {
-  return center.translate(0, -size * 0.2);
+Offset fireballOriginForTurret({
+  required Offset center,
+  required double size,
+  double aimAngle = -math.pi / 2,
+}) {
+  return center.translate(
+    math.cos(aimAngle) * size * 0.2,
+    math.sin(aimAngle) * size * 0.2,
+  );
 }
 
-void _drawMachineGunHead(
+void _drawMachineGunTurretShape(
   Canvas canvas,
+  Offset center,
   double scale,
   Paint accent,
   Paint outline,
+  double aimAngle,
   double fireFeedback,
 ) {
-  for (final y in [-scale * 0.1, scale * 0.1]) {
-    final barrel = RRect.fromRectAndRadius(
-      Rect.fromLTWH(-scale * 0.04, y - scale * 0.05, scale * 0.58, scale * 0.1),
-      Radius.circular(scale * 0.03),
-    );
-    canvas.drawRRect(barrel, accent);
-    canvas.drawRRect(barrel, outline);
+  final base = Paint()..color = const Color(0xFF121B25);
+  final mount = Paint()..color = const Color(0xFF314653);
+  final armor = Paint()..color = const Color(0xFF858E93);
+  final receiver = Paint()..color = const Color(0xFF606B72);
+  final receiverPanel = Paint()..color = const Color(0xFF26343E);
+  final magazine = Paint()..color = const Color(0xFF283129);
+  final muzzle = Paint()..color = const Color(0xFFD6CFAD);
+  final innerOutline = Paint()
+    ..color = outline.color
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = outline.strokeWidth * 0.68;
+  final panelLine = Paint()
+    ..color = const Color(0xFFFFF0A6).withValues(alpha: 0.72)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = scale * 0.015
+    ..strokeCap = StrokeCap.round;
+
+  canvas.save();
+  canvas.translate(center.dx, center.dy);
+
+  canvas.drawCircle(Offset.zero, scale * 0.38, base);
+  canvas.drawCircle(Offset.zero, scale * 0.38, outline);
+  canvas.drawCircle(Offset.zero, scale * 0.3, mount);
+  canvas.drawCircle(Offset.zero, scale * 0.3, outline);
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-41, 7),
+      Offset(-30, 22),
+      Offset(-17, 35),
+      Offset(-30, 31),
+      Offset(-43, 18),
+    ],
+    armor,
+    outline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(41, 7),
+      Offset(30, 22),
+      Offset(17, 35),
+      Offset(30, 31),
+      Offset(43, 18),
+    ],
+    armor,
+    outline,
+  );
+
+  canvas.save();
+  canvas.rotate(aimAngle + math.pi / 2);
+  canvas.translate(0, scale * 0.06 * fireFeedback);
+
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-19, 14),
+      Offset(-16, -17),
+      Offset(-8, -26),
+      Offset(8, -26),
+      Offset(16, -17),
+      Offset(19, 14),
+      Offset(8, 24),
+      Offset(-8, 24),
+    ],
+    receiver,
+    innerOutline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-11, 11),
+      Offset(-9, -13),
+      Offset(9, -13),
+      Offset(11, 11),
+      Offset(4, 18),
+      Offset(-4, 18),
+    ],
+    receiverPanel,
+    innerOutline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [Offset(-13, 14), Offset(13, 14), Offset(9, 29), Offset(-9, 29)],
+    magazine,
+    innerOutline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [Offset(-11, -8), Offset(-11, -47), Offset(-2, -47), Offset(-2, -5)],
+    accent,
+    innerOutline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [Offset(2, -5), Offset(2, -47), Offset(11, -47), Offset(11, -8)],
+    accent,
+    innerOutline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-13, -44),
+      Offset(-11, -53),
+      Offset(-2, -53),
+      Offset(-1, -44),
+    ],
+    muzzle,
+    innerOutline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [Offset(1, -44), Offset(2, -53), Offset(11, -53), Offset(13, -44)],
+    muzzle,
+    innerOutline,
+  );
+  for (final y in const [-35.0, -26.0]) {
+    _drawLocalLine(canvas, scale, Offset(-10, y), Offset(-3, y), panelLine);
+    _drawLocalLine(canvas, scale, Offset(3, y), Offset(10, y), panelLine);
   }
-  canvas.drawCircle(Offset.zero, scale * 0.15, accent);
-  canvas.drawCircle(Offset.zero, scale * 0.15, outline);
+  canvas.drawCircle(Offset.zero, scale * 0.1, accent);
+  canvas.drawCircle(Offset.zero, scale * 0.1, innerOutline);
+
   if (fireFeedback > 0) {
-    _drawMuzzleFlash(
-      canvas,
-      Offset(scale * 0.58, 0),
-      scale,
-      fireFeedback,
-      0.18,
+    final unit = scale / _turretShapeCoordinateSize;
+    final flash = Path()
+      ..moveTo(-7 * unit, -49 * unit)
+      ..lineTo(-11 * unit, -55 * unit)
+      ..lineTo(-3 * unit, -52 * unit)
+      ..lineTo(0, -56 * unit)
+      ..lineTo(3 * unit, -52 * unit)
+      ..lineTo(11 * unit, -55 * unit)
+      ..lineTo(7 * unit, -49 * unit)
+      ..close();
+    canvas.drawPath(
+      flash,
+      Paint()..color = const Color(0xFFFFF0A6).withValues(alpha: fireFeedback),
     );
   }
+
+  canvas.restore();
+  canvas.restore();
 }
 
 void _drawSniperHead(
@@ -160,102 +338,391 @@ void _drawSniperHead(
   }
 }
 
-void _drawCannonHead(
+void _drawCannonTurretShape(
   Canvas canvas,
+  Offset center,
   double scale,
   Paint accent,
   Paint outline,
+  double aimAngle,
   double fireFeedback,
 ) {
-  final barrel = RRect.fromRectAndRadius(
-    Rect.fromLTWH(-scale * 0.08, -scale * 0.14, scale * 0.66, scale * 0.28),
-    Radius.circular(scale * 0.06),
+  final base = Paint()..color = const Color(0xFF151B22);
+  final mount = Paint()..color = const Color(0xFF344650);
+  final armor = Paint()..color = const Color(0xFF7A8388);
+  final carriage = Paint()..color = const Color(0xFF615B57);
+  final carriagePanel = Paint()..color = const Color(0xFF302A27);
+  final barrel = Paint()..color = accent.color.withValues(alpha: 0.78);
+  final muzzle = Paint()..color = accent.color;
+  final innerOutline = Paint()
+    ..color = outline.color
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = outline.strokeWidth * 0.72;
+  final panelLine = Paint()
+    ..color = const Color(0xFFD8B08E).withValues(alpha: 0.62)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = scale * 0.018
+    ..strokeCap = StrokeCap.round;
+  final boreLine = Paint()
+    ..color = const Color(0xFF160D0A)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = scale * 0.055
+    ..strokeCap = StrokeCap.round;
+
+  canvas.save();
+  canvas.translate(center.dx, center.dy);
+
+  canvas.drawCircle(Offset.zero, scale * 0.38, base);
+  canvas.drawCircle(Offset.zero, scale * 0.38, outline);
+  canvas.drawCircle(Offset.zero, scale * 0.3, mount);
+  canvas.drawCircle(Offset.zero, scale * 0.3, outline);
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-43, 4),
+      Offset(-34, 25),
+      Offset(-19, 39),
+      Offset(-34, 34),
+      Offset(-46, 17),
+    ],
+    armor,
+    outline,
   );
-  final muzzle = RRect.fromRectAndRadius(
-    Rect.fromLTWH(scale * 0.38, -scale * 0.18, scale * 0.24, scale * 0.36),
-    Radius.circular(scale * 0.05),
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(43, 4),
+      Offset(34, 25),
+      Offset(19, 39),
+      Offset(34, 34),
+      Offset(46, 17),
+    ],
+    armor,
+    outline,
   );
-  canvas.drawRRect(barrel, accent);
-  canvas.drawRRect(barrel, outline);
-  canvas.drawRRect(muzzle, Paint()..color = const Color(0xFF2D1E18));
-  canvas.drawRRect(muzzle, outline);
-  canvas.drawCircle(Offset.zero, scale * 0.17, accent);
-  canvas.drawCircle(Offset.zero, scale * 0.17, outline);
+
+  canvas.save();
+  canvas.rotate(aimAngle + math.pi / 2);
+  canvas.translate(0, scale * 0.08 * fireFeedback);
+
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-24, 19),
+      Offset(-17, -10),
+      Offset(-10, -20),
+      Offset(10, -20),
+      Offset(17, -10),
+      Offset(24, 19),
+      Offset(8, 29),
+      Offset(-8, 29),
+    ],
+    carriage,
+    innerOutline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-15, 16),
+      Offset(-10, -3),
+      Offset(10, -3),
+      Offset(15, 16),
+      Offset(5, 23),
+      Offset(-5, 23),
+    ],
+    carriagePanel,
+    innerOutline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-17, -5),
+      Offset(-17, -40),
+      Offset(-10, -49),
+      Offset(10, -49),
+      Offset(17, -40),
+      Offset(17, -5),
+      Offset(8, 6),
+      Offset(-8, 6),
+    ],
+    barrel,
+    innerOutline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-23, -40),
+      Offset(-19, -53),
+      Offset(19, -53),
+      Offset(23, -40),
+      Offset(16, -33),
+      Offset(-16, -33),
+    ],
+    muzzle,
+    innerOutline,
+  );
+  _drawLocalLine(
+    canvas,
+    scale,
+    const Offset(-13, -49),
+    const Offset(13, -49),
+    boreLine,
+  );
+  _drawLocalLine(
+    canvas,
+    scale,
+    const Offset(-13, -15),
+    const Offset(13, -15),
+    panelLine,
+  );
+  _drawLocalLine(
+    canvas,
+    scale,
+    const Offset(-14, -4),
+    const Offset(14, -4),
+    panelLine,
+  );
+  canvas.drawCircle(Offset(0, scale * 0.11), scale * 0.095, accent);
+  canvas.drawCircle(Offset(0, scale * 0.11), scale * 0.095, innerOutline);
+
   if (fireFeedback > 0) {
-    _drawMuzzleFlash(
-      canvas,
-      Offset(scale * 0.66, 0),
-      scale,
-      fireFeedback,
-      0.28,
+    final unit = scale / _turretShapeCoordinateSize;
+    final flash = Path()
+      ..moveTo(0, -56 * unit)
+      ..lineTo(7 * unit, -49 * unit)
+      ..lineTo(15 * unit, -52 * unit)
+      ..lineTo(10 * unit, -44 * unit)
+      ..lineTo(18 * unit, -39 * unit)
+      ..lineTo(6 * unit, -40 * unit)
+      ..lineTo(0, -33 * unit)
+      ..lineTo(-6 * unit, -40 * unit)
+      ..lineTo(-18 * unit, -39 * unit)
+      ..lineTo(-10 * unit, -44 * unit)
+      ..lineTo(-15 * unit, -52 * unit)
+      ..lineTo(-7 * unit, -49 * unit)
+      ..close();
+    canvas.drawPath(
+      flash,
+      Paint()..color = const Color(0xFFFFE4A3).withValues(alpha: fireFeedback),
     );
     canvas.drawCircle(
-      Offset(scale * 0.76, scale * 0.08),
-      scale * 0.18 * fireFeedback,
+      Offset(scale * 0.17, -scale * 0.38),
+      scale * 0.16 * fireFeedback,
       Paint()
         ..color = const Color(
           0xFFB8B8A8,
         ).withValues(alpha: 0.22 * fireFeedback),
     );
   }
+
+  canvas.restore();
+  canvas.restore();
 }
 
-void _drawFireHead(
+void _drawFireTurretShape(
   Canvas canvas,
   Offset center,
   double scale,
   Paint accent,
   Paint outline,
+  double aimAngle,
   double fireFeedback,
+  double animationTime,
 ) {
-  final brazierCenter = center.translate(0, scale * 0.04);
-  final brazier = RRect.fromRectAndRadius(
-    Rect.fromCenter(
-      center: brazierCenter,
-      width: scale * 0.44,
-      height: scale * 0.25,
-    ),
-    Radius.circular(scale * 0.06),
-  );
-  canvas.drawRRect(brazier, Paint()..color = const Color(0xFF2A2530));
-  canvas.drawRRect(brazier, outline);
+  final base = Paint()..color = const Color(0xFF171D24);
+  final armor = Paint()..color = const Color(0xFF555D64);
+  final dark = Paint()..color = const Color(0xFF282D33);
+  final chamber = Paint()..color = const Color(0xFF3A2926);
+  final vent = Paint()..color = const Color(0xFF767C80);
+  final panelLine = Paint()
+    ..color = const Color(0xFFAEB5BA).withValues(alpha: 0.45)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = scale * 0.014
+    ..strokeCap = StrokeCap.round;
 
-  final lift = scale * 0.08 * fireFeedback;
-  final flameScale = 1 + fireFeedback * 0.18;
-  final flame = Path()
-    ..moveTo(
-      center.dx + scale * 0.05,
-      center.dy - scale * 0.45 * flameScale - lift,
-    )
-    ..quadraticBezierTo(
-      center.dx + scale * 0.28,
-      center.dy - scale * 0.03,
-      center.dx + scale * 0.03,
-      center.dy + scale * 0.15,
-    )
-    ..quadraticBezierTo(
-      center.dx - scale * 0.24,
-      center.dy - scale * 0.03,
-      center.dx + scale * 0.05,
-      center.dy - scale * 0.45,
-    )
-    ..close();
-  canvas.drawPath(flame, accent);
-  canvas.drawPath(flame, outline);
+  canvas.save();
+  canvas.translate(center.dx, center.dy);
+
   canvas.drawCircle(
-    center.translate(scale * 0.04, -scale * 0.07),
-    scale * (0.1 + fireFeedback * 0.05),
-    Paint()..color = const Color(0xFFFFD45A).withValues(alpha: 0.9),
+    Offset.zero,
+    scale * (0.38 + fireFeedback * 0.03),
+    Paint()..color = accent.color.withValues(alpha: 0.1 + fireFeedback * 0.08),
   );
+
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-35, 27),
+      Offset(-41, 5),
+      Offset(-32, -26),
+      Offset(-10, -39),
+      Offset(18, -36),
+      Offset(38, -19),
+      Offset(42, 10),
+      Offset(29, 33),
+      Offset(2, 40),
+      Offset(-24, 35),
+    ],
+    base,
+    outline,
+  );
+  canvas.drawCircle(Offset.zero, scale * 0.3, armor);
+  canvas.drawCircle(Offset.zero, scale * 0.3, outline);
+  canvas.drawCircle(Offset.zero, scale * 0.235, dark);
+  canvas.drawCircle(Offset.zero, scale * 0.235, outline);
+
+  canvas.save();
+  canvas.rotate(aimAngle + math.pi / 2);
+  canvas.translate(0, scale * 0.025 * fireFeedback);
+
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-26, 27),
+      Offset(-26, -16),
+      Offset(-14, -33),
+      Offset(14, -33),
+      Offset(26, -16),
+      Offset(26, 27),
+      Offset(14, 39),
+      Offset(-14, 39),
+    ],
+    chamber,
+    outline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [
+      Offset(-20, -24),
+      Offset(-20, -50),
+      Offset(-7, -50),
+      Offset(-7, -25),
+    ],
+    vent,
+    outline,
+  );
+  _drawLocalPolygon(
+    canvas,
+    scale,
+    const [Offset(7, -25), Offset(7, -50), Offset(20, -50), Offset(20, -24)],
+    vent,
+    outline,
+  );
+  _drawLocalLine(
+    canvas,
+    scale,
+    const Offset(-19, -40),
+    const Offset(-8, -40),
+    panelLine,
+  );
+  _drawLocalLine(
+    canvas,
+    scale,
+    const Offset(8, -40),
+    const Offset(19, -40),
+    panelLine,
+  );
+
+  canvas.restore();
+
+  // 회전 프레임 후방을 따르되 불꽃 자체는 화면 위쪽을 유지하는 노심 결합부
+  final coreAnchorDistance = -scale * (0.085 + fireFeedback * 0.025);
+  final coreAnchor = Offset(
+    math.cos(aimAngle) * coreAnchorDistance,
+    math.sin(aimAngle) * coreAnchorDistance,
+  );
+  canvas.save();
+  canvas.translate(coreAnchor.dx, coreAnchor.dy);
+
+  canvas.drawCircle(Offset.zero, scale * (0.19 + fireFeedback * 0.025), accent);
+  canvas.drawCircle(Offset.zero, scale * 0.19, outline);
+
+  // 중앙 노심에서 위로 뻗는 서로 다른 위상의 3겹 불꽃
+  final outerSway = math.sin(animationTime * 5.1);
+  final middleSway = math.sin(animationTime * 7.2 + 1.3);
+  final innerSway = math.sin(animationTime * 9.4 + 2.1);
+  _drawAnimatedFlameLayer(
+    canvas,
+    scale,
+    bottomY: 12,
+    halfWidth: 18,
+    height: 45 + math.sin(animationTime * 6.2) * 2.2 + fireFeedback * 6,
+    sway: outerSway * 3.6,
+    paint: accent,
+    outline: outline,
+  );
+  _drawAnimatedFlameLayer(
+    canvas,
+    scale,
+    bottomY: 10,
+    halfWidth: 12,
+    height: 34 + math.sin(animationTime * 8.1 + 0.8) * 1.8 + fireFeedback * 4,
+    sway: middleSway * 2.8,
+    paint: Paint()..color = const Color(0xFFFFA13A),
+  );
+  _drawAnimatedFlameLayer(
+    canvas,
+    scale,
+    bottomY: 8,
+    halfWidth: 6,
+    height: 23 + math.sin(animationTime * 10.7 + 1.7) * 1.4 + fireFeedback * 2,
+    sway: innerSway * 1.8,
+    paint: Paint()..color = const Color(0xFFFFE7A0),
+  );
+
   if (fireFeedback > 0) {
     canvas.drawCircle(
-      center.translate(0, -scale * 0.16),
-      scale * (0.26 + fireFeedback * 0.18),
+      Offset(0, -scale * 0.1),
+      scale * (0.29 + fireFeedback * 0.1),
       Paint()
         ..color = accent.color.withValues(alpha: 0.18 * fireFeedback)
         ..style = PaintingStyle.stroke
         ..strokeWidth = scale * 0.035,
     );
+  }
+
+  canvas.restore();
+  canvas.restore();
+}
+
+void _drawAnimatedFlameLayer(
+  Canvas canvas,
+  double scale, {
+  required double bottomY,
+  required double halfWidth,
+  required double height,
+  required double sway,
+  required Paint paint,
+  Paint? outline,
+}) {
+  final unit = scale / _turretShapeCoordinateSize;
+  final path = Path()
+    ..moveTo(0, bottomY * unit)
+    ..quadraticBezierTo(
+      halfWidth * unit,
+      (bottomY - height * 0.35) * unit,
+      sway * unit,
+      (bottomY - height) * unit,
+    )
+    ..quadraticBezierTo(
+      -halfWidth * unit,
+      (bottomY - height * 0.32) * unit,
+      0,
+      bottomY * unit,
+    )
+    ..close();
+  canvas.drawPath(path, paint);
+  if (outline != null) {
+    canvas.drawPath(path, outline);
   }
 }
 
@@ -554,7 +1021,7 @@ void _drawLightningTurretShape(
 }
 
 Path _localPath(List<Offset> points, double scale) {
-  final unit = scale / _lightningShapeCoordinateSize;
+  final unit = scale / _turretShapeCoordinateSize;
   final path = Path()..moveTo(points.first.dx * unit, points.first.dy * unit);
   for (final point in points.skip(1)) {
     path.lineTo(point.dx * unit, point.dy * unit);
@@ -581,32 +1048,6 @@ void _drawLocalLine(
   Offset end,
   Paint paint,
 ) {
-  final unit = scale / _lightningShapeCoordinateSize;
+  final unit = scale / _turretShapeCoordinateSize;
   canvas.drawLine(start * unit, end * unit, paint);
-}
-
-void _drawMuzzleFlash(
-  Canvas canvas,
-  Offset center,
-  double scale,
-  double fireFeedback,
-  double sizeScale,
-) {
-  final length = scale * sizeScale * (0.75 + fireFeedback * 0.45);
-  final width = scale * sizeScale * 0.42;
-  final flash = Path()
-    ..moveTo(center.dx + length, center.dy)
-    ..lineTo(center.dx, center.dy - width)
-    ..lineTo(center.dx - length * 0.24, center.dy)
-    ..lineTo(center.dx, center.dy + width)
-    ..close();
-  canvas.drawPath(
-    flash,
-    Paint()..color = const Color(0xFFFFF0A6).withValues(alpha: fireFeedback),
-  );
-  canvas.drawCircle(
-    center,
-    width * 0.6,
-    Paint()..color = const Color(0xFFFFFFFF).withValues(alpha: fireFeedback),
-  );
 }
