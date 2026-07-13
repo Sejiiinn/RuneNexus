@@ -232,7 +232,14 @@ class SavedProgression {
     this.dailyQuestClockRollbackDetected = false,
     this.dailyQuestProgress = const {},
     this.claimedDailyQuestRewards = const {},
+    this.dailyAttendanceRewardClaimed = false,
     this.dailyQuestAllCompleteClaimed = false,
+    this.weeklyQuestWeekKey = -1,
+    this.weeklyQuestProgress = const {},
+    this.claimedWeeklyQuestRewards = const {},
+    this.weeklyQuestAllCompleteClaimed = false,
+    this.weeklyAttendanceDayKeys = const {},
+    this.weeklyAttendanceRewardClaimed = false,
     required this.lastRunRuneReward,
     required this.startingGoldUpgradeLevel,
     required this.nexusHpUpgradeLevel,
@@ -266,7 +273,14 @@ class SavedProgression {
   final bool dailyQuestClockRollbackDetected;
   final Map<DailyQuestType, int> dailyQuestProgress;
   final Set<DailyQuestType> claimedDailyQuestRewards;
+  final bool dailyAttendanceRewardClaimed;
   final bool dailyQuestAllCompleteClaimed;
+  final int weeklyQuestWeekKey;
+  final Map<DailyQuestType, int> weeklyQuestProgress;
+  final Set<DailyQuestType> claimedWeeklyQuestRewards;
+  final bool weeklyQuestAllCompleteClaimed;
+  final Set<int> weeklyAttendanceDayKeys;
+  final bool weeklyAttendanceRewardClaimed;
   final int lastRunRuneReward;
   final int startingGoldUpgradeLevel;
   final int nexusHpUpgradeLevel;
@@ -305,7 +319,18 @@ class SavedProgression {
       'claimedDailyQuestRewards': claimedDailyQuestRewards
           .map((type) => type.name)
           .toList(),
+      'dailyAttendanceRewardClaimed': dailyAttendanceRewardClaimed,
       'dailyQuestAllCompleteClaimed': dailyQuestAllCompleteClaimed,
+      'weeklyQuestWeekKey': weeklyQuestWeekKey,
+      'weeklyQuestProgress': weeklyQuestProgress.map(
+        (key, value) => MapEntry(key.name, value),
+      ),
+      'claimedWeeklyQuestRewards': claimedWeeklyQuestRewards
+          .map((type) => type.name)
+          .toList(),
+      'weeklyQuestAllCompleteClaimed': weeklyQuestAllCompleteClaimed,
+      'weeklyAttendanceDayKeys': weeklyAttendanceDayKeys.toList(),
+      'weeklyAttendanceRewardClaimed': weeklyAttendanceRewardClaimed,
       'lastRunRuneReward': lastRunRuneReward,
       'startingGoldUpgradeLevel': startingGoldUpgradeLevel,
       'nexusHpUpgradeLevel': nexusHpUpgradeLevel,
@@ -368,8 +393,27 @@ class SavedProgression {
         DailyQuestType.values,
         map['claimedDailyQuestRewards'],
       ),
+      dailyAttendanceRewardClaimed: _boolValue(
+        map['dailyAttendanceRewardClaimed'],
+      ),
       dailyQuestAllCompleteClaimed: _boolValue(
         map['dailyQuestAllCompleteClaimed'],
+      ),
+      weeklyQuestWeekKey: _intValue(map['weeklyQuestWeekKey'], fallback: -1),
+      weeklyQuestProgress: _enumIntMap(
+        DailyQuestType.values,
+        map['weeklyQuestProgress'],
+      ),
+      claimedWeeklyQuestRewards: _enumSet(
+        DailyQuestType.values,
+        map['claimedWeeklyQuestRewards'],
+      ),
+      weeklyQuestAllCompleteClaimed: _boolValue(
+        map['weeklyQuestAllCompleteClaimed'],
+      ),
+      weeklyAttendanceDayKeys: _intSet(map['weeklyAttendanceDayKeys']),
+      weeklyAttendanceRewardClaimed: _boolValue(
+        map['weeklyAttendanceRewardClaimed'],
       ),
       lastRunRuneReward: _intValue(map['lastRunRuneReward']),
       startingGoldUpgradeLevel: _intValue(map['startingGoldUpgradeLevel']),

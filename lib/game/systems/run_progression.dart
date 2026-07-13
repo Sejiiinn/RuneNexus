@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import '../../data/definitions/game_daily_quest_data.dart';
 import '../../data/definitions/game_research_data.dart';
 import '../../data/definitions/game_turret_module_data.dart';
+import '../../data/definitions/game_weekly_quest_data.dart';
 import '../../data/save/game_save_data.dart';
 import '../../domain/core/core_ability.dart';
 import '../../domain/currency/diamond_wallet.dart';
@@ -34,6 +35,7 @@ class RunProgression {
   static const int turretModuleTicketDiamondCost = 80;
   static const int diamondMillisPerResearchMinute = 60000;
   static const int uninitializedDailyQuestDayKey = -1;
+  static const int uninitializedWeeklyQuestWeekKey = -1;
   static const int dailyQuestResetHourKst = 5;
   static const int dailyQuestClockRollbackGraceMillis = 5 * 60 * 1000;
   static const int _hourMillis = 60 * 60 * 1000;
@@ -106,7 +108,14 @@ class RunProgression {
   bool dailyQuestClockRollbackDetected = false;
   final Map<DailyQuestType, int> dailyQuestProgress = {};
   final Set<DailyQuestType> claimedDailyQuestRewards = {};
+  bool dailyAttendanceRewardClaimed = false;
   bool dailyQuestAllCompleteClaimed = false;
+  int weeklyQuestWeekKey = uninitializedWeeklyQuestWeekKey;
+  final Map<DailyQuestType, int> weeklyQuestProgress = {};
+  final Set<DailyQuestType> claimedWeeklyQuestRewards = {};
+  bool weeklyQuestAllCompleteClaimed = false;
+  final Set<int> weeklyAttendanceDayKeys = {};
+  bool weeklyAttendanceRewardClaimed = false;
   int lastRunRuneReward = 0;
   int startingGoldUpgradeLevel = 0;
   int nexusHpUpgradeLevel = 0;
@@ -342,6 +351,10 @@ class RunProgression {
       gameDailyQuestDefinitions.keys.where(isDailyQuestComplete).length;
   bool get allDailyQuestsComplete =>
       completedDailyQuestCount == gameDailyQuestDefinitions.length;
+  int get completedWeeklyQuestCount =>
+      gameWeeklyQuestDefinitions.keys.where(isWeeklyQuestComplete).length;
+  bool get allWeeklyQuestsComplete =>
+      completedWeeklyQuestCount == gameWeeklyQuestDefinitions.length;
 
   int get _cappedStartingGoldUpgradeLevel =>
       startingGoldUpgradeLevel.clamp(0, maxStartingGoldUpgradeLevel).toInt();
@@ -402,6 +415,12 @@ class RunProgression {
     final adjustedMillis =
         nowMillis + (_kstOffsetHours - dailyQuestResetHourKst) * _hourMillis;
     return adjustedMillis ~/ _dayMillis;
+  }
+
+  static int weeklyQuestWeekKeyFor(int nowMillis) {
+    final dayKey = dailyQuestDayKeyFor(nowMillis);
+    // 1970-01-01은 목요일이므로 월요일 시작 주차에 맞춘 보정.
+    return (dayKey + 3) ~/ 7;
   }
 
   static int _hybridUpgradeCost({
@@ -729,6 +748,7 @@ class RunProgression {
       dailyQuestDayKey = currentDayKey;
       dailyQuestProgress.clear();
       claimedDailyQuestRewards.clear();
+      dailyAttendanceRewardClaimed = false;
       dailyQuestAllCompleteClaimed = false;
       dailyQuestClockRollbackDetected = false;
       changed = true;
@@ -743,6 +763,27 @@ class RunProgression {
 
     if (lastDailyQuestSeenMillis == 0 || nowMillis > lastDailyQuestSeenMillis) {
       lastDailyQuestSeenMillis = nowMillis;
+      changed = true;
+    }
+    if (_refreshWeeklyQuests(currentDayKey: currentDayKey)) {
+      changed = true;
+    }
+    return changed;
+  }
+
+  bool _refreshWeeklyQuests({required int currentDayKey}) {
+    var changed = false;
+    final currentWeekKey = (currentDayKey + 3) ~/ 7;
+    if (weeklyQuestWeekKey != currentWeekKey) {
+      weeklyQuestWeekKey = currentWeekKey;
+      weeklyQuestProgress.clear();
+      claimedWeeklyQuestRewards.clear();
+      weeklyQuestAllCompleteClaimed = false;
+      weeklyAttendanceDayKeys.clear();
+      weeklyAttendanceRewardClaimed = false;
+      changed = true;
+    }
+    if (weeklyAttendanceDayKeys.add(currentDayKey)) {
       changed = true;
     }
     return changed;
@@ -766,6 +807,14 @@ class RunProgression {
       definition.targetCount,
       current + amount,
     );
+    final weeklyDefinition = gameWeeklyQuestDefinitions[type];
+    if (weeklyDefinition != null) {
+      final weeklyCurrent = weeklyQuestProgress[type] ?? 0;
+      weeklyQuestProgress[type] = math.min(
+        weeklyDefinition.targetCount,
+        weeklyCurrent + amount,
+      );
+    }
   }
 
   bool isDailyQuestComplete(DailyQuestType type) {
@@ -810,6 +859,70 @@ class RunProgression {
     return true;
   }
 
+  bool claimDailyAttendanceReward({required int nowMillis}) {
+    refreshDailyQuests(nowMillis: nowMillis);
+    if (dailyQuestClockRollbackDetected || dailyAttendanceRewardClaimed) {
+      return false;
+    }
+    addFreeDiamonds(dailyAttendanceRewardDiamonds);
+    dailyAttendanceRewardClaimed = true;
+    return true;
+  }
+
+  bool isWeeklyQuestComplete(DailyQuestType type) {
+    final definition = gameWeeklyQuestDefinitions[type];
+    if (definition == null) {
+      return false;
+    }
+    return (weeklyQuestProgress[type] ?? 0) >= definition.targetCount;
+  }
+
+  bool canClaimWeeklyQuestReward(
+    DailyQuestType type, {
+    required int nowMillis,
+  }) {
+    refreshDailyQuests(nowMillis: nowMillis);
+    return !dailyQuestClockRollbackDetected &&
+        isWeeklyQuestComplete(type) &&
+        !claimedWeeklyQuestRewards.contains(type);
+  }
+
+  bool claimWeeklyQuestReward(DailyQuestType type, {required int nowMillis}) {
+    final definition = gameWeeklyQuestDefinitions[type];
+    if (definition == null ||
+        !canClaimWeeklyQuestReward(type, nowMillis: nowMillis)) {
+      return false;
+    }
+    addFreeDiamonds(definition.rewardDiamonds);
+    claimedWeeklyQuestRewards.add(type);
+    return true;
+  }
+
+  bool claimWeeklyQuestAllCompleteReward({required int nowMillis}) {
+    refreshDailyQuests(nowMillis: nowMillis);
+    if (dailyQuestClockRollbackDetected ||
+        !allWeeklyQuestsComplete ||
+        weeklyQuestAllCompleteClaimed) {
+      return false;
+    }
+    addFreeDiamonds(weeklyQuestAllCompleteRewardDiamonds);
+    turretModuleTickets += weeklyQuestAllCompleteRewardModuleTickets;
+    weeklyQuestAllCompleteClaimed = true;
+    return true;
+  }
+
+  bool claimWeeklyAttendanceReward({required int nowMillis}) {
+    refreshDailyQuests(nowMillis: nowMillis);
+    if (dailyQuestClockRollbackDetected ||
+        weeklyAttendanceDayKeys.length < weeklyAttendanceTargetDays ||
+        weeklyAttendanceRewardClaimed) {
+      return false;
+    }
+    addFreeDiamonds(weeklyAttendanceRewardDiamonds);
+    weeklyAttendanceRewardClaimed = true;
+    return true;
+  }
+
   bool canSpendDiamonds(int amount) {
     return _diamondWallet.canSpend(amount);
   }
@@ -850,7 +963,14 @@ class RunProgression {
       dailyQuestClockRollbackDetected: dailyQuestClockRollbackDetected,
       dailyQuestProgress: Map.unmodifiable(dailyQuestProgress),
       claimedDailyQuestRewards: Set.unmodifiable(claimedDailyQuestRewards),
+      dailyAttendanceRewardClaimed: dailyAttendanceRewardClaimed,
       dailyQuestAllCompleteClaimed: dailyQuestAllCompleteClaimed,
+      weeklyQuestWeekKey: weeklyQuestWeekKey,
+      weeklyQuestProgress: Map.unmodifiable(weeklyQuestProgress),
+      claimedWeeklyQuestRewards: Set.unmodifiable(claimedWeeklyQuestRewards),
+      weeklyQuestAllCompleteClaimed: weeklyQuestAllCompleteClaimed,
+      weeklyAttendanceDayKeys: Set.unmodifiable(weeklyAttendanceDayKeys),
+      weeklyAttendanceRewardClaimed: weeklyAttendanceRewardClaimed,
       lastRunRuneReward: lastRunRuneReward,
       startingGoldUpgradeLevel: _cappedStartingGoldUpgradeLevel,
       nexusHpUpgradeLevel: _cappedNexusHpUpgradeLevel,
@@ -939,7 +1059,31 @@ class RunProgression {
           gameDailyQuestDefinitions.containsKey,
         ),
       );
+    dailyAttendanceRewardClaimed = data.dailyAttendanceRewardClaimed;
     dailyQuestAllCompleteClaimed = data.dailyQuestAllCompleteClaimed;
+    weeklyQuestWeekKey = data.weeklyQuestWeekKey;
+    weeklyQuestProgress
+      ..clear()
+      ..addEntries(
+        data.weeklyQuestProgress.entries
+            .where((entry) => gameWeeklyQuestDefinitions.containsKey(entry.key))
+            .map((entry) {
+              final target = gameWeeklyQuestDefinitions[entry.key]!.targetCount;
+              return MapEntry(entry.key, entry.value.clamp(0, target).toInt());
+            }),
+      );
+    claimedWeeklyQuestRewards
+      ..clear()
+      ..addAll(
+        data.claimedWeeklyQuestRewards.where(
+          gameWeeklyQuestDefinitions.containsKey,
+        ),
+      );
+    weeklyQuestAllCompleteClaimed = data.weeklyQuestAllCompleteClaimed;
+    weeklyAttendanceDayKeys
+      ..clear()
+      ..addAll(data.weeklyAttendanceDayKeys.where((dayKey) => dayKey >= 0));
+    weeklyAttendanceRewardClaimed = data.weeklyAttendanceRewardClaimed;
     lastRunRuneReward = math.max(0, data.lastRunRuneReward);
     startingGoldUpgradeLevel = data.startingGoldUpgradeLevel
         .clamp(0, maxStartingGoldUpgradeLevel)

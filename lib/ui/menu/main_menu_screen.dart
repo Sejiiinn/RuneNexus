@@ -9,6 +9,7 @@ import '../../data/definitions/game_daily_quest_data.dart';
 import '../../data/definitions/game_research_data.dart';
 import '../../data/definitions/game_turret_data.dart';
 import '../../data/definitions/game_turret_module_data.dart';
+import '../../data/definitions/game_weekly_quest_data.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../domain/core/core_ability.dart';
 import '../../domain/daily_quest/daily_quest_type.dart';
@@ -33,6 +34,7 @@ part 'main_menu_permanent_upgrades.dart';
 part 'main_menu_research.dart';
 part 'main_menu_stage.dart';
 part 'main_menu_turret_modules.dart';
+part 'main_menu_weekly_quest.dart';
 
 const _showMapEditor = bool.fromEnvironment(
   'RUNE_NEXUS_DEBUG_PANEL',

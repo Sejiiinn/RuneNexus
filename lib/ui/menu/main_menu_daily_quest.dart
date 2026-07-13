@@ -63,74 +63,76 @@ class _DailyQuestEntryButtonState extends State<_DailyQuestEntryButton>
   @override
   Widget build(BuildContext context) {
     final ready = _ready;
-    return Tooltip(
-      message: '일일 임무',
-      child: GestureDetector(
-        key: const ValueKey('daily-quest-entry-button'),
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onPressed,
-        child: SizedBox(
-          width: 40,
-          height: 40,
-          child: AnimatedBuilder(
-            animation: _pulseController,
-            builder: (context, _) {
-              final pulse = ready
-                  ? math.sin(_pulseController.value * math.pi)
-                  : 0.0;
-              final glowAlpha = 0.16 + pulse * 0.24;
-              final borderAlpha = ready ? 0.64 + pulse * 0.28 : 0.44;
-              return DecoratedBox(
-                decoration: BoxDecoration(
-                  color: const Color(0xE607111D),
-                  border: Border.all(
-                    color: _diamondCurrencyColor.withValues(alpha: borderAlpha),
-                    width: ready ? 1.4 : 1.0,
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    if (ready)
-                      BoxShadow(
-                        color: _diamondCurrencyColor.withValues(
-                          alpha: glowAlpha,
-                        ),
-                        blurRadius: 13 + pulse * 8,
-                        spreadRadius: pulse * 1.2,
-                      ),
-                    const BoxShadow(
-                      color: Color(0x66000000),
-                      blurRadius: 10,
-                      offset: Offset(0, 4),
+    return GestureDetector(
+      key: const ValueKey('daily-quest-entry-button'),
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onPressed,
+      child: SizedBox(
+        width: 40,
+        height: 40,
+        child: AnimatedBuilder(
+          animation: _pulseController,
+          builder: (context, _) {
+            final pulse = ready
+                ? math.sin(_pulseController.value * math.pi)
+                : 0.0;
+            final glowAlpha = 0.16 + pulse * 0.24;
+            final borderAlpha = ready ? 0.64 + pulse * 0.28 : 0.44;
+            return DecoratedBox(
+              decoration: BoxDecoration(
+                color: const Color(0xE607111D),
+                border: Border.all(
+                  color: _diamondCurrencyColor.withValues(alpha: borderAlpha),
+                  width: ready ? 1.4 : 1.0,
+                ),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  if (ready)
+                    BoxShadow(
+                      color: _diamondCurrencyColor.withValues(alpha: glowAlpha),
+                      blurRadius: 13 + pulse * 8,
+                      spreadRadius: pulse * 1.2,
                     ),
-                  ],
-                ),
-                child: Icon(
-                  ready
-                      ? Icons.card_giftcard_rounded
-                      : Icons.event_available_outlined,
-                  color: ready
-                      ? _diamondCurrencyColor
-                      : const Color(0xFFE8FBFF),
-                  size: 20,
-                ),
-              );
-            },
-          ),
+                  const BoxShadow(
+                    color: Color(0x66000000),
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Icon(
+                ready
+                    ? Icons.card_giftcard_rounded
+                    : Icons.event_available_outlined,
+                color: ready ? _diamondCurrencyColor : const Color(0xFFE8FBFF),
+                size: 20,
+              ),
+            );
+          },
         ),
       ),
     );
   }
 }
 
-class _DailyQuestDialog extends StatelessWidget {
+enum _QuestPeriod { daily, weekly }
+
+class _DailyQuestDialog extends StatefulWidget {
   const _DailyQuestDialog({required this.game});
 
   final RuneNexusGame game;
 
   @override
+  State<_DailyQuestDialog> createState() => _DailyQuestDialogState();
+}
+
+class _DailyQuestDialogState extends State<_DailyQuestDialog> {
+  _QuestPeriod _period = _QuestPeriod.daily;
+
+  @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<GameSnapshot>(
-      valueListenable: game.snapshotNotifier,
+      valueListenable: widget.game.snapshotNotifier,
       builder: (context, snapshot, _) {
         return AlertDialog(
           backgroundColor: const Color(0xFF0B1725),
@@ -142,9 +144,8 @@ class _DailyQuestDialog extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             side: const BorderSide(color: Color(0xAA33D8FF)),
           ),
-          titlePadding: const EdgeInsets.fromLTRB(18, 16, 14, 0),
-          contentPadding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
-          actionsPadding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
+          titlePadding: const EdgeInsets.fromLTRB(14, 10, 8, 0),
+          contentPadding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
           title: Row(
             children: [
               const Icon(
@@ -155,7 +156,7 @@ class _DailyQuestDialog extends StatelessWidget {
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
-                  '일일 임무',
+                  '임무',
                   style: TextStyle(
                     color: Color(0xFFE8FBFF),
                     fontSize: 17,
@@ -172,45 +173,272 @@ class _DailyQuestDialog extends StatelessWidget {
             ],
           ),
           content: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 390),
+            constraints: const BoxConstraints(
+              minWidth: 390,
+              maxWidth: 390,
+              maxHeight: 500,
+            ),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _DailyQuestSummaryCard(game: game, snapshot: snapshot),
-                  if (snapshot.dailyQuestClockRollbackDetected) ...[
-                    const SizedBox(height: 8),
-                    const _DailyQuestWarningCard(),
-                  ],
-                  const SizedBox(height: 10),
-                  for (final entry in gameDailyQuestDefinitions.entries) ...[
-                    _DailyQuestRow(
-                      game: game,
-                      snapshot: snapshot,
-                      type: entry.key,
-                    ),
-                    if (entry.key != gameDailyQuestDefinitions.keys.last)
-                      const SizedBox(height: 8),
-                  ],
+                  _QuestPeriodSelector(
+                    period: _period,
+                    onChanged: (value) => setState(() => _period = value),
+                  ),
+                  const SizedBox(height: 8),
+                  if (_period == _QuestPeriod.daily)
+                    _DailyQuestContent(game: widget.game, snapshot: snapshot)
+                  else
+                    _WeeklyQuestContent(game: widget.game, snapshot: snapshot),
                 ],
               ),
             ),
           ),
-          actions: [
-            SizedBox(
-              width: 82,
-              child: GameButton(
-                onPressed: () => Navigator.of(context).pop(),
-                label: '닫기',
-                compact: true,
-                variant: GameButtonVariant.ghost,
-                accentColor: GamePalette.metal,
-              ),
-            ),
-          ],
         );
       },
+    );
+  }
+}
+
+class _QuestPeriodSelector extends StatelessWidget {
+  const _QuestPeriodSelector({required this.period, required this.onChanged});
+
+  final _QuestPeriod period;
+  final ValueChanged<_QuestPeriod> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: const Color(0xB306111D),
+        border: Border.all(color: const Color(0x5533D8FF)),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Row(
+        children: [
+          for (final value in _QuestPeriod.values)
+            Expanded(
+              child: GestureDetector(
+                key: ValueKey('quest-period-${value.name}'),
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onChanged(value),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  decoration: BoxDecoration(
+                    color: period == value
+                        ? _diamondCurrencyColor.withValues(alpha: 0.16)
+                        : Colors.transparent,
+                    border: Border.all(
+                      color: period == value
+                          ? _diamondCurrencyColor.withValues(alpha: 0.72)
+                          : Colors.transparent,
+                    ),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    value == _QuestPeriod.daily ? '일일' : '주간',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: period == value
+                          ? const Color(0xFFE8FBFF)
+                          : const Color(0xFF90AFC0),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DailyQuestContent extends StatelessWidget {
+  const _DailyQuestContent({required this.game, required this.snapshot});
+
+  final RuneNexusGame game;
+  final GameSnapshot snapshot;
+
+  @override
+  Widget build(BuildContext context) {
+    final blocked = snapshot.dailyQuestClockRollbackDetected;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _DailyQuestSummaryCard(game: game, snapshot: snapshot),
+        if (blocked) ...[
+          const SizedBox(height: 6),
+          const _DailyQuestWarningCard(),
+        ],
+        const SizedBox(height: 8),
+        _AttendanceQuestRow(
+          title: '오늘 출석',
+          subtitle: '매일 05:00 갱신',
+          progressText: '1/1일',
+          progress: 1,
+          target: 1,
+          rewardAmount: dailyAttendanceRewardDiamonds,
+          claimed: snapshot.dailyAttendanceRewardClaimed,
+          claimable: !blocked && !snapshot.dailyAttendanceRewardClaimed,
+          blocked: blocked,
+          onClaim: game.claimDailyAttendanceReward,
+        ),
+        const SizedBox(height: 5),
+        for (final entry in gameDailyQuestDefinitions.entries) ...[
+          _DailyQuestRow(game: game, snapshot: snapshot, type: entry.key),
+          if (entry.key != gameDailyQuestDefinitions.keys.last)
+            const SizedBox(height: 5),
+        ],
+      ],
+    );
+  }
+}
+
+class _AttendanceQuestRow extends StatelessWidget {
+  const _AttendanceQuestRow({
+    required this.title,
+    required this.subtitle,
+    required this.progressText,
+    required this.progress,
+    required this.target,
+    required this.rewardAmount,
+    required this.claimed,
+    required this.claimable,
+    required this.blocked,
+    required this.onClaim,
+  });
+
+  final String title;
+  final String subtitle;
+  final String progressText;
+  final int progress;
+  final int target;
+  final int rewardAmount;
+  final bool claimed;
+  final bool claimable;
+  final bool blocked;
+  final VoidCallback onClaim;
+
+  @override
+  Widget build(BuildContext context) {
+    final complete = progress >= target;
+    final progressRate = target <= 0 ? 1.0 : progress / target;
+    final buttonLabel = claimed
+        ? '수령됨'
+        : claimable
+        ? '수령'
+        : complete
+        ? '완료'
+        : '진행중';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        color: complete ? const Color(0x2247D7FF) : const Color(0x6607111D),
+        border: Border.all(
+          color: complete
+              ? _diamondCurrencyColor.withValues(alpha: 0.54)
+              : const Color(0x33485B68),
+        ),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 30,
+            height: 30,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: complete
+                    ? _diamondCurrencyColor.withValues(alpha: 0.16)
+                    : const Color(0x55223543),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(
+                  color: complete
+                      ? _diamondCurrencyColor.withValues(alpha: 0.72)
+                      : const Color(0x444A6172),
+                ),
+              ),
+              child: Icon(
+                Icons.calendar_month_outlined,
+                color: complete
+                    ? _diamondCurrencyColor
+                    : const Color(0xFF90AFC0),
+                size: 18,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFFE8FBFF),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _DailyQuestRewardText(amount: rewardAmount),
+                  ],
+                ),
+                const SizedBox(height: 5),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: LinearProgressIndicator(
+                    value: progressRate.clamp(0.0, 1.0),
+                    minHeight: 4,
+                    backgroundColor: const Color(0x55223543),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      complete ? _diamondCurrencyColor : GamePalette.cyan,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  '$progressText · $subtitle',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF90AFC0),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 68,
+            child: GameButton(
+              onPressed: claimable ? onClaim : null,
+              label: blocked ? '잠김' : buttonLabel,
+              compact: true,
+              variant: claimable
+                  ? GameButtonVariant.primary
+                  : GameButtonVariant.secondary,
+              accentColor: _diamondCurrencyColor,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -233,7 +461,7 @@ class _DailyQuestSummaryCard extends StatelessWidget {
         : '대기';
 
     return Container(
-      padding: const EdgeInsets.all(11),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xAA08131F),
         border: Border.all(color: const Color(0x6633D8FF)),
@@ -250,11 +478,11 @@ class _DailyQuestSummaryCard extends StatelessWidget {
                   '오늘 진행',
                   style: TextStyle(
                     color: Color(0xFFE8FBFF),
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 3),
                 Text(
                   '${snapshot.completedDailyQuestCount}/${gameDailyQuestDefinitions.length} 완료 · 매일 05:00 갱신',
                   maxLines: 1,
@@ -265,14 +493,14 @@ class _DailyQuestSummaryCard extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                const SizedBox(height: 7),
+                const SizedBox(height: 4),
                 const _DailyQuestRewardText(amount: 20, prefix: '전체 완료'),
               ],
             ),
           ),
           const SizedBox(width: 10),
           SizedBox(
-            width: 70,
+            width: 68,
             child: GameButton(
               onPressed: canClaim
                   ? () => game.claimDailyQuestAllCompleteReward()
@@ -355,7 +583,7 @@ class _DailyQuestRow extends StatelessWidget {
         : '진행중';
 
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: complete ? const Color(0x2247D7FF) : const Color(0x6607111D),
         border: Border.all(
@@ -391,7 +619,7 @@ class _DailyQuestRow extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -415,19 +643,19 @@ class _DailyQuestRow extends StatelessWidget {
                     _DailyQuestRewardText(amount: definition.rewardDiamonds),
                   ],
                 ),
-                const SizedBox(height: 7),
+                const SizedBox(height: 5),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(3),
                   child: LinearProgressIndicator(
                     value: progressRate.clamp(0.0, 1.0),
-                    minHeight: 5,
+                    minHeight: 4,
                     backgroundColor: const Color(0x55223543),
                     valueColor: AlwaysStoppedAnimation<Color>(
                       complete ? _diamondCurrencyColor : GamePalette.cyan,
                     ),
                   ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 3),
                 Text(
                   '$progress/${definition.targetCount}',
                   style: const TextStyle(
@@ -439,7 +667,7 @@ class _DailyQuestRow extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 8),
           SizedBox(
             width: 68,
             child: GameButton(
@@ -502,7 +730,15 @@ int _dailyQuestClaimableCount(GameSnapshot snapshot) {
   final questCount = gameDailyQuestDefinitions.keys
       .where((type) => _canClaimDailyQuestReward(snapshot, type))
       .length;
-  return questCount + (_canClaimAllDailyQuestReward(snapshot) ? 1 : 0);
+  final attendanceCount =
+      !snapshot.dailyQuestClockRollbackDetected &&
+          !snapshot.dailyAttendanceRewardClaimed
+      ? 1
+      : 0;
+  return questCount +
+      (_canClaimAllDailyQuestReward(snapshot) ? 1 : 0) +
+      attendanceCount +
+      _weeklyQuestClaimableCount(snapshot);
 }
 
 bool _canClaimDailyQuestReward(GameSnapshot snapshot, DailyQuestType type) {

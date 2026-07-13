@@ -126,8 +126,16 @@ class GameSnapshot {
     required this.dailyQuestProgress,
     required this.claimedDailyQuestRewards,
     required this.completedDailyQuestCount,
+    required this.dailyAttendanceRewardClaimed,
     required this.dailyQuestAllCompleteClaimed,
     required this.dailyQuestClockRollbackDetected,
+    required this.weeklyQuestWeekKey,
+    required this.weeklyQuestProgress,
+    required this.claimedWeeklyQuestRewards,
+    required this.completedWeeklyQuestCount,
+    required this.weeklyQuestAllCompleteClaimed,
+    required this.weeklyAttendanceDays,
+    required this.weeklyAttendanceRewardClaimed,
     required this.lastRunRuneReward,
     required this.projectedFailureRuneReward,
     required this.lastRunPreviousBestRound,
@@ -290,8 +298,16 @@ class GameSnapshot {
   final Map<DailyQuestType, int> dailyQuestProgress;
   final Set<DailyQuestType> claimedDailyQuestRewards;
   final int completedDailyQuestCount;
+  final bool dailyAttendanceRewardClaimed;
   final bool dailyQuestAllCompleteClaimed;
   final bool dailyQuestClockRollbackDetected;
+  final int weeklyQuestWeekKey;
+  final Map<DailyQuestType, int> weeklyQuestProgress;
+  final Set<DailyQuestType> claimedWeeklyQuestRewards;
+  final int completedWeeklyQuestCount;
+  final bool weeklyQuestAllCompleteClaimed;
+  final int weeklyAttendanceDays;
+  final bool weeklyAttendanceRewardClaimed;
   final int lastRunRuneReward;
   final int projectedFailureRuneReward;
   final int lastRunPreviousBestRound;

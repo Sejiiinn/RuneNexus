@@ -220,10 +220,25 @@ class GameSnapshotBuilder {
         _game._progression.claimedDailyQuestRewards,
       ),
       completedDailyQuestCount: _game._progression.completedDailyQuestCount,
+      dailyAttendanceRewardClaimed:
+          _game._progression.dailyAttendanceRewardClaimed,
       dailyQuestAllCompleteClaimed:
           _game._progression.dailyQuestAllCompleteClaimed,
       dailyQuestClockRollbackDetected:
           _game._progression.dailyQuestClockRollbackDetected,
+      weeklyQuestWeekKey: _game._progression.weeklyQuestWeekKey,
+      weeklyQuestProgress: Map.unmodifiable(
+        _game._progression.weeklyQuestProgress,
+      ),
+      claimedWeeklyQuestRewards: Set.unmodifiable(
+        _game._progression.claimedWeeklyQuestRewards,
+      ),
+      completedWeeklyQuestCount: _game._progression.completedWeeklyQuestCount,
+      weeklyQuestAllCompleteClaimed:
+          _game._progression.weeklyQuestAllCompleteClaimed,
+      weeklyAttendanceDays: _game._progression.weeklyAttendanceDayKeys.length,
+      weeklyAttendanceRewardClaimed:
+          _game._progression.weeklyAttendanceRewardClaimed,
       lastRunRuneReward: _game._progression.lastRunRuneReward,
       projectedFailureRuneReward: hasStageProgress
           ? _game._progression.runeRewardFor(

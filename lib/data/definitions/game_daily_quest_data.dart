@@ -1,6 +1,7 @@
 import '../../domain/daily_quest/daily_quest_definition.dart';
 import '../../domain/daily_quest/daily_quest_type.dart';
 
+const int dailyAttendanceRewardDiamonds = 10;
 const int dailyQuestAllCompleteRewardDiamonds = 20;
 
 const gameDailyQuestDefinitions = <DailyQuestType, DailyQuestDefinition>{

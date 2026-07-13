@@ -118,6 +118,7 @@ void main() {
       find.byKey(const ValueKey('daily-quest-entry-button')),
       findsOneWidget,
     );
+    expect(find.byTooltip('일일 임무'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('daily-quest-entry-button')));
     await _pumpGameFrames(tester);
@@ -126,7 +127,31 @@ void main() {
     expect(find.text('보스 3회 처치'), findsOneWidget);
     expect(find.text('몹 100회 처치'), findsOneWidget);
     expect(find.text('런 강화 5회'), findsOneWidget);
-    expect(find.text('+10'), findsNWidgets(4));
+    expect(find.text('+10'), findsNWidgets(5));
+    expect(find.text('오늘 출석'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('오늘 출석')).dy,
+      lessThan(tester.getTopLeft(find.text('웨이브 30회 클리어')).dy),
+    );
+    expect(find.byTooltip('닫기'), findsOneWidget);
+    expect(find.widgetWithText(GameButton, '닫기'), findsNothing);
+    final dailyDialogWidth = tester.getSize(find.byType(AlertDialog)).width;
+
+    await tester.tap(find.byKey(const ValueKey('quest-period-weekly')));
+    await _pumpGameFrames(tester);
+
+    expect(find.text('웨이브 150회 클리어'), findsOneWidget);
+    expect(find.text('보스 15회 처치'), findsOneWidget);
+    expect(find.text('몹 500회 처치'), findsOneWidget);
+    expect(find.text('런 강화 25회'), findsOneWidget);
+    expect(find.text('이번 주 출석'), findsOneWidget);
+    expect(find.text('모듈권 +1'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('이번 주 출석')).dy,
+      lessThan(tester.getTopLeft(find.text('웨이브 150회 클리어')).dy),
+    );
+    expect(tester.getSize(find.byType(AlertDialog)).width, dailyDialogWidth);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('daily quest entry only appears on stage tab', (tester) async {
@@ -3543,8 +3568,16 @@ GameSnapshot _resultSnapshot({
     dailyQuestProgress: const {},
     claimedDailyQuestRewards: const {},
     completedDailyQuestCount: 0,
+    dailyAttendanceRewardClaimed: false,
     dailyQuestAllCompleteClaimed: false,
     dailyQuestClockRollbackDetected: false,
+    weeklyQuestWeekKey: RunProgression.uninitializedWeeklyQuestWeekKey,
+    weeklyQuestProgress: const {},
+    claimedWeeklyQuestRewards: const {},
+    completedWeeklyQuestCount: 0,
+    weeklyQuestAllCompleteClaimed: false,
+    weeklyAttendanceDays: 0,
+    weeklyAttendanceRewardClaimed: false,
     lastRunRuneReward: lastRunRuneReward,
     projectedFailureRuneReward: completedRounds * 2,
     lastRunPreviousBestRound: lastRunPreviousBestRound,

@@ -281,8 +281,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       dailyQuestProgress: const {},
       claimedDailyQuestRewards: const {},
       completedDailyQuestCount: 0,
+      dailyAttendanceRewardClaimed: false,
       dailyQuestAllCompleteClaimed: false,
       dailyQuestClockRollbackDetected: false,
+      weeklyQuestWeekKey: RunProgression.uninitializedWeeklyQuestWeekKey,
+      weeklyQuestProgress: const {},
+      claimedWeeklyQuestRewards: const {},
+      completedWeeklyQuestCount: 0,
+      weeklyQuestAllCompleteClaimed: false,
+      weeklyAttendanceDays: 0,
+      weeklyAttendanceRewardClaimed: false,
       lastRunRuneReward: 0,
       projectedFailureRuneReward: 0,
       lastRunPreviousBestRound: 0,
@@ -1112,6 +1120,55 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   bool claimDailyQuestAllCompleteReward() {
     final claimed = _progression.claimDailyQuestAllCompleteReward(
+      nowMillis: DateTime.now().millisecondsSinceEpoch,
+    );
+    if (!claimed) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
+  }
+
+  bool claimDailyAttendanceReward() {
+    final claimed = _progression.claimDailyAttendanceReward(
+      nowMillis: DateTime.now().millisecondsSinceEpoch,
+    );
+    if (!claimed) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
+  }
+
+  bool claimWeeklyQuestReward(DailyQuestType type) {
+    final claimed = _progression.claimWeeklyQuestReward(
+      type,
+      nowMillis: DateTime.now().millisecondsSinceEpoch,
+    );
+    if (!claimed) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
+  }
+
+  bool claimWeeklyQuestAllCompleteReward() {
+    final claimed = _progression.claimWeeklyQuestAllCompleteReward(
+      nowMillis: DateTime.now().millisecondsSinceEpoch,
+    );
+    if (!claimed) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
+  }
+
+  bool claimWeeklyAttendanceReward() {
+    final claimed = _progression.claimWeeklyAttendanceReward(
       nowMillis: DateTime.now().millisecondsSinceEpoch,
     );
     if (!claimed) {
