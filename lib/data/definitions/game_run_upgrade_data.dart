@@ -9,7 +9,7 @@ const gameRunUpgrades = <RunUpgradeType, RunUpgradeDefinition>{
     effectLabel: '+3%',
     maxLevel: 20,
     baseCost: 32,
-    costMultiplier: 1.3,
+    costMultiplier: 1.2,
     effectPerLevel: 0.03,
   ),
   RunUpgradeType.killGold: RunUpgradeDefinition(

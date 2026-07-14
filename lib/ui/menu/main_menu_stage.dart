@@ -1433,6 +1433,22 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
         highlighted: highlighted,
       ),
       _StageUnlockItem(
+        label: l10n.runUpgradeCostOptimization,
+        icon: Icons.price_change_outlined,
+        category: _StageUnlockCategory.research,
+        highlighted: highlighted,
+      ),
+    ],
+    10 => [
+      _StageUnlockItem(
+        label: l10n.armorPiercingGem,
+        icon: Icons.gps_fixed_outlined,
+        category: _StageUnlockCategory.gem,
+        highlighted: highlighted,
+      ),
+    ],
+    12 => [
+      _StageUnlockItem(
         label: l10n.towerDamageLimitExpansion,
         icon: Icons.local_fire_department_outlined,
         category: _StageUnlockCategory.research,
@@ -1448,14 +1464,6 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
         label: l10n.waveGoldLimitExpansion,
         icon: Icons.inventory_2_outlined,
         category: _StageUnlockCategory.research,
-        highlighted: highlighted,
-      ),
-    ],
-    10 => [
-      _StageUnlockItem(
-        label: l10n.armorPiercingGem,
-        icon: Icons.gps_fixed_outlined,
-        category: _StageUnlockCategory.gem,
         highlighted: highlighted,
       ),
     ],

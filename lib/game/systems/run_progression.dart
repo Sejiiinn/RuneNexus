@@ -46,6 +46,7 @@ class RunProgression {
   static const double bossBountyBonusPerLevel = 0.025;
   static const double linkMaintenanceDiscountPerLevel = 0.02;
   static const double runeResonanceBonusPerLevel = 0.02;
+  static const double runUpgradeCostDiscountPerLevel = 0.02;
   static const int runUpgradeLimitExpansionMaxLevelPerLevel = 1;
   static const int bossGemShardsPerCrystalRecoveryLevel = 1;
   static const int runeRewardFullClearRoundCount = 40;
@@ -305,6 +306,10 @@ class RunProgression {
       bossGemShardsPerCrystalRecoveryLevel;
   double get runeResonanceBonusRate =>
       researchLevel(ResearchType.runeResonance) * runeResonanceBonusPerLevel;
+  double get runUpgradeCostMultiplier =>
+      1 -
+      researchLevel(ResearchType.runUpgradeCostOptimization) *
+          runUpgradeCostDiscountPerLevel;
   int runUpgradeMaxLevelBonusFor(RunUpgradeType type) {
     final researchType = switch (type) {
       RunUpgradeType.towerDamage => ResearchType.towerDamageLimitExpansion,

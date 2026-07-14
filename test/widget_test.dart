@@ -2694,10 +2694,49 @@ void main() {
       ),
     );
 
-    expect(find.text('연구 4개 해금'), findsOneWidget);
+    expect(find.text('연구 2개 해금'), findsOneWidget);
     expect(find.text('해금 항목'), findsOneWidget);
     expect(find.text('연구'), findsOneWidget);
     expect(find.text('룬 공명'), findsOneWidget);
+    expect(find.text('전투 투자 최적화'), findsOneWidget);
+  });
+
+  testWidgets('result overlay shows stage twelve limit research unlocks', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: ResultOverlay(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.success,
+            currentStageNumber: 12,
+            unlockedStageCount: 13,
+            completedRounds: 40,
+            runes: 1000,
+            lastRunRuneReward: 1000,
+            lastRunPreviousBestRound: 30,
+            lastRunWasNewBestRound: true,
+            lastRunUnlockedStageNumber: 13,
+            bestRoundsByStage: const {12: 40},
+            clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+          ),
+          onOpenStageSelect: () {},
+          onOpenPermanentUpgrades: () {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+
+    expect(find.text('연구 3개 해금'), findsOneWidget);
     expect(find.text('포탑 화력 한계 확장'), findsOneWidget);
     expect(find.text('처치 보너스 한계 확장'), findsOneWidget);
     expect(find.text('정비 보급 한계 확장'), findsOneWidget);

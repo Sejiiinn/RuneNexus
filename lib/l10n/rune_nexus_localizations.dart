@@ -106,6 +106,8 @@ class RuneNexusLocalizations {
   String get bossBounty => _isEnglish ? 'Boss Reward' : '토벌 보상';
   String get crystalRecovery => _isEnglish ? 'Crystal Recovery' : '결정 회수';
   String get runeResonance => _isEnglish ? 'Rune Resonance' : '룬 공명';
+  String get runUpgradeCostOptimization =>
+      _isEnglish ? 'Combat Investment Optimization' : '전투 투자 최적화';
   String get towerDamageLimitExpansion =>
       _isEnglish ? 'Tower Damage Limit Expansion' : '포탑 화력 한계 확장';
   String get killGoldLimitExpansion =>
@@ -327,6 +329,10 @@ class RuneNexusLocalizations {
     return _isEnglish ? 'Rune reward boost +$percent%' : '룬 보상 증폭 +$percent%';
   }
 
+  String researchRunUpgradeCostOptimizationEffect(int percent) {
+    return _isEnglish ? 'Run upgrade cost -$percent%' : '런 업그레이드 비용 -$percent%';
+  }
+
   String researchRunUpgradeLimitExpansionEffect(String subject, int amount) {
     return _isEnglish
         ? '$subject max level +$amount'
@@ -434,6 +440,11 @@ class RuneNexusLocalizations {
       return _isEnglish
           ? 'Increases runes gained after a run by 2% per level.'
           : '레벨마다 런 종료 후 획득하는 룬이 2% 증가합니다.';
+    }
+    if (title == runUpgradeCostOptimization) {
+      return _isEnglish
+          ? 'Reduces the cost of all run upgrades by 2% per level.'
+          : '레벨마다 모든 런 업그레이드 비용이 2% 감소합니다.';
     }
     if (title == towerDamageLimitExpansion) {
       return _isEnglish

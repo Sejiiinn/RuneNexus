@@ -1552,6 +1552,7 @@ String _researchTitle(RuneNexusLocalizations l10n, ResearchType type) {
     ResearchType.linkMaintenance => l10n.linkMaintenance,
     ResearchType.crystalRecovery => l10n.crystalRecovery,
     ResearchType.runeResonance => l10n.runeResonance,
+    ResearchType.runUpgradeCostOptimization => l10n.runUpgradeCostOptimization,
     ResearchType.towerDamageLimitExpansion => l10n.towerDamageLimitExpansion,
     ResearchType.killGoldLimitExpansion => l10n.killGoldLimitExpansion,
     ResearchType.waveGoldLimitExpansion => l10n.waveGoldLimitExpansion,
@@ -1615,6 +1616,14 @@ _ResearchEffectText _researchEffectText(
       l10n.researchRuneResonanceEffect(_runeResonancePercent(level)),
       hasNext ? _signedPercent(_runeResonancePercent(clampedNextLevel)) : null,
     ),
+    ResearchType.runUpgradeCostOptimization => _ResearchEffectText(
+      l10n.researchRunUpgradeCostOptimizationEffect(
+        _runUpgradeCostOptimizationPercent(level),
+      ),
+      hasNext
+          ? '-${_runUpgradeCostOptimizationPercent(clampedNextLevel)}%'
+          : null,
+    ),
     ResearchType.towerDamageLimitExpansion => _ResearchEffectText(
       l10n.researchRunUpgradeLimitExpansionEffect(
         l10n.towerDamageRunUpgrade,
@@ -1670,6 +1679,10 @@ int _runeResonancePercent(int level) {
   return (level * RunProgression.runeResonanceBonusPerLevel * 100).round();
 }
 
+int _runUpgradeCostOptimizationPercent(int level) {
+  return (level * RunProgression.runUpgradeCostDiscountPerLevel * 100).round();
+}
+
 int _runUpgradeLimitExpansionLevelBonus(int level) {
   return level * RunProgression.runUpgradeLimitExpansionMaxLevelPerLevel;
 }
@@ -1685,6 +1698,7 @@ IconData _researchIcon(ResearchType type) {
     ResearchType.linkMaintenance => Icons.device_hub_outlined,
     ResearchType.crystalRecovery => Icons.diamond_outlined,
     ResearchType.runeResonance => Icons.all_inclusive,
+    ResearchType.runUpgradeCostOptimization => Icons.price_change_outlined,
     ResearchType.towerDamageLimitExpansion =>
       Icons.local_fire_department_outlined,
     ResearchType.killGoldLimitExpansion => Icons.toll_outlined,

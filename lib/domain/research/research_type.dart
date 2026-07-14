@@ -8,6 +8,7 @@ enum ResearchType {
   linkMaintenance,
   crystalRecovery,
   runeResonance,
+  runUpgradeCostOptimization,
   towerDamageLimitExpansion,
   killGoldLimitExpansion,
   waveGoldLimitExpansion,

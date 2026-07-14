@@ -2221,7 +2221,58 @@ void main() {
     expect(progression.runeResonanceBonusRate, closeTo(0.4, 0.001));
   });
 
-  test('run upgrade limit researches unlock after stage eight clear', () {
+  test('run upgrade cost optimization unlocks after stage eight clear', () {
+    final progression = RunProgression()..runes = 1000;
+
+    expect(
+      progression.isResearchUnlocked(ResearchType.runUpgradeCostOptimization),
+      isFalse,
+    );
+    expect(progression.runUpgradeCostMultiplier, 1);
+
+    progression.clearedStageNumbers.add(8);
+
+    expect(
+      progression.isResearchUnlocked(ResearchType.runUpgradeCostOptimization),
+      isTrue,
+    );
+    expect(
+      progression.researchCostForCurrentLevel(
+        ResearchType.runUpgradeCostOptimization,
+      ),
+      150,
+    );
+    expect(
+      progression.researchDurationForCurrentLevel(
+        ResearchType.runUpgradeCostOptimization,
+      ),
+      2 * 60 * 60 * 1000,
+    );
+
+    expect(
+      progression.startResearch(
+        ResearchType.runUpgradeCostOptimization,
+        nowMillis: 1000,
+      ),
+      isTrue,
+    );
+    expect(
+      progression.completeFinishedResearches(
+        nowMillis: 1000 + 2 * 60 * 60 * 1000,
+      ),
+      isTrue,
+    );
+    expect(
+      progression.researchLevel(ResearchType.runUpgradeCostOptimization),
+      1,
+    );
+    expect(progression.runUpgradeCostMultiplier, closeTo(0.98, 0.001));
+
+    progression.researchLevels[ResearchType.runUpgradeCostOptimization] = 10;
+    expect(progression.runUpgradeCostMultiplier, closeTo(0.8, 0.001));
+  });
+
+  test('run upgrade limit researches unlock after stage twelve clear', () {
     final progression = RunProgression()..runes = 1000;
     const researchTypes = [
       ResearchType.towerDamageLimitExpansion,
@@ -2234,6 +2285,12 @@ void main() {
     }
 
     progression.clearedStageNumbers.add(8);
+
+    for (final type in researchTypes) {
+      expect(progression.isResearchUnlocked(type), isFalse);
+    }
+
+    progression.clearedStageNumbers.add(12);
 
     for (final type in researchTypes) {
       expect(progression.isResearchUnlocked(type), isTrue);
@@ -3532,44 +3589,65 @@ void main() {
     final definition = gameRunUpgrades[RunUpgradeType.towerDamage]!;
     const costs = [
       32,
-      42,
-      54,
-      70,
-      91,
-      119,
-      154,
-      201,
-      261,
-      339,
-      441,
-      573,
-      746,
-      969,
-      1260,
-      1638,
-      2129,
-      2768,
-      3599,
-      4678,
+      38,
+      46,
+      55,
+      66,
+      80,
+      96,
+      115,
+      138,
+      165,
+      198,
+      238,
+      285,
+      342,
+      411,
+      493,
+      592,
+      710,
+      852,
+      1022,
     ];
 
     expect(definition.maxLevel, 20);
-    expect(definition.costMultiplier, 1.3);
+    expect(definition.costMultiplier, 1.2);
     for (var level = 0; level < costs.length; level++) {
       expect(definition.costForLevel(level), costs[level]);
     }
     expect(definition.costForLevel(costs.length), 0);
   });
 
+  test('run upgrade cost optimization discounts every run upgrade', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithResearch(
+        clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8},
+        researchLevels: const {ResearchType.runUpgradeCostOptimization: 10},
+        gold: 1000,
+      );
+    final game = RuneNexusGame(saveRepository: repository);
+
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    expect(game.runUpgradeCostFor(RunUpgradeType.towerDamage, 0), 26);
+    expect(game.runUpgradeCostFor(RunUpgradeType.killGold, 0), 16);
+    expect(game.runUpgradeCostFor(RunUpgradeType.waveGold, 0), 8);
+  });
+
   test(
     'run upgrade limit research lets only matching upgrade exceed base cap',
     () async {
       final definition = gameRunUpgrades[RunUpgradeType.towerDamage]!;
-      final costAtBaseCap = definition.costForLevel(20, maxLevel: 30);
+      final costAtBaseCap = (definition.costForLevel(20, maxLevel: 30) * 0.8)
+          .round();
       final repository = MemorySaveRepository()
         ..data = _saveWithResearch(
           clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8},
-          researchLevels: const {ResearchType.towerDamageLimitExpansion: 10},
+          researchLevels: const {
+            ResearchType.runUpgradeCostOptimization: 10,
+            ResearchType.towerDamageLimitExpansion: 10,
+          },
           gold: costAtBaseCap,
           runUpgradeLevels: const {RunUpgradeType.towerDamage: 20},
         );
@@ -3583,6 +3661,7 @@ void main() {
       expect(game.runUpgradeMaxLevelFor(RunUpgradeType.killGold), 20);
       expect(game.runUpgradeMaxLevelFor(RunUpgradeType.waveGold), 20);
       expect(snapshot.runUpgradeLevels[RunUpgradeType.towerDamage], 20);
+      expect(game.runUpgradeCostFor(RunUpgradeType.towerDamage, 20), 982);
 
       game.buyRunUpgrade(RunUpgradeType.towerDamage);
 
