@@ -15,7 +15,7 @@ void main() {
     'stage clear grants a turret module ticket and persists module state',
     () {
       final progression = RunProgression();
-      progression.finishRun(completedRounds: 50, success: true, stageNumber: 1);
+      progression.finishRun(completedRounds: 40, success: true, stageNumber: 1);
       expect(progression.turretModuleTickets, 1);
 
       final key = TurretModuleKey(

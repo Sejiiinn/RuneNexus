@@ -1464,10 +1464,14 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
 }
 
 int _fullClearRuneReward(GameSnapshot snapshot, int stageNumber) {
-  const completedRounds = 50;
+  final completedRounds = snapshot.maxRound;
   final rewardProgress =
       (math.pow(RunProgression.runeRewardGrowthPerRound, completedRounds) - 1) /
-      (math.pow(RunProgression.runeRewardGrowthPerRound, 50) - 1);
+      (math.pow(
+            RunProgression.runeRewardGrowthPerRound,
+            RunProgression.runeRewardFullClearRoundCount,
+          ) -
+          1);
   final baseReward =
       RunProgression.baseStageOneFullClearRuneReward * rewardProgress;
   final bonusRate = RunProgression.stageRuneRewardBonusRateFor(stageNumber);

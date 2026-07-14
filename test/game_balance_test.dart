@@ -71,28 +71,28 @@ void main() {
     game.onTapDown(event);
   }
 
-  test('game stage uses 50 survival rounds', () {
+  test('game stage uses 40 survival rounds', () {
     expect(gameStages, hasLength(15));
     expect(gameStages.first.id, 1);
     expect(gameStages.last.id, 15);
-    expect(gameWaves, hasLength(50));
+    expect(gameWaves, hasLength(40));
     expect(gameWaves.first.round, 1);
-    expect(gameWaves.last.round, 50);
-    expect(gameStage2Waves, hasLength(50));
+    expect(gameWaves.last.round, 40);
+    expect(gameStage2Waves, hasLength(40));
     expect(gameStage2Waves.first.round, 1);
-    expect(gameStage2Waves.last.round, 50);
-    expect(gameChapter2Waves, hasLength(50));
+    expect(gameStage2Waves.last.round, 40);
+    expect(gameChapter2Waves, hasLength(40));
     expect(gameChapter2Waves.first.round, 1);
-    expect(gameChapter2Waves.last.round, 50);
-    expect(gameChapter2Stage7Waves, hasLength(50));
-    expect(gameChapter2Stage8Waves, hasLength(50));
-    expect(gameChapter2Stage9Waves, hasLength(50));
-    expect(gameChapter2Stage10Waves, hasLength(50));
-    expect(gameChapter3Waves, hasLength(50));
-    expect(gameChapter3Stage12Waves, hasLength(50));
-    expect(gameChapter3Stage13Waves, hasLength(50));
-    expect(gameChapter3Stage14Waves, hasLength(50));
-    expect(gameChapter3Stage15Waves, hasLength(50));
+    expect(gameChapter2Waves.last.round, 40);
+    expect(gameChapter2Stage7Waves, hasLength(40));
+    expect(gameChapter2Stage8Waves, hasLength(40));
+    expect(gameChapter2Stage9Waves, hasLength(40));
+    expect(gameChapter2Stage10Waves, hasLength(40));
+    expect(gameChapter3Waves, hasLength(40));
+    expect(gameChapter3Stage12Waves, hasLength(40));
+    expect(gameChapter3Stage13Waves, hasLength(40));
+    expect(gameChapter3Stage14Waves, hasLength(40));
+    expect(gameChapter3Stage15Waves, hasLength(40));
     expect(gameStages.first.map.tileTheme.kind, MapTileThemeKind.chapterOne);
     expect(gameStages[1].map.tileTheme.kind, MapTileThemeKind.chapterOne);
     expect(gameStages[1].waves, same(gameStage2Waves));
@@ -258,8 +258,8 @@ void main() {
 
     expect(game.snapshotNotifier.value.phase, GamePhase.success);
     expect(game.snapshotNotifier.value.completedRounds, 1);
-    expect(game.snapshotNotifier.value.lastRunRuneReward, 1);
-    expect(game.snapshotNotifier.value.runes, 1);
+    expect(game.snapshotNotifier.value.lastRunRuneReward, 2);
+    expect(game.snapshotNotifier.value.runes, 2);
     expect(game.snapshotNotifier.value.unlockedStageCount, 2);
     expect(game.snapshotNotifier.value.bestRoundsByStage[1], 1);
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(1));
@@ -716,8 +716,8 @@ void main() {
 
     expect(game.snapshotNotifier.value.phase, GamePhase.failure);
     expect(game.snapshotNotifier.value.completedRounds, 1);
-    expect(game.snapshotNotifier.value.lastRunRuneReward, 1);
-    expect(game.snapshotNotifier.value.runes, 1);
+    expect(game.snapshotNotifier.value.lastRunRuneReward, 2);
+    expect(game.snapshotNotifier.value.runes, 2);
     expect(game.snapshotNotifier.value.bestRoundsByStage[1], 1);
     expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(1)));
   });
@@ -2334,7 +2334,7 @@ void main() {
 
     game.debugSetRound(999);
 
-    expect(game.snapshotNotifier.value.round, 50);
+    expect(game.snapshotNotifier.value.round, 40);
   });
 
   test('debug force victory completes current stage', () {
@@ -2345,8 +2345,8 @@ void main() {
 
     final snapshot = game.snapshotNotifier.value;
     expect(snapshot.phase, GamePhase.success);
-    expect(snapshot.completedRounds, 50);
-    expect(snapshot.lastRunRuneReward, 200);
+    expect(snapshot.completedRounds, 40);
+    expect(snapshot.lastRunRuneReward, 150);
     expect(snapshot.lastRunWasNewBestRound, isTrue);
     expect(snapshot.lastRunUnlockedStageNumber, 2);
     expect(snapshot.unlockedStageCount, 2);
@@ -2412,7 +2412,7 @@ void main() {
       game.snapshotNotifier.value.clearedStageNumbers,
       containsAll([1, 5]),
     );
-    expect(game.snapshotNotifier.value.bestRoundsByStage[5], 50);
+    expect(game.snapshotNotifier.value.bestRoundsByStage[5], 40);
     expect(
       game.snapshotNotifier.value.availableTurretTypes,
       contains(TurretType.sniper),
@@ -3458,7 +3458,7 @@ void main() {
       contains(EnemyType.shieldBoss),
     );
     expect(countType(gameChapter2Waves, 10, EnemyType.boss), 0);
-    expect(countType(gameChapter2Stage10Waves, 50, EnemyType.shieldBoss), 1);
+    expect(countType(gameChapter2Stage10Waves, 40, EnemyType.shieldBoss), 1);
   });
 
   test('forge boss is defined and replaces boss waves in chapter three', () {
@@ -3505,7 +3505,7 @@ void main() {
     expect(chapterThreeTypes, contains(EnemyType.forgeBoss));
     expect(countType(gameChapter3Waves, 10, EnemyType.boss), 0);
     expect(countType(gameChapter3Waves, 10, EnemyType.forgeBoss), 1);
-    expect(countType(gameChapter3Stage15Waves, 50, EnemyType.forgeBoss), 1);
+    expect(countType(gameChapter3Stage15Waves, 40, EnemyType.forgeBoss), 1);
   });
 
   test('run tower damage upgrade boosts all turret damage', () {
@@ -4247,22 +4247,22 @@ void main() {
 
     expect(progression.runeRewardFor(0, success: false), 0);
     expect(progression.runeRewardFor(0, success: true), 0);
-    expect(progression.runeRewardFor(1, success: false), 1);
-    expect(progression.runeRewardFor(10, success: false), 16);
-    expect(progression.runeRewardFor(20, success: false), 39);
-    expect(progression.runeRewardFor(30, success: false), 73);
-    expect(progression.runeRewardFor(40, success: false), 124);
-    expect(progression.runeRewardFor(50, success: true), 200);
-    expect(progression.runeRewardFor(50, success: true, stageNumber: 2), 240);
-    expect(progression.runeRewardFor(50, success: true, stageNumber: 3), 290);
-    expect(progression.runeRewardFor(50, success: true, stageNumber: 4), 350);
-    expect(progression.runeRewardFor(50, success: true, stageNumber: 5), 420);
-    expect(progression.runeRewardFor(50, success: true, stageNumber: 15), 1670);
-    expect(progression.runeRewardFor(50, success: true, stageNumber: 16), 1670);
+    expect(progression.runeRewardFor(1, success: false), 2);
+    expect(progression.runeRewardFor(10, success: false), 19);
+    expect(progression.runeRewardFor(20, success: false), 47);
+    expect(progression.runeRewardFor(30, success: false), 89);
+    expect(progression.runeRewardFor(40, success: true), 150);
+    expect(progression.runeRewardFor(50, success: true), 150);
+    expect(progression.runeRewardFor(40, success: true, stageNumber: 2), 180);
+    expect(progression.runeRewardFor(40, success: true, stageNumber: 3), 218);
+    expect(progression.runeRewardFor(40, success: true, stageNumber: 4), 263);
+    expect(progression.runeRewardFor(40, success: true, stageNumber: 5), 315);
+    expect(progression.runeRewardFor(40, success: true, stageNumber: 15), 1253);
+    expect(progression.runeRewardFor(40, success: true, stageNumber: 16), 1253);
 
     progression.researchLevels[ResearchType.runeResonance] = 20;
-    expect(progression.runeRewardFor(50, success: true), 280);
-    expect(progression.runeRewardFor(50, success: true, stageNumber: 8), 966);
+    expect(progression.runeRewardFor(40, success: true), 210);
+    expect(progression.runeRewardFor(40, success: true, stageNumber: 8), 725);
   });
 
   test('stage rune reward bonus applies to first clear rewards', () {
@@ -5035,8 +5035,8 @@ void main() {
         greaterThan(countType(gameChapter2Waves, 8, EnemyType.shielded)),
       );
       expect(
-        countType(gameChapter2Stage10Waves, 50, EnemyType.shieldBoss),
-        countType(gameChapter2Waves, 50, EnemyType.shieldBoss),
+        countType(gameChapter2Stage10Waves, 40, EnemyType.shieldBoss),
+        countType(gameChapter2Waves, 40, EnemyType.shieldBoss),
       );
     },
   );
@@ -5072,7 +5072,7 @@ void main() {
       countType(gameChapter3Stage15Waves, 8, EnemyType.shielded),
       greaterThan(0),
     );
-    expect(countType(gameChapter3Stage15Waves, 50, EnemyType.forgeBoss), 1);
+    expect(countType(gameChapter3Stage15Waves, 40, EnemyType.forgeBoss), 1);
   });
 
   test('late wave enemy counts stay within the planned pressure range', () {
@@ -5080,12 +5080,12 @@ void main() {
         wave.groups.fold(0, (total, group) => total + group.count);
 
     final round6Count = totalCount(gameWaves[5]);
-    final round49Count = totalCount(gameWaves[48]);
-    final round50Count = totalCount(gameWaves[49]);
+    final round39Count = totalCount(gameWaves[38]);
+    final round40Count = totalCount(gameWaves[39]);
 
     expect(round6Count, inInclusiveRange(16, 18));
-    expect(round49Count, lessThanOrEqualTo(round6Count * 2));
-    expect(round50Count, lessThanOrEqualTo(round6Count * 2));
+    expect(round39Count, lessThanOrEqualTo(round6Count * 2));
+    expect(round40Count, lessThanOrEqualTo(round6Count * 2));
   });
 
   test('normal enemy groups use a slower spawn cadence', () {
@@ -6454,7 +6454,7 @@ void main() {
 
     final snapshot = restored.snapshotNotifier.value;
     expect(snapshot.phase, GamePhase.preparation);
-    expect(snapshot.runes, 1);
+    expect(snapshot.runes, 2);
     expect(snapshot.bestRoundsByStage[1], 1);
   });
 

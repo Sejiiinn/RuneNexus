@@ -5,6 +5,8 @@ part 'game_stage_wave_helpers.dart';
 part 'game_stage_wave_previews.dart';
 part 'game_stage_wave_spawn_groups.dart';
 
+const int _gameStageRoundCount = 40;
+
 final gameWaves = List<WaveDefinition>.unmodifiable(_buildGameWaves());
 final gameStage2Waves = List<WaveDefinition>.unmodifiable(
   _buildChapterOneLateWaves(),
@@ -41,7 +43,7 @@ final gameChapter3Stage15Waves = List<WaveDefinition>.unmodifiable(
 );
 
 List<WaveDefinition> _buildGameWaves() {
-  return List<WaveDefinition>.generate(50, (index) {
+  return List<WaveDefinition>.generate(_gameStageRoundCount, (index) {
     final round = index + 1;
     return WaveDefinition(
       round: round,
@@ -53,7 +55,7 @@ List<WaveDefinition> _buildGameWaves() {
 }
 
 List<WaveDefinition> _buildStage2Waves() {
-  return List<WaveDefinition>.generate(50, (index) {
+  return List<WaveDefinition>.generate(_gameStageRoundCount, (index) {
     final round = index + 1;
     return WaveDefinition(
       round: round,
@@ -65,7 +67,7 @@ List<WaveDefinition> _buildStage2Waves() {
 }
 
 List<WaveDefinition> _buildChapter2Stage7Waves() {
-  return List<WaveDefinition>.generate(50, (index) {
+  return List<WaveDefinition>.generate(_gameStageRoundCount, (index) {
     final round = index + 1;
     return WaveDefinition(
       round: round,
@@ -77,7 +79,7 @@ List<WaveDefinition> _buildChapter2Stage7Waves() {
 }
 
 List<WaveDefinition> _buildChapter2Stage8Waves() {
-  return List<WaveDefinition>.generate(50, (index) {
+  return List<WaveDefinition>.generate(_gameStageRoundCount, (index) {
     final round = index + 1;
     return WaveDefinition(
       round: round,
@@ -89,7 +91,7 @@ List<WaveDefinition> _buildChapter2Stage8Waves() {
 }
 
 List<WaveDefinition> _buildChapter2Stage9Waves() {
-  return List<WaveDefinition>.generate(50, (index) {
+  return List<WaveDefinition>.generate(_gameStageRoundCount, (index) {
     final round = index + 1;
     return WaveDefinition(
       round: round,
@@ -101,7 +103,7 @@ List<WaveDefinition> _buildChapter2Stage9Waves() {
 }
 
 List<WaveDefinition> _buildChapter2Stage10Waves() {
-  return List<WaveDefinition>.generate(50, (index) {
+  return List<WaveDefinition>.generate(_gameStageRoundCount, (index) {
     final round = index + 1;
     return WaveDefinition(
       round: round,
@@ -113,7 +115,7 @@ List<WaveDefinition> _buildChapter2Stage10Waves() {
 }
 
 List<WaveDefinition> _buildChapter3Waves() {
-  return List<WaveDefinition>.generate(50, (index) {
+  return List<WaveDefinition>.generate(_gameStageRoundCount, (index) {
     final round = index + 1;
     return WaveDefinition(
       round: round,
@@ -125,7 +127,7 @@ List<WaveDefinition> _buildChapter3Waves() {
 }
 
 List<WaveDefinition> _buildChapter3Stage12Waves() {
-  return List<WaveDefinition>.generate(50, (index) {
+  return List<WaveDefinition>.generate(_gameStageRoundCount, (index) {
     final round = index + 1;
     return WaveDefinition(
       round: round,
@@ -137,7 +139,7 @@ List<WaveDefinition> _buildChapter3Stage12Waves() {
 }
 
 List<WaveDefinition> _buildChapter3Stage13Waves() {
-  return List<WaveDefinition>.generate(50, (index) {
+  return List<WaveDefinition>.generate(_gameStageRoundCount, (index) {
     final round = index + 1;
     return WaveDefinition(
       round: round,
@@ -149,7 +151,7 @@ List<WaveDefinition> _buildChapter3Stage13Waves() {
 }
 
 List<WaveDefinition> _buildChapter3Stage14Waves() {
-  return List<WaveDefinition>.generate(50, (index) {
+  return List<WaveDefinition>.generate(_gameStageRoundCount, (index) {
     final round = index + 1;
     return WaveDefinition(
       round: round,
@@ -161,7 +163,7 @@ List<WaveDefinition> _buildChapter3Stage14Waves() {
 }
 
 List<WaveDefinition> _buildChapter3Stage15Waves() {
-  return List<WaveDefinition>.generate(50, (index) {
+  return List<WaveDefinition>.generate(_gameStageRoundCount, (index) {
     final round = index + 1;
     return WaveDefinition(
       round: round,
@@ -173,7 +175,7 @@ List<WaveDefinition> _buildChapter3Stage15Waves() {
 }
 
 List<WaveDefinition> _buildChapterOneLateWaves() {
-  return List<WaveDefinition>.generate(50, (index) {
+  return List<WaveDefinition>.generate(_gameStageRoundCount, (index) {
     final round = index + 1;
     return WaveDefinition(
       round: round,

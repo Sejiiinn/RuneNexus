@@ -48,7 +48,8 @@ class RunProgression {
   static const double runeResonanceBonusPerLevel = 0.02;
   static const int runUpgradeLimitExpansionMaxLevelPerLevel = 1;
   static const int bossGemShardsPerCrystalRecoveryLevel = 1;
-  static const int baseStageOneFullClearRuneReward = 200;
+  static const int runeRewardFullClearRoundCount = 40;
+  static const int baseStageOneFullClearRuneReward = 150;
   static const double runeRewardGrowthPerRound = 1.04;
   static const int baseTurretRefundPercent = 75;
   static const int startingGoldUpgradeBaseCost = 4;
@@ -1474,10 +1475,12 @@ class RunProgression {
     if (completedRounds <= 0) {
       return 0;
     }
-    final cappedRounds = completedRounds.clamp(0, 50).toInt();
+    final cappedRounds = completedRounds
+        .clamp(0, runeRewardFullClearRoundCount)
+        .toInt();
     final rewardProgress =
         (math.pow(runeRewardGrowthPerRound, cappedRounds) - 1) /
-        (math.pow(runeRewardGrowthPerRound, 50) - 1);
+        (math.pow(runeRewardGrowthPerRound, runeRewardFullClearRoundCount) - 1);
     final baseReward = baseStageOneFullClearRuneReward * rewardProgress;
     final bonusRate = stageRuneRewardBonusRateFor(stageNumber);
     final resonanceMultiplier = 1 + runeResonanceBonusRate;

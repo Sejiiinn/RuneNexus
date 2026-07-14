@@ -921,7 +921,7 @@ class HudGemDebugPanel extends StatelessWidget {
                   ),
                   const SizedBox(width: 5),
                   _DebugRoundButton(
-                    label: '50R',
+                    label: '${snapshot.maxRound}R',
                     enabled: snapshot.round != snapshot.maxRound,
                     onPressed: () => game.debugSetRound(snapshot.maxRound),
                   ),
