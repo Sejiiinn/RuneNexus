@@ -60,6 +60,12 @@ class _ResearchMenuState extends State<_ResearchMenu> {
     final l10n = context.l10n;
     final nowMillis = DateTime.now().millisecondsSinceEpoch;
     final activeResearches = widget.snapshot.activeResearches;
+    final secondSlotPurchaseUnlocked = widget.snapshot.clearedStageNumbers
+        .contains(RunProgression.researchSlotTwoUnlockRequiredStage);
+    final showLockedSecondSlot =
+        widget.snapshot.researchSlotCount < 2 &&
+        (secondSlotPurchaseUnlocked ||
+            widget.snapshot.clearedStageNumbers.contains(8));
     final unlockedIncompleteTypes = <ResearchType>[];
     final lockedIncompleteTypes = <ResearchType>[];
     final completedTypes = <ResearchType>[];
@@ -87,6 +93,8 @@ class _ResearchMenuState extends State<_ResearchMenu> {
           nowMillis: nowMillis,
           game: widget.game,
           diamonds: widget.snapshot.diamonds,
+          showLockedSecondSlot: showLockedSecondSlot,
+          secondSlotPurchaseUnlocked: secondSlotPurchaseUnlocked,
         ),
         const SizedBox(height: 10),
         _ResearchSection(
@@ -167,6 +175,8 @@ class _ResearchSlotPanel extends StatelessWidget {
     required this.nowMillis,
     required this.game,
     required this.diamonds,
+    required this.showLockedSecondSlot,
+    required this.secondSlotPurchaseUnlocked,
   });
 
   final int slots;
@@ -174,6 +184,8 @@ class _ResearchSlotPanel extends StatelessWidget {
   final int nowMillis;
   final RuneNexusGame game;
   final int diamonds;
+  final bool showLockedSecondSlot;
+  final bool secondSlotPurchaseUnlocked;
 
   @override
   Widget build(BuildContext context) {
@@ -194,6 +206,286 @@ class _ResearchSlotPanel extends StatelessWidget {
             diamonds: diamonds,
           ),
         ],
+        if (showLockedSecondSlot) ...[
+          const SizedBox(height: 7),
+          _LockedResearchSlotCard(
+            purchaseUnlocked: secondSlotPurchaseUnlocked,
+            diamonds: diamonds,
+            game: game,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _LockedResearchSlotCard extends StatelessWidget {
+  const _LockedResearchSlotCard({
+    required this.purchaseUnlocked,
+    required this.diamonds,
+    required this.game,
+  });
+
+  final bool purchaseUnlocked;
+  final int diamonds;
+  final RuneNexusGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    const cost = RunProgression.researchSlotTwoUnlockCost;
+    final canPurchase = purchaseUnlocked && diamonds >= cost;
+    final accent = purchaseUnlocked
+        ? const Color(0xFFE7C66A)
+        : const Color(0xFF607587);
+    return Container(
+      key: const ValueKey('research-slot-two-locked-card'),
+      padding: const EdgeInsets.all(9),
+      decoration: BoxDecoration(
+        color: purchaseUnlocked
+            ? const Color(0x22E7C66A)
+            : const Color(0x22000000),
+        border: Border.all(
+          color: purchaseUnlocked
+              ? const Color(0x66E7C66A)
+              : const Color(0x33485B68),
+        ),
+        borderRadius: BorderRadius.circular(7),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            purchaseUnlocked ? Icons.lock_open_outlined : Icons.lock_outline,
+            color: accent,
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.researchSlotTwo,
+                  maxLines: 1,
+                  overflow: TextOverflow.clip,
+                  style: const TextStyle(
+                    color: Color(0xFFE8FBFF),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  purchaseUnlocked
+                      ? l10n.researchSlotTwoBenefit
+                      : l10n.researchSlotTwoPurchaseRequirement,
+                  softWrap: true,
+                  style: const TextStyle(
+                    color: Color(0xFF9EB3BF),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          GameButton(
+            key: const ValueKey('research-slot-two-unlock-button'),
+            onPressed: canPurchase
+                ? () => _confirmUnlockResearchSlotTwo(
+                    context,
+                    game: game,
+                    diamonds: diamonds,
+                  )
+                : null,
+            label: '${l10n.researchSlotTwoUnlockAction} $cost',
+            compact: true,
+            height: 30,
+            width: 104,
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 6),
+            variant: GameButtonVariant.primary,
+            accentColor: const Color(0xFFE7C66A),
+            tooltip: !purchaseUnlocked
+                ? l10n.researchSlotTwoPurchaseRequirement
+                : canPurchase
+                ? l10n.researchSlotTwoUnlockAction
+                : l10n.notEnoughDiamonds,
+            child: _ResearchSlotUnlockButtonLabel(
+              text: l10n.researchSlotTwoUnlockAction,
+              cost: cost,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResearchSlotUnlockButtonLabel extends StatelessWidget {
+  const _ResearchSlotUnlockButtonLabel({
+    required this.text,
+    required this.cost,
+  });
+
+  final String text;
+  final int cost;
+
+  @override
+  Widget build(BuildContext context) {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(text, maxLines: 1),
+          const SizedBox(width: 5),
+          const DiamondCurrencyIcon(size: 12),
+          const SizedBox(width: 2),
+          Text('$cost', maxLines: 1),
+        ],
+      ),
+    );
+  }
+}
+
+Future<void> _confirmUnlockResearchSlotTwo(
+  BuildContext context, {
+  required RuneNexusGame game,
+  required int diamonds,
+}) async {
+  final l10n = context.l10n;
+  const cost = RunProgression.researchSlotTwoUnlockCost;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      key: const ValueKey('research-slot-two-unlock-dialog'),
+      backgroundColor: const Color(0xFF0B1725),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: const BorderSide(color: Color(0xAA33D8FF)),
+      ),
+      title: Text(
+        l10n.researchSlotTwoUnlockTitle,
+        style: const TextStyle(
+          color: Color(0xFFE8FBFF),
+          fontSize: 16,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.researchSlotTwoUnlockMessage(cost),
+            style: const TextStyle(
+              color: Color(0xFFB9D6E4),
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0x2215283A),
+              border: Border.all(color: const Color(0x5533D8FF)),
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: Column(
+              children: [
+                _ResearchSlotUnlockBalanceRow(
+                  label: l10n.ownedDiamonds,
+                  value: diamonds,
+                ),
+                const SizedBox(height: 6),
+                _ResearchSlotUnlockBalanceRow(
+                  label: l10n.spendDiamondsLabel,
+                  value: cost,
+                ),
+                const SizedBox(height: 6),
+                _ResearchSlotUnlockBalanceRow(
+                  label: l10n.remainingDiamonds,
+                  value: diamonds - cost,
+                  highlight: true,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        SizedBox(
+          width: 86,
+          child: GameButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            label: l10n.cancel,
+            compact: true,
+            variant: GameButtonVariant.ghost,
+            accentColor: GamePalette.metal,
+          ),
+        ),
+        SizedBox(
+          width: 118,
+          child: GameButton(
+            key: const ValueKey('research-slot-two-unlock-confirm'),
+            onPressed: () => Navigator.of(context).pop(true),
+            label: '${l10n.researchSlotTwoUnlockAction} $cost',
+            compact: true,
+            variant: GameButtonVariant.primary,
+            accentColor: const Color(0xFFE7C66A),
+            child: _ResearchSlotUnlockButtonLabel(
+              text: l10n.researchSlotTwoUnlockAction,
+              cost: cost,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true) {
+    game.unlockResearchSlotTwo();
+  }
+}
+
+class _ResearchSlotUnlockBalanceRow extends StatelessWidget {
+  const _ResearchSlotUnlockBalanceRow({
+    required this.label,
+    required this.value,
+    this.highlight = false,
+  });
+
+  final String label;
+  final int value;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF9EB3BF),
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        const DiamondCurrencyIcon(size: 13),
+        const SizedBox(width: 4),
+        Text(
+          '$value',
+          style: TextStyle(
+            color: highlight
+                ? const Color(0xFFE7C66A)
+                : const Color(0xFFE8FBFF),
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
       ],
     );
   }
@@ -899,10 +1191,10 @@ class _ResearchTile extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          _researchIcon(type),
+                        ResearchIcon(
+                          type,
                           color: active == null
-                              ? const Color(0xFF8EE6FF)
+                              ? null
                               : const Color(0xFFE7C66A),
                           size: 17,
                         ),
@@ -1274,11 +1566,7 @@ class _ResearchDetailDialog extends StatelessWidget {
                       border: Border.all(color: const Color(0x7733D8FF)),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      _researchIcon(type),
-                      color: const Color(0xFF8EE6FF),
-                      size: 18,
-                    ),
+                    child: ResearchIcon(type, size: 18),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -1685,23 +1973,4 @@ int _runUpgradeCostOptimizationPercent(int level) {
 
 int _runUpgradeLimitExpansionLevelBonus(int level) {
   return level * RunProgression.runUpgradeLimitExpansionMaxLevelPerLevel;
-}
-
-IconData _researchIcon(ResearchType type) {
-  return switch (type) {
-    ResearchType.researchEfficiency => Icons.speed_outlined,
-    ResearchType.researchCostEfficiency => Icons.savings_outlined,
-    ResearchType.turretTargetPriority => Icons.ads_click,
-    ResearchType.linkExpansionOne => Icons.hub_outlined,
-    ResearchType.gemAttunement => Icons.auto_awesome_outlined,
-    ResearchType.bossBounty => Icons.monetization_on_outlined,
-    ResearchType.linkMaintenance => Icons.device_hub_outlined,
-    ResearchType.crystalRecovery => Icons.diamond_outlined,
-    ResearchType.runeResonance => Icons.all_inclusive,
-    ResearchType.runUpgradeCostOptimization => Icons.price_change_outlined,
-    ResearchType.towerDamageLimitExpansion =>
-      Icons.local_fire_department_outlined,
-    ResearchType.killGoldLimitExpansion => Icons.toll_outlined,
-    ResearchType.waveGoldLimitExpansion => Icons.inventory_2_outlined,
-  };
 }

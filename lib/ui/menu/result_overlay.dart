@@ -208,6 +208,7 @@ List<_UnlockGroup> _unlockGroupsFor(
     ],
     10 => [
       _UnlockGroup('젬', [l10n.armorPiercingGem]),
+      _UnlockGroup('연구', [l10n.researchSlotTwoPurchaseAccess]),
     ],
     12 => [
       _UnlockGroup('연구', [

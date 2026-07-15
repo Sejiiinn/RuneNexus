@@ -1842,6 +1842,59 @@ void main() {
     expect(find.text('연구 해금'), findsNothing);
   });
 
+  testWidgets('stage twelve shows its research reward and unlock details', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 12,
+            unlockedStageCount: 12,
+            clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
+          ),
+          selectedTab: MainMenuTab.stage,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    final stageRow = find.byKey(const ValueKey('stage-selection-row-12'));
+    expect(stageRow, findsOneWidget);
+    expect(
+      find.descendant(
+        of: stageRow,
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is Image &&
+              widget.image is AssetImage &&
+              (widget.image as AssetImage).assetName ==
+                  'assets/images/stage_rewards/reward_research.png',
+        ),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(stageRow);
+    await _pumpGameFrames(tester);
+
+    expect(find.text('포탑 화력 한계 확장'), findsOneWidget);
+    expect(find.text('처치 보너스 한계 확장'), findsOneWidget);
+    expect(find.text('정비 보급 한계 확장'), findsOneWidget);
+  });
+
   testWidgets('stage details group unlock rewards by system section', (
     tester,
   ) async {
@@ -2701,6 +2754,46 @@ void main() {
     expect(find.text('전투 투자 최적화'), findsOneWidget);
   });
 
+  testWidgets('result overlay shows stage ten research slot purchase access', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: ResultOverlay(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.success,
+            currentStageNumber: 10,
+            unlockedStageCount: 11,
+            completedRounds: 40,
+            runes: 850,
+            lastRunRuneReward: 850,
+            lastRunPreviousBestRound: 30,
+            lastRunWasNewBestRound: true,
+            lastRunUnlockedStageNumber: 11,
+            bestRoundsByStage: const {10: 40},
+            clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+          ),
+          onOpenStageSelect: () {},
+          onOpenPermanentUpgrades: () {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+
+    expect(find.text('젬 1개 · 연구 1개 해금'), findsOneWidget);
+    expect(find.text('장갑 관통 젬'), findsOneWidget);
+    expect(find.text('연구 슬롯 II 구매 권한'), findsOneWidget);
+  });
+
   testWidgets('result overlay shows stage twelve limit research unlocks', (
     tester,
   ) async {
@@ -3374,6 +3467,111 @@ void main() {
     expect(find.text('빈 연구 슬롯'), findsOneWidget);
     expect(find.text('즉시 완료'), findsNothing);
   });
+
+  testWidgets('second research slot previews its stage ten requirement', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 8,
+            diamonds: RunProgression.researchSlotTwoUnlockCost,
+            clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8},
+          ),
+          selectedTab: MainMenuTab.research,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(
+      find.byKey(const ValueKey('research-slot-two-locked-card')),
+      findsOneWidget,
+    );
+    expect(find.text('연구 슬롯 II'), findsOneWidget);
+    expect(find.text('스테이지 10 클리어 후 구매 가능'), findsOneWidget);
+    final button = tester.widget<GameButton>(
+      find.byKey(const ValueKey('research-slot-two-unlock-button')),
+    );
+    expect(button.onPressed, isNull);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('stage ten can purchase the second research slot permanently', (
+    tester,
+  ) async {
+    final game = _ResearchSlotUnlockGame();
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: game,
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 11,
+            diamonds: RunProgression.researchSlotTwoUnlockCost,
+            clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
+          ),
+          selectedTab: MainMenuTab.research,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(find.text('두 연구를 동시에 진행할 수 있습니다.'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey('research-slot-two-unlock-button')),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(
+      find.byKey(const ValueKey('research-slot-two-unlock-dialog')),
+      findsOneWidget,
+    );
+    expect(find.text('연구 슬롯 II 해금'), findsOneWidget);
+    expect(
+      find.text('다이아 600개로 두 번째 연구 슬롯을 영구 개방합니다. 개방 후 두 연구를 동시에 진행할 수 있습니다.'),
+      findsOneWidget,
+    );
+    expect(find.text('보유 다이아'), findsOneWidget);
+    expect(find.text('소모 다이아'), findsOneWidget);
+    expect(find.text('구매 후 잔액'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('research-slot-two-unlock-confirm')),
+    );
+    await _pumpGameFrames(tester);
+
+    expect(game.unlockedResearchSlotTwo, isTrue);
+  });
 }
 
 Future<void> _pumpLoadedApp(WidgetTester tester) async {
@@ -3469,6 +3667,7 @@ GameSnapshot _resultSnapshot({
   int turretRefundPercent = 75,
   List<ResearchProgress> activeResearches = const [],
   Map<ResearchType, int> researchLevels = const {},
+  bool researchSlotTwoUnlocked = false,
   CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam,
   List<CorePassiveAbility?> corePassiveSlots = const [null, null],
   GridPoint? selectedCorePoint,
@@ -3664,7 +3863,7 @@ GameSnapshot _resultSnapshot({
     emergencySaleUpgradeCost: emergencySaleUpgradeCost,
     canUpgradeEmergencySale: canUpgradeEmergencySale,
     turretRefundPercent: turretRefundPercent,
-    researchSlotCount: 1,
+    researchSlotCount: researchSlotTwoUnlocked ? 2 : 1,
     researchLevels: researchLevels,
     researchElapsedMillis: const {},
     activeResearches: activeResearches,
@@ -3693,6 +3892,18 @@ class _ResearchInstantCompleteGame extends RuneNexusGame {
   @override
   void completeResearchWithDiamonds(ResearchType type) {
     completedResearchType = type;
+  }
+}
+
+class _ResearchSlotUnlockGame extends RuneNexusGame {
+  _ResearchSlotUnlockGame() : super(saveRepository: MemorySaveRepository());
+
+  bool unlockedResearchSlotTwo = false;
+
+  @override
+  bool unlockResearchSlotTwo() {
+    unlockedResearchSlotTwo = true;
+    return true;
   }
 }
 

@@ -257,6 +257,7 @@ class SavedProgression {
     required this.researchLevels,
     required this.researchElapsedMillis,
     required this.activeResearches,
+    this.researchSlotTwoUnlocked = false,
     this.turretModuleTickets = 0,
     this.turretModuleItemSequence = 0,
     this.ownedTurretModules = const [],
@@ -298,6 +299,7 @@ class SavedProgression {
   final Map<ResearchType, int> researchLevels;
   final Map<ResearchType, int> researchElapsedMillis;
   final List<SavedActiveResearch> activeResearches;
+  final bool researchSlotTwoUnlocked;
   final int turretModuleTickets;
   final int turretModuleItemSequence;
   final List<SavedTurretModule> ownedTurretModules;
@@ -357,6 +359,7 @@ class SavedProgression {
       'activeResearches': activeResearches
           .map((research) => research.toJson())
           .toList(),
+      'researchSlotTwoUnlocked': researchSlotTwoUnlocked,
       'turretModuleTickets': turretModuleTickets,
       'turretModuleItemSequence': turretModuleItemSequence,
       'ownedTurretModules': ownedTurretModules
@@ -375,6 +378,10 @@ class SavedProgression {
     final map = json is Map<String, Object?> ? json : const <String, Object?>{};
     final corePassiveSlots = _normalizeCorePassiveSlots(
       _nullableEnumList(CorePassiveAbility.values, map['corePassiveSlots']),
+    );
+    final activeResearches = _objectList(
+      map['activeResearches'],
+      SavedActiveResearch.fromJson,
     );
     return SavedProgression(
       runes: _intValue(map['runes']),
@@ -438,9 +445,10 @@ class SavedProgression {
         ResearchType.values,
         map['researchElapsedMillis'],
       ),
-      activeResearches: _objectList(
-        map['activeResearches'],
-        SavedActiveResearch.fromJson,
+      activeResearches: activeResearches,
+      researchSlotTwoUnlocked: _boolValue(
+        map['researchSlotTwoUnlocked'],
+        fallback: activeResearches.length > 1,
       ),
       turretModuleTickets: _intValue(map['turretModuleTickets']),
       turretModuleItemSequence: _intValue(map['turretModuleItemSequence']),

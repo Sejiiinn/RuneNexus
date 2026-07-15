@@ -315,7 +315,7 @@ class GameSnapshotBuilder {
           ) &&
           _game._progression.canUpgradeEmergencySale,
       turretRefundPercent: _game.turretRefundPercent,
-      researchSlotCount: RunProgression.researchSlotCount,
+      researchSlotCount: _game._progression.availableResearchSlotCount,
       researchLevels: Map.unmodifiable(_game._progression.researchLevels),
       researchElapsedMillis: Map.unmodifiable(
         _game._progression.researchElapsedMillis,

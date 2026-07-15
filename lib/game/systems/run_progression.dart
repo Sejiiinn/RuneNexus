@@ -29,6 +29,8 @@ class RunProgression {
   static const int maxKillGoldUpgradeLevel = 20;
   static const int maxEmergencySaleUpgradeLevel = 5;
   static const int researchSlotCount = 1;
+  static const int researchSlotTwoUnlockRequiredStage = 10;
+  static const int researchSlotTwoUnlockCost = 600;
   static const int gemShardsPerGemAttunementLevel = 2;
   static const int corePassiveSlotUnlockCost = 200;
   static const int turretModuleTicketsPerStageClear = 1;
@@ -135,6 +137,7 @@ class RunProgression {
   final Map<ResearchType, int> researchLevels = {};
   final Map<ResearchType, int> researchElapsedMillis = {};
   final List<ResearchProgress> activeResearches = [];
+  bool researchSlotTwoUnlocked = false;
   int turretModuleTickets = 0;
   int turretModuleItemSequence = 0;
   final Map<String, TurretModuleInventoryItem> turretModules = {};
@@ -243,6 +246,13 @@ class RunProgression {
       isResearchComplete(ResearchType.linkExpansionOne) ? 4 : 3;
   bool get canSetTurretTargetPriority =>
       isResearchComplete(ResearchType.turretTargetPriority);
+  int get availableResearchSlotCount => researchSlotTwoUnlocked ? 2 : 1;
+  bool get researchSlotTwoPurchaseUnlocked =>
+      isStageCleared(researchSlotTwoUnlockRequiredStage);
+  bool get canUnlockResearchSlotTwo =>
+      researchSlotTwoPurchaseUnlocked &&
+      !researchSlotTwoUnlocked &&
+      canSpendDiamonds(researchSlotTwoUnlockCost);
   int get corePassiveSlotCount => corePassiveSlotTwoUnlocked ? 2 : 1;
   bool get canUnlockCorePassiveSlot =>
       !corePassiveSlotTwoUnlocked &&
@@ -505,7 +515,7 @@ class RunProgression {
         !isResearchUnlocked(type) ||
         isResearchComplete(type) ||
         isResearchActive(type) ||
-        activeResearches.length >= researchSlotCount) {
+        activeResearches.length >= availableResearchSlotCount) {
       return false;
     }
     return runes >= researchCostForCurrentLevel(type);
@@ -589,6 +599,15 @@ class RunProgression {
         .toInt();
     activeResearches.removeAt(activeIndex);
     researchElapsedMillis.remove(type);
+    return true;
+  }
+
+  bool unlockResearchSlotTwo() {
+    if (!canUnlockResearchSlotTwo ||
+        spendDiamonds(researchSlotTwoUnlockCost) == null) {
+      return false;
+    }
+    researchSlotTwoUnlocked = true;
     return true;
   }
 
@@ -1008,6 +1027,7 @@ class RunProgression {
           ),
         ),
       ),
+      researchSlotTwoUnlocked: researchSlotTwoUnlocked,
       turretModuleTickets: turretModuleTickets,
       turretModuleItemSequence: turretModuleItemSequence,
       ownedTurretModules: List.unmodifiable(
@@ -1186,6 +1206,8 @@ class RunProgression {
               ),
             ),
       );
+    researchSlotTwoUnlocked =
+        data.researchSlotTwoUnlocked || activeResearches.length > 1;
     turretModuleTickets = math.max(0, data.turretModuleTickets);
     turretModuleItemSequence = math.max(0, data.turretModuleItemSequence);
     turretModules

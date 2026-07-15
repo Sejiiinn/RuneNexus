@@ -1567,7 +1567,78 @@ void main() {
     expect(legacyProgression.freeDiamonds, 0);
     expect(legacyProgression.paidDiamonds, 0);
     expect(legacyProgression.diamonds, 0);
+    expect(legacyProgression.researchSlotTwoUnlocked, isFalse);
+    expect(legacyProgression.availableResearchSlotCount, 1);
   });
+
+  test(
+    'second research slot unlocks after stage ten and runs two researches',
+    () {
+      final progression = RunProgression()
+        ..runes = 1000
+        ..freeDiamonds = 400
+        ..paidDiamonds = 300;
+
+      expect(progression.availableResearchSlotCount, 1);
+      expect(progression.canUnlockResearchSlotTwo, isFalse);
+      expect(progression.unlockResearchSlotTwo(), isFalse);
+
+      progression.clearedStageNumbers.add(10);
+
+      expect(progression.researchSlotTwoPurchaseUnlocked, isTrue);
+      expect(progression.canUnlockResearchSlotTwo, isTrue);
+      expect(progression.unlockResearchSlotTwo(), isTrue);
+      expect(progression.availableResearchSlotCount, 2);
+      expect(progression.freeDiamonds, 0);
+      expect(progression.paidDiamonds, 100);
+      expect(progression.unlockResearchSlotTwo(), isFalse);
+
+      expect(
+        progression.startResearch(
+          ResearchType.researchEfficiency,
+          nowMillis: 1000,
+        ),
+        isTrue,
+      );
+      expect(
+        progression.startResearch(ResearchType.bossBounty, nowMillis: 1000),
+        isTrue,
+      );
+      expect(
+        progression.startResearch(
+          ResearchType.researchCostEfficiency,
+          nowMillis: 1000,
+        ),
+        isFalse,
+      );
+      expect(progression.activeResearches, hasLength(2));
+
+      final saved = SavedProgression.fromJson(
+        progression.toSaveData().toJson(),
+      );
+      final restored = RunProgression()..restoreFromSaveData(saved);
+
+      expect(restored.researchSlotTwoUnlocked, isTrue);
+      expect(restored.availableResearchSlotCount, 2);
+      expect(restored.activeResearches, hasLength(2));
+      expect(
+        restored.cancelResearch(
+          ResearchType.researchEfficiency,
+          nowMillis: 2000,
+        ),
+        isTrue,
+      );
+      expect(restored.activeResearches, hasLength(1));
+      expect(restored.activeResearches.single.type, ResearchType.bossBounty);
+      expect(
+        restored.startResearch(
+          ResearchType.researchCostEfficiency,
+          nowMillis: 2000,
+        ),
+        isTrue,
+      );
+    },
+  );
 
   test('daily quests grant free diamonds once and persist state', () {
     const nowMillis = 1780675200000;

@@ -55,6 +55,22 @@ class RuneNexusLocalizations {
   String get researchBoard => _isEnglish ? 'Research' : '연구';
   String get systemResearch => _isEnglish ? 'System Research' : '시스템 연구';
   String get researchSlot => _isEnglish ? 'Research Slot' : '연구 슬롯';
+  String get researchSlotTwo => _isEnglish ? 'Research Slot II' : '연구 슬롯 II';
+  String get researchSlotTwoPurchaseAccess =>
+      _isEnglish ? 'Research Slot II purchase access' : '연구 슬롯 II 구매 권한';
+  String get researchSlotTwoPurchaseRequirement =>
+      _isEnglish ? 'Available after clearing Stage 10' : '스테이지 10 클리어 후 구매 가능';
+  String get researchSlotTwoBenefit => _isEnglish
+      ? 'Run two research projects at the same time.'
+      : '두 연구를 동시에 진행할 수 있습니다.';
+  String get researchSlotTwoUnlockTitle =>
+      _isEnglish ? 'Unlock Research Slot II' : '연구 슬롯 II 해금';
+  String get researchSlotTwoUnlockAction =>
+      _isEnglish ? 'Unlock permanently' : '영구 해금';
+  String get ownedDiamonds => _isEnglish ? 'Owned diamonds' : '보유 다이아';
+  String get spendDiamondsLabel => _isEnglish ? 'Cost' : '소모 다이아';
+  String get remainingDiamonds =>
+      _isEnglish ? 'Balance after purchase' : '구매 후 잔액';
   String get availableResearch =>
       _isEnglish ? 'Available Research' : '시작 가능 연구';
   String get lockedResearchSection =>
@@ -89,6 +105,13 @@ class RuneNexusLocalizations {
   String get lockedResearch => _isEnglish ? 'Locked Research' : '미해금 연구';
   String get unavailableUpgrade =>
       _isEnglish ? 'Not available yet' : '아직 사용할 수 없음';
+
+  String researchSlotTwoUnlockMessage(int cost) {
+    return _isEnglish
+        ? 'Permanently unlock a second research slot for $cost diamonds. You can run two research projects at the same time.'
+        : '다이아 $cost개로 두 번째 연구 슬롯을 영구 개방합니다. 개방 후 두 연구를 동시에 진행할 수 있습니다.';
+  }
+
   String get combatUpgradeGroup => _isEnglish ? 'Combat' : '전투';
   String get economyUpgradeGroup => _isEnglish ? 'Economy' : '경제';
   String get researchLockedReason => _isEnglish

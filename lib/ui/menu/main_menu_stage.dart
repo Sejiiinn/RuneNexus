@@ -1161,7 +1161,10 @@ class _StageUnlockChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(item.icon, size: 15, color: color),
+          if (item.researchType case final researchType?)
+            ResearchIcon(researchType, size: 15, color: color)
+          else
+            Icon(item.icon, size: 15, color: color),
           const SizedBox(width: 6),
           Flexible(
             child: Text(
@@ -1305,6 +1308,10 @@ _StageRewardVisual? _stageRewardVisualFor(int stageNumber) {
     6 => const _StageRewardVisual(icon: _LightningRewardIcon()),
     10 => const _StageRewardVisual(
       icon: _StageRewardAssetIcon(asset: _stageRewardGemIconAsset),
+      extraIcons: [_StageRewardAssetIcon(asset: _stageRewardResearchIconAsset)],
+    ),
+    12 => const _StageRewardVisual(
+      icon: _StageRewardAssetIcon(asset: _stageRewardResearchIconAsset),
     ),
     _ => null,
   };
@@ -1344,13 +1351,13 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
     2 => [
       _StageUnlockItem(
         label: l10n.tacticalCommand,
-        icon: Icons.rule_outlined,
+        researchType: ResearchType.turretTargetPriority,
         category: _StageUnlockCategory.research,
         highlighted: highlighted,
       ),
       _StageUnlockItem(
         label: l10n.gemAttunement,
-        icon: Icons.auto_awesome_outlined,
+        researchType: ResearchType.gemAttunement,
         category: _StageUnlockCategory.research,
         highlighted: highlighted,
       ),
@@ -1386,13 +1393,13 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
     5 => [
       _StageUnlockItem(
         label: l10n.linkExpansionOne,
-        icon: Icons.hub_outlined,
+        researchType: ResearchType.linkExpansionOne,
         category: _StageUnlockCategory.research,
         highlighted: highlighted,
       ),
       _StageUnlockItem(
         label: l10n.crystalRecovery,
-        icon: Icons.diamond_outlined,
+        researchType: ResearchType.crystalRecovery,
         category: _StageUnlockCategory.research,
         highlighted: highlighted,
       ),
@@ -1428,13 +1435,13 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
     8 => [
       _StageUnlockItem(
         label: l10n.runeResonance,
-        icon: Icons.all_inclusive,
+        researchType: ResearchType.runeResonance,
         category: _StageUnlockCategory.research,
         highlighted: highlighted,
       ),
       _StageUnlockItem(
         label: l10n.runUpgradeCostOptimization,
-        icon: Icons.price_change_outlined,
+        researchType: ResearchType.runUpgradeCostOptimization,
         category: _StageUnlockCategory.research,
         highlighted: highlighted,
       ),
@@ -1446,23 +1453,29 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
         category: _StageUnlockCategory.gem,
         highlighted: highlighted,
       ),
+      _StageUnlockItem(
+        label: l10n.researchSlotTwoPurchaseAccess,
+        icon: Icons.view_module_outlined,
+        category: _StageUnlockCategory.research,
+        highlighted: highlighted,
+      ),
     ],
     12 => [
       _StageUnlockItem(
         label: l10n.towerDamageLimitExpansion,
-        icon: Icons.local_fire_department_outlined,
+        researchType: ResearchType.towerDamageLimitExpansion,
         category: _StageUnlockCategory.research,
         highlighted: highlighted,
       ),
       _StageUnlockItem(
         label: l10n.killGoldLimitExpansion,
-        icon: Icons.toll_outlined,
+        researchType: ResearchType.killGoldLimitExpansion,
         category: _StageUnlockCategory.research,
         highlighted: highlighted,
       ),
       _StageUnlockItem(
         label: l10n.waveGoldLimitExpansion,
-        icon: Icons.inventory_2_outlined,
+        researchType: ResearchType.waveGoldLimitExpansion,
         category: _StageUnlockCategory.research,
         highlighted: highlighted,
       ),
@@ -1557,13 +1570,15 @@ class _StageRewardVisual {
 class _StageUnlockItem {
   const _StageUnlockItem({
     required this.label,
-    required this.icon,
+    this.icon,
+    this.researchType,
     required this.category,
     this.highlighted = false,
-  });
+  }) : assert((icon == null) != (researchType == null));
 
   final String label;
-  final IconData icon;
+  final IconData? icon;
+  final ResearchType? researchType;
   final _StageUnlockCategory category;
   final bool highlighted;
 }
