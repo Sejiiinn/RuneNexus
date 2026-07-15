@@ -24,6 +24,7 @@ import 'package:rune_nexus/game/systems/game_save_adapter.dart';
 import 'package:rune_nexus/game/systems/run_progression.dart';
 import 'package:rune_nexus/l10n/rune_nexus_localizations.dart';
 import 'package:rune_nexus/ui/game/game_button.dart';
+import 'package:rune_nexus/ui/game/research_icon.dart';
 import 'package:rune_nexus/ui/hud/core_info_panel.dart';
 import 'package:rune_nexus/ui/hud/game_hud.dart';
 import 'package:rune_nexus/ui/hud/reward_overlay.dart';
@@ -1890,9 +1891,9 @@ void main() {
     await tester.tap(stageRow);
     await _pumpGameFrames(tester);
 
-    expect(find.text('포탑 화력 한계 확장'), findsOneWidget);
-    expect(find.text('처치 보너스 한계 확장'), findsOneWidget);
-    expect(find.text('정비 보급 한계 확장'), findsOneWidget);
+    expect(find.text('포탑 화력 확장'), findsOneWidget);
+    expect(find.text('처치 보너스 확장'), findsOneWidget);
+    expect(find.text('정비 보급 확장'), findsOneWidget);
   });
 
   testWidgets('stage details group unlock rewards by system section', (
@@ -2173,13 +2174,23 @@ void main() {
     await tester.tap(find.text('연구').last);
     await _pumpGameFrames(tester);
 
+    final researchContent = find.byKey(const ValueKey('research-content'));
+    expect(researchContent, findsOneWidget);
+    expect(find.byKey(const ValueKey('main-menu-content-panel')), findsNothing);
+    expect(tester.getSize(researchContent).width, greaterThanOrEqualTo(338));
+
     final efficiencyTopLeft = tester.getTopLeft(find.text('연구 효율'));
     final costEfficiencyTopLeft = tester.getTopLeft(find.text('연구 비용 효율'));
-
-    expect(
-      find.textContaining('연구 효율 +0% -> +5%', findRichText: true),
-      findsOneWidget,
+    final efficiencyCard = find.byKey(
+      const ValueKey('research-tile-researchEfficiency'),
     );
+    expect(efficiencyCard, findsOneWidget);
+
+    final efficiencyEffect = find.descendant(
+      of: efficiencyCard,
+      matching: find.textContaining('연구 효율 +0% -> +5%', findRichText: true),
+    );
+    expect(efficiencyEffect, findsOneWidget);
     expect(
       find.textContaining('비용 효율 +0% -> +5%', findRichText: true),
       findsOneWidget,
@@ -2187,11 +2198,53 @@ void main() {
     expect(find.text('미해금 연구'), findsNothing);
     expect(find.byIcon(Icons.lock_outline), findsWidgets);
     expect(find.text('Lv.0/1'), findsNWidgets(2));
+    expect(tester.getSize(find.byType(ResearchIcon).first), const Size(32, 32));
+    final efficiencyLevelText = find.descendant(
+      of: efficiencyCard,
+      matching: find.byWidgetPredicate(
+        (widget) => widget is Text && (widget.data?.startsWith('Lv.') ?? false),
+      ),
+    );
+    expect(efficiencyLevelText, findsOneWidget);
+    final efficiencyMetaTopLeft = tester.getTopLeft(efficiencyLevelText);
+    final efficiencyEffectTopLeft = tester.getTopLeft(efficiencyEffect);
+    final efficiencyDurationIcon = find.descendant(
+      of: efficiencyCard,
+      matching: find.byIcon(Icons.schedule),
+    );
+    expect(efficiencyDurationIcon, findsOneWidget);
+    final efficiencyDurationTopLeft = tester.getTopLeft(efficiencyDurationIcon);
+    expect(efficiencyMetaTopLeft.dy, lessThan(efficiencyEffectTopLeft.dy));
+    expect(efficiencyEffectTopLeft.dy, lessThan(efficiencyDurationTopLeft.dy));
+    expect(efficiencyEffectTopLeft.dx, lessThan(efficiencyTopLeft.dx));
+    expect(
+      find.descendant(
+        of: efficiencyCard,
+        matching: find.byIcon(Icons.lock_outline),
+      ),
+      findsNothing,
+    );
+    expect(
+      find.descendant(
+        of: efficiencyCard,
+        matching: find.byIcon(Icons.open_in_new),
+      ),
+      findsNothing,
+    );
     expect(
       (efficiencyTopLeft.dy - costEfficiencyTopLeft.dy).abs(),
       lessThan(4),
     );
     expect(costEfficiencyTopLeft.dx, greaterThan(efficiencyTopLeft.dx));
+    for (final title in ['포탑 화력 확장', '처치 보너스 확장', '정비 보급 확장']) {
+      final titleFinder = find.text(title);
+      expect(titleFinder, findsOneWidget);
+      expect(
+        tester.getSize(titleFinder).height,
+        lessThan(20),
+        reason: '$title should stay on one line',
+      );
+    }
     expect(tester.takeException(), isNull);
   });
 
@@ -2830,9 +2883,9 @@ void main() {
     );
 
     expect(find.text('연구 3개 해금'), findsOneWidget);
-    expect(find.text('포탑 화력 한계 확장'), findsOneWidget);
-    expect(find.text('처치 보너스 한계 확장'), findsOneWidget);
-    expect(find.text('정비 보급 한계 확장'), findsOneWidget);
+    expect(find.text('포탑 화력 확장'), findsOneWidget);
+    expect(find.text('처치 보너스 확장'), findsOneWidget);
+    expect(find.text('정비 보급 확장'), findsOneWidget);
   });
 
   testWidgets('failed result keeps reward summary and retry action', (

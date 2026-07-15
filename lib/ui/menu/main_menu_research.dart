@@ -1150,6 +1150,7 @@ class _ResearchTile extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
+        key: ValueKey('research-tile-${type.name}'),
         onTap: clickable ? onPressed : null,
         borderRadius: BorderRadius.circular(7),
         splashColor: const Color(0x1A8EE6FF),
@@ -1190,38 +1191,43 @@ class _ResearchTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ResearchIcon(
-                          type,
-                          color: active == null
-                              ? null
-                              : const Color(0xFFE7C66A),
-                          size: 17,
+                        Padding(
+                          padding: const EdgeInsets.only(top: 1),
+                          child: ResearchIcon(
+                            type,
+                            color: active == null
+                                ? null
+                                : const Color(0xFFE7C66A),
+                            size: 32,
+                          ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 7),
                         Expanded(
-                          child: _AdaptiveResearchTitle(
-                            text: _researchTitle(l10n, type),
-                            style: TextStyle(
-                              color: titleColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _AdaptiveResearchTitle(
+                                text: _researchTitle(l10n, type),
+                                style: TextStyle(
+                                  color: titleColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              _ResearchLevelCostLine(
+                                levelText: l10n.researchLevel(
+                                  level,
+                                  definition.maxLevel,
+                                ),
+                                cost: complete ? null : cost,
+                                enabled: canStart || active != null,
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 5),
-                        if (!unlocked)
-                          const Icon(
-                            Icons.lock_outline,
-                            color: Color(0xFF607587),
-                            size: 14,
-                          )
-                        else if (clickable)
-                          const Icon(
-                            Icons.open_in_new,
-                            color: Color(0xFF8DA5B3),
-                            size: 13,
-                          ),
                       ],
                     ),
                     const SizedBox(height: 6),
@@ -1235,15 +1241,31 @@ class _ResearchTile extends StatelessWidget {
                       enabled:
                           unlocked && (canStart || complete || active != null),
                     ),
-                    const SizedBox(height: 6),
-                    _ResearchMetaStrip(
-                      levelText: l10n.researchLevel(level, definition.maxLevel),
-                      cost: complete ? null : cost,
-                      durationText: complete
-                          ? null
-                          : l10n.researchDuration(duration),
-                      enabled: canStart || active != null,
-                    ),
+                    if (!complete) ...[
+                      const SizedBox(height: 3),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.schedule,
+                              color: Color(0xFF8DA5B3),
+                              size: 10,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              l10n.researchDuration(duration),
+                              style: const TextStyle(
+                                color: Color(0xFFB9D6E4),
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     if (showStatusChip) ...[
                       const SizedBox(height: 6),
                       _PermanentUpgradeStatusChip(text: statusText),
@@ -1413,17 +1435,15 @@ class _ResearchEffectText {
   final String? nextText;
 }
 
-class _ResearchMetaStrip extends StatelessWidget {
-  const _ResearchMetaStrip({
+class _ResearchLevelCostLine extends StatelessWidget {
+  const _ResearchLevelCostLine({
     required this.levelText,
     required this.cost,
-    required this.durationText,
     required this.enabled,
   });
 
   final String levelText;
   final int? cost;
-  final String? durationText;
   final bool enabled;
 
   @override
@@ -1431,18 +1451,11 @@ class _ResearchMetaStrip extends StatelessWidget {
     final foreground = enabled
         ? const Color(0xFFE7C66A)
         : const Color(0xFF8DA5B3);
-    return Container(
-      constraints: const BoxConstraints(minHeight: 24),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0x22000000),
-        border: Border.all(color: const Color(0x33485B68)),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Wrap(
-        spacing: 4,
-        runSpacing: 3,
-        crossAxisAlignment: WrapCrossAlignment.center,
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             levelText,
@@ -1452,7 +1465,8 @@ class _ResearchMetaStrip extends StatelessWidget {
               fontWeight: FontWeight.w800,
             ),
           ),
-          if (cost != null)
+          if (cost != null) ...[
+            const SizedBox(width: 6),
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1468,15 +1482,7 @@ class _ResearchMetaStrip extends StatelessWidget {
                 ),
               ],
             ),
-          if (durationText != null)
-            Text(
-              durationText!,
-              style: const TextStyle(
-                color: Color(0xFFB9D6E4),
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+          ],
         ],
       ),
     );
@@ -1566,7 +1572,7 @@ class _ResearchDetailDialog extends StatelessWidget {
                       border: Border.all(color: const Color(0x7733D8FF)),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: ResearchIcon(type, size: 18),
+                    child: ResearchIcon(type, size: 22),
                   ),
                   const SizedBox(width: 10),
                   Expanded(

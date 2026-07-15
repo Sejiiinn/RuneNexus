@@ -132,11 +132,11 @@ class RuneNexusLocalizations {
   String get runUpgradeCostOptimization =>
       _isEnglish ? 'Combat Investment Optimization' : '전투 투자 최적화';
   String get towerDamageLimitExpansion =>
-      _isEnglish ? 'Tower Damage Limit Expansion' : '포탑 화력 한계 확장';
+      _isEnglish ? 'Tower Damage Expansion' : '포탑 화력 확장';
   String get killGoldLimitExpansion =>
-      _isEnglish ? 'Kill Bonus Limit Expansion' : '처치 보너스 한계 확장';
+      _isEnglish ? 'Kill Bonus Expansion' : '처치 보너스 확장';
   String get waveGoldLimitExpansion =>
-      _isEnglish ? 'Supply Limit Expansion' : '정비 보급 한계 확장';
+      _isEnglish ? 'Supply Expansion' : '정비 보급 확장';
   String get levelUp => _isEnglish ? 'Level Up' : '레벨업';
   String get cleared => _isEnglish ? 'Cleared' : '클리어';
   String get settled => _isEnglish ? 'Settled' : '정산 완료';

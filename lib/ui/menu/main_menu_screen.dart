@@ -388,6 +388,9 @@ class _MainMenuSnapshotContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final menuHorizontalPadding = selectedTab == MainMenuTab.research
+        ? 10.0
+        : 16.0;
     final menuBottomPadding = selectedTab == MainMenuTab.permanentUpgrades
         ? 146.0
         : selectedTab == MainMenuTab.stage
@@ -432,9 +435,9 @@ class _MainMenuSnapshotContent extends StatelessWidget {
           Center(
             child: SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(
-                16,
+                menuHorizontalPadding,
                 menuTopPadding,
-                16,
+                menuHorizontalPadding,
                 menuBottomPadding,
               ),
               child: ConstrainedBox(
@@ -443,35 +446,35 @@ class _MainMenuSnapshotContent extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _MainMenuPanel(
-                      key: const ValueKey('main-menu-content-panel'),
-                      child: switch (selectedTab) {
-                        MainMenuTab.core => _CoreMenu(
-                          game: game,
-                          snapshot: snapshot,
-                        ),
-                        MainMenuTab.permanentUpgrades => _PermanentUpgradeMenu(
-                          game: game,
-                          snapshot: snapshot,
-                          group: selectedUpgradeGroup,
-                        ),
-                        MainMenuTab.research => _ResearchMenu(
-                          game: game,
-                          snapshot: snapshot,
-                        ),
-                        MainMenuTab.turretModules => _TurretModuleMenu(
-                          key: turretModuleMenuKey,
-                          game: game,
-                          snapshot: snapshot,
-                          onDrawResults: onTurretModuleDrawResults,
-                        ),
-                        MainMenuTab.stage => _StageMenu(
-                          game: game,
-                          snapshot: snapshot,
-                          onStartStage: onStartStage,
-                        ),
-                      },
-                    ),
+                    if (selectedTab == MainMenuTab.research)
+                      KeyedSubtree(
+                        key: const ValueKey('research-content'),
+                        child: _ResearchMenu(game: game, snapshot: snapshot),
+                      )
+                    else
+                      _MainMenuPanel(
+                        key: const ValueKey('main-menu-content-panel'),
+                        child: switch (selectedTab) {
+                          MainMenuTab.core => _CoreMenu(
+                            game: game,
+                            snapshot: snapshot,
+                          ),
+                          MainMenuTab.permanentUpgrades =>
+                            _PermanentUpgradeMenu(
+                              game: game,
+                              snapshot: snapshot,
+                              group: selectedUpgradeGroup,
+                            ),
+                          MainMenuTab.turretModules => _TurretModuleMenu(
+                            key: turretModuleMenuKey,
+                            game: game,
+                            snapshot: snapshot,
+                            onDrawResults: onTurretModuleDrawResults,
+                          ),
+                          MainMenuTab.research ||
+                          MainMenuTab.stage => const SizedBox.shrink(),
+                        },
+                      ),
                   ],
                 ),
               ),
