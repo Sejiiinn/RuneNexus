@@ -344,7 +344,6 @@ class _PermanentUpgradeTile extends StatelessWidget {
                   child: UpgradeIcon(
                     data.upgradeIconType,
                     size: 30,
-                    color: data.enabled ? null : titleColor,
                     semanticLabel: data.title,
                   ),
                 ),

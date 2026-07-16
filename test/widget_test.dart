@@ -25,6 +25,7 @@ import 'package:rune_nexus/game/systems/run_progression.dart';
 import 'package:rune_nexus/l10n/rune_nexus_localizations.dart';
 import 'package:rune_nexus/ui/game/game_button.dart';
 import 'package:rune_nexus/ui/game/research_icon.dart';
+import 'package:rune_nexus/ui/game/upgrade_icon.dart';
 import 'package:rune_nexus/ui/hud/core_info_panel.dart';
 import 'package:rune_nexus/ui/hud/game_hud.dart';
 import 'package:rune_nexus/ui/hud/reward_overlay.dart';
@@ -2144,6 +2145,11 @@ void main() {
 
     final maxLabels = find.text('최대 레벨');
     expect(maxLabels, findsNWidgets(2));
+    final upgradeIcons = tester.widgetList<UpgradeIcon>(
+      find.byType(UpgradeIcon),
+    );
+    expect(upgradeIcons, hasLength(2));
+    expect(upgradeIcons.every((icon) => icon.color == null), isTrue);
 
     for (var index = 0; index < 2; index++) {
       final label = maxLabels.at(index);
