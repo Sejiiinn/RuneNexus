@@ -3299,6 +3299,31 @@ void main() {
 
       expect(find.text('공격 명령'), findsOneWidget);
       expect(find.text('선두 적'), findsOneWidget);
+
+      await tester.tap(
+        find.byKey(const ValueKey('turret-target-priority-selector')),
+      );
+      await _pumpGameFrames(tester);
+
+      expect(find.text('후방 적'), findsOneWidget);
+      expect(find.text('강한 적'), findsOneWidget);
+      expect(find.text('약한 적'), findsOneWidget);
+      expect(find.text('가까운 적'), findsOneWidget);
+
+      await tester.tapAt(const Offset(5, 5));
+      await _pumpGameFrames(tester);
+      expect(
+        find.byKey(const ValueKey('turret-target-priority-selector')),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('젬 · 링크'));
+      await _pumpGameFrames(tester);
+
+      expect(
+        find.byKey(const ValueKey('turret-target-priority-selector')),
+        findsNothing,
+      );
+      expect(find.text('공격 명령'), findsNothing);
       expect(tester.takeException(), isNull);
     },
   );

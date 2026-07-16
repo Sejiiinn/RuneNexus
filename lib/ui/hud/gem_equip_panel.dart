@@ -235,7 +235,10 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
                   levelUpPreviewActive
                       ? '${snapshot.selectedTurretName} 포탑  Lv.${snapshot.selectedTurretLevel} -> ${snapshot.selectedTurretNextLevel}'
                       : '${snapshot.selectedTurretName} 포탑  Lv.${snapshot.selectedTurretLevel}/${snapshot.selectedTurretMaxLevel}',
-                  style: const TextStyle(fontSize: 12, color: Color(0xFFE8F8FF)),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFFE8F8FF),
+                  ),
                   overflow: TextOverflow.clip,
                 ),
               ),
@@ -267,7 +270,8 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
             activeTab: activeTab,
             onSelect: (tab) => setState(() => _activeTab = tab),
           ),
-          if (snapshot.canSetTurretTargetPriority) ...[
+          if (snapshot.canSetTurretTargetPriority &&
+              activeTab == _TurretTab.stats) ...[
             const SizedBox(height: 6),
             _TurretTargetPrioritySelector(
               priority: snapshot.selectedTurretTargetPriority,
@@ -336,10 +340,7 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
 }
 
 class _TurretInspectorTabs extends StatelessWidget {
-  const _TurretInspectorTabs({
-    required this.activeTab,
-    required this.onSelect,
-  });
+  const _TurretInspectorTabs({required this.activeTab, required this.onSelect});
 
   final _TurretTab activeTab;
   final ValueChanged<_TurretTab> onSelect;
@@ -348,9 +349,7 @@ class _TurretInspectorTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(
-          child: _tab(_TurretTab.stats, Icons.bar_chart_rounded, '스탯'),
-        ),
+        Expanded(child: _tab(_TurretTab.stats, Icons.bar_chart_rounded, '스탯')),
         const SizedBox(width: 5),
         Expanded(
           child: _tab(_TurretTab.gems, Icons.diamond_outlined, '젬 · 링크'),
@@ -384,7 +383,10 @@ class _TurretInspectorTabs extends StatelessWidget {
               label,
               maxLines: 1,
               overflow: TextOverflow.clip,
-              style: GameTextStyles.withColor(GameTextStyles.button, foreground),
+              style: GameTextStyles.withColor(
+                GameTextStyles.button,
+                foreground,
+              ),
             ),
           ),
         ],
@@ -404,90 +406,91 @@ class _TurretTargetPrioritySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 32,
-      padding: const EdgeInsets.only(left: 9, right: 3),
-      decoration: BoxDecoration(
-        color: const Color(0x9907111D),
-        border: Border.all(color: const Color(0x5533D8FF)),
-        borderRadius: BorderRadius.circular(7),
+    return PopupMenuButton<TurretTargetPriority>(
+      key: const ValueKey('turret-target-priority-selector'),
+      tooltip: '공격 명령 변경',
+      color: const Color(0xFF0B1827),
+      offset: const Offset(0, -190),
+      shape: RoundedRectangleBorder(
+        side: const BorderSide(color: Color(0x8833D8FF)),
+        borderRadius: BorderRadius.circular(8),
       ),
-      child: Row(
-        children: [
-          const Icon(Icons.ads_click, size: 14, color: Color(0xFF8EE6FF)),
-          const SizedBox(width: 6),
-          const Text(
-            '공격 명령',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF8AA6B8),
+      onSelected: onSelected,
+      itemBuilder: (context) {
+        return TurretTargetPriority.values.map((value) {
+          final selected = value == priority;
+          return PopupMenuItem(
+            value: value,
+            child: Row(
+              children: [
+                Icon(
+                  selected ? Icons.radio_button_checked : Icons.adjust,
+                  size: 16,
+                  color: selected
+                      ? const Color(0xFF8EE6FF)
+                      : const Color(0xFF607587),
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _targetPriorityLabel(value),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFFE8F8FF),
+                      ),
+                    ),
+                    Text(
+                      _targetPriorityDescription(value),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF8AA6B8),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              _targetPriorityLabel(priority),
-              maxLines: 1,
-              overflow: TextOverflow.clip,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFFE8F8FF),
+          );
+        }).toList();
+      },
+      child: Container(
+        height: 32,
+        padding: const EdgeInsets.only(left: 9, right: 3),
+        decoration: BoxDecoration(
+          color: const Color(0x9907111D),
+          border: Border.all(color: const Color(0x5533D8FF)),
+          borderRadius: BorderRadius.circular(7),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.ads_click, size: 14, color: Color(0xFF8EE6FF)),
+            const SizedBox(width: 6),
+            const Text(
+              '공격 명령',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF8AA6B8),
               ),
             ),
-          ),
-          PopupMenuButton<TurretTargetPriority>(
-            tooltip: '공격 명령 변경',
-            color: const Color(0xFF0B1827),
-            offset: const Offset(0, -190),
-            shape: RoundedRectangleBorder(
-              side: const BorderSide(color: Color(0x8833D8FF)),
-              borderRadius: BorderRadius.circular(8),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                _targetPriorityLabel(priority),
+                maxLines: 1,
+                overflow: TextOverflow.clip,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFFE8F8FF),
+                ),
+              ),
             ),
-            onSelected: onSelected,
-            itemBuilder: (context) {
-              return TurretTargetPriority.values.map((value) {
-                final selected = value == priority;
-                return PopupMenuItem(
-                  value: value,
-                  child: Row(
-                    children: [
-                      Icon(
-                        selected ? Icons.radio_button_checked : Icons.adjust,
-                        size: 16,
-                        color: selected
-                            ? const Color(0xFF8EE6FF)
-                            : const Color(0xFF607587),
-                      ),
-                      const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _targetPriorityLabel(value),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFFE8F8FF),
-                            ),
-                          ),
-                          Text(
-                            _targetPriorityDescription(value),
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: Color(0xFF8AA6B8),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              }).toList();
-            },
-            child: const SizedBox(
+            const SizedBox(
               height: 28,
               width: 34,
               child: Icon(
@@ -496,8 +499,8 @@ class _TurretTargetPrioritySelector extends StatelessWidget {
                 color: Color(0xFF8EE6FF),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
