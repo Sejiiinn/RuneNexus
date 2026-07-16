@@ -131,6 +131,26 @@ void main() {
     expect(find.text('런 강화 5회'), findsOneWidget);
     expect(find.text('+10'), findsNWidgets(5));
     expect(find.text('오늘 출석'), findsOneWidget);
+    final dailySummary = find.byKey(const ValueKey('daily-quest-summary-card'));
+    final todayProgress = find.descendant(
+      of: dailySummary,
+      matching: find.textContaining('0/4 완료'),
+    );
+    final dailyReset = find.descendant(
+      of: dailySummary,
+      matching: find.text('매일 05:00 갱신'),
+    );
+    expect(todayProgress, findsOneWidget);
+    expect(
+      find.descendant(of: dailySummary, matching: find.text('전체 완료')),
+      findsNothing,
+    );
+    expect(
+      (tester.getTopLeft(find.text('오늘 진행')).dy -
+              tester.getTopLeft(dailyReset).dy)
+          .abs(),
+      lessThan(4),
+    );
     expect(
       tester.getTopLeft(find.text('오늘 출석')).dy,
       lessThan(tester.getTopLeft(find.text('웨이브 30회 클리어')).dy),
@@ -148,6 +168,28 @@ void main() {
     expect(find.text('런 강화 25회'), findsOneWidget);
     expect(find.text('이번 주 출석'), findsOneWidget);
     expect(find.text('모듈권 +1'), findsOneWidget);
+    final weeklySummary = find.byKey(
+      const ValueKey('weekly-quest-summary-card'),
+    );
+    final weeklyProgress = find.descendant(
+      of: weeklySummary,
+      matching: find.textContaining('0/4 완료'),
+    );
+    final weeklyReset = find.descendant(
+      of: weeklySummary,
+      matching: find.text('월요일 05:00 갱신'),
+    );
+    expect(weeklyProgress, findsOneWidget);
+    expect(
+      find.descendant(of: weeklySummary, matching: find.text('전체 완료')),
+      findsNothing,
+    );
+    expect(
+      (tester.getTopLeft(find.text('이번 주 진행')).dy -
+              tester.getTopLeft(weeklyReset).dy)
+          .abs(),
+      lessThan(4),
+    );
     expect(
       tester.getTopLeft(find.text('이번 주 출석')).dy,
       lessThan(tester.getTopLeft(find.text('웨이브 150회 클리어')).dy),

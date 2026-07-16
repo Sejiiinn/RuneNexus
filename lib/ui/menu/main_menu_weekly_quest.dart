@@ -64,6 +64,7 @@ class _WeeklyQuestSummaryCard extends StatelessWidget {
         : '대기';
 
     return Container(
+      key: const ValueKey('weekly-quest-summary-card'),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xAA08131F),
@@ -77,27 +78,36 @@ class _WeeklyQuestSummaryCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  '이번 주 진행',
-                  style: TextStyle(
-                    color: Color(0xFFE8FBFF),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  '${snapshot.completedWeeklyQuestCount}/${gameWeeklyQuestDefinitions.length} 완료 · 월요일 05:00 갱신',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFF90AFC0),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
+                const Row(
+                  children: [
+                    Text(
+                      '이번 주 진행',
+                      style: TextStyle(
+                        color: Color(0xFFE8FBFF),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '월요일 05:00 갱신',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Color(0xFF90AFC0),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
-                const _WeeklyCompletionRewardText(),
+                _WeeklyCompletionRewardText(
+                  progressText:
+                      '${snapshot.completedWeeklyQuestCount}/${gameWeeklyQuestDefinitions.length} 완료',
+                ),
               ],
             ),
           ),
@@ -123,7 +133,9 @@ class _WeeklyQuestSummaryCard extends StatelessWidget {
 }
 
 class _WeeklyCompletionRewardText extends StatelessWidget {
-  const _WeeklyCompletionRewardText();
+  const _WeeklyCompletionRewardText({required this.progressText});
+
+  final String progressText;
 
   @override
   Widget build(BuildContext context) {
@@ -132,9 +144,9 @@ class _WeeklyCompletionRewardText extends StatelessWidget {
       runSpacing: 2,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        const _DailyQuestRewardText(
+        _DailyQuestRewardText(
           amount: weeklyQuestAllCompleteRewardDiamonds,
-          prefix: '전체 완료',
+          prefix: progressText,
         ),
         Row(
           mainAxisSize: MainAxisSize.min,

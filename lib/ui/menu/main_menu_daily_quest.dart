@@ -461,6 +461,7 @@ class _DailyQuestSummaryCard extends StatelessWidget {
         : '대기';
 
     return Container(
+      key: const ValueKey('daily-quest-summary-card'),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: const Color(0xAA08131F),
@@ -474,27 +475,37 @@ class _DailyQuestSummaryCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  '오늘 진행',
-                  style: TextStyle(
-                    color: Color(0xFFE8FBFF),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  '${snapshot.completedDailyQuestCount}/${gameDailyQuestDefinitions.length} 완료 · 매일 05:00 갱신',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFF90AFC0),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
+                const Row(
+                  children: [
+                    Text(
+                      '오늘 진행',
+                      style: TextStyle(
+                        color: Color(0xFFE8FBFF),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '매일 05:00 갱신',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Color(0xFF90AFC0),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
-                const _DailyQuestRewardText(amount: 20, prefix: '전체 완료'),
+                _DailyQuestRewardText(
+                  amount: 20,
+                  prefix:
+                      '${snapshot.completedDailyQuestCount}/${gameDailyQuestDefinitions.length} 완료',
+                ),
               ],
             ),
           ),
