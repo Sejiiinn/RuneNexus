@@ -74,10 +74,11 @@ class _RunUpgradeRow extends StatelessWidget {
       accentColor: enabled ? GamePalette.cyan : GamePalette.metalDim,
       child: Row(
         children: [
-          Icon(
-            _runUpgradeIcon(definition.type),
+          UpgradeIcon(
+            _runUpgradeIconType(definition.type),
             size: 22,
-            color: enabled ? const Color(0xFF8EE6FF) : const Color(0xFF607486),
+            color: enabled ? null : const Color(0xFF607486),
+            semanticLabel: definition.name,
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -262,10 +263,10 @@ String _runUpgradeEffectText(
   };
 }
 
-IconData _runUpgradeIcon(RunUpgradeType type) {
+GameUpgradeIconType _runUpgradeIconType(RunUpgradeType type) {
   return switch (type) {
-    RunUpgradeType.towerDamage => Icons.local_fire_department_outlined,
-    RunUpgradeType.killGold => Icons.toll_outlined,
-    RunUpgradeType.waveGold => Icons.inventory_2_outlined,
+    RunUpgradeType.towerDamage => GameUpgradeIconType.towerDamage,
+    RunUpgradeType.killGold => GameUpgradeIconType.killGold,
+    RunUpgradeType.waveGold => GameUpgradeIconType.waveGold,
   };
 }

@@ -50,7 +50,7 @@ List<_PermanentUpgradeTileData> _combatUpgradeTiles({
   final stageSevenCleared = snapshot.clearedStageNumbers.contains(7);
   return [
     _PermanentUpgradeTileData(
-      icon: Icons.favorite_border,
+      upgradeIconType: GameUpgradeIconType.nexusHp,
       title: l10n.nexusHp,
       description: l10n.permanentUpgradeDescription(l10n.nexusHp),
       level: snapshot.nexusHpUpgradeLevel,
@@ -64,7 +64,7 @@ List<_PermanentUpgradeTileData> _combatUpgradeTiles({
       onPressed: game.upgradeNexusHpProgression,
     ),
     _PermanentUpgradeTileData(
-      icon: Icons.local_fire_department_outlined,
+      upgradeIconType: GameUpgradeIconType.towerDamage,
       title: l10n.basicFireTraining,
       description: l10n.permanentUpgradeDescription(l10n.basicFireTraining),
       level: snapshot.fireTrainingUpgradeLevel,
@@ -81,7 +81,7 @@ List<_PermanentUpgradeTileData> _combatUpgradeTiles({
     ),
     if (stageSevenCleared)
       _PermanentUpgradeTileData(
-        icon: Icons.hardware_outlined,
+        upgradeIconType: GameUpgradeIconType.physicalDamage,
         title: l10n.physicalDamageTraining,
         description: l10n.permanentUpgradeDescription(
           l10n.physicalDamageTraining,
@@ -100,7 +100,7 @@ List<_PermanentUpgradeTileData> _combatUpgradeTiles({
       ),
     if (stageSevenCleared)
       _PermanentUpgradeTileData(
-        icon: Icons.auto_awesome_outlined,
+        upgradeIconType: GameUpgradeIconType.elementalDamage,
         title: l10n.elementalDamageTraining,
         description: l10n.permanentUpgradeDescription(
           l10n.elementalDamageTraining,
@@ -119,7 +119,7 @@ List<_PermanentUpgradeTileData> _combatUpgradeTiles({
       ),
     if (stageFourCleared)
       _PermanentUpgradeTileData(
-        icon: Icons.gps_fixed,
+        upgradeIconType: GameUpgradeIconType.criticalChance,
         title: l10n.criticalChanceTraining,
         description: l10n.permanentUpgradeDescription(
           l10n.criticalChanceTraining,
@@ -138,7 +138,7 @@ List<_PermanentUpgradeTileData> _combatUpgradeTiles({
       ),
     if (stageFourCleared)
       _PermanentUpgradeTileData(
-        icon: Icons.bolt,
+        upgradeIconType: GameUpgradeIconType.criticalDamage,
         title: l10n.criticalDamageTraining,
         description: l10n.permanentUpgradeDescription(
           l10n.criticalDamageTraining,
@@ -180,7 +180,7 @@ List<_PermanentUpgradeTileData> _economyUpgradeTiles({
   );
   return [
     _PermanentUpgradeTileData(
-      icon: Icons.toll_outlined,
+      upgradeIconType: GameUpgradeIconType.startingGold,
       title: l10n.startGold,
       description: l10n.permanentUpgradeDescription(l10n.startGold),
       level: snapshot.startingGoldUpgradeLevel,
@@ -196,7 +196,7 @@ List<_PermanentUpgradeTileData> _economyUpgradeTiles({
       onPressed: game.upgradeStartingGoldProgression,
     ),
     _PermanentUpgradeTileData(
-      icon: Icons.inventory_2_outlined,
+      upgradeIconType: GameUpgradeIconType.waveGold,
       title: l10n.maintenanceSupply,
       description: l10n.permanentUpgradeDescription(l10n.maintenanceSupply),
       level: snapshot.supplyUpgradeLevel,
@@ -212,7 +212,7 @@ List<_PermanentUpgradeTileData> _economyUpgradeTiles({
     ),
     if (economyUpgradeUnlocked)
       _PermanentUpgradeTileData(
-        icon: Icons.monetization_on_outlined,
+        upgradeIconType: GameUpgradeIconType.killGold,
         title: l10n.killRewardBonus,
         description: l10n.permanentUpgradeDescription(l10n.killRewardBonus),
         level: snapshot.killGoldUpgradeLevel,
@@ -228,7 +228,7 @@ List<_PermanentUpgradeTileData> _economyUpgradeTiles({
       ),
     if (economyUpgradeUnlocked)
       _PermanentUpgradeTileData(
-        icon: Icons.sell_outlined,
+        upgradeIconType: GameUpgradeIconType.turretRefund,
         title: l10n.emergencySale,
         description: l10n.permanentUpgradeDescription(l10n.emergencySale),
         level: snapshot.emergencySaleUpgradeLevel,
@@ -247,7 +247,7 @@ List<_PermanentUpgradeTileData> _economyUpgradeTiles({
 
 class _PermanentUpgradeTileData {
   const _PermanentUpgradeTileData({
-    required this.icon,
+    required this.upgradeIconType,
     required this.title,
     required this.description,
     required this.level,
@@ -261,7 +261,7 @@ class _PermanentUpgradeTileData {
     required this.onPressed,
   });
 
-  final IconData icon;
+  final GameUpgradeIconType upgradeIconType;
   final String title;
   final String description;
   final int level;
@@ -335,30 +335,48 @@ class _PermanentUpgradeTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(data.icon, color: titleColor, size: 17),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  data.title,
-                  style: TextStyle(
-                    color: titleColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
+              SizedBox(
+                width: 32,
+                height: 32,
+                child: Center(
+                  child: UpgradeIcon(
+                    data.upgradeIconType,
+                    size: 30,
+                    color: data.enabled ? null : titleColor,
+                    semanticLabel: data.title,
                   ),
-                  overflow: TextOverflow.clip,
+                ),
+              ),
+              const SizedBox(width: 7),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      data.title,
+                      maxLines: 1,
+                      style: TextStyle(
+                        color: titleColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                      overflow: TextOverflow.clip,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Lv.${data.level}/${data.maxLevel}',
+                      style: const TextStyle(
+                        color: Color(0xFFB9D6E4),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 5),
-          Text(
-            'Lv.${data.level}/${data.maxLevel}',
-            style: const TextStyle(
-              color: Color(0xFFB9D6E4),
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-            ),
           ),
           const SizedBox(height: 5),
           Text(

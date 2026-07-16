@@ -1163,6 +1163,8 @@ class _StageUnlockChip extends StatelessWidget {
         children: [
           if (item.researchType case final researchType?)
             ResearchIcon(researchType, size: 15, color: color)
+          else if (item.upgradeIconType case final upgradeIconType?)
+            UpgradeIcon(upgradeIconType, size: 15, color: color)
           else
             Icon(item.icon, size: 15, color: color),
           const SizedBox(width: 6),
@@ -1337,13 +1339,13 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
     1 => [
       _StageUnlockItem(
         label: l10n.killRewardBonus,
-        icon: Icons.monetization_on_outlined,
+        upgradeIconType: GameUpgradeIconType.killGold,
         category: _StageUnlockCategory.upgrade,
         highlighted: highlighted,
       ),
       _StageUnlockItem(
         label: l10n.emergencySale,
-        icon: Icons.sell_outlined,
+        upgradeIconType: GameUpgradeIconType.turretRefund,
         category: _StageUnlockCategory.upgrade,
         highlighted: highlighted,
       ),
@@ -1379,13 +1381,13 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
     4 => [
       _StageUnlockItem(
         label: l10n.criticalChanceTraining,
-        icon: Icons.gps_fixed,
+        upgradeIconType: GameUpgradeIconType.criticalChance,
         category: _StageUnlockCategory.upgrade,
         highlighted: highlighted,
       ),
       _StageUnlockItem(
         label: l10n.criticalDamageTraining,
-        icon: Icons.bolt,
+        upgradeIconType: GameUpgradeIconType.criticalDamage,
         category: _StageUnlockCategory.upgrade,
         highlighted: highlighted,
       ),
@@ -1421,13 +1423,13 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
     7 => [
       _StageUnlockItem(
         label: l10n.physicalDamageTraining,
-        icon: Icons.hardware_outlined,
+        upgradeIconType: GameUpgradeIconType.physicalDamage,
         category: _StageUnlockCategory.upgrade,
         highlighted: highlighted,
       ),
       _StageUnlockItem(
         label: l10n.elementalDamageTraining,
-        icon: Icons.auto_awesome_outlined,
+        upgradeIconType: GameUpgradeIconType.elementalDamage,
         category: _StageUnlockCategory.upgrade,
         highlighted: highlighted,
       ),
@@ -1572,13 +1574,20 @@ class _StageUnlockItem {
     required this.label,
     this.icon,
     this.researchType,
+    this.upgradeIconType,
     required this.category,
     this.highlighted = false,
-  }) : assert((icon == null) != (researchType == null));
+  }) : assert(
+         (icon != null ? 1 : 0) +
+                 (researchType != null ? 1 : 0) +
+                 (upgradeIconType != null ? 1 : 0) ==
+             1,
+       );
 
   final String label;
   final IconData? icon;
   final ResearchType? researchType;
+  final GameUpgradeIconType? upgradeIconType;
   final _StageUnlockCategory category;
   final bool highlighted;
 }
