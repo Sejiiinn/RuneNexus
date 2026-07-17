@@ -22,6 +22,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/images/core_abilities/
     - assets/images/research/
     - assets/images/stage_rewards/
     - assets/images/upgrades/

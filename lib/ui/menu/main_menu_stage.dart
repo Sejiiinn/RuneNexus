@@ -1165,6 +1165,8 @@ class _StageUnlockChip extends StatelessWidget {
             ResearchIcon(researchType, size: 15, color: color)
           else if (item.upgradeIconType case final upgradeIconType?)
             UpgradeIcon(upgradeIconType, size: 15, color: color)
+          else if (item.coreCombatSkill case final coreCombatSkill?)
+            CoreAbilityIcon(coreCombatSkill, size: 15, color: color)
           else
             Icon(item.icon, size: 15, color: color),
           const SizedBox(width: 6),
@@ -1407,7 +1409,7 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
       ),
       _StageUnlockItem(
         label: l10n.riftMarkSkill,
-        icon: Icons.track_changes,
+        coreCombatSkill: CoreCombatSkill.riftMark,
         category: _StageUnlockCategory.core,
         highlighted: highlighted,
       ),
@@ -1575,12 +1577,14 @@ class _StageUnlockItem {
     this.icon,
     this.researchType,
     this.upgradeIconType,
+    this.coreCombatSkill,
     required this.category,
     this.highlighted = false,
   }) : assert(
          (icon != null ? 1 : 0) +
                  (researchType != null ? 1 : 0) +
-                 (upgradeIconType != null ? 1 : 0) ==
+                 (upgradeIconType != null ? 1 : 0) +
+                 (coreCombatSkill != null ? 1 : 0) ==
              1,
        );
 
@@ -1588,6 +1592,7 @@ class _StageUnlockItem {
   final IconData? icon;
   final ResearchType? researchType;
   final GameUpgradeIconType? upgradeIconType;
+  final CoreCombatSkill? coreCombatSkill;
   final _StageUnlockCategory category;
   final bool highlighted;
 }

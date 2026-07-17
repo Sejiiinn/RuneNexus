@@ -285,20 +285,21 @@ class _CoreSocketStage extends StatelessWidget {
                       child: _CoreSocketButton(
                         key: const ValueKey('core-combat-skill-slot'),
                         kind: '전투 스킬',
-                        icon: switch (combatSkill) {
-                          CoreCombatSkill.guardianBeam => Icons.auto_awesome,
-                          CoreCombatSkill.riftMark => Icons.blur_on,
-                          null => Icons.add,
-                        },
+                        icon: combatSkill == null ? Icons.add : null,
+                        combatSkill: combatSkill,
                         label: combatSkill?.label ?? '빈 슬롯',
                         state: switch (combatSkill) {
                           CoreCombatSkill.guardianBeam => '5초마다 자동 발동',
                           CoreCombatSkill.riftMark => '10초마다 자동 발동',
                           null => '스킬을 장착하세요',
                         },
-                        accent: hasCombatSkill
-                            ? const Color(0xFF8EE6FF)
-                            : const Color(0xFF8FA8BA),
+                        accent: switch (combatSkill) {
+                          CoreCombatSkill.guardianBeam => const Color(
+                            0xFF8EE6FF,
+                          ),
+                          CoreCombatSkill.riftMark => const Color(0xFFCFA7FF),
+                          null => const Color(0xFF8FA8BA),
+                        },
                         prominent: true,
                         compact: compact,
                         empty: !hasCombatSkill,
@@ -865,10 +866,12 @@ class _CoreSocketButton extends StatelessWidget {
     this.empty = false,
     this.muted = false,
     this.selected = false,
-  });
+    this.combatSkill,
+  }) : assert((icon != null) != (combatSkill != null));
 
   final String kind;
-  final IconData icon;
+  final IconData? icon;
+  final CoreCombatSkill? combatSkill;
   final String label;
   final String state;
   final VoidCallback onTap;
@@ -949,7 +952,14 @@ class _CoreSocketButton extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(icon, color: effectiveAccent, size: iconSize),
+                        if (combatSkill case final skill?)
+                          CoreAbilityIcon(
+                            skill,
+                            size: iconSize,
+                            semanticLabel: skill.label,
+                          )
+                        else
+                          Icon(icon, color: effectiveAccent, size: iconSize),
                         const SizedBox(width: 3),
                         Flexible(
                           child: Text(
@@ -993,7 +1003,13 @@ class _CoreSocketButton extends StatelessWidget {
                           ),
                         ),
                       ),
-                      child: Icon(icon, color: effectiveAccent, size: iconSize),
+                      child: combatSkill != null
+                          ? CoreAbilityIcon(
+                              combatSkill!,
+                              size: iconSize,
+                              semanticLabel: combatSkill!.label,
+                            )
+                          : Icon(icon, color: effectiveAccent, size: iconSize),
                     ),
                     const SizedBox(height: 3),
                     FittedBox(
@@ -1208,7 +1224,13 @@ class _CoreSelectedAbilityPanel extends StatelessWidget {
                 ),
               ),
             ),
-            child: Icon(data.icon, color: data.accent, size: compact ? 22 : 25),
+            child: data.combatSkill != null
+                ? CoreAbilityIcon(
+                    data.combatSkill!,
+                    size: compact ? 22 : 25,
+                    semanticLabel: data.name,
+                  )
+                : Icon(data.icon, color: data.accent, size: compact ? 22 : 25),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -1493,7 +1515,13 @@ class _CoreAbilityCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  child: Icon(data.icon, color: data.accent, size: 18),
+                  child: data.combatSkill != null
+                      ? CoreAbilityIcon(
+                          data.combatSkill!,
+                          size: 18,
+                          semanticLabel: data.name,
+                        )
+                      : Icon(data.icon, color: data.accent, size: 18),
                 ),
                 const SizedBox(height: 6),
                 Expanded(
@@ -1523,7 +1551,7 @@ class _CoreAbilityCard extends StatelessWidget {
 
 class _CoreAbilityData {
   const _CoreAbilityData({
-    required this.icon,
+    this.icon,
     required this.name,
     required this.state,
     required this.actionLabel,
@@ -1534,9 +1562,9 @@ class _CoreAbilityData {
     this.equipped = false,
     this.locked = false,
     this.enabled = false,
-  });
+  }) : assert((icon != null) != (combatSkill != null));
 
-  final IconData icon;
+  final IconData? icon;
   final String name;
   final String state;
   final String actionLabel;
@@ -1557,7 +1585,6 @@ class _CoreAbilityData {
     return switch (tab) {
       _CoreAbilityTab.combatSkill => [
         _CoreAbilityData(
-          icon: Icons.auto_awesome,
           name: '수호 광선',
           state: '5초마다 자동 발동',
           descriptionLines: const [
@@ -1572,7 +1599,6 @@ class _CoreAbilityData {
           enabled: true,
         ),
         _CoreAbilityData(
-          icon: Icons.blur_on,
           name: '균열 낙인',
           state: riftMarkUnlocked ? '체력이 높은 적에게 받는 피해 증가' : '챕터 2 해금',
           descriptionLines: riftMarkUnlocked

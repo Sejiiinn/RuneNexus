@@ -24,6 +24,7 @@ import 'package:rune_nexus/game/systems/game_save_adapter.dart';
 import 'package:rune_nexus/game/systems/run_progression.dart';
 import 'package:rune_nexus/l10n/rune_nexus_localizations.dart';
 import 'package:rune_nexus/ui/game/game_button.dart';
+import 'package:rune_nexus/ui/game/core_ability_icon.dart';
 import 'package:rune_nexus/ui/game/research_icon.dart';
 import 'package:rune_nexus/ui/hud/core_info_panel.dart';
 import 'package:rune_nexus/ui/hud/game_hud.dart';
@@ -1638,14 +1639,22 @@ void main() {
     expect(
       find.descendant(
         of: combatSkillSlot,
-        matching: find.byIcon(Icons.blur_on),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is CoreAbilityIcon &&
+              widget.skill == CoreCombatSkill.riftMark,
+        ),
       ),
       findsOneWidget,
     );
     expect(
       find.descendant(
         of: combatSkillSlot,
-        matching: find.byIcon(Icons.auto_awesome),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is CoreAbilityIcon &&
+              widget.skill == CoreCombatSkill.guardianBeam,
+        ),
       ),
       findsNothing,
     );
@@ -1654,7 +1663,11 @@ void main() {
     expect(
       find.descendant(
         of: combatSkillSlot,
-        matching: find.byIcon(Icons.auto_awesome),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is CoreAbilityIcon &&
+              widget.skill == CoreCombatSkill.guardianBeam,
+        ),
       ),
       findsOneWidget,
     );
@@ -1956,6 +1969,17 @@ void main() {
     );
     expect(
       find.descendant(of: coreSection, matching: find.text('균열 낙인')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: coreSection,
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is CoreAbilityIcon &&
+              widget.skill == CoreCombatSkill.riftMark,
+        ),
+      ),
       findsOneWidget,
     );
     expect(
