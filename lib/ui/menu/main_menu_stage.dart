@@ -1167,6 +1167,8 @@ class _StageUnlockChip extends StatelessWidget {
             UpgradeIcon(upgradeIconType, size: 15, color: color)
           else if (item.coreCombatSkill case final coreCombatSkill?)
             CoreAbilityIcon(coreCombatSkill, size: 15, color: color)
+          else if (item.gemType case final gemType?)
+            GemIcon(gemType, size: 15)
           else
             Icon(item.icon, size: 15, color: color),
           const SizedBox(width: 6),
@@ -1375,7 +1377,7 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
       ),
       _StageUnlockItem(
         label: l10n.aimSpeedGem,
-        icon: Icons.zoom_in_outlined,
+        gemType: GemType.aimSpeed,
         category: _StageUnlockCategory.gem,
         highlighted: highlighted,
       ),
@@ -1453,7 +1455,7 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
     10 => [
       _StageUnlockItem(
         label: l10n.armorPiercingGem,
-        icon: Icons.gps_fixed_outlined,
+        gemType: GemType.armorPiercing,
         category: _StageUnlockCategory.gem,
         highlighted: highlighted,
       ),
@@ -1578,13 +1580,15 @@ class _StageUnlockItem {
     this.researchType,
     this.upgradeIconType,
     this.coreCombatSkill,
+    this.gemType,
     required this.category,
     this.highlighted = false,
   }) : assert(
          (icon != null ? 1 : 0) +
                  (researchType != null ? 1 : 0) +
                  (upgradeIconType != null ? 1 : 0) +
-                 (coreCombatSkill != null ? 1 : 0) ==
+                 (coreCombatSkill != null ? 1 : 0) +
+                 (gemType != null ? 1 : 0) ==
              1,
        );
 
@@ -1593,6 +1597,7 @@ class _StageUnlockItem {
   final ResearchType? researchType;
   final GameUpgradeIconType? upgradeIconType;
   final CoreCombatSkill? coreCombatSkill;
+  final GemType? gemType;
   final _StageUnlockCategory category;
   final bool highlighted;
 }

@@ -8,6 +8,10 @@ build/
 # Local in-app server artifacts
 flutter_web_server.*
 
+# Local agent/tool artifacts
+.claude/
+.codegraph/
+
 # Android/iOS generated files
 android/.gradle/
 ios/Pods/

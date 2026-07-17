@@ -1659,7 +1659,7 @@ class _ResearchDetailDialog extends StatelessWidget {
                             SizedBox(
                               width: itemWidth,
                               child: _ResearchDialogMetric(
-                                icon: Icons.diamond_outlined,
+                                iconWidget: const RuneCurrencyIcon(size: 14),
                                 label: l10n.researchCostLabel,
                                 value: '$cost',
                                 accent: canStart
@@ -1723,13 +1723,15 @@ class _ResearchDetailDialog extends StatelessWidget {
 
 class _ResearchDialogMetric extends StatelessWidget {
   const _ResearchDialogMetric({
-    required this.icon,
+    this.icon,
+    this.iconWidget,
     required this.label,
     required this.value,
     required this.accent,
-  });
+  }) : assert((icon == null) != (iconWidget == null));
 
-  final IconData icon;
+  final IconData? icon;
+  final Widget? iconWidget;
   final String label;
   final String value;
   final Color accent;
@@ -1746,7 +1748,7 @@ class _ResearchDialogMetric extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, color: accent, size: 14),
+          iconWidget ?? Icon(icon, color: accent, size: 14),
           const SizedBox(width: 6),
           Expanded(
             child: Column(

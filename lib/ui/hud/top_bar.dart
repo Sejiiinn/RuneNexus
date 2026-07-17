@@ -672,11 +672,7 @@ class _RuneRewardIcon extends StatelessWidget {
         border: Border.all(color: const Color(0x88E7C66A)),
         shape: BoxShape.circle,
       ),
-      child: Icon(
-        Icons.diamond_outlined,
-        size: size * 0.62,
-        color: GamePalette.goldBright,
-      ),
+      child: RuneCurrencyIcon(size: size * 0.62),
     );
   }
 }

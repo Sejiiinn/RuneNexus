@@ -25,6 +25,7 @@ import 'package:rune_nexus/game/systems/run_progression.dart';
 import 'package:rune_nexus/l10n/rune_nexus_localizations.dart';
 import 'package:rune_nexus/ui/game/game_button.dart';
 import 'package:rune_nexus/ui/game/core_ability_icon.dart';
+import 'package:rune_nexus/ui/game/game_icons.dart';
 import 'package:rune_nexus/ui/game/research_icon.dart';
 import 'package:rune_nexus/ui/hud/core_info_panel.dart';
 import 'package:rune_nexus/ui/hud/game_hud.dart';
@@ -1856,6 +1857,80 @@ void main() {
     expect(find.text('연구 해금'), findsNothing);
   });
 
+  testWidgets('stage gem unlocks use their dedicated gem icons', (
+    tester,
+  ) async {
+    Future<void> pumpStageDetails({
+      required int stageNumber,
+      required Set<int> clearedStages,
+    }) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          key: ValueKey('stage-app-$stageNumber'),
+          locale: const Locale('ko'),
+          localizationsDelegates: const [
+            RuneNexusLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: RuneNexusLocalizations.supportedLocales,
+          home: MainMenuScreen(
+            key: ValueKey('stage-menu-$stageNumber'),
+            game: RuneNexusGame(),
+            snapshot: _resultSnapshot(
+              phase: GamePhase.preparation,
+              currentStageNumber: stageNumber,
+              unlockedStageCount: stageNumber,
+              clearedStageNumbers: clearedStages,
+            ),
+            selectedTab: MainMenuTab.stage,
+            onSelectTab: (_) {},
+            onStartStage: (_) {},
+          ),
+        ),
+      );
+      await _pumpGameFrames(tester);
+      final stageRow = find.byKey(ValueKey('stage-selection-row-$stageNumber'));
+      await tester.ensureVisible(stageRow);
+      await tester.tap(stageRow);
+      await _pumpGameFrames(tester);
+    }
+
+    await pumpStageDetails(stageNumber: 3, clearedStages: const {1, 2});
+
+    final stageThreeGemSection = find.byKey(
+      const ValueKey('stage-unlock-section-gem'),
+    );
+    expect(
+      find.descendant(
+        of: stageThreeGemSection,
+        matching: find.byWidgetPredicate(
+          (widget) => widget is GemIcon && widget.type == GemType.aimSpeed,
+        ),
+      ),
+      findsOneWidget,
+    );
+
+    await pumpStageDetails(
+      stageNumber: 10,
+      clearedStages: const {1, 2, 3, 4, 5, 6, 7, 8, 9},
+    );
+
+    final stageTenGemSection = find.byKey(
+      const ValueKey('stage-unlock-section-gem'),
+    );
+    expect(
+      find.descendant(
+        of: stageTenGemSection,
+        matching: find.byWidgetPredicate(
+          (widget) => widget is GemIcon && widget.type == GemType.armorPiercing,
+        ),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('stage twelve shows its research reward and unlock details', (
     tester,
   ) async {
@@ -2269,6 +2344,19 @@ void main() {
         reason: '$title should stay on one line',
       );
     }
+
+    await tester.tap(efficiencyCard);
+    await _pumpGameFrames(tester);
+
+    final researchDialog = find.byType(Dialog);
+    expect(researchDialog, findsOneWidget);
+    expect(
+      find.descendant(
+        of: researchDialog,
+        matching: find.byType(RuneCurrencyIcon),
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 
@@ -2979,6 +3067,13 @@ void main() {
     expect(find.text('종료 시 보상'), findsOneWidget);
     expect(find.text('0웨이브 기준'), findsOneWidget);
     expect(find.textContaining('+0 룬'), findsWidgets);
+    expect(
+      find.descendant(
+        of: find.byType(Dialog),
+        matching: find.byType(RuneCurrencyIcon),
+      ),
+      findsWidgets,
+    );
   });
 
   testWidgets('main menu return preserves active run as restore flow', (
@@ -3060,6 +3155,13 @@ void main() {
 
     expect(find.text('진행 중인 스테이지 종료'), findsOneWidget);
     expect(find.text('현재 보상 0룬 정산 후 스테이지 2 시작'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(Dialog),
+        matching: find.byType(RuneCurrencyIcon),
+      ),
+      findsOneWidget,
+    );
 
     await tester.tap(find.text('정산 후 시작'));
     await _pumpGameFrames(tester);
