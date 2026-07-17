@@ -1,4 +1,5 @@
 export 'game_button.dart';
+export 'core_ability_icon.dart';
 export 'game_icons.dart';
 export 'game_palette.dart';
 export 'game_panel.dart';

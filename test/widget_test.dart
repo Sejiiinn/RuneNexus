@@ -24,6 +24,7 @@ import 'package:rune_nexus/game/systems/game_save_adapter.dart';
 import 'package:rune_nexus/game/systems/run_progression.dart';
 import 'package:rune_nexus/l10n/rune_nexus_localizations.dart';
 import 'package:rune_nexus/ui/game/game_button.dart';
+import 'package:rune_nexus/ui/game/core_ability_icon.dart';
 import 'package:rune_nexus/ui/game/research_icon.dart';
 import 'package:rune_nexus/ui/game/upgrade_icon.dart';
 import 'package:rune_nexus/ui/hud/core_info_panel.dart';
@@ -1312,6 +1313,21 @@ void main() {
       await tester.tap(find.text('패시브'));
       await _pumpGameFrames(tester);
       expect(find.textContaining('패시브 슬롯'), findsNothing);
+      for (final ability in CorePassiveAbility.values) {
+        final abilityCard = find.byKey(
+          ValueKey('core-ability-${ability.label}'),
+        );
+        expect(
+          find.descendant(
+            of: abilityCard,
+            matching: find.byWidgetPredicate(
+              (widget) =>
+                  widget is CorePassiveIcon && widget.ability == ability,
+            ),
+          ),
+          findsOneWidget,
+        );
+      }
 
       await tester.tap(find.text('패시브 2'));
       await _pumpGameFrames(tester);
@@ -1681,14 +1697,22 @@ void main() {
     expect(
       find.descendant(
         of: combatSkillSlot,
-        matching: find.byIcon(Icons.blur_on),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is CoreAbilityIcon &&
+              widget.skill == CoreCombatSkill.riftMark,
+        ),
       ),
       findsOneWidget,
     );
     expect(
       find.descendant(
         of: combatSkillSlot,
-        matching: find.byIcon(Icons.auto_awesome),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is CoreAbilityIcon &&
+              widget.skill == CoreCombatSkill.guardianBeam,
+        ),
       ),
       findsNothing,
     );
@@ -1697,7 +1721,11 @@ void main() {
     expect(
       find.descendant(
         of: combatSkillSlot,
-        matching: find.byIcon(Icons.auto_awesome),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is CoreAbilityIcon &&
+              widget.skill == CoreCombatSkill.guardianBeam,
+        ),
       ),
       findsOneWidget,
     );
@@ -1999,6 +2027,17 @@ void main() {
     );
     expect(
       find.descendant(of: coreSection, matching: find.text('균열 낙인')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: coreSection,
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is CoreAbilityIcon &&
+              widget.skill == CoreCombatSkill.riftMark,
+        ),
+      ),
       findsOneWidget,
     );
     expect(

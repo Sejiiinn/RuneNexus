@@ -285,20 +285,21 @@ class _CoreSocketStage extends StatelessWidget {
                       child: _CoreSocketButton(
                         key: const ValueKey('core-combat-skill-slot'),
                         kind: '전투 스킬',
-                        icon: switch (combatSkill) {
-                          CoreCombatSkill.guardianBeam => Icons.auto_awesome,
-                          CoreCombatSkill.riftMark => Icons.blur_on,
-                          null => Icons.add,
-                        },
+                        icon: combatSkill == null ? Icons.add : null,
+                        combatSkill: combatSkill,
                         label: combatSkill?.label ?? '빈 슬롯',
                         state: switch (combatSkill) {
                           CoreCombatSkill.guardianBeam => '5초마다 자동 발동',
                           CoreCombatSkill.riftMark => '10초마다 자동 발동',
                           null => '스킬을 장착하세요',
                         },
-                        accent: hasCombatSkill
-                            ? const Color(0xFF8EE6FF)
-                            : const Color(0xFF8FA8BA),
+                        accent: switch (combatSkill) {
+                          CoreCombatSkill.guardianBeam => const Color(
+                            0xFF8EE6FF,
+                          ),
+                          CoreCombatSkill.riftMark => const Color(0xFFCFA7FF),
+                          null => const Color(0xFF8FA8BA),
+                        },
                         prominent: true,
                         compact: compact,
                         empty: !hasCombatSkill,
@@ -708,12 +709,6 @@ class _CorePassiveSlotButton extends StatelessWidget {
       );
     }
     final equipped = ability != null;
-    final passiveIcon = switch (ability) {
-      CorePassiveAbility.selfRepair => Icons.healing_outlined,
-      CorePassiveAbility.costSavingDesign => Icons.construction_outlined,
-      CorePassiveAbility.skillAcceleration => Icons.speed_outlined,
-      null => Icons.add,
-    };
     final passiveAccent = switch (ability) {
       CorePassiveAbility.selfRepair => const Color(0xFF72E0A2),
       CorePassiveAbility.costSavingDesign => const Color(0xFFFFC66A),
@@ -722,7 +717,8 @@ class _CorePassiveSlotButton extends StatelessWidget {
     };
     return _CoreSocketButton(
       kind: '패시브 ${index + 1}',
-      icon: passiveIcon,
+      icon: ability == null ? Icons.add : null,
+      passiveAbility: ability,
       label: ability?.label ?? '빈 슬롯',
       state: equipped
           ? (switch (ability) {
@@ -865,10 +861,19 @@ class _CoreSocketButton extends StatelessWidget {
     this.empty = false,
     this.muted = false,
     this.selected = false,
-  });
+    this.combatSkill,
+    this.passiveAbility,
+  }) : assert(
+         (icon != null ? 1 : 0) +
+                 (combatSkill != null ? 1 : 0) +
+                 (passiveAbility != null ? 1 : 0) ==
+             1,
+       );
 
   final String kind;
-  final IconData icon;
+  final IconData? icon;
+  final CoreCombatSkill? combatSkill;
+  final CorePassiveAbility? passiveAbility;
   final String label;
   final String state;
   final VoidCallback onTap;
@@ -949,7 +954,20 @@ class _CoreSocketButton extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(icon, color: effectiveAccent, size: iconSize),
+                        if (combatSkill case final skill?)
+                          CoreAbilityIcon(
+                            skill,
+                            size: iconSize,
+                            semanticLabel: skill.label,
+                          )
+                        else if (passiveAbility case final ability?)
+                          CorePassiveIcon(
+                            ability,
+                            size: iconSize,
+                            semanticLabel: ability.label,
+                          )
+                        else
+                          Icon(icon, color: effectiveAccent, size: iconSize),
                         const SizedBox(width: 3),
                         Flexible(
                           child: Text(
@@ -993,7 +1011,19 @@ class _CoreSocketButton extends StatelessWidget {
                           ),
                         ),
                       ),
-                      child: Icon(icon, color: effectiveAccent, size: iconSize),
+                      child: switch ((combatSkill, passiveAbility)) {
+                        (final skill?, _) => CoreAbilityIcon(
+                          skill,
+                          size: iconSize,
+                          semanticLabel: skill.label,
+                        ),
+                        (_, final ability?) => CorePassiveIcon(
+                          ability,
+                          size: iconSize,
+                          semanticLabel: ability.label,
+                        ),
+                        _ => Icon(icon, color: effectiveAccent, size: iconSize),
+                      },
                     ),
                     const SizedBox(height: 3),
                     FittedBox(
@@ -1208,7 +1238,19 @@ class _CoreSelectedAbilityPanel extends StatelessWidget {
                 ),
               ),
             ),
-            child: Icon(data.icon, color: data.accent, size: compact ? 22 : 25),
+            child: switch ((data.combatSkill, data.passiveAbility)) {
+              (final skill?, _) => CoreAbilityIcon(
+                skill,
+                size: compact ? 22 : 25,
+                semanticLabel: data.name,
+              ),
+              (_, final ability?) => CorePassiveIcon(
+                ability,
+                size: compact ? 22 : 25,
+                semanticLabel: data.name,
+              ),
+              _ => Icon(data.icon, color: data.accent, size: compact ? 22 : 25),
+            },
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -1493,7 +1535,19 @@ class _CoreAbilityCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  child: Icon(data.icon, color: data.accent, size: 18),
+                  child: switch ((data.combatSkill, data.passiveAbility)) {
+                    (final skill?, _) => CoreAbilityIcon(
+                      skill,
+                      size: 18,
+                      semanticLabel: data.name,
+                    ),
+                    (_, final ability?) => CorePassiveIcon(
+                      ability,
+                      size: 18,
+                      semanticLabel: data.name,
+                    ),
+                    _ => Icon(data.icon, color: data.accent, size: 18),
+                  },
                 ),
                 const SizedBox(height: 6),
                 Expanded(
@@ -1523,7 +1577,7 @@ class _CoreAbilityCard extends StatelessWidget {
 
 class _CoreAbilityData {
   const _CoreAbilityData({
-    required this.icon,
+    this.icon,
     required this.name,
     required this.state,
     required this.actionLabel,
@@ -1534,9 +1588,14 @@ class _CoreAbilityData {
     this.equipped = false,
     this.locked = false,
     this.enabled = false,
-  });
+  }) : assert(
+         (icon != null ? 1 : 0) +
+                 (combatSkill != null ? 1 : 0) +
+                 (passiveAbility != null ? 1 : 0) ==
+             1,
+       );
 
-  final IconData icon;
+  final IconData? icon;
   final String name;
   final String state;
   final String actionLabel;
@@ -1557,7 +1616,6 @@ class _CoreAbilityData {
     return switch (tab) {
       _CoreAbilityTab.combatSkill => [
         _CoreAbilityData(
-          icon: Icons.auto_awesome,
           name: '수호 광선',
           state: '5초마다 자동 발동',
           descriptionLines: const [
@@ -1572,7 +1630,6 @@ class _CoreAbilityData {
           enabled: true,
         ),
         _CoreAbilityData(
-          icon: Icons.blur_on,
           name: '균열 낙인',
           state: riftMarkUnlocked ? '체력이 높은 적에게 받는 피해 증가' : '챕터 2 해금',
           descriptionLines: riftMarkUnlocked
@@ -1595,7 +1652,6 @@ class _CoreAbilityData {
           snapshot: snapshot,
           selectedPassiveSlotIndex: selectedPassiveSlotIndex,
           ability: CorePassiveAbility.selfRepair,
-          icon: Icons.healing_outlined,
           unlockText: '기본 해금',
           accent: const Color(0xFF72E0A2),
         ),
@@ -1603,7 +1659,6 @@ class _CoreAbilityData {
           snapshot: snapshot,
           selectedPassiveSlotIndex: selectedPassiveSlotIndex,
           ability: CorePassiveAbility.costSavingDesign,
-          icon: Icons.construction_outlined,
           unlockText: '기본 해금',
           accent: const Color(0xFFFFC66A),
         ),
@@ -1611,7 +1666,6 @@ class _CoreAbilityData {
           snapshot: snapshot,
           selectedPassiveSlotIndex: selectedPassiveSlotIndex,
           ability: CorePassiveAbility.skillAcceleration,
-          icon: Icons.speed_outlined,
           unlockText: '기본 해금',
           accent: const Color(0xFF8EE6FF),
         ),
@@ -1623,7 +1677,6 @@ class _CoreAbilityData {
     required GameSnapshot snapshot,
     required int selectedPassiveSlotIndex,
     required CorePassiveAbility ability,
-    required IconData icon,
     required String unlockText,
     required Color accent,
   }) {
@@ -1637,7 +1690,6 @@ class _CoreAbilityData {
       CorePassiveAbility.skillAcceleration => '전투 스킬 재사용 대기시간 10% 감소',
     };
     return _CoreAbilityData(
-      icon: icon,
       name: ability.label,
       state: unlocked ? effectText : unlockText,
       actionLabel: equipped
