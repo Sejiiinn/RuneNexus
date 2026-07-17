@@ -709,12 +709,6 @@ class _CorePassiveSlotButton extends StatelessWidget {
       );
     }
     final equipped = ability != null;
-    final passiveIcon = switch (ability) {
-      CorePassiveAbility.selfRepair => Icons.healing_outlined,
-      CorePassiveAbility.costSavingDesign => Icons.construction_outlined,
-      CorePassiveAbility.skillAcceleration => Icons.speed_outlined,
-      null => Icons.add,
-    };
     final passiveAccent = switch (ability) {
       CorePassiveAbility.selfRepair => const Color(0xFF72E0A2),
       CorePassiveAbility.costSavingDesign => const Color(0xFFFFC66A),
@@ -723,7 +717,8 @@ class _CorePassiveSlotButton extends StatelessWidget {
     };
     return _CoreSocketButton(
       kind: '패시브 ${index + 1}',
-      icon: passiveIcon,
+      icon: ability == null ? Icons.add : null,
+      passiveAbility: ability,
       label: ability?.label ?? '빈 슬롯',
       state: equipped
           ? (switch (ability) {
@@ -867,11 +862,18 @@ class _CoreSocketButton extends StatelessWidget {
     this.muted = false,
     this.selected = false,
     this.combatSkill,
-  }) : assert((icon != null) != (combatSkill != null));
+    this.passiveAbility,
+  }) : assert(
+         (icon != null ? 1 : 0) +
+                 (combatSkill != null ? 1 : 0) +
+                 (passiveAbility != null ? 1 : 0) ==
+             1,
+       );
 
   final String kind;
   final IconData? icon;
   final CoreCombatSkill? combatSkill;
+  final CorePassiveAbility? passiveAbility;
   final String label;
   final String state;
   final VoidCallback onTap;
@@ -958,6 +960,12 @@ class _CoreSocketButton extends StatelessWidget {
                             size: iconSize,
                             semanticLabel: skill.label,
                           )
+                        else if (passiveAbility case final ability?)
+                          CorePassiveIcon(
+                            ability,
+                            size: iconSize,
+                            semanticLabel: ability.label,
+                          )
                         else
                           Icon(icon, color: effectiveAccent, size: iconSize),
                         const SizedBox(width: 3),
@@ -1003,13 +1011,19 @@ class _CoreSocketButton extends StatelessWidget {
                           ),
                         ),
                       ),
-                      child: combatSkill != null
-                          ? CoreAbilityIcon(
-                              combatSkill!,
-                              size: iconSize,
-                              semanticLabel: combatSkill!.label,
-                            )
-                          : Icon(icon, color: effectiveAccent, size: iconSize),
+                      child: switch ((combatSkill, passiveAbility)) {
+                        (final skill?, _) => CoreAbilityIcon(
+                          skill,
+                          size: iconSize,
+                          semanticLabel: skill.label,
+                        ),
+                        (_, final ability?) => CorePassiveIcon(
+                          ability,
+                          size: iconSize,
+                          semanticLabel: ability.label,
+                        ),
+                        _ => Icon(icon, color: effectiveAccent, size: iconSize),
+                      },
                     ),
                     const SizedBox(height: 3),
                     FittedBox(
@@ -1224,13 +1238,19 @@ class _CoreSelectedAbilityPanel extends StatelessWidget {
                 ),
               ),
             ),
-            child: data.combatSkill != null
-                ? CoreAbilityIcon(
-                    data.combatSkill!,
-                    size: compact ? 22 : 25,
-                    semanticLabel: data.name,
-                  )
-                : Icon(data.icon, color: data.accent, size: compact ? 22 : 25),
+            child: switch ((data.combatSkill, data.passiveAbility)) {
+              (final skill?, _) => CoreAbilityIcon(
+                skill,
+                size: compact ? 22 : 25,
+                semanticLabel: data.name,
+              ),
+              (_, final ability?) => CorePassiveIcon(
+                ability,
+                size: compact ? 22 : 25,
+                semanticLabel: data.name,
+              ),
+              _ => Icon(data.icon, color: data.accent, size: compact ? 22 : 25),
+            },
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -1515,13 +1535,19 @@ class _CoreAbilityCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  child: data.combatSkill != null
-                      ? CoreAbilityIcon(
-                          data.combatSkill!,
-                          size: 18,
-                          semanticLabel: data.name,
-                        )
-                      : Icon(data.icon, color: data.accent, size: 18),
+                  child: switch ((data.combatSkill, data.passiveAbility)) {
+                    (final skill?, _) => CoreAbilityIcon(
+                      skill,
+                      size: 18,
+                      semanticLabel: data.name,
+                    ),
+                    (_, final ability?) => CorePassiveIcon(
+                      ability,
+                      size: 18,
+                      semanticLabel: data.name,
+                    ),
+                    _ => Icon(data.icon, color: data.accent, size: 18),
+                  },
                 ),
                 const SizedBox(height: 6),
                 Expanded(
@@ -1562,7 +1588,12 @@ class _CoreAbilityData {
     this.equipped = false,
     this.locked = false,
     this.enabled = false,
-  }) : assert((icon != null) != (combatSkill != null));
+  }) : assert(
+         (icon != null ? 1 : 0) +
+                 (combatSkill != null ? 1 : 0) +
+                 (passiveAbility != null ? 1 : 0) ==
+             1,
+       );
 
   final IconData? icon;
   final String name;
@@ -1621,7 +1652,6 @@ class _CoreAbilityData {
           snapshot: snapshot,
           selectedPassiveSlotIndex: selectedPassiveSlotIndex,
           ability: CorePassiveAbility.selfRepair,
-          icon: Icons.healing_outlined,
           unlockText: '기본 해금',
           accent: const Color(0xFF72E0A2),
         ),
@@ -1629,7 +1659,6 @@ class _CoreAbilityData {
           snapshot: snapshot,
           selectedPassiveSlotIndex: selectedPassiveSlotIndex,
           ability: CorePassiveAbility.costSavingDesign,
-          icon: Icons.construction_outlined,
           unlockText: '기본 해금',
           accent: const Color(0xFFFFC66A),
         ),
@@ -1637,7 +1666,6 @@ class _CoreAbilityData {
           snapshot: snapshot,
           selectedPassiveSlotIndex: selectedPassiveSlotIndex,
           ability: CorePassiveAbility.skillAcceleration,
-          icon: Icons.speed_outlined,
           unlockText: '기본 해금',
           accent: const Color(0xFF8EE6FF),
         ),
@@ -1649,7 +1677,6 @@ class _CoreAbilityData {
     required GameSnapshot snapshot,
     required int selectedPassiveSlotIndex,
     required CorePassiveAbility ability,
-    required IconData icon,
     required String unlockText,
     required Color accent,
   }) {
@@ -1663,7 +1690,6 @@ class _CoreAbilityData {
       CorePassiveAbility.skillAcceleration => '전투 스킬 재사용 대기시간 10% 감소',
     };
     return _CoreAbilityData(
-      icon: icon,
       name: ability.label,
       state: unlocked ? effectText : unlockText,
       actionLabel: equipped

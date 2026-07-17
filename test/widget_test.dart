@@ -1270,6 +1270,21 @@ void main() {
       await tester.tap(find.text('패시브'));
       await _pumpGameFrames(tester);
       expect(find.textContaining('패시브 슬롯'), findsNothing);
+      for (final ability in CorePassiveAbility.values) {
+        final abilityCard = find.byKey(
+          ValueKey('core-ability-${ability.label}'),
+        );
+        expect(
+          find.descendant(
+            of: abilityCard,
+            matching: find.byWidgetPredicate(
+              (widget) =>
+                  widget is CorePassiveIcon && widget.ability == ability,
+            ),
+          ),
+          findsOneWidget,
+        );
+      }
 
       await tester.tap(find.text('패시브 2'));
       await _pumpGameFrames(tester);
