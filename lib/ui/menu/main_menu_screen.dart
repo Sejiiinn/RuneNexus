@@ -13,6 +13,7 @@ import '../../data/definitions/game_weekly_quest_data.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../domain/core/core_ability.dart';
 import '../../domain/daily_quest/daily_quest_type.dart';
+import '../../domain/gem/gem_type.dart';
 import '../../domain/research/research_definition.dart';
 import '../../domain/research/research_progress.dart';
 import '../../domain/research/research_type.dart';

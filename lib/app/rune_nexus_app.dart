@@ -6,6 +6,7 @@ import '../game/game_snapshot.dart';
 import '../game/rune_nexus_game.dart';
 import '../l10n/rune_nexus_localizations.dart';
 import '../ui/game/game_button.dart';
+import '../ui/game/game_icons.dart';
 import '../ui/game/game_palette.dart';
 import '../ui/game/game_panel.dart';
 import '../ui/game/game_text_styles.dart';
@@ -259,11 +260,7 @@ class _ActiveRunSettlementDialog extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.diamond_outlined,
-                      size: 17,
-                      color: GamePalette.goldBright,
-                    ),
+                    const RuneCurrencyIcon(size: 17),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
