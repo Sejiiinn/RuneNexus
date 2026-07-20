@@ -50,16 +50,37 @@ class _CorePassiveTreeMenu extends StatefulWidget {
   State<_CorePassiveTreeMenu> createState() => _CorePassiveTreeMenuState();
 }
 
-class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu> {
+class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
+    with SingleTickerProviderStateMixin {
   final TransformationController _transformationController =
       TransformationController();
+  late final AnimationController _allocationController;
+  late Map<CorePassiveNodeId, int> _draftRanks;
   CorePassiveNodeId? _selectedNodeId;
-  int _targetRank = 0;
   Size? _viewportSize;
   double _minimumScale = 1;
+  bool _isAllocating = false;
+  List<_CorePassiveAllocationWave> _allocationWaves = const [];
+  Map<CorePassiveNodeId, int> _allocationBaseRanks = const {};
+  Map<CorePassiveNodeId, int> _allocationTargetRanks = const {};
+  int _completedAllocationWaves = 0;
+  int _activeAllocationWave = -1;
+
+  @override
+  void initState() {
+    super.initState();
+    _draftRanks = Map.of(widget.snapshot.corePassiveNodeRanks);
+    _allocationController = AnimationController(vsync: this)
+      ..addListener(() {
+        if (mounted && _isAllocating) {
+          setState(() {});
+        }
+      });
+  }
 
   @override
   void dispose() {
+    _allocationController.dispose();
     _transformationController.dispose();
     super.dispose();
   }
@@ -67,15 +88,14 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu> {
   @override
   void didUpdateWidget(covariant _CorePassiveTreeMenu oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final selected = _selectedNodeId;
-    if (selected == null) {
+    if (_isAllocating ||
+        mapEquals(
+          oldWidget.snapshot.corePassiveNodeRanks,
+          widget.snapshot.corePassiveNodeRanks,
+        )) {
       return;
     }
-    final oldRank = oldWidget.snapshot.corePassiveNodeRanks[selected] ?? 0;
-    final newRank = widget.snapshot.corePassiveNodeRanks[selected] ?? 0;
-    if (oldRank != newRank) {
-      _targetRank = newRank;
-    }
+    _draftRanks = Map.of(widget.snapshot.corePassiveNodeRanks);
   }
 
   @override
@@ -86,8 +106,12 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu> {
       children: [
         _CorePassivePointSummary(
           snapshot: widget.snapshot,
+          draftSpentPoints: _draftSpentPoints,
           l10n: l10n,
-          onReset: widget.snapshot.spentCorePoints > 0
+          onCancelPlan: _hasDraftChanges && !_isAllocating
+              ? _cancelDraft
+              : null,
+          onReset: widget.snapshot.spentCorePoints > 0 && !_isAllocating
               ? () => _confirmReset(context, l10n)
               : null,
         ),
@@ -114,20 +138,27 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu> {
                   ) *
                   0.92;
               _synchronizeViewport(viewport, fitScale);
-              return InteractiveViewer(
-                key: const ValueKey('core-passive-tree-viewer'),
-                transformationController: _transformationController,
-                constrained: false,
-                panEnabled: true,
-                scaleEnabled: true,
-                minScale: fitScale,
-                maxScale: fitScale * 2.2,
-                boundaryMargin: const EdgeInsets.all(84),
-                onInteractionEnd: (_) => _centerAtMinimumScale(),
-                child: _CorePassiveTreeWorld(
-                  snapshot: widget.snapshot,
-                  selectedNodeId: _selectedNodeId,
-                  onSelectNode: _selectNode,
+              return AbsorbPointer(
+                absorbing: _isAllocating,
+                child: InteractiveViewer(
+                  key: const ValueKey('core-passive-tree-viewer'),
+                  transformationController: _transformationController,
+                  constrained: false,
+                  panEnabled: true,
+                  scaleEnabled: true,
+                  minScale: fitScale,
+                  maxScale: fitScale * 2.2,
+                  boundaryMargin: const EdgeInsets.all(84),
+                  onInteractionEnd: (_) => _centerAtMinimumScale(),
+                  child: _CorePassiveTreeWorld(
+                    actualRanks: _actualRanksForRendering,
+                    draftRanks: _draftRanksForRendering,
+                    renderedRanks: _renderedRanks,
+                    selectedNodeId: _selectedNodeId,
+                    activeWave: _activeWave,
+                    allocationProgress: _allocationController.value,
+                    onSelectNode: _selectNode,
+                  ),
                 ),
               );
             },
@@ -136,11 +167,12 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu> {
         const SizedBox(height: 8),
         _CorePassiveNodeDetails(
           snapshot: widget.snapshot,
+          draftRanks: _draftRanks,
           selectedNodeId: _selectedNodeId,
-          targetRank: _targetRank,
-          onDecrease: _canDecrease ? () => setState(() => _targetRank--) : null,
-          onIncrease: _canIncrease ? () => setState(() => _targetRank++) : null,
-          onAssign: _canAssign ? _assignTargetRank : null,
+          allocating: _isAllocating,
+          onDecrease: _canDecrease ? _decreaseSelectedRank : null,
+          onIncrease: _canIncrease ? _increaseSelectedRank : null,
+          onAssign: _canAssign ? _assignDraft : null,
         ),
       ],
     );
@@ -148,13 +180,12 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu> {
 
   bool get _canDecrease {
     final id = _selectedNodeId;
-    if (id == null || _targetRank <= 0) {
+    final targetRank = id == null ? 0 : (_draftRanks[id] ?? 0);
+    if (_isAllocating || id == null || targetRank <= 0) {
       return false;
     }
-    final candidate = Map<CorePassiveNodeId, int>.of(
-      widget.snapshot.corePassiveNodeRanks,
-    );
-    candidate[id] = _targetRank - 1;
+    final candidate = Map<CorePassiveNodeId, int>.of(_draftRanks);
+    candidate[id] = targetRank - 1;
     if (candidate[id] == 0) {
       candidate.remove(id);
     }
@@ -163,56 +194,200 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu> {
 
   bool get _canIncrease {
     final id = _selectedNodeId;
-    if (id == null) {
+    if (_isAllocating || id == null) {
       return false;
     }
     final definition = corePassiveNodeById(id);
-    if (_targetRank >= definition.maxRank) {
+    final targetRank = _draftRanks[id] ?? 0;
+    if (targetRank >= definition.maxRank) {
       return false;
     }
-    final candidate = Map<CorePassiveNodeId, int>.of(
-      widget.snapshot.corePassiveNodeRanks,
-    )..[id] = _targetRank + 1;
+    final candidate = Map<CorePassiveNodeId, int>.of(_draftRanks)
+      ..[id] = targetRank + 1;
     return corePassiveSpentPoints(candidate) <=
             widget.snapshot.totalCorePoints &&
         isValidCorePassiveAllocation(candidate);
   }
 
   bool get _canAssign {
+    return !_isAllocating &&
+        _hasDraftChanges &&
+        corePassiveSpentPoints(_draftRanks) <=
+            widget.snapshot.totalCorePoints &&
+        isValidCorePassiveAllocation(_draftRanks);
+  }
+
+  void _selectNode(CorePassiveNodeId id) {
+    setState(() => _selectedNodeId = id);
+  }
+
+  void _increaseSelectedRank() {
     final id = _selectedNodeId;
     if (id == null) {
-      return false;
+      return;
     }
-    final currentRank = widget.snapshot.corePassiveNodeRanks[id] ?? 0;
-    if (_targetRank == currentRank) {
-      return false;
+    final candidate = Map<CorePassiveNodeId, int>.of(_draftRanks)
+      ..[id] = (_draftRanks[id] ?? 0) + 1;
+    setState(() => _tryReplaceDraft(candidate));
+  }
+
+  void _decreaseSelectedRank() {
+    final id = _selectedNodeId;
+    if (id == null) {
+      return;
     }
-    final candidate = Map<CorePassiveNodeId, int>.of(
-      widget.snapshot.corePassiveNodeRanks,
-    );
-    if (_targetRank == 0) {
+    final candidate = Map<CorePassiveNodeId, int>.of(_draftRanks);
+    final nextRank = (candidate[id] ?? 0) - 1;
+    if (nextRank <= 0) {
       candidate.remove(id);
     } else {
-      candidate[id] = _targetRank;
+      candidate[id] = nextRank;
     }
+    setState(() => _tryReplaceDraft(candidate));
+  }
+
+  void _tryReplaceDraft(Map<CorePassiveNodeId, int> candidate) {
+    if (!_isValidDraft(candidate)) {
+      return;
+    }
+    _draftRanks = candidate;
+  }
+
+  bool _isValidDraft(Map<CorePassiveNodeId, int> candidate) {
     return corePassiveSpentPoints(candidate) <=
             widget.snapshot.totalCorePoints &&
         isValidCorePassiveAllocation(candidate);
   }
 
-  void _selectNode(CorePassiveNodeId id) {
+  void _cancelDraft() {
     setState(() {
-      _selectedNodeId = id;
-      _targetRank = widget.snapshot.corePassiveNodeRanks[id] ?? 0;
+      _draftRanks = Map.of(widget.snapshot.corePassiveNodeRanks);
     });
   }
 
-  void _assignTargetRank() {
-    final id = _selectedNodeId;
-    if (id == null) {
+  void _assignDraft() {
+    final baseRanks = Map<CorePassiveNodeId, int>.of(
+      widget.snapshot.corePassiveNodeRanks,
+    );
+    final targetRanks = Map<CorePassiveNodeId, int>.of(_draftRanks);
+    final waves = _buildAllocationWaves(baseRanks, targetRanks);
+    setState(() {
+      _isAllocating = true;
+      _allocationBaseRanks = baseRanks;
+      _allocationTargetRanks = targetRanks;
+      _allocationWaves = waves;
+      _completedAllocationWaves = 0;
+      _activeAllocationWave = waves.isEmpty ? -1 : 0;
+    });
+    if (!widget.game.setCorePassiveNodeRanks(targetRanks)) {
+      setState(() {
+        _isAllocating = false;
+        _allocationWaves = const [];
+        _activeAllocationWave = -1;
+      });
       return;
     }
-    widget.game.setCorePassiveNodeRank(id, _targetRank);
+    unawaited(_playAllocationSequence());
+  }
+
+  List<_CorePassiveAllocationWave> _buildAllocationWaves(
+    Map<CorePassiveNodeId, int> baseRanks,
+    Map<CorePassiveNodeId, int> targetRanks,
+  ) {
+    final increasedNodes = CorePassiveNodeId.values
+        .where((id) => (targetRanks[id] ?? 0) > (baseRanks[id] ?? 0))
+        .toSet();
+    final traversalWave = <CorePassiveNodeId, int>{};
+    final activationWave = <CorePassiveNodeId, int>{};
+    final sourceByNode = <CorePassiveNodeId, CorePassiveNodeId?>{};
+    final queue = <CorePassiveNodeId>[];
+
+    for (final id in CorePassiveNodeId.values) {
+      final baseRank = baseRanks[id] ?? 0;
+      final targetRank = targetRanks[id] ?? 0;
+      if (baseRank > 0) {
+        traversalWave[id] = baseRank >= 3 ? -1 : 0;
+        queue.add(id);
+        if (targetRank > baseRank) {
+          activationWave[id] = 0;
+        }
+      } else if (targetRank > 0 && corePassiveStartingNodeIds.contains(id)) {
+        traversalWave[id] = 0;
+        activationWave[id] = 0;
+        sourceByNode[id] = null;
+        queue.add(id);
+      }
+    }
+
+    var cursor = 0;
+    while (cursor < queue.length) {
+      final source = queue[cursor++];
+      if ((targetRanks[source] ?? 0) < 3) continue;
+      final nextWave = traversalWave[source]! + 1;
+      for (final target in corePassiveNodeById(source).neighbors) {
+        if ((targetRanks[target] ?? 0) <= 0 || (baseRanks[target] ?? 0) > 0) {
+          continue;
+        }
+        final knownWave = traversalWave[target];
+        if (knownWave != null && knownWave <= nextWave) continue;
+        traversalWave[target] = nextWave;
+        activationWave[target] = nextWave;
+        sourceByNode[target] = source;
+        queue.add(target);
+      }
+    }
+
+    var maxWave = -1;
+    for (final wave in activationWave.values) {
+      if (wave > maxWave) maxWave = wave;
+    }
+    return [
+      for (var wave = 0; wave <= maxWave; wave++)
+        _CorePassiveAllocationWave(
+          steps: [
+            for (final id in CorePassiveNodeId.values)
+              if (increasedNodes.contains(id) && activationWave[id] == wave)
+                _CorePassiveAllocationStep(
+                  nodeId: id,
+                  sourceNodeId: sourceByNode[id],
+                  lightsConnection: (baseRanks[id] ?? 0) == 0,
+                ),
+          ],
+        ),
+    ].where((wave) => wave.steps.isNotEmpty).toList(growable: false);
+  }
+
+  Future<void> _playAllocationSequence() async {
+    if (_allocationWaves.isEmpty) {
+      _finishAllocationSequence();
+      return;
+    }
+    _allocationController.duration = const Duration(milliseconds: 160);
+    try {
+      for (var index = 0; index < _allocationWaves.length; index++) {
+        if (!mounted) return;
+        setState(() => _activeAllocationWave = index);
+        await _allocationController.forward(from: 0).orCancel;
+        if (!mounted) return;
+        setState(() => _completedAllocationWaves = index + 1);
+      }
+    } on TickerCanceled {
+      return;
+    }
+    _finishAllocationSequence();
+  }
+
+  void _finishAllocationSequence() {
+    if (!mounted) return;
+    setState(() {
+      _isAllocating = false;
+      _draftRanks = Map.of(_allocationTargetRanks);
+      _allocationWaves = const [];
+      _allocationBaseRanks = const {};
+      _allocationTargetRanks = const {};
+      _completedAllocationWaves = 0;
+      _activeAllocationWave = -1;
+    });
   }
 
   Future<void> _confirmReset(
@@ -243,9 +418,45 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu> {
       return;
     }
     if (widget.game.resetCorePassiveTree()) {
-      setState(() => _targetRank = 0);
+      setState(() {
+        _draftRanks = const {};
+      });
     }
   }
+
+  bool get _hasDraftChanges =>
+      !mapEquals(_draftRanks, widget.snapshot.corePassiveNodeRanks);
+
+  int get _draftSpentPoints => corePassiveSpentPoints(_draftRanks);
+
+  Map<CorePassiveNodeId, int> get _actualRanksForRendering => _isAllocating
+      ? _allocationBaseRanks
+      : widget.snapshot.corePassiveNodeRanks;
+
+  Map<CorePassiveNodeId, int> get _draftRanksForRendering =>
+      _isAllocating ? _allocationTargetRanks : _draftRanks;
+
+  Map<CorePassiveNodeId, int> get _renderedRanks {
+    if (!_isAllocating) return widget.snapshot.corePassiveNodeRanks;
+    final rendered = Map<CorePassiveNodeId, int>.of(_allocationBaseRanks);
+    for (var index = 0; index < _completedAllocationWaves; index++) {
+      for (final step in _allocationWaves[index].steps) {
+        final rank = _allocationTargetRanks[step.nodeId] ?? 0;
+        if (rank == 0) {
+          rendered.remove(step.nodeId);
+        } else {
+          rendered[step.nodeId] = rank;
+        }
+      }
+    }
+    return rendered;
+  }
+
+  _CorePassiveAllocationWave? get _activeWave =>
+      _activeAllocationWave >= 0 &&
+          _activeAllocationWave < _allocationWaves.length
+      ? _allocationWaves[_activeAllocationWave]
+      : null;
 
   void _synchronizeViewport(Size viewport, double minimumScale) {
     if (_viewportSize == viewport &&
@@ -289,15 +500,37 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu> {
   }
 }
 
+class _CorePassiveAllocationStep {
+  const _CorePassiveAllocationStep({
+    required this.nodeId,
+    required this.sourceNodeId,
+    required this.lightsConnection,
+  });
+
+  final CorePassiveNodeId nodeId;
+  final CorePassiveNodeId? sourceNodeId;
+  final bool lightsConnection;
+}
+
+class _CorePassiveAllocationWave {
+  const _CorePassiveAllocationWave({required this.steps});
+
+  final List<_CorePassiveAllocationStep> steps;
+}
+
 class _CorePassivePointSummary extends StatelessWidget {
   const _CorePassivePointSummary({
     required this.snapshot,
+    required this.draftSpentPoints,
     required this.l10n,
+    required this.onCancelPlan,
     required this.onReset,
   });
 
   final GameSnapshot snapshot;
+  final int draftSpentPoints;
   final RuneNexusLocalizations l10n;
+  final VoidCallback? onCancelPlan;
   final VoidCallback? onReset;
 
   @override
@@ -336,7 +569,17 @@ class _CorePassivePointSummary extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '${l10n.corePointsAvailable} ${snapshot.availableCorePoints}',
+                  '${l10n.corePassivePlanned} $draftSpentPoints',
+                  key: const ValueKey('core-passive-planned-points'),
+                  style: const TextStyle(
+                    color: Color(0xFF8EE6FF),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                Text(
+                  '${l10n.corePassiveRemainingAfterPlan} ${snapshot.totalCorePoints - draftSpentPoints}',
+                  key: const ValueKey('core-passive-planned-remaining'),
                   style: const TextStyle(
                     color: Color(0xFF72E0A2),
                     fontSize: 10,
@@ -346,18 +589,44 @@ class _CorePassivePointSummary extends StatelessWidget {
               ],
             ),
           ),
-          TextButton(
-            key: const ValueKey('core-passive-reset-all'),
-            onPressed: onReset,
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              minimumSize: const Size(0, 34),
-            ),
-            child: Text(
-              l10n.corePassiveResetAll,
-              maxLines: 1,
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
-            ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextButton(
+                key: const ValueKey('core-passive-cancel-plan'),
+                onPressed: onCancelPlan,
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 7),
+                  minimumSize: const Size(0, 27),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  l10n.corePassiveCancelPlan,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              TextButton(
+                key: const ValueKey('core-passive-reset-all'),
+                onPressed: onReset,
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 7),
+                  minimumSize: const Size(0, 27),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  l10n.corePassiveResetAll,
+                  maxLines: 1,
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -367,20 +636,26 @@ class _CorePassivePointSummary extends StatelessWidget {
 
 class _CorePassiveTreeWorld extends StatelessWidget {
   const _CorePassiveTreeWorld({
-    required this.snapshot,
+    required this.actualRanks,
+    required this.draftRanks,
+    required this.renderedRanks,
     required this.selectedNodeId,
+    required this.activeWave,
+    required this.allocationProgress,
     required this.onSelectNode,
   });
 
-  final GameSnapshot snapshot;
+  final Map<CorePassiveNodeId, int> actualRanks;
+  final Map<CorePassiveNodeId, int> draftRanks;
+  final Map<CorePassiveNodeId, int> renderedRanks;
   final CorePassiveNodeId? selectedNodeId;
+  final _CorePassiveAllocationWave? activeWave;
+  final double allocationProgress;
   final ValueChanged<CorePassiveNodeId> onSelectNode;
 
   @override
   Widget build(BuildContext context) {
-    final accessible = accessibleCorePassiveNodeIds(
-      snapshot.corePassiveNodeRanks,
-    );
+    final accessible = accessibleCorePassiveNodeIds(draftRanks);
     return SizedBox(
       width: _corePassiveTreeWorldSize,
       height: _corePassiveTreeWorldSize,
@@ -401,7 +676,10 @@ class _CorePassiveTreeWorld extends StatelessWidget {
             child: IgnorePointer(
               child: CustomPaint(
                 painter: _CorePassiveConnectionPainter(
-                  ranks: snapshot.corePassiveNodeRanks,
+                  draftRanks: draftRanks,
+                  renderedRanks: renderedRanks,
+                  activeWave: activeWave,
+                  allocationProgress: allocationProgress,
                 ),
               ),
             ),
@@ -439,9 +717,16 @@ class _CorePassiveTreeWorld extends StatelessWidget {
       child: Center(
         child: _CorePassiveNodeButton(
           definition: definition,
-          rank: snapshot.corePassiveNodeRanks[definition.id] ?? 0,
+          actualRank: actualRanks[definition.id] ?? 0,
+          draftRank: draftRanks[definition.id] ?? 0,
+          renderedRank: renderedRanks[definition.id] ?? 0,
           accessible: accessible,
           selected: selectedNodeId == definition.id,
+          activationProgress:
+              activeWave?.steps.any((step) => step.nodeId == definition.id) ==
+                  true
+              ? allocationProgress
+              : null,
           onTap: () => onSelectNode(definition.id),
         ),
       ),
@@ -485,21 +770,33 @@ class _CorePassiveCenterNode extends StatelessWidget {
 class _CorePassiveNodeButton extends StatelessWidget {
   const _CorePassiveNodeButton({
     required this.definition,
-    required this.rank,
+    required this.actualRank,
+    required this.draftRank,
+    required this.renderedRank,
     required this.accessible,
     required this.selected,
+    required this.activationProgress,
     required this.onTap,
   });
 
   final CorePassiveNodeDefinition definition;
-  final int rank;
+  final int actualRank;
+  final int draftRank;
+  final int renderedRank;
   final bool accessible;
   final bool selected;
+  final double? activationProgress;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final allocated = rank > 0;
+    final allocated = renderedRank > 0;
+    final planned = draftRank != actualRank;
+    final planningIncrease = draftRank > actualRank;
+    final activating = activationProgress != null;
+    final activationWave = activationProgress == null
+        ? 0.0
+        : math.sin(math.pi * activationProgress!);
     final accent = _corePassiveBranchColor(definition.branch);
     final size = switch (definition.grade) {
       CorePassiveNodeGrade.normal => 48.0,
@@ -513,117 +810,161 @@ class _CorePassiveNodeButton extends StatelessWidget {
         : muted
         ? const Color(0xFF75838C)
         : accent;
-    return Material(
-      color: Colors.transparent,
-      child: Semantics(
-        button: true,
-        selected: selected,
-        label: RuneNexusLocalizations.of(
-          context,
-        ).corePassiveNodeName(definition.id),
-        child: InkResponse(
-          key: ValueKey('core-passive-node-${definition.id.name}'),
-          radius: 54,
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: allocated
-                  ? accent.withValues(alpha: 0.38)
-                  : const Color(0xF012202C),
-              border: Border.all(
-                color: framed
-                    ? Colors.transparent
-                    : selected
-                    ? const Color(0xFFE8FBFF)
-                    : muted
-                    ? const Color(0xFF52616A)
-                    : accent.withValues(alpha: accessible ? 0.9 : 0.45),
-                width: selected
-                    ? 3
-                    : allocated
-                    ? 2.2
-                    : 1.5,
+    return Transform.scale(
+      scale: 1 + activationWave * 0.16,
+      child: Material(
+        color: Colors.transparent,
+        child: Semantics(
+          button: true,
+          selected: selected,
+          label: RuneNexusLocalizations.of(
+            context,
+          ).corePassiveNodeName(definition.id),
+          child: InkResponse(
+            key: ValueKey('core-passive-node-${definition.id.name}'),
+            radius: 54,
+            onTap: onTap,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: allocated
+                    ? accent.withValues(alpha: 0.38)
+                    : planningIncrease
+                    ? accent.withValues(alpha: 0.2)
+                    : const Color(0xF012202C),
+                border: Border.all(
+                  color: framed
+                      ? Colors.transparent
+                      : selected
+                      ? const Color(0xFFE8FBFF)
+                      : muted
+                      ? const Color(0xFF52616A)
+                      : accent.withValues(alpha: accessible ? 0.9 : 0.45),
+                  width: selected
+                      ? 3
+                      : allocated || planned
+                      ? 2.2
+                      : 1.5,
+                ),
+                boxShadow: [
+                  if (allocated || planned || selected || activating)
+                    BoxShadow(
+                      color: accent.withValues(
+                        alpha: activating
+                            ? 0.45 + activationWave * 0.45
+                            : selected
+                            ? 0.62
+                            : planned
+                            ? 0.5
+                            : 0.38,
+                      ),
+                      blurRadius: activating
+                          ? 12 + activationWave * 18
+                          : selected
+                          ? 16
+                          : 10,
+                      spreadRadius: activating
+                          ? activationWave * 4
+                          : selected
+                          ? 2
+                          : 0,
+                    ),
+                ],
               ),
-              boxShadow: [
-                if (allocated || selected)
-                  BoxShadow(
-                    color: accent.withValues(alpha: selected ? 0.62 : 0.38),
-                    blurRadius: selected ? 16 : 10,
-                    spreadRadius: selected ? 2 : 0,
-                  ),
-              ],
-            ),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                if (framed)
-                  Positioned.fill(
-                    child: Transform.scale(
-                      scale: definition.grade == CorePassiveNodeGrade.keystone
-                          ? 1.22
-                          : 1.16,
-                      child: ColorFiltered(
-                        colorFilter: ColorFilter.mode(
-                          frameColor,
-                          BlendMode.modulate,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  if (framed)
+                    Positioned.fill(
+                      child: Transform.scale(
+                        scale: definition.grade == CorePassiveNodeGrade.keystone
+                            ? 1.22
+                            : 1.16,
+                        child: ColorFiltered(
+                          colorFilter: ColorFilter.mode(
+                            frameColor,
+                            BlendMode.modulate,
+                          ),
+                          child: Image.asset(
+                            _corePassiveTreeFrameAsset,
+                            fit: BoxFit.contain,
+                            filterQuality: FilterQuality.medium,
+                            excludeFromSemantics: true,
+                          ),
                         ),
-                        child: Image.asset(
-                          _corePassiveTreeFrameAsset,
-                          fit: BoxFit.contain,
-                          filterQuality: FilterQuality.medium,
-                          excludeFromSemantics: true,
+                      ),
+                    ),
+                  Center(
+                    child: Opacity(
+                      opacity: muted && !planned ? 0.35 : 1,
+                      child: CorePassiveNodeIcon(
+                        definition.id,
+                        size: size * 0.46,
+                        color: muted ? const Color(0xFF7B8991) : accent,
+                      ),
+                    ),
+                  ),
+                  if (muted && !planned)
+                    const Center(
+                      child: Icon(
+                        Icons.lock_outline,
+                        color: Color(0xFFC2CCD1),
+                        size: 18,
+                      ),
+                    ),
+                  Positioned(
+                    right: -7,
+                    bottom: -5,
+                    child: Container(
+                      constraints: const BoxConstraints(
+                        minWidth: 25,
+                        minHeight: 19,
+                      ),
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF061019),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.75),
+                        ),
+                        borderRadius: BorderRadius.circular(9),
+                      ),
+                      child: Text(
+                        planned
+                            ? '$actualRank→$draftRank/${definition.maxRank}'
+                            : '$renderedRank/${definition.maxRank}',
+                        style: const TextStyle(
+                          color: Color(0xFFE8FBFF),
+                          fontSize: 8,
+                          fontWeight: FontWeight.w900,
                         ),
                       ),
                     ),
                   ),
-                Center(
-                  child: Opacity(
-                    opacity: muted ? 0.35 : 1,
-                    child: CorePassiveNodeIcon(
-                      definition.id,
-                      size: size * 0.46,
-                      color: muted ? const Color(0xFF7B8991) : accent,
-                    ),
-                  ),
-                ),
-                if (muted)
-                  const Center(
-                    child: Icon(
-                      Icons.lock_outline,
-                      color: Color(0xFFC2CCD1),
-                      size: 18,
-                    ),
-                  ),
-                Positioned(
-                  right: -7,
-                  bottom: -5,
-                  child: Container(
-                    constraints: const BoxConstraints(
-                      minWidth: 25,
-                      minHeight: 19,
-                    ),
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF061019),
-                      border: Border.all(color: accent.withValues(alpha: 0.75)),
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                    child: Text(
-                      '$rank/${definition.maxRank}',
-                      style: const TextStyle(
-                        color: Color(0xFFE8FBFF),
-                        fontSize: 8,
-                        fontWeight: FontWeight.w900,
+                  if (activating)
+                    Positioned.fill(
+                      key: ValueKey(
+                        'core-passive-activation-${definition.id.name}',
+                      ),
+                      child: IgnorePointer(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: const Color(
+                                0xFFEFFFFF,
+                              ).withValues(alpha: 0.35 + activationWave * 0.65),
+                              width: 2.2,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -633,9 +974,17 @@ class _CorePassiveNodeButton extends StatelessWidget {
 }
 
 class _CorePassiveConnectionPainter extends CustomPainter {
-  const _CorePassiveConnectionPainter({required this.ranks});
+  const _CorePassiveConnectionPainter({
+    required this.draftRanks,
+    required this.renderedRanks,
+    required this.activeWave,
+    required this.allocationProgress,
+  });
 
-  final Map<CorePassiveNodeId, int> ranks;
+  final Map<CorePassiveNodeId, int> draftRanks;
+  final Map<CorePassiveNodeId, int> renderedRanks;
+  final _CorePassiveAllocationWave? activeWave;
+  final double allocationProgress;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -652,7 +1001,8 @@ class _CorePassiveConnectionPainter extends CustomPainter {
         _corePassiveNodePosition(start),
         basePaint,
         _corePassiveBranchColor(corePassiveNodeById(start).branch),
-        1,
+        renderedLit: (renderedRanks[start] ?? 0) > 0,
+        draftLit: (draftRanks[start] ?? 0) > 0,
       );
     }
     for (final definition in corePassiveNodeDefinitions.values) {
@@ -660,10 +1010,7 @@ class _CorePassiveConnectionPainter extends CustomPainter {
         if (definition.id.index >= neighbor.index) {
           continue;
         }
-        final source = _closerToCenter(definition.id, neighbor);
-        final target = source == definition.id ? neighbor : definition.id;
-        final progress = ((ranks[source] ?? 0) / 3).clamp(0.0, 1.0);
-        final targetDefinition = corePassiveNodeById(target);
+        final targetDefinition = corePassiveNodeById(neighbor);
         final accent =
             definition.branch == CorePassiveBranch.hybrid ||
                 targetDefinition.branch == CorePassiveBranch.hybrid
@@ -671,11 +1018,59 @@ class _CorePassiveConnectionPainter extends CustomPainter {
             : _corePassiveBranchColor(definition.branch);
         _paintConnection(
           canvas,
-          _corePassiveNodePosition(source),
-          _corePassiveNodePosition(target),
+          _corePassiveNodePosition(definition.id),
+          _corePassiveNodePosition(neighbor),
           basePaint,
           accent,
-          progress,
+          renderedLit:
+              (renderedRanks[definition.id] ?? 0) > 0 &&
+              (renderedRanks[neighbor] ?? 0) > 0,
+          draftLit:
+              (draftRanks[definition.id] ?? 0) > 0 &&
+              (draftRanks[neighbor] ?? 0) > 0,
+        );
+      }
+    }
+    if (activeWave == null) {
+      _paintDraftReach(canvas);
+    }
+    final wave = activeWave;
+    if (wave != null) {
+      _paintWaveActivation(canvas, wave, allocationProgress);
+    }
+  }
+
+  void _paintDraftReach(Canvas canvas) {
+    for (final id in CorePassiveNodeId.values) {
+      if ((draftRanks[id] ?? 0) <= (renderedRanks[id] ?? 0)) continue;
+      final progress = ((draftRanks[id] ?? 0) / 3).clamp(0.0, 1.0);
+      final definition = corePassiveNodeById(id);
+      final accent = _corePassiveBranchColor(definition.branch);
+      for (final neighbor in definition.neighbors) {
+        if (_closerToCenter(id, neighbor) != id) continue;
+        final path = _connectionPath(
+          _corePassiveNodePosition(id),
+          _corePassiveNodePosition(neighbor),
+        );
+        final metrics = path.computeMetrics().toList();
+        if (metrics.isEmpty) continue;
+        final metric = metrics.first;
+        final reach = metric.extractPath(0, metric.length * progress);
+        canvas.drawPath(
+          reach,
+          Paint()
+            ..color = accent.withValues(alpha: 0.24)
+            ..strokeWidth = 8
+            ..style = PaintingStyle.stroke
+            ..strokeCap = StrokeCap.round,
+        );
+        canvas.drawPath(
+          reach,
+          Paint()
+            ..color = const Color(0xFFB9F5FF).withValues(alpha: 0.58)
+            ..strokeWidth = 2.6
+            ..style = PaintingStyle.stroke
+            ..strokeCap = StrokeCap.round,
         );
       }
     }
@@ -686,9 +1081,10 @@ class _CorePassiveConnectionPainter extends CustomPainter {
     Offset start,
     Offset end,
     Paint basePaint,
-    Color accent,
-    double progress,
-  ) {
+    Color accent, {
+    required bool renderedLit,
+    required bool draftLit,
+  }) {
     final path = _connectionPath(start, end);
     canvas.drawPath(
       path,
@@ -700,28 +1096,90 @@ class _CorePassiveConnectionPainter extends CustomPainter {
     );
     canvas.drawPath(path, basePaint);
     final metric = path.computeMetrics().first;
-    _paintJunction(canvas, metric, accent, progress);
-    if (progress <= 0) {
-      return;
+    _paintJunction(
+      canvas,
+      metric,
+      accent,
+      renderedLit
+          ? 1
+          : draftLit
+          ? 0.4
+          : 0,
+    );
+    if (draftLit && !renderedLit) {
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = accent.withValues(alpha: 0.2)
+          ..strokeWidth = 7
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round,
+      );
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = const Color(0xFFB9F5FF).withValues(alpha: 0.34)
+          ..strokeWidth = 2
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round,
+      );
     }
-    final litPath = metric.extractPath(0, metric.length * progress);
+    if (!renderedLit) return;
     canvas.drawPath(
-      litPath,
+      path,
       Paint()
-        ..color = accent.withValues(alpha: 0.2 + progress * 0.18)
-        ..strokeWidth = progress >= 1 ? 10 : 7
+        ..color = accent.withValues(alpha: 0.38)
+        ..strokeWidth = 10
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round,
     );
     canvas.drawPath(
-      litPath,
+      path,
       Paint()
-        ..color = accent.withValues(alpha: 0.62 + progress * 0.34)
-        ..strokeWidth = progress >= 1 ? 3.8 : 3
+        ..color = accent.withValues(alpha: 0.96)
+        ..strokeWidth = 3.8
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round,
     );
+  }
+
+  void _paintWaveActivation(
+    Canvas canvas,
+    _CorePassiveAllocationWave wave,
+    double progress,
+  ) {
+    final opacity = Curves.easeOut.transform(progress.clamp(0.0, 1.0));
+    for (final step in wave.steps) {
+      if (!step.lightsConnection) continue;
+      final start = step.sourceNodeId == null
+          ? _corePassiveTreeCenter
+          : _corePassiveNodePosition(step.sourceNodeId!);
+      final path = _connectionPath(
+        start,
+        _corePassiveNodePosition(step.nodeId),
+      );
+      final accent = _corePassiveBranchColor(
+        corePassiveNodeById(step.nodeId).branch,
+      );
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = accent.withValues(alpha: 0.48 * opacity)
+          ..strokeWidth = 12
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
+      );
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = const Color(0xFFEFFFFF).withValues(alpha: opacity)
+          ..strokeWidth = 3.6
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round,
+      );
+    }
   }
 
   Path _connectionPath(Offset start, Offset end) {
@@ -800,23 +1258,28 @@ class _CorePassiveConnectionPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CorePassiveConnectionPainter oldDelegate) {
-    return !mapEquals(oldDelegate.ranks, ranks);
+    return !mapEquals(oldDelegate.draftRanks, draftRanks) ||
+        !mapEquals(oldDelegate.renderedRanks, renderedRanks) ||
+        oldDelegate.activeWave != activeWave ||
+        oldDelegate.allocationProgress != allocationProgress;
   }
 }
 
 class _CorePassiveNodeDetails extends StatelessWidget {
   const _CorePassiveNodeDetails({
     required this.snapshot,
+    required this.draftRanks,
     required this.selectedNodeId,
-    required this.targetRank,
+    required this.allocating,
     required this.onDecrease,
     required this.onIncrease,
     required this.onAssign,
   });
 
   final GameSnapshot snapshot;
+  final Map<CorePassiveNodeId, int> draftRanks;
   final CorePassiveNodeId? selectedNodeId;
-  final int targetRank;
+  final bool allocating;
   final VoidCallback? onDecrease;
   final VoidCallback? onIncrease;
   final VoidCallback? onAssign;
@@ -858,18 +1321,16 @@ class _CorePassiveNodeDetails extends StatelessWidget {
 
     final definition = corePassiveNodeById(id);
     final currentRank = snapshot.corePassiveNodeRanks[id] ?? 0;
-    final accessible = accessibleCorePassiveNodeIds(
-      snapshot.corePassiveNodeRanks,
-    ).contains(id);
+    final targetRank = draftRanks[id] ?? 0;
+    final accessible = accessibleCorePassiveNodeIds(draftRanks).contains(id);
     final currentEffect = currentRank > 0
         ? l10n.corePassiveNodeEffect(id, currentRank)
         : '—';
     final nextEffect = targetRank < definition.maxRank
         ? l10n.corePassiveNodeEffect(id, targetRank + 1)
         : l10n.corePassiveMaxRank;
-    final currentCost = corePassiveCumulativeCost(id, currentRank);
-    final targetCost = corePassiveCumulativeCost(id, targetRank);
-    final costDelta = targetCost - currentCost;
+    final costDelta =
+        corePassiveSpentPoints(draftRanks) - snapshot.spentCorePoints;
     final accent = _corePassiveBranchColor(definition.branch);
 
     return Container(
@@ -909,7 +1370,10 @@ class _CorePassiveNodeDetails extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '$currentRank / ${definition.maxRank}',
+                      currentRank == targetRank
+                          ? '$currentRank / ${definition.maxRank}'
+                          : '${l10n.corePassivePlannedRank} $currentRank → $targetRank / ${definition.maxRank}',
+                      key: const ValueKey('core-passive-selected-rank'),
                       style: TextStyle(
                         color: accent,
                         fontSize: 11,
@@ -990,7 +1454,9 @@ class _CorePassiveNodeDetails extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        l10n.corePassiveAssign,
+                        allocating
+                            ? l10n.corePassiveAllocationInProgress
+                            : l10n.corePassiveAssign,
                         maxLines: 1,
                         style: const TextStyle(
                           fontSize: 11,

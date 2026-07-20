@@ -1295,20 +1295,35 @@ class RunProgression {
   }
 
   bool setCorePassiveNodeRank(CorePassiveNodeId id, int targetRank) {
-    final definition = core_tree.corePassiveNodeById(id);
-    final currentRank = corePassiveNodeRank(id);
-    if (targetRank < 0 ||
-        targetRank > definition.maxRank ||
-        targetRank == currentRank) {
-      return false;
-    }
     final candidate = Map<CorePassiveNodeId, int>.of(corePassiveNodeRanks);
     if (targetRank == 0) {
       candidate.remove(id);
     } else {
       candidate[id] = targetRank;
     }
-    if (!core_tree.isValidCorePassiveAllocation(candidate) ||
+    return setCorePassiveNodeRanks(candidate);
+  }
+
+  bool setCorePassiveNodeRanks(Map<CorePassiveNodeId, int> ranks) {
+    final candidate = <CorePassiveNodeId, int>{};
+    for (final entry in ranks.entries) {
+      final definition = core_tree.corePassiveNodeDefinitions[entry.key];
+      if (definition == null ||
+          entry.value < 0 ||
+          entry.value > definition.maxRank) {
+        return false;
+      }
+      if (entry.value > 0) {
+        candidate[entry.key] = entry.value;
+      }
+    }
+    final unchanged =
+        candidate.length == corePassiveNodeRanks.length &&
+        candidate.entries.every(
+          (entry) => corePassiveNodeRanks[entry.key] == entry.value,
+        );
+    if (unchanged ||
+        !core_tree.isValidCorePassiveAllocation(candidate) ||
         core_tree.corePassiveSpentPoints(candidate) > totalCorePoints) {
       return false;
     }

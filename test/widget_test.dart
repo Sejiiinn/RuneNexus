@@ -1312,9 +1312,245 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('core-passive-assign')));
     await _pumpGameFrames(tester);
 
-    expect(game.assignedCorePassiveNode, CorePassiveNodeId.attackHaste);
-    expect(game.assignedCorePassiveRank, 3);
+    expect(game.corePassiveBatchAssignmentCount, 1);
+    expect(game.assignedCorePassiveRanks, {CorePassiveNodeId.attackHaste: 3});
   });
+
+  testWidgets(
+    'node taps only select and plus accumulates a draft for one batch',
+    (tester) async {
+      final snapshots = ValueNotifier(
+        _resultSnapshot(
+          phase: GamePhase.preparation,
+          currentStageNumber: 1,
+          totalCorePoints: 20,
+        ),
+      );
+      addTearDown(snapshots.dispose);
+      final game = _CoreTreeGame(snapshots);
+      await tester.pumpWidget(_coreTreeTestApp(game, snapshots));
+      await _pumpGameFrames(tester);
+      await tester.tap(find.text('패시브 트리'));
+      await _pumpGameFrames(tester);
+
+      await tester.tap(
+        find.byKey(const ValueKey('core-passive-node-attackHaste')),
+      );
+      await _pumpGameFrames(tester);
+      expect(snapshots.value.corePassiveNodeRanks, isEmpty);
+      expect(find.text('0→1/5'), findsNothing);
+      expect(
+        tester
+            .widget<Text>(
+              find.byKey(const ValueKey('core-passive-planned-points')),
+            )
+            .data,
+        '예정 0',
+      );
+
+      final increase = find.byKey(const ValueKey('core-passive-rank-increase'));
+      await tester.ensureVisible(increase);
+      for (var i = 0; i < 3; i++) {
+        await tester.tap(increase);
+        await _pumpGameFrames(tester);
+      }
+
+      final connectedNode = find.byKey(
+        const ValueKey('core-passive-node-attackPrecompute'),
+      );
+      await tester.ensureVisible(connectedNode);
+      await _pumpGameFrames(tester);
+      await tester.drag(
+        find.byType(SingleChildScrollView).first,
+        const Offset(0, 80),
+      );
+      await _pumpGameFrames(tester);
+      await tester.tap(connectedNode);
+      await _pumpGameFrames(tester);
+
+      expect(snapshots.value.corePassiveNodeRanks, isEmpty);
+      expect(game.corePassiveBatchAssignmentCount, 0);
+      expect(find.text('0→3/5'), findsOneWidget);
+      expect(find.text('0→1/5'), findsNothing);
+      expect(
+        tester
+            .widget<Text>(
+              find.byKey(const ValueKey('core-passive-planned-points')),
+            )
+            .data,
+        '예정 4',
+      );
+
+      await tester.ensureVisible(increase);
+      await tester.tap(increase);
+      await _pumpGameFrames(tester);
+      expect(find.text('0→1/5'), findsOneWidget);
+      expect(
+        tester
+            .widget<Text>(
+              find.byKey(const ValueKey('core-passive-planned-points')),
+            )
+            .data,
+        '예정 5',
+      );
+
+      final assign = find.byKey(const ValueKey('core-passive-assign'));
+      await tester.ensureVisible(assign);
+      await tester.tap(assign);
+      await tester.pump(const Duration(milliseconds: 16));
+
+      expect(game.corePassiveBatchAssignmentCount, 1);
+      expect(game.lastAssignedCorePassiveRanks, {
+        CorePassiveNodeId.attackHaste: 3,
+        CorePassiveNodeId.attackPrecompute: 1,
+      });
+      expect(snapshots.value.corePassiveNodeRanks, {
+        CorePassiveNodeId.attackHaste: 3,
+        CorePassiveNodeId.attackPrecompute: 1,
+      });
+    },
+  );
+
+  testWidgets('core passive draft can be cancelled without changing snapshot', (
+    tester,
+  ) async {
+    final snapshots = ValueNotifier(
+      _resultSnapshot(
+        phase: GamePhase.preparation,
+        currentStageNumber: 1,
+        totalCorePoints: 20,
+      ),
+    );
+    addTearDown(snapshots.dispose);
+    final game = _CoreTreeGame(snapshots);
+    await tester.pumpWidget(_coreTreeTestApp(game, snapshots));
+    await _pumpGameFrames(tester);
+    await tester.tap(find.text('패시브 트리'));
+    await _pumpGameFrames(tester);
+
+    await tester.tap(
+      find.byKey(const ValueKey('core-passive-node-attackHaste')),
+    );
+    await _pumpGameFrames(tester);
+    final increase = find.byKey(const ValueKey('core-passive-rank-increase'));
+    await tester.ensureVisible(increase);
+    await tester.tap(increase);
+    await _pumpGameFrames(tester);
+    final cancel = find.byKey(const ValueKey('core-passive-cancel-plan'));
+    expect(tester.widget<TextButton>(cancel).onPressed, isNotNull);
+    await tester.ensureVisible(cancel);
+    await _pumpGameFrames(tester);
+    await tester.drag(
+      find.byType(SingleChildScrollView).first,
+      const Offset(0, 80),
+    );
+    await _pumpGameFrames(tester);
+    await tester.tap(cancel);
+    await _pumpGameFrames(tester);
+
+    expect(snapshots.value.corePassiveNodeRanks, isEmpty);
+    expect(game.corePassiveBatchAssignmentCount, 0);
+    expect(find.text('0→1/5'), findsNothing);
+    expect(tester.widget<TextButton>(cancel).onPressed, isNull);
+  });
+
+  testWidgets(
+    'core passive allocation lights equal-distance branches by wave',
+    (tester) async {
+      final snapshots = ValueNotifier(
+        _resultSnapshot(
+          phase: GamePhase.preparation,
+          currentStageNumber: 1,
+          totalCorePoints: 30,
+        ),
+      );
+      addTearDown(snapshots.dispose);
+      final game = _CoreTreeGame(snapshots);
+      await tester.pumpWidget(_coreTreeTestApp(game, snapshots));
+      await _pumpGameFrames(tester);
+      await tester.tap(find.text('패시브 트리'));
+      await _pumpGameFrames(tester);
+      final increase = find.byKey(const ValueKey('core-passive-rank-increase'));
+      Future<void> planRanks(CorePassiveNodeId id, int rank) async {
+        final node = find.byKey(ValueKey('core-passive-node-${id.name}'));
+        await tester.ensureVisible(node);
+        await _pumpGameFrames(tester);
+        await tester.drag(
+          find.byType(SingleChildScrollView).first,
+          const Offset(0, 80),
+        );
+        await _pumpGameFrames(tester);
+        await tester.tap(node);
+        await _pumpGameFrames(tester);
+        await tester.ensureVisible(increase);
+        for (var value = 0; value < rank; value++) {
+          await tester.tap(increase);
+          await _pumpGameFrames(tester);
+        }
+      }
+
+      await planRanks(CorePassiveNodeId.attackHaste, 3);
+      await planRanks(CorePassiveNodeId.efficiencySaving, 3);
+      await planRanks(CorePassiveNodeId.attackPrecompute, 1);
+      await planRanks(CorePassiveNodeId.efficiencyFirstDeploy, 1);
+      final assign = find.byKey(const ValueKey('core-passive-assign'));
+      await tester.ensureVisible(assign);
+      await tester.tap(assign);
+
+      await tester.pump(const Duration(milliseconds: 20));
+      expect(
+        find.byKey(const ValueKey('core-passive-activation-attackHaste')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('core-passive-activation-efficiencySaving')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('core-passive-activation-attackPrecompute')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(
+          const ValueKey('core-passive-activation-efficiencyFirstDeploy'),
+        ),
+        findsNothing,
+      );
+
+      await tester.pump(const Duration(milliseconds: 170));
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey('core-passive-activation-attackHaste')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey('core-passive-activation-efficiencySaving')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey('core-passive-activation-attackPrecompute')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const ValueKey('core-passive-activation-efficiencyFirstDeploy'),
+        ),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(milliseconds: 170));
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey('core-passive-activation-attackPrecompute')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(
+          const ValueKey('core-passive-activation-efficiencyFirstDeploy'),
+        ),
+        findsNothing,
+      );
+    },
+  );
 
   testWidgets('locked core passive node keeps assign action disabled', (
     tester,
@@ -3952,8 +4188,8 @@ class _CoreEquipGame extends RuneNexusGame {
 
   CoreCombatSkill? equippedCombatSkill;
   bool unequippedCombatSkill = false;
-  CorePassiveNodeId? assignedCorePassiveNode;
-  int? assignedCorePassiveRank;
+  Map<CorePassiveNodeId, int>? assignedCorePassiveRanks;
+  int corePassiveBatchAssignmentCount = 0;
 
   @override
   bool equipCoreCombatSkill(CoreCombatSkill skill) {
@@ -3968,9 +4204,9 @@ class _CoreEquipGame extends RuneNexusGame {
   }
 
   @override
-  bool setCorePassiveNodeRank(CorePassiveNodeId id, int rank) {
-    assignedCorePassiveNode = id;
-    assignedCorePassiveRank = rank;
+  bool setCorePassiveNodeRanks(Map<CorePassiveNodeId, int> ranks) {
+    assignedCorePassiveRanks = Map.unmodifiable(ranks);
+    corePassiveBatchAssignmentCount += 1;
     return true;
   }
 }
@@ -3979,16 +4215,14 @@ class _CoreTreeGame extends RuneNexusGame {
   _CoreTreeGame(this.snapshots) : super(saveRepository: MemorySaveRepository());
 
   final ValueNotifier<GameSnapshot> snapshots;
+  Map<CorePassiveNodeId, int>? lastAssignedCorePassiveRanks;
+  int corePassiveBatchAssignmentCount = 0;
 
   @override
-  bool setCorePassiveNodeRank(CorePassiveNodeId id, int rank) {
+  bool setCorePassiveNodeRanks(Map<CorePassiveNodeId, int> ranks) {
+    lastAssignedCorePassiveRanks = Map.unmodifiable(ranks);
+    corePassiveBatchAssignmentCount += 1;
     final current = snapshots.value;
-    final ranks = Map<CorePassiveNodeId, int>.of(current.corePassiveNodeRanks);
-    if (rank == 0) {
-      ranks.remove(id);
-    } else {
-      ranks[id] = rank;
-    }
     _publishRanks(current.totalCorePoints, ranks);
     return true;
   }

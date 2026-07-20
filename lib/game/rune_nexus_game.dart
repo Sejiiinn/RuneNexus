@@ -1224,6 +1224,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return true;
   }
 
+  bool setCorePassiveNodeRanks(Map<CorePassiveNodeId, int> ranks) {
+    if (!_progression.setCorePassiveNodeRanks(ranks)) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    return true;
+  }
+
   bool resetCorePassiveTree() {
     if (!_progression.resetCorePassiveTree()) {
       return false;

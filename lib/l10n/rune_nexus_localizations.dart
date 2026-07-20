@@ -37,6 +37,13 @@ class RuneNexusLocalizations {
       ? 'All assigned ranks will be returned for free. Your total Core Points will not change.'
       : '할당한 모든 랭크를 무료로 회수합니다. 총 코어 포인트는 줄어들지 않습니다.';
   String get corePassiveAssign => _isEnglish ? 'Assign' : '할당';
+  String get corePassivePlanned => _isEnglish ? 'Planned' : '예정';
+  String get corePassiveRemainingAfterPlan =>
+      _isEnglish ? 'After plan' : '확정 후';
+  String get corePassiveCancelPlan => _isEnglish ? 'Cancel changes' : '변경 취소';
+  String get corePassivePlannedRank => _isEnglish ? 'Planned rank' : '예정 랭크';
+  String get corePassiveAllocationInProgress =>
+      _isEnglish ? 'Allocating...' : '할당 중...';
   String get corePassiveReturnedPoints =>
       _isEnglish ? 'Returned points' : '반환 포인트';
   String get corePassiveUnlockHint => _isEnglish

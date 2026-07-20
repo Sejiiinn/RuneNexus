@@ -85,6 +85,74 @@ void main() {
     );
   });
 
+  test('multiple connected paths are applied as one allocation', () {
+    final progression = RunProgression()..grantCorePoints(20);
+    const ranks = <CorePassiveNodeId, int>{
+      CorePassiveNodeId.attackHaste: 3,
+      CorePassiveNodeId.attackPrecompute: 2,
+      CorePassiveNodeId.efficiencySaving: 3,
+      CorePassiveNodeId.efficiencyFirstDeploy: 1,
+    };
+
+    expect(progression.setCorePassiveNodeRanks(ranks), isTrue);
+    expect(progression.corePassiveNodeRanks, ranks);
+    expect(progression.spentCorePoints, 11);
+    expect(progression.availableCorePoints, 9);
+    expect(progression.setCorePassiveNodeRanks(ranks), isFalse);
+  });
+
+  test('invalid batch allocations leave all existing ranks unchanged', () {
+    final progression = RunProgression()..grantCorePoints(6);
+    expect(
+      progression.setCorePassiveNodeRank(CorePassiveNodeId.attackHaste, 3),
+      isTrue,
+    );
+    final before = Map<CorePassiveNodeId, int>.of(
+      progression.corePassiveNodeRanks,
+    );
+
+    expect(
+      progression.setCorePassiveNodeRanks(const {
+        CorePassiveNodeId.attackHaste: 5,
+      }),
+      isFalse,
+    );
+    expect(progression.corePassiveNodeRanks, before);
+
+    expect(
+      progression.setCorePassiveNodeRanks(const {
+        CorePassiveNodeId.attackHaste: 3,
+        CorePassiveNodeId.attackGuardianBeam: 1,
+      }),
+      isFalse,
+    );
+    expect(progression.corePassiveNodeRanks, before);
+
+    expect(
+      progression.setCorePassiveNodeRanks(const {
+        CorePassiveNodeId.attackHaste: 6,
+      }),
+      isFalse,
+    );
+    expect(progression.corePassiveNodeRanks, before);
+  });
+
+  test('single-node rank API still delegates to atomic allocation', () {
+    final progression = RunProgression()..grantCorePoints(10);
+
+    expect(
+      progression.setCorePassiveNodeRank(CorePassiveNodeId.attackHaste, 3),
+      isTrue,
+    );
+    expect(progression.corePassiveNodeRanks, {
+      CorePassiveNodeId.attackHaste: 3,
+    });
+    expect(
+      progression.setCorePassiveNodeRank(CorePassiveNodeId.attackHaste, 3),
+      isFalse,
+    );
+  });
+
   test('free reset preserves earned points', () {
     final progression = RunProgression()..grantCorePoints(20);
     expect(
