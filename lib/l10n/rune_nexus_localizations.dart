@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import '../data/definitions/game_core_passive_tree_data.dart';
+import '../domain/core/core_passive_tree.dart';
+
 class RuneNexusLocalizations {
   const RuneNexusLocalizations(this.locale);
 
@@ -22,6 +25,217 @@ class RuneNexusLocalizations {
   String get appTitle => 'Rune Nexus';
   String get stageTab => _isEnglish ? 'Stage' : '스테이지';
   String get coreTab => _isEnglish ? 'Core' : '코어';
+  String get coreCombatSkills => _isEnglish ? 'Combat Skills' : '전투 스킬';
+  String get corePassiveTree => _isEnglish ? 'Passive Tree' : '패시브 트리';
+  String get corePoints => _isEnglish ? 'Core Points' : '코어 포인트';
+  String get corePointsSpent => _isEnglish ? 'Spent' : '사용';
+  String get corePointsAvailable => _isEnglish ? 'Available' : '남음';
+  String get corePassiveResetAll => _isEnglish ? 'Reset All' : '전체 초기화';
+  String get corePassiveResetTitle =>
+      _isEnglish ? 'Reset the passive tree?' : '패시브 트리를 초기화할까요?';
+  String get corePassiveResetMessage => _isEnglish
+      ? 'All assigned ranks will be returned for free. Your total Core Points will not change.'
+      : '할당한 모든 랭크를 무료로 회수합니다. 총 코어 포인트는 줄어들지 않습니다.';
+  String get corePassiveAssign => _isEnglish ? 'Assign' : '할당';
+  String get corePassiveReturnedPoints =>
+      _isEnglish ? 'Returned points' : '반환 포인트';
+  String get corePassiveUnlockHint => _isEnglish
+      ? 'Strengthen a connected node to unlock it.'
+      : '연결된 노드를 강화하면 개방됩니다';
+  String get corePassiveSelectionHint => _isEnglish
+      ? 'Select a node to view its effects and ranks.'
+      : '노드를 선택해 효과와 랭크를 확인하세요';
+  String get corePassiveGestureHint =>
+      _isEnglish ? 'Drag to move · Pinch to zoom' : '드래그로 이동 · 두 손가락으로 확대/축소';
+  String get corePassiveCurrentEffect =>
+      _isEnglish ? 'Current effect' : '현재 효과';
+  String get corePassiveNextEffect => _isEnglish ? 'Next effect' : '다음 효과';
+  String get corePassiveRequiredPoints =>
+      _isEnglish ? 'Required points' : '필요 포인트';
+  String get corePassiveMaxRank => _isEnglish ? 'Maximum rank' : '최대 랭크';
+  String get corePassiveAttack => _isEnglish ? 'Attack' : '공격';
+  String get corePassiveControl => _isEnglish ? 'Control' : '제어';
+  String get corePassiveEfficiency => _isEnglish ? 'Efficiency' : '효율';
+  String get corePassiveHybrid => _isEnglish ? 'Hybrid' : '혼합';
+  String get corePointEarned => _isEnglish ? 'Core Points earned' : '코어 포인트 획득';
+
+  String corePointReward(int amount) =>
+      _isEnglish ? '+$amount Core Points' : '+$amount 코어 포인트';
+
+  String corePassiveNodeName(CorePassiveNodeId id) {
+    return switch (id) {
+      CorePassiveNodeId.attackHaste => _isEnglish ? 'Haste Circuit' : '가속 회로',
+      CorePassiveNodeId.attackOutput =>
+        _isEnglish ? 'Output Amplifier' : '출력 증폭',
+      CorePassiveNodeId.attackPrecompute =>
+        _isEnglish ? 'Precomputation' : '선행 계산',
+      CorePassiveNodeId.attackFocus =>
+        _isEnglish ? 'Focused Analysis' : '집중 해석',
+      CorePassiveNodeId.attackGuardianBeam =>
+        _isEnglish ? 'Guardian Beam Analysis' : '수호 광선 해석',
+      CorePassiveNodeId.attackRiftMark =>
+        _isEnglish ? 'Rift Mark Analysis' : '균열 낙인 해석',
+      CorePassiveNodeId.attackOverclock =>
+        _isEnglish ? 'Overclocked Computation' : '과부하 연산',
+      CorePassiveNodeId.controlThreatSense =>
+        _isEnglish ? 'Threat Detection' : '위협 감지',
+      CorePassiveNodeId.controlSelfRepair =>
+        _isEnglish ? 'Self Repair' : '자가 수복',
+      CorePassiveNodeId.controlRetarget =>
+        _isEnglish ? 'Target Reconstruction' : '표적 재구성',
+      CorePassiveNodeId.controlRearLock =>
+        _isEnglish ? 'Rear Lockdown' : '후방 봉쇄',
+      CorePassiveNodeId.controlEmergencyCharge =>
+        _isEnglish ? 'Emergency Charge' : '비상 충전',
+      CorePassiveNodeId.controlBufferShell =>
+        _isEnglish ? 'Buffer Shell' : '완충 외피',
+      CorePassiveNodeId.controlFinalLine =>
+        _isEnglish ? 'Final Defense Line' : '최종 방위선',
+      CorePassiveNodeId.efficiencySaving =>
+        _isEnglish ? 'Efficient Design' : '절약 설계',
+      CorePassiveNodeId.efficiencyDiversity =>
+        _isEnglish ? 'Diversity Resonance' : '다양성 감응',
+      CorePassiveNodeId.efficiencyFirstDeploy =>
+        _isEnglish ? 'First Deployment Engineering' : '첫 배치 공학',
+      CorePassiveNodeId.efficiencyFirstLink =>
+        _isEnglish ? 'First Link Engineering' : '첫 연결 공학',
+      CorePassiveNodeId.efficiencyGemSpectrum =>
+        _isEnglish ? 'Gem Spectrum' : '젬 스펙트럼',
+      CorePassiveNodeId.efficiencySupplyRecovery =>
+        _isEnglish ? 'Supply Recovery' : '보급 회수',
+      CorePassiveNodeId.efficiencyCombinedFront =>
+        _isEnglish ? 'Combined Front' : '통합 전선',
+      CorePassiveNodeId.hybridEmergencyCompute =>
+        _isEnglish ? 'Emergency Compute' : '비상 연산',
+      CorePassiveNodeId.hybridCounterFire =>
+        _isEnglish ? 'Counter Fire' : '대응 사격',
+      CorePassiveNodeId.hybridResonanceLoop =>
+        _isEnglish ? 'Resonance Loop' : '공명 루프',
+      CorePassiveNodeId.hybridMixedFire =>
+        _isEnglish ? 'Mixed Fire Network' : '혼성 화력망',
+      CorePassiveNodeId.hybridSupplyBarrier =>
+        _isEnglish ? 'Supply Barrier' : '보급 방벽',
+      CorePassiveNodeId.hybridRecoveryBudget =>
+        _isEnglish ? 'Recovery Budget' : '복구 예산',
+    };
+  }
+
+  String corePassiveNodeEffect(CorePassiveNodeId id, int rank) {
+    final definition = corePassiveNodeById(id);
+    final safeRank = rank.clamp(1, definition.maxRank);
+    final value = definition.displayValues[safeRank - 1];
+    return switch (id) {
+      CorePassiveNodeId.attackHaste =>
+        _isEnglish
+            ? 'Core skill cooldown reduced by $value.'
+            : '코어 스킬 재사용 대기시간 $value 감소',
+      CorePassiveNodeId.attackOutput =>
+        _isEnglish
+            ? 'Core skill damage and amplification increased by $value.'
+            : '코어 스킬 피해·증폭 효과 $value 증가',
+      CorePassiveNodeId.attackPrecompute =>
+        _isEnglish
+            ? 'Start each round with the first Core skill $value charged.'
+            : '라운드 첫 코어 스킬을 $value 충전 상태로 시작',
+      CorePassiveNodeId.attackFocus =>
+        _isEnglish
+            ? 'Repeated Core skill effects on the same target increase by $value.'
+            : '같은 대상에 연속 적용되는 코어 스킬 효과 $value 증가',
+      CorePassiveNodeId.attackGuardianBeam =>
+        _isEnglish
+            ? 'Guardian Beam duration increased by $value.'
+            : '수호 광선 지속시간 $value 증가',
+      CorePassiveNodeId.attackRiftMark =>
+        _isEnglish
+            ? 'Rift Mark duration increased by $value.'
+            : '균열 낙인 지속시간 $value 증가',
+      CorePassiveNodeId.attackOverclock =>
+        _isEnglish
+            ? 'Cooldown reduced by 25%; damage, amplification, and duration reduced by 15%.'
+            : '재사용 대기시간 25% 감소, 대신 피해·증폭·지속시간 효과 15% 감소',
+      CorePassiveNodeId.controlThreatSense =>
+        _isEnglish
+            ? 'Core charge speed increases by $value while an enemy is past 75% of the path.'
+            : '경로 75%를 넘은 적이 있으면 코어 스킬 충전 속도 $value 증가',
+      CorePassiveNodeId.controlSelfRepair =>
+        _isEnglish
+            ? 'Restore 1 Nexus HP every $value rounds.'
+            : '$value라운드마다 넥서스 체력 1 회복',
+      CorePassiveNodeId.controlRetarget =>
+        _isEnglish
+            ? 'Transfer remaining Core skill effects at $value efficiency when a target disappears.'
+            : '대상 사라짐 시 남은 코어 스킬 효과를 $value 효율로 이전',
+      CorePassiveNodeId.controlRearLock =>
+        _isEnglish
+            ? 'Core skill effects increase by $value against enemies past 80% of the path.'
+            : '경로 80%를 넘은 적에 대한 코어 스킬 효과 $value 증가',
+      CorePassiveNodeId.controlEmergencyCharge =>
+        _isEnglish
+            ? 'Refund $value cooldown after Nexus damage, once per round.'
+            : '코어 피해 시 재사용 대기시간 $value 환급, 라운드당 1회',
+      CorePassiveNodeId.controlBufferShell =>
+        _isEnglish
+            ? 'Negate the first 1 Nexus damage every $value rounds.'
+            : '$value라운드마다 코어가 받는 첫 피해 1 무효화',
+      CorePassiveNodeId.controlFinalLine =>
+        _isEnglish
+            ? 'Once per run, survive lethal damage at 1 HP and gain 15% Core skill effect near the end of the path.'
+            : '런당 1회 치명 피해를 받고 체력 1로 생존, 경로 후반부 대상 코어 스킬 효과 15% 증가',
+      CorePassiveNodeId.efficiencySaving =>
+        _isEnglish
+            ? 'Turret build cost reduced by $value.'
+            : '포탑 건설 비용 $value 감소',
+      CorePassiveNodeId.efficiencyDiversity =>
+        _isEnglish
+            ? 'Core charge speed increases by $value per distinct turret type after the first, up to 4 types.'
+            : '첫 종류 이후 서로 다른 포탑 종류당 코어 충전 속도 $value 증가, 최대 4종',
+      CorePassiveNodeId.efficiencyFirstDeploy =>
+        _isEnglish
+            ? 'First build cost for each turret type reduced by $value.'
+            : '각 포탑 종류의 첫 건설 비용 $value 감소',
+      CorePassiveNodeId.efficiencyFirstLink =>
+        _isEnglish
+            ? 'First link expansion cost per run reduced by $value.'
+            : '런당 첫 링크 확장 비용 $value 감소',
+      CorePassiveNodeId.efficiencyGemSpectrum =>
+        _isEnglish
+            ? 'Core skill effects increase by $value per 3 distinct gems, up to 3 stacks.'
+            : '서로 다른 젬 3종마다 코어 스킬 효과 $value 증가, 최대 3중첩',
+      CorePassiveNodeId.efficiencySupplyRecovery =>
+        _isEnglish
+            ? 'After defeating a boss, the next build, upgrade, or link costs $value less.'
+            : '보스 처치 후 다음 건설·강화·링크 비용 $value 감소',
+      CorePassiveNodeId.efficiencyCombinedFront =>
+        _isEnglish
+            ? 'With 4+ turret types, Core skill effects increase by 20%; building a third turret of one type costs 10% more.'
+            : '포탑 4종 이상이면 코어 스킬 효과 20% 증가, 같은 종류 3기째부터 건설 비용 10% 증가',
+      CorePassiveNodeId.hybridEmergencyCompute =>
+        _isEnglish
+            ? 'Refund $value cooldown the first time an enemy passes 80% of the path.'
+            : '적이 경로 80%를 처음 넘을 때 재사용 대기시간 $value 환급',
+      CorePassiveNodeId.hybridCounterFire =>
+        _isEnglish
+            ? 'The next Core skill prioritizes enemies near the Nexus and gains $value effect.'
+            : '다음 코어 스킬이 코어에 가까운 적을 우선 공격하고 효과 $value 증가',
+      CorePassiveNodeId.hybridResonanceLoop =>
+        _isEnglish
+            ? 'Core skill duration increases by $value per 3 distinct gems, up to 3 stacks.'
+            : '서로 다른 젬 3종마다 코어 스킬 지속시간 $value 증가, 최대 3중첩',
+      CorePassiveNodeId.hybridMixedFire =>
+        _isEnglish
+            ? 'Core skill effects increase by $value while using both physical and elemental turrets.'
+            : '물리·원소 포탑을 모두 운용하면 코어 스킬 효과 $value 증가',
+      CorePassiveNodeId.hybridSupplyBarrier =>
+        _isEnglish
+            ? 'Gain 1 temporary shield on the first build of a new turret type, up to $value.'
+            : '새로운 포탑 종류의 첫 건설 시 임시 보호막 1 획득, 최대 $value',
+      CorePassiveNodeId.hybridRecoveryBudget =>
+        _isEnglish
+            ? 'After Nexus damage, the next build or upgrade costs $value less.'
+            : '코어 피해 후 다음 건설·강화 비용 $value 감소',
+    };
+  }
+
   String get permanentUpgradeTab => _isEnglish ? 'Upgrade' : '강화';
   String get researchTab => _isEnglish ? 'Research' : '연구';
   String get turretModuleTab => _isEnglish ? 'Turret' : '포탑';

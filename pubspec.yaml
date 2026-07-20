@@ -23,6 +23,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/core_abilities/
+    - assets/images/core_passive_tree/
     - assets/images/core_passives/
     - assets/images/research/
     - assets/images/stage_rewards/

@@ -2,6 +2,7 @@ import '../domain/combat/game_phase.dart';
 import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/run_panel_tab.dart';
 import '../domain/core/core_ability.dart';
+import '../domain/core/core_passive_tree.dart';
 import '../domain/daily_quest/daily_quest_type.dart';
 import '../domain/enemy/enemy_type.dart';
 import '../domain/gem/gem_type.dart';
@@ -101,11 +102,11 @@ class GameSnapshot {
     required this.coreCombatSkillBonusDamageDealt,
     required this.coreCombatSkillActivationCount,
     required this.coreCombatSkill,
-    required this.corePassiveSlots,
-    required this.corePassiveSlotCount,
-    required this.corePassiveSlotUnlockCost,
-    required this.canUnlockCorePassiveSlot,
-    required this.unlockedCorePassiveAbilities,
+    required this.totalCorePoints,
+    required this.spentCorePoints,
+    required this.availableCorePoints,
+    required this.lastRunCorePointReward,
+    required this.corePassiveNodeRanks,
     required this.nextWaveEnemyTypes,
     required this.nextWaveEnemyCounts,
     required this.nextWaveClearRewardGold,
@@ -273,11 +274,11 @@ class GameSnapshot {
   final double coreCombatSkillBonusDamageDealt;
   final int coreCombatSkillActivationCount;
   final CoreCombatSkill? coreCombatSkill;
-  final List<CorePassiveAbility?> corePassiveSlots;
-  final int corePassiveSlotCount;
-  final int corePassiveSlotUnlockCost;
-  final bool canUnlockCorePassiveSlot;
-  final Set<CorePassiveAbility> unlockedCorePassiveAbilities;
+  final int totalCorePoints;
+  final int spentCorePoints;
+  final int availableCorePoints;
+  final int lastRunCorePointReward;
+  final Map<CorePassiveNodeId, int> corePassiveNodeRanks;
   final List<EnemyType> nextWaveEnemyTypes;
   final Map<EnemyType, int> nextWaveEnemyCounts;
   final int nextWaveClearRewardGold;

@@ -814,69 +814,6 @@ Future<void> _confirmCancelResearch(
   game.cancelResearch(research.type);
 }
 
-Future<bool> _confirmUnlockCorePassiveSlot(
-  BuildContext context, {
-  required RuneNexusGame game,
-  required GameSnapshot snapshot,
-}) async {
-  if (!snapshot.canUnlockCorePassiveSlot) {
-    return false;
-  }
-  final slotNumber = snapshot.corePassiveSlotCount + 1;
-  final confirmed = await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      backgroundColor: const Color(0xFF0B1725),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: Color(0xAAE7C66A)),
-      ),
-      title: const Text(
-        '패시브 슬롯을 해금할까요?',
-        style: TextStyle(
-          color: Color(0xFFE8FBFF),
-          fontSize: 16,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-      content: Text(
-        '$slotNumber번 코어 패시브 슬롯을 ${snapshot.corePassiveSlotUnlockCost} 다이아로 해금합니다.',
-        style: const TextStyle(
-          color: Color(0xFFB9D6E4),
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      actions: [
-        SizedBox(
-          width: 76,
-          child: GameButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            label: '취소',
-            compact: true,
-            variant: GameButtonVariant.ghost,
-            accentColor: GamePalette.metal,
-          ),
-        ),
-        SizedBox(
-          width: 82,
-          child: GameButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            label: '해금',
-            compact: true,
-            variant: GameButtonVariant.primary,
-            accentColor: GamePalette.gold,
-          ),
-        ),
-      ],
-    ),
-  );
-  if (confirmed != true || !context.mounted) {
-    return false;
-  }
-  return game.unlockCorePassiveSlot();
-}
-
 class _ResearchSection extends StatelessWidget {
   const _ResearchSection({
     required this.icon,

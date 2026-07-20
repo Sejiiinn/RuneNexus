@@ -11,9 +11,9 @@ class HudCoreInfoPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final skill = snapshot.coreCombatSkill;
-    final passiveAbilities = snapshot.corePassiveSlots
-        .whereType<CorePassiveAbility>()
-        .toList();
+    final allocatedNodeCount = snapshot.corePassiveNodeRanks.values
+        .where((rank) => rank > 0)
+        .length;
     final hpProgress = snapshot.maxNexusHp <= 0
         ? 0.0
         : (snapshot.nexusHp / snapshot.maxNexusHp).clamp(0.0, 1.0).toDouble();
@@ -50,7 +50,7 @@ class HudCoreInfoPanel extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '전투 스킬 ${skill == null ? 0 : 1}개 · 패시브 ${passiveAbilities.length}개 장착',
+                      '전투 스킬 ${skill == null ? 0 : 1}개 · 패시브 노드 $allocatedNodeCount개 할당',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -104,7 +104,7 @@ class HudCoreInfoPanel extends StatelessWidget {
           const SizedBox(height: 8),
           _CoreSkillInfoRow(skill: skill, snapshot: snapshot),
           const SizedBox(height: 8),
-          _CorePassiveInfoRow(passiveAbilities: passiveAbilities),
+          _CorePassiveTreeInfoRow(snapshot: snapshot),
         ],
       ),
     );
@@ -139,33 +139,19 @@ class _CoreSkillInfoRow extends StatelessWidget {
   }
 }
 
-class _CorePassiveInfoRow extends StatelessWidget {
-  const _CorePassiveInfoRow({required this.passiveAbilities});
+class _CorePassiveTreeInfoRow extends StatelessWidget {
+  const _CorePassiveTreeInfoRow({required this.snapshot});
 
-  final List<CorePassiveAbility> passiveAbilities;
+  final GameSnapshot snapshot;
 
   @override
   Widget build(BuildContext context) {
     return _CoreInfoSection(
-      label: '패시브',
-      child: passiveAbilities.isEmpty
-          ? const _CoreInfoText(
-              title: '패시브 없음',
-              description: '장착된 코어 패시브가 없습니다.',
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (var i = 0; i < passiveAbilities.length; i++) ...[
-                  if (i > 0) const SizedBox(height: 6),
-                  _CoreInfoText(
-                    title: passiveAbilities[i].label,
-                    description: _corePassiveDescription(passiveAbilities[i]),
-                  ),
-                ],
-              ],
-            ),
+      label: '패시브 트리',
+      child: _CoreInfoText(
+        title: '${snapshot.spentCorePoints} / ${snapshot.totalCorePoints}pt',
+        description: '남은 코어 포인트 ${snapshot.availableCorePoints}pt',
+      ),
     );
   }
 }
@@ -348,14 +334,6 @@ const _coreCombatMetricTextStyle = TextStyle(
   fontSize: 10,
   fontWeight: FontWeight.w900,
 );
-
-String _corePassiveDescription(CorePassiveAbility ability) {
-  return switch (ability) {
-    CorePassiveAbility.selfRepair => '5라운드마다 내구도 1 회복',
-    CorePassiveAbility.costSavingDesign => '포탑 건설 비용 15% 감소',
-    CorePassiveAbility.skillAcceleration => '전투 스킬 재사용 대기시간 10% 감소',
-  };
-}
 
 String _formatCoreCombatStat(double value) {
   if (value >= 100) {

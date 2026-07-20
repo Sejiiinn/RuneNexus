@@ -19,6 +19,7 @@ import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/game_phase.dart';
 import '../domain/combat/run_panel_tab.dart';
 import '../domain/core/core_ability.dart';
+import '../domain/core/core_passive_tree.dart';
 import '../domain/daily_quest/daily_quest_type.dart';
 import '../domain/enemy/enemy_scaling.dart';
 import '../domain/enemy/enemy_type.dart';
@@ -81,12 +82,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const int primaryTraitRequiredLevel = 3;
   static const int secondaryTraitCost = 24;
   static const int secondaryTraitRequiredLevel = 7;
-  static const int costSavingDesignBuildDiscountPercent = 15;
   static const int economyUpgradeUnlockStage = 1;
   static const int sniperUnlockStage = 3;
   static const int aimSpeedGemUnlockStage = 3;
   static const int armorPiercingGemUnlockStage = 10;
-  static const double coreCombatSkillCooldownReductionRate = 0.10;
   static const double burnDamagePerSecondScale = _burnDamagePerSecondScale;
   static const double burnDurationSeconds = _burnDurationSeconds;
   static const double _designTileSize = 48;
@@ -142,6 +141,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
           name: 'Stage ${index + 1}',
           map: customMap,
           waves: customWaves,
+          firstClearCorePointReward: 0,
         ),
       );
     }
@@ -256,11 +256,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       coreCombatSkillBonusDamageDealt: 0,
       coreCombatSkillActivationCount: 0,
       coreCombatSkill: CoreCombatSkill.guardianBeam,
-      corePassiveSlots: const [null, null],
-      corePassiveSlotCount: 1,
-      corePassiveSlotUnlockCost: RunProgression.corePassiveSlotUnlockCost,
-      canUnlockCorePassiveSlot: false,
-      unlockedCorePassiveAbilities: const {CorePassiveAbility.selfRepair},
+      totalCorePoints: 0,
+      spentCorePoints: 0,
+      availableCorePoints: 0,
+      lastRunCorePointReward: 0,
+      corePassiveNodeRanks: const {},
       nextWaveEnemyTypes: _enemyTypesFor(firstWave),
       nextWaveEnemyCounts: _enemyCountsFor(firstWave),
       nextWaveClearRewardGold: firstWave.clearRewardGold,
@@ -442,7 +442,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   final TurretActionController _turretActions = const TurretActionController();
   final RunProgression _progression = RunProgression();
   CoreCombatSkill? _runCoreCombatSkill = CoreCombatSkill.guardianBeam;
-  final List<CorePassiveAbility?> _runCorePassiveSlots = [null, null];
   double _coreCombatSkillDirectDamageDealt = 0;
   double _coreCombatSkillBonusDamageDealt = 0;
   int _coreCombatSkillActivationCount = 0;
@@ -580,16 +579,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _killGoldRunBonusRate + _killGoldProgressionBonusRate;
   double get _bossKillGoldResearchBonusRate => _progression.bossBountyBonusRate;
   int get _bossKillGemShardResearchBonus => _progression.bossKillGemShardBonus;
-  bool get _hasCostSavingDesign =>
-      _runCorePassiveSlots.contains(CorePassiveAbility.costSavingDesign);
-  bool get _hasSkillAcceleration =>
-      _runCorePassiveSlots.contains(CorePassiveAbility.skillAcceleration);
-  double get _nexusCoreBeamCooldownInterval => _hasSkillAcceleration
-      ? _nexusCoreBeamInterval * (1 - coreCombatSkillCooldownReductionRate)
-      : _nexusCoreBeamInterval;
-  double get _riftMarkCooldownInterval => _hasSkillAcceleration
-      ? _riftMarkInterval * (1 - coreCombatSkillCooldownReductionRate)
-      : _riftMarkInterval;
+  double get _nexusCoreBeamCooldownInterval => _nexusCoreBeamInterval;
+  double get _riftMarkCooldownInterval => _riftMarkInterval;
   double get _coreCombatSkillCooldownInterval {
     return switch (_runCoreCombatSkill) {
       CoreCombatSkill.guardianBeam => _nexusCoreBeamCooldownInterval,
@@ -639,13 +630,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _coreCombatSkillBonusDamageDealt;
   int get coreCombatSkillActivationCount => _coreCombatSkillActivationCount;
   CoreCombatSkill? get coreCombatSkill => _progression.coreCombatSkill;
-  List<CorePassiveAbility?> get corePassiveSlots =>
-      List.unmodifiable(_progression.corePassiveSlots);
-  int get corePassiveSlotCount => _progression.corePassiveSlotCount;
-  int get corePassiveSlotUnlockCost => RunProgression.corePassiveSlotUnlockCost;
-  bool get canUnlockCorePassiveSlot => _progression.canUnlockCorePassiveSlot;
-  Set<CorePassiveAbility> get unlockedCorePassiveAbilities =>
-      Set.unmodifiable(_progression.unlockedCorePassiveAbilities);
+  int get totalCorePoints => _progression.totalCorePoints;
+  int get spentCorePoints => _progression.spentCorePoints;
+  int get availableCorePoints => _progression.availableCorePoints;
+  int get lastRunCorePointReward => _progression.lastRunCorePointReward;
+  Map<CorePassiveNodeId, int> get corePassiveNodeRanks =>
+      Map.unmodifiable(_progression.corePassiveNodeRanks);
   int turretBuildCost(TurretType type) {
     final baseCost = gameTurrets[type]?.cost;
     if (baseCost == null) {
@@ -1225,8 +1215,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return true;
   }
 
-  bool equipCorePassiveAbility(CorePassiveAbility ability, int slotIndex) {
-    if (!_progression.equipCorePassiveAbility(ability, slotIndex)) {
+  bool setCorePassiveNodeRank(CorePassiveNodeId id, int rank) {
+    if (!_progression.setCorePassiveNodeRank(id, rank)) {
       return false;
     }
     _publish();
@@ -1234,17 +1224,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return true;
   }
 
-  bool unequipCorePassiveAbility(int slotIndex) {
-    if (!_progression.unequipCorePassiveAbility(slotIndex)) {
-      return false;
-    }
-    _publish();
-    _requestLocalSave(immediate: true);
-    return true;
-  }
-
-  bool unlockCorePassiveSlot() {
-    if (!_progression.unlockCorePassiveSlot()) {
+  bool resetCorePassiveTree() {
+    if (!_progression.resetCorePassiveTree()) {
       return false;
     }
     _publish();
@@ -1609,18 +1590,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
-  void debugResetCorePassiveProgress() {
-    _progression.corePassiveSlotTwoUnlocked = false;
-    for (var i = 0; i < _progression.corePassiveSlots.length; i++) {
-      _progression.corePassiveSlots[i] = null;
-    }
-    for (var i = 0; i < _runCorePassiveSlots.length; i++) {
-      _runCorePassiveSlots[i] = null;
-    }
-    _publish();
-    _requestLocalSave(immediate: true);
-  }
-
   void debugResetUpgradeProgress() {
     _progression.startingGoldUpgradeLevel = 0;
     _progression.nexusHpUpgradeLevel = 0;
@@ -1850,11 +1819,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   int _turretBuildCostFor(TurretType type, int baseCost) {
-    final discountRate =
-        (_hasCostSavingDesign
-            ? costSavingDesignBuildDiscountPercent / 100
-            : 0) +
-        turretModuleEffectFor(type).buildCostDiscountRate;
+    final discountRate = turretModuleEffectFor(type).buildCostDiscountRate;
     final discountedCost = math.max(
       1,
       (baseCost * (1 - discountRate.clamp(0.0, 0.8))).round(),
@@ -3662,22 +3627,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   void _captureRunCoreLoadoutFromProgression() {
     _runCoreCombatSkill = _progression.coreCombatSkill;
-    for (var i = 0; i < _runCorePassiveSlots.length; i++) {
-      _runCorePassiveSlots[i] = i < _progression.corePassiveSlots.length
-          ? _progression.corePassiveSlots[i]
-          : null;
-    }
     _resetCoreCombatSkillStats();
   }
 
   void _restoreRunCoreLoadoutFromSave(GameSaveData data) {
     _runCoreCombatSkill = data.runCoreCombatSkill;
-    final restoredSlots = data.runCorePassiveSlots;
-    for (var i = 0; i < _runCorePassiveSlots.length; i++) {
-      _runCorePassiveSlots[i] = i < restoredSlots.length
-          ? restoredSlots[i]
-          : null;
-    }
     _restoreCoreCombatSkillStats(data.runCoreCombatSkillStats);
   }
 
@@ -3903,16 +3857,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
   }
 
-  void _applyRoundClearCorePassiveEffects(int completedRound) {
-    if (completedRound % 5 != 0 ||
-        !_runCorePassiveSlots.contains(CorePassiveAbility.selfRepair) ||
-        _nexusHp >= _maxNexusHp) {
-      return;
-    }
-
-    _nexusHp = math.min(_maxNexusHp, _nexusHp + 1);
-  }
-
   void _checkWaveClear() {
     if (!_waveSpawner.isEmpty ||
         enemies.isNotEmpty ||
@@ -3926,7 +3870,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _progression.waveClearGoldBonus +
         _waveClearGoldRunBonus;
     _gemShards += _roundClearGemShardRewardFor(completedRound);
-    _applyRoundClearCorePassiveEffects(completedRound);
     _roundIndex++;
     _completedRounds = completedRound;
     _progression.recordDailyQuestProgress(
@@ -4084,6 +4027,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       completedRounds: _completedRounds,
       success: success,
       stageNumber: _currentStageNumber,
+      firstClearCorePointReward: _activeStage.firstClearCorePointReward,
     );
     _lastRunPreviousBestRound = previousBestRound;
     _lastRunWasNewBestRound = _completedRounds > previousBestRound;
@@ -4264,7 +4208,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         autoStartMode: _autoStartMode,
         progression: _progression,
         runCoreCombatSkill: _runCoreCombatSkill,
-        runCorePassiveSlots: _runCorePassiveSlots,
         runCoreCombatSkillStats: _coreCombatSkillStatsToSaveData(),
         runUpgradeLevels: _runUpgradeLevels,
         killGoldFractionWallet: _killGoldFractionWallet,

@@ -1,6 +1,8 @@
 import '../../domain/combat/auto_start_mode.dart';
 import '../../domain/combat/game_phase.dart';
+import '../../data/definitions/game_core_passive_tree_data.dart' as core_tree;
 import '../../domain/core/core_ability.dart';
+import '../../domain/core/core_passive_tree.dart';
 import '../../domain/daily_quest/daily_quest_type.dart';
 import '../../domain/enemy/enemy_type.dart';
 import '../../domain/gem/gem_type.dart';
@@ -33,7 +35,6 @@ class GameSaveData {
     required this.isPurchasedGemReward,
     this.rewardReturnPhase,
     this.runCoreCombatSkill = CoreCombatSkill.guardianBeam,
-    this.runCorePassiveSlots = const [null, null],
     this.runCoreCombatSkillStats = SavedCoreCombatSkillStats.empty,
     required this.turrets,
     required this.enemies,
@@ -61,7 +62,6 @@ class GameSaveData {
   final bool isPurchasedGemReward;
   final GamePhase? rewardReturnPhase;
   final CoreCombatSkill? runCoreCombatSkill;
-  final List<CorePassiveAbility?> runCorePassiveSlots;
   final SavedCoreCombatSkillStats runCoreCombatSkillStats;
   final List<SavedTurret> turrets;
   final List<SavedEnemy> enemies;
@@ -105,10 +105,6 @@ class GameSaveData {
       'isPurchasedGemReward': isPurchasedGemReward,
       'rewardReturnPhase': rewardReturnPhase?.name,
       'runCoreCombatSkill': runCoreCombatSkill?.name,
-      'runCorePassiveSlots': runCorePassiveSlots
-          .take(2)
-          .map((ability) => ability?.name)
-          .toList(),
       'runCoreCombatSkillStats': runCoreCombatSkillStats.toJson(),
       'turrets': turrets.map((turret) => turret.toJson()).toList(),
       'enemies': enemies.map((enemy) => enemy.toJson()).toList(),
@@ -169,11 +165,6 @@ class GameSaveData {
         json,
         key: 'runCoreCombatSkill',
         missingFallback: progression.coreCombatSkill,
-      ),
-      runCorePassiveSlots: _nullableCorePassiveSlotsFromSave(
-        json,
-        key: 'runCorePassiveSlots',
-        missingFallback: progression.corePassiveSlots,
       ),
       runCoreCombatSkillStats: SavedCoreCombatSkillStats.fromJson(
         json['runCoreCombatSkillStats'],
@@ -262,8 +253,11 @@ class SavedProgression {
     this.turretModuleItemSequence = 0,
     this.ownedTurretModules = const [],
     this.coreCombatSkill = CoreCombatSkill.guardianBeam,
-    this.corePassiveSlotTwoUnlocked = false,
-    this.corePassiveSlots = const [null, null],
+    this.totalCorePoints = 0,
+    this.lastRunCorePointReward = 0,
+    this.corePassiveTreeRevision = core_tree.corePassiveTreeRevision,
+    this.corePassiveNodeRanks = const {},
+    this.claimedCorePointStageRewards = const {},
   });
 
   final int runes;
@@ -304,8 +298,11 @@ class SavedProgression {
   final int turretModuleItemSequence;
   final List<SavedTurretModule> ownedTurretModules;
   final CoreCombatSkill? coreCombatSkill;
-  final bool corePassiveSlotTwoUnlocked;
-  final List<CorePassiveAbility?> corePassiveSlots;
+  final int totalCorePoints;
+  final int lastRunCorePointReward;
+  final int corePassiveTreeRevision;
+  final Map<CorePassiveNodeId, int> corePassiveNodeRanks;
+  final Set<int> claimedCorePointStageRewards;
 
   Map<String, Object?> toJson() {
     return {
@@ -366,19 +363,18 @@ class SavedProgression {
           .map((module) => module.toJson())
           .toList(),
       'coreCombatSkill': coreCombatSkill?.name,
-      'corePassiveSlotTwoUnlocked': corePassiveSlotTwoUnlocked,
-      'corePassiveSlots': corePassiveSlots
-          .take(2)
-          .map((ability) => ability?.name)
-          .toList(),
+      'totalCorePoints': totalCorePoints,
+      'lastRunCorePointReward': lastRunCorePointReward,
+      'corePassiveTreeRevision': corePassiveTreeRevision,
+      'corePassiveNodeRanks': corePassiveNodeRanks.map(
+        (key, value) => MapEntry(key.name, value),
+      ),
+      'claimedCorePointStageRewards': claimedCorePointStageRewards.toList(),
     };
   }
 
   static SavedProgression fromJson(Object? json) {
     final map = json is Map<String, Object?> ? json : const <String, Object?>{};
-    final corePassiveSlots = _normalizeCorePassiveSlots(
-      _nullableEnumList(CorePassiveAbility.values, map['corePassiveSlots']),
-    );
     final activeResearches = _objectList(
       map['activeResearches'],
       SavedActiveResearch.fromJson,
@@ -457,11 +453,18 @@ class SavedProgression {
         SavedTurretModule.fromJson,
       ),
       coreCombatSkill: _coreCombatSkillFromSave(map),
-      corePassiveSlotTwoUnlocked: _boolValue(
-        map['corePassiveSlotTwoUnlocked'],
-        fallback: corePassiveSlots.length > 1 && corePassiveSlots[1] != null,
+      totalCorePoints: _nonNegativeInt(map['totalCorePoints']),
+      lastRunCorePointReward: _nonNegativeInt(map['lastRunCorePointReward']),
+      corePassiveTreeRevision: _intValue(
+        map['corePassiveTreeRevision'],
+        fallback: core_tree.corePassiveTreeRevision,
       ),
-      corePassiveSlots: corePassiveSlots,
+      corePassiveNodeRanks: _corePassiveNodeRanksFromSave(
+        map['corePassiveNodeRanks'],
+      ),
+      claimedCorePointStageRewards: _intSet(
+        map['claimedCorePointStageRewards'],
+      ).where((stage) => stage > 0).toSet(),
     );
   }
 }
@@ -490,27 +493,15 @@ CoreCombatSkill? _nullableCoreCombatSkillFromSave(
       CoreCombatSkill.guardianBeam;
 }
 
-List<CorePassiveAbility?> _nullableCorePassiveSlotsFromSave(
-  Map<String, Object?> map, {
-  required String key,
-  required List<CorePassiveAbility?> missingFallback,
-}) {
-  if (!map.containsKey(key)) {
-    return _normalizeCorePassiveSlots(missingFallback);
-  }
-  return _normalizeCorePassiveSlots(
-    _nullableEnumList(CorePassiveAbility.values, map[key]),
-  );
-}
-
-List<CorePassiveAbility?> _normalizeCorePassiveSlots(
-  List<CorePassiveAbility?> slots,
-) {
-  return List<CorePassiveAbility?>.generate(
-    2,
-    (index) => index < slots.length ? slots[index] : null,
-    growable: false,
-  );
+Map<CorePassiveNodeId, int> _corePassiveNodeRanksFromSave(Object? json) {
+  final rawRanks = _enumIntMap(CorePassiveNodeId.values, json);
+  return {
+    for (final entry in rawRanks.entries)
+      if (entry.value > 0)
+        entry.key: entry.value
+            .clamp(0, core_tree.corePassiveNodeById(entry.key).maxRank)
+            .toInt(),
+  };
 }
 
 class SavedActiveResearch {
@@ -1018,6 +1009,11 @@ double _doubleValue(Object? value, {double fallback = 0}) {
     double() => value,
     _ => fallback,
   };
+}
+
+int _nonNegativeInt(Object? value) {
+  final parsed = _intValue(value);
+  return parsed < 0 ? 0 : parsed;
 }
 
 bool _boolValue(Object? value, {bool fallback = false}) {

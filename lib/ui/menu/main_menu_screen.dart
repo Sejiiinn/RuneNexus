@@ -6,12 +6,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/definitions/game_daily_quest_data.dart';
+import '../../data/definitions/game_core_passive_tree_data.dart';
 import '../../data/definitions/game_research_data.dart';
 import '../../data/definitions/game_turret_data.dart';
 import '../../data/definitions/game_turret_module_data.dart';
 import '../../data/definitions/game_weekly_quest_data.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../domain/core/core_ability.dart';
+import '../../domain/core/core_passive_tree.dart';
 import '../../domain/daily_quest/daily_quest_type.dart';
 import '../../domain/gem/gem_type.dart';
 import '../../domain/research/research_definition.dart';
@@ -28,6 +30,7 @@ import '../game/game_ui.dart';
 import '../widgets/rune_balance_card.dart';
 
 part 'main_menu_core.dart';
+part 'main_menu_core_tree.dart';
 part 'main_menu_daily_quest.dart';
 part 'main_menu_debug_panel.dart';
 part 'main_menu_frame.dart';

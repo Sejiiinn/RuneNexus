@@ -8,15 +8,3 @@ extension CoreCombatSkillLabel on CoreCombatSkill {
     };
   }
 }
-
-enum CorePassiveAbility { selfRepair, costSavingDesign, skillAcceleration }
-
-extension CorePassiveAbilityLabel on CorePassiveAbility {
-  String get label {
-    return switch (this) {
-      CorePassiveAbility.selfRepair => '자가 수복',
-      CorePassiveAbility.costSavingDesign => '절약 설계',
-      CorePassiveAbility.skillAcceleration => '연산 가속',
-    };
-  }
-}

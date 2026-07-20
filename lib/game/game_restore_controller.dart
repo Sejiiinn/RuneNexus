@@ -6,27 +6,30 @@ class GameRestoreController {
   final RuneNexusGame _game;
 
   void restoreMenuStateFromSaveData(GameSaveData data) {
-    _restoreSavedMeta(data);
+    final restoredProgressionChanged = _restoreSavedMeta(data);
     _game._savedTurretCountForMenu = data.turrets.length;
 
     if (!data.hasActiveRun) {
       _game._savedTurretCountForMenu = 0;
       _restoreInactiveRunState(data);
       _resetRunPanelSelection();
+      _saveRestoredProgressionIfNeeded(restoredProgressionChanged);
       return;
     }
 
     _restoreActiveRunState(data);
     _resetRunPanelSelection();
     _applyRestoredPhase(data, restoreWaveAsPaused: true);
+    _saveRestoredProgressionIfNeeded(restoredProgressionChanged);
   }
 
   void restoreFromSaveData(GameSaveData data) {
-    _restoreSavedMeta(data);
+    final restoredProgressionChanged = _restoreSavedMeta(data);
     _clearBoardEntities();
 
     if (!data.hasActiveRun) {
       _restoreInactiveRunState(data);
+      _saveRestoredProgressionIfNeeded(restoredProgressionChanged);
       return;
     }
 
@@ -49,11 +52,31 @@ class GameRestoreController {
     _restoreEnemies(data.enemies);
     _game._waveSpawner.restoreFromSaveData(data.spawnQueue);
     _applyRestoredPhase(data, restoreWaveAsPaused: true);
+    _saveRestoredProgressionIfNeeded(restoredProgressionChanged);
   }
 
-  void _restoreSavedMeta(GameSaveData data) {
+  bool _restoreSavedMeta(GameSaveData data) {
     _game._autoStartMode = data.autoStartMode;
     _game._progression.restoreFromSaveData(data.progression);
+    final passiveTreeSanitized =
+        data.progression.corePassiveTreeRevision !=
+            _game._progression.corePassiveTreeRevision ||
+        data.progression.corePassiveNodeRanks.length !=
+            _game._progression.corePassiveNodeRanks.length ||
+        data.progression.corePassiveNodeRanks.entries.any(
+          (entry) =>
+              _game._progression.corePassiveNodeRanks[entry.key] != entry.value,
+        );
+    final claimedRewardCount =
+        _game._progression.claimedCorePointStageRewards.length;
+    _game._progression.grantRetroactiveCorePointRewards({
+      for (final stage in _game._stages)
+        stage.id: stage.firstClearCorePointReward,
+    });
+    final progressionChanged =
+        passiveTreeSanitized ||
+        _game._progression.claimedCorePointStageRewards.length !=
+            claimedRewardCount;
     _restoreRunUpgradeState(data);
     _game._gemInventory
       ..clear()
@@ -66,6 +89,13 @@ class GameRestoreController {
     _game._rewardReturnPhase = data.isPurchasedGemReward
         ? data.rewardReturnPhase
         : null;
+    return progressionChanged;
+  }
+
+  void _saveRestoredProgressionIfNeeded(bool changed) {
+    if (changed) {
+      _game._requestLocalSave(immediate: true);
+    }
   }
 
   void _restoreInactiveRunState(GameSaveData data) {

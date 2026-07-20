@@ -1,0 +1,354 @@
+import '../../domain/core/core_passive_tree.dart';
+
+const int corePassiveTreeRevision = 1;
+
+const Set<CorePassiveNodeId> corePassiveStartingNodeIds = {
+  CorePassiveNodeId.attackHaste,
+  CorePassiveNodeId.attackOutput,
+  CorePassiveNodeId.efficiencySaving,
+  CorePassiveNodeId.efficiencyDiversity,
+  CorePassiveNodeId.controlSelfRepair,
+  CorePassiveNodeId.controlThreatSense,
+};
+
+const List<int> _normalCosts = [1, 1, 2, 2, 3];
+const List<int> _notableCosts = [2, 3, 5];
+const List<int> _keystoneCosts = [5];
+
+class _CorePassiveNodeSpec {
+  const _CorePassiveNodeSpec({
+    required this.branch,
+    required this.grade,
+    required this.displayValues,
+  });
+
+  final CorePassiveBranch branch;
+  final CorePassiveNodeGrade grade;
+  final List<String> displayValues;
+}
+
+const Map<CorePassiveNodeId, _CorePassiveNodeSpec> _nodeSpecs = {
+  CorePassiveNodeId.attackHaste: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.attack,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['2%', '4%', '6%', '8%', '10%'],
+  ),
+  CorePassiveNodeId.attackOutput: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.attack,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['3%', '6%', '9%', '12%', '15%'],
+  ),
+  CorePassiveNodeId.attackPrecompute: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.attack,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['10%', '20%', '30%', '40%', '50%'],
+  ),
+  CorePassiveNodeId.attackFocus: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.attack,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['3%', '6%', '9%', '12%', '15%'],
+  ),
+  CorePassiveNodeId.attackGuardianBeam: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.attack,
+    grade: CorePassiveNodeGrade.notable,
+    displayValues: ['0.1초', '0.2초', '0.3초'],
+  ),
+  CorePassiveNodeId.attackRiftMark: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.attack,
+    grade: CorePassiveNodeGrade.notable,
+    displayValues: ['0.4초', '0.8초', '1.2초'],
+  ),
+  CorePassiveNodeId.attackOverclock: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.attack,
+    grade: CorePassiveNodeGrade.keystone,
+    displayValues: ['25% / 15%'],
+  ),
+  CorePassiveNodeId.controlThreatSense: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.control,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['4%', '8%', '12%', '16%', '20%'],
+  ),
+  CorePassiveNodeId.controlSelfRepair: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.control,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['9라운드', '8라운드', '7라운드', '6라운드', '5라운드'],
+  ),
+  CorePassiveNodeId.controlRetarget: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.control,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['40%', '55%', '70%', '85%', '100%'],
+  ),
+  CorePassiveNodeId.controlRearLock: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.control,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['4%', '8%', '12%', '16%', '20%'],
+  ),
+  CorePassiveNodeId.controlEmergencyCharge: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.control,
+    grade: CorePassiveNodeGrade.notable,
+    displayValues: ['15%', '25%', '35%'],
+  ),
+  CorePassiveNodeId.controlBufferShell: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.control,
+    grade: CorePassiveNodeGrade.notable,
+    displayValues: ['10라운드', '8라운드', '6라운드'],
+  ),
+  CorePassiveNodeId.controlFinalLine: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.control,
+    grade: CorePassiveNodeGrade.keystone,
+    displayValues: ['1회 / 15%'],
+  ),
+  CorePassiveNodeId.efficiencySaving: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.efficiency,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['3%', '6%', '9%', '12%', '15%'],
+  ),
+  CorePassiveNodeId.efficiencyDiversity: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.efficiency,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['0.5%', '0.75%', '1%', '1.25%', '1.5%'],
+  ),
+  CorePassiveNodeId.efficiencyFirstDeploy: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.efficiency,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['4%', '8%', '12%', '16%', '20%'],
+  ),
+  CorePassiveNodeId.efficiencyFirstLink: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.efficiency,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['4%', '8%', '12%', '16%', '20%'],
+  ),
+  CorePassiveNodeId.efficiencyGemSpectrum: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.efficiency,
+    grade: CorePassiveNodeGrade.notable,
+    displayValues: ['2%', '3%', '4%'],
+  ),
+  CorePassiveNodeId.efficiencySupplyRecovery: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.efficiency,
+    grade: CorePassiveNodeGrade.notable,
+    displayValues: ['8%', '12%', '16%'],
+  ),
+  CorePassiveNodeId.efficiencyCombinedFront: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.efficiency,
+    grade: CorePassiveNodeGrade.keystone,
+    displayValues: ['20% / 10%'],
+  ),
+  CorePassiveNodeId.hybridEmergencyCompute: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.hybrid,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['5%', '10%', '15%', '20%', '25%'],
+  ),
+  CorePassiveNodeId.hybridCounterFire: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.hybrid,
+    grade: CorePassiveNodeGrade.notable,
+    displayValues: ['10%', '20%', '30%'],
+  ),
+  CorePassiveNodeId.hybridResonanceLoop: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.hybrid,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['0.1초', '0.2초', '0.3초', '0.4초', '0.5초'],
+  ),
+  CorePassiveNodeId.hybridMixedFire: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.hybrid,
+    grade: CorePassiveNodeGrade.notable,
+    displayValues: ['6%', '9%', '12%'],
+  ),
+  CorePassiveNodeId.hybridSupplyBarrier: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.hybrid,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['1', '2', '3', '4', '5'],
+  ),
+  CorePassiveNodeId.hybridRecoveryBudget: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.hybrid,
+    grade: CorePassiveNodeGrade.notable,
+    displayValues: ['8%', '12%', '16%'],
+  ),
+};
+
+const List<(CorePassiveNodeId, CorePassiveNodeId)> _edges = [
+  (CorePassiveNodeId.attackHaste, CorePassiveNodeId.attackPrecompute),
+  (CorePassiveNodeId.attackPrecompute, CorePassiveNodeId.attackGuardianBeam),
+  (CorePassiveNodeId.attackGuardianBeam, CorePassiveNodeId.attackOverclock),
+  (CorePassiveNodeId.attackOutput, CorePassiveNodeId.attackFocus),
+  (CorePassiveNodeId.attackFocus, CorePassiveNodeId.attackRiftMark),
+  (CorePassiveNodeId.attackRiftMark, CorePassiveNodeId.attackOverclock),
+  (CorePassiveNodeId.efficiencySaving, CorePassiveNodeId.efficiencyFirstDeploy),
+  (
+    CorePassiveNodeId.efficiencyFirstDeploy,
+    CorePassiveNodeId.efficiencyGemSpectrum,
+  ),
+  (
+    CorePassiveNodeId.efficiencyGemSpectrum,
+    CorePassiveNodeId.efficiencyCombinedFront,
+  ),
+  (
+    CorePassiveNodeId.efficiencyDiversity,
+    CorePassiveNodeId.efficiencyFirstLink,
+  ),
+  (
+    CorePassiveNodeId.efficiencyFirstLink,
+    CorePassiveNodeId.efficiencySupplyRecovery,
+  ),
+  (
+    CorePassiveNodeId.efficiencySupplyRecovery,
+    CorePassiveNodeId.efficiencyCombinedFront,
+  ),
+  (CorePassiveNodeId.controlSelfRepair, CorePassiveNodeId.controlRetarget),
+  (CorePassiveNodeId.controlRetarget, CorePassiveNodeId.controlEmergencyCharge),
+  (
+    CorePassiveNodeId.controlEmergencyCharge,
+    CorePassiveNodeId.controlFinalLine,
+  ),
+  (CorePassiveNodeId.controlThreatSense, CorePassiveNodeId.controlRearLock),
+  (CorePassiveNodeId.controlRearLock, CorePassiveNodeId.controlBufferShell),
+  (CorePassiveNodeId.controlBufferShell, CorePassiveNodeId.controlFinalLine),
+  (CorePassiveNodeId.attackHaste, CorePassiveNodeId.hybridEmergencyCompute),
+  (
+    CorePassiveNodeId.controlThreatSense,
+    CorePassiveNodeId.hybridEmergencyCompute,
+  ),
+  (
+    CorePassiveNodeId.hybridEmergencyCompute,
+    CorePassiveNodeId.hybridCounterFire,
+  ),
+  (CorePassiveNodeId.attackOutput, CorePassiveNodeId.hybridResonanceLoop),
+  (CorePassiveNodeId.efficiencySaving, CorePassiveNodeId.hybridResonanceLoop),
+  (CorePassiveNodeId.hybridResonanceLoop, CorePassiveNodeId.hybridMixedFire),
+  (
+    CorePassiveNodeId.efficiencyDiversity,
+    CorePassiveNodeId.hybridSupplyBarrier,
+  ),
+  (CorePassiveNodeId.controlSelfRepair, CorePassiveNodeId.hybridSupplyBarrier),
+  (
+    CorePassiveNodeId.hybridSupplyBarrier,
+    CorePassiveNodeId.hybridRecoveryBudget,
+  ),
+];
+
+final Map<CorePassiveNodeId, CorePassiveNodeDefinition>
+corePassiveNodeDefinitions = _buildCorePassiveNodeDefinitions();
+
+Map<CorePassiveNodeId, CorePassiveNodeDefinition>
+_buildCorePassiveNodeDefinitions() {
+  final neighbors = {
+    for (final id in CorePassiveNodeId.values) id: <CorePassiveNodeId>{},
+  };
+  for (final (first, second) in _edges) {
+    neighbors[first]!.add(second);
+    neighbors[second]!.add(first);
+  }
+  return Map.unmodifiable({
+    for (final entry in _nodeSpecs.entries)
+      entry.key: CorePassiveNodeDefinition(
+        id: entry.key,
+        branch: entry.value.branch,
+        grade: entry.value.grade,
+        maxRank: _rankCosts(entry.value.grade).length,
+        rankCosts: _rankCosts(entry.value.grade),
+        neighbors: List.unmodifiable(neighbors[entry.key]!),
+        displayValues: entry.value.displayValues,
+      ),
+  });
+}
+
+List<int> _rankCosts(CorePassiveNodeGrade grade) => switch (grade) {
+  CorePassiveNodeGrade.normal => _normalCosts,
+  CorePassiveNodeGrade.notable => _notableCosts,
+  CorePassiveNodeGrade.keystone => _keystoneCosts,
+};
+
+CorePassiveNodeDefinition corePassiveNodeById(CorePassiveNodeId id) =>
+    corePassiveNodeDefinitions[id]!;
+
+int corePassiveCumulativeCost(CorePassiveNodeId id, int rank) {
+  final definition = corePassiveNodeById(id);
+  if (rank < 0 || rank > definition.maxRank) {
+    throw RangeError.range(rank, 0, definition.maxRank, 'rank');
+  }
+  return definition.rankCosts.take(rank).fold(0, (sum, cost) => sum + cost);
+}
+
+int corePassiveSpentPoints(Map<CorePassiveNodeId, int> ranks) {
+  var spent = 0;
+  for (final entry in ranks.entries) {
+    if (entry.value > 0) {
+      spent += corePassiveCumulativeCost(entry.key, entry.value);
+    }
+  }
+  return spent;
+}
+
+Set<CorePassiveNodeId> accessibleCorePassiveNodeIds(
+  Map<CorePassiveNodeId, int> ranks,
+) {
+  final accessible = <CorePassiveNodeId>{...corePassiveStartingNodeIds};
+  var changed = true;
+  while (changed) {
+    changed = false;
+    for (final id in accessible.toList()) {
+      if ((ranks[id] ?? 0) < 3) {
+        continue;
+      }
+      for (final neighbor in corePassiveNodeById(id).neighbors) {
+        changed = accessible.add(neighbor) || changed;
+      }
+    }
+  }
+  return Set.unmodifiable(accessible);
+}
+
+bool isValidCorePassiveAllocation(Map<CorePassiveNodeId, int> ranks) {
+  for (final entry in ranks.entries) {
+    final definition = corePassiveNodeDefinitions[entry.key];
+    if (definition == null ||
+        entry.value < 0 ||
+        entry.value > definition.maxRank) {
+      return false;
+    }
+  }
+  final accessible = accessibleCorePassiveNodeIds(ranks);
+  return ranks.entries.every(
+    (entry) => entry.value == 0 || accessible.contains(entry.key),
+  );
+}
+
+List<String> corePassiveTreeValidationErrors() {
+  final errors = <String>[];
+  if (corePassiveNodeDefinitions.length != CorePassiveNodeId.values.length) {
+    errors.add('node count mismatch');
+  }
+  if (corePassiveStartingNodeIds.length != 6) {
+    errors.add('starting node count mismatch');
+  }
+  for (final definition in corePassiveNodeDefinitions.values) {
+    if (definition.rankCosts.length != definition.maxRank ||
+        definition.displayValues.length != definition.maxRank) {
+      errors.add('${definition.id.name}: rank data mismatch');
+    }
+    if (definition.neighbors.contains(definition.id) ||
+        definition.neighbors.toSet().length != definition.neighbors.length) {
+      errors.add('${definition.id.name}: invalid neighbors');
+    }
+    for (final neighbor in definition.neighbors) {
+      if (!corePassiveNodeById(neighbor).neighbors.contains(definition.id)) {
+        errors.add(
+          '${definition.id.name}: asymmetric neighbor ${neighbor.name}',
+        );
+      }
+    }
+  }
+  final reached = <CorePassiveNodeId>{...corePassiveStartingNodeIds};
+  var changed = true;
+  while (changed) {
+    changed = false;
+    for (final id in reached.toList()) {
+      for (final neighbor in corePassiveNodeById(id).neighbors) {
+        changed = reached.add(neighbor) || changed;
+      }
+    }
+  }
+  if (reached.length != CorePassiveNodeId.values.length) {
+    errors.add('unreachable nodes');
+  }
+  return List.unmodifiable(errors);
+}

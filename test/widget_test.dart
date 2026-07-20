@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/app/rune_nexus_app.dart';
+import 'package:rune_nexus/data/definitions/game_core_passive_tree_data.dart';
 import 'package:rune_nexus/data/definitions/game_stage_maps.dart';
 import 'package:rune_nexus/data/save/game_save_data.dart';
 import 'package:rune_nexus/data/save/save_repository.dart';
@@ -9,6 +11,7 @@ import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
 import 'package:rune_nexus/domain/combat/run_panel_tab.dart';
 import 'package:rune_nexus/domain/core/core_ability.dart';
+import 'package:rune_nexus/domain/core/core_passive_tree.dart';
 import 'package:rune_nexus/domain/gem/gem_type.dart';
 import 'package:rune_nexus/domain/map/grid_point.dart';
 import 'package:rune_nexus/domain/research/research_progress.dart';
@@ -436,9 +439,6 @@ void main() {
 
     expect(find.text('Rune Nexus'), findsOneWidget);
     expect(find.byKey(const ValueKey('menu-resource-bar')), findsNothing);
-    final stagePanelTop = tester
-        .getRect(find.byKey(const ValueKey('main-menu-content-panel')))
-        .top;
     final stageTabRect = tester.getRect(
       find.byKey(const ValueKey('main-menu-tab-stage')),
     );
@@ -480,7 +480,6 @@ void main() {
       find.byKey(const ValueKey('main-menu-content-panel')),
     );
     expect(corePanelRect.top, greaterThanOrEqualTo(resourceBarRect.bottom));
-    expect(corePanelRect.top, lessThan(stagePanelTop));
     expect(find.text('넥서스 코어'), findsOneWidget);
     expect(
       tester
@@ -491,20 +490,10 @@ void main() {
     expect(find.text('전투 스킬 1칸 / 패시브 2칸'), findsNothing);
     expect(find.text('Lv.1'), findsNothing);
     expect(find.text('전투 스킬'), findsWidgets);
-    expect(find.text('패시브 1'), findsOneWidget);
-    expect(find.text('패시브 2'), findsOneWidget);
-    expect(find.text('수호 광선'), findsWidgets);
+    expect(find.text('패시브 트리'), findsOneWidget);
+    expect(find.text('수호 광선'), findsOneWidget);
     expect(find.text('균열 낙인'), findsOneWidget);
     expect(find.text('연쇄 광휘'), findsNothing);
-    final riftMarkCard = find.byKey(const ValueKey('core-ability-균열 낙인'));
-    await tester.ensureVisible(riftMarkCard);
-    await _pumpGameFrames(tester);
-    await tester.tap(riftMarkCard);
-    await _pumpGameFrames(tester);
-    expect(
-      find.textContaining('챕터 2 해금. 내구도 높은 적에게 받는 피해 증가 낙인 부여.'),
-      findsOneWidget,
-    );
     expect(find.text('잠김'), findsWidgets);
     expect(find.text('예상 피해'), findsNothing);
     expect(find.text('평균 DPS 8%'), findsNothing);
@@ -1229,61 +1218,9 @@ void main() {
     },
   );
 
-  testWidgets('core slot board remains anchored when switching ability tabs', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: const [
-          RuneNexusLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        supportedLocales: RuneNexusLocalizations.supportedLocales,
-        home: MainMenuScreen(
-          game: RuneNexusGame(),
-          snapshot: _resultSnapshot(
-            phase: GamePhase.preparation,
-            currentStageNumber: 1,
-            unlockedStageCount: 6,
-            clearedStageNumbers: const {1, 2, 3, 4, 5},
-          ),
-          selectedTab: MainMenuTab.core,
-          onSelectTab: (_) {},
-          onStartStage: (_) {},
-        ),
-      ),
-    );
-    await _pumpGameFrames(tester);
-
-    final combatTabBoard = _coreSocketBoardBounds(tester);
-    expect(find.text('수호 광선'), findsWidgets);
-    expect(find.text('패시브 1'), findsOneWidget);
-    expect(find.text('패시브 2'), findsOneWidget);
-
-    await tester.tap(find.text('패시브'));
-    await _pumpGameFrames(tester);
-
-    expect(find.text('수호 광선'), findsWidgets);
-    expect(find.text('패시브 1'), findsOneWidget);
-    expect(find.text('패시브 2'), findsOneWidget);
-    final passiveTabBoard = _coreSocketBoardBounds(tester);
-    expect(
-      (passiveTabBoard.top - combatTabBoard.top).abs(),
-      lessThanOrEqualTo(4),
-    );
-    expect(
-      (passiveTabBoard.height - combatTabBoard.height).abs(),
-      lessThanOrEqualTo(4),
-    );
-  });
-
   testWidgets(
-    'core passive tab syncs slot selection and equips selected slot',
+    'core menu switches between combat skills and 27-node passive tree',
     (tester) async {
-      final game = _CoreEquipGame();
       await tester.pumpWidget(
         MaterialApp(
           locale: const Locale('ko'),
@@ -1295,13 +1232,13 @@ void main() {
           ],
           supportedLocales: RuneNexusLocalizations.supportedLocales,
           home: MainMenuScreen(
-            game: game,
+            game: RuneNexusGame(),
             snapshot: _resultSnapshot(
               phase: GamePhase.preparation,
               currentStageNumber: 1,
               unlockedStageCount: 6,
               clearedStageNumbers: const {1, 2, 3, 4, 5},
-              corePassiveSlotTwoUnlocked: true,
+              totalCorePoints: 20,
             ),
             selectedTab: MainMenuTab.core,
             onSelectTab: (_) {},
@@ -1311,49 +1248,234 @@ void main() {
       );
       await _pumpGameFrames(tester);
 
-      await tester.tap(find.text('패시브'));
-      await _pumpGameFrames(tester);
+      expect(find.text('전투 스킬'), findsWidgets);
+      expect(find.text('패시브 트리'), findsOneWidget);
+      expect(find.text('수호 광선'), findsOneWidget);
       expect(find.textContaining('패시브 슬롯'), findsNothing);
-      for (final ability in CorePassiveAbility.values) {
-        final abilityCard = find.byKey(
-          ValueKey('core-ability-${ability.label}'),
-        );
+
+      await tester.tap(find.text('패시브 트리'));
+      await _pumpGameFrames(tester);
+
+      for (final id in CorePassiveNodeId.values) {
         expect(
-          find.descendant(
-            of: abilityCard,
-            matching: find.byWidgetPredicate(
-              (widget) =>
-                  widget is CorePassiveIcon && widget.ability == ability,
-            ),
-          ),
+          find.byKey(ValueKey('core-passive-node-${id.name}')),
           findsOneWidget,
         );
       }
-
-      await tester.tap(find.text('패시브 2'));
-      await _pumpGameFrames(tester);
-      expect(find.textContaining('패시브 슬롯'), findsNothing);
-
-      final costSavingDesignCard = find.byKey(
-        const ValueKey('core-ability-절약 설계'),
-      );
-      await tester.ensureVisible(costSavingDesignCard);
-      await _pumpGameFrames(tester);
-      await tester.tap(costSavingDesignCard);
-      await _pumpGameFrames(tester);
-      await tester.tap(
-        find.byKey(const ValueKey('core-selected-ability-action')),
-      );
-      await _pumpGameFrames(tester);
-      expect(game.equippedPassive, CorePassiveAbility.costSavingDesign);
-      expect(game.equippedSlotIndex, 1);
+      expect(find.text('코어 포인트 20'), findsOneWidget);
+      expect(find.text('노드를 선택해 효과와 랭크를 확인하세요'), findsOneWidget);
     },
   );
 
-  testWidgets('core menu fits 320 wide viewport without overflow', (
+  testWidgets('core passive target rank is assigned atomically', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(320, 700);
+    final game = _CoreEquipGame();
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: game,
+          snapshot: _resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 1,
+            totalCorePoints: 20,
+          ),
+          selectedTab: MainMenuTab.core,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await _pumpGameFrames(tester);
+    await tester.tap(find.text('패시브 트리'));
+    await _pumpGameFrames(tester);
+
+    await tester.tap(
+      find.byKey(const ValueKey('core-passive-node-attackHaste')),
+    );
+    await _pumpGameFrames(tester);
+    final increase = find.byKey(const ValueKey('core-passive-rank-increase'));
+    await tester.ensureVisible(increase);
+    await _pumpGameFrames(tester);
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(increase);
+      await _pumpGameFrames(tester);
+    }
+    await tester.tap(find.byKey(const ValueKey('core-passive-assign')));
+    await _pumpGameFrames(tester);
+
+    expect(game.assignedCorePassiveNode, CorePassiveNodeId.attackHaste);
+    expect(game.assignedCorePassiveRank, 3);
+  });
+
+  testWidgets('locked core passive node keeps assign action disabled', (
+    tester,
+  ) async {
+    final snapshots = ValueNotifier(
+      _resultSnapshot(
+        phase: GamePhase.preparation,
+        currentStageNumber: 1,
+        totalCorePoints: 20,
+      ),
+    );
+    addTearDown(snapshots.dispose);
+    final game = _CoreTreeGame(snapshots);
+    await tester.pumpWidget(_coreTreeTestApp(game, snapshots));
+    await _pumpGameFrames(tester);
+    await tester.tap(find.text('패시브 트리'));
+    await _pumpGameFrames(tester);
+
+    await tester.tap(
+      find.byKey(const ValueKey('core-passive-node-attackPrecompute')),
+    );
+    await _pumpGameFrames(tester);
+    final assign = find.byKey(const ValueKey('core-passive-assign'));
+    await tester.ensureVisible(assign);
+    await _pumpGameFrames(tester);
+
+    expect(tester.widget<FilledButton>(assign).onPressed, isNull);
+    expect(find.text('연결된 노드를 강화하면 개방됩니다'), findsOneWidget);
+  });
+
+  testWidgets('rank three start node opens its connected node in the UI', (
+    tester,
+  ) async {
+    final snapshots = ValueNotifier(
+      _resultSnapshot(
+        phase: GamePhase.preparation,
+        currentStageNumber: 1,
+        totalCorePoints: 20,
+      ),
+    );
+    addTearDown(snapshots.dispose);
+    final game = _CoreTreeGame(snapshots);
+    await tester.pumpWidget(_coreTreeTestApp(game, snapshots));
+    await _pumpGameFrames(tester);
+    await tester.tap(find.text('패시브 트리'));
+    await _pumpGameFrames(tester);
+
+    final connectedNode = find.byKey(
+      const ValueKey('core-passive-node-attackPrecompute'),
+    );
+    expect(
+      find.descendant(
+        of: connectedNode,
+        matching: find.byIcon(Icons.lock_outline),
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(
+      find.byKey(const ValueKey('core-passive-node-attackHaste')),
+    );
+    await _pumpGameFrames(tester);
+    final increase = find.byKey(const ValueKey('core-passive-rank-increase'));
+    await tester.ensureVisible(increase);
+    await _pumpGameFrames(tester);
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(increase);
+      await _pumpGameFrames(tester);
+    }
+    await tester.tap(find.byKey(const ValueKey('core-passive-assign')));
+    await _pumpGameFrames(tester);
+
+    expect(
+      snapshots.value.corePassiveNodeRanks[CorePassiveNodeId.attackHaste],
+      3,
+    );
+    expect(
+      find.descendant(
+        of: connectedNode,
+        matching: find.byIcon(Icons.lock_outline),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets('path-breaking core passive refund disables decrease action', (
+    tester,
+  ) async {
+    const ranks = {
+      CorePassiveNodeId.attackHaste: 3,
+      CorePassiveNodeId.attackPrecompute: 1,
+    };
+    final snapshots = ValueNotifier(
+      _resultSnapshot(
+        phase: GamePhase.preparation,
+        currentStageNumber: 1,
+        totalCorePoints: 20,
+        spentCorePoints: 5,
+        availableCorePoints: 15,
+        corePassiveNodeRanks: ranks,
+      ),
+    );
+    addTearDown(snapshots.dispose);
+    final game = _CoreTreeGame(snapshots);
+    await tester.pumpWidget(_coreTreeTestApp(game, snapshots));
+    await _pumpGameFrames(tester);
+    await tester.tap(find.text('패시브 트리'));
+    await _pumpGameFrames(tester);
+
+    await tester.tap(
+      find.byKey(const ValueKey('core-passive-node-attackHaste')),
+    );
+    await _pumpGameFrames(tester);
+    final decrease = find.byKey(const ValueKey('core-passive-rank-decrease'));
+    await tester.ensureVisible(decrease);
+    await _pumpGameFrames(tester);
+    final iconButton = find.descendant(
+      of: decrease,
+      matching: find.byType(IconButton),
+    );
+
+    expect(tester.widget<IconButton>(iconButton).onPressed, isNull);
+    expect(snapshots.value.corePassiveNodeRanks, ranks);
+  });
+
+  testWidgets('confirmed core passive reset clears spent points', (
+    tester,
+  ) async {
+    const ranks = {CorePassiveNodeId.attackHaste: 3};
+    final snapshots = ValueNotifier(
+      _resultSnapshot(
+        phase: GamePhase.preparation,
+        currentStageNumber: 1,
+        totalCorePoints: 20,
+        spentCorePoints: 4,
+        availableCorePoints: 16,
+        corePassiveNodeRanks: ranks,
+      ),
+    );
+    addTearDown(snapshots.dispose);
+    final game = _CoreTreeGame(snapshots);
+    await tester.pumpWidget(_coreTreeTestApp(game, snapshots));
+    await _pumpGameFrames(tester);
+    await tester.tap(find.text('패시브 트리'));
+    await _pumpGameFrames(tester);
+
+    final reset = find.byKey(const ValueKey('core-passive-reset-all'));
+    await tester.tap(reset);
+    await tester.pumpAndSettle();
+    expect(find.text('패시브 트리를 초기화할까요?'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('core-passive-reset-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(snapshots.value.spentCorePoints, 0);
+    expect(snapshots.value.availableCorePoints, 20);
+    expect(snapshots.value.corePassiveNodeRanks, isEmpty);
+    expect(find.text('사용 0'), findsOneWidget);
+  });
+
+  testWidgets('core passive tree details fit a 320px viewport', (tester) async {
+    tester.view.physicalSize = const Size(320, 760);
     tester.view.devicePixelRatio = 1;
     addTearDown(() {
       tester.view.resetPhysicalSize();
@@ -1375,8 +1497,7 @@ void main() {
           snapshot: _resultSnapshot(
             phase: GamePhase.preparation,
             currentStageNumber: 1,
-            unlockedStageCount: 6,
-            clearedStageNumbers: const {1, 2, 3, 4, 5},
+            totalCorePoints: 20,
           ),
           selectedTab: MainMenuTab.core,
           onSelectTab: (_) {},
@@ -1385,398 +1506,20 @@ void main() {
       ),
     );
     await _pumpGameFrames(tester);
-
-    expect(find.byKey(const ValueKey('core-socket-board')), findsOneWidget);
-    expect(find.text('보유 능력'), findsNothing);
-    expect(find.text('전투 스킬'), findsWidgets);
-    expect(find.text('패시브'), findsWidgets);
-    expect(tester.takeException(), isNull);
-
-    await tester.tap(find.text('패시브'));
+    await tester.tap(find.text('패시브 트리'));
     await _pumpGameFrames(tester);
-
-    expect(find.textContaining('패시브 슬롯'), findsNothing);
-    expect(find.text('자가 수복'), findsWidgets);
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('core second passive slot can be unlocked with diamonds', (
-    tester,
-  ) async {
-    final game = _CoreEquipGame();
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: const [
-          RuneNexusLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        supportedLocales: RuneNexusLocalizations.supportedLocales,
-        home: MainMenuScreen(
-          game: game,
-          snapshot: _resultSnapshot(
-            phase: GamePhase.preparation,
-            currentStageNumber: 1,
-            diamonds: 200,
-          ),
-          selectedTab: MainMenuTab.core,
-          onSelectTab: (_) {},
-          onStartStage: (_) {},
-        ),
-      ),
-    );
-    await _pumpGameFrames(tester);
-
-    expect(find.text('해금 가능'), findsOneWidget);
-    expect(find.text('200 다이아 소모'), findsOneWidget);
-
-    await tester.tap(find.text('해금 가능'));
-    await _pumpGameFrames(tester);
-
-    expect(find.text('패시브 슬롯을 해금할까요?'), findsOneWidget);
-    expect(find.text('2번 코어 패시브 슬롯을 200 다이아로 해금합니다.'), findsOneWidget);
-    expect(game.unlockedCorePassiveSlot, isFalse);
-
-    await tester.tap(find.widgetWithText(GameButton, '취소'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('패시브 슬롯을 해금할까요?'), findsNothing);
-    expect(game.unlockedCorePassiveSlot, isFalse);
-
-    await tester.tap(find.text('해금 가능'));
-    await _pumpGameFrames(tester);
-    await tester.tap(find.widgetWithText(GameButton, '해금'));
-    await tester.pumpAndSettle();
-
-    expect(game.unlockedCorePassiveSlot, isTrue);
-  });
-
-  testWidgets('core passive equipped item exposes unequip action', (
-    tester,
-  ) async {
-    final game = _CoreEquipGame();
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: const [
-          RuneNexusLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        supportedLocales: RuneNexusLocalizations.supportedLocales,
-        home: MainMenuScreen(
-          game: game,
-          snapshot: _resultSnapshot(
-            phase: GamePhase.preparation,
-            currentStageNumber: 1,
-            unlockedStageCount: 6,
-            clearedStageNumbers: const {1, 2, 3, 4, 5},
-            corePassiveSlots: const [CorePassiveAbility.selfRepair, null],
-          ),
-          selectedTab: MainMenuTab.core,
-          onSelectTab: (_) {},
-          onStartStage: (_) {},
-        ),
-      ),
-    );
-    await _pumpGameFrames(tester);
-
-    await tester.tap(find.text('패시브'));
-    await _pumpGameFrames(tester);
-
-    final selfRepairCard = find.byKey(const ValueKey('core-ability-자가 수복'));
-    await tester.ensureVisible(selfRepairCard);
-    await _pumpGameFrames(tester);
-    await tester.tap(selfRepairCard);
-    await _pumpGameFrames(tester);
-    final unequipAction = find.byKey(
-      const ValueKey('core-selected-ability-action'),
-    );
-    expect(unequipAction, findsOneWidget);
-
-    await tester.tap(unequipAction);
-    await _pumpGameFrames(tester);
-    expect(game.unequippedSlotIndex, 0);
-  });
-
-  testWidgets('core combat skill can be unequipped and re-equipped', (
-    tester,
-  ) async {
-    final game = _CoreEquipGame();
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: const [
-          RuneNexusLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        supportedLocales: RuneNexusLocalizations.supportedLocales,
-        home: MainMenuScreen(
-          game: game,
-          snapshot: _resultSnapshot(
-            phase: GamePhase.preparation,
-            currentStageNumber: 1,
-          ),
-          selectedTab: MainMenuTab.core,
-          onSelectTab: (_) {},
-          onStartStage: (_) {},
-        ),
-      ),
-    );
-    await _pumpGameFrames(tester);
-
-    final action = find.byKey(const ValueKey('core-selected-ability-action'));
-    expect(action, findsOneWidget);
-    await tester.tap(action);
-    await _pumpGameFrames(tester);
-    expect(game.unequippedCombatSkill, isTrue);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: const [
-          RuneNexusLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        supportedLocales: RuneNexusLocalizations.supportedLocales,
-        home: MainMenuScreen(
-          game: game,
-          snapshot: _resultSnapshot(
-            phase: GamePhase.preparation,
-            currentStageNumber: 1,
-            coreCombatSkill: null,
-          ),
-          selectedTab: MainMenuTab.core,
-          onSelectTab: (_) {},
-          onStartStage: (_) {},
-        ),
-      ),
-    );
-    await _pumpGameFrames(tester);
-
-    expect(find.text('빈 슬롯'), findsWidgets);
-    await tester.tap(action);
-    await _pumpGameFrames(tester);
-    expect(game.equippedCombatSkill, CoreCombatSkill.guardianBeam);
-  });
-
-  testWidgets('core locked and pending abilities stay non-actionable', (
-    tester,
-  ) async {
-    final game = _CoreEquipGame();
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: const [
-          RuneNexusLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        supportedLocales: RuneNexusLocalizations.supportedLocales,
-        home: MainMenuScreen(
-          game: game,
-          snapshot: _resultSnapshot(
-            phase: GamePhase.preparation,
-            currentStageNumber: 1,
-            unlockedStageCount: 1,
-          ),
-          selectedTab: MainMenuTab.core,
-          onSelectTab: (_) {},
-          onStartStage: (_) {},
-        ),
-      ),
-    );
-    await _pumpGameFrames(tester);
-
-    final riftMarkCard = find.byKey(const ValueKey('core-ability-균열 낙인'));
-    await tester.ensureVisible(riftMarkCard);
-    await _pumpGameFrames(tester);
-    await tester.tap(riftMarkCard);
-    await _pumpGameFrames(tester);
-    expect(
-      find.textContaining('챕터 2 해금. 내구도 높은 적에게 받는 피해 증가 낙인 부여.'),
-      findsOneWidget,
-    );
-    expect(find.text('잠김'), findsWidgets);
-    expect(game.equippedCombatSkill, isNull);
-    expect(game.equippedPassive, isNull);
-    expect(game.unequippedSlotIndex, isNull);
-
-    expect(game.equippedPassive, isNull);
-    expect(game.unequippedSlotIndex, isNull);
-  });
-
-  testWidgets('core rift mark equips after chapter two unlock', (tester) async {
-    final game = _CoreEquipGame();
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: const [
-          RuneNexusLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        supportedLocales: RuneNexusLocalizations.supportedLocales,
-        home: MainMenuScreen(
-          game: game,
-          snapshot: _resultSnapshot(
-            phase: GamePhase.preparation,
-            currentStageNumber: 1,
-            unlockedStageCount: 6,
-          ),
-          selectedTab: MainMenuTab.core,
-          onSelectTab: (_) {},
-          onStartStage: (_) {},
-        ),
-      ),
-    );
-    await _pumpGameFrames(tester);
-
-    final riftMarkCard = find.byKey(const ValueKey('core-ability-균열 낙인'));
-    await tester.ensureVisible(riftMarkCard);
-    await _pumpGameFrames(tester);
-    await tester.tap(riftMarkCard);
-    await _pumpGameFrames(tester);
-    expect(find.textContaining('10초마다 내구도 높은 적 4명에게 5초 낙인'), findsOneWidget);
-    expect(find.textContaining('대상이 받는 모든 피해 증가.'), findsOneWidget);
-
     await tester.tap(
-      find.byKey(const ValueKey('core-selected-ability-action')),
+      find.byKey(const ValueKey('core-passive-node-attackHaste')),
+    );
+    await _pumpGameFrames(tester);
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('core-passive-node-details')),
     );
     await _pumpGameFrames(tester);
 
-    expect(game.equippedCombatSkill, CoreCombatSkill.riftMark);
-    expect(game.equippedPassive, isNull);
-    expect(game.unequippedSlotIndex, isNull);
-  });
-
-  testWidgets('core combat skill slot reflects the equipped skill icon', (
-    tester,
-  ) async {
-    Future<void> pumpWithSkill(CoreCombatSkill skill) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          locale: const Locale('ko'),
-          localizationsDelegates: const [
-            RuneNexusLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-          ],
-          supportedLocales: RuneNexusLocalizations.supportedLocales,
-          home: MainMenuScreen(
-            game: RuneNexusGame(),
-            snapshot: _resultSnapshot(
-              phase: GamePhase.preparation,
-              currentStageNumber: 1,
-              unlockedStageCount: 6,
-              coreCombatSkill: skill,
-            ),
-            selectedTab: MainMenuTab.core,
-            onSelectTab: (_) {},
-            onStartStage: (_) {},
-          ),
-        ),
-      );
-      await _pumpGameFrames(tester);
-    }
-
-    final combatSkillSlot = find.byKey(
-      const ValueKey('core-combat-skill-slot'),
-    );
-
-    await pumpWithSkill(CoreCombatSkill.riftMark);
-    expect(
-      find.descendant(
-        of: combatSkillSlot,
-        matching: find.byWidgetPredicate(
-          (widget) =>
-              widget is CoreAbilityIcon &&
-              widget.skill == CoreCombatSkill.riftMark,
-        ),
-      ),
-      findsOneWidget,
-    );
-    expect(
-      find.descendant(
-        of: combatSkillSlot,
-        matching: find.byWidgetPredicate(
-          (widget) =>
-              widget is CoreAbilityIcon &&
-              widget.skill == CoreCombatSkill.guardianBeam,
-        ),
-      ),
-      findsNothing,
-    );
-
-    await pumpWithSkill(CoreCombatSkill.guardianBeam);
-    expect(
-      find.descendant(
-        of: combatSkillSlot,
-        matching: find.byWidgetPredicate(
-          (widget) =>
-              widget is CoreAbilityIcon &&
-              widget.skill == CoreCombatSkill.guardianBeam,
-        ),
-      ),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('core menu keeps run-only combat data out of main menu', (
-    tester,
-  ) async {
-    await _pumpLoadedApp(tester);
-
-    await tester.tap(find.text('코어'));
-    await _pumpGameFrames(tester);
-
-    expect(find.text('넥서스 코어'), findsOneWidget);
-    expect(find.text('전투 스킬 1칸 / 패시브 2칸'), findsNothing);
-    expect(find.text('Lv.1'), findsNothing);
-    expect(find.text('보유 능력'), findsNothing);
-    expect(find.text('전투 스킬'), findsWidgets);
-    expect(find.text('패시브'), findsWidgets);
-    expect(find.text('패시브 1'), findsOneWidget);
-    expect(find.text('패시브 2'), findsOneWidget);
-    expect(find.text('수호 광선'), findsWidgets);
-    expect(find.text('균열 낙인'), findsOneWidget);
-    expect(find.textContaining('5초마다 가장 앞선 적에게 1초간 광선 피해'), findsOneWidget);
-    expect(find.textContaining('포탑 화력이 높을수록 피해 증가.'), findsOneWidget);
-    final riftMarkCard = find.byKey(const ValueKey('core-ability-균열 낙인'));
-    await tester.ensureVisible(riftMarkCard);
-    await _pumpGameFrames(tester);
-    await tester.tap(riftMarkCard);
-    await _pumpGameFrames(tester);
-    expect(
-      find.textContaining('챕터 2 해금. 내구도 높은 적에게 받는 피해 증가 낙인 부여.'),
-      findsOneWidget,
-    );
-    expect(find.text('잠김'), findsWidgets);
-    expect(find.text('예상 피해'), findsNothing);
-    expect(find.text('포탑 배치 필요'), findsNothing);
-    expect(find.text('평균 DPS 8%'), findsNothing);
-    expect(find.text('코어 젬 슬롯'), findsNothing);
-    expect(find.text('젬 공명'), findsNothing);
-
-    await tester.ensureVisible(find.text('패시브'));
-    await tester.tap(find.text('패시브'));
-    await _pumpGameFrames(tester);
-
-    expect(find.textContaining('패시브 슬롯'), findsNothing);
-    expect(find.text('자가 수복'), findsWidgets);
-    expect(find.text('절약 설계'), findsOneWidget);
-    expect(find.text('5라운드마다 넥서스 체력 1 회복'), findsOneWidget);
-    expect(find.byKey(const ValueKey('core-ability-절약 설계')), findsOneWidget);
+    expect(find.text('가속 회로'), findsOneWidget);
+    expect(find.text('할당'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('guardian beam core panel shows beam and saved total damage', (
@@ -2767,6 +2510,7 @@ void main() {
             completedRounds: 40,
             runes: 140,
             lastRunRuneReward: 140,
+            lastRunCorePointReward: 1,
             lastRunPreviousBestRound: 20,
             lastRunWasNewBestRound: true,
             lastRunUnlockedStageNumber: 2,
@@ -2787,6 +2531,7 @@ void main() {
     expect(find.text('스테이지 1 클리어'), findsOneWidget);
     expect(find.text('보상 획득'), findsOneWidget);
     expect(find.text('+140 룬'), findsOneWidget);
+    expect(find.text('+1 코어 포인트'), findsOneWidget);
     expect(find.text('강화 2개 해금'), findsOneWidget);
     expect(find.text('전투 기록'), findsOneWidget);
     expect(find.text('기록'), findsOneWidget);
@@ -2852,6 +2597,10 @@ void main() {
     expect(find.text('저격 포탑'), findsOneWidget);
     expect(find.text('젬'), findsOneWidget);
     expect(find.text('조준경 젬'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('result-core-point-reward')),
+      findsNothing,
+    );
   });
 
   testWidgets('result overlay shows stage five chapter two unlocks', (
@@ -3088,6 +2837,10 @@ void main() {
     expect(find.text('Nexus 붕괴'), findsOneWidget);
     expect(find.text('스테이지 1 종료'), findsOneWidget);
     expect(find.text('+24 룬'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('result-core-point-reward')),
+      findsNothing,
+    );
     expect(find.text('도달 기록 기준 정산'), findsOneWidget);
     expect(find.text('최고 12R'), findsOneWidget);
     expect(find.text('해금 항목'), findsNothing);
@@ -3385,7 +3138,8 @@ void main() {
     expect(find.text('균열 낙인'), findsOneWidget);
     expect(find.text('내구도 높은 적 4명에게 받는 피해 25% 증가 낙인 부여'), findsOneWidget);
     expect(find.text('코어'), findsNothing);
-    expect(find.text('패시브 없음'), findsOneWidget);
+    expect(find.text('패시브 트리'), findsOneWidget);
+    expect(find.text('0 / 0pt'), findsOneWidget);
     expect(find.text('현재 효과 +25%'), findsOneWidget);
     expect(find.text('총 추가 피해 0.00'), findsOneWidget);
     expect(find.text('발동 0회'), findsNothing);
@@ -3841,6 +3595,30 @@ void main() {
   });
 }
 
+Widget _coreTreeTestApp(
+  RuneNexusGame game,
+  ValueListenable<GameSnapshot> snapshots,
+) {
+  return MaterialApp(
+    locale: const Locale('ko'),
+    localizationsDelegates: const [
+      RuneNexusLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+    ],
+    supportedLocales: RuneNexusLocalizations.supportedLocales,
+    home: MainMenuScreen(
+      game: game,
+      snapshot: snapshots.value,
+      snapshotListenable: snapshots,
+      selectedTab: MainMenuTab.core,
+      onSelectTab: (_) {},
+      onStartStage: (_) {},
+    ),
+  );
+}
+
 Future<void> _pumpLoadedApp(WidgetTester tester) async {
   await tester.pumpWidget(
     RuneNexusApp(game: RuneNexusGame(saveRepository: MemorySaveRepository())),
@@ -3851,10 +3629,6 @@ Future<void> _pumpLoadedApp(WidgetTester tester) async {
 Offset _tabLeadingEdge(WidgetTester tester, String key) {
   final rect = tester.getRect(find.byKey(ValueKey(key)));
   return Offset(rect.left + 8, rect.center.dy);
-}
-
-Rect _coreSocketBoardBounds(WidgetTester tester) {
-  return tester.getRect(find.byKey(const ValueKey('core-socket-board')));
 }
 
 Finder _stageChipText(String text) {
@@ -3936,13 +3710,16 @@ GameSnapshot _resultSnapshot({
   Map<ResearchType, int> researchLevels = const {},
   bool researchSlotTwoUnlocked = false,
   CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam,
-  List<CorePassiveAbility?> corePassiveSlots = const [null, null],
+  int totalCorePoints = 0,
+  int spentCorePoints = 0,
+  int availableCorePoints = 0,
+  int lastRunCorePointReward = 0,
+  Map<CorePassiveNodeId, int> corePassiveNodeRanks = const {},
   GridPoint? selectedCorePoint,
   double nexusCoreBeamDamage = 0,
   double coreCombatSkillDirectDamageDealt = 0,
   double coreCombatSkillBonusDamageDealt = 0,
   int coreCombatSkillActivationCount = 0,
-  bool corePassiveSlotTwoUnlocked = false,
   int turretModuleTickets = 0,
   List<TurretModuleInventoryItem> ownedTurretModules = const [],
   int gemShards = 0,
@@ -4042,17 +3819,13 @@ GameSnapshot _resultSnapshot({
     coreCombatSkillBonusDamageDealt: coreCombatSkillBonusDamageDealt,
     coreCombatSkillActivationCount: coreCombatSkillActivationCount,
     coreCombatSkill: coreCombatSkill,
-    corePassiveSlots: corePassiveSlots,
-    corePassiveSlotCount: corePassiveSlotTwoUnlocked ? 2 : 1,
-    corePassiveSlotUnlockCost: RunProgression.corePassiveSlotUnlockCost,
-    canUnlockCorePassiveSlot:
-        !corePassiveSlotTwoUnlocked &&
-        diamonds >= RunProgression.corePassiveSlotUnlockCost,
-    unlockedCorePassiveAbilities: {
-      CorePassiveAbility.selfRepair,
-      CorePassiveAbility.costSavingDesign,
-      CorePassiveAbility.skillAcceleration,
-    },
+    totalCorePoints: totalCorePoints,
+    spentCorePoints: spentCorePoints,
+    availableCorePoints: availableCorePoints == 0 && totalCorePoints > 0
+        ? totalCorePoints - spentCorePoints
+        : availableCorePoints,
+    lastRunCorePointReward: lastRunCorePointReward,
+    corePassiveNodeRanks: corePassiveNodeRanks,
     nextWaveEnemyTypes: const [],
     nextWaveEnemyCounts: const {},
     nextWaveClearRewardGold: 0,
@@ -4179,10 +3952,8 @@ class _CoreEquipGame extends RuneNexusGame {
 
   CoreCombatSkill? equippedCombatSkill;
   bool unequippedCombatSkill = false;
-  CorePassiveAbility? equippedPassive;
-  int? equippedSlotIndex;
-  int? unequippedSlotIndex;
-  bool unlockedCorePassiveSlot = false;
+  CorePassiveNodeId? assignedCorePassiveNode;
+  int? assignedCorePassiveRank;
 
   @override
   bool equipCoreCombatSkill(CoreCombatSkill skill) {
@@ -4197,22 +3968,47 @@ class _CoreEquipGame extends RuneNexusGame {
   }
 
   @override
-  bool equipCorePassiveAbility(CorePassiveAbility ability, int slotIndex) {
-    equippedPassive = ability;
-    equippedSlotIndex = slotIndex;
+  bool setCorePassiveNodeRank(CorePassiveNodeId id, int rank) {
+    assignedCorePassiveNode = id;
+    assignedCorePassiveRank = rank;
+    return true;
+  }
+}
+
+class _CoreTreeGame extends RuneNexusGame {
+  _CoreTreeGame(this.snapshots) : super(saveRepository: MemorySaveRepository());
+
+  final ValueNotifier<GameSnapshot> snapshots;
+
+  @override
+  bool setCorePassiveNodeRank(CorePassiveNodeId id, int rank) {
+    final current = snapshots.value;
+    final ranks = Map<CorePassiveNodeId, int>.of(current.corePassiveNodeRanks);
+    if (rank == 0) {
+      ranks.remove(id);
+    } else {
+      ranks[id] = rank;
+    }
+    _publishRanks(current.totalCorePoints, ranks);
     return true;
   }
 
   @override
-  bool unequipCorePassiveAbility(int slotIndex) {
-    unequippedSlotIndex = slotIndex;
+  bool resetCorePassiveTree() {
+    _publishRanks(snapshots.value.totalCorePoints, const {});
     return true;
   }
 
-  @override
-  bool unlockCorePassiveSlot() {
-    unlockedCorePassiveSlot = true;
-    return true;
+  void _publishRanks(int totalCorePoints, Map<CorePassiveNodeId, int> ranks) {
+    final spentCorePoints = corePassiveSpentPoints(ranks);
+    snapshots.value = _resultSnapshot(
+      phase: GamePhase.preparation,
+      currentStageNumber: 1,
+      totalCorePoints: totalCorePoints,
+      spentCorePoints: spentCorePoints,
+      availableCorePoints: totalCorePoints - spentCorePoints,
+      corePassiveNodeRanks: Map.unmodifiable(ranks),
+    );
   }
 }
 

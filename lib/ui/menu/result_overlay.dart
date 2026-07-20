@@ -80,6 +80,8 @@ class ResultOverlay extends StatelessWidget {
                               const SizedBox(height: 12),
                               _RewardSummary(
                                 runeReward: snapshot.lastRunRuneReward,
+                                corePointReward:
+                                    snapshot.lastRunCorePointReward,
                                 subText: rewardSubText,
                                 success: success,
                               ),
@@ -282,11 +284,13 @@ class _ResultHeader extends StatelessWidget {
 class _RewardSummary extends StatelessWidget {
   const _RewardSummary({
     required this.runeReward,
+    required this.corePointReward,
     required this.subText,
     required this.success,
   });
 
   final int runeReward;
+  final int corePointReward;
   final String subText;
   final bool success;
 
@@ -330,6 +334,22 @@ class _RewardSummary extends StatelessWidget {
               shadows: GameTextStyles.textShadow,
             ),
           ),
+          if (corePointReward > 0) ...[
+            const SizedBox(height: 7),
+            ScaleDownText(
+              RuneNexusLocalizations.of(
+                context,
+              ).corePointReward(corePointReward),
+              key: const ValueKey('result-core-point-reward'),
+              style: const TextStyle(
+                color: Color(0xFF8EE6FF),
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                height: 1,
+                shadows: GameTextStyles.textShadow,
+              ),
+            ),
+          ],
           const SizedBox(height: 7),
           ScaleDownText(
             subText,

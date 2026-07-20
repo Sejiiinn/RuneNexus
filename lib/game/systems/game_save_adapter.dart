@@ -48,9 +48,6 @@ class GameSaveAdapter {
       runCoreCombatSkill: pendingSave?.hasActiveRun == true
           ? pendingSave?.runCoreCombatSkill
           : state.runCoreCombatSkill,
-      runCorePassiveSlots: pendingSave?.hasActiveRun == true
-          ? pendingSave!.runCorePassiveSlots
-          : List.unmodifiable(state.runCorePassiveSlots.take(2)),
       runCoreCombatSkillStats: pendingSave?.hasActiveRun == true
           ? pendingSave!.runCoreCombatSkillStats
           : state.runCoreCombatSkillStats,
@@ -189,7 +186,6 @@ class GameSaveBuildState {
     required this.isPurchasedGemReward,
     required this.rewardReturnPhase,
     required this.runCoreCombatSkill,
-    required this.runCorePassiveSlots,
     required this.runCoreCombatSkillStats,
     required this.turrets,
     required this.enemies,
@@ -217,7 +213,6 @@ class GameSaveBuildState {
   final bool isPurchasedGemReward;
   final GamePhase? rewardReturnPhase;
   final CoreCombatSkill? runCoreCombatSkill;
-  final List<CorePassiveAbility?> runCorePassiveSlots;
   final SavedCoreCombatSkillStats runCoreCombatSkillStats;
   final List<SavedTurret> turrets;
   final List<SavedEnemy> enemies;

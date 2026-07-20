@@ -212,9 +212,9 @@ class _MainMenuDebugPanel extends StatelessWidget {
                 title: '코어',
                 children: [
                   _DebugActionButton(
-                    label: '패시브 초기화',
+                    label: '패시브 트리 초기화',
                     danger: true,
-                    onPressed: game.debugResetCorePassiveProgress,
+                    onPressed: game.resetCorePassiveTree,
                   ),
                 ],
               ),

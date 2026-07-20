@@ -5,6 +5,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/definitions/game_enemy_data.dart';
+import 'package:rune_nexus/data/definitions/game_core_passive_tree_data.dart';
 import 'package:rune_nexus/data/definitions/game_daily_quest_data.dart';
 import 'package:rune_nexus/data/definitions/game_run_upgrade_data.dart';
 import 'package:rune_nexus/data/definitions/game_stage_data.dart';
@@ -16,6 +17,7 @@ import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/combat/game_phase.dart';
 import 'package:rune_nexus/domain/combat/run_panel_tab.dart';
 import 'package:rune_nexus/domain/core/core_ability.dart';
+import 'package:rune_nexus/domain/core/core_passive_tree.dart';
 import 'package:rune_nexus/domain/daily_quest/daily_quest_type.dart';
 import 'package:rune_nexus/domain/enemy/enemy_definition.dart';
 import 'package:rune_nexus/domain/enemy/enemy_resistance_profile.dart';
@@ -200,6 +202,7 @@ void main() {
           clearRewardGold: 0,
         ),
       ],
+      firstClearCorePointReward: 1,
     );
     final stage2 = StageDefinition(
       id: 2,
@@ -219,6 +222,7 @@ void main() {
           clearRewardGold: 0,
         ),
       ],
+      firstClearCorePointReward: 1,
     );
     final game = RuneNexusGame(stages: [stage1, stage2]);
 
@@ -1036,6 +1040,7 @@ void main() {
             clearRewardGold: 0,
           ),
         ],
+        firstClearCorePointReward: 0,
       ),
     );
 
@@ -1072,6 +1077,7 @@ void main() {
             clearRewardGold: 0,
           ),
         ],
+        firstClearCorePointReward: 0,
       ),
     );
 
@@ -2559,23 +2565,8 @@ void main() {
     expect(game.snapshotNotifier.value.activeResearches, isEmpty);
     expect(game.snapshotNotifier.value.researchLevels, isEmpty);
     expect(game.snapshotNotifier.value.researchElapsedMillis, isEmpty);
-    expect(game.snapshotNotifier.value.corePassiveSlotCount, 1);
-
-    game.debugAddDiamonds(200);
-    expect(game.unlockCorePassiveSlot(), isTrue);
-    expect(
-      game.equipCorePassiveAbility(CorePassiveAbility.selfRepair, 1),
-      isTrue,
-    );
-    expect(game.snapshotNotifier.value.corePassiveSlotCount, 2);
-    expect(
-      game.snapshotNotifier.value.corePassiveSlots[1],
-      CorePassiveAbility.selfRepair,
-    );
-
-    game.debugResetCorePassiveProgress();
-    expect(game.snapshotNotifier.value.corePassiveSlotCount, 1);
-    expect(game.snapshotNotifier.value.corePassiveSlots, const [null, null]);
+    expect(game.snapshotNotifier.value.totalCorePoints, 0);
+    expect(game.snapshotNotifier.value.corePassiveNodeRanks, isEmpty);
 
     game.debugSetInstantResearchCompletion(true);
     expect(game.debugInstantResearchCompletion, isTrue);
@@ -2802,7 +2793,7 @@ void main() {
   );
 
   test(
-    'skill acceleration core passive reduces combat skill cooldown only',
+    'allocated attack haste does not change combat skill cooldown',
     () async {
       final repository = MemorySaveRepository()
         ..data = _saveWithCorePassiveRun(
@@ -2811,7 +2802,8 @@ void main() {
           completedRounds: 0,
           unlockedStageCount: 3,
           clearedStageNumbers: const {1, 2},
-          passiveSlots: const [CorePassiveAbility.skillAcceleration, null],
+          totalCorePoints: 20,
+          corePassiveNodeRanks: const {CorePassiveNodeId.attackHaste: 5},
         );
       final game = RuneNexusGame(
         saveRepository: repository,
@@ -2830,7 +2822,7 @@ void main() {
 
       final arrow = gameTurrets[TurretType.arrow]!;
       final expectedBeamDamage = arrow.damage * arrow.attackRate * 5 * 0.08;
-      expect(game.nexusCoreBeamIntervalSeconds, closeTo(4.5, 0.001));
+      expect(game.nexusCoreBeamIntervalSeconds, closeTo(5, 0.001));
       expect(
         game.snapshotNotifier.value.nexusCoreBeamDamage,
         closeTo(expectedBeamDamage, 0.001),
@@ -2847,7 +2839,7 @@ void main() {
       game.startNextWave();
       game.enemies.add(enemy);
 
-      game.update(4.49);
+      game.update(4.99);
 
       expect(game.nexusCoreBeamActive, isFalse);
       expect(enemy.hp, enemy.maxHp);
@@ -2906,7 +2898,6 @@ void main() {
           completedRounds: 0,
           unlockedStageCount: 6,
           clearedStageNumbers: const {1, 2, 3, 4, 5},
-          passiveSlots: const [],
         );
       final game = RuneNexusGame(
         saveRepository: repository,
@@ -3000,7 +2991,7 @@ void main() {
     expect(game.coreCombatSkillDirectDamageDealt, 0);
   });
 
-  test('rift mark cooldown is reduced by skill acceleration', () async {
+  test('allocated attack haste does not change rift mark cooldown', () async {
     final repository = MemorySaveRepository()
       ..data = _saveWithCorePassiveRun(
         nexusHp: 20,
@@ -3008,7 +2999,8 @@ void main() {
         completedRounds: 0,
         unlockedStageCount: 6,
         clearedStageNumbers: const {1, 2, 3, 4, 5},
-        passiveSlots: const [CorePassiveAbility.skillAcceleration, null],
+        totalCorePoints: 20,
+        corePassiveNodeRanks: const {CorePassiveNodeId.attackHaste: 5},
         coreCombatSkill: CoreCombatSkill.riftMark,
       );
     final game = RuneNexusGame(
@@ -3030,8 +3022,8 @@ void main() {
     await game.add(enemy);
     game.enemies.add(enemy);
 
-    expect(game.nexusCoreBeamIntervalSeconds, closeTo(9, 0.001));
-    game.update(8.99);
+    expect(game.nexusCoreBeamIntervalSeconds, closeTo(10, 0.001));
+    game.update(9.99);
     expect(enemy.hasRiftMark, isFalse);
 
     game.update(0.02);
@@ -3047,7 +3039,6 @@ void main() {
         completedRounds: 0,
         unlockedStageCount: 6,
         clearedStageNumbers: const {1, 2, 3, 4, 5},
-        passiveSlots: const [],
         coreCombatSkill: CoreCombatSkill.riftMark,
       );
     final game = RuneNexusGame(
@@ -3100,7 +3091,6 @@ void main() {
         nexusHp: 20,
         roundIndex: 1,
         completedRounds: 1,
-        passiveSlots: const [],
         coreCombatSkillStats: const SavedCoreCombatSkillStats(
           directDamageDealt: 12.5,
           bonusDamageDealt: 7.25,
@@ -3262,7 +3252,7 @@ void main() {
   );
 
   test(
-    'core progression defaults to guardian beam with empty passive slots',
+    'core progression defaults to guardian beam with empty passive tree',
     () {
       final saved = SavedProgression.fromJson(const <String, Object?>{
         'unlockedStageCount': 1,
@@ -3270,18 +3260,11 @@ void main() {
       final progression = RunProgression()..restoreFromSaveData(saved);
 
       expect(progression.coreCombatSkill, CoreCombatSkill.guardianBeam);
-      expect(progression.corePassiveSlots, const [null, null]);
+      expect(progression.totalCorePoints, 0);
+      expect(progression.corePassiveNodeRanks, isEmpty);
       expect(
         progression.toSaveData().coreCombatSkill,
         CoreCombatSkill.guardianBeam,
-      );
-      expect(
-        progression.unlockedCorePassiveAbilities,
-        containsAll({
-          CorePassiveAbility.selfRepair,
-          CorePassiveAbility.costSavingDesign,
-          CorePassiveAbility.skillAcceleration,
-        }),
       );
     },
   );
@@ -3305,120 +3288,133 @@ void main() {
     expect(progression.coreCombatSkill, isNull);
   });
 
-  test('core passive equipment is saved and restored when unlocked', () {
-    const saved = SavedProgression(
-      runes: 0,
-      lastRunRuneReward: 0,
-      startingGoldUpgradeLevel: 0,
-      nexusHpUpgradeLevel: 0,
-      supplyUpgradeLevel: 0,
-      fireTrainingUpgradeLevel: 0,
-      criticalChanceUpgradeLevel: 0,
-      criticalDamageUpgradeLevel: 0,
-      killGoldUpgradeLevel: 0,
-      emergencySaleUpgradeLevel: 0,
-      unlockedStageCount: 6,
-      bestRoundsByStage: {},
-      clearedStageNumbers: {1, 2, 3, 4, 5},
-      researchLevels: {},
-      researchElapsedMillis: {},
-      activeResearches: [],
-      corePassiveSlotTwoUnlocked: true,
-      corePassiveSlots: [
-        CorePassiveAbility.selfRepair,
-        CorePassiveAbility.costSavingDesign,
-      ],
-    );
+  test('legacy passive slot JSON is ignored without compensation', () {
+    final saved = SavedProgression.fromJson(const <String, Object?>{
+      'corePassiveSlotTwoUnlocked': true,
+      'corePassiveSlots': ['selfRepair', 'costSavingDesign'],
+      'totalCorePoints': 0,
+    });
     final progression = RunProgression()..restoreFromSaveData(saved);
 
-    expect(progression.corePassiveSlots, saved.corePassiveSlots);
+    expect(progression.totalCorePoints, 0);
+    expect(progression.corePassiveNodeRanks, isEmpty);
     expect(
-      progression.unlockedCorePassiveAbilities,
-      contains(CorePassiveAbility.skillAcceleration),
+      progression.toSaveData().toJson(),
+      isNot(contains('corePassiveSlots')),
     );
-    final savedAgain = progression.toSaveData();
-    expect(savedAgain.corePassiveSlots, saved.corePassiveSlots);
   });
 
-  test('second core passive slot unlock spends diamonds', () {
-    final progression = RunProgression()
-      ..runes = 500
-      ..freeDiamonds = 120
-      ..paidDiamonds = 80;
+  test('core passive ranks are saved and restored', () {
+    final progression = RunProgression()..grantCorePoints(20);
+    expect(
+      progression.setCorePassiveNodeRank(CorePassiveNodeId.attackHaste, 3),
+      isTrue,
+    );
+    expect(
+      progression.setCorePassiveNodeRank(CorePassiveNodeId.attackPrecompute, 2),
+      isTrue,
+    );
 
-    expect(progression.corePassiveSlotCount, 1);
-    expect(progression.canUnlockCorePassiveSlot, isTrue);
-    expect(progression.unlockCorePassiveSlot(), isTrue);
-    expect(progression.runes, 500);
-    expect(progression.freeDiamonds, 0);
-    expect(progression.paidDiamonds, 0);
-    expect(progression.corePassiveSlotCount, 2);
-    expect(progression.toSaveData().corePassiveSlotTwoUnlocked, isTrue);
-    expect(progression.unlockCorePassiveSlot(), isFalse);
+    final restored = RunProgression()
+      ..restoreFromSaveData(progression.toSaveData());
+
+    expect(restored.totalCorePoints, 20);
+    expect(restored.spentCorePoints, 6);
+    expect(restored.availableCorePoints, 14);
+    expect(restored.corePassiveNodeRanks, progression.corePassiveNodeRanks);
   });
 
-  test('core passive equipment can be unequipped by slot', () {
-    const saved = SavedProgression(
-      runes: 0,
-      lastRunRuneReward: 0,
-      startingGoldUpgradeLevel: 0,
-      nexusHpUpgradeLevel: 0,
-      supplyUpgradeLevel: 0,
-      fireTrainingUpgradeLevel: 0,
-      criticalChanceUpgradeLevel: 0,
-      criticalDamageUpgradeLevel: 0,
-      killGoldUpgradeLevel: 0,
-      emergencySaleUpgradeLevel: 0,
-      unlockedStageCount: 6,
-      bestRoundsByStage: {},
-      clearedStageNumbers: {1, 2, 3, 4, 5},
-      researchLevels: {},
-      researchElapsedMillis: {},
-      activeResearches: [],
-      corePassiveSlots: [CorePassiveAbility.selfRepair, null],
-    );
+  test('core passive revision mismatch resets ranks but preserves points', () {
+    final saved = SavedProgression.fromJson(<String, Object?>{
+      'totalCorePoints': 20,
+      'corePassiveTreeRevision': corePassiveTreeRevision + 1,
+      'corePassiveNodeRanks': const {'attackHaste': 3},
+      'claimedCorePointStageRewards': const [1, 2],
+    });
     final progression = RunProgression()..restoreFromSaveData(saved);
 
-    expect(progression.unequipCorePassiveAbility(0), isTrue);
-    expect(progression.corePassiveSlots, const [null, null]);
-    expect(progression.toSaveData().corePassiveSlots, const [null, null]);
+    expect(progression.totalCorePoints, 20);
+    expect(progression.corePassiveNodeRanks, isEmpty);
+    expect(progression.claimedCorePointStageRewards, {1, 2});
   });
 
-  test(
-    'self repair core passive restores nexus hp every fifth round',
-    () async {
-      final repository = MemorySaveRepository()
-        ..data = _saveWithCorePassiveRun(
-          nexusHp: 19,
-          roundIndex: 4,
-          completedRounds: 4,
-          passiveSlots: const [CorePassiveAbility.selfRepair, null],
-        );
-      final game = RuneNexusGame(
-        waves: _emptyWaves(5),
-        saveRepository: repository,
-      );
-      game.onGameResize(Vector2(400, 800));
-      await game.onLoad();
+  test('stage core point rewards total twenty and only grant once', () {
+    expect(
+      gameStages.fold<int>(
+        0,
+        (sum, stage) => sum + stage.firstClearCorePointReward,
+      ),
+      20,
+    );
+    expect(gameStages[4].firstClearCorePointReward, 2);
+    expect(gameStages[9].firstClearCorePointReward, 3);
+    expect(gameStages[14].firstClearCorePointReward, 3);
 
-      expect(game.snapshotNotifier.value.nexusHp, 19);
+    final progression = RunProgression();
+    progression.finishRun(
+      completedRounds: 40,
+      success: true,
+      stageNumber: 5,
+      firstClearCorePointReward: 2,
+    );
+    expect(progression.totalCorePoints, 2);
+    expect(progression.lastRunCorePointReward, 2);
 
-      game.startNextWave();
-      game.update(0.016);
+    progression.finishRun(
+      completedRounds: 40,
+      success: true,
+      stageNumber: 5,
+      firstClearCorePointReward: 2,
+    );
+    expect(progression.totalCorePoints, 2);
+    expect(progression.lastRunCorePointReward, 0);
 
-      expect(game.snapshotNotifier.value.completedRounds, 5);
-      expect(game.snapshotNotifier.value.phase, GamePhase.success);
-      expect(game.snapshotNotifier.value.nexusHp, 20);
-    },
-  );
+    progression.finishRun(
+      completedRounds: 10,
+      success: false,
+      stageNumber: 10,
+      firstClearCorePointReward: 3,
+    );
+    expect(progression.totalCorePoints, 2);
+    expect(progression.lastRunCorePointReward, 0);
+  });
 
-  test('self repair core passive does not exceed max nexus hp', () async {
+  test('legacy clears receive retroactive core points only once', () async {
     final repository = MemorySaveRepository()
       ..data = _saveWithCorePassiveRun(
         nexusHp: 20,
+        roundIndex: 0,
+        completedRounds: 0,
+        unlockedStageCount: 6,
+        clearedStageNumbers: const {1, 5},
+      );
+    final game = RuneNexusGame(saveRepository: repository);
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    await game.saveNow();
+
+    expect(game.snapshotNotifier.value.totalCorePoints, 3);
+    expect(game.snapshotNotifier.value.lastRunCorePointReward, 0);
+    expect(repository.data!.progression.claimedCorePointStageRewards, {1, 5});
+
+    final restored = RuneNexusGame(saveRepository: repository);
+    restored.onGameResize(Vector2(400, 800));
+    await restored.onLoad();
+    expect(restored.snapshotNotifier.value.totalCorePoints, 3);
+    expect(restored.snapshotNotifier.value.lastRunCorePointReward, 0);
+  });
+
+  test('allocated passive nodes do not affect healing or build cost', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithCorePassiveRun(
+        nexusHp: 19,
         roundIndex: 4,
         completedRounds: 4,
-        passiveSlots: const [CorePassiveAbility.selfRepair, null],
+        totalCorePoints: 20,
+        corePassiveNodeRanks: const {
+          CorePassiveNodeId.controlSelfRepair: 5,
+          CorePassiveNodeId.efficiencySaving: 5,
+        },
       );
     final game = RuneNexusGame(
       waves: _emptyWaves(5),
@@ -3427,43 +3423,10 @@ void main() {
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
 
+    expect(game.turretBuildCost(TurretType.arrow), 60);
     game.startNextWave();
     game.update(0.016);
-
-    expect(game.snapshotNotifier.value.nexusHp, 20);
-    expect(game.snapshotNotifier.value.maxNexusHp, 20);
-  });
-
-  test('cost saving design only discounts turret construction', () async {
-    final repository = MemorySaveRepository()
-      ..data = _saveWithCorePassiveRun(
-        nexusHp: 20,
-        roundIndex: 0,
-        completedRounds: 0,
-        unlockedStageCount: 2,
-        clearedStageNumbers: const {1},
-        passiveSlots: const [CorePassiveAbility.costSavingDesign, null],
-      );
-    final game = RuneNexusGame(saveRepository: repository);
-    game.onGameResize(Vector2(400, 800));
-    await game.onLoad();
-
-    expect(game.turretBuildCost(TurretType.arrow), 51);
-
-    game.tryBuildTurret(const GridPoint(2, 0));
-
-    expect(game.snapshotNotifier.value.gold, 119);
-    expect(game.snapshotNotifier.value.selectedTurretRefundGold, 38);
-    expect(game.snapshotNotifier.value.selectedTurretLevelUpCost, 42);
-
-    game.levelUpSelectedTurret();
-
-    expect(game.snapshotNotifier.value.gold, 77);
-    expect(game.snapshotNotifier.value.selectedTurretRefundGold, 69);
-
-    game.refundSelectedTurret();
-
-    expect(game.snapshotNotifier.value.gold, 146);
+    expect(game.snapshotNotifier.value.nexusHp, 19);
   });
 
   test('status gems are removed from the reward pool', () {
@@ -7003,10 +6966,12 @@ GameSaveData _saveWithCorePassiveRun({
   required int nexusHp,
   required int roundIndex,
   required int completedRounds,
-  required List<CorePassiveAbility?> passiveSlots,
   int unlockedStageCount = 1,
   Set<int> clearedStageNumbers = const {},
   CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam,
+  int totalCorePoints = 0,
+  Map<CorePassiveNodeId, int> corePassiveNodeRanks = const {},
+  Set<int> claimedCorePointStageRewards = const {},
   SavedCoreCombatSkillStats coreCombatSkillStats =
       SavedCoreCombatSkillStats.empty,
 }) {
@@ -7040,7 +7005,9 @@ GameSaveData _saveWithCorePassiveRun({
       researchElapsedMillis: const {},
       activeResearches: const [],
       coreCombatSkill: coreCombatSkill,
-      corePassiveSlots: passiveSlots,
+      totalCorePoints: totalCorePoints,
+      corePassiveNodeRanks: corePassiveNodeRanks,
+      claimedCorePointStageRewards: claimedCorePointStageRewards,
     ),
     runUpgradeLevels: const {},
     killGoldFractionWallet: 0,
@@ -7048,7 +7015,6 @@ GameSaveData _saveWithCorePassiveRun({
     rewardOptions: const [],
     isPurchasedGemReward: false,
     runCoreCombatSkill: coreCombatSkill,
-    runCorePassiveSlots: passiveSlots,
     runCoreCombatSkillStats: coreCombatSkillStats,
     turrets: const [],
     enemies: const [],

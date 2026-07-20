@@ -1,11 +1,13 @@
 import 'dart:math' as math;
 
+import '../../data/definitions/game_core_passive_tree_data.dart' as core_tree;
 import '../../data/definitions/game_daily_quest_data.dart';
 import '../../data/definitions/game_research_data.dart';
 import '../../data/definitions/game_turret_module_data.dart';
 import '../../data/definitions/game_weekly_quest_data.dart';
 import '../../data/save/game_save_data.dart';
 import '../../domain/core/core_ability.dart';
+import '../../domain/core/core_passive_tree.dart';
 import '../../domain/currency/diamond_wallet.dart';
 import '../../domain/daily_quest/daily_quest_type.dart';
 import '../../domain/research/research_progress.dart';
@@ -32,7 +34,6 @@ class RunProgression {
   static const int researchSlotTwoUnlockRequiredStage = 10;
   static const int researchSlotTwoUnlockCost = 600;
   static const int gemShardsPerGemAttunementLevel = 2;
-  static const int corePassiveSlotUnlockCost = 200;
   static const int turretModuleTicketsPerStageClear = 1;
   static const int turretModuleTicketDiamondCost = 80;
   static const int diamondMillisPerResearchMinute = 60000;
@@ -142,8 +143,11 @@ class RunProgression {
   int turretModuleItemSequence = 0;
   final Map<String, TurretModuleInventoryItem> turretModules = {};
   CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam;
-  bool corePassiveSlotTwoUnlocked = false;
-  final List<CorePassiveAbility?> corePassiveSlots = [null, null];
+  int totalCorePoints = 0;
+  int lastRunCorePointReward = 0;
+  int corePassiveTreeRevision = core_tree.corePassiveTreeRevision;
+  final Map<CorePassiveNodeId, int> corePassiveNodeRanks = {};
+  final Set<int> claimedCorePointStageRewards = {};
 
   int get freeDiamonds => _diamondWallet.free;
   set freeDiamonds(int value) {
@@ -253,17 +257,12 @@ class RunProgression {
       researchSlotTwoPurchaseUnlocked &&
       !researchSlotTwoUnlocked &&
       canSpendDiamonds(researchSlotTwoUnlockCost);
-  int get corePassiveSlotCount => corePassiveSlotTwoUnlocked ? 2 : 1;
-  bool get canUnlockCorePassiveSlot =>
-      !corePassiveSlotTwoUnlocked &&
-      canSpendDiamonds(corePassiveSlotUnlockCost);
-  Set<CorePassiveAbility> get unlockedCorePassiveAbilities {
-    return {
-      CorePassiveAbility.selfRepair,
-      CorePassiveAbility.costSavingDesign,
-      CorePassiveAbility.skillAcceleration,
-    };
-  }
+  int get spentCorePoints =>
+      core_tree.corePassiveSpentPoints(corePassiveNodeRanks);
+  int get availableCorePoints => totalCorePoints - spentCorePoints;
+
+  int corePassiveNodeRank(CorePassiveNodeId id) =>
+      corePassiveNodeRanks[id] ?? 0;
 
   List<TurretModuleInventoryItem> get ownedTurretModules {
     final items = turretModules.values.toList()
@@ -1052,9 +1051,12 @@ class RunProgression {
         ),
       ),
       coreCombatSkill: coreCombatSkill,
-      corePassiveSlotTwoUnlocked: corePassiveSlotTwoUnlocked,
-      corePassiveSlots: List<CorePassiveAbility?>.unmodifiable(
-        _sanitizedCorePassiveSlots(),
+      totalCorePoints: totalCorePoints,
+      lastRunCorePointReward: lastRunCorePointReward,
+      corePassiveTreeRevision: corePassiveTreeRevision,
+      corePassiveNodeRanks: Map.unmodifiable(corePassiveNodeRanks),
+      claimedCorePointStageRewards: Set.unmodifiable(
+        claimedCorePointStageRewards,
       ),
     );
   }
@@ -1242,13 +1244,24 @@ class RunProgression {
       );
     _sanitizeTurretModules();
     coreCombatSkill = data.coreCombatSkill;
-    corePassiveSlotTwoUnlocked = data.corePassiveSlotTwoUnlocked;
-    final restoredSlots = data.corePassiveSlots;
-    for (var i = 0; i < corePassiveSlots.length; i++) {
-      corePassiveSlots[i] = i < restoredSlots.length ? restoredSlots[i] : null;
-    }
+    totalCorePoints = math.max(0, data.totalCorePoints);
+    lastRunCorePointReward = math.max(0, data.lastRunCorePointReward);
+    corePassiveTreeRevision = core_tree.corePassiveTreeRevision;
+    claimedCorePointStageRewards
+      ..clear()
+      ..addAll(data.claimedCorePointStageRewards.where((stage) => stage > 0));
+    final restoredRanks = <CorePassiveNodeId, int>{
+      for (final entry in data.corePassiveNodeRanks.entries)
+        if (entry.value > 0) entry.key: entry.value,
+    };
+    final validRestoredTree =
+        data.corePassiveTreeRevision == core_tree.corePassiveTreeRevision &&
+        core_tree.isValidCorePassiveAllocation(restoredRanks) &&
+        core_tree.corePassiveSpentPoints(restoredRanks) <= totalCorePoints;
+    corePassiveNodeRanks
+      ..clear()
+      ..addAll(validRestoredTree ? restoredRanks : const {});
     _sanitizeCoreCombatSkill();
-    _sanitizeCorePassiveSlotsInPlace();
   }
 
   bool equipCoreCombatSkill(CoreCombatSkill skill) {
@@ -1281,66 +1294,71 @@ class RunProgression {
     }
   }
 
-  bool equipCorePassiveAbility(CorePassiveAbility ability, int slotIndex) {
-    if (slotIndex < 0 ||
-        slotIndex >= corePassiveSlotCount ||
-        !unlockedCorePassiveAbilities.contains(ability)) {
+  bool setCorePassiveNodeRank(CorePassiveNodeId id, int targetRank) {
+    final definition = core_tree.corePassiveNodeById(id);
+    final currentRank = corePassiveNodeRank(id);
+    if (targetRank < 0 ||
+        targetRank > definition.maxRank ||
+        targetRank == currentRank) {
       return false;
     }
-    final existingIndex = corePassiveSlots.indexOf(ability);
-    if (existingIndex >= 0 && existingIndex != slotIndex) {
+    final candidate = Map<CorePassiveNodeId, int>.of(corePassiveNodeRanks);
+    if (targetRank == 0) {
+      candidate.remove(id);
+    } else {
+      candidate[id] = targetRank;
+    }
+    if (!core_tree.isValidCorePassiveAllocation(candidate) ||
+        core_tree.corePassiveSpentPoints(candidate) > totalCorePoints) {
       return false;
     }
-    corePassiveSlots[slotIndex] = ability;
-    _sanitizeCorePassiveSlotsInPlace();
+    corePassiveNodeRanks
+      ..clear()
+      ..addAll(candidate);
     return true;
   }
 
-  bool unlockCorePassiveSlot() {
-    if (!canUnlockCorePassiveSlot) {
+  bool resetCorePassiveTree() {
+    if (corePassiveNodeRanks.isEmpty) {
       return false;
     }
-    if (spendDiamonds(corePassiveSlotUnlockCost) == null) {
-      return false;
-    }
-    corePassiveSlotTwoUnlocked = true;
+    corePassiveNodeRanks.clear();
     return true;
   }
 
-  bool unequipCorePassiveAbility(int slotIndex) {
-    if (slotIndex < 0 || slotIndex >= corePassiveSlotCount) {
-      return false;
+  void grantCorePoints(int amount) {
+    if (amount > 0) {
+      totalCorePoints += amount;
     }
-    if (corePassiveSlots[slotIndex] == null) {
-      return false;
-    }
-    corePassiveSlots[slotIndex] = null;
-    return true;
   }
 
-  List<CorePassiveAbility?> _sanitizedCorePassiveSlots() {
-    final slots = List<CorePassiveAbility?>.of(corePassiveSlots);
-    final unlocked = unlockedCorePassiveAbilities;
-    final seen = <CorePassiveAbility>{};
-    for (var i = 0; i < slots.length; i++) {
-      final ability = slots[i];
-      if (i >= corePassiveSlotCount ||
-          ability == null ||
-          !unlocked.contains(ability) ||
-          seen.contains(ability)) {
-        slots[i] = null;
+  int grantFirstClearCorePoints({
+    required int stageNumber,
+    required int reward,
+  }) {
+    if (stageNumber <= 0 ||
+        reward < 0 ||
+        claimedCorePointStageRewards.contains(stageNumber)) {
+      return 0;
+    }
+    claimedCorePointStageRewards.add(stageNumber);
+    grantCorePoints(reward);
+    return reward;
+  }
+
+  int grantRetroactiveCorePointRewards(Map<int, int> rewardsByStage) {
+    var granted = 0;
+    for (final stageNumber in clearedStageNumbers) {
+      final reward = rewardsByStage[stageNumber];
+      if (reward == null) {
         continue;
       }
-      seen.add(ability);
+      granted += grantFirstClearCorePoints(
+        stageNumber: stageNumber,
+        reward: reward,
+      );
     }
-    return slots;
-  }
-
-  void _sanitizeCorePassiveSlotsInPlace() {
-    final slots = _sanitizedCorePassiveSlots();
-    for (var i = 0; i < corePassiveSlots.length; i++) {
-      corePassiveSlots[i] = slots[i];
-    }
+    return granted;
   }
 
   bool upgradeStartingGold() {
@@ -1447,6 +1465,7 @@ class RunProgression {
     required int completedRounds,
     required bool success,
     required int stageNumber,
+    int firstClearCorePointReward = 0,
   }) {
     lastRunRuneReward = runeRewardFor(
       completedRounds,
@@ -1454,6 +1473,12 @@ class RunProgression {
       stageNumber: stageNumber,
     );
     runes += lastRunRuneReward;
+    lastRunCorePointReward = success
+        ? grantFirstClearCorePoints(
+            stageNumber: stageNumber,
+            reward: firstClearCorePointReward,
+          )
+        : 0;
     _recordStageProgress(
       stageNumber: stageNumber,
       completedRounds: completedRounds,
@@ -1572,6 +1597,7 @@ class RunProgression {
 
   void resetLastRunReward() {
     lastRunRuneReward = 0;
+    lastRunCorePointReward = 0;
   }
 }
 
