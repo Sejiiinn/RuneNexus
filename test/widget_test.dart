@@ -1600,16 +1600,102 @@ void main() {
     await tester.tap(find.text('패시브 트리'));
     await _pumpGameFrames(tester);
 
-    await tester.tap(
-      find.byKey(const ValueKey('core-passive-node-attackPrecompute')),
+    final lockedNode = find.byKey(
+      const ValueKey('core-passive-node-attackPrecompute'),
     );
+    await tester.tap(lockedNode);
     await _pumpGameFrames(tester);
+    final details = find.byKey(const ValueKey('core-passive-node-details'));
+    final increase = find.byKey(const ValueKey('core-passive-rank-increase'));
     final assign = find.byKey(const ValueKey('core-passive-assign'));
     await tester.ensureVisible(assign);
     await _pumpGameFrames(tester);
 
+    expect(details, findsOneWidget);
+    expect(find.text('선행 계산'), findsOneWidget);
+    expect(find.text('효과'), findsOneWidget);
+    expect(find.text('현재 효과'), findsNothing);
+    expect(find.text('다음 효과'), findsNothing);
+    expect(
+      find.text('라운드 첫 코어 스킬을 10% 충전 상태로 시작', findRichText: true),
+      findsOneWidget,
+    );
+    expect(find.text('필요 포인트'), findsOneWidget);
+    expect(find.text('1'), findsOneWidget);
+    TextSpan selectedEffectSpan() =>
+        tester
+                .widget<RichText>(
+                  find.byKey(const ValueKey('core-passive-selected-effect')),
+                )
+                .text
+            as TextSpan;
+
+    final previewEffect = selectedEffectSpan();
+    final previewNumber = previewEffect.children!
+        .whereType<TextSpan>()
+        .singleWhere((span) => span.text == '10%');
+    expect(previewEffect.style!.color, const Color(0xFF778995));
+    expect(previewNumber.style!.color, isNot(previewEffect.style!.color));
+    expect(
+      tester
+          .widget<IconButton>(
+            find.descendant(of: increase, matching: find.byType(IconButton)),
+          )
+          .onPressed,
+      isNull,
+    );
     expect(tester.widget<FilledButton>(assign).onPressed, isNull);
     expect(find.text('연결된 노드를 강화하면 개방됩니다'), findsOneWidget);
+    expect(snapshots.value.corePassiveNodeRanks, isEmpty);
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(const ValueKey('core-passive-planned-points')),
+          )
+          .data,
+      '예정 0',
+    );
+
+    final selectedNodeContainer = tester.widget<AnimatedContainer>(
+      find.descendant(of: lockedNode, matching: find.byType(AnimatedContainer)),
+    );
+    final selectedDecoration =
+        selectedNodeContainer.decoration! as BoxDecoration;
+    final selectedBorder = selectedDecoration.border! as Border;
+    expect(selectedBorder.top.color, const Color(0xFFE8FBFF));
+
+    final startingNode = find.byKey(
+      const ValueKey('core-passive-node-attackHaste'),
+    );
+    await tester.ensureVisible(startingNode);
+    await _pumpGameFrames(tester);
+    await tester.drag(
+      find.byType(SingleChildScrollView).first,
+      const Offset(0, 80),
+    );
+    await _pumpGameFrames(tester);
+    await tester.tap(startingNode);
+    await _pumpGameFrames(tester);
+    await tester.ensureVisible(increase);
+    await tester.tap(increase);
+    await _pumpGameFrames(tester);
+
+    final activeEffect = selectedEffectSpan();
+    final activeNumber = activeEffect.children!
+        .whereType<TextSpan>()
+        .singleWhere((span) => span.text == '2%');
+    expect(activeEffect.toPlainText(), '코어 스킬 재사용 대기시간 2% 감소');
+    expect(activeEffect.style!.color, const Color(0xFFC8D9E2));
+    expect(activeNumber.style!.color, isNot(activeEffect.style!.color));
+    expect(activeNumber.style!.color, isNot(previewNumber.style!.color));
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(const ValueKey('core-passive-selected-rank')),
+          )
+          .data,
+      '예정 랭크 0 → 1 / 5',
+    );
   });
 
   testWidgets('rank three start node opens its connected node in the UI', (

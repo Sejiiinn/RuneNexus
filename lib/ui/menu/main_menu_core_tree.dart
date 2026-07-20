@@ -1350,11 +1350,13 @@ class _CorePassiveNodeDetails extends StatelessWidget {
     final currentRank = snapshot.corePassiveNodeRanks[id] ?? 0;
     final targetRank = draftRanks[id] ?? 0;
     final accessible = accessibleCorePassiveNodeIds(draftRanks).contains(id);
-    final currentEffect = currentRank > 0
-        ? l10n.corePassiveNodeEffect(id, currentRank)
-        : '—';
-    final nextEffect = targetRank < definition.maxRank
-        ? l10n.corePassiveNodeEffect(id, targetRank + 1)
+    final previewingFirstRank = targetRank == 0;
+    final effect = l10n.corePassiveNodeEffect(
+      id,
+      previewingFirstRank ? 1 : targetRank,
+    );
+    final nextRankCost = targetRank < definition.maxRank
+        ? '${definition.rankCosts[targetRank]}'
         : l10n.corePassiveMaxRank;
     final costDelta =
         corePassiveSpentPoints(draftRanks) - snapshot.spentCorePoints;
@@ -1421,18 +1423,20 @@ class _CorePassiveNodeDetails extends StatelessWidget {
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
               ),
-            )
-          else ...[
-            _CorePassiveEffectLine(
-              label: l10n.corePassiveCurrentEffect,
-              value: currentEffect,
             ),
-            const SizedBox(height: 4),
-            _CorePassiveEffectLine(
-              label: l10n.corePassiveNextEffect,
-              value: nextEffect,
-            ),
-          ],
+          if (!accessible && currentRank == 0) const SizedBox(height: 6),
+          _CorePassiveEffectLine(
+            label: l10n.corePassiveEffect,
+            value: effect,
+            accent: accent,
+            muted: previewingFirstRank,
+            highlightNumbers: true,
+          ),
+          const SizedBox(height: 4),
+          _CorePassiveEffectLine(
+            label: l10n.corePassiveRequiredPoints,
+            value: nextRankCost,
+          ),
           const SizedBox(height: 9),
           Row(
             children: [
@@ -1520,13 +1524,24 @@ class _CorePassiveNodeDetails extends StatelessWidget {
 }
 
 class _CorePassiveEffectLine extends StatelessWidget {
-  const _CorePassiveEffectLine({required this.label, required this.value});
+  const _CorePassiveEffectLine({
+    required this.label,
+    required this.value,
+    this.accent,
+    this.muted = false,
+    this.highlightNumbers = false,
+  }) : assert(!highlightNumbers || accent != null);
 
   final String label;
   final String value;
+  final Color? accent;
+  final bool muted;
+  final bool highlightNumbers;
 
   @override
   Widget build(BuildContext context) {
+    final baseColor = muted ? const Color(0xFF778995) : const Color(0xFFC8D9E2);
+    final numericColor = accent?.withValues(alpha: muted ? 0.55 : 0.95);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1542,18 +1557,63 @@ class _CorePassiveEffectLine extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              color: Color(0xFFC8D9E2),
-              fontSize: 9,
-              height: 1.25,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          child: highlightNumbers
+              ? RichText(
+                  key: const ValueKey('core-passive-selected-effect'),
+                  text: TextSpan(
+                    style: TextStyle(
+                      color: baseColor,
+                      fontSize: 9,
+                      height: 1.25,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    children: _highlightedEffectSpans(
+                      value,
+                      numericColor: numericColor!,
+                    ),
+                  ),
+                )
+              : Text(
+                  value,
+                  style: TextStyle(
+                    color: baseColor,
+                    fontSize: 9,
+                    height: 1.25,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
         ),
       ],
     );
+  }
+
+  List<TextSpan> _highlightedEffectSpans(
+    String text, {
+    required Color numericColor,
+  }) {
+    final spans = <TextSpan>[];
+    var offset = 0;
+    for (final match in RegExp(
+      r'\d+(?:\.\d+)?(?:%|초|라운드|중첩|종|회|기|HP)?',
+    ).allMatches(text)) {
+      if (match.start > offset) {
+        spans.add(TextSpan(text: text.substring(offset, match.start)));
+      }
+      spans.add(
+        TextSpan(
+          text: match.group(0),
+          style: TextStyle(color: numericColor, fontWeight: FontWeight.w900),
+        ),
+      );
+      offset = match.end;
+    }
+    if (offset < text.length) {
+      spans.add(TextSpan(text: text.substring(offset)));
+    }
+    if (spans.isEmpty) {
+      spans.add(TextSpan(text: text));
+    }
+    return spans;
   }
 }
 

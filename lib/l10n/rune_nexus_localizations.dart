@@ -57,6 +57,7 @@ class RuneNexusLocalizations {
   String get corePassiveCurrentEffect =>
       _isEnglish ? 'Current effect' : '현재 효과';
   String get corePassiveNextEffect => _isEnglish ? 'Next effect' : '다음 효과';
+  String get corePassiveEffect => _isEnglish ? 'Effect' : '효과';
   String get corePassiveRequiredPoints =>
       _isEnglish ? 'Required points' : '필요 포인트';
   String get corePassiveMaxRank => _isEnglish ? 'Maximum rank' : '최대 랭크';
