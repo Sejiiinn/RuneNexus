@@ -68,11 +68,13 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
   List<_CorePassiveAllocationWave> _allocationWaves = const [];
   Map<CorePassiveNodeId, int> _allocationTargetRanks = const {};
   int _allocationTimelineDurationMs = 0;
+  bool _clampingTransform = false;
 
   @override
   void initState() {
     super.initState();
     _draftRanks = Map.of(widget.snapshot.corePassiveNodeRanks);
+    _transformationController.addListener(_clampTransformToViewport);
     _allocationController = AnimationController(vsync: this)
       ..addListener(() {
         if (mounted && _isAllocating) {
@@ -83,6 +85,7 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
 
   @override
   void dispose() {
+    _transformationController.removeListener(_clampTransformToViewport);
     _allocationController.dispose();
     _transformationController.dispose();
     super.dispose();
@@ -151,8 +154,12 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
                   scaleEnabled: true,
                   minScale: fitScale,
                   maxScale: fitScale * 2.2,
-                  boundaryMargin: const EdgeInsets.all(84),
-                  onInteractionEnd: (_) => _centerAtMinimumScale(),
+                  boundaryMargin: EdgeInsets.zero,
+                  onInteractionUpdate: (_) => _clampTransformToViewport(),
+                  onInteractionEnd: (_) {
+                    _clampTransformToViewport();
+                    _centerAtMinimumScale();
+                  },
                   child: _CorePassiveTreeWorld(
                     actualRanks: _actualRanksForRendering,
                     draftRanks: _draftRanksForRendering,
@@ -458,6 +465,34 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
         minimumScale,
       );
     });
+  }
+
+  void _clampTransformToViewport() {
+    final viewport = _viewportSize;
+    if (viewport == null || _clampingTransform) return;
+    final current = _transformationController.value;
+    final scale = current.getMaxScaleOnAxis();
+    final scaledWorld = _corePassiveTreeWorldSize * scale;
+
+    double clampAxis(double translation, double viewportExtent) {
+      if (scaledWorld <= viewportExtent) {
+        return (viewportExtent - scaledWorld) / 2;
+      }
+      return translation.clamp(viewportExtent - scaledWorld, 0).toDouble();
+    }
+
+    final dx = clampAxis(current.storage[12], viewport.width);
+    final dy = clampAxis(current.storage[13], viewport.height);
+    if ((dx - current.storage[12]).abs() < 0.01 &&
+        (dy - current.storage[13]).abs() < 0.01) {
+      return;
+    }
+    final clamped = Matrix4.copy(current);
+    clamped.storage[12] = dx;
+    clamped.storage[13] = dy;
+    _clampingTransform = true;
+    _transformationController.value = clamped;
+    _clampingTransform = false;
   }
 
   void _centerAtMinimumScale() {

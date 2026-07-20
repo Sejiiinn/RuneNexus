@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -1773,6 +1775,73 @@ void main() {
     await _pumpGameFrames(tester);
     await tester.tap(find.text('패시브 트리'));
     await _pumpGameFrames(tester);
+
+    final viewerFinder = find.byKey(const ValueKey('core-passive-tree-viewer'));
+    final viewer = tester.widget<InteractiveViewer>(viewerFinder);
+    final controller = viewer.transformationController!;
+    final viewport = tester.getSize(viewerFinder);
+    const worldSize = 720.0;
+    final expectedMinScale =
+        math.min(viewport.width / worldSize, viewport.height / worldSize) *
+        0.92;
+
+    void expectWorldTransformClamped() {
+      final matrix = controller.value;
+      final scale = matrix.getMaxScaleOnAxis();
+      final dx = matrix.storage[12];
+      final dy = matrix.storage[13];
+
+      void expectAxisClamped(double translation, double viewportExtent) {
+        final scaledWorld = worldSize * scale;
+        if (scaledWorld <= viewportExtent + 0.01) {
+          expect(
+            translation,
+            closeTo((viewportExtent - scaledWorld) / 2, 0.01),
+          );
+          return;
+        }
+        expect(
+          translation,
+          greaterThanOrEqualTo(viewportExtent - scaledWorld - 0.01),
+        );
+        expect(translation, lessThanOrEqualTo(0.01));
+      }
+
+      expectAxisClamped(dx, viewport.width);
+      expectAxisClamped(dy, viewport.height);
+    }
+
+    expect(viewer.minScale, closeTo(expectedMinScale, 0.0001));
+    expect(
+      controller.value.getMaxScaleOnAxis(),
+      closeTo(expectedMinScale, 0.0001),
+    );
+    expectWorldTransformClamped();
+    await tester.drag(viewerFinder, const Offset(1200, 1200));
+    await _pumpGameFrames(tester);
+    expectWorldTransformClamped();
+
+    final zoomScale = viewer.minScale * 1.8;
+    final zoomDx = (viewport.width - worldSize * zoomScale) / 2;
+    final zoomDy = (viewport.height - worldSize * zoomScale) / 2;
+    controller.value = Matrix4.identity()
+      ..translateByDouble(zoomDx, zoomDy, 0, 1)
+      ..scaleByDouble(zoomScale, zoomScale, zoomScale, 1);
+    await _pumpGameFrames(tester);
+    await tester.drag(viewerFinder, const Offset(-1600, -1600));
+    await _pumpGameFrames(tester);
+    expectWorldTransformClamped();
+    await tester.drag(viewerFinder, const Offset(1600, 1600));
+    await _pumpGameFrames(tester);
+    expectWorldTransformClamped();
+
+    final minDx = (viewport.width - worldSize * viewer.minScale) / 2;
+    final minDy = (viewport.height - worldSize * viewer.minScale) / 2;
+    controller.value = Matrix4.identity()
+      ..translateByDouble(minDx, minDy, 0, 1)
+      ..scaleByDouble(viewer.minScale, viewer.minScale, viewer.minScale, 1);
+    await _pumpGameFrames(tester);
+
     await tester.tap(
       find.byKey(const ValueKey('core-passive-node-attackHaste')),
     );
