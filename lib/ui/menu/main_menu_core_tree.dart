@@ -167,6 +167,8 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
                     selectedNodeId: _selectedNodeId,
                     allocationWaves: _allocationWaves,
                     allocationElapsedMs: _allocationElapsedMs,
+                    viewportSize: viewport,
+                    fitScale: fitScale,
                     onSelectNode: _selectNode,
                   ),
                 ),
@@ -661,6 +663,8 @@ class _CorePassiveTreeWorld extends StatelessWidget {
     required this.selectedNodeId,
     required this.allocationWaves,
     required this.allocationElapsedMs,
+    required this.viewportSize,
+    required this.fitScale,
     required this.onSelectNode,
   });
 
@@ -670,21 +674,32 @@ class _CorePassiveTreeWorld extends StatelessWidget {
   final CorePassiveNodeId? selectedNodeId;
   final List<_CorePassiveAllocationWave> allocationWaves;
   final double allocationElapsedMs;
+  final Size viewportSize;
+  final double fitScale;
   final ValueChanged<CorePassiveNodeId> onSelectNode;
 
   @override
   Widget build(BuildContext context) {
     final accessible = accessibleCorePassiveNodeIds(draftRanks);
+    final backgroundSize = Size(
+      viewportSize.width / fitScale,
+      viewportSize.height / fitScale,
+    );
     return SizedBox(
       width: _corePassiveTreeWorldSize,
       height: _corePassiveTreeWorldSize,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Positioned.fill(
+          Positioned(
+            left: (_corePassiveTreeWorldSize - backgroundSize.width) / 2,
+            top: (_corePassiveTreeWorldSize - backgroundSize.height) / 2,
+            width: backgroundSize.width,
+            height: backgroundSize.height,
             child: IgnorePointer(
               child: Image.asset(
                 _corePassiveTreeBackgroundAsset,
+                key: const ValueKey('core-passive-tree-background'),
                 fit: BoxFit.cover,
                 filterQuality: FilterQuality.medium,
                 excludeFromSemantics: true,

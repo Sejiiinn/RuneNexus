@@ -1863,9 +1863,13 @@ void main() {
     await _pumpGameFrames(tester);
 
     final viewerFinder = find.byKey(const ValueKey('core-passive-tree-viewer'));
+    final backgroundFinder = find.byKey(
+      const ValueKey('core-passive-tree-background'),
+    );
     final viewer = tester.widget<InteractiveViewer>(viewerFinder);
     final controller = viewer.transformationController!;
     final viewport = tester.getSize(viewerFinder);
+    final initialBackgroundRect = tester.getRect(backgroundFinder);
     const worldSize = 720.0;
     final expectedMinScale =
         math.min(viewport.width / worldSize, viewport.height / worldSize) *
@@ -1897,7 +1901,28 @@ void main() {
       expectAxisClamped(dy, viewport.height);
     }
 
+    void expectBackgroundCoversViewport() {
+      final backgroundRect = tester.getRect(backgroundFinder);
+      final viewportRect = tester.getRect(viewerFinder);
+      expect(backgroundRect.left, lessThanOrEqualTo(viewportRect.left + 0.01));
+      expect(backgroundRect.top, lessThanOrEqualTo(viewportRect.top + 0.01));
+      expect(
+        backgroundRect.right,
+        greaterThanOrEqualTo(viewportRect.right - 0.01),
+      );
+      expect(
+        backgroundRect.bottom,
+        greaterThanOrEqualTo(viewportRect.bottom - 0.01),
+      );
+    }
+
     expect(viewer.minScale, closeTo(expectedMinScale, 0.0001));
+    expect(backgroundFinder, findsOneWidget);
+    expect(
+      find.ancestor(of: backgroundFinder, matching: viewerFinder),
+      findsOneWidget,
+    );
+    expectBackgroundCoversViewport();
     expect(
       controller.value.getMaxScaleOnAxis(),
       closeTo(expectedMinScale, 0.0001),
@@ -1917,9 +1942,15 @@ void main() {
     await tester.drag(viewerFinder, const Offset(-1600, -1600));
     await _pumpGameFrames(tester);
     expectWorldTransformClamped();
+    expectBackgroundCoversViewport();
     await tester.drag(viewerFinder, const Offset(1600, 1600));
     await _pumpGameFrames(tester);
     expectWorldTransformClamped();
+    expectBackgroundCoversViewport();
+    expect(
+      tester.getRect(backgroundFinder).width,
+      greaterThan(initialBackgroundRect.width),
+    );
 
     final minDx = (viewport.width - worldSize * viewer.minScale) / 2;
     final minDy = (viewport.height - worldSize * viewer.minScale) / 2;
