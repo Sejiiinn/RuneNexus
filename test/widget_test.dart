@@ -1498,6 +1498,21 @@ void main() {
       await tester.tap(assign);
 
       await tester.pump(const Duration(milliseconds: 20));
+      expect(snapshots.value.corePassiveNodeRanks, {
+        CorePassiveNodeId.attackHaste: 3,
+        CorePassiveNodeId.efficiencySaving: 3,
+        CorePassiveNodeId.attackPrecompute: 1,
+        CorePassiveNodeId.efficiencyFirstDeploy: 1,
+      });
+      expect(find.text('0→3/5'), findsNothing);
+      expect(find.text('3/5'), findsNWidgets(2));
+      expect(
+        find.byKey(const ValueKey('core-passive-activation-attackHaste')),
+        findsNothing,
+      );
+
+      await tester.pump(const Duration(milliseconds: 290));
+      await tester.pump();
       expect(
         find.byKey(const ValueKey('core-passive-activation-attackHaste')),
         findsOneWidget,
@@ -1517,7 +1532,27 @@ void main() {
         findsNothing,
       );
 
-      await tester.pump(const Duration(milliseconds: 170));
+      await tester.pump(const Duration(milliseconds: 210));
+      await tester.pump();
+      expect(
+        find.byKey(const ValueKey('core-passive-activation-attackHaste')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('core-passive-activation-efficiencySaving')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('core-passive-activation-attackPrecompute')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(
+          const ValueKey('core-passive-activation-efficiencyFirstDeploy'),
+        ),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(milliseconds: 220));
       await tester.pump();
       expect(
         find.byKey(const ValueKey('core-passive-activation-attackHaste')),
@@ -1537,16 +1572,10 @@ void main() {
         ),
         findsOneWidget,
       );
-      await tester.pump(const Duration(milliseconds: 170));
+      await tester.pump(const Duration(milliseconds: 200));
       await tester.pump();
       expect(
         find.byKey(const ValueKey('core-passive-activation-attackPrecompute')),
-        findsNothing,
-      );
-      expect(
-        find.byKey(
-          const ValueKey('core-passive-activation-efficiencyFirstDeploy'),
-        ),
         findsNothing,
       );
     },

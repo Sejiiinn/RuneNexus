@@ -8,6 +8,11 @@ const String _corePassiveTreeCoreAsset =
     'assets/images/core_passive_tree/nexus_core.png';
 const String _corePassiveTreeFrameAsset =
     'assets/images/core_passive_tree/notable_hex_frame.png';
+const int _corePassiveWaveIntervalMs = 200;
+const int _corePassiveLineGrowMs = 340;
+const int _corePassiveLineFadeMs = 160;
+const int _corePassiveNodeGlowDelayMs = 280;
+const int _corePassiveNodeGlowMs = 420;
 
 const Map<CorePassiveNodeId, ({double radius, double angle})>
 _corePassiveNodePolarPositions = {
@@ -61,10 +66,8 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
   double _minimumScale = 1;
   bool _isAllocating = false;
   List<_CorePassiveAllocationWave> _allocationWaves = const [];
-  Map<CorePassiveNodeId, int> _allocationBaseRanks = const {};
   Map<CorePassiveNodeId, int> _allocationTargetRanks = const {};
-  int _completedAllocationWaves = 0;
-  int _activeAllocationWave = -1;
+  int _allocationTimelineDurationMs = 0;
 
   @override
   void initState() {
@@ -155,8 +158,8 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
                     draftRanks: _draftRanksForRendering,
                     renderedRanks: _renderedRanks,
                     selectedNodeId: _selectedNodeId,
-                    activeWave: _activeWave,
-                    allocationProgress: _allocationController.value,
+                    allocationWaves: _allocationWaves,
+                    allocationElapsedMs: _allocationElapsedMs,
                     onSelectNode: _selectNode,
                   ),
                 ),
@@ -273,17 +276,19 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
     final waves = _buildAllocationWaves(baseRanks, targetRanks);
     setState(() {
       _isAllocating = true;
-      _allocationBaseRanks = baseRanks;
       _allocationTargetRanks = targetRanks;
       _allocationWaves = waves;
-      _completedAllocationWaves = 0;
-      _activeAllocationWave = waves.isEmpty ? -1 : 0;
+      _allocationTimelineDurationMs = waves.isEmpty
+          ? 0
+          : (waves.length - 1) * _corePassiveWaveIntervalMs +
+                _corePassiveNodeGlowDelayMs +
+                _corePassiveNodeGlowMs;
     });
     if (!widget.game.setCorePassiveNodeRanks(targetRanks)) {
       setState(() {
         _isAllocating = false;
         _allocationWaves = const [];
-        _activeAllocationWave = -1;
+        _allocationTimelineDurationMs = 0;
       });
       return;
     }
@@ -362,15 +367,11 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
       _finishAllocationSequence();
       return;
     }
-    _allocationController.duration = const Duration(milliseconds: 160);
+    _allocationController.duration = Duration(
+      milliseconds: _allocationTimelineDurationMs,
+    );
     try {
-      for (var index = 0; index < _allocationWaves.length; index++) {
-        if (!mounted) return;
-        setState(() => _activeAllocationWave = index);
-        await _allocationController.forward(from: 0).orCancel;
-        if (!mounted) return;
-        setState(() => _completedAllocationWaves = index + 1);
-      }
+      await _allocationController.forward(from: 0).orCancel;
     } on TickerCanceled {
       return;
     }
@@ -383,10 +384,8 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
       _isAllocating = false;
       _draftRanks = Map.of(_allocationTargetRanks);
       _allocationWaves = const [];
-      _allocationBaseRanks = const {};
       _allocationTargetRanks = const {};
-      _completedAllocationWaves = 0;
-      _activeAllocationWave = -1;
+      _allocationTimelineDurationMs = 0;
     });
   }
 
@@ -430,33 +429,18 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
   int get _draftSpentPoints => corePassiveSpentPoints(_draftRanks);
 
   Map<CorePassiveNodeId, int> get _actualRanksForRendering => _isAllocating
-      ? _allocationBaseRanks
+      ? _allocationTargetRanks
       : widget.snapshot.corePassiveNodeRanks;
 
   Map<CorePassiveNodeId, int> get _draftRanksForRendering =>
       _isAllocating ? _allocationTargetRanks : _draftRanks;
 
-  Map<CorePassiveNodeId, int> get _renderedRanks {
-    if (!_isAllocating) return widget.snapshot.corePassiveNodeRanks;
-    final rendered = Map<CorePassiveNodeId, int>.of(_allocationBaseRanks);
-    for (var index = 0; index < _completedAllocationWaves; index++) {
-      for (final step in _allocationWaves[index].steps) {
-        final rank = _allocationTargetRanks[step.nodeId] ?? 0;
-        if (rank == 0) {
-          rendered.remove(step.nodeId);
-        } else {
-          rendered[step.nodeId] = rank;
-        }
-      }
-    }
-    return rendered;
-  }
+  Map<CorePassiveNodeId, int> get _renderedRanks => _isAllocating
+      ? _allocationTargetRanks
+      : widget.snapshot.corePassiveNodeRanks;
 
-  _CorePassiveAllocationWave? get _activeWave =>
-      _activeAllocationWave >= 0 &&
-          _activeAllocationWave < _allocationWaves.length
-      ? _allocationWaves[_activeAllocationWave]
-      : null;
+  double get _allocationElapsedMs =>
+      _allocationController.value * _allocationTimelineDurationMs;
 
   void _synchronizeViewport(Size viewport, double minimumScale) {
     if (_viewportSize == viewport &&
@@ -640,8 +624,8 @@ class _CorePassiveTreeWorld extends StatelessWidget {
     required this.draftRanks,
     required this.renderedRanks,
     required this.selectedNodeId,
-    required this.activeWave,
-    required this.allocationProgress,
+    required this.allocationWaves,
+    required this.allocationElapsedMs,
     required this.onSelectNode,
   });
 
@@ -649,8 +633,8 @@ class _CorePassiveTreeWorld extends StatelessWidget {
   final Map<CorePassiveNodeId, int> draftRanks;
   final Map<CorePassiveNodeId, int> renderedRanks;
   final CorePassiveNodeId? selectedNodeId;
-  final _CorePassiveAllocationWave? activeWave;
-  final double allocationProgress;
+  final List<_CorePassiveAllocationWave> allocationWaves;
+  final double allocationElapsedMs;
   final ValueChanged<CorePassiveNodeId> onSelectNode;
 
   @override
@@ -678,8 +662,8 @@ class _CorePassiveTreeWorld extends StatelessWidget {
                 painter: _CorePassiveConnectionPainter(
                   draftRanks: draftRanks,
                   renderedRanks: renderedRanks,
-                  activeWave: activeWave,
-                  allocationProgress: allocationProgress,
+                  allocationWaves: allocationWaves,
+                  allocationElapsedMs: allocationElapsedMs,
                 ),
               ),
             ),
@@ -722,15 +706,25 @@ class _CorePassiveTreeWorld extends StatelessWidget {
           renderedRank: renderedRanks[definition.id] ?? 0,
           accessible: accessible,
           selected: selectedNodeId == definition.id,
-          activationProgress:
-              activeWave?.steps.any((step) => step.nodeId == definition.id) ==
-                  true
-              ? allocationProgress
-              : null,
+          activationProgress: _nodeActivationProgress(definition.id),
           onTap: () => onSelectNode(definition.id),
         ),
       ),
     );
+  }
+
+  double? _nodeActivationProgress(CorePassiveNodeId id) {
+    for (var wave = 0; wave < allocationWaves.length; wave++) {
+      if (!allocationWaves[wave].steps.any((step) => step.nodeId == id)) {
+        continue;
+      }
+      final glowStart =
+          wave * _corePassiveWaveIntervalMs + _corePassiveNodeGlowDelayMs;
+      final progress =
+          (allocationElapsedMs - glowStart) / _corePassiveNodeGlowMs;
+      return progress >= 0 && progress < 1 ? progress : null;
+    }
+    return null;
   }
 }
 
@@ -794,9 +788,11 @@ class _CorePassiveNodeButton extends StatelessWidget {
     final planned = draftRank != actualRank;
     final planningIncrease = draftRank > actualRank;
     final activating = activationProgress != null;
-    final activationWave = activationProgress == null
+    final activationGlow = activationProgress == null
         ? 0.0
-        : math.sin(math.pi * activationProgress!);
+        : activationProgress! < 0.45
+        ? Curves.easeOutCubic.transform(activationProgress! / 0.45)
+        : 1 - Curves.easeInCubic.transform((activationProgress! - 0.45) / 0.55);
     final accent = _corePassiveBranchColor(definition.branch);
     final size = switch (definition.grade) {
       CorePassiveNodeGrade.normal => 48.0,
@@ -810,161 +806,144 @@ class _CorePassiveNodeButton extends StatelessWidget {
         : muted
         ? const Color(0xFF75838C)
         : accent;
-    return Transform.scale(
-      scale: 1 + activationWave * 0.16,
-      child: Material(
-        color: Colors.transparent,
-        child: Semantics(
-          button: true,
-          selected: selected,
-          label: RuneNexusLocalizations.of(
-            context,
-          ).corePassiveNodeName(definition.id),
-          child: InkResponse(
-            key: ValueKey('core-passive-node-${definition.id.name}'),
-            radius: 54,
-            onTap: onTap,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              width: size,
-              height: size,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: allocated
-                    ? accent.withValues(alpha: 0.38)
-                    : planningIncrease
-                    ? accent.withValues(alpha: 0.2)
-                    : const Color(0xF012202C),
-                border: Border.all(
-                  color: framed
-                      ? Colors.transparent
-                      : selected
-                      ? const Color(0xFFE8FBFF)
-                      : muted
-                      ? const Color(0xFF52616A)
-                      : accent.withValues(alpha: accessible ? 0.9 : 0.45),
-                  width: selected
-                      ? 3
-                      : allocated || planned
-                      ? 2.2
-                      : 1.5,
+    return Material(
+      color: Colors.transparent,
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: RuneNexusLocalizations.of(
+          context,
+        ).corePassiveNodeName(definition.id),
+        child: InkResponse(
+          key: ValueKey('core-passive-node-${definition.id.name}'),
+          radius: 54,
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: allocated
+                  ? accent.withValues(alpha: 0.38)
+                  : planningIncrease
+                  ? accent.withValues(alpha: 0.2)
+                  : const Color(0xF012202C),
+              border: Border.all(
+                color: framed
+                    ? Colors.transparent
+                    : selected
+                    ? const Color(0xFFE8FBFF)
+                    : muted
+                    ? const Color(0xFF52616A)
+                    : accent.withValues(alpha: accessible ? 0.9 : 0.45),
+                width: selected
+                    ? 3
+                    : allocated || planned
+                    ? 2.2
+                    : 1.5,
+              ),
+              boxShadow: [
+                if (allocated || planned || selected || activating)
+                  BoxShadow(
+                    color: accent.withValues(
+                      alpha: activating
+                          ? 0.18 + activationGlow * 0.6
+                          : selected
+                          ? 0.62
+                          : planned
+                          ? 0.5
+                          : 0.38,
+                    ),
+                    blurRadius: activating
+                        ? 8 + activationGlow * 20
+                        : selected
+                        ? 16
+                        : 10,
+                    spreadRadius: activating
+                        ? activationGlow * 2
+                        : selected
+                        ? 2
+                        : 0,
+                  ),
+              ],
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                if (framed)
+                  Positioned.fill(
+                    child: Transform.scale(
+                      scale: definition.grade == CorePassiveNodeGrade.keystone
+                          ? 1.22
+                          : 1.16,
+                      child: ColorFiltered(
+                        colorFilter: ColorFilter.mode(
+                          frameColor,
+                          BlendMode.modulate,
+                        ),
+                        child: Image.asset(
+                          _corePassiveTreeFrameAsset,
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.medium,
+                          excludeFromSemantics: true,
+                        ),
+                      ),
+                    ),
+                  ),
+                Center(
+                  child: Opacity(
+                    opacity: muted && !planned ? 0.35 : 1,
+                    child: CorePassiveNodeIcon(
+                      definition.id,
+                      size: size * 0.46,
+                      color: muted ? const Color(0xFF7B8991) : accent,
+                    ),
+                  ),
                 ),
-                boxShadow: [
-                  if (allocated || planned || selected || activating)
-                    BoxShadow(
-                      color: accent.withValues(
-                        alpha: activating
-                            ? 0.45 + activationWave * 0.45
-                            : selected
-                            ? 0.62
-                            : planned
-                            ? 0.5
-                            : 0.38,
-                      ),
-                      blurRadius: activating
-                          ? 12 + activationWave * 18
-                          : selected
-                          ? 16
-                          : 10,
-                      spreadRadius: activating
-                          ? activationWave * 4
-                          : selected
-                          ? 2
-                          : 0,
+                if (muted && !planned)
+                  const Center(
+                    child: Icon(
+                      Icons.lock_outline,
+                      color: Color(0xFFC2CCD1),
+                      size: 18,
                     ),
-                ],
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  if (framed)
-                    Positioned.fill(
-                      child: Transform.scale(
-                        scale: definition.grade == CorePassiveNodeGrade.keystone
-                            ? 1.22
-                            : 1.16,
-                        child: ColorFiltered(
-                          colorFilter: ColorFilter.mode(
-                            frameColor,
-                            BlendMode.modulate,
-                          ),
-                          child: Image.asset(
-                            _corePassiveTreeFrameAsset,
-                            fit: BoxFit.contain,
-                            filterQuality: FilterQuality.medium,
-                            excludeFromSemantics: true,
-                          ),
-                        ),
-                      ),
+                  ),
+                Positioned(
+                  right: -7,
+                  bottom: -5,
+                  child: Container(
+                    constraints: const BoxConstraints(
+                      minWidth: 25,
+                      minHeight: 19,
                     ),
-                  Center(
-                    child: Opacity(
-                      opacity: muted && !planned ? 0.35 : 1,
-                      child: CorePassiveNodeIcon(
-                        definition.id,
-                        size: size * 0.46,
-                        color: muted ? const Color(0xFF7B8991) : accent,
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF061019),
+                      border: Border.all(color: accent.withValues(alpha: 0.75)),
+                      borderRadius: BorderRadius.circular(9),
+                    ),
+                    child: Text(
+                      planned
+                          ? '$actualRank→$draftRank/${definition.maxRank}'
+                          : '$renderedRank/${definition.maxRank}',
+                      style: const TextStyle(
+                        color: Color(0xFFE8FBFF),
+                        fontSize: 8,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
-                  if (muted && !planned)
-                    const Center(
-                      child: Icon(
-                        Icons.lock_outline,
-                        color: Color(0xFFC2CCD1),
-                        size: 18,
-                      ),
+                ),
+                if (activating)
+                  Positioned.fill(
+                    key: ValueKey(
+                      'core-passive-activation-${definition.id.name}',
                     ),
-                  Positioned(
-                    right: -7,
-                    bottom: -5,
-                    child: Container(
-                      constraints: const BoxConstraints(
-                        minWidth: 25,
-                        minHeight: 19,
-                      ),
-                      alignment: Alignment.center,
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF061019),
-                        border: Border.all(
-                          color: accent.withValues(alpha: 0.75),
-                        ),
-                        borderRadius: BorderRadius.circular(9),
-                      ),
-                      child: Text(
-                        planned
-                            ? '$actualRank→$draftRank/${definition.maxRank}'
-                            : '$renderedRank/${definition.maxRank}',
-                        style: const TextStyle(
-                          color: Color(0xFFE8FBFF),
-                          fontSize: 8,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
+                    child: const IgnorePointer(child: SizedBox.expand()),
                   ),
-                  if (activating)
-                    Positioned.fill(
-                      key: ValueKey(
-                        'core-passive-activation-${definition.id.name}',
-                      ),
-                      child: IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: const Color(
-                                0xFFEFFFFF,
-                              ).withValues(alpha: 0.35 + activationWave * 0.65),
-                              width: 2.2,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+              ],
             ),
           ),
         ),
@@ -977,14 +956,14 @@ class _CorePassiveConnectionPainter extends CustomPainter {
   const _CorePassiveConnectionPainter({
     required this.draftRanks,
     required this.renderedRanks,
-    required this.activeWave,
-    required this.allocationProgress,
+    required this.allocationWaves,
+    required this.allocationElapsedMs,
   });
 
   final Map<CorePassiveNodeId, int> draftRanks;
   final Map<CorePassiveNodeId, int> renderedRanks;
-  final _CorePassiveAllocationWave? activeWave;
-  final double allocationProgress;
+  final List<_CorePassiveAllocationWave> allocationWaves;
+  final double allocationElapsedMs;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1031,12 +1010,11 @@ class _CorePassiveConnectionPainter extends CustomPainter {
         );
       }
     }
-    if (activeWave == null) {
+    if (allocationWaves.isEmpty) {
       _paintDraftReach(canvas);
     }
-    final wave = activeWave;
-    if (wave != null) {
-      _paintWaveActivation(canvas, wave, allocationProgress);
+    if (allocationWaves.isNotEmpty) {
+      _paintAllocationTimeline(canvas);
     }
   }
 
@@ -1144,41 +1122,55 @@ class _CorePassiveConnectionPainter extends CustomPainter {
     );
   }
 
-  void _paintWaveActivation(
-    Canvas canvas,
-    _CorePassiveAllocationWave wave,
-    double progress,
-  ) {
-    final opacity = Curves.easeOut.transform(progress.clamp(0.0, 1.0));
-    for (final step in wave.steps) {
-      if (!step.lightsConnection) continue;
-      final start = step.sourceNodeId == null
-          ? _corePassiveTreeCenter
-          : _corePassiveNodePosition(step.sourceNodeId!);
-      final path = _connectionPath(
-        start,
-        _corePassiveNodePosition(step.nodeId),
-      );
-      final accent = _corePassiveBranchColor(
-        corePassiveNodeById(step.nodeId).branch,
-      );
-      canvas.drawPath(
-        path,
-        Paint()
-          ..color = accent.withValues(alpha: 0.48 * opacity)
-          ..strokeWidth = 12
-          ..style = PaintingStyle.stroke
-          ..strokeCap = StrokeCap.round
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
-      );
-      canvas.drawPath(
-        path,
-        Paint()
-          ..color = const Color(0xFFEFFFFF).withValues(alpha: opacity)
-          ..strokeWidth = 3.6
-          ..style = PaintingStyle.stroke
-          ..strokeCap = StrokeCap.round,
-      );
+  void _paintAllocationTimeline(Canvas canvas) {
+    for (var wave = 0; wave < allocationWaves.length; wave++) {
+      final elapsed = allocationElapsedMs - wave * _corePassiveWaveIntervalMs;
+      if (elapsed <= 0 ||
+          elapsed >= _corePassiveLineGrowMs + _corePassiveLineFadeMs) {
+        continue;
+      }
+      final growProgress = (elapsed / _corePassiveLineGrowMs).clamp(0.0, 1.0);
+      final reachProgress = Curves.easeInOutCubic.transform(growProgress);
+      final opacity = elapsed <= _corePassiveLineGrowMs
+          ? Curves.easeOutCubic.transform(growProgress)
+          : 1 -
+                Curves.easeInCubic.transform(
+                  (elapsed - _corePassiveLineGrowMs) / _corePassiveLineFadeMs,
+                );
+      for (final step in allocationWaves[wave].steps) {
+        if (!step.lightsConnection) continue;
+        final start = step.sourceNodeId == null
+            ? _corePassiveTreeCenter
+            : _corePassiveNodePosition(step.sourceNodeId!);
+        final path = _connectionPath(
+          start,
+          _corePassiveNodePosition(step.nodeId),
+        );
+        final metrics = path.computeMetrics().toList();
+        if (metrics.isEmpty) continue;
+        final metric = metrics.first;
+        final reach = metric.extractPath(0, metric.length * reachProgress);
+        final accent = _corePassiveBranchColor(
+          corePassiveNodeById(step.nodeId).branch,
+        );
+        canvas.drawPath(
+          reach,
+          Paint()
+            ..color = accent.withValues(alpha: 0.48 * opacity)
+            ..strokeWidth = 12
+            ..style = PaintingStyle.stroke
+            ..strokeCap = StrokeCap.round
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
+        );
+        canvas.drawPath(
+          reach,
+          Paint()
+            ..color = const Color(0xFFEFFFFF).withValues(alpha: opacity)
+            ..strokeWidth = 3.6
+            ..style = PaintingStyle.stroke
+            ..strokeCap = StrokeCap.round,
+        );
+      }
     }
   }
 
@@ -1260,8 +1252,8 @@ class _CorePassiveConnectionPainter extends CustomPainter {
   bool shouldRepaint(covariant _CorePassiveConnectionPainter oldDelegate) {
     return !mapEquals(oldDelegate.draftRanks, draftRanks) ||
         !mapEquals(oldDelegate.renderedRanks, renderedRanks) ||
-        oldDelegate.activeWave != activeWave ||
-        oldDelegate.allocationProgress != allocationProgress;
+        oldDelegate.allocationWaves != allocationWaves ||
+        oldDelegate.allocationElapsedMs != allocationElapsedMs;
   }
 }
 
