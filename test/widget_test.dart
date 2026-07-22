@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -478,10 +479,13 @@ void main() {
       findsOneWidget,
     );
     final resourceBarRect = tester.getRect(resourceBar);
-    final corePanelRect = tester.getRect(
-      find.byKey(const ValueKey('main-menu-content-panel')),
+    final coreContent = find.byKey(const ValueKey('core-content'));
+    expect(coreContent, findsOneWidget);
+    expect(find.byKey(const ValueKey('main-menu-content-panel')), findsNothing);
+    expect(
+      tester.getRect(coreContent).top,
+      greaterThanOrEqualTo(resourceBarRect.bottom),
     );
-    expect(corePanelRect.top, greaterThanOrEqualTo(resourceBarRect.bottom));
     expect(find.text('넥서스 코어'), findsOneWidget);
     expect(
       tester
@@ -1265,7 +1269,72 @@ void main() {
         );
       }
       expect(find.text('코어 포인트 20'), findsOneWidget);
-      expect(find.text('노드를 선택해 효과와 랭크를 확인하세요'), findsOneWidget);
+      expect(find.text('노드를 선택해 효과와 랭크를 확인하세요'), findsNothing);
+      expect(
+        find.byKey(const ValueKey('core-passive-node-details-empty')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey('core-passive-node-details')),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'core passive details overlay opens on a node and closes on empty canvas',
+    (tester) async {
+      final snapshots = ValueNotifier(
+        _resultSnapshot(
+          phase: GamePhase.preparation,
+          currentStageNumber: 1,
+          totalCorePoints: 20,
+        ),
+      );
+      addTearDown(snapshots.dispose);
+      final game = _CoreTreeGame(snapshots);
+
+      await tester.pumpWidget(_coreTreeTestApp(game, snapshots));
+      await _pumpGameFrames(tester);
+      await tester.tap(find.text('패시브 트리'));
+      await _pumpGameFrames(tester);
+
+      final canvas = find.byKey(const ValueKey('core-passive-tree-canvas'));
+      final viewer = find.byKey(const ValueKey('core-passive-tree-viewer'));
+      final emptySpace = find.byKey(
+        const ValueKey('core-passive-tree-empty-space'),
+      );
+      final details = find.byKey(const ValueKey('core-passive-node-details'));
+      expect(details, findsNothing);
+
+      await tester.tap(
+        find.byKey(const ValueKey('core-passive-node-attackHaste')),
+      );
+      await _pumpGameFrames(tester);
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(details, findsOneWidget);
+      expect(find.ancestor(of: details, matching: canvas), findsOneWidget);
+      expect(find.ancestor(of: details, matching: viewer), findsNothing);
+      expect(
+        tester.getRect(details).bottom,
+        closeTo(tester.getRect(canvas).bottom, 1.1),
+      );
+
+      final emptyCanvasPoint =
+          tester.getRect(emptySpace).topLeft + const Offset(10, 10);
+      await tester.dragFrom(emptyCanvasPoint, const Offset(24, 24));
+      await _pumpGameFrames(tester);
+      expect(details, findsOneWidget);
+
+      final closePoint =
+          tester.getRect(emptySpace).topLeft + const Offset(10, 10);
+      await tester.tapAt(closePoint);
+      await _pumpGameFrames(tester);
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(details, findsNothing);
+      expect(tester.takeException(), isNull);
     },
   );
 
@@ -1474,6 +1543,16 @@ void main() {
       await _pumpGameFrames(tester);
       final increase = find.byKey(const ValueKey('core-passive-rank-increase'));
       Future<void> planRanks(CorePassiveNodeId id, int rank) async {
+        if (find
+            .byKey(const ValueKey('core-passive-node-details'))
+            .evaluate()
+            .isNotEmpty) {
+          await tester.tap(
+            find.byKey(const ValueKey('core-passive-tree-empty-space')),
+          );
+          await _pumpGameFrames(tester);
+          await tester.pump(const Duration(milliseconds: 200));
+        }
         final node = find.byKey(ValueKey('core-passive-node-${id.name}'));
         await tester.ensureVisible(node);
         await _pumpGameFrames(tester);
@@ -1818,6 +1897,17 @@ void main() {
     await tester.tap(reset);
     await tester.pumpAndSettle();
     expect(find.text('패시브 트리를 초기화할까요?'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('core-passive-reset-dialog')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('core-passive-reset-panel')),
+      findsOneWidget,
+    );
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.text('반환 포인트'), findsOneWidget);
+    expect(find.text('4'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('core-passive-reset-confirm')));
     await tester.pumpAndSettle();
 
@@ -1928,6 +2018,29 @@ void main() {
       closeTo(expectedMinScale, 0.0001),
     );
     expectWorldTransformClamped();
+
+    final viewportCenter = tester.getCenter(viewerFinder);
+    await tester.sendEventToBinding(
+      PointerScrollEvent(
+        position: viewportCenter,
+        scrollDelta: const Offset(0, -600),
+      ),
+    );
+    await _pumpGameFrames(tester);
+    expect(controller.value.getMaxScaleOnAxis(), greaterThan(expectedMinScale));
+    await tester.sendEventToBinding(
+      PointerScrollEvent(
+        position: viewportCenter,
+        scrollDelta: const Offset(0, 1200),
+      ),
+    );
+    await _pumpGameFrames(tester);
+    expect(
+      controller.value.getMaxScaleOnAxis(),
+      closeTo(expectedMinScale, 0.0001),
+    );
+    expectWorldTransformClamped();
+
     await tester.drag(viewerFinder, const Offset(1200, 1200));
     await _pumpGameFrames(tester);
     expectWorldTransformClamped();

@@ -69,6 +69,11 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
   Map<CorePassiveNodeId, int> _allocationTargetRanks = const {};
   int _allocationTimelineDurationMs = 0;
   bool _clampingTransform = false;
+  final Set<int> _canvasPointers = <int>{};
+  Offset? _canvasPointerOrigin;
+  bool _canvasTapCandidate = false;
+  int _selectionInteractionRevision = 0;
+  int _canvasSelectionRevision = 0;
 
   @override
   void initState() {
@@ -107,6 +112,7 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
   @override
   Widget build(BuildContext context) {
     final l10n = RuneNexusLocalizations.of(context);
+    final selectedNodeId = _selectedNodeId;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -143,48 +149,108 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
                     viewport.height / _corePassiveTreeWorldSize,
                   ) *
                   0.92;
-              _synchronizeViewport(viewport, fitScale);
-              return AbsorbPointer(
-                absorbing: _isAllocating,
-                child: InteractiveViewer(
-                  key: const ValueKey('core-passive-tree-viewer'),
-                  transformationController: _transformationController,
-                  constrained: false,
-                  panEnabled: true,
-                  scaleEnabled: true,
-                  minScale: fitScale,
-                  maxScale: fitScale * 2.2,
-                  boundaryMargin: EdgeInsets.zero,
-                  onInteractionUpdate: (_) => _clampTransformToViewport(),
-                  onInteractionEnd: (_) {
-                    _clampTransformToViewport();
-                    _centerAtMinimumScale();
-                  },
-                  child: _CorePassiveTreeWorld(
-                    actualRanks: _actualRanksForRendering,
-                    draftRanks: _draftRanksForRendering,
-                    renderedRanks: _renderedRanks,
-                    selectedNodeId: _selectedNodeId,
-                    allocationWaves: _allocationWaves,
-                    allocationElapsedMs: _allocationElapsedMs,
-                    viewportSize: viewport,
-                    fitScale: fitScale,
-                    onSelectNode: _selectNode,
-                  ),
+              // InteractiveViewer의 종횡비 기반 자체 축소 하한 보정.
+              final scaleBoundaryMargin = EdgeInsets.symmetric(
+                horizontal: math.max(
+                  0,
+                  (viewport.width / fitScale - _corePassiveTreeWorldSize) / 2,
                 ),
+                vertical: math.max(
+                  0,
+                  (viewport.height / fitScale - _corePassiveTreeWorldSize) / 2,
+                ),
+              );
+              _synchronizeViewport(viewport, fitScale);
+              return Stack(
+                children: [
+                  Positioned.fill(
+                    child: AbsorbPointer(
+                      absorbing: _isAllocating,
+                      child: Listener(
+                        key: const ValueKey('core-passive-tree-empty-space'),
+                        behavior: HitTestBehavior.opaque,
+                        onPointerDown: _handleCanvasPointerDown,
+                        onPointerMove: _handleCanvasPointerMove,
+                        onPointerUp: _handleCanvasPointerUp,
+                        onPointerCancel: _handleCanvasPointerCancel,
+                        child: InteractiveViewer(
+                          key: const ValueKey('core-passive-tree-viewer'),
+                          transformationController: _transformationController,
+                          constrained: false,
+                          panEnabled: true,
+                          scaleEnabled: true,
+                          minScale: fitScale,
+                          maxScale: fitScale * 2.2,
+                          boundaryMargin: scaleBoundaryMargin,
+                          onInteractionUpdate: (_) =>
+                              _clampTransformToViewport(),
+                          onInteractionEnd: (_) {
+                            _clampTransformToViewport();
+                            _centerAtMinimumScale();
+                          },
+                          child: _CorePassiveTreeWorld(
+                            actualRanks: _actualRanksForRendering,
+                            draftRanks: _draftRanksForRendering,
+                            renderedRanks: _renderedRanks,
+                            selectedNodeId: selectedNodeId,
+                            allocationWaves: _allocationWaves,
+                            allocationElapsedMs: _allocationElapsedMs,
+                            viewportSize: viewport,
+                            fitScale: fitScale,
+                            onSelectNode: _selectNode,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 160),
+                      switchInCurve: Curves.easeOut,
+                      switchOutCurve: Curves.easeIn,
+                      transitionBuilder: (child, animation) => FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 0.04),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      ),
+                      child: selectedNodeId == null
+                          ? const SizedBox.shrink(
+                              key: ValueKey('core-passive-node-details-closed'),
+                            )
+                          : Align(
+                              key: const ValueKey(
+                                'core-passive-node-details-open',
+                              ),
+                              alignment:
+                                  _corePassiveNodePosition(selectedNodeId).dy >
+                                      _corePassiveTreeCenter.dy
+                                  ? Alignment.topCenter
+                                  : Alignment.bottomCenter,
+                              child: _CorePassiveNodeDetails(
+                                snapshot: widget.snapshot,
+                                draftRanks: _draftRanks,
+                                selectedNodeId: selectedNodeId,
+                                allocating: _isAllocating,
+                                onDecrease: _canDecrease
+                                    ? _decreaseSelectedRank
+                                    : null,
+                                onIncrease: _canIncrease
+                                    ? _increaseSelectedRank
+                                    : null,
+                                onAssign: _canAssign ? _assignDraft : null,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
               );
             },
           ),
-        ),
-        const SizedBox(height: 8),
-        _CorePassiveNodeDetails(
-          snapshot: widget.snapshot,
-          draftRanks: _draftRanks,
-          selectedNodeId: _selectedNodeId,
-          allocating: _isAllocating,
-          onDecrease: _canDecrease ? _decreaseSelectedRank : null,
-          onIncrease: _canIncrease ? _increaseSelectedRank : null,
-          onAssign: _canAssign ? _assignDraft : null,
         ),
       ],
     );
@@ -230,7 +296,63 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
   }
 
   void _selectNode(CorePassiveNodeId id) {
+    _selectionInteractionRevision += 1;
     setState(() => _selectedNodeId = id);
+  }
+
+  void _handleCanvasPointerDown(PointerDownEvent event) {
+    _canvasPointers.add(event.pointer);
+    if (_canvasPointers.length == 1) {
+      _canvasPointerOrigin = event.localPosition;
+      _canvasTapCandidate = true;
+      _canvasSelectionRevision = _selectionInteractionRevision;
+    } else {
+      _canvasTapCandidate = false;
+    }
+  }
+
+  void _handleCanvasPointerMove(PointerMoveEvent event) {
+    final origin = _canvasPointerOrigin;
+    if (!_canvasTapCandidate || origin == null) {
+      return;
+    }
+    if ((event.localPosition - origin).distanceSquared > 144) {
+      _canvasTapCandidate = false;
+    }
+  }
+
+  void _handleCanvasPointerUp(PointerUpEvent event) {
+    final shouldClear = _canvasTapCandidate && _canvasPointers.length == 1;
+    final selectionRevision = _canvasSelectionRevision;
+    _canvasPointers.remove(event.pointer);
+    if (_canvasPointers.isEmpty) {
+      _canvasPointerOrigin = null;
+      _canvasTapCandidate = false;
+    }
+    if (!shouldClear) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _selectionInteractionRevision == selectionRevision) {
+        _clearSelectedNode();
+      }
+    });
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
+  void _handleCanvasPointerCancel(PointerCancelEvent event) {
+    _canvasPointers.remove(event.pointer);
+    if (_canvasPointers.isEmpty) {
+      _canvasPointerOrigin = null;
+      _canvasTapCandidate = false;
+    }
+  }
+
+  void _clearSelectedNode() {
+    if (_selectedNodeId == null) {
+      return;
+    }
+    setState(() => _selectedNodeId = null);
   }
 
   void _increaseSelectedRank() {
@@ -404,22 +526,13 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.corePassiveResetTitle),
-        content: Text(l10n.corePassiveResetMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(
-              MaterialLocalizations.of(dialogContext).cancelButtonLabel,
-            ),
-          ),
-          FilledButton(
-            key: const ValueKey('core-passive-reset-confirm'),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.corePassiveResetAll),
-          ),
-        ],
+      builder: (dialogContext) => _CorePassiveResetDialog(
+        title: l10n.corePassiveResetTitle,
+        message: l10n.corePassiveResetMessage,
+        returnedPoints: widget.snapshot.spentCorePoints,
+        returnedPointsLabel: l10n.corePassiveReturnedPoints,
+        cancelLabel: MaterialLocalizations.of(dialogContext).cancelButtonLabel,
+        confirmLabel: l10n.corePassiveResetAll,
       ),
     );
     if (confirmed != true) {
@@ -518,6 +631,125 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
     return Matrix4.identity()
       ..translateByDouble(dx, dy, 0, 1)
       ..scaleByDouble(scale, scale, scale, 1);
+  }
+}
+
+class _CorePassiveResetDialog extends StatelessWidget {
+  const _CorePassiveResetDialog({
+    required this.title,
+    required this.message,
+    required this.returnedPoints,
+    required this.returnedPointsLabel,
+    required this.cancelLabel,
+    required this.confirmLabel,
+  });
+
+  final String title;
+  final String message;
+  final int returnedPoints;
+  final String returnedPointsLabel;
+  final String cancelLabel;
+  final String confirmLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      key: const ValueKey('core-passive-reset-dialog'),
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: GamePanel(
+          key: const ValueKey('core-passive-reset-panel'),
+          variant: GamePanelVariant.danger,
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.restart_alt_rounded,
+                    color: GamePalette.danger,
+                    size: 21,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(title, style: GameTextStyles.title)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(message, style: GameTextStyles.body),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 11,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: GamePalette.danger.withValues(alpha: 0.1),
+                  border: Border.all(
+                    color: GamePalette.danger.withValues(alpha: 0.36),
+                  ),
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      _stageRewardCoreIconAsset,
+                      width: 20,
+                      height: 20,
+                      filterQuality: FilterQuality.medium,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        returnedPointsLabel,
+                        style: GameTextStyles.caption,
+                      ),
+                    ),
+                    Text(
+                      '$returnedPoints',
+                      style: GameTextStyles.withColor(
+                        GameTextStyles.sectionTitle,
+                        GamePalette.danger,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: GameButton(
+                      key: const ValueKey('core-passive-reset-cancel'),
+                      onPressed: () => Navigator.of(context).pop(false),
+                      label: cancelLabel,
+                      icon: const Icon(Icons.arrow_back, size: 17),
+                      variant: GameButtonVariant.ghost,
+                      accentColor: GamePalette.metal,
+                      height: 38,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: GameButton(
+                      key: const ValueKey('core-passive-reset-confirm'),
+                      onPressed: () => Navigator.of(context).pop(true),
+                      label: confirmLabel,
+                      icon: const Icon(Icons.restart_alt_rounded, size: 17),
+                      variant: GameButtonVariant.danger,
+                      height: 38,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -1320,7 +1552,7 @@ class _CorePassiveNodeDetails extends StatelessWidget {
 
   final GameSnapshot snapshot;
   final Map<CorePassiveNodeId, int> draftRanks;
-  final CorePassiveNodeId? selectedNodeId;
+  final CorePassiveNodeId selectedNodeId;
   final bool allocating;
   final VoidCallback? onDecrease;
   final VoidCallback? onIncrease;
@@ -1330,37 +1562,6 @@ class _CorePassiveNodeDetails extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = RuneNexusLocalizations.of(context);
     final id = selectedNodeId;
-    if (id == null) {
-      return Container(
-        key: const ValueKey('core-passive-node-details-empty'),
-        constraints: const BoxConstraints(minHeight: 132),
-        padding: const EdgeInsets.all(14),
-        decoration: _detailDecoration,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.touch_app_outlined, color: Color(0xFF8EE6FF)),
-            const SizedBox(height: 7),
-            Text(
-              l10n.corePassiveSelectionHint,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFFE8FBFF),
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              l10n.corePassiveGestureHint,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFF8FA8BA), fontSize: 10),
-            ),
-          ],
-        ),
-      );
-    }
-
     final definition = corePassiveNodeById(id);
     final currentRank = snapshot.corePassiveNodeRanks[id] ?? 0;
     final targetRank = draftRanks[id] ?? 0;
@@ -1383,6 +1584,7 @@ class _CorePassiveNodeDetails extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: _detailDecoration,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
@@ -1531,7 +1733,7 @@ class _CorePassiveNodeDetails extends StatelessWidget {
 
   BoxDecoration get _detailDecoration => BoxDecoration(
     gradient: const LinearGradient(
-      colors: [Color(0xF20B1B2B), Color(0xF006101A)],
+      colors: [Color(0xD90B1B2B), Color(0xCC06101A)],
     ),
     border: Border.all(color: const Color(0x775D7182)),
     borderRadius: BorderRadius.circular(9),
