@@ -13,6 +13,7 @@ const int _corePassiveLineGrowMs = 340;
 const int _corePassiveLineFadeMs = 160;
 const int _corePassiveNodeGlowDelayMs = 280;
 const int _corePassiveNodeGlowMs = 420;
+const int _corePassiveDraftLineTransitionMs = 260;
 
 const Map<CorePassiveNodeId, ({double radius, double angle})>
 _corePassiveNodePolarPositions = {
@@ -56,11 +57,14 @@ class _CorePassiveTreeMenu extends StatefulWidget {
 }
 
 class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final TransformationController _transformationController =
       TransformationController();
   late final AnimationController _allocationController;
+  late final AnimationController _draftLineController;
   late Map<CorePassiveNodeId, int> _draftRanks;
+  Map<CorePassiveNodeId, double> _draftLineFromRanks = const {};
+  Map<CorePassiveNodeId, double> _draftLineToRanks = const {};
   CorePassiveNodeId? _selectedNodeId;
   Size? _viewportSize;
   double _minimumScale = 1;
@@ -79,6 +83,8 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
   void initState() {
     super.initState();
     _draftRanks = Map.of(widget.snapshot.corePassiveNodeRanks);
+    _draftLineFromRanks = _doubleRanks(_draftRanks);
+    _draftLineToRanks = _draftLineFromRanks;
     _transformationController.addListener(_clampTransformToViewport);
     _allocationController = AnimationController(vsync: this)
       ..addListener(() {
@@ -86,12 +92,25 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
           setState(() {});
         }
       });
+    _draftLineController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(
+            milliseconds: _corePassiveDraftLineTransitionMs,
+          ),
+          value: 1,
+        )..addListener(() {
+          if (mounted) {
+            setState(() {});
+          }
+        });
   }
 
   @override
   void dispose() {
     _transformationController.removeListener(_clampTransformToViewport);
     _allocationController.dispose();
+    _draftLineController.dispose();
     _transformationController.dispose();
     super.dispose();
   }
@@ -107,6 +126,7 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
       return;
     }
     _draftRanks = Map.of(widget.snapshot.corePassiveNodeRanks);
+    _settleDraftLineRanks(_draftRanks);
   }
 
   @override
@@ -191,6 +211,7 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
                           child: _CorePassiveTreeWorld(
                             actualRanks: _actualRanksForRendering,
                             draftRanks: _draftRanksForRendering,
+                            draftLineRanks: _draftLineRanksForRendering,
                             renderedRanks: _renderedRanks,
                             selectedNodeId: selectedNodeId,
                             allocationWaves: _allocationWaves,
@@ -362,7 +383,7 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
     }
     final candidate = Map<CorePassiveNodeId, int>.of(_draftRanks)
       ..[id] = (_draftRanks[id] ?? 0) + 1;
-    setState(() => _tryReplaceDraft(candidate));
+    _tryReplaceDraft(candidate);
   }
 
   void _decreaseSelectedRank() {
@@ -377,14 +398,20 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
     } else {
       candidate[id] = nextRank;
     }
-    setState(() => _tryReplaceDraft(candidate));
+    _tryReplaceDraft(candidate);
   }
 
   void _tryReplaceDraft(Map<CorePassiveNodeId, int> candidate) {
     if (!_isValidDraft(candidate)) {
       return;
     }
-    _draftRanks = candidate;
+    final currentLineRanks = _currentDraftLineRanks;
+    setState(() {
+      _draftRanks = candidate;
+      _draftLineFromRanks = currentLineRanks;
+      _draftLineToRanks = _doubleRanks(candidate);
+    });
+    _draftLineController.forward(from: 0);
   }
 
   bool _isValidDraft(Map<CorePassiveNodeId, int> candidate) {
@@ -394,9 +421,7 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
   }
 
   void _cancelDraft() {
-    setState(() {
-      _draftRanks = Map.of(widget.snapshot.corePassiveNodeRanks);
-    });
+    _tryReplaceDraft(Map.of(widget.snapshot.corePassiveNodeRanks));
   }
 
   void _assignDraft() {
@@ -405,6 +430,7 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
     );
     final targetRanks = Map<CorePassiveNodeId, int>.of(_draftRanks);
     final waves = _buildAllocationWaves(baseRanks, targetRanks);
+    _settleDraftLineRanks(targetRanks);
     setState(() {
       _isAllocating = true;
       _allocationTargetRanks = targetRanks;
@@ -541,6 +567,7 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
     if (widget.game.resetCorePassiveTree()) {
       setState(() {
         _draftRanks = const {};
+        _settleDraftLineRanks(const {});
       });
     }
   }
@@ -557,12 +584,49 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
   Map<CorePassiveNodeId, int> get _draftRanksForRendering =>
       _isAllocating ? _allocationTargetRanks : _draftRanks;
 
+  Map<CorePassiveNodeId, double> get _draftLineRanksForRendering =>
+      _isAllocating
+      ? _doubleRanks(_allocationTargetRanks)
+      : _currentDraftLineRanks;
+
   Map<CorePassiveNodeId, int> get _renderedRanks => _isAllocating
       ? _allocationTargetRanks
       : widget.snapshot.corePassiveNodeRanks;
 
   double get _allocationElapsedMs =>
       _allocationController.value * _allocationTimelineDurationMs;
+
+  Map<CorePassiveNodeId, double> get _currentDraftLineRanks {
+    if (!_draftLineController.isAnimating) {
+      return _draftLineToRanks;
+    }
+    final progress = Curves.easeInOutCubic.transform(
+      _draftLineController.value,
+    );
+    return {
+      for (final id in CorePassiveNodeId.values)
+        if ((_draftLineFromRanks[id] ?? 0) != 0 ||
+            (_draftLineToRanks[id] ?? 0) != 0)
+          id:
+              (_draftLineFromRanks[id] ?? 0) +
+              ((_draftLineToRanks[id] ?? 0) - (_draftLineFromRanks[id] ?? 0)) *
+                  progress,
+    };
+  }
+
+  Map<CorePassiveNodeId, double> _doubleRanks(
+    Map<CorePassiveNodeId, int> ranks,
+  ) => {
+    for (final entry in ranks.entries)
+      if (entry.value > 0) entry.key: entry.value.toDouble(),
+  };
+
+  void _settleDraftLineRanks(Map<CorePassiveNodeId, int> ranks) {
+    _draftLineController.stop();
+    final settledRanks = _doubleRanks(ranks);
+    _draftLineFromRanks = settledRanks;
+    _draftLineToRanks = settledRanks;
+  }
 
   void _synchronizeViewport(Size viewport, double minimumScale) {
     if (_viewportSize == viewport &&
@@ -891,6 +955,7 @@ class _CorePassiveTreeWorld extends StatelessWidget {
   const _CorePassiveTreeWorld({
     required this.actualRanks,
     required this.draftRanks,
+    required this.draftLineRanks,
     required this.renderedRanks,
     required this.selectedNodeId,
     required this.allocationWaves,
@@ -902,6 +967,7 @@ class _CorePassiveTreeWorld extends StatelessWidget {
 
   final Map<CorePassiveNodeId, int> actualRanks;
   final Map<CorePassiveNodeId, int> draftRanks;
+  final Map<CorePassiveNodeId, double> draftLineRanks;
   final Map<CorePassiveNodeId, int> renderedRanks;
   final CorePassiveNodeId? selectedNodeId;
   final List<_CorePassiveAllocationWave> allocationWaves;
@@ -941,8 +1007,10 @@ class _CorePassiveTreeWorld extends StatelessWidget {
           Positioned.fill(
             child: IgnorePointer(
               child: CustomPaint(
+                key: const ValueKey('core-passive-connection-layer'),
                 painter: _CorePassiveConnectionPainter(
                   draftRanks: draftRanks,
+                  draftLineRanks: draftLineRanks,
                   renderedRanks: renderedRanks,
                   allocationWaves: allocationWaves,
                   allocationElapsedMs: allocationElapsedMs,
@@ -1237,12 +1305,14 @@ class _CorePassiveNodeButton extends StatelessWidget {
 class _CorePassiveConnectionPainter extends CustomPainter {
   const _CorePassiveConnectionPainter({
     required this.draftRanks,
+    required this.draftLineRanks,
     required this.renderedRanks,
     required this.allocationWaves,
     required this.allocationElapsedMs,
   });
 
   final Map<CorePassiveNodeId, int> draftRanks;
+  final Map<CorePassiveNodeId, double> draftLineRanks;
   final Map<CorePassiveNodeId, int> renderedRanks;
   final List<_CorePassiveAllocationWave> allocationWaves;
   final double allocationElapsedMs;
@@ -1256,6 +1326,7 @@ class _CorePassiveConnectionPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
     for (final start in corePassiveStartingNodeIds) {
+      final draftProgress = _draftPresence(start);
       _paintConnection(
         canvas,
         _corePassiveTreeCenter,
@@ -1263,7 +1334,8 @@ class _CorePassiveConnectionPainter extends CustomPainter {
         basePaint,
         _corePassiveBranchColor(corePassiveNodeById(start).branch),
         renderedLit: (renderedRanks[start] ?? 0) > 0,
-        draftLit: (draftRanks[start] ?? 0) > 0,
+        draftLit: (draftRanks[start] ?? 0) > 0 || draftProgress > 0,
+        draftProgress: draftProgress,
       );
     }
     for (final definition in corePassiveNodeDefinitions.values) {
@@ -1277,18 +1349,30 @@ class _CorePassiveConnectionPainter extends CustomPainter {
                 targetDefinition.branch == CorePassiveBranch.hybrid
             ? _corePassiveBranchColor(CorePassiveBranch.hybrid)
             : _corePassiveBranchColor(definition.branch);
+        final definitionRendered = (renderedRanks[definition.id] ?? 0) > 0;
+        final neighborRendered = (renderedRanks[neighbor] ?? 0) > 0;
+        final draftProgress = math.min(
+          _draftPresence(definition.id),
+          _draftPresence(neighbor),
+        );
+        final draftFromEnd = !definitionRendered && neighborRendered
+            ? true
+            : definitionRendered && !neighborRendered
+            ? false
+            : _closerToCenter(definition.id, neighbor) == neighbor;
         _paintConnection(
           canvas,
           _corePassiveNodePosition(definition.id),
           _corePassiveNodePosition(neighbor),
           basePaint,
           accent,
-          renderedLit:
-              (renderedRanks[definition.id] ?? 0) > 0 &&
-              (renderedRanks[neighbor] ?? 0) > 0,
+          renderedLit: definitionRendered && neighborRendered,
           draftLit:
-              (draftRanks[definition.id] ?? 0) > 0 &&
-              (draftRanks[neighbor] ?? 0) > 0,
+              ((draftRanks[definition.id] ?? 0) > 0 &&
+                  (draftRanks[neighbor] ?? 0) > 0) ||
+              draftProgress > 0,
+          draftProgress: draftProgress,
+          draftFromEnd: draftFromEnd,
         );
       }
     }
@@ -1302,8 +1386,9 @@ class _CorePassiveConnectionPainter extends CustomPainter {
 
   void _paintDraftReach(Canvas canvas) {
     for (final id in CorePassiveNodeId.values) {
-      if ((draftRanks[id] ?? 0) <= (renderedRanks[id] ?? 0)) continue;
-      final progress = ((draftRanks[id] ?? 0) / 3).clamp(0.0, 1.0);
+      final animatedRank = draftLineRanks[id] ?? 0;
+      if (animatedRank <= (renderedRanks[id] ?? 0)) continue;
+      final progress = (animatedRank / 3).clamp(0.0, 1.0);
       final definition = corePassiveNodeById(id);
       final accent = _corePassiveBranchColor(definition.branch);
       for (final neighbor in definition.neighbors) {
@@ -1344,6 +1429,8 @@ class _CorePassiveConnectionPainter extends CustomPainter {
     Color accent, {
     required bool renderedLit,
     required bool draftLit,
+    double draftProgress = 1,
+    bool draftFromEnd = false,
   }) {
     final path = _connectionPath(start, end);
     canvas.drawPath(
@@ -1367,8 +1454,15 @@ class _CorePassiveConnectionPainter extends CustomPainter {
           : 0,
     );
     if (draftLit && !renderedLit) {
+      final clampedProgress = draftProgress.clamp(0.0, 1.0);
+      final draftReach = draftFromEnd
+          ? metric.extractPath(
+              metric.length * (1 - clampedProgress),
+              metric.length,
+            )
+          : metric.extractPath(0, metric.length * clampedProgress);
       canvas.drawPath(
-        path,
+        draftReach,
         Paint()
           ..color = accent.withValues(alpha: 0.2)
           ..strokeWidth = 7
@@ -1376,7 +1470,7 @@ class _CorePassiveConnectionPainter extends CustomPainter {
           ..strokeCap = StrokeCap.round,
       );
       canvas.drawPath(
-        path,
+        draftReach,
         Paint()
           ..color = const Color(0xFFB9F5FF).withValues(alpha: 0.34)
           ..strokeWidth = 2
@@ -1402,6 +1496,10 @@ class _CorePassiveConnectionPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round,
     );
+  }
+
+  double _draftPresence(CorePassiveNodeId id) {
+    return (draftLineRanks[id] ?? 0).clamp(0.0, 1.0);
   }
 
   void _paintAllocationTimeline(Canvas canvas) {
@@ -1533,6 +1631,7 @@ class _CorePassiveConnectionPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _CorePassiveConnectionPainter oldDelegate) {
     return !mapEquals(oldDelegate.draftRanks, draftRanks) ||
+        !mapEquals(oldDelegate.draftLineRanks, draftLineRanks) ||
         !mapEquals(oldDelegate.renderedRanks, renderedRanks) ||
         oldDelegate.allocationWaves != allocationWaves ||
         oldDelegate.allocationElapsedMs != allocationElapsedMs;

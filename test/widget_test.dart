@@ -1482,6 +1482,62 @@ void main() {
     },
   );
 
+  testWidgets('core passive draft lines animate while rank buttons change', (
+    tester,
+  ) async {
+    final snapshots = ValueNotifier(
+      _resultSnapshot(
+        phase: GamePhase.preparation,
+        currentStageNumber: 1,
+        totalCorePoints: 20,
+      ),
+    );
+    addTearDown(snapshots.dispose);
+    final game = _CoreTreeGame(snapshots);
+    await tester.pumpWidget(_coreTreeTestApp(game, snapshots));
+    await _pumpGameFrames(tester);
+    await tester.tap(find.text('패시브 트리'));
+    await _pumpGameFrames(tester);
+    await tester.tap(
+      find.byKey(const ValueKey('core-passive-node-attackHaste')),
+    );
+    await _pumpGameFrames(tester);
+
+    double animatedRank() {
+      final layer = tester.widget<CustomPaint>(
+        find.byKey(const ValueKey('core-passive-connection-layer')),
+      );
+      final painter = layer.painter as dynamic;
+      return (painter.draftLineRanks
+              as Map<CorePassiveNodeId, double>)[CorePassiveNodeId
+              .attackHaste] ??
+          0;
+    }
+
+    final increase = find.byKey(const ValueKey('core-passive-rank-increase'));
+    final decrease = find.byKey(const ValueKey('core-passive-rank-decrease'));
+    await tester.ensureVisible(increase);
+    await tester.pumpAndSettle();
+    await tester.tap(increase);
+    await tester.pump();
+    expect(animatedRank(), 0);
+    await tester.pump(const Duration(milliseconds: 130));
+    expect(animatedRank(), inExclusiveRange(0, 1));
+    await tester.pump(const Duration(milliseconds: 150));
+    expect(animatedRank(), 1);
+
+    await tester.ensureVisible(decrease);
+    await tester.pumpAndSettle();
+    await tester.tap(decrease);
+    await tester.pump();
+    expect(animatedRank(), 1);
+    await tester.pump(const Duration(milliseconds: 130));
+    expect(animatedRank(), inExclusiveRange(0, 1));
+    await tester.pump(const Duration(milliseconds: 150));
+    expect(animatedRank(), 0);
+    expect(snapshots.value.corePassiveNodeRanks, isEmpty);
+  });
+
   testWidgets('core passive draft can be cancelled without changing snapshot', (
     tester,
   ) async {
