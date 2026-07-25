@@ -1629,7 +1629,7 @@ void main() {
       await planRanks(CorePassiveNodeId.attackHaste, 3);
       await planRanks(CorePassiveNodeId.efficiencySaving, 3);
       await planRanks(CorePassiveNodeId.attackPrecompute, 1);
-      await planRanks(CorePassiveNodeId.efficiencyFirstDeploy, 1);
+      await planRanks(CorePassiveNodeId.efficiencySupplyRecovery, 1);
       final assign = find.byKey(const ValueKey('core-passive-assign'));
       await tester.ensureVisible(assign);
       await tester.tap(assign);
@@ -1639,7 +1639,7 @@ void main() {
         CorePassiveNodeId.attackHaste: 3,
         CorePassiveNodeId.efficiencySaving: 3,
         CorePassiveNodeId.attackPrecompute: 1,
-        CorePassiveNodeId.efficiencyFirstDeploy: 1,
+        CorePassiveNodeId.efficiencySupplyRecovery: 1,
       });
       expect(find.text('0→3/5'), findsNothing);
       expect(find.text('3/5'), findsNWidgets(2));
@@ -1664,7 +1664,7 @@ void main() {
       );
       expect(
         find.byKey(
-          const ValueKey('core-passive-activation-efficiencyFirstDeploy'),
+          const ValueKey('core-passive-activation-efficiencySupplyRecovery'),
         ),
         findsNothing,
       );
@@ -1685,7 +1685,7 @@ void main() {
       );
       expect(
         find.byKey(
-          const ValueKey('core-passive-activation-efficiencyFirstDeploy'),
+          const ValueKey('core-passive-activation-efficiencySupplyRecovery'),
         ),
         findsOneWidget,
       );
@@ -1705,7 +1705,7 @@ void main() {
       );
       expect(
         find.byKey(
-          const ValueKey('core-passive-activation-efficiencyFirstDeploy'),
+          const ValueKey('core-passive-activation-efficiencySupplyRecovery'),
         ),
         findsOneWidget,
       );

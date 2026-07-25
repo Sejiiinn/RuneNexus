@@ -104,9 +104,9 @@ class RuneNexusLocalizations {
       CorePassiveNodeId.efficiencyDiversity =>
         _isEnglish ? 'Diversity Resonance' : '다양성 감응',
       CorePassiveNodeId.efficiencyFirstDeploy =>
-        _isEnglish ? 'First Deployment Engineering' : '첫 배치 공학',
+        _isEnglish ? 'Trait Engineering' : '특성 공학',
       CorePassiveNodeId.efficiencyFirstLink =>
-        _isEnglish ? 'First Link Engineering' : '첫 연결 공학',
+        _isEnglish ? 'Link Optimization' : '연결 최적화',
       CorePassiveNodeId.efficiencyGemSpectrum =>
         _isEnglish ? 'Gem Spectrum' : '젬 스펙트럼',
       CorePassiveNodeId.efficiencySupplyRecovery =>
@@ -195,28 +195,28 @@ class RuneNexusLocalizations {
             : '포탑 건설 비용 $value 감소',
       CorePassiveNodeId.efficiencyDiversity =>
         _isEnglish
-            ? 'Core charge speed increases by $value per distinct turret type after the first, up to 4 types.'
-            : '첫 종류 이후 서로 다른 포탑 종류당 코어 충전 속도 $value 증가, 최대 4종',
+            ? 'Turret level-up costs are reduced by $value per distinct placed turret type after the first, up to 4 stacks.'
+            : '첫 종류 이후 배치된 서로 다른 포탑 종류당 모든 포탑 레벨업 비용 $value 감소, 최대 4중첩',
       CorePassiveNodeId.efficiencyFirstDeploy =>
         _isEnglish
-            ? 'First build cost for each turret type reduced by $value.'
-            : '각 포탑 종류의 첫 건설 비용 $value 감소',
+            ? 'Gem Shard costs for selecting turret traits are reduced by $value.'
+            : '포탑 특성 선택에 필요한 젬 파편 $value 감소',
       CorePassiveNodeId.efficiencyFirstLink =>
         _isEnglish
-            ? 'First link expansion cost per run reduced by $value.'
-            : '런당 첫 링크 확장 비용 $value 감소',
+            ? 'All turret link expansion costs are reduced by $value.'
+            : '모든 포탑의 모든 링크 확장 비용 $value 감소',
       CorePassiveNodeId.efficiencyGemSpectrum =>
         _isEnglish
-            ? 'Core skill effects increase by $value per 3 distinct gems, up to 3 stacks.'
-            : '서로 다른 젬 3종마다 코어 스킬 효과 $value 증가, 최대 3중첩',
+            ? 'With at least 3 distinct equipped gem types, numeric gem effects are amplified by gem type count × $value, counting up to 6 types.'
+            : '장착 중인 서로 다른 젬이 3종 이상이면 젬 종류 수 × $value만큼 수치형 젬 효과 증폭, 최대 6종 적용',
       CorePassiveNodeId.efficiencySupplyRecovery =>
         _isEnglish
-            ? 'After defeating a boss, the next build, upgrade, or link costs $value less.'
-            : '보스 처치 후 다음 건설·강화·링크 비용 $value 감소',
+            ? 'Round clear Gold is increased by $value.'
+            : '라운드 클리어 골드 $value 증가',
       CorePassiveNodeId.efficiencyCombinedFront =>
         _isEnglish
-            ? 'With 4+ turret types, Core skill effects increase by 20%; building a third turret of one type costs 10% more.'
-            : '포탑 4종 이상이면 코어 스킬 효과 20% 증가, 같은 종류 3기째부터 건설 비용 10% 증가',
+            ? 'While 4+ distinct turret types are placed, final build, level-up, and link expansion costs are reduced by $value.'
+            : '서로 다른 포탑 4종 이상 배치 중 포탑 건설·레벨업·링크 확장 최종 비용 $value 감소',
       CorePassiveNodeId.hybridEmergencyCompute =>
         _isEnglish
             ? 'Refund $value cooldown the first time an enemy passes 80% of the path.'

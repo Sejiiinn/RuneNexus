@@ -6,6 +6,7 @@ import 'package:rune_nexus/game/systems/run_progression.dart';
 
 void main() {
   test('core passive graph contains the complete valid catalog', () {
+    expect(corePassiveTreeRevision, 3);
     expect(corePassiveNodeDefinitions, hasLength(27));
     expect(corePassiveStartingNodeIds, hasLength(6));
     expect(corePassiveTreeValidationErrors(), isEmpty);
@@ -87,6 +88,113 @@ void main() {
     expect(corePassiveHasFinalDefense(ranks), isTrue);
   });
 
+  test(
+    'efficiency passive rates and dynamic thresholds follow balance values',
+    () {
+      const ranks = <CorePassiveNodeId, int>{
+        CorePassiveNodeId.efficiencySaving: 5,
+        CorePassiveNodeId.efficiencySupplyRecovery: 5,
+        CorePassiveNodeId.efficiencyFirstDeploy: 3,
+        CorePassiveNodeId.efficiencyDiversity: 5,
+        CorePassiveNodeId.efficiencyGemSpectrum: 5,
+        CorePassiveNodeId.efficiencyFirstLink: 3,
+        CorePassiveNodeId.efficiencyCombinedFront: 1,
+      };
+
+      expect(
+        corePassiveTurretBuildCostMultiplier(
+          ranks,
+          distinctTurretTypeCount: 3,
+        ),
+        closeTo(0.85, 0.0001),
+      );
+      expect(
+        corePassiveTurretBuildCostMultiplier(
+          ranks,
+          distinctTurretTypeCount: 4,
+        ),
+        closeTo(0.7225, 0.0001),
+      );
+      expect(
+        corePassiveRoundClearGoldMultiplier(ranks),
+        closeTo(1.15, 0.0001),
+      );
+      expect(
+        corePassiveTraitShardCostMultiplier(ranks),
+        closeTo(0.76, 0.0001),
+      );
+      expect(
+        corePassiveTurretLevelUpCostMultiplier(
+          ranks,
+          distinctTurretTypeCount: 6,
+        ),
+        closeTo(0.748, 0.0001),
+      );
+      expect(
+        corePassiveNumericGemEffectMultiplier(
+          ranks,
+          distinctEquippedGemTypeCount: 2,
+        ),
+        1,
+      );
+      expect(
+        corePassiveNumericGemEffectMultiplier(
+          ranks,
+          distinctEquippedGemTypeCount: 3,
+        ),
+        closeTo(1.09, 0.0001),
+      );
+      expect(
+        corePassiveNumericGemEffectMultiplier(
+          ranks,
+          distinctEquippedGemTypeCount: 4,
+        ),
+        closeTo(1.12, 0.0001),
+      );
+      expect(
+        corePassiveNumericGemEffectMultiplier(
+          ranks,
+          distinctEquippedGemTypeCount: 8,
+        ),
+        closeTo(1.18, 0.0001),
+      );
+      expect(
+        corePassiveTurretLinkCostMultiplier(
+          ranks,
+          distinctTurretTypeCount: 4,
+        ),
+        closeTo(0.714, 0.0001),
+      );
+    },
+  );
+
+  test('efficiency tree uses finalized grades and branch order', () {
+    expect(
+      corePassiveNodeById(CorePassiveNodeId.efficiencySupplyRecovery).grade,
+      CorePassiveNodeGrade.normal,
+    );
+    expect(
+      corePassiveNodeById(CorePassiveNodeId.efficiencyGemSpectrum).grade,
+      CorePassiveNodeGrade.normal,
+    );
+    expect(
+      corePassiveNodeById(CorePassiveNodeId.efficiencyFirstDeploy).grade,
+      CorePassiveNodeGrade.notable,
+    );
+    expect(
+      corePassiveNodeById(CorePassiveNodeId.efficiencyFirstLink).grade,
+      CorePassiveNodeGrade.notable,
+    );
+    expect(
+      corePassiveNodeById(CorePassiveNodeId.efficiencySaving).neighbors,
+      contains(CorePassiveNodeId.efficiencySupplyRecovery),
+    );
+    expect(
+      corePassiveNodeById(CorePassiveNodeId.efficiencyDiversity).neighbors,
+      contains(CorePassiveNodeId.efficiencyGemSpectrum),
+    );
+  });
+
   test('one rank-three branch opens a hybrid node', () {
     final oneSideReady = <CorePassiveNodeId, int>{
       CorePassiveNodeId.attackHaste: 3,
@@ -150,7 +258,7 @@ void main() {
       CorePassiveNodeId.attackHaste: 3,
       CorePassiveNodeId.attackPrecompute: 2,
       CorePassiveNodeId.efficiencySaving: 3,
-      CorePassiveNodeId.efficiencyFirstDeploy: 1,
+      CorePassiveNodeId.efficiencySupplyRecovery: 1,
     };
 
     expect(progression.setCorePassiveNodeRanks(ranks), isTrue);

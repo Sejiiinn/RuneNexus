@@ -115,8 +115,7 @@ IconData _corePassiveNodeMaterialIcon(CorePassiveNodeId nodeId) {
     CorePassiveNodeId.controlBufferShell => Icons.settings_backup_restore,
     CorePassiveNodeId.controlFinalLine => Icons.security,
     CorePassiveNodeId.efficiencyDiversity => Icons.hub_outlined,
-    CorePassiveNodeId.efficiencyFirstDeploy =>
-      Icons.precision_manufacturing_outlined,
+    CorePassiveNodeId.efficiencyFirstDeploy => Icons.tune,
     CorePassiveNodeId.efficiencyFirstLink => Icons.device_hub,
     CorePassiveNodeId.efficiencyGemSpectrum => Icons.auto_awesome,
     CorePassiveNodeId.efficiencySupplyRecovery => Icons.savings_outlined,

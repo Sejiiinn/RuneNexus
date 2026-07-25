@@ -65,6 +65,41 @@ const List<double> _threatWeakeningReductionRates = [
   0.25,
 ];
 const List<double> _emergencyChargeRecoveryRates = [0.15, 0.25, 0.35];
+const List<double> _savingDesignBuildCostReductionRates = [
+  0.03,
+  0.06,
+  0.09,
+  0.12,
+  0.15,
+];
+const List<double> _supplyRecoveryGoldIncreaseRates = [
+  0.03,
+  0.06,
+  0.09,
+  0.12,
+  0.15,
+];
+const List<double> _traitEngineeringShardCostReductionRates = [
+  0.08,
+  0.16,
+  0.24,
+];
+const List<double> _diversityLevelCostReductionRates = [
+  0.01,
+  0.015,
+  0.02,
+  0.025,
+  0.03,
+];
+const List<double> _gemSpectrumAmplificationRates = [
+  0.01,
+  0.015,
+  0.02,
+  0.025,
+  0.03,
+];
+const List<double> _linkOptimizationCostReductionRates = [0.08, 0.12, 0.16];
+const double _combinedFrontCostReductionRate = 0.15;
 
 double _corePassiveRankRate(List<double> rates, int rank) {
   if (rank <= 0) {
@@ -188,6 +223,105 @@ bool corePassiveHasFinalDefense(
   return (nodeRanks[CorePassiveNodeId.controlFinalLine] ?? 0) > 0;
 }
 
+bool corePassiveHasCombinedFront(
+  Map<CorePassiveNodeId, int> nodeRanks, {
+  required int distinctTurretTypeCount,
+}) {
+  return (nodeRanks[CorePassiveNodeId.efficiencyCombinedFront] ?? 0) > 0 &&
+      distinctTurretTypeCount >= 4;
+}
+
+double corePassiveTurretBuildCostMultiplier(
+  Map<CorePassiveNodeId, int> nodeRanks, {
+  required int distinctTurretTypeCount,
+}) {
+  final savingRate = _corePassiveRankRate(
+    _savingDesignBuildCostReductionRates,
+    nodeRanks[CorePassiveNodeId.efficiencySaving] ?? 0,
+  );
+  final combinedFrontMultiplier =
+      corePassiveHasCombinedFront(
+        nodeRanks,
+        distinctTurretTypeCount: distinctTurretTypeCount,
+      )
+      ? 1.0 - _combinedFrontCostReductionRate
+      : 1.0;
+  return (1.0 - savingRate) * combinedFrontMultiplier;
+}
+
+double corePassiveRoundClearGoldMultiplier(
+  Map<CorePassiveNodeId, int> nodeRanks,
+) {
+  return 1.0 +
+      _corePassiveRankRate(
+        _supplyRecoveryGoldIncreaseRates,
+        nodeRanks[CorePassiveNodeId.efficiencySupplyRecovery] ?? 0,
+      );
+}
+
+double corePassiveTraitShardCostMultiplier(
+  Map<CorePassiveNodeId, int> nodeRanks,
+) {
+  return 1.0 -
+      _corePassiveRankRate(
+        _traitEngineeringShardCostReductionRates,
+        nodeRanks[CorePassiveNodeId.efficiencyFirstDeploy] ?? 0,
+      );
+}
+
+double corePassiveTurretLevelUpCostMultiplier(
+  Map<CorePassiveNodeId, int> nodeRanks, {
+  required int distinctTurretTypeCount,
+}) {
+  final diversityStackCount = (distinctTurretTypeCount - 1).clamp(0, 4);
+  final diversityRate = _corePassiveRankRate(
+    _diversityLevelCostReductionRates,
+    nodeRanks[CorePassiveNodeId.efficiencyDiversity] ?? 0,
+  );
+  final combinedFrontMultiplier =
+      corePassiveHasCombinedFront(
+        nodeRanks,
+        distinctTurretTypeCount: distinctTurretTypeCount,
+      )
+      ? 1.0 - _combinedFrontCostReductionRate
+      : 1.0;
+  return (1.0 - diversityRate * diversityStackCount) *
+      combinedFrontMultiplier;
+}
+
+double corePassiveNumericGemEffectMultiplier(
+  Map<CorePassiveNodeId, int> nodeRanks, {
+  required int distinctEquippedGemTypeCount,
+}) {
+  if (distinctEquippedGemTypeCount < 3) {
+    return 1.0;
+  }
+  final spectrumRate = _corePassiveRankRate(
+    _gemSpectrumAmplificationRates,
+    nodeRanks[CorePassiveNodeId.efficiencyGemSpectrum] ?? 0,
+  );
+  final countedTypes = distinctEquippedGemTypeCount.clamp(0, 6);
+  return 1.0 + spectrumRate * countedTypes;
+}
+
+double corePassiveTurretLinkCostMultiplier(
+  Map<CorePassiveNodeId, int> nodeRanks, {
+  required int distinctTurretTypeCount,
+}) {
+  final linkOptimizationRate = _corePassiveRankRate(
+    _linkOptimizationCostReductionRates,
+    nodeRanks[CorePassiveNodeId.efficiencyFirstLink] ?? 0,
+  );
+  final combinedFrontMultiplier =
+      corePassiveHasCombinedFront(
+        nodeRanks,
+        distinctTurretTypeCount: distinctTurretTypeCount,
+      )
+      ? 1.0 - _combinedFrontCostReductionRate
+      : 1.0;
+  return (1.0 - linkOptimizationRate) * combinedFrontMultiplier;
+}
+
 const Set<CorePassiveNodeId> corePassiveStartingNodeIds = {
   CorePassiveNodeId.attackHaste,
   CorePassiveNodeId.attackOutput,
@@ -292,32 +426,32 @@ const Map<CorePassiveNodeId, _CorePassiveNodeSpec> _nodeSpecs = {
   CorePassiveNodeId.efficiencyDiversity: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.efficiency,
     grade: CorePassiveNodeGrade.normal,
-    displayValues: ['0.5%', '0.75%', '1%', '1.25%', '1.5%'],
+    displayValues: ['1%', '1.5%', '2%', '2.5%', '3%'],
   ),
   CorePassiveNodeId.efficiencyFirstDeploy: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.efficiency,
-    grade: CorePassiveNodeGrade.normal,
-    displayValues: ['4%', '8%', '12%', '16%', '20%'],
+    grade: CorePassiveNodeGrade.notable,
+    displayValues: ['8%', '16%', '24%'],
   ),
   CorePassiveNodeId.efficiencyFirstLink: _CorePassiveNodeSpec(
-    branch: CorePassiveBranch.efficiency,
-    grade: CorePassiveNodeGrade.normal,
-    displayValues: ['4%', '8%', '12%', '16%', '20%'],
-  ),
-  CorePassiveNodeId.efficiencyGemSpectrum: _CorePassiveNodeSpec(
-    branch: CorePassiveBranch.efficiency,
-    grade: CorePassiveNodeGrade.notable,
-    displayValues: ['2%', '3%', '4%'],
-  ),
-  CorePassiveNodeId.efficiencySupplyRecovery: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.efficiency,
     grade: CorePassiveNodeGrade.notable,
     displayValues: ['8%', '12%', '16%'],
   ),
+  CorePassiveNodeId.efficiencyGemSpectrum: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.efficiency,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['1%', '1.5%', '2%', '2.5%', '3%'],
+  ),
+  CorePassiveNodeId.efficiencySupplyRecovery: _CorePassiveNodeSpec(
+    branch: CorePassiveBranch.efficiency,
+    grade: CorePassiveNodeGrade.normal,
+    displayValues: ['3%', '6%', '9%', '12%', '15%'],
+  ),
   CorePassiveNodeId.efficiencyCombinedFront: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.efficiency,
     grade: CorePassiveNodeGrade.keystone,
-    displayValues: ['20% / 10%'],
+    displayValues: ['15%'],
   ),
   CorePassiveNodeId.hybridEmergencyCompute: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.hybrid,
@@ -358,25 +492,28 @@ const List<(CorePassiveNodeId, CorePassiveNodeId)> _edges = [
   (CorePassiveNodeId.attackOutput, CorePassiveNodeId.attackFocus),
   (CorePassiveNodeId.attackFocus, CorePassiveNodeId.attackRiftMark),
   (CorePassiveNodeId.attackRiftMark, CorePassiveNodeId.attackOverclock),
-  (CorePassiveNodeId.efficiencySaving, CorePassiveNodeId.efficiencyFirstDeploy),
   (
-    CorePassiveNodeId.efficiencyFirstDeploy,
-    CorePassiveNodeId.efficiencyGemSpectrum,
+    CorePassiveNodeId.efficiencySaving,
+    CorePassiveNodeId.efficiencySupplyRecovery,
   ),
   (
-    CorePassiveNodeId.efficiencyGemSpectrum,
+    CorePassiveNodeId.efficiencySupplyRecovery,
+    CorePassiveNodeId.efficiencyFirstDeploy,
+  ),
+  (
+    CorePassiveNodeId.efficiencyFirstDeploy,
     CorePassiveNodeId.efficiencyCombinedFront,
   ),
   (
     CorePassiveNodeId.efficiencyDiversity,
+    CorePassiveNodeId.efficiencyGemSpectrum,
+  ),
+  (
+    CorePassiveNodeId.efficiencyGemSpectrum,
     CorePassiveNodeId.efficiencyFirstLink,
   ),
   (
     CorePassiveNodeId.efficiencyFirstLink,
-    CorePassiveNodeId.efficiencySupplyRecovery,
-  ),
-  (
-    CorePassiveNodeId.efficiencySupplyRecovery,
     CorePassiveNodeId.efficiencyCombinedFront,
   ),
   (CorePassiveNodeId.controlSelfRepair, CorePassiveNodeId.controlRetarget),

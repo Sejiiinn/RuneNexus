@@ -522,6 +522,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double _roundNexusHpLost = 0;
   bool _emergencyChargeUsedThisRound = false;
   bool _finalDefenseUsedThisRound = false;
+  int _distinctPlacedTurretTypeCount = 0;
+  int _distinctEquippedGemTypeCount = 0;
   int _damageNumberSpawnIndex = 0;
 
   bool get isWaveRunning => _phase == GamePhase.wave || _debugCombatActive;
@@ -550,6 +552,24 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   int get maxTurretLinkSlotLimit => _progression.maxTurretLinkSlots;
   double get firstLinkUpgradeDiscountRate =>
       _progression.firstLinkUpgradeDiscountRate;
+  int get primaryTraitGemShardCost => _traitGemShardCost(primaryTraitCost);
+  int get secondaryTraitGemShardCost =>
+      _traitGemShardCost(secondaryTraitCost);
+  double get passiveTurretLevelUpCostMultiplier =>
+      corePassiveTurretLevelUpCostMultiplier(
+        _progression.corePassiveNodeRanks,
+        distinctTurretTypeCount: _distinctPlacedTurretTypeCount,
+      );
+  double get passiveTurretLinkCostMultiplier =>
+      corePassiveTurretLinkCostMultiplier(
+        _progression.corePassiveNodeRanks,
+        distinctTurretTypeCount: _distinctPlacedTurretTypeCount,
+      );
+  double get passiveNumericGemEffectMultiplier =>
+      corePassiveNumericGemEffectMultiplier(
+        _progression.corePassiveNodeRanks,
+        distinctEquippedGemTypeCount: _distinctEquippedGemTypeCount,
+      );
   bool get _canEditBoard =>
       _phase == GamePhase.preparation || _phase == GamePhase.wave;
   double towerDamageMultiplierFor(DamageFamily family) {
@@ -1315,6 +1335,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       turret.removeFromParent();
     }
     _turrets.clear();
+    _refreshEfficiencyPassiveBoardState();
     if (targetStageNumber != null) {
       _selectStage(targetStageNumber);
     }
@@ -1748,7 +1769,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (turret == null) {
       return;
     }
-    _gemShards = math.max(_gemShards, primaryTraitCost);
+    _gemShards = math.max(_gemShards, primaryTraitGemShardCost);
     _publish();
     _requestLocalSave(immediate: true);
   }
@@ -1765,7 +1786,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
     turret.choosePrimaryTrait(TurretTraitType.lightweightBarrel);
-    _gemShards = math.max(_gemShards, secondaryTraitCost);
+    _gemShards = math.max(_gemShards, secondaryTraitGemShardCost);
     _publish();
     _requestLocalSave(immediate: true);
   }
@@ -1856,6 +1877,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       investedGold: buildCost,
     );
     _turrets[point] = turret;
+    _refreshEfficiencyPassiveBoardState();
     _selectedBuildPoint = null;
     _selectedBuildTurretType = null;
     _selectedPortalPoint = null;
@@ -1869,12 +1891,24 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   int _turretBuildCostFor(TurretType type, int baseCost) {
     final discountRate = turretModuleEffectFor(type).buildCostDiscountRate;
-    final discountedCost = math.max(
+    final moduleDiscountedCost = math.max(
       1,
       (baseCost * (1 - discountRate.clamp(0.0, 0.8))).round(),
     );
     final minimumCost = math.max(1, (baseCost * 0.8).round());
-    return math.max(minimumCost, discountedCost);
+    final moduleAdjustedCost = math.max(minimumCost, moduleDiscountedCost);
+    final passiveMultiplier = corePassiveTurretBuildCostMultiplier(
+      _progression.corePassiveNodeRanks,
+      distinctTurretTypeCount: _distinctPlacedTurretTypeCount,
+    );
+    return math.max(1, (moduleAdjustedCost * passiveMultiplier).round());
+  }
+
+  int _traitGemShardCost(int baseCost) {
+    final multiplier = corePassiveTraitShardCostMultiplier(
+      _progression.corePassiveNodeRanks,
+    );
+    return math.max(1, (baseCost * multiplier).round());
   }
 
   void selectRewardGem(GemType type) {
@@ -1956,6 +1990,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         tileSize: _tileSize,
       );
       _turrets[point] = turret;
+      _refreshEfficiencyPassiveBoardState();
       add(turret);
       entry = MapEntry(point, turret);
     }
@@ -2098,7 +2133,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         gemShards: _gemShards,
         selectedGemSlotIndex: _selectedTurretGemSlotIndex,
         levelUpPreviewPoint: _levelUpPreviewPoint,
-        primaryTraitCost: primaryTraitCost,
+        primaryTraitCost: primaryTraitGemShardCost,
         trait: trait,
       ),
     );
@@ -2114,7 +2149,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         gemShards: _gemShards,
         selectedGemSlotIndex: _selectedTurretGemSlotIndex,
         levelUpPreviewPoint: _levelUpPreviewPoint,
-        secondaryTraitCost: secondaryTraitCost,
+        secondaryTraitCost: secondaryTraitGemShardCost,
         trait: trait,
       ),
     );
@@ -2139,6 +2174,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (result == null) {
       return;
     }
+    _refreshEfficiencyPassiveBoardState();
     _gold = result.gold;
     _gemShards = result.gemShards;
     _selectedTurretPoint = result.selectedTurretPoint;
@@ -2148,6 +2184,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (result.saveImmediately) {
       _requestLocalSave(immediate: true);
     }
+  }
+
+  void _refreshEfficiencyPassiveBoardState() {
+    _distinctPlacedTurretTypeCount = _turrets.values
+        .map((turret) => turret.definition.type)
+        .toSet()
+        .length;
+    _distinctEquippedGemTypeCount = _turrets.values
+        .expand((turret) => turret.equippedGems)
+        .toSet()
+        .length;
   }
 
   Color colorForGem(GemType type) => gameGems[type]!.color;
@@ -4044,10 +4091,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     final completedRound = _roundIndex + 1;
     _restoreNexusAtRoundEnd();
-    _gold +=
+    final clearGoldBeforePassive =
         _waves[_roundIndex].clearRewardGold +
         _progression.waveClearGoldBonus +
         _waveClearGoldRunBonus;
+    _gold +=
+        (clearGoldBeforePassive *
+                corePassiveRoundClearGoldMultiplier(
+                  _progression.corePassiveNodeRanks,
+                ))
+            .round();
     _gemShards += _roundClearGemShardRewardFor(completedRound);
     _roundIndex++;
     _completedRounds = completedRound;

@@ -168,8 +168,8 @@ class GameSnapshotBuilder {
           selectedTurret?.canChoosePrimaryTrait ?? false,
       selectedTurretCanChooseSecondaryTrait:
           selectedTurret?.canChooseSecondaryTrait ?? false,
-      selectedTurretPrimaryTraitCost: RuneNexusGame.primaryTraitCost,
-      selectedTurretSecondaryTraitCost: RuneNexusGame.secondaryTraitCost,
+      selectedTurretPrimaryTraitCost: _game.primaryTraitGemShardCost,
+      selectedTurretSecondaryTraitCost: _game.secondaryTraitGemShardCost,
       selectedTurretPrimaryTraitRequiredLevel:
           RuneNexusGame.primaryTraitRequiredLevel,
       selectedTurretSecondaryTraitRequiredLevel:

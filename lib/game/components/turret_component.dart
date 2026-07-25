@@ -137,7 +137,8 @@ class TurretComponent extends PositionComponent {
   TurretModuleEffect get _moduleEffect =>
       game.turretModuleEffectFor(definition.type);
   double get _numericGemEffectMultiplier =>
-      1 + _moduleEffect.gemEffectIncreaseRate;
+      (1 + _moduleEffect.gemEffectIncreaseRate) *
+      game.passiveNumericGemEffectMultiplier;
 
   double get damage => damageAtLevel(_level);
 
@@ -725,7 +726,13 @@ class TurretComponent extends PositionComponent {
                     ? moduleEffect.highLevelUpgradeCostDiscountRate
                     : 0.0))
             .clamp(0.0, 0.8);
-    return math.max(1, (baseCost * (1 - discountRate)).round());
+    return math.max(
+      1,
+      (baseCost *
+              (1 - discountRate) *
+              game.passiveTurretLevelUpCostMultiplier)
+          .round(),
+    );
   }
 
   int _linkUpgradeCostForSlot(int slotLimit) {
@@ -735,7 +742,11 @@ class TurretComponent extends PositionComponent {
         (_moduleEffect.linkUpgradeCostDiscountRate +
                 (slotLimit == 2 ? game.firstLinkUpgradeDiscountRate : 0.0))
             .clamp(0.0, 0.8);
-    return math.max(1, (baseCost * (1 - discountRate)).round());
+    return math.max(
+      1,
+      (baseCost * (1 - discountRate) * game.passiveTurretLinkCostMultiplier)
+          .round(),
+    );
   }
 
   @override

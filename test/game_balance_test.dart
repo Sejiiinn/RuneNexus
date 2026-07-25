@@ -39,6 +39,7 @@ import 'package:rune_nexus/domain/turret/turret_definition.dart';
 import 'package:rune_nexus/domain/turret/turret_target_priority.dart';
 import 'package:rune_nexus/domain/turret/turret_trait_type.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
+import 'package:rune_nexus/domain/turret_module/turret_module_type.dart';
 import 'package:rune_nexus/domain/wave/wave_definition.dart';
 import 'package:rune_nexus/game/components/chain_projectile_component.dart';
 import 'package:rune_nexus/game/components/enemy_component.dart';
@@ -2965,6 +2966,301 @@ void main() {
       game.update(0.02);
       expect(turret.damage, closeTo(baseDamage, 0.001));
       expect(turret.attackRate, closeTo(baseAttackRate, 0.001));
+    },
+  );
+
+  test(
+    'efficiency build and upgrade discounts follow dynamic turret diversity',
+    () async {
+      final repository = MemorySaveRepository()
+        ..data = _saveWithCorePassiveRun(
+          nexusHp: 20,
+          roundIndex: 0,
+          completedRounds: 1,
+          gold: 10000,
+          unlockedStageCount: 7,
+          clearedStageNumbers: const {1, 2, 3, 4, 5, 6},
+          totalCorePoints: 100,
+          corePassiveNodeRanks: _maxEfficiencyPassiveRanks,
+        );
+      final game = _EfficiencyModuleGame(saveRepository: repository);
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+
+      // 모듈 건설 할인 하한 적용 후 절약 설계를 별도 곱연산.
+      expect(game.turretBuildCost(TurretType.arrow), 41);
+      game.tryBuildTurret(const GridPoint(2, 0));
+      game.selectTurretType(TurretType.cannon);
+      game.tryBuildTurret(const GridPoint(3, 0));
+      game.selectTurretType(TurretType.magic);
+      game.tryBuildTurret(const GridPoint(0, 1));
+
+      final beforeFourthTypeCost = game.turretBuildCost(TurretType.arrow);
+      final fourthTypeCost = game.turretBuildCost(TurretType.frost);
+      final goldBeforeFourthType = game.snapshotNotifier.value.gold;
+      game.selectTurretType(TurretType.frost);
+      game.tryBuildTurret(const GridPoint(2, 1));
+
+      expect(beforeFourthTypeCost, 41);
+      expect(
+        goldBeforeFourthType - game.snapshotNotifier.value.gold,
+        fourthTypeCost,
+      );
+      // 네 번째 종류 자체에는 미적용, 배치 완료 후 통합 전선 활성화.
+      expect(game.turretBuildCost(TurretType.arrow), 35);
+
+      game.refundSelectedTurret();
+      expect(game.turretBuildCost(TurretType.arrow), 41);
+      game.selectTurretType(TurretType.frost);
+      game.tryBuildTurret(const GridPoint(2, 1));
+      expect(game.turretBuildCost(TurretType.arrow), 35);
+
+      game.selectTurretType(TurretType.sniper);
+      game.tryBuildTurret(const GridPoint(3, 1));
+      final arrow = game.children
+          .whereType<TurretComponent>()
+          .singleWhere((turret) => turret.definition.type == TurretType.arrow);
+      expect(arrow.levelUpCost, 31);
+      expect(arrow.linkUpgradeCost, 51);
+
+      tapBuildTile(game, const GridPoint(2, 0));
+      final goldBeforeUpgrades = game.snapshotNotifier.value.gold;
+      game.levelUpSelectedTurret();
+      game.upgradeSelectedTurretLink();
+
+      expect(game.snapshotNotifier.value.gold, goldBeforeUpgrades - 31 - 51);
+      expect(arrow.investedGold, 41 + 31 + 51);
+      expect(game.snapshotNotifier.value.selectedTurretRefundGold, 92);
+
+      var expectedInvestedGold = arrow.investedGold;
+      while (arrow.level < 5) {
+        expectedInvestedGold += arrow.levelUpCost;
+        game.levelUpSelectedTurret();
+      }
+      expect(arrow.linkUpgradeCost, 129);
+      expectedInvestedGold += arrow.linkUpgradeCost;
+      game.upgradeSelectedTurretLink();
+      expect(arrow.investedGold, expectedInvestedGold);
+      expect(arrow.slotLimit, 3);
+    },
+  );
+
+  test(
+    'trait engineering updates displayed and paid Gem Shard costs',
+    () async {
+      final repository = MemorySaveRepository()
+        ..data = _saveWithCorePassiveRun(
+          nexusHp: 20,
+          roundIndex: 0,
+          completedRounds: 1,
+          gold: 10000,
+          gemShards: 100,
+          totalCorePoints: 100,
+          corePassiveNodeRanks: _maxEfficiencyPassiveRanks,
+        );
+      final game = RuneNexusGame(saveRepository: repository);
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      game.tryBuildTurret(const GridPoint(2, 0));
+      game.levelUpSelectedTurret();
+      game.levelUpSelectedTurret();
+
+      var snapshot = game.snapshotNotifier.value;
+      expect(snapshot.selectedTurretPrimaryTraitCost, 9);
+      game.chooseSelectedTurretPrimaryTrait(TurretTraitType.lightweightBarrel);
+      snapshot = game.snapshotNotifier.value;
+      expect(snapshot.gemShards, 91);
+
+      while (snapshot.selectedTurretLevel < 7) {
+        game.levelUpSelectedTurret();
+        snapshot = game.snapshotNotifier.value;
+      }
+      expect(snapshot.selectedTurretSecondaryTraitCost, 18);
+      game.chooseSelectedTurretSecondaryTrait(
+        snapshot.selectedTurretSecondaryTraitChoices.first,
+      );
+
+      expect(game.snapshotNotifier.value.gemShards, 73);
+    },
+  );
+
+  test(
+    'supply recovery multiplies the complete round clear Gold reward',
+    () async {
+      final repository = MemorySaveRepository()
+        ..data = _saveWithCorePassiveRun(
+          nexusHp: 20,
+          roundIndex: 0,
+          completedRounds: 0,
+          supplyUpgradeLevel: 2,
+          runUpgradeLevels: const {RunUpgradeType.waveGold: 1},
+          totalCorePoints: 20,
+          corePassiveNodeRanks: const {
+            CorePassiveNodeId.efficiencySaving: 3,
+            CorePassiveNodeId.efficiencySupplyRecovery: 5,
+          },
+        );
+      final game = RuneNexusGame(
+        saveRepository: repository,
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 10,
+          ),
+        ],
+      );
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+
+      game.startNextWave();
+      game.update(0);
+
+      // (기본 10 + 영구 2 + 런 4) * 1.15 = 18.4 -> 18
+      expect(game.snapshotNotifier.value.gold, 188);
+
+      final lowRankRepository = MemorySaveRepository()
+        ..data = _saveWithCorePassiveRun(
+          nexusHp: 20,
+          roundIndex: 0,
+          completedRounds: 1,
+          totalCorePoints: 10,
+          corePassiveNodeRanks: const {
+            CorePassiveNodeId.efficiencySaving: 3,
+            CorePassiveNodeId.efficiencySupplyRecovery: 1,
+          },
+        );
+      final lowRankGame = RuneNexusGame(
+        saveRepository: lowRankRepository,
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 23,
+          ),
+        ],
+      );
+      lowRankGame.onGameResize(Vector2(400, 800));
+      await lowRankGame.onLoad();
+      lowRankGame.startNextWave();
+      lowRankGame.update(0);
+
+      expect(lowRankGame.snapshotNotifier.value.gold, 194);
+    },
+  );
+
+  test(
+    'gem spectrum uses equipped types and multiplies module Gem effects',
+    () async {
+      final repository = MemorySaveRepository()
+        ..data = _saveWithCorePassiveRun(
+          nexusHp: 20,
+          roundIndex: 0,
+          completedRounds: 1,
+          gold: 10000,
+          unlockedStageCount: 7,
+          clearedStageNumbers: const {1, 2, 3, 4, 5, 6},
+          totalCorePoints: 100,
+          corePassiveNodeRanks: _maxEfficiencyPassiveRanks,
+        );
+      final game = _EfficiencyModuleGame(saveRepository: repository);
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+
+      void buildWithGem(TurretType turretType, GridPoint point, GemType gem) {
+        game.selectTurretType(turretType);
+        game.tryBuildTurret(point);
+        game.grantGem(gem);
+        game.equipSelectedTurret(gem);
+      }
+
+      buildWithGem(
+        TurretType.arrow,
+        const GridPoint(2, 0),
+        GemType.range,
+      );
+      buildWithGem(
+        TurretType.cannon,
+        const GridPoint(3, 0),
+        GemType.armorPiercing,
+      );
+      buildWithGem(
+        TurretType.magic,
+        const GridPoint(0, 1),
+        GemType.elementalDamage,
+      );
+      final arrow = game.children
+          .whereType<TurretComponent>()
+          .singleWhere((turret) => turret.definition.type == TurretType.arrow);
+      final cannon = game.children
+          .whereType<TurretComponent>()
+          .singleWhere((turret) => turret.definition.type == TurretType.cannon);
+
+      expect(
+        arrow.range,
+        closeTo(
+          gameTurrets[TurretType.arrow]!.range *
+              (1 + 0.2 * 1.2 * 1.09) *
+              game.boardDistanceScale,
+          0.001,
+        ),
+      );
+      expect(cannon.ignoresArmorReduction, isTrue);
+
+      game.removeSelectedTurretGemSlot();
+      expect(
+        arrow.range,
+        closeTo(
+          gameTurrets[TurretType.arrow]!.range *
+              (1 + 0.2 * 1.2) *
+              game.boardDistanceScale,
+          0.001,
+        ),
+      );
+      game.equipSelectedTurret(GemType.elementalDamage);
+
+      buildWithGem(
+        TurretType.frost,
+        const GridPoint(2, 1),
+        GemType.attackSpeed,
+      );
+      expect(
+        arrow.range,
+        closeTo(
+          gameTurrets[TurretType.arrow]!.range *
+              (1 + 0.2 * 1.2 * 1.12) *
+              game.boardDistanceScale,
+          0.001,
+        ),
+      );
+
+      buildWithGem(
+        TurretType.sniper,
+        const GridPoint(3, 1),
+        GemType.criticalChance,
+      );
+      buildWithGem(
+        TurretType.lightning,
+        const GridPoint(4, 1),
+        GemType.chain,
+      );
+      final lightning = game.children
+          .whereType<TurretComponent>()
+          .singleWhere(
+            (turret) => turret.definition.type == TurretType.lightning,
+          );
+      expect(
+        arrow.range,
+        closeTo(
+          gameTurrets[TurretType.arrow]!.range *
+              (1 + 0.2 * 1.2 * 1.18) *
+              game.boardDistanceScale,
+          0.001,
+        ),
+      );
+      expect(lightning.lightningChainMaxJumps, 4);
     },
   );
 
@@ -7199,6 +7495,31 @@ class _FirstLinkDiscountGame extends RuneNexusGame {
   double get firstLinkUpgradeDiscountRate => 0.2;
 }
 
+class _EfficiencyModuleGame extends RuneNexusGame {
+  _EfficiencyModuleGame({super.waves, super.saveRepository});
+
+  @override
+  double get firstLinkUpgradeDiscountRate => 0.2;
+
+  @override
+  TurretModuleEffect turretModuleEffectFor(TurretType type) {
+    return const TurretModuleEffect(
+      buildCostDiscountRate: 0.5,
+      gemEffectIncreaseRate: 0.2,
+    );
+  }
+}
+
+const _maxEfficiencyPassiveRanks = <CorePassiveNodeId, int>{
+  CorePassiveNodeId.efficiencySaving: 5,
+  CorePassiveNodeId.efficiencySupplyRecovery: 5,
+  CorePassiveNodeId.efficiencyFirstDeploy: 3,
+  CorePassiveNodeId.efficiencyDiversity: 5,
+  CorePassiveNodeId.efficiencyGemSpectrum: 5,
+  CorePassiveNodeId.efficiencyFirstLink: 3,
+  CorePassiveNodeId.efficiencyCombinedFront: 1,
+};
+
 const _targetPriorityTestTurret = TurretDefinition(
   type: TurretType.sniper,
   name: 'Target Priority Test',
@@ -7374,6 +7695,8 @@ GameSaveData _saveWithCorePassiveRun({
   required double nexusHp,
   required int roundIndex,
   required int completedRounds,
+  int gold = 170,
+  int gemShards = 0,
   int unlockedStageCount = 1,
   Set<int> clearedStageNumbers = const {},
   CoreCombatSkill? coreCombatSkill = CoreCombatSkill.guardianBeam,
@@ -7386,12 +7709,14 @@ GameSaveData _saveWithCorePassiveRun({
   bool emergencyChargeUsedThisRound = false,
   bool finalDefenseUsedThisRound = false,
   GamePhase phase = GamePhase.preparation,
+  int supplyUpgradeLevel = 0,
+  Map<RunUpgradeType, int> runUpgradeLevels = const {},
 }) {
   return GameSaveData(
     version: GameSaveData.currentVersion,
     savedAtMillis: 0,
-    gold: 170,
-    gemShards: 0,
+    gold: gold,
+    gemShards: gemShards,
     nexusHp: nexusHp,
     stageNumber: 1,
     mapSignature: const GameSaveAdapter().mapSignature(gameMap),
@@ -7404,7 +7729,7 @@ GameSaveData _saveWithCorePassiveRun({
       lastRunRuneReward: 0,
       startingGoldUpgradeLevel: 0,
       nexusHpUpgradeLevel: 0,
-      supplyUpgradeLevel: 0,
+      supplyUpgradeLevel: supplyUpgradeLevel,
       fireTrainingUpgradeLevel: 0,
       criticalChanceUpgradeLevel: 0,
       criticalDamageUpgradeLevel: 0,
@@ -7421,7 +7746,7 @@ GameSaveData _saveWithCorePassiveRun({
       corePassiveNodeRanks: corePassiveNodeRanks,
       claimedCorePointStageRewards: claimedCorePointStageRewards,
     ),
-    runUpgradeLevels: const {},
+    runUpgradeLevels: runUpgradeLevels,
     killGoldFractionWallet: 0,
     gemInventory: const {},
     rewardOptions: const [],

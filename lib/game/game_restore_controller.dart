@@ -207,6 +207,7 @@ class GameRestoreController {
       turret.removeFromParent();
     }
     _game._turrets.clear();
+    _game._refreshEfficiencyPassiveBoardState();
   }
 
   void _restoreTurrets(List<SavedTurret> savedTurrets) {
@@ -230,6 +231,7 @@ class GameRestoreController {
       _game._turrets[savedTurret.point] = turret;
       _game.add(turret);
     }
+    _game._refreshEfficiencyPassiveBoardState();
   }
 
   void _restoreEnemies(List<SavedEnemy> savedEnemies) {
@@ -271,8 +273,8 @@ class GameRestoreController {
     final refund = _game._saveAdapter.refundSavedTurretsForMapChange(
       savedTurrets: savedTurrets,
       baseCostFor: (type) => gameTurrets[type]?.cost,
-      primaryTraitCost: RuneNexusGame.primaryTraitCost,
-      secondaryTraitCost: RuneNexusGame.secondaryTraitCost,
+      primaryTraitCost: _game.primaryTraitGemShardCost,
+      secondaryTraitCost: _game.secondaryTraitGemShardCost,
       firstLinkUpgradeDiscountRate: _game.firstLinkUpgradeDiscountRate,
     );
     _game._gold += refund.gold;
