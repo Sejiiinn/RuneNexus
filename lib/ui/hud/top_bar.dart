@@ -237,7 +237,8 @@ class _RunStatusPanel extends StatelessWidget {
               Icon(Icons.favorite_outline, size: 12, color: hpColor),
               const SizedBox(width: 3),
               Text(
-                '${snapshot.nexusHp}/${snapshot.maxNexusHp}',
+                '${hudFormatNexusHp(snapshot.nexusHp)}/'
+                '${hudFormatNexusHp(snapshot.maxNexusHp)}',
                 style: const TextStyle(
                   color: Color(0xFFE8FBFF),
                   fontSize: 11,

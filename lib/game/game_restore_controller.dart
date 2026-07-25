@@ -38,6 +38,7 @@ class GameRestoreController {
 
     if (_game._saveAdapter.hasSavedRunMapMismatch(data, _game._map)) {
       _refundSavedTurretsForMapChange(data.turrets);
+      _game._resetRoundDefenseState();
       _game._phase = GamePhase.preparation;
       _game._restoredPhase = null;
       _game._rewardOptions.clear();
@@ -104,6 +105,7 @@ class GameRestoreController {
     _game._gold = _game._initialGold;
     _game._gemShards = 0;
     _game._nexusHp = _game._maxNexusHp;
+    _game._resetRoundDefenseState();
     _game._roundIndex = 0;
     _game._completedRounds = 0;
     _game._runUpgradeLevels.clear();
@@ -120,7 +122,11 @@ class GameRestoreController {
     _game._gold = math.max(0, data.gold);
     _game._gemShards = math.max(0, data.gemShards);
     _game._selectStage(_game._clampedStageNumber(data.stageNumber));
-    _game._nexusHp = data.nexusHp.clamp(0, _game._maxNexusHp).toInt();
+    _game._nexusHp = data.nexusHp.clamp(0.0, _game._maxNexusHp).toDouble();
+    _game._roundNexusHpLost = math.max(0.0, data.roundNexusHpLost);
+    _game._emergencyChargeUsedThisRound =
+        data.emergencyChargeUsedThisRound;
+    _game._finalDefenseUsedThisRound = data.finalDefenseUsedThisRound;
     _game._roundIndex = data.roundIndex
         .clamp(0, _game._waves.length - 1)
         .toInt();

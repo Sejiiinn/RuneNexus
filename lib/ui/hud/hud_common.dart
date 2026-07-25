@@ -91,6 +91,11 @@ String hudFormatDamageValue(double value) {
   return value.toStringAsFixed(1);
 }
 
+String hudFormatNexusHp(double value) {
+  final text = value.toStringAsFixed(1);
+  return text.endsWith('.0') ? text.substring(0, text.length - 2) : text;
+}
+
 class HudTurretAttributeChips extends StatelessWidget {
   const HudTurretAttributeChips({required this.definition, super.key});
 

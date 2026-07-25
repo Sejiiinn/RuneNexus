@@ -191,8 +191,8 @@ class GameSnapshot {
 
   final int gold;
   final int gemShards;
-  final int nexusHp;
-  final int maxNexusHp;
+  final double nexusHp;
+  final double maxNexusHp;
   final int round;
   final int maxRound;
   final GamePhase phase;

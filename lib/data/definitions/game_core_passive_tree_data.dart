@@ -1,6 +1,6 @@
 import '../../domain/core/core_passive_tree.dart';
 
-const int corePassiveTreeRevision = 2;
+const int corePassiveTreeRevision = 3;
 
 const double corePassiveAttackSyncDurationSeconds = 2;
 
@@ -35,6 +35,36 @@ const List<double> _attackDamageSyncAmplificationRates = [
 const List<double> _continuousComputationRecoveryRates = [0.05, 0.10, 0.15];
 const List<double> _criticalOutputAmplificationRates = [0.20, 0.30, 0.40];
 const double _transcendentOutputAmplificationRate = 0.25;
+const List<double> _reinforcedShellMaxHpRates = [
+  0.05,
+  0.10,
+  0.15,
+  0.20,
+  0.25,
+];
+const List<double> _selfRepairRecoveryRates = [
+  0.01,
+  0.015,
+  0.02,
+  0.025,
+  0.03,
+];
+const List<double> _damageRestorationRates = [0.15, 0.25, 0.35];
+const List<double> _impactDispersionReductionRates = [
+  0.03,
+  0.06,
+  0.09,
+  0.12,
+  0.15,
+];
+const List<double> _threatWeakeningReductionRates = [
+  0.05,
+  0.10,
+  0.15,
+  0.20,
+  0.25,
+];
+const List<double> _emergencyChargeRecoveryRates = [0.15, 0.25, 0.35];
 
 double _corePassiveRankRate(List<double> rates, int rank) {
   if (rank <= 0) {
@@ -96,6 +126,66 @@ double corePassiveCoreSkillPowerMultiplier(
   return (1.0 + outputIncrease) *
       (1.0 + criticalOutputAmplification) *
       (1.0 + transcendentOutputAmplification);
+}
+
+double corePassiveNexusMaxHpMultiplier(
+  Map<CorePassiveNodeId, int> nodeRanks,
+) {
+  return 1.0 +
+      _corePassiveRankRate(
+        _reinforcedShellMaxHpRates,
+        nodeRanks[CorePassiveNodeId.controlSelfRepair] ?? 0,
+      );
+}
+
+double corePassiveRoundRecoveryRate(
+  Map<CorePassiveNodeId, int> nodeRanks,
+) {
+  return _corePassiveRankRate(
+    _selfRepairRecoveryRates,
+    nodeRanks[CorePassiveNodeId.controlRetarget] ?? 0,
+  );
+}
+
+double corePassiveDamageRestorationRate(
+  Map<CorePassiveNodeId, int> nodeRanks,
+) {
+  return _corePassiveRankRate(
+    _damageRestorationRates,
+    nodeRanks[CorePassiveNodeId.controlBufferShell] ?? 0,
+  );
+}
+
+double corePassiveNexusDamageMultiplier(
+  Map<CorePassiveNodeId, int> nodeRanks, {
+  required double lostDurabilityRatio,
+}) {
+  final impactDispersionRate = _corePassiveRankRate(
+    _impactDispersionReductionRates,
+    nodeRanks[CorePassiveNodeId.controlThreatSense] ?? 0,
+  );
+  final threatWeakeningRate = _corePassiveRankRate(
+    _threatWeakeningReductionRates,
+    nodeRanks[CorePassiveNodeId.controlRearLock] ?? 0,
+  );
+  final durabilityRatio = lostDurabilityRatio.clamp(0.0, 1.0).toDouble();
+  return (1.0 - impactDispersionRate) *
+      (1.0 - threatWeakeningRate * durabilityRatio);
+}
+
+double corePassiveEmergencyChargeRecoveryRate(
+  Map<CorePassiveNodeId, int> nodeRanks,
+) {
+  return _corePassiveRankRate(
+    _emergencyChargeRecoveryRates,
+    nodeRanks[CorePassiveNodeId.controlEmergencyCharge] ?? 0,
+  );
+}
+
+bool corePassiveHasFinalDefense(
+  Map<CorePassiveNodeId, int> nodeRanks,
+) {
+  return (nodeRanks[CorePassiveNodeId.controlFinalLine] ?? 0) > 0;
 }
 
 const Set<CorePassiveNodeId> corePassiveStartingNodeIds = {
@@ -162,22 +252,22 @@ const Map<CorePassiveNodeId, _CorePassiveNodeSpec> _nodeSpecs = {
   CorePassiveNodeId.controlThreatSense: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.control,
     grade: CorePassiveNodeGrade.normal,
-    displayValues: ['4%', '8%', '12%', '16%', '20%'],
+    displayValues: ['3%', '6%', '9%', '12%', '15%'],
   ),
   CorePassiveNodeId.controlSelfRepair: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.control,
     grade: CorePassiveNodeGrade.normal,
-    displayValues: ['9라운드', '8라운드', '7라운드', '6라운드', '5라운드'],
+    displayValues: ['5%', '10%', '15%', '20%', '25%'],
   ),
   CorePassiveNodeId.controlRetarget: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.control,
     grade: CorePassiveNodeGrade.normal,
-    displayValues: ['40%', '55%', '70%', '85%', '100%'],
+    displayValues: ['1%', '1.5%', '2%', '2.5%', '3%'],
   ),
   CorePassiveNodeId.controlRearLock: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.control,
     grade: CorePassiveNodeGrade.normal,
-    displayValues: ['4%', '8%', '12%', '16%', '20%'],
+    displayValues: ['5%', '10%', '15%', '20%', '25%'],
   ),
   CorePassiveNodeId.controlEmergencyCharge: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.control,
@@ -187,12 +277,12 @@ const Map<CorePassiveNodeId, _CorePassiveNodeSpec> _nodeSpecs = {
   CorePassiveNodeId.controlBufferShell: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.control,
     grade: CorePassiveNodeGrade.notable,
-    displayValues: ['10라운드', '8라운드', '6라운드'],
+    displayValues: ['15%', '25%', '35%'],
   ),
   CorePassiveNodeId.controlFinalLine: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.control,
     grade: CorePassiveNodeGrade.keystone,
-    displayValues: ['1회 / 15%'],
+    displayValues: ['1'],
   ),
   CorePassiveNodeId.efficiencySaving: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.efficiency,
@@ -290,14 +380,14 @@ const List<(CorePassiveNodeId, CorePassiveNodeId)> _edges = [
     CorePassiveNodeId.efficiencyCombinedFront,
   ),
   (CorePassiveNodeId.controlSelfRepair, CorePassiveNodeId.controlRetarget),
-  (CorePassiveNodeId.controlRetarget, CorePassiveNodeId.controlEmergencyCharge),
+  (CorePassiveNodeId.controlRetarget, CorePassiveNodeId.controlBufferShell),
+  (CorePassiveNodeId.controlBufferShell, CorePassiveNodeId.controlFinalLine),
+  (CorePassiveNodeId.controlThreatSense, CorePassiveNodeId.controlRearLock),
+  (CorePassiveNodeId.controlRearLock, CorePassiveNodeId.controlEmergencyCharge),
   (
     CorePassiveNodeId.controlEmergencyCharge,
     CorePassiveNodeId.controlFinalLine,
   ),
-  (CorePassiveNodeId.controlThreatSense, CorePassiveNodeId.controlRearLock),
-  (CorePassiveNodeId.controlRearLock, CorePassiveNodeId.controlBufferShell),
-  (CorePassiveNodeId.controlBufferShell, CorePassiveNodeId.controlFinalLine),
   (CorePassiveNodeId.attackHaste, CorePassiveNodeId.hybridEmergencyCompute),
   (
     CorePassiveNodeId.controlThreatSense,

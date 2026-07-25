@@ -3504,6 +3504,29 @@ void main() {
     expect(progression.claimedCorePointStageRewards, {1, 2});
   });
 
+  test('Nexus HP save accepts legacy integers and preserves fractions', () {
+    final fractionalSave = _saveWithCorePassiveRun(
+      nexusHp: 19.25,
+      roundIndex: 1,
+      completedRounds: 1,
+      roundNexusHpLost: 1.75,
+      emergencyChargeUsedThisRound: true,
+      finalDefenseUsedThisRound: true,
+    );
+    final fractionalRestored = GameSaveData.fromJson(
+      fractionalSave.toJson(),
+    )!;
+
+    expect(fractionalRestored.nexusHp, closeTo(19.25, 0.0001));
+    expect(fractionalRestored.roundNexusHpLost, closeTo(1.75, 0.0001));
+    expect(fractionalRestored.emergencyChargeUsedThisRound, isTrue);
+    expect(fractionalRestored.finalDefenseUsedThisRound, isTrue);
+
+    final legacyJson = fractionalSave.toJson()..['nexusHp'] = 19;
+    final legacyRestored = GameSaveData.fromJson(legacyJson)!;
+    expect(legacyRestored.nexusHp, closeTo(19, 0.0001));
+  });
+
   test('stage core point rewards total twenty and only grant once', () {
     expect(
       gameStages.fold<int>(
@@ -3570,16 +3593,16 @@ void main() {
     expect(restored.snapshotNotifier.value.lastRunCorePointReward, 0);
   });
 
-  test('allocated passive nodes do not affect healing or build cost', () async {
+  test('defense passives increase maximum HP and recover fractional HP', () async {
     final repository = MemorySaveRepository()
       ..data = _saveWithCorePassiveRun(
         nexusHp: 19,
         roundIndex: 4,
         completedRounds: 4,
-        totalCorePoints: 20,
+        totalCorePoints: 30,
         corePassiveNodeRanks: const {
           CorePassiveNodeId.controlSelfRepair: 5,
-          CorePassiveNodeId.efficiencySaving: 5,
+          CorePassiveNodeId.controlRetarget: 5,
         },
       );
     final game = RuneNexusGame(
@@ -3590,9 +3613,228 @@ void main() {
     await game.onLoad();
 
     expect(game.turretBuildCost(TurretType.arrow), 60);
+    expect(game.snapshotNotifier.value.maxNexusHp, closeTo(25, 0.0001));
     game.startNextWave();
     game.update(0.016);
-    expect(game.snapshotNotifier.value.nexusHp, 19);
+    expect(game.snapshotNotifier.value.nexusHp, closeTo(19.75, 0.0001));
+  });
+
+  test('damage restoration uses actual HP lost during the round', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithCorePassiveRun(
+        nexusHp: 10,
+        roundIndex: 0,
+        completedRounds: 0,
+        totalCorePoints: 30,
+        corePassiveNodeRanks: const {
+          CorePassiveNodeId.controlSelfRepair: 3,
+          CorePassiveNodeId.controlRetarget: 3,
+          CorePassiveNodeId.controlBufferShell: 3,
+        },
+      );
+    final game = RuneNexusGame(
+      waves: _emptyWaves(1),
+      saveRepository: repository,
+    );
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+
+    final normal = gameEnemies[EnemyType.normal]!;
+    final enemy = EnemyComponent(
+      definition: EnemyDefinition(
+        type: EnemyType.normal,
+        name: 'Damage Restorer Test',
+        maxHp: 100,
+        speed: normal.speed,
+        rewardGold: 0,
+        coreDamage: 2,
+        color: normal.color,
+        resistanceProfile: normal.resistanceProfile,
+      ),
+      maxHp: 100,
+      path: [Vector2.zero(), Vector2(500, 0)],
+      game: game,
+    );
+    game.enemies.add(enemy);
+    await game.add(enemy);
+
+    game.enemyReachedCore(enemy);
+    expect(game.snapshotNotifier.value.nexusHp, closeTo(8, 0.0001));
+
+    game.update(0.016);
+
+    expect(game.snapshotNotifier.value.maxNexusHp, closeTo(23, 0.0001));
+    expect(game.snapshotNotifier.value.nexusHp, closeTo(9.16, 0.0001));
+  });
+
+  test('damage reduction is multiplicative and emergency charge is once per round', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithCorePassiveRun(
+        nexusHp: 20,
+        roundIndex: 0,
+        completedRounds: 0,
+        totalCorePoints: 30,
+        corePassiveNodeRanks: const {
+          CorePassiveNodeId.controlThreatSense: 5,
+          CorePassiveNodeId.controlRearLock: 5,
+          CorePassiveNodeId.controlEmergencyCharge: 3,
+        },
+      );
+    final game = RuneNexusGame(
+      waves: _emptyWaves(1),
+      saveRepository: repository,
+    );
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+
+    EnemyComponent halfDurabilityEnemy() {
+      final enemy = EnemyComponent(
+        definition: gameEnemies[EnemyType.normal]!,
+        maxHp: 100,
+        path: [Vector2.zero(), Vector2(500, 0)],
+        game: game,
+      )..hp = 50;
+      game.enemies.add(enemy);
+      return enemy;
+    }
+
+    final firstEnemy = halfDurabilityEnemy();
+    await game.add(firstEnemy);
+    game.enemyReachedCore(firstEnemy);
+
+    expect(game.snapshotNotifier.value.nexusHp, closeTo(19.25625, 0.0001));
+    expect(game.nexusCoreBeamCooldownSeconds, closeTo(3.25, 0.0001));
+    await game.saveNow();
+    expect(repository.data!.roundNexusHpLost, closeTo(0.74375, 0.0001));
+    expect(repository.data!.emergencyChargeUsedThisRound, isTrue);
+
+    final secondEnemy = halfDurabilityEnemy();
+    await game.add(secondEnemy);
+    game.enemyReachedCore(secondEnemy);
+
+    expect(game.snapshotNotifier.value.nexusHp, closeTo(18.5125, 0.0001));
+    expect(game.nexusCoreBeamCooldownSeconds, closeTo(3.25, 0.0001));
+  });
+
+  test('final defense ignores bosses without consuming its round use', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithCorePassiveRun(
+        nexusHp: 20,
+        roundIndex: 0,
+        completedRounds: 0,
+        totalCorePoints: 30,
+        corePassiveNodeRanks: const {
+          CorePassiveNodeId.controlThreatSense: 3,
+          CorePassiveNodeId.controlRearLock: 3,
+          CorePassiveNodeId.controlEmergencyCharge: 3,
+          CorePassiveNodeId.controlFinalLine: 1,
+        },
+      );
+    final game = RuneNexusGame(
+      waves: _emptyWaves(1),
+      saveRepository: repository,
+    );
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+
+    Future<void> reachCore(EnemyType type) async {
+      final enemy = EnemyComponent(
+        definition: gameEnemies[type]!,
+        maxHp: 100,
+        path: [Vector2.zero(), Vector2(500, 0)],
+        game: game,
+      );
+      game.enemies.add(enemy);
+      await game.add(enemy);
+      game.enemyReachedCore(enemy);
+    }
+
+    await reachCore(EnemyType.boss);
+    expect(game.snapshotNotifier.value.nexusHp, closeTo(12.72, 0.0001));
+
+    await reachCore(EnemyType.normal);
+    expect(game.snapshotNotifier.value.nexusHp, closeTo(12.72, 0.0001));
+    await game.saveNow();
+    expect(repository.data!.finalDefenseUsedThisRound, isTrue);
+
+    await reachCore(EnemyType.normal);
+    expect(game.snapshotNotifier.value.nexusHp, closeTo(11.81, 0.0001));
+  });
+
+  test('restored defense round state persists and resets next round', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithCorePassiveRun(
+        nexusHp: 15,
+        roundIndex: 0,
+        completedRounds: 0,
+        phase: GamePhase.wave,
+        totalCorePoints: 50,
+        corePassiveNodeRanks: const {
+          CorePassiveNodeId.controlSelfRepair: 3,
+          CorePassiveNodeId.controlRetarget: 3,
+          CorePassiveNodeId.controlBufferShell: 3,
+          CorePassiveNodeId.controlThreatSense: 3,
+          CorePassiveNodeId.controlRearLock: 3,
+          CorePassiveNodeId.controlEmergencyCharge: 3,
+          CorePassiveNodeId.controlFinalLine: 1,
+        },
+        roundNexusHpLost: 2,
+        emergencyChargeUsedThisRound: true,
+        finalDefenseUsedThisRound: true,
+      );
+    final game = RuneNexusGame(
+      waves: _emptyWaves(2),
+      saveRepository: repository,
+    );
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
+    expect(game.snapshotNotifier.value.phase, GamePhase.restored);
+    game.continueRestoredRun();
+
+    Future<void> reachCore() async {
+      final enemy = EnemyComponent(
+        definition: gameEnemies[EnemyType.normal]!,
+        maxHp: 100,
+        path: [Vector2.zero(), Vector2(500, 0)],
+        game: game,
+      );
+      game.enemies.add(enemy);
+      await game.add(enemy);
+      game.enemyReachedCore(enemy);
+    }
+
+    await reachCore();
+
+    // 복원된 사용 상태로 무효화와 충전이 중복 적용되지 않는다.
+    expect(game.snapshotNotifier.value.nexusHp, closeTo(14.09, 0.0001));
+    expect(game.nexusCoreBeamCooldownSeconds, closeTo(5, 0.0001));
+    await game.saveNow();
+    expect(repository.data!.roundNexusHpLost, closeTo(2.91, 0.0001));
+    expect(repository.data!.emergencyChargeUsedThisRound, isTrue);
+    expect(repository.data!.finalDefenseUsedThisRound, isTrue);
+
+    game.update(0.016);
+
+    // 복원된 손실량까지 손상 복원에 포함한 뒤 라운드 상태를 초기화한다.
+    expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+    expect(game.snapshotNotifier.value.nexusHp, closeTo(15.5685, 0.0001));
+    game.startNextWave();
+
+    await reachCore();
+    expect(game.snapshotNotifier.value.nexusHp, closeTo(15.5685, 0.0001));
+    expect(game.nexusCoreBeamCooldownSeconds, closeTo(5, 0.0001));
+
+    await reachCore();
+    expect(game.snapshotNotifier.value.nexusHp, closeTo(14.6585, 0.0001));
+    expect(game.nexusCoreBeamCooldownSeconds, closeTo(3.25, 0.0001));
+    await game.saveNow();
+    expect(repository.data!.roundNexusHpLost, closeTo(0.91, 0.0001));
+    expect(repository.data!.emergencyChargeUsedThisRound, isTrue);
+    expect(repository.data!.finalDefenseUsedThisRound, isTrue);
   });
 
   test('status gems are removed from the reward pool', () {
@@ -7129,7 +7371,7 @@ List<WaveDefinition> _emptyWaves(int count) {
 }
 
 GameSaveData _saveWithCorePassiveRun({
-  required int nexusHp,
+  required double nexusHp,
   required int roundIndex,
   required int completedRounds,
   int unlockedStageCount = 1,
@@ -7140,6 +7382,10 @@ GameSaveData _saveWithCorePassiveRun({
   Set<int> claimedCorePointStageRewards = const {},
   SavedCoreCombatSkillStats coreCombatSkillStats =
       SavedCoreCombatSkillStats.empty,
+  double roundNexusHpLost = 0,
+  bool emergencyChargeUsedThisRound = false,
+  bool finalDefenseUsedThisRound = false,
+  GamePhase phase = GamePhase.preparation,
 }) {
   return GameSaveData(
     version: GameSaveData.currentVersion,
@@ -7151,7 +7397,7 @@ GameSaveData _saveWithCorePassiveRun({
     mapSignature: const GameSaveAdapter().mapSignature(gameMap),
     roundIndex: roundIndex,
     completedRounds: completedRounds,
-    phase: GamePhase.preparation,
+    phase: phase,
     autoStartMode: AutoStartMode.pauseEachRound,
     progression: SavedProgression(
       runes: 0,
@@ -7182,6 +7428,9 @@ GameSaveData _saveWithCorePassiveRun({
     isPurchasedGemReward: false,
     runCoreCombatSkill: coreCombatSkill,
     runCoreCombatSkillStats: coreCombatSkillStats,
+    roundNexusHpLost: roundNexusHpLost,
+    emergencyChargeUsedThisRound: emergencyChargeUsedThisRound,
+    finalDefenseUsedThisRound: finalDefenseUsedThisRound,
     turrets: const [],
     enemies: const [],
     spawnQueue: const [],

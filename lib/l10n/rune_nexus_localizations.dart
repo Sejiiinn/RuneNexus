@@ -62,7 +62,7 @@ class RuneNexusLocalizations {
       _isEnglish ? 'Required points' : '필요 포인트';
   String get corePassiveMaxRank => _isEnglish ? 'Maximum rank' : '최대 랭크';
   String get corePassiveAttack => _isEnglish ? 'Attack' : '공격';
-  String get corePassiveControl => _isEnglish ? 'Control' : '제어';
+  String get corePassiveControl => _isEnglish ? 'Defense' : '방위';
   String get corePassiveEfficiency => _isEnglish ? 'Efficiency' : '효율';
   String get corePassiveHybrid => _isEnglish ? 'Hybrid' : '혼합';
   String get corePointEarned => _isEnglish ? 'Core Points earned' : '코어 포인트 획득';
@@ -86,17 +86,17 @@ class RuneNexusLocalizations {
       CorePassiveNodeId.attackOverclock =>
         _isEnglish ? 'Transcendent Output' : '초월 출력',
       CorePassiveNodeId.controlThreatSense =>
-        _isEnglish ? 'Threat Detection' : '위협 감지',
+        _isEnglish ? 'Impact Dispersion' : '충격 분산',
       CorePassiveNodeId.controlSelfRepair =>
-        _isEnglish ? 'Self Repair' : '자가 수복',
+        _isEnglish ? 'Reinforced Shell' : '강화 외피',
       CorePassiveNodeId.controlRetarget =>
-        _isEnglish ? 'Target Reconstruction' : '표적 재구성',
+        _isEnglish ? 'Self Repair' : '자가 수복',
       CorePassiveNodeId.controlRearLock =>
-        _isEnglish ? 'Rear Lockdown' : '후방 봉쇄',
+        _isEnglish ? 'Threat Weakening' : '위협 약화',
       CorePassiveNodeId.controlEmergencyCharge =>
         _isEnglish ? 'Emergency Charge' : '비상 충전',
       CorePassiveNodeId.controlBufferShell =>
-        _isEnglish ? 'Buffer Shell' : '완충 외피',
+        _isEnglish ? 'Damage Restoration' : '손상 복원',
       CorePassiveNodeId.controlFinalLine =>
         _isEnglish ? 'Final Defense Line' : '최종 방위선',
       CorePassiveNodeId.efficiencySaving =>
@@ -163,32 +163,32 @@ class RuneNexusLocalizations {
             : '모든 코어 스킬 위력 증가 계산 후 최종 위력 25% 증폭',
       CorePassiveNodeId.controlThreatSense =>
         _isEnglish
-            ? 'Core charge speed increases by $value while an enemy is past 75% of the path.'
-            : '경로 75%를 넘은 적이 있으면 코어 스킬 충전 속도 $value 증가',
+            ? 'All damage taken by the Nexus is reduced by $value.'
+            : '넥서스가 받는 모든 피해 $value 감소',
       CorePassiveNodeId.controlSelfRepair =>
         _isEnglish
-            ? 'Restore 1 Nexus HP every $value rounds.'
-            : '$value라운드마다 넥서스 체력 1 회복',
+            ? 'Maximum Nexus HP increased by $value.'
+            : '넥서스 최대 체력 $value 증가',
       CorePassiveNodeId.controlRetarget =>
         _isEnglish
-            ? 'Transfer remaining Core skill effects at $value efficiency when a target disappears.'
-            : '대상 사라짐 시 남은 코어 스킬 효과를 $value 효율로 이전',
+            ? 'At the end of each round, restore $value of maximum Nexus HP.'
+            : '라운드 종료 시 넥서스 최대 체력의 $value 회복',
       CorePassiveNodeId.controlRearLock =>
         _isEnglish
-            ? 'Core skill effects increase by $value against enemies past 80% of the path.'
-            : '경로 80%를 넘은 적에 대한 코어 스킬 효과 $value 증가',
+            ? "Reduce an enemy's Nexus damage by up to $value based on its lost total durability."
+            : '도달한 적이 잃은 총 내구도 비율에 따라 해당 적의 넥서스 피해 최대 $value 감소',
       CorePassiveNodeId.controlEmergencyCharge =>
         _isEnglish
-            ? 'Refund $value cooldown after Nexus damage, once per round.'
-            : '코어 피해 시 재사용 대기시간 $value 환급, 라운드당 1회',
+            ? 'After taking Nexus damage, instantly recover $value of the current Core skill cooldown, once per round.'
+            : '넥서스 피해 시 현재 코어 스킬 재사용 대기시간 $value 즉시 회복, 라운드당 1회',
       CorePassiveNodeId.controlBufferShell =>
         _isEnglish
-            ? 'Negate the first 1 Nexus damage every $value rounds.'
-            : '$value라운드마다 코어가 받는 첫 피해 1 무효화',
+            ? 'At round end, restore $value of the Nexus HP actually lost during that round.'
+            : '라운드 종료 시 해당 라운드에서 실제로 잃은 넥서스 체력의 $value 회복',
       CorePassiveNodeId.controlFinalLine =>
         _isEnglish
-            ? 'Once per run, survive lethal damage at 1 HP and gain 15% Core skill effect near the end of the path.'
-            : '런당 1회 치명 피해를 받고 체력 1로 생존, 경로 후반부 대상 코어 스킬 효과 15% 증가',
+            ? 'Each round, negate damage from the first non-boss enemy to reach the Nexus. Bosses do not consume this effect.'
+            : '매 라운드 처음 넥서스에 도달한 비보스 적 1기의 피해 무효화, 보스는 효과를 소모하지 않음',
       CorePassiveNodeId.efficiencySaving =>
         _isEnglish
             ? 'Turret build cost reduced by $value.'

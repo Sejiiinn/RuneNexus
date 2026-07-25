@@ -59,6 +59,34 @@ void main() {
     );
   });
 
+  test('defense passive rates follow the finalized balance values', () {
+    const ranks = <CorePassiveNodeId, int>{
+      CorePassiveNodeId.controlSelfRepair: 5,
+      CorePassiveNodeId.controlRetarget: 5,
+      CorePassiveNodeId.controlBufferShell: 3,
+      CorePassiveNodeId.controlThreatSense: 5,
+      CorePassiveNodeId.controlRearLock: 5,
+      CorePassiveNodeId.controlEmergencyCharge: 3,
+      CorePassiveNodeId.controlFinalLine: 1,
+    };
+
+    expect(corePassiveNexusMaxHpMultiplier(ranks), closeTo(1.25, 0.0001));
+    expect(corePassiveRoundRecoveryRate(ranks), closeTo(0.03, 0.0001));
+    expect(corePassiveDamageRestorationRate(ranks), closeTo(0.35, 0.0001));
+    expect(
+      corePassiveNexusDamageMultiplier(
+        ranks,
+        lostDurabilityRatio: 1,
+      ),
+      closeTo(0.6375, 0.0001),
+    );
+    expect(
+      corePassiveEmergencyChargeRecoveryRate(ranks),
+      closeTo(0.35, 0.0001),
+    );
+    expect(corePassiveHasFinalDefense(ranks), isTrue);
+  });
+
   test('one rank-three branch opens a hybrid node', () {
     final oneSideReady = <CorePassiveNodeId, int>{
       CorePassiveNodeId.attackHaste: 3,

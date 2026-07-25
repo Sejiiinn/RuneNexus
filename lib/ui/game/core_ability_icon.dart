@@ -91,8 +91,6 @@ class CorePassiveNodeIcon extends StatelessWidget {
 
 String? _corePassiveNodeIconAsset(CorePassiveNodeId nodeId) {
   return switch (nodeId) {
-    CorePassiveNodeId.controlSelfRepair =>
-      '$_corePassiveIconAssetRoot/self_repair.png',
     CorePassiveNodeId.efficiencySaving =>
       '$_corePassiveIconAssetRoot/cost_saving_design.png',
     CorePassiveNodeId.attackHaste =>
@@ -109,11 +107,12 @@ IconData _corePassiveNodeMaterialIcon(CorePassiveNodeId nodeId) {
     CorePassiveNodeId.attackGuardianBeam => Icons.autorenew,
     CorePassiveNodeId.attackRiftMark => Icons.filter_3,
     CorePassiveNodeId.attackOverclock => Icons.electric_bolt,
-    CorePassiveNodeId.controlThreatSense => Icons.radar,
-    CorePassiveNodeId.controlRetarget => Icons.sync,
-    CorePassiveNodeId.controlRearLock => Icons.shield_outlined,
+    CorePassiveNodeId.controlThreatSense => Icons.blur_circular,
+    CorePassiveNodeId.controlSelfRepair => Icons.shield_outlined,
+    CorePassiveNodeId.controlRetarget => Icons.healing,
+    CorePassiveNodeId.controlRearLock => Icons.gpp_maybe_outlined,
     CorePassiveNodeId.controlEmergencyCharge => Icons.battery_charging_full,
-    CorePassiveNodeId.controlBufferShell => Icons.health_and_safety_outlined,
+    CorePassiveNodeId.controlBufferShell => Icons.settings_backup_restore,
     CorePassiveNodeId.controlFinalLine => Icons.security,
     CorePassiveNodeId.efficiencyDiversity => Icons.hub_outlined,
     CorePassiveNodeId.efficiencyFirstDeploy =>
@@ -129,7 +128,6 @@ IconData _corePassiveNodeMaterialIcon(CorePassiveNodeId nodeId) {
     CorePassiveNodeId.hybridSupplyBarrier => Icons.shield_moon_outlined,
     CorePassiveNodeId.hybridRecoveryBudget => Icons.build_circle_outlined,
     CorePassiveNodeId.attackHaste ||
-    CorePassiveNodeId.controlSelfRepair ||
     CorePassiveNodeId.efficiencySaving => Icons.circle_outlined,
   };
 }

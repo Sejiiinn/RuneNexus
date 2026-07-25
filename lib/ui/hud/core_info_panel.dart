@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../data/definitions/game_core_passive_tree_data.dart';
 import '../../domain/core/core_ability.dart';
 import '../../game/game_snapshot.dart';
+import 'hud_common.dart';
 
 class HudCoreInfoPanel extends StatelessWidget {
   const HudCoreInfoPanel({required this.snapshot, super.key});
@@ -69,7 +70,8 @@ class HudCoreInfoPanel extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '${snapshot.nexusHp.round()} / ${snapshot.maxNexusHp.round()}',
+                    '${hudFormatNexusHp(snapshot.nexusHp)} / '
+                    '${hudFormatNexusHp(snapshot.maxNexusHp)}',
                     maxLines: 1,
                     overflow: TextOverflow.clip,
                     style: const TextStyle(

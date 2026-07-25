@@ -51,6 +51,15 @@ class GameSaveAdapter {
       runCoreCombatSkillStats: pendingSave?.hasActiveRun == true
           ? pendingSave!.runCoreCombatSkillStats
           : state.runCoreCombatSkillStats,
+      roundNexusHpLost: pendingSave?.hasActiveRun == true
+          ? pendingSave!.roundNexusHpLost
+          : state.roundNexusHpLost,
+      emergencyChargeUsedThisRound: pendingSave?.hasActiveRun == true
+          ? pendingSave!.emergencyChargeUsedThisRound
+          : state.emergencyChargeUsedThisRound,
+      finalDefenseUsedThisRound: pendingSave?.hasActiveRun == true
+          ? pendingSave!.finalDefenseUsedThisRound
+          : state.finalDefenseUsedThisRound,
       turrets: pendingSave?.turrets ?? state.turrets,
       enemies: pendingSave?.enemies ?? state.enemies,
       spawnQueue: pendingSave?.spawnQueue ?? state.spawnQueue,
@@ -187,6 +196,9 @@ class GameSaveBuildState {
     required this.rewardReturnPhase,
     required this.runCoreCombatSkill,
     required this.runCoreCombatSkillStats,
+    required this.roundNexusHpLost,
+    required this.emergencyChargeUsedThisRound,
+    required this.finalDefenseUsedThisRound,
     required this.turrets,
     required this.enemies,
     required this.spawnQueue,
@@ -197,7 +209,7 @@ class GameSaveBuildState {
   final int savedAtMillis;
   final int gold;
   final int gemShards;
-  final int nexusHp;
+  final double nexusHp;
   final int currentStageNumber;
   final MapDefinition map;
   final int roundIndex;
@@ -214,6 +226,9 @@ class GameSaveBuildState {
   final GamePhase? rewardReturnPhase;
   final CoreCombatSkill? runCoreCombatSkill;
   final SavedCoreCombatSkillStats runCoreCombatSkillStats;
+  final double roundNexusHpLost;
+  final bool emergencyChargeUsedThisRound;
+  final bool finalDefenseUsedThisRound;
   final List<SavedTurret> turrets;
   final List<SavedEnemy> enemies;
   final List<SavedSpawnRequest> spawnQueue;

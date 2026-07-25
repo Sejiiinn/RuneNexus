@@ -36,6 +36,9 @@ class GameSaveData {
     this.rewardReturnPhase,
     this.runCoreCombatSkill = CoreCombatSkill.guardianBeam,
     this.runCoreCombatSkillStats = SavedCoreCombatSkillStats.empty,
+    this.roundNexusHpLost = 0,
+    this.emergencyChargeUsedThisRound = false,
+    this.finalDefenseUsedThisRound = false,
     required this.turrets,
     required this.enemies,
     required this.spawnQueue,
@@ -47,7 +50,7 @@ class GameSaveData {
   final int savedAtMillis;
   final int gold;
   final int gemShards;
-  final int nexusHp;
+  final double nexusHp;
   final int stageNumber;
   final String? mapSignature;
   final int roundIndex;
@@ -63,6 +66,9 @@ class GameSaveData {
   final GamePhase? rewardReturnPhase;
   final CoreCombatSkill? runCoreCombatSkill;
   final SavedCoreCombatSkillStats runCoreCombatSkillStats;
+  final double roundNexusHpLost;
+  final bool emergencyChargeUsedThisRound;
+  final bool finalDefenseUsedThisRound;
   final List<SavedTurret> turrets;
   final List<SavedEnemy> enemies;
   final List<SavedSpawnRequest> spawnQueue;
@@ -106,6 +112,9 @@ class GameSaveData {
       'rewardReturnPhase': rewardReturnPhase?.name,
       'runCoreCombatSkill': runCoreCombatSkill?.name,
       'runCoreCombatSkillStats': runCoreCombatSkillStats.toJson(),
+      'roundNexusHpLost': roundNexusHpLost,
+      'emergencyChargeUsedThisRound': emergencyChargeUsedThisRound,
+      'finalDefenseUsedThisRound': finalDefenseUsedThisRound,
       'turrets': turrets.map((turret) => turret.toJson()).toList(),
       'enemies': enemies.map((enemy) => enemy.toJson()).toList(),
       'spawnQueue': spawnQueue.map((request) => request.toJson()).toList(),
@@ -142,7 +151,7 @@ class GameSaveData {
       savedAtMillis: _intValue(json['savedAtMillis']),
       gold: _intValue(json['gold']),
       gemShards: _intValue(json['gemShards']),
-      nexusHp: _intValue(json['nexusHp']),
+      nexusHp: _doubleValue(json['nexusHp']),
       stageNumber: _intValue(json['stageNumber'], fallback: 1),
       mapSignature: _stringValue(json['mapSignature']),
       roundIndex: _intValue(json['roundIndex']),
@@ -168,6 +177,13 @@ class GameSaveData {
       ),
       runCoreCombatSkillStats: SavedCoreCombatSkillStats.fromJson(
         json['runCoreCombatSkillStats'],
+      ),
+      roundNexusHpLost: _doubleValue(json['roundNexusHpLost']),
+      emergencyChargeUsedThisRound: _boolValue(
+        json['emergencyChargeUsedThisRound'],
+      ),
+      finalDefenseUsedThisRound: _boolValue(
+        json['finalDefenseUsedThisRound'],
       ),
       turrets: _objectList(json['turrets'], SavedTurret.fromJson),
       enemies: enemies,

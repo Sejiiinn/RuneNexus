@@ -169,8 +169,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return GameSnapshot(
       gold: RunProgression.baseInitialGold,
       gemShards: 0,
-      nexusHp: RunProgression.baseNexusHp,
-      maxNexusHp: RunProgression.baseNexusHp,
+      nexusHp: RunProgression.baseNexusHp.toDouble(),
+      maxNexusHp: RunProgression.baseNexusHp.toDouble(),
       round: 1,
       maxRound: stage.waves.length,
       phase: GamePhase.preparation,
@@ -461,7 +461,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   int _gold = RunProgression.baseInitialGold;
   int _gemShards = 0;
-  int _nexusHp = RunProgression.baseNexusHp;
+  double _nexusHp = RunProgression.baseNexusHp.toDouble();
   late int _currentStageNumber;
   int _completedRounds = 0;
   int _lastRunPreviousBestRound = 0;
@@ -519,6 +519,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double _nexusCoreBeamTickTimer = 0;
   double _nexusCoreBeamTickDamage = 0;
   double _corePassiveAttackSyncRemaining = 0;
+  double _roundNexusHpLost = 0;
+  bool _emergencyChargeUsedThisRound = false;
+  bool _finalDefenseUsedThisRound = false;
   int _damageNumberSpawnIndex = 0;
 
   bool get isWaveRunning => _phase == GamePhase.wave || _debugCombatActive;
@@ -537,7 +540,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   int get _initialGold => _progression.initialGold;
-  int get _maxNexusHp => _progression.maxNexusHp;
+  double get _maxNexusHp =>
+      _progression.maxNexusHp.toDouble() *
+      corePassiveNexusMaxHpMultiplier(_progression.corePassiveNodeRanks);
   int get turretRefundPercent =>
       _progression.isStageCleared(economyUpgradeUnlockStage)
       ? _progression.turretRefundPercent
@@ -1245,6 +1250,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (!_progression.setCorePassiveNodeRank(id, rank)) {
       return false;
     }
+    _nexusHp = math.min(_nexusHp, _maxNexusHp);
     _publish();
     _requestLocalSave(immediate: true);
     return true;
@@ -1254,6 +1260,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (!_progression.setCorePassiveNodeRanks(ranks)) {
       return false;
     }
+    _nexusHp = math.min(_nexusHp, _maxNexusHp);
     _publish();
     _requestLocalSave(immediate: true);
     return true;
@@ -1263,6 +1270,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (!_progression.resetCorePassiveTree()) {
       return false;
     }
+    _nexusHp = math.min(_nexusHp, _maxNexusHp);
     _publish();
     _requestLocalSave(immediate: true);
     return true;
@@ -1273,6 +1281,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
 
+    _resetRoundDefenseState();
     _phase = GamePhase.wave;
     _selectedPortalPoint = null;
     _selectedCorePoint = null;
@@ -1322,6 +1331,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _gold = _initialGold;
     _nexusHp = _maxNexusHp;
+    _resetRoundDefenseState();
     _roundIndex = 0;
     _completedRounds = 0;
     _lastRunPreviousBestRound = 0;
@@ -1443,12 +1453,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void upgradeNexusHpProgression() {
+    final previousMaxNexusHp = _maxNexusHp;
     if (!_progression.upgradeNexusHp()) {
       return;
     }
 
     if (_phase == GamePhase.preparation || _phase == GamePhase.success) {
-      _nexusHp++;
+      _nexusHp = math.min(
+        _maxNexusHp,
+        _nexusHp + (_maxNexusHp - previousMaxNexusHp),
+      );
     }
     _publish();
     _requestLocalSave(immediate: true);
@@ -1809,7 +1823,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _rewardReturnPhase = null;
     _rewardOptions.clear();
     _isPurchasedGemReward = false;
-    _nexusHp = 0;
+    _nexusHp = 0.0;
     _triggerNexusHitAlert();
     _startCoreDestructionSequence();
     _publish();
@@ -2979,7 +2993,35 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _triggerNexusHitAlert();
     final isDebugEnemy = _debugEnemies.remove(enemy);
     if (!isDebugEnemy) {
-      _nexusHp = math.max(0, _nexusHp - enemy.definition.coreDamage);
+      final finalDefenseActive =
+          corePassiveHasFinalDefense(_progression.corePassiveNodeRanks) &&
+          !enemy.definition.type.isBoss &&
+          !_finalDefenseUsedThisRound;
+      if (finalDefenseActive) {
+        _finalDefenseUsedThisRound = true;
+      } else {
+        // 체력·보호막·방어구를 합친 총 내구도 손실률.
+        final lostDurabilityRatio = enemy.maxDurability <= 0
+            ? 0.0
+            : (1.0 - enemy.currentDurability / enemy.maxDurability).clamp(
+                0.0,
+                1.0,
+              ).toDouble();
+        final nexusDamage =
+            enemy.definition.coreDamage.toDouble() *
+            corePassiveNexusDamageMultiplier(
+              _progression.corePassiveNodeRanks,
+              lostDurabilityRatio: lostDurabilityRatio,
+            );
+        final previousNexusHp = _nexusHp;
+        _nexusHp = math.max(0.0, _nexusHp - nexusDamage);
+        final actualNexusHpLost = previousNexusHp - _nexusHp;
+        if (actualNexusHpLost > 0) {
+          _roundNexusHpLost += actualNexusHpLost;
+          _showNexusHealthChange(-actualNexusHpLost);
+          _applyEmergencyCharge();
+        }
+      }
     }
     enemies.remove(enemy);
     _finishDebugCombatIfIdle();
@@ -3170,6 +3212,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _debugEnemies.clear();
     _debugCombatActive = false;
     _waveSpawner.clear();
+    _resetRoundDefenseState();
     _rewardOptions.clear();
     _nexusHitAlertTimer = 0;
     _portalAlertTimer = 0;
@@ -3916,6 +3959,82 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
   }
 
+  void _applyEmergencyCharge() {
+    if (_emergencyChargeUsedThisRound ||
+        _runCoreCombatSkill == null ||
+        _nexusCoreBeamActiveRemaining > 0 ||
+        _nexusCoreBeamCooldown <= 0) {
+      return;
+    }
+    final recoveryRate = corePassiveEmergencyChargeRecoveryRate(
+      _progression.corePassiveNodeRanks,
+    );
+    if (recoveryRate <= 0 || _coreCombatSkillCooldownInterval <= 0) {
+      return;
+    }
+
+    _nexusCoreBeamCooldown = math.max(
+      0.0,
+      _nexusCoreBeamCooldown -
+          _coreCombatSkillCooldownInterval * recoveryRate,
+    );
+    _emergencyChargeUsedThisRound = true;
+    _requestCombatStatsPublish();
+  }
+
+  void _restoreNexusAtRoundEnd() {
+    if (_nexusHp <= 0 || _nexusHp >= _maxNexusHp) {
+      _resetRoundDefenseState();
+      return;
+    }
+    final nodeRanks = _progression.corePassiveNodeRanks;
+    // 최대 체력 비례 수복과 해당 라운드 실제 손실 복원 합산.
+    final recovery =
+        _maxNexusHp * corePassiveRoundRecoveryRate(nodeRanks) +
+        _roundNexusHpLost * corePassiveDamageRestorationRate(nodeRanks);
+    if (recovery > 0) {
+      final previousNexusHp = _nexusHp;
+      _nexusHp = math.min(_maxNexusHp, _nexusHp + recovery);
+      final actualRecovery = _nexusHp - previousNexusHp;
+      if (actualRecovery > 0) {
+        _showNexusHealthChange(actualRecovery);
+      }
+    }
+    _resetRoundDefenseState();
+  }
+
+  void _resetRoundDefenseState() {
+    _roundNexusHpLost = 0;
+    _emergencyChargeUsedThisRound = false;
+    _finalDefenseUsedThisRound = false;
+  }
+
+  void _showNexusHealthChange(double healthChange) {
+    if (healthChange == 0) {
+      return;
+    }
+    final size = Vector2(78, 28);
+    final text =
+        '${healthChange > 0 ? '+' : '-'}${healthChange.abs().toStringAsFixed(1)}';
+    add(
+      DamageNumberComponent(
+        position: _damageNumberStartPosition(
+          position: _nexusCorePosition(),
+          sourcePosition: null,
+          motion: DamageNumberMotion.rise,
+        ),
+        textImage: _damageNumberImages.imageFor(
+          text: text,
+          color: healthChange > 0
+              ? const Color(0xFF72E0A2)
+              : const Color(0xFFFF7043),
+          feedback: DamageNumberFeedback.neutral,
+          size: size,
+        ),
+      ),
+    );
+  }
+
   void _checkWaveClear() {
     if (!_waveSpawner.isEmpty ||
         enemies.isNotEmpty ||
@@ -3924,6 +4043,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     final completedRound = _roundIndex + 1;
+    _restoreNexusAtRoundEnd();
     _gold +=
         _waves[_roundIndex].clearRewardGold +
         _progression.waveClearGoldBonus +
@@ -4269,6 +4389,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         progression: _progression,
         runCoreCombatSkill: _runCoreCombatSkill,
         runCoreCombatSkillStats: _coreCombatSkillStatsToSaveData(),
+        roundNexusHpLost: _roundNexusHpLost,
+        emergencyChargeUsedThisRound: _emergencyChargeUsedThisRound,
+        finalDefenseUsedThisRound: _finalDefenseUsedThisRound,
         runUpgradeLevels: _runUpgradeLevels,
         killGoldFractionWallet: _killGoldFractionWallet,
         gemInventory: _gemInventory,

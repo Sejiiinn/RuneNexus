@@ -106,6 +106,7 @@ class EnemyComponent extends PositionComponent {
   double get riftMarkDamageAmplification =>
       hasRiftMark ? _riftMarkDamageAmplification : 0;
   double get finalDamageMultiplier => 1 + riftMarkDamageAmplification;
+  double get maxDurability => maxHp + maxShield + maxArmor;
   double get currentDurability => hp + shield + armor;
   Vector2 get visualPosition => position + _visualRenderOffset();
   double get totalBurnDamagePerSecond => _burnInstances.fold(
