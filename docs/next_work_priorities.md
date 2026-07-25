@@ -78,7 +78,7 @@
 - `lib/data/definitions/game_turret_module_data.dart`
 - `lib/data/save/game_save_data.dart`
 - `test/turret_module_test.dart`
-- `test/widget_test.dart`
+- `test/main_menu_turret_module_test.dart`
 
 ### 2. 챕터 2~3 보상과 연구 조건 연결
 
@@ -113,7 +113,7 @@
 - `lib/domain/stage/stage_definition.dart`
 - `lib/ui/menu/main_menu_screen.dart`
 - `test/game_balance_test.dart`
-- `test/widget_test.dart`
+- `test/main_menu_stage_detail_test.dart`
 
 ### 3. 연구/영구 성장 해금 단계 정리
 
@@ -144,8 +144,10 @@
 - `lib/game/systems/run_progression.dart`
 - `lib/ui/menu/main_menu_screen.dart`
 - `lib/data/save/game_save_data.dart`
-- `test/game_balance_test.dart`
-- `test/widget_test.dart`
+- `test/run_progression_research_test.dart`
+- `test/run_progression_permanent_upgrade_test.dart`
+- `test/main_menu_research_test.dart`
+- `test/main_menu_permanent_upgrade_test.dart`
 
 ### 4. 40라운드 보상/난이도 곡선 재점검
 
@@ -191,7 +193,7 @@
 - `lib/game/components/enemy_component.dart`
 - `lib/game/rendering/enemy_shape_renderer.dart`
 - `lib/data/definitions/game_stage_data.dart`
-- `test/widget_test.dart`
+- `test/combat_hud_widget_test.dart`
 
 ### 6. 보호형 적 후속 설계
 

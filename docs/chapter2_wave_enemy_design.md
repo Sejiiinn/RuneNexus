@@ -273,7 +273,8 @@ MVP에서 제외:
 - `lib/domain/stage/stage_definition.dart`
 - `lib/ui/menu/main_menu_screen.dart`
 - `test/game_balance_test.dart`
-- `test/widget_test.dart`
+- `test/main_menu_stage_test.dart`
+- `test/main_menu_stage_detail_test.dart`
 
 저장 데이터에는 적 타입 문자열이 포함되므로, 신규 적 타입 추가 후 기존 저장 복구 경로도 확인한다.
 

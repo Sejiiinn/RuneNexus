@@ -174,7 +174,7 @@ Windows:
 
 ```powershell
 C:\Users\rlatp\develop\flutter\bin\cache\dart-sdk\bin\dart.exe format <수정 파일>
-C:\Users\rlatp\develop\flutter\bin\flutter.bat test test\widget_test.dart
+C:\Users\rlatp\develop\flutter\bin\flutter.bat test <관련 기능 테스트 파일>
 ```
 
 macOS:

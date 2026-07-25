@@ -14,13 +14,13 @@ Rune Nexus는 Flutter + Flame 기반의 플레이 가능한 로그라이트 타�
 
 ```bash
 flutter analyze
-flutter test test/widget_test.dart
+flutter test test/main_menu_stage_test.dart test/main_menu_core_test.dart
 ```
 
 전투/밸런스 변경을 포함한 작업에서는 다음 검증도 함께 수행한다.
 
 ```bash
-flutter test test/game_balance_test.dart test/turret_trait_test.dart test/widget_test.dart
+flutter test test/game_balance_test.dart test/turret_trait_test.dart test/combat_hud_widget_test.dart
 ```
 
 전체 검증 권장 명령:

@@ -685,8 +685,9 @@ bool resetCorePassiveTree();
 | `lib/ui/hud/core_info_panel.dart` | 구 패시브 목록을 트리 할당 요약으로 교체 |
 | `lib/ui/game/core_ability_icon.dart` | 패시브 enum 의존 제거, 재사용 자산을 노드 ID에 매핑 |
 | `lib/l10n/rune_nexus_localizations.dart` | 트리와 결과 보상 문구 추가 |
-| `test/game_balance_test.dart` | 저장·보상·소급·효과 미적용·구 슬롯 제거 회귀 테스트 |
-| `test/widget_test.dart` | 코어 탭·트리·할당 패널·결과 보상·320px 레이아웃 테스트 |
+| `test/run_progression_core_test.dart` | 저장·보상·소급·효과 미적용·구 슬롯 제거 회귀 테스트 |
+| `test/main_menu_core_test.dart` | 코어 탭·트리·할당 패널·320px 레이아웃 테스트 |
+| `test/result_overlay_test.dart` | 결과 보상 표시 테스트 |
 
 구 패시브 참조는 구현 종료 전 다음 검색 결과가 0이어야 한다. 이미지 파일명은 예외다.
 
@@ -834,8 +835,8 @@ flutter test test/core_passive_tree_test.dart
 3. 핵심 회귀 테스트
 
 ```powershell
-flutter test test/game_balance_test.dart
-flutter test test/widget_test.dart
+flutter test test/run_progression_core_test.dart
+flutter test test/main_menu_core_test.dart test/result_overlay_test.dart
 ```
 
 4. 정적 분석과 전체 테스트
