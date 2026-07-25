@@ -56,6 +56,7 @@ import 'game_snapshot.dart';
 import 'rendering/status_effect_sprite_cache.dart';
 import 'rendering/turret_shape_renderer.dart';
 import 'systems/combat_resolver.dart';
+import 'systems/core_combat_skill_controller.dart';
 import 'systems/game_save_adapter.dart';
 import 'systems/gem_reward_controller.dart';
 import 'systems/run_progression.dart';
@@ -442,10 +443,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   );
   final TurretActionController _turretActions = const TurretActionController();
   final RunProgression _progression = RunProgression();
-  CoreCombatSkill? _runCoreCombatSkill = CoreCombatSkill.guardianBeam;
-  double _coreCombatSkillDirectDamageDealt = 0;
-  double _coreCombatSkillBonusDamageDealt = 0;
-  int _coreCombatSkillActivationCount = 0;
+  final CoreCombatSkillController _coreCombatSkillController =
+      CoreCombatSkillController(
+        guardianBeamInterval: _nexusCoreBeamInterval,
+        guardianBeamDuration: _nexusCoreBeamDuration,
+        guardianBeamTickInterval: _nexusCoreBeamTickInterval,
+        riftMarkInterval: _riftMarkInterval,
+        attackSyncDuration: corePassiveAttackSyncDurationSeconds,
+      );
   late final SaveScheduler _saveScheduler = SaveScheduler(
     saveNow: _writeLocalSave,
   );
@@ -514,11 +519,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   bool _combatStatsPublishPending = false;
   bool _appResourcesDisposed = false;
   double _spaceTime = 0;
-  double _nexusCoreBeamCooldown = _nexusCoreBeamInterval;
-  double _nexusCoreBeamActiveRemaining = 0;
-  double _nexusCoreBeamTickTimer = 0;
-  double _nexusCoreBeamTickDamage = 0;
-  double _corePassiveAttackSyncRemaining = 0;
   double _roundNexusHpLost = 0;
   bool _emergencyChargeUsedThisRound = false;
   bool _finalDefenseUsedThisRound = false;
@@ -608,17 +608,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   int get _bossKillGemShardResearchBonus => _progression.bossKillGemShardBonus;
   double get _coreCombatSkillCooldownRecoveryMultiplier =>
       1.0 + corePassiveCooldownRecoveryRate(_progression.corePassiveNodeRanks);
-  double get _nexusCoreBeamCooldownInterval =>
-      _nexusCoreBeamInterval / _coreCombatSkillCooldownRecoveryMultiplier;
-  double get _riftMarkCooldownInterval =>
-      _riftMarkInterval / _coreCombatSkillCooldownRecoveryMultiplier;
-  double get _coreCombatSkillCooldownInterval {
-    return switch (_runCoreCombatSkill) {
-      CoreCombatSkill.guardianBeam => _nexusCoreBeamCooldownInterval,
-      CoreCombatSkill.riftMark => _riftMarkCooldownInterval,
-      null => 0,
-    };
-  }
+  double get _coreCombatSkillCooldownInterval =>
+      _coreCombatSkillController.cooldownInterval(
+        cooldownRecoveryMultiplier: _coreCombatSkillCooldownRecoveryMultiplier,
+      );
 
   int get _waveClearGoldRunBonus => gameRunUpgrades[RunUpgradeType.waveGold]!
       .effectForLevel(
@@ -635,51 +628,39 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         return total + directDps + burnDps;
       });
   double get nexusCoreBeamIntervalSeconds => _coreCombatSkillCooldownInterval;
-  double get nexusCoreBeamCooldownSeconds {
-    if (_runCoreCombatSkill == null) {
-      return 0;
-    }
-    if (_nexusCoreBeamActiveRemaining > 0) {
-      return 0;
-    }
-    return _nexusCoreBeamCooldown
-        .clamp(0.0, _coreCombatSkillCooldownInterval)
-        .toDouble();
-  }
-
-  bool get nexusCoreBeamAvailable => _runCoreCombatSkill != null;
+  double get nexusCoreBeamCooldownSeconds =>
+      _coreCombatSkillController.cooldownSeconds(
+        cooldownRecoveryMultiplier: _coreCombatSkillCooldownRecoveryMultiplier,
+      );
+  bool get nexusCoreBeamAvailable => _coreCombatSkillController.isAvailable;
   bool get nexusCoreBeamActive =>
-      _runCoreCombatSkill == CoreCombatSkill.guardianBeam &&
-      _nexusCoreBeamActiveRemaining > 0;
+      _coreCombatSkillController.isGuardianBeamActive;
   double get nexusCoreBeamDamage =>
-      _runCoreCombatSkill == CoreCombatSkill.guardianBeam
-      ? _nexusCoreBeamActiveRemaining > 0
-            ? _nexusCoreBeamTickDamage *
-                  (_nexusCoreBeamDuration / _nexusCoreBeamTickInterval)
-            : _nexusCoreBeamTotalDamage() *
-                  _coreCombatSkillPowerMultiplierForActivation(
-                    _coreCombatSkillActivationCount + 1,
-                  )
-      : 0;
+      _coreCombatSkillController.guardianBeamDamage(
+        baseDamage: _nexusCoreBeamTotalDamage,
+        powerMultiplierForActivation:
+            _coreCombatSkillPowerMultiplierForActivation,
+      );
   double get corePassiveTurretDamageMultiplier =>
-      _corePassiveAttackSyncRemaining > 0
+      _coreCombatSkillController.isAttackSyncActive
       ? 1.0 +
             corePassiveTurretDamageAmplification(
               _progression.corePassiveNodeRanks,
             )
       : 1.0;
   double get corePassiveTurretAttackRateMultiplier =>
-      _corePassiveAttackSyncRemaining > 0
+      _coreCombatSkillController.isAttackSyncActive
       ? 1.0 +
             corePassiveTurretAttackRateAmplification(
               _progression.corePassiveNodeRanks,
             )
       : 1.0;
   double get coreCombatSkillDirectDamageDealt =>
-      _coreCombatSkillDirectDamageDealt;
+      _coreCombatSkillController.directDamageDealt;
   double get coreCombatSkillBonusDamageDealt =>
-      _coreCombatSkillBonusDamageDealt;
-  int get coreCombatSkillActivationCount => _coreCombatSkillActivationCount;
+      _coreCombatSkillController.bonusDamageDealt;
+  int get coreCombatSkillActivationCount =>
+      _coreCombatSkillController.activationCount;
   CoreCombatSkill? get coreCombatSkill => _progression.coreCombatSkill;
   int get totalCorePoints => _progression.totalCorePoints;
   int get spentCorePoints => _progression.spentCorePoints;
@@ -3476,12 +3457,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     final center = _nexusCorePosition();
-    final progress = _nexusCoreBeamActiveRemaining > 0
-        ? 1.0
-        : (1 - _nexusCoreBeamCooldown / _coreCombatSkillCooldownInterval)
-              .clamp(0.0, 1.0)
-              .toDouble();
-    final accent = _runCoreCombatSkill == CoreCombatSkill.riftMark
+    final progress = _coreCombatSkillController.cooldownProgress(
+      cooldownRecoveryMultiplier: _coreCombatSkillCooldownRecoveryMultiplier,
+    );
+    final accent =
+        _coreCombatSkillController.runSkill == CoreCombatSkill.riftMark
         ? _riftMarkColor
         : _nexusCoreBeamColor;
     final barWidth = _tileSize * 0.86;
@@ -3495,7 +3475,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final background = RRect.fromRectAndRadius(rect, radius);
     final fillWidth = (barWidth * progress).clamp(0.0, barWidth).toDouble();
     final fillRect = Rect.fromLTWH(rect.left, rect.top, fillWidth, rect.height);
-    final activeGlow = _nexusCoreBeamActiveRemaining > 0 ? 1.0 : 0.0;
+    final activeGlow = nexusCoreBeamActive ? 1.0 : 0.0;
 
     canvas.drawRRect(
       background.inflate(1.8),
@@ -3751,133 +3731,60 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double _enemyVisualPhase() => _enemyLaneRandom.nextDouble();
 
   void _captureRunCoreLoadoutFromProgression() {
-    _runCoreCombatSkill = _progression.coreCombatSkill;
-    _resetCoreCombatSkillStats();
-    _resetNexusCoreBeamCycle();
+    _coreCombatSkillController.captureRunSkill(
+      _progression.coreCombatSkill,
+      cooldownRecoveryMultiplier: _coreCombatSkillCooldownRecoveryMultiplier,
+    );
   }
 
   void _restoreRunCoreLoadoutFromSave(GameSaveData data) {
-    _runCoreCombatSkill = data.runCoreCombatSkill;
-    _restoreCoreCombatSkillStats(data.runCoreCombatSkillStats);
-    _resetNexusCoreBeamCycle();
-  }
-
-  void _resetCoreCombatSkillStats() {
-    _coreCombatSkillDirectDamageDealt = 0;
-    _coreCombatSkillBonusDamageDealt = 0;
-    _coreCombatSkillActivationCount = 0;
-  }
-
-  void _restoreCoreCombatSkillStats(SavedCoreCombatSkillStats stats) {
-    _coreCombatSkillDirectDamageDealt = math.max(0, stats.directDamageDealt);
-    _coreCombatSkillBonusDamageDealt = math.max(0, stats.bonusDamageDealt);
-    _coreCombatSkillActivationCount = math.max(0, stats.activationCount);
-  }
-
-  SavedCoreCombatSkillStats _coreCombatSkillStatsToSaveData() {
-    return SavedCoreCombatSkillStats(
-      directDamageDealt: _coreCombatSkillDirectDamageDealt,
-      bonusDamageDealt: _coreCombatSkillBonusDamageDealt,
-      activationCount: _coreCombatSkillActivationCount,
+    _coreCombatSkillController.restoreRunSkill(
+      data.runCoreCombatSkill,
+      data.runCoreCombatSkillStats,
+      cooldownRecoveryMultiplier: _coreCombatSkillCooldownRecoveryMultiplier,
     );
   }
+
+  SavedCoreCombatSkillStats _coreCombatSkillStatsToSaveData() =>
+      _coreCombatSkillController.statsToSaveData();
 
   void recordCoreCombatSkillBonusDamage(double damage) {
-    if (damage <= 0) {
+    if (!_coreCombatSkillController.recordBonusDamage(damage)) {
       return;
     }
-    _coreCombatSkillBonusDamageDealt += damage;
     _requestCombatStatsPublish();
   }
 
-  void _resetNexusCoreBeamCycle() {
-    _nexusCoreBeamCooldown = _coreCombatSkillCooldownInterval;
-    _nexusCoreBeamActiveRemaining = 0;
-    _nexusCoreBeamTickTimer = 0;
-    _nexusCoreBeamTickDamage = 0;
-    _corePassiveAttackSyncRemaining = 0;
-  }
+  void _resetNexusCoreBeamCycle() => _coreCombatSkillController.resetCycle(
+    cooldownRecoveryMultiplier: _coreCombatSkillCooldownRecoveryMultiplier,
+  );
 
   void _updateCoreCombatSkill(double dt) {
-    if (dt <= 0) {
-      return;
-    }
-    _corePassiveAttackSyncRemaining = math.max(
-      0,
-      _corePassiveAttackSyncRemaining - dt,
+    final shouldPublish = _coreCombatSkillController.update(
+      dt,
+      cooldownRecoveryMultiplier: _coreCombatSkillCooldownRecoveryMultiplier,
+      hasGuardianBeamTarget: () => _nexusCoreBeamTarget() != null,
+      guardianBeamBaseDamage: _nexusCoreBeamTotalDamage,
+      powerMultiplierForActivation:
+          _coreCombatSkillPowerMultiplierForActivation,
+      applyGuardianBeamTick: _applyNexusCoreBeamTick,
+      hasRiftMarkCandidate: enemies.isNotEmpty,
+      applyRiftMark: _applyRiftMark,
     );
-    if (_runCoreCombatSkill == null) {
-      _resetNexusCoreBeamCycle();
-      return;
-    }
-    if (_runCoreCombatSkill == CoreCombatSkill.riftMark) {
-      _updateRiftMark(dt);
-      return;
-    }
-    if (_runCoreCombatSkill != CoreCombatSkill.guardianBeam) {
-      return;
-    }
-    if (_nexusCoreBeamActiveRemaining > 0) {
-      _updateActiveNexusCoreBeam(dt);
-      return;
-    }
-
-    _nexusCoreBeamCooldown = math.max(0, _nexusCoreBeamCooldown - dt);
-    if (_nexusCoreBeamCooldown > 0 || _nexusCoreBeamTarget() == null) {
-      return;
-    }
-
-    _nexusCoreBeamActiveRemaining = _nexusCoreBeamDuration;
-    _nexusCoreBeamTickTimer = 0;
-    final baseDamage = _nexusCoreBeamTotalDamage();
-    final powerMultiplier = _activateCoreCombatSkill();
-    _nexusCoreBeamTickDamage =
-        baseDamage *
-        powerMultiplier /
-        (_nexusCoreBeamDuration / _nexusCoreBeamTickInterval);
-    _updateActiveNexusCoreBeam(0);
-    _requestCombatStatsPublish();
-  }
-
-  void _updateActiveNexusCoreBeam(double dt) {
-    _nexusCoreBeamActiveRemaining = math.max(
-      0,
-      _nexusCoreBeamActiveRemaining - dt,
-    );
-    _nexusCoreBeamTickTimer -= dt;
-    while (_nexusCoreBeamTickTimer <= 0 && _nexusCoreBeamActiveRemaining > 0) {
-      _nexusCoreBeamTickTimer += _nexusCoreBeamTickInterval;
-      _applyNexusCoreBeamTick();
-    }
-
-    if (_nexusCoreBeamActiveRemaining <= 0) {
-      _nexusCoreBeamCooldown = _coreCombatSkillCooldownInterval;
-      _nexusCoreBeamTickTimer = 0;
-      _nexusCoreBeamTickDamage = 0;
+    if (shouldPublish) {
       _requestCombatStatsPublish();
     }
   }
 
-  void _updateRiftMark(double dt) {
-    _nexusCoreBeamActiveRemaining = 0;
-    _nexusCoreBeamTickTimer = 0;
-    _nexusCoreBeamTickDamage = 0;
-    _nexusCoreBeamCooldown = math.max(0, _nexusCoreBeamCooldown - dt);
-    if (_nexusCoreBeamCooldown > 0 || enemies.isEmpty) {
-      return;
-    }
-
-    _applyRiftMark();
-    _nexusCoreBeamCooldown = _coreCombatSkillCooldownInterval;
-    _requestCombatStatsPublish();
-  }
-
-  void _applyRiftMark() {
+  bool _applyRiftMark() {
     final targets = _riftMarkTargets();
     if (targets.isEmpty) {
-      return;
+      return false;
     }
-    final powerMultiplier = _activateCoreCombatSkill();
+    final powerMultiplier = _coreCombatSkillController.activate(
+      powerMultiplierForActivation:
+          _coreCombatSkillPowerMultiplierForActivation,
+    );
     add(
       RiftMarkPulseComponent(
         source: _nexusCorePosition(),
@@ -3896,6 +3803,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       );
       target.showHitFlash(_riftMarkColor);
     }
+    return true;
   }
 
   List<EnemyComponent> _riftMarkTargets() {
@@ -3912,7 +3820,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return candidates.take(_riftMarkTargetCount).toList();
   }
 
-  void _applyNexusCoreBeamTick() {
+  void _applyNexusCoreBeamTick(double tickDamage) {
     final target = _nexusCoreBeamTarget();
     if (target == null) {
       return;
@@ -3924,7 +3832,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         target.maxHp *
         capRate *
         (_nexusCoreBeamTickInterval / _nexusCoreBeamDuration);
-    final damage = math.min(_nexusCoreBeamTickDamage, tickCap);
+    final damage = math.min(tickDamage, tickCap);
     if (damage <= 0) {
       return;
     }
@@ -3934,7 +3842,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (actualDamage <= 0) {
       return;
     }
-    _coreCombatSkillDirectDamageDealt += actualDamage;
+    _coreCombatSkillController.recordDirectDamage(actualDamage);
     add(
       NexusCoreBeamComponent(
         start: _nexusCorePosition(),
@@ -3991,14 +3899,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
   }
 
-  double _activateCoreCombatSkill() {
-    _coreCombatSkillActivationCount++;
-    _corePassiveAttackSyncRemaining = corePassiveAttackSyncDurationSeconds;
-    return _coreCombatSkillPowerMultiplierForActivation(
-      _coreCombatSkillActivationCount,
-    );
-  }
-
   double _coreCombatSkillPowerMultiplierForActivation(int activationNumber) {
     return corePassiveCoreSkillPowerMultiplier(
       _progression.corePassiveNodeRanks,
@@ -4007,24 +3907,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _applyEmergencyCharge() {
-    if (_emergencyChargeUsedThisRound ||
-        _runCoreCombatSkill == null ||
-        _nexusCoreBeamActiveRemaining > 0 ||
-        _nexusCoreBeamCooldown <= 0) {
+    if (_emergencyChargeUsedThisRound) {
       return;
     }
     final recoveryRate = corePassiveEmergencyChargeRecoveryRate(
       _progression.corePassiveNodeRanks,
     );
-    if (recoveryRate <= 0 || _coreCombatSkillCooldownInterval <= 0) {
+    if (!_coreCombatSkillController.applyEmergencyCharge(
+      recoveryRate: recoveryRate,
+      cooldownRecoveryMultiplier: _coreCombatSkillCooldownRecoveryMultiplier,
+    )) {
       return;
     }
-
-    _nexusCoreBeamCooldown = math.max(
-      0.0,
-      _nexusCoreBeamCooldown -
-          _coreCombatSkillCooldownInterval * recoveryRate,
-    );
     _emergencyChargeUsedThisRound = true;
     _requestCombatStatsPublish();
   }
@@ -4440,7 +4334,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         restoredPhase: _restoredPhase,
         autoStartMode: _autoStartMode,
         progression: _progression,
-        runCoreCombatSkill: _runCoreCombatSkill,
+        runCoreCombatSkill: _coreCombatSkillController.runSkill,
         runCoreCombatSkillStats: _coreCombatSkillStatsToSaveData(),
         roundNexusHpLost: _roundNexusHpLost,
         emergencyChargeUsedThisRound: _emergencyChargeUsedThisRound,
