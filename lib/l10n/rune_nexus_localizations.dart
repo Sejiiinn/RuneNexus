@@ -76,15 +76,15 @@ class RuneNexusLocalizations {
       CorePassiveNodeId.attackOutput =>
         _isEnglish ? 'Output Amplifier' : '출력 증폭',
       CorePassiveNodeId.attackPrecompute =>
-        _isEnglish ? 'Precomputation' : '선행 계산',
+        _isEnglish ? 'Acceleration Sync' : '가속 동기화',
       CorePassiveNodeId.attackFocus =>
-        _isEnglish ? 'Focused Analysis' : '집중 해석',
+        _isEnglish ? 'Firepower Sync' : '화력 동기화',
       CorePassiveNodeId.attackGuardianBeam =>
-        _isEnglish ? 'Guardian Beam Analysis' : '수호 광선 해석',
+        _isEnglish ? 'Continuous Computation' : '연속 연산',
       CorePassiveNodeId.attackRiftMark =>
-        _isEnglish ? 'Rift Mark Analysis' : '균열 낙인 해석',
+        _isEnglish ? 'Critical Output' : '임계 출력',
       CorePassiveNodeId.attackOverclock =>
-        _isEnglish ? 'Overclocked Computation' : '과부하 연산',
+        _isEnglish ? 'Transcendent Output' : '초월 출력',
       CorePassiveNodeId.controlThreatSense =>
         _isEnglish ? 'Threat Detection' : '위협 감지',
       CorePassiveNodeId.controlSelfRepair =>
@@ -135,32 +135,32 @@ class RuneNexusLocalizations {
     return switch (id) {
       CorePassiveNodeId.attackHaste =>
         _isEnglish
-            ? 'Core skill cooldown reduced by $value.'
-            : '코어 스킬 재사용 대기시간 $value 감소',
+            ? 'Core skill cooldown recovery speed increased by $value.'
+            : '코어 스킬 재사용 대기시간 회복 속도 $value 증가',
       CorePassiveNodeId.attackOutput =>
         _isEnglish
-            ? 'Core skill damage and amplification increased by $value.'
-            : '코어 스킬 피해·증폭 효과 $value 증가',
+            ? 'Core skill power increased by $value.'
+            : '코어 스킬 위력 $value 증가',
       CorePassiveNodeId.attackPrecompute =>
         _isEnglish
-            ? 'Start each round with the first Core skill $value charged.'
-            : '라운드 첫 코어 스킬을 $value 충전 상태로 시작',
+            ? 'After a Core skill activates, all turret attack speed is amplified by $value for 2 seconds.'
+            : '코어 스킬 발동 후 2초간 모든 포탑 공격 속도 $value 증폭',
       CorePassiveNodeId.attackFocus =>
         _isEnglish
-            ? 'Repeated Core skill effects on the same target increase by $value.'
-            : '같은 대상에 연속 적용되는 코어 스킬 효과 $value 증가',
+            ? 'After a Core skill activates, all turret damage is amplified by $value for 2 seconds.'
+            : '코어 스킬 발동 후 2초간 모든 포탑 화력 $value 증폭',
       CorePassiveNodeId.attackGuardianBeam =>
         _isEnglish
-            ? 'Guardian Beam duration increased by $value.'
-            : '수호 광선 지속시간 $value 증가',
+            ? 'Core skill cooldown recovery speed increased by $value.'
+            : '코어 스킬 재사용 대기시간 회복 속도 $value 증가',
       CorePassiveNodeId.attackRiftMark =>
         _isEnglish
-            ? 'Rift Mark duration increased by $value.'
-            : '균열 낙인 지속시간 $value 증가',
+            ? 'Every third Core skill activation is amplified by $value.'
+            : '코어 스킬을 3회 발동할 때마다 해당 스킬 위력 $value 증폭',
       CorePassiveNodeId.attackOverclock =>
         _isEnglish
-            ? 'Cooldown reduced by 25%; damage, amplification, and duration reduced by 15%.'
-            : '재사용 대기시간 25% 감소, 대신 피해·증폭·지속시간 효과 15% 감소',
+            ? 'After all Core skill power increases, final power is amplified by 25%.'
+            : '모든 코어 스킬 위력 증가 계산 후 최종 위력 25% 증폭',
       CorePassiveNodeId.controlThreatSense =>
         _isEnglish
             ? 'Core charge speed increases by $value while an enemy is past 75% of the path.'

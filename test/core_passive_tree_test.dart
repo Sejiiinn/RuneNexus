@@ -28,6 +28,37 @@ void main() {
     expect(corePassiveCumulativeCost(CorePassiveNodeId.attackHaste, 5), 9);
   });
 
+  test('attack passive rates follow the finalized balance values', () {
+    const ranks = <CorePassiveNodeId, int>{
+      CorePassiveNodeId.attackHaste: 5,
+      CorePassiveNodeId.attackOutput: 5,
+      CorePassiveNodeId.attackPrecompute: 5,
+      CorePassiveNodeId.attackFocus: 5,
+      CorePassiveNodeId.attackGuardianBeam: 3,
+      CorePassiveNodeId.attackRiftMark: 3,
+      CorePassiveNodeId.attackOverclock: 1,
+    };
+
+    expect(corePassiveAttackSyncDurationSeconds, 2);
+    expect(corePassiveCooldownRecoveryRate(ranks), closeTo(0.25, 0.0001));
+    expect(
+      corePassiveTurretAttackRateAmplification(ranks),
+      closeTo(0.15, 0.0001),
+    );
+    expect(
+      corePassiveTurretDamageAmplification(ranks),
+      closeTo(0.20, 0.0001),
+    );
+    expect(
+      corePassiveCoreSkillPowerMultiplier(ranks, activationNumber: 1),
+      closeTo(1.5625, 0.0001),
+    );
+    expect(
+      corePassiveCoreSkillPowerMultiplier(ranks, activationNumber: 3),
+      closeTo(2.1875, 0.0001),
+    );
+  });
+
   test('one rank-three branch opens a hybrid node', () {
     final oneSideReady = <CorePassiveNodeId, int>{
       CorePassiveNodeId.attackHaste: 3,

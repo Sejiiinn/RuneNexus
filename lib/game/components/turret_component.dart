@@ -173,7 +173,8 @@ class TurretComponent extends PositionComponent {
 
     return levelDamage *
         (1 + moduleEffect.damageIncreaseRate) *
-        game.towerDamageMultiplierFor(definition.damageFamily);
+        game.towerDamageMultiplierFor(definition.damageFamily) *
+        game.corePassiveTurretDamageMultiplier;
   }
 
   double get range => rangeAtLevel(_level);
@@ -214,7 +215,7 @@ class TurretComponent extends PositionComponent {
     if (_chainCleanupTimer > 0) {
       rate *= 1.4;
     }
-    return rate;
+    return rate * game.corePassiveTurretAttackRateMultiplier;
   }
 
   double get projectileSpeed =>

@@ -2793,7 +2793,7 @@ void main() {
   );
 
   test(
-    'allocated attack haste does not change combat skill cooldown',
+    'attack haste increases guardian beam cooldown recovery speed',
     () async {
       final repository = MemorySaveRepository()
         ..data = _saveWithCorePassiveRun(
@@ -2822,7 +2822,7 @@ void main() {
 
       final arrow = gameTurrets[TurretType.arrow]!;
       final expectedBeamDamage = arrow.damage * arrow.attackRate * 5 * 0.08;
-      expect(game.nexusCoreBeamIntervalSeconds, closeTo(5, 0.001));
+      expect(game.nexusCoreBeamIntervalSeconds, closeTo(5 / 1.1, 0.001));
       expect(
         game.snapshotNotifier.value.nexusCoreBeamDamage,
         closeTo(expectedBeamDamage, 0.001),
@@ -2839,7 +2839,7 @@ void main() {
       game.startNextWave();
       game.enemies.add(enemy);
 
-      game.update(4.99);
+      game.update(4.54);
 
       expect(game.nexusCoreBeamActive, isFalse);
       expect(enemy.hp, enemy.maxHp);
@@ -2848,6 +2848,123 @@ void main() {
 
       expect(game.nexusCoreBeamActive, isTrue);
       expect(enemy.hp, lessThan(enemy.maxHp));
+    },
+  );
+
+  test('core output passives amplify guardian beam power', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithCorePassiveRun(
+        nexusHp: 20,
+        roundIndex: 0,
+        completedRounds: 0,
+        totalCorePoints: 100,
+        corePassiveNodeRanks: const {
+          CorePassiveNodeId.attackOutput: 5,
+          CorePassiveNodeId.attackFocus: 3,
+          CorePassiveNodeId.attackRiftMark: 3,
+          CorePassiveNodeId.attackOverclock: 1,
+        },
+        coreCombatSkillStats: const SavedCoreCombatSkillStats(
+          directDamageDealt: 0,
+          bonusDamageDealt: 0,
+          activationCount: 2,
+        ),
+      );
+    final game = RuneNexusGame(
+      saveRepository: repository,
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.tryBuildTurret(const GridPoint(2, 0));
+
+    final arrow = gameTurrets[TurretType.arrow]!;
+    final baseBeamDamage = arrow.damage * arrow.attackRate * 5 * 0.08;
+    expect(
+      game.nexusCoreBeamDamage,
+      closeTo(baseBeamDamage * 2.1875, 0.001),
+    );
+
+    final enemy = EnemyComponent(
+      definition: gameEnemies[EnemyType.normal]!,
+      maxHp: 10000,
+      path: [Vector2.zero(), Vector2(200, 0)],
+      game: game,
+    )..distanceTravelled = 80;
+    await game.add(enemy);
+    game.update(0);
+    game.startNextWave();
+    game.enemies.add(enemy);
+    game.update(5);
+
+    expect(game.coreCombatSkillActivationCount, 3);
+    expect(game.nexusCoreBeamActive, isTrue);
+    expect(game.nexusCoreBeamDamage, closeTo(baseBeamDamage * 2.1875, 0.001));
+  });
+
+  test(
+    'core skill activation amplifies turret stats for two seconds',
+    () async {
+      final repository = MemorySaveRepository()
+        ..data = _saveWithCorePassiveRun(
+          nexusHp: 20,
+          roundIndex: 0,
+          completedRounds: 0,
+          totalCorePoints: 100,
+          corePassiveNodeRanks: const {
+            CorePassiveNodeId.attackHaste: 3,
+            CorePassiveNodeId.attackPrecompute: 5,
+            CorePassiveNodeId.attackOutput: 3,
+            CorePassiveNodeId.attackFocus: 5,
+          },
+        );
+      final game = RuneNexusGame(
+        saveRepository: repository,
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 0,
+          ),
+        ],
+      );
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      game.tryBuildTurret(const GridPoint(2, 0));
+      final turret = game.children.whereType<TurretComponent>().single;
+      final baseDamage = turret.damage;
+      final baseAttackRate = turret.attackRate;
+
+      final enemy = EnemyComponent(
+        definition: gameEnemies[EnemyType.normal]!,
+        maxHp: 10000,
+        path: [Vector2.zero(), Vector2(200, 0)],
+        game: game,
+      )..distanceTravelled = 80;
+      await game.add(enemy);
+      game.update(0);
+      game.startNextWave();
+      game.enemies.add(enemy);
+      game.update(5 / 1.06 + 0.001);
+
+      expect(turret.damage, closeTo(baseDamage * 1.20, 0.001));
+      expect(turret.attackRate, closeTo(baseAttackRate * 1.15, 0.001));
+
+      game.update(1.99);
+      expect(turret.damage, closeTo(baseDamage * 1.20, 0.001));
+      expect(turret.attackRate, closeTo(baseAttackRate * 1.15, 0.001));
+
+      game.update(0.02);
+      expect(turret.damage, closeTo(baseDamage, 0.001));
+      expect(turret.attackRate, closeTo(baseAttackRate, 0.001));
     },
   );
 
@@ -2991,7 +3108,7 @@ void main() {
     expect(game.coreCombatSkillDirectDamageDealt, 0);
   });
 
-  test('allocated attack haste does not change rift mark cooldown', () async {
+  test('attack haste increases rift mark cooldown recovery speed', () async {
     final repository = MemorySaveRepository()
       ..data = _saveWithCorePassiveRun(
         nexusHp: 20,
@@ -3022,13 +3139,62 @@ void main() {
     await game.add(enemy);
     game.enemies.add(enemy);
 
-    expect(game.nexusCoreBeamIntervalSeconds, closeTo(10, 0.001));
-    game.update(9.99);
+    expect(game.nexusCoreBeamIntervalSeconds, closeTo(10 / 1.1, 0.001));
+    game.update(9.08);
     expect(enemy.hasRiftMark, isFalse);
 
     game.update(0.02);
     expect(enemy.hasRiftMark, isTrue);
     expect(game.coreCombatSkillActivationCount, 1);
+  });
+
+  test('third rift mark activation uses saved critical output count', () async {
+    final repository = MemorySaveRepository()
+      ..data = _saveWithCorePassiveRun(
+        nexusHp: 20,
+        roundIndex: 0,
+        completedRounds: 0,
+        unlockedStageCount: 6,
+        clearedStageNumbers: const {1, 2, 3, 4, 5},
+        coreCombatSkill: CoreCombatSkill.riftMark,
+        totalCorePoints: 100,
+        corePassiveNodeRanks: const {
+          CorePassiveNodeId.attackOutput: 5,
+          CorePassiveNodeId.attackFocus: 3,
+          CorePassiveNodeId.attackRiftMark: 3,
+          CorePassiveNodeId.attackOverclock: 1,
+        },
+        coreCombatSkillStats: const SavedCoreCombatSkillStats(
+          directDamageDealt: 0,
+          bonusDamageDealt: 0,
+          activationCount: 2,
+        ),
+      );
+    final game = RuneNexusGame(
+      saveRepository: repository,
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'test',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    game.startNextWave();
+
+    final enemy = _durabilityEnemy(game, hp: 1000, progress: 10);
+    await game.add(enemy);
+    game.enemies.add(enemy);
+    game.update(10);
+
+    expect(game.coreCombatSkillActivationCount, 3);
+    expect(
+      enemy.riftMarkDamageAmplification,
+      closeTo(0.25 * 2.1875, 0.001),
+    );
   });
 
   test('rift mark state is saved and restored', () async {

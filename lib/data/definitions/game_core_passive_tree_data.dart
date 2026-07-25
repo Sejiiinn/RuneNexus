@@ -1,6 +1,102 @@
 import '../../domain/core/core_passive_tree.dart';
 
-const int corePassiveTreeRevision = 1;
+const int corePassiveTreeRevision = 2;
+
+const double corePassiveAttackSyncDurationSeconds = 2;
+
+const List<double> _attackHasteRecoveryRates = [
+  0.02,
+  0.04,
+  0.06,
+  0.08,
+  0.10,
+];
+const List<double> _attackOutputIncreaseRates = [
+  0.05,
+  0.10,
+  0.15,
+  0.20,
+  0.25,
+];
+const List<double> _attackSpeedSyncAmplificationRates = [
+  0.03,
+  0.06,
+  0.09,
+  0.12,
+  0.15,
+];
+const List<double> _attackDamageSyncAmplificationRates = [
+  0.04,
+  0.08,
+  0.12,
+  0.16,
+  0.20,
+];
+const List<double> _continuousComputationRecoveryRates = [0.05, 0.10, 0.15];
+const List<double> _criticalOutputAmplificationRates = [0.20, 0.30, 0.40];
+const double _transcendentOutputAmplificationRate = 0.25;
+
+double _corePassiveRankRate(List<double> rates, int rank) {
+  if (rank <= 0) {
+    return 0;
+  }
+  return rates[rank.clamp(1, rates.length).toInt() - 1];
+}
+
+double corePassiveCooldownRecoveryRate(
+  Map<CorePassiveNodeId, int> nodeRanks,
+) {
+  return _corePassiveRankRate(
+        _attackHasteRecoveryRates,
+        nodeRanks[CorePassiveNodeId.attackHaste] ?? 0,
+      ) +
+      _corePassiveRankRate(
+        _continuousComputationRecoveryRates,
+        nodeRanks[CorePassiveNodeId.attackGuardianBeam] ?? 0,
+      );
+}
+
+double corePassiveTurretAttackRateAmplification(
+  Map<CorePassiveNodeId, int> nodeRanks,
+) {
+  return _corePassiveRankRate(
+    _attackSpeedSyncAmplificationRates,
+    nodeRanks[CorePassiveNodeId.attackPrecompute] ?? 0,
+  );
+}
+
+double corePassiveTurretDamageAmplification(
+  Map<CorePassiveNodeId, int> nodeRanks,
+) {
+  return _corePassiveRankRate(
+    _attackDamageSyncAmplificationRates,
+    nodeRanks[CorePassiveNodeId.attackFocus] ?? 0,
+  );
+}
+
+double corePassiveCoreSkillPowerMultiplier(
+  Map<CorePassiveNodeId, int> nodeRanks, {
+  required int activationNumber,
+}) {
+  final outputIncrease = _corePassiveRankRate(
+    _attackOutputIncreaseRates,
+    nodeRanks[CorePassiveNodeId.attackOutput] ?? 0,
+  );
+  final criticalOutputAmplification =
+      activationNumber > 0 && activationNumber % 3 == 0
+      ? _corePassiveRankRate(
+          _criticalOutputAmplificationRates,
+          nodeRanks[CorePassiveNodeId.attackRiftMark] ?? 0,
+        )
+      : 0.0;
+  final transcendentOutputAmplification =
+      (nodeRanks[CorePassiveNodeId.attackOverclock] ?? 0) > 0
+      ? _transcendentOutputAmplificationRate
+      : 0.0;
+  return (1.0 + outputIncrease) *
+      (1.0 + criticalOutputAmplification) *
+      (1.0 + transcendentOutputAmplification);
+}
 
 const Set<CorePassiveNodeId> corePassiveStartingNodeIds = {
   CorePassiveNodeId.attackHaste,
@@ -36,32 +132,32 @@ const Map<CorePassiveNodeId, _CorePassiveNodeSpec> _nodeSpecs = {
   CorePassiveNodeId.attackOutput: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.attack,
     grade: CorePassiveNodeGrade.normal,
-    displayValues: ['3%', '6%', '9%', '12%', '15%'],
+    displayValues: ['5%', '10%', '15%', '20%', '25%'],
   ),
   CorePassiveNodeId.attackPrecompute: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.attack,
     grade: CorePassiveNodeGrade.normal,
-    displayValues: ['10%', '20%', '30%', '40%', '50%'],
+    displayValues: ['3%', '6%', '9%', '12%', '15%'],
   ),
   CorePassiveNodeId.attackFocus: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.attack,
     grade: CorePassiveNodeGrade.normal,
-    displayValues: ['3%', '6%', '9%', '12%', '15%'],
+    displayValues: ['4%', '8%', '12%', '16%', '20%'],
   ),
   CorePassiveNodeId.attackGuardianBeam: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.attack,
     grade: CorePassiveNodeGrade.notable,
-    displayValues: ['0.1초', '0.2초', '0.3초'],
+    displayValues: ['5%', '10%', '15%'],
   ),
   CorePassiveNodeId.attackRiftMark: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.attack,
     grade: CorePassiveNodeGrade.notable,
-    displayValues: ['0.4초', '0.8초', '1.2초'],
+    displayValues: ['20%', '30%', '40%'],
   ),
   CorePassiveNodeId.attackOverclock: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.attack,
     grade: CorePassiveNodeGrade.keystone,
-    displayValues: ['25% / 15%'],
+    displayValues: ['25%'],
   ),
   CorePassiveNodeId.controlThreatSense: _CorePassiveNodeSpec(
     branch: CorePassiveBranch.control,

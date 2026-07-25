@@ -97,10 +97,6 @@ String? _corePassiveNodeIconAsset(CorePassiveNodeId nodeId) {
       '$_corePassiveIconAssetRoot/cost_saving_design.png',
     CorePassiveNodeId.attackHaste =>
       '$_corePassiveIconAssetRoot/skill_acceleration.png',
-    CorePassiveNodeId.attackGuardianBeam =>
-      '$_coreAbilityIconAssetRoot/guardian_beam.png',
-    CorePassiveNodeId.attackRiftMark =>
-      '$_coreAbilityIconAssetRoot/rift_mark.png',
     _ => null,
   };
 }
@@ -110,6 +106,8 @@ IconData _corePassiveNodeMaterialIcon(CorePassiveNodeId nodeId) {
     CorePassiveNodeId.attackOutput => Icons.bolt,
     CorePassiveNodeId.attackPrecompute => Icons.timelapse,
     CorePassiveNodeId.attackFocus => Icons.center_focus_strong,
+    CorePassiveNodeId.attackGuardianBeam => Icons.autorenew,
+    CorePassiveNodeId.attackRiftMark => Icons.filter_3,
     CorePassiveNodeId.attackOverclock => Icons.electric_bolt,
     CorePassiveNodeId.controlThreatSense => Icons.radar,
     CorePassiveNodeId.controlRetarget => Icons.sync,
@@ -131,8 +129,6 @@ IconData _corePassiveNodeMaterialIcon(CorePassiveNodeId nodeId) {
     CorePassiveNodeId.hybridSupplyBarrier => Icons.shield_moon_outlined,
     CorePassiveNodeId.hybridRecoveryBudget => Icons.build_circle_outlined,
     CorePassiveNodeId.attackHaste ||
-    CorePassiveNodeId.attackGuardianBeam ||
-    CorePassiveNodeId.attackRiftMark ||
     CorePassiveNodeId.controlSelfRepair ||
     CorePassiveNodeId.efficiencySaving => Icons.circle_outlined,
   };

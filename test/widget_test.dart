@@ -1747,12 +1747,15 @@ void main() {
     await _pumpGameFrames(tester);
 
     expect(details, findsOneWidget);
-    expect(find.text('선행 계산'), findsOneWidget);
+    expect(find.text('가속 동기화'), findsOneWidget);
     expect(find.text('효과'), findsOneWidget);
     expect(find.text('현재 효과'), findsNothing);
     expect(find.text('다음 효과'), findsNothing);
     expect(
-      find.text('라운드 첫 코어 스킬을 10% 충전 상태로 시작', findRichText: true),
+      find.text(
+        '코어 스킬 발동 후 2초간 모든 포탑 공격 속도 3% 증폭',
+        findRichText: true,
+      ),
       findsOneWidget,
     );
     expect(find.text('필요 포인트'), findsOneWidget);
@@ -1768,7 +1771,7 @@ void main() {
     final previewEffect = selectedEffectSpan();
     final previewNumber = previewEffect.children!
         .whereType<TextSpan>()
-        .singleWhere((span) => span.text == '10%');
+        .singleWhere((span) => span.text == '3%');
     expect(previewEffect.style!.color, const Color(0xFF778995));
     expect(previewNumber.style!.color, isNot(previewEffect.style!.color));
     expect(
@@ -1819,7 +1822,10 @@ void main() {
     final activeNumber = activeEffect.children!
         .whereType<TextSpan>()
         .singleWhere((span) => span.text == '2%');
-    expect(activeEffect.toPlainText(), '코어 스킬 재사용 대기시간 2% 감소');
+    expect(
+      activeEffect.toPlainText(),
+      '코어 스킬 재사용 대기시간 회복 속도 2% 증가',
+    );
     expect(activeEffect.style!.color, const Color(0xFFC8D9E2));
     expect(activeNumber.style!.color, isNot(activeEffect.style!.color));
     expect(activeNumber.style!.color, isNot(previewNumber.style!.color));
@@ -2186,7 +2192,7 @@ void main() {
       ),
     );
 
-    expect(find.text('현재 효과 +25%'), findsOneWidget);
+    expect(find.text('다음 효과 +25%'), findsOneWidget);
     expect(find.text('총 추가 피해 7.25'), findsOneWidget);
   });
 
@@ -3760,7 +3766,7 @@ void main() {
     expect(find.text('코어'), findsNothing);
     expect(find.text('패시브 트리'), findsOneWidget);
     expect(find.text('0 / 0pt'), findsOneWidget);
-    expect(find.text('현재 효과 +25%'), findsOneWidget);
+    expect(find.text('다음 효과 +25%'), findsOneWidget);
     expect(find.text('총 추가 피해 0.00'), findsOneWidget);
     expect(find.text('발동 0회'), findsNothing);
     expect(find.text('포탈 1'), findsNothing);

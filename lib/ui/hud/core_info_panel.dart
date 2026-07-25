@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../data/definitions/game_core_passive_tree_data.dart';
 import '../../domain/core/core_ability.dart';
 import '../../game/game_snapshot.dart';
 
@@ -303,30 +304,39 @@ Widget? _coreCombatSkillMetric(CoreCombatSkill? skill, GameSnapshot snapshot) {
         ),
       ],
     ),
-    CoreCombatSkill.riftMark => Row(
-      children: [
-        Flexible(
-          child: Text(
-            '현재 효과 +25%',
-            maxLines: 1,
-            overflow: TextOverflow.clip,
-            style: _coreCombatMetricTextStyle,
-          ),
-        ),
-        const Spacer(),
-        Flexible(
-          child: Text(
-            '총 추가 피해 ${_formatCoreCombatStat(snapshot.coreCombatSkillBonusDamageDealt)}',
-            maxLines: 1,
-            overflow: TextOverflow.clip,
-            textAlign: TextAlign.right,
-            style: _coreCombatMetricTextStyle,
-          ),
-        ),
-      ],
-    ),
+    CoreCombatSkill.riftMark => _riftMarkMetric(snapshot),
     null => null,
   };
+}
+
+Widget _riftMarkMetric(GameSnapshot snapshot) {
+  final nextActivationMultiplier = corePassiveCoreSkillPowerMultiplier(
+    snapshot.corePassiveNodeRanks,
+    activationNumber: snapshot.coreCombatSkillActivationCount + 1,
+  );
+  final nextAmplificationPercent = 25.0 * nextActivationMultiplier;
+  return Row(
+    children: [
+      Flexible(
+        child: Text(
+          '다음 효과 +${_formatCoreCombatPercent(nextAmplificationPercent)}%',
+          maxLines: 1,
+          overflow: TextOverflow.clip,
+          style: _coreCombatMetricTextStyle,
+        ),
+      ),
+      const Spacer(),
+      Flexible(
+        child: Text(
+          '총 추가 피해 ${_formatCoreCombatStat(snapshot.coreCombatSkillBonusDamageDealt)}',
+          maxLines: 1,
+          overflow: TextOverflow.clip,
+          textAlign: TextAlign.right,
+          style: _coreCombatMetricTextStyle,
+        ),
+      ),
+    ],
+  );
 }
 
 const _coreCombatMetricTextStyle = TextStyle(
@@ -343,4 +353,11 @@ String _formatCoreCombatStat(double value) {
     return value.toStringAsFixed(1);
   }
   return value.toStringAsFixed(2);
+}
+
+String _formatCoreCombatPercent(double value) {
+  if ((value - value.round()).abs() < 0.001) {
+    return value.round().toString();
+  }
+  return value.toStringAsFixed(1);
 }
