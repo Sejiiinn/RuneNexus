@@ -430,7 +430,7 @@ class HudSelectedSlotGemActions extends StatelessWidget {
 
 String hudGemEffectText(GemType type, TurretDefinition turret) {
   return switch (type) {
-    GemType.attackSpeed => turret.instantHit ? '쿨타임 40% 단축' : '초당 발사 40% 증폭',
+    GemType.attackSpeed => '공격 속도 40% 증폭',
     GemType.range => '사거리 20% 증폭',
     GemType.physicalDamage =>
       turret.damageFamily == DamageFamily.physical
@@ -450,7 +450,7 @@ String hudGemEffectText(GemType type, TurretDefinition turret) {
           : '현재 적용되는 중화기 피해 없음',
     GemType.damageOverTime =>
       turret.attackTags.contains(AttackTag.damageOverTime)
-          ? '지속피해 30% 증폭, 지속시간 30% 증가'
+          ? '지속피해 30% 증가, 지속시간 30% 증가'
           : '현재 적용되는 지속피해 없음',
     GemType.explosion =>
       turret.type == TurretType.lightning

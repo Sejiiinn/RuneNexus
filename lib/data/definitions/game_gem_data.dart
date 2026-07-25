@@ -61,8 +61,8 @@ const gameGems = <GemType, GemDefinition>{
   ),
   GemType.damageOverTime: GemDefinition(
     type: GemType.damageOverTime,
-    name: '지속피해 증폭',
-    shortText: '지속피해와 시간 강화',
+    name: '지속피해 증가',
+    shortText: '지속피해와 시간 증가',
     effectType: GemEffectType.attackTagEnhancement,
     value: 1.3,
     color: Color(0xFF9DFF4A),

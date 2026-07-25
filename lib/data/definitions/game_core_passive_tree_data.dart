@@ -11,7 +11,7 @@ const List<double> _attackHasteRecoveryRates = [
   0.08,
   0.10,
 ];
-const List<double> _attackOutputIncreaseRates = [
+const List<double> _attackOutputAmplificationRates = [
   0.05,
   0.10,
   0.15,
@@ -50,14 +50,14 @@ const List<double> _selfRepairRecoveryRates = [
   0.03,
 ];
 const List<double> _damageRestorationRates = [0.15, 0.25, 0.35];
-const List<double> _impactDispersionReductionRates = [
+const List<double> _impactDispersionAttenuationRates = [
   0.03,
   0.06,
   0.09,
   0.12,
   0.15,
 ];
-const List<double> _threatWeakeningReductionRates = [
+const List<double> _threatWeakeningAttenuationRates = [
   0.05,
   0.10,
   0.15,
@@ -65,26 +65,26 @@ const List<double> _threatWeakeningReductionRates = [
   0.25,
 ];
 const List<double> _emergencyChargeRecoveryRates = [0.15, 0.25, 0.35];
-const List<double> _savingDesignBuildCostReductionRates = [
+const List<double> _savingDesignBuildCostAttenuationRates = [
   0.03,
   0.06,
   0.09,
   0.12,
   0.15,
 ];
-const List<double> _supplyRecoveryGoldIncreaseRates = [
+const List<double> _supplyRecoveryGoldAmplificationRates = [
   0.03,
   0.06,
   0.09,
   0.12,
   0.15,
 ];
-const List<double> _traitEngineeringShardCostReductionRates = [
+const List<double> _traitEngineeringShardCostAttenuationRates = [
   0.08,
   0.16,
   0.24,
 ];
-const List<double> _diversityLevelCostReductionRates = [
+const List<double> _diversityLevelCostAttenuationRates = [
   0.01,
   0.015,
   0.02,
@@ -98,8 +98,12 @@ const List<double> _gemSpectrumAmplificationRates = [
   0.025,
   0.03,
 ];
-const List<double> _linkOptimizationCostReductionRates = [0.08, 0.12, 0.16];
-const double _combinedFrontCostReductionRate = 0.15;
+const List<double> _linkOptimizationCostAttenuationRates = [
+  0.08,
+  0.12,
+  0.16,
+];
+const double _combinedFrontCostAttenuationRate = 0.15;
 
 double _corePassiveRankRate(List<double> rates, int rank) {
   if (rank <= 0) {
@@ -143,8 +147,8 @@ double corePassiveCoreSkillPowerMultiplier(
   Map<CorePassiveNodeId, int> nodeRanks, {
   required int activationNumber,
 }) {
-  final outputIncrease = _corePassiveRankRate(
-    _attackOutputIncreaseRates,
+  final outputAmplification = _corePassiveRankRate(
+    _attackOutputAmplificationRates,
     nodeRanks[CorePassiveNodeId.attackOutput] ?? 0,
   );
   final criticalOutputAmplification =
@@ -158,7 +162,7 @@ double corePassiveCoreSkillPowerMultiplier(
       (nodeRanks[CorePassiveNodeId.attackOverclock] ?? 0) > 0
       ? _transcendentOutputAmplificationRate
       : 0.0;
-  return (1.0 + outputIncrease) *
+  return (1.0 + outputAmplification) *
       (1.0 + criticalOutputAmplification) *
       (1.0 + transcendentOutputAmplification);
 }
@@ -195,17 +199,17 @@ double corePassiveNexusDamageMultiplier(
   Map<CorePassiveNodeId, int> nodeRanks, {
   required double lostDurabilityRatio,
 }) {
-  final impactDispersionRate = _corePassiveRankRate(
-    _impactDispersionReductionRates,
+  final impactDispersionAttenuation = _corePassiveRankRate(
+    _impactDispersionAttenuationRates,
     nodeRanks[CorePassiveNodeId.controlThreatSense] ?? 0,
   );
-  final threatWeakeningRate = _corePassiveRankRate(
-    _threatWeakeningReductionRates,
+  final threatWeakeningAttenuation = _corePassiveRankRate(
+    _threatWeakeningAttenuationRates,
     nodeRanks[CorePassiveNodeId.controlRearLock] ?? 0,
   );
   final durabilityRatio = lostDurabilityRatio.clamp(0.0, 1.0).toDouble();
-  return (1.0 - impactDispersionRate) *
-      (1.0 - threatWeakeningRate * durabilityRatio);
+  return (1.0 - impactDispersionAttenuation) *
+      (1.0 - threatWeakeningAttenuation * durabilityRatio);
 }
 
 double corePassiveEmergencyChargeRecoveryRate(
@@ -235,8 +239,8 @@ double corePassiveTurretBuildCostMultiplier(
   Map<CorePassiveNodeId, int> nodeRanks, {
   required int distinctTurretTypeCount,
 }) {
-  final savingRate = _corePassiveRankRate(
-    _savingDesignBuildCostReductionRates,
+  final savingAttenuation = _corePassiveRankRate(
+    _savingDesignBuildCostAttenuationRates,
     nodeRanks[CorePassiveNodeId.efficiencySaving] ?? 0,
   );
   final combinedFrontMultiplier =
@@ -244,9 +248,9 @@ double corePassiveTurretBuildCostMultiplier(
         nodeRanks,
         distinctTurretTypeCount: distinctTurretTypeCount,
       )
-      ? 1.0 - _combinedFrontCostReductionRate
+      ? 1.0 - _combinedFrontCostAttenuationRate
       : 1.0;
-  return (1.0 - savingRate) * combinedFrontMultiplier;
+  return (1.0 - savingAttenuation) * combinedFrontMultiplier;
 }
 
 double corePassiveRoundClearGoldMultiplier(
@@ -254,7 +258,7 @@ double corePassiveRoundClearGoldMultiplier(
 ) {
   return 1.0 +
       _corePassiveRankRate(
-        _supplyRecoveryGoldIncreaseRates,
+        _supplyRecoveryGoldAmplificationRates,
         nodeRanks[CorePassiveNodeId.efficiencySupplyRecovery] ?? 0,
       );
 }
@@ -264,7 +268,7 @@ double corePassiveTraitShardCostMultiplier(
 ) {
   return 1.0 -
       _corePassiveRankRate(
-        _traitEngineeringShardCostReductionRates,
+        _traitEngineeringShardCostAttenuationRates,
         nodeRanks[CorePassiveNodeId.efficiencyFirstDeploy] ?? 0,
       );
 }
@@ -274,8 +278,8 @@ double corePassiveTurretLevelUpCostMultiplier(
   required int distinctTurretTypeCount,
 }) {
   final diversityStackCount = (distinctTurretTypeCount - 1).clamp(0, 4);
-  final diversityRate = _corePassiveRankRate(
-    _diversityLevelCostReductionRates,
+  final diversityAttenuation = _corePassiveRankRate(
+    _diversityLevelCostAttenuationRates,
     nodeRanks[CorePassiveNodeId.efficiencyDiversity] ?? 0,
   );
   final combinedFrontMultiplier =
@@ -283,9 +287,9 @@ double corePassiveTurretLevelUpCostMultiplier(
         nodeRanks,
         distinctTurretTypeCount: distinctTurretTypeCount,
       )
-      ? 1.0 - _combinedFrontCostReductionRate
+      ? 1.0 - _combinedFrontCostAttenuationRate
       : 1.0;
-  return (1.0 - diversityRate * diversityStackCount) *
+  return (1.0 - diversityAttenuation * diversityStackCount) *
       combinedFrontMultiplier;
 }
 
@@ -308,8 +312,8 @@ double corePassiveTurretLinkCostMultiplier(
   Map<CorePassiveNodeId, int> nodeRanks, {
   required int distinctTurretTypeCount,
 }) {
-  final linkOptimizationRate = _corePassiveRankRate(
-    _linkOptimizationCostReductionRates,
+  final linkOptimizationAttenuation = _corePassiveRankRate(
+    _linkOptimizationCostAttenuationRates,
     nodeRanks[CorePassiveNodeId.efficiencyFirstLink] ?? 0,
   );
   final combinedFrontMultiplier =
@@ -317,9 +321,9 @@ double corePassiveTurretLinkCostMultiplier(
         nodeRanks,
         distinctTurretTypeCount: distinctTurretTypeCount,
       )
-      ? 1.0 - _combinedFrontCostReductionRate
+      ? 1.0 - _combinedFrontCostAttenuationRate
       : 1.0;
-  return (1.0 - linkOptimizationRate) * combinedFrontMultiplier;
+  return (1.0 - linkOptimizationAttenuation) * combinedFrontMultiplier;
 }
 
 const Set<CorePassiveNodeId> corePassiveStartingNodeIds = {

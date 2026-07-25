@@ -220,7 +220,7 @@ String _gemInventoryEffectText(GemType type) {
     GemType.elementalDamage => '원소 피해 +40%',
     GemType.lightWeapon => '경량화기 강화',
     GemType.heavyWeapon => '중화기 강화',
-    GemType.damageOverTime => '지속피해 강화',
+    GemType.damageOverTime => '지속피해 증가',
     GemType.explosion => '폭발 피해 추가',
     GemType.chain => '연쇄 투사체 추가',
     GemType.criticalChance => '치명 확률 +20%p',

@@ -57,30 +57,34 @@ extension TurretTraitTypeText on TurretTraitType {
 
   String get shortText {
     return switch (this) {
-      TurretTraitType.overheatMagazine => '같은 대상 명중마다 피해 +2%, 최대 15중첩',
+      TurretTraitType.overheatMagazine =>
+        '같은 대상 명중마다 직격 피해 2% 증가, 최대 15중첩',
       TurretTraitType.lightweightBarrel => '공격 속도 10% 증폭, 투사체 속도 30% 증폭',
-      TurretTraitType.shrapnelShell => '폭발 반경 +30%',
-      TurretTraitType.compressedCharge => '직격 피해 +35%, 공격 속도 -10%',
-      TurretTraitType.highHeatBurn => '화상 피해 +25%',
-      TurretTraitType.lingeringEmbers => '화상 지속시간 +40%',
+      TurretTraitType.shrapnelShell => '폭발 반경 30% 증가',
+      TurretTraitType.compressedCharge => '직격 피해 35% 증폭, 공격 속도 10% 감폭',
+      TurretTraitType.highHeatBurn => '화상 피해 25% 증가',
+      TurretTraitType.lingeringEmbers => '화상 지속시간 40% 증가',
       TurretTraitType.ignitionBurst => '화상 중인 대상 명중 시 최종 화상 지속시간 30%분 직접 피해',
       TurretTraitType.chainIgnition => '화상 처치 시 주변 1명에게 남은 화상 60% 전이',
       TurretTraitType.rapidCooling => '둔화율 강화',
-      TurretTraitType.spreadingChill => '사거리 15% 증폭, 피해 -10%',
+      TurretTraitType.spreadingChill => '사거리 15% 증폭, 피해 10% 감폭',
       TurretTraitType.frostCrack => '둔화 대상 원소 저항 -15%',
-      TurretTraitType.coolingCycle => '공격 속도 20% 증폭, 둔화 지속시간 -15%',
+      TurretTraitType.coolingCycle => '공격 속도 20% 증폭, 둔화 지속시간 15% 감폭',
       TurretTraitType.suppressiveFire => '같은 대상 5회 명중 시 2초간 물리 저항 -20%',
       TurretTraitType.chainCleanup => '최근 명중 관여 처치 시 3초간 공격 속도 40% 증폭',
-      TurretTraitType.expandedBlastCore => '폭발 반경 +40%, 주변 피해 배율 +10%p',
+      TurretTraitType.expandedBlastCore =>
+        '폭발 반경 40% 증가, 주변 피해 배율 +10%p',
       TurretTraitType.fractureImpact => '타격 대상 물리 저항 -20%',
-      TurretTraitType.deadeyeFocus => '조준 속도 -20%, 치명타 확률 +20%p',
-      TurretTraitType.quickScope => '조준 속도 +40%, 치명타 확률 -5%p',
+      TurretTraitType.deadeyeFocus => '조준 속도 20% 감소, 치명타 확률 +20%p',
+      TurretTraitType.quickScope => '조준 속도 40% 증가, 치명타 확률 -5%p',
       TurretTraitType.exposedMark => '명중 대상 2초간 물리 저항 -15%',
       TurretTraitType.finishingShot => '내구도 35% 이하 대상 피해 45% 증폭',
       TurretTraitType.branchCurrent => '후속 연쇄 대상 +1',
-      TurretTraitType.focusedLightning => '첫 대상 피해 +30%, 후속 연쇄 대상 -1',
-      TurretTraitType.lightningRecovery => '남은 연쇄 1회마다 다음 공격 재장전 효율 +15%',
-      TurretTraitType.currentAmplification => '후속 연쇄 피해 배율 50%에서 70%로 증가',
+      TurretTraitType.focusedLightning => '첫 대상 피해 30% 증폭, 후속 연쇄 대상 -1',
+      TurretTraitType.lightningRecovery =>
+        '남은 연쇄 1회마다 다음 공격 재장전 효율 15% 증가',
+      TurretTraitType.currentAmplification =>
+        '후속 연쇄 피해 배율 +20%p (50% → 70%)',
     };
   }
 }

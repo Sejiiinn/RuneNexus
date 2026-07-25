@@ -139,8 +139,8 @@ class RuneNexusLocalizations {
             : '코어 스킬 재사용 대기시간 회복 속도 $value 증가',
       CorePassiveNodeId.attackOutput =>
         _isEnglish
-            ? 'Core skill power increased by $value.'
-            : '코어 스킬 위력 $value 증가',
+            ? 'Core skill power amplified by $value.'
+            : '코어 스킬 위력 $value 증폭',
       CorePassiveNodeId.attackPrecompute =>
         _isEnglish
             ? 'After a Core skill activates, all turret attack speed is amplified by $value for 2 seconds.'
@@ -159,12 +159,12 @@ class RuneNexusLocalizations {
             : '코어 스킬을 3회 발동할 때마다 해당 스킬 위력 $value 증폭',
       CorePassiveNodeId.attackOverclock =>
         _isEnglish
-            ? 'After all Core skill power increases, final power is amplified by 25%.'
-            : '모든 코어 스킬 위력 증가 계산 후 최종 위력 25% 증폭',
+            ? 'After all other Core skill power amplifications, final power is amplified by 25%.'
+            : '다른 모든 코어 스킬 위력 증폭 계산 후 최종 위력 25% 증폭',
       CorePassiveNodeId.controlThreatSense =>
         _isEnglish
-            ? 'All damage taken by the Nexus is reduced by $value.'
-            : '넥서스가 받는 모든 피해 $value 감소',
+            ? 'All damage taken by the Nexus is attenuated by $value.'
+            : '넥서스가 받는 모든 피해 $value 감폭',
       CorePassiveNodeId.controlSelfRepair =>
         _isEnglish
             ? 'Maximum Nexus HP increased by $value.'
@@ -175,8 +175,8 @@ class RuneNexusLocalizations {
             : '라운드 종료 시 넥서스 최대 체력의 $value 회복',
       CorePassiveNodeId.controlRearLock =>
         _isEnglish
-            ? "Reduce an enemy's Nexus damage by up to $value based on its lost total durability."
-            : '도달한 적이 잃은 총 내구도 비율에 따라 해당 적의 넥서스 피해 최대 $value 감소',
+            ? "Attenuate an enemy's Nexus damage by up to $value based on its lost total durability."
+            : '도달한 적이 잃은 총 내구도 비율에 따라 해당 적의 넥서스 피해 최대 $value 감폭',
       CorePassiveNodeId.controlEmergencyCharge =>
         _isEnglish
             ? 'After taking Nexus damage, instantly recover $value of the current Core skill cooldown, once per round.'
@@ -191,32 +191,32 @@ class RuneNexusLocalizations {
             : '매 라운드 처음 넥서스에 도달한 비보스 적 1기의 피해 무효화, 보스는 효과를 소모하지 않음',
       CorePassiveNodeId.efficiencySaving =>
         _isEnglish
-            ? 'Turret build cost reduced by $value.'
-            : '포탑 건설 비용 $value 감소',
+            ? 'Turret build cost attenuated by $value.'
+            : '포탑 건설 비용 $value 감폭',
       CorePassiveNodeId.efficiencyDiversity =>
         _isEnglish
-            ? 'Turret level-up costs are reduced by $value per distinct placed turret type after the first, up to 4 stacks.'
-            : '첫 종류 이후 배치된 서로 다른 포탑 종류당 모든 포탑 레벨업 비용 $value 감소, 최대 4중첩',
+            ? 'Turret level-up costs are attenuated by $value per distinct placed turret type after the first, up to 4 stacks.'
+            : '첫 종류 이후 배치된 서로 다른 포탑 종류당 모든 포탑 레벨업 비용 $value 감폭, 최대 4중첩',
       CorePassiveNodeId.efficiencyFirstDeploy =>
         _isEnglish
-            ? 'Gem Shard costs for selecting turret traits are reduced by $value.'
-            : '포탑 특성 선택에 필요한 젬 파편 $value 감소',
+            ? 'Gem Shard costs for selecting turret traits are attenuated by $value.'
+            : '포탑 특성 선택에 필요한 젬 파편 $value 감폭',
       CorePassiveNodeId.efficiencyFirstLink =>
         _isEnglish
-            ? 'All turret link expansion costs are reduced by $value.'
-            : '모든 포탑의 모든 링크 확장 비용 $value 감소',
+            ? 'All turret link expansion costs are attenuated by $value.'
+            : '모든 포탑의 모든 링크 확장 비용 $value 감폭',
       CorePassiveNodeId.efficiencyGemSpectrum =>
         _isEnglish
             ? 'With at least 3 distinct equipped gem types, numeric gem effects are amplified by gem type count × $value, counting up to 6 types.'
             : '장착 중인 서로 다른 젬이 3종 이상이면 젬 종류 수 × $value만큼 수치형 젬 효과 증폭, 최대 6종 적용',
       CorePassiveNodeId.efficiencySupplyRecovery =>
         _isEnglish
-            ? 'Round clear Gold is increased by $value.'
-            : '라운드 클리어 골드 $value 증가',
+            ? 'Round clear Gold is amplified by $value.'
+            : '라운드 클리어 골드 $value 증폭',
       CorePassiveNodeId.efficiencyCombinedFront =>
         _isEnglish
-            ? 'While 4+ distinct turret types are placed, final build, level-up, and link expansion costs are reduced by $value.'
-            : '서로 다른 포탑 4종 이상 배치 중 포탑 건설·레벨업·링크 확장 최종 비용 $value 감소',
+            ? 'While 4+ distinct turret types are placed, final build, level-up, and link expansion costs are attenuated by $value.'
+            : '서로 다른 포탑 4종 이상 배치 중 포탑 건설·레벨업·링크 확장 최종 비용 $value 감폭',
       CorePassiveNodeId.hybridEmergencyCompute =>
         _isEnglish
             ? 'Refund $value cooldown the first time an enemy passes 80% of the path.'
