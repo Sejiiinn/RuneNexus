@@ -757,7 +757,9 @@ void main() {
     expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(1)));
   });
 
-  test('nexus defeat plays core destruction before failure panel', () async {
+  testWidgets('nexus defeat plays core destruction before failure panel', (
+    tester,
+  ) async {
     final repository = MemorySaveRepository();
     final game = RuneNexusGame(
       saveRepository: repository,
@@ -770,8 +772,8 @@ void main() {
         ),
       ],
     );
-    game.onGameResize(Vector2(400, 800));
-    await game.onLoad();
+    await tester.pumpWidget(GameWidget(game: game));
+    await tester.runAsync(game.ready);
     game.startNextWave();
 
     final normal = gameEnemies[EnemyType.normal]!;
@@ -2858,6 +2860,7 @@ void main() {
         nexusHp: 20,
         roundIndex: 0,
         completedRounds: 0,
+        phase: GamePhase.wave,
         totalCorePoints: 100,
         corePassiveNodeRanks: const {
           CorePassiveNodeId.attackOutput: 5,
@@ -2884,6 +2887,7 @@ void main() {
     );
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
+    game.continueRestoredRun();
     game.tryBuildTurret(const GridPoint(2, 0));
 
     final arrow = gameTurrets[TurretType.arrow]!;
@@ -2900,8 +2904,6 @@ void main() {
       game: game,
     )..distanceTravelled = 80;
     await game.add(enemy);
-    game.update(0);
-    game.startNextWave();
     game.enemies.add(enemy);
     game.update(5);
 
@@ -2910,14 +2912,15 @@ void main() {
     expect(game.nexusCoreBeamDamage, closeTo(baseBeamDamage * 2.1875, 0.001));
   });
 
-  test(
+  testWidgets(
     'core skill activation amplifies turret stats for two seconds',
-    () async {
+    (tester) async {
       final repository = MemorySaveRepository()
         ..data = _saveWithCorePassiveRun(
           nexusHp: 20,
           roundIndex: 0,
           completedRounds: 0,
+          phase: GamePhase.wave,
           totalCorePoints: 100,
           corePassiveNodeRanks: const {
             CorePassiveNodeId.attackHaste: 3,
@@ -2937,9 +2940,11 @@ void main() {
           ),
         ],
       );
-      game.onGameResize(Vector2(400, 800));
-      await game.onLoad();
+      await tester.pumpWidget(GameWidget(game: game));
+      await tester.runAsync(game.ready);
+      game.continueRestoredRun();
       game.tryBuildTurret(const GridPoint(2, 0));
+      await tester.runAsync(game.ready);
       final turret = game.children.whereType<TurretComponent>().single;
       final baseDamage = turret.damage;
       final baseAttackRate = turret.attackRate;
@@ -2951,8 +2956,7 @@ void main() {
         game: game,
       )..distanceTravelled = 80;
       await game.add(enemy);
-      game.update(0);
-      game.startNextWave();
+      await tester.runAsync(game.ready);
       game.enemies.add(enemy);
       game.update(5 / 1.06 + 0.001);
 
@@ -2966,6 +2970,7 @@ void main() {
       game.update(0.02);
       expect(turret.damage, closeTo(baseDamage, 0.001));
       expect(turret.attackRate, closeTo(baseAttackRate, 0.001));
+      game.disposeAppResources();
     },
   );
 
@@ -3450,6 +3455,7 @@ void main() {
         nexusHp: 20,
         roundIndex: 0,
         completedRounds: 0,
+        phase: GamePhase.wave,
         unlockedStageCount: 6,
         clearedStageNumbers: const {1, 2, 3, 4, 5},
         coreCombatSkill: CoreCombatSkill.riftMark,
@@ -3479,7 +3485,7 @@ void main() {
     );
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
-    game.startNextWave();
+    game.continueRestoredRun();
 
     final enemy = _durabilityEnemy(game, hp: 1000, progress: 10);
     await game.add(enemy);
@@ -3921,6 +3927,7 @@ void main() {
         nexusHp: 10,
         roundIndex: 0,
         completedRounds: 0,
+        phase: GamePhase.wave,
         totalCorePoints: 30,
         corePassiveNodeRanks: const {
           CorePassiveNodeId.controlSelfRepair: 3,
@@ -3934,7 +3941,7 @@ void main() {
     );
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
-    game.startNextWave();
+    game.continueRestoredRun();
 
     final normal = gameEnemies[EnemyType.normal]!;
     final enemy = EnemyComponent(
@@ -7496,7 +7503,7 @@ class _FirstLinkDiscountGame extends RuneNexusGame {
 }
 
 class _EfficiencyModuleGame extends RuneNexusGame {
-  _EfficiencyModuleGame({super.waves, super.saveRepository});
+  _EfficiencyModuleGame({super.saveRepository});
 
   @override
   double get firstLinkUpgradeDiscountRate => 0.2;
