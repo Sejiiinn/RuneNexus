@@ -5,6 +5,7 @@ mixin _TurretModuleProgression {
   void addFreeDiamonds(int amount);
 
   int turretModuleTickets = 0;
+  int lastRunTurretModuleTicketReward = 0;
   int turretModuleItemSequence = 0;
   final Map<String, TurretModuleInventoryItem> turretModules = {};
 

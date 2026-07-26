@@ -185,6 +185,7 @@ GameSnapshot resultSnapshot({
   int spentCorePoints = 0,
   int availableCorePoints = 0,
   int lastRunCorePointReward = 0,
+  int lastRunTurretModuleTicketReward = 0,
   Map<CorePassiveNodeId, int> corePassiveNodeRanks = const {},
   GridPoint? selectedCorePoint,
   double nexusCoreBeamDamage = 0,
@@ -296,6 +297,7 @@ GameSnapshot resultSnapshot({
         ? totalCorePoints - spentCorePoints
         : availableCorePoints,
     lastRunCorePointReward: lastRunCorePointReward,
+    lastRunTurretModuleTicketReward: lastRunTurretModuleTicketReward,
     corePassiveNodeRanks: corePassiveNodeRanks,
     nextWaveEnemyTypes: const [],
     nextWaveEnemyCounts: const {},

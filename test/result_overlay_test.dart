@@ -276,6 +276,47 @@ void main() {
     expect(find.text('연구 슬롯 II 구매 권한'), findsOneWidget);
   });
 
+  testWidgets('stage eleven first-clear result shows five module tickets', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: ResultOverlay(
+          game: RuneNexusGame(),
+          snapshot: resultSnapshot(
+            phase: GamePhase.success,
+            currentStageNumber: 11,
+            unlockedStageCount: 12,
+            completedRounds: 40,
+            lastRunRuneReward: 800,
+            lastRunTurretModuleTicketReward: 5,
+            lastRunPreviousBestRound: 30,
+            lastRunWasNewBestRound: true,
+            bestRoundsByStage: const {11: 40},
+            clearedStageNumbers: const {11},
+          ),
+          onOpenStageSelect: () {},
+          onOpenPermanentUpgrades: () {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+
+    expect(find.text('모듈권 +5'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('result-turret-module-ticket-reward')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('result overlay shows stage twelve limit research unlocks', (
     tester,
   ) async {

@@ -1112,6 +1112,47 @@ void main() {
     expect(progression.lastRunCorePointReward, 0);
   });
 
+  test('only stage eleven first clear grants five module tickets', () {
+    final rewardsByStage = {
+      for (final stage in gameStages)
+        if (stage.firstClearTurretModuleTicketReward > 0)
+          stage.id: stage.firstClearTurretModuleTicketReward,
+    };
+    expect(rewardsByStage, {11: 5});
+
+    final progression = RunProgression();
+    progression.finishRun(
+      completedRounds: 40,
+      success: true,
+      stageNumber: 11,
+      firstClearTurretModuleTicketReward: 5,
+    );
+    expect(progression.turretModuleTickets, 5);
+    expect(progression.lastRunTurretModuleTicketReward, 5);
+
+    final saved = SavedProgression.fromJson(progression.toSaveData().toJson());
+    final restored = RunProgression()..restoreFromSaveData(saved);
+    expect(restored.turretModuleTickets, 5);
+    expect(restored.lastRunTurretModuleTicketReward, 5);
+
+    restored.finishRun(
+      completedRounds: 40,
+      success: true,
+      stageNumber: 11,
+      firstClearTurretModuleTicketReward: 5,
+    );
+    expect(restored.turretModuleTickets, 5);
+    expect(restored.lastRunTurretModuleTicketReward, 0);
+
+    restored.finishRun(
+      completedRounds: 40,
+      success: true,
+      stageNumber: 12,
+    );
+    expect(restored.turretModuleTickets, 5);
+    expect(restored.lastRunTurretModuleTicketReward, 0);
+  });
+
   test('legacy clears receive retroactive core points only once', () async {
     final repository = MemorySaveRepository()
       ..data = saveWithCorePassiveRun(

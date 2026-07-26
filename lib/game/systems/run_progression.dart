@@ -46,7 +46,6 @@ class RunProgression
   static const int researchSlotTwoUnlockRequiredStage = 10;
   static const int researchSlotTwoUnlockCost = 600;
   static const int gemShardsPerGemAttunementLevel = 2;
-  static const int turretModuleTicketsPerStageClear = 1;
   static const int turretModuleTicketDiamondCost = 80;
   static const int diamondMillisPerResearchMinute = 60000;
   static const int uninitializedDailyQuestDayKey = -1;
@@ -283,6 +282,7 @@ class RunProgression
       coreCombatSkill: coreCombatSkill,
       totalCorePoints: totalCorePoints,
       lastRunCorePointReward: lastRunCorePointReward,
+      lastRunTurretModuleTicketReward: lastRunTurretModuleTicketReward,
       corePassiveTreeRevision: corePassiveTreeRevision,
       corePassiveNodeRanks: Map.unmodifiable(corePassiveNodeRanks),
       claimedCorePointStageRewards: Set.unmodifiable(
@@ -476,6 +476,10 @@ class RunProgression
     coreCombatSkill = data.coreCombatSkill;
     totalCorePoints = math.max(0, data.totalCorePoints);
     lastRunCorePointReward = math.max(0, data.lastRunCorePointReward);
+    lastRunTurretModuleTicketReward = math.max(
+      0,
+      data.lastRunTurretModuleTicketReward,
+    );
     corePassiveTreeRevision = core_tree.corePassiveTreeRevision;
     claimedCorePointStageRewards
       ..clear()
@@ -499,7 +503,10 @@ class RunProgression
     required bool success,
     required int stageNumber,
     int firstClearCorePointReward = 0,
+    int firstClearTurretModuleTicketReward = 0,
   }) {
+    final isFirstStageClear =
+        success && stageNumber > 0 && !isStageCleared(stageNumber);
     lastRunRuneReward = runeRewardFor(
       completedRounds,
       success: success,
@@ -522,9 +529,11 @@ class RunProgression
         unlockedStageCount < maxStageCount) {
       unlockedStageCount = math.min(maxStageCount, stageNumber + 1);
     }
-    if (success) {
-      turretModuleTickets += turretModuleTicketsPerStageClear;
-    }
+    lastRunTurretModuleTicketReward =
+        isFirstStageClear && firstClearTurretModuleTicketReward > 0
+        ? firstClearTurretModuleTicketReward
+        : 0;
+    turretModuleTickets += lastRunTurretModuleTicketReward;
   }
 
   int bestRoundForStage(int stageNumber) {
@@ -579,5 +588,6 @@ class RunProgression
   void resetLastRunReward() {
     lastRunRuneReward = 0;
     lastRunCorePointReward = 0;
+    lastRunTurretModuleTicketReward = 0;
   }
 }

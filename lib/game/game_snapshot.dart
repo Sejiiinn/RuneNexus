@@ -106,6 +106,7 @@ class GameSnapshot {
     required this.spentCorePoints,
     required this.availableCorePoints,
     required this.lastRunCorePointReward,
+    required this.lastRunTurretModuleTicketReward,
     required this.corePassiveNodeRanks,
     required this.nextWaveEnemyTypes,
     required this.nextWaveEnemyCounts,
@@ -278,6 +279,7 @@ class GameSnapshot {
   final int spentCorePoints;
   final int availableCorePoints;
   final int lastRunCorePointReward;
+  final int lastRunTurretModuleTicketReward;
   final Map<CorePassiveNodeId, int> corePassiveNodeRanks;
   final List<EnemyType> nextWaveEnemyTypes;
   final Map<EnemyType, int> nextWaveEnemyCounts;

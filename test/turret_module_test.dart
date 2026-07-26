@@ -12,11 +12,30 @@ import 'package:rune_nexus/game/systems/run_progression.dart';
 
 void main() {
   test(
-    'stage clear grants a turret module ticket and persists module state',
+    'only the configured first clear grants module tickets and persists state',
     () {
       final progression = RunProgression();
       progression.finishRun(completedRounds: 40, success: true, stageNumber: 1);
-      expect(progression.turretModuleTickets, 1);
+      expect(progression.turretModuleTickets, 0);
+      expect(progression.lastRunTurretModuleTicketReward, 0);
+
+      progression.finishRun(
+        completedRounds: 40,
+        success: true,
+        stageNumber: 11,
+        firstClearTurretModuleTicketReward: 5,
+      );
+      expect(progression.turretModuleTickets, 5);
+      expect(progression.lastRunTurretModuleTicketReward, 5);
+
+      progression.finishRun(
+        completedRounds: 40,
+        success: true,
+        stageNumber: 11,
+        firstClearTurretModuleTicketReward: 5,
+      );
+      expect(progression.turretModuleTickets, 5);
+      expect(progression.lastRunTurretModuleTicketReward, 0);
 
       final key = TurretModuleKey(
         turretType: TurretType.arrow,
@@ -40,7 +59,8 @@ void main() {
       );
       final restored = RunProgression()..restoreFromSaveData(saved);
 
-      expect(restored.turretModuleTickets, 1);
+      expect(restored.turretModuleTickets, 5);
+      expect(restored.lastRunTurretModuleTicketReward, 0);
       final restoredModule = restored.turretModuleFor(item.id);
       expect(restoredModule, isNotNull);
       expect(restoredModule!.equipped, isTrue);

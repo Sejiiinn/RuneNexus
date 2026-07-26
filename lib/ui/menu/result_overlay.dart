@@ -34,7 +34,12 @@ class ResultOverlay extends StatelessWidget {
     final topDamageText = snapshot.topDamageTurretName == null
         ? '없음'
         : '${snapshot.topDamageTurretName} ${_formatDamageValue(snapshot.topDamageTurretDamageDealt)}';
-    final rewardSubText = _rewardSubText(success, unlockGroups);
+    final turretModuleTicketReward = snapshot.lastRunTurretModuleTicketReward;
+    final rewardSubText = _rewardSubText(
+      success,
+      unlockGroups,
+      turretModuleTicketReward,
+    );
     final disableMotion =
         MediaQuery.maybeOf(context)?.disableAnimations ?? false;
 
@@ -82,6 +87,8 @@ class ResultOverlay extends StatelessWidget {
                                 runeReward: snapshot.lastRunRuneReward,
                                 corePointReward:
                                     snapshot.lastRunCorePointReward,
+                                turretModuleTicketReward:
+                                    turretModuleTicketReward,
                                 subText: rewardSubText,
                                 success: success,
                               ),
@@ -155,9 +162,16 @@ String _recordText(GameSnapshot snapshot, int bestRound) {
   return '최고 ${bestRound}R';
 }
 
-String _rewardSubText(bool success, List<_UnlockGroup> unlockGroups) {
+String _rewardSubText(
+  bool success,
+  List<_UnlockGroup> unlockGroups,
+  int turretModuleTicketReward,
+) {
   if (!success) {
     return '도달 기록 기준 정산';
+  }
+  if (turretModuleTicketReward > 0) {
+    return '룬과 최초 클리어 보상이 정산되었습니다';
   }
   if (unlockGroups.isEmpty) {
     return '룬 보상이 정산되었습니다';
@@ -285,12 +299,14 @@ class _RewardSummary extends StatelessWidget {
   const _RewardSummary({
     required this.runeReward,
     required this.corePointReward,
+    required this.turretModuleTicketReward,
     required this.subText,
     required this.success,
   });
 
   final int runeReward;
   final int corePointReward;
+  final int turretModuleTicketReward;
   final String subText;
   final bool success;
 
@@ -343,6 +359,22 @@ class _RewardSummary extends StatelessWidget {
               key: const ValueKey('result-core-point-reward'),
               style: const TextStyle(
                 color: Color(0xFF8EE6FF),
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                height: 1,
+                shadows: GameTextStyles.textShadow,
+              ),
+            ),
+          ],
+          if (turretModuleTicketReward > 0) ...[
+            const SizedBox(height: 7),
+            ScaleDownText(
+              RuneNexusLocalizations.of(
+                context,
+              ).turretModuleTicketReward(turretModuleTicketReward),
+              key: const ValueKey('result-turret-module-ticket-reward'),
+              style: const TextStyle(
+                color: Color(0xFFE7C66A),
                 fontSize: 18,
                 fontWeight: FontWeight.w900,
                 height: 1,

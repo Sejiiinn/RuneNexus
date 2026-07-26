@@ -271,6 +271,7 @@ class SavedProgression {
     this.coreCombatSkill = CoreCombatSkill.guardianBeam,
     this.totalCorePoints = 0,
     this.lastRunCorePointReward = 0,
+    this.lastRunTurretModuleTicketReward = 0,
     this.corePassiveTreeRevision = core_tree.corePassiveTreeRevision,
     this.corePassiveNodeRanks = const {},
     this.claimedCorePointStageRewards = const {},
@@ -316,6 +317,7 @@ class SavedProgression {
   final CoreCombatSkill? coreCombatSkill;
   final int totalCorePoints;
   final int lastRunCorePointReward;
+  final int lastRunTurretModuleTicketReward;
   final int corePassiveTreeRevision;
   final Map<CorePassiveNodeId, int> corePassiveNodeRanks;
   final Set<int> claimedCorePointStageRewards;
@@ -381,6 +383,7 @@ class SavedProgression {
       'coreCombatSkill': coreCombatSkill?.name,
       'totalCorePoints': totalCorePoints,
       'lastRunCorePointReward': lastRunCorePointReward,
+      'lastRunTurretModuleTicketReward': lastRunTurretModuleTicketReward,
       'corePassiveTreeRevision': corePassiveTreeRevision,
       'corePassiveNodeRanks': corePassiveNodeRanks.map(
         (key, value) => MapEntry(key.name, value),
@@ -471,6 +474,9 @@ class SavedProgression {
       coreCombatSkill: _coreCombatSkillFromSave(map),
       totalCorePoints: _nonNegativeInt(map['totalCorePoints']),
       lastRunCorePointReward: _nonNegativeInt(map['lastRunCorePointReward']),
+      lastRunTurretModuleTicketReward: _nonNegativeInt(
+        map['lastRunTurretModuleTicketReward'],
+      ),
       corePassiveTreeRevision: _intValue(
         map['corePassiveTreeRevision'],
         fallback: core_tree.corePassiveTreeRevision,

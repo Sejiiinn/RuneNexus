@@ -262,6 +262,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       spentCorePoints: 0,
       availableCorePoints: 0,
       lastRunCorePointReward: 0,
+      lastRunTurretModuleTicketReward: 0,
       corePassiveNodeRanks: const {},
       nextWaveEnemyTypes: _enemyTypesFor(firstWave),
       nextWaveEnemyCounts: _enemyCountsFor(firstWave),
@@ -666,6 +667,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   int get spentCorePoints => _progression.spentCorePoints;
   int get availableCorePoints => _progression.availableCorePoints;
   int get lastRunCorePointReward => _progression.lastRunCorePointReward;
+  int get lastRunTurretModuleTicketReward =>
+      _progression.lastRunTurretModuleTicketReward;
   Map<CorePassiveNodeId, int> get corePassiveNodeRanks =>
       Map.unmodifiable(_progression.corePassiveNodeRanks);
   int turretBuildCost(TurretType type) {
@@ -4155,6 +4158,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       success: success,
       stageNumber: _currentStageNumber,
       firstClearCorePointReward: _activeStage.firstClearCorePointReward,
+      firstClearTurretModuleTicketReward:
+          _activeStage.firstClearTurretModuleTicketReward,
     );
     _lastRunPreviousBestRound = previousBestRound;
     _lastRunWasNewBestRound = _completedRounds > previousBestRound;

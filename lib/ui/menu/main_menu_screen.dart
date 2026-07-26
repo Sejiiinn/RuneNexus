@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import '../../data/definitions/game_daily_quest_data.dart';
 import '../../data/definitions/game_core_passive_tree_data.dart';
 import '../../data/definitions/game_research_data.dart';
+import '../../data/definitions/game_stage_data.dart';
 import '../../data/definitions/game_turret_data.dart';
 import '../../data/definitions/game_turret_module_data.dart';
 import '../../data/definitions/game_weekly_quest_data.dart';

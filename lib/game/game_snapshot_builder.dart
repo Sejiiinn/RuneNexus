@@ -193,6 +193,8 @@ class GameSnapshotBuilder {
       spentCorePoints: _game.spentCorePoints,
       availableCorePoints: _game.availableCorePoints,
       lastRunCorePointReward: _game.lastRunCorePointReward,
+      lastRunTurretModuleTicketReward:
+          _game.lastRunTurretModuleTicketReward,
       corePassiveNodeRanks: Map.unmodifiable(_game.corePassiveNodeRanks),
       nextWaveEnemyTypes: List.unmodifiable(nextWaveEnemyTypes),
       nextWaveEnemyCounts: Map.unmodifiable(nextWaveEnemyCounts),

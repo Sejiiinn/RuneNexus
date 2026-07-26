@@ -1282,8 +1282,16 @@ _StageRewardInfo? _stageRewardInfoFor({
     stageCleared: stageCleared,
     sniperRewardUnlocked: sniperRewardUnlocked,
   );
+  final String label;
+  if (stageNumber == 11) {
+    label = highlighted
+        ? l10n.claimedRewardLabel
+        : l10n.firstClearRewardLabel;
+  } else {
+    label = highlighted ? l10n.unlockedRewardLabel : l10n.clearRewardLabel;
+  }
   return _StageRewardInfo(
-    label: highlighted ? l10n.unlockedRewardLabel : l10n.clearRewardLabel,
+    label: label,
     icon: visual.icon,
     extraIcons: visual.extraIcons,
     highlighted: highlighted,
@@ -1315,6 +1323,9 @@ _StageRewardVisual? _stageRewardVisualFor(int stageNumber) {
     10 => const _StageRewardVisual(
       icon: _StageRewardAssetIcon(asset: _stageRewardGemIconAsset),
       extraIcons: [_StageRewardAssetIcon(asset: _stageRewardResearchIconAsset)],
+    ),
+    11 => const _StageRewardVisual(
+      icon: Icon(Icons.local_activity_outlined),
     ),
     12 => const _StageRewardVisual(
       icon: _StageRewardAssetIcon(asset: _stageRewardResearchIconAsset),
@@ -1463,6 +1474,16 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
         label: l10n.researchSlotTwoPurchaseAccess,
         icon: Icons.view_module_outlined,
         category: _StageUnlockCategory.research,
+        highlighted: highlighted,
+      ),
+    ],
+    11 => [
+      _StageUnlockItem(
+        label: l10n.turretModuleTicketReward(
+          stageElevenFirstClearTurretModuleTicketReward,
+        ),
+        icon: Icons.local_activity_outlined,
+        category: _StageUnlockCategory.moduleTicket,
         highlighted: highlighted,
       ),
     ],
@@ -1619,7 +1640,8 @@ enum _StageUnlockCategory {
   research,
   turret,
   gem,
-  core;
+  core,
+  moduleTicket;
 
   String label(RuneNexusLocalizations l10n) {
     return switch (this) {
@@ -1628,6 +1650,7 @@ enum _StageUnlockCategory {
       _StageUnlockCategory.turret => l10n.turretSection,
       _StageUnlockCategory.gem => l10n.gemSection,
       _StageUnlockCategory.core => l10n.coreTab,
+      _StageUnlockCategory.moduleTicket => l10n.moduleTicketSection,
     };
   }
 }

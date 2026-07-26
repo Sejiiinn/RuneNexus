@@ -248,6 +248,7 @@ class RuneNexusLocalizations {
   String get researchTab => _isEnglish ? 'Research' : '연구';
   String get turretModuleTab => _isEnglish ? 'Turret' : '포탑';
   String get turretSection => _isEnglish ? 'Turret' : '포탑';
+  String get moduleTicketSection => _isEnglish ? 'Module ticket' : '모듈권';
   String get gemSection => _isEnglish ? 'Gem' : '젬';
   String get runes => _isEnglish ? 'Runes' : '룬';
   String get diamonds => _isEnglish ? 'Diamonds' : '다이아';
@@ -382,7 +383,10 @@ class RuneNexusLocalizations {
   String get stageTotalRoundsLabel => _isEnglish ? 'Rounds' : '총 라운드';
   String get stageRuneRewardLabel => _isEnglish ? 'Rune reward' : '룬 보상';
   String get clearRewardLabel => _isEnglish ? 'Clear reward' : '클리어 보상';
+  String get firstClearRewardLabel =>
+      _isEnglish ? 'First clear reward' : '최초 클리어 보상';
   String get unlockedRewardLabel => _isEnglish ? 'Unlocked' : '해금됨';
+  String get claimedRewardLabel => _isEnglish ? 'Claimed' : '수령 완료';
   String get stageSniperRewardLocked => clearReward(sniperTurret);
   String get stageSniperRewardUnlocked => unlockedReward(sniperTurret);
   String get sniperTurret => _isEnglish ? 'Sniper turret' : '저격 포탑';
@@ -414,6 +418,10 @@ class RuneNexusLocalizations {
 
   String unlockedReward(String reward) {
     return _isEnglish ? 'Unlocked: $reward' : '해금됨: $reward';
+  }
+
+  String turretModuleTicketReward(int amount) {
+    return _isEnglish ? 'Module tickets +$amount' : '모듈권 +$amount';
   }
 
   String cancelResearchMessage(String title) {

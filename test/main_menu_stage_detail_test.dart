@@ -89,6 +89,41 @@ void main() {
     expect(find.text('연구 해금'), findsNothing);
   });
 
+  testWidgets('stage eleven details show its first-clear module tickets', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 11,
+            unlockedStageCount: 11,
+          ),
+          selectedTab: MainMenuTab.stage,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await pumpGameFrames(tester);
+
+    await tester.tap(find.byKey(const ValueKey('stage-selection-row-11')));
+    await pumpGameFrames(tester);
+
+    expect(find.text('최초 클리어 보상'), findsOneWidget);
+    expect(find.text('모듈권 +5'), findsOneWidget);
+  });
+
   testWidgets('stage gem unlocks use their dedicated gem icons', (
     tester,
   ) async {

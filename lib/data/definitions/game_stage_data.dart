@@ -5,6 +5,8 @@ import 'game_stage_waves.dart';
 export 'game_stage_maps.dart';
 export 'game_stage_waves.dart';
 
+const int stageElevenFirstClearTurretModuleTicketReward = 5;
+
 final gameStages = List<StageDefinition>.unmodifiable([
   StageDefinition(
     id: 1,
@@ -82,6 +84,8 @@ final gameStages = List<StageDefinition>.unmodifiable([
     map: chapterThreeStage11Map,
     waves: gameChapter3Waves,
     firstClearCorePointReward: 1,
+    firstClearTurretModuleTicketReward:
+        stageElevenFirstClearTurretModuleTicketReward,
   ),
   StageDefinition(
     id: 12,
