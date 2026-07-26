@@ -2,12 +2,6 @@ part of 'main_menu_screen.dart';
 
 const double _corePassiveTreeWorldSize = 720;
 const Offset _corePassiveTreeCenter = Offset(360, 360);
-const String _corePassiveTreeBackgroundAsset =
-    'assets/images/core_passive_tree/tree_circuit_background.png';
-const String _corePassiveTreeCoreAsset =
-    'assets/images/core_passive_tree/nexus_core.png';
-const String _corePassiveTreeFrameAsset =
-    'assets/images/core_passive_tree/notable_hex_frame.png';
 const int _corePassiveWaveIntervalMs = 200;
 const int _corePassiveLineGrowMs = 340;
 const int _corePassiveLineFadeMs = 160;
@@ -760,7 +754,7 @@ class _CorePassiveResetDialog extends StatelessWidget {
                 child: Row(
                   children: [
                     Image.asset(
-                      _stageRewardCoreIconAsset,
+                      stageRewardCoreIconAsset,
                       width: 20,
                       height: 20,
                       filterQuality: FilterQuality.medium,
@@ -996,7 +990,7 @@ class _CorePassiveTreeWorld extends StatelessWidget {
             height: backgroundSize.height,
             child: IgnorePointer(
               child: Image.asset(
-                _corePassiveTreeBackgroundAsset,
+                corePassiveTreeBackgroundAsset,
                 key: const ValueKey('core-passive-tree-background'),
                 fit: BoxFit.cover,
                 filterQuality: FilterQuality.medium,
@@ -1101,7 +1095,7 @@ class _CorePassiveCenterNode extends StatelessWidget {
           ),
         ),
         Image.asset(
-          _corePassiveTreeCoreAsset,
+          corePassiveTreeCoreAsset,
           fit: BoxFit.contain,
           filterQuality: FilterQuality.high,
           excludeFromSemantics: true,
@@ -1233,7 +1227,7 @@ class _CorePassiveNodeButton extends StatelessWidget {
                           BlendMode.modulate,
                         ),
                         child: Image.asset(
-                          _corePassiveTreeFrameAsset,
+                          corePassiveTreeFrameAsset,
                           fit: BoxFit.contain,
                           filterQuality: FilterQuality.medium,
                           excludeFromSemantics: true,

@@ -23,19 +23,25 @@ class CoreAbilityIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      _coreAbilityIconAsset(skill),
+    return Image(
+      image: coreAbilityIconImageProvider(skill),
       width: size,
       height: size,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.medium,
-      cacheWidth: 128,
-      cacheHeight: 128,
       color: color,
       colorBlendMode: color == null ? null : BlendMode.srcIn,
       semanticLabel: semanticLabel,
     );
   }
+}
+
+ImageProvider<Object> coreAbilityIconImageProvider(CoreCombatSkill skill) {
+  return ResizeImage.resizeIfNeeded(
+    128,
+    128,
+    AssetImage(_coreAbilityIconAsset(skill)),
+  );
 }
 
 String _coreAbilityIconAsset(CoreCombatSkill skill) {
@@ -63,16 +69,14 @@ class CorePassiveNodeIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final asset = _corePassiveNodeIconAsset(nodeId);
-    if (asset != null) {
-      return Image.asset(
-        asset,
+    final provider = corePassiveNodeIconImageProvider(nodeId);
+    if (provider != null) {
+      return Image(
+        image: provider,
         width: size,
         height: size,
         fit: BoxFit.contain,
         filterQuality: FilterQuality.medium,
-        cacheWidth: 128,
-        cacheHeight: 128,
         color: color,
         colorBlendMode: color == null ? null : BlendMode.srcIn,
         semanticLabel: semanticLabel,
@@ -87,6 +91,16 @@ class CorePassiveNodeIcon extends StatelessWidget {
       ),
     );
   }
+}
+
+ImageProvider<Object>? corePassiveNodeIconImageProvider(
+  CorePassiveNodeId nodeId,
+) {
+  final asset = _corePassiveNodeIconAsset(nodeId);
+  if (asset == null) {
+    return null;
+  }
+  return ResizeImage.resizeIfNeeded(128, 128, AssetImage(asset));
 }
 
 String? _corePassiveNodeIconAsset(CorePassiveNodeId nodeId) {

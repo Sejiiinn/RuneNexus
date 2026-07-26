@@ -212,20 +212,20 @@ class _StageChapterTheme {
       return const _StageChapterTheme(
         accent: Color(0xFFFF8A3D),
         secondary: Color(0xFF5CF9E9),
-        bannerAsset: _stageChapterThreeBannerAsset,
+        bannerAsset: stageChapterThreeBannerAsset,
       );
     }
     if (chapter == 2) {
       return const _StageChapterTheme(
         accent: Color(0xFF5CF9E9),
         secondary: Color(0xFFB68BFF),
-        bannerAsset: _stageChapterTwoBannerAsset,
+        bannerAsset: stageChapterTwoBannerAsset,
       );
     }
     return const _StageChapterTheme(
       accent: Color(0xFF8EE6FF),
       secondary: Color(0xFFE7C66A),
-      bannerAsset: _stageChapterOneBannerAsset,
+      bannerAsset: stageChapterOneBannerAsset,
     );
   }
 }
@@ -1284,9 +1284,7 @@ _StageRewardInfo? _stageRewardInfoFor({
   );
   final String label;
   if (stageNumber == 11) {
-    label = highlighted
-        ? l10n.claimedRewardLabel
-        : l10n.firstClearRewardLabel;
+    label = highlighted ? l10n.claimedRewardLabel : l10n.firstClearRewardLabel;
   } else {
     label = highlighted ? l10n.unlockedRewardLabel : l10n.clearRewardLabel;
   }
@@ -1306,29 +1304,27 @@ _StageRewardInfo? _stageRewardInfoFor({
 _StageRewardVisual? _stageRewardVisualFor(int stageNumber) {
   return switch (stageNumber) {
     1 || 4 || 7 => const _StageRewardVisual(
-      icon: _StageRewardAssetIcon(asset: _stageRewardUpgradeIconAsset),
+      icon: _StageRewardAssetIcon(asset: stageRewardUpgradeIconAsset),
     ),
     2 || 8 => const _StageRewardVisual(
-      icon: _StageRewardAssetIcon(asset: _stageRewardResearchIconAsset),
+      icon: _StageRewardAssetIcon(asset: stageRewardResearchIconAsset),
     ),
     3 => const _StageRewardVisual(
       icon: _SniperRewardIcon(),
-      extraIcons: [_StageRewardAssetIcon(asset: _stageRewardGemIconAsset)],
+      extraIcons: [_StageRewardAssetIcon(asset: stageRewardGemIconAsset)],
     ),
     5 => const _StageRewardVisual(
-      icon: _StageRewardAssetIcon(asset: _stageRewardResearchIconAsset),
-      extraIcons: [_StageRewardAssetIcon(asset: _stageRewardCoreIconAsset)],
+      icon: _StageRewardAssetIcon(asset: stageRewardResearchIconAsset),
+      extraIcons: [_StageRewardAssetIcon(asset: stageRewardCoreIconAsset)],
     ),
     6 => const _StageRewardVisual(icon: _LightningRewardIcon()),
     10 => const _StageRewardVisual(
-      icon: _StageRewardAssetIcon(asset: _stageRewardGemIconAsset),
-      extraIcons: [_StageRewardAssetIcon(asset: _stageRewardResearchIconAsset)],
+      icon: _StageRewardAssetIcon(asset: stageRewardGemIconAsset),
+      extraIcons: [_StageRewardAssetIcon(asset: stageRewardResearchIconAsset)],
     ),
-    11 => const _StageRewardVisual(
-      icon: Icon(Icons.local_activity_outlined),
-    ),
+    11 => const _StageRewardVisual(icon: Icon(Icons.local_activity_outlined)),
     12 => const _StageRewardVisual(
-      icon: _StageRewardAssetIcon(asset: _stageRewardResearchIconAsset),
+      icon: _StageRewardAssetIcon(asset: stageRewardResearchIconAsset),
     ),
     _ => null,
   };

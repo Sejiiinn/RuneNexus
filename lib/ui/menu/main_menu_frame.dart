@@ -288,7 +288,7 @@ class _MenuTabs extends StatelessWidget {
               child: _TabButton(
                 key: const ValueKey('main-menu-tab-stage'),
                 icon: const _MainMenuTabAssetIcon(
-                  asset: _stageRewardStageIconAsset,
+                  asset: stageRewardStageIconAsset,
                 ),
                 label: l10n.stageTab,
                 selected: selectedTab == MainMenuTab.stage,
@@ -300,7 +300,7 @@ class _MenuTabs extends StatelessWidget {
               child: _TabButton(
                 key: const ValueKey('main-menu-tab-core'),
                 icon: const _MainMenuTabAssetIcon(
-                  asset: _stageRewardCoreIconAsset,
+                  asset: stageRewardCoreIconAsset,
                 ),
                 label: l10n.coreTab,
                 selected: selectedTab == MainMenuTab.core,
@@ -312,7 +312,7 @@ class _MenuTabs extends StatelessWidget {
               child: _TabButton(
                 key: const ValueKey('main-menu-tab-upgrades'),
                 icon: const _MainMenuTabAssetIcon(
-                  asset: _stageRewardUpgradeIconAsset,
+                  asset: stageRewardUpgradeIconAsset,
                 ),
                 label: l10n.permanentUpgradeTab,
                 selected: selectedTab == MainMenuTab.permanentUpgrades,
@@ -324,7 +324,7 @@ class _MenuTabs extends StatelessWidget {
               child: _TabButton(
                 key: const ValueKey('main-menu-tab-research'),
                 icon: const _MainMenuTabAssetIcon(
-                  asset: _stageRewardResearchIconAsset,
+                  asset: stageRewardResearchIconAsset,
                 ),
                 label: l10n.researchTab,
                 selected: selectedTab == MainMenuTab.research,
@@ -336,7 +336,7 @@ class _MenuTabs extends StatelessWidget {
               child: _TabButton(
                 key: const ValueKey('main-menu-tab-modules'),
                 icon: const _MainMenuTabAssetIcon(
-                  asset: _stageRewardTurretIconAsset,
+                  asset: stageRewardTurretIconAsset,
                 ),
                 label: l10n.turretModuleTab,
                 selected: selectedTab == MainMenuTab.turretModules,

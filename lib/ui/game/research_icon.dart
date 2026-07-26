@@ -21,19 +21,25 @@ class ResearchIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      _researchIconAsset(type),
+    return Image(
+      image: researchIconImageProvider(type),
       width: size,
       height: size,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.medium,
-      cacheWidth: 128,
-      cacheHeight: 128,
       color: color,
       colorBlendMode: color == null ? null : BlendMode.srcIn,
       semanticLabel: semanticLabel,
     );
   }
+}
+
+ImageProvider<Object> researchIconImageProvider(ResearchType type) {
+  return ResizeImage.resizeIfNeeded(
+    128,
+    128,
+    AssetImage(_researchIconAsset(type)),
+  );
 }
 
 String _researchIconAsset(ResearchType type) {

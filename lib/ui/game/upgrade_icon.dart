@@ -32,19 +32,25 @@ class UpgradeIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      _upgradeIconAsset(type),
+    return Image(
+      image: upgradeIconImageProvider(type),
       width: size,
       height: size,
       fit: BoxFit.contain,
       filterQuality: FilterQuality.medium,
-      cacheWidth: 128,
-      cacheHeight: 128,
       color: color,
       colorBlendMode: color == null ? null : BlendMode.srcIn,
       semanticLabel: semanticLabel,
     );
   }
+}
+
+ImageProvider<Object> upgradeIconImageProvider(GameUpgradeIconType type) {
+  return ResizeImage.resizeIfNeeded(
+    128,
+    128,
+    AssetImage(_upgradeIconAsset(type)),
+  );
 }
 
 String _upgradeIconAsset(GameUpgradeIconType type) {

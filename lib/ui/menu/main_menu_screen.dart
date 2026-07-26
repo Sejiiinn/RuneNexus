@@ -54,27 +54,6 @@ const int _stageChapterSize = 5;
 const int _visibleStageChapterCount =
     (RunProgression.maxStageCount + _stageChapterSize - 1) ~/ _stageChapterSize;
 const double _stageRowHeight = 54;
-const String _stageChapterOneBannerAsset = 'assets/images/chapter_1_banner.png';
-const String _stageChapterTwoBannerAsset = 'assets/images/chapter_2_banner.png';
-const String _stageChapterThreeBannerAsset =
-    'assets/images/chapter_3_banner.png';
-const String _stageRewardUpgradeIconAsset =
-    'assets/images/stage_rewards/reward_upgrade.png';
-const String _stageRewardResearchIconAsset =
-    'assets/images/stage_rewards/reward_research.png';
-const String _stageRewardGemIconAsset =
-    'assets/images/stage_rewards/reward_gem.png';
-const String _stageRewardCoreIconAsset =
-    'assets/images/stage_rewards/reward_core.png';
-const String _stageRewardStageIconAsset =
-    'assets/images/stage_rewards/reward_stage.png';
-const String _stageRewardTurretIconAsset =
-    'assets/images/stage_rewards/reward_turret.png';
-const List<String> _stageChapterBannerAssets = [
-  _stageChapterOneBannerAsset,
-  _stageChapterTwoBannerAsset,
-  _stageChapterThreeBannerAsset,
-];
 const Color _diamondCurrencyColor = Color(0xFF8EE6FF);
 const Color _researchInstantCompleteAccent = Color(0xFF0F5D72);
 
@@ -107,7 +86,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
   final _turretModuleMenuKey = GlobalKey<_TurretModuleMenuState>();
   List<TurretModuleInventoryItem> _turretModuleDrawResults = const [];
   bool _showMenuDebugPanel = false;
-  bool _chapterBannersPrecached = false;
   Timer? _researchClockTimer;
 
   GameSnapshot get _currentSnapshot =>
@@ -118,18 +96,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     super.initState();
     widget.snapshotListenable?.addListener(_handleSnapshotChanged);
     _syncResearchClockTimer();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_chapterBannersPrecached) {
-      return;
-    }
-    _chapterBannersPrecached = true;
-    for (final asset in _stageChapterBannerAssets) {
-      unawaited(precacheImage(AssetImage(asset), context));
-    }
   }
 
   @override

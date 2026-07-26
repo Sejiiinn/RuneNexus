@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -6,6 +7,7 @@ import '../game/game_snapshot.dart';
 import '../game/rune_nexus_game.dart';
 import '../l10n/rune_nexus_localizations.dart';
 import '../ui/game/game_button.dart';
+import '../ui/game/game_image_assets.dart';
 import '../ui/game/game_icons.dart';
 import '../ui/game/game_palette.dart';
 import '../ui/game/game_panel.dart';
@@ -15,6 +17,13 @@ import '../ui/menu/main_menu_screen.dart';
 import '../ui/menu/map_editor_panel.dart';
 
 enum _AppScreen { main, stage, mapEditor }
+
+class _AppLoadingProgress {
+  const _AppLoadingProgress({required this.label, this.value});
+
+  final String label;
+  final double? value;
+}
 
 class RuneNexusApp extends StatefulWidget {
   const RuneNexusApp({this.game, super.key});
@@ -27,7 +36,10 @@ class RuneNexusApp extends StatefulWidget {
 
 class _RuneNexusAppState extends State<RuneNexusApp> {
   late final RuneNexusGame game;
-  late final Future<void> _initialLoad;
+  final ValueNotifier<_AppLoadingProgress> _loadingProgress = ValueNotifier(
+    const _AppLoadingProgress(label: '저장 데이터와 전투 리소스를 준비하는 중'),
+  );
+  Future<void>? _initialLoad;
   _AppScreen _screen = _AppScreen.main;
   MainMenuTab _selectedMainMenuTab = MainMenuTab.stage;
 
@@ -35,7 +47,29 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
   void initState() {
     super.initState();
     game = widget.game ?? RuneNexusGame();
-    _initialLoad = Future<void>.delayed(Duration.zero, game.prepareForAppStart);
+  }
+
+  Future<void> _prepareForAppStart(BuildContext context) async {
+    await game.prepareForAppStart();
+    if (!mounted || !context.mounted) {
+      return;
+    }
+    _loadingProgress.value = const _AppLoadingProgress(
+      label: '메뉴 이미지를 준비하는 중',
+      value: 0,
+    );
+    await precacheRuneNexusStartupImages(
+      context,
+      onProgress: (value) {
+        if (!mounted) {
+          return;
+        }
+        _loadingProgress.value = _AppLoadingProgress(
+          label: '메뉴 이미지를 준비하는 중',
+          value: value,
+        );
+      },
+    );
   }
 
   void _openMainScreen({MainMenuTab tab = MainMenuTab.stage}) {
@@ -47,6 +81,7 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
 
   @override
   void dispose() {
+    _loadingProgress.dispose();
     game.disposeAppResources();
     super.dispose();
   }
@@ -139,60 +174,67 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
         fontFamilyFallback: const ['sans-serif'],
         useMaterial3: true,
       ),
-      home: Scaffold(
-        backgroundColor: const Color(0xFF07111D),
-        body: FutureBuilder<void>(
-          future: _initialLoad,
-          builder: (context, loadState) {
-            if (loadState.hasError) {
-              return const _AppLoadErrorScreen();
-            }
-            if (loadState.connectionState != ConnectionState.done) {
-              return const _AppLoadingScreen();
-            }
-            if (_screen == _AppScreen.stage) {
-              return GameHud(
-                game: game,
-                onOpenStageSelect: () => _openMainScreen(),
-                onOpenPermanentUpgrades: () =>
-                    _openMainScreen(tab: MainMenuTab.permanentUpgrades),
-                onStartStage: (stageNumber) => _startStage(
-                  stageNumber,
-                  game.snapshotNotifier.value,
-                  context,
-                ),
-              );
-            }
-            if (_screen == _AppScreen.mapEditor) {
-              return _MapEditorScreen(
-                initialStageNumber:
-                    game.snapshotNotifier.value.currentStageNumber,
-                onBack: () => _openMainScreen(),
-              );
-            }
-            return MainMenuScreen(
-              game: game,
-              snapshot: game.snapshotNotifier.value,
-              snapshotListenable: game.snapshotNotifier,
-              selectedTab: _selectedMainMenuTab,
-              onSelectTab: (tab) {
-                setState(() {
-                  _selectedMainMenuTab = tab;
-                });
+      home: Builder(
+        builder: (appContext) {
+          _initialLoad ??= _prepareForAppStart(appContext);
+          return Scaffold(
+            backgroundColor: const Color(0xFF07111D),
+            body: FutureBuilder<void>(
+              future: _initialLoad,
+              builder: (context, loadState) {
+                if (loadState.hasError) {
+                  return const _AppLoadErrorScreen();
+                }
+                if (loadState.connectionState != ConnectionState.done) {
+                  return _AppLoadingScreen(
+                    progressListenable: _loadingProgress,
+                  );
+                }
+                if (_screen == _AppScreen.stage) {
+                  return GameHud(
+                    game: game,
+                    onOpenStageSelect: () => _openMainScreen(),
+                    onOpenPermanentUpgrades: () =>
+                        _openMainScreen(tab: MainMenuTab.permanentUpgrades),
+                    onStartStage: (stageNumber) => _startStage(
+                      stageNumber,
+                      game.snapshotNotifier.value,
+                      context,
+                    ),
+                  );
+                }
+                if (_screen == _AppScreen.mapEditor) {
+                  return _MapEditorScreen(
+                    initialStageNumber:
+                        game.snapshotNotifier.value.currentStageNumber,
+                    onBack: () => _openMainScreen(),
+                  );
+                }
+                return MainMenuScreen(
+                  game: game,
+                  snapshot: game.snapshotNotifier.value,
+                  snapshotListenable: game.snapshotNotifier,
+                  selectedTab: _selectedMainMenuTab,
+                  onSelectTab: (tab) {
+                    setState(() {
+                      _selectedMainMenuTab = tab;
+                    });
+                  },
+                  onStartStage: (stageNumber) => _startStage(
+                    stageNumber,
+                    game.snapshotNotifier.value,
+                    context,
+                  ),
+                  onOpenMapEditor: () {
+                    setState(() {
+                      _screen = _AppScreen.mapEditor;
+                    });
+                  },
+                );
               },
-              onStartStage: (stageNumber) => _startStage(
-                stageNumber,
-                game.snapshotNotifier.value,
-                context,
-              ),
-              onOpenMapEditor: () {
-                setState(() {
-                  _screen = _AppScreen.mapEditor;
-                });
-              },
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -422,7 +464,9 @@ class _AppBackdropPainter extends CustomPainter {
 }
 
 class _AppLoadingScreen extends StatelessWidget {
-  const _AppLoadingScreen();
+  const _AppLoadingScreen({required this.progressListenable});
+
+  final ValueListenable<_AppLoadingProgress> progressListenable;
 
   @override
   Widget build(BuildContext context) {
@@ -444,28 +488,34 @@ class _AppLoadingScreen extends StatelessWidget {
               const Spacer(),
               Padding(
                 padding: const EdgeInsets.fromLTRB(36, 0, 36, 42),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      '전투 이펙트 리소스를 불러오는 중',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Color(0xFFB9D6E4),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(999),
-                      child: const LinearProgressIndicator(
-                        minHeight: 8,
-                        backgroundColor: Color(0x332ED3FF),
-                        color: Color(0xFF8EE6FF),
-                      ),
-                    ),
-                  ],
+                child: ValueListenableBuilder<_AppLoadingProgress>(
+                  valueListenable: progressListenable,
+                  builder: (context, progress, _) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          progress.label,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Color(0xFFB9D6E4),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(999),
+                          child: LinearProgressIndicator(
+                            value: progress.value,
+                            minHeight: 8,
+                            backgroundColor: const Color(0x332ED3FF),
+                            color: const Color(0xFF8EE6FF),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ],

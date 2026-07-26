@@ -94,7 +94,23 @@ Future<void> pumpLoadedApp(WidgetTester tester) async {
   await tester.pumpWidget(
     RuneNexusApp(game: RuneNexusGame(saveRepository: MemorySaveRepository())),
   );
-  await pumpUntilFound(tester, find.text('Rune Nexus'));
+  await pumpUntilLoadedApp(tester);
+}
+
+Future<void> pumpUntilLoadedApp(
+  WidgetTester tester, {
+  int maxFrameCount = 100,
+}) async {
+  for (var i = 0; i < maxFrameCount; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 20)),
+    );
+    await tester.pump(const Duration(milliseconds: 16));
+    if (find.text('Rune Nexus').evaluate().isNotEmpty) {
+      return;
+    }
+  }
+  fail('앱 초기 로딩이 완료되지 않았습니다.');
 }
 
 Offset tabLeadingEdge(WidgetTester tester, String key) {
