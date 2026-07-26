@@ -261,6 +261,7 @@ class GameRestoreController {
         ),
         laneOffsetRatio: savedEnemy.laneOffsetRatio,
         visualPhase: _game._enemyVisualPhase(),
+        diamondReward: savedEnemy.diamondReward,
         path: _game._worldPath,
         game: _game,
       )..restoreFromSaveData(savedEnemy);

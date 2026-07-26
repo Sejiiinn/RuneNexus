@@ -22,6 +22,7 @@ import '../domain/combat/run_panel_tab.dart';
 import '../domain/core/core_ability.dart';
 import '../domain/core/core_passive_tree.dart';
 import '../domain/daily_quest/daily_quest_type.dart';
+import '../domain/enemy/diamond_carrier_rules.dart';
 import '../domain/enemy/enemy_scaling.dart';
 import '../domain/enemy/enemy_type.dart';
 import '../domain/gem/gem_type.dart';
@@ -41,6 +42,7 @@ import '../domain/wave/wave_definition.dart';
 import 'components/chain_projectile_component.dart';
 import 'components/damage_number_component.dart';
 import 'components/death_burst_effect_component.dart';
+import 'components/diamond_reward_effect_component.dart';
 import 'components/enemy_component.dart';
 import 'components/gem_equip_effect_component.dart';
 import 'components/grid_component.dart';
@@ -395,9 +397,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     List<WaveDefinition>? waves,
     SaveRepository? saveRepository,
     OnlineSaveRepository? onlineSaveRepository,
+    @visibleForTesting double Function()? diamondCarrierRollForTesting,
+    @visibleForTesting bool enableDebugEnemySpawnForTesting = false,
   }) : _saveRepository = saveRepository ?? createDefaultSaveRepository(),
        _onlineSaveRepository =
-           onlineSaveRepository ?? const NoopOnlineSaveRepository() {
+           onlineSaveRepository ?? const NoopOnlineSaveRepository(),
+       _diamondCarrierRoll =
+           diamondCarrierRollForTesting ?? math.Random().nextDouble,
+       _enableDebugEnemySpawnForTesting = enableDebugEnemySpawnForTesting {
     _stages = List.unmodifiable(
       _buildInitialStages(stage: stage, stages: stages, map: map, waves: waves),
     );
@@ -415,6 +422,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   late StageDefinition _activeStage;
   final SaveRepository _saveRepository;
   final OnlineSaveRepository _onlineSaveRepository;
+  final double Function() _diamondCarrierRoll;
+  final bool _enableDebugEnemySpawnForTesting;
   late final ValueNotifier<GameSnapshot> snapshotNotifier;
   final ValueNotifier<bool> readyNotifier = ValueNotifier(false);
   final ValueNotifier<Object?> loadErrorNotifier = ValueNotifier(null);
@@ -1699,7 +1708,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void debugSpawnEnemy(EnemyType type) {
-    if (!_debugPanelEnabled) {
+    if (!_debugPanelEnabled && !_enableDebugEnemySpawnForTesting) {
       return;
     }
     if (_phase != GamePhase.preparation && _phase != GamePhase.wave) {
@@ -1711,6 +1720,23 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _debugCombatActive = true;
     _spawnEnemy(type, debugSpawn: true);
+    _triggerPortalAlert();
+    _publish();
+  }
+
+  void debugSpawnDiamondCarrier() {
+    if (!_debugPanelEnabled && !_enableDebugEnemySpawnForTesting) {
+      return;
+    }
+    if (_phase != GamePhase.preparation && _phase != GamePhase.wave) {
+      return;
+    }
+    if (_worldPath.length < 2) {
+      return;
+    }
+
+    _debugCombatActive = true;
+    _spawnEnemy(EnemyType.normal, debugSpawn: true, forceDiamondCarrier: true);
     _triggerPortalAlert();
     _publish();
   }
@@ -2966,6 +2992,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _spreadChainIgnition(source: enemy, burnTransfer: burnTransfer);
     }
     final isDebugEnemy = _debugEnemies.remove(enemy);
+    final diamondReward = enemy.diamondReward;
     for (final turret in _turrets.values) {
       turret.handleEnemyKilled(enemy);
     }
@@ -2998,6 +3025,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _gemShards += _bossKillGemShardResearchBonus;
       }
     }
+    if (diamondReward > 0) {
+      _progression.addFreeDiamonds(diamondReward);
+      add(
+        DiamondRewardEffectComponent(
+          position: enemy.visualPosition.clone(),
+          reward: diamondReward,
+          visualScale: boardDistanceScale,
+        ),
+      );
+    }
     enemies.remove(enemy);
     _finishDebugCombatIfIdle();
     add(
@@ -3010,6 +3047,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
     enemy.removeFromParent();
     _publish();
+    if (diamondReward > 0) {
+      _requestLocalSave(immediate: true);
+    }
   }
 
   void enemyReachedCore(EnemyComponent enemy) {
@@ -3683,12 +3723,29 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   void _updateWaveSpawns(double dt) {
     for (final enemyType in _waveSpawner.update(dt)) {
-      _spawnEnemy(enemyType);
+      _spawnEnemy(enemyType, canBecomeDiamondCarrier: true);
     }
   }
 
-  void _spawnEnemy(EnemyType type, {bool debugSpawn = false}) {
+  void _spawnEnemy(
+    EnemyType type, {
+    bool debugSpawn = false,
+    bool canBecomeDiamondCarrier = false,
+    bool forceDiamondCarrier = false,
+  }) {
     final definition = gameEnemies[type]!;
+    // 웨이브 직접 생성만 확률 판정, 디버그·향후 소환은 기본 제외.
+    final diamondReward = definition.type.isBoss
+        ? 0
+        : forceDiamondCarrier
+        ? DiamondCarrierRules.rewardForCarrierRoll(_diamondCarrierRoll())
+        : canBecomeDiamondCarrier
+        ? DiamondCarrierRules.rewardForSpawn(
+            type: type,
+            isDirectWaveSpawn: true,
+            roll: _diamondCarrierRoll(),
+          )
+        : 0;
     final enemy = EnemyComponent(
       definition: definition,
       maxHp: scaledEnemyMaxHp(
@@ -3708,6 +3765,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       ),
       laneOffsetRatio: _enemyLaneOffsetRatioFor(type),
       visualPhase: _enemyVisualPhase(),
+      diamondReward: diamondReward,
       path: _worldPath,
       game: this,
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../data/definitions/game_gem_data.dart';
 import '../../domain/gem/gem_type.dart';
+import '../../game/rendering/diamond_currency_renderer.dart';
 
 /// 확정된 커스텀 아이콘 세트(젬 13종 + 재화)를 CustomPainter로 구현한 위젯 모음.
 /// 젬은 공통 보석 컷(육각) 안에 젬별 특징을 새긴 내장 엠블럼으로 표현한다(PoE 스타일).
@@ -349,67 +350,9 @@ class DiamondCurrencyIcon extends StatelessWidget {
 }
 
 class _DiamondCurrencyPainter extends CustomPainter {
-  static const _top = Color(0xFFEAFBFF);
-  static const _mid = Color(0xFF7FDBFF);
-  static const _deep = Color(0xFF1F93C8);
-  static const _edge = Color(0xFFCFF4FF);
-
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.save();
-    canvas.scale(size.width / 48.0, size.height / 48.0);
-    final outline = const [
-      Offset(16, 8),
-      Offset(32, 8),
-      Offset(46, 19),
-      Offset(24, 45),
-      Offset(2, 19),
-    ];
-    final path = _pathOf(outline);
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = const Color(0xFF8EE6FF).withValues(alpha: 0.4)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.2),
-    );
-    final shader = const LinearGradient(
-      begin: Alignment(-0.4, -1),
-      end: Alignment(0.4, 1),
-      colors: [_top, _mid, _deep],
-      stops: [0, 0.5, 1],
-    ).createShader(const Rect.fromLTWH(0, 0, 48, 48));
-    canvas.drawPath(path, Paint()..shader = shader);
-    canvas.drawPath(
-      path,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..color = _edge
-        ..strokeWidth = 1.5
-        ..strokeJoin = StrokeJoin.round,
-    );
-    // 크라운 테이블 하이라이트.
-    _poly(
-      canvas,
-      const [Offset(16, 8), Offset(32, 8), Offset(35, 19), Offset(13, 19)],
-      Paint()..color = Colors.white.withValues(alpha: 0.18),
-      close: true,
-    );
-    final fac = Paint()
-      ..style = PaintingStyle.stroke
-      ..color = _edge.withValues(alpha: 0.65)
-      ..strokeWidth = 0.85;
-    canvas.drawLine(const Offset(2, 19), const Offset(46, 19), fac);
-    for (final seg in const [
-      [Offset(16, 8), Offset(13, 19)],
-      [Offset(32, 8), Offset(35, 19)],
-      [Offset(16, 8), Offset(24, 45)],
-      [Offset(32, 8), Offset(24, 45)],
-      [Offset(13, 19), Offset(24, 45)],
-      [Offset(35, 19), Offset(24, 45)],
-    ]) {
-      canvas.drawLine(seg[0], seg[1], fac);
-    }
-    canvas.restore();
+    drawDiamondCurrencyGlyph(canvas, size);
   }
 
   @override

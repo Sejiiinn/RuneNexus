@@ -848,6 +848,7 @@ class SavedEnemy {
     required this.elementalVulnerabilityRemaining,
     required this.elementalVulnerabilityBonus,
     this.laneOffsetRatio = 0,
+    this.diamondReward = 0,
     this.riftMarkRemaining = 0,
     this.riftMarkDamageAmplification = 0,
   });
@@ -874,6 +875,7 @@ class SavedEnemy {
   final double elementalVulnerabilityRemaining;
   final double elementalVulnerabilityBonus;
   final double laneOffsetRatio;
+  final int diamondReward;
   final double riftMarkRemaining;
   final double riftMarkDamageAmplification;
 
@@ -903,6 +905,7 @@ class SavedEnemy {
       'elementalVulnerabilityRemaining': elementalVulnerabilityRemaining,
       'elementalVulnerabilityBonus': elementalVulnerabilityBonus,
       'laneOffsetRatio': laneOffsetRatio,
+      'diamondReward': diamondReward,
       'riftMarkRemaining': riftMarkRemaining,
       'riftMarkDamageAmplification': riftMarkDamageAmplification,
     };
@@ -976,6 +979,9 @@ class SavedEnemy {
         json['elementalVulnerabilityBonus'],
       ),
       laneOffsetRatio: _doubleValue(json['laneOffsetRatio']),
+      diamondReward: type.isBoss
+          ? 0
+          : _intValue(json['diamondReward']).clamp(0, 3).toInt(),
       riftMarkRemaining: _doubleValue(json['riftMarkRemaining']),
       riftMarkDamageAmplification: _doubleValue(
         json['riftMarkDamageAmplification'],

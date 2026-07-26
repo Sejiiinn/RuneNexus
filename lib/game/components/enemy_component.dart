@@ -7,6 +7,7 @@ import '../../data/save/game_save_data.dart';
 import '../../domain/enemy/enemy_definition.dart';
 import '../../domain/enemy/enemy_type.dart';
 import '../../domain/map/grid_point.dart';
+import '../rendering/diamond_currency_renderer.dart';
 import '../rendering/enemy_shape_renderer.dart';
 import '../rune_nexus_game.dart';
 import 'damage_number_component.dart';
@@ -22,9 +23,13 @@ class EnemyComponent extends PositionComponent {
     this.maxArmor = 0,
     this.laneOffsetRatio = 0,
     this.visualPhase = 0,
+    int diamondReward = 0,
     required this.path,
     required this.game,
-  }) : hp = maxHp,
+  }) : diamondReward = definition.type.isBoss
+           ? 0
+           : diamondReward.clamp(0, 3).toInt(),
+       hp = maxHp,
        shield = maxShield,
        armor = maxArmor,
        super(
@@ -39,6 +44,7 @@ class EnemyComponent extends PositionComponent {
   final double maxArmor;
   final double laneOffsetRatio;
   final double visualPhase;
+  final int diamondReward;
   final RuneNexusGame game;
   List<Vector2> path;
   double hp;
@@ -93,6 +99,7 @@ class EnemyComponent extends PositionComponent {
   ];
 
   bool get isDead => hp <= 0;
+  bool get isDiamondCarrier => diamondReward > 0;
   double get collisionRadius => size.x * 0.42;
   bool get isSlowed => _slowRemaining > 0;
   double get slowRemaining => _slowRemaining;
@@ -150,6 +157,7 @@ class EnemyComponent extends PositionComponent {
       elementalVulnerabilityRemaining: _elementalVulnerabilityRemaining,
       elementalVulnerabilityBonus: _elementalVulnerabilityBonus,
       laneOffsetRatio: laneOffsetRatio,
+      diamondReward: diamondReward,
       riftMarkRemaining: _riftMarkRemaining,
       riftMarkDamageAmplification: _riftMarkDamageAmplification,
     );
@@ -714,8 +722,14 @@ class EnemyComponent extends PositionComponent {
     final visualOffset = _visualRenderOffset();
     canvas.save();
     canvas.translate(visualOffset.x, visualOffset.y);
+    if (isDiamondCarrier) {
+      _drawDiamondCarrierRearEffects(canvas);
+    }
     _drawMotionEffects(canvas);
     _drawBody(canvas, body, outline);
+    if (isDiamondCarrier) {
+      _drawDiamondCarrierArmor(canvas);
+    }
     _drawBodyOverlayEffects(canvas);
     _drawHitFlash(canvas);
 
@@ -741,6 +755,106 @@ class EnemyComponent extends PositionComponent {
 
     _drawDurabilityBars(canvas);
     canvas.restore();
+  }
+
+  void _drawDiamondCarrierRearEffects(Canvas canvas) {
+    final center = Offset(size.x / 2, size.y * 0.68);
+    final pulse = 0.82 + math.sin(_statusEffectTime * 4.2) * 0.12;
+    final ringRect = Rect.fromCenter(
+      center: center,
+      width: size.x * 1.55 * pulse,
+      height: size.y * 0.58 * pulse,
+    );
+    canvas.drawOval(
+      ringRect,
+      Paint()
+        ..color = const Color(0xFF5ED8FF).withValues(alpha: 0.14)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size.x * 0.18
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.09),
+    );
+    canvas.drawOval(
+      ringRect,
+      Paint()
+        ..color = const Color(0xFFCFF4FF).withValues(alpha: 0.82)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size.x * 0.055,
+    );
+
+    // 삼중 궤도 결정 파편
+    for (var index = 0; index < 3; index++) {
+      final angle =
+          _statusEffectTime * 1.9 +
+          visualPhase * math.pi * 2 +
+          index * math.pi * 2 / 3;
+      final shardCenter = Offset(
+        size.x / 2 + math.cos(angle) * size.x * 0.72,
+        size.y / 2 + math.sin(angle) * size.y * 0.34,
+      );
+      final shardSize = size.x * (index == 0 ? 0.15 : 0.11);
+      final shard = Path()
+        ..moveTo(shardCenter.dx, shardCenter.dy - shardSize)
+        ..lineTo(shardCenter.dx + shardSize * 0.52, shardCenter.dy)
+        ..lineTo(shardCenter.dx, shardCenter.dy + shardSize)
+        ..lineTo(shardCenter.dx - shardSize * 0.52, shardCenter.dy)
+        ..close();
+      canvas.drawPath(
+        shard,
+        Paint()
+          ..color = const Color(0xFFCFF4FF).withValues(alpha: 0.9)
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.x * 0.025),
+      );
+      canvas.drawPath(
+        shard,
+        Paint()
+          ..color = const Color(0xFF1F93C8)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = size.x * 0.035,
+      );
+    }
+  }
+
+  void _drawDiamondCarrierArmor(Canvas canvas) {
+    final center = Offset(size.x / 2, size.y / 2);
+    final armorPaint = Paint()
+      ..color = const Color(0xFF8EE6FF).withValues(alpha: 0.82)
+      ..style = PaintingStyle.fill;
+    final armorEdge = Paint()
+      ..color = const Color(0xFFEAFBFF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.x * 0.035
+      ..strokeJoin = StrokeJoin.round;
+
+    for (final side in [-1.0, 1.0]) {
+      final plate = Path()
+        ..moveTo(center.dx + side * size.x * 0.18, size.y * 0.2)
+        ..lineTo(center.dx + side * size.x * 0.42, size.y * 0.32)
+        ..lineTo(center.dx + side * size.x * 0.36, size.y * 0.56)
+        ..lineTo(center.dx + side * size.x * 0.16, size.y * 0.48)
+        ..close();
+      canvas.drawPath(plate, armorPaint);
+      canvas.drawPath(plate, armorEdge);
+    }
+
+    canvas.save();
+    canvas.translate(size.x * 0.34, size.y * 0.25);
+    drawDiamondCurrencyGlyph(canvas, Size(size.x * 0.32, size.y * 0.32));
+    canvas.restore();
+
+    final crownPaint = Paint()
+      ..color = const Color(0xFFCFF4FF)
+      ..style = PaintingStyle.fill;
+    for (var index = -1; index <= 1; index++) {
+      final x = center.dx + index * size.x * 0.16;
+      final crystal = Path()
+        ..moveTo(x, size.y * (index == 0 ? -0.15 : -0.04))
+        ..lineTo(x + size.x * 0.07, size.y * 0.18)
+        ..lineTo(x, size.y * 0.27)
+        ..lineTo(x - size.x * 0.07, size.y * 0.18)
+        ..close();
+      canvas.drawPath(crystal, crownPaint);
+      canvas.drawPath(crystal, armorEdge);
+    }
   }
 
   void _drawDurabilityBars(Canvas canvas) {

@@ -961,6 +961,24 @@ class HudGemDebugPanel extends StatelessWidget {
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 6),
+              SizedBox(
+                width: double.infinity,
+                height: 34,
+                child: OutlinedButton.icon(
+                  onPressed: game.debugSpawnDiamondCarrier,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFEAFBFF),
+                    side: const BorderSide(color: Color(0xFF8EE6FF)),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                  ),
+                  icon: const DiamondCurrencyIcon(size: 17),
+                  label: const Text('다이아 운반체', style: TextStyle(fontSize: 11)),
+                ),
+              ),
+              const SizedBox(height: 5),
               Wrap(
                 spacing: 5,
                 runSpacing: 5,
