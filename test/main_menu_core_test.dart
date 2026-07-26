@@ -47,6 +47,20 @@ void main() {
           findsOneWidget,
         );
       }
+      final nodeInkResponse = tester.widget<InkResponse>(
+        find.byKey(const ValueKey('core-passive-node-attackHaste')),
+      );
+      expect(nodeInkResponse.containedInkWell, isTrue);
+      expect(nodeInkResponse.customBorder, isA<CircleBorder>());
+      final nodeContainer = tester.widget<AnimatedContainer>(
+        find.descendant(
+          of: find.byKey(const ValueKey('core-passive-node-attackHaste')),
+          matching: find.byType(AnimatedContainer),
+        ),
+      );
+      final nodeDecoration = nodeContainer.decoration! as BoxDecoration;
+      expect(nodeDecoration.color, Colors.transparent);
+      expect(nodeInkResponse.splashColor, const Color(0x37FFB84D));
       expect(find.text('코어 포인트 20'), findsOneWidget);
       expect(find.text('노드를 선택해 효과와 랭크를 확인하세요'), findsNothing);
       expect(

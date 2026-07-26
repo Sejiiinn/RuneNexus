@@ -1150,8 +1150,15 @@ class _CorePassiveNodeButton extends StatelessWidget {
         : muted
         ? const Color(0xFF75838C)
         : accent;
+    final nodeColor = allocated
+        ? accent.withValues(alpha: 0.38)
+        : planningIncrease
+        ? accent.withValues(alpha: 0.2)
+        : const Color(0xF012202C);
     return Material(
-      color: Colors.transparent,
+      color: nodeColor,
+      shape: const CircleBorder(),
+      animationDuration: const Duration(milliseconds: 160),
       child: Semantics(
         button: true,
         selected: selected,
@@ -1161,6 +1168,10 @@ class _CorePassiveNodeButton extends StatelessWidget {
         child: InkResponse(
           key: ValueKey('core-passive-node-${definition.id.name}'),
           radius: 54,
+          containedInkWell: true,
+          customBorder: const CircleBorder(),
+          splashColor: accent.withAlpha(55),
+          highlightColor: accent.withAlpha(32),
           onTap: onTap,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 160),
@@ -1168,11 +1179,7 @@ class _CorePassiveNodeButton extends StatelessWidget {
             height: size,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: allocated
-                  ? accent.withValues(alpha: 0.38)
-                  : planningIncrease
-                  ? accent.withValues(alpha: 0.2)
-                  : const Color(0xF012202C),
+              color: Colors.transparent,
               border: Border.all(
                 color: framed
                     ? Colors.transparent
