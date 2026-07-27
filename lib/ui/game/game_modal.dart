@@ -223,7 +223,10 @@ class _GameModalSurface extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Padding(padding: padding, child: child),
+          ClipPath(
+            clipper: const _GameModalContentClipper(),
+            child: Padding(padding: padding, child: child),
+          ),
           Positioned(
             top: -4,
             left: 0,
@@ -266,6 +269,31 @@ class _FrameRune extends StatelessWidget {
   }
 }
 
+Path _gameModalCutCornerPath(Rect rect, double cut) {
+  return Path()
+    ..moveTo(rect.left + cut, rect.top)
+    ..lineTo(rect.right - cut, rect.top)
+    ..lineTo(rect.right, rect.top + cut)
+    ..lineTo(rect.right, rect.bottom - cut)
+    ..lineTo(rect.right - cut, rect.bottom)
+    ..lineTo(rect.left + cut, rect.bottom)
+    ..lineTo(rect.left, rect.bottom - cut)
+    ..lineTo(rect.left, rect.top + cut)
+    ..close();
+}
+
+class _GameModalContentClipper extends CustomClipper<Path> {
+  const _GameModalContentClipper();
+
+  @override
+  Path getClip(Size size) {
+    return _gameModalCutCornerPath((Offset.zero & size).deflate(1), 14);
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+}
+
 class _GameModalFramePainter extends CustomPainter {
   const _GameModalFramePainter({required this.accent, required this.tone});
 
@@ -275,7 +303,7 @@ class _GameModalFramePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
-    final frame = _cutCornerPath(rect.deflate(1), 14);
+    final frame = _gameModalCutCornerPath(rect.deflate(1), 14);
     final shadowPath = frame.shift(const Offset(0, 5));
     canvas.drawShadow(shadowPath, const Color(0xEE000000), 18, true);
 
@@ -306,7 +334,7 @@ class _GameModalFramePainter extends CustomPainter {
       ..strokeWidth = 1.35;
     canvas.drawPath(frame, outerBorder);
 
-    final innerFrame = _cutCornerPath(rect.deflate(5), 10);
+    final innerFrame = _gameModalCutCornerPath(rect.deflate(5), 10);
     final innerBorder = Paint()
       ..color = accent.withValues(alpha: 0.2)
       ..style = PaintingStyle.stroke
@@ -323,54 +351,6 @@ class _GameModalFramePainter extends CustomPainter {
       ).createShader(Rect.fromLTWH(22, 0, size.width - 44, 2))
       ..strokeWidth = 1.5;
     canvas.drawLine(const Offset(22, 1.5), Offset(size.width - 22, 1.5), rail);
-
-    final cornerMark = Paint()
-      ..color = accent.withValues(alpha: 0.54)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.1;
-    _drawCornerMarks(canvas, rect.deflate(8), cornerMark);
-  }
-
-  Path _cutCornerPath(Rect rect, double cut) {
-    return Path()
-      ..moveTo(rect.left + cut, rect.top)
-      ..lineTo(rect.right - cut, rect.top)
-      ..lineTo(rect.right, rect.top + cut)
-      ..lineTo(rect.right, rect.bottom - cut)
-      ..lineTo(rect.right - cut, rect.bottom)
-      ..lineTo(rect.left + cut, rect.bottom)
-      ..lineTo(rect.left, rect.bottom - cut)
-      ..lineTo(rect.left, rect.top + cut)
-      ..close();
-  }
-
-  void _drawCornerMarks(Canvas canvas, Rect rect, Paint paint) {
-    const length = 8.0;
-    canvas
-      ..drawLine(rect.topLeft, rect.topLeft + const Offset(length, 0), paint)
-      ..drawLine(rect.topLeft, rect.topLeft + const Offset(0, length), paint)
-      ..drawLine(rect.topRight, rect.topRight + const Offset(-length, 0), paint)
-      ..drawLine(rect.topRight, rect.topRight + const Offset(0, length), paint)
-      ..drawLine(
-        rect.bottomLeft,
-        rect.bottomLeft + const Offset(length, 0),
-        paint,
-      )
-      ..drawLine(
-        rect.bottomLeft,
-        rect.bottomLeft + const Offset(0, -length),
-        paint,
-      )
-      ..drawLine(
-        rect.bottomRight,
-        rect.bottomRight + const Offset(-length, 0),
-        paint,
-      )
-      ..drawLine(
-        rect.bottomRight,
-        rect.bottomRight + const Offset(0, -length),
-        paint,
-      );
   }
 
   @override
