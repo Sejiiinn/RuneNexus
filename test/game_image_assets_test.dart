@@ -37,7 +37,7 @@ void main() {
     },
   );
 
-  testWidgets('app loading message stays stable across startup work', (
+  testWidgets('app loading message follows the active startup stage', (
     tester,
   ) async {
     final repository = _DelayedSaveRepository();
@@ -52,8 +52,12 @@ void main() {
     expect(find.text('룬 넥서스 준비 중'), findsNothing);
 
     repository.completeLoad();
-    await tester.pump();
-    expect(find.text('게임을 시작하는 중'), findsOneWidget);
+    await pumpUntilFound(
+      tester,
+      find.text('이미지 에셋 로드 중'),
+      maxFrameCount: 60,
+    );
+    expect(find.text('게임을 시작하는 중'), findsNothing);
     await pumpUntilLoadedApp(tester);
     expect(find.byType(MainMenuScreen), findsOneWidget);
   });

@@ -21,8 +21,9 @@ import '../ui/menu/map_editor_panel.dart';
 enum _AppScreen { main, stage, mapEditor }
 
 class _AppLoadingProgress {
-  const _AppLoadingProgress({this.value});
+  const _AppLoadingProgress({required this.label, this.value});
 
+  final String label;
   final double? value;
 }
 
@@ -38,7 +39,7 @@ class RuneNexusApp extends StatefulWidget {
 class _RuneNexusAppState extends State<RuneNexusApp> {
   late final RuneNexusGame game;
   final ValueNotifier<_AppLoadingProgress> _loadingProgress = ValueNotifier(
-    const _AppLoadingProgress(),
+    const _AppLoadingProgress(label: '게임을 시작하는 중'),
   );
   Future<void>? _initialLoad;
   _AppScreen _screen = _AppScreen.main;
@@ -55,14 +56,20 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
     if (!mounted || !context.mounted) {
       return;
     }
-    _loadingProgress.value = const _AppLoadingProgress(value: 0);
+    _loadingProgress.value = const _AppLoadingProgress(
+      label: '이미지 에셋 로드 중',
+      value: 0,
+    );
     await precacheRuneNexusStartupImages(
       context,
       onProgress: (value) {
         if (!mounted) {
           return;
         }
-        _loadingProgress.value = _AppLoadingProgress(value: value);
+        _loadingProgress.value = _AppLoadingProgress(
+          label: '이미지 에셋 로드 중',
+          value: value,
+        );
       },
     );
   }
@@ -487,33 +494,33 @@ class _AppLoadingScreen extends StatelessWidget {
                   alignment: Alignment.bottomCenter,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 36),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          '게임을 시작하는 중',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Color(0xFFB9D6E4),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        ValueListenableBuilder<_AppLoadingProgress>(
-                          valueListenable: progressListenable,
-                          builder: (context, progress, _) {
-                            final value = progress.value;
-                            return Semantics(
+                    child: ValueListenableBuilder<_AppLoadingProgress>(
+                      valueListenable: progressListenable,
+                      builder: (context, progress, _) {
+                        final value = progress.value;
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              progress.label,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color(0xFFB9D6E4),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            Semantics(
                               label: '게임 시작 진행률',
                               value: value == null
                                   ? null
                                   : '${(value * 100).round()}%',
                               child: _AppBootProgressBar(value: value),
-                            );
-                          },
-                        ),
-                      ],
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -600,18 +607,31 @@ class _AppBootAmbientPainter extends CustomPainter {
       98,
       Paint()
         ..color = const Color(0x122ED3FF)
+        ..isAntiAlias = true
         ..style = PaintingStyle.stroke
         ..strokeWidth = 22
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 22),
     );
-    final ringPaint = Paint()
+    final ringGlowPaint = Paint()
+      ..isAntiAlias = true
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    ringPaint.color = const Color(0x125EE2FF);
+      ..strokeWidth = 2.4
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.6);
+    final ringPaint = Paint()
+      ..isAntiAlias = true
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.7;
+    ringGlowPaint.color = const Color(0x0A5EE2FF);
+    canvas.drawCircle(center, 118, ringGlowPaint);
+    ringPaint.color = const Color(0x105EE2FF);
     canvas.drawCircle(center, 118, ringPaint);
-    ringPaint.color = const Color(0x0DE7C66A);
+    ringGlowPaint.color = const Color(0x07E7C66A);
+    canvas.drawCircle(center, 88, ringGlowPaint);
+    ringPaint.color = const Color(0x0AE7C66A);
     canvas.drawCircle(center, 88, ringPaint);
-    ringPaint.color = const Color(0x145EE2FF);
+    ringGlowPaint.color = const Color(0x0C5EE2FF);
+    canvas.drawCircle(center, 44, ringGlowPaint);
+    ringPaint.color = const Color(0x125EE2FF);
     canvas.drawCircle(center, 44, ringPaint);
   }
 
@@ -634,9 +654,10 @@ class _AppBootCorePainter extends CustomPainter {
       center,
       orbitRadius,
       Paint()
-        ..color = const Color(0x408EE6FF)
+        ..color = const Color(0x348EE6FF)
+        ..isAntiAlias = true
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
+        ..strokeWidth = 1,
     );
 
     final orbitRect = Rect.fromCircle(center: center, radius: orbitRadius);
@@ -648,11 +669,12 @@ class _AppBootCorePainter extends CustomPainter {
       arcSweep,
       false,
       Paint()
-        ..color = const Color(0x668EE6FF)
+        ..color = const Color(0x428EE6FF)
+        ..isAntiAlias = true
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 5
+        ..strokeWidth = 4
         ..strokeCap = StrokeCap.round
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.2),
     );
     canvas.drawArc(
       orbitRect,
@@ -660,9 +682,23 @@ class _AppBootCorePainter extends CustomPainter {
       arcSweep,
       false,
       Paint()
-        ..color = const Color(0xFF8EE6FF)
+        ..color = const Color(0x708EE6FF)
+        ..isAntiAlias = true
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.8
+        ..strokeWidth = 2
+        ..strokeCap = StrokeCap.round
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 0.8),
+    );
+    canvas.drawArc(
+      orbitRect,
+      arcStart,
+      arcSweep,
+      false,
+      Paint()
+        ..color = const Color(0xD98EE6FF)
+        ..isAntiAlias = true
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.9
         ..strokeCap = StrokeCap.round,
     );
 
@@ -673,15 +709,18 @@ class _AppBootCorePainter extends CustomPainter {
     );
     canvas.drawCircle(
       sparkCenter,
-      5,
+      4,
       Paint()
-        ..color = const Color(0x99E7C66A)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+        ..color = const Color(0x70E7C66A)
+        ..isAntiAlias = true
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.5),
     );
     canvas.drawCircle(
       sparkCenter,
-      2.2,
-      Paint()..color = const Color(0xFFE7C66A),
+      1.6,
+      Paint()
+        ..color = const Color(0xE6E7C66A)
+        ..isAntiAlias = true,
     );
 
     canvas.save();
@@ -695,19 +734,32 @@ class _AppBootCorePainter extends CustomPainter {
     canvas.drawRRect(
       diamond,
       Paint()
-        ..color = const Color(0x808EE6FF)
+        ..color = const Color(0x528EE6FF)
+        ..isAntiAlias = true
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
     );
     canvas.drawRRect(
       diamond,
-      Paint()..color = const Color(0xD10F3E52),
+      Paint()
+        ..color = const Color(0xC20F3E52)
+        ..isAntiAlias = true,
     );
     canvas.drawRRect(
       diamond,
       Paint()
-        ..color = const Color(0xFF8EE6FF)
+        ..color = const Color(0x428EE6FF)
+        ..isAntiAlias = true
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
+        ..strokeWidth = 2.6
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.6),
+    );
+    canvas.drawRRect(
+      diamond,
+      Paint()
+        ..color = const Color(0xD98EE6FF)
+        ..isAntiAlias = true
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.9,
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -715,8 +767,9 @@ class _AppBootCorePainter extends CustomPainter {
         const Radius.circular(1),
       ),
       Paint()
-        ..color = const Color(0xFFE8FBFF)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
+        ..color = const Color(0xE6E8FBFF)
+        ..isAntiAlias = true
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.8),
     );
     canvas.restore();
   }
