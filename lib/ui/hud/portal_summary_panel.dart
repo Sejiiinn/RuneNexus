@@ -8,6 +8,7 @@ import '../../domain/turret/attack_tag.dart';
 import '../../domain/turret/damage_family.dart';
 import '../../game/game_snapshot.dart';
 import '../game/game_icons.dart';
+import '../game/game_modal.dart';
 import 'hud_common.dart';
 
 class HudPortalSummaryCard extends StatelessWidget {
@@ -32,9 +33,8 @@ class HudPortalSummaryCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: showWave
-            ? () => showModalBottomSheet<void>(
+            ? () => showGameBottomSheet<void>(
                 context: context,
-                backgroundColor: Colors.transparent,
                 builder: (context) =>
                     HudPortalWaveDetailSheet(snapshot: snapshot),
               )
@@ -162,98 +162,76 @@ class HudPortalWaveDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        margin: const EdgeInsets.all(12),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: const Color(0xF70B1827),
-          border: Border.all(color: const Color(0x8833D8FF)),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.filter_tilt_shift,
-                  color: Color(0xFFE3B7FF),
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '포탈 1 · ${snapshot.round}/${snapshot.maxRound} 웨이브',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFFE8F8FF),
-                    ),
+    return GameBottomSheetFrame(
+      accentColor: const Color(0xFFB16DFF),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.filter_tilt_shift,
+                color: Color(0xFFE3B7FF),
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '포탈 1 · ${snapshot.round}/${snapshot.maxRound} 웨이브',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFFE8F8FF),
                   ),
                 ),
-                SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: IconButton(
-                    tooltip: '닫기',
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: IconButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      foregroundColor: const Color(0xFFC6D6E4),
-                      backgroundColor: Colors.transparent,
-                      side: const BorderSide(color: Color(0x664A6172)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+              ),
+              GameModalCloseButton(
+                tooltip: '닫기',
+                onPressed: () => Navigator.of(context).pop(),
+                accentColor: const Color(0xFFB16DFF),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            snapshot.previewText,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF8FA8BA),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: snapshot.nextWaveEnemyTypes.map((type) {
+              final enemy = gameEnemies[type]!;
+              final count = snapshot.nextWaveEnemyCounts[type] ?? 0;
+              return _EnemyCountChip(enemy: enemy, count: count);
+            }).toList(),
+          ),
+          const SizedBox(height: 10),
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                children: snapshot.nextWaveEnemyTypes.map((type) {
+                  final enemy = gameEnemies[type]!;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 7),
+                    child: _EnemyDetailRow(
+                      enemy: enemy,
+                      count: snapshot.nextWaveEnemyCounts[type] ?? 0,
+                      round: snapshot.round,
+                      stageNumber: snapshot.currentStageNumber,
                     ),
-                    icon: const Icon(Icons.close, size: 17),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              snapshot.previewText,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF8FA8BA),
-                fontWeight: FontWeight.w700,
+                  );
+                }).toList(),
               ),
             ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: snapshot.nextWaveEnemyTypes.map((type) {
-                final enemy = gameEnemies[type]!;
-                final count = snapshot.nextWaveEnemyCounts[type] ?? 0;
-                return _EnemyCountChip(enemy: enemy, count: count);
-              }).toList(),
-            ),
-            const SizedBox(height: 10),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: snapshot.nextWaveEnemyTypes.map((type) {
-                    final enemy = gameEnemies[type]!;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 7),
-                      child: _EnemyDetailRow(
-                        enemy: enemy,
-                        count: snapshot.nextWaveEnemyCounts[type] ?? 0,
-                        round: snapshot.round,
-                        stageNumber: snapshot.currentStageNumber,
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

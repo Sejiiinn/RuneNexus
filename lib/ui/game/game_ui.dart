@@ -3,6 +3,7 @@ export 'core_ability_icon.dart';
 export 'game_icons.dart';
 export 'game_image_assets.dart';
 export 'game_palette.dart';
+export 'game_modal.dart';
 export 'game_panel.dart';
 export 'game_text_styles.dart';
 export 'hud_resource_bar.dart';

@@ -285,7 +285,7 @@ void main() {
 
     await tester.tap(
       find.descendant(
-        of: find.byType(AlertDialog),
+        of: find.byType(Dialog),
         matching: find.widgetWithText(GameButton, '즉시 완료'),
       ),
     );

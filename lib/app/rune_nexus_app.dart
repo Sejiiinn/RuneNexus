@@ -9,8 +9,8 @@ import '../l10n/rune_nexus_localizations.dart';
 import '../ui/game/game_button.dart';
 import '../ui/game/game_image_assets.dart';
 import '../ui/game/game_icons.dart';
+import '../ui/game/game_modal.dart';
 import '../ui/game/game_palette.dart';
-import '../ui/game/game_panel.dart';
 import '../ui/game/game_text_styles.dart';
 import '../ui/hud/game_hud.dart';
 import '../ui/menu/main_menu_screen.dart';
@@ -97,7 +97,7 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
     required GameSnapshot snapshot,
     required int nextStageNumber,
   }) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showGameDialog<bool>(
       context: dialogContext,
       builder: (context) {
         return _ActiveRunSettlementDialog(
@@ -252,107 +252,98 @@ class _ActiveRunSettlementDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 340),
-        child: GamePanel(
-          variant: GamePanelVariant.danger,
-          padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return GameModalFrame(
+      maxWidth: 340,
+      tone: GameModalTone.danger,
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.flag_outlined,
-                    color: GamePalette.danger,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      l10n.endActiveStageTitle,
-                      style: GameTextStyles.title,
-                    ),
-                  ),
-                ],
+              const Icon(
+                Icons.flag_outlined,
+                color: GamePalette.danger,
+                size: 20,
               ),
-              const SizedBox(height: 12),
-              Text(
-                l10n.endActiveStageBody(
-                  currentStageNumber: snapshot.currentStageNumber,
-                  nextStageNumber: nextStageNumber,
-                  runeReward: snapshot.projectedFailureRuneReward,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.endActiveStageTitle,
+                  style: GameTextStyles.title,
                 ),
-                style: GameTextStyles.body,
-              ),
-              const SizedBox(height: 14),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 9,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0x3302070D),
-                  border: Border.all(color: const Color(0x558FA8BA)),
-                  borderRadius: BorderRadius.circular(GamePalette.radius),
-                ),
-                child: Row(
-                  children: [
-                    const RuneCurrencyIcon(size: 17),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '+${snapshot.projectedFailureRuneReward} ${l10n.runes}',
-                        style: GameTextStyles.withColor(
-                          GameTextStyles.sectionTitle,
-                          GamePalette.goldBright,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      '${l10n.stageName(snapshot.currentStageNumber)} -> '
-                      '${l10n.stageName(nextStageNumber)}',
-                      style: GameTextStyles.withColor(
-                        GameTextStyles.caption,
-                        GamePalette.textMuted,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: GameButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      label: l10n.cancel,
-                      icon: const Icon(Icons.arrow_back, size: 17),
-                      variant: GameButtonVariant.ghost,
-                      accentColor: GamePalette.metal,
-                      height: 38,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: GameButton(
-                      onPressed: () => Navigator.of(context).pop(true),
-                      label: l10n.settleAndStart,
-                      icon: const Icon(Icons.play_arrow_rounded, size: 17),
-                      variant: GameButtonVariant.primary,
-                      accentColor: GamePalette.cyan,
-                      height: 38,
-                    ),
-                  ),
-                ],
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 12),
+          Text(
+            l10n.endActiveStageBody(
+              currentStageNumber: snapshot.currentStageNumber,
+              nextStageNumber: nextStageNumber,
+              runeReward: snapshot.projectedFailureRuneReward,
+            ),
+            style: GameTextStyles.body,
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+            decoration: BoxDecoration(
+              color: const Color(0x3302070D),
+              border: Border.all(color: const Color(0x558FA8BA)),
+              borderRadius: BorderRadius.circular(GamePalette.radius),
+            ),
+            child: Row(
+              children: [
+                const RuneCurrencyIcon(size: 17),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '+${snapshot.projectedFailureRuneReward} ${l10n.runes}',
+                    style: GameTextStyles.withColor(
+                      GameTextStyles.sectionTitle,
+                      GamePalette.goldBright,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${l10n.stageName(snapshot.currentStageNumber)} -> '
+                  '${l10n.stageName(nextStageNumber)}',
+                  style: GameTextStyles.withColor(
+                    GameTextStyles.caption,
+                    GamePalette.textMuted,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: GameButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  label: l10n.cancel,
+                  icon: const Icon(Icons.arrow_back, size: 17),
+                  variant: GameButtonVariant.ghost,
+                  accentColor: GamePalette.metal,
+                  height: 38,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: GameButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  label: l10n.settleAndStart,
+                  icon: const Icon(Icons.play_arrow_rounded, size: 17),
+                  variant: GameButtonVariant.primary,
+                  accentColor: GamePalette.cyan,
+                  height: 38,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

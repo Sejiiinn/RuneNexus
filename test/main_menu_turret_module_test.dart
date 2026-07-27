@@ -114,7 +114,7 @@ void main() {
     await pumpGameFrames(tester);
 
     expect(find.text('모듈권 구매'), findsOneWidget);
-    final purchaseDialog = find.byType(AlertDialog);
+    final purchaseDialog = find.byType(Dialog);
     expect(
       find.descendant(of: purchaseDialog, matching: find.text('구매 모듈권')),
       findsOneWidget,

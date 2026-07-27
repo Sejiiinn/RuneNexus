@@ -112,7 +112,7 @@ void main() {
     );
     expect(find.byTooltip('닫기'), findsOneWidget);
     expect(find.widgetWithText(GameButton, '닫기'), findsNothing);
-    final dailyDialogWidth = tester.getSize(find.byType(AlertDialog)).width;
+    final dailyDialogWidth = tester.getSize(find.byType(Dialog)).width;
 
     await tester.tap(find.byKey(const ValueKey('quest-period-weekly')));
     await pumpGameFrames(tester);
@@ -149,7 +149,7 @@ void main() {
       tester.getTopLeft(find.text('이번 주 출석')).dy,
       lessThan(tester.getTopLeft(find.text('웨이브 150회 클리어')).dy),
     );
-    expect(tester.getSize(find.byType(AlertDialog)).width, dailyDialogWidth);
+    expect(tester.getSize(find.byType(Dialog)).width, dailyDialogWidth);
     expect(tester.takeException(), isNull);
   });
 

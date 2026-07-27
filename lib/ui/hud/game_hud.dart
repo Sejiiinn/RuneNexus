@@ -67,7 +67,7 @@ class _GameHudState extends State<GameHud> {
       widget.game.pauseEngine();
     }
     try {
-      final action = await showDialog<HudStageMenuAction>(
+      final action = await showGameDialog<HudStageMenuAction>(
         context: context,
         builder: (context) => HudStageMenuDialog(snapshot: snapshot),
       );
@@ -80,7 +80,7 @@ class _GameHudState extends State<GameHud> {
         return;
       }
 
-      final confirmed = await showDialog<bool>(
+      final confirmed = await showGameDialog<bool>(
         context: context,
         builder: (context) => HudStageEndConfirmDialog(snapshot: snapshot),
       );

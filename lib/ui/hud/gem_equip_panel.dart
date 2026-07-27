@@ -296,7 +296,7 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
       widget.game.pauseEngine();
     }
     try {
-      final confirmed = await showDialog<bool>(
+      final confirmed = await showGameDialog<bool>(
         context: context,
         builder: (context) => _TurretRefundConfirmDialog(snapshot: snapshot),
       );
@@ -318,7 +318,7 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
       widget.game.pauseEngine();
     }
     try {
-      final selected = await showDialog<HudTraitSelection>(
+      final selected = await showGameDialog<HudTraitSelection>(
         context: context,
         builder: (context) => HudTurretTraitDialog(snapshot: snapshot),
       );
@@ -647,66 +647,63 @@ class _TurretRefundConfirmDialog extends StatelessWidget {
     final traitWarning = snapshot.selectedTurretPrimaryTrait == null
         ? ''
         : '\n특성에 사용한 젬 파편은 반환되지 않습니다.';
-    return AlertDialog(
-      backgroundColor: const Color(0xFF0B1725),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: Color(0xAAFF7043)),
-      ),
-      titlePadding: const EdgeInsets.fromLTRB(18, 16, 14, 0),
-      contentPadding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
-      actionsPadding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
-      title: Row(
+    return GameModalFrame(
+      maxWidth: 340,
+      tone: GameModalTone.danger,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Icon(Icons.sell_outlined, color: GamePalette.danger, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              '${snapshot.selectedTurretName ?? '선택한'} 포탑 환불',
-              style: const TextStyle(
-                color: Color(0xFFE8FBFF),
-                fontSize: 17,
-                fontWeight: FontWeight.w900,
+          Row(
+            children: [
+              const Icon(
+                Icons.sell_outlined,
+                color: GamePalette.danger,
+                size: 20,
               ),
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '${snapshot.selectedTurretName ?? '선택한'} 포탑 환불',
+                  style: GameTextStyles.title,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '설치 및 업그레이드 비용의 ${snapshot.turretRefundPercent}%인 '
+            '${snapshot.selectedTurretRefundGold}골드를 돌려받습니다.'
+            '${gemCount > 0 ? '\n장착된 젬 $gemCount개는 인벤토리로 반환됩니다.' : ''}'
+            '$traitWarning',
+            style: GameTextStyles.body.copyWith(height: 1.35),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: GameButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  label: '취소',
+                  variant: GameButtonVariant.ghost,
+                  accentColor: GamePalette.metal,
+                  height: 38,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: GameButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  label: '환불',
+                  variant: GameButtonVariant.danger,
+                  accentColor: GamePalette.danger,
+                  height: 38,
+                ),
+              ),
+            ],
           ),
         ],
       ),
-      content: Text(
-        '설치 및 업그레이드 비용의 ${snapshot.turretRefundPercent}%인 '
-        '${snapshot.selectedTurretRefundGold}골드를 돌려받습니다.'
-        '${gemCount > 0 ? '\n장착된 젬 $gemCount개는 인벤토리로 반환됩니다.' : ''}'
-        '$traitWarning',
-        style: const TextStyle(
-          color: Color(0xFFB9D6E4),
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          height: 1.35,
-        ),
-      ),
-      actions: [
-        SizedBox(
-          width: 76,
-          child: GameButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            label: '취소',
-            compact: true,
-            variant: GameButtonVariant.ghost,
-            accentColor: GamePalette.metal,
-          ),
-        ),
-        SizedBox(
-          width: 82,
-          child: GameButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            label: '환불',
-            compact: true,
-            variant: GameButtonVariant.danger,
-            accentColor: GamePalette.danger,
-          ),
-        ),
-      ],
     );
   }
 }
@@ -764,83 +761,70 @@ class _DamageSummaryRow extends StatelessWidget {
   }
 
   void _showDamageDetailDialog(BuildContext context, GameSnapshot snapshot) {
-    showDialog<void>(
+    showGameDialog<void>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF0B1725),
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 18,
-            vertical: 24,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-            side: const BorderSide(color: Color(0xAA33D8FF)),
-          ),
-          titlePadding: const EdgeInsets.fromLTRB(18, 16, 14, 0),
-          contentPadding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
-          actionsPadding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
-          title: const Row(
+        return GameModalFrame(
+          maxWidth: 356,
+          accentColor: GamePalette.cyan,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(
-                Icons.query_stats_outlined,
-                color: Color(0xFF8EE6FF),
-                size: 20,
+              const Row(
+                children: [
+                  Icon(
+                    Icons.query_stats_outlined,
+                    color: GamePalette.cyan,
+                    size: 20,
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(child: Text('피해 기록', style: GameTextStyles.title)),
+                ],
               ),
-              SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '피해 기록',
-                  style: TextStyle(
-                    color: Color(0xFFE8FBFF),
-                    fontSize: 17,
-                    fontWeight: FontWeight.w900,
+              const SizedBox(height: 12),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _DamageDetailLine(
+                    label: '총 피해',
+                    value: snapshot.selectedTurretDamageDealt,
+                    highlighted: true,
+                  ),
+                  _DamageDetailLine(
+                    label: '직접 피해',
+                    value: snapshot.selectedTurretDirectDamageDealt,
+                  ),
+                  _DamageDetailLine(
+                    label: '범위 피해',
+                    value: snapshot.selectedTurretSplashDamageDealt,
+                  ),
+                  _DamageDetailLine(
+                    label: '연쇄 피해',
+                    value: snapshot.selectedTurretChainDamageDealt,
+                  ),
+                  _DamageDetailLine(
+                    label: '화상 피해',
+                    value: snapshot.selectedTurretBurnDamageDealt,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerRight,
+                child: SizedBox(
+                  width: 86,
+                  child: GameButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    label: '닫기',
+                    variant: GameButtonVariant.ghost,
+                    accentColor: GamePalette.metal,
+                    height: 38,
                   ),
                 ),
               ),
             ],
           ),
-          content: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 320),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _DamageDetailLine(
-                  label: '총 피해',
-                  value: snapshot.selectedTurretDamageDealt,
-                  highlighted: true,
-                ),
-                _DamageDetailLine(
-                  label: '직접 피해',
-                  value: snapshot.selectedTurretDirectDamageDealt,
-                ),
-                _DamageDetailLine(
-                  label: '범위 피해',
-                  value: snapshot.selectedTurretSplashDamageDealt,
-                ),
-                _DamageDetailLine(
-                  label: '연쇄 피해',
-                  value: snapshot.selectedTurretChainDamageDealt,
-                ),
-                _DamageDetailLine(
-                  label: '화상 피해',
-                  value: snapshot.selectedTurretBurnDamageDealt,
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            SizedBox(
-              width: 76,
-              child: GameButton(
-                onPressed: () => Navigator.of(context).pop(),
-                label: '닫기',
-                compact: true,
-                variant: GameButtonVariant.ghost,
-                accentColor: GamePalette.metal,
-              ),
-            ),
-          ],
         );
       },
     );

@@ -146,7 +146,7 @@ class _ResearchMenuState extends State<_ResearchMenu> {
   }
 
   void _openResearchDetails(ResearchType type) {
-    showDialog<void>(
+    showGameDialog<void>(
       context: context,
       builder: (context) => _ResearchDetailDialog(
         game: widget.game,
@@ -356,34 +356,37 @@ Future<void> _confirmUnlockResearchSlotTwo(
 }) async {
   final l10n = context.l10n;
   const cost = RunProgression.researchSlotTwoUnlockCost;
-  final confirmed = await showDialog<bool>(
+  final confirmed = await showGameDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
+    builder: (context) => GameModalFrame(
       key: const ValueKey('research-slot-two-unlock-dialog'),
-      backgroundColor: const Color(0xFF0B1725),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: Color(0xAA33D8FF)),
-      ),
-      title: Text(
-        l10n.researchSlotTwoUnlockTitle,
-        style: const TextStyle(
-          color: Color(0xFFE8FBFF),
-          fontSize: 16,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-      content: Column(
+      maxWidth: 350,
+      accentColor: GamePalette.gold,
+      padding: const EdgeInsets.all(18),
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.lock_open_rounded,
+                color: GamePalette.goldBright,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.researchSlotTwoUnlockTitle,
+                  style: GameTextStyles.title,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           Text(
             l10n.researchSlotTwoUnlockMessage(cost),
-            style: const TextStyle(
-              color: Color(0xFFB9D6E4),
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-            ),
+            style: GameTextStyles.body,
           ),
           const SizedBox(height: 12),
           Container(
@@ -413,35 +416,37 @@ Future<void> _confirmUnlockResearchSlotTwo(
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: GameButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  label: l10n.cancel,
+                  variant: GameButtonVariant.ghost,
+                  accentColor: GamePalette.metal,
+                  height: 38,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: GameButton(
+                  key: const ValueKey('research-slot-two-unlock-confirm'),
+                  onPressed: () => Navigator.of(context).pop(true),
+                  label: '${l10n.researchSlotTwoUnlockAction} $cost',
+                  variant: GameButtonVariant.primary,
+                  accentColor: GamePalette.gold,
+                  height: 38,
+                  child: _ResearchSlotUnlockButtonLabel(
+                    text: l10n.researchSlotTwoUnlockAction,
+                    cost: cost,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
-      actions: [
-        SizedBox(
-          width: 86,
-          child: GameButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            label: l10n.cancel,
-            compact: true,
-            variant: GameButtonVariant.ghost,
-            accentColor: GamePalette.metal,
-          ),
-        ),
-        SizedBox(
-          width: 118,
-          child: GameButton(
-            key: const ValueKey('research-slot-two-unlock-confirm'),
-            onPressed: () => Navigator.of(context).pop(true),
-            label: '${l10n.researchSlotTwoUnlockAction} $cost',
-            compact: true,
-            variant: GameButtonVariant.primary,
-            accentColor: const Color(0xFFE7C66A),
-            child: _ResearchSlotUnlockButtonLabel(
-              text: l10n.researchSlotTwoUnlockAction,
-              cost: cost,
-            ),
-          ),
-        ),
-      ],
     ),
   );
   if (confirmed == true) {
@@ -699,52 +704,62 @@ Future<void> _confirmInstantCompleteResearch(
 }) async {
   final l10n = context.l10n;
   final title = _researchTitle(l10n, research.type);
-  final confirmed = await showDialog<bool>(
+  final confirmed = await showGameDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
-      backgroundColor: const Color(0xFF0B1725),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: Color(0xAA33D8FF)),
-      ),
-      title: Text(
-        l10n.completeResearchInstantlyTitle,
-        style: const TextStyle(
-          color: Color(0xFFE8FBFF),
-          fontSize: 16,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-      content: Text(
-        l10n.completeResearchInstantlyMessage(title, cost),
-        style: const TextStyle(
-          color: Color(0xFFB9D6E4),
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      actions: [
-        SizedBox(
-          width: 86,
-          child: GameButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            label: l10n.cancel,
-            compact: true,
-            variant: GameButtonVariant.ghost,
-            accentColor: GamePalette.metal,
+    builder: (context) => GameModalFrame(
+      maxWidth: 340,
+      accentColor: _researchInstantCompleteAccent,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.bolt_rounded,
+                color: _diamondCurrencyColor,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.completeResearchInstantlyTitle,
+                  style: GameTextStyles.title,
+                ),
+              ),
+            ],
           ),
-        ),
-        SizedBox(
-          width: 94,
-          child: GameButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            label: l10n.completeResearchInstantly,
-            compact: true,
-            variant: GameButtonVariant.primary,
-            accentColor: _researchInstantCompleteAccent,
+          const SizedBox(height: 12),
+          Text(
+            l10n.completeResearchInstantlyMessage(title, cost),
+            style: GameTextStyles.body,
           ),
-        ),
-      ],
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: GameButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  label: l10n.cancel,
+                  variant: GameButtonVariant.ghost,
+                  accentColor: GamePalette.metal,
+                  height: 38,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: GameButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  label: l10n.completeResearchInstantly,
+                  variant: GameButtonVariant.primary,
+                  accentColor: _researchInstantCompleteAccent,
+                  height: 38,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     ),
   );
   if (confirmed != true) {
@@ -760,52 +775,59 @@ Future<void> _confirmCancelResearch(
 }) async {
   final l10n = context.l10n;
   final title = _researchTitle(l10n, research.type);
-  final confirmed = await showDialog<bool>(
+  final confirmed = await showGameDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
-      backgroundColor: const Color(0xFF0B1725),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: Color(0xAA33D8FF)),
-      ),
-      title: Text(
-        l10n.cancelResearchTitle,
-        style: const TextStyle(
-          color: Color(0xFFE8FBFF),
-          fontSize: 16,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-      content: Text(
-        l10n.cancelResearchMessage(title),
-        style: const TextStyle(
-          color: Color(0xFFB9D6E4),
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      actions: [
-        SizedBox(
-          width: 86,
-          child: GameButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            label: l10n.cancel,
-            compact: true,
-            variant: GameButtonVariant.ghost,
-            accentColor: GamePalette.metal,
+    builder: (context) => GameModalFrame(
+      maxWidth: 340,
+      accentColor: GamePalette.cyan,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.cancel_outlined,
+                color: GamePalette.cyan,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.cancelResearchTitle,
+                  style: GameTextStyles.title,
+                ),
+              ),
+            ],
           ),
-        ),
-        SizedBox(
-          width: 94,
-          child: GameButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            label: l10n.cancelResearchConfirm,
-            compact: true,
-            variant: GameButtonVariant.primary,
-            accentColor: GamePalette.cyan,
+          const SizedBox(height: 12),
+          Text(l10n.cancelResearchMessage(title), style: GameTextStyles.body),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: GameButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  label: l10n.cancel,
+                  variant: GameButtonVariant.ghost,
+                  accentColor: GamePalette.metal,
+                  height: 38,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: GameButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  label: l10n.cancelResearchConfirm,
+                  variant: GameButtonVariant.primary,
+                  accentColor: GamePalette.cyan,
+                  height: 38,
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
+        ],
+      ),
     ),
   );
   if (confirmed != true) {
@@ -1470,189 +1492,169 @@ class _ResearchDetailDialog extends StatelessWidget {
         ? l10n.notEnoughRunes
         : l10n.researchAvailable;
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
+    return GameModalFrame(
+      maxWidth: 380,
+      accentColor: GamePalette.cyan,
       insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 360),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0B1725),
-          border: Border.all(color: const Color(0xAA33D8FF)),
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x99000000),
-              blurRadius: 20,
-              offset: Offset(0, 8),
+      padding: EdgeInsets.zero,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+            decoration: const BoxDecoration(
+              color: Color(0x2A33D8FF),
+              border: Border(bottom: BorderSide(color: Color(0x5533D8FF))),
             ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
-              decoration: const BoxDecoration(
-                color: Color(0x2A33D8FF),
-                border: Border(bottom: BorderSide(color: Color(0x5533D8FF))),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 30,
-                    height: 30,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: const Color(0x2233D8FF),
-                      border: Border.all(color: const Color(0x7733D8FF)),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: ResearchIcon(type, size: 22),
+            child: Row(
+              children: [
+                Container(
+                  width: 30,
+                  height: 30,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: const Color(0x2233D8FF),
+                    border: Border.all(color: const Color(0x7733D8FF)),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _AdaptiveResearchTitle(
-                      text: _researchTitle(l10n, type),
-                      style: const TextStyle(
-                        color: Color(0xFFE8FBFF),
-                        fontSize: 17,
-                        fontWeight: FontWeight.w900,
-                      ),
-                      minSingleLineScale: 0.82,
+                  child: ResearchIcon(type, size: 22),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _AdaptiveResearchTitle(
+                    text: _researchTitle(l10n, type),
+                    style: const TextStyle(
+                      color: Color(0xFFE8FBFF),
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
                     ),
+                    minSingleLineScale: 0.82,
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, size: 20),
-                    color: const Color(0xFFE8FBFF),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints.tightFor(
-                      width: 32,
-                      height: 32,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                GameModalCloseButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  accentColor: GamePalette.cyan,
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(9),
-                    decoration: BoxDecoration(
-                      color: const Color(0x33000000),
-                      border: Border.all(color: const Color(0x33485B68)),
-                      borderRadius: BorderRadius.circular(7),
-                    ),
-                    child: Text(
-                      l10n.researchDescription(_researchTitle(l10n, type)),
-                      style: const TextStyle(
-                        color: Color(0xFFE0F4FF),
-                        fontSize: 12,
-                        height: 1.28,
-                        fontWeight: FontWeight.w700,
-                      ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(9),
+                  decoration: BoxDecoration(
+                    color: const Color(0x33000000),
+                    border: Border.all(color: const Color(0x33485B68)),
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: Text(
+                    l10n.researchDescription(_researchTitle(l10n, type)),
+                    style: const TextStyle(
+                      color: Color(0xFFE0F4FF),
+                      fontSize: 12,
+                      height: 1.28,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final itemWidth = (constraints.maxWidth - 8) / 2;
-                      return Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          SizedBox(
-                            width: itemWidth,
-                            child: _ResearchDialogMetric(
-                              icon: Icons.auto_graph,
-                              label: l10n.researchLevelLabel,
-                              value: l10n.researchLevel(
-                                level,
-                                definition.maxLevel,
-                              ),
-                              accent: const Color(0xFF8EE6FF),
+                ),
+                const SizedBox(height: 8),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final itemWidth = (constraints.maxWidth - 8) / 2;
+                    return Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        SizedBox(
+                          width: itemWidth,
+                          child: _ResearchDialogMetric(
+                            icon: Icons.auto_graph,
+                            label: l10n.researchLevelLabel,
+                            value: l10n.researchLevel(
+                              level,
+                              definition.maxLevel,
                             ),
+                            accent: const Color(0xFF8EE6FF),
                           ),
+                        ),
+                        SizedBox(
+                          width: itemWidth,
+                          child: _ResearchDialogMetric(
+                            icon: Icons.flag_outlined,
+                            label: l10n.researchRequirementLabel,
+                            value: l10n.stageClearRequirement(
+                              definition.requiredClearedStage,
+                            ),
+                            accent: unlocked
+                                ? const Color(0xFF8EE6FF)
+                                : const Color(0xFF8DA5B3),
+                          ),
+                        ),
+                        if (!complete)
                           SizedBox(
                             width: itemWidth,
                             child: _ResearchDialogMetric(
-                              icon: Icons.flag_outlined,
-                              label: l10n.researchRequirementLabel,
-                              value: l10n.stageClearRequirement(
-                                definition.requiredClearedStage,
-                              ),
-                              accent: unlocked
-                                  ? const Color(0xFF8EE6FF)
+                              iconWidget: const RuneCurrencyIcon(size: 14),
+                              label: l10n.researchCostLabel,
+                              value: '$cost',
+                              accent: canStart
+                                  ? const Color(0xFFE7C66A)
                                   : const Color(0xFF8DA5B3),
                             ),
                           ),
-                          if (!complete)
-                            SizedBox(
-                              width: itemWidth,
-                              child: _ResearchDialogMetric(
-                                iconWidget: const RuneCurrencyIcon(size: 14),
-                                label: l10n.researchCostLabel,
-                                value: '$cost',
-                                accent: canStart
-                                    ? const Color(0xFFE7C66A)
-                                    : const Color(0xFF8DA5B3),
-                              ),
+                        if (!complete)
+                          SizedBox(
+                            width: itemWidth,
+                            child: _ResearchDialogMetric(
+                              icon: Icons.schedule,
+                              label: l10n.researchTimeLabel,
+                              value: l10n.researchDuration(duration),
+                              accent: const Color(0xFFB9D6E4),
                             ),
-                          if (!complete)
-                            SizedBox(
-                              width: itemWidth,
-                              child: _ResearchDialogMetric(
-                                icon: Icons.schedule,
-                                label: l10n.researchTimeLabel,
-                                value: l10n.researchDuration(duration),
-                                accent: const Color(0xFFB9D6E4),
-                              ),
+                          ),
+                        if (statusText != null)
+                          SizedBox(
+                            width: constraints.maxWidth,
+                            child: _ResearchDialogMetric(
+                              icon: active == null
+                                  ? Icons.info_outline
+                                  : Icons.hourglass_bottom,
+                              label: l10n.researchStatusLabel,
+                              value: statusText,
+                              accent: canStart
+                                  ? const Color(0xFFE7C66A)
+                                  : const Color(0xFFB9D6E4),
                             ),
-                          if (statusText != null)
-                            SizedBox(
-                              width: constraints.maxWidth,
-                              child: _ResearchDialogMetric(
-                                icon: active == null
-                                    ? Icons.info_outline
-                                    : Icons.hourglass_bottom,
-                                label: l10n.researchStatusLabel,
-                                value: statusText,
-                                accent: canStart
-                                    ? const Color(0xFFE7C66A)
-                                    : const Color(0xFFB9D6E4),
-                              ),
-                            ),
-                        ],
-                      );
-                    },
+                          ),
+                      ],
+                    );
+                  },
+                ),
+                if (!complete) ...[
+                  const SizedBox(height: 10),
+                  GameButton(
+                    onPressed: canStart
+                        ? () {
+                            game.startResearch(type);
+                            Navigator.of(context).pop();
+                          }
+                        : null,
+                    label: l10n.startResearch,
+                    compact: true,
+                    height: 34,
+                    variant: GameButtonVariant.primary,
+                    accentColor: GamePalette.cyan,
                   ),
-                  if (!complete) ...[
-                    const SizedBox(height: 10),
-                    GameButton(
-                      onPressed: canStart
-                          ? () {
-                              game.startResearch(type);
-                              Navigator.of(context).pop();
-                            }
-                          : null,
-                      label: l10n.startResearch,
-                      compact: true,
-                      height: 34,
-                      variant: GameButtonVariant.primary,
-                      accentColor: GamePalette.cyan,
-                    ),
-                  ],
                 ],
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -148,7 +148,7 @@ class _StageMenuState extends State<_StageMenu> {
     final active =
         activeRunInProgress && stageNumber == snapshot.currentStageNumber;
     final stageCleared = snapshot.clearedStageNumbers.contains(stageNumber);
-    final action = await showDialog<_StageDetailsAction>(
+    final action = await showGameDialog<_StageDetailsAction>(
       context: context,
       builder: (context) => _StageDetailsDialog(
         snapshot: snapshot,
@@ -838,109 +838,100 @@ class _StageDetailsDialog extends StatelessWidget {
     final l10n = context.l10n;
     final fullClearRuneReward = _fullClearRuneReward(snapshot, stageNumber);
     final unlockItems = rewardInfo?.items ?? const <_StageUnlockItem>[];
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
-        child: GamePanel(
-          selected: unlocked,
-          accentColor: unlocked ? theme.accent : GamePalette.metalDim,
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return GameModalFrame(
+      maxWidth: 420,
+      accentColor: unlocked ? theme.accent : GamePalette.metalDim,
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _StageIcon(unlocked: unlocked, active: active),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.stageName(stageNumber),
-                          style: GameTextStyles.withColor(
-                            GameTextStyles.title,
-                            unlocked
-                                ? GamePalette.textPrimary
-                                : GamePalette.textDisabled,
-                          ),
-                          overflow: TextOverflow.clip,
-                        ),
-                        const SizedBox(height: 4),
-                        _StageInfoChip(
-                          text: statusText,
-                          unlocked: unlocked,
-                          highlighted:
-                              active ||
-                              snapshot.clearedStageNumbers.contains(
-                                stageNumber,
-                              ),
-                          overrideColor: active
-                              ? const Color(0xFFE7C66A)
-                              : unlocked
-                              ? theme.accent
-                              : const Color(0xFF667987),
-                          accentColor: theme.accent,
-                        ),
-                      ],
+              _StageIcon(unlocked: unlocked, active: active),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.stageName(stageNumber),
+                      style: GameTextStyles.withColor(
+                        GameTextStyles.title,
+                        unlocked
+                            ? GamePalette.textPrimary
+                            : GamePalette.textDisabled,
+                      ),
+                      overflow: TextOverflow.clip,
                     ),
-                  ),
-                  IconButton(
-                    tooltip: l10n.cancel,
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              _StageQuickStats(
-                theme: theme,
-                stats: [
-                  _StageQuickStatData(
-                    label: l10n.stageBestRecordLabel,
-                    value: _recordTextForStage(l10n, snapshot, stageNumber),
-                    icon: Icons.workspace_premium_outlined,
-                  ),
-                  _StageQuickStatData(
-                    label: l10n.stageTotalRoundsLabel,
-                    value: l10n.stageTotalRounds(snapshot.maxRound),
-                    icon: Icons.flag_outlined,
-                  ),
-                  _StageQuickStatData(
-                    label: l10n.stageRuneRewardLabel,
-                    value: l10n.stageFullClearRuneReward(fullClearRuneReward),
-                    icon: Icons.hexagon_outlined,
-                  ),
-                ],
-              ),
-              if (!unlocked) ...[
-                const SizedBox(height: 10),
-                _StageLockedNotice(
-                  text: l10n.stageLockedRequirement(stageNumber),
-                  theme: theme,
+                    const SizedBox(height: 4),
+                    _StageInfoChip(
+                      text: statusText,
+                      unlocked: unlocked,
+                      highlighted:
+                          active ||
+                          snapshot.clearedStageNumbers.contains(stageNumber),
+                      overrideColor: active
+                          ? const Color(0xFFE7C66A)
+                          : unlocked
+                          ? theme.accent
+                          : const Color(0xFF667987),
+                      accentColor: theme.accent,
+                    ),
+                  ],
                 ),
-              ],
-              if (unlockItems.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                _StageUnlockPanel(
-                  title: rewardInfo!.label ?? l10n.clearRewardLabel,
-                  items: unlockItems,
-                  theme: theme,
-                ),
-              ],
-              const SizedBox(height: 16),
-              _StageDetailsActions(
-                unlocked: unlocked,
-                active: active,
-                theme: theme,
+              ),
+              GameModalCloseButton(
+                tooltip: l10n.cancel,
+                onPressed: () => Navigator.of(context).pop(),
+                accentColor: unlocked ? theme.accent : GamePalette.metalDim,
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 14),
+          _StageQuickStats(
+            theme: theme,
+            stats: [
+              _StageQuickStatData(
+                label: l10n.stageBestRecordLabel,
+                value: _recordTextForStage(l10n, snapshot, stageNumber),
+                icon: Icons.workspace_premium_outlined,
+              ),
+              _StageQuickStatData(
+                label: l10n.stageTotalRoundsLabel,
+                value: l10n.stageTotalRounds(snapshot.maxRound),
+                icon: Icons.flag_outlined,
+              ),
+              _StageQuickStatData(
+                label: l10n.stageRuneRewardLabel,
+                value: l10n.stageFullClearRuneReward(fullClearRuneReward),
+                icon: Icons.hexagon_outlined,
+              ),
+            ],
+          ),
+          if (!unlocked) ...[
+            const SizedBox(height: 10),
+            _StageLockedNotice(
+              text: l10n.stageLockedRequirement(stageNumber),
+              theme: theme,
+            ),
+          ],
+          if (unlockItems.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            _StageUnlockPanel(
+              title: rewardInfo!.label ?? l10n.clearRewardLabel,
+              items: unlockItems,
+              theme: theme,
+            ),
+          ],
+          const SizedBox(height: 16),
+          _StageDetailsActions(
+            unlocked: unlocked,
+            active: active,
+            theme: theme,
+          ),
+        ],
       ),
     );
   }

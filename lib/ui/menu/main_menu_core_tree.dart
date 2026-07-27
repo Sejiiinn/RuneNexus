@@ -544,7 +544,7 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
     BuildContext context,
     RuneNexusLocalizations l10n,
   ) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showGameDialog<bool>(
       context: context,
       builder: (dialogContext) => _CorePassiveResetDialog(
         title: l10n.corePassiveResetTitle,
@@ -711,100 +711,93 @@ class _CorePassiveResetDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
+    return GameModalFrame(
       key: const ValueKey('core-passive-reset-dialog'),
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 340),
-        child: GamePanel(
-          key: const ValueKey('core-passive-reset-panel'),
-          variant: GamePanelVariant.danger,
-          padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.restart_alt_rounded,
-                    color: GamePalette.danger,
-                    size: 21,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(title, style: GameTextStyles.title)),
-                ],
+      maxWidth: 340,
+      tone: GameModalTone.danger,
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+      child: KeyedSubtree(
+        key: const ValueKey('core-passive-reset-panel'),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.restart_alt_rounded,
+                  color: GamePalette.danger,
+                  size: 21,
+                ),
+                const SizedBox(width: 8),
+                Expanded(child: Text(title, style: GameTextStyles.title)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(message, style: GameTextStyles.body),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 10),
+              decoration: BoxDecoration(
+                color: GamePalette.danger.withValues(alpha: 0.1),
+                border: Border.all(
+                  color: GamePalette.danger.withValues(alpha: 0.36),
+                ),
+                borderRadius: BorderRadius.circular(7),
               ),
-              const SizedBox(height: 12),
-              Text(message, style: GameTextStyles.body),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 11,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: GamePalette.danger.withValues(alpha: 0.1),
-                  border: Border.all(
-                    color: GamePalette.danger.withValues(alpha: 0.36),
-                  ),
-                  borderRadius: BorderRadius.circular(7),
-                ),
-                child: Row(
-                  children: [
-                    Image.asset(
-                      stageRewardCoreIconAsset,
-                      width: 20,
-                      height: 20,
-                      filterQuality: FilterQuality.medium,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        returnedPointsLabel,
-                        style: GameTextStyles.caption,
-                      ),
-                    ),
-                    Text(
-                      '$returnedPoints',
-                      style: GameTextStyles.withColor(
-                        GameTextStyles.sectionTitle,
-                        GamePalette.danger,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
+              child: Row(
                 children: [
-                  Expanded(
-                    child: GameButton(
-                      key: const ValueKey('core-passive-reset-cancel'),
-                      onPressed: () => Navigator.of(context).pop(false),
-                      label: cancelLabel,
-                      icon: const Icon(Icons.arrow_back, size: 17),
-                      variant: GameButtonVariant.ghost,
-                      accentColor: GamePalette.metal,
-                      height: 38,
-                    ),
+                  Image.asset(
+                    stageRewardCoreIconAsset,
+                    width: 20,
+                    height: 20,
+                    filterQuality: FilterQuality.medium,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: GameButton(
-                      key: const ValueKey('core-passive-reset-confirm'),
-                      onPressed: () => Navigator.of(context).pop(true),
-                      label: confirmLabel,
-                      icon: const Icon(Icons.restart_alt_rounded, size: 17),
-                      variant: GameButtonVariant.danger,
-                      height: 38,
+                    child: Text(
+                      returnedPointsLabel,
+                      style: GameTextStyles.caption,
+                    ),
+                  ),
+                  Text(
+                    '$returnedPoints',
+                    style: GameTextStyles.withColor(
+                      GameTextStyles.sectionTitle,
+                      GamePalette.danger,
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: GameButton(
+                    key: const ValueKey('core-passive-reset-cancel'),
+                    onPressed: () => Navigator.of(context).pop(false),
+                    label: cancelLabel,
+                    icon: const Icon(Icons.arrow_back, size: 17),
+                    variant: GameButtonVariant.ghost,
+                    accentColor: GamePalette.metal,
+                    height: 38,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: GameButton(
+                    key: const ValueKey('core-passive-reset-confirm'),
+                    onPressed: () => Navigator.of(context).pop(true),
+                    label: confirmLabel,
+                    icon: const Icon(Icons.restart_alt_rounded, size: 17),
+                    variant: GameButtonVariant.danger,
+                    height: 38,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

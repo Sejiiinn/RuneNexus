@@ -330,9 +330,8 @@ class _EnemyIntelButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => showModalBottomSheet<void>(
+        onTap: () => showGameBottomSheet<void>(
           context: context,
-          backgroundColor: Colors.transparent,
           builder: (context) => HudPortalWaveDetailSheet(snapshot: snapshot),
         ),
         borderRadius: BorderRadius.circular(5),
@@ -475,81 +474,63 @@ class HudStageMenuDialog extends StatelessWidget {
         snapshot.hasStageProgress &&
         snapshot.phase != GamePhase.success &&
         snapshot.phase != GamePhase.failure;
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 390),
-        child: GamePanel(
-          padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return GameModalFrame(
+      maxWidth: 390,
+      accentColor: GamePalette.cyan,
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  const Icon(
-                    Icons.home_outlined,
-                    color: Color(0xFF8EE6FF),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text('스테이지 메뉴', style: GameTextStyles.title),
-                  ),
-                  SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: IconButton(
-                      tooltip: '취소',
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: IconButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        foregroundColor: const Color(0xFFC6D6E4),
-                        backgroundColor: Colors.transparent,
-                        side: const BorderSide(color: Color(0x664A6172)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      icon: const Icon(Icons.close, size: 17),
-                    ),
-                  ),
-                ],
+              const Icon(
+                Icons.home_outlined,
+                color: Color(0xFF8EE6FF),
+                size: 20,
               ),
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: _StageDialogActionButton(
-                      icon: Icons.flag_outlined,
-                      label: '스테이지 종료',
-                      style: _StageDialogActionStyle.danger,
-                      onPressed: canEndStage
-                          ? () => Navigator.of(
-                              context,
-                            ).pop(HudStageMenuAction.endStage)
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    flex: 6,
-                    child: _StageDialogActionButton(
-                      icon: Icons.home_outlined,
-                      label: '메인화면으로 이동',
-                      style: _StageDialogActionStyle.primary,
-                      onPressed: () => Navigator.of(
-                        context,
-                      ).pop(HudStageMenuAction.openMainMenu),
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text('스테이지 메뉴', style: GameTextStyles.title),
+              ),
+              GameModalCloseButton(
+                tooltip: '취소',
+                onPressed: () => Navigator.of(context).pop(),
+                accentColor: GamePalette.cyan,
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(
+                flex: 5,
+                child: _StageDialogActionButton(
+                  icon: Icons.flag_outlined,
+                  label: '스테이지 종료',
+                  style: _StageDialogActionStyle.danger,
+                  onPressed: canEndStage
+                      ? () => Navigator.of(
+                          context,
+                        ).pop(HudStageMenuAction.endStage)
+                      : null,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 6,
+                child: _StageDialogActionButton(
+                  icon: Icons.home_outlined,
+                  label: '메인화면으로 이동',
+                  style: _StageDialogActionStyle.primary,
+                  onPressed: () => Navigator.of(
+                    context,
+                  ).pop(HudStageMenuAction.openMainMenu),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -685,67 +666,55 @@ class HudStageEndConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 340),
-        child: GamePanel(
-          variant: GamePanelVariant.danger,
-          padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return GameModalFrame(
+      maxWidth: 340,
+      tone: GameModalTone.danger,
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Row(
             children: [
-              const Row(
-                children: [
-                  Icon(
-                    Icons.flag_outlined,
-                    color: GamePalette.danger,
-                    size: 20,
-                  ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text('정말 종료할까요?', style: GameTextStyles.title),
-                  ),
-                ],
+              Icon(Icons.flag_outlined, color: GamePalette.danger, size: 20),
+              SizedBox(width: 8),
+              Expanded(child: Text('정말 종료할까요?', style: GameTextStyles.title)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '스테이지 ${snapshot.currentStageNumber} 진행을 종료하고 '
+            '+${snapshot.projectedFailureRuneReward} 룬을 정산합니다.',
+            style: GameTextStyles.body,
+          ),
+          const SizedBox(height: 12),
+          _StageRewardPreviewCard(
+            completedRounds: snapshot.completedRounds,
+            reward: snapshot.projectedFailureRuneReward,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _StageDialogActionButton(
+                  icon: Icons.arrow_back,
+                  label: '계속 진행',
+                  style: _StageDialogActionStyle.neutral,
+                  onPressed: () => Navigator.of(context).pop(false),
+                ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                '스테이지 ${snapshot.currentStageNumber} 진행을 종료하고 '
-                '+${snapshot.projectedFailureRuneReward} 룬을 정산합니다.',
-                style: GameTextStyles.body,
-              ),
-              const SizedBox(height: 12),
-              _StageRewardPreviewCard(
-                completedRounds: snapshot.completedRounds,
-                reward: snapshot.projectedFailureRuneReward,
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _StageDialogActionButton(
-                      icon: Icons.arrow_back,
-                      label: '계속 진행',
-                      style: _StageDialogActionStyle.neutral,
-                      onPressed: () => Navigator.of(context).pop(false),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _StageDialogActionButton(
-                      icon: Icons.flag_outlined,
-                      label: '종료',
-                      style: _StageDialogActionStyle.danger,
-                      onPressed: () => Navigator.of(context).pop(true),
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: _StageDialogActionButton(
+                  icon: Icons.flag_outlined,
+                  label: '종료',
+                  style: _StageDialogActionStyle.danger,
+                  onPressed: () => Navigator.of(context).pop(true),
+                ),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

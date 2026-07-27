@@ -119,105 +119,95 @@ class _TurretTraitDialogState extends State<HudTurretTraitDialog> {
     final secondaryBlockedText = _secondaryTraitBlockedText(snapshot);
     final size = MediaQuery.sizeOf(context);
 
-    return Dialog(
-      backgroundColor: Colors.transparent,
+    return GameModalFrame(
+      maxWidth: 344,
+      maxHeight: size.height * 0.82,
+      tone: GameModalTone.reward,
+      accentColor: GamePalette.green,
       insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: 344,
-          maxHeight: size.height * 0.82,
-        ),
-        child: GamePanel(
-          variant: GamePanelVariant.reward,
-          padding: EdgeInsets.zero,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _TraitDialogHeader(
-                title: '${snapshot.selectedTurretName ?? '포탑'} 특성',
-              ),
-              _TraitResourceStrip(
-                gemShards: snapshot.gemShards,
-                primaryCost: snapshot.selectedTurretPrimaryTraitCost,
-                secondaryCost: snapshot.selectedTurretSecondaryTraitCost,
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _TraitSlotButton(
-                        tierText: '1차',
-                        title: '무기 개조',
-                        trait: primary,
-                        active: _selectedTier == 1,
-                        enabled: primaryChoices.isNotEmpty,
-                        blockedText: primaryBlockedText,
-                        onTap: () => _selectTier(1),
-                      ),
-                    ),
-                    const SizedBox(width: 7),
-                    Expanded(
-                      child: _TraitSlotButton(
-                        tierText: '2차',
-                        title: '전투 교리',
-                        trait: secondary,
-                        active: _selectedTier == 2,
-                        enabled: secondaryChoices.isNotEmpty,
-                        blockedText: secondaryBlockedText,
-                        onTap: () => _selectTier(2),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
-                  child: _selectedTier == 1
-                      ? _TraitTierPane(
-                          tierText: '1차',
-                          title: '무기 개조',
-                          selectedTrait: primary,
-                          blockedText: primaryBlockedText,
-                          choices: primaryChoices,
-                          enabled: canChoosePrimary,
-                          tier: 1,
-                          previewTrait: _previewTier == 1
-                              ? _previewTrait
-                              : null,
-                          onPreview: _previewOrConfirmTrait,
-                        )
-                      : _TraitTierPane(
-                          tierText: '2차',
-                          title: '전투 교리',
-                          selectedTrait: secondary,
-                          blockedText: secondaryBlockedText,
-                          choices: secondaryChoices,
-                          enabled: canChooseSecondary,
-                          tier: 2,
-                          previewTrait: _previewTier == 2
-                              ? _previewTrait
-                              : null,
-                          onPreview: _previewOrConfirmTrait,
-                        ),
-                ),
-              ),
-              const Padding(
-                padding: EdgeInsets.fromLTRB(12, 0, 12, 10),
-                child: Text(
-                  '선택한 특성은 이번 런 동안 변경할 수 없습니다.',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Color(0xFF8AA6B8),
-                    height: 1.25,
+      padding: EdgeInsets.zero,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _TraitDialogHeader(
+            title: '${snapshot.selectedTurretName ?? '포탑'} 특성',
+          ),
+          _TraitResourceStrip(
+            gemShards: snapshot.gemShards,
+            primaryCost: snapshot.selectedTurretPrimaryTraitCost,
+            secondaryCost: snapshot.selectedTurretSecondaryTraitCost,
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _TraitSlotButton(
+                    tierText: '1차',
+                    title: '무기 개조',
+                    trait: primary,
+                    active: _selectedTier == 1,
+                    enabled: primaryChoices.isNotEmpty,
+                    blockedText: primaryBlockedText,
+                    onTap: () => _selectTier(1),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 7),
+                Expanded(
+                  child: _TraitSlotButton(
+                    tierText: '2차',
+                    title: '전투 교리',
+                    trait: secondary,
+                    active: _selectedTier == 2,
+                    enabled: secondaryChoices.isNotEmpty,
+                    blockedText: secondaryBlockedText,
+                    onTap: () => _selectTier(2),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+              child: _selectedTier == 1
+                  ? _TraitTierPane(
+                      tierText: '1차',
+                      title: '무기 개조',
+                      selectedTrait: primary,
+                      blockedText: primaryBlockedText,
+                      choices: primaryChoices,
+                      enabled: canChoosePrimary,
+                      tier: 1,
+                      previewTrait: _previewTier == 1 ? _previewTrait : null,
+                      onPreview: _previewOrConfirmTrait,
+                    )
+                  : _TraitTierPane(
+                      tierText: '2차',
+                      title: '전투 교리',
+                      selectedTrait: secondary,
+                      blockedText: secondaryBlockedText,
+                      choices: secondaryChoices,
+                      enabled: canChooseSecondary,
+                      tier: 2,
+                      previewTrait: _previewTier == 2 ? _previewTrait : null,
+                      onPreview: _previewOrConfirmTrait,
+                    ),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(12, 0, 12, 10),
+            child: Text(
+              '선택한 특성은 이번 런 동안 변경할 수 없습니다.',
+              style: TextStyle(
+                fontSize: 10,
+                color: Color(0xFF8AA6B8),
+                height: 1.25,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -292,10 +282,9 @@ class _TraitDialogHeader extends StatelessWidget {
               overflow: TextOverflow.clip,
             ),
           ),
-          IconButton(
-            visualDensity: VisualDensity.compact,
+          GameModalCloseButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close, size: 18),
+            accentColor: GamePalette.green,
           ),
         ],
       ),

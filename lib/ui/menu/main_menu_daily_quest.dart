@@ -1,7 +1,7 @@
 part of 'main_menu_screen.dart';
 
 Future<void> _openDailyQuestDialog(BuildContext context, RuneNexusGame game) {
-  return showDialog<void>(
+  return showGameDialog<void>(
     context: context,
     builder: (context) => _DailyQuestDialog(game: game),
   );
@@ -134,67 +134,64 @@ class _DailyQuestDialogState extends State<_DailyQuestDialog> {
     return ValueListenableBuilder<GameSnapshot>(
       valueListenable: widget.game.snapshotNotifier,
       builder: (context, snapshot, _) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF0B1725),
+        return GameModalFrame(
+          maxWidth: 430,
+          maxHeight: MediaQuery.sizeOf(context).height * 0.86,
+          accentColor: _diamondCurrencyColor,
           insetPadding: const EdgeInsets.symmetric(
             horizontal: 18,
             vertical: 24,
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-            side: const BorderSide(color: Color(0xAA33D8FF)),
-          ),
-          titlePadding: const EdgeInsets.fromLTRB(14, 10, 8, 0),
-          contentPadding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
-          title: Row(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(
-                Icons.event_available_outlined,
-                color: _diamondCurrencyColor,
-                size: 20,
+              Row(
+                children: [
+                  const Icon(
+                    Icons.event_available_outlined,
+                    color: _diamondCurrencyColor,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text('임무', style: GameTextStyles.title),
+                  ),
+                  GameModalCloseButton(
+                    tooltip: '닫기',
+                    onPressed: () => Navigator.of(context).pop(),
+                    accentColor: _diamondCurrencyColor,
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  '임무',
-                  style: TextStyle(
-                    color: Color(0xFFE8FBFF),
-                    fontSize: 17,
-                    fontWeight: FontWeight.w900,
+              const SizedBox(height: 10),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _QuestPeriodSelector(
+                        period: _period,
+                        onChanged: (value) => setState(() => _period = value),
+                      ),
+                      const SizedBox(height: 8),
+                      if (_period == _QuestPeriod.daily)
+                        _DailyQuestContent(
+                          game: widget.game,
+                          snapshot: snapshot,
+                        )
+                      else
+                        _WeeklyQuestContent(
+                          game: widget.game,
+                          snapshot: snapshot,
+                        ),
+                    ],
                   ),
                 ),
               ),
-              IconButton(
-                tooltip: '닫기',
-                icon: const Icon(Icons.close, size: 19),
-                color: const Color(0xFFB9D6E4),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
             ],
-          ),
-          content: ConstrainedBox(
-            constraints: const BoxConstraints(
-              minWidth: 390,
-              maxWidth: 390,
-              maxHeight: 500,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _QuestPeriodSelector(
-                    period: _period,
-                    onChanged: (value) => setState(() => _period = value),
-                  ),
-                  const SizedBox(height: 8),
-                  if (_period == _QuestPeriod.daily)
-                    _DailyQuestContent(game: widget.game, snapshot: snapshot)
-                  else
-                    _WeeklyQuestContent(game: widget.game, snapshot: snapshot),
-                ],
-              ),
-            ),
           ),
         );
       },
