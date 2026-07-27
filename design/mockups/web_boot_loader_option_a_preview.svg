@@ -1,0 +1,75 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="900"
+  height="900"
+  viewBox="0 0 900 900"
+  role="img"
+  aria-labelledby="title description"
+>
+  <title id="title">Rune Nexus 간소화 웹 부트 로더 모바일 시안</title>
+  <desc id="description">
+    390×844 모바일 화면 전체를 휴대폰 프레임에 담은 초기 실행 화면 시안
+  </desc>
+
+  <defs>
+    <radialGradient id="canvas" cx="50%" cy="44%" r="65%">
+      <stop offset="0%" stop-color="#102231"/>
+      <stop offset="55%" stop-color="#07111D"/>
+      <stop offset="100%" stop-color="#03080D"/>
+    </radialGradient>
+    <filter id="phone-shadow" x="-30%" y="-15%" width="160%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="18"/>
+      <feOffset dy="10"/>
+      <feColorMatrix
+        values="
+          0 0 0 0 0
+          0 0 0 0 0
+          0 0 0 0 0
+          0 0 0 0.72 0
+        "
+      />
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <clipPath id="screen-clip">
+      <rect x="255" y="28" width="390" height="844" rx="27"/>
+    </clipPath>
+  </defs>
+
+  <rect width="900" height="900" fill="url(#canvas)"/>
+  <rect
+    x="246"
+    y="19"
+    width="408"
+    height="862"
+    rx="36"
+    fill="#02070C"
+    stroke="#284858"
+    stroke-opacity="0.72"
+    stroke-width="2"
+    filter="url(#phone-shadow)"
+  />
+  <image
+    x="255"
+    y="28"
+    width="390"
+    height="844"
+    preserveAspectRatio="none"
+    clip-path="url(#screen-clip)"
+    href="web_boot_loader_option_a.svg"
+    xlink:href="web_boot_loader_option_a.svg"
+  />
+  <rect
+    x="255.5"
+    y="28.5"
+    width="389"
+    height="843"
+    rx="26.5"
+    fill="none"
+    stroke="#8EE6FF"
+    stroke-opacity="0.12"
+  />
+</svg>

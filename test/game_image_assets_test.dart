@@ -37,7 +37,9 @@ void main() {
     },
   );
 
-  testWidgets('app loading text follows actual startup work', (tester) async {
+  testWidgets('app loading message stays stable across startup work', (
+    tester,
+  ) async {
     final repository = _DelayedSaveRepository();
 
     await tester.pumpWidget(
@@ -45,15 +47,13 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('저장 데이터와 전투 리소스를 준비하는 중'), findsOneWidget);
+    expect(find.text('게임을 시작하는 중'), findsOneWidget);
+    expect(find.text('RUNE NEXUS'), findsNothing);
+    expect(find.text('룬 넥서스 준비 중'), findsNothing);
 
     repository.completeLoad();
-    await pumpUntilFound(
-      tester,
-      find.text('메뉴 이미지를 준비하는 중'),
-      maxFrameCount: 60,
-    );
-    expect(find.text('메뉴 이미지를 준비하는 중'), findsOneWidget);
+    await tester.pump();
+    expect(find.text('게임을 시작하는 중'), findsOneWidget);
     await pumpUntilLoadedApp(tester);
     expect(find.byType(MainMenuScreen), findsOneWidget);
   });

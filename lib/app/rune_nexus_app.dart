@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -19,9 +21,8 @@ import '../ui/menu/map_editor_panel.dart';
 enum _AppScreen { main, stage, mapEditor }
 
 class _AppLoadingProgress {
-  const _AppLoadingProgress({required this.label, this.value});
+  const _AppLoadingProgress({this.value});
 
-  final String label;
   final double? value;
 }
 
@@ -37,7 +38,7 @@ class RuneNexusApp extends StatefulWidget {
 class _RuneNexusAppState extends State<RuneNexusApp> {
   late final RuneNexusGame game;
   final ValueNotifier<_AppLoadingProgress> _loadingProgress = ValueNotifier(
-    const _AppLoadingProgress(label: '저장 데이터와 전투 리소스를 준비하는 중'),
+    const _AppLoadingProgress(),
   );
   Future<void>? _initialLoad;
   _AppScreen _screen = _AppScreen.main;
@@ -54,20 +55,14 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
     if (!mounted || !context.mounted) {
       return;
     }
-    _loadingProgress.value = const _AppLoadingProgress(
-      label: '메뉴 이미지를 준비하는 중',
-      value: 0,
-    );
+    _loadingProgress.value = const _AppLoadingProgress(value: 0);
     await precacheRuneNexusStartupImages(
       context,
       onProgress: (value) {
         if (!mounted) {
           return;
         }
-        _loadingProgress.value = _AppLoadingProgress(
-          label: '메뉴 이미지를 준비하는 중',
-          value: value,
-        );
+        _loadingProgress.value = _AppLoadingProgress(value: value);
       },
     );
   }
@@ -466,146 +461,384 @@ class _AppLoadingScreen extends StatelessWidget {
       child: DecoratedBox(
         decoration: const BoxDecoration(
           gradient: RadialGradient(
-            center: Alignment(0, -0.55),
-            radius: 1.05,
-            colors: [Color(0xFF102A3A), Color(0xFF07111D)],
+            center: Alignment(0, -0.24),
+            radius: 0.9,
+            colors: [
+              Color(0xFF123144),
+              Color(0xFF0A1B29),
+              Color(0xFF07111D),
+            ],
+            stops: [0, 0.38, 1],
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              const SizedBox(height: 58),
-              const _RuneNexusLoadingLogo(),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(36, 0, 36, 42),
-                child: ValueListenableBuilder<_AppLoadingProgress>(
-                  valueListenable: progressListenable,
-                  builder: (context, progress, _) {
-                    return Column(
+        child: Stack(
+          children: [
+            const Align(
+              alignment: Alignment(0, -0.24),
+              child: _AppBootCore(),
+            ),
+            Positioned.fill(
+              child: SafeArea(
+                top: false,
+                left: false,
+                right: false,
+                minimum: const EdgeInsets.only(bottom: 42),
+                child: Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 36),
+                    child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          progress.label,
+                        const Text(
+                          '게임을 시작하는 중',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Color(0xFFB9D6E4),
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 14),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(999),
-                          child: LinearProgressIndicator(
-                            value: progress.value,
-                            minHeight: 8,
-                            backgroundColor: const Color(0x332ED3FF),
-                            color: const Color(0xFF8EE6FF),
-                          ),
+                        ValueListenableBuilder<_AppLoadingProgress>(
+                          valueListenable: progressListenable,
+                          builder: (context, progress, _) {
+                            final value = progress.value;
+                            return Semantics(
+                              label: '게임 시작 진행률',
+                              value: value == null
+                                  ? null
+                                  : '${(value * 100).round()}%',
+                              child: _AppBootProgressBar(value: value),
+                            );
+                          },
                         ),
                       ],
-                    );
-                  },
+                    ),
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _RuneNexusLoadingLogo extends StatelessWidget {
-  const _RuneNexusLoadingLogo();
+class _AppBootCore extends StatefulWidget {
+  const _AppBootCore();
+
+  @override
+  State<_AppBootCore> createState() => _AppBootCoreState();
+}
+
+class _AppBootCoreState extends State<_AppBootCore>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          width: 112,
-          height: 112,
-          child: CustomPaint(painter: _RuneNexusLogoPainter()),
-        ),
-        const SizedBox(height: 18),
-        const Text(
-          'RUNE NEXUS',
-          style: TextStyle(
-            color: Color(0xFFE8FBFF),
-            fontSize: 28,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 2.6,
+    return SizedBox.square(
+      dimension: 240,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          const Positioned.fill(
+            child: RepaintBoundary(
+              child: CustomPaint(painter: _AppBootAmbientPainter()),
+            ),
           ),
-        ),
-        const SizedBox(height: 6),
-        const Text(
-          '룬 넥서스 준비 중',
-          style: TextStyle(
-            color: Color(0xFF7DB8C8),
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.8,
+          SizedBox.square(
+            dimension: 58,
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                final phase = _controller.value;
+                final pulse =
+                    0.94 + math.sin(phase * math.pi * 2 * 1.27) * 0.06;
+                return CustomPaint(
+                  painter: _AppBootCorePainter(
+                    rotation: phase * math.pi * 2,
+                    pulse: pulse,
+                  ),
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
-class _RuneNexusLogoPainter extends CustomPainter {
+class _AppBootAmbientPainter extends CustomPainter {
+  const _AppBootAmbientPainter();
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.shortestSide * 0.42;
 
-    final outer = Paint()
-      ..color = const Color(0xFF153447)
-      ..style = PaintingStyle.fill;
-    final rim = Paint()
-      ..color = const Color(0xFF8EE6FF)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = size.shortestSide * 0.035;
-    final rune = Paint()
-      ..color = const Color(0xFFE7C66A)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = size.shortestSide * 0.05
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    canvas.drawCircle(center, radius, outer);
-    canvas.drawCircle(center, radius, rim);
-
-    final diamond = Path()
-      ..moveTo(center.dx, center.dy - radius * 0.78)
-      ..lineTo(center.dx + radius * 0.42, center.dy)
-      ..lineTo(center.dx, center.dy + radius * 0.78)
-      ..lineTo(center.dx - radius * 0.42, center.dy)
-      ..close();
-    canvas.drawPath(diamond, rune);
-
-    canvas.drawLine(
-      center.translate(0, -radius * 0.42),
-      center.translate(0, radius * 0.42),
-      rune,
-    );
-    canvas.drawLine(
-      center.translate(-radius * 0.28, 0),
-      center.translate(radius * 0.28, 0),
-      rune,
-    );
-
+    // 코어 주변 저강도 공간광.
     canvas.drawCircle(
       center,
-      radius * 0.16,
-      Paint()..color = const Color(0xFF8EE6FF),
+      98,
+      Paint()
+        ..color = const Color(0x122ED3FF)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 22
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 22),
     );
+    final ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    ringPaint.color = const Color(0x125EE2FF);
+    canvas.drawCircle(center, 118, ringPaint);
+    ringPaint.color = const Color(0x0DE7C66A);
+    canvas.drawCircle(center, 88, ringPaint);
+    ringPaint.color = const Color(0x145EE2FF);
+    canvas.drawCircle(center, 44, ringPaint);
   }
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _AppBootCorePainter extends CustomPainter {
+  const _AppBootCorePainter({required this.rotation, required this.pulse});
+
+  final double rotation;
+  final double pulse;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+
+    const orbitRadius = 28.0;
+    canvas.drawCircle(
+      center,
+      orbitRadius,
+      Paint()
+        ..color = const Color(0x408EE6FF)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+
+    final orbitRect = Rect.fromCircle(center: center, radius: orbitRadius);
+    final arcStart = -math.pi / 2 + rotation;
+    const arcSweep = 1.8;
+    canvas.drawArc(
+      orbitRect,
+      arcStart,
+      arcSweep,
+      false,
+      Paint()
+        ..color = const Color(0x668EE6FF)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 5
+        ..strokeCap = StrokeCap.round
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+    );
+    canvas.drawArc(
+      orbitRect,
+      arcStart,
+      arcSweep,
+      false,
+      Paint()
+        ..color = const Color(0xFF8EE6FF)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.8
+        ..strokeCap = StrokeCap.round,
+    );
+
+    final sparkAngle = arcStart + arcSweep;
+    final sparkCenter = center.translate(
+      math.cos(sparkAngle) * orbitRadius,
+      math.sin(sparkAngle) * orbitRadius,
+    );
+    canvas.drawCircle(
+      sparkCenter,
+      5,
+      Paint()
+        ..color = const Color(0x99E7C66A)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+    );
+    canvas.drawCircle(
+      sparkCenter,
+      2.2,
+      Paint()..color = const Color(0xFFE7C66A),
+    );
+
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.scale(pulse);
+    canvas.rotate(math.pi / 4);
+    final diamond = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(-9, -9, 18, 18),
+      const Radius.circular(1.5),
+    );
+    canvas.drawRRect(
+      diamond,
+      Paint()
+        ..color = const Color(0x808EE6FF)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
+    );
+    canvas.drawRRect(
+      diamond,
+      Paint()..color = const Color(0xD10F3E52),
+    );
+    canvas.drawRRect(
+      diamond,
+      Paint()
+        ..color = const Color(0xFF8EE6FF)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(-3.5, -3.5, 7, 7),
+        const Radius.circular(1),
+      ),
+      Paint()
+        ..color = const Color(0xFFE8FBFF)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
+    );
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _AppBootCorePainter oldDelegate) {
+    return oldDelegate.rotation != rotation || oldDelegate.pulse != pulse;
+  }
+}
+
+class _AppBootProgressBar extends StatefulWidget {
+  const _AppBootProgressBar({required this.value});
+
+  final double? value;
+
+  @override
+  State<_AppBootProgressBar> createState() => _AppBootProgressBarState();
+}
+
+class _AppBootProgressBarState extends State<_AppBootProgressBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1250),
+    )..repeat();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AppBootProgressBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value == null && widget.value != null) {
+      _controller.stop();
+    } else if (oldWidget.value != null && widget.value == null) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 286),
+      child: Container(
+        width: double.infinity,
+        height: 5,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: const Color(0x172ED3FF),
+          border: Border.all(color: const Color(0x245EE2FF)),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final value = widget.value;
+            if (value != null) {
+              return Align(
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: value.clamp(0.0, 1.0).toDouble(),
+                  child: const _AppBootProgressFill(),
+                ),
+              );
+            }
+            return AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                final trackWidth = constraints.maxWidth;
+                final fillWidth = trackWidth * 0.38;
+                final offset =
+                    -fillWidth +
+                    (trackWidth + fillWidth) *
+                        Curves.easeInOut.transform(_controller.value);
+                return Stack(
+                  children: [
+                    Transform.translate(
+                      offset: Offset(offset, 0),
+                      child: SizedBox(
+                        width: fillWidth,
+                        child: const _AppBootProgressFill(),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _AppBootProgressFill extends StatelessWidget {
+  const _AppBootProgressFill();
+
+  @override
+  Widget build(BuildContext context) {
+    return const DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0x008EE6FF),
+            Color(0xFF8EE6FF),
+            Color(0xFFE8FBFF),
+            Color(0x008EE6FF),
+          ],
+          stops: [0, 0.46, 0.58, 1],
+        ),
+      ),
+      child: SizedBox.expand(),
+    );
+  }
 }
 
 class _AppLoadErrorScreen extends StatelessWidget {
