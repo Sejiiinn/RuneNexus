@@ -11,6 +11,7 @@ flutter_web_server.*
 # Local agent/tool artifacts
 .claude/
 .codegraph/
+artifacts/
 
 # Android/iOS generated files
 android/.gradle/
