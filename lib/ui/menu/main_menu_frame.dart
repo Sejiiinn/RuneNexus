@@ -39,7 +39,6 @@ class _MenuLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
     return LayoutBuilder(
       builder: (context, constraints) {
         final compactLogo = constraints.maxWidth < 430;
@@ -49,34 +48,13 @@ class _MenuLogo extends StatelessWidget {
               opacity: 0.92,
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (!compactLogo) ...[
-                      Container(
-                        width: 34,
-                        height: 34,
-                        decoration: BoxDecoration(
-                          color: const Color(0x2233D8FF),
-                          border: Border.all(color: const Color(0xAA33D8FF)),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.diamond_outlined,
-                          color: Color(0xFF8EE6FF),
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                    ],
-                    Text(
-                      l10n.appTitle,
-                      style: TextStyle(
-                        fontSize: compactLogo ? 20 : 23,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
+                child: Image.asset(
+                  gameLogoAsset,
+                  width: compactLogo ? 176 : 208,
+                  height: compactLogo ? 48 : 56,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.medium,
+                  semanticLabel: context.l10n.appTitle,
                 ),
               ),
             ),
@@ -194,15 +172,28 @@ class _MenuResourceBar extends StatelessWidget {
                 border: Border.all(color: const Color(0x55485B68)),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: Text(
-                '모듈권 $turretModuleTickets',
-                maxLines: 1,
-                softWrap: false,
-                style: const TextStyle(
-                  color: Color(0xFFB4C7D2),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    turretModuleTicketIconAsset,
+                    width: 15,
+                    height: 15,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '모듈권 $turretModuleTickets',
+                    maxLines: 1,
+                    softWrap: false,
+                    style: const TextStyle(
+                      color: Color(0xFFB4C7D2),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

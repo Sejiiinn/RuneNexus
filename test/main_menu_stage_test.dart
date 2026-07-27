@@ -1,10 +1,12 @@
+import 'package:rune_nexus/ui/game/game_image_assets.dart';
+
 import 'helpers/widget_test_helpers.dart';
 
 void main() {
   testWidgets('Rune Nexus app renders main menu', (tester) async {
     await pumpLoadedApp(tester);
 
-    expect(find.text('Rune Nexus'), findsOneWidget);
+    expect(_gameLogoFinder(), findsOneWidget);
     expect(find.text('스테이지'), findsOneWidget);
     expect(find.text('스테이지 1'), findsOneWidget);
     expect(find.text('스테이지 5'), findsOneWidget);
@@ -13,7 +15,7 @@ void main() {
     expect(find.text('연구'), findsWidgets);
     expect(find.text('다이아'), findsNothing);
 
-    final logoRect = tester.getRect(find.text('Rune Nexus'));
+    final logoRect = tester.getRect(_gameLogoFinder());
     final currencyRect = tester.getRect(
       find.byKey(const ValueKey('menu-currency-balance')),
     );
@@ -32,7 +34,7 @@ void main() {
 
     await pumpLoadedApp(tester);
 
-    final logoRect = tester.getRect(find.text('Rune Nexus'));
+    final logoRect = tester.getRect(_gameLogoFinder());
     final currencyRect = tester.getRect(
       find.byKey(const ValueKey('menu-currency-balance')),
     );
@@ -385,7 +387,7 @@ void main() {
   ) async {
     await pumpLoadedApp(tester);
 
-    expect(find.text('Rune Nexus'), findsOneWidget);
+    expect(_gameLogoFinder(), findsOneWidget);
     expect(find.byKey(const ValueKey('menu-resource-bar')), findsNothing);
     final stageTabRect = tester.getRect(
       find.byKey(const ValueKey('main-menu-tab-stage')),
@@ -413,7 +415,7 @@ void main() {
     await tester.tap(find.text('코어'));
     await pumpGameFrames(tester);
 
-    expect(find.text('Rune Nexus'), findsNothing);
+    expect(_gameLogoFinder(), findsNothing);
     final resourceBar = find.byKey(const ValueKey('menu-resource-bar'));
     expect(resourceBar, findsOneWidget);
     expect(
@@ -452,7 +454,7 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('main-menu-tab-upgrades')));
     await pumpGameFrames(tester);
 
-    expect(find.text('Rune Nexus'), findsNothing);
+    expect(_gameLogoFinder(), findsNothing);
     expect(find.text('업그레이드 보드'), findsNothing);
     expect(
       tester
@@ -485,7 +487,7 @@ void main() {
     await tester.tap(find.text('연구').last);
     await pumpGameFrames(tester);
 
-    expect(find.text('Rune Nexus'), findsNothing);
+    expect(_gameLogoFinder(), findsNothing);
     expect(find.text('연구 보드'), findsNothing);
     expect(
       tester
@@ -510,7 +512,7 @@ void main() {
     await tester.tap(find.text('스테이지'));
     await pumpGameFrames(tester);
 
-    expect(find.text('Rune Nexus'), findsOneWidget);
+    expect(_gameLogoFinder(), findsOneWidget);
     expect(find.byKey(const ValueKey('menu-resource-bar')), findsNothing);
   });
 
@@ -539,4 +541,13 @@ void main() {
 
     expect(find.text('스테이지 1'), findsOneWidget);
   });
+}
+
+Finder _gameLogoFinder() {
+  return find.byWidgetPredicate(
+    (widget) =>
+        widget is Image &&
+        widget.image is AssetImage &&
+        (widget.image as AssetImage).assetName == gameLogoAsset,
+  );
 }

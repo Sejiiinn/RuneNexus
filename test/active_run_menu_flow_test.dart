@@ -103,7 +103,7 @@ void main() {
     game.debugSetClearedStageCount(1);
 
     await tester.pumpWidget(RuneNexusApp(game: game));
-    await pumpUntilFound(tester, find.text('Rune Nexus'));
+    await pumpUntilFound(tester, find.byType(MainMenuScreen));
 
     await tapStageCard(tester, '스테이지 1');
     await pumpUntilFound(tester, find.text('시작하기'));
@@ -150,7 +150,7 @@ void main() {
       final game = RuneNexusGame(saveRepository: MemorySaveRepository());
 
       await tester.pumpWidget(RuneNexusApp(game: game));
-      await pumpUntilFound(tester, find.text('Rune Nexus'));
+      await pumpUntilFound(tester, find.byType(MainMenuScreen));
 
       await tapStageCard(tester, '스테이지 1');
       await pumpGameFrames(tester);

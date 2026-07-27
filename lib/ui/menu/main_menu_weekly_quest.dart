@@ -151,10 +151,12 @@ class _WeeklyCompletionRewardText extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.confirmation_number_outlined,
-              color: Color(0xFFFFD166),
-              size: 13,
+            Image.asset(
+              turretModuleTicketIconAsset,
+              width: 16,
+              height: 16,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.medium,
             ),
             const SizedBox(width: 3),
             Text(

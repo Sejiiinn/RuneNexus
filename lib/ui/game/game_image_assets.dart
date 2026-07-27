@@ -13,6 +13,11 @@ const String stageChapterOneBannerAsset = 'assets/images/chapter_1_banner.png';
 const String stageChapterTwoBannerAsset = 'assets/images/chapter_2_banner.png';
 const String stageChapterThreeBannerAsset =
     'assets/images/chapter_3_banner.png';
+const String gameLogoAsset = 'assets/images/rune_nexus_logo.png';
+const String resultSuccessEmblemAsset =
+    'assets/images/results/result_success.png';
+const String resultFailureEmblemAsset =
+    'assets/images/results/result_failure.png';
 const String stageRewardUpgradeIconAsset =
     'assets/images/stage_rewards/reward_upgrade.png';
 const String stageRewardResearchIconAsset =
@@ -25,6 +30,8 @@ const String stageRewardStageIconAsset =
     'assets/images/stage_rewards/reward_stage.png';
 const String stageRewardTurretIconAsset =
     'assets/images/stage_rewards/reward_turret.png';
+const String turretModuleTicketIconAsset =
+    'assets/images/stage_rewards/reward_module_ticket.png';
 const String corePassiveTreeBackgroundAsset =
     'assets/images/core_passive_tree/tree_circuit_background.png';
 const String corePassiveTreeCoreAsset =
@@ -45,6 +52,13 @@ const List<String> stageRewardIconAssets = [
   stageRewardCoreIconAsset,
   stageRewardStageIconAsset,
   stageRewardTurretIconAsset,
+  turretModuleTicketIconAsset,
+];
+
+const List<String> commonUiImageAssets = [
+  gameLogoAsset,
+  resultSuccessEmblemAsset,
+  resultFailureEmblemAsset,
 ];
 
 const List<String> corePassiveTreeAssets = [
@@ -55,6 +69,7 @@ const List<String> corePassiveTreeAssets = [
 
 List<ImageProvider<Object>> runeNexusStartupImageProviders() {
   final providers = <ImageProvider<Object>>[
+    for (final asset in commonUiImageAssets) AssetImage(asset),
     for (final asset in stageChapterBannerAssets) AssetImage(asset),
     for (final asset in stageRewardIconAssets) AssetImage(asset),
     for (final type in GameUpgradeIconType.values)

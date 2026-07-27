@@ -1,3 +1,5 @@
+import 'package:rune_nexus/ui/game/game_image_assets.dart';
+
 import 'helpers/widget_test_helpers.dart';
 
 void main() {
@@ -33,6 +35,16 @@ void main() {
     );
 
     expect(find.text('Nexus 방어 성공'), findsOneWidget);
+    expect(
+      (tester
+                  .widget<Image>(
+                    find.byKey(const ValueKey('result-status-emblem')),
+                  )
+                  .image
+              as AssetImage)
+          .assetName,
+      resultSuccessEmblemAsset,
+    );
     expect(find.text('스테이지 1 클리어'), findsOneWidget);
     expect(find.text('보상 획득'), findsOneWidget);
     expect(find.text('+140 룬'), findsOneWidget);
@@ -381,6 +393,16 @@ void main() {
     );
 
     expect(find.text('Nexus 붕괴'), findsOneWidget);
+    expect(
+      (tester
+                  .widget<Image>(
+                    find.byKey(const ValueKey('result-status-emblem')),
+                  )
+                  .image
+              as AssetImage)
+          .assetName,
+      resultFailureEmblemAsset,
+    );
     expect(find.text('스테이지 1 종료'), findsOneWidget);
     expect(find.text('+24 룬'), findsOneWidget);
     expect(

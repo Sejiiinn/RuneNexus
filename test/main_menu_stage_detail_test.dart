@@ -1,3 +1,5 @@
+import 'package:rune_nexus/ui/game/game_image_assets.dart';
+
 import 'helpers/widget_test_helpers.dart';
 
 void main() {
@@ -122,6 +124,16 @@ void main() {
 
     expect(find.text('최초 클리어 보상'), findsOneWidget);
     expect(find.text('모듈권 +5'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName ==
+                turretModuleTicketIconAsset,
+      ),
+      findsWidgets,
+    );
   });
 
   testWidgets('stage gem unlocks use their dedicated gem icons', (

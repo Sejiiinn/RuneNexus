@@ -1169,6 +1169,14 @@ class _StageUnlockChip extends StatelessWidget {
             CoreAbilityIcon(coreCombatSkill, size: 15, color: color)
           else if (item.gemType case final gemType?)
             GemIcon(gemType, size: 15)
+          else if (item.asset case final asset?)
+            Image.asset(
+              asset,
+              width: 17,
+              height: 17,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.medium,
+            )
           else
             Icon(item.icon, size: 15, color: color),
           const SizedBox(width: 6),
@@ -1322,7 +1330,9 @@ _StageRewardVisual? _stageRewardVisualFor(int stageNumber) {
       icon: _StageRewardAssetIcon(asset: stageRewardGemIconAsset),
       extraIcons: [_StageRewardAssetIcon(asset: stageRewardResearchIconAsset)],
     ),
-    11 => const _StageRewardVisual(icon: Icon(Icons.local_activity_outlined)),
+    11 => const _StageRewardVisual(
+      icon: _StageRewardAssetIcon(asset: turretModuleTicketIconAsset),
+    ),
     12 => const _StageRewardVisual(
       icon: _StageRewardAssetIcon(asset: stageRewardResearchIconAsset),
     ),
@@ -1478,7 +1488,7 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
         label: l10n.turretModuleTicketReward(
           stageElevenFirstClearTurretModuleTicketReward,
         ),
-        icon: Icons.local_activity_outlined,
+        asset: turretModuleTicketIconAsset,
         category: _StageUnlockCategory.moduleTicket,
         highlighted: highlighted,
       ),
@@ -1594,6 +1604,7 @@ class _StageUnlockItem {
   const _StageUnlockItem({
     required this.label,
     this.icon,
+    this.asset,
     this.researchType,
     this.upgradeIconType,
     this.coreCombatSkill,
@@ -1602,6 +1613,7 @@ class _StageUnlockItem {
     this.highlighted = false,
   }) : assert(
          (icon != null ? 1 : 0) +
+                 (asset != null ? 1 : 0) +
                  (researchType != null ? 1 : 0) +
                  (upgradeIconType != null ? 1 : 0) +
                  (coreCombatSkill != null ? 1 : 0) +
@@ -1611,6 +1623,7 @@ class _StageUnlockItem {
 
   final String label;
   final IconData? icon;
+  final String? asset;
   final ResearchType? researchType;
   final GameUpgradeIconType? upgradeIconType;
   final CoreCombatSkill? coreCombatSkill;

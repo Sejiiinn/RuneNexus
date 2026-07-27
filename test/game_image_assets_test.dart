@@ -12,8 +12,11 @@ void main() {
     () {
       final providers = runeNexusStartupImageProviders();
 
-      expect(providers, hasLength(39));
+      expect(providers, hasLength(43));
       expect(providers.whereType<ResizeImage>(), hasLength(27));
+      for (final asset in commonUiImageAssets) {
+        expect(providers, contains(AssetImage(asset)));
+      }
       for (final type in GameUpgradeIconType.values) {
         expect(providers, contains(upgradeIconImageProvider(type)));
       }
@@ -71,6 +74,17 @@ void main() {
         final size = await _assetImageSize(asset);
         expect(size.width, lessThanOrEqualTo(1280));
       }
+      for (final asset in [
+        turretModuleTicketIconAsset,
+        resultSuccessEmblemAsset,
+        resultFailureEmblemAsset,
+      ]) {
+        final size = await _assetImageSize(asset);
+        expect(size.width, lessThanOrEqualTo(256));
+        expect(size.height, lessThanOrEqualTo(256));
+      }
+      final logoSize = await _assetImageSize(gameLogoAsset);
+      expect(logoSize.width, lessThanOrEqualTo(1024));
       for (final asset in [
         corePassiveTreeCoreAsset,
         corePassiveTreeFrameAsset,

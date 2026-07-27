@@ -1,3 +1,5 @@
+import 'package:rune_nexus/ui/game/game_image_assets.dart';
+
 import 'helpers/widget_test_helpers.dart';
 
 void main() {
@@ -50,6 +52,19 @@ void main() {
       find.descendant(
         of: find.byKey(const ValueKey('menu-turret-module-tickets')),
         matching: find.text('모듈권 3'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('menu-turret-module-tickets')),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is Image &&
+              widget.image is AssetImage &&
+              (widget.image as AssetImage).assetName ==
+                  turretModuleTicketIconAsset,
+        ),
       ),
       findsOneWidget,
     );

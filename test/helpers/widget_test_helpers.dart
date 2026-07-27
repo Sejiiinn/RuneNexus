@@ -106,7 +106,7 @@ Future<void> pumpUntilLoadedApp(
       () => Future<void>.delayed(const Duration(milliseconds: 20)),
     );
     await tester.pump(const Duration(milliseconds: 16));
-    if (find.text('Rune Nexus').evaluate().isNotEmpty) {
+    if (find.byType(MainMenuScreen).evaluate().isNotEmpty) {
       return;
     }
   }

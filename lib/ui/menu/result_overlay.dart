@@ -271,12 +271,16 @@ class _ResultHeader extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          success ? Icons.diamond_outlined : Icons.warning_amber_rounded,
-          color: accent,
-          size: 40,
+        Image.asset(
+          success ? resultSuccessEmblemAsset : resultFailureEmblemAsset,
+          key: const ValueKey('result-status-emblem'),
+          width: 72,
+          height: 72,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.medium,
+          semanticLabel: success ? 'Nexus 방어 성공' : 'Nexus 붕괴',
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text(
           success ? 'Nexus 방어 성공' : 'Nexus 붕괴',
           textAlign: TextAlign.center,
@@ -368,17 +372,33 @@ class _RewardSummary extends StatelessWidget {
           ],
           if (turretModuleTicketReward > 0) ...[
             const SizedBox(height: 7),
-            ScaleDownText(
-              RuneNexusLocalizations.of(
-                context,
-              ).turretModuleTicketReward(turretModuleTicketReward),
+            FittedBox(
               key: const ValueKey('result-turret-module-ticket-reward'),
-              style: const TextStyle(
-                color: Color(0xFFE7C66A),
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                height: 1,
-                shadows: GameTextStyles.textShadow,
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    turretModuleTicketIconAsset,
+                    width: 20,
+                    height: 20,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    RuneNexusLocalizations.of(
+                      context,
+                    ).turretModuleTicketReward(turretModuleTicketReward),
+                    style: const TextStyle(
+                      color: Color(0xFFE7C66A),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      height: 1,
+                      shadows: GameTextStyles.textShadow,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
