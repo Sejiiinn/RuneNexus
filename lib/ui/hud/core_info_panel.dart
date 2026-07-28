@@ -13,9 +13,6 @@ class HudCoreInfoPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final skill = snapshot.coreCombatSkill;
-    final allocatedNodeCount = snapshot.corePassiveNodeRanks.values
-        .where((rank) => rank > 0)
-        .length;
     final hpProgress = snapshot.maxNexusHp <= 0
         ? 0.0
         : (snapshot.nexusHp / snapshot.maxNexusHp).clamp(0.0, 1.0).toDouble();
@@ -52,7 +49,7 @@ class HudCoreInfoPanel extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '전투 스킬 ${skill == null ? 0 : 1}개 · 패시브 노드 $allocatedNodeCount개 할당',
+                      '전투 스킬 ${skill == null ? 0 : 1}개 장착',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -106,8 +103,6 @@ class HudCoreInfoPanel extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           _CoreSkillInfoRow(skill: skill, snapshot: snapshot),
-          const SizedBox(height: 8),
-          _CorePassiveTreeInfoRow(snapshot: snapshot),
         ],
       ),
     );
@@ -137,23 +132,6 @@ class _CoreSkillInfoRow extends StatelessWidget {
           _CoreInfoText(title: title, description: description),
           if (metric != null) ...[const SizedBox(height: 5), metric],
         ],
-      ),
-    );
-  }
-}
-
-class _CorePassiveTreeInfoRow extends StatelessWidget {
-  const _CorePassiveTreeInfoRow({required this.snapshot});
-
-  final GameSnapshot snapshot;
-
-  @override
-  Widget build(BuildContext context) {
-    return _CoreInfoSection(
-      label: '패시브 트리',
-      child: _CoreInfoText(
-        title: '${snapshot.spentCorePoints} / ${snapshot.totalCorePoints}pt',
-        description: '남은 코어 포인트 ${snapshot.availableCorePoints}pt',
       ),
     );
   }

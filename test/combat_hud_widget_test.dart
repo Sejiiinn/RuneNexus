@@ -108,9 +108,10 @@ void main() {
     expect(find.text('전투 스킬'), findsOneWidget);
     expect(find.text('균열 낙인'), findsOneWidget);
     expect(find.text('내구도 높은 적 4명에게 받는 피해 25% 증가 낙인 부여'), findsOneWidget);
+    expect(find.text('전투 스킬 1개 장착'), findsOneWidget);
     expect(find.text('코어'), findsNothing);
-    expect(find.text('패시브 트리'), findsOneWidget);
-    expect(find.text('0 / 0pt'), findsOneWidget);
+    expect(find.text('패시브 트리'), findsNothing);
+    expect(find.text('0 / 0pt'), findsNothing);
     expect(find.text('다음 효과 +25%'), findsOneWidget);
     expect(find.text('총 추가 피해 0.00'), findsOneWidget);
     expect(find.text('발동 0회'), findsNothing);
