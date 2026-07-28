@@ -12,7 +12,7 @@ void main() {
     () {
       final providers = runeNexusStartupImageProviders();
 
-      expect(providers, hasLength(43));
+      expect(providers, hasLength(44));
       expect(providers.whereType<ResizeImage>(), hasLength(27));
       for (final asset in commonUiImageAssets) {
         expect(providers, contains(AssetImage(asset)));
@@ -52,11 +52,7 @@ void main() {
     expect(find.text('룬 넥서스 준비 중'), findsNothing);
 
     repository.completeLoad();
-    await pumpUntilFound(
-      tester,
-      find.text('이미지 에셋 로드 중'),
-      maxFrameCount: 60,
-    );
+    await pumpUntilFound(tester, find.text('이미지 에셋 로드 중'), maxFrameCount: 60);
     expect(find.text('게임을 시작하는 중'), findsNothing);
     await pumpUntilLoadedApp(tester);
     expect(find.byType(MainMenuScreen), findsOneWidget);
@@ -89,6 +85,10 @@ void main() {
       }
       final logoSize = await _assetImageSize(gameLogoAsset);
       expect(logoSize.width, lessThanOrEqualTo(1024));
+      final menuBackgroundSize = await _assetImageSize(mainMenuBackgroundAsset);
+      expect(menuBackgroundSize, const Size(853, 1844));
+      final menuBackgroundData = await rootBundle.load(mainMenuBackgroundAsset);
+      expect(menuBackgroundData.lengthInBytes, lessThanOrEqualTo(512 * 1024));
       for (final asset in [
         corePassiveTreeCoreAsset,
         corePassiveTreeFrameAsset,

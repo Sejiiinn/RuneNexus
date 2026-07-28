@@ -5,33 +5,29 @@ class _MainMenuBackdrop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(painter: _MainMenuBackdropPainter());
-  }
-}
-
-class _MainMenuBackdropPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0x33143A4E)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(
-      Offset(size.width * 0.5, size.height * 0.28),
-      size.shortestSide * 0.32,
-      paint,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset(
+          mainMenuBackgroundAsset,
+          fit: BoxFit.cover,
+          alignment: Alignment.topCenter,
+          excludeFromSemantics: true,
+          filterQuality: FilterQuality.medium,
+        ),
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0x1002070D), Color(0x3807111D), Color(0x7802070D)],
+              stops: [0, 0.5, 1],
+            ),
+          ),
+        ),
+      ],
     );
-
-    final linePaint = Paint()
-      ..color = const Color(0x1233D8FF)
-      ..strokeWidth = 1;
-    const spacing = 38.0;
-    for (var x = -spacing; x < size.width + spacing; x += spacing) {
-      canvas.drawLine(Offset(x, 0), Offset(x + 90, size.height), linePaint);
-    }
   }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _MenuLogo extends StatelessWidget {

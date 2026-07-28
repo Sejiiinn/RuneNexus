@@ -13,6 +13,7 @@ const String stageChapterOneBannerAsset = 'assets/images/chapter_1_banner.png';
 const String stageChapterTwoBannerAsset = 'assets/images/chapter_2_banner.png';
 const String stageChapterThreeBannerAsset =
     'assets/images/chapter_3_banner.png';
+const String mainMenuBackgroundAsset = 'assets/images/main_menu_background.jpg';
 const String gameLogoAsset = 'assets/images/rune_nexus_logo.png';
 const String resultSuccessEmblemAsset =
     'assets/images/results/result_success.png';
@@ -56,6 +57,7 @@ const List<String> stageRewardIconAssets = [
 ];
 
 const List<String> commonUiImageAssets = [
+  mainMenuBackgroundAsset,
   gameLogoAsset,
   resultSuccessEmblemAsset,
   resultFailureEmblemAsset,
