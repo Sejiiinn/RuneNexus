@@ -233,12 +233,18 @@ class _WeeklyQuestRow extends StatelessWidget {
                       : const Color(0x444A6172),
                 ),
               ),
-              child: Icon(
-                _dailyQuestIcon(type),
-                color: complete
-                    ? _diamondCurrencyColor
-                    : const Color(0xFF90AFC0),
-                size: 18,
+              child: Center(
+                child: Opacity(
+                  opacity: complete ? 1 : 0.58,
+                  child: Image.asset(
+                    _dailyQuestIconAsset(type),
+                    width: 18,
+                    height: 18,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                    semanticLabel: definition.title,
+                  ),
+                ),
               ),
             ),
           ),

@@ -1,5 +1,16 @@
 part of 'main_menu_screen.dart';
 
+const String _questImageAssetRoot = 'assets/images/quests';
+const String _questEntryDefaultAsset =
+    '$_questImageAssetRoot/entry_default.jpg';
+const String _questEntryRewardReadyAsset =
+    '$_questImageAssetRoot/entry_reward_ready.jpg';
+const String _questTitleIconAsset =
+    '$_questImageAssetRoot/title_flag_compact.png';
+const String _questAttendanceIconAsset = '$_questImageAssetRoot/attendance.png';
+const String _questWarningIconAsset = '$_questImageAssetRoot/warning.png';
+const String _questCloseIconAsset = '$_questImageAssetRoot/close.png';
+
 Future<void> _openDailyQuestDialog(BuildContext context, RuneNexusGame game) {
   return showGameDialog<void>(
     context: context,
@@ -77,14 +88,8 @@ class _DailyQuestEntryButtonState extends State<_DailyQuestEntryButton>
                 ? math.sin(_pulseController.value * math.pi)
                 : 0.0;
             final glowAlpha = 0.16 + pulse * 0.24;
-            final borderAlpha = ready ? 0.64 + pulse * 0.28 : 0.44;
             return DecoratedBox(
               decoration: BoxDecoration(
-                color: const Color(0xE607111D),
-                border: Border.all(
-                  color: _diamondCurrencyColor.withValues(alpha: borderAlpha),
-                  width: ready ? 1.4 : 1.0,
-                ),
                 borderRadius: BorderRadius.circular(8),
                 boxShadow: [
                   if (ready)
@@ -100,12 +105,16 @@ class _DailyQuestEntryButtonState extends State<_DailyQuestEntryButton>
                   ),
                 ],
               ),
-              child: Icon(
-                ready
-                    ? Icons.card_giftcard_rounded
-                    : Icons.event_available_outlined,
-                color: ready ? _diamondCurrencyColor : const Color(0xFFE8FBFF),
-                size: 20,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  ready ? _questEntryRewardReadyAsset : _questEntryDefaultAsset,
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.cover,
+                  filterQuality: FilterQuality.medium,
+                  gaplessPlayback: true,
+                ),
               ),
             );
           },
@@ -149,19 +158,36 @@ class _DailyQuestDialogState extends State<_DailyQuestDialog> {
             children: [
               Row(
                 children: [
-                  const Icon(
-                    Icons.event_available_outlined,
-                    color: _diamondCurrencyColor,
-                    size: 20,
+                  Image.asset(
+                    _questTitleIconAsset,
+                    width: 20,
+                    height: 20,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                    semanticLabel: '임무',
                   ),
                   const SizedBox(width: 8),
                   const Expanded(
                     child: Text('임무', style: GameTextStyles.title),
                   ),
-                  GameModalCloseButton(
+                  GameButton(
                     tooltip: '닫기',
                     onPressed: () => Navigator.of(context).pop(),
+                    compact: true,
+                    variant: GameButtonVariant.ghost,
                     accentColor: _diamondCurrencyColor,
+                    width: 32,
+                    height: 32,
+                    padding: EdgeInsets.zero,
+                    child: Center(
+                      child: Image.asset(
+                        _questCloseIconAsset,
+                        width: 17,
+                        height: 17,
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.medium,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -362,12 +388,18 @@ class _AttendanceQuestRow extends StatelessWidget {
                       : const Color(0x444A6172),
                 ),
               ),
-              child: Icon(
-                Icons.calendar_month_outlined,
-                color: complete
-                    ? _diamondCurrencyColor
-                    : const Color(0xFF90AFC0),
-                size: 18,
+              child: Center(
+                child: Opacity(
+                  opacity: complete ? 1 : 0.58,
+                  child: Image.asset(
+                    _questAttendanceIconAsset,
+                    width: 18,
+                    height: 18,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                    semanticLabel: '출석 임무',
+                  ),
+                ),
               ),
             ),
           ),
@@ -539,11 +571,18 @@ class _DailyQuestWarningCard extends StatelessWidget {
         border: Border.all(color: const Color(0x88FFB55E)),
         borderRadius: BorderRadius.circular(7),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.warning_amber_rounded, color: Color(0xFFFFD59A), size: 17),
-          SizedBox(width: 7),
-          Expanded(
+          Image.asset(
+            _questWarningIconAsset,
+            width: 17,
+            height: 17,
+            fit: BoxFit.contain,
+            filterQuality: FilterQuality.medium,
+            semanticLabel: '경고',
+          ),
+          const SizedBox(width: 7),
+          const Expanded(
             child: Text(
               '시간 변경이 감지되어 오늘 보상 수령이 잠겼습니다.',
               style: TextStyle(
@@ -618,12 +657,18 @@ class _DailyQuestRow extends StatelessWidget {
                       : const Color(0x444A6172),
                 ),
               ),
-              child: Icon(
-                _dailyQuestIcon(type),
-                color: complete
-                    ? _diamondCurrencyColor
-                    : const Color(0xFF90AFC0),
-                size: 18,
+              child: Center(
+                child: Opacity(
+                  opacity: complete ? 1 : 0.58,
+                  child: Image.asset(
+                    _dailyQuestIconAsset(type),
+                    width: 18,
+                    height: 18,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                    semanticLabel: definition.title,
+                  ),
+                ),
               ),
             ),
           ),
@@ -767,11 +812,12 @@ bool _canClaimAllDailyQuestReward(GameSnapshot snapshot) {
       !snapshot.dailyQuestAllCompleteClaimed;
 }
 
-IconData _dailyQuestIcon(DailyQuestType type) {
+String _dailyQuestIconAsset(DailyQuestType type) {
   return switch (type) {
-    DailyQuestType.clearWaves => Icons.flag_outlined,
-    DailyQuestType.killBosses => Icons.workspace_premium_outlined,
-    DailyQuestType.killEnemies => Icons.track_changes,
-    DailyQuestType.buyRunUpgrades => Icons.trending_up,
+    DailyQuestType.clearWaves => '$_questImageAssetRoot/clear_waves.png',
+    DailyQuestType.killBosses => '$_questImageAssetRoot/kill_bosses.png',
+    DailyQuestType.killEnemies => '$_questImageAssetRoot/kill_enemies.png',
+    DailyQuestType.buyRunUpgrades =>
+      '$_questImageAssetRoot/buy_run_upgrades.png',
   };
 }
