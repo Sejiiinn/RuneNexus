@@ -87,7 +87,7 @@ class _DailyQuestEntryButtonState extends State<_DailyQuestEntryButton>
             final pulse = ready
                 ? math.sin(_pulseController.value * math.pi)
                 : 0.0;
-            final glowAlpha = 0.16 + pulse * 0.24;
+            final glowAlpha = 0.28 + pulse * 0.34;
             return DecoratedBox(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
@@ -95,8 +95,8 @@ class _DailyQuestEntryButtonState extends State<_DailyQuestEntryButton>
                   if (ready)
                     BoxShadow(
                       color: _diamondCurrencyColor.withValues(alpha: glowAlpha),
-                      blurRadius: 13 + pulse * 8,
-                      spreadRadius: pulse * 1.2,
+                      blurRadius: 16 + pulse * 12,
+                      spreadRadius: 1 + pulse * 2.4,
                     ),
                   const BoxShadow(
                     color: Color(0x66000000),
