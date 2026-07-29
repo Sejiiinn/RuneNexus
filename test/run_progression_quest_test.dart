@@ -200,6 +200,7 @@ void main() {
     expect(progression.dailyQuestDayKey, isNot(previousDayKey));
     expect(progression.dailyQuestProgress, isEmpty);
     expect(progression.dailyQuestClockRollbackDetected, isFalse);
+    expect(progression.lastDailyQuestSeenMillis, afterReset);
 
     progression.refreshDailyQuests(nowMillis: afterReset + 3600000);
     progression.recordDailyQuestProgress(
@@ -218,6 +219,51 @@ void main() {
     );
     expect(progression.freeDiamonds, 0);
   });
+
+  test('same-day clock advances checkpoint without quest state change', () {
+    final initialMillis = DateTime.utc(2026, 6, 8).millisecondsSinceEpoch;
+    final progression = RunProgression();
+
+    expect(progression.refreshDailyQuests(nowMillis: initialMillis), isTrue);
+    expect(progression.lastDailyQuestSeenMillis, initialMillis);
+
+    expect(
+      progression.refreshDailyQuests(nowMillis: initialMillis + 1000),
+      isFalse,
+    );
+    expect(progression.lastDailyQuestSeenMillis, initialMillis);
+
+    expect(
+      progression.refreshDailyQuests(nowMillis: initialMillis + 60000),
+      isFalse,
+    );
+    expect(progression.lastDailyQuestSeenMillis, initialMillis + 60000);
+  });
+
+  test(
+    'routine frames do not publish or immediately save clock progress',
+    () async {
+      final repository = _CountingSaveRepository();
+      final game = RuneNexusGame(saveRepository: repository);
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      await game.saveNow();
+
+      repository.saveCalls = 0;
+      var snapshotNotifications = 0;
+      game.snapshotNotifier.addListener(() {
+        snapshotNotifications++;
+      });
+
+      for (var frame = 0; frame < 30; frame++) {
+        await Future<void>.delayed(const Duration(milliseconds: 2));
+        game.update(1 / 30);
+      }
+
+      expect(snapshotNotifications, 0);
+      expect(repository.saveCalls, 0);
+    },
+  );
 
   test('daily quests track wave, boss, enemy, and run upgrades', () async {
     final game = RuneNexusGame(
@@ -298,4 +344,23 @@ void main() {
       1,
     );
   });
+}
+
+class _CountingSaveRepository implements SaveRepository {
+  GameSaveData? data;
+  int saveCalls = 0;
+
+  @override
+  Future<GameSaveData?> load() async => data;
+
+  @override
+  Future<void> save(GameSaveData data) async {
+    saveCalls++;
+    this.data = data;
+  }
+
+  @override
+  Future<void> clear() async {
+    data = null;
+  }
 }

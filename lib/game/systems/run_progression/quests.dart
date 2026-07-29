@@ -31,7 +31,8 @@ mixin _QuestProgression {
   bool refreshDailyQuests({required int nowMillis}) {
     var changed = false;
     final currentDayKey = RunProgression.dailyQuestDayKeyFor(nowMillis);
-    if (dailyQuestDayKey != currentDayKey) {
+    final dayChanged = dailyQuestDayKey != currentDayKey;
+    if (dayChanged) {
       dailyQuestDayKey = currentDayKey;
       dailyQuestProgress.clear();
       claimedDailyQuestRewards.clear();
@@ -48,9 +49,12 @@ mixin _QuestProgression {
       }
     }
 
-    if (lastDailyQuestSeenMillis == 0 || nowMillis > lastDailyQuestSeenMillis) {
+    // 롤백 감지 기준 시각의 분 단위 체크포인트.
+    if (dayChanged ||
+        lastDailyQuestSeenMillis == 0 ||
+        nowMillis - lastDailyQuestSeenMillis >=
+            RunProgression._dailyQuestSeenCheckpointIntervalMillis) {
       lastDailyQuestSeenMillis = nowMillis;
-      changed = true;
     }
     if (_refreshWeeklyQuests(currentDayKey: currentDayKey)) {
       changed = true;

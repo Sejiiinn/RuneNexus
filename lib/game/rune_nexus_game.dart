@@ -108,6 +108,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _portalAlertDuration = 0.55;
   static const double _postPortalAlertSpawnDelay = 0.15;
   static const double _combatStatsPublishInterval = 0.2;
+  static const double _timeBasedProgressRefreshInterval = 1;
   static const double _nexusCoreBeamInterval = 5;
   static const double _nexusCoreBeamDuration = 1;
   static const double _nexusCoreBeamTickInterval = 0.1;
@@ -527,6 +528,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   GameSaveData? _pendingFullSaveData;
   double _combatStatsPublishTimer = 0;
   bool _combatStatsPublishPending = false;
+  double _timeBasedProgressRefreshTimer = 0;
   bool _appResourcesDisposed = false;
   double _spaceTime = 0;
   double _roundNexusHpLost = 0;
@@ -879,7 +881,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void update(double dt) {
-    _updateResearchProgress();
+    _updateTimeBasedProgress(dt);
     _spaceTime = (_spaceTime + dt) % 1200;
     _updateVisualAlerts(dt);
     if (_phase == GamePhase.coreDestruction) {
@@ -908,16 +910,34 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   bool refreshResearchProgress() {
+    _timeBasedProgressRefreshTimer = 0;
     return _updateResearchProgress();
+  }
+
+  void _updateTimeBasedProgress(double dt) {
+    _timeBasedProgressRefreshTimer += dt;
+    if (_timeBasedProgressRefreshTimer < _timeBasedProgressRefreshInterval) {
+      return;
+    }
+
+    // 벽시계 기반 진행도 저빈도 갱신.
+    _timeBasedProgressRefreshTimer = 0;
+    _updateResearchProgress();
   }
 
   bool _updateResearchProgress() {
     final nowMillis = DateTime.now().millisecondsSinceEpoch;
+    final previousDailyQuestSeenMillis = _progression.lastDailyQuestSeenMillis;
     final dailyChanged = _progression.refreshDailyQuests(nowMillis: nowMillis);
+    final dailyQuestSeenChanged =
+        previousDailyQuestSeenMillis != _progression.lastDailyQuestSeenMillis;
     final completed = _progression.completeFinishedResearches(
       nowMillis: nowMillis,
     );
     if (!dailyChanged && !completed) {
+      if (dailyQuestSeenChanged) {
+        _requestLocalSave();
+      }
       return false;
     }
     _publish();

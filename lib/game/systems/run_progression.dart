@@ -52,6 +52,7 @@ class RunProgression
   static const int uninitializedWeeklyQuestWeekKey = -1;
   static const int dailyQuestResetHourKst = 5;
   static const int dailyQuestClockRollbackGraceMillis = 5 * 60 * 1000;
+  static const int _dailyQuestSeenCheckpointIntervalMillis = 60 * 1000;
   static const int _hourMillis = 60 * 60 * 1000;
   static const int _dayMillis = 24 * _hourMillis;
   static const int _kstOffsetHours = 9;
