@@ -1761,6 +1761,50 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _publish();
   }
 
+  void debugShowTurretLevels() {
+    if (!_debugPanelEnabled || !_boardConfigured) {
+      return;
+    }
+
+    _clearActiveCombat();
+    for (final turret in _turrets.values) {
+      turret.removeFromParent();
+    }
+    _turrets.clear();
+
+    _phase = GamePhase.preparation;
+    _selectedBuildPoint = null;
+    _selectedBuildTurretType = null;
+    _selectedPortalPoint = null;
+    _selectedCorePoint = null;
+    _selectedTurretPoint = null;
+    _selectedTurretGemSlotIndex = null;
+    _selectedRunPanelTab = RunPanelTab.closed;
+
+    final buildPoints = <GridPoint>[
+      for (var y = 0; y < _map.rows; y++)
+        for (var x = 0; x < _map.columns; x++)
+          if (_map.canBuildAt(GridPoint(x, y))) GridPoint(x, y),
+    ];
+    final count = math.min(10, buildPoints.length);
+    for (var index = 0; index < count; index++) {
+      final point = buildPoints[index];
+      final type = TurretType.values[index % TurretType.values.length];
+      final turret = TurretComponent(
+        gridPoint: point,
+        definition: gameTurrets[type]!,
+        game: this,
+        center: _centerOf(point),
+        tileSize: _tileSize,
+      );
+      while (turret.level < index + 1 && turret.upgradeLevel()) {}
+      _turrets[point] = turret;
+      add(turret);
+    }
+    _refreshEfficiencyPassiveBoardState();
+    _publish();
+  }
+
   void debugOpenGemReward() {
     if (!_debugPanelEnabled) {
       return;

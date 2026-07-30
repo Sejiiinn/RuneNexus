@@ -67,6 +67,9 @@ class TurretComponent extends PositionComponent {
   int _overheatStacks = 0;
   EnemyComponent? _suppressiveTarget;
   int _suppressiveHits = 0;
+  TextPainter? _levelLabelPainter;
+  int _levelLabelPainterLevel = 0;
+  double _levelLabelPainterTileSize = 0;
   final Map<EnemyComponent, double> _recentHitTimers = {};
   double _chainCleanupTimer = 0;
   TurretTargetPriority _targetPriority = TurretTargetPriority.first;
@@ -1073,7 +1076,7 @@ class TurretComponent extends PositionComponent {
       strokeWidth: size.x * 0.05,
     );
 
-    _drawLevelGlyph(canvas, center);
+    _drawLevelBadge(canvas, center);
   }
 
   void _drawAimBeam(Canvas canvas, Offset center) {
@@ -1227,15 +1230,15 @@ class TurretComponent extends PositionComponent {
     }
 
     final tier = _levelVisualTier;
-    final ringRadius = _tileSize * (0.27 + tier * 0.018);
+    final ringRadius = _tileSize * (0.28 + tier * 0.015);
     final glowPaint = Paint()
-      ..color = const Color(0xFFFFD45A).withValues(alpha: 0.06 + tier * 0.025)
+      ..color = const Color(0xFFFFD45A).withValues(alpha: 0.045 + tier * 0.02)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = _tileSize * (0.045 + tier * 0.006);
+      ..strokeWidth = _tileSize * (0.034 + tier * 0.004);
     final ringPaint = Paint()
-      ..color = const Color(0xFFFFE78C).withValues(alpha: 0.18 + tier * 0.07)
+      ..color = const Color(0xFFFFE78C).withValues(alpha: 0.16 + tier * 0.055)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2 + tier * 0.35;
+      ..strokeWidth = 1.0 + tier * 0.25;
 
     canvas.drawCircle(center, ringRadius, glowPaint);
     canvas.drawCircle(center, ringRadius, ringPaint);
@@ -1247,8 +1250,8 @@ class TurretComponent extends PositionComponent {
     final sparkPaint = Paint()
       ..color = const Color(
         0xFFFFF0B0,
-      ).withValues(alpha: tier >= 4 ? 0.95 : 0.72)
-      ..strokeWidth = tier >= 4 ? 2.0 : 1.5
+      ).withValues(alpha: tier >= 4 ? 0.92 : 0.7)
+      ..strokeWidth = tier >= 4 ? 1.8 : 1.45
       ..strokeCap = StrokeCap.round;
     for (final angle in const [-math.pi / 2, 0.0, math.pi / 2, math.pi]) {
       final start = Offset(
@@ -1263,130 +1266,134 @@ class TurretComponent extends PositionComponent {
     }
   }
 
-  void _drawLevelGlyph(Canvas canvas, Offset center) {
-    if (_level <= 1) {
-      return;
-    }
-
+  void _drawLevelBadge(Canvas canvas, Offset center) {
     final tier = _levelVisualTier;
-    final glyphCenter = center.translate(0, _tileSize * 0.27);
-    final outline = Paint()
-      ..color = const Color(0xFF050A12).withValues(alpha: 0.9)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-    final shadowFill = Paint()
-      ..color = const Color(0xFF050A12).withValues(alpha: 0.68);
-    final glowStroke = Paint()
-      ..color = const Color(0xFFFFD45A).withValues(alpha: 0.18)
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 3.0;
+    final badgeCenter = center.translate(0, _tileSize * 0.3);
+    final badgeWidth = _tileSize * (_level >= 10 ? 0.54 : 0.49);
+    final badgeHeight = _tileSize * 0.21;
+    final badgeRect = Rect.fromCenter(
+      center: badgeCenter,
+      width: badgeWidth,
+      height: badgeHeight,
+    );
+    final badgeRadius = Radius.circular(badgeHeight * 0.34);
+    final frameColor = _levelFrameColor;
+    final backgroundColor = tier >= 4
+        ? const Color(0xF02B2106)
+        : const Color(0xEC050A12);
 
-    if (tier >= 4) {
-      final starRadius = _tileSize * 0.135;
-      final star = _levelStarPath(glyphCenter, starRadius);
-      canvas.drawPath(star.shift(Offset(0, _tileSize * 0.014)), shadowFill);
-      canvas.drawPath(star, glowStroke);
-      canvas.drawPath(
-        star,
-        Paint()..color = const Color(0xFFFFF0B0).withValues(alpha: 0.98),
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        badgeRect
+            .shift(Offset(0, _tileSize * 0.018))
+            .inflate(_tileSize * 0.016),
+        badgeRadius,
+      ),
+      Paint()..color = const Color(0xB0000000),
+    );
+
+    if (_level > 1) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          badgeRect.inflate(_tileSize * 0.012),
+          badgeRadius,
+        ),
+        Paint()
+          ..color = frameColor.withValues(alpha: 0.1 + tier * 0.035)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = _tileSize * (0.05 + tier * 0.006),
       );
-      canvas.drawPath(star, outline);
     }
+
+    if (tier >= 2) {
+      _drawLevelFrameWings(canvas, badgeCenter, frameColor, tier);
+    }
+
+    final badge = RRect.fromRectAndRadius(badgeRect, badgeRadius);
+    canvas.drawRRect(
+      badge,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color.lerp(backgroundColor, frameColor, tier >= 3 ? 0.2 : 0.12)!,
+            backgroundColor,
+            const Color(0xFF02050A),
+          ],
+          stops: const [0, 0.48, 1],
+        ).createShader(badgeRect),
+    );
+    canvas.drawRRect(
+      badge,
+      Paint()
+        ..color = frameColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0 + tier * 0.28,
+    );
+    _drawLevelFrameBevels(canvas, badgeRect, frameColor, tier);
 
     if (tier >= 3) {
-      final ringRadius = _tileSize * 0.128;
-      canvas.drawCircle(glyphCenter, ringRadius, glowStroke);
-      canvas.drawCircle(
-        glyphCenter,
-        ringRadius,
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          badgeRect.deflate(_tileSize * 0.025),
+          Radius.circular(badgeHeight * 0.22),
+        ),
         Paint()
-          ..color = const Color(0xFF050A12).withValues(alpha: 0.74)
+          ..color = frameColor.withValues(alpha: 0.46)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.0,
+          ..strokeWidth = 0.8,
       );
-      for (final direction in const [
-        Offset(0, -1),
-        Offset(1, 0),
-        Offset(0, 1),
-        Offset(-1, 0),
-      ]) {
-        canvas.drawLine(
-          glyphCenter.translate(
-            direction.dx * _tileSize * 0.115,
-            direction.dy * _tileSize * 0.115,
-          ),
-          glyphCenter.translate(
-            direction.dx * _tileSize * 0.155,
-            direction.dy * _tileSize * 0.155,
-          ),
-          Paint()
-            ..color = const Color(0xFFFFF0B0).withValues(alpha: 0.9)
-            ..strokeWidth = 1.6
-            ..strokeCap = StrokeCap.round,
-        );
-      }
+    }
+    if (_level > 1) {
+      _drawLevelFrameCrest(canvas, badgeRect, frameColor, tier);
     }
 
-    if (tier >= 2) {
-      final width = _tileSize * (tier >= 3 ? 0.38 : 0.34);
-      final height = _tileSize * 0.11;
-      final wing = _levelWingPath(glyphCenter, width, height);
-      final wingFill = tier >= 3
-          ? const Color(0xFFFFF6DA)
-          : const Color(0xFFFFEBC1);
-      canvas.drawPath(wing.shift(Offset(0, _tileSize * 0.014)), shadowFill);
-      canvas.drawPath(wing, Paint()..color = wingFill.withValues(alpha: 0.98));
-      canvas.drawPath(wing, outline);
-    }
-
-    final coreRadius =
-        _tileSize *
-        switch (tier) {
-          1 => 0.12,
-          2 => 0.125,
-          3 => 0.13,
-          _ => 0.116,
-        };
-    final core = _levelDiamondPath(glyphCenter, coreRadius);
-    canvas.drawPath(core.shift(Offset(0, _tileSize * 0.012)), shadowFill);
-    canvas.drawPath(
-      core,
-      Paint()
-        ..color =
-            (tier >= 3 ? const Color(0xFFFFF0B0) : const Color(0xFFFFD45A))
-                .withValues(alpha: 0.97),
+    final labelPainter = _levelTextPainter();
+    labelPainter.paint(
+      canvas,
+      badgeCenter.translate(-labelPainter.width / 2, -labelPainter.height / 2),
     );
-    canvas.drawPath(core, outline);
-
-    if (tier >= 2) {
-      final sparkRadius = coreRadius * 0.34;
-      canvas.drawCircle(
-        glyphCenter,
-        sparkRadius,
-        Paint()
-          ..color =
-              (tier >= 3 ? const Color(0xFFFFFFFF) : const Color(0xFFFFF0B0))
-                  .withValues(alpha: 0.82),
-      );
-    }
-
-    if (tier >= 4) {
-      canvas.drawCircle(
-        glyphCenter.translate(0, -_tileSize * 0.006),
-        coreRadius * 0.2,
-        Paint()..color = const Color(0xFFFF8A3D).withValues(alpha: 0.95),
-      );
-    }
   }
 
-  Path _levelDiamondPath(Offset center, double radius) {
-    return Path()
-      ..moveTo(center.dx, center.dy - radius)
-      ..lineTo(center.dx + radius * 0.82, center.dy)
-      ..lineTo(center.dx, center.dy + radius)
-      ..lineTo(center.dx - radius * 0.82, center.dy)
-      ..close();
+  void _drawLevelFrameWings(
+    Canvas canvas,
+    Offset badgeCenter,
+    Color frameColor,
+    int tier,
+  ) {
+    final wingWidth =
+        _tileSize *
+        switch (tier) {
+          2 => 0.61,
+          3 => 0.65,
+          _ => 0.69,
+        };
+    final wingHeight = _tileSize * 0.11;
+    final wing = _levelWingPath(badgeCenter, wingWidth, wingHeight);
+    final wingFill = tier >= 3
+        ? const Color(0xFFFFF6DA)
+        : const Color(0xFFFFEBC1);
+
+    canvas.drawPath(
+      wing.shift(Offset(0, _tileSize * 0.014)),
+      Paint()..color = const Color(0xB0050A12),
+    );
+    canvas.drawPath(
+      wing,
+      Paint()
+        ..color = frameColor.withValues(alpha: 0.2)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3,
+    );
+    canvas.drawPath(wing, Paint()..color = wingFill.withValues(alpha: 0.98));
+    canvas.drawPath(
+      wing,
+      Paint()
+        ..color = const Color(0xFF050A12)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2,
+    );
   }
 
   Path _levelWingPath(Offset center, double width, double height) {
@@ -1401,6 +1408,154 @@ class TurretComponent extends PositionComponent {
       ..lineTo(center.dx + halfWidth - bevel, center.dy + halfHeight)
       ..lineTo(center.dx - halfWidth + bevel, center.dy + halfHeight)
       ..close();
+  }
+
+  void _drawLevelFrameBevels(
+    Canvas canvas,
+    Rect badgeRect,
+    Color frameColor,
+    int tier,
+  ) {
+    final lineLength = badgeRect.width * (tier >= 3 ? 0.17 : 0.12);
+    final inset = badgeRect.width * 0.13;
+    final highlightPaint = Paint()
+      ..color = Color.lerp(
+        frameColor,
+        const Color(0xFFFFFFFF),
+        0.46,
+      )!.withValues(alpha: 0.7)
+      ..strokeWidth = tier >= 3 ? 1.2 : 0.9
+      ..strokeCap = StrokeCap.round;
+    final shadePaint = Paint()
+      ..color = const Color(0xFF050A12).withValues(alpha: 0.88)
+      ..strokeWidth = tier >= 3 ? 1.2 : 0.9
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawLine(
+      Offset(badgeRect.left + inset, badgeRect.top),
+      Offset(badgeRect.left + inset + lineLength, badgeRect.top),
+      highlightPaint,
+    );
+    canvas.drawLine(
+      Offset(badgeRect.right - inset - lineLength, badgeRect.top),
+      Offset(badgeRect.right - inset, badgeRect.top),
+      highlightPaint,
+    );
+    canvas.drawLine(
+      Offset(badgeRect.left + inset, badgeRect.bottom),
+      Offset(badgeRect.left + inset + lineLength, badgeRect.bottom),
+      shadePaint,
+    );
+    canvas.drawLine(
+      Offset(badgeRect.right - inset - lineLength, badgeRect.bottom),
+      Offset(badgeRect.right - inset, badgeRect.bottom),
+      shadePaint,
+    );
+  }
+
+  void _drawLevelFrameCrest(
+    Canvas canvas,
+    Rect badgeRect,
+    Color frameColor,
+    int tier,
+  ) {
+    final crestCenter = badgeRect.topCenter.translate(
+      0,
+      -_tileSize * (tier >= 4 ? 0.026 : 0.012),
+    );
+    if (tier >= 4) {
+      final star = _levelStarPath(crestCenter, _tileSize * 0.055);
+      canvas.drawPath(
+        star.shift(Offset(0, _tileSize * 0.01)),
+        Paint()..color = const Color(0xB0050A12),
+      );
+      canvas.drawPath(star, Paint()..color = const Color(0xFFFFF0B0));
+      canvas.drawPath(
+        star,
+        Paint()
+          ..color = const Color(0xFF050A12)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.8,
+      );
+      return;
+    }
+
+    final radius = _tileSize * (tier >= 3 ? 0.035 : 0.027);
+    final diamond = Path()
+      ..moveTo(crestCenter.dx, crestCenter.dy - radius)
+      ..lineTo(crestCenter.dx + radius, crestCenter.dy)
+      ..lineTo(crestCenter.dx, crestCenter.dy + radius)
+      ..lineTo(crestCenter.dx - radius, crestCenter.dy)
+      ..close();
+    canvas.drawPath(
+      diamond.shift(Offset(0, _tileSize * 0.008)),
+      Paint()..color = const Color(0xB0050A12),
+    );
+    canvas.drawPath(diamond, Paint()..color = frameColor);
+    canvas.drawPath(
+      diamond,
+      Paint()
+        ..color = const Color(0xFF050A12)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.7,
+    );
+  }
+
+  TextPainter _levelTextPainter() {
+    if (_levelLabelPainter == null ||
+        _levelLabelPainterLevel != _level ||
+        _levelLabelPainterTileSize != _tileSize) {
+      _levelLabelPainterLevel = _level;
+      _levelLabelPainterTileSize = _tileSize;
+      _levelLabelPainter = TextPainter(
+        text: TextSpan(
+          text: 'Lv.$_level',
+          style: TextStyle(
+            color: _level <= 1
+                ? const Color(0xFFE8F8FF)
+                : const Color(0xFFFFF0B0),
+            fontSize: _tileSize * 0.125,
+            fontWeight: FontWeight.w900,
+            height: 1,
+            shadows: [
+              const Shadow(
+                color: Color(0xFF000000),
+                offset: Offset(0, 1),
+                blurRadius: 1,
+              ),
+              if (_level >= 5)
+                Shadow(
+                  color: const Color(0xFFFFD45A).withValues(alpha: 0.5),
+                  blurRadius: 2.4,
+                ),
+            ],
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+    }
+    return _levelLabelPainter!;
+  }
+
+  Color get _levelFrameColor {
+    if (_level <= 1) {
+      return const Color(0xFF607486);
+    }
+    if (_level <= 4) {
+      return Color.lerp(
+        const Color(0xFF8FA8BA),
+        const Color(0xFFE7C66A),
+        (_level - 1) / 3,
+      )!;
+    }
+    if (_level <= 7) {
+      return Color.lerp(
+        const Color(0xFFE7C66A),
+        const Color(0xFFFFD166),
+        (_level - 4) / 3,
+      )!;
+    }
+    return const Color(0xFFFFE78C);
   }
 
   Path _levelStarPath(Offset center, double radius) {

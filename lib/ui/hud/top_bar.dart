@@ -791,6 +791,15 @@ class HudGemDebugPanel extends StatelessWidget {
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 6),
+              SizedBox(
+                width: double.infinity,
+                child: _DebugRoundButton(
+                  label: '포탑 레벨 1~10',
+                  enabled: true,
+                  onPressed: game.debugShowTurretLevels,
+                ),
+              ),
+              const SizedBox(height: 5),
               Row(
                 children: [
                   _DebugRoundButton(
