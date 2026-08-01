@@ -13,6 +13,14 @@ flutter_web_server.*
 .codegraph/
 artifacts/
 
+# Local turret-level design explorations
+design/mockups/turret_level_actual_screen.png
+design/mockups/turret_level_actual_screen_richer.png
+design/mockups/turret_level_frame_growth_refined.svg
+design/mockups/turret_level_frame_growth_refined.svg.png
+design/mockups/turret_level_option_[a-d].svg
+design/mockups/turret_level_option_[a-d].svg.png
+
 # Android/iOS generated files
 android/.gradle/
 ios/Pods/
