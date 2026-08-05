@@ -46,7 +46,7 @@ class RunProgression
   static const int researchSlotTwoUnlockRequiredStage = 10;
   static const int researchSlotTwoUnlockCost = 600;
   static const int gemShardsPerGemAttunementLevel = 2;
-  static const int turretModuleTicketDiamondCost = 80;
+  static const int turretModuleTicketDiamondCost = 40;
   static const int diamondMillisPerResearchMinute = 60000;
   static const int uninitializedDailyQuestDayKey = -1;
   static const int uninitializedWeeklyQuestWeekKey = -1;

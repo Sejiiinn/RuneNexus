@@ -195,13 +195,13 @@ mixin _TurretModuleProgression {
 
   TurretModuleGrade _rollTurretModuleGrade(math.Random random) {
     final roll = random.nextInt(100);
-    if (roll < 2) {
+    if (roll < 3) {
       return TurretModuleGrade.unique;
     }
-    if (roll < 9) {
+    if (roll < 10) {
       return TurretModuleGrade.rare;
     }
-    if (roll < 35) {
+    if (roll < 36) {
       return TurretModuleGrade.magic;
     }
     return TurretModuleGrade.normal;

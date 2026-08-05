@@ -15,7 +15,7 @@ void main() {
     final initialSnapshot = resultSnapshot(
       phase: GamePhase.preparation,
       currentStageNumber: 1,
-      diamonds: 160,
+      diamonds: 80,
       turretModuleTickets: 3,
     );
     game.snapshotNotifier.value = initialSnapshot;
@@ -89,9 +89,9 @@ void main() {
       (fiveDrawButtonRect.center.dy - drawTitleRect.center.dy).abs(),
       lessThanOrEqualTo(6),
     );
-    expect(find.text('부족 2장 · 다이아 160'), findsNothing);
+    expect(find.text('부족 2장 · 다이아 80'), findsNothing);
     expect(
-      find.descendant(of: fiveDrawButton, matching: find.text('160')),
+      find.descendant(of: fiveDrawButton, matching: find.text('80')),
       findsOneWidget,
     );
     expect(
@@ -136,10 +136,10 @@ void main() {
       findsNothing,
     );
     expect(
-      find.descendant(of: purchaseDialog, matching: find.text('160')),
+      find.descendant(of: purchaseDialog, matching: find.text('80')),
       findsOneWidget,
     );
-    expect(find.text('160개'), findsNothing);
+    expect(find.text('80개'), findsNothing);
 
     await tester.tap(find.text('구매'));
     await pumpGameFrames(tester);

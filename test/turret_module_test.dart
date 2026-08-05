@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/definitions/game_turret_data.dart';
@@ -183,7 +185,7 @@ void main() {
   test('draw can buy missing turret module tickets with diamonds', () {
     final progression = RunProgression()
       ..turretModuleTickets = 3
-      ..addFreeDiamonds(160);
+      ..addFreeDiamonds(80);
 
     expect(
       progression.drawTurretModules(
@@ -193,7 +195,7 @@ void main() {
       isEmpty,
     );
     expect(progression.turretModuleTickets, 3);
-    expect(progression.diamonds, 160);
+    expect(progression.diamonds, 80);
 
     final results = progression.drawTurretModules(
       count: 5,
@@ -204,6 +206,30 @@ void main() {
     expect(results, hasLength(5));
     expect(progression.turretModuleTickets, 0);
     expect(progression.diamonds, 0);
+  });
+
+  test('turret module grade rates are unique 3 and normal 64 percent', () {
+    const expectedGrades = <int, TurretModuleGrade>{
+      0: TurretModuleGrade.unique,
+      2: TurretModuleGrade.unique,
+      3: TurretModuleGrade.rare,
+      9: TurretModuleGrade.rare,
+      10: TurretModuleGrade.magic,
+      35: TurretModuleGrade.magic,
+      36: TurretModuleGrade.normal,
+      99: TurretModuleGrade.normal,
+    };
+
+    for (final entry in expectedGrades.entries) {
+      final progression = RunProgression()..turretModuleTickets = 1;
+      final result = progression.drawTurretModules(
+        count: 1,
+        availableTurretTypes: const [TurretType.arrow],
+        random: _GradeRollRandom(entry.key),
+      );
+
+      expect(result.single.key.grade, entry.value, reason: 'roll ${entry.key}');
+    }
   });
 
   test('turret module roll tables keep unique and core damage ranges', () {
@@ -314,6 +340,28 @@ void main() {
     expect(moduleTurret.attackRate, closeTo(base.attackRate * 1.08, 0.001));
     expect(moduleTurret.levelUpCost, 38);
   });
+}
+
+class _GradeRollRandom implements math.Random {
+  _GradeRollRandom(this.gradeRoll);
+
+  final int gradeRoll;
+  var _gradeRolled = false;
+
+  @override
+  bool nextBool() => false;
+
+  @override
+  double nextDouble() => 0;
+
+  @override
+  int nextInt(int max) {
+    if (max == 100 && !_gradeRolled) {
+      _gradeRolled = true;
+      return gradeRoll;
+    }
+    return 0;
+  }
 }
 
 class _ModuleEffectGame extends RuneNexusGame {
