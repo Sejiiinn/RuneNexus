@@ -17,6 +17,7 @@ void main() {
       currentStageNumber: 1,
       diamonds: 80,
       turretModuleTickets: 3,
+      turretModuleDrawCount: 260,
     );
     game.snapshotNotifier.value = initialSnapshot;
 
@@ -49,26 +50,37 @@ void main() {
       '포탑 모듈',
     );
     expect(
-      find.descendant(
-        of: find.byKey(const ValueKey('menu-turret-module-tickets')),
-        matching: find.text('모듈권 3'),
-      ),
+      find.byKey(const ValueKey('menu-turret-module-tickets')),
+      findsNothing,
+    );
+    expect(find.text('모듈권 3'), findsNothing);
+    final currencyBalance = find.byKey(const ValueKey('menu-currency-balance'));
+    expect(
+      find.descendant(of: currencyBalance, matching: find.text('3')),
       findsOneWidget,
     );
     expect(
       find.descendant(
-        of: find.byKey(const ValueKey('menu-turret-module-tickets')),
-        matching: find.byWidgetPredicate(
-          (widget) =>
-              widget is Image &&
-              widget.image is AssetImage &&
-              (widget.image as AssetImage).assetName ==
-                  turretModuleTicketIconAsset,
-        ),
+        of: currencyBalance,
+        matching: find.byType(RuneCurrencyIcon),
       ),
-      findsOneWidget,
+      findsNothing,
     );
-    expect(find.text('모듈 뽑기'), findsOneWidget);
+    final moduleTicketIcon = tester.widget<Image>(
+      find.byKey(const ValueKey('menu-turret-module-ticket-icon')),
+    );
+    expect(moduleTicketIcon.image, isA<AssetImage>());
+    expect(
+      (moduleTicketIcon.image as AssetImage).assetName,
+      turretModuleTicketIconAsset,
+    );
+    expect(find.text('모듈 뽑기'), findsNothing);
+    expect(find.text('모듈 구축 Lv.3'), findsOneWidget);
+    expect(find.textContaining('현재 누적'), findsNothing);
+    expect(find.text('유니크 4%'), findsNothing);
+    expect(find.text('희귀 10%'), findsNothing);
+    expect(find.text('마법 30%'), findsNothing);
+    expect(find.text('일반 56%'), findsNothing);
     expect(find.text('희귀 5%'), findsNothing);
     expect(find.text('희귀 보정'), findsNothing);
     expect(find.text('선택 포탑 · 모든 기관총에 적용'), findsNothing);
@@ -79,16 +91,21 @@ void main() {
     expect(find.text('0성'), findsNothing);
     expect(find.text('☆☆☆'), findsNothing);
     expect(find.textContaining('장착 효과:'), findsOneWidget);
-    final drawTitleRect = tester.getRect(find.text('모듈 뽑기'));
+    final buildLevelButton = find.byKey(
+      const ValueKey('turret-module-build-level-button'),
+    );
+    final buildLevelButtonRect = tester.getRect(buildLevelButton);
+    expect(buildLevelButtonRect.height, lessThanOrEqualTo(36));
     final fiveDrawButton = find.byKey(
       const ValueKey('turret-module-draw-button-5'),
     );
     final fiveDrawButtonRect = tester.getRect(fiveDrawButton);
     expect(fiveDrawButtonRect.width, lessThanOrEqualTo(72));
     expect(
-      (fiveDrawButtonRect.center.dy - drawTitleRect.center.dy).abs(),
-      lessThanOrEqualTo(6),
+      (fiveDrawButtonRect.center.dy - buildLevelButtonRect.center.dy).abs(),
+      lessThanOrEqualTo(1),
     );
+    expect(buildLevelButtonRect.right, lessThan(fiveDrawButtonRect.left));
     expect(find.text('부족 2장 · 다이아 80'), findsNothing);
     expect(
       find.descendant(of: fiveDrawButton, matching: find.text('80')),
@@ -104,6 +121,75 @@ void main() {
       findsOneWidget,
     );
     expect(tester.takeException(), isNull);
+
+    await tester.tap(buildLevelButton);
+    await pumpGameFrames(tester);
+
+    expect(
+      find.byKey(const ValueKey('turret-module-build-level-dialog')),
+      findsOneWidget,
+    );
+    expect(find.text('현재 누적 260회 · 모듈 획득 누적으로 상위 등급 확률 증가'), findsOneWidget);
+    expect(find.text('누적 250회 달성'), findsOneWidget);
+    final currentLevelTab = tester.widget<GameButton>(
+      find.byKey(const ValueKey('turret-module-build-level-tab-3')),
+    );
+    expect(currentLevelTab.selected, isTrue);
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(
+              const ValueKey('turret-module-build-grade-rate-3-unique'),
+            ),
+          )
+          .data,
+      '4%',
+    );
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(const ValueKey('turret-module-build-grade-rate-3-rare')),
+          )
+          .data,
+      '10%',
+    );
+    expect(find.text('현재 적용 중'), findsOneWidget);
+
+    await tester.tap(
+      find.byKey(const ValueKey('turret-module-build-level-tab-5')),
+    );
+    await pumpGameFrames(tester);
+
+    expect(
+      tester
+          .widget<GameButton>(
+            find.byKey(const ValueKey('turret-module-build-level-tab-5')),
+          )
+          .selected,
+      isTrue,
+    );
+    expect(
+      tester
+          .widget<Text>(
+            find.byKey(
+              const ValueKey('turret-module-build-grade-rate-5-unique'),
+            ),
+          )
+          .data,
+      '5%',
+    );
+    expect(find.text('누적 800회 달성'), findsOneWidget);
+    expect(find.text('현재 적용 중'), findsNothing);
+
+    await tester.tap(
+      find.byKey(const ValueKey('turret-module-build-level-tab-1')),
+    );
+    await pumpGameFrames(tester);
+
+    expect(find.text('기본 단계'), findsOneWidget);
+
+    await tester.tap(find.text('닫기'));
+    await pumpGameFrames(tester);
 
     await tester.tap(find.text('대포'));
     await pumpGameFrames(tester);

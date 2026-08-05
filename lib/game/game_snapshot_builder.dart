@@ -213,6 +213,7 @@ class GameSnapshotBuilder {
       runes: _game._progression.runes,
       diamonds: _game._progression.diamonds,
       turretModuleTickets: _game._progression.turretModuleTickets,
+      turretModuleDrawCount: _game._progression.turretModuleDrawCount,
       ownedTurretModules: _game._progression.ownedTurretModules,
       dailyQuestDayKey: _game._progression.dailyQuestDayKey,
       dailyQuestProgress: Map.unmodifiable(

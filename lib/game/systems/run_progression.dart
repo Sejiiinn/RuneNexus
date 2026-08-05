@@ -258,6 +258,7 @@ class RunProgression
       ),
       researchSlotTwoUnlocked: researchSlotTwoUnlocked,
       turretModuleTickets: turretModuleTickets,
+      turretModuleDrawCount: turretModuleDrawCount,
       turretModuleItemSequence: turretModuleItemSequence,
       ownedTurretModules: List.unmodifiable(
         ownedTurretModules.map(
@@ -442,6 +443,7 @@ class RunProgression
     researchSlotTwoUnlocked =
         data.researchSlotTwoUnlocked || activeResearches.length > 1;
     turretModuleTickets = math.max(0, data.turretModuleTickets);
+    turretModuleDrawCount = math.max(0, data.turretModuleDrawCount);
     turretModuleItemSequence = math.max(0, data.turretModuleItemSequence);
     turretModules
       ..clear()

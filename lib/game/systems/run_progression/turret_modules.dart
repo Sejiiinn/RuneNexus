@@ -6,6 +6,7 @@ mixin _TurretModuleProgression {
 
   int turretModuleTickets = 0;
   int lastRunTurretModuleTicketReward = 0;
+  int turretModuleDrawCount = 0;
   int turretModuleItemSequence = 0;
   final Map<String, TurretModuleInventoryItem> turretModules = {};
 
@@ -101,6 +102,7 @@ mixin _TurretModuleProgression {
           ),
         ),
       );
+      turretModuleDrawCount += 1;
     }
     return List.unmodifiable(results);
   }
@@ -194,14 +196,22 @@ mixin _TurretModuleProgression {
   }
 
   TurretModuleGrade _rollTurretModuleGrade(math.Random random) {
+    final buildLevel = turretModuleBuildLevelForDrawCount(
+      turretModuleDrawCount,
+    );
     final roll = random.nextInt(100);
-    if (roll < 3) {
+    final uniqueThreshold = buildLevel.rateFor(TurretModuleGrade.unique);
+    if (roll < uniqueThreshold) {
       return TurretModuleGrade.unique;
     }
-    if (roll < 10) {
+    final rareThreshold =
+        uniqueThreshold + buildLevel.rateFor(TurretModuleGrade.rare);
+    if (roll < rareThreshold) {
       return TurretModuleGrade.rare;
     }
-    if (roll < 36) {
+    final magicThreshold =
+        rareThreshold + buildLevel.rateFor(TurretModuleGrade.magic);
+    if (roll < magicThreshold) {
       return TurretModuleGrade.magic;
     }
     return TurretModuleGrade.normal;

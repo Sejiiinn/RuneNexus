@@ -232,6 +232,94 @@ void main() {
     }
   });
 
+  test(
+    'module build levels use cumulative draw thresholds and grade rates',
+    () {
+      const expectedLevels = <int, int>{
+        0: 1,
+        99: 1,
+        100: 2,
+        249: 2,
+        250: 3,
+        499: 3,
+        500: 4,
+        799: 4,
+        800: 5,
+        1200: 5,
+      };
+
+      for (final entry in expectedLevels.entries) {
+        expect(
+          turretModuleBuildLevelForDrawCount(entry.key).level,
+          entry.value,
+          reason: 'draw count ${entry.key}',
+        );
+      }
+      for (final definition in gameTurretModuleBuildLevelDefinitions) {
+        expect(
+          TurretModuleGrade.values.fold<int>(
+            0,
+            (sum, grade) => sum + definition.rateFor(grade),
+          ),
+          100,
+          reason: 'level ${definition.level}',
+        );
+      }
+      expect(turretModuleBuildLevelForDrawCount(800).gradeRates, const {
+        TurretModuleGrade.normal: 45,
+        TurretModuleGrade.magic: 35,
+        TurretModuleGrade.rare: 15,
+        TurretModuleGrade.unique: 5,
+      });
+    },
+  );
+
+  test('module build level changes grade rates after cumulative draws', () {
+    final progression = RunProgression()
+      ..turretModuleDrawCount = 249
+      ..turretModuleTickets = 2;
+
+    final levelTwoResult = progression.drawTurretModules(
+      count: 1,
+      availableTurretTypes: const [TurretType.arrow],
+      random: _GradeRollRandom(3),
+    );
+    expect(levelTwoResult.single.key.grade, TurretModuleGrade.rare);
+    expect(progression.turretModuleDrawCount, 250);
+
+    final levelThreeResult = progression.drawTurretModules(
+      count: 1,
+      availableTurretTypes: const [TurretType.arrow],
+      random: _GradeRollRandom(3),
+    );
+    expect(levelThreeResult.single.key.grade, TurretModuleGrade.unique);
+    expect(progression.turretModuleDrawCount, 251);
+  });
+
+  test('module draw count persists and migrates from existing saves', () {
+    final progression = RunProgression()..turretModuleTickets = 2;
+    progression.drawTurretModules(
+      count: 2,
+      availableTurretTypes: const [TurretType.arrow],
+      random: _GradeRollRandom(99),
+    );
+
+    final json = progression.toSaveData().toJson();
+    expect(json['turretModuleDrawCount'], 2);
+    final restored = RunProgression()
+      ..restoreFromSaveData(SavedProgression.fromJson(json));
+    expect(restored.turretModuleDrawCount, 2);
+
+    final legacyJson = Map<String, Object?>.of(json)
+      ..remove('turretModuleDrawCount');
+    final migrated = RunProgression()
+      ..restoreFromSaveData(SavedProgression.fromJson(legacyJson));
+    expect(
+      migrated.turretModuleDrawCount,
+      progression.turretModuleItemSequence,
+    );
+  });
+
   test('turret module roll tables keep unique and core damage ranges', () {
     expect(turretModuleDisassembleDiamonds[TurretModuleGrade.unique], 50);
     expect(turretModuleOptionCountWeights[TurretModuleGrade.normal], [

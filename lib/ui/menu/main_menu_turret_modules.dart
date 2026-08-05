@@ -204,16 +204,14 @@ class _ModuleDrawPanel extends StatelessWidget {
         borderRadius: BorderRadius.circular(7),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.inventory_2_outlined,
-            color: GamePalette.goldBright,
-            size: 17,
+          Expanded(
+            child: _ModuleBuildLevelPanel(
+              drawCount: snapshot.turretModuleDrawCount,
+            ),
           ),
-          const SizedBox(width: 7),
-          const Expanded(
-            child: Text('모듈 뽑기', style: GameTextStyles.sectionTitle),
-          ),
+          const SizedBox(width: 6),
           _drawButton(context, 1, Icons.add_circle_outline),
           const SizedBox(width: 6),
           _drawButton(context, 5, Icons.control_point_duplicate),
@@ -407,6 +405,263 @@ class _ModuleDrawPanel extends StatelessWidget {
         ),
       );
     }
+  }
+}
+
+class _ModuleBuildLevelPanel extends StatelessWidget {
+  const _ModuleBuildLevelPanel({required this.drawCount});
+
+  final int drawCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final sanitizedDrawCount = math.max(0, drawCount);
+    final buildLevel = turretModuleBuildLevelForDrawCount(sanitizedDrawCount);
+
+    return GameButton(
+      key: const ValueKey('turret-module-build-level-button'),
+      onPressed: () => showGameDialog<void>(
+        context: context,
+        builder: (context) =>
+            _ModuleBuildLevelDialog(drawCount: sanitizedDrawCount),
+      ),
+      label: '모듈 구축 Lv.${buildLevel.level}',
+      variant: GameButtonVariant.ghost,
+      accentColor: GamePalette.cyan,
+      compact: true,
+      height: 36,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.construction_outlined,
+            size: 14,
+            color: GamePalette.cyan,
+          ),
+          const SizedBox(width: 5),
+          Expanded(
+            child: Text(
+              '모듈 구축 Lv.${buildLevel.level}',
+              key: const ValueKey('turret-module-build-level-label'),
+              style: const TextStyle(
+                color: GamePalette.textPrimary,
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+          const Icon(
+            Icons.chevron_right,
+            size: 16,
+            color: GamePalette.textMuted,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ModuleBuildLevelDialog extends StatefulWidget {
+  const _ModuleBuildLevelDialog({required this.drawCount});
+
+  final int drawCount;
+
+  @override
+  State<_ModuleBuildLevelDialog> createState() =>
+      _ModuleBuildLevelDialogState();
+}
+
+class _ModuleBuildLevelDialogState extends State<_ModuleBuildLevelDialog> {
+  late TurretModuleBuildLevelDefinition _selectedLevel;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedLevel = turretModuleBuildLevelForDrawCount(widget.drawCount);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentLevel = turretModuleBuildLevelForDrawCount(widget.drawCount);
+    final achievementLabel = _selectedLevel.level == 1
+        ? '기본 단계'
+        : '누적 ${_selectedLevel.requiredDrawCount}회 달성';
+    const gradeOrder = [
+      TurretModuleGrade.unique,
+      TurretModuleGrade.rare,
+      TurretModuleGrade.magic,
+      TurretModuleGrade.normal,
+    ];
+
+    return GameModalFrame(
+      maxWidth: 340,
+      padding: const EdgeInsets.all(14),
+      accentColor: GamePalette.cyan,
+      child: Column(
+        key: const ValueKey('turret-module-build-level-dialog'),
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.construction_outlined,
+                size: 19,
+                color: GamePalette.cyan,
+              ),
+              SizedBox(width: 7),
+              Expanded(child: Text('모듈 구축 레벨', style: GameTextStyles.title)),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Text(
+            '현재 누적 ${widget.drawCount}회 · 모듈 획득 누적으로 상위 등급 확률 증가',
+            style: TextStyle(
+              color: GamePalette.textMuted,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              for (
+                var index = 0;
+                index < gameTurretModuleBuildLevelDefinitions.length;
+                index++
+              ) ...[
+                if (index > 0) const SizedBox(width: 4),
+                Expanded(
+                  child: GameButton(
+                    key: ValueKey(
+                      'turret-module-build-level-tab-${gameTurretModuleBuildLevelDefinitions[index].level}',
+                    ),
+                    onPressed: () => setState(
+                      () => _selectedLevel =
+                          gameTurretModuleBuildLevelDefinitions[index],
+                    ),
+                    label:
+                        'Lv.${gameTurretModuleBuildLevelDefinitions[index].level}',
+                    selected:
+                        _selectedLevel ==
+                        gameTurretModuleBuildLevelDefinitions[index],
+                    compact: true,
+                    accentColor: GamePalette.cyan,
+                    height: 32,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 2,
+                      vertical: 4,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 10),
+          Container(
+            key: const ValueKey('turret-module-build-level-detail'),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0x3307111D),
+              border: Border.all(color: const Color(0x55485B68)),
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Lv.${_selectedLevel.level}',
+                      style: GameTextStyles.sectionTitle,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        achievementLabel,
+                        textAlign: TextAlign.right,
+                        style: GameTextStyles.caption,
+                      ),
+                    ),
+                  ],
+                ),
+                if (_selectedLevel.level == currentLevel.level) ...[
+                  const SizedBox(height: 3),
+                  const Text(
+                    '현재 적용 중',
+                    key: ValueKey('turret-module-build-current-level-label'),
+                    style: TextStyle(
+                      color: GamePalette.cyan,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 9),
+                Row(
+                  children: [
+                    for (var index = 0; index < gradeOrder.length; index++) ...[
+                      if (index > 0) const SizedBox(width: 4),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 2,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _gradeColor(
+                              gradeOrder[index],
+                            ).withValues(alpha: 0.08),
+                            border: Border.all(
+                              color: _gradeColor(
+                                gradeOrder[index],
+                              ).withValues(alpha: 0.34),
+                            ),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                gradeOrder[index].label,
+                                style: TextStyle(
+                                  color: _gradeColor(gradeOrder[index]),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${_selectedLevel.rateFor(gradeOrder[index])}%',
+                                key: ValueKey(
+                                  'turret-module-build-grade-rate-${_selectedLevel.level}-${gradeOrder[index].name}',
+                                ),
+                                style: TextStyle(
+                                  color: _gradeColor(gradeOrder[index]),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          GameButton(
+            onPressed: () => Navigator.of(context).pop(),
+            label: '닫기',
+            variant: GameButtonVariant.ghost,
+            accentColor: GamePalette.metal,
+            height: 36,
+          ),
+        ],
+      ),
+    );
   }
 }
 

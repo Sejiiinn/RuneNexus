@@ -209,6 +209,7 @@ GameSnapshot resultSnapshot({
   double coreCombatSkillBonusDamageDealt = 0,
   int coreCombatSkillActivationCount = 0,
   int turretModuleTickets = 0,
+  int turretModuleDrawCount = 0,
   List<TurretModuleInventoryItem> ownedTurretModules = const [],
   int gemShards = 0,
   List<GemType> rewardOptions = const [],
@@ -330,6 +331,7 @@ GameSnapshot resultSnapshot({
     runes: runes,
     diamonds: diamonds,
     turretModuleTickets: turretModuleTickets,
+    turretModuleDrawCount: turretModuleDrawCount,
     ownedTurretModules: ownedTurretModules,
     dailyQuestDayKey: RunProgression.uninitializedDailyQuestDayKey,
     dailyQuestProgress: const {},
@@ -610,6 +612,8 @@ class TurretModuleDrawGame extends RuneNexusGame {
       currentStageNumber: 1,
       diamonds: 0,
       turretModuleTickets: 0,
+      turretModuleDrawCount:
+          snapshotNotifier.value.turretModuleDrawCount + count,
       ownedTurretModules: results,
     );
     return results;

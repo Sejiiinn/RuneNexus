@@ -23,6 +23,98 @@ class TurretModuleDefinition {
   final String name;
 }
 
+class TurretModuleBuildLevelDefinition {
+  const TurretModuleBuildLevelDefinition({
+    required this.level,
+    required this.requiredDrawCount,
+    required this.gradeRates,
+  });
+
+  final int level;
+  final int requiredDrawCount;
+  final Map<TurretModuleGrade, int> gradeRates;
+
+  int rateFor(TurretModuleGrade grade) => gradeRates[grade] ?? 0;
+}
+
+const gameTurretModuleBuildLevelDefinitions =
+    <TurretModuleBuildLevelDefinition>[
+      TurretModuleBuildLevelDefinition(
+        level: 1,
+        requiredDrawCount: 0,
+        gradeRates: {
+          TurretModuleGrade.normal: 64,
+          TurretModuleGrade.magic: 26,
+          TurretModuleGrade.rare: 7,
+          TurretModuleGrade.unique: 3,
+        },
+      ),
+      TurretModuleBuildLevelDefinition(
+        level: 2,
+        requiredDrawCount: 100,
+        gradeRates: {
+          TurretModuleGrade.normal: 60,
+          TurretModuleGrade.magic: 28,
+          TurretModuleGrade.rare: 9,
+          TurretModuleGrade.unique: 3,
+        },
+      ),
+      TurretModuleBuildLevelDefinition(
+        level: 3,
+        requiredDrawCount: 250,
+        gradeRates: {
+          TurretModuleGrade.normal: 56,
+          TurretModuleGrade.magic: 30,
+          TurretModuleGrade.rare: 10,
+          TurretModuleGrade.unique: 4,
+        },
+      ),
+      TurretModuleBuildLevelDefinition(
+        level: 4,
+        requiredDrawCount: 500,
+        gradeRates: {
+          TurretModuleGrade.normal: 51,
+          TurretModuleGrade.magic: 33,
+          TurretModuleGrade.rare: 12,
+          TurretModuleGrade.unique: 4,
+        },
+      ),
+      TurretModuleBuildLevelDefinition(
+        level: 5,
+        requiredDrawCount: 800,
+        gradeRates: {
+          TurretModuleGrade.normal: 45,
+          TurretModuleGrade.magic: 35,
+          TurretModuleGrade.rare: 15,
+          TurretModuleGrade.unique: 5,
+        },
+      ),
+    ];
+
+TurretModuleBuildLevelDefinition turretModuleBuildLevelForDrawCount(
+  int drawCount,
+) {
+  final sanitizedDrawCount = math.max(0, drawCount);
+  var result = gameTurretModuleBuildLevelDefinitions.first;
+  for (final definition in gameTurretModuleBuildLevelDefinitions.skip(1)) {
+    if (sanitizedDrawCount < definition.requiredDrawCount) {
+      break;
+    }
+    result = definition;
+  }
+  return result;
+}
+
+TurretModuleBuildLevelDefinition? nextTurretModuleBuildLevelForDrawCount(
+  int drawCount,
+) {
+  final current = turretModuleBuildLevelForDrawCount(drawCount);
+  final nextIndex = current.level;
+  return nextIndex < gameTurretModuleBuildLevelDefinitions.length
+      ? gameTurretModuleBuildLevelDefinitions[nextIndex]
+      : null;
+}
+
 class TurretModuleOptionRange {
   const TurretModuleOptionRange(this.min, this.max);
 

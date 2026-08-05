@@ -157,47 +157,26 @@ class _MenuResourceBar extends StatelessWidget {
                 fontWeight: FontWeight.w900,
               ),
             ),
-            const SizedBox(width: 7),
-            Container(
-              key: const ValueKey('menu-turret-module-tickets'),
-              height: 22,
-              padding: const EdgeInsets.symmetric(horizontal: 6),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: const Color(0x2207111D),
-                border: Border.all(color: const Color(0x55485B68)),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    turretModuleTicketIconAsset,
-                    width: 15,
-                    height: 15,
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.medium,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '모듈권 $turretModuleTickets',
-                    maxLines: 1,
-                    softWrap: false,
-                    style: const TextStyle(
-                      color: Color(0xFFB4C7D2),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
           const Spacer(),
           RuneBalanceCard(
             key: const ValueKey('menu-currency-balance'),
             runes: runes,
             diamonds: diamonds,
+            secondaryCurrencyIcon: selectedTab == MainMenuTab.turretModules
+                ? Image.asset(
+                    turretModuleTicketIconAsset,
+                    key: const ValueKey('menu-turret-module-ticket-icon'),
+                    width: 13,
+                    height: 13,
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                    semanticLabel: '모듈권',
+                  )
+                : null,
+            secondaryCurrencyValue: selectedTab == MainMenuTab.turretModules
+                ? turretModuleTickets
+                : null,
             compact: true,
             frameless: true,
           ),

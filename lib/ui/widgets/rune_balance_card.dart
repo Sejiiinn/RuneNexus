@@ -7,13 +7,19 @@ class RuneBalanceCard extends StatelessWidget {
   const RuneBalanceCard({
     required this.runes,
     this.diamonds = 0,
+    this.secondaryCurrencyIcon,
+    this.secondaryCurrencyValue,
     this.compact = false,
     this.frameless = false,
     super.key,
-  });
+  }) : assert(
+         (secondaryCurrencyIcon == null) == (secondaryCurrencyValue == null),
+       );
 
   final int runes;
   final int diamonds;
+  final Widget? secondaryCurrencyIcon;
+  final int? secondaryCurrencyValue;
   final bool compact;
   final bool frameless;
 
@@ -53,8 +59,10 @@ class RuneBalanceCard extends StatelessWidget {
           ),
           SizedBox(height: compact ? 2 : 3),
           _CurrencyRow(
-            icon: RuneCurrencyIcon(size: compact ? 13 : 14),
-            value: runes,
+            icon:
+                secondaryCurrencyIcon ??
+                RuneCurrencyIcon(size: compact ? 13 : 14),
+            value: secondaryCurrencyValue ?? runes,
             compact: compact,
           ),
         ],

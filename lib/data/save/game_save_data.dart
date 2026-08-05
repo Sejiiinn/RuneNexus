@@ -266,6 +266,7 @@ class SavedProgression {
     required this.activeResearches,
     this.researchSlotTwoUnlocked = false,
     this.turretModuleTickets = 0,
+    this.turretModuleDrawCount = 0,
     this.turretModuleItemSequence = 0,
     this.ownedTurretModules = const [],
     this.coreCombatSkill = CoreCombatSkill.guardianBeam,
@@ -312,6 +313,7 @@ class SavedProgression {
   final List<SavedActiveResearch> activeResearches;
   final bool researchSlotTwoUnlocked;
   final int turretModuleTickets;
+  final int turretModuleDrawCount;
   final int turretModuleItemSequence;
   final List<SavedTurretModule> ownedTurretModules;
   final CoreCombatSkill? coreCombatSkill;
@@ -376,6 +378,7 @@ class SavedProgression {
           .toList(),
       'researchSlotTwoUnlocked': researchSlotTwoUnlocked,
       'turretModuleTickets': turretModuleTickets,
+      'turretModuleDrawCount': turretModuleDrawCount,
       'turretModuleItemSequence': turretModuleItemSequence,
       'ownedTurretModules': ownedTurretModules
           .map((module) => module.toJson())
@@ -397,6 +400,9 @@ class SavedProgression {
     final activeResearches = _objectList(
       map['activeResearches'],
       SavedActiveResearch.fromJson,
+    );
+    final turretModuleItemSequence = _nonNegativeInt(
+      map['turretModuleItemSequence'],
     );
     return SavedProgression(
       runes: _intValue(map['runes']),
@@ -466,7 +472,10 @@ class SavedProgression {
         fallback: activeResearches.length > 1,
       ),
       turretModuleTickets: _intValue(map['turretModuleTickets']),
-      turretModuleItemSequence: _intValue(map['turretModuleItemSequence']),
+      turretModuleDrawCount: map.containsKey('turretModuleDrawCount')
+          ? _nonNegativeInt(map['turretModuleDrawCount'])
+          : turretModuleItemSequence,
+      turretModuleItemSequence: turretModuleItemSequence,
       ownedTurretModules: _objectList(
         map['ownedTurretModules'],
         SavedTurretModule.fromJson,
