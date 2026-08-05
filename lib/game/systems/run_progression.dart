@@ -127,6 +127,7 @@ class RunProgression
   final Map<int, int> bestRoundsByStage = {};
   @override
   final Set<int> clearedStageNumbers = {};
+  final Set<String> claimedEventIds = {};
   int get freeDiamonds => _diamondWallet.free;
   set freeDiamonds(int value) {
     _diamondWallet.free = value;
@@ -259,6 +260,7 @@ class RunProgression
       researchSlotTwoUnlocked: researchSlotTwoUnlocked,
       turretModuleTickets: turretModuleTickets,
       turretModuleDrawCount: turretModuleDrawCount,
+      turretModuleTicketPurchaseCount: turretModuleTicketPurchaseCount,
       turretModuleItemSequence: turretModuleItemSequence,
       ownedTurretModules: List.unmodifiable(
         ownedTurretModules.map(
@@ -290,6 +292,7 @@ class RunProgression
       claimedCorePointStageRewards: Set.unmodifiable(
         claimedCorePointStageRewards,
       ),
+      claimedEventIds: Set.unmodifiable(claimedEventIds),
     );
   }
 
@@ -444,6 +447,10 @@ class RunProgression
         data.researchSlotTwoUnlocked || activeResearches.length > 1;
     turretModuleTickets = math.max(0, data.turretModuleTickets);
     turretModuleDrawCount = math.max(0, data.turretModuleDrawCount);
+    turretModuleTicketPurchaseCount = math.max(
+      0,
+      data.turretModuleTicketPurchaseCount,
+    );
     turretModuleItemSequence = math.max(0, data.turretModuleItemSequence);
     turretModules
       ..clear()
@@ -487,6 +494,9 @@ class RunProgression
     claimedCorePointStageRewards
       ..clear()
       ..addAll(data.claimedCorePointStageRewards.where((stage) => stage > 0));
+    claimedEventIds
+      ..clear()
+      ..addAll(data.claimedEventIds.where((id) => id.isNotEmpty));
     final restoredRanks = <CorePassiveNodeId, int>{
       for (final entry in data.corePassiveNodeRanks.entries)
         if (entry.value > 0) entry.key: entry.value,

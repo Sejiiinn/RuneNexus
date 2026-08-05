@@ -267,6 +267,7 @@ class SavedProgression {
     this.researchSlotTwoUnlocked = false,
     this.turretModuleTickets = 0,
     this.turretModuleDrawCount = 0,
+    this.turretModuleTicketPurchaseCount = 0,
     this.turretModuleItemSequence = 0,
     this.ownedTurretModules = const [],
     this.coreCombatSkill = CoreCombatSkill.guardianBeam,
@@ -276,6 +277,7 @@ class SavedProgression {
     this.corePassiveTreeRevision = core_tree.corePassiveTreeRevision,
     this.corePassiveNodeRanks = const {},
     this.claimedCorePointStageRewards = const {},
+    this.claimedEventIds = const {},
   });
 
   final int runes;
@@ -314,6 +316,7 @@ class SavedProgression {
   final bool researchSlotTwoUnlocked;
   final int turretModuleTickets;
   final int turretModuleDrawCount;
+  final int turretModuleTicketPurchaseCount;
   final int turretModuleItemSequence;
   final List<SavedTurretModule> ownedTurretModules;
   final CoreCombatSkill? coreCombatSkill;
@@ -323,6 +326,7 @@ class SavedProgression {
   final int corePassiveTreeRevision;
   final Map<CorePassiveNodeId, int> corePassiveNodeRanks;
   final Set<int> claimedCorePointStageRewards;
+  final Set<String> claimedEventIds;
 
   Map<String, Object?> toJson() {
     return {
@@ -379,6 +383,7 @@ class SavedProgression {
       'researchSlotTwoUnlocked': researchSlotTwoUnlocked,
       'turretModuleTickets': turretModuleTickets,
       'turretModuleDrawCount': turretModuleDrawCount,
+      'turretModuleTicketPurchaseCount': turretModuleTicketPurchaseCount,
       'turretModuleItemSequence': turretModuleItemSequence,
       'ownedTurretModules': ownedTurretModules
           .map((module) => module.toJson())
@@ -392,6 +397,7 @@ class SavedProgression {
         (key, value) => MapEntry(key.name, value),
       ),
       'claimedCorePointStageRewards': claimedCorePointStageRewards.toList(),
+      'claimedEventIds': claimedEventIds.toList(),
     };
   }
 
@@ -404,6 +410,9 @@ class SavedProgression {
     final turretModuleItemSequence = _nonNegativeInt(
       map['turretModuleItemSequence'],
     );
+    final turretModuleDrawCount = map.containsKey('turretModuleDrawCount')
+        ? _nonNegativeInt(map['turretModuleDrawCount'])
+        : turretModuleItemSequence;
     return SavedProgression(
       runes: _intValue(map['runes']),
       freeDiamonds: _intValue(map['freeDiamonds']),
@@ -472,9 +481,11 @@ class SavedProgression {
         fallback: activeResearches.length > 1,
       ),
       turretModuleTickets: _intValue(map['turretModuleTickets']),
-      turretModuleDrawCount: map.containsKey('turretModuleDrawCount')
-          ? _nonNegativeInt(map['turretModuleDrawCount'])
-          : turretModuleItemSequence,
+      turretModuleDrawCount: turretModuleDrawCount,
+      turretModuleTicketPurchaseCount:
+          map.containsKey('turretModuleTicketPurchaseCount')
+          ? _nonNegativeInt(map['turretModuleTicketPurchaseCount'])
+          : turretModuleDrawCount,
       turretModuleItemSequence: turretModuleItemSequence,
       ownedTurretModules: _objectList(
         map['ownedTurretModules'],
@@ -496,6 +507,7 @@ class SavedProgression {
       claimedCorePointStageRewards: _intSet(
         map['claimedCorePointStageRewards'],
       ).where((stage) => stage > 0).toSet(),
+      claimedEventIds: _stringSet(map['claimedEventIds']),
     );
   }
 }
@@ -1114,6 +1126,16 @@ Set<int> _intSet(Object? json) {
     }
   }
   return result;
+}
+
+Set<String> _stringSet(Object? json) {
+  if (json is! List) {
+    return {};
+  }
+  return {
+    for (final item in json)
+      if (item is String && item.isNotEmpty) item,
+  };
 }
 
 List<T> _enumList<T extends Enum>(List<T> values, Object? json) {

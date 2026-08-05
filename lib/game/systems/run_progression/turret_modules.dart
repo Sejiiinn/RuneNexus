@@ -7,6 +7,7 @@ mixin _TurretModuleProgression {
   int turretModuleTickets = 0;
   int lastRunTurretModuleTicketReward = 0;
   int turretModuleDrawCount = 0;
+  int turretModuleTicketPurchaseCount = 0;
   int turretModuleItemSequence = 0;
   final Map<String, TurretModuleInventoryItem> turretModules = {};
 
@@ -74,6 +75,7 @@ mixin _TurretModuleProgression {
       if (spendDiamonds(ticketCost) == null) {
         return const [];
       }
+      turretModuleTicketPurchaseCount += missingTickets;
       turretModuleTickets += missingTickets;
     }
 

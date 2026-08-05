@@ -206,6 +206,7 @@ void main() {
     expect(results, hasLength(5));
     expect(progression.turretModuleTickets, 0);
     expect(progression.diamonds, 0);
+    expect(progression.turretModuleTicketPurchaseCount, 2);
   });
 
   test('turret module grade rates are unique 3 and normal 64 percent', () {
@@ -306,6 +307,7 @@ void main() {
 
     final json = progression.toSaveData().toJson();
     expect(json['turretModuleDrawCount'], 2);
+    expect(json['turretModuleTicketPurchaseCount'], 0);
     final restored = RunProgression()
       ..restoreFromSaveData(SavedProgression.fromJson(json));
     expect(restored.turretModuleDrawCount, 2);
@@ -318,6 +320,12 @@ void main() {
       migrated.turretModuleDrawCount,
       progression.turretModuleItemSequence,
     );
+
+    final legacyPurchaseJson = Map<String, Object?>.of(json)
+      ..remove('turretModuleTicketPurchaseCount');
+    final migratedPurchaseCount = RunProgression()
+      ..restoreFromSaveData(SavedProgression.fromJson(legacyPurchaseJson));
+    expect(migratedPurchaseCount.turretModuleTicketPurchaseCount, 2);
   });
 
   test('turret module roll tables keep unique and core damage ranges', () {
