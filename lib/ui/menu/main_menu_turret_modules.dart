@@ -585,18 +585,25 @@ class _ModuleBuildLevelDialogState extends State<_ModuleBuildLevelDialog> {
                     ),
                   ],
                 ),
-                if (_selectedLevel.level == currentLevel.level) ...[
-                  const SizedBox(height: 3),
-                  const Text(
-                    '현재 적용 중',
-                    key: ValueKey('turret-module-build-current-level-label'),
-                    style: TextStyle(
-                      color: GamePalette.cyan,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
+                SizedBox(
+                  height: 14,
+                  child: _selectedLevel.level == currentLevel.level
+                      ? const Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Text(
+                            '현재 적용 중',
+                            key: ValueKey(
+                              'turret-module-build-current-level-label',
+                            ),
+                            style: TextStyle(
+                              color: GamePalette.cyan,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
                 const SizedBox(height: 9),
                 Row(
                   children: [

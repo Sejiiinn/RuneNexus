@@ -154,6 +154,14 @@ void main() {
       '10%',
     );
     expect(find.text('현재 적용 중'), findsOneWidget);
+    final buildLevelDialog = find.byKey(
+      const ValueKey('turret-module-build-level-dialog'),
+    );
+    final buildLevelDetail = find.byKey(
+      const ValueKey('turret-module-build-level-detail'),
+    );
+    final currentDialogHeight = tester.getSize(buildLevelDialog).height;
+    final currentDetailHeight = tester.getSize(buildLevelDetail).height;
 
     await tester.tap(
       find.byKey(const ValueKey('turret-module-build-level-tab-5')),
@@ -180,6 +188,8 @@ void main() {
     );
     expect(find.text('누적 800회 달성'), findsOneWidget);
     expect(find.text('현재 적용 중'), findsNothing);
+    expect(tester.getSize(buildLevelDialog).height, currentDialogHeight);
+    expect(tester.getSize(buildLevelDetail).height, currentDetailHeight);
 
     await tester.tap(
       find.byKey(const ValueKey('turret-module-build-level-tab-1')),
