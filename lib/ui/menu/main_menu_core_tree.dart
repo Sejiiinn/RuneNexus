@@ -32,12 +32,6 @@ _corePassiveNodePolarPositions = {
   CorePassiveNodeId.controlBufferShell: (radius: 245, angle: 180),
   CorePassiveNodeId.controlEmergencyCharge: (radius: 245, angle: 240),
   CorePassiveNodeId.controlFinalLine: (radius: 300, angle: 210),
-  CorePassiveNodeId.hybridEmergencyCompute: (radius: 170, angle: 270),
-  CorePassiveNodeId.hybridCounterFire: (radius: 245, angle: 270),
-  CorePassiveNodeId.hybridResonanceLoop: (radius: 170, angle: 30),
-  CorePassiveNodeId.hybridMixedFire: (radius: 245, angle: 30),
-  CorePassiveNodeId.hybridSupplyBarrier: (radius: 170, angle: 150),
-  CorePassiveNodeId.hybridRecoveryBudget: (radius: 245, angle: 150),
 };
 
 class _CorePassiveTreeMenu extends StatefulWidget {
@@ -1337,12 +1331,7 @@ class _CorePassiveConnectionPainter extends CustomPainter {
         if (definition.id.index >= neighbor.index) {
           continue;
         }
-        final targetDefinition = corePassiveNodeById(neighbor);
-        final accent =
-            definition.branch == CorePassiveBranch.hybrid ||
-                targetDefinition.branch == CorePassiveBranch.hybrid
-            ? _corePassiveBranchColor(CorePassiveBranch.hybrid)
-            : _corePassiveBranchColor(definition.branch);
+        final accent = _corePassiveBranchColor(definition.branch);
         final definitionRendered = (renderedRanks[definition.id] ?? 0) > 0;
         final neighborRendered = (renderedRanks[neighbor] ?? 0) > 0;
         final draftProgress = math.min(
@@ -1963,6 +1952,5 @@ Color _corePassiveBranchColor(CorePassiveBranch branch) {
     CorePassiveBranch.attack => const Color(0xFFFFB84D),
     CorePassiveBranch.control => const Color(0xFF56D9E8),
     CorePassiveBranch.efficiency => const Color(0xFF72E0A2),
-    CorePassiveBranch.hybrid => const Color(0xFFE98BFF),
   };
 }

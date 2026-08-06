@@ -1,16 +1,10 @@
 import '../../domain/core/core_passive_tree.dart';
 
-const int corePassiveTreeRevision = 3;
+const int corePassiveTreeRevision = 4;
 
 const double corePassiveAttackSyncDurationSeconds = 2;
 
-const List<double> _attackHasteRecoveryRates = [
-  0.02,
-  0.04,
-  0.06,
-  0.08,
-  0.10,
-];
+const List<double> _attackHasteRecoveryRates = [0.02, 0.04, 0.06, 0.08, 0.10];
 const List<double> _attackOutputAmplificationRates = [
   0.05,
   0.10,
@@ -35,20 +29,8 @@ const List<double> _attackDamageSyncAmplificationRates = [
 const List<double> _continuousComputationRecoveryRates = [0.05, 0.10, 0.15];
 const List<double> _criticalOutputAmplificationRates = [0.20, 0.30, 0.40];
 const double _transcendentOutputAmplificationRate = 0.25;
-const List<double> _reinforcedShellMaxHpRates = [
-  0.05,
-  0.10,
-  0.15,
-  0.20,
-  0.25,
-];
-const List<double> _selfRepairRecoveryRates = [
-  0.01,
-  0.015,
-  0.02,
-  0.025,
-  0.03,
-];
+const List<double> _reinforcedShellMaxHpRates = [0.05, 0.10, 0.15, 0.20, 0.25];
+const List<double> _selfRepairRecoveryRates = [0.01, 0.015, 0.02, 0.025, 0.03];
 const List<double> _damageRestorationRates = [0.15, 0.25, 0.35];
 const List<double> _impactDispersionAttenuationRates = [
   0.03,
@@ -98,11 +80,7 @@ const List<double> _gemSpectrumAmplificationRates = [
   0.025,
   0.03,
 ];
-const List<double> _linkOptimizationCostAttenuationRates = [
-  0.08,
-  0.12,
-  0.16,
-];
+const List<double> _linkOptimizationCostAttenuationRates = [0.08, 0.12, 0.16];
 const double _combinedFrontCostAttenuationRate = 0.15;
 
 double _corePassiveRankRate(List<double> rates, int rank) {
@@ -112,9 +90,7 @@ double _corePassiveRankRate(List<double> rates, int rank) {
   return rates[rank.clamp(1, rates.length).toInt() - 1];
 }
 
-double corePassiveCooldownRecoveryRate(
-  Map<CorePassiveNodeId, int> nodeRanks,
-) {
+double corePassiveCooldownRecoveryRate(Map<CorePassiveNodeId, int> nodeRanks) {
   return _corePassiveRankRate(
         _attackHasteRecoveryRates,
         nodeRanks[CorePassiveNodeId.attackHaste] ?? 0,
@@ -167,9 +143,7 @@ double corePassiveCoreSkillPowerMultiplier(
       (1.0 + transcendentOutputAmplification);
 }
 
-double corePassiveNexusMaxHpMultiplier(
-  Map<CorePassiveNodeId, int> nodeRanks,
-) {
+double corePassiveNexusMaxHpMultiplier(Map<CorePassiveNodeId, int> nodeRanks) {
   return 1.0 +
       _corePassiveRankRate(
         _reinforcedShellMaxHpRates,
@@ -177,18 +151,14 @@ double corePassiveNexusMaxHpMultiplier(
       );
 }
 
-double corePassiveRoundRecoveryRate(
-  Map<CorePassiveNodeId, int> nodeRanks,
-) {
+double corePassiveRoundRecoveryRate(Map<CorePassiveNodeId, int> nodeRanks) {
   return _corePassiveRankRate(
     _selfRepairRecoveryRates,
     nodeRanks[CorePassiveNodeId.controlRetarget] ?? 0,
   );
 }
 
-double corePassiveDamageRestorationRate(
-  Map<CorePassiveNodeId, int> nodeRanks,
-) {
+double corePassiveDamageRestorationRate(Map<CorePassiveNodeId, int> nodeRanks) {
   return _corePassiveRankRate(
     _damageRestorationRates,
     nodeRanks[CorePassiveNodeId.controlBufferShell] ?? 0,
@@ -221,9 +191,7 @@ double corePassiveEmergencyChargeRecoveryRate(
   );
 }
 
-bool corePassiveHasFinalDefense(
-  Map<CorePassiveNodeId, int> nodeRanks,
-) {
+bool corePassiveHasFinalDefense(Map<CorePassiveNodeId, int> nodeRanks) {
   return (nodeRanks[CorePassiveNodeId.controlFinalLine] ?? 0) > 0;
 }
 
@@ -457,36 +425,6 @@ const Map<CorePassiveNodeId, _CorePassiveNodeSpec> _nodeSpecs = {
     grade: CorePassiveNodeGrade.keystone,
     displayValues: ['15%'],
   ),
-  CorePassiveNodeId.hybridEmergencyCompute: _CorePassiveNodeSpec(
-    branch: CorePassiveBranch.hybrid,
-    grade: CorePassiveNodeGrade.normal,
-    displayValues: ['5%', '10%', '15%', '20%', '25%'],
-  ),
-  CorePassiveNodeId.hybridCounterFire: _CorePassiveNodeSpec(
-    branch: CorePassiveBranch.hybrid,
-    grade: CorePassiveNodeGrade.notable,
-    displayValues: ['10%', '20%', '30%'],
-  ),
-  CorePassiveNodeId.hybridResonanceLoop: _CorePassiveNodeSpec(
-    branch: CorePassiveBranch.hybrid,
-    grade: CorePassiveNodeGrade.normal,
-    displayValues: ['0.1초', '0.2초', '0.3초', '0.4초', '0.5초'],
-  ),
-  CorePassiveNodeId.hybridMixedFire: _CorePassiveNodeSpec(
-    branch: CorePassiveBranch.hybrid,
-    grade: CorePassiveNodeGrade.notable,
-    displayValues: ['6%', '9%', '12%'],
-  ),
-  CorePassiveNodeId.hybridSupplyBarrier: _CorePassiveNodeSpec(
-    branch: CorePassiveBranch.hybrid,
-    grade: CorePassiveNodeGrade.normal,
-    displayValues: ['1', '2', '3', '4', '5'],
-  ),
-  CorePassiveNodeId.hybridRecoveryBudget: _CorePassiveNodeSpec(
-    branch: CorePassiveBranch.hybrid,
-    grade: CorePassiveNodeGrade.notable,
-    displayValues: ['8%', '12%', '16%'],
-  ),
 };
 
 const List<(CorePassiveNodeId, CorePassiveNodeId)> _edges = [
@@ -528,27 +466,6 @@ const List<(CorePassiveNodeId, CorePassiveNodeId)> _edges = [
   (
     CorePassiveNodeId.controlEmergencyCharge,
     CorePassiveNodeId.controlFinalLine,
-  ),
-  (CorePassiveNodeId.attackHaste, CorePassiveNodeId.hybridEmergencyCompute),
-  (
-    CorePassiveNodeId.controlThreatSense,
-    CorePassiveNodeId.hybridEmergencyCompute,
-  ),
-  (
-    CorePassiveNodeId.hybridEmergencyCompute,
-    CorePassiveNodeId.hybridCounterFire,
-  ),
-  (CorePassiveNodeId.attackOutput, CorePassiveNodeId.hybridResonanceLoop),
-  (CorePassiveNodeId.efficiencySaving, CorePassiveNodeId.hybridResonanceLoop),
-  (CorePassiveNodeId.hybridResonanceLoop, CorePassiveNodeId.hybridMixedFire),
-  (
-    CorePassiveNodeId.efficiencyDiversity,
-    CorePassiveNodeId.hybridSupplyBarrier,
-  ),
-  (CorePassiveNodeId.controlSelfRepair, CorePassiveNodeId.hybridSupplyBarrier),
-  (
-    CorePassiveNodeId.hybridSupplyBarrier,
-    CorePassiveNodeId.hybridRecoveryBudget,
   ),
 ];
 

@@ -134,12 +134,6 @@ IconData _corePassiveNodeMaterialIcon(CorePassiveNodeId nodeId) {
     CorePassiveNodeId.efficiencyGemSpectrum => Icons.auto_awesome,
     CorePassiveNodeId.efficiencySupplyRecovery => Icons.savings_outlined,
     CorePassiveNodeId.efficiencyCombinedFront => Icons.account_tree_outlined,
-    CorePassiveNodeId.hybridEmergencyCompute => Icons.warning_amber_rounded,
-    CorePassiveNodeId.hybridCounterFire => Icons.gps_fixed,
-    CorePassiveNodeId.hybridResonanceLoop => Icons.all_inclusive,
-    CorePassiveNodeId.hybridMixedFire => Icons.call_split,
-    CorePassiveNodeId.hybridSupplyBarrier => Icons.shield_moon_outlined,
-    CorePassiveNodeId.hybridRecoveryBudget => Icons.build_circle_outlined,
     CorePassiveNodeId.attackHaste ||
     CorePassiveNodeId.efficiencySaving => Icons.circle_outlined,
   };

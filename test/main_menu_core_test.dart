@@ -4,7 +4,7 @@ import 'helpers/widget_test_helpers.dart';
 
 void main() {
   testWidgets(
-    'core menu switches between combat skills and 27-node passive tree',
+    'core menu switches between combat skills and 21-node passive tree',
     (tester) async {
       await tester.pumpWidget(
         MaterialApp(

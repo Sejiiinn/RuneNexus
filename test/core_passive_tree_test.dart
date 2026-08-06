@@ -6,8 +6,8 @@ import 'package:rune_nexus/game/systems/run_progression.dart';
 
 void main() {
   test('core passive graph contains the complete valid catalog', () {
-    expect(corePassiveTreeRevision, 3);
-    expect(corePassiveNodeDefinitions, hasLength(27));
+    expect(corePassiveTreeRevision, 4);
+    expect(corePassiveNodeDefinitions, hasLength(21));
     expect(corePassiveStartingNodeIds, hasLength(6));
     expect(corePassiveTreeValidationErrors(), isEmpty);
     for (final definition in corePassiveNodeDefinitions.values) {
@@ -46,10 +46,7 @@ void main() {
       corePassiveTurretAttackRateAmplification(ranks),
       closeTo(0.15, 0.0001),
     );
-    expect(
-      corePassiveTurretDamageAmplification(ranks),
-      closeTo(0.20, 0.0001),
-    );
+    expect(corePassiveTurretDamageAmplification(ranks), closeTo(0.20, 0.0001));
     expect(
       corePassiveCoreSkillPowerMultiplier(ranks, activationNumber: 1),
       closeTo(1.5625, 0.0001),
@@ -75,10 +72,7 @@ void main() {
     expect(corePassiveRoundRecoveryRate(ranks), closeTo(0.03, 0.0001));
     expect(corePassiveDamageRestorationRate(ranks), closeTo(0.35, 0.0001));
     expect(
-      corePassiveNexusDamageMultiplier(
-        ranks,
-        lostDurabilityRatio: 1,
-      ),
+      corePassiveNexusDamageMultiplier(ranks, lostDurabilityRatio: 1),
       closeTo(0.6375, 0.0001),
     );
     expect(
@@ -102,27 +96,15 @@ void main() {
       };
 
       expect(
-        corePassiveTurretBuildCostMultiplier(
-          ranks,
-          distinctTurretTypeCount: 3,
-        ),
+        corePassiveTurretBuildCostMultiplier(ranks, distinctTurretTypeCount: 3),
         closeTo(0.85, 0.0001),
       );
       expect(
-        corePassiveTurretBuildCostMultiplier(
-          ranks,
-          distinctTurretTypeCount: 4,
-        ),
+        corePassiveTurretBuildCostMultiplier(ranks, distinctTurretTypeCount: 4),
         closeTo(0.7225, 0.0001),
       );
-      expect(
-        corePassiveRoundClearGoldMultiplier(ranks),
-        closeTo(1.15, 0.0001),
-      );
-      expect(
-        corePassiveTraitShardCostMultiplier(ranks),
-        closeTo(0.76, 0.0001),
-      );
+      expect(corePassiveRoundClearGoldMultiplier(ranks), closeTo(1.15, 0.0001));
+      expect(corePassiveTraitShardCostMultiplier(ranks), closeTo(0.76, 0.0001));
       expect(
         corePassiveTurretLevelUpCostMultiplier(
           ranks,
@@ -159,10 +141,7 @@ void main() {
         closeTo(1.18, 0.0001),
       );
       expect(
-        corePassiveTurretLinkCostMultiplier(
-          ranks,
-          distinctTurretTypeCount: 4,
-        ),
+        corePassiveTurretLinkCostMultiplier(ranks, distinctTurretTypeCount: 4),
         closeTo(0.714, 0.0001),
       );
     },
@@ -195,25 +174,6 @@ void main() {
     );
   });
 
-  test('one rank-three branch opens a hybrid node', () {
-    final oneSideReady = <CorePassiveNodeId, int>{
-      CorePassiveNodeId.attackHaste: 3,
-    };
-    expect(
-      accessibleCorePassiveNodeIds(oneSideReady),
-      contains(CorePassiveNodeId.hybridEmergencyCompute),
-    );
-
-    final bothBelowThreshold = <CorePassiveNodeId, int>{
-      CorePassiveNodeId.attackHaste: 2,
-      CorePassiveNodeId.controlThreatSense: 2,
-    };
-    expect(
-      accessibleCorePassiveNodeIds(bothBelowThreshold),
-      isNot(contains(CorePassiveNodeId.hybridEmergencyCompute)),
-    );
-  });
-
   test('isolated mutually supporting ranks are invalid', () {
     const isolated = <CorePassiveNodeId, int>{
       CorePassiveNodeId.attackPrecompute: 3,
@@ -232,10 +192,7 @@ void main() {
       isTrue,
     );
     expect(
-      progression.setCorePassiveNodeRank(
-        CorePassiveNodeId.hybridEmergencyCompute,
-        1,
-      ),
+      progression.setCorePassiveNodeRank(CorePassiveNodeId.attackPrecompute, 1),
       isTrue,
     );
     expect(progression.spentCorePoints, 5);
@@ -247,7 +204,7 @@ void main() {
     );
     expect(progression.corePassiveNodeRank(CorePassiveNodeId.attackHaste), 3);
     expect(
-      progression.corePassiveNodeRank(CorePassiveNodeId.hybridEmergencyCompute),
+      progression.corePassiveNodeRank(CorePassiveNodeId.attackPrecompute),
       1,
     );
   });
@@ -331,6 +288,22 @@ void main() {
     expect(progression.resetCorePassiveTree(), isTrue);
     expect(progression.totalCorePoints, 20);
     expect(progression.spentCorePoints, 0);
+    expect(progression.availableCorePoints, 20);
+  });
+
+  test('revision three allocation resets while preserving earned points', () {
+    final saved = SavedProgression.fromJson(<String, Object?>{
+      'totalCorePoints': 20,
+      'corePassiveTreeRevision': 3,
+      'corePassiveNodeRanks': const {
+        'attackHaste': 3,
+        'hybridEmergencyCompute': 1,
+      },
+    });
+    final progression = RunProgression()..restoreFromSaveData(saved);
+
+    expect(progression.totalCorePoints, 20);
+    expect(progression.corePassiveNodeRanks, isEmpty);
     expect(progression.availableCorePoints, 20);
   });
 

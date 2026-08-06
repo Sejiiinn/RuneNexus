@@ -1,4 +1,4 @@
-enum CorePassiveBranch { attack, control, efficiency, hybrid }
+enum CorePassiveBranch { attack, control, efficiency }
 
 enum CorePassiveNodeGrade { normal, notable, keystone }
 
@@ -24,12 +24,6 @@ enum CorePassiveNodeId {
   efficiencyGemSpectrum,
   efficiencySupplyRecovery,
   efficiencyCombinedFront,
-  hybridEmergencyCompute,
-  hybridCounterFire,
-  hybridResonanceLoop,
-  hybridMixedFire,
-  hybridSupplyBarrier,
-  hybridRecoveryBudget,
 }
 
 class CorePassiveNodeDefinition {

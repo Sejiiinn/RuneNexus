@@ -64,7 +64,6 @@ class RuneNexusLocalizations {
   String get corePassiveAttack => _isEnglish ? 'Attack' : '공격';
   String get corePassiveControl => _isEnglish ? 'Defense' : '방위';
   String get corePassiveEfficiency => _isEnglish ? 'Efficiency' : '효율';
-  String get corePassiveHybrid => _isEnglish ? 'Hybrid' : '혼합';
   String get corePointEarned => _isEnglish ? 'Core Points earned' : '코어 포인트 획득';
 
   String corePointReward(int amount) =>
@@ -77,8 +76,7 @@ class RuneNexusLocalizations {
         _isEnglish ? 'Output Amplifier' : '출력 증폭',
       CorePassiveNodeId.attackPrecompute =>
         _isEnglish ? 'Acceleration Sync' : '가속 동기화',
-      CorePassiveNodeId.attackFocus =>
-        _isEnglish ? 'Firepower Sync' : '화력 동기화',
+      CorePassiveNodeId.attackFocus => _isEnglish ? 'Firepower Sync' : '화력 동기화',
       CorePassiveNodeId.attackGuardianBeam =>
         _isEnglish ? 'Continuous Computation' : '연속 연산',
       CorePassiveNodeId.attackRiftMark =>
@@ -89,8 +87,7 @@ class RuneNexusLocalizations {
         _isEnglish ? 'Impact Dispersion' : '충격 분산',
       CorePassiveNodeId.controlSelfRepair =>
         _isEnglish ? 'Reinforced Shell' : '강화 외피',
-      CorePassiveNodeId.controlRetarget =>
-        _isEnglish ? 'Self Repair' : '자가 수복',
+      CorePassiveNodeId.controlRetarget => _isEnglish ? 'Self Repair' : '자가 수복',
       CorePassiveNodeId.controlRearLock =>
         _isEnglish ? 'Threat Weakening' : '위협 약화',
       CorePassiveNodeId.controlEmergencyCharge =>
@@ -113,18 +110,6 @@ class RuneNexusLocalizations {
         _isEnglish ? 'Supply Recovery' : '보급 회수',
       CorePassiveNodeId.efficiencyCombinedFront =>
         _isEnglish ? 'Combined Front' : '통합 전선',
-      CorePassiveNodeId.hybridEmergencyCompute =>
-        _isEnglish ? 'Emergency Compute' : '비상 연산',
-      CorePassiveNodeId.hybridCounterFire =>
-        _isEnglish ? 'Counter Fire' : '대응 사격',
-      CorePassiveNodeId.hybridResonanceLoop =>
-        _isEnglish ? 'Resonance Loop' : '공명 루프',
-      CorePassiveNodeId.hybridMixedFire =>
-        _isEnglish ? 'Mixed Fire Network' : '혼성 화력망',
-      CorePassiveNodeId.hybridSupplyBarrier =>
-        _isEnglish ? 'Supply Barrier' : '보급 방벽',
-      CorePassiveNodeId.hybridRecoveryBudget =>
-        _isEnglish ? 'Recovery Budget' : '복구 예산',
     };
   }
 
@@ -217,30 +202,6 @@ class RuneNexusLocalizations {
         _isEnglish
             ? 'While 4+ distinct turret types are placed, final build, level-up, and link expansion costs are attenuated by $value.'
             : '서로 다른 포탑 4종 이상 배치 중 포탑 건설·레벨업·링크 확장 최종 비용 $value 감폭',
-      CorePassiveNodeId.hybridEmergencyCompute =>
-        _isEnglish
-            ? 'Refund $value cooldown the first time an enemy passes 80% of the path.'
-            : '적이 경로 80%를 처음 넘을 때 재사용 대기시간 $value 환급',
-      CorePassiveNodeId.hybridCounterFire =>
-        _isEnglish
-            ? 'The next Core skill prioritizes enemies near the Nexus and gains $value effect.'
-            : '다음 코어 스킬이 코어에 가까운 적을 우선 공격하고 효과 $value 증가',
-      CorePassiveNodeId.hybridResonanceLoop =>
-        _isEnglish
-            ? 'Core skill duration increases by $value per 3 distinct gems, up to 3 stacks.'
-            : '서로 다른 젬 3종마다 코어 스킬 지속시간 $value 증가, 최대 3중첩',
-      CorePassiveNodeId.hybridMixedFire =>
-        _isEnglish
-            ? 'Core skill effects increase by $value while using both physical and elemental turrets.'
-            : '물리·원소 포탑을 모두 운용하면 코어 스킬 효과 $value 증가',
-      CorePassiveNodeId.hybridSupplyBarrier =>
-        _isEnglish
-            ? 'Gain 1 temporary shield on the first build of a new turret type, up to $value.'
-            : '새로운 포탑 종류의 첫 건설 시 임시 보호막 1 획득, 최대 $value',
-      CorePassiveNodeId.hybridRecoveryBudget =>
-        _isEnglish
-            ? 'After Nexus damage, the next build or upgrade costs $value less.'
-            : '코어 피해 후 다음 건설·강화 비용 $value 감소',
     };
   }
 
