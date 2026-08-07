@@ -56,9 +56,9 @@ import 'components/sniper_chain_beam_component.dart';
 import 'components/turret_component.dart';
 import 'events/module_ticket_price_refund_event.dart';
 import 'game_snapshot.dart';
+import 'rendering/game_board_selection_renderer.dart';
 import 'rendering/game_scene_effect_renderer.dart';
 import 'rendering/status_effect_sprite_cache.dart';
-import 'rendering/turret_shape_renderer.dart';
 import 'systems/combat_resolver.dart';
 import 'systems/core_combat_skill_controller.dart';
 import 'systems/game_save_adapter.dart';
@@ -3427,7 +3427,19 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _applyBoardZoom(canvas);
     super.render(canvas);
     _drawNexusCoreCooldownBar(canvas);
-    _drawBuildSelection(canvas);
+    final selectedBuildType = _selectedBuildTurretType;
+    drawGameBoardSelection(
+      canvas,
+      origin: Offset(_origin.x, _origin.y),
+      tileSize: _tileSize,
+      boardDistanceScale: boardDistanceScale,
+      buildPoint: _selectedBuildPoint,
+      portalPoint: _selectedPortalPoint,
+      corePoint: _selectedCorePoint,
+      buildTurret: selectedBuildType == null
+          ? null
+          : gameTurrets[selectedBuildType]!,
+    );
     canvas.restore();
     final hitAlert = (_nexusHitAlertTimer / _nexusHitAlertDuration).clamp(
       0.0,
@@ -3443,73 +3455,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       canvas,
       size: sceneSize,
       alert: math.max(hitAlert, destructionAlert),
-    );
-  }
-
-  void _drawBuildSelection(Canvas canvas) {
-    final point = _selectedBuildPoint;
-    final portalPoint = _selectedPortalPoint;
-    final corePoint = _selectedCorePoint;
-    if (portalPoint != null) {
-      final rect = Rect.fromLTWH(
-        _origin.x + portalPoint.x * _tileSize + 2,
-        _origin.y + portalPoint.y * _tileSize + 2,
-        _tileSize - 4,
-        _tileSize - 4,
-      );
-      canvas.drawRect(
-        rect,
-        Paint()
-          ..color = const Color(0xCCB16DFF)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 3,
-      );
-    }
-
-    if (corePoint != null) {
-      final rect = Rect.fromLTWH(
-        _origin.x + corePoint.x * _tileSize + 2,
-        _origin.y + corePoint.y * _tileSize + 2,
-        _tileSize - 4,
-        _tileSize - 4,
-      );
-      canvas.drawRect(
-        rect,
-        Paint()
-          ..color = const Color(0x228EE6FF)
-          ..style = PaintingStyle.fill,
-      );
-      canvas.drawRect(
-        rect,
-        Paint()
-          ..color = const Color(0xCC8EE6FF)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 3,
-      );
-    }
-
-    if (point == null) {
-      return;
-    }
-
-    final center = _centerOf(point);
-    final selectedType = _selectedBuildTurretType;
-    if (selectedType != null) {
-      _drawBuildGhost(canvas, center, selectedType);
-    }
-
-    final rect = Rect.fromLTWH(
-      _origin.x + point.x * _tileSize + 2,
-      _origin.y + point.y * _tileSize + 2,
-      _tileSize - 4,
-      _tileSize - 4,
-    );
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..color = const Color(0x668EE6FF)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3,
     );
   }
 
@@ -3565,41 +3510,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.2,
     );
-  }
-
-  void _drawBuildGhost(Canvas canvas, Vector2 center, TurretType type) {
-    final definition = gameTurrets[type]!;
-    final ghostCenter = Offset(center.x, center.y);
-    final rangeFill = Paint()
-      ..color = definition.color.withValues(alpha: 0.09)
-      ..style = PaintingStyle.fill;
-    final rangeStroke = Paint()
-      ..color = definition.color.withValues(alpha: 0.42)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6;
-
-    final range = definition.range * boardDistanceScale;
-    canvas.drawCircle(ghostCenter, range, rangeFill);
-    canvas.drawCircle(ghostCenter, range, rangeStroke);
-
-    final ghostSize = _tileSize * 0.72;
-    final ghostBounds = Rect.fromCenter(
-      center: ghostCenter,
-      width: ghostSize,
-      height: ghostSize,
-    );
-    canvas.saveLayer(
-      ghostBounds.inflate(_tileSize * 0.16),
-      Paint()..color = const Color(0xAAFFFFFF),
-    );
-    canvas.translate(ghostBounds.left, ghostBounds.top);
-    drawTurretShape(
-      canvas,
-      size: Size(ghostSize, ghostSize),
-      type: type,
-      color: definition.color,
-    );
-    canvas.restore();
   }
 
   void _applyBoardZoom(Canvas canvas) {
