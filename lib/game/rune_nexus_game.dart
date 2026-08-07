@@ -56,6 +56,7 @@ import 'components/sniper_chain_beam_component.dart';
 import 'components/turret_component.dart';
 import 'events/module_ticket_price_refund_event.dart';
 import 'game_snapshot.dart';
+import 'rendering/game_scene_effect_renderer.dart';
 import 'rendering/status_effect_sprite_cache.dart';
 import 'rendering/turret_shape_renderer.dart';
 import 'systems/combat_resolver.dart';
@@ -99,7 +100,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double _minBoardZoom = 1;
   static const double _maxBoardZoom = 2.1;
   static const double _baseBoardPanRatio = 0.2;
-  static const int _spaceStarCount = 86;
   static const double _nexusHitAlertDuration = 0.65;
   static const double _coreDestructionCameraDuration = 1.15;
   static const double _coreDestructionTotalDuration = 3.2;
@@ -570,8 +570,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double get firstLinkUpgradeDiscountRate =>
       _progression.firstLinkUpgradeDiscountRate;
   int get primaryTraitGemShardCost => _traitGemShardCost(primaryTraitCost);
-  int get secondaryTraitGemShardCost =>
-      _traitGemShardCost(secondaryTraitCost);
+  int get secondaryTraitGemShardCost => _traitGemShardCost(secondaryTraitCost);
   double get passiveTurretLevelUpCostMultiplier =>
       corePassiveTurretLevelUpCostMultiplier(
         _progression.corePassiveNodeRanks,
@@ -3148,10 +3147,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         // 체력·보호막·방어구를 합친 총 내구도 손실률.
         final lostDurabilityRatio = enemy.maxDurability <= 0
             ? 0.0
-            : (1.0 - enemy.currentDurability / enemy.maxDurability).clamp(
-                0.0,
-                1.0,
-              ).toDouble();
+            : (1.0 - enemy.currentDurability / enemy.maxDurability)
+                  .clamp(0.0, 1.0)
+                  .toDouble();
         final nexusDamage =
             enemy.definition.coreDamage.toDouble() *
             corePassiveNexusDamageMultiplier(
@@ -3413,7 +3411,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void render(Canvas canvas) {
-    _drawSpaceBackground(canvas);
+    final sceneSize = Size(size.x, size.y);
+    drawGameSpaceBackground(canvas, size: sceneSize, animationTime: _spaceTime);
     canvas.save();
     if (_phase == GamePhase.coreDestruction) {
       final progress = (_coreDestructionElapsed / _coreDestructionTotalDuration)
@@ -3430,73 +3429,21 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _drawNexusCoreCooldownBar(canvas);
     _drawBuildSelection(canvas);
     canvas.restore();
-    _drawNexusScreenAlert(canvas);
-  }
-
-  void _drawSpaceBackground(Canvas canvas) {
-    if (size.x <= 0 || size.y <= 0) {
-      return;
-    }
-
-    final bounds = Rect.fromLTWH(0, 0, size.x, size.y);
-    canvas.drawRect(
-      bounds,
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF040913), Color(0xFF07111D), Color(0xFF02060C)],
-        ).createShader(bounds),
+    final hitAlert = (_nexusHitAlertTimer / _nexusHitAlertDuration).clamp(
+      0.0,
+      1.0,
     );
-
-    final hazeCenter = Offset(size.x * 0.52, size.y * 0.18);
-    canvas.drawCircle(
-      hazeCenter,
-      math.max(size.x, size.y) * 0.44,
-      Paint()
-        ..shader =
-            RadialGradient(
-              colors: [
-                const Color(0xFF1A4B66).withValues(alpha: 0.16),
-                const Color(0xFF1A4B66).withValues(alpha: 0),
-              ],
-            ).createShader(
-              Rect.fromCircle(
-                center: hazeCenter,
-                radius: math.max(size.x, size.y) * 0.44,
-              ),
-            ),
+    final destructionAlert = _phase == GamePhase.coreDestruction
+        ? (0.36 +
+              0.56 *
+                  (_coreDestructionElapsed / _coreDestructionTotalDuration)
+                      .clamp(0.0, 1.0))
+        : 0.0;
+    drawNexusScreenAlert(
+      canvas,
+      size: sceneSize,
+      alert: math.max(hitAlert, destructionAlert),
     );
-
-    for (var i = 0; i < _spaceStarCount; i++) {
-      final x = _starUnit(i, 1) * size.x;
-      final y = _starUnit(i, 2) * size.y;
-      final speed = 0.75 + _starUnit(i, 3) * 1.8;
-      final phase = _starUnit(i, 4) * math.pi * 2;
-      final pulse = (math.sin(_spaceTime * speed + phase) + 1) / 2;
-      final baseAlpha = 0.16 + _starUnit(i, 5) * 0.24;
-      final alpha = baseAlpha + pulse * (0.18 + _starUnit(i, 6) * 0.24);
-      final radius = 0.55 + _starUnit(i, 7) * 1.05;
-      final color = Color.lerp(
-        const Color(0xFFC7F2FF),
-        const Color(0xFFFFFFFF),
-        _starUnit(i, 8),
-      )!.withValues(alpha: alpha.clamp(0.0, 0.82));
-
-      if (radius > 1.25 && pulse > 0.62) {
-        canvas.drawCircle(
-          Offset(x, y),
-          radius * (2.2 + pulse),
-          Paint()..color = color.withValues(alpha: alpha * 0.16),
-        );
-      }
-      canvas.drawCircle(Offset(x, y), radius, Paint()..color = color);
-    }
-  }
-
-  double _starUnit(int index, int salt) {
-    final value = math.sin(index * 12.9898 + salt * 78.233) * 43758.5453;
-    return value - value.floorToDouble();
   }
 
   void _drawBuildSelection(Canvas canvas) {
@@ -4208,62 +4155,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         (_nexusHitAlertTimer / _nexusHitAlertDuration).clamp(0.0, 1.0);
     _gridComponent.portalAlert = (_portalAlertTimer / _portalAlertDuration)
         .clamp(0.0, 1.0);
-  }
-
-  void _drawNexusScreenAlert(Canvas canvas) {
-    final hitAlert = (_nexusHitAlertTimer / _nexusHitAlertDuration).clamp(
-      0.0,
-      1.0,
-    );
-    final destructionAlert = _phase == GamePhase.coreDestruction
-        ? (0.36 +
-              0.56 *
-                  (_coreDestructionElapsed / _coreDestructionTotalDuration)
-                      .clamp(0.0, 1.0))
-        : 0.0;
-    final alert = math.max(hitAlert, destructionAlert);
-    if (alert <= 0) {
-      return;
-    }
-    final fadeWidth = (math.min(size.x, size.y) * 0.12)
-        .clamp(26.0, 54.0)
-        .toDouble();
-    final edgeColor = const Color(0xFFFF3D3D).withValues(alpha: 0.22 * alert);
-    const transparent = Color(0x00FF3D3D);
-
-    void drawEdge(Rect edgeRect, Alignment begin, Alignment end) {
-      canvas.drawRect(
-        edgeRect,
-        Paint()
-          ..shader = LinearGradient(
-            begin: begin,
-            end: end,
-            colors: [edgeColor, transparent],
-            stops: const [0.0, 1.0],
-          ).createShader(edgeRect),
-      );
-    }
-
-    drawEdge(
-      Rect.fromLTWH(0, 0, size.x, fadeWidth),
-      Alignment.topCenter,
-      Alignment.bottomCenter,
-    );
-    drawEdge(
-      Rect.fromLTWH(0, size.y - fadeWidth, size.x, fadeWidth),
-      Alignment.bottomCenter,
-      Alignment.topCenter,
-    );
-    drawEdge(
-      Rect.fromLTWH(0, 0, fadeWidth, size.y),
-      Alignment.centerLeft,
-      Alignment.centerRight,
-    );
-    drawEdge(
-      Rect.fromLTWH(size.x - fadeWidth, 0, fadeWidth, size.y),
-      Alignment.centerRight,
-      Alignment.centerLeft,
-    );
   }
 
   void _finishRun(GamePhase resultPhase) {
