@@ -32,13 +32,27 @@ import '../widgets/rune_balance_card.dart';
 
 part 'main_menu_core.dart';
 part 'main_menu_core_tree.dart';
+part 'main_menu_core_tree_summary.dart';
+part 'main_menu_core_tree_world.dart';
+part 'main_menu_core_tree_connections.dart';
+part 'main_menu_core_tree_details.dart';
 part 'main_menu_daily_quest.dart';
 part 'main_menu_debug_panel.dart';
 part 'main_menu_frame.dart';
 part 'main_menu_permanent_upgrades.dart';
 part 'main_menu_research.dart';
+part 'main_menu_research_slots.dart';
+part 'main_menu_research_catalog.dart';
+part 'main_menu_research_details.dart';
 part 'main_menu_stage.dart';
+part 'main_menu_stage_list.dart';
+part 'main_menu_stage_details.dart';
+part 'main_menu_stage_rewards.dart';
 part 'main_menu_turret_modules.dart';
+part 'main_menu_turret_modules_disassemble.dart';
+part 'main_menu_turret_modules_draw.dart';
+part 'main_menu_turret_modules_equipment.dart';
+part 'main_menu_turret_modules_inventory.dart';
 part 'main_menu_weekly_quest.dart';
 
 const _showMapEditor = bool.fromEnvironment(
