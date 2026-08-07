@@ -16,6 +16,7 @@ import '../../domain/turret/turret_type.dart';
 import '../../domain/turret_module/turret_module_type.dart';
 import '../rendering/turret_level_renderer.dart';
 import '../rendering/turret_shape_renderer.dart';
+import '../rendering/turret_visual_effect_renderer.dart';
 import '../rune_nexus_game.dart';
 import 'enemy_component.dart';
 import 'lightning_charge_component.dart';
@@ -1051,7 +1052,12 @@ class TurretComponent extends PositionComponent {
     }
 
     if (selected) {
-      _drawSelectionHighlight(canvas, center);
+      drawTurretSelectionHighlight(
+        canvas,
+        center: center,
+        tileSize: _tileSize,
+        color: definition.color,
+      );
     }
 
     _levelRenderer.drawPowerAura(
@@ -1061,8 +1067,34 @@ class TurretComponent extends PositionComponent {
       level: _level,
     );
     _syncGemSlotLength();
-    _drawGemReactionRing(canvas, center);
-    _drawAimBeam(canvas, center);
+    final gems = equippedGems;
+    if (gems.isNotEmpty) {
+      final visibleGemCount = math.min(gems.length, maxSlotLimit);
+      drawTurretGemReactionRing(
+        canvas,
+        center: center,
+        tileSize: _tileSize,
+        animationPhase: _gemRingPhase,
+        gemColors: [
+          for (var i = 0; i < visibleGemCount; i++) game.colorForGem(gems[i]),
+        ],
+      );
+    }
+    final aimTarget = _aimTarget;
+    if (aimTarget != null && definition.instantHit) {
+      drawTurretAimBeam(
+        canvas,
+        center: center,
+        target: Offset(
+          center.dx + aimTarget.position.x - position.x,
+          center.dy + aimTarget.position.y - position.y,
+        ),
+        color: definition.color,
+        tileSize: _tileSize,
+        progress: aimProgressRatio,
+        animationPhase: _gemRingPhase,
+      );
+    }
 
     drawTurretShape(
       canvas,
@@ -1086,42 +1118,6 @@ class TurretComponent extends PositionComponent {
     );
   }
 
-  void _drawAimBeam(Canvas canvas, Offset center) {
-    final target = _aimTarget;
-    if (target == null || !definition.instantHit) {
-      return;
-    }
-    final progress = aimProgressRatio;
-    if (progress <= 0) {
-      return;
-    }
-    final targetLocal = Offset(
-      center.dx + target.position.x - position.x,
-      center.dy + target.position.y - position.y,
-    );
-    final pulse = 0.55 + math.sin(_gemRingPhase * 8) * 0.18;
-    final beamColor = definition.color.withValues(
-      alpha: (0.16 + progress * 0.42) * pulse,
-    );
-    canvas.drawLine(
-      center,
-      targetLocal,
-      Paint()
-        ..color = beamColor
-        ..strokeCap = StrokeCap.round
-        ..strokeWidth = _tileSize * (0.018 + progress * 0.014),
-    );
-    final chargeRadius = _tileSize * (0.08 + progress * 0.07);
-    canvas.drawCircle(
-      center,
-      chargeRadius,
-      Paint()
-        ..color = definition.color.withValues(alpha: 0.16 + progress * 0.16)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = _tileSize * 0.025,
-    );
-  }
-
   void _syncGemSlotLength() {
     while (_gemSlots.length < _slotLimit) {
       _gemSlots.add(null);
@@ -1129,106 +1125,6 @@ class TurretComponent extends PositionComponent {
     if (_gemSlots.length > _slotLimit) {
       _gemSlots.removeRange(_slotLimit, _gemSlots.length);
     }
-  }
-
-  void _drawGemReactionRing(Canvas canvas, Offset center) {
-    final gems = equippedGems;
-    if (gems.isEmpty) {
-      return;
-    }
-
-    final ringRect = Rect.fromCircle(center: center, radius: _tileSize * 0.43);
-    final pulse = 0.88 + math.sin(_gemRingPhase * 2.4) * 0.12;
-    final baseStroke = _tileSize * 0.03;
-    final glowStroke = _tileSize * 0.1;
-    canvas.drawOval(
-      ringRect,
-      Paint()
-        ..color = const Color(0xFF020812).withValues(alpha: 0.76)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = baseStroke * 2.1,
-    );
-
-    final count = math.min(gems.length, maxSlotLimit);
-    final gap = count == 1 ? 0.0 : 0.22;
-    final segmentSweep = count == 1
-        ? math.pi * 1.64
-        : (math.pi * 2 / count) - gap;
-    final startOffset =
-        -math.pi / 2 - (count == 1 ? segmentSweep / 2 : 0) + _gemRingPhase;
-    for (var i = 0; i < count; i++) {
-      final gemColor = game.colorForGem(gems[i]);
-      final ringColor = Color.lerp(gemColor, const Color(0xFFFFFFFF), 0.12)!;
-      final start = count == 1
-          ? startOffset
-          : startOffset + i * math.pi * 2 / count + gap / 2;
-
-      canvas.drawArc(
-        ringRect,
-        start,
-        segmentSweep,
-        false,
-        Paint()
-          ..color = ringColor.withValues(alpha: 0.34 * pulse)
-          ..style = PaintingStyle.stroke
-          ..strokeCap = StrokeCap.round
-          ..strokeWidth = glowStroke,
-      );
-      canvas.drawArc(
-        ringRect,
-        start,
-        segmentSweep,
-        false,
-        Paint()
-          ..color = ringColor.withValues(alpha: 0.96 * pulse)
-          ..style = PaintingStyle.stroke
-          ..strokeCap = StrokeCap.round
-          ..strokeWidth = baseStroke,
-      );
-      final midAngle = start + segmentSweep / 2;
-      final tickStart = Offset(
-        center.dx + math.cos(midAngle) * _tileSize * 0.39,
-        center.dy + math.sin(midAngle) * _tileSize * 0.39,
-      );
-      final tickEnd = Offset(
-        center.dx + math.cos(midAngle) * _tileSize * 0.47,
-        center.dy + math.sin(midAngle) * _tileSize * 0.47,
-      );
-      canvas.drawLine(
-        tickStart,
-        tickEnd,
-        Paint()
-          ..color = const Color(0xFFFFFFFF).withValues(alpha: 0.72 * pulse)
-          ..strokeCap = StrokeCap.round
-          ..strokeWidth = _tileSize * 0.011,
-      );
-    }
-  }
-
-  void _drawSelectionHighlight(Canvas canvas, Offset center) {
-    final tileRect = Rect.fromCenter(
-      center: center,
-      width: _tileSize - 4,
-      height: _tileSize - 4,
-    );
-    final radius = Radius.circular(_tileSize * 0.09);
-    final outerPaint = Paint()
-      ..color = definition.color.withValues(alpha: 0.95)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3.2;
-    final glowPaint = Paint()
-      ..color = definition.color.withValues(alpha: 0.2)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 8;
-    final innerPaint = Paint()
-      ..color = const Color(0xEEFFFFFF)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4;
-
-    canvas.drawRRect(RRect.fromRectAndRadius(tileRect, radius), glowPaint);
-    canvas.drawRRect(RRect.fromRectAndRadius(tileRect, radius), outerPaint);
-    canvas.drawCircle(center, _tileSize * 0.42, outerPaint);
-    canvas.drawCircle(center, _tileSize * 0.32, innerPaint);
   }
 }
 
