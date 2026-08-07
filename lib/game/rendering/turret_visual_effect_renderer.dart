@@ -2,6 +2,40 @@ import 'dart:math' as math;
 
 import 'package:flutter/painting.dart';
 
+void drawTurretRangeIndicator(
+  Canvas canvas, {
+  required Offset center,
+  required Color color,
+  required double range,
+  required bool selected,
+  required double? previewRange,
+}) {
+  final rangePaint = Paint()
+    ..color = color.withValues(alpha: 0.08)
+    ..style = PaintingStyle.fill;
+  canvas.drawCircle(center, range, rangePaint);
+  if (!selected) {
+    return;
+  }
+
+  if (previewRange != null && previewRange > range) {
+    final previewFill = Paint()
+      ..color = color.withValues(alpha: 0.045)
+      ..style = PaintingStyle.fill;
+    final previewStroke = Paint()
+      ..color = color.withValues(alpha: 0.34)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.3;
+    canvas.drawCircle(center, previewRange, previewFill);
+    canvas.drawCircle(center, previewRange, previewStroke);
+  }
+  final rangeStroke = Paint()
+    ..color = color.withValues(alpha: 0.48)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.8;
+  canvas.drawCircle(center, range, rangeStroke);
+}
+
 void drawTurretAimBeam(
   Canvas canvas, {
   required Offset center,

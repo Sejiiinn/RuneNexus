@@ -50,6 +50,14 @@ void main() {
     final recorder = PictureRecorder();
     final canvas = Canvas(recorder);
 
+    drawTurretRangeIndicator(
+      canvas,
+      center: const Offset(56, 56),
+      color: const Color(0xFFFFD45A),
+      range: 96,
+      selected: true,
+      previewRange: 104,
+    );
     drawTurretSelectionHighlight(
       canvas,
       center: const Offset(56, 56),

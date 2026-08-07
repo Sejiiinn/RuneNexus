@@ -1027,29 +1027,14 @@ class TurretComponent extends PositionComponent {
   void render(Canvas canvas) {
     final selected = game.isTurretSelected(gridPoint);
     final center = Offset(size.x / 2, size.y / 2);
-    final rangePaint = Paint()
-      ..color = definition.color.withValues(alpha: 0.08)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, range, rangePaint);
-    if (selected) {
-      final previewRange = game.levelUpPreviewRangeFor(gridPoint);
-      if (previewRange != null && previewRange > range) {
-        final previewFill = Paint()
-          ..color = definition.color.withValues(alpha: 0.045)
-          ..style = PaintingStyle.fill;
-        final previewStroke = Paint()
-          ..color = definition.color.withValues(alpha: 0.34)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.3;
-        canvas.drawCircle(center, previewRange, previewFill);
-        canvas.drawCircle(center, previewRange, previewStroke);
-      }
-      final rangeStroke = Paint()
-        ..color = definition.color.withValues(alpha: 0.48)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.8;
-      canvas.drawCircle(center, range, rangeStroke);
-    }
+    drawTurretRangeIndicator(
+      canvas,
+      center: center,
+      color: definition.color,
+      range: range,
+      selected: selected,
+      previewRange: selected ? game.levelUpPreviewRangeFor(gridPoint) : null,
+    );
 
     if (selected) {
       drawTurretSelectionHighlight(
