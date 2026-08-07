@@ -18,9 +18,6 @@ class GameSnapshotBuilder {
         selectedTurret != null &&
         selectedTurret.canLevelUp &&
         _game._gold >= selectedTurret.levelUpCost;
-    if (!levelUpPreviewActive) {
-      _game._levelUpPreviewPoint = null;
-    }
     final selectedTurretNextLevel = levelUpPreviewActive
         ? selectedTurret.level + 1
         : 0;

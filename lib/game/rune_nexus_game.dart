@@ -4388,9 +4388,27 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return _burnDurationSeconds * turret.damageOverTimeDurationMultiplier;
   }
 
+  void _sanitizeLevelUpPreview() {
+    final previewPoint = _levelUpPreviewPoint;
+    if (previewPoint == null) {
+      return;
+    }
+    final selectedPoint = _selectedTurretPoint;
+    final selectedTurret = selectedPoint == null
+        ? null
+        : _turrets[selectedPoint];
+    if (previewPoint != selectedPoint ||
+        selectedTurret == null ||
+        !selectedTurret.canLevelUp ||
+        _gold < selectedTurret.levelUpCost) {
+      _levelUpPreviewPoint = null;
+    }
+  }
+
   void _publish() {
     _combatStatsPublishPending = false;
     _combatStatsPublishTimer = 0;
+    _sanitizeLevelUpPreview();
     snapshotNotifier.value = GameSnapshotBuilder(this).build();
   }
 }
