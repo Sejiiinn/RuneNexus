@@ -544,7 +544,7 @@ void main() {
     expect(progression.runUpgradeCostMultiplier, closeTo(0.8, 0.001));
   });
 
-  test('run upgrade limit researches unlock after stage twelve clear', () {
+  test('run upgrade limit researches unlock after stage fifteen clear', () {
     final progression = RunProgression()..runes = 1000;
     const researchTypes = [
       ResearchType.towerDamageLimitExpansion,
@@ -563,6 +563,12 @@ void main() {
     }
 
     progression.clearedStageNumbers.add(12);
+
+    for (final type in researchTypes) {
+      expect(progression.isResearchUnlocked(type), isFalse);
+    }
+
+    progression.clearedStageNumbers.add(15);
 
     for (final type in researchTypes) {
       expect(progression.isResearchUnlocked(type), isTrue);

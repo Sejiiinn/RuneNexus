@@ -210,7 +210,7 @@ void main() {
     );
   });
 
-  testWidgets('stage twelve shows its research reward and unlock details', (
+  testWidgets('stage fifteen shows its research reward and unlock details', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -227,9 +227,24 @@ void main() {
           game: RuneNexusGame(),
           snapshot: resultSnapshot(
             phase: GamePhase.preparation,
-            currentStageNumber: 12,
-            unlockedStageCount: 12,
-            clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
+            currentStageNumber: 15,
+            unlockedStageCount: 15,
+            clearedStageNumbers: const {
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+            },
           ),
           selectedTab: MainMenuTab.stage,
           onSelectTab: (_) {},
@@ -239,7 +254,7 @@ void main() {
     );
     await pumpGameFrames(tester);
 
-    final stageRow = find.byKey(const ValueKey('stage-selection-row-12'));
+    final stageRow = find.byKey(const ValueKey('stage-selection-row-15'));
     expect(stageRow, findsOneWidget);
     expect(
       find.descendant(

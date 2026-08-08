@@ -512,7 +512,7 @@ _StageRewardVisual? _stageRewardVisualFor(int stageNumber) {
     11 => const _StageRewardVisual(
       icon: _StageRewardAssetIcon(asset: turretModuleTicketIconAsset),
     ),
-    12 => const _StageRewardVisual(
+    15 => const _StageRewardVisual(
       icon: _StageRewardAssetIcon(asset: stageRewardResearchIconAsset),
     ),
     _ => null,
@@ -672,7 +672,7 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
         highlighted: highlighted,
       ),
     ],
-    12 => [
+    15 => [
       _StageUnlockItem(
         label: l10n.towerDamageLimitExpansion,
         researchType: ResearchType.towerDamageLimitExpansion,

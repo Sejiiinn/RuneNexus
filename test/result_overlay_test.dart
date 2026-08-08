@@ -329,7 +329,7 @@ void main() {
     );
   });
 
-  testWidgets('result overlay shows stage twelve limit research unlocks', (
+  testWidgets('result overlay shows stage fifteen limit research unlocks', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -346,16 +346,31 @@ void main() {
           game: RuneNexusGame(),
           snapshot: resultSnapshot(
             phase: GamePhase.success,
-            currentStageNumber: 12,
-            unlockedStageCount: 13,
+            currentStageNumber: 15,
+            unlockedStageCount: 15,
             completedRounds: 40,
             runes: 1000,
             lastRunRuneReward: 1000,
             lastRunPreviousBestRound: 30,
             lastRunWasNewBestRound: true,
-            lastRunUnlockedStageNumber: 13,
-            bestRoundsByStage: const {12: 40},
-            clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+            bestRoundsByStage: const {15: 40},
+            clearedStageNumbers: const {
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+            },
           ),
           onOpenStageSelect: () {},
           onOpenPermanentUpgrades: () {},

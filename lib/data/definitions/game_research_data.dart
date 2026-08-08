@@ -103,7 +103,7 @@ const gameResearchDefinitions = {
   ResearchType.towerDamageLimitExpansion: ResearchDefinition(
     type: ResearchType.towerDamageLimitExpansion,
     maxLevel: 10,
-    requiredClearedStage: 12,
+    requiredClearedStage: 15,
     baseRuneCost: 150,
     costMultiplier: 1.18,
     durationMillis: twoHourResearchDurationMillis,
@@ -112,7 +112,7 @@ const gameResearchDefinitions = {
   ResearchType.killGoldLimitExpansion: ResearchDefinition(
     type: ResearchType.killGoldLimitExpansion,
     maxLevel: 10,
-    requiredClearedStage: 12,
+    requiredClearedStage: 15,
     baseRuneCost: 150,
     costMultiplier: 1.18,
     durationMillis: twoHourResearchDurationMillis,
@@ -121,7 +121,7 @@ const gameResearchDefinitions = {
   ResearchType.waveGoldLimitExpansion: ResearchDefinition(
     type: ResearchType.waveGoldLimitExpansion,
     maxLevel: 10,
-    requiredClearedStage: 12,
+    requiredClearedStage: 15,
     baseRuneCost: 150,
     costMultiplier: 1.18,
     durationMillis: twoHourResearchDurationMillis,
