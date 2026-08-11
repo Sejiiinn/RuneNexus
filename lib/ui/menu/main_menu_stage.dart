@@ -87,9 +87,10 @@ class _StageMenuState extends State<_StageMenu> {
                         // 진행 중 스테이지는 별도 패널 대신 목록 내 리치 카드로 통합.
                         ? _ActiveStageCard(
                             snapshot: snapshot,
-                            runeBonusText: l10n.stageRuneBonus(
-                              RunProgression.stageRuneRewardBonusRateFor(stage),
-                            ),
+                            runeRewardText: l10n
+                                .stageFullClearRuneRewardCompact(
+                                  _fullClearRuneReward(snapshot, stage),
+                                ),
                             onContinue: () => widget.onStartStage(
                               snapshot.currentStageNumber,
                             ),
@@ -117,9 +118,10 @@ class _StageMenuState extends State<_StageMenu> {
                               stageNumber: stage,
                               activeRunInProgress: activeRunInProgress,
                             ),
-                            runeBonusText: l10n.stageRuneBonus(
-                              RunProgression.stageRuneRewardBonusRateFor(stage),
-                            ),
+                            runeRewardText: l10n
+                                .stageFullClearRuneRewardCompact(
+                                  _fullClearRuneReward(snapshot, stage),
+                                ),
                             onPressed: () => _openStageDetails(
                               context: context,
                               stageNumber: stage,

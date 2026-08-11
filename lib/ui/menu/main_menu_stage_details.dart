@@ -711,29 +711,18 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
 }
 
 int _fullClearRuneReward(GameSnapshot snapshot, int stageNumber) {
-  final completedRounds = snapshot.maxRound;
-  final rewardProgress =
-      (math.pow(RunProgression.runeRewardGrowthPerRound, completedRounds) - 1) /
-      (math.pow(
-            RunProgression.runeRewardGrowthPerRound,
-            RunProgression.runeRewardFullClearRoundCount,
-          ) -
-          1);
-  final baseReward =
-      RunProgression.baseStageOneFullClearRuneReward * rewardProgress;
-  final bonusRate = RunProgression.stageRuneRewardBonusRateFor(stageNumber);
   final resonanceLevel =
       snapshot.researchLevels[ResearchType.runeResonance] ?? 0;
-  final resonanceMultiplier =
-      1 + resonanceLevel * RunProgression.runeResonanceBonusPerLevel;
-  return math.max(
-    1,
-    (baseReward * (1 + bonusRate) * resonanceMultiplier).round(),
+  return RunProgression.calculateRuneReward(
+    completedRounds: snapshot.maxRound,
+    stageNumber: stageNumber,
+    resonanceBonusRate:
+        resonanceLevel * RunProgression.runeResonanceBonusPerLevel,
   );
 }
 
-class _StageRuneBonusText extends StatelessWidget {
-  const _StageRuneBonusText({
+class _StageRuneRewardText extends StatelessWidget {
+  const _StageRuneRewardText({
     required this.text,
     required this.unlocked,
     required this.active,

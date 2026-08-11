@@ -941,8 +941,25 @@ void main() {
     },
   );
 
-  test('stage rune reward bonus scales repeat rewards', () {
+  test('stage rune rewards grow exponentially by 18 percent', () {
     final progression = RunProgression();
+    const expectedFullClearRewards = [
+      150,
+      177,
+      209,
+      246,
+      291,
+      343,
+      405,
+      478,
+      564,
+      665,
+      785,
+      926,
+      1093,
+      1290,
+      1522,
+    ];
 
     expect(progression.runeRewardFor(0, success: false), 0);
     expect(progression.runeRewardFor(0, success: true), 0);
@@ -950,21 +967,22 @@ void main() {
     expect(progression.runeRewardFor(10, success: false), 19);
     expect(progression.runeRewardFor(20, success: false), 47);
     expect(progression.runeRewardFor(30, success: false), 89);
-    expect(progression.runeRewardFor(40, success: true), 150);
     expect(progression.runeRewardFor(50, success: true), 150);
-    expect(progression.runeRewardFor(40, success: true, stageNumber: 2), 180);
-    expect(progression.runeRewardFor(40, success: true, stageNumber: 3), 218);
-    expect(progression.runeRewardFor(40, success: true, stageNumber: 4), 263);
-    expect(progression.runeRewardFor(40, success: true, stageNumber: 5), 315);
-    expect(progression.runeRewardFor(40, success: true, stageNumber: 15), 1253);
-    expect(progression.runeRewardFor(40, success: true, stageNumber: 16), 1253);
+    for (var index = 0; index < expectedFullClearRewards.length; index++) {
+      expect(
+        progression.runeRewardFor(40, success: true, stageNumber: index + 1),
+        expectedFullClearRewards[index],
+      );
+    }
+    expect(progression.runeRewardFor(40, success: true, stageNumber: 0), 150);
+    expect(progression.runeRewardFor(40, success: true, stageNumber: 16), 1522);
 
     progression.researchLevels[ResearchType.runeResonance] = 20;
     expect(progression.runeRewardFor(40, success: true), 210);
-    expect(progression.runeRewardFor(40, success: true, stageNumber: 8), 725);
+    expect(progression.runeRewardFor(40, success: true, stageNumber: 8), 669);
   });
 
-  test('stage rune reward bonus applies to first clear rewards', () {
+  test('first clear and repeat clear use the same stage rune reward', () {
     final progression = RunProgression();
 
     progression.finishRun(completedRounds: 1, success: true, stageNumber: 2);

@@ -69,6 +69,7 @@ class RunProgression
   static const int runeRewardFullClearRoundCount = 40;
   static const int baseStageOneFullClearRuneReward = 150;
   static const double runeRewardGrowthPerRound = 1.04;
+  static const double stageRuneRewardGrowthPerStage = 1.18;
   static const int baseTurretRefundPercent = 75;
   static const int startingGoldUpgradeBaseCost = 4;
   static const int startingGoldUpgradeCostPerLevel = 3;
@@ -109,24 +110,6 @@ class RunProgression
   static const int turretLevelUpOptimizationUpgradeCostPerLevel = 6;
   static const double turretLevelUpOptimizationUpgradeCostMultiplier = 1.07;
   static const double permanentCostReductionPerUpgradeLevel = 0.01;
-  static const List<double> _stageRuneRewardBonusRates = [
-    0,
-    0.20,
-    0.45,
-    0.75,
-    1.10,
-    1.50,
-    1.95,
-    2.45,
-    3.00,
-    3.60,
-    4.25,
-    4.95,
-    5.70,
-    6.50,
-    7.35,
-  ];
-
   @override
   int runes = 0;
   final DiamondWallet _diamondWallet = DiamondWallet();
@@ -149,9 +132,37 @@ class RunProgression
 
   int get diamonds => _diamondWallet.total;
 
+  static double stageRuneRewardMultiplierFor(int stageNumber) {
+    final exponent = stageNumber.clamp(1, maxStageCount).toInt() - 1;
+    return math.pow(stageRuneRewardGrowthPerStage, exponent).toDouble();
+  }
+
   static double stageRuneRewardBonusRateFor(int stageNumber) {
-    final index = stageNumber.clamp(1, maxStageCount).toInt() - 1;
-    return _stageRuneRewardBonusRates[index];
+    return stageRuneRewardMultiplierFor(stageNumber) - 1;
+  }
+
+  static int calculateRuneReward({
+    required int completedRounds,
+    required int stageNumber,
+    double resonanceBonusRate = 0,
+  }) {
+    if (completedRounds <= 0) {
+      return 0;
+    }
+    final cappedRounds = completedRounds
+        .clamp(0, runeRewardFullClearRoundCount)
+        .toInt();
+    final rewardProgress =
+        (math.pow(runeRewardGrowthPerRound, cappedRounds) - 1) /
+        (math.pow(runeRewardGrowthPerRound, runeRewardFullClearRoundCount) - 1);
+    final baseReward = baseStageOneFullClearRuneReward * rewardProgress;
+    return math.max(
+      1,
+      (baseReward *
+              stageRuneRewardMultiplierFor(stageNumber) *
+              (1 + resonanceBonusRate))
+          .round(),
+    );
   }
 
   static int applyResearchEfficiency(
@@ -599,21 +610,10 @@ class RunProgression
     required bool success,
     int stageNumber = 1,
   }) {
-    if (completedRounds <= 0) {
-      return 0;
-    }
-    final cappedRounds = completedRounds
-        .clamp(0, runeRewardFullClearRoundCount)
-        .toInt();
-    final rewardProgress =
-        (math.pow(runeRewardGrowthPerRound, cappedRounds) - 1) /
-        (math.pow(runeRewardGrowthPerRound, runeRewardFullClearRoundCount) - 1);
-    final baseReward = baseStageOneFullClearRuneReward * rewardProgress;
-    final bonusRate = stageRuneRewardBonusRateFor(stageNumber);
-    final resonanceMultiplier = 1 + runeResonanceBonusRate;
-    return math.max(
-      1,
-      (baseReward * (1 + bonusRate) * resonanceMultiplier).round(),
+    return calculateRuneReward(
+      completedRounds: completedRounds,
+      stageNumber: stageNumber,
+      resonanceBonusRate: runeResonanceBonusRate,
     );
   }
 

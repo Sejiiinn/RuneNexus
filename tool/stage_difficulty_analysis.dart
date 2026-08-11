@@ -534,10 +534,10 @@ class StageDifficultyAnalyzer {
   }
 
   int _fullClearRuneReward(int stageNumber) {
-    final stageMultiplier =
-        1 + RunProgression.stageRuneRewardBonusRateFor(stageNumber);
-    return (RunProgression.baseStageOneFullClearRuneReward * stageMultiplier)
-        .round();
+    return RunProgression.calculateRuneReward(
+      completedRounds: RunProgression.runeRewardFullClearRoundCount,
+      stageNumber: stageNumber,
+    );
   }
 
   int _hybridCost({

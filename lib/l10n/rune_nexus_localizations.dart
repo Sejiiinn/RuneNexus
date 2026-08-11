@@ -451,6 +451,10 @@ class RuneNexusLocalizations {
     return _isEnglish ? '$runes runes on clear' : '완주 시 $runes룬';
   }
 
+  String stageFullClearRuneRewardCompact(int runes) {
+    return _isEnglish ? 'Clear $runes' : '완주 $runes룬';
+  }
+
   String stageLockedRequirement(int stageNumber) {
     final requiredStage = stageNumber - 1;
     return _isEnglish

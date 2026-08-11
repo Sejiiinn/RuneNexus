@@ -31,11 +31,11 @@ void main() {
     expect(find.text('경제 강화'), findsNothing);
     expect(find.text('연구+코어'), findsNothing);
     expect(find.text('전투 강화'), findsNothing);
-    expect(find.text('룬 +0%'), findsOneWidget);
-    expect(find.text('룬 +20%'), findsOneWidget);
-    expect(find.text('룬 +45%'), findsOneWidget);
-    expect(find.text('룬 +75%'), findsOneWidget);
-    expect(find.text('룬 +110%'), findsOneWidget);
+    expect(find.text('완주 150룬'), findsOneWidget);
+    expect(find.text('완주 177룬'), findsOneWidget);
+    expect(find.text('완주 209룬'), findsOneWidget);
+    expect(find.text('완주 246룬'), findsOneWidget);
+    expect(find.text('완주 291룬'), findsOneWidget);
     expect(find.text('강화 해금'), findsNothing);
     expect(find.text('연구 해금'), findsNothing);
     expect(find.text('전투 강화 해금'), findsNothing);
@@ -311,6 +311,10 @@ void main() {
     final stageRow = find.byKey(const ValueKey('stage-selection-row-15'));
     expect(stageRow, findsOneWidget);
     expect(
+      find.descendant(of: stageRow, matching: find.text('완주 1522룬')),
+      findsOneWidget,
+    );
+    expect(
       find.descendant(
         of: stageRow,
         matching: find.byWidgetPredicate(
@@ -330,6 +334,7 @@ void main() {
     expect(find.text('포탑 화력 확장'), findsOneWidget);
     expect(find.text('처치 보너스 확장'), findsOneWidget);
     expect(find.text('정비 보급 확장'), findsOneWidget);
+    expect(find.text('완주 시 1522룬'), findsOneWidget);
   });
 
   testWidgets('stage details group unlock rewards by system section', (

@@ -3,13 +3,13 @@ part of 'main_menu_screen.dart';
 class _ActiveStageCard extends StatelessWidget {
   const _ActiveStageCard({
     required this.snapshot,
-    required this.runeBonusText,
+    required this.runeRewardText,
     required this.onContinue,
     required this.onDetails,
   });
 
   final GameSnapshot snapshot;
-  final String runeBonusText;
+  final String runeRewardText;
   final VoidCallback onContinue;
   final VoidCallback onDetails;
 
@@ -69,7 +69,7 @@ class _ActiveStageCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                _buildRuneChip(runeBonusText),
+                _buildRuneChip(runeRewardText),
               ],
             ),
           ),
@@ -233,7 +233,7 @@ class _StageSelectionRow extends StatelessWidget {
     required this.sniperRewardUnlocked,
     required this.stageCleared,
     required this.statusText,
-    required this.runeBonusText,
+    required this.runeRewardText,
     required this.onPressed,
   });
 
@@ -244,7 +244,7 @@ class _StageSelectionRow extends StatelessWidget {
   final bool sniperRewardUnlocked;
   final bool stageCleared;
   final String statusText;
-  final String runeBonusText;
+  final String runeRewardText;
   final VoidCallback? onPressed;
 
   @override
@@ -277,7 +277,7 @@ class _StageSelectionRow extends StatelessWidget {
           final leftGap = dense ? 7.0 : 10.0;
           final leftFlex = dense ? 8 : 9;
           final runeGap = dense ? 5.0 : 8.0;
-          final runeWidth = dense ? 48.0 : 60.0;
+          final runeWidth = dense ? 62.0 : 76.0;
           final rewardGap = dense ? 5.0 : 8.0;
           final rewardFlex = dense ? 10 : 7;
           final chevronSize = dense ? 18.0 : 22.0;
@@ -351,8 +351,8 @@ class _StageSelectionRow extends StatelessWidget {
                 SizedBox(width: runeGap),
                 SizedBox(
                   width: runeWidth,
-                  child: _StageRuneBonusText(
-                    text: runeBonusText,
+                  child: _StageRuneRewardText(
+                    text: runeRewardText,
                     unlocked: unlocked,
                     active: active,
                     theme: theme,
