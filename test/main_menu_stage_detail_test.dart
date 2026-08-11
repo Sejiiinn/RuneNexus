@@ -210,6 +210,60 @@ void main() {
     );
   });
 
+  testWidgets('stage nine shows its advanced economy upgrade rewards', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 9,
+            unlockedStageCount: 9,
+            clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8},
+          ),
+          selectedTab: MainMenuTab.stage,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await pumpGameFrames(tester);
+
+    final stageRow = find.byKey(const ValueKey('stage-selection-row-9'));
+    expect(stageRow, findsOneWidget);
+    await tester.tap(stageRow);
+    await pumpGameFrames(tester);
+
+    expect(find.text('연결 공정'), findsOneWidget);
+    expect(find.text('강화 공정'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is UpgradeIcon &&
+            widget.type == GameUpgradeIconType.linkCost,
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is UpgradeIcon &&
+            widget.type == GameUpgradeIconType.turretLevelUpCost,
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('stage fifteen shows its research reward and unlock details', (
     tester,
   ) async {

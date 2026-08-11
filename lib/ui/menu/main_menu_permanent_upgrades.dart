@@ -175,8 +175,19 @@ List<_PermanentUpgradeTileData> _economyUpgradeTiles({
   final nextEmergencySaleLevel = (snapshot.emergencySaleUpgradeLevel + 1)
       .clamp(0, RunProgression.maxEmergencySaleUpgradeLevel)
       .toInt();
+  final nextLinkCostOptimizationLevel =
+      (snapshot.linkCostOptimizationUpgradeLevel + 1)
+          .clamp(0, RunProgression.maxLinkCostOptimizationUpgradeLevel)
+          .toInt();
+  final nextTurretLevelUpOptimizationLevel =
+      (snapshot.turretLevelUpOptimizationUpgradeLevel + 1)
+          .clamp(0, RunProgression.maxTurretLevelUpOptimizationUpgradeLevel)
+          .toInt();
   final economyUpgradeUnlocked = snapshot.clearedStageNumbers.contains(
     RuneNexusGame.economyUpgradeUnlockStage,
+  );
+  final advancedEconomyUpgradeUnlocked = snapshot.clearedStageNumbers.contains(
+    RuneNexusGame.advancedEconomyUpgradeUnlockStage,
   );
   return [
     _PermanentUpgradeTileData(
@@ -241,6 +252,44 @@ List<_PermanentUpgradeTileData> _economyUpgradeTiles({
         enabled: snapshot.canUpgradeEmergencySale,
         lockText: l10n.maxLevelReached,
         onPressed: game.upgradeEmergencySaleProgression,
+      ),
+    if (advancedEconomyUpgradeUnlocked)
+      _PermanentUpgradeTileData(
+        upgradeIconType: GameUpgradeIconType.linkCost,
+        title: l10n.linkCostOptimization,
+        description: l10n.permanentUpgradeDescription(
+          l10n.linkCostOptimization,
+        ),
+        level: snapshot.linkCostOptimizationUpgradeLevel,
+        maxLevel: RunProgression.maxLinkCostOptimizationUpgradeLevel,
+        globalMaxLevel: RunProgression.maxLinkCostOptimizationUpgradeLevel,
+        valueText:
+            '-${(snapshot.linkCostOptimizationUpgradeLevel * RunProgression.permanentCostReductionPerUpgradeLevel * 100).round()}%',
+        nextValueText:
+            '-${(nextLinkCostOptimizationLevel * RunProgression.permanentCostReductionPerUpgradeLevel * 100).round()}%',
+        cost: snapshot.linkCostOptimizationUpgradeCost,
+        enabled: snapshot.canUpgradeLinkCostOptimization,
+        lockText: l10n.maxLevelReached,
+        onPressed: game.upgradeLinkCostOptimizationProgression,
+      ),
+    if (advancedEconomyUpgradeUnlocked)
+      _PermanentUpgradeTileData(
+        upgradeIconType: GameUpgradeIconType.turretLevelUpCost,
+        title: l10n.turretLevelUpOptimization,
+        description: l10n.permanentUpgradeDescription(
+          l10n.turretLevelUpOptimization,
+        ),
+        level: snapshot.turretLevelUpOptimizationUpgradeLevel,
+        maxLevel: RunProgression.maxTurretLevelUpOptimizationUpgradeLevel,
+        globalMaxLevel: RunProgression.maxTurretLevelUpOptimizationUpgradeLevel,
+        valueText:
+            '-${(snapshot.turretLevelUpOptimizationUpgradeLevel * RunProgression.permanentCostReductionPerUpgradeLevel * 100).round()}%',
+        nextValueText:
+            '-${(nextTurretLevelUpOptimizationLevel * RunProgression.permanentCostReductionPerUpgradeLevel * 100).round()}%',
+        cost: snapshot.turretLevelUpOptimizationUpgradeCost,
+        enabled: snapshot.canUpgradeTurretLevelUpOptimization,
+        lockText: l10n.maxLevelReached,
+        onPressed: game.upgradeTurretLevelUpOptimizationProgression,
       ),
   ];
 }

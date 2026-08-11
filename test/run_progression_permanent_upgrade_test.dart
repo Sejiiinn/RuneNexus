@@ -839,6 +839,108 @@ void main() {
     expect(progression.upgradeKillGold(), isFalse);
   });
 
+  test('advanced economy upgrades use 20 level progression', () {
+    final progression = RunProgression()..runes = 20000;
+    const expectedCosts = [
+      70,
+      81,
+      94,
+      108,
+      123,
+      140,
+      159,
+      180,
+      203,
+      228,
+      256,
+      286,
+      320,
+      357,
+      397,
+      441,
+      490,
+      543,
+      602,
+      665,
+    ];
+
+    expect(expectedCosts.reduce((total, cost) => total + cost), 5743);
+    for (final cost in expectedCosts) {
+      expect(progression.linkCostOptimizationUpgradeCost, cost);
+      expect(progression.upgradeLinkCostOptimization(), isTrue);
+      expect(progression.turretLevelUpOptimizationUpgradeCost, cost);
+      expect(progression.upgradeTurretLevelUpOptimization(), isTrue);
+    }
+
+    expect(progression.linkCostOptimizationUpgradeLevel, 20);
+    expect(progression.permanentLinkCostMultiplier, closeTo(0.8, 0.001));
+    expect(progression.canUpgradeLinkCostOptimization, isFalse);
+    expect(progression.upgradeLinkCostOptimization(), isFalse);
+    expect(progression.turretLevelUpOptimizationUpgradeLevel, 20);
+    expect(
+      progression.permanentTurretLevelUpCostMultiplier,
+      closeTo(0.8, 0.001),
+    );
+    expect(progression.canUpgradeTurretLevelUpOptimization, isFalse);
+    expect(progression.upgradeTurretLevelUpOptimization(), isFalse);
+  });
+
+  test(
+    'advanced economy upgrades unlock at stage nine and multiply existing discounts',
+    () async {
+      final lockedRepository = MemorySaveRepository()
+        ..data = saveWithResearch(
+          clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8},
+          researchLevels: const {},
+          runes: 1000,
+          unlockedStageCount: 9,
+        );
+      final lockedGame = RuneNexusGame(saveRepository: lockedRepository);
+      lockedGame.onGameResize(Vector2(400, 800));
+      await lockedGame.onLoad();
+
+      lockedGame.upgradeLinkCostOptimizationProgression();
+      lockedGame.upgradeTurretLevelUpOptimizationProgression();
+
+      expect(
+        lockedGame.snapshotNotifier.value.linkCostOptimizationUpgradeLevel,
+        0,
+      );
+      expect(
+        lockedGame.snapshotNotifier.value.turretLevelUpOptimizationUpgradeLevel,
+        0,
+      );
+
+      final repository = MemorySaveRepository()
+        ..data = saveWithResearch(
+          clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8, 9},
+          researchLevels: const {ResearchType.linkMaintenance: 10},
+          runes: 1000,
+          unlockedStageCount: 10,
+          linkCostOptimizationUpgradeLevel: 10,
+          turretLevelUpOptimizationUpgradeLevel: 10,
+        );
+      final game = RuneNexusGame(saveRepository: repository);
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
+      final turret = TurretComponent(
+        gridPoint: const GridPoint(0, 0),
+        definition: gameTurrets[TurretType.arrow]!,
+        game: game,
+        center: Vector2.zero(),
+        tileSize: 32,
+      );
+
+      expect(turret.levelUpCost, 38);
+      expect(turret.linkUpgradeCost, 65);
+      expect(game.snapshotNotifier.value.linkCostOptimizationUpgradeLevel, 10);
+      expect(
+        game.snapshotNotifier.value.turretLevelUpOptimizationUpgradeLevel,
+        10,
+      );
+    },
+  );
+
   test('stage rune reward bonus scales repeat rewards', () {
     final progression = RunProgression();
 
@@ -968,10 +1070,10 @@ void main() {
   test('new permanent upgrades are saved and restored', () async {
     final repository = MemorySaveRepository()
       ..data = saveWithResearch(
-        clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7},
+        clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8, 9},
         researchLevels: const {},
         runes: 1000,
-        unlockedStageCount: 8,
+        unlockedStageCount: 10,
       );
     final game = RuneNexusGame(
       saveRepository: repository,
@@ -995,6 +1097,13 @@ void main() {
     game.upgradeCriticalDamageProgression();
     game.upgradeKillGoldProgression();
     game.upgradeEmergencySaleProgression();
+    game.upgradeLinkCostOptimizationProgression();
+    game.upgradeTurretLevelUpOptimizationProgression();
+    expect(game.snapshotNotifier.value.linkCostOptimizationUpgradeLevel, 1);
+    expect(
+      game.snapshotNotifier.value.turretLevelUpOptimizationUpgradeLevel,
+      1,
+    );
     await game.saveNow();
 
     final restoredRepository = MemorySaveRepository()..data = repository.data;
@@ -1019,6 +1128,8 @@ void main() {
     expect(snapshot.killGoldProgressionBonusRate, closeTo(0.01, 0.001));
     expect(snapshot.emergencySaleUpgradeLevel, 1);
     expect(snapshot.turretRefundPercent, 76);
+    expect(snapshot.linkCostOptimizationUpgradeLevel, 1);
+    expect(snapshot.turretLevelUpOptimizationUpgradeLevel, 1);
   });
 
   test(

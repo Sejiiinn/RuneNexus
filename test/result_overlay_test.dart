@@ -248,6 +248,46 @@ void main() {
     expect(find.text('전투 투자 최적화'), findsOneWidget);
   });
 
+  testWidgets('result overlay shows stage nine economy upgrade unlocks', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: ResultOverlay(
+          game: RuneNexusGame(),
+          snapshot: resultSnapshot(
+            phase: GamePhase.success,
+            currentStageNumber: 9,
+            unlockedStageCount: 10,
+            completedRounds: 40,
+            runes: 600,
+            lastRunRuneReward: 600,
+            lastRunPreviousBestRound: 30,
+            lastRunWasNewBestRound: true,
+            lastRunUnlockedStageNumber: 10,
+            bestRoundsByStage: const {9: 40},
+            clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8, 9},
+          ),
+          onOpenStageSelect: () {},
+          onOpenPermanentUpgrades: () {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+
+    expect(find.text('강화 2개 해금'), findsOneWidget);
+    expect(find.text('연결 공정'), findsOneWidget);
+    expect(find.text('강화 공정'), findsOneWidget);
+  });
+
   testWidgets('result overlay shows stage ten research slot purchase access', (
     tester,
   ) async {

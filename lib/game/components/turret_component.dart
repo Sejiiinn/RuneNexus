@@ -731,7 +731,10 @@ class TurretComponent extends PositionComponent {
             .clamp(0.0, 0.8);
     return math.max(
       1,
-      (baseCost * (1 - discountRate) * game.passiveTurretLevelUpCostMultiplier)
+      (baseCost *
+              (1 - discountRate) *
+              game.passiveTurretLevelUpCostMultiplier *
+              game.permanentTurretLevelUpCostMultiplier)
           .round(),
     );
   }
@@ -745,7 +748,10 @@ class TurretComponent extends PositionComponent {
             .clamp(0.0, 0.8);
     return math.max(
       1,
-      (baseCost * (1 - discountRate) * game.passiveTurretLinkCostMultiplier)
+      (baseCost *
+              (1 - discountRate) *
+              game.passiveTurretLinkCostMultiplier *
+              game.permanentTurretLinkCostMultiplier)
           .round(),
     );
   }

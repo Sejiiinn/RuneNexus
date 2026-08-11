@@ -13,6 +13,8 @@ mixin _PermanentUpgradeProgression {
   int criticalDamageUpgradeLevel = 0;
   int killGoldUpgradeLevel = 0;
   int emergencySaleUpgradeLevel = 0;
+  int linkCostOptimizationUpgradeLevel = 0;
+  int turretLevelUpOptimizationUpgradeLevel = 0;
 
   int get initialGold =>
       RunProgression.baseInitialGold +
@@ -82,6 +84,21 @@ mixin _PermanentUpgradeProgression {
         _cappedEmergencySaleUpgradeLevel,
         RunProgression.emergencySaleUpgradeCosts.length - 1,
       )];
+  int get linkCostOptimizationUpgradeCost => RunProgression._hybridUpgradeCost(
+    baseCost: RunProgression.linkCostOptimizationUpgradeBaseCost,
+    costPerLevel: RunProgression.linkCostOptimizationUpgradeCostPerLevel,
+    multiplier: RunProgression.linkCostOptimizationUpgradeCostMultiplier,
+    level: _cappedLinkCostOptimizationUpgradeLevel,
+  );
+  int get turretLevelUpOptimizationUpgradeCost =>
+      RunProgression._hybridUpgradeCost(
+        baseCost: RunProgression.turretLevelUpOptimizationUpgradeBaseCost,
+        costPerLevel:
+            RunProgression.turretLevelUpOptimizationUpgradeCostPerLevel,
+        multiplier:
+            RunProgression.turretLevelUpOptimizationUpgradeCostMultiplier,
+        level: _cappedTurretLevelUpOptimizationUpgradeLevel,
+      );
   int get waveClearGoldBonus =>
       _cappedSupplyUpgradeLevel * RunProgression.supplyGoldPerUpgradeLevel;
   double get fireTrainingDamageBonusRate =>
@@ -105,6 +122,14 @@ mixin _PermanentUpgradeProgression {
       RunProgression.baseTurretRefundPercent +
       _cappedEmergencySaleUpgradeLevel *
           RunProgression.emergencySaleRefundPercentPerLevel;
+  double get permanentLinkCostMultiplier =>
+      1 -
+      _cappedLinkCostOptimizationUpgradeLevel *
+          RunProgression.permanentCostReductionPerUpgradeLevel;
+  double get permanentTurretLevelUpCostMultiplier =>
+      1 -
+      _cappedTurretLevelUpOptimizationUpgradeLevel *
+          RunProgression.permanentCostReductionPerUpgradeLevel;
 
   bool get canUpgradeStartingGold =>
       _cappedStartingGoldUpgradeLevel <
@@ -143,6 +168,14 @@ mixin _PermanentUpgradeProgression {
       _cappedEmergencySaleUpgradeLevel <
           RunProgression.maxEmergencySaleUpgradeLevel &&
       runes >= emergencySaleUpgradeCost;
+  bool get canUpgradeLinkCostOptimization =>
+      _cappedLinkCostOptimizationUpgradeLevel <
+          RunProgression.maxLinkCostOptimizationUpgradeLevel &&
+      runes >= linkCostOptimizationUpgradeCost;
+  bool get canUpgradeTurretLevelUpOptimization =>
+      _cappedTurretLevelUpOptimizationUpgradeLevel <
+          RunProgression.maxTurretLevelUpOptimizationUpgradeLevel &&
+      runes >= turretLevelUpOptimizationUpgradeCost;
 
   int get _cappedStartingGoldUpgradeLevel => startingGoldUpgradeLevel
       .clamp(0, RunProgression.maxStartingGoldUpgradeLevel)
@@ -175,6 +208,14 @@ mixin _PermanentUpgradeProgression {
   int get _cappedEmergencySaleUpgradeLevel => emergencySaleUpgradeLevel
       .clamp(0, RunProgression.maxEmergencySaleUpgradeLevel)
       .toInt();
+  int get _cappedLinkCostOptimizationUpgradeLevel =>
+      linkCostOptimizationUpgradeLevel
+          .clamp(0, RunProgression.maxLinkCostOptimizationUpgradeLevel)
+          .toInt();
+  int get _cappedTurretLevelUpOptimizationUpgradeLevel =>
+      turretLevelUpOptimizationUpgradeLevel
+          .clamp(0, RunProgression.maxTurretLevelUpOptimizationUpgradeLevel)
+          .toInt();
 
   bool upgradeStartingGold() {
     if (!canUpgradeStartingGold) {
@@ -263,6 +304,24 @@ mixin _PermanentUpgradeProgression {
     }
     runes -= emergencySaleUpgradeCost;
     emergencySaleUpgradeLevel++;
+    return true;
+  }
+
+  bool upgradeLinkCostOptimization() {
+    if (!canUpgradeLinkCostOptimization) {
+      return false;
+    }
+    runes -= linkCostOptimizationUpgradeCost;
+    linkCostOptimizationUpgradeLevel++;
+    return true;
+  }
+
+  bool upgradeTurretLevelUpOptimization() {
+    if (!canUpgradeTurretLevelUpOptimization) {
+      return false;
+    }
+    runes -= turretLevelUpOptimizationUpgradeCost;
+    turretLevelUpOptimizationUpgradeLevel++;
     return true;
   }
 }

@@ -29,6 +29,8 @@ class SavedProgression {
     required this.criticalDamageUpgradeLevel,
     required this.killGoldUpgradeLevel,
     required this.emergencySaleUpgradeLevel,
+    this.linkCostOptimizationUpgradeLevel = 0,
+    this.turretLevelUpOptimizationUpgradeLevel = 0,
     required this.unlockedStageCount,
     required this.bestRoundsByStage,
     required this.clearedStageNumbers,
@@ -78,6 +80,8 @@ class SavedProgression {
   final int criticalDamageUpgradeLevel;
   final int killGoldUpgradeLevel;
   final int emergencySaleUpgradeLevel;
+  final int linkCostOptimizationUpgradeLevel;
+  final int turretLevelUpOptimizationUpgradeLevel;
   final int unlockedStageCount;
   final Map<int, int> bestRoundsByStage;
   final Set<int> clearedStageNumbers;
@@ -137,6 +141,9 @@ class SavedProgression {
       'criticalDamageUpgradeLevel': criticalDamageUpgradeLevel,
       'killGoldUpgradeLevel': killGoldUpgradeLevel,
       'emergencySaleUpgradeLevel': emergencySaleUpgradeLevel,
+      'linkCostOptimizationUpgradeLevel': linkCostOptimizationUpgradeLevel,
+      'turretLevelUpOptimizationUpgradeLevel':
+          turretLevelUpOptimizationUpgradeLevel,
       'unlockedStageCount': unlockedStageCount,
       'bestRoundsByStage': bestRoundsByStage.map(
         (key, value) => MapEntry('$key', value),
@@ -238,6 +245,12 @@ class SavedProgression {
       criticalDamageUpgradeLevel: _intValue(map['criticalDamageUpgradeLevel']),
       killGoldUpgradeLevel: _intValue(map['killGoldUpgradeLevel']),
       emergencySaleUpgradeLevel: _intValue(map['emergencySaleUpgradeLevel']),
+      linkCostOptimizationUpgradeLevel: _intValue(
+        map['linkCostOptimizationUpgradeLevel'],
+      ),
+      turretLevelUpOptimizationUpgradeLevel: _intValue(
+        map['turretLevelUpOptimizationUpgradeLevel'],
+      ),
       unlockedStageCount: _intValue(map['unlockedStageCount'], fallback: 1),
       bestRoundsByStage: _intIntMap(map['bestRoundsByStage']),
       clearedStageNumbers: _intSet(map['clearedStageNumbers']),

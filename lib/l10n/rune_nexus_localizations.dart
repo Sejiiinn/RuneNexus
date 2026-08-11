@@ -222,6 +222,9 @@ class RuneNexusLocalizations {
   String get waveGoldRunUpgrade => _isEnglish ? 'Supply' : '정비 보급';
   String get killRewardBonus => _isEnglish ? 'Kill Reward' : '처치 보상';
   String get emergencySale => _isEnglish ? 'Emergency Sale' : '긴급 매각';
+  String get linkCostOptimization => _isEnglish ? 'Link Engineering' : '연결 공정';
+  String get turretLevelUpOptimization =>
+      _isEnglish ? 'Upgrade Engineering' : '강화 공정';
   String get basicFireTraining =>
       _isEnglish ? 'Basic Fire Training' : '기초 화력 훈련';
   String get physicalDamageTraining =>
@@ -708,6 +711,16 @@ class RuneNexusLocalizations {
       return _isEnglish
           ? 'Increases the gold refunded when selling turrets.'
           : '포탑을 환불할 때 돌려받는 골드 비율이 증가합니다.';
+    }
+    if (title == linkCostOptimization) {
+      return _isEnglish
+          ? 'Permanently reduces all turret link expansion costs.'
+          : '모든 포탑의 링크 확장 비용이 영구적으로 감소합니다.';
+    }
+    if (title == turretLevelUpOptimization) {
+      return _isEnglish
+          ? 'Permanently reduces all turret level-up costs.'
+          : '모든 포탑의 레벨업 비용이 영구적으로 감소합니다.';
     }
     if (title == basicFireTraining) {
       return _isEnglish

@@ -252,6 +252,24 @@ class GameSnapshotBuilder {
           ) &&
           _game._progression.canUpgradeEmergencySale,
       turretRefundPercent: _game.turretRefundPercent,
+      linkCostOptimizationUpgradeLevel:
+          _game._progression.linkCostOptimizationUpgradeLevel,
+      linkCostOptimizationUpgradeCost:
+          _game._progression.linkCostOptimizationUpgradeCost,
+      canUpgradeLinkCostOptimization:
+          _game._progression.isStageCleared(
+            RuneNexusGame.advancedEconomyUpgradeUnlockStage,
+          ) &&
+          _game._progression.canUpgradeLinkCostOptimization,
+      turretLevelUpOptimizationUpgradeLevel:
+          _game._progression.turretLevelUpOptimizationUpgradeLevel,
+      turretLevelUpOptimizationUpgradeCost:
+          _game._progression.turretLevelUpOptimizationUpgradeCost,
+      canUpgradeTurretLevelUpOptimization:
+          _game._progression.isStageCleared(
+            RuneNexusGame.advancedEconomyUpgradeUnlockStage,
+          ) &&
+          _game._progression.canUpgradeTurretLevelUpOptimization,
       researchSlotCount: _game._progression.availableResearchSlotCount,
       researchLevels: Map.unmodifiable(_game._progression.researchLevels),
       researchElapsedMillis: Map.unmodifiable(

@@ -42,6 +42,8 @@ class RunProgression
   static const int maxCriticalDamageUpgradeLevel = 20;
   static const int maxKillGoldUpgradeLevel = 20;
   static const int maxEmergencySaleUpgradeLevel = 5;
+  static const int maxLinkCostOptimizationUpgradeLevel = 20;
+  static const int maxTurretLevelUpOptimizationUpgradeLevel = 20;
   static const int researchSlotCount = 1;
   static const int researchSlotTwoUnlockRequiredStage = 10;
   static const int researchSlotTwoUnlockCost = 600;
@@ -100,6 +102,13 @@ class RunProgression
   static const int emergencySaleUpgradeBaseCost = 80;
   static const int emergencySaleRefundPercentPerLevel = 1;
   static const List<int> emergencySaleUpgradeCosts = [80, 120, 180, 260, 360];
+  static const int linkCostOptimizationUpgradeBaseCost = 70;
+  static const int linkCostOptimizationUpgradeCostPerLevel = 6;
+  static const double linkCostOptimizationUpgradeCostMultiplier = 1.07;
+  static const int turretLevelUpOptimizationUpgradeBaseCost = 70;
+  static const int turretLevelUpOptimizationUpgradeCostPerLevel = 6;
+  static const double turretLevelUpOptimizationUpgradeCostMultiplier = 1.07;
+  static const double permanentCostReductionPerUpgradeLevel = 0.01;
   static const List<double> _stageRuneRewardBonusRates = [
     0,
     0.20,
@@ -239,6 +248,9 @@ class RunProgression
       criticalDamageUpgradeLevel: _cappedCriticalDamageUpgradeLevel,
       killGoldUpgradeLevel: _cappedKillGoldUpgradeLevel,
       emergencySaleUpgradeLevel: _cappedEmergencySaleUpgradeLevel,
+      linkCostOptimizationUpgradeLevel: _cappedLinkCostOptimizationUpgradeLevel,
+      turretLevelUpOptimizationUpgradeLevel:
+          _cappedTurretLevelUpOptimizationUpgradeLevel,
       unlockedStageCount: unlockedStageCount,
       bestRoundsByStage: Map.unmodifiable(bestRoundsByStage),
       clearedStageNumbers: Set.unmodifiable(clearedStageNumbers),
@@ -378,6 +390,13 @@ class RunProgression
         .toInt();
     emergencySaleUpgradeLevel = data.emergencySaleUpgradeLevel
         .clamp(0, maxEmergencySaleUpgradeLevel)
+        .toInt();
+    linkCostOptimizationUpgradeLevel = data.linkCostOptimizationUpgradeLevel
+        .clamp(0, maxLinkCostOptimizationUpgradeLevel)
+        .toInt();
+    turretLevelUpOptimizationUpgradeLevel = data
+        .turretLevelUpOptimizationUpgradeLevel
+        .clamp(0, maxTurretLevelUpOptimizationUpgradeLevel)
         .toInt();
     unlockedStageCount = data.unlockedStageCount
         .clamp(1, maxStageCount)

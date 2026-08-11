@@ -226,6 +226,40 @@ class StageDifficultyAnalyzer {
                 RunProgression.linkMaintenanceDiscountPerLevel *
                 model.referenceFirstLinkSpend,
           ),
+        if (targetStage >= 10 &&
+            profile.linkCostOptimizationLevel <
+                RunProgression.maxLinkCostOptimizationUpgradeLevel)
+          UpgradeCandidate(
+            key: UpgradeKey.linkCostOptimization,
+            cost: _hybridCost(
+              baseCost: RunProgression.linkCostOptimizationUpgradeBaseCost,
+              costPerLevel:
+                  RunProgression.linkCostOptimizationUpgradeCostPerLevel,
+              multiplier:
+                  RunProgression.linkCostOptimizationUpgradeCostMultiplier,
+              level: profile.linkCostOptimizationLevel,
+            ),
+            modeledValue:
+                RunProgression.permanentCostReductionPerUpgradeLevel *
+                model.referenceAllLinkSpend,
+          ),
+        if (targetStage >= 10 &&
+            profile.turretLevelUpOptimizationLevel <
+                RunProgression.maxTurretLevelUpOptimizationUpgradeLevel)
+          UpgradeCandidate(
+            key: UpgradeKey.turretLevelUpOptimization,
+            cost: _hybridCost(
+              baseCost: RunProgression.turretLevelUpOptimizationUpgradeBaseCost,
+              costPerLevel:
+                  RunProgression.turretLevelUpOptimizationUpgradeCostPerLevel,
+              multiplier:
+                  RunProgression.turretLevelUpOptimizationUpgradeCostMultiplier,
+              level: profile.turretLevelUpOptimizationLevel,
+            ),
+            modeledValue:
+                RunProgression.permanentCostReductionPerUpgradeLevel *
+                model.referenceTurretLevelUpSpend,
+          ),
       ]..removeWhere((candidate) => candidate.cost > runes);
 
       if (candidates.isEmpty) {
@@ -265,12 +299,22 @@ class StageDifficultyAnalyzer {
         profile.linkMaintenanceLevel *
         RunProgression.linkMaintenanceDiscountPerLevel *
         model.referenceFirstLinkSpend;
+    final linkCostSavings =
+        profile.linkCostOptimizationLevel *
+        RunProgression.permanentCostReductionPerUpgradeLevel *
+        (model.referenceAllLinkSpend - linkSavings);
+    final turretLevelUpSavings =
+        profile.turretLevelUpOptimizationLevel *
+        RunProgression.permanentCostReductionPerUpgradeLevel *
+        model.referenceTurretLevelUpSpend;
 
     return startingGold +
         totals.rawGold +
         supplyGold +
         bonusKillGold +
-        linkSavings;
+        linkSavings +
+        linkCostSavings +
+        turretLevelUpSavings;
   }
 
   double _modeledDamageMultiplier(UpgradeProfile profile) {
@@ -336,9 +380,11 @@ class StageDifficultyAnalyzer {
       ..writeln()
       ..writeln('Upgrade Profile Before Stage')
       ..writeln(
-        'stage | startGold | supply | fire | killGold | critChance | critDamage | bossBounty | linkMaint',
+        'stage | startGold | supply | fire | killGold | critChance | critDamage | bossBounty | linkMaint | linkCost | levelCost',
       )
-      ..writeln('---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---:');
+      ..writeln(
+        '---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---:',
+      );
 
     for (final row in rows) {
       final profile = row.upgradeProfile;
@@ -353,6 +399,8 @@ class StageDifficultyAnalyzer {
           profile.criticalDamageLevel,
           profile.bossBountyLevel,
           profile.linkMaintenanceLevel,
+          profile.linkCostOptimizationLevel,
+          profile.turretLevelUpOptimizationLevel,
         ].join(' | '),
       );
     }
@@ -542,6 +590,8 @@ class StageDifficultyModel {
     this.referenceKillGold = 1800,
     this.referenceBossGold = 175,
     this.referenceFirstLinkSpend = 500,
+    this.referenceAllLinkSpend = 1000,
+    this.referenceTurretLevelUpSpend = 2500,
     this.baseCriticalExtraDamage = 0.5,
     this.goodGemPowerPerGem = 0.35,
     this.carryPowerShare = 0.75,
@@ -558,6 +608,8 @@ class StageDifficultyModel {
   final double referenceKillGold;
   final double referenceBossGold;
   final double referenceFirstLinkSpend;
+  final double referenceAllLinkSpend;
+  final double referenceTurretLevelUpSpend;
   final double baseCriticalExtraDamage;
   final double goodGemPowerPerGem;
   final double carryPowerShare;
@@ -625,6 +677,8 @@ class UpgradeProfile {
   int criticalDamageLevel = 0;
   int bossBountyLevel = 0;
   int linkMaintenanceLevel = 0;
+  int linkCostOptimizationLevel = 0;
+  int turretLevelUpOptimizationLevel = 0;
 
   void apply(UpgradeKey key) {
     switch (key) {
@@ -644,6 +698,10 @@ class UpgradeProfile {
         bossBountyLevel++;
       case UpgradeKey.linkMaintenance:
         linkMaintenanceLevel++;
+      case UpgradeKey.linkCostOptimization:
+        linkCostOptimizationLevel++;
+      case UpgradeKey.turretLevelUpOptimization:
+        turretLevelUpOptimizationLevel++;
     }
   }
 }
@@ -671,4 +729,6 @@ enum UpgradeKey {
   criticalDamage,
   bossBounty,
   linkMaintenance,
+  linkCostOptimization,
+  turretLevelUpOptimization,
 }

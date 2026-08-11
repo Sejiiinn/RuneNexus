@@ -490,7 +490,7 @@ _StageRewardInfo? _stageRewardInfoFor({
 
 _StageRewardVisual? _stageRewardVisualFor(int stageNumber) {
   return switch (stageNumber) {
-    1 || 4 || 7 => const _StageRewardVisual(
+    1 || 4 || 7 || 9 => const _StageRewardVisual(
       icon: _StageRewardAssetIcon(asset: stageRewardUpgradeIconAsset),
     ),
     2 || 8 => const _StageRewardVisual(
@@ -645,6 +645,20 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
         label: l10n.runUpgradeCostOptimization,
         researchType: ResearchType.runUpgradeCostOptimization,
         category: _StageUnlockCategory.research,
+        highlighted: highlighted,
+      ),
+    ],
+    9 => [
+      _StageUnlockItem(
+        label: l10n.linkCostOptimization,
+        upgradeIconType: GameUpgradeIconType.linkCost,
+        category: _StageUnlockCategory.upgrade,
+        highlighted: highlighted,
+      ),
+      _StageUnlockItem(
+        label: l10n.turretLevelUpOptimization,
+        upgradeIconType: GameUpgradeIconType.turretLevelUpCost,
+        category: _StageUnlockCategory.upgrade,
         highlighted: highlighted,
       ),
     ],

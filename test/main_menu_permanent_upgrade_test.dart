@@ -210,6 +210,52 @@ void main() {
     expect(find.text('다음 76%'), findsOneWidget);
   });
 
+  testWidgets('advanced economy upgrades unlock after stage nine clear', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: resultSnapshot(
+            phase: GamePhase.preparation,
+            currentStageNumber: 10,
+            unlockedStageCount: 10,
+            runes: 500,
+            clearedStageNumbers: const {1, 2, 3, 4, 5, 6, 7, 8, 9},
+            linkCostOptimizationUpgradeLevel: 5,
+            linkCostOptimizationUpgradeCost: 140,
+            canUpgradeLinkCostOptimization: true,
+            turretLevelUpOptimizationUpgradeLevel: 5,
+            turretLevelUpOptimizationUpgradeCost: 140,
+            canUpgradeTurretLevelUpOptimization: true,
+          ),
+          selectedTab: MainMenuTab.permanentUpgrades,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await pumpGameFrames(tester);
+
+    await tester.tap(find.byTooltip('경제'));
+    await pumpGameFrames(tester);
+
+    expect(find.text('연결 공정'), findsOneWidget);
+    expect(find.text('강화 공정'), findsOneWidget);
+    expect(find.text('Lv.5/20'), findsNWidgets(2));
+    expect(find.text('현재 -5%'), findsNWidgets(2));
+    expect(find.text('다음 -6%'), findsNWidgets(2));
+  });
+
   testWidgets('critical upgrades are hidden before stage four clear', (
     tester,
   ) async {

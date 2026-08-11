@@ -90,6 +90,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const int secondaryTraitCost = 24;
   static const int secondaryTraitRequiredLevel = 7;
   static const int economyUpgradeUnlockStage = 1;
+  static const int advancedEconomyUpgradeUnlockStage = 9;
   static const int sniperUnlockStage = 3;
   static const int aimSpeedGemUnlockStage = 3;
   static const int armorPiercingGemUnlockStage = 10;
@@ -577,11 +578,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _progression.corePassiveNodeRanks,
         distinctTurretTypeCount: _distinctPlacedTurretTypeCount,
       );
+  double get permanentTurretLevelUpCostMultiplier =>
+      _progression.permanentTurretLevelUpCostMultiplier;
   double get passiveTurretLinkCostMultiplier =>
       corePassiveTurretLinkCostMultiplier(
         _progression.corePassiveNodeRanks,
         distinctTurretTypeCount: _distinctPlacedTurretTypeCount,
       );
+  double get permanentTurretLinkCostMultiplier =>
+      _progression.permanentLinkCostMultiplier;
   double get passiveNumericGemEffectMultiplier =>
       corePassiveNumericGemEffectMultiplier(
         _progression.corePassiveNodeRanks,
@@ -1602,6 +1607,30 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
+  void upgradeLinkCostOptimizationProgression() {
+    if (!_progression.isStageCleared(advancedEconomyUpgradeUnlockStage)) {
+      return;
+    }
+    if (!_progression.upgradeLinkCostOptimization()) {
+      return;
+    }
+
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
+  void upgradeTurretLevelUpOptimizationProgression() {
+    if (!_progression.isStageCleared(advancedEconomyUpgradeUnlockStage)) {
+      return;
+    }
+    if (!_progression.upgradeTurretLevelUpOptimization()) {
+      return;
+    }
+
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
   void debugSetRound(int round) {
     final clampedRound = round.clamp(1, _waves.length).toInt();
     _clearActiveCombat();
@@ -1694,6 +1723,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _progression.criticalDamageUpgradeLevel = 0;
     _progression.killGoldUpgradeLevel = 0;
     _progression.emergencySaleUpgradeLevel = 0;
+    _progression.linkCostOptimizationUpgradeLevel = 0;
+    _progression.turretLevelUpOptimizationUpgradeLevel = 0;
     _publish();
     _requestLocalSave(immediate: true);
   }

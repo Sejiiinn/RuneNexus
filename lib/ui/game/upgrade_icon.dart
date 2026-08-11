@@ -13,6 +13,8 @@ enum GameUpgradeIconType {
   waveGold,
   killGold,
   turretRefund,
+  linkCost,
+  turretLevelUpCost,
 }
 
 /// 영구·런 업그레이드 효과를 공통 실루엣으로 표시하는 아이콘.
@@ -72,5 +74,9 @@ String _upgradeIconAsset(GameUpgradeIconType type) {
     GameUpgradeIconType.killGold => '$_upgradeIconAssetRoot/kill_gold.png',
     GameUpgradeIconType.turretRefund =>
       '$_upgradeIconAssetRoot/turret_refund.png',
+    GameUpgradeIconType.linkCost =>
+      '$_upgradeIconAssetRoot/link_cost_optimization.png',
+    GameUpgradeIconType.turretLevelUpCost =>
+      '$_upgradeIconAssetRoot/turret_level_up_optimization.png',
   };
 }

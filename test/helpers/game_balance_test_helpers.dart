@@ -253,6 +253,8 @@ GameSaveData saveWithResearch({
   GamePhase? rewardReturnPhase,
   List<GemType> rewardOptions = const [],
   String? mapSignature,
+  int linkCostOptimizationUpgradeLevel = 0,
+  int turretLevelUpOptimizationUpgradeLevel = 0,
 }) {
   return GameSaveData(
     version: GameSaveData.currentVersion,
@@ -277,6 +279,9 @@ GameSaveData saveWithResearch({
       criticalDamageUpgradeLevel: 0,
       killGoldUpgradeLevel: 0,
       emergencySaleUpgradeLevel: 0,
+      linkCostOptimizationUpgradeLevel: linkCostOptimizationUpgradeLevel,
+      turretLevelUpOptimizationUpgradeLevel:
+          turretLevelUpOptimizationUpgradeLevel,
       unlockedStageCount: unlockedStageCount,
       bestRoundsByStage: const {},
       clearedStageNumbers: clearedStageNumbers,

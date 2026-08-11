@@ -222,6 +222,12 @@ List<_UnlockGroup> _unlockGroupsFor(
     8 => [
       _UnlockGroup('연구', [l10n.runeResonance, l10n.runUpgradeCostOptimization]),
     ],
+    9 => [
+      _UnlockGroup('강화', [
+        l10n.linkCostOptimization,
+        l10n.turretLevelUpOptimization,
+      ]),
+    ],
     10 => [
       _UnlockGroup('젬', [l10n.armorPiercingGem]),
       _UnlockGroup('연구', [l10n.researchSlotTwoPurchaseAccess]),

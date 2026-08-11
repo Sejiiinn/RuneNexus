@@ -184,6 +184,12 @@ class GameSnapshot {
     required this.emergencySaleUpgradeCost,
     required this.canUpgradeEmergencySale,
     required this.turretRefundPercent,
+    this.linkCostOptimizationUpgradeLevel = 0,
+    this.linkCostOptimizationUpgradeCost = 0,
+    this.canUpgradeLinkCostOptimization = false,
+    this.turretLevelUpOptimizationUpgradeLevel = 0,
+    this.turretLevelUpOptimizationUpgradeCost = 0,
+    this.canUpgradeTurretLevelUpOptimization = false,
     required this.researchSlotCount,
     required this.researchLevels,
     required this.researchElapsedMillis,
@@ -358,6 +364,12 @@ class GameSnapshot {
   final int emergencySaleUpgradeCost;
   final bool canUpgradeEmergencySale;
   final int turretRefundPercent;
+  final int linkCostOptimizationUpgradeLevel;
+  final int linkCostOptimizationUpgradeCost;
+  final bool canUpgradeLinkCostOptimization;
+  final int turretLevelUpOptimizationUpgradeLevel;
+  final int turretLevelUpOptimizationUpgradeCost;
+  final bool canUpgradeTurretLevelUpOptimization;
   final int researchSlotCount;
   final Map<ResearchType, int> researchLevels;
   final Map<ResearchType, int> researchElapsedMillis;
