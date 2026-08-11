@@ -59,10 +59,6 @@ class GameRestoreController {
   bool _restoreSavedMeta(GameSaveData data) {
     _game._autoStartMode = data.autoStartMode;
     _game._progression.restoreFromSaveData(data.progression);
-    final moduleTicketRefundApplied = ModuleTicketPriceRefundEvent.apply(
-      progression: _game._progression,
-      nowMillis: _game._nowMillis(),
-    );
     final passiveTreeSanitized =
         data.progression.corePassiveTreeRevision !=
             _game._progression.corePassiveTreeRevision ||
@@ -79,7 +75,6 @@ class GameRestoreController {
         stage.id: stage.firstClearCorePointReward,
     });
     final progressionChanged =
-        moduleTicketRefundApplied ||
         passiveTreeSanitized ||
         _game._progression.claimedCorePointStageRewards.length !=
             claimedRewardCount;

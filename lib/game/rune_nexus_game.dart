@@ -54,7 +54,6 @@ import 'components/rift_mark_pulse_component.dart';
 import 'components/sequential_lightning_chain_component.dart';
 import 'components/sniper_chain_beam_component.dart';
 import 'components/turret_component.dart';
-import 'events/module_ticket_price_refund_event.dart';
 import 'game_snapshot.dart';
 import 'rendering/core_skill_cooldown_renderer.dart';
 import 'rendering/game_board_selection_renderer.dart';
@@ -402,15 +401,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     SaveRepository? saveRepository,
     OnlineSaveRepository? onlineSaveRepository,
     @visibleForTesting double Function()? diamondCarrierRollForTesting,
-    @visibleForTesting int Function()? nowMillisForTesting,
     @visibleForTesting bool enableDebugEnemySpawnForTesting = false,
   }) : _saveRepository = saveRepository ?? createDefaultSaveRepository(),
        _onlineSaveRepository =
            onlineSaveRepository ?? const NoopOnlineSaveRepository(),
        _diamondCarrierRoll =
            diamondCarrierRollForTesting ?? math.Random().nextDouble,
-       _nowMillis =
-           nowMillisForTesting ?? (() => DateTime.now().millisecondsSinceEpoch),
        _enableDebugEnemySpawnForTesting = enableDebugEnemySpawnForTesting {
     _stages = List.unmodifiable(
       _buildInitialStages(stage: stage, stages: stages, map: map, waves: waves),
@@ -430,7 +426,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   final SaveRepository _saveRepository;
   final OnlineSaveRepository _onlineSaveRepository;
   final double Function() _diamondCarrierRoll;
-  final int Function() _nowMillis;
   final bool _enableDebugEnemySpawnForTesting;
   late final ValueNotifier<GameSnapshot> snapshotNotifier;
   final ValueNotifier<bool> readyNotifier = ValueNotifier(false);
@@ -852,11 +847,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _pendingFullSaveData = savedData;
     if (savedData != null) {
       _restoreController.restoreMenuStateFromSaveData(savedData);
-    } else if (ModuleTicketPriceRefundEvent.apply(
-      progression: _progression,
-      nowMillis: _nowMillis(),
-    )) {
-      _requestLocalSave(immediate: true);
     }
     _updateResearchProgress();
     _publish();
@@ -4242,11 +4232,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _savedTurretCountForMenu = 0;
     if (savedData != null) {
       _restoreController.restoreFromSaveData(savedData);
-    } else if (ModuleTicketPriceRefundEvent.apply(
-      progression: _progression,
-      nowMillis: _nowMillis(),
-    )) {
-      _requestLocalSave(immediate: true);
     }
     if (pendingRewardPhase == GamePhase.reward &&
         pendingRewardOptions.isNotEmpty) {
