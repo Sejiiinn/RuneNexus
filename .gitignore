@@ -13,6 +13,9 @@ flutter_web_server.*
 .codegraph/
 artifacts/
 
+# Local server secrets
+.secrets/
+
 # Local turret-level design explorations
 design/mockups/turret_level_actual_screen.png
 design/mockups/turret_level_actual_screen_richer.png

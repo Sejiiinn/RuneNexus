@@ -1,0 +1,39 @@
+name: rune-nexus
+
+services:
+  db:
+    image: postgres:18
+    container_name: rune-nexus-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: rune_nexus
+      POSTGRES_USER: rune_nexus_app
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - rune_nexus_postgres_data:/var/lib/postgresql
+    secrets:
+      - postgres_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rune_nexus_app -d rune_nexus"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+secrets:
+  postgres_password:
+    file: ./.secrets/postgres_password
+
+volumes:
+  rune_nexus_postgres_data:
