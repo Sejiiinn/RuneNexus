@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/definitions/game_turret_data.dart';
 import 'package:rune_nexus/data/definitions/game_turret_module_data.dart';
 import 'package:rune_nexus/data/save/game_save_data.dart';
+import 'package:rune_nexus/data/save/save_repository.dart';
+import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 import 'package:rune_nexus/domain/map/grid_point.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
 import 'package:rune_nexus/domain/turret_module/turret_module_type.dart';
@@ -59,7 +61,12 @@ void main() {
       final saved = SavedProgression.fromJson(
         progression.toSaveData().toJson(),
       );
-      final restored = RunProgression()..restoreFromSaveData(saved);
+      final savedTurretModules = SavedTurretModuleInventory.fromJson(
+        progression.toTurretModuleSaveData().toJson(),
+      );
+      final restored = RunProgression()
+        ..restoreFromSaveData(saved)
+        ..restoreTurretModulesFromSaveData(savedTurretModules);
 
       expect(restored.turretModuleTickets, 5);
       expect(restored.lastRunTurretModuleTicketReward, 0);
@@ -71,6 +78,53 @@ void main() {
         TurretModuleOptionType.levelUpCostDiscount,
       );
       expect(restoredModule.options.single.value, 10);
+    },
+  );
+
+  test(
+    'game save restores turret modules from the top-level section',
+    () async {
+      final source = RunProgression()..turretModuleTickets = 3;
+      final key = TurretModuleKey(
+        turretType: TurretType.arrow,
+        part: TurretModulePart.barrel,
+        family: turretModuleFamilyFor(
+          TurretType.arrow,
+          TurretModulePart.barrel,
+        ),
+        grade: TurretModuleGrade.rare,
+      );
+      final item = source.grantTurretModule(key);
+      source.equipTurretModule(item.id);
+      final repository = MemorySaveRepository()
+        ..data = GameSaveData(
+          savedAtMillis: 1,
+          preferences: const SavedPreferences(
+            selectedStageNumber: 1,
+            autoStartMode: AutoStartMode.pauseEachRound,
+          ),
+          progression: source.toSaveData(),
+          turretModules: source.toTurretModuleSaveData(),
+        );
+      final game = RuneNexusGame(saveRepository: repository);
+      game.onGameResize(Vector2(400, 800));
+
+      await game.onLoad();
+
+      expect(game.snapshotNotifier.value.turretModuleTickets, 3);
+      expect(game.snapshotNotifier.value.ownedTurretModules.single.id, item.id);
+      expect(
+        game.snapshotNotifier.value.ownedTurretModules.single.equipped,
+        isTrue,
+      );
+
+      await game.saveNow();
+      final json = repository.data!.toJson();
+      expect(
+        json['progression'] as Map<String, Object?>,
+        isNot(contains('turretModuleTickets')),
+      );
+      expect(json['turretModules'] as Map<String, Object?>, contains('items'));
     },
   );
 
@@ -305,26 +359,40 @@ void main() {
       random: _GradeRollRandom(99),
     );
 
-    final json = progression.toSaveData().toJson();
-    expect(json['turretModuleDrawCount'], 2);
-    expect(json['turretModuleTicketPurchaseCount'], 0);
+    final json = progression.toTurretModuleSaveData().toJson();
+    expect(json['drawCount'], 2);
+    expect(json['ticketPurchaseCount'], 0);
     final restored = RunProgression()
-      ..restoreFromSaveData(SavedProgression.fromJson(json));
+      ..restoreTurretModulesFromSaveData(
+        SavedTurretModuleInventory.fromJson(json),
+      );
     expect(restored.turretModuleDrawCount, 2);
 
-    final legacyJson = Map<String, Object?>.of(json)
-      ..remove('turretModuleDrawCount');
+    final legacyJson = <String, Object?>{
+      'turretModuleTickets': json['tickets'],
+      'turretModuleTicketPurchaseCount': json['ticketPurchaseCount'],
+      'turretModuleItemSequence': json['itemSequence'],
+      'ownedTurretModules': json['items'],
+    };
     final migrated = RunProgression()
-      ..restoreFromSaveData(SavedProgression.fromJson(legacyJson));
+      ..restoreTurretModulesFromSaveData(
+        SavedTurretModuleInventory.fromLegacyProgressionJson(legacyJson),
+      );
     expect(
       migrated.turretModuleDrawCount,
       progression.turretModuleItemSequence,
     );
 
-    final legacyPurchaseJson = Map<String, Object?>.of(json)
-      ..remove('turretModuleTicketPurchaseCount');
+    final legacyPurchaseJson = <String, Object?>{
+      ...legacyJson,
+      'turretModuleDrawCount': json['drawCount'],
+    }..remove('turretModuleTicketPurchaseCount');
     final migratedPurchaseCount = RunProgression()
-      ..restoreFromSaveData(SavedProgression.fromJson(legacyPurchaseJson));
+      ..restoreTurretModulesFromSaveData(
+        SavedTurretModuleInventory.fromLegacyProgressionJson(
+          legacyPurchaseJson,
+        ),
+      );
     expect(migratedPurchaseCount.turretModuleTicketPurchaseCount, 2);
   });
 

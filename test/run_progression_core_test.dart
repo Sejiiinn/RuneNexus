@@ -775,8 +775,11 @@ void main() {
     await game.saveNow();
 
     final saved = repository.data!;
-    expect(saved.runCoreCombatSkill, CoreCombatSkill.riftMark);
-    expect(saved.enemies.single.riftMarkRemaining, closeTo(5, 0.001));
+    expect(saved.activeRun!.runCoreCombatSkill, CoreCombatSkill.riftMark);
+    expect(
+      saved.activeRun!.enemies.single.riftMarkRemaining,
+      closeTo(5, 0.001),
+    );
 
     final restoredRepository = MemorySaveRepository()..data = saved;
     final restored = RuneNexusGame(
@@ -811,16 +814,25 @@ void main() {
       );
 
       final restored = GameSaveData.fromJson(saved.toJson())!;
-      expect(restored.runCoreCombatSkillStats.directDamageDealt, 12.5);
-      expect(restored.runCoreCombatSkillStats.bonusDamageDealt, 7.25);
-      expect(restored.runCoreCombatSkillStats.activationCount, 3);
+      expect(
+        restored.activeRun!.runCoreCombatSkillStats.directDamageDealt,
+        12.5,
+      );
+      expect(
+        restored.activeRun!.runCoreCombatSkillStats.bonusDamageDealt,
+        7.25,
+      );
+      expect(restored.activeRun!.runCoreCombatSkillStats.activationCount, 3);
 
-      final legacyJson = Map<String, Object?>.of(saved.toJson())
-        ..remove('runCoreCombatSkillStats');
+      final legacyJson = Map<String, Object?>.of(saved.toJson());
+      final legacyRunJson = Map<String, Object?>.of(
+        legacyJson['activeRun']! as Map<String, Object?>,
+      )..remove('runCoreCombatSkillStats');
+      legacyJson['activeRun'] = legacyRunJson;
       final legacy = GameSaveData.fromJson(legacyJson)!;
-      expect(legacy.runCoreCombatSkillStats.directDamageDealt, 0);
-      expect(legacy.runCoreCombatSkillStats.bonusDamageDealt, 0);
-      expect(legacy.runCoreCombatSkillStats.activationCount, 0);
+      expect(legacy.activeRun!.runCoreCombatSkillStats.directDamageDealt, 0);
+      expect(legacy.activeRun!.runCoreCombatSkillStats.bonusDamageDealt, 0);
+      expect(legacy.activeRun!.runCoreCombatSkillStats.activationCount, 0);
     },
   );
 
@@ -928,7 +940,7 @@ void main() {
 
       final saved = repository.data!;
       expect(saved.progression.coreCombatSkill, isNull);
-      expect(saved.runCoreCombatSkill, CoreCombatSkill.guardianBeam);
+      expect(saved.activeRun!.runCoreCombatSkill, CoreCombatSkill.guardianBeam);
 
       final restoredRepository = MemorySaveRepository()..data = saved;
       final restored = RuneNexusGame(
@@ -1061,14 +1073,21 @@ void main() {
     );
     final fractionalRestored = GameSaveData.fromJson(fractionalSave.toJson())!;
 
-    expect(fractionalRestored.nexusHp, closeTo(19.25, 0.0001));
-    expect(fractionalRestored.roundNexusHpLost, closeTo(1.75, 0.0001));
-    expect(fractionalRestored.emergencyChargeUsedThisRound, isTrue);
-    expect(fractionalRestored.finalDefenseUsedThisRound, isTrue);
+    expect(fractionalRestored.activeRun!.nexusHp, closeTo(19.25, 0.0001));
+    expect(
+      fractionalRestored.activeRun!.roundNexusHpLost,
+      closeTo(1.75, 0.0001),
+    );
+    expect(fractionalRestored.activeRun!.emergencyChargeUsedThisRound, isTrue);
+    expect(fractionalRestored.activeRun!.finalDefenseUsedThisRound, isTrue);
 
-    final legacyJson = fractionalSave.toJson()..['nexusHp'] = 19;
+    final legacyJson = fractionalSave.toJson();
+    final legacyRunJson = Map<String, Object?>.of(
+      legacyJson['activeRun']! as Map<String, Object?>,
+    )..['nexusHp'] = 19;
+    legacyJson['activeRun'] = legacyRunJson;
     final legacyRestored = GameSaveData.fromJson(legacyJson)!;
-    expect(legacyRestored.nexusHp, closeTo(19, 0.0001));
+    expect(legacyRestored.activeRun!.nexusHp, closeTo(19, 0.0001));
   });
 
   test('stage core point rewards total twenty and only grant once', () {
@@ -1131,7 +1150,12 @@ void main() {
     expect(progression.lastRunTurretModuleTicketReward, 5);
 
     final saved = SavedProgression.fromJson(progression.toSaveData().toJson());
-    final restored = RunProgression()..restoreFromSaveData(saved);
+    final savedTurretModules = SavedTurretModuleInventory.fromJson(
+      progression.toTurretModuleSaveData().toJson(),
+    );
+    final restored = RunProgression()
+      ..restoreFromSaveData(saved)
+      ..restoreTurretModulesFromSaveData(savedTurretModules);
     expect(restored.turretModuleTickets, 5);
     expect(restored.lastRunTurretModuleTicketReward, 5);
 
@@ -1144,11 +1168,7 @@ void main() {
     expect(restored.turretModuleTickets, 5);
     expect(restored.lastRunTurretModuleTicketReward, 0);
 
-    restored.finishRun(
-      completedRounds: 40,
-      success: true,
-      stageNumber: 12,
-    );
+    restored.finishRun(completedRounds: 40, success: true, stageNumber: 12);
     expect(restored.turretModuleTickets, 5);
     expect(restored.lastRunTurretModuleTicketReward, 0);
   });
@@ -1298,8 +1318,11 @@ void main() {
       expect(game.snapshotNotifier.value.nexusHp, closeTo(19.25625, 0.0001));
       expect(game.nexusCoreBeamCooldownSeconds, closeTo(3.25, 0.0001));
       await game.saveNow();
-      expect(repository.data!.roundNexusHpLost, closeTo(0.74375, 0.0001));
-      expect(repository.data!.emergencyChargeUsedThisRound, isTrue);
+      expect(
+        repository.data!.activeRun!.roundNexusHpLost,
+        closeTo(0.74375, 0.0001),
+      );
+      expect(repository.data!.activeRun!.emergencyChargeUsedThisRound, isTrue);
 
       final secondEnemy = halfDurabilityEnemy();
       await game.add(secondEnemy);
@@ -1352,7 +1375,7 @@ void main() {
       await reachCore(EnemyType.normal);
       expect(game.snapshotNotifier.value.nexusHp, closeTo(12.72, 0.0001));
       await game.saveNow();
-      expect(repository.data!.finalDefenseUsedThisRound, isTrue);
+      expect(repository.data!.activeRun!.finalDefenseUsedThisRound, isTrue);
 
       await reachCore(EnemyType.normal);
       expect(game.snapshotNotifier.value.nexusHp, closeTo(11.81, 0.0001));
@@ -1408,9 +1431,9 @@ void main() {
     expect(game.snapshotNotifier.value.nexusHp, closeTo(14.09, 0.0001));
     expect(game.nexusCoreBeamCooldownSeconds, closeTo(5, 0.0001));
     await game.saveNow();
-    expect(repository.data!.roundNexusHpLost, closeTo(2.91, 0.0001));
-    expect(repository.data!.emergencyChargeUsedThisRound, isTrue);
-    expect(repository.data!.finalDefenseUsedThisRound, isTrue);
+    expect(repository.data!.activeRun!.roundNexusHpLost, closeTo(2.91, 0.0001));
+    expect(repository.data!.activeRun!.emergencyChargeUsedThisRound, isTrue);
+    expect(repository.data!.activeRun!.finalDefenseUsedThisRound, isTrue);
 
     game.update(0.016);
 
@@ -1427,8 +1450,8 @@ void main() {
     expect(game.snapshotNotifier.value.nexusHp, closeTo(14.6585, 0.0001));
     expect(game.nexusCoreBeamCooldownSeconds, closeTo(3.25, 0.0001));
     await game.saveNow();
-    expect(repository.data!.roundNexusHpLost, closeTo(0.91, 0.0001));
-    expect(repository.data!.emergencyChargeUsedThisRound, isTrue);
-    expect(repository.data!.finalDefenseUsedThisRound, isTrue);
+    expect(repository.data!.activeRun!.roundNexusHpLost, closeTo(0.91, 0.0001));
+    expect(repository.data!.activeRun!.emergencyChargeUsedThisRound, isTrue);
+    expect(repository.data!.activeRun!.finalDefenseUsedThisRound, isTrue);
   });
 }

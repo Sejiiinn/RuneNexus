@@ -340,7 +340,7 @@ void main() {
     game.update(1);
 
     expect(game.snapshotNotifier.value.phase, GamePhase.reward);
-    expect(repository.data!.rewardReturnPhase, GamePhase.wave);
+    expect(repository.data!.activeRun!.rewardReturnPhase, GamePhase.wave);
     expect(enemy.distanceTravelled, previousDistance);
   });
 
@@ -371,14 +371,17 @@ void main() {
     await game.saveNow();
 
     final saved = repository.data!;
-    expect(saved.phase, GamePhase.reward);
-    expect(saved.rewardReturnPhase, GamePhase.wave);
-    expect(saved.enemies, isNotEmpty);
+    expect(saved.activeRun!.phase, GamePhase.reward);
+    expect(saved.activeRun!.rewardReturnPhase, GamePhase.wave);
+    expect(saved.activeRun!.enemies, isNotEmpty);
 
-    final legacyJson = Map<String, Object?>.of(saved.toJson())
-      ..remove('rewardReturnPhase');
+    final legacyJson = Map<String, Object?>.of(saved.toJson());
+    final legacyRunJson = Map<String, Object?>.of(
+      legacyJson['activeRun']! as Map<String, Object?>,
+    )..remove('rewardReturnPhase');
+    legacyJson['activeRun'] = legacyRunJson;
     final parsedLegacySave = GameSaveData.fromJson(legacyJson)!;
-    expect(parsedLegacySave.rewardReturnPhase, GamePhase.wave);
+    expect(parsedLegacySave.activeRun!.rewardReturnPhase, GamePhase.wave);
 
     final restoredRepository = MemorySaveRepository()..data = parsedLegacySave;
     final restored = RuneNexusGame(saveRepository: restoredRepository);
@@ -665,7 +668,7 @@ void main() {
     expect(game.snapshotNotifier.value.nexusHp, 0);
     expect(game.snapshotNotifier.value.phase, GamePhase.coreDestruction);
     await game.saveNow();
-    expect(repository.data?.phase, GamePhase.failure);
+    expect(repository.data?.activeRun?.phase, GamePhase.failure);
     expect(game.enemies, contains(lingeringEnemy));
 
     final restoredGame = RuneNexusGame(saveRepository: repository);
@@ -1133,17 +1136,20 @@ void main() {
     final saved = repository.data;
     final restoredTurret = TurretComponent(
       gridPoint: const GridPoint(2, 0),
-      definition: gameTurrets[saved!.turrets.single.type]!,
+      definition: gameTurrets[saved!.activeRun!.turrets.single.type]!,
       game: game,
       center: Vector2.zero(),
       tileSize: 32,
-    )..restoreFromSaveData(saved.turrets.single);
+    )..restoreFromSaveData(saved.activeRun!.turrets.single);
 
     expect(
       game.snapshotNotifier.value.selectedTurretTargetPriority,
       TurretTargetPriority.strongest,
     );
-    expect(saved.turrets.single.targetPriority, TurretTargetPriority.strongest);
+    expect(
+      saved.activeRun!.turrets.single.targetPriority,
+      TurretTargetPriority.strongest,
+    );
     expect(restoredTurret.targetPriority, TurretTargetPriority.strongest);
   });
 
@@ -1405,7 +1411,7 @@ void main() {
 
     await game.saveNow();
 
-    expect(repository.data?.phase, GamePhase.failure);
+    expect(repository.data?.activeRun?.phase, GamePhase.failure);
     expect(repository.data?.progression.runes, settledRunes);
     expect(repository.data?.progression.lastRunRuneReward, settledReward);
 
@@ -2167,7 +2173,7 @@ void main() {
     expect(snapshot.gemInventory[GemType.range], 1);
 
     await game.saveNow();
-    expect(repository.data!.turrets.single.equippedGemSlots, [
+    expect(repository.data!.activeRun!.turrets.single.equippedGemSlots, [
       null,
       GemType.chain,
     ]);
@@ -3514,14 +3520,20 @@ void main() {
 
     final saved = repository.data;
     expect(saved, isNotNull);
-    expect(saved!.turrets, hasLength(1));
-    expect(saved.turrets.single.level, 2);
-    expect(saved.turrets.single.slotLimit, 2);
-    expect(saved.turrets.single.equippedGems, [GemType.range]);
-    expect(saved.turrets.single.equippedGemSlots, [GemType.range, null]);
-    expect(saved.turrets.single.investedGold, 192);
-    expect(saved.turrets.single.damageDealt, closeTo(123, 0.001));
-    expect(saved.turrets.single.directDamageDealt, closeTo(123, 0.001));
+    expect(saved!.activeRun!.turrets, hasLength(1));
+    expect(saved.activeRun!.turrets.single.level, 2);
+    expect(saved.activeRun!.turrets.single.slotLimit, 2);
+    expect(saved.activeRun!.turrets.single.equippedGems, [GemType.range]);
+    expect(saved.activeRun!.turrets.single.equippedGemSlots, [
+      GemType.range,
+      null,
+    ]);
+    expect(saved.activeRun!.turrets.single.investedGold, 192);
+    expect(saved.activeRun!.turrets.single.damageDealt, closeTo(123, 0.001));
+    expect(
+      saved.activeRun!.turrets.single.directDamageDealt,
+      closeTo(123, 0.001),
+    );
 
     final restoredRepository = MemorySaveRepository()..data = saved;
     final restored = LinkResearchUnlockedGame(
@@ -3539,8 +3551,8 @@ void main() {
 
     final resumed = restoredRepository.data;
     expect(restored.snapshotNotifier.value.phase, GamePhase.preparation);
-    expect(resumed!.turrets.single.level, 2);
-    expect(resumed.turrets.single.slotLimit, 2);
+    expect(resumed!.activeRun!.turrets.single.level, 2);
+    expect(resumed.activeRun!.turrets.single.slotLimit, 2);
     expect(
       restored.children.whereType<TurretComponent>().single.damageDealt,
       closeTo(123, 0.001),
@@ -3584,7 +3596,7 @@ void main() {
       game.tryBuildTurret(const GridPoint(2, 0));
       await Future<void>.delayed(const Duration(milliseconds: 10));
       await game.saveNow();
-      expect(repository.data!.turrets, hasLength(1));
+      expect(repository.data!.activeRun!.turrets, hasLength(1));
 
       final restoredRepository = MemorySaveRepository()..data = repository.data;
       final restored = RuneNexusGame(saveRepository: restoredRepository);
@@ -3640,8 +3652,8 @@ void main() {
       game.purchaseGemChoice();
       await game.saveNow();
 
-      final savedOptions = repository.data!.rewardOptions;
-      expect(repository.data!.phase, GamePhase.reward);
+      final savedOptions = repository.data!.activeRun!.rewardOptions;
+      expect(repository.data!.activeRun!.phase, GamePhase.reward);
       expect(savedOptions, isNotEmpty);
 
       game.onGameResize(Vector2(400, 800));
@@ -3651,7 +3663,7 @@ void main() {
       expect(snapshot.phase, GamePhase.reward);
       expect(snapshot.isPurchasedGemReward, isTrue);
       expect(snapshot.rewardOptions, savedOptions);
-      expect(repository.data!.rewardOptions, savedOptions);
+      expect(repository.data!.activeRun!.rewardOptions, savedOptions);
     },
   );
 
@@ -3680,9 +3692,9 @@ void main() {
         GemType.physicalDamage,
       ]);
       expect(snapshot.gemShards, 5);
-      expect(repository.data!.phase, GamePhase.reward);
-      expect(repository.data!.isPurchasedGemReward, isTrue);
-      expect(repository.data!.rewardOptions, snapshot.rewardOptions);
+      expect(repository.data!.activeRun!.phase, GamePhase.reward);
+      expect(repository.data!.activeRun!.isPurchasedGemReward, isTrue);
+      expect(repository.data!.activeRun!.rewardOptions, snapshot.rewardOptions);
     },
   );
 
@@ -3723,14 +3735,14 @@ void main() {
 
       final saved = repository.data;
       expect(saved, isNotNull);
-      expect(saved!.phase, GamePhase.wave);
-      expect(saved.enemies, isNotEmpty);
+      expect(saved!.activeRun!.phase, GamePhase.wave);
+      expect(saved.activeRun!.enemies, isNotEmpty);
       expect(
-        saved.enemies.first.hp,
+        saved.activeRun!.enemies.first.hp,
         lessThan(scaledEnemyMaxHp(enemy.definition, 1)),
       );
-      expect(saved.enemies.first.distanceTravelled, greaterThan(0));
-      expect(saved.spawnQueue, isNotEmpty);
+      expect(saved.activeRun!.enemies.first.distanceTravelled, greaterThan(0));
+      expect(saved.activeRun!.spawnQueue, isNotEmpty);
 
       final restoredRepository = MemorySaveRepository()..data = saved;
       final restored = RuneNexusGame(saveRepository: restoredRepository);
@@ -3744,12 +3756,12 @@ void main() {
       await restored.saveNow();
 
       expect(
-        restoredRepository.data!.enemies.first.distanceTravelled,
-        closeTo(saved.enemies.first.distanceTravelled, 0.001),
+        restoredRepository.data!.activeRun!.enemies.first.distanceTravelled,
+        closeTo(saved.activeRun!.enemies.first.distanceTravelled, 0.001),
       );
       expect(
-        restoredRepository.data!.enemies.first.armor,
-        closeTo(saved.enemies.first.armor, 0.001),
+        restoredRepository.data!.activeRun!.enemies.first.armor,
+        closeTo(saved.activeRun!.enemies.first.armor, 0.001),
       );
 
       restored.continueRestoredRun();
@@ -3790,7 +3802,7 @@ void main() {
 
     final saved = repository.data;
     expect(saved, isNotNull);
-    expect(saved!.phase, GamePhase.wave);
+    expect(saved!.activeRun!.phase, GamePhase.wave);
 
     final restoredRepository = MemorySaveRepository()..data = saved;
     final restored = RuneNexusGame(saveRepository: restoredRepository);
@@ -3822,9 +3834,9 @@ void main() {
     final saved = repository.data;
     expect(game.snapshotNotifier.value.phase, GamePhase.wave);
     expect(saved, isNotNull);
-    expect(saved!.phase, GamePhase.wave);
-    expect(saved.turrets, hasLength(1));
-    expect(saved.turrets.single.level, 2);
+    expect(saved!.activeRun!.phase, GamePhase.wave);
+    expect(saved.activeRun!.turrets, hasLength(1));
+    expect(saved.activeRun!.turrets.single.level, 2);
   });
 
   test('turret link can be upgraded while a round is running', () async {
@@ -3843,7 +3855,7 @@ void main() {
     final snapshot = game.snapshotNotifier.value;
     expect(snapshot.phase, GamePhase.wave);
     expect(snapshot.selectedTurretSlotLimit, 2);
-    expect(repository.data!.turrets.single.slotLimit, 2);
+    expect(repository.data!.activeRun!.turrets.single.slotLimit, 2);
   });
 
   test(
@@ -3865,7 +3877,9 @@ void main() {
       expect(snapshot.phase, GamePhase.wave);
       expect(snapshot.selectedTurretGems, [GemType.range]);
       expect(snapshot.gemInventory[GemType.range], isNull);
-      expect(repository.data!.turrets.single.equippedGemSlots, [GemType.range]);
+      expect(repository.data!.activeRun!.turrets.single.equippedGemSlots, [
+        GemType.range,
+      ]);
     },
   );
 
@@ -3968,7 +3982,7 @@ void main() {
     expect(snapshot.gold, 222);
     expect(snapshot.selectedTurretPoint, isNull);
     expect(snapshot.gemInventory[GemType.range], 1);
-    expect(repository.data!.turrets, isEmpty);
+    expect(repository.data!.activeRun!.turrets, isEmpty);
   });
 
   test('turret refund is allowed while a round is running', () async {
@@ -3986,7 +4000,7 @@ void main() {
     expect(game.snapshotNotifier.value.phase, GamePhase.wave);
     expect(game.snapshotNotifier.value.gold, 155);
     expect(game.snapshotNotifier.value.selectedTurretPoint, isNull);
-    expect(repository.data!.turrets, isEmpty);
+    expect(repository.data!.activeRun!.turrets, isEmpty);
   });
 
   test('turret refund stops later burn credit to a rebuilt turret', () async {

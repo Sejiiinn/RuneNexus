@@ -3722,7 +3722,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
   }
 
-  void _restoreRunCoreLoadoutFromSave(GameSaveData data) {
+  void _restoreRunCoreLoadoutFromSave(SavedRunState data) {
     _coreCombatSkillController.restoreRunSkill(
       data.runCoreCombatSkill,
       data.runCoreCombatSkillStats,
@@ -4254,34 +4254,36 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return _saveAdapter.buildSaveData(
       GameSaveBuildState(
         savedAtMillis: DateTime.now().millisecondsSinceEpoch,
-        gold: _gold,
-        gemShards: _gemShards,
-        nexusHp: _nexusHp,
-        currentStageNumber: _currentStageNumber,
-        map: _map,
-        roundIndex: _roundIndex,
-        completedRounds: _completedRounds,
-        phase: _phase,
-        restoredPhase: _restoredPhase,
+        selectedStageNumber: _currentStageNumber,
         autoStartMode: _autoStartMode,
         progression: _progression,
-        runCoreCombatSkill: _coreCombatSkillController.runSkill,
-        runCoreCombatSkillStats: _coreCombatSkillStatsToSaveData(),
-        roundNexusHpLost: _roundNexusHpLost,
-        emergencyChargeUsedThisRound: _emergencyChargeUsedThisRound,
-        finalDefenseUsedThisRound: _finalDefenseUsedThisRound,
-        runUpgradeLevels: _runUpgradeLevels,
-        killGoldFractionWallet: _killGoldFractionWallet,
-        gemInventory: _gemInventory,
-        rewardOptions: _rewardOptions,
-        isPurchasedGemReward: _isPurchasedGemReward,
-        rewardReturnPhase: _rewardReturnPhase,
-        turrets: [for (final turret in _turrets.values) turret.toSaveData()],
-        enemies: [
-          for (final enemy in enemies)
-            if (!enemy.isDead) enemy.toSaveData(),
-        ],
-        spawnQueue: _waveSpawner.toSaveData(),
+        run: GameRunSaveBuildState(
+          gold: _gold,
+          gemShards: _gemShards,
+          nexusHp: _nexusHp,
+          map: _map,
+          roundIndex: _roundIndex,
+          completedRounds: _completedRounds,
+          phase: _phase,
+          restoredPhase: _restoredPhase,
+          runCoreCombatSkill: _coreCombatSkillController.runSkill,
+          runCoreCombatSkillStats: _coreCombatSkillStatsToSaveData(),
+          roundNexusHpLost: _roundNexusHpLost,
+          emergencyChargeUsedThisRound: _emergencyChargeUsedThisRound,
+          finalDefenseUsedThisRound: _finalDefenseUsedThisRound,
+          runUpgradeLevels: _runUpgradeLevels,
+          killGoldFractionWallet: _killGoldFractionWallet,
+          gemInventory: _gemInventory,
+          rewardOptions: _rewardOptions,
+          isPurchasedGemReward: _isPurchasedGemReward,
+          rewardReturnPhase: _rewardReturnPhase,
+          turrets: [for (final turret in _turrets.values) turret.toSaveData()],
+          enemies: [
+            for (final enemy in enemies)
+              if (!enemy.isDead) enemy.toSaveData(),
+          ],
+          spawnQueue: _waveSpawner.toSaveData(),
+        ),
         savedDataLoaded: _savedDataLoaded,
         pendingFullSaveData: _pendingFullSaveData,
       ),

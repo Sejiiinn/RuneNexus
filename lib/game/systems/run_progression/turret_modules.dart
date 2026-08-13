@@ -17,6 +17,74 @@ mixin _TurretModuleProgression {
     return List.unmodifiable(items);
   }
 
+  SavedTurretModuleInventory toTurretModuleSaveData() {
+    return SavedTurretModuleInventory(
+      tickets: turretModuleTickets,
+      drawCount: turretModuleDrawCount,
+      ticketPurchaseCount: turretModuleTicketPurchaseCount,
+      itemSequence: turretModuleItemSequence,
+      items: List.unmodifiable(
+        ownedTurretModules.map(
+          (module) => SavedTurretModule(
+            id: module.id,
+            turretType: module.key.turretType,
+            part: module.key.part,
+            family: module.key.family,
+            grade: module.key.grade,
+            options: List.unmodifiable(
+              module.options.map(
+                (option) => SavedTurretModuleOption(
+                  type: option.type,
+                  value: option.value,
+                ),
+              ),
+            ),
+            acquiredOrder: module.acquiredOrder,
+            equipped: module.equipped,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void restoreTurretModulesFromSaveData(SavedTurretModuleInventory data) {
+    turretModuleTickets = math.max(0, data.tickets);
+    turretModuleDrawCount = math.max(0, data.drawCount);
+    turretModuleTicketPurchaseCount = math.max(0, data.ticketPurchaseCount);
+    turretModuleItemSequence = math.max(0, data.itemSequence);
+    turretModules
+      ..clear()
+      ..addEntries(
+        data.items
+            .where(
+              (module) => gameTurretModuleDefinitions.containsKey(module.key),
+            )
+            .map(
+              (module) => MapEntry(
+                module.id,
+                TurretModuleInventoryItem(
+                  id: module.id,
+                  key: module.key,
+                  options: List.unmodifiable(
+                    _sanitizeTurretModuleOptions(
+                      module.key,
+                      module.options.map(
+                        (option) => TurretModuleOptionRoll(
+                          type: option.type,
+                          value: option.value,
+                        ),
+                      ),
+                    ),
+                  ),
+                  acquiredOrder: math.max(0, module.acquiredOrder),
+                  equipped: module.equipped,
+                ),
+              ),
+            ),
+      );
+    _sanitizeTurretModules();
+  }
+
   TurretModuleInventoryItem? turretModuleFor(String id) {
     return turretModules[id];
   }

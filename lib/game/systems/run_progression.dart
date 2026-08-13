@@ -281,31 +281,6 @@ class RunProgression
         ),
       ),
       researchSlotTwoUnlocked: researchSlotTwoUnlocked,
-      turretModuleTickets: turretModuleTickets,
-      turretModuleDrawCount: turretModuleDrawCount,
-      turretModuleTicketPurchaseCount: turretModuleTicketPurchaseCount,
-      turretModuleItemSequence: turretModuleItemSequence,
-      ownedTurretModules: List.unmodifiable(
-        ownedTurretModules.map(
-          (module) => SavedTurretModule(
-            id: module.id,
-            turretType: module.key.turretType,
-            part: module.key.part,
-            family: module.key.family,
-            grade: module.key.grade,
-            options: List.unmodifiable(
-              module.options.map(
-                (option) => SavedTurretModuleOption(
-                  type: option.type,
-                  value: option.value,
-                ),
-              ),
-            ),
-            acquiredOrder: module.acquiredOrder,
-            equipped: module.equipped,
-          ),
-        ),
-      ),
       coreCombatSkill: coreCombatSkill,
       totalCorePoints: totalCorePoints,
       lastRunCorePointReward: lastRunCorePointReward,
@@ -475,44 +450,6 @@ class RunProgression
       );
     researchSlotTwoUnlocked =
         data.researchSlotTwoUnlocked || activeResearches.length > 1;
-    turretModuleTickets = math.max(0, data.turretModuleTickets);
-    turretModuleDrawCount = math.max(0, data.turretModuleDrawCount);
-    turretModuleTicketPurchaseCount = math.max(
-      0,
-      data.turretModuleTicketPurchaseCount,
-    );
-    turretModuleItemSequence = math.max(0, data.turretModuleItemSequence);
-    turretModules
-      ..clear()
-      ..addEntries(
-        data.ownedTurretModules
-            .where(
-              (module) => gameTurretModuleDefinitions.containsKey(module.key),
-            )
-            .map(
-              (module) => MapEntry(
-                module.id,
-                TurretModuleInventoryItem(
-                  id: module.id,
-                  key: module.key,
-                  options: List.unmodifiable(
-                    _sanitizeTurretModuleOptions(
-                      module.key,
-                      module.options.map(
-                        (option) => TurretModuleOptionRoll(
-                          type: option.type,
-                          value: option.value,
-                        ),
-                      ),
-                    ),
-                  ),
-                  acquiredOrder: math.max(0, module.acquiredOrder),
-                  equipped: module.equipped,
-                ),
-              ),
-            ),
-      );
-    _sanitizeTurretModules();
     coreCombatSkill = data.coreCombatSkill;
     totalCorePoints = math.max(0, data.totalCorePoints);
     lastRunCorePointReward = math.max(0, data.lastRunCorePointReward);

@@ -663,9 +663,7 @@ GameSaveData saveWithResearch({
   int linkCostOptimizationUpgradeLevel = 0,
   int turretLevelUpOptimizationUpgradeLevel = 0,
 }) {
-  return GameSaveData(
-    version: GameSaveData.currentVersion,
-    savedAtMillis: 0,
+  final run = SavedRunState(
     gold: gold,
     gemShards: gemShards,
     nexusHp: 20,
@@ -674,7 +672,21 @@ GameSaveData saveWithResearch({
     roundIndex: roundIndex,
     completedRounds: 0,
     phase: phase,
-    autoStartMode: AutoStartMode.pauseEachRound,
+    runUpgradeLevels: const {},
+    killGoldFractionWallet: 0,
+    gemInventory: const {},
+    rewardOptions: const [],
+    isPurchasedGemReward: false,
+    turrets: const [],
+    enemies: const [],
+    spawnQueue: const [],
+  );
+  return GameSaveData(
+    savedAtMillis: 0,
+    preferences: const SavedPreferences(
+      selectedStageNumber: 1,
+      autoStartMode: AutoStartMode.pauseEachRound,
+    ),
     progression: SavedProgression(
       runes: 0,
       lastRunRuneReward: 0,
@@ -696,13 +708,7 @@ GameSaveData saveWithResearch({
       researchElapsedMillis: const {},
       activeResearches: const [],
     ),
-    runUpgradeLevels: const {},
-    killGoldFractionWallet: 0,
-    gemInventory: const {},
-    rewardOptions: const [],
-    isPurchasedGemReward: false,
-    turrets: const [],
-    enemies: const [],
-    spawnQueue: const [],
+    turretModules: SavedTurretModuleInventory.empty,
+    activeRun: run.hasProgress ? run : null,
   );
 }

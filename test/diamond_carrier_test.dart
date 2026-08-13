@@ -232,7 +232,7 @@ void main() {
     game.update(1);
     await game.saveNow();
 
-    expect(repository.data!.enemies.single.diamondReward, 2);
+    expect(repository.data!.activeRun!.enemies.single.diamondReward, 2);
 
     final restored = RuneNexusGame(
       saveRepository: MemorySaveRepository()..data = repository.data,

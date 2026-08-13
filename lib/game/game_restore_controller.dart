@@ -7,9 +7,10 @@ class GameRestoreController {
 
   void restoreMenuStateFromSaveData(GameSaveData data) {
     final restoredProgressionChanged = _restoreSavedMeta(data);
-    _game._savedTurretCountForMenu = data.turrets.length;
+    final activeRun = data.activeRun;
+    _game._savedTurretCountForMenu = activeRun?.turrets.length ?? 0;
 
-    if (!data.hasActiveRun) {
+    if (activeRun == null) {
       _game._savedTurretCountForMenu = 0;
       _restoreInactiveRunState(data);
       _resetRunPanelSelection();
@@ -17,27 +18,28 @@ class GameRestoreController {
       return;
     }
 
-    _restoreActiveRunState(data);
+    _restoreActiveRunState(activeRun);
     _resetRunPanelSelection();
-    _applyRestoredPhase(data, restoreWaveAsPaused: true);
+    _applyRestoredPhase(activeRun, restoreWaveAsPaused: true);
     _saveRestoredProgressionIfNeeded(restoredProgressionChanged);
   }
 
   void restoreFromSaveData(GameSaveData data) {
     final restoredProgressionChanged = _restoreSavedMeta(data);
     _clearBoardEntities();
+    final activeRun = data.activeRun;
 
-    if (!data.hasActiveRun) {
+    if (activeRun == null) {
       _restoreInactiveRunState(data);
       _saveRestoredProgressionIfNeeded(restoredProgressionChanged);
       return;
     }
 
-    _restoreActiveRunState(data);
+    _restoreActiveRunState(activeRun);
     _resetRunPanelSelection();
 
-    if (_game._saveAdapter.hasSavedRunMapMismatch(data, _game._map)) {
-      _refundSavedTurretsForMapChange(data.turrets);
+    if (_game._saveAdapter.hasSavedRunMapMismatch(activeRun, _game._map)) {
+      _refundSavedTurretsForMapChange(activeRun.turrets);
       _game._resetRoundDefenseState();
       _game._phase = GamePhase.preparation;
       _game._restoredPhase = null;
@@ -49,16 +51,17 @@ class GameRestoreController {
       return;
     }
 
-    _restoreTurrets(data.turrets);
-    _restoreEnemies(data.enemies);
-    _game._waveSpawner.restoreFromSaveData(data.spawnQueue);
-    _applyRestoredPhase(data, restoreWaveAsPaused: true);
+    _restoreTurrets(activeRun.turrets);
+    _restoreEnemies(activeRun.enemies);
+    _game._waveSpawner.restoreFromSaveData(activeRun.spawnQueue);
+    _applyRestoredPhase(activeRun, restoreWaveAsPaused: true);
     _saveRestoredProgressionIfNeeded(restoredProgressionChanged);
   }
 
   bool _restoreSavedMeta(GameSaveData data) {
-    _game._autoStartMode = data.autoStartMode;
+    _game._autoStartMode = data.preferences.autoStartMode;
     _game._progression.restoreFromSaveData(data.progression);
+    _game._progression.restoreTurretModulesFromSaveData(data.turretModules);
     final passiveTreeSanitized =
         data.progression.corePassiveTreeRevision !=
             _game._progression.corePassiveTreeRevision ||
@@ -78,18 +81,6 @@ class GameRestoreController {
         passiveTreeSanitized ||
         _game._progression.claimedCorePointStageRewards.length !=
             claimedRewardCount;
-    _restoreRunUpgradeState(data);
-    _game._gemInventory
-      ..clear()
-      ..addEntries(data.gemInventory.entries.where((entry) => entry.value > 0));
-    _game._rewardOptions
-      ..clear()
-      ..addAll(data.rewardOptions);
-    _game._gemShards = math.max(0, data.gemShards);
-    _game._isPurchasedGemReward = data.isPurchasedGemReward;
-    _game._rewardReturnPhase = data.isPurchasedGemReward
-        ? data.rewardReturnPhase
-        : null;
     return progressionChanged;
   }
 
@@ -100,7 +91,9 @@ class GameRestoreController {
   }
 
   void _restoreInactiveRunState(GameSaveData data) {
-    _game._selectStage(_game._clampedStageNumber(data.stageNumber));
+    _game._selectStage(
+      _game._clampedStageNumber(data.preferences.selectedStageNumber),
+    );
     _game._captureRunCoreLoadoutFromProgression();
     _game._gold = _game._initialGold;
     _game._gemShards = 0;
@@ -117,15 +110,14 @@ class GameRestoreController {
     _game._rewardReturnPhase = null;
   }
 
-  void _restoreActiveRunState(GameSaveData data) {
+  void _restoreActiveRunState(SavedRunState data) {
     _game._restoreRunCoreLoadoutFromSave(data);
     _game._gold = math.max(0, data.gold);
     _game._gemShards = math.max(0, data.gemShards);
     _game._selectStage(_game._clampedStageNumber(data.stageNumber));
     _game._nexusHp = data.nexusHp.clamp(0.0, _game._maxNexusHp).toDouble();
     _game._roundNexusHpLost = math.max(0.0, data.roundNexusHpLost);
-    _game._emergencyChargeUsedThisRound =
-        data.emergencyChargeUsedThisRound;
+    _game._emergencyChargeUsedThisRound = data.emergencyChargeUsedThisRound;
     _game._finalDefenseUsedThisRound = data.finalDefenseUsedThisRound;
     _game._roundIndex = data.roundIndex
         .clamp(0, _game._waves.length - 1)
@@ -133,6 +125,17 @@ class GameRestoreController {
     _game._completedRounds = data.completedRounds
         .clamp(0, _game._waves.length)
         .toInt();
+    _restoreRunUpgradeState(data);
+    _game._gemInventory
+      ..clear()
+      ..addEntries(data.gemInventory.entries.where((entry) => entry.value > 0));
+    _game._rewardOptions
+      ..clear()
+      ..addAll(data.rewardOptions);
+    _game._isPurchasedGemReward = data.isPurchasedGemReward;
+    _game._rewardReturnPhase = data.isPurchasedGemReward
+        ? data.rewardReturnPhase
+        : null;
     _resetLastRunResult();
   }
 
@@ -159,7 +162,7 @@ class GameRestoreController {
   }
 
   void _applyRestoredPhase(
-    GameSaveData data, {
+    SavedRunState data, {
     required bool restoreWaveAsPaused,
   }) {
     final restoredPhase = data.phase == GamePhase.restored
@@ -287,7 +290,7 @@ class GameRestoreController {
     _game._waveSpawner.clear();
   }
 
-  void _restoreRunUpgradeState(GameSaveData data) {
+  void _restoreRunUpgradeState(SavedRunState data) {
     _game._runUpgradeLevels
       ..clear()
       ..addEntries(

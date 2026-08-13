@@ -15,58 +15,65 @@ class GameSaveAdapter {
 
   GameSaveData buildSaveData(GameSaveBuildState state) {
     // 파괴 연출은 런타임 전용이며 저장 시 확정된 패배로 기록한다.
-    final savedPhase = switch (state.phase) {
+    final savedPhase = switch (state.run.phase) {
       GamePhase.coreDestruction => GamePhase.failure,
-      GamePhase.restored => state.restoredPhase ?? GamePhase.preparation,
-      _ => state.phase,
+      GamePhase.restored => state.run.restoredPhase ?? GamePhase.preparation,
+      _ => state.run.phase,
     };
     final pendingSave = !state.savedDataLoaded
         ? state.pendingFullSaveData
         : null;
+    final pendingRun = pendingSave?.activeRun;
+    final run = SavedRunState(
+      gold: state.run.gold,
+      gemShards: state.run.gemShards,
+      nexusHp: state.run.nexusHp,
+      stageNumber: state.selectedStageNumber,
+      mapSignature: pendingRun != null
+          ? pendingRun.mapSignature
+          : mapSignature(state.run.map),
+      roundIndex: state.run.roundIndex,
+      completedRounds: state.run.completedRounds,
+      phase: savedPhase,
+      runUpgradeLevels: Map.unmodifiable(state.run.runUpgradeLevels),
+      killGoldFractionWallet: state.run.killGoldFractionWallet,
+      gemInventory: Map.unmodifiable(state.run.gemInventory),
+      rewardOptions: List.unmodifiable(state.run.rewardOptions),
+      isPurchasedGemReward: state.run.isPurchasedGemReward,
+      rewardReturnPhase: state.run.rewardReturnPhase,
+      runCoreCombatSkill: pendingRun != null
+          ? pendingRun.runCoreCombatSkill
+          : state.run.runCoreCombatSkill,
+      runCoreCombatSkillStats: pendingRun != null
+          ? pendingRun.runCoreCombatSkillStats
+          : state.run.runCoreCombatSkillStats,
+      roundNexusHpLost: pendingRun != null
+          ? pendingRun.roundNexusHpLost
+          : state.run.roundNexusHpLost,
+      emergencyChargeUsedThisRound: pendingRun != null
+          ? pendingRun.emergencyChargeUsedThisRound
+          : state.run.emergencyChargeUsedThisRound,
+      finalDefenseUsedThisRound: pendingRun != null
+          ? pendingRun.finalDefenseUsedThisRound
+          : state.run.finalDefenseUsedThisRound,
+      turrets: pendingRun?.turrets ?? state.run.turrets,
+      enemies: pendingRun?.enemies ?? state.run.enemies,
+      spawnQueue: pendingRun?.spawnQueue ?? state.run.spawnQueue,
+    );
 
     return GameSaveData(
-      version: GameSaveData.currentVersion,
       savedAtMillis: state.savedAtMillis,
-      gold: state.gold,
-      gemShards: state.gemShards,
-      nexusHp: state.nexusHp,
-      stageNumber: state.currentStageNumber,
-      mapSignature: pendingSave?.hasActiveRun == true
-          ? pendingSave?.mapSignature
-          : mapSignature(state.map),
-      roundIndex: state.roundIndex,
-      completedRounds: state.completedRounds,
-      phase: savedPhase,
-      autoStartMode: state.autoStartMode,
+      preferences: SavedPreferences(
+        selectedStageNumber: state.selectedStageNumber,
+        autoStartMode: state.autoStartMode,
+      ),
       progression: state.progression.toSaveData(),
-      runUpgradeLevels: Map.unmodifiable(state.runUpgradeLevels),
-      killGoldFractionWallet: state.killGoldFractionWallet,
-      gemInventory: Map.unmodifiable(state.gemInventory),
-      rewardOptions: List.unmodifiable(state.rewardOptions),
-      isPurchasedGemReward: state.isPurchasedGemReward,
-      rewardReturnPhase: state.rewardReturnPhase,
-      runCoreCombatSkill: pendingSave?.hasActiveRun == true
-          ? pendingSave?.runCoreCombatSkill
-          : state.runCoreCombatSkill,
-      runCoreCombatSkillStats: pendingSave?.hasActiveRun == true
-          ? pendingSave!.runCoreCombatSkillStats
-          : state.runCoreCombatSkillStats,
-      roundNexusHpLost: pendingSave?.hasActiveRun == true
-          ? pendingSave!.roundNexusHpLost
-          : state.roundNexusHpLost,
-      emergencyChargeUsedThisRound: pendingSave?.hasActiveRun == true
-          ? pendingSave!.emergencyChargeUsedThisRound
-          : state.emergencyChargeUsedThisRound,
-      finalDefenseUsedThisRound: pendingSave?.hasActiveRun == true
-          ? pendingSave!.finalDefenseUsedThisRound
-          : state.finalDefenseUsedThisRound,
-      turrets: pendingSave?.turrets ?? state.turrets,
-      enemies: pendingSave?.enemies ?? state.enemies,
-      spawnQueue: pendingSave?.spawnQueue ?? state.spawnQueue,
+      turretModules: state.progression.toTurretModuleSaveData(),
+      activeRun: run.hasProgress ? run : null,
     );
   }
 
-  bool hasSavedRunMapMismatch(GameSaveData data, MapDefinition map) {
+  bool hasSavedRunMapMismatch(SavedRunState data, MapDefinition map) {
     if (data.mapSignature != mapSignature(map)) {
       return true;
     }
@@ -177,17 +184,33 @@ class GameSaveAdapter {
 class GameSaveBuildState {
   const GameSaveBuildState({
     required this.savedAtMillis,
+    required this.selectedStageNumber,
+    required this.autoStartMode,
+    required this.progression,
+    required this.run,
+    required this.savedDataLoaded,
+    required this.pendingFullSaveData,
+  });
+
+  final int savedAtMillis;
+  final int selectedStageNumber;
+  final AutoStartMode autoStartMode;
+  final RunProgression progression;
+  final GameRunSaveBuildState run;
+  final bool savedDataLoaded;
+  final GameSaveData? pendingFullSaveData;
+}
+
+class GameRunSaveBuildState {
+  const GameRunSaveBuildState({
     required this.gold,
     required this.gemShards,
     required this.nexusHp,
-    required this.currentStageNumber,
     required this.map,
     required this.roundIndex,
     required this.completedRounds,
     required this.phase,
     required this.restoredPhase,
-    required this.autoStartMode,
-    required this.progression,
     required this.runUpgradeLevels,
     required this.killGoldFractionWallet,
     required this.gemInventory,
@@ -202,22 +225,16 @@ class GameSaveBuildState {
     required this.turrets,
     required this.enemies,
     required this.spawnQueue,
-    required this.savedDataLoaded,
-    required this.pendingFullSaveData,
   });
 
-  final int savedAtMillis;
   final int gold;
   final int gemShards;
   final double nexusHp;
-  final int currentStageNumber;
   final MapDefinition map;
   final int roundIndex;
   final int completedRounds;
   final GamePhase phase;
   final GamePhase? restoredPhase;
-  final AutoStartMode autoStartMode;
-  final RunProgression progression;
   final Map<RunUpgradeType, int> runUpgradeLevels;
   final double killGoldFractionWallet;
   final Map<GemType, int> gemInventory;
@@ -232,8 +249,6 @@ class GameSaveBuildState {
   final List<SavedTurret> turrets;
   final List<SavedEnemy> enemies;
   final List<SavedSpawnRequest> spawnQueue;
-  final bool savedDataLoaded;
-  final GameSaveData? pendingFullSaveData;
 }
 
 class SavedMapChangeRefund {

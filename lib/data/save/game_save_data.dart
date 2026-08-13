@@ -15,113 +15,40 @@ import '../../domain/turret/turret_target_priority.dart';
 import '../../domain/turret_module/turret_module_type.dart';
 
 part 'game_save_enemy_data.dart';
+part 'game_save_migration.dart';
 part 'game_save_progression_data.dart';
+part 'game_save_run_data.dart';
 part 'game_save_turret_data.dart';
+part 'game_save_turret_module_data.dart';
 
 class GameSaveData {
   const GameSaveData({
-    required this.version,
     required this.savedAtMillis,
-    required this.gold,
-    required this.gemShards,
-    required this.nexusHp,
-    required this.stageNumber,
-    required this.mapSignature,
-    required this.roundIndex,
-    required this.completedRounds,
-    required this.phase,
-    required this.autoStartMode,
+    required this.preferences,
     required this.progression,
-    required this.runUpgradeLevels,
-    required this.killGoldFractionWallet,
-    required this.gemInventory,
-    required this.rewardOptions,
-    required this.isPurchasedGemReward,
-    this.rewardReturnPhase,
-    this.runCoreCombatSkill = CoreCombatSkill.guardianBeam,
-    this.runCoreCombatSkillStats = SavedCoreCombatSkillStats.empty,
-    this.roundNexusHpLost = 0,
-    this.emergencyChargeUsedThisRound = false,
-    this.finalDefenseUsedThisRound = false,
-    required this.turrets,
-    required this.enemies,
-    required this.spawnQueue,
+    required this.turretModules,
+    this.activeRun,
   });
 
-  static const currentVersion = 1;
+  static const currentVersion = 2;
 
-  final int version;
   final int savedAtMillis;
-  final int gold;
-  final int gemShards;
-  final double nexusHp;
-  final int stageNumber;
-  final String? mapSignature;
-  final int roundIndex;
-  final int completedRounds;
-  final GamePhase phase;
-  final AutoStartMode autoStartMode;
+  final SavedPreferences preferences;
   final SavedProgression progression;
-  final Map<RunUpgradeType, int> runUpgradeLevels;
-  final double killGoldFractionWallet;
-  final Map<GemType, int> gemInventory;
-  final List<GemType> rewardOptions;
-  final bool isPurchasedGemReward;
-  final GamePhase? rewardReturnPhase;
-  final CoreCombatSkill? runCoreCombatSkill;
-  final SavedCoreCombatSkillStats runCoreCombatSkillStats;
-  final double roundNexusHpLost;
-  final bool emergencyChargeUsedThisRound;
-  final bool finalDefenseUsedThisRound;
-  final List<SavedTurret> turrets;
-  final List<SavedEnemy> enemies;
-  final List<SavedSpawnRequest> spawnQueue;
+  final SavedTurretModuleInventory turretModules;
+  final SavedRunState? activeRun;
 
-  bool get hasActiveRun {
-    return phase == GamePhase.wave ||
-        phase == GamePhase.reward ||
-        roundIndex > 0 ||
-        completedRounds > 0 ||
-        runUpgradeLevels.isNotEmpty ||
-        turrets.isNotEmpty ||
-        enemies.isNotEmpty ||
-        spawnQueue.isNotEmpty ||
-        killGoldFractionWallet > 0 ||
-        rewardOptions.isNotEmpty;
-  }
+  int get version => currentVersion;
+  bool get hasActiveRun => activeRun != null;
 
   Map<String, Object?> toJson() {
     return {
-      'version': version,
+      'version': currentVersion,
       'savedAtMillis': savedAtMillis,
-      'gold': gold,
-      'gemShards': gemShards,
-      'nexusHp': nexusHp,
-      'stageNumber': stageNumber,
-      'mapSignature': mapSignature,
-      'roundIndex': roundIndex,
-      'completedRounds': completedRounds,
-      'phase': phase.name,
-      'autoStartMode': autoStartMode.name,
+      'preferences': preferences.toJson(),
       'progression': progression.toJson(),
-      'runUpgradeLevels': runUpgradeLevels.map(
-        (key, value) => MapEntry(key.name, value),
-      ),
-      'killGoldFractionWallet': killGoldFractionWallet,
-      'gemInventory': gemInventory.map(
-        (key, value) => MapEntry(key.name, value),
-      ),
-      'rewardOptions': rewardOptions.map((type) => type.name).toList(),
-      'isPurchasedGemReward': isPurchasedGemReward,
-      'rewardReturnPhase': rewardReturnPhase?.name,
-      'runCoreCombatSkill': runCoreCombatSkill?.name,
-      'runCoreCombatSkillStats': runCoreCombatSkillStats.toJson(),
-      'roundNexusHpLost': roundNexusHpLost,
-      'emergencyChargeUsedThisRound': emergencyChargeUsedThisRound,
-      'finalDefenseUsedThisRound': finalDefenseUsedThisRound,
-      'turrets': turrets.map((turret) => turret.toJson()).toList(),
-      'enemies': enemies.map((enemy) => enemy.toJson()).toList(),
-      'spawnQueue': spawnQueue.map((request) => request.toJson()).toList(),
+      'turretModules': turretModules.toJson(),
+      'activeRun': activeRun?.toJson(),
     };
   }
 
@@ -130,66 +57,29 @@ class GameSaveData {
       return null;
     }
     final version = _intValue(json['version']);
-    if (version != currentVersion) {
-      return null;
-    }
+    return switch (version) {
+      1 => _gameSaveDataFromVersion1(json),
+      currentVersion => _gameSaveDataFromVersion2(json),
+      _ => null,
+    };
+  }
 
+  static GameSaveData _gameSaveDataFromVersion2(Map<String, Object?> json) {
     final progression = SavedProgression.fromJson(json['progression']);
-    final phase =
-        _enumValue(GamePhase.values, json['phase']) ?? GamePhase.preparation;
-    final isPurchasedGemReward = json['isPurchasedGemReward'] == true;
-    final enemies = _objectList(json['enemies'], SavedEnemy.fromJson);
-    final spawnQueue = _objectList(
-      json['spawnQueue'],
-      SavedSpawnRequest.fromJson,
-    );
-    final rewardReturnPhase =
-        _enumValue(GamePhase.values, json['rewardReturnPhase']) ??
-        (phase == GamePhase.reward &&
-                isPurchasedGemReward &&
-                (enemies.isNotEmpty || spawnQueue.isNotEmpty)
-            ? GamePhase.wave
-            : null);
+    final turretModules = json['turretModules'] is Map<String, Object?>
+        ? SavedTurretModuleInventory.fromJson(json['turretModules'])
+        : SavedTurretModuleInventory.fromLegacyProgressionJson(
+            json['progression'],
+          );
     return GameSaveData(
-      version: version,
       savedAtMillis: _intValue(json['savedAtMillis']),
-      gold: _intValue(json['gold']),
-      gemShards: _intValue(json['gemShards']),
-      nexusHp: _doubleValue(json['nexusHp']),
-      stageNumber: _intValue(json['stageNumber'], fallback: 1),
-      mapSignature: _stringValue(json['mapSignature']),
-      roundIndex: _intValue(json['roundIndex']),
-      completedRounds: _intValue(json['completedRounds']),
-      phase: phase,
-      autoStartMode:
-          _enumValue(AutoStartMode.values, json['autoStartMode']) ??
-          AutoStartMode.pauseEachRound,
+      preferences: SavedPreferences.fromJson(json['preferences']),
       progression: progression,
-      runUpgradeLevels: _enumIntMap(
-        RunUpgradeType.values,
-        json['runUpgradeLevels'],
+      turretModules: turretModules,
+      activeRun: SavedRunState.fromJson(
+        json['activeRun'],
+        missingRunCoreCombatSkill: progression.coreCombatSkill,
       ),
-      killGoldFractionWallet: _doubleValue(json['killGoldFractionWallet']),
-      gemInventory: _enumIntMap(GemType.values, json['gemInventory']),
-      rewardOptions: _enumList(GemType.values, json['rewardOptions']),
-      isPurchasedGemReward: isPurchasedGemReward,
-      rewardReturnPhase: rewardReturnPhase,
-      runCoreCombatSkill: _nullableCoreCombatSkillFromSave(
-        json,
-        key: 'runCoreCombatSkill',
-        missingFallback: progression.coreCombatSkill,
-      ),
-      runCoreCombatSkillStats: SavedCoreCombatSkillStats.fromJson(
-        json['runCoreCombatSkillStats'],
-      ),
-      roundNexusHpLost: _doubleValue(json['roundNexusHpLost']),
-      emergencyChargeUsedThisRound: _boolValue(
-        json['emergencyChargeUsedThisRound'],
-      ),
-      finalDefenseUsedThisRound: _boolValue(json['finalDefenseUsedThisRound']),
-      turrets: _objectList(json['turrets'], SavedTurret.fromJson),
-      enemies: enemies,
-      spawnQueue: spawnQueue,
     );
   }
 }

@@ -38,11 +38,6 @@ class SavedProgression {
     required this.researchElapsedMillis,
     required this.activeResearches,
     this.researchSlotTwoUnlocked = false,
-    this.turretModuleTickets = 0,
-    this.turretModuleDrawCount = 0,
-    this.turretModuleTicketPurchaseCount = 0,
-    this.turretModuleItemSequence = 0,
-    this.ownedTurretModules = const [],
     this.coreCombatSkill = CoreCombatSkill.guardianBeam,
     this.totalCorePoints = 0,
     this.lastRunCorePointReward = 0,
@@ -89,11 +84,6 @@ class SavedProgression {
   final Map<ResearchType, int> researchElapsedMillis;
   final List<SavedActiveResearch> activeResearches;
   final bool researchSlotTwoUnlocked;
-  final int turretModuleTickets;
-  final int turretModuleDrawCount;
-  final int turretModuleTicketPurchaseCount;
-  final int turretModuleItemSequence;
-  final List<SavedTurretModule> ownedTurretModules;
   final CoreCombatSkill? coreCombatSkill;
   final int totalCorePoints;
   final int lastRunCorePointReward;
@@ -159,13 +149,6 @@ class SavedProgression {
           .map((research) => research.toJson())
           .toList(),
       'researchSlotTwoUnlocked': researchSlotTwoUnlocked,
-      'turretModuleTickets': turretModuleTickets,
-      'turretModuleDrawCount': turretModuleDrawCount,
-      'turretModuleTicketPurchaseCount': turretModuleTicketPurchaseCount,
-      'turretModuleItemSequence': turretModuleItemSequence,
-      'ownedTurretModules': ownedTurretModules
-          .map((module) => module.toJson())
-          .toList(),
       'coreCombatSkill': coreCombatSkill?.name,
       'totalCorePoints': totalCorePoints,
       'lastRunCorePointReward': lastRunCorePointReward,
@@ -185,12 +168,6 @@ class SavedProgression {
       map['activeResearches'],
       SavedActiveResearch.fromJson,
     );
-    final turretModuleItemSequence = _nonNegativeInt(
-      map['turretModuleItemSequence'],
-    );
-    final turretModuleDrawCount = map.containsKey('turretModuleDrawCount')
-        ? _nonNegativeInt(map['turretModuleDrawCount'])
-        : turretModuleItemSequence;
     return SavedProgression(
       runes: _intValue(map['runes']),
       freeDiamonds: _intValue(map['freeDiamonds']),
@@ -263,17 +240,6 @@ class SavedProgression {
       researchSlotTwoUnlocked: _boolValue(
         map['researchSlotTwoUnlocked'],
         fallback: activeResearches.length > 1,
-      ),
-      turretModuleTickets: _intValue(map['turretModuleTickets']),
-      turretModuleDrawCount: turretModuleDrawCount,
-      turretModuleTicketPurchaseCount:
-          map.containsKey('turretModuleTicketPurchaseCount')
-          ? _nonNegativeInt(map['turretModuleTicketPurchaseCount'])
-          : turretModuleDrawCount,
-      turretModuleItemSequence: turretModuleItemSequence,
-      ownedTurretModules: _objectList(
-        map['ownedTurretModules'],
-        SavedTurretModule.fromJson,
       ),
       coreCombatSkill: _coreCombatSkillFromSave(map),
       totalCorePoints: _nonNegativeInt(map['totalCorePoints']),
@@ -371,104 +337,5 @@ class SavedActiveResearch {
       durationMillis: _intValue(json['durationMillis']),
       initialElapsedMillis: _intValue(json['initialElapsedMillis']),
     );
-  }
-}
-
-class SavedTurretModule {
-  const SavedTurretModule({
-    required this.id,
-    required this.turretType,
-    required this.part,
-    required this.family,
-    required this.grade,
-    required this.options,
-    required this.acquiredOrder,
-    required this.equipped,
-  });
-
-  final String id;
-  final TurretType turretType;
-  final TurretModulePart part;
-  final TurretModuleFamily family;
-  final TurretModuleGrade grade;
-  final List<SavedTurretModuleOption> options;
-  final int acquiredOrder;
-  final bool equipped;
-
-  TurretModuleKey get key {
-    return TurretModuleKey(
-      turretType: turretType,
-      part: part,
-      family: family,
-      grade: grade,
-    );
-  }
-
-  Map<String, Object?> toJson() {
-    return {
-      'id': id,
-      'turretType': turretType.name,
-      'part': part.name,
-      'family': family.name,
-      'grade': grade.name,
-      'options': options.map((option) => option.toJson()).toList(),
-      'acquiredOrder': acquiredOrder,
-      'equipped': equipped,
-    };
-  }
-
-  static SavedTurretModule? fromJson(Object? json) {
-    if (json is! Map<String, Object?>) {
-      return null;
-    }
-    final id = _stringValue(json['id']);
-    final turretType = _enumValue(TurretType.values, json['turretType']);
-    final part = _enumValue(TurretModulePart.values, json['part']);
-    final family = _enumValue(TurretModuleFamily.values, json['family']);
-    final grade = _enumValue(TurretModuleGrade.values, json['grade']);
-    final options = _objectList(
-      json['options'],
-      SavedTurretModuleOption.fromJson,
-    );
-    if (id == null ||
-        turretType == null ||
-        part == null ||
-        family == null ||
-        grade == null ||
-        options.isEmpty) {
-      return null;
-    }
-    return SavedTurretModule(
-      id: id,
-      turretType: turretType,
-      part: part,
-      family: family,
-      grade: grade,
-      options: List.unmodifiable(options),
-      acquiredOrder: _intValue(json['acquiredOrder']),
-      equipped: _boolValue(json['equipped']),
-    );
-  }
-}
-
-class SavedTurretModuleOption {
-  const SavedTurretModuleOption({required this.type, required this.value});
-
-  final TurretModuleOptionType type;
-  final int value;
-
-  Map<String, Object?> toJson() {
-    return {'type': type.name, 'value': value};
-  }
-
-  static SavedTurretModuleOption? fromJson(Object? json) {
-    if (json is! Map<String, Object?>) {
-      return null;
-    }
-    final type = _enumValue(TurretModuleOptionType.values, json['type']);
-    if (type == null) {
-      return null;
-    }
-    return SavedTurretModuleOption(type: type, value: _intValue(json['value']));
   }
 }

@@ -116,7 +116,12 @@ void main() {
     expect(progression.turretModuleTickets, 1);
 
     final saved = SavedProgression.fromJson(progression.toSaveData().toJson());
-    final restored = RunProgression()..restoreFromSaveData(saved);
+    final savedTurretModules = SavedTurretModuleInventory.fromJson(
+      progression.toTurretModuleSaveData().toJson(),
+    );
+    final restored = RunProgression()
+      ..restoreFromSaveData(saved)
+      ..restoreTurretModulesFromSaveData(savedTurretModules);
     expect(restored.weeklyQuestProgress, progression.weeklyQuestProgress);
     expect(
       restored.claimedWeeklyQuestRewards,

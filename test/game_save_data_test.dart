@@ -1,0 +1,128 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:rune_nexus/data/save/game_save_data.dart';
+import 'package:rune_nexus/domain/combat/auto_start_mode.dart';
+import 'package:rune_nexus/domain/combat/game_phase.dart';
+import 'package:rune_nexus/domain/gem/gem_type.dart';
+import 'package:rune_nexus/domain/run_upgrade/run_upgrade_type.dart';
+
+void main() {
+  test('v1 평면 저장을 v2 저장 경계로 변환한다', () {
+    final saved = GameSaveData.fromJson(<String, Object?>{
+      'version': 1,
+      'savedAtMillis': 1234,
+      'gold': 275,
+      'gemShards': 9,
+      'nexusHp': 14.5,
+      'stageNumber': 3,
+      'mapSignature': 'legacy-map',
+      'roundIndex': 2,
+      'completedRounds': 2,
+      'phase': 'wave',
+      'autoStartMode': 'fullAuto',
+      'progression': const <String, Object?>{
+        'runes': 42,
+        'unlockedStageCount': 3,
+        'turretModuleTickets': 5,
+        'turretModuleDrawCount': 7,
+        'turretModuleTicketPurchaseCount': 2,
+        'turretModuleItemSequence': 7,
+      },
+      'runUpgradeLevels': const <String, Object?>{'towerDamage': 2},
+      'killGoldFractionWallet': 0.25,
+      'gemInventory': const <String, Object?>{'range': 1},
+      'rewardOptions': const <Object?>[],
+      'isPurchasedGemReward': false,
+      'turrets': const <Object?>[],
+      'enemies': const <Object?>[],
+      'spawnQueue': const <Object?>[],
+    });
+
+    expect(saved, isNotNull);
+    expect(saved!.version, GameSaveData.currentVersion);
+    expect(saved.savedAtMillis, 1234);
+    expect(saved.preferences.selectedStageNumber, 3);
+    expect(saved.preferences.autoStartMode, AutoStartMode.fullAuto);
+    expect(saved.progression.runes, 42);
+    expect(saved.turretModules.tickets, 5);
+    expect(saved.turretModules.drawCount, 7);
+    expect(saved.turretModules.ticketPurchaseCount, 2);
+    expect(saved.activeRun, isNotNull);
+    expect(saved.activeRun!.phase, GamePhase.wave);
+    expect(saved.activeRun!.gold, 275);
+    expect(saved.activeRun!.nexusHp, 14.5);
+    expect(saved.activeRun!.runUpgradeLevels, {RunUpgradeType.towerDamage: 2});
+    expect(saved.activeRun!.gemInventory, {GemType.range: 1});
+
+    final migratedJson = saved.toJson();
+    expect(migratedJson['version'], 2);
+    expect(migratedJson, isNot(contains('gold')));
+    expect(migratedJson['preferences'], isA<Map<String, Object?>>());
+    expect(migratedJson['turretModules'], isA<Map<String, Object?>>());
+    expect(migratedJson['activeRun'], isA<Map<String, Object?>>());
+    expect(
+      migratedJson['progression'] as Map<String, Object?>,
+      isNot(contains('turretModuleTickets')),
+    );
+  });
+
+  test('진행 중인 런이 없는 v1 저장은 선택 스테이지만 보존한다', () {
+    final saved = GameSaveData.fromJson(<String, Object?>{
+      'version': 1,
+      'savedAtMillis': 10,
+      'stageNumber': 4,
+      'phase': 'preparation',
+      'autoStartMode': 'pauseEachRound',
+      'progression': const <String, Object?>{'unlockedStageCount': 4},
+      'runUpgradeLevels': const <String, Object?>{},
+      'rewardOptions': const <Object?>[],
+      'turrets': const <Object?>[],
+      'enemies': const <Object?>[],
+      'spawnQueue': const <Object?>[],
+    });
+
+    expect(saved, isNotNull);
+    expect(saved!.preferences.selectedStageNumber, 4);
+    expect(saved.activeRun, isNull);
+    expect(saved.toJson()['activeRun'], isNull);
+  });
+
+  test('중첩형 v2 모듈 데이터를 최상위 저장 영역으로 마이그레이션한다', () {
+    final saved = GameSaveData.fromJson(<String, Object?>{
+      'version': 2,
+      'savedAtMillis': 20,
+      'preferences': const <String, Object?>{
+        'selectedStageNumber': 2,
+        'autoStartMode': 'pauseEachRound',
+      },
+      'progression': const <String, Object?>{
+        'runes': 10,
+        'turretModuleTickets': 3,
+        'turretModuleItemSequence': 4,
+        'ownedTurretModules': <Object?>[],
+      },
+      'activeRun': null,
+    });
+
+    expect(saved, isNotNull);
+    expect(saved!.turretModules.tickets, 3);
+    expect(saved.turretModules.drawCount, 4);
+    expect(saved.turretModules.ticketPurchaseCount, 4);
+
+    final migratedJson = saved.toJson();
+    expect(migratedJson['turretModules'], {
+      'tickets': 3,
+      'drawCount': 4,
+      'ticketPurchaseCount': 4,
+      'itemSequence': 4,
+      'items': <Object?>[],
+    });
+    expect(
+      migratedJson['progression'] as Map<String, Object?>,
+      isNot(contains('turretModuleTickets')),
+    );
+  });
+
+  test('지원하지 않는 저장 버전은 거부한다', () {
+    expect(GameSaveData.fromJson(const {'version': 99}), isNull);
+  });
+}
