@@ -125,4 +125,40 @@ void main() {
   test('지원하지 않는 저장 버전은 거부한다', () {
     expect(GameSaveData.fromJson(const {'version': 99}), isNull);
   });
+
+  test('필수 영역이 빠진 손상된 v2 저장은 거부한다', () {
+    expect(GameSaveData.fromJson(const {'version': 2}), isNull);
+    expect(
+      GameSaveData.fromJson(const <String, Object?>{
+        'version': 2,
+        'preferences': <String, Object?>{},
+        'progression': <String, Object?>{},
+        'turretModules': <String, Object?>{},
+      }),
+      isNull,
+    );
+    expect(
+      GameSaveData.fromJson(const <String, Object?>{
+        'version': 2,
+        'preferences': <String, Object?>{},
+        'progression': <String, Object?>{},
+        'activeRun': null,
+      }),
+      isNull,
+    );
+  });
+
+  test('모든 필수 영역이 있는 canonical v2 저장은 허용한다', () {
+    final json = const <String, Object?>{
+      'version': 2,
+      'savedAtMillis': 30,
+      'preferences': <String, Object?>{},
+      'progression': <String, Object?>{},
+      'turretModules': <String, Object?>{},
+      'activeRun': null,
+    };
+
+    expect(GameSaveData.isCanonicalVersion2Envelope(json), isTrue);
+    expect(GameSaveData.fromJson(json), isNotNull);
+  });
 }

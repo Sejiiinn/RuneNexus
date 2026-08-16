@@ -13,6 +13,7 @@ import '../data/definitions/game_run_upgrade_data.dart';
 import '../data/definitions/game_stage_data.dart';
 import '../data/definitions/game_turret_data.dart';
 import '../data/save/game_save_data.dart';
+import '../data/save/local_save_coordinator.dart';
 import '../data/save/local_save_repository.dart';
 import '../data/save/online_save_repository.dart';
 import '../data/save/save_repository.dart';
@@ -402,7 +403,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     OnlineSaveRepository? onlineSaveRepository,
     @visibleForTesting double Function()? diamondCarrierRollForTesting,
     @visibleForTesting bool enableDebugEnemySpawnForTesting = false,
-  }) : _saveRepository = saveRepository ?? createDefaultSaveRepository(),
+  }) : _saveRepository = saveRepository is LocalSaveCoordinator
+           ? saveRepository
+           : LocalSaveCoordinator(
+               saveRepository ?? createDefaultSaveRepository(),
+             ),
        _onlineSaveRepository =
            onlineSaveRepository ?? const NoopOnlineSaveRepository(),
        _diamondCarrierRoll =
@@ -4193,7 +4198,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   Future<void> _saveRoundCheckpoint() async {
     final data = _buildSaveData();
-    await _writeLocalSaveData(data);
+    if (!await _writeLocalSaveData(data)) {
+      return;
+    }
     try {
       await _onlineSaveRepository.saveRoundCheckpoint(data);
     } on Object {
@@ -4201,19 +4208,21 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
   }
 
-  Future<void> _writeLocalSave() {
+  Future<void> _writeLocalSave() async {
     final data = _buildSaveData();
     if (!_savedDataLoaded) {
       _pendingFullSaveData = data;
     }
-    return _writeLocalSaveData(data);
+    await _writeLocalSaveData(data);
   }
 
-  Future<void> _writeLocalSaveData(GameSaveData data) async {
+  Future<bool> _writeLocalSaveData(GameSaveData data) async {
     try {
       await _saveRepository.save(data);
+      return true;
     } on Object {
       // 로컬 저장 실패는 다음 저장 기회에 재시도한다.
+      return false;
     }
   }
 

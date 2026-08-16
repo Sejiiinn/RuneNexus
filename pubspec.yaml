@@ -12,6 +12,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flame: ^1.37.0
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:

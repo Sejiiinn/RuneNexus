@@ -57,11 +57,52 @@ class GameSaveData {
       return null;
     }
     final version = _intValue(json['version']);
-    return switch (version) {
-      1 => _gameSaveDataFromVersion1(json),
-      currentVersion => _gameSaveDataFromVersion2(json),
-      _ => null,
-    };
+    if (version == 1) {
+      return _gameSaveDataFromVersion1(json);
+    }
+    if (version == currentVersion && isValidVersion2Envelope(json)) {
+      return _gameSaveDataFromVersion2(json);
+    }
+    return null;
+  }
+
+  static bool isCanonicalVersion2Envelope(Object? json) {
+    if (json is! Map<String, Object?> ||
+        _intValue(json['version']) != currentVersion) {
+      return false;
+    }
+    return json['preferences'] is Map<String, Object?> &&
+        json['progression'] is Map<String, Object?> &&
+        json['turretModules'] is Map<String, Object?> &&
+        json.containsKey('activeRun') &&
+        (json['activeRun'] == null ||
+            json['activeRun'] is Map<String, Object?>);
+  }
+
+  static bool isValidVersion2Envelope(Object? json) {
+    return isCanonicalVersion2Envelope(json) ||
+        _isTransitionalVersion2Envelope(json);
+  }
+
+  static bool _isTransitionalVersion2Envelope(Object? json) {
+    if (json is! Map<String, Object?> ||
+        _intValue(json['version']) != currentVersion ||
+        json.containsKey('turretModules') ||
+        json['preferences'] is! Map<String, Object?> ||
+        json['progression'] is! Map<String, Object?> ||
+        !json.containsKey('activeRun') ||
+        (json['activeRun'] != null &&
+            json['activeRun'] is! Map<String, Object?>)) {
+      return false;
+    }
+    final progression = json['progression'] as Map<String, Object?>;
+    return const {
+      'turretModuleTickets',
+      'turretModuleDrawCount',
+      'turretModuleTicketPurchaseCount',
+      'turretModuleItemSequence',
+      'ownedTurretModules',
+    }.any(progression.containsKey);
   }
 
   static GameSaveData _gameSaveDataFromVersion2(Map<String, Object?> json) {
