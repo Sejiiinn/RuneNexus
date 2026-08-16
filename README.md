@@ -65,4 +65,5 @@ flutter build web --pwa-strategy=none --no-tree-shake-icons
 - [개발 히스토리](docs/development_history.md)
 - [MVP 작업 계획서](docs/mvp_work_plan.md)
 - [다음 작업 우선순위](docs/next_work_priorities.md)
+- [백엔드 및 온라인 저장 아키텍처](docs/backend_architecture.md)
 - [로컬 PostgreSQL 실행](docs/local_postgresql_setup.md)

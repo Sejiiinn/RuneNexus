@@ -2,6 +2,8 @@
 
 Rune Nexus 서버 개발용 PostgreSQL은 Docker Compose로 실행합니다. 데이터베이스 포트는 Mac 내부의 `127.0.0.1`에만 노출되며, 데이터는 Docker named volume에 보존됩니다.
 
+계정, 인증, 온라인 저장과 Go 서버의 전체 구조는 `docs/backend_architecture.md`를 기준으로 합니다.
+
 ## 최초 실행
 
 Docker Desktop을 설치하고 실행한 뒤 저장소 루트에서 비밀번호 파일을 한 번 생성합니다.
@@ -10,16 +12,20 @@ Docker Desktop을 설치하고 실행한 뒤 저장소 루트에서 비밀번호
 mkdir -p .secrets
 openssl rand -base64 48 > .secrets/postgres_password
 chmod 600 .secrets/postgres_password
-docker compose up -d db
+docker compose up -d --build api
 ```
 
 `.secrets/`는 Git에서 제외됩니다. 생성한 비밀번호 파일은 별도로 안전하게 보관하고 저장소에 커밋하지 않습니다.
+
+위 명령은 PostgreSQL을 시작하고, `tern` 마이그레이션을 적용한 뒤 Go API 서버를 시작합니다. 데이터베이스만 먼저 실행하려면 `docker compose up -d db`를 사용합니다.
 
 ## 상태와 접속 확인
 
 ```bash
 docker compose ps
 docker compose exec db psql -U rune_nexus_app -d rune_nexus
+curl --fail http://127.0.0.1:8080/health/live
+curl --fail http://127.0.0.1:8080/health/ready
 ```
 
 호스트에서 접속하는 서버 프로세스의 기본 연결 정보는 다음과 같습니다.
@@ -32,13 +38,30 @@ user=rune_nexus_app
 password=<.secrets/postgres_password 파일 내용>
 ```
 
-추후 API 서버도 같은 Compose 네트워크에서 실행할 경우에는 호스트를 `db`, 포트를 `5432`로 사용합니다.
+API 서버는 같은 Compose 네트워크에서 호스트 `db`, 포트 `5432`로 접속합니다. 호스트에서 Go 서버를 직접 실행할 때만 위의 `127.0.0.1` 접속 정보를 사용합니다.
+
+## Go 서버 검증
+
+호스트에 Go, sqlc, tern을 별도로 설치하지 않고 고정된 Docker 이미지로 검증합니다.
+
+```bash
+make -C server format
+make -C server test
+make -C server vet
+make -C server sqlc-version
+make -C server tern-version
+docker compose config --quiet
+```
+
+현재 고정 버전은 Go 1.26.5, sqlc 1.31.1, tern 2.4.1입니다. `go.mod`에는 PostgreSQL 드라이버 `pgx/v5` 5.10.0이 고정되어 있습니다.
 
 ## 중지와 재실행
 
 ```bash
-docker compose stop db
+docker compose stop api db
 docker compose start db
+docker compose run --rm migrate
+docker compose start api
 ```
 
 컨테이너만 내리고 데이터는 유지하려면 다음 명령을 사용합니다.

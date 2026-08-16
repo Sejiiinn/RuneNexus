@@ -1,0 +1,26 @@
+# syntax=docker/dockerfile:1
+
+ARG GO_VERSION=1.26.5
+ARG TERN_VERSION=2.4.1
+FROM golang:${GO_VERSION}-alpine AS build
+
+ARG TERN_VERSION
+RUN GOBIN=/output go install github.com/jackc/tern/v2@v${TERN_VERSION}
+
+FROM alpine:3.22
+
+ARG TERN_VERSION
+RUN apk add --no-cache ca-certificates \
+    && addgroup -S -g 10001 runenexus \
+    && adduser -S -D -H -u 10001 -G runenexus runenexus
+
+COPY --from=build /output/tern /usr/local/bin/tern
+COPY docker/migrate-entrypoint.sh /usr/local/bin/migrate-entrypoint
+RUN chmod 0555 /usr/local/bin/migrate-entrypoint
+
+LABEL org.opencontainers.image.version="${TERN_VERSION}"
+
+USER runenexus:runenexus
+
+ENTRYPOINT ["/usr/local/bin/migrate-entrypoint"]
+CMD ["migrate"]

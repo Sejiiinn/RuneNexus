@@ -31,6 +31,79 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  migrate:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.migrate
+      args:
+        GO_VERSION: 1.26.5
+        TERN_VERSION: 2.4.1
+    environment:
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: rune_nexus
+      PGUSER: rune_nexus_app
+      PGPASSWORD_FILE: /run/secrets/postgres_password
+      PGSSLMODE: disable
+      TERN_MIGRATIONS: /migrations
+    volumes:
+      - ./server/db/migrations:/migrations:ro
+    secrets:
+      - postgres_password
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      args:
+        GO_VERSION: 1.26.5
+    init: true
+    restart: unless-stopped
+    environment:
+      HTTP_ADDRESS: :8080
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DATABASE_NAME: rune_nexus
+      DATABASE_USER: rune_nexus_app
+      DATABASE_PASSWORD_FILE: /run/secrets/postgres_password
+      DATABASE_SSLMODE: disable
+      DATABASE_CONNECT_TIMEOUT: 5s
+      READINESS_TIMEOUT: 2s
+      SHUTDOWN_TIMEOUT: 10s
+      TZ: UTC
+    ports:
+      - "127.0.0.1:8080:8080"
+    secrets:
+      - postgres_password
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--output-document=-",
+          "http://127.0.0.1:8080/health/live",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    stop_grace_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 secrets:
   postgres_password:
     file: ./.secrets/postgres_password
