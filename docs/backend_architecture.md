@@ -1010,10 +1010,10 @@ SHUTDOWN_TIMEOUT
 
 ### 3단계: 계정·저장 DB
 
-- account, identity, session, refresh token 마이그레이션
-- 영역별 저장과 save request 마이그레이션
-- `sqlc.yaml`, 쿼리와 생성 코드
-- 실제 PostgreSQL 통합 테스트
+- [x] account, identity, session, refresh token 마이그레이션
+- [x] 영역별 저장과 save request 마이그레이션
+- [x] `sqlc.yaml`, 쿼리와 생성 코드
+- [x] 실제 PostgreSQL 통합 테스트
 
 ### 4단계: PGS 인증
 
@@ -1084,7 +1084,8 @@ Go 서버, Compose와 문서처럼 클라이언트 저장 형식을 바꾸지 �
 - 일반 저장과 체크포인트는 단일 `LocalSaveCoordinator`를 거친다.
 - Go 1.26.5, pgx 5.10.0, sqlc 1.31.1, tern 2.4.1을 고정했다.
 - PostgreSQL, migrate, API Compose 실행 기반이 있다.
+- 계정·session과 영역별 온라인 저장 스키마 및 `sqlc` 쿼리가 구현되어 있다.
 - `/health/live`, `/health/ready`가 구현되어 있다.
 - Android Application ID는 아직 `com.example.rune_nexus`다.
 - release 빌드는 아직 debug signing을 사용한다.
-- 애플리케이션 DB 마이그레이션, PGS 인증과 실제 저장 API는 아직 없다.
+- PGS 인증과 실제 저장 API는 아직 없다.
