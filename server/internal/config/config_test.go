@@ -68,6 +68,49 @@ func TestLoadRejectsInvalidDuration(t *testing.T) {
 	}
 }
 
+func TestLoadRequiresGoogleClientIDWhenAuthIsEnabled(t *testing.T) {
+	clearDatabaseEnvironment(t)
+	t.Setenv("DATABASE_URL", "postgres://app:secret@localhost/rune_nexus")
+	t.Setenv("GOOGLE_AUTH_ENABLED", "true")
+
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() expected an error")
+	}
+}
+
+func TestLoadParsesGoogleAuthAndCORSConfiguration(t *testing.T) {
+	clearDatabaseEnvironment(t)
+	t.Setenv("DATABASE_URL", "postgres://app:secret@localhost/rune_nexus")
+	t.Setenv("GOOGLE_AUTH_ENABLED", "true")
+	t.Setenv("GOOGLE_WEB_CLIENT_ID", "web-client-id")
+	t.Setenv(
+		"CORS_ALLOWED_ORIGINS",
+		"https://sejiiinn.github.io/, http://127.0.0.1:53000, https://sejiiinn.github.io",
+	)
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if !cfg.GoogleAuthEnabled || cfg.GoogleWebClientID != "web-client-id" {
+		t.Fatalf("Google auth configuration = %#v", cfg)
+	}
+	if len(cfg.CORSAllowedOrigins) != 2 {
+		t.Fatalf("CORSAllowedOrigins = %#v", cfg.CORSAllowedOrigins)
+	}
+}
+
+func TestLoadRejectsRefreshTTLNotGreaterThanAccessTTL(t *testing.T) {
+	clearDatabaseEnvironment(t)
+	t.Setenv("DATABASE_URL", "postgres://app:secret@localhost/rune_nexus")
+	t.Setenv("ACCESS_TOKEN_TTL", "1h")
+	t.Setenv("REFRESH_TOKEN_TTL", "1h")
+
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() expected an error")
+	}
+}
+
 func clearDatabaseEnvironment(t *testing.T) {
 	t.Helper()
 	for _, name := range []string{
@@ -83,6 +126,12 @@ func clearDatabaseEnvironment(t *testing.T) {
 		"READINESS_TIMEOUT",
 		"SHUTDOWN_TIMEOUT",
 		"HTTP_ADDRESS",
+		"GOOGLE_AUTH_ENABLED",
+		"GOOGLE_WEB_CLIENT_ID",
+		"IDENTITY_VERIFY_TIMEOUT",
+		"ACCESS_TOKEN_TTL",
+		"REFRESH_TOKEN_TTL",
+		"CORS_ALLOWED_ORIGINS",
 	} {
 		t.Setenv(name, "")
 	}

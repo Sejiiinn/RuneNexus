@@ -7,12 +7,27 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/Sejiiinn/RuneNexus/server/internal/auth"
 )
 
 const requestIDHeader = "X-Request-ID"
 
+type requestIDContextKey struct{}
+
 type ReadinessChecker interface {
 	Ping(context.Context) error
+}
+
+type GoogleAuthenticator interface {
+	AuthenticateGoogle(context.Context, string) (auth.LoginResult, error)
+}
+
+type Dependencies struct {
+	Database            ReadinessChecker
+	ReadinessTimeout    time.Duration
+	GoogleAuthenticator GoogleAuthenticator
+	CORSAllowedOrigins  []string
 }
 
 type healthHandler struct {
@@ -22,17 +37,26 @@ type healthHandler struct {
 
 func NewHandler(
 	logger *slog.Logger,
-	database ReadinessChecker,
-	readinessTimeout time.Duration,
+	dependencies Dependencies,
 ) http.Handler {
 	health := healthHandler{
-		database:         database,
-		readinessTimeout: readinessTimeout,
+		database:         dependencies.Database,
+		readinessTimeout: dependencies.ReadinessTimeout,
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health/live", health.live)
 	mux.HandleFunc("GET /health/ready", health.ready)
-	return withRequestMetadata(logger, mux)
+	if dependencies.GoogleAuthenticator != nil {
+		authentication := authenticationHandler{
+			logger:        logger,
+			authenticator: dependencies.GoogleAuthenticator,
+		}
+		mux.HandleFunc("POST /v1/auth/google", authentication.google)
+	}
+	return withRequestMetadata(
+		logger,
+		withCORS(dependencies.CORSAllowedOrigins, mux),
+	)
 }
 
 func (health healthHandler) live(response http.ResponseWriter, _ *http.Request) {
@@ -58,7 +82,12 @@ func withRequestMetadata(logger *slog.Logger, next http.Handler) http.Handler {
 		requestID := rand.Text()
 		response.Header().Set(requestIDHeader, requestID)
 		startedAt := time.Now()
-		next.ServeHTTP(response, request)
+		requestContext := context.WithValue(
+			request.Context(),
+			requestIDContextKey{},
+			requestID,
+		)
+		next.ServeHTTP(response, request.WithContext(requestContext))
 
 		level := slog.LevelInfo
 		if request.URL.Path == "/health/live" || request.URL.Path == "/health/ready" {
@@ -74,6 +103,11 @@ func withRequestMetadata(logger *slog.Logger, next http.Handler) http.Handler {
 			slog.Duration("duration", time.Since(startedAt)),
 		)
 	})
+}
+
+func requestIDFromContext(ctx context.Context) string {
+	requestID, _ := ctx.Value(requestIDContextKey{}).(string)
+	return requestID
 }
 
 func writeJSON(response http.ResponseWriter, status int, value any) {

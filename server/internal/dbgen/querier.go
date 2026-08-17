@@ -28,6 +28,7 @@ type Querier interface {
 	GetSaveHeaderForUpdate(ctx context.Context, accountID pgtype.UUID) (SaveHeader, error)
 	GetSaveRequest(ctx context.Context, arg GetSaveRequestParams) (SaveRequest, error)
 	GetSaveSnapshot(ctx context.Context, accountID pgtype.UUID) (GetSaveSnapshotRow, error)
+	LockAuthIdentity(ctx context.Context, arg LockAuthIdentityParams) error
 	RevokeRefreshTokensForSession(ctx context.Context, sessionID pgtype.UUID) (int64, error)
 	RevokeSession(ctx context.Context, id pgtype.UUID) (int64, error)
 	RevokeSessionsForAccount(ctx context.Context, accountID pgtype.UUID) (int64, error)

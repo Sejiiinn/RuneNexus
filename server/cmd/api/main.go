@@ -11,6 +11,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Sejiiinn/RuneNexus/server/internal/auth"
+	googleauth "github.com/Sejiiinn/RuneNexus/server/internal/auth/google"
 	"github.com/Sejiiinn/RuneNexus/server/internal/config"
 	"github.com/Sejiiinn/RuneNexus/server/internal/httpapi"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -60,9 +62,32 @@ func run(logger *slog.Logger) error {
 		return fmt.Errorf("connect database: %w", err)
 	}
 
+	var googleAuthenticator httpapi.GoogleAuthenticator
+	if cfg.GoogleAuthEnabled {
+		googleVerifier, err := googleauth.NewVerifier(
+			rootContext,
+			cfg.GoogleWebClientID,
+		)
+		if err != nil {
+			return fmt.Errorf("configure Google authentication: %w", err)
+		}
+		googleAuthenticator = auth.NewService(
+			pool,
+			googleVerifier,
+			cfg.IdentityVerifyTimeout,
+			cfg.AccessTokenTTL,
+			cfg.RefreshTokenTTL,
+		)
+	}
+
 	server := &http.Server{
-		Addr:              cfg.HTTPAddress,
-		Handler:           httpapi.NewHandler(logger, pool, cfg.ReadinessTimeout),
+		Addr: cfg.HTTPAddress,
+		Handler: httpapi.NewHandler(logger, httpapi.Dependencies{
+			Database:            pool,
+			ReadinessTimeout:    cfg.ReadinessTimeout,
+			GoogleAuthenticator: googleAuthenticator,
+			CORSAllowedOrigins:  cfg.CORSAllowedOrigins,
+		}),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       30 * time.Second,
 		WriteTimeout:      30 * time.Second,

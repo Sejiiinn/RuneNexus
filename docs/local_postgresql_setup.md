@@ -19,6 +19,22 @@ docker compose up -d --build api
 
 위 명령은 PostgreSQL을 시작하고, `tern` 마이그레이션을 적용한 뒤 Go API 서버를 시작합니다. 데이터베이스만 먼저 실행하려면 `docker compose up -d db`를 사용합니다.
 
+Google 인증은 실제 OAuth Client ID 없이도 로컬 서버가 실행되도록 기본적으로
+비활성화되어 있습니다. 웹 로그인을 시험할 때만 Google Cloud에서 발급한 Web OAuth
+Client ID와 정확한 웹 origin을 주입합니다.
+
+```bash
+GOOGLE_AUTH_ENABLED=true \
+GOOGLE_WEB_CLIENT_ID='<web-oauth-client-id>' \
+CORS_ALLOWED_ORIGINS='http://127.0.0.1:53000,https://sejiiinn.github.io' \
+docker compose up -d --build api
+```
+
+GitHub Pages 주소의 `/RuneNexus/`는 경로이므로 CORS origin과 Google OAuth의
+Authorized JavaScript origins에는 `https://sejiiinn.github.io`까지만 등록합니다.
+Google ID token 원문은 서버 로그와 DB에 저장하지 않으며, 서버가 발급하는 opaque
+세션 토큰도 DB에는 SHA-256 해시만 저장합니다.
+
 ## 상태와 접속 확인
 
 ```bash
@@ -53,7 +69,9 @@ make -C server tern-version
 docker compose config --quiet
 ```
 
-현재 고정 버전은 Go 1.26.5, sqlc 1.31.1, tern 2.4.1입니다. `go.mod`에는 PostgreSQL 드라이버 `pgx/v5` 5.10.0이 고정되어 있습니다.
+현재 고정 버전은 Go 1.26.5, sqlc 1.31.1, tern 2.4.1입니다. `go.mod`에는 PostgreSQL
+드라이버 `pgx/v5` 5.10.0과 Google ID token 검증 모듈
+`google.golang.org/api` 0.290.0이 고정되어 있습니다.
 
 ## 중지와 재실행
 

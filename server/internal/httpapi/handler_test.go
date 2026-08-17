@@ -76,5 +76,8 @@ func TestReadinessReturnsOKWhenDatabasePingSucceeds(t *testing.T) {
 
 func newTestHandler(database ReadinessChecker) http.Handler {
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
-	return NewHandler(logger, database, 50*time.Millisecond)
+	return NewHandler(logger, Dependencies{
+		Database:         database,
+		ReadinessTimeout: 50 * time.Millisecond,
+	})
 }

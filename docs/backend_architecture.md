@@ -20,9 +20,12 @@ PostgreSQL 스키마, API 계약과 향후 중요 재화 보호 경계를 정의
 - Go `net/http` API 서버 기반
 - `pgx/v5` 연결 풀과 `/health/live`, `/health/ready`
 - `tern` 마이그레이션 실행 환경
+- 계정·외부 identity·세션·refresh token PostgreSQL 스키마
+- Google ID token 검증과 `POST /v1/auth/google` 세션 발급
 
-사용자 인증, 애플리케이션 DB 스키마, 실제 온라인 저장 API와 클라이언트
-동기화기는 아직 구현되지 않았다.
+PGS 인증, refresh 회전·로그아웃, 실제 온라인 저장 API와 클라이언트 동기화기는
+아직 구현되지 않았다. Google 웹 로그인은 서버 경로까지 구현되었으며 Flutter Web의
+Google Identity Services 연결과 배포용 OAuth Client 설정은 후속 단계다.
 
 ## 최종 결정 요약
 
@@ -48,6 +51,7 @@ PostgreSQL 스키마, API 계약과 향후 중요 재화 보호 경계를 정의
 | 게임 클라이언트 | Flutter/Dart | Android·iOS 공용 게임과 로컬 저장 |
 | Android 플랫폼 인증 | Kotlin + PGS v2 | server auth code 획득 |
 | API 서버 | Go 표준 `net/http` | 인증, 계정, 세션, 저장 API |
+| Google 토큰 검증 | `google.golang.org/api/idtoken` | 서명, audience, 만료 검증 |
 | PostgreSQL 연결 | `pgx/v5`, `pgxpool` | 연결 풀, SQL 실행, 트랜잭션 |
 | 쿼리 코드 생성 | `sqlc` | SQL 기반 타입 안전 Go 코드 생성 |
 | 마이그레이션 | `tern` | 순차 SQL 마이그레이션 |
@@ -937,9 +941,12 @@ DATABASE_URL 또는 DATABASE_* 파일 설정
 PGS_WEB_CLIENT_ID
 PGS_WEB_CLIENT_SECRET_FILE
 GOOGLE_WEB_CLIENT_ID
+GOOGLE_AUTH_ENABLED
 HTTP_ADDRESS
+IDENTITY_VERIFY_TIMEOUT
 ACCESS_TOKEN_TTL
 REFRESH_TOKEN_TTL
+CORS_ALLOWED_ORIGINS
 MAX_SAVE_BODY_BYTES
 READINESS_TIMEOUT
 SHUTDOWN_TIMEOUT
@@ -948,6 +955,12 @@ SHUTDOWN_TIMEOUT
 - 실제 비밀값은 Git에 커밋하지 않는다.
 - secret 파일 또는 읽기 전용 Docker secret을 우선한다.
 - 누락되거나 잘못된 설정은 서버 시작 시 즉시 거부한다.
+- `GOOGLE_AUTH_ENABLED` 기본값은 `false`다. `true`일 때
+  `GOOGLE_WEB_CLIENT_ID`가 없으면 시작을 거부한다.
+- `CORS_ALLOWED_ORIGINS`는 쉼표로 구분한 정확한 HTTP(S) origin 목록이다. 경로,
+  query와 wildcard는 받지 않는다.
+- 기본 access token 만료는 15분, refresh token 만료는 30일이며 refresh 만료가
+  access 만료보다 길지 않으면 시작을 거부한다.
 - 토큰, auth code, OAuth secret, 구매 증명과 전체 save payload를 로그에 남기지 않는다.
 
 ## 네트워크와 배포

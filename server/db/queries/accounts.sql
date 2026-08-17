@@ -14,6 +14,14 @@ JOIN auth_identities AS identity ON identity.account_id = a.id
 WHERE identity.provider = $1
   AND identity.subject = $2;
 
+-- name: LockAuthIdentity :exec
+SELECT pg_advisory_xact_lock(
+    hashtextextended(
+        sqlc.arg(provider)::text || ':' || sqlc.arg(subject)::text,
+        0
+    )
+);
+
 -- name: CreateAuthIdentity :one
 INSERT INTO auth_identities (
     account_id,

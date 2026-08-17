@@ -134,6 +134,25 @@ func (q *Queries) GetAuthIdentityForUpdate(ctx context.Context, arg GetAuthIdent
 	return i, err
 }
 
+const lockAuthIdentity = `-- name: LockAuthIdentity :exec
+SELECT pg_advisory_xact_lock(
+    hashtextextended(
+        $1::text || ':' || $2::text,
+        0
+    )
+)
+`
+
+type LockAuthIdentityParams struct {
+	Provider string `db:"provider"`
+	Subject  string `db:"subject"`
+}
+
+func (q *Queries) LockAuthIdentity(ctx context.Context, arg LockAuthIdentityParams) error {
+	_, err := q.db.Exec(ctx, lockAuthIdentity, arg.Provider, arg.Subject)
+	return err
+}
+
 const touchAuthIdentity = `-- name: TouchAuthIdentity :one
 UPDATE auth_identities
 SET last_verified_at = now()

@@ -16,6 +16,9 @@ const (
 	defaultDatabaseConnectTimeout = 5 * time.Second
 	defaultReadinessTimeout       = 2 * time.Second
 	defaultShutdownTimeout        = 10 * time.Second
+	defaultIdentityVerifyTimeout  = 5 * time.Second
+	defaultAccessTokenTTL         = 15 * time.Minute
+	defaultRefreshTokenTTL        = 30 * 24 * time.Hour
 )
 
 type Config struct {
@@ -24,6 +27,12 @@ type Config struct {
 	DatabaseConnectTimeout time.Duration
 	ReadinessTimeout       time.Duration
 	ShutdownTimeout        time.Duration
+	GoogleAuthEnabled      bool
+	GoogleWebClientID      string
+	IdentityVerifyTimeout  time.Duration
+	AccessTokenTTL         time.Duration
+	RefreshTokenTTL        time.Duration
+	CORSAllowedOrigins     []string
 }
 
 func Load() (Config, error) {
@@ -53,6 +62,45 @@ func Load() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	identityVerifyTimeout, err := durationFromEnvironment(
+		"IDENTITY_VERIFY_TIMEOUT",
+		defaultIdentityVerifyTimeout,
+	)
+	if err != nil {
+		return Config{}, err
+	}
+	accessTokenTTL, err := durationFromEnvironment(
+		"ACCESS_TOKEN_TTL",
+		defaultAccessTokenTTL,
+	)
+	if err != nil {
+		return Config{}, err
+	}
+	refreshTokenTTL, err := durationFromEnvironment(
+		"REFRESH_TOKEN_TTL",
+		defaultRefreshTokenTTL,
+	)
+	if err != nil {
+		return Config{}, err
+	}
+	if refreshTokenTTL <= accessTokenTTL {
+		return Config{}, errors.New("REFRESH_TOKEN_TTL must be greater than ACCESS_TOKEN_TTL")
+	}
+
+	googleAuthEnabled, err := boolFromEnvironment("GOOGLE_AUTH_ENABLED", false)
+	if err != nil {
+		return Config{}, err
+	}
+	googleWebClientID := strings.TrimSpace(os.Getenv("GOOGLE_WEB_CLIENT_ID"))
+	if googleAuthEnabled && googleWebClientID == "" {
+		return Config{}, errors.New(
+			"GOOGLE_WEB_CLIENT_ID is required when GOOGLE_AUTH_ENABLED is true",
+		)
+	}
+	corsAllowedOrigins, err := originsFromEnvironment("CORS_ALLOWED_ORIGINS")
+	if err != nil {
+		return Config{}, err
+	}
 
 	return Config{
 		HTTPAddress:            stringFromEnvironment("HTTP_ADDRESS", defaultHTTPAddress),
@@ -60,6 +108,12 @@ func Load() (Config, error) {
 		DatabaseConnectTimeout: databaseConnectTimeout,
 		ReadinessTimeout:       readinessTimeout,
 		ShutdownTimeout:        shutdownTimeout,
+		GoogleAuthEnabled:      googleAuthEnabled,
+		GoogleWebClientID:      googleWebClientID,
+		IdentityVerifyTimeout:  identityVerifyTimeout,
+		AccessTokenTTL:         accessTokenTTL,
+		RefreshTokenTTL:        refreshTokenTTL,
+		CORSAllowedOrigins:     corsAllowedOrigins,
 	}, nil
 }
 
@@ -156,4 +210,47 @@ func durationFromEnvironment(name string, fallback time.Duration) (time.Duration
 		return 0, fmt.Errorf("%s must be greater than zero", name)
 	}
 	return value, nil
+}
+
+func boolFromEnvironment(name string, fallback bool) (bool, error) {
+	raw := strings.TrimSpace(os.Getenv(name))
+	if raw == "" {
+		return fallback, nil
+	}
+	switch strings.ToLower(raw) {
+	case "true", "1":
+		return true, nil
+	case "false", "0":
+		return false, nil
+	default:
+		return false, fmt.Errorf("parse %s: expected true or false", name)
+	}
+}
+
+func originsFromEnvironment(name string) ([]string, error) {
+	raw := strings.TrimSpace(os.Getenv(name))
+	if raw == "" {
+		return []string{}, nil
+	}
+
+	origins := make([]string, 0)
+	seen := make(map[string]struct{})
+	for value := range strings.SplitSeq(raw, ",") {
+		origin := strings.TrimSuffix(strings.TrimSpace(value), "/")
+		if origin == "" {
+			continue
+		}
+		parsed, err := url.Parse(origin)
+		if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") ||
+			parsed.Host == "" || parsed.User != nil || parsed.Path != "" ||
+			parsed.RawQuery != "" || parsed.Fragment != "" {
+			return nil, fmt.Errorf("parse %s: %q is not an HTTP origin", name, origin)
+		}
+		if _, exists := seen[origin]; exists {
+			continue
+		}
+		seen[origin] = struct{}{}
+		origins = append(origins, origin)
+	}
+	return origins, nil
 }
