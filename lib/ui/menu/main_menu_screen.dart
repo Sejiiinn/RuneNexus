@@ -12,6 +12,7 @@ import '../../data/definitions/game_stage_data.dart';
 import '../../data/definitions/game_turret_data.dart';
 import '../../data/definitions/game_turret_module_data.dart';
 import '../../data/definitions/game_weekly_quest_data.dart';
+import '../../domain/account/account_session.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../domain/core/core_ability.dart';
 import '../../domain/core/core_passive_tree.dart';
@@ -31,6 +32,7 @@ import '../game/game_ui.dart';
 import '../widgets/rune_balance_card.dart';
 
 part 'main_menu_core.dart';
+part 'main_menu_account.dart';
 part 'main_menu_core_tree.dart';
 part 'main_menu_core_tree_summary.dart';
 part 'main_menu_core_tree_world.dart';
@@ -79,6 +81,11 @@ class MainMenuScreen extends StatefulWidget {
     required this.selectedTab,
     required this.onSelectTab,
     required this.onStartStage,
+    this.accountSession = const AccountSession.guest(),
+    this.onConnectPlayGames,
+    this.onConnectGoogle,
+    this.onSyncAccount,
+    this.onSignOut,
     this.onOpenMapEditor,
     super.key,
   });
@@ -89,6 +96,11 @@ class MainMenuScreen extends StatefulWidget {
   final MainMenuTab selectedTab;
   final ValueChanged<MainMenuTab> onSelectTab;
   final ValueChanged<int> onStartStage;
+  final AccountSession accountSession;
+  final VoidCallback? onConnectPlayGames;
+  final VoidCallback? onConnectGoogle;
+  final VoidCallback? onSyncAccount;
+  final VoidCallback? onSignOut;
   final VoidCallback? onOpenMapEditor;
 
   @override
@@ -191,6 +203,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                 headerTopOffset: debugBarHeight,
                 menuTopPadding: menuTopPadding,
                 onStartStage: widget.onStartStage,
+                accountSession: widget.accountSession,
+                onOpenAccount: () => _openAccountDialog(context),
                 turretModuleMenuKey: _turretModuleMenuKey,
                 onTurretModuleDrawResults: _showTurretModuleDrawResults,
                 onCloseDebugPanel: () {
@@ -259,6 +273,19 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
     });
   }
 
+  Future<void> _openAccountDialog(BuildContext context) {
+    return showGameDialog<void>(
+      context: context,
+      builder: (context) => _AccountDialog(
+        session: widget.accountSession,
+        onConnectPlayGames: widget.onConnectPlayGames,
+        onConnectGoogle: widget.onConnectGoogle,
+        onSyncAccount: widget.onSyncAccount,
+        onSignOut: widget.onSignOut,
+      ),
+    );
+  }
+
   void _closeTurretModuleDrawResults() {
     final best = _bestDrawResult(_turretModuleDrawResults);
     if (best != null) {
@@ -282,6 +309,8 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
     required this.headerTopOffset,
     required this.menuTopPadding,
     required this.onStartStage,
+    required this.accountSession,
+    required this.onOpenAccount,
     required this.turretModuleMenuKey,
     required this.onTurretModuleDrawResults,
     required this.onCloseDebugPanel,
@@ -297,6 +326,8 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
   final double headerTopOffset;
   final double menuTopPadding;
   final ValueChanged<int> onStartStage;
+  final AccountSession accountSession;
+  final VoidCallback onOpenAccount;
   final GlobalKey<_TurretModuleMenuState> turretModuleMenuKey;
   final ValueChanged<List<TurretModuleInventoryItem>> onTurretModuleDrawResults;
   final VoidCallback onCloseDebugPanel;
@@ -315,6 +346,8 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
         headerTopOffset: headerTopOffset,
         menuTopPadding: menuTopPadding,
         onStartStage: onStartStage,
+        accountSession: accountSession,
+        onOpenAccount: onOpenAccount,
         turretModuleMenuKey: turretModuleMenuKey,
         onTurretModuleDrawResults: onTurretModuleDrawResults,
         onCloseDebugPanel: onCloseDebugPanel,
@@ -333,6 +366,8 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
           headerTopOffset: headerTopOffset,
           menuTopPadding: menuTopPadding,
           onStartStage: onStartStage,
+          accountSession: accountSession,
+          onOpenAccount: onOpenAccount,
           turretModuleMenuKey: turretModuleMenuKey,
           onTurretModuleDrawResults: onTurretModuleDrawResults,
           onCloseDebugPanel: onCloseDebugPanel,
@@ -353,6 +388,8 @@ class _MainMenuSnapshotContent extends StatelessWidget {
     required this.headerTopOffset,
     required this.menuTopPadding,
     required this.onStartStage,
+    required this.accountSession,
+    required this.onOpenAccount,
     required this.turretModuleMenuKey,
     required this.onTurretModuleDrawResults,
     required this.onCloseDebugPanel,
@@ -367,6 +404,8 @@ class _MainMenuSnapshotContent extends StatelessWidget {
   final double headerTopOffset;
   final double menuTopPadding;
   final ValueChanged<int> onStartStage;
+  final AccountSession accountSession;
+  final VoidCallback onOpenAccount;
   final GlobalKey<_TurretModuleMenuState> turretModuleMenuKey;
   final ValueChanged<List<TurretModuleInventoryItem>> onTurretModuleDrawResults;
   final VoidCallback onCloseDebugPanel;
@@ -471,9 +510,18 @@ class _MainMenuSnapshotContent extends StatelessWidget {
           Positioned(
             top: headerTopOffset + (compactTopBar ? 4 : 10),
             left: 16,
-            child: _DailyQuestEntryButton(
-              snapshot: snapshot,
-              onPressed: () => _openDailyQuestDialog(context, game),
+            child: Row(
+              children: [
+                _DailyQuestEntryButton(
+                  snapshot: snapshot,
+                  onPressed: () => _openDailyQuestDialog(context, game),
+                ),
+                const SizedBox(width: 8),
+                _AccountEntryButton(
+                  session: accountSession,
+                  onPressed: onOpenAccount,
+                ),
+              ],
             ),
           ),
         if (selectedTab == MainMenuTab.stage)
@@ -499,6 +547,8 @@ class _MainMenuSnapshotContent extends StatelessWidget {
               runes: snapshot.runes,
               diamonds: snapshot.diamonds,
               turretModuleTickets: snapshot.turretModuleTickets,
+              accountSession: accountSession,
+              onOpenAccount: onOpenAccount,
             ),
           ),
         if (_showMapEditor && showMenuDebugPanel)

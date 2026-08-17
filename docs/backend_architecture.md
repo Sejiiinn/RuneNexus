@@ -249,7 +249,7 @@ IO 저장은 임시 파일 쓰기와 flush 후 교체하는 방식으로 원자�
 ```text
 accounts.id
   |- auth_identities(provider=play_games, subject=<PGS Player ID>)
-  |- auth_identities(provider=google, subject=<Google subject>)   # 추후
+  |- auth_identities(provider=google, subject=<Google subject>)
   `- auth_identities(provider=apple, subject=<Apple subject>)    # 추후
 ```
 
@@ -271,6 +271,25 @@ Rune Nexus 계정으로 인증한 상태에서 사용자가 명시적으로 승�
 
 auth code, OAuth client secret과 외부 access token은 로그나 앱 저장에 남기지
 않는다. OAuth client secret은 서버 secret으로만 주입한다.
+
+### Google 웹 인증과 계정 연결
+
+GitHub Pages에서는 Android 전용 PGS 대신 Google Identity Services로 로그인한다.
+웹과 Android가 같은 온라인 저장을 사용하도록 외부 identity는 같은 내부 account에
+연결한다.
+
+```text
+1. Web이 Google Identity Services에서 ID token을 받는다.
+2. Web이 ID token을 POST /v1/auth/google로 전달한다.
+3. Go 서버가 서명, issuer, audience와 만료를 검증한다.
+4. 검증된 Google subject로 google identity를 조회한다.
+5. 기존 identity가 있으면 해당 account session을 발급한다.
+6. 없으면 account와 google identity를 같은 트랜잭션으로 생성한다.
+```
+
+이미 인증된 PGS account에 Google identity를 추가할 때는 별도 연결 API에서 사용자
+승인을 다시 확인한다. Google identity가 이미 다른 account에 연결되어 있으면
+이메일을 기준으로 병합하거나 identity를 자동 이전하지 않고 충돌을 반환한다.
 
 ### 자체 세션
 
@@ -332,6 +351,18 @@ PGS 교환 응답이 유실되면 새 server auth code로 인증을 다시 시�
 }
 ```
 
+`POST /v1/auth/google` 요청:
+
+```json
+{
+  "idToken": "google-id-token"
+}
+```
+
+이미 로그인한 account에 Google identity를 연결하는
+`POST /v1/account/identities/google`도 같은 body를 사용하며 bearer access token을
+추가로 요구한다.
+
 성공 응답:
 
 ```json
@@ -353,21 +384,26 @@ session인지 함께 검사한다. 이미 만료·폐기된 token에도 `204`를
 | 상태 | 오류 코드 | 의미 |
 | --- | --- | --- |
 | `401` | `PLAY_GAMES_AUTH_REJECTED` | auth code 교환 또는 Player ID 검증 실패 |
+| `401` | `GOOGLE_AUTH_REJECTED` | ID token 서명, issuer, audience 또는 만료 검증 실패 |
 | `401` | `REFRESH_TOKEN_INVALID` | 알 수 없거나 만료된 refresh token |
 | `401` | `REFRESH_TOKEN_REUSED` | 이미 소비된 refresh token 재사용과 session 폐기 |
+| `409` | `IDENTITY_ALREADY_LINKED` | Google identity가 다른 account에 이미 연결됨 |
 | `403` | `ACCOUNT_NOT_ACTIVE` | suspended 또는 deletion pending account |
 | `503` | `AUTH_PROVIDER_UNAVAILABLE` | Google 인증 제공자 일시 장애 |
 
-1차 PGS 인증과 온라인 저장은 Android 전용이다. iOS와 GitHub Pages 웹 빌드는
-각 플랫폼 인증 수단이 추가되기 전까지 로컬 저장만 사용한다.
+Android는 PGS, GitHub Pages는 Google 로그인을 사용한다. 두 identity가 같은 내부
+account에 연결된 이후에는 동일한 온라인 저장을 사용한다. iOS는 플랫폼 인증 수단이
+추가되기 전까지 로컬 저장만 사용한다.
 
 ### 초기 엔드포인트
 
 | Method | Path | 역할 |
 | --- | --- | --- |
 | `POST` | `/v1/auth/play-games` | PGS 인증과 세션 발급 |
+| `POST` | `/v1/auth/google` | Google 웹 인증과 세션 발급 |
 | `POST` | `/v1/auth/refresh` | refresh token 회전 |
 | `POST` | `/v1/auth/logout` | 현재 세션 폐기 |
+| `POST` | `/v1/account/identities/google` | 기존 account에 Google identity 연결 |
 | `GET` | `/v1/save` | 원격 저장 통파일 조회 |
 | `PUT` | `/v1/save` | 전체 저장 조건부 갱신 |
 | `GET` | `/health/live` | 프로세스 생존 확인 |
@@ -874,6 +910,7 @@ server/
 |- internal/
 |  |- account/
 |  |- auth/playgames/
+|  |- auth/google/
 |  |- config/
 |  |- dbgen/
 |  |- httpapi/
@@ -899,6 +936,7 @@ server/
 DATABASE_URL 또는 DATABASE_* 파일 설정
 PGS_WEB_CLIENT_ID
 PGS_WEB_CLIENT_SECRET_FILE
+GOOGLE_WEB_CLIENT_ID
 HTTP_ADDRESS
 ACCESS_TOKEN_TTL
 REFRESH_TOKEN_TTL
@@ -1015,12 +1053,15 @@ SHUTDOWN_TIMEOUT
 - [x] `sqlc.yaml`, 쿼리와 생성 코드
 - [x] 실제 PostgreSQL 통합 테스트
 
-### 4단계: PGS 인증
+### 4단계: PGS·Google 인증과 계정 UX
 
 - Android Application ID를 `com.runenexus.game`으로 변경
 - 출시 서명과 PGS/OAuth 설정
 - Kotlin PGS v2와 Flutter MethodChannel
-- Go auth code 교환, account와 session API
+- Google Identity Services 웹 로그인과 허용 origin 설정
+- Go PGS auth code 교환, Google ID token 검증, account와 session API
+- identity 연결 API와 중복 account 충돌 처리
+- [x] 계정 상태 모델과 계정·저장 진입 UI
 
 ### 5단계: 온라인 저장
 
@@ -1054,7 +1095,7 @@ SHUTDOWN_TIMEOUT
 - 머신러닝 기반 치트 탐지
 - 단일 무결성 신호를 이용한 자동 차단
 - 실제 결제 기능이 없는 상태의 선제적 경제 시스템
-- Google·Apple 일반 로그인 실제 구현
+- Apple 일반 로그인 실제 구현
 - 이메일·비밀번호 로그인
 
 ## main 통합 전 배포 게이트
@@ -1085,6 +1126,7 @@ Go 서버, Compose와 문서처럼 클라이언트 저장 형식을 바꾸지 �
 - Go 1.26.5, pgx 5.10.0, sqlc 1.31.1, tern 2.4.1을 고정했다.
 - PostgreSQL, migrate, API Compose 실행 기반이 있다.
 - 계정·session과 영역별 온라인 저장 스키마 및 `sqlc` 쿼리가 구현되어 있다.
+- 게스트·연결·오프라인·확인 필요 상태를 표시하는 계정·저장 UI 기반이 구현되어 있다.
 - `/health/live`, `/health/ready`가 구현되어 있다.
 - Android Application ID는 아직 `com.example.rune_nexus`다.
 - release 빌드는 아직 debug signing을 사용한다.

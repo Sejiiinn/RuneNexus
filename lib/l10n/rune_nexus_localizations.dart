@@ -366,6 +366,42 @@ class RuneNexusLocalizations {
       _isEnglish ? 'Combat upgrade unlock' : '전투 강화 해금';
   String get researchUnlock => _isEnglish ? 'Research unlock' : '연구 해금';
   String get cancel => _isEnglish ? 'Cancel' : '취소';
+  String get accountAndSave => _isEnglish ? 'Account & save' : '계정 및 저장';
+  String get guestPlaying => _isEnglish ? 'Playing as guest' : '게스트로 플레이 중';
+  String get guestSaveDescription => _isEnglish
+      ? 'Progress is saved only on this device.'
+      : '진행 상황이 현재 기기에만 저장됩니다.';
+  String get onlineConnected =>
+      _isEnglish ? 'Online account connected' : '온라인 계정 연결됨';
+  String get accountConnectSafety => _isEnglish
+      ? 'Connecting an account never overwrites this device without confirmation.'
+      : '계정을 연결해도 현재 진행을 확인 없이 덮어쓰지 않습니다.';
+  String get playGames => 'Play Games';
+  String get googleAccount => _isEnglish ? 'Google Account' : 'Google 계정';
+  String get connected => _isEnglish ? 'Connected' : '연결됨';
+  String get connectPlayGames =>
+      _isEnglish ? 'Connect Play Games' : 'Play Games로 연결';
+  String get connectGoogle =>
+      _isEnglish ? 'Connect Google Account' : 'Google 계정으로 연결';
+  String get googleWebSyncHint => _isEnglish
+      ? 'Connect Google to use the same progress on the web.'
+      : '웹에서도 같은 진행을 사용하려면 Google 계정을 연결하세요.';
+  String get cloudSave => _isEnglish ? 'Cloud save' : '클라우드 저장';
+  String get syncComplete => _isEnglish ? 'Sync complete' : '동기화 완료';
+  String get syncing => _isEnglish ? 'Syncing' : '동기화 중';
+  String get offlinePlaying => _isEnglish
+      ? 'Playing offline · Saves will upload when reconnected'
+      : '오프라인 플레이 중 · 연결되면 저장됩니다';
+  String get syncActionRequired => _isEnglish ? 'Action required' : '확인이 필요합니다';
+  String get notSyncedYet =>
+      _isEnglish ? 'Not synchronized yet' : '아직 동기화되지 않음';
+  String get syncNow => _isEnglish ? 'Sync now' : '지금 동기화';
+  String get signOut => _isEnglish ? 'Sign out' : '로그아웃';
+  String get signOutTitle =>
+      _isEnglish ? 'Sign out of this account?' : '이 계정에서 로그아웃할까요?';
+  String get signOutDescription => _isEnglish
+      ? 'Account progress remains stored separately on this device.'
+      : '계정 진행 데이터는 이 기기의 별도 저장 공간에 그대로 보관됩니다.';
   String get settleAndStart => _isEnglish ? 'Settle and start' : '정산 후 시작';
   String get endActiveStageTitle =>
       _isEnglish ? 'End active stage' : '진행 중인 스테이지 종료';
@@ -375,6 +411,13 @@ class RuneNexusLocalizations {
         ? 'Active run · Stage $stageNumber'
         : '진행 중 · 스테이지 $stageNumber';
   }
+
+  String pendingSaves(int count) => _isEnglish
+      ? '$count save${count == 1 ? '' : 's'} pending'
+      : '저장 $count건 전송 대기';
+
+  String lastSynced(String value) =>
+      _isEnglish ? 'Last synced $value' : '마지막 동기화 $value';
 
   String clearReward(String reward) {
     return _isEnglish ? 'Clear reward: $reward' : '클리어 보상: $reward';

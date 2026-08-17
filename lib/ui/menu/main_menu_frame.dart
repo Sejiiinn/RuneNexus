@@ -38,6 +38,7 @@ class _MenuLogo extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final compactLogo = constraints.maxWidth < 430;
+        final narrowLogo = constraints.maxWidth < 390;
         return IgnorePointer(
           child: Center(
             child: Opacity(
@@ -46,8 +47,8 @@ class _MenuLogo extends StatelessWidget {
                 fit: BoxFit.scaleDown,
                 child: Image.asset(
                   gameLogoAsset,
-                  width: compactLogo ? 176 : 208,
-                  height: compactLogo ? 48 : 56,
+                  width: narrowLogo ? 152 : (compactLogo ? 176 : 208),
+                  height: narrowLogo ? 44 : (compactLogo ? 48 : 56),
                   fit: BoxFit.contain,
                   filterQuality: FilterQuality.medium,
                   semanticLabel: context.l10n.appTitle,
@@ -67,6 +68,8 @@ class _MenuResourceBar extends StatelessWidget {
     required this.runes,
     required this.diamonds,
     required this.turretModuleTickets,
+    required this.accountSession,
+    required this.onOpenAccount,
     super.key,
   });
 
@@ -74,6 +77,8 @@ class _MenuResourceBar extends StatelessWidget {
   final int runes;
   final int diamonds;
   final int turretModuleTickets;
+  final AccountSession accountSession;
+  final VoidCallback onOpenAccount;
 
   @override
   Widget build(BuildContext context) {
@@ -159,6 +164,12 @@ class _MenuResourceBar extends StatelessWidget {
             ),
           ],
           const Spacer(),
+          _AccountEntryButton(
+            session: accountSession,
+            onPressed: onOpenAccount,
+            compact: true,
+          ),
+          const SizedBox(width: 7),
           RuneBalanceCard(
             key: const ValueKey('menu-currency-balance'),
             runes: runes,

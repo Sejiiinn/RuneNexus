@@ -36,6 +36,7 @@ export 'package:rune_nexus/data/definitions/game_stage_maps.dart';
 export 'package:rune_nexus/data/definitions/game_turret_module_data.dart';
 export 'package:rune_nexus/data/save/game_save_data.dart';
 export 'package:rune_nexus/data/save/save_repository.dart';
+export 'package:rune_nexus/domain/account/account_session.dart';
 export 'package:rune_nexus/domain/combat/auto_start_mode.dart';
 export 'package:rune_nexus/domain/combat/game_phase.dart';
 export 'package:rune_nexus/domain/combat/run_panel_tab.dart';
