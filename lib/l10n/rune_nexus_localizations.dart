@@ -386,6 +386,26 @@ class RuneNexusLocalizations {
   String get googleWebSyncHint => _isEnglish
       ? 'Connect Google to use the same progress on the web.'
       : '웹에서도 같은 진행을 사용하려면 Google 계정을 연결하세요.';
+  String get googleSignInTitle => _isEnglish ? 'Google sign-in' : 'Google 로그인';
+  String get googleSignInDescription => _isEnglish
+      ? 'Google verifies your identity. Rune Nexus receives only the ID token needed to create your game session.'
+      : 'Google에서 본인 확인을 완료하면 Rune Nexus 게임 세션을 안전하게 연결합니다.';
+  String get googleSignInVerifying =>
+      _isEnglish ? 'Verifying account...' : '계정 확인 중...';
+  String get googleSignInUnavailable => _isEnglish
+      ? 'Google sign-in is temporarily unavailable. Please try again.'
+      : 'Google 로그인에 잠시 연결할 수 없습니다. 다시 시도해 주세요.';
+  String get googleSignInRejected => _isEnglish
+      ? 'Google could not verify this sign-in. Please sign in again.'
+      : 'Google 로그인을 확인하지 못했습니다. 다시 로그인해 주세요.';
+  String get googleSignInFailed => _isEnglish
+      ? 'The account could not be connected. Please try again.'
+      : '계정을 연결하지 못했습니다. 다시 시도해 주세요.';
+  String get googleSignInConnected =>
+      _isEnglish ? 'Google account connected.' : 'Google 계정이 연결되었습니다.';
+  String get accountNotActive => _isEnglish
+      ? 'This account is currently unavailable.'
+      : '현재 사용할 수 없는 계정입니다.';
   String get cloudSave => _isEnglish ? 'Cloud save' : '클라우드 저장';
   String get syncComplete => _isEnglish ? 'Sync complete' : '동기화 완료';
   String get syncing => _isEnglish ? 'Syncing' : '동기화 중';

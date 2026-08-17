@@ -24,8 +24,9 @@ PostgreSQL 스키마, API 계약과 향후 중요 재화 보호 경계를 정의
 - Google ID token 검증과 `POST /v1/auth/google` 세션 발급
 
 PGS 인증, refresh 회전·로그아웃, 실제 온라인 저장 API와 클라이언트 동기화기는
-아직 구현되지 않았다. Google 웹 로그인은 서버 경로까지 구현되었으며 Flutter Web의
-Google Identity Services 연결과 배포용 OAuth Client 설정은 후속 단계다.
+아직 구현되지 않았다. Google 웹 로그인은 Google Identity Services 버튼에서
+`POST /v1/auth/google`로 이어지는 경로까지 구현되었으며 배포 환경에 OAuth Client와
+API 주소를 설정하면 활성화된다.
 
 ## 최종 결정 요약
 
@@ -398,6 +399,12 @@ session인지 함께 검사한다. 이미 만료·폐기된 token에도 `204`를
 Android는 PGS, GitHub Pages는 Google 로그인을 사용한다. 두 identity가 같은 내부
 account에 연결된 이후에는 동일한 온라인 저장을 사용한다. iOS는 플랫폼 인증 수단이
 추가되기 전까지 로컬 저장만 사용한다.
+
+Flutter Web 빌드는 `GOOGLE_WEB_CLIENT_ID`, `RUNE_NEXUS_API_BASE_URL` 두 dart-define이
+모두 유효할 때만 Google 연결 액션을 노출한다. Google의 공식 GIS 버튼을 렌더링하고
+받은 ID token은 즉시 인증 API로 전달한다. access/refresh token은 현재 브라우저
+메모리에만 유지하며 Local Storage에는 저장하지 않는다. 따라서 refresh 회전과 안전한
+웹 세션 복구가 구현되기 전에는 새로고침 시 다시 로그인한다.
 
 ### 초기 엔드포인트
 

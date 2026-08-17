@@ -35,6 +35,19 @@ Authorized JavaScript origins에는 `https://sejiiinn.github.io`까지만 등록
 Google ID token 원문은 서버 로그와 DB에 저장하지 않으며, 서버가 발급하는 opaque
 세션 토큰도 DB에는 SHA-256 해시만 저장합니다.
 
+Flutter Web 개발 서버도 같은 값으로 빌드합니다.
+
+```bash
+flutter run -d web-server --web-port 53000 \
+  --dart-define=GOOGLE_WEB_CLIENT_ID='<web-oauth-client-id>' \
+  --dart-define=RUNE_NEXUS_API_BASE_URL='http://127.0.0.1:8080'
+```
+
+GitHub Pages 배포에는 저장소의 Actions Variables에 `GOOGLE_WEB_CLIENT_ID`와
+`RUNE_NEXUS_API_BASE_URL`을 등록합니다. API 주소는 실제 배포 환경에서 HTTPS여야
+하며, 둘 중 하나라도 없거나 잘못되면 계정 화면의 Google 연결 버튼은 표시하지
+않습니다.
+
 ## 상태와 접속 확인
 
 ```bash

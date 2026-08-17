@@ -4,10 +4,15 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import '../data/auth/google_authentication_api.dart';
+import '../data/auth/google_web_authentication_config.dart';
+import '../domain/account/account_session.dart';
+import '../domain/account/online_account_credentials.dart';
 import '../domain/combat/game_phase.dart';
 import '../game/game_snapshot.dart';
 import '../game/rune_nexus_game.dart';
 import '../l10n/rune_nexus_localizations.dart';
+import '../ui/account/google_sign_in_dialog.dart';
 import '../ui/game/game_button.dart';
 import '../ui/game/game_image_assets.dart';
 import '../ui/game/game_icons.dart';
@@ -38,17 +43,30 @@ class RuneNexusApp extends StatefulWidget {
 
 class _RuneNexusAppState extends State<RuneNexusApp> {
   late final RuneNexusGame game;
+  late final GoogleWebAuthenticationConfig _googleAuthenticationConfig;
+  GoogleAuthenticationApi? _googleAuthenticationApi;
   final ValueNotifier<_AppLoadingProgress> _loadingProgress = ValueNotifier(
     const _AppLoadingProgress(label: '게임을 시작하는 중'),
   );
   Future<void>? _initialLoad;
   _AppScreen _screen = _AppScreen.main;
   MainMenuTab _selectedMainMenuTab = MainMenuTab.stage;
+  _OnlineAccountState? _onlineAccount;
+
+  AccountSession get _accountSession =>
+      _onlineAccount?.presentation ?? const AccountSession.guest();
 
   @override
   void initState() {
     super.initState();
     game = widget.game ?? RuneNexusGame();
+    _googleAuthenticationConfig =
+        GoogleWebAuthenticationConfig.fromEnvironment();
+    if (_googleAuthenticationConfig.isConfigured) {
+      _googleAuthenticationApi = GoogleAuthenticationApi(
+        baseUrl: _googleAuthenticationConfig.apiBaseUrl,
+      );
+    }
   }
 
   Future<void> _prepareForAppStart(BuildContext context) async {
@@ -121,6 +139,29 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
     if (game.snapshotNotifier.value.phase != GamePhase.restored) {
       game.resumeEngine();
     }
+  }
+
+  Future<void> _connectGoogle(BuildContext context) async {
+    final authenticationApi = _googleAuthenticationApi;
+    if (authenticationApi == null) {
+      return;
+    }
+    final credentials = await showGameDialog<OnlineAccountCredentials>(
+      context: context,
+      builder: (dialogContext) => GoogleSignInDialog(
+        clientId: _googleAuthenticationConfig.clientId,
+        authenticate: authenticationApi.authenticate,
+      ),
+    );
+    if (credentials == null || !mounted || !context.mounted) {
+      return;
+    }
+    setState(() {
+      _onlineAccount = _OnlineAccountState(credentials);
+    });
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(content: Text(context.l10n.googleSignInConnected)),
+    );
   }
 
   Future<void> _startStage(
@@ -227,6 +268,10 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
                     game.snapshotNotifier.value,
                     context,
                   ),
+                  accountSession: _accountSession,
+                  onConnectGoogle: _googleAuthenticationApi == null
+                      ? null
+                      : () => _connectGoogle(context),
                   onOpenMapEditor: () {
                     setState(() {
                       _screen = _AppScreen.mapEditor;
@@ -240,6 +285,23 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
       ),
     );
   }
+}
+
+class _OnlineAccountState {
+  const _OnlineAccountState(this.credentials);
+
+  final OnlineAccountCredentials credentials;
+
+  AccountSession get presentation => AccountSession.authenticated(
+    accountId: credentials.accountId,
+    identities: const [
+      AccountIdentity(
+        provider: AccountIdentityProvider.google,
+        displayName: 'Google',
+      ),
+    ],
+    syncStatus: OnlineSaveSyncStatus.offline,
+  );
 }
 
 class _ActiveRunSettlementDialog extends StatelessWidget {
