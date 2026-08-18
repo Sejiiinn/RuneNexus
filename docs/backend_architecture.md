@@ -307,8 +307,9 @@ GitHub Pages에서는 Android 전용 PGS 대신 Google Identity Services로 로�
 - refresh token은 사용할 때마다 회전한다.
 - 이미 소비된 refresh token이 다시 오면 해당 세션을 폐기한다.
 - 여러 기기는 서로 다른 session을 가진다.
-- timeout으로 refresh 결과가 모호하면 같은 소비된 token을 반복 회전하지 않고
-  새 PGS server auth code를 얻어 재로그인한다.
+- timeout·연결 단절로 refresh 결과가 모호하면 같은 소비된 token을 반복 회전하지
+  않는다. 클라이언트 메모리 세션을 폐기하고 PGS server auth code 또는 Google
+  로그인을 새로 수행한다.
 
 refresh 회전 트랜잭션은 다음 순서로 고정한다.
 
@@ -332,6 +333,11 @@ Keychain/Keystore 기반 보안 저장소에 두고 access token은 메모리 �
 요청은 같은 Future를 기다린다. 성공하면 모두 새 access token으로 각각 한 번만
 재시도한다. 이 single-flight 규칙을 지키지 않으면 정상 클라이언트의 중복 refresh가
 서버에서 token replay로 판정되어 session 전체가 폐기될 수 있다.
+
+지연된 `401`을 처리할 때는 해당 요청이 사용한 access token과 coordinator의 현재
+token을 비교한다. 이미 다른 요청이 token을 회전했다면 추가 refresh 없이 현재
+token으로 한 번만 재시도한다. logout 또는 dispose가 시작된 뒤 refresh를 기다리던
+요청은 새 보호 요청을 시작하지 않는다.
 
 ## 온라인 저장 API
 
@@ -410,8 +416,10 @@ Flutter Web 빌드는 `GOOGLE_WEB_CLIENT_ID`, `RUNE_NEXUS_API_BASE_URL` 두 dart
 받은 ID token은 즉시 인증 API로 전달한다. access/refresh token은 현재 브라우저
 메모리에만 유지하며 Local Storage에는 저장하지 않는다. 페이지가 열린 동안에는 access
 만료 전에 refresh를 단일 요청으로 회전하고, 여러 요청이 동시에 `401`을 받아도 같은
-refresh 결과를 기다린 뒤 각 요청을 한 번만 재시도한다. 브라우저 새로고침 뒤 세션을
-복구하는 영속 저장은 하지 않으므로 새로고침 시에는 다시 로그인한다.
+refresh 결과를 기다린 뒤 각 요청을 한 번만 재시도한다. refresh 응답 유실처럼 결과가
+불명확한 실패는 같은 token으로 자동 재시도하지 않고 다시 로그인이 필요한 상태로
+전환한다. 브라우저 새로고침 뒤 세션을 복구하는 영속 저장은 하지 않으므로 새로고침
+시에도 다시 로그인한다.
 
 ### 초기 엔드포인트
 

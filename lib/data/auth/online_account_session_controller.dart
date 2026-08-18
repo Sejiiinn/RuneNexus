@@ -19,7 +19,6 @@ class OnlineAccountSessionController {
     DateTime Function()? now,
     AuthenticationTimerFactory? timerFactory,
     this.refreshLeadTime = const Duration(minutes: 1),
-    this.retryDelay = const Duration(seconds: 15),
   }) : _credentials = credentials,
        _refreshCredentials = refreshCredentials,
        _revokeSession = revokeSession,
@@ -40,10 +39,10 @@ class OnlineAccountSessionController {
   final DateTime Function() _now;
   final AuthenticationTimerFactory _timerFactory;
   final Duration refreshLeadTime;
-  final Duration retryDelay;
 
   OnlineAccountCredentials? _credentials;
   Future<OnlineAccountCredentials>? _refreshInFlight;
+  Future<void>? _logoutInFlight;
   Timer? _refreshTimer;
   bool _loggingOut = false;
   bool _disposed = false;
@@ -68,51 +67,72 @@ class OnlineAccountSessionController {
     required Future<T> Function(String accessToken) request,
     required bool Function(Object error) isUnauthorized,
   }) async {
-    var current = await _credentialsForRequest();
+    var attempted = await _credentialsForRequest();
     try {
-      return await request(current.accessToken);
+      return await request(attempted.accessToken);
     } on Object catch (error) {
       if (!isUnauthorized(error)) {
         rethrow;
       }
-      current = await refresh();
-      return request(current.accessToken);
+
+      final latest = _activeCredentials();
+      if (latest.accessToken != attempted.accessToken) {
+        attempted = latest;
+      } else {
+        await refresh();
+        attempted = _activeCredentials();
+      }
+      return request(attempted.accessToken);
     }
   }
 
-  Future<void> logout() async {
-    if (_disposed || _credentials == null || _loggingOut) {
-      return;
+  Future<void> logout() {
+    final current = _logoutInFlight;
+    if (current != null) {
+      return current;
     }
+    if (_disposed || _credentials == null) {
+      return Future<void>.value();
+    }
+
+    final operation = _performLogout();
+    _logoutInFlight = operation;
+    return operation;
+  }
+
+  Future<void> _performLogout() async {
     _loggingOut = true;
     _refreshTimer?.cancel();
 
-    final refreshInFlight = _refreshInFlight;
-    if (refreshInFlight != null) {
-      try {
-        await refreshInFlight;
-      } on Object {
-        // 회전 결과가 불명확해도 최신 보유 토큰으로 폐기를 계속 시도한다.
-      }
-    }
-    final current = _credentials;
-    if (current == null) {
-      _loggingOut = false;
-      return;
-    }
-
     try {
+      final refreshInFlight = _refreshInFlight;
+      if (refreshInFlight != null) {
+        try {
+          await refreshInFlight;
+        } on Object {
+          // 결과가 불명확해도 기존 token family를 찾아 폐기를 계속 시도한다.
+        }
+      }
+      final current = _credentials;
+      if (current == null || _disposed) {
+        _loggingOut = false;
+        return;
+      }
+
       await _revokeSession(current.refreshToken, current.accessToken);
+      _invalidate();
     } on Object {
       _loggingOut = false;
       _scheduleRefresh();
       rethrow;
+    } finally {
+      _logoutInFlight = null;
     }
-    _invalidate();
   }
 
   void dispose() {
     _disposed = true;
+    _loggingOut = false;
     _refreshTimer?.cancel();
     _refreshTimer = null;
     _credentials = null;
@@ -132,17 +152,15 @@ class OnlineAccountSessionController {
         );
       }
       if (_disposed || _loggingOut) {
-        return refreshed;
+        throw StateError('인증 세션이 종료 중입니다.');
       }
       _credentials = refreshed;
       _onCredentialsChanged(refreshed);
       _scheduleRefresh();
       return refreshed;
-    } on Object catch (error) {
-      if (_isTerminalAuthenticationError(error)) {
+    } on Object {
+      if (!_disposed && !_loggingOut && _credentials != null) {
         _invalidate();
-      } else if (!_disposed && !_loggingOut && _credentials != null) {
-        _scheduleRetry();
       }
       rethrow;
     } finally {
@@ -159,16 +177,8 @@ class OnlineAccountSessionController {
     if (current.accessExpiresAt.isAfter(now.add(refreshLeadTime))) {
       return current;
     }
-    try {
-      return await refresh();
-    } on Object catch (error) {
-      if (!_isTerminalAuthenticationError(error) &&
-          _credentials != null &&
-          current.accessExpiresAt.isAfter(now)) {
-        return current;
-      }
-      rethrow;
-    }
+    await refresh();
+    return _activeCredentials();
   }
 
   void _scheduleRefresh() {
@@ -190,21 +200,6 @@ class OnlineAccountSessionController {
     _refreshTimer = _timerFactory(delay, _refreshFromTimer);
   }
 
-  void _scheduleRetry() {
-    _refreshTimer?.cancel();
-    final current = _credentials;
-    if (_disposed || _loggingOut || current == null) {
-      return;
-    }
-    final remaining = current.refreshExpiresAt.difference(_now().toUtc());
-    if (remaining <= Duration.zero) {
-      _invalidate();
-      return;
-    }
-    final delay = remaining < retryDelay ? remaining : retryDelay;
-    _refreshTimer = _timerFactory(delay, _refreshFromTimer);
-  }
-
   void _refreshFromTimer() {
     unawaited(_refreshAfterTimer());
   }
@@ -213,29 +208,25 @@ class OnlineAccountSessionController {
     try {
       await refresh();
     } on Object {
-      // 실패 유형에 따른 폐기 또는 재시도 예약은 refresh 내부에서 처리한다.
+      // refresh 결과가 불명확하면 같은 token을 재사용하지 않고 세션을 폐기한다.
     }
   }
 
-  bool _isTerminalAuthenticationError(Object error) {
-    if (error is! GoogleAuthenticationException) {
-      return false;
+  OnlineAccountCredentials _activeCredentials() {
+    final current = _credentials;
+    if (_disposed || _loggingOut || current == null) {
+      throw StateError('인증 세션이 없습니다.');
     }
-    return error.code == 'REFRESH_TOKEN_INVALID' ||
-        error.code == 'REFRESH_TOKEN_REUSED' ||
-        error.code == 'ACCOUNT_NOT_ACTIVE' ||
-        error.code == 'INVALID_AUTH_RESPONSE';
+    return current;
   }
 
   void _invalidate() {
-    if (_credentials == null) {
-      return;
-    }
+    final notify = _credentials != null && !_disposed;
     _refreshTimer?.cancel();
     _refreshTimer = null;
     _credentials = null;
     _loggingOut = false;
-    if (!_disposed) {
+    if (notify) {
       _onSessionInvalidated();
     }
   }

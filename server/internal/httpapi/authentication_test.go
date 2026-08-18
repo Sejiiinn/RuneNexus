@@ -337,6 +337,39 @@ func TestLogoutRevokesSessionAndReturnsNoContent(t *testing.T) {
 	}
 }
 
+func TestLogoutRejectsTokensFromDifferentSessions(t *testing.T) {
+	handler := newAuthenticationTestHandler(
+		sessionAuthenticatorStub{logout: func(
+			context.Context,
+			string,
+			string,
+		) error {
+			return auth.ErrLogoutSessionMismatch
+		}},
+		nil,
+	)
+	request := jsonRequest(
+		http.MethodPost,
+		"/v1/auth/logout",
+		`{"refreshToken":"refresh-token"}`,
+	)
+	request.Header.Set("Authorization", "Bearer other-session-access-token")
+	response := httptest.NewRecorder()
+
+	handler.ServeHTTP(response, request)
+
+	if response.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, body = %s", response.Code, response.Body.String())
+	}
+	var body errorResponse
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if body.Code != "ACCESS_TOKEN_SESSION_MISMATCH" {
+		t.Fatalf("code = %q", body.Code)
+	}
+}
+
 func TestCORSPreflightAllowsConfiguredOrigin(t *testing.T) {
 	handler := newAuthenticationTestHandler(nil, []string{"https://sejiiinn.github.io"})
 	request := httptest.NewRequest(http.MethodOptions, "/v1/auth/google", nil)
