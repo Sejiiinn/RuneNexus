@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 )
 
@@ -26,4 +27,14 @@ func GenerateToken() (Token, error) {
 		Raw:  raw,
 		Hash: hash[:],
 	}, nil
+}
+
+func HashToken(raw string) ([]byte, error) {
+	rawBytes, err := base64.RawURLEncoding.DecodeString(raw)
+	if err != nil || len(rawBytes) != tokenByteLength ||
+		base64.RawURLEncoding.EncodeToString(rawBytes) != raw {
+		return nil, errors.New("invalid opaque token")
+	}
+	hash := sha256.Sum256([]byte(raw))
+	return hash[:], nil
 }

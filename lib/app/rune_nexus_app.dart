@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../data/auth/google_authentication_api.dart';
 import '../data/auth/google_web_authentication_config.dart';
+import '../data/auth/online_account_session_controller.dart';
 import '../domain/account/account_session.dart';
 import '../domain/account/online_account_credentials.dart';
 import '../domain/combat/game_phase.dart';
@@ -52,6 +53,7 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
   _AppScreen _screen = _AppScreen.main;
   MainMenuTab _selectedMainMenuTab = MainMenuTab.stage;
   _OnlineAccountState? _onlineAccount;
+  OnlineAccountSessionController? _onlineSession;
 
   AccountSession get _accountSession =>
       _onlineAccount?.presentation ?? const AccountSession.guest();
@@ -101,6 +103,7 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
 
   @override
   void dispose() {
+    _onlineSession?.dispose();
     _loadingProgress.dispose();
     game.disposeAppResources();
     super.dispose();
@@ -156,12 +159,53 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
     if (credentials == null || !mounted || !context.mounted) {
       return;
     }
+    _onlineSession?.dispose();
+    _onlineSession = OnlineAccountSessionController(
+      credentials: credentials,
+      refreshCredentials: authenticationApi.refresh,
+      revokeSession: (refreshToken, accessToken) =>
+          authenticationApi.logout(refreshToken, accessToken: accessToken),
+      onCredentialsChanged: (updatedCredentials) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _onlineAccount = _OnlineAccountState(updatedCredentials);
+        });
+      },
+      onSessionInvalidated: () {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _onlineAccount = null;
+          _onlineSession = null;
+        });
+      },
+    );
     setState(() {
       _onlineAccount = _OnlineAccountState(credentials);
     });
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(
       SnackBar(content: Text(context.l10n.googleSignInConnected)),
     );
+  }
+
+  Future<void> _signOut(BuildContext context) async {
+    final onlineSession = _onlineSession;
+    if (onlineSession == null) {
+      return;
+    }
+    try {
+      await onlineSession.logout();
+    } on Object {
+      if (!mounted || !context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.maybeOf(
+        context,
+      )?.showSnackBar(SnackBar(content: Text(context.l10n.signOutFailed)));
+    }
   }
 
   Future<void> _startStage(
@@ -272,6 +316,9 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
                   onConnectGoogle: _googleAuthenticationApi == null
                       ? null
                       : () => _connectGoogle(context),
+                  onSignOut: _onlineSession == null
+                      ? null
+                      : () => _signOut(context),
                   onOpenMapEditor: () {
                     setState(() {
                       _screen = _AppScreen.mapEditor;

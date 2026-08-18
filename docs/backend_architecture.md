@@ -1,7 +1,7 @@
 # Rune Nexus 백엔드·인증·온라인 저장 최종 아키텍처
 
 문서 상태: 채택된 구현 기준
-마지막 갱신: 2026-08-16
+마지막 갱신: 2026-08-19
 
 ## 목적
 
@@ -22,9 +22,12 @@ PostgreSQL 스키마, API 계약과 향후 중요 재화 보호 경계를 정의
 - `tern` 마이그레이션 실행 환경
 - 계정·외부 identity·세션·refresh token PostgreSQL 스키마
 - Google ID token 검증과 `POST /v1/auth/google` 세션 발급
+- refresh token 단일 사용 회전·재사용 감지와 로그아웃
+- access Bearer 인증 미들웨어와 DB 기반 account/session 결정
+- Flutter 메모리 세션 자동 갱신·single-flight·401 1회 재시도
 
-PGS 인증, refresh 회전·로그아웃, 실제 온라인 저장 API와 클라이언트 동기화기는
-아직 구현되지 않았다. Google 웹 로그인은 Google Identity Services 버튼에서
+PGS 인증, 실제 온라인 저장 API와 클라이언트 동기화기는 아직 구현되지 않았다.
+Google 웹 로그인은 Google Identity Services 버튼에서
 `POST /v1/auth/google`로 이어지는 경로까지 구현되었으며 배포 환경에 OAuth Client와
 API 주소를 설정하면 활성화된다.
 
@@ -392,6 +395,8 @@ session인지 함께 검사한다. 이미 만료·폐기된 token에도 `204`를
 | `401` | `GOOGLE_AUTH_REJECTED` | ID token 서명, issuer, audience 또는 만료 검증 실패 |
 | `401` | `REFRESH_TOKEN_INVALID` | 알 수 없거나 만료된 refresh token |
 | `401` | `REFRESH_TOKEN_REUSED` | 이미 소비된 refresh token 재사용과 session 폐기 |
+| `401` | `ACCESS_TOKEN_INVALID` | 누락·만료·폐기되었거나 올바르지 않은 access token |
+| `401` | `ACCESS_TOKEN_SESSION_MISMATCH` | logout의 유효한 access/refresh token이 서로 다른 세션에 속함 |
 | `409` | `IDENTITY_ALREADY_LINKED` | Google identity가 다른 account에 이미 연결됨 |
 | `403` | `ACCOUNT_NOT_ACTIVE` | suspended 또는 deletion pending account |
 | `503` | `AUTH_PROVIDER_UNAVAILABLE` | Google 인증 제공자 일시 장애 |
@@ -403,8 +408,10 @@ account에 연결된 이후에는 동일한 온라인 저장을 사용한다. iO
 Flutter Web 빌드는 `GOOGLE_WEB_CLIENT_ID`, `RUNE_NEXUS_API_BASE_URL` 두 dart-define이
 모두 유효할 때만 Google 연결 액션을 노출한다. Google의 공식 GIS 버튼을 렌더링하고
 받은 ID token은 즉시 인증 API로 전달한다. access/refresh token은 현재 브라우저
-메모리에만 유지하며 Local Storage에는 저장하지 않는다. 따라서 refresh 회전과 안전한
-웹 세션 복구가 구현되기 전에는 새로고침 시 다시 로그인한다.
+메모리에만 유지하며 Local Storage에는 저장하지 않는다. 페이지가 열린 동안에는 access
+만료 전에 refresh를 단일 요청으로 회전하고, 여러 요청이 동시에 `401`을 받아도 같은
+refresh 결과를 기다린 뒤 각 요청을 한 번만 재시도한다. 브라우저 새로고침 뒤 세션을
+복구하는 영속 저장은 하지 않으므로 새로고침 시에는 다시 로그인한다.
 
 ### 초기 엔드포인트
 
@@ -1078,8 +1085,11 @@ SHUTDOWN_TIMEOUT
 - Android Application ID를 `com.runenexus.game`으로 변경
 - 출시 서명과 PGS/OAuth 설정
 - Kotlin PGS v2와 Flutter MethodChannel
-- Google Identity Services 웹 로그인과 허용 origin 설정
-- Go PGS auth code 교환, Google ID token 검증, account와 session API
+- [x] Google Identity Services 웹 로그인과 허용 origin 설정
+- [x] Google ID token 검증과 account/session 발급 API
+- [x] refresh 회전·재사용 감지·로그아웃·Bearer 인증 기반
+- [x] Flutter 메모리 세션 자동 갱신과 401 1회 재시도
+- Go PGS auth code 교환과 Player ID 검증
 - identity 연결 API와 중복 account 충돌 처리
 - [x] 계정 상태 모델과 계정·저장 진입 UI
 

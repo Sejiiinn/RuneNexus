@@ -18,11 +18,15 @@ const maxAuthenticationBodyBytes = 16 * 1024
 
 type authenticationHandler struct {
 	logger        *slog.Logger
-	authenticator GoogleAuthenticator
+	authenticator Authenticator
 }
 
 type googleAuthenticationRequest struct {
 	IDToken string `json:"idToken"`
+}
+
+type refreshTokenRequest struct {
+	RefreshToken string `json:"refreshToken"`
 }
 
 type accountResponse struct {
@@ -81,6 +85,103 @@ func (handler authenticationHandler) google(
 		return
 	}
 
+	writeAuthenticationResponse(response, result)
+}
+
+func (handler authenticationHandler) refresh(
+	response http.ResponseWriter,
+	request *http.Request,
+) {
+	input, ok := decodeRefreshTokenRequest(response, request)
+	if !ok {
+		return
+	}
+
+	result, err := handler.authenticator.Refresh(
+		request.Context(),
+		input.RefreshToken,
+	)
+	if err != nil {
+		handler.writeAuthenticationError(response, request, err)
+		return
+	}
+	writeAuthenticationResponse(response, result)
+}
+
+func (handler authenticationHandler) logout(
+	response http.ResponseWriter,
+	request *http.Request,
+) {
+	input, ok := decodeRefreshTokenRequest(response, request)
+	if !ok {
+		return
+	}
+	if err := handler.authenticator.Logout(
+		request.Context(),
+		input.RefreshToken,
+		optionalBearerToken(request.Header.Values("Authorization")),
+	); err != nil {
+		if errors.Is(err, auth.ErrLogoutSessionMismatch) {
+			writeAPIError(
+				response,
+				request,
+				http.StatusUnauthorized,
+				"ACCESS_TOKEN_SESSION_MISMATCH",
+				"로그아웃 토큰이 같은 인증 세션에 속하지 않습니다.",
+			)
+			return
+		}
+		handler.logger.ErrorContext(
+			request.Context(),
+			"logout_failed",
+			slog.String("request_id", requestIDFromContext(request.Context())),
+			slog.Any("error", err),
+		)
+		writeAPIError(
+			response,
+			request,
+			http.StatusInternalServerError,
+			"INTERNAL_ERROR",
+			"로그아웃 처리 중 오류가 발생했습니다.",
+		)
+		return
+	}
+	response.Header().Set("Cache-Control", "no-store")
+	response.WriteHeader(http.StatusNoContent)
+}
+
+func decodeRefreshTokenRequest(
+	response http.ResponseWriter,
+	request *http.Request,
+) (refreshTokenRequest, bool) {
+	var input refreshTokenRequest
+	if err := decodeAuthenticationRequest(response, request, &input); err != nil {
+		status := http.StatusBadRequest
+		code := "INVALID_REQUEST"
+		message := "요청 형식이 올바르지 않습니다."
+		var maxBytesError *http.MaxBytesError
+		if errors.As(err, &maxBytesError) {
+			status = http.StatusRequestEntityTooLarge
+			code = "REQUEST_TOO_LARGE"
+			message = "요청 크기가 허용 범위를 초과했습니다."
+		}
+		writeAPIError(response, request, status, code, message)
+		return refreshTokenRequest{}, false
+	}
+	if strings.TrimSpace(input.RefreshToken) == "" {
+		writeAPIError(
+			response,
+			request,
+			http.StatusBadRequest,
+			"INVALID_REQUEST",
+			"Refresh 토큰이 필요합니다.",
+		)
+		return refreshTokenRequest{}, false
+	}
+	return input, true
+}
+
+func writeAuthenticationResponse(response http.ResponseWriter, result auth.LoginResult) {
 	writeJSON(response, http.StatusOK, authenticationResponse{
 		Account:          accountResponse{ID: result.AccountID},
 		AccessToken:      result.AccessToken,
@@ -96,6 +197,22 @@ func (handler authenticationHandler) writeAuthenticationError(
 	err error,
 ) {
 	switch {
+	case errors.Is(err, auth.ErrRefreshTokenInvalid):
+		writeAPIError(
+			response,
+			request,
+			http.StatusUnauthorized,
+			"REFRESH_TOKEN_INVALID",
+			"인증 세션을 갱신할 수 없습니다.",
+		)
+	case errors.Is(err, auth.ErrRefreshTokenReused):
+		writeAPIError(
+			response,
+			request,
+			http.StatusUnauthorized,
+			"REFRESH_TOKEN_REUSED",
+			"인증 세션이 안전을 위해 종료되었습니다.",
+		)
 	case errors.Is(err, auth.ErrIdentityRejected):
 		writeAPIError(
 			response,
@@ -128,7 +245,7 @@ func (handler authenticationHandler) writeAuthenticationError(
 	default:
 		handler.logger.ErrorContext(
 			request.Context(),
-			"google_auth_failed",
+			"authentication_failed",
 			slog.String("request_id", requestIDFromContext(request.Context())),
 			slog.Any("error", err),
 		)
@@ -137,7 +254,7 @@ func (handler authenticationHandler) writeAuthenticationError(
 			request,
 			http.StatusInternalServerError,
 			"INTERNAL_ERROR",
-			"로그인 처리 중 오류가 발생했습니다.",
+			"인증 처리 중 오류가 발생했습니다.",
 		)
 	}
 }

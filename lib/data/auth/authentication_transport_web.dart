@@ -26,6 +26,7 @@ class AuthenticationTransport {
   Future<AuthenticationHTTPResponse> postJSON(
     Uri uri, {
     required String body,
+    Map<String, String> headers = const {},
   }) async {
     final request = html.HttpRequest();
     final completed = Completer<AuthenticationHTTPResponse>();
@@ -35,6 +36,9 @@ class AuthenticationTransport {
       ..withCredentials = true
       ..timeout = const Duration(seconds: 10).inMilliseconds
       ..setRequestHeader('Content-Type', 'application/json');
+    for (final header in headers.entries) {
+      request.setRequestHeader(header.key, header.value);
+    }
     request.onLoad.listen((_) {
       if (!completed.isCompleted) {
         completed.complete(

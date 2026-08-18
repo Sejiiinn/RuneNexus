@@ -19,15 +19,18 @@ type ReadinessChecker interface {
 	Ping(context.Context) error
 }
 
-type GoogleAuthenticator interface {
+type Authenticator interface {
 	AuthenticateGoogle(context.Context, string) (auth.LoginResult, error)
+	Refresh(context.Context, string) (auth.LoginResult, error)
+	Logout(context.Context, string, string) error
+	AuthenticateAccessToken(context.Context, string) (auth.Principal, error)
 }
 
 type Dependencies struct {
-	Database            ReadinessChecker
-	ReadinessTimeout    time.Duration
-	GoogleAuthenticator GoogleAuthenticator
-	CORSAllowedOrigins  []string
+	Database           ReadinessChecker
+	ReadinessTimeout   time.Duration
+	Authenticator      Authenticator
+	CORSAllowedOrigins []string
 }
 
 type healthHandler struct {
@@ -46,12 +49,14 @@ func NewHandler(
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health/live", health.live)
 	mux.HandleFunc("GET /health/ready", health.ready)
-	if dependencies.GoogleAuthenticator != nil {
+	if dependencies.Authenticator != nil {
 		authentication := authenticationHandler{
 			logger:        logger,
-			authenticator: dependencies.GoogleAuthenticator,
+			authenticator: dependencies.Authenticator,
 		}
 		mux.HandleFunc("POST /v1/auth/google", authentication.google)
+		mux.HandleFunc("POST /v1/auth/refresh", authentication.refresh)
+		mux.HandleFunc("POST /v1/auth/logout", authentication.logout)
 	}
 	return withRequestMetadata(
 		logger,

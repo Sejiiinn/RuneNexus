@@ -66,6 +66,60 @@ void main() {
     );
   });
 
+  test('refresh token을 회전 API에 보내고 새 세션을 해석한다', () async {
+    final transport = _FakeAuthenticationTransport(
+      response: const AuthenticationHTTPResponse(
+        statusCode: 200,
+        body: '''
+          {
+            "account": {"id": "0198b955-3656-7c40-b3cb-87f427b90be2"},
+            "accessToken": "rotated-access-token",
+            "accessExpiresAt": "2026-08-18T03:15:00Z",
+            "refreshToken": "rotated-refresh-token",
+            "refreshExpiresAt": "2026-09-17T03:00:00Z"
+          }
+        ''',
+      ),
+    );
+    final api = GoogleAuthenticationApi(
+      baseUrl: 'https://api.rune-nexus.example',
+      transport: transport,
+    );
+
+    final credentials = await api.refresh('old-refresh-token');
+
+    expect(
+      transport.requestedUri,
+      Uri.parse('https://api.rune-nexus.example/v1/auth/refresh'),
+    );
+    expect(jsonDecode(transport.requestBody!), {
+      'refreshToken': 'old-refresh-token',
+    });
+    expect(credentials.accessToken, 'rotated-access-token');
+    expect(credentials.refreshToken, 'rotated-refresh-token');
+  });
+
+  test('logout은 refresh token을 보내고 204 응답을 수락한다', () async {
+    final transport = _FakeAuthenticationTransport(
+      response: const AuthenticationHTTPResponse(statusCode: 204, body: ''),
+    );
+    final api = GoogleAuthenticationApi(
+      baseUrl: 'https://api.rune-nexus.example',
+      transport: transport,
+    );
+
+    await api.logout('refresh-token', accessToken: 'access-token');
+
+    expect(
+      transport.requestedUri,
+      Uri.parse('https://api.rune-nexus.example/v1/auth/logout'),
+    );
+    expect(jsonDecode(transport.requestBody!), {
+      'refreshToken': 'refresh-token',
+    });
+    expect(transport.requestHeaders, {'Authorization': 'Bearer access-token'});
+  });
+
   test('성공 응답의 계정 ID 또는 만료 정보가 잘못되면 거부한다', () async {
     final api = GoogleAuthenticationApi(
       baseUrl: 'https://api.rune-nexus.example',
@@ -125,14 +179,17 @@ class _FakeAuthenticationTransport extends AuthenticationTransport {
   final AuthenticationHTTPResponse response;
   Uri? requestedUri;
   String? requestBody;
+  Map<String, String>? requestHeaders;
 
   @override
   Future<AuthenticationHTTPResponse> postJSON(
     Uri uri, {
     required String body,
+    Map<String, String> headers = const {},
   }) async {
     requestedUri = uri;
     requestBody = body;
+    requestHeaders = headers;
     return response;
   }
 }

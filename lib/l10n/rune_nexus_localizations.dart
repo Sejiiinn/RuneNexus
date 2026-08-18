@@ -422,6 +422,9 @@ class RuneNexusLocalizations {
   String get signOutDescription => _isEnglish
       ? 'Account progress remains stored separately on this device.'
       : '계정 진행 데이터는 이 기기의 별도 저장 공간에 그대로 보관됩니다.';
+  String get signOutFailed => _isEnglish
+      ? 'Could not sign out. Check your connection and try again.'
+      : '로그아웃하지 못했습니다. 연결을 확인한 뒤 다시 시도해 주세요.';
   String get settleAndStart => _isEnglish ? 'Settle and start' : '정산 후 시작';
   String get endActiveStageTitle =>
       _isEnglish ? 'End active stage' : '진행 중인 스테이지 종료';

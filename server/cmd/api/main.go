@@ -62,7 +62,7 @@ func run(logger *slog.Logger) error {
 		return fmt.Errorf("connect database: %w", err)
 	}
 
-	var googleAuthenticator httpapi.GoogleAuthenticator
+	var authenticator httpapi.Authenticator
 	if cfg.GoogleAuthEnabled {
 		googleVerifier, err := googleauth.NewVerifier(
 			rootContext,
@@ -71,7 +71,7 @@ func run(logger *slog.Logger) error {
 		if err != nil {
 			return fmt.Errorf("configure Google authentication: %w", err)
 		}
-		googleAuthenticator = auth.NewService(
+		authenticator = auth.NewService(
 			pool,
 			googleVerifier,
 			cfg.IdentityVerifyTimeout,
@@ -83,10 +83,10 @@ func run(logger *slog.Logger) error {
 	server := &http.Server{
 		Addr: cfg.HTTPAddress,
 		Handler: httpapi.NewHandler(logger, httpapi.Dependencies{
-			Database:            pool,
-			ReadinessTimeout:    cfg.ReadinessTimeout,
-			GoogleAuthenticator: googleAuthenticator,
-			CORSAllowedOrigins:  cfg.CORSAllowedOrigins,
+			Database:           pool,
+			ReadinessTimeout:   cfg.ReadinessTimeout,
+			Authenticator:      authenticator,
+			CORSAllowedOrigins: cfg.CORSAllowedOrigins,
 		}),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       30 * time.Second,

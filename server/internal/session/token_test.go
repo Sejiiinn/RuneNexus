@@ -39,3 +39,26 @@ func TestGenerateTokenReturnsUniqueValues(t *testing.T) {
 		t.Fatal("GenerateToken() returned duplicate values")
 	}
 }
+
+func TestHashTokenAcceptsGeneratedToken(t *testing.T) {
+	token, err := GenerateToken()
+	if err != nil {
+		t.Fatalf("GenerateToken() error = %v", err)
+	}
+
+	hash, err := HashToken(token.Raw)
+	if err != nil {
+		t.Fatalf("HashToken() error = %v", err)
+	}
+	if string(hash) != string(token.Hash) {
+		t.Fatal("HashToken() returned a different hash")
+	}
+}
+
+func TestHashTokenRejectsMalformedToken(t *testing.T) {
+	for _, raw := range []string{"", "not-base64!", base64.RawURLEncoding.EncodeToString(make([]byte, tokenByteLength-1))} {
+		if _, err := HashToken(raw); err == nil {
+			t.Fatalf("HashToken(%q) unexpectedly succeeded", raw)
+		}
+	}
+}

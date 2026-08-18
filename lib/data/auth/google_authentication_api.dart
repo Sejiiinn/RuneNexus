@@ -25,19 +25,19 @@ class GoogleAuthenticationApi {
   GoogleAuthenticationApi({
     required String baseUrl,
     AuthenticationTransport? transport,
-  }) : _endpoint = _authenticationEndpoint(baseUrl),
+  }) : _baseUri = _apiBaseUri(baseUrl),
        _transport = transport ?? AuthenticationTransport();
 
   static final RegExp _accountIdPattern = RegExp(
     r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
   );
 
-  final Uri _endpoint;
+  final Uri _baseUri;
   final AuthenticationTransport _transport;
 
   static bool supportsBaseUrl(String baseUrl) {
     try {
-      _authenticationEndpoint(baseUrl);
+      _apiBaseUri(baseUrl);
       return true;
     } on FormatException {
       return false;
@@ -45,15 +45,52 @@ class GoogleAuthenticationApi {
   }
 
   Future<OnlineAccountCredentials> authenticate(String idToken) async {
-    final response = await _transport.postJSON(
-      _endpoint,
+    return _requestCredentials(
+      endpoint: _baseUri.resolve('v1/auth/google'),
       body: jsonEncode({'idToken': idToken}),
+      failureMessage: 'Google 로그인 요청에 실패했습니다.',
     );
+  }
+
+  Future<OnlineAccountCredentials> refresh(String refreshToken) {
+    return _requestCredentials(
+      endpoint: _baseUri.resolve('v1/auth/refresh'),
+      body: jsonEncode({'refreshToken': refreshToken}),
+      failureMessage: '인증 세션 갱신에 실패했습니다.',
+    );
+  }
+
+  Future<void> logout(String refreshToken, {String? accessToken}) async {
+    final response = await _transport.postJSON(
+      _baseUri.resolve('v1/auth/logout'),
+      body: jsonEncode({'refreshToken': refreshToken}),
+      headers: accessToken == null
+          ? const {}
+          : {'Authorization': 'Bearer $accessToken'},
+    );
+    if (response.statusCode == 204) {
+      return;
+    }
+    final decoded = _decodeObject(response.body);
+    throw GoogleAuthenticationException(
+      code: _stringValue(decoded, 'code') ?? 'AUTH_REQUEST_FAILED',
+      message: _stringValue(decoded, 'message') ?? '로그아웃 요청에 실패했습니다.',
+      requestId: _stringValue(decoded, 'requestId'),
+      statusCode: response.statusCode,
+    );
+  }
+
+  Future<OnlineAccountCredentials> _requestCredentials({
+    required Uri endpoint,
+    required String body,
+    required String failureMessage,
+  }) async {
+    final response = await _transport.postJSON(endpoint, body: body);
     final decoded = _decodeObject(response.body);
     if (response.statusCode != 200) {
       throw GoogleAuthenticationException(
         code: _stringValue(decoded, 'code') ?? 'AUTH_REQUEST_FAILED',
-        message: _stringValue(decoded, 'message') ?? 'Google 로그인 요청에 실패했습니다.',
+        message: _stringValue(decoded, 'message') ?? failureMessage,
         requestId: _stringValue(decoded, 'requestId'),
         statusCode: response.statusCode,
       );
@@ -95,7 +132,7 @@ class GoogleAuthenticationApi {
     );
   }
 
-  static Uri _authenticationEndpoint(String baseUrl) {
+  static Uri _apiBaseUri(String baseUrl) {
     final normalized = baseUrl.trim().replaceFirst(RegExp(r'/+$'), '');
     final uri = Uri.tryParse(normalized);
     if (uri == null ||
@@ -107,7 +144,7 @@ class GoogleAuthenticationApi {
         !_supportedScheme(uri)) {
       throw const FormatException('유효한 인증 API 주소가 아닙니다.');
     }
-    return Uri.parse('$normalized/v1/auth/google');
+    return Uri.parse('$normalized/');
   }
 
   static bool _supportedScheme(Uri uri) {
