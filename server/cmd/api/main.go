@@ -15,6 +15,7 @@ import (
 	googleauth "github.com/Sejiiinn/RuneNexus/server/internal/auth/google"
 	"github.com/Sejiiinn/RuneNexus/server/internal/config"
 	"github.com/Sejiiinn/RuneNexus/server/internal/httpapi"
+	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -86,6 +87,8 @@ func run(logger *slog.Logger) error {
 			Database:           pool,
 			ReadinessTimeout:   cfg.ReadinessTimeout,
 			Authenticator:      authenticator,
+			SaveService:        gamesave.NewService(pool),
+			MaxSaveBodyBytes:   cfg.MaxSaveBodyBytes,
 			CORSAllowedOrigins: cfg.CORSAllowedOrigins,
 		}),
 		ReadHeaderTimeout: 5 * time.Second,

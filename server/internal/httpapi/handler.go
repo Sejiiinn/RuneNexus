@@ -30,6 +30,8 @@ type Dependencies struct {
 	Database           ReadinessChecker
 	ReadinessTimeout   time.Duration
 	Authenticator      Authenticator
+	SaveService        SaveService
+	MaxSaveBodyBytes   int64
 	CORSAllowedOrigins []string
 }
 
@@ -57,6 +59,29 @@ func NewHandler(
 		mux.HandleFunc("POST /v1/auth/google", authentication.google)
 		mux.HandleFunc("POST /v1/auth/refresh", authentication.refresh)
 		mux.HandleFunc("POST /v1/auth/logout", authentication.logout)
+		if dependencies.SaveService != nil {
+			saves := saveHandler{
+				logger:           logger,
+				saves:            dependencies.SaveService,
+				maxSaveBodyBytes: dependencies.MaxSaveBodyBytes,
+			}
+			mux.Handle(
+				"GET /v1/save",
+				withBearerAuthentication(
+					logger,
+					dependencies.Authenticator,
+					http.HandlerFunc(saves.get),
+				),
+			)
+			mux.Handle(
+				"PUT /v1/save",
+				withBearerAuthentication(
+					logger,
+					dependencies.Authenticator,
+					http.HandlerFunc(saves.update),
+				),
+			)
+		}
 	}
 	return withRequestMetadata(
 		logger,

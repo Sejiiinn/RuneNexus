@@ -403,8 +403,14 @@ session인지 함께 검사한다. 이미 만료·폐기된 token에도 `204`를
 | `401` | `REFRESH_TOKEN_REUSED` | 이미 소비된 refresh token 재사용과 session 폐기 |
 | `401` | `ACCESS_TOKEN_INVALID` | 누락·만료·폐기되었거나 올바르지 않은 access token |
 | `401` | `ACCESS_TOKEN_SESSION_MISMATCH` | logout의 유효한 access/refresh token이 서로 다른 세션에 속함 |
-| `409` | `IDENTITY_ALREADY_LINKED` | Google identity가 다른 account에 이미 연결됨 |
 | `403` | `ACCOUNT_NOT_ACTIVE` | suspended 또는 deletion pending account |
+| `404` | `SAVE_NOT_FOUND` | 아직 원격 저장이 없음 |
+| `409` | `IDENTITY_ALREADY_LINKED` | Google identity가 다른 account에 이미 연결됨 |
+| `409` | `SAVE_REVISION_CONFLICT` | expected revision과 현재 원격 revision이 다름 |
+| `409` | `IDEMPOTENCY_KEY_REUSED` | 같은 key가 다른 저장 요청 본문에 재사용됨 |
+| `413` | `REQUEST_TOO_LARGE` | 설정된 최대 요청 본문 크기 초과 |
+| `422` | `SAVE_VERSION_UNSUPPORTED` | 서버가 지원하지 않는 저장 데이터 버전 |
+| `422` | `INVALID_SAVE_DATA` | 필수 영역·값 형식 또는 JSON 중첩 제한 위반 |
 | `503` | `AUTH_PROVIDER_UNAVAILABLE` | Google 인증 제공자 일시 장애 |
 
 Android는 PGS, GitHub Pages는 Google 로그인을 사용한다. 두 identity가 같은 내부
@@ -460,6 +466,12 @@ refresh 결과를 기다린 뒤 각 요청을 한 번만 재시도한다. refres
 ### 저장 갱신
 
 `PUT /v1/save` 요청:
+
+```http
+Authorization: Bearer <access-token>
+Idempotency-Key: <UUID>
+Content-Type: application/json
+```
 
 ```json
 {
@@ -983,6 +995,8 @@ SHUTDOWN_TIMEOUT
   query와 wildcard는 받지 않는다.
 - 기본 access token 만료는 15분, refresh token 만료는 30일이며 refresh 만료가
   access 만료보다 길지 않으면 시작을 거부한다.
+- `MAX_SAVE_BODY_BYTES` 기본값은 4 MiB이며 0보다 큰 정수 byte 값만 허용한다.
+- 저장 요청 JSON은 최대 64단계까지 중첩할 수 있다.
 - 토큰, auth code, OAuth secret, 구매 증명과 전체 save payload를 로그에 남기지 않는다.
 
 ## 네트워크와 배포
@@ -1103,8 +1117,8 @@ SHUTDOWN_TIMEOUT
 
 ### 5단계: 온라인 저장
 
-- `GET/PUT /v1/save`
-- revision, 멱등성과 저장 트랜잭션
+- [x] 인증된 `GET/PUT /v1/save`
+- [x] revision, 멱등성과 저장 트랜잭션
 - Flutter 영속 save outbox와 동기화 상태 기계
 - 최초 로그인, 재시도, 충돌과 백업 정책
 - 느린 네트워크·재시작 통합 검증

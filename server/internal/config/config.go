@@ -6,19 +6,21 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
 const (
-	defaultHTTPAddress            = ":8080"
-	defaultDatabasePort           = "5432"
-	defaultDatabaseConnectTimeout = 5 * time.Second
-	defaultReadinessTimeout       = 2 * time.Second
-	defaultShutdownTimeout        = 10 * time.Second
-	defaultIdentityVerifyTimeout  = 5 * time.Second
-	defaultAccessTokenTTL         = 15 * time.Minute
-	defaultRefreshTokenTTL        = 30 * 24 * time.Hour
+	defaultHTTPAddress                  = ":8080"
+	defaultDatabasePort                 = "5432"
+	defaultDatabaseConnectTimeout       = 5 * time.Second
+	defaultReadinessTimeout             = 2 * time.Second
+	defaultShutdownTimeout              = 10 * time.Second
+	defaultIdentityVerifyTimeout        = 5 * time.Second
+	defaultAccessTokenTTL               = 15 * time.Minute
+	defaultRefreshTokenTTL              = 30 * 24 * time.Hour
+	defaultMaxSaveBodyBytes       int64 = 4 * 1024 * 1024
 )
 
 type Config struct {
@@ -33,6 +35,7 @@ type Config struct {
 	AccessTokenTTL         time.Duration
 	RefreshTokenTTL        time.Duration
 	CORSAllowedOrigins     []string
+	MaxSaveBodyBytes       int64
 }
 
 func Load() (Config, error) {
@@ -101,6 +104,13 @@ func Load() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	maxSaveBodyBytes, err := positiveInt64FromEnvironment(
+		"MAX_SAVE_BODY_BYTES",
+		defaultMaxSaveBodyBytes,
+	)
+	if err != nil {
+		return Config{}, err
+	}
 
 	return Config{
 		HTTPAddress:            stringFromEnvironment("HTTP_ADDRESS", defaultHTTPAddress),
@@ -114,6 +124,7 @@ func Load() (Config, error) {
 		AccessTokenTTL:         accessTokenTTL,
 		RefreshTokenTTL:        refreshTokenTTL,
 		CORSAllowedOrigins:     corsAllowedOrigins,
+		MaxSaveBodyBytes:       maxSaveBodyBytes,
 	}, nil
 }
 
@@ -225,6 +236,21 @@ func boolFromEnvironment(name string, fallback bool) (bool, error) {
 	default:
 		return false, fmt.Errorf("parse %s: expected true or false", name)
 	}
+}
+
+func positiveInt64FromEnvironment(name string, fallback int64) (int64, error) {
+	raw := strings.TrimSpace(os.Getenv(name))
+	if raw == "" {
+		return fallback, nil
+	}
+	value, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse %s: %w", name, err)
+	}
+	if value <= 0 {
+		return 0, fmt.Errorf("%s must be greater than zero", name)
+	}
+	return value, nil
 }
 
 func originsFromEnvironment(name string) ([]string, error) {

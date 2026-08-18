@@ -24,6 +24,9 @@ func TestLoadUsesDatabaseURL(t *testing.T) {
 	if cfg.ReadinessTimeout != 750*time.Millisecond {
 		t.Fatalf("ReadinessTimeout = %v", cfg.ReadinessTimeout)
 	}
+	if cfg.MaxSaveBodyBytes != defaultMaxSaveBodyBytes {
+		t.Fatalf("MaxSaveBodyBytes = %d", cfg.MaxSaveBodyBytes)
+	}
 }
 
 func TestLoadBuildsDatabaseURLFromPasswordFile(t *testing.T) {
@@ -87,6 +90,7 @@ func TestLoadParsesGoogleAuthAndCORSConfiguration(t *testing.T) {
 		"CORS_ALLOWED_ORIGINS",
 		"https://sejiiinn.github.io/, http://127.0.0.1:53000, https://sejiiinn.github.io",
 	)
+	t.Setenv("MAX_SAVE_BODY_BYTES", "2097152")
 
 	cfg, err := Load()
 	if err != nil {
@@ -97,6 +101,19 @@ func TestLoadParsesGoogleAuthAndCORSConfiguration(t *testing.T) {
 	}
 	if len(cfg.CORSAllowedOrigins) != 2 {
 		t.Fatalf("CORSAllowedOrigins = %#v", cfg.CORSAllowedOrigins)
+	}
+	if cfg.MaxSaveBodyBytes != 2097152 {
+		t.Fatalf("MaxSaveBodyBytes = %d", cfg.MaxSaveBodyBytes)
+	}
+}
+
+func TestLoadRejectsNonPositiveMaxSaveBodyBytes(t *testing.T) {
+	clearDatabaseEnvironment(t)
+	t.Setenv("DATABASE_URL", "postgres://app:secret@localhost/rune_nexus")
+	t.Setenv("MAX_SAVE_BODY_BYTES", "0")
+
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() expected an error")
 	}
 }
 
@@ -132,6 +149,7 @@ func clearDatabaseEnvironment(t *testing.T) {
 		"ACCESS_TOKEN_TTL",
 		"REFRESH_TOKEN_TTL",
 		"CORS_ALLOWED_ORIGINS",
+		"MAX_SAVE_BODY_BYTES",
 	} {
 		t.Setenv(name, "")
 	}
