@@ -2,10 +2,12 @@ class AuthenticationHTTPResponse {
   const AuthenticationHTTPResponse({
     required this.statusCode,
     required this.body,
+    this.headers = const {},
   });
 
   final int statusCode;
   final String body;
+  final Map<String, String> headers;
 }
 
 class AuthenticationTransportException implements Exception {

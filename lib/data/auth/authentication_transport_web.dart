@@ -7,10 +7,12 @@ class AuthenticationHTTPResponse {
   const AuthenticationHTTPResponse({
     required this.statusCode,
     required this.body,
+    this.headers = const {},
   });
 
   final int statusCode;
   final String body;
+  final Map<String, String> headers;
 }
 
 class AuthenticationTransportException implements Exception {
@@ -41,10 +43,14 @@ class AuthenticationTransport {
     }
     request.onLoad.listen((_) {
       if (!completed.isCompleted) {
+        final retryAfter = request.getResponseHeader('Retry-After');
         completed.complete(
           AuthenticationHTTPResponse(
             statusCode: request.status ?? 0,
             body: request.responseText ?? '',
+            headers: retryAfter == null
+                ? const {}
+                : {'retry-after': retryAfter},
           ),
         );
       }

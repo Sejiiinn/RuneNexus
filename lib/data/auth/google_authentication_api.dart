@@ -10,12 +10,14 @@ class GoogleAuthenticationException implements Exception {
     required this.message,
     this.requestId,
     this.statusCode,
+    this.retryAfter,
   });
 
   final String code;
   final String message;
   final String? requestId;
   final int? statusCode;
+  final Duration? retryAfter;
 
   @override
   String toString() => 'GoogleAuthenticationException($code): $message';
@@ -93,6 +95,7 @@ class GoogleAuthenticationApi {
         message: _stringValue(decoded, 'message') ?? failureMessage,
         requestId: _stringValue(decoded, 'requestId'),
         statusCode: response.statusCode,
+        retryAfter: _retryAfter(response.headers['retry-after']),
       );
     }
 
@@ -171,5 +174,13 @@ class GoogleAuthenticationApi {
   static String? _stringValue(Map<String, dynamic>? object, String key) {
     final value = object?[key];
     return value is String ? value : null;
+  }
+
+  static Duration? _retryAfter(String? value) {
+    final seconds = int.tryParse(value ?? '');
+    if (seconds == null || seconds <= 0) {
+      return null;
+    }
+    return Duration(seconds: seconds);
   }
 }

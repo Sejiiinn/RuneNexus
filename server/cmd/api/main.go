@@ -84,9 +84,16 @@ func run(logger *slog.Logger) error {
 	server := &http.Server{
 		Addr: cfg.HTTPAddress,
 		Handler: httpapi.NewHandler(logger, httpapi.Dependencies{
-			Database:           pool,
-			ReadinessTimeout:   cfg.ReadinessTimeout,
-			Authenticator:      authenticator,
+			Database:         pool,
+			ReadinessTimeout: cfg.ReadinessTimeout,
+			Authenticator:    authenticator,
+			AuthenticationRateLimits: httpapi.AuthenticationRateLimits{
+				GoogleRequests:    cfg.GoogleAuthenticationRateLimit,
+				RefreshRequests:   cfg.RefreshAuthenticationRateLimit,
+				Window:            cfg.AuthenticationRateLimitWindow,
+				MaxClients:        cfg.AuthenticationRateLimitMaxClients,
+				TrustProxyHeaders: cfg.TrustProxyHeaders,
+			},
 			SaveService:        gamesave.NewService(pool),
 			MaxSaveBodyBytes:   cfg.MaxSaveBodyBytes,
 			CORSAllowedOrigins: cfg.CORSAllowedOrigins,

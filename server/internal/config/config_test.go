@@ -27,6 +27,13 @@ func TestLoadUsesDatabaseURL(t *testing.T) {
 	if cfg.MaxSaveBodyBytes != defaultMaxSaveBodyBytes {
 		t.Fatalf("MaxSaveBodyBytes = %d", cfg.MaxSaveBodyBytes)
 	}
+	if cfg.AuthenticationRateLimitWindow != defaultAuthenticationRateLimitWindow ||
+		cfg.GoogleAuthenticationRateLimit != defaultGoogleAuthenticationRateLimit ||
+		cfg.RefreshAuthenticationRateLimit != defaultRefreshAuthenticationRateLimit ||
+		cfg.AuthenticationRateLimitMaxClients != defaultAuthenticationRateLimitMaxClients ||
+		cfg.TrustProxyHeaders {
+		t.Fatalf("authentication rate limits = %#v", cfg)
+	}
 }
 
 func TestLoadBuildsDatabaseURLFromPasswordFile(t *testing.T) {
@@ -128,6 +135,51 @@ func TestLoadRejectsRefreshTTLNotGreaterThanAccessTTL(t *testing.T) {
 	}
 }
 
+func TestLoadParsesAuthenticationRateLimits(t *testing.T) {
+	clearDatabaseEnvironment(t)
+	t.Setenv("DATABASE_URL", "postgres://app:secret@localhost/rune_nexus")
+	t.Setenv("AUTH_RATE_LIMIT_WINDOW", "2m")
+	t.Setenv("GOOGLE_AUTH_RATE_LIMIT", "12")
+	t.Setenv("REFRESH_AUTH_RATE_LIMIT", "45")
+	t.Setenv("AUTH_RATE_LIMIT_MAX_CLIENTS", "2048")
+	t.Setenv("TRUST_PROXY_HEADERS", "true")
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if cfg.AuthenticationRateLimitWindow != 2*time.Minute ||
+		cfg.GoogleAuthenticationRateLimit != 12 ||
+		cfg.RefreshAuthenticationRateLimit != 45 ||
+		cfg.AuthenticationRateLimitMaxClients != 2048 ||
+		!cfg.TrustProxyHeaders {
+		t.Fatalf("authentication rate limits = %#v", cfg)
+	}
+}
+
+func TestLoadRejectsInvalidAuthenticationRateLimits(t *testing.T) {
+	for _, testCase := range []struct {
+		name  string
+		key   string
+		value string
+	}{
+		{name: "window", key: "AUTH_RATE_LIMIT_WINDOW", value: "0s"},
+		{name: "Google requests", key: "GOOGLE_AUTH_RATE_LIMIT", value: "0"},
+		{name: "refresh requests", key: "REFRESH_AUTH_RATE_LIMIT", value: "invalid"},
+		{name: "client state cap", key: "AUTH_RATE_LIMIT_MAX_CLIENTS", value: "-1"},
+		{name: "proxy trust", key: "TRUST_PROXY_HEADERS", value: "sometimes"},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			clearDatabaseEnvironment(t)
+			t.Setenv("DATABASE_URL", "postgres://app:secret@localhost/rune_nexus")
+			t.Setenv(testCase.key, testCase.value)
+			if _, err := Load(); err == nil {
+				t.Fatal("Load() expected an error")
+			}
+		})
+	}
+}
+
 func clearDatabaseEnvironment(t *testing.T) {
 	t.Helper()
 	for _, name := range []string{
@@ -148,6 +200,11 @@ func clearDatabaseEnvironment(t *testing.T) {
 		"IDENTITY_VERIFY_TIMEOUT",
 		"ACCESS_TOKEN_TTL",
 		"REFRESH_TOKEN_TTL",
+		"AUTH_RATE_LIMIT_WINDOW",
+		"GOOGLE_AUTH_RATE_LIMIT",
+		"REFRESH_AUTH_RATE_LIMIT",
+		"AUTH_RATE_LIMIT_MAX_CLIENTS",
+		"TRUST_PROXY_HEADERS",
 		"CORS_ALLOWED_ORIGINS",
 		"MAX_SAVE_BODY_BYTES",
 	} {

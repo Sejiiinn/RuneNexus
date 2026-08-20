@@ -208,6 +208,56 @@ void main() {
     controller.dispose();
   });
 
+  test('refresh 요청 제한은 세션을 유지하고 Retry-After 뒤 재시도한다', () async {
+    final now = DateTime.utc(2026, 8, 20, 1);
+    final scheduler = _ManualTimerFactory();
+    var refreshCount = 0;
+    var invalidated = false;
+    final controller = OnlineAccountSessionController(
+      credentials: _credentialsAt(now),
+      refreshCredentials: (_) async {
+        refreshCount += 1;
+        if (refreshCount == 1) {
+          throw const GoogleAuthenticationException(
+            code: 'RATE_LIMIT_EXCEEDED',
+            message: 'limited',
+            statusCode: 429,
+            retryAfter: Duration(seconds: 7),
+          );
+        }
+        return _rotatedCredentialsAt(now);
+      },
+      revokeSession: (_, _) async {},
+      onCredentialsChanged: (_) {},
+      onSessionInvalidated: () {
+        invalidated = true;
+      },
+      now: () => now,
+      timerFactory: scheduler.create,
+    );
+
+    await expectLater(
+      controller.refresh(),
+      throwsA(
+        isA<GoogleAuthenticationException>().having(
+          (error) => error.statusCode,
+          'statusCode',
+          429,
+        ),
+      ),
+    );
+
+    expect(controller.credentials, isNotNull);
+    expect(invalidated, isFalse);
+    expect(scheduler.lastDuration, const Duration(seconds: 7));
+    scheduler.lastTimer!.fire();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(refreshCount, 2);
+    expect(controller.credentials?.accessToken, 'new-access');
+    controller.dispose();
+  });
+
   test('logout은 같은 세션의 access/refresh token을 보내고 성공 후 폐기한다', () async {
     String? revokedRefreshToken;
     String? revokedAccessToken;

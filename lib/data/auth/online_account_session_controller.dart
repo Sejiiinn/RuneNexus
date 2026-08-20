@@ -158,9 +158,13 @@ class OnlineAccountSessionController {
       _onCredentialsChanged(refreshed);
       _scheduleRefresh();
       return refreshed;
-    } on Object {
+    } on Object catch (error) {
       if (!_disposed && !_loggingOut && _credentials != null) {
-        _invalidate();
+        if (error is GoogleAuthenticationException && error.statusCode == 429) {
+          _scheduleRefreshRetry(error.retryAfter ?? const Duration(seconds: 1));
+        } else {
+          _invalidate();
+        }
       }
       rethrow;
     } finally {
@@ -204,11 +208,33 @@ class OnlineAccountSessionController {
     unawaited(_refreshAfterTimer());
   }
 
+  void _scheduleRefreshRetry(Duration retryAfter) {
+    _refreshTimer?.cancel();
+    final current = _credentials;
+    if (_disposed || _loggingOut || current == null) {
+      return;
+    }
+    final now = _now().toUtc();
+    if (!current.refreshExpiresAt.isAfter(now)) {
+      _invalidate();
+      return;
+    }
+    final retryDelay = retryAfter > Duration.zero
+        ? retryAfter
+        : const Duration(seconds: 1);
+    final remaining = current.refreshExpiresAt.difference(now);
+    if (retryDelay >= remaining) {
+      _refreshTimer = _timerFactory(remaining, _invalidate);
+      return;
+    }
+    _refreshTimer = _timerFactory(retryDelay, _refreshFromTimer);
+  }
+
   Future<void> _refreshAfterTimer() async {
     try {
       await refresh();
     } on Object {
-      // refresh 결과가 불명확하면 같은 token을 재사용하지 않고 세션을 폐기한다.
+      // 실패 유형별 세션 처리와 재시도 예약은 _performRefresh에서 수행.
     }
   }
 

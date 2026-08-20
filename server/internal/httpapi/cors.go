@@ -29,7 +29,10 @@ func withCORS(allowedOrigins []string, next http.Handler) http.Handler {
 
 		response.Header().Set("Access-Control-Allow-Origin", origin)
 		response.Header().Set("Access-Control-Allow-Credentials", "true")
-		response.Header().Set("Access-Control-Expose-Headers", requestIDHeader)
+		response.Header().Set(
+			"Access-Control-Expose-Headers",
+			requestIDHeader+", Retry-After",
+		)
 		if request.Method == http.MethodOptions {
 			response.Header().Add("Vary", "Access-Control-Request-Headers")
 			response.Header().Set(

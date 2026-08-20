@@ -66,6 +66,37 @@ void main() {
     );
   });
 
+  test('요청 제한 응답의 재시도 대기 시간을 보존한다', () async {
+    final api = GoogleAuthenticationApi(
+      baseUrl: 'https://api.rune-nexus.example',
+      transport: _FakeAuthenticationTransport(
+        response: const AuthenticationHTTPResponse(
+          statusCode: 429,
+          body: '''
+            {
+              "code": "RATE_LIMIT_EXCEEDED",
+              "message": "잠시 후 다시 시도해 주세요."
+            }
+          ''',
+          headers: {'retry-after': '7'},
+        ),
+      ),
+    );
+
+    await expectLater(
+      api.refresh('refresh-token'),
+      throwsA(
+        isA<GoogleAuthenticationException>()
+            .having((error) => error.statusCode, 'statusCode', 429)
+            .having(
+              (error) => error.retryAfter,
+              'retryAfter',
+              const Duration(seconds: 7),
+            ),
+      ),
+    );
+  });
+
   test('refresh token을 회전 API에 보내고 새 세션을 해석한다', () async {
     final transport = _FakeAuthenticationTransport(
       response: const AuthenticationHTTPResponse(

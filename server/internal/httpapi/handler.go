@@ -27,12 +27,13 @@ type Authenticator interface {
 }
 
 type Dependencies struct {
-	Database           ReadinessChecker
-	ReadinessTimeout   time.Duration
-	Authenticator      Authenticator
-	SaveService        SaveService
-	MaxSaveBodyBytes   int64
-	CORSAllowedOrigins []string
+	Database                 ReadinessChecker
+	ReadinessTimeout         time.Duration
+	Authenticator            Authenticator
+	AuthenticationRateLimits AuthenticationRateLimits
+	SaveService              SaveService
+	MaxSaveBodyBytes         int64
+	CORSAllowedOrigins       []string
 }
 
 type healthHandler struct {
@@ -83,9 +84,13 @@ func NewHandler(
 			)
 		}
 	}
+	apiHandler := withAuthenticationRateLimits(
+		dependencies.AuthenticationRateLimits,
+		mux,
+	)
 	return withRequestMetadata(
 		logger,
-		withCORS(dependencies.CORSAllowedOrigins, mux),
+		withCORS(dependencies.CORSAllowedOrigins, apiHandler),
 	)
 }
 

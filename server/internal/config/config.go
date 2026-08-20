@@ -12,30 +12,39 @@ import (
 )
 
 const (
-	defaultHTTPAddress                  = ":8080"
-	defaultDatabasePort                 = "5432"
-	defaultDatabaseConnectTimeout       = 5 * time.Second
-	defaultReadinessTimeout             = 2 * time.Second
-	defaultShutdownTimeout              = 10 * time.Second
-	defaultIdentityVerifyTimeout        = 5 * time.Second
-	defaultAccessTokenTTL               = 15 * time.Minute
-	defaultRefreshTokenTTL              = 30 * 24 * time.Hour
-	defaultMaxSaveBodyBytes       int64 = 4 * 1024 * 1024
+	defaultHTTPAddress                             = ":8080"
+	defaultDatabasePort                            = "5432"
+	defaultDatabaseConnectTimeout                  = 5 * time.Second
+	defaultReadinessTimeout                        = 2 * time.Second
+	defaultShutdownTimeout                         = 10 * time.Second
+	defaultIdentityVerifyTimeout                   = 5 * time.Second
+	defaultAccessTokenTTL                          = 15 * time.Minute
+	defaultRefreshTokenTTL                         = 30 * 24 * time.Hour
+	defaultAuthenticationRateLimitWindow           = time.Minute
+	defaultGoogleAuthenticationRateLimit           = 10
+	defaultRefreshAuthenticationRateLimit          = 30
+	defaultAuthenticationRateLimitMaxClients       = 10_000
+	defaultMaxSaveBodyBytes                  int64 = 4 * 1024 * 1024
 )
 
 type Config struct {
-	HTTPAddress            string
-	DatabaseURL            string
-	DatabaseConnectTimeout time.Duration
-	ReadinessTimeout       time.Duration
-	ShutdownTimeout        time.Duration
-	GoogleAuthEnabled      bool
-	GoogleWebClientID      string
-	IdentityVerifyTimeout  time.Duration
-	AccessTokenTTL         time.Duration
-	RefreshTokenTTL        time.Duration
-	CORSAllowedOrigins     []string
-	MaxSaveBodyBytes       int64
+	HTTPAddress                       string
+	DatabaseURL                       string
+	DatabaseConnectTimeout            time.Duration
+	ReadinessTimeout                  time.Duration
+	ShutdownTimeout                   time.Duration
+	GoogleAuthEnabled                 bool
+	GoogleWebClientID                 string
+	IdentityVerifyTimeout             time.Duration
+	AccessTokenTTL                    time.Duration
+	RefreshTokenTTL                   time.Duration
+	AuthenticationRateLimitWindow     time.Duration
+	GoogleAuthenticationRateLimit     int
+	RefreshAuthenticationRateLimit    int
+	AuthenticationRateLimitMaxClients int
+	TrustProxyHeaders                 bool
+	CORSAllowedOrigins                []string
+	MaxSaveBodyBytes                  int64
 }
 
 func Load() (Config, error) {
@@ -89,6 +98,38 @@ func Load() (Config, error) {
 	if refreshTokenTTL <= accessTokenTTL {
 		return Config{}, errors.New("REFRESH_TOKEN_TTL must be greater than ACCESS_TOKEN_TTL")
 	}
+	authenticationRateLimitWindow, err := durationFromEnvironment(
+		"AUTH_RATE_LIMIT_WINDOW",
+		defaultAuthenticationRateLimitWindow,
+	)
+	if err != nil {
+		return Config{}, err
+	}
+	googleAuthenticationRateLimit, err := positiveIntFromEnvironment(
+		"GOOGLE_AUTH_RATE_LIMIT",
+		defaultGoogleAuthenticationRateLimit,
+	)
+	if err != nil {
+		return Config{}, err
+	}
+	refreshAuthenticationRateLimit, err := positiveIntFromEnvironment(
+		"REFRESH_AUTH_RATE_LIMIT",
+		defaultRefreshAuthenticationRateLimit,
+	)
+	if err != nil {
+		return Config{}, err
+	}
+	authenticationRateLimitMaxClients, err := positiveIntFromEnvironment(
+		"AUTH_RATE_LIMIT_MAX_CLIENTS",
+		defaultAuthenticationRateLimitMaxClients,
+	)
+	if err != nil {
+		return Config{}, err
+	}
+	trustProxyHeaders, err := boolFromEnvironment("TRUST_PROXY_HEADERS", false)
+	if err != nil {
+		return Config{}, err
+	}
 
 	googleAuthEnabled, err := boolFromEnvironment("GOOGLE_AUTH_ENABLED", false)
 	if err != nil {
@@ -113,18 +154,23 @@ func Load() (Config, error) {
 	}
 
 	return Config{
-		HTTPAddress:            stringFromEnvironment("HTTP_ADDRESS", defaultHTTPAddress),
-		DatabaseURL:            databaseURL,
-		DatabaseConnectTimeout: databaseConnectTimeout,
-		ReadinessTimeout:       readinessTimeout,
-		ShutdownTimeout:        shutdownTimeout,
-		GoogleAuthEnabled:      googleAuthEnabled,
-		GoogleWebClientID:      googleWebClientID,
-		IdentityVerifyTimeout:  identityVerifyTimeout,
-		AccessTokenTTL:         accessTokenTTL,
-		RefreshTokenTTL:        refreshTokenTTL,
-		CORSAllowedOrigins:     corsAllowedOrigins,
-		MaxSaveBodyBytes:       maxSaveBodyBytes,
+		HTTPAddress:                       stringFromEnvironment("HTTP_ADDRESS", defaultHTTPAddress),
+		DatabaseURL:                       databaseURL,
+		DatabaseConnectTimeout:            databaseConnectTimeout,
+		ReadinessTimeout:                  readinessTimeout,
+		ShutdownTimeout:                   shutdownTimeout,
+		GoogleAuthEnabled:                 googleAuthEnabled,
+		GoogleWebClientID:                 googleWebClientID,
+		IdentityVerifyTimeout:             identityVerifyTimeout,
+		AccessTokenTTL:                    accessTokenTTL,
+		RefreshTokenTTL:                   refreshTokenTTL,
+		AuthenticationRateLimitWindow:     authenticationRateLimitWindow,
+		GoogleAuthenticationRateLimit:     googleAuthenticationRateLimit,
+		RefreshAuthenticationRateLimit:    refreshAuthenticationRateLimit,
+		AuthenticationRateLimitMaxClients: authenticationRateLimitMaxClients,
+		TrustProxyHeaders:                 trustProxyHeaders,
+		CORSAllowedOrigins:                corsAllowedOrigins,
+		MaxSaveBodyBytes:                  maxSaveBodyBytes,
 	}, nil
 }
 
@@ -244,6 +290,21 @@ func positiveInt64FromEnvironment(name string, fallback int64) (int64, error) {
 		return fallback, nil
 	}
 	value, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("parse %s: %w", name, err)
+	}
+	if value <= 0 {
+		return 0, fmt.Errorf("%s must be greater than zero", name)
+	}
+	return value, nil
+}
+
+func positiveIntFromEnvironment(name string, fallback int) (int, error) {
+	raw := strings.TrimSpace(os.Getenv(name))
+	if raw == "" {
+		return fallback, nil
+	}
+	value, err := strconv.Atoi(raw)
 	if err != nil {
 		return 0, fmt.Errorf("parse %s: %w", name, err)
 	}
