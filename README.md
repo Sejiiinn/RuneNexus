@@ -67,3 +67,4 @@ flutter build web --pwa-strategy=none --no-tree-shake-icons
 - [다음 작업 우선순위](docs/next_work_priorities.md)
 - [백엔드 및 온라인 저장 아키텍처](docs/backend_architecture.md)
 - [로컬 PostgreSQL 실행](docs/local_postgresql_setup.md)
+- [자체 운영 API 배포](docs/self_hosted_api_deployment.md)

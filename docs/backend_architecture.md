@@ -1,7 +1,7 @@
 # Rune Nexus 백엔드·인증·온라인 저장 최종 아키텍처
 
 문서 상태: 채택된 구현 기준
-마지막 갱신: 2026-08-19
+마지막 갱신: 2026-08-20
 
 ## 목적
 
@@ -24,9 +24,11 @@ PostgreSQL 스키마, API 계약과 향후 중요 재화 보호 경계를 정의
 - Google ID token 검증과 `POST /v1/auth/google` 세션 발급
 - refresh token 단일 사용 회전·재사용 감지와 로그아웃
 - access Bearer 인증 미들웨어와 DB 기반 account/session 결정
+- Google 로그인·토큰 갱신의 클라이언트별 token bucket 요청 제한
+- 인증된 `GET/PUT /v1/save`, revision·멱등성·영역별 저장 트랜잭션
 - Flutter 메모리 세션 자동 갱신·single-flight·401 1회 재시도
 
-PGS 인증, 실제 온라인 저장 API와 클라이언트 동기화기는 아직 구현되지 않았다.
+PGS 인증과 Flutter 온라인 저장 동기화기는 아직 구현되지 않았다.
 Google 웹 로그인은 Google Identity Services 버튼에서
 `POST /v1/auth/google`로 이어지는 경로까지 구현되었으며 배포 환경에 OAuth Client와
 API 주소를 설정하면 활성화된다.
@@ -61,6 +63,7 @@ API 주소를 설정하면 활성화된다.
 | 마이그레이션 | `tern` | 순차 SQL 마이그레이션 |
 | 데이터베이스 | PostgreSQL 18 | 계정, 세션, 온라인 저장 |
 | 개발·배포 | Docker Compose | API와 PostgreSQL 자체 운영 |
+| HTTPS 진입점 | Caddy | 인증서 자동 갱신, 보안 헤더, reverse proxy |
 
 PostgreSQL 드라이버는 `pgx/v5`를 직접 사용한다. GORM 같은 ORM, Redis,
 메시지 큐와 Kubernetes는 실제 요구가 생기기 전까지 추가하지 않는다.
@@ -104,6 +107,7 @@ PostgreSQL 드라이버는 `pgx/v5`를 직접 사용한다. GORM 같은 ORM, Red
 - PGS server auth code 교환과 Player ID 검증
 - 내부 계정 생성·조회
 - opaque access/refresh token 발급, 회전, 폐기
+- Google 로그인·토큰 갱신 요청의 클라이언트별 제한
 - 인증 토큰으로 account ID 결정
 - 요청 크기, 저장 버전, 최상위 구조와 명백한 범위 오류 검사
 - idempotency key 중복 처리
@@ -411,6 +415,7 @@ session인지 함께 검사한다. 이미 만료·폐기된 token에도 `204`를
 | `413` | `REQUEST_TOO_LARGE` | 설정된 최대 요청 본문 크기 초과 |
 | `422` | `SAVE_VERSION_UNSUPPORTED` | 서버가 지원하지 않는 저장 데이터 버전 |
 | `422` | `INVALID_SAVE_DATA` | 필수 영역·값 형식 또는 JSON 중첩 제한 위반 |
+| `429` | `RATE_LIMIT_EXCEEDED` | 클라이언트별 인증 요청 제한 초과 |
 | `503` | `AUTH_PROVIDER_UNAVAILABLE` | Google 인증 제공자 일시 장애 |
 
 Android는 PGS, GitHub Pages는 Google 로그인을 사용한다. 두 identity가 같은 내부
@@ -424,8 +429,9 @@ Flutter Web 빌드는 `GOOGLE_WEB_CLIENT_ID`, `RUNE_NEXUS_API_BASE_URL` 두 dart
 만료 전에 refresh를 단일 요청으로 회전하고, 여러 요청이 동시에 `401`을 받아도 같은
 refresh 결과를 기다린 뒤 각 요청을 한 번만 재시도한다. refresh 응답 유실처럼 결과가
 불명확한 실패는 같은 token으로 자동 재시도하지 않고 다시 로그인이 필요한 상태로
-전환한다. 브라우저 새로고침 뒤 세션을 복구하는 영속 저장은 하지 않으므로 새로고침
-시에도 다시 로그인한다.
+전환한다. 반면 서버가 token을 소비하지 않은 `429`를 명시하면 세션을 유지하고
+`Retry-After` 뒤 갱신을 재시도한다. 브라우저 새로고침 뒤 세션을 복구하는 영속 저장은
+하지 않으므로 새로고침 시에도 다시 로그인한다.
 
 ### 초기 엔드포인트
 
@@ -980,6 +986,11 @@ HTTP_ADDRESS
 IDENTITY_VERIFY_TIMEOUT
 ACCESS_TOKEN_TTL
 REFRESH_TOKEN_TTL
+AUTH_RATE_LIMIT_WINDOW
+GOOGLE_AUTH_RATE_LIMIT
+REFRESH_AUTH_RATE_LIMIT
+AUTH_RATE_LIMIT_MAX_CLIENTS
+TRUST_PROXY_HEADERS
 CORS_ALLOWED_ORIGINS
 MAX_SAVE_BODY_BYTES
 READINESS_TIMEOUT
@@ -995,6 +1006,12 @@ SHUTDOWN_TIMEOUT
   query와 wildcard는 받지 않는다.
 - 기본 access token 만료는 15분, refresh token 만료는 30일이며 refresh 만료가
   access 만료보다 길지 않으면 시작을 거부한다.
+- Google 로그인은 기본 1분당 10회, 토큰 갱신은 기본 1분당 30회까지 클라이언트별
+  token bucket으로 허용한다. 초과 응답은 `429`와 `Retry-After`를 반환한다.
+- 인증 요청 제한은 endpoint마다 최대 10,000개 클라이언트 상태만 보관하고 상한에서는
+  가장 오래 사용하지 않은 상태를 교체한다.
+- `TRUST_PROXY_HEADERS` 기본값은 `false`다. 운영 Caddy처럼 요청 헤더를 정리하는
+  신뢰 가능한 reverse proxy 뒤에서만 `true`로 설정한다.
 - `MAX_SAVE_BODY_BYTES` 기본값은 4 MiB이며 0보다 큰 정수 byte 값만 허용한다.
 - 저장 요청 JSON은 최대 64단계까지 중첩할 수 있다.
 - 토큰, auth code, OAuth secret, 구매 증명과 전체 save payload를 로그에 남기지 않는다.
@@ -1003,7 +1020,9 @@ SHUTDOWN_TIMEOUT
 
 - 개발 Compose 내부 API는 HTTP로 통신한다.
 - 외부 모바일·웹 요청은 HTTPS만 허용한다.
-- TLS는 Caddy 또는 Nginx 같은 자체 운영 reverse proxy에서 종료할 수 있다.
+- TLS는 `compose.production.yaml`의 자체 운영 Caddy에서 종료한다.
+- Caddy만 외부 80/443 포트를 받고 Go API에는 Compose 내부망으로 연결한다.
+- 인증서와 ACME 계정 상태는 Caddy named volume에 보존한다.
 - PostgreSQL 포트는 운영 외부에 공개하지 않는다.
 - 현재 Compose의 단일 DB 사용자는 개발 편의를 위한 구성이다.
 - 운영에서는 schema migration owner와 제한된 DML runtime role을 분리한다.
@@ -1132,7 +1151,7 @@ SHUTDOWN_TIMEOUT
 
 ### 7단계: 출시 안전장치
 
-- HTTPS reverse proxy, 요청 제한과 보안 헤더
+- [x] HTTPS reverse proxy, 인증 요청 제한과 보안 헤더
 - 계정·원격 데이터 삭제
 - DB 백업과 복원 자동화
 - 개인정보 처리방침과 스토어 데이터 공개 항목

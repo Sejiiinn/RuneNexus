@@ -3,6 +3,7 @@
 Rune Nexus 서버 개발용 PostgreSQL은 Docker Compose로 실행합니다. 데이터베이스 포트는 Mac 내부의 `127.0.0.1`에만 노출되며, 데이터는 Docker named volume에 보존됩니다.
 
 계정, 인증, 온라인 저장과 Go 서버의 전체 구조는 `docs/backend_architecture.md`를 기준으로 합니다.
+외부 HTTPS 공개 절차는 `docs/self_hosted_api_deployment.md`를 따릅니다.
 
 ## 최초 실행
 
