@@ -27,8 +27,9 @@ PostgreSQL 스키마, API 계약과 향후 중요 재화 보호 경계를 정의
 - Google 로그인·토큰 갱신의 클라이언트별 token bucket 요청 제한
 - 인증된 `GET/PUT /v1/save`, revision·멱등성·영역별 저장 트랜잭션
 - Flutter 메모리 세션 자동 갱신·single-flight·401 1회 재시도
+- Flutter 원격 저장 API 클라이언트와 단일 in-flight 전송 worker
 
-PGS 인증과 Flutter 온라인 저장 동기화기는 아직 구현되지 않았다.
+PGS 인증과 Flutter 영속 save outbox·계정 저장 선택 연결은 아직 구현되지 않았다.
 Google 웹 로그인은 Google Identity Services 버튼에서
 `POST /v1/auth/google`로 이어지는 경로까지 구현되었으며 배포 환경에 OAuth Client와
 API 주소를 설정하면 활성화된다.
@@ -551,6 +552,12 @@ COMMIT
 ## 클라이언트 동기화 상태 기계
 
 ### 현재 코드 통합 제약
+
+현재 `OnlineSaveApi`는 원격 조회·조건부 갱신 계약을 구현하고,
+`OnlineSaveCoordinator`는 이미 영속화된 체크포인트에 대해 단일 in-flight, 최신 pending
+병합, 동일 본문·멱등성 key 재시도와 충돌 중단을 담당한다. 아직 영속 outbox와 account
+슬롯 선택이 없으므로 게임의 `OnlineSaveRepository`에는 연결하지 않았다. 따라서 현
+단계의 실제 플레이는 기존처럼 서버 저장 요청을 발생시키지 않는다.
 
 현재 `SaveScheduler`는 `_writeLocalSave`만 직렬화하고 `_saveRoundCheckpoint`는
 직접 파일 쓰기와 온라인 호출을 수행한다. 최종 구현에서는 다음처럼 바꾼다.
@@ -1138,6 +1145,7 @@ SHUTDOWN_TIMEOUT
 
 - [x] 인증된 `GET/PUT /v1/save`
 - [x] revision, 멱등성과 저장 트랜잭션
+- [x] Flutter 원격 저장 API 클라이언트와 단일 전송 worker
 - Flutter 영속 save outbox와 동기화 상태 기계
 - 최초 로그인, 재시도, 충돌과 백업 정책
 - 느린 네트워크·재시작 통합 검증
