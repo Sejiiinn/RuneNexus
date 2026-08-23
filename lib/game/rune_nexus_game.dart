@@ -891,6 +891,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void update(double dt) {
+    _progression.recordPlayTime(dt);
     _updateTimeBasedProgress(dt);
     _spaceTime = (_spaceTime + dt) % 1200;
     _updateVisualAlerts(dt);

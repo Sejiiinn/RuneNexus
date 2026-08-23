@@ -43,6 +43,7 @@ void main() {
     expect(saved.preferences.selectedStageNumber, 3);
     expect(saved.preferences.autoStartMode, AutoStartMode.fullAuto);
     expect(saved.progression.runes, 42);
+    expect(saved.progression.totalPlayTimeMillis, 0);
     expect(saved.turretModules.tickets, 5);
     expect(saved.turretModules.drawCount, 7);
     expect(saved.turretModules.ticketPurchaseCount, 2);
@@ -160,5 +161,31 @@ void main() {
 
     expect(GameSaveData.isCanonicalVersion2Envelope(json), isTrue);
     expect(GameSaveData.fromJson(json), isNotNull);
+  });
+
+  test('누적 플레이타임을 progression에 저장하고 음수는 보정한다', () {
+    final saved = GameSaveData.fromJson(const <String, Object?>{
+      'version': 2,
+      'savedAtMillis': 40,
+      'preferences': <String, Object?>{},
+      'progression': <String, Object?>{'totalPlayTimeMillis': 3723000},
+      'turretModules': <String, Object?>{},
+      'activeRun': null,
+    });
+
+    expect(saved!.progression.totalPlayTimeMillis, 3723000);
+    expect(
+      saved.toJson()['progression'],
+      isA<Map<String, Object?>>().having(
+        (json) => json['totalPlayTimeMillis'],
+        'totalPlayTimeMillis',
+        3723000,
+      ),
+    );
+
+    final sanitized = SavedProgression.fromJson(const <String, Object?>{
+      'totalPlayTimeMillis': -1,
+    });
+    expect(sanitized.totalPlayTimeMillis, 0);
   });
 }

@@ -3,11 +3,11 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
+import 'backup_save_repository.dart';
 import 'game_save_data.dart';
 import 'local_save_slot.dart';
-import 'save_repository.dart';
 
-class FileSaveRepository implements SaveRepository {
+class FileSaveRepository implements BackupSaveRepository {
   FileSaveRepository({
     File? file,
     File? backupFile,
@@ -70,6 +70,15 @@ class FileSaveRepository implements SaveRepository {
       await _writeAtomically(files.backup, current.raw);
     }
     await _writeAtomically(files.primary, json);
+  }
+
+  @override
+  Future<void> preserveCurrentAsBackup() async {
+    final files = await _files();
+    final current = await _readValid(files.primary);
+    if (current != null) {
+      await _writeAtomically(files.backup, current.raw);
+    }
   }
 
   @override

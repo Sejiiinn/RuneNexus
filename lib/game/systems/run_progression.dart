@@ -112,6 +112,8 @@ class RunProgression
   static const double permanentCostReductionPerUpgradeLevel = 0.01;
   @override
   int runes = 0;
+  int totalPlayTimeMillis = 0;
+  double _playTimeRemainderMillis = 0;
   final DiamondWallet _diamondWallet = DiamondWallet();
   int lastRunRuneReward = 0;
   @override
@@ -131,6 +133,19 @@ class RunProgression
   }
 
   int get diamonds => _diamondWallet.total;
+
+  void recordPlayTime(double elapsedSeconds) {
+    if (!elapsedSeconds.isFinite || elapsedSeconds <= 0) {
+      return;
+    }
+    _playTimeRemainderMillis += elapsedSeconds * 1000;
+    final elapsedMillis = _playTimeRemainderMillis.floor();
+    if (elapsedMillis == 0) {
+      return;
+    }
+    totalPlayTimeMillis += elapsedMillis;
+    _playTimeRemainderMillis -= elapsedMillis;
+  }
 
   static double stageRuneRewardMultiplierFor(int stageNumber) {
     final exponent = stageNumber.clamp(1, maxStageCount).toInt() - 1;
@@ -231,6 +246,7 @@ class RunProgression
   SavedProgression toSaveData() {
     return SavedProgression(
       runes: runes,
+      totalPlayTimeMillis: totalPlayTimeMillis,
       freeDiamonds: freeDiamonds,
       paidDiamonds: paidDiamonds,
       dailyQuestDayKey: dailyQuestDayKey,
@@ -296,6 +312,8 @@ class RunProgression
 
   void restoreFromSaveData(SavedProgression data) {
     runes = math.max(0, data.runes);
+    totalPlayTimeMillis = math.max(0, data.totalPlayTimeMillis);
+    _playTimeRemainderMillis = 0;
     _diamondWallet.setBalances(
       free: data.freeDiamonds,
       paid: data.paidDiamonds,

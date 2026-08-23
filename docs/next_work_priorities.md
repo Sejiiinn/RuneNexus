@@ -1,7 +1,6 @@
 # Rune Nexus 다음 작업 우선순위
 
-마지막 정리 기준: 2026-08-24 `codex/go-server-foundation` 브랜치의
-`b663dc7` 커밋까지.
+마지막 정리 기준: 2026-08-24 `codex/go-server-foundation` 브랜치 작업 기준.
 
 ## 목적
 
@@ -25,12 +24,13 @@ Go/PostgreSQL 인증·저장 API, Flutter 온라인 저장 전송 worker와 영�
 - 인증된 `GET/PUT /v1/save`, revision, 멱등성과 DB 트랜잭션
 - 계정당 단일 in-flight 온라인 저장 worker와 최신 pending 병합
 - 계정별 영속 Outbox, 재시작 복구, backoff와 충돌 정지
+- 최초 로그인 현재 기록·Google 계정 기록 비교와 명시적 선택 UI
+- guest/account 원본 backup과 선택 결과의 account 슬롯 적용
+- 선택한 account 슬롯 재로딩과 로그아웃 시 guest 슬롯 복귀
 - Caddy 기반 자체 운영 HTTPS 배포 구성
 
 아직 실제 게임 연결에서 해결해야 하는 항목은 다음과 같다.
 
-- 최초 로그인 시 guest 로컬·account 로컬·원격 저장 중 사용할 데이터 선택
-- 데이터 선택 전 원본 backup과 선택 결과의 account 슬롯 적용
 - 선택 완료 뒤에만 `OnlineSaveCoordinator`를 게임 저장 흐름에 주입
 - revision 충돌 시 양쪽 데이터를 보존하고 사용자가 결정하는 UX
 - 공개 HTTPS API와 GitHub Pages를 연결한 Google 계정 E2E 검증
@@ -75,19 +75,19 @@ Go/PostgreSQL 인증·저장 API, Flutter 온라인 저장 전송 worker와 영�
 
 ## 현재 개발 트랙: 계정·온라인 저장 연결
 
-### 1. 최초 로그인 저장 선택과 backup
+### 1. 최초 로그인 저장 선택과 backup — 완료
 
-가장 먼저 구현한다. 로그인 성공 자체가 로컬 데이터를 즉시 덮어쓰거나 업로드하는
-트리거가 되어서는 안 된다.
+로그인 성공 자체가 로컬 데이터를 즉시 덮어쓰거나 업로드하지 않도록 구현했다.
 
 작업 범위:
 
-- guest 로컬, 동일 account 로컬, 원격 저장의 존재 여부와 `savedAtMillis`, revision 비교
-- 신규 계정, 로컬만 존재, 원격만 존재, 양쪽 존재를 구분하는 상태 모델
-- 로컬 진행 사용, 원격 진행 사용, 새 account 진행 사용의 명시적 선택 UI
-- 복사·적용 전에 guest와 기존 account 원본 backup 생성
-- 선택이 끝나기 전 guest 슬롯 유지와 온라인 전송 금지
-- 취소하거나 실패해도 기존 플레이를 계속할 수 있는 복구 경로
+- [x] 현재 guest 기록과 단일 Google 계정 기록의 존재 여부와 요약 비교
+- [x] account 로컬 저장을 독립 후보가 아닌 계정 기록의 캐시로 처리
+- [x] 현재 기록 연동, Google 계정 기록 사용, 새 계정 시작, 나중에 연동의 명시적 UI
+- [x] 복사·적용 전에 guest와 기존 account 원본 backup 생성
+- [x] 선택이 끝나기 전 guest 슬롯 유지와 온라인 전송 금지
+- [x] 선택 실패 시 guest 진행을 변경하지 않는 복구 경로
+- [x] 선택된 account 슬롯 재로딩과 로그아웃 시 guest 슬롯 복귀
 
 성공 기준:
 
@@ -340,11 +340,10 @@ Go/PostgreSQL 인증·저장 API, Flutter 온라인 저장 전송 worker와 영�
 
 현재 브랜치에서는 다음 순서를 따른다.
 
-1. 최초 로그인 저장 선택과 backup
-2. 실제 게임 저장 연결과 충돌 해결
-3. 공개 환경 Google 로그인·온라인 저장 E2E
-4. DB backup·restore와 계정 데이터 삭제
-5. Android PGS와 다중 identity 연결
+1. 실제 게임 저장 연결과 충돌 해결
+2. 공개 환경 Google 로그인·온라인 저장 E2E
+3. DB backup·restore와 계정 데이터 삭제
+4. Android PGS와 다중 identity 연결
 
 콘텐츠 트랙을 진행할 때는 다음 순서를 따른다.
 
@@ -374,7 +373,7 @@ Go/PostgreSQL 인증·저장 API, Flutter 온라인 저장 전송 worker와 영�
 새 세션에서 바로 작업을 시작한다면 다음 문장이 적합하다.
 
 ```text
-docs/next_work_priorities.md 기준으로 최우선 과제인 최초 로그인 저장 선택과 backup을 진행해줘.
+docs/next_work_priorities.md 기준으로 최우선 과제인 실제 게임 저장 연결과 충돌 해결을 진행해줘.
 ```
 
 온라인 저장 연결과 독립적으로 콘텐츠를 진행하려면 다음 문장이 적합하다.

@@ -3,6 +3,7 @@ part of 'game_save_data.dart';
 class SavedProgression {
   const SavedProgression({
     required this.runes,
+    this.totalPlayTimeMillis = 0,
     this.freeDiamonds = 0,
     this.paidDiamonds = 0,
     this.dailyQuestDayKey = -1,
@@ -49,6 +50,7 @@ class SavedProgression {
   });
 
   final int runes;
+  final int totalPlayTimeMillis;
   final int freeDiamonds;
   final int paidDiamonds;
   final int dailyQuestDayKey;
@@ -96,6 +98,7 @@ class SavedProgression {
   Map<String, Object?> toJson() {
     return {
       'runes': runes,
+      'totalPlayTimeMillis': totalPlayTimeMillis,
       'freeDiamonds': freeDiamonds,
       'paidDiamonds': paidDiamonds,
       'dailyQuestDayKey': dailyQuestDayKey,
@@ -170,6 +173,7 @@ class SavedProgression {
     );
     return SavedProgression(
       runes: _intValue(map['runes']),
+      totalPlayTimeMillis: _nonNegativeInt(map['totalPlayTimeMillis']),
       freeDiamonds: _intValue(map['freeDiamonds']),
       paidDiamonds: _intValue(map['paidDiamonds']),
       dailyQuestDayKey: _intValue(map['dailyQuestDayKey'], fallback: -1),

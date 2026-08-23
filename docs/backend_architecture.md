@@ -29,8 +29,9 @@ PostgreSQL 스키마, API 계약과 향후 중요 재화 보호 경계를 정의
 - Flutter 메모리 세션 자동 갱신·single-flight·401 1회 재시도
 - Flutter 원격 저장 API 클라이언트와 단일 in-flight 전송 worker
 - 계정별 Flutter 영속 save outbox와 재시작 복구
+- 최초 로그인 현재 기록·Google 계정 기록 비교, 원본 backup과 account 슬롯 선택
 
-PGS 인증과 Flutter 계정 저장 선택 연결은 아직 구현되지 않았다.
+PGS 인증과 선택된 account 슬롯의 실제 온라인 저장 전송 연결은 아직 구현되지 않았다.
 Google 웹 로그인은 Google Identity Services 버튼에서
 `POST /v1/auth/google`로 이어지는 경로까지 구현되었으며 배포 환경에 OAuth Client와
 API 주소를 설정하면 활성화된다.
@@ -168,7 +169,9 @@ PostgreSQL은 클라이언트에 직접 노출하지 않는다.
   "version": 2,
   "savedAtMillis": 0,
   "preferences": {},
-  "progression": {},
+  "progression": {
+    "totalPlayTimeMillis": 0
+  },
   "turretModules": {},
   "activeRun": null
 }
@@ -176,6 +179,9 @@ PostgreSQL은 클라이언트에 직접 노출하지 않는다.
 
 통파일은 로컬 시점의 일관성을 위한 경계다. 서버 테이블이 나뉘더라도
 클라이언트는 영역별 파일이나 영역별 저장 요청을 만들지 않는다.
+`totalPlayTimeMillis`는 `progression` 내부의 선택 필드다. 기존 저장은 이 필드가
+없으면 0으로 읽으며, 서버는 progression JSON 전체를 저장하므로 별도 DB 스키마
+변경 없이 값을 보존한다.
 
 ### 영속 저장 위치
 
@@ -557,9 +563,12 @@ COMMIT
 현재 `OnlineSaveApi`는 원격 조회·조건부 갱신 계약을 구현하고,
 `OnlineSaveCoordinator`는 계정별 영속 Outbox, 단일 in-flight, 최신 pending 병합,
 동일 본문·멱등성 key 재시도, 재시작 복구와 충돌 중단을 담당한다. Web Local Storage와
-IO application support 경로 모두 primary·backup 복구를 제공한다. 아직 최초 로그인 시
-guest·account·원격 저장 중 무엇을 사용할지 선택하는 연결이 없으므로 실제 게임에는
-주입하지 않았다. 따라서 현 단계의 플레이는 기존처럼 서버 저장 요청을 발생시키지 않는다.
+IO application support 경로 모두 primary·backup 복구를 제공한다. 최초 로그인 시에는
+현재 guest 기록과 단일 Google 계정 기록을 비교하고 원본 backup 뒤 사용할 슬롯을
+명시적으로 선택한다. account 로컬 저장은 독립 후보가 아니라 계정 기록의 캐시다.
+다만 선택된 account 슬롯과 coordinator를 결합하는 단계는 아직 진행하지 않았으므로
+실제 게임에는 주입하지 않았다. 따라서 현 단계의 플레이는 선택된 로컬 슬롯에만
+저장하며 서버 저장 요청을 발생시키지 않는다.
 
 현재 `SaveScheduler`는 `_writeLocalSave`만 직렬화하고 `_saveRoundCheckpoint`는
 직접 파일 쓰기와 온라인 호출을 수행한다. 최종 구현에서는 다음처럼 바꾼다.
@@ -686,23 +695,24 @@ blocked
   마이그레이션한다.
 - 최초 계정 연결 시 guest 데이터를 자동으로 account 슬롯에 복사하거나 업로드하지
   않는다. guest 원본과 별도 backup을 먼저 남기고 사용자 선택을 받는다.
-- 원격과 기존 account 슬롯이 모두 없으면 `guest 진행을 account로 복사` 또는
-  `새 account 진행 사용` 중 선택한다. 복사 선택 시 새 account 슬롯을 만들고
+- Google 계정 기록이 없으면 `현재 기록을 Google 계정에 연동` 또는
+  `Google 계정에서 새로 시작` 중 선택한다. 연동 선택 시 새 account 슬롯을 만들고
   revision 0 업로드 대상으로 표시한다.
-- 원격 또는 기존 account 슬롯이 있으면 `guest 유지`, `guest 진행을 account로
-  복사하여 조건부 업로드`, `기존 account/원격 진행 사용`을 명시적으로 선택하게
-  한다. guest 복사로 원격을 대체할 때도 최신 원격 revision을 다시 조회한다.
-- `guest 유지`는 해당 저장을 local-only guest 슬롯에 남긴다는 뜻이며 로그인된
+- Google 계정 기록이 있으면 `나중에 연동`, `현재 기록을 Google 계정에 연동`,
+  `Google 계정 기록 사용`을 명시적으로 선택하게 한다. 현재 기록으로 계정 기록을
+  대체할 때도 최신 원격 revision을 다시 조회한다.
+- `나중에 연동`은 현재 기록을 local-only guest 슬롯에 남긴다는 뜻이며 로그인된
   account 저장과 합치지 않는다. logout도 슬롯 사이 데이터를 자동 복사하지 않는다.
 - 업로드 대상으로 선택된 account 슬롯에 원격 저장이 없으면 해당 저장을
   revision 0으로 업로드한다.
 - 원격 저장이 있고 현재 로컬 저장이 같은 계정의 알려진 revision에 기반하면
   dirty 여부와 revision으로 업로드 또는 다운로드를 결정한다.
-- 계정 연결 이력이 없는 로컬 저장과 기존 원격 저장이 모두 의미 있으면 둘을
-  보존하고 사용자가 선택하도록 한다.
+- account 로컬 저장은 별도 사용자 선택지가 아니라 Google 계정 기록의 캐시로 다룬다.
+  원격 기록이 있으면 이를 계정 기록의 기준으로 사용하고 기존 캐시는 backup에
+  보존한다. 향후 Outbox가 미전송 변경을 증명하는 경우에만 동기화 충돌 UX로 분기한다.
 - 원격 데이터를 적용하기 전에 현재 로컬 파일을 별도 backup으로 남긴다.
 - revision 충돌 시 client timestamp가 더 크다는 이유로 자동 덮어쓰지 않는다.
-- 사용자가 로컬 사용을 명시하면 최신 원격 revision을 다시 조회한 후 같은
+- 사용자가 현재 기록 연동을 명시하면 최신 원격 revision을 다시 조회한 후 같은
   `PUT /v1/save` 계약으로 조건부 업로드한다.
 
 ## 중요 경제·이벤트 API 확장
@@ -1151,7 +1161,8 @@ SHUTDOWN_TIMEOUT
 - [x] revision, 멱등성과 저장 트랜잭션
 - [x] Flutter 원격 저장 API 클라이언트와 단일 전송 worker
 - [x] Flutter 영속 save outbox와 동기화 상태 기계
-- 최초 로그인 저장 선택과 충돌 해결 UX
+- [x] 최초 로그인 저장 비교·backup·account 슬롯 선택 UX
+- revision 충돌 시 양쪽 저장 보존과 해결 UX
 - 느린 네트워크·재시작 통합 검증
 
 ### 6단계: 중요 경제 확장
@@ -1201,8 +1212,7 @@ Go 서버, Compose와 문서처럼 클라이언트 저장 형식을 바꾸지 �
 
 ## 현재 구현 상태
 
-- 구현 기준은 2026-08-24 `codex/go-server-foundation` 브랜치의 `b663dc7`
-  커밋까지다.
+- 구현 기준은 2026-08-24 `codex/go-server-foundation` 브랜치 작업 상태다.
 - 현재 브랜치에는 `GameSaveData` v2 영역 분리와 v1 -> v2 변환 코드가 있다.
 - Web과 IO 모두 guest/account별 v2 primary와 backup 위치를 사용한다.
 - guest legacy 저장은 원본을 보존한 채 신규 v2 위치로 이전한다.
@@ -1219,11 +1229,15 @@ Go 서버, Compose와 문서처럼 클라이언트 저장 형식을 바꾸지 �
 - 인증된 `GET/PUT /v1/save`, revision·멱등성·영역별 저장 트랜잭션이 구현되어 있다.
 - Flutter 원격 저장 API 클라이언트와 단일 in-flight 전송 worker가 구현되어 있다.
 - 계정별 영속 Outbox, 최신 pending 병합, backoff와 재시작 복구가 구현되어 있다.
+- 최초 로그인 현재 기록·단일 Google 계정 기록 비교, 원본 backup과 account 슬롯
+  선택이 구현되어 있다. account 로컬 저장은 독립 진행이 아닌 계정 기록의 캐시다.
+- account 진행 선택 시 해당 슬롯을 게임에 다시 로드하고, 로그아웃 시 account 저장을
+  보존한 뒤 guest 슬롯으로 복귀한다.
 - 게스트·연결·오프라인·확인 필요 상태를 표시하는 계정·저장 UI 기반이 구현되어 있다.
 - Caddy HTTPS reverse proxy와 production Compose 배포 골격이 구현되어 있다.
-- 최초 로그인 저장 선택과 충돌 해결 UX가 없어 `OnlineSaveCoordinator`는 아직 실제
-  게임 저장 흐름에 연결하지 않았다. 따라서 현재 플레이 저장은 계속 로컬에서만
-  동작한다.
+- `OnlineSaveCoordinator`는 아직 실제 게임 저장 흐름에 연결하지 않았다. 따라서
+  현재 플레이 저장은 선택된 guest 또는 account 로컬 슬롯에서만 동작한다.
+- revision 충돌 시 양쪽 저장을 보여주고 재기준화하는 해결 UX는 아직 구현되지 않았다.
 - 클라이언트 인증 세션은 메모리에만 유지되므로 브라우저 새로고침 또는 앱 재시작 뒤
   다시 로그인한다.
 - Android Application ID는 아직 `com.example.rune_nexus`다.

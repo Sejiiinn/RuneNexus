@@ -1,7 +1,6 @@
 # Rune Nexus 구현 현황
 
-마지막 갱신 기준: 2026-08-24 `codex/go-server-foundation` 브랜치의
-`b663dc7` 커밋까지.
+마지막 갱신 기준: 2026-08-24 `codex/go-server-foundation` 브랜치 작업 기준.
 
 ## 요약
 
@@ -12,10 +11,11 @@ Rune Nexus는 Flutter + Flame 기반의 플레이 가능한 로그라이트 타�
 
 별도 Go API와 PostgreSQL에는 Google 웹 인증, 자체 세션, 계정별 온라인 저장 API가
 구현되어 있다. Flutter에는 Google 로그인 UI, 세션 자동 갱신, 원격 저장 클라이언트,
-단일 전송 worker와 계정별 영속 Outbox까지 준비되어 있다. 다만 기존 게스트 저장과
-계정·원격 저장 중 사용할 데이터를 고르는 최초 로그인 UX가 없으므로, 온라인 저장
-coordinator는 아직 실제 게임 저장 흐름에 연결하지 않았다. 현재 플레이는 기존처럼
-로컬 저장만 사용한다.
+단일 전송 worker와 계정별 영속 Outbox까지 준비되어 있다. 최초 로그인 시에는 게스트
+기록과 단일 Google 계정 기록을 비교하고, 원본을 백업한 뒤 사용할 진행을 명시적으로
+선택할 수 있다. account 로컬 저장은 독립 후보가 아닌 계정 기록의 캐시로 취급한다.
+다만 온라인 저장 coordinator는 아직 실제 게임 저장 흐름에 연결하지 않았으므로 현재
+플레이는 선택된 로컬 슬롯에만 저장한다.
 
 세부 전투 수치와 밸런스 기준은 `docs/gameplay_balance_reference.md`를 기준으로 한다.
 
@@ -97,6 +97,13 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 - 계정별 영속 Outbox와 앱 재시작 후 미완료 전송 복구
 - 일시적 네트워크·서버 오류 지수 backoff 재시도
 - revision 충돌과 복구 불가능 상태의 명시적 정지
+- 로그인 후 현재 guest 기록과 단일 Google 계정 기록의 존재 여부와 요약 비교
+- 현재 기록 연동, Google 계정 기록 사용, 새 계정 시작, 나중에 연동 선택 UX
+- account 로컬 저장은 독립 후보가 아닌 Google 계정 기록의 로컬 캐시로 처리
+- 복사·적용 전 guest와 account primary의 명시적 backup
+- 선택 결과를 account 로컬 슬롯에 반영하고 해당 슬롯으로 게임 상태 재로딩
+- 나중에 연동 선택 시 account 슬롯·원격 저장을 변경하지 않는 local-only 흐름
+- 로그아웃·세션 종료 시 account 저장을 보존하고 guest 슬롯으로 복귀
 - Caddy HTTPS reverse proxy와 ipTIME 자체 운영 배포 구성
 - GitHub Pages 빌드의 Google Web Client ID·API 주소 주입 경로
 
@@ -314,6 +321,7 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
   - 스폰 큐
   - 보유 젬/보상 후보/젬 구매 보상 상태
   - 룬/영구 업그레이드/스테이지 기록
+  - 배속과 무관한 실제 누적 플레이타임
   - 포탑별 공격 명령
 - 저장 제외
   - 현재 날아가는 투사체
@@ -415,11 +423,12 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 - Flutter 원격 저장 요청 직렬화와 인증 재시도
 - 온라인 저장 단일 in-flight, 최신 pending 병합, backoff, 충돌 정지
 - IO/Web 영속 Outbox와 앱 재시작 복구
+- 최초 로그인 현재 기록·Google 계정 기록 분류, 선택 가능 분기와 stale 상태 거부
+- guest/account 명시적 backup과 계정 기록 적용
+- 360px 폭 저장 선택 UI 렌더링
 
 ## 아직 구현하지 않은 항목
 
-- 최초 로그인 시 guest 로컬·account 로컬·원격 저장 비교 및 사용자 선택 UX
-- 선택 전 원본 backup과 선택 결과의 account 슬롯 적용
 - `OnlineSaveCoordinator`를 실제 게임 저장 흐름에 주입하고 상태 UI와 연결
 - revision 충돌 시 양쪽 데이터를 보존하는 해결 UX
 - 공개 HTTPS API와 GitHub Pages를 연결한 실제 Google 계정 E2E 검증
@@ -437,8 +446,8 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 
 ## 다음 추천 작업
 
-1. 최초 로그인 저장 선택·backup·충돌 해결 UX 구현
-2. 선택된 account 슬롯에 `OnlineSaveCoordinator`를 연결하고 동기화 상태 표시
+1. 선택된 account 슬롯에 `OnlineSaveCoordinator`를 연결하고 동기화 상태 표시
+2. revision 충돌 시 양쪽 저장을 보존하는 해결 UX 구현
 3. 자체 운영 HTTPS API와 GitHub Pages 간 Google 로그인·저장 E2E 검증
 4. Android PGS v2 인증과 기존 account identity 연결 구현
 5. 운영 DB backup·복원과 계정 데이터 삭제 절차 마련

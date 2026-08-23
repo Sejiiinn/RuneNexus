@@ -1,8 +1,8 @@
+import 'backup_save_repository.dart';
 import 'game_save_data.dart';
 import 'local_save_slot.dart';
-import 'save_repository.dart';
 
-class FileSaveRepository implements SaveRepository {
+class FileSaveRepository implements BackupSaveRepository {
   FileSaveRepository({LocalSaveSlot slot = LocalSaveSlot.guest});
 
   GameSaveData? _data;
@@ -14,6 +14,9 @@ class FileSaveRepository implements SaveRepository {
   Future<void> save(GameSaveData data) async {
     _data = data;
   }
+
+  @override
+  Future<void> preserveCurrentAsBackup() async {}
 
   @override
   Future<void> clear() async {

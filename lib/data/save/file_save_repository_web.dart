@@ -3,11 +3,11 @@
 import 'dart:convert';
 import 'dart:html' as html;
 
+import 'backup_save_repository.dart';
 import 'game_save_data.dart';
 import 'local_save_slot.dart';
-import 'save_repository.dart';
 
-class FileSaveRepository implements SaveRepository {
+class FileSaveRepository implements BackupSaveRepository {
   FileSaveRepository({LocalSaveSlot slot = LocalSaveSlot.guest}) : _slot = slot;
 
   static const _legacyGuestKey = 'rune_nexus_save_v1';
@@ -52,6 +52,15 @@ class FileSaveRepository implements SaveRepository {
       storage[_backupKey] = currentRaw!;
     }
     storage[_primaryKey] = const JsonEncoder().convert(data.toJson());
+  }
+
+  @override
+  Future<void> preserveCurrentAsBackup() async {
+    final storage = html.window.localStorage;
+    final currentRaw = storage[_primaryKey];
+    if (_decode(currentRaw) != null) {
+      storage[_backupKey] = currentRaw!;
+    }
   }
 
   @override

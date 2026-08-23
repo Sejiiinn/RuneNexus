@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
@@ -7,6 +8,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import '../data/auth/google_authentication_api.dart';
 import '../data/auth/google_web_authentication_config.dart';
 import '../data/auth/online_account_session_controller.dart';
+import '../data/save/account_save_selection.dart';
+import '../data/save/local_save_repository.dart';
+import '../data/save/local_save_slot.dart';
+import '../data/save/online_save_api.dart';
 import '../domain/account/account_session.dart';
 import '../domain/account/online_account_credentials.dart';
 import '../domain/combat/game_phase.dart';
@@ -14,6 +19,7 @@ import '../game/game_snapshot.dart';
 import '../game/rune_nexus_game.dart';
 import '../l10n/rune_nexus_localizations.dart';
 import '../ui/account/google_sign_in_dialog.dart';
+import '../ui/account/account_save_selection_dialog.dart';
 import '../ui/game/game_button.dart';
 import '../ui/game/game_image_assets.dart';
 import '../ui/game/game_icons.dart';
@@ -43,9 +49,11 @@ class RuneNexusApp extends StatefulWidget {
 }
 
 class _RuneNexusAppState extends State<RuneNexusApp> {
-  late final RuneNexusGame game;
+  late RuneNexusGame game;
   late final GoogleWebAuthenticationConfig _googleAuthenticationConfig;
+  late final AccountSaveSelectionService _accountSaveSelectionService;
   GoogleAuthenticationApi? _googleAuthenticationApi;
+  OnlineSaveApi? _onlineSaveApi;
   final ValueNotifier<_AppLoadingProgress> _loadingProgress = ValueNotifier(
     const _AppLoadingProgress(label: '게임을 시작하는 중'),
   );
@@ -54,6 +62,7 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
   MainMenuTab _selectedMainMenuTab = MainMenuTab.stage;
   _OnlineAccountState? _onlineAccount;
   OnlineAccountSessionController? _onlineSession;
+  LocalSaveSlot _activeSaveSlot = LocalSaveSlot.guest;
 
   AccountSession get _accountSession =>
       _onlineAccount?.presentation ?? const AccountSession.guest();
@@ -61,14 +70,26 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
   @override
   void initState() {
     super.initState();
-    game = widget.game ?? RuneNexusGame();
+    game = widget.game ?? _createGameForSlot(LocalSaveSlot.guest);
+    _accountSaveSelectionService = AccountSaveSelectionService(
+      repositoryFactory: (slot) => createDefaultSaveRepository(slot: slot),
+    );
     _googleAuthenticationConfig =
         GoogleWebAuthenticationConfig.fromEnvironment();
     if (_googleAuthenticationConfig.isConfigured) {
       _googleAuthenticationApi = GoogleAuthenticationApi(
         baseUrl: _googleAuthenticationConfig.apiBaseUrl,
       );
+      _onlineSaveApi = OnlineSaveApi(
+        baseUrl: _googleAuthenticationConfig.apiBaseUrl,
+      );
     }
+  }
+
+  RuneNexusGame _createGameForSlot(LocalSaveSlot slot) {
+    return RuneNexusGame(
+      saveRepository: createDefaultSaveRepository(slot: slot),
+    );
   }
 
   Future<void> _prepareForAppStart(BuildContext context) async {
@@ -160,7 +181,8 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
       return;
     }
     _onlineSession?.dispose();
-    _onlineSession = OnlineAccountSessionController(
+    late final OnlineAccountSessionController onlineSession;
+    onlineSession = OnlineAccountSessionController(
       credentials: credentials,
       refreshCredentials: authenticationApi.refresh,
       revokeSession: (refreshToken, accessToken) =>
@@ -170,25 +192,169 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
           return;
         }
         setState(() {
-          _onlineAccount = _OnlineAccountState(updatedCredentials);
+          final current = _onlineAccount;
+          _onlineAccount = _OnlineAccountState(
+            credentials: updatedCredentials,
+            syncStatus:
+                current?.syncStatus ?? OnlineSaveSyncStatus.actionRequired,
+            issueMessage: current?.issueMessage,
+          );
         });
       },
       onSessionInvalidated: () {
-        if (!mounted) {
-          return;
-        }
-        setState(() {
-          _onlineAccount = null;
-          _onlineSession = null;
-        });
+        _handleSessionInvalidated(onlineSession);
       },
     );
+    _onlineSession = onlineSession;
     setState(() {
-      _onlineAccount = _OnlineAccountState(credentials);
+      _onlineAccount = _OnlineAccountState(
+        credentials: credentials,
+        syncStatus: OnlineSaveSyncStatus.actionRequired,
+        issueMessage: context.l10n.syncActionRequired,
+      );
     });
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      SnackBar(content: Text(context.l10n.googleSignInConnected)),
+    await _selectAccountSave(
+      context: context,
+      onlineSession: onlineSession,
+      credentials: credentials,
     );
+  }
+
+  Future<void> _selectAccountSave({
+    required BuildContext context,
+    required OnlineAccountSessionController onlineSession,
+    required OnlineAccountCredentials credentials,
+  }) async {
+    final onlineSaveApi = _onlineSaveApi;
+    if (onlineSaveApi == null) {
+      return;
+    }
+    try {
+      await game.saveNow();
+      final selectionState = await _accountSaveSelectionService.inspect(
+        accountId: credentials.accountId,
+        loadRemote: () => onlineSession.runAuthenticated(
+          request: onlineSaveApi.load,
+          isUnauthorized: (error) =>
+              error is OnlineSaveException && error.isUnauthorized,
+        ),
+      );
+      if (!mounted ||
+          !context.mounted ||
+          !identical(_onlineSession, onlineSession)) {
+        return;
+      }
+      final choice = await showGameDialog<AccountSaveSelectionChoice>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => AccountSaveSelectionDialog(state: selectionState),
+      );
+      if (choice == null ||
+          !mounted ||
+          !context.mounted ||
+          !identical(_onlineSession, onlineSession)) {
+        return;
+      }
+      final result = await _accountSaveSelectionService.apply(
+        selectionState,
+        choice,
+      );
+      if (!mounted ||
+          !context.mounted ||
+          !identical(_onlineSession, onlineSession)) {
+        return;
+      }
+      if (result.usesAccountSlot) {
+        await _replaceGameForSlot(result.activeSlot);
+        if (result.activeData == null) {
+          await game.saveNow();
+        }
+      }
+      if (!mounted || !context.mounted) {
+        return;
+      }
+      setState(() {
+        _activeSaveSlot = result.activeSlot;
+        _onlineAccount = _OnlineAccountState(
+          credentials: credentials,
+          syncStatus: OnlineSaveSyncStatus.actionRequired,
+          issueMessage: result.usesAccountSlot
+              ? context.l10n.accountProgressSelected
+              : context.l10n.guestProgressKept,
+        );
+      });
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(content: Text(context.l10n.googleSignInConnected)),
+      );
+    } on Object {
+      if (!mounted ||
+          !context.mounted ||
+          !identical(_onlineSession, onlineSession)) {
+        return;
+      }
+      setState(() {
+        _activeSaveSlot = LocalSaveSlot.guest;
+        _onlineAccount = _OnlineAccountState(
+          credentials: credentials,
+          syncStatus: OnlineSaveSyncStatus.actionRequired,
+          issueMessage: context.l10n.saveSelectionFailed,
+        );
+      });
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+        SnackBar(content: Text(context.l10n.saveSelectionFailed)),
+      );
+    }
+  }
+
+  Future<void> _replaceGameForSlot(LocalSaveSlot slot) async {
+    if (widget.game != null) {
+      throw StateError('외부에서 주입된 게임의 저장 슬롯은 교체할 수 없습니다.');
+    }
+    final replacement = _createGameForSlot(slot);
+    try {
+      await replacement.prepareForAppStart();
+    } on Object {
+      replacement.disposeAppResources();
+      rethrow;
+    }
+    if (!mounted) {
+      replacement.disposeAppResources();
+      return;
+    }
+    final previous = game;
+    setState(() {
+      game = replacement;
+      _screen = _AppScreen.main;
+    });
+    previous.disposeAppResources();
+  }
+
+  void _handleSessionInvalidated(
+    OnlineAccountSessionController invalidatedSession,
+  ) {
+    if (!mounted || !identical(_onlineSession, invalidatedSession)) {
+      return;
+    }
+    _onlineSession = null;
+    unawaited(_returnToGuestAfterSessionEnd());
+  }
+
+  Future<void> _returnToGuestAfterSessionEnd() async {
+    try {
+      if (!_activeSaveSlot.isGuest && widget.game == null) {
+        await game.saveNow();
+        await _replaceGameForSlot(LocalSaveSlot.guest);
+      }
+    } on Object {
+      // 계정 슬롯은 보존되어 있으므로 다음 앱 시작에서 guest 슬롯을 다시 연다.
+    }
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _activeSaveSlot = LocalSaveSlot.guest;
+      _onlineAccount = null;
+    });
   }
 
   Future<void> _signOut(BuildContext context) async {
@@ -319,6 +485,14 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
                   onSignOut: _onlineSession == null
                       ? null
                       : () => _signOut(context),
+                  onSyncAccount:
+                      _onlineSession == null || !_activeSaveSlot.isGuest
+                      ? null
+                      : () => _selectAccountSave(
+                          context: context,
+                          onlineSession: _onlineSession!,
+                          credentials: _onlineAccount!.credentials,
+                        ),
                   onOpenMapEditor: () {
                     setState(() {
                       _screen = _AppScreen.mapEditor;
@@ -335,9 +509,15 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
 }
 
 class _OnlineAccountState {
-  const _OnlineAccountState(this.credentials);
+  const _OnlineAccountState({
+    required this.credentials,
+    required this.syncStatus,
+    this.issueMessage,
+  });
 
   final OnlineAccountCredentials credentials;
+  final OnlineSaveSyncStatus syncStatus;
+  final String? issueMessage;
 
   AccountSession get presentation => AccountSession.authenticated(
     accountId: credentials.accountId,
@@ -347,7 +527,8 @@ class _OnlineAccountState {
         displayName: 'Google',
       ),
     ],
-    syncStatus: OnlineSaveSyncStatus.offline,
+    syncStatus: syncStatus,
+    issueMessage: issueMessage,
   );
 }
 
@@ -579,20 +760,13 @@ class _AppLoadingScreen extends StatelessWidget {
           gradient: RadialGradient(
             center: Alignment(0, -0.24),
             radius: 0.9,
-            colors: [
-              Color(0xFF123144),
-              Color(0xFF0A1B29),
-              Color(0xFF07111D),
-            ],
+            colors: [Color(0xFF123144), Color(0xFF0A1B29), Color(0xFF07111D)],
             stops: [0, 0.38, 1],
           ),
         ),
         child: Stack(
           children: [
-            const Align(
-              alignment: Alignment(0, -0.24),
-              child: _AppBootCore(),
-            ),
+            const Align(alignment: Alignment(0, -0.24), child: _AppBootCore()),
             Positioned.fill(
               child: SafeArea(
                 top: false,

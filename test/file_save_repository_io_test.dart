@@ -74,6 +74,22 @@ void main() {
     );
   });
 
+  test('현재 primary를 명시적으로 backup에 보존한다', () async {
+    final primary = File('${temporaryDirectory.path}/save_v2.json');
+    final backup = File('${temporaryDirectory.path}/save_v2.backup.json');
+    final repository = FileSaveRepository(file: primary, backupFile: backup);
+    await repository.save(_saveData(25));
+
+    await repository.preserveCurrentAsBackup();
+
+    expect(
+      GameSaveData.fromJson(
+        jsonDecode(await backup.readAsString()),
+      )?.savedAtMillis,
+      25,
+    );
+  });
+
   test('account UUID별 application support 경로를 분리한다', () async {
     const accountId = 'A0B1C2D3-E4F5-4678-9ABC-DEF012345678';
     final repository = FileSaveRepository(

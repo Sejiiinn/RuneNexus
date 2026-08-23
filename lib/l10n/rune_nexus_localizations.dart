@@ -403,6 +403,64 @@ class RuneNexusLocalizations {
       : '계정을 연결하지 못했습니다. 다시 시도해 주세요.';
   String get googleSignInConnected =>
       _isEnglish ? 'Google account connected.' : 'Google 계정이 연결되었습니다.';
+  String get saveSelectionTitle =>
+      _isEnglish ? 'Choose Google account progress' : 'Google 계정에 사용할 기록';
+  String get saveSelectionDescription => _isEnglish
+      ? 'Link your current progress, or continue with the progress already connected to this account.'
+      : '현재 플레이 기록을 연동하거나, 이 계정에 연결된 기존 기록으로 계속할 수 있습니다.';
+  String get saveSelectionBackupNotice => _isEnglish
+      ? 'Your current progress and existing account progress are backed up before applying your choice.'
+      : '선택을 적용하기 전에 현재 기록과 기존 계정 기록을 백업합니다.';
+  String get currentProgress => _isEnglish ? 'Current progress' : '현재 플레이 기록';
+  String get currentProgressDescription => _isEnglish
+      ? 'Progress currently used before account linking'
+      : '계정 연동 전 현재 사용 중인 기록';
+  String get googleAccountProgress =>
+      _isEnglish ? 'Google account progress' : 'Google 계정 기록';
+  String get googleAccountProgressDescription => _isEnglish
+      ? 'Progress connected to this Google account'
+      : '이 Google 계정에 연결된 기록';
+  String get linkCurrentProgress =>
+      _isEnglish ? 'Link current progress to Google' : '현재 기록을 Google 계정에 연동';
+  String get useGoogleAccountProgress =>
+      _isEnglish ? 'Use Google account progress' : 'Google 계정 기록 사용';
+  String get startNewAccountProgress =>
+      _isEnglish ? 'Start fresh with Google account' : 'Google 계정에서 새로 시작';
+  String get linkProgressLater =>
+      _isEnglish ? 'Link progress later' : '나중에 기록 연동';
+  String get saveSelectionFailed => _isEnglish
+      ? 'Progress could not be prepared. Your guest save was kept unchanged.'
+      : '진행 데이터를 준비하지 못했습니다. 게스트 저장은 변경하지 않았습니다.';
+  String get guestProgressKept => _isEnglish
+      ? 'Google is connected, but progress linking was postponed.'
+      : 'Google 계정은 연결됐지만 게임 기록 연동은 보류했습니다.';
+  String get accountProgressSelected => _isEnglish
+      ? 'Account progress selected · Cloud upload is not connected yet'
+      : '계정 진행 선택 완료 · 클라우드 업로드는 아직 연결 대기 중입니다.';
+  String saveSelectionSummary({
+    required int stageNumber,
+    required int completedRounds,
+    required int runes,
+  }) => _isEnglish
+      ? 'Stage $stageNumber · $completedRounds rounds · $runes runes'
+      : '스테이지 $stageNumber · $completedRounds라운드 · 룬 $runes개';
+  String saveSelectionPlayTime(int totalPlayTimeMillis) {
+    final totalMinutes = totalPlayTimeMillis < 0
+        ? 0
+        : totalPlayTimeMillis ~/ Duration.millisecondsPerMinute;
+    final days = totalMinutes ~/ (24 * 60);
+    final hours = (totalMinutes ~/ 60) % 24;
+    final minutes = totalMinutes % 60;
+    final value = switch ((days, hours)) {
+      (> 0, _) => _isEnglish ? '${days}d ${hours}h' : '$days일 $hours시간',
+      (0, > 0) => _isEnglish ? '${hours}h ${minutes}m' : '$hours시간 $minutes분',
+      _ => _isEnglish ? '${minutes}m' : '$minutes분',
+    };
+    return _isEnglish ? 'Total playtime $value' : '총 플레이타임 $value';
+  }
+
+  String saveSelectionSavedAt(String value) =>
+      _isEnglish ? 'Saved $value' : '저장 시각 $value';
   String get accountNotActive => _isEnglish
       ? 'This account is currently unavailable.'
       : '현재 사용할 수 없는 계정입니다.';

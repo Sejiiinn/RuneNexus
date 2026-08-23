@@ -57,6 +57,20 @@ void main() {
       10,
     );
   });
+
+  test('Web current primary를 명시적으로 backup에 보존한다', () async {
+    final repository = FileSaveRepository();
+    await repository.save(_saveData(25));
+
+    await repository.preserveCurrentAsBackup();
+
+    expect(
+      GameSaveData.fromJson(
+        jsonDecode(html.window.localStorage[_backupKey]!),
+      )?.savedAtMillis,
+      25,
+    );
+  });
 }
 
 void _clearTestKeys() {
