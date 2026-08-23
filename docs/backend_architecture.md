@@ -1,7 +1,7 @@
 # Rune Nexus 백엔드·인증·온라인 저장 최종 아키텍처
 
 문서 상태: 채택된 구현 기준
-마지막 갱신: 2026-08-20
+마지막 갱신: 2026-08-24
 
 ## 목적
 
@@ -28,8 +28,9 @@ PostgreSQL 스키마, API 계약과 향후 중요 재화 보호 경계를 정의
 - 인증된 `GET/PUT /v1/save`, revision·멱등성·영역별 저장 트랜잭션
 - Flutter 메모리 세션 자동 갱신·single-flight·401 1회 재시도
 - Flutter 원격 저장 API 클라이언트와 단일 in-flight 전송 worker
+- 계정별 Flutter 영속 save outbox와 재시작 복구
 
-PGS 인증과 Flutter 영속 save outbox·계정 저장 선택 연결은 아직 구현되지 않았다.
+PGS 인증과 Flutter 계정 저장 선택 연결은 아직 구현되지 않았다.
 Google 웹 로그인은 Google Identity Services 버튼에서
 `POST /v1/auth/google`로 이어지는 경로까지 구현되었으며 배포 환경에 OAuth Client와
 API 주소를 설정하면 활성화된다.
@@ -194,27 +195,27 @@ ID는 로컬 namespace 용도로만 사용하며 API의 권한 판단에는 사�
 Web guest:
   rune_nexus:save:v2:guest:primary
   rune_nexus:save:v2:guest:backup
-  rune_nexus:sync:v1:guest
-  rune_nexus:outbox:v1:guest
 
 Web account:
   rune_nexus:save:v2:account:<account-uuid>:primary
   rune_nexus:save:v2:account:<account-uuid>:backup
-  rune_nexus:sync:v1:account:<account-uuid>
   rune_nexus:outbox:v1:account:<account-uuid>
+  rune_nexus:outbox:v1:account:<account-uuid>:backup
 
 IO guest:
   <application-support>/saves/guest/save_v2.json
   <application-support>/saves/guest/save_v2.backup.json
-  <application-support>/saves/guest/sync_v1.json
-  <application-support>/saves/guest/outbox_v1.json
 
 IO account:
   <application-support>/saves/accounts/<account-uuid>/save_v2.json
   <application-support>/saves/accounts/<account-uuid>/save_v2.backup.json
-  <application-support>/saves/accounts/<account-uuid>/sync_v1.json
   <application-support>/saves/accounts/<account-uuid>/outbox_v1.json
+  <application-support>/saves/accounts/<account-uuid>/outbox_v1.backup.json
 ```
+
+guest 슬롯은 온라인 전송 대상이 아니므로 Outbox를 만들지 않는다. 동기화 metadata와
+정확한 in-flight 본문은 `outbox_v1` 한 저장 단위에 함께 기록하여 상태 전이를 원자적으로
+교체한다.
 
 ### v1 보존형 마이그레이션
 
@@ -554,10 +555,11 @@ COMMIT
 ### 현재 코드 통합 제약
 
 현재 `OnlineSaveApi`는 원격 조회·조건부 갱신 계약을 구현하고,
-`OnlineSaveCoordinator`는 이미 영속화된 체크포인트에 대해 단일 in-flight, 최신 pending
-병합, 동일 본문·멱등성 key 재시도와 충돌 중단을 담당한다. 아직 영속 outbox와 account
-슬롯 선택이 없으므로 게임의 `OnlineSaveRepository`에는 연결하지 않았다. 따라서 현
-단계의 실제 플레이는 기존처럼 서버 저장 요청을 발생시키지 않는다.
+`OnlineSaveCoordinator`는 계정별 영속 Outbox, 단일 in-flight, 최신 pending 병합,
+동일 본문·멱등성 key 재시도, 재시작 복구와 충돌 중단을 담당한다. Web Local Storage와
+IO application support 경로 모두 primary·backup 복구를 제공한다. 아직 최초 로그인 시
+guest·account·원격 저장 중 무엇을 사용할지 선택하는 연결이 없으므로 실제 게임에는
+주입하지 않았다. 따라서 현 단계의 플레이는 기존처럼 서버 저장 요청을 발생시키지 않는다.
 
 현재 `SaveScheduler`는 `_writeLocalSave`만 직렬화하고 `_saveRoundCheckpoint`는
 직접 파일 쓰기와 온라인 호출을 수행한다. 최종 구현에서는 다음처럼 바꾼다.
@@ -603,6 +605,8 @@ read-modify-write는 계정 슬롯별 하나의 `SyncStateCoordinator` mutex를 
 덮어쓰는 경로는 허용하지 않는다. 로컬 저장 후 dirty/generation 기록, in-flight
 생성, retry 갱신과 ack 적용을 모두 같은 임계구역에서 수행한다. payload 파일과
 metadata 파일은 서로 다른 원자적 교체 단위지만 metadata 상태 전이는 한 경로다.
+현재 구현의 payload fingerprint는 재시작 시 로컬 변경 여부를 판별하기 위한 값이며
+보안 검증이나 서버 요청 무결성의 신뢰 근거로 사용하지 않는다.
 
 ### save outbox
 
@@ -1146,8 +1150,8 @@ SHUTDOWN_TIMEOUT
 - [x] 인증된 `GET/PUT /v1/save`
 - [x] revision, 멱등성과 저장 트랜잭션
 - [x] Flutter 원격 저장 API 클라이언트와 단일 전송 worker
-- Flutter 영속 save outbox와 동기화 상태 기계
-- 최초 로그인, 재시도, 충돌과 백업 정책
+- [x] Flutter 영속 save outbox와 동기화 상태 기계
+- 최초 로그인 저장 선택과 충돌 해결 UX
 - 느린 네트워크·재시작 통합 검증
 
 ### 6단계: 중요 경제 확장

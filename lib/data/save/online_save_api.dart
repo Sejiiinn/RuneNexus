@@ -36,15 +36,45 @@ class OnlineSaveUpdateResult {
 }
 
 class OnlineSaveUpdateRequest {
-  OnlineSaveUpdateRequest({
-    required this.expectedRevision,
+  factory OnlineSaveUpdateRequest({
+    required int expectedRevision,
     required String idempotencyKey,
     required GameSaveData data,
-  }) : idempotencyKey = idempotencyKey.trim(),
-       encodedBody = jsonEncode({
-         'expectedRevision': expectedRevision,
-         'data': data.toJson(),
-       }) {
+  }) {
+    return OnlineSaveUpdateRequest._(
+      expectedRevision: expectedRevision,
+      idempotencyKey: idempotencyKey,
+      encodedBody: jsonEncode({
+        'expectedRevision': expectedRevision,
+        'data': data.toJson(),
+      }),
+    );
+  }
+
+  factory OnlineSaveUpdateRequest.fromPersisted({
+    required int expectedRevision,
+    required String idempotencyKey,
+    required String encodedBody,
+  }) {
+    final decoded = _decodeObject(encodedBody);
+    final dataJson = decoded?['data'];
+    if (decoded?['expectedRevision'] != expectedRevision ||
+        !GameSaveData.isCanonicalVersion2Envelope(dataJson) ||
+        GameSaveData.fromJson(dataJson) == null) {
+      throw const FormatException('영속 온라인 저장 요청 본문이 올바르지 않습니다.');
+    }
+    return OnlineSaveUpdateRequest._(
+      expectedRevision: expectedRevision,
+      idempotencyKey: idempotencyKey,
+      encodedBody: encodedBody,
+    );
+  }
+
+  OnlineSaveUpdateRequest._({
+    required this.expectedRevision,
+    required String idempotencyKey,
+    required this.encodedBody,
+  }) : idempotencyKey = idempotencyKey.trim() {
     if (expectedRevision < 0) {
       throw ArgumentError.value(
         expectedRevision,
@@ -69,6 +99,15 @@ class OnlineSaveUpdateRequest {
   final int expectedRevision;
   final String idempotencyKey;
   final String encodedBody;
+
+  static Map<String, dynamic>? _decodeObject(String source) {
+    try {
+      final decoded = jsonDecode(source);
+      return decoded is Map<String, dynamic> ? decoded : null;
+    } on FormatException {
+      return null;
+    }
+  }
 }
 
 class OnlineSaveException implements Exception {

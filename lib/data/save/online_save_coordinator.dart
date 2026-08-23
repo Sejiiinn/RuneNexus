@@ -5,10 +5,14 @@ import '../auth/google_authentication_api.dart';
 import '../auth/online_account_session_controller.dart';
 import 'game_save_data.dart';
 import 'online_save_api.dart';
+import 'online_save_outbox.dart';
+import 'online_save_outbox_repository.dart';
+import 'online_save_repository.dart';
 
 typedef OnlineSaveTimerFactory =
     Timer Function(Duration duration, void Function() callback);
 typedef OnlineSaveIdempotencyKeyFactory = String Function();
+typedef PersistedOnlineSaveLoader = Future<GameSaveData?> Function();
 
 enum OnlineSaveCoordinatorPhase {
   idle,
@@ -39,23 +43,32 @@ class OnlineSaveCoordinatorSnapshot {
   final int? conflictRevision;
 }
 
-class OnlineSaveCoordinator {
+class OnlineSaveCoordinator implements OnlineSaveRepository {
   OnlineSaveCoordinator({
     required this.accountId,
     required OnlineSaveClient client,
     required OnlineAccountSessionController session,
     required int initialRevision,
+    required OnlineSaveOutboxRepository outboxRepository,
+    required PersistedOnlineSaveLoader loadPersistedCheckpoint,
     OnlineSaveIdempotencyKeyFactory? idempotencyKeyFactory,
     OnlineSaveTimerFactory? timerFactory,
     math.Random? retryRandom,
+    DateTime Function()? now,
     this.onSnapshotChanged,
   }) : _client = client,
        _session = session,
-       _remoteRevision = initialRevision,
+       _initialRevision = initialRevision,
+       _outbox = OnlineSaveOutboxController(
+         accountId: accountId,
+         repository: outboxRepository,
+       ),
+       _loadPersistedCheckpoint = loadPersistedCheckpoint,
        _idempotencyKeyFactory =
            idempotencyKeyFactory ?? createOnlineSaveIdempotencyKey,
        _timerFactory = timerFactory ?? Timer.new,
-       _retryRandom = retryRandom ?? math.Random() {
+       _retryRandom = retryRandom ?? math.Random(),
+       _now = now ?? DateTime.now {
     if (accountId.isEmpty) {
       throw ArgumentError.value(accountId, 'accountId', '비어 있을 수 없습니다.');
     }
@@ -74,53 +87,111 @@ class OnlineSaveCoordinator {
   final String accountId;
   final OnlineSaveClient _client;
   final OnlineAccountSessionController _session;
+  final int _initialRevision;
+  final OnlineSaveOutboxController _outbox;
+  final PersistedOnlineSaveLoader _loadPersistedCheckpoint;
   final OnlineSaveIdempotencyKeyFactory _idempotencyKeyFactory;
   final OnlineSaveTimerFactory _timerFactory;
   final math.Random _retryRandom;
+  final DateTime Function() _now;
   final void Function(OnlineSaveCoordinatorSnapshot snapshot)?
   onSnapshotChanged;
 
-  int _remoteRevision;
-  GameSaveData? _pendingLatest;
-  OnlineSaveUpdateRequest? _inFlight;
+  Future<void>? _initializeOperation;
   Future<void>? _drainOperation;
   Timer? _retryTimer;
-  OnlineSaveCoordinatorPhase _phase = OnlineSaveCoordinatorPhase.idle;
-  DateTime? _lastSyncedAt;
-  String? _issueCode;
-  int? _conflictRevision;
-  int _retryCount = 0;
+  GameSaveData? _pendingLatest;
+  bool _initialized = false;
   bool _disposed = false;
 
-  OnlineSaveCoordinatorSnapshot get snapshot => OnlineSaveCoordinatorSnapshot(
-    phase: _phase,
-    remoteRevision: _remoteRevision,
-    pendingSaveCount:
-        (_inFlight == null ? 0 : 1) + (_pendingLatest == null ? 0 : 1),
-    retryCount: _retryCount,
-    lastSyncedAt: _lastSyncedAt,
-    issueCode: _issueCode,
-    conflictRevision: _conflictRevision,
-  );
-
-  Future<void> get currentAttempt => _drainOperation ?? Future<void>.value();
-
-  void enqueuePersistedCheckpoint(GameSaveData data) {
-    if (_disposed) {
-      throw StateError('종료된 온라인 저장 coordinator입니다.');
+  OnlineSaveCoordinatorSnapshot get snapshot {
+    if (!_initialized) {
+      return OnlineSaveCoordinatorSnapshot(
+        phase: _disposed
+            ? OnlineSaveCoordinatorPhase.disposed
+            : OnlineSaveCoordinatorPhase.idle,
+        remoteRevision: _initialRevision,
+        pendingSaveCount: 0,
+        retryCount: 0,
+        lastSyncedAt: null,
+        issueCode: null,
+        conflictRevision: null,
+      );
     }
-    _pendingLatest = data;
+    final state = _outbox.state;
+    return OnlineSaveCoordinatorSnapshot(
+      phase: _disposed
+          ? OnlineSaveCoordinatorPhase.disposed
+          : _coordinatorPhase(state.phase),
+      remoteRevision: state.remoteRevision,
+      pendingSaveCount:
+          (state.inFlight == null ? 0 : 1) + (state.dirty ? 1 : 0),
+      retryCount: state.retryCount,
+      lastSyncedAt: state.lastSyncedAt,
+      issueCode: state.issueCode,
+      conflictRevision: state.conflictRevision,
+    );
+  }
+
+  Future<void> get currentAttempt =>
+      _drainOperation ?? _initializeOperation ?? Future<void>.value();
+
+  Future<void> initialize() {
+    final current = _initializeOperation;
+    if (current != null) {
+      return current;
+    }
+    if (_initialized) {
+      return Future<void>.value();
+    }
+    if (_disposed) {
+      return Future<void>.error(StateError('종료된 온라인 저장 coordinator입니다.'));
+    }
+    final operation = _performInitialize();
+    _initializeOperation = operation;
+    return operation.whenComplete(() {
+      if (identical(_initializeOperation, operation)) {
+        _initializeOperation = null;
+      }
+    });
+  }
+
+  Future<void> enqueuePersistedCheckpoint(GameSaveData data) async {
+    _ensureReady();
+    final fingerprint = onlineSavePayloadFingerprint(data);
+    final next = await _outbox.mutate((current) {
+      final alreadyRepresented = current.inFlight == null
+          ? current.lastSyncedPayloadFingerprint == fingerprint
+          : current.inFlight!.payloadFingerprint == fingerprint;
+      return current.copyWith(
+        payloadGeneration: current.payloadGeneration + 1,
+        dirty: !alreadyRepresented,
+      );
+    });
+    _pendingLatest = next.dirty ? data : null;
     _publishSnapshot();
     _startDrain();
   }
 
-  void retryNow() {
-    if (_disposed || _phase != OnlineSaveCoordinatorPhase.retryWaiting) {
+  @override
+  Future<void> saveRoundCheckpoint(GameSaveData data) {
+    return enqueuePersistedCheckpoint(data);
+  }
+
+  Future<void> retryNow() async {
+    if (_disposed ||
+        !_initialized ||
+        _outbox.state.phase != OnlineSaveOutboxPhase.retryWaiting) {
       return;
     }
     _retryTimer?.cancel();
     _retryTimer = null;
-    _phase = OnlineSaveCoordinatorPhase.idle;
+    await _outbox.mutate(
+      (current) => current.copyWith(
+        phase: OnlineSaveOutboxPhase.idle,
+        nextRetryAt: null,
+      ),
+    );
     _publishSnapshot();
     _startDrain();
   }
@@ -133,18 +204,77 @@ class OnlineSaveCoordinator {
     _retryTimer?.cancel();
     _retryTimer = null;
     _pendingLatest = null;
-    _inFlight = null;
-    _phase = OnlineSaveCoordinatorPhase.disposed;
     _publishSnapshot();
+  }
+
+  Future<void> _performInitialize() async {
+    var state = await _outbox.initialize(remoteRevision: _initialRevision);
+    final persistedData = await _loadPersistedCheckpoint();
+    final persistedFingerprint = persistedData == null
+        ? null
+        : onlineSavePayloadFingerprint(persistedData);
+    state = await _outbox.mutate((current) {
+      var generation = current.payloadGeneration;
+      var dirty = current.dirty;
+      var phase = current.phase;
+      String? issueCode = current.issueCode;
+      DateTime? nextRetryAt = current.nextRetryAt;
+
+      if (persistedData == null) {
+        if (current.dirty && current.inFlight == null) {
+          phase = OnlineSaveOutboxPhase.blocked;
+          issueCode = 'LOCAL_SAVE_NOT_FOUND';
+        }
+      } else {
+        final representedFingerprint = current.inFlight == null
+            ? current.lastSyncedPayloadFingerprint
+            : current.inFlight!.payloadFingerprint;
+        final recoveredDirty = persistedFingerprint != representedFingerprint;
+        if (recoveredDirty && !current.dirty) {
+          generation = math.max(
+            current.payloadGeneration + 1,
+            (current.inFlight?.payloadGeneration ?? -1) + 1,
+          );
+        }
+        dirty = recoveredDirty;
+      }
+
+      if (phase == OnlineSaveOutboxPhase.sending) {
+        phase = OnlineSaveOutboxPhase.idle;
+      } else if (phase == OnlineSaveOutboxPhase.retryWaiting &&
+          (nextRetryAt == null || !nextRetryAt.isAfter(_now().toUtc()))) {
+        phase = OnlineSaveOutboxPhase.idle;
+        nextRetryAt = null;
+      }
+      return current.copyWith(
+        payloadGeneration: generation,
+        dirty: dirty,
+        phase: phase,
+        issueCode: issueCode,
+        nextRetryAt: nextRetryAt,
+      );
+    });
+    if (_disposed) {
+      return;
+    }
+    _initialized = true;
+    _pendingLatest = state.dirty ? persistedData : null;
+    _publishSnapshot();
+    if (state.phase == OnlineSaveOutboxPhase.retryWaiting) {
+      _scheduleRestoredRetry(state);
+    } else {
+      _startDrain();
+    }
   }
 
   void _startDrain() {
     if (_disposed ||
+        !_initialized ||
         _drainOperation != null ||
         _retryTimer != null ||
-        _phase == OnlineSaveCoordinatorPhase.conflict ||
-        _phase == OnlineSaveCoordinatorPhase.blocked ||
-        (_inFlight == null && _pendingLatest == null)) {
+        _outbox.state.phase == OnlineSaveOutboxPhase.conflict ||
+        _outbox.state.phase == OnlineSaveOutboxPhase.blocked ||
+        (_outbox.state.inFlight == null && !_outbox.state.dirty)) {
       return;
     }
 
@@ -158,9 +288,11 @@ class OnlineSaveCoordinator {
       await operation;
     } on Object {
       if (!_disposed) {
-        _phase = OnlineSaveCoordinatorPhase.blocked;
-        _issueCode = 'SAVE_SYNC_INTERNAL_ERROR';
-        _publishSnapshot();
+        try {
+          await _markBlocked('SAVE_SYNC_INTERNAL_ERROR');
+        } on Object {
+          // Outbox 자체 저장 실패는 호출자가 다음 체크포인트에서 다시 확인한다.
+        }
       }
     } finally {
       if (identical(_drainOperation, operation)) {
@@ -168,9 +300,10 @@ class OnlineSaveCoordinator {
       }
       if (!_disposed &&
           _retryTimer == null &&
-          _phase != OnlineSaveCoordinatorPhase.conflict &&
-          _phase != OnlineSaveCoordinatorPhase.blocked &&
-          (_inFlight != null || _pendingLatest != null)) {
+          _initialized &&
+          _outbox.state.phase != OnlineSaveOutboxPhase.conflict &&
+          _outbox.state.phase != OnlineSaveOutboxPhase.blocked &&
+          (_outbox.state.inFlight != null || _outbox.state.dirty)) {
         _startDrain();
       }
     }
@@ -178,25 +311,70 @@ class OnlineSaveCoordinator {
 
   Future<void> _drainQueue() async {
     while (!_disposed) {
-      if (_inFlight == null) {
-        final data = _pendingLatest;
-        if (data == null) {
-          _phase = OnlineSaveCoordinatorPhase.idle;
-          _publishSnapshot();
+      var state = _outbox.state;
+      if (state.phase == OnlineSaveOutboxPhase.conflict ||
+          state.phase == OnlineSaveOutboxPhase.blocked ||
+          state.phase == OnlineSaveOutboxPhase.retryWaiting) {
+        return;
+      }
+      var entry = state.inFlight;
+      if (entry == null) {
+        if (!state.dirty) {
+          await _setIdle();
           return;
         }
-        _pendingLatest = null;
-        _inFlight = OnlineSaveUpdateRequest(
-          expectedRevision: _remoteRevision,
+        final data = _pendingLatest ?? await _loadPersistedCheckpoint();
+        if (data == null) {
+          await _markBlocked('LOCAL_SAVE_NOT_FOUND');
+          return;
+        }
+        final fingerprint = onlineSavePayloadFingerprint(data);
+        final request = OnlineSaveUpdateRequest(
+          expectedRevision: state.remoteRevision,
           idempotencyKey: _idempotencyKeyFactory(),
           data: data,
         );
+        entry = OnlineSaveOutboxEntry(
+          idempotencyKey: request.idempotencyKey,
+          expectedRevision: request.expectedRevision,
+          encodedRequestBody: request.encodedBody,
+          payloadFingerprint: fingerprint,
+          payloadGeneration: state.payloadGeneration,
+        );
+        final preparedEntry = entry;
+        state = await _outbox.mutate((current) {
+          if (current.inFlight != null) {
+            return current;
+          }
+          return current.copyWith(
+            inFlight: preparedEntry,
+            dirty: current.payloadGeneration > preparedEntry.payloadGeneration,
+            phase: OnlineSaveOutboxPhase.sending,
+            issueCode: null,
+            conflictRevision: null,
+            nextRetryAt: null,
+          );
+        });
+        entry = state.inFlight;
+        if (entry == null) {
+          continue;
+        }
+        if (!state.dirty) {
+          _pendingLatest = null;
+        }
+        _publishSnapshot();
+      } else if (state.phase != OnlineSaveOutboxPhase.sending) {
+        state = await _outbox.mutate(
+          (current) => current.copyWith(
+            phase: OnlineSaveOutboxPhase.sending,
+            issueCode: null,
+            nextRetryAt: null,
+          ),
+        );
+        _publishSnapshot();
       }
 
-      final request = _inFlight!;
-      _phase = OnlineSaveCoordinatorPhase.sending;
-      _issueCode = null;
-      _publishSnapshot();
+      final request = entry.toRequest();
       try {
         final result = await _session.runAuthenticated(
           request: (accessToken) => _client.update(accessToken, request),
@@ -212,62 +390,142 @@ class OnlineSaveCoordinator {
             message: '원격 저장 revision이 예상과 일치하지 않습니다.',
           );
         }
-        _remoteRevision = result.revision;
-        _lastSyncedAt = result.serverSavedAt;
-        _inFlight = null;
-        _retryCount = 0;
-        _issueCode = null;
-        _conflictRevision = null;
-        _phase = _pendingLatest == null
-            ? OnlineSaveCoordinatorPhase.idle
-            : OnlineSaveCoordinatorPhase.sending;
+        final acknowledgedKey = entry.idempotencyKey;
+        state = await _outbox.mutate((current) {
+          if (current.inFlight?.idempotencyKey != acknowledgedKey) {
+            return current;
+          }
+          return current.copyWith(
+            remoteRevision: result.revision,
+            lastSyncedPayloadFingerprint: entry!.payloadFingerprint,
+            inFlight: null,
+            phase: current.dirty
+                ? OnlineSaveOutboxPhase.sending
+                : OnlineSaveOutboxPhase.idle,
+            retryCount: 0,
+            nextRetryAt: null,
+            lastSyncedAt: result.serverSavedAt,
+            issueCode: null,
+            conflictRevision: null,
+          );
+        });
+        if (!state.dirty) {
+          _pendingLatest = null;
+        }
         _publishSnapshot();
       } on Object catch (error) {
         if (_disposed) {
           return;
         }
         if (error is OnlineSaveException && error.isRetryable) {
-          // 결과가 불명확한 요청의 본문과 멱등성 key 유지.
-          _scheduleRetry(issueCode: error.code, retryAfter: error.retryAfter);
+          await _scheduleRetry(
+            issueCode: error.code,
+            retryAfter: error.retryAfter,
+          );
           return;
         }
         if (error is GoogleAuthenticationException && error.statusCode == 429) {
-          _scheduleRetry(issueCode: error.code, retryAfter: error.retryAfter);
+          await _scheduleRetry(
+            issueCode: error.code,
+            retryAfter: error.retryAfter,
+          );
           return;
         }
         if (error is OnlineSaveException &&
             error.statusCode == 409 &&
             error.code == 'SAVE_REVISION_CONFLICT') {
-          _phase = OnlineSaveCoordinatorPhase.conflict;
-          _issueCode = error.code;
-          _conflictRevision = error.currentRevision;
+          await _outbox.mutate(
+            (current) => current.copyWith(
+              phase: OnlineSaveOutboxPhase.conflict,
+              issueCode: error.code,
+              conflictRevision: error.currentRevision,
+              nextRetryAt: null,
+            ),
+          );
           _publishSnapshot();
           return;
         }
-        _phase = OnlineSaveCoordinatorPhase.blocked;
-        _issueCode = error is OnlineSaveException
-            ? error.code
-            : 'AUTH_SESSION_UNAVAILABLE';
-        _publishSnapshot();
+        await _markBlocked(
+          error is OnlineSaveException
+              ? error.code
+              : 'AUTH_SESSION_UNAVAILABLE',
+        );
         return;
       }
     }
   }
 
-  void _scheduleRetry({required String issueCode, Duration? retryAfter}) {
-    _retryCount++;
-    _phase = OnlineSaveCoordinatorPhase.retryWaiting;
-    _issueCode = issueCode;
-    final delay = retryAfter ?? _backoffDelay(_retryCount);
+  Future<void> _scheduleRetry({
+    required String issueCode,
+    Duration? retryAfter,
+  }) async {
+    final retryCount = _outbox.state.retryCount + 1;
+    final delay = retryAfter ?? _backoffDelay(retryCount);
+    final nextRetryAt = _now().toUtc().add(delay);
+    await _outbox.mutate(
+      (current) => current.copyWith(
+        phase: OnlineSaveOutboxPhase.retryWaiting,
+        retryCount: retryCount,
+        nextRetryAt: nextRetryAt,
+        issueCode: issueCode,
+      ),
+    );
+    _retryTimer?.cancel();
     _retryTimer = _timerFactory(delay, () {
       _retryTimer = null;
-      if (_disposed) {
-        return;
-      }
-      _phase = OnlineSaveCoordinatorPhase.idle;
-      _publishSnapshot();
-      _startDrain();
+      unawaited(_resumeRetry());
     });
+    _publishSnapshot();
+  }
+
+  void _scheduleRestoredRetry(OnlineSaveOutboxState state) {
+    final retryAt = state.nextRetryAt;
+    final now = _now().toUtc();
+    final delay = retryAt != null && retryAt.isAfter(now)
+        ? retryAt.difference(now)
+        : Duration.zero;
+    _retryTimer = _timerFactory(delay, () {
+      _retryTimer = null;
+      unawaited(_resumeRetry());
+    });
+  }
+
+  Future<void> _resumeRetry() async {
+    if (_disposed) {
+      return;
+    }
+    await _outbox.mutate(
+      (current) => current.copyWith(
+        phase: OnlineSaveOutboxPhase.idle,
+        nextRetryAt: null,
+      ),
+    );
+    _publishSnapshot();
+    _startDrain();
+  }
+
+  Future<void> _setIdle() async {
+    if (_outbox.state.phase == OnlineSaveOutboxPhase.idle) {
+      return;
+    }
+    await _outbox.mutate(
+      (current) => current.copyWith(
+        phase: OnlineSaveOutboxPhase.idle,
+        issueCode: null,
+        nextRetryAt: null,
+      ),
+    );
+    _publishSnapshot();
+  }
+
+  Future<void> _markBlocked(String issueCode) async {
+    await _outbox.mutate(
+      (current) => current.copyWith(
+        phase: OnlineSaveOutboxPhase.blocked,
+        issueCode: issueCode,
+        nextRetryAt: null,
+      ),
+    );
     _publishSnapshot();
   }
 
@@ -280,8 +538,30 @@ class OnlineSaveCoordinator {
     );
   }
 
+  void _ensureReady() {
+    if (_disposed) {
+      throw StateError('종료된 온라인 저장 coordinator입니다.');
+    }
+    if (!_initialized) {
+      throw StateError('온라인 저장 coordinator가 초기화되지 않았습니다.');
+    }
+  }
+
   void _publishSnapshot() {
     onSnapshotChanged?.call(snapshot);
+  }
+
+  static OnlineSaveCoordinatorPhase _coordinatorPhase(
+    OnlineSaveOutboxPhase phase,
+  ) {
+    return switch (phase) {
+      OnlineSaveOutboxPhase.idle => OnlineSaveCoordinatorPhase.idle,
+      OnlineSaveOutboxPhase.sending => OnlineSaveCoordinatorPhase.sending,
+      OnlineSaveOutboxPhase.retryWaiting =>
+        OnlineSaveCoordinatorPhase.retryWaiting,
+      OnlineSaveOutboxPhase.conflict => OnlineSaveCoordinatorPhase.conflict,
+      OnlineSaveOutboxPhase.blocked => OnlineSaveCoordinatorPhase.blocked,
+    };
   }
 }
 

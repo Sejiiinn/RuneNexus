@@ -7,6 +7,8 @@ import 'package:rune_nexus/data/auth/online_account_session_controller.dart';
 import 'package:rune_nexus/data/save/game_save_data.dart';
 import 'package:rune_nexus/data/save/online_save_api.dart';
 import 'package:rune_nexus/data/save/online_save_coordinator.dart';
+import 'package:rune_nexus/data/save/online_save_outbox.dart';
+import 'package:rune_nexus/data/save/online_save_outbox_repository.dart';
 import 'package:rune_nexus/domain/account/online_account_credentials.dart';
 
 void main() {
@@ -28,13 +30,16 @@ void main() {
       client: client,
       session: session,
       initialRevision: 0,
+      outboxRepository: MemoryOnlineSaveOutboxRepository(),
+      loadPersistedCheckpoint: () async => null,
       idempotencyKeyFactory: () => _idempotencyKey(++keySequence),
     );
+    await coordinator.initialize();
 
-    coordinator.enqueuePersistedCheckpoint(_saveData(1));
+    await coordinator.enqueuePersistedCheckpoint(_saveData(1));
     await _pumpUntil(() => requests.length == 1);
-    coordinator.enqueuePersistedCheckpoint(_saveData(2));
-    coordinator.enqueuePersistedCheckpoint(_saveData(3));
+    await coordinator.enqueuePersistedCheckpoint(_saveData(2));
+    await coordinator.enqueuePersistedCheckpoint(_saveData(3));
 
     expect(requests, hasLength(1));
     expect(coordinator.snapshot.pendingSaveCount, 2);
@@ -77,11 +82,14 @@ void main() {
       client: client,
       session: session,
       initialRevision: 0,
+      outboxRepository: MemoryOnlineSaveOutboxRepository(),
+      loadPersistedCheckpoint: () async => null,
       idempotencyKeyFactory: () => _idempotencyKey(1),
       timerFactory: timerFactory.create,
     );
+    await coordinator.initialize();
 
-    coordinator.enqueuePersistedCheckpoint(_saveData(10));
+    await coordinator.enqueuePersistedCheckpoint(_saveData(10));
     await coordinator.currentAttempt;
 
     expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.retryWaiting);
@@ -90,7 +98,6 @@ void main() {
     await _pumpUntil(() => requests.length == 2);
     await coordinator.currentAttempt;
 
-    expect(identical(requests[0], requests[1]), isTrue);
     expect(requests[0].encodedBody, requests[1].encodedBody);
     expect(requests[0].idempotencyKey, requests[1].idempotencyKey);
     expect(coordinator.snapshot.remoteRevision, 1);
@@ -128,10 +135,13 @@ void main() {
       client: client,
       session: session,
       initialRevision: 0,
+      outboxRepository: MemoryOnlineSaveOutboxRepository(),
+      loadPersistedCheckpoint: () async => null,
       idempotencyKeyFactory: () => _idempotencyKey(1),
     );
+    await coordinator.initialize();
 
-    coordinator.enqueuePersistedCheckpoint(_saveData(20));
+    await coordinator.enqueuePersistedCheckpoint(_saveData(20));
     await coordinator.currentAttempt;
 
     expect(refreshCount, 1);
@@ -191,11 +201,14 @@ void main() {
       ),
       session: session,
       initialRevision: 0,
+      outboxRepository: MemoryOnlineSaveOutboxRepository(),
+      loadPersistedCheckpoint: () async => null,
       idempotencyKeyFactory: () => _idempotencyKey(1),
       timerFactory: saveTimers.create,
     );
+    await coordinator.initialize();
 
-    coordinator.enqueuePersistedCheckpoint(_saveData(25));
+    await coordinator.enqueuePersistedCheckpoint(_saveData(25));
     await coordinator.currentAttempt;
 
     expect(refreshCount, 1);
@@ -231,12 +244,15 @@ void main() {
       ),
       session: session,
       initialRevision: 2,
+      outboxRepository: MemoryOnlineSaveOutboxRepository(),
+      loadPersistedCheckpoint: () async => null,
       idempotencyKeyFactory: () => _idempotencyKey(1),
     );
+    await coordinator.initialize();
 
-    coordinator.enqueuePersistedCheckpoint(_saveData(30));
+    await coordinator.enqueuePersistedCheckpoint(_saveData(30));
     await coordinator.currentAttempt;
-    coordinator.enqueuePersistedCheckpoint(_saveData(31));
+    await coordinator.enqueuePersistedCheckpoint(_saveData(31));
     await Future<void>.delayed(Duration.zero);
 
     expect(updateCount, 1);
@@ -262,16 +278,178 @@ void main() {
       ),
       session: session,
       initialRevision: 0,
+      outboxRepository: MemoryOnlineSaveOutboxRepository(),
+      loadPersistedCheckpoint: () async => null,
       idempotencyKeyFactory: () => _idempotencyKey(1),
       timerFactory: timerFactory.create,
     );
+    await coordinator.initialize();
 
-    coordinator.enqueuePersistedCheckpoint(_saveData(40));
+    await coordinator.enqueuePersistedCheckpoint(_saveData(40));
     await coordinator.currentAttempt;
 
     expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.blocked);
     expect(coordinator.snapshot.issueCode, 'INVALID_SAVE_DATA');
     expect(timerFactory.createCount, 0);
+    coordinator.dispose();
+    session.dispose();
+  });
+
+  test('앱 재시작 뒤에도 같은 본문과 멱등성 key로 in-flight를 재시도한다', () async {
+    final now = DateTime.utc(2026, 8, 24, 3);
+    final persistedData = _saveData(50);
+    final outbox = MemoryOnlineSaveOutboxRepository();
+    final firstTimers = _ManualTimerFactory();
+    final firstRequests = <OnlineSaveUpdateRequest>[];
+    final firstSession = _session();
+    final firstCoordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        update: (_, request) async {
+          firstRequests.add(request);
+          throw const OnlineSaveException(
+            code: 'SAVE_NETWORK_ERROR',
+            message: 'offline',
+            transportFailure: true,
+            retryAfter: Duration(seconds: 1),
+          );
+        },
+      ),
+      session: firstSession,
+      initialRevision: 0,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: () async => persistedData,
+      idempotencyKeyFactory: () => _idempotencyKey(1),
+      timerFactory: firstTimers.create,
+      now: () => now,
+    );
+
+    await firstCoordinator.initialize();
+    await firstCoordinator.currentAttempt;
+
+    expect(firstRequests, hasLength(1));
+    expect(outbox.state?.inFlight, isNotNull);
+    expect(outbox.state?.phase, OnlineSaveOutboxPhase.retryWaiting);
+    final persistedBody = outbox.state!.inFlight!.encodedRequestBody;
+    final persistedKey = outbox.state!.inFlight!.idempotencyKey;
+    firstCoordinator.dispose();
+    firstSession.dispose();
+
+    final restoredTimers = _ManualTimerFactory();
+    final restoredRequests = <OnlineSaveUpdateRequest>[];
+    final restoredSession = _session();
+    final restoredCoordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        update: (_, request) async {
+          restoredRequests.add(request);
+          return _updateResult(1);
+        },
+      ),
+      session: restoredSession,
+      initialRevision: 99,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: () async => persistedData,
+      idempotencyKeyFactory: () => throw StateError('새 key를 만들면 안 됩니다.'),
+      timerFactory: restoredTimers.create,
+      now: () => now,
+    );
+
+    await restoredCoordinator.initialize();
+
+    expect(restoredRequests, isEmpty);
+    expect(restoredTimers.lastDuration, const Duration(seconds: 1));
+    restoredTimers.lastTimer!.fire();
+    await _pumpUntil(() => restoredRequests.length == 1);
+    await restoredCoordinator.currentAttempt;
+
+    expect(restoredRequests.single.encodedBody, persistedBody);
+    expect(restoredRequests.single.idempotencyKey, persistedKey);
+    expect(restoredCoordinator.snapshot.remoteRevision, 1);
+    expect(restoredCoordinator.snapshot.pendingSaveCount, 0);
+    restoredCoordinator.dispose();
+    restoredSession.dispose();
+  });
+
+  test('로컬 저장과 metadata 기록 사이 종료도 시작 시 dirty로 복구한다', () async {
+    final syncedData = _saveData(60);
+    final latestData = _saveData(61);
+    final outbox = MemoryOnlineSaveOutboxRepository()
+      ..state =
+          OnlineSaveOutboxState.initial(
+            accountId: _accountId,
+            remoteRevision: 3,
+          ).copyWith(
+            lastSyncedPayloadFingerprint: onlineSavePayloadFingerprint(
+              syncedData,
+            ),
+            payloadGeneration: 1,
+          );
+    final requests = <OnlineSaveUpdateRequest>[];
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        update: (_, request) async {
+          requests.add(request);
+          return _updateResult(4);
+        },
+      ),
+      session: session,
+      initialRevision: 0,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: () async => latestData,
+      idempotencyKeyFactory: () => _idempotencyKey(4),
+    );
+
+    await coordinator.initialize();
+    await _pumpUntil(() => requests.length == 1);
+    await coordinator.currentAttempt;
+
+    expect(_savedAtMillis(requests.single), 61);
+    expect(coordinator.snapshot.remoteRevision, 4);
+    expect(outbox.state?.dirty, isFalse);
+    expect(
+      outbox.state?.lastSyncedPayloadFingerprint,
+      onlineSavePayloadFingerprint(latestData),
+    );
+    coordinator.dispose();
+    session.dispose();
+  });
+
+  test('Outbox 영속화가 끝나기 전에는 HTTP 요청을 시작하지 않는다', () async {
+    final outbox = _BlockingOutboxRepository(
+      OnlineSaveOutboxState.initial(accountId: _accountId, remoteRevision: 0),
+    );
+    var updateCount = 0;
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        update: (_, _) async {
+          updateCount++;
+          return _updateResult(1);
+        },
+      ),
+      session: session,
+      initialRevision: 0,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: () async => null,
+      idempotencyKeyFactory: () => _idempotencyKey(1),
+    );
+    await coordinator.initialize();
+    outbox.blockNextSave();
+
+    final enqueue = coordinator.saveRoundCheckpoint(_saveData(70));
+    await outbox.saveStarted.future;
+
+    expect(updateCount, 0);
+    outbox.releaseSave();
+    await enqueue;
+    await _pumpUntil(() => updateCount == 1);
+    await coordinator.currentAttempt;
+
+    expect(coordinator.snapshot.remoteRevision, 1);
     coordinator.dispose();
     session.dispose();
   });
@@ -419,5 +597,43 @@ class _ManualTimer implements Timer {
   @override
   void cancel() {
     _active = false;
+  }
+}
+
+class _BlockingOutboxRepository implements OnlineSaveOutboxRepository {
+  _BlockingOutboxRepository(this.state);
+
+  OnlineSaveOutboxState? state;
+  Completer<void> saveStarted = Completer<void>();
+  Completer<void>? _saveGate;
+
+  void blockNextSave() {
+    saveStarted = Completer<void>();
+    _saveGate = Completer<void>();
+  }
+
+  void releaseSave() {
+    _saveGate?.complete();
+  }
+
+  @override
+  Future<OnlineSaveOutboxState?> load() async => state;
+
+  @override
+  Future<void> save(OnlineSaveOutboxState state) async {
+    final gate = _saveGate;
+    if (gate != null) {
+      if (!saveStarted.isCompleted) {
+        saveStarted.complete();
+      }
+      await gate.future;
+      _saveGate = null;
+    }
+    this.state = state;
+  }
+
+  @override
+  Future<void> clear() async {
+    state = null;
   }
 }
