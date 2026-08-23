@@ -1,6 +1,11 @@
 # Rune Nexus MVP 작업 계획서
 
-마지막 갱신 기준: `main` 브랜치 커밋 `dc449a0`.
+문서 상태: 초기 MVP 범위를 보존하는 기준 문서
+작성 기준: `main` 브랜치 커밋 `dc449a0`
+
+현재 구현 완료 여부와 다음 작업 판단에는 이 문서를 사용하지 않는다. 최신 상태는
+`docs/implementation_status.md`, 현재 우선순위는 `docs/next_work_priorities.md`,
+계정·온라인 저장 설계는 `docs/backend_architecture.md`를 기준으로 한다.
 
 ## 문서 역할
 

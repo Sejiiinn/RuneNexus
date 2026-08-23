@@ -1,34 +1,47 @@
 # Rune Nexus 구현 현황
 
-마지막 갱신 기준: 최근 `main` 브랜치 작업 기준.
+마지막 갱신 기준: 2026-08-24 `codex/go-server-foundation` 브랜치의
+`b663dc7` 커밋까지.
 
 ## 요약
 
-Rune Nexus는 Flutter + Flame 기반의 플레이 가능한 로그라이트 타워 디펜스 MVP 단계다. 기본 전투 루프, 젬/링크, 포탑 성장, 포탑 모듈, 런 한정 젬 파편, 저장/복구, 스테이지 선택/해금, 결과 화면, 룬 기반 영구 업그레이드 기초가 구현되어 있다.
+Rune Nexus는 Flutter + Flame 기반의 플레이 가능한 로그라이트 타워 디펜스 MVP
+단계다. 기본 전투 루프, 젬/링크, 포탑 성장, 포탑 모듈, 런 한정 젬 파편,
+저장/복구, 스테이지 선택/해금, 결과 화면, 룬 기반 영구 업그레이드 기초가 구현되어
+있다.
+
+별도 Go API와 PostgreSQL에는 Google 웹 인증, 자체 세션, 계정별 온라인 저장 API가
+구현되어 있다. Flutter에는 Google 로그인 UI, 세션 자동 갱신, 원격 저장 클라이언트,
+단일 전송 worker와 계정별 영속 Outbox까지 준비되어 있다. 다만 기존 게스트 저장과
+계정·원격 저장 중 사용할 데이터를 고르는 최초 로그인 UX가 없으므로, 온라인 저장
+coordinator는 아직 실제 게임 저장 흐름에 연결하지 않았다. 현재 플레이는 기존처럼
+로컬 저장만 사용한다.
 
 세부 전투 수치와 밸런스 기준은 `docs/gameplay_balance_reference.md`를 기준으로 한다.
 
 ## 실행 및 검증 상태
 
-최근 작업 기준으로 다음 검증이 통과했다.
-
-```bash
-flutter analyze
-flutter test test/main_menu_stage_test.dart test/main_menu_core_test.dart
-```
-
-전투/밸런스 변경을 포함한 작업에서는 다음 검증도 함께 수행한다.
-
-```bash
-flutter test test/game_balance_test.dart test/turret_trait_test.dart test/combat_hud_widget_test.dart
-```
-
-전체 검증 권장 명령:
+클라이언트 전체 검증 권장 명령:
 
 ```bash
 flutter analyze
 flutter test
 flutter build web --pwa-strategy=none --no-tree-shake-icons
+```
+
+백엔드 기본 검증 권장 명령:
+
+```bash
+make -C server format
+make -C server test
+make -C server vet
+docker compose config --quiet
+```
+
+PostgreSQL을 포함한 스키마·인증·저장 통합 검증:
+
+```bash
+make -C server integration-test
 ```
 
 Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개발 중에는 `--pwa-strategy=none` 사용을 권장한다.
@@ -66,6 +79,30 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 - 문서/프로토타입 HTML
   - `docs/prototypes/shielded_enemy_design_preview.html`: 챕터 2 보호막병 실제 몹 설계안
   - `docs/chapter3_forge_design.md`: 챕터 3 공명 용광로 맵/웨이브 설계 기준
+
+### 계정/인증/온라인 저장 기반
+
+- Go 표준 `net/http` API 서버와 PostgreSQL 18 Compose 개발 환경
+- `pgx/v5`, `sqlc`, `tern` 기반 DB 접근·쿼리 생성·마이그레이션
+- 계정, 외부 identity, session, refresh token 스키마
+- Google Identity Services 웹 로그인 UI와 ID token 검증
+- `POST /v1/auth/google`, `/v1/auth/refresh`, `/v1/auth/logout`
+- access Bearer 인증과 refresh token 단일 사용 회전·재사용 감지
+- Flutter 메모리 세션 자동 갱신, single-flight, 인증 실패 시 1회 갱신 재시도
+- Google 로그인·토큰 갱신의 클라이언트별 요청 제한과 `Retry-After` 처리
+- 인증된 `GET /v1/save`, `PUT /v1/save`
+- 전체 `GameSaveData` 스냅샷을 서버 내부에서 영역별 PostgreSQL 행으로 분리 저장
+- revision 기반 동시 수정 감지와 idempotency key 기반 중복 요청 처리
+- 계정당 단일 in-flight 전송과 최신 pending 저장 병합
+- 계정별 영속 Outbox와 앱 재시작 후 미완료 전송 복구
+- 일시적 네트워크·서버 오류 지수 backoff 재시도
+- revision 충돌과 복구 불가능 상태의 명시적 정지
+- Caddy HTTPS reverse proxy와 ipTIME 자체 운영 배포 구성
+- GitHub Pages 빌드의 Google Web Client ID·API 주소 주입 경로
+
+현재 계정 세션은 메모리에만 유지하므로 브라우저 새로고침 또는 앱 재시작 후 다시
+로그인해야 한다. PGS와 Apple 인증, 기존 계정에 identity를 추가하는 연결 API도 아직
+구현하지 않았다.
 
 ### 스테이지/진행
 
@@ -170,7 +207,7 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 - 스테이지 6~10 전용 보호막병 중심 40라운드 웨이브
 - 스테이지 11~15 전용 장갑/탱커 중심 공명 용광로 40라운드 웨이브
 - 보스 웨이브는 10라운드마다 보스 1마리와 전후 호위 몹을 스폰
-- 12종 젬
+- 13종 젬
   - 가속
   - 사거리
   - 물리 피해 증폭
@@ -260,7 +297,13 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 
 ### 저장/복구
 
-- 로컬 저장소 기반 진행 저장
+- `GameSaveData` v2 통파일 기반 로컬 진행 저장
+- `preferences`, `progression`, `turretModules`, `activeRun` 최상위 영역 분리
+- guest/account별 로컬 저장 슬롯 분리
+- Web Local Storage와 application support 파일 저장
+- v2 primary/backup과 IO 원자적 교체
+- legacy v1 및 과도기 v2 데이터를 원본 보존 후 canonical v2로 마이그레이션
+- 일반 저장과 라운드 체크포인트를 단일 `LocalSaveCoordinator`로 직렬화
 - 저장 대상
   - 스테이지 번호
   - 맵 지문값
@@ -366,13 +409,27 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 - 메인 메뉴 위젯 렌더링
 - 결과 화면 액션과 다음 스테이지 시작
 - 포탑 모듈 뽑기, 장착/해제, 분해, 저장/복구, 전투 능력치 적용
+- legacy v1/v2 저장 마이그레이션과 guest/account 슬롯 격리
+- Google 인증 API, 세션 회전, 로그아웃, Bearer 인증과 요청 제한
+- 계정별 온라인 저장 revision·멱등성·트랜잭션
+- Flutter 원격 저장 요청 직렬화와 인증 재시도
+- 온라인 저장 단일 in-flight, 최신 pending 병합, backoff, 충돌 정지
+- IO/Web 영속 Outbox와 앱 재시작 복구
 
 ## 아직 구현하지 않은 항목
 
-- 챕터 2~3 클리어 보상과 연구 조건 연결
+- 최초 로그인 시 guest 로컬·account 로컬·원격 저장 비교 및 사용자 선택 UX
+- 선택 전 원본 backup과 선택 결과의 account 슬롯 적용
+- `OnlineSaveCoordinator`를 실제 게임 저장 흐름에 주입하고 상태 UI와 연결
+- revision 충돌 시 양쪽 데이터를 보존하는 해결 UX
+- 공개 HTTPS API와 GitHub Pages를 연결한 실제 Google 계정 E2E 검증
+- Android PGS v2 인증, server auth code 교환과 Google Play Games Player ID 검증
+- 기존 account에 Google/PGS identity를 추가하는 계정 연결 API
+- 브라우저 새로고침·앱 재시작 뒤 인증 세션 복원
+- 계정·원격 데이터 삭제와 운영 DB 백업·복원 자동화
+- 챕터 2~3 클리어 보상과 연구 조건의 추가 연결·체감 검증
 - 영구 업그레이드 해금 단계 구조
 - 링크/젬/룬 보상 계열 영구 업그레이드 추가 검토
-- 온라인 저장 실제 연동
 - 픽셀 스프라이트 에셋
 - 사운드/효과음
 - Android/iOS 실기 실행 검증
@@ -380,8 +437,11 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 
 ## 다음 추천 작업
 
-1. 챕터 2~3 클리어 보상과 연구 조건 연결
-2. 연구/영구 성장 해금 단계 정리
-3. 젬 파편 수급량과 젬 구매/포탑 특성 비용 밸런스 점검
-4. 40라운드 기준 보상/난이도 곡선 재점검
-5. 보스 웨이브 연출과 피드백 강화
+1. 최초 로그인 저장 선택·backup·충돌 해결 UX 구현
+2. 선택된 account 슬롯에 `OnlineSaveCoordinator`를 연결하고 동기화 상태 표시
+3. 자체 운영 HTTPS API와 GitHub Pages 간 Google 로그인·저장 E2E 검증
+4. Android PGS v2 인증과 기존 account identity 연결 구현
+5. 운영 DB backup·복원과 계정 데이터 삭제 절차 마련
+
+온라인 저장 통합과 독립적으로 진행할 콘텐츠 작업은
+`docs/next_work_priorities.md`의 콘텐츠 백로그를 따른다.

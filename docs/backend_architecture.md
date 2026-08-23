@@ -1201,6 +1201,8 @@ Go 서버, Compose와 문서처럼 클라이언트 저장 형식을 바꾸지 �
 
 ## 현재 구현 상태
 
+- 구현 기준은 2026-08-24 `codex/go-server-foundation` 브랜치의 `b663dc7`
+  커밋까지다.
 - 현재 브랜치에는 `GameSaveData` v2 영역 분리와 v1 -> v2 변환 코드가 있다.
 - Web과 IO 모두 guest/account별 v2 primary와 backup 위치를 사용한다.
 - guest legacy 저장은 원본을 보존한 채 신규 v2 위치로 이전한다.
@@ -1209,8 +1211,22 @@ Go 서버, Compose와 문서처럼 클라이언트 저장 형식을 바꾸지 �
 - Go 1.26.5, pgx 5.10.0, sqlc 1.31.1, tern 2.4.1을 고정했다.
 - PostgreSQL, migrate, API Compose 실행 기반이 있다.
 - 계정·session과 영역별 온라인 저장 스키마 및 `sqlc` 쿼리가 구현되어 있다.
-- 게스트·연결·오프라인·확인 필요 상태를 표시하는 계정·저장 UI 기반이 구현되어 있다.
 - `/health/live`, `/health/ready`가 구현되어 있다.
+- Google Identity Services 웹 로그인, ID token 검증과 account/session 발급 API가
+  구현되어 있다.
+- refresh token 회전·재사용 감지·logout과 Bearer 인증이 구현되어 있다.
+- Google 로그인·refresh 요청 제한과 Flutter 메모리 세션 자동 갱신이 구현되어 있다.
+- 인증된 `GET/PUT /v1/save`, revision·멱등성·영역별 저장 트랜잭션이 구현되어 있다.
+- Flutter 원격 저장 API 클라이언트와 단일 in-flight 전송 worker가 구현되어 있다.
+- 계정별 영속 Outbox, 최신 pending 병합, backoff와 재시작 복구가 구현되어 있다.
+- 게스트·연결·오프라인·확인 필요 상태를 표시하는 계정·저장 UI 기반이 구현되어 있다.
+- Caddy HTTPS reverse proxy와 production Compose 배포 골격이 구현되어 있다.
+- 최초 로그인 저장 선택과 충돌 해결 UX가 없어 `OnlineSaveCoordinator`는 아직 실제
+  게임 저장 흐름에 연결하지 않았다. 따라서 현재 플레이 저장은 계속 로컬에서만
+  동작한다.
+- 클라이언트 인증 세션은 메모리에만 유지되므로 브라우저 새로고침 또는 앱 재시작 뒤
+  다시 로그인한다.
 - Android Application ID는 아직 `com.example.rune_nexus`다.
 - release 빌드는 아직 debug signing을 사용한다.
-- PGS 인증과 실제 저장 API는 아직 없다.
+- PGS 인증, identity 연결 API, 운영 DB backup·restore와 계정 데이터 삭제는 아직
+  구현되지 않았다.

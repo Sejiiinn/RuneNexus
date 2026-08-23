@@ -1,12 +1,84 @@
 # Rune Nexus 개발 히스토리
 
-마지막 갱신 기준: `codex-map-editor` 브랜치 2026-05-13 작업분.
+마지막 갱신 기준: 2026-08-24 `codex/go-server-foundation` 브랜치의
+`b663dc7` 커밋까지.
 
 ## 목적
 
 이 문서는 README에 넣기에는 세부적인 최근 구현 흐름을 남기는 기록이다. 현재 규칙과 수치는 `docs/gameplay_balance_reference.md`, 구현 완료 여부는 `docs/implementation_status.md`를 기준으로 한다.
 
 ## 최근 구현 흐름
+
+### 백엔드·인증·온라인 저장 설계 확정
+
+- 게임 플레이와 로컬 저장은 서버 응답에 의존하지 않는 로컬 우선 구조로 결정했다.
+- 클라이언트는 트랜잭션과 복구 단순성을 위해 `GameSaveData` 통파일을 유지하고,
+  서버만 `preferences`, `progression`, `turretModules`, `activeRun` 영역으로 분리해
+  PostgreSQL에 저장하도록 정했다.
+- 서버는 Go 표준 `net/http`, `pgx/v5`, `sqlc`, `tern`, PostgreSQL 18을 채택했다.
+- 스냅샷 저장은 HTTPS JSON API, revision 낙관적 동시성, idempotency key와 계정별
+  단일 in-flight 전송을 사용한다. WebSocket과 서버 권위형 전투는 범위에서 제외했다.
+- 다이아·결제·중요 일회성 보상은 실제 기능 도입 시 별도 명령 API와 원장으로
+  승격하고, 일반 플레이 저장은 동기화 스냅샷으로 취급한다.
+
+### 로컬 저장 v2와 배포 안전성
+
+- 큰 저장 모델을 파일 단위로 분리하되 직렬화 결과는 v2 JSON 통파일로 유지했다.
+- 최상위 저장 영역을 `preferences`, `progression`, `turretModules`, `activeRun`으로
+  분리하고 포탑 모듈을 런 진행과 독립된 영역으로 이동했다.
+- guest/account별 로컬 슬롯, v2 primary/backup, Web Local Storage와 application
+  support 파일 저장을 추가했다.
+- legacy v1 및 과도기 v2를 원본 보존 후 canonical v2로 이전하고, IO 저장은 원자적
+  교체를 사용하도록 강화했다.
+- 일반 저장과 라운드 체크포인트 쓰기를 `LocalSaveCoordinator` 하나로 직렬화했다.
+
+### Go API와 PostgreSQL 저장 기반
+
+- Docker Compose 기반 PostgreSQL, migrate, Go API 실행 환경과 health endpoint를
+  추가했다.
+- 계정, 외부 identity, session, refresh token, 영역별 온라인 저장과 요청 영수증
+  스키마를 추가했다.
+- `sqlc` 쿼리와 생성 코드, 실제 PostgreSQL 스키마·인증·저장 통합 테스트를
+  구성했다.
+- 인증된 `GET /v1/save`, `PUT /v1/save`에서 revision 검증, 멱등 요청 재생,
+  영역별 저장을 하나의 DB 트랜잭션으로 처리하도록 구현했다.
+
+### Google 웹 인증과 자체 세션
+
+- GitHub Pages에서도 사용할 수 있도록 Google Identity Services 공식 버튼을 계정
+  화면의 인게임 모달 안에 연결했다.
+- Go 서버에서 Google ID token의 서명, audience와 만료를 검증하고 내부 account와
+  Google identity를 생성·조회하도록 구현했다.
+- opaque access/refresh token, refresh token 단일 사용 회전, 재사용 감지와 logout을
+  추가했다. DB에는 토큰 원문 대신 SHA-256 해시만 저장한다.
+- Flutter에는 메모리 세션, 만료 전 자동 갱신, single-flight와 인증 실패 시 401
+  1회 재시도를 구현했다.
+- Google 로그인과 refresh endpoint에 클라이언트별 token bucket 요청 제한과
+  `Retry-After` 처리를 추가했다.
+
+### Flutter 온라인 저장 worker와 영속 Outbox
+
+- 원격 저장 요청을 `GameSaveData` 전체 스냅샷으로 직렬화하는 Flutter API
+  클라이언트를 추가했다.
+- 계정당 하나의 요청만 전송하고 대기 중 변경은 최신 체크포인트 하나로 합치는
+  `OnlineSaveCoordinator`를 구현했다.
+- timeout과 일시적 서버 오류는 같은 본문·idempotency key로 backoff 재시도하며,
+  revision 충돌과 복구 불가능 오류는 자동 덮어쓰기 없이 정지한다.
+- 계정 ID에 결속된 Outbox를 IO/Web 저장소에 영속화하고, HTTP 요청 전에 Outbox
+  기록을 완료하며, 앱 재시작 뒤 in-flight와 retry 상태를 복구하도록 했다.
+- 최초 로그인 저장 선택과 충돌 해결 UX가 아직 없으므로 coordinator는 실제 게임
+  저장 흐름에는 주입하지 않았다. 현재 플레이는 기존 로컬 저장만 사용한다.
+
+### 자체 운영 HTTPS 배포 기반
+
+- 무료 관리형 서비스에 의존하지 않고 ipTIME 공유기 뒤의 자체 서버를 공개하는
+  방향을 채택했다.
+- Caddy reverse proxy, production Compose overlay, 보안 헤더와 인증 endpoint 요청
+  제한 구성을 추가했다.
+- DNS, 80/443 포트 포워딩, CGNAT 확인, Google OAuth origin, GitHub Pages CORS와
+  Actions Variables 설정 절차를 문서화했다.
+- 운영 전 남은 항목은 실제 공개 E2E, DB backup·restore 자동화, 계정 데이터 삭제와
+  Android PGS 인증이다.
 
 ### 디버그 맵 에디터
 
