@@ -12,9 +12,14 @@ class SaveScheduler {
   Timer? _timer;
   bool _inFlight = false;
   bool _pending = false;
+  bool _paused = false;
+  bool _disposed = false;
   Future<void>? _inFlightFlush;
 
   void requestSave({bool immediate = false}) {
+    if (_paused || _disposed) {
+      return;
+    }
     if (immediate) {
       _timer?.cancel();
       _timer = null;
@@ -28,6 +33,9 @@ class SaveScheduler {
   }
 
   Future<void> flush() {
+    if (_paused || _disposed) {
+      return _inFlightFlush ?? Future<void>.value();
+    }
     if (_inFlight) {
       _pending = true;
       final inFlightFlush = _inFlightFlush;
@@ -48,7 +56,7 @@ class SaveScheduler {
       do {
         _pending = false;
         await _saveNow();
-      } while (_pending);
+      } while (_pending && !_paused && !_disposed);
     } finally {
       _inFlight = false;
       _inFlightFlush = null;
@@ -56,7 +64,24 @@ class SaveScheduler {
   }
 
   void dispose() {
+    _disposed = true;
+    _paused = true;
+    _pending = false;
     _timer?.cancel();
     _timer = null;
+  }
+
+  Future<void> quiesce() async {
+    _paused = true;
+    _pending = false;
+    _timer?.cancel();
+    _timer = null;
+    await (_inFlightFlush ?? Future<void>.value());
+  }
+
+  void resume() {
+    if (!_disposed) {
+      _paused = false;
+    }
   }
 }

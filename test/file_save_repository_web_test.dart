@@ -7,12 +7,14 @@ import 'dart:convert';
 import 'dart:html' as html;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:rune_nexus/data/save/backup_save_repository.dart';
 import 'package:rune_nexus/data/save/file_save_repository_web.dart';
 import 'package:rune_nexus/data/save/game_save_data.dart';
 
 const _legacyKey = 'rune_nexus_save_v1';
 const _primaryKey = 'rune_nexus:save:v2:guest:primary';
 const _backupKey = 'rune_nexus:save:v2:guest:backup';
+const _conflictBackupKey = 'rune_nexus:save:v2:guest:conflict';
 
 void main() {
   setUp(_clearTestKeys);
@@ -30,15 +32,22 @@ void main() {
     expect(GameSaveData.isCanonicalVersion2Envelope(migrated), isTrue);
   });
 
-  test('Web legacy key에 기록된 canonical v2도 신규 key로 옮긴다', () async {
+  test('Web legacy key의 미배포 canonical v2는 마이그레이션하지 않는다', () async {
     html.window.localStorage[_legacyKey] = jsonEncode(_saveData(18).toJson());
     final repository = FileSaveRepository();
 
     final loaded = await repository.load();
 
-    expect(loaded?.savedAtMillis, 18);
+    expect(loaded, isNull);
     expect(html.window.localStorage[_legacyKey], isNotNull);
-    expect(html.window.localStorage[_primaryKey], isNotNull);
+    expect(html.window.localStorage[_primaryKey], isNull);
+  });
+
+  test('Web v2 primary key의 v1 데이터는 거부한다', () async {
+    html.window.localStorage[_primaryKey] = jsonEncode(_legacyJson(19));
+    final repository = FileSaveRepository();
+
+    expect(await repository.load(), isNull);
   });
 
   test('Web primary 손상 시 직전 정상 backup을 복구한다', () async {
@@ -71,12 +80,43 @@ void main() {
       25,
     );
   });
+
+  test('Web 충돌 backup은 일반 backup과 분리해 보존한다', () async {
+    final repository = FileSaveRepository();
+    final local = _saveData(25);
+    await repository.save(local);
+
+    await repository.preserveConflictBackup(
+      ConflictSaveBackup(
+        rebaseId: 'rebase-web-1',
+        accountId: '0198b955-3656-7c40-b3cb-87f427b90be2',
+        baseRevision: 1,
+        targetRevision: 2,
+        localPayloadHash: 'hash-25',
+        createdAt: DateTime.utc(2026, 8, 26),
+        data: local,
+      ),
+    );
+    await repository.save(_saveData(30));
+
+    final conflictJson =
+        jsonDecode(html.window.localStorage[_conflictBackupKey]!)
+            as Map<String, dynamic>;
+    expect(GameSaveData.fromJson(conflictJson['data'])?.savedAtMillis, 25);
+    expect(
+      GameSaveData.fromJson(
+        jsonDecode(html.window.localStorage[_backupKey]!),
+      )?.savedAtMillis,
+      25,
+    );
+  });
 }
 
 void _clearTestKeys() {
   html.window.localStorage.remove(_legacyKey);
   html.window.localStorage.remove(_primaryKey);
   html.window.localStorage.remove(_backupKey);
+  html.window.localStorage.remove(_conflictBackupKey);
 }
 
 GameSaveData _saveData(int savedAtMillis) {

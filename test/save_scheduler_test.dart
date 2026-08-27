@@ -136,4 +136,28 @@ void main() {
 
     expect(saveCount, 0);
   });
+
+  testWidgets(
+    'remote rebase pause cancels pending work and can resume after failure',
+    (tester) async {
+      var saveCount = 0;
+      final scheduler = SaveScheduler(
+        saveNow: () async {
+          saveCount++;
+        },
+        throttle: throttle,
+      );
+      addTearDown(scheduler.dispose);
+
+      scheduler.requestSave();
+      await scheduler.quiesce();
+      await tester.pump(throttle);
+      expect(saveCount, 0);
+
+      scheduler.resume();
+      scheduler.requestSave(immediate: true);
+      await tester.pump();
+      expect(saveCount, 1);
+    },
+  );
 }

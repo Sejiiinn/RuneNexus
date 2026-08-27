@@ -4,13 +4,40 @@ import 'game_save_data.dart';
 import 'online_save_transport_stub.dart'
     if (dart.library.html) 'online_save_transport_web.dart';
 
+const onlineSaveClientCompatibilityVersion = 1;
+
 abstract interface class OnlineSaveClient {
+  Future<OnlineSaveWriterClaimResult> claimWriter(
+    String accessToken,
+    OnlineSaveWriterClaimRequest request,
+  );
+
   Future<OnlineSaveSnapshot?> load(String accessToken);
 
   Future<OnlineSaveUpdateResult> update(
     String accessToken,
     OnlineSaveUpdateRequest request,
   );
+}
+
+abstract interface class OnlineSaveConditionalClient
+    implements OnlineSaveClient {
+  Future<OnlineSaveConditionalLoadResult> loadIfChanged(
+    String accessToken, {
+    required int knownRevision,
+  });
+}
+
+class OnlineSaveConditionalLoadResult {
+  const OnlineSaveConditionalLoadResult.notModified()
+    : notModified = true,
+      snapshot = null;
+
+  const OnlineSaveConditionalLoadResult.loaded(this.snapshot)
+    : notModified = false;
+
+  final bool notModified;
+  final OnlineSaveSnapshot? snapshot;
 }
 
 class OnlineSaveSnapshot {
@@ -35,17 +62,127 @@ class OnlineSaveUpdateResult {
   final DateTime serverSavedAt;
 }
 
+class OnlineSaveWriterClaimResult {
+  const OnlineSaveWriterClaimResult({
+    required this.writerGeneration,
+    required this.claimedAt,
+  });
+
+  final int writerGeneration;
+  final DateTime claimedAt;
+}
+
+class OnlineSaveWriterClaimRequest {
+  factory OnlineSaveWriterClaimRequest({
+    required String idempotencyKey,
+    required String clientInstanceId,
+    required String clientBuild,
+    int clientCompatibilityVersion = onlineSaveClientCompatibilityVersion,
+  }) {
+    if (clientCompatibilityVersion <= 0) {
+      throw ArgumentError.value(
+        clientCompatibilityVersion,
+        'clientCompatibilityVersion',
+        '1 이상이어야 합니다.',
+      );
+    }
+    return OnlineSaveWriterClaimRequest._(
+      idempotencyKey: idempotencyKey,
+      clientInstanceId: clientInstanceId,
+      clientCompatibilityVersion: clientCompatibilityVersion,
+      encodedBody: jsonEncode({
+        'clientInstanceId': clientInstanceId,
+        'saveSchemaVersion': GameSaveData.currentVersion,
+        'clientCompatibilityVersion': clientCompatibilityVersion,
+        'clientBuild': clientBuild,
+      }),
+    );
+  }
+
+  factory OnlineSaveWriterClaimRequest.fromPersisted({
+    required String idempotencyKey,
+    required String encodedBody,
+    int currentClientCompatibilityVersion =
+        onlineSaveClientCompatibilityVersion,
+  }) {
+    final decoded = _decodeObject(encodedBody);
+    final clientInstanceId = decoded?['clientInstanceId'];
+    final clientBuild = decoded?['clientBuild'];
+    final saveSchemaVersion = decoded?['saveSchemaVersion'];
+    final clientCompatibilityVersion = decoded?['clientCompatibilityVersion'];
+    if (clientInstanceId is! String ||
+        !_uuidPattern.hasMatch(clientInstanceId) ||
+        saveSchemaVersion is! int ||
+        saveSchemaVersion <= 0 ||
+        clientCompatibilityVersion is! int ||
+        clientCompatibilityVersion <= 0 ||
+        clientCompatibilityVersion > currentClientCompatibilityVersion ||
+        (clientCompatibilityVersion == currentClientCompatibilityVersion &&
+            saveSchemaVersion != GameSaveData.currentVersion) ||
+        clientBuild is! String ||
+        clientBuild.trim().isEmpty) {
+      throw const FormatException('영속 writer 획득 요청 본문이 올바르지 않습니다.');
+    }
+    return OnlineSaveWriterClaimRequest._(
+      idempotencyKey: idempotencyKey,
+      clientInstanceId: clientInstanceId,
+      clientCompatibilityVersion: clientCompatibilityVersion,
+      encodedBody: encodedBody,
+    );
+  }
+
+  OnlineSaveWriterClaimRequest._({
+    required String idempotencyKey,
+    required this.clientInstanceId,
+    required this.clientCompatibilityVersion,
+    required this.encodedBody,
+  }) : idempotencyKey = idempotencyKey.trim() {
+    if (!_uuidPattern.hasMatch(this.idempotencyKey)) {
+      throw ArgumentError.value(
+        idempotencyKey,
+        'idempotencyKey',
+        '유효한 UUID가 아닙니다.',
+      );
+    }
+    if (!_uuidPattern.hasMatch(clientInstanceId)) {
+      throw ArgumentError.value(
+        clientInstanceId,
+        'clientInstanceId',
+        '유효한 UUID가 아닙니다.',
+      );
+    }
+  }
+
+  final String idempotencyKey;
+  final String clientInstanceId;
+  final int clientCompatibilityVersion;
+  final String encodedBody;
+}
+
 class OnlineSaveUpdateRequest {
   factory OnlineSaveUpdateRequest({
     required int expectedRevision,
     required String idempotencyKey,
+    required int writerGeneration,
     required GameSaveData data,
+    int clientCompatibilityVersion = onlineSaveClientCompatibilityVersion,
   }) {
+    if (clientCompatibilityVersion <= 0) {
+      throw ArgumentError.value(
+        clientCompatibilityVersion,
+        'clientCompatibilityVersion',
+        '1 이상이어야 합니다.',
+      );
+    }
     return OnlineSaveUpdateRequest._(
       expectedRevision: expectedRevision,
       idempotencyKey: idempotencyKey,
+      writerGeneration: writerGeneration,
+      clientCompatibilityVersion: clientCompatibilityVersion,
+      data: data,
       encodedBody: jsonEncode({
         'expectedRevision': expectedRevision,
+        'clientCompatibilityVersion': clientCompatibilityVersion,
         'data': data.toJson(),
       }),
     );
@@ -54,18 +191,30 @@ class OnlineSaveUpdateRequest {
   factory OnlineSaveUpdateRequest.fromPersisted({
     required int expectedRevision,
     required String idempotencyKey,
+    required int writerGeneration,
     required String encodedBody,
+    int currentClientCompatibilityVersion =
+        onlineSaveClientCompatibilityVersion,
   }) {
     final decoded = _decodeObject(encodedBody);
     final dataJson = decoded?['data'];
+    final clientCompatibilityVersion = decoded?['clientCompatibilityVersion'];
+    final data = GameSaveData.fromJson(dataJson);
     if (decoded?['expectedRevision'] != expectedRevision ||
-        !GameSaveData.isCanonicalVersion2Envelope(dataJson) ||
-        GameSaveData.fromJson(dataJson) == null) {
+        clientCompatibilityVersion is! int ||
+        clientCompatibilityVersion <= 0 ||
+        clientCompatibilityVersion > currentClientCompatibilityVersion ||
+        data == null ||
+        (clientCompatibilityVersion == currentClientCompatibilityVersion &&
+            !GameSaveData.isCanonicalVersion2Envelope(dataJson))) {
       throw const FormatException('영속 온라인 저장 요청 본문이 올바르지 않습니다.');
     }
     return OnlineSaveUpdateRequest._(
       expectedRevision: expectedRevision,
       idempotencyKey: idempotencyKey,
+      writerGeneration: writerGeneration,
+      clientCompatibilityVersion: clientCompatibilityVersion,
+      data: data,
       encodedBody: encodedBody,
     );
   }
@@ -73,6 +222,9 @@ class OnlineSaveUpdateRequest {
   OnlineSaveUpdateRequest._({
     required this.expectedRevision,
     required String idempotencyKey,
+    required this.writerGeneration,
+    required this.clientCompatibilityVersion,
+    required this.data,
     required this.encodedBody,
   }) : idempotencyKey = idempotencyKey.trim() {
     if (expectedRevision < 0) {
@@ -80,6 +232,13 @@ class OnlineSaveUpdateRequest {
         expectedRevision,
         'expectedRevision',
         '0 이상이어야 합니다.',
+      );
+    }
+    if (writerGeneration <= 0) {
+      throw ArgumentError.value(
+        writerGeneration,
+        'writerGeneration',
+        '1 이상이어야 합니다.',
       );
     }
     if (!_uuidPattern.hasMatch(this.idempotencyKey)) {
@@ -91,13 +250,11 @@ class OnlineSaveUpdateRequest {
     }
   }
 
-  static final RegExp _uuidPattern = RegExp(
-    r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-    caseSensitive: false,
-  );
-
   final int expectedRevision;
   final String idempotencyKey;
+  final int writerGeneration;
+  final int clientCompatibilityVersion;
+  final GameSaveData data;
   final String encodedBody;
 
   static Map<String, dynamic>? _decodeObject(String source) {
@@ -117,6 +274,7 @@ class OnlineSaveException implements Exception {
     this.requestId,
     this.statusCode,
     this.currentRevision,
+    this.currentWriterGeneration,
     this.retryAfter,
     this.transportFailure = false,
   });
@@ -126,6 +284,7 @@ class OnlineSaveException implements Exception {
   final String? requestId;
   final int? statusCode;
   final int? currentRevision;
+  final int? currentWriterGeneration;
   final Duration? retryAfter;
   final bool transportFailure;
 
@@ -141,13 +300,50 @@ class OnlineSaveException implements Exception {
   String toString() => 'OnlineSaveException($code): $message';
 }
 
-class OnlineSaveApi implements OnlineSaveClient {
+class OnlineSaveApi implements OnlineSaveConditionalClient {
   OnlineSaveApi({required String baseUrl, OnlineSaveTransport? transport})
     : _baseUri = _apiBaseUri(baseUrl),
       _transport = transport ?? OnlineSaveTransport();
 
   final Uri _baseUri;
   final OnlineSaveTransport _transport;
+
+  @override
+  Future<OnlineSaveWriterClaimResult> claimWriter(
+    String accessToken,
+    OnlineSaveWriterClaimRequest request,
+  ) async {
+    final response = await _performRequest(
+      () => _transport.postJSON(
+        _baseUri.resolve('v1/save/writer'),
+        body: request.encodedBody,
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'Idempotency-Key': request.idempotencyKey,
+        },
+      ),
+    );
+    final decoded = _decodeObject(response.body);
+    if (response.statusCode != 200) {
+      throw _responseException(
+        response,
+        decoded,
+        fallbackMessage: '계정 저장 writer를 획득하지 못했습니다.',
+      );
+    }
+    final generation = _positiveInt(decoded?['writerGeneration']);
+    final claimedAt = _dateTimeValue(decoded, 'claimedAt');
+    if (generation == null || claimedAt == null) {
+      throw const OnlineSaveException(
+        code: 'INVALID_SAVE_RESPONSE',
+        message: 'writer 획득 응답 형식이 올바르지 않습니다.',
+      );
+    }
+    return OnlineSaveWriterClaimResult(
+      writerGeneration: generation,
+      claimedAt: claimedAt,
+    );
+  }
 
   @override
   Future<OnlineSaveSnapshot?> load(String accessToken) async {
@@ -157,6 +353,35 @@ class OnlineSaveApi implements OnlineSaveClient {
         headers: {'Authorization': 'Bearer $accessToken'},
       ),
     );
+    return _decodeLoadResponse(response);
+  }
+
+  @override
+  Future<OnlineSaveConditionalLoadResult> loadIfChanged(
+    String accessToken, {
+    required int knownRevision,
+  }) async {
+    if (knownRevision < 0) {
+      throw ArgumentError.value(knownRevision, 'knownRevision', '0 이상이어야 합니다.');
+    }
+    final response = await _performRequest(
+      () => _transport.getJSON(
+        _baseUri.resolve('v1/save'),
+        headers: {
+          'Authorization': 'Bearer $accessToken',
+          'If-None-Match': '"rn-save-$knownRevision"',
+        },
+      ),
+    );
+    if (response.statusCode == 304) {
+      return const OnlineSaveConditionalLoadResult.notModified();
+    }
+    return OnlineSaveConditionalLoadResult.loaded(
+      _decodeLoadResponse(response),
+    );
+  }
+
+  OnlineSaveSnapshot? _decodeLoadResponse(OnlineSaveHTTPResponse response) {
     final decoded = _decodeObject(response.body);
     if (response.statusCode == 404 &&
         _stringValue(decoded, 'code') == 'SAVE_NOT_FOUND') {
@@ -202,6 +427,7 @@ class OnlineSaveApi implements OnlineSaveClient {
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Idempotency-Key': request.idempotencyKey,
+          'Rune-Nexus-Save-Writer': '${request.writerGeneration}',
         },
       ),
     );
@@ -255,6 +481,9 @@ class OnlineSaveApi implements OnlineSaveClient {
       requestId: _stringValue(decoded, 'requestId'),
       statusCode: response.statusCode,
       currentRevision: _nonNegativeInt(decoded?['currentRevision']),
+      currentWriterGeneration: _positiveInt(
+        decoded?['currentWriterGeneration'],
+      ),
       retryAfter: _retryAfter(response.headers['retry-after']),
     );
   }
@@ -304,6 +533,10 @@ class OnlineSaveApi implements OnlineSaveClient {
     return value is int && value >= 0 ? value : null;
   }
 
+  static int? _positiveInt(Object? value) {
+    return value is int && value > 0 ? value : null;
+  }
+
   static DateTime? _dateTimeValue(Map<String, dynamic>? object, String key) {
     final value = _stringValue(object, key);
     return value == null ? null : DateTime.tryParse(value)?.toUtc();
@@ -315,5 +548,19 @@ class OnlineSaveApi implements OnlineSaveClient {
       return null;
     }
     return Duration(seconds: seconds);
+  }
+}
+
+final RegExp _uuidPattern = RegExp(
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+  caseSensitive: false,
+);
+
+Map<String, dynamic>? _decodeObject(String source) {
+  try {
+    final decoded = jsonDecode(source);
+    return decoded is Map<String, dynamic> ? decoded : null;
+  } on FormatException {
+    return null;
   }
 }

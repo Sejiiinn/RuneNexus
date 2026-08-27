@@ -16,12 +16,18 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-const CurrentSchemaVersion int32 = 2
+const (
+	CurrentSchemaVersion              int32 = 2
+	CurrentClientCompatibilityVersion       = 1
+)
 
 var (
-	ErrNotFound              = errors.New("save not found")
-	ErrIdempotencyKeyInvalid = errors.New("idempotency key is invalid")
-	ErrIdempotencyKeyReused  = errors.New("idempotency key was reused with another body")
+	ErrNotFound               = errors.New("save not found")
+	ErrIdempotencyKeyInvalid  = errors.New("idempotency key is invalid")
+	ErrIdempotencyKeyReused   = errors.New("idempotency key was reused with another body")
+	ErrWriterRequired         = errors.New("save writer is required")
+	ErrSessionAccountMismatch = errors.New("session does not belong to authenticated account")
+	ErrClientUpdateRequired   = errors.New("save client update is required")
 )
 
 type RevisionConflictError struct {
@@ -30,6 +36,14 @@ type RevisionConflictError struct {
 
 func (err *RevisionConflictError) Error() string {
 	return fmt.Sprintf("save revision conflict: current revision is %d", err.CurrentRevision)
+}
+
+type WriterReplacedError struct {
+	CurrentGeneration int64
+}
+
+func (err *WriterReplacedError) Error() string {
+	return fmt.Sprintf("save writer replaced: current generation is %d", err.CurrentGeneration)
 }
 
 type Data struct {
@@ -49,9 +63,22 @@ type Snapshot struct {
 
 type UpdateRequest struct {
 	IdempotencyKey   string
+	WriterGeneration int64
 	ExpectedRevision int64
 	RawBody          []byte
 	Data             Data
+	ReceiptOnly      bool
+}
+
+type ClaimWriterRequest struct {
+	IdempotencyKey   string
+	ClientInstanceID string
+	RawBody          []byte
+}
+
+type ClaimWriterResult struct {
+	WriterGeneration int64
+	ClaimedAt        time.Time
 }
 
 type UpdateResult struct {
@@ -68,6 +95,10 @@ func NewService(database *pgxpool.Pool) *Service {
 }
 
 func ValidateIdempotencyKey(value string) error {
+	return ValidateUUID(value)
+}
+
+func ValidateUUID(value string) error {
 	_, err := parseUUID(value)
 	return err
 }
@@ -101,9 +132,113 @@ func (service *Service) Get(ctx context.Context, accountID string) (Snapshot, er
 	}, nil
 }
 
+func (service *Service) ClaimWriter(
+	ctx context.Context,
+	accountID string,
+	sessionID string,
+	request ClaimWriterRequest,
+) (ClaimWriterResult, error) {
+	databaseAccountID, err := parseUUID(accountID)
+	if err != nil {
+		return ClaimWriterResult{}, fmt.Errorf("parse authenticated account ID: %w", err)
+	}
+	databaseSessionID, err := parseUUID(sessionID)
+	if err != nil {
+		return ClaimWriterResult{}, fmt.Errorf("parse authenticated session ID: %w", err)
+	}
+	idempotencyKey, err := parseUUID(request.IdempotencyKey)
+	if err != nil {
+		return ClaimWriterResult{}, ErrIdempotencyKeyInvalid
+	}
+	clientInstanceID, err := parseUUID(request.ClientInstanceID)
+	if err != nil {
+		return ClaimWriterResult{}, fmt.Errorf("parse client instance ID: %w", err)
+	}
+	requestHash := sha256.Sum256(request.RawBody)
+	claimParams := dbgen.GetSaveWriterClaimParams{
+		AccountID:      databaseAccountID,
+		IdempotencyKey: idempotencyKey,
+	}
+
+	queries := dbgen.New(service.database)
+	storedClaim, err := queries.GetSaveWriterClaim(ctx, claimParams)
+	if err == nil {
+		return resultFromWriterClaim(storedClaim, databaseSessionID, requestHash[:])
+	}
+	if !errors.Is(err, pgx.ErrNoRows) {
+		return ClaimWriterResult{}, fmt.Errorf("get save writer claim receipt: %w", err)
+	}
+
+	tx, err := service.database.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return ClaimWriterResult{}, fmt.Errorf("begin save writer transaction: %w", err)
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+	txQueries := dbgen.New(tx)
+	activeSession, err := txQueries.IsActiveSessionForAccount(
+		ctx,
+		dbgen.IsActiveSessionForAccountParams{
+			ID:        databaseSessionID,
+			AccountID: databaseAccountID,
+		},
+	)
+	if err != nil {
+		return ClaimWriterResult{}, fmt.Errorf("validate save writer session: %w", err)
+	}
+	if !activeSession {
+		return ClaimWriterResult{}, ErrSessionAccountMismatch
+	}
+	if err := txQueries.EnsureSaveWriterState(ctx, databaseAccountID); err != nil {
+		return ClaimWriterResult{}, fmt.Errorf("ensure save writer state: %w", err)
+	}
+	if _, err := txQueries.GetSaveWriterStateForUpdate(ctx, databaseAccountID); err != nil {
+		return ClaimWriterResult{}, fmt.Errorf("lock save writer state: %w", err)
+	}
+	storedClaim, err = txQueries.GetSaveWriterClaim(ctx, claimParams)
+	if err == nil {
+		return resultFromWriterClaim(storedClaim, databaseSessionID, requestHash[:])
+	}
+	if !errors.Is(err, pgx.ErrNoRows) {
+		return ClaimWriterResult{}, fmt.Errorf("recheck save writer claim receipt: %w", err)
+	}
+
+	advanced, err := txQueries.AdvanceSaveWriter(ctx, dbgen.AdvanceSaveWriterParams{
+		AccountID:        databaseAccountID,
+		SessionID:        databaseSessionID,
+		ClientInstanceID: clientInstanceID,
+	})
+	if err != nil {
+		return ClaimWriterResult{}, fmt.Errorf("advance save writer: %w", err)
+	}
+	if !advanced.ClaimedAt.Valid {
+		return ClaimWriterResult{}, errors.New("advanced save writer has no claimed timestamp")
+	}
+	if _, err := txQueries.CreateSaveWriterClaim(ctx, dbgen.CreateSaveWriterClaimParams{
+		AccountID:           databaseAccountID,
+		IdempotencyKey:      idempotencyKey,
+		SessionID:           databaseSessionID,
+		ClientInstanceID:    clientInstanceID,
+		RequestHash:         requestHash[:],
+		ResultingGeneration: advanced.Generation,
+		ResultClaimedAt:     advanced.ClaimedAt,
+	}); err != nil {
+		return ClaimWriterResult{}, fmt.Errorf("create save writer claim receipt: %w", err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return ClaimWriterResult{}, fmt.Errorf("commit save writer transaction: %w", err)
+	}
+	return ClaimWriterResult{
+		WriterGeneration: advanced.Generation,
+		ClaimedAt:        advanced.ClaimedAt.Time.UTC(),
+	}, nil
+}
+
 func (service *Service) Update(
 	ctx context.Context,
 	accountID string,
+	sessionID string,
 	request UpdateRequest,
 ) (UpdateResult, error) {
 	databaseAccountID, err := parseUUID(accountID)
@@ -114,6 +249,13 @@ func (service *Service) Update(
 	if err != nil {
 		return UpdateResult{}, ErrIdempotencyKeyInvalid
 	}
+	if request.WriterGeneration <= 0 {
+		return UpdateResult{}, ErrWriterRequired
+	}
+	databaseSessionID, err := parseUUID(sessionID)
+	if err != nil {
+		return UpdateResult{}, fmt.Errorf("parse authenticated session ID: %w", err)
+	}
 	requestHash := sha256.Sum256(request.RawBody)
 
 	queries := dbgen.New(service.database)
@@ -122,10 +264,13 @@ func (service *Service) Update(
 		IdempotencyKey: idempotencyKey,
 	})
 	if err == nil {
-		return resultFromReceipt(storedRequest, requestHash[:])
+		return resultFromReceipt(storedRequest, request.WriterGeneration, requestHash[:])
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return UpdateResult{}, fmt.Errorf("get save request receipt: %w", err)
+	}
+	if request.ReceiptOnly {
+		return UpdateResult{}, ErrClientUpdateRequired
 	}
 
 	tx, err := service.database.BeginTx(ctx, pgx.TxOptions{})
@@ -137,6 +282,13 @@ func (service *Service) Update(
 	}()
 	txQueries := dbgen.New(tx)
 
+	if err := txQueries.EnsureSaveWriterState(ctx, databaseAccountID); err != nil {
+		return UpdateResult{}, fmt.Errorf("ensure save writer state: %w", err)
+	}
+	writer, err := txQueries.GetSaveWriterStateForUpdate(ctx, databaseAccountID)
+	if err != nil {
+		return UpdateResult{}, fmt.Errorf("lock save writer state: %w", err)
+	}
 	if err := txQueries.EnsureSaveHeader(ctx, databaseAccountID); err != nil {
 		return UpdateResult{}, fmt.Errorf("ensure save header: %w", err)
 	}
@@ -150,10 +302,16 @@ func (service *Service) Update(
 		IdempotencyKey: idempotencyKey,
 	})
 	if err == nil {
-		return resultFromReceipt(storedRequest, requestHash[:])
+		return resultFromReceipt(storedRequest, request.WriterGeneration, requestHash[:])
 	}
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return UpdateResult{}, fmt.Errorf("recheck save request receipt: %w", err)
+	}
+	if writer.Generation == 0 || !writer.SessionID.Valid {
+		return UpdateResult{}, ErrWriterRequired
+	}
+	if writer.Generation != request.WriterGeneration || writer.SessionID != databaseSessionID {
+		return UpdateResult{}, &WriterReplacedError{CurrentGeneration: writer.Generation}
 	}
 	if header.Revision != request.ExpectedRevision {
 		return UpdateResult{}, &RevisionConflictError{
@@ -218,6 +376,7 @@ func (service *Service) Update(
 		AccountID:         databaseAccountID,
 		IdempotencyKey:    idempotencyKey,
 		RequestHash:       requestHash[:],
+		WriterGeneration:  request.WriterGeneration,
 		ExpectedRevision:  request.ExpectedRevision,
 		ResultingRevision: advanced.Revision,
 		ResultSavedAt:     advanced.UpdatedAt,
@@ -235,9 +394,11 @@ func (service *Service) Update(
 
 func resultFromReceipt(
 	receipt dbgen.SaveRequest,
+	writerGeneration int64,
 	requestHash []byte,
 ) (UpdateResult, error) {
-	if !bytes.Equal(receipt.RequestHash, requestHash) {
+	if receipt.WriterGeneration != writerGeneration ||
+		!bytes.Equal(receipt.RequestHash, requestHash) {
 		return UpdateResult{}, ErrIdempotencyKeyReused
 	}
 	if !receipt.ResultSavedAt.Valid {
@@ -246,6 +407,23 @@ func resultFromReceipt(
 	return UpdateResult{
 		Revision:      receipt.ResultingRevision,
 		ServerSavedAt: receipt.ResultSavedAt.Time.UTC(),
+	}, nil
+}
+
+func resultFromWriterClaim(
+	receipt dbgen.SaveWriterClaim,
+	sessionID pgtype.UUID,
+	requestHash []byte,
+) (ClaimWriterResult, error) {
+	if receipt.SessionID != sessionID || !bytes.Equal(receipt.RequestHash, requestHash) {
+		return ClaimWriterResult{}, ErrIdempotencyKeyReused
+	}
+	if !receipt.ResultClaimedAt.Valid {
+		return ClaimWriterResult{}, errors.New("save writer claim receipt has no timestamp")
+	}
+	return ClaimWriterResult{
+		WriterGeneration: receipt.ResultingGeneration,
+		ClaimedAt:        receipt.ResultClaimedAt.Time.UTC(),
 	}, nil
 }
 

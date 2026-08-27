@@ -1,7 +1,7 @@
 # Rune Nexus 백엔드·인증·온라인 저장 최종 아키텍처
 
 문서 상태: 채택된 구현 기준
-마지막 갱신: 2026-08-24
+마지막 갱신: 2026-08-27
 
 ## 목적
 
@@ -29,12 +29,17 @@ PostgreSQL 스키마, API 계약과 향후 중요 재화 보호 경계를 정의
 - Flutter 메모리 세션 자동 갱신·single-flight·401 1회 재시도
 - Flutter 원격 저장 API 클라이언트와 단일 in-flight 전송 worker
 - 계정별 Flutter 영속 save outbox와 재시작 복구
-- 최초 로그인 현재 기록·Google 계정 기록 비교, 원본 backup과 account 슬롯 선택
+- 최초 로그인 기존 Outbox 우선 복구와 원격 account 우선 자동 bootstrap
+- 자동 연결 account 슬롯의 중요 체크포인트와 온라인 저장 coordinator 연결
+- writer 획득·저장 PUT 공통 client compatibility gate와 업데이트 필요 UX
 
-PGS 인증과 선택된 account 슬롯의 실제 온라인 저장 전송 연결은 아직 구현되지 않았다.
-Google 웹 로그인은 Google Identity Services 버튼에서
+PGS 인증은 아직 구현되지 않았다. Google 웹 로그인은 Google Identity Services 버튼에서
 `POST /v1/auth/google`로 이어지는 경로까지 구현되었으며 배포 환경에 OAuth Client와
 API 주소를 설정하면 활성화된다.
+
+다중 기기 충돌의 최종 정책과 구현 계약은
+`docs/multi_device_save_sync_design.md`를 따른다. 기존 사용자 선택형 충돌 해결 방향은
+폐기하고 server revision 우선 자동 복구와 단일 writer generation을 채택한다.
 
 ## 최종 결정 요약
 
@@ -44,14 +49,17 @@ API 주소를 설정하면 활성화된다.
 4. 로컬 저장 성공은 온라인 저장 성공에 의존하지 않는다.
 5. 스냅샷 저장은 한 계정당 하나만 전송하고, 대기 데이터는 최신 하나로 합친다.
 6. timeout 재시도는 같은 idempotency key와 같은 요청 본문을 사용한다.
-7. 서버 revision으로 여러 기기의 동시 수정을 감지하며 자동 덮어쓰지 않는다.
-8. 일반 진행 값은 1차 범위에서 치트 방지용 서버 권위 데이터가 아니다.
-9. 실제 결제, 다이아, 유료 상품과 중요한 일회성 보상만 필요 시 서버 권위로 승격한다.
-10. 서버 권위 행동은 스냅샷 저장과 분리된 명령 API와 원장으로 처리한다.
-11. 일반 라운드 완료는 로컬 체크포인트일 뿐 서버 응답을 기다리는 행동이 아니다.
-12. 외부 API는 HTTPS + JSON을 사용하며 WebSocket은 도입하지 않는다.
-13. Firebase, Auth0, Supabase Auth 등 관리형 인증 서비스는 사용하지 않는다.
-14. 치트 대응은 불가능 상태 검증과 최소 통계 수집부터 시작하고 자동 제재는 보류한다.
+7. 서버 revision으로 여러 기기의 동시 수정을 감지하고, 실제 충돌에서는 원격 최신
+   revision을 사용자 선택 없이 자동 적용한다.
+8. 여러 기기 로그인을 허용하되 한 번에 한 인증 세션만 writer generation을 가진다.
+9. 일반 진행 값은 1차 범위에서 치트 방지용 서버 권위 데이터가 아니다.
+10. 다이아, 모듈권, 소유 모듈과 이를 바꾸는 보상·가챠를 하나의 서버 권위 경제
+    영역으로 승격한다.
+11. 서버 권위 행동은 스냅샷 저장과 분리된 명령 API와 원장으로 처리한다.
+12. 일반 라운드 완료는 로컬 체크포인트일 뿐 서버 응답을 기다리는 행동이 아니다.
+13. 외부 API는 HTTPS + JSON을 사용하며 WebSocket은 도입하지 않는다.
+14. Firebase, Auth0, Supabase Auth 등 관리형 인증 서비스는 사용하지 않는다.
+15. 치트 대응은 불가능 상태 검증과 최소 통계 수집부터 시작하고 자동 제재는 보류한다.
 
 ## 채택 기술
 
@@ -78,8 +86,8 @@ PostgreSQL 드라이버는 `pgx/v5`를 직접 사용한다. GORM 같은 ORM, Red
 | 분류 | 예시 | 기준 |
 | --- | --- | --- |
 | 로컬 권위 | 전투, 적 위치, 포탑 공격, 현재 라운드 | 서버 요청 없이 즉시 처리 |
-| 동기화 스냅샷 | 설정, 일반 진행, 모듈, 활성 런 | 로컬 저장 후 비동기 업로드 |
-| 서버 권위 확장 | 실제 결제, 다이아, 유료 상품 | 서버 명령과 원장으로만 변경 |
+| 동기화 스냅샷 | 설정, 일반 진행, 모듈 장착 ID, 활성 런 | 로컬 저장 후 비동기 업로드 |
+| 서버 권위 경제 | 다이아, 모듈권, 소유 모듈, 관련 보상·결제 | 서버 명령과 원장으로만 변경 |
 | 위험 관찰 | 비정상 성장 속도, 반복 충돌 | 기록과 통계, 단일 신호 자동 제재 금지 |
 
 1차 온라인 저장은 백업과 기기 간 동기화가 목적이다. 클라이언트가 보낸
@@ -100,7 +108,8 @@ PostgreSQL 드라이버는 `pgx/v5`를 직접 사용한다. GORM 같은 ORM, Red
 - 정확한 in-flight 요청과 최신 pending 스냅샷 보존
 - 온라인 오류 중에도 일반 플레이 유지
 - 원격 저장 적용 전 로컬 백업
-- 충돌 시 양쪽 데이터를 보존하고 사용자 선택 요청
+- exact in-flight 요청을 먼저 복구하고 실제 충돌이면 backup 후 원격 revision 자동 적용
+- 다른 기기가 writer를 획득하면 자동 탈환하지 않고 안전 지점에서 원격 진행 복구
 
 클라이언트가 전송한 account ID, 시각, revision과 중요한 재화 결과값을
 그 자체로 신뢰하지 않는다.
@@ -113,7 +122,9 @@ PostgreSQL 드라이버는 `pgx/v5`를 직접 사용한다. GORM 같은 ORM, Red
 - Google 로그인·토큰 갱신 요청의 클라이언트별 제한
 - 인증 토큰으로 account ID 결정
 - 요청 크기, 저장 버전, 최상위 구조와 명백한 범위 오류 검사
+- writer 획득과 저장 PUT의 최소 client compatibility version 검사
 - idempotency key 중복 처리
+- 계정별 writer generation 발급과 현재 작성 session 검사
 - expected revision 충돌 검사
 - 통파일을 영역별 PostgreSQL 행으로 분리
 - 모든 저장 영역의 원자적 트랜잭션
@@ -126,6 +137,7 @@ PostgreSQL 드라이버는 `pgx/v5`를 직접 사용한다. GORM 같은 ORM, Red
 - 세션과 refresh token 회전 이력
 - 원격 저장 revision과 영역별 JSONB
 - 저장 요청 처리 영수증
+- 현재 save writer 상태와 writer claim 영수증
 - 향후 중요 재화 원장과 구매 검증 결과
 
 PostgreSQL은 클라이언트에 직접 노출하지 않는다.
@@ -205,8 +217,8 @@ Web guest:
 Web account:
   rune_nexus:save:v2:account:<account-uuid>:primary
   rune_nexus:save:v2:account:<account-uuid>:backup
-  rune_nexus:outbox:v1:account:<account-uuid>
-  rune_nexus:outbox:v1:account:<account-uuid>:backup
+  rune_nexus:outbox:account:<account-uuid>
+  rune_nexus:outbox:account:<account-uuid>:backup
 
 IO guest:
   <application-support>/saves/guest/save_v2.json
@@ -215,13 +227,14 @@ IO guest:
 IO account:
   <application-support>/saves/accounts/<account-uuid>/save_v2.json
   <application-support>/saves/accounts/<account-uuid>/save_v2.backup.json
-  <application-support>/saves/accounts/<account-uuid>/outbox_v1.json
-  <application-support>/saves/accounts/<account-uuid>/outbox_v1.backup.json
+  <application-support>/saves/accounts/<account-uuid>/outbox.json
+  <application-support>/saves/accounts/<account-uuid>/outbox.backup.json
 ```
 
 guest 슬롯은 온라인 전송 대상이 아니므로 Outbox를 만들지 않는다. 동기화 metadata와
-정확한 in-flight 본문은 `outbox_v1` 한 저장 단위에 함께 기록하여 상태 전이를 원자적으로
-교체한다.
+정확한 in-flight 본문, writer claim과 rebase journal은 단일 canonical Outbox 저장
+단위에 함께 기록하여 상태 전이를 원자적으로 교체한다. Outbox는 아직 외부 배포된 적이
+없으므로 작업 브랜치의 중간 버전 간 마이그레이션은 두지 않는다.
 
 ### v1 보존형 마이그레이션
 
@@ -235,7 +248,7 @@ guest 슬롯은 온라인 전송 대상이 아니므로 Outbox를 만들지 않�
 
 로드 순서는 다음과 같다.
 
-1. canonical 또는 허용된 transitional v2 기본 저장을 검사한다.
+1. canonical v2 기본 저장을 검사한다.
 2. 기본 v2가 손상되었으면 정상 v2 backup을 검사한다.
 3. 둘 다 없거나 손상되었으면 legacy v1을 읽는다.
 4. v1을 메모리에서 v2로 변환하고 검증한다.
@@ -243,10 +256,10 @@ guest 슬롯은 온라인 전송 대상이 아니므로 Outbox를 만들지 않�
 6. legacy v1은 읽기 전용 백업으로 남긴다.
 
 canonical v2는 `preferences`, `progression`, `turretModules`, `activeRun` 최상위
-영역이 모두 있어야 한다. transitional v2는 기존 모듈 필드가 `progression`에
-있고 `turretModules`만 빠진 이미 배포된 중간 형식만 허용한다. `{"version":2}`
-처럼 대부분의 영역이 없는 데이터는 기본값으로 정상 복구하지 않고 손상으로
-분류한다. 파싱 전에 별도 envelope validator가 이 구분을 수행한다.
+영역이 모두 있어야 한다. 배포된 적 없는 중간 v2 형식은 읽거나 변환하지
+않는다. `{"version":2}`처럼 필수 영역이 없는 데이터는 손상으로 분류한다.
+기존 v1 위치에서는 v1만, 신규 v2 primary·backup 위치에서는 canonical v2만
+허용한다.
 
 legacy 저장 삭제는 별도 출시 이후 실제 마이그레이션 성공률을 확인한 뒤
 명시적으로 결정한다. payload version과 저장 위치 version은 서로 다른 개념이다.
@@ -419,10 +432,14 @@ session인지 함께 검사한다. 이미 만료·폐기된 token에도 `204`를
 | `404` | `SAVE_NOT_FOUND` | 아직 원격 저장이 없음 |
 | `409` | `IDENTITY_ALREADY_LINKED` | Google identity가 다른 account에 이미 연결됨 |
 | `409` | `SAVE_REVISION_CONFLICT` | expected revision과 현재 원격 revision이 다름 |
+| `409` | `SAVE_WRITER_REPLACED` | 다른 인증 session이 현재 저장 writer를 획득함 |
 | `409` | `IDEMPOTENCY_KEY_REUSED` | 같은 key가 다른 저장 요청 본문에 재사용됨 |
 | `413` | `REQUEST_TOO_LARGE` | 설정된 최대 요청 본문 크기 초과 |
+| `426` | `CLIENT_UPDATE_REQUIRED` | 저장 쓰기에 필요한 최소 클라이언트 호환 버전 미만 |
 | `422` | `SAVE_VERSION_UNSUPPORTED` | 서버가 지원하지 않는 저장 데이터 버전 |
+| `422` | `SAVE_CLIENT_VERSION_UNSUPPORTED` | 서버보다 미래 세대의 클라이언트 호환 버전 |
 | `422` | `INVALID_SAVE_DATA` | 필수 영역·값 형식 또는 JSON 중첩 제한 위반 |
+| `428` | `SAVE_WRITER_REQUIRED` | writer generation 획득 없이 저장 갱신을 요청함 |
 | `429` | `RATE_LIMIT_EXCEEDED` | 클라이언트별 인증 요청 제한 초과 |
 | `503` | `AUTH_PROVIDER_UNAVAILABLE` | Google 인증 제공자 일시 장애 |
 
@@ -431,7 +448,8 @@ account에 연결된 이후에는 동일한 온라인 저장을 사용한다. iO
 추가되기 전까지 로컬 저장만 사용한다.
 
 Flutter Web 빌드는 `GOOGLE_WEB_CLIENT_ID`, `RUNE_NEXUS_API_BASE_URL` 두 dart-define이
-모두 유효할 때만 Google 연결 액션을 노출한다. Google의 공식 GIS 버튼을 렌더링하고
+모두 유효할 때만 Google 연결 액션을 노출한다. Pages 배포는 진단용
+`RUNE_NEXUS_CLIENT_BUILD=web:<git-sha>`도 주입한다. Google의 공식 GIS 버튼을 렌더링하고
 받은 ID token은 즉시 인증 API로 전달한다. access/refresh token은 현재 브라우저
 메모리에만 유지하며 Local Storage에는 저장하지 않는다. 페이지가 열린 동안에는 access
 만료 전에 refresh를 단일 요청으로 회전하고, 여러 요청이 동시에 `401`을 받아도 같은
@@ -450,12 +468,28 @@ refresh 결과를 기다린 뒤 각 요청을 한 번만 재시도한다. refres
 | `POST` | `/v1/auth/refresh` | refresh token 회전 |
 | `POST` | `/v1/auth/logout` | 현재 세션 폐기 |
 | `POST` | `/v1/account/identities/google` | 기존 account에 Google identity 연결 |
+| `POST` | `/v1/save/writer` | 현재 계정 플레이 session의 writer generation 획득 |
 | `GET` | `/v1/save` | 원격 저장 통파일 조회 |
 | `PUT` | `/v1/save` | 전체 저장 조건부 갱신 |
 | `GET` | `/health/live` | 프로세스 생존 확인 |
 | `GET` | `/health/ready` | PostgreSQL 포함 준비 확인 |
 
+### 저장 writer 획득
+
+`POST /v1/save/writer`는 계정 진행을 foreground에서 시작하거나 재개할 때 호출한다.
+idempotency key와 `clientInstanceId`, `saveSchemaVersion`,
+`clientCompatibilityVersion`, `clientBuild`를 받고 현재 account의 writer generation을
+증가시킨다. 같은 key 재시도는 같은 generation을 반환한다. 최소 호환 버전 미만은
+`426 CLIENT_UPDATE_REQUIRED`로 기존 writer를 교체하기 전에 거부한다. `clientBuild`는
+배포 진단값이고 권한 판정은 정수 호환 버전으로 한다.
+백그라운드 retry worker는 writer 교체 오류를 받았다는 이유로 이 API를 자동 호출하지
+않는다. 정확한 계약은 `docs/multi_device_save_sync_design.md`를 따른다.
+
 ### 저장 조회
+
+`GET /v1/save`는 `ETag: "rn-save-<revision>"`을 반환한다. 클라이언트가 알려진
+revision을 `If-None-Match`로 보내고 원격이 변하지 않았으면 `304`와 빈 body를
+반환하여 큰 저장 JSON의 재다운로드를 피한다.
 
 `GET /v1/save` 성공 응답:
 
@@ -484,12 +518,14 @@ refresh 결과를 기다린 뒤 각 요청을 한 번만 재시도한다. refres
 ```http
 Authorization: Bearer <access-token>
 Idempotency-Key: <UUID>
+Rune-Nexus-Save-Writer: <writer-generation>
 Content-Type: application/json
 ```
 
 ```json
 {
   "expectedRevision": 12,
+  "clientCompatibilityVersion": 1,
   "data": {
     "version": 2,
     "savedAtMillis": 1780000000000,
@@ -512,6 +548,13 @@ Content-Type: application/json
 
 최초 저장은 원격 데이터가 없을 때 `expectedRevision: 0`으로 전송한다. 서버
 현재 revision과 다르면 `409 SAVE_REVISION_CONFLICT`와 현재 revision을 반환한다.
+현재 인증 session과 writer generation이 다르면 revision 검사 전에
+`409 SAVE_WRITER_REPLACED`를 반환한다. 단, 이미 성공한 idempotency key 영수증은
+writer 검사보다 먼저 확인하여 응답 유실 재시도를 기존 성공으로 복구한다.
+호환성 검사는 이미 writer를 가진 오래 실행된 클라이언트도 차단하도록 PUT에도
+적용한다. 최소 버전 미만 PUT은 저장 mutation으로 진입하지 않지만, 업데이트 뒤 exact
+요청의 성공 여부를 복구할 수 있도록 account·key·body hash·writer generation이 모두
+일치하는 기존 영수증 조회만 허용한다. 영수증이 없으면 `426`을 반환한다.
 
 ### 멱등성
 
@@ -553,8 +596,8 @@ COMMIT
 응답하게 한다. 영수증 재조회가 header 잠금보다 앞에만 있으면 두 번째 요청이
 잘못된 revision 충돌을 받을 수 있으므로 잠금 뒤 재조회는 생략하지 않는다.
 
-중간 단계가 실패하면 전체를 rollback한다. `savedAtMillis`는 신뢰할 수 없는
-참고값이며 원격 순서는 revision과 서버 시각만으로 판단한다.
+중간 단계가 실패하면 전체를 rollback한다. `savedAtMillis`와 서버 저장 시각은 표시·진단
+참고값이며 원격 순서는 revision으로만 판단한다.
 
 ## 클라이언트 동기화 상태 기계
 
@@ -564,11 +607,21 @@ COMMIT
 `OnlineSaveCoordinator`는 계정별 영속 Outbox, 단일 in-flight, 최신 pending 병합,
 동일 본문·멱등성 key 재시도, 재시작 복구와 충돌 중단을 담당한다. Web Local Storage와
 IO application support 경로 모두 primary·backup 복구를 제공한다. 최초 로그인 시에는
-현재 guest 기록과 단일 Google 계정 기록을 비교하고 원본 backup 뒤 사용할 슬롯을
-명시적으로 선택한다. account 로컬 저장은 독립 후보가 아니라 계정 기록의 캐시다.
-다만 선택된 account 슬롯과 coordinator를 결합하는 단계는 아직 진행하지 않았으므로
-실제 게임에는 주입하지 않았다. 따라서 현 단계의 플레이는 선택된 로컬 슬롯에만
-저장하며 서버 저장 요청을 발생시키지 않는다.
+기존 Outbox를 먼저 확인하고, 새 연결이면 원격 account 진행을 우선해 account 슬롯을
+자동 준비한다. 원격이 없을 때만 guest 진행을 이전하며 원본은 backup한다. account 로컬
+저장은 독립 후보가 아니라 계정 기록의 캐시다. 자동 연결된 account 슬롯에는
+coordinator를 실제 게임에 주입한다. 라운드 종료 같은
+중요 체크포인트는 로컬 저장 성공 뒤 영속 Outbox에 등록하고, 전송 완료를 기다리지
+않는다. 원격 기록 자동 적용은 현재 revision과 payload fingerprint를 초기 동기화
+기준으로 삼는다. 기존 Outbox에 미전송·충돌·차단 상태가 있으면 새 기준으로
+재기준화하지 않고 coordinator가 exact 요청과 rebase journal을 우선 복구한다.
+
+정상 로그인 흐름에는 저장 선택과 사용자 충돌 해결이 없다. exact in-flight 영수증을
+먼저 확인한 뒤
+원격 revision이 base revision보다 앞서면 기존 account local을 backup하고 원격을
+자동 적용한다. 여러 기기 로그인은 허용하지만 새 저장은 현재 writer generation을
+가진 session만 수행한다. 상세 상태 전이와 crash 복구는
+`docs/multi_device_save_sync_design.md`를 구현 기준으로 삼는다.
 
 현재 `SaveScheduler`는 `_writeLocalSave`만 직렬화하고 `_saveRoundCheckpoint`는
 직접 파일 쓰기와 온라인 호출을 수행한다. 최종 구현에서는 다음처럼 바꾼다.
@@ -663,9 +716,12 @@ C 전송(expected 11, key C)
 
 ### 향후 command outbox
 
-결제, 다이아 소비와 보상 수령은 스냅샷처럼 합치지 않는다. 각 명령은 고유
-idempotency key와 정확한 본문을 가진 FIFO 항목으로 영속 보존한다. 앞 명령의
-결과를 모르는 상태에서 같은 자원을 쓰는 뒤 명령을 먼저 보내지 않는다.
+경제 명령은 스냅샷처럼 합치지 않는다. 뽑기·분해·연구처럼 소비가 있는 명령은
+오프라인에서 새로 예약하지 않고, 실제 전송했으나 결과가 불명확한 exact in-flight
+하나만 같은 idempotency key와 본문으로 복구한다. 로컬 플레이 보상 claim은
+`expectedEconomyRevision` 없는 FIFO exact 항목으로 보존하고 reward key로 중복을
+막는다. 구매 검증은 provider 거래별 항목으로 별도 보존한다. 정확한 계약은
+`docs/server_authoritative_economy_design.md`를 따른다.
 
 ### 상태와 오류 처리
 
@@ -682,43 +738,44 @@ blocked
 | --- | --- |
 | network, timeout, `408`, `429`, `5xx` | 같은 요청을 backoff + jitter로 재시도 |
 | `401` | refresh 한 번 수행 후 같은 요청 재시도 |
-| `409 SAVE_REVISION_CONFLICT` | 자동 업로드 중단, conflict 진입 |
+| `409 SAVE_REVISION_CONFLICT` | exact 요청 영수증 확인 후 원격 조회·자동 rebase |
+| `409 SAVE_WRITER_REPLACED` | 자동 writer 탈환 금지, account 플레이 정지 후 원격 재확인 |
+| `426 CLIENT_UPDATE_REQUIRED` | exact 요청 보존, 로컬 저장·계정 플레이 정지, 업데이트 안내 |
 | `400`, `413`, `422` | 무한 재시도 금지, blocked 및 진단 기록 |
 
 `429`의 `Retry-After`가 있으면 우선 적용한다. 동기화 작업은 게임 프레임과
 로컬 저장 경로를 기다리게 하지 않는다.
 
+업데이트된 클라이언트는 이전 호환 버전 Outbox를 손상으로 취급하지 않는다. 과거
+writer claim은 폐기하고 현재 버전 claim을 만들며, 과거 in-flight PUT은 exact body와
+key로 영수증만 확인한다. 성공 영수증이 없다는 `426`을 받으면 로컬 payload를 dirty로
+되돌리고 GET/rebase 뒤 현재 버전의 새 key·본문으로 저장한다.
+
 ### 최초 로그인과 충돌
 
-- 로그인 전에는 로컬 저장만 사용한다.
+- 로그인 전에는 guest 로컬 저장만 사용한다.
 - legacy v1은 account 슬롯으로 직접 이전하지 않고 guest 슬롯으로만 보존형
   마이그레이션한다.
-- 최초 계정 연결 시 guest 데이터를 자동으로 account 슬롯에 복사하거나 업로드하지
-  않는다. guest 원본과 별도 backup을 먼저 남기고 사용자 선택을 받는다.
-- Google 계정 기록이 없으면 `현재 기록을 Google 계정에 연동` 또는
-  `Google 계정에서 새로 시작` 중 선택한다. 연동 선택 시 새 account 슬롯을 만들고
-  revision 0 업로드 대상으로 표시한다.
-- Google 계정 기록이 있으면 `나중에 연동`, `현재 기록을 Google 계정에 연동`,
-  `Google 계정 기록 사용`을 명시적으로 선택하게 한다. 현재 기록으로 계정 기록을
-  대체할 때도 최신 원격 revision을 다시 조회한다.
-- `나중에 연동`은 현재 기록을 local-only guest 슬롯에 남긴다는 뜻이며 로그인된
-  account 저장과 합치지 않는다. logout도 슬롯 사이 데이터를 자동 복사하지 않는다.
-- 업로드 대상으로 선택된 account 슬롯에 원격 저장이 없으면 해당 저장을
-  revision 0으로 업로드한다.
-- 원격 저장이 있고 현재 로컬 저장이 같은 계정의 알려진 revision에 기반하면
-  dirty 여부와 revision으로 업로드 또는 다운로드를 결정한다.
-- account 로컬 저장은 별도 사용자 선택지가 아니라 Google 계정 기록의 캐시로 다룬다.
-  원격 기록이 있으면 이를 계정 기록의 기준으로 사용하고 기존 캐시는 backup에
-  보존한다. 향후 Outbox가 미전송 변경을 증명하는 경우에만 동기화 충돌 UX로 분기한다.
-- 원격 데이터를 적용하기 전에 현재 로컬 파일을 별도 backup으로 남긴다.
-- revision 충돌 시 client timestamp가 더 크다는 이유로 자동 덮어쓰지 않는다.
-- 사용자가 현재 기록 연동을 명시하면 최신 원격 revision을 다시 조회한 후 같은
-  `PUT /v1/save` 계약으로 조건부 업로드한다.
+- 원격 account 저장이 있으면 account 진행을 자동 적용하고 guest 진행은 guest 슬롯에
+  그대로 보존한다. 두 저장을 합치거나 사용자에게 승자를 묻지 않는다.
+- 원격 account 저장이 없고 사용자가 guest 화면에서 계정 연결을 실행한 경우에만 guest
+  원본을 backup한 뒤 account 슬롯에 복사하고 revision 0으로 업로드한다.
+- 로그인 필수 신규 사용자는 원격 저장이 없으면 새 account 진행을 만든다.
+- account local은 별도 진행 후보가 아니라 원격 account 진행의 캐시다.
+- 남은 in-flight 요청은 같은 bytes, key와 writer generation으로 먼저 재시도한다.
+- 원격 revision이 알려진 base revision보다 앞서면 현재 account local을 backup하고
+  원격 진행을 자동 적용한다.
+- 원격 revision이 base보다 작거나 같은 revision의 payload가 알려진 hash와 다르면
+  정상 충돌이 아닌 손상·서버 rollback으로 보고 자동 업로드하지 않는다.
+- writer 교체를 전투 중 발견하면 새 계정 변경을 막고 안전 지점에서 account 플레이를
+  정지한다. 원격 revision이 앞선 것이 확인되면 그때 원격 상태로 다시 시작한다.
+- `savedAtMillis`와 기기 시각으로 충돌 승자를 정하지 않는다.
 
 ## 중요 경제·이벤트 API 확장
 
-이 절은 실제 결제나 서버 권위 이벤트를 도입할 때 구현한다. 초기 인증과
-클라우드 저장을 위해 미리 불필요한 경제 테이블과 API를 만들지 않는다.
+구현 계약, 권위 행렬, PostgreSQL 테이블, 명령 API, 기존 사용자 migration과 단계별
+작업은 `docs/server_authoritative_economy_design.md`를 따른다. 이 절은 상위 원칙만
+요약한다.
 
 ### 원칙
 
@@ -742,30 +799,33 @@ blocked
 - 다이아를 지급하는 퀘스트·출석·이벤트 claim
 
 전환 전에는 현재 diamond 값도 일반 로컬 진행 데이터이며 치트 방지 대상이라고
-주장하지 않는다. 실제 결제를 여는 출시 전에 계정당 한 번만 허용하는
-`legacy_import` 원장 정책과 정상 최대치 cap을 확정한다. 전환 이후 paid diamond는
-검증된 구매에서만 증가하고, free diamond는 idempotent 서버 명령으로만 증가한다.
+주장하지 않는다. 전환 시 서버에 저장된 최신 account snapshot을 source로 계정당
+한 번만 `legacy_bootstrap`을 수행한다. 기존 free/paid 합계는 구매 증명이 없으므로
+무료 다이아로 이전한다. 전환 이후 paid diamond는 검증된 구매에서만 증가하고,
+free diamond는 idempotent 서버 명령으로만 증가한다.
 
 서버 권위 필드는 로컬 `GameSaveData`에 오프라인 표시용 캐시로 남을 수 있지만
-`PUT /v1/save`에서는 무시한다. `GET /v1/profile` 또는 bootstrap 응답의 값으로
+`PUT /v1/save`에서는 무시한다. `GET /v1/economy` 또는 bootstrap 응답의 값으로
 항상 overlay한다. save revision과 economy revision은 별도 aggregate revision으로
 관리하여 오래된 스냅샷이 뒤늦게 도착해도 경제 상태를 되돌리지 못하게 한다.
 
-### 확장 엔드포인트 후보
+### 확장 엔드포인트
 
 | Method | Path | 역할 |
 | --- | --- | --- |
-| `GET` | `/v1/profile` | 서버 권위 지갑·권리 조회 |
-| `POST` | `/v1/purchases/play/verify` | Google Play 구매 검증과 지급 |
-| `POST` | `/v1/purchases/apple/verify` | Apple 거래 검증과 지급 |
-| `POST` | `/v1/store/{productId}/purchase` | 서버 가격 기준 상품 구매 |
-| `POST` | `/v1/events/{eventId}/progress-actions` | 절대 합계가 아닌 event action 보고 |
-| `POST` | `/v1/events/{eventId}/rewards/{rewardId}/claim` | 이벤트 보상 중복 검사와 지급 |
-| `POST` | `/v1/runs/complete` | 서버 보상이 연결된 런 완료 보고 |
+| `GET` | `/v1/economy` | 지갑·모듈권·소유 모듈 조회 |
+| `GET` | `/v1/economy/catalog` | 가격·확률·보상 표시 계약 조회 |
+| `POST` | `/v1/economy/bootstrap` | 기존 account 경제 상태 1회 이전 |
+| `POST` | `/v1/economy/turret-modules/draw` | 티켓 구매·차감, RNG와 모듈 생성 |
+| `POST` | `/v1/economy/turret-modules/disassemble` | 소유 모듈 분해와 다이아 지급 |
+| `POST` | `/v1/economy/researches/{type}/complete` | 다이아 차감과 pending 진행 effect 생성 |
+| `POST` | `/v1/economy/progression-effects/{effectId}/ack` | effect가 반영된 save revision 확인 |
+| `POST` | `/v1/economy/rewards/claim` | 일·주간·출석 보상 지급 |
+| `POST` | `/v1/economy/runs/settle` | 런 다이아와 최초 클리어 보상 정산 |
+| `POST` | `/v1/purchases/google/verify` | 후속 Google Play 구매 검증과 지급 |
 
-일반 라운드 완료는 `/v1/runs/complete`를 호출하지 않는다. 로컬 체크포인트와
-save outbox 갱신만 수행한다. 서버 보상이나 이벤트 판정이 붙은 런 완료만
-별도 명령을 사용한다.
+일반 라운드 완료는 로컬 체크포인트와 save outbox 갱신만 수행한다. 다이아 운반 적이나
+최초 클리어 모듈권처럼 서버 권위 보상이 생긴 런만 별도 정산 명령을 사용한다.
 
 경제 전환 후에도 오프라인 일반 플레이와 다이아가 아닌 로컬 보상은 유지한다.
 오프라인에서 발생한 diamond 획득은 고유 source ID를 가진 pending claim으로
@@ -800,6 +860,8 @@ accounts
   |- auth_identities
   |- sessions
   |    `- refresh_tokens
+  |- save_writer_states
+  |    `- save_writer_claims
   `- save_headers
        |- save_preferences
        |- save_progression
@@ -917,6 +979,17 @@ save_requests
 영수증의 아주 오래된 요청이 다시 오더라도 expected revision 불일치로 중복
 저장은 막힌다.
 
+### 저장 writer 상태
+
+다중 기기 로그인과 단일 저장 writer를 함께 지원하기 위해 `save_writer_states`와
+`save_writer_claims`를 구현했다. 현재 generation, 현재 인증 session, 진단용 client
+instance와 claim idempotency 영수증을 저장하며 `save_requests`는 요청 당시 writer
+generation을 보존한다.
+
+저장 트랜잭션은 writer state를 먼저 잠그고 save header를 다음에 잠근다. 이미 성공한
+save request 영수증은 현재 writer 여부보다 먼저 확인한다. 정확한 컬럼, 잠금 순서와
+보존 규칙은 `docs/multi_device_save_sync_design.md`의 PostgreSQL 절을 따른다.
+
 ### 삭제 정책
 
 account hard delete는 identity, session, 저장을 `ON DELETE CASCADE`로 제거한다.
@@ -932,12 +1005,14 @@ account hard delete는 identity, session, 저장을 `ON DELETE CASCADE`로 제�
 실제 서버 권위 경제를 도입할 때 다음 테이블을 별도 마이그레이션으로 추가한다.
 
 ```text
-player_wallets
-economy_ledger
-purchase_transactions
-command_requests
-event_progress
+economy_system_state
+player_economies
+player_modules
+economy_commands
+economy_ledger_entries
+economy_progression_effects
 reward_claims
+purchase_transactions
 security_events
 player_metrics_daily
 ```
@@ -1014,6 +1089,7 @@ AUTH_RATE_LIMIT_MAX_CLIENTS
 TRUST_PROXY_HEADERS
 CORS_ALLOWED_ORIGINS
 MAX_SAVE_BODY_BYTES
+MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION
 READINESS_TIMEOUT
 SHUTDOWN_TIMEOUT
 ```
@@ -1034,6 +1110,8 @@ SHUTDOWN_TIMEOUT
 - `TRUST_PROXY_HEADERS` 기본값은 `false`다. 운영 Caddy처럼 요청 헤더를 정리하는
   신뢰 가능한 reverse proxy 뒤에서만 `true`로 설정한다.
 - `MAX_SAVE_BODY_BYTES` 기본값은 4 MiB이며 0보다 큰 정수 byte 값만 허용한다.
+- `MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION` 기본값은 1이다. 서버 코드가 지원하는 현재
+  버전보다 크게 설정하면 시작을 거부한다.
 - 저장 요청 JSON은 최대 64단계까지 중첩할 수 있다.
 - 토큰, auth code, OAuth secret, 구매 증명과 전체 save payload를 로그에 남기지 않는다.
 
@@ -1060,7 +1138,7 @@ SHUTDOWN_TIMEOUT
 - system temp legacy v1을 application support의 account/guest v2 슬롯으로 이관
 - legacy v1을 별도 v2 위치로 이관하고 v1을 보존
 - 손상된 기본 v2에서 v2 backup, 이후 v1 순서로 fallback
-- canonical v2와 허용된 transitional v2 구분
+- v1 위치의 v1과 v2 위치의 canonical v2 엄격 구분
 - 로드 실패 후 기존 저장을 빈 게임으로 덮어쓰지 않음
 - IO 임시 파일 교체 실패 시 직전 저장 보존
 - 통파일 API 직렬화 왕복
@@ -1072,7 +1150,10 @@ SHUTDOWN_TIMEOUT
 - 앱 재시작 후 in-flight 복구
 - stale 응답 무시
 - `401` refresh 후 동일 요청 재시도
-- `409` 충돌에서 자동 덮어쓰기 방지
+- `409` 충돌에서 exact in-flight 확인 후 원격 revision 자동 rebase
+- rebase 단계별 강제 종료와 다음 실행 복구
+- writer 교체 뒤 백그라운드 자동 탈환 방지
+- 같은 브라우저 두 탭의 단일 로컬 writer 잠금
 - 온라인 실패가 게임 진행을 막지 않음
 
 ### Go 단위 테스트
@@ -1101,6 +1182,9 @@ SHUTDOWN_TIMEOUT
 - 동일 key와 body의 동시 2요청이 같은 resulting revision 성공
 - 동일 key와 다른 body의 동시 요청이 key 재사용 오류
 - 다른 body의 key 재사용 거부
+- writer claim 멱등 재시도와 generation 단조 증가
+- 이전 writer의 새 저장 거부와 이미 성공한 요청 영수증 복구
+- unsupported client가 기존 writer를 교체하지 않음
 - `activeRun: null` 행 삭제
 - account 삭제 cascade
 
@@ -1110,7 +1194,9 @@ SHUTDOWN_TIMEOUT
 - 앱 재설치 후 원격 저장 복원
 - 느린 네트워크와 응답 유실 시 저장 순서 보장
 - 앱 강제 종료 후 outbox 복구
-- 두 기기 revision 충돌과 양쪽 백업
+- 두 기기 revision 충돌, 로컬 backup과 원격 자동 복구
+- writer 교체, 응답 유실과 실제 미반영 요청 구분
+- 같은 브라우저 두 탭의 저장 writer 제한
 - Web legacy 저장 실제 마이그레이션
 - PostgreSQL 백업 파일 복원
 
@@ -1129,10 +1215,10 @@ SHUTDOWN_TIMEOUT
 - [x] system temp 저장을 application support 영속 위치로 이전
 - [x] guest/account별 로컬 슬롯 분리
 - [x] v2 전용 키·파일과 legacy v1 fallback
-- [x] canonical/transitional v2 validator
+- [x] canonical v2 validator와 v1/v2 저장 위치 격리
 - [x] 원자적 IO 저장과 v2 backup
 - [x] 모든 로컬 쓰기의 단일 coordinator 통합
-- [x] legacy v1과 legacy 위치의 v2 fixture 마이그레이션 테스트
+- [x] legacy v1 마이그레이션과 미배포 중간 v2 거부 테스트
 - [x] 전체 Flutter analyze/test와 Web·Android 빌드 검증
 
 ### 3단계: 계정·저장 DB
@@ -1161,16 +1247,25 @@ SHUTDOWN_TIMEOUT
 - [x] revision, 멱등성과 저장 트랜잭션
 - [x] Flutter 원격 저장 API 클라이언트와 단일 전송 worker
 - [x] Flutter 영속 save outbox와 동기화 상태 기계
-- [x] 최초 로그인 저장 비교·backup·account 슬롯 선택 UX
-- revision 충돌 시 양쪽 저장 보존과 해결 UX
+- [x] 최초 로그인 기존 Outbox 우선 복구·backup·원격 account 우선 자동 bootstrap
+- [x] SHA-256 canonical Outbox와 exact in-flight 우선 복구
+- [x] 별도 충돌 backup·rebase journal과 revision 기반 자동 rebase
+- [x] `GET /v1/save` ETag 조건부 조회와 계정 게임 재로딩
+- [x] writer generation API·DB와 이전 writer 저장 거부
+- [x] Web 다중 탭 local writer 잠금
+- [x] writer claim·PUT 공통 client compatibility gate와 업데이트 필요 UX
+- [x] 업데이트 뒤 이전 Outbox의 writer 재획득과 exact PUT 영수증 hit/miss 롤오버
 - 느린 네트워크·재시작 통합 검증
 
 ### 6단계: 중요 경제 확장
 
-- 실제 결제 기능이 확정된 뒤 구매 검증과 원장 추가
-- 다이아·상품·중요 이벤트 보상 명령 API
-- command outbox
-- 규칙 기반 위험 이벤트와 최소 통계
+- [x] 서버 권위 경제 상세 설계
+- [x] 저장 writer generation과 구버전 client compatibility gate 선행
+- 경제 DB·조회·legacy bootstrap을 기능 플래그 뒤에 구현
+- 가챠·분해·연구 소비·보상 claim 명령 API
+- authority epoch, 소비 exact in-flight, progression effect journal과 보상 claim outbox
+- account 단위 일괄 전환과 다중 기기 E2E
+- 실제 결제 시점에 Google Play 구매 검증 추가
 
 ### 7단계: 출시 안전장치
 
@@ -1184,11 +1279,12 @@ SHUTDOWN_TIMEOUT
 - 서버 권위형 전투 시뮬레이션
 - 모든 라운드와 전투 행동의 서버 명령화
 - WebSocket
-- 자동 저장 병합과 last-write-wins
+- 서로 다른 오프라인 진행의 자동 병합
+- client timestamp 기준 last-write-wins
 - 관리자 페이지와 외부 분석 플랫폼
 - 머신러닝 기반 치트 탐지
 - 단일 무결성 신호를 이용한 자동 차단
-- 실제 결제 기능이 없는 상태의 선제적 경제 시스템
+- 실제 구매가 없는 상태의 Google Play·Apple 결제 검증
 - Apple 일반 로그인 실제 구현
 - 이메일·비밀번호 로그인
 
@@ -1200,7 +1296,7 @@ SHUTDOWN_TIMEOUT
 - legacy v1 저장을 덮어쓰지 않는 v2 위치 분리
 - system temp legacy 저장의 영속 위치 이전
 - v1 -> v2, v2 backup, 손상 v2 fallback 테스트
-- canonical/transitional v2 validator
+- canonical v2 validator와 v1/v2 저장 위치 격리
 - 모든 로컬 저장 경로의 단일 직렬화
 - 로컬 저장 실패 시 기존 데이터 보존
 - 전체 Flutter analyze/test 통과
@@ -1229,18 +1325,22 @@ Go 서버, Compose와 문서처럼 클라이언트 저장 형식을 바꾸지 �
 - 인증된 `GET/PUT /v1/save`, revision·멱등성·영역별 저장 트랜잭션이 구현되어 있다.
 - Flutter 원격 저장 API 클라이언트와 단일 in-flight 전송 worker가 구현되어 있다.
 - 계정별 영속 Outbox, 최신 pending 병합, backoff와 재시작 복구가 구현되어 있다.
-- 최초 로그인 현재 기록·단일 Google 계정 기록 비교, 원본 backup과 account 슬롯
-  선택이 구현되어 있다. account 로컬 저장은 독립 진행이 아닌 계정 기록의 캐시다.
-- account 진행 선택 시 해당 슬롯을 게임에 다시 로드하고, 로그아웃 시 account 저장을
+- 최초 로그인 기존 Outbox 우선 복구, 원본 backup과 원격 account 우선 자동
+  bootstrap이 구현되어 있다. account 로컬 저장은 독립 진행이 아닌 계정 기록의 캐시다.
+- account 자동 연결 시 해당 슬롯을 게임에 다시 로드하고, 로그아웃 시 account 저장을
   보존한 뒤 guest 슬롯으로 복귀한다.
 - 게스트·연결·오프라인·확인 필요 상태를 표시하는 계정·저장 UI 기반이 구현되어 있다.
 - Caddy HTTPS reverse proxy와 production Compose 배포 골격이 구현되어 있다.
-- `OnlineSaveCoordinator`는 아직 실제 게임 저장 흐름에 연결하지 않았다. 따라서
-  현재 플레이 저장은 선택된 guest 또는 account 로컬 슬롯에서만 동작한다.
-- revision 충돌 시 양쪽 저장을 보여주고 재기준화하는 해결 UX는 아직 구현되지 않았다.
+- 자동 연결 account에는 `OnlineSaveCoordinator`가 주입되며, 중요 체크포인트가 로컬
+  저장된 뒤 계정별 Outbox를 통해 비동기 전송된다.
+- 다중 기기 충돌은 사용자 선택 없이 원격 revision을 적용하는 방향으로 설계를
+  변경했다. exact in-flight 우선 복구, 자동 rebase, writer generation과 Web 다중 탭
+  잠금까지 구현되어 있다.
 - 클라이언트 인증 세션은 메모리에만 유지되므로 브라우저 새로고침 또는 앱 재시작 뒤
   다시 로그인한다.
 - Android Application ID는 아직 `com.example.rune_nexus`다.
 - release 빌드는 아직 debug signing을 사용한다.
 - PGS 인증, identity 연결 API, 운영 DB backup·restore와 계정 데이터 삭제는 아직
   구현되지 않았다.
+- 다이아·모듈권·소유 모듈을 하나의 서버 권위 경제 영역으로 전환하는 상세 설계가
+  확정됐다. DB, 명령 API, Flutter 경제 coordinator와 migration은 아직 구현되지 않았다.

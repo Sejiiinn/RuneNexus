@@ -11,6 +11,34 @@ CREATE TABLE save_headers (
         CHECK (client_saved_at_millis >= 0)
 );
 
+CREATE TABLE save_writer_states (
+    account_id UUID PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
+    generation BIGINT NOT NULL DEFAULT 0,
+    session_id UUID REFERENCES sessions(id) ON DELETE SET NULL,
+    client_instance_id UUID,
+    claimed_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT save_writer_states_generation_check CHECK (generation >= 0)
+);
+
+CREATE TABLE save_writer_claims (
+    account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    idempotency_key UUID NOT NULL,
+    session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+    client_instance_id UUID NOT NULL,
+    request_hash BYTEA NOT NULL,
+    resulting_generation BIGINT NOT NULL,
+    result_claimed_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (account_id, idempotency_key),
+    CONSTRAINT save_writer_claims_account_generation_key
+        UNIQUE (account_id, resulting_generation),
+    CONSTRAINT save_writer_claims_hash_length_check
+        CHECK (octet_length(request_hash) = 32),
+    CONSTRAINT save_writer_claims_generation_check
+        CHECK (resulting_generation > 0)
+);
+
 CREATE TABLE save_preferences (
     account_id UUID PRIMARY KEY REFERENCES save_headers(account_id) ON DELETE CASCADE,
     payload JSONB NOT NULL,
@@ -39,6 +67,7 @@ CREATE TABLE save_requests (
     account_id UUID NOT NULL REFERENCES save_headers(account_id) ON DELETE CASCADE,
     idempotency_key UUID NOT NULL,
     request_hash BYTEA NOT NULL,
+    writer_generation BIGINT NOT NULL,
     expected_revision BIGINT NOT NULL,
     resulting_revision BIGINT NOT NULL,
     result_saved_at TIMESTAMPTZ NOT NULL,
@@ -48,6 +77,8 @@ CREATE TABLE save_requests (
         UNIQUE (account_id, resulting_revision),
     CONSTRAINT save_requests_hash_length_check
         CHECK (octet_length(request_hash) = 32),
+    CONSTRAINT save_requests_writer_generation_check
+        CHECK (writer_generation > 0),
     CONSTRAINT save_requests_expected_revision_check
         CHECK (expected_revision >= 0),
     CONSTRAINT save_requests_resulting_revision_check
@@ -62,3 +93,5 @@ DROP TABLE save_turret_modules;
 DROP TABLE save_progression;
 DROP TABLE save_preferences;
 DROP TABLE save_headers;
+DROP TABLE save_writer_claims;
+DROP TABLE save_writer_states;

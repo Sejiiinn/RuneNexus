@@ -19,6 +19,9 @@ class FileSaveRepository implements BackupSaveRepository {
   Future<void> preserveCurrentAsBackup() async {}
 
   @override
+  Future<void> preserveConflictBackup(ConflictSaveBackup backup) async {}
+
+  @override
   Future<void> clear() async {
     _data = null;
   }

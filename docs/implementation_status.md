@@ -1,6 +1,6 @@
 # Rune Nexus 구현 현황
 
-마지막 갱신 기준: 2026-08-24 `codex/go-server-foundation` 브랜치 작업 기준.
+마지막 갱신 기준: 2026-08-27 `codex/go-server-foundation` 브랜치 작업 기준.
 
 ## 요약
 
@@ -11,11 +11,33 @@ Rune Nexus는 Flutter + Flame 기반의 플레이 가능한 로그라이트 타�
 
 별도 Go API와 PostgreSQL에는 Google 웹 인증, 자체 세션, 계정별 온라인 저장 API가
 구현되어 있다. Flutter에는 Google 로그인 UI, 세션 자동 갱신, 원격 저장 클라이언트,
-단일 전송 worker와 계정별 영속 Outbox까지 준비되어 있다. 최초 로그인 시에는 게스트
-기록과 단일 Google 계정 기록을 비교하고, 원본을 백업한 뒤 사용할 진행을 명시적으로
-선택할 수 있다. account 로컬 저장은 독립 후보가 아닌 계정 기록의 캐시로 취급한다.
-다만 온라인 저장 coordinator는 아직 실제 게임 저장 흐름에 연결하지 않았으므로 현재
-플레이는 선택된 로컬 슬롯에만 저장한다.
+단일 전송 worker와 계정별 영속 Outbox까지 준비되어 있다. 최초 로그인 시에는 기존
+Outbox 복구를 가장 먼저 판정하고, 새 연결이면 원격 account 진행을 우선해 account
+슬롯을 자동 준비한다. 원격 진행이 없는 최초 연결에서만 guest 진행을 이전하며, 원본은
+backup에 보존한다. account 로컬 저장은 독립 후보가 아닌 계정 기록의 캐시로 취급한다.
+자동 bootstrap이 끝나면 account ID에 결속된 온라인 저장 coordinator를 게임에
+주입한다. 라운드 종료 같은 중요 체크포인트는 로컬 저장 성공 뒤 영속 Outbox에
+등록되며 HTTP 완료를 기다리지 않고 플레이를 계속한다. 오래된 클라이언트 진행이
+원격을 덮어쓰는 것은 막고, 양쪽 진행을 비교해 사용자가 선택하는 UX는 최종 방향에서
+폐기했다. 현재 구현은 exact
+in-flight 요청을 먼저 재전송하고, 실제 다중 기기 충돌이면 로컬 진행을 별도 충돌
+backup에 보존한 뒤 원격 revision을 자동 적용한다. 이 복구는 단일 canonical Outbox의
+rebase journal과 계정 게임 재로딩까지 구현되어 있다. 여러 기기 로그인은 허용하되 한
+번에 한 인증 session만 저장 writer generation을 가지며, 이전 writer는 새 PUT을 쓸 수
+없다. 앱 시작·foreground 재개 시 writer를 획득하고 교체된 writer는 자동 탈환하지 않은
+채 `suspended`로 전환한다. Web은 앱 부팅 전에 Web Locks exclusive lock을 획득하여 같은
+브라우저의 두 번째 탭이 로컬 저장을 시작하지 못하게 한다. writer 획득과 실제 저장
+PUT에는 공통 정수 호환성 게이트가 적용되며, 구버전 실행 중에는 exact Outbox 요청을
+보존한 채 로컬 저장과 계정 플레이를 멈추고 업데이트 안내를 표시한다. 업데이트 뒤에는
+이전 Outbox를 읽어 과거 PUT의 성공 영수증을 먼저 확인하고, 미처리 요청만 현재 버전
+본문으로 재구성해 전송한다. 상세 계약은
+`docs/multi_device_save_sync_design.md`를 따른다.
+
+다이아·모듈권·뽑기 횟수·소유 모듈과 관련 보상 수령을 하나의 서버 권위 경제
+영역으로 전환하는 설계도 확정했다. 일반 전투와 진행은 계속 로컬에서 처리하며,
+가챠·분해·다이아 소비·보상 수령만 별도 명령 API를 사용한다. 상세 계약은
+`docs/server_authoritative_economy_design.md`를 따른다. 경제 DB와 클라이언트 연결은
+아직 구현 전이다.
 
 세부 전투 수치와 밸런스 기준은 `docs/gameplay_balance_reference.md`를 기준으로 한다.
 
@@ -97,15 +119,24 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 - 계정별 영속 Outbox와 앱 재시작 후 미완료 전송 복구
 - 일시적 네트워크·서버 오류 지수 backoff 재시도
 - revision 충돌과 복구 불가능 상태의 명시적 정지
-- 로그인 후 현재 guest 기록과 단일 Google 계정 기록의 존재 여부와 요약 비교
-- 현재 기록 연동, Google 계정 기록 사용, 새 계정 시작, 나중에 연동 선택 UX
+- 기존 Outbox가 있으면 원격 조회·로컬 교체보다 exact 요청 복구를 우선
+- 원격 account 진행 우선, 원격이 없으면 guest 진행 이전의 자동 bootstrap
 - account 로컬 저장은 독립 후보가 아닌 Google 계정 기록의 로컬 캐시로 처리
 - 복사·적용 전 guest와 account primary의 명시적 backup
-- 선택 결과를 account 로컬 슬롯에 반영하고 해당 슬롯으로 게임 상태 재로딩
-- 나중에 연동 선택 시 account 슬롯·원격 저장을 변경하지 않는 local-only 흐름
+- 연결 중 단계별 overlay와 account 슬롯 자동 적용·게임 상태 재로딩
+- 사용자 저장 선택 dialog와 로컬 진행의 원격 덮어쓰기 분기 제거
 - 로그아웃·세션 종료 시 account 저장을 보존하고 guest 슬롯으로 복귀
+- 자동 연결 account에 `OnlineSaveCoordinator`를 주입하고 라운드 체크포인트를 로컬
+  저장 성공 뒤 계정별 영속 Outbox에 등록
+- 전송 중·재시도 대기·완료·충돌·차단 상태, 마지막 동기화 시각과 대기 건수를 계정
+  화면에 표시
+- 원격 기록 자동 적용 시 revision과 payload fingerprint를 동기화 기준으로 사용해 동일
+  스냅샷의 불필요한 재업로드 방지
+- 기존 Outbox에 미전송 작업이 있으면 새 기준으로 덮지 않고 coordinator가 우선 복구
+- writer claim·PUT의 최소 client compatibility version 검사와 426 업데이트 필요 UX
+- 업데이트 뒤 이전 호환 버전 Outbox의 writer 재획득과 PUT 영수증 hit/miss 롤오버
 - Caddy HTTPS reverse proxy와 ipTIME 자체 운영 배포 구성
-- GitHub Pages 빌드의 Google Web Client ID·API 주소 주입 경로
+- GitHub Pages 빌드의 Google Web Client ID·API 주소·Web Git SHA build ID 주입 경로
 
 현재 계정 세션은 메모리에만 유지하므로 브라우저 새로고침 또는 앱 재시작 후 다시
 로그인해야 한다. PGS와 Apple 인증, 기존 계정에 identity를 추가하는 연결 API도 아직
@@ -309,7 +340,8 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 - guest/account별 로컬 저장 슬롯 분리
 - Web Local Storage와 application support 파일 저장
 - v2 primary/backup과 IO 원자적 교체
-- legacy v1 및 과도기 v2 데이터를 원본 보존 후 canonical v2로 마이그레이션
+- 배포된 legacy v1을 원본 보존 후 canonical v2로 마이그레이션
+- 미배포 중간 v2 형식은 호환 경로 없이 거부
 - 일반 저장과 라운드 체크포인트를 단일 `LocalSaveCoordinator`로 직렬화
 - 저장 대상
   - 스테이지 번호
@@ -368,7 +400,7 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
   - 코어/포신/프레임 부위, 일반/마법/희귀/유니크 등급, 옵션은 무작위 결정
 - 스테이지 11 최초 클리어 시 모듈권 5장 지급
 - 다른 스테이지 최초 클리어와 모든 재클리어의 모듈권 지급 제외
-- 모듈권 부족분을 1장당 다이아 80개로 구매한 뒤 뽑기 가능
+- 모듈권 부족분을 1장당 다이아 40개로 구매한 뒤 뽑기 가능
 - 포탑별 코어/포신/프레임 3부위 장착과 해제
 - 개별 분해와 필터 범위 일괄 분해, 등급별 다이아 환급
 - 모듈 인벤토리, 장착 상태, 화력/비용 효과 저장 및 복구
@@ -417,25 +449,35 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 - 메인 메뉴 위젯 렌더링
 - 결과 화면 액션과 다음 스테이지 시작
 - 포탑 모듈 뽑기, 장착/해제, 분해, 저장/복구, 전투 능력치 적용
-- legacy v1/v2 저장 마이그레이션과 guest/account 슬롯 격리
+- legacy v1 저장 마이그레이션과 canonical v2 guest/account 슬롯 격리
 - Google 인증 API, 세션 회전, 로그아웃, Bearer 인증과 요청 제한
 - 계정별 온라인 저장 revision·멱등성·트랜잭션
 - Flutter 원격 저장 요청 직렬화와 인증 재시도
-- 온라인 저장 단일 in-flight, 최신 pending 병합, backoff, 충돌 정지
-- IO/Web 영속 Outbox와 앱 재시작 복구
-- 최초 로그인 현재 기록·Google 계정 기록 분류, 선택 가능 분기와 stale 상태 거부
-- guest/account 명시적 backup과 계정 기록 적용
-- 360px 폭 저장 선택 UI 렌더링
+- 온라인 저장 단일 in-flight, 최신 pending 병합과 backoff
+- SHA-256 기준값, IO/Web 단일 canonical Outbox와 exact in-flight 우선 복구
+- 별도 충돌 backup, 단계별 rebase journal, 앱 재시작 복구와 계정 게임 재로딩
+- `GET /v1/save` revision ETag와 `If-None-Match` 304 조건부 조회
+- writer claim 영수증, account별 generation, 이전 session/generation 저장 거부
+- Flutter writer claim exact 복구, generation 포함 PUT과 `suspended` foreground 재개
+- writer 교체 감지 시 로컬 저장·게임 입력을 정지하고 최신 원격 진행 복구 UX 표시
+- Web Locks 기반 단일 local save writer와 두 번째 탭 게임 부팅 차단
+- 기존 Outbox 우선 복구와 원격 account 우선 자동 bootstrap
+- guest/account 명시적 backup과 계정 기록 자동 적용
+- 자동 연결 account의 실제 게임 체크포인트와 `OnlineSaveCoordinator` 연결
+- 동기화 상태·마지막 동기화 시각·대기 저장 건수 계정 UI 반영
+- 계정 연결 단계 overlay와 실패 시 guest 보존·재시도
 
 ## 아직 구현하지 않은 항목
 
-- `OnlineSaveCoordinator`를 실제 게임 저장 흐름에 주입하고 상태 UI와 연결
-- revision 충돌 시 양쪽 데이터를 보존하는 해결 UX
+- Web 다중 탭 종료 알림용 BroadcastChannel과 큰 저장의 실제 용량 검증
 - 공개 HTTPS API와 GitHub Pages를 연결한 실제 Google 계정 E2E 검증
 - Android PGS v2 인증, server auth code 교환과 Google Play Games Player ID 검증
 - 기존 account에 Google/PGS identity를 추가하는 계정 연결 API
 - 브라우저 새로고침·앱 재시작 뒤 인증 세션 복원
 - 계정·원격 데이터 삭제와 운영 DB 백업·복원 자동화
+- 서버 권위 경제 DB·명령 API·legacy bootstrap
+- Flutter 경제 coordinator, exact 소비 요청 복구와 보상 claim outbox
+- 저장 v3 경제 cache·모듈 장착 분리와 account 단위 전환
 - 챕터 2~3 클리어 보상과 연구 조건의 추가 연결·체감 검증
 - 영구 업그레이드 해금 단계 구조
 - 링크/젬/룬 보상 계열 영구 업그레이드 추가 검토
@@ -446,11 +488,13 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 
 ## 다음 추천 작업
 
-1. 선택된 account 슬롯에 `OnlineSaveCoordinator`를 연결하고 동기화 상태 표시
-2. revision 충돌 시 양쪽 저장을 보존하는 해결 UX 구현
-3. 자체 운영 HTTPS API와 GitHub Pages 간 Google 로그인·저장 E2E 검증
-4. Android PGS v2 인증과 기존 account identity 연결 구현
-5. 운영 DB backup·복원과 계정 데이터 삭제 절차 마련
+1. 공개 환경에서 Google 로그인·writer 교체·온라인 저장 E2E 검증
+2. Android PGS와 기존 Google account identity 연결
+3. 서버 권위 경제 DB·조회·bootstrap을 기능 플래그 뒤에 구현
+4. 가챠·분해·연구 소비·보상 claim과 Flutter 경제 coordinator 구현
+5. 공개 환경 다중 기기·경제 E2E 검증
+6. 운영 DB backup·복원과 계정 데이터 삭제 절차 마련
+7. Web BroadcastChannel 종료 알림과 재획득 안내
 
 온라인 저장 통합과 독립적으로 진행할 콘텐츠 작업은
 `docs/next_work_priorities.md`의 콘텐츠 백로그를 따른다.

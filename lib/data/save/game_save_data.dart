@@ -60,7 +60,7 @@ class GameSaveData {
     if (version == 1) {
       return _gameSaveDataFromVersion1(json);
     }
-    if (version == currentVersion && isValidVersion2Envelope(json)) {
+    if (version == currentVersion && isCanonicalVersion2Envelope(json)) {
       return _gameSaveDataFromVersion2(json);
     }
     return null;
@@ -79,44 +79,13 @@ class GameSaveData {
             json['activeRun'] is Map<String, Object?>);
   }
 
-  static bool isValidVersion2Envelope(Object? json) {
-    return isCanonicalVersion2Envelope(json) ||
-        _isTransitionalVersion2Envelope(json);
-  }
-
-  static bool _isTransitionalVersion2Envelope(Object? json) {
-    if (json is! Map<String, Object?> ||
-        _intValue(json['version']) != currentVersion ||
-        json.containsKey('turretModules') ||
-        json['preferences'] is! Map<String, Object?> ||
-        json['progression'] is! Map<String, Object?> ||
-        !json.containsKey('activeRun') ||
-        (json['activeRun'] != null &&
-            json['activeRun'] is! Map<String, Object?>)) {
-      return false;
-    }
-    final progression = json['progression'] as Map<String, Object?>;
-    return const {
-      'turretModuleTickets',
-      'turretModuleDrawCount',
-      'turretModuleTicketPurchaseCount',
-      'turretModuleItemSequence',
-      'ownedTurretModules',
-    }.any(progression.containsKey);
-  }
-
   static GameSaveData _gameSaveDataFromVersion2(Map<String, Object?> json) {
     final progression = SavedProgression.fromJson(json['progression']);
-    final turretModules = json['turretModules'] is Map<String, Object?>
-        ? SavedTurretModuleInventory.fromJson(json['turretModules'])
-        : SavedTurretModuleInventory.fromLegacyProgressionJson(
-            json['progression'],
-          );
     return GameSaveData(
       savedAtMillis: _intValue(json['savedAtMillis']),
       preferences: SavedPreferences.fromJson(json['preferences']),
       progression: progression,
-      turretModules: turretModules,
+      turretModules: SavedTurretModuleInventory.fromJson(json['turretModules']),
       activeRun: SavedRunState.fromJson(
         json['activeRun'],
         missingRunCoreCombatSkill: progression.coreCombatSkill,

@@ -46,11 +46,43 @@ func (q *Queries) AdvanceSaveHeader(ctx context.Context, arg AdvanceSaveHeaderPa
 	return i, err
 }
 
+const advanceSaveWriter = `-- name: AdvanceSaveWriter :one
+UPDATE save_writer_states
+SET generation = generation + 1,
+    session_id = $2,
+    client_instance_id = $3,
+    claimed_at = now(),
+    updated_at = now()
+WHERE account_id = $1
+RETURNING account_id, generation, session_id, client_instance_id, claimed_at, updated_at
+`
+
+type AdvanceSaveWriterParams struct {
+	AccountID        pgtype.UUID `db:"account_id"`
+	SessionID        pgtype.UUID `db:"session_id"`
+	ClientInstanceID pgtype.UUID `db:"client_instance_id"`
+}
+
+func (q *Queries) AdvanceSaveWriter(ctx context.Context, arg AdvanceSaveWriterParams) (SaveWriterState, error) {
+	row := q.db.QueryRow(ctx, advanceSaveWriter, arg.AccountID, arg.SessionID, arg.ClientInstanceID)
+	var i SaveWriterState
+	err := row.Scan(
+		&i.AccountID,
+		&i.Generation,
+		&i.SessionID,
+		&i.ClientInstanceID,
+		&i.ClaimedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const createSaveRequest = `-- name: CreateSaveRequest :one
 INSERT INTO save_requests (
     account_id,
     idempotency_key,
     request_hash,
+    writer_generation,
     expected_revision,
     resulting_revision,
     result_saved_at
@@ -60,15 +92,17 @@ INSERT INTO save_requests (
     $3,
     $4,
     $5,
-    $6
+    $6,
+    $7
 )
-RETURNING account_id, idempotency_key, request_hash, expected_revision, resulting_revision, result_saved_at, created_at
+RETURNING account_id, idempotency_key, request_hash, writer_generation, expected_revision, resulting_revision, result_saved_at, created_at
 `
 
 type CreateSaveRequestParams struct {
 	AccountID         pgtype.UUID        `db:"account_id"`
 	IdempotencyKey    pgtype.UUID        `db:"idempotency_key"`
 	RequestHash       []byte             `db:"request_hash"`
+	WriterGeneration  int64              `db:"writer_generation"`
 	ExpectedRevision  int64              `db:"expected_revision"`
 	ResultingRevision int64              `db:"resulting_revision"`
 	ResultSavedAt     pgtype.Timestamptz `db:"result_saved_at"`
@@ -79,6 +113,7 @@ func (q *Queries) CreateSaveRequest(ctx context.Context, arg CreateSaveRequestPa
 		arg.AccountID,
 		arg.IdempotencyKey,
 		arg.RequestHash,
+		arg.WriterGeneration,
 		arg.ExpectedRevision,
 		arg.ResultingRevision,
 		arg.ResultSavedAt,
@@ -88,9 +123,65 @@ func (q *Queries) CreateSaveRequest(ctx context.Context, arg CreateSaveRequestPa
 		&i.AccountID,
 		&i.IdempotencyKey,
 		&i.RequestHash,
+		&i.WriterGeneration,
 		&i.ExpectedRevision,
 		&i.ResultingRevision,
 		&i.ResultSavedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const createSaveWriterClaim = `-- name: CreateSaveWriterClaim :one
+INSERT INTO save_writer_claims (
+    account_id,
+    idempotency_key,
+    session_id,
+    client_instance_id,
+    request_hash,
+    resulting_generation,
+    result_claimed_at
+) VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7
+)
+RETURNING account_id, idempotency_key, session_id, client_instance_id, request_hash, resulting_generation, result_claimed_at, created_at
+`
+
+type CreateSaveWriterClaimParams struct {
+	AccountID           pgtype.UUID        `db:"account_id"`
+	IdempotencyKey      pgtype.UUID        `db:"idempotency_key"`
+	SessionID           pgtype.UUID        `db:"session_id"`
+	ClientInstanceID    pgtype.UUID        `db:"client_instance_id"`
+	RequestHash         []byte             `db:"request_hash"`
+	ResultingGeneration int64              `db:"resulting_generation"`
+	ResultClaimedAt     pgtype.Timestamptz `db:"result_claimed_at"`
+}
+
+func (q *Queries) CreateSaveWriterClaim(ctx context.Context, arg CreateSaveWriterClaimParams) (SaveWriterClaim, error) {
+	row := q.db.QueryRow(ctx, createSaveWriterClaim,
+		arg.AccountID,
+		arg.IdempotencyKey,
+		arg.SessionID,
+		arg.ClientInstanceID,
+		arg.RequestHash,
+		arg.ResultingGeneration,
+		arg.ResultClaimedAt,
+	)
+	var i SaveWriterClaim
+	err := row.Scan(
+		&i.AccountID,
+		&i.IdempotencyKey,
+		&i.SessionID,
+		&i.ClientInstanceID,
+		&i.RequestHash,
+		&i.ResultingGeneration,
+		&i.ResultClaimedAt,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -126,6 +217,17 @@ func (q *Queries) EnsureSaveHeader(ctx context.Context, accountID pgtype.UUID) e
 	return err
 }
 
+const ensureSaveWriterState = `-- name: EnsureSaveWriterState :exec
+INSERT INTO save_writer_states (account_id)
+VALUES ($1)
+ON CONFLICT (account_id) DO NOTHING
+`
+
+func (q *Queries) EnsureSaveWriterState(ctx context.Context, accountID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, ensureSaveWriterState, accountID)
+	return err
+}
+
 const getSaveHeaderForUpdate = `-- name: GetSaveHeaderForUpdate :one
 SELECT account_id, schema_version, revision, client_saved_at_millis, created_at, updated_at
 FROM save_headers
@@ -148,7 +250,7 @@ func (q *Queries) GetSaveHeaderForUpdate(ctx context.Context, accountID pgtype.U
 }
 
 const getSaveRequest = `-- name: GetSaveRequest :one
-SELECT account_id, idempotency_key, request_hash, expected_revision, resulting_revision, result_saved_at, created_at
+SELECT account_id, idempotency_key, request_hash, writer_generation, expected_revision, resulting_revision, result_saved_at, created_at
 FROM save_requests
 WHERE account_id = $1
   AND idempotency_key = $2
@@ -166,6 +268,7 @@ func (q *Queries) GetSaveRequest(ctx context.Context, arg GetSaveRequestParams) 
 		&i.AccountID,
 		&i.IdempotencyKey,
 		&i.RequestHash,
+		&i.WriterGeneration,
 		&i.ExpectedRevision,
 		&i.ResultingRevision,
 		&i.ResultSavedAt,
@@ -225,6 +328,55 @@ func (q *Queries) GetSaveSnapshot(ctx context.Context, accountID pgtype.UUID) (G
 		&i.Progression,
 		&i.TurretModules,
 		&i.ActiveRun,
+	)
+	return i, err
+}
+
+const getSaveWriterClaim = `-- name: GetSaveWriterClaim :one
+SELECT account_id, idempotency_key, session_id, client_instance_id, request_hash, resulting_generation, result_claimed_at, created_at
+FROM save_writer_claims
+WHERE account_id = $1
+  AND idempotency_key = $2
+`
+
+type GetSaveWriterClaimParams struct {
+	AccountID      pgtype.UUID `db:"account_id"`
+	IdempotencyKey pgtype.UUID `db:"idempotency_key"`
+}
+
+func (q *Queries) GetSaveWriterClaim(ctx context.Context, arg GetSaveWriterClaimParams) (SaveWriterClaim, error) {
+	row := q.db.QueryRow(ctx, getSaveWriterClaim, arg.AccountID, arg.IdempotencyKey)
+	var i SaveWriterClaim
+	err := row.Scan(
+		&i.AccountID,
+		&i.IdempotencyKey,
+		&i.SessionID,
+		&i.ClientInstanceID,
+		&i.RequestHash,
+		&i.ResultingGeneration,
+		&i.ResultClaimedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getSaveWriterStateForUpdate = `-- name: GetSaveWriterStateForUpdate :one
+SELECT account_id, generation, session_id, client_instance_id, claimed_at, updated_at
+FROM save_writer_states
+WHERE account_id = $1
+FOR UPDATE
+`
+
+func (q *Queries) GetSaveWriterStateForUpdate(ctx context.Context, accountID pgtype.UUID) (SaveWriterState, error) {
+	row := q.db.QueryRow(ctx, getSaveWriterStateForUpdate, accountID)
+	var i SaveWriterState
+	err := row.Scan(
+		&i.AccountID,
+		&i.Generation,
+		&i.SessionID,
+		&i.ClientInstanceID,
+		&i.ClaimedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }

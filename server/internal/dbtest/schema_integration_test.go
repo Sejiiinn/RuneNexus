@@ -188,6 +188,7 @@ func TestOnlineSaveQueriesPreserveRevisionAndReceipt(t *testing.T) {
 		AccountID:         account.ID,
 		IdempotencyKey:    idempotencyKey,
 		RequestHash:       repeatedHash(5),
+		WriterGeneration: 1,
 		ExpectedRevision:  0,
 		ResultingRevision: advanced.Revision,
 		ResultSavedAt:     advanced.UpdatedAt,

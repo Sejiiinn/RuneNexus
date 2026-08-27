@@ -1,6 +1,6 @@
 # Rune Nexus 다음 작업 우선순위
 
-마지막 정리 기준: 2026-08-24 `codex/go-server-foundation` 브랜치 작업 기준.
+마지막 정리 기준: 2026-08-28 `codex/go-server-foundation` 브랜치 작업 기준.
 
 ## 목적
 
@@ -8,8 +8,15 @@
 위한 기준 문서다.
 
 현재 Rune Nexus는 기본 게임 MVP와 로컬 저장을 유지하면서 Google 웹 로그인,
-Go/PostgreSQL 인증·저장 API, Flutter 온라인 저장 전송 worker와 영속 Outbox까지
-구현했다. 현재 최우선 트랙은 이 기반을 실제 플레이 저장에 안전하게 연결하는 것이다.
+Go/PostgreSQL 인증·저장 API와 Flutter 온라인 저장 전송 worker를 실제 계정 플레이의
+라운드 체크포인트까지 연결했다. exact in-flight 우선 복구, 단일 canonical Outbox와 실제
+다중 기기 충돌의 원격 revision 자동 적용, save writer generation까지 구현했다. 현재
+최초 연결의 사용자 선택형 UX는 원격 account 우선 자동 bootstrap으로 교체했다. 현재
+writer 획득·PUT 공통 client compatibility gate까지 적용했다. 최우선 트랙은 공개
+HTTPS API와 GitHub Pages를 실제 연결해 앱과 Web이 공유할 계정 저장 경로를 검증하는
+것이다.
+그다음 트랙은 다이아·모듈권·소유 모듈을 서버 권위 경제 영역으로 전환하는 것이다.
+구현 계약은 `docs/server_authoritative_economy_design.md`를 따른다.
 콘텐츠 작업은 이 연결 작업과 책임 경계가 겹치지 않는 경우 병행할 수 있다.
 
 ## 현재 판단
@@ -17,22 +24,32 @@ Go/PostgreSQL 인증·저장 API, Flutter 온라인 저장 전송 worker와 영�
 계정·온라인 저장 기반에서 완료된 항목은 다음과 같다.
 
 - `GameSaveData` v2 영역 분리와 guest/account별 로컬 슬롯
-- legacy 저장 원본 보존 마이그레이션과 primary/backup 복구
+- 배포된 legacy v1 원본 보존 마이그레이션과 canonical v2 primary/backup 복구
 - Go `net/http`, PostgreSQL, pgx/sqlc/tern 서버 기반
 - Google 웹 로그인, 자체 access/refresh 세션과 로그아웃
 - 인증 요청 제한, 세션 single-flight 갱신과 401 1회 재시도
 - 인증된 `GET/PUT /v1/save`, revision, 멱등성과 DB 트랜잭션
 - 계정당 단일 in-flight 온라인 저장 worker와 최신 pending 병합
-- 계정별 영속 Outbox, 재시작 복구, backoff와 충돌 정지
-- 최초 로그인 현재 기록·Google 계정 기록 비교와 명시적 선택 UI
-- guest/account 원본 backup과 선택 결과의 account 슬롯 적용
-- 선택한 account 슬롯 재로딩과 로그아웃 시 guest 슬롯 복귀
+- SHA-256 기반 계정별 단일 canonical Outbox, 재시작 복구와 backoff
+- exact in-flight 우선 복구, 별도 충돌 backup과 단계별 자동 rebase
+- revision ETag 조건부 조회와 원격 적용 뒤 계정 게임 재로딩
+- 원격 account 우선 자동 bootstrap과 선택형 저장 UI 제거
+- 기존 Outbox 우선 복구, guest/account 원본 backup과 account 슬롯 자동 적용
+- 자동 연결된 account 슬롯 재로딩과 로그아웃 시 guest 슬롯 복귀
+- 연결된 account에 `OnlineSaveCoordinator` 주입과 중요 체크포인트 전송
+- 동기화 중·오프라인 재시도·완료·충돌·차단 상태와 마지막 동기화 시각 표시
 - Caddy 기반 자체 운영 HTTPS 배포 구성
+- writer claim 영수증·generation DB/API와 이전 writer의 새 저장 거부
+- Flutter writer claim exact 복구, generation 포함 PUT과 foreground 재획득
+- writer 교체 후 로컬 저장·게임 입력 정지와 최신 진행 복구 overlay
+- Web Locks exclusive local writer와 두 번째 탭 부팅 차단
+- writer claim·PUT 공통 client compatibility gate, 426 저장 정지와 업데이트 안내 UX
+- 업데이트 뒤 이전 호환 버전 Outbox의 claim 재획득과 exact PUT 영수증 hit/miss 전환
+- GitHub Pages 배포물의 Web Git SHA build ID 주입
 
 아직 실제 게임 연결에서 해결해야 하는 항목은 다음과 같다.
 
-- 선택 완료 뒤에만 `OnlineSaveCoordinator`를 게임 저장 흐름에 주입
-- revision 충돌 시 양쪽 데이터를 보존하고 사용자가 결정하는 UX
+- Web 다중 탭 종료 알림용 BroadcastChannel
 - 공개 HTTPS API와 GitHub Pages를 연결한 Google 계정 E2E 검증
 - 브라우저 새로고침 후 인증 세션을 복원하지 않아 다시 로그인해야 하는 현재 제약
 - Android PGS v2와 기존 account identity 연결
@@ -75,45 +92,66 @@ Go/PostgreSQL 인증·저장 API, Flutter 온라인 저장 전송 worker와 영�
 
 ## 현재 개발 트랙: 계정·온라인 저장 연결
 
-### 1. 최초 로그인 저장 선택과 backup — 완료
+### 1. 최초 로그인 자동 bootstrap과 backup — 구현 완료
 
-로그인 성공 자체가 로컬 데이터를 즉시 덮어쓰거나 업로드하지 않도록 구현했다.
+Google 로그인 뒤 사용자의 저장 선택 없이 account 진행을 자동 확정한다.
 
 작업 범위:
 
-- [x] 현재 guest 기록과 단일 Google 계정 기록의 존재 여부와 요약 비교
-- [x] account 로컬 저장을 독립 후보가 아닌 계정 기록의 캐시로 처리
-- [x] 현재 기록 연동, Google 계정 기록 사용, 새 계정 시작, 나중에 연동의 명시적 UI
+- [x] 기존 Outbox가 있으면 원격 조회·로컬 교체 전에 coordinator 복구를 우선
+- [x] 원격 account 저장이 있으면 account 슬롯에 자동 적용
+- [x] 원격 저장이 없으면 guest 진행을 최초 account 진행으로 자동 이전
+- [x] guest가 없고 account cache만 남아 있으면 account cache를 보존형 복구
 - [x] 복사·적용 전에 guest와 기존 account 원본 backup 생성
-- [x] 선택이 끝나기 전 guest 슬롯 유지와 온라인 전송 금지
-- [x] 선택 실패 시 guest 진행을 변경하지 않는 복구 경로
-- [x] 선택된 account 슬롯 재로딩과 로그아웃 시 guest 슬롯 복귀
+- [x] 연결 실패 시 guest 진행과 기존 Outbox를 변경하지 않는 복구 경로
+- [x] 연결 진행 상태 overlay와 account 슬롯 자동 재로딩
+- [x] 사용자 저장 선택 dialog와 선택 전용 문구·분기 제거
 
 성공 기준:
 
-- 로그인만으로 어떤 저장도 자동 덮어쓰지 않는다.
-- 모든 분기에서 원본을 복구할 수 있다.
-- 선택 결과가 하나의 account 로컬 슬롯으로 확정된다.
+- 원격 account 저장이 있으면 항상 가장 최신 account 진행을 사용한다.
+- 원격 저장이 없는 최초 연결에서만 guest 진행을 account로 이전한다.
+- 기존 Outbox와 exact in-flight가 새 bootstrap 기준으로 덮이지 않는다.
+- 실패해도 guest 원본을 잃지 않고 계정 화면에서 다시 시도할 수 있다.
 
-### 2. 실제 게임 저장 연결과 충돌 해결
+정상 로그인 경로에는 로컬·원격 저장 선택이 없다. 연결 중에는 현재 진행 저장, 최신
+계정 진행 조회, account 게임 준비 상태만 표시한다.
 
-저장 선택이 완료된 account에 한해서 `OnlineSaveCoordinator`를 생성하고 기존 로컬
+### 2. 실제 게임 저장 연결과 다중 기기 자동 복구 — 단계 A 기술 경로 완료
+
+자동 bootstrap이 완료된 account에 `OnlineSaveCoordinator`를 생성하고 기존 로컬
 체크포인트 뒤에 비동기 전송을 연결한다.
 
 작업 범위:
 
-- account ID에 결속된 Outbox repository와 원격 revision 초기화
-- 로컬 저장 성공 뒤 coordinator에 최신 체크포인트 전달
-- 전송 중, 재시도 대기, 동기화 완료, 충돌, 차단 상태를 계정 화면에 표시
-- `SAVE_REVISION_CONFLICT` 발생 시 자동 덮어쓰기 금지
-- 로컬·원격 데이터의 backup과 사용자 선택에 따른 재기준화
-- 로그아웃·계정 변경 시 다른 account Outbox와 데이터가 섞이지 않는지 검증
+- [x] account ID에 결속된 Outbox repository와 원격 revision 초기화
+- [x] 로컬 저장 성공 뒤 coordinator에 최신 체크포인트 전달
+- [x] 전송 중, 재시도 대기, 동기화 완료, 충돌, 차단 상태를 계정 화면에 표시
+- [x] `SAVE_REVISION_CONFLICT`에서 클라이언트 로컬의 원격 덮어쓰기 금지
+- [x] exact in-flight 요청의 동일 본문·멱등성 key 우선 재전송
+- [x] 원격 revision이 앞선 실제 충돌의 별도 backup·자동 rebase
+- [x] rebase journal, 강제 종료 복구와 계정 게임 상태 재로딩
+- [x] SHA-256 payload hash와 배포 전 중간 형식을 제거한 단일 canonical Outbox
+- [x] revision ETag와 `If-None-Match` 조건부 조회
+- [x] 단일 save writer generation API·DB
+- [x] Web 다중 탭 local writer 잠금
+- [x] writer claim·PUT 공통 client compatibility gate와 업데이트 필요 UX
+- [x] 업데이트 뒤 이전 Outbox의 writer 재획득과 exact PUT 영수증 hit/miss 롤오버
+- [x] 로그아웃·계정 변경 시 coordinator 종료와 account별 Outbox 격리
+
+기존 Outbox에 exact in-flight가 있으면 새 기준을 만들기 전에 같은 요청을 먼저
+재전송한다. 이후 원격 revision이 앞서면 현재 account 로컬을 일반 backup과 분리된
+충돌 backup에 보존하고, 단계별 rebase journal을 거쳐 원격 데이터를 적용한다. rebase
+확정 즉시 기존 게임의 로컬 저장 writer와 입력을 정지시키고 완료 뒤 같은 account 슬롯에서
+게임 상태를 다시 만든다. 상세 계약은 `docs/multi_device_save_sync_design.md`를 따른다.
 
 성공 기준:
 
 - 오프라인·느린 연결에서도 플레이와 로컬 저장이 막히지 않는다.
 - 같은 요청의 timeout 재시도는 본문과 idempotency key를 유지한다.
 - 재시작 후 미전송 저장이 복구되며 다른 계정으로 전송되지 않는다.
+- 실제 충돌이면 사용자 선택 없이 원격 revision이 적용된다.
+- 이전 writer나 오래된 revision이 현재 원격 저장을 덮어쓰지 않는다.
 
 ### 3. 공개 환경 E2E와 운영 안전장치
 
@@ -126,6 +164,8 @@ Go/PostgreSQL 인증·저장 API, Flutter 온라인 저장 전송 worker와 영�
 - Google OAuth Authorized JavaScript origin과 서버 CORS exact origin 확인
 - GitHub Actions Variables의 Web Client ID와 API base URL 확인
 - 로그인, refresh, logout, `GET/PUT /v1/save` 실제 네트워크 검증
+- 지원 버전의 writer/PUT 성공과 구버전 426 차단 실제 네트워크 검증
+- 호환 버전 강제 상승 뒤 기존 Outbox의 영수증 hit/miss 롤오버 검증
 - 느린 네트워크, API 재시작, DB 재시작과 Outbox 복구 검증
 - DB backup·restore 절차와 계정·원격 데이터 삭제 경로 마련
 
@@ -142,6 +182,31 @@ Go/PostgreSQL 인증·저장 API, Flutter 온라인 저장 전송 worker와 영�
 - 이미 다른 account에 연결된 identity의 충돌 처리
 - Android 내부 테스트 배포와 실제 계정 QA
 
+### 5. 서버 권위 경제 — 설계 완료, 구현 예정
+
+일반 전투와 진행은 계속 로컬에서 처리한다. 다이아·모듈권·뽑기 횟수·소유 모듈과
+관련 보상 수령만 별도 economy revision과 명령 API로 처리한다.
+
+선행 조건:
+
+- save 자동 rebase와 writer generation
+- 구버전 client compatibility gate — 완료
+- 공개 HTTPS 인증·저장 기본 E2E
+
+구현 범위:
+
+- authority epoch, `player_economies`, `player_modules`, 명령 영수증·원장·보상 수령
+  스키마
+- 기존 account snapshot의 계정당 1회 bootstrap
+- 가챠·분해·연구 다이아 소비와 보상 claim API
+- Flutter economy cache, exact 소비 in-flight, progression effect journal과 reward claim
+  outbox
+- 저장 v3의 economy cache와 모듈 장착 ID 분리
+- 모든 경제 경로 완성 뒤 account 단위 일괄 전환
+
+가챠만 먼저 서버 권위로 켜지 않는다. 전환 중 같은 잔액에 로컬·서버 writer가 동시에
+존재하지 않도록 전체 기능을 플래그 뒤에서 완성한 다음 한 번에 활성화한다.
+
 ## 콘텐츠 백로그 우선순위
 
 ### 1. 포탑 모듈 획득/성장 곡선 검증
@@ -152,7 +217,7 @@ Go/PostgreSQL 인증·저장 API, Flutter 온라인 저장 전송 worker와 영�
 작업 후보:
 
 - 스테이지 11 최초 클리어 모듈권 5장과 주간 임무 보상의 실제 수급 속도 점검
-- 모듈권 부족분 1장당 다이아 80개 보충 비용 점검
+- 모듈권 부족분 1장당 다이아 40개 보충 비용 점검
 - 현재 선택한 포탑만 뽑히는 규칙이 목표 포탑 육성 의도를 충분히 보장하는지 확인
 - 선택 포탑 안에서 무작위로 결정되는 코어/포신/프레임 부위 분포와 체감 점검
 - 일반/마법/희귀/유니크 등급 확률과 옵션 개수·수치 분포 점검
@@ -340,10 +405,13 @@ Go/PostgreSQL 인증·저장 API, Flutter 온라인 저장 전송 worker와 영�
 
 현재 브랜치에서는 다음 순서를 따른다.
 
-1. 실제 게임 저장 연결과 충돌 해결
-2. 공개 환경 Google 로그인·온라인 저장 E2E
-3. DB backup·restore와 계정 데이터 삭제
-4. Android PGS와 다중 identity 연결
+1. 공개 환경 Google 로그인·writer 교체·온라인 저장 E2E
+2. Android PGS와 기존 Google account identity 연결
+3. 서버 권위 경제 DB·조회·legacy bootstrap
+4. 가챠·분해·연구 소비·보상 claim과 Flutter economy coordinator
+5. 저장 v3 migration과 account 단위 경제 전환 E2E
+6. DB backup·restore와 계정 데이터 삭제
+7. Web BroadcastChannel 종료 알림과 재획득 안내
 
 콘텐츠 트랙을 진행할 때는 다음 순서를 따른다.
 
@@ -365,7 +433,7 @@ Go/PostgreSQL 인증·저장 API, Flutter 온라인 저장 전송 worker와 영�
 - 스테이지 3~5의 억지 웨이브 차별화
 - 포탑/젬/적 종류 대량 추가
 - 앱 패키지 배포 자동화
-- 실제 결제·다이아 서버 권위 원장
+- 실제 구매가 없는 상태의 Google Play·Apple 결제 검증
 - WebSocket과 서버 권위형 전투 시뮬레이션
 
 ## 다음 세션 시작 가이드
@@ -373,7 +441,7 @@ Go/PostgreSQL 인증·저장 API, Flutter 온라인 저장 전송 worker와 영�
 새 세션에서 바로 작업을 시작한다면 다음 문장이 적합하다.
 
 ```text
-docs/next_work_priorities.md 기준으로 최우선 과제인 실제 게임 저장 연결과 충돌 해결을 진행해줘.
+docs/next_work_priorities.md의 공개 환경 E2E를 진행해줘.
 ```
 
 온라인 저장 연결과 독립적으로 콘텐츠를 진행하려면 다음 문장이 적합하다.

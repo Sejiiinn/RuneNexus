@@ -16,7 +16,7 @@ class FileOnlineSaveOutboxRepository implements OnlineSaveOutboxRepository {
 
   final LocalSaveSlot _slot;
 
-  String get _primaryKey => 'rune_nexus:outbox:v1:${_slot.namespace}';
+  String get _primaryKey => 'rune_nexus:outbox:${_slot.namespace}';
   String get _backupKey => '$_primaryKey:backup';
 
   @override

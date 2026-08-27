@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:rune_nexus/data/save/backup_save_repository.dart';
 import 'package:rune_nexus/data/save/file_save_repository_io.dart';
 import 'package:rune_nexus/data/save/game_save_data.dart';
 import 'package:rune_nexus/data/save/local_save_slot.dart';
@@ -42,7 +43,7 @@ void main() {
     expect(GameSaveData.isCanonicalVersion2Envelope(migratedJson), isTrue);
   });
 
-  test('legacy 위치에 기록된 canonical v2도 신규 primary로 옮긴다', () async {
+  test('미배포 canonical v2를 legacy v1 위치에서 마이그레이션하지 않는다', () async {
     final primary = File('${temporaryDirectory.path}/save_v2.json');
     final legacy = File('${temporaryDirectory.path}/rune_nexus_save_v1.json');
     await legacy.writeAsString(jsonEncode(_saveData(42).toJson()), flush: true);
@@ -50,9 +51,17 @@ void main() {
 
     final loaded = await repository.load();
 
-    expect(loaded?.savedAtMillis, 42);
-    expect(await primary.exists(), isTrue);
+    expect(loaded, isNull);
+    expect(await primary.exists(), isFalse);
     expect(await legacy.exists(), isTrue);
+  });
+
+  test('v2 primary 위치의 v1 데이터는 거부한다', () async {
+    final primary = File('${temporaryDirectory.path}/save_v2.json');
+    await primary.writeAsString(jsonEncode(_legacyJson(43)), flush: true);
+    final repository = FileSaveRepository(file: primary);
+
+    expect(await repository.load(), isNull);
   });
 
   test('손상된 primary 대신 직전 정상 backup을 복구한다', () async {
@@ -82,6 +91,53 @@ void main() {
 
     await repository.preserveCurrentAsBackup();
 
+    expect(
+      GameSaveData.fromJson(
+        jsonDecode(await backup.readAsString()),
+      )?.savedAtMillis,
+      25,
+    );
+  });
+
+  test('충돌 백업은 일반 backup과 분리하고 같은 rebase를 중복 기록하지 않는다', () async {
+    final primary = File('${temporaryDirectory.path}/save_v2.json');
+    final backup = File('${temporaryDirectory.path}/save_v2.backup.json');
+    final conflict = File('${temporaryDirectory.path}/save_v2.conflict.json');
+    final repository = FileSaveRepository(
+      file: primary,
+      backupFile: backup,
+      conflictBackupFile: conflict,
+    );
+    final local = _saveData(25);
+    await repository.save(local);
+    final conflictBackup = ConflictSaveBackup(
+      rebaseId: 'rebase-1',
+      accountId: '0198b955-3656-7c40-b3cb-87f427b90be2',
+      baseRevision: 1,
+      targetRevision: 2,
+      localPayloadHash: 'hash-25',
+      createdAt: DateTime.utc(2026, 8, 26),
+      data: local,
+    );
+
+    await repository.preserveConflictBackup(conflictBackup);
+    await repository.preserveConflictBackup(
+      ConflictSaveBackup(
+        rebaseId: 'rebase-1',
+        accountId: conflictBackup.accountId,
+        baseRevision: 1,
+        targetRevision: 2,
+        localPayloadHash: 'different',
+        createdAt: DateTime.utc(2026, 8, 27),
+        data: _saveData(99),
+      ),
+    );
+    await repository.save(_saveData(30));
+
+    final conflictJson =
+        jsonDecode(await conflict.readAsString()) as Map<String, dynamic>;
+    expect(conflictJson['rebaseId'], 'rebase-1');
+    expect(GameSaveData.fromJson(conflictJson['data'])?.savedAtMillis, 25);
     expect(
       GameSaveData.fromJson(
         jsonDecode(await backup.readAsString()),

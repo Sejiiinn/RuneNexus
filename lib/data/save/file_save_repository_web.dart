@@ -16,14 +16,13 @@ class FileSaveRepository implements BackupSaveRepository {
 
   String get _primaryKey => 'rune_nexus:save:v2:${_slot.namespace}:primary';
   String get _backupKey => 'rune_nexus:save:v2:${_slot.namespace}:backup';
+  String get _conflictBackupKey =>
+      'rune_nexus:save:v2:${_slot.namespace}:conflict';
 
   @override
   Future<GameSaveData?> load() async {
     final primary = _decode(html.window.localStorage[_primaryKey]);
     if (primary != null) {
-      if (!primary.isCanonical) {
-        await save(primary.data);
-      }
       return primary.data;
     }
 
@@ -36,7 +35,10 @@ class FileSaveRepository implements BackupSaveRepository {
     if (!_slot.isGuest) {
       return null;
     }
-    final legacy = _decode(html.window.localStorage[_legacyGuestKey]);
+    final legacy = _decode(
+      html.window.localStorage[_legacyGuestKey],
+      legacyV1Only: true,
+    );
     if (legacy == null) {
       return null;
     }
@@ -64,29 +66,60 @@ class FileSaveRepository implements BackupSaveRepository {
   }
 
   @override
+  Future<void> preserveConflictBackup(ConflictSaveBackup backup) async {
+    final storage = html.window.localStorage;
+    final existingRaw = storage[_conflictBackupKey];
+    if (_conflictBackupRebaseId(existingRaw) == backup.rebaseId) {
+      return;
+    }
+    storage[_conflictBackupKey] = const JsonEncoder().convert(backup.toJson());
+  }
+
+  @override
   Future<void> clear() async {
     final storage = html.window.localStorage;
     storage.remove(_primaryKey);
     storage.remove(_backupKey);
+    storage.remove(_conflictBackupKey);
     if (_slot.isGuest) {
       storage.remove(_legacyGuestKey);
     }
   }
 
-  _DecodedSave? _decode(String? raw) {
+  _DecodedSave? _decode(String? raw, {bool legacyV1Only = false}) {
     if (raw == null) {
       return null;
     }
     try {
       final json = jsonDecode(raw);
+      final isCanonical = GameSaveData.isCanonicalVersion2Envelope(json);
+      final isLegacyV1 = json is Map && json['version'] == 1;
+      if (legacyV1Only ? !isLegacyV1 : !isCanonical) {
+        return null;
+      }
       final data = GameSaveData.fromJson(json);
       if (data == null) {
         return null;
       }
-      return _DecodedSave(
-        data: data,
-        isCanonical: GameSaveData.isCanonicalVersion2Envelope(json),
-      );
+      return _DecodedSave(data: data);
+    } on Object {
+      return null;
+    }
+  }
+
+  String? _conflictBackupRebaseId(String? raw) {
+    if (raw == null) {
+      return null;
+    }
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic> ||
+          decoded['version'] != ConflictSaveBackup.currentVersion ||
+          !GameSaveData.isCanonicalVersion2Envelope(decoded['data'])) {
+        return null;
+      }
+      final rebaseId = decoded['rebaseId'];
+      return rebaseId is String ? rebaseId : null;
     } on Object {
       return null;
     }
@@ -94,8 +127,7 @@ class FileSaveRepository implements BackupSaveRepository {
 }
 
 class _DecodedSave {
-  const _DecodedSave({required this.data, required this.isCanonical});
+  const _DecodedSave({required this.data});
 
   final GameSaveData data;
-  final bool isCanonical;
 }

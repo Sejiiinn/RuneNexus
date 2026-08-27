@@ -32,6 +32,13 @@ func run(logger *slog.Logger) error {
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}
+	if cfg.MinimumSaveClientCompatibilityVersion > gamesave.CurrentClientCompatibilityVersion {
+		return fmt.Errorf(
+			"MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION %d exceeds server version %d",
+			cfg.MinimumSaveClientCompatibilityVersion,
+			gamesave.CurrentClientCompatibilityVersion,
+		)
+	}
 
 	rootContext, stop := signal.NotifyContext(
 		context.Background(),
@@ -94,9 +101,10 @@ func run(logger *slog.Logger) error {
 				MaxClients:        cfg.AuthenticationRateLimitMaxClients,
 				TrustProxyHeaders: cfg.TrustProxyHeaders,
 			},
-			SaveService:        gamesave.NewService(pool),
-			MaxSaveBodyBytes:   cfg.MaxSaveBodyBytes,
-			CORSAllowedOrigins: cfg.CORSAllowedOrigins,
+			SaveService:                           gamesave.NewService(pool),
+			MaxSaveBodyBytes:                      cfg.MaxSaveBodyBytes,
+			MinimumSaveClientCompatibilityVersion: cfg.MinimumSaveClientCompatibilityVersion,
+			CORSAllowedOrigins:                    cfg.CORSAllowedOrigins,
 		}),
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       30 * time.Second,

@@ -39,6 +39,17 @@ WHERE session.access_token_hash = $1
   AND session.access_expires_at > now()
   AND account.status = 'active';
 
+-- name: IsActiveSessionForAccount :one
+SELECT EXISTS (
+    SELECT 1
+    FROM sessions AS session
+    JOIN accounts AS account ON account.id = session.account_id
+    WHERE session.id = $1
+      AND session.account_id = $2
+      AND session.revoked_at IS NULL
+      AND account.status = 'active'
+);
+
 -- name: GetRefreshTokenForUpdate :one
 SELECT
     token.id,

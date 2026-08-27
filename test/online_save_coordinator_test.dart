@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/auth/google_authentication_api.dart';
 import 'package:rune_nexus/data/auth/online_account_session_controller.dart';
+import 'package:rune_nexus/data/save/backup_save_repository.dart';
 import 'package:rune_nexus/data/save/game_save_data.dart';
 import 'package:rune_nexus/data/save/online_save_api.dart';
 import 'package:rune_nexus/data/save/online_save_coordinator.dart';
@@ -55,6 +56,47 @@ void main() {
     expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
     expect(coordinator.snapshot.remoteRevision, 2);
     expect(coordinator.snapshot.pendingSaveCount, 0);
+    coordinator.dispose();
+    session.dispose();
+  });
+
+  test('원격 기록을 동기화 기준으로 초기화하면 다시 업로드하지 않는다', () async {
+    final remoteData = _saveData(5);
+    final remoteSavedAt = DateTime.utc(2026, 8, 24, 4);
+    final outbox = MemoryOnlineSaveOutboxRepository()
+      ..state =
+          OnlineSaveOutboxState.initial(
+            accountId: _accountId,
+            remoteRevision: 7,
+          ).copyWith(
+            lastSyncedPayloadFingerprint: onlineSavePayloadFingerprint(
+              remoteData,
+            ),
+            lastSyncedAt: remoteSavedAt,
+          );
+    var updateCount = 0;
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        update: (_, _) async {
+          updateCount++;
+          return _updateResult(8);
+        },
+      ),
+      session: session,
+      initialRevision: 7,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: () async => remoteData,
+    );
+
+    await coordinator.initialize();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(updateCount, 0);
+    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
+    expect(coordinator.snapshot.remoteRevision, 7);
+    expect(coordinator.snapshot.lastSyncedAt, remoteSavedAt);
     coordinator.dispose();
     session.dispose();
   });
@@ -264,6 +306,332 @@ void main() {
     session.dispose();
   });
 
+  test('원격 revision이 앞서면 로컬을 충돌 백업하고 원격 진행으로 자동 재기준화한다', () async {
+    final local = _saveData(100);
+    final remote = _saveData(200);
+    final repository = _MemoryBackupSaveRepository(local);
+    final outbox = MemoryOnlineSaveOutboxRepository()
+      ..state = OnlineSaveOutboxState.initial(
+        accountId: _accountId,
+        remoteRevision: 1,
+      ).copyWith(lastSyncedPayloadFingerprint: onlineSavePayloadHash(local));
+    var updateCount = 0;
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        load: (_) async => OnlineSaveSnapshot(
+          revision: 2,
+          serverSavedAt: DateTime.utc(2026, 8, 24, 2),
+          data: remote,
+        ),
+        update: (_, _) async {
+          updateCount++;
+          return _updateResult(2);
+        },
+      ),
+      session: session,
+      initialRevision: 1,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: repository.load,
+      persistedSaveRepository: repository,
+    );
+
+    await coordinator.initialize();
+
+    expect(updateCount, 0);
+    expect(repository.data?.savedAtMillis, 200);
+    expect(repository.conflictBackups, hasLength(1));
+    expect(repository.conflictBackups.single.data.savedAtMillis, 100);
+    expect(outbox.state?.baseRevision, 2);
+    expect(outbox.state?.basePayloadHash, onlineSavePayloadHash(remote));
+    expect(outbox.state?.dirty, isFalse);
+    expect(outbox.state?.rebase, isNull);
+    expect(coordinator.snapshot.requiresGameReload, isTrue);
+    coordinator.dispose();
+    session.dispose();
+  });
+
+  test('원격 적용 실패 시 기존 로컬을 유지하고 일시 정지한 저장 writer를 재개한다', () async {
+    final local = _saveData(210);
+    final remote = _saveData(220);
+    final repository = _MemoryBackupSaveRepository(local)..failNextSave = true;
+    var quiesceCount = 0;
+    var resumeCount = 0;
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        load: (_) async => OnlineSaveSnapshot(
+          revision: 2,
+          serverSavedAt: DateTime.utc(2026, 8, 24, 2),
+          data: remote,
+        ),
+        update: (_, _) async => _updateResult(2),
+      ),
+      session: session,
+      initialRevision: 1,
+      outboxRepository: MemoryOnlineSaveOutboxRepository()
+        ..state = OnlineSaveOutboxState.initial(
+          accountId: _accountId,
+          remoteRevision: 1,
+        ).copyWith(lastSyncedPayloadFingerprint: onlineSavePayloadHash(local)),
+      loadPersistedCheckpoint: repository.load,
+      persistedSaveRepository: repository,
+      beforeRemoteRebase: () async {
+        quiesceCount++;
+      },
+      resumeLocalSaves: () {
+        resumeCount++;
+      },
+    );
+
+    await coordinator.initialize();
+
+    expect(quiesceCount, 1);
+    expect(resumeCount, 1);
+    expect(repository.data?.savedAtMillis, 210);
+    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.blocked);
+    expect(coordinator.snapshot.issueCode, 'LOCAL_REBASE_APPLY_FAILED');
+    expect(coordinator.snapshot.requiresGameReload, isFalse);
+    coordinator.dispose();
+    session.dispose();
+  });
+
+  test('revision 충돌은 pending 로컬을 백업한 뒤 최신 원격 진행으로 자동 복구한다', () async {
+    final base = _saveData(300);
+    final pending = _saveData(301);
+    final remoteLatest = _saveData(400);
+    final repository = _MemoryBackupSaveRepository(base);
+    var remote = OnlineSaveSnapshot(
+      revision: 1,
+      serverSavedAt: DateTime.utc(2026, 8, 24, 1),
+      data: base,
+    );
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        load: (_) async => remote,
+        update: (_, _) async {
+          remote = OnlineSaveSnapshot(
+            revision: 2,
+            serverSavedAt: DateTime.utc(2026, 8, 24, 2),
+            data: remoteLatest,
+          );
+          throw const OnlineSaveException(
+            code: 'SAVE_REVISION_CONFLICT',
+            message: 'conflict',
+            statusCode: 409,
+            currentRevision: 2,
+          );
+        },
+      ),
+      session: session,
+      initialRevision: 1,
+      outboxRepository: MemoryOnlineSaveOutboxRepository()
+        ..state = OnlineSaveOutboxState.initial(
+          accountId: _accountId,
+          remoteRevision: 1,
+        ).copyWith(lastSyncedPayloadFingerprint: onlineSavePayloadHash(base)),
+      loadPersistedCheckpoint: repository.load,
+      persistedSaveRepository: repository,
+      idempotencyKeyFactory: () => _idempotencyKey(1),
+    );
+    await coordinator.initialize();
+    await repository.save(pending);
+
+    await coordinator.enqueuePersistedCheckpoint(pending);
+    await coordinator.currentAttempt;
+
+    expect(repository.data?.savedAtMillis, 400);
+    expect(repository.conflictBackups, hasLength(1));
+    expect(repository.conflictBackups.single.data.savedAtMillis, 301);
+    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
+    expect(coordinator.snapshot.remoteRevision, 2);
+    expect(coordinator.snapshot.pendingSaveCount, 0);
+    expect(coordinator.snapshot.requiresGameReload, isTrue);
+    coordinator.dispose();
+    session.dispose();
+  });
+
+  test('재시작 시 exact in-flight를 원격 조회보다 먼저 재전송한다', () async {
+    final data = _saveData(500);
+    final request = OnlineSaveUpdateRequest(
+      expectedRevision: 1,
+      idempotencyKey: _idempotencyKey(1),
+      writerGeneration: 1,
+      data: data,
+    );
+    final outbox = MemoryOnlineSaveOutboxRepository()
+      ..state =
+          OnlineSaveOutboxState.initial(
+            accountId: _accountId,
+            remoteRevision: 1,
+          ).copyWith(
+            payloadGeneration: 1,
+            inFlight: OnlineSaveOutboxEntry(
+              idempotencyKey: request.idempotencyKey,
+              writerGeneration: request.writerGeneration,
+              expectedRevision: 1,
+              encodedRequestBody: request.encodedBody,
+              payloadFingerprint: onlineSavePayloadHash(data),
+              payloadGeneration: 1,
+            ),
+            phase: OnlineSaveOutboxPhase.sending,
+          );
+    final repository = _MemoryBackupSaveRepository(data);
+    final operations = <String>[];
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        load: (_) async {
+          operations.add('load');
+          return OnlineSaveSnapshot(
+            revision: 2,
+            serverSavedAt: DateTime.utc(2026, 8, 24, 2),
+            data: data,
+          );
+        },
+        update: (_, restored) async {
+          operations.add('update');
+          expect(restored.encodedBody, request.encodedBody);
+          expect(restored.idempotencyKey, request.idempotencyKey);
+          return OnlineSaveUpdateResult(
+            revision: 2,
+            serverSavedAt: DateTime.utc(2026, 8, 24, 2),
+          );
+        },
+      ),
+      session: session,
+      initialRevision: 1,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: repository.load,
+      persistedSaveRepository: repository,
+    );
+
+    await coordinator.initialize();
+    await coordinator.currentAttempt;
+
+    expect(operations, isNotEmpty);
+    expect(operations.first, 'update');
+    expect(outbox.state?.inFlight, isNull);
+    expect(outbox.state?.baseRevision, 2);
+    coordinator.dispose();
+    session.dispose();
+  });
+
+  test('backupPreserved rebase journal은 재시작 뒤 원격 적용부터 이어간다', () async {
+    final local = _saveData(600);
+    final remote = _saveData(700);
+    final remoteSavedAt = DateTime.utc(2026, 8, 24, 7);
+    final repository = _MemoryBackupSaveRepository(local)
+      ..conflictBackups.add(
+        ConflictSaveBackup(
+          rebaseId: 'preserved',
+          accountId: _accountId,
+          baseRevision: 1,
+          targetRevision: 2,
+          localPayloadHash: onlineSavePayloadHash(local),
+          createdAt: DateTime.utc(2026, 8, 24, 6),
+          data: local,
+        ),
+      );
+    final outbox = MemoryOnlineSaveOutboxRepository()
+      ..state =
+          OnlineSaveOutboxState.initial(
+            accountId: _accountId,
+            remoteRevision: 1,
+          ).copyWith(
+            lastSyncedPayloadFingerprint: onlineSavePayloadHash(local),
+            rebase: OnlineSaveRebaseJournal(
+              targetRevision: 2,
+              targetPayloadHash: onlineSavePayloadHash(remote),
+              targetServerSavedAt: remoteSavedAt,
+              sourcePayloadHash: onlineSavePayloadHash(local),
+              stage: OnlineSaveRebaseStage.backupPreserved,
+            ),
+            phase: OnlineSaveOutboxPhase.rebasing,
+          );
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        load: (_) async => OnlineSaveSnapshot(
+          revision: 2,
+          serverSavedAt: remoteSavedAt,
+          data: remote,
+        ),
+        update: (_, _) async => _updateResult(3),
+      ),
+      session: session,
+      initialRevision: 1,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: repository.load,
+      persistedSaveRepository: repository,
+    );
+
+    await coordinator.initialize();
+
+    expect(repository.data?.savedAtMillis, 700);
+    expect(repository.conflictBackups, hasLength(1));
+    expect(outbox.state?.rebase, isNull);
+    expect(outbox.state?.baseRevision, 2);
+    coordinator.dispose();
+    session.dispose();
+  });
+
+  test('payloadApplied journal은 로컬 hash 확인만으로 Outbox 기준을 복구한다', () async {
+    final base = _saveData(800);
+    final applied = _saveData(900);
+    final appliedAt = DateTime.utc(2026, 8, 24, 9);
+    final repository = _MemoryBackupSaveRepository(applied);
+    var loadCount = 0;
+    final outbox = MemoryOnlineSaveOutboxRepository()
+      ..state =
+          OnlineSaveOutboxState.initial(
+            accountId: _accountId,
+            remoteRevision: 1,
+          ).copyWith(
+            lastSyncedPayloadFingerprint: onlineSavePayloadHash(base),
+            rebase: OnlineSaveRebaseJournal(
+              targetRevision: 2,
+              targetPayloadHash: onlineSavePayloadHash(applied),
+              targetServerSavedAt: appliedAt,
+              sourcePayloadHash: onlineSavePayloadHash(base),
+              stage: OnlineSaveRebaseStage.payloadApplied,
+            ),
+            phase: OnlineSaveOutboxPhase.rebasing,
+          );
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        load: (_) async {
+          loadCount++;
+          return null;
+        },
+        update: (_, _) async => _updateResult(3),
+      ),
+      session: session,
+      initialRevision: 1,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: repository.load,
+      persistedSaveRepository: repository,
+    );
+
+    await coordinator.initialize();
+
+    expect(loadCount, 0);
+    expect(outbox.state?.rebase, isNull);
+    expect(outbox.state?.baseRevision, 2);
+    expect(outbox.state?.dirty, isFalse);
+    expect(coordinator.snapshot.requiresGameReload, isTrue);
+    coordinator.dispose();
+    session.dispose();
+  });
+
   test('검증 오류는 무한 재시도하지 않고 blocked로 전환한다', () async {
     final timerFactory = _ManualTimerFactory();
     final session = _session();
@@ -291,6 +659,296 @@ void main() {
     expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.blocked);
     expect(coordinator.snapshot.issueCode, 'INVALID_SAVE_DATA');
     expect(timerFactory.createCount, 0);
+    coordinator.dispose();
+    session.dispose();
+  });
+
+  test('구버전 writer 획득은 로컬 저장을 멈추고 요청을 보존한다', () async {
+    final outbox = MemoryOnlineSaveOutboxRepository();
+    var quiesceCount = 0;
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        claimWriter: (_, _) async => throw const OnlineSaveException(
+          code: 'CLIENT_UPDATE_REQUIRED',
+          message: 'update required',
+          statusCode: 426,
+        ),
+        update: (_, _) async => _updateResult(1),
+      ),
+      session: session,
+      initialRevision: 0,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: () async => null,
+      beforeRemoteRebase: () async {
+        quiesceCount++;
+      },
+      writerClaimIdempotencyKeyFactory: () => _idempotencyKey(70),
+      clientInstanceIdFactory: () => _idempotencyKey(71),
+    );
+
+    await coordinator.initialize();
+
+    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.blocked);
+    expect(coordinator.snapshot.issueCode, 'CLIENT_UPDATE_REQUIRED');
+    expect(outbox.state?.writerClaim, isNotNull);
+    expect(outbox.state?.writerGeneration, isNull);
+    expect(quiesceCount, 1);
+    coordinator.dispose();
+    session.dispose();
+  });
+
+  test('구버전 저장 요청은 in-flight를 보존한 채 로컬 저장을 멈춘다', () async {
+    final persistedData = _saveData(45);
+    final outbox = MemoryOnlineSaveOutboxRepository();
+    var quiesceCount = 0;
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        update: (_, _) async => throw const OnlineSaveException(
+          code: 'CLIENT_UPDATE_REQUIRED',
+          message: 'update required',
+          statusCode: 426,
+        ),
+      ),
+      session: session,
+      initialRevision: 0,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: () async => persistedData,
+      beforeRemoteRebase: () async {
+        quiesceCount++;
+      },
+      idempotencyKeyFactory: () => _idempotencyKey(72),
+    );
+
+    await coordinator.initialize();
+    await coordinator.currentAttempt;
+
+    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.blocked);
+    expect(coordinator.snapshot.issueCode, 'CLIENT_UPDATE_REQUIRED');
+    expect(outbox.state?.inFlight, isNotNull);
+    expect(outbox.state?.dirty, isFalse);
+    expect(quiesceCount, 1);
+    coordinator.dispose();
+    session.dispose();
+  });
+
+  test('업데이트 뒤 이전 writer claim은 폐기하고 현재 버전으로 다시 획득한다', () async {
+    final legacyClaim = OnlineSaveWriterClaimRequest(
+      idempotencyKey: _idempotencyKey(73),
+      clientInstanceId: _idempotencyKey(74),
+      clientBuild: 'previous-build',
+      clientCompatibilityVersion: 1,
+    );
+    final outbox = MemoryOnlineSaveOutboxRepository()
+      ..state =
+          OnlineSaveOutboxState.initial(
+            accountId: _accountId,
+            remoteRevision: 0,
+          ).copyWith(
+            clientInstanceId: legacyClaim.clientInstanceId,
+            writerClaim: OnlineSaveWriterClaimEntry(
+              idempotencyKey: legacyClaim.idempotencyKey,
+              encodedRequestBody: legacyClaim.encodedBody,
+            ),
+            phase: OnlineSaveOutboxPhase.blocked,
+            issueCode: 'CLIENT_UPDATE_REQUIRED',
+          );
+    final claims = <OnlineSaveWriterClaimRequest>[];
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        claimWriter: (_, request) async {
+          claims.add(request);
+          return OnlineSaveWriterClaimResult(
+            writerGeneration: 8,
+            claimedAt: DateTime.utc(2026, 8, 28),
+          );
+        },
+        update: (_, _) async => _updateResult(1),
+      ),
+      session: session,
+      initialRevision: 0,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: () async => null,
+      writerClaimIdempotencyKeyFactory: () => _idempotencyKey(75),
+      clientCompatibilityVersion: 2,
+    );
+
+    await coordinator.initialize();
+
+    expect(claims, hasLength(1));
+    expect(claims.single.clientCompatibilityVersion, 2);
+    expect(claims.single.idempotencyKey, _idempotencyKey(75));
+    expect(claims.single.idempotencyKey, isNot(legacyClaim.idempotencyKey));
+    expect(outbox.state?.writerClaim, isNull);
+    expect(outbox.state?.writerGeneration, 8);
+    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
+    coordinator.dispose();
+    session.dispose();
+  });
+
+  test('업데이트 전 in-flight가 이미 저장됐으면 exact 영수증으로 완료한다', () async {
+    final data = _saveData(46);
+    final legacyUpdate = OnlineSaveUpdateRequest(
+      expectedRevision: 0,
+      idempotencyKey: _idempotencyKey(76),
+      writerGeneration: 7,
+      data: data,
+      clientCompatibilityVersion: 1,
+    );
+    final repository = _MemoryBackupSaveRepository(data);
+    final outbox = MemoryOnlineSaveOutboxRepository()
+      ..state =
+          OnlineSaveOutboxState.initial(
+            accountId: _accountId,
+            remoteRevision: 0,
+          ).copyWith(
+            clientInstanceId: _idempotencyKey(77),
+            writerGeneration: legacyUpdate.writerGeneration,
+            payloadGeneration: 1,
+            inFlight: OnlineSaveOutboxEntry(
+              idempotencyKey: legacyUpdate.idempotencyKey,
+              writerGeneration: legacyUpdate.writerGeneration,
+              expectedRevision: legacyUpdate.expectedRevision,
+              encodedRequestBody: legacyUpdate.encodedBody,
+              payloadFingerprint: onlineSavePayloadHash(data),
+              payloadGeneration: 1,
+            ),
+            phase: OnlineSaveOutboxPhase.blocked,
+            issueCode: 'CLIENT_UPDATE_REQUIRED',
+          );
+    final updates = <OnlineSaveUpdateRequest>[];
+    final claims = <OnlineSaveWriterClaimRequest>[];
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        claimWriter: (_, request) async {
+          claims.add(request);
+          return OnlineSaveWriterClaimResult(
+            writerGeneration: 8,
+            claimedAt: DateTime.utc(2026, 8, 28),
+          );
+        },
+        load: (_) async => OnlineSaveSnapshot(
+          revision: 1,
+          serverSavedAt: DateTime.utc(2026, 8, 28),
+          data: data,
+        ),
+        update: (_, request) async {
+          updates.add(request);
+          return _updateResult(1);
+        },
+      ),
+      session: session,
+      initialRevision: 0,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: repository.load,
+      persistedSaveRepository: repository,
+      writerClaimIdempotencyKeyFactory: () => _idempotencyKey(78),
+      clientCompatibilityVersion: 2,
+    );
+
+    await coordinator.initialize();
+    await coordinator.currentAttempt;
+
+    expect(updates, hasLength(1));
+    expect(updates.single.clientCompatibilityVersion, 1);
+    expect(updates.single.idempotencyKey, legacyUpdate.idempotencyKey);
+    expect(updates.single.encodedBody, legacyUpdate.encodedBody);
+    expect(claims.single.clientCompatibilityVersion, 2);
+    expect(outbox.state?.inFlight, isNull);
+    expect(outbox.state?.remoteRevision, 1);
+    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
+    coordinator.dispose();
+    session.dispose();
+  });
+
+  test('업데이트 전 in-flight 영수증이 없으면 현재 버전 요청으로 다시 저장한다', () async {
+    final data = _saveData(47);
+    final legacyUpdate = OnlineSaveUpdateRequest(
+      expectedRevision: 0,
+      idempotencyKey: _idempotencyKey(79),
+      writerGeneration: 7,
+      data: data,
+      clientCompatibilityVersion: 1,
+    );
+    final repository = _MemoryBackupSaveRepository(data);
+    final outbox = MemoryOnlineSaveOutboxRepository()
+      ..state =
+          OnlineSaveOutboxState.initial(
+            accountId: _accountId,
+            remoteRevision: 0,
+          ).copyWith(
+            clientInstanceId: _idempotencyKey(80),
+            writerGeneration: legacyUpdate.writerGeneration,
+            payloadGeneration: 1,
+            inFlight: OnlineSaveOutboxEntry(
+              idempotencyKey: legacyUpdate.idempotencyKey,
+              writerGeneration: legacyUpdate.writerGeneration,
+              expectedRevision: legacyUpdate.expectedRevision,
+              encodedRequestBody: legacyUpdate.encodedBody,
+              payloadFingerprint: onlineSavePayloadHash(data),
+              payloadGeneration: 1,
+            ),
+            phase: OnlineSaveOutboxPhase.blocked,
+            issueCode: 'CLIENT_UPDATE_REQUIRED',
+          );
+    final updates = <OnlineSaveUpdateRequest>[];
+    final claims = <OnlineSaveWriterClaimRequest>[];
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        claimWriter: (_, request) async {
+          claims.add(request);
+          return OnlineSaveWriterClaimResult(
+            writerGeneration: 8,
+            claimedAt: DateTime.utc(2026, 8, 28),
+          );
+        },
+        load: (_) async => null,
+        update: (_, request) async {
+          updates.add(request);
+          if (request.clientCompatibilityVersion == 1) {
+            throw const OnlineSaveException(
+              code: 'CLIENT_UPDATE_REQUIRED',
+              message: 'receipt missing',
+              statusCode: 426,
+            );
+          }
+          return _updateResult(1);
+        },
+      ),
+      session: session,
+      initialRevision: 0,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: repository.load,
+      persistedSaveRepository: repository,
+      idempotencyKeyFactory: () => _idempotencyKey(82),
+      writerClaimIdempotencyKeyFactory: () => _idempotencyKey(81),
+      clientCompatibilityVersion: 2,
+    );
+
+    await coordinator.initialize();
+    await _pumpUntil(() => updates.length == 2);
+    await coordinator.currentAttempt;
+
+    expect(updates.first.clientCompatibilityVersion, 1);
+    expect(updates.first.idempotencyKey, legacyUpdate.idempotencyKey);
+    expect(updates.first.encodedBody, legacyUpdate.encodedBody);
+    expect(updates.last.clientCompatibilityVersion, 2);
+    expect(updates.last.idempotencyKey, _idempotencyKey(82));
+    expect(updates.last.idempotencyKey, isNot(legacyUpdate.idempotencyKey));
+    expect(updates.last.data.savedAtMillis, data.savedAtMillis);
+    expect(claims.single.clientCompatibilityVersion, 2);
+    expect(outbox.state?.inFlight, isNull);
+    expect(outbox.state?.remoteRevision, 1);
+    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
     coordinator.dispose();
     session.dispose();
   });
@@ -454,6 +1112,161 @@ void main() {
     session.dispose();
   });
 
+  test('writer 획득 응답 유실 뒤에도 같은 본문과 key로 재확인한다', () async {
+    final now = DateTime.utc(2026, 8, 26, 3);
+    final outbox = MemoryOnlineSaveOutboxRepository();
+    final firstTimer = _ManualTimerFactory();
+    late OnlineSaveWriterClaimRequest firstRequest;
+    final firstSession = _session();
+    final firstCoordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        claimWriter: (_, request) async {
+          firstRequest = request;
+          throw const OnlineSaveException(
+            code: 'SAVE_NETWORK_ERROR',
+            message: 'offline',
+            transportFailure: true,
+          );
+        },
+        update: (_, _) async => _updateResult(1),
+      ),
+      session: firstSession,
+      initialRevision: 0,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: () async => null,
+      writerClaimIdempotencyKeyFactory: () => _idempotencyKey(90),
+      clientInstanceIdFactory: () => _idempotencyKey(91),
+      timerFactory: firstTimer.create,
+      now: () => now,
+    );
+
+    await firstCoordinator.initialize();
+
+    expect(outbox.state?.writerClaim, isNotNull);
+    expect(outbox.state?.phase, OnlineSaveOutboxPhase.retryWaiting);
+    final persistedBody = outbox.state!.writerClaim!.encodedRequestBody;
+    final persistedKey = outbox.state!.writerClaim!.idempotencyKey;
+    firstCoordinator.dispose();
+    firstSession.dispose();
+
+    final restoredTimer = _ManualTimerFactory();
+    late OnlineSaveWriterClaimRequest restoredRequest;
+    final restoredSession = _session();
+    final restoredCoordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        claimWriter: (_, request) async {
+          restoredRequest = request;
+          return OnlineSaveWriterClaimResult(
+            writerGeneration: 4,
+            claimedAt: now,
+          );
+        },
+        update: (_, _) async => _updateResult(1),
+      ),
+      session: restoredSession,
+      initialRevision: 0,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: () async => null,
+      writerClaimIdempotencyKeyFactory: () =>
+          throw StateError('새 writer key를 만들면 안 됩니다.'),
+      timerFactory: restoredTimer.create,
+      now: () => now,
+    );
+
+    await restoredCoordinator.initialize();
+    restoredTimer.lastTimer!.fire();
+    await _pumpUntil(() => outbox.state?.writerGeneration == 4);
+
+    expect(firstRequest.encodedBody, persistedBody);
+    expect(restoredRequest.encodedBody, persistedBody);
+    expect(restoredRequest.idempotencyKey, persistedKey);
+    expect(outbox.state?.writerClaim, isNull);
+    restoredCoordinator.dispose();
+    restoredSession.dispose();
+  });
+
+  test('교체된 writer는 자동 탈환하지 않고 foreground 복귀 때 새 generation으로 저장한다', () async {
+    final base = _saveData(1000);
+    final pending = _saveData(1001);
+    final repository = _MemoryBackupSaveRepository(base);
+    final outbox = MemoryOnlineSaveOutboxRepository()
+      ..state = OnlineSaveOutboxState.initial(
+        accountId: _accountId,
+        remoteRevision: 0,
+      ).copyWith(lastSyncedPayloadFingerprint: onlineSavePayloadHash(base));
+    var claimCount = 0;
+    var quiesceCount = 0;
+    var resumeCount = 0;
+    final requests = <OnlineSaveUpdateRequest>[];
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        claimWriter: (_, _) async {
+          claimCount++;
+          return OnlineSaveWriterClaimResult(
+            writerGeneration: claimCount,
+            claimedAt: DateTime.utc(2026, 8, 26, claimCount),
+          );
+        },
+        load: (_) async => null,
+        update: (_, request) async {
+          requests.add(request);
+          if (requests.length == 1) {
+            throw const OnlineSaveException(
+              code: 'SAVE_WRITER_REPLACED',
+              message: 'replaced',
+              statusCode: 409,
+              currentWriterGeneration: 2,
+            );
+          }
+          return _updateResult(1);
+        },
+      ),
+      session: session,
+      initialRevision: 0,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: repository.load,
+      persistedSaveRepository: repository,
+      idempotencyKeyFactory: () => _idempotencyKey(requests.length + 1),
+      writerClaimIdempotencyKeyFactory: () => _idempotencyKey(100 + claimCount),
+      clientInstanceIdFactory: () => _idempotencyKey(110),
+      beforeRemoteRebase: () async {
+        quiesceCount++;
+      },
+      resumeLocalSaves: () {
+        resumeCount++;
+      },
+    );
+    await coordinator.initialize();
+    await repository.save(pending);
+
+    await coordinator.enqueuePersistedCheckpoint(pending);
+    await coordinator.currentAttempt;
+
+    expect(claimCount, 1);
+    expect(requests.single.writerGeneration, 1);
+    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.suspended);
+    expect(quiesceCount, 1);
+    expect(resumeCount, 0);
+
+    await coordinator.resumeForeground();
+    await coordinator.currentAttempt;
+
+    expect(claimCount, 2);
+    expect(requests, hasLength(2));
+    expect(requests.last.writerGeneration, 2);
+    expect(requests.last.idempotencyKey, isNot(requests.first.idempotencyKey));
+    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
+    expect(coordinator.snapshot.remoteRevision, 1);
+    expect(quiesceCount, 1);
+    expect(resumeCount, 1);
+    coordinator.dispose();
+    session.dispose();
+  });
+
   test('생성한 멱등성 key는 UUID v4 형식을 따른다', () {
     final key = createOnlineSaveIdempotencyKey();
 
@@ -537,12 +1350,28 @@ Future<void> _pumpUntil(bool Function() condition) async {
 
 class _FakeOnlineSaveClient implements OnlineSaveClient {
   _FakeOnlineSaveClient({
+    Future<OnlineSaveWriterClaimResult> Function(
+      String accessToken,
+      OnlineSaveWriterClaimRequest request,
+    )?
+    claimWriter,
+    Future<OnlineSaveSnapshot?> Function(String accessToken)? load,
     required Future<OnlineSaveUpdateResult> Function(
       String accessToken,
       OnlineSaveUpdateRequest request,
     )
     update,
-  }) : _update = update;
+  }) : _claimWriter = claimWriter,
+       _load = load,
+       _update = update;
+
+  final Future<OnlineSaveWriterClaimResult> Function(
+    String accessToken,
+    OnlineSaveWriterClaimRequest request,
+  )?
+  _claimWriter;
+
+  final Future<OnlineSaveSnapshot?> Function(String accessToken)? _load;
 
   final Future<OnlineSaveUpdateResult> Function(
     String accessToken,
@@ -551,7 +1380,21 @@ class _FakeOnlineSaveClient implements OnlineSaveClient {
   _update;
 
   @override
-  Future<OnlineSaveSnapshot?> load(String accessToken) async => null;
+  Future<OnlineSaveWriterClaimResult> claimWriter(
+    String accessToken,
+    OnlineSaveWriterClaimRequest request,
+  ) async {
+    return _claimWriter?.call(accessToken, request) ??
+        OnlineSaveWriterClaimResult(
+          writerGeneration: 1,
+          claimedAt: DateTime.utc(2026, 8, 24),
+        );
+  }
+
+  @override
+  Future<OnlineSaveSnapshot?> load(String accessToken) async {
+    return _load?.call(accessToken);
+  }
 
   @override
   Future<OnlineSaveUpdateResult> update(
@@ -559,6 +1402,48 @@ class _FakeOnlineSaveClient implements OnlineSaveClient {
     OnlineSaveUpdateRequest request,
   ) {
     return _update(accessToken, request);
+  }
+}
+
+class _MemoryBackupSaveRepository implements BackupSaveRepository {
+  _MemoryBackupSaveRepository(this.data);
+
+  GameSaveData? data;
+  GameSaveData? backup;
+  bool failNextSave = false;
+  final List<ConflictSaveBackup> conflictBackups = [];
+
+  @override
+  Future<GameSaveData?> load() async => data;
+
+  @override
+  Future<void> save(GameSaveData data) async {
+    if (failNextSave) {
+      failNextSave = false;
+      throw StateError('save failed');
+    }
+    backup = this.data;
+    this.data = data;
+  }
+
+  @override
+  Future<void> preserveCurrentAsBackup() async {
+    backup = data;
+  }
+
+  @override
+  Future<void> preserveConflictBackup(ConflictSaveBackup backup) async {
+    if (conflictBackups.any((current) => current.rebaseId == backup.rebaseId)) {
+      return;
+    }
+    conflictBackups.add(backup);
+  }
+
+  @override
+  Future<void> clear() async {
+    data = null;
+    backup = null;
+    conflictBackups.clear();
   }
 }
 

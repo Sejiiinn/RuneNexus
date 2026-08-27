@@ -204,6 +204,30 @@ func (q *Queries) GetRefreshTokenForUpdate(ctx context.Context, tokenHash []byte
 	return i, err
 }
 
+const isActiveSessionForAccount = `-- name: IsActiveSessionForAccount :one
+SELECT EXISTS (
+    SELECT 1
+    FROM sessions AS session
+    JOIN accounts AS account ON account.id = session.account_id
+    WHERE session.id = $1
+      AND session.account_id = $2
+      AND session.revoked_at IS NULL
+      AND account.status = 'active'
+)
+`
+
+type IsActiveSessionForAccountParams struct {
+	ID        pgtype.UUID `db:"id"`
+	AccountID pgtype.UUID `db:"account_id"`
+}
+
+func (q *Queries) IsActiveSessionForAccount(ctx context.Context, arg IsActiveSessionForAccountParams) (bool, error) {
+	row := q.db.QueryRow(ctx, isActiveSessionForAccount, arg.ID, arg.AccountID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const revokeRefreshTokensForSession = `-- name: RevokeRefreshTokensForSession :execrows
 UPDATE refresh_tokens
 SET revoked_at = COALESCE(revoked_at, now())

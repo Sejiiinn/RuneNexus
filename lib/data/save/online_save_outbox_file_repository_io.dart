@@ -87,8 +87,8 @@ class FileOnlineSaveOutboxRepository implements OnlineSaveOutboxRepository {
       _join(supportDirectory.path, ['saves', 'accounts', _slot.accountId!]),
     );
     return _OutboxFiles(
-      primary: File(_join(directory.path, const ['outbox_v1.json'])),
-      backup: File(_join(directory.path, const ['outbox_v1.backup.json'])),
+      primary: File(_join(directory.path, const ['outbox.json'])),
+      backup: File(_join(directory.path, const ['outbox.backup.json'])),
     );
   }
 

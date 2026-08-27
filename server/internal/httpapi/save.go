@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"mime"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -18,18 +19,22 @@ import (
 
 const (
 	idempotencyKeyHeader = "Idempotency-Key"
+	ifNoneMatchHeader    = "If-None-Match"
+	saveWriterHeader     = "Rune-Nexus-Save-Writer"
 	maxSaveJSONDepth     = 64
 )
 
 type SaveService interface {
 	Get(context.Context, string) (gamesave.Snapshot, error)
-	Update(context.Context, string, gamesave.UpdateRequest) (gamesave.UpdateResult, error)
+	ClaimWriter(context.Context, string, string, gamesave.ClaimWriterRequest) (gamesave.ClaimWriterResult, error)
+	Update(context.Context, string, string, gamesave.UpdateRequest) (gamesave.UpdateResult, error)
 }
 
 type saveHandler struct {
-	logger           *slog.Logger
-	saves            SaveService
-	maxSaveBodyBytes int64
+	logger                            *slog.Logger
+	saves                             SaveService
+	maxSaveBodyBytes                  int64
+	minimumClientCompatibilityVersion int
 }
 
 type saveDataRequest struct {
@@ -42,8 +47,16 @@ type saveDataRequest struct {
 }
 
 type saveUpdateRequest struct {
-	ExpectedRevision *int64           `json:"expectedRevision"`
-	Data             *saveDataRequest `json:"data"`
+	ExpectedRevision           *int64           `json:"expectedRevision"`
+	ClientCompatibilityVersion *int             `json:"clientCompatibilityVersion"`
+	Data                       *saveDataRequest `json:"data"`
+}
+
+type saveWriterClaimRequest struct {
+	ClientInstanceID           string `json:"clientInstanceId"`
+	SaveSchemaVersion          *int32 `json:"saveSchemaVersion"`
+	ClientCompatibilityVersion *int   `json:"clientCompatibilityVersion"`
+	ClientBuild                string `json:"clientBuild"`
 }
 
 type saveDataResponse struct {
@@ -64,6 +77,18 @@ type saveSnapshotResponse struct {
 type saveUpdateResponse struct {
 	Revision      int64     `json:"revision"`
 	ServerSavedAt time.Time `json:"serverSavedAt"`
+}
+
+type saveWriterClaimResponse struct {
+	WriterGeneration int64     `json:"writerGeneration"`
+	ClaimedAt        time.Time `json:"claimedAt"`
+}
+
+type saveWriterReplacedResponse struct {
+	Code                    string `json:"code"`
+	Message                 string `json:"message"`
+	RequestID               string `json:"requestId"`
+	CurrentWriterGeneration int64  `json:"currentWriterGeneration"`
 }
 
 type saveConflictResponse struct {
@@ -105,10 +130,88 @@ func (handler saveHandler) get(response http.ResponseWriter, request *http.Reque
 		handler.writeInternalError(response, request, err)
 		return
 	}
+	etag := saveRevisionETag(snapshot.Revision)
+	response.Header().Set("ETag", etag)
+	if matchesSaveETag(request.Header.Get(ifNoneMatchHeader), etag) {
+		response.Header().Set("Cache-Control", "no-store")
+		response.WriteHeader(http.StatusNotModified)
+		return
+	}
 	writeJSON(response, http.StatusOK, saveSnapshotResponse{
 		Revision:      snapshot.Revision,
 		ServerSavedAt: snapshot.ServerSavedAt,
 		Data:          saveDataResponseFromData(snapshot.Data),
+	})
+}
+
+func saveRevisionETag(revision int64) string {
+	return fmt.Sprintf("\"rn-save-%d\"", revision)
+}
+
+func matchesSaveETag(header string, current string) bool {
+	for value := range strings.SplitSeq(header, ",") {
+		candidate := strings.TrimSpace(value)
+		if candidate == "*" || candidate == current ||
+			strings.TrimPrefix(candidate, "W/") == current {
+			return true
+		}
+	}
+	return false
+}
+
+func (handler saveHandler) claimWriter(response http.ResponseWriter, request *http.Request) {
+	principal, ok := authenticatedPrincipalFromContext(request.Context())
+	if !ok {
+		handler.writeInternalError(response, request, errors.New("missing authenticated principal"))
+		return
+	}
+	idempotencyKey, ok := requestIdempotencyKey(request.Header.Values(idempotencyKeyHeader))
+	if !ok {
+		writeAPIError(response, request, http.StatusBadRequest, "INVALID_IDEMPOTENCY_KEY", "유효한 Idempotency-Key UUID가 필요합니다.")
+		return
+	}
+	input, err := decodeSaveWriterClaimRequest(
+		response,
+		request,
+		handler.maxSaveBodyBytes,
+		handler.minimumClientCompatibilityVersion,
+	)
+	if err != nil {
+		var requestError *saveRequestError
+		if errors.As(err, &requestError) {
+			writeAPIError(response, request, requestError.status, requestError.code, requestError.message)
+			return
+		}
+		handler.writeInternalError(response, request, err)
+		return
+	}
+	input.IdempotencyKey = idempotencyKey
+
+	result, err := handler.saves.ClaimWriter(
+		request.Context(),
+		principal.AccountID,
+		principal.SessionID,
+		input,
+	)
+	if errors.Is(err, gamesave.ErrIdempotencyKeyInvalid) {
+		writeAPIError(response, request, http.StatusBadRequest, "INVALID_IDEMPOTENCY_KEY", "유효한 Idempotency-Key UUID가 필요합니다.")
+		return
+	}
+	if errors.Is(err, gamesave.ErrIdempotencyKeyReused) {
+		writeAPIError(response, request, http.StatusConflict, "IDEMPOTENCY_KEY_REUSED", "같은 Idempotency-Key를 다른 writer 요청에 사용할 수 없습니다.")
+		return
+	}
+	if errors.Is(err, gamesave.ErrSessionAccountMismatch) {
+		writeAPIError(response, request, http.StatusUnauthorized, "UNAUTHORIZED", "유효한 인증 세션이 필요합니다.")
+		return
+	}
+	if err != nil {
+		handler.writeInternalError(response, request, err)
+		return
+	}
+	writeJSON(response, http.StatusOK, saveWriterClaimResponse{
+		WriterGeneration: result.WriterGeneration,
+		ClaimedAt:        result.ClaimedAt,
 	})
 }
 
@@ -129,8 +232,24 @@ func (handler saveHandler) update(response http.ResponseWriter, request *http.Re
 		)
 		return
 	}
+	writerGeneration, ok := requestWriterGeneration(request.Header.Values(saveWriterHeader))
+	if !ok {
+		writeAPIError(
+			response,
+			request,
+			http.StatusPreconditionRequired,
+			"SAVE_WRITER_REQUIRED",
+			"계정 저장 writer를 먼저 획득해야 합니다.",
+		)
+		return
+	}
 
-	input, err := decodeSaveUpdateRequest(response, request, handler.maxSaveBodyBytes)
+	input, err := decodeSaveUpdateRequest(
+		response,
+		request,
+		handler.maxSaveBodyBytes,
+		handler.minimumClientCompatibilityVersion,
+	)
 	if err != nil {
 		var requestError *saveRequestError
 		if errors.As(err, &requestError) {
@@ -147,8 +266,24 @@ func (handler saveHandler) update(response http.ResponseWriter, request *http.Re
 		return
 	}
 	input.IdempotencyKey = idempotencyKey
+	input.WriterGeneration = writerGeneration
 
-	result, err := handler.saves.Update(request.Context(), principal.AccountID, input)
+	result, err := handler.saves.Update(
+		request.Context(),
+		principal.AccountID,
+		principal.SessionID,
+		input,
+	)
+	if errors.Is(err, gamesave.ErrClientUpdateRequired) {
+		writeAPIError(
+			response,
+			request,
+			http.StatusUpgradeRequired,
+			"CLIENT_UPDATE_REQUIRED",
+			"최신 버전에서 계정 진행을 사용할 수 있습니다.",
+		)
+		return
+	}
 	if errors.Is(err, gamesave.ErrIdempotencyKeyInvalid) {
 		writeAPIError(
 			response,
@@ -169,6 +304,20 @@ func (handler saveHandler) update(response http.ResponseWriter, request *http.Re
 		)
 		return
 	}
+	if errors.Is(err, gamesave.ErrWriterRequired) {
+		writeAPIError(response, request, http.StatusPreconditionRequired, "SAVE_WRITER_REQUIRED", "계정 저장 writer를 먼저 획득해야 합니다.")
+		return
+	}
+	var writerReplaced *gamesave.WriterReplacedError
+	if errors.As(err, &writerReplaced) {
+		writeJSON(response, http.StatusConflict, saveWriterReplacedResponse{
+			Code:                    "SAVE_WRITER_REPLACED",
+			Message:                 "다른 기기에서 계정 플레이가 시작되었습니다.",
+			RequestID:               requestIDFromContext(request.Context()),
+			CurrentWriterGeneration: writerReplaced.CurrentGeneration,
+		})
+		return
+	}
 	var conflict *gamesave.RevisionConflictError
 	if errors.As(err, &conflict) {
 		writeJSON(response, http.StatusConflict, saveConflictResponse{
@@ -183,10 +332,68 @@ func (handler saveHandler) update(response http.ResponseWriter, request *http.Re
 		handler.writeInternalError(response, request, err)
 		return
 	}
+	response.Header().Set("ETag", saveRevisionETag(result.Revision))
 	writeJSON(response, http.StatusOK, saveUpdateResponse{
 		Revision:      result.Revision,
 		ServerSavedAt: result.ServerSavedAt,
 	})
+}
+
+func decodeSaveWriterClaimRequest(
+	response http.ResponseWriter,
+	request *http.Request,
+	maxBodyBytes int64,
+	minimumClientCompatibilityVersion int,
+) (gamesave.ClaimWriterRequest, error) {
+	mediaType, _, err := mime.ParseMediaType(request.Header.Get("Content-Type"))
+	if err != nil || mediaType != "application/json" {
+		return gamesave.ClaimWriterRequest{}, invalidSaveRequest(
+			http.StatusBadRequest,
+			"INVALID_REQUEST",
+			"Content-Type이 application/json인 요청이 필요합니다.",
+			errors.New("Content-Type must be application/json"),
+		)
+	}
+	request.Body = http.MaxBytesReader(response, request.Body, maxBodyBytes)
+	rawBody, err := io.ReadAll(request.Body)
+	if err != nil {
+		var maxBytesError *http.MaxBytesError
+		if errors.As(err, &maxBytesError) {
+			return gamesave.ClaimWriterRequest{}, invalidSaveRequest(
+				http.StatusRequestEntityTooLarge,
+				"REQUEST_TOO_LARGE",
+				"writer 요청 크기가 허용 범위를 초과했습니다.",
+				err,
+			)
+		}
+		return gamesave.ClaimWriterRequest{}, fmt.Errorf("read save writer request body: %w", err)
+	}
+	var wire saveWriterClaimRequest
+	decoder := json.NewDecoder(bytes.NewReader(rawBody))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&wire); err != nil {
+		return gamesave.ClaimWriterRequest{}, invalidSaveRequest(http.StatusBadRequest, "INVALID_REQUEST", "writer 요청 JSON 형식이 올바르지 않습니다.", err)
+	}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return gamesave.ClaimWriterRequest{}, invalidSaveRequest(http.StatusBadRequest, "INVALID_REQUEST", "writer 요청에는 하나의 JSON 값만 포함할 수 있습니다.", errors.New("writer body must contain one JSON value"))
+	}
+	if err := validateSaveClientCompatibility(
+		wire.ClientCompatibilityVersion,
+		minimumClientCompatibilityVersion,
+	); err != nil {
+		return gamesave.ClaimWriterRequest{}, err
+	}
+	if wire.SaveSchemaVersion == nil || *wire.SaveSchemaVersion != gamesave.CurrentSchemaVersion {
+		return gamesave.ClaimWriterRequest{}, invalidSaveRequest(http.StatusUnprocessableEntity, "SAVE_VERSION_UNSUPPORTED", "지원하지 않는 저장 데이터 버전입니다.", errors.New("unsupported writer save schema version"))
+	}
+	clientBuild := strings.TrimSpace(wire.ClientBuild)
+	if gamesave.ValidateUUID(wire.ClientInstanceID) != nil || clientBuild == "" || len(clientBuild) > 128 {
+		return gamesave.ClaimWriterRequest{}, invalidSaveRequest(http.StatusBadRequest, "INVALID_REQUEST", "writer 클라이언트 정보가 올바르지 않습니다.", errors.New("invalid writer client metadata"))
+	}
+	return gamesave.ClaimWriterRequest{
+		ClientInstanceID: wire.ClientInstanceID,
+		RawBody:          rawBody,
+	}, nil
 }
 
 func (handler saveHandler) writeInternalError(
@@ -213,6 +420,7 @@ func decodeSaveUpdateRequest(
 	response http.ResponseWriter,
 	request *http.Request,
 	maxBodyBytes int64,
+	minimumClientCompatibilityVersion int,
 ) (gamesave.UpdateRequest, error) {
 	mediaType, _, err := mime.ParseMediaType(request.Header.Get("Content-Type"))
 	if err != nil || mediaType != "application/json" {
@@ -237,6 +445,48 @@ func decodeSaveUpdateRequest(
 		}
 		return gamesave.UpdateRequest{}, fmt.Errorf("read save request body: %w", err)
 	}
+	trimmedBody := bytes.TrimSpace(rawBody)
+	if len(trimmedBody) == 0 || trimmedBody[0] != '{' {
+		return gamesave.UpdateRequest{}, invalidSaveRequest(
+			http.StatusBadRequest,
+			"INVALID_REQUEST",
+			"저장 요청 JSON 형식이 올바르지 않습니다.",
+			errors.New("save request must be a JSON object"),
+		)
+	}
+	if err := validateJSONDepth(rawBody, maxSaveJSONDepth); err != nil {
+		return gamesave.UpdateRequest{}, invalidSaveRequest(
+			http.StatusUnprocessableEntity,
+			"INVALID_SAVE_DATA",
+			"저장 데이터의 JSON 중첩이 너무 깊습니다.",
+			err,
+		)
+	}
+
+	var compatibilityEnvelope saveUpdateRequest
+	if err := json.Unmarshal(rawBody, &compatibilityEnvelope); err != nil {
+		return gamesave.UpdateRequest{}, invalidSaveRequest(
+			http.StatusBadRequest,
+			"INVALID_REQUEST",
+			"저장 요청 JSON 형식이 올바르지 않습니다.",
+			err,
+		)
+	}
+	if err := validateSaveClientCompatibility(
+		compatibilityEnvelope.ClientCompatibilityVersion,
+		minimumClientCompatibilityVersion,
+	); err != nil {
+		var requestError *saveRequestError
+		if errors.As(err, &requestError) &&
+			requestError.code == "CLIENT_UPDATE_REQUIRED" {
+			// 과거 exact PUT의 성공 영수증만 확인하고 새 저장은 허용하지 않는다.
+			return gamesave.UpdateRequest{
+				RawBody:     rawBody,
+				ReceiptOnly: true,
+			}, nil
+		}
+		return gamesave.UpdateRequest{}, err
+	}
 
 	var wire saveUpdateRequest
 	decoder := json.NewDecoder(bytes.NewReader(rawBody))
@@ -255,14 +505,6 @@ func decodeSaveUpdateRequest(
 			"INVALID_REQUEST",
 			"저장 요청에는 하나의 JSON 값만 포함할 수 있습니다.",
 			errors.New("save body must contain one JSON value"),
-		)
-	}
-	if err := validateJSONDepth(rawBody, maxSaveJSONDepth); err != nil {
-		return gamesave.UpdateRequest{}, invalidSaveRequest(
-			http.StatusUnprocessableEntity,
-			"INVALID_SAVE_DATA",
-			"저장 데이터의 JSON 중첩이 너무 깊습니다.",
-			err,
 		)
 	}
 	if wire.ExpectedRevision == nil || *wire.ExpectedRevision < 0 || wire.Data == nil {
@@ -305,6 +547,29 @@ func decodeSaveUpdateRequest(
 			ActiveRun:     activeRun,
 		},
 	}, nil
+}
+
+func validateSaveClientCompatibility(
+	clientVersion *int,
+	minimumVersion int,
+) error {
+	if clientVersion == nil || *clientVersion < minimumVersion {
+		return invalidSaveRequest(
+			http.StatusUpgradeRequired,
+			"CLIENT_UPDATE_REQUIRED",
+			"최신 버전에서 계정 진행을 사용할 수 있습니다.",
+			errors.New("save client compatibility version is below minimum"),
+		)
+	}
+	if *clientVersion > gamesave.CurrentClientCompatibilityVersion {
+		return invalidSaveRequest(
+			http.StatusUnprocessableEntity,
+			"SAVE_CLIENT_VERSION_UNSUPPORTED",
+			"서버가 지원하지 않는 저장 클라이언트 버전입니다.",
+			errors.New("save client compatibility version is newer than server"),
+		)
+	}
+	return nil
 }
 
 func validateJSONDepth(rawJSON []byte, maximum int) error {
@@ -351,6 +616,14 @@ func requestIdempotencyKey(values []string) (string, bool) {
 		return "", false
 	}
 	return value, true
+}
+
+func requestWriterGeneration(values []string) (int64, bool) {
+	if len(values) != 1 {
+		return 0, false
+	}
+	generation, err := strconv.ParseInt(strings.TrimSpace(values[0]), 10, 64)
+	return generation, err == nil && generation > 0
 }
 
 func saveDataResponseFromData(data gamesave.Data) saveDataResponse {

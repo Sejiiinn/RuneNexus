@@ -8,10 +8,12 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import '../data/auth/google_authentication_api.dart';
 import '../data/auth/google_web_authentication_config.dart';
 import '../data/auth/online_account_session_controller.dart';
-import '../data/save/account_save_selection.dart';
+import '../data/save/account_save_bootstrap.dart';
 import '../data/save/local_save_repository.dart';
 import '../data/save/local_save_slot.dart';
+import '../data/save/local_online_save_outbox_repository.dart';
 import '../data/save/online_save_api.dart';
+import '../data/save/online_save_coordinator.dart';
 import '../domain/account/account_session.dart';
 import '../domain/account/online_account_credentials.dart';
 import '../domain/combat/game_phase.dart';
@@ -19,7 +21,6 @@ import '../game/game_snapshot.dart';
 import '../game/rune_nexus_game.dart';
 import '../l10n/rune_nexus_localizations.dart';
 import '../ui/account/google_sign_in_dialog.dart';
-import '../ui/account/account_save_selection_dialog.dart';
 import '../ui/game/game_button.dart';
 import '../ui/game/game_image_assets.dart';
 import '../ui/game/game_icons.dart';
@@ -31,6 +32,12 @@ import '../ui/menu/main_menu_screen.dart';
 import '../ui/menu/map_editor_panel.dart';
 
 enum _AppScreen { main, stage, mapEditor }
+
+enum _AccountConnectionPhase {
+  savingCurrentProgress,
+  loadingAccountProgress,
+  openingAccountProgress,
+}
 
 class _AppLoadingProgress {
   const _AppLoadingProgress({required this.label, this.value});
@@ -48,10 +55,11 @@ class RuneNexusApp extends StatefulWidget {
   State<RuneNexusApp> createState() => _RuneNexusAppState();
 }
 
-class _RuneNexusAppState extends State<RuneNexusApp> {
+class _RuneNexusAppState extends State<RuneNexusApp>
+    with WidgetsBindingObserver {
   late RuneNexusGame game;
   late final GoogleWebAuthenticationConfig _googleAuthenticationConfig;
-  late final AccountSaveSelectionService _accountSaveSelectionService;
+  late final AccountSaveBootstrapService _accountSaveBootstrapService;
   GoogleAuthenticationApi? _googleAuthenticationApi;
   OnlineSaveApi? _onlineSaveApi;
   final ValueNotifier<_AppLoadingProgress> _loadingProgress = ValueNotifier(
@@ -62,6 +70,12 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
   MainMenuTab _selectedMainMenuTab = MainMenuTab.stage;
   _OnlineAccountState? _onlineAccount;
   OnlineAccountSessionController? _onlineSession;
+  OnlineSaveCoordinator? _onlineSaveCoordinator;
+  Future<void>? _onlineSaveReloadOperation;
+  Future<void>? _onlineSaveResumeOperation;
+  bool _writerRecoveryInProgress = false;
+  bool _clientUpdateRequired = false;
+  _AccountConnectionPhase? _accountConnectionPhase;
   LocalSaveSlot _activeSaveSlot = LocalSaveSlot.guest;
 
   AccountSession get _accountSession =>
@@ -70,9 +84,12 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     game = widget.game ?? _createGameForSlot(LocalSaveSlot.guest);
-    _accountSaveSelectionService = AccountSaveSelectionService(
+    _accountSaveBootstrapService = AccountSaveBootstrapService(
       repositoryFactory: (slot) => createDefaultSaveRepository(slot: slot),
+      outboxRepositoryFactory: (slot) =>
+          createDefaultOnlineSaveOutboxRepository(slot: slot),
     );
     _googleAuthenticationConfig =
         GoogleWebAuthenticationConfig.fromEnvironment();
@@ -86,9 +103,13 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
     }
   }
 
-  RuneNexusGame _createGameForSlot(LocalSaveSlot slot) {
+  RuneNexusGame _createGameForSlot(
+    LocalSaveSlot slot, {
+    OnlineSaveCoordinator? onlineSaveCoordinator,
+  }) {
     return RuneNexusGame(
       saveRepository: createDefaultSaveRepository(slot: slot),
+      onlineSaveRepository: onlineSaveCoordinator,
     );
   }
 
@@ -124,10 +145,52 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _onlineSaveCoordinator?.dispose();
     _onlineSession?.dispose();
     _loadingProgress.dispose();
     game.disposeAppResources();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed ||
+        _onlineSaveResumeOperation != null) {
+      return;
+    }
+    final coordinator = _onlineSaveCoordinator;
+    if (coordinator == null) {
+      return;
+    }
+    _resumeOnlineSaveInForeground(coordinator);
+  }
+
+  void _resumeOnlineSaveInForeground(OnlineSaveCoordinator coordinator) {
+    if (_onlineSaveResumeOperation != null) {
+      return;
+    }
+    final recoveringWriter =
+        coordinator.snapshot.phase == OnlineSaveCoordinatorPhase.suspended;
+    if (recoveringWriter && mounted) {
+      setState(() {
+        _writerRecoveryInProgress = true;
+      });
+    }
+    final operation = coordinator.resumeForeground();
+    _onlineSaveResumeOperation = operation;
+    unawaited(
+      operation.whenComplete(() {
+        if (identical(_onlineSaveResumeOperation, operation)) {
+          _onlineSaveResumeOperation = null;
+          if (_writerRecoveryInProgress && mounted) {
+            setState(() {
+              _writerRecoveryInProgress = false;
+            });
+          }
+        }
+      }),
+    );
   }
 
   bool _activeRunInProgress(GameSnapshot snapshot) {
@@ -167,7 +230,7 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
 
   Future<void> _connectGoogle(BuildContext context) async {
     final authenticationApi = _googleAuthenticationApi;
-    if (authenticationApi == null) {
+    if (authenticationApi == null || _accountConnectionPhase != null) {
       return;
     }
     final credentials = await showGameDialog<OnlineAccountCredentials>(
@@ -197,6 +260,8 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
             credentials: updatedCredentials,
             syncStatus:
                 current?.syncStatus ?? OnlineSaveSyncStatus.actionRequired,
+            lastSyncedAt: current?.lastSyncedAt,
+            pendingSaveCount: current?.pendingSaveCount ?? 0,
             issueMessage: current?.issueMessage,
           );
         });
@@ -213,25 +278,36 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
         issueMessage: context.l10n.syncActionRequired,
       );
     });
-    await _selectAccountSave(
+    await _connectAccountProgress(
       context: context,
       onlineSession: onlineSession,
       credentials: credentials,
     );
   }
 
-  Future<void> _selectAccountSave({
+  Future<void> _connectAccountProgress({
     required BuildContext context,
     required OnlineAccountSessionController onlineSession,
     required OnlineAccountCredentials credentials,
   }) async {
     final onlineSaveApi = _onlineSaveApi;
-    if (onlineSaveApi == null) {
+    if (onlineSaveApi == null || _accountConnectionPhase != null) {
       return;
     }
+    setState(() {
+      _clientUpdateRequired = false;
+      _accountConnectionPhase = _AccountConnectionPhase.savingCurrentProgress;
+    });
     try {
       await game.saveNow();
-      final selectionState = await _accountSaveSelectionService.inspect(
+      if (!mounted || !identical(_onlineSession, onlineSession)) {
+        return;
+      }
+      setState(() {
+        _accountConnectionPhase =
+            _AccountConnectionPhase.loadingAccountProgress;
+      });
+      final bootstrap = await _accountSaveBootstrapService.bootstrap(
         accountId: credentials.accountId,
         loadRemote: () => onlineSession.runAuthenticated(
           request: onlineSaveApi.load,
@@ -244,66 +320,283 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
           !identical(_onlineSession, onlineSession)) {
         return;
       }
-      final choice = await showGameDialog<AccountSaveSelectionChoice>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => AccountSaveSelectionDialog(state: selectionState),
-      );
-      if (choice == null ||
-          !mounted ||
-          !context.mounted ||
-          !identical(_onlineSession, onlineSession)) {
-        return;
-      }
-      final result = await _accountSaveSelectionService.apply(
-        selectionState,
-        choice,
+      setState(() {
+        _accountConnectionPhase =
+            _AccountConnectionPhase.openingAccountProgress;
+      });
+      final coordinator = await _activateAccountSave(
+        bootstrap: bootstrap,
+        onlineSession: onlineSession,
+        onlineSaveApi: onlineSaveApi,
       );
       if (!mounted ||
           !context.mounted ||
-          !identical(_onlineSession, onlineSession)) {
+          !identical(_onlineSession, onlineSession) ||
+          coordinator == null) {
         return;
       }
-      if (result.usesAccountSlot) {
-        await _replaceGameForSlot(result.activeSlot);
-        if (result.activeData == null) {
-          await game.saveNow();
-        }
-      }
-      if (!mounted || !context.mounted) {
-        return;
-      }
+      final activeCredentials = onlineSession.credentials ?? credentials;
       setState(() {
-        _activeSaveSlot = result.activeSlot;
-        _onlineAccount = _OnlineAccountState(
-          credentials: credentials,
-          syncStatus: OnlineSaveSyncStatus.actionRequired,
-          issueMessage: result.usesAccountSlot
-              ? context.l10n.accountProgressSelected
-              : context.l10n.guestProgressKept,
+        _activeSaveSlot = bootstrap.activeSlot;
+        _onlineAccount = _onlineAccountStateFor(
+          activeCredentials,
+          coordinator.snapshot,
         );
       });
       ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        SnackBar(content: Text(context.l10n.googleSignInConnected)),
+        SnackBar(content: Text(context.l10n.accountProgressConnected)),
       );
-    } on Object {
+    } on Object catch (error) {
       if (!mounted ||
           !context.mounted ||
           !identical(_onlineSession, onlineSession)) {
         return;
       }
+      final requiresClientUpdate =
+          error is OnlineSaveException &&
+          error.code == 'CLIENT_UPDATE_REQUIRED';
+      final issueMessage = requiresClientUpdate
+          ? context.l10n.clientUpdateRequiredDescription
+          : context.l10n.accountProgressConnectionFailed;
       setState(() {
+        _clientUpdateRequired = requiresClientUpdate;
         _activeSaveSlot = LocalSaveSlot.guest;
         _onlineAccount = _OnlineAccountState(
-          credentials: credentials,
+          credentials: onlineSession.credentials ?? credentials,
           syncStatus: OnlineSaveSyncStatus.actionRequired,
-          issueMessage: context.l10n.saveSelectionFailed,
+          issueMessage: issueMessage,
         );
       });
-      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        SnackBar(content: Text(context.l10n.saveSelectionFailed)),
-      );
+      ScaffoldMessenger.maybeOf(
+        context,
+      )?.showSnackBar(SnackBar(content: Text(issueMessage)));
+    } finally {
+      if (mounted && identical(_onlineSession, onlineSession)) {
+        setState(() {
+          _accountConnectionPhase = null;
+        });
+      } else {
+        _accountConnectionPhase = null;
+      }
     }
+  }
+
+  Future<OnlineSaveCoordinator?> _activateAccountSave({
+    required AccountSaveBootstrapResult bootstrap,
+    required OnlineAccountSessionController onlineSession,
+    required OnlineSaveClient onlineSaveApi,
+  }) async {
+    if (widget.game != null) {
+      throw StateError('외부에서 주입된 게임의 저장 슬롯은 교체할 수 없습니다.');
+    }
+    final slot = bootstrap.activeSlot;
+    final accountId = slot.accountId;
+    if (accountId == null) {
+      throw StateError('계정 저장 연결에는 account 슬롯이 필요합니다.');
+    }
+
+    final saveRepository = createDefaultSaveRepository(slot: slot);
+    final outboxRepository = createDefaultOnlineSaveOutboxRepository(
+      slot: slot,
+    );
+    late final OnlineSaveCoordinator coordinator;
+    coordinator = OnlineSaveCoordinator(
+      accountId: accountId,
+      client: onlineSaveApi,
+      session: onlineSession,
+      initialRevision: bootstrap.remoteRevision,
+      outboxRepository: outboxRepository,
+      loadPersistedCheckpoint: saveRepository.load,
+      persistedSaveRepository: saveRepository,
+      beforeRemoteRebase: () async {
+        if (identical(_onlineSaveCoordinator, coordinator)) {
+          game.pauseEngine();
+          await game.quiesceLocalSavesForRemoteRebase();
+        }
+      },
+      resumeLocalSaves: () {
+        if (identical(_onlineSaveCoordinator, coordinator)) {
+          game.resumeLocalSavesAfterRemoteRebaseFailure();
+        }
+      },
+      onSnapshotChanged: (snapshot) {
+        _handleOnlineSaveSnapshot(coordinator, snapshot);
+      },
+    );
+    RuneNexusGame? replacement;
+
+    try {
+      await coordinator.initialize();
+
+      replacement = RuneNexusGame(
+        saveRepository: saveRepository,
+        onlineSaveRepository: coordinator,
+      );
+      await replacement.prepareForAppStart();
+      coordinator.acknowledgeGameReload();
+
+      final persistedAccountData = await saveRepository.load();
+      final requiresClientUpdate =
+          coordinator.snapshot.issueCode == 'CLIENT_UPDATE_REQUIRED';
+      if (persistedAccountData == null && requiresClientUpdate) {
+        throw const OnlineSaveException(
+          code: 'CLIENT_UPDATE_REQUIRED',
+          message: '최신 버전에서 계정 진행을 사용할 수 있습니다.',
+          statusCode: 426,
+        );
+      }
+      if (requiresClientUpdate) {
+        replacement.pauseEngine();
+        await replacement.quiesceLocalSavesForRemoteRebase();
+      }
+      final canInitializeEmptyAccount =
+          bootstrap.source == AccountSaveBootstrapSource.newAccount ||
+          (bootstrap.source == AccountSaveBootstrapSource.existingOutbox &&
+              coordinator.snapshot.phase == OnlineSaveCoordinatorPhase.idle &&
+              coordinator.snapshot.remoteRevision == 0 &&
+              coordinator.snapshot.pendingSaveCount == 0);
+      if (persistedAccountData == null && !canInitializeEmptyAccount) {
+        throw StateError('복구할 계정 진행 데이터를 찾지 못했습니다.');
+      }
+      if (persistedAccountData == null) {
+        await replacement.saveNow();
+        final initialData = await saveRepository.load();
+        if (initialData == null) {
+          throw StateError('새 계정 진행의 초기 저장 데이터를 만들지 못했습니다.');
+        }
+        await coordinator.enqueuePersistedCheckpoint(initialData);
+      }
+    } on Object {
+      coordinator.dispose();
+      replacement?.disposeAppResources();
+      rethrow;
+    }
+
+    if (!mounted || !identical(_onlineSession, onlineSession)) {
+      coordinator.dispose();
+      replacement.disposeAppResources();
+      return null;
+    }
+    final readyReplacement = replacement;
+    final previousGame = game;
+    final previousCoordinator = _onlineSaveCoordinator;
+    setState(() {
+      game = readyReplacement;
+      _screen = _AppScreen.main;
+      _onlineSaveCoordinator = coordinator;
+    });
+    previousCoordinator?.dispose();
+    previousGame.disposeAppResources();
+    return coordinator;
+  }
+
+  void _handleOnlineSaveSnapshot(
+    OnlineSaveCoordinator coordinator,
+    OnlineSaveCoordinatorSnapshot snapshot,
+  ) {
+    if (!mounted || !identical(_onlineSaveCoordinator, coordinator)) {
+      return;
+    }
+    final current = _onlineAccount;
+    final credentials = _onlineSession?.credentials ?? current?.credentials;
+    if (credentials == null || credentials.accountId != coordinator.accountId) {
+      return;
+    }
+    final pausesAccountPlay =
+        snapshot.phase == OnlineSaveCoordinatorPhase.suspended ||
+        snapshot.phase == OnlineSaveCoordinatorPhase.rebasing ||
+        snapshot.issueCode == 'CLIENT_UPDATE_REQUIRED';
+    setState(() {
+      _onlineAccount = _onlineAccountStateFor(credentials, snapshot);
+      if (pausesAccountPlay) {
+        _screen = _AppScreen.main;
+      }
+    });
+    if (pausesAccountPlay) {
+      game.pauseEngine();
+    }
+    if (snapshot.requiresGameReload) {
+      _startOnlineSaveGameReload(coordinator);
+    }
+  }
+
+  void _startOnlineSaveGameReload(OnlineSaveCoordinator coordinator) {
+    if (_onlineSaveReloadOperation != null) {
+      return;
+    }
+    final operation = _reloadGameAfterRemoteRebase(coordinator);
+    _onlineSaveReloadOperation = operation;
+    unawaited(
+      operation.whenComplete(() {
+        if (identical(_onlineSaveReloadOperation, operation)) {
+          _onlineSaveReloadOperation = null;
+        }
+      }),
+    );
+  }
+
+  Future<void> _reloadGameAfterRemoteRebase(
+    OnlineSaveCoordinator coordinator,
+  ) async {
+    if (!mounted || !identical(_onlineSaveCoordinator, coordinator)) {
+      return;
+    }
+    final slot = LocalSaveSlot.account(coordinator.accountId);
+    final replacement = _createGameForSlot(
+      slot,
+      onlineSaveCoordinator: coordinator,
+    );
+    try {
+      await replacement.prepareForAppStart();
+    } on Object {
+      replacement.disposeAppResources();
+      await coordinator.reportGameReloadFailure();
+      return;
+    }
+    if (!mounted ||
+        !identical(_onlineSaveCoordinator, coordinator) ||
+        !coordinator.snapshot.requiresGameReload) {
+      replacement.disposeAppResources();
+      return;
+    }
+    final previous = game;
+    setState(() {
+      game = replacement;
+      _screen = _AppScreen.main;
+    });
+    previous.disposeAppResources();
+    coordinator.acknowledgeGameReload();
+  }
+
+  _OnlineAccountState _onlineAccountStateFor(
+    OnlineAccountCredentials credentials,
+    OnlineSaveCoordinatorSnapshot snapshot,
+  ) {
+    final syncStatus = switch (snapshot.phase) {
+      OnlineSaveCoordinatorPhase.idle => OnlineSaveSyncStatus.synchronized,
+      OnlineSaveCoordinatorPhase.sending ||
+      OnlineSaveCoordinatorPhase.rebasing => OnlineSaveSyncStatus.syncing,
+      OnlineSaveCoordinatorPhase.retryWaiting => OnlineSaveSyncStatus.offline,
+      OnlineSaveCoordinatorPhase.suspended ||
+      OnlineSaveCoordinatorPhase.conflict ||
+      OnlineSaveCoordinatorPhase.blocked ||
+      OnlineSaveCoordinatorPhase.disposed =>
+        OnlineSaveSyncStatus.actionRequired,
+    };
+    final issueMessage = switch (snapshot.phase) {
+      OnlineSaveCoordinatorPhase.conflict => context.l10n.saveSyncConflict,
+      OnlineSaveCoordinatorPhase.suspended => context.l10n.saveSyncBlocked,
+      OnlineSaveCoordinatorPhase.blocked => context.l10n.saveSyncBlocked,
+      OnlineSaveCoordinatorPhase.disposed => context.l10n.saveSyncBlocked,
+      _ => null,
+    };
+    return _OnlineAccountState(
+      credentials: credentials,
+      syncStatus: syncStatus,
+      lastSyncedAt: snapshot.lastSyncedAt,
+      pendingSaveCount: snapshot.pendingSaveCount,
+      issueMessage: issueMessage,
+    );
   }
 
   Future<void> _replaceGameForSlot(LocalSaveSlot slot) async {
@@ -322,10 +615,13 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
       return;
     }
     final previous = game;
+    final previousCoordinator = _onlineSaveCoordinator;
     setState(() {
       game = replacement;
       _screen = _AppScreen.main;
+      _onlineSaveCoordinator = null;
     });
+    previousCoordinator?.dispose();
     previous.disposeAppResources();
   }
 
@@ -335,7 +631,14 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
     if (!mounted || !identical(_onlineSession, invalidatedSession)) {
       return;
     }
+    final coordinator = _onlineSaveCoordinator;
+    _onlineSaveCoordinator = null;
+    coordinator?.dispose();
     _onlineSession = null;
+    setState(() {
+      _clientUpdateRequired = false;
+      _accountConnectionPhase = null;
+    });
     unawaited(_returnToGuestAfterSessionEnd());
   }
 
@@ -443,8 +746,9 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
                     progressListenable: _loadingProgress,
                   );
                 }
+                late final Widget content;
                 if (_screen == _AppScreen.stage) {
-                  return GameHud(
+                  content = GameHud(
                     game: game,
                     onOpenStageSelect: () => _openMainScreen(),
                     onOpenPermanentUpgrades: () =>
@@ -455,49 +759,110 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
                       context,
                     ),
                   );
-                }
-                if (_screen == _AppScreen.mapEditor) {
-                  return _MapEditorScreen(
+                } else if (_screen == _AppScreen.mapEditor) {
+                  content = _MapEditorScreen(
                     initialStageNumber:
                         game.snapshotNotifier.value.currentStageNumber,
                     onBack: () => _openMainScreen(),
                   );
+                } else {
+                  content = MainMenuScreen(
+                    game: game,
+                    snapshot: game.snapshotNotifier.value,
+                    snapshotListenable: game.snapshotNotifier,
+                    selectedTab: _selectedMainMenuTab,
+                    onSelectTab: (tab) {
+                      setState(() {
+                        _selectedMainMenuTab = tab;
+                      });
+                    },
+                    onStartStage: (stageNumber) => _startStage(
+                      stageNumber,
+                      game.snapshotNotifier.value,
+                      context,
+                    ),
+                    accountSession: _accountSession,
+                    onConnectGoogle: _googleAuthenticationApi == null
+                        ? null
+                        : () => _connectGoogle(context),
+                    onSignOut: _onlineSession == null
+                        ? null
+                        : () => _signOut(context),
+                    onSyncAccount:
+                        _onlineSession == null || !_activeSaveSlot.isGuest
+                        ? null
+                        : () => _connectAccountProgress(
+                            context: context,
+                            onlineSession: _onlineSession!,
+                            credentials: _onlineAccount!.credentials,
+                          ),
+                    onOpenMapEditor: () {
+                      setState(() {
+                        _screen = _AppScreen.mapEditor;
+                      });
+                    },
+                  );
                 }
-                return MainMenuScreen(
-                  game: game,
-                  snapshot: game.snapshotNotifier.value,
-                  snapshotListenable: game.snapshotNotifier,
-                  selectedTab: _selectedMainMenuTab,
-                  onSelectTab: (tab) {
-                    setState(() {
-                      _selectedMainMenuTab = tab;
-                    });
-                  },
-                  onStartStage: (stageNumber) => _startStage(
-                    stageNumber,
-                    game.snapshotNotifier.value,
-                    context,
-                  ),
-                  accountSession: _accountSession,
-                  onConnectGoogle: _googleAuthenticationApi == null
-                      ? null
-                      : () => _connectGoogle(context),
-                  onSignOut: _onlineSession == null
-                      ? null
-                      : () => _signOut(context),
-                  onSyncAccount:
-                      _onlineSession == null || !_activeSaveSlot.isGuest
-                      ? null
-                      : () => _selectAccountSave(
-                          context: context,
-                          onlineSession: _onlineSession!,
-                          credentials: _onlineAccount!.credentials,
-                        ),
-                  onOpenMapEditor: () {
-                    setState(() {
-                      _screen = _AppScreen.mapEditor;
-                    });
-                  },
+                final coordinator = _onlineSaveCoordinator;
+                final accountConnectionPhase = _accountConnectionPhase;
+                if (accountConnectionPhase != null) {
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      IgnorePointer(child: content),
+                      _AccountConnectionOverlay(phase: accountConnectionPhase),
+                    ],
+                  );
+                }
+                final clientUpdateRequired =
+                    _clientUpdateRequired ||
+                    coordinator?.snapshot.issueCode == 'CLIENT_UPDATE_REQUIRED';
+                if (clientUpdateRequired) {
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      IgnorePointer(child: content),
+                      _ClientUpdateRequiredOverlay(
+                        onSignOut: _onlineSession == null
+                            ? null
+                            : () => _signOut(context),
+                      ),
+                    ],
+                  );
+                }
+                final writerSuspended =
+                    coordinator?.snapshot.phase ==
+                    OnlineSaveCoordinatorPhase.suspended;
+                final remoteRecoveryInProgress =
+                    (coordinator?.snapshot.hasPendingRemoteRebase ?? false) ||
+                    (coordinator?.snapshot.requiresGameReload ?? false);
+                final remoteRecoveryBlocked =
+                    remoteRecoveryInProgress &&
+                    coordinator?.snapshot.phase ==
+                        OnlineSaveCoordinatorPhase.blocked;
+                if (!writerSuspended &&
+                    !_writerRecoveryInProgress &&
+                    !remoteRecoveryInProgress) {
+                  return content;
+                }
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    IgnorePointer(child: content),
+                    _WriterRecoveryOverlay(
+                      recovering:
+                          _writerRecoveryInProgress ||
+                          (remoteRecoveryInProgress && !remoteRecoveryBlocked),
+                      blocked: remoteRecoveryBlocked,
+                      onResume: coordinator == null
+                          ? null
+                          : () => _resumeOnlineSaveInForeground(coordinator),
+                      onSignOut:
+                          !remoteRecoveryBlocked || _onlineSession == null
+                          ? null
+                          : () => _signOut(context),
+                    ),
+                  ],
                 );
               },
             ),
@@ -508,15 +873,188 @@ class _RuneNexusAppState extends State<RuneNexusApp> {
   }
 }
 
+class _ClientUpdateRequiredOverlay extends StatelessWidget {
+  const _ClientUpdateRequiredOverlay({required this.onSignOut});
+
+  final VoidCallback? onSignOut;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return ColoredBox(
+      color: const Color(0xE607111D),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: GameModalFrame(
+            maxWidth: 420,
+            tone: GameModalTone.danger,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l10n.clientUpdateRequiredTitle,
+                  style: GameTextStyles.title,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  l10n.clientUpdateRequiredDescription,
+                  style: GameTextStyles.body,
+                ),
+                if (onSignOut != null) ...[
+                  const SizedBox(height: 16),
+                  GameButton(
+                    onPressed: onSignOut,
+                    label: l10n.signOut,
+                    icon: const Icon(Icons.logout_rounded, size: 17),
+                    variant: GameButtonVariant.ghost,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AccountConnectionOverlay extends StatelessWidget {
+  const _AccountConnectionOverlay({required this.phase});
+
+  final _AccountConnectionPhase phase;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final description = switch (phase) {
+      _AccountConnectionPhase.savingCurrentProgress =>
+        l10n.savingCurrentProgress,
+      _AccountConnectionPhase.loadingAccountProgress =>
+        l10n.loadingAccountProgress,
+      _AccountConnectionPhase.openingAccountProgress =>
+        l10n.openingAccountProgress,
+    };
+    return ColoredBox(
+      color: const Color(0xD907111D),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: GameModalFrame(
+            maxWidth: 400,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l10n.connectingAccountProgress,
+                  style: GameTextStyles.title,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(description, style: GameTextStyles.body),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WriterRecoveryOverlay extends StatelessWidget {
+  const _WriterRecoveryOverlay({
+    required this.recovering,
+    required this.blocked,
+    required this.onResume,
+    required this.onSignOut,
+  });
+
+  final bool recovering;
+  final bool blocked;
+  final VoidCallback? onResume;
+  final VoidCallback? onSignOut;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return ColoredBox(
+      color: const Color(0xD907111D),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: GameModalFrame(
+            maxWidth: 420,
+            tone: GameModalTone.danger,
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(l10n.writerReplacedTitle, style: GameTextStyles.title),
+                const SizedBox(height: 10),
+                Text(
+                  l10n.writerReplacedDescription,
+                  style: GameTextStyles.body,
+                ),
+                const SizedBox(height: 16),
+                GameButton(
+                  onPressed: recovering || blocked ? null : onResume,
+                  label: blocked
+                      ? l10n.saveSyncBlocked
+                      : recovering
+                      ? l10n.loadingLatestProgress
+                      : l10n.loadLatestProgress,
+                  icon: recovering
+                      ? const SizedBox.square(
+                          dimension: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.cloud_download_outlined, size: 18),
+                ),
+                if (onSignOut != null) ...[
+                  const SizedBox(height: 8),
+                  GameButton(
+                    onPressed: onSignOut,
+                    label: l10n.signOut,
+                    icon: const Icon(Icons.logout_rounded, size: 17),
+                    variant: GameButtonVariant.ghost,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _OnlineAccountState {
   const _OnlineAccountState({
     required this.credentials,
     required this.syncStatus,
+    this.lastSyncedAt,
+    this.pendingSaveCount = 0,
     this.issueMessage,
   });
 
   final OnlineAccountCredentials credentials;
   final OnlineSaveSyncStatus syncStatus;
+  final DateTime? lastSyncedAt;
+  final int pendingSaveCount;
   final String? issueMessage;
 
   AccountSession get presentation => AccountSession.authenticated(
@@ -528,6 +1066,8 @@ class _OnlineAccountState {
       ),
     ],
     syncStatus: syncStatus,
+    lastSyncedAt: lastSyncedAt,
+    pendingSaveCount: pendingSaveCount,
     issueMessage: issueMessage,
   );
 }

@@ -49,7 +49,7 @@ void main() {
 }
 
 const _accountId = '0198b955-3656-7c40-b3cb-87f427b90be2';
-const _primaryKey = 'rune_nexus:outbox:v1:account:$_accountId';
+const _primaryKey = 'rune_nexus:outbox:account:$_accountId';
 const _backupKey = '$_primaryKey:backup';
 
 void _clearKeys() {

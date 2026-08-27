@@ -4197,6 +4197,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     await _saveScheduler.flush();
   }
 
+  Future<void> quiesceLocalSavesForRemoteRebase() {
+    return _saveScheduler.quiesce();
+  }
+
+  void resumeLocalSavesAfterRemoteRebaseFailure() {
+    _saveScheduler.resume();
+  }
+
   Future<void> _saveRoundCheckpoint() async {
     final data = _buildSaveData();
     if (!await _writeLocalSaveData(data)) {
@@ -4205,7 +4213,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     try {
       await _onlineSaveRepository.saveRoundCheckpoint(data);
     } on Object {
-      // 온라인 저장은 아직 선택 기능이므로 게임 진행을 막지 않는다.
+      // 온라인 전송 실패는 영속 Outbox가 복구하므로 로컬 플레이를 막지 않는다.
     }
   }
 

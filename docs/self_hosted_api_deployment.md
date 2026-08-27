@@ -60,6 +60,11 @@ chmod 600 .env.production
 - `REFRESH_AUTH_RATE_LIMIT`: 기간 내 허용할 토큰 갱신 요청 수
 - `AUTH_RATE_LIMIT_MAX_CLIENTS`: endpoint마다 메모리에 보관할 최대 클라이언트 수
 
+`MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION`은 writer 획득과 저장 PUT에 허용할 최소
+클라이언트 호환 세대입니다. 기본값 1을 유지하고, 저장 계약을 깨는 클라이언트 변경을
+배포할 때 서버 보호 규칙을 먼저 배포한 뒤 올립니다. 서버 코드의 현재 호환 버전보다
+크게 설정하면 API가 시작을 거부합니다.
+
 PostgreSQL 비밀번호는 개발 환경과 동일하게 `.secrets/postgres_password` 파일을
 사용하며 환경 파일에 복사하지 않습니다. 운영 override는 Google 인증을 항상
 활성화하므로 Client ID나 CORS origin이 빠지면 Compose 설정 단계에서 실패합니다.

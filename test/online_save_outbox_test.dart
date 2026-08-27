@@ -13,6 +13,7 @@ void main() {
     final request = OnlineSaveUpdateRequest(
       expectedRevision: 7,
       idempotencyKey: _idempotencyKey,
+      writerGeneration: 3,
       data: _saveData(100),
     );
     final state =
@@ -23,6 +24,7 @@ void main() {
           payloadGeneration: 3,
           inFlight: OnlineSaveOutboxEntry(
             idempotencyKey: request.idempotencyKey,
+            writerGeneration: request.writerGeneration,
             expectedRevision: request.expectedRevision,
             encodedRequestBody: request.encodedBody,
             payloadFingerprint: onlineSavePayloadFingerprint(_saveData(100)),
@@ -50,10 +52,12 @@ void main() {
     final request = OnlineSaveUpdateRequest(
       expectedRevision: 7,
       idempotencyKey: _idempotencyKey,
+      writerGeneration: 3,
       data: _saveData(100),
     );
     final entryJson = OnlineSaveOutboxEntry(
       idempotencyKey: request.idempotencyKey,
+      writerGeneration: request.writerGeneration,
       expectedRevision: request.expectedRevision,
       encodedRequestBody: request.encodedBody,
       payloadFingerprint: onlineSavePayloadFingerprint(_saveData(100)),
@@ -64,7 +68,67 @@ void main() {
     expect(OnlineSaveOutboxEntry.fromJson(entryJson), isNull);
   });
 
-  test('payload fingerprint는 같은 저장에 안정적이고 변경을 구분한다', () {
+  test('업데이트 뒤에도 이전 호환 버전의 writer claim과 in-flight를 복구한다', () {
+    final writerClaim = OnlineSaveWriterClaimRequest(
+      idempotencyKey: '0198b955-3656-7c40-b3cb-87f427b90be4',
+      clientInstanceId: '0198b955-3656-7c40-b3cb-87f427b90be5',
+      clientBuild: 'previous-build',
+      clientCompatibilityVersion: 1,
+    );
+    final update = OnlineSaveUpdateRequest(
+      expectedRevision: 7,
+      idempotencyKey: _idempotencyKey,
+      writerGeneration: 3,
+      data: _saveData(100),
+      clientCompatibilityVersion: 1,
+    );
+    final state =
+        OnlineSaveOutboxState.initial(
+          accountId: _accountId,
+          remoteRevision: 7,
+        ).copyWith(
+          clientInstanceId: writerClaim.clientInstanceId,
+          writerGeneration: update.writerGeneration,
+          writerClaim: OnlineSaveWriterClaimEntry(
+            idempotencyKey: writerClaim.idempotencyKey,
+            encodedRequestBody: writerClaim.encodedBody,
+          ),
+          payloadGeneration: 1,
+          inFlight: OnlineSaveOutboxEntry(
+            idempotencyKey: update.idempotencyKey,
+            writerGeneration: update.writerGeneration,
+            expectedRevision: update.expectedRevision,
+            encodedRequestBody: update.encodedBody,
+            payloadFingerprint: onlineSavePayloadHash(update.data),
+            payloadGeneration: 1,
+          ),
+          phase: OnlineSaveOutboxPhase.blocked,
+          issueCode: 'CLIENT_UPDATE_REQUIRED',
+        );
+
+    final restored = OnlineSaveOutboxState.fromJson(
+      jsonDecode(jsonEncode(state.toJson())),
+      currentClientCompatibilityVersion: 2,
+    );
+
+    expect(restored, isNotNull);
+    expect(
+      restored!.writerClaim!
+          .toRequest(currentClientCompatibilityVersion: 2)
+          .clientCompatibilityVersion,
+      1,
+    );
+    expect(
+      restored.inFlight!
+          .toRequest(currentClientCompatibilityVersion: 2)
+          .clientCompatibilityVersion,
+      1,
+    );
+    expect(restored.inFlight!.encodedRequestBody, update.encodedBody);
+  });
+
+  test('payload SHA-256은 같은 저장에 안정적이고 변경을 구분한다', () {
+    expect(onlineSavePayloadHash(_saveData(100)), hasLength(64));
     expect(
       onlineSavePayloadFingerprint(_saveData(100)),
       onlineSavePayloadFingerprint(_saveData(100)),
@@ -72,6 +136,32 @@ void main() {
     expect(
       onlineSavePayloadFingerprint(_saveData(100)),
       isNot(onlineSavePayloadFingerprint(_saveData(101))),
+    );
+  });
+
+  test('정식 형식이 아닌 Outbox는 내부 레거시 변환 없이 거부한다', () {
+    final json = OnlineSaveOutboxState.initial(
+      accountId: _accountId,
+      remoteRevision: 2,
+    ).toJson();
+    json['version'] = 2;
+
+    expect(OnlineSaveOutboxState.fromJson(json), isNull);
+  });
+
+  test('미전송 또는 중단 상태인 Outbox는 진행 재기준화 전에 해결을 요구한다', () {
+    final idle = OnlineSaveOutboxState.initial(
+      accountId: _accountId,
+      remoteRevision: 3,
+    );
+
+    expect(idle.requiresResolutionBeforeRebase, isFalse);
+    expect(idle.copyWith(dirty: true).requiresResolutionBeforeRebase, isTrue);
+    expect(
+      idle
+          .copyWith(phase: OnlineSaveOutboxPhase.conflict)
+          .requiresResolutionBeforeRebase,
+      isTrue,
     );
   });
 
@@ -103,15 +193,15 @@ void main() {
       await repository.save(state);
 
       final file = File(
-        '${temporaryDirectory.path}/saves/accounts/$_accountId/outbox_v1.json',
+        '${temporaryDirectory.path}/saves/accounts/$_accountId/outbox.json',
       );
       expect(await file.exists(), isTrue);
       expect((await repository.load())?.remoteRevision, 4);
     });
 
     test('손상된 primary 대신 직전 정상 backup을 복구한다', () async {
-      final primary = File('${temporaryDirectory.path}/outbox_v1.json');
-      final backup = File('${temporaryDirectory.path}/outbox_v1.backup.json');
+      final primary = File('${temporaryDirectory.path}/outbox.json');
+      final backup = File('${temporaryDirectory.path}/outbox.backup.json');
       final repository = FileOnlineSaveOutboxRepository(
         slot: LocalSaveSlot.account(_accountId),
         file: primary,
@@ -140,7 +230,7 @@ void main() {
     test('다른 계정 상태를 같은 슬롯에 저장하지 않는다', () async {
       final repository = FileOnlineSaveOutboxRepository(
         slot: LocalSaveSlot.account(_accountId),
-        file: File('${temporaryDirectory.path}/outbox_v1.json'),
+        file: File('${temporaryDirectory.path}/outbox.json'),
       );
       final other = OnlineSaveOutboxState.initial(
         accountId: '0198b955-3656-7c40-b3cb-87f427b90be9',

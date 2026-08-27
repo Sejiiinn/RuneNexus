@@ -1,6 +1,6 @@
 # Rune Nexus 개발 히스토리
 
-마지막 갱신 기준: 2026-08-24 `codex/go-server-foundation` 브랜치 작업 기준.
+마지막 갱신 기준: 2026-08-27 `codex/go-server-foundation` 브랜치 작업 기준.
 
 ## 목적
 
@@ -27,13 +27,12 @@
   분리하고 포탑 모듈을 런 진행과 독립된 영역으로 이동했다.
 - guest/account별 로컬 슬롯, v2 primary/backup, Web Local Storage와 application
   support 파일 저장을 추가했다.
-- legacy v1 및 과도기 v2를 원본 보존 후 canonical v2로 이전하고, IO 저장은 원자적
-  교체를 사용하도록 강화했다.
+- 배포된 legacy v1만 원본 보존 후 canonical v2로 이전하고, 미배포 중간
+  v2 호환 경로는 제거했다. IO 저장은 원자적 교체를 사용한다.
 - 일반 저장과 라운드 체크포인트 쓰기를 `LocalSaveCoordinator` 하나로 직렬화했다.
-- `progression.totalPlayTimeMillis`에 배속과 무관한 실제 플레이 경과를 누적하고,
-  계정 연결 시 현재 기록과 Google 계정 기록마다 총 플레이타임을 표시한다.
+- `progression.totalPlayTimeMillis`에 배속과 무관한 실제 플레이 경과를 누적한다.
 - account 로컬 저장과 원격 저장을 별도 사용자 진행으로 노출하지 않고, 하나의 Google
-  계정 기록과 그 로컬 캐시로 취급하도록 최초 로그인 선택 경계를 단순화했다.
+  계정 기록과 그 로컬 캐시로 취급한다.
 
 ### Go API와 PostgreSQL 저장 기반
 
@@ -69,25 +68,111 @@
   revision 충돌과 복구 불가능 오류는 자동 덮어쓰기 없이 정지한다.
 - 계정 ID에 결속된 Outbox를 IO/Web 저장소에 영속화하고, HTTP 요청 전에 Outbox
   기록을 완료하며, 앱 재시작 뒤 in-flight와 retry 상태를 복구하도록 했다.
-- coordinator는 아직 실제 게임 저장 흐름에는 주입하지 않았다. 현재 플레이는
-  선택된 로컬 슬롯에만 저장하며 서버 저장 요청을 발생시키지 않는다.
+- 자동 연결된 account 슬롯에는 coordinator를 실제 게임에 주입하고, 라운드 종료
+  체크포인트를 로컬 저장 성공 뒤 durable enqueue하도록 연결했다.
+- 전송 중·재시도 대기·완료·충돌·차단 상태와 마지막 동기화 시각, 대기 저장 건수를
+  계정 화면에 반영한다. 로그아웃이나 세션 종료 시 coordinator를 먼저 격리한다.
+- 원격 진행을 적용하면 revision과 payload fingerprint를 초기 기준으로 사용해 같은
+  스냅샷을 다시 올리지 않는다. 기존 미전송 Outbox는 새 기준으로 덮지 않고 coordinator가
+  exact 요청부터 복구한다.
 
-### 최초 로그인 저장 선택과 슬롯 전환
+### 최초 로그인 자동 bootstrap과 슬롯 전환
 
-- Google 로그인 직후 현재 guest 기록과 단일 Google 계정 기록을 조회하고
-  스테이지·라운드·룬·총 플레이타임·저장 시각 요약을 표시하도록 했다.
-- account 로컬 저장은 별도 진행이 아닌 Google 계정 기록의 캐시로 취급한다. 원격
-  기록이 있으면 계정 기록의 기준으로 사용하고 기존 로컬 캐시는 backup에 보존한다.
-- 현재 기록 연동, Google 계정 기록 사용, 새 계정 시작, 나중에 연동 중 하나를
-  사용자가 직접 선택한다.
-- 기록 연동 또는 계정 기록 적용 전에 guest와 기존 account primary를 backup에 명시적으로
-  보존한다. 로그인만으로 자동 복사·업로드·덮어쓰기는 발생하지 않는다.
-- 선택 결과가 account 진행이면 account 슬롯을 다시 로드한 새 게임 상태로 교체하고,
-  새 account 선택은 초기 저장을 즉시 생성한다.
-- 나중에 연동 선택은 account 로컬과 원격을 변경하지 않는다. 로그아웃이나 세션 종료
-  시 account 저장을 먼저 마친 뒤 guest 슬롯으로 복귀한다.
-- 원격 조회나 선택 적용이 실패하면 guest 진행을 유지하고 계정 화면에서 다시 시도할
-  수 있게 했다.
+- Google 로그인 직후 계정별 영속 Outbox를 먼저 확인하고, 있으면 원격 조회나 로컬
+  교체보다 exact 요청·rebase 복구를 우선한다.
+- 새 연결에서 원격 account 기록이 있으면 account 슬롯에 자동 적용하고, guest와 기존
+  account primary는 backup에 명시적으로 보존한다.
+- 원격 기록이 없으면 현재 guest 진행을 최초 account 진행으로 자동 이전한다. guest가
+  없고 account cache만 남은 중단 복구 상황에서는 cache를 유지한다.
+- 로컬·원격 저장 선택 dialog와 새 진행·나중에 연동 분기를 제거하고, 현재 진행 저장,
+  최신 계정 진행 조회, account 게임 준비의 단계별 overlay만 표시한다.
+- bootstrap이 끝나면 account 슬롯을 다시 로드한 새 게임 상태로 교체하고, 저장이 전혀
+  없는 신규 account만 초기 저장을 생성한다.
+- 원격 조회나 적용이 실패하면 guest 진행을 유지하고 계정 화면에서 다시 시도할 수
+  있다. 로그아웃이나 세션 종료 시 account 저장을 보존한 뒤 guest 슬롯으로 복귀한다.
+
+### 다중 기기 저장 정책 전환
+
+- 영구적인 계정당 1기기 제한 대신 여러 기기 로그인을 허용하기로 했다.
+- 기존의 로컬·원격 저장 사용자 선택과 충돌 해결 UI 방향은 폐기하고, exact in-flight
+  요청을 먼저 확인한 뒤 실제 충돌이면 서버 최신 revision을 자동 적용하기로 했다.
+- 여러 기기의 반복 저장 충돌을 줄이기 위해 한 번에 한 인증 session만 save writer
+  generation을 가지도록 설계했다. 새 기기가 writer를 획득하면 이전 기기는 다음 서버
+  접점의 안전 지점에서 원격 진행을 복구한다.
+- 원격 적용 전 로컬 backup, crash-safe rebase journal, Web 다중 탭 잠금, 구버전
+  전체 snapshot 덮어쓰기 방지를 필수 안전장치로 확정했다.
+- API, PostgreSQL, canonical Outbox, 상태 전이와 테스트 계약은
+  `docs/multi_device_save_sync_design.md`에 상세화했다.
+
+### Canonical Outbox와 다중 기기 자동 재기준화
+
+- 기존 빠른 payload fingerprint를 canonical 저장 JSON의 SHA-256으로 교체하고,
+  IO/Web Outbox에 exact in-flight와 rebase journal을 함께 영속화했다. 이 기능은 원격에
+  배포된 적이 없으므로 작업 브랜치 안에서만 존재하던 v1→v2 호환 분기와 버전별 저장
+  위치는 제거하고 `outbox.json`/단일 Web key의 최초 공개 형식 하나로 정리했다.
+- 앱 시작·재개 시 exact in-flight를 원격 조회보다 먼저 같은 본문과 idempotency key로
+  재전송한다. 그 뒤 기준 revision과 원격 revision을 비교해 로컬 변경 업로드 또는 원격
+  자동 rebase를 결정한다.
+- 원격 revision이 앞서면 일반 순환 backup과 분리된 충돌 backup을 먼저 만들고,
+  `prepared → backupPreserved → payloadApplied` rebase journal을 영속화한다. 종료 시점에
+  따라 다음 실행에서 같은 단계를 안전하게 이어간다.
+- 원격 rebase 확정 즉시 기존 게임의 로컬 저장 scheduler와 게임 입력을 정지시키고,
+  적용 완료 뒤 같은
+  account 슬롯에서 게임 상태를 다시 생성해 메모리와 파일 기준이 어긋나지 않게 했다.
+- Go `GET /v1/save`에 revision ETag와 304 응답을 추가하고 Flutter 시작 판정은
+  `If-None-Match` 조건부 조회를 사용한다.
+
+### 단일 save writer generation
+
+- PostgreSQL `save_writer_states`, `save_writer_claims`와 save receipt의 generation을 기존
+  미배포 온라인 저장 스키마에 통합했다.
+- `POST /v1/save/writer`는 claim key·본문을 영수증으로 보존하고, `PUT /v1/save`는 인증
+  session과 `Rune-Nexus-Save-Writer`가 현재 generation인지 revision 검사 전에 확인한다.
+- 이미 성공한 exact PUT은 writer 교체 뒤에도 영수증 성공을 반환하지만 이전 writer의
+  새 PUT은 `SAVE_WRITER_REPLACED`로 거부한다.
+- Flutter는 claim 요청도 Outbox에 먼저 기록하며 교체 시 자동 탈환하지 않고
+  `suspended`로 전환한다. 실제 foreground 복귀에서만 새 generation을 얻고 원격을 다시
+  확인한다.
+- writer 교체가 확인되면 로컬 저장과 게임 입력을 멈추고, 새 generation과 최신
+  원격 진행 확인이 끝날 때까지 복구 overlay를 표시한다.
+- Web 앱 진입 전에 exclusive Web Lock을 획득하며 두 번째 탭은 게임과 저장소를 만들지
+  않고 안내 화면을 표시한다.
+
+### 저장 클라이언트 호환성 게이트
+
+- writer claim과 저장 PUT에 정수 `clientCompatibilityVersion`을 포함한다. 서버 최소
+  버전 미만 claim은 service·DB 호출 전에 차단하고, PUT은 과거 exact 성공 영수증만
+  조회한 뒤 영수증이 없을 때 `426 CLIENT_UPDATE_REQUIRED`로 차단한다.
+- writer claim만 검사하면 이미 실행 중인 구버전 writer가 계속 저장할 수 있으므로
+  실제 PUT에도 같은 검사를 적용했다. 서버가 현재 지원하는 세대보다 미래 버전인 요청도
+  별도 422 오류로 거부한다.
+- Flutter는 426을 받으면 exact writer claim 또는 in-flight 저장을 Outbox에 보존하고
+  로컬 저장·계정 플레이를 멈춘 뒤 업데이트 안내를 표시한다.
+- 업데이트된 Flutter는 이전 호환 버전 Outbox도 읽는다. 과거 claim은 현재 버전으로
+  다시 획득하고, 과거 in-flight는 exact 영수증을 먼저 확인한다. 미처리 요청이면
+  로컬 진행을 유지한 채 최신 원격 revision에 재기준화하여 새 key·본문으로 저장한다.
+- GitHub Pages 빌드에는 진단용 `web:<git-sha>` build ID를 주입하며 실제 허용 여부는
+  문자열이 아닌 호환 버전 정수로 판정한다.
+
+### 서버 권위 경제 경계 확정
+
+- 전투와 일반 진행은 로컬 우선으로 유지하고, 다이아·모듈권·뽑기 횟수·소유 모듈과
+  관련 보상 수령만 하나의 서버 권위 경제 영역으로 묶기로 했다.
+- 가챠 RNG만 서버화하는 방식은 퀘스트·출석·다이아 운반 적·분해·연구 소비 같은
+  로컬 우회 경로를 남기므로 채택하지 않았다.
+- 일반 save revision과 economy revision을 분리하고, 가챠·분해는 계정 DB 잠금과
+  멱등 영수증으로 처리한다. 소비 명령은 오프라인 예약하지 않고 전송 결과가 불명확한
+  exact 요청만 복구한다.
+- 기존 플레이테스트 데이터는 서버의 최신 account snapshot에서 계정당 한 번만
+  bootstrap한다. 구매 증명이 없는 기존 paid 값은 무료 다이아로 이전한다.
+- 서버 경제 구현은 save 자동 rebase와 writer generation을 먼저 완성한 뒤 기능 플래그
+  뒤에서 진행하고, 모든 다이아 변이 경로가 준비된 시점에 account 단위로 전환한다.
+- DB, API, Flutter coordinator, 저장 v3 migration과 테스트 계약은
+  `docs/server_authoritative_economy_design.md`에 상세화했다.
+- 독립 검증에서 확인된 필수 위험을 반영해 런 보상은 종료 시 1회 정산으로 제한하고,
+  reward claim에는 expected economy revision을 쓰지 않으며, bootstrap/save PUT의 전역
+  잠금 순서를 고정했다. 연구 즉시 완료는 서버 pending effect와 save ack로 복구하고,
+  writer 교체 분기·catalog version·DB restore authority epoch 계약도 추가했다.
 
 ### 자체 운영 HTTPS 배포 기반
 

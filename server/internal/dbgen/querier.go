@@ -12,14 +12,17 @@ import (
 
 type Querier interface {
 	AdvanceSaveHeader(ctx context.Context, arg AdvanceSaveHeaderParams) (AdvanceSaveHeaderRow, error)
+	AdvanceSaveWriter(ctx context.Context, arg AdvanceSaveWriterParams) (SaveWriterState, error)
 	ConsumeRefreshToken(ctx context.Context, id pgtype.UUID) (RefreshToken, error)
 	CreateAccount(ctx context.Context) (Account, error)
 	CreateAuthIdentity(ctx context.Context, arg CreateAuthIdentityParams) (AuthIdentity, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateSaveRequest(ctx context.Context, arg CreateSaveRequestParams) (SaveRequest, error)
+	CreateSaveWriterClaim(ctx context.Context, arg CreateSaveWriterClaimParams) (SaveWriterClaim, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	DeleteSaveActiveRun(ctx context.Context, accountID pgtype.UUID) error
 	EnsureSaveHeader(ctx context.Context, accountID pgtype.UUID) error
+	EnsureSaveWriterState(ctx context.Context, accountID pgtype.UUID) error
 	GetAccount(ctx context.Context, id pgtype.UUID) (Account, error)
 	GetAccountByIdentity(ctx context.Context, arg GetAccountByIdentityParams) (Account, error)
 	GetActiveSessionByAccessTokenHash(ctx context.Context, accessTokenHash []byte) (GetActiveSessionByAccessTokenHashRow, error)
@@ -28,6 +31,9 @@ type Querier interface {
 	GetSaveHeaderForUpdate(ctx context.Context, accountID pgtype.UUID) (SaveHeader, error)
 	GetSaveRequest(ctx context.Context, arg GetSaveRequestParams) (SaveRequest, error)
 	GetSaveSnapshot(ctx context.Context, accountID pgtype.UUID) (GetSaveSnapshotRow, error)
+	GetSaveWriterClaim(ctx context.Context, arg GetSaveWriterClaimParams) (SaveWriterClaim, error)
+	GetSaveWriterStateForUpdate(ctx context.Context, accountID pgtype.UUID) (SaveWriterState, error)
+	IsActiveSessionForAccount(ctx context.Context, arg IsActiveSessionForAccountParams) (bool, error)
 	LockAuthIdentity(ctx context.Context, arg LockAuthIdentityParams) error
 	RevokeRefreshTokensForSession(ctx context.Context, sessionID pgtype.UUID) (int64, error)
 	RevokeSession(ctx context.Context, id pgtype.UUID) (int64, error)

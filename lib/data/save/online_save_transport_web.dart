@@ -25,6 +25,14 @@ class OnlineSaveTransportException implements Exception {
 }
 
 class OnlineSaveTransport {
+  Future<OnlineSaveHTTPResponse> postJSON(
+    Uri uri, {
+    required String body,
+    Map<String, String> headers = const {},
+  }) {
+    return _sendJSON('POST', uri, body: body, headers: headers);
+  }
+
   Future<OnlineSaveHTTPResponse> getJSON(
     Uri uri, {
     Map<String, String> headers = const {},

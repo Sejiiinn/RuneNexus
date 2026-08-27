@@ -12,39 +12,41 @@ import (
 )
 
 const (
-	defaultHTTPAddress                             = ":8080"
-	defaultDatabasePort                            = "5432"
-	defaultDatabaseConnectTimeout                  = 5 * time.Second
-	defaultReadinessTimeout                        = 2 * time.Second
-	defaultShutdownTimeout                         = 10 * time.Second
-	defaultIdentityVerifyTimeout                   = 5 * time.Second
-	defaultAccessTokenTTL                          = 15 * time.Minute
-	defaultRefreshTokenTTL                         = 30 * 24 * time.Hour
-	defaultAuthenticationRateLimitWindow           = time.Minute
-	defaultGoogleAuthenticationRateLimit           = 10
-	defaultRefreshAuthenticationRateLimit          = 30
-	defaultAuthenticationRateLimitMaxClients       = 10_000
-	defaultMaxSaveBodyBytes                  int64 = 4 * 1024 * 1024
+	defaultHTTPAddress                                 = ":8080"
+	defaultDatabasePort                                = "5432"
+	defaultDatabaseConnectTimeout                      = 5 * time.Second
+	defaultReadinessTimeout                            = 2 * time.Second
+	defaultShutdownTimeout                             = 10 * time.Second
+	defaultIdentityVerifyTimeout                       = 5 * time.Second
+	defaultAccessTokenTTL                              = 15 * time.Minute
+	defaultRefreshTokenTTL                             = 30 * 24 * time.Hour
+	defaultAuthenticationRateLimitWindow               = time.Minute
+	defaultGoogleAuthenticationRateLimit               = 10
+	defaultRefreshAuthenticationRateLimit              = 30
+	defaultAuthenticationRateLimitMaxClients           = 10_000
+	defaultMaxSaveBodyBytes                      int64 = 4 * 1024 * 1024
+	defaultMinimumSaveClientCompatibilityVersion       = 1
 )
 
 type Config struct {
-	HTTPAddress                       string
-	DatabaseURL                       string
-	DatabaseConnectTimeout            time.Duration
-	ReadinessTimeout                  time.Duration
-	ShutdownTimeout                   time.Duration
-	GoogleAuthEnabled                 bool
-	GoogleWebClientID                 string
-	IdentityVerifyTimeout             time.Duration
-	AccessTokenTTL                    time.Duration
-	RefreshTokenTTL                   time.Duration
-	AuthenticationRateLimitWindow     time.Duration
-	GoogleAuthenticationRateLimit     int
-	RefreshAuthenticationRateLimit    int
-	AuthenticationRateLimitMaxClients int
-	TrustProxyHeaders                 bool
-	CORSAllowedOrigins                []string
-	MaxSaveBodyBytes                  int64
+	HTTPAddress                           string
+	DatabaseURL                           string
+	DatabaseConnectTimeout                time.Duration
+	ReadinessTimeout                      time.Duration
+	ShutdownTimeout                       time.Duration
+	GoogleAuthEnabled                     bool
+	GoogleWebClientID                     string
+	IdentityVerifyTimeout                 time.Duration
+	AccessTokenTTL                        time.Duration
+	RefreshTokenTTL                       time.Duration
+	AuthenticationRateLimitWindow         time.Duration
+	GoogleAuthenticationRateLimit         int
+	RefreshAuthenticationRateLimit        int
+	AuthenticationRateLimitMaxClients     int
+	TrustProxyHeaders                     bool
+	CORSAllowedOrigins                    []string
+	MaxSaveBodyBytes                      int64
+	MinimumSaveClientCompatibilityVersion int
 }
 
 func Load() (Config, error) {
@@ -152,25 +154,33 @@ func Load() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	minimumSaveClientCompatibilityVersion, err := positiveIntFromEnvironment(
+		"MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION",
+		defaultMinimumSaveClientCompatibilityVersion,
+	)
+	if err != nil {
+		return Config{}, err
+	}
 
 	return Config{
-		HTTPAddress:                       stringFromEnvironment("HTTP_ADDRESS", defaultHTTPAddress),
-		DatabaseURL:                       databaseURL,
-		DatabaseConnectTimeout:            databaseConnectTimeout,
-		ReadinessTimeout:                  readinessTimeout,
-		ShutdownTimeout:                   shutdownTimeout,
-		GoogleAuthEnabled:                 googleAuthEnabled,
-		GoogleWebClientID:                 googleWebClientID,
-		IdentityVerifyTimeout:             identityVerifyTimeout,
-		AccessTokenTTL:                    accessTokenTTL,
-		RefreshTokenTTL:                   refreshTokenTTL,
-		AuthenticationRateLimitWindow:     authenticationRateLimitWindow,
-		GoogleAuthenticationRateLimit:     googleAuthenticationRateLimit,
-		RefreshAuthenticationRateLimit:    refreshAuthenticationRateLimit,
-		AuthenticationRateLimitMaxClients: authenticationRateLimitMaxClients,
-		TrustProxyHeaders:                 trustProxyHeaders,
-		CORSAllowedOrigins:                corsAllowedOrigins,
-		MaxSaveBodyBytes:                  maxSaveBodyBytes,
+		HTTPAddress:                           stringFromEnvironment("HTTP_ADDRESS", defaultHTTPAddress),
+		DatabaseURL:                           databaseURL,
+		DatabaseConnectTimeout:                databaseConnectTimeout,
+		ReadinessTimeout:                      readinessTimeout,
+		ShutdownTimeout:                       shutdownTimeout,
+		GoogleAuthEnabled:                     googleAuthEnabled,
+		GoogleWebClientID:                     googleWebClientID,
+		IdentityVerifyTimeout:                 identityVerifyTimeout,
+		AccessTokenTTL:                        accessTokenTTL,
+		RefreshTokenTTL:                       refreshTokenTTL,
+		AuthenticationRateLimitWindow:         authenticationRateLimitWindow,
+		GoogleAuthenticationRateLimit:         googleAuthenticationRateLimit,
+		RefreshAuthenticationRateLimit:        refreshAuthenticationRateLimit,
+		AuthenticationRateLimitMaxClients:     authenticationRateLimitMaxClients,
+		TrustProxyHeaders:                     trustProxyHeaders,
+		CORSAllowedOrigins:                    corsAllowedOrigins,
+		MaxSaveBodyBytes:                      maxSaveBodyBytes,
+		MinimumSaveClientCompatibilityVersion: minimumSaveClientCompatibilityVersion,
 	}, nil
 }
 

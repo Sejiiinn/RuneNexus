@@ -1,14 +1,164 @@
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
+
 import 'game_save_data.dart';
 import 'local_save_slot.dart';
 import 'online_save_api.dart';
 
-enum OnlineSaveOutboxPhase { idle, sending, retryWaiting, conflict, blocked }
+enum OnlineSaveOutboxPhase {
+  idle,
+  sending,
+  retryWaiting,
+  rebasing,
+  suspended,
+  conflict,
+  blocked,
+}
+
+enum OnlineSaveRebaseStage { prepared, backupPreserved, payloadApplied }
+
+class OnlineSaveRebaseJournal {
+  const OnlineSaveRebaseJournal({
+    required this.targetRevision,
+    required this.targetPayloadHash,
+    required this.targetServerSavedAt,
+    required this.sourcePayloadHash,
+    required this.stage,
+  });
+
+  final int targetRevision;
+  final String targetPayloadHash;
+  final DateTime targetServerSavedAt;
+  final String? sourcePayloadHash;
+  final OnlineSaveRebaseStage stage;
+
+  String get rebaseId =>
+      '$targetRevision:$targetPayloadHash:${sourcePayloadHash ?? 'empty'}';
+
+  OnlineSaveRebaseJournal copyWith({
+    int? targetRevision,
+    String? targetPayloadHash,
+    DateTime? targetServerSavedAt,
+    Object? sourcePayloadHash = _unchanged,
+    OnlineSaveRebaseStage? stage,
+  }) {
+    return OnlineSaveRebaseJournal(
+      targetRevision: targetRevision ?? this.targetRevision,
+      targetPayloadHash: targetPayloadHash ?? this.targetPayloadHash,
+      targetServerSavedAt: targetServerSavedAt ?? this.targetServerSavedAt,
+      sourcePayloadHash: identical(sourcePayloadHash, _unchanged)
+          ? this.sourcePayloadHash
+          : sourcePayloadHash as String?,
+      stage: stage ?? this.stage,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'targetRevision': targetRevision,
+      'targetPayloadHash': targetPayloadHash,
+      'targetServerSavedAt': targetServerSavedAt.toUtc().toIso8601String(),
+      'sourcePayloadHash': sourcePayloadHash,
+      'stage': stage.name,
+    };
+  }
+
+  static OnlineSaveRebaseJournal? fromJson(Object? json) {
+    if (json is! Map<String, Object?>) {
+      return null;
+    }
+    final targetRevision = json['targetRevision'];
+    final targetPayloadHash = json['targetPayloadHash'];
+    final targetServerSavedAt = _dateTime(json['targetServerSavedAt']);
+    final sourcePayloadHash = json['sourcePayloadHash'];
+    final stageName = json['stage'];
+    final stage = OnlineSaveRebaseStage.values.where(
+      (candidate) => candidate.name == stageName,
+    );
+    if (targetRevision is! int ||
+        targetRevision < 0 ||
+        targetPayloadHash is! String ||
+        !_sha256Pattern.hasMatch(targetPayloadHash) ||
+        targetServerSavedAt == null ||
+        (sourcePayloadHash != null &&
+            (sourcePayloadHash is! String ||
+                !_sha256Pattern.hasMatch(sourcePayloadHash))) ||
+        stage.length != 1) {
+      return null;
+    }
+    return OnlineSaveRebaseJournal(
+      targetRevision: targetRevision,
+      targetPayloadHash: targetPayloadHash,
+      targetServerSavedAt: targetServerSavedAt,
+      sourcePayloadHash: sourcePayloadHash as String?,
+      stage: stage.single,
+    );
+  }
+}
+
+const Object _unchanged = Object();
+
+class OnlineSaveWriterClaimEntry {
+  const OnlineSaveWriterClaimEntry({
+    required this.idempotencyKey,
+    required this.encodedRequestBody,
+  });
+
+  final String idempotencyKey;
+  final String encodedRequestBody;
+
+  OnlineSaveWriterClaimRequest toRequest({
+    int currentClientCompatibilityVersion =
+        onlineSaveClientCompatibilityVersion,
+  }) {
+    return OnlineSaveWriterClaimRequest.fromPersisted(
+      idempotencyKey: idempotencyKey,
+      encodedBody: encodedRequestBody,
+      currentClientCompatibilityVersion: currentClientCompatibilityVersion,
+    );
+  }
+
+  Map<String, Object?> toJson() {
+    return {
+      'idempotencyKey': idempotencyKey,
+      'encodedRequestBody': encodedRequestBody,
+    };
+  }
+
+  static OnlineSaveWriterClaimEntry? fromJson(
+    Object? json, {
+    int currentClientCompatibilityVersion =
+        onlineSaveClientCompatibilityVersion,
+  }) {
+    if (json is! Map<String, Object?>) {
+      return null;
+    }
+    final idempotencyKey = json['idempotencyKey'];
+    final encodedRequestBody = json['encodedRequestBody'];
+    if (idempotencyKey is! String || encodedRequestBody is! String) {
+      return null;
+    }
+    try {
+      OnlineSaveWriterClaimRequest.fromPersisted(
+        idempotencyKey: idempotencyKey,
+        encodedBody: encodedRequestBody,
+        currentClientCompatibilityVersion: currentClientCompatibilityVersion,
+      );
+      return OnlineSaveWriterClaimEntry(
+        idempotencyKey: idempotencyKey,
+        encodedRequestBody: encodedRequestBody,
+      );
+    } on Object {
+      return null;
+    }
+  }
+}
 
 class OnlineSaveOutboxEntry {
   const OnlineSaveOutboxEntry({
     required this.idempotencyKey,
+    required this.writerGeneration,
     required this.expectedRevision,
     required this.encodedRequestBody,
     required this.payloadFingerprint,
@@ -16,44 +166,60 @@ class OnlineSaveOutboxEntry {
   });
 
   final String idempotencyKey;
+  final int writerGeneration;
   final int expectedRevision;
   final String encodedRequestBody;
   final String payloadFingerprint;
   final int payloadGeneration;
 
-  OnlineSaveUpdateRequest toRequest() {
+  String get payloadHash => payloadFingerprint;
+  int get localGeneration => payloadGeneration;
+
+  OnlineSaveUpdateRequest toRequest({
+    int currentClientCompatibilityVersion =
+        onlineSaveClientCompatibilityVersion,
+  }) {
     return OnlineSaveUpdateRequest.fromPersisted(
       expectedRevision: expectedRevision,
       idempotencyKey: idempotencyKey,
+      writerGeneration: writerGeneration,
       encodedBody: encodedRequestBody,
+      currentClientCompatibilityVersion: currentClientCompatibilityVersion,
     );
   }
 
   Map<String, Object?> toJson() {
     return {
       'idempotencyKey': idempotencyKey,
+      'writerGeneration': writerGeneration,
       'expectedRevision': expectedRevision,
       'encodedRequestBody': encodedRequestBody,
-      'payloadFingerprint': payloadFingerprint,
-      'payloadGeneration': payloadGeneration,
+      'payloadHash': payloadFingerprint,
+      'localGeneration': payloadGeneration,
     };
   }
 
-  static OnlineSaveOutboxEntry? fromJson(Object? json) {
+  static OnlineSaveOutboxEntry? fromJson(
+    Object? json, {
+    int currentClientCompatibilityVersion =
+        onlineSaveClientCompatibilityVersion,
+  }) {
     if (json is! Map<String, Object?>) {
       return null;
     }
     final idempotencyKey = json['idempotencyKey'];
+    final writerGeneration = json['writerGeneration'];
     final expectedRevision = json['expectedRevision'];
     final encodedRequestBody = json['encodedRequestBody'];
-    final payloadFingerprint = json['payloadFingerprint'];
-    final payloadGeneration = json['payloadGeneration'];
+    final persistedPayloadHash = json['payloadHash'];
+    final payloadGeneration = json['localGeneration'];
     if (idempotencyKey is! String ||
+        writerGeneration is! int ||
+        writerGeneration <= 0 ||
         expectedRevision is! int ||
         expectedRevision < 0 ||
         encodedRequestBody is! String ||
-        payloadFingerprint is! String ||
-        payloadFingerprint.isEmpty ||
+        persistedPayloadHash is! String ||
         payloadGeneration is! int ||
         payloadGeneration < 0) {
       return null;
@@ -62,29 +228,40 @@ class OnlineSaveOutboxEntry {
       OnlineSaveUpdateRequest.fromPersisted(
         expectedRevision: expectedRevision,
         idempotencyKey: idempotencyKey,
+        writerGeneration: writerGeneration,
         encodedBody: encodedRequestBody,
+        currentClientCompatibilityVersion: currentClientCompatibilityVersion,
+      );
+      final payloadHash = persistedPayloadHash;
+      if (!_sha256Pattern.hasMatch(payloadHash)) {
+        return null;
+      }
+      return OnlineSaveOutboxEntry(
+        idempotencyKey: idempotencyKey,
+        writerGeneration: writerGeneration,
+        expectedRevision: expectedRevision,
+        encodedRequestBody: encodedRequestBody,
+        payloadFingerprint: payloadHash,
+        payloadGeneration: payloadGeneration,
       );
     } on Object {
       return null;
     }
-    return OnlineSaveOutboxEntry(
-      idempotencyKey: idempotencyKey,
-      expectedRevision: expectedRevision,
-      encodedRequestBody: encodedRequestBody,
-      payloadFingerprint: payloadFingerprint,
-      payloadGeneration: payloadGeneration,
-    );
   }
 }
 
 class OnlineSaveOutboxState {
   const OnlineSaveOutboxState({
     required this.accountIdBinding,
+    required this.clientInstanceId,
+    required this.writerGeneration,
+    required this.writerClaim,
     required this.remoteRevision,
     required this.lastSyncedPayloadFingerprint,
     required this.payloadGeneration,
     required this.dirty,
     required this.inFlight,
+    required this.rebase,
     required this.phase,
     required this.retryCount,
     required this.nextRetryAt,
@@ -107,11 +284,15 @@ class OnlineSaveOutboxState {
     }
     return OnlineSaveOutboxState(
       accountIdBinding: slot.accountId!,
+      clientInstanceId: null,
+      writerGeneration: null,
+      writerClaim: null,
       remoteRevision: remoteRevision,
       lastSyncedPayloadFingerprint: null,
       payloadGeneration: 0,
       dirty: false,
       inFlight: null,
+      rebase: null,
       phase: OnlineSaveOutboxPhase.idle,
       retryCount: 0,
       nextRetryAt: null,
@@ -125,11 +306,15 @@ class OnlineSaveOutboxState {
   static const Object _unchanged = Object();
 
   final String accountIdBinding;
+  final String? clientInstanceId;
+  final int? writerGeneration;
+  final OnlineSaveWriterClaimEntry? writerClaim;
   final int remoteRevision;
   final String? lastSyncedPayloadFingerprint;
   final int payloadGeneration;
   final bool dirty;
   final OnlineSaveOutboxEntry? inFlight;
+  final OnlineSaveRebaseJournal? rebase;
   final OnlineSaveOutboxPhase phase;
   final int retryCount;
   final DateTime? nextRetryAt;
@@ -137,12 +322,27 @@ class OnlineSaveOutboxState {
   final String? issueCode;
   final int? conflictRevision;
 
+  int get baseRevision => remoteRevision;
+  String? get basePayloadHash => lastSyncedPayloadFingerprint;
+  int get localGeneration => payloadGeneration;
+
+  bool get requiresResolutionBeforeRebase =>
+      dirty ||
+      inFlight != null ||
+      writerClaim != null ||
+      rebase != null ||
+      phase != OnlineSaveOutboxPhase.idle;
+
   OnlineSaveOutboxState copyWith({
+    Object? clientInstanceId = _unchanged,
+    Object? writerGeneration = _unchanged,
+    Object? writerClaim = _unchanged,
     int? remoteRevision,
     Object? lastSyncedPayloadFingerprint = _unchanged,
     int? payloadGeneration,
     bool? dirty,
     Object? inFlight = _unchanged,
+    Object? rebase = _unchanged,
     OnlineSaveOutboxPhase? phase,
     int? retryCount,
     Object? nextRetryAt = _unchanged,
@@ -152,6 +352,15 @@ class OnlineSaveOutboxState {
   }) {
     return OnlineSaveOutboxState(
       accountIdBinding: accountIdBinding,
+      clientInstanceId: identical(clientInstanceId, _unchanged)
+          ? this.clientInstanceId
+          : clientInstanceId as String?,
+      writerGeneration: identical(writerGeneration, _unchanged)
+          ? this.writerGeneration
+          : writerGeneration as int?,
+      writerClaim: identical(writerClaim, _unchanged)
+          ? this.writerClaim
+          : writerClaim as OnlineSaveWriterClaimEntry?,
       remoteRevision: remoteRevision ?? this.remoteRevision,
       lastSyncedPayloadFingerprint:
           identical(lastSyncedPayloadFingerprint, _unchanged)
@@ -162,6 +371,9 @@ class OnlineSaveOutboxState {
       inFlight: identical(inFlight, _unchanged)
           ? this.inFlight
           : inFlight as OnlineSaveOutboxEntry?,
+      rebase: identical(rebase, _unchanged)
+          ? this.rebase
+          : rebase as OnlineSaveRebaseJournal?,
       phase: phase ?? this.phase,
       retryCount: retryCount ?? this.retryCount,
       nextRetryAt: identical(nextRetryAt, _unchanged)
@@ -183,11 +395,15 @@ class OnlineSaveOutboxState {
     return {
       'version': currentVersion,
       'accountIdBinding': accountIdBinding,
-      'remoteRevision': remoteRevision,
-      'lastSyncedPayloadFingerprint': lastSyncedPayloadFingerprint,
-      'payloadGeneration': payloadGeneration,
+      'clientInstanceId': clientInstanceId,
+      'writerGeneration': writerGeneration,
+      'writerClaim': writerClaim?.toJson(),
+      'baseRevision': remoteRevision,
+      'basePayloadHash': lastSyncedPayloadFingerprint,
+      'localGeneration': payloadGeneration,
       'dirty': dirty,
       'inFlight': inFlight?.toJson(),
+      'rebase': rebase?.toJson(),
       'syncState': phase.name,
       'retryCount': retryCount,
       'nextRetryAt': nextRetryAt?.toUtc().toIso8601String(),
@@ -197,14 +413,24 @@ class OnlineSaveOutboxState {
     };
   }
 
-  static OnlineSaveOutboxState? fromJson(Object? json) {
-    if (json is! Map<String, Object?> || json['version'] != currentVersion) {
+  static OnlineSaveOutboxState? fromJson(
+    Object? json, {
+    int currentClientCompatibilityVersion =
+        onlineSaveClientCompatibilityVersion,
+  }) {
+    if (json is! Map<String, Object?>) {
+      return null;
+    }
+    final version = json['version'];
+    if (version != currentVersion) {
       return null;
     }
     final accountId = json['accountIdBinding'];
-    final remoteRevision = json['remoteRevision'];
-    final lastSyncedPayloadFingerprint = json['lastSyncedPayloadFingerprint'];
-    final payloadGeneration = json['payloadGeneration'];
+    final clientInstanceId = json['clientInstanceId'];
+    final writerGeneration = json['writerGeneration'];
+    final remoteRevision = json['baseRevision'];
+    final lastSyncedPayloadFingerprint = json['basePayloadHash'];
+    final payloadGeneration = json['localGeneration'];
     final dirty = json['dirty'];
     final phaseName = json['syncState'];
     final retryCount = json['retryCount'];
@@ -214,7 +440,13 @@ class OnlineSaveOutboxState {
         remoteRevision is! int ||
         remoteRevision < 0 ||
         (lastSyncedPayloadFingerprint != null &&
-            lastSyncedPayloadFingerprint is! String) ||
+            (lastSyncedPayloadFingerprint is! String ||
+                !_sha256Pattern.hasMatch(lastSyncedPayloadFingerprint))) ||
+        (clientInstanceId != null &&
+            (clientInstanceId is! String ||
+                !_uuidPattern.hasMatch(clientInstanceId))) ||
+        (writerGeneration != null &&
+            (writerGeneration is! int || writerGeneration <= 0)) ||
         payloadGeneration is! int ||
         payloadGeneration < 0 ||
         dirty is! bool ||
@@ -242,8 +474,26 @@ class OnlineSaveOutboxState {
     final inFlightJson = json['inFlight'];
     final inFlight = inFlightJson == null
         ? null
-        : OnlineSaveOutboxEntry.fromJson(inFlightJson);
+        : OnlineSaveOutboxEntry.fromJson(
+            inFlightJson,
+            currentClientCompatibilityVersion:
+                currentClientCompatibilityVersion,
+          );
+    final writerClaimJson = json['writerClaim'];
+    final writerClaim = writerClaimJson == null
+        ? null
+        : OnlineSaveWriterClaimEntry.fromJson(
+            writerClaimJson,
+            currentClientCompatibilityVersion:
+                currentClientCompatibilityVersion,
+          );
+    final rebaseJson = json['rebase'];
+    final rebase = rebaseJson == null
+        ? null
+        : OnlineSaveRebaseJournal.fromJson(rebaseJson);
     if ((inFlightJson != null && inFlight == null) ||
+        (writerClaimJson != null && writerClaim == null) ||
+        (rebaseJson != null && rebase == null) ||
         (inFlight != null &&
             (inFlight.expectedRevision != remoteRevision ||
                 inFlight.payloadGeneration > payloadGeneration))) {
@@ -257,11 +507,15 @@ class OnlineSaveOutboxState {
     }
     return OnlineSaveOutboxState(
       accountIdBinding: normalizedAccountId,
+      clientInstanceId: clientInstanceId as String?,
+      writerGeneration: writerGeneration as int?,
+      writerClaim: writerClaim,
       remoteRevision: remoteRevision,
       lastSyncedPayloadFingerprint: lastSyncedPayloadFingerprint as String?,
       payloadGeneration: payloadGeneration,
       dirty: dirty,
       inFlight: inFlight,
+      rebase: rebase,
       phase: phase.single,
       retryCount: retryCount,
       nextRetryAt: nextRetryAt,
@@ -277,26 +531,20 @@ class OnlineSaveOutboxState {
 }
 
 String onlineSavePayloadFingerprint(GameSaveData data) {
-  final bytes = utf8.encode(jsonEncode(data.toJson()));
-  var forward = 0x811c9dc5;
-  var reverse = 0x9e3779b9;
-  for (var index = 0; index < bytes.length; index++) {
-    forward = _fnv1a32(forward, bytes[index]);
-    reverse = _fnv1a32(reverse, bytes[bytes.length - index - 1]);
-  }
-  return '${bytes.length.toRadixString(16)}-'
-      '${forward.toUnsigned(32).toRadixString(16).padLeft(8, '0')}-'
-      '${reverse.toUnsigned(32).toRadixString(16).padLeft(8, '0')}';
+  return onlineSavePayloadHash(data);
 }
 
-int _fnv1a32(int hash, int byte) {
-  final value = (hash ^ byte).toUnsigned(32);
-  // 32-bit FNV prime 곱셈의 shift-add 표현. Web에서도 동일한 결과 유지.
-  return (value +
-          (value << 1) +
-          (value << 4) +
-          (value << 7) +
-          (value << 8) +
-          (value << 24))
-      .toUnsigned(32);
+String onlineSavePayloadHash(GameSaveData data) {
+  final canonicalPayload = jsonEncode(data.toJson());
+  return sha256.convert(utf8.encode(canonicalPayload)).toString();
+}
+
+final RegExp _sha256Pattern = RegExp(r'^[0-9a-f]{64}$');
+final RegExp _uuidPattern = RegExp(
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+  caseSensitive: false,
+);
+
+DateTime? _dateTime(Object? value) {
+  return value is String ? DateTime.tryParse(value)?.toUtc() : null;
 }

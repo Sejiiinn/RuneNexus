@@ -27,13 +27,14 @@ type Authenticator interface {
 }
 
 type Dependencies struct {
-	Database                 ReadinessChecker
-	ReadinessTimeout         time.Duration
-	Authenticator            Authenticator
-	AuthenticationRateLimits AuthenticationRateLimits
-	SaveService              SaveService
-	MaxSaveBodyBytes         int64
-	CORSAllowedOrigins       []string
+	Database                              ReadinessChecker
+	ReadinessTimeout                      time.Duration
+	Authenticator                         Authenticator
+	AuthenticationRateLimits              AuthenticationRateLimits
+	SaveService                           SaveService
+	MaxSaveBodyBytes                      int64
+	MinimumSaveClientCompatibilityVersion int
+	CORSAllowedOrigins                    []string
 }
 
 type healthHandler struct {
@@ -62,10 +63,19 @@ func NewHandler(
 		mux.HandleFunc("POST /v1/auth/logout", authentication.logout)
 		if dependencies.SaveService != nil {
 			saves := saveHandler{
-				logger:           logger,
-				saves:            dependencies.SaveService,
-				maxSaveBodyBytes: dependencies.MaxSaveBodyBytes,
+				logger:                            logger,
+				saves:                             dependencies.SaveService,
+				maxSaveBodyBytes:                  dependencies.MaxSaveBodyBytes,
+				minimumClientCompatibilityVersion: dependencies.MinimumSaveClientCompatibilityVersion,
 			}
+			mux.Handle(
+				"POST /v1/save/writer",
+				withBearerAuthentication(
+					logger,
+					dependencies.Authenticator,
+					http.HandlerFunc(saves.claimWriter),
+				),
+			)
 			mux.Handle(
 				"GET /v1/save",
 				withBearerAuthentication(

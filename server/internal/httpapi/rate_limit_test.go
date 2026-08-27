@@ -269,7 +269,7 @@ func requireRateLimitResponse(
 		)
 	}
 	if response.Header().Get("Access-Control-Expose-Headers") !=
-		requestIDHeader+", Retry-After" {
+		requestIDHeader+", Retry-After, ETag" {
 		t.Fatalf(
 			"Access-Control-Expose-Headers = %q",
 			response.Header().Get("Access-Control-Expose-Headers"),

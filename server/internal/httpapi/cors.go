@@ -31,7 +31,7 @@ func withCORS(allowedOrigins []string, next http.Handler) http.Handler {
 		response.Header().Set("Access-Control-Allow-Credentials", "true")
 		response.Header().Set(
 			"Access-Control-Expose-Headers",
-			requestIDHeader+", Retry-After",
+			requestIDHeader+", Retry-After, ETag",
 		)
 		if request.Method == http.MethodOptions {
 			response.Header().Add("Vary", "Access-Control-Request-Headers")
@@ -41,7 +41,7 @@ func withCORS(allowedOrigins []string, next http.Handler) http.Handler {
 			)
 			response.Header().Set(
 				"Access-Control-Allow-Headers",
-				"Authorization, Content-Type, Idempotency-Key",
+				"Authorization, Content-Type, Idempotency-Key, If-None-Match, Rune-Nexus-Save-Writer",
 			)
 			response.WriteHeader(http.StatusNoContent)
 			return

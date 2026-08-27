@@ -27,6 +27,12 @@ func TestLoadUsesDatabaseURL(t *testing.T) {
 	if cfg.MaxSaveBodyBytes != defaultMaxSaveBodyBytes {
 		t.Fatalf("MaxSaveBodyBytes = %d", cfg.MaxSaveBodyBytes)
 	}
+	if cfg.MinimumSaveClientCompatibilityVersion != defaultMinimumSaveClientCompatibilityVersion {
+		t.Fatalf(
+			"MinimumSaveClientCompatibilityVersion = %d",
+			cfg.MinimumSaveClientCompatibilityVersion,
+		)
+	}
 	if cfg.AuthenticationRateLimitWindow != defaultAuthenticationRateLimitWindow ||
 		cfg.GoogleAuthenticationRateLimit != defaultGoogleAuthenticationRateLimit ||
 		cfg.RefreshAuthenticationRateLimit != defaultRefreshAuthenticationRateLimit ||
@@ -98,6 +104,7 @@ func TestLoadParsesGoogleAuthAndCORSConfiguration(t *testing.T) {
 		"https://sejiiinn.github.io/, http://127.0.0.1:53000, https://sejiiinn.github.io",
 	)
 	t.Setenv("MAX_SAVE_BODY_BYTES", "2097152")
+	t.Setenv("MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION", "2")
 
 	cfg, err := Load()
 	if err != nil {
@@ -112,12 +119,28 @@ func TestLoadParsesGoogleAuthAndCORSConfiguration(t *testing.T) {
 	if cfg.MaxSaveBodyBytes != 2097152 {
 		t.Fatalf("MaxSaveBodyBytes = %d", cfg.MaxSaveBodyBytes)
 	}
+	if cfg.MinimumSaveClientCompatibilityVersion != 2 {
+		t.Fatalf(
+			"MinimumSaveClientCompatibilityVersion = %d",
+			cfg.MinimumSaveClientCompatibilityVersion,
+		)
+	}
 }
 
 func TestLoadRejectsNonPositiveMaxSaveBodyBytes(t *testing.T) {
 	clearDatabaseEnvironment(t)
 	t.Setenv("DATABASE_URL", "postgres://app:secret@localhost/rune_nexus")
 	t.Setenv("MAX_SAVE_BODY_BYTES", "0")
+
+	if _, err := Load(); err == nil {
+		t.Fatal("Load() expected an error")
+	}
+}
+
+func TestLoadRejectsNonPositiveMinimumSaveClientCompatibilityVersion(t *testing.T) {
+	clearDatabaseEnvironment(t)
+	t.Setenv("DATABASE_URL", "postgres://app:secret@localhost/rune_nexus")
+	t.Setenv("MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION", "0")
 
 	if _, err := Load(); err == nil {
 		t.Fatal("Load() expected an error")
@@ -207,6 +230,7 @@ func clearDatabaseEnvironment(t *testing.T) {
 		"TRUST_PROXY_HEADERS",
 		"CORS_ALLOWED_ORIGINS",
 		"MAX_SAVE_BODY_BYTES",
+		"MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION",
 	} {
 		t.Setenv(name, "")
 	}

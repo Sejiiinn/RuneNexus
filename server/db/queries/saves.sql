@@ -12,6 +12,53 @@ INSERT INTO save_headers (
 )
 ON CONFLICT (account_id) DO NOTHING;
 
+-- name: EnsureSaveWriterState :exec
+INSERT INTO save_writer_states (account_id)
+VALUES ($1)
+ON CONFLICT (account_id) DO NOTHING;
+
+-- name: GetSaveWriterStateForUpdate :one
+SELECT *
+FROM save_writer_states
+WHERE account_id = $1
+FOR UPDATE;
+
+-- name: GetSaveWriterClaim :one
+SELECT *
+FROM save_writer_claims
+WHERE account_id = $1
+  AND idempotency_key = $2;
+
+-- name: AdvanceSaveWriter :one
+UPDATE save_writer_states
+SET generation = generation + 1,
+    session_id = $2,
+    client_instance_id = $3,
+    claimed_at = now(),
+    updated_at = now()
+WHERE account_id = $1
+RETURNING *;
+
+-- name: CreateSaveWriterClaim :one
+INSERT INTO save_writer_claims (
+    account_id,
+    idempotency_key,
+    session_id,
+    client_instance_id,
+    request_hash,
+    resulting_generation,
+    result_claimed_at
+) VALUES (
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7
+)
+RETURNING *;
+
 -- name: GetSaveHeaderForUpdate :one
 SELECT *
 FROM save_headers
@@ -67,6 +114,7 @@ INSERT INTO save_requests (
     account_id,
     idempotency_key,
     request_hash,
+    writer_generation,
     expected_revision,
     resulting_revision,
     result_saved_at
@@ -76,7 +124,8 @@ INSERT INTO save_requests (
     $3,
     $4,
     $5,
-    $6
+    $6,
+    $7
 )
 RETURNING *;
 

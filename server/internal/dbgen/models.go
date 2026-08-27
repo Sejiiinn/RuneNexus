@@ -63,6 +63,7 @@ type SaveRequest struct {
 	AccountID         pgtype.UUID        `db:"account_id"`
 	IdempotencyKey    pgtype.UUID        `db:"idempotency_key"`
 	RequestHash       []byte             `db:"request_hash"`
+	WriterGeneration  int64              `db:"writer_generation"`
 	ExpectedRevision  int64              `db:"expected_revision"`
 	ResultingRevision int64              `db:"resulting_revision"`
 	ResultSavedAt     pgtype.Timestamptz `db:"result_saved_at"`
@@ -72,6 +73,26 @@ type SaveRequest struct {
 type SaveTurretModule struct {
 	AccountID pgtype.UUID `db:"account_id"`
 	Payload   []byte      `db:"payload"`
+}
+
+type SaveWriterClaim struct {
+	AccountID           pgtype.UUID        `db:"account_id"`
+	IdempotencyKey      pgtype.UUID        `db:"idempotency_key"`
+	SessionID           pgtype.UUID        `db:"session_id"`
+	ClientInstanceID    pgtype.UUID        `db:"client_instance_id"`
+	RequestHash         []byte             `db:"request_hash"`
+	ResultingGeneration int64              `db:"resulting_generation"`
+	ResultClaimedAt     pgtype.Timestamptz `db:"result_claimed_at"`
+	CreatedAt           pgtype.Timestamptz `db:"created_at"`
+}
+
+type SaveWriterState struct {
+	AccountID        pgtype.UUID        `db:"account_id"`
+	Generation       int64              `db:"generation"`
+	SessionID        pgtype.UUID        `db:"session_id"`
+	ClientInstanceID pgtype.UUID        `db:"client_instance_id"`
+	ClaimedAt        pgtype.Timestamptz `db:"claimed_at"`
+	UpdatedAt        pgtype.Timestamptz `db:"updated_at"`
 }
 
 type Session struct {

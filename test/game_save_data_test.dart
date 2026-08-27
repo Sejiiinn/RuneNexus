@@ -87,42 +87,6 @@ void main() {
     expect(saved.toJson()['activeRun'], isNull);
   });
 
-  test('중첩형 v2 모듈 데이터를 최상위 저장 영역으로 마이그레이션한다', () {
-    final saved = GameSaveData.fromJson(<String, Object?>{
-      'version': 2,
-      'savedAtMillis': 20,
-      'preferences': const <String, Object?>{
-        'selectedStageNumber': 2,
-        'autoStartMode': 'pauseEachRound',
-      },
-      'progression': const <String, Object?>{
-        'runes': 10,
-        'turretModuleTickets': 3,
-        'turretModuleItemSequence': 4,
-        'ownedTurretModules': <Object?>[],
-      },
-      'activeRun': null,
-    });
-
-    expect(saved, isNotNull);
-    expect(saved!.turretModules.tickets, 3);
-    expect(saved.turretModules.drawCount, 4);
-    expect(saved.turretModules.ticketPurchaseCount, 4);
-
-    final migratedJson = saved.toJson();
-    expect(migratedJson['turretModules'], {
-      'tickets': 3,
-      'drawCount': 4,
-      'ticketPurchaseCount': 4,
-      'itemSequence': 4,
-      'items': <Object?>[],
-    });
-    expect(
-      migratedJson['progression'] as Map<String, Object?>,
-      isNot(contains('turretModuleTickets')),
-    );
-  });
-
   test('지원하지 않는 저장 버전은 거부한다', () {
     expect(GameSaveData.fromJson(const {'version': 99}), isNull);
   });
@@ -143,6 +107,18 @@ void main() {
         'version': 2,
         'preferences': <String, Object?>{},
         'progression': <String, Object?>{},
+        'activeRun': null,
+      }),
+      isNull,
+    );
+    expect(
+      GameSaveData.fromJson(const <String, Object?>{
+        'version': 2,
+        'preferences': <String, Object?>{},
+        'progression': <String, Object?>{
+          'turretModuleTickets': 3,
+          'ownedTurretModules': <Object?>[],
+        },
         'activeRun': null,
       }),
       isNull,

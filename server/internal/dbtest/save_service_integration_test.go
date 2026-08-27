@@ -4,22 +4,262 @@ package dbtest_test
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"os"
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const (
-	firstSaveKey  = "0198b955-3656-7c40-b3cb-87f427b90be4"
-	secondSaveKey = "0198b955-3656-7c40-b3cb-87f427b90be5"
+	firstSaveKey      = "0198b955-3656-7c40-b3cb-87f427b90be4"
+	secondSaveKey     = "0198b955-3656-7c40-b3cb-87f427b90be5"
+	writerClaimKey    = "0198b955-3656-7c40-b3cb-87f427b90be6"
+	clientInstanceID = "0198b955-3656-7c40-b3cb-87f427b90be7"
+	secondClaimKey    = "0198b955-3656-7c40-b3cb-87f427b90be8"
+	secondClientID    = "0198b955-3656-7c40-b3cb-87f427b90be9"
 )
+
+type claimedSaveService struct {
+	service          *gamesave.Service
+	pool             *pgxpool.Pool
+	accountUUID      pgtype.UUID
+	sessionID        string
+	writerGeneration int64
+}
+
+func (fixture *claimedSaveService) Get(
+	ctx context.Context,
+	accountID string,
+) (gamesave.Snapshot, error) {
+	return fixture.service.Get(ctx, accountID)
+}
+
+func (fixture *claimedSaveService) Update(
+	ctx context.Context,
+	accountID string,
+	request gamesave.UpdateRequest,
+) (gamesave.UpdateResult, error) {
+	request.WriterGeneration = fixture.writerGeneration
+	return fixture.service.Update(ctx, accountID, fixture.sessionID, request)
+}
+
+func TestSaveWriterClaimIsIdempotentAndRejectsPreviousWriter(t *testing.T) {
+	ctx, fixture, accountID := openSaveService(t)
+	claimBody := []byte(`{"clientInstanceId":"` + clientInstanceID + `","saveSchemaVersion":2,"clientBuild":"integration-test"}`)
+	replayed, err := fixture.service.ClaimWriter(ctx, accountID, fixture.sessionID, gamesave.ClaimWriterRequest{
+		IdempotencyKey:   writerClaimKey,
+		ClientInstanceID: clientInstanceID,
+		RawBody:          claimBody,
+	})
+	if err != nil {
+		t.Fatalf("replay writer claim: %v", err)
+	}
+	if replayed.WriterGeneration != fixture.writerGeneration {
+		t.Fatalf("replayed generation = %d", replayed.WriterGeneration)
+	}
+	changedBody := append([]byte(nil), claimBody...)
+	changedBody[len(changedBody)-2] = ' '
+	if _, err := fixture.service.ClaimWriter(ctx, accountID, fixture.sessionID, gamesave.ClaimWriterRequest{
+		IdempotencyKey:   writerClaimKey,
+		ClientInstanceID: clientInstanceID,
+		RawBody:          changedBody,
+	}); !errors.Is(err, gamesave.ErrIdempotencyKeyReused) {
+		t.Fatalf("changed writer claim error = %v", err)
+	}
+
+	otherAccount, err := dbgen.New(fixture.pool).CreateAccount(ctx)
+	if err != nil {
+		t.Fatalf("create other account: %v", err)
+	}
+	t.Cleanup(func() {
+		cleanupContext, cancel := context.WithTimeout(context.Background(), testDatabaseTimeout)
+		defer cancel()
+		if _, err := fixture.pool.Exec(cleanupContext, "DELETE FROM accounts WHERE id = $1", otherAccount.ID); err != nil {
+			t.Errorf("delete other account: %v", err)
+		}
+	})
+	otherAccessHash := sha256.Sum256(append(otherAccount.ID.Bytes[:], 2))
+	otherSession, err := dbgen.New(fixture.pool).CreateSession(ctx, dbgen.CreateSessionParams{
+		AccountID:        otherAccount.ID,
+		AccessTokenHash:  otherAccessHash[:],
+		AccessExpiresAt:  pgtype.Timestamptz{Time: time.Now().UTC().Add(15 * time.Minute), Valid: true},
+		RefreshExpiresAt: pgtype.Timestamptz{Time: time.Now().UTC().Add(24 * time.Hour), Valid: true},
+	})
+	if err != nil {
+		t.Fatalf("create other session: %v", err)
+	}
+	var otherSessionID string
+	if err := fixture.pool.QueryRow(ctx, "SELECT $1::uuid::text", otherSession.ID).Scan(&otherSessionID); err != nil {
+		t.Fatalf("format other session ID: %v", err)
+	}
+	if _, err := fixture.service.ClaimWriter(ctx, accountID, otherSessionID, gamesave.ClaimWriterRequest{
+		IdempotencyKey:   "0198b955-3656-7c40-b3cb-87f427b90bea",
+		ClientInstanceID: "0198b955-3656-7c40-b3cb-87f427b90beb",
+		RawBody:          []byte(`{"clientInstanceId":"0198b955-3656-7c40-b3cb-87f427b90beb","saveSchemaVersion":2,"clientBuild":"integration-test"}`),
+	}); !errors.Is(err, gamesave.ErrSessionAccountMismatch) {
+		t.Fatalf("cross-account writer claim error = %v", err)
+	}
+
+	acceptedRequest := gamesave.UpdateRequest{
+		IdempotencyKey:   firstSaveKey,
+		WriterGeneration: fixture.writerGeneration,
+		ExpectedRevision: 0,
+		RawBody:          []byte(`{"expectedRevision":0,"data":{"version":2}}`),
+		Data: gamesave.Data{
+			Version:       gamesave.CurrentSchemaVersion,
+			Preferences:   json.RawMessage(`{}`),
+			Progression:   json.RawMessage(`{}`),
+			TurretModules: json.RawMessage(`{}`),
+		},
+	}
+	accepted, err := fixture.service.Update(ctx, accountID, fixture.sessionID, acceptedRequest)
+	if err != nil {
+		t.Fatalf("save before writer replacement: %v", err)
+	}
+
+	now := time.Now().UTC()
+	secondAccessHash := sha256.Sum256(append(fixture.accountUUID.Bytes[:], 1))
+	secondSession, err := dbgen.New(fixture.pool).CreateSession(ctx, dbgen.CreateSessionParams{
+		AccountID:        fixture.accountUUID,
+		AccessTokenHash:  secondAccessHash[:],
+		AccessExpiresAt:  pgtype.Timestamptz{Time: now.Add(15 * time.Minute), Valid: true},
+		RefreshExpiresAt: pgtype.Timestamptz{Time: now.Add(24 * time.Hour), Valid: true},
+	})
+	if err != nil {
+		t.Fatalf("create second writer session: %v", err)
+	}
+	var secondSessionID string
+	if err := fixture.pool.QueryRow(ctx, "SELECT $1::uuid::text", secondSession.ID).Scan(&secondSessionID); err != nil {
+		t.Fatalf("format second session ID: %v", err)
+	}
+	secondBody := []byte(`{"clientInstanceId":"` + secondClientID + `","saveSchemaVersion":2,"clientBuild":"integration-test"}`)
+	secondClaim, err := fixture.service.ClaimWriter(ctx, accountID, secondSessionID, gamesave.ClaimWriterRequest{
+		IdempotencyKey:   secondClaimKey,
+		ClientInstanceID: secondClientID,
+		RawBody:          secondBody,
+	})
+	if err != nil {
+		t.Fatalf("claim second writer: %v", err)
+	}
+	if secondClaim.WriterGeneration != fixture.writerGeneration+1 {
+		t.Fatalf("second generation = %d", secondClaim.WriterGeneration)
+	}
+
+	replayedSave, err := fixture.service.Update(ctx, accountID, fixture.sessionID, acceptedRequest)
+	if err != nil || replayedSave != accepted {
+		t.Fatalf("replay accepted save after replacement = %#v, %v", replayedSave, err)
+	}
+	receiptOnlyReplay := acceptedRequest
+	receiptOnlyReplay.ReceiptOnly = true
+	replayedSave, err = fixture.service.Update(ctx, accountID, fixture.sessionID, receiptOnlyReplay)
+	if err != nil || replayedSave != accepted {
+		t.Fatalf("receipt-only replay = %#v, %v", replayedSave, err)
+	}
+	receiptOnlyMiss := acceptedRequest
+	receiptOnlyMiss.IdempotencyKey = "0198b955-3656-7c40-b3cb-87f427b90bec"
+	receiptOnlyMiss.ReceiptOnly = true
+	if _, err := fixture.service.Update(ctx, accountID, fixture.sessionID, receiptOnlyMiss); !errors.Is(err, gamesave.ErrClientUpdateRequired) {
+		t.Fatalf("receipt-only miss error = %v", err)
+	}
+	staleRequest := acceptedRequest
+	staleRequest.IdempotencyKey = secondSaveKey
+	staleRequest.ExpectedRevision = 1
+	staleRequest.RawBody = []byte(`{"expectedRevision":1,"data":{"version":2}}`)
+	if _, err := fixture.service.Update(ctx, accountID, fixture.sessionID, staleRequest); err == nil {
+		t.Fatal("previous writer saved after replacement")
+	} else {
+		var replaced *gamesave.WriterReplacedError
+		if !errors.As(err, &replaced) || replaced.CurrentGeneration != secondClaim.WriterGeneration {
+			t.Fatalf("previous writer error = %v", err)
+		}
+	}
+}
+
+func TestSaveWriterClaimAndUpdateUseOneLockOrder(t *testing.T) {
+	ctx, fixture, accountID := openSaveService(t)
+	now := time.Now().UTC()
+	secondAccessHash := sha256.Sum256(append(fixture.accountUUID.Bytes[:], 3))
+	secondSession, err := dbgen.New(fixture.pool).CreateSession(ctx, dbgen.CreateSessionParams{
+		AccountID:        fixture.accountUUID,
+		AccessTokenHash:  secondAccessHash[:],
+		AccessExpiresAt:  pgtype.Timestamptz{Time: now.Add(15 * time.Minute), Valid: true},
+		RefreshExpiresAt: pgtype.Timestamptz{Time: now.Add(24 * time.Hour), Valid: true},
+	})
+	if err != nil {
+		t.Fatalf("create concurrent writer session: %v", err)
+	}
+	var secondSessionID string
+	if err := fixture.pool.QueryRow(ctx, "SELECT $1::uuid::text", secondSession.ID).Scan(&secondSessionID); err != nil {
+		t.Fatalf("format concurrent writer session ID: %v", err)
+	}
+
+	start := make(chan struct{})
+	claimResults := make(chan gamesave.ClaimWriterResult, 1)
+	claimErrors := make(chan error, 1)
+	updateErrors := make(chan error, 1)
+	go func() {
+		<-start
+		result, err := fixture.service.ClaimWriter(ctx, accountID, secondSessionID, gamesave.ClaimWriterRequest{
+			IdempotencyKey:   secondClaimKey,
+			ClientInstanceID: secondClientID,
+			RawBody:          []byte(`{"clientInstanceId":"` + secondClientID + `","saveSchemaVersion":2,"clientBuild":"integration-test"}`),
+		})
+		claimResults <- result
+		claimErrors <- err
+	}()
+	go func() {
+		<-start
+		_, err := fixture.service.Update(ctx, accountID, fixture.sessionID, gamesave.UpdateRequest{
+			IdempotencyKey:   firstSaveKey,
+			WriterGeneration: fixture.writerGeneration,
+			ExpectedRevision: 0,
+			RawBody:          []byte(`{"expectedRevision":0,"data":{"version":2}}`),
+			Data: gamesave.Data{
+				Version:       gamesave.CurrentSchemaVersion,
+				Preferences:   json.RawMessage(`{}`),
+				Progression:   json.RawMessage(`{}`),
+				TurretModules: json.RawMessage(`{}`),
+			},
+		})
+		updateErrors <- err
+	}()
+	close(start)
+
+	claimResult := <-claimResults
+	if err := <-claimErrors; err != nil {
+		t.Fatalf("concurrent writer claim: %v", err)
+	}
+	if claimResult.WriterGeneration != fixture.writerGeneration+1 {
+		t.Fatalf("concurrent claim generation = %d", claimResult.WriterGeneration)
+	}
+	updateErr := <-updateErrors
+	if updateErr != nil {
+		var replaced *gamesave.WriterReplacedError
+		if !errors.As(updateErr, &replaced) || replaced.CurrentGeneration != claimResult.WriterGeneration {
+			t.Fatalf("concurrent update error = %v", updateErr)
+		}
+		if _, err := fixture.service.Get(ctx, accountID); !errors.Is(err, gamesave.ErrNotFound) {
+			t.Fatalf("save exists after rejected concurrent update: %v", err)
+		}
+		return
+	}
+	snapshot, err := fixture.service.Get(ctx, accountID)
+	if err != nil {
+		t.Fatalf("get concurrent accepted save: %v", err)
+	}
+	if snapshot.Revision != 1 {
+		t.Fatalf("concurrent accepted revision = %d", snapshot.Revision)
+	}
+}
 
 func TestSaveServicePersistsSnapshotAndEnforcesRequestContract(t *testing.T) {
 	ctx, service, accountID := openSaveService(t)
@@ -311,7 +551,7 @@ func TestSaveServiceRollsBackWholeTransactionOnPayloadFailure(t *testing.T) {
 	}
 }
 
-func openSaveService(t *testing.T) (context.Context, *gamesave.Service, string) {
+func openSaveService(t *testing.T) (context.Context, *claimedSaveService, string) {
 	t.Helper()
 	databaseURL := os.Getenv("RUNE_NEXUS_TEST_DATABASE_URL")
 	if databaseURL == "" {
@@ -348,6 +588,31 @@ func openSaveService(t *testing.T) (context.Context, *gamesave.Service, string) 
 	).Scan(&accountID); err != nil {
 		t.Fatalf("format account ID: %v", err)
 	}
+	now := time.Now().UTC()
+	accessHash := sha256.Sum256(account.ID.Bytes[:])
+	session, err := dbgen.New(pool).CreateSession(ctx, dbgen.CreateSessionParams{
+		AccountID:        account.ID,
+		AccessTokenHash:  accessHash[:],
+		AccessExpiresAt:  pgtype.Timestamptz{Time: now.Add(15 * time.Minute), Valid: true},
+		RefreshExpiresAt: pgtype.Timestamptz{Time: now.Add(24 * time.Hour), Valid: true},
+	})
+	if err != nil {
+		t.Fatalf("create save test session: %v", err)
+	}
+	var sessionID string
+	if err := pool.QueryRow(ctx, "SELECT $1::uuid::text", session.ID).Scan(&sessionID); err != nil {
+		t.Fatalf("format session ID: %v", err)
+	}
+	service := gamesave.NewService(pool)
+	claimBody := []byte(`{"clientInstanceId":"` + clientInstanceID + `","saveSchemaVersion":2,"clientBuild":"integration-test"}`)
+	claim, err := service.ClaimWriter(ctx, accountID, sessionID, gamesave.ClaimWriterRequest{
+		IdempotencyKey:   writerClaimKey,
+		ClientInstanceID: clientInstanceID,
+		RawBody:          claimBody,
+	})
+	if err != nil {
+		t.Fatalf("claim save writer: %v", err)
+	}
 	t.Cleanup(func() {
 		cleanupContext, cleanupCancel := context.WithTimeout(
 			context.Background(),
@@ -362,5 +627,11 @@ func openSaveService(t *testing.T) (context.Context, *gamesave.Service, string) 
 			t.Errorf("delete test account: %v", err)
 		}
 	})
-	return ctx, gamesave.NewService(pool), accountID
+	return ctx, &claimedSaveService{
+		service:          service,
+		pool:             pool,
+		accountUUID:      account.ID,
+		sessionID:        sessionID,
+		writerGeneration: claim.WriterGeneration,
+	}, accountID
 }
