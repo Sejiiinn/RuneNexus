@@ -1,12 +1,25 @@
 # Rune Nexus 개발 히스토리
 
-마지막 갱신 기준: 2026-08-29 `codex/weekly-reward-server-authority` 브랜치 작업 기준.
+마지막 갱신 기준: 2026-08-29 `codex/legacy-local-transfer` 브랜치 작업 기준.
 
 ## 목적
 
 이 문서는 README에 넣기에는 세부적인 최근 구현 흐름을 남기는 기록이다. 현재 규칙과 수치는 `docs/gameplay_balance_reference.md`, 구현 완료 여부는 `docs/implementation_status.md`를 기준으로 한다.
 
 ## 최근 구현 흐름
+
+### 기존 카카오 인앱 브라우저 진행의 일회용 이전
+
+- 카카오 WebView에 격리된 guest 저장을 15분짜리 URL fragment 토큰으로 외부
+  Chrome/Safari에 전달하고, Google 로그인 후 빈 account에만 revision 1로 귀속하는
+  임시 이행 흐름을 추가했다.
+- 생성 요청은 canonical v2 저장 구조, 구매 다이아 0, 무료 재화·모듈 상한을 검사한다.
+  소비 요청은 Bearer account/session, token 단일 소비, target save 부재를 한
+  트랜잭션에서 검증한다.
+- 소비된 임시 원문은 즉시 삭제하고 token/payload 해시와 결과 revision 영수증만
+  남긴다. 같은 account의 응답 유실 재시도는 같은 결과로 복구한다.
+- 로컬 저장의 위변조·복제를 완전히 증명할 수 없는 구조적 한계 때문에 정식 배포 전
+  제거 대상으로 확정했다. 제거 절차는 `docs/legacy_local_save_transfer.md`에 기록했다.
 
 ### 주간 보상 수령 서버 판정
 

@@ -12,11 +12,13 @@ import (
 )
 
 type AuthenticationRateLimits struct {
-	GoogleRequests    int
-	RefreshRequests   int
-	Window            time.Duration
-	MaxClients        int
-	TrustProxyHeaders bool
+	GoogleRequests                int
+	RefreshRequests               int
+	LegacyTransferCreateRequests  int
+	LegacyTransferConsumeRequests int
+	Window                        time.Duration
+	MaxClients                    int
+	TrustProxyHeaders             bool
 }
 
 type tokenBucket struct {
@@ -138,6 +140,22 @@ func withAuthenticationRateLimitsAt(
 		limits.Window,
 		limits.MaxClients,
 	)
+	var legacyTransferCreate *clientTokenBuckets
+	if limits.LegacyTransferCreateRequests > 0 {
+		legacyTransferCreate = newClientTokenBuckets(
+			limits.LegacyTransferCreateRequests,
+			limits.Window,
+			limits.MaxClients,
+		)
+	}
+	var legacyTransferConsume *clientTokenBuckets
+	if limits.LegacyTransferConsumeRequests > 0 {
+		legacyTransferConsume = newClientTokenBuckets(
+			limits.LegacyTransferConsumeRequests,
+			limits.Window,
+			limits.MaxClients,
+		)
+	}
 
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 		var buckets *clientTokenBuckets
@@ -146,6 +164,10 @@ func withAuthenticationRateLimitsAt(
 			buckets = google
 		case request.Method == http.MethodPost && request.URL.Path == "/v1/auth/refresh":
 			buckets = refresh
+		case request.Method == http.MethodPost && request.URL.Path == "/v1/legacy-save-transfers" && legacyTransferCreate != nil:
+			buckets = legacyTransferCreate
+		case request.Method == http.MethodPost && request.URL.Path == "/v1/legacy-save-transfers/consume" && legacyTransferConsume != nil:
+			buckets = legacyTransferConsume
 		default:
 			next.ServeHTTP(response, request)
 			return

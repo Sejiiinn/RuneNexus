@@ -100,6 +100,23 @@ void main() {
     expect(signOutCount, 1);
   });
 
+  testWidgets('게스트에게 기존 카카오 브라우저 진행 이전 진입점을 표시한다', (tester) async {
+    var transferCount = 0;
+    await _pumpAccountMenu(
+      tester,
+      session: const AccountSession.guest(),
+      onCreateLegacyTransfer: () => transferCount += 1,
+    );
+
+    await _openAccountDialog(tester);
+
+    expect(find.byKey(const ValueKey('legacy-transfer-card')), findsOneWidget);
+    expect(find.text('카카오 브라우저 진행 옮기기'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('legacy-transfer-start')));
+    await pumpGameFrames(tester);
+    expect(transferCount, 1);
+  });
+
   testWidgets('좁은 화면에서도 계정 버튼이 로고와 겹치지 않는다', (tester) async {
     tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1;
@@ -136,6 +153,7 @@ Future<void> _pumpAccountMenu(
   required AccountSession session,
   VoidCallback? onConnectPlayGames,
   VoidCallback? onConnectGoogle,
+  VoidCallback? onCreateLegacyTransfer,
   VoidCallback? onSyncAccount,
   VoidCallback? onSignOut,
 }) async {
@@ -161,6 +179,7 @@ Future<void> _pumpAccountMenu(
         accountSession: session,
         onConnectPlayGames: onConnectPlayGames,
         onConnectGoogle: onConnectGoogle,
+        onCreateLegacyTransfer: onCreateLegacyTransfer,
         onSyncAccount: onSyncAccount,
         onSignOut: onSignOut,
       ),

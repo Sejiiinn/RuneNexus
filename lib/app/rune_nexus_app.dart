@@ -13,6 +13,7 @@ import '../data/save/account_save_bootstrap.dart';
 import '../data/save/local_save_repository.dart';
 import '../data/save/local_save_slot.dart';
 import '../data/save/local_online_save_outbox_repository.dart';
+import '../data/save/legacy_save_transfer_api.dart';
 import '../data/save/online_save_api.dart';
 import '../data/save/online_save_coordinator.dart';
 import '../domain/account/account_session.dart';
@@ -22,7 +23,9 @@ import '../domain/economy/weekly_reward_claim.dart';
 import '../game/game_snapshot.dart';
 import '../game/rune_nexus_game.dart';
 import '../l10n/rune_nexus_localizations.dart';
+import '../platform/legacy_transfer/legacy_transfer_link.dart';
 import '../ui/account/google_sign_in_dialog.dart';
+import '../ui/account/legacy_save_transfer_dialog.dart';
 import '../ui/game/game_button.dart';
 import '../ui/game/game_image_assets.dart';
 import '../ui/game/game_icons.dart';
@@ -36,6 +39,7 @@ import '../ui/menu/map_editor_panel.dart';
 enum _AppScreen { main, stage, mapEditor }
 
 enum _AccountConnectionPhase {
+  importingLegacyProgress,
   savingCurrentProgress,
   loadingAccountProgress,
   openingAccountProgress,
@@ -65,6 +69,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   GoogleAuthenticationApi? _googleAuthenticationApi;
   OnlineSaveApi? _onlineSaveApi;
   WeeklyRewardApi? _weeklyRewardApi;
+  LegacySaveTransferApi? _legacySaveTransferApi;
   final ValueNotifier<_AppLoadingProgress> _loadingProgress = ValueNotifier(
     const _AppLoadingProgress(label: '게임을 시작하는 중'),
   );
@@ -80,6 +85,8 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   bool _clientUpdateRequired = false;
   _AccountConnectionPhase? _accountConnectionPhase;
   LocalSaveSlot _activeSaveSlot = LocalSaveSlot.guest;
+  String? _pendingLegacyTransferToken;
+  bool _legacyTransferPromptScheduled = false;
 
   AccountSession get _accountSession =>
       _onlineAccount?.presentation ?? const AccountSession.guest();
@@ -106,6 +113,15 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       _weeklyRewardApi = WeeklyRewardApi(
         baseUrl: _googleAuthenticationConfig.apiBaseUrl,
       );
+      if (_googleAuthenticationConfig.legacyLocalTransferEnabled) {
+        _legacySaveTransferApi = LegacySaveTransferApi(
+          baseUrl: _googleAuthenticationConfig.apiBaseUrl,
+        );
+        final token = readLegacyTransferToken();
+        if (token != null && LegacySaveTransferApi.isValidToken(token)) {
+          _pendingLegacyTransferToken = token;
+        }
+      }
     }
   }
 
@@ -140,6 +156,22 @@ class _RuneNexusAppState extends State<RuneNexusApp>
         );
       },
     );
+    if (!mounted || !context.mounted) {
+      return;
+    }
+    _scheduleLegacyTransferSignIn(context);
+  }
+
+  void _scheduleLegacyTransferSignIn(BuildContext context) {
+    if (_pendingLegacyTransferToken == null || _legacyTransferPromptScheduled) {
+      return;
+    }
+    _legacyTransferPromptScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && context.mounted && _onlineSession == null) {
+        unawaited(_connectGoogle(context));
+      }
+    });
   }
 
   void _openMainScreen({MainMenuTab tab = MainMenuTab.stage}) {
@@ -244,6 +276,9 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       builder: (dialogContext) => GoogleSignInDialog(
         clientId: _googleAuthenticationConfig.clientId,
         authenticate: authenticationApi.authenticate,
+        description: _pendingLegacyTransferToken == null
+            ? null
+            : 'Google 로그인을 완료하면 카카오 브라우저에서 가져온 기존 진행을 이 계정에 연결합니다.',
       ),
     );
     if (credentials == null || !mounted || !context.mounted) {
@@ -284,11 +319,116 @@ class _RuneNexusAppState extends State<RuneNexusApp>
         issueMessage: context.l10n.syncActionRequired,
       );
     });
+    if (_pendingLegacyTransferToken != null) {
+      await _connectPendingLegacyTransfer(
+        context: context,
+        onlineSession: onlineSession,
+        credentials: credentials,
+      );
+      return;
+    }
     await _connectAccountProgress(
       context: context,
       onlineSession: onlineSession,
       credentials: credentials,
     );
+  }
+
+  Future<void> _connectPendingLegacyTransfer({
+    required BuildContext context,
+    required OnlineAccountSessionController onlineSession,
+    required OnlineAccountCredentials credentials,
+  }) async {
+    final api = _legacySaveTransferApi;
+    final token = _pendingLegacyTransferToken;
+    if (api == null || token == null || _accountConnectionPhase != null) {
+      return;
+    }
+    setState(() {
+      _accountConnectionPhase = _AccountConnectionPhase.importingLegacyProgress;
+    });
+    try {
+      await onlineSession.runAuthenticated(
+        request: (accessToken) => api.consume(accessToken, token: token),
+        isUnauthorized: (error) =>
+            error is LegacySaveTransferException && error.isUnauthorized,
+      );
+      if (!mounted ||
+          !context.mounted ||
+          !identical(_onlineSession, onlineSession)) {
+        return;
+      }
+      _pendingLegacyTransferToken = null;
+      clearLegacyTransferToken();
+    } on LegacySaveTransferException catch (error) {
+      if (!mounted ||
+          !context.mounted ||
+          !identical(_onlineSession, onlineSession)) {
+        return;
+      }
+      final message = switch (error.code) {
+        'LEGACY_TRANSFER_TARGET_NOT_EMPTY' =>
+          '이 Google 계정에는 이미 진행 데이터가 있어 덮어쓰지 않았습니다. 다른 빈 계정으로 로그인해 주세요.',
+        'LEGACY_TRANSFER_ALREADY_USED' => '이미 다른 계정에 사용된 이전 링크입니다.',
+        'LEGACY_TRANSFER_INVALID' => '이전 링크가 만료되었거나 유효하지 않습니다.',
+        _ when error.transportFailure =>
+          '이전 서버에 연결할 수 없습니다. 같은 링크로 다시 시도해 주세요.',
+        _ => error.message,
+      };
+      setState(() {
+        _onlineAccount = _OnlineAccountState(
+          credentials: onlineSession.credentials ?? credentials,
+          syncStatus: OnlineSaveSyncStatus.actionRequired,
+          issueMessage: message,
+        );
+      });
+      ScaffoldMessenger.maybeOf(
+        context,
+      )?.showSnackBar(SnackBar(content: Text(message)));
+      return;
+    } finally {
+      if (mounted && identical(_onlineSession, onlineSession)) {
+        setState(() {
+          _accountConnectionPhase = null;
+        });
+      } else {
+        _accountConnectionPhase = null;
+      }
+    }
+    await _connectAccountProgress(
+      context: context,
+      onlineSession: onlineSession,
+      credentials: onlineSession.credentials ?? credentials,
+    );
+  }
+
+  Future<void> _openLegacyTransferDialog(BuildContext context) {
+    return showGameDialog<void>(
+      context: context,
+      builder: (_) =>
+          LegacySaveTransferDialog(createTransfer: _createLegacyTransferDraft),
+    );
+  }
+
+  Future<LegacySaveTransferDraft> _createLegacyTransferDraft() async {
+    final api = _legacySaveTransferApi;
+    if (api == null || !_activeSaveSlot.isGuest || widget.game != null) {
+      throw const LegacySaveTransferException(
+        code: 'LEGACY_TRANSFER_UNAVAILABLE',
+        message: '현재 환경에서는 기존 진행 이전을 사용할 수 없습니다.',
+      );
+    }
+    await game.saveNow();
+    final data = await createDefaultSaveRepository(
+      slot: LocalSaveSlot.guest,
+    ).load();
+    if (data == null) {
+      throw const LegacySaveTransferException(
+        code: 'LEGACY_TRANSFER_SAVE_NOT_FOUND',
+        message: '이전할 로컬 진행 데이터를 찾지 못했습니다.',
+      );
+    }
+    return api.create(data);
   }
 
   Future<void> _connectAccountProgress({
@@ -884,17 +1024,29 @@ class _RuneNexusAppState extends State<RuneNexusApp>
                     onConnectGoogle: _googleAuthenticationApi == null
                         ? null
                         : () => _connectGoogle(context),
+                    onCreateLegacyTransfer:
+                        _legacySaveTransferApi == null ||
+                            !_activeSaveSlot.isGuest ||
+                            widget.game != null
+                        ? null
+                        : () => _openLegacyTransferDialog(context),
                     onSignOut: _onlineSession == null
                         ? null
                         : () => _signOut(context),
                     onSyncAccount:
                         _onlineSession == null || !_activeSaveSlot.isGuest
                         ? null
-                        : () => _connectAccountProgress(
-                            context: context,
-                            onlineSession: _onlineSession!,
-                            credentials: _onlineAccount!.credentials,
-                          ),
+                        : () => _pendingLegacyTransferToken != null
+                              ? _connectPendingLegacyTransfer(
+                                  context: context,
+                                  onlineSession: _onlineSession!,
+                                  credentials: _onlineAccount!.credentials,
+                                )
+                              : _connectAccountProgress(
+                                  context: context,
+                                  onlineSession: _onlineSession!,
+                                  credentials: _onlineAccount!.credentials,
+                                ),
                     onClaimWeeklyReward:
                         _onlineSession == null || _activeSaveSlot.isGuest
                         ? null
@@ -1032,6 +1184,8 @@ class _AccountConnectionOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final description = switch (phase) {
+      _AccountConnectionPhase.importingLegacyProgress =>
+        l10n.importingLegacyProgress,
       _AccountConnectionPhase.savingCurrentProgress =>
         l10n.savingCurrentProgress,
       _AccountConnectionPhase.loadingAccountProgress =>

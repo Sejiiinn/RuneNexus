@@ -33,6 +33,7 @@ type Dependencies struct {
 	AuthenticationRateLimits              AuthenticationRateLimits
 	SaveService                           SaveService
 	WeeklyRewardService                   WeeklyRewardService
+	LegacyTransferService                 LegacyTransferService
 	MaxSaveBodyBytes                      int64
 	MinimumSaveClientCompatibilityVersion int
 	CORSAllowedOrigins                    []string
@@ -105,6 +106,23 @@ func NewHandler(
 					logger,
 					dependencies.Authenticator,
 					http.HandlerFunc(rewards.claim),
+				),
+			)
+		}
+		if dependencies.LegacyTransferService != nil {
+			transfers := legacyTransferHandler{
+				logger:                            logger,
+				transfers:                         dependencies.LegacyTransferService,
+				maxSaveBodyBytes:                  dependencies.MaxSaveBodyBytes,
+				minimumClientCompatibilityVersion: dependencies.MinimumSaveClientCompatibilityVersion,
+			}
+			mux.HandleFunc("POST /v1/legacy-save-transfers", transfers.create)
+			mux.Handle(
+				"POST /v1/legacy-save-transfers/consume",
+				withBearerAuthentication(
+					logger,
+					dependencies.Authenticator,
+					http.HandlerFunc(transfers.consume),
 				),
 			)
 		}

@@ -25,6 +25,30 @@ type AuthIdentity struct {
 	LastVerifiedAt pgtype.Timestamptz `db:"last_verified_at"`
 }
 
+type LegacySaveTransfer struct {
+	ID                  pgtype.UUID        `db:"id"`
+	TokenHash           []byte             `db:"token_hash"`
+	PayloadHash         []byte             `db:"payload_hash"`
+	SchemaVersion       int32              `db:"schema_version"`
+	ClientSavedAtMillis int64              `db:"client_saved_at_millis"`
+	Preferences         []byte             `db:"preferences"`
+	Progression         []byte             `db:"progression"`
+	TurretModules       []byte             `db:"turret_modules"`
+	ActiveRun           []byte             `db:"active_run"`
+	CreatedAt           pgtype.Timestamptz `db:"created_at"`
+	ExpiresAt           pgtype.Timestamptz `db:"expires_at"`
+}
+
+type LegacySaveTransferReceipt struct {
+	TransferID        pgtype.UUID        `db:"transfer_id"`
+	TokenHash         []byte             `db:"token_hash"`
+	PayloadHash       []byte             `db:"payload_hash"`
+	ConsumedAccountID pgtype.UUID        `db:"consumed_account_id"`
+	ConsumedAt        pgtype.Timestamptz `db:"consumed_at"`
+	ResultRevision    int64              `db:"result_revision"`
+	ResultSavedAt     pgtype.Timestamptz `db:"result_saved_at"`
+}
+
 type RefreshToken struct {
 	ID            pgtype.UUID        `db:"id"`
 	SessionID     pgtype.UUID        `db:"session_id"`

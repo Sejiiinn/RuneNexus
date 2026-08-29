@@ -14,7 +14,9 @@ import (
 	"time"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
+	"github.com/Sejiiinn/RuneNexus/server/internal/legacytransfer"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
+	"github.com/Sejiiinn/RuneNexus/server/internal/session"
 	"github.com/Sejiiinn/RuneNexus/server/internal/weeklyreward"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -256,6 +258,109 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 		if !errors.As(err, &alreadyClaimed) || alreadyClaimed.Result != claimed {
 			t.Fatalf("duplicate reward error = %v", err)
 		}
+	}
+}
+
+func TestLegacyTransferImportsOnlyIntoEmptyAccountAndRemovesPayload(t *testing.T) {
+	ctx, fixture, accountID := openSaveService(t)
+	service := legacytransfer.NewService(fixture.pool, 15*time.Minute)
+	data := gamesave.Data{
+		Version:       gamesave.CurrentSchemaVersion,
+		SavedAtMillis: 1234,
+		Preferences:   json.RawMessage(`{"music":true}`),
+		Progression:   json.RawMessage(`{"runes":30,"freeDiamonds":40,"paidDiamonds":0}`),
+		TurretModules: json.RawMessage(`{"tickets":2,"items":[]}`),
+	}
+	created, err := service.Create(ctx, legacytransfer.CreateRequest{
+		RawBody: []byte(`{"clientCompatibilityVersion":1,"data":{"version":2}}`),
+		Data:    data,
+	})
+	if err != nil {
+		t.Fatalf("create legacy transfer: %v", err)
+	}
+	tokenHash, err := session.HashToken(created.Token)
+	if err != nil {
+		t.Fatalf("hash legacy transfer token: %v", err)
+	}
+	t.Cleanup(func() {
+		cleanupContext, cancel := context.WithTimeout(context.Background(), testDatabaseTimeout)
+		defer cancel()
+		if _, err := fixture.pool.Exec(
+			cleanupContext,
+			"DELETE FROM legacy_save_transfer_receipts WHERE token_hash = $1",
+			tokenHash,
+		); err != nil {
+			t.Errorf("delete legacy transfer receipt: %v", err)
+		}
+		if _, err := fixture.pool.Exec(
+			cleanupContext,
+			"DELETE FROM legacy_save_transfers WHERE token_hash = $1",
+			tokenHash,
+		); err != nil {
+			t.Errorf("delete legacy transfer: %v", err)
+		}
+	})
+
+	consumed, err := service.Consume(ctx, accountID, fixture.sessionID, created.Token)
+	if err != nil {
+		t.Fatalf("consume legacy transfer: %v", err)
+	}
+	if consumed.Revision != 1 || consumed.ServerSavedAt.IsZero() {
+		t.Fatalf("consumed = %#v", consumed)
+	}
+	replayed, err := service.Consume(ctx, accountID, fixture.sessionID, created.Token)
+	if err != nil || replayed != consumed {
+		t.Fatalf("replayed consume = %#v, %v", replayed, err)
+	}
+	snapshot, err := fixture.service.Get(ctx, accountID)
+	if err != nil {
+		t.Fatalf("get imported save: %v", err)
+	}
+	if snapshot.Revision != 1 || snapshot.Data.SavedAtMillis != data.SavedAtMillis {
+		t.Fatalf("snapshot = %#v", snapshot)
+	}
+	requireSameJSON(t, snapshot.Data.Progression, data.Progression)
+	var pendingCount int
+	if err := fixture.pool.QueryRow(
+		ctx,
+		"SELECT count(*) FROM legacy_save_transfers WHERE token_hash = $1",
+		tokenHash,
+	).Scan(&pendingCount); err != nil {
+		t.Fatalf("count pending legacy payload: %v", err)
+	}
+	if pendingCount != 0 {
+		t.Fatalf("pending legacy payload count = %d", pendingCount)
+	}
+
+	second, err := service.Create(ctx, legacytransfer.CreateRequest{
+		RawBody: []byte(`{"clientCompatibilityVersion":1,"data":{"version":2,"retry":true}}`),
+		Data:    data,
+	})
+	if err != nil {
+		t.Fatalf("create second legacy transfer: %v", err)
+	}
+	secondHash, err := session.HashToken(second.Token)
+	if err != nil {
+		t.Fatalf("hash second legacy transfer token: %v", err)
+	}
+	t.Cleanup(func() {
+		cleanupContext, cancel := context.WithTimeout(context.Background(), testDatabaseTimeout)
+		defer cancel()
+		if _, err := fixture.pool.Exec(
+			cleanupContext,
+			"DELETE FROM legacy_save_transfers WHERE token_hash = $1",
+			secondHash,
+		); err != nil {
+			t.Errorf("delete second legacy transfer: %v", err)
+		}
+	})
+	if _, err := service.Consume(
+		ctx,
+		accountID,
+		fixture.sessionID,
+		second.Token,
+	); !errors.Is(err, legacytransfer.ErrTargetSaveExists) {
+		t.Fatalf("non-empty target error = %v", err)
 	}
 }
 

@@ -16,11 +16,15 @@ type Querier interface {
 	ConsumeRefreshToken(ctx context.Context, id pgtype.UUID) (RefreshToken, error)
 	CreateAccount(ctx context.Context) (Account, error)
 	CreateAuthIdentity(ctx context.Context, arg CreateAuthIdentityParams) (AuthIdentity, error)
+	CreateLegacySaveTransfer(ctx context.Context, arg CreateLegacySaveTransferParams) (LegacySaveTransfer, error)
+	CreateLegacySaveTransferReceipt(ctx context.Context, arg CreateLegacySaveTransferReceiptParams) (LegacySaveTransferReceipt, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateRewardClaim(ctx context.Context, arg CreateRewardClaimParams) (RewardClaim, error)
 	CreateSaveRequest(ctx context.Context, arg CreateSaveRequestParams) (SaveRequest, error)
 	CreateSaveWriterClaim(ctx context.Context, arg CreateSaveWriterClaimParams) (SaveWriterClaim, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
+	DeleteExpiredLegacySaveTransfers(ctx context.Context, expiresAt pgtype.Timestamptz) (int64, error)
+	DeleteLegacySaveTransfer(ctx context.Context, id pgtype.UUID) error
 	DeleteSaveActiveRun(ctx context.Context, accountID pgtype.UUID) error
 	EnsureSaveHeader(ctx context.Context, accountID pgtype.UUID) error
 	EnsureSaveWriterState(ctx context.Context, accountID pgtype.UUID) error
@@ -28,6 +32,8 @@ type Querier interface {
 	GetAccountByIdentity(ctx context.Context, arg GetAccountByIdentityParams) (Account, error)
 	GetActiveSessionByAccessTokenHash(ctx context.Context, accessTokenHash []byte) (GetActiveSessionByAccessTokenHashRow, error)
 	GetAuthIdentityForUpdate(ctx context.Context, arg GetAuthIdentityForUpdateParams) (AuthIdentity, error)
+	GetLegacySaveTransferForUpdate(ctx context.Context, tokenHash []byte) (LegacySaveTransfer, error)
+	GetLegacySaveTransferReceipt(ctx context.Context, tokenHash []byte) (LegacySaveTransferReceipt, error)
 	GetRefreshTokenForUpdate(ctx context.Context, tokenHash []byte) (GetRefreshTokenForUpdateRow, error)
 	GetRewardClaimByIdempotencyKey(ctx context.Context, arg GetRewardClaimByIdempotencyKeyParams) (RewardClaim, error)
 	GetRewardClaimByRewardKey(ctx context.Context, arg GetRewardClaimByRewardKeyParams) (RewardClaim, error)

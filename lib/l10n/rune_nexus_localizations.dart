@@ -406,6 +406,9 @@ class RuneNexusLocalizations {
   String get savingCurrentProgress => _isEnglish
       ? 'Safely saving your current progress...'
       : '현재 진행을 안전하게 저장하는 중...';
+  String get importingLegacyProgress => _isEnglish
+      ? 'Moving the previous local progress into this account.'
+      : '기존 로컬 진행을 계정으로 옮기는 중입니다.';
   String get loadingAccountProgress => _isEnglish
       ? 'Loading the latest account progress...'
       : '최신 계정 진행을 불러오는 중...';

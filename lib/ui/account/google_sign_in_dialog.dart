@@ -12,11 +12,13 @@ class GoogleSignInDialog extends StatefulWidget {
   const GoogleSignInDialog({
     required this.clientId,
     required this.authenticate,
+    this.description,
     super.key,
   });
 
   final String clientId;
   final Future<OnlineAccountCredentials> Function(String idToken) authenticate;
+  final String? description;
 
   @override
   State<GoogleSignInDialog> createState() => _GoogleSignInDialogState();
@@ -57,7 +59,10 @@ class _GoogleSignInDialogState extends State<GoogleSignInDialog> {
             ],
           ),
           const SizedBox(height: 12),
-          Text(l10n.googleSignInDescription, style: GameTextStyles.body),
+          Text(
+            widget.description ?? l10n.googleSignInDescription,
+            style: GameTextStyles.body,
+          ),
           if (_errorMessage != null) ...[
             const SizedBox(height: 12),
             Container(

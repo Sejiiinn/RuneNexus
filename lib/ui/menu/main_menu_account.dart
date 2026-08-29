@@ -94,6 +94,7 @@ class _AccountDialog extends StatelessWidget {
     required this.session,
     required this.onConnectPlayGames,
     required this.onConnectGoogle,
+    required this.onCreateLegacyTransfer,
     required this.onSyncAccount,
     required this.onSignOut,
   });
@@ -101,6 +102,7 @@ class _AccountDialog extends StatelessWidget {
   final AccountSession session;
   final VoidCallback? onConnectPlayGames;
   final VoidCallback? onConnectGoogle;
+  final VoidCallback? onCreateLegacyTransfer;
   final VoidCallback? onSyncAccount;
   final VoidCallback? onSignOut;
 
@@ -155,6 +157,13 @@ class _AccountDialog extends StatelessWidget {
                         provider: AccountIdentityProvider.google,
                         onPressed: () =>
                             _closeAndInvoke(context, onConnectGoogle!),
+                      ),
+                    ],
+                    if (onCreateLegacyTransfer != null) ...[
+                      const SizedBox(height: 10),
+                      _LegacyTransferCard(
+                        onPressed: () =>
+                            _closeAndInvoke(context, onCreateLegacyTransfer!),
                       ),
                     ],
                   ] else ...[
@@ -244,6 +253,53 @@ class _AccountDialog extends StatelessWidget {
       return;
     }
     _closeAndInvoke(context, onSignOut!);
+  }
+}
+
+class _LegacyTransferCard extends StatelessWidget {
+  const _LegacyTransferCard({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return _AccountSectionCard(
+      key: const ValueKey('legacy-transfer-card'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.move_to_inbox_outlined,
+                size: 20,
+                color: GamePalette.cyan,
+              ),
+              SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  '카카오 브라우저 진행 옮기기',
+                  style: GameTextStyles.sectionTitle,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            '이 브라우저에 저장된 기존 진행을 외부 브라우저의 진행 데이터가 없는 Google 계정으로 옮깁니다.',
+            style: GameTextStyles.body,
+          ),
+          const SizedBox(height: 10),
+          GameButton(
+            key: const ValueKey('legacy-transfer-start'),
+            onPressed: onPressed,
+            label: '기존 진행 옮기기',
+            icon: const Icon(Icons.open_in_new_rounded, size: 17),
+            variant: GameButtonVariant.secondary,
+          ),
+        ],
+      ),
+    );
   }
 }
 

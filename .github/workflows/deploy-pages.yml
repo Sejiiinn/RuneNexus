@@ -45,6 +45,7 @@ jobs:
           --no-tree-shake-icons
           --dart-define=GOOGLE_WEB_CLIENT_ID=${{ vars.GOOGLE_WEB_CLIENT_ID }}
           --dart-define=RUNE_NEXUS_API_BASE_URL=${{ vars.RUNE_NEXUS_API_BASE_URL }}
+          --dart-define=RUNE_NEXUS_LEGACY_TRANSFER_ENABLED=true
           --dart-define=RUNE_NEXUS_CLIENT_BUILD=web:${{ github.sha }}
 
       - name: Upload GitHub Pages artifact

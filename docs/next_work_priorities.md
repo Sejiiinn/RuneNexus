@@ -1,6 +1,6 @@
 # Rune Nexus 다음 작업 우선순위
 
-마지막 정리 기준: 2026-08-28 `codex/go-server-foundation` 브랜치 작업 기준.
+마지막 정리 기준: 2026-08-29 `codex/legacy-local-transfer` 브랜치 작업 기준.
 
 ## 목적
 
@@ -18,6 +18,10 @@ HTTPS API와 GitHub Pages를 실제 연결해 앱과 Web이 공유할 계정 저
 그다음 트랙은 다이아·모듈권·소유 모듈을 서버 권위 경제 영역으로 전환하는 것이다.
 구현 계약은 `docs/server_authoritative_economy_design.md`를 따른다.
 콘텐츠 작업은 이 연결 작업과 책임 경계가 겹치지 않는 경우 병행할 수 있다.
+
+기존 카카오 인앱 브라우저 테스터용 일회용 진행 이전은 구현돼 있지만 정식 기능으로
+유지하지 않는다. **정식 배포 게이트에는 `docs/legacy_local_save_transfer.md`의 제거
+체크리스트 완료를 반드시 포함한다.**
 
 ## 현재 판단
 
@@ -414,6 +418,7 @@ Google 로그인 뒤 사용자의 저장 선택 없이 account 진행을 자동 
 5. 저장 v3 migration과 account 단위 경제 전환 E2E
 6. DB backup·restore와 계정 데이터 삭제
 7. Web BroadcastChannel 종료 알림과 재획득 안내
+8. 정식 배포 직전 기존 카카오 로컬 이전 endpoint·UX·DB 보관소 제거
 
 콘텐츠 트랙을 진행할 때는 다음 순서를 따른다.
 

@@ -79,6 +79,39 @@ func TestAuthenticationRateLimitRefillsTokens(t *testing.T) {
 	}
 }
 
+func TestLegacyTransferRateLimitsAreSeparatedFromAuthentication(t *testing.T) {
+	handler := authenticationRateLimitTestHandler(
+		AuthenticationRateLimits{
+			GoogleRequests:                10,
+			RefreshRequests:               10,
+			LegacyTransferCreateRequests:  1,
+			LegacyTransferConsumeRequests: 2,
+			Window:                        time.Minute,
+			MaxClients:                    100,
+		},
+		time.Now,
+		http.HandlerFunc(func(response http.ResponseWriter, _ *http.Request) {
+			response.WriteHeader(http.StatusNoContent)
+		}),
+	)
+
+	firstCreate := serveRateLimitedRequest(handler, "/v1/legacy-save-transfers", "192.0.2.1:1000")
+	secondCreate := serveRateLimitedRequest(handler, "/v1/legacy-save-transfers", "192.0.2.1:1000")
+	if firstCreate.Code != http.StatusNoContent || secondCreate.Code != http.StatusTooManyRequests {
+		t.Fatalf("create statuses = %d, %d", firstCreate.Code, secondCreate.Code)
+	}
+	for index := range 2 {
+		response := serveRateLimitedRequest(handler, "/v1/legacy-save-transfers/consume", "192.0.2.1:1000")
+		if response.Code != http.StatusNoContent {
+			t.Fatalf("consume request %d status = %d", index+1, response.Code)
+		}
+	}
+	limitedConsume := serveRateLimitedRequest(handler, "/v1/legacy-save-transfers/consume", "192.0.2.1:1000")
+	if limitedConsume.Code != http.StatusTooManyRequests {
+		t.Fatalf("limited consume status = %d", limitedConsume.Code)
+	}
+}
+
 func TestAuthenticationRateLimitTrustsForwardedAddressOnlyWhenConfigured(t *testing.T) {
 	for _, testCase := range []struct {
 		name              string

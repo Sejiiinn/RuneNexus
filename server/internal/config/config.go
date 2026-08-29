@@ -23,9 +23,12 @@ const (
 	defaultAuthenticationRateLimitWindow               = time.Minute
 	defaultGoogleAuthenticationRateLimit               = 10
 	defaultRefreshAuthenticationRateLimit              = 30
+	defaultLegacyTransferCreateRateLimit               = 3
+	defaultLegacyTransferConsumeRateLimit              = 10
 	defaultAuthenticationRateLimitMaxClients           = 10_000
 	defaultMaxSaveBodyBytes                      int64 = 4 * 1024 * 1024
 	defaultMinimumSaveClientCompatibilityVersion       = 1
+	defaultLegacyTransferTTL                           = 15 * time.Minute
 )
 
 type Config struct {
@@ -42,11 +45,15 @@ type Config struct {
 	AuthenticationRateLimitWindow         time.Duration
 	GoogleAuthenticationRateLimit         int
 	RefreshAuthenticationRateLimit        int
+	LegacyTransferCreateRateLimit         int
+	LegacyTransferConsumeRateLimit        int
 	AuthenticationRateLimitMaxClients     int
 	TrustProxyHeaders                     bool
 	CORSAllowedOrigins                    []string
 	MaxSaveBodyBytes                      int64
 	MinimumSaveClientCompatibilityVersion int
+	LegacyLocalTransferEnabled            bool
+	LegacyTransferTTL                     time.Duration
 }
 
 func Load() (Config, error) {
@@ -121,6 +128,20 @@ func Load() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	legacyTransferCreateRateLimit, err := positiveIntFromEnvironment(
+		"LEGACY_TRANSFER_CREATE_RATE_LIMIT",
+		defaultLegacyTransferCreateRateLimit,
+	)
+	if err != nil {
+		return Config{}, err
+	}
+	legacyTransferConsumeRateLimit, err := positiveIntFromEnvironment(
+		"LEGACY_TRANSFER_CONSUME_RATE_LIMIT",
+		defaultLegacyTransferConsumeRateLimit,
+	)
+	if err != nil {
+		return Config{}, err
+	}
 	authenticationRateLimitMaxClients, err := positiveIntFromEnvironment(
 		"AUTH_RATE_LIMIT_MAX_CLIENTS",
 		defaultAuthenticationRateLimitMaxClients,
@@ -161,6 +182,20 @@ func Load() (Config, error) {
 	if err != nil {
 		return Config{}, err
 	}
+	legacyLocalTransferEnabled, err := boolFromEnvironment(
+		"LEGACY_LOCAL_TRANSFER_ENABLED",
+		true,
+	)
+	if err != nil {
+		return Config{}, err
+	}
+	legacyTransferTTL, err := durationFromEnvironment(
+		"LEGACY_TRANSFER_TTL",
+		defaultLegacyTransferTTL,
+	)
+	if err != nil {
+		return Config{}, err
+	}
 
 	return Config{
 		HTTPAddress:                           stringFromEnvironment("HTTP_ADDRESS", defaultHTTPAddress),
@@ -176,11 +211,15 @@ func Load() (Config, error) {
 		AuthenticationRateLimitWindow:         authenticationRateLimitWindow,
 		GoogleAuthenticationRateLimit:         googleAuthenticationRateLimit,
 		RefreshAuthenticationRateLimit:        refreshAuthenticationRateLimit,
+		LegacyTransferCreateRateLimit:         legacyTransferCreateRateLimit,
+		LegacyTransferConsumeRateLimit:        legacyTransferConsumeRateLimit,
 		AuthenticationRateLimitMaxClients:     authenticationRateLimitMaxClients,
 		TrustProxyHeaders:                     trustProxyHeaders,
 		CORSAllowedOrigins:                    corsAllowedOrigins,
 		MaxSaveBodyBytes:                      maxSaveBodyBytes,
 		MinimumSaveClientCompatibilityVersion: minimumSaveClientCompatibilityVersion,
+		LegacyLocalTransferEnabled:            legacyLocalTransferEnabled,
+		LegacyTransferTTL:                     legacyTransferTTL,
 	}, nil
 }
 

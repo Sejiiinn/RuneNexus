@@ -79,6 +79,11 @@ chmod 600 .secrets/duckdns_token
 - `AUTH_RATE_LIMIT_WINDOW`: 인증 요청 token bucket이 완전히 충전되는 기간
 - `GOOGLE_AUTH_RATE_LIMIT`: 기간 내 허용할 Google 로그인 요청 수
 - `REFRESH_AUTH_RATE_LIMIT`: 기간 내 허용할 토큰 갱신 요청 수
+- `LEGACY_LOCAL_TRANSFER_ENABLED`: 기존 카카오 테스터의 일회용 이전 API 활성화.
+  정식 배포 전 `false` 전환 후 관련 코드와 DB를 제거
+- `LEGACY_TRANSFER_TTL`: 일회용 이전 링크 유효기간. 현재 `15m`
+- `LEGACY_TRANSFER_CREATE_RATE_LIMIT`, `LEGACY_TRANSFER_CONSUME_RATE_LIMIT`:
+  임시 이전 endpoint별 클라이언트 요청 상한
 - `AUTH_RATE_LIMIT_MAX_CLIENTS`: endpoint마다 메모리에 보관할 최대 클라이언트 수
 
 `MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION`은 writer 획득과 저장 PUT에 허용할 최소

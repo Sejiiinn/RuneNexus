@@ -15,6 +15,7 @@ import (
 	googleauth "github.com/Sejiiinn/RuneNexus/server/internal/auth/google"
 	"github.com/Sejiiinn/RuneNexus/server/internal/config"
 	"github.com/Sejiiinn/RuneNexus/server/internal/httpapi"
+	"github.com/Sejiiinn/RuneNexus/server/internal/legacytransfer"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/Sejiiinn/RuneNexus/server/internal/weeklyreward"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -72,6 +73,7 @@ func run(logger *slog.Logger) error {
 	}
 
 	var authenticator httpapi.Authenticator
+	var legacyTransferService httpapi.LegacyTransferService
 	if cfg.GoogleAuthEnabled {
 		googleVerifier, err := googleauth.NewVerifier(
 			rootContext,
@@ -87,6 +89,12 @@ func run(logger *slog.Logger) error {
 			cfg.AccessTokenTTL,
 			cfg.RefreshTokenTTL,
 		)
+		if cfg.LegacyLocalTransferEnabled {
+			legacyTransferService = legacytransfer.NewService(
+				pool,
+				cfg.LegacyTransferTTL,
+			)
+		}
 	}
 
 	server := &http.Server{
@@ -96,14 +104,17 @@ func run(logger *slog.Logger) error {
 			ReadinessTimeout: cfg.ReadinessTimeout,
 			Authenticator:    authenticator,
 			AuthenticationRateLimits: httpapi.AuthenticationRateLimits{
-				GoogleRequests:    cfg.GoogleAuthenticationRateLimit,
-				RefreshRequests:   cfg.RefreshAuthenticationRateLimit,
-				Window:            cfg.AuthenticationRateLimitWindow,
-				MaxClients:        cfg.AuthenticationRateLimitMaxClients,
-				TrustProxyHeaders: cfg.TrustProxyHeaders,
+				GoogleRequests:                cfg.GoogleAuthenticationRateLimit,
+				RefreshRequests:               cfg.RefreshAuthenticationRateLimit,
+				LegacyTransferCreateRequests:  cfg.LegacyTransferCreateRateLimit,
+				LegacyTransferConsumeRequests: cfg.LegacyTransferConsumeRateLimit,
+				Window:                        cfg.AuthenticationRateLimitWindow,
+				MaxClients:                    cfg.AuthenticationRateLimitMaxClients,
+				TrustProxyHeaders:             cfg.TrustProxyHeaders,
 			},
 			SaveService:                           gamesave.NewService(pool),
 			WeeklyRewardService:                   weeklyreward.NewService(pool),
+			LegacyTransferService:                 legacyTransferService,
 			MaxSaveBodyBytes:                      cfg.MaxSaveBodyBytes,
 			MinimumSaveClientCompatibilityVersion: cfg.MinimumSaveClientCompatibilityVersion,
 			CORSAllowedOrigins:                    cfg.CORSAllowedOrigins,

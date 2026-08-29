@@ -1,6 +1,6 @@
 # Rune Nexus 구현 현황
 
-마지막 갱신 기준: 2026-08-29 `codex/weekly-reward-server-authority` 브랜치 작업 기준.
+마지막 갱신 기준: 2026-08-29 `codex/legacy-local-transfer` 브랜치 작업 기준.
 
 ## 요약
 
@@ -150,6 +150,15 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
   - 수령 전에 중요 account 체크포인트를 원격 저장하고 idle 상태를 확인
   - 서버 영수증을 받은 뒤에만 로컬 다이아·모듈권과 수령 상태를 원자적으로 저장
   - guest·오프라인·저장 동기화 미완료 상태에서는 수령을 확정하지 않음
+- 기존 카카오 인앱 브라우저 guest 진행의 15분짜리 일회용 이전 링크
+  - canonical v2 저장, 구매 다이아 0, 중요 재화·모듈 상한을 생성 시 검증
+  - 진행 데이터가 없는 Google account에만 revision 1로 원자적 귀속
+  - 소비 완료와 동시에 임시 원문 삭제, token/payload 해시 영수증으로 동일 account 재시도 복구
+  - 생성·소비 endpoint별 클라이언트 요청 제한
+
+기존 진행 이전은 현재 테스터 데이터 구제용 임시 이행 기능이다. 정식 배포 전
+`docs/legacy_local_save_transfer.md`의 제거 체크리스트에 따라 클라이언트, API,
+설정과 DB 테이블을 모두 제거해야 한다.
 
 `runenexus-api.duckdns.org`에서 DuckDNS 갱신, Caddy의 공개 인증서 발급,
 `/health/live`와 `/health/ready`, GitHub Pages origin의 CORS preflight를 실제 네트워크로
@@ -487,6 +496,8 @@ Variables도 연결했다. 남은 공개 E2E는 실제 Google 계정 선택 뒤 
 - 계정 연결 단계 overlay와 실패 시 guest 보존·재시도
 - 주간 임무·전체 완료·주간 출석의 서버 진행 검증, 고정 보상표와 계정별 중복 수령
 - Flutter 주간 보상 요청 직렬화, 이미 수령 영수증 복구와 현재 주차만 로컬 적용
+- 카카오 인앱 브라우저 guest 진행의 일회용 링크 생성, 빈 account 원자적 귀속,
+  소비 원문 제거와 재시도 영수증
 
 ## 아직 구현하지 않은 항목
 

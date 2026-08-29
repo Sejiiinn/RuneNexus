@@ -85,6 +85,7 @@ class MainMenuScreen extends StatefulWidget {
     this.accountSession = const AccountSession.guest(),
     this.onConnectPlayGames,
     this.onConnectGoogle,
+    this.onCreateLegacyTransfer,
     this.onSyncAccount,
     this.onSignOut,
     this.onClaimWeeklyReward,
@@ -101,6 +102,7 @@ class MainMenuScreen extends StatefulWidget {
   final AccountSession accountSession;
   final VoidCallback? onConnectPlayGames;
   final VoidCallback? onConnectGoogle;
+  final VoidCallback? onCreateLegacyTransfer;
   final VoidCallback? onSyncAccount;
   final VoidCallback? onSignOut;
   final Future<void> Function(WeeklyRewardClaimTarget target)?
@@ -285,6 +287,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
         session: widget.accountSession,
         onConnectPlayGames: widget.onConnectPlayGames,
         onConnectGoogle: widget.onConnectGoogle,
+        onCreateLegacyTransfer: widget.onCreateLegacyTransfer,
         onSyncAccount: widget.onSyncAccount,
         onSignOut: widget.onSignOut,
       ),

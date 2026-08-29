@@ -36,6 +36,10 @@ func TestLoadUsesDatabaseURL(t *testing.T) {
 	if cfg.AuthenticationRateLimitWindow != defaultAuthenticationRateLimitWindow ||
 		cfg.GoogleAuthenticationRateLimit != defaultGoogleAuthenticationRateLimit ||
 		cfg.RefreshAuthenticationRateLimit != defaultRefreshAuthenticationRateLimit ||
+		cfg.LegacyTransferCreateRateLimit != defaultLegacyTransferCreateRateLimit ||
+		cfg.LegacyTransferConsumeRateLimit != defaultLegacyTransferConsumeRateLimit ||
+		!cfg.LegacyLocalTransferEnabled ||
+		cfg.LegacyTransferTTL != defaultLegacyTransferTTL ||
 		cfg.AuthenticationRateLimitMaxClients != defaultAuthenticationRateLimitMaxClients ||
 		cfg.TrustProxyHeaders {
 		t.Fatalf("authentication rate limits = %#v", cfg)
@@ -164,6 +168,10 @@ func TestLoadParsesAuthenticationRateLimits(t *testing.T) {
 	t.Setenv("AUTH_RATE_LIMIT_WINDOW", "2m")
 	t.Setenv("GOOGLE_AUTH_RATE_LIMIT", "12")
 	t.Setenv("REFRESH_AUTH_RATE_LIMIT", "45")
+	t.Setenv("LEGACY_TRANSFER_CREATE_RATE_LIMIT", "4")
+	t.Setenv("LEGACY_TRANSFER_CONSUME_RATE_LIMIT", "11")
+	t.Setenv("LEGACY_LOCAL_TRANSFER_ENABLED", "false")
+	t.Setenv("LEGACY_TRANSFER_TTL", "12m")
 	t.Setenv("AUTH_RATE_LIMIT_MAX_CLIENTS", "2048")
 	t.Setenv("TRUST_PROXY_HEADERS", "true")
 
@@ -174,6 +182,10 @@ func TestLoadParsesAuthenticationRateLimits(t *testing.T) {
 	if cfg.AuthenticationRateLimitWindow != 2*time.Minute ||
 		cfg.GoogleAuthenticationRateLimit != 12 ||
 		cfg.RefreshAuthenticationRateLimit != 45 ||
+		cfg.LegacyTransferCreateRateLimit != 4 ||
+		cfg.LegacyTransferConsumeRateLimit != 11 ||
+		cfg.LegacyLocalTransferEnabled ||
+		cfg.LegacyTransferTTL != 12*time.Minute ||
 		cfg.AuthenticationRateLimitMaxClients != 2048 ||
 		!cfg.TrustProxyHeaders {
 		t.Fatalf("authentication rate limits = %#v", cfg)
@@ -189,6 +201,10 @@ func TestLoadRejectsInvalidAuthenticationRateLimits(t *testing.T) {
 		{name: "window", key: "AUTH_RATE_LIMIT_WINDOW", value: "0s"},
 		{name: "Google requests", key: "GOOGLE_AUTH_RATE_LIMIT", value: "0"},
 		{name: "refresh requests", key: "REFRESH_AUTH_RATE_LIMIT", value: "invalid"},
+		{name: "legacy create requests", key: "LEGACY_TRANSFER_CREATE_RATE_LIMIT", value: "0"},
+		{name: "legacy consume requests", key: "LEGACY_TRANSFER_CONSUME_RATE_LIMIT", value: "-1"},
+		{name: "legacy transfer enabled", key: "LEGACY_LOCAL_TRANSFER_ENABLED", value: "sometimes"},
+		{name: "legacy transfer TTL", key: "LEGACY_TRANSFER_TTL", value: "0s"},
 		{name: "client state cap", key: "AUTH_RATE_LIMIT_MAX_CLIENTS", value: "-1"},
 		{name: "proxy trust", key: "TRUST_PROXY_HEADERS", value: "sometimes"},
 	} {
@@ -226,6 +242,10 @@ func clearDatabaseEnvironment(t *testing.T) {
 		"AUTH_RATE_LIMIT_WINDOW",
 		"GOOGLE_AUTH_RATE_LIMIT",
 		"REFRESH_AUTH_RATE_LIMIT",
+		"LEGACY_TRANSFER_CREATE_RATE_LIMIT",
+		"LEGACY_TRANSFER_CONSUME_RATE_LIMIT",
+		"LEGACY_LOCAL_TRANSFER_ENABLED",
+		"LEGACY_TRANSFER_TTL",
 		"AUTH_RATE_LIMIT_MAX_CLIENTS",
 		"TRUST_PROXY_HEADERS",
 		"CORS_ALLOWED_ORIGINS",
