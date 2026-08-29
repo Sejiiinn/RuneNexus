@@ -135,8 +135,14 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 - 기존 Outbox에 미전송 작업이 있으면 새 기준으로 덮지 않고 coordinator가 우선 복구
 - writer claim·PUT의 최소 client compatibility version 검사와 426 업데이트 필요 UX
 - 업데이트 뒤 이전 호환 버전 Outbox의 writer 재획득과 PUT 영수증 hit/miss 롤오버
-- Caddy HTTPS reverse proxy와 ipTIME 자체 운영 배포 구성
+- Caddy HTTPS reverse proxy, DuckDNS secret 기반 자동 갱신·상태 감시와 ipTIME 자체 운영 배포 구성
 - GitHub Pages 빌드의 Google Web Client ID·API 주소·Web Git SHA build ID 주입 경로
+
+`runenexus-api.duckdns.org`에서 DuckDNS 갱신, Caddy의 공개 인증서 발급,
+`/health/live`와 `/health/ready`, GitHub Pages origin의 CORS preflight를 실제 네트워크로
+검증했다. Google OAuth Web Client와 본인 테스트 사용자를 만들고 GitHub Actions
+Variables도 연결했다. 남은 공개 E2E는 실제 Google 계정 선택 뒤 로그인·저장·재조회
+흐름과 장애 복구 검증이다.
 
 현재 계정 세션은 메모리에만 유지하므로 브라우저 새로고침 또는 앱 재시작 후 다시
 로그인해야 한다. PGS와 Apple 인증, 기존 계정에 identity를 추가하는 연결 API도 아직

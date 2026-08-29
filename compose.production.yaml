@@ -6,6 +6,47 @@ services:
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?CORS_ALLOWED_ORIGINS is required}
       TRUST_PROXY_HEADERS: "true"
 
+  duckdns:
+    image: curlimages/curl:8.21.0
+    init: true
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/opt/rune-nexus/update-duckdns.sh"]
+    command: ["run"]
+    environment:
+      DUCKDNS_SUBDOMAIN: ${DUCKDNS_SUBDOMAIN:?DUCKDNS_SUBDOMAIN is required}
+      DUCKDNS_TOKEN_FILE: /run/secrets/duckdns_token
+      DUCKDNS_UPDATE_INTERVAL_SECONDS: ${DUCKDNS_UPDATE_INTERVAL_SECONDS:-300}
+      DUCKDNS_RETRY_INTERVAL_SECONDS: ${DUCKDNS_RETRY_INTERVAL_SECONDS:-30}
+    volumes:
+      - ./deploy/duckdns/update-duckdns.sh:/opt/rune-nexus/update-duckdns.sh:ro
+    secrets:
+      - duckdns_token
+    read_only: true
+    tmpfs:
+      - /tmp:size=1m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/bin/sh",
+          "/opt/rune-nexus/update-duckdns.sh",
+          "healthcheck",
+        ]
+      interval: 60s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
+    stop_grace_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   caddy:
     image: caddy:2.11.4-alpine
     init: true
@@ -24,6 +65,8 @@ services:
     depends_on:
       api:
         condition: service_healthy
+      duckdns:
+        condition: service_started
     healthcheck:
       test:
         [
@@ -47,3 +90,7 @@ services:
 volumes:
   rune_nexus_caddy_data:
   rune_nexus_caddy_config:
+
+secrets:
+  duckdns_token:
+    file: ./.secrets/duckdns_token

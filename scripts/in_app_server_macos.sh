@@ -8,6 +8,14 @@ FLUTTER="${FLUTTER:-/Users/sejin/development/flutter/bin/flutter}"
 DART="${DART:-/Users/sejin/development/flutter/bin/cache/dart-sdk/bin/dart}"
 BUILD_DIR="$WORK_DIR/build/web"
 
+DART_DEFINE_ARGS=(--dart-define=RUNE_NEXUS_DEBUG_PANEL=true)
+if [[ -n "${GOOGLE_WEB_CLIENT_ID:-}" ]]; then
+  DART_DEFINE_ARGS+=(--dart-define="GOOGLE_WEB_CLIENT_ID=$GOOGLE_WEB_CLIENT_ID")
+fi
+if [[ -n "${RUNE_NEXUS_API_BASE_URL:-}" ]]; then
+  DART_DEFINE_ARGS+=(--dart-define="RUNE_NEXUS_API_BASE_URL=$RUNE_NEXUS_API_BASE_URL")
+fi
+
 url() {
   printf 'http://127.0.0.1:%s/?cache_bust=%s\n' "$PORT" "$(date +%Y%m%d%H%M%S)"
 }
@@ -61,7 +69,7 @@ stop_server() {
 build_web() {
   require_file "$FLUTTER" FLUTTER
   cd "$WORK_DIR"
-  "$FLUTTER" build web --pwa-strategy=none --no-tree-shake-icons --dart-define=RUNE_NEXUS_DEBUG_PANEL=true
+  "$FLUTTER" build web --pwa-strategy=none --no-tree-shake-icons "${DART_DEFINE_ARGS[@]}"
 }
 
 dev_server() {
@@ -72,7 +80,7 @@ dev_server() {
   exec "$FLUTTER" run -d web-server \
     --web-hostname=127.0.0.1 \
     --web-port="$PORT" \
-    --dart-define=RUNE_NEXUS_DEBUG_PANEL=true
+    "${DART_DEFINE_ARGS[@]}"
 }
 
 serve_foreground() {

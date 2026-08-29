@@ -160,9 +160,10 @@ Google 로그인 뒤 사용자의 저장 선택 없이 account 진행을 자동 
 
 작업 범위:
 
-- Caddy, ipTIME 포트 포워딩, DNS와 TLS 인증서 확인
-- Google OAuth Authorized JavaScript origin과 서버 CORS exact origin 확인
-- GitHub Actions Variables의 Web Client ID와 API base URL 확인
+- [x] DuckDNS secret 기반 공인 IPv4 자동 갱신·재시도와 상태 감시
+- [x] Caddy, ipTIME 포트 포워딩, 실제 DNS 응답과 TLS 인증서 확인
+- [x] Google OAuth Authorized JavaScript origin과 서버 CORS exact origin 확인
+- [x] GitHub Actions Variables의 Web Client ID와 API base URL 확인
 - 로그인, refresh, logout, `GET/PUT /v1/save` 실제 네트워크 검증
 - 지원 버전의 writer/PUT 성공과 구버전 426 차단 실제 네트워크 검증
 - 호환 버전 강제 상승 뒤 기존 Outbox의 영수증 hit/miss 롤오버 검증

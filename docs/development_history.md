@@ -180,10 +180,15 @@
   방향을 채택했다.
 - Caddy reverse proxy, production Compose overlay, 보안 헤더와 인증 endpoint 요청
   제한 구성을 추가했다.
+- DuckDNS token을 Docker secret으로 격리하고 공인 IPv4 갱신·재시도·상태 감시를
+  production Compose에 통합했다. 갱신기 장애는 Caddy 재시작을 차단하지 않는다.
 - DNS, 80/443 포트 포워딩, CGNAT 확인, Google OAuth origin, GitHub Pages CORS와
   Actions Variables 설정 절차를 문서화했다.
-- 운영 전 남은 항목은 실제 공개 E2E, DB backup·restore 자동화, 계정 데이터 삭제와
-  Android PGS 인증이다.
+- `runenexus-api.duckdns.org`의 실제 DNS, Caddy 공개 인증서, API 준비 상태와 GitHub
+  Pages CORS를 확인하고 Google OAuth Web Client·본인 테스트 사용자·Actions
+  Variables를 연결했다.
+- 운영 전 남은 항목은 실제 Google 계정 로그인·저장 공개 E2E, DB backup·restore
+  자동화, 계정 데이터 삭제와 Android PGS 인증이다.
 
 ### 디버그 맵 에디터
 

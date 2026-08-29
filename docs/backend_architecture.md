@@ -1121,6 +1121,8 @@ SHUTDOWN_TIMEOUT
 - 외부 모바일·웹 요청은 HTTPS만 허용한다.
 - TLS는 `compose.production.yaml`의 자체 운영 Caddy에서 종료한다.
 - Caddy만 외부 80/443 포트를 받고 Go API에는 Compose 내부망으로 연결한다.
+- DuckDNS 갱신기는 account token을 Docker secret으로 읽고 현재 공인 IPv4를 주기적으로
+  등록한다. 갱신 상태는 별도 healthcheck로 감시하되 Caddy 재시작은 차단하지 않는다.
 - 인증서와 ACME 계정 상태는 Caddy named volume에 보존한다.
 - PostgreSQL 포트는 운영 외부에 공개하지 않는다.
 - 현재 Compose의 단일 DB 사용자는 개발 편의를 위한 구성이다.
