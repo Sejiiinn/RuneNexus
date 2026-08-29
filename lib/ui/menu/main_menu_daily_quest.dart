@@ -11,10 +11,15 @@ const String _questAttendanceIconAsset = '$_questImageAssetRoot/attendance.png';
 const String _questWarningIconAsset = '$_questImageAssetRoot/warning.png';
 const String _questCloseIconAsset = '$_questImageAssetRoot/close.png';
 
-Future<void> _openDailyQuestDialog(BuildContext context, RuneNexusGame game) {
+Future<void> _openDailyQuestDialog(
+  BuildContext context,
+  RuneNexusGame game,
+  Future<void> Function(WeeklyRewardClaimTarget target)? onClaimWeeklyReward,
+) {
   return showGameDialog<void>(
     context: context,
-    builder: (context) => _DailyQuestDialog(game: game),
+    builder: (context) =>
+        _DailyQuestDialog(game: game, onClaimWeeklyReward: onClaimWeeklyReward),
   );
 }
 
@@ -127,9 +132,14 @@ class _DailyQuestEntryButtonState extends State<_DailyQuestEntryButton>
 enum _QuestPeriod { daily, weekly }
 
 class _DailyQuestDialog extends StatefulWidget {
-  const _DailyQuestDialog({required this.game});
+  const _DailyQuestDialog({
+    required this.game,
+    required this.onClaimWeeklyReward,
+  });
 
   final RuneNexusGame game;
+  final Future<void> Function(WeeklyRewardClaimTarget target)?
+  onClaimWeeklyReward;
 
   @override
   State<_DailyQuestDialog> createState() => _DailyQuestDialogState();
@@ -137,6 +147,43 @@ class _DailyQuestDialog extends StatefulWidget {
 
 class _DailyQuestDialogState extends State<_DailyQuestDialog> {
   _QuestPeriod _period = _QuestPeriod.daily;
+  String? _claimingWeeklyRewardKey;
+
+  Future<void> _claimWeeklyReward(WeeklyRewardClaimTarget target) async {
+    if (_claimingWeeklyRewardKey != null) {
+      return;
+    }
+    final claim = widget.onClaimWeeklyReward;
+    if (claim == null) {
+      _showWeeklyRewardMessage('Google 계정을 연결한 뒤 주간 보상을 받을 수 있습니다.');
+      return;
+    }
+    setState(() => _claimingWeeklyRewardKey = target.key);
+    try {
+      await claim(target);
+      if (mounted) {
+        _showWeeklyRewardMessage('주간 보상을 받았습니다.');
+      }
+    } on WeeklyRewardClaimFailure catch (error) {
+      if (mounted) {
+        _showWeeklyRewardMessage(error.message);
+      }
+    } on Object {
+      if (mounted) {
+        _showWeeklyRewardMessage('주간 보상을 받지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _claimingWeeklyRewardKey = null);
+      }
+    }
+  }
+
+  void _showWeeklyRewardMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -210,8 +257,9 @@ class _DailyQuestDialogState extends State<_DailyQuestDialog> {
                         )
                       else
                         _WeeklyQuestContent(
-                          game: widget.game,
                           snapshot: snapshot,
+                          claimInProgress: _claimingWeeklyRewardKey != null,
+                          onClaim: _claimWeeklyReward,
                         ),
                     ],
                   ),

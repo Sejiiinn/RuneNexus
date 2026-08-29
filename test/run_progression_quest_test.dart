@@ -94,22 +94,38 @@ void main() {
         nowMillis: nowMillis,
       );
       expect(
-        progression.claimWeeklyQuestReward(entry.key, nowMillis: nowMillis),
+        progression.applyWeeklyQuestRewardReceipt(
+          entry.key,
+          weekKey: progression.weeklyQuestWeekKey,
+          rewardDiamonds: entry.value.rewardDiamonds,
+        ),
         isTrue,
       );
       expect(
-        progression.claimWeeklyQuestReward(entry.key, nowMillis: nowMillis),
+        progression.applyWeeklyQuestRewardReceipt(
+          entry.key,
+          weekKey: progression.weeklyQuestWeekKey,
+          rewardDiamonds: entry.value.rewardDiamonds,
+        ),
         isFalse,
       );
     }
 
     expect(progression.completedWeeklyQuestCount, 4);
     expect(
-      progression.claimWeeklyQuestAllCompleteReward(nowMillis: nowMillis),
+      progression.applyWeeklyQuestAllCompleteRewardReceipt(
+        weekKey: progression.weeklyQuestWeekKey,
+        rewardDiamonds: weeklyQuestAllCompleteRewardDiamonds,
+        rewardModuleTickets: weeklyQuestAllCompleteRewardModuleTickets,
+      ),
       isTrue,
     );
     expect(
-      progression.claimWeeklyQuestAllCompleteReward(nowMillis: nowMillis),
+      progression.applyWeeklyQuestAllCompleteRewardReceipt(
+        weekKey: progression.weeklyQuestWeekKey,
+        rewardDiamonds: weeklyQuestAllCompleteRewardDiamonds,
+        rewardModuleTickets: weeklyQuestAllCompleteRewardModuleTickets,
+      ),
       isFalse,
     );
     expect(progression.freeDiamonds, 140);
@@ -131,6 +147,31 @@ void main() {
     expect(restored.freeDiamonds, 140);
     expect(restored.turretModuleTickets, 1);
   });
+
+  test(
+    'weekly rewards only apply from a receipt for the current saved week',
+    () {
+      final nowMillis = DateTime.utc(2026, 6, 8).millisecondsSinceEpoch;
+      final progression = RunProgression();
+      progression.recordDailyQuestProgress(
+        DailyQuestType.clearWaves,
+        amount:
+            gameWeeklyQuestDefinitions[DailyQuestType.clearWaves]!.targetCount,
+        nowMillis: nowMillis,
+      );
+
+      expect(
+        progression.applyWeeklyQuestRewardReceipt(
+          DailyQuestType.clearWaves,
+          weekKey: progression.weeklyQuestWeekKey - 1,
+          rewardDiamonds: 9999,
+        ),
+        isFalse,
+      );
+      expect(progression.freeDiamonds, 0);
+      expect(progression.claimedWeeklyQuestRewards, isEmpty);
+    },
+  );
 
   test('weekly attendance counts distinct days and resets on Monday', () {
     final beforeWeeklyReset = DateTime.utc(
@@ -162,20 +203,16 @@ void main() {
 
     expect(progression.weeklyAttendanceDayKeys.length, 5);
     expect(
-      progression.claimWeeklyAttendanceReward(
-        nowMillis:
-            monday +
-            (weeklyAttendanceTargetDays - 1) *
-                const Duration(days: 1).inMilliseconds,
+      progression.applyWeeklyAttendanceRewardReceipt(
+        weekKey: progression.weeklyQuestWeekKey,
+        rewardDiamonds: weeklyAttendanceRewardDiamonds,
       ),
       isTrue,
     );
     expect(
-      progression.claimWeeklyAttendanceReward(
-        nowMillis:
-            monday +
-            (weeklyAttendanceTargetDays - 1) *
-                const Duration(days: 1).inMilliseconds,
+      progression.applyWeeklyAttendanceRewardReceipt(
+        weekKey: progression.weeklyQuestWeekKey,
+        rewardDiamonds: weeklyAttendanceRewardDiamonds,
       ),
       isFalse,
     );

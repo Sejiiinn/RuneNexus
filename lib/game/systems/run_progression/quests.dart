@@ -178,38 +178,56 @@ mixin _QuestProgression {
         !claimedWeeklyQuestRewards.contains(type);
   }
 
-  bool claimWeeklyQuestReward(DailyQuestType type, {required int nowMillis}) {
+  bool applyWeeklyQuestRewardReceipt(
+    DailyQuestType type, {
+    required int weekKey,
+    required int rewardDiamonds,
+  }) {
     final definition = gameWeeklyQuestDefinitions[type];
     if (definition == null ||
-        !canClaimWeeklyQuestReward(type, nowMillis: nowMillis)) {
+        rewardDiamonds <= 0 ||
+        weeklyQuestWeekKey != weekKey ||
+        dailyQuestClockRollbackDetected ||
+        !isWeeklyQuestComplete(type) ||
+        claimedWeeklyQuestRewards.contains(type)) {
       return false;
     }
-    addFreeDiamonds(definition.rewardDiamonds);
+    addFreeDiamonds(rewardDiamonds);
     claimedWeeklyQuestRewards.add(type);
     return true;
   }
 
-  bool claimWeeklyQuestAllCompleteReward({required int nowMillis}) {
-    refreshDailyQuests(nowMillis: nowMillis);
-    if (dailyQuestClockRollbackDetected ||
+  bool applyWeeklyQuestAllCompleteRewardReceipt({
+    required int weekKey,
+    required int rewardDiamonds,
+    required int rewardModuleTickets,
+  }) {
+    if (rewardDiamonds <= 0 ||
+        rewardModuleTickets < 0 ||
+        weeklyQuestWeekKey != weekKey ||
+        dailyQuestClockRollbackDetected ||
         !allWeeklyQuestsComplete ||
         weeklyQuestAllCompleteClaimed) {
       return false;
     }
-    addFreeDiamonds(weeklyQuestAllCompleteRewardDiamonds);
-    turretModuleTickets += weeklyQuestAllCompleteRewardModuleTickets;
+    addFreeDiamonds(rewardDiamonds);
+    turretModuleTickets += rewardModuleTickets;
     weeklyQuestAllCompleteClaimed = true;
     return true;
   }
 
-  bool claimWeeklyAttendanceReward({required int nowMillis}) {
-    refreshDailyQuests(nowMillis: nowMillis);
-    if (dailyQuestClockRollbackDetected ||
+  bool applyWeeklyAttendanceRewardReceipt({
+    required int weekKey,
+    required int rewardDiamonds,
+  }) {
+    if (rewardDiamonds <= 0 ||
+        weeklyQuestWeekKey != weekKey ||
+        dailyQuestClockRollbackDetected ||
         weeklyAttendanceDayKeys.length < weeklyAttendanceTargetDays ||
         weeklyAttendanceRewardClaimed) {
       return false;
     }
-    addFreeDiamonds(weeklyAttendanceRewardDiamonds);
+    addFreeDiamonds(rewardDiamonds);
     weeklyAttendanceRewardClaimed = true;
     return true;
   }

@@ -23,6 +23,7 @@ import '../domain/combat/run_panel_tab.dart';
 import '../domain/core/core_ability.dart';
 import '../domain/core/core_passive_tree.dart';
 import '../domain/daily_quest/daily_quest_type.dart';
+import '../domain/economy/weekly_reward_claim.dart';
 import '../domain/enemy/diamond_carrier_rules.dart';
 import '../domain/enemy/enemy_scaling.dart';
 import '../domain/enemy/enemy_type.dart';
@@ -1214,35 +1215,25 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return true;
   }
 
-  bool claimWeeklyQuestReward(DailyQuestType type) {
-    final claimed = _progression.claimWeeklyQuestReward(
-      type,
-      nowMillis: DateTime.now().millisecondsSinceEpoch,
-    );
-    if (!claimed) {
-      return false;
-    }
-    _publish();
-    _requestLocalSave(immediate: true);
-    return true;
-  }
-
-  bool claimWeeklyQuestAllCompleteReward() {
-    final claimed = _progression.claimWeeklyQuestAllCompleteReward(
-      nowMillis: DateTime.now().millisecondsSinceEpoch,
-    );
-    if (!claimed) {
-      return false;
-    }
-    _publish();
-    _requestLocalSave(immediate: true);
-    return true;
-  }
-
-  bool claimWeeklyAttendanceReward() {
-    final claimed = _progression.claimWeeklyAttendanceReward(
-      nowMillis: DateTime.now().millisecondsSinceEpoch,
-    );
+  bool applyWeeklyRewardReceipt(WeeklyRewardReceipt receipt) {
+    final claimed = switch (receipt.target.kind) {
+      WeeklyRewardKind.quest => _progression.applyWeeklyQuestRewardReceipt(
+        receipt.target.questType!,
+        weekKey: receipt.weekKey,
+        rewardDiamonds: receipt.diamonds,
+      ),
+      WeeklyRewardKind.allComplete =>
+        _progression.applyWeeklyQuestAllCompleteRewardReceipt(
+          weekKey: receipt.weekKey,
+          rewardDiamonds: receipt.diamonds,
+          rewardModuleTickets: receipt.moduleTickets,
+        ),
+      WeeklyRewardKind.attendance =>
+        _progression.applyWeeklyAttendanceRewardReceipt(
+          weekKey: receipt.weekKey,
+          rewardDiamonds: receipt.diamonds,
+        ),
+    };
     if (!claimed) {
       return false;
     }
@@ -4197,6 +4188,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     await _saveScheduler.flush();
   }
 
+  Future<bool> saveAccountCheckpoint() => _writeAccountCheckpoint();
+
   Future<void> quiesceLocalSavesForRemoteRebase() {
     return _saveScheduler.quiesce();
   }
@@ -4206,14 +4199,20 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Future<void> _saveRoundCheckpoint() async {
+    await _writeAccountCheckpoint();
+  }
+
+  Future<bool> _writeAccountCheckpoint() async {
     final data = _buildSaveData();
     if (!await _writeLocalSaveData(data)) {
-      return;
+      return false;
     }
     try {
       await _onlineSaveRepository.saveRoundCheckpoint(data);
+      return true;
     } on Object {
       // 온라인 전송 실패는 영속 Outbox가 복구하므로 로컬 플레이를 막지 않는다.
+      return false;
     }
   }
 

@@ -1,6 +1,6 @@
 # Rune Nexus 구현 현황
 
-마지막 갱신 기준: 2026-08-27 `codex/go-server-foundation` 브랜치 작업 기준.
+마지막 갱신 기준: 2026-08-29 `codex/weekly-reward-server-authority` 브랜치 작업 기준.
 
 ## 요약
 
@@ -36,8 +36,12 @@ PUT에는 공통 정수 호환성 게이트가 적용되며, 구버전 실행 �
 다이아·모듈권·뽑기 횟수·소유 모듈과 관련 보상 수령을 하나의 서버 권위 경제
 영역으로 전환하는 설계도 확정했다. 일반 전투와 진행은 계속 로컬에서 처리하며,
 가챠·분해·다이아 소비·보상 수령만 별도 명령 API를 사용한다. 상세 계약은
-`docs/server_authoritative_economy_design.md`를 따른다. 경제 DB와 클라이언트 연결은
-아직 구현 전이다.
+`docs/server_authoritative_economy_design.md`를 따른다. 이 가운데 주간 임무·주간 출석의
+수령 판정은 첫 수직 기능으로 구현했다. 로그인된 클라이언트가 최신 account 저장을
+동기화하면 서버가 그 저장의 진행량, 현재 save writer와 KST 월요일 05:00 주차를
+검사하고 고정 보상표로 계정별 영수증을 한 번만 만든다. 클라이언트는 성공 영수증을
+받은 뒤에만 다이아와 모듈권 캐시 및 수령 표시를 함께 저장한다. 전체 다이아 지갑,
+가챠·분해·연구 소비와 legacy bootstrap은 아직 서버 권위로 전환하지 않았다.
 
 세부 전투 수치와 밸런스 기준은 `docs/gameplay_balance_reference.md`를 기준으로 한다.
 
@@ -137,6 +141,15 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 - 업데이트 뒤 이전 호환 버전 Outbox의 writer 재획득과 PUT 영수증 hit/miss 롤오버
 - Caddy HTTPS reverse proxy, DuckDNS secret 기반 자동 갱신·상태 감시와 ipTIME 자체 운영 배포 구성
 - GitHub Pages 빌드의 Google Web Client ID·API 주소·Web Git SHA build ID 주입 경로
+- 인증된 `POST /v1/economy/rewards/claim` 주간 보상 수령 API
+  - 현재 save writer와 최신 account 진행 snapshot을 transaction에서 잠근 뒤 검증
+  - 서버 시각 기준 주차와 서버 고정 보상량 사용
+  - reward key와 idempotency key를 함께 보존해 다른 기기·재시도 중복 지급 차단
+  - 응답 유실 뒤 다른 idempotency key로 재요청해도 최초 영수증 복구 가능
+- Flutter 주간 보상 API 연결
+  - 수령 전에 중요 account 체크포인트를 원격 저장하고 idle 상태를 확인
+  - 서버 영수증을 받은 뒤에만 로컬 다이아·모듈권과 수령 상태를 원자적으로 저장
+  - guest·오프라인·저장 동기화 미완료 상태에서는 수령을 확정하지 않음
 
 `runenexus-api.duckdns.org`에서 DuckDNS 갱신, Caddy의 공개 인증서 발급,
 `/health/live`와 `/health/ready`, GitHub Pages origin의 CORS preflight를 실제 네트워크로
@@ -472,6 +485,8 @@ Variables도 연결했다. 남은 공개 E2E는 실제 Google 계정 선택 뒤 
 - 자동 연결 account의 실제 게임 체크포인트와 `OnlineSaveCoordinator` 연결
 - 동기화 상태·마지막 동기화 시각·대기 저장 건수 계정 UI 반영
 - 계정 연결 단계 overlay와 실패 시 guest 보존·재시도
+- 주간 임무·전체 완료·주간 출석의 서버 진행 검증, 고정 보상표와 계정별 중복 수령
+- Flutter 주간 보상 요청 직렬화, 이미 수령 영수증 복구와 현재 주차만 로컬 적용
 
 ## 아직 구현하지 않은 항목
 
@@ -481,7 +496,8 @@ Variables도 연결했다. 남은 공개 E2E는 실제 Google 계정 선택 뒤 
 - 기존 account에 Google/PGS identity를 추가하는 계정 연결 API
 - 브라우저 새로고침·앱 재시작 뒤 인증 세션 복원
 - 계정·원격 데이터 삭제와 운영 DB 백업·복원 자동화
-- 서버 권위 경제 DB·명령 API·legacy bootstrap
+- 전체 서버 권위 지갑 DB·조회 API·legacy bootstrap
+- 일일·런·스테이지 보상 claim과 durable reward outbox
 - Flutter 경제 coordinator, exact 소비 요청 복구와 보상 claim outbox
 - 저장 v3 경제 cache·모듈 장착 분리와 account 단위 전환
 - 챕터 2~3 클리어 보상과 연구 조건의 추가 연결·체감 검증
@@ -496,8 +512,8 @@ Variables도 연결했다. 남은 공개 E2E는 실제 Google 계정 선택 뒤 
 
 1. 공개 환경에서 Google 로그인·writer 교체·온라인 저장 E2E 검증
 2. Android PGS와 기존 Google account identity 연결
-3. 서버 권위 경제 DB·조회·bootstrap을 기능 플래그 뒤에 구현
-4. 가챠·분해·연구 소비·보상 claim과 Flutter 경제 coordinator 구현
+3. 서버 권위 지갑 DB·조회·bootstrap을 기능 플래그 뒤에 구현
+4. 가챠·분해·연구 소비와 나머지 보상 claim, Flutter 경제 coordinator 구현
 5. 공개 환경 다중 기기·경제 E2E 검증
 6. 운영 DB backup·복원과 계정 데이터 삭제 절차 마련
 7. Web BroadcastChannel 종료 알림과 재획득 안내

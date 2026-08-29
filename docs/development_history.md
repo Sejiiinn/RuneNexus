@@ -1,12 +1,28 @@
 # Rune Nexus 개발 히스토리
 
-마지막 갱신 기준: 2026-08-27 `codex/go-server-foundation` 브랜치 작업 기준.
+마지막 갱신 기준: 2026-08-29 `codex/weekly-reward-server-authority` 브랜치 작업 기준.
 
 ## 목적
 
 이 문서는 README에 넣기에는 세부적인 최근 구현 흐름을 남기는 기록이다. 현재 규칙과 수치는 `docs/gameplay_balance_reference.md`, 구현 완료 여부는 `docs/implementation_status.md`를 기준으로 한다.
 
 ## 최근 구현 흐름
+
+### 주간 보상 수령 서버 판정
+
+- 주간 임무·전체 완료·주간 출석 수령을 클라이언트 직접 증가에서 인증된
+  `POST /v1/economy/rewards/claim`으로 교체했다.
+- 서버는 현재 save writer와 최신 account 저장을 같은 잠금 순서로 확인하고, 저장된
+  주간 진행량·수령 표시와 KST 월요일 05:00 기준 서버 주차를 검증한다.
+- 보상량과 모듈권 수는 클라이언트 요청에서 받지 않고 서버 고정 보상표로 결정한다.
+- PostgreSQL `reward_claims`에 reward key, idempotency key, 요청 hash, writer
+  generation, source save revision과 검증 증거를 보존한다. 같은 보상은 다른 기기나
+  다른 key로 다시 요청해도 최초 영수증만 복구한다.
+- Flutter는 수령 전 account 체크포인트 업로드와 idle 확인을 끝내고, 서버 영수증을
+  받은 뒤에만 로컬 다이아·모듈권·수령 상태를 저장한다. guest와 오프라인 상태에서는
+  보상을 확정하지 않는다.
+- 이 구현은 주간 보상의 수령 판정만 서버화한 첫 수직 기능이다. 전체 지갑 원본,
+  economy revision, legacy bootstrap과 나머지 다이아 증감 경로는 후속 범위다.
 
 ### 백엔드·인증·온라인 저장 설계 확정
 

@@ -17,6 +17,7 @@ import '../../domain/combat/game_phase.dart';
 import '../../domain/core/core_ability.dart';
 import '../../domain/core/core_passive_tree.dart';
 import '../../domain/daily_quest/daily_quest_type.dart';
+import '../../domain/economy/weekly_reward_claim.dart';
 import '../../domain/gem/gem_type.dart';
 import '../../domain/research/research_definition.dart';
 import '../../domain/research/research_progress.dart';
@@ -86,6 +87,7 @@ class MainMenuScreen extends StatefulWidget {
     this.onConnectGoogle,
     this.onSyncAccount,
     this.onSignOut,
+    this.onClaimWeeklyReward,
     this.onOpenMapEditor,
     super.key,
   });
@@ -101,6 +103,8 @@ class MainMenuScreen extends StatefulWidget {
   final VoidCallback? onConnectGoogle;
   final VoidCallback? onSyncAccount;
   final VoidCallback? onSignOut;
+  final Future<void> Function(WeeklyRewardClaimTarget target)?
+  onClaimWeeklyReward;
   final VoidCallback? onOpenMapEditor;
 
   @override
@@ -205,6 +209,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                 onStartStage: widget.onStartStage,
                 accountSession: widget.accountSession,
                 onOpenAccount: () => _openAccountDialog(context),
+                onClaimWeeklyReward: widget.onClaimWeeklyReward,
                 turretModuleMenuKey: _turretModuleMenuKey,
                 onTurretModuleDrawResults: _showTurretModuleDrawResults,
                 onCloseDebugPanel: () {
@@ -311,6 +316,7 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
     required this.onStartStage,
     required this.accountSession,
     required this.onOpenAccount,
+    required this.onClaimWeeklyReward,
     required this.turretModuleMenuKey,
     required this.onTurretModuleDrawResults,
     required this.onCloseDebugPanel,
@@ -328,6 +334,8 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
   final ValueChanged<int> onStartStage;
   final AccountSession accountSession;
   final VoidCallback onOpenAccount;
+  final Future<void> Function(WeeklyRewardClaimTarget target)?
+  onClaimWeeklyReward;
   final GlobalKey<_TurretModuleMenuState> turretModuleMenuKey;
   final ValueChanged<List<TurretModuleInventoryItem>> onTurretModuleDrawResults;
   final VoidCallback onCloseDebugPanel;
@@ -348,6 +356,7 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
         onStartStage: onStartStage,
         accountSession: accountSession,
         onOpenAccount: onOpenAccount,
+        onClaimWeeklyReward: onClaimWeeklyReward,
         turretModuleMenuKey: turretModuleMenuKey,
         onTurretModuleDrawResults: onTurretModuleDrawResults,
         onCloseDebugPanel: onCloseDebugPanel,
@@ -368,6 +377,7 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
           onStartStage: onStartStage,
           accountSession: accountSession,
           onOpenAccount: onOpenAccount,
+          onClaimWeeklyReward: onClaimWeeklyReward,
           turretModuleMenuKey: turretModuleMenuKey,
           onTurretModuleDrawResults: onTurretModuleDrawResults,
           onCloseDebugPanel: onCloseDebugPanel,
@@ -390,6 +400,7 @@ class _MainMenuSnapshotContent extends StatelessWidget {
     required this.onStartStage,
     required this.accountSession,
     required this.onOpenAccount,
+    required this.onClaimWeeklyReward,
     required this.turretModuleMenuKey,
     required this.onTurretModuleDrawResults,
     required this.onCloseDebugPanel,
@@ -406,6 +417,8 @@ class _MainMenuSnapshotContent extends StatelessWidget {
   final ValueChanged<int> onStartStage;
   final AccountSession accountSession;
   final VoidCallback onOpenAccount;
+  final Future<void> Function(WeeklyRewardClaimTarget target)?
+  onClaimWeeklyReward;
   final GlobalKey<_TurretModuleMenuState> turretModuleMenuKey;
   final ValueChanged<List<TurretModuleInventoryItem>> onTurretModuleDrawResults;
   final VoidCallback onCloseDebugPanel;
@@ -514,7 +527,8 @@ class _MainMenuSnapshotContent extends StatelessWidget {
               children: [
                 _DailyQuestEntryButton(
                   snapshot: snapshot,
-                  onPressed: () => _openDailyQuestDialog(context, game),
+                  onPressed: () =>
+                      _openDailyQuestDialog(context, game, onClaimWeeklyReward),
                 ),
                 const SizedBox(width: 8),
                 _AccountEntryButton(

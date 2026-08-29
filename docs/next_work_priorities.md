@@ -183,7 +183,7 @@ Google 로그인 뒤 사용자의 저장 선택 없이 account 진행을 자동 
 - 이미 다른 account에 연결된 identity의 충돌 처리
 - Android 내부 테스트 배포와 실제 계정 QA
 
-### 5. 서버 권위 경제 — 설계 완료, 구현 예정
+### 5. 서버 권위 경제 — 주간 보상 수령 판정 1차 구현
 
 일반 전투와 진행은 계속 로컬에서 처리한다. 다이아·모듈권·뽑기 횟수·소유 모듈과
 관련 보상 수령만 별도 economy revision과 명령 API로 처리한다.
@@ -196,6 +196,7 @@ Google 로그인 뒤 사용자의 저장 선택 없이 account 진행을 자동 
 
 구현 범위:
 
+- [x] 최신 account 저장과 서버 주차를 검증하는 주간 보상 claim 영수증
 - authority epoch, `player_economies`, `player_modules`, 명령 영수증·원장·보상 수령
   스키마
 - 기존 account snapshot의 계정당 1회 bootstrap

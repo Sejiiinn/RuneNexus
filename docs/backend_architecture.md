@@ -1263,8 +1263,9 @@ SHUTDOWN_TIMEOUT
 
 - [x] 서버 권위 경제 상세 설계
 - [x] 저장 writer generation과 구버전 client compatibility gate 선행
+- [x] 주간 임무·전체 완료·주간 출석 claim의 서버 판정과 중복 영수증
 - 경제 DB·조회·legacy bootstrap을 기능 플래그 뒤에 구현
-- 가챠·분해·연구 소비·보상 claim 명령 API
+- 가챠·분해·연구 소비와 나머지 보상 claim 명령 API
 - authority epoch, 소비 exact in-flight, progression effect journal과 보상 claim outbox
 - account 단위 일괄 전환과 다중 기기 E2E
 - 실제 결제 시점에 Google Play 구매 검증 추가
@@ -1310,7 +1311,7 @@ Go 서버, Compose와 문서처럼 클라이언트 저장 형식을 바꾸지 �
 
 ## 현재 구현 상태
 
-- 구현 기준은 2026-08-24 `codex/go-server-foundation` 브랜치 작업 상태다.
+- 구현 기준은 2026-08-29 `codex/weekly-reward-server-authority` 브랜치 작업 상태다.
 - 현재 브랜치에는 `GameSaveData` v2 영역 분리와 v1 -> v2 변환 코드가 있다.
 - Web과 IO 모두 guest/account별 v2 primary와 backup 위치를 사용한다.
 - guest legacy 저장은 원본을 보존한 채 신규 v2 위치로 이전한다.
@@ -1338,6 +1339,10 @@ Go 서버, Compose와 문서처럼 클라이언트 저장 형식을 바꾸지 �
 - 다중 기기 충돌은 사용자 선택 없이 원격 revision을 적용하는 방향으로 설계를
   변경했다. exact in-flight 우선 복구, 자동 rebase, writer generation과 Web 다중 탭
   잠금까지 구현되어 있다.
+- 주간 임무·전체 완료·주간 출석의 수령 판정은 인증된
+  `POST /v1/economy/rewards/claim`으로 구현되어 있다. 서버가 현재 writer와 최신 저장
+  진행을 검증하고 서버 주차·고정 보상표·계정별 reward key로 한 번만 영수증을 만든다.
+  Flutter는 수령 전 account 체크포인트 동기화 후 영수증만 로컬 캐시에 반영한다.
 - 클라이언트 인증 세션은 메모리에만 유지되므로 브라우저 새로고침 또는 앱 재시작 뒤
   다시 로그인한다.
 - Android Application ID는 아직 `com.example.rune_nexus`다.
@@ -1345,4 +1350,5 @@ Go 서버, Compose와 문서처럼 클라이언트 저장 형식을 바꾸지 �
 - PGS 인증, identity 연결 API, 운영 DB backup·restore와 계정 데이터 삭제는 아직
   구현되지 않았다.
 - 다이아·모듈권·소유 모듈을 하나의 서버 권위 경제 영역으로 전환하는 상세 설계가
-  확정됐다. DB, 명령 API, Flutter 경제 coordinator와 migration은 아직 구현되지 않았다.
+  확정됐다. 주간 보상 claim의 DB·API·Flutter 연결은 구현됐지만 전체 지갑 DB,
+  economy revision, bootstrap과 경제 coordinator는 아직 구현되지 않았다.

@@ -32,6 +32,7 @@ type Dependencies struct {
 	Authenticator                         Authenticator
 	AuthenticationRateLimits              AuthenticationRateLimits
 	SaveService                           SaveService
+	WeeklyRewardService                   WeeklyRewardService
 	MaxSaveBodyBytes                      int64
 	MinimumSaveClientCompatibilityVersion int
 	CORSAllowedOrigins                    []string
@@ -90,6 +91,20 @@ func NewHandler(
 					logger,
 					dependencies.Authenticator,
 					http.HandlerFunc(saves.update),
+				),
+			)
+		}
+		if dependencies.WeeklyRewardService != nil {
+			rewards := weeklyRewardHandler{
+				logger:  logger,
+				rewards: dependencies.WeeklyRewardService,
+			}
+			mux.Handle(
+				"POST /v1/economy/rewards/claim",
+				withBearerAuthentication(
+					logger,
+					dependencies.Authenticator,
+					http.HandlerFunc(rewards.claim),
 				),
 			)
 		}

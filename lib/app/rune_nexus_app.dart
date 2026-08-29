@@ -8,6 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import '../data/auth/google_authentication_api.dart';
 import '../data/auth/google_web_authentication_config.dart';
 import '../data/auth/online_account_session_controller.dart';
+import '../data/economy/weekly_reward_api.dart';
 import '../data/save/account_save_bootstrap.dart';
 import '../data/save/local_save_repository.dart';
 import '../data/save/local_save_slot.dart';
@@ -17,6 +18,7 @@ import '../data/save/online_save_coordinator.dart';
 import '../domain/account/account_session.dart';
 import '../domain/account/online_account_credentials.dart';
 import '../domain/combat/game_phase.dart';
+import '../domain/economy/weekly_reward_claim.dart';
 import '../game/game_snapshot.dart';
 import '../game/rune_nexus_game.dart';
 import '../l10n/rune_nexus_localizations.dart';
@@ -62,6 +64,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   late final AccountSaveBootstrapService _accountSaveBootstrapService;
   GoogleAuthenticationApi? _googleAuthenticationApi;
   OnlineSaveApi? _onlineSaveApi;
+  WeeklyRewardApi? _weeklyRewardApi;
   final ValueNotifier<_AppLoadingProgress> _loadingProgress = ValueNotifier(
     const _AppLoadingProgress(label: '게임을 시작하는 중'),
   );
@@ -98,6 +101,9 @@ class _RuneNexusAppState extends State<RuneNexusApp>
         baseUrl: _googleAuthenticationConfig.apiBaseUrl,
       );
       _onlineSaveApi = OnlineSaveApi(
+        baseUrl: _googleAuthenticationConfig.apiBaseUrl,
+      );
+      _weeklyRewardApi = WeeklyRewardApi(
         baseUrl: _googleAuthenticationConfig.apiBaseUrl,
       );
     }
@@ -568,6 +574,99 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     coordinator.acknowledgeGameReload();
   }
 
+  Future<void> _claimWeeklyReward(WeeklyRewardClaimTarget target) async {
+    final api = _weeklyRewardApi;
+    final session = _onlineSession;
+    final coordinator = _onlineSaveCoordinator;
+    if (api == null ||
+        session == null ||
+        coordinator == null ||
+        _activeSaveSlot.isGuest) {
+      throw const WeeklyRewardClaimFailure(
+        'Google 계정을 연결한 뒤 주간 보상을 받을 수 있습니다.',
+      );
+    }
+    if (_clientUpdateRequired ||
+        coordinator.snapshot.issueCode == 'CLIENT_UPDATE_REQUIRED') {
+      throw const WeeklyRewardClaimFailure('최신 버전으로 업데이트한 뒤 주간 보상을 받아 주세요.');
+    }
+
+    if (!await game.saveAccountCheckpoint()) {
+      throw const WeeklyRewardClaimFailure(
+        '계정 진행을 저장하지 못했습니다. 저장 상태를 확인한 뒤 다시 시도해 주세요.',
+      );
+    }
+    await coordinator.currentAttempt;
+    if (!identical(coordinator, _onlineSaveCoordinator)) {
+      throw const WeeklyRewardClaimFailure('계정 진행이 변경되어 보상 수령을 중단했습니다.');
+    }
+    final saveState = coordinator.snapshot;
+    if (saveState.phase != OnlineSaveCoordinatorPhase.idle ||
+        saveState.pendingSaveCount != 0 ||
+        saveState.hasPendingRemoteRebase ||
+        saveState.requiresGameReload) {
+      throw const WeeklyRewardClaimFailure('계정 진행 동기화를 마친 뒤 다시 시도해 주세요.');
+    }
+
+    // 401 재인증 후에도 동일 요청으로 판정되도록 key를 한 번만 생성한다.
+    final idempotencyKey = createOnlineSaveIdempotencyKey();
+    try {
+      final receipt = await session.runAuthenticated(
+        request: (accessToken) => api.claim(
+          accessToken,
+          idempotencyKey: idempotencyKey,
+          target: target,
+        ),
+        isUnauthorized: (error) =>
+            error is WeeklyRewardException && error.isUnauthorized,
+      );
+      if (!identical(session, _onlineSession) ||
+          !identical(coordinator, _onlineSaveCoordinator)) {
+        throw const WeeklyRewardClaimFailure('계정 세션이 변경되어 보상 수령을 중단했습니다.');
+      }
+      final applied = game.applyWeeklyRewardReceipt(receipt);
+      if (!applied && !_isWeeklyRewardLocallyClaimed(target)) {
+        throw const WeeklyRewardClaimFailure(
+          '주간 진행 정보가 갱신되었습니다. 임무 화면을 다시 열어 주세요.',
+        );
+      }
+      if (applied) {
+        if (!await game.saveAccountCheckpoint()) {
+          throw const WeeklyRewardClaimFailure(
+            '보상은 확인됐지만 계정 저장이 지연되고 있습니다. 잠시 후 다시 확인해 주세요.',
+          );
+        }
+      }
+    } on WeeklyRewardClaimFailure {
+      rethrow;
+    } on WeeklyRewardException catch (error) {
+      final message = switch (error.code) {
+        'SAVE_WRITER_REPLACED' => '다른 기기의 진행을 확인한 뒤 다시 시도해 주세요.',
+        'SAVE_SYNC_REQUIRED' => '계정 진행 동기화를 마친 뒤 다시 시도해 주세요.',
+        'WEEKLY_REWARD_PERIOD_MISMATCH' => '주간 임무가 갱신되었습니다. 임무 화면을 다시 열어 주세요.',
+        'WEEKLY_REWARD_NOT_ELIGIBLE' => '현재 서버에 저장된 진행으로는 이 보상을 받을 수 없습니다.',
+        _ when error.transportFailure => '보상 서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+        _ => error.message,
+      };
+      throw WeeklyRewardClaimFailure(message);
+    } on Object {
+      throw const WeeklyRewardClaimFailure(
+        '주간 보상을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+      );
+    }
+  }
+
+  bool _isWeeklyRewardLocallyClaimed(WeeklyRewardClaimTarget target) {
+    final snapshot = game.snapshotNotifier.value;
+    return switch (target.kind) {
+      WeeklyRewardKind.quest => snapshot.claimedWeeklyQuestRewards.contains(
+        target.questType,
+      ),
+      WeeklyRewardKind.allComplete => snapshot.weeklyQuestAllCompleteClaimed,
+      WeeklyRewardKind.attendance => snapshot.weeklyAttendanceRewardClaimed,
+    };
+  }
+
   _OnlineAccountState _onlineAccountStateFor(
     OnlineAccountCredentials credentials,
     OnlineSaveCoordinatorSnapshot snapshot,
@@ -796,6 +895,10 @@ class _RuneNexusAppState extends State<RuneNexusApp>
                             onlineSession: _onlineSession!,
                             credentials: _onlineAccount!.credentials,
                           ),
+                    onClaimWeeklyReward:
+                        _onlineSession == null || _activeSaveSlot.isGuest
+                        ? null
+                        : _claimWeeklyReward,
                     onOpenMapEditor: () {
                       setState(() {
                         _screen = _AppScreen.mapEditor;

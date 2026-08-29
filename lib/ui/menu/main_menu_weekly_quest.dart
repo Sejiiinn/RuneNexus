@@ -1,10 +1,15 @@
 part of 'main_menu_screen.dart';
 
 class _WeeklyQuestContent extends StatelessWidget {
-  const _WeeklyQuestContent({required this.game, required this.snapshot});
+  const _WeeklyQuestContent({
+    required this.snapshot,
+    required this.claimInProgress,
+    required this.onClaim,
+  });
 
-  final RuneNexusGame game;
   final GameSnapshot snapshot;
+  final bool claimInProgress;
+  final ValueChanged<WeeklyRewardClaimTarget> onClaim;
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +21,23 @@ class _WeeklyQuestContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _WeeklyQuestSummaryCard(game: game, snapshot: snapshot),
+        _WeeklyQuestSummaryCard(
+          snapshot: snapshot,
+          claimInProgress: claimInProgress,
+          onClaim: () => onClaim(const WeeklyRewardClaimTarget.allComplete()),
+        ),
+        if (claimInProgress) ...[
+          const SizedBox(height: 6),
+          const Text(
+            '서버에서 보상 수령을 확인하는 중입니다.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFF90AFC0),
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
         if (blocked) ...[
           const SizedBox(height: 6),
           const _DailyQuestWarningCard(),
@@ -31,13 +52,18 @@ class _WeeklyQuestContent extends StatelessWidget {
           target: weeklyAttendanceTargetDays,
           rewardAmount: weeklyAttendanceRewardDiamonds,
           claimed: snapshot.weeklyAttendanceRewardClaimed,
-          claimable: attendanceClaimable,
+          claimable: attendanceClaimable && !claimInProgress,
           blocked: blocked,
-          onClaim: game.claimWeeklyAttendanceReward,
+          onClaim: () => onClaim(const WeeklyRewardClaimTarget.attendance()),
         ),
         const SizedBox(height: 5),
         for (final entry in gameWeeklyQuestDefinitions.entries) ...[
-          _WeeklyQuestRow(game: game, snapshot: snapshot, type: entry.key),
+          _WeeklyQuestRow(
+            snapshot: snapshot,
+            type: entry.key,
+            claimInProgress: claimInProgress,
+            onClaim: () => onClaim(WeeklyRewardClaimTarget.quest(entry.key)),
+          ),
           if (entry.key != gameWeeklyQuestDefinitions.keys.last)
             const SizedBox(height: 5),
         ],
@@ -47,10 +73,15 @@ class _WeeklyQuestContent extends StatelessWidget {
 }
 
 class _WeeklyQuestSummaryCard extends StatelessWidget {
-  const _WeeklyQuestSummaryCard({required this.game, required this.snapshot});
+  const _WeeklyQuestSummaryCard({
+    required this.snapshot,
+    required this.claimInProgress,
+    required this.onClaim,
+  });
 
-  final RuneNexusGame game;
   final GameSnapshot snapshot;
+  final bool claimInProgress;
+  final VoidCallback onClaim;
 
   @override
   Widget build(BuildContext context) {
@@ -115,9 +146,7 @@ class _WeeklyQuestSummaryCard extends StatelessWidget {
           SizedBox(
             width: 68,
             child: GameButton(
-              onPressed: canClaim
-                  ? game.claimWeeklyQuestAllCompleteReward
-                  : null,
+              onPressed: canClaim && !claimInProgress ? onClaim : null,
               label: blocked ? '잠김' : buttonLabel,
               compact: true,
               variant: canClaim
@@ -176,14 +205,16 @@ class _WeeklyCompletionRewardText extends StatelessWidget {
 
 class _WeeklyQuestRow extends StatelessWidget {
   const _WeeklyQuestRow({
-    required this.game,
     required this.snapshot,
     required this.type,
+    required this.claimInProgress,
+    required this.onClaim,
   });
 
-  final RuneNexusGame game;
   final GameSnapshot snapshot;
   final DailyQuestType type;
+  final bool claimInProgress;
+  final VoidCallback onClaim;
 
   @override
   Widget build(BuildContext context) {
@@ -300,9 +331,7 @@ class _WeeklyQuestRow extends StatelessWidget {
           SizedBox(
             width: 68,
             child: GameButton(
-              onPressed: canClaim
-                  ? () => game.claimWeeklyQuestReward(type)
-                  : null,
+              onPressed: canClaim && !claimInProgress ? onClaim : null,
               label: snapshot.dailyQuestClockRollbackDetected
                   ? '잠김'
                   : buttonLabel,

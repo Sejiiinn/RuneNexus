@@ -35,6 +35,23 @@ type RefreshToken struct {
 	RevokedAt     pgtype.Timestamptz `db:"revoked_at"`
 }
 
+type RewardClaim struct {
+	AccountID          pgtype.UUID        `db:"account_id"`
+	RewardKey          string             `db:"reward_key"`
+	PeriodKey          string             `db:"period_key"`
+	WeekKey            int64              `db:"week_key"`
+	RewardType         string             `db:"reward_type"`
+	QuestType          pgtype.Text        `db:"quest_type"`
+	IdempotencyKey     pgtype.UUID        `db:"idempotency_key"`
+	RequestHash        []byte             `db:"request_hash"`
+	DiamondAmount      int32              `db:"diamond_amount"`
+	ModuleTicketAmount int32              `db:"module_ticket_amount"`
+	WriterGeneration   int64              `db:"writer_generation"`
+	SourceSaveRevision int64              `db:"source_save_revision"`
+	Evidence           []byte             `db:"evidence"`
+	ClaimedAt          pgtype.Timestamptz `db:"claimed_at"`
+}
+
 type SaveActiveRun struct {
 	AccountID pgtype.UUID `db:"account_id"`
 	Payload   []byte      `db:"payload"`

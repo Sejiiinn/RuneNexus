@@ -15,6 +15,7 @@ import (
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
+	"github.com/Sejiiinn/RuneNexus/server/internal/weeklyreward"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -180,6 +181,80 @@ func TestSaveWriterClaimIsIdempotentAndRejectsPreviousWriter(t *testing.T) {
 		var replaced *gamesave.WriterReplacedError
 		if !errors.As(err, &replaced) || replaced.CurrentGeneration != secondClaim.WriterGeneration {
 			t.Fatalf("previous writer error = %v", err)
+		}
+	}
+}
+
+func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
+	ctx, fixture, accountID := openSaveService(t)
+	adjustedNow := time.Now().UTC().Add(4 * time.Hour)
+	dayKey := adjustedNow.UnixMilli() / int64((24*time.Hour)/time.Millisecond)
+	weekKey := (dayKey + 3) / 7
+	progression, err := json.Marshal(map[string]any{
+		"weeklyQuestWeekKey": weekKey,
+		"weeklyQuestProgress": map[string]int{
+			"clearWaves":      150,
+			"killBosses":      15,
+			"killEnemies":     500,
+			"buyRunUpgrades": 25,
+		},
+		"claimedWeeklyQuestRewards":       []string{},
+		"weeklyQuestAllCompleteClaimed":   false,
+		"weeklyAttendanceDayKeys":         []int64{},
+		"weeklyAttendanceRewardClaimed":   false,
+		"dailyQuestClockRollbackDetected": false,
+	})
+	if err != nil {
+		t.Fatalf("encode progression: %v", err)
+	}
+	if _, err := fixture.Update(ctx, accountID, gamesave.UpdateRequest{
+		IdempotencyKey:   firstSaveKey,
+		ExpectedRevision: 0,
+		RawBody:          []byte(`{"expectedRevision":0,"data":{"version":2}}`),
+		Data: gamesave.Data{
+			Version:       gamesave.CurrentSchemaVersion,
+			Preferences:   json.RawMessage(`{}`),
+			Progression:   progression,
+			TurretModules: json.RawMessage(`{}`),
+		},
+	}); err != nil {
+		t.Fatalf("save weekly progression: %v", err)
+	}
+
+	service := weeklyreward.NewService(fixture.pool)
+	body := []byte(`{"period":"weekly","rewardType":"quest","questType":"killEnemies"}`)
+	request := weeklyreward.ClaimRequest{
+		IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bed",
+		RawBody:        body,
+		RewardType:     weeklyreward.RewardTypeQuest,
+		QuestType:      "killEnemies",
+	}
+	claimed, err := service.Claim(ctx, accountID, fixture.sessionID, request)
+	if err != nil {
+		t.Fatalf("claim weekly reward: %v", err)
+	}
+	if claimed.Diamonds != 20 || claimed.WeekKey != weekKey ||
+		claimed.SourceSaveRevision != 1 {
+		t.Fatalf("claimed reward = %#v", claimed)
+	}
+	replayed, err := service.Claim(ctx, accountID, fixture.sessionID, request)
+	if err != nil || replayed != claimed {
+		t.Fatalf("replayed reward = %#v, %v", replayed, err)
+	}
+
+	changedBody := request
+	changedBody.RawBody = []byte(`{"period":"weekly","rewardType":"quest", "questType":"killEnemies"}`)
+	if _, err := service.Claim(ctx, accountID, fixture.sessionID, changedBody); !errors.Is(err, weeklyreward.ErrIdempotencyKeyReused) {
+		t.Fatalf("changed-body replay error = %v", err)
+	}
+	differentKey := request
+	differentKey.IdempotencyKey = "0198b955-3656-7c40-b3cb-87f427b90bee"
+	if _, err := service.Claim(ctx, accountID, fixture.sessionID, differentKey); err == nil {
+		t.Fatal("duplicate reward claim succeeded")
+	} else {
+		var alreadyClaimed *weeklyreward.AlreadyClaimedError
+		if !errors.As(err, &alreadyClaimed) || alreadyClaimed.Result != claimed {
+			t.Fatalf("duplicate reward error = %v", err)
 		}
 	}
 }
