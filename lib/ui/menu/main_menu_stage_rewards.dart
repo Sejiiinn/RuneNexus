@@ -90,7 +90,6 @@ class _StageInfoChip extends StatelessWidget {
     required this.highlighted,
     this.overrideColor,
     this.accentColor,
-    this.showLockIcon = false,
   });
 
   final String text;
@@ -98,7 +97,6 @@ class _StageInfoChip extends StatelessWidget {
   final bool highlighted;
   final Color? overrideColor;
   final Color? accentColor;
-  final bool showLockIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -131,10 +129,6 @@ class _StageInfoChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (showLockIcon) ...[
-            Icon(Icons.lock_outline_rounded, size: 10, color: color),
-            const SizedBox(width: 3),
-          ],
           Flexible(
             child: Text(
               text,
