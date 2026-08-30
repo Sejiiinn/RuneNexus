@@ -164,4 +164,28 @@ void main() {
     });
     expect(sanitized.totalPlayTimeMillis, 0);
   });
+
+  test('활성 런의 서버 정산 ID와 미확정 다이아를 보존한다', () {
+    final saved = GameSaveData.fromJson(const <String, Object?>{
+      'version': 2,
+      'savedAtMillis': 50,
+      'preferences': <String, Object?>{},
+      'progression': <String, Object?>{},
+      'turretModules': <String, Object?>{},
+      'activeRun': <String, Object?>{
+        'phase': 'wave',
+        'stageNumber': 3,
+        'economyRunId': '0198b955-3656-7c40-b3cb-87f427b90be3',
+        'pendingEconomyDiamonds': 27,
+      },
+    });
+
+    expect(saved!.activeRun!.economyRunId, isNotEmpty);
+    expect(saved.activeRun!.pendingEconomyDiamonds, 27);
+    expect(
+      (saved.toJson()['activeRun']
+          as Map<String, Object?>)['pendingEconomyDiamonds'],
+      27,
+    );
+  });
 }

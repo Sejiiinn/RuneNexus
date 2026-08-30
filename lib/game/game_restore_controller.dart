@@ -91,6 +91,8 @@ class GameRestoreController {
   }
 
   void _restoreInactiveRunState(GameSaveData data) {
+    _game._economyRunId = null;
+    _game._pendingEconomyDiamonds = 0;
     _game._selectStage(
       _game._clampedStageNumber(data.preferences.selectedStageNumber),
     );
@@ -111,6 +113,8 @@ class GameRestoreController {
   }
 
   void _restoreActiveRunState(SavedRunState data) {
+    _game._economyRunId = data.economyRunId;
+    _game._pendingEconomyDiamonds = data.pendingEconomyDiamonds;
     _game._restoreRunCoreLoadoutFromSave(data);
     _game._gold = math.max(0, data.gold);
     _game._gemShards = math.max(0, data.gemShards);

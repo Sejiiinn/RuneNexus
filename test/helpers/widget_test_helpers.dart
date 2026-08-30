@@ -434,7 +434,7 @@ class ResearchInstantCompleteGame extends RuneNexusGame {
   ResearchType? completedResearchType;
 
   @override
-  void completeResearchWithDiamonds(ResearchType type) {
+  Future<void> completeResearchWithDiamonds(ResearchType type) async {
     completedResearchType = type;
   }
 }
@@ -445,7 +445,7 @@ class ResearchSlotUnlockGame extends RuneNexusGame {
   bool unlockedResearchSlotTwo = false;
 
   @override
-  bool unlockResearchSlotTwo() {
+  Future<bool> unlockResearchSlotTwo() async {
     unlockedResearchSlotTwo = true;
     return true;
   }
@@ -613,7 +613,7 @@ class TurretModuleDrawGame extends RuneNexusGame {
   ];
 
   @override
-  List<TurretModuleInventoryItem> drawTurretModules(
+  Future<List<TurretModuleInventoryItem>> drawTurretModules(
     int count, {
     TurretType? turretType,
     bool buyMissingTicketsWithDiamonds = false,
@@ -630,7 +630,7 @@ class TurretModuleDrawGame extends RuneNexusGame {
           snapshotNotifier.value.turretModuleDrawCount + count,
       ownedTurretModules: results,
     );
-    return results;
+    return Future.value(results);
   }
 }
 
@@ -641,13 +641,13 @@ class TurretModuleDisassembleGame extends RuneNexusGame {
   Set<String>? bulkDisassembledIds;
 
   @override
-  bool disassembleTurretModule(String id) {
+  Future<bool> disassembleTurretModule(String id) async {
     disassembledId = id;
     return true;
   }
 
   @override
-  int disassembleTurretModules(Iterable<String> ids) {
+  Future<int> disassembleTurretModules(Iterable<String> ids) async {
     bulkDisassembledIds = ids.toSet();
     return bulkDisassembledIds!.length;
   }

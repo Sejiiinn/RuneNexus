@@ -40,6 +40,8 @@ class GameSaveAdapter {
       gemInventory: Map.unmodifiable(state.run.gemInventory),
       rewardOptions: List.unmodifiable(state.run.rewardOptions),
       isPurchasedGemReward: state.run.isPurchasedGemReward,
+      economyRunId: state.run.economyRunId,
+      pendingEconomyDiamonds: state.run.pendingEconomyDiamonds,
       rewardReturnPhase: state.run.rewardReturnPhase,
       runCoreCombatSkill: pendingRun != null
           ? pendingRun.runCoreCombatSkill
@@ -216,6 +218,8 @@ class GameRunSaveBuildState {
     required this.gemInventory,
     required this.rewardOptions,
     required this.isPurchasedGemReward,
+    required this.economyRunId,
+    required this.pendingEconomyDiamonds,
     required this.rewardReturnPhase,
     required this.runCoreCombatSkill,
     required this.runCoreCombatSkillStats,
@@ -240,6 +244,8 @@ class GameRunSaveBuildState {
   final Map<GemType, int> gemInventory;
   final List<GemType> rewardOptions;
   final bool isPurchasedGemReward;
+  final String? economyRunId;
+  final int pendingEconomyDiamonds;
   final GamePhase? rewardReturnPhase;
   final CoreCombatSkill? runCoreCombatSkill;
   final SavedCoreCombatSkillStats runCoreCombatSkillStats;

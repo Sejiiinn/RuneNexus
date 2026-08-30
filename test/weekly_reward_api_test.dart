@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/economy/weekly_reward_api.dart';
+import 'package:rune_nexus/data/save/online_save_api.dart';
 import 'package:rune_nexus/data/save/online_save_transport_stub.dart';
 import 'package:rune_nexus/domain/daily_quest/daily_quest_type.dart';
 import 'package:rune_nexus/domain/economy/weekly_reward_claim.dart';
@@ -49,6 +50,7 @@ void main() {
       'period': 'weekly',
       'rewardType': 'quest',
       'questType': 'killEnemies',
+      'clientCompatibilityVersion': onlineSaveClientCompatibilityVersion,
     });
     expect(receipt.diamonds, 20);
     expect(receipt.target.key, 'quest:killEnemies');

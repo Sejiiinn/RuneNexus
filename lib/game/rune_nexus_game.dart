@@ -16,6 +16,8 @@ import '../data/save/game_save_data.dart';
 import '../data/save/local_save_coordinator.dart';
 import '../data/save/local_save_repository.dart';
 import '../data/save/online_save_repository.dart';
+import '../data/save/online_save_coordinator.dart'
+    show createOnlineSaveIdempotencyKey;
 import '../data/save/save_repository.dart';
 import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/game_phase.dart';
@@ -24,6 +26,8 @@ import '../domain/core/core_ability.dart';
 import '../domain/core/core_passive_tree.dart';
 import '../domain/daily_quest/daily_quest_type.dart';
 import '../domain/economy/weekly_reward_claim.dart';
+import '../domain/economy/authoritative_economy_commands.dart';
+import '../domain/economy/economy_snapshot.dart';
 import '../domain/enemy/diamond_carrier_rules.dart';
 import '../domain/enemy/enemy_scaling.dart';
 import '../domain/enemy/enemy_type.dart';
@@ -404,6 +408,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     OnlineSaveRepository? onlineSaveRepository,
     @visibleForTesting double Function()? diamondCarrierRollForTesting,
     @visibleForTesting bool enableDebugEnemySpawnForTesting = false,
+    @visibleForTesting String Function()? economyRunIdFactory,
   }) : _saveRepository = saveRepository is LocalSaveCoordinator
            ? saveRepository
            : LocalSaveCoordinator(
@@ -414,6 +419,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
        _diamondCarrierRoll =
            diamondCarrierRollForTesting ?? math.Random().nextDouble,
        _enableDebugEnemySpawnForTesting = enableDebugEnemySpawnForTesting {
+    _economyRunIdFactory =
+        economyRunIdFactory ?? createOnlineSaveIdempotencyKey;
     _stages = List.unmodifiable(
       _buildInitialStages(stage: stage, stages: stages, map: map, waves: waves),
     );
@@ -433,6 +440,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   final OnlineSaveRepository _onlineSaveRepository;
   final double Function() _diamondCarrierRoll;
   final bool _enableDebugEnemySpawnForTesting;
+  late final String Function() _economyRunIdFactory;
+  AuthoritativeEconomyCommands? _authoritativeEconomyCommands;
   late final ValueNotifier<GameSnapshot> snapshotNotifier;
   final ValueNotifier<bool> readyNotifier = ValueNotifier(false);
   final ValueNotifier<Object?> loadErrorNotifier = ValueNotifier(null);
@@ -545,6 +554,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   int _distinctPlacedTurretTypeCount = 0;
   int _distinctEquippedGemTypeCount = 0;
   int _damageNumberSpawnIndex = 0;
+  String? _economyRunId;
+  int _pendingEconomyDiamonds = 0;
 
   bool get isWaveRunning => _phase == GamePhase.wave || _debugCombatActive;
   double get boardDistanceScale =>
@@ -705,14 +716,70 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return _progression.turretModuleEffectFor(type);
   }
 
-  List<TurretModuleInventoryItem> drawTurretModules(
+  void attachAuthoritativeEconomyCommands(
+    AuthoritativeEconomyCommands commands,
+  ) {
+    _authoritativeEconomyCommands = commands;
+    _economyRunId ??= _economyRunIdFactory();
+  }
+
+  void detachAuthoritativeEconomyCommands() {
+    _authoritativeEconomyCommands = null;
+  }
+
+  Future<void> applyAuthoritativeEconomy(EconomySnapshot snapshot) async {
+    _progression.applyAuthoritativeEconomy(snapshot);
+    _publish();
+    _requestLocalSave(immediate: true);
+    await saveNow();
+  }
+
+  Future<bool> applyEconomyProgressionEffect(
+    EconomyProgressionEffect effect,
+  ) async {
+    if (effect.effectType != 'complete_research') {
+      return false;
+    }
+    final typeName = effect.payload['researchType'];
+    final targetLevel = effect.payload['targetLevel'];
+    ResearchType? researchType;
+    for (final candidate in ResearchType.values) {
+      if (candidate.name == typeName) {
+        researchType = candidate;
+        break;
+      }
+    }
+    if (researchType == null || targetLevel is! int || targetLevel <= 0) {
+      return false;
+    }
+    _progression.applyResearchCompletionEffect(researchType, targetLevel);
+    _publish();
+    _requestLocalSave(immediate: true);
+    await saveNow();
+    return true;
+  }
+
+  Future<List<TurretModuleInventoryItem>> drawTurretModules(
     int count, {
     TurretType? turretType,
     bool buyMissingTicketsWithDiamonds = false,
   }) {
+    final commands = _authoritativeEconomyCommands;
+    if (commands != null) {
+      final selectedTurretType = turretType;
+      if (selectedTurretType == null ||
+          !_availableTurretTypes().contains(selectedTurretType)) {
+        return Future.value(const []);
+      }
+      return commands.drawTurretModules(
+        count,
+        turretType: selectedTurretType,
+        buyMissingTicketsWithDiamonds: buyMissingTicketsWithDiamonds,
+      );
+    }
     final availableTurretTypes = _availableTurretTypes();
     if (turretType != null && !availableTurretTypes.contains(turretType)) {
-      return const [];
+      return Future.value(const []);
     }
     final results = _progression.drawTurretModules(
       count: count,
@@ -722,11 +789,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       buyMissingTicketsWithDiamonds: buyMissingTicketsWithDiamonds,
     );
     if (results.isEmpty) {
-      return const [];
+      return Future.value(const []);
     }
     _publish();
     _requestLocalSave(immediate: true);
-    return results;
+    return Future.value(results);
   }
 
   bool equipTurretModule(String id) {
@@ -747,7 +814,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return true;
   }
 
-  bool disassembleTurretModule(String id) {
+  Future<bool> disassembleTurretModule(String id) async {
+    final commands = _authoritativeEconomyCommands;
+    if (commands != null) {
+      return commands.disassembleTurretModules([id]);
+    }
     if (!_progression.disassembleTurretModule(id)) {
       return false;
     }
@@ -756,7 +827,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return true;
   }
 
-  int disassembleTurretModules(Iterable<String> ids) {
+  Future<int> disassembleTurretModules(Iterable<String> ids) async {
+    final commands = _authoritativeEconomyCommands;
+    if (commands != null) {
+      final uniqueIDs = ids.toSet();
+      return await commands.disassembleTurretModules(uniqueIDs)
+          ? uniqueIDs.length
+          : 0;
+    }
     final disassembledCount = _progression.disassembleTurretModules(ids);
     if (disassembledCount == 0) {
       return 0;
@@ -1178,7 +1256,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
-  bool claimDailyQuestReward(DailyQuestType type) {
+  Future<bool> claimDailyQuestReward(DailyQuestType type) async {
+    final commands = _authoritativeEconomyCommands;
+    if (commands != null) {
+      return commands.claimDailyQuestReward(type);
+    }
     final claimed = _progression.claimDailyQuestReward(
       type,
       nowMillis: DateTime.now().millisecondsSinceEpoch,
@@ -1191,7 +1273,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return true;
   }
 
-  bool claimDailyQuestAllCompleteReward() {
+  Future<bool> claimDailyQuestAllCompleteReward() async {
+    final commands = _authoritativeEconomyCommands;
+    if (commands != null) {
+      return commands.claimDailyQuestAllCompleteReward();
+    }
     final claimed = _progression.claimDailyQuestAllCompleteReward(
       nowMillis: DateTime.now().millisecondsSinceEpoch,
     );
@@ -1203,7 +1289,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return true;
   }
 
-  bool claimDailyAttendanceReward() {
+  Future<bool> claimDailyAttendanceReward() async {
+    final commands = _authoritativeEconomyCommands;
+    if (commands != null) {
+      return commands.claimDailyAttendanceReward();
+    }
     final claimed = _progression.claimDailyAttendanceReward(
       nowMillis: DateTime.now().millisecondsSinceEpoch,
     );
@@ -1215,23 +1305,51 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return true;
   }
 
+  Future<bool> applyAuthoritativeDailyRewardReceipt({
+    required String rewardType,
+    DailyQuestType? questType,
+    required int dayKey,
+  }) async {
+    final applied = switch (rewardType) {
+      'quest' when questType != null =>
+        _progression.applyDailyQuestRewardReceipt(questType, dayKey: dayKey),
+      'all_complete' => _progression.applyDailyQuestAllCompleteRewardReceipt(
+        dayKey: dayKey,
+      ),
+      'attendance' => _progression.applyDailyAttendanceRewardReceipt(
+        dayKey: dayKey,
+      ),
+      _ => false,
+    };
+    if (!applied) {
+      return false;
+    }
+    _publish();
+    _requestLocalSave(immediate: true);
+    await saveNow();
+    return true;
+  }
+
   bool applyWeeklyRewardReceipt(WeeklyRewardReceipt receipt) {
     final claimed = switch (receipt.target.kind) {
       WeeklyRewardKind.quest => _progression.applyWeeklyQuestRewardReceipt(
         receipt.target.questType!,
         weekKey: receipt.weekKey,
         rewardDiamonds: receipt.diamonds,
+        grantEconomyRewardsLocally: _authoritativeEconomyCommands == null,
       ),
       WeeklyRewardKind.allComplete =>
         _progression.applyWeeklyQuestAllCompleteRewardReceipt(
           weekKey: receipt.weekKey,
           rewardDiamonds: receipt.diamonds,
           rewardModuleTickets: receipt.moduleTickets,
+          grantEconomyRewardsLocally: _authoritativeEconomyCommands == null,
         ),
       WeeklyRewardKind.attendance =>
         _progression.applyWeeklyAttendanceRewardReceipt(
           weekKey: receipt.weekKey,
           rewardDiamonds: receipt.diamonds,
+          grantEconomyRewardsLocally: _authoritativeEconomyCommands == null,
         ),
     };
     if (!claimed) {
@@ -1361,6 +1479,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _isPurchasedGemReward = false;
     _rewardReturnPhase = null;
     _killGoldFractionWallet = 0;
+    _economyRunId = _economyRunIdFactory();
+    _pendingEconomyDiamonds = 0;
     _pendingFullSaveData = null;
     _savedTurretCountForMenu = 0;
     _menuSaveDataLoaded = true;
@@ -1415,7 +1535,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
-  void completeResearchWithDiamonds(ResearchType type) {
+  Future<void> completeResearchWithDiamonds(ResearchType type) async {
+    final commands = _authoritativeEconomyCommands;
+    if (commands != null) {
+      await commands.completeResearchWithDiamonds(type);
+      return;
+    }
     final completed = _progression.completeResearchWithDiamonds(
       type,
       nowMillis: DateTime.now().millisecondsSinceEpoch,
@@ -1427,7 +1552,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
-  bool unlockResearchSlotTwo() {
+  Future<bool> unlockResearchSlotTwo() async {
+    final commands = _authoritativeEconomyCommands;
+    if (commands != null) {
+      return commands.unlockResearchSlotTwo();
+    }
     if (!_progression.unlockResearchSlotTwo()) {
       return false;
     }
@@ -1661,7 +1790,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void debugAddDiamonds(int amount) {
-    if (amount <= 0) {
+    if (amount <= 0 || _authoritativeEconomyCommands != null) {
       return;
     }
     _progression.addFreeDiamonds(amount);
@@ -3118,7 +3247,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       }
     }
     if (diamondReward > 0) {
-      _progression.addFreeDiamonds(diamondReward);
+      if (_authoritativeEconomyCommands == null) {
+        _progression.addFreeDiamonds(diamondReward);
+      } else {
+        _economyRunId ??= _economyRunIdFactory();
+        _pendingEconomyDiamonds += diamondReward;
+      }
       add(
         DiamondRewardEffectComponent(
           position: enemy.visualPosition.clone(),
@@ -3206,6 +3340,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _debugCombatActive = false;
     _clearBoardSelection(closePanel: true);
     _settleRunResult(GamePhase.failure);
+    _queueAuthoritativeRunSettlement(GamePhase.failure);
     _phase = GamePhase.coreDestruction;
     _coreDestructionElapsed = 0;
     _coreDestructionStartZoom = _boardZoom;
@@ -4066,6 +4201,25 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _settleRunResult(resultPhase);
     _phase = resultPhase;
+    _queueAuthoritativeRunSettlement(resultPhase);
+  }
+
+  void _queueAuthoritativeRunSettlement(GamePhase resultPhase) {
+    final commands = _authoritativeEconomyCommands;
+    final runId = _economyRunId;
+    if (commands == null || runId == null) {
+      return;
+    }
+    unawaited(
+      commands.queueRunSettlement(
+        runId: runId,
+        stageNumber: _currentStageNumber,
+        completedRounds: _completedRounds,
+        success: resultPhase == GamePhase.success,
+        pendingDiamonds: _pendingEconomyDiamonds,
+        firstClearModuleTickets: _progression.lastRunTurretModuleTicketReward,
+      ),
+    );
   }
 
   void _settleRunResult(GamePhase resultPhase) {
@@ -4083,6 +4237,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       firstClearCorePointReward: _activeStage.firstClearCorePointReward,
       firstClearTurretModuleTicketReward:
           _activeStage.firstClearTurretModuleTicketReward,
+      grantEconomyRewardsLocally: _authoritativeEconomyCommands == null,
     );
     _lastRunPreviousBestRound = previousBestRound;
     _lastRunWasNewBestRound = _completedRounds > previousBestRound;
@@ -4293,6 +4448,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
           gemInventory: _gemInventory,
           rewardOptions: _rewardOptions,
           isPurchasedGemReward: _isPurchasedGemReward,
+          economyRunId: _economyRunId,
+          pendingEconomyDiamonds: _pendingEconomyDiamonds,
           rewardReturnPhase: _rewardReturnPhase,
           turrets: [for (final turret in _turrets.values) turret.toSaveData()],
           enemies: [

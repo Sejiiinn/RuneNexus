@@ -188,6 +188,22 @@ void main() {
     expect(progression.turretModuleFor(item.id), isNull);
   });
 
+  test('unique turret modules cannot be disassembled individually', () {
+    final progression = RunProgression();
+    final item = progression.grantTurretModule(
+      TurretModuleKey(
+        turretType: TurretType.arrow,
+        part: TurretModulePart.core,
+        family: turretModuleFamilyFor(TurretType.arrow, TurretModulePart.core),
+        grade: TurretModuleGrade.unique,
+      ),
+    );
+
+    expect(progression.disassembleTurretModule(item.id), isFalse);
+    expect(progression.turretModuleFor(item.id), isNotNull);
+    expect(progression.diamonds, 0);
+  });
+
   test(
     'bulk disassembly refunds selected modules but protects equipped and unique items',
     () {

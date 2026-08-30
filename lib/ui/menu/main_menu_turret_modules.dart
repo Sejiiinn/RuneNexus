@@ -177,6 +177,12 @@ class _TurretModuleMenuState extends State<_TurretModuleMenu> {
     if (selectedIds.contains(_selectedItemId)) {
       setState(() => _selectedItemId = null);
     }
-    widget.game.disassembleTurretModules(selectedIds);
+    try {
+      await widget.game.disassembleTurretModules(selectedIds);
+    } on Object {
+      if (mounted && context.mounted) {
+        _showEconomyRequestFailure(context);
+      }
+    }
   }
 }

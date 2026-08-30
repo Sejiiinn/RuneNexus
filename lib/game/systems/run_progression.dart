@@ -10,6 +10,7 @@ import '../../domain/core/core_ability.dart';
 import '../../domain/core/core_passive_tree.dart';
 import '../../domain/currency/diamond_wallet.dart';
 import '../../domain/daily_quest/daily_quest_type.dart';
+import '../../domain/economy/economy_snapshot.dart';
 import '../../domain/research/research_progress.dart';
 import '../../domain/research/research_type.dart';
 import '../../domain/run_upgrade/run_upgrade_type.dart';
@@ -241,6 +242,53 @@ class RunProgression
   @override
   DiamondSpendResult? spendDiamonds(int amount) {
     return _diamondWallet.spend(amount);
+  }
+
+  void applyAuthoritativeEconomy(EconomySnapshot snapshot) {
+    final equippedIDs = <String>{
+      for (final item in turretModules.values)
+        if (item.equipped) item.id,
+    };
+    _diamondWallet.setBalances(
+      free: snapshot.wallet.freeDiamonds,
+      paid: snapshot.wallet.paidDiamonds,
+    );
+    restoreTurretModulesFromSaveData(
+      SavedTurretModuleInventory(
+        tickets: snapshot.wallet.moduleTickets,
+        drawCount: snapshot.moduleDrawCount,
+        ticketPurchaseCount: snapshot.moduleTicketPurchaseCount,
+        itemSequence: snapshot.modules.fold<int>(
+          0,
+          (current, item) => math.max(current, item.acquiredOrder),
+        ),
+        items: List.unmodifiable(
+          snapshot.modules.map(
+            (module) => SavedTurretModule(
+              id: module.id,
+              turretType: module.turretType,
+              part: module.part,
+              family: module.family,
+              grade: module.grade,
+              options: List.unmodifiable(
+                module.options.map(
+                  (option) => SavedTurretModuleOption(
+                    type: option.type,
+                    value: option.value,
+                  ),
+                ),
+              ),
+              acquiredOrder: module.acquiredOrder,
+              equipped:
+                  equippedIDs.contains(module.id) ||
+                  (module.legacyItemId != null &&
+                      equippedIDs.contains(module.legacyItemId)),
+            ),
+          ),
+        ),
+      ),
+    );
+    researchSlotTwoUnlocked = snapshot.researchSlotTwoUnlocked;
   }
 
   SavedProgression toSaveData() {
@@ -502,6 +550,7 @@ class RunProgression
     required int stageNumber,
     int firstClearCorePointReward = 0,
     int firstClearTurretModuleTicketReward = 0,
+    bool grantEconomyRewardsLocally = true,
   }) {
     final isFirstStageClear =
         success && stageNumber > 0 && !isStageCleared(stageNumber);
@@ -531,7 +580,9 @@ class RunProgression
         isFirstStageClear && firstClearTurretModuleTicketReward > 0
         ? firstClearTurretModuleTicketReward
         : 0;
-    turretModuleTickets += lastRunTurretModuleTicketReward;
+    if (grantEconomyRewardsLocally) {
+      turretModuleTickets += lastRunTurretModuleTicketReward;
+    }
   }
 
   int bestRoundForStage(int stageNumber) {

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
+	"github.com/Sejiiinn/RuneNexus/server/internal/economy"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -25,6 +26,9 @@ const (
 	weeklyAllCompleteModuleTickets   int32 = 1
 	weeklyAttendanceRewardDiamonds   int32 = 20
 	weeklyAttendanceRequiredDayCount       = 5
+	dailyQuestRewardDiamonds         int32 = 10
+	dailyAllCompleteRewardDiamonds   int32 = 20
+	dailyAttendanceRewardDiamonds    int32 = 10
 	resetOffset                            = 4 * time.Hour
 )
 
@@ -36,6 +40,7 @@ var (
 	ErrPeriodMismatch        = errors.New("weekly reward source save is from another period")
 	ErrNotEligible           = errors.New("weekly reward is not eligible")
 	ErrInvalidReward         = errors.New("weekly reward type is invalid")
+	ErrEconomyNotReady       = errors.New("server authoritative economy is not ready")
 )
 
 var weeklyQuestTargets = map[string]int64{
@@ -43,6 +48,10 @@ var weeklyQuestTargets = map[string]int64{
 	"killBosses":     15,
 	"killEnemies":    500,
 	"buyRunUpgrades": 25,
+}
+
+var dailyQuestTargets = map[string]int64{
+	"clearWaves": 30, "killBosses": 3, "killEnemies": 100, "buyRunUpgrades": 5,
 }
 
 type WriterReplacedError struct {
@@ -66,6 +75,7 @@ type ClaimRequest struct {
 	RawBody        []byte
 	RewardType     string
 	QuestType      string
+	Period         string
 }
 
 type ClaimResult struct {
@@ -78,10 +88,17 @@ type ClaimResult struct {
 	ModuleTickets      int32
 	SourceSaveRevision int64
 	ClaimedAt          time.Time
+	EconomyRevision    int64
+	AuthorityEpoch     string
 }
 
 type progressionEvidence struct {
 	DailyQuestClockRollbackDetected bool             `json:"dailyQuestClockRollbackDetected"`
+	DailyQuestDayKey                int64            `json:"dailyQuestDayKey"`
+	DailyQuestProgress              map[string]int64 `json:"dailyQuestProgress"`
+	ClaimedDailyQuestRewards        []string         `json:"claimedDailyQuestRewards"`
+	DailyQuestAllCompleteClaimed    bool             `json:"dailyQuestAllCompleteClaimed"`
+	DailyAttendanceRewardClaimed    bool             `json:"dailyAttendanceRewardClaimed"`
 	WeeklyQuestWeekKey              int64            `json:"weeklyQuestWeekKey"`
 	WeeklyQuestProgress             map[string]int64 `json:"weeklyQuestProgress"`
 	ClaimedWeeklyQuestRewards       []string         `json:"claimedWeeklyQuestRewards"`
@@ -111,6 +128,9 @@ func (service *Service) Claim(
 	sessionID string,
 	request ClaimRequest,
 ) (ClaimResult, error) {
+	if request.Period == "" {
+		request.Period = "weekly"
+	}
 	databaseAccountID, err := parseUUID(accountID)
 	if err != nil {
 		return ClaimResult{}, fmt.Errorf("parse authenticated account ID: %w", err)
@@ -125,6 +145,22 @@ func (service *Service) Claim(
 	}
 	requestHash := sha256.Sum256(request.RawBody)
 	queries := dbgen.New(service.database)
+	economyReceipt, err := queries.GetEconomyCommand(ctx, dbgen.GetEconomyCommandParams{
+		AccountID: databaseAccountID, IdempotencyKey: idempotencyKey,
+	})
+	if err == nil {
+		if economyReceipt.CommandType != "reward_claim" || !bytes.Equal(economyReceipt.RequestHash, requestHash[:]) {
+			return ClaimResult{}, ErrIdempotencyKeyReused
+		}
+		var result ClaimResult
+		if decodeErr := json.Unmarshal(economyReceipt.ResponsePayload, &result); decodeErr != nil {
+			return ClaimResult{}, fmt.Errorf("decode reward economy receipt: %w", decodeErr)
+		}
+		return result, nil
+	}
+	if !errors.Is(err, pgx.ErrNoRows) {
+		return ClaimResult{}, fmt.Errorf("get reward economy receipt: %w", err)
+	}
 	receiptParams := dbgen.GetRewardClaimByIdempotencyKeyParams{
 		AccountID:      databaseAccountID,
 		IdempotencyKey: idempotencyKey,
@@ -161,6 +197,13 @@ func (service *Service) Claim(
 	} else if err != nil {
 		return ClaimResult{}, fmt.Errorf("lock weekly reward source save: %w", err)
 	}
+	playerEconomy, err := txQueries.GetPlayerEconomyForUpdate(ctx, databaseAccountID)
+	if errors.Is(err, pgx.ErrNoRows) || (err == nil && playerEconomy.AuthorityState != "server_authoritative") {
+		return ClaimResult{}, ErrEconomyNotReady
+	}
+	if err != nil {
+		return ClaimResult{}, fmt.Errorf("lock weekly reward economy: %w", err)
+	}
 
 	receipt, err = txQueries.GetRewardClaimByIdempotencyKey(ctx, receiptParams)
 	if err == nil {
@@ -177,17 +220,31 @@ func (service *Service) Claim(
 		return ClaimResult{}, fmt.Errorf("get weekly reward source save: %w", err)
 	}
 
-	periodKey, weekKey := weeklyPeriod(service.now().UTC())
+	periodKey, weekKey := rewardPeriod(request.Period, service.now().UTC())
 	evidence, err := decodeProgressionEvidence(snapshot.Progression)
 	if err != nil {
 		return ClaimResult{}, fmt.Errorf("decode weekly reward evidence: %w", err)
 	}
-	if evidence.WeeklyQuestWeekKey != weekKey {
+	if (request.Period == "weekly" && evidence.WeeklyQuestWeekKey != weekKey) ||
+		(request.Period == "daily" && evidence.DailyQuestDayKey != weekKey) {
 		return ClaimResult{}, ErrPeriodMismatch
 	}
 	definition, err := rewardDefinitionForRequest(request, periodKey)
 	if err != nil {
 		return ClaimResult{}, err
+	}
+	authoritativeClaim, err := txQueries.GetEconomyRewardClaim(ctx, dbgen.GetEconomyRewardClaimParams{
+		AccountID: databaseAccountID, RewardKey: definition.rewardKey,
+	})
+	if err == nil {
+		var result ClaimResult
+		if decodeErr := json.Unmarshal(authoritativeClaim.ResponsePayload, &result); decodeErr != nil {
+			return ClaimResult{}, fmt.Errorf("decode claimed reward response: %w", decodeErr)
+		}
+		return ClaimResult{}, &AlreadyClaimedError{Result: result}
+	}
+	if !errors.Is(err, pgx.ErrNoRows) {
+		return ClaimResult{}, fmt.Errorf("get authoritative claimed reward: %w", err)
 	}
 
 	stored, err := txQueries.GetRewardClaimByRewardKey(
@@ -211,6 +268,55 @@ func (service *Service) Claim(
 	if err != nil {
 		return ClaimResult{}, fmt.Errorf("encode weekly reward evidence: %w", err)
 	}
+	system, err := txQueries.GetEconomySystemState(ctx)
+	if err != nil {
+		return ClaimResult{}, fmt.Errorf("get weekly reward authority epoch: %w", err)
+	}
+	resultingRevision := playerEconomy.Revision + 1
+	command, err := txQueries.CreateEconomyCommand(ctx, dbgen.CreateEconomyCommandParams{
+		AccountID: databaseAccountID, IdempotencyKey: idempotencyKey,
+		CommandType: "reward_claim", RequestHash: requestHash[:],
+		ResultingRevision: resultingRevision, AuthorityEpoch: system.AuthorityEpoch,
+		CatalogVersion:  pgtype.Int4{Int32: economy.CatalogVersion, Valid: true},
+		ResponsePayload: []byte(`{}`),
+	})
+	if err != nil {
+		return ClaimResult{}, fmt.Errorf("create weekly reward economy command: %w", err)
+	}
+	updatedEconomy, err := txQueries.UpdatePlayerEconomy(ctx, dbgen.UpdatePlayerEconomyParams{
+		AccountID: databaseAccountID, Revision: resultingRevision,
+		FreeDiamonds:              playerEconomy.FreeDiamonds + int64(definition.diamonds),
+		PaidDiamonds:              playerEconomy.PaidDiamonds,
+		ModuleTickets:             playerEconomy.ModuleTickets + int64(definition.moduleTickets),
+		ModuleDrawCount:           playerEconomy.ModuleDrawCount,
+		ModuleTicketPurchaseCount: playerEconomy.ModuleTicketPurchaseCount,
+		ModuleItemSequence:        playerEconomy.ModuleItemSequence,
+		ResearchSlotTwoUnlocked:   playerEconomy.ResearchSlotTwoUnlocked,
+		Revision_2:                playerEconomy.Revision,
+	})
+	if err != nil {
+		return ClaimResult{}, fmt.Errorf("update weekly reward economy: %w", err)
+	}
+	entryOrder := int16(0)
+	if definition.diamonds > 0 {
+		if err := txQueries.CreateEconomyLedgerEntry(ctx, dbgen.CreateEconomyLedgerEntryParams{
+			CommandID: command.ID, EntryOrder: entryOrder, AssetType: "free_diamond",
+			Delta: int64(definition.diamonds), BalanceAfter: updatedEconomy.FreeDiamonds,
+			Reason: request.Period + "_reward_claim",
+		}); err != nil {
+			return ClaimResult{}, fmt.Errorf("create weekly diamond ledger: %w", err)
+		}
+		entryOrder++
+	}
+	if definition.moduleTickets > 0 {
+		if err := txQueries.CreateEconomyLedgerEntry(ctx, dbgen.CreateEconomyLedgerEntryParams{
+			CommandID: command.ID, EntryOrder: entryOrder, AssetType: "module_ticket",
+			Delta: int64(definition.moduleTickets), BalanceAfter: updatedEconomy.ModuleTickets,
+			Reason: request.Period + "_reward_claim",
+		}); err != nil {
+			return ClaimResult{}, fmt.Errorf("create weekly ticket ledger: %w", err)
+		}
+	}
 	receipt, err = txQueries.CreateRewardClaim(
 		ctx,
 		dbgen.CreateRewardClaimParams{
@@ -232,16 +338,63 @@ func (service *Service) Claim(
 	if err != nil {
 		return ClaimResult{}, fmt.Errorf("create weekly reward receipt: %w", err)
 	}
+	if err := txQueries.CreateEconomyRewardClaim(ctx, dbgen.CreateEconomyRewardClaimParams{
+		AccountID: databaseAccountID, RewardKey: definition.rewardKey,
+		CommandID: command.ID, WriterGeneration: pgtype.Int8{Int64: writer.Generation, Valid: true},
+		OriginSaveRevision: pgtype.Int8{Int64: snapshot.Revision, Valid: true}, Evidence: evidenceJSON,
+	}); err != nil {
+		return ClaimResult{}, fmt.Errorf("create authoritative weekly reward claim: %w", err)
+	}
+	claim := claimResult(receipt)
+	claim.EconomyRevision = resultingRevision
+	claim.AuthorityEpoch = formatUUID(system.AuthorityEpoch)
+	responsePayload, err := json.Marshal(claim)
+	if err != nil {
+		return ClaimResult{}, fmt.Errorf("encode weekly reward command response: %w", err)
+	}
+	if _, err := txQueries.UpdateEconomyCommandResponse(ctx, dbgen.UpdateEconomyCommandResponseParams{
+		ID: command.ID, ResponsePayload: responsePayload,
+	}); err != nil {
+		return ClaimResult{}, fmt.Errorf("store weekly reward command response: %w", err)
+	}
 	if err := tx.Commit(ctx); err != nil {
 		return ClaimResult{}, fmt.Errorf("commit weekly reward transaction: %w", err)
 	}
-	return claimResult(receipt), nil
+	return claim, nil
 }
 
 func rewardDefinitionForRequest(
 	request ClaimRequest,
 	periodKey string,
 ) (rewardDefinition, error) {
+	if request.Period == "" {
+		request.Period = "weekly"
+	}
+	if request.Period == "daily" {
+		prefix := "daily:" + periodKey + ":"
+		switch request.RewardType {
+		case RewardTypeQuest:
+			if _, exists := dailyQuestTargets[request.QuestType]; !exists {
+				return rewardDefinition{}, ErrInvalidReward
+			}
+			return rewardDefinition{rewardKey: prefix + "quest:" + request.QuestType, diamonds: dailyQuestRewardDiamonds}, nil
+		case RewardTypeAllComplete:
+			if request.QuestType != "" {
+				return rewardDefinition{}, ErrInvalidReward
+			}
+			return rewardDefinition{rewardKey: prefix + "all_complete", diamonds: dailyAllCompleteRewardDiamonds}, nil
+		case RewardTypeAttendance:
+			if request.QuestType != "" {
+				return rewardDefinition{}, ErrInvalidReward
+			}
+			return rewardDefinition{rewardKey: prefix + "attendance", diamonds: dailyAttendanceRewardDiamonds}, nil
+		default:
+			return rewardDefinition{}, ErrInvalidReward
+		}
+	}
+	if request.Period != "weekly" {
+		return rewardDefinition{}, ErrInvalidReward
+	}
 	prefix := "weekly:" + periodKey + ":"
 	switch request.RewardType {
 	case RewardTypeQuest:
@@ -280,8 +433,39 @@ func validateEligibility(
 	weekKey int64,
 	evidence progressionEvidence,
 ) error {
+	if request.Period == "" {
+		request.Period = "weekly"
+	}
 	if evidence.DailyQuestClockRollbackDetected {
 		return ErrNotEligible
+	}
+	if request.Period == "daily" {
+		switch request.RewardType {
+		case RewardTypeQuest:
+			if evidence.DailyQuestProgress[request.QuestType] < dailyQuestTargets[request.QuestType] ||
+				contains(evidence.ClaimedDailyQuestRewards, request.QuestType) {
+				return ErrNotEligible
+			}
+		case RewardTypeAllComplete:
+			if evidence.DailyQuestAllCompleteClaimed {
+				return ErrNotEligible
+			}
+			for questType, target := range dailyQuestTargets {
+				if evidence.DailyQuestProgress[questType] < target {
+					return ErrNotEligible
+				}
+			}
+		case RewardTypeAttendance:
+			if evidence.DailyAttendanceRewardClaimed {
+				return ErrNotEligible
+			}
+		default:
+			return ErrInvalidReward
+		}
+		return nil
+	}
+	if request.Period != "weekly" {
+		return ErrInvalidReward
 	}
 	switch request.RewardType {
 	case RewardTypeQuest:
@@ -319,7 +503,18 @@ func decodeProgressionEvidence(source []byte) (progressionEvidence, error) {
 	if evidence.WeeklyQuestProgress == nil {
 		evidence.WeeklyQuestProgress = map[string]int64{}
 	}
+	if evidence.DailyQuestProgress == nil {
+		evidence.DailyQuestProgress = map[string]int64{}
+	}
 	return evidence, nil
+}
+
+func rewardPeriod(period string, now time.Time) (string, int64) {
+	if period == "daily" {
+		adjusted := now.UTC().Add(resetOffset)
+		return adjusted.Format("2006-01-02"), adjusted.UnixMilli() / int64((24*time.Hour)/time.Millisecond)
+	}
+	return weeklyPeriod(now)
 }
 
 func weeklyPeriod(now time.Time) (string, int64) {
@@ -382,4 +577,11 @@ func parseUUID(value string) (pgtype.UUID, error) {
 		return pgtype.UUID{}, err
 	}
 	return parsed, nil
+}
+
+func formatUUID(value pgtype.UUID) string {
+	if !value.Valid {
+		return ""
+	}
+	return fmt.Sprintf("%x-%x-%x-%x-%x", value.Bytes[0:4], value.Bytes[4:6], value.Bytes[6:8], value.Bytes[8:10], value.Bytes[10:16])
 }

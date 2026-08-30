@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../../domain/daily_quest/daily_quest_type.dart';
 import '../../domain/economy/weekly_reward_claim.dart';
+import '../save/online_save_api.dart';
 import '../save/online_save_transport_stub.dart'
     if (dart.library.html) '../save/online_save_transport_web.dart';
 
@@ -49,6 +50,7 @@ class WeeklyRewardApi {
         WeeklyRewardKind.attendance => 'attendance',
       },
       if (target.questType != null) 'questType': target.questType!.name,
+      'clientCompatibilityVersion': onlineSaveClientCompatibilityVersion,
     });
     late final OnlineSaveHTTPResponse response;
     try {

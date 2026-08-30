@@ -205,6 +205,10 @@ func (handler saveHandler) claimWriter(response http.ResponseWriter, request *ht
 		writeAPIError(response, request, http.StatusUnauthorized, "UNAUTHORIZED", "유효한 인증 세션이 필요합니다.")
 		return
 	}
+	if errors.Is(err, gamesave.ErrClientUpdateRequired) {
+		writeAPIError(response, request, http.StatusUpgradeRequired, "CLIENT_UPDATE_REQUIRED", "최신 버전에서 계정 진행을 사용할 수 있습니다.")
+		return
+	}
 	if err != nil {
 		handler.writeInternalError(response, request, err)
 		return
@@ -391,8 +395,9 @@ func decodeSaveWriterClaimRequest(
 		return gamesave.ClaimWriterRequest{}, invalidSaveRequest(http.StatusBadRequest, "INVALID_REQUEST", "writer 클라이언트 정보가 올바르지 않습니다.", errors.New("invalid writer client metadata"))
 	}
 	return gamesave.ClaimWriterRequest{
-		ClientInstanceID: wire.ClientInstanceID,
-		RawBody:          rawBody,
+		ClientInstanceID:           wire.ClientInstanceID,
+		RawBody:                    rawBody,
+		ClientCompatibilityVersion: *wire.ClientCompatibilityVersion,
 	}, nil
 }
 
@@ -536,8 +541,9 @@ func decodeSaveUpdateRequest(
 		return gamesave.UpdateRequest{}, invalidSaveData("진행 중인 라운드 데이터 구조가 올바르지 않습니다.")
 	}
 	return gamesave.UpdateRequest{
-		ExpectedRevision: *wire.ExpectedRevision,
-		RawBody:          rawBody,
+		ExpectedRevision:           *wire.ExpectedRevision,
+		RawBody:                    rawBody,
+		ClientCompatibilityVersion: *wire.ClientCompatibilityVersion,
 		Data: gamesave.Data{
 			Version:       *wire.Data.Version,
 			SavedAtMillis: *wire.Data.SavedAtMillis,

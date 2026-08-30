@@ -18,7 +18,7 @@ import (
 
 const (
 	CurrentSchemaVersion              int32 = 2
-	CurrentClientCompatibilityVersion       = 1
+	CurrentClientCompatibilityVersion       = 2
 )
 
 var (
@@ -62,18 +62,20 @@ type Snapshot struct {
 }
 
 type UpdateRequest struct {
-	IdempotencyKey   string
-	WriterGeneration int64
-	ExpectedRevision int64
-	RawBody          []byte
-	Data             Data
-	ReceiptOnly      bool
+	IdempotencyKey             string
+	WriterGeneration           int64
+	ExpectedRevision           int64
+	RawBody                    []byte
+	Data                       Data
+	ReceiptOnly                bool
+	ClientCompatibilityVersion int
 }
 
 type ClaimWriterRequest struct {
-	IdempotencyKey   string
-	ClientInstanceID string
-	RawBody          []byte
+	IdempotencyKey             string
+	ClientInstanceID           string
+	RawBody                    []byte
+	ClientCompatibilityVersion int
 }
 
 type ClaimWriterResult struct {
@@ -203,6 +205,14 @@ func (service *Service) ClaimWriter(
 	if !errors.Is(err, pgx.ErrNoRows) {
 		return ClaimWriterResult{}, fmt.Errorf("recheck save writer claim receipt: %w", err)
 	}
+	playerEconomy, economyErr := txQueries.GetPlayerEconomyForUpdate(ctx, databaseAccountID)
+	if economyErr == nil && playerEconomy.AuthorityState == "server_authoritative" &&
+		request.ClientCompatibilityVersion < CurrentClientCompatibilityVersion {
+		return ClaimWriterResult{}, ErrClientUpdateRequired
+	}
+	if economyErr != nil && !errors.Is(economyErr, pgx.ErrNoRows) {
+		return ClaimWriterResult{}, fmt.Errorf("lock authoritative economy for writer claim: %w", economyErr)
+	}
 
 	advanced, err := txQueries.AdvanceSaveWriter(ctx, dbgen.AdvanceSaveWriterParams{
 		AccountID:        databaseAccountID,
@@ -295,6 +305,14 @@ func (service *Service) Update(
 	header, err := txQueries.GetSaveHeaderForUpdate(ctx, databaseAccountID)
 	if err != nil {
 		return UpdateResult{}, fmt.Errorf("lock save header: %w", err)
+	}
+	playerEconomy, economyErr := txQueries.GetPlayerEconomyForUpdate(ctx, databaseAccountID)
+	if economyErr == nil && playerEconomy.AuthorityState == "server_authoritative" &&
+		request.ClientCompatibilityVersion < CurrentClientCompatibilityVersion {
+		return UpdateResult{}, ErrClientUpdateRequired
+	}
+	if economyErr != nil && !errors.Is(economyErr, pgx.ErrNoRows) {
+		return UpdateResult{}, fmt.Errorf("lock authoritative economy for save: %w", economyErr)
 	}
 
 	storedRequest, err = txQueries.GetSaveRequest(ctx, dbgen.GetSaveRequestParams{

@@ -1,10 +1,32 @@
 # Rune Nexus 개발 히스토리
 
-마지막 갱신 기준: 2026-08-30 `codex/legacy-transfer-existing-account` 브랜치 작업 기준.
+마지막 갱신 기준: 2026-08-30 `codex/server-authoritative-economy` 브랜치 작업 기준.
 
 ## 목적
 
 이 문서는 README에 넣기에는 세부적인 최근 구현 흐름을 남기는 기록이다. 현재 규칙과 수치는 `docs/gameplay_balance_reference.md`, 구현 완료 여부는 `docs/implementation_status.md`를 기준으로 한다.
+
+### 서버 권위 경제 MVP 전환
+
+- PostgreSQL에 account별 경제 상태, economy revision·authority epoch, 소유 모듈,
+  명령 영수증, 자산 원장, 보상 수령과 연구 progression effect를 추가했다.
+- 기존 account 저장은 최초 경제 연결 때 한 번만 bootstrap하고 구매 다이아를 무료
+  다이아로 합산하며, 원문과 거부된 모듈 진단을 backup으로 남긴다.
+- 로그인 account의 가챠·분해, 연구 즉시 완료·두 번째 슬롯, 일·주간 보상과 런 종료
+  보상을 서버 명령으로 전환했다. 런 보상은 stable run ID와 durable draft로 중복·유실을
+  막고 최신 저장 진행을 근거로 정산한다.
+- Flutter `EconomyCoordinator`와 별도 영속 Outbox를 추가해 경제 명령을 직렬화하고,
+  같은 idempotency key·본문으로 응답 유실을 복구한 뒤 authoritative snapshot을 로컬
+  cache에 overlay한다.
+- 일반 save 호환성 세대를 2로 올리고, 서버 권위로 전환된 account는 구버전 save PUT으로
+  경제 cache나 진행을 덮지 못하게 했다. 마이그레이션과 DB 통합 테스트를 통과했다.
+- 독립 리뷰에서 확인된 rebase 뒤 경제 delegate 분리, 정상 패배 정산 누락, 연구 응답
+  유실 뒤 중복 차감, 스테이지 11 최초 보상 유실을 수정했다. coordinator 재결속,
+  progression effect 우선 복구, 저장 재연결 drain과 run별 최초 보상 증거를 회귀
+  테스트로 고정했다.
+- 경제 조회는 repeatable-read snapshot으로 묶고, 모든 경제 변경 API는 호환성 세대 2를
+  요구한다. 유니크 모듈 분해 금지와 일간 수령 기록이 존재하는 006 rollback도 실제
+  PostgreSQL에서 검증했다.
 
 ## 최근 구현 흐름
 

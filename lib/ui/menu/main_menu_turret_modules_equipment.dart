@@ -577,8 +577,10 @@ class _TurretModuleDetailStrip extends StatelessWidget {
           Expanded(
             child: GameButton(
               key: ValueKey('turret-module-disassemble-button-${item.id}'),
-              onPressed: () => _confirmDisassemble(context, item),
-              label: '분해',
+              onPressed: item.key.grade == TurretModuleGrade.unique
+                  ? null
+                  : () => _confirmDisassemble(context, item),
+              label: item.key.grade == TurretModuleGrade.unique ? '보호됨' : '분해',
               compact: true,
               variant: GameButtonVariant.ghost,
               accentColor: GamePalette.gold,
@@ -600,7 +602,13 @@ class _TurretModuleDetailStrip extends StatelessWidget {
         ) ??
         false;
     if (confirmed) {
-      game.disassembleTurretModule(item.id);
+      try {
+        await game.disassembleTurretModule(item.id);
+      } on Object {
+        if (context.mounted) {
+          _showEconomyRequestFailure(context);
+        }
+      }
     }
   }
 }

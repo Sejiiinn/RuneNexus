@@ -282,7 +282,13 @@ Future<void> _confirmUnlockResearchSlotTwo(
     ),
   );
   if (confirmed == true) {
-    game.unlockResearchSlotTwo();
+    try {
+      await game.unlockResearchSlotTwo();
+    } on Object {
+      if (context.mounted) {
+        _showEconomyRequestFailure(context);
+      }
+    }
   }
 }
 
@@ -597,7 +603,13 @@ Future<void> _confirmInstantCompleteResearch(
   if (confirmed != true) {
     return;
   }
-  game.completeResearchWithDiamonds(research.type);
+  try {
+    await game.completeResearchWithDiamonds(research.type);
+  } on Object {
+    if (context.mounted) {
+      _showEconomyRequestFailure(context);
+    }
+  }
 }
 
 Future<void> _confirmCancelResearch(

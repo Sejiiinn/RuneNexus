@@ -33,6 +33,7 @@ type Dependencies struct {
 	AuthenticationRateLimits              AuthenticationRateLimits
 	SaveService                           SaveService
 	WeeklyRewardService                   WeeklyRewardService
+	EconomyService                        EconomyService
 	LegacyTransferService                 LegacyTransferService
 	MaxSaveBodyBytes                      int64
 	MinimumSaveClientCompatibilityVersion int
@@ -97,8 +98,9 @@ func NewHandler(
 		}
 		if dependencies.WeeklyRewardService != nil {
 			rewards := weeklyRewardHandler{
-				logger:  logger,
-				rewards: dependencies.WeeklyRewardService,
+				logger:                            logger,
+				rewards:                           dependencies.WeeklyRewardService,
+				minimumClientCompatibilityVersion: dependencies.MinimumSaveClientCompatibilityVersion,
 			}
 			mux.Handle(
 				"POST /v1/economy/rewards/claim",
@@ -108,6 +110,22 @@ func NewHandler(
 					http.HandlerFunc(rewards.claim),
 				),
 			)
+		}
+		if dependencies.EconomyService != nil {
+			economyAPI := economyHandler{
+				logger:                            logger,
+				economy:                           dependencies.EconomyService,
+				minimumClientCompatibilityVersion: dependencies.MinimumSaveClientCompatibilityVersion,
+			}
+			mux.Handle("GET /v1/economy", withBearerAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.get)))
+			mux.Handle("GET /v1/economy/catalog", withBearerAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.catalog)))
+			mux.Handle("POST /v1/economy/bootstrap", withBearerAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.bootstrap)))
+			mux.Handle("POST /v1/economy/turret-modules/draw", withBearerAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.draw)))
+			mux.Handle("POST /v1/economy/turret-modules/disassemble", withBearerAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.disassemble)))
+			mux.Handle("POST /v1/economy/researches/{type}/complete", withBearerAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.completeResearch)))
+			mux.Handle("POST /v1/economy/research-slots/2/unlock", withBearerAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.unlockResearchSlot)))
+			mux.Handle("POST /v1/economy/progression-effects/{effectId}/ack", withBearerAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.acknowledgeEffect)))
+			mux.Handle("POST /v1/economy/runs/settle", withBearerAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(economyAPI.settleRun)))
 		}
 		if dependencies.LegacyTransferService != nil {
 			transfers := legacyTransferHandler{

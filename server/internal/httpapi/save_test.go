@@ -22,8 +22,8 @@ const (
 	testIdempotencyKey = "0198b955-3656-7c40-b3cb-87f427b90be3"
 	testSessionID      = "0198b955-3656-7c40-b3cb-87f427b90be4"
 	testClientID       = "0198b955-3656-7c40-b3cb-87f427b90be5"
-	validSaveBody      = `{"expectedRevision":0,"clientCompatibilityVersion":1,"data":{"version":2,"savedAtMillis":1234,"preferences":{"music":true},"progression":{"runes":30},"turretModules":{"tickets":4},"activeRun":null}}`
-	validWriterBody    = `{"clientInstanceId":"0198b955-3656-7c40-b3cb-87f427b90be5","saveSchemaVersion":2,"clientCompatibilityVersion":1,"clientBuild":"test-build"}`
+	validSaveBody      = `{"expectedRevision":0,"clientCompatibilityVersion":2,"data":{"version":2,"savedAtMillis":1234,"preferences":{"music":true},"progression":{"runes":30},"turretModules":{"tickets":4},"activeRun":null}}`
+	validWriterBody    = `{"clientInstanceId":"0198b955-3656-7c40-b3cb-87f427b90be5","saveSchemaVersion":2,"clientCompatibilityVersion":2,"clientBuild":"test-build"}`
 )
 
 type saveServiceStub struct {
@@ -288,7 +288,7 @@ func TestClaimSaveWriterRejectsOutdatedClientBeforeService(t *testing.T) {
 	request := jsonRequest(
 		http.MethodPost,
 		"/v1/save/writer",
-		strings.Replace(validWriterBody, `"clientCompatibilityVersion":1`, `"clientCompatibilityVersion":0`, 1),
+		strings.Replace(validWriterBody, `"clientCompatibilityVersion":2`, `"clientCompatibilityVersion":0`, 1),
 	)
 	request.Header.Set("Authorization", "Bearer access-token")
 	request.Header.Set(idempotencyKeyHeader, testIdempotencyKey)
@@ -385,12 +385,12 @@ func TestUpdateSaveRejectsInvalidRequestBeforeService(t *testing.T) {
 		},
 		{
 			name: "missing section", key: testIdempotencyKey, maxBytes: 4096,
-			body:   `{"expectedRevision":0,"clientCompatibilityVersion":1,"data":{"version":2,"savedAtMillis":0,"preferences":{},"progression":{},"activeRun":null}}`,
+			body:   `{"expectedRevision":0,"clientCompatibilityVersion":2,"data":{"version":2,"savedAtMillis":0,"preferences":{},"progression":{},"activeRun":null}}`,
 			status: http.StatusUnprocessableEntity, code: "INVALID_SAVE_DATA",
 		},
 		{
 			name: "non-object section", key: testIdempotencyKey, maxBytes: 4096,
-			body:   `{"expectedRevision":0,"clientCompatibilityVersion":1,"data":{"version":2,"savedAtMillis":0,"preferences":[],"progression":{},"turretModules":{},"activeRun":null}}`,
+			body:   `{"expectedRevision":0,"clientCompatibilityVersion":2,"data":{"version":2,"savedAtMillis":0,"preferences":[],"progression":{},"turretModules":{},"activeRun":null}}`,
 			status: http.StatusUnprocessableEntity, code: "INVALID_SAVE_DATA",
 		},
 		{
@@ -400,7 +400,7 @@ func TestUpdateSaveRejectsInvalidRequestBeforeService(t *testing.T) {
 		},
 		{
 			name: "excessive nesting", key: testIdempotencyKey, maxBytes: 16384,
-			body: `{"expectedRevision":0,"clientCompatibilityVersion":1,"data":{"version":2,"savedAtMillis":0,"preferences":` +
+			body: `{"expectedRevision":0,"clientCompatibilityVersion":2,"data":{"version":2,"savedAtMillis":0,"preferences":` +
 				deepObject + `,"progression":{},"turretModules":{},"activeRun":null}}`,
 			status: http.StatusUnprocessableEntity, code: "INVALID_SAVE_DATA",
 		},
@@ -459,7 +459,8 @@ func TestUpdateSaveRejectsOutdatedClientAfterReceiptLookup(t *testing.T) {
 		4096,
 		2,
 	)
-	legacyBody := strings.TrimSuffix(validSaveBody, "}") + `,"legacyMetadata":{"format":1}}`
+	outdatedBody := strings.Replace(validSaveBody, `"clientCompatibilityVersion":2`, `"clientCompatibilityVersion":1`, 1)
+	legacyBody := strings.TrimSuffix(outdatedBody, "}") + `,"legacyMetadata":{"format":1}}`
 	request := jsonRequest(http.MethodPut, "/v1/save", legacyBody)
 	request.Header.Set("Authorization", "Bearer access-token")
 	request.Header.Set(idempotencyKeyHeader, testIdempotencyKey)
@@ -492,7 +493,8 @@ func TestUpdateSaveReturnsExistingReceiptToOutdatedClient(t *testing.T) {
 		4096,
 		2,
 	)
-	request := jsonRequest(http.MethodPut, "/v1/save", validSaveBody)
+	outdatedBody := strings.Replace(validSaveBody, `"clientCompatibilityVersion":2`, `"clientCompatibilityVersion":1`, 1)
+	request := jsonRequest(http.MethodPut, "/v1/save", outdatedBody)
 	request.Header.Set("Authorization", "Bearer access-token")
 	request.Header.Set(idempotencyKeyHeader, testIdempotencyKey)
 	request.Header.Set(saveWriterHeader, "3")

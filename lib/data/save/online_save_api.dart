@@ -4,7 +4,7 @@ import 'game_save_data.dart';
 import 'online_save_transport_stub.dart'
     if (dart.library.html) 'online_save_transport_web.dart';
 
-const onlineSaveClientCompatibilityVersion = 1;
+const onlineSaveClientCompatibilityVersion = 2;
 
 abstract interface class OnlineSaveClient {
   Future<OnlineSaveWriterClaimResult> claimWriter(

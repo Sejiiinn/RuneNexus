@@ -134,6 +134,20 @@ mixin _QuestProgression {
     return true;
   }
 
+  bool applyDailyQuestRewardReceipt(
+    DailyQuestType type, {
+    required int dayKey,
+  }) {
+    if (dailyQuestDayKey != dayKey ||
+        dailyQuestClockRollbackDetected ||
+        !isDailyQuestComplete(type) ||
+        claimedDailyQuestRewards.contains(type)) {
+      return false;
+    }
+    claimedDailyQuestRewards.add(type);
+    return true;
+  }
+
   bool canClaimDailyQuestAllCompleteReward({required int nowMillis}) {
     refreshDailyQuests(nowMillis: nowMillis);
     return !dailyQuestClockRollbackDetected &&
@@ -150,12 +164,33 @@ mixin _QuestProgression {
     return true;
   }
 
+  bool applyDailyQuestAllCompleteRewardReceipt({required int dayKey}) {
+    if (dailyQuestDayKey != dayKey ||
+        dailyQuestClockRollbackDetected ||
+        !allDailyQuestsComplete ||
+        dailyQuestAllCompleteClaimed) {
+      return false;
+    }
+    dailyQuestAllCompleteClaimed = true;
+    return true;
+  }
+
   bool claimDailyAttendanceReward({required int nowMillis}) {
     refreshDailyQuests(nowMillis: nowMillis);
     if (dailyQuestClockRollbackDetected || dailyAttendanceRewardClaimed) {
       return false;
     }
     addFreeDiamonds(dailyAttendanceRewardDiamonds);
+    dailyAttendanceRewardClaimed = true;
+    return true;
+  }
+
+  bool applyDailyAttendanceRewardReceipt({required int dayKey}) {
+    if (dailyQuestDayKey != dayKey ||
+        dailyQuestClockRollbackDetected ||
+        dailyAttendanceRewardClaimed) {
+      return false;
+    }
     dailyAttendanceRewardClaimed = true;
     return true;
   }
@@ -182,6 +217,7 @@ mixin _QuestProgression {
     DailyQuestType type, {
     required int weekKey,
     required int rewardDiamonds,
+    bool grantEconomyRewardsLocally = true,
   }) {
     final definition = gameWeeklyQuestDefinitions[type];
     if (definition == null ||
@@ -192,7 +228,9 @@ mixin _QuestProgression {
         claimedWeeklyQuestRewards.contains(type)) {
       return false;
     }
-    addFreeDiamonds(rewardDiamonds);
+    if (grantEconomyRewardsLocally) {
+      addFreeDiamonds(rewardDiamonds);
+    }
     claimedWeeklyQuestRewards.add(type);
     return true;
   }
@@ -201,6 +239,7 @@ mixin _QuestProgression {
     required int weekKey,
     required int rewardDiamonds,
     required int rewardModuleTickets,
+    bool grantEconomyRewardsLocally = true,
   }) {
     if (rewardDiamonds <= 0 ||
         rewardModuleTickets < 0 ||
@@ -210,8 +249,10 @@ mixin _QuestProgression {
         weeklyQuestAllCompleteClaimed) {
       return false;
     }
-    addFreeDiamonds(rewardDiamonds);
-    turretModuleTickets += rewardModuleTickets;
+    if (grantEconomyRewardsLocally) {
+      addFreeDiamonds(rewardDiamonds);
+      turretModuleTickets += rewardModuleTickets;
+    }
     weeklyQuestAllCompleteClaimed = true;
     return true;
   }
@@ -219,6 +260,7 @@ mixin _QuestProgression {
   bool applyWeeklyAttendanceRewardReceipt({
     required int weekKey,
     required int rewardDiamonds,
+    bool grantEconomyRewardsLocally = true,
   }) {
     if (rewardDiamonds <= 0 ||
         weeklyQuestWeekKey != weekKey ||
@@ -227,7 +269,9 @@ mixin _QuestProgression {
         weeklyAttendanceRewardClaimed) {
       return false;
     }
-    addFreeDiamonds(rewardDiamonds);
+    if (grantEconomyRewardsLocally) {
+      addFreeDiamonds(rewardDiamonds);
+    }
     weeklyAttendanceRewardClaimed = true;
     return true;
   }

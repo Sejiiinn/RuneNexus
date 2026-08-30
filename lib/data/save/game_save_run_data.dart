@@ -42,6 +42,8 @@ class SavedRunState {
     required this.gemInventory,
     required this.rewardOptions,
     required this.isPurchasedGemReward,
+    this.economyRunId,
+    this.pendingEconomyDiamonds = 0,
     this.rewardReturnPhase,
     this.runCoreCombatSkill = CoreCombatSkill.guardianBeam,
     this.runCoreCombatSkillStats = SavedCoreCombatSkillStats.empty,
@@ -66,6 +68,8 @@ class SavedRunState {
   final Map<GemType, int> gemInventory;
   final List<GemType> rewardOptions;
   final bool isPurchasedGemReward;
+  final String? economyRunId;
+  final int pendingEconomyDiamonds;
   final GamePhase? rewardReturnPhase;
   final CoreCombatSkill? runCoreCombatSkill;
   final SavedCoreCombatSkillStats runCoreCombatSkillStats;
@@ -109,6 +113,8 @@ class SavedRunState {
       ),
       'rewardOptions': rewardOptions.map((type) => type.name).toList(),
       'isPurchasedGemReward': isPurchasedGemReward,
+      'economyRunId': economyRunId,
+      'pendingEconomyDiamonds': pendingEconomyDiamonds,
       'rewardReturnPhase': rewardReturnPhase?.name,
       'runCoreCombatSkill': runCoreCombatSkill?.name,
       'runCoreCombatSkillStats': runCoreCombatSkillStats.toJson(),
@@ -160,6 +166,10 @@ class SavedRunState {
       gemInventory: _enumIntMap(GemType.values, json['gemInventory']),
       rewardOptions: _enumList(GemType.values, json['rewardOptions']),
       isPurchasedGemReward: isPurchasedGemReward,
+      economyRunId: _stringValue(json['economyRunId']),
+      pendingEconomyDiamonds: _intValue(
+        json['pendingEconomyDiamonds'],
+      ).clamp(0, 1000000),
       rewardReturnPhase: rewardReturnPhase,
       runCoreCombatSkill: _nullableCoreCombatSkillFromSave(
         json,

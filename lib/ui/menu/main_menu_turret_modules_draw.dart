@@ -123,7 +123,7 @@ class _ModuleDrawPanel extends StatelessWidget {
   Future<void> _drawModules(BuildContext context, int count) async {
     final missingTickets = math.max(0, count - snapshot.turretModuleTickets);
     if (missingTickets == 0) {
-      onDrawResults(game.drawTurretModules(count, turretType: turretType));
+      await _requestDraw(context, count, buyMissingTickets: false);
       return;
     }
 
@@ -215,14 +215,28 @@ class _ModuleDrawPanel extends StatelessWidget {
         );
       },
     );
-    if (confirmed == true) {
+    if (confirmed == true && context.mounted) {
+      await _requestDraw(context, count, buyMissingTickets: true);
+    }
+  }
+
+  Future<void> _requestDraw(
+    BuildContext context,
+    int count, {
+    required bool buyMissingTickets,
+  }) async {
+    try {
       onDrawResults(
-        game.drawTurretModules(
+        await game.drawTurretModules(
           count,
           turretType: turretType,
-          buyMissingTicketsWithDiamonds: true,
+          buyMissingTicketsWithDiamonds: buyMissingTickets,
         ),
       );
+    } on Object {
+      if (context.mounted) {
+        _showEconomyRequestFailure(context);
+      }
     }
   }
 }

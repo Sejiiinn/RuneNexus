@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
+	"github.com/Sejiiinn/RuneNexus/server/internal/economy"
 	"github.com/Sejiiinn/RuneNexus/server/internal/legacytransfer"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/Sejiiinn/RuneNexus/server/internal/session"
@@ -193,7 +194,16 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 	dayKey := adjustedNow.UnixMilli() / int64((24*time.Hour)/time.Millisecond)
 	weekKey := (dayKey + 3) / 7
 	progression, err := json.Marshal(map[string]any{
-		"weeklyQuestWeekKey": weekKey,
+		"freeDiamonds":     100,
+		"paidDiamonds":     0,
+		"dailyQuestDayKey": dayKey,
+		"dailyQuestProgress": map[string]int{
+			"clearWaves": 30, "killBosses": 3, "killEnemies": 100, "buyRunUpgrades": 5,
+		},
+		"claimedDailyQuestRewards":     []string{},
+		"dailyQuestAllCompleteClaimed": false,
+		"dailyAttendanceRewardClaimed": false,
+		"weeklyQuestWeekKey":           weekKey,
 		"weeklyQuestProgress": map[string]int{
 			"clearWaves":     150,
 			"killBosses":     15,
@@ -217,10 +227,53 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 			Version:       gamesave.CurrentSchemaVersion,
 			Preferences:   json.RawMessage(`{}`),
 			Progression:   progression,
-			TurretModules: json.RawMessage(`{}`),
+			TurretModules: json.RawMessage(`{"tickets":2,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":0,"items":[]}`),
 		},
 	}); err != nil {
 		t.Fatalf("save weekly progression: %v", err)
+	}
+	bootstrapBody := []byte(`{"expectedSaveRevision":1,"writerGeneration":1,"clientCompatibilityVersion":2}`)
+	bootstrap, err := economy.NewService(fixture.pool).Bootstrap(
+		ctx,
+		accountID,
+		fixture.sessionID,
+		economy.BootstrapRequest{
+			IdempotencyKey:       "0198b955-3656-7c40-b3cb-87f427b90bea",
+			RawBody:              bootstrapBody,
+			WriterGeneration:     fixture.writerGeneration,
+			ExpectedSaveRevision: 1,
+		},
+	)
+	if err != nil || bootstrap.Snapshot.EconomyRevision != 1 {
+		t.Fatalf("bootstrap authoritative economy: %#v, %v", bootstrap, err)
+	}
+	if _, err := fixture.service.ClaimWriter(ctx, accountID, fixture.sessionID, gamesave.ClaimWriterRequest{
+		IdempotencyKey:             "0198b955-3656-7c40-b3cb-87f427b90bf0",
+		ClientInstanceID:           clientInstanceID,
+		ClientCompatibilityVersion: 1,
+		RawBody:                    []byte(`{"clientCompatibilityVersion":1}`),
+	}); !errors.Is(err, gamesave.ErrClientUpdateRequired) {
+		t.Fatalf("outdated writer claim after economy bootstrap = %v", err)
+	}
+	drawService := economy.NewService(fixture.pool)
+	draw, err := drawService.DrawModules(ctx, accountID, fixture.sessionID, economy.DrawRequest{
+		IdempotencyKey:   "0198b955-3656-7c40-b3cb-87f427b90beb",
+		RawBody:          []byte(`{"expectedEconomyRevision":1,"count":1}`),
+		ExpectedRevision: 1, ExpectedCatalogVersion: economy.CatalogVersion,
+		SourceSaveRevision: 1, WriterGeneration: fixture.writerGeneration,
+		Count: 1, TurretType: "arrow",
+	})
+	if err != nil || draw.Snapshot.EconomyRevision != 2 || len(draw.DrawnModules) != 1 || draw.Snapshot.Wallet.ModuleTickets != 1 {
+		t.Fatalf("draw authoritative module: %#v, %v", draw, err)
+	}
+	disassembled, err := drawService.DisassembleModules(ctx, accountID, economy.DisassembleRequest{
+		IdempotencyKey:   "0198b955-3656-7c40-b3cb-87f427b90bec",
+		RawBody:          []byte(`{"expectedEconomyRevision":2,"moduleIds":["` + draw.DrawnModules[0].ID + `"]}`),
+		ExpectedRevision: 2, ExpectedCatalogVersion: economy.CatalogVersion,
+		ModuleIDs: []string{draw.DrawnModules[0].ID},
+	})
+	if err != nil || disassembled.Snapshot.EconomyRevision != 3 || len(disassembled.Snapshot.TurretModules.Items) != 0 {
+		t.Fatalf("disassemble authoritative module: %#v, %v", disassembled, err)
 	}
 
 	service := weeklyreward.NewService(fixture.pool)
@@ -258,6 +311,100 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 		if !errors.As(err, &alreadyClaimed) || alreadyClaimed.Result != claimed {
 			t.Fatalf("duplicate reward error = %v", err)
 		}
+	}
+	dailyBody := []byte(`{"period":"daily","rewardType":"attendance"}`)
+	daily, err := service.Claim(ctx, accountID, fixture.sessionID, weeklyreward.ClaimRequest{
+		IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bef",
+		RawBody:        dailyBody, Period: "daily", RewardType: weeklyreward.RewardTypeAttendance,
+	})
+	if err != nil || daily.Diamonds != 10 || daily.WeekKey != dayKey || daily.EconomyRevision != 5 {
+		t.Fatalf("daily authoritative reward = %#v, %v", daily, err)
+	}
+	var settledProgression map[string]any
+	if err := json.Unmarshal(progression, &settledProgression); err != nil {
+		t.Fatalf("decode run settlement progression: %v", err)
+	}
+	settledProgression["bestRoundsByStage"] = map[string]int{"11": 40}
+	settledProgression["clearedStageNumbers"] = []int{11}
+	// 다른 런이 마지막 보상 표시를 덮어써도 Outbox의 run 증거를 사용한다.
+	settledProgression["lastRunTurretModuleTicketReward"] = 0
+	settledProgressionJSON, err := json.Marshal(settledProgression)
+	if err != nil {
+		t.Fatalf("encode run settlement progression: %v", err)
+	}
+	if _, err := fixture.Update(ctx, accountID, gamesave.UpdateRequest{
+		IdempotencyKey:             "0198b955-3656-7c40-b3cb-87f427b90bf1",
+		WriterGeneration:           fixture.writerGeneration,
+		ExpectedRevision:           1,
+		ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
+		RawBody:                    []byte(`{"expectedRevision":1,"clientCompatibilityVersion":2,"data":{"version":2}}`),
+		Data: gamesave.Data{
+			Version:       gamesave.CurrentSchemaVersion,
+			Preferences:   json.RawMessage(`{}`),
+			Progression:   settledProgressionJSON,
+			TurretModules: json.RawMessage(`{"tickets":2,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":0,"items":[]}`),
+		},
+	}); err != nil {
+		t.Fatalf("save stage 11 settlement proof: %v", err)
+	}
+	runBody := []byte(`{"runId":"0198b955-3656-7c40-b3cb-87f427b90bf2","writerGeneration":1,"sourceSaveRevision":2,"stageNumber":11,"completedRounds":40,"success":true,"pendingDiamonds":0,"firstClearModuleTickets":5,"clientCompatibilityVersion":2}`)
+	runResult, err := drawService.SettleRun(ctx, accountID, fixture.sessionID, economy.RunSettlementRequest{
+		IdempotencyKey:          "0198b955-3656-7c40-b3cb-87f427b90bf3",
+		RawBody:                 runBody,
+		RunID:                   "0198b955-3656-7c40-b3cb-87f427b90bf2",
+		WriterGeneration:        fixture.writerGeneration,
+		SourceSaveRevision:      2,
+		StageNumber:             11,
+		CompletedRounds:         40,
+		Success:                 true,
+		PendingDiamonds:         0,
+		FirstClearModuleTickets: economy.StageElevenModuleTicketGift,
+	})
+	if err != nil || runResult.GrantedModuleTickets != economy.StageElevenModuleTicketGift ||
+		runResult.Snapshot.Wallet.ModuleTickets != 6 || runResult.Snapshot.EconomyRevision != 6 {
+		t.Fatalf("settle durable stage reward: %#v, %v", runResult, err)
+	}
+	settledProgression["activeResearches"] = []map[string]any{{
+		"type": "researchEfficiency", "targetLevel": 1,
+		"startedAtMillis": time.Now().UTC().UnixMilli(), "durationMillis": int64(600_000),
+		"initialElapsedMillis": int64(0),
+	}}
+	researchProgressionJSON, err := json.Marshal(settledProgression)
+	if err != nil {
+		t.Fatalf("encode active research progression: %v", err)
+	}
+	if _, err := fixture.Update(ctx, accountID, gamesave.UpdateRequest{
+		IdempotencyKey:             "0198b955-3656-7c40-b3cb-87f427b90bf4",
+		WriterGeneration:           fixture.writerGeneration,
+		ExpectedRevision:           2,
+		ClientCompatibilityVersion: gamesave.CurrentClientCompatibilityVersion,
+		RawBody:                    []byte(`{"expectedRevision":2,"clientCompatibilityVersion":2,"data":{"version":2}}`),
+		Data: gamesave.Data{
+			Version: gamesave.CurrentSchemaVersion, Preferences: json.RawMessage(`{}`),
+			Progression:   researchProgressionJSON,
+			TurretModules: json.RawMessage(`{"tickets":2,"drawCount":0,"ticketPurchaseCount":0,"itemSequence":0,"items":[]}`),
+		},
+	}); err != nil {
+		t.Fatalf("save active research: %v", err)
+	}
+	researchResult, err := drawService.CompleteResearch(ctx, accountID, fixture.sessionID, economy.ResearchCompleteRequest{
+		IdempotencyKey:   "0198b955-3656-7c40-b3cb-87f427b90bf5",
+		RawBody:          []byte(`{"expectedEconomyRevision":6,"sourceSaveRevision":3,"researchType":"researchEfficiency"}`),
+		ExpectedRevision: 6, ExpectedCatalogVersion: economy.CatalogVersion,
+		WriterGeneration: fixture.writerGeneration, SourceSaveRevision: 3,
+		ResearchType: "researchEfficiency",
+	})
+	if err != nil || researchResult.Snapshot.EconomyRevision != 7 || researchResult.ProgressionEffect == nil {
+		t.Fatalf("complete authoritative research: %#v, %v", researchResult, err)
+	}
+	if _, err := drawService.CompleteResearch(ctx, accountID, fixture.sessionID, economy.ResearchCompleteRequest{
+		IdempotencyKey:   "0198b955-3656-7c40-b3cb-87f427b90bf6",
+		RawBody:          []byte(`{"expectedEconomyRevision":7,"sourceSaveRevision":3,"researchType":"researchEfficiency"}`),
+		ExpectedRevision: 7, ExpectedCatalogVersion: economy.CatalogVersion,
+		WriterGeneration: fixture.writerGeneration, SourceSaveRevision: 3,
+		ResearchType: "researchEfficiency",
+	}); !errors.Is(err, economy.ErrProgressionEffect) {
+		t.Fatalf("duplicate pending research effect error = %v", err)
 	}
 }
 

@@ -14,6 +14,7 @@ import (
 	"github.com/Sejiiinn/RuneNexus/server/internal/auth"
 	googleauth "github.com/Sejiiinn/RuneNexus/server/internal/auth/google"
 	"github.com/Sejiiinn/RuneNexus/server/internal/config"
+	"github.com/Sejiiinn/RuneNexus/server/internal/economy"
 	"github.com/Sejiiinn/RuneNexus/server/internal/httpapi"
 	"github.com/Sejiiinn/RuneNexus/server/internal/legacytransfer"
 	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
@@ -114,6 +115,7 @@ func run(logger *slog.Logger) error {
 			},
 			SaveService:                           gamesave.NewService(pool),
 			WeeklyRewardService:                   weeklyreward.NewService(pool),
+			EconomyService:                        economy.NewService(pool),
 			LegacyTransferService:                 legacyTransferService,
 			MaxSaveBodyBytes:                      cfg.MaxSaveBodyBytes,
 			MinimumSaveClientCompatibilityVersion: cfg.MinimumSaveClientCompatibilityVersion,

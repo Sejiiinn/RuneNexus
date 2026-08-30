@@ -25,6 +25,70 @@ type AuthIdentity struct {
 	LastVerifiedAt pgtype.Timestamptz `db:"last_verified_at"`
 }
 
+type EconomyBootstrapBackup struct {
+	AccountID          pgtype.UUID        `db:"account_id"`
+	CommandID          pgtype.UUID        `db:"command_id"`
+	SourceSaveRevision int64              `db:"source_save_revision"`
+	Progression        []byte             `db:"progression"`
+	TurretModules      []byte             `db:"turret_modules"`
+	Diagnostics        []byte             `db:"diagnostics"`
+	CreatedAt          pgtype.Timestamptz `db:"created_at"`
+}
+
+type EconomyCommand struct {
+	ID                  pgtype.UUID        `db:"id"`
+	AccountID           pgtype.UUID        `db:"account_id"`
+	IdempotencyKey      pgtype.UUID        `db:"idempotency_key"`
+	CommandType         string             `db:"command_type"`
+	RequestHash         []byte             `db:"request_hash"`
+	ExpectedRevision    pgtype.Int8        `db:"expected_revision"`
+	ResultingRevision   int64              `db:"resulting_revision"`
+	AuthorityEpoch      pgtype.UUID        `db:"authority_epoch"`
+	CatalogVersion      pgtype.Int4        `db:"catalog_version"`
+	RngAlgorithmVersion pgtype.Int4        `db:"rng_algorithm_version"`
+	ResponsePayload     []byte             `db:"response_payload"`
+	CreatedAt           pgtype.Timestamptz `db:"created_at"`
+}
+
+type EconomyLedgerEntry struct {
+	CommandID    pgtype.UUID `db:"command_id"`
+	EntryOrder   int16       `db:"entry_order"`
+	AssetType    string      `db:"asset_type"`
+	Delta        int64       `db:"delta"`
+	BalanceAfter int64       `db:"balance_after"`
+	Reason       string      `db:"reason"`
+}
+
+type EconomyProgressionEffect struct {
+	ID                  pgtype.UUID        `db:"id"`
+	AccountID           pgtype.UUID        `db:"account_id"`
+	CommandID           pgtype.UUID        `db:"command_id"`
+	EffectType          string             `db:"effect_type"`
+	Payload             []byte             `db:"payload"`
+	Status              string             `db:"status"`
+	AppliedSaveRevision pgtype.Int8        `db:"applied_save_revision"`
+	AppliedByCommandID  pgtype.UUID        `db:"applied_by_command_id"`
+	CreatedAt           pgtype.Timestamptz `db:"created_at"`
+	AppliedAt           pgtype.Timestamptz `db:"applied_at"`
+}
+
+type EconomyRewardClaim struct {
+	AccountID          pgtype.UUID        `db:"account_id"`
+	RewardKey          string             `db:"reward_key"`
+	CommandID          pgtype.UUID        `db:"command_id"`
+	WriterGeneration   pgtype.Int8        `db:"writer_generation"`
+	OriginSaveRevision pgtype.Int8        `db:"origin_save_revision"`
+	Evidence           []byte             `db:"evidence"`
+	ClaimedAt          pgtype.Timestamptz `db:"claimed_at"`
+}
+
+type EconomySystemState struct {
+	Singleton        bool               `db:"singleton"`
+	AuthorityEpoch   pgtype.UUID        `db:"authority_epoch"`
+	AuthorityVersion int32              `db:"authority_version"`
+	UpdatedAt        pgtype.Timestamptz `db:"updated_at"`
+}
+
 type LegacySaveTransfer struct {
 	ID                  pgtype.UUID        `db:"id"`
 	TokenHash           []byte             `db:"token_hash"`
@@ -55,6 +119,42 @@ type LegacySaveTransferReceipt struct {
 	PreviousProgression         []byte             `db:"previous_progression"`
 	PreviousTurretModules       []byte             `db:"previous_turret_modules"`
 	PreviousActiveRun           []byte             `db:"previous_active_run"`
+}
+
+type PlayerEconomy struct {
+	AccountID                 pgtype.UUID        `db:"account_id"`
+	Revision                  int64              `db:"revision"`
+	FreeDiamonds              int64              `db:"free_diamonds"`
+	PaidDiamonds              int64              `db:"paid_diamonds"`
+	ModuleTickets             int64              `db:"module_tickets"`
+	ModuleDrawCount           int64              `db:"module_draw_count"`
+	ModuleTicketPurchaseCount int64              `db:"module_ticket_purchase_count"`
+	ModuleItemSequence        int64              `db:"module_item_sequence"`
+	ResearchSlotTwoUnlocked   bool               `db:"research_slot_two_unlocked"`
+	AuthorityState            string             `db:"authority_state"`
+	AuthorityVersion          int32              `db:"authority_version"`
+	BootstrapSaveRevision     pgtype.Int8        `db:"bootstrap_save_revision"`
+	BootstrappedAt            pgtype.Timestamptz `db:"bootstrapped_at"`
+	CreatedAt                 pgtype.Timestamptz `db:"created_at"`
+	UpdatedAt                 pgtype.Timestamptz `db:"updated_at"`
+}
+
+type PlayerModule struct {
+	ID                      pgtype.UUID        `db:"id"`
+	AccountID               pgtype.UUID        `db:"account_id"`
+	LegacyItemID            pgtype.Text        `db:"legacy_item_id"`
+	TurretType              string             `db:"turret_type"`
+	Part                    string             `db:"part"`
+	Family                  string             `db:"family"`
+	Grade                   string             `db:"grade"`
+	Options                 []byte             `db:"options"`
+	AcquiredOrder           int64              `db:"acquired_order"`
+	AcquiredRevision        int64              `db:"acquired_revision"`
+	Status                  string             `db:"status"`
+	CreatedByCommandID      pgtype.UUID        `db:"created_by_command_id"`
+	DisassembledByCommandID pgtype.UUID        `db:"disassembled_by_command_id"`
+	CreatedAt               pgtype.Timestamptz `db:"created_at"`
+	DisassembledAt          pgtype.Timestamptz `db:"disassembled_at"`
 }
 
 type RefreshToken struct {

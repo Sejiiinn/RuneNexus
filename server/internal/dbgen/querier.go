@@ -13,11 +13,19 @@ import (
 type Querier interface {
 	AdvanceSaveHeader(ctx context.Context, arg AdvanceSaveHeaderParams) (AdvanceSaveHeaderRow, error)
 	AdvanceSaveWriter(ctx context.Context, arg AdvanceSaveWriterParams) (SaveWriterState, error)
+	ApplyEconomyProgressionEffect(ctx context.Context, arg ApplyEconomyProgressionEffectParams) (EconomyProgressionEffect, error)
+	CompleteEconomyBootstrap(ctx context.Context, arg CompleteEconomyBootstrapParams) (PlayerEconomy, error)
 	ConsumeRefreshToken(ctx context.Context, id pgtype.UUID) (RefreshToken, error)
 	CreateAccount(ctx context.Context) (Account, error)
 	CreateAuthIdentity(ctx context.Context, arg CreateAuthIdentityParams) (AuthIdentity, error)
+	CreateEconomyBootstrapBackup(ctx context.Context, arg CreateEconomyBootstrapBackupParams) error
+	CreateEconomyCommand(ctx context.Context, arg CreateEconomyCommandParams) (EconomyCommand, error)
+	CreateEconomyLedgerEntry(ctx context.Context, arg CreateEconomyLedgerEntryParams) error
+	CreateEconomyProgressionEffect(ctx context.Context, arg CreateEconomyProgressionEffectParams) (EconomyProgressionEffect, error)
+	CreateEconomyRewardClaim(ctx context.Context, arg CreateEconomyRewardClaimParams) error
 	CreateLegacySaveTransfer(ctx context.Context, arg CreateLegacySaveTransferParams) (LegacySaveTransfer, error)
 	CreateLegacySaveTransferReceipt(ctx context.Context, arg CreateLegacySaveTransferReceiptParams) (LegacySaveTransferReceipt, error)
+	CreatePlayerModule(ctx context.Context, arg CreatePlayerModuleParams) (PlayerModule, error)
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateRewardClaim(ctx context.Context, arg CreateRewardClaimParams) (RewardClaim, error)
 	CreateSaveRequest(ctx context.Context, arg CreateSaveRequestParams) (SaveRequest, error)
@@ -26,14 +34,23 @@ type Querier interface {
 	DeleteExpiredLegacySaveTransfers(ctx context.Context, expiresAt pgtype.Timestamptz) (int64, error)
 	DeleteLegacySaveTransfer(ctx context.Context, id pgtype.UUID) error
 	DeleteSaveActiveRun(ctx context.Context, accountID pgtype.UUID) error
+	DisassemblePlayerModule(ctx context.Context, arg DisassemblePlayerModuleParams) (PlayerModule, error)
+	EnsurePlayerEconomy(ctx context.Context, accountID pgtype.UUID) error
 	EnsureSaveHeader(ctx context.Context, accountID pgtype.UUID) error
 	EnsureSaveWriterState(ctx context.Context, accountID pgtype.UUID) error
 	GetAccount(ctx context.Context, id pgtype.UUID) (Account, error)
 	GetAccountByIdentity(ctx context.Context, arg GetAccountByIdentityParams) (Account, error)
+	GetActivePlayerModuleForUpdate(ctx context.Context, arg GetActivePlayerModuleForUpdateParams) (PlayerModule, error)
 	GetActiveSessionByAccessTokenHash(ctx context.Context, accessTokenHash []byte) (GetActiveSessionByAccessTokenHashRow, error)
 	GetAuthIdentityForUpdate(ctx context.Context, arg GetAuthIdentityForUpdateParams) (AuthIdentity, error)
+	GetEconomyCommand(ctx context.Context, arg GetEconomyCommandParams) (EconomyCommand, error)
+	GetEconomyProgressionEffectForUpdate(ctx context.Context, arg GetEconomyProgressionEffectForUpdateParams) (EconomyProgressionEffect, error)
+	GetEconomyRewardClaim(ctx context.Context, arg GetEconomyRewardClaimParams) (GetEconomyRewardClaimRow, error)
+	GetEconomySystemState(ctx context.Context) (EconomySystemState, error)
 	GetLegacySaveTransferForUpdate(ctx context.Context, tokenHash []byte) (LegacySaveTransfer, error)
 	GetLegacySaveTransferReceipt(ctx context.Context, tokenHash []byte) (LegacySaveTransferReceipt, error)
+	GetPlayerEconomy(ctx context.Context, accountID pgtype.UUID) (PlayerEconomy, error)
+	GetPlayerEconomyForUpdate(ctx context.Context, accountID pgtype.UUID) (PlayerEconomy, error)
 	GetRefreshTokenForUpdate(ctx context.Context, tokenHash []byte) (GetRefreshTokenForUpdateRow, error)
 	GetRewardClaimByIdempotencyKey(ctx context.Context, arg GetRewardClaimByIdempotencyKeyParams) (RewardClaim, error)
 	GetRewardClaimByRewardKey(ctx context.Context, arg GetRewardClaimByRewardKeyParams) (RewardClaim, error)
@@ -43,14 +60,20 @@ type Querier interface {
 	GetSaveWriterClaim(ctx context.Context, arg GetSaveWriterClaimParams) (SaveWriterClaim, error)
 	GetSaveWriterStateForUpdate(ctx context.Context, accountID pgtype.UUID) (SaveWriterState, error)
 	IsActiveSessionForAccount(ctx context.Context, arg IsActiveSessionForAccountParams) (bool, error)
+	ListActivePlayerModules(ctx context.Context, accountID pgtype.UUID) ([]PlayerModule, error)
+	ListEconomyRewardClaimKeys(ctx context.Context, accountID pgtype.UUID) ([]string, error)
+	ListPendingEconomyProgressionEffects(ctx context.Context, accountID pgtype.UUID) ([]EconomyProgressionEffect, error)
 	LockAuthIdentity(ctx context.Context, arg LockAuthIdentityParams) error
 	RevokeRefreshTokensForSession(ctx context.Context, sessionID pgtype.UUID) (int64, error)
 	RevokeSession(ctx context.Context, id pgtype.UUID) (int64, error)
 	RevokeSessionsForAccount(ctx context.Context, accountID pgtype.UUID) (int64, error)
+	RotateEconomyAuthorityEpoch(ctx context.Context) (EconomySystemState, error)
 	RotateSessionAccessToken(ctx context.Context, arg RotateSessionAccessTokenParams) (Session, error)
 	TouchAuthIdentity(ctx context.Context, id pgtype.UUID) (AuthIdentity, error)
 	TouchSession(ctx context.Context, id pgtype.UUID) error
 	UpdateAccountStatus(ctx context.Context, arg UpdateAccountStatusParams) (Account, error)
+	UpdateEconomyCommandResponse(ctx context.Context, arg UpdateEconomyCommandResponseParams) (EconomyCommand, error)
+	UpdatePlayerEconomy(ctx context.Context, arg UpdatePlayerEconomyParams) (PlayerEconomy, error)
 	UpsertSaveActiveRun(ctx context.Context, arg UpsertSaveActiveRunParams) error
 	UpsertSavePreferences(ctx context.Context, arg UpsertSavePreferencesParams) error
 	UpsertSaveProgression(ctx context.Context, arg UpsertSaveProgressionParams) error

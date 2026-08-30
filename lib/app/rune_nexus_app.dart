@@ -8,6 +8,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import '../data/auth/google_authentication_api.dart';
 import '../data/auth/google_web_authentication_config.dart';
 import '../data/auth/online_account_session_controller.dart';
+import '../data/economy/economy_api.dart';
+import '../data/economy/economy_coordinator.dart';
+import '../data/economy/local_economy_command_outbox_repository.dart';
 import '../data/economy/weekly_reward_api.dart';
 import '../data/save/account_save_bootstrap.dart';
 import '../data/save/local_save_repository.dart';
@@ -43,6 +46,7 @@ enum _AccountConnectionPhase {
   savingCurrentProgress,
   loadingAccountProgress,
   openingAccountProgress,
+  connectingEconomy,
 }
 
 class _AppLoadingProgress {
@@ -68,6 +72,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   late final AccountSaveBootstrapService _accountSaveBootstrapService;
   GoogleAuthenticationApi? _googleAuthenticationApi;
   OnlineSaveApi? _onlineSaveApi;
+  EconomyApi? _economyApi;
   WeeklyRewardApi? _weeklyRewardApi;
   LegacySaveTransferApi? _legacySaveTransferApi;
   final ValueNotifier<_AppLoadingProgress> _loadingProgress = ValueNotifier(
@@ -79,6 +84,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   _OnlineAccountState? _onlineAccount;
   OnlineAccountSessionController? _onlineSession;
   OnlineSaveCoordinator? _onlineSaveCoordinator;
+  EconomyCoordinator? _economyCoordinator;
   Future<void>? _onlineSaveReloadOperation;
   Future<void>? _onlineSaveResumeOperation;
   bool _writerRecoveryInProgress = false;
@@ -110,6 +116,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       _onlineSaveApi = OnlineSaveApi(
         baseUrl: _googleAuthenticationConfig.apiBaseUrl,
       );
+      _economyApi = EconomyApi(baseUrl: _googleAuthenticationConfig.apiBaseUrl);
       _weeklyRewardApi = WeeklyRewardApi(
         baseUrl: _googleAuthenticationConfig.apiBaseUrl,
       );
@@ -185,6 +192,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _onlineSaveCoordinator?.dispose();
+    _economyCoordinator?.dispose();
     _onlineSession?.dispose();
     _loadingProgress.dispose();
     game.disposeAppResources();
@@ -570,6 +578,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       },
     );
     RuneNexusGame? replacement;
+    EconomyCoordinator? economyCoordinator;
 
     try {
       await coordinator.initialize();
@@ -612,13 +621,37 @@ class _RuneNexusAppState extends State<RuneNexusApp>
         }
         await coordinator.enqueuePersistedCheckpoint(initialData);
       }
+
+      final economyApi = _economyApi;
+      if (economyApi == null) {
+        throw StateError('경제 API가 구성되지 않았습니다.');
+      }
+      if (mounted) {
+        setState(() {
+          _accountConnectionPhase = _AccountConnectionPhase.connectingEconomy;
+        });
+      }
+      economyCoordinator = EconomyCoordinator(
+        accountId: accountId,
+        api: economyApi,
+        session: onlineSession,
+        saveCoordinator: coordinator,
+        outboxRepository: createDefaultEconomyCommandOutboxRepository(
+          slot: slot,
+        ),
+        game: replacement,
+      );
+      replacement.attachAuthoritativeEconomyCommands(economyCoordinator);
+      await economyCoordinator.initialize();
     } on Object {
+      economyCoordinator?.dispose();
       coordinator.dispose();
       replacement?.disposeAppResources();
       rethrow;
     }
 
     if (!mounted || !identical(_onlineSession, onlineSession)) {
+      economyCoordinator.dispose();
       coordinator.dispose();
       replacement.disposeAppResources();
       return null;
@@ -626,11 +659,14 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     final readyReplacement = replacement;
     final previousGame = game;
     final previousCoordinator = _onlineSaveCoordinator;
+    final previousEconomyCoordinator = _economyCoordinator;
     setState(() {
       game = readyReplacement;
       _screen = _AppScreen.main;
       _onlineSaveCoordinator = coordinator;
+      _economyCoordinator = economyCoordinator;
     });
+    previousEconomyCoordinator?.dispose();
     previousCoordinator?.dispose();
     previousGame.disposeAppResources();
     return coordinator;
@@ -663,6 +699,8 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     }
     if (snapshot.requiresGameReload) {
       _startOnlineSaveGameReload(coordinator);
+    } else {
+      _economyCoordinator?.handleSaveSnapshotChanged(snapshot);
     }
   }
 
@@ -705,7 +743,34 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       replacement.disposeAppResources();
       return;
     }
+    final economyCoordinator = _economyCoordinator;
+    if (economyCoordinator == null) {
+      replacement.disposeAppResources();
+      await coordinator.reportGameReloadFailure();
+      return;
+    }
     final previous = game;
+    try {
+      await economyCoordinator.rebindGame(replacement);
+    } on Object {
+      replacement.disposeAppResources();
+      await coordinator.reportGameReloadFailure();
+      return;
+    }
+    if (!mounted ||
+        !identical(_onlineSaveCoordinator, coordinator) ||
+        !identical(_economyCoordinator, economyCoordinator) ||
+        !coordinator.snapshot.requiresGameReload) {
+      if (identical(_economyCoordinator, economyCoordinator)) {
+        try {
+          await economyCoordinator.rebindGame(previous);
+        } on Object {
+          // 세션 종료와 겹친 경우 기존 종료 흐름이 coordinator를 정리한다.
+        }
+      }
+      replacement.disposeAppResources();
+      return;
+    }
     setState(() {
       game = replacement;
       _screen = _AppScreen.main;
@@ -777,6 +842,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
           );
         }
       }
+      await _economyCoordinator?.refresh();
     } on WeeklyRewardClaimFailure {
       rethrow;
     } on WeeklyRewardException catch (error) {
@@ -855,11 +921,14 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     }
     final previous = game;
     final previousCoordinator = _onlineSaveCoordinator;
+    final previousEconomyCoordinator = _economyCoordinator;
     setState(() {
       game = replacement;
       _screen = _AppScreen.main;
       _onlineSaveCoordinator = null;
+      _economyCoordinator = null;
     });
+    previousEconomyCoordinator?.dispose();
     previousCoordinator?.dispose();
     previous.disposeAppResources();
   }
@@ -871,7 +940,10 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       return;
     }
     final coordinator = _onlineSaveCoordinator;
+    final economyCoordinator = _economyCoordinator;
     _onlineSaveCoordinator = null;
+    _economyCoordinator = null;
+    economyCoordinator?.dispose();
     coordinator?.dispose();
     _onlineSession = null;
     setState(() {
@@ -1192,6 +1264,7 @@ class _AccountConnectionOverlay extends StatelessWidget {
         l10n.loadingAccountProgress,
       _AccountConnectionPhase.openingAccountProgress =>
         l10n.openingAccountProgress,
+      _AccountConnectionPhase.connectingEconomy => '계정 경제 정보를 연결하는 중입니다.',
     };
     return ColoredBox(
       color: const Color(0xD907111D),

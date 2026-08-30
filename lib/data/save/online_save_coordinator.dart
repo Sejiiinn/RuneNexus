@@ -189,6 +189,9 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
   Future<void> get currentAttempt =>
       _drainOperation ?? _initializeOperation ?? Future<void>.value();
 
+  int? get writerGeneration =>
+      _initialized ? _outbox.state.writerGeneration : null;
+
   Future<void> initialize() {
     final current = _initializeOperation;
     if (current != null) {

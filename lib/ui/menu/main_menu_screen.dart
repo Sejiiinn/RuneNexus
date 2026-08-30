@@ -74,6 +74,15 @@ const double _stageRowHeight = 54;
 const Color _diamondCurrencyColor = Color(0xFF8EE6FF);
 const Color _researchInstantCompleteAccent = Color(0xFF0F5D72);
 
+void _showEconomyRequestFailure(BuildContext context) {
+  if (!context.mounted) {
+    return;
+  }
+  ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+    const SnackBar(content: Text('경제 서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.')),
+  );
+}
+
 class MainMenuScreen extends StatefulWidget {
   const MainMenuScreen({
     required this.game,

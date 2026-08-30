@@ -1,6 +1,6 @@
 # Rune Nexus 구현 현황
 
-마지막 갱신 기준: 2026-08-30 `codex/legacy-transfer-existing-account` 브랜치 작업 기준.
+마지막 갱신 기준: 2026-08-30 `codex/server-authoritative-economy` 브랜치 작업 기준.
 
 ## 요약
 
@@ -33,15 +33,14 @@ PUT에는 공통 정수 호환성 게이트가 적용되며, 구버전 실행 �
 본문으로 재구성해 전송한다. 상세 계약은
 `docs/multi_device_save_sync_design.md`를 따른다.
 
-다이아·모듈권·뽑기 횟수·소유 모듈과 관련 보상 수령을 하나의 서버 권위 경제
-영역으로 전환하는 설계도 확정했다. 일반 전투와 진행은 계속 로컬에서 처리하며,
-가챠·분해·다이아 소비·보상 수령만 별도 명령 API를 사용한다. 상세 계약은
-`docs/server_authoritative_economy_design.md`를 따른다. 이 가운데 주간 임무·주간 출석의
-수령 판정은 첫 수직 기능으로 구현했다. 로그인된 클라이언트가 최신 account 저장을
-동기화하면 서버가 그 저장의 진행량, 현재 save writer와 KST 월요일 05:00 주차를
-검사하고 고정 보상표로 계정별 영수증을 한 번만 만든다. 클라이언트는 성공 영수증을
-받은 뒤에만 다이아와 모듈권 캐시 및 수령 표시를 함께 저장한다. 전체 다이아 지갑,
-가챠·분해·연구 소비와 legacy bootstrap은 아직 서버 권위로 전환하지 않았다.
+다이아·모듈권·뽑기 횟수·소유 모듈과 관련 보상 수령은 서버 권위 경제 영역으로
+전환했다. 일반 전투와 진행은 계속 로컬에서 처리하지만, 로그인 account의 가챠·분해,
+연구 다이아 소비, 일·주간 보상, 런 획득 다이아와 스테이지 최초 모듈권은 별도 경제
+명령으로만 확정된다. PostgreSQL 원장, economy revision, account 1회 bootstrap과
+Flutter exact 명령 Outbox가 이를 보장한다. 일반 save의 경제 값은 bootstrap source와
+표시 cache일 뿐 서버 경제 원본을 갱신하지 못하며, 호환성 세대 2보다 오래된
+클라이언트는 전환 account의 새 저장을 쓸 수 없다. 상세 계약은
+`docs/server_authoritative_economy_design.md`를 따른다.
 
 세부 전투 수치와 밸런스 기준은 `docs/gameplay_balance_reference.md`를 기준으로 한다.
 
@@ -150,6 +149,19 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
   - 수령 전에 중요 account 체크포인트를 원격 저장하고 idle 상태를 확인
   - 서버 영수증을 받은 뒤에만 로컬 다이아·모듈권과 수령 상태를 원자적으로 저장
   - guest·오프라인·저장 동기화 미완료 상태에서는 수령을 확정하지 않음
+- 서버 권위 경제 DB와 API
+  - account별 무료·구매 다이아, 모듈권, 뽑기 횟수와 연구 슬롯 entitlement
+  - economy revision·authority epoch, 불변 명령 영수증과 자산 원장
+  - 소유 모듈 원본, 서버 RNG·카탈로그·분해 가격과 account 1회 bootstrap
+  - 모듈 뽑기·분해, 연구 즉시 완료·슬롯 해금, effect 저장 적용·ack
+  - KST 05:00 기준 일·주간 보상과 stable run ID 기반 런/스테이지 보상 정산
+- Flutter `EconomyCoordinator`와 계정별 영속 경제 Outbox
+  - 소비 명령 단일 직렬화, expected economy revision과 save writer 결속
+  - 응답 유실 exact 재전송, authoritative snapshot 전체 overlay
+  - 런 종료 보상 draft 선기록과 저장 동기화 뒤 FIFO 정산
+  - 원격 rebase 게임 재결속, 저장 재연결 자동 drain과 progression effect 우선 복구
+  - run별 스테이지 최초 보상 증거 보존과 정상 패배 정산
+  - 서버 권위 account에서 로컬 디버그 다이아 지급 및 로컬 경제 소비 차단
 - 기존 카카오 인앱 브라우저 guest 진행의 15분짜리 일회용 이전 링크
   - canonical v2 저장, 구매 다이아 0, 중요 재화·모듈 상한을 생성 시 검증
   - 빈 Google account에는 revision 1로 귀속
@@ -508,10 +520,7 @@ Variables도 연결했다. 남은 공개 E2E는 실제 Google 계정 선택 뒤 
 - 기존 account에 Google/PGS identity를 추가하는 계정 연결 API
 - 브라우저 새로고침·앱 재시작 뒤 인증 세션 복원
 - 계정·원격 데이터 삭제와 운영 DB 백업·복원 자동화
-- 전체 서버 권위 지갑 DB·조회 API·legacy bootstrap
-- 일일·런·스테이지 보상 claim과 durable reward outbox
-- Flutter 경제 coordinator, exact 소비 요청 복구와 보상 claim outbox
-- 저장 v3 경제 cache·모듈 장착 분리와 account 단위 전환
+- 저장 v3 경제 cache·모듈 장착 serializer 분리
 - 챕터 2~3 클리어 보상과 연구 조건의 추가 연결·체감 검증
 - 영구 업그레이드 해금 단계 구조
 - 링크/젬/룬 보상 계열 영구 업그레이드 추가 검토
@@ -524,11 +533,10 @@ Variables도 연결했다. 남은 공개 E2E는 실제 Google 계정 선택 뒤 
 
 1. 공개 환경에서 Google 로그인·writer 교체·온라인 저장 E2E 검증
 2. Android PGS와 기존 Google account identity 연결
-3. 서버 권위 지갑 DB·조회·bootstrap을 기능 플래그 뒤에 구현
-4. 가챠·분해·연구 소비와 나머지 보상 claim, Flutter 경제 coordinator 구현
-5. 공개 환경 다중 기기·경제 E2E 검증
-6. 운영 DB backup·복원과 계정 데이터 삭제 절차 마련
-7. Web BroadcastChannel 종료 알림과 재획득 안내
+3. 공개 환경 다중 기기·경제 E2E 검증
+4. 저장 v3 `CloudSaveData` 분리와 경제 cache 전송 제외
+5. 운영 DB backup·복원과 계정 데이터 삭제 절차 마련
+6. Web BroadcastChannel 종료 알림과 재획득 안내
 
 온라인 저장 통합과 독립적으로 진행할 콘텐츠 작업은
 `docs/next_work_priorities.md`의 콘텐츠 백로그를 따른다.

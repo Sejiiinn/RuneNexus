@@ -28,7 +28,7 @@ func (stub weeklyRewardServiceStub) Claim(
 
 func TestWeeklyRewardClaimPassesAuthenticatedPrincipalAndExactBody(t *testing.T) {
 	claimedAt := time.Date(2026, 8, 29, 1, 2, 3, 0, time.UTC)
-	body := `{"period":"weekly","rewardType":"quest","questType":"killEnemies"}`
+	body := `{"period":"weekly","rewardType":"quest","questType":"killEnemies","clientCompatibilityVersion":2}`
 	handler := newWeeklyRewardTestHandler(t, weeklyRewardServiceStub{claim: func(
 		_ context.Context,
 		accountID string,
@@ -93,7 +93,7 @@ func TestWeeklyRewardClaimReturnsRecoverableAlreadyClaimedReceipt(t *testing.T) 
 	request := jsonRequest(
 		http.MethodPost,
 		"/v1/economy/rewards/claim",
-		`{"period":"weekly","rewardType":"attendance"}`,
+		`{"period":"weekly","rewardType":"attendance","clientCompatibilityVersion":2}`,
 	)
 	request.Header.Set("Authorization", "Bearer access-token")
 	request.Header.Set(idempotencyKeyHeader, testIdempotencyKey)
@@ -114,6 +114,34 @@ func TestWeeklyRewardClaimReturnsRecoverableAlreadyClaimedReceipt(t *testing.T) 
 	}
 }
 
+func TestWeeklyRewardClaimRejectsOutdatedEconomyClient(t *testing.T) {
+	called := false
+	handler := newWeeklyRewardTestHandler(t, weeklyRewardServiceStub{claim: func(
+		context.Context,
+		string,
+		string,
+		weeklyreward.ClaimRequest,
+	) (weeklyreward.ClaimResult, error) {
+		called = true
+		return weeklyreward.ClaimResult{}, nil
+	}})
+	request := jsonRequest(
+		http.MethodPost,
+		"/v1/economy/rewards/claim",
+		`{"period":"weekly","rewardType":"attendance","clientCompatibilityVersion":1}`,
+	)
+	request.Header.Set("Authorization", "Bearer access-token")
+	request.Header.Set(idempotencyKeyHeader, testIdempotencyKey)
+	response := httptest.NewRecorder()
+
+	handler.ServeHTTP(response, request)
+
+	requireAPIError(t, response, http.StatusUpgradeRequired, "CLIENT_UPDATE_REQUIRED")
+	if called {
+		t.Fatal("outdated reward request reached service")
+	}
+}
+
 func newWeeklyRewardTestHandler(t *testing.T, rewards WeeklyRewardService) http.Handler {
 	t.Helper()
 	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -121,8 +149,9 @@ func newWeeklyRewardTestHandler(t *testing.T, rewards WeeklyRewardService) http.
 		Database: readinessCheckerFunc(func(context.Context) error {
 			return nil
 		}),
-		ReadinessTimeout:    50 * time.Millisecond,
-		Authenticator:       successfulAccessAuthenticator(t),
-		WeeklyRewardService: rewards,
+		ReadinessTimeout:                      50 * time.Millisecond,
+		Authenticator:                         successfulAccessAuthenticator(t),
+		WeeklyRewardService:                   rewards,
+		MinimumSaveClientCompatibilityVersion: 1,
 	})
 }

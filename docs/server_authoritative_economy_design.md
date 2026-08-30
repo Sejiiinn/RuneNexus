@@ -1,15 +1,21 @@
 # Rune Nexus 서버 권위 경제 상세 설계
 
-문서 상태: 채택 설계 · 주간 보상 수령 판정 1차 구현
-마지막 갱신: 2026-08-29
+문서 상태: 채택 설계 · 서버 권위 경제 MVP 구현
+마지막 갱신: 2026-08-30
 
-현재 구현된 범위는 `POST /v1/economy/rewards/claim`의 주간 임무·전체 완료·주간 출석
-수령 판정이다. 서버가 현재 save writer와 최신 account snapshot을 잠그고 진행 증거,
-서버 주차, 고정 보상량과 계정별 reward key를 검증한다. 클라이언트는 영수증 뒤에만
-로컬 캐시를 갱신한다. 아직 `player_economies`, economy revision, legacy bootstrap과
-다른 다이아 증감 경로가 전환되지 않았으므로 전체 지갑 서버 권위 전환으로 보지는
-않는다. 이 단계에서는 오프라인 claim을 쌓지 않고 로그인·저장 동기화가 완료된 때만
-수령한다. 응답 유실은 동일 reward key의 기존 영수증을 다시 내려 복구한다.
+`player_economies`, 별도 economy revision·authority epoch, 모듈 소유권, 원장과 exact
+명령 영수증을 구현했다. 기존 account 저장은 최초 연결 시 한 번만 bootstrap하며 구매
+다이아를 무료 다이아로 합산한다. 로그인 account의 모듈 뽑기·분해, 연구 즉시 완료,
+두 번째 연구 슬롯, 일·주간 보상, 런 획득 다이아와 스테이지 11 최초 모듈권은 모두
+서버 명령으로만 확정된다. Flutter `EconomyCoordinator`는 계정별 경제 Outbox를 사용해
+응답 유실 시 같은 key와 본문을 복구하고, 일반 save의 경제 필드는 서버 원본을 변경하지
+못한다. 호환성 세대 2보다 오래된 클라이언트는 전환된 account의 새 save PUT을 쓸 수
+없다.
+
+일반 저장 형식은 당장 v3로 크게 바꾸지 않고 v2 경제 필드를 bootstrap source와 로컬
+표시 cache로 유지한다. 따라서 단계 5의 별도 `CloudSaveData` serializer와 경제 cache
+제외는 후속 최적화이며, 실제 Google 계정·다중 기기 공개 E2E와 운영 백업 검증은 아직
+남아 있다. 실제 Google Play 결제 검증은 상품 도입 시 별도 단계로 진행한다.
 
 ## 1. 결론
 
@@ -54,7 +60,7 @@ Rune Nexus는 전투와 일반 진행을 계속 로컬에서 처리하되, 다�
 `turretModules`에 모듈권·뽑기 횟수·소유 모듈·장착 여부를 저장한다. 모든 증감은
 클라이언트 메모리에서 동기적으로 끝난 뒤 로컬 저장된다.
 
-| 현재 경로 | 현재 처리 | 최종 권위 |
+| 전환 전 경로 | 전환 전 처리 | 구현된 최종 권위 |
 | --- | --- | --- |
 | 퀘스트·출석 보상 | 클라이언트가 무료 다이아와 모듈권 직접 증가 | 서버 claim |
 | 다이아 운반 적 처치 | 클라이언트 RNG와 즉시 무료 다이아 증가 | 로컬 미확정 보상 + 서버 정산 |
@@ -505,6 +511,8 @@ revision 증가를 한 transaction으로 처리한다. 같은 effect의 반복 a
 - 온라인이면 백그라운드에서 즉시 정산한다.
 - 오프라인이면 확정 잔액과 분리해 표시하고 durable reward outbox에 보존한다.
 - 같은 run ID는 성공·실패와 무관하게 한 번만 정산한다.
+- 스테이지 최초 모듈권은 마지막 런 표시값이 아니라 run draft에 함께 보존한 증거로
+  정산하며, bootstrap 시 이미 클리어한 계정은 수령 완료로 이관한다.
 - 서버는 스테이지·완료 라운드별 가능한 상한과 현재 writer generation을 검사한다.
 - 승인 전 pending 값은 뽑기나 연구에 사용할 수 없다.
 - 서버가 거부하면 잔액에 더하지 않고 진단 가능한 상태로 남긴다.
@@ -771,7 +779,7 @@ legacy_local
 예상 변경 위치:
 
 ```text
-server/db/migrations/003_authoritative_economy.sql
+server/db/migrations/006_authoritative_economy.sql
 server/db/queries/economy.sql
 server/internal/economy/catalog.go
 server/internal/economy/service.go
@@ -844,17 +852,17 @@ server/internal/httpapi/economy.go
 - 오프라인 런 보상은 유실되지 않지만 승인 전 소비할 수 없다.
 - writer 교체 뒤 `remote == base` 보상은 보존되고 `remote > base` 분기의 보상만 무효화된다.
 
-### 단계 5. 저장 v3와 account 단위 전환
+### 단계 5. account 단위 전환과 저장 v3 후속 분리
 
 작업:
 
-- `economyCache`와 `turretModuleLoadout`을 분리하는 보존형 v3 migration
-- 일반 cloud save serializer에서 경제 cache 제외
-- save Outbox fingerprint를 canonical CloudSaveData bytes 기준으로 변경
-- v2 snapshot 기반 bootstrap과 legacy module ID 대응
-- 모든 경제 변이 경로가 server coordinator를 거치는 정적 검색·테스트
-- `legacy_local`에서 `server_authoritative`로 account 1회 전환
-- 구버전 호환 세대 차단과 장애 시 경제 read-only 모드
+- 완료: v2 snapshot 기반 bootstrap과 legacy module ID 대응
+- 완료: 모든 account 경제 변이 경로의 server coordinator 경유
+- 완료: `legacy_local`에서 `server_authoritative`로 account 1회 전환
+- 완료: 구버전 호환 세대 차단과 장애 시 경제 read-only 처리
+- 후속: `economyCache`와 `turretModuleLoadout`을 분리하는 보존형 v3 migration
+- 후속: 일반 cloud save serializer에서 경제 cache 제외
+- 후속: save Outbox fingerprint를 canonical `CloudSaveData` bytes 기준으로 변경
 
 성공 기준:
 
@@ -934,17 +942,17 @@ PostgreSQL 안에서 처리한다.
 
 ## 14. 최종 추천 순서
 
-현재 형상에서 실제 구현은 다음 순서가 가장 안전하다.
+현재 형상은 1~6번을 완료했으며, 이후 검증·운영 작업은 다음 순서로 진행한다.
 
-1. 다중 기기 save canonical Outbox·자동 rebase 완성
-2. save writer generation과 구버전 client compatibility gate 완성
-3. 경제 DB·`GET /v1/economy`·bootstrap을 기능 플래그 뒤에 구현
-4. 가챠·분해 vertical slice와 Flutter exact command 복구 구현
-5. 연구 소비와 모든 다이아·모듈권 보상 경로 구현
-6. 저장 v3 migration과 account 단위 서버 권위 전환
+1. 완료: 다중 기기 save canonical Outbox·자동 rebase
+2. 완료: save writer generation과 구버전 client compatibility gate
+3. 완료: 경제 DB·`GET /v1/economy`·bootstrap
+4. 완료: 가챠·분해 vertical slice와 Flutter exact command 복구
+5. 완료: 연구 소비와 모든 다이아·모듈권 보상 경로
+6. 완료: account 단위 서버 권위 전환
 7. 공개 환경 두 기기 E2E와 운영 backup 검증
-8. 필요할 때만 Google Play 구매 검증 추가
+8. 저장 v3 `CloudSaveData` 분리
+9. 필요할 때만 Google Play 구매 검증 추가
 
-가장 먼저 경제 코드부터 작성하는 것보다 1~2번을 선행해야 한다. 보상 claim을 현재
-save writer에 묶고, 오래된 기기가 로컬 진행과 보상을 함께 제출하는 경로를 막기 위한
-전제이기 때문이다.
+1~2번을 선행한 덕분에 보상 claim을 현재 save writer에 묶고, 오래된 기기가 로컬
+진행과 보상을 함께 제출하는 경로를 차단한 상태다.

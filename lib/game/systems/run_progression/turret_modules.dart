@@ -239,7 +239,9 @@ mixin _TurretModuleProgression {
 
   bool disassembleTurretModule(String id) {
     final item = turretModules[id];
-    if (item == null || item.equipped) {
+    if (item == null ||
+        item.equipped ||
+        item.key.grade == TurretModuleGrade.unique) {
       return false;
     }
     turretModules.remove(id);

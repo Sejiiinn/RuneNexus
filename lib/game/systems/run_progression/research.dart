@@ -222,6 +222,22 @@ mixin _ResearchProgression {
     return true;
   }
 
+  bool applyResearchCompletionEffect(ResearchType type, int targetLevel) {
+    final definition = gameResearchDefinitions[type];
+    if (definition == null || targetLevel <= 0) {
+      return false;
+    }
+    final resolvedLevel = targetLevel.clamp(0, definition.maxLevel).toInt();
+    final changed = (researchLevels[type] ?? 0) < resolvedLevel;
+    researchLevels[type] = math.max(researchLevels[type] ?? 0, resolvedLevel);
+    activeResearches.removeWhere(
+      (research) =>
+          research.type == type && research.targetLevel <= resolvedLevel,
+    );
+    researchElapsedMillis.remove(type);
+    return changed;
+  }
+
   bool unlockResearchSlotTwo() {
     if (!canUnlockResearchSlotTwo ||
         spendDiamonds(RunProgression.researchSlotTwoUnlockCost) == null) {

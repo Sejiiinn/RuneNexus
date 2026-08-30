@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/Sejiiinn/RuneNexus/server/internal/weeklyreward"
 )
 
@@ -22,14 +23,16 @@ type WeeklyRewardService interface {
 }
 
 type weeklyRewardHandler struct {
-	logger  *slog.Logger
-	rewards WeeklyRewardService
+	logger                            *slog.Logger
+	rewards                           WeeklyRewardService
+	minimumClientCompatibilityVersion int
 }
 
 type weeklyRewardClaimRequest struct {
-	Period     string `json:"period"`
-	RewardType string `json:"rewardType"`
-	QuestType  string `json:"questType,omitempty"`
+	Period                     string `json:"period"`
+	RewardType                 string `json:"rewardType"`
+	QuestType                  string `json:"questType,omitempty"`
+	ClientCompatibilityVersion *int   `json:"clientCompatibilityVersion"`
 }
 
 type weeklyRewardClaimResponse struct {
@@ -42,6 +45,8 @@ type weeklyRewardClaimResponse struct {
 	ModuleTickets      int32     `json:"moduleTickets"`
 	SourceSaveRevision int64     `json:"sourceSaveRevision"`
 	ClaimedAt          time.Time `json:"claimedAt"`
+	EconomyRevision    int64     `json:"economyRevision"`
+	AuthorityEpoch     string    `json:"authorityEpoch"`
 }
 
 type weeklyRewardAlreadyClaimedResponse struct {
@@ -67,6 +72,15 @@ func (handler weeklyRewardHandler) claim(response http.ResponseWriter, request *
 		writeAPIError(response, request, http.StatusBadRequest, "INVALID_REWARD_REQUEST", err.Error())
 		return
 	}
+	minimumVersion := max(
+		handler.minimumClientCompatibilityVersion,
+		gamesave.CurrentClientCompatibilityVersion,
+	)
+	if input.ClientCompatibilityVersion == nil ||
+		*input.ClientCompatibilityVersion < minimumVersion {
+		writeAPIError(response, request, http.StatusUpgradeRequired, "CLIENT_UPDATE_REQUIRED", "최신 버전에서 경제 기능을 사용할 수 있습니다.")
+		return
+	}
 	result, err := handler.rewards.Claim(
 		request.Context(),
 		principal.AccountID,
@@ -76,6 +90,7 @@ func (handler weeklyRewardHandler) claim(response http.ResponseWriter, request *
 			RawBody:        rawBody,
 			RewardType:     input.RewardType,
 			QuestType:      input.QuestType,
+			Period:         input.Period,
 		},
 	)
 	if errors.Is(err, weeklyreward.ErrInvalidIdempotencyKey) {
@@ -108,6 +123,10 @@ func (handler weeklyRewardHandler) claim(response http.ResponseWriter, request *
 	}
 	if errors.Is(err, weeklyreward.ErrWriterRequired) || errors.Is(err, weeklyreward.ErrSaveNotFound) {
 		writeAPIError(response, request, http.StatusConflict, "SAVE_SYNC_REQUIRED", "최신 계정 진행을 서버에 저장한 뒤 다시 시도해 주세요.")
+		return
+	}
+	if errors.Is(err, weeklyreward.ErrEconomyNotReady) {
+		writeAPIError(response, request, http.StatusConflict, "ECONOMY_BOOTSTRAP_REQUIRED", "계정 경제 정보를 준비한 뒤 다시 시도해 주세요.")
 		return
 	}
 	if errors.Is(err, weeklyreward.ErrPeriodMismatch) {
@@ -154,8 +173,8 @@ func decodeWeeklyRewardClaimRequest(
 	input.Period = strings.TrimSpace(input.Period)
 	input.RewardType = strings.TrimSpace(input.RewardType)
 	input.QuestType = strings.TrimSpace(input.QuestType)
-	if input.Period != "weekly" || input.RewardType == "" {
-		return weeklyRewardClaimRequest{}, nil, errors.New("유효한 주간 reward 요청이 필요합니다")
+	if (input.Period != "weekly" && input.Period != "daily") || input.RewardType == "" {
+		return weeklyRewardClaimRequest{}, nil, errors.New("유효한 reward 요청이 필요합니다")
 	}
 	return input, rawBody, nil
 }
@@ -171,6 +190,8 @@ func weeklyRewardResponse(result weeklyreward.ClaimResult) weeklyRewardClaimResp
 		ModuleTickets:      result.ModuleTickets,
 		SourceSaveRevision: result.SourceSaveRevision,
 		ClaimedAt:          result.ClaimedAt,
+		EconomyRevision:    result.EconomyRevision,
+		AuthorityEpoch:     result.AuthorityEpoch,
 	}
 }
 

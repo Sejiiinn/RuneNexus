@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/save/game_save_data.dart';
 import 'package:rune_nexus/data/save/legacy_save_transfer_api.dart';
+import 'package:rune_nexus/data/save/online_save_api.dart';
 import 'package:rune_nexus/data/save/online_save_transport_stub.dart';
 
 void main() {
@@ -33,7 +34,10 @@ void main() {
     );
     expect(transport.requests.single.headers, isEmpty);
     final body = jsonDecode(transport.requests.single.body);
-    expect(body['clientCompatibilityVersion'], 1);
+    expect(
+      body['clientCompatibilityVersion'],
+      onlineSaveClientCompatibilityVersion,
+    );
     expect(body['data']['version'], GameSaveData.currentVersion);
     expect(result.token, token);
     expect(result.expiresAt, DateTime.parse('2026-08-29T03:15:00Z'));

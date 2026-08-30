@@ -5,6 +5,28 @@ const String _questEntryDefaultAsset =
     '$_questImageAssetRoot/entry_default.jpg';
 const String _questEntryRewardReadyAsset =
     '$_questImageAssetRoot/entry_reward_ready.jpg';
+
+Future<void> _claimDailyReward(
+  BuildContext context,
+  Future<bool> Function() claim,
+) async {
+  try {
+    if (await claim() || !context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.maybeOf(
+      context,
+    )?.showSnackBar(const SnackBar(content: Text('현재 진행으로는 이 보상을 받을 수 없습니다.')));
+  } on Object {
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      const SnackBar(content: Text('보상 서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.')),
+    );
+  }
+}
+
 const String _questTitleIconAsset =
     '$_questImageAssetRoot/title_flag_compact.png';
 const String _questAttendanceIconAsset = '$_questImageAssetRoot/attendance.png';
@@ -358,7 +380,11 @@ class _DailyQuestContent extends StatelessWidget {
           claimed: snapshot.dailyAttendanceRewardClaimed,
           claimable: !blocked && !snapshot.dailyAttendanceRewardClaimed,
           blocked: blocked,
-          onClaim: game.claimDailyAttendanceReward,
+          onClaim: () {
+            unawaited(
+              _claimDailyReward(context, game.claimDailyAttendanceReward),
+            );
+          },
         ),
         const SizedBox(height: 5),
         for (final entry in gameDailyQuestDefinitions.entries) ...[
@@ -591,7 +617,14 @@ class _DailyQuestSummaryCard extends StatelessWidget {
             width: 68,
             child: GameButton(
               onPressed: canClaim
-                  ? () => game.claimDailyQuestAllCompleteReward()
+                  ? () {
+                      unawaited(
+                        _claimDailyReward(
+                          context,
+                          game.claimDailyQuestAllCompleteReward,
+                        ),
+                      );
+                    }
                   : null,
               label: blocked ? '잠김' : buttonLabel,
               compact: true,
@@ -773,7 +806,14 @@ class _DailyQuestRow extends StatelessWidget {
             width: 68,
             child: GameButton(
               onPressed: canClaim
-                  ? () => game.claimDailyQuestReward(type)
+                  ? () {
+                      unawaited(
+                        _claimDailyReward(
+                          context,
+                          () => game.claimDailyQuestReward(type),
+                        ),
+                      );
+                    }
                   : null,
               label: snapshot.dailyQuestClockRollbackDetected
                   ? '잠김'
