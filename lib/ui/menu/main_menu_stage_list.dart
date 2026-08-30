@@ -16,9 +16,10 @@ class _ActiveStageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return GamePanel(
+    return _StageMetalFrame(
       padding: const EdgeInsets.all(11),
       selected: true,
+      reinforced: true,
       accentColor: GamePalette.cyan,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -29,7 +30,7 @@ class _ActiveStageCard extends StatelessWidget {
             onTap: onDetails,
             child: Row(
               children: [
-                _buildMedallion(snapshot.currentStageNumber),
+                _StageMedallionSocket(stageNumber: snapshot.currentStageNumber),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -74,56 +75,59 @@ class _ActiveStageCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              _buildStatBox('라운드', '${snapshot.round}/${snapshot.maxRound}'),
-              const SizedBox(width: 6),
-              _buildStatBox('포탑', '${snapshot.placedTurretCount}'),
-              const SizedBox(width: 6),
-              _buildStatBox(
-                '골드',
-                _formatGold(snapshot.gold),
-                valueColor: GamePalette.goldBright,
-              ),
-            ],
+          _StageMetalFrame(
+            accentColor: GamePalette.metalDim,
+            inset: true,
+            reinforced: true,
+            cutSize: 4,
+            child: Row(
+              children: [
+                _buildStatBox('라운드', '${snapshot.round}/${snapshot.maxRound}'),
+                const _StageStatDivider(),
+                _buildStatBox('포탑', '${snapshot.placedTurretCount}'),
+                const _StageStatDivider(),
+                _buildStatBox(
+                  '골드',
+                  _formatGold(snapshot.gold),
+                  valueColor: GamePalette.goldBright,
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 10),
-          GameButton(
-            onPressed: onContinue,
-            label: l10n.continueRun,
-            icon: const Icon(Icons.play_arrow_rounded, size: 17),
-            variant: GameButtonVariant.primary,
-            accentColor: GamePalette.cyan,
+          SizedBox(
             height: 38,
+            child: _StageMetalFrame(
+              onTap: onContinue,
+              semanticLabel: l10n.continueRun,
+              selected: true,
+              filledAccent: true,
+              reinforced: true,
+              cornerStuds: true,
+              showInteriorLines: false,
+              cutSize: 5,
+              accentColor: GamePalette.cyan,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.play_arrow_rounded,
+                    size: 17,
+                    color: GamePalette.voidBlack,
+                  ),
+                  const SizedBox(width: GamePalette.gapSmall),
+                  Text(
+                    l10n.continueRun,
+                    style: GameTextStyles.withColor(
+                      GameTextStyles.button,
+                      GamePalette.voidBlack,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMedallion(int n) {
-    return Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: const Color(0xFF103247),
-        shape: BoxShape.circle,
-        border: Border.all(color: GamePalette.cyan, width: 1.6),
-        boxShadow: [
-          BoxShadow(
-            color: GamePalette.cyanDeep.withValues(alpha: 0.5),
-            blurRadius: 10,
-          ),
-        ],
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        n.toString().padLeft(2, '0'),
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w900,
-          color: Color(0xFFE8F8FF),
-        ),
       ),
     );
   }
@@ -132,10 +136,6 @@ class _ActiveStageCard extends StatelessWidget {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 5),
-        decoration: BoxDecoration(
-          color: GamePalette.voidBlack.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(GamePalette.radiusSmall),
-        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -184,6 +184,111 @@ class _ActiveStageCard extends StatelessWidget {
 
   String _formatGold(int gold) =>
       gold >= 1000 ? '${(gold / 1000).toStringAsFixed(1)}K' : '$gold';
+}
+
+class _StageMedallionSocket extends StatelessWidget {
+  const _StageMedallionSocket({required this.stageNumber});
+
+  final int stageNumber;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 48,
+      height: 46,
+      child: CustomPaint(
+        painter: const _StageMedallionSocketPainter(),
+        child: Center(
+          child: Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: const Color(0xFF103247),
+              shape: BoxShape.circle,
+              border: Border.all(color: GamePalette.cyan, width: 1.6),
+              boxShadow: [
+                BoxShadow(
+                  color: GamePalette.cyanDeep.withValues(alpha: 0.5),
+                  blurRadius: 9,
+                ),
+              ],
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              stageNumber.toString().padLeft(2, '0'),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFFE8F8FF),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StageMedallionSocketPainter extends CustomPainter {
+  const _StageMedallionSocketPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final mountPaint = Paint()..color = const Color(0xFF09131C);
+    final mount = Path()
+      ..moveTo(0.5, center.dy - 7)
+      ..lineTo(8, center.dy - 7)
+      ..lineTo(12, center.dy - 15)
+      ..lineTo(size.width - 12, center.dy - 15)
+      ..lineTo(size.width - 8, center.dy - 7)
+      ..lineTo(size.width - 0.5, center.dy - 7)
+      ..lineTo(size.width - 0.5, center.dy + 7)
+      ..lineTo(size.width - 8, center.dy + 7)
+      ..lineTo(size.width - 12, center.dy + 15)
+      ..lineTo(12, center.dy + 15)
+      ..lineTo(8, center.dy + 7)
+      ..lineTo(0.5, center.dy + 7)
+      ..close();
+    canvas.drawPath(mount, mountPaint);
+    canvas.drawPath(
+      mount,
+      Paint()
+        ..color = GamePalette.metalDim.withValues(alpha: 0.58)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 0.9,
+    );
+
+    final ringPaint = Paint()
+      ..color = GamePalette.cyan.withValues(alpha: 0.62)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1
+      ..strokeCap = StrokeCap.square;
+    final ringRect = Rect.fromCircle(center: center, radius: 21);
+    for (final start in [-2.72, -1.15, 0.42, 1.99]) {
+      canvas.drawArc(ringRect, start, 0.72, false, ringPaint);
+    }
+    final studPaint = Paint()
+      ..color = GamePalette.metal.withValues(alpha: 0.54);
+    canvas.drawCircle(Offset(5, center.dy), 1.25, studPaint);
+    canvas.drawCircle(Offset(size.width - 5, center.dy), 1.25, studPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _StageStatDivider extends StatelessWidget {
+  const _StageStatDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 30,
+      color: GamePalette.metalDim.withValues(alpha: 0.28),
+    );
+  }
 }
 
 String _stageStatusText({
@@ -262,18 +367,19 @@ class _StageSelectionRow extends StatelessWidget {
         ? theme.accent
         : const Color(0xFF667987);
 
-    return GameButton(
+    return _StageMetalFrame(
       key: ValueKey('stage-selection-row-$stageNumber'),
-      onPressed: onPressed,
+      onTap: onPressed,
       selected: active,
-      variant: unlocked ? GameButtonVariant.ghost : GameButtonVariant.secondary,
       accentColor: borderColor,
-      padding: EdgeInsets.zero,
+      inset: !unlocked,
+      reinforced: true,
+      cutSize: 8,
+      semanticLabel: l10n.stageName(stageNumber),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final dense = constraints.maxWidth < 330;
           final stageNumberWidth = dense ? 38.0 : 48.0;
-          final stageDividerHeight = dense ? 28.0 : 31.0;
           final leftGap = dense ? 7.0 : 10.0;
           final leftFlex = dense ? 8 : 9;
           final runeGap = dense ? 5.0 : 8.0;
@@ -291,23 +397,38 @@ class _StageSelectionRow extends StatelessWidget {
                 SizedBox(
                   width: stageNumberWidth,
                   child: Center(
-                    child: Text(
-                      stageNumber.toString().padLeft(2, '0'),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: active
-                            ? theme.accent
-                            : unlocked
-                            ? GamePalette.textSecondary
-                            : const Color(0xFF536675),
+                    child: SizedBox(
+                      width: dense ? 32 : 42,
+                      height: dense ? 38 : 42,
+                      child: _StageMetalFrame(
+                        accentColor: unlocked
+                            ? theme.accent.withValues(alpha: 0.46)
+                            : const Color(0xFF485B68),
+                        inset: true,
+                        reinforced: true,
+                        cornerStuds: true,
+                        cutSize: 5,
+                        child: Center(
+                          child: Text(
+                            stageNumber.toString().padLeft(2, '0'),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: active
+                                  ? theme.accent
+                                  : unlocked
+                                  ? GamePalette.textSecondary
+                                  : const Color(0xFF536675),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
                 Container(
-                  width: 1,
-                  height: stageDividerHeight,
+                  width: dense ? 4 : 6,
+                  height: 2,
                   color: unlocked
                       ? theme.accent.withValues(alpha: 0.32)
                       : const Color(0x33485B68),
@@ -344,6 +465,7 @@ class _StageSelectionRow extends StatelessWidget {
                         highlighted: active || stageCleared,
                         overrideColor: statusColor,
                         accentColor: theme.accent,
+                        showLockIcon: !unlocked,
                       ),
                     ],
                   ),

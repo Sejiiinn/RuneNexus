@@ -14,7 +14,7 @@ const String stageChapterTwoBannerAsset = 'assets/images/chapter_2_banner.png';
 const String stageChapterThreeBannerAsset =
     'assets/images/chapter_3_banner.png';
 const String mainMenuBackgroundAsset = 'assets/images/main_menu_background.jpg';
-const String gameLogoAsset = 'assets/images/rune_nexus_logo.png';
+const String gameLogoAsset = 'assets/images/rune_nexus_logo_serif.png';
 const String resultSuccessEmblemAsset =
     'assets/images/results/result_success.png';
 const String resultFailureEmblemAsset =

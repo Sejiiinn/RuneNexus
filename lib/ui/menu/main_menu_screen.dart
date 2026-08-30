@@ -466,7 +466,7 @@ class _MainMenuSnapshotContent extends StatelessWidget {
                     constraints: const BoxConstraints(maxWidth: 430),
                     child: SizedBox(
                       height: panelHeight,
-                      child: _MainMenuPanel(
+                      child: _StageMenuShell(
                         key: const ValueKey('main-menu-content-panel'),
                         child: _StageMenu(
                           game: game,
