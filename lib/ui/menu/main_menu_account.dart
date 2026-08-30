@@ -286,7 +286,7 @@ class _LegacyTransferCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            '이 브라우저에 저장된 기존 진행을 외부 브라우저의 진행 데이터가 없는 Google 계정으로 옮깁니다.',
+            '이 브라우저에 저장된 기존 진행을 외부 브라우저의 Google 계정으로 옮깁니다.',
             style: GameTextStyles.body,
           ),
           const SizedBox(height: 10),

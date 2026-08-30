@@ -89,7 +89,15 @@ INSERT INTO legacy_save_transfer_receipts (
     consumed_account_id,
     consumed_at,
     result_revision,
-    result_saved_at
+    result_saved_at,
+    replaced_existing_save,
+    previous_schema_version,
+    previous_revision,
+    previous_client_saved_at_millis,
+    previous_preferences,
+    previous_progression,
+    previous_turret_modules,
+    previous_active_run
 ) VALUES (
     $1,
     $2,
@@ -97,19 +105,35 @@ INSERT INTO legacy_save_transfer_receipts (
     $4,
     $5,
     $6,
-    $7
+    $7,
+    $8,
+    $9,
+    $10,
+    $11,
+    $12,
+    $13,
+    $14,
+    $15
 )
-RETURNING transfer_id, token_hash, payload_hash, consumed_account_id, consumed_at, result_revision, result_saved_at
+RETURNING transfer_id, token_hash, payload_hash, consumed_account_id, consumed_at, result_revision, result_saved_at, replaced_existing_save, previous_schema_version, previous_revision, previous_client_saved_at_millis, previous_preferences, previous_progression, previous_turret_modules, previous_active_run
 `
 
 type CreateLegacySaveTransferReceiptParams struct {
-	TransferID        pgtype.UUID        `db:"transfer_id"`
-	TokenHash         []byte             `db:"token_hash"`
-	PayloadHash       []byte             `db:"payload_hash"`
-	ConsumedAccountID pgtype.UUID        `db:"consumed_account_id"`
-	ConsumedAt        pgtype.Timestamptz `db:"consumed_at"`
-	ResultRevision    int64              `db:"result_revision"`
-	ResultSavedAt     pgtype.Timestamptz `db:"result_saved_at"`
+	TransferID                  pgtype.UUID        `db:"transfer_id"`
+	TokenHash                   []byte             `db:"token_hash"`
+	PayloadHash                 []byte             `db:"payload_hash"`
+	ConsumedAccountID           pgtype.UUID        `db:"consumed_account_id"`
+	ConsumedAt                  pgtype.Timestamptz `db:"consumed_at"`
+	ResultRevision              int64              `db:"result_revision"`
+	ResultSavedAt               pgtype.Timestamptz `db:"result_saved_at"`
+	ReplacedExistingSave        bool               `db:"replaced_existing_save"`
+	PreviousSchemaVersion       pgtype.Int4        `db:"previous_schema_version"`
+	PreviousRevision            pgtype.Int8        `db:"previous_revision"`
+	PreviousClientSavedAtMillis pgtype.Int8        `db:"previous_client_saved_at_millis"`
+	PreviousPreferences         []byte             `db:"previous_preferences"`
+	PreviousProgression         []byte             `db:"previous_progression"`
+	PreviousTurretModules       []byte             `db:"previous_turret_modules"`
+	PreviousActiveRun           []byte             `db:"previous_active_run"`
 }
 
 func (q *Queries) CreateLegacySaveTransferReceipt(ctx context.Context, arg CreateLegacySaveTransferReceiptParams) (LegacySaveTransferReceipt, error) {
@@ -121,6 +145,14 @@ func (q *Queries) CreateLegacySaveTransferReceipt(ctx context.Context, arg Creat
 		arg.ConsumedAt,
 		arg.ResultRevision,
 		arg.ResultSavedAt,
+		arg.ReplacedExistingSave,
+		arg.PreviousSchemaVersion,
+		arg.PreviousRevision,
+		arg.PreviousClientSavedAtMillis,
+		arg.PreviousPreferences,
+		arg.PreviousProgression,
+		arg.PreviousTurretModules,
+		arg.PreviousActiveRun,
 	)
 	var i LegacySaveTransferReceipt
 	err := row.Scan(
@@ -131,6 +163,14 @@ func (q *Queries) CreateLegacySaveTransferReceipt(ctx context.Context, arg Creat
 		&i.ConsumedAt,
 		&i.ResultRevision,
 		&i.ResultSavedAt,
+		&i.ReplacedExistingSave,
+		&i.PreviousSchemaVersion,
+		&i.PreviousRevision,
+		&i.PreviousClientSavedAtMillis,
+		&i.PreviousPreferences,
+		&i.PreviousProgression,
+		&i.PreviousTurretModules,
+		&i.PreviousActiveRun,
 	)
 	return i, err
 }
@@ -185,7 +225,7 @@ func (q *Queries) GetLegacySaveTransferForUpdate(ctx context.Context, tokenHash 
 }
 
 const getLegacySaveTransferReceipt = `-- name: GetLegacySaveTransferReceipt :one
-SELECT transfer_id, token_hash, payload_hash, consumed_account_id, consumed_at, result_revision, result_saved_at
+SELECT transfer_id, token_hash, payload_hash, consumed_account_id, consumed_at, result_revision, result_saved_at, replaced_existing_save, previous_schema_version, previous_revision, previous_client_saved_at_millis, previous_preferences, previous_progression, previous_turret_modules, previous_active_run
 FROM legacy_save_transfer_receipts
 WHERE token_hash = $1
 `
@@ -201,6 +241,14 @@ func (q *Queries) GetLegacySaveTransferReceipt(ctx context.Context, tokenHash []
 		&i.ConsumedAt,
 		&i.ResultRevision,
 		&i.ResultSavedAt,
+		&i.ReplacedExistingSave,
+		&i.PreviousSchemaVersion,
+		&i.PreviousRevision,
+		&i.PreviousClientSavedAtMillis,
+		&i.PreviousPreferences,
+		&i.PreviousProgression,
+		&i.PreviousTurretModules,
+		&i.PreviousActiveRun,
 	)
 	return i, err
 }

@@ -117,8 +117,8 @@ func (handler legacyTransferHandler) consume(
 		writeAPIError(response, request, http.StatusConflict, "LEGACY_TRANSFER_ALREADY_USED", "이미 다른 계정에 사용된 이전 링크입니다.")
 		return
 	}
-	if errors.Is(err, legacytransfer.ErrTargetSaveExists) {
-		writeAPIError(response, request, http.StatusConflict, "LEGACY_TRANSFER_TARGET_NOT_EMPTY", "이미 진행 데이터가 있는 계정에는 이전할 수 없습니다.")
+	if errors.Is(err, legacytransfer.ErrTargetNotReplaceable) {
+		writeAPIError(response, request, http.StatusConflict, "LEGACY_TRANSFER_TARGET_REQUIRES_MANUAL_REVIEW", "구매 재화가 있거나 백업할 수 없는 계정 진행은 자동으로 교체할 수 없습니다.")
 		return
 	}
 	if errors.Is(err, legacytransfer.ErrSessionMismatch) {

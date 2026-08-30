@@ -16,6 +16,7 @@
 2. `002_online_saves.sql`: 저장 header, 영역별 JSONB, writer generation, claim/save 영수증
 3. `003_weekly_reward_claims.sql`: 서버 판정 보상 수령 영수증
 4. `004_legacy_save_transfers.sql`: 정식 배포 전 제거할 기존 로컬 진행 일회용 이전 보관소
+5. `005_legacy_transfer_existing_save_backup.sql`: 임시 이전 시 교체되는 기존 account 저장 백업
 
 `sqlc`는 이 디렉터리를 schema 입력으로 사용하며 tern의 down 구간은 제외하고
 해석합니다. 로컬 적용은 저장소 루트에서 `docker compose run --rm migrate migrate`,

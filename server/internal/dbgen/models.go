@@ -40,13 +40,21 @@ type LegacySaveTransfer struct {
 }
 
 type LegacySaveTransferReceipt struct {
-	TransferID        pgtype.UUID        `db:"transfer_id"`
-	TokenHash         []byte             `db:"token_hash"`
-	PayloadHash       []byte             `db:"payload_hash"`
-	ConsumedAccountID pgtype.UUID        `db:"consumed_account_id"`
-	ConsumedAt        pgtype.Timestamptz `db:"consumed_at"`
-	ResultRevision    int64              `db:"result_revision"`
-	ResultSavedAt     pgtype.Timestamptz `db:"result_saved_at"`
+	TransferID                  pgtype.UUID        `db:"transfer_id"`
+	TokenHash                   []byte             `db:"token_hash"`
+	PayloadHash                 []byte             `db:"payload_hash"`
+	ConsumedAccountID           pgtype.UUID        `db:"consumed_account_id"`
+	ConsumedAt                  pgtype.Timestamptz `db:"consumed_at"`
+	ResultRevision              int64              `db:"result_revision"`
+	ResultSavedAt               pgtype.Timestamptz `db:"result_saved_at"`
+	ReplacedExistingSave        bool               `db:"replaced_existing_save"`
+	PreviousSchemaVersion       pgtype.Int4        `db:"previous_schema_version"`
+	PreviousRevision            pgtype.Int8        `db:"previous_revision"`
+	PreviousClientSavedAtMillis pgtype.Int8        `db:"previous_client_saved_at_millis"`
+	PreviousPreferences         []byte             `db:"previous_preferences"`
+	PreviousProgression         []byte             `db:"previous_progression"`
+	PreviousTurretModules       []byte             `db:"previous_turret_modules"`
+	PreviousActiveRun           []byte             `db:"previous_active_run"`
 }
 
 type RefreshToken struct {

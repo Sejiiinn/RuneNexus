@@ -28,7 +28,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('기존 진행 옮기기'), findsOneWidget);
-    expect(find.textContaining('진행 데이터가 없는 계정'), findsOneWidget);
+    expect(find.textContaining('서버에 백업한 뒤'), findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('legacy-transfer-create')));
     await tester.pumpAndSettle();
 

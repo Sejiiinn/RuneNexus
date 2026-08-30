@@ -39,7 +39,7 @@ void main() {
     expect(result.expiresAt, DateTime.parse('2026-08-29T03:15:00Z'));
   });
 
-  test('이전 링크 소비는 Bearer와 토큰으로 빈 계정 귀속 결과를 받는다', () async {
+  test('이전 링크 소비는 Bearer와 토큰으로 계정 귀속 결과를 받는다', () async {
     final transport = _FakeLegacyTransferTransport(
       responses: [
         OnlineSaveHTTPResponse(
@@ -70,7 +70,7 @@ void main() {
     expect(result.revision, 1);
   });
 
-  test('진행이 있는 계정 거부 응답을 보존한다', () async {
+  test('안전하게 교체할 수 없는 계정 응답을 보존한다', () async {
     final api = LegacySaveTransferApi(
       baseUrl: 'https://api.rune-nexus.example',
       transport: _FakeLegacyTransferTransport(
@@ -78,8 +78,8 @@ void main() {
           OnlineSaveHTTPResponse(
             statusCode: 409,
             body: jsonEncode({
-              'code': 'LEGACY_TRANSFER_TARGET_NOT_EMPTY',
-              'message': '이미 진행 데이터가 있습니다.',
+              'code': 'LEGACY_TRANSFER_TARGET_REQUIRES_MANUAL_REVIEW',
+              'message': '자동으로 교체할 수 없는 진행 데이터입니다.',
             }),
           ),
         ],
@@ -92,7 +92,7 @@ void main() {
         isA<LegacySaveTransferException>().having(
           (error) => error.code,
           'code',
-          'LEGACY_TRANSFER_TARGET_NOT_EMPTY',
+          'LEGACY_TRANSFER_TARGET_REQUIRES_MANUAL_REVIEW',
         ),
       ),
     );

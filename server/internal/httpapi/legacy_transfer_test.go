@@ -112,7 +112,7 @@ func TestLegacyTransferConsumeUsesAuthenticatedPrincipal(t *testing.T) {
 	}
 }
 
-func TestLegacyTransferConsumeDoesNotOverwriteExistingAccount(t *testing.T) {
+func TestLegacyTransferConsumeRejectsTargetThatCannotBeSafelyReplaced(t *testing.T) {
 	handler := newLegacyTransferTestHandler(t, legacyTransferServiceStub{
 		create: unusedLegacyTransferCreate(t),
 		consume: func(
@@ -121,7 +121,7 @@ func TestLegacyTransferConsumeDoesNotOverwriteExistingAccount(t *testing.T) {
 			string,
 			string,
 		) (legacytransfer.ConsumeResult, error) {
-			return legacytransfer.ConsumeResult{}, legacytransfer.ErrTargetSaveExists
+			return legacytransfer.ConsumeResult{}, legacytransfer.ErrTargetNotReplaceable
 		},
 	})
 	request := jsonRequest(
@@ -141,7 +141,7 @@ func TestLegacyTransferConsumeDoesNotOverwriteExistingAccount(t *testing.T) {
 	if err := json.NewDecoder(response.Body).Decode(&decoded); err != nil {
 		t.Fatalf("decode response: %v", err)
 	}
-	if decoded.Code != "LEGACY_TRANSFER_TARGET_NOT_EMPTY" {
+	if decoded.Code != "LEGACY_TRANSFER_TARGET_REQUIRES_MANUAL_REVIEW" {
 		t.Fatalf("response = %#v", decoded)
 	}
 }

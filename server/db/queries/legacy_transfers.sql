@@ -47,7 +47,15 @@ INSERT INTO legacy_save_transfer_receipts (
     consumed_account_id,
     consumed_at,
     result_revision,
-    result_saved_at
+    result_saved_at,
+    replaced_existing_save,
+    previous_schema_version,
+    previous_revision,
+    previous_client_saved_at_millis,
+    previous_preferences,
+    previous_progression,
+    previous_turret_modules,
+    previous_active_run
 ) VALUES (
     $1,
     $2,
@@ -55,7 +63,15 @@ INSERT INTO legacy_save_transfer_receipts (
     $4,
     $5,
     $6,
-    $7
+    $7,
+    $8,
+    $9,
+    $10,
+    $11,
+    $12,
+    $13,
+    $14,
+    $15
 )
 RETURNING *;
 

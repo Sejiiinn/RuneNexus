@@ -59,7 +59,9 @@ class _LegacySaveTransferDialogState extends State<LegacySaveTransferDialog> {
               style: GameTextStyles.body,
             ),
             const SizedBox(height: 10),
-            _notice('이전 링크는 15분 동안 한 번만 사용할 수 있으며, 진행 데이터가 없는 계정에만 연결됩니다.'),
+            _notice('이전 링크는 15분 동안 한 번만 사용할 수 있습니다.'),
+            const SizedBox(height: 8),
+            _notice('Google 계정에 진행이 있으면 서버에 백업한 뒤 현재 카카오 진행으로 교체됩니다.'),
             const SizedBox(height: 8),
             _notice('구매 다이아가 포함된 저장 데이터는 자동 이전되지 않습니다.'),
             if (_message != null) ...[

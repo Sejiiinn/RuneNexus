@@ -1,6 +1,6 @@
 # Rune Nexus 다음 작업 우선순위
 
-마지막 정리 기준: 2026-08-29 `codex/legacy-local-transfer` 브랜치 작업 기준.
+마지막 정리 기준: 2026-08-30 `codex/legacy-transfer-existing-account` 브랜치 작업 기준.
 
 ## 목적
 
@@ -19,9 +19,10 @@ HTTPS API와 GitHub Pages를 실제 연결해 앱과 Web이 공유할 계정 저
 구현 계약은 `docs/server_authoritative_economy_design.md`를 따른다.
 콘텐츠 작업은 이 연결 작업과 책임 경계가 겹치지 않는 경우 병행할 수 있다.
 
-기존 카카오 인앱 브라우저 테스터용 일회용 진행 이전은 구현돼 있지만 정식 기능으로
-유지하지 않는다. **정식 배포 게이트에는 `docs/legacy_local_save_transfer.md`의 제거
-체크리스트 완료를 반드시 포함한다.**
+기존 카카오 인앱 브라우저 테스터용 일회용 진행 이전은 구현돼 있다. Google 연결을
+먼저 완료한 기존 테스터에 한해 현재 account snapshot을 백업한 뒤 카카오 진행으로
+교체하는 임시 예외도 허용하지만 정식 기능으로 유지하지 않는다. **정식 배포 게이트에는
+`docs/legacy_local_save_transfer.md`의 제거 체크리스트 완료를 반드시 포함한다.**
 
 ## 현재 판단
 

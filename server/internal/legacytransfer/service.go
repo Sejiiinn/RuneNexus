@@ -27,7 +27,7 @@ var (
 	ErrInvalidData          = errors.New("legacy transfer data is invalid")
 	ErrInvalidToken         = errors.New("legacy transfer token is invalid or expired")
 	ErrTokenAlreadyUsed     = errors.New("legacy transfer token was consumed by another account")
-	ErrTargetSaveExists     = errors.New("target account already has a save")
+	ErrTargetNotReplaceable = errors.New("target account save cannot be safely replaced")
 	ErrSessionMismatch      = errors.New("session does not belong to target account")
 	ErrUnsupportedPaidFunds = errors.New("paid diamonds cannot be imported")
 )
@@ -56,6 +56,17 @@ type progressionBounds struct {
 type turretModuleBounds struct {
 	Tickets *int64            `json:"tickets"`
 	Items   []json.RawMessage `json:"items"`
+}
+
+type previousSave struct {
+	replaced            bool
+	schemaVersion       pgtype.Int4
+	revision            pgtype.Int8
+	clientSavedAtMillis pgtype.Int8
+	preferences         []byte
+	progression         []byte
+	turretModules       []byte
+	activeRun           []byte
 }
 
 type Service struct {
@@ -194,8 +205,36 @@ func (service *Service) Consume(
 	if _, err := txQueries.GetSaveWriterStateForUpdate(ctx, databaseAccountID); err != nil {
 		return ConsumeResult{}, fmt.Errorf("lock legacy transfer save writer: %w", err)
 	}
-	if _, err := txQueries.GetSaveHeaderForUpdate(ctx, databaseAccountID); err == nil {
-		return ConsumeResult{}, ErrTargetSaveExists
+	header, err := txQueries.GetSaveHeaderForUpdate(ctx, databaseAccountID)
+	expectedRevision := int64(0)
+	backup := previousSave{}
+	if err == nil {
+		snapshot, snapshotErr := txQueries.GetSaveSnapshot(ctx, databaseAccountID)
+		if snapshotErr != nil {
+			return ConsumeResult{}, fmt.Errorf("read target save backup: %w", snapshotErr)
+		}
+		if snapshot.Revision != header.Revision || validateReplaceableTarget(snapshot.Progression) != nil {
+			return ConsumeResult{}, ErrTargetNotReplaceable
+		}
+		// 기존 브라우저의 writer를 무효화해 이전 직후 오래된 저장이 재전송되지 않게 한다.
+		if _, err := txQueries.AdvanceSaveWriter(ctx, dbgen.AdvanceSaveWriterParams{
+			AccountID:        databaseAccountID,
+			SessionID:        databaseSessionID,
+			ClientInstanceID: pgtype.UUID{},
+		}); err != nil {
+			return ConsumeResult{}, fmt.Errorf("invalidate previous save writer: %w", err)
+		}
+		expectedRevision = header.Revision
+		backup = previousSave{
+			replaced:            true,
+			schemaVersion:       int4(header.SchemaVersion),
+			revision:            int8(header.Revision),
+			clientSavedAtMillis: int8(header.ClientSavedAtMillis),
+			preferences:         snapshot.Preferences,
+			progression:         snapshot.Progression,
+			turretModules:       snapshot.TurretModules,
+			activeRun:           snapshot.ActiveRun,
+		}
 	} else if !errors.Is(err, pgx.ErrNoRows) {
 		return ConsumeResult{}, fmt.Errorf("check target save: %w", err)
 	}
@@ -226,7 +265,7 @@ func (service *Service) Consume(
 			AccountID:           databaseAccountID,
 			SchemaVersion:       data.Version,
 			ClientSavedAtMillis: data.SavedAtMillis,
-			Revision:            0,
+			Revision:            expectedRevision,
 		},
 	)
 	if err != nil {
@@ -238,13 +277,21 @@ func (service *Service) Consume(
 	receipt, err = txQueries.CreateLegacySaveTransferReceipt(
 		ctx,
 		dbgen.CreateLegacySaveTransferReceiptParams{
-			TransferID:        transfer.ID,
-			TokenHash:         transfer.TokenHash,
-			PayloadHash:       transfer.PayloadHash,
-			ConsumedAccountID: databaseAccountID,
-			ConsumedAt:        timestamptz(now),
-			ResultRevision:    advanced.Revision,
-			ResultSavedAt:     advanced.UpdatedAt,
+			TransferID:                  transfer.ID,
+			TokenHash:                   transfer.TokenHash,
+			PayloadHash:                 transfer.PayloadHash,
+			ConsumedAccountID:           databaseAccountID,
+			ConsumedAt:                  timestamptz(now),
+			ResultRevision:              advanced.Revision,
+			ResultSavedAt:               advanced.UpdatedAt,
+			ReplacedExistingSave:        backup.replaced,
+			PreviousSchemaVersion:       backup.schemaVersion,
+			PreviousRevision:            backup.revision,
+			PreviousClientSavedAtMillis: backup.clientSavedAtMillis,
+			PreviousPreferences:         backup.preferences,
+			PreviousProgression:         backup.progression,
+			PreviousTurretModules:       backup.turretModules,
+			PreviousActiveRun:           backup.activeRun,
 		},
 	)
 	if err != nil {
@@ -288,6 +335,15 @@ func validateImportedData(data gamesave.Data) error {
 	return nil
 }
 
+func validateReplaceableTarget(progression []byte) error {
+	var bounds progressionBounds
+	if err := json.Unmarshal(progression, &bounds); err != nil ||
+		bounds.PaidDiamonds == nil || *bounds.PaidDiamonds != 0 {
+		return ErrTargetNotReplaceable
+	}
+	return nil
+}
+
 func storeImportedData(
 	ctx context.Context,
 	queries *dbgen.Queries,
@@ -319,6 +375,8 @@ func storeImportedData(
 		}); err != nil {
 			return fmt.Errorf("store imported active run: %w", err)
 		}
+	} else if err := queries.DeleteSaveActiveRun(ctx, accountID); err != nil {
+		return fmt.Errorf("clear imported active run: %w", err)
 	}
 	return nil
 }
@@ -360,4 +418,12 @@ func parseUUID(value string) (pgtype.UUID, error) {
 
 func timestamptz(value time.Time) pgtype.Timestamptz {
 	return pgtype.Timestamptz{Time: value.UTC(), Valid: true}
+}
+
+func int4(value int32) pgtype.Int4 {
+	return pgtype.Int4{Int32: value, Valid: true}
+}
+
+func int8(value int64) pgtype.Int8 {
+	return pgtype.Int8{Int64: value, Valid: true}
 }

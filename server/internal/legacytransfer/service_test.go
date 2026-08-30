@@ -31,6 +31,23 @@ func TestValidateImportedDataRejectsUnboundedLegacyFunds(t *testing.T) {
 	}
 }
 
+func TestValidateReplaceableTargetRequiresZeroPaidDiamonds(t *testing.T) {
+	if err := validateReplaceableTarget(
+		json.RawMessage(`{"paidDiamonds":0}`),
+	); err != nil {
+		t.Fatalf("zero paid diamonds error = %v", err)
+	}
+	for _, progression := range []json.RawMessage{
+		json.RawMessage(`{"paidDiamonds":1}`),
+		json.RawMessage(`{}`),
+		json.RawMessage(`null`),
+	} {
+		if err := validateReplaceableTarget(progression); !errors.Is(err, ErrTargetNotReplaceable) {
+			t.Fatalf("progression %s error = %v", progression, err)
+		}
+	}
+}
+
 func validImportedData(t *testing.T) gamesave.Data {
 	t.Helper()
 	return gamesave.Data{

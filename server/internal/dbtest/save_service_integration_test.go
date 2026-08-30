@@ -23,12 +23,12 @@ import (
 )
 
 const (
-	firstSaveKey      = "0198b955-3656-7c40-b3cb-87f427b90be4"
-	secondSaveKey     = "0198b955-3656-7c40-b3cb-87f427b90be5"
-	writerClaimKey    = "0198b955-3656-7c40-b3cb-87f427b90be6"
+	firstSaveKey     = "0198b955-3656-7c40-b3cb-87f427b90be4"
+	secondSaveKey    = "0198b955-3656-7c40-b3cb-87f427b90be5"
+	writerClaimKey   = "0198b955-3656-7c40-b3cb-87f427b90be6"
 	clientInstanceID = "0198b955-3656-7c40-b3cb-87f427b90be7"
-	secondClaimKey    = "0198b955-3656-7c40-b3cb-87f427b90be8"
-	secondClientID    = "0198b955-3656-7c40-b3cb-87f427b90be9"
+	secondClaimKey   = "0198b955-3656-7c40-b3cb-87f427b90be8"
+	secondClientID   = "0198b955-3656-7c40-b3cb-87f427b90be9"
 )
 
 type claimedSaveService struct {
@@ -195,9 +195,9 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 	progression, err := json.Marshal(map[string]any{
 		"weeklyQuestWeekKey": weekKey,
 		"weeklyQuestProgress": map[string]int{
-			"clearWaves":      150,
-			"killBosses":      15,
-			"killEnemies":     500,
+			"clearWaves":     150,
+			"killBosses":     15,
+			"killEnemies":    500,
 			"buyRunUpgrades": 25,
 		},
 		"claimedWeeklyQuestRewards":       []string{},
@@ -261,7 +261,7 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 	}
 }
 
-func TestLegacyTransferImportsOnlyIntoEmptyAccountAndRemovesPayload(t *testing.T) {
+func TestLegacyTransferBacksUpAndReplacesExistingAccountSave(t *testing.T) {
 	ctx, fixture, accountID := openSaveService(t)
 	service := legacytransfer.NewService(fixture.pool, 15*time.Minute)
 	data := gamesave.Data{
@@ -270,6 +270,7 @@ func TestLegacyTransferImportsOnlyIntoEmptyAccountAndRemovesPayload(t *testing.T
 		Preferences:   json.RawMessage(`{"music":true}`),
 		Progression:   json.RawMessage(`{"runes":30,"freeDiamonds":40,"paidDiamonds":0}`),
 		TurretModules: json.RawMessage(`{"tickets":2,"items":[]}`),
+		ActiveRun:     json.RawMessage(`{"roundIndex":3}`),
 	}
 	created, err := service.Create(ctx, legacytransfer.CreateRequest{
 		RawBody: []byte(`{"clientCompatibilityVersion":1,"data":{"version":2}}`),
@@ -332,9 +333,16 @@ func TestLegacyTransferImportsOnlyIntoEmptyAccountAndRemovesPayload(t *testing.T
 		t.Fatalf("pending legacy payload count = %d", pendingCount)
 	}
 
+	replacementData := gamesave.Data{
+		Version:       gamesave.CurrentSchemaVersion,
+		SavedAtMillis: 5678,
+		Preferences:   json.RawMessage(`{"music":false}`),
+		Progression:   json.RawMessage(`{"runes":90,"freeDiamonds":120,"paidDiamonds":0}`),
+		TurretModules: json.RawMessage(`{"tickets":7,"items":[]}`),
+	}
 	second, err := service.Create(ctx, legacytransfer.CreateRequest{
 		RawBody: []byte(`{"clientCompatibilityVersion":1,"data":{"version":2,"retry":true}}`),
-		Data:    data,
+		Data:    replacementData,
 	})
 	if err != nil {
 		t.Fatalf("create second legacy transfer: %v", err)
@@ -348,19 +356,88 @@ func TestLegacyTransferImportsOnlyIntoEmptyAccountAndRemovesPayload(t *testing.T
 		defer cancel()
 		if _, err := fixture.pool.Exec(
 			cleanupContext,
+			"DELETE FROM legacy_save_transfer_receipts WHERE token_hash = $1",
+			secondHash,
+		); err != nil {
+			t.Errorf("delete second legacy transfer receipt: %v", err)
+		}
+		if _, err := fixture.pool.Exec(
+			cleanupContext,
 			"DELETE FROM legacy_save_transfers WHERE token_hash = $1",
 			secondHash,
 		); err != nil {
 			t.Errorf("delete second legacy transfer: %v", err)
 		}
 	})
-	if _, err := service.Consume(
+	replaced, err := service.Consume(
 		ctx,
 		accountID,
 		fixture.sessionID,
 		second.Token,
-	); !errors.Is(err, legacytransfer.ErrTargetSaveExists) {
-		t.Fatalf("non-empty target error = %v", err)
+	)
+	if err != nil {
+		t.Fatalf("replace existing target: %v", err)
+	}
+	if replaced.Revision != 2 || replaced.ServerSavedAt.IsZero() {
+		t.Fatalf("replaced = %#v", replaced)
+	}
+	replacedSnapshot, err := fixture.service.Get(ctx, accountID)
+	if err != nil {
+		t.Fatalf("get replaced save: %v", err)
+	}
+	if replacedSnapshot.Revision != 2 ||
+		replacedSnapshot.Data.SavedAtMillis != replacementData.SavedAtMillis ||
+		replacedSnapshot.Data.ActiveRun != nil {
+		t.Fatalf("replaced snapshot = %#v", replacedSnapshot)
+	}
+	requireSameJSON(t, replacedSnapshot.Data.Progression, replacementData.Progression)
+
+	var replacedExisting bool
+	var previousRevision int64
+	var previousProgression []byte
+	var previousActiveRun []byte
+	if err := fixture.pool.QueryRow(
+		ctx,
+		`SELECT replaced_existing_save, previous_revision,
+                previous_progression, previous_active_run
+           FROM legacy_save_transfer_receipts
+          WHERE token_hash = $1`,
+		secondHash,
+	).Scan(
+		&replacedExisting,
+		&previousRevision,
+		&previousProgression,
+		&previousActiveRun,
+	); err != nil {
+		t.Fatalf("read replaced save backup: %v", err)
+	}
+	if !replacedExisting || previousRevision != 1 {
+		t.Fatalf("backup metadata = replaced %t, revision %d", replacedExisting, previousRevision)
+	}
+	requireSameJSON(t, previousProgression, data.Progression)
+	requireSameJSON(t, previousActiveRun, data.ActiveRun)
+
+	writer, err := dbgen.New(fixture.pool).GetSaveWriterStateForUpdate(ctx, fixture.accountUUID)
+	if err != nil {
+		t.Fatalf("get invalidated writer: %v", err)
+	}
+	if writer.Generation != fixture.writerGeneration+1 ||
+		writer.SessionID.Valid == false || writer.ClientInstanceID.Valid {
+		t.Fatalf("invalidated writer = %#v", writer)
+	}
+	if _, err := fixture.Update(ctx, accountID, gamesave.UpdateRequest{
+		IdempotencyKey:   secondSaveKey,
+		ExpectedRevision: 2,
+		RawBody:          []byte(`{"expectedRevision":2,"data":{"version":2}}`),
+		Data:             replacementData,
+	}); err == nil {
+		t.Fatal("previous writer saved after legacy replacement")
+	} else {
+		var writerReplaced *gamesave.WriterReplacedError
+		if !errors.As(err, &writerReplaced) ||
+			writerReplaced.CurrentGeneration != fixture.writerGeneration+1 {
+			t.Fatalf("previous writer error = %v", err)
+		}
 	}
 }
 
@@ -445,7 +522,7 @@ func TestSaveServicePersistsSnapshotAndEnforcesRequestContract(t *testing.T) {
 	ctx, service, accountID := openSaveService(t)
 	firstBody := []byte(`{"expectedRevision":0,"data":{"version":2,"savedAtMillis":1234,"preferences":{"music":true},"progression":{"runes":30},"turretModules":{"tickets":4},"activeRun":{"roundIndex":3}}}`)
 	firstRequest := gamesave.UpdateRequest{
-		IdempotencyKey:  firstSaveKey,
+		IdempotencyKey:   firstSaveKey,
 		ExpectedRevision: 0,
 		RawBody:          firstBody,
 		Data: gamesave.Data{
@@ -484,7 +561,7 @@ func TestSaveServicePersistsSnapshotAndEnforcesRequestContract(t *testing.T) {
 	}
 
 	if _, err := service.Update(ctx, accountID, gamesave.UpdateRequest{
-		IdempotencyKey:  secondSaveKey,
+		IdempotencyKey:   secondSaveKey,
 		ExpectedRevision: 0,
 		RawBody:          []byte(`{"expectedRevision":0}`),
 		Data:             firstRequest.Data,
@@ -511,7 +588,7 @@ func TestSaveServicePersistsSnapshotAndEnforcesRequestContract(t *testing.T) {
 
 	secondBody := []byte(`{"expectedRevision":1,"data":{"version":2,"savedAtMillis":5678,"preferences":{},"progression":{},"turretModules":{},"activeRun":null}}`)
 	updated, err := service.Update(ctx, accountID, gamesave.UpdateRequest{
-		IdempotencyKey:  secondSaveKey,
+		IdempotencyKey:   secondSaveKey,
 		ExpectedRevision: 1,
 		RawBody:          secondBody,
 		Data: gamesave.Data{
@@ -540,7 +617,7 @@ func TestSaveServicePersistsSnapshotAndEnforcesRequestContract(t *testing.T) {
 func TestSaveServiceConcurrentIdenticalRequestReturnsOneRevision(t *testing.T) {
 	ctx, service, accountID := openSaveService(t)
 	request := gamesave.UpdateRequest{
-		IdempotencyKey:  firstSaveKey,
+		IdempotencyKey:   firstSaveKey,
 		ExpectedRevision: 0,
 		RawBody:          []byte(`{"expectedRevision":0,"data":{"version":2}}`),
 		Data: gamesave.Data{
@@ -593,7 +670,7 @@ func TestSaveServiceConcurrentDifferentBodiesRejectsIdempotencyKeyReuse(t *testi
 	ctx, service, accountID := openSaveService(t)
 	requests := []gamesave.UpdateRequest{
 		{
-			IdempotencyKey:  firstSaveKey,
+			IdempotencyKey:   firstSaveKey,
 			ExpectedRevision: 0,
 			RawBody:          []byte(`{"expectedRevision":0,"value":"first"}`),
 			Data: gamesave.Data{
@@ -604,7 +681,7 @@ func TestSaveServiceConcurrentDifferentBodiesRejectsIdempotencyKeyReuse(t *testi
 			},
 		},
 		{
-			IdempotencyKey:  firstSaveKey,
+			IdempotencyKey:   firstSaveKey,
 			ExpectedRevision: 0,
 			RawBody:          []byte(`{"expectedRevision":0,"value":"second"}`),
 			Data: gamesave.Data{
@@ -653,7 +730,7 @@ func TestSaveServiceConcurrentRevisionsAllowsOnlyOneWriter(t *testing.T) {
 	ctx, service, accountID := openSaveService(t)
 	requests := []gamesave.UpdateRequest{
 		{
-			IdempotencyKey:  firstSaveKey,
+			IdempotencyKey:   firstSaveKey,
 			ExpectedRevision: 0,
 			RawBody:          []byte(`{"expectedRevision":0,"value":"first"}`),
 			Data: gamesave.Data{
@@ -664,7 +741,7 @@ func TestSaveServiceConcurrentRevisionsAllowsOnlyOneWriter(t *testing.T) {
 			},
 		},
 		{
-			IdempotencyKey:  secondSaveKey,
+			IdempotencyKey:   secondSaveKey,
 			ExpectedRevision: 0,
 			RawBody:          []byte(`{"expectedRevision":0,"value":"second"}`),
 			Data: gamesave.Data{
@@ -713,7 +790,7 @@ func TestSaveServiceConcurrentRevisionsAllowsOnlyOneWriter(t *testing.T) {
 func TestSaveServiceRollsBackWholeTransactionOnPayloadFailure(t *testing.T) {
 	ctx, service, accountID := openSaveService(t)
 	_, err := service.Update(ctx, accountID, gamesave.UpdateRequest{
-		IdempotencyKey:  firstSaveKey,
+		IdempotencyKey:   firstSaveKey,
 		ExpectedRevision: 0,
 		RawBody:          []byte(`{"expectedRevision":0}`),
 		Data: gamesave.Data{

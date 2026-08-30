@@ -367,8 +367,8 @@ class _RuneNexusAppState extends State<RuneNexusApp>
         return;
       }
       final message = switch (error.code) {
-        'LEGACY_TRANSFER_TARGET_NOT_EMPTY' =>
-          '이 Google 계정에는 이미 진행 데이터가 있어 덮어쓰지 않았습니다. 다른 빈 계정으로 로그인해 주세요.',
+        'LEGACY_TRANSFER_TARGET_REQUIRES_MANUAL_REVIEW' =>
+          '이 Google 계정에는 구매 재화가 있거나 안전하게 백업할 수 없는 진행이 있어 자동으로 교체하지 않았습니다.',
         'LEGACY_TRANSFER_ALREADY_USED' => '이미 다른 계정에 사용된 이전 링크입니다.',
         'LEGACY_TRANSFER_INVALID' => '이전 링크가 만료되었거나 유효하지 않습니다.',
         _ when error.transportFailure =>

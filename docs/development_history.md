@@ -1,6 +1,6 @@
 # Rune Nexus 개발 히스토리
 
-마지막 갱신 기준: 2026-08-29 `codex/legacy-local-transfer` 브랜치 작업 기준.
+마지막 갱신 기준: 2026-08-30 `codex/legacy-transfer-existing-account` 브랜치 작업 기준.
 
 ## 목적
 
@@ -11,13 +11,12 @@
 ### 기존 카카오 인앱 브라우저 진행의 일회용 이전
 
 - 카카오 WebView에 격리된 guest 저장을 15분짜리 URL fragment 토큰으로 외부
-  Chrome/Safari에 전달하고, Google 로그인 후 빈 account에만 revision 1로 귀속하는
-  임시 이행 흐름을 추가했다.
+  Chrome/Safari에 전달하고 Google account에 귀속하는 임시 이행 흐름을 추가했다.
 - 생성 요청은 canonical v2 저장 구조, 구매 다이아 0, 무료 재화·모듈 상한을 검사한다.
-  소비 요청은 Bearer account/session, token 단일 소비, target save 부재를 한
-  트랜잭션에서 검증한다.
-- 소비된 임시 원문은 즉시 삭제하고 token/payload 해시와 결과 revision 영수증만
-  남긴다. 같은 account의 응답 유실 재시도는 같은 결과로 복구한다.
+  기존 account 진행이 있으면 구매 다이아 0을 확인하고 현재 snapshot을 백업한 뒤
+  writer generation을 교체해 오래된 PUT을 차단한다.
+- 소비된 카카오 원문은 즉시 삭제하고 token/payload 해시와 결과 revision을 남긴다.
+  기존 account를 교체한 영수증에는 복구용 이전 snapshot도 보존한다.
 - 로컬 저장의 위변조·복제를 완전히 증명할 수 없는 구조적 한계 때문에 정식 배포 전
   제거 대상으로 확정했다. 제거 절차는 `docs/legacy_local_save_transfer.md`에 기록했다.
 
