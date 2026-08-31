@@ -49,6 +49,20 @@ const String questIconSocketAsset = 'assets/images/quests/ui/icon_socket.png';
 const String questActionIdleAsset = 'assets/images/quests/ui/action_idle.png';
 const String questActionClaimAsset = 'assets/images/quests/ui/action_claim.png';
 const String questCloseButtonAsset = 'assets/images/quests/ui/close_button.png';
+const String upgradeCardFrameAsset =
+    'assets/images/upgrades/ui/upgrade_card_frame.png';
+const String upgradeIconSocketAsset =
+    'assets/images/upgrades/ui/upgrade_icon_socket.png';
+const String upgradeActionFrameAsset =
+    'assets/images/upgrades/ui/upgrade_action_frame.png';
+const String upgradeCostChipFrameAsset =
+    'assets/images/upgrades/ui/upgrade_cost_chip_frame.png';
+const String upgradeGroupFrameAsset =
+    'assets/images/upgrades/ui/upgrade_group_frame.png';
+const String upgradeGroupCombatSelectedAsset =
+    'assets/images/upgrades/ui/upgrade_group_combat_selected.png';
+const String upgradeGroupEconomySelectedAsset =
+    'assets/images/upgrades/ui/upgrade_group_economy_selected.png';
 const String resultSuccessEmblemAsset =
     'assets/images/results/result_success.png';
 const String resultFailureEmblemAsset =
@@ -124,6 +138,16 @@ const List<String> questUiImageAssets = [
   questCloseButtonAsset,
 ];
 
+const List<String> upgradeUiImageAssets = [
+  upgradeCardFrameAsset,
+  upgradeIconSocketAsset,
+  upgradeActionFrameAsset,
+  upgradeCostChipFrameAsset,
+  upgradeGroupFrameAsset,
+  upgradeGroupCombatSelectedAsset,
+  upgradeGroupEconomySelectedAsset,
+];
+
 const List<String> corePassiveTreeAssets = [
   corePassiveTreeBackgroundAsset,
   corePassiveTreeCoreAsset,
@@ -135,6 +159,7 @@ List<ImageProvider<Object>> runeNexusStartupImageProviders() {
     for (final asset in commonUiImageAssets) AssetImage(asset),
     for (final asset in stageUiImageAssets) AssetImage(asset),
     for (final asset in questUiImageAssets) AssetImage(asset),
+    for (final asset in upgradeUiImageAssets) AssetImage(asset),
     for (final asset in stageChapterBannerAssets) AssetImage(asset),
     for (final asset in stageRewardIconAssets) AssetImage(asset),
     for (final type in GameUpgradeIconType.values)

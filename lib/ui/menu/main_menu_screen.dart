@@ -505,22 +505,26 @@ class _MainMenuSnapshotContent extends StatelessWidget {
                         key: const ValueKey('core-content'),
                         child: _CoreMenu(game: game, snapshot: snapshot),
                       )
+                    else if (selectedTab == MainMenuTab.permanentUpgrades)
+                      KeyedSubtree(
+                        key: const ValueKey('main-menu-content-panel'),
+                        child: _PermanentUpgradeMenu(
+                          game: game,
+                          snapshot: snapshot,
+                          group: selectedUpgradeGroup,
+                        ),
+                      )
                     else
                       _MainMenuPanel(
                         key: const ValueKey('main-menu-content-panel'),
                         child: switch (selectedTab) {
-                          MainMenuTab.permanentUpgrades =>
-                            _PermanentUpgradeMenu(
-                              game: game,
-                              snapshot: snapshot,
-                              group: selectedUpgradeGroup,
-                            ),
                           MainMenuTab.turretModules => _TurretModuleMenu(
                             key: turretModuleMenuKey,
                             game: game,
                             snapshot: snapshot,
                             onDrawResults: onTurretModuleDrawResults,
                           ),
+                          MainMenuTab.permanentUpgrades ||
                           MainMenuTab.core ||
                           MainMenuTab.research ||
                           MainMenuTab.stage => const SizedBox.shrink(),

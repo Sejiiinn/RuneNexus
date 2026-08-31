@@ -12,9 +12,15 @@ void main() {
     () {
       final providers = runeNexusStartupImageProviders();
 
-      expect(providers, hasLength(58));
+      expect(providers, hasLength(74));
       expect(providers.whereType<ResizeImage>(), hasLength(29));
       for (final asset in commonUiImageAssets) {
+        expect(providers, contains(AssetImage(asset)));
+      }
+      for (final asset in questUiImageAssets) {
+        expect(providers, contains(AssetImage(asset)));
+      }
+      for (final asset in upgradeUiImageAssets) {
         expect(providers, contains(AssetImage(asset)));
       }
       for (final type in GameUpgradeIconType.values) {

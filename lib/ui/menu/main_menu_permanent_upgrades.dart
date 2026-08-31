@@ -345,6 +345,7 @@ class _PermanentUpgradeBoard extends StatelessWidget {
             for (final tile in tiles)
               SizedBox(
                 width: tileWidth,
+                height: 176,
                 child: _PermanentUpgradeTile(data: tile),
               ),
           ],
@@ -366,20 +367,12 @@ class _PermanentUpgradeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final borderColor = data.enabled
-        ? const Color(0xFFE7C66A)
-        : const Color(0x55485B68);
     final titleColor = data.enabled
         ? const Color(0xFFE8FBFF)
         : const Color(0xFFB9D6E4);
-    return Container(
-      constraints: const BoxConstraints(minHeight: 150),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: const Color(0x3307111D),
-        border: Border.all(color: borderColor),
-        borderRadius: BorderRadius.circular(7),
-      ),
+    return _UpgradeAssetSurface(
+      asset: upgradeCardFrameAsset,
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -387,17 +380,28 @@ class _PermanentUpgradeTile extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
-                width: 32,
-                height: 32,
-                child: Center(
-                  child: UpgradeIcon(
-                    data.upgradeIconType,
-                    size: 30,
-                    semanticLabel: data.title,
-                  ),
+                width: 44,
+                height: 44,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(
+                      upgradeIconSocketAsset,
+                      fit: BoxFit.fill,
+                      filterQuality: FilterQuality.medium,
+                      excludeFromSemantics: true,
+                    ),
+                    Center(
+                      child: UpgradeIcon(
+                        data.upgradeIconType,
+                        size: 30,
+                        semanticLabel: data.title,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 7),
+              const SizedBox(width: 6),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -426,37 +430,48 @@ class _PermanentUpgradeTile extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 6),
           Text(
             data.description,
-            style: const TextStyle(color: Color(0xFF9EB3BF), fontSize: 10),
+            style: const TextStyle(
+              color: Color(0xFF9EB3BF),
+              fontSize: 10,
+              height: 1.35,
+            ),
             maxLines: 2,
             overflow: TextOverflow.clip,
           ),
           const SizedBox(height: 6),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _CompactUpgradeValueSummary(
-                currentValueText: data.valueText,
-                nextValueText: data.nextValueText,
-                enabled: data.enabled,
-              ),
-              const SizedBox(height: 6),
-              SizedBox(
-                height: 30,
-                child: GameButton(
+          _CompactUpgradeValueSummary(
+            currentValueText: data.valueText,
+            nextValueText: data.nextValueText,
+            enabled: data.enabled,
+          ),
+          const Spacer(),
+          SizedBox(
+            height: 34,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  upgradeActionFrameAsset,
+                  fit: BoxFit.fill,
+                  filterQuality: FilterQuality.medium,
+                  excludeFromSemantics: true,
+                ),
+                GameButton(
                   onPressed: data.enabled ? data.onPressed : null,
                   compact: true,
-                  variant: GameButtonVariant.secondary,
-                  accentColor: data.enabled
-                      ? GamePalette.gold
-                      : GamePalette.metalDim,
-                  padding: const EdgeInsets.symmetric(horizontal: 7),
+                  variant: GameButtonVariant.ghost,
+                  accentColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 4,
+                  ),
                   child: _buttonChild(l10n),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -468,7 +483,11 @@ class _PermanentUpgradeTile extends StatelessWidget {
       return Center(
         child: Text(
           l10n.maxLevelReached,
-          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+          style: const TextStyle(
+            color: Color(0xFF8DA5B3),
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+          ),
           overflow: TextOverflow.clip,
         ),
       );
@@ -477,22 +496,32 @@ class _PermanentUpgradeTile extends StatelessWidget {
       return Center(
         child: Text(
           data.lockText,
-          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+          style: const TextStyle(
+            color: Color(0xFF8DA5B3),
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+          ),
           overflow: TextOverflow.clip,
         ),
       );
     }
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Flexible(
-          child: Text(
-            l10n.levelUp,
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
-            overflow: TextOverflow.clip,
+        Expanded(
+          child: Center(
+            child: Text(
+              l10n.levelUp,
+              style: TextStyle(
+                color: data.enabled
+                    ? const Color(0xFFE8FBFF)
+                    : const Color(0xFF6D7F8F),
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+              ),
+              overflow: TextOverflow.clip,
+            ),
           ),
         ),
-        const SizedBox(width: 4),
         _RuneCostChip(cost: data.cost, enabled: data.enabled),
       ],
     );
@@ -585,31 +614,67 @@ class _RuneCostChip extends StatelessWidget {
     final foreground = enabled
         ? const Color(0xFFE7C66A)
         : const Color(0xFF6D7F8F);
-    return Container(
-      height: 23,
-      padding: const EdgeInsets.symmetric(horizontal: 5),
-      decoration: BoxDecoration(
-        color: enabled ? const Color(0x1AE7C66A) : const Color(0x14485B68),
-        border: Border.all(
-          color: enabled ? const Color(0x88E7C66A) : const Color(0x33485B68),
-        ),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+    return SizedBox(
+      height: 27,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          const RuneCurrencyIcon(size: 12),
-          const SizedBox(width: 2),
-          Text(
-            '$cost',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: foreground,
+          Positioned.fill(
+            child: Image.asset(
+              upgradeCostChipFrameAsset,
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.medium,
+              excludeFromSemantics: true,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 7),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const RuneCurrencyIcon(size: 12),
+                const SizedBox(width: 3),
+                Text(
+                  '$cost',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: foreground,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _UpgradeAssetSurface extends StatelessWidget {
+  const _UpgradeAssetSurface({
+    required this.asset,
+    required this.child,
+    this.padding = EdgeInsets.zero,
+  });
+
+  final String asset;
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset(
+          asset,
+          fit: BoxFit.fill,
+          filterQuality: FilterQuality.medium,
+          excludeFromSemantics: true,
+        ),
+        Padding(padding: padding, child: child),
+      ],
     );
   }
 }

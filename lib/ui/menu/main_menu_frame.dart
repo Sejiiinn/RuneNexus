@@ -372,43 +372,52 @@ class _PermanentUpgradeGroupTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Center(
-      child: Container(
-        width: 142,
-        height: 42,
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: const Color(0xF0091624),
-          border: Border.all(color: const Color(0x7733D8FF)),
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x66000000),
-              blurRadius: 14,
-              offset: Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
+      child: SizedBox(
+        width: 138,
+        height: 43,
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-            Expanded(
-              child: _UpgradeGroupTabButton(
-                icon: const _CombatGroupIcon(),
-                label: l10n.combatUpgradeGroup,
-                activeColor: const Color(0xFFFF7A7A),
-                inactiveColor: const Color(0xFFB88989),
-                selected: selectedGroup == _PermanentUpgradeGroup.combat,
-                onPressed: () => onSelectGroup(_PermanentUpgradeGroup.combat),
-              ),
+            Image.asset(
+              upgradeGroupFrameAsset,
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.medium,
+              excludeFromSemantics: true,
             ),
-            Container(width: 1, height: 24, color: const Color(0x5533D8FF)),
-            Expanded(
-              child: _UpgradeGroupTabButton(
-                icon: const GoldCurrencyIcon(size: 19),
-                label: l10n.economyUpgradeGroup,
-                activeColor: const Color(0xFFE7C66A),
-                inactiveColor: const Color(0xFFB6A36D),
-                selected: selectedGroup == _PermanentUpgradeGroup.economy,
-                onPressed: () => onSelectGroup(_PermanentUpgradeGroup.economy),
+            Padding(
+              padding: const EdgeInsets.all(5),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _UpgradeGroupTabButton(
+                      icon: const _CombatGroupIcon(),
+                      label: l10n.combatUpgradeGroup,
+                      activeColor: const Color(0xFFFF7A7A),
+                      inactiveColor: const Color(0xFFB88989),
+                      selectedAsset: upgradeGroupCombatSelectedAsset,
+                      selected: selectedGroup == _PermanentUpgradeGroup.combat,
+                      onPressed: () =>
+                          onSelectGroup(_PermanentUpgradeGroup.combat),
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 24,
+                    color: const Color(0x5533D8FF),
+                  ),
+                  Expanded(
+                    child: _UpgradeGroupTabButton(
+                      icon: const GoldCurrencyIcon(size: 19),
+                      label: l10n.economyUpgradeGroup,
+                      activeColor: const Color(0xFFE7C66A),
+                      inactiveColor: const Color(0xFFB6A36D),
+                      selectedAsset: upgradeGroupEconomySelectedAsset,
+                      selected: selectedGroup == _PermanentUpgradeGroup.economy,
+                      onPressed: () =>
+                          onSelectGroup(_PermanentUpgradeGroup.economy),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -485,6 +494,7 @@ class _UpgradeGroupTabButton extends StatelessWidget {
     required this.label,
     required this.activeColor,
     required this.inactiveColor,
+    required this.selectedAsset,
     required this.selected,
     required this.onPressed,
   });
@@ -493,6 +503,7 @@ class _UpgradeGroupTabButton extends StatelessWidget {
   final String label;
   final Color activeColor;
   final Color inactiveColor;
+  final String selectedAsset;
   final bool selected;
   final VoidCallback onPressed;
 
@@ -511,19 +522,24 @@ class _UpgradeGroupTabButton extends StatelessWidget {
             onTap: onPressed,
             splashColor: activeColor.withAlpha(35),
             highlightColor: const Color(0x1422C7E8),
-            child: Container(
-              height: double.infinity,
-              decoration: BoxDecoration(
-                color: selected
-                    ? activeColor.withAlpha(42)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(7),
-              ),
-              alignment: Alignment.center,
-              child: IconTheme(
-                data: IconThemeData(color: foregroundColor),
-                child: icon,
-              ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (selected)
+                  Image.asset(
+                    selectedAsset,
+                    fit: BoxFit.fill,
+                    filterQuality: FilterQuality.medium,
+                    excludeFromSemantics: true,
+                  ),
+                Align(
+                  alignment: Alignment.center,
+                  child: IconTheme(
+                    data: IconThemeData(color: foregroundColor),
+                    child: icon,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
