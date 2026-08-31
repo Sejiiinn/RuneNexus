@@ -1,5 +1,56 @@
 part of 'main_menu_screen.dart';
 
+class _ResearchAssetSurface extends StatelessWidget {
+  const _ResearchAssetSurface({
+    required this.asset,
+    required this.child,
+    this.padding = EdgeInsets.zero,
+    this.opacity = 1,
+    this.constraints,
+    this.scale,
+    this.centerSlice,
+    super.key,
+  });
+
+  final String asset;
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final double opacity;
+  final BoxConstraints? constraints;
+  final double? scale;
+  final Rect? centerSlice;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = SizedBox(
+      width: double.infinity,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Opacity(
+              opacity: opacity,
+              child: Image.asset(
+                asset,
+                scale: scale,
+                fit: BoxFit.fill,
+                centerSlice: centerSlice,
+                filterQuality: FilterQuality.medium,
+                excludeFromSemantics: true,
+              ),
+            ),
+          ),
+          Padding(padding: padding, child: child),
+        ],
+      ),
+    );
+    final resolvedConstraints = constraints;
+    if (resolvedConstraints == null) {
+      return content;
+    }
+    return ConstrainedBox(constraints: resolvedConstraints, child: content);
+  }
+}
+
 class _ResearchSection extends StatelessWidget {
   const _ResearchSection({
     required this.icon,
@@ -18,13 +69,11 @@ class _ResearchSection extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final padding = constraints.maxWidth <= 330 ? 8.0 : 10.0;
-        return Container(
+        return _ResearchAssetSurface(
+          asset: researchSectionFrameAsset,
+          scale: 3,
+          centerSlice: const Rect.fromLTRB(14, 14, 362, 146),
           padding: EdgeInsets.all(padding),
-          decoration: BoxDecoration(
-            color: tone.backgroundColor,
-            border: Border.all(color: tone.borderColor),
-            borderRadius: BorderRadius.circular(7),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -67,41 +116,29 @@ class _ResearchSection extends StatelessWidget {
 
 class _ResearchSectionTone {
   const _ResearchSectionTone({
-    required this.backgroundColor,
-    required this.borderColor,
     required this.iconColor,
     required this.lineColor,
   });
 
-  final Color backgroundColor;
-  final Color borderColor;
   final Color iconColor;
   final Color lineColor;
 
   static const available = _ResearchSectionTone(
-    backgroundColor: Color(0x3307111D),
-    borderColor: Color(0x66E7C66A),
     iconColor: Color(0xFFE7C66A),
     lineColor: Color(0x88E7C66A),
   );
 
   static const slots = _ResearchSectionTone(
-    backgroundColor: Color(0x3307111D),
-    borderColor: Color(0x55485B68),
     iconColor: Color(0xFFB9D6E4),
     lineColor: Color(0x5533D8FF),
   );
 
   static const locked = _ResearchSectionTone(
-    backgroundColor: Color(0x26050B12),
-    borderColor: Color(0x55485B68),
     iconColor: Color(0xFF8DA5B3),
     lineColor: Color(0x66485B68),
   );
 
   static const completed = _ResearchSectionTone(
-    backgroundColor: Color(0x22071412),
-    borderColor: Color(0x6657C88B),
     iconColor: Color(0xFFBDEFCF),
     lineColor: Color(0x6657C88B),
   );
@@ -253,13 +290,6 @@ class _ResearchTile extends StatelessWidget {
         : snapshot.runes < cost
         ? l10n.notEnoughRunes
         : l10n.researchAvailable;
-    final borderColor = canStart
-        ? const Color(0xFFE7C66A)
-        : active != null
-        ? const Color(0xAA8EE6FF)
-        : complete
-        ? const Color(0x6657C88B)
-        : const Color(0x55485B68);
     final titleColor = complete
         ? const Color(0xFFBDEFCF)
         : canStart
@@ -272,22 +302,18 @@ class _ResearchTile extends StatelessWidget {
 
     return Material(
       color: Colors.transparent,
+      clipBehavior: Clip.antiAlias,
+      borderRadius: BorderRadius.circular(7),
       child: InkWell(
         key: ValueKey('research-tile-${type.name}'),
         onTap: clickable ? onPressed : null,
         borderRadius: BorderRadius.circular(7),
         splashColor: const Color(0x1A8EE6FF),
         highlightColor: const Color(0x1422C7E8),
-        child: Container(
+        child: _ResearchAssetSurface(
+          asset: researchCardFrameAsset,
+          opacity: clickable ? 1 : 0.58,
           constraints: const BoxConstraints(minHeight: 106),
-          decoration: BoxDecoration(
-            color: clickable
-                ? const Color(0x3307111D)
-                : const Color(0x22000000),
-            border: Border.all(color: borderColor),
-            borderRadius: BorderRadius.circular(7),
-          ),
-          clipBehavior: Clip.antiAlias,
           child: Stack(
             children: [
               if (active != null) ...[
@@ -316,14 +342,28 @@ class _ResearchTile extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 1),
-                          child: ResearchIcon(
-                            type,
-                            color: active == null
-                                ? null
-                                : const Color(0xFFE7C66A),
-                            size: 32,
+                        SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.asset(
+                                researchIconSocketAsset,
+                                fit: BoxFit.fill,
+                                filterQuality: FilterQuality.medium,
+                                excludeFromSemantics: true,
+                              ),
+                              Center(
+                                child: ResearchIcon(
+                                  type,
+                                  color: active == null
+                                      ? null
+                                      : const Color(0xFFE7C66A),
+                                  size: 32,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 7),

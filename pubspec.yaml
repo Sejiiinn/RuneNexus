@@ -30,6 +30,7 @@ flutter:
     - assets/images/quests/
     - assets/images/quests/ui/
     - assets/images/research/
+    - assets/images/research/ui/
     - assets/images/results/
     - assets/images/results/ui/
     - assets/images/stage_details/ui/

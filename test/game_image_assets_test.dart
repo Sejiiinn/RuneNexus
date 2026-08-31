@@ -12,7 +12,7 @@ void main() {
     () {
       final providers = runeNexusStartupImageProviders();
 
-      expect(providers, hasLength(90));
+      expect(providers, hasLength(96));
       expect(providers.whereType<ResizeImage>(), hasLength(29));
       for (final asset in commonUiImageAssets) {
         expect(providers, contains(AssetImage(asset)));
@@ -21,6 +21,9 @@ void main() {
         expect(providers, contains(AssetImage(asset)));
       }
       for (final asset in upgradeUiImageAssets) {
+        expect(providers, contains(AssetImage(asset)));
+      }
+      for (final asset in researchUiImageAssets) {
         expect(providers, contains(AssetImage(asset)));
       }
       for (final asset in stageDetailsUiImageAssets) {

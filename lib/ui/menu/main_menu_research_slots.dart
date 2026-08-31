@@ -70,20 +70,10 @@ class _LockedResearchSlotCard extends StatelessWidget {
     final accent = purchaseUnlocked
         ? const Color(0xFFE7C66A)
         : const Color(0xFF607587);
-    return Container(
+    return _ResearchAssetSurface(
       key: const ValueKey('research-slot-two-locked-card'),
+      asset: researchSlotLockedFrameAsset,
       padding: const EdgeInsets.all(9),
-      decoration: BoxDecoration(
-        color: purchaseUnlocked
-            ? const Color(0x22E7C66A)
-            : const Color(0x22000000),
-        border: Border.all(
-          color: purchaseUnlocked
-              ? const Color(0x66E7C66A)
-              : const Color(0x33485B68),
-        ),
-        borderRadius: BorderRadius.circular(7),
-      ),
       child: Row(
         children: [
           Icon(
@@ -122,8 +112,8 @@ class _LockedResearchSlotCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          GameButton(
-            key: const ValueKey('research-slot-two-unlock-button'),
+          _ResearchAssetButton(
+            buttonKey: const ValueKey('research-slot-two-unlock-button'),
             onPressed: canPurchase
                 ? () => _confirmUnlockResearchSlotTwo(
                     context,
@@ -136,8 +126,6 @@ class _LockedResearchSlotCard extends StatelessWidget {
             height: 30,
             width: 104,
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 6),
-            variant: GameButtonVariant.primary,
-            accentColor: const Color(0xFFE7C66A),
             tooltip: !purchaseUnlocked
                 ? l10n.researchSlotTwoPurchaseRequirement
                 : canPurchase
@@ -362,140 +350,212 @@ class _ResearchSlotCard extends StatelessWidget {
           );
     final canCompleteInstantly =
         active != null && diamonds >= instantCompleteCost;
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0x22000000),
-        border: Border.all(color: const Color(0x33485B68)),
-        borderRadius: BorderRadius.circular(7),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          if (active != null)
-            Positioned.fill(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: AnimatedFractionallySizedBox(
-                  duration: const Duration(milliseconds: 850),
-                  curve: Curves.easeOutCubic,
-                  widthFactor: progress.clamp(0.0, 1.0),
-                  heightFactor: 1,
-                  child: const DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: Color(0x22E7C66A),
-                      border: Border(
-                        right: BorderSide(color: Color(0x88E7C66A)),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(7),
+      child: _ResearchAssetSurface(
+        asset: researchSlotFrameAsset,
+        child: Stack(
+          children: [
+            if (active != null)
+              Positioned.fill(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: AnimatedFractionallySizedBox(
+                    duration: const Duration(milliseconds: 850),
+                    curve: Curves.easeOutCubic,
+                    widthFactor: progress.clamp(0.0, 1.0),
+                    heightFactor: 1,
+                    child: const DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Color(0x22E7C66A),
+                        border: Border(
+                          right: BorderSide(color: Color(0x88E7C66A)),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(9),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      active == null
-                          ? Icons.add_circle_outline
-                          : Icons.hourglass_bottom,
-                      color: active == null
-                          ? const Color(0xFF607587)
-                          : const Color(0xFFE7C66A),
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _AdaptiveResearchTitle(
-                        text: active == null
-                            ? l10n.emptyResearchSlot
-                            : '${_researchTitle(l10n, active.type)} ${l10n.researchLevel(active.targetLevel - 1, gameResearchDefinitions[active.type]!.maxLevel)}',
-                        style: const TextStyle(
-                          color: Color(0xFFE8FBFF),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
+            Padding(
+              padding: const EdgeInsets.all(9),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        active == null
+                            ? Icons.add_circle_outline
+                            : Icons.hourglass_bottom,
+                        color: active == null
+                            ? const Color(0xFF607587)
+                            : const Color(0xFFE7C66A),
+                        size: 18,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _AdaptiveResearchTitle(
+                          text: active == null
+                              ? l10n.emptyResearchSlot
+                              : '${_researchTitle(l10n, active.type)} ${l10n.researchLevel(active.targetLevel - 1, gameResearchDefinitions[active.type]!.maxLevel)}',
+                          style: const TextStyle(
+                            color: Color(0xFFE8FBFF),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                       ),
-                    ),
-                    if (active != null)
-                      Tooltip(
-                        message: l10n.cancel,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => _confirmCancelResearch(
-                            context,
-                            game: game,
-                            research: active,
-                          ),
-                          child: const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: Icon(
-                              Icons.close,
-                              color: Color(0xFFE8FBFF),
-                              size: 15,
+                      if (active != null)
+                        Tooltip(
+                          message: l10n.cancel,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => _confirmCancelResearch(
+                              context,
+                              game: game,
+                              research: active,
                             ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                if (active != null) ...[
-                  const SizedBox(height: 7),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      return Row(
-                        children: [
-                          Expanded(
-                            child: _PermanentUpgradeStatusChip(
-                              text: l10n.researchRemaining(
-                                active.remainingMillisAt(nowMillis),
+                            child: const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: Icon(
+                                Icons.close,
+                                color: Color(0xFFE8FBFF),
+                                size: 15,
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          GameButton(
-                            key: const ValueKey(
-                              'research-instant-complete-button',
-                            ),
-                            onPressed: canCompleteInstantly
-                                ? () => _confirmInstantCompleteResearch(
-                                    context,
-                                    game: game,
-                                    research: active,
-                                    cost: instantCompleteCost,
-                                  )
-                                : null,
-                            label:
-                                '${l10n.completeResearchInstantly} ${l10n.researchInstantCompleteCost(instantCompleteCost)}',
-                            compact: true,
-                            height: 26,
-                            width: 104,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 6,
-                            ),
-                            variant: GameButtonVariant.primary,
-                            accentColor: _researchInstantCompleteAccent,
-                            tooltip: canCompleteInstantly
-                                ? l10n.researchInstantCompleteCost(
-                                    instantCompleteCost,
-                                  )
-                                : l10n.notEnoughDiamonds,
-                            child: _ResearchInstantCompleteButtonLabel(
-                              text: l10n.completeResearchInstantly,
-                              cost: instantCompleteCost,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+                        ),
+                    ],
                   ),
+                  if (active != null) ...[
+                    const SizedBox(height: 7),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: _PermanentUpgradeStatusChip(
+                                text: l10n.researchRemaining(
+                                  active.remainingMillisAt(nowMillis),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            _ResearchAssetButton(
+                              buttonKey: const ValueKey(
+                                'research-instant-complete-button',
+                              ),
+                              onPressed: canCompleteInstantly
+                                  ? () => _confirmInstantCompleteResearch(
+                                      context,
+                                      game: game,
+                                      research: active,
+                                      cost: instantCompleteCost,
+                                    )
+                                  : null,
+                              label:
+                                  '${l10n.completeResearchInstantly} ${l10n.researchInstantCompleteCost(instantCompleteCost)}',
+                              compact: true,
+                              height: 26,
+                              width: 104,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 6,
+                              ),
+                              tooltip: canCompleteInstantly
+                                  ? l10n.researchInstantCompleteCost(
+                                      instantCompleteCost,
+                                    )
+                                  : l10n.notEnoughDiamonds,
+                              child: _ResearchInstantCompleteButtonLabel(
+                                text: l10n.completeResearchInstantly,
+                                cost: instantCompleteCost,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
                 ],
-              ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ResearchAssetButton extends StatelessWidget {
+  const _ResearchAssetButton({
+    required this.buttonKey,
+    required this.onPressed,
+    required this.label,
+    required this.height,
+    required this.width,
+    required this.padding,
+    required this.tooltip,
+    required this.child,
+    this.compact = false,
+  });
+
+  final Key buttonKey;
+  final VoidCallback? onPressed;
+  final String label;
+  final double height;
+  final double width;
+  final EdgeInsetsGeometry padding;
+  final String tooltip;
+  final Widget child;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onPressed != null;
+    return GameButton(
+      key: buttonKey,
+      onPressed: onPressed,
+      label: label,
+      compact: compact,
+      height: height,
+      width: width,
+      padding: EdgeInsets.zero,
+      variant: GameButtonVariant.ghost,
+      accentColor: Colors.transparent,
+      tooltip: tooltip,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Opacity(
+            opacity: enabled ? 1 : 0.5,
+            child: Image.asset(
+              researchActionFrameAsset,
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.medium,
+              excludeFromSemantics: true,
+            ),
+          ),
+          Padding(
+            padding: padding,
+            child: DefaultTextStyle(
+              style: TextStyle(
+                color: enabled
+                    ? const Color(0xFFE8FBFF)
+                    : GamePalette.textDisabled,
+                fontSize: compact ? 10 : 12,
+                fontWeight: FontWeight.w900,
+              ),
+              maxLines: 1,
+              child: IconTheme(
+                data: IconThemeData(
+                  color: enabled
+                      ? const Color(0xFFE8FBFF)
+                      : GamePalette.textDisabled,
+                ),
+                child: child,
+              ),
             ),
           ),
         ],

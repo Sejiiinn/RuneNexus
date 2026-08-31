@@ -63,6 +63,18 @@ const String upgradeGroupCombatSelectedAsset =
     'assets/images/upgrades/ui/upgrade_group_combat_selected.png';
 const String upgradeGroupEconomySelectedAsset =
     'assets/images/upgrades/ui/upgrade_group_economy_selected.png';
+const String researchSectionFrameAsset =
+    'assets/images/research/ui/section_frame.png';
+const String researchSlotFrameAsset =
+    'assets/images/research/ui/slot_frame.png';
+const String researchSlotLockedFrameAsset =
+    'assets/images/research/ui/slot_locked_frame.png';
+const String researchCardFrameAsset =
+    'assets/images/research/ui/research_card_frame.png';
+const String researchIconSocketAsset =
+    'assets/images/research/ui/icon_socket.png';
+const String researchActionFrameAsset =
+    'assets/images/research/ui/action_frame.png';
 const String stageDetailsDialogFrameAsset =
     'assets/images/stage_details/ui/dialog_frame.png';
 const String stageDetailsHeaderIconSocketAsset =
@@ -180,6 +192,15 @@ const List<String> upgradeUiImageAssets = [
   upgradeGroupEconomySelectedAsset,
 ];
 
+const List<String> researchUiImageAssets = [
+  researchSectionFrameAsset,
+  researchSlotFrameAsset,
+  researchSlotLockedFrameAsset,
+  researchCardFrameAsset,
+  researchIconSocketAsset,
+  researchActionFrameAsset,
+];
+
 const List<String> stageDetailsUiImageAssets = [
   stageDetailsDialogFrameAsset,
   stageDetailsHeaderIconSocketAsset,
@@ -214,6 +235,7 @@ List<ImageProvider<Object>> runeNexusStartupImageProviders() {
     for (final asset in stageUiImageAssets) AssetImage(asset),
     for (final asset in questUiImageAssets) AssetImage(asset),
     for (final asset in upgradeUiImageAssets) AssetImage(asset),
+    for (final asset in researchUiImageAssets) AssetImage(asset),
     for (final asset in stageDetailsUiImageAssets) AssetImage(asset),
     for (final asset in resultUiImageAssets) AssetImage(asset),
     for (final asset in stageChapterBannerAssets) AssetImage(asset),
