@@ -94,14 +94,10 @@ class _WeeklyQuestSummaryCard extends StatelessWidget {
         ? '수령'
         : '대기';
 
-    return Container(
+    return _QuestAssetSurface(
       key: const ValueKey('weekly-quest-summary-card'),
+      asset: questSummaryFrameAsset,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xAA08131F),
-        border: Border.all(color: const Color(0x6633D8FF)),
-        borderRadius: BorderRadius.circular(7),
-      ),
       child: Row(
         children: [
           Expanded(
@@ -143,17 +139,10 @@ class _WeeklyQuestSummaryCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          SizedBox(
-            width: 68,
-            child: GameButton(
-              onPressed: canClaim && !claimInProgress ? onClaim : null,
-              label: blocked ? '잠김' : buttonLabel,
-              compact: true,
-              variant: canClaim
-                  ? GameButtonVariant.primary
-                  : GameButtonVariant.secondary,
-              accentColor: _diamondCurrencyColor,
-            ),
+          _QuestActionButton(
+            onPressed: canClaim && !claimInProgress ? onClaim : null,
+            label: blocked ? '잠김' : buttonLabel,
+            highlighted: canClaim,
           ),
         ],
       ),
@@ -236,46 +225,23 @@ class _WeeklyQuestRow extends StatelessWidget {
         ? '완료'
         : '진행중';
 
-    return Container(
+    return _QuestAssetSurface(
+      asset: questRowFrameAsset,
+      highlighted: complete,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: complete ? const Color(0x2247D7FF) : const Color(0x6607111D),
-        border: Border.all(
-          color: complete
-              ? _diamondCurrencyColor.withValues(alpha: 0.54)
-              : const Color(0x33485B68),
-        ),
-        borderRadius: BorderRadius.circular(7),
-      ),
       child: Row(
         children: [
-          SizedBox(
-            width: 30,
-            height: 30,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: complete
-                    ? _diamondCurrencyColor.withValues(alpha: 0.16)
-                    : const Color(0x55223543),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: complete
-                      ? _diamondCurrencyColor.withValues(alpha: 0.72)
-                      : const Color(0x444A6172),
-                ),
-              ),
-              child: Center(
-                child: Opacity(
-                  opacity: complete ? 1 : 0.58,
-                  child: Image.asset(
-                    _dailyQuestIconAsset(type),
-                    width: 18,
-                    height: 18,
-                    fit: BoxFit.contain,
-                    filterQuality: FilterQuality.medium,
-                    semanticLabel: definition.title,
-                  ),
-                ),
+          _QuestIconSocket(
+            complete: complete,
+            child: Opacity(
+              opacity: complete ? 1 : 0.58,
+              child: Image.asset(
+                _dailyQuestIconAsset(type),
+                width: 18,
+                height: 18,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.medium,
+                semanticLabel: definition.title,
               ),
             ),
           ),
@@ -328,19 +294,12 @@ class _WeeklyQuestRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          SizedBox(
-            width: 68,
-            child: GameButton(
-              onPressed: canClaim && !claimInProgress ? onClaim : null,
-              label: snapshot.dailyQuestClockRollbackDetected
-                  ? '잠김'
-                  : buttonLabel,
-              compact: true,
-              variant: canClaim
-                  ? GameButtonVariant.primary
-                  : GameButtonVariant.secondary,
-              accentColor: _diamondCurrencyColor,
-            ),
+          _QuestActionButton(
+            onPressed: canClaim && !claimInProgress ? onClaim : null,
+            label: snapshot.dailyQuestClockRollbackDetected
+                ? '잠김'
+                : buttonLabel,
+            highlighted: canClaim,
           ),
         ],
       ),

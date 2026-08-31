@@ -39,6 +39,16 @@ const String stageReferenceLockedRowAsset =
     'assets/images/ui/stage_reference/locked_stage_row.png';
 const String stageReferenceNumberPlateAsset =
     'assets/images/ui/stage_reference/stage_number_plate.png';
+const String questDialogFrameAsset = 'assets/images/quests/ui/dialog_frame.png';
+const String questTabIdleAsset = 'assets/images/quests/ui/tab_idle.png';
+const String questTabSelectedAsset = 'assets/images/quests/ui/tab_selected.png';
+const String questSummaryFrameAsset =
+    'assets/images/quests/ui/summary_frame.png';
+const String questRowFrameAsset = 'assets/images/quests/ui/quest_row_frame.png';
+const String questIconSocketAsset = 'assets/images/quests/ui/icon_socket.png';
+const String questActionIdleAsset = 'assets/images/quests/ui/action_idle.png';
+const String questActionClaimAsset = 'assets/images/quests/ui/action_claim.png';
+const String questCloseButtonAsset = 'assets/images/quests/ui/close_button.png';
 const String resultSuccessEmblemAsset =
     'assets/images/results/result_success.png';
 const String resultFailureEmblemAsset =
@@ -102,6 +112,18 @@ const List<String> stageUiImageAssets = [
   stageReferenceNumberPlateAsset,
 ];
 
+const List<String> questUiImageAssets = [
+  questDialogFrameAsset,
+  questTabIdleAsset,
+  questTabSelectedAsset,
+  questSummaryFrameAsset,
+  questRowFrameAsset,
+  questIconSocketAsset,
+  questActionIdleAsset,
+  questActionClaimAsset,
+  questCloseButtonAsset,
+];
+
 const List<String> corePassiveTreeAssets = [
   corePassiveTreeBackgroundAsset,
   corePassiveTreeCoreAsset,
@@ -112,6 +134,7 @@ List<ImageProvider<Object>> runeNexusStartupImageProviders() {
   final providers = <ImageProvider<Object>>[
     for (final asset in commonUiImageAssets) AssetImage(asset),
     for (final asset in stageUiImageAssets) AssetImage(asset),
+    for (final asset in questUiImageAssets) AssetImage(asset),
     for (final asset in stageChapterBannerAssets) AssetImage(asset),
     for (final asset in stageRewardIconAssets) AssetImage(asset),
     for (final type in GameUpgradeIconType.values)

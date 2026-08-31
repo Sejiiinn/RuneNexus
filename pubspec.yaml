@@ -28,6 +28,7 @@ flutter:
     - assets/images/core_passive_tree/
     - assets/images/core_passives/
     - assets/images/quests/
+    - assets/images/quests/ui/
     - assets/images/research/
     - assets/images/results/
     - assets/images/stage_rewards/
