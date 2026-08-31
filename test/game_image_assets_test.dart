@@ -12,7 +12,7 @@ void main() {
     () {
       final providers = runeNexusStartupImageProviders();
 
-      expect(providers, hasLength(96));
+      expect(providers, hasLength(98));
       expect(providers.whereType<ResizeImage>(), hasLength(29));
       for (final asset in commonUiImageAssets) {
         expect(providers, contains(AssetImage(asset)));
@@ -24,6 +24,9 @@ void main() {
         expect(providers, contains(AssetImage(asset)));
       }
       for (final asset in researchUiImageAssets) {
+        expect(providers, contains(AssetImage(asset)));
+      }
+      for (final asset in turretModuleUiImageAssets) {
         expect(providers, contains(AssetImage(asset)));
       }
       for (final asset in stageDetailsUiImageAssets) {
@@ -98,6 +101,14 @@ void main() {
         expect(size.width, lessThanOrEqualTo(256));
         expect(size.height, lessThanOrEqualTo(256));
       }
+      final turretPreviewFrameSize = await _assetImageSize(
+        turretModulePreviewFrameAsset,
+      );
+      expect(turretPreviewFrameSize, const Size(384, 384));
+      final turretConnectorSize = await _assetImageSize(
+        turretModuleConnectorAssemblyAsset,
+      );
+      expect(turretConnectorSize, const Size(342, 600));
       final logoSize = await _assetImageSize(gameLogoAsset);
       expect(logoSize.width, lessThanOrEqualTo(1024));
       final menuBackgroundSize = await _assetImageSize(mainMenuBackgroundAsset);

@@ -70,7 +70,7 @@ class _LockedResearchSlotCard extends StatelessWidget {
     final accent = purchaseUnlocked
         ? const Color(0xFFE7C66A)
         : const Color(0xFF607587);
-    return _ResearchAssetSurface(
+    return _MenuAssetSurface(
       key: const ValueKey('research-slot-two-locked-card'),
       asset: researchSlotLockedFrameAsset,
       padding: const EdgeInsets.all(9),
@@ -112,7 +112,7 @@ class _LockedResearchSlotCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          _ResearchAssetButton(
+          _MenuAssetButton(
             buttonKey: const ValueKey('research-slot-two-unlock-button'),
             onPressed: canPurchase
                 ? () => _confirmUnlockResearchSlotTwo(
@@ -352,7 +352,7 @@ class _ResearchSlotCard extends StatelessWidget {
         active != null && diamonds >= instantCompleteCost;
     return ClipRRect(
       borderRadius: BorderRadius.circular(7),
-      child: _ResearchAssetSurface(
+      child: _MenuAssetSurface(
         asset: researchSlotFrameAsset,
         child: Stack(
           children: [
@@ -442,7 +442,7 @@ class _ResearchSlotCard extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            _ResearchAssetButton(
+                            _MenuAssetButton(
                               buttonKey: const ValueKey(
                                 'research-instant-complete-button',
                               ),
@@ -488,8 +488,8 @@ class _ResearchSlotCard extends StatelessWidget {
   }
 }
 
-class _ResearchAssetButton extends StatelessWidget {
-  const _ResearchAssetButton({
+class _MenuAssetButton extends StatelessWidget {
+  const _MenuAssetButton({
     required this.buttonKey,
     required this.onPressed,
     required this.label,
@@ -499,6 +499,10 @@ class _ResearchAssetButton extends StatelessWidget {
     required this.tooltip,
     required this.child,
     this.compact = false,
+    this.accentColor,
+    this.frameAsset = researchActionFrameAsset,
+    this.frameCenterSlice = _menuActionFrameCenterSlice,
+    this.frameColor,
   });
 
   final Key buttonKey;
@@ -510,6 +514,10 @@ class _ResearchAssetButton extends StatelessWidget {
   final String tooltip;
   final Widget child;
   final bool compact;
+  final Color? accentColor;
+  final String frameAsset;
+  final Rect frameCenterSlice;
+  final Color? frameColor;
 
   @override
   Widget build(BuildContext context) {
@@ -531,12 +539,38 @@ class _ResearchAssetButton extends StatelessWidget {
           Opacity(
             opacity: enabled ? 1 : 0.5,
             child: Image.asset(
-              researchActionFrameAsset,
+              frameAsset,
+              scale: _menuUiAssetScale,
               fit: BoxFit.fill,
+              centerSlice: frameCenterSlice,
+              color: frameColor,
+              colorBlendMode: frameColor == null ? null : BlendMode.modulate,
               filterQuality: FilterQuality.medium,
               excludeFromSemantics: true,
             ),
           ),
+          if (accentColor case final accent?)
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    accent.withValues(alpha: 0.16),
+                    const Color(0x00000000),
+                    accent.withValues(alpha: 0.07),
+                  ],
+                ),
+                border: Border.all(color: accent.withValues(alpha: 0.7)),
+                borderRadius: BorderRadius.circular(7),
+                boxShadow: [
+                  BoxShadow(
+                    color: accent.withValues(alpha: 0.12),
+                    blurRadius: 7,
+                  ),
+                ],
+              ),
+            ),
           Padding(
             padding: padding,
             child: DefaultTextStyle(

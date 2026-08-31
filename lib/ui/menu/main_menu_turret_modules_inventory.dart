@@ -99,13 +99,11 @@ class _TurretModuleInventoryGrid extends StatelessWidget {
             ? 0
             : columnCount - (items.length % columnCount);
         final visibleSlotCount = items.length + trailingEmptySlotCount;
-        return Container(
+        return _MenuAssetSurface(
+          asset: researchSectionFrameAsset,
+          scale: _menuUiAssetScale,
+          centerSlice: _menuSectionFrameCenterSlice,
           padding: const EdgeInsets.all(gridPadding),
-          decoration: BoxDecoration(
-            color: const Color(0x2207111D),
-            border: Border.all(color: const Color(0x55485B68)),
-            borderRadius: BorderRadius.circular(7),
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -174,26 +172,41 @@ class _TurretModulePartFilterChip extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(6),
-        child: Container(
+        child: SizedBox(
           height: 24,
-          alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(horizontal: 7),
-          decoration: BoxDecoration(
-            color: selected ? const Color(0x2233D8FF) : const Color(0x2207111D),
-            border: Border.all(
-              color: selected ? GamePalette.cyan : const Color(0x55485B68),
-            ),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: _ModuleSingleLineText(
-            label,
-            alignment: Alignment.center,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: selected ? GamePalette.textPrimary : GamePalette.textMuted,
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              height: 1,
+          child: _MenuAssetSurface(
+            asset: researchActionFrameAsset,
+            scale: _menuUiAssetScale,
+            centerSlice: _menuActionFrameCenterSlice,
+            opacity: selected ? 1 : 0.58,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (selected)
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: const Color(0x1633D8FF),
+                      border: Border.all(color: GamePalette.cyan),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 7),
+                  child: _ModuleSingleLineText(
+                    label,
+                    alignment: Alignment.center,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: selected
+                          ? GamePalette.textPrimary
+                          : GamePalette.textMuted,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      height: 1,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -222,32 +235,34 @@ class _TurretModuleInventorySlot extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(7),
-        child: Container(
-          decoration: BoxDecoration(
-            color: selected
-                ? const Color(0x2233D8FF)
-                : item.equipped
-                ? const Color(0x2233D8FF)
-                : const Color(0xAA07111D),
-            border: Border.all(
-              color: selected
-                  ? GamePalette.cyan
-                  : gradeColor.withValues(alpha: item.equipped ? 0.82 : 0.62),
-              width: selected ? 1.8 : 1.1,
-            ),
-            borderRadius: BorderRadius.circular(7),
-            boxShadow: item.key.grade == TurretModuleGrade.unique
-                ? [
-                    BoxShadow(
-                      color: gradeColor.withValues(alpha: 0.22),
-                      blurRadius: 10,
-                      spreadRadius: 0.5,
-                    ),
-                  ]
-                : null,
-          ),
+        child: _MenuAssetSurface(
+          asset: researchCardFrameAsset,
+          scale: _menuUiAssetScale,
+          centerSlice: _menuCardFrameCenterSlice,
           child: Stack(
             children: [
+              if (selected || item.equipped)
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: const Color(0x1633D8FF),
+                      border: Border.all(
+                        color: selected ? GamePalette.cyan : gradeColor,
+                        width: selected ? 1.8 : 1.1,
+                      ),
+                      borderRadius: BorderRadius.circular(7),
+                      boxShadow: item.key.grade == TurretModuleGrade.unique
+                          ? [
+                              BoxShadow(
+                                color: gradeColor.withValues(alpha: 0.22),
+                                blurRadius: 10,
+                                spreadRadius: 0.5,
+                              ),
+                            ]
+                          : null,
+                    ),
+                  ),
+                ),
               Positioned.fill(
                 child: Center(
                   child: _TurretModuleItemIcon(
@@ -292,12 +307,12 @@ class _TurretModuleEmptySlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0x3307111D),
-        border: Border.all(color: const Color(0x33485B68)),
-        borderRadius: BorderRadius.circular(7),
-      ),
+    return const _MenuAssetSurface(
+      asset: researchCardFrameAsset,
+      scale: _menuUiAssetScale,
+      centerSlice: _menuCardFrameCenterSlice,
+      opacity: 0.45,
+      child: SizedBox.expand(),
     );
   }
 }
@@ -551,22 +566,23 @@ class _TurretModuleEmptyInventoryHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 42,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: const Color(0x2207111D),
-        border: Border.all(color: const Color(0x55485B68)),
-        borderRadius: BorderRadius.circular(7),
-      ),
-      child: _ModuleSingleLineText(
-        text,
-        alignment: Alignment.center,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          color: GamePalette.textPrimary,
-          fontSize: 12,
-          fontWeight: FontWeight.w900,
+      child: _MenuAssetSurface(
+        asset: researchSlotFrameAsset,
+        scale: _menuUiAssetScale,
+        centerSlice: _menuSlotFrameCenterSlice,
+        child: Center(
+          child: _ModuleSingleLineText(
+            text,
+            alignment: Alignment.center,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: GamePalette.textPrimary,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
         ),
       ),
     );
@@ -730,8 +746,6 @@ const Map<TurretModulePart, double> _partPositions = {
 };
 
 const double _moduleSocketHeight = 66;
-const double _moduleLinkHubGap = 52;
-const double _moduleLinkLaneGap = 24;
 
 double _partSocketCenterY(TurretModulePart part) {
   return _partPositions[part]! + (_moduleSocketHeight / 2);

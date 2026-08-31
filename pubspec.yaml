@@ -35,6 +35,7 @@ flutter:
     - assets/images/results/ui/
     - assets/images/stage_details/ui/
     - assets/images/stage_rewards/
+    - assets/images/turret_modules/ui/
     - assets/images/ui/stage_reference/
     - assets/images/upgrades/
     - assets/images/upgrades/ui/

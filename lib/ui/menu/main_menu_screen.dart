@@ -515,20 +515,14 @@ class _MainMenuSnapshotContent extends StatelessWidget {
                         ),
                       )
                     else
-                      _MainMenuPanel(
+                      _TurretModulePanel(
                         key: const ValueKey('main-menu-content-panel'),
-                        child: switch (selectedTab) {
-                          MainMenuTab.turretModules => _TurretModuleMenu(
-                            key: turretModuleMenuKey,
-                            game: game,
-                            snapshot: snapshot,
-                            onDrawResults: onTurretModuleDrawResults,
-                          ),
-                          MainMenuTab.permanentUpgrades ||
-                          MainMenuTab.core ||
-                          MainMenuTab.research ||
-                          MainMenuTab.stage => const SizedBox.shrink(),
-                        },
+                        child: _TurretModuleMenu(
+                          key: turretModuleMenuKey,
+                          game: game,
+                          snapshot: snapshot,
+                          onDrawResults: onTurretModuleDrawResults,
+                        ),
                       ),
                   ],
                 ),
@@ -598,22 +592,6 @@ class _MainMenuSnapshotContent extends StatelessWidget {
             ),
           ),
       ],
-    );
-  }
-}
-
-class _MainMenuPanel extends StatelessWidget {
-  const _MainMenuPanel({required this.child, super.key});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final padding = constraints.maxWidth <= 390 ? 12.0 : 16.0;
-        return GamePanel(padding: EdgeInsets.all(padding), child: child);
-      },
     );
   }
 }

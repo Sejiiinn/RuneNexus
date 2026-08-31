@@ -1,5 +1,27 @@
 part of 'main_menu_screen.dart';
 
+class _TurretModulePanel extends StatelessWidget {
+  const _TurretModulePanel({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final padding = constraints.maxWidth <= 390 ? 12.0 : 16.0;
+        return _MenuAssetSurface(
+          asset: researchSectionFrameAsset,
+          scale: _menuUiAssetScale,
+          centerSlice: _menuSectionFrameCenterSlice,
+          padding: EdgeInsets.all(padding),
+          child: child,
+        );
+      },
+    );
+  }
+}
+
 class _TurretModuleMenu extends StatefulWidget {
   const _TurretModuleMenu({
     required this.game,

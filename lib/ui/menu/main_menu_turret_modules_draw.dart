@@ -15,13 +15,11 @@ class _ModuleDrawPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return _MenuAssetSurface(
+      asset: researchSectionFrameAsset,
+      scale: _menuUiAssetScale,
+      centerSlice: _menuSectionFrameCenterSlice,
       padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: const Color(0x3307111D),
-        border: Border.all(color: const Color(0x55485B68)),
-        borderRadius: BorderRadius.circular(7),
-      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -49,14 +47,19 @@ class _ModuleDrawPanel extends StatelessWidget {
         ? _diamondCurrencyColor
         : GamePalette.textDisabled;
 
-    return GameButton(
-      key: ValueKey('turret-module-draw-button-$count'),
+    return _MenuAssetButton(
+      buttonKey: ValueKey('turret-module-draw-button-$count'),
       onPressed: canDraw ? () => _drawModules(context, count) : null,
+      label: '$count회 모듈 뽑기',
       compact: true,
       accentColor: GamePalette.gold,
+      frameAsset: upgradeActionFrameAsset,
+      frameCenterSlice: _menuUpgradeActionFrameCenterSlice,
+      frameColor: GamePalette.gold,
       height: 36,
       width: requiresDiamonds ? 68 : 54,
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      tooltip: '$count회 모듈 뽑기',
       child: requiresDiamonds
           ? Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -251,19 +254,19 @@ class _ModuleBuildLevelPanel extends StatelessWidget {
     final sanitizedDrawCount = math.max(0, drawCount);
     final buildLevel = turretModuleBuildLevelForDrawCount(sanitizedDrawCount);
 
-    return GameButton(
-      key: const ValueKey('turret-module-build-level-button'),
+    return _MenuAssetButton(
+      buttonKey: const ValueKey('turret-module-build-level-button'),
       onPressed: () => showGameDialog<void>(
         context: context,
         builder: (context) =>
             _ModuleBuildLevelDialog(drawCount: sanitizedDrawCount),
       ),
       label: '모듈 구축 Lv.${buildLevel.level}',
-      variant: GameButtonVariant.ghost,
-      accentColor: GamePalette.cyan,
       compact: true,
       height: 36,
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      tooltip: '모듈 구축 레벨 보기',
       child: Row(
         children: [
           const Icon(

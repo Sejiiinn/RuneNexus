@@ -1,7 +1,15 @@
 part of 'main_menu_screen.dart';
 
-class _ResearchAssetSurface extends StatelessWidget {
-  const _ResearchAssetSurface({
+const double _menuUiAssetScale = 3;
+const Rect _menuSectionFrameCenterSlice = Rect.fromLTRB(14, 14, 362, 146);
+const Rect _menuCardFrameCenterSlice = Rect.fromLTRB(11, 11, 160, 105);
+const Rect _menuSlotFrameCenterSlice = Rect.fromLTRB(11, 10, 346, 34);
+const Rect _menuLockedSlotFrameCenterSlice = Rect.fromLTRB(11, 11, 346, 48);
+const Rect _menuActionFrameCenterSlice = Rect.fromLTRB(10, 9, 100, 23);
+const Rect _menuUpgradeActionFrameCenterSlice = Rect.fromLTRB(8, 8, 143, 26);
+
+class _MenuAssetSurface extends StatelessWidget {
+  const _MenuAssetSurface({
     required this.asset,
     required this.child,
     this.padding = EdgeInsets.zero,
@@ -69,10 +77,10 @@ class _ResearchSection extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final padding = constraints.maxWidth <= 330 ? 8.0 : 10.0;
-        return _ResearchAssetSurface(
+        return _MenuAssetSurface(
           asset: researchSectionFrameAsset,
-          scale: 3,
-          centerSlice: const Rect.fromLTRB(14, 14, 362, 146),
+          scale: _menuUiAssetScale,
+          centerSlice: _menuSectionFrameCenterSlice,
           padding: EdgeInsets.all(padding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -310,7 +318,7 @@ class _ResearchTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(7),
         splashColor: const Color(0x1A8EE6FF),
         highlightColor: const Color(0x1422C7E8),
-        child: _ResearchAssetSurface(
+        child: _MenuAssetSurface(
           asset: researchCardFrameAsset,
           opacity: clickable ? 1 : 0.58,
           constraints: const BoxConstraints(minHeight: 106),

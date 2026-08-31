@@ -44,53 +44,79 @@ class _TurretModuleTurretToken extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final turret = gameTurrets[type]!;
-    final borderColor = selected ? GamePalette.cyan : const Color(0x55485B68);
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(7),
-        child: Container(
+        child: SizedBox(
           height: 54,
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
-          decoration: BoxDecoration(
-            color: selected ? const Color(0x2233D8FF) : const Color(0x2207111D),
-            border: Border.all(color: borderColor),
-            borderRadius: BorderRadius.circular(7),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 25,
-                height: 25,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: turret.color.withValues(alpha: 0.12),
-                  border: Border.all(
-                    color: turret.color.withValues(alpha: 0.7),
-                  ),
-                  borderRadius: BorderRadius.circular(7),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(3),
-                  child: CustomPaint(
-                    painter: _TurretShapePainter(
-                      type: type,
-                      color: turret.color,
+          child: _MenuAssetSurface(
+            asset: researchCardFrameAsset,
+            scale: _menuUiAssetScale,
+            centerSlice: _menuCardFrameCenterSlice,
+            opacity: selected ? 1 : 0.68,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (selected)
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: turret.color.withValues(alpha: 0.07),
+                      border: Border.all(
+                        color: turret.color.withValues(alpha: 0.72),
+                      ),
+                      borderRadius: BorderRadius.circular(7),
                     ),
-                    child: const SizedBox.expand(),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 5,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 27,
+                        height: 27,
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.asset(
+                              researchIconSocketAsset,
+                              fit: BoxFit.fill,
+                              filterQuality: FilterQuality.medium,
+                              excludeFromSemantics: true,
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: CustomPaint(
+                                painter: _TurretShapePainter(
+                                  type: type,
+                                  color: turret.color,
+                                ),
+                                child: const SizedBox.expand(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      _ModuleSingleLineText(
+                        turret.name,
+                        alignment: Alignment.center,
+                        textAlign: TextAlign.center,
+                        style: GameTextStyles.withColor(
+                          GameTextStyles.caption,
+                          selected ? turret.color : GamePalette.textMuted,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 3),
-              _ModuleSingleLineText(
-                turret.name,
-                alignment: Alignment.center,
-                textAlign: TextAlign.center,
-                style: GameTextStyles.caption,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -119,59 +145,76 @@ class _TurretModuleEquipmentStage extends StatelessWidget {
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 360;
         final socketWidth = compact ? 116.0 : 128.0;
+        final socketRight = compact ? 8.0 : 10.0;
+        final socketLeft = constraints.maxWidth - socketRight - socketWidth;
         final turretSize = compact ? 104.0 : 118.0;
-        return Container(
+        final turretLeft = compact ? 14.0 : 20.0;
+        final turretCenterY = _partSocketCenterY(TurretModulePart.barrel);
+        final turretTop = turretCenterY - (turretSize / 2);
+        final connectorTop = _partSocketCenterY(TurretModulePart.core) - 12;
+        final connectorHeight =
+            _partSocketCenterY(TurretModulePart.frame) -
+            _partSocketCenterY(TurretModulePart.core) +
+            24;
+        final connectorLeft = turretLeft + turretSize - 12;
+        return SizedBox(
           height: 246,
-          decoration: BoxDecoration(
-            color: const Color(0x3307111D),
-            border: Border.all(color: const Color(0x55485B68)),
-            borderRadius: BorderRadius.circular(7),
-          ),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: _EquipmentLinkPainter(
-                    selectedParts: equippedModules.keys.toSet(),
-                    socketWidth: socketWidth,
-                    socketRight: compact ? 8 : 10,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: 10,
-                top: 9,
-                child: Text(turretName, style: GameTextStyles.sectionTitle),
-              ),
-              Positioned(
-                left: compact ? 14 : 20,
-                top: 76,
-                width: turretSize,
-                height: turretSize,
-                child: _TurretPreview(
-                  type: turretType,
-                  color: turretColor,
-                  name: turretName,
-                ),
-              ),
-              for (final entry in _partPositions.entries)
+          child: _MenuAssetSurface(
+            asset: researchSectionFrameAsset,
+            scale: _menuUiAssetScale,
+            centerSlice: _menuSectionFrameCenterSlice,
+            child: Stack(
+              children: [
                 Positioned(
-                  top: entry.value,
-                  right: compact ? 8 : 10,
-                  width: socketWidth,
-                  child: _TurretModuleSocketButton(
-                    key: ValueKey('turret-module-socket-${entry.key.name}'),
-                    part: entry.key,
-                    item: equippedModules[entry.key],
-                    selected: equippedModules[entry.key] != null,
-                    onPressed: equippedModules[entry.key] == null
-                        ? null
-                        : () => onSelectEquippedModule(
-                            equippedModules[entry.key]!,
-                          ),
+                  left: 10,
+                  top: 9,
+                  child: Text(turretName, style: GameTextStyles.sectionTitle),
+                ),
+                Positioned(
+                  left: turretLeft,
+                  top: turretTop,
+                  width: turretSize,
+                  height: turretSize,
+                  child: _TurretPreview(
+                    type: turretType,
+                    color: turretColor,
+                    name: turretName,
                   ),
                 ),
-            ],
+                Positioned(
+                  left: connectorLeft,
+                  top: connectorTop,
+                  width: socketLeft - connectorLeft + 5,
+                  height: connectorHeight,
+                  child: IgnorePointer(
+                    child: Image.asset(
+                      turretModuleConnectorAssemblyAsset,
+                      key: const ValueKey('turret-module-connector-assembly'),
+                      fit: BoxFit.fill,
+                      filterQuality: FilterQuality.medium,
+                      excludeFromSemantics: true,
+                    ),
+                  ),
+                ),
+                for (final entry in _partPositions.entries)
+                  Positioned(
+                    top: entry.value,
+                    right: socketRight,
+                    width: socketWidth,
+                    child: _TurretModuleSocketButton(
+                      key: ValueKey('turret-module-socket-${entry.key.name}'),
+                      part: entry.key,
+                      item: equippedModules[entry.key],
+                      selected: equippedModules[entry.key] != null,
+                      onPressed: equippedModules[entry.key] == null
+                          ? null
+                          : () => onSelectEquippedModule(
+                              equippedModules[entry.key]!,
+                            ),
+                    ),
+                  ),
+              ],
+            ),
           ),
         );
       },
@@ -195,17 +238,38 @@ class _TurretPreview extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: const Color(0x5507111D),
-        border: Border.all(color: color.withValues(alpha: 0.48)),
+        gradient: const RadialGradient(
+          colors: [Color(0xFF10212B), Color(0xFF030910)],
+          stops: [0, 1],
+        ),
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.12), blurRadius: 12),
+          const BoxShadow(
+            color: Color(0xAA000000),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Stack(
         alignment: Alignment.center,
         children: [
           Padding(
-            padding: const EdgeInsets.all(18),
+            padding: const EdgeInsets.all(24),
             child: CustomPaint(
               painter: _TurretShapePainter(type: type, color: color),
               child: const SizedBox.expand(),
+            ),
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: Image.asset(
+                turretModulePreviewFrameAsset,
+                key: const ValueKey('turret-module-preview-frame'),
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.medium,
+                excludeFromSemantics: true,
+              ),
             ),
           ),
           Positioned(
@@ -252,94 +316,6 @@ class _TurretShapePainter extends CustomPainter {
   }
 }
 
-class _EquipmentLinkPainter extends CustomPainter {
-  const _EquipmentLinkPainter({
-    required this.selectedParts,
-    required this.socketWidth,
-    required this.socketRight,
-  });
-
-  final Set<TurretModulePart> selectedParts;
-  final double socketWidth;
-  final double socketRight;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final socketLeft = size.width - socketRight - socketWidth;
-    final hubX = math.max(8.0, socketLeft - _moduleLinkHubGap);
-    final laneX = math.max(8.0, socketLeft - _moduleLinkLaneGap);
-    final hubY = _partSocketCenterY(TurretModulePart.barrel);
-    final busStartY = _partSocketCenterY(TurretModulePart.core);
-    final busEndY = _partSocketCenterY(TurretModulePart.frame);
-    final busPaint = Paint()
-      ..color = GamePalette.metal.withValues(alpha: 0.16)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-    final basePath = Path()
-      ..moveTo(hubX, hubY)
-      ..lineTo(laneX, hubY)
-      ..moveTo(laneX, busStartY)
-      ..lineTo(laneX, busEndY);
-    for (final part in TurretModulePart.values) {
-      final socketCenterY = _partSocketCenterY(part);
-      basePath
-        ..moveTo(laneX, socketCenterY)
-        ..lineTo(socketLeft, socketCenterY);
-    }
-    canvas.drawPath(basePath, busPaint);
-
-    for (final part in TurretModulePart.values) {
-      final socketCenterY = _partSocketCenterY(part);
-      final selected = selectedParts.contains(part);
-      final path = Path()
-        ..moveTo(hubX, hubY)
-        ..lineTo(laneX, hubY)
-        ..lineTo(laneX, socketCenterY)
-        ..lineTo(socketLeft, socketCenterY);
-      if (selected) {
-        final glowPaint = Paint()
-          ..color = GamePalette.cyan.withValues(alpha: 0.18)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 5.2
-          ..strokeCap = StrokeCap.round
-          ..strokeJoin = StrokeJoin.round;
-        canvas.drawPath(path, glowPaint);
-      }
-      final linePaint = Paint()
-        ..color = (selected ? GamePalette.cyan : GamePalette.metal).withValues(
-          alpha: selected ? 0.72 : 0.26,
-        )
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = selected ? 1.8 : 1.0
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round;
-      canvas.drawPath(path, linePaint);
-      final end = Offset(socketLeft - 1, socketCenterY);
-      final nodePaint = Paint()
-        ..color = (selected ? GamePalette.cyan : GamePalette.metal).withValues(
-          alpha: selected ? 0.82 : 0.34,
-        );
-      canvas.drawCircle(end, selected ? 3.4 : 2.2, nodePaint);
-      if (selected) {
-        canvas.drawCircle(
-          Offset(hubX, hubY),
-          2.7,
-          Paint()..color = GamePalette.cyan.withValues(alpha: 0.72),
-        );
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_EquipmentLinkPainter oldDelegate) {
-    return oldDelegate.selectedParts != selectedParts ||
-        oldDelegate.socketWidth != socketWidth ||
-        oldDelegate.socketRight != socketRight;
-  }
-}
-
 class _TurretModuleSocketButton extends StatelessWidget {
   const _TurretModuleSocketButton({
     super.key,
@@ -360,51 +336,68 @@ class _TurretModuleSocketButton extends StatelessWidget {
     final definition = item == null
         ? null
         : gameTurretModuleDefinitions[item.key];
-    final borderColor = selected ? GamePalette.cyan : const Color(0x55485B68);
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(7),
-        child: Container(
+        child: SizedBox(
           height: _moduleSocketHeight,
-          padding: const EdgeInsets.all(7),
-          decoration: BoxDecoration(
-            color: selected ? const Color(0x2233D8FF) : const Color(0xCC07111D),
-            border: Border.all(color: borderColor),
-            borderRadius: BorderRadius.circular(7),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(child: Text(part.label, style: GameTextStyles.chip)),
-                  if (item != null)
-                    Text(
-                      item.key.grade.label,
-                      style: GameTextStyles.withColor(
-                        GameTextStyles.caption,
-                        _gradeColor(item.key.grade),
-                      ),
+          child: _MenuAssetSurface(
+            asset: researchCardFrameAsset,
+            scale: _menuUiAssetScale,
+            centerSlice: _menuCardFrameCenterSlice,
+            opacity: selected ? 1 : 0.76,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (selected)
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: const Color(0x1633D8FF),
+                      border: Border.all(color: GamePalette.cyan),
+                      borderRadius: BorderRadius.circular(7),
                     ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              _ModuleSingleLineText(
-                definition?.name ?? '장착 없음',
-                style: const TextStyle(
-                  color: GamePalette.textPrimary,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(7),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(part.label, style: GameTextStyles.chip),
+                          ),
+                          if (item != null)
+                            Text(
+                              item.key.grade.label,
+                              style: GameTextStyles.withColor(
+                                GameTextStyles.caption,
+                                _gradeColor(item.key.grade),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      _ModuleSingleLineText(
+                        definition?.name ?? '장착 없음',
+                        style: const TextStyle(
+                          color: GamePalette.textPrimary,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      _ModuleSingleLineText(
+                        item == null ? '비어 있음' : '${item.options.length}옵션',
+                        style: GameTextStyles.caption,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 3),
-              _ModuleSingleLineText(
-                item == null ? '비어 있음' : '${item.options.length}옵션',
-                style: GameTextStyles.caption,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -466,24 +459,12 @@ class _TurretModuleDetailStrip extends StatelessWidget {
     final definition = item == null
         ? null
         : gameTurretModuleDefinitions[item.key];
-    final accentColor = item == null
-        ? GamePalette.metal
-        : _gradeColor(item.key.grade);
-
-    return Container(
+    return _MenuAssetSurface(
+      asset: researchSlotLockedFrameAsset,
+      scale: _menuUiAssetScale,
+      centerSlice: _menuLockedSlotFrameCenterSlice,
       constraints: const BoxConstraints(minHeight: 72),
       padding: const EdgeInsets.all(9),
-      decoration: BoxDecoration(
-        color: item != null
-            ? accentColor.withValues(alpha: 0.13)
-            : const Color(0x2207111D),
-        border: Border.all(
-          color: item?.equipped == true
-              ? GamePalette.cyan
-              : accentColor.withValues(alpha: item != null ? 0.48 : 0.36),
-        ),
-        borderRadius: BorderRadius.circular(7),
-      ),
       child: Row(
         children: [
           Expanded(

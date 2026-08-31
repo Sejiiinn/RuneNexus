@@ -125,6 +125,10 @@ const String stageRewardTurretIconAsset =
     'assets/images/stage_rewards/reward_turret.png';
 const String turretModuleTicketIconAsset =
     'assets/images/stage_rewards/reward_module_ticket.png';
+const String turretModulePreviewFrameAsset =
+    'assets/images/turret_modules/ui/turret_preview_frame.png';
+const String turretModuleConnectorAssemblyAsset =
+    'assets/images/turret_modules/ui/turret_connector_assembly.png';
 const String corePassiveTreeBackgroundAsset =
     'assets/images/core_passive_tree/tree_circuit_background.png';
 const String corePassiveTreeCoreAsset =
@@ -201,6 +205,11 @@ const List<String> researchUiImageAssets = [
   researchActionFrameAsset,
 ];
 
+const List<String> turretModuleUiImageAssets = [
+  turretModulePreviewFrameAsset,
+  turretModuleConnectorAssemblyAsset,
+];
+
 const List<String> stageDetailsUiImageAssets = [
   stageDetailsDialogFrameAsset,
   stageDetailsHeaderIconSocketAsset,
@@ -236,6 +245,7 @@ List<ImageProvider<Object>> runeNexusStartupImageProviders() {
     for (final asset in questUiImageAssets) AssetImage(asset),
     for (final asset in upgradeUiImageAssets) AssetImage(asset),
     for (final asset in researchUiImageAssets) AssetImage(asset),
+    for (final asset in turretModuleUiImageAssets) AssetImage(asset),
     for (final asset in stageDetailsUiImageAssets) AssetImage(asset),
     for (final asset in resultUiImageAssets) AssetImage(asset),
     for (final asset in stageChapterBannerAssets) AssetImage(asset),

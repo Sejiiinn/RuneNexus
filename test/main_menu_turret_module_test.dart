@@ -91,6 +91,22 @@ void main() {
     expect(find.text('0성'), findsNothing);
     expect(find.text('☆☆☆'), findsNothing);
     expect(find.textContaining('장착 효과:'), findsOneWidget);
+    final previewFrame = tester.widget<Image>(
+      find.byKey(const ValueKey('turret-module-preview-frame')),
+    );
+    expect(previewFrame.image, isA<AssetImage>());
+    expect(
+      (previewFrame.image as AssetImage).assetName,
+      turretModulePreviewFrameAsset,
+    );
+    final connectorAssembly = tester.widget<Image>(
+      find.byKey(const ValueKey('turret-module-connector-assembly')),
+    );
+    expect(connectorAssembly.image, isA<AssetImage>());
+    expect(
+      (connectorAssembly.image as AssetImage).assetName,
+      turretModuleConnectorAssemblyAsset,
+    );
     final buildLevelButton = find.byKey(
       const ValueKey('turret-module-build-level-button'),
     );
