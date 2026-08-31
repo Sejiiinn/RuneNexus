@@ -94,18 +94,16 @@ void main() {
     final previewFrame = tester.widget<Image>(
       find.byKey(const ValueKey('turret-module-preview-frame')),
     );
-    expect(previewFrame.image, isA<AssetImage>());
     expect(
-      (previewFrame.image as AssetImage).assetName,
-      turretModulePreviewFrameAsset,
+      previewFrame.image,
+      gameUiAssetImageProvider(turretModulePreviewFrameAsset),
     );
     final connectorAssembly = tester.widget<Image>(
       find.byKey(const ValueKey('turret-module-connector-assembly')),
     );
-    expect(connectorAssembly.image, isA<AssetImage>());
     expect(
-      (connectorAssembly.image as AssetImage).assetName,
-      turretModuleConnectorAssemblyAsset,
+      connectorAssembly.image,
+      gameUiAssetImageProvider(turretModuleConnectorAssemblyAsset),
     );
     final buildLevelButton = find.byKey(
       const ValueKey('turret-module-build-level-button'),
@@ -265,8 +263,8 @@ void main() {
       find.byKey(const ValueKey('turret-module-draw-result-dialog-frame')),
     );
     expect(
-      (drawResultFrame.image as AssetImage).assetName,
-      gamePanelFrameAsset,
+      drawResultFrame.image,
+      gameUiAssetImageProvider(gamePanelFrameAsset),
     );
     final drawResultSocket = tester.widget<Image>(
       find.byKey(
@@ -274,15 +272,15 @@ void main() {
       ),
     );
     expect(
-      (drawResultSocket.image as AssetImage).assetName,
-      gameCardFrameAsset,
+      drawResultSocket.image,
+      gameUiAssetImageProvider(gameCardFrameAsset),
     );
     final drawResultConfirmFrame = tester.widget<Image>(
       find.byKey(const ValueKey('turret-module-draw-result-confirm-frame')),
     );
     expect(
-      (drawResultConfirmFrame.image as AssetImage).assetName,
-      gameButtonFrameAsset,
+      drawResultConfirmFrame.image,
+      gameUiAssetImageProvider(gameButtonFrameAsset),
     );
     final layerRect = tester.getRect(resultLayer);
     final screenRect = tester.getRect(find.byType(MainMenuScreen));
@@ -541,21 +539,21 @@ void main() {
       find.byKey(const ValueKey('turret-module-disassemble-dialog-frame')),
     );
     expect(
-      (disassembleFrame.image as AssetImage).assetName,
-      gamePanelFrameAsset,
+      disassembleFrame.image,
+      gameUiAssetImageProvider(gamePanelFrameAsset),
     );
     final refundFrame = tester.widget<Image>(
       find.byKey(const ValueKey('turret-module-disassemble-refund-frame')),
     );
-    expect((refundFrame.image as AssetImage).assetName, gameRowFrameAsset);
+    expect(refundFrame.image, gameUiAssetImageProvider(gameRowFrameAsset));
     final cancelFrame = tester.widget<Image>(
       find.byKey(const ValueKey('turret-module-disassemble-cancel-frame')),
     );
-    expect((cancelFrame.image as AssetImage).assetName, gameButtonFrameAsset);
+    expect(cancelFrame.image, gameUiAssetImageProvider(gameButtonFrameAsset));
     final confirmFrame = tester.widget<Image>(
       find.byKey(const ValueKey('turret-module-disassemble-confirm-frame')),
     );
-    expect((confirmFrame.image as AssetImage).assetName, gameButtonFrameAsset);
+    expect(confirmFrame.image, gameUiAssetImageProvider(gameButtonFrameAsset));
     expect(
       find.descendant(
         of: dialog,

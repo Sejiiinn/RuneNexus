@@ -15,7 +15,7 @@ void main() {
       expect(providers, hasLength(95));
       expect(providers.whereType<ResizeImage>(), hasLength(29));
       for (final asset in commonUiImageAssets) {
-        expect(providers, contains(AssetImage(asset)));
+        expect(providers, contains(gameUiAssetImageProvider(asset)));
       }
       for (final asset in questUiImageAssets) {
         expect(providers, contains(AssetImage(asset)));
@@ -27,7 +27,7 @@ void main() {
         expect(providers, contains(AssetImage(asset)));
       }
       for (final asset in turretModuleUiImageAssets) {
-        expect(providers, contains(AssetImage(asset)));
+        expect(providers, contains(gameUiAssetImageProvider(asset)));
       }
       for (final asset in stageDetailsUiImageAssets) {
         expect(providers, contains(AssetImage(asset)));
@@ -157,10 +157,9 @@ void main() {
     });
   });
 
-  testWidgets('S26 Ultra density selects 4x component variants', (
+  testWidgets('default UI quality always selects 4x component variants', (
     tester,
   ) async {
-    const configuration = ImageConfiguration(devicePixelRatio: 1440 / 393);
     for (final asset in [
       gamePanelFrameAsset,
       gameCardFrameAsset,
@@ -169,11 +168,36 @@ void main() {
       turretModulePreviewFrameAsset,
       turretModuleConnectorAssemblyAsset,
     ]) {
-      final resolved = await AssetImage(asset).obtainKey(configuration);
+      final provider = gameUiAssetImageProvider(asset);
+      expect(provider, isA<ExactAssetImage>());
+      final resolved = provider as ExactAssetImage;
       expect(resolved.scale, 4);
-      expect(resolved.name, contains('/4.0x/'));
+      expect(resolved.assetName, contains('/4.0x/'));
     }
   });
+
+  testWidgets(
+    'future high quality setting can select regenerated 3x variants',
+    (tester) async {
+      for (final asset in [
+        gamePanelFrameAsset,
+        gameCardFrameAsset,
+        gameRowFrameAsset,
+        gameButtonFrameAsset,
+        turretModulePreviewFrameAsset,
+        turretModuleConnectorAssemblyAsset,
+      ]) {
+        final provider = gameUiAssetImageProvider(
+          asset,
+          quality: GameUiAssetQuality.high,
+        );
+        expect(provider, isA<ExactAssetImage>());
+        final resolved = provider as ExactAssetImage;
+        expect(resolved.scale, 3);
+        expect(resolved.assetName, contains('/3.0x/'));
+      }
+    },
+  );
 }
 
 Future<Size> _assetImageSize(String asset) async {

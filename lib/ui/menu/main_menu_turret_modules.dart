@@ -54,8 +54,8 @@ class _TurretModuleAssetButton extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.asset(
-                  gameButtonFrameAsset,
+                Image(
+                  image: gameUiAssetImageProvider(gameButtonFrameAsset),
                   key: imageKey,
                   fit: BoxFit.fill,
                   centerSlice: gameButtonFrameCenterSlice,

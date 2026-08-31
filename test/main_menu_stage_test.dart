@@ -46,6 +46,51 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('active stage number socket preserves its source aspect ratio', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(393, 852);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('ko'),
+        localizationsDelegates: const [
+          RuneNexusLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        supportedLocales: RuneNexusLocalizations.supportedLocales,
+        home: MainMenuScreen(
+          game: RuneNexusGame(),
+          snapshot: resultSnapshot(
+            phase: GamePhase.wave,
+            currentStageNumber: 1,
+            hasStageProgress: true,
+          ),
+          selectedTab: MainMenuTab.stage,
+          onSelectTab: (_) {},
+          onStartStage: (_) {},
+        ),
+      ),
+    );
+    await pumpGameFrames(tester);
+
+    final socketImage = tester
+        .widgetList<Image>(find.byType(Image))
+        .firstWhere(
+          (image) =>
+              image.image is AssetImage &&
+              (image.image as AssetImage).assetName ==
+                  stageReferenceNumberSocketAsset,
+        );
+    expect(socketImage.fit, BoxFit.contain);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('stage menu opens daily quest dialog', (tester) async {
     await tester.pumpWidget(
       MaterialApp(

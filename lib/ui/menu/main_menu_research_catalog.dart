@@ -295,8 +295,10 @@ class _ResearchTile extends StatelessWidget {
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              Image.asset(
-                                gameIconSocketAsset,
+                              Image(
+                                image: gameUiAssetImageProvider(
+                                  gameIconSocketAsset,
+                                ),
                                 fit: BoxFit.fill,
                                 filterQuality: FilterQuality.medium,
                                 excludeFromSemantics: true,

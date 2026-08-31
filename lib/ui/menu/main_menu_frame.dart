@@ -378,8 +378,8 @@ class _PermanentUpgradeGroupTabs extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset(
-              gameSegmentedControlFrameAsset,
+            Image(
+              image: gameUiAssetImageProvider(gameSegmentedControlFrameAsset),
               fit: BoxFit.fill,
               filterQuality: FilterQuality.medium,
               excludeFromSemantics: true,
@@ -526,8 +526,8 @@ class _UpgradeGroupTabButton extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 if (selected)
-                  Image.asset(
-                    selectedAsset,
+                  Image(
+                    image: gameUiAssetImageProvider(selectedAsset),
                     fit: BoxFit.fill,
                     filterQuality: FilterQuality.medium,
                     excludeFromSemantics: true,

@@ -385,8 +385,8 @@ class _PermanentUpgradeTile extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    Image.asset(
-                      gameIconSocketAsset,
+                    Image(
+                      image: gameUiAssetImageProvider(gameIconSocketAsset),
                       fit: BoxFit.fill,
                       filterQuality: FilterQuality.medium,
                       excludeFromSemantics: true,
@@ -453,8 +453,8 @@ class _PermanentUpgradeTile extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.asset(
-                  gameButtonFrameAsset,
+                Image(
+                  image: gameUiAssetImageProvider(gameButtonFrameAsset),
                   fit: BoxFit.fill,
                   centerSlice: gameButtonFrameCenterSlice,
                   filterQuality: FilterQuality.medium,
@@ -621,8 +621,8 @@ class _RuneCostChip extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           Positioned.fill(
-            child: Image.asset(
-              gameChipFrameAsset,
+            child: Image(
+              image: gameUiAssetImageProvider(gameChipFrameAsset),
               fit: BoxFit.fill,
               centerSlice: gameChipFrameCenterSlice,
               filterQuality: FilterQuality.medium,

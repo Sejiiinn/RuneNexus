@@ -60,8 +60,8 @@ class GameAssetSurface extends StatelessWidget {
           Positioned.fill(
             child: Opacity(
               opacity: opacity,
-              child: Image.asset(
-                frame.asset,
+              child: Image(
+                image: gameUiAssetImageProvider(frame.asset),
                 key: imageKey,
                 fit: BoxFit.fill,
                 centerSlice: frame.centerSlice,

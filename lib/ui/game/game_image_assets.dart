@@ -120,6 +120,55 @@ const String turretModulePreviewFrameAsset =
     'assets/images/turret_modules/ui/turret_preview_frame.png';
 const String turretModuleConnectorAssemblyAsset =
     'assets/images/turret_modules/ui/turret_connector_assembly.png';
+
+enum GameUiAssetQuality {
+  standard(scale: 1, variantDirectory: null),
+  high(scale: 3, variantDirectory: '3.0x'),
+  ultra(scale: 4, variantDirectory: '4.0x');
+
+  const GameUiAssetQuality({
+    required this.scale,
+    required this.variantDirectory,
+  });
+
+  final double scale;
+  final String? variantDirectory;
+}
+
+// 추후 사용자 화질 설정 연동 지점
+const GameUiAssetQuality defaultGameUiAssetQuality = GameUiAssetQuality.ultra;
+
+const Set<String> resolutionVariantUiImageAssets = {
+  gamePanelFrameAsset,
+  gameCardFrameAsset,
+  gameRowFrameAsset,
+  gameLockedRowFrameAsset,
+  gameButtonFrameAsset,
+  gameChipFrameAsset,
+  gameIconSocketAsset,
+  gameSegmentedControlFrameAsset,
+  gameSegmentSelectedCyanAsset,
+  gameSegmentSelectedGoldAsset,
+  turretModulePreviewFrameAsset,
+  turretModuleConnectorAssemblyAsset,
+};
+
+ImageProvider<Object> gameUiAssetImageProvider(
+  String asset, {
+  GameUiAssetQuality quality = defaultGameUiAssetQuality,
+}) {
+  final variantDirectory = quality.variantDirectory;
+  if (variantDirectory == null ||
+      !resolutionVariantUiImageAssets.contains(asset)) {
+    return AssetImage(asset);
+  }
+  final separator = asset.lastIndexOf('/');
+  final variantAsset =
+      '${asset.substring(0, separator + 1)}$variantDirectory/'
+      '${asset.substring(separator + 1)}';
+  return ExactAssetImage(variantAsset, scale: quality.scale);
+}
+
 const String corePassiveTreeBackgroundAsset =
     'assets/images/core_passive_tree/tree_circuit_background.png';
 const String corePassiveTreeCoreAsset =
@@ -226,12 +275,13 @@ const List<String> corePassiveTreeAssets = [
 
 List<ImageProvider<Object>> runeNexusStartupImageProviders() {
   final providers = <ImageProvider<Object>>[
-    for (final asset in commonUiImageAssets) AssetImage(asset),
+    for (final asset in commonUiImageAssets) gameUiAssetImageProvider(asset),
     for (final asset in stageUiImageAssets) AssetImage(asset),
     for (final asset in questUiImageAssets) AssetImage(asset),
     for (final asset in upgradeUiImageAssets) AssetImage(asset),
     for (final asset in researchUiImageAssets) AssetImage(asset),
-    for (final asset in turretModuleUiImageAssets) AssetImage(asset),
+    for (final asset in turretModuleUiImageAssets)
+      gameUiAssetImageProvider(asset),
     for (final asset in stageDetailsUiImageAssets) AssetImage(asset),
     for (final asset in resultUiImageAssets) AssetImage(asset),
     for (final asset in stageChapterBannerAssets) AssetImage(asset),

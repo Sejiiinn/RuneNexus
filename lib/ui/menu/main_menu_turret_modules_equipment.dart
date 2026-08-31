@@ -81,8 +81,10 @@ class _TurretModuleTurretToken extends StatelessWidget {
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            Image.asset(
-                              gameIconSocketAsset,
+                            Image(
+                              image: gameUiAssetImageProvider(
+                                gameIconSocketAsset,
+                              ),
                               fit: BoxFit.fill,
                               filterQuality: FilterQuality.medium,
                               excludeFromSemantics: true,
@@ -183,8 +185,10 @@ class _TurretModuleEquipmentStage extends StatelessWidget {
                   width: socketLeft - connectorLeft + 5,
                   height: connectorHeight,
                   child: IgnorePointer(
-                    child: Image.asset(
-                      turretModuleConnectorAssemblyAsset,
+                    child: Image(
+                      image: gameUiAssetImageProvider(
+                        turretModuleConnectorAssemblyAsset,
+                      ),
                       key: const ValueKey('turret-module-connector-assembly'),
                       fit: BoxFit.fill,
                       filterQuality: FilterQuality.medium,
@@ -259,8 +263,8 @@ class _TurretPreview extends StatelessWidget {
           ),
           Positioned.fill(
             child: IgnorePointer(
-              child: Image.asset(
-                turretModulePreviewFrameAsset,
+              child: Image(
+                image: gameUiAssetImageProvider(turretModulePreviewFrameAsset),
                 key: const ValueKey('turret-module-preview-frame'),
                 fit: BoxFit.contain,
                 filterQuality: FilterQuality.medium,

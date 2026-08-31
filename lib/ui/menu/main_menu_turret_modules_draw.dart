@@ -675,8 +675,8 @@ class _TurretModuleDrawResultCard extends StatelessWidget {
           Positioned.fill(
             child: Opacity(
               opacity: highlighted ? 0.92 : 0.70,
-              child: Image.asset(
-                gameCardFrameAsset,
+              child: Image(
+                image: gameUiAssetImageProvider(gameCardFrameAsset),
                 key: ValueKey('turret-module-draw-card-socket-${item.id}'),
                 fit: BoxFit.fill,
                 centerSlice: gameCardFrameCenterSlice,
@@ -784,8 +784,8 @@ class _TurretModuleDrawEmblem extends StatelessWidget {
         children: [
           Opacity(
             opacity: highlighted ? 1 : 0.72,
-            child: Image.asset(
-              gameIconSocketAsset,
+            child: Image(
+              image: gameUiAssetImageProvider(gameIconSocketAsset),
               fit: BoxFit.fill,
               color: color,
               colorBlendMode: BlendMode.modulate,

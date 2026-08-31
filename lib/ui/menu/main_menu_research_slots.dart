@@ -538,8 +538,8 @@ class _MenuAssetButton extends StatelessWidget {
         children: [
           Opacity(
             opacity: enabled ? 1 : 0.5,
-            child: Image.asset(
-              frameAsset,
+            child: Image(
+              image: gameUiAssetImageProvider(frameAsset),
               fit: BoxFit.fill,
               centerSlice: frameCenterSlice,
               color: frameColor,

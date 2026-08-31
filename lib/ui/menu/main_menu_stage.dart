@@ -136,6 +136,7 @@ class _StageMenuState extends State<_StageMenu> {
                 rect: const Rect.fromLTWH(24, 296, 145, 150),
                 scaleX: scaleX,
                 scaleY: scaleY,
+                fit: BoxFit.contain,
               ),
               _referenceAsset(
                 asset: stageReferenceStatStripAsset,
@@ -535,10 +536,11 @@ class _StageMenuState extends State<_StageMenu> {
     required double scaleY,
     double opacity = 1,
     Color? color,
+    BoxFit fit = BoxFit.fill,
   }) {
     Widget image = Image.asset(
       asset,
-      fit: BoxFit.fill,
+      fit: fit,
       filterQuality: FilterQuality.high,
       gaplessPlayback: true,
     );
