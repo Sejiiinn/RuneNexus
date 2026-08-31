@@ -379,7 +379,7 @@ class _PermanentUpgradeGroupTabs extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             Image.asset(
-              upgradeGroupFrameAsset,
+              gameSegmentedControlFrameAsset,
               fit: BoxFit.fill,
               filterQuality: FilterQuality.medium,
               excludeFromSemantics: true,
@@ -394,7 +394,7 @@ class _PermanentUpgradeGroupTabs extends StatelessWidget {
                       label: l10n.combatUpgradeGroup,
                       activeColor: const Color(0xFFFF7A7A),
                       inactiveColor: const Color(0xFFB88989),
-                      selectedAsset: upgradeGroupCombatSelectedAsset,
+                      selectedAsset: gameSegmentSelectedCyanAsset,
                       selected: selectedGroup == _PermanentUpgradeGroup.combat,
                       onPressed: () =>
                           onSelectGroup(_PermanentUpgradeGroup.combat),
@@ -411,7 +411,7 @@ class _PermanentUpgradeGroupTabs extends StatelessWidget {
                       label: l10n.economyUpgradeGroup,
                       activeColor: const Color(0xFFE7C66A),
                       inactiveColor: const Color(0xFFB6A36D),
-                      selectedAsset: upgradeGroupEconomySelectedAsset,
+                      selectedAsset: gameSegmentSelectedGoldAsset,
                       selected: selectedGroup == _PermanentUpgradeGroup.economy,
                       onPressed: () =>
                           onSelectGroup(_PermanentUpgradeGroup.economy),

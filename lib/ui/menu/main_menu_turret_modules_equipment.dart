@@ -51,10 +51,8 @@ class _TurretModuleTurretToken extends StatelessWidget {
         borderRadius: BorderRadius.circular(7),
         child: SizedBox(
           height: 54,
-          child: _MenuAssetSurface(
-            asset: researchCardFrameAsset,
-            scale: _menuUiAssetScale,
-            centerSlice: _menuCardFrameCenterSlice,
+          child: GameAssetSurface(
+            frame: GameAssetFrame.card,
             opacity: selected ? 1 : 0.68,
             child: Stack(
               fit: StackFit.expand,
@@ -84,7 +82,7 @@ class _TurretModuleTurretToken extends StatelessWidget {
                           fit: StackFit.expand,
                           children: [
                             Image.asset(
-                              researchIconSocketAsset,
+                              gameIconSocketAsset,
                               fit: BoxFit.fill,
                               filterQuality: FilterQuality.medium,
                               excludeFromSemantics: true,
@@ -159,10 +157,8 @@ class _TurretModuleEquipmentStage extends StatelessWidget {
         final connectorLeft = turretLeft + turretSize - 12;
         return SizedBox(
           height: 246,
-          child: _MenuAssetSurface(
-            asset: researchSectionFrameAsset,
-            scale: _menuUiAssetScale,
-            centerSlice: _menuSectionFrameCenterSlice,
+          child: GameAssetSurface(
+            frame: GameAssetFrame.panel,
             child: Stack(
               children: [
                 Positioned(
@@ -343,10 +339,8 @@ class _TurretModuleSocketButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(7),
         child: SizedBox(
           height: _moduleSocketHeight,
-          child: _MenuAssetSurface(
-            asset: researchCardFrameAsset,
-            scale: _menuUiAssetScale,
-            centerSlice: _menuCardFrameCenterSlice,
+          child: GameAssetSurface(
+            frame: GameAssetFrame.card,
             opacity: selected ? 1 : 0.76,
             child: Stack(
               fit: StackFit.expand,
@@ -459,10 +453,8 @@ class _TurretModuleDetailStrip extends StatelessWidget {
     final definition = item == null
         ? null
         : gameTurretModuleDefinitions[item.key];
-    return _MenuAssetSurface(
-      asset: researchSlotLockedFrameAsset,
-      scale: _menuUiAssetScale,
-      centerSlice: _menuLockedSlotFrameCenterSlice,
+    return GameAssetSurface(
+      frame: GameAssetFrame.lockedRow,
       constraints: const BoxConstraints(minHeight: 72),
       padding: const EdgeInsets.all(9),
       child: Row(

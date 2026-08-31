@@ -370,8 +370,8 @@ class _PermanentUpgradeTile extends StatelessWidget {
     final titleColor = data.enabled
         ? const Color(0xFFE8FBFF)
         : const Color(0xFFB9D6E4);
-    return _UpgradeAssetSurface(
-      asset: upgradeCardFrameAsset,
+    return GameAssetSurface(
+      frame: GameAssetFrame.card,
       padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -386,7 +386,7 @@ class _PermanentUpgradeTile extends StatelessWidget {
                   fit: StackFit.expand,
                   children: [
                     Image.asset(
-                      upgradeIconSocketAsset,
+                      gameIconSocketAsset,
                       fit: BoxFit.fill,
                       filterQuality: FilterQuality.medium,
                       excludeFromSemantics: true,
@@ -454,8 +454,9 @@ class _PermanentUpgradeTile extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 Image.asset(
-                  upgradeActionFrameAsset,
+                  gameButtonFrameAsset,
                   fit: BoxFit.fill,
+                  centerSlice: gameButtonFrameCenterSlice,
                   filterQuality: FilterQuality.medium,
                   excludeFromSemantics: true,
                 ),
@@ -621,8 +622,9 @@ class _RuneCostChip extends StatelessWidget {
         children: [
           Positioned.fill(
             child: Image.asset(
-              upgradeCostChipFrameAsset,
+              gameChipFrameAsset,
               fit: BoxFit.fill,
+              centerSlice: gameChipFrameCenterSlice,
               filterQuality: FilterQuality.medium,
               excludeFromSemantics: true,
             ),
@@ -647,34 +649,6 @@ class _RuneCostChip extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _UpgradeAssetSurface extends StatelessWidget {
-  const _UpgradeAssetSurface({
-    required this.asset,
-    required this.child,
-    this.padding = EdgeInsets.zero,
-  });
-
-  final String asset;
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        Image.asset(
-          asset,
-          fit: BoxFit.fill,
-          filterQuality: FilterQuality.medium,
-          excludeFromSemantics: true,
-        ),
-        Padding(padding: padding, child: child),
-      ],
     );
   }
 }

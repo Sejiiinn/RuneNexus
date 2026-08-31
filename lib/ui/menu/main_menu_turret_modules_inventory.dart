@@ -99,10 +99,8 @@ class _TurretModuleInventoryGrid extends StatelessWidget {
             ? 0
             : columnCount - (items.length % columnCount);
         final visibleSlotCount = items.length + trailingEmptySlotCount;
-        return _MenuAssetSurface(
-          asset: researchSectionFrameAsset,
-          scale: _menuUiAssetScale,
-          centerSlice: _menuSectionFrameCenterSlice,
+        return GameAssetSurface(
+          frame: GameAssetFrame.panel,
           padding: const EdgeInsets.all(gridPadding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -174,10 +172,8 @@ class _TurretModulePartFilterChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(6),
         child: SizedBox(
           height: 24,
-          child: _MenuAssetSurface(
-            asset: researchActionFrameAsset,
-            scale: _menuUiAssetScale,
-            centerSlice: _menuActionFrameCenterSlice,
+          child: GameAssetSurface(
+            frame: GameAssetFrame.button,
             opacity: selected ? 1 : 0.58,
             child: Stack(
               fit: StackFit.expand,
@@ -235,10 +231,8 @@ class _TurretModuleInventorySlot extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(7),
-        child: _MenuAssetSurface(
-          asset: researchCardFrameAsset,
-          scale: _menuUiAssetScale,
-          centerSlice: _menuCardFrameCenterSlice,
+        child: GameAssetSurface(
+          frame: GameAssetFrame.card,
           child: Stack(
             children: [
               if (selected || item.equipped)
@@ -307,10 +301,8 @@ class _TurretModuleEmptySlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _MenuAssetSurface(
-      asset: researchCardFrameAsset,
-      scale: _menuUiAssetScale,
-      centerSlice: _menuCardFrameCenterSlice,
+    return const GameAssetSurface(
+      frame: GameAssetFrame.card,
       opacity: 0.45,
       child: SizedBox.expand(),
     );
@@ -568,10 +560,8 @@ class _TurretModuleEmptyInventoryHint extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 42,
-      child: _MenuAssetSurface(
-        asset: researchSlotFrameAsset,
-        scale: _menuUiAssetScale,
-        centerSlice: _menuSlotFrameCenterSlice,
+      child: GameAssetSurface(
+        frame: GameAssetFrame.row,
         child: Center(
           child: _ModuleSingleLineText(
             text,

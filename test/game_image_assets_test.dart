@@ -12,7 +12,7 @@ void main() {
     () {
       final providers = runeNexusStartupImageProviders();
 
-      expect(providers, hasLength(98));
+      expect(providers, hasLength(95));
       expect(providers.whereType<ResizeImage>(), hasLength(29));
       for (final asset in commonUiImageAssets) {
         expect(providers, contains(AssetImage(asset)));
@@ -104,11 +104,38 @@ void main() {
       final turretPreviewFrameSize = await _assetImageSize(
         turretModulePreviewFrameAsset,
       );
-      expect(turretPreviewFrameSize, const Size(384, 384));
+      expect(turretPreviewFrameSize, const Size(128, 128));
       final turretConnectorSize = await _assetImageSize(
         turretModuleConnectorAssemblyAsset,
       );
-      expect(turretConnectorSize, const Size(342, 600));
+      expect(turretConnectorSize, const Size(114, 200));
+      final sharedComponentSizes = <String, Size>{
+        gamePanelFrameAsset: const Size(376, 160),
+        gameCardFrameAsset: const Size(171, 116),
+        gameRowFrameAsset: const Size(357, 44),
+        gameLockedRowFrameAsset: const Size(357, 59),
+        gameButtonFrameAsset: const Size(151, 34),
+        gameChipFrameAsset: const Size(60, 27),
+        gameIconSocketAsset: const Size(44, 44),
+        gameSegmentedControlFrameAsset: const Size(138, 43),
+        gameSegmentSelectedCyanAsset: const Size(64, 32),
+        gameSegmentSelectedGoldAsset: const Size(64, 32),
+      };
+      for (final entry in sharedComponentSizes.entries) {
+        expect(await _assetImageSize(entry.key), entry.value);
+        expect(
+          await _assetImageSize(
+            entry.key.replaceFirst('/components/', '/components/3.0x/'),
+          ),
+          Size(entry.value.width * 3, entry.value.height * 3),
+        );
+        expect(
+          await _assetImageSize(
+            entry.key.replaceFirst('/components/', '/components/4.0x/'),
+          ),
+          Size(entry.value.width * 4, entry.value.height * 4),
+        );
+      }
       final logoSize = await _assetImageSize(gameLogoAsset);
       expect(logoSize.width, lessThanOrEqualTo(1024));
       final menuBackgroundSize = await _assetImageSize(mainMenuBackgroundAsset);
@@ -128,6 +155,24 @@ void main() {
       );
       expect(backgroundSize, const Size(1254, 1254));
     });
+  });
+
+  testWidgets('S26 Ultra density selects 4x component variants', (
+    tester,
+  ) async {
+    const configuration = ImageConfiguration(devicePixelRatio: 1440 / 393);
+    for (final asset in [
+      gamePanelFrameAsset,
+      gameCardFrameAsset,
+      gameRowFrameAsset,
+      gameButtonFrameAsset,
+      turretModulePreviewFrameAsset,
+      turretModuleConnectorAssemblyAsset,
+    ]) {
+      final resolved = await AssetImage(asset).obtainKey(configuration);
+      expect(resolved.scale, 4);
+      expect(resolved.name, contains('/4.0x/'));
+    }
   });
 }
 

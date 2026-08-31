@@ -10,14 +10,91 @@ class _TurretModulePanel extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final padding = constraints.maxWidth <= 390 ? 12.0 : 16.0;
-        return _MenuAssetSurface(
-          asset: researchSectionFrameAsset,
-          scale: _menuUiAssetScale,
-          centerSlice: _menuSectionFrameCenterSlice,
+        return GameAssetSurface(
+          frame: GameAssetFrame.panel,
           padding: EdgeInsets.all(padding),
           child: child,
         );
       },
+    );
+  }
+}
+
+class _TurretModuleAssetButton extends StatelessWidget {
+  const _TurretModuleAssetButton({
+    required this.onPressed,
+    required this.label,
+    required this.height,
+    this.icon,
+    this.foregroundColor = GamePalette.textPrimary,
+    this.frameColor,
+    this.imageKey,
+    super.key,
+  });
+
+  final VoidCallback onPressed;
+  final String label;
+  final double height;
+  final Widget? icon;
+  final Color foregroundColor;
+  final Color? frameColor;
+  final Key? imageKey;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          child: SizedBox(
+            height: height,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  gameButtonFrameAsset,
+                  key: imageKey,
+                  fit: BoxFit.fill,
+                  centerSlice: gameButtonFrameCenterSlice,
+                  color: frameColor,
+                  colorBlendMode: frameColor == null
+                      ? null
+                      : BlendMode.modulate,
+                  filterQuality: FilterQuality.medium,
+                  excludeFromSemantics: true,
+                ),
+                Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (icon != null) ...[
+                        IconTheme(
+                          data: IconThemeData(color: foregroundColor),
+                          child: icon!,
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      Text(
+                        label,
+                        style: TextStyle(
+                          color: foregroundColor,
+                          fontSize: 12,
+                          height: 1,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

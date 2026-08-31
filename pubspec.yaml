@@ -30,15 +30,18 @@ flutter:
     - assets/images/quests/
     - assets/images/quests/ui/
     - assets/images/research/
-    - assets/images/research/ui/
     - assets/images/results/
     - assets/images/results/ui/
     - assets/images/stage_details/ui/
     - assets/images/stage_rewards/
     - assets/images/turret_modules/ui/
+    - assets/images/turret_modules/ui/3.0x/
+    - assets/images/turret_modules/ui/4.0x/
+    - assets/images/ui/components/
+    - assets/images/ui/components/3.0x/
+    - assets/images/ui/components/4.0x/
     - assets/images/ui/stage_reference/
     - assets/images/upgrades/
-    - assets/images/upgrades/ui/
   fonts:
     - family: NotoSansKR
       fonts:

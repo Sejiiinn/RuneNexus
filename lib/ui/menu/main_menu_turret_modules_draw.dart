@@ -15,10 +15,8 @@ class _ModuleDrawPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _MenuAssetSurface(
-      asset: researchSectionFrameAsset,
-      scale: _menuUiAssetScale,
-      centerSlice: _menuSectionFrameCenterSlice,
+    return GameAssetSurface(
+      frame: GameAssetFrame.panel,
       padding: const EdgeInsets.all(10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -53,8 +51,8 @@ class _ModuleDrawPanel extends StatelessWidget {
       label: '$count회 모듈 뽑기',
       compact: true,
       accentColor: GamePalette.gold,
-      frameAsset: upgradeActionFrameAsset,
-      frameCenterSlice: _menuUpgradeActionFrameCenterSlice,
+      frameAsset: gameButtonFrameAsset,
+      frameCenterSlice: gameButtonFrameCenterSlice,
       frameColor: GamePalette.gold,
       height: 36,
       width: requiresDiamonds ? 68 : 54,
@@ -549,6 +547,7 @@ class _TurretModuleDrawResultLayerState
     final resultSubtitle = turretTypes.length == 1
         ? '${gameTurrets[turretTypes.single]!.name} 포탑 모듈'
         : '포탑 모듈 ${widget.results.length}개';
+    final singleResult = widget.results.length == 1;
     return Container(
       key: const ValueKey('turret-module-draw-result-layer'),
       padding: const EdgeInsets.all(12),
@@ -558,71 +557,89 @@ class _TurretModuleDrawResultLayerState
           opacity: _cardAnimation,
           child: ScaleTransition(
             scale: Tween<double>(begin: 0.94, end: 1).animate(_cardAnimation),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  '획득 결과',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: GamePalette.textPrimary,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w900,
-                  ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: singleResult ? 240 : 360),
+              child: GameAssetSurface(
+                frame: GameAssetFrame.panel,
+                imageKey: const ValueKey(
+                  'turret-module-draw-result-dialog-frame',
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  resultSubtitle,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: GamePalette.textSecondary,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    const cardGap = 8.0;
-                    final cardWidth = math.min(
-                      164.0,
-                      (constraints.maxWidth - cardGap) / 2,
-                    );
-                    return Wrap(
-                      alignment: WrapAlignment.center,
-                      runAlignment: WrapAlignment.center,
-                      spacing: cardGap,
-                      runSpacing: 8,
-                      children: [
-                        for (var i = 0; i < widget.results.length; i++)
-                          _TurretModuleDrawResultCard(
-                            key: ValueKey('turret-module-draw-result-card-$i'),
-                            item: widget.results[i],
-                            width: cardWidth,
-                            highlighted: identical(
-                              widget.results[i],
-                              bestResult,
-                            ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.center,
-                  child: SizedBox(
-                    width: 96,
-                    child: GameButton(
-                      onPressed: widget.onClose,
-                      label: '확인',
-                      compact: true,
-                      accentColor: GamePalette.gold,
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 22),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      '획득 결과',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: GamePalette.textPrimary,
+                        fontSize: 17,
+                        height: 1,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    Text(
+                      resultSubtitle,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: GamePalette.textSecondary,
+                        fontSize: 11,
+                        height: 1,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        const cardGap = 8.0;
+                        final cardWidth = singleResult
+                            ? math.min(176.0, constraints.maxWidth)
+                            : math.min(
+                                164.0,
+                                (constraints.maxWidth - cardGap) / 2,
+                              );
+                        return Wrap(
+                          alignment: WrapAlignment.center,
+                          runAlignment: WrapAlignment.center,
+                          spacing: cardGap,
+                          runSpacing: 8,
+                          children: [
+                            for (var i = 0; i < widget.results.length; i++)
+                              _TurretModuleDrawResultCard(
+                                key: ValueKey(
+                                  'turret-module-draw-result-card-$i',
+                                ),
+                                item: widget.results[i],
+                                width: cardWidth,
+                                highlighted: identical(
+                                  widget.results[i],
+                                  bestResult,
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.center,
+                      child: SizedBox(
+                        width: 104,
+                        child: _TurretModuleAssetButton(
+                          imageKey: const ValueKey(
+                            'turret-module-draw-result-confirm-frame',
+                          ),
+                          onPressed: widget.onClose,
+                          label: '확인',
+                          height: 34,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -648,38 +665,31 @@ class _TurretModuleDrawResultCard extends StatelessWidget {
     final definition = gameTurretModuleDefinitions[item.key]!;
     final gradeColor = _gradeColor(item.key.grade);
     final turretName = gameTurrets[item.key.turretType]!.name;
-    return Container(
+    final cardHeight =
+        width.clamp(168.0, 180.0) + math.max(0, item.options.length - 1) * 18.0;
+    return SizedBox(
       width: width,
-      height: width.clamp(148.0, 164.0),
-      padding: const EdgeInsets.fromLTRB(8, 7, 8, 8),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            gradeColor.withValues(alpha: highlighted ? 0.18 : 0.10),
-            const Color(0xF505101B),
-            const Color(0xFF030A12),
-          ],
-        ),
-        border: Border.all(
-          color: gradeColor.withValues(alpha: highlighted ? 1 : 0.74),
-          width: highlighted ? 1.8 : 1.0,
-        ),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: gradeColor.withValues(alpha: highlighted ? 0.42 : 0.18),
-            blurRadius: highlighted ? 18 : 10,
-            spreadRadius: highlighted ? 2 : 0,
-          ),
-        ],
-      ),
+      height: cardHeight,
       child: Stack(
         children: [
+          Positioned.fill(
+            child: Opacity(
+              opacity: highlighted ? 0.92 : 0.70,
+              child: Image.asset(
+                gameCardFrameAsset,
+                key: ValueKey('turret-module-draw-card-socket-${item.id}'),
+                fit: BoxFit.fill,
+                centerSlice: gameCardFrameCenterSlice,
+                color: gradeColor,
+                colorBlendMode: BlendMode.modulate,
+                filterQuality: FilterQuality.medium,
+                excludeFromSemantics: true,
+              ),
+            ),
+          ),
           Positioned(
-            top: 0,
-            left: 0,
+            top: 9,
+            left: 10,
             child: Container(
               key: ValueKey('turret-module-draw-grade-${item.id}'),
               height: 16,
@@ -701,49 +711,52 @@ class _TurretModuleDrawResultCard extends StatelessWidget {
               ),
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: Center(
-                  child: _TurretModuleDrawEmblem(
-                    part: item.key.part,
-                    color: gradeColor,
-                    highlighted: highlighted,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 11, 12, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: Center(
+                    child: _TurretModuleDrawEmblem(
+                      part: item.key.part,
+                      color: gradeColor,
+                      highlighted: highlighted,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 3),
-              _ModuleSingleLineText(
-                definition.name,
-                alignment: Alignment.center,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: GamePalette.textPrimary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
+                const SizedBox(height: 3),
+                _ModuleSingleLineText(
+                  definition.name,
+                  alignment: Alignment.center,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: GamePalette.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              _ModuleSingleLineText(
-                '$turretName 포탑 · ${item.key.part.label}',
-                alignment: Alignment.center,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: GamePalette.textMuted,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
+                const SizedBox(height: 2),
+                _ModuleSingleLineText(
+                  '$turretName 포탑 · ${item.key.part.label}',
+                  alignment: Alignment.center,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: GamePalette.textMuted,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 5),
-              for (var index = 0; index < item.options.length; index++) ...[
-                if (index > 0) const SizedBox(height: 2),
-                _TurretModuleDrawOptionChip(
-                  text: turretModuleOptionText(item.options[index]),
-                  color: gradeColor,
-                ),
+                const SizedBox(height: 5),
+                for (var index = 0; index < item.options.length; index++) ...[
+                  if (index > 0) const SizedBox(height: 2),
+                  _TurretModuleDrawOptionChip(
+                    text: turretModuleOptionText(item.options[index]),
+                    color: gradeColor,
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ],
       ),
@@ -765,74 +778,27 @@ class _TurretModuleDrawEmblem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox.square(
-      dimension: 54,
-      child: CustomPaint(
-        painter: _TurretModuleDrawEmblemPainter(
-          color: color,
-          highlighted: highlighted,
-        ),
-        child: Center(
-          child: _TurretModuleItemIcon(part: part, color: color, size: 34),
-        ),
+      dimension: 46,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Opacity(
+            opacity: highlighted ? 1 : 0.72,
+            child: Image.asset(
+              gameIconSocketAsset,
+              fit: BoxFit.fill,
+              color: color,
+              colorBlendMode: BlendMode.modulate,
+              filterQuality: FilterQuality.medium,
+              excludeFromSemantics: true,
+            ),
+          ),
+          Center(
+            child: _TurretModuleItemIcon(part: part, color: color, size: 30),
+          ),
+        ],
       ),
     );
-  }
-}
-
-class _TurretModuleDrawEmblemPainter extends CustomPainter {
-  const _TurretModuleDrawEmblemPainter({
-    required this.color,
-    required this.highlighted,
-  });
-
-  final Color color;
-  final bool highlighted;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = size.center(Offset.zero);
-    if (highlighted) {
-      canvas.drawCircle(
-        center,
-        size.shortestSide * 0.48,
-        Paint()
-          ..shader = RadialGradient(
-            colors: [color.withValues(alpha: 0.28), color.withValues(alpha: 0)],
-          ).createShader(Offset.zero & size),
-      );
-    }
-    final path = Path();
-    for (var index = 0; index < 6; index++) {
-      final angle = -math.pi / 2 + math.pi / 3 * index;
-      final point = Offset(
-        center.dx + math.cos(angle) * size.width * 0.40,
-        center.dy + math.sin(angle) * size.height * 0.40,
-      );
-      if (index == 0) {
-        path.moveTo(point.dx, point.dy);
-      } else {
-        path.lineTo(point.dx, point.dy);
-      }
-    }
-    path.close();
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = color.withValues(alpha: 0.09)
-        ..style = PaintingStyle.fill,
-    );
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = color.withValues(alpha: highlighted ? 0.90 : 0.58)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = highlighted ? 1.8 : 1.2,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_TurretModuleDrawEmblemPainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.highlighted != highlighted;
   }
 }
 

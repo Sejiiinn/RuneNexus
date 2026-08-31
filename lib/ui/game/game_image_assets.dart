@@ -49,32 +49,23 @@ const String questIconSocketAsset = 'assets/images/quests/ui/icon_socket.png';
 const String questActionIdleAsset = 'assets/images/quests/ui/action_idle.png';
 const String questActionClaimAsset = 'assets/images/quests/ui/action_claim.png';
 const String questCloseButtonAsset = 'assets/images/quests/ui/close_button.png';
-const String upgradeCardFrameAsset =
-    'assets/images/upgrades/ui/upgrade_card_frame.png';
-const String upgradeIconSocketAsset =
-    'assets/images/upgrades/ui/upgrade_icon_socket.png';
-const String upgradeActionFrameAsset =
-    'assets/images/upgrades/ui/upgrade_action_frame.png';
-const String upgradeCostChipFrameAsset =
-    'assets/images/upgrades/ui/upgrade_cost_chip_frame.png';
-const String upgradeGroupFrameAsset =
-    'assets/images/upgrades/ui/upgrade_group_frame.png';
-const String upgradeGroupCombatSelectedAsset =
-    'assets/images/upgrades/ui/upgrade_group_combat_selected.png';
-const String upgradeGroupEconomySelectedAsset =
-    'assets/images/upgrades/ui/upgrade_group_economy_selected.png';
-const String researchSectionFrameAsset =
-    'assets/images/research/ui/section_frame.png';
-const String researchSlotFrameAsset =
-    'assets/images/research/ui/slot_frame.png';
-const String researchSlotLockedFrameAsset =
-    'assets/images/research/ui/slot_locked_frame.png';
-const String researchCardFrameAsset =
-    'assets/images/research/ui/research_card_frame.png';
-const String researchIconSocketAsset =
-    'assets/images/research/ui/icon_socket.png';
-const String researchActionFrameAsset =
-    'assets/images/research/ui/action_frame.png';
+const String gamePanelFrameAsset =
+    'assets/images/ui/components/panel_frame.png';
+const String gameCardFrameAsset = 'assets/images/ui/components/card_frame.png';
+const String gameRowFrameAsset = 'assets/images/ui/components/row_frame.png';
+const String gameLockedRowFrameAsset =
+    'assets/images/ui/components/row_frame_locked.png';
+const String gameButtonFrameAsset =
+    'assets/images/ui/components/button_frame.png';
+const String gameChipFrameAsset = 'assets/images/ui/components/chip_frame.png';
+const String gameIconSocketAsset =
+    'assets/images/ui/components/icon_socket.png';
+const String gameSegmentedControlFrameAsset =
+    'assets/images/ui/components/segmented_control_frame.png';
+const String gameSegmentSelectedCyanAsset =
+    'assets/images/ui/components/segment_selected_cyan.png';
+const String gameSegmentSelectedGoldAsset =
+    'assets/images/ui/components/segment_selected_gold.png';
 const String stageDetailsDialogFrameAsset =
     'assets/images/stage_details/ui/dialog_frame.png';
 const String stageDetailsHeaderIconSocketAsset =
@@ -157,6 +148,16 @@ const List<String> commonUiImageAssets = [
   gameLogoAsset,
   resultSuccessEmblemAsset,
   resultFailureEmblemAsset,
+  gamePanelFrameAsset,
+  gameCardFrameAsset,
+  gameRowFrameAsset,
+  gameLockedRowFrameAsset,
+  gameButtonFrameAsset,
+  gameChipFrameAsset,
+  gameIconSocketAsset,
+  gameSegmentedControlFrameAsset,
+  gameSegmentSelectedCyanAsset,
+  gameSegmentSelectedGoldAsset,
 ];
 
 const List<String> stageUiImageAssets = [
@@ -186,24 +187,9 @@ const List<String> questUiImageAssets = [
   questCloseButtonAsset,
 ];
 
-const List<String> upgradeUiImageAssets = [
-  upgradeCardFrameAsset,
-  upgradeIconSocketAsset,
-  upgradeActionFrameAsset,
-  upgradeCostChipFrameAsset,
-  upgradeGroupFrameAsset,
-  upgradeGroupCombatSelectedAsset,
-  upgradeGroupEconomySelectedAsset,
-];
+const List<String> upgradeUiImageAssets = [];
 
-const List<String> researchUiImageAssets = [
-  researchSectionFrameAsset,
-  researchSlotFrameAsset,
-  researchSlotLockedFrameAsset,
-  researchCardFrameAsset,
-  researchIconSocketAsset,
-  researchActionFrameAsset,
-];
+const List<String> researchUiImageAssets = [];
 
 const List<String> turretModuleUiImageAssets = [
   turretModulePreviewFrameAsset,

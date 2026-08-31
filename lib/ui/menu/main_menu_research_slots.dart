@@ -70,9 +70,9 @@ class _LockedResearchSlotCard extends StatelessWidget {
     final accent = purchaseUnlocked
         ? const Color(0xFFE7C66A)
         : const Color(0xFF607587);
-    return _MenuAssetSurface(
+    return GameAssetSurface(
       key: const ValueKey('research-slot-two-locked-card'),
-      asset: researchSlotLockedFrameAsset,
+      frame: GameAssetFrame.lockedRow,
       padding: const EdgeInsets.all(9),
       child: Row(
         children: [
@@ -352,8 +352,8 @@ class _ResearchSlotCard extends StatelessWidget {
         active != null && diamonds >= instantCompleteCost;
     return ClipRRect(
       borderRadius: BorderRadius.circular(7),
-      child: _MenuAssetSurface(
-        asset: researchSlotFrameAsset,
+      child: GameAssetSurface(
+        frame: GameAssetFrame.row,
         child: Stack(
           children: [
             if (active != null)
@@ -500,8 +500,8 @@ class _MenuAssetButton extends StatelessWidget {
     required this.child,
     this.compact = false,
     this.accentColor,
-    this.frameAsset = researchActionFrameAsset,
-    this.frameCenterSlice = _menuActionFrameCenterSlice,
+    this.frameAsset = gameButtonFrameAsset,
+    this.frameCenterSlice = gameButtonFrameCenterSlice,
     this.frameColor,
   });
 
@@ -540,7 +540,6 @@ class _MenuAssetButton extends StatelessWidget {
             opacity: enabled ? 1 : 0.5,
             child: Image.asset(
               frameAsset,
-              scale: _menuUiAssetScale,
               fit: BoxFit.fill,
               centerSlice: frameCenterSlice,
               color: frameColor,

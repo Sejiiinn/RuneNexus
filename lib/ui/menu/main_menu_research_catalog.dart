@@ -1,64 +1,5 @@
 part of 'main_menu_screen.dart';
 
-const double _menuUiAssetScale = 3;
-const Rect _menuSectionFrameCenterSlice = Rect.fromLTRB(14, 14, 362, 146);
-const Rect _menuCardFrameCenterSlice = Rect.fromLTRB(11, 11, 160, 105);
-const Rect _menuSlotFrameCenterSlice = Rect.fromLTRB(11, 10, 346, 34);
-const Rect _menuLockedSlotFrameCenterSlice = Rect.fromLTRB(11, 11, 346, 48);
-const Rect _menuActionFrameCenterSlice = Rect.fromLTRB(10, 9, 100, 23);
-const Rect _menuUpgradeActionFrameCenterSlice = Rect.fromLTRB(8, 8, 143, 26);
-
-class _MenuAssetSurface extends StatelessWidget {
-  const _MenuAssetSurface({
-    required this.asset,
-    required this.child,
-    this.padding = EdgeInsets.zero,
-    this.opacity = 1,
-    this.constraints,
-    this.scale,
-    this.centerSlice,
-    super.key,
-  });
-
-  final String asset;
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final double opacity;
-  final BoxConstraints? constraints;
-  final double? scale;
-  final Rect? centerSlice;
-
-  @override
-  Widget build(BuildContext context) {
-    final content = SizedBox(
-      width: double.infinity,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Opacity(
-              opacity: opacity,
-              child: Image.asset(
-                asset,
-                scale: scale,
-                fit: BoxFit.fill,
-                centerSlice: centerSlice,
-                filterQuality: FilterQuality.medium,
-                excludeFromSemantics: true,
-              ),
-            ),
-          ),
-          Padding(padding: padding, child: child),
-        ],
-      ),
-    );
-    final resolvedConstraints = constraints;
-    if (resolvedConstraints == null) {
-      return content;
-    }
-    return ConstrainedBox(constraints: resolvedConstraints, child: content);
-  }
-}
-
 class _ResearchSection extends StatelessWidget {
   const _ResearchSection({
     required this.icon,
@@ -77,10 +18,8 @@ class _ResearchSection extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final padding = constraints.maxWidth <= 330 ? 8.0 : 10.0;
-        return _MenuAssetSurface(
-          asset: researchSectionFrameAsset,
-          scale: _menuUiAssetScale,
-          centerSlice: _menuSectionFrameCenterSlice,
+        return GameAssetSurface(
+          frame: GameAssetFrame.panel,
           padding: EdgeInsets.all(padding),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -318,8 +257,8 @@ class _ResearchTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(7),
         splashColor: const Color(0x1A8EE6FF),
         highlightColor: const Color(0x1422C7E8),
-        child: _MenuAssetSurface(
-          asset: researchCardFrameAsset,
+        child: GameAssetSurface(
+          frame: GameAssetFrame.card,
           opacity: clickable ? 1 : 0.58,
           constraints: const BoxConstraints(minHeight: 106),
           child: Stack(
@@ -357,7 +296,7 @@ class _ResearchTile extends StatelessWidget {
                             fit: StackFit.expand,
                             children: [
                               Image.asset(
-                                researchIconSocketAsset,
+                                gameIconSocketAsset,
                                 fit: BoxFit.fill,
                                 filterQuality: FilterQuality.medium,
                                 excludeFromSemantics: true,

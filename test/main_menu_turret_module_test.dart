@@ -261,6 +261,29 @@ void main() {
       const ValueKey('turret-module-draw-result-layer'),
     );
     expect(resultLayer, findsOneWidget);
+    final drawResultFrame = tester.widget<Image>(
+      find.byKey(const ValueKey('turret-module-draw-result-dialog-frame')),
+    );
+    expect(
+      (drawResultFrame.image as AssetImage).assetName,
+      gamePanelFrameAsset,
+    );
+    final drawResultSocket = tester.widget<Image>(
+      find.byKey(
+        const ValueKey('turret-module-draw-card-socket-test-module-1'),
+      ),
+    );
+    expect(
+      (drawResultSocket.image as AssetImage).assetName,
+      gameCardFrameAsset,
+    );
+    final drawResultConfirmFrame = tester.widget<Image>(
+      find.byKey(const ValueKey('turret-module-draw-result-confirm-frame')),
+    );
+    expect(
+      (drawResultConfirmFrame.image as AssetImage).assetName,
+      gameButtonFrameAsset,
+    );
     final layerRect = tester.getRect(resultLayer);
     final screenRect = tester.getRect(find.byType(MainMenuScreen));
     final moduleTabRect = tester.getRect(
@@ -514,6 +537,25 @@ void main() {
       const ValueKey('turret-module-disassemble-dialog'),
     );
     expect(dialog, findsOneWidget);
+    final disassembleFrame = tester.widget<Image>(
+      find.byKey(const ValueKey('turret-module-disassemble-dialog-frame')),
+    );
+    expect(
+      (disassembleFrame.image as AssetImage).assetName,
+      gamePanelFrameAsset,
+    );
+    final refundFrame = tester.widget<Image>(
+      find.byKey(const ValueKey('turret-module-disassemble-refund-frame')),
+    );
+    expect((refundFrame.image as AssetImage).assetName, gameRowFrameAsset);
+    final cancelFrame = tester.widget<Image>(
+      find.byKey(const ValueKey('turret-module-disassemble-cancel-frame')),
+    );
+    expect((cancelFrame.image as AssetImage).assetName, gameButtonFrameAsset);
+    final confirmFrame = tester.widget<Image>(
+      find.byKey(const ValueKey('turret-module-disassemble-confirm-frame')),
+    );
+    expect((confirmFrame.image as AssetImage).assetName, gameButtonFrameAsset);
     expect(
       find.descendant(
         of: dialog,
