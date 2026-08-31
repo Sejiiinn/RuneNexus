@@ -31,6 +31,8 @@ flutter:
     - assets/images/quests/ui/
     - assets/images/research/
     - assets/images/results/
+    - assets/images/results/ui/
+    - assets/images/stage_details/ui/
     - assets/images/stage_rewards/
     - assets/images/ui/stage_reference/
     - assets/images/upgrades/

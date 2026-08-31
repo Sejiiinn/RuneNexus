@@ -108,37 +108,41 @@ class _StageInfoChip extends StatelessWidget {
             : unlocked
             ? accent
             : const Color(0xFF667987));
-    return Container(
+    return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 180),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-      decoration: BoxDecoration(
-        color: highlighted
-            ? const Color(0x22E7C66A)
-            : unlocked
-            ? accent.withValues(alpha: 0.12)
-            : const Color(0x183D4D5A),
-        border: Border.all(
-          color: highlighted
-              ? const Color(0x88E7C66A)
-              : unlocked
-              ? accent.withValues(alpha: 0.34)
-              : const Color(0x33485B68),
-        ),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Stack(
         children: [
-          Flexible(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: 10,
-                color: color,
-                fontWeight: highlighted ? FontWeight.w800 : FontWeight.w600,
+          Positioned.fill(
+            child: Opacity(
+              opacity: unlocked ? 1 : 0.52,
+              child: Image.asset(
+                stageDetailsStatusChipFrameAsset,
+                fit: BoxFit.fill,
+                filterQuality: FilterQuality.medium,
+                excludeFromSemantics: true,
               ),
-              overflow: TextOverflow.clip,
-              maxLines: 1,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Flexible(
+                  child: Text(
+                    text,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: color,
+                      fontWeight: highlighted
+                          ? FontWeight.w800
+                          : FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.clip,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -218,32 +222,31 @@ class _StageIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const accent = Color(0xFF8EE6FF);
-    return Container(
+    return SizedBox(
       width: 34,
       height: 34,
-      decoration: BoxDecoration(
-        color: active
-            ? const Color(0x22E7C66A)
-            : unlocked
-            ? accent.withValues(alpha: 0.18)
-            : const Color(0x22485B68),
-        border: Border.all(
-          color: active
-              ? const Color(0xAAE7C66A)
-              : unlocked
-              ? accent.withValues(alpha: 0.72)
-              : const Color(0x55485B68),
-        ),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Icon(
-        unlocked ? Icons.flag_outlined : Icons.lock_outline,
-        color: active
-            ? const Color(0xFFE7C66A)
-            : unlocked
-            ? accent
-            : const Color(0xFF6D7F8F),
-        size: 18,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Opacity(
+            opacity: unlocked ? 1 : 0.48,
+            child: Image.asset(
+              stageDetailsHeaderIconSocketAsset,
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.medium,
+              excludeFromSemantics: true,
+            ),
+          ),
+          Icon(
+            unlocked ? Icons.flag_outlined : Icons.lock_outline,
+            color: active
+                ? const Color(0xFFE7C66A)
+                : unlocked
+                ? accent
+                : const Color(0xFF6D7F8F),
+            size: 18,
+          ),
+        ],
       ),
     );
   }

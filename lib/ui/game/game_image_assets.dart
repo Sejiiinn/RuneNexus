@@ -63,6 +63,38 @@ const String upgradeGroupCombatSelectedAsset =
     'assets/images/upgrades/ui/upgrade_group_combat_selected.png';
 const String upgradeGroupEconomySelectedAsset =
     'assets/images/upgrades/ui/upgrade_group_economy_selected.png';
+const String stageDetailsDialogFrameAsset =
+    'assets/images/stage_details/ui/dialog_frame.png';
+const String stageDetailsHeaderIconSocketAsset =
+    'assets/images/stage_details/ui/header_icon_socket.png';
+const String stageDetailsCloseButtonFrameAsset =
+    'assets/images/stage_details/ui/close_button_frame.png';
+const String stageDetailsStatusChipFrameAsset =
+    'assets/images/stage_details/ui/status_chip_frame.png';
+const String stageDetailsQuickStatFrameAsset =
+    'assets/images/stage_details/ui/quick_stat_frame.png';
+const String stageDetailsUnlockPanelFrameAsset =
+    'assets/images/stage_details/ui/unlock_panel_frame.png';
+const String stageDetailsUnlockChipFrameAsset =
+    'assets/images/stage_details/ui/unlock_chip_frame.png';
+const String stageDetailsActionButtonFrameAsset =
+    'assets/images/stage_details/ui/action_button_frame.png';
+const String resultPanelFrameAsset =
+    'assets/images/results/ui/result_panel_frame.png';
+const String resultStatusEmblemSocketAsset =
+    'assets/images/results/ui/status_emblem_socket.png';
+const String resultRewardSummaryFrameAsset =
+    'assets/images/results/ui/reward_summary_frame.png';
+const String resultSectionFrameAsset =
+    'assets/images/results/ui/section_frame.png';
+const String resultUnlockChipFrameAsset =
+    'assets/images/results/ui/unlock_chip_frame.png';
+const String resultConfirmButtonFrameAsset =
+    'assets/images/results/ui/confirm_button_frame.png';
+const String resultConfirmButtonDangerFrameAsset =
+    'assets/images/results/ui/confirm_button_danger_frame.png';
+const String resultRestartButtonFrameAsset =
+    'assets/images/results/ui/restart_button_frame.png';
 const String resultSuccessEmblemAsset =
     'assets/images/results/result_success.png';
 const String resultFailureEmblemAsset =
@@ -148,6 +180,28 @@ const List<String> upgradeUiImageAssets = [
   upgradeGroupEconomySelectedAsset,
 ];
 
+const List<String> stageDetailsUiImageAssets = [
+  stageDetailsDialogFrameAsset,
+  stageDetailsHeaderIconSocketAsset,
+  stageDetailsCloseButtonFrameAsset,
+  stageDetailsStatusChipFrameAsset,
+  stageDetailsQuickStatFrameAsset,
+  stageDetailsUnlockPanelFrameAsset,
+  stageDetailsUnlockChipFrameAsset,
+  stageDetailsActionButtonFrameAsset,
+];
+
+const List<String> resultUiImageAssets = [
+  resultPanelFrameAsset,
+  resultStatusEmblemSocketAsset,
+  resultRewardSummaryFrameAsset,
+  resultSectionFrameAsset,
+  resultUnlockChipFrameAsset,
+  resultConfirmButtonFrameAsset,
+  resultConfirmButtonDangerFrameAsset,
+  resultRestartButtonFrameAsset,
+];
+
 const List<String> corePassiveTreeAssets = [
   corePassiveTreeBackgroundAsset,
   corePassiveTreeCoreAsset,
@@ -160,6 +214,8 @@ List<ImageProvider<Object>> runeNexusStartupImageProviders() {
     for (final asset in stageUiImageAssets) AssetImage(asset),
     for (final asset in questUiImageAssets) AssetImage(asset),
     for (final asset in upgradeUiImageAssets) AssetImage(asset),
+    for (final asset in stageDetailsUiImageAssets) AssetImage(asset),
+    for (final asset in resultUiImageAssets) AssetImage(asset),
     for (final asset in stageChapterBannerAssets) AssetImage(asset),
     for (final asset in stageRewardIconAssets) AssetImage(asset),
     for (final type in GameUpgradeIconType.values)

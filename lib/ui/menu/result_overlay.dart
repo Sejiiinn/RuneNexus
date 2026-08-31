@@ -65,16 +65,9 @@ class ResultOverlay extends StatelessWidget {
                       opacity: progress,
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 390),
-                        child: GamePanel(
-                          width: double.infinity,
+                        child: _ResultAssetSurface(
+                          asset: resultPanelFrameAsset,
                           padding: const EdgeInsets.all(18),
-                          selected: true,
-                          variant: success
-                              ? GamePanelVariant.stone
-                              : GamePanelVariant.danger,
-                          accentColor: success
-                              ? GamePalette.cyan
-                              : GamePalette.danger,
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -140,6 +133,38 @@ class ResultOverlay extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _ResultAssetSurface extends StatelessWidget {
+  const _ResultAssetSurface({
+    required this.asset,
+    required this.child,
+    this.padding = EdgeInsets.zero,
+  });
+
+  final String asset;
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              asset,
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.medium,
+              excludeFromSemantics: true,
+            ),
+          ),
+          Padding(padding: padding, child: child),
+        ],
+      ),
     );
   }
 }
@@ -277,14 +302,31 @@ class _ResultHeader extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(
-          success ? resultSuccessEmblemAsset : resultFailureEmblemAsset,
-          key: const ValueKey('result-status-emblem'),
-          width: 72,
-          height: 72,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.medium,
-          semanticLabel: success ? 'Nexus 방어 성공' : 'Nexus 붕괴',
+        SizedBox(
+          width: 54,
+          height: 54,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.asset(
+                resultStatusEmblemSocketAsset,
+                fit: BoxFit.fill,
+                filterQuality: FilterQuality.medium,
+                excludeFromSemantics: true,
+              ),
+              Center(
+                child: Image.asset(
+                  success ? resultSuccessEmblemAsset : resultFailureEmblemAsset,
+                  key: const ValueKey('result-status-emblem'),
+                  width: 40,
+                  height: 40,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.medium,
+                  semanticLabel: success ? 'Nexus 방어 성공' : 'Nexus 붕괴',
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 8),
         Text(
@@ -324,21 +366,9 @@ class _RewardSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     final borderColor = success ? GamePalette.gold : GamePalette.warning;
     final amountColor = success ? GamePalette.goldBright : GamePalette.warning;
-    return Container(
-      width: double.infinity,
+    return _ResultAssetSurface(
+      asset: resultRewardSummaryFrameAsset,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-      decoration: BoxDecoration(
-        color: GamePalette.backdrop.withValues(alpha: 0.62),
-        border: Border.all(color: borderColor.withValues(alpha: 0.52)),
-        borderRadius: BorderRadius.circular(GamePalette.radius),
-        boxShadow: [
-          BoxShadow(
-            color: borderColor.withValues(alpha: success ? 0.14 : 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -435,33 +465,107 @@ class _ResultActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = success ? GamePalette.cyan : GamePalette.danger;
-    final restartAccent = success ? GamePalette.cyan : GamePalette.warning;
     const buttonWidth = 208.0;
     const buttonHeight = 34.0;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        GameButton(
+        _ResultAssetButton(
           onPressed: onConfirm,
           label: '확인',
-          variant: GameButtonVariant.primary,
-          accentColor: accent,
+          asset: success
+              ? resultConfirmButtonFrameAsset
+              : resultConfirmButtonDangerFrameAsset,
           width: buttonWidth,
           height: buttonHeight,
+          foreground: success ? GamePalette.voidBlack : GamePalette.textPrimary,
         ),
         const SizedBox(height: 6),
-        GameButton(
+        _ResultAssetButton(
           onPressed: onRestart,
           icon: const Icon(Icons.replay, size: 13),
           label: '다시 시작',
-          variant: GameButtonVariant.ghost,
-          compact: true,
+          asset: resultRestartButtonFrameAsset,
           width: buttonWidth,
           height: buttonHeight,
-          accentColor: restartAccent,
+          foreground: GamePalette.textPrimary,
         ),
       ],
+    );
+  }
+}
+
+class _ResultAssetButton extends StatelessWidget {
+  const _ResultAssetButton({
+    required this.onPressed,
+    required this.label,
+    required this.asset,
+    required this.width,
+    required this.height,
+    required this.foreground,
+    this.icon,
+  });
+
+  final VoidCallback? onPressed;
+  final String label;
+  final String asset;
+  final double width;
+  final double height;
+  final Color foreground;
+  final Widget? icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      height: height,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          Opacity(
+            opacity: onPressed == null ? 0.48 : 1,
+            child: Image.asset(
+              asset,
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.medium,
+              excludeFromSemantics: true,
+            ),
+          ),
+          GameButton(
+            onPressed: onPressed,
+            label: label,
+            variant: GameButtonVariant.ghost,
+            accentColor: Colors.transparent,
+            width: width,
+            height: height,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (icon case final buttonIcon?) ...[
+                  IconTheme(
+                    data: IconThemeData(color: foreground),
+                    child: buttonIcon,
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.clip,
+                    style: TextStyle(
+                      color: foreground,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -490,7 +594,11 @@ class _ResultSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 7),
-            child,
+            _ResultAssetSurface(
+              asset: resultSectionFrameAsset,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+              child: child,
+            ),
           ],
         ),
       ),
@@ -604,28 +712,32 @@ class _UnlockItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const Text(
-          '◆',
-          style: TextStyle(
-            color: GamePalette.gold,
-            fontSize: 8,
-            fontWeight: FontWeight.w900,
+    return _ResultAssetSurface(
+      asset: resultUnlockChipFrameAsset,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            '◆',
+            style: TextStyle(
+              color: GamePalette.gold,
+              fontSize: 8,
+              fontWeight: FontWeight.w900,
+            ),
           ),
-        ),
-        const SizedBox(width: 5),
-        Text(
-          label,
-          style: const TextStyle(
-            color: GamePalette.goldBright,
-            fontSize: 12,
-            fontWeight: FontWeight.w900,
-            height: 1.1,
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: const TextStyle(
+              color: GamePalette.goldBright,
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              height: 1.1,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
