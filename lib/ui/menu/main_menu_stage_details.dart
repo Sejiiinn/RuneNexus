@@ -30,9 +30,9 @@ class _StageDetailsDialog extends StatelessWidget {
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 26, vertical: 24),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
+        constraints: const BoxConstraints(maxWidth: 390),
         child: _StageDetailsAssetSurface(
           asset: stageDetailsDialogFrameAsset,
           padding: const EdgeInsets.all(18),
@@ -371,13 +371,26 @@ class _StageUnlockSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 5),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            for (final item in section.items)
-              _StageUnlockChip(item: item, theme: theme),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            const columnCount = 3;
+            const spacing = 6.0;
+            final chipWidth =
+                (constraints.maxWidth - spacing * (columnCount - 1)) /
+                columnCount;
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: [
+                for (final item in section.items)
+                  SizedBox(
+                    width: chipWidth,
+                    height: 34,
+                    child: _StageUnlockChip(item: item, theme: theme),
+                  ),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -419,10 +432,8 @@ class _StageUnlockChip extends StatelessWidget {
     final color = item.highlighted ? theme.secondary : GamePalette.textPrimary;
     return _StageDetailsAssetSurface(
       asset: stageDetailsUnlockChipFrameAsset,
-      constraints: const BoxConstraints(maxWidth: 178),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
           if (item.researchType case final researchType?)
             ResearchIcon(researchType, size: 15, color: color)
@@ -443,15 +454,14 @@ class _StageUnlockChip extends StatelessWidget {
           else
             Icon(item.icon, size: 15, color: color),
           const SizedBox(width: 6),
-          Flexible(
-            child: Text(
+          Expanded(
+            child: ScaleDownText(
               item.label,
+              alignment: Alignment.centerLeft,
               style: GameTextStyles.withColor(
                 GameTextStyles.buttonSmall,
                 color,
               ).copyWith(fontWeight: FontWeight.w800),
-              maxLines: 1,
-              overflow: TextOverflow.clip,
             ),
           ),
         ],

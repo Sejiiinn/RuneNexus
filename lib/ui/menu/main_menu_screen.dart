@@ -457,13 +457,13 @@ class _MainMenuSnapshotContent extends StatelessWidget {
               return Center(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
-                    16,
+                    24,
                     menuTopPadding,
-                    16,
+                    24,
                     menuBottomPadding,
                   ),
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 430),
+                    constraints: const BoxConstraints(maxWidth: 400),
                     child: SizedBox(
                       height: panelHeight,
                       child: _StageMenuPanel(
