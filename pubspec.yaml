@@ -31,6 +31,7 @@ flutter:
     - assets/images/research/
     - assets/images/results/
     - assets/images/stage_rewards/
+    - assets/images/ui/stage_reference/
     - assets/images/upgrades/
   fonts:
     - family: NotoSansKR

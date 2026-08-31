@@ -721,44 +721,6 @@ int _fullClearRuneReward(GameSnapshot snapshot, int stageNumber) {
   );
 }
 
-class _StageRuneRewardText extends StatelessWidget {
-  const _StageRuneRewardText({
-    required this.text,
-    required this.unlocked,
-    required this.active,
-    required this.theme,
-  });
-
-  final String text;
-  final bool unlocked;
-  final bool active;
-  final _StageChapterTheme theme;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = unlocked
-        ? active
-              ? const Color(0xFFE7C66A)
-              : theme.secondary
-        : const Color(0xFF667987);
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      alignment: Alignment.centerRight,
-      child: Text(
-        text,
-        textAlign: TextAlign.right,
-        maxLines: 1,
-        softWrap: false,
-        style: TextStyle(
-          color: color,
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-    );
-  }
-}
-
 class _StageRewardInfo {
   const _StageRewardInfo({
     this.label,

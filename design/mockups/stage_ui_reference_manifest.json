@@ -1,0 +1,31 @@
+{
+  "source_reference": "design/mockups/stage_ui_reference.png",
+  "clean_reference": "design/mockups/stage_ui_reference_clean.png",
+  "base_reference": "design/mockups/stage_ui_reference_base.png",
+  "stage_crop": [
+    31,
+    153,
+    820,
+    1719
+  ],
+  "reference_canvas": [
+    789,
+    1566
+  ],
+  "composition": "independent_layers",
+  "outputs": [
+    "active_stage_panel.png",
+    "chapter_banner_frame.png",
+    "chapter_bridge.png",
+    "chapter_tab_idle.png",
+    "chapter_tab_selected.png",
+    "continue_button_idle.png",
+    "locked_stage_row.png",
+    "stage_number_plate.png",
+    "stage_number_socket.png",
+    "stage_shell_fill.png",
+    "stage_shell_frame.png",
+    "stage_stat_strip.png"
+  ],
+  "generation": "Built-in ImageGen precise-object-edit removed only dynamic content. A second precise-object-edit removed detachable component layers. This script deterministically extracts the shell, tab states, banner frame, bridge, active panel base, socket, stat strip, button, locked row base and number plate."
+}
