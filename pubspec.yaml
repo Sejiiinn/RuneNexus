@@ -35,11 +35,7 @@ flutter:
     - assets/images/stage_details/ui/
     - assets/images/stage_rewards/
     - assets/images/turret_modules/ui/
-    - assets/images/turret_modules/ui/3.0x/
-    - assets/images/turret_modules/ui/4.0x/
     - assets/images/ui/components/
-    - assets/images/ui/components/3.0x/
-    - assets/images/ui/components/4.0x/
     - assets/images/ui/stage_reference/
     - assets/images/upgrades/
   fonts:

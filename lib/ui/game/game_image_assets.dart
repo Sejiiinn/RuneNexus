@@ -121,24 +121,9 @@ const String turretModulePreviewFrameAsset =
 const String turretModuleConnectorAssemblyAsset =
     'assets/images/turret_modules/ui/turret_connector_assembly.png';
 
-enum GameUiAssetQuality {
-  standard(scale: 1, variantDirectory: null),
-  high(scale: 3, variantDirectory: '3.0x'),
-  ultra(scale: 4, variantDirectory: '4.0x');
+const double gameUiMasterAssetScale = 4;
 
-  const GameUiAssetQuality({
-    required this.scale,
-    required this.variantDirectory,
-  });
-
-  final double scale;
-  final String? variantDirectory;
-}
-
-// 추후 사용자 화질 설정 연동 지점
-const GameUiAssetQuality defaultGameUiAssetQuality = GameUiAssetQuality.ultra;
-
-const Set<String> resolutionVariantUiImageAssets = {
+const Set<String> gameUiMasterImageAssets = {
   gamePanelFrameAsset,
   gameCardFrameAsset,
   gameRowFrameAsset,
@@ -153,20 +138,12 @@ const Set<String> resolutionVariantUiImageAssets = {
   turretModuleConnectorAssemblyAsset,
 };
 
-ImageProvider<Object> gameUiAssetImageProvider(
-  String asset, {
-  GameUiAssetQuality quality = defaultGameUiAssetQuality,
-}) {
-  final variantDirectory = quality.variantDirectory;
-  if (variantDirectory == null ||
-      !resolutionVariantUiImageAssets.contains(asset)) {
+ImageProvider<Object> gameUiAssetImageProvider(String asset) {
+  if (!gameUiMasterImageAssets.contains(asset)) {
     return AssetImage(asset);
   }
-  final separator = asset.lastIndexOf('/');
-  final variantAsset =
-      '${asset.substring(0, separator + 1)}$variantDirectory/'
-      '${asset.substring(separator + 1)}';
-  return ExactAssetImage(variantAsset, scale: quality.scale);
+  // 추후 저사양 설정에서는 이 단일 마스터를 ResizeImage로 축소 디코딩합니다.
+  return ExactAssetImage(asset, scale: gameUiMasterAssetScale);
 }
 
 const String corePassiveTreeBackgroundAsset =

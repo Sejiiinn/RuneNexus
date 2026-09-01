@@ -104,37 +104,25 @@ void main() {
       final turretPreviewFrameSize = await _assetImageSize(
         turretModulePreviewFrameAsset,
       );
-      expect(turretPreviewFrameSize, const Size(128, 128));
+      expect(turretPreviewFrameSize, const Size(512, 512));
       final turretConnectorSize = await _assetImageSize(
         turretModuleConnectorAssemblyAsset,
       );
-      expect(turretConnectorSize, const Size(114, 200));
+      expect(turretConnectorSize, const Size(456, 800));
       final sharedComponentSizes = <String, Size>{
-        gamePanelFrameAsset: const Size(376, 160),
-        gameCardFrameAsset: const Size(171, 116),
-        gameRowFrameAsset: const Size(357, 44),
-        gameLockedRowFrameAsset: const Size(357, 59),
-        gameButtonFrameAsset: const Size(151, 34),
-        gameChipFrameAsset: const Size(60, 27),
-        gameIconSocketAsset: const Size(44, 44),
-        gameSegmentedControlFrameAsset: const Size(138, 43),
-        gameSegmentSelectedCyanAsset: const Size(64, 32),
-        gameSegmentSelectedGoldAsset: const Size(64, 32),
+        gamePanelFrameAsset: const Size(1504, 640),
+        gameCardFrameAsset: const Size(684, 464),
+        gameRowFrameAsset: const Size(1428, 176),
+        gameLockedRowFrameAsset: const Size(1428, 236),
+        gameButtonFrameAsset: const Size(604, 136),
+        gameChipFrameAsset: const Size(240, 108),
+        gameIconSocketAsset: const Size(176, 176),
+        gameSegmentedControlFrameAsset: const Size(552, 172),
+        gameSegmentSelectedCyanAsset: const Size(256, 128),
+        gameSegmentSelectedGoldAsset: const Size(256, 128),
       };
       for (final entry in sharedComponentSizes.entries) {
         expect(await _assetImageSize(entry.key), entry.value);
-        expect(
-          await _assetImageSize(
-            entry.key.replaceFirst('/components/', '/components/3.0x/'),
-          ),
-          Size(entry.value.width * 3, entry.value.height * 3),
-        );
-        expect(
-          await _assetImageSize(
-            entry.key.replaceFirst('/components/', '/components/4.0x/'),
-          ),
-          Size(entry.value.width * 4, entry.value.height * 4),
-        );
       }
       final logoSize = await _assetImageSize(gameLogoAsset);
       expect(logoSize.width, lessThanOrEqualTo(1024));
@@ -157,7 +145,7 @@ void main() {
     });
   });
 
-  testWidgets('default UI quality always selects 4x component variants', (
+  testWidgets('shared UI always selects the single high resolution master', (
     tester,
   ) async {
     for (final asset in [
@@ -171,33 +159,12 @@ void main() {
       final provider = gameUiAssetImageProvider(asset);
       expect(provider, isA<ExactAssetImage>());
       final resolved = provider as ExactAssetImage;
-      expect(resolved.scale, 4);
-      expect(resolved.assetName, contains('/4.0x/'));
+      expect(resolved.scale, gameUiMasterAssetScale);
+      expect(resolved.assetName, asset);
+      expect(resolved.assetName, isNot(contains('/3.0x/')));
+      expect(resolved.assetName, isNot(contains('/4.0x/')));
     }
   });
-
-  testWidgets(
-    'future high quality setting can select regenerated 3x variants',
-    (tester) async {
-      for (final asset in [
-        gamePanelFrameAsset,
-        gameCardFrameAsset,
-        gameRowFrameAsset,
-        gameButtonFrameAsset,
-        turretModulePreviewFrameAsset,
-        turretModuleConnectorAssemblyAsset,
-      ]) {
-        final provider = gameUiAssetImageProvider(
-          asset,
-          quality: GameUiAssetQuality.high,
-        );
-        expect(provider, isA<ExactAssetImage>());
-        final resolved = provider as ExactAssetImage;
-        expect(resolved.scale, 3);
-        expect(resolved.assetName, contains('/3.0x/'));
-      }
-    },
-  );
 }
 
 Future<Size> _assetImageSize(String asset) async {
