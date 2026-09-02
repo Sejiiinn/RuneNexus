@@ -20,10 +20,8 @@ class ImpactEffectComponent extends PositionComponent {
     required this.style,
     required this.radius,
     this.cannonBlastSpriteSheet,
-    double simulationSpeed = 1,
     int randomSeed = 0,
   }) : _color = color,
-       _simulationSpeed = math.max(1, simulationSpeed),
        _cannonShockArcs = _createCannonShockArcs(randomSeed),
        super(
          position: position,
@@ -43,7 +41,6 @@ class ImpactEffectComponent extends PositionComponent {
   static const int _cannonBlastAtlasRows = 3;
 
   final Color _color;
-  final double _simulationSpeed;
   final Image? cannonBlastSpriteSheet;
   final List<_CannonShockArc> _cannonShockArcs;
   final ImpactEffectStyle style;
@@ -60,8 +57,7 @@ class ImpactEffectComponent extends PositionComponent {
   @override
   void update(double dt) {
     super.update(dt);
-    // 배속과 무관한 실제 화면 재생 시간
-    _age += dt / _simulationSpeed;
+    _age += dt;
     if (_age >= _lifeTime) {
       removeFromParent();
     }
