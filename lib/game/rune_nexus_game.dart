@@ -3195,7 +3195,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         cannonBlastSpriteSheet: style == ImpactEffectStyle.blast
             ? _cannonBlastSpriteSheet
             : null,
-        randomSeed: _impactEffectRandom.nextInt(1 << 32),
+        // Dart Web의 32비트 shift 오버플로 방지
+        randomSeed: _impactEffectRandom.nextInt(0x7FFFFFFF),
       ),
     );
   }
