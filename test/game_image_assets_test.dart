@@ -145,6 +145,18 @@ void main() {
     });
   });
 
+  testWidgets('cannon blast atlas keeps twelve 256 pixel frames', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final size = await _assetImageSize(
+        'assets/images/cannon_blast_core_sheet.png',
+      );
+
+      expect(size, const Size(1024, 768));
+    });
+  });
+
   testWidgets('shared UI always selects the single high resolution master', (
     tester,
   ) async {

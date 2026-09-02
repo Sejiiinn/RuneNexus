@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
@@ -464,6 +465,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   );
   final WaveSpawner _waveSpawner = WaveSpawner();
   final math.Random _enemyLaneRandom = math.Random();
+  final math.Random _impactEffectRandom = math.Random();
   final GemRewardController _gemRewards = GemRewardController();
   final GameSaveAdapter _saveAdapter = const GameSaveAdapter();
   late final GameRestoreController _restoreController = GameRestoreController(
@@ -485,6 +487,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   late GridComponent _gridComponent;
   late final StatusEffectSpriteCache statusEffectSprites;
+  ui.Image? _cannonBlastSpriteSheet;
   bool _statusEffectSpritesReady = false;
   bool _gridComponentReady = false;
   late Vector2 _origin;
@@ -885,6 +888,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   Future<void> onLoad() async {
     try {
       await super.onLoad();
+      _cannonBlastSpriteSheet = await images.load(
+        'cannon_blast_core_sheet.png',
+      );
       _prepareStatusEffectSprites();
       _configureBoard();
       _gridComponent = GridComponent(
@@ -3161,6 +3167,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         color: owner.definition.color,
         style: style,
         radius: radius,
+        cannonBlastSpriteSheet: style == ImpactEffectStyle.blast
+            ? _cannonBlastSpriteSheet
+            : null,
+        randomSeed: _impactEffectRandom.nextInt(1 << 32),
       ),
     );
   }

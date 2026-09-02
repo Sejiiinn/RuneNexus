@@ -19,19 +19,30 @@ class ImpactEffectComponent extends PositionComponent {
     required Color color,
     required this.style,
     required this.radius,
+    this.cannonBlastSpriteSheet,
+    int randomSeed = 0,
   }) : _color = color,
+       _cannonShockArcs = _createCannonShockArcs(randomSeed),
        super(
          position: position,
          size: Vector2.all(radius * (_isBlastStyle(style) ? 2.45 : 2)),
          anchor: Anchor.center,
        );
 
+  static const int cannonBlastFrameCount = 12;
+  static const int _cannonBlastAtlasColumns = 4;
+  static const int _cannonBlastAtlasRows = 3;
+
   final Color _color;
+  final Image? cannonBlastSpriteSheet;
+  final List<_CannonShockArc> _cannonShockArcs;
   final ImpactEffectStyle style;
   final double radius;
+  final Paint _cannonBlastSpritePaint = Paint()
+    ..filterQuality = FilterQuality.medium;
   double _age = 0;
   double get _lifeTime => style == ImpactEffectStyle.blast
-      ? 0.25
+      ? 0.42
       : _isBlastStyle(style)
       ? 0.36
       : 0.28;
@@ -246,64 +257,96 @@ class ImpactEffectComponent extends PositionComponent {
     double progress,
     double alpha,
   ) {
-    final effectRadius = radius * 0.62;
-    final ring = Paint()
-      ..color = _color.withValues(alpha: alpha * 0.42)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = math.max(1.0, radius * 0.035);
-    canvas.drawCircle(center, effectRadius * (0.18 + progress * 0.82), ring);
+    _drawIrregularCannonShockwave(canvas, center, progress, alpha);
+    _drawCannonBlastSprite(canvas, center, progress);
+  }
 
-    // 짧게 남는 중심 섬광
-    final flashAlpha = (1 - progress * 3.2).clamp(0.0, 1.0);
-    canvas.drawCircle(
-      center,
-      effectRadius * (0.1 + progress * 0.05),
-      Paint()
-        ..color = const Color(0xFFFFF4C6).withValues(alpha: flashAlpha * 0.92),
-    );
-    canvas.drawCircle(
-      center,
-      effectRadius * (0.08 + progress * 0.08),
-      Paint()..color = _color.withValues(alpha: alpha * 0.58),
-    );
+  void _drawIrregularCannonShockwave(
+    Canvas canvas,
+    Offset center,
+    double progress,
+    double alpha,
+  ) {
+    final easedProgress = progress * progress * (3 - 2 * progress);
+    final baseRadius = radius * (0.18 + easedProgress * 0.94);
+    final baseStrokeWidth =
+        math.max(1.1, radius * 0.045) * (1 - progress * 0.4);
+    final shockColor = Color.lerp(const Color(0xFFFFF0B0), _color, 0.48)!;
 
-    final shard = Paint()
-      ..strokeWidth = math.max(1.2, radius * 0.045)
-      ..strokeCap = StrokeCap.square;
-    for (var i = 0; i < 4; i++) {
-      final angle = i * math.pi / 2 + 0.24;
-      final inner = effectRadius * (0.14 + progress * 0.12);
-      final outer = effectRadius * (0.34 + progress * 0.34);
-      shard.color = (i.isEven ? const Color(0xFFFFF0B0) : _color).withValues(
-        alpha: alpha * 0.7,
+    for (final arc in _cannonShockArcs) {
+      // 폭발별로 고정된 반경 요철
+      final path = Path();
+      for (var i = 0; i < arc.radialOffsets.length; i++) {
+        final sampleProgress = i / (arc.radialOffsets.length - 1);
+        final angle =
+            arc.startAngle +
+            arc.sweepAngle * sampleProgress +
+            progress * arc.rotationSpeed;
+        final ripple =
+            arc.radialOffsets[i] * (0.035 + progress * 0.055) +
+            math.sin(angle * 3 + arc.phase + progress * 2.2) * 0.025;
+        final arcRadius = baseRadius * arc.radiusScale * (1 + ripple);
+        final point = Offset(
+          center.dx + math.cos(angle) * arcRadius,
+          center.dy + math.sin(angle) * arcRadius,
+        );
+        if (i == 0) {
+          path.moveTo(point.dx, point.dy);
+        } else {
+          path.lineTo(point.dx, point.dy);
+        }
+      }
+
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = _color.withValues(alpha: alpha * 0.16)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = baseStrokeWidth * arc.widthScale * 2.35
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round,
       );
-      canvas.drawLine(
-        Offset(
-          center.dx + math.cos(angle) * inner,
-          center.dy + math.sin(angle) * inner,
-        ),
-        Offset(
-          center.dx + math.cos(angle) * outer,
-          center.dy + math.sin(angle) * outer,
-        ),
-        shard,
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = shockColor.withValues(alpha: alpha * arc.alphaScale * 0.82)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = baseStrokeWidth * arc.widthScale
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round,
       );
     }
+  }
 
-    final smoke = Paint()
-      ..color = const Color(0xFF74695C).withValues(alpha: alpha * 0.16);
-    for (var i = 0; i < 2; i++) {
-      final angle = i * math.pi + 0.7;
-      final distance = effectRadius * (0.18 + progress * 0.5);
-      canvas.drawCircle(
-        Offset(
-          center.dx + math.cos(angle) * distance,
-          center.dy + math.sin(angle) * distance * 0.7,
-        ),
-        effectRadius * (0.055 + progress * 0.025),
-        smoke,
-      );
+  void _drawCannonBlastSprite(Canvas canvas, Offset center, double progress) {
+    final spriteSheet = cannonBlastSpriteSheet;
+    if (spriteSheet == null) {
+      return;
     }
+    final frameIndex = (progress * cannonBlastFrameCount)
+        .floor()
+        .clamp(0, cannonBlastFrameCount - 1)
+        .toInt();
+    final frameWidth = spriteSheet.width / _cannonBlastAtlasColumns;
+    final frameHeight = spriteSheet.height / _cannonBlastAtlasRows;
+    final source = Rect.fromLTWH(
+      (frameIndex % _cannonBlastAtlasColumns) * frameWidth,
+      (frameIndex ~/ _cannonBlastAtlasColumns) * frameHeight,
+      frameWidth,
+      frameHeight,
+    );
+    final spriteExtent = radius * 2.04;
+    final destination = Rect.fromCenter(
+      center: center,
+      width: spriteExtent,
+      height: spriteExtent,
+    );
+    canvas.drawImageRect(
+      spriteSheet,
+      source,
+      destination,
+      _cannonBlastSpritePaint,
+    );
   }
 
   void _drawBlast({
@@ -380,4 +423,47 @@ bool _isBlastStyle(ImpactEffectStyle style) {
   return style == ImpactEffectStyle.blast ||
       style == ImpactEffectStyle.sniperBlast ||
       style == ImpactEffectStyle.lightningBlast;
+}
+
+List<_CannonShockArc> _createCannonShockArcs(int seed) {
+  final random = math.Random(seed);
+  var cursor = random.nextDouble() * math.pi * 2;
+  return List.generate(4, (_) {
+    cursor += 0.16 + random.nextDouble() * 0.28;
+    final sweepAngle = 0.68 + random.nextDouble() * 0.34;
+    final arc = _CannonShockArc(
+      startAngle: cursor,
+      sweepAngle: sweepAngle,
+      radiusScale: 0.91 + random.nextDouble() * 0.18,
+      widthScale: 0.78 + random.nextDouble() * 0.5,
+      alphaScale: 0.72 + random.nextDouble() * 0.28,
+      phase: random.nextDouble() * math.pi * 2,
+      rotationSpeed: (random.nextDouble() - 0.5) * 0.22,
+      radialOffsets: List.generate(9, (_) => random.nextDouble() * 2 - 1),
+    );
+    cursor += sweepAngle;
+    return arc;
+  });
+}
+
+class _CannonShockArc {
+  const _CannonShockArc({
+    required this.startAngle,
+    required this.sweepAngle,
+    required this.radiusScale,
+    required this.widthScale,
+    required this.alphaScale,
+    required this.phase,
+    required this.rotationSpeed,
+    required this.radialOffsets,
+  });
+
+  final double startAngle;
+  final double sweepAngle;
+  final double radiusScale;
+  final double widthScale;
+  final double alphaScale;
+  final double phase;
+  final double rotationSpeed;
+  final List<double> radialOffsets;
 }
