@@ -27,11 +27,12 @@ void main() {
             cannonBlastSpriteSheet: style == ImpactEffectStyle.blast
                 ? cannonBlastAtlas
                 : null,
+            simulationSpeed: 4,
             randomSeed: 7,
           );
 
           effect.render(canvas);
-          effect.update(0.12);
+          effect.update(0.48);
           effect.render(canvas);
         }
       } finally {

@@ -20,12 +20,21 @@ class ImpactEffectComponent extends PositionComponent {
     required this.style,
     required this.radius,
     this.cannonBlastSpriteSheet,
+    double simulationSpeed = 1,
     int randomSeed = 0,
   }) : _color = color,
+       _simulationSpeed = math.max(1, simulationSpeed),
        _cannonShockArcs = _createCannonShockArcs(randomSeed),
        super(
          position: position,
-         size: Vector2.all(radius * (_isBlastStyle(style) ? 2.45 : 2)),
+         size: Vector2.all(
+           radius *
+               (style == ImpactEffectStyle.blast
+                   ? 3.2
+                   : _isBlastStyle(style)
+                   ? 2.45
+                   : 2),
+         ),
          anchor: Anchor.center,
        );
 
@@ -34,6 +43,7 @@ class ImpactEffectComponent extends PositionComponent {
   static const int _cannonBlastAtlasRows = 3;
 
   final Color _color;
+  final double _simulationSpeed;
   final Image? cannonBlastSpriteSheet;
   final List<_CannonShockArc> _cannonShockArcs;
   final ImpactEffectStyle style;
@@ -50,7 +60,8 @@ class ImpactEffectComponent extends PositionComponent {
   @override
   void update(double dt) {
     super.update(dt);
-    _age += dt;
+    // 배속과 무관한 실제 화면 재생 시간
+    _age += dt / _simulationSpeed;
     if (_age >= _lifeTime) {
       removeFromParent();
     }
@@ -335,7 +346,8 @@ class ImpactEffectComponent extends PositionComponent {
       frameWidth,
       frameHeight,
     );
-    final spriteExtent = radius * 2.04;
+    // 아틀라스 셀의 투명 여백 보정
+    final spriteExtent = radius * 3.2;
     final destination = Rect.fromCenter(
       center: center,
       width: spriteExtent,

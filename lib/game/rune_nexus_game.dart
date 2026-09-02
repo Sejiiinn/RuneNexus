@@ -3170,6 +3170,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         cannonBlastSpriteSheet: style == ImpactEffectStyle.blast
             ? _cannonBlastSpriteSheet
             : null,
+        simulationSpeed: _speedMultiplier,
         randomSeed: _impactEffectRandom.nextInt(1 << 32),
       ),
     );
