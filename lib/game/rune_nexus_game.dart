@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' as gestures;
 import 'package:flutter/material.dart';
 
@@ -888,9 +889,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   Future<void> onLoad() async {
     try {
       await super.onLoad();
-      _cannonBlastSpriteSheet = await images.load(
-        'cannon_blast_core_sheet.png',
-      );
       _prepareStatusEffectSprites();
       _configureBoard();
       _gridComponent = GridComponent(
@@ -907,6 +905,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       }
       _syncBoardComponents();
       _publish();
+      if (!kDebugMode || BindingBase.debugBindingType() != null) {
+        _startCannonBlastSpriteSheetLoad();
+      }
       readyNotifier.value = true;
     } on Object catch (error) {
       loadErrorNotifier.value = error;
@@ -926,6 +927,30 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       loadErrorNotifier.value = error;
       rethrow;
     }
+  }
+
+  void _startCannonBlastSpriteSheetLoad() {
+    if (_cannonBlastSpriteSheet != null) {
+      return;
+    }
+    unawaited(
+      images
+          .load('cannon_blast_core_sheet.png')
+          .then<void>(
+            (image) => _cannonBlastSpriteSheet = image,
+            onError: (Object error, StackTrace stackTrace) {
+              loadErrorNotifier.value = error;
+              FlutterError.reportError(
+                FlutterErrorDetails(
+                  exception: error,
+                  stack: stackTrace,
+                  library: 'RuneNexusGame',
+                  context: ErrorDescription('대포 폭발 스프라이트 로드 중'),
+                ),
+              );
+            },
+          ),
+    );
   }
 
   Future<void> prepareSavedStateForMenu() async {
