@@ -30,7 +30,11 @@ class ImpactEffectComponent extends PositionComponent {
   final ImpactEffectStyle style;
   final double radius;
   double _age = 0;
-  double get _lifeTime => _isBlastStyle(style) ? 0.36 : 0.28;
+  double get _lifeTime => style == ImpactEffectStyle.blast
+      ? 0.25
+      : _isBlastStyle(style)
+      ? 0.36
+      : 0.28;
 
   @override
   void update(double dt) {
@@ -72,17 +76,7 @@ class ImpactEffectComponent extends PositionComponent {
           Paint()..color = const Color(0xFFFFFFFF).withValues(alpha: alpha),
         );
       case ImpactEffectStyle.blast:
-        _drawBlast(
-          canvas: canvas,
-          center: center,
-          progress: progress,
-          alpha: alpha,
-          shockColor: const Color(0xFFFFF0B0),
-          flashColor: const Color(0xFFFFF4C6),
-          coreColor: const Color(0xFFFFA84E),
-          shardAltColor: const Color(0xFFFF9A3D),
-          dustColor: const Color(0xFFB8B8A8),
-        );
+        _drawCannonBlast(canvas, center, progress, alpha);
       case ImpactEffectStyle.sniperBlast:
         _drawBlast(
           canvas: canvas,
@@ -244,6 +238,72 @@ class ImpactEffectComponent extends PositionComponent {
       shardAltColor: const Color(0xFF8CFFF3),
       dustColor: const Color(0xFF9DDDEA),
     );
+  }
+
+  void _drawCannonBlast(
+    Canvas canvas,
+    Offset center,
+    double progress,
+    double alpha,
+  ) {
+    final effectRadius = radius * 0.62;
+    final ring = Paint()
+      ..color = _color.withValues(alpha: alpha * 0.42)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = math.max(1.0, radius * 0.035);
+    canvas.drawCircle(center, effectRadius * (0.18 + progress * 0.82), ring);
+
+    // 짧게 남는 중심 섬광
+    final flashAlpha = (1 - progress * 3.2).clamp(0.0, 1.0);
+    canvas.drawCircle(
+      center,
+      effectRadius * (0.1 + progress * 0.05),
+      Paint()
+        ..color = const Color(0xFFFFF4C6).withValues(alpha: flashAlpha * 0.92),
+    );
+    canvas.drawCircle(
+      center,
+      effectRadius * (0.08 + progress * 0.08),
+      Paint()..color = _color.withValues(alpha: alpha * 0.58),
+    );
+
+    final shard = Paint()
+      ..strokeWidth = math.max(1.2, radius * 0.045)
+      ..strokeCap = StrokeCap.square;
+    for (var i = 0; i < 4; i++) {
+      final angle = i * math.pi / 2 + 0.24;
+      final inner = effectRadius * (0.14 + progress * 0.12);
+      final outer = effectRadius * (0.34 + progress * 0.34);
+      shard.color = (i.isEven ? const Color(0xFFFFF0B0) : _color).withValues(
+        alpha: alpha * 0.7,
+      );
+      canvas.drawLine(
+        Offset(
+          center.dx + math.cos(angle) * inner,
+          center.dy + math.sin(angle) * inner,
+        ),
+        Offset(
+          center.dx + math.cos(angle) * outer,
+          center.dy + math.sin(angle) * outer,
+        ),
+        shard,
+      );
+    }
+
+    final smoke = Paint()
+      ..color = const Color(0xFF74695C).withValues(alpha: alpha * 0.16);
+    for (var i = 0; i < 2; i++) {
+      final angle = i * math.pi + 0.7;
+      final distance = effectRadius * (0.18 + progress * 0.5);
+      canvas.drawCircle(
+        Offset(
+          center.dx + math.cos(angle) * distance,
+          center.dy + math.sin(angle) * distance * 0.7,
+        ),
+        effectRadius * (0.055 + progress * 0.025),
+        smoke,
+      );
+    }
   }
 
   void _drawBlast({
