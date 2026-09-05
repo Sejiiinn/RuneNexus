@@ -2,7 +2,21 @@ import 'dart:convert';
 
 import '../../domain/account/online_account_credentials.dart';
 import 'authentication_transport_stub.dart'
-    if (dart.library.html) 'authentication_transport_web.dart';
+    if (dart.library.html) 'authentication_transport_web.dart'
+    if (dart.library.io) 'authentication_transport_io.dart';
+
+enum AuthenticationMode { legacy, web, native }
+
+class AuthenticationResult {
+  const AuthenticationResult({
+    required this.credentials,
+    this.refreshToken,
+    this.refreshExpiresAt,
+  });
+  final OnlineAccountCredentials credentials;
+  final String? refreshToken;
+  final DateTime? refreshExpiresAt;
+}
 
 class GoogleAuthenticationException implements Exception {
   const GoogleAuthenticationException({
@@ -19,6 +33,14 @@ class GoogleAuthenticationException implements Exception {
   final int? statusCode;
   final Duration? retryAfter;
 
+  bool get endsSession => const {
+    'REFRESH_TOKEN_INVALID',
+    'REFRESH_TOKEN_REUSED',
+    'REFRESH_RECOVERY_EXPIRED',
+    'ACCOUNT_NOT_ACTIVE',
+    'INVALID_AUTH_ACCOUNT',
+  }.contains(code);
+
   @override
   String toString() => 'GoogleAuthenticationException($code): $message';
 }
@@ -26,7 +48,8 @@ class GoogleAuthenticationException implements Exception {
 class GoogleAuthenticationApi {
   GoogleAuthenticationApi({
     required String baseUrl,
-    AuthenticationTransport? transport,
+    AuthenticationClient? transport,
+    this.mode = AuthenticationMode.legacy,
   }) : _baseUri = _apiBaseUri(baseUrl),
        _transport = transport ?? AuthenticationTransport();
 
@@ -35,7 +58,14 @@ class GoogleAuthenticationApi {
   );
 
   final Uri _baseUri;
-  final AuthenticationTransport _transport;
+  final AuthenticationClient _transport;
+  final AuthenticationMode mode;
+
+  String get _endpoint => switch (mode) {
+    AuthenticationMode.legacy => 'v1/auth',
+    AuthenticationMode.web => 'v1/auth/web',
+    AuthenticationMode.native => 'v1/auth/native',
+  };
 
   static bool supportsBaseUrl(String baseUrl) {
     try {
@@ -46,26 +76,34 @@ class GoogleAuthenticationApi {
     }
   }
 
-  Future<OnlineAccountCredentials> authenticate(String idToken) async {
+  Future<AuthenticationResult> authenticate(String idToken) async {
     return _requestCredentials(
-      endpoint: _baseUri.resolve('v1/auth/google'),
+      endpoint: _baseUri.resolve('$_endpoint/google'),
       body: jsonEncode({'idToken': idToken}),
       failureMessage: 'Google 로그인 요청에 실패했습니다.',
     );
   }
 
-  Future<OnlineAccountCredentials> refresh(String refreshToken) {
+  Future<AuthenticationResult> refresh(
+    String? refreshToken, {
+    String? idempotencyKey,
+  }) {
     return _requestCredentials(
-      endpoint: _baseUri.resolve('v1/auth/refresh'),
-      body: jsonEncode({'refreshToken': refreshToken}),
+      endpoint: _baseUri.resolve('$_endpoint/refresh'),
+      body: jsonEncode(
+        mode == AuthenticationMode.web ? {} : {'refreshToken': refreshToken},
+      ),
+      headers: {'Idempotency-Key': ?idempotencyKey},
       failureMessage: '인증 세션 갱신에 실패했습니다.',
     );
   }
 
-  Future<void> logout(String refreshToken, {String? accessToken}) async {
+  Future<void> logout(String? refreshToken, {String? accessToken}) async {
     final response = await _transport.postJSON(
-      _baseUri.resolve('v1/auth/logout'),
-      body: jsonEncode({'refreshToken': refreshToken}),
+      _baseUri.resolve('$_endpoint/logout'),
+      body: jsonEncode(
+        mode == AuthenticationMode.web ? {} : {'refreshToken': refreshToken},
+      ),
       headers: accessToken == null
           ? const {}
           : {'Authorization': 'Bearer $accessToken'},
@@ -82,12 +120,17 @@ class GoogleAuthenticationApi {
     );
   }
 
-  Future<OnlineAccountCredentials> _requestCredentials({
+  Future<AuthenticationResult> _requestCredentials({
     required Uri endpoint,
     required String body,
     required String failureMessage,
+    Map<String, String> headers = const {},
   }) async {
-    final response = await _transport.postJSON(endpoint, body: body);
+    final response = await _transport.postJSON(
+      endpoint,
+      body: body,
+      headers: headers,
+    );
     final decoded = _decodeObject(response.body);
     if (response.statusCode != 200) {
       throw GoogleAuthenticationException(
@@ -115,23 +158,28 @@ class GoogleAuthenticationApi {
         !_accountIdPattern.hasMatch(accountId) ||
         accessToken == null ||
         accessToken.isEmpty ||
-        refreshToken == null ||
-        refreshToken.isEmpty ||
+        (mode != AuthenticationMode.web &&
+            (refreshToken == null || refreshToken.isEmpty)) ||
+        (mode == AuthenticationMode.web && refreshToken != null) ||
         accessExpiresAt == null ||
-        refreshExpiresAt == null ||
-        !refreshExpiresAt.isAfter(accessExpiresAt)) {
+        (mode == AuthenticationMode.legacy && refreshExpiresAt == null) ||
+        (decoded?['refreshExpiresAt'] != null && refreshExpiresAt == null) ||
+        (refreshExpiresAt != null &&
+            !refreshExpiresAt.isAfter(accessExpiresAt))) {
       throw const GoogleAuthenticationException(
         code: 'INVALID_AUTH_RESPONSE',
         message: '인증 서버 응답 형식이 올바르지 않습니다.',
       );
     }
 
-    return OnlineAccountCredentials(
-      accountId: accountId,
-      accessToken: accessToken,
-      accessExpiresAt: accessExpiresAt.toUtc(),
+    return AuthenticationResult(
+      credentials: OnlineAccountCredentials(
+        accountId: accountId,
+        accessToken: accessToken,
+        accessExpiresAt: accessExpiresAt.toUtc(),
+      ),
       refreshToken: refreshToken,
-      refreshExpiresAt: refreshExpiresAt.toUtc(),
+      refreshExpiresAt: refreshExpiresAt?.toUtc(),
     );
   }
 

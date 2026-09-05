@@ -157,6 +157,15 @@ type PlayerModule struct {
 	DisassembledAt          pgtype.Timestamptz `db:"disassembled_at"`
 }
 
+type RefreshReceipt struct {
+	SessionID     pgtype.UUID        `db:"session_id"`
+	RequestKey    string             `db:"request_key"`
+	ParentTokenID pgtype.UUID        `db:"parent_token_id"`
+	ChildTokenID  pgtype.UUID        `db:"child_token_id"`
+	Ciphertext    []byte             `db:"ciphertext"`
+	ExpiresAt     pgtype.Timestamptz `db:"expires_at"`
+}
+
 type RefreshToken struct {
 	ID            pgtype.UUID        `db:"id"`
 	SessionID     pgtype.UUID        `db:"session_id"`

@@ -1,7 +1,7 @@
 # Rune Nexus 백엔드·인증·온라인 저장 최종 아키텍처
 
 문서 상태: 채택된 구현 기준
-마지막 갱신: 2026-08-29
+마지막 갱신: 2026-09-05 (인증 세션 복원 반영)
 
 ## 목적
 
@@ -21,21 +21,23 @@ PostgreSQL 스키마, API 계약과 향후 중요 재화 보호 경계를 정의
 - `pgx/v5` 연결 풀과 `/health/live`, `/health/ready`
 - `tern` 마이그레이션 실행 환경
 - 계정·외부 identity·세션·refresh token PostgreSQL 스키마
-- Google ID token 검증과 `POST /v1/auth/google` 세션 발급
+- Web GIS·Android Credential Manager의 Google ID token 검증과 플랫폼별 세션 발급
 - refresh token 단일 사용 회전·재사용 감지와 로그아웃
 - access Bearer 인증 미들웨어와 DB 기반 account/session 결정
 - Google 로그인·토큰 갱신의 클라이언트별 token bucket 요청 제한
 - 인증된 `GET/PUT /v1/save`, revision·멱등성·영역별 저장 트랜잭션
-- Flutter 메모리 세션 자동 갱신·single-flight·401 1회 재시도
+- Flutter 영속 인증 세션 복원·자동 갱신·single-flight·401 1회 재시도
 - Flutter 원격 저장 API 클라이언트와 단일 in-flight 전송 worker
 - 계정별 Flutter 영속 save outbox와 재시작 복구
 - 최초 로그인 기존 Outbox 우선 복구와 원격 account 우선 자동 bootstrap
 - 자동 연결 account 슬롯의 중요 체크포인트와 온라인 저장 coordinator 연결
 - writer 획득·저장 PUT 공통 client compatibility gate와 업데이트 필요 UX
 
-PGS 인증은 아직 구현되지 않았다. Google 웹 로그인은 Google Identity Services 버튼에서
-`POST /v1/auth/google`로 이어지는 경로까지 구현되었으며 배포 환경에 OAuth Client와
-API 주소를 설정하면 활성화된다.
+Web은 GIS, Android는 Credential Manager로 Google 로그인을 지원한다. 현재 앱은
+`/v1/auth/web/*`, `/v1/auth/native/*` 영속 세션 API를 사용한다. PGS 인증과 다른 provider의
+identity 연결은 아직 구현되지 않았다. 운영 적용에는 OAuth 설정뿐 아니라 007 마이그레이션,
+고정 영수증 암호화 키와 Web same-site 구성이 필요하다. 실제 배포 절차는
+[자체 운영 API 배포](self_hosted_api_deployment.md)를 따른다. 로그인 필수화는 아직 적용하지 않았다.
 
 다중 기기 충돌의 최종 정책과 구현 계약은
 `docs/multi_device_save_sync_design.md`를 따른다. 기존 사용자 선택형 충돌 해결 방향은
@@ -66,7 +68,7 @@ API 주소를 설정하면 활성화된다.
 | 영역 | 채택 기술 | 역할 |
 | --- | --- | --- |
 | 게임 클라이언트 | Flutter/Dart | Android·iOS 공용 게임과 로컬 저장 |
-| Android 플랫폼 인증 | Kotlin + PGS v2 | server auth code 획득 |
+| Android 플랫폼 인증 | Kotlin + Credential Manager / GoogleID | Google ID token 획득; PGS v2는 후속 계획 |
 | API 서버 | Go 표준 `net/http` | 인증, 계정, 세션, 저장 API |
 | Google 토큰 검증 | `google.golang.org/api/idtoken` | 서명, audience, 만료 검증 |
 | PostgreSQL 연결 | `pgx/v5`, `pgxpool` | 연결 풀, SQL 실행, 트랜잭션 |
@@ -297,7 +299,7 @@ accounts.id
 동일 이메일만으로 계정을 자동 병합하지 않는다. 다른 인증 수단 연결은 기존
 Rune Nexus 계정으로 인증한 상태에서 사용자가 명시적으로 승인해야 한다.
 
-### PGS 인증 흐름
+### PGS 인증 흐름 (후속 계획, 미구현)
 
 ```text
 1. Android 앱이 PGS v2 로그인을 수행한다.
@@ -313,55 +315,73 @@ Rune Nexus 계정으로 인증한 상태에서 사용자가 명시적으로 승�
 auth code, OAuth client secret과 외부 access token은 로그나 앱 저장에 남기지
 않는다. OAuth client secret은 서버 secret으로만 주입한다.
 
-### Google 웹 인증과 계정 연결
+### Google Web·Android 인증과 계정 연결
 
-GitHub Pages에서는 Android 전용 PGS 대신 Google Identity Services로 로그인한다.
-웹과 Android가 같은 온라인 저장을 사용하도록 외부 identity는 같은 내부 account에
-연결한다.
+Web은 Google Identity Services, Android는 Credential Manager를 사용한다. 두 플랫폼은
+같은 Web OAuth client audience로 검증한 `google + subject`를 사용하므로 같은 Google
+계정으로 로그인하면 같은 내부 account를 조회한다. PGS Player ID와의 연결은 별도 후속 기능이다.
 
 ```text
-1. Web이 Google Identity Services에서 ID token을 받는다.
-2. Web이 ID token을 POST /v1/auth/google로 전달한다.
+1. Web GIS 또는 Android Credential Manager에서 ID token을 받는다.
+2. Web은 POST /v1/auth/web/google, Android는 POST /v1/auth/native/google로 전달한다.
 3. Go 서버가 서명, issuer, audience와 만료를 검증한다.
 4. 검증된 Google subject로 google identity를 조회한다.
 5. 기존 identity가 있으면 해당 account session을 발급한다.
 6. 없으면 account와 google identity를 같은 트랜잭션으로 생성한다.
 ```
 
-이미 인증된 PGS account에 Google identity를 추가할 때는 별도 연결 API에서 사용자
+향후 이미 인증된 PGS account에 Google identity를 추가할 때는 별도 연결 API에서 사용자
 승인을 다시 확인한다. Google identity가 이미 다른 account에 연결되어 있으면
 이메일을 기준으로 병합하거나 identity를 자동 이전하지 않고 충돌을 반환한다.
 
 ### 자체 세션
 
 - access/refresh token은 충분한 엔트로피의 무작위 opaque token이다.
-- DB에는 원문이 아니라 SHA-256 해시만 저장한다.
-- access token은 짧게, refresh session은 더 길게 만료한다.
+- `sessions`와 `refresh_tokens`에는 SHA-256 해시만 저장한다. 예외적으로 응답 유실 복구용
+  `refresh_receipts`에는 access/refresh 응답을 AES-GCM으로 암호화하여 10분간 보관한다.
+- access token의 기본 TTL은 15분이다. 신규 영속 세션은 `refresh_expires_at = NULL`로
+  시간 경과만으로 로그아웃하지 않는다. 기존 유한 세션 API의 30일 기본 TTL은 유지한다.
 - refresh token은 사용할 때마다 회전한다.
-- 이미 소비된 refresh token이 다시 오면 해당 세션을 폐기한다.
+- 소비된 token의 허용된 동일 요청 재시도는 기존 응답을 재생한다. 다른 key로 소비된
+  부모 token을 재사용하면 해당 세션과 token family를 폐기한다.
 - 여러 기기는 서로 다른 session을 가진다.
-- timeout·연결 단절로 refresh 결과가 모호하면 같은 소비된 token을 반복 회전하지
-  않는다. 클라이언트 메모리 세션을 폐기하고 PGS server auth code 또는 Google
-  로그인을 새로 수행한다.
+- timeout·연결 단절·5xx·잘못된 응답은 로그인 종료로 판정하지 않는다. 클라이언트는
+  요청 전에 저장한 `Idempotency-Key`로 재시도한다. 앱/서버 재시작과 Web 쿠키가 먼저
+  회전한 경우에도 10분 안에는 부모 또는 자식 token으로 같은 응답을 복구할 수 있다.
 
 refresh 회전 트랜잭션은 다음 순서로 고정한다.
 
 ```text
 BEGIN
-  -> token_hash로 refresh token과 session을 같은 lock order로 FOR UPDATE
+  -> token_hash로 session을 먼저 잠그고 refresh token을 FOR UPDATE
   -> session status, 만료, 폐기, token 소비 여부 검사
-  -> 이미 소비된 token이면 session과 token family 폐기
+  -> 동일 요청의 유효한 receipt이면 기존 응답 반환
+  -> 동일 복구 요청의 receipt가 만료됐으면 REFRESH_RECOVERY_EXPIRED 반환
+  -> 허용되지 않은 소비 token 재사용이면 session과 token family 폐기
   -> 정상이면 기존 token consumed 처리
   -> child refresh token 생성
   -> session access token hash와 만료 갱신
+  -> 영속 API는 암호화한 응답 receipt를 같은 transaction에 저장
 COMMIT
 ```
 
-모든 refresh 경로가 같은 잠금 순서를 사용한다. 모바일 refresh token은
-Keychain/Keystore 기반 보안 저장소에 두고 access token은 메모리 보관을
-우선한다. 일반 게임 저장과 sync outbox에 인증 token 원문을 넣지 않는다.
+모든 refresh와 logout 경로가 같은 잠금 순서를 사용한다. `last_used_at` 갱신은
+5분 단위로 제한한다. 만료 receipt의 암호문은 분당 정리하지만 재사용 판정용 메타데이터와
+token 소비 이력은 유지한다. token 행을 개별 삭제하는 정리 작업은 구현하지 않았다.
 
-클라이언트에는 session별 전역 `RefreshCoordinator`를 둔다. 여러 API 요청이
+| 구분 | Web | Android |
+| --- | --- | --- |
+| refresh 보관 | `__Host-rune_nexus_refresh` HttpOnly·Secure·host-only·SameSite=Lax 쿠키 | Keystore AES-256-GCM, `noBackupFilesDir/auth_session.enc`, `AtomicFile` |
+| access 보관 | 메모리만 | 메모리만 |
+| 복구 메타데이터 | Local Storage `rune_nexus:auth:metadata:v1`, token 원문 없음 | refresh와 함께 암호화 저장 |
+| 메타데이터 필드 | version, apiBaseUrl, accountId, pendingKey, logoutPending | 같은 필드 + refreshToken |
+
+일반 게임 저장과 sync Outbox에는 인증 token 원문을 넣지 않는다. Web 쿠키는 발급·갱신 때
+1년 Max-Age를 설정하지만 브라우저 정책·사용자 삭제까지 영구 보존을 보장하지는 않는다.
+Android 앱 삭제·키 손상도 재로그인이 필요하다. iOS 인증 보안 저장은 아직 구현하지 않았다.
+
+클라이언트의 `OnlineAccountSessionController`와 `AuthenticationSessionRepository`는
+각각 갱신 single-flight와 영속 작업 직렬화를 맡는다. 여러 API 요청이
 동시에 `401`을 받아도 refresh HTTP 요청은 최대 하나만 in-flight로 두며 나머지
 요청은 같은 Future를 기다린다. 성공하면 모두 새 access token으로 각각 한 번만
 재시도한다. 이 single-flight 규칙을 지키지 않으면 정상 클라이언트의 중복 refresh가
@@ -371,6 +391,19 @@ Keychain/Keystore 기반 보안 저장소에 두고 access token은 메모리 �
 token을 비교한다. 이미 다른 요청이 token을 회전했다면 추가 refresh 없이 현재
 token으로 한 번만 재시도한다. logout 또는 dispose가 시작된 뒤 refresh를 기다리던
 요청은 새 보호 요청을 시작하지 않는다.
+
+앱 시작은 세션을 먼저 판정한 뒤 해당 account의 Outbox·저장·경제를 연결한다.
+자동 복원 bootstrap은 guest를 읽거나 복사하지 않으며, 원격 저장이 없는 대화형 최초
+연결에만 기존 guest 이전을 허용한다. 세션 없음이 확인되면 기존 guest 진입을 유지하지만,
+일시적인 세션/저장소 장애는 재시도 화면에서 막는다. 실패한 guest 로더도 재생성하여
+저장 읽기를 건너뛰지 않는다. 카카오 이전 링크는 복원된 account ID와 교체 경고를
+사용자가 확인한 뒤에만 소비한다.
+
+확정 종료 코드(`REFRESH_TOKEN_INVALID`, `REFRESH_TOKEN_REUSED`, `REFRESH_RECOVERY_EXPIRED`,
+`ACCOUNT_NOT_ACTIVE`, 클라이언트 `INVALID_AUTH_ACCOUNT`)는 재로그인 대상으로 처리한다.
+복구 만료 자체는 서버의 family 폐기 조건이 아니지만 클라이언트는 남은 세션을 logout으로
+정리한다. logout 의도는 먼저 저장하고, 응답 유실 시 다음 시작에서 logout부터 재처리한다.
+계정 게임에서 guest로 전환 중에는 플레이를 차단하며 실패하면 account 슬롯을 보존한다.
 
 ## 온라인 저장 API
 
@@ -385,12 +418,14 @@ token으로 한 번만 재시도한다. logout 또는 dispose가 시작된 뒤 r
 - 사용자 표시 문구는 클라이언트 오류 코드 매핑으로 결정한다.
 
 auth code 교환과 refresh는 일반 저장 idempotency 영수증 계약에서 제외한다.
+영속 refresh만 별도 암호화 receipt와 요청 key 계약을 사용한다. 클라이언트는
+32-byte 난수의 padding 없는 base64url key(43자)를 만들며 서버는 UUID도 허용한다.
 PGS 교환 응답이 유실되면 새 server auth code로 인증을 다시 시작한다. logout은
 이미 폐기된 session에도 성공으로 응답하는 자체 멱등 동작으로 만든다.
 
 ### 인증 요청과 응답
 
-`POST /v1/auth/play-games` 요청:
+향후 `POST /v1/auth/play-games` 요청 (미구현):
 
 ```json
 {
@@ -398,7 +433,7 @@ PGS 교환 응답이 유실되면 새 server auth code로 인증을 다시 시�
 }
 ```
 
-`POST /v1/auth/google` 요청:
+`POST /v1/auth/web/google`, `/v1/auth/native/google` 요청 (기존 `/v1/auth/google`도 유지):
 
 ```json
 {
@@ -406,11 +441,11 @@ PGS 교환 응답이 유실되면 새 server auth code로 인증을 다시 시�
 }
 ```
 
-이미 로그인한 account에 Google identity를 연결하는
+향후 이미 로그인한 account에 Google identity를 연결하는
 `POST /v1/account/identities/google`도 같은 body를 사용하며 bearer access token을
 추가로 요구한다.
 
-성공 응답:
+Native 영속 로그인/갱신 성공 응답 (Web은 `refreshToken` 필드를 제외하고 쿠키로 전달):
 
 ```json
 {
@@ -418,12 +453,18 @@ PGS 교환 응답이 유실되면 새 server auth code로 인증을 다시 시�
   "accessToken": "opaque-access-token",
   "accessExpiresAt": "2026-08-16T03:15:00Z",
   "refreshToken": "opaque-refresh-token",
-  "refreshExpiresAt": "2026-09-15T03:00:00Z"
+  "refreshExpiresAt": null
 }
 ```
 
-`POST /v1/auth/refresh`는 `refreshToken`을 받고 같은 token 응답 형식을 반환한다.
-`POST /v1/auth/logout`은 body의 `refreshToken`으로 token family를 찾아 현재
+Web refresh/logout은 JSON `{}`, Native refresh/logout은 `{"refreshToken":"..."}`를
+받는다. 영속 refresh에는 `Idempotency-Key`가 필수다. Web의 모든 인증 요청은 정확한
+허용 `Origin`과 JSON 형식을 검사하며, XHR은 credentials를 포함한다. Web 로그인 직후
+실제 refresh 왕복으로 HttpOnly 쿠키 전송을 확인하고, 실패하면 로그인 완료로 표시하지 않는다.
+
+기존 `/v1/auth/{google,refresh,logout}`는 유한 세션 호환 API로 유지한다. 기존 refresh는
+body의 `refreshToken`을 받으며 기존 응답의 `refreshExpiresAt`은 시각 값이다.
+각 logout은 body 또는 Web 쿠키의 `refreshToken`으로 token family를 찾아 현재
 session을 폐기하고 `204`를 반환한다. bearer access token이 유효하면 같은
 session인지 함께 검사한다. 이미 만료·폐기된 token에도 `204`를 반환하며 token
 원문을 URL이나 로그에 남기지 않는다.
@@ -434,6 +475,11 @@ session인지 함께 검사한다. 이미 만료·폐기된 token에도 `204`를
 | `401` | `GOOGLE_AUTH_REJECTED` | ID token 서명, issuer, audience 또는 만료 검증 실패 |
 | `401` | `REFRESH_TOKEN_INVALID` | 알 수 없거나 만료된 refresh token |
 | `401` | `REFRESH_TOKEN_REUSED` | 이미 소비된 refresh token 재사용과 session 폐기 |
+| `401` | `REFRESH_RECOVERY_EXPIRED` | 10분 복구 응답 만료; 서버는 이 사유만으로 family를 폐기하지 않음 |
+| `400` | `INVALID_IDEMPOTENCY_KEY` | 영속 refresh key 누락 또는 잘못된 형식 |
+| `409` | `REFRESH_REQUEST_CONFLICT` | 요청 key와 token의 복구 관계 불일치 |
+| `403` | `ORIGIN_NOT_ALLOWED` | Web 인증 요청의 허용되지 않은 Origin |
+| `503` | `SESSION_PERSISTENCE_UNAVAILABLE` | 영속 로그인/갱신용 서버 암호화 키 미설정 |
 | `401` | `ACCESS_TOKEN_INVALID` | 누락·만료·폐기되었거나 올바르지 않은 access token |
 | `401` | `ACCESS_TOKEN_SESSION_MISMATCH` | logout의 유효한 access/refresh token이 서로 다른 세션에 속함 |
 | `403` | `ACCOUNT_NOT_ACTIVE` | suspended 또는 deletion pending account |
@@ -451,31 +497,23 @@ session인지 함께 검사한다. 이미 만료·폐기된 token에도 `204`를
 | `429` | `RATE_LIMIT_EXCEEDED` | 클라이언트별 인증 요청 제한 초과 |
 | `503` | `AUTH_PROVIDER_UNAVAILABLE` | Google 인증 제공자 일시 장애 |
 
-Android는 PGS, GitHub Pages는 Google 로그인을 사용한다. 두 identity가 같은 내부
-account에 연결된 이후에는 동일한 온라인 저장을 사용한다. iOS는 플랫폼 인증 수단이
-추가되기 전까지 로컬 저장만 사용한다.
-
-Flutter Web 빌드는 `GOOGLE_WEB_CLIENT_ID`, `RUNE_NEXUS_API_BASE_URL` 두 dart-define이
-모두 유효할 때만 Google 연결 액션을 노출한다. Pages 배포는 진단용
-`RUNE_NEXUS_CLIENT_BUILD=web:<git-sha>`도 주입한다. Google의 공식 GIS 버튼을 렌더링하고
-받은 ID token은 즉시 인증 API로 전달한다. access/refresh token은 현재 브라우저
-메모리에만 유지하며 Local Storage에는 저장하지 않는다. 페이지가 열린 동안에는 access
-만료 전에 refresh를 단일 요청으로 회전하고, 여러 요청이 동시에 `401`을 받아도 같은
-refresh 결과를 기다린 뒤 각 요청을 한 번만 재시도한다. refresh 응답 유실처럼 결과가
-불명확한 실패는 같은 token으로 자동 재시도하지 않고 다시 로그인이 필요한 상태로
-전환한다. 반면 서버가 token을 소비하지 않은 `429`를 명시하면 세션을 유지하고
-`Retry-After` 뒤 갱신을 재시도한다. 브라우저 새로고침 뒤 세션을 복구하는 영속 저장은
-하지 않으므로 새로고침 시에도 다시 로그인한다.
+Web과 Android는 `GOOGLE_WEB_CLIENT_ID`, `RUNE_NEXUS_API_BASE_URL` 두 dart-define이
+유효할 때 Google 연결과 세션 복원을 활성화한다. Android에도 Web OAuth Client ID를
+server client ID로 전달한다. Pages 배포는 진단용 `RUNE_NEXUS_CLIENT_BUILD=web:<git-sha>`를
+추가로 주입한다. iOS는 플랫폼 인증 수단이 추가되기 전까지 로컬 저장만 사용한다.
+갱신 장애는 2초부터 최대 64초까지 지수 backoff하며 서버 `Retry-After`가 있으면 우선한다.
 
 ### 초기 엔드포인트
 
 | Method | Path | 역할 |
 | --- | --- | --- |
-| `POST` | `/v1/auth/play-games` | PGS 인증과 세션 발급 |
+| `POST` | `/v1/auth/play-games` | PGS 인증과 세션 발급 (계획) |
+| `POST` | `/v1/auth/web/{google,refresh,logout}` | Web 쿠키 기반 영속 인증 |
+| `POST` | `/v1/auth/native/{google,refresh,logout}` | Android 본문 기반 영속 인증 |
 | `POST` | `/v1/auth/google` | Google 웹 인증과 세션 발급 |
 | `POST` | `/v1/auth/refresh` | refresh token 회전 |
 | `POST` | `/v1/auth/logout` | 현재 세션 폐기 |
-| `POST` | `/v1/account/identities/google` | 기존 account에 Google identity 연결 |
+| `POST` | `/v1/account/identities/google` | 기존 account에 Google identity 연결 (계획) |
 | `POST` | `/v1/save/writer` | 현재 계정 플레이 session의 writer generation 획득 |
 | `GET` | `/v1/save` | 원격 저장 통파일 조회 |
 | `PUT` | `/v1/save` | 전체 저장 조건부 갱신 |
@@ -912,7 +950,7 @@ sessions
 - account_id UUID NOT NULL FK accounts(id) ON DELETE CASCADE
 - access_token_hash BYTEA NOT NULL UNIQUE
 - access_expires_at TIMESTAMPTZ NOT NULL
-- refresh_expires_at TIMESTAMPTZ NOT NULL
+- refresh_expires_at TIMESTAMPTZ NULL (007 이후; NULL은 영속 세션)
 - created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 - last_used_at TIMESTAMPTZ NOT NULL DEFAULT now()
 - revoked_at TIMESTAMPTZ NULL
@@ -934,6 +972,12 @@ refresh_tokens
 `refresh_tokens(session_id)`과 `sessions(account_id)`를 인덱스화한다. session당
 `consumed_at IS NULL AND revoked_at IS NULL`인 refresh token은 하나만 허용하는
 partial unique index를 둔다. parent token당 자식도 하나만 허용한다.
+
+007에서 추가한 `refresh_receipts`는 `session_id`, `request_key`를 복합 PK로 사용한다.
+`parent_token_id`(UNIQUE), `child_token_id`는 refresh token FK이며, `ciphertext BYTEA NULL`,
+`expires_at TIMESTAMPTZ NOT NULL`을 보관한다. 만료 암호문만 NULL로 정리하고 메타데이터는
+재사용 판정을 위해 유지한다. 세션 삭제 시 receipt도 cascade되며 개별 token 이력 삭제는
+FK와 재사용 판정에 영향을 준다. `accounts`와 `auth_identities`의 컬럼은 이번 변경에서 그대로다.
 
 ### 저장 헤더와 영역
 
@@ -1090,6 +1134,7 @@ HTTP_ADDRESS
 IDENTITY_VERIFY_TIMEOUT
 ACCESS_TOKEN_TTL
 REFRESH_TOKEN_TTL
+AUTH_SESSION_RECEIPT_KEY
 AUTH_RATE_LIMIT_WINDOW
 GOOGLE_AUTH_RATE_LIMIT
 REFRESH_AUTH_RATE_LIMIT
@@ -1109,8 +1154,11 @@ SHUTDOWN_TIMEOUT
   `GOOGLE_WEB_CLIENT_ID`가 없으면 시작을 거부한다.
 - `CORS_ALLOWED_ORIGINS`는 쉼표로 구분한 정확한 HTTP(S) origin 목록이다. 경로,
   query와 wildcard는 받지 않는다.
-- 기본 access token 만료는 15분, refresh token 만료는 30일이며 refresh 만료가
-  access 만료보다 길지 않으면 시작을 거부한다.
+- 기본 access token 만료는 15분이며 `REFRESH_TOKEN_TTL`의 30일 기본값은 기존 유한
+  세션 API에만 적용한다. 설정의 refresh TTL이 access TTL보다 길지 않으면 시작을 거부한다.
+- `AUTH_SESSION_RECEIPT_KEY`는 base64로 인코딩한 32-byte 고정 키다. 잘못된 값은 시작을
+  거부하며, 생략 시 기존 API는 동작하지만 영속 로그인/갱신은 503을 반환한다. 재시작과
+  다중 인스턴스에서 같은 키를 유지한다. 새 키로 자동 교체하는 절차는 구현하지 않았다.
 - Google 로그인은 기본 1분당 10회, 토큰 갱신은 기본 1분당 30회까지 클라이언트별
   token bucket으로 허용한다. 초과 응답은 `429`와 `Retry-After`를 반환한다.
 - 인증 요청 제한은 endpoint마다 최대 10,000개 클라이언트 상태만 보관하고 상한에서는
@@ -1171,8 +1219,8 @@ SHUTDOWN_TIMEOUT
 - 설정 검증
 - opaque token 생성과 SHA-256 해시
 - refresh 회전과 재사용 탐지
-- 동시 refresh 중 하나만 회전 성공
-- refresh 응답 유실 후 재사용과 PGS 재로그인 복구 구분
+- 동시 동일 key refresh의 단일 회전과 동일 응답 재생
+- refresh 응답 유실·서버 재시작 후 부모/자식 token 재시도, 10분 복구 만료 구분
 - PGS 응답 파싱과 오류 매핑
 - 저장 크기, 버전, 구조 검증
 - 동일 idempotency key 재응답
@@ -1183,7 +1231,7 @@ SHUTDOWN_TIMEOUT
 
 - 최초 account와 identity 동시 생성
 - 같은 PGS Player ID의 동시 가입 중복 방지
-- refresh 회전 후 이전 token 재사용 시 session 폐기
+- refresh 회전 후 허용되지 않은 이전 token 재사용 시 session 폐기
 - 최초 revision 0 저장
 - 영역 전체 upsert
 - 중간 오류 전체 rollback
@@ -1247,6 +1295,9 @@ SHUTDOWN_TIMEOUT
 - [x] Google ID token 검증과 account/session 발급 API
 - [x] refresh 회전·재사용 감지·로그아웃·Bearer 인증 기반
 - [x] Flutter 메모리 세션 자동 갱신과 401 1회 재시도
+- [x] Web HttpOnly 쿠키·Android Keystore 저장과 앱 시작 세션 복원
+- [x] Android Credential Manager Google 로그인과 native HTTP transport
+- [x] 요청 key 영속화·암호화 receipt·응답 유실 재시도와 logout 의도 복구
 - Go PGS auth code 교환과 Player ID 검증
 - identity 연결 API와 중복 account 충돌 처리
 - [x] 계정 상태 모델과 계정·저장 진입 UI
@@ -1319,7 +1370,7 @@ Go 서버, Compose와 문서처럼 클라이언트 저장 형식을 바꾸지 �
 
 ## 현재 구현 상태
 
-- 구현 기준은 2026-08-29 `codex/weekly-reward-server-authority` 브랜치 작업 상태다.
+- 인증 구현 기준은 2026-09-05 작업 트리이며 운영 적용 완료를 의미하지 않는다.
 - 현재 브랜치에는 `GameSaveData` v2 영역 분리와 v1 -> v2 변환 코드가 있다.
 - Web과 IO 모두 guest/account별 v2 primary와 backup 위치를 사용한다.
 - guest legacy 저장은 원본을 보존한 채 신규 v2 위치로 이전한다.
@@ -1351,8 +1402,8 @@ Go 서버, Compose와 문서처럼 클라이언트 저장 형식을 바꾸지 �
   `POST /v1/economy/rewards/claim`으로 구현되어 있다. 서버가 현재 writer와 최신 저장
   진행을 검증하고 서버 주차·고정 보상표·계정별 reward key로 한 번만 영수증을 만든다.
   Flutter는 수령 전 account 체크포인트 동기화 후 영수증만 로컬 캐시에 반영한다.
-- 클라이언트 인증 세션은 메모리에만 유지되므로 브라우저 새로고침 또는 앱 재시작 뒤
-  다시 로그인한다.
+- Web 새로고침·Android 앱 재시작 뒤 영속 세션 복원이 구현되어 있다. 일시적인 복원
+  실패는 게스트로 전환하지 않고 재시도한다. 로그인 필수화는 별도 후속 범위다.
 - Android Application ID는 아직 `com.example.rune_nexus`다.
 - release 빌드는 아직 debug signing을 사용한다.
 - PGS 인증, identity 연결 API, 운영 DB backup·restore와 계정 데이터 삭제는 아직

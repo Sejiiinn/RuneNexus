@@ -17,8 +17,9 @@ import (
 const maxAuthenticationBodyBytes = 16 * 1024
 
 type authenticationHandler struct {
-	logger        *slog.Logger
-	authenticator Authenticator
+	logger         *slog.Logger
+	authenticator  Authenticator
+	allowedOrigins []string
 }
 
 type googleAuthenticationRequest struct {
@@ -196,6 +197,9 @@ func (handler authenticationHandler) writeAuthenticationError(
 	request *http.Request,
 	err error,
 ) {
+	if writePersistentAuthenticationError(response, request, err) {
+		return
+	}
 	switch {
 	case errors.Is(err, auth.ErrRefreshTokenInvalid):
 		writeAPIError(

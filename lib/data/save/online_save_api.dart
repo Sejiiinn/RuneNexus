@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'game_save_data.dart';
 import 'online_save_transport_stub.dart'
-    if (dart.library.html) 'online_save_transport_web.dart';
+    if (dart.library.html) 'online_save_transport_web.dart'
+    if (dart.library.io) 'online_save_transport_io.dart';
 
 const onlineSaveClientCompatibilityVersion = 2;
 
@@ -301,12 +302,12 @@ class OnlineSaveException implements Exception {
 }
 
 class OnlineSaveApi implements OnlineSaveConditionalClient {
-  OnlineSaveApi({required String baseUrl, OnlineSaveTransport? transport})
+  OnlineSaveApi({required String baseUrl, OnlineSaveHTTPClient? transport})
     : _baseUri = _apiBaseUri(baseUrl),
       _transport = transport ?? OnlineSaveTransport();
 
   final Uri _baseUri;
-  final OnlineSaveTransport _transport;
+  final OnlineSaveHTTPClient _transport;
 
   @override
   Future<OnlineSaveWriterClaimResult> claimWriter(

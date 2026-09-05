@@ -11,7 +11,7 @@ void main() {
     final refreshCompleter = Completer<OnlineAccountCredentials>();
     var refreshCount = 0;
     final controller = _controller(
-      refreshCredentials: (_) {
+      refreshCredentials: () {
         refreshCount += 1;
         return refreshCompleter.future;
       },
@@ -24,7 +24,7 @@ void main() {
     expect(refreshCount, 1);
     refreshCompleter.complete(_rotatedCredentials);
     expect((await first).accessToken, 'new-access');
-    expect((await second).refreshToken, 'new-refresh');
+    expect((await second).accessToken, 'new-access');
     controller.dispose();
   });
 
@@ -32,7 +32,7 @@ void main() {
     var refreshCount = 0;
     var requestCount = 0;
     final controller = _controller(
-      refreshCredentials: (_) async {
+      refreshCredentials: () async {
         refreshCount += 1;
         return _rotatedCredentials;
       },
@@ -63,7 +63,7 @@ void main() {
     var newRequestCount = 0;
     var refreshCount = 0;
     final controller = _controller(
-      refreshCredentials: (_) async {
+      refreshCredentials: () async {
         refreshCount += 1;
         return _rotatedCredentials;
       },
@@ -106,7 +106,7 @@ void main() {
     var requestCount = 0;
     var refreshCount = 0;
     final controller = _controller(
-      refreshCredentials: (_) async {
+      refreshCredentials: () async {
         refreshCount += 1;
         return _rotatedCredentials;
       },
@@ -134,8 +134,8 @@ void main() {
     var changedCredentials = _initialCredentials;
     final controller = OnlineAccountSessionController(
       credentials: _credentialsAt(now),
-      refreshCredentials: (_) async => _rotatedCredentialsAt(now),
-      revokeSession: (_, _) async {},
+      refreshCredentials: () async => _rotatedCredentialsAt(now),
+      revokeSession: (_) async {},
       onCredentialsChanged: (credentials) {
         changedCredentials = credentials;
       },
@@ -155,11 +155,10 @@ void main() {
   test('재사용 감지 오류는 메모리 세션을 폐기한다', () async {
     var invalidated = false;
     final controller = _controller(
-      refreshCredentials: (_) async =>
-          throw const GoogleAuthenticationException(
-            code: 'REFRESH_TOKEN_REUSED',
-            message: 'reused',
-          ),
+      refreshCredentials: () async => throw const GoogleAuthenticationException(
+        code: 'REFRESH_TOKEN_REUSED',
+        message: 'reused',
+      ),
       onSessionInvalidated: () {
         invalidated = true;
       },
@@ -181,32 +180,74 @@ void main() {
     controller.dispose();
   });
 
-  test('refresh 응답 유실은 같은 token을 재시도하지 않고 세션을 폐기한다', () async {
+  test('refresh 응답 유실은 세션을 보존하고 예약된 재시도로 복구한다', () async {
     final now = DateTime.utc(2026, 8, 19, 1);
     final scheduler = _ManualTimerFactory();
-    final invalidated = Completer<void>();
+    var invalidated = false;
     var refreshCount = 0;
     final controller = OnlineAccountSessionController(
       credentials: _credentialsAt(now),
-      refreshCredentials: (_) async {
+      refreshCredentials: () async {
         refreshCount += 1;
-        throw const AuthenticationTransportException('response lost');
+        if (refreshCount == 1) {
+          throw const AuthenticationTransportException('response lost');
+        }
+        return _rotatedCredentialsAt(now);
       },
-      revokeSession: (_, _) async {},
+      revokeSession: (_) async {},
       onCredentialsChanged: (_) {},
-      onSessionInvalidated: invalidated.complete,
+      onSessionInvalidated: () => invalidated = true,
       now: () => now,
       timerFactory: scheduler.create,
     );
 
     scheduler.lastTimer!.fire();
-    await invalidated.future;
+    await Future<void>.delayed(Duration.zero);
 
     expect(refreshCount, 1);
-    expect(scheduler.createCount, 1);
-    expect(controller.credentials, isNull);
+    expect(scheduler.createCount, 2);
+    expect(invalidated, isFalse);
+    expect(controller.credentials?.accessToken, 'old-access');
+    expect(scheduler.lastDuration, greaterThan(Duration.zero));
+    scheduler.lastTimer!.fire();
+    await Future<void>.delayed(Duration.zero);
+    expect(refreshCount, 2);
+    expect(controller.credentials?.accessToken, 'new-access');
     controller.dispose();
   });
+
+  for (final failure in [
+    const GoogleAuthenticationException(
+      code: 'INTERNAL_ERROR',
+      message: 'server unavailable',
+      statusCode: 503,
+    ),
+    const GoogleAuthenticationException(
+      code: 'INVALID_AUTH_RESPONSE',
+      message: 'invalid response',
+    ),
+  ]) {
+    test('${failure.code}는 로그인 정보를 보존하고 재시도를 예약한다', () async {
+      final scheduler = _ManualTimerFactory();
+      var invalidated = false;
+      final controller = OnlineAccountSessionController(
+        credentials: _initialCredentials,
+        refreshCredentials: () async => throw failure,
+        revokeSession: (_) async {},
+        onCredentialsChanged: (_) {},
+        onSessionInvalidated: () => invalidated = true,
+        timerFactory: scheduler.create,
+      );
+
+      await expectLater(controller.refresh(), throwsA(same(failure)));
+
+      expect(controller.credentials, same(_initialCredentials));
+      expect(invalidated, isFalse);
+      expect(scheduler.createCount, 2);
+      expect(scheduler.lastDuration, greaterThan(Duration.zero));
+      controller.dispose();
+    });
+  }
 
   test('refresh 요청 제한은 세션을 유지하고 Retry-After 뒤 재시도한다', () async {
     final now = DateTime.utc(2026, 8, 20, 1);
@@ -215,7 +256,7 @@ void main() {
     var invalidated = false;
     final controller = OnlineAccountSessionController(
       credentials: _credentialsAt(now),
-      refreshCredentials: (_) async {
+      refreshCredentials: () async {
         refreshCount += 1;
         if (refreshCount == 1) {
           throw const GoogleAuthenticationException(
@@ -227,7 +268,7 @@ void main() {
         }
         return _rotatedCredentialsAt(now);
       },
-      revokeSession: (_, _) async {},
+      revokeSession: (_) async {},
       onCredentialsChanged: (_) {},
       onSessionInvalidated: () {
         invalidated = true;
@@ -258,15 +299,13 @@ void main() {
     controller.dispose();
   });
 
-  test('logout은 같은 세션의 access/refresh token을 보내고 성공 후 폐기한다', () async {
-    String? revokedRefreshToken;
+  test('logout은 현재 access token으로 보관된 세션을 폐기한다', () async {
     String? revokedAccessToken;
     var invalidated = false;
     final controller = OnlineAccountSessionController(
       credentials: _initialCredentials,
-      refreshCredentials: (_) async => _rotatedCredentials,
-      revokeSession: (refreshToken, accessToken) async {
-        revokedRefreshToken = refreshToken;
+      refreshCredentials: () async => _rotatedCredentials,
+      revokeSession: (accessToken) async {
         revokedAccessToken = accessToken;
       },
       onCredentialsChanged: (_) {},
@@ -277,7 +316,6 @@ void main() {
 
     await controller.logout();
 
-    expect(revokedRefreshToken, 'old-refresh');
     expect(revokedAccessToken, 'old-access');
     expect(invalidated, isTrue);
     expect(controller.credentials, isNull);
@@ -289,8 +327,8 @@ void main() {
     var revokeCount = 0;
     final controller = OnlineAccountSessionController(
       credentials: _initialCredentials,
-      refreshCredentials: (_) async => _rotatedCredentials,
-      revokeSession: (_, _) {
+      refreshCredentials: () async => _rotatedCredentials,
+      revokeSession: (_) {
         revokeCount += 1;
         return revokeCompleter.future;
       },
@@ -313,8 +351,8 @@ void main() {
     final scheduler = _ManualTimerFactory();
     final controller = OnlineAccountSessionController(
       credentials: _initialCredentials,
-      refreshCredentials: (_) async => _rotatedCredentials,
-      revokeSession: (_, _) async => throw StateError('network failure'),
+      refreshCredentials: () async => _rotatedCredentials,
+      revokeSession: (_) async => throw StateError('network failure'),
       onCredentialsChanged: (_) {},
       onSessionInvalidated: () {},
       timerFactory: scheduler.create,
@@ -331,18 +369,16 @@ void main() {
     final now = DateTime.utc(2026, 8, 19, 1);
     final refreshCompleter = Completer<OnlineAccountCredentials>();
     var requestCount = 0;
-    String? revokedRefreshToken;
+    String? revokedAccessToken;
     final controller = OnlineAccountSessionController(
       credentials: OnlineAccountCredentials(
         accountId: _initialCredentials.accountId,
         accessToken: 'old-access',
         accessExpiresAt: now.add(const Duration(seconds: 30)),
-        refreshToken: 'old-refresh',
-        refreshExpiresAt: now.add(const Duration(days: 30)),
       ),
-      refreshCredentials: (_) => refreshCompleter.future,
-      revokeSession: (refreshToken, _) async {
-        revokedRefreshToken = refreshToken;
+      refreshCredentials: () => refreshCompleter.future,
+      revokeSession: (accessToken) async {
+        revokedAccessToken = accessToken;
       },
       onCredentialsChanged: (_) {},
       onSessionInvalidated: () {},
@@ -364,7 +400,7 @@ void main() {
     await requestExpectation;
     await logoutFuture;
     expect(requestCount, 0);
-    expect(revokedRefreshToken, 'old-refresh');
+    expect(revokedAccessToken, 'new-access');
     controller.dispose();
   });
 
@@ -377,11 +413,9 @@ void main() {
         accountId: _initialCredentials.accountId,
         accessToken: 'old-access',
         accessExpiresAt: now.add(const Duration(seconds: 30)),
-        refreshToken: 'old-refresh',
-        refreshExpiresAt: now.add(const Duration(days: 30)),
       ),
-      refreshCredentials: (_) => refreshCompleter.future,
-      revokeSession: (_, _) async {},
+      refreshCredentials: () => refreshCompleter.future,
+      revokeSession: (_) async {},
       onCredentialsChanged: (_) {},
       onSessionInvalidated: () {},
       now: () => now,
@@ -411,15 +445,12 @@ void main() {
         accountId: _initialCredentials.accountId,
         accessToken: 'soon-expiring-access',
         accessExpiresAt: now.add(const Duration(seconds: 30)),
-        refreshToken: 'invalid-refresh',
-        refreshExpiresAt: now.add(const Duration(days: 30)),
       ),
-      refreshCredentials: (_) async =>
-          throw const GoogleAuthenticationException(
-            code: 'REFRESH_TOKEN_INVALID',
-            message: 'invalid',
-          ),
-      revokeSession: (_, _) async {},
+      refreshCredentials: () async => throw const GoogleAuthenticationException(
+        code: 'REFRESH_TOKEN_INVALID',
+        message: 'invalid',
+      ),
+      revokeSession: (_) async {},
       onCredentialsChanged: (_) {},
       onSessionInvalidated: () {},
       now: () => now,
@@ -441,14 +472,13 @@ void main() {
 }
 
 OnlineAccountSessionController _controller({
-  required Future<OnlineAccountCredentials> Function(String refreshToken)
-  refreshCredentials,
+  required Future<OnlineAccountCredentials> Function() refreshCredentials,
   void Function()? onSessionInvalidated,
 }) {
   return OnlineAccountSessionController(
     credentials: _initialCredentials,
     refreshCredentials: refreshCredentials,
-    revokeSession: (_, _) async {},
+    revokeSession: (_) async {},
     onCredentialsChanged: (_) {},
     onSessionInvalidated: onSessionInvalidated ?? () {},
   );
@@ -458,16 +488,12 @@ final _initialCredentials = OnlineAccountCredentials(
   accountId: '0198b955-3656-7c40-b3cb-87f427b90be2',
   accessToken: 'old-access',
   accessExpiresAt: DateTime.now().toUtc().add(const Duration(minutes: 15)),
-  refreshToken: 'old-refresh',
-  refreshExpiresAt: DateTime.now().toUtc().add(const Duration(days: 30)),
 );
 
 final _rotatedCredentials = OnlineAccountCredentials(
   accountId: _initialCredentials.accountId,
   accessToken: 'new-access',
   accessExpiresAt: DateTime.now().toUtc().add(const Duration(minutes: 15)),
-  refreshToken: 'new-refresh',
-  refreshExpiresAt: _initialCredentials.refreshExpiresAt,
 );
 
 OnlineAccountCredentials _credentialsAt(DateTime now) {
@@ -475,8 +501,6 @@ OnlineAccountCredentials _credentialsAt(DateTime now) {
     accountId: _initialCredentials.accountId,
     accessToken: 'old-access',
     accessExpiresAt: now.add(const Duration(minutes: 5)),
-    refreshToken: 'old-refresh',
-    refreshExpiresAt: now.add(const Duration(days: 30)),
   );
 }
 
@@ -485,8 +509,6 @@ OnlineAccountCredentials _rotatedCredentialsAt(DateTime now) {
     accountId: _initialCredentials.accountId,
     accessToken: 'new-access',
     accessExpiresAt: now.add(const Duration(minutes: 20)),
-    refreshToken: 'new-refresh',
-    refreshExpiresAt: now.add(const Duration(days: 30)),
   );
 }
 

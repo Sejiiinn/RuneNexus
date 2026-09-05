@@ -1,12 +1,29 @@
 package config
 
 import (
+	"bytes"
+	"encoding/base64"
 	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
 )
+
+func TestSessionReceiptKeyConfiguration(t *testing.T) {
+	clearDatabaseEnvironment(t)
+	t.Setenv("DATABASE_URL", "postgres://app@localhost/rune_nexus")
+	t.Setenv("AUTH_SESSION_RECEIPT_KEY", "invalid-secret-key")
+	if _, err := Load(); err == nil {
+		t.Fatal("accepted malformed receipt key")
+	}
+	key := bytes.Repeat([]byte{5}, 32)
+	t.Setenv("AUTH_SESSION_RECEIPT_KEY", base64.StdEncoding.EncodeToString(key))
+	cfg, err := Load()
+	if err != nil || !bytes.Equal(cfg.SessionReceiptKey, key) {
+		t.Fatalf("receipt key configuration: %v", err)
+	}
+}
 
 func TestLoadUsesDatabaseURL(t *testing.T) {
 	clearDatabaseEnvironment(t)

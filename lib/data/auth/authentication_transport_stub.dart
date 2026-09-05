@@ -1,25 +1,8 @@
-class AuthenticationHTTPResponse {
-  const AuthenticationHTTPResponse({
-    required this.statusCode,
-    required this.body,
-    this.headers = const {},
-  });
+import 'authentication_transport_types.dart';
+export 'authentication_transport_types.dart';
 
-  final int statusCode;
-  final String body;
-  final Map<String, String> headers;
-}
-
-class AuthenticationTransportException implements Exception {
-  const AuthenticationTransportException(this.message);
-
-  final String message;
-
+class AuthenticationTransport implements AuthenticationClient {
   @override
-  String toString() => 'AuthenticationTransportException: $message';
-}
-
-class AuthenticationTransport {
   Future<AuthenticationHTTPResponse> postJSON(
     Uri uri, {
     required String body,

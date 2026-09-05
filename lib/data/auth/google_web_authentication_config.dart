@@ -24,7 +24,7 @@ class GoogleWebAuthenticationConfig {
   final bool legacyLocalTransferEnabled;
 
   bool get isConfigured =>
-      kIsWeb &&
+      (kIsWeb || defaultTargetPlatform == TargetPlatform.android) &&
       clientId.trim().isNotEmpty &&
       GoogleAuthenticationApi.supportsBaseUrl(apiBaseUrl);
 }

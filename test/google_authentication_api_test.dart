@@ -5,6 +5,80 @@ import 'package:rune_nexus/data/auth/authentication_transport_stub.dart';
 import 'package:rune_nexus/data/auth/google_authentication_api.dart';
 
 void main() {
+  test('Web 갱신은 쿠키를 사용하고 access 정보만 반환한다', () async {
+    final transport = _FakeAuthenticationTransport(
+      response: const AuthenticationHTTPResponse(
+        statusCode: 200,
+        body: '''{
+          "account": {"id": "0198b955-3656-7c40-b3cb-87f427b90be2"},
+          "accessToken": "web-access",
+          "accessExpiresAt": "2026-09-05T03:15:00Z"
+        }''',
+      ),
+    );
+    final api = GoogleAuthenticationApi(
+      baseUrl: 'https://api.rune-nexus.example',
+      mode: AuthenticationMode.web,
+      transport: transport,
+    );
+
+    final result = await api.refresh(null, idempotencyKey: 'recovery-request');
+
+    expect(transport.requestedUri?.path, '/v1/auth/web/refresh');
+    expect(jsonDecode(transport.requestBody!), isEmpty);
+    expect(transport.requestHeaders, {'Idempotency-Key': 'recovery-request'});
+    expect(result.credentials.accessToken, 'web-access');
+    expect(result.refreshToken, isNull);
+    expect(result.refreshExpiresAt, isNull);
+  });
+
+  test('Android 영속 세션은 refresh 만료 시각 없이 응답을 해석한다', () async {
+    final transport = _FakeAuthenticationTransport(
+      response: const AuthenticationHTTPResponse(
+        statusCode: 200,
+        body: '''{
+          "account": {"id": "0198b955-3656-7c40-b3cb-87f427b90be2"},
+          "accessToken": "native-access",
+          "accessExpiresAt": "2026-09-05T03:15:00Z",
+          "refreshToken": "native-refresh",
+          "refreshExpiresAt": null
+        }''',
+      ),
+    );
+    final api = GoogleAuthenticationApi(
+      baseUrl: 'https://api.rune-nexus.example',
+      mode: AuthenticationMode.native,
+      transport: transport,
+    );
+
+    final result = await api.refresh(
+      'old-refresh',
+      idempotencyKey: 'same-retry',
+    );
+
+    expect(transport.requestedUri?.path, '/v1/auth/native/refresh');
+    expect(jsonDecode(transport.requestBody!), {'refreshToken': 'old-refresh'});
+    expect(transport.requestHeaders, {'Idempotency-Key': 'same-retry'});
+    expect(result.refreshToken, 'native-refresh');
+    expect(result.refreshExpiresAt, isNull);
+  });
+
+  test('Web logout은 refresh token 본문 없이 쿠키 세션을 폐기한다', () async {
+    final transport = _FakeAuthenticationTransport(
+      response: const AuthenticationHTTPResponse(statusCode: 204, body: ''),
+    );
+    final api = GoogleAuthenticationApi(
+      baseUrl: 'https://api.rune-nexus.example',
+      mode: AuthenticationMode.web,
+      transport: transport,
+    );
+
+    await api.logout(null);
+
+    expect(transport.requestedUri?.path, '/v1/auth/web/logout');
+    expect(jsonDecode(transport.requestBody!), isEmpty);
+  });
+
   test('Google ID token을 인증 API에 보내고 세션을 해석한다', () async {
     final transport = _FakeAuthenticationTransport(
       response: const AuthenticationHTTPResponse(
@@ -32,10 +106,13 @@ void main() {
       Uri.parse('https://api.rune-nexus.example/v1/auth/google'),
     );
     expect(jsonDecode(transport.requestBody!), {'idToken': 'google-id-token'});
-    expect(credentials.accountId, '0198b955-3656-7c40-b3cb-87f427b90be2');
-    expect(credentials.accessToken, 'opaque-access-token');
+    expect(
+      credentials.credentials.accountId,
+      '0198b955-3656-7c40-b3cb-87f427b90be2',
+    );
+    expect(credentials.credentials.accessToken, 'opaque-access-token');
     expect(credentials.refreshToken, 'opaque-refresh-token');
-    expect(credentials.accessExpiresAt.isUtc, isTrue);
+    expect(credentials.credentials.accessExpiresAt.isUtc, isTrue);
   });
 
   test('서버 인증 오류 코드와 요청 ID를 보존한다', () async {
@@ -126,7 +203,7 @@ void main() {
     expect(jsonDecode(transport.requestBody!), {
       'refreshToken': 'old-refresh-token',
     });
-    expect(credentials.accessToken, 'rotated-access-token');
+    expect(credentials.credentials.accessToken, 'rotated-access-token');
     expect(credentials.refreshToken, 'rotated-refresh-token');
   });
 

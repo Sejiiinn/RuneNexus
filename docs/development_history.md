@@ -1,6 +1,6 @@
 # Rune Nexus 개발 히스토리
 
-마지막 갱신 기준: 2026-08-30 `codex/server-authoritative-economy` 브랜치 작업 기준.
+마지막 갱신 기준: 2026-09-05 작업 트리, 인증 세션 복원 구현 기록 추가.
 
 ## 목적
 
@@ -29,6 +29,27 @@
   PostgreSQL에서 검증했다.
 
 ## 최근 구현 흐름
+
+### Web·Android 영속 인증 세션 복원 (2026-09-05)
+
+- 신규 `/v1/auth/{web,native}/{google,refresh,logout}`와 007 마이그레이션을 추가했다.
+  access는 기본 15분, 신규 refresh 만료는 NULL이며 기존 유한 세션 API는 유지한다.
+- Web은 HttpOnly·Secure·host-only·SameSite=Lax 쿠키, Android는 Keystore AES-GCM과
+  noBackup·AtomicFile로 refresh를 보관한다. access는 메모리에만 두고 일반 저장과 분리했다.
+- 갱신 요청 key를 전송 전에 영속화하고 DB의 10분 암호화 receipt로 응답 유실을 복구한다.
+  허용된 부모/자식 token 재시도와 불법 재사용을 구분하고 일시 오류는 backoff 재시도한다.
+- 앱 시작 시 세션 판정 전에 guest를 열지 않고, 복원 account의 Outbox·저장·경제를 연결한다.
+  자동 복원에서는 guest 이전을 금지했다. 실패한 guest 저장 로더의 재생성도 검증했다.
+- logout 의도를 먼저 저장하고, 세션 종료의 슬롯 전환 중에는 플레이를 막는다. 교체 실패를
+  guest 성공으로 표시하지 않고 account 슬롯을 보존한 채 재시도한다.
+- Android Credential Manager Google 로그인과 native 인증·저장 HTTP 통신을 추가했다.
+  PGS는 별개로 미구현이다. 카카오 이전은 복원된 대상 account를 확인한 뒤에만 소비한다.
+- Flutter 553개 + 설정 활성화 시작 경계 2개, 정적 분석, Web/debug APK 빌드와 격리
+  PostgreSQL 통합·race 검증을 통과했다. 운영 DB·배포 설정은 변경하지 않았고 실 Google
+  로그인·실기기 확인은 남았다. 로그인 필수화는 적용하지 않았다.
+
+아래의 메모리 전용 세션 설명은 이전 구현 이력이다. 현행 계약은
+[백엔드 아키텍처](backend_architecture.md)와 [구현 현황](implementation_status.md)을 따른다.
 
 ### 기존 카카오 인앱 브라우저 진행의 일회용 이전
 

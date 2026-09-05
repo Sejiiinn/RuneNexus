@@ -4,7 +4,8 @@ import '../../domain/economy/economy_snapshot.dart';
 import '../../domain/turret/turret_type.dart';
 import '../../domain/turret_module/turret_module_type.dart';
 import '../save/online_save_transport_stub.dart'
-    if (dart.library.html) '../save/online_save_transport_web.dart';
+    if (dart.library.html) '../save/online_save_transport_web.dart'
+    if (dart.library.io) '../save/online_save_transport_io.dart';
 
 class EconomyException implements Exception {
   const EconomyException({
@@ -28,12 +29,12 @@ class EconomyException implements Exception {
 }
 
 class EconomyApi {
-  EconomyApi({required String baseUrl, OnlineSaveTransport? transport})
+  EconomyApi({required String baseUrl, OnlineSaveHTTPClient? transport})
     : _baseUri = _apiBaseUri(baseUrl),
       _transport = transport ?? OnlineSaveTransport();
 
   final Uri _baseUri;
-  final OnlineSaveTransport _transport;
+  final OnlineSaveHTTPClient _transport;
 
   Future<EconomySnapshot> load(String accessToken) async {
     final response = await _request(

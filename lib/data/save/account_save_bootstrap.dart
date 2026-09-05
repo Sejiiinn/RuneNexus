@@ -10,6 +10,8 @@ typedef LocalSaveRepositoryFactory =
 typedef OnlineSaveOutboxRepositoryFactory =
     OnlineSaveOutboxRepository Function(LocalSaveSlot slot);
 
+enum AccountSaveBootstrapMode { interactiveConnect, sessionRestore }
+
 enum AccountSaveBootstrapSource {
   existingOutbox,
   remoteAccount,
@@ -54,6 +56,7 @@ class AccountSaveBootstrapService {
   Future<AccountSaveBootstrapResult> bootstrap({
     required String accountId,
     required Future<OnlineSaveSnapshot?> Function() loadRemote,
+    AccountSaveBootstrapMode mode = AccountSaveBootstrapMode.interactiveConnect,
   }) async {
     final accountSlot = LocalSaveSlot.account(accountId);
     final normalizedAccountId = accountSlot.accountId!;
@@ -84,9 +87,11 @@ class AccountSaveBootstrapService {
     }
 
     final remote = await loadRemote();
-    final guestRepository = repositoryFactory(LocalSaveSlot.guest);
+    final guestRepository = mode == AccountSaveBootstrapMode.interactiveConnect
+        ? repositoryFactory(LocalSaveSlot.guest)
+        : null;
     final accountRepository = repositoryFactory(accountSlot);
-    final guest = await guestRepository.load();
+    final guest = await guestRepository?.load();
     final accountLocal = await accountRepository.load();
 
     if (remote != null) {
@@ -143,13 +148,13 @@ class AccountSaveBootstrapService {
   }
 
   Future<void> _preserveExisting({
-    required BackupSaveRepository guestRepository,
+    required BackupSaveRepository? guestRepository,
     required GameSaveData? guest,
     required BackupSaveRepository accountRepository,
     required GameSaveData? accountLocal,
   }) async {
     if (guest != null) {
-      await guestRepository.preserveCurrentAsBackup();
+      await guestRepository?.preserveCurrentAsBackup();
     }
     if (accountLocal != null) {
       await accountRepository.preserveCurrentAsBackup();

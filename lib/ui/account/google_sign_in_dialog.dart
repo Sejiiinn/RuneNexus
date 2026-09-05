@@ -156,6 +156,8 @@ class _GoogleSignInDialogState extends State<GoogleSignInDialog> {
       'GOOGLE_AUTH_REJECTED' => l10n.googleSignInRejected,
       'ACCOUNT_NOT_ACTIVE' => l10n.accountNotActive,
       'AUTH_PROVIDER_UNAVAILABLE' => l10n.googleSignInUnavailable,
+      'SESSION_COOKIE_UNAVAILABLE' =>
+        '로그인 유지 쿠키를 확인할 수 없습니다. 브라우저 쿠키 설정과 접속 주소를 확인해 주세요.',
       _ => l10n.googleSignInFailed,
     };
   }

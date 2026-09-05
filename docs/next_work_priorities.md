@@ -1,6 +1,6 @@
 # Rune Nexus 다음 작업 우선순위
 
-마지막 정리 기준: 2026-08-30 `codex/legacy-transfer-existing-account` 브랜치 작업 기준.
+마지막 정리 기준: 2026-09-05 인증 세션 복원 반영. 콘텐츠 백로그는 기존 기준 유지.
 
 ## 목적
 
@@ -13,8 +13,8 @@ Go/PostgreSQL 인증·저장 API와 Flutter 온라인 저장 전송 worker를 �
 다중 기기 충돌의 원격 revision 자동 적용, save writer generation까지 구현했다. 현재
 최초 연결의 사용자 선택형 UX는 원격 account 우선 자동 bootstrap으로 교체했다. 현재
 writer 획득·PUT 공통 client compatibility gate까지 적용했다. 최우선 트랙은 공개
-HTTPS API와 GitHub Pages를 실제 연결해 앱과 Web이 공유할 계정 저장 경로를 검증하는
-것이다.
+HTTPS API와 same-site Web 도메인을 준비하고 Android와 공유할 계정 저장·세션 복원 경로를
+검증하는 것이다. 세션 복원 구현은 완료됐으며 운영 적용과 실제 계정 E2E가 남아 있다.
 그다음 트랙은 다이아·모듈권·소유 모듈을 서버 권위 경제 영역으로 전환하는 것이다.
 구현 계약은 `docs/server_authoritative_economy_design.md`를 따른다.
 콘텐츠 작업은 이 연결 작업과 책임 경계가 겹치지 않는 경우 병행할 수 있다.
@@ -32,6 +32,9 @@ HTTPS API와 GitHub Pages를 실제 연결해 앱과 Web이 공유할 계정 저
 - 배포된 legacy v1 원본 보존 마이그레이션과 canonical v2 primary/backup 복구
 - Go `net/http`, PostgreSQL, pgx/sqlc/tern 서버 기반
 - Google 웹 로그인, 자체 access/refresh 세션과 로그아웃
+- Android Credential Manager Google 로그인, Keystore 암호화 저장과 native HTTP transport
+- Web HttpOnly 쿠키·앱 시작 영속 세션 복원과 account 전용 자동 bootstrap
+- 무만료 DB 세션·10분 암호화 갱신 receipt·동일 요청 재시도와 logout 의도 복구
 - 인증 요청 제한, 세션 single-flight 갱신과 401 1회 재시도
 - 인증된 `GET/PUT /v1/save`, revision, 멱등성과 DB 트랜잭션
 - 계정당 단일 in-flight 온라인 저장 worker와 최신 pending 병합
@@ -55,8 +58,9 @@ HTTPS API와 GitHub Pages를 실제 연결해 앱과 Web이 공유할 계정 저
 아직 실제 게임 연결에서 해결해야 하는 항목은 다음과 같다.
 
 - Web 다중 탭 종료 알림용 BroadcastChannel
-- 공개 HTTPS API와 GitHub Pages를 연결한 Google 계정 E2E 검증
-- 브라우저 새로고침 후 인증 세션을 복원하지 않아 다시 로그인해야 하는 현재 제약
+- 007 마이그레이션·고정 영수증 키·same-site 도메인 적용 후 Google 계정 E2E 검증
+- Web 새로고침·Android 재시작 복원과 실제 쿠키/Keystore·Google 계정 선택 QA
+- 로그인 필수화는 아직 미적용이며 인증 복원과 별도 후속 범위
 - Android PGS v2와 기존 account identity 연결
 
 콘텐츠 측에서는 최근 작업으로 다음 약점이 상당 부분 해소됐다.
@@ -160,8 +164,9 @@ Google 로그인 뒤 사용자의 저장 선택 없이 account 진행을 자동 
 
 ### 3. 공개 환경 E2E와 운영 안전장치
 
-자체 운영 HTTPS API와 GitHub Pages를 실제 설정으로 연결해 Google 계정 하나로 로그인,
-저장, 새로고침 후 재로그인, 저장 재조회까지 검증한다.
+자체 운영 HTTPS API와 같은 사이트의 Web(예: Pages 커스텀 도메인)을 연결해 Google 계정
+하나로 로그인·저장·새로고침 뒤 자동 복원·저장 재조회까지 검증한다. 기본 `github.io`와
+`duckdns.org` 조합은 현재 쿠키 정책과 맞지 않으므로 CORS만으로 통과 처리하지 않는다.
 
 작업 범위:
 
@@ -169,6 +174,9 @@ Google 로그인 뒤 사용자의 저장 선택 없이 account 진행을 자동 
 - [x] Caddy, ipTIME 포트 포워딩, 실제 DNS 응답과 TLS 인증서 확인
 - [x] Google OAuth Authorized JavaScript origin과 서버 CORS exact origin 확인
 - [x] GitHub Actions Variables의 Web Client ID와 API base URL 확인
+- [x] 로컬 세션 복원·응답 유실·시작 실패 경계 테스트와 Web/APK 빌드
+- 007 적용, `AUTH_SESSION_RECEIPT_KEY` 고정 보관, same-site 도메인·최종 OAuth/CORS 재확인
+- Android applicationId·서명 SHA·Web server client ID 확인과 실제 로그인·재시작 복원
 - 로그인, refresh, logout, `GET/PUT /v1/save` 실제 네트워크 검증
 - 지원 버전의 writer/PUT 성공과 구버전 426 차단 실제 네트워크 검증
 - 호환 버전 강제 상승 뒤 기존 Outbox의 영수증 hit/miss 롤오버 검증
@@ -177,7 +185,8 @@ Google 로그인 뒤 사용자의 저장 선택 없이 account 진행을 자동 
 
 ### 4. Android PGS와 다중 identity 연결
 
-웹 Google 로그인과 온라인 저장이 안정화된 뒤 Android PGS v2를 추가한다.
+Web·Android 일반 Google 로그인과 영속 세션의 공개 검증 뒤 Android PGS v2를 추가한다.
+현재 Credential Manager 구현을 PGS 구현 완료로 간주하지 않는다.
 
 작업 범위:
 
@@ -412,7 +421,7 @@ Google 로그인 뒤 사용자의 저장 선택 없이 account 진행을 자동 
 
 현재 브랜치에서는 다음 순서를 따른다.
 
-1. 공개 환경 Google 로그인·writer 교체·온라인 저장 E2E
+1. 영속 인증 운영 설정·same-site 도메인 준비 후 Web/Android 로그인·복원·저장 E2E
 2. Android PGS와 기존 Google account identity 연결
 3. 서버 권위 경제 DB·조회·legacy bootstrap
 4. 가챠·분해·연구 소비·보상 claim과 Flutter economy coordinator

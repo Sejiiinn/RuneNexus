@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../data/auth/google_authentication_api.dart';
+import '../data/auth/authentication_session_repository.dart';
 import '../data/auth/google_web_authentication_config.dart';
 import '../data/auth/online_account_session_controller.dart';
 import '../data/economy/economy_api.dart';
@@ -27,6 +28,7 @@ import '../game/game_snapshot.dart';
 import '../game/rune_nexus_game.dart';
 import '../l10n/rune_nexus_localizations.dart';
 import '../platform/legacy_transfer/legacy_transfer_link.dart';
+import '../platform/auth/google_identity_session.dart';
 import '../ui/account/google_sign_in_dialog.dart';
 import '../ui/account/legacy_save_transfer_dialog.dart';
 import '../ui/game/game_button.dart';
@@ -68,9 +70,12 @@ class RuneNexusApp extends StatefulWidget {
 class _RuneNexusAppState extends State<RuneNexusApp>
     with WidgetsBindingObserver {
   late RuneNexusGame game;
+  bool _hasGame = false;
+  bool _sessionEndRecoveryFailed = false;
+  bool _sessionTransitionInProgress = false;
   late final GoogleWebAuthenticationConfig _googleAuthenticationConfig;
   late final AccountSaveBootstrapService _accountSaveBootstrapService;
-  GoogleAuthenticationApi? _googleAuthenticationApi;
+  AuthenticationSessionRepository? _authenticationSessions;
   OnlineSaveApi? _onlineSaveApi;
   EconomyApi? _economyApi;
   WeeklyRewardApi? _weeklyRewardApi;
@@ -93,6 +98,8 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   LocalSaveSlot _activeSaveSlot = LocalSaveSlot.guest;
   String? _pendingLegacyTransferToken;
   bool _legacyTransferPromptScheduled = false;
+  AccountSaveBootstrapMode _accountBootstrapMode =
+      AccountSaveBootstrapMode.interactiveConnect;
 
   AccountSession get _accountSession =>
       _onlineAccount?.presentation ?? const AccountSession.guest();
@@ -101,7 +108,10 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    game = widget.game ?? _createGameForSlot(LocalSaveSlot.guest);
+    if (widget.game != null) {
+      game = widget.game!;
+      _hasGame = true;
+    }
     _accountSaveBootstrapService = AccountSaveBootstrapService(
       repositoryFactory: (slot) => createDefaultSaveRepository(slot: slot),
       outboxRepositoryFactory: (slot) =>
@@ -110,8 +120,12 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     _googleAuthenticationConfig =
         GoogleWebAuthenticationConfig.fromEnvironment();
     if (_googleAuthenticationConfig.isConfigured) {
-      _googleAuthenticationApi = GoogleAuthenticationApi(
-        baseUrl: _googleAuthenticationConfig.apiBaseUrl,
+      _authenticationSessions = AuthenticationSessionRepository(
+        api: GoogleAuthenticationApi(
+          baseUrl: _googleAuthenticationConfig.apiBaseUrl,
+          mode: kIsWeb ? AuthenticationMode.web : AuthenticationMode.native,
+        ),
+        apiBaseUrl: _googleAuthenticationConfig.apiBaseUrl,
       );
       _onlineSaveApi = OnlineSaveApi(
         baseUrl: _googleAuthenticationConfig.apiBaseUrl,
@@ -143,30 +157,99 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   }
 
   Future<void> _prepareForAppStart(BuildContext context) async {
-    await game.prepareForAppStart();
-    if (!mounted || !context.mounted) {
-      return;
+    final restoresSession =
+        widget.game == null && _authenticationSessions != null;
+    if (!restoresSession) {
+      await _restoreAccountForAppStart(context);
+      if (!mounted || !context.mounted) return;
     }
-    _loadingProgress.value = const _AppLoadingProgress(
-      label: '이미지 에셋 로드 중',
-      value: 0,
+    _loadingProgress.value = _AppLoadingProgress(
+      label: restoresSession ? '로그인 상태와 게임 데이터 확인 중' : '이미지 에셋 로드 중',
+      value: restoresSession ? null : 0,
     );
-    await precacheRuneNexusStartupImages(
-      context,
-      onProgress: (value) {
-        if (!mounted) {
-          return;
-        }
-        _loadingProgress.value = _AppLoadingProgress(
-          label: '이미지 에셋 로드 중',
-          value: value,
-        );
-      },
-    );
+    // 세션 판정 전 guest 슬롯은 생성하거나 읽지 않음.
+    await Future.wait([
+      if (restoresSession) _restoreAccountForAppStart(context),
+      precacheRuneNexusStartupImages(
+        context,
+        onProgress: (value) {
+          if (!mounted) {
+            return;
+          }
+          _loadingProgress.value = _AppLoadingProgress(
+            label: restoresSession ? '로그인 상태와 이미지 에셋 확인 중' : '이미지 에셋 로드 중',
+            value: value,
+          );
+        },
+      ),
+    ]);
     if (!mounted || !context.mounted) {
       return;
     }
     _scheduleLegacyTransferSignIn(context);
+  }
+
+  Future<void> _restoreAccountForAppStart(BuildContext context) async {
+    final sessions = _authenticationSessions;
+    if (widget.game == null && sessions != null) {
+      var session = _onlineSession;
+      if (session == null) {
+        OnlineAccountCredentials? credentials;
+        try {
+          credentials = await sessions.restore();
+        } on GoogleAuthenticationException catch (error) {
+          if (!error.endsSession) rethrow;
+        }
+        if (!mounted || !context.mounted) return;
+        if (credentials != null) {
+          session = _attachOnlineSession(credentials, context);
+        }
+      }
+      if (session != null) {
+        _accountBootstrapMode = AccountSaveBootstrapMode.sessionRestore;
+        if (_pendingLegacyTransferToken != null) {
+          await _connectPendingLegacyTransfer(
+            context: context,
+            onlineSession: session,
+            credentials: session.credentials!,
+            duringStartup: true,
+          );
+        } else if (!_hasGame || _onlineSaveCoordinator == null) {
+          await _connectAccountProgress(
+            context: context,
+            onlineSession: session,
+            credentials: session.credentials!,
+            duringStartup: true,
+          );
+        }
+        if (!mounted) return;
+        if (!_hasGame || !identical(session, _onlineSession)) {
+          throw StateError('계정 진행 연결을 다시 확인해 주세요.');
+        }
+        return;
+      }
+    }
+    if (!mounted) return;
+    if (_hasGame && !_activeSaveSlot.isGuest && widget.game == null) {
+      await game.saveNow();
+      await _replaceGameForSlot(LocalSaveSlot.guest);
+      _activeSaveSlot = LocalSaveSlot.guest;
+      return;
+    }
+    if (!_hasGame) {
+      game = _createGameForSlot(LocalSaveSlot.guest);
+      _hasGame = true;
+    }
+    try {
+      await game.prepareForAppStart();
+    } on Object {
+      // 저장 로드 실패를 캐시한 인스턴스는 다음 시도에서 재사용하지 않음.
+      if (widget.game == null) {
+        game.disposeAppResources();
+        _hasGame = false;
+      }
+      rethrow;
+    }
   }
 
   void _scheduleLegacyTransferSignIn(BuildContext context) {
@@ -195,7 +278,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     _economyCoordinator?.dispose();
     _onlineSession?.dispose();
     _loadingProgress.dispose();
-    game.disposeAppResources();
+    if (_hasGame) game.disposeAppResources();
     super.dispose();
   }
 
@@ -275,30 +358,51 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   }
 
   Future<void> _connectGoogle(BuildContext context) async {
-    final authenticationApi = _googleAuthenticationApi;
-    if (authenticationApi == null || _accountConnectionPhase != null) {
+    final sessions = _authenticationSessions;
+    if (sessions == null || _accountConnectionPhase != null) {
       return;
     }
     final credentials = await showGameDialog<OnlineAccountCredentials>(
       context: context,
       builder: (dialogContext) => GoogleSignInDialog(
         clientId: _googleAuthenticationConfig.clientId,
-        authenticate: authenticationApi.authenticate,
+        authenticate: sessions.authenticate,
         description: _pendingLegacyTransferToken == null
             ? null
-            : 'Google 로그인을 완료하면 카카오 브라우저에서 가져온 기존 진행을 이 계정에 연결합니다.',
+            : 'Google 로그인 후 기존 진행을 가져올 계정을 확인합니다.',
       ),
     );
     if (credentials == null || !mounted || !context.mounted) {
       return;
     }
+    _accountBootstrapMode = AccountSaveBootstrapMode.interactiveConnect;
+    final onlineSession = _attachOnlineSession(credentials, context);
+    if (_pendingLegacyTransferToken != null) {
+      await _connectPendingLegacyTransfer(
+        context: context,
+        onlineSession: onlineSession,
+        credentials: credentials,
+      );
+      return;
+    }
+    await _connectAccountProgress(
+      context: context,
+      onlineSession: onlineSession,
+      credentials: credentials,
+    );
+  }
+
+  OnlineAccountSessionController _attachOnlineSession(
+    OnlineAccountCredentials credentials,
+    BuildContext context,
+  ) {
+    final sessions = _authenticationSessions!;
     _onlineSession?.dispose();
     late final OnlineAccountSessionController onlineSession;
     onlineSession = OnlineAccountSessionController(
       credentials: credentials,
-      refreshCredentials: authenticationApi.refresh,
-      revokeSession: (refreshToken, accessToken) =>
-          authenticationApi.logout(refreshToken, accessToken: accessToken),
+      refreshCredentials: sessions.refresh,
+      revokeSession: sessions.logout,
       onCredentialsChanged: (updatedCredentials) {
         if (!mounted) {
           return;
@@ -327,25 +431,14 @@ class _RuneNexusAppState extends State<RuneNexusApp>
         issueMessage: context.l10n.syncActionRequired,
       );
     });
-    if (_pendingLegacyTransferToken != null) {
-      await _connectPendingLegacyTransfer(
-        context: context,
-        onlineSession: onlineSession,
-        credentials: credentials,
-      );
-      return;
-    }
-    await _connectAccountProgress(
-      context: context,
-      onlineSession: onlineSession,
-      credentials: credentials,
-    );
+    return onlineSession;
   }
 
   Future<void> _connectPendingLegacyTransfer({
     required BuildContext context,
     required OnlineAccountSessionController onlineSession,
     required OnlineAccountCredentials credentials,
+    bool duringStartup = false,
   }) async {
     final api = _legacySaveTransferApi;
     final token = _pendingLegacyTransferToken;
@@ -356,11 +449,38 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       _accountConnectionPhase = _AccountConnectionPhase.importingLegacyProgress;
     });
     try {
-      await onlineSession.runAuthenticated(
-        request: (accessToken) => api.consume(accessToken, token: token),
-        isUnauthorized: (error) =>
-            error is LegacySaveTransferException && error.isUnauthorized,
+      final confirmed = await showGameDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('기존 진행을 가져올 계정 확인'),
+          content: SingleChildScrollView(
+            child: Text(
+              '현재 Google 게임 계정: ${credentials.accountId}\n\n'
+              '카카오 브라우저의 기존 진행을 이 계정으로 가져옵니다. '
+              '이 계정에 저장된 진행은 교체될 수 있습니다. 계정이 맞는지 확인해 주세요.',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('가져오지 않기'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('이 계정에 기존 진행 가져오기'),
+            ),
+          ],
+        ),
       );
+      if (!mounted || !identical(_onlineSession, onlineSession)) return;
+      if (confirmed == true) {
+        await onlineSession.runAuthenticated(
+          request: (accessToken) => api.consume(accessToken, token: token),
+          isUnauthorized: (error) =>
+              error is LegacySaveTransferException && error.isUnauthorized,
+        );
+        _accountBootstrapMode = AccountSaveBootstrapMode.sessionRestore;
+      }
       if (!mounted ||
           !context.mounted ||
           !identical(_onlineSession, onlineSession)) {
@@ -368,21 +488,24 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       }
       _pendingLegacyTransferToken = null;
       clearLegacyTransferToken();
-    } on LegacySaveTransferException catch (error) {
+    } on Object catch (error) {
+      if (duringStartup) rethrow;
       if (!mounted ||
           !context.mounted ||
           !identical(_onlineSession, onlineSession)) {
         return;
       }
-      final message = switch (error.code) {
-        'LEGACY_TRANSFER_TARGET_REQUIRES_MANUAL_REVIEW' =>
-          '이 Google 계정에는 구매 재화가 있거나 안전하게 백업할 수 없는 진행이 있어 자동으로 교체하지 않았습니다.',
-        'LEGACY_TRANSFER_ALREADY_USED' => '이미 다른 계정에 사용된 이전 링크입니다.',
-        'LEGACY_TRANSFER_INVALID' => '이전 링크가 만료되었거나 유효하지 않습니다.',
-        _ when error.transportFailure =>
-          '이전 서버에 연결할 수 없습니다. 같은 링크로 다시 시도해 주세요.',
-        _ => error.message,
-      };
+      final message = error is LegacySaveTransferException
+          ? switch (error.code) {
+              'LEGACY_TRANSFER_TARGET_REQUIRES_MANUAL_REVIEW' =>
+                '이 Google 계정에는 구매 재화가 있거나 안전하게 백업할 수 없는 진행이 있어 자동으로 교체하지 않았습니다.',
+              'LEGACY_TRANSFER_ALREADY_USED' => '이미 다른 계정에 사용된 이전 링크입니다.',
+              'LEGACY_TRANSFER_INVALID' => '이전 링크가 만료되었거나 유효하지 않습니다.',
+              _ when error.transportFailure =>
+                '이전 서버에 연결할 수 없습니다. 같은 링크로 다시 시도해 주세요.',
+              _ => error.message,
+            }
+          : '기존 진행 연결을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.';
       setState(() {
         _onlineAccount = _OnlineAccountState(
           credentials: onlineSession.credentials ?? credentials,
@@ -407,6 +530,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       context: context,
       onlineSession: onlineSession,
       credentials: onlineSession.credentials ?? credentials,
+      duringStartup: duringStartup,
     );
   }
 
@@ -443,6 +567,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     required BuildContext context,
     required OnlineAccountSessionController onlineSession,
     required OnlineAccountCredentials credentials,
+    bool duringStartup = false,
   }) async {
     final onlineSaveApi = _onlineSaveApi;
     if (onlineSaveApi == null || _accountConnectionPhase != null) {
@@ -453,7 +578,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       _accountConnectionPhase = _AccountConnectionPhase.savingCurrentProgress;
     });
     try {
-      await game.saveNow();
+      if (_hasGame) await game.saveNow();
       if (!mounted || !identical(_onlineSession, onlineSession)) {
         return;
       }
@@ -463,6 +588,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       });
       final bootstrap = await _accountSaveBootstrapService.bootstrap(
         accountId: credentials.accountId,
+        mode: _accountBootstrapMode,
         loadRemote: () => onlineSession.runAuthenticated(
           request: onlineSaveApi.load,
           isUnauthorized: (error) =>
@@ -497,10 +623,13 @@ class _RuneNexusAppState extends State<RuneNexusApp>
           coordinator.snapshot,
         );
       });
-      ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-        SnackBar(content: Text(context.l10n.accountProgressConnected)),
-      );
+      if (!duringStartup) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          SnackBar(content: Text(context.l10n.accountProgressConnected)),
+        );
+      }
     } on Object catch (error) {
+      if (duringStartup) rethrow;
       if (!mounted ||
           !context.mounted ||
           !identical(_onlineSession, onlineSession)) {
@@ -657,18 +786,19 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       return null;
     }
     final readyReplacement = replacement;
-    final previousGame = game;
+    final previousGame = _hasGame ? game : null;
     final previousCoordinator = _onlineSaveCoordinator;
     final previousEconomyCoordinator = _economyCoordinator;
     setState(() {
       game = readyReplacement;
+      _hasGame = true;
       _screen = _AppScreen.main;
       _onlineSaveCoordinator = coordinator;
       _economyCoordinator = economyCoordinator;
     });
     previousEconomyCoordinator?.dispose();
     previousCoordinator?.dispose();
-    previousGame.disposeAppResources();
+    previousGame?.disposeAppResources();
     return coordinator;
   }
 
@@ -946,11 +1076,17 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     economyCoordinator?.dispose();
     coordinator?.dispose();
     _onlineSession = null;
+    invalidatedSession.dispose();
     setState(() {
+      _onlineAccount = null;
       _clientUpdateRequired = false;
       _accountConnectionPhase = null;
+      _sessionTransitionInProgress = _hasGame;
     });
-    unawaited(_returnToGuestAfterSessionEnd());
+    if (_hasGame) {
+      game.pauseEngine();
+      unawaited(_returnToGuestAfterSessionEnd());
+    }
   }
 
   Future<void> _returnToGuestAfterSessionEnd() async {
@@ -960,7 +1096,15 @@ class _RuneNexusAppState extends State<RuneNexusApp>
         await _replaceGameForSlot(LocalSaveSlot.guest);
       }
     } on Object {
-      // 계정 슬롯은 보존되어 있으므로 다음 앱 시작에서 guest 슬롯을 다시 연다.
+      // 계정 게임을 guest로 표시하거나 계속 저장하지 않고 슬롯 전환 재시도.
+      game.pauseEngine();
+      if (mounted) {
+        setState(() {
+          _sessionEndRecoveryFailed = true;
+          _sessionTransitionInProgress = false;
+        });
+      }
+      return;
     }
     if (!mounted) {
       return;
@@ -968,6 +1112,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     setState(() {
       _activeSaveSlot = LocalSaveSlot.guest;
       _onlineAccount = null;
+      _sessionTransitionInProgress = false;
     });
   }
 
@@ -978,6 +1123,11 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     }
     try {
       await onlineSession.logout();
+      try {
+        await clearGoogleIdentitySession();
+      } on Object {
+        // 서버/로컬 로그아웃 완료: Google 계정 선택 상태 정리 실패는 되돌리지 않음.
+      }
     } on Object {
       if (!mounted || !context.mounted) {
         return;
@@ -1049,10 +1199,20 @@ class _RuneNexusAppState extends State<RuneNexusApp>
             body: FutureBuilder<void>(
               future: _initialLoad,
               builder: (context, loadState) {
-                if (loadState.hasError) {
-                  return const _AppLoadErrorScreen();
+                if ((loadState.connectionState == ConnectionState.done &&
+                        loadState.hasError) ||
+                    _sessionEndRecoveryFailed) {
+                  return _AppLoadErrorScreen(
+                    onRetry: () {
+                      setState(() {
+                        _sessionEndRecoveryFailed = false;
+                        _initialLoad = null;
+                      });
+                    },
+                  );
                 }
-                if (loadState.connectionState != ConnectionState.done) {
+                if (loadState.connectionState != ConnectionState.done ||
+                    _sessionTransitionInProgress) {
                   return _AppLoadingScreen(
                     progressListenable: _loadingProgress,
                   );
@@ -1093,7 +1253,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
                       context,
                     ),
                     accountSession: _accountSession,
-                    onConnectGoogle: _googleAuthenticationApi == null
+                    onConnectGoogle: _authenticationSessions == null
                         ? null
                         : () => _connectGoogle(context),
                     onCreateLegacyTransfer:
@@ -2048,19 +2208,20 @@ class _AppBootProgressFill extends StatelessWidget {
 }
 
 class _AppLoadErrorScreen extends StatelessWidget {
-  const _AppLoadErrorScreen();
+  const _AppLoadErrorScreen({required this.onRetry});
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
-    return const ColoredBox(
+    return ColoredBox(
       color: Color(0xFF07111D),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, color: Color(0xFFFF8A80), size: 38),
-            SizedBox(height: 14),
-            Text(
+            const Icon(Icons.error_outline, color: Color(0xFFFF8A80), size: 38),
+            const SizedBox(height: 14),
+            const Text(
               '초기화에 실패했습니다',
               style: TextStyle(
                 color: Color(0xFFFFE8E5),
@@ -2068,11 +2229,14 @@ class _AppLoadErrorScreen extends StatelessWidget {
                 fontWeight: FontWeight.w800,
               ),
             ),
-            SizedBox(height: 6),
-            Text(
-              '앱을 다시 시작해 주세요',
+            const SizedBox(height: 6),
+            const Text(
+              '로그인 상태와 진행 데이터는 보존됩니다.\n연결을 확인한 뒤 다시 시도해 주세요.',
+              textAlign: TextAlign.center,
               style: TextStyle(color: Color(0xFFBFA19D), fontSize: 12),
             ),
+            const SizedBox(height: 12),
+            TextButton(onPressed: onRetry, child: const Text('다시 시도')),
           ],
         ),
       ),

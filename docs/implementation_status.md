@@ -1,6 +1,6 @@
 # Rune Nexus 구현 현황
 
-마지막 갱신 기준: 2026-08-30 `codex/server-authoritative-economy` 브랜치 작업 기준.
+마지막 갱신 기준: 2026-09-05 작업 트리, Web·Android 인증 세션 복원 반영.
 
 ## 요약
 
@@ -9,8 +9,8 @@ Rune Nexus는 Flutter + Flame 기반의 플레이 가능한 로그라이트 타�
 저장/복구, 스테이지 선택/해금, 결과 화면, 룬 기반 영구 업그레이드 기초가 구현되어
 있다.
 
-별도 Go API와 PostgreSQL에는 Google 웹 인증, 자체 세션, 계정별 온라인 저장 API가
-구현되어 있다. Flutter에는 Google 로그인 UI, 세션 자동 갱신, 원격 저장 클라이언트,
+별도 Go API와 PostgreSQL에는 Google 인증, 자체 영속 세션, 계정별 온라인 저장 API가
+구현되어 있다. Flutter에는 Web GIS·Android Credential Manager 로그인 UI, 세션 복원·자동 갱신, 원격 저장 클라이언트,
 단일 전송 worker와 계정별 영속 Outbox까지 준비되어 있다. 최초 로그인 시에는 기존
 Outbox 복구를 가장 먼저 판정하고, 새 연결이면 원격 account 진행을 우선해 account
 슬롯을 자동 준비한다. 원격 진행이 없는 최초 연결에서만 guest 진행을 이전하며, 원본은
@@ -45,6 +45,25 @@ Flutter exact 명령 Outbox가 이를 보장한다. 일반 save의 경제 값은
 세부 전투 수치와 밸런스 기준은 `docs/gameplay_balance_reference.md`를 기준으로 한다.
 
 ## 실행 및 검증 상태
+
+2026-09-05 인증 세션 변경 검증:
+
+- Flutter 전체 553개 테스트와 정적 분석 통과
+- 인증 설정을 활성화한 시작 경계 테스트 2개 별도 통과 (기본 실행에서는 skip)
+- 최종 Web 빌드와 Android debug APK 빌드 통과
+- Go `go test ./...`, `go vet ./...`, `sqlc vet` 및 격리 PostgreSQL 18 통합·race 검증 통과
+- 동일 갱신 8건 동시 요청, 부모/자식 token 재시도, 서버 재시작, 복구 만료·재사용·로그아웃·계정 정지 확인
+- 실제 Google 로그인·실기기 저장 및 공개 same-site 쿠키 E2E는 미검증
+- 운영 DB 마이그레이션과 실제 배포 설정은 미적용
+
+인증 설정 활성화 테스트는 저장소 루트에서 다음처럼 별도 실행한다. 테스트용 client ID와
+API 주소이며 실제 Google 로그인이나 해당 외부 API 호출을 수행하지 않는다.
+
+```bash
+flutter test test/authentication_restore_gate_test.dart \
+  --dart-define=GOOGLE_WEB_CLIENT_ID=test-client \
+  --dart-define=RUNE_NEXUS_API_BASE_URL=https://api.example.com
+```
 
 클라이언트 전체 검증 권장 명령:
 
@@ -110,10 +129,16 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 - Go 표준 `net/http` API 서버와 PostgreSQL 18 Compose 개발 환경
 - `pgx/v5`, `sqlc`, `tern` 기반 DB 접근·쿼리 생성·마이그레이션
 - 계정, 외부 identity, session, refresh token 스키마
-- Google Identity Services 웹 로그인 UI와 ID token 검증
-- `POST /v1/auth/google`, `/v1/auth/refresh`, `/v1/auth/logout`
+- Web Google Identity Services·Android Credential Manager 로그인과 ID token 검증
+- 영속 `/v1/auth/{web,native}/{google,refresh,logout}`와 기존 유한 세션 API 유지
 - access Bearer 인증과 refresh token 단일 사용 회전·재사용 감지
-- Flutter 메모리 세션 자동 갱신, single-flight, 인증 실패 시 1회 갱신 재시도
+- access 메모리 보관, Web HttpOnly 쿠키·Android Keystore 암호화 refresh 보관
+- 시간 만료 없는 신규 DB 세션, 요청 key 영속화와 10분 암호화 receipt 응답 복구
+- Flutter 앱 시작 세션 복원, single-flight, 인증 실패 시 1회 갱신 재시도
+- 통신·5xx·저장소 일시 오류 시 인증 보존과 backoff; 확정 종료 시 logout 의도 복구
+- 자동 복원에서는 guest를 읽거나 복사하지 않고 account 저장·경제만 연결
+- 복원 실패 시 메인 진입 차단·재시도, guest 저장 읽기 실패 시 로더 재생성
+- 로그아웃 슬롯 전환 중 플레이 차단과 실패 시 실제 account 슬롯 보존
 - Google 로그인·토큰 갱신의 클라이언트별 요청 제한과 `Retry-After` 처리
 - 인증된 `GET /v1/save`, `PUT /v1/save`
 - 전체 `GameSaveData` 스냅샷을 서버 내부에서 영역별 PostgreSQL 행으로 분리 저장
@@ -179,9 +204,12 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 Variables도 연결했다. 남은 공개 E2E는 실제 Google 계정 선택 뒤 로그인·저장·재조회
 흐름과 장애 복구 검증이다.
 
-현재 계정 세션은 메모리에만 유지하므로 브라우저 새로고침 또는 앱 재시작 후 다시
-로그인해야 한다. PGS와 Apple 인증, 기존 계정에 identity를 추가하는 연결 API도 아직
-구현하지 않았다.
+브라우저 새로고침·Android 앱 재시작 후 세션 복원은 구현됐다. 운영 활성화에는 007 적용,
+고정 `AUTH_SESSION_RECEIPT_KEY`, Web과 API의 same-site HTTPS 구성, Android OAuth 식별자·서명
+확인이 필요하다. 기존 GitHub Pages 기본 주소와 DuckDNS API 조합은 CORS가 허용돼도
+`SameSite=Lax` 쿠키 조건을 만족하지 않는다. [운영 배포 문서](self_hosted_api_deployment.md)를 따른다.
+시간 경과만으로 신규 세션을 종료하지 않지만 쿠키 삭제·키 손상·세션 폐기·복구 불가 시에는
+재로그인이 필요하다. PGS와 Apple 인증, identity 연결 API, 로그인 필수화는 아직 미구현이다.
 
 ### 스테이지/진행
 
@@ -515,10 +543,10 @@ Variables도 연결했다. 남은 공개 E2E는 실제 Google 계정 선택 뒤 
 ## 아직 구현하지 않은 항목
 
 - Web 다중 탭 종료 알림용 BroadcastChannel과 큰 저장의 실제 용량 검증
-- 공개 HTTPS API와 GitHub Pages를 연결한 실제 Google 계정 E2E 검증
+- same-site 공개 HTTPS Web·API와 Android의 실제 Google 계정·세션 복원 E2E 검증
 - Android PGS v2 인증, server auth code 교환과 Google Play Games Player ID 검증
 - 기존 account에 Google/PGS identity를 추가하는 계정 연결 API
-- 브라우저 새로고침·앱 재시작 뒤 인증 세션 복원
+- 영속 인증 운영 적용(007·고정 키·도메인·OAuth), 로그인 필수화 후속 결정
 - 계정·원격 데이터 삭제와 운영 DB 백업·복원 자동화
 - 저장 v3 경제 cache·모듈 장착 serializer 분리
 - 챕터 2~3 클리어 보상과 연구 조건의 추가 연결·체감 검증
@@ -531,7 +559,7 @@ Variables도 연결했다. 남은 공개 E2E는 실제 Google 계정 선택 뒤 
 
 ## 다음 추천 작업
 
-1. 공개 환경에서 Google 로그인·writer 교체·온라인 저장 E2E 검증
+1. 영속 인증 운영 준비 후 Web·Android 로그인·세션 복원·writer 교체·온라인 저장 E2E 검증
 2. Android PGS와 기존 Google account identity 연결
 3. 공개 환경 다중 기기·경제 E2E 검증
 4. 저장 v3 `CloudSaveData` 분리와 경제 cache 전송 제외

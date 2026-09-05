@@ -4,7 +4,8 @@ import '../../domain/daily_quest/daily_quest_type.dart';
 import '../../domain/economy/weekly_reward_claim.dart';
 import '../save/online_save_api.dart';
 import '../save/online_save_transport_stub.dart'
-    if (dart.library.html) '../save/online_save_transport_web.dart';
+    if (dart.library.html) '../save/online_save_transport_web.dart'
+    if (dart.library.io) '../save/online_save_transport_io.dart';
 
 class WeeklyRewardException implements Exception {
   const WeeklyRewardException({
@@ -30,12 +31,12 @@ class WeeklyRewardException implements Exception {
 }
 
 class WeeklyRewardApi {
-  WeeklyRewardApi({required String baseUrl, OnlineSaveTransport? transport})
+  WeeklyRewardApi({required String baseUrl, OnlineSaveHTTPClient? transport})
     : _baseUri = _apiBaseUri(baseUrl),
       _transport = transport ?? OnlineSaveTransport();
 
   final Uri _baseUri;
-  final OnlineSaveTransport _transport;
+  final OnlineSaveHTTPClient _transport;
 
   Future<WeeklyRewardReceipt> claim(
     String accessToken, {

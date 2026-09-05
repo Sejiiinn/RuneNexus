@@ -1,7 +1,9 @@
 package auth
 
 import (
+	"bytes"
 	"context"
+	"crypto/cipher"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -53,6 +55,7 @@ type Service struct {
 	verificationTimeout time.Duration
 	accessTokenTTL      time.Duration
 	refreshTokenTTL     time.Duration
+	receiptCipher       cipher.AEAD
 }
 
 func NewService(
@@ -75,6 +78,10 @@ func (service *Service) AuthenticateGoogle(
 	ctx context.Context,
 	idToken string,
 ) (LoginResult, error) {
+	return service.authenticateGoogle(ctx, idToken, false)
+}
+
+func (service *Service) authenticateGoogle(ctx context.Context, idToken string, persistent bool) (LoginResult, error) {
 	verificationContext, cancel := context.WithTimeout(
 		ctx,
 		service.verificationTimeout,
@@ -101,6 +108,9 @@ func (service *Service) AuthenticateGoogle(
 	now := time.Now().UTC()
 	accessExpiresAt := now.Add(service.accessTokenTTL)
 	refreshExpiresAt := now.Add(service.refreshTokenTTL)
+	if persistent {
+		refreshExpiresAt = time.Time{}
+	}
 
 	tx, err := service.database.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
@@ -139,7 +149,7 @@ func (service *Service) AuthenticateGoogle(
 		},
 		RefreshExpiresAt: pgtype.Timestamptz{
 			Time:  refreshExpiresAt,
-			Valid: true,
+			Valid: !persistent,
 		},
 	})
 	if err != nil {
@@ -169,6 +179,10 @@ func (service *Service) Refresh(
 	ctx context.Context,
 	rawRefreshToken string,
 ) (LoginResult, error) {
+	return service.refresh(ctx, rawRefreshToken, "")
+}
+
+func (service *Service) refresh(ctx context.Context, rawRefreshToken, requestKey string) (LoginResult, error) {
 	refreshTokenHash, err := session.HashToken(rawRefreshToken)
 	if err != nil {
 		return LoginResult{}, ErrRefreshTokenInvalid
@@ -183,6 +197,13 @@ func (service *Service) Refresh(
 	}()
 
 	queries := dbgen.New(tx)
+	// 세션 먼저 잠금: 부모/자식 토큰 요청과 로그아웃의 잠금 순서 통일.
+	if _, err := queries.LockRefreshSession(ctx, refreshTokenHash); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return LoginResult{}, ErrRefreshTokenInvalid
+		}
+		return LoginResult{}, fmt.Errorf("lock refresh session: %w", err)
+	}
 	storedToken, err := queries.GetRefreshTokenForUpdate(ctx, refreshTokenHash)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return LoginResult{}, ErrRefreshTokenInvalid
@@ -200,6 +221,46 @@ func (service *Service) Refresh(
 		}
 		return LoginResult{}, ErrAccountInactive
 	}
+	now := time.Now().UTC()
+	if storedToken.RevokedAt.Valid || storedToken.SessionRevokedAt.Valid {
+		return LoginResult{}, ErrRefreshTokenInvalid
+	}
+	if !storedToken.RefreshExpiresAt.Valid && requestKey == "" {
+		return LoginResult{}, ErrRefreshTokenInvalid
+	}
+	if storedToken.RefreshExpiresAt.Valid && !storedToken.RefreshExpiresAt.Time.After(now) {
+		if err := revokeSession(ctx, queries, storedToken.SessionID); err != nil {
+			return LoginResult{}, err
+		}
+		if err := tx.Commit(ctx); err != nil {
+			return LoginResult{}, fmt.Errorf("commit expired session revocation: %w", err)
+		}
+		return LoginResult{}, ErrRefreshTokenInvalid
+	}
+	if requestKey != "" {
+		receipt, err := queries.GetRefreshReceipt(ctx, dbgen.GetRefreshReceiptParams{SessionID: storedToken.SessionID, RequestKey: requestKey})
+		if err == nil {
+			if storedToken.ID != receipt.ParentTokenID && storedToken.ID != receipt.ChildTokenID {
+				return LoginResult{}, ErrRefreshRequestConflict
+			}
+			if !receipt.ExpiresAt.Time.After(now) || len(receipt.Ciphertext) == 0 {
+				return LoginResult{}, ErrRefreshRecoveryExpired
+			}
+			result, err := service.openReceipt(receipt.Ciphertext, storedToken.SessionID, requestKey)
+			if err != nil {
+				return LoginResult{}, err
+			}
+			// 이후 회전된 세션의 옛 access token을 복구하지 않음.
+			accessHash, hashErr := session.HashToken(result.AccessToken)
+			if hashErr != nil || !bytes.Equal(storedToken.AccessTokenHash, accessHash) || !result.AccessExpiresAt.After(now) {
+				return LoginResult{}, ErrRefreshRecoveryExpired
+			}
+			return result, nil
+		}
+		if !errors.Is(err, pgx.ErrNoRows) {
+			return LoginResult{}, fmt.Errorf("get refresh receipt: %w", err)
+		}
+	}
 	if storedToken.ConsumedAt.Valid {
 		if err := revokeSession(ctx, queries, storedToken.SessionID); err != nil {
 			return LoginResult{}, err
@@ -208,19 +269,6 @@ func (service *Service) Refresh(
 			return LoginResult{}, fmt.Errorf("commit reused token revocation: %w", err)
 		}
 		return LoginResult{}, ErrRefreshTokenReused
-	}
-
-	now := time.Now().UTC()
-	if storedToken.RevokedAt.Valid || storedToken.SessionRevokedAt.Valid ||
-		!storedToken.RefreshExpiresAt.Valid ||
-		!storedToken.RefreshExpiresAt.Time.After(now) {
-		if err := revokeSession(ctx, queries, storedToken.SessionID); err != nil {
-			return LoginResult{}, err
-		}
-		if err := tx.Commit(ctx); err != nil {
-			return LoginResult{}, fmt.Errorf("commit expired session revocation: %w", err)
-		}
-		return LoginResult{}, ErrRefreshTokenInvalid
 	}
 
 	accessToken, err := session.GenerateToken()
@@ -233,7 +281,7 @@ func (service *Service) Refresh(
 	}
 	accessExpiresAt := now.Add(service.accessTokenTTL)
 	refreshExpiresAt := storedToken.RefreshExpiresAt.Time.UTC()
-	if !accessExpiresAt.Before(refreshExpiresAt) {
+	if storedToken.RefreshExpiresAt.Valid && !accessExpiresAt.Before(refreshExpiresAt) {
 		accessExpiresAt = refreshExpiresAt.Add(-time.Nanosecond)
 	}
 	if !accessExpiresAt.After(now) {
@@ -249,11 +297,12 @@ func (service *Service) Refresh(
 	if _, err := queries.ConsumeRefreshToken(ctx, storedToken.ID); err != nil {
 		return LoginResult{}, fmt.Errorf("consume refresh token: %w", err)
 	}
-	if _, err := queries.CreateRefreshToken(ctx, dbgen.CreateRefreshTokenParams{
+	childToken, err := queries.CreateRefreshToken(ctx, dbgen.CreateRefreshTokenParams{
 		SessionID:     storedToken.SessionID,
 		TokenHash:     refreshToken.Hash,
 		ParentTokenID: storedToken.ID,
-	}); err != nil {
+	})
+	if err != nil {
 		return LoginResult{}, fmt.Errorf("create rotated refresh token: %w", err)
 	}
 	if _, err := queries.RotateSessionAccessToken(ctx, dbgen.RotateSessionAccessTokenParams{
@@ -268,17 +317,30 @@ func (service *Service) Refresh(
 	if err != nil {
 		return LoginResult{}, err
 	}
-	if err := tx.Commit(ctx); err != nil {
-		return LoginResult{}, fmt.Errorf("commit refresh transaction: %w", err)
-	}
-
-	return LoginResult{
+	result := LoginResult{
 		AccountID:        accountID,
 		AccessToken:      accessToken.Raw,
 		AccessExpiresAt:  accessExpiresAt,
 		RefreshToken:     refreshToken.Raw,
 		RefreshExpiresAt: refreshExpiresAt,
-	}, nil
+	}
+	if requestKey != "" {
+		ciphertext, err := service.sealReceipt(result, storedToken.SessionID, requestKey)
+		if err != nil {
+			return LoginResult{}, err
+		}
+		if err := queries.CreateRefreshReceipt(ctx, dbgen.CreateRefreshReceiptParams{
+			SessionID: storedToken.SessionID, RequestKey: requestKey,
+			ParentTokenID: storedToken.ID, ChildTokenID: childToken.ID,
+			Ciphertext: ciphertext, ExpiresAt: pgtype.Timestamptz{Time: now.Add(10 * time.Minute), Valid: true},
+		}); err != nil {
+			return LoginResult{}, fmt.Errorf("create refresh receipt: %w", err)
+		}
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return LoginResult{}, fmt.Errorf("commit refresh transaction: %w", err)
+	}
+	return result, nil
 }
 
 func (service *Service) Logout(
@@ -300,6 +362,12 @@ func (service *Service) Logout(
 	}()
 
 	queries := dbgen.New(tx)
+	if _, err := queries.LockRefreshSession(ctx, refreshTokenHash); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil
+		}
+		return fmt.Errorf("lock logout session: %w", err)
+	}
 	storedToken, err := queries.GetRefreshTokenForUpdate(ctx, refreshTokenHash)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil

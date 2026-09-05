@@ -11,6 +11,16 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const clearExpiredRefreshReceipts = `-- name: ClearExpiredRefreshReceipts :exec
+UPDATE refresh_receipts SET ciphertext = NULL
+WHERE ciphertext IS NOT NULL AND expires_at <= now()
+`
+
+func (q *Queries) ClearExpiredRefreshReceipts(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, clearExpiredRefreshReceipts)
+	return err
+}
+
 const consumeRefreshToken = `-- name: ConsumeRefreshToken :one
 UPDATE refresh_tokens
 SET consumed_at = now()
@@ -33,6 +43,32 @@ func (q *Queries) ConsumeRefreshToken(ctx context.Context, id pgtype.UUID) (Refr
 		&i.RevokedAt,
 	)
 	return i, err
+}
+
+const createRefreshReceipt = `-- name: CreateRefreshReceipt :exec
+INSERT INTO refresh_receipts (session_id, request_key, parent_token_id, child_token_id, ciphertext, expires_at)
+VALUES ($1, $2, $3, $4, $5, $6)
+`
+
+type CreateRefreshReceiptParams struct {
+	SessionID     pgtype.UUID        `db:"session_id"`
+	RequestKey    string             `db:"request_key"`
+	ParentTokenID pgtype.UUID        `db:"parent_token_id"`
+	ChildTokenID  pgtype.UUID        `db:"child_token_id"`
+	Ciphertext    []byte             `db:"ciphertext"`
+	ExpiresAt     pgtype.Timestamptz `db:"expires_at"`
+}
+
+func (q *Queries) CreateRefreshReceipt(ctx context.Context, arg CreateRefreshReceiptParams) error {
+	_, err := q.db.Exec(ctx, createRefreshReceipt,
+		arg.SessionID,
+		arg.RequestKey,
+		arg.ParentTokenID,
+		arg.ChildTokenID,
+		arg.Ciphertext,
+		arg.ExpiresAt,
+	)
+	return err
 }
 
 const createRefreshToken = `-- name: CreateRefreshToken :one
@@ -151,6 +187,29 @@ func (q *Queries) GetActiveSessionByAccessTokenHash(ctx context.Context, accessT
 	return i, err
 }
 
+const getRefreshReceipt = `-- name: GetRefreshReceipt :one
+SELECT session_id, request_key, parent_token_id, child_token_id, ciphertext, expires_at FROM refresh_receipts WHERE session_id = $1 AND request_key = $2
+`
+
+type GetRefreshReceiptParams struct {
+	SessionID  pgtype.UUID `db:"session_id"`
+	RequestKey string      `db:"request_key"`
+}
+
+func (q *Queries) GetRefreshReceipt(ctx context.Context, arg GetRefreshReceiptParams) (RefreshReceipt, error) {
+	row := q.db.QueryRow(ctx, getRefreshReceipt, arg.SessionID, arg.RequestKey)
+	var i RefreshReceipt
+	err := row.Scan(
+		&i.SessionID,
+		&i.RequestKey,
+		&i.ParentTokenID,
+		&i.ChildTokenID,
+		&i.Ciphertext,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
 const getRefreshTokenForUpdate = `-- name: GetRefreshTokenForUpdate :one
 SELECT
     token.id,
@@ -160,6 +219,7 @@ SELECT
     token.consumed_at,
     token.revoked_at,
     session.account_id,
+    session.access_token_hash,
     session.access_expires_at,
     session.refresh_expires_at,
     session.revoked_at AS session_revoked_at,
@@ -179,6 +239,7 @@ type GetRefreshTokenForUpdateRow struct {
 	ConsumedAt       pgtype.Timestamptz `db:"consumed_at"`
 	RevokedAt        pgtype.Timestamptz `db:"revoked_at"`
 	AccountID        pgtype.UUID        `db:"account_id"`
+	AccessTokenHash  []byte             `db:"access_token_hash"`
 	AccessExpiresAt  pgtype.Timestamptz `db:"access_expires_at"`
 	RefreshExpiresAt pgtype.Timestamptz `db:"refresh_expires_at"`
 	SessionRevokedAt pgtype.Timestamptz `db:"session_revoked_at"`
@@ -196,6 +257,7 @@ func (q *Queries) GetRefreshTokenForUpdate(ctx context.Context, tokenHash []byte
 		&i.ConsumedAt,
 		&i.RevokedAt,
 		&i.AccountID,
+		&i.AccessTokenHash,
 		&i.AccessExpiresAt,
 		&i.RefreshExpiresAt,
 		&i.SessionRevokedAt,
@@ -226,6 +288,20 @@ func (q *Queries) IsActiveSessionForAccount(ctx context.Context, arg IsActiveSes
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const lockRefreshSession = `-- name: LockRefreshSession :one
+SELECT session.id FROM sessions AS session
+JOIN refresh_tokens AS token ON token.session_id = session.id
+WHERE token.token_hash = $1
+FOR UPDATE OF session
+`
+
+func (q *Queries) LockRefreshSession(ctx context.Context, tokenHash []byte) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, lockRefreshSession, tokenHash)
+	var id pgtype.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const revokeRefreshTokensForSession = `-- name: RevokeRefreshTokensForSession :execrows
@@ -310,6 +386,7 @@ UPDATE sessions
 SET last_used_at = now()
 WHERE id = $1
   AND revoked_at IS NULL
+  AND last_used_at <= now() - interval '5 minutes'
 `
 
 func (q *Queries) TouchSession(ctx context.Context, id pgtype.UUID) error {

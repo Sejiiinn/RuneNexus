@@ -83,13 +83,36 @@ func run(logger *slog.Logger) error {
 		if err != nil {
 			return fmt.Errorf("configure Google authentication: %w", err)
 		}
-		authenticator = auth.NewService(
+		authenticationService := auth.NewService(
 			pool,
 			googleVerifier,
 			cfg.IdentityVerifyTimeout,
 			cfg.AccessTokenTTL,
 			cfg.RefreshTokenTTL,
 		)
+		if len(cfg.SessionReceiptKey) > 0 {
+			if err := authenticationService.EnablePersistentSessions(cfg.SessionReceiptKey); err != nil {
+				return fmt.Errorf("configure persistent sessions: %w", err)
+			}
+			go func() {
+				ticker := time.NewTicker(time.Minute)
+				defer ticker.Stop()
+				for {
+					cleanupContext, cancel := context.WithTimeout(rootContext, 10*time.Second)
+					err := authenticationService.ClearExpiredRefreshReceipts(cleanupContext)
+					cancel()
+					if err != nil && rootContext.Err() == nil {
+						logger.Error("refresh_receipt_cleanup_failed", slog.Any("error", err))
+					}
+					select {
+					case <-rootContext.Done():
+						return
+					case <-ticker.C:
+					}
+				}
+			}()
+		}
+		authenticator = authenticationService
 		if cfg.LegacyLocalTransferEnabled {
 			legacyTransferService = legacytransfer.NewService(
 				pool,

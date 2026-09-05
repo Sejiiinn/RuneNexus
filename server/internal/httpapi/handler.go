@@ -58,12 +58,18 @@ func NewHandler(
 	mux.HandleFunc("GET /health/ready", health.ready)
 	if dependencies.Authenticator != nil {
 		authentication := authenticationHandler{
-			logger:        logger,
-			authenticator: dependencies.Authenticator,
+			logger:         logger,
+			authenticator:  dependencies.Authenticator,
+			allowedOrigins: dependencies.CORSAllowedOrigins,
 		}
 		mux.HandleFunc("POST /v1/auth/google", authentication.google)
 		mux.HandleFunc("POST /v1/auth/refresh", authentication.refresh)
 		mux.HandleFunc("POST /v1/auth/logout", authentication.logout)
+		for _, platform := range []string{"web", "native"} {
+			for _, operation := range []string{"google", "refresh", "logout"} {
+				mux.HandleFunc("POST /v1/auth/"+platform+"/"+operation, authentication.persistent)
+			}
+		}
 		if dependencies.SaveService != nil {
 			saves := saveHandler{
 				logger:                            logger,

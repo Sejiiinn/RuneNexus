@@ -10,6 +10,54 @@ import 'package:rune_nexus/data/save/online_save_outbox_repository.dart';
 const _accountId = '0198b955-3656-7c40-b3cb-87f427b90be2';
 
 void main() {
+  for (final hasRemote in [false, true]) {
+    test('세션 복원은 게스트를 열지 않고 계정만 복구한다 (remote=$hasRemote)', () async {
+      final accountSlot = LocalSaveSlot.account(_accountId);
+      final account = _saveData(20);
+      final storage = _MemoryBootstrapStorage()
+        ..slot(accountSlot).data = account;
+      final remote = hasRemote ? _remoteSnapshot(30, revision: 7) : null;
+      final service = AccountSaveBootstrapService(
+        repositoryFactory: (slot) {
+          expect(slot, accountSlot, reason: '자동 복원 중 게스트 저장소 접근 금지');
+          return _MemoryBackupSaveRepository(storage.slot(slot));
+        },
+        outboxRepositoryFactory: storage.outbox,
+      );
+
+      final result = await service.bootstrap(
+        accountId: _accountId,
+        mode: AccountSaveBootstrapMode.sessionRestore,
+        loadRemote: () async => remote,
+      );
+
+      expect(
+        result.source,
+        hasRemote
+            ? AccountSaveBootstrapSource.remoteAccount
+            : AccountSaveBootstrapSource.localAccountRecovery,
+      );
+      expect(storage.slot(accountSlot).data, same(remote?.data ?? account));
+      expect(storage.slot(accountSlot).backup, same(account));
+    });
+  }
+
+  test('계정 저장이 없는 세션 복원은 기존 게스트 진행을 이전하지 않는다', () async {
+    final guest = _saveData(10);
+    final storage = _MemoryBootstrapStorage()
+      ..slot(LocalSaveSlot.guest).data = guest;
+    final result = await storage.service().bootstrap(
+      accountId: _accountId,
+      mode: AccountSaveBootstrapMode.sessionRestore,
+      loadRemote: () async => null,
+    );
+
+    expect(result.source, AccountSaveBootstrapSource.newAccount);
+    expect(storage.slot(LocalSaveSlot.account(_accountId)).data, isNull);
+    expect(storage.slot(LocalSaveSlot.guest).data, same(guest));
+    expect(storage.slot(LocalSaveSlot.guest).backup, isNull);
+  });
+
   test('원격 계정 진행이 있으면 자동 적용하고 로컬 원본을 백업한다', () async {
     final guest = _saveData(10);
     final account = _saveData(20);

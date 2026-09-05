@@ -14,6 +14,7 @@ type Querier interface {
 	AdvanceSaveHeader(ctx context.Context, arg AdvanceSaveHeaderParams) (AdvanceSaveHeaderRow, error)
 	AdvanceSaveWriter(ctx context.Context, arg AdvanceSaveWriterParams) (SaveWriterState, error)
 	ApplyEconomyProgressionEffect(ctx context.Context, arg ApplyEconomyProgressionEffectParams) (EconomyProgressionEffect, error)
+	ClearExpiredRefreshReceipts(ctx context.Context) error
 	CompleteEconomyBootstrap(ctx context.Context, arg CompleteEconomyBootstrapParams) (PlayerEconomy, error)
 	ConsumeRefreshToken(ctx context.Context, id pgtype.UUID) (RefreshToken, error)
 	CreateAccount(ctx context.Context) (Account, error)
@@ -26,6 +27,7 @@ type Querier interface {
 	CreateLegacySaveTransfer(ctx context.Context, arg CreateLegacySaveTransferParams) (LegacySaveTransfer, error)
 	CreateLegacySaveTransferReceipt(ctx context.Context, arg CreateLegacySaveTransferReceiptParams) (LegacySaveTransferReceipt, error)
 	CreatePlayerModule(ctx context.Context, arg CreatePlayerModuleParams) (PlayerModule, error)
+	CreateRefreshReceipt(ctx context.Context, arg CreateRefreshReceiptParams) error
 	CreateRefreshToken(ctx context.Context, arg CreateRefreshTokenParams) (RefreshToken, error)
 	CreateRewardClaim(ctx context.Context, arg CreateRewardClaimParams) (RewardClaim, error)
 	CreateSaveRequest(ctx context.Context, arg CreateSaveRequestParams) (SaveRequest, error)
@@ -51,6 +53,7 @@ type Querier interface {
 	GetLegacySaveTransferReceipt(ctx context.Context, tokenHash []byte) (LegacySaveTransferReceipt, error)
 	GetPlayerEconomy(ctx context.Context, accountID pgtype.UUID) (PlayerEconomy, error)
 	GetPlayerEconomyForUpdate(ctx context.Context, accountID pgtype.UUID) (PlayerEconomy, error)
+	GetRefreshReceipt(ctx context.Context, arg GetRefreshReceiptParams) (RefreshReceipt, error)
 	GetRefreshTokenForUpdate(ctx context.Context, tokenHash []byte) (GetRefreshTokenForUpdateRow, error)
 	GetRewardClaimByIdempotencyKey(ctx context.Context, arg GetRewardClaimByIdempotencyKeyParams) (RewardClaim, error)
 	GetRewardClaimByRewardKey(ctx context.Context, arg GetRewardClaimByRewardKeyParams) (RewardClaim, error)
@@ -64,6 +67,7 @@ type Querier interface {
 	ListEconomyRewardClaimKeys(ctx context.Context, accountID pgtype.UUID) ([]string, error)
 	ListPendingEconomyProgressionEffects(ctx context.Context, accountID pgtype.UUID) ([]EconomyProgressionEffect, error)
 	LockAuthIdentity(ctx context.Context, arg LockAuthIdentityParams) error
+	LockRefreshSession(ctx context.Context, tokenHash []byte) (pgtype.UUID, error)
 	RevokeRefreshTokensForSession(ctx context.Context, sessionID pgtype.UUID) (int64, error)
 	RevokeSession(ctx context.Context, id pgtype.UUID) (int64, error)
 	RevokeSessionsForAccount(ctx context.Context, accountID pgtype.UUID) (int64, error)

@@ -20,12 +20,16 @@
 3. 서버는 저장 구조와 재화 상한을 검사하고 256-bit 일회용 토큰을 발급한다.
 4. 클라이언트는 토큰을 URL fragment에만 넣은 이전 링크를 표시한다. fragment는
    HTTP 요청, reverse proxy access log, Referrer 헤더로 전송되지 않는다.
-5. 사용자는 링크를 Chrome 또는 Safari에서 열고 Google 로그인을 완료한다.
-6. 인증된 `POST /v1/legacy-save-transfers/consume`가 대상 account의 현재 저장과
+5. 사용자는 링크를 Chrome 또는 Safari에서 연다. 저장된 Google 세션이 있으면 복원하고,
+   없으면 로그인한다. 이후 현재 내부 account ID와 기존 진행 교체 경고를 확인한다.
+   **링크를 열거나 세션이 복원됐다는 이유만으로 consume하지 않는다.** 가져오지 않기를
+   선택하면 현재 페이지의 이전 token/fragment만 지우고 해당 account 진행을 연다.
+6. 사용자가 가져오기를 승인하면 인증된 `POST /v1/legacy-save-transfers/consume`가 대상 account의 현재 저장과
    구매 다이아 보유 여부를 확인한다.
 7. 빈 account이면 revision 1로 반영한다. 기존 저장이 있고 구매 다이아가 0이면
    현재 snapshot을 영수증에 백업하고 writer generation을 올린 뒤 다음 revision으로
-   카카오 진행을 교체한다. 이후 일반 account bootstrap이 해당 원격 저장을 연다.
+   카카오 진행을 교체한다. 이후 guest를 복사하지 않는 `sessionRestore` bootstrap으로
+   해당 account 진행을 연다. 기존 Outbox 우선 복구 규칙은 유지한다.
 8. 소비가 끝난 임시 저장 원문은 같은 DB 트랜잭션에서 즉시 삭제한다. 토큰 해시,
    payload 해시, 대상 account와 결과 revision을 영수증으로 남긴다. 기존 저장을
    교체했다면 복구용 이전 snapshot도 같은 영수증에 보존한다.

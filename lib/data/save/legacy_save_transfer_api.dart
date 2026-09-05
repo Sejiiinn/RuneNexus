@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'game_save_data.dart';
 import 'online_save_api.dart';
 import 'online_save_transport_stub.dart'
-    if (dart.library.html) 'online_save_transport_web.dart';
+    if (dart.library.html) 'online_save_transport_web.dart'
+    if (dart.library.io) 'online_save_transport_io.dart';
 
 class LegacySaveTransferException implements Exception {
   const LegacySaveTransferException({
@@ -48,14 +49,14 @@ class LegacySaveTransferConsumeResult {
 class LegacySaveTransferApi {
   LegacySaveTransferApi({
     required String baseUrl,
-    OnlineSaveTransport? transport,
+    OnlineSaveHTTPClient? transport,
   }) : _baseUri = _apiBaseUri(baseUrl),
        _transport = transport ?? OnlineSaveTransport();
 
   static final RegExp _tokenPattern = RegExp(r'^[A-Za-z0-9_-]{43}$');
 
   final Uri _baseUri;
-  final OnlineSaveTransport _transport;
+  final OnlineSaveHTTPClient _transport;
 
   static bool isValidToken(String value) => _tokenPattern.hasMatch(value);
 

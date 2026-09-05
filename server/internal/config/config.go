@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net"
@@ -42,6 +43,7 @@ type Config struct {
 	IdentityVerifyTimeout                 time.Duration
 	AccessTokenTTL                        time.Duration
 	RefreshTokenTTL                       time.Duration
+	SessionReceiptKey                     []byte
 	AuthenticationRateLimitWindow         time.Duration
 	GoogleAuthenticationRateLimit         int
 	RefreshAuthenticationRateLimit        int
@@ -57,6 +59,14 @@ type Config struct {
 }
 
 func Load() (Config, error) {
+	var receiptKey []byte
+	if value := strings.TrimSpace(os.Getenv("AUTH_SESSION_RECEIPT_KEY")); value != "" {
+		var err error
+		receiptKey, err = base64.StdEncoding.DecodeString(value)
+		if err != nil || len(receiptKey) != 32 {
+			return Config{}, errors.New("AUTH_SESSION_RECEIPT_KEY must be a base64-encoded 32-byte key")
+		}
+	}
 	databaseURL, err := loadDatabaseURL()
 	if err != nil {
 		return Config{}, err
@@ -208,6 +218,7 @@ func Load() (Config, error) {
 		IdentityVerifyTimeout:                 identityVerifyTimeout,
 		AccessTokenTTL:                        accessTokenTTL,
 		RefreshTokenTTL:                       refreshTokenTTL,
+		SessionReceiptKey:                     receiptKey,
 		AuthenticationRateLimitWindow:         authenticationRateLimitWindow,
 		GoogleAuthenticationRateLimit:         googleAuthenticationRateLimit,
 		RefreshAuthenticationRateLimit:        refreshAuthenticationRateLimit,

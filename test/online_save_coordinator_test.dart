@@ -153,7 +153,7 @@ void main() {
     final requests = <OnlineSaveUpdateRequest>[];
     var refreshCount = 0;
     final session = _session(
-      refreshCredentials: (_) async {
+      refreshCredentials: () async {
         refreshCount++;
         return _credentials(accessToken: 'new-access');
       },
@@ -195,7 +195,7 @@ void main() {
   });
 
   test('인증 갱신 429도 세션을 유지하고 Retry-After 뒤 저장을 재개한다', () async {
-    final now = DateTime.utc(2026, 8, 20, 3);
+    var now = DateTime.utc(2026, 8, 20, 3);
     final authenticationTimers = _ManualTimerFactory();
     final saveTimers = _ManualTimerFactory();
     var refreshCount = 0;
@@ -205,10 +205,8 @@ void main() {
         accountId: _accountId,
         accessToken: 'expiring-access',
         accessExpiresAt: now.add(const Duration(seconds: 30)),
-        refreshToken: 'refresh-token',
-        refreshExpiresAt: now.add(const Duration(days: 30)),
       ),
-      refreshCredentials: (_) async {
+      refreshCredentials: () async {
         refreshCount++;
         if (refreshCount == 1) {
           throw const GoogleAuthenticationException(
@@ -222,11 +220,9 @@ void main() {
           accountId: _accountId,
           accessToken: 'new-access',
           accessExpiresAt: now.add(const Duration(minutes: 15)),
-          refreshToken: 'new-refresh-token',
-          refreshExpiresAt: now.add(const Duration(days: 30)),
         );
       },
-      revokeSession: (_, _) async {},
+      revokeSession: (_) async {},
       onCredentialsChanged: (_) {},
       onSessionInvalidated: () {},
       now: () => now,
@@ -257,6 +253,7 @@ void main() {
     expect(updateCount, 0);
     expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.retryWaiting);
     expect(saveTimers.lastDuration, const Duration(seconds: 7));
+    now = now.add(const Duration(seconds: 7));
     saveTimers.lastTimer!.fire();
     await _pumpUntil(() => updateCount == 1);
     await coordinator.currentAttempt;
@@ -1285,15 +1282,14 @@ void main() {
 const _accountId = '0198b955-3656-7c40-b3cb-87f427b90be2';
 
 OnlineAccountSessionController _session({
-  Future<OnlineAccountCredentials> Function(String refreshToken)?
-  refreshCredentials,
+  Future<OnlineAccountCredentials> Function()? refreshCredentials,
 }) {
   return OnlineAccountSessionController(
     credentials: _credentials(accessToken: 'old-access'),
     refreshCredentials:
         refreshCredentials ??
-        (_) async => _credentials(accessToken: 'new-access'),
-    revokeSession: (_, _) async {},
+        () async => _credentials(accessToken: 'new-access'),
+    revokeSession: (_) async {},
     onCredentialsChanged: (_) {},
     onSessionInvalidated: () {},
   );
@@ -1305,8 +1301,6 @@ OnlineAccountCredentials _credentials({required String accessToken}) {
     accountId: _accountId,
     accessToken: accessToken,
     accessExpiresAt: now.add(const Duration(minutes: 15)),
-    refreshToken: 'refresh-token',
-    refreshExpiresAt: now.add(const Duration(days: 30)),
   );
 }
 

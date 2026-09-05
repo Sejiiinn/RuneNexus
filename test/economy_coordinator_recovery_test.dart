@@ -213,11 +213,9 @@ OnlineAccountSessionController _session() {
       accountId: _accountId,
       accessToken: 'access-token',
       accessExpiresAt: now.add(const Duration(minutes: 15)),
-      refreshToken: 'refresh-token',
-      refreshExpiresAt: now.add(const Duration(days: 30)),
     ),
-    refreshCredentials: (_) async => throw StateError('unexpected refresh'),
-    revokeSession: (_, _) async {},
+    refreshCredentials: () async => throw StateError('unexpected refresh'),
+    revokeSession: (_) async {},
     onCredentialsChanged: (_) {},
     onSessionInvalidated: () {},
   );

@@ -9,10 +9,8 @@ typedef AuthenticationTimerFactory =
 class OnlineAccountSessionController {
   OnlineAccountSessionController({
     required OnlineAccountCredentials credentials,
-    required Future<OnlineAccountCredentials> Function(String refreshToken)
-    refreshCredentials,
-    required Future<void> Function(String refreshToken, String accessToken)
-    revokeSession,
+    required Future<OnlineAccountCredentials> Function() refreshCredentials,
+    required Future<void> Function(String accessToken) revokeSession,
     required void Function(OnlineAccountCredentials credentials)
     onCredentialsChanged,
     required void Function() onSessionInvalidated,
@@ -29,10 +27,8 @@ class OnlineAccountSessionController {
     _scheduleRefresh();
   }
 
-  final Future<OnlineAccountCredentials> Function(String refreshToken)
-  _refreshCredentials;
-  final Future<void> Function(String refreshToken, String accessToken)
-  _revokeSession;
+  final Future<OnlineAccountCredentials> Function() _refreshCredentials;
+  final Future<void> Function(String accessToken) _revokeSession;
   final void Function(OnlineAccountCredentials credentials)
   _onCredentialsChanged;
   final void Function() _onSessionInvalidated;
@@ -46,6 +42,8 @@ class OnlineAccountSessionController {
   Timer? _refreshTimer;
   bool _loggingOut = false;
   bool _disposed = false;
+  int _refreshFailures = 0;
+  DateTime? _retryNotBefore;
 
   OnlineAccountCredentials? get credentials => _credentials;
 
@@ -56,6 +54,17 @@ class OnlineAccountSessionController {
     }
     if (_disposed || _loggingOut || _credentials == null) {
       return Future.error(StateError('인증 세션을 갱신할 수 없습니다.'));
+    }
+
+    final retryAt = _retryNotBefore;
+    if (retryAt != null && retryAt.isAfter(_now().toUtc())) {
+      return Future.error(
+        GoogleAuthenticationException(
+          code: 'AUTH_RETRY_PENDING',
+          message: '잠시 후 연결을 다시 확인합니다.',
+          retryAfter: retryAt.difference(_now().toUtc()),
+        ),
+      );
     }
 
     final operation = _performRefresh();
@@ -119,7 +128,7 @@ class OnlineAccountSessionController {
         return;
       }
 
-      await _revokeSession(current.refreshToken, current.accessToken);
+      await _revokeSession(current.accessToken);
       _invalidate();
     } on Object {
       _loggingOut = false;
@@ -144,26 +153,38 @@ class OnlineAccountSessionController {
       throw StateError('인증 세션이 없습니다.');
     }
     try {
-      final refreshed = await _refreshCredentials(current.refreshToken);
+      final refreshed = await _refreshCredentials();
       if (refreshed.accountId != current.accountId) {
         throw const GoogleAuthenticationException(
-          code: 'INVALID_AUTH_RESPONSE',
+          code: 'INVALID_AUTH_ACCOUNT',
           message: '갱신된 인증 계정이 기존 세션과 일치하지 않습니다.',
         );
       }
-      if (_disposed || _loggingOut) {
+      if (_disposed) {
         throw StateError('인증 세션이 종료 중입니다.');
       }
       _credentials = refreshed;
+      _refreshFailures = 0;
+      _retryNotBefore = null;
+      if (_loggingOut) {
+        // 회전된 access와 저장소의 최신 refresh를 함께 폐기.
+        throw StateError('인증 세션이 종료 중입니다.');
+      }
       _onCredentialsChanged(refreshed);
       _scheduleRefresh();
       return refreshed;
     } on Object catch (error) {
       if (!_disposed && !_loggingOut && _credentials != null) {
-        if (error is GoogleAuthenticationException && error.statusCode == 429) {
-          _scheduleRefreshRetry(error.retryAfter ?? const Duration(seconds: 1));
-        } else {
+        if (error is GoogleAuthenticationException && error.endsSession) {
           _invalidate();
+        } else {
+          _refreshFailures += 1;
+          final delay = Duration(seconds: 1 << _refreshFailures.clamp(1, 6));
+          _scheduleRefreshRetry(
+            error is GoogleAuthenticationException
+                ? error.retryAfter ?? delay
+                : delay,
+          );
         }
       }
       rethrow;
@@ -195,10 +216,6 @@ class OnlineAccountSessionController {
       return;
     }
     final now = _now().toUtc();
-    if (!current.refreshExpiresAt.isAfter(now)) {
-      _refreshTimer = _timerFactory(Duration.zero, _invalidate);
-      return;
-    }
     final target = current.accessExpiresAt.subtract(refreshLeadTime);
     final delay = target.isAfter(now) ? target.difference(now) : Duration.zero;
     _refreshTimer = _timerFactory(delay, _refreshFromTimer);
@@ -215,19 +232,14 @@ class OnlineAccountSessionController {
       return;
     }
     final now = _now().toUtc();
-    if (!current.refreshExpiresAt.isAfter(now)) {
-      _invalidate();
-      return;
-    }
     final retryDelay = retryAfter > Duration.zero
         ? retryAfter
         : const Duration(seconds: 1);
-    final remaining = current.refreshExpiresAt.difference(now);
-    if (retryDelay >= remaining) {
-      _refreshTimer = _timerFactory(remaining, _invalidate);
-      return;
-    }
-    _refreshTimer = _timerFactory(retryDelay, _refreshFromTimer);
+    _retryNotBefore = now.add(retryDelay);
+    _refreshTimer = _timerFactory(retryDelay, () {
+      _retryNotBefore = null;
+      _refreshFromTimer();
+    });
   }
 
   Future<void> _refreshAfterTimer() async {

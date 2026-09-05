@@ -27,14 +27,19 @@ Client ID와 정확한 웹 origin을 주입합니다.
 ```bash
 GOOGLE_AUTH_ENABLED=true \
 GOOGLE_WEB_CLIENT_ID='<web-oauth-client-id>' \
+AUTH_SESSION_RECEIPT_KEY='<base64-encoded-32-byte-key>' \
 CORS_ALLOWED_ORIGINS='http://127.0.0.1:53000,https://sejiiinn.github.io' \
 docker compose up -d --build api
 ```
 
 GitHub Pages 주소의 `/RuneNexus/`는 경로이므로 CORS origin과 Google OAuth의
 Authorized JavaScript origins에는 `https://sejiiinn.github.io`까지만 등록합니다.
-Google ID token 원문은 서버 로그와 DB에 저장하지 않으며, 서버가 발급하는 opaque
-세션 토큰도 DB에는 SHA-256 해시만 저장합니다.
+Google ID token 원문은 서버 로그와 DB에 저장하지 않습니다. 자체 token은 `sessions`와
+`refresh_tokens`에 SHA-256 해시로만 저장하고, 갱신 응답 복구용 `refresh_receipts`에만
+access/refresh 응답을 AES-GCM 암호문으로 10분간 보관합니다. 007까지 마이그레이션하고
+`AUTH_SESSION_RECEIPT_KEY`에 base64 인코딩한 32-byte 고정 키를 주입해야 신규 영속
+로그인/갱신이 활성화됩니다. 위 값은 placeholder이며 실제 키는 안전하게 생성·보관하고
+Git에 커밋하지 않습니다. 키가 없으면 신규 로그인/갱신 API는 503을 반환합니다.
 
 Flutter Web 개발 서버도 같은 값으로 빌드합니다.
 
@@ -48,6 +53,12 @@ GitHub Pages 배포에는 저장소의 Actions Variables에 `GOOGLE_WEB_CLIENT_I
 `RUNE_NEXUS_API_BASE_URL`을 등록합니다. API 주소는 실제 배포 환경에서 HTTPS여야
 하며, 둘 중 하나라도 없거나 잘못되면 계정 화면의 Google 연결 버튼은 표시하지
 않습니다.
+
+현재 Web 자동 로그인은 Secure·HttpOnly·SameSite=Lax 쿠키를 사용합니다. loopback 개발
+주소의 브라우저 동작만으로 운영 검증을 대체하지 않습니다. 운영에서는 Web과 API를
+same-site HTTPS로 배치해야 하며, 기본 GitHub Pages와 DuckDNS API 조합은 CORS 허용만으로
+동작하지 않습니다. 최종 도메인과 OAuth/CORS 조건은
+[자체 운영 API 배포](self_hosted_api_deployment.md)를 확인합니다.
 
 ## 상태와 접속 확인
 
