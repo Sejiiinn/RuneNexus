@@ -87,6 +87,11 @@ void main() {
       ),
     );
     await pumpGameFrames(tester, frameCount: 10);
+    // 이미지 디코딩과 Flame 입력 컴포넌트 마운트 완료 대기
+    await tester.runAsync(
+      () => game.loaded.timeout(const Duration(seconds: 10)),
+    );
+    await pumpGameFrames(tester);
     game.debugSetClearedStageCount(5);
     expect(game.equipCoreCombatSkill(CoreCombatSkill.riftMark), isTrue);
     game.restartRun();
