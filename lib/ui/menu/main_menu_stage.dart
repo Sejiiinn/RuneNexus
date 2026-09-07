@@ -543,13 +543,10 @@ class _StageMenuState extends State<_StageMenu> {
       fit: fit,
       filterQuality: FilterQuality.high,
       gaplessPlayback: true,
+      // 이미지 알파 보존: 투명 영역에 불투명 색상 레이어 생성 방지.
+      color: color,
+      colorBlendMode: color == null ? null : BlendMode.modulate,
     );
-    if (color != null) {
-      image = ColorFiltered(
-        colorFilter: ColorFilter.mode(color, BlendMode.hue),
-        child: image,
-      );
-    }
     if (opacity != 1) {
       image = Opacity(opacity: opacity, child: image);
     }
@@ -829,13 +826,12 @@ class _StageChapterTab extends StatelessWidget {
           Opacity(
             opacity: enabled ? 1 : 0.48,
             child: selected
-                ? ColorFiltered(
-                    colorFilter: ColorFilter.mode(accentColor, BlendMode.hue),
-                    child: Image.asset(
-                      stageReferenceChapterTabSelectedAsset,
-                      fit: BoxFit.fill,
-                      filterQuality: FilterQuality.high,
-                    ),
+                ? Image.asset(
+                    stageReferenceChapterTabSelectedAsset,
+                    fit: BoxFit.fill,
+                    filterQuality: FilterQuality.high,
+                    color: accentColor,
+                    colorBlendMode: BlendMode.modulate,
                   )
                 : Image.asset(
                     stageReferenceChapterTabIdleAsset,
