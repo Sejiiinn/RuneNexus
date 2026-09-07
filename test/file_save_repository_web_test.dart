@@ -67,6 +67,20 @@ void main() {
     );
   });
 
+  test('Web 동일 데이터 반복 저장 뒤 primary가 손상돼도 이전 backup을 복구한다', () async {
+    final repository = FileSaveRepository();
+    await repository.save(_saveData(10));
+    await repository.save(_saveData(20));
+    await repository.save(_saveData(20));
+    await repository.save(_saveData(20));
+
+    expect((await repository.load())?.savedAtMillis, 20);
+    html.window.localStorage[_primaryKey] = '{broken';
+
+    expect((await repository.load())?.savedAtMillis, 10);
+    expect((await repository.load())?.savedAtMillis, 10);
+  });
+
   test('Web current primary를 명시적으로 backup에 보존한다', () async {
     final repository = FileSaveRepository();
     await repository.save(_saveData(25));

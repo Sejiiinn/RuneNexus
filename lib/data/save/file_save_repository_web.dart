@@ -49,11 +49,12 @@ class FileSaveRepository implements BackupSaveRepository {
   @override
   Future<void> save(GameSaveData data) async {
     final storage = html.window.localStorage;
+    final json = const JsonEncoder().convert(data.toJson());
     final currentRaw = storage[_primaryKey];
-    if (_decode(currentRaw) != null) {
+    if (currentRaw != json && _decode(currentRaw) != null) {
       storage[_backupKey] = currentRaw!;
     }
-    storage[_primaryKey] = const JsonEncoder().convert(data.toJson());
+    storage[_primaryKey] = json;
   }
 
   @override
