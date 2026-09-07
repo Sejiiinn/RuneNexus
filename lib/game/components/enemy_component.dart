@@ -838,7 +838,11 @@ class EnemyComponent extends PositionComponent {
 
     canvas.save();
     canvas.translate(size.x * 0.34, size.y * 0.25);
-    drawDiamondCurrencyGlyph(canvas, Size(size.x * 0.32, size.y * 0.32));
+    drawDiamondCurrencyGlyph(
+      canvas,
+      Size(size.x * 0.32, size.y * 0.32),
+      game.diamondCurrencyImage,
+    );
     canvas.restore();
 
     final crownPaint = Paint()

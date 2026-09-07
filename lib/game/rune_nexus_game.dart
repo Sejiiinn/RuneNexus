@@ -64,6 +64,7 @@ import 'components/sniper_chain_beam_component.dart';
 import 'components/turret_component.dart';
 import 'game_snapshot.dart';
 import 'rendering/core_skill_cooldown_renderer.dart';
+import 'rendering/diamond_currency_renderer.dart';
 import 'rendering/game_board_selection_renderer.dart';
 import 'rendering/game_scene_effect_renderer.dart';
 import 'rendering/status_effect_sprite_cache.dart';
@@ -489,6 +490,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   late GridComponent _gridComponent;
   late final StatusEffectSpriteCache statusEffectSprites;
   ui.Image? _cannonBlastSpriteSheet;
+  ui.Image? diamondCurrencyImage;
   bool _statusEffectSpritesReady = false;
   bool _gridComponentReady = false;
   late Vector2 _origin;
@@ -906,6 +908,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _syncBoardComponents();
       _publish();
       if (!kDebugMode || BindingBase.debugBindingType() != null) {
+        // Flutter 바인딩이 없는 순수 로직 테스트에서는 에셋 디코딩 생략.
+        diamondCurrencyImage = await images.load(diamondCurrencyImageFile);
         _startCannonBlastSpriteSheetLoad();
       }
       readyNotifier.value = true;
@@ -3291,6 +3295,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       }
       add(
         DiamondRewardEffectComponent(
+          diamondImage: diamondCurrencyImage,
           position: enemy.visualPosition.clone(),
           reward: diamondReward,
           visualScale: boardDistanceScale,

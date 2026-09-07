@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../domain/core/core_ability.dart';
 import '../../domain/core/core_passive_tree.dart';
 import '../../domain/research/research_type.dart';
+import '../../game/rendering/diamond_currency_renderer.dart';
 import 'core_ability_icon.dart';
 import 'research_icon.dart';
 import 'upgrade_icon.dart';
@@ -170,6 +171,7 @@ const List<String> stageRewardIconAssets = [
 ];
 
 const List<String> commonUiImageAssets = [
+  diamondCurrencyImageAsset,
   mainMenuBackgroundAsset,
   gameLogoAsset,
   resultSuccessEmblemAsset,

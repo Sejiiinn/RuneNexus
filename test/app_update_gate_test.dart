@@ -42,31 +42,37 @@ void main() {
       ),
     );
     await tester.pumpWidget(
-      AppUpdateGate(
-        service: AppUpdateService(
-          manifestUrl: 'https://example.com/update.json',
-          readManifest: (_) async => jsonEncode(manifest()),
+      MaterialApp(
+        home: AppUpdateGate(
+          service: AppUpdateService(
+            manifestUrl: 'https://example.com/update.json',
+            readManifest: (_) async => jsonEncode(manifest()),
+          ),
+          child: const Text('게임 진입'),
         ),
-        child: const MaterialApp(home: Text('게임 진입')),
       ),
     );
     await tester.pumpAndSettle();
     expect(find.text('게임 진입'), findsNothing);
+    await tester.ensureVisible(find.text('업데이트'));
     await tester.tap(find.text('업데이트'));
     await tester.pump();
     expect(
-      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      tester.widget<FilledButton>(find.byType(FilledButton).first).onPressed,
       isNull,
     );
     download.complete();
     await tester.pumpAndSettle();
     expect(find.textContaining('설정에서 이 앱의 설치를 허용'), findsOneWidget);
+    await tester.ensureVisible(find.text('설치 계속'));
     await tester.tap(find.text('설치 계속'));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('설치 계속'));
     await tester.tap(find.text('설치 계속'));
     await tester.pumpAndSettle();
     expect(downloads, 1);
     expect(installs, 3);
+    await tester.ensureVisible(find.text('현재 버전으로 계속'));
     await tester.tap(find.text('현재 버전으로 계속'));
     await tester.pumpAndSettle();
     expect(find.text('게임 진입'), findsOneWidget);
@@ -85,21 +91,25 @@ void main() {
     );
     var checks = 0;
     await tester.pumpWidget(
-      AppUpdateGate(
-        service: AppUpdateService(
-          manifestUrl: 'https://example.com/update.json',
-          readManifest: (_) async {
-            checks++;
-            throw StateError('offline');
-          },
+      MaterialApp(
+        home: AppUpdateGate(
+          service: AppUpdateService(
+            manifestUrl: 'https://example.com/update.json',
+            readManifest: (_) async {
+              checks++;
+              throw StateError('offline');
+            },
+          ),
+          child: const Text('게임 진입'),
         ),
-        child: const MaterialApp(home: Text('게임 진입')),
       ),
     );
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('다시 확인'));
     await tester.tap(find.text('다시 확인'));
     await tester.pumpAndSettle();
     expect(checks, 2);
+    await tester.ensureVisible(find.text('현재 버전으로 계속'));
     await tester.tap(find.text('현재 버전으로 계속'));
     await tester.pumpAndSettle();
     expect(find.text('게임 진입'), findsOneWidget);
@@ -137,16 +147,19 @@ void main() {
     );
     final value = manifest(version: 3)..['patches'] = [patchManifest()];
     await tester.pumpWidget(
-      AppUpdateGate(
-        service: AppUpdateService(
-          manifestUrl: 'https://example.com/update.json',
-          readManifest: (_) async => jsonEncode(value),
+      MaterialApp(
+        home: AppUpdateGate(
+          service: AppUpdateService(
+            manifestUrl: 'https://example.com/update.json',
+            readManifest: (_) async => jsonEncode(value),
+          ),
+          child: const Text('게임 진입'),
         ),
-        child: const MaterialApp(home: Text('게임 진입')),
       ),
     );
     await tester.pumpAndSettle();
     expect(find.textContaining('변경분 다운로드'), findsOneWidget);
+    await tester.ensureVisible(find.text('업데이트'));
     await tester.tap(find.text('업데이트'));
     await tester.pump();
     expect(find.text('변경분을 다운로드하고 새 APK를 복원하는 중'), findsOneWidget);
@@ -159,7 +172,7 @@ void main() {
     expect(installs, 0);
     expect(find.textContaining('업데이트를 완료하지 못했습니다'), findsOneWidget);
     expect(
-      tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+      tester.widget<FilledButton>(find.byType(FilledButton).first).onPressed,
       isNotNull,
     );
   });

@@ -4,7 +4,7 @@ import '../../data/definitions/game_gem_data.dart';
 import '../../domain/gem/gem_type.dart';
 import '../../game/rendering/diamond_currency_renderer.dart';
 
-/// 확정된 커스텀 아이콘 세트(젬 13종 + 재화)를 CustomPainter로 구현한 위젯 모음.
+/// 젬 13종과 재화의 커스텀 아이콘 위젯 모음.
 /// 젬은 공통 보석 컷(육각) 안에 젬별 특징을 새긴 내장 엠블럼으로 표현한다(PoE 스타일).
 
 double _lum(Color c) => (0.299 * c.r + 0.587 * c.g + 0.114 * c.b) * 255;
@@ -337,26 +337,18 @@ class _GemIconPainter extends CustomPainter {
 
 // ===== 재화 아이콘 =====
 
-/// 다이아(프리미엄 재화) — 아이스블루 브릴리언트 컷 보석.
+/// 다이아(프리미엄 재화) — 청록빛 룬 각인 보석.
 class DiamondCurrencyIcon extends StatelessWidget {
   const DiamondCurrencyIcon({this.size = 16, super.key});
   final double size;
   @override
-  Widget build(BuildContext context) => SizedBox(
+  Widget build(BuildContext context) => Image.asset(
+    diamondCurrencyImageAsset,
     width: size,
     height: size,
-    child: CustomPaint(painter: _DiamondCurrencyPainter()),
+    filterQuality: FilterQuality.medium,
+    excludeFromSemantics: true,
   );
-}
-
-class _DiamondCurrencyPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    drawDiamondCurrencyGlyph(canvas, size);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 /// 룬(메타 재화) — 골드 룬석 타블렛 + 발광 시질.

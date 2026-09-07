@@ -2,17 +2,55 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
+import 'package:rune_nexus/game/rendering/diamond_currency_renderer.dart';
 import 'package:rune_nexus/ui/game/game_image_assets.dart';
 
 import 'helpers/widget_test_helpers.dart';
 
 void main() {
+  testWidgets('diamond currency asset stays transparent at HUD size', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final data = await rootBundle.load(diamondCurrencyImageAsset);
+      final codec = await ui.instantiateImageCodec(
+        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+      );
+      final frame = await codec.getNextFrame();
+      try {
+        for (final size in [16, 24, 30]) {
+          final recorder = ui.PictureRecorder();
+          drawDiamondCurrencyGlyph(
+            Canvas(recorder),
+            Size.square(size.toDouble()),
+            frame.image,
+          );
+          final picture = recorder.endRecording();
+          final rendered = await picture.toImage(size, size);
+          try {
+            final rgba = (await rendered.toByteData())!;
+            // 투명 모서리와 보석 중심의 불투명 픽셀 확인.
+            expect(rgba.getUint8(3), 0);
+            final centerAlpha = ((size ~/ 2) * size + size ~/ 2) * 4 + 3;
+            expect(rgba.getUint8(centerAlpha), greaterThan(240));
+          } finally {
+            rendered.dispose();
+            picture.dispose();
+          }
+        }
+      } finally {
+        frame.image.dispose();
+        codec.dispose();
+      }
+    });
+  });
+
   test(
     'startup image catalog covers every used image with matching providers',
     () {
       final providers = runeNexusStartupImageProviders();
 
-      expect(providers, hasLength(95));
+      expect(providers, hasLength(96));
       expect(providers.whereType<ResizeImage>(), hasLength(29));
       for (final asset in commonUiImageAssets) {
         expect(providers, contains(gameUiAssetImageProvider(asset)));
@@ -70,7 +108,7 @@ void main() {
     expect(find.text('룬 넥서스 준비 중'), findsNothing);
 
     repository.completeLoad();
-    await pumpUntilFound(tester, find.text('이미지 에셋 로드 중'), maxFrameCount: 60);
+    await pumpUntilFound(tester, find.text('게임 화면 준비 중'), maxFrameCount: 60);
     expect(find.text('게임을 시작하는 중'), findsNothing);
     await pumpUntilLoadedApp(tester);
     expect(find.byType(MainMenuScreen), findsOneWidget);

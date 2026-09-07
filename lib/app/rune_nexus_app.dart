@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +28,9 @@ import '../game/rune_nexus_game.dart';
 import '../l10n/rune_nexus_localizations.dart';
 import '../platform/legacy_transfer/legacy_transfer_link.dart';
 import '../platform/auth/google_identity_session.dart';
+import '../platform/update/app_update_service.dart';
+import 'app_update_gate.dart';
+import 'app_startup_screen.dart';
 import '../ui/account/google_sign_in_dialog.dart';
 import '../ui/account/legacy_save_transfer_dialog.dart';
 import '../ui/game/game_button.dart';
@@ -59,9 +61,10 @@ class _AppLoadingProgress {
 }
 
 class RuneNexusApp extends StatefulWidget {
-  const RuneNexusApp({this.game, super.key});
+  const RuneNexusApp({this.game, this.updateService, super.key});
 
   final RuneNexusGame? game;
+  final AppUpdateService? updateService;
 
   @override
   State<RuneNexusApp> createState() => _RuneNexusAppState();
@@ -164,7 +167,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       if (!mounted || !context.mounted) return;
     }
     _loadingProgress.value = _AppLoadingProgress(
-      label: restoresSession ? '로그인 상태와 게임 데이터 확인 중' : '이미지 에셋 로드 중',
+      label: restoresSession ? '로그인 상태와 게임 데이터 확인 중' : '게임 화면 준비 중',
       value: restoresSession ? null : 0,
     );
     // 세션 판정 전 guest 슬롯은 생성하거나 읽지 않음.
@@ -177,7 +180,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
             return;
           }
           _loadingProgress.value = _AppLoadingProgress(
-            label: restoresSession ? '로그인 상태와 이미지 에셋 확인 중' : '이미지 에셋 로드 중',
+            label: restoresSession ? '로그인 상태와 게임 화면 준비 중' : '게임 화면 준비 중',
             value: value,
           );
         },
@@ -1191,170 +1194,178 @@ class _RuneNexusAppState extends State<RuneNexusApp>
         fontFamilyFallback: const ['sans-serif'],
         useMaterial3: true,
       ),
-      home: Builder(
-        builder: (appContext) {
-          _initialLoad ??= _prepareForAppStart(appContext);
-          return Scaffold(
-            backgroundColor: const Color(0xFF07111D),
-            body: FutureBuilder<void>(
-              future: _initialLoad,
-              builder: (context, loadState) {
-                if ((loadState.connectionState == ConnectionState.done &&
-                        loadState.hasError) ||
-                    _sessionEndRecoveryFailed) {
-                  return _AppLoadErrorScreen(
-                    onRetry: () {
-                      setState(() {
-                        _sessionEndRecoveryFailed = false;
-                        _initialLoad = null;
-                      });
-                    },
-                  );
-                }
-                if (loadState.connectionState != ConnectionState.done ||
-                    _sessionTransitionInProgress) {
-                  return _AppLoadingScreen(
-                    progressListenable: _loadingProgress,
-                  );
-                }
-                late final Widget content;
-                if (_screen == _AppScreen.stage) {
-                  content = GameHud(
-                    game: game,
-                    onOpenStageSelect: () => _openMainScreen(),
-                    onOpenPermanentUpgrades: () =>
-                        _openMainScreen(tab: MainMenuTab.permanentUpgrades),
-                    onStartStage: (stageNumber) => _startStage(
-                      stageNumber,
-                      game.snapshotNotifier.value,
-                      context,
-                    ),
-                  );
-                } else if (_screen == _AppScreen.mapEditor) {
-                  content = _MapEditorScreen(
-                    initialStageNumber:
-                        game.snapshotNotifier.value.currentStageNumber,
-                    onBack: () => _openMainScreen(),
-                  );
-                } else {
-                  content = MainMenuScreen(
-                    game: game,
-                    snapshot: game.snapshotNotifier.value,
-                    snapshotListenable: game.snapshotNotifier,
-                    selectedTab: _selectedMainMenuTab,
-                    onSelectTab: (tab) {
-                      setState(() {
-                        _selectedMainMenuTab = tab;
-                      });
-                    },
-                    onStartStage: (stageNumber) => _startStage(
-                      stageNumber,
-                      game.snapshotNotifier.value,
-                      context,
-                    ),
-                    accountSession: _accountSession,
-                    onConnectGoogle: _authenticationSessions == null
-                        ? null
-                        : () => _connectGoogle(context),
-                    onCreateLegacyTransfer:
-                        _legacySaveTransferApi == null ||
-                            !_activeSaveSlot.isGuest ||
-                            widget.game != null
-                        ? null
-                        : () => _openLegacyTransferDialog(context),
-                    onSignOut: _onlineSession == null
-                        ? null
-                        : () => _signOut(context),
-                    onSyncAccount:
-                        _onlineSession == null || !_activeSaveSlot.isGuest
-                        ? null
-                        : () => _pendingLegacyTransferToken != null
-                              ? _connectPendingLegacyTransfer(
-                                  context: context,
-                                  onlineSession: _onlineSession!,
-                                  credentials: _onlineAccount!.credentials,
-                                )
-                              : _connectAccountProgress(
-                                  context: context,
-                                  onlineSession: _onlineSession!,
-                                  credentials: _onlineAccount!.credentials,
-                                ),
-                    onClaimWeeklyReward:
-                        _onlineSession == null || _activeSaveSlot.isGuest
-                        ? null
-                        : _claimWeeklyReward,
-                    onOpenMapEditor: () {
-                      setState(() {
-                        _screen = _AppScreen.mapEditor;
-                      });
-                    },
-                  );
-                }
-                final coordinator = _onlineSaveCoordinator;
-                final accountConnectionPhase = _accountConnectionPhase;
-                if (accountConnectionPhase != null) {
+      home: AppUpdateGate(
+        enabled: AppUpdateService.enabled || widget.updateService != null,
+        service: widget.updateService,
+        child: Builder(
+          builder: (appContext) {
+            _initialLoad ??= _prepareForAppStart(appContext);
+            return Scaffold(
+              backgroundColor: const Color(0xFF07111D),
+              body: FutureBuilder<void>(
+                future: _initialLoad,
+                builder: (context, loadState) {
+                  if ((loadState.connectionState == ConnectionState.done &&
+                          loadState.hasError) ||
+                      _sessionEndRecoveryFailed) {
+                    return _AppLoadErrorScreen(
+                      onRetry: () {
+                        setState(() {
+                          _sessionEndRecoveryFailed = false;
+                          _initialLoad = null;
+                        });
+                      },
+                    );
+                  }
+                  if (loadState.connectionState != ConnectionState.done ||
+                      _sessionTransitionInProgress) {
+                    return _AppLoadingScreen(
+                      progressListenable: _loadingProgress,
+                    );
+                  }
+                  late final Widget content;
+                  if (_screen == _AppScreen.stage) {
+                    content = GameHud(
+                      game: game,
+                      onOpenStageSelect: () => _openMainScreen(),
+                      onOpenPermanentUpgrades: () =>
+                          _openMainScreen(tab: MainMenuTab.permanentUpgrades),
+                      onStartStage: (stageNumber) => _startStage(
+                        stageNumber,
+                        game.snapshotNotifier.value,
+                        context,
+                      ),
+                    );
+                  } else if (_screen == _AppScreen.mapEditor) {
+                    content = _MapEditorScreen(
+                      initialStageNumber:
+                          game.snapshotNotifier.value.currentStageNumber,
+                      onBack: () => _openMainScreen(),
+                    );
+                  } else {
+                    content = MainMenuScreen(
+                      game: game,
+                      snapshot: game.snapshotNotifier.value,
+                      snapshotListenable: game.snapshotNotifier,
+                      selectedTab: _selectedMainMenuTab,
+                      onSelectTab: (tab) {
+                        setState(() {
+                          _selectedMainMenuTab = tab;
+                        });
+                      },
+                      onStartStage: (stageNumber) => _startStage(
+                        stageNumber,
+                        game.snapshotNotifier.value,
+                        context,
+                      ),
+                      accountSession: _accountSession,
+                      onConnectGoogle: _authenticationSessions == null
+                          ? null
+                          : () => _connectGoogle(context),
+                      onCreateLegacyTransfer:
+                          _legacySaveTransferApi == null ||
+                              !_activeSaveSlot.isGuest ||
+                              widget.game != null
+                          ? null
+                          : () => _openLegacyTransferDialog(context),
+                      onSignOut: _onlineSession == null
+                          ? null
+                          : () => _signOut(context),
+                      onSyncAccount:
+                          _onlineSession == null || !_activeSaveSlot.isGuest
+                          ? null
+                          : () => _pendingLegacyTransferToken != null
+                                ? _connectPendingLegacyTransfer(
+                                    context: context,
+                                    onlineSession: _onlineSession!,
+                                    credentials: _onlineAccount!.credentials,
+                                  )
+                                : _connectAccountProgress(
+                                    context: context,
+                                    onlineSession: _onlineSession!,
+                                    credentials: _onlineAccount!.credentials,
+                                  ),
+                      onClaimWeeklyReward:
+                          _onlineSession == null || _activeSaveSlot.isGuest
+                          ? null
+                          : _claimWeeklyReward,
+                      onOpenMapEditor: () {
+                        setState(() {
+                          _screen = _AppScreen.mapEditor;
+                        });
+                      },
+                    );
+                  }
+                  final coordinator = _onlineSaveCoordinator;
+                  final accountConnectionPhase = _accountConnectionPhase;
+                  if (accountConnectionPhase != null) {
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        IgnorePointer(child: content),
+                        _AccountConnectionOverlay(
+                          phase: accountConnectionPhase,
+                        ),
+                      ],
+                    );
+                  }
+                  final clientUpdateRequired =
+                      _clientUpdateRequired ||
+                      coordinator?.snapshot.issueCode ==
+                          'CLIENT_UPDATE_REQUIRED';
+                  if (clientUpdateRequired) {
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        IgnorePointer(child: content),
+                        _ClientUpdateRequiredOverlay(
+                          onSignOut: _onlineSession == null
+                              ? null
+                              : () => _signOut(context),
+                        ),
+                      ],
+                    );
+                  }
+                  final writerSuspended =
+                      coordinator?.snapshot.phase ==
+                      OnlineSaveCoordinatorPhase.suspended;
+                  final remoteRecoveryInProgress =
+                      (coordinator?.snapshot.hasPendingRemoteRebase ?? false) ||
+                      (coordinator?.snapshot.requiresGameReload ?? false);
+                  final remoteRecoveryBlocked =
+                      remoteRecoveryInProgress &&
+                      coordinator?.snapshot.phase ==
+                          OnlineSaveCoordinatorPhase.blocked;
+                  if (!writerSuspended &&
+                      !_writerRecoveryInProgress &&
+                      !remoteRecoveryInProgress) {
+                    return content;
+                  }
                   return Stack(
                     fit: StackFit.expand,
                     children: [
                       IgnorePointer(child: content),
-                      _AccountConnectionOverlay(phase: accountConnectionPhase),
-                    ],
-                  );
-                }
-                final clientUpdateRequired =
-                    _clientUpdateRequired ||
-                    coordinator?.snapshot.issueCode == 'CLIENT_UPDATE_REQUIRED';
-                if (clientUpdateRequired) {
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      IgnorePointer(child: content),
-                      _ClientUpdateRequiredOverlay(
-                        onSignOut: _onlineSession == null
+                      _WriterRecoveryOverlay(
+                        recovering:
+                            _writerRecoveryInProgress ||
+                            (remoteRecoveryInProgress &&
+                                !remoteRecoveryBlocked),
+                        blocked: remoteRecoveryBlocked,
+                        onResume: coordinator == null
+                            ? null
+                            : () => _resumeOnlineSaveInForeground(coordinator),
+                        onSignOut:
+                            !remoteRecoveryBlocked || _onlineSession == null
                             ? null
                             : () => _signOut(context),
                       ),
                     ],
                   );
-                }
-                final writerSuspended =
-                    coordinator?.snapshot.phase ==
-                    OnlineSaveCoordinatorPhase.suspended;
-                final remoteRecoveryInProgress =
-                    (coordinator?.snapshot.hasPendingRemoteRebase ?? false) ||
-                    (coordinator?.snapshot.requiresGameReload ?? false);
-                final remoteRecoveryBlocked =
-                    remoteRecoveryInProgress &&
-                    coordinator?.snapshot.phase ==
-                        OnlineSaveCoordinatorPhase.blocked;
-                if (!writerSuspended &&
-                    !_writerRecoveryInProgress &&
-                    !remoteRecoveryInProgress) {
-                  return content;
-                }
-                return Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    IgnorePointer(child: content),
-                    _WriterRecoveryOverlay(
-                      recovering:
-                          _writerRecoveryInProgress ||
-                          (remoteRecoveryInProgress && !remoteRecoveryBlocked),
-                      blocked: remoteRecoveryBlocked,
-                      onResume: coordinator == null
-                          ? null
-                          : () => _resumeOnlineSaveInForeground(coordinator),
-                      onSignOut:
-                          !remoteRecoveryBlocked || _onlineSession == null
-                          ? null
-                          : () => _signOut(context),
-                    ),
-                  ],
-                );
-              },
-            ),
-          );
-        },
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -1783,426 +1794,10 @@ class _AppLoadingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: const Color(0xFF07111D),
-      child: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment(0, -0.24),
-            radius: 0.9,
-            colors: [Color(0xFF123144), Color(0xFF0A1B29), Color(0xFF07111D)],
-            stops: [0, 0.38, 1],
-          ),
-        ),
-        child: Stack(
-          children: [
-            const Align(alignment: Alignment(0, -0.24), child: _AppBootCore()),
-            Positioned.fill(
-              child: SafeArea(
-                top: false,
-                left: false,
-                right: false,
-                minimum: const EdgeInsets.only(bottom: 42),
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 36),
-                    child: ValueListenableBuilder<_AppLoadingProgress>(
-                      valueListenable: progressListenable,
-                      builder: (context, progress, _) {
-                        final value = progress.value;
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              progress.label,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Color(0xFFB9D6E4),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            Semantics(
-                              label: '게임 시작 진행률',
-                              value: value == null
-                                  ? null
-                                  : '${(value * 100).round()}%',
-                              child: _AppBootProgressBar(value: value),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AppBootCore extends StatefulWidget {
-  const _AppBootCore();
-
-  @override
-  State<_AppBootCore> createState() => _AppBootCoreState();
-}
-
-class _AppBootCoreState extends State<_AppBootCore>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: 240,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          const Positioned.fill(
-            child: RepaintBoundary(
-              child: CustomPaint(painter: _AppBootAmbientPainter()),
-            ),
-          ),
-          SizedBox.square(
-            dimension: 58,
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, _) {
-                final phase = _controller.value;
-                final pulse =
-                    0.94 + math.sin(phase * math.pi * 2 * 1.27) * 0.06;
-                return CustomPaint(
-                  painter: _AppBootCorePainter(
-                    rotation: phase * math.pi * 2,
-                    pulse: pulse,
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AppBootAmbientPainter extends CustomPainter {
-  const _AppBootAmbientPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-
-    // 코어 주변 저강도 공간광.
-    canvas.drawCircle(
-      center,
-      98,
-      Paint()
-        ..color = const Color(0x122ED3FF)
-        ..isAntiAlias = true
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 22
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 22),
-    );
-    final ringGlowPaint = Paint()
-      ..isAntiAlias = true
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.4
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.6);
-    final ringPaint = Paint()
-      ..isAntiAlias = true
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.7;
-    ringGlowPaint.color = const Color(0x0A5EE2FF);
-    canvas.drawCircle(center, 118, ringGlowPaint);
-    ringPaint.color = const Color(0x105EE2FF);
-    canvas.drawCircle(center, 118, ringPaint);
-    ringGlowPaint.color = const Color(0x07E7C66A);
-    canvas.drawCircle(center, 88, ringGlowPaint);
-    ringPaint.color = const Color(0x0AE7C66A);
-    canvas.drawCircle(center, 88, ringPaint);
-    ringGlowPaint.color = const Color(0x0C5EE2FF);
-    canvas.drawCircle(center, 44, ringGlowPaint);
-    ringPaint.color = const Color(0x125EE2FF);
-    canvas.drawCircle(center, 44, ringPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-class _AppBootCorePainter extends CustomPainter {
-  const _AppBootCorePainter({required this.rotation, required this.pulse});
-
-  final double rotation;
-  final double pulse;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-
-    const orbitRadius = 28.0;
-    canvas.drawCircle(
-      center,
-      orbitRadius,
-      Paint()
-        ..color = const Color(0x348EE6FF)
-        ..isAntiAlias = true
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1,
-    );
-
-    final orbitRect = Rect.fromCircle(center: center, radius: orbitRadius);
-    final arcStart = -math.pi / 2 + rotation;
-    const arcSweep = 1.8;
-    canvas.drawArc(
-      orbitRect,
-      arcStart,
-      arcSweep,
-      false,
-      Paint()
-        ..color = const Color(0x428EE6FF)
-        ..isAntiAlias = true
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4
-        ..strokeCap = StrokeCap.round
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.2),
-    );
-    canvas.drawArc(
-      orbitRect,
-      arcStart,
-      arcSweep,
-      false,
-      Paint()
-        ..color = const Color(0x708EE6FF)
-        ..isAntiAlias = true
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..strokeCap = StrokeCap.round
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 0.8),
-    );
-    canvas.drawArc(
-      orbitRect,
-      arcStart,
-      arcSweep,
-      false,
-      Paint()
-        ..color = const Color(0xD98EE6FF)
-        ..isAntiAlias = true
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.9
-        ..strokeCap = StrokeCap.round,
-    );
-
-    final sparkAngle = arcStart + arcSweep;
-    final sparkCenter = center.translate(
-      math.cos(sparkAngle) * orbitRadius,
-      math.sin(sparkAngle) * orbitRadius,
-    );
-    canvas.drawCircle(
-      sparkCenter,
-      4,
-      Paint()
-        ..color = const Color(0x70E7C66A)
-        ..isAntiAlias = true
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.5),
-    );
-    canvas.drawCircle(
-      sparkCenter,
-      1.6,
-      Paint()
-        ..color = const Color(0xE6E7C66A)
-        ..isAntiAlias = true,
-    );
-
-    canvas.save();
-    canvas.translate(center.dx, center.dy);
-    canvas.scale(pulse);
-    canvas.rotate(math.pi / 4);
-    final diamond = RRect.fromRectAndRadius(
-      const Rect.fromLTWH(-9, -9, 18, 18),
-      const Radius.circular(1.5),
-    );
-    canvas.drawRRect(
-      diamond,
-      Paint()
-        ..color = const Color(0x528EE6FF)
-        ..isAntiAlias = true
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
-    );
-    canvas.drawRRect(
-      diamond,
-      Paint()
-        ..color = const Color(0xC20F3E52)
-        ..isAntiAlias = true,
-    );
-    canvas.drawRRect(
-      diamond,
-      Paint()
-        ..color = const Color(0x428EE6FF)
-        ..isAntiAlias = true
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.6
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.6),
-    );
-    canvas.drawRRect(
-      diamond,
-      Paint()
-        ..color = const Color(0xD98EE6FF)
-        ..isAntiAlias = true
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.9,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(-3.5, -3.5, 7, 7),
-        const Radius.circular(1),
-      ),
-      Paint()
-        ..color = const Color(0xE6E8FBFF)
-        ..isAntiAlias = true
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.8),
-    );
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant _AppBootCorePainter oldDelegate) {
-    return oldDelegate.rotation != rotation || oldDelegate.pulse != pulse;
-  }
-}
-
-class _AppBootProgressBar extends StatefulWidget {
-  const _AppBootProgressBar({required this.value});
-
-  final double? value;
-
-  @override
-  State<_AppBootProgressBar> createState() => _AppBootProgressBarState();
-}
-
-class _AppBootProgressBarState extends State<_AppBootProgressBar>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1250),
-    )..repeat();
-  }
-
-  @override
-  void didUpdateWidget(covariant _AppBootProgressBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.value == null && widget.value != null) {
-      _controller.stop();
-    } else if (oldWidget.value != null && widget.value == null) {
-      _controller.repeat();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 286),
-      child: Container(
-        width: double.infinity,
-        height: 5,
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: const Color(0x172ED3FF),
-          border: Border.all(color: const Color(0x245EE2FF)),
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final value = widget.value;
-            if (value != null) {
-              return Align(
-                alignment: Alignment.centerLeft,
-                child: FractionallySizedBox(
-                  widthFactor: value.clamp(0.0, 1.0).toDouble(),
-                  child: const _AppBootProgressFill(),
-                ),
-              );
-            }
-            return AnimatedBuilder(
-              animation: _controller,
-              builder: (context, _) {
-                final trackWidth = constraints.maxWidth;
-                final fillWidth = trackWidth * 0.38;
-                final offset =
-                    -fillWidth +
-                    (trackWidth + fillWidth) *
-                        Curves.easeInOut.transform(_controller.value);
-                return Stack(
-                  children: [
-                    Transform.translate(
-                      offset: Offset(offset, 0),
-                      child: SizedBox(
-                        width: fillWidth,
-                        child: const _AppBootProgressFill(),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _AppBootProgressFill extends StatelessWidget {
-  const _AppBootProgressFill();
-
-  @override
-  Widget build(BuildContext context) {
-    return const DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color(0x008EE6FF),
-            Color(0xFF8EE6FF),
-            Color(0xFFE8FBFF),
-            Color(0x008EE6FF),
-          ],
-          stops: [0, 0.46, 0.58, 1],
-        ),
-      ),
-      child: SizedBox.expand(),
+    return ValueListenableBuilder<_AppLoadingProgress>(
+      valueListenable: progressListenable,
+      builder: (context, progress, _) =>
+          AppStartupScreen(status: progress.label, progress: progress.value),
     );
   }
 }
@@ -2213,32 +1808,18 @@ class _AppLoadErrorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Color(0xFF07111D),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, color: Color(0xFFFF8A80), size: 38),
-            const SizedBox(height: 14),
-            const Text(
-              '초기화에 실패했습니다',
-              style: TextStyle(
-                color: Color(0xFFFFE8E5),
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              '로그인 상태와 진행 데이터는 보존됩니다.\n연결을 확인한 뒤 다시 시도해 주세요.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Color(0xFFBFA19D), fontSize: 12),
-            ),
-            const SizedBox(height: 12),
-            TextButton(onPressed: onRetry, child: const Text('다시 시도')),
-          ],
-        ),
+    return AppStartupScreen(
+      status: '초기화에 실패했습니다',
+      busy: false,
+      details: Column(
+        children: [
+          const Text(
+            '로그인 상태와 진행 데이터는 보존됩니다.\n연결을 확인한 뒤 다시 시도해 주세요.',
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          AppStartupButton(onPressed: onRetry, label: '다시 시도'),
+        ],
       ),
     );
   }

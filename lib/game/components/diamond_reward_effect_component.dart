@@ -10,6 +10,7 @@ class DiamondRewardEffectComponent extends PositionComponent {
   DiamondRewardEffectComponent({
     required Vector2 position,
     required int reward,
+    required this.diamondImage,
     double visualScale = 1,
   }) : _reward = reward,
        _visualScale = visualScale,
@@ -21,6 +22,7 @@ class DiamondRewardEffectComponent extends PositionComponent {
        );
 
   final int _reward;
+  final Image? diamondImage;
   final double _visualScale;
   double _age = 0;
   static const double _lifeTime = 1.05;
@@ -89,6 +91,7 @@ class DiamondRewardEffectComponent extends PositionComponent {
     drawDiamondCurrencyGlyph(
       canvas,
       Size(30 * _visualScale, 30 * _visualScale),
+      diamondImage,
     );
     canvas.restore();
 
