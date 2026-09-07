@@ -43,9 +43,47 @@ class HudTurretLinkSocketStrip extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text(
-          '링크 홈',
-          style: TextStyle(fontSize: 10, color: Color(0xFF8EE6FF)),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 2,
+          children: [
+            const Text(
+              '링크 홈',
+              style: TextStyle(fontSize: 10, color: Color(0xFF8EE6FF)),
+            ),
+            if (snapshot.selectedTurretHasLinkUpgrade)
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 4,
+                children: [
+                  Text(
+                    '홈 ${snapshot.selectedTurretSlotLimit + 1} 열기',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFF8AA6B8),
+                    ),
+                  ),
+                  if (snapshot.selectedTurretCanUpgradeLink) ...[
+                    const GoldCurrencyIcon(size: 14),
+                    Text(
+                      '${snapshot.selectedTurretLinkUpgradeCost}',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFFE7C66A),
+                      ),
+                    ),
+                  ] else
+                    Text(
+                      lockedRequirement,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF8AA6B8),
+                      ),
+                    ),
+                ],
+              ),
+          ],
         ),
         const SizedBox(height: 4),
         LayoutBuilder(
@@ -108,36 +146,6 @@ class HudTurretLinkSocketStrip extends StatelessWidget {
             );
           },
         ),
-        if (snapshot.selectedTurretHasLinkUpgrade) ...[
-          const SizedBox(height: 4),
-          Wrap(
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 4,
-            children: [
-              Text(
-                '홈 ${snapshot.selectedTurretSlotLimit + 1} 열기',
-                style: const TextStyle(fontSize: 10, color: Color(0xFF8AA6B8)),
-              ),
-              if (snapshot.selectedTurretCanUpgradeLink) ...[
-                const GoldCurrencyIcon(size: 14),
-                Text(
-                  '${snapshot.selectedTurretLinkUpgradeCost}',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Color(0xFFE7C66A),
-                  ),
-                ),
-              ] else
-                Text(
-                  lockedRequirement,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Color(0xFF8AA6B8),
-                  ),
-                ),
-            ],
-          ),
-        ],
       ],
     );
   }
@@ -213,8 +221,8 @@ class _LinkSocketButton extends StatelessWidget {
   }
 }
 
-class HudInventoryGemChip extends StatelessWidget {
-  const HudInventoryGemChip({
+class HudInventoryGemSlot extends StatelessWidget {
+  const HudInventoryGemSlot({
     required this.gem,
     required this.count,
     required this.selected,
@@ -236,43 +244,103 @@ class HudInventoryGemChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dimmed = equipped || blocked;
-    return Opacity(
-      opacity: dimmed && !selected ? 0.48 : 1,
-      child: SizedBox(
-        height: 34,
-        child: OutlinedButton(
-          onPressed: enabled ? onTap : null,
-          style: OutlinedButton.styleFrom(
-            foregroundColor: Colors.white,
-            minimumSize: const Size(0, 34),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            side: BorderSide(
-              color: selected ? gem.color : gem.color.withValues(alpha: 0.58),
-              width: selected ? 2 : 1,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 7),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              GemIcon(gem.type, size: 15),
-              const SizedBox(width: 5),
-              Text(
-                gem.name,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
+    final status = equipped
+        ? ', 이미 장착됨'
+        : blocked
+        ? ', 장착 불가'
+        : '';
+    return Semantics(
+      label: '${gem.name}, 보유 $count개$status',
+      button: true,
+      selected: selected,
+      enabled: enabled,
+      child: ExcludeSemantics(
+        child: Opacity(
+          opacity: dimmed && !selected ? 0.48 : 1,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: enabled ? onTap : null,
+              borderRadius: BorderRadius.circular(6),
+              child: SizedBox(
+                width: 56,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 48,
+                      height: 48,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Image(
+                            image: gameUiAssetImageProvider(
+                              gameIconSocketAsset,
+                            ),
+                            width: 48,
+                            height: 48,
+                          ),
+                          if (selected)
+                            Positioned.fill(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: gem.color,
+                                    width: 1.5,
+                                  ),
+                                  borderRadius: BorderRadius.circular(7),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: gem.color.withValues(alpha: 0.18),
+                                      blurRadius: 5,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: GemIcon(gem.type, size: 26),
+                          ),
+                          Positioned(
+                            right: 3,
+                            bottom: 3,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xE607111D),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
+                              child: Text(
+                                'x$count',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFFE8F8FF),
+                                  height: 1.3,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      gem.name,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFFE8F8FF),
+                        height: 1.2,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 5),
-              Text(
-                'x$count',
-                style: const TextStyle(fontSize: 10, color: Color(0xFFB9D6E4)),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -318,18 +386,20 @@ class HudSelectedInventoryGemActions extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  gem.name,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFFE8F8FF),
+                Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: gem.name,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFFE8F8FF),
+                        ),
+                      ),
+                      TextSpan(text: ' · ${hudGemEffectText(type, turret)}'),
+                    ],
                   ),
-                  overflow: TextOverflow.clip,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  hudGemEffectText(type, turret),
                   style: const TextStyle(
                     fontSize: 10,
                     color: Color(0xFFC9DCE8),

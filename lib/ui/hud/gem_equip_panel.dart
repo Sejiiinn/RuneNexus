@@ -158,59 +158,69 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
                   style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
                 ),
                 const SizedBox(height: 5),
-                Scrollbar(
-                  controller: _inventoryScrollController,
-                  thumbVisibility: true,
-                  child: SingleChildScrollView(
-                    key: const ValueKey('gem-inventory-scroll'),
-                    controller: _inventoryScrollController,
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.only(bottom: 7),
-                    child: Row(
-                      children: inventory.map((type) {
-                        final gem = gameGems[type]!;
-                        final count = snapshot.gemInventory[type]!;
-                        final equipped = snapshot.selectedTurretGems.contains(
-                          type,
-                        );
-                        final selected = selectedInventoryGem == type;
-                        final blockReason = gemEquipBlockReason(
-                          type,
-                          definition,
-                        );
-                        final canInstall =
-                            selectedSlotCanAcceptGem &&
-                            !equipped &&
-                            blockReason == null;
-                        return Padding(
-                          padding: EdgeInsets.only(
-                            right: type == inventory.last ? 0 : 6,
-                          ),
-                          child: HudInventoryGemChip(
-                            gem: gem,
-                            count: count,
-                            selected: selected,
-                            equipped: equipped,
-                            blocked: blockReason != null,
-                            enabled: canInstallGems,
-                            onTap: () {
-                              if (!canInstallGems) {
-                                return;
-                              }
-                              if (selected && canInstall) {
-                                widget.game.equipSelectedTurret(type);
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(4, 4, 4, 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0x8807111D),
+                    border: Border.all(color: const Color(0x554A6172)),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(
+                      context,
+                    ).copyWith(scrollbars: false),
+                    child: SingleChildScrollView(
+                      key: const ValueKey('gem-inventory-scroll'),
+                      controller: _inventoryScrollController,
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: inventory.map((type) {
+                          final gem = gameGems[type]!;
+                          final count = snapshot.gemInventory[type]!;
+                          final equipped = snapshot.selectedTurretGems.contains(
+                            type,
+                          );
+                          final selected = selectedInventoryGem == type;
+                          final blockReason = gemEquipBlockReason(
+                            type,
+                            definition,
+                          );
+                          final canInstall =
+                              selectedSlotCanAcceptGem &&
+                              !equipped &&
+                              blockReason == null;
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              right: type == inventory.last ? 0 : 6,
+                            ),
+                            child: HudInventoryGemSlot(
+                              gem: gem,
+                              count: count,
+                              selected: selected,
+                              equipped: equipped,
+                              blocked: blockReason != null,
+                              enabled: canInstallGems,
+                              onTap: () {
+                                if (!canInstallGems) {
+                                  return;
+                                }
+                                if (selected && canInstall) {
+                                  widget.game.equipSelectedTurret(type);
+                                  setState(() {
+                                    _selectedInventoryGem = null;
+                                  });
+                                  return;
+                                }
                                 setState(() {
-                                  _selectedInventoryGem = null;
+                                  _selectedInventoryGem = type;
                                 });
-                                return;
-                              }
-                              setState(() {
-                                _selectedInventoryGem = type;
-                              });
-                            },
-                          ),
-                        );
-                      }).toList(),
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ),
                 ),
@@ -378,7 +388,6 @@ class _TurretInspectorTabs extends StatelessWidget {
     return Row(
       children: [
         Expanded(child: _tab(_TurretTab.stats, Icons.bar_chart_rounded, '스탯')),
-        const SizedBox(width: 5),
         Expanded(
           child: _tab(_TurretTab.gems, Icons.diamond_outlined, '젬 · 링크'),
         ),
@@ -391,33 +400,55 @@ class _TurretInspectorTabs extends StatelessWidget {
     final foreground = selected
         ? GamePalette.textPrimary
         : GamePalette.textSecondary;
-    final accentColor = selected ? GamePalette.cyan : GamePalette.metalDim;
-    // 하단 런 패널 탭과 동일한 게임 버튼 컴포넌트로 톤을 맞춘다.
-    return GameButton(
-      onPressed: () => onSelect(tab),
+    return Semantics(
       selected: selected,
-      compact: true,
-      variant: GameButtonVariant.secondary,
-      accentColor: accentColor,
-      height: 30,
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 16, color: foreground),
-          const SizedBox(width: 5),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.clip,
-              style: GameTextStyles.withColor(
-                GameTextStyles.button,
-                foreground,
+      button: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => onSelect(tab),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(5)),
+          child: Container(
+            height: 28,
+            decoration: BoxDecoration(
+              color: selected
+                  ? const Color(0xAA173548)
+                  : const Color(0x6607111D),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(5),
+              ),
+              border: Border(
+                top: BorderSide(
+                  color: selected ? GamePalette.cyan : GamePalette.metalDim,
+                ),
+                left: BorderSide(
+                  color: selected ? GamePalette.cyan : GamePalette.metalDim,
+                ),
+                right: BorderSide(
+                  color: selected ? GamePalette.cyan : GamePalette.metalDim,
+                ),
+                bottom: BorderSide(
+                  color: selected ? GamePalette.cyan : GamePalette.metalDim,
+                  width: selected ? 2 : 1,
+                ),
               ),
             ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 14, color: foreground),
+                const SizedBox(width: 5),
+                Text(
+                  label,
+                  style: GameTextStyles.withColor(
+                    GameTextStyles.buttonSmall,
+                    foreground,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

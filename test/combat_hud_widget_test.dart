@@ -33,9 +33,9 @@ void main() {
       await pumpGameFrames(tester);
 
       expect(game.snapshotNotifier.value.selectedTurretGemSlotIndex, isNull);
-      final chip = find.widgetWithText(HudInventoryGemChip, '가속');
-      final chips = tester.widgetList<HudInventoryGemChip>(
-        find.byType(HudInventoryGemChip),
+      final chip = find.widgetWithText(HudInventoryGemSlot, '가속');
+      final chips = tester.widgetList<HudInventoryGemSlot>(
+        find.byType(HudInventoryGemSlot),
       );
       expect(chips.length, 3);
       final inventoryRow = find.byKey(const ValueKey('gem-inventory-scroll'));
@@ -127,6 +127,33 @@ void main() {
       expect(
         tester.getTopLeft(slotImages.at(3)).dy,
         tester.getTopLeft(slotImages.at(0)).dy,
+      );
+      // 작은 화면에서도 긴 이름·수량을 보존하고 마지막 젬까지 탐색.
+      tester.view.physicalSize = const Size(320, 800);
+      for (final type in GemType.values) {
+        game.grantGem(type);
+      }
+      await pumpGameFrames(tester);
+      final lastInventorySlot = find.widgetWithText(
+        HudInventoryGemSlot,
+        '장갑 관통',
+      );
+      await tester.ensureVisible(lastInventorySlot);
+      await pumpGameFrames(tester);
+      expect(lastInventorySlot.hitTestable(), findsOneWidget);
+      expect(
+        find.descendant(of: lastInventorySlot, matching: find.text('x1')),
+        findsOneWidget,
+      );
+      expect(
+        tester.widget<SingleChildScrollView>(inventoryRow).controller!.offset,
+        greaterThan(0),
+      );
+      await tester.tap(lastInventorySlot);
+      await pumpGameFrames(tester);
+      expect(
+        find.textContaining('장갑 관통', findRichText: true),
+        findsNWidgets(2),
       );
       expect(tester.takeException(), isNull);
     },
