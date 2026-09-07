@@ -35,7 +35,6 @@ jobs:
       GOOGLE_WEB_CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID }}
       RUNE_NEXUS_API_BASE_URL: ${{ vars.RUNE_NEXUS_API_BASE_URL }}
       RUNE_NEXUS_REQUIRE_RELEASE_SIGNING: 'true'
-      ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/rune-nexus-signing.jks
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -45,6 +44,7 @@ jobs:
       - name: Validate release inputs
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/rune-nexus-signing.jks
         run: |
           python3 - <<'PY'
           import base64, os, pathlib, re
@@ -63,6 +63,8 @@ jobs:
           key = pathlib.Path(os.environ["ANDROID_KEYSTORE_PATH"])
           key.write_bytes(base64.b64decode(os.environ["ANDROID_KEYSTORE_BASE64"], validate=True))
           key.chmod(0o600)
+          with open(os.environ["GITHUB_ENV"], "a") as environment:
+              environment.write(f"ANDROID_KEYSTORE_PATH={key}\n")
           pathlib.Path(os.environ["RUNNER_TEMP"], "release-notes.md").write_text(
               os.environ["RELEASE_NOTES"], encoding="utf-8")
           PY
