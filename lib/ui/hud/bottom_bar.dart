@@ -41,72 +41,52 @@ class HudBottomBar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
-            child: GamePanel(
-              padding: const EdgeInsets.all(10),
-              accentColor: GamePalette.cyan,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      _BottomSpeedControl(snapshot: snapshot, game: game),
-                      const Spacer(),
-                      _AutoStartModeButton(game: game, snapshot: snapshot),
-                      const SizedBox(width: 6),
-                      _StartWaveButton(
-                        enabled: canPrepare,
-                        onPressed: game.startNextWave,
-                      ),
-                    ],
-                  ),
-                  if (snapshot.selectedRunPanelTab != RunPanelTab.closed) ...[
-                    const SizedBox(height: 8),
-                    if (snapshot.selectedCorePoint != null &&
-                        snapshot.selectedRunPanelTab ==
-                            RunPanelTab.turrets) ...[
-                      HudCoreInfoPanel(snapshot: snapshot),
-                      const SizedBox(height: 8),
-                    ],
-                    if (snapshot.selectedPortalPoint != null) ...[
-                      HudPortalSummaryCard(
-                        snapshot: snapshot,
-                        statusText: statusText,
-                      ),
-                      const SizedBox(height: 8),
-                    ],
-                    if (snapshot.selectedRunPanelTab ==
-                        RunPanelTab.upgrades) ...[
-                      HudRunUpgradePanel(game: game, snapshot: snapshot),
-                    ] else if (snapshot.selectedRunPanelTab ==
-                        RunPanelTab.gems) ...[
-                      HudGemInventoryPanel(game: game, snapshot: snapshot),
-                    ] else if (snapshot.selectedRunPanelTab ==
-                        RunPanelTab.turrets) ...[
-                      if (snapshot.selectedTurretPoint != null &&
-                          canEditBoard) ...[
-                        HudGemEquipPanel(game: game, snapshot: snapshot),
-                      ] else if ((snapshot.selectedBuildPoint != null ||
-                              snapshot.selectedBuildTurretType != null) &&
-                          canEditBoard) ...[
-                        HudBuildSelectionPanel(game: game, snapshot: snapshot),
-                      ],
-                      if (snapshot.selectedTurretPoint == null &&
-                          snapshot.selectedCorePoint == null) ...[
-                        const SizedBox(height: 8),
-                        HudTurretBuildPicker(
-                          game: game,
-                          snapshot: snapshot,
-                          enabled: canEditBoard,
-                        ),
-                      ],
-                    ],
-                  ],
-                ],
+          Row(
+            children: [
+              _BottomSpeedControl(snapshot: snapshot, game: game),
+              const Spacer(),
+              _AutoStartModeButton(game: game, snapshot: snapshot),
+              const SizedBox(width: 6),
+              _StartWaveButton(
+                enabled: canPrepare,
+                onPressed: game.startNextWave,
               ),
-            ),
+            ],
           ),
+          if (snapshot.selectedRunPanelTab != RunPanelTab.closed) ...[
+            const SizedBox(height: 5),
+            if (snapshot.selectedCorePoint != null &&
+                snapshot.selectedRunPanelTab == RunPanelTab.turrets) ...[
+              HudCoreInfoPanel(snapshot: snapshot),
+              const SizedBox(height: 5),
+            ],
+            if (snapshot.selectedPortalPoint != null) ...[
+              HudPortalSummaryCard(snapshot: snapshot, statusText: statusText),
+              const SizedBox(height: 5),
+            ],
+            if (snapshot.selectedRunPanelTab == RunPanelTab.upgrades) ...[
+              HudRunUpgradePanel(game: game, snapshot: snapshot),
+            ] else if (snapshot.selectedRunPanelTab == RunPanelTab.gems) ...[
+              HudGemInventoryPanel(game: game, snapshot: snapshot),
+            ] else if (snapshot.selectedRunPanelTab == RunPanelTab.turrets) ...[
+              if (snapshot.selectedTurretPoint != null && canEditBoard) ...[
+                HudGemEquipPanel(game: game, snapshot: snapshot),
+              ] else if ((snapshot.selectedBuildPoint != null ||
+                      snapshot.selectedBuildTurretType != null) &&
+                  canEditBoard) ...[
+                HudBuildSelectionPanel(game: game, snapshot: snapshot),
+              ],
+              if (snapshot.selectedTurretPoint == null &&
+                  snapshot.selectedCorePoint == null) ...[
+                const SizedBox(height: 5),
+                HudTurretBuildPicker(
+                  game: game,
+                  snapshot: snapshot,
+                  enabled: canEditBoard,
+                ),
+              ],
+            ],
+          ],
           const SizedBox(height: 4),
           _RunPanelTabs(game: game, snapshot: snapshot),
         ],
@@ -124,8 +104,8 @@ class _RunPanelTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GamePanel(
-      height: 50,
-      padding: const EdgeInsets.all(4),
+      height: 40,
+      padding: const EdgeInsets.all(3),
       variant: GamePanelVariant.inset,
       accentColor: GamePalette.metalDim,
       child: Row(
@@ -182,8 +162,8 @@ class _RunPanelTabButton extends StatelessWidget {
         compact: true,
         variant: GameButtonVariant.secondary,
         accentColor: accentColor,
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+        height: 34,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -217,7 +197,7 @@ class _BottomSpeedControl extends StatelessWidget {
   Widget build(BuildContext context) {
     const speeds = [1.0, 2.0, 4.0];
     return GamePanel(
-      height: 40,
+      height: 34,
       padding: const EdgeInsets.all(3),
       variant: GamePanelVariant.inset,
       accentColor: GamePalette.cyan,
@@ -229,7 +209,7 @@ class _BottomSpeedControl extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 1),
             child: SizedBox(
               width: 30,
-              height: 32,
+              height: 28,
               child: GameButton(
                 onPressed: () => game.setSpeedMultiplier(speed),
                 selected: selected,
@@ -308,8 +288,8 @@ class _AutoStartModeButton extends StatelessWidget {
         }).toList();
       },
       child: Container(
-        width: 40,
-        height: 40,
+        width: 34,
+        height: 34,
         decoration: BoxDecoration(
           color: const Color(0x2207111D),
           border: Border.all(color: const Color(0x8833D8FF)),
@@ -353,8 +333,8 @@ class _StartWaveButton extends StatelessWidget {
       onPressed: enabled ? onPressed : null,
       variant: GameButtonVariant.primary,
       accentColor: GamePalette.cyan,
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 13),
+      height: 34,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

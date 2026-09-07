@@ -61,6 +61,16 @@ const String gameButtonFrameAsset =
 const String gameChipFrameAsset = 'assets/images/ui/components/chip_frame.png';
 const String gameIconSocketAsset =
     'assets/images/ui/components/icon_socket.png';
+const String gemSocketEmptyAsset =
+    'assets/images/ui/components/gem_socket_empty.png';
+const String gemSocketSelectedAsset =
+    'assets/images/ui/components/gem_socket_selected.png';
+const String gemSocketLockedAsset =
+    'assets/images/ui/components/gem_socket_locked.png';
+const String gemLinkLockedAsset =
+    'assets/images/ui/components/gem_link_locked.png';
+const String gemLinkActiveAsset =
+    'assets/images/ui/components/gem_link_active.png';
 const String gameSegmentedControlFrameAsset =
     'assets/images/ui/components/segmented_control_frame.png';
 const String gameSegmentSelectedCyanAsset =
@@ -183,6 +193,11 @@ const List<String> commonUiImageAssets = [
   gameButtonFrameAsset,
   gameChipFrameAsset,
   gameIconSocketAsset,
+  gemSocketEmptyAsset,
+  gemSocketSelectedAsset,
+  gemSocketLockedAsset,
+  gemLinkLockedAsset,
+  gemLinkActiveAsset,
   gameSegmentedControlFrameAsset,
   gameSegmentSelectedCyanAsset,
   gameSegmentSelectedGoldAsset,

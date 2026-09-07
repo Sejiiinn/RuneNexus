@@ -33,6 +33,22 @@ enum _TurretTab { stats, gems }
 class _GemEquipPanelState extends State<HudGemEquipPanel> {
   GemType? _selectedInventoryGem;
   _TurretTab _activeTab = _TurretTab.stats;
+  final _inventoryScrollController = ScrollController();
+
+  @override
+  void didUpdateWidget(covariant HudGemEquipPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.snapshot.selectedTurretPoint !=
+        widget.snapshot.selectedTurretPoint) {
+      _selectedInventoryGem = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _inventoryScrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +73,7 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
         ? snapshot.selectedTurretGems[selectedSlotIndex]
         : null;
     final selectedInventoryGem =
-        selectedSlotIndex != null &&
-            _selectedInventoryGem != null &&
+        _selectedInventoryGem != null &&
             inventory.contains(_selectedInventoryGem)
         ? _selectedInventoryGem
         : null;
@@ -83,7 +98,7 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
         selectedSlotCanAcceptGem &&
         !selectedInventoryEquipped &&
         selectedInventoryBlockReason == null;
-    final showGemInventory = selectedSlotIndex != null && canInstallGems;
+    final showGemInventory = canInstallGems;
 
     // 레벨업 미리보기 중에는 스탯 변화를 봐야 하므로 스탯 탭을 강제한다.
     final activeTab = levelUpPreviewActive ? _TurretTab.stats : _activeTab;
@@ -111,6 +126,7 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
       children: [
         HudTurretLinkSocketStrip(
           snapshot: snapshot,
+          maxSlotLimit: widget.game.maxTurretLinkSlotLimit,
           canInstallGems: canInstallGems,
           selectedSlotIndex: selectedSlotIndex,
           onSelectSlot: widget.game.selectSelectedTurretGemSlot,
@@ -142,43 +158,61 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
                   style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
                 ),
                 const SizedBox(height: 5),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: inventory.map((type) {
-                    final gem = gameGems[type]!;
-                    final count = snapshot.gemInventory[type]!;
-                    final equipped = snapshot.selectedTurretGems.contains(type);
-                    final selected = selectedInventoryGem == type;
-                    final blockReason = gemEquipBlockReason(type, definition);
-                    final canInstall =
-                        selectedSlotCanAcceptGem &&
-                        !equipped &&
-                        blockReason == null;
-                    return HudInventoryGemChip(
-                      gem: gem,
-                      count: count,
-                      selected: selected,
-                      equipped: equipped,
-                      blocked: blockReason != null,
-                      enabled: canInstallGems,
-                      onTap: () {
-                        if (!canInstallGems) {
-                          return;
-                        }
-                        if (selected && canInstall) {
-                          widget.game.equipSelectedTurret(type);
-                          setState(() {
-                            _selectedInventoryGem = null;
-                          });
-                          return;
-                        }
-                        setState(() {
-                          _selectedInventoryGem = type;
-                        });
-                      },
-                    );
-                  }).toList(),
+                Scrollbar(
+                  controller: _inventoryScrollController,
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    key: const ValueKey('gem-inventory-scroll'),
+                    controller: _inventoryScrollController,
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.only(bottom: 7),
+                    child: Row(
+                      children: inventory.map((type) {
+                        final gem = gameGems[type]!;
+                        final count = snapshot.gemInventory[type]!;
+                        final equipped = snapshot.selectedTurretGems.contains(
+                          type,
+                        );
+                        final selected = selectedInventoryGem == type;
+                        final blockReason = gemEquipBlockReason(
+                          type,
+                          definition,
+                        );
+                        final canInstall =
+                            selectedSlotCanAcceptGem &&
+                            !equipped &&
+                            blockReason == null;
+                        return Padding(
+                          padding: EdgeInsets.only(
+                            right: type == inventory.last ? 0 : 6,
+                          ),
+                          child: HudInventoryGemChip(
+                            gem: gem,
+                            count: count,
+                            selected: selected,
+                            equipped: equipped,
+                            blocked: blockReason != null,
+                            enabled: canInstallGems,
+                            onTap: () {
+                              if (!canInstallGems) {
+                                return;
+                              }
+                              if (selected && canInstall) {
+                                widget.game.equipSelectedTurret(type);
+                                setState(() {
+                                  _selectedInventoryGem = null;
+                                });
+                                return;
+                              }
+                              setState(() {
+                                _selectedInventoryGem = type;
+                              });
+                            },
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 ),
                 if (selectedInventoryGem != null &&
                     selectedInventoryGemDefinition != null) ...[
@@ -200,12 +234,6 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
                 ],
               ],
             ),
-        ] else if (canInstallGems) ...[
-          const SizedBox(height: 6),
-          const Text(
-            '링크를 선택하면 젬을 관리할 수 있습니다',
-            style: TextStyle(fontSize: 12, color: Color(0xFF8AA6B8)),
-          ),
         ],
       ],
     );
@@ -265,7 +293,7 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 5),
           _TurretInspectorTabs(
             activeTab: activeTab,
             onSelect: (tab) => setState(() => _activeTab = tab),
@@ -371,8 +399,8 @@ class _TurretInspectorTabs extends StatelessWidget {
       compact: true,
       variant: GameButtonVariant.secondary,
       accentColor: accentColor,
-      height: 36,
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+      height: 30,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

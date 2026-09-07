@@ -4,6 +4,7 @@ import '../../data/definitions/game_gem_data.dart';
 import '../../domain/gem/gem_definition.dart';
 import '../../domain/gem/gem_type.dart';
 import '../game/game_icons.dart';
+import '../game/game_image_assets.dart';
 import '../../domain/turret/attack_tag.dart';
 import '../../domain/turret/damage_family.dart';
 import '../../domain/turret/turret_definition.dart';
@@ -13,6 +14,7 @@ import '../../game/game_snapshot.dart';
 class HudTurretLinkSocketStrip extends StatelessWidget {
   const HudTurretLinkSocketStrip({
     required this.snapshot,
+    required this.maxSlotLimit,
     required this.canInstallGems,
     required this.selectedSlotIndex,
     required this.onSelectSlot,
@@ -21,6 +23,7 @@ class HudTurretLinkSocketStrip extends StatelessWidget {
   });
 
   final GameSnapshot snapshot;
+  final int maxSlotLimit;
   final bool canInstallGems;
   final int? selectedSlotIndex;
   final ValueChanged<int> onSelectSlot;
@@ -32,73 +35,109 @@ class HudTurretLinkSocketStrip extends StatelessWidget {
         canInstallGems &&
         snapshot.selectedTurretCanUpgradeLink &&
         snapshot.gold >= snapshot.selectedTurretLinkUpgradeCost;
-    final lockedLabel = snapshot.selectedTurretCanUpgradeLink
-        ? '${snapshot.selectedTurretLinkUpgradeCost}G'
-        : 'Lv.${snapshot.selectedTurretLinkUpgradeRequiredLevel}';
+    final lockedRequirement = snapshot.selectedTurretCanUpgradeLink
+        ? '${snapshot.selectedTurretLinkUpgradeCost} 골드'
+        : 'Lv.${snapshot.selectedTurretLinkUpgradeRequiredLevel} 필요';
 
-    return Stack(
-      clipBehavior: Clip.none,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: double.infinity,
-          margin: const EdgeInsets.only(top: 6),
-          padding: const EdgeInsets.fromLTRB(8, 10, 8, 7),
-          decoration: BoxDecoration(
-            color: const Color(0x9907111D),
-            border: Border.all(color: const Color(0x4433D8FF)),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                for (
-                  var index = 0;
-                  index < snapshot.selectedTurretSlotLimit;
-                  index++
-                )
-                  Padding(
-                    padding: const EdgeInsets.only(right: 7),
-                    child: _LinkSocketButton(
-                      index: index,
-                      type: index < snapshot.selectedTurretGems.length
-                          ? snapshot.selectedTurretGems[index]
-                          : null,
-                      selected: selectedSlotIndex == index,
-                      enabled: canInstallGems,
-                      onTap: () => onSelectSlot(index),
+        const Text(
+          '링크 홈',
+          style: TextStyle(fontSize: 10, color: Color(0xFF8EE6FF)),
+        ),
+        const SizedBox(height: 4),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            // 여섯 홈과 사이 간격 다섯 칸을 기준으로 한 소켓 크기.
+            final socketSize = ((constraints.maxWidth - 20) / 6).clamp(
+              44.0,
+              double.infinity,
+            );
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Stack(
+                children: [
+                  // 소켓 뒤를 잇는 레일: 열린 홈 사이만 점등.
+                  for (var index = 1; index < maxSlotLimit; index++)
+                    Positioned(
+                      left: (index - 1) * (socketSize + 4) + socketSize * 0.75,
+                      top: socketSize / 2 - 6,
+                      width: socketSize * 0.5 + 4,
+                      height: 12,
+                      child: Image.asset(
+                        index < snapshot.selectedTurretSlotLimit
+                            ? gemLinkActiveAsset
+                            : gemLinkLockedAsset,
+                        fit: BoxFit.fill,
+                        excludeFromSemantics: true,
+                      ),
                     ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 연구로 해금된 한도까지 표시하고 미구매 홈은 순차 개방.
+                      for (var index = 0; index < maxSlotLimit; index++) ...[
+                        if (index > 0) const SizedBox(width: 4),
+                        _LinkSocketButton(
+                          index: index,
+                          size: socketSize,
+                          type: index < snapshot.selectedTurretGems.length
+                              ? snapshot.selectedTurretGems[index]
+                              : null,
+                          selected: selectedSlotIndex == index,
+                          locked: index >= snapshot.selectedTurretSlotLimit,
+                          lockedRequirement:
+                              index == snapshot.selectedTurretSlotLimit
+                              ? lockedRequirement
+                              : '홈 $index 먼저 열기',
+                          enabled: index < snapshot.selectedTurretSlotLimit
+                              ? canInstallGems
+                              : index == snapshot.selectedTurretSlotLimit &&
+                                    canOpenLockedSocket,
+                          onTap: index < snapshot.selectedTurretSlotLimit
+                              ? () => onSelectSlot(index)
+                              : onUpgradeLink,
+                        ),
+                      ],
+                    ],
                   ),
-                if (snapshot.selectedTurretHasLinkUpgrade)
-                  _LinkSocketButton(
-                    index: snapshot.selectedTurretSlotLimit,
-                    type: null,
-                    selected: false,
-                    enabled: canOpenLockedSocket,
-                    locked: true,
-                    lockedLabel: lockedLabel,
-                    onTap: onUpgradeLink,
-                  ),
-              ],
-            ),
-          ),
-        ),
-        Positioned(
-          left: 10,
-          top: 0,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            color: const Color(0xFF0B1B2B),
-            child: const Text(
-              '링크 홈',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                color: Color(0xFF8EE6FF),
+                ],
               ),
-            ),
-          ),
+            );
+          },
         ),
+        if (snapshot.selectedTurretHasLinkUpgrade) ...[
+          const SizedBox(height: 4),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 4,
+            children: [
+              Text(
+                '홈 ${snapshot.selectedTurretSlotLimit + 1} 열기',
+                style: const TextStyle(fontSize: 10, color: Color(0xFF8AA6B8)),
+              ),
+              if (snapshot.selectedTurretCanUpgradeLink) ...[
+                const GoldCurrencyIcon(size: 14),
+                Text(
+                  '${snapshot.selectedTurretLinkUpgradeCost}',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Color(0xFFE7C66A),
+                  ),
+                ),
+              ] else
+                Text(
+                  lockedRequirement,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Color(0xFF8AA6B8),
+                  ),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -107,92 +146,67 @@ class HudTurretLinkSocketStrip extends StatelessWidget {
 class _LinkSocketButton extends StatelessWidget {
   const _LinkSocketButton({
     required this.index,
+    required this.size,
     required this.type,
     required this.selected,
     required this.enabled,
     required this.onTap,
     this.locked = false,
-    this.lockedLabel,
+    this.lockedRequirement,
   });
 
   final int index;
+  final double size;
   final GemType? type;
   final bool selected;
   final bool enabled;
   final VoidCallback onTap;
   final bool locked;
-  final String? lockedLabel;
+  final String? lockedRequirement;
 
   @override
   Widget build(BuildContext context) {
     final gem = type == null ? null : gameGems[type]!;
-    final accent = locked
-        ? (enabled ? const Color(0xFFE7C66A) : const Color(0xFF607587))
-        : gem?.color ?? const Color(0xFF8AA6B8);
-    final tooltip = locked ? (enabled ? '홈 열기' : '홈 잠김') : gem?.name ?? '빈 홈';
+    final tooltip = locked
+        ? '${enabled ? '홈 열기' : '홈 잠김'} · $lockedRequirement'
+        : gem?.name ?? '빈 홈';
+    final asset = locked
+        ? gemSocketLockedAsset
+        : selected
+        ? gemSocketSelectedAsset
+        : gemSocketEmptyAsset;
 
     return Tooltip(
       message: tooltip,
-      child: SizedBox(
-        width: 44,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 38,
-              height: 38,
-              child: OutlinedButton(
-                onPressed: enabled ? onTap : null,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: accent,
-                  disabledForegroundColor: const Color(0xFF607587),
-                  backgroundColor: selected
-                      ? accent.withValues(alpha: 0.2)
-                      : const Color(0xFF07111D),
-                  side: BorderSide(
-                    color: selected ? accent : accent.withValues(alpha: 0.62),
-                    width: selected ? 2 : 1,
+      excludeFromSemantics: true,
+      child: Semantics(
+        label: '홈 ${index + 1}, $tooltip',
+        button: true,
+        enabled: enabled,
+        selected: selected,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: enabled ? onTap : null,
+            borderRadius: BorderRadius.circular(24),
+            child: SizedBox(
+              width: size,
+              height: size,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Image.asset(
+                    asset,
+                    width: size,
+                    height: size,
+                    excludeFromSemantics: true,
                   ),
-                  padding: EdgeInsets.zero,
-                  minimumSize: const Size(38, 38),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  shape: const CircleBorder(),
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 25,
-                      height: 25,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: accent.withValues(alpha: 0.36),
-                        ),
-                      ),
-                    ),
-                    if (locked)
-                      Icon(Icons.lock_outline, size: 15, color: accent)
-                    else if (gem == null)
-                      Icon(Icons.add, size: 17, color: accent)
-                    else
-                      GemIcon(gem.type, size: 17),
-                  ],
-                ),
+                  if (gem != null)
+                    ExcludeSemantics(child: GemIcon(gem.type, size: 24)),
+                ],
               ),
             ),
-            const SizedBox(height: 3),
-            Text(
-              locked ? (lockedLabel ?? '잠김') : '홈 ${index + 1}',
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w800,
-                color: selected ? accent : const Color(0xFF8AA6B8),
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.clip,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -225,12 +239,13 @@ class HudInventoryGemChip extends StatelessWidget {
     return Opacity(
       opacity: dimmed && !selected ? 0.48 : 1,
       child: SizedBox(
-        width: 106,
         height: 34,
         child: OutlinedButton(
           onPressed: enabled ? onTap : null,
           style: OutlinedButton.styleFrom(
             foregroundColor: Colors.white,
+            minimumSize: const Size(0, 34),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             side: BorderSide(
               color: selected ? gem.color : gem.color.withValues(alpha: 0.58),
               width: selected ? 2 : 1,
@@ -241,19 +256,18 @@ class HudInventoryGemChip extends StatelessWidget {
             ),
           ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               GemIcon(gem.type, size: 15),
               const SizedBox(width: 5),
-              Expanded(
-                child: Text(
-                  gem.name,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
-                  overflow: TextOverflow.clip,
+              Text(
+                gem.name,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
+              const SizedBox(width: 5),
               Text(
                 'x$count',
                 style: const TextStyle(fontSize: 10, color: Color(0xFFB9D6E4)),
@@ -315,16 +329,22 @@ class HudSelectedInventoryGemActions extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  blockReason ?? hudGemEffectText(type, turret),
-                  style: TextStyle(
+                  hudGemEffectText(type, turret),
+                  style: const TextStyle(
                     fontSize: 10,
-                    color: blockReason == null
-                        ? const Color(0xFFC9DCE8)
-                        : const Color(0xFFFFA68A),
+                    color: Color(0xFFC9DCE8),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.clip,
                 ),
+                if (blockReason != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    blockReason!,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFFFFA68A),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

@@ -50,7 +50,7 @@ void main() {
     () {
       final providers = runeNexusStartupImageProviders();
 
-      expect(providers, hasLength(96));
+      expect(providers, hasLength(101));
       expect(providers.whereType<ResizeImage>(), hasLength(29));
       for (final asset in commonUiImageAssets) {
         expect(providers, contains(gameUiAssetImageProvider(asset)));

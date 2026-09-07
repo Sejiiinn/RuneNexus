@@ -1,8 +1,137 @@
 import 'package:rune_nexus/domain/wave/wave_definition.dart';
+import 'package:rune_nexus/ui/hud/gem_socket_section.dart';
+import 'package:rune_nexus/ui/game/game_image_assets.dart';
 
 import 'helpers/widget_test_helpers.dart';
 
 void main() {
+  testWidgets(
+    'gem inventory previews before home selection and retains retap equip',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+      final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: GameHud(game: game)),
+        ),
+      );
+      await pumpGameFrames(tester, frameCount: 10);
+      await tester.runAsync(
+        () => game.loaded.timeout(const Duration(seconds: 10)),
+      );
+      game.tryBuildTurret(const GridPoint(2, 0));
+      game.grantGem(GemType.attackSpeed);
+      game.grantGem(GemType.chain);
+      game.grantGem(GemType.heavyWeapon);
+      await pumpGameFrames(tester);
+      await tester.tap(find.text('젬 · 링크'));
+      await pumpGameFrames(tester);
+
+      expect(game.snapshotNotifier.value.selectedTurretGemSlotIndex, isNull);
+      final chip = find.widgetWithText(HudInventoryGemChip, '가속');
+      final chips = tester.widgetList<HudInventoryGemChip>(
+        find.byType(HudInventoryGemChip),
+      );
+      expect(chips.length, 3);
+      final inventoryRow = find.byKey(const ValueKey('gem-inventory-scroll'));
+      expect(
+        tester.widget<SingleChildScrollView>(inventoryRow).scrollDirection,
+        Axis.horizontal,
+      );
+      expect(chip, findsOneWidget);
+      final slotImages = find.descendant(
+        of: find.byType(HudTurretLinkSocketStrip),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is Image &&
+              widget.image is AssetImage &&
+              [
+                gemSocketEmptyAsset,
+                gemSocketSelectedAsset,
+                gemSocketLockedAsset,
+              ].contains((widget.image as AssetImage).assetName),
+        ),
+      );
+      expect(slotImages, findsNWidgets(3));
+      expect(
+        tester
+            .widgetList<Image>(slotImages)
+            .map((image) => (image.image as AssetImage).assetName),
+        [gemSocketEmptyAsset, gemSocketLockedAsset, gemSocketLockedAsset],
+      );
+      await tester.tap(chip);
+      await pumpGameFrames(tester);
+      expect(find.text('링크 홈을 선택하세요'), findsOneWidget);
+      await tester.tap(chip);
+      await pumpGameFrames(tester);
+      expect(
+        game.snapshotNotifier.value.selectedTurretGems.whereType<GemType>(),
+        isEmpty,
+      );
+
+      await tester.tap(find.byTooltip('빈 홈').first);
+      await pumpGameFrames(tester);
+      await tester.tap(chip);
+      await pumpGameFrames(tester);
+      expect(
+        game.snapshotNotifier.value.selectedTurretGems,
+        contains(GemType.attackSpeed),
+      );
+
+      game.debugAddGold(100000);
+      while (game.snapshotNotifier.value.selectedTurretCanLevelUp) {
+        game.levelUpSelectedTurret();
+      }
+      while (game.snapshotNotifier.value.selectedTurretHasLinkUpgrade) {
+        game.upgradeSelectedTurretLink();
+      }
+      await pumpGameFrames(tester);
+      expect(game.snapshotNotifier.value.selectedTurretSlotLimit, 3);
+      expect(find.text('홈 4'), findsNothing);
+      expect(find.text('홈 6'), findsNothing);
+      expect(find.text('홈 3'), findsNothing);
+      expect(slotImages, findsNWidgets(3));
+      expect(
+        tester.getTopLeft(slotImages.at(0)).dy,
+        tester.getTopLeft(slotImages.at(2)).dy,
+      );
+      expect(
+        tester.getBottomRight(slotImages.at(2)).dx,
+        lessThanOrEqualTo(360),
+      );
+      game.debugSetClearedStageCount(5);
+      game.debugAddRunes(1000);
+      game.debugSetInstantResearchCompletion(true);
+      game.startResearch(ResearchType.linkExpansionOne);
+      await pumpGameFrames(tester);
+      expect(game.maxTurretLinkSlotLimit, 4);
+      expect(find.text('홈 4'), findsNothing);
+      expect(slotImages, findsNWidgets(4));
+      expect(find.text('홈 5'), findsNothing);
+      expect(game.snapshotNotifier.value.selectedTurretSlotLimit, 3);
+      expect(
+        tester
+            .widgetList<Image>(slotImages)
+            .where(
+              (image) =>
+                  (image.image as AssetImage).assetName == gemSocketLockedAsset,
+            )
+            .length,
+        1,
+      );
+      expect(
+        tester.getTopLeft(slotImages.at(3)).dy,
+        tester.getTopLeft(slotImages.at(0)).dy,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('round transitions preserve the panned board position', (
     tester,
   ) async {
