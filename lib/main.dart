@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'app/rune_nexus_app.dart';
+import 'app/app_update_gate.dart';
+import 'platform/update/app_update_service.dart';
 import 'data/save/local_save_writer_lock.dart';
 
 Future<void> main() async {
@@ -20,7 +22,13 @@ Future<void> main() async {
     );
     return;
   }
-  runApp(acquired ? const RuneNexusApp() : const _StartupUnavailableApp());
+  runApp(
+    acquired
+        ? AppUpdateService.enabled
+              ? const AppUpdateGate(child: RuneNexusApp())
+              : const RuneNexusApp()
+        : const _StartupUnavailableApp(),
+  );
 }
 
 class _StartupUnavailableApp extends StatefulWidget {

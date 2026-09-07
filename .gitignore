@@ -36,3 +36,8 @@ ios/.symlinks/
 
 # macOS
 .DS_Store
+
+# Android signing secrets
+*.jks
+*.keystore
+android/key.properties

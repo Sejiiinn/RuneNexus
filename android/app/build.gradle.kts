@@ -5,6 +5,20 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+val releaseSigning = mapOf(
+    "storeFile" to System.getenv("ANDROID_KEYSTORE_PATH"),
+    "storePassword" to System.getenv("ANDROID_KEYSTORE_PASSWORD"),
+    "keyAlias" to System.getenv("ANDROID_KEY_ALIAS"),
+    "keyPassword" to System.getenv("ANDROID_KEY_PASSWORD"),
+)
+val hasReleaseSigning = releaseSigning.values.all { !it.isNullOrBlank() }
+require(hasReleaseSigning || releaseSigning.values.all { it.isNullOrBlank() }) {
+    "All Android release signing environment variables must be provided together."
+}
+require(System.getenv("RUNE_NEXUS_REQUIRE_RELEASE_SIGNING") != "true" || hasReleaseSigning) {
+    "Distribution builds require the existing Android release signing key."
+}
+
 android {
     namespace = "com.example.rune_nexus"
     compileSdk = flutter.compileSdkVersion
@@ -30,11 +44,23 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("distribution") {
+                storeFile = file(releaseSigning.getValue("storeFile")!!)
+                storePassword = releaseSigning.getValue("storePassword")
+                keyAlias = releaseSigning.getValue("keyAlias")
+                keyPassword = releaseSigning.getValue("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // 로컬 실행용 기본 서명, 배포 CI에서는 기존 배포 키 필수
+            signingConfig = signingConfigs.getByName(
+                if (hasReleaseSigning) "distribution" else "debug"
+            )
         }
     }
 }

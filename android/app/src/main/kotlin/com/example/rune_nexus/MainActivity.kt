@@ -18,11 +18,13 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
+    private var appUpdater: AppUpdater? = null
     private var signInCancellation: CancellationSignal? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         val messenger = flutterEngine.dartExecutor.binaryMessenger
+        appUpdater = AppUpdater(this, messenger)
         // 직렬 백그라운드 큐: 파일 교체와 Keystore 접근 중 UI 스레드 차단 방지.
         val storage by lazy { SessionStorage(applicationContext) }
         MethodChannel(
@@ -135,6 +137,8 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
+        appUpdater?.detach()
+        appUpdater = null
         signInCancellation?.cancel()
         signInCancellation = null
         super.onDestroy()

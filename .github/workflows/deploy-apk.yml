@@ -1,0 +1,184 @@
+name: Deploy Android APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: '기존 모든 APK보다 큰 정수 (최초 배포도 설치된 앱보다 큰 값)'
+        required: true
+        type: string
+      version_name:
+        description: '표시 버전 (예: 0.2.0)'
+        required: true
+        type: string
+      notes:
+        description: '업데이트 안내'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-apk-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERSION_CODE: ${{ inputs.version_code }}
+      VERSION_NAME: ${{ inputs.version_name }}
+      RELEASE_NOTES: ${{ inputs.notes }}
+      GOOGLE_WEB_CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID }}
+      RUNE_NEXUS_API_BASE_URL: ${{ vars.RUNE_NEXUS_API_BASE_URL }}
+      RUNE_NEXUS_REQUIRE_RELEASE_SIGNING: 'true'
+      ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/rune-nexus-signing.jks
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate release inputs
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          python3 - <<'PY'
+          import base64, os, pathlib, re
+          code = os.environ["VERSION_CODE"]
+          if not re.fullmatch(r"[1-9][0-9]*", code) or int(code) > 2100000000:
+              raise SystemExit("Invalid Android versionCode")
+          if not re.fullmatch(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)", os.environ["VERSION_NAME"]):
+              raise SystemExit("version_name must use x.y.z format, for example 0.2.0")
+          for name in ["VERSION_NAME", "RELEASE_NOTES", "GOOGLE_WEB_CLIENT_ID",
+                       "RUNE_NEXUS_API_BASE_URL", "ANDROID_KEYSTORE_BASE64",
+                       "ANDROID_KEYSTORE_PASSWORD", "ANDROID_KEY_ALIAS", "ANDROID_KEY_PASSWORD"]:
+              if not os.environ.get(name, "").strip():
+                  raise SystemExit(f"Missing configuration: {name}")
+          if not os.environ["RUNE_NEXUS_API_BASE_URL"].startswith("https://"):
+              raise SystemExit("Distribution API URL must use HTTPS")
+          key = pathlib.Path(os.environ["ANDROID_KEYSTORE_PATH"])
+          key.write_bytes(base64.b64decode(os.environ["ANDROID_KEYSTORE_BASE64"], validate=True))
+          key.chmod(0o600)
+          pathlib.Path(os.environ["RUNNER_TEMP"], "release-notes.md").write_text(
+              os.environ["RELEASE_NOTES"], encoding="utf-8")
+          PY
+          gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100" > "$RUNNER_TEMP/existing-releases.json"
+          python3 - <<'PY'
+          import json, os, pathlib, re
+          temp = pathlib.Path(os.environ["RUNNER_TEMP"])
+          releases = [release for page in json.loads((temp / "existing-releases.json").read_text()) for release in page]
+          tags = [release["tag_name"] for release in releases]
+          (temp / "existing-apk-tags.txt").write_text("\n".join(tags), encoding="utf-8")
+          previous = [int(m.group(1)) for tag in tags if (m := re.fullmatch(r"apk-(\d+)", tag))]
+          if previous and int(os.environ["VERSION_CODE"]) <= max(previous):
+              raise SystemExit("Choose a versionCode larger than every existing APK release")
+          published = [
+              (int(match.group(1)), release["tag_name"])
+              for release in releases
+              if not release["draft"] and release.get("published_at")
+              and (match := re.fullmatch(r"apk-([1-9][0-9]*)", release["tag_name"]))
+          ]
+          (temp / "patch-base-tags.json").write_text(
+              json.dumps([tag for _, tag in sorted(published, reverse=True)[:3]]))
+          PY
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Verify
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+          python3 -m unittest discover -s scripts -p 'test_apk*.py'
+
+      - name: Build signed APK
+        run: |
+          flutter build apk --release --no-tree-shake-icons \
+            --build-number="$VERSION_CODE" --build-name="$VERSION_NAME" \
+            --dart-define="GOOGLE_WEB_CLIENT_ID=$GOOGLE_WEB_CLIENT_ID" \
+            --dart-define="RUNE_NEXUS_API_BASE_URL=$RUNE_NEXUS_API_BASE_URL" \
+            --dart-define="RUNE_NEXUS_UPDATE_MANIFEST_URL=https://github.com/$GH_REPO/releases/latest/download/update.json" \
+            --dart-define="RUNE_NEXUS_CLIENT_BUILD=android:${{ github.sha }}"
+          mkdir -p build/apk-release
+          cp build/app/outputs/flutter-apk/app-release.apk build/apk-release/rune-nexus.apk
+      - name: Verify Android patch decoder
+        run: python3 scripts/run_apk_delta_kotlin_tests.py
+
+      - name: Prepare verified differential updates
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, re, subprocess
+          temp = pathlib.Path(os.environ["RUNNER_TEMP"])
+          base_root = temp / "apk-bases"
+          base_root.mkdir()
+          sdk = pathlib.Path(os.environ["ANDROID_HOME"])
+          apksigner = sorted(
+              (sdk / "build-tools").glob("*/apksigner"),
+              key=lambda path: tuple(int(part) for part in re.findall(r"\d+", path.parent.name)),
+          )[-1]
+          def certificates(apk):
+              result = subprocess.run(
+                  [str(apksigner), "verify", "--print-certs", str(apk)],
+                  check=True, capture_output=True, text=True,
+              )
+              hashes = set(re.findall(r"Signer #\d+ certificate SHA-256 digest: ([0-9a-fA-F]+)", result.stdout))
+              if not hashes:
+                  raise SystemExit("Unable to read verified APK signing certificates")
+              return hashes
+          target_certs = certificates(pathlib.Path("build/apk-release/rune-nexus.apk"))
+          for tag in json.loads((temp / "patch-base-tags.json").read_text()):
+              base_dir = base_root / tag
+              base_dir.mkdir()
+              subprocess.run(
+                  ["gh", "release", "download", tag, "--pattern", "rune-nexus.apk",
+                   "--pattern", "update.json", "--dir", str(base_dir)], check=True,
+              )
+              if certificates(base_dir / "rune-nexus.apk") != target_certs:
+                  raise SystemExit(f"Signing certificate mismatch for {tag}; preserve the existing key")
+          PY
+          python3 scripts/create_apk_update_manifest.py \
+            --apk build/apk-release/rune-nexus.apk \
+            --version-code "$VERSION_CODE" --version-name "$VERSION_NAME" \
+            --repository "$GH_REPO" --notes-file "$RUNNER_TEMP/release-notes.md" \
+            --existing-tags-file "$RUNNER_TEMP/existing-apk-tags.txt" \
+            --base-releases-dir "$RUNNER_TEMP/apk-bases" \
+            --output build/apk-release/update.json
+          python3 - <<'PYCODE'
+          import json, os, pathlib, subprocess
+          manifest = json.loads(pathlib.Path("build/apk-release/update.json").read_text())
+          temporary = pathlib.Path(os.environ["RUNNER_TEMP"])
+          for patch in manifest.get("patches", []):
+              base = temporary / "apk-bases" / f"apk-{patch['fromVersionCode']}" / "rune-nexus.apk"
+              patch_file = pathlib.Path("build/apk-release") / f"patch-from-{patch['fromVersionCode']}.rndelta"
+              restored = temporary / f"kotlin-restored-{patch['fromVersionCode']}.apk"
+              subprocess.run([
+                  "python3", "scripts/run_apk_delta_kotlin_tests.py", str(base),
+                  "build/apk-release/rune-nexus.apk", str(patch_file), str(restored),
+              ], check=True)
+              restored.unlink()
+          PYCODE
+
+      - name: Publish complete release
+        run: |
+          tag="apk-$VERSION_CODE"
+          gh release create "$tag" --draft --target "$GITHUB_SHA" \
+            --title "Rune Nexus $VERSION_NAME ($VERSION_CODE)" \
+            --notes-file "$RUNNER_TEMP/release-notes.md" \
+            build/apk-release/*
+          gh release edit "$tag" --draft=false --latest
+
+      - name: Remove signing material
+        if: always()
+        run: rm -f "$ANDROID_KEYSTORE_PATH"
