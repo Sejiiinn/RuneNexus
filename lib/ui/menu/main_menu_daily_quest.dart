@@ -183,9 +183,6 @@ class _DailyQuestDialogState extends State<_DailyQuestDialog> {
     setState(() => _claimingWeeklyRewardKey = target.key);
     try {
       await claim(target);
-      if (mounted) {
-        _showWeeklyRewardMessage('주간 보상을 받았습니다.');
-      }
     } on WeeklyRewardClaimFailure catch (error) {
       if (mounted) {
         _showWeeklyRewardMessage(error.message);
