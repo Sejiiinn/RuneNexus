@@ -1,6 +1,55 @@
+import 'package:rune_nexus/domain/wave/wave_definition.dart';
+
 import 'helpers/widget_test_helpers.dart';
 
 void main() {
+  testWidgets('round transitions preserve the panned board position', (
+    tester,
+  ) async {
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      waves: List.generate(
+        3,
+        (index) => WaveDefinition(
+          round: index + 1,
+          previewText: 'test',
+          groups: const [],
+          clearRewardGold: 0,
+        ),
+      ),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: GameHud(game: game)),
+      ),
+    );
+    await tester.runAsync(
+      () => game.loaded.timeout(const Duration(seconds: 10)),
+    );
+    await pumpGameFrames(tester);
+    await tester.dragFrom(const Offset(200, 200), const Offset(30, 20));
+    await pumpGameFrames(tester);
+    final offset = game.debugBoardOffset();
+    expect(offset.length2, greaterThan(0));
+    expect(game.debugBoardZoom(), 1);
+
+    for (var round = 1; round <= 2; round++) {
+      game.startNextWave();
+      game.update(2);
+      // 라운드 전환 후 상위 화면 재빌드에 따른 보드 레이아웃 재계산
+      game.onGameResize(game.size.clone());
+      await pumpGameFrames(tester);
+
+      expect(game.snapshotNotifier.value.completedRounds, round);
+      expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+      expect(game.debugBoardOffset(), offset);
+      expect(game.debugBoardZoom(), 1);
+    }
+    game.pauseEngine();
+    await tester.pump(const Duration(seconds: 3));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('gem reward choices stay in one row on narrow combat width', (
     tester,
   ) async {

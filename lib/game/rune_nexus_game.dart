@@ -3494,11 +3494,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       activeOriginX - activeBounds.left * _tileSize,
       activeOriginY - activeBounds.top * _tileSize,
     );
-    if (_boardZoom <= _minBoardZoom) {
-      _boardOffset = Vector2.zero();
-    } else {
-      _boardOffset = _clampBoardOffset(_boardOffset);
-    }
+    // 기본 배율의 이동 위치도 유지하고 새 보드 경계만 적용
+    _boardOffset = _clampBoardOffset(_boardOffset);
     _worldPath = _map.path.map(_centerOf).toList();
   }
 
