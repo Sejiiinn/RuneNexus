@@ -92,6 +92,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
+          cache-dependency-path: |
+            android/**/*.gradle*
+            android/gradle.properties
+            android/gradle/wrapper/gradle-wrapper.properties
+            pubspec.lock
 
       - uses: subosito/flutter-action@v2
         with:
@@ -106,6 +112,9 @@ jobs:
           python3 -m unittest discover -s scripts -p 'test_apk*.py'
 
       - name: Build signed APK
+        env:
+          # 입력이 같은 Gradle 작업의 빌드 결과 재사용
+          GRADLE_OPTS: -Dorg.gradle.caching=true
         run: |
           flutter build apk --release --no-tree-shake-icons \
             --build-number="$VERSION_CODE" --build-name="$VERSION_NAME" \
