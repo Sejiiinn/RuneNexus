@@ -1,5 +1,8 @@
 # 자체 운영 API 배포
 
+배포 시작 전 [배포 상태와 세션 간 인계](deployment_status.md)를 확인한다. 필요한 migration과
+적용 순서, 마지막 검증 상태는 해당 문서에 기록하며, 아래 과거 시점 설명과 구분한다.
+
 Rune Nexus 운영 API는 기존 개발용 Compose에 `compose.production.yaml`을 겹쳐
 실행합니다. Caddy만 외부 80/443 포트를 받고, Go API와 PostgreSQL은 Docker
 내부망 또는 호스트 loopback에서만 접근할 수 있습니다.

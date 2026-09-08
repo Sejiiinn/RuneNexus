@@ -96,6 +96,10 @@ class _LeaderboardDialogState extends State<LeaderboardDialog>
           _snapshot = null;
           _needsAccount = true;
           _error = '계정 상태가 변경되었습니다. 다시 로그인해 주세요.';
+        } else if (error is LeaderboardException &&
+            error.code == 'LEADERBOARD_SAVE_SYNC_REQUIRED') {
+          _snapshot = null;
+          _error = error.message;
         } else {
           _error = '순위를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.';
         }

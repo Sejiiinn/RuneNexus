@@ -53,22 +53,24 @@ func (q *Queries) GetProgressionLeaderboard(ctx context.Context, dollar_1 pgtype
 
 const upsertProgressionLeaderboardRecord = `-- name: UpsertProgressionLeaderboardRecord :exec
 INSERT INTO leaderboard_records (
-    board_key, rules_version, account_id, stage_number, completed_rounds, source_command_id
-) VALUES ('progression', 1, $1, $2, $3, $4)
+    board_key, rules_version, account_id, stage_number, completed_rounds, source_command_id, source_save_revision
+) VALUES ('progression', 1, $1, $2, $3, $4, $5)
 ON CONFLICT (board_key, rules_version, account_id) DO UPDATE
 SET stage_number = EXCLUDED.stage_number,
     completed_rounds = EXCLUDED.completed_rounds,
     source_command_id = EXCLUDED.source_command_id,
+    source_save_revision = EXCLUDED.source_save_revision,
     achieved_at = clock_timestamp()
 WHERE (EXCLUDED.stage_number, EXCLUDED.completed_rounds) >
       (leaderboard_records.stage_number, leaderboard_records.completed_rounds)
 `
 
 type UpsertProgressionLeaderboardRecordParams struct {
-	AccountID       pgtype.UUID `db:"account_id"`
-	StageNumber     int32       `db:"stage_number"`
-	CompletedRounds int32       `db:"completed_rounds"`
-	SourceCommandID pgtype.UUID `db:"source_command_id"`
+	AccountID          pgtype.UUID `db:"account_id"`
+	StageNumber        int32       `db:"stage_number"`
+	CompletedRounds    int32       `db:"completed_rounds"`
+	SourceCommandID    pgtype.UUID `db:"source_command_id"`
+	SourceSaveRevision pgtype.Int8 `db:"source_save_revision"`
 }
 
 func (q *Queries) UpsertProgressionLeaderboardRecord(ctx context.Context, arg UpsertProgressionLeaderboardRecordParams) error {
@@ -77,6 +79,7 @@ func (q *Queries) UpsertProgressionLeaderboardRecord(ctx context.Context, arg Up
 		arg.StageNumber,
 		arg.CompletedRounds,
 		arg.SourceCommandID,
+		arg.SourceSaveRevision,
 	)
 	return err
 }

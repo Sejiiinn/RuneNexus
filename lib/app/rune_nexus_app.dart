@@ -473,25 +473,59 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       code: 'LEADERBOARD_SESSION_CHANGED',
       message: '계정 연결이 변경되었습니다. 계정 상태를 확인해 주세요.',
     );
+    const syncRequired = LeaderboardException(
+      code: 'LEADERBOARD_SAVE_SYNC_REQUIRED',
+      message: '현재 진행 기록을 서버에 저장하지 못해 순위를 갱신하지 않았습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.',
+    );
     final api = _leaderboardApi;
-    if (!mounted ||
-        !identical(_onlineSession, session) ||
-        session.credentials == null ||
-        _activeSaveSlot.isGuest ||
-        api == null) {
-      throw changed;
+    final coordinator = _onlineSaveCoordinator;
+    if (!_hasGame || api == null || _activeSaveSlot.isGuest) throw changed;
+    final currentGame = game;
+    final slot = _activeSaveSlot;
+    void ensureCurrentAccount() {
+      // 저장·조회 사이의 계정 전환과 서버 저장 복원으로 교체된 게임 차단.
+      if (!mounted ||
+          !identical(_onlineSession, session) ||
+          session.credentials == null ||
+          !identical(_onlineSaveCoordinator, coordinator) ||
+          !identical(game, currentGame) ||
+          _activeSaveSlot != slot ||
+          _sessionTransitionInProgress) {
+        throw changed;
+      }
+    }
+
+    ensureCurrentAccount();
+    if (coordinator == null) throw syncRequired;
+    try {
+      final before = coordinator.snapshot;
+      if (before.hasPendingRemoteRebase || before.requiresGameReload) {
+        throw syncRequired;
+      }
+      final saved = await currentGame.saveAccountCheckpoint();
+      ensureCurrentAccount();
+      if (!saved) throw syncRequired;
+      await coordinator.retryNow();
+      ensureCurrentAccount();
+      await coordinator.currentAttempt;
+      ensureCurrentAccount();
+      final state = coordinator.snapshot;
+      if (state.phase != OnlineSaveCoordinatorPhase.idle ||
+          state.pendingSaveCount != 0 ||
+          state.hasPendingRemoteRebase ||
+          state.requiresGameReload) {
+        throw syncRequired;
+      }
+    } on Object {
+      ensureCurrentAccount();
+      throw syncRequired;
     }
     final result = await session.runAuthenticated(
       request: api.load,
       isUnauthorized: (error) =>
           error is LeaderboardException && error.isUnauthorized,
     );
-    // 로그인 전환 뒤 도착한 이전 계정의 순위 폐기.
-    if (!mounted ||
-        !identical(_onlineSession, session) ||
-        session.credentials == null) {
-      throw changed;
-    }
+    ensureCurrentAccount();
     return result;
   }
 

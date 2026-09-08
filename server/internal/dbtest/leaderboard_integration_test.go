@@ -257,3 +257,103 @@ func TestLeaderboardRunSettlementAtomicityAndReceiptBoundary(t *testing.T) {
 		t.Fatalf("invalid evidence ranked: %d %v", count, err)
 	}
 }
+
+func TestLeaderboardActiveRunSaveProgress(t *testing.T) {
+	ctx, fixture, accountID := openSaveService(t)
+	if _, err := fixture.pool.Exec(ctx, `UPDATE accounts SET nickname='Runner',nickname_tag='0001' WHERE id=$1`, accountID); err != nil {
+		t.Fatal(err)
+	}
+	service := leaderboard.NewService(fixture.pool)
+	var revision int64
+	update := func(key int, active string) gamesave.UpdateRequest {
+		var run json.RawMessage
+		if active != "" {
+			run = json.RawMessage(active)
+		}
+		return gamesave.UpdateRequest{IdempotencyKey: fmt.Sprintf("0198b955-3656-7c40-b3cb-%012d", key), ExpectedRevision: revision, WriterGeneration: fixture.writerGeneration, RawBody: []byte(fmt.Sprintf(`{"request":%d}`, key)), Data: gamesave.Data{Version: gamesave.CurrentSchemaVersion, Preferences: json.RawMessage(`{}`), Progression: json.RawMessage(`{"bestRoundsByStage":{"15":40}}`), TurretModules: json.RawMessage(`{}`), ActiveRun: run}}
+	}
+	// 과거 최고·시작만 한 런·이전 저장·범위 밖 기록은 집계 제외.
+	for i, active := range []string{"", `{"stageNumber":4,"completedRounds":0,"roundIndex":30}`, `{"stageNumber":4,"roundIndex":30}`, `{"stageNumber":16,"completedRounds":1}`, `{"stageNumber":4,"completedRounds":41}`, `{"stageNumber":4,"completedRounds":"2"}`} {
+		result, err := fixture.Update(ctx, accountID, update(i+1, active))
+		if err != nil {
+			t.Fatal(err)
+		}
+		revision = result.Revision
+		board, err := service.GetProgression(ctx, accountID)
+		if err != nil || board.MyEntry != nil {
+			t.Fatalf("invalid active run ranked: %+v %v", board, err)
+		}
+	}
+	first := update(10, `{"stageNumber":4,"completedRounds":2,"roundIndex":3,"phase":"wave"}`)
+	result, err := fixture.Update(ctx, accountID, first)
+	if err != nil {
+		t.Fatal(err)
+	}
+	revision = result.Revision
+	board, err := service.GetProgression(ctx, accountID)
+	if err != nil || board.MyEntry == nil || board.MyEntry.StageNumber != 4 || board.MyEntry.CompletedRounds != 2 {
+		t.Fatalf("active completed rounds: %+v %v", board, err)
+	}
+	achieved := board.MyEntry.AchievedAt
+	var sourceRevision int64
+	var sourceCommand pgtype.UUID
+	if err := fixture.pool.QueryRow(ctx, `SELECT source_save_revision,source_command_id FROM leaderboard_records WHERE account_id=$1`, accountID).Scan(&sourceRevision, &sourceCommand); err != nil || sourceRevision != revision || sourceCommand.Valid {
+		t.Fatalf("save source %d %v %v", sourceRevision, sourceCommand, err)
+	}
+	// 영수증 재시도·동일 기록·낮은 기록·런 제거에도 최고 기록과 최초 시각 유지.
+	if _, err := fixture.Update(ctx, accountID, first); err != nil {
+		t.Fatal(err)
+	}
+	for i, active := range []string{`{"stageNumber":4,"completedRounds":2}`, `{"stageNumber":3,"completedRounds":40}`, ""} {
+		result, err := fixture.Update(ctx, accountID, update(20+i, active))
+		if err != nil {
+			t.Fatal(err)
+		}
+		revision = result.Revision
+		board, err = service.GetProgression(ctx, accountID)
+		if err != nil || board.MyEntry == nil || !board.MyEntry.AchievedAt.Equal(achieved) || board.MyEntry.CompletedRounds != 2 {
+			t.Fatalf("best regressed: %+v %v", board, err)
+		}
+	}
+	// 저장 revision 충돌은 기록을 갱신하지 않음.
+	conflict := update(30, `{"stageNumber":15,"completedRounds":40}`)
+	conflict.ExpectedRevision = 0
+	if _, err := fixture.Update(ctx, accountID, conflict); err == nil {
+		t.Fatal("stale revision accepted")
+	}
+	replaced := update(31, `{"stageNumber":15,"completedRounds":40}`)
+	replaced.WriterGeneration++
+	if _, err := fixture.service.Update(ctx, accountID, fixture.sessionID, replaced); err == nil {
+		t.Fatal("replaced writer accepted")
+	}
+	// 리더보드 쓰기 실패 시 저장 본문·revision·영수증도 롤백.
+	constraint := "leaderboard_save_fail_" + strings.ReplaceAll(accountID, "-", "")
+	if _, err := fixture.pool.Exec(ctx, `ALTER TABLE leaderboard_records ADD CONSTRAINT `+constraint+` CHECK(account_id <> '`+accountID+`'::uuid OR stage_number < 5)`); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_, _ = fixture.pool.Exec(context.Background(), `ALTER TABLE leaderboard_records DROP CONSTRAINT IF EXISTS `+constraint)
+	})
+	higher := update(40, `{"stageNumber":5,"completedRounds":1}`)
+	if _, err := fixture.Update(ctx, accountID, higher); err == nil {
+		t.Fatal("leaderboard failure accepted save")
+	}
+	var storedRevision int64
+	var receipts int
+	if err := fixture.pool.QueryRow(ctx, `SELECT revision,(SELECT count(*) FROM save_requests WHERE account_id=$1 AND idempotency_key=$2) FROM save_headers WHERE account_id=$1`, accountID, higher.IdempotencyKey).Scan(&storedRevision, &receipts); err != nil {
+		t.Fatal(err)
+	}
+	if storedRevision != revision || receipts != 0 {
+		t.Fatalf("partial save commit %d %d", storedRevision, receipts)
+	}
+	if _, err := fixture.pool.Exec(ctx, `ALTER TABLE leaderboard_records DROP CONSTRAINT `+constraint); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := fixture.Update(ctx, accountID, higher); err != nil {
+		t.Fatal(err)
+	}
+	board, err = service.GetProgression(ctx, accountID)
+	if err != nil || board.MyEntry == nil || board.MyEntry.StageNumber != 5 || board.MyEntry.CompletedRounds != 1 || !board.MyEntry.AchievedAt.After(achieved) {
+		t.Fatalf("higher active record: %+v %v", board, err)
+	}
+}

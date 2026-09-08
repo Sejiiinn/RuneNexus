@@ -40,30 +40,33 @@ class _MainLobby extends StatelessWidget {
   Widget _buildLobby(BuildContext context, GameSnapshot value) {
     return ColoredBox(
       color: GamePalette.backdrop,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
-          // 낮은 화면에서도 받침과 메뉴가 겹치지 않는 장면 높이.
-          final height = math.max(
-            constraints.maxHeight,
-            math.min(constraints.maxWidth, 460) /
-                    _LobbyScene.sourceSize.width *
-                    _LobbyScene.sourceSize.height *
-                    0.5 +
-                400 +
-                (textScale - 1).clamp(0, 3) * 250 +
-                MediaQuery.paddingOf(context).vertical,
-          );
-          return SingleChildScrollView(
-            child: Center(
-              child: SizedBox(
-                width: math.min(constraints.maxWidth, 460),
-                height: height,
-                child: _buildCanvas(context, value),
+      child: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+            // 장면의 비율을 보존하며 전체 메뉴를 화면 안에 맞출 기준 높이.
+            final height = math.max(
+              constraints.maxHeight,
+              math.min(constraints.maxWidth, 460) /
+                      _LobbyScene.sourceSize.width *
+                      _LobbyScene.sourceSize.height *
+                      0.5 +
+                  400 +
+                  (textScale - 1).clamp(0, 3) * 250 +
+                  MediaQuery.paddingOf(context).vertical,
+            );
+            return Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: SizedBox(
+                  width: math.min(constraints.maxWidth, 460),
+                  height: height,
+                  child: _buildCanvas(context, value),
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -92,7 +95,7 @@ class _MainLobby extends StatelessWidget {
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       final height = constraints.maxHeight;
-                      return SingleChildScrollView(
+                      return SizedBox(
                         child: Center(
                           child: SizedBox(
                             width: math.min(constraints.maxWidth, 460),
@@ -583,7 +586,7 @@ class _LobbyScene extends StatelessWidget {
     return IgnorePointer(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // 제단과 장치를 화면 폭 기준으로 함께 배치해 스크롤 시 접점 유지.
+          // 제단과 장치를 같은 폭 비율로 배치해 접점 유지.
           final sceneHeight =
               constraints.maxWidth / sourceSize.width * sourceSize.height;
           final floorY = sceneHeight * 0.417;

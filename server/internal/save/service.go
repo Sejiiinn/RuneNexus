@@ -401,6 +401,22 @@ func (service *Service) Update(
 	}); err != nil {
 		return UpdateResult{}, fmt.Errorf("create save request receipt: %w", err)
 	}
+	// 현재 런의 완료 라운드만 집계. 오래된 저장의 필드 누락·비정상 값은 저장 호환성을 유지하며 제외.
+	var activeRun struct {
+		StageNumber     int `json:"stageNumber"`
+		CompletedRounds int `json:"completedRounds"`
+	}
+	if json.Unmarshal(request.Data.ActiveRun, &activeRun) == nil &&
+		activeRun.StageNumber >= 1 && activeRun.StageNumber <= 15 &&
+		activeRun.CompletedRounds >= 1 && activeRun.CompletedRounds <= 40 {
+		if err := txQueries.UpsertProgressionLeaderboardRecord(ctx, dbgen.UpsertProgressionLeaderboardRecordParams{
+			AccountID: databaseAccountID, StageNumber: int32(activeRun.StageNumber),
+			CompletedRounds:    int32(activeRun.CompletedRounds),
+			SourceSaveRevision: pgtype.Int8{Int64: advanced.Revision, Valid: true},
+		}); err != nil {
+			return UpdateResult{}, fmt.Errorf("update active run leaderboard: %w", err)
+		}
+	}
 	if err := tx.Commit(ctx); err != nil {
 		return UpdateResult{}, fmt.Errorf("commit save transaction: %w", err)
 	}

@@ -20,6 +20,11 @@
 6. `006_authoritative_economy.sql`: 서버 권위 지갑·모듈·경제 명령 원장·보상·진행 effect와 bootstrap 백업
 7. `007_persistent_auth_sessions.sql`: 무만료 세션용 nullable refresh 만료와 암호화 갱신 응답 receipt
 8. `008_account_nicknames.sql`: 계정 닉네임·4자리 태그, 조합 유일성과 입력 규칙 제약
+9. `009_leaderboard_records.sql`: 종료 정산 기반 개인 최고 기록과 달성 시각
+10. `010_leaderboard_save_progress.sql`: 진행 중 저장 revision 출처 추가, 기존 정산 출처 보존
+
+운영 적용 상태와 다음 배포 순서는 [배포 인계](../../../docs/deployment_status.md)를 확인합니다.
+010은 새 API보다 먼저 적용합니다. 저장 출처 기록이 있으면 down은 거부되며 기록을 삭제해 우회하지 않습니다.
 
 007은 기존 유한 세션의 만료 값을 변경하지 않습니다. 신규 영속 로그인에서만
 `sessions.refresh_expires_at = NULL`을 사용합니다. `refresh_receipts`의 암호문은 10분 복구

@@ -267,6 +267,8 @@ void main() {
         (tester) async {
           tester.view.physicalSize = viewport;
           tester.view.devicePixelRatio = 1;
+          tester.view.padding = FakeViewPadding(top: 24, bottom: 16);
+          addTearDown(tester.view.resetPadding);
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
           await tester.pumpWidget(
@@ -301,6 +303,18 @@ void main() {
             ),
           );
           await pumpGameFrames(tester);
+          expect(
+            find.descendant(
+              of: find.byKey(const ValueKey('main-lobby-screen')),
+              matching: find.byType(Scrollable),
+            ),
+            findsNothing,
+          );
+          final stageButton = find.byKey(const ValueKey('lobby-stage-select'));
+          final beforeDrag = tester.getRect(stageButton);
+          await tester.drag(stageButton, const Offset(0, -160));
+          await tester.pumpAndSettle();
+          expect(tester.getRect(stageButton), beforeDrag);
           for (final key in [
             'lobby-stage-select',
             'lobby-continue-run',
@@ -314,9 +328,12 @@ void main() {
           ]) {
             final entry = find.byKey(ValueKey(key));
             expect(entry, findsOneWidget);
-            await tester.ensureVisible(entry);
-            await tester.pump();
             expect(entry.hitTestable(), findsOneWidget);
+            final rect = tester.getRect(entry);
+            expect(rect.left, greaterThanOrEqualTo(0));
+            expect(rect.right, lessThanOrEqualTo(viewport.width));
+            expect(rect.top, greaterThanOrEqualTo(24));
+            expect(rect.bottom, lessThanOrEqualTo(viewport.height - 16));
           }
           expect(tester.takeException(), isNull);
         },

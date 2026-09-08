@@ -207,6 +207,33 @@ void main() {
     );
   });
 
+  testWidgets('진행 기록 동기화 실패 시 이전 순위를 지우고 정확한 재시도 안내를 표시한다', (tester) async {
+    var calls = 0;
+    const message =
+        '현재 진행 기록을 서버에 저장하지 못해 순위를 갱신하지 않았습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.';
+    await tester.pumpWidget(
+      harness(
+        load: () async {
+          if (++calls == 1 || calls == 3) return exampleSnapshot();
+          throw const LeaderboardException(
+            code: 'LEADERBOARD_SAVE_SYNC_REQUIRED',
+            message: message,
+          );
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('루나#4821'), findsOneWidget);
+    await tester.tap(find.byTooltip('순위 새로고침'));
+    await tester.pumpAndSettle();
+    expect(find.text(message), findsOneWidget);
+    expect(find.text('루나#4821'), findsNothing);
+    expect(find.text('별빛수호자#1042'), findsNothing);
+    await tester.tap(find.text('다시 시도'));
+    await tester.pumpAndSettle();
+    expect(find.text('루나#4821'), findsOneWidget);
+  });
+
   for (final status in [401, 403, null]) {
     testWidgets('인증 변경 $status 응답은 이전 순위와 내 기록을 지운다', (tester) async {
       var calls = 0;

@@ -5,6 +5,22 @@ import 'package:rune_nexus/data/save/save_repository.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
 
 void main() {
+  for (final failSave in [false, true]) {
+    test('순위 조회 전 명시적 체크포인트는 로컬 성공 여부($failSave)를 반환한다', () async {
+      final calls = <String>[];
+      final local = _RecordingSaveRepository(calls, failSave: failSave);
+      final online = _RecordingOnlineSaveRepository(calls);
+      final game = RuneNexusGame(
+        saveRepository: local,
+        onlineSaveRepository: online,
+      );
+      addTearDown(game.disposeAppResources);
+      expect(await game.saveAccountCheckpoint(), !failSave);
+      expect(calls, failSave ? ['local'] : ['local', 'online']);
+      if (!failSave) expect(online.data, same(local.data));
+    });
+  }
+
   test('중요 체크포인트는 로컬 저장 성공 뒤 온라인 Outbox에 전달한다', () async {
     final calls = <String>[];
     final local = _RecordingSaveRepository(calls);
