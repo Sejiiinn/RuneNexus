@@ -1,3 +1,5 @@
+import 'package:flame/components.dart';
+
 import '../../domain/enemy/enemy_resistance_profile.dart';
 import '../../domain/map/grid_point.dart';
 import '../../domain/turret/attack_tag.dart';
@@ -7,14 +9,14 @@ import '../components/turret_component.dart';
 
 class CombatResolver {
   const CombatResolver({
-    required this.chainDamageMultiplier,
     required this.chainJumpRange,
+    this.chainIgnitionRange = 88,
     required this.burnDamagePerSecondScale,
     required this.burnDurationSeconds,
   });
 
-  final double chainDamageMultiplier;
   final double chainJumpRange;
+  final double chainIgnitionRange;
   final double burnDamagePerSecondScale;
   final double burnDurationSeconds;
 
@@ -99,52 +101,26 @@ class CombatResolver {
     }
   }
 
-  double chainProjectileDamage(TurretAttackSnapshot attack) {
-    return attack.damage * chainDamageMultiplier;
-  }
-
-  double chainStatusDamageScale({
-    required TurretAttackSnapshot attack,
-    required double damage,
-  }) {
-    return attack.damage <= 0 ? 0.0 : damage / attack.damage;
-  }
-
-  List<EnemyComponent> chainProjectileTargets({
+  EnemyComponent? nextChainProjectileTarget({
     required Iterable<EnemyComponent> enemies,
-    required EnemyComponent source,
+    required Vector2 sourcePosition,
     required Set<EnemyComponent> excluded,
     required double boardDistanceScale,
   }) {
     final jumpRange = chainJumpRange * boardDistanceScale;
     final jumpRangeSquared = jumpRange * jumpRange;
-    EnemyComponent? firstTarget;
-    EnemyComponent? secondTarget;
-    var firstDistanceSquared = double.infinity;
-    var secondDistanceSquared = double.infinity;
-
+    EnemyComponent? target;
+    var nearestDistanceSquared = double.infinity;
     for (final enemy in enemies) {
-      if (!enemy.isMounted || enemy.isDead || excluded.contains(enemy)) {
-        continue;
-      }
-      final dx = enemy.position.x - source.position.x;
-      final dy = enemy.position.y - source.position.y;
-      final distanceSquared = dx * dx + dy * dy;
-      if (distanceSquared > jumpRangeSquared) {
-        continue;
-      }
-      if (distanceSquared < firstDistanceSquared) {
-        secondDistanceSquared = firstDistanceSquared;
-        secondTarget = firstTarget;
-        firstDistanceSquared = distanceSquared;
-        firstTarget = enemy;
-      } else if (distanceSquared < secondDistanceSquared) {
-        secondDistanceSquared = distanceSquared;
-        secondTarget = enemy;
+      if (enemy.isDead || excluded.contains(enemy)) continue;
+      final distanceSquared = enemy.position.distanceToSquared(sourcePosition);
+      if (distanceSquared <= jumpRangeSquared &&
+          distanceSquared < nearestDistanceSquared) {
+        target = enemy;
+        nearestDistanceSquared = distanceSquared;
       }
     }
-
-    return [firstTarget, secondTarget].nonNulls.toList();
+    return target;
   }
 
   EnemyComponent? chainIgnitionTarget({
@@ -153,7 +129,7 @@ class CombatResolver {
     required double boardDistanceScale,
   }) {
     final liveEnemies = enemies.toList();
-    final jumpRange = chainJumpRange * boardDistanceScale;
+    final jumpRange = chainIgnitionRange * boardDistanceScale;
     final jumpRangeSquared = jumpRange * jumpRange;
     EnemyComponent? target;
     var targetDistanceTravelled = -double.infinity;

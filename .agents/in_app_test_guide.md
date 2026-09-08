@@ -1,5 +1,11 @@
 # In-App Test Guide
 
+## 적용 환경
+
+- 이 문서는 Windows와 macOS의 공통 인앱 검증 진입점입니다.
+- Windows에서는 `.agents/windows_flutter_guide.md`의 실행 규칙을 함께 적용하세요. macOS에서는 아래의 macOS 스크립트 경로를 사용하세요.
+- 서버 실행 권한은 현재 세션 정책과 `.agents/sandbox_command_guide.md`를 따르세요.
+
 ## 기본 순서
 
 1. 53000 포트 서버 상태를 먼저 확인합니다.

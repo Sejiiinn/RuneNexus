@@ -1,0 +1,90 @@
+<div id="rn-position-preview" aria-label="전투 조작 위치 비교 시안">
+  <div class="rn-caption">배치 비교 · 동일한 예시 콘텐츠</div>
+  <div class="rn-comparison">
+    <section class="rn-example" data-version="before" aria-label="현재 배치">
+      <div class="rn-heading">현재 <span>상세 높이에 따라 이동</span></div>
+      <div class="rn-screen">
+        <div class="rn-top"><span>● 240 G<br>◆ 파편 20</span><span>웨이브 3 / 20<br>코어 20 / 20</span><span>⌂</span></div>
+        <div class="rn-board" aria-label="위치 비교용 전장 도식"><div class="rn-path"></div><div class="rn-nexus">코어</div><div class="rn-tower">화살<br>Lv.2</div></div>
+        <div class="rn-bottom"><div class="rn-panel"><div class="rn-controls"></div><div class="rn-detail"></div></div><div class="rn-tabs"></div></div>
+      </div>
+    </section>
+    <section class="rn-example" data-version="after" aria-label="변경안">
+      <div class="rn-heading">변경안 <span>하단 메뉴 위에 고정</span></div>
+      <div class="rn-screen">
+        <div class="rn-top"><span>● 240 G<br>◆ 파편 20</span><span>웨이브 3 / 20<br>코어 20 / 20</span><span>⌂</span></div>
+        <div class="rn-board" aria-label="위치 비교용 전장 도식"><div class="rn-path"></div><div class="rn-nexus">코어</div><div class="rn-tower">화살<br>Lv.2</div></div>
+        <div class="rn-bottom"><div class="rn-panel"><div class="rn-detail"></div><div class="rn-controls"></div></div><div class="rn-tabs"></div></div>
+      </div>
+    </section>
+  </div>
+  <div class="rn-caption rn-live" aria-live="polite"></div>
+</div>
+<style>
+#rn-position-preview {font-family:system-ui,-apple-system,"Apple SD Gothic Neo",sans-serif;color:light-dark(#253745,#d4e0e8);font-size:14px;line-height:1.45;}
+#rn-position-preview * {box-sizing:border-box;}
+#rn-position-preview .rn-caption {font-size:12px;margin:0 0 12px;}
+#rn-position-preview .rn-comparison {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;}
+#rn-position-preview .rn-heading {display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-weight:600;margin-bottom:8px;}
+#rn-position-preview .rn-heading span {font-size:12px;font-weight:400;}
+#rn-position-preview .rn-screen {height:590px;background:#07111d;border:1px solid #3a5061;border-radius:12px;position:relative;color:#e8f8ff;overflow:hidden;}
+#rn-position-preview .rn-top {position:absolute;top:0;left:0;right:0;padding:16px 12px;display:flex;justify-content:space-between;font-size:12px;line-height:1.7;background:#0b1827;z-index:1;}
+#rn-position-preview .rn-top span:first-child {color:#e7c66a;}
+#rn-position-preview .rn-board {position:absolute;top:95px;left:18px;right:18px;height:300px;background:repeating-linear-gradient(0deg,transparent 0 35px,#203241 35px 36px),repeating-linear-gradient(90deg,transparent 0 35px,#203241 35px 36px);opacity:.75;}
+#rn-position-preview .rn-path {position:absolute;top:25px;left:15%;width:65%;height:168px;border:27px solid #354655;border-top:0;border-right:0;}
+#rn-position-preview .rn-nexus {position:absolute;top:167px;right:10%;padding:10px;border:1px solid #8ee6ff;background:#163447;font-size:12px;}
+#rn-position-preview .rn-tower {position:absolute;top:71px;left:37%;background:#152c3c;border:1px solid #8ee6ff;padding:7px 12px;text-align:center;font-size:12px;}
+#rn-position-preview .rn-bottom {position:absolute;left:0;right:0;bottom:0;}
+#rn-position-preview .rn-panel {margin:0 10px 4px;padding:9px;background:#0b1b2b;border:1px solid #38566b;border-radius:8px;display:flex;flex-direction:column;gap:8px;}
+#rn-position-preview .rn-controls {display:flex;align-items:center;gap:6px;padding:5px;border:1px solid #e7c66a;border-radius:6px;background:#132434;min-height:50px;}
+#rn-position-preview .rn-controls .rn-speeds {display:flex;gap:3px;}
+#rn-position-preview button {font:inherit;color:#e8f8ff;background:#142a3c;border:1px solid #456277;border-radius:5px;padding:6px;cursor:pointer;min-height:36px;}
+#rn-position-preview button:focus-visible {outline:2px solid #fff;outline-offset:2px;}
+#rn-position-preview button[aria-pressed="true"] {background:#28495c;border-color:#8ee6ff;color:#bff4ff;}
+#rn-position-preview .rn-speeds button {font-size:12px;min-width:29px;padding:4px;}
+#rn-position-preview .rn-auto {margin-left:auto;width:36px;font-size:18px;}
+#rn-position-preview .rn-start {background:#8ee6ff;color:#07111d;font-size:12px;white-space:nowrap;padding:6px 9px;}
+#rn-position-preview .rn-tabs {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;padding:5px;background:#0b1827;border-top:1px solid #3a5061;height:52px;}
+#rn-position-preview .rn-tabs button {font-size:12px;white-space:normal;}
+#rn-position-preview .rn-detail {background:#102335;border:1px solid #2d4a5d;border-radius:6px;padding:10px;font-size:12px;}
+#rn-position-preview .rn-detail[hidden] {display:none;}
+#rn-position-preview .rn-title {display:flex;justify-content:space-between;gap:6px;align-items:center;margin-bottom:8px;}
+#rn-position-preview .rn-title strong {font-size:12px;}
+#rn-position-preview .rn-action {display:flex;gap:5px;white-space:nowrap;color:#e7c66a;}
+#rn-position-preview .rn-chip {display:inline-flex;align-items:center;gap:4px;padding:4px 6px;border:1px solid #416176;border-radius:4px;}
+#rn-position-preview .rn-subtabs {display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px;}
+#rn-position-preview .rn-subtabs span {padding:5px;text-align:center;border:1px solid #365467;border-radius:4px;}
+#rn-position-preview .rn-subtabs span:first-child {background:#254458;}
+#rn-position-preview .rn-stats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:8px 0;}
+#rn-position-preview .rn-stats div {padding:7px 3px;background:#0a1725;text-align:center;}
+#rn-position-preview .rn-stats small {display:block;color:#afc5d3;font-size:11px;}
+#rn-position-preview .rn-command {border-top:1px solid #345064;margin-top:9px;padding-top:8px;color:#bfd6e3;}
+#rn-position-preview .rn-upgrade {display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid #345064;padding:10px 0;}
+#rn-position-preview .rn-upgrade:last-child {border:0;padding-bottom:0;}
+#rn-position-preview .rn-upgrade small {display:block;color:#afc5d3;font-size:11px;margin-top:4px;}
+#rn-position-preview .rn-gems {display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+#rn-position-preview .rn-gems span {padding:7px;background:#142e42;border:1px solid #385e78;border-radius:5px;}
+#rn-position-preview .rn-live {margin-top:12px;}
+@media(max-width:600px){#rn-position-preview .rn-comparison{grid-template-columns:1fr;}#rn-position-preview .rn-example{width:100%;max-width:390px;margin:auto;}}
+@media(prefers-reduced-motion:no-preference){#rn-position-preview .rn-controls{transition:background-color .2s;}}
+</style>
+<script>
+(() => {
+ const root=document.getElementById('rn-position-preview');
+ const state={tab:'turrets',speed:1,auto:0,running:false};
+ const menu=[['turrets','포탑'],['upgrades','업그레이드'],['gems','젬']];
+ const detail={
+ turrets:'<div class="rn-title"><strong>화살 포탑 Lv.2/20</strong><div class="rn-action"><span class="rn-chip">↗ 40G</span><span class="rn-chip">↩ 28G</span></div></div><div class="rn-subtabs"><span>스탯</span><span>젬 · 링크</span></div><div>물리 · 투사체</div><div class="rn-stats"><div><small>피해</small>12.0</div><div><small>DPS</small>15.6</div><div><small>사거리</small>120</div></div><div class="rn-command">공격 명령　선두 적　⌄</div>',
+ upgrades:'<div class="rn-upgrade"><div>포탑 화력 <small>Lv.0/20 · 0% → 3%</small></div><span class="rn-chip">32G</span></div><div class="rn-upgrade"><div>처치 보너스 <small>Lv.0/20 · 0% → 2%</small></div><span class="rn-chip">20G</span></div><div class="rn-upgrade"><div>정비 보급 <small>Lv.0/20 · +0G → +4G</small></div><span class="rn-chip">10G</span></div>',
+ gems:'<div class="rn-title"><strong>◆ 젬 파편 20</strong><span class="rn-chip">젬 구매 ◆ 20</span></div><div class="rn-gems"><span>◆ 공격 속도 ×2</span><span>◆ 사거리 ×1</span></div>'
+ };
+ function render(){
+  root.querySelectorAll('.rn-detail').forEach(el=>{el.hidden=state.tab==='closed';el.innerHTML=detail[state.tab]||'';});
+  root.querySelectorAll('.rn-tabs').forEach(el=>{el.innerHTML=menu.map(([id,label])=>'<button type="button" data-tab="'+id+'" aria-pressed="'+(state.tab===id)+'">'+label+'</button>').join('');});
+  root.querySelectorAll('.rn-controls').forEach(el=>{el.innerHTML='<div class="rn-speeds">'+[1,2,4].map(n=>'<button type="button" data-speed="'+n+'" aria-pressed="'+(n===state.speed)+'">'+n+'x</button>').join('')+'</div><button type="button" class="rn-auto" data-auto aria-label="'+['웨이브마다 정지','보스 제외 자동','전부 자동'][state.auto]+'">'+['Ⅱ','⟳','∞'][state.auto]+'</button><button type="button" class="rn-start" data-start>'+ (state.running?'진행 중':'▶ 시작')+'</button>';});
+  root.querySelector('.rn-live').textContent=state.tab==='closed'?'패널 접힘 · 두 배치의 전투 버튼이 같은 높이':'금색 테두리: 전투 버튼 줄 · '+menu.find(v=>v[0]===state.tab)[1]+' 패널';
+ }
+ root.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.tab){state.tab=state.tab===b.dataset.tab?'closed':b.dataset.tab;}else if(b.dataset.speed){state.speed=Number(b.dataset.speed);}else if(b.hasAttribute('data-auto')){state.auto=(state.auto+1)%3;}else if(b.hasAttribute('data-start')){state.running=!state.running;}render();});
+ render();
+})();
+</script>

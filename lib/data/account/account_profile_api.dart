@@ -96,7 +96,7 @@ class AccountProfileApi {
     }
     if (nickname is! String ||
         nickname != nickname.trim() ||
-        !AccountProfile.isValidNickname(nickname) ||
+        !AccountProfile.isValidNicknameFormat(nickname) ||
         tag is! String ||
         !RegExp(r'^[0-9]{4}$').hasMatch(tag)) {
       throw _invalidResponse();

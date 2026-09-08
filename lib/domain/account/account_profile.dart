@@ -8,7 +8,13 @@ class AccountProfile {
   bool get hasNickname => nickname != null && tag != null;
   String? get displayName => hasNickname ? '$nickname#$tag' : null;
 
-  static bool isValidNickname(String value) {
+  // 신규 설정 정책과 기존 프로필의 형식 검증 분리.
+  static bool isValidNickname(String value) =>
+      isValidNicknameFormat(value) &&
+      !value.toLowerCase().contains('admin') &&
+      !value.contains('운영자');
+
+  static bool isValidNicknameFormat(String value) {
     final nickname = value.trim();
     if (!RegExp(r'^[가-힣A-Za-z0-9_]+$').hasMatch(nickname) ||
         nickname.length < 2) {

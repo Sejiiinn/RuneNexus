@@ -21,6 +21,7 @@ import '../data/save/online_save_repository.dart';
 import '../data/save/online_save_coordinator.dart'
     show createOnlineSaveIdempotencyKey;
 import '../data/save/save_repository.dart';
+import '../domain/combat/attack_rules.dart';
 import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/game_phase.dart';
 import '../domain/combat/run_panel_tab.dart';
@@ -47,7 +48,6 @@ import '../domain/turret/turret_trait_type.dart';
 import '../domain/turret/turret_type.dart';
 import '../domain/turret_module/turret_module_type.dart';
 import '../domain/wave/wave_definition.dart';
-import 'components/chain_projectile_component.dart';
 import 'components/damage_number_component.dart';
 import 'components/death_burst_effect_component.dart';
 import 'components/diamond_reward_effect_component.dart';
@@ -56,11 +56,11 @@ import 'components/gem_equip_effect_component.dart';
 import 'components/grid_component.dart';
 import 'components/impact_effect_component.dart';
 import 'components/lightning_chain_beam_component.dart';
+import 'components/lightning_charge_component.dart';
 import 'components/nexus_core_beam_component.dart';
 import 'components/projectile_component.dart';
 import 'components/rift_mark_pulse_component.dart';
 import 'components/sequential_lightning_chain_component.dart';
-import 'components/sniper_chain_beam_component.dart';
 import 'components/turret_component.dart';
 import 'game_snapshot.dart';
 import 'rendering/core_skill_cooldown_renderer.dart';
@@ -86,7 +86,6 @@ const _debugPanelEnabled = bool.fromEnvironment(
 );
 
 class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
-  static const double _chainDamageMultiplier = 0.5;
   static const double _burnDamagePerSecondScale = 0.5;
   static const double _burnDurationSeconds = 2;
   static const double _ignitionBurstDurationRate = 0.3;
@@ -105,8 +104,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   static const double burnDamagePerSecondScale = _burnDamagePerSecondScale;
   static const double burnDurationSeconds = _burnDurationSeconds;
   static const double _designTileSize = 48;
-  static const double _chainJumpRange = 88;
-  static const double _lightningChainJumpRange = 92;
+  static const double _chainJumpRange = 110;
+  static const double _lightningChainJumpRange = 115;
   static const double _minBoardZoom = 1;
   static const double _maxBoardZoom = 2.1;
   static const double _baseBoardPanRatio = 0.2;
@@ -460,7 +459,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   final List<GemType> _rewardOptions = [];
   final DamageNumberImageCache _damageNumberImages = DamageNumberImageCache();
   final CombatResolver _combatResolver = const CombatResolver(
-    chainDamageMultiplier: _chainDamageMultiplier,
     chainJumpRange: _chainJumpRange,
     burnDamagePerSecondScale: _burnDamagePerSecondScale,
     burnDurationSeconds: _burnDurationSeconds,
@@ -627,6 +625,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _progression.isStageCleared(4) ? _progression.criticalChanceBonusRate : 0;
   double get criticalDamageProgressionBonusRate =>
       _progression.isStageCleared(4) ? _progression.criticalDamageBonusRate : 0;
+  double get chainJumpRange => _chainJumpRange * boardDistanceScale;
   double get lightningChainJumpRange =>
       _lightningChainJumpRange * boardDistanceScale;
   bool get _isRewardPausingWave =>
@@ -2639,6 +2638,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     TurretAttackSnapshot? attack,
     required EnemyComponent target,
     required Vector2 hitPosition,
+    int? remainingChainCount,
+    Set<EnemyComponent>? directHitEnemies,
+    bool isChain = false,
   }) {
     final profile =
         attack ??
@@ -2647,43 +2649,87 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
               ? owner.criticalDamageMultiplier
               : 1.0,
         );
-    final impacted = <EnemyComponent>{};
-    if (profile.splashRadius > 0) {
-      final splashRadiusSquared = profile.splashRadius * profile.splashRadius;
+    final visited = {...?directHitEnemies, target};
+    _resolveAttackImpact(
+      owner: owner,
+      attack: profile,
+      target: target,
+      hitPosition: hitPosition,
+      damageScale: isChain ? AttackRules.chainDamageMultiplier : 1,
+      areaScale: isChain ? AttackRules.chainAreaMultiplier : 1,
+      directKind: isChain ? TurretDamageKind.chain : TurretDamageKind.direct,
+    );
+
+    final remaining = remainingChainCount ?? profile.chainCount;
+    if (remaining > 0 &&
+        profile.definition.projectileSpeed > 0 &&
+        !profile.definition.instantHit &&
+        !profile.definition.centeredAreaAttack) {
+      _spawnNextChainProjectile(
+        owner: owner,
+        attack: profile,
+        origin: hitPosition,
+        directHitEnemies: visited,
+        remainingChainCount: remaining,
+      );
+    }
+  }
+
+  // 명중별 독립 폭발 판정: 과거 피격 이력은 직접 연쇄 대상에만 사용.
+  void _resolveAttackImpact({
+    required TurretComponent owner,
+    required TurretAttackSnapshot attack,
+    required EnemyComponent target,
+    required Vector2 hitPosition,
+    double damageScale = 1,
+    double areaScale = 1,
+    TurretDamageKind directKind = TurretDamageKind.direct,
+  }) {
+    final impacted = <EnemyComponent>{if (!target.isDead) target};
+    final splashRadius = attack.splashRadius * areaScale;
+    if (splashRadius > 0) {
+      final radiusSquared = splashRadius * splashRadius;
       for (final enemy in enemies.toList()) {
-        final dx = enemy.position.x - hitPosition.x;
-        final dy = enemy.position.y - hitPosition.y;
-        if ((enemy.isMounted || enemies.contains(enemy)) &&
-            !enemy.isDead &&
-            dx * dx + dy * dy <= splashRadiusSquared) {
+        if (!enemy.isDead &&
+            enemy.position.distanceToSquared(hitPosition) <= radiusSquared) {
           impacted.add(enemy);
         }
       }
-    } else if ((target.isMounted || enemies.contains(target)) &&
-        !target.isDead) {
-      impacted.add(target);
     }
-    _showImpact(owner: owner, attack: profile, position: hitPosition);
-
-    for (final enemy in impacted.toList()) {
-      final ignitionBurstDamage = identical(enemy, target)
-          ? _ignitionBurstDamage(owner, profile, enemy)
+    _showImpact(
+      owner: owner,
+      attack: attack,
+      position: hitPosition,
+      areaScale: areaScale,
+    );
+    final isChain = directKind == TurretDamageKind.chain;
+    for (final enemy in impacted) {
+      if (enemy.isDead) continue;
+      final isPrimaryTarget = identical(enemy, target);
+      final triggerDirectTraits = isPrimaryTarget && !isChain;
+      final ignitionBurstDamage = triggerDirectTraits
+          ? _ignitionBurstDamage(owner, attack, enemy)
           : 0.0;
-      final traitMultiplier = identical(enemy, target)
-          ? owner.registerDirectHitTraits(enemy, attack: profile)
+      final traitMultiplier = triggerDirectTraits
+          ? owner.registerDirectHitTraits(enemy, attack: attack)
           : 1.0;
-      final baseDamage = identical(enemy, target)
-          ? profile.damage * profile.criticalMultiplier
-          : profile.damage * profile.splashSecondaryDamageMultiplier;
+      final hitMultiplier = isPrimaryTarget
+          ? 1.0
+          : attack.splashSecondaryDamageMultiplier;
       final resolvedDamage = _combatResolver.resolveAttackDamage(
-        attack: profile,
+        attack: attack,
         enemy: enemy,
-        baseDamage: baseDamage,
+        baseDamage:
+            attack.damage *
+            attack.criticalMultiplier *
+            damageScale *
+            hitMultiplier,
         traitMultiplier: traitMultiplier,
       );
       _combatResolver.applyAttackStatuses(
-        attack: profile,
+        attack: attack,
         enemy: enemy,
+        damageScale: damageScale * hitMultiplier,
         activeSourceTurretPoint: _isActiveTurret(owner)
             ? owner.gridPoint
             : null,
@@ -2691,88 +2737,38 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       enemy.showHitFlash(owner.definition.color);
       final actualDamage = enemy.receiveDamage(
         resolvedDamage.damage,
-        burnTransfer: _burnTransferForHit(owner, profile, enemy),
-        ignoreArmorReduction: profile.ignoresArmorReduction,
+        burnTransfer: _burnTransferForHit(owner, attack, enemy),
+        ignoreArmorReduction: attack.ignoresArmorReduction,
       );
       showDamageNumber(
         position: enemy.position.clone(),
         damage: actualDamage,
         color: owner.definition.color,
-        sourcePosition: owner.position,
+        sourcePosition: hitPosition,
         damageMultiplier:
-            resolvedDamage.resistanceMultiplier *
-            (identical(enemy, target) ? profile.criticalMultiplier : 1),
+            resolvedDamage.resistanceMultiplier * attack.criticalMultiplier,
       );
       _recordTurretDamage(
         owner,
         actualDamage,
-        identical(enemy, target)
-            ? TurretDamageKind.direct
-            : TurretDamageKind.splash,
+        isPrimaryTarget ? directKind : TurretDamageKind.splash,
       );
       if (ignitionBurstDamage > 0 && !enemy.isDead) {
         enemy.showHitFlash(owner.definition.color);
         final actualBurstDamage = enemy.receiveDamage(
           ignitionBurstDamage,
-          burnTransfer: _burnTransferForHit(owner, profile, enemy),
-          ignoreArmorReduction: profile.ignoresArmorReduction,
+          burnTransfer: _burnTransferForHit(owner, attack, enemy),
+          ignoreArmorReduction: attack.ignoresArmorReduction,
         );
         showDamageNumber(
           position: enemy.position.clone(),
           damage: actualBurstDamage,
           color: owner.definition.color,
-          sourcePosition: owner.position,
+          sourcePosition: hitPosition,
         );
         _recordTurretDamage(owner, actualBurstDamage, TurretDamageKind.direct);
       }
     }
-
-    if (profile.hasChain) {
-      _spawnChainProjectiles(
-        owner: owner,
-        attack: profile,
-        source: target,
-        excluded: impacted,
-      );
-    }
-  }
-
-  void resolveChainHit({
-    required TurretComponent owner,
-    TurretAttackSnapshot? attack,
-    required EnemyComponent target,
-    required double damage,
-  }) {
-    final profile = attack ?? owner.createAttackSnapshot();
-    final resolvedDamage = _combatResolver.resolveAttackDamage(
-      attack: profile,
-      enemy: target,
-      baseDamage: damage,
-    );
-    final statusScale = _combatResolver.chainStatusDamageScale(
-      attack: profile,
-      damage: damage,
-    );
-    _combatResolver.applyAttackStatuses(
-      attack: profile,
-      enemy: target,
-      damageScale: statusScale,
-      activeSourceTurretPoint: _isActiveTurret(owner) ? owner.gridPoint : null,
-    );
-    target.showHitFlash(chainColorFor(owner));
-    final actualDamage = target.receiveDamage(
-      resolvedDamage.damage,
-      burnTransfer: _burnTransferForHit(owner, profile, target),
-      ignoreArmorReduction: profile.ignoresArmorReduction,
-    );
-    showDamageNumber(
-      position: target.position.clone(),
-      damage: actualDamage,
-      color: chainColorFor(owner),
-      sourcePosition: owner.position,
-      damageMultiplier: resolvedDamage.resistanceMultiplier,
-    );
-    _recordTurretDamage(owner, actualDamage, TurretDamageKind.chain);
   }
 
   void resolveInstantHit({
@@ -2789,77 +2785,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         !_isEnemyBodyInAttackRange(owner, profile, target)) {
       return;
     }
-
-    final impacted = <EnemyComponent>{target};
-    if (profile.splashRadius > 0) {
-      final splashRadiusSquared = profile.splashRadius * profile.splashRadius;
-      for (final enemy in enemies.toList()) {
-        final dx = enemy.position.x - target.position.x;
-        final dy = enemy.position.y - target.position.y;
-        if ((enemy.isMounted || enemies.contains(enemy)) &&
-            !enemy.isDead &&
-            dx * dx + dy * dy <= splashRadiusSquared) {
-          impacted.add(enemy);
-        }
-      }
-    }
-    _showImpact(
+    _resolveAttackImpact(
       owner: owner,
       attack: profile,
-      position: target.position.clone(),
+      target: target,
+      hitPosition: target.position.clone(),
     );
-
-    for (final enemy in impacted.toList()) {
-      final isPrimaryTarget = identical(enemy, target);
-      final traitMultiplier = isPrimaryTarget
-          ? owner.registerDirectHitTraits(enemy, attack: profile)
-          : 1.0;
-      final baseDamage = isPrimaryTarget
-          ? profile.damage * profile.criticalMultiplier
-          : profile.damage * profile.splashSecondaryDamageMultiplier;
-      final resolvedDamage = _combatResolver.resolveAttackDamage(
-        attack: profile,
-        enemy: enemy,
-        baseDamage: baseDamage,
-        traitMultiplier: traitMultiplier,
-      );
-      _combatResolver.applyAttackStatuses(
-        attack: profile,
-        enemy: enemy,
-        activeSourceTurretPoint: _isActiveTurret(owner)
-            ? owner.gridPoint
-            : null,
-      );
-      enemy.showHitFlash(owner.definition.color);
-      final actualDamage = enemy.receiveDamage(
-        resolvedDamage.damage,
-        burnTransfer: _burnTransferForHit(owner, profile, enemy),
-        ignoreArmorReduction: profile.ignoresArmorReduction,
-      );
-      showDamageNumber(
-        position: enemy.position.clone(),
-        damage: actualDamage,
-        color: owner.definition.color,
-        sourcePosition: owner.position,
-        damageMultiplier:
-            resolvedDamage.resistanceMultiplier *
-            (isPrimaryTarget ? profile.criticalMultiplier : 1),
-      );
-      _recordTurretDamage(
-        owner,
-        actualDamage,
-        isPrimaryTarget ? TurretDamageKind.direct : TurretDamageKind.splash,
-      );
-    }
-
-    if (profile.hasChain) {
-      _spawnChainProjectiles(
-        owner: owner,
-        attack: profile,
-        source: target,
-        excluded: impacted,
-      );
-    }
   }
 
   void resolveLightningChainAttack({
@@ -2873,21 +2804,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         !_isEnemyBodyInAttackRange(owner, profile, target)) {
       return;
     }
-
-    final impacted = <EnemyComponent>{target};
-    if (profile.splashRadius > 0) {
-      final splashRadiusSquared = profile.splashRadius * profile.splashRadius;
-      for (final enemy in enemies.toList()) {
-        final dx = enemy.position.x - target.position.x;
-        final dy = enemy.position.y - target.position.y;
-        if ((enemy.isMounted || enemies.contains(enemy)) &&
-            !enemy.isDead &&
-            dx * dx + dy * dy <= splashRadiusSquared) {
-          impacted.add(enemy);
-        }
-      }
-    }
-
     add(
       LightningChainBeamComponent(
         sourcePosition: owner.lightningChargePosition,
@@ -2896,55 +2812,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         visualScale: boardDistanceScale,
       ),
     );
-    _showImpact(
+    _resolveAttackImpact(
       owner: owner,
       attack: profile,
-      position: target.position.clone(),
+      target: target,
+      hitPosition: target.position.clone(),
     );
-
-    for (final enemy in impacted.toList()) {
-      final isPrimaryTarget = identical(enemy, target);
-      final traitMultiplier = isPrimaryTarget
-          ? owner.registerDirectHitTraits(enemy, attack: profile)
-          : 1.0;
-      final baseDamage = isPrimaryTarget
-          ? profile.damage * profile.criticalMultiplier
-          : profile.damage * profile.splashSecondaryDamageMultiplier;
-      final resolvedDamage = _combatResolver.resolveAttackDamage(
-        attack: profile,
-        enemy: enemy,
-        baseDamage: baseDamage,
-        traitMultiplier: traitMultiplier,
-      );
-      _combatResolver.applyAttackStatuses(
-        attack: profile,
-        enemy: enemy,
-        activeSourceTurretPoint: _isActiveTurret(owner)
-            ? owner.gridPoint
-            : null,
-      );
-      enemy.showHitFlash(owner.definition.color);
-      final actualDamage = enemy.receiveDamage(
-        resolvedDamage.damage,
-        burnTransfer: _burnTransferForHit(owner, profile, enemy),
-        ignoreArmorReduction: profile.ignoresArmorReduction,
-      );
-      showDamageNumber(
-        position: enemy.position.clone(),
-        damage: actualDamage,
-        color: owner.definition.color,
-        sourcePosition: owner.position,
-        damageMultiplier:
-            resolvedDamage.resistanceMultiplier *
-            (isPrimaryTarget ? profile.criticalMultiplier : 1),
-      );
-      _recordTurretDamage(
-        owner,
-        actualDamage,
-        isPrimaryTarget ? TurretDamageKind.direct : TurretDamageKind.splash,
-      );
-    }
-
     if (profile.lightningChainMaxJumps <= 0) {
       owner.recordLightningChainCompletion(
         usedJumps: 0,
@@ -2952,13 +2825,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       );
       return;
     }
-
     add(
       SequentialLightningChainComponent(
         owner: owner,
         attack: profile,
         source: target,
-        excluded: impacted,
+        excluded: {target},
         game: this,
         maxJumps: profile.lightningChainMaxJumps,
       ),
@@ -3018,32 +2890,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         visualScale: boardDistanceScale,
       ),
     );
-    final damage = attack.damage * attack.lightningChainDamageMultiplier;
-    final resolvedDamage = _combatResolver.resolveAttackDamage(
+    _resolveAttackImpact(
+      owner: owner,
       attack: attack,
-      enemy: target,
-      baseDamage: damage,
+      target: target,
+      hitPosition: target.position.clone(),
+      damageScale: attack.lightningChainDamageMultiplier,
+      areaScale: AttackRules.chainAreaMultiplier,
+      directKind: TurretDamageKind.chain,
     );
-    _combatResolver.applyAttackStatuses(
-      attack: attack,
-      enemy: target,
-      damageScale: attack.damage <= 0 ? 0.0 : damage / attack.damage,
-      activeSourceTurretPoint: _isActiveTurret(owner) ? owner.gridPoint : null,
-    );
-    target.showHitFlash(owner.definition.color);
-    final actualDamage = target.receiveDamage(
-      resolvedDamage.damage,
-      burnTransfer: _burnTransferForHit(owner, attack, target),
-      ignoreArmorReduction: attack.ignoresArmorReduction,
-    );
-    showDamageNumber(
-      position: target.position.clone(),
-      damage: actualDamage,
-      color: owner.definition.color,
-      sourcePosition: sourcePosition,
-      damageMultiplier: resolvedDamage.resistanceMultiplier,
-    );
-    _recordTurretDamage(owner, actualDamage, TurretDamageKind.chain);
   }
 
   void resolveCenteredAreaAttack({
@@ -3055,7 +2910,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final impacted = targets
         .where(
           (enemy) =>
-              !enemy.isDead && _isEnemyBodyInAttackRange(owner, profile, enemy),
+              !enemy.isDead &&
+              owner.position.distanceToSquared(enemy.position) <=
+                  math.pow(
+                    profile.centeredAreaRadius + enemy.collisionRadius,
+                    2,
+                  ),
         )
         .toList();
     if (impacted.isEmpty) {
@@ -3067,7 +2927,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         position: owner.position.clone(),
         color: owner.definition.color,
         style: ImpactEffectStyle.frost,
-        radius: profile.range,
+        radius: profile.centeredAreaRadius,
       ),
     );
 
@@ -3157,8 +3017,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     required TurretComponent owner,
     required TurretAttackSnapshot attack,
     required Vector2 position,
+    double areaScale = 1,
   }) {
-    final splashRadius = attack.splashRadius;
+    final splashRadius = attack.splashRadius * areaScale;
     final style = splashRadius > 0
         ? owner.definition.type == TurretType.sniper
               ? ImpactEffectStyle.sniperBlast
@@ -3175,8 +3036,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
           };
     final radius = splashRadius > 0
         ? splashRadius
-              .clamp(18 * boardDistanceScale, double.infinity)
-              .toDouble()
         : switch (owner.definition.type) {
                 TurretType.arrow => 11.0,
                 TurretType.cannon => 22.0,
@@ -3201,44 +3060,33 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
   }
 
-  void _spawnChainProjectiles({
+  void _spawnNextChainProjectile({
     required TurretComponent owner,
     required TurretAttackSnapshot attack,
-    required EnemyComponent source,
-    required Set<EnemyComponent> excluded,
+    required Vector2 origin,
+    required Set<EnemyComponent> directHitEnemies,
+    required int remainingChainCount,
   }) {
-    final targets = _combatResolver.chainProjectileTargets(
+    final target = _combatResolver.nextChainProjectileTarget(
       enemies: enemies,
-      source: source,
-      excluded: excluded,
+      sourcePosition: origin,
+      excluded: directHitEnemies,
       boardDistanceScale: boardDistanceScale,
     );
-    final damage = _combatResolver.chainProjectileDamage(attack);
-    for (final enemy in targets) {
-      if (owner.definition.type == TurretType.sniper) {
-        add(
-          SniperChainBeamComponent(
-            source: source,
-            target: enemy,
-            owner: owner,
-            attack: attack,
-            damage: damage,
-            game: this,
-          ),
-        );
-        continue;
-      }
-      add(
-        ChainProjectileComponent(
-          origin: source.position.clone(),
-          target: enemy,
-          owner: owner,
-          attack: attack,
-          damage: damage,
-          game: this,
-        ),
-      );
-    }
+    if (target == null) return;
+    add(
+      ProjectileComponent(
+        origin: origin.clone(),
+        targetPosition: target.position.clone(),
+        owner: owner,
+        attack: attack,
+        game: this,
+        isChain: true,
+        remainingChainCount: remainingChainCount - 1,
+        directHitEnemies: directHitEnemies,
+        maxDistance: chainJumpRange,
+      ),
+    );
   }
 
   void enemyKilled(EnemyComponent enemy, {BurnTransferPayload? burnTransfer}) {
@@ -3557,11 +3405,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       component.removeFromParent();
     }
     for (final component
-        in children.whereType<ChainProjectileComponent>().toList()) {
+        in children.whereType<SequentialLightningChainComponent>().toList()) {
       component.removeFromParent();
     }
     for (final component
-        in children.whereType<SniperChainBeamComponent>().toList()) {
+        in children.whereType<LightningChargeComponent>().toList()) {
+      component.removeFromParent();
+    }
+    for (final component
+        in children.whereType<LightningChainBeamComponent>().toList()) {
       component.removeFromParent();
     }
     for (final component

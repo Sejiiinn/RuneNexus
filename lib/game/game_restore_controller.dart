@@ -230,8 +230,14 @@ class GameRestoreController {
         center: _game._centerOf(savedTurret.point),
         tileSize: _game._tileSize,
       )..restoreFromSaveData(savedTurret);
-      for (final gem in savedTurret.equippedGemSlots.skip(turret.slotLimit)) {
-        if (gem != null) {
+      final savedSlots = savedTurret.equippedGemSlots.isEmpty
+          ? savedTurret.equippedGems
+          : savedTurret.equippedGemSlots;
+      for (var slot = 0; slot < savedSlots.length; slot++) {
+        final gem = savedSlots[slot];
+        if (gem != null &&
+            (slot >= turret.slotLimit ||
+                turret.equippedGemSlots[slot] != gem)) {
           _game._gemInventory[gem] = (_game._gemInventory[gem] ?? 0) + 1;
         }
       }

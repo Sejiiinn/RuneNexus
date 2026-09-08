@@ -1,0 +1,21 @@
+{
+  "asset": "daily_weekly_quest_mockup.png",
+  "dimensions": {
+    "width": 393,
+    "height": 852
+  },
+  "sha256": "741e522d37556b5e307fb0f8669611ca8bb00a8dfec64e3645bbf468c60a2033",
+  "generation": {
+    "route": "built-in image_gen",
+    "source": "/Users/sejin/.codex/generated_images/01a0552b-d3ab-7c52-88ca-56a706b064bb/exec-cf3d6775-c41d-400b-bdd9-ee9f1b35e0c3.png",
+    "reference": "/private/tmp/rune_nexus_stage_numbers_centered.png",
+    "referenceRole": "style and layout-system reference only"
+  },
+  "content": {
+    "screen": "일일·주간 임무 작전 명령서",
+    "selectedTab": "주간 임무",
+    "missionRows": 5,
+    "weeklyMilestone": "주간 최종 보상",
+    "progress": "3/5 완료"
+  }
+}

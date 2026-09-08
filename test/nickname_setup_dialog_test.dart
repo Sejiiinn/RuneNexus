@@ -44,6 +44,17 @@ void main() {
       await tester.tap(find.text('저장하고 시작하기'));
       await tester.pumpAndSettle();
       expect(calls, 0);
+      for (final nickname in ['xxAdMiN99', '룬운영자']) {
+        await tester.enterText(find.byType(TextField), nickname);
+        await tester.tap(find.text('저장하고 시작하기'));
+        await tester.pumpAndSettle();
+        expect(calls, 0);
+        expect(find.textContaining('길이를 확인하고'), findsOneWidget);
+        expect(
+          tester.widget<TextField>(find.byType(TextField)).controller!.text,
+          nickname,
+        );
+      }
       await tester.enterText(find.byType(TextField), ' 룬기사 ');
       await tester.tap(find.text('저장하고 시작하기'));
       await tester.pumpAndSettle();

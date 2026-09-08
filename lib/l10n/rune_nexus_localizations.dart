@@ -379,8 +379,8 @@ class RuneNexusLocalizations {
       : '계정으로 플레이하려면 닉네임을 설정해 주세요. 저장 후에는 변경할 수 없습니다.';
   String get nicknameLabel => _isEnglish ? 'Nickname' : '닉네임';
   String get nicknameRules => _isEnglish
-      ? 'At least 2 characters. Korean syllables count as 2, letters, digits and underscores as 1, up to 16 total. No internal spaces.'
-      : '최소 2자 · 한글 최대 8자 · 영문 최대 16자\n혼합 시 한글 2칸, 영문·숫자·밑줄 1칸으로 총 16칸까지. 내부 공백은 사용할 수 없습니다.';
+      ? 'At least 2 characters. Korean syllables count as 2, letters, digits and underscores as 1, up to 16 total. No internal spaces. Cannot contain admin (case-insensitive) or 운영자.'
+      : '최소 2자 · 한글 최대 8자 · 영문 최대 16자\n혼합 시 한글 2칸, 영문·숫자·밑줄 1칸으로 총 16칸까지. 내부 공백은 사용할 수 없습니다.\nadmin(대소문자 무관)·운영자는 포함할 수 없습니다.';
   String get nicknameTagDescription => _isEnglish
       ? 'A random four-digit tag is always added, e.g. RuneMaster#0382. Duplicate nicknames are allowed; the full name and tag are unique.'
       : '모든 닉네임 뒤에 랜덤 숫자 4자리 태그가 붙습니다. 예: 룬마스터#0382\n닉네임은 중복 가능하며, 태그를 포함한 전체 이름은 고유합니다.';
@@ -391,8 +391,8 @@ class RuneNexusLocalizations {
   String get nicknameSaving => _isEnglish ? 'Saving...' : '저장 중...';
   String get nicknameLogout => _isEnglish ? 'Log out' : '로그아웃';
   String get nicknameInvalid => _isEnglish
-      ? 'Check the length and use only Korean syllables, English letters, digits or underscores.'
-      : '길이를 확인하고 한글 완성형·영문·숫자·밑줄만 입력해 주세요.';
+      ? 'Check the length and use only Korean syllables, English letters, digits or underscores. Cannot contain admin (case-insensitive) or 운영자.'
+      : '길이를 확인하고 한글 완성형·영문·숫자·밑줄만 입력해 주세요.\nadmin(대소문자 무관)·운영자는 포함할 수 없습니다.';
   String get nicknameTagsExhausted => _isEnglish
       ? 'All tags for this nickname are in use. Please choose another nickname.'
       : '이 닉네임의 태그가 모두 사용 중입니다. 다른 닉네임을 선택해 주세요.';

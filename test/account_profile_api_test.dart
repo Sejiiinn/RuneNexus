@@ -12,6 +12,8 @@ void main() {
       'abcdefghijklmnop',
       '가나다라12345678',
       ' 가나 ',
+      '운영',
+      'ad_min',
     ]) {
       expect(AccountProfile.isValidNickname(value), isTrue, reason: value);
     }
@@ -26,6 +28,17 @@ void main() {
       'abc#1234',
       'ab😀',
       'éa',
+      'admin',
+      'ADMIN',
+      'AdMiN',
+      'xxAdmin99',
+      'admin룬',
+      '룬admin',
+      '운영자',
+      '운영자룬',
+      '룬운영자',
+      '룬운영자룬',
+      ' admin ',
     ]) {
       expect(AccountProfile.isValidNickname(value), isFalse, reason: value);
     }
@@ -53,6 +66,22 @@ void main() {
     );
     expect(transport.headers['Authorization'], 'Bearer token2');
     expect(jsonDecode(transport.requestBody!), {'nickname': '룬기사'});
+  });
+
+  test('reserved words in existing profiles remain readable', () async {
+    final transport = _Transport();
+    final api = AccountProfileApi(
+      baseUrl: 'https://example.com',
+      transport: transport,
+    );
+    for (final nickname in ['admin', '운영자']) {
+      transport.body = jsonEncode({
+        'accountId': 'a',
+        'nickname': nickname,
+        'tag': '7019',
+      });
+      expect((await api.load('token')).displayName, '$nickname#7019');
+    }
   });
 
   test('incomplete and malformed successful profiles fail closed', () async {

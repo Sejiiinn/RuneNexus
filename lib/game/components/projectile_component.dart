@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flame/components.dart';
@@ -14,8 +15,15 @@ class ProjectileComponent extends PositionComponent {
     required this.owner,
     required this.attack,
     required this.game,
-  }) : _direction = _safeDirection(origin, targetPosition),
-       _maxDistance = attack.range + 64 * owner.game.boardDistanceScale,
+    int? remainingChainCount,
+    Set<EnemyComponent> directHitEnemies = const {},
+    this.isChain = false,
+    double? maxDistance,
+  }) : remainingChainCount = remainingChainCount ?? attack.chainCount,
+       directHitEnemies = {...directHitEnemies},
+       _direction = _safeDirection(origin, targetPosition),
+       _maxDistance =
+           maxDistance ?? attack.range + 64 * game.boardDistanceScale,
        super(
          position: origin,
          size: Vector2.all(
@@ -27,6 +35,9 @@ class ProjectileComponent extends PositionComponent {
   final TurretComponent owner;
   final TurretAttackSnapshot attack;
   final RuneNexusGame game;
+  final int remainingChainCount;
+  final Set<EnemyComponent> directHitEnemies;
+  final bool isChain;
   final Vector2 _direction;
   final double _maxDistance;
   double _travelled = 0;
@@ -35,21 +46,32 @@ class ProjectileComponent extends PositionComponent {
   @override
   void update(double dt) {
     super.update(dt);
-    final step = attack.projectileSpeed * dt;
-    position += _direction * step;
+    final step = math.min(
+      math.max(0.0, attack.projectileSpeed * dt),
+      math.max(0.0, _maxDistance - _travelled),
+    );
+    final origin = position.clone();
+    final destination = origin + _direction * step;
+    final hit = _findHitEnemy(origin, destination);
+    position = hit == null
+        ? destination
+        : origin + (destination - origin) * hit.fraction;
     _travelled += step;
     _trail.insert(0, position.clone());
     if (_trail.length > 9) {
       _trail.removeRange(9, _trail.length);
     }
 
-    final target = _findHitEnemy();
-    if (target != null) {
+    if (hit != null) {
+      directHitEnemies.add(hit.enemy);
       game.resolveProjectileHit(
         owner: owner,
         attack: attack,
-        target: target,
+        target: hit.enemy,
         hitPosition: position.clone(),
+        remainingChainCount: remainingChainCount,
+        directHitEnemies: directHitEnemies,
+        isChain: isChain,
       );
       removeFromParent();
       return;
@@ -60,19 +82,39 @@ class ProjectileComponent extends PositionComponent {
     }
   }
 
-  EnemyComponent? _findHitEnemy() {
-    final projectileRadius = _hitRadius;
+  ({EnemyComponent enemy, double fraction})? _findHitEnemy(
+    Vector2 origin,
+    Vector2 destination,
+  ) {
+    final movement = destination - origin;
+    final lengthSquared = movement.length2;
+    EnemyComponent? closest;
+    var closestFraction = double.infinity;
     for (final enemy in game.enemies) {
-      final dx = enemy.position.x - position.x;
-      final dy = enemy.position.y - position.y;
-      final hitRadius = projectileRadius + enemy.collisionRadius;
-      if (enemy.isMounted &&
-          !enemy.isDead &&
-          dx * dx + dy * dy <= hitRadius * hitRadius) {
-        return enemy;
+      if (enemy.isDead || directHitEnemies.contains(enemy)) {
+        continue;
+      }
+      final offset = origin - enemy.position;
+      final hitRadius = _hitRadius + enemy.collisionRadius;
+      final c = offset.length2 - hitRadius * hitRadius;
+      double fraction;
+      if (c <= 0) {
+        fraction = 0;
+      } else {
+        if (lengthSquared == 0) continue;
+        // 이동 선분과 충돌 원의 최초 교점
+        final b = offset.dot(movement);
+        final discriminant = b * b - lengthSquared * c;
+        if (discriminant < 0) continue;
+        fraction = (-b - math.sqrt(discriminant)) / lengthSquared;
+        if (fraction < 0 || fraction > 1) continue;
+      }
+      if (fraction < closestFraction) {
+        closest = enemy;
+        closestFraction = fraction;
       }
     }
-    return null;
+    return closest == null ? null : (enemy: closest, fraction: closestFraction);
   }
 
   double get _hitRadius {

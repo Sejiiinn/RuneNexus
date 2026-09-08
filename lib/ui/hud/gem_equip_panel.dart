@@ -1088,6 +1088,11 @@ class _TurretStats extends StatelessWidget {
             : null,
       ),
       _TurretStatEntry(
+        label: '효과 범위',
+        value:
+            '${(snapshot.selectedTurretEffectAreaMultiplier * 100).round()}%',
+      ),
+      _TurretStatEntry(
         label: '치명 확률',
         value: '${(snapshot.selectedTurretCriticalChance * 100).round()}%',
         accent: critColor,

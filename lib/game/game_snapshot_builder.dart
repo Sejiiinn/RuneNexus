@@ -77,6 +77,8 @@ class GameSnapshotBuilder {
       selectedTurretRefundGold: selectedTurret?.refundGold ?? 0,
       selectedTurretDamage: selectedTurret?.damage ?? 0,
       selectedTurretRange: selectedTurret?.range ?? 0,
+      selectedTurretEffectAreaMultiplier:
+          selectedTurret?.effectAreaMultiplier ?? 1,
       selectedTurretAttackRate: selectedTurret?.attackRate ?? 0,
       selectedTurretCriticalChance: selectedTurret?.criticalChance ?? 0,
       selectedTurretCriticalDamageMultiplier:

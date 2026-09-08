@@ -1,0 +1,15 @@
+{
+  "asset": "result_reward_incremental_v2_mockup.png",
+  "dimensions": {
+    "width": 393,
+    "height": 852
+  },
+  "sha256": "623ab5334bc448d0193b1bb2b4f894956d02bcb68b9b367ff008592308b54229",
+  "generation": {
+    "route": "built-in image_gen precise-object-edit",
+    "source": "/Users/sejin/.codex/generated_images/01a0552b-d3ab-7c52-88ca-56a706b064bb/exec-b21e1b3e-a4b7-4230-9fa5-2580b5efd6f4.png",
+    "editTarget": "/Users/sejin/Documents/Codex/RuneNexus/design/mockups/next_ui/result_reward_incremental_v2_mockup.png",
+    "geometryReference": "/private/tmp/rune_nexus_current_result_overlay.png"
+  },
+  "designIntent": "실제 결과 모달 비율에 맞춘 넓고 짧은 저강도 금속 UI 개선"
+}

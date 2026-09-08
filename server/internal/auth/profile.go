@@ -46,6 +46,10 @@ func ValidateNickname(value string) (string, error) {
 			return "", ErrInvalidNickname
 		}
 	}
+	// 운영자 사칭 방지: 위치와 영문 대소문자에 관계없이 포함 여부 검사.
+	if strings.Contains(strings.ToLower(value), "admin") || strings.Contains(value, "운영자") {
+		return "", ErrInvalidNickname
+	}
 	return value, nil
 }
 

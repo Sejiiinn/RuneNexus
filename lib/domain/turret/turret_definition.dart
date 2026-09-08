@@ -46,4 +46,7 @@ class TurretDefinition {
   final double criticalDamageMultiplier;
   final double slowMultiplier;
   final double slowDuration;
+
+  bool get firesProjectile =>
+      !instantHit && !centeredAreaAttack && type != TurretType.lightning;
 }

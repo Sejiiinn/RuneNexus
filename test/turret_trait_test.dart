@@ -237,7 +237,7 @@ void main() {
     expect(turret.splashRadius, closeTo(baseSplashRadius * 1.9, 0.001));
     expect(turret.upgradeLink(), isTrue);
     turret.equipGem(GemType.explosion, 1);
-    expect(turret.splashRadius, closeTo(baseSplashRadius * 2.375, 0.001));
+    expect(turret.splashRadius, closeTo(baseSplashRadius * 2.15, 0.001));
   });
 
   test('fracture impact applies attack-local physical vulnerability', () {

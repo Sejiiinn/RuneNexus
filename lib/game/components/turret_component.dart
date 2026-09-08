@@ -3,7 +3,10 @@ import 'dart:math' as math;
 import 'package:flame/components.dart';
 import 'package:flutter/painting.dart';
 
+import '../../data/definitions/game_gem_data.dart';
 import '../../data/save/game_save_data.dart';
+import '../../domain/combat/attack_rules.dart';
+import '../../domain/gem/gem_equip_rules.dart';
 import '../../domain/gem/gem_type.dart';
 import '../../domain/map/grid_point.dart';
 import '../../domain/turret/attack_tag.dart';
@@ -234,6 +237,9 @@ class TurretComponent extends PositionComponent {
       definition: definition,
       damage: damage,
       range: range,
+      effectAreaMultiplier: effectAreaMultiplier,
+      centeredAreaRadius: centeredAreaRadius,
+      chainCount: chainCount,
       splashRadius: splashRadius,
       splashSecondaryDamageMultiplier: splashSecondaryDamageMultiplier,
       projectileSpeed: projectileSpeed,
@@ -321,50 +327,44 @@ class TurretComponent extends PositionComponent {
   double get physicalResistanceReduction =>
       _secondaryTrait == TurretTraitType.fractureImpact ? 0.2 : 0;
 
-  double get splashSecondaryDamageMultiplier {
-    final moduleBonus = _moduleEffect.splashSecondaryDamageBonusRate;
-    if (_secondaryTrait == TurretTraitType.expandedBlastCore) {
-      return definition.splashRadius > 0 ? 0.6 + moduleBonus : 1;
-    }
-    if (hasGem(GemType.explosion)) {
-      return definition.splashRadius > 0
-          ? 0.5 + moduleBonus
-          : 0.35 + moduleBonus;
-    }
-    return definition.splashRadius > 0 ? 0.5 + moduleBonus : 1;
-  }
+  double get effectAreaMultiplier =>
+      1 +
+      (hasGem(GemType.explosion) ? 0.25 * _numericGemEffectMultiplier : 0) +
+      (definition.attackTags.contains(AttackTag.heavy) &&
+              hasGem(GemType.heavyWeapon)
+          ? 0.2 * _numericGemEffectMultiplier
+          : 0);
+
+  double get centeredAreaRadius => range * effectAreaMultiplier;
+
+  double get splashSecondaryDamageMultiplier =>
+      AttackRules.splashDamageMultiplier +
+      (_secondaryTrait == TurretTraitType.expandedBlastCore ? 0.1 : 0) +
+      _moduleEffect.splashSecondaryDamageBonusRate;
 
   double get splashRadius {
-    final heavyRadiusBonus =
-        definition.attackTags.contains(AttackTag.heavy) &&
-            hasGem(GemType.heavyWeapon)
-        ? definition.splashRadius * 0.2 * _numericGemEffectMultiplier
-        : 0.0;
-    final traitRadiusBonus = _primaryTrait == TurretTraitType.shrapnelShell
-        ? definition.splashRadius * 0.3
-        : 0.0;
-    final secondaryTraitRadiusBonus =
-        _secondaryTrait == TurretTraitType.expandedBlastCore
-        ? definition.splashRadius * 0.4
-        : 0.0;
-    final moduleRadiusBonus =
-        definition.splashRadius * _moduleEffect.splashRadiusIncreaseRate;
-    if (definition.splashRadius > 0) {
-      final additiveRadius =
-          definition.splashRadius +
-          heavyRadiusBonus +
-          traitRadiusBonus +
-          secondaryTraitRadiusBonus +
-          moduleRadiusBonus;
-      return additiveRadius *
-          (hasGem(GemType.explosion)
-              ? 1 + 0.25 * _numericGemEffectMultiplier
-              : 1) *
-          game.boardDistanceScale;
+    // 이미 광역인 냉기 공격에는 별도 폭발을 부여하지 않음.
+    if (definition.centeredAreaAttack) {
+      return 0;
     }
-    return (hasGem(GemType.explosion) ? 34 * _numericGemEffectMultiplier : 0) *
+    final nativeRadius = definition.splashRadius;
+    final baseRadius = nativeRadius > 0
+        ? nativeRadius
+        : (hasGem(GemType.explosion)
+              ? gameGems[GemType.explosion]!.value
+              : 0.0);
+    final nativeIncrease =
+        (_primaryTrait == TurretTraitType.shrapnelShell ? 0.3 : 0.0) +
+        (_secondaryTrait == TurretTraitType.expandedBlastCore ? 0.4 : 0.0) +
+        _moduleEffect.splashRadiusIncreaseRate;
+    // 기존 폭발 전용 보정의 대상은 유지하고 같은 증가 계층에서 합산.
+    return (baseRadius * effectAreaMultiplier + nativeRadius * nativeIncrease) *
         game.boardDistanceScale;
   }
+
+  int get chainCount => definition.type == TurretType.lightning
+      ? lightningChainMaxJumps
+      : (hasGem(GemType.chain) && definition.firesProjectile ? 2 : 0);
 
   bool hasGem(GemType type) => equippedGems.contains(type);
   bool get ignoresArmorReduction => hasGem(GemType.armorPiercing);
@@ -389,7 +389,7 @@ class TurretComponent extends PositionComponent {
   double get lightningChainDamageMultiplier {
     final base = _secondaryTrait == TurretTraitType.currentAmplification
         ? 0.7
-        : 0.5;
+        : AttackRules.chainDamageMultiplier;
     return base * (1 + _moduleEffect.lightningChainDamageIncreaseRate);
   }
 
@@ -533,7 +533,15 @@ class TurretComponent extends PositionComponent {
         : data.equippedGemSlots;
     _gemSlots
       ..clear()
-      ..addAll(restoredSlots.take(_slotLimit));
+      ..addAll(
+        restoredSlots
+            .take(_slotLimit)
+            .map(
+              (gem) => gem != null && canEquipGemOnTurret(gem, definition)
+                  ? gem
+                  : null,
+            ),
+      );
     _syncGemSlotLength();
   }
 
@@ -685,7 +693,7 @@ class TurretComponent extends PositionComponent {
   }
 
   GemType? equipGem(GemType type, int slotIndex) {
-    if (!canEquipGemAt(slotIndex)) {
+    if (!canEquipGemAt(slotIndex) || !canEquipGemOnTurret(type, definition)) {
       return null;
     }
 
@@ -1004,7 +1012,7 @@ class TurretComponent extends PositionComponent {
   }
 
   List<EnemyComponent> _findTargetsInRange() {
-    final attackRange = range;
+    final attackRange = centeredAreaRadius;
     final targets = <EnemyComponent>[];
     for (final enemy in game.enemies) {
       if (!enemy.isDead && _isEnemyBodyInRange(enemy, attackRange)) {
@@ -1039,13 +1047,22 @@ class TurretComponent extends PositionComponent {
   void render(Canvas canvas) {
     final selected = game.isTurretSelected(gridPoint);
     final center = Offset(size.x / 2, size.y / 2);
+    final previewRange = selected
+        ? game.levelUpPreviewRangeFor(gridPoint)
+        : null;
+    // 중심 광역 공격은 사거리 수치와 별개인 실제 효과 반경 표시.
+    final indicatorMultiplier = definition.centeredAreaAttack
+        ? effectAreaMultiplier
+        : 1.0;
     drawTurretRangeIndicator(
       canvas,
       center: center,
       color: definition.color,
-      range: range,
+      range: range * indicatorMultiplier,
       selected: selected,
-      previewRange: selected ? game.levelUpPreviewRangeFor(gridPoint) : null,
+      previewRange: previewRange == null
+          ? null
+          : previewRange * indicatorMultiplier,
     );
 
     if (selected) {
@@ -1157,12 +1174,19 @@ class TurretAttackSnapshot {
     required this.lightningChainMaxJumps,
     required this.lightningChainDamageMultiplier,
     required this.lightningChainJumpRange,
-  });
+    this.effectAreaMultiplier = 1,
+    double? centeredAreaRadius,
+    int? chainCount,
+  }) : centeredAreaRadius = centeredAreaRadius ?? range,
+       chainCount = chainCount ?? (hasChain ? 2 : 0);
 
   final GridPoint sourceTurretPoint;
   final TurretDefinition definition;
   final double damage;
   final double range;
+  final double effectAreaMultiplier;
+  final double centeredAreaRadius;
+  final int chainCount;
   final double splashRadius;
   final double splashSecondaryDamageMultiplier;
   final double projectileSpeed;

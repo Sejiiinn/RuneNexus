@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="852" height="852" viewBox="0 0 852 852">
+  <defs>
+    <filter id="shadow" x="-20%" y="-30%" width="140%" height="180%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dy="5"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .82 0"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="852" height="852" fill="#01060b"/>
+  <g transform="translate(229.5 0)">
+  <image x="0" y="0" width="393" height="852" preserveAspectRatio="none"
+    xlink:href="file:///private/tmp/rune_nexus_turret_asset_ui_393x852.png"/>
+  <rect x="0" y="0" width="393" height="852" fill="#01060b" opacity="0.84"/>
+
+  <g filter="url(#shadow)">
+    <!-- 기존 스테이지 상세 프레임: 승인 시안과 동일한 다이아 상단 장식/얇은 주황 테두리 -->
+    <image x="25" y="323" width="343" height="204" preserveAspectRatio="none"
+      xlink:href="file:///Users/sejin/Documents/Codex/RuneNexus/assets/images/stage_details/ui/dialog_frame.png"/>
+
+    <path d="M48 355l7 12H41z" fill="none" stroke="#ff8b4b" stroke-width="2" stroke-linejoin="round"/>
+    <line x1="48" y1="359" x2="48" y2="363" stroke="#ff8b4b" stroke-width="1.5"/>
+    <circle cx="48" cy="365" r="1" fill="#ff8b4b"/>
+    <text x="65" y="361" dominant-baseline="middle"
+      fill="#eef4f6" font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="17" font-weight="800">모듈 분해</text>
+
+    <!-- 기존 스테이지 상태 칩 재사용 -->
+    <image x="316" y="346" width="38" height="29" preserveAspectRatio="none"
+      xlink:href="file:///Users/sejin/Documents/Codex/RuneNexus/assets/images/stage_details/ui/status_chip_frame.png"/>
+    <text x="335" y="361" text-anchor="middle" dominant-baseline="middle"
+      fill="#b8d4e6" font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="10" font-weight="800">마법</text>
+
+    <text x="47" y="395" dominant-baseline="middle"
+      fill="#c7d2d9" font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="12" font-weight="700">이 모듈 분해 시 5 다이아가 반환됩니다. 진행하시겠습니까?</text>
+
+    <!-- 기존 반환 패널 재사용 -->
+    <image x="46" y="414" width="301" height="47" preserveAspectRatio="none"
+      xlink:href="file:///Users/sejin/Documents/Codex/RuneNexus/assets/images/turret_modules/ui/disassemble_refund_panel.png"/>
+    <path d="M69 427l11 8-11 12-11-12z" fill="#76d4ff" stroke="#b9eeff" stroke-width="1.2"/>
+    <path d="M58 435h22M69 427l-4 8 4 12 4-12z" fill="none" stroke="#d6f4ff" stroke-width="0.8" opacity="0.8"/>
+    <text x="91" y="438" dominant-baseline="middle"
+      fill="#adbbc4" font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="12" font-weight="700">반환 다이아</text>
+    <text x="327" y="438" text-anchor="end" dominant-baseline="middle"
+      fill="#7ee1ff" font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="17" font-weight="800">5</text>
+
+    <!-- 기존 분해 버튼 2종 재사용, 승인 시안 높이로 복원 -->
+    <image x="46" y="469" width="143" height="45" preserveAspectRatio="none"
+      xlink:href="file:///Users/sejin/Documents/Codex/RuneNexus/assets/images/turret_modules/ui/disassemble_cancel_button.png"/>
+    <text x="85" y="492" text-anchor="middle" dominant-baseline="middle"
+      fill="#aebbc4" font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="18">←</text>
+    <text x="126" y="492" text-anchor="middle" dominant-baseline="middle"
+      fill="#c0c9cf" font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="14" font-weight="800">취소</text>
+
+    <image x="204" y="469" width="143" height="45" preserveAspectRatio="none"
+      xlink:href="file:///Users/sejin/Documents/Codex/RuneNexus/assets/images/turret_modules/ui/disassemble_confirm_button.png"/>
+    <path d="M242 485h11m-9-4h7m-8 5l1 12h8l1-12" fill="none" stroke="#ff9d60" stroke-width="1.7" stroke-linejoin="round"/>
+    <text x="301" y="492" text-anchor="middle" dominant-baseline="middle"
+      fill="#ff9d60" font-family="Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="14" font-weight="800">분해</text>
+  </g>
+  </g>
+</svg>

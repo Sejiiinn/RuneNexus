@@ -1912,7 +1912,7 @@ void main() {
   });
 
   test(
-    'explosion gem keeps splash damage ratio and amplifies splash radius',
+    'explosion gem grants splash and increases effect area on every turret',
     () {
       final machineGun = TurretComponent(
         gridPoint: const GridPoint(0, 0),
@@ -1932,8 +1932,8 @@ void main() {
       machineGun.equipGem(GemType.explosion, 0);
       cannon.equipGem(GemType.explosion, 0);
 
-      expect(machineGun.splashRadius, closeTo(34, 0.001));
-      expect(machineGun.splashSecondaryDamageMultiplier, closeTo(0.35, 0.001));
+      expect(machineGun.splashRadius, closeTo(42.5, 0.001));
+      expect(machineGun.splashSecondaryDamageMultiplier, closeTo(0.5, 0.001));
       expect(cannon.splashRadius, closeTo(52.5, 0.001));
       expect(cannon.splashSecondaryDamageMultiplier, closeTo(0.5, 0.001));
     },
@@ -2037,7 +2037,7 @@ void main() {
     );
     expect(
       canEquipGemOnTurret(GemType.heavyWeapon, gameTurrets[TurretType.arrow]!),
-      isTrue,
+      isFalse,
     );
     expect(
       canEquipGemOnTurret(GemType.heavyWeapon, gameTurrets[TurretType.cannon]!),
@@ -2059,7 +2059,7 @@ void main() {
     );
     expect(
       canEquipGemOnTurret(GemType.chain, gameTurrets[TurretType.cannon]!),
-      isFalse,
+      isTrue,
     );
     expect(
       canEquipGemOnTurret(GemType.chain, gameTurrets[TurretType.arrow]!),
@@ -2067,7 +2067,7 @@ void main() {
     );
     expect(
       canEquipGemOnTurret(GemType.chain, gameTurrets[TurretType.sniper]!),
-      isTrue,
+      isFalse,
     );
     expect(
       canEquipGemOnTurret(GemType.chain, gameTurrets[TurretType.lightning]!),
@@ -2889,55 +2889,55 @@ void main() {
     },
   );
 
-  testWidgets('sniper chain gem applies instant beam chain damage', (
-    tester,
-  ) async {
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+  testWidgets(
+    'sniper rejects chain gem and does not create follow-up attacks',
+    (tester) async {
+      final game = RuneNexusGame(saveRepository: MemorySaveRepository());
 
-    await tester.binding.setSurfaceSize(const Size(400, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    await tester.pumpWidget(GameWidget(game: game));
-    await tester.pump();
-    game.debugSetClearedStageCount(RuneNexusGame.sniperUnlockStage);
-    game.selectTurretType(TurretType.sniper);
-    game.tryBuildTurret(const GridPoint(2, 0));
-    game.update(0);
+      await tester.binding.setSurfaceSize(const Size(400, 800));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(GameWidget(game: game));
+      await tester.pump();
+      game.debugSetClearedStageCount(RuneNexusGame.sniperUnlockStage);
+      game.selectTurretType(TurretType.sniper);
+      game.tryBuildTurret(const GridPoint(2, 0));
+      game.update(0);
 
-    final sniperTurret = game.children.whereType<TurretComponent>().single;
-    expect(sniperTurret.definition.type, TurretType.sniper);
-    sniperTurret.equipGem(GemType.chain, 0);
-    expect(sniperTurret.hasGem(GemType.chain), isTrue);
-    final sourceEnemy = EnemyComponent(
-      definition: gameEnemies[EnemyType.normal]!,
-      maxHp: 100,
-      path: [Vector2.zero(), Vector2(500, 0)],
-      game: game,
-    );
-    final chainEnemy = EnemyComponent(
-      definition: gameEnemies[EnemyType.normal]!,
-      maxHp: 100,
-      path: [Vector2.zero(), Vector2(500, 0)],
-      game: game,
-    );
+      final sniperTurret = game.children.whereType<TurretComponent>().single;
+      expect(sniperTurret.definition.type, TurretType.sniper);
+      sniperTurret.equipGem(GemType.chain, 0);
+      expect(sniperTurret.hasGem(GemType.chain), isFalse);
+      final sourceEnemy = EnemyComponent(
+        definition: gameEnemies[EnemyType.normal]!,
+        maxHp: 100,
+        path: [Vector2.zero(), Vector2(500, 0)],
+        game: game,
+      );
+      final chainEnemy = EnemyComponent(
+        definition: gameEnemies[EnemyType.normal]!,
+        maxHp: 100,
+        path: [Vector2.zero(), Vector2(500, 0)],
+        game: game,
+      );
 
-    await game.add(sourceEnemy);
-    await game.add(chainEnemy);
-    await tester.pump();
-    game.update(0);
-    sourceEnemy.position =
-        sniperTurret.position + Vector2(sniperTurret.range * 0.5, 0);
-    chainEnemy.position = sourceEnemy.position + Vector2(1, 0);
-    game.enemies.addAll([sourceEnemy, chainEnemy]);
+      await game.add(sourceEnemy);
+      await game.add(chainEnemy);
+      await tester.pump();
+      game.update(0);
+      sourceEnemy.position =
+          sniperTurret.position + Vector2(sniperTurret.range * 0.5, 0);
+      chainEnemy.position = sourceEnemy.position + Vector2(1, 0);
+      game.enemies.addAll([sourceEnemy, chainEnemy]);
 
-    game.resolveInstantHit(owner: sniperTurret, target: sourceEnemy);
-    game.update(0);
+      game.resolveInstantHit(owner: sniperTurret, target: sourceEnemy);
+      game.update(0);
 
-    expect(sourceEnemy.hp, closeTo(60, 0.001));
-    expect(chainEnemy.hp, closeTo(80, 0.001));
-    expect(sniperTurret.chainDamageDealt, closeTo(20, 0.001));
-    expect(game.children.whereType<ChainProjectileComponent>(), isEmpty);
-    expect(game.children.whereType<SniperChainBeamComponent>(), hasLength(1));
-  });
+      expect(sourceEnemy.hp, closeTo(60, 0.001));
+      expect(chainEnemy.hp, closeTo(100, 0.001));
+      expect(sniperTurret.chainDamageDealt, 0);
+      expect(game.children.whereType<ProjectileComponent>(), isEmpty);
+    },
+  );
 
   testWidgets('chain lightning hits sequential targets with delayed jumps', (
     tester,
@@ -3112,7 +3112,7 @@ void main() {
     expect(turret.cooldown, closeTo(1.25 / 1.3, 0.001));
   });
 
-  test('explosion gem only splashes the first chain lightning target', () {
+  test('explosion gem splashes initial and subsequent lightning hits', () {
     final game = RuneNexusGame(saveRepository: MemorySaveRepository());
     final turret = TurretComponent(
       gridPoint: const GridPoint(0, 0),
@@ -3124,7 +3124,12 @@ void main() {
     final first = chainEnemy(game, Vector2(20, 0), 30);
     final splash = chainEnemy(game, first.position + Vector2(1, 0), 20);
     final chainTarget = chainEnemy(game, first.position + Vector2(50, 0), 10);
-    game.enemies.addAll([first, splash, chainTarget]);
+    final laterSplash = chainEnemy(
+      game,
+      chainTarget.position + Vector2(10, 0),
+      0,
+    );
+    game.enemies.addAll([first, splash, chainTarget, laterSplash]);
 
     game.resolveLightningChainAttack(owner: turret, target: first);
     game.resolveLightningChainJump(
@@ -3135,8 +3140,9 @@ void main() {
     );
 
     expect(first.hp, closeTo(76, 0.001));
-    expect(splash.hp, closeTo(91.6, 0.001));
+    expect(splash.hp, closeTo(88, 0.001));
     expect(chainTarget.hp, closeTo(88, 0.001));
+    expect(laterSplash.hp, closeTo(94, 0.001));
   });
 
   test('chain hit from fire turret applies scaled burn', () async {
@@ -3155,10 +3161,13 @@ void main() {
       game: game,
     );
 
-    game.resolveChainHit(
+    game.resolveProjectileHit(
       owner: fireTurret,
+      attack: fireTurret.createAttackSnapshot(),
       target: enemy,
-      damage: fireTurret.damage * 0.5,
+      hitPosition: enemy.position.clone(),
+      isChain: true,
+      remainingChainCount: 0,
     );
     enemy.update(1);
 

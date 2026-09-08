@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="852" height="852" viewBox="0 0 852 852">
+  <defs>
+    <clipPath id="phoneClip"><rect x="229.5" y="0" width="393" height="852"/></clipPath>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="7"/>
+      <feOffset dy="4"/>
+      <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .78 0"/>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="852" height="852" fill="#01060b"/>
+  <g clip-path="url(#phoneClip)">
+    <g transform="translate(229.5 0)">
+      <image x="0" y="0" width="393" height="852" preserveAspectRatio="none"
+        xlink:href="file:///private/tmp/rune_nexus_turret_asset_ui_393x852.png"/>
+      <rect x="0" y="0" width="393" height="852" fill="#01060b" opacity="0.83"/>
+      <!-- 승인 시안의 외곽·타이틀·카드 비례를 그대로 보존한 모달 -->
+      <g filter="url(#shadow)">
+        <svg x="92" y="276" width="209" height="283" viewBox="199 611 452 612" preserveAspectRatio="none">
+          <image x="0" y="0" width="851" height="1856" preserveAspectRatio="none"
+            xlink:href="file:///Users/sejin/.codex/generated_images/01a052d7-d8cf-7940-b09c-4b186e5b46e1/exec-81e3fb2a-6416-4af2-a5b2-37019d89e398.png"/>
+        </svg>
+      </g>
+    </g>
+  </g>
+</svg>

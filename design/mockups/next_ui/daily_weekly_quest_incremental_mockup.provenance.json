@@ -1,0 +1,18 @@
+{
+  "asset": "daily_weekly_quest_incremental_mockup.png",
+  "dimensions": {
+    "width": 393,
+    "height": 852
+  },
+  "sha256": "45c653ff0a0c8d53afde8b70195e2b4e24a857691b6b12f1410bab79a9be0cb4",
+  "generation": {
+    "route": "built-in image_gen precise-object-edit",
+    "source": "/Users/sejin/.codex/generated_images/01a0552b-d3ab-7c52-88ca-56a706b064bb/exec-259ee6d8-16b8-433f-b069-66a9e8d987e3.png",
+    "editTarget": "/Users/sejin/Documents/Codex/RuneNexus/design/mockups/next_ui/_quest_current_reference.png",
+    "styleReferences": [
+      "/Users/sejin/Documents/Codex/RuneNexus/design/mockups/next_ui/research_incremental_mockup.png",
+      "/Users/sejin/Documents/Codex/RuneNexus/design/mockups/next_ui/_stage_current_reference.png"
+    ]
+  },
+  "designIntent": "현재 임무 모달의 정보 구조를 유지한 15~20% 저강도 게임 컴포넌트화"
+}

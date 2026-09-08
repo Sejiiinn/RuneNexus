@@ -17,7 +17,7 @@ const gameGems = <GemType, GemDefinition>{
   GemType.range: GemDefinition(
     type: GemType.range,
     name: '사거리',
-    shortText: '범위 증폭',
+    shortText: '사거리 증폭',
     effectType: GemEffectType.rangeMultiplier,
     value: 1.2,
     color: Color(0xFF69D7FF),
@@ -71,16 +71,16 @@ const gameGems = <GemType, GemDefinition>{
   GemType.explosion: GemDefinition(
     type: GemType.explosion,
     name: '폭발',
-    shortText: '범위 피해',
+    shortText: '범위 피해·효과 범위 증가',
     effectType: GemEffectType.splashBonus,
-    value: 46,
+    value: 34,
     color: Color(0xFFFF8A2A),
     icon: Icons.local_fire_department,
   ),
   GemType.chain: GemDefinition(
     type: GemType.chain,
     name: '연쇄',
-    shortText: '추가 타격',
+    shortText: '연쇄 횟수 +2',
     effectType: GemEffectType.chainHit,
     value: 2,
     color: Color(0xFFB98CFF),

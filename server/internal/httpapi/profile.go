@@ -44,7 +44,7 @@ func (handler profileHandler) writeError(response http.ResponseWriter, request *
 	status, code, message := http.StatusInternalServerError, "INTERNAL_ERROR", "계정 프로필 처리 중 오류가 발생했습니다."
 	switch {
 	case errors.Is(err, auth.ErrInvalidNickname):
-		status, code, message = http.StatusBadRequest, "INVALID_NICKNAME", "닉네임은 2자 이상, 한글 최대 8자·영문 최대 16자로 입력해 주세요. 한글·영문·숫자·밑줄만 사용할 수 있습니다."
+		status, code, message = http.StatusBadRequest, "INVALID_NICKNAME", "닉네임은 2자 이상, 한글 최대 8자·영문 최대 16자로 입력해 주세요. 한글·영문·숫자·밑줄만 사용할 수 있으며 admin(대소문자 무관)·운영자는 포함할 수 없습니다."
 	case errors.Is(err, auth.ErrNicknameAlreadySet):
 		status, code, message = http.StatusConflict, "NICKNAME_ALREADY_SET", "이미 닉네임이 설정되어 있습니다."
 	case errors.Is(err, auth.ErrNicknameTagsExhausted):

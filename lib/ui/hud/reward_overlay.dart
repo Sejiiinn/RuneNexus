@@ -44,78 +44,81 @@ class _RewardOverlayState extends State<HudRewardOverlay> {
           padding: const EdgeInsets.all(14),
           variant: GamePanelVariant.reward,
           accentColor: GamePalette.green,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                isPurchase ? '젬 구매 선택' : '젬 보상 선택',
-                style: GameTextStyles.title,
-              ),
-              if (!isPurchase) ...[
-                const SizedBox(height: 4),
+          child: SingleChildScrollView(
+            key: const ValueKey('gem-reward-scroll'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 Text(
-                  '${snapshot.completedRounds}웨이브 클리어 보상',
-                  style: GameTextStyles.body,
+                  isPurchase ? '젬 구매 선택' : '젬 보상 선택',
+                  style: GameTextStyles.title,
                 ),
-              ],
-              const SizedBox(height: 12),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final optionCount = snapshot.rewardOptions.length;
-                  const spacing = 8.0;
-                  final availableWidth =
-                      constraints.maxWidth - spacing * (optionCount - 1);
-                  final cardWidth = optionCount <= 1
-                      ? math.min(112.0, constraints.maxWidth)
-                      : math.min(110.0, availableWidth / optionCount);
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      for (
-                        var i = 0;
-                        i < snapshot.rewardOptions.length;
-                        i++
-                      ) ...[
-                        if (i > 0) const SizedBox(width: spacing),
-                        _RewardCard(
-                          type: snapshot.rewardOptions[i],
-                          width: cardWidth,
-                          ownedCount:
-                              snapshot.gemCollection[snapshot
-                                  .rewardOptions[i]] ??
-                              0,
-                          selected: selectedGem == snapshot.rewardOptions[i],
-                          onPressed: () {
-                            setState(() {
-                              _selectedGem = snapshot.rewardOptions[i];
-                              _selectedGemShards = false;
-                            });
-                          },
-                          onConfirm: () => widget.game.selectRewardGem(
-                            snapshot.rewardOptions[i],
+                if (!isPurchase) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '${snapshot.completedRounds}웨이브 클리어 보상',
+                    style: GameTextStyles.body,
+                  ),
+                ],
+                const SizedBox(height: 12),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final optionCount = snapshot.rewardOptions.length;
+                    const spacing = 8.0;
+                    final availableWidth =
+                        constraints.maxWidth - spacing * (optionCount - 1);
+                    final cardWidth = optionCount <= 1
+                        ? math.min(112.0, constraints.maxWidth)
+                        : math.min(110.0, availableWidth / optionCount);
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        for (
+                          var i = 0;
+                          i < snapshot.rewardOptions.length;
+                          i++
+                        ) ...[
+                          if (i > 0) const SizedBox(width: spacing),
+                          _RewardCard(
+                            type: snapshot.rewardOptions[i],
+                            width: cardWidth,
+                            ownedCount:
+                                snapshot.gemCollection[snapshot
+                                    .rewardOptions[i]] ??
+                                0,
+                            selected: selectedGem == snapshot.rewardOptions[i],
+                            onPressed: () {
+                              setState(() {
+                                _selectedGem = snapshot.rewardOptions[i];
+                                _selectedGemShards = false;
+                              });
+                            },
+                            onConfirm: () => widget.game.selectRewardGem(
+                              snapshot.rewardOptions[i],
+                            ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
-                  );
-                },
-              ),
-              if (!isPurchase) ...[
-                const SizedBox(height: 10),
-                _GemShardRewardBar(
-                  ownedCount: snapshot.gemShards,
-                  selected: _selectedGemShards,
-                  onPressed: () {
-                    setState(() {
-                      _selectedGem = null;
-                      _selectedGemShards = true;
-                    });
+                    );
                   },
-                  onConfirm: widget.game.selectRewardGemShards,
                 ),
+                if (!isPurchase) ...[
+                  const SizedBox(height: 10),
+                  _GemShardRewardBar(
+                    ownedCount: snapshot.gemShards,
+                    selected: _selectedGemShards,
+                    onPressed: () {
+                      setState(() {
+                        _selectedGem = null;
+                        _selectedGemShards = true;
+                      });
+                    },
+                    onConfirm: widget.game.selectRewardGemShards,
+                  ),
+                ],
+                _OwnedGemSummary(collection: snapshot.gemCollection),
               ],
-              _OwnedGemSummary(collection: snapshot.gemCollection),
-            ],
+            ),
           ),
         ),
       ),
@@ -334,7 +337,7 @@ class _RewardCard extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
           width: width,
-          height: compact ? 204 : 216,
+          constraints: BoxConstraints(minHeight: compact ? 204 : 216),
           padding: EdgeInsets.fromLTRB(6, compact ? 8 : 10, 6, 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
@@ -390,11 +393,10 @@ class _RewardCard extends StatelessWidget {
               ),
               SizedBox(height: compact ? 4 : 6),
               SizedBox(
-                height: compact ? 36 : 32,
+                height: compact ? 70 : 64,
                 child: Center(
                   child: Text(
                     _rewardCardEffectText(type),
-                    maxLines: 2,
                     overflow: TextOverflow.clip,
                     textAlign: TextAlign.center,
                     style: GameTextStyles.caption.copyWith(
@@ -489,10 +491,10 @@ String _rewardCardEffectText(GemType type) {
     GemType.physicalDamage => '물리 포탑 피해 40% 증가',
     GemType.elementalDamage => '원소 포탑 피해 40% 증가',
     GemType.lightWeapon => '경량화기 피해와 연사 강화',
-    GemType.heavyWeapon => '중화기 피해와 범위 강화',
+    GemType.heavyWeapon => '피해 30% 증폭\n효과 범위 20% 증가\n중화기 전용',
     GemType.damageOverTime => '지속피해와 시간 증가',
-    GemType.explosion => '범위 피해 추가',
-    GemType.chain => '추가 타격 발생',
+    GemType.explosion => '범위 피해 부여\n효과 범위 25% 증가',
+    GemType.chain => '연쇄 횟수 +2\n후속 피해·효과 범위\n50% 감폭',
     GemType.criticalChance => '치명 확률 +20%p',
     GemType.aimSpeed => '조준 속도 75% 증가',
     GemType.damageAmplifier => '타격 피해 25% 증가',

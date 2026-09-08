@@ -9,9 +9,13 @@ bool canEquipGemOnTurret(GemType type, TurretDefinition turret) {
 
 String? gemEquipBlockReason(GemType type, TurretDefinition turret) {
   if (type == GemType.chain &&
-      turret.attackTags.contains(AttackTag.heavy) &&
+      !turret.firesProjectile &&
       turret.type != TurretType.lightning) {
-    return '중화기 포탑에는 장착 불가';
+    return '투사체 공격 또는 기본 연쇄 포탑에만 장착 가능';
+  }
+  if (type == GemType.heavyWeapon &&
+      !turret.attackTags.contains(AttackTag.heavy)) {
+    return '중화기 포탑에만 장착 가능';
   }
   if (type == GemType.aimSpeed &&
       (!turret.instantHit || turret.aimDuration <= 0)) {

@@ -1,31 +1,12 @@
 # Sandbox Command Guide
 
-## 기본 원칙
+## 실행 권한과 작업 승인
 
-- 권한 문제가 의심되는 명령은 샌드박스에서 먼저 실행하지 말고 샌드박스 밖 실행 승인을 요청하세요.
-- 읽기·편집 중심 작업은 샌드박스에서 진행하세요.
-
-## 처음부터 승인 요청할 명령
-
-- `flutter analyze`
-- `flutter test`
-- `flutter run`
-- `flutter build`
-- `scripts/in_app_server.ps1 -Action dev`
-- `scripts/in_app_server.ps1 -Action restart`
-- `scripts/in_app_server_macos.sh dev`
-- `scripts/in_app_server_macos.sh restart`
-- `git add`
-- `git commit`
-- `git push`
-
-## 샌드박스에서 진행할 작업
-
-- `rg`
-- 파일 읽기
-- 파일 수정
-- `git status`
-- `git diff`
+- 현재 세션의 샌드박스·승인 정책을 우선합니다. 제한이 없는 환경에서는 승인된 작업에 필요한 명령을 직접 실행하세요.
+- `rg`, 파일 읽기·편집, `git status`, `git diff`, Flutter 검증·빌드·서버 명령은 명령 이름만으로 승인 대상으로 지정하지 않습니다. 현재 허용된 실행 환경에서 수행하세요.
+- 실제 권한 오류나 현재 환경에서 확인된 제한 때문에 실행 권한 확대가 필요하고, 세션 정책이 승인 요청을 허용할 때만 필요한 명령에 대해 요청하세요. 막연한 의심만으로 먼저 승인을 요청하지 마세요.
+- 승인 요청이 금지된 환경에서는 권한 확대 요청이나 우회를 시도하지 마세요. 허용된 대안을 사용하고, 대안도 없으면 차단된 단계와 이유를 보고하며 독립적인 작업은 계속하세요.
+- 작업 자체의 승인과 실행 권한을 구분하세요. `git add`, `git commit`, `git push`는 사용자 요청·기존 승인 범위에 포함될 때 수행하며, 실행 권한이 있다는 이유로 커밋·푸시를 추가하지 마세요. 이미 받은 작업 승인은 다시 묻지 마세요.
 
 ## 53000 포트 서버 확인
 
