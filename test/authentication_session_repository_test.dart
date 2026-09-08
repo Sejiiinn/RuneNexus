@@ -296,7 +296,8 @@ void main() {
       ..storage.value = _record(pendingKey: 'old-request');
     harness.client.results.add(
       _sessionResponse(
-        expiresAt: DateTime.now().toUtc().subtract(const Duration(minutes: 1)),
+        accessToken: 'expired-access',
+        expiresAt: DateTime.now().toUtc().subtract(const Duration(days: 2)),
       ),
     );
     harness.client.results.add(_sessionResponse());
@@ -317,6 +318,66 @@ void main() {
     });
     expect(harness.storage.decoded['pendingKey'], isNull);
   });
+
+  for (final mode in [AuthenticationMode.native, AuthenticationMode.web]) {
+    test('$mode 오래된 응답 복구 후 새 회전 응답이 유실되어도 재시작해 이어받는다', () async {
+      final web = mode == AuthenticationMode.web;
+      final harness = _Harness(mode: mode);
+      final metadata =
+          jsonDecode(_record(pendingKey: 'old-request'))
+              as Map<String, dynamic>;
+      if (web) metadata.remove('refreshToken');
+      harness.storage.value = jsonEncode(metadata);
+      harness.client.results.add(
+        _sessionResponse(
+          web: web,
+          accessToken: 'expired-access',
+          expiresAt: DateTime.now().toUtc().subtract(const Duration(days: 2)),
+        ),
+      );
+      harness.client.results.add(
+        const AuthenticationTransportException('lost'),
+      );
+
+      await expectLater(
+        harness.repository().restore(),
+        throwsA(isA<AuthenticationTransportException>()),
+      );
+
+      expect(harness.client.requests, hasLength(2));
+      final lostRequest = harness.client.requests.last;
+      final pendingKey = harness.storage.decoded['pendingKey'];
+      expect(pendingKey, isNotEmpty);
+      expect(pendingKey, isNot('old-request'));
+      expect(lostRequest.headers['Idempotency-Key'], pendingKey);
+      expect(harness.storage.decoded['accountId'], _accountId);
+      expect(harness.storage.decoded['logoutPending'], isFalse);
+      expect(
+        jsonDecode(lostRequest.body),
+        web ? isEmpty : {'refreshToken': 'new-refresh'},
+      );
+      if (web) {
+        expect(harness.storage.decoded.containsKey('refreshToken'), isFalse);
+      } else {
+        expect(harness.storage.decoded['refreshToken'], 'new-refresh');
+      }
+
+      harness.client.results.add(
+        _sessionResponse(web: web, refreshToken: 'recovered-refresh'),
+      );
+      final credentials = await harness.repository().restore();
+
+      expect(credentials?.accessToken, 'new-access');
+      expect(harness.client.requests, hasLength(3));
+      expect(harness.client.requests.last.body, lostRequest.body);
+      expect(harness.client.requests.last.headers, lostRequest.headers);
+      expect(harness.storage.decoded['pendingKey'], isNull);
+      expect(harness.storage.decoded['logoutPending'], isFalse);
+      if (!web) {
+        expect(harness.storage.decoded['refreshToken'], 'recovered-refresh');
+      }
+    });
+  }
 }
 
 class _Harness {
@@ -400,16 +461,18 @@ String _record({String baseUrl = _baseUrl, String? pendingKey}) => jsonEncode({
 AuthenticationHTTPResponse _sessionResponse({
   bool web = false,
   String accountId = _accountId,
+  String accessToken = 'new-access',
+  String refreshToken = 'new-refresh',
   DateTime? expiresAt,
 }) => AuthenticationHTTPResponse(
   statusCode: 200,
   body: jsonEncode({
     'account': {'id': accountId},
-    'accessToken': 'new-access',
+    'accessToken': accessToken,
     'accessExpiresAt':
         (expiresAt ?? DateTime.now().toUtc().add(const Duration(minutes: 15)))
             .toIso8601String(),
-    if (!web) 'refreshToken': 'new-refresh',
+    if (!web) 'refreshToken': refreshToken,
     'refreshExpiresAt': null,
   }),
 );

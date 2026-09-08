@@ -84,8 +84,21 @@ INSERT INTO refresh_receipts (session_id, request_key, parent_token_id, child_to
 VALUES ($1, $2, $3, $4, $5, $6);
 
 -- name: ClearExpiredRefreshReceipts :exec
+UPDATE refresh_receipts AS receipt SET ciphertext = NULL
+FROM refresh_tokens AS child, sessions AS session, accounts AS account
+WHERE receipt.ciphertext IS NOT NULL
+  AND child.id = receipt.child_token_id
+  AND session.id = receipt.session_id
+  AND account.id = session.account_id
+  AND (child.consumed_at IS NOT NULL
+       OR child.revoked_at IS NOT NULL
+       OR session.revoked_at IS NOT NULL
+       OR session.refresh_expires_at <= now()
+       OR account.status <> 'active');
+
+-- name: ClearRefreshReceiptsForSession :exec
 UPDATE refresh_receipts SET ciphertext = NULL
-WHERE ciphertext IS NOT NULL AND expires_at <= now();
+WHERE session_id = $1 AND ciphertext IS NOT NULL;
 
 -- name: ConsumeRefreshToken :one
 UPDATE refresh_tokens

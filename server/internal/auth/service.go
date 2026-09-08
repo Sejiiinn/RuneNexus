@@ -243,16 +243,16 @@ func (service *Service) refresh(ctx context.Context, rawRefreshToken, requestKey
 			if storedToken.ID != receipt.ParentTokenID && storedToken.ID != receipt.ChildTokenID {
 				return LoginResult{}, ErrRefreshRequestConflict
 			}
-			if !receipt.ExpiresAt.Time.After(now) || len(receipt.Ciphertext) == 0 {
+			if len(receipt.Ciphertext) == 0 {
 				return LoginResult{}, ErrRefreshRecoveryExpired
 			}
 			result, err := service.openReceipt(receipt.Ciphertext, storedToken.SessionID, requestKey)
 			if err != nil {
 				return LoginResult{}, err
 			}
-			// 이후 회전된 세션의 옛 access token을 복구하지 않음.
+			// 최신 회전 결과만 복구; 만료 access는 클라이언트가 child refresh로 재갱신.
 			accessHash, hashErr := session.HashToken(result.AccessToken)
-			if hashErr != nil || !bytes.Equal(storedToken.AccessTokenHash, accessHash) || !result.AccessExpiresAt.After(now) {
+			if hashErr != nil || !bytes.Equal(storedToken.AccessTokenHash, accessHash) {
 				return LoginResult{}, ErrRefreshRecoveryExpired
 			}
 			return result, nil
@@ -313,6 +313,11 @@ func (service *Service) refresh(ctx context.Context, rawRefreshToken, requestKey
 		return LoginResult{}, fmt.Errorf("rotate access token: %w", err)
 	}
 
+	// 다음 회전 성공이 이전 결과 수신의 확인; 메타데이터는 재사용 판정용 보존.
+	if err := queries.ClearRefreshReceiptsForSession(ctx, storedToken.SessionID); err != nil {
+		return LoginResult{}, fmt.Errorf("clear superseded refresh receipts: %w", err)
+	}
+
 	accountID, err := formatUUID(storedToken.AccountID)
 	if err != nil {
 		return LoginResult{}, err
@@ -332,7 +337,7 @@ func (service *Service) refresh(ctx context.Context, rawRefreshToken, requestKey
 		if err := queries.CreateRefreshReceipt(ctx, dbgen.CreateRefreshReceiptParams{
 			SessionID: storedToken.SessionID, RequestKey: requestKey,
 			ParentTokenID: storedToken.ID, ChildTokenID: childToken.ID,
-			Ciphertext: ciphertext, ExpiresAt: pgtype.Timestamptz{Time: now.Add(10 * time.Minute), Valid: true},
+			Ciphertext: ciphertext, ExpiresAt: pgtype.Timestamptz{InfinityModifier: pgtype.Infinity, Valid: true},
 		}); err != nil {
 			return LoginResult{}, fmt.Errorf("create refresh receipt: %w", err)
 		}
@@ -443,6 +448,9 @@ func revokeSession(
 	}
 	if _, err := queries.RevokeSession(ctx, sessionID); err != nil {
 		return fmt.Errorf("revoke session: %w", err)
+	}
+	if err := queries.ClearRefreshReceiptsForSession(ctx, sessionID); err != nil {
+		return fmt.Errorf("clear revoked refresh receipts: %w", err)
 	}
 	return nil
 }

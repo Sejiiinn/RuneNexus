@@ -27,8 +27,10 @@
 010은 새 API보다 먼저 적용합니다. 저장 출처 기록이 있으면 down은 거부되며 기록을 삭제해 우회하지 않습니다.
 
 007은 기존 유한 세션의 만료 값을 변경하지 않습니다. 신규 영속 로그인에서만
-`sessions.refresh_expires_at = NULL`을 사용합니다. `refresh_receipts`의 암호문은 10분 복구
-기간 뒤 정리하지만 token 소비 이력과 receipt 메타데이터는 재사용 판정을 위해 유지합니다.
+`sessions.refresh_expires_at = NULL`을 사용합니다. `refresh_receipts`의 최신 암호문은 다음 갱신 성공·세션 종료까지 보존합니다.
+현재 API는 기존 유한 expires_at도 최신 유효 child의 복구 제한으로 사용하지 않으며,
+신규 receipt는 infinity를 기록합니다. 추가 스키마 마이그레이션은 필요하지 않습니다.
+token 소비 이력과 receipt 메타데이터는 재사용 판정을 위해 유지합니다.
 영속 세션이 남아 있으면 down의 `NOT NULL` 복원이 실패하여 트랜잭션이 롤백됩니다.
 이를 우회하려고 세션을 자동 삭제하거나 임의 만료 시각을 채우지 않습니다.
 

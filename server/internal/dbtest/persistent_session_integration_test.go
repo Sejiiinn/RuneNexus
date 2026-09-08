@@ -17,14 +17,14 @@ import (
 func TestPersistentSessionRecoveryAndRevocation(t *testing.T) {
 	ctx, pool := openTestPool(t)
 	subject := fmt.Sprintf("persistent-%d", time.Now().UnixNano())
-	newService := func() *auth.Service {
-		service := auth.NewService(pool, fixedGoogleVerifier{subject: subject}, time.Second, 15*time.Minute, 30*24*time.Hour)
+	newService := func(accessTTL time.Duration) *auth.Service {
+		service := auth.NewService(pool, fixedGoogleVerifier{subject: subject}, time.Second, accessTTL, 30*24*time.Hour)
 		if err := service.EnablePersistentSessions(bytes.Repeat([]byte{71}, 32)); err != nil {
 			t.Fatal(err)
 		}
 		return service
 	}
-	service := newService()
+	service := newService(15 * time.Minute)
 	login, err := service.AuthenticateGooglePersistent(ctx, "id-token")
 	if err != nil {
 		t.Fatal(err)
@@ -39,12 +39,20 @@ func TestPersistentSessionRecoveryAndRevocation(t *testing.T) {
 		t.Fatal("persistent session has expiry")
 	}
 	const key = "00112233-4455-6677-8899-aabbccddeeff"
-	first, err := service.RefreshPersistent(ctx, login.RefreshToken, key)
+	first, err := newService(time.Millisecond).RefreshPersistent(ctx, login.RefreshToken, key)
 	if err != nil {
 		t.Fatal(err)
 	}
-	// 서버 재시작 및 쿠키가 먼저 교체된 응답 유실 모두 같은 결과 복구.
-	restarted := newService()
+	// 업데이트 전 10분 제한이 기록된 receipt도 최신 child가 유효하면 보존.
+	if _, err := pool.Exec(ctx, "UPDATE refresh_receipts SET expires_at=now()-interval '2 days' WHERE request_key=$1", key); err != nil {
+		t.Fatal(err)
+	}
+	if err := service.ClearExpiredRefreshReceipts(ctx); err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(time.Until(first.AccessExpiresAt) + time.Millisecond)
+	// 서버 재시작·만료 access·쿠키가 먼저 교체된 응답 유실 모두 exact 복구.
+	restarted := newService(15 * time.Minute)
 	for _, token := range []string{login.RefreshToken, first.RefreshToken} {
 		replay, err := restarted.RefreshPersistent(ctx, token, key)
 		if err != nil {
@@ -54,25 +62,29 @@ func TestPersistentSessionRecoveryAndRevocation(t *testing.T) {
 			t.Fatal("replay did not recover exact result")
 		}
 	}
-	if _, err := pool.Exec(ctx, "UPDATE refresh_receipts SET expires_at=now()-interval '1 second' WHERE request_key=$1", key); err != nil {
+	if _, err := service.AuthenticateAccessToken(ctx, first.AccessToken); !errors.Is(err, auth.ErrAccessTokenInvalid) {
+		t.Fatalf("recovery extended expired access: %v", err)
+	}
+	second, err := restarted.RefreshPersistent(ctx, first.RefreshToken, "11112233-4455-6677-8899-aabbccddeeff")
+	if err != nil {
 		t.Fatal(err)
 	}
-	if err := service.ClearExpiredRefreshReceipts(ctx); err != nil {
-		t.Fatal(err)
+	// 다음 회전 후 옛 응답은 복구하지 않으며 현재 세션도 폐기하지 않음.
+	for _, token := range []string{login.RefreshToken, first.RefreshToken} {
+		if _, err := restarted.RefreshPersistent(ctx, token, key); !errors.Is(err, auth.ErrRefreshRecoveryExpired) {
+			t.Fatalf("superseded recovery: %v", err)
+		}
 	}
-	if _, err := service.RefreshPersistent(ctx, login.RefreshToken, key); !errors.Is(err, auth.ErrRefreshRecoveryExpired) {
-		t.Fatalf("expired recovery: %v", err)
-	}
-	if _, err := service.AuthenticateAccessToken(ctx, first.AccessToken); err != nil {
-		t.Fatalf("expired receipt revoked family: %v", err)
+	if _, err := restarted.AuthenticateAccessToken(ctx, second.AccessToken); err != nil {
+		t.Fatalf("old exact retry revoked current family: %v", err)
 	}
 	var ciphertext []byte
 	if err := pool.QueryRow(ctx, "SELECT ciphertext FROM refresh_receipts WHERE request_key=$1", key).Scan(&ciphertext); err != nil || ciphertext != nil {
-		t.Fatalf("ciphertext cleanup: %v", err)
+		t.Fatalf("superseded ciphertext cleanup: %v", err)
 	}
-	second, err := service.RefreshPersistent(ctx, first.RefreshToken, "11112233-4455-6677-8899-aabbccddeeff")
-	if err != nil {
-		t.Fatal(err)
+	var retained int
+	if err := pool.QueryRow(ctx, "SELECT count(*) FROM refresh_receipts WHERE session_id=(SELECT id FROM sessions WHERE account_id=$1) AND ciphertext IS NOT NULL", login.AccountID).Scan(&retained); err != nil || retained != 1 {
+		t.Fatalf("expected only latest ciphertext, got %d: %v", retained, err)
 	}
 	if _, err := service.RefreshPersistent(ctx, login.RefreshToken, "22112233-4455-6677-8899-aabbccddeeff"); !errors.Is(err, auth.ErrRefreshTokenReused) {
 		t.Fatalf("foreign replay: %v", err)
@@ -126,6 +138,10 @@ func TestPersistentConcurrentRefreshAndLogout(t *testing.T) {
 	}
 	if _, err := service.RefreshPersistent(ctx, results[0].RefreshToken, key); !errors.Is(err, auth.ErrRefreshTokenInvalid) {
 		t.Fatalf("logout replay: %v", err)
+	}
+	var retained int
+	if err := pool.QueryRow(ctx, "SELECT count(*) FROM refresh_receipts WHERE request_key=$1 AND ciphertext IS NOT NULL", key).Scan(&retained); err != nil || retained != 0 {
+		t.Fatalf("logout retained ciphertext: %v", err)
 	}
 }
 

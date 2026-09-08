@@ -419,6 +419,12 @@ rebase 단계는 종료 복구를 위해 반드시 영속화한다.
 자동 복원은 guest 저장을 읽거나 복사하지 않는다. 인증 계약은
 [백엔드 아키텍처](backend_architecture.md)의 자체 세션 절을 따른다.
 
+인증 갱신의 연결 실패·5xx·응답 오류·재시도 대기는 세션 종료와 구분하여
+Outbox를 `retryWaiting`으로 보존하고 자동 재시도한다. writer 획득·원격 조회·저장
+전송에 같은 기준을 적용한다. 재로그인 또는 세션 복원 후 기존
+`AUTH_SESSION_UNAVAILABLE`·`ACCESS_TOKEN_INVALID` 차단은 exact 요청을 유지한 채
+재검사한다. 저장 손상·revision 후퇴 등 데이터 보호 차단은 해제하지 않는다.
+
 1. account local과 Outbox를 읽는다.
 2. 남은 in-flight가 있으면 정확한 요청을 먼저 한 번 재시도한다.
 3. foreground 계정 플레이 의도라면 writer generation을 획득한다.

@@ -36,7 +36,7 @@ GitHub Pages 주소의 `/RuneNexus/`는 경로이므로 CORS origin과 Google OA
 Authorized JavaScript origins에는 `https://sejiiinn.github.io`까지만 등록합니다.
 Google ID token 원문은 서버 로그와 DB에 저장하지 않습니다. 자체 token은 `sessions`와
 `refresh_tokens`에 SHA-256 해시로만 저장하고, 갱신 응답 복구용 `refresh_receipts`에만
-access/refresh 응답을 AES-GCM 암호문으로 10분간 보관합니다. 007까지 마이그레이션하고
+최신 access/refresh 응답을 AES-GCM 암호문으로 다음 갱신 성공·세션 종료까지 보관합니다. 007까지 마이그레이션하고
 `AUTH_SESSION_RECEIPT_KEY`에 base64 인코딩한 32-byte 고정 키를 주입해야 신규 영속
 로그인/갱신이 활성화됩니다. 위 값은 placeholder이며 실제 키는 안전하게 생성·보관하고
 Git에 커밋하지 않습니다. 키가 없으면 신규 로그인/갱신 API는 503을 반환합니다.

@@ -1,7 +1,7 @@
 # Rune Nexus 백엔드·인증·온라인 저장 최종 아키텍처
 
 문서 상태: 채택된 구현 기준
-마지막 갱신: 2026-09-05 (인증 세션 복원 반영)
+마지막 갱신: 2026-09-09 (장기 응답 유실 후 인증 복구 반영)
 
 ## 목적
 
@@ -338,7 +338,8 @@ Web은 Google Identity Services, Android는 Credential Manager를 사용한다. 
 
 - access/refresh token은 충분한 엔트로피의 무작위 opaque token이다.
 - `sessions`와 `refresh_tokens`에는 SHA-256 해시만 저장한다. 예외적으로 응답 유실 복구용
-  `refresh_receipts`에는 access/refresh 응답을 AES-GCM으로 암호화하여 10분간 보관한다.
+  `refresh_receipts`에는 최신 access/refresh 응답 하나를 AES-GCM으로 암호화하여 다음 갱신 성공 또는
+  세션 종료까지 보관한다.
 - access token의 기본 TTL은 15분이다. 신규 영속 세션은 `refresh_expires_at = NULL`로
   시간 경과만으로 로그아웃하지 않는다. 기존 유한 세션 API의 30일 기본 TTL은 유지한다.
 - refresh token은 사용할 때마다 회전한다.
@@ -347,7 +348,9 @@ Web은 Google Identity Services, Android는 Credential Manager를 사용한다. 
 - 여러 기기는 서로 다른 session을 가진다.
 - timeout·연결 단절·5xx·잘못된 응답은 로그인 종료로 판정하지 않는다. 클라이언트는
   요청 전에 저장한 `Idempotency-Key`로 재시도한다. 앱/서버 재시작과 Web 쿠키가 먼저
-  회전한 경우에도 10분 안에는 부모 또는 자식 token으로 같은 응답을 복구할 수 있다.
+  회전한 경우에도 최신 결과는 부모 또는 자식 token과 같은 key로 복구할 수 있다.
+  복구한 access가 만료됐으면 클라이언트가 child refresh와 새 key로 다시 갱신한다.
+  access 만료 자체를 연장하거나 이후 회전의 옛 결과를 복구하지 않는다.
 
 refresh 회전 트랜잭션은 다음 순서로 고정한다.
 
@@ -356,17 +359,20 @@ BEGIN
   -> token_hash로 session을 먼저 잠그고 refresh token을 FOR UPDATE
   -> session status, 만료, 폐기, token 소비 여부 검사
   -> 동일 요청의 유효한 receipt이면 기존 응답 반환
-  -> 동일 복구 요청의 receipt가 만료됐으면 REFRESH_RECOVERY_EXPIRED 반환
+  -> 이후 회전으로 대체되거나 암호문이 이미 삭제된 receipt이면 REFRESH_RECOVERY_EXPIRED 반환
   -> 허용되지 않은 소비 token 재사용이면 session과 token family 폐기
   -> 정상이면 기존 token consumed 처리
   -> child refresh token 생성
   -> session access token hash와 만료 갱신
-  -> 영속 API는 암호화한 응답 receipt를 같은 transaction에 저장
+  -> 이전 receipt 암호문 삭제 (메타데이터 보존)
+  -> 영속 API는 최신 암호화 응답 receipt를 같은 transaction에 저장
 COMMIT
 ```
 
 모든 refresh와 logout 경로가 같은 잠금 순서를 사용한다. `last_used_at` 갱신은
-5분 단위로 제한한다. 만료 receipt의 암호문은 분당 정리하지만 재사용 판정용 메타데이터와
+5분 단위로 제한한다. 갱신·로그아웃 트랜잭션에서 이전 암호문을 삭제하고, 분당 정리는
+child가 소비·폐기됐거나 세션이 종료·만료됐거나 계정이 비활성인 암호문을 삭제한다.
+최신 유효 child의 응답은 시간 경과만으로 삭제하지 않는다. 재사용 판정용 메타데이터와
 token 소비 이력은 유지한다. token 행을 개별 삭제하는 정리 작업은 구현하지 않았다.
 
 | 구분 | Web | Android |
@@ -475,7 +481,7 @@ session인지 함께 검사한다. 이미 만료·폐기된 token에도 `204`를
 | `401` | `GOOGLE_AUTH_REJECTED` | ID token 서명, issuer, audience 또는 만료 검증 실패 |
 | `401` | `REFRESH_TOKEN_INVALID` | 알 수 없거나 만료된 refresh token |
 | `401` | `REFRESH_TOKEN_REUSED` | 이미 소비된 refresh token 재사용과 session 폐기 |
-| `401` | `REFRESH_RECOVERY_EXPIRED` | 10분 복구 응답 만료; 서버는 이 사유만으로 family를 폐기하지 않음 |
+| `401` | `REFRESH_RECOVERY_EXPIRED` | 이후 회전으로 대체되거나 이미 삭제된 복구 응답; 이 사유만으로 family를 폐기하지 않음 |
 | `400` | `INVALID_IDEMPOTENCY_KEY` | 영속 refresh key 누락 또는 잘못된 형식 |
 | `409` | `REFRESH_REQUEST_CONFLICT` | 요청 key와 token의 복구 관계 불일치 |
 | `403` | `ORIGIN_NOT_ALLOWED` | Web 인증 요청의 허용되지 않은 Origin |
@@ -975,7 +981,8 @@ partial unique index를 둔다. parent token당 자식도 하나만 허용한다
 
 007에서 추가한 `refresh_receipts`는 `session_id`, `request_key`를 복합 PK로 사용한다.
 `parent_token_id`(UNIQUE), `child_token_id`는 refresh token FK이며, `ciphertext BYTEA NULL`,
-`expires_at TIMESTAMPTZ NOT NULL`을 보관한다. 만료 암호문만 NULL로 정리하고 메타데이터는
+`expires_at TIMESTAMPTZ NOT NULL`을 보관한다. 신규 receipt의 expires_at은 infinity이며, 기존 유한 값도 최신 유효 child의 복구를
+제한하지 않는다. 대체·종료된 암호문만 NULL로 정리하고 메타데이터는
 재사용 판정을 위해 유지한다. 세션 삭제 시 receipt도 cascade되며 개별 token 이력 삭제는
 FK와 재사용 판정에 영향을 준다. `accounts`와 `auth_identities`의 컬럼은 이번 변경에서 그대로다.
 
@@ -1220,7 +1227,7 @@ SHUTDOWN_TIMEOUT
 - opaque token 생성과 SHA-256 해시
 - refresh 회전과 재사용 탐지
 - 동시 동일 key refresh의 단일 회전과 동일 응답 재생
-- refresh 응답 유실·서버 재시작 후 부모/자식 token 재시도, 10분 복구 만료 구분
+- refresh 응답 유실·서버 재시작 후 부모/자식 token 재시도, 장기 중단·access 만료 복구와 이후 회전의 옛 응답 거부 구분
 - PGS 응답 파싱과 오류 매핑
 - 저장 크기, 버전, 구조 검증
 - 동일 idempotency key 재응답

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import '../auth/authentication_transport_types.dart';
 import '../auth/google_authentication_api.dart';
 import '../auth/online_account_session_controller.dart';
 import 'backup_save_repository.dart';
@@ -366,9 +367,13 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
         dirty = recoveredDirty;
       }
 
-      // 닉네임 설정 후 재연결: 구버전의 차단만 해제하고 기존 요청은 보존.
+      // 재인증·닉네임 설정으로 해소 가능한 차단만 재검사; exact 요청 보존.
       if (phase == OnlineSaveOutboxPhase.blocked &&
-          issueCode == 'NICKNAME_REQUIRED') {
+          const {
+            'NICKNAME_REQUIRED',
+            'AUTH_SESSION_UNAVAILABLE',
+            'ACCESS_TOKEN_INVALID',
+          }.contains(issueCode)) {
         phase = OnlineSaveOutboxPhase.idle;
         issueCode = null;
         nextRetryAt = null;
@@ -570,29 +575,13 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
       _publishSnapshot();
       return true;
     } on Object catch (error) {
-      if (error is OnlineSaveException && error.isRetryable) {
-        await _scheduleRetry(
-          issueCode: error.code,
-          retryAfter: error.retryAfter,
-        );
-        return false;
-      }
       if (error is OnlineSaveException &&
           error.statusCode == 426 &&
           error.code == 'CLIENT_UPDATE_REQUIRED') {
         await _blockForClientUpdate();
         return false;
       }
-      if (error is GoogleAuthenticationException && error.statusCode == 429) {
-        await _scheduleRetry(
-          issueCode: error.code,
-          retryAfter: error.retryAfter,
-        );
-        return false;
-      }
-      await _markBlocked(
-        error is OnlineSaveException ? error.code : 'AUTH_SESSION_UNAVAILABLE',
-      );
+      await _handleRemoteOperationError(error);
       return false;
     }
   }
@@ -767,20 +756,6 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
         if (_disposed) {
           return;
         }
-        if (error is OnlineSaveException && error.isRetryable) {
-          await _scheduleRetry(
-            issueCode: error.code,
-            retryAfter: error.retryAfter,
-          );
-          return;
-        }
-        if (error is GoogleAuthenticationException && error.statusCode == 429) {
-          await _scheduleRetry(
-            issueCode: error.code,
-            retryAfter: error.retryAfter,
-          );
-          return;
-        }
         if (error is OnlineSaveException &&
             error.statusCode == 426 &&
             error.code == 'CLIENT_UPDATE_REQUIRED') {
@@ -827,11 +802,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
           _publishSnapshot();
           return;
         }
-        await _markBlocked(
-          error is OnlineSaveException
-              ? error.code
-              : 'AUTH_SESSION_UNAVAILABLE',
-        );
+        await _handleRemoteOperationError(error);
         return;
       }
     }
@@ -1201,8 +1172,12 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
       await _scheduleRetry(issueCode: error.code, retryAfter: error.retryAfter);
       return;
     }
-    if (error is GoogleAuthenticationException && error.statusCode == 429) {
+    if (error is GoogleAuthenticationException && !error.endsSession) {
       await _scheduleRetry(issueCode: error.code, retryAfter: error.retryAfter);
+      return;
+    }
+    if (error is AuthenticationTransportException) {
+      await _scheduleRetry(issueCode: 'AUTH_CONNECTION_UNAVAILABLE');
       return;
     }
     await _markBlocked(

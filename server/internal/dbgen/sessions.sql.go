@@ -12,12 +12,31 @@ import (
 )
 
 const clearExpiredRefreshReceipts = `-- name: ClearExpiredRefreshReceipts :exec
-UPDATE refresh_receipts SET ciphertext = NULL
-WHERE ciphertext IS NOT NULL AND expires_at <= now()
+UPDATE refresh_receipts AS receipt SET ciphertext = NULL
+FROM refresh_tokens AS child, sessions AS session, accounts AS account
+WHERE receipt.ciphertext IS NOT NULL
+  AND child.id = receipt.child_token_id
+  AND session.id = receipt.session_id
+  AND account.id = session.account_id
+  AND (child.consumed_at IS NOT NULL
+       OR child.revoked_at IS NOT NULL
+       OR session.revoked_at IS NOT NULL
+       OR session.refresh_expires_at <= now()
+       OR account.status <> 'active')
 `
 
 func (q *Queries) ClearExpiredRefreshReceipts(ctx context.Context) error {
 	_, err := q.db.Exec(ctx, clearExpiredRefreshReceipts)
+	return err
+}
+
+const clearRefreshReceiptsForSession = `-- name: ClearRefreshReceiptsForSession :exec
+UPDATE refresh_receipts SET ciphertext = NULL
+WHERE session_id = $1 AND ciphertext IS NOT NULL
+`
+
+func (q *Queries) ClearRefreshReceiptsForSession(ctx context.Context, sessionID pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, clearRefreshReceiptsForSession, sessionID)
 	return err
 }
 

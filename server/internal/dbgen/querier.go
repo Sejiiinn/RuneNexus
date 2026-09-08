@@ -15,6 +15,7 @@ type Querier interface {
 	AdvanceSaveWriter(ctx context.Context, arg AdvanceSaveWriterParams) (SaveWriterState, error)
 	ApplyEconomyProgressionEffect(ctx context.Context, arg ApplyEconomyProgressionEffectParams) (EconomyProgressionEffect, error)
 	ClearExpiredRefreshReceipts(ctx context.Context) error
+	ClearRefreshReceiptsForSession(ctx context.Context, sessionID pgtype.UUID) error
 	CompleteEconomyBootstrap(ctx context.Context, arg CompleteEconomyBootstrapParams) (PlayerEconomy, error)
 	ConsumeRefreshToken(ctx context.Context, id pgtype.UUID) (RefreshToken, error)
 	CreateAccount(ctx context.Context) (Account, error)

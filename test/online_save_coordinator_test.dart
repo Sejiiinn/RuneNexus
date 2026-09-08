@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:rune_nexus/data/auth/authentication_transport_types.dart';
 import 'package:rune_nexus/data/auth/google_authentication_api.dart';
 import 'package:rune_nexus/data/auth/online_account_session_controller.dart';
 import 'package:rune_nexus/data/save/backup_save_repository.dart';
@@ -194,76 +195,182 @@ void main() {
     session.dispose();
   });
 
-  test('인증 갱신 429도 세션을 유지하고 Retry-After 뒤 저장을 재개한다', () async {
-    var now = DateTime.utc(2026, 8, 20, 3);
-    final authenticationTimers = _ManualTimerFactory();
-    final saveTimers = _ManualTimerFactory();
-    var refreshCount = 0;
-    var updateCount = 0;
-    final session = OnlineAccountSessionController(
-      credentials: OnlineAccountCredentials(
+  for (final failure in <Object>[
+    const GoogleAuthenticationException(
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'limited',
+      statusCode: 429,
+      retryAfter: Duration(seconds: 7),
+    ),
+    const GoogleAuthenticationException(
+      code: 'AUTH_RETRY_PENDING',
+      message: 'pending',
+      retryAfter: Duration(seconds: 7),
+    ),
+    const GoogleAuthenticationException(
+      code: 'AUTH_REQUEST_FAILED',
+      message: 'unavailable',
+      statusCode: 503,
+    ),
+    const GoogleAuthenticationException(
+      code: 'INVALID_AUTH_RESPONSE',
+      message: 'invalid response',
+    ),
+    const AuthenticationTransportException('offline'),
+  ]) {
+    test('인증 갱신 일시 오류 후 저장 재개: ${failure.runtimeType} $failure', () async {
+      var now = DateTime.utc(2026, 8, 20, 3);
+      final authenticationTimers = _ManualTimerFactory();
+      final saveTimers = _ManualTimerFactory();
+      var refreshCount = 0;
+      var updateCount = 0;
+      final session = OnlineAccountSessionController(
+        credentials: OnlineAccountCredentials(
+          accountId: _accountId,
+          accessToken: 'expiring-access',
+          accessExpiresAt: now.add(const Duration(seconds: 30)),
+        ),
+        refreshCredentials: () async {
+          refreshCount++;
+          if (refreshCount == 1) {
+            throw failure;
+          }
+          return OnlineAccountCredentials(
+            accountId: _accountId,
+            accessToken: 'new-access',
+            accessExpiresAt: now.add(const Duration(minutes: 15)),
+          );
+        },
+        revokeSession: (_) async {},
+        onCredentialsChanged: (_) {},
+        onSessionInvalidated: () {},
+        now: () => now,
+        timerFactory: authenticationTimers.create,
+      );
+      final coordinator = OnlineSaveCoordinator(
         accountId: _accountId,
-        accessToken: 'expiring-access',
-        accessExpiresAt: now.add(const Duration(seconds: 30)),
-      ),
-      refreshCredentials: () async {
-        refreshCount++;
-        if (refreshCount == 1) {
-          throw const GoogleAuthenticationException(
-            code: 'RATE_LIMIT_EXCEEDED',
-            message: 'limited',
-            statusCode: 429,
-            retryAfter: Duration(seconds: 7),
+        client: _FakeOnlineSaveClient(
+          update: (accessToken, _) async {
+            updateCount++;
+            expect(accessToken, 'new-access');
+            return _updateResult(1);
+          },
+        ),
+        session: session,
+        initialRevision: 0,
+        outboxRepository: MemoryOnlineSaveOutboxRepository(),
+        loadPersistedCheckpoint: () async => null,
+        idempotencyKeyFactory: () => _idempotencyKey(1),
+        timerFactory: saveTimers.create,
+      );
+      await coordinator.initialize();
+
+      await coordinator.enqueuePersistedCheckpoint(_saveData(25));
+      await coordinator.currentAttempt;
+
+      expect(refreshCount, 1);
+      expect(updateCount, 0);
+      expect(
+        coordinator.snapshot.phase,
+        OnlineSaveCoordinatorPhase.retryWaiting,
+      );
+      expect(saveTimers.lastDuration, isNotNull);
+      now = now.add(const Duration(seconds: 7));
+      saveTimers.lastTimer!.fire();
+      await _pumpUntil(() => updateCount == 1);
+      await coordinator.currentAttempt;
+
+      expect(refreshCount, 2);
+      expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
+      expect(coordinator.snapshot.remoteRevision, 1);
+      coordinator.dispose();
+      session.dispose();
+    });
+  }
+
+  for (final stage in ['claim', 'load', 'update']) {
+    test('$stage 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다', () async {
+      final data = _saveData(29);
+      final local = _MemoryBackupSaveRepository(data);
+      final outbox = MemoryOnlineSaveOutboxRepository();
+      var refreshFailed = false;
+      final session = _session(
+        refreshCredentials: () async {
+          if (!refreshFailed) {
+            refreshFailed = true;
+            throw const AuthenticationTransportException('offline');
+          }
+          return _credentials(accessToken: 'new-access');
+        },
+      );
+      final claims = <OnlineSaveWriterClaimRequest>[];
+      final updates = <OnlineSaveUpdateRequest>[];
+      void requireRefresh(String operation, String token) {
+        if (operation == stage && token == 'old-access') {
+          throw const OnlineSaveException(
+            code: 'ACCESS_TOKEN_INVALID',
+            message: 'expired',
+            statusCode: 401,
           );
         }
-        return OnlineAccountCredentials(
-          accountId: _accountId,
-          accessToken: 'new-access',
-          accessExpiresAt: now.add(const Duration(minutes: 15)),
-        );
-      },
-      revokeSession: (_) async {},
-      onCredentialsChanged: (_) {},
-      onSessionInvalidated: () {},
-      now: () => now,
-      timerFactory: authenticationTimers.create,
-    );
-    final coordinator = OnlineSaveCoordinator(
-      accountId: _accountId,
-      client: _FakeOnlineSaveClient(
-        update: (accessToken, _) async {
-          updateCount++;
-          expect(accessToken, 'new-access');
-          return _updateResult(1);
-        },
-      ),
-      session: session,
-      initialRevision: 0,
-      outboxRepository: MemoryOnlineSaveOutboxRepository(),
-      loadPersistedCheckpoint: () async => null,
-      idempotencyKeyFactory: () => _idempotencyKey(1),
-      timerFactory: saveTimers.create,
-    );
-    await coordinator.initialize();
+      }
 
-    await coordinator.enqueuePersistedCheckpoint(_saveData(25));
-    await coordinator.currentAttempt;
-
-    expect(refreshCount, 1);
-    expect(updateCount, 0);
-    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.retryWaiting);
-    expect(saveTimers.lastDuration, const Duration(seconds: 7));
-    now = now.add(const Duration(seconds: 7));
-    saveTimers.lastTimer!.fire();
-    await _pumpUntil(() => updateCount == 1);
-    await coordinator.currentAttempt;
-
-    expect(refreshCount, 2);
-    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
-    expect(coordinator.snapshot.remoteRevision, 1);
-    coordinator.dispose();
-    session.dispose();
-  });
+      final timers = _ManualTimerFactory();
+      final coordinator = OnlineSaveCoordinator(
+        accountId: _accountId,
+        client: _FakeOnlineSaveClient(
+          claimWriter: (token, request) async {
+            claims.add(request);
+            requireRefresh('claim', token);
+            return OnlineSaveWriterClaimResult(
+              writerGeneration: 1,
+              claimedAt: DateTime.utc(2026, 9, 9),
+            );
+          },
+          load: (token) async {
+            requireRefresh('load', token);
+            return null;
+          },
+          update: (token, request) async {
+            updates.add(request);
+            requireRefresh('update', token);
+            return _updateResult(1);
+          },
+        ),
+        session: session,
+        initialRevision: 0,
+        outboxRepository: outbox,
+        loadPersistedCheckpoint: local.load,
+        persistedSaveRepository: local,
+        timerFactory: timers.create,
+      );
+      addTearDown(coordinator.dispose);
+      addTearDown(session.dispose);
+      await coordinator.initialize();
+      await coordinator.currentAttempt;
+      expect(refreshFailed, isTrue);
+      expect(
+        coordinator.snapshot.phase,
+        OnlineSaveCoordinatorPhase.retryWaiting,
+      );
+      expect(local.data, same(data));
+      // 갱신 backoff 경과 없이 복구된 세션을 주입하지 않고 실제 재시도 시간 대기.
+      await Future<void>.delayed(const Duration(seconds: 2));
+      await coordinator.retryNow();
+      await coordinator.currentAttempt;
+      expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
+      expect(coordinator.snapshot.remoteRevision, 1);
+      expect(outbox.state?.inFlight, isNull);
+      if (stage == 'claim') {
+        expect(claims.last.idempotencyKey, claims.first.idempotencyKey);
+        expect(claims.last.encodedBody, claims.first.encodedBody);
+      }
+      if (stage == 'update') {
+        expect(updates.last.idempotencyKey, updates.first.idempotencyKey);
+        expect(updates.last.encodedBody, updates.first.encodedBody);
+      }
+    });
+  }
 
   test('revision 충돌은 자동 업로드를 중단하고 최신 pending을 보존한다', () async {
     var updateCount = 0;
@@ -837,68 +944,74 @@ void main() {
     );
   }
 
-  test('닉네임 차단된 in-flight는 writer를 바꾸지 않고 동일 요청으로 재개한다', () async {
-    final data = _saveData(45);
-    final request = OnlineSaveUpdateRequest(
-      expectedRevision: 6,
-      idempotencyKey: _idempotencyKey(182),
-      writerGeneration: 7,
-      data: data,
-    );
-    final outbox = MemoryOnlineSaveOutboxRepository()
-      ..state =
-          OnlineSaveOutboxState.initial(
-            accountId: _accountId,
-            remoteRevision: 6,
-          ).copyWith(
-            clientInstanceId: _idempotencyKey(183),
-            writerGeneration: 7,
-            payloadGeneration: 1,
-            inFlight: OnlineSaveOutboxEntry(
-              idempotencyKey: request.idempotencyKey,
-              writerGeneration: request.writerGeneration,
-              expectedRevision: request.expectedRevision,
-              encodedRequestBody: request.encodedBody,
-              payloadFingerprint: onlineSavePayloadHash(data),
+  for (final issue in [
+    'NICKNAME_REQUIRED',
+    'AUTH_SESSION_UNAVAILABLE',
+    'ACCESS_TOKEN_INVALID',
+  ]) {
+    test('$issue 차단된 in-flight는 동일 요청으로 재개한다', () async {
+      final data = _saveData(45);
+      final request = OnlineSaveUpdateRequest(
+        expectedRevision: 6,
+        idempotencyKey: _idempotencyKey(182),
+        writerGeneration: 7,
+        data: data,
+      );
+      final outbox = MemoryOnlineSaveOutboxRepository()
+        ..state =
+            OnlineSaveOutboxState.initial(
+              accountId: _accountId,
+              remoteRevision: 6,
+            ).copyWith(
+              clientInstanceId: _idempotencyKey(183),
+              writerGeneration: 7,
               payloadGeneration: 1,
-            ),
-            phase: OnlineSaveOutboxPhase.blocked,
-            issueCode: 'NICKNAME_REQUIRED',
-          );
-    final updates = <OnlineSaveUpdateRequest>[];
-    final session = _session();
-    final coordinator = OnlineSaveCoordinator(
-      accountId: _accountId,
-      client: _FakeOnlineSaveClient(
-        claimWriter: (_, _) async =>
-            throw StateError('in-flight 확인 전에 writer 변경 금지'),
-        update: (_, update) async {
-          updates.add(update);
-          return _updateResult(7);
-        },
-      ),
-      session: session,
-      initialRevision: 6,
-      outboxRepository: outbox,
-      loadPersistedCheckpoint: () async => data,
-      idempotencyKeyFactory: () => throw StateError('기존 in-flight 키 재사용 필요'),
-    );
-    addTearDown(coordinator.dispose);
-    addTearDown(session.dispose);
+              inFlight: OnlineSaveOutboxEntry(
+                idempotencyKey: request.idempotencyKey,
+                writerGeneration: request.writerGeneration,
+                expectedRevision: request.expectedRevision,
+                encodedRequestBody: request.encodedBody,
+                payloadFingerprint: onlineSavePayloadHash(data),
+                payloadGeneration: 1,
+              ),
+              phase: OnlineSaveOutboxPhase.blocked,
+              issueCode: issue,
+            );
+      final updates = <OnlineSaveUpdateRequest>[];
+      final session = _session();
+      final coordinator = OnlineSaveCoordinator(
+        accountId: _accountId,
+        client: _FakeOnlineSaveClient(
+          claimWriter: (_, _) async =>
+              throw StateError('in-flight 확인 전에 writer 변경 금지'),
+          update: (_, update) async {
+            updates.add(update);
+            return _updateResult(7);
+          },
+        ),
+        session: session,
+        initialRevision: 6,
+        outboxRepository: outbox,
+        loadPersistedCheckpoint: () async => data,
+        idempotencyKeyFactory: () => throw StateError('기존 in-flight 키 재사용 필요'),
+      );
+      addTearDown(coordinator.dispose);
+      addTearDown(session.dispose);
 
-    await coordinator.initialize();
-    await coordinator.currentAttempt;
+      await coordinator.initialize();
+      await coordinator.currentAttempt;
 
-    expect(updates, hasLength(1));
-    expect(updates.single.idempotencyKey, request.idempotencyKey);
-    expect(updates.single.encodedBody, request.encodedBody);
-    expect(updates.single.writerGeneration, 7);
-    expect(updates.single.expectedRevision, 6);
-    expect(outbox.state?.remoteRevision, 7);
-    expect(outbox.state?.inFlight, isNull);
-    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
-    expect(coordinator.snapshot.issueCode, isNull);
-  });
+      expect(updates, hasLength(1));
+      expect(updates.single.idempotencyKey, request.idempotencyKey);
+      expect(updates.single.encodedBody, request.encodedBody);
+      expect(updates.single.writerGeneration, 7);
+      expect(updates.single.expectedRevision, 6);
+      expect(outbox.state?.remoteRevision, 7);
+      expect(outbox.state?.inFlight, isNull);
+      expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
+      expect(coordinator.snapshot.issueCode, isNull);
+    });
+  }
 
   for (final missingLocalData in [false, true]) {
     test(
