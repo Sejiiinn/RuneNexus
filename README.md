@@ -42,11 +42,7 @@ flutter run
 flutter build web --pwa-strategy=none --no-tree-shake-icons
 ```
 
-로컬 정적 서버 예시:
-
-```bash
-python -m http.server 54546 --bind 127.0.0.1 -d build/web
-```
+반복 UI 개발·화면 확인은 [인앱 테스트 진입점](.agents/in_app_test_guide.md)의 53000 서버 재사용·hot reload 경로를 따른다. 플랫폼별 실행 명령도 해당 문서에서 확인한다.
 
 Flutter Web은 서비스 워커 캐시 때문에 변경 사항이 바로 보이지 않을 수 있습니다. 개발 중에는 `--pwa-strategy=none` 빌드를 사용하거나 브라우저 캐시/서비스 워커를 갱신해야 합니다. 젬처럼 데이터에서 동적으로 꺼내 쓰는 아이콘이 있으므로 웹 빌드에서는 `--no-tree-shake-icons`를 함께 사용합니다.
 
@@ -59,6 +55,9 @@ flutter build web --pwa-strategy=none --no-tree-shake-icons
 ```
 
 ## 문서
+
+- [작업별 문서 지도와 갱신 규칙](docs/README.md)
+- [디자인 기준과 검증 완료 조건](DESIGNS.md)
 
 - [구현 현황](docs/implementation_status.md)
 - [게임 규칙과 밸런스 기준](docs/gameplay_balance_reference.md)

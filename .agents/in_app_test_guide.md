@@ -15,11 +15,23 @@
 
 ## 서버 경로
 
+저장소 루트에서 아래 명령을 사용합니다. `dev`·`restart`는 서버를 시작하거나 교체하므로 먼저 `status`로 기존 서버를 확인하세요.
+
+| 목적 | macOS | Windows |
+| --- | --- | --- |
+| 기존 서버 확인 | `scripts/in_app_server_macos.sh status` | `scripts/in_app_server.ps1 -Action status` |
+| 개발 서버 기동 | `scripts/in_app_server_macos.sh dev` | `scripts/in_app_server.ps1 -Action dev` |
+| 필요한 경우 전체 빌드·재기동 | `scripts/in_app_server_macos.sh restart` | `scripts/in_app_server.ps1 -Action restart` |
+
+macOS 스크립트의 작업 경로가 현재 checkout과 다르면 `WORK_DIR="$PWD"`로 해당 호출의 경로를 지정하세요. SDK 경로는 스크립트의 `FLUTTER`·`DART` 설정을 따릅니다. Windows의 상세 실행 규칙은 [Windows 가이드](windows_flutter_guide.md)를 확인하세요.
+
 - Windows와 macOS 모두에서 사용자가 인앱 테스트 화면을 요청하면 일반 `flutter run` 직접 실행보다 프로젝트의 빠른 인앱 테스트 경로 스크립트를 우선 활용하세요.
 - 반복 개발은 `scripts/in_app_server.ps1 -Action dev` 또는 `scripts/in_app_server_macos.sh dev`를 사용하세요.
 - 스크립트가 없거나 실패할 때만 기존 Flutter web server 경로로 진행하세요.
 
 ## UI·게임플레이·렌더링 검증
+
+- 검증 범위와 완료·반복 중단 기준은 [DESIGNS.md](../DESIGNS.md#검증과-완료-기준--완벽한-복제보다-요청-충족)를 따르세요. 대표 화면에서 핵심 조건이 충족되면 종료하며, 미세한 시안 차이를 맞추기 위한 재촬영·전체 빌드를 반복하지 마세요.
 
 - UI·게임플레이·렌더링 등 인게임 내 변화가 있는 변경 요청을 완료한 경우, 작은 Dart 변경은 53000 개발 서버에서 hot reload 후 인앱 브라우저 새로고침으로 먼저 확인하세요.
 - 큰 변경·빌드 산출물·캐시 문제 확인이 필요할 때만 `restart`로 전체 웹 빌드를 갱신하고 cache-bust URL로 접속하세요.
