@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import '../data/account/account_profile_api.dart';
 import '../data/auth/google_authentication_api.dart';
 import '../data/auth/authentication_session_repository.dart';
 import '../data/auth/google_web_authentication_config.dart';
@@ -19,6 +20,7 @@ import '../data/save/local_online_save_outbox_repository.dart';
 import '../data/save/legacy_save_transfer_api.dart';
 import '../data/save/online_save_api.dart';
 import '../data/save/online_save_coordinator.dart';
+import '../domain/account/account_profile.dart';
 import '../domain/account/account_session.dart';
 import '../domain/account/online_account_credentials.dart';
 import '../domain/combat/game_phase.dart';
@@ -32,6 +34,7 @@ import '../platform/update/app_update_service.dart';
 import 'app_update_gate.dart';
 import 'app_startup_screen.dart';
 import '../ui/account/google_sign_in_dialog.dart';
+import '../ui/account/nickname_setup_dialog.dart';
 import '../ui/account/legacy_save_transfer_dialog.dart';
 import '../ui/game/game_button.dart';
 import '../ui/game/game_image_assets.dart';
@@ -46,6 +49,7 @@ import '../ui/menu/map_editor_panel.dart';
 enum _AppScreen { main, stage, mapEditor }
 
 enum _AccountConnectionPhase {
+  checkingNickname,
   importingLegacyProgress,
   savingCurrentProgress,
   loadingAccountProgress,
@@ -79,6 +83,9 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   late final GoogleWebAuthenticationConfig _googleAuthenticationConfig;
   late final AccountSaveBootstrapService _accountSaveBootstrapService;
   AuthenticationSessionRepository? _authenticationSessions;
+  AccountProfileApi? _accountProfileApi;
+  AccountProfile? _accountProfile;
+  BuildContext? _nicknameDialogContext;
   OnlineSaveApi? _onlineSaveApi;
   EconomyApi? _economyApi;
   WeeklyRewardApi? _weeklyRewardApi;
@@ -105,7 +112,8 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       AccountSaveBootstrapMode.interactiveConnect;
 
   AccountSession get _accountSession =>
-      _onlineAccount?.presentation ?? const AccountSession.guest();
+      _onlineAccount?.presentation(_accountProfile) ??
+      const AccountSession.guest();
 
   @override
   void initState() {
@@ -129,6 +137,9 @@ class _RuneNexusAppState extends State<RuneNexusApp>
           mode: kIsWeb ? AuthenticationMode.web : AuthenticationMode.native,
         ),
         apiBaseUrl: _googleAuthenticationConfig.apiBaseUrl,
+      );
+      _accountProfileApi = AccountProfileApi(
+        baseUrl: _googleAuthenticationConfig.apiBaseUrl,
       );
       _onlineSaveApi = OnlineSaveApi(
         baseUrl: _googleAuthenticationConfig.apiBaseUrl,
@@ -226,10 +237,16 @@ class _RuneNexusAppState extends State<RuneNexusApp>
           );
         }
         if (!mounted) return;
-        if (!_hasGame || !identical(session, _onlineSession)) {
-          throw StateError('계정 진행 연결을 다시 확인해 주세요.');
+        if (identical(session, _onlineSession)) {
+          if (!_hasGame) {
+            throw StateError('계정 진행 연결을 다시 확인해 주세요.');
+          }
+          return;
         }
-        return;
+        // 필수 설정 중 로그아웃한 경우에만 게스트 초기화로 진행.
+        if (_onlineSession != null) {
+          throw StateError('계정 세션이 변경되었습니다. 다시 확인해 주세요.');
+        }
       }
     }
     if (!mounted) return;
@@ -401,13 +418,14 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   ) {
     final sessions = _authenticationSessions!;
     _onlineSession?.dispose();
+    _accountProfile = null;
     late final OnlineAccountSessionController onlineSession;
     onlineSession = OnlineAccountSessionController(
       credentials: credentials,
       refreshCredentials: sessions.refresh,
       revokeSession: sessions.logout,
       onCredentialsChanged: (updatedCredentials) {
-        if (!mounted) {
+        if (!mounted || !identical(_onlineSession, onlineSession)) {
           return;
         }
         setState(() {
@@ -437,6 +455,128 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     return onlineSession;
   }
 
+  Future<bool> _ensureAccountNickname(
+    BuildContext context,
+    OnlineAccountSessionController session,
+  ) async {
+    final api = _accountProfileApi!;
+    final accountId = session.credentials!.accountId;
+    if (_accountProfile?.accountId == accountId &&
+        _accountProfile!.hasNickname) {
+      return true;
+    }
+    setState(() {
+      _accountConnectionPhase = _AccountConnectionPhase.checkingNickname;
+    });
+    while (mounted && context.mounted && identical(_onlineSession, session)) {
+      try {
+        final profile = await session.runAuthenticated(
+          request: api.load,
+          isUnauthorized: (error) =>
+              error is AccountProfileException && error.isUnauthorized,
+        );
+        if (!mounted ||
+            !context.mounted ||
+            !identical(_onlineSession, session)) {
+          return false;
+        }
+        if (profile.accountId != accountId) {
+          throw StateError('계정 프로필이 현재 로그인 계정과 일치하지 않습니다.');
+        }
+        AccountProfile? completed = profile;
+        if (!profile.hasNickname) {
+          completed = await showGameDialog<AccountProfile>(
+            context: context,
+            barrierDismissible: false,
+            builder: (dialogContext) {
+              _nicknameDialogContext = dialogContext;
+              return NicknameSetupDialog(
+                save: (nickname) async {
+                  AccountProfile saved;
+                  try {
+                    saved = await session.runAuthenticated(
+                      request: (token) =>
+                          api.setNickname(token, nickname: nickname),
+                      isUnauthorized: (error) =>
+                          error is AccountProfileException &&
+                          error.isUnauthorized,
+                    );
+                  } on AccountProfileException catch (error) {
+                    if (error.code != 'NICKNAME_ALREADY_SET') rethrow;
+                    // 다른 기기에서 먼저 확정한 프로필로 합류.
+                    saved = await session.runAuthenticated(
+                      request: api.load,
+                      isUnauthorized: (error) =>
+                          error is AccountProfileException &&
+                          error.isUnauthorized,
+                    );
+                  }
+                  if (!identical(_onlineSession, session) ||
+                      saved.accountId != accountId ||
+                      !saved.hasNickname) {
+                    throw StateError('닉네임을 설정한 계정 세션을 다시 확인해 주세요.');
+                  }
+                  return saved;
+                },
+              );
+            },
+          );
+          _nicknameDialogContext = null;
+        }
+        if (!mounted ||
+            !context.mounted ||
+            !identical(_onlineSession, session)) {
+          return false;
+        }
+        if (completed == null) {
+          await _signOut(context);
+          // 로그아웃 실패 시 설정 단계 유지.
+          continue;
+        }
+        setState(() => _accountProfile = completed);
+        return true;
+      } on Object {
+        if (!mounted ||
+            !context.mounted ||
+            !identical(_onlineSession, session)) {
+          return false;
+        }
+        final retry = await showGameDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) {
+            _nicknameDialogContext = dialogContext;
+            return PopScope(
+              canPop: false,
+              child: AlertDialog(
+                title: Text(context.l10n.nicknameChecking),
+                content: Text(context.l10n.nicknameProfileLoadFailed),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(false),
+                    child: Text(context.l10n.signOut),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(true),
+                    child: Text(context.l10n.nicknameRetry),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+        _nicknameDialogContext = null;
+        if (!mounted ||
+            !context.mounted ||
+            !identical(_onlineSession, session)) {
+          return false;
+        }
+        if (retry != true) await _signOut(context);
+      }
+    }
+    return false;
+  }
+
   Future<void> _connectPendingLegacyTransfer({
     required BuildContext context,
     required OnlineAccountSessionController onlineSession,
@@ -452,13 +592,20 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       _accountConnectionPhase = _AccountConnectionPhase.importingLegacyProgress;
     });
     try {
+      if (!await _ensureAccountNickname(context, onlineSession)) return;
+      if (!mounted || !context.mounted) return;
+      setState(() {
+        _accountConnectionPhase =
+            _AccountConnectionPhase.importingLegacyProgress;
+      });
       final confirmed = await showGameDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
           title: const Text('기존 진행을 가져올 계정 확인'),
           content: SingleChildScrollView(
             child: Text(
-              '현재 Google 게임 계정: ${credentials.accountId}\n\n'
+              '현재 게임 계정: ${_accountProfile!.displayName}\n'
+              '계정 ID: ${credentials.accountId}\n\n'
               '카카오 브라우저의 기존 진행을 이 계정으로 가져옵니다. '
               '이 계정에 저장된 진행은 교체될 수 있습니다. 계정이 맞는지 확인해 주세요.',
             ),
@@ -525,8 +672,6 @@ class _RuneNexusAppState extends State<RuneNexusApp>
         setState(() {
           _accountConnectionPhase = null;
         });
-      } else {
-        _accountConnectionPhase = null;
       }
     }
     await _connectAccountProgress(
@@ -581,6 +726,11 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       _accountConnectionPhase = _AccountConnectionPhase.savingCurrentProgress;
     });
     try {
+      if (!await _ensureAccountNickname(context, onlineSession)) return;
+      if (!mounted || !context.mounted) return;
+      setState(() {
+        _accountConnectionPhase = _AccountConnectionPhase.savingCurrentProgress;
+      });
       if (_hasGame) await game.saveNow();
       if (!mounted || !identical(_onlineSession, onlineSession)) {
         return;
@@ -661,8 +811,6 @@ class _RuneNexusAppState extends State<RuneNexusApp>
         setState(() {
           _accountConnectionPhase = null;
         });
-      } else {
-        _accountConnectionPhase = null;
       }
     }
   }
@@ -1079,6 +1227,14 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     economyCoordinator?.dispose();
     coordinator?.dispose();
     _onlineSession = null;
+    _accountProfile = null;
+    final dialogContext = _nicknameDialogContext;
+    if (dialogContext != null && dialogContext.mounted) {
+      final route = ModalRoute.of(dialogContext);
+      if (route != null && route.isActive) {
+        Navigator.of(dialogContext).removeRoute(route);
+      }
+    }
     invalidatedSession.dispose();
     setState(() {
       _onlineAccount = null;
@@ -1427,6 +1583,7 @@ class _AccountConnectionOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final description = switch (phase) {
+      _AccountConnectionPhase.checkingNickname => l10n.nicknameChecking,
       _AccountConnectionPhase.importingLegacyProgress =>
         l10n.importingLegacyProgress,
       _AccountConnectionPhase.savingCurrentProgress =>
@@ -1558,19 +1715,23 @@ class _OnlineAccountState {
   final int pendingSaveCount;
   final String? issueMessage;
 
-  AccountSession get presentation => AccountSession.authenticated(
-    accountId: credentials.accountId,
-    identities: const [
-      AccountIdentity(
-        provider: AccountIdentityProvider.google,
-        displayName: 'Google',
-      ),
-    ],
-    syncStatus: syncStatus,
-    lastSyncedAt: lastSyncedAt,
-    pendingSaveCount: pendingSaveCount,
-    issueMessage: issueMessage,
-  );
+  AccountSession presentation(AccountProfile? profile) =>
+      AccountSession.authenticated(
+        accountId: credentials.accountId,
+        displayName: profile?.accountId == credentials.accountId
+            ? profile?.displayName
+            : null,
+        identities: const [
+          AccountIdentity(
+            provider: AccountIdentityProvider.google,
+            displayName: 'Google',
+          ),
+        ],
+        syncStatus: syncStatus,
+        lastSyncedAt: lastSyncedAt,
+        pendingSaveCount: pendingSaveCount,
+        issueMessage: issueMessage,
+      );
 }
 
 class _ActiveRunSettlementDialog extends StatelessWidget {

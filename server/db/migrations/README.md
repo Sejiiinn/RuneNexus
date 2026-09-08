@@ -19,6 +19,7 @@
 5. `005_legacy_transfer_existing_save_backup.sql`: 임시 이전 시 교체되는 기존 account 저장 백업
 6. `006_authoritative_economy.sql`: 서버 권위 지갑·모듈·경제 명령 원장·보상·진행 effect와 bootstrap 백업
 7. `007_persistent_auth_sessions.sql`: 무만료 세션용 nullable refresh 만료와 암호화 갱신 응답 receipt
+8. `008_account_nicknames.sql`: 계정 닉네임·4자리 태그, 조합 유일성과 입력 규칙 제약
 
 007은 기존 유한 세션의 만료 값을 변경하지 않습니다. 신규 영속 로그인에서만
 `sessions.refresh_expires_at = NULL`을 사용합니다. `refresh_receipts`의 암호문은 10분 복구
@@ -33,3 +34,30 @@
 `sqlc`는 이 디렉터리를 schema 입력으로 사용하며 tern의 down 구간은 제외하고
 해석합니다. 로컬 적용은 저장소 루트에서 `docker compose run --rm migrate migrate`,
 쿼리 코드 생성은 `server/`에서 `make sqlc-generate`로 실행합니다.
+
+## 계정 닉네임 적용
+
+008은 기존 계정의 닉네임과 태그를 NULL로 추가하며 ID·진행·저장 데이터를 바꾸지 않습니다.
+서버 버전을 올리면 미설정 계정은 `403 NICKNAME_REQUIRED`로 게임 API 접근이 차단됩니다.
+따라서 먼저 008을 적용하고, 필수 설정 UI를 포함한 클라이언트와 새 서버를 조율해서 배포해야 합니다.
+구버전 클라이언트에는 설정 화면이 없으므로 업데이트를 안내해야 하며, 서버 배포만으로
+구버전 사용자가 계속 플레이할 수 있는 호환 동작을 제공하지 않습니다.
+운영 배포·마이그레이션은 이번 코드 변경에 포함하지 않습니다.
+
+프로필 조회·최초 설정은 Bearer 인증으로 본인 계정만 처리합니다.
+
+- `GET /v1/account/profile` → `{ "accountId": "...", "nickname": null, "tag": null }`
+- `PUT /v1/account/nickname` 요청 `{ "nickname": "룬마스터" }`
+  → `{ "accountId": "...", "nickname": "룬마스터", "tag": "0382" }`
+- 최소 실제 문자 2자, 한글 완성형은 2칸·ASCII 영문/숫자/밑줄은 1칸, 최대 16칸입니다.
+  앞뒤 공백은 제거하며 그 외 문자나 내부 공백은 허용하지 않습니다.
+- 닉네임은 대소문자를 구별합니다. DB의 `COLLATE "C"`와 조합 UNIQUE 제약이 이를 보장합니다.
+- 모든 계정에 `0000`~`9999` 중 남은 태그를 암호학적 난수로 균등 선택합니다.
+  같은 닉네임의 배정을 트랜잭션 잠금으로 직렬화하므로 충돌 없이 남은 번호를 배정합니다.
+- 동일 닉네임 재시도는 기존 태그를 반환합니다. 다른 이름으로 변경은 `409 NICKNAME_ALREADY_SET`,
+  태그 10,000개 소진은 `409 NICKNAME_TAGS_EXHAUSTED`, 입력 오류는 `400 INVALID_NICKNAME`입니다.
+- 로그인·갱신·로그아웃과 프로필 API는 설정 전에도 사용할 수 있습니다.
+  저장·경제(카탈로그 포함)·보상·기존 진행 가져오기 consume은 설정 후에만 허용합니다.
+  게스트의 기존 진행 이전 토큰 생성 경로는 유지합니다.
+
+008 down은 닉네임과 태그를 삭제하므로 설정된 계정이 있는 환경에서 자동 롤백하지 않습니다.

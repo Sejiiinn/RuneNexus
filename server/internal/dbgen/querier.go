@@ -42,6 +42,7 @@ type Querier interface {
 	EnsureSaveWriterState(ctx context.Context, accountID pgtype.UUID) error
 	GetAccount(ctx context.Context, id pgtype.UUID) (Account, error)
 	GetAccountByIdentity(ctx context.Context, arg GetAccountByIdentityParams) (Account, error)
+	GetAccountForUpdate(ctx context.Context, id pgtype.UUID) (Account, error)
 	GetActivePlayerModuleForUpdate(ctx context.Context, arg GetActivePlayerModuleForUpdateParams) (PlayerModule, error)
 	GetActiveSessionByAccessTokenHash(ctx context.Context, accessTokenHash []byte) (GetActiveSessionByAccessTokenHashRow, error)
 	GetAuthIdentityForUpdate(ctx context.Context, arg GetAuthIdentityForUpdateParams) (AuthIdentity, error)
@@ -63,9 +64,11 @@ type Querier interface {
 	GetSaveWriterClaim(ctx context.Context, arg GetSaveWriterClaimParams) (SaveWriterClaim, error)
 	GetSaveWriterStateForUpdate(ctx context.Context, accountID pgtype.UUID) (SaveWriterState, error)
 	IsActiveSessionForAccount(ctx context.Context, arg IsActiveSessionForAccountParams) (bool, error)
+	ListAccountNicknameTags(ctx context.Context, nickname pgtype.Text) ([]string, error)
 	ListActivePlayerModules(ctx context.Context, accountID pgtype.UUID) ([]PlayerModule, error)
 	ListEconomyRewardClaimKeys(ctx context.Context, accountID pgtype.UUID) ([]string, error)
 	ListPendingEconomyProgressionEffects(ctx context.Context, accountID pgtype.UUID) ([]EconomyProgressionEffect, error)
+	LockAccountNickname(ctx context.Context, nickname string) error
 	LockAuthIdentity(ctx context.Context, arg LockAuthIdentityParams) error
 	LockRefreshSession(ctx context.Context, tokenHash []byte) (pgtype.UUID, error)
 	RevokeRefreshTokensForSession(ctx context.Context, sessionID pgtype.UUID) (int64, error)
@@ -73,6 +76,7 @@ type Querier interface {
 	RevokeSessionsForAccount(ctx context.Context, accountID pgtype.UUID) (int64, error)
 	RotateEconomyAuthorityEpoch(ctx context.Context) (EconomySystemState, error)
 	RotateSessionAccessToken(ctx context.Context, arg RotateSessionAccessTokenParams) (Session, error)
+	SetAccountNickname(ctx context.Context, arg SetAccountNicknameParams) (Account, error)
 	TouchAuthIdentity(ctx context.Context, id pgtype.UUID) (AuthIdentity, error)
 	TouchSession(ctx context.Context, id pgtype.UUID) error
 	UpdateAccountStatus(ctx context.Context, arg UpdateAccountStatusParams) (Account, error)

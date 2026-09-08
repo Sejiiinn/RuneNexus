@@ -14,6 +14,8 @@ type Account struct {
 	CreatedAt           pgtype.Timestamptz `db:"created_at"`
 	UpdatedAt           pgtype.Timestamptz `db:"updated_at"`
 	DeletionRequestedAt pgtype.Timestamptz `db:"deletion_requested_at"`
+	Nickname            pgtype.Text        `db:"nickname"`
+	NicknameTag         pgtype.Text        `db:"nickname_tag"`
 }
 
 type AuthIdentity struct {

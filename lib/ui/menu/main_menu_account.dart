@@ -339,7 +339,9 @@ class _AccountSummaryCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  session.isGuest ? l10n.guestPlaying : l10n.onlineConnected,
+                  session.isGuest
+                      ? l10n.guestPlaying
+                      : session.displayName ?? l10n.onlineConnected,
                   style: GameTextStyles.sectionTitle,
                 ),
                 const SizedBox(height: 4),

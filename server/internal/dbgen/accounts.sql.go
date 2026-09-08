@@ -13,7 +13,7 @@ import (
 
 const createAccount = `-- name: CreateAccount :one
 INSERT INTO accounts DEFAULT VALUES
-RETURNING id, status, created_at, updated_at, deletion_requested_at
+RETURNING id, status, created_at, updated_at, deletion_requested_at, nickname, nickname_tag
 `
 
 func (q *Queries) CreateAccount(ctx context.Context) (Account, error) {
@@ -25,6 +25,8 @@ func (q *Queries) CreateAccount(ctx context.Context) (Account, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletionRequestedAt,
+		&i.Nickname,
+		&i.NicknameTag,
 	)
 	return i, err
 }
@@ -63,7 +65,7 @@ func (q *Queries) CreateAuthIdentity(ctx context.Context, arg CreateAuthIdentity
 }
 
 const getAccount = `-- name: GetAccount :one
-SELECT id, status, created_at, updated_at, deletion_requested_at
+SELECT id, status, created_at, updated_at, deletion_requested_at, nickname, nickname_tag
 FROM accounts
 WHERE id = $1
 `
@@ -77,12 +79,14 @@ func (q *Queries) GetAccount(ctx context.Context, id pgtype.UUID) (Account, erro
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletionRequestedAt,
+		&i.Nickname,
+		&i.NicknameTag,
 	)
 	return i, err
 }
 
 const getAccountByIdentity = `-- name: GetAccountByIdentity :one
-SELECT a.id, a.status, a.created_at, a.updated_at, a.deletion_requested_at
+SELECT a.id, a.status, a.created_at, a.updated_at, a.deletion_requested_at, a.nickname, a.nickname_tag
 FROM accounts AS a
 JOIN auth_identities AS identity ON identity.account_id = a.id
 WHERE identity.provider = $1
@@ -103,6 +107,27 @@ func (q *Queries) GetAccountByIdentity(ctx context.Context, arg GetAccountByIden
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletionRequestedAt,
+		&i.Nickname,
+		&i.NicknameTag,
+	)
+	return i, err
+}
+
+const getAccountForUpdate = `-- name: GetAccountForUpdate :one
+SELECT id, status, created_at, updated_at, deletion_requested_at, nickname, nickname_tag FROM accounts WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) GetAccountForUpdate(ctx context.Context, id pgtype.UUID) (Account, error) {
+	row := q.db.QueryRow(ctx, getAccountForUpdate, id)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletionRequestedAt,
+		&i.Nickname,
+		&i.NicknameTag,
 	)
 	return i, err
 }
@@ -134,6 +159,39 @@ func (q *Queries) GetAuthIdentityForUpdate(ctx context.Context, arg GetAuthIdent
 	return i, err
 }
 
+const listAccountNicknameTags = `-- name: ListAccountNicknameTags :many
+SELECT nickname_tag::text FROM accounts WHERE nickname = $1
+`
+
+func (q *Queries) ListAccountNicknameTags(ctx context.Context, nickname pgtype.Text) ([]string, error) {
+	rows, err := q.db.Query(ctx, listAccountNicknameTags, nickname)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var nickname_tag string
+		if err := rows.Scan(&nickname_tag); err != nil {
+			return nil, err
+		}
+		items = append(items, nickname_tag)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const lockAccountNickname = `-- name: LockAccountNickname :exec
+SELECT pg_advisory_xact_lock(hashtextextended($1::text, 731))
+`
+
+func (q *Queries) LockAccountNickname(ctx context.Context, nickname string) error {
+	_, err := q.db.Exec(ctx, lockAccountNickname, nickname)
+	return err
+}
+
 const lockAuthIdentity = `-- name: LockAuthIdentity :exec
 SELECT pg_advisory_xact_lock(
     hashtextextended(
@@ -151,6 +209,33 @@ type LockAuthIdentityParams struct {
 func (q *Queries) LockAuthIdentity(ctx context.Context, arg LockAuthIdentityParams) error {
 	_, err := q.db.Exec(ctx, lockAuthIdentity, arg.Provider, arg.Subject)
 	return err
+}
+
+const setAccountNickname = `-- name: SetAccountNickname :one
+UPDATE accounts SET nickname = $2, nickname_tag = $3, updated_at = now()
+WHERE id = $1 AND nickname IS NULL
+RETURNING id, status, created_at, updated_at, deletion_requested_at, nickname, nickname_tag
+`
+
+type SetAccountNicknameParams struct {
+	ID          pgtype.UUID `db:"id"`
+	Nickname    pgtype.Text `db:"nickname"`
+	NicknameTag pgtype.Text `db:"nickname_tag"`
+}
+
+func (q *Queries) SetAccountNickname(ctx context.Context, arg SetAccountNicknameParams) (Account, error) {
+	row := q.db.QueryRow(ctx, setAccountNickname, arg.ID, arg.Nickname, arg.NicknameTag)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletionRequestedAt,
+		&i.Nickname,
+		&i.NicknameTag,
+	)
+	return i, err
 }
 
 const touchAuthIdentity = `-- name: TouchAuthIdentity :one
@@ -180,7 +265,7 @@ SET status = $2,
     deletion_requested_at = $3,
     updated_at = now()
 WHERE id = $1
-RETURNING id, status, created_at, updated_at, deletion_requested_at
+RETURNING id, status, created_at, updated_at, deletion_requested_at, nickname, nickname_tag
 `
 
 type UpdateAccountStatusParams struct {
@@ -198,6 +283,8 @@ func (q *Queries) UpdateAccountStatus(ctx context.Context, arg UpdateAccountStat
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.DeletionRequestedAt,
+		&i.Nickname,
+		&i.NicknameTag,
 	)
 	return i, err
 }

@@ -100,6 +100,37 @@ void main() {
     expect(signOutCount, 1);
   });
 
+  testWidgets('좁은 계정 화면에서도 닉네임과 네 자리 태그 및 연결 수단을 보존한다', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    const displayName = 'WWWWWWWWWWWWWWWW#0038';
+    await _pumpAccountMenu(
+      tester,
+      session: AccountSession.authenticated(
+        accountId: '0198a3dc-71e0-7eb2-a2bc-b67ce264a311',
+        displayName: displayName,
+        identities: const [
+          AccountIdentity(
+            provider: AccountIdentityProvider.google,
+            displayName: 'Google',
+          ),
+        ],
+      ),
+    );
+    await _openAccountDialog(tester);
+
+    expect(find.text(displayName), findsOneWidget);
+    expect(find.text('Google'), findsWidgets);
+    final label = tester.widget<Text>(find.text(displayName));
+    expect(label.maxLines, isNull);
+    expect(label.overflow, isNot(TextOverflow.ellipsis));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('게스트에게 기존 카카오 브라우저 진행 이전 진입점을 표시한다', (tester) async {
     var transferCount = 0;
     await _pumpAccountMenu(

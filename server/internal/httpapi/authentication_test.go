@@ -42,10 +42,19 @@ func (googleAuthenticatorFunc) AuthenticateAccessToken(
 	return auth.Principal{}, errors.New("unexpected access authentication")
 }
 
+func (googleAuthenticatorFunc) GetAccountProfile(context.Context, string) (auth.AccountProfile, error) {
+	return auth.AccountProfile{}, errors.New("unexpected profile lookup")
+}
+func (googleAuthenticatorFunc) SetNickname(context.Context, string, string) (auth.AccountProfile, error) {
+	return auth.AccountProfile{}, errors.New("unexpected nickname set")
+}
+
 type sessionAuthenticatorStub struct {
-	refresh func(context.Context, string) (auth.LoginResult, error)
-	logout  func(context.Context, string, string) error
-	access  func(context.Context, string) (auth.Principal, error)
+	profile  func(context.Context, string) (auth.AccountProfile, error)
+	nickname func(context.Context, string, string) (auth.AccountProfile, error)
+	refresh  func(context.Context, string) (auth.LoginResult, error)
+	logout   func(context.Context, string, string) error
+	access   func(context.Context, string) (auth.Principal, error)
 }
 
 func (sessionAuthenticatorStub) AuthenticateGoogle(
@@ -427,4 +436,18 @@ func jsonRequest(method string, path string, body string) *http.Request {
 	request := httptest.NewRequest(method, path, strings.NewReader(body))
 	request.Header.Set("Content-Type", "application/json")
 	return request
+}
+
+func (stub sessionAuthenticatorStub) GetAccountProfile(ctx context.Context, id string) (auth.AccountProfile, error) {
+	if stub.profile != nil {
+		return stub.profile(ctx, id)
+	}
+	nickname, tag := "테스트", "0000"
+	return auth.AccountProfile{AccountID: id, Nickname: &nickname, Tag: &tag}, nil
+}
+func (stub sessionAuthenticatorStub) SetNickname(ctx context.Context, id, nickname string) (auth.AccountProfile, error) {
+	if stub.nickname != nil {
+		return stub.nickname(ctx, id, nickname)
+	}
+	return auth.AccountProfile{}, errors.New("unexpected nickname set")
 }

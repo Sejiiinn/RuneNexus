@@ -54,3 +54,17 @@ SET status = $2,
     updated_at = now()
 WHERE id = $1
 RETURNING *;
+
+-- name: GetAccountForUpdate :one
+SELECT * FROM accounts WHERE id = $1 FOR UPDATE;
+
+-- name: LockAccountNickname :exec
+SELECT pg_advisory_xact_lock(hashtextextended(sqlc.arg(nickname)::text, 731));
+
+-- name: ListAccountNicknameTags :many
+SELECT nickname_tag::text FROM accounts WHERE nickname = $1;
+
+-- name: SetAccountNickname :one
+UPDATE accounts SET nickname = $2, nickname_tag = $3, updated_at = now()
+WHERE id = $1 AND nickname IS NULL
+RETURNING *;

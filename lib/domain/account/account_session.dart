@@ -27,6 +27,7 @@ class AccountIdentity {
 class AccountSession {
   const AccountSession.guest()
     : accountId = null,
+      displayName = null,
       identities = const [],
       syncStatus = OnlineSaveSyncStatus.unavailable,
       lastSyncedAt = null,
@@ -36,6 +37,7 @@ class AccountSession {
   AccountSession.authenticated({
     required String this.accountId,
     required List<AccountIdentity> identities,
+    this.displayName,
     this.syncStatus = OnlineSaveSyncStatus.synchronized,
     this.lastSyncedAt,
     this.pendingSaveCount = 0,
@@ -47,6 +49,7 @@ class AccountSession {
        identities = List.unmodifiable(identities);
 
   final String? accountId;
+  final String? displayName;
   final List<AccountIdentity> identities;
   final OnlineSaveSyncStatus syncStatus;
   final DateTime? lastSyncedAt;
