@@ -21,6 +21,17 @@ class HudBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (snapshot.phase == GamePhase.reward) {
+      return Align(
+        alignment: Alignment.bottomCenter,
+        child: IgnorePointer(
+          child: Opacity(
+            opacity: 0.4,
+            child: _RunPanelTabs(game: game, snapshot: snapshot),
+          ),
+        ),
+      );
+    }
     final canPrepare = snapshot.phase == GamePhase.preparation;
     final canEditBoard =
         snapshot.phase == GamePhase.preparation ||

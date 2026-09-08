@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'gem_rule_note.dart';
+
 import '../../data/definitions/game_gem_data.dart';
 import '../../domain/gem/gem_definition.dart';
 import '../../domain/gem/gem_type.dart';
@@ -404,6 +406,7 @@ class HudSelectedInventoryGemActions extends StatelessWidget {
                     color: Color(0xFFC9DCE8),
                   ),
                 ),
+                HudGemRuleNote(type: type),
                 if (blockReason != null) ...[
                   const SizedBox(height: 2),
                   Text(
@@ -490,6 +493,7 @@ class HudSelectedSlotGemActions extends StatelessWidget {
                     color: Color(0xFFD6ECF6),
                   ),
                 ),
+                HudGemRuleNote(type: type),
               ],
             ),
           ),
@@ -537,7 +541,7 @@ String hudGemEffectText(GemType type, TurretDefinition turret) {
           ? '지속피해 30% 증가, 지속시간 30% 증가'
           : '현재 적용되는 지속피해 없음',
     GemType.explosion => '범위 피해 부여, 효과 범위 25% 증가',
-    GemType.chain => '연쇄 횟수 +2, 후속 피해·효과 범위 50% 감폭',
+    GemType.chain => '연쇄 횟수 +2',
     GemType.criticalChance => '치명 확률 +20%p',
     GemType.aimSpeed =>
       turret.instantHit && turret.aimDuration > 0

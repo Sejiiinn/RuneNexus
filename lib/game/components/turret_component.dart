@@ -1054,18 +1054,20 @@ class TurretComponent extends PositionComponent {
     final indicatorMultiplier = definition.centeredAreaAttack
         ? effectAreaMultiplier
         : 1.0;
-    drawTurretRangeIndicator(
-      canvas,
-      center: center,
-      color: definition.color,
-      range: range * indicatorMultiplier,
-      selected: selected,
-      previewRange: previewRange == null
-          ? null
-          : previewRange * indicatorMultiplier,
-    );
+    if (!game.isGemRewardTargeting) {
+      drawTurretRangeIndicator(
+        canvas,
+        center: center,
+        color: definition.color,
+        range: range * indicatorMultiplier,
+        selected: selected,
+        previewRange: previewRange == null
+            ? null
+            : previewRange * indicatorMultiplier,
+      );
+    }
 
-    if (selected) {
+    if (selected && !game.isGemRewardTargeting) {
       drawTurretSelectionHighlight(
         canvas,
         center: center,

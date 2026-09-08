@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'gem_rule_note.dart';
+
 import '../../data/definitions/game_gem_data.dart';
 import '../../domain/gem/gem_type.dart';
 import '../../game/game_snapshot.dart';
@@ -24,17 +26,12 @@ class HudRewardOverlay extends StatefulWidget {
 }
 
 class _RewardOverlayState extends State<HudRewardOverlay> {
-  GemType? _selectedGem;
   bool _selectedGemShards = false;
 
   @override
   Widget build(BuildContext context) {
     final snapshot = widget.snapshot;
     final isPurchase = snapshot.isPurchasedGemReward;
-    final selectedGem =
-        _selectedGem != null && snapshot.rewardOptions.contains(_selectedGem)
-        ? _selectedGem
-        : null;
 
     return Container(
       color: const Color(0x9902070D),
@@ -86,14 +83,7 @@ class _RewardOverlayState extends State<HudRewardOverlay> {
                                 snapshot.gemCollection[snapshot
                                     .rewardOptions[i]] ??
                                 0,
-                            selected: selectedGem == snapshot.rewardOptions[i],
-                            onPressed: () {
-                              setState(() {
-                                _selectedGem = snapshot.rewardOptions[i];
-                                _selectedGemShards = false;
-                              });
-                            },
-                            onConfirm: () => widget.game.selectRewardGem(
+                            onPressed: () => widget.game.previewRewardGem(
                               snapshot.rewardOptions[i],
                             ),
                           ),
@@ -102,6 +92,8 @@ class _RewardOverlayState extends State<HudRewardOverlay> {
                     );
                   },
                 ),
+                for (final type in snapshot.rewardOptions)
+                  HudGemRuleNote(type: type),
                 if (!isPurchase) ...[
                   const SizedBox(height: 10),
                   _GemShardRewardBar(
@@ -109,7 +101,6 @@ class _RewardOverlayState extends State<HudRewardOverlay> {
                     selected: _selectedGemShards,
                     onPressed: () {
                       setState(() {
-                        _selectedGem = null;
                         _selectedGemShards = true;
                       });
                     },
@@ -312,17 +303,13 @@ class _RewardCard extends StatelessWidget {
     required this.type,
     required this.width,
     required this.ownedCount,
-    required this.selected,
     required this.onPressed,
-    required this.onConfirm,
   });
 
   final GemType type;
   final double width;
   final int ownedCount;
-  final bool selected;
   final VoidCallback onPressed;
-  final VoidCallback onConfirm;
 
   @override
   Widget build(BuildContext context) {
@@ -337,30 +324,25 @@ class _RewardCard extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
           width: width,
-          constraints: BoxConstraints(minHeight: compact ? 204 : 216),
+          constraints: BoxConstraints(minHeight: compact ? 174 : 186),
           padding: EdgeInsets.fromLTRB(6, compact ? 8 : 10, 6, 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: gem.color, width: selected ? 2 : 1),
+            border: Border.all(color: gem.color, width: 1),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                gem.color.withValues(alpha: selected ? 0.22 : 0.14),
+                gem.color.withValues(alpha: 0.14),
                 const Color(0xF007111D),
               ],
             ),
             boxShadow: [
               BoxShadow(
                 color: const Color(0xAA000000),
-                blurRadius: selected ? 16 : 10,
+                blurRadius: 10,
                 offset: const Offset(0, 6),
               ),
-              if (selected)
-                BoxShadow(
-                  color: gem.color.withValues(alpha: 0.22),
-                  blurRadius: 18,
-                ),
             ],
           ),
           child: Column(
@@ -396,7 +378,7 @@ class _RewardCard extends StatelessWidget {
                 height: compact ? 70 : 64,
                 child: Center(
                   child: Text(
-                    _rewardCardEffectText(type),
+                    hudRewardGemEffectText(type),
                     overflow: TextOverflow.clip,
                     textAlign: TextAlign.center,
                     style: GameTextStyles.caption.copyWith(
@@ -424,8 +406,6 @@ class _RewardCard extends StatelessWidget {
                   style: GameTextStyles.chip.copyWith(fontSize: dense ? 9 : 10),
                 ),
               ),
-              SizedBox(height: compact ? 6 : 8),
-              _RewardConfirmArea(selected: selected, onConfirm: onConfirm),
             ],
           ),
         ),
@@ -434,57 +414,7 @@ class _RewardCard extends StatelessWidget {
   }
 }
 
-class _RewardConfirmArea extends StatelessWidget {
-  const _RewardConfirmArea({required this.selected, required this.onConfirm});
-
-  final bool selected;
-  final VoidCallback onConfirm;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 40,
-      width: double.infinity,
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 120),
-        opacity: selected ? 1 : 0,
-        child: IgnorePointer(
-          ignoring: !selected,
-          child: Container(
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: GamePalette.goldBright.withValues(alpha: 0.72),
-              ),
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF223543), Color(0xFF07111D)],
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: GamePalette.goldBright.withValues(alpha: 0.18),
-                  blurRadius: 12,
-                ),
-              ],
-            ),
-            child: GameButton(
-              onPressed: onConfirm,
-              label: '획득 확정',
-              height: 36,
-              variant: GameButtonVariant.confirm,
-              accentColor: GamePalette.goldBright,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-String _rewardCardEffectText(GemType type) {
+String hudRewardGemEffectText(GemType type) {
   return switch (type) {
     GemType.attackSpeed => '공격 속도 40% 증가',
     GemType.range => '사거리 20% 증가',
@@ -494,7 +424,7 @@ String _rewardCardEffectText(GemType type) {
     GemType.heavyWeapon => '피해 30% 증폭\n효과 범위 20% 증가\n중화기 전용',
     GemType.damageOverTime => '지속피해와 시간 증가',
     GemType.explosion => '범위 피해 부여\n효과 범위 25% 증가',
-    GemType.chain => '연쇄 횟수 +2\n후속 피해·효과 범위\n50% 감폭',
+    GemType.chain => '연쇄 횟수 +2',
     GemType.criticalChance => '치명 확률 +20%p',
     GemType.aimSpeed => '조준 속도 75% 증가',
     GemType.damageAmplifier => '타격 피해 25% 증가',

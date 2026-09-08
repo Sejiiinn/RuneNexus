@@ -51,11 +51,26 @@ class HudTopBar extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _TopIconButton(
-                      tooltip: '스테이지 메뉴',
-                      icon: Icons.home_outlined,
-                      onPressed: onOpenMainMenu,
-                    ),
+                    if (snapshot.phase == GamePhase.reward)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 4),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.pause_rounded,
+                              size: 22,
+                              color: GamePalette.gold,
+                            ),
+                            Text('일시정지', style: GameTextStyles.caption),
+                          ],
+                        ),
+                      )
+                    else
+                      _TopIconButton(
+                        tooltip: '스테이지 메뉴',
+                        icon: Icons.home_outlined,
+                        onPressed: onOpenMainMenu,
+                      ),
                   ],
                 ),
               ],
@@ -300,12 +315,20 @@ class _WaveIntelRow extends StatelessWidget {
 
     return Row(
       children: [
-        _EnemyIntelButton(
-          snapshot: snapshot,
-          types: types,
-          hiddenCount: hiddenCount,
+        Expanded(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: _EnemyIntelButton(
+                snapshot: snapshot,
+                types: types,
+                hiddenCount: hiddenCount,
+              ),
+            ),
+          ),
         ),
-        const Spacer(),
+        const SizedBox(width: 4),
         _WaveRewardSummary(snapshot: snapshot),
       ],
     );

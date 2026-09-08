@@ -8,6 +8,7 @@ import '../game/game_ui.dart';
 import '../menu/result_overlay.dart';
 import 'bottom_bar.dart';
 import 'hud_common.dart';
+import 'gem_reward_target_overlay.dart';
 import 'reward_overlay.dart';
 import 'top_bar.dart';
 
@@ -40,6 +41,17 @@ class GameHud extends StatefulWidget {
 class _GameHudState extends State<GameHud> {
   bool _showGemDebugPanel = false;
   late final AppLifecycleListener _lifecycleListener;
+
+  void _handleRewardBoardViewportChanged(Rect globalViewport) {
+    if (!widget.game.isAttached) return;
+    final box = widget.game.renderBox;
+    widget.game.setGemRewardBoardViewport(
+      Rect.fromPoints(
+        box.globalToLocal(globalViewport.topLeft),
+        box.globalToLocal(globalViewport.bottomRight),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -162,6 +174,10 @@ class _GameHudState extends State<GameHud> {
                 _HudBottomBarLayer(game: widget.game),
                 _HudOverlayLayer(
                   game: widget.game,
+                  rewardTopInset:
+                      88 + (_showDebugPanel ? _hudDebugBarHeight : 0),
+                  onRewardBoardViewportChanged:
+                      _handleRewardBoardViewportChanged,
                   onOpenStageSelect: widget.onOpenStageSelect,
                   onOpenPermanentUpgrades: widget.onOpenPermanentUpgrades,
                   onStartStage: widget.onStartStage,
@@ -193,7 +209,9 @@ class _HudTopBarLayer extends StatelessWidget {
         return HudTopBar(
           snapshot: snapshot,
           topInset: topInset,
-          onOpenMainMenu: () => onOpenMainMenu(snapshot),
+          onOpenMainMenu: snapshot.phase == GamePhase.reward
+              ? null
+              : () => onOpenMainMenu(snapshot),
         );
       },
     );
@@ -286,12 +304,16 @@ class _HudBottomBarLayer extends StatelessWidget {
 class _HudOverlayLayer extends StatelessWidget {
   const _HudOverlayLayer({
     required this.game,
+    required this.rewardTopInset,
+    required this.onRewardBoardViewportChanged,
     required this.onOpenStageSelect,
     required this.onOpenPermanentUpgrades,
     required this.onStartStage,
   });
 
   final RuneNexusGame game;
+  final double rewardTopInset;
+  final ValueChanged<Rect> onRewardBoardViewportChanged;
   final VoidCallback? onOpenStageSelect;
   final VoidCallback? onOpenPermanentUpgrades;
   final ValueChanged<int>? onStartStage;
@@ -303,7 +325,14 @@ class _HudOverlayLayer extends StatelessWidget {
       builder: (context, snapshot, _) {
         if (snapshot.phase == GamePhase.reward) {
           return Positioned.fill(
-            child: HudRewardOverlay(game: game, snapshot: snapshot),
+            child: snapshot.pendingRewardGem == null
+                ? HudRewardOverlay(game: game, snapshot: snapshot)
+                : HudGemRewardTargetOverlay(
+                    game: game,
+                    snapshot: snapshot,
+                    topInset: rewardTopInset,
+                    onBoardViewportChanged: onRewardBoardViewportChanged,
+                  ),
           );
         }
         if (snapshot.phase == GamePhase.restored) {

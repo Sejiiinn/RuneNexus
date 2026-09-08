@@ -37,6 +37,8 @@ class GameSnapshot {
     required this.previewText,
     required this.rewardOptions,
     required this.isPurchasedGemReward,
+    this.pendingRewardGem,
+    this.rewardReplacementPoint,
     required this.gemInventory,
     required this.gemCollection,
     required this.selectedBuildPoint,
@@ -218,6 +220,8 @@ class GameSnapshot {
   final String previewText;
   final List<GemType> rewardOptions;
   final bool isPurchasedGemReward;
+  final GemType? pendingRewardGem;
+  final GridPoint? rewardReplacementPoint;
   final Map<GemType, int> gemInventory;
   final Map<GemType, int> gemCollection;
   final GridPoint? selectedBuildPoint;

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'gem_rule_note.dart';
+
 import '../../data/definitions/game_gem_data.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../domain/gem/gem_type.dart';
@@ -57,18 +59,7 @@ class HudGemInventoryPanel extends StatelessWidget {
               SizedBox(
                 height: 32,
                 child: GameButton(
-                  onPressed: canPurchase
-                      ? () {
-                          final pauseCombat = snapshot.phase == GamePhase.wave;
-                          if (pauseCombat) {
-                            game.pauseEngine();
-                          }
-                          final purchased = game.purchaseGemChoice();
-                          if (pauseCombat && !purchased) {
-                            game.resumeEngine();
-                          }
-                        }
-                      : null,
+                  onPressed: canPurchase ? game.purchaseGemChoice : null,
                   compact: true,
                   variant: GameButtonVariant.confirm,
                   accentColor: GamePalette.green,
@@ -204,6 +195,11 @@ class _GemInventoryChip extends StatelessWidget {
             _gemInventoryEffectText(type),
             style: const TextStyle(fontSize: 10, color: Color(0xFF9FB7C8)),
           ),
+          if (type == GemType.chain || type == GemType.explosion)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 240),
+              child: HudGemRuleNote(type: type),
+            ),
         ],
       ),
     );
@@ -220,7 +216,7 @@ String _gemInventoryEffectText(GemType type) {
     GemType.heavyWeapon => '피해 30% 증폭\n효과 범위 20% 증가\n중화기 전용',
     GemType.damageOverTime => '지속피해 증가',
     GemType.explosion => '범위 피해 부여\n효과 범위 25% 증가',
-    GemType.chain => '연쇄 횟수 +2\n후속 피해·효과 범위\n50% 감폭',
+    GemType.chain => '연쇄 횟수 +2',
     GemType.criticalChance => '치명 확률 +20%p',
     GemType.aimSpeed => '조준 속도 +75%',
     GemType.damageAmplifier => '타격 피해 +25%',
