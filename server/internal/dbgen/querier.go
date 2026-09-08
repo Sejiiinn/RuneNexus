@@ -54,6 +54,7 @@ type Querier interface {
 	GetLegacySaveTransferReceipt(ctx context.Context, tokenHash []byte) (LegacySaveTransferReceipt, error)
 	GetPlayerEconomy(ctx context.Context, accountID pgtype.UUID) (PlayerEconomy, error)
 	GetPlayerEconomyForUpdate(ctx context.Context, accountID pgtype.UUID) (PlayerEconomy, error)
+	GetProgressionLeaderboard(ctx context.Context, dollar_1 pgtype.UUID) (GetProgressionLeaderboardRow, error)
 	GetRefreshReceipt(ctx context.Context, arg GetRefreshReceiptParams) (RefreshReceipt, error)
 	GetRefreshTokenForUpdate(ctx context.Context, tokenHash []byte) (GetRefreshTokenForUpdateRow, error)
 	GetRewardClaimByIdempotencyKey(ctx context.Context, arg GetRewardClaimByIdempotencyKeyParams) (RewardClaim, error)
@@ -82,6 +83,7 @@ type Querier interface {
 	UpdateAccountStatus(ctx context.Context, arg UpdateAccountStatusParams) (Account, error)
 	UpdateEconomyCommandResponse(ctx context.Context, arg UpdateEconomyCommandResponseParams) (EconomyCommand, error)
 	UpdatePlayerEconomy(ctx context.Context, arg UpdatePlayerEconomyParams) (PlayerEconomy, error)
+	UpsertProgressionLeaderboardRecord(ctx context.Context, arg UpsertProgressionLeaderboardRecordParams) error
 	UpsertSaveActiveRun(ctx context.Context, arg UpsertSaveActiveRunParams) error
 	UpsertSavePreferences(ctx context.Context, arg UpsertSavePreferencesParams) error
 	UpsertSaveProgression(ctx context.Context, arg UpsertSaveProgressionParams) error

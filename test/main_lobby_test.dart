@@ -133,6 +133,29 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await pumpLoadedApp(tester);
+    await tester.tap(find.byKey(const ValueKey('lobby-leaderboard')));
+    await pumpGameFrames(tester);
+    expect(find.text('계정 연결'), findsOneWidget);
+    expect(find.byKey(const ValueKey('main-lobby-screen')), findsOneWidget);
+    final dialog = tester.getRect(
+      find.byKey(const ValueKey('leaderboard-content')),
+    );
+    expect(dialog.height, lessThanOrEqualTo(844 * 0.85));
+    expect(dialog.top, greaterThan(0));
+    await tester.tap(find.text('계정 연결'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await pumpGameFrames(tester);
+    expect(find.byKey(const ValueKey('account-summary-card')), findsOneWidget);
+    expect(find.byKey(const ValueKey('leaderboard-list')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('전투에서 스테이지로 돌아온 뒤 로비에서 저장된 전투를 재개한다', (tester) async {
     tester.view.physicalSize = const Size(411, 720);
     tester.view.devicePixelRatio = 1;

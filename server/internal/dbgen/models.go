@@ -91,6 +91,16 @@ type EconomySystemState struct {
 	UpdatedAt        pgtype.Timestamptz `db:"updated_at"`
 }
 
+type LeaderboardRecord struct {
+	BoardKey        string             `db:"board_key"`
+	RulesVersion    int32              `db:"rules_version"`
+	AccountID       pgtype.UUID        `db:"account_id"`
+	StageNumber     int32              `db:"stage_number"`
+	CompletedRounds int32              `db:"completed_rounds"`
+	SourceCommandID pgtype.UUID        `db:"source_command_id"`
+	AchievedAt      pgtype.Timestamptz `db:"achieved_at"`
+}
+
 type LegacySaveTransfer struct {
 	ID                  pgtype.UUID        `db:"id"`
 	TokenHash           []byte             `db:"token_hash"`

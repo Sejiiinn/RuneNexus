@@ -36,6 +36,7 @@ type Dependencies struct {
 	SaveService                           SaveService
 	WeeklyRewardService                   WeeklyRewardService
 	EconomyService                        EconomyService
+	LeaderboardService                    LeaderboardService
 	LegacyTransferService                 LegacyTransferService
 	MaxSaveBodyBytes                      int64
 	MinimumSaveClientCompatibilityVersion int
@@ -121,6 +122,10 @@ func NewHandler(
 					http.HandlerFunc(rewards.claim),
 				),
 			)
+		}
+		if dependencies.LeaderboardService != nil {
+			leaderboards := leaderboardHandler{logger: logger, leaderboards: dependencies.LeaderboardService}
+			mux.Handle("GET /v1/leaderboards/progression", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(leaderboards.progression)))
 		}
 		if dependencies.EconomyService != nil {
 			economyAPI := economyHandler{

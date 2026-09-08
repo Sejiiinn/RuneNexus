@@ -128,9 +128,11 @@ void main() {
       saveRepository: MemorySaveRepository(),
       onlineSaveRepository: fixture.saveCoordinator,
     );
+    var settled = 0;
     final coordinator = fixture.economyCoordinator(
       game,
       repository: repository,
+      onRunSettled: () => settled++,
     );
     game.attachAuthoritativeEconomyCommands(coordinator);
     await coordinator.initialize();
@@ -145,6 +147,7 @@ void main() {
       firstClearModuleTickets: 0,
     );
     expect(repository.state!.pendingRewards, hasLength(1));
+    expect(settled, 0);
 
     client.failUpdates = false;
     await fixture.saveCoordinator.retryNow();
@@ -153,6 +156,7 @@ void main() {
     await _pumpUntil(() => repository.state!.pendingRewards.isEmpty);
 
     expect(transport.postPaths, ['/v1/economy/runs/settle']);
+    expect(settled, 1);
     coordinator.dispose();
     fixture.dispose();
   });
@@ -191,6 +195,7 @@ class _Fixture {
   EconomyCoordinator economyCoordinator(
     RuneNexusGame game, {
     EconomyCommandOutboxRepository? repository,
+    void Function()? onRunSettled,
   }) => EconomyCoordinator(
     accountId: _accountId,
     api: EconomyApi(baseUrl: 'https://api.example', transport: transport),
@@ -198,6 +203,7 @@ class _Fixture {
     saveCoordinator: saveCoordinator,
     outboxRepository: repository ?? MemoryEconomyCommandOutboxRepository(),
     game: game,
+    onRunSettled: onRunSettled,
   );
 
   void dispose() {

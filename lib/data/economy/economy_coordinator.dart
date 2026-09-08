@@ -23,6 +23,7 @@ class EconomyCoordinator implements AuthoritativeEconomyCommands {
     required OnlineSaveCoordinator saveCoordinator,
     required EconomyCommandOutboxRepository outboxRepository,
     required RuneNexusGame game,
+    this.onRunSettled,
   }) : _api = api,
        _session = session,
        _saveCoordinator = saveCoordinator,
@@ -30,6 +31,7 @@ class EconomyCoordinator implements AuthoritativeEconomyCommands {
        _game = game;
 
   final String accountId;
+  final void Function()? onRunSettled;
   final EconomyApi _api;
   final OnlineAccountSessionController _session;
   final OnlineSaveCoordinator _saveCoordinator;
@@ -322,16 +324,19 @@ class EconomyCoordinator implements AuthoritativeEconomyCommands {
     }
   }
 
-  Future<EconomyCommandResult> _send(EconomyPendingCommand command) =>
-      _session.runAuthenticated(
-        request: (token) => _api.execute(
-          token,
-          path: command.path,
-          idempotencyKey: command.idempotencyKey,
-          encodedBody: command.encodedBody,
-        ),
-        isUnauthorized: _isUnauthorized,
-      );
+  Future<EconomyCommandResult> _send(EconomyPendingCommand command) async {
+    final result = await _session.runAuthenticated(
+      request: (token) => _api.execute(
+        token,
+        path: command.path,
+        idempotencyKey: command.idempotencyKey,
+        encodedBody: command.encodedBody,
+      ),
+      isUnauthorized: _isUnauthorized,
+    );
+    if (!_disposed && command.kind == 'run_settlement') onRunSettled?.call();
+    return result;
+  }
 
   Future<void> _retryInFlight(EconomyPendingCommand command) async {
     EconomyProgressionEffect? recoveredEffect;

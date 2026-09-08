@@ -32,6 +32,9 @@ import '../../l10n/rune_nexus_localizations.dart';
 import '../game/game_ui.dart';
 import '../widgets/rune_balance_card.dart';
 
+import '../../domain/leaderboard/leaderboard.dart';
+import 'leaderboard_dialog.dart';
+
 part 'main_menu_core.dart';
 part 'main_menu_account.dart';
 part 'main_menu_core_tree.dart';
@@ -102,6 +105,8 @@ class MainMenuScreen extends StatefulWidget {
     this.onOpenMapEditor,
     this.showLobby = false,
     this.onOpenLobby,
+    this.loadLeaderboard,
+    this.leaderboardRefresh,
     super.key,
   });
 
@@ -120,6 +125,8 @@ class MainMenuScreen extends StatefulWidget {
   final Future<void> Function(WeeklyRewardClaimTarget target)?
   onClaimWeeklyReward;
   final VoidCallback? onOpenMapEditor;
+  final Future<LeaderboardSnapshot> Function()? loadLeaderboard;
+  final Listenable? leaderboardRefresh;
   final bool showLobby;
   final VoidCallback? onOpenLobby;
 
@@ -206,6 +213,8 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
               onSelectTab: widget.onSelectTab,
               onStartStage: widget.onStartStage,
               onOpenAccount: () => _openAccountDialog(context),
+              loadLeaderboard: widget.loadLeaderboard,
+              leaderboardRefresh: widget.leaderboardRefresh,
               onClaimWeeklyReward: widget.onClaimWeeklyReward,
               onOpenMapEditor: widget.onOpenMapEditor,
               onOpenDebugPanel: () {

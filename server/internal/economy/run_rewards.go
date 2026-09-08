@@ -189,6 +189,15 @@ func (service *Service) SettleRun(
 	if err := storeCommandResult(ctx, txQueries, command.ID, result); err != nil {
 		return CommandResult{}, err
 	}
+	// 정산과 최고 기록의 원자적 반영. 동일·하위 기록은 최초 확정 시각 보존.
+	if request.CompletedRounds > 0 {
+		if err := txQueries.UpsertProgressionLeaderboardRecord(ctx, dbgen.UpsertProgressionLeaderboardRecordParams{
+			AccountID: accountUUID, StageNumber: int32(request.StageNumber),
+			CompletedRounds: int32(request.CompletedRounds), SourceCommandID: command.ID,
+		}); err != nil {
+			return CommandResult{}, fmt.Errorf("update progression leaderboard: %w", err)
+		}
+	}
 	if err := tx.Commit(ctx); err != nil {
 		return CommandResult{}, fmt.Errorf("commit run settlement: %w", err)
 	}

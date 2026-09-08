@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../data/account/account_profile_api.dart';
+import '../data/leaderboard/leaderboard_api.dart';
+import '../domain/leaderboard/leaderboard.dart';
 import '../data/auth/google_authentication_api.dart';
 import '../data/auth/authentication_session_repository.dart';
 import '../data/auth/google_web_authentication_config.dart';
@@ -84,6 +86,8 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   late final AccountSaveBootstrapService _accountSaveBootstrapService;
   AuthenticationSessionRepository? _authenticationSessions;
   AccountProfileApi? _accountProfileApi;
+  LeaderboardApi? _leaderboardApi;
+  final ValueNotifier<int> _leaderboardRefresh = ValueNotifier(0);
   AccountProfile? _accountProfile;
   BuildContext? _nicknameDialogContext;
   OnlineSaveApi? _onlineSaveApi;
@@ -140,6 +144,9 @@ class _RuneNexusAppState extends State<RuneNexusApp>
         apiBaseUrl: _googleAuthenticationConfig.apiBaseUrl,
       );
       _accountProfileApi = AccountProfileApi(
+        baseUrl: _googleAuthenticationConfig.apiBaseUrl,
+      );
+      _leaderboardApi = LeaderboardApi(
         baseUrl: _googleAuthenticationConfig.apiBaseUrl,
       );
       _onlineSaveApi = OnlineSaveApi(
@@ -300,6 +307,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     _economyCoordinator?.dispose();
     _onlineSession?.dispose();
     _loadingProgress.dispose();
+    _leaderboardRefresh.dispose();
     if (_hasGame) game.disposeAppResources();
     super.dispose();
   }
@@ -447,6 +455,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       },
     );
     _onlineSession = onlineSession;
+    _leaderboardRefresh.value++;
     setState(() {
       _onlineAccount = _OnlineAccountState(
         credentials: credentials,
@@ -455,6 +464,35 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       );
     });
     return onlineSession;
+  }
+
+  Future<LeaderboardSnapshot> _loadLeaderboard(
+    OnlineAccountSessionController session,
+  ) async {
+    const changed = LeaderboardException(
+      code: 'LEADERBOARD_SESSION_CHANGED',
+      message: '계정 연결이 변경되었습니다. 계정 상태를 확인해 주세요.',
+    );
+    final api = _leaderboardApi;
+    if (!mounted ||
+        !identical(_onlineSession, session) ||
+        session.credentials == null ||
+        _activeSaveSlot.isGuest ||
+        api == null) {
+      throw changed;
+    }
+    final result = await session.runAuthenticated(
+      request: api.load,
+      isUnauthorized: (error) =>
+          error is LeaderboardException && error.isUnauthorized,
+    );
+    // 로그인 전환 뒤 도착한 이전 계정의 순위 폐기.
+    if (!mounted ||
+        !identical(_onlineSession, session) ||
+        session.credentials == null) {
+      throw changed;
+    }
+    return result;
   }
 
   Future<bool> _ensureAccountNickname(
@@ -922,6 +960,11 @@ class _RuneNexusAppState extends State<RuneNexusApp>
           slot: slot,
         ),
         game: replacement,
+        onRunSettled: () {
+          if (mounted && identical(_onlineSession, onlineSession)) {
+            _leaderboardRefresh.value++;
+          }
+        },
       );
       replacement.attachAuthoritativeEconomyCommands(economyCoordinator);
       await economyCoordinator.initialize();
@@ -1233,6 +1276,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     economyCoordinator?.dispose();
     coordinator?.dispose();
     _onlineSession = null;
+    _leaderboardRefresh.value++;
     _accountProfile = null;
     final dialogContext = _nicknameDialogContext;
     if (dialogContext != null && dialogContext.mounted) {
@@ -1405,12 +1449,18 @@ class _RuneNexusAppState extends State<RuneNexusApp>
                       onBack: () => _openMainScreen(),
                     );
                   } else {
+                    final leaderboardSession = _onlineSession;
                     content = MainMenuScreen(
                       game: game,
                       snapshot: game.snapshotNotifier.value,
                       snapshotListenable: game.snapshotNotifier,
                       selectedTab: _selectedMainMenuTab,
                       showLobby: _showLobby,
+                      loadLeaderboard:
+                          leaderboardSession == null || _activeSaveSlot.isGuest
+                          ? null
+                          : () => _loadLeaderboard(leaderboardSession),
+                      leaderboardRefresh: _leaderboardRefresh,
                       onOpenLobby: () {
                         setState(() => _showLobby = true);
                       },

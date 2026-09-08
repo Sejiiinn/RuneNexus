@@ -11,8 +11,12 @@ class _MainLobby extends StatelessWidget {
     required this.onClaimWeeklyReward,
     required this.onOpenMapEditor,
     required this.onOpenDebugPanel,
+    this.loadLeaderboard,
+    this.leaderboardRefresh,
   });
 
+  final Future<LeaderboardSnapshot> Function()? loadLeaderboard;
+  final Listenable? leaderboardRefresh;
   final RuneNexusGame game;
   final GameSnapshot snapshot;
   final ValueListenable<GameSnapshot>? snapshotListenable;
@@ -361,18 +365,16 @@ class _MainLobby extends StatelessWidget {
     }
   }
 
-  Future<void> _openLeaderboard(BuildContext context) {
-    return showGameDialog<void>(
+  Future<void> _openLeaderboard(BuildContext context) async {
+    final openAccount = await showGameDialog<bool>(
       context: context,
-      builder: (context) => const _LobbyDialog(
-        title: '리더보드',
-        children: [
-          Text('아직 열린 랭킹 시즌이 없습니다.', style: GameTextStyles.body),
-          SizedBox(height: 8),
-          Text('리더보드가 열리면 이곳에서 순위를 확인할 수 있습니다.', style: GameTextStyles.body),
-        ],
+      builder: (dialogContext) => LeaderboardDialog(
+        load: loadLeaderboard,
+        refreshListenable: leaderboardRefresh,
+        onOpenAccount: () => Navigator.of(dialogContext).pop(true),
       ),
     );
+    if (openAccount == true && context.mounted) onOpenAccount();
   }
 
   Future<void> _openSettings(BuildContext context) async {
