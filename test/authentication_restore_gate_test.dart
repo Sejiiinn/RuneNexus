@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:rune_nexus/data/save/online_save_api.dart';
+import 'package:rune_nexus/data/save/online_save_outbox.dart';
 
 import 'helpers/widget_test_helpers.dart';
 
@@ -46,6 +48,54 @@ void main() {
         expect(find.byType(TextField), findsNothing);
         await tester.pumpWidget(const SizedBox.shrink());
       }, variant: TargetPlatformVariant({TargetPlatform.android}));
+
+      for (final alreadyNamed in [false, true]) {
+        testWidgets('기존 닉네임 차단 outbox 재개: 설정 완료=$alreadyNamed', (tester) async {
+          final request = OnlineSaveWriterClaimRequest(
+            idempotencyKey: '0198b955-3656-7c40-b3cb-87f427b90be3',
+            clientInstanceId: '0198b955-3656-7c40-b3cb-87f427b90be4',
+            clientBuild: 'android:previous',
+          );
+          final outbox =
+              OnlineSaveOutboxState.initial(
+                accountId: _nicknameAccountId,
+                remoteRevision: 1,
+              ).copyWith(
+                clientInstanceId: request.clientInstanceId,
+                dirty: true,
+                phase: OnlineSaveOutboxPhase.blocked,
+                issueCode: 'NICKNAME_REQUIRED',
+                writerClaim: OnlineSaveWriterClaimEntry(
+                  idempotencyKey: request.idempotencyKey,
+                  encodedRequestBody: request.encodedBody,
+                ),
+              );
+          final api = await _installNicknameSession(
+            tester,
+            restoredOutbox: outbox,
+          );
+          if (alreadyNamed) {
+            api.profile.addAll({'nickname': '룬기사', 'tag': '0007'});
+          }
+          await tester.pumpWidget(const RuneNexusApp());
+          if (!alreadyNamed) {
+            await _pumpUntil(
+              tester,
+              () => find.byType(TextField).evaluate().isNotEmpty,
+            );
+            expect(api.gameRequests, isEmpty);
+            await tester.enterText(find.byType(TextField), '룬기사');
+            await tester.tap(find.text('저장하고 시작하기'));
+          }
+          await _pumpUntil(
+            tester,
+            () => api.gameRequests.contains('POST /v1/save/writer'),
+          );
+          expect(api.writerBody, request.encodedBody);
+          expect(find.byType(TextField), findsNothing);
+          await tester.pumpWidget(const SizedBox.shrink());
+        }, variant: TargetPlatformVariant({TargetPlatform.android}));
+      }
 
       testWidgets('설정된 닉네임 계정은 입력 없이 저장 연결을 시작한다', (tester) async {
         final api = await _installNicknameSession(tester);
@@ -280,13 +330,35 @@ Future<void> _pumpUntilError(WidgetTester tester) async {
 
 const _nicknameAccountId = '0198b955-3656-7c40-b3cb-87f427b90be2';
 
-Future<_NicknameHTTP> _installNicknameSession(WidgetTester tester) async {
+Future<_NicknameHTTP> _installNicknameSession(
+  WidgetTester tester, {
+  OnlineSaveOutboxState? restoredOutbox,
+}) async {
   final api = _NicknameHTTP();
   final previous = HttpOverrides.current;
   HttpOverrides.global = api;
   late Directory directory;
   await tester.runAsync(() async {
     directory = await Directory.systemTemp.createTemp('rune_nexus_nickname_');
+    if (restoredOutbox != null) {
+      final slot = Directory(
+        '${directory.path}/saves/accounts/$_nicknameAccountId',
+      );
+      await slot.create(recursive: true);
+      await File(
+        '${slot.path}/outbox.json',
+      ).writeAsString(jsonEncode(restoredOutbox.toJson()));
+      await File('${slot.path}/save_v2.json').writeAsString(
+        jsonEncode({
+          'version': 2,
+          'savedAtMillis': 100,
+          'preferences': <String, Object?>{},
+          'progression': {'runes': 2468},
+          'turretModules': <String, Object?>{},
+          'activeRun': null,
+        }),
+      );
+    }
   });
   final messenger =
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
@@ -357,6 +429,7 @@ class _NicknameHTTP extends HttpOverrides {
   int logouts = 0;
   int pathRequests = 0;
   final gameRequests = <String>[];
+  String? writerBody;
 
   @override
   HttpClient createHttpClient(SecurityContext? context) =>
@@ -416,6 +489,7 @@ class _NicknameHTTP extends HttpOverrides {
       return _NicknameResponse(200, profile);
     }
     // 저장 연결의 첫 호출까지만 검증하고 이후 서버 상태는 명시적 실패 처리.
+    if (uri.path == '/v1/save/writer') writerBody = body;
     gameRequests.add('$method ${uri.path}');
     return _NicknameResponse(503, {
       'code': 'SERVICE_UNAVAILABLE',

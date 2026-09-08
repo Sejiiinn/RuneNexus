@@ -732,6 +732,232 @@ void main() {
     session.dispose();
   });
 
+  for (final stillRequiresNickname in [false, true]) {
+    test(
+      stillRequiresNickname
+          ? '닉네임 차단 복구 후 서버가 다시 거부하면 한 번만 전송하고 차단한다'
+          : '닉네임 설정 후 차단된 writer claim의 본문과 키를 유지해 저장을 재개한다',
+      () async {
+        final data = _saveData(44);
+        final claim = OnlineSaveWriterClaimRequest(
+          idempotencyKey: _idempotencyKey(180),
+          clientInstanceId: _idempotencyKey(181),
+          clientBuild: 'previous-build',
+        );
+        final outbox = MemoryOnlineSaveOutboxRepository()
+          ..state =
+              OnlineSaveOutboxState.initial(
+                accountId: _accountId,
+                remoteRevision: 0,
+              ).copyWith(
+                clientInstanceId: claim.clientInstanceId,
+                writerClaim: OnlineSaveWriterClaimEntry(
+                  idempotencyKey: claim.idempotencyKey,
+                  encodedRequestBody: claim.encodedBody,
+                ),
+                dirty: true,
+                payloadGeneration: 1,
+                phase: OnlineSaveOutboxPhase.blocked,
+                issueCode: 'NICKNAME_REQUIRED',
+              );
+        final claims = <OnlineSaveWriterClaimRequest>[];
+        final updates = <OnlineSaveUpdateRequest>[];
+        final timers = _ManualTimerFactory();
+        final session = _session();
+        final coordinator = OnlineSaveCoordinator(
+          accountId: _accountId,
+          client: _FakeOnlineSaveClient(
+            claimWriter: (_, request) async {
+              claims.add(request);
+              if (stillRequiresNickname) {
+                throw const OnlineSaveException(
+                  statusCode: 403,
+                  code: 'NICKNAME_REQUIRED',
+                  message: '닉네임 설정 필요',
+                );
+              }
+              return OnlineSaveWriterClaimResult(
+                writerGeneration: 8,
+                claimedAt: DateTime.utc(2026, 9, 8),
+              );
+            },
+            update: (_, request) async {
+              updates.add(request);
+              return _updateResult(1);
+            },
+          ),
+          session: session,
+          initialRevision: 0,
+          outboxRepository: outbox,
+          loadPersistedCheckpoint: () async => data,
+          timerFactory: timers.create,
+          writerClaimIdempotencyKeyFactory: () =>
+              throw StateError('기존 claim 키 재사용 필요'),
+        );
+        addTearDown(coordinator.dispose);
+        addTearDown(session.dispose);
+
+        await coordinator.initialize();
+        await coordinator.currentAttempt;
+
+        expect(claims, hasLength(1));
+        expect(claims.single.idempotencyKey, claim.idempotencyKey);
+        expect(claims.single.encodedBody, claim.encodedBody);
+        expect(outbox.state?.clientInstanceId, claim.clientInstanceId);
+        if (stillRequiresNickname) {
+          await coordinator.resumeForeground();
+          await coordinator.retryNow();
+          await coordinator.currentAttempt;
+          expect(claims, hasLength(1));
+          expect(updates, isEmpty);
+          expect(timers.createCount, 0);
+          expect(
+            coordinator.snapshot.phase,
+            OnlineSaveCoordinatorPhase.blocked,
+          );
+          expect(coordinator.snapshot.issueCode, 'NICKNAME_REQUIRED');
+          expect(
+            outbox.state?.writerClaim?.encodedRequestBody,
+            claim.encodedBody,
+          );
+          expect(outbox.state?.dirty, isTrue);
+        } else {
+          expect(updates, hasLength(1));
+          expect(updates.single.writerGeneration, 8);
+          expect(updates.single.expectedRevision, 0);
+          expect(_savedAtMillis(updates.single), 44);
+          expect(outbox.state?.writerClaim, isNull);
+          expect(outbox.state?.inFlight, isNull);
+          expect(outbox.state?.dirty, isFalse);
+          expect(outbox.state?.remoteRevision, 1);
+          expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
+          expect(coordinator.snapshot.issueCode, isNull);
+        }
+      },
+    );
+  }
+
+  test('닉네임 차단된 in-flight는 writer를 바꾸지 않고 동일 요청으로 재개한다', () async {
+    final data = _saveData(45);
+    final request = OnlineSaveUpdateRequest(
+      expectedRevision: 6,
+      idempotencyKey: _idempotencyKey(182),
+      writerGeneration: 7,
+      data: data,
+    );
+    final outbox = MemoryOnlineSaveOutboxRepository()
+      ..state =
+          OnlineSaveOutboxState.initial(
+            accountId: _accountId,
+            remoteRevision: 6,
+          ).copyWith(
+            clientInstanceId: _idempotencyKey(183),
+            writerGeneration: 7,
+            payloadGeneration: 1,
+            inFlight: OnlineSaveOutboxEntry(
+              idempotencyKey: request.idempotencyKey,
+              writerGeneration: request.writerGeneration,
+              expectedRevision: request.expectedRevision,
+              encodedRequestBody: request.encodedBody,
+              payloadFingerprint: onlineSavePayloadHash(data),
+              payloadGeneration: 1,
+            ),
+            phase: OnlineSaveOutboxPhase.blocked,
+            issueCode: 'NICKNAME_REQUIRED',
+          );
+    final updates = <OnlineSaveUpdateRequest>[];
+    final session = _session();
+    final coordinator = OnlineSaveCoordinator(
+      accountId: _accountId,
+      client: _FakeOnlineSaveClient(
+        claimWriter: (_, _) async =>
+            throw StateError('in-flight 확인 전에 writer 변경 금지'),
+        update: (_, update) async {
+          updates.add(update);
+          return _updateResult(7);
+        },
+      ),
+      session: session,
+      initialRevision: 6,
+      outboxRepository: outbox,
+      loadPersistedCheckpoint: () async => data,
+      idempotencyKeyFactory: () => throw StateError('기존 in-flight 키 재사용 필요'),
+    );
+    addTearDown(coordinator.dispose);
+    addTearDown(session.dispose);
+
+    await coordinator.initialize();
+    await coordinator.currentAttempt;
+
+    expect(updates, hasLength(1));
+    expect(updates.single.idempotencyKey, request.idempotencyKey);
+    expect(updates.single.encodedBody, request.encodedBody);
+    expect(updates.single.writerGeneration, 7);
+    expect(updates.single.expectedRevision, 6);
+    expect(outbox.state?.remoteRevision, 7);
+    expect(outbox.state?.inFlight, isNull);
+    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
+    expect(coordinator.snapshot.issueCode, isNull);
+  });
+
+  for (final missingLocalData in [false, true]) {
+    test(
+      missingLocalData
+          ? '닉네임 차단 복구도 누락된 로컬 저장을 넘어서 전송하지 않는다'
+          : '닉네임 복구는 다른 검증 오류의 차단을 해제하지 않는다',
+      () async {
+        final originalIssue = missingLocalData
+            ? 'NICKNAME_REQUIRED'
+            : 'SAVE_PAYLOAD_INVALID';
+        final outbox = MemoryOnlineSaveOutboxRepository()
+          ..state =
+              OnlineSaveOutboxState.initial(
+                accountId: _accountId,
+                remoteRevision: 3,
+              ).copyWith(
+                clientInstanceId: _idempotencyKey(184),
+                dirty: true,
+                phase: OnlineSaveOutboxPhase.blocked,
+                issueCode: originalIssue,
+              );
+        var requests = 0;
+        final session = _session();
+        final coordinator = OnlineSaveCoordinator(
+          accountId: _accountId,
+          client: _FakeOnlineSaveClient(
+            claimWriter: (_, _) async {
+              requests++;
+              throw StateError('차단된 저장 전송 금지');
+            },
+            update: (_, _) async {
+              requests++;
+              throw StateError('차단된 저장 전송 금지');
+            },
+          ),
+          session: session,
+          initialRevision: 3,
+          outboxRepository: outbox,
+          loadPersistedCheckpoint: () async =>
+              missingLocalData ? null : _saveData(46),
+        );
+        addTearDown(coordinator.dispose);
+        addTearDown(session.dispose);
+
+        await coordinator.initialize();
+        await coordinator.currentAttempt;
+
+        expect(requests, 0);
+        expect(outbox.state?.remoteRevision, 3);
+        expect(outbox.state?.dirty, isTrue);
+        expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.blocked);
+        expect(
+          coordinator.snapshot.issueCode,
+          missingLocalData ? 'LOCAL_SAVE_NOT_FOUND' : originalIssue,
+        );
+      },
+    );
+  }
+
   test('업데이트 뒤 이전 writer claim은 폐기하고 현재 버전으로 다시 획득한다', () async {
     final legacyClaim = OnlineSaveWriterClaimRequest(
       idempotencyKey: _idempotencyKey(73),

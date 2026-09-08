@@ -343,6 +343,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
       var generation = current.payloadGeneration;
       var dirty = current.dirty;
       var phase = current.phase;
+      var retryCount = current.retryCount;
       String? issueCode = current.issueCode;
       DateTime? nextRetryAt = current.nextRetryAt;
 
@@ -365,6 +366,14 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
         dirty = recoveredDirty;
       }
 
+      // 닉네임 설정 후 재연결: 구버전의 차단만 해제하고 기존 요청은 보존.
+      if (phase == OnlineSaveOutboxPhase.blocked &&
+          issueCode == 'NICKNAME_REQUIRED') {
+        phase = OnlineSaveOutboxPhase.idle;
+        issueCode = null;
+        nextRetryAt = null;
+        retryCount = 0;
+      }
       if (phase == OnlineSaveOutboxPhase.sending) {
         phase = OnlineSaveOutboxPhase.idle;
       } else if (_automaticRebaseEnabled &&
@@ -385,6 +394,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
         payloadGeneration: generation,
         dirty: dirty,
         phase: phase,
+        retryCount: retryCount,
         issueCode: issueCode,
         nextRetryAt: nextRetryAt,
       );
