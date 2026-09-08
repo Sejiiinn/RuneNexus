@@ -2485,20 +2485,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }) {
     final text = damage.round().toString();
     final feedback = _damageFeedbackFor(damageMultiplier);
-    final size = Vector2(78, 28);
     add(
-      DamageNumberComponent(
+      DamageNumberComponent.cached(
         position: _damageNumberStartPosition(
           position: position,
           sourcePosition: sourcePosition,
           motion: motion,
         ),
-        textImage: _damageNumberImages.imageFor(
-          text: text,
-          color: color,
-          feedback: feedback,
-          size: size,
-        ),
+        imageCache: _damageNumberImages,
+        text: text,
+        color: color,
         motion: motion,
         feedback: feedback,
       ),
@@ -4109,24 +4105,20 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (healthChange == 0) {
       return;
     }
-    final size = Vector2(78, 28);
     final text =
         '${healthChange > 0 ? '+' : '-'}${healthChange.abs().toStringAsFixed(1)}';
     add(
-      DamageNumberComponent(
+      DamageNumberComponent.cached(
         position: _damageNumberStartPosition(
           position: _nexusCorePosition(),
           sourcePosition: null,
           motion: DamageNumberMotion.rise,
         ),
-        textImage: _damageNumberImages.imageFor(
-          text: text,
-          color: healthChange > 0
-              ? const Color(0xFF72E0A2)
-              : const Color(0xFFFF7043),
-          feedback: DamageNumberFeedback.neutral,
-          size: size,
-        ),
+        imageCache: _damageNumberImages,
+        text: text,
+        color: healthChange > 0
+            ? const Color(0xFF72E0A2)
+            : const Color(0xFFFF7043),
       ),
     );
   }
