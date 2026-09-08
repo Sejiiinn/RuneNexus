@@ -1,9 +1,33 @@
+import 'dart:ui' show PictureRecorder;
+
+import 'package:flame/components.dart' show Component;
+import 'package:flame/events.dart' show TapUpEvent;
+import 'package:flutter/gestures.dart';
 import 'package:rune_nexus/domain/gem/gem_reward_target_status.dart';
 
 import 'helpers/game_balance_test_helpers.dart';
 
 const _target = GridPoint(2, 0);
 const _options = [GemType.range, GemType.attackSpeed, GemType.heavyWeapon];
+
+class _BoardTransformProbe extends Component {
+  List<double>? transform;
+
+  @override
+  void render(Canvas canvas) {
+    transform = canvas.getTransform().toList();
+  }
+}
+
+List<double> _renderBoardTransform(
+  RuneNexusGame game,
+  _BoardTransformProbe probe,
+) {
+  final recorder = PictureRecorder();
+  game.render(Canvas(recorder));
+  recorder.endRecording().dispose();
+  return probe.transform!;
+}
 
 Future<RuneNexusGame> _load(MemorySaveRepository repository) async {
   final game = RuneNexusGame(saveRepository: repository);
@@ -42,6 +66,106 @@ Future<({RuneNexusGame game, MemorySaveRepository repository})> _reward({
 }
 
 void main() {
+  test(
+    'reward targeting preserves an already zoomed and panned camera',
+    () async {
+      final fixture = await _reward();
+      final game = fixture.game;
+      game.selectRewardGemShards();
+      expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+      game.handleTrackpadZoomStart(
+        const PointerPanZoomStartEvent(position: Offset(200, 400)),
+      );
+      game.handleTrackpadZoomUpdate(
+        const PointerPanZoomUpdateEvent(position: Offset(200, 400), scale: 1.5),
+      );
+      game.handleBoardPointerDown(
+        const PointerDownEvent(pointer: 1, position: Offset(200, 400)),
+      );
+      game.handleBoardPointerMove(
+        const PointerMoveEvent(pointer: 1, position: Offset(230, 440)),
+      );
+      game.handleBoardPointerUp(
+        const PointerUpEvent(pointer: 1, position: Offset(230, 440)),
+      );
+      expect(game.debugBoardZoom(), 1.5);
+      expect(game.debugBoardOffset().length2, greaterThan(0));
+      final probe = _BoardTransformProbe();
+      await game.add(probe);
+      await game.ready();
+      final before = _renderBoardTransform(game, probe);
+
+      expect(game.purchaseGemChoice(), isTrue);
+      expect(_renderBoardTransform(game, probe), before);
+      final gem = game.snapshotNotifier.value.rewardOptions.firstWhere(
+        (type) => canEquipGemOnTurret(type, gameTurrets[TurretType.arrow]!),
+      );
+      expect(game.previewRewardGem(gem), isTrue);
+      game.setGemRewardBoardViewport(const Rect.fromLTWH(24, 240, 352, 400));
+      expect(_renderBoardTransform(game, probe), before);
+      game.clearRewardGemPreview();
+      expect(_renderBoardTransform(game, probe), before);
+
+      expect(game.previewRewardGem(gem), isTrue);
+      game.setGemRewardBoardViewport(const Rect.fromLTWH(24, 220, 352, 440));
+      expect(_renderBoardTransform(game, probe), before);
+      expect(game.selectRewardGemTarget(_target), isTrue);
+      expect(_renderBoardTransform(game, probe), before);
+    },
+  );
+
+  test(
+    'reward targeting and completion preserve the rendered camera',
+    () async {
+      final fixture = await _reward();
+      final game = fixture.game;
+      final probe = _BoardTransformProbe();
+      await game.add(probe);
+      await game.ready();
+      final before = _renderBoardTransform(game, probe);
+
+      expect(game.previewRewardGem(GemType.range), isTrue);
+      game.setGemRewardBoardViewport(const Rect.fromLTWH(24, 240, 352, 400));
+      expect(_renderBoardTransform(game, probe), before);
+      game.clearRewardGemPreview();
+      expect(_renderBoardTransform(game, probe), before);
+
+      expect(game.previewRewardGem(GemType.range), isTrue);
+      game.setGemRewardBoardViewport(const Rect.fromLTWH(24, 220, 352, 440));
+      expect(_renderBoardTransform(game, probe), before);
+      expect(game.selectRewardGemTarget(_target), isTrue);
+      expect(_renderBoardTransform(game, probe), before);
+    },
+  );
+
+  test(
+    'reward replacement uses the original screen position for taps and anchor',
+    () async {
+      final fixture = await _reward(equipped: GemType.attackSpeed);
+      final game = fixture.game;
+      final origin = game.debugBoardOrigin();
+      final tileSize = game.debugBoardSize().x / gameMap.columns;
+      final screen = Offset(
+        origin.x + (_target.x + 0.5) * tileSize,
+        origin.y + (_target.y + 0.5) * tileSize,
+      );
+      final viewport = Rect.fromCenter(center: screen, width: 120, height: 120);
+      expect(game.previewRewardGem(GemType.range), isTrue);
+      game.setGemRewardBoardViewport(viewport);
+      tapBuildTile(game, _target);
+      expect(game.snapshotNotifier.value.rewardReplacementPoint, isNull);
+      final release = TapUpEvent(
+        1,
+        game,
+        TapUpDetails(globalPosition: screen, kind: PointerDeviceKind.touch),
+      )..renderingTrace.add(Vector2(screen.dx, screen.dy));
+      game.onTapUp(release);
+      expect(game.snapshotNotifier.value.rewardReplacementPoint, _target);
+      expect(game.gemRewardReplacementAnchor!.dx, closeTo(0.5, 0.000001));
+      expect(game.gemRewardReplacementAnchor!.dy, closeTo(0.5, 0.000001));
+    },
+  );
+
   test('preview and cancellation never acquire or consume a reward', () async {
     final fixture = await _reward();
     final game = fixture.game;

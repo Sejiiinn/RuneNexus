@@ -28,6 +28,7 @@
 | 스탯·젬 링크 전환 | 전체 폭을 나눠 쓰는 컴팩트한 연결형 탭. 태그형 칩으로 대체하지 않는다. | [인벤토리 구현 기록](design/gem_inventory_concepts/README.md) |
 | 포탑의 보유 젬 목록 | A안의 한 줄 인벤토리, 최소 패딩의 묶음, 이름·수량 유지. 가로 스크롤은 가능하되 스크롤바는 숨긴다. 전역 젬 메뉴와 혼동하지 않는다. | [실제 적용 화면](design/gem_inventory_concepts/implemented-a-live.png) |
 | 젬 소켓 | 금속·룬 소켓과 연결부 에셋 사용. 실제 해금 개수·비용은 게임 데이터 기준. 직관적인 소켓 아래 ‘홈 1·홈 2’ 중복 설명은 되살리지 않는다. | [에셋 기록](design/gem_sockets/README.md) |
+| 보상 젬 장착 | 젬 선택·포탑 지정·교체·장착 완료 시 전장을 자동 이동·축소하지 않는다. 기존 시점을 유지하고, 설명에 가려진 포탑은 대상 선택 중 직접 드래그해 노출한다. | [인게임 UX 변경 범위](docs/in_game_ux_improvement_design.md) |
 | 포탑 레벨 | 이름 옆 레벨 텍스트와 색상 강조. 과거 금속 배지 시안은 기본안으로 재도입하지 않는다. | [최종 레벨 표시](design/gem_inventory_concepts/level-text-live.png) |
 | 메인 로비 | 화면 전체 스크롤 없이 고정. 목록·상세 화면 내부의 스크롤까지 금지하는 규칙은 아니다. | [작은 화면 고정 로비](design/lobby/implemented_lobby_fixed_small.png) |
 

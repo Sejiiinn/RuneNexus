@@ -199,12 +199,6 @@ void main() {
       }
       await capture('target');
 
-      // 실제 화면 앵커를 확보한 뒤 취소하고 동일 좌표로 전장 터치.
-      game.selectRewardGemTarget(_fullCannon);
-      await tester.pumpAndSettle();
-      final anchor = game.gemRewardReplacementAnchor!;
-      game.cancelRewardGemReplacement();
-      await tester.pumpAndSettle();
       final boardFinder = find.descendant(
         of: find.byType(HudGemRewardTargetOverlay),
         matching: find.byWidgetPredicate(
@@ -213,10 +207,37 @@ void main() {
       );
       expect(boardFinder, findsOneWidget);
       final board = tester.getRect(boardFinder);
-      await tester.tapAt(
-        board.topLeft +
-            Offset(anchor.dx * board.width, anchor.dy * board.height),
-      );
+      // 설명 뒤 포탑을 직접 드래그로 꺼낸 뒤 기존 화면 좌표로 선택.
+      game.selectRewardGemTarget(_fullCannon);
+      await tester.pumpAndSettle();
+      var anchor = game.gemRewardReplacementAnchor!;
+      game.cancelRewardGemReplacement();
+      await tester.pumpAndSettle();
+      final targetScreen =
+          board.topLeft +
+          Offset(anchor.dx * board.width, anchor.dy * board.height);
+      final beforeDrag = game.debugBoardOffset();
+      await tester.dragFrom(board.center, board.center - targetScreen);
+      await tester.pumpAndSettle();
+      expect(game.debugBoardOffset(), isNot(beforeDrag));
+      game.selectRewardGemTarget(_fullCannon);
+      await tester.pumpAndSettle();
+      anchor = game.gemRewardReplacementAnchor!;
+      game.cancelRewardGemReplacement();
+      await tester.pumpAndSettle();
+      final exposedTarget =
+          board.topLeft +
+          Offset(anchor.dx * board.width, anchor.dy * board.height);
+      final beforeTurretDrag = game.debugBoardOffset();
+      // 포탑 위에서 시작한 드래그는 장착·교체를 실행하지 않음.
+      await tester.dragFrom(exposedTarget, const Offset(-12, -20));
+      await tester.pumpAndSettle();
+      expect(game.snapshotNotifier.value.rewardReplacementPoint, isNull);
+      expect(game.snapshotNotifier.value.pendingRewardGem, GemType.chain);
+      final dragDelta = game.debugBoardOffset() - beforeTurretDrag;
+      expect(dragDelta.length2, greaterThan(0));
+      await capture('target_panned');
+      await tester.tapAt(exposedTarget + Offset(dragDelta.x, dragDelta.y));
       await tester.pumpAndSettle();
       expect(game.snapshotNotifier.value.rewardReplacementPoint, _fullCannon);
       expect(find.text('이 젬과 교체'), findsNWidgets(2));
@@ -229,8 +250,10 @@ void main() {
       await tester.tap(find.text('타워 다시 선택'));
       await tester.pumpAndSettle();
       expect(game.snapshotNotifier.value.rewardReplacementPoint, isNull);
+      final beforeEquipOffset = game.debugBoardOffset();
       expect(game.selectRewardGemTarget(_emptyArrow), isTrue);
       await tester.pumpAndSettle();
+      expect(game.debugBoardOffset(), beforeEquipOffset);
       expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
       expect(game.paused, isTrue);
       await game.saveNow();

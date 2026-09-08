@@ -1109,6 +1109,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void onTapDown(TapDownEvent event) {
+    // 보상 포탑 선택은 드래그와 구분할 수 있도록 탭 완료 시 처리.
+    if (_phase == GamePhase.reward) {
+      return;
+    }
     if (_suppressNextTap) {
       _suppressNextTap = false;
       return;
@@ -1118,17 +1122,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     final point = _gridPointAt(_unzoomPosition(event.localPosition));
-    if (_phase == GamePhase.reward) {
-      if (point != null &&
-          _rewardReplacementPoint == null &&
-          (_gemRewardBoardViewport?.contains(
-                Offset(event.localPosition.x, event.localPosition.y),
-              ) ??
-              true)) {
-        selectRewardGemTarget(point);
-      }
-      return;
-    }
     if (point == null) {
       _clearBoardSelection(closePanel: true);
       _publish();
@@ -1182,6 +1175,22 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _clearBoardSelection(closePanel: true);
     _publish();
+  }
+
+  @override
+  void onTapUp(TapUpEvent event) {
+    if (_phase != GamePhase.reward || _suppressNextTap) {
+      return;
+    }
+    final point = _gridPointAt(_unzoomPosition(event.localPosition));
+    if (point != null &&
+        _rewardReplacementPoint == null &&
+        (_gemRewardBoardViewport?.contains(
+              Offset(event.localPosition.x, event.localPosition.y),
+            ) ??
+            true)) {
+      selectRewardGemTarget(point);
+    }
   }
 
   void _clearBoardSelection({required bool closePanel}) {
@@ -2708,7 +2717,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void handleBoardPointerDown(gestures.PointerDownEvent event) {
-    if (_phase == GamePhase.coreDestruction || _phase == GamePhase.reward) {
+    if (_phase == GamePhase.coreDestruction ||
+        (_phase == GamePhase.reward &&
+            (!isGemRewardTargeting || _rewardReplacementPoint != null))) {
       return;
     }
     _boardPointers.add(event.pointer);
@@ -2725,7 +2736,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void handleBoardPointerMove(gestures.PointerMoveEvent event) {
-    if (_phase == GamePhase.coreDestruction || _phase == GamePhase.reward) {
+    if (_phase == GamePhase.coreDestruction ||
+        (_phase == GamePhase.reward &&
+            (!isGemRewardTargeting || _rewardReplacementPoint != null))) {
       return;
     }
     if (_boardPointers.length != 1 || _dragPointer != event.pointer) {
@@ -2749,9 +2762,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _suppressNextTap = true;
     }
     _moveBoardBy(delta);
+    if (isGemRewardTargeting && isAttached) {
+      // 엔진 일시정지 중에도 직접 이동한 전장 표시 갱신.
+      renderBox.markNeedsPaint();
+    }
   }
 
   void handleBoardPointerUp(gestures.PointerUpEvent event) {
+    if (isGemRewardTargeting) {
+      // 탭 완료 판정 이후 종료된 드래그의 억제 상태 해제.
+      _suppressNextTap = false;
+    }
     _boardPointers.remove(event.pointer);
     if (_dragPointer == event.pointer) {
       _dragPointer = null;
@@ -2761,6 +2782,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void handleBoardPointerCancel(gestures.PointerCancelEvent event) {
+    if (isGemRewardTargeting) {
+      _suppressNextTap = false;
+    }
     _boardPointers.remove(event.pointer);
     if (_dragPointer == event.pointer) {
       _dragPointer = null;
@@ -3702,13 +3726,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _applyBoardZoom(Canvas canvas) {
-    final rewardCamera = _gemRewardCamera;
-    if (rewardCamera != null) {
-      canvas
-        ..translate(rewardCamera.offset.dx, rewardCamera.offset.dy)
-        ..scale(rewardCamera.scale);
-      return;
-    }
     if (_boardZoom == _minBoardZoom && _boardOffset.length2 == 0) {
       return;
     }
@@ -3722,12 +3739,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Vector2 _unzoomPosition(Vector2 position) {
-    final rewardCamera = _gemRewardCamera;
-    if (rewardCamera != null) {
-      return (position -
-              Vector2(rewardCamera.offset.dx, rewardCamera.offset.dy)) /
-          rewardCamera.scale;
-    }
     if (_boardZoom == _minBoardZoom && _boardOffset.length2 == 0) {
       return position;
     }
@@ -3748,38 +3759,22 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _publish();
   }
 
-  // 전투 좌표·스탯은 고정하고 보상 UI가 남긴 영역에 표시만 맞춤.
-  ({double scale, Offset offset})? get _gemRewardCamera {
-    final viewport = _gemRewardBoardViewport;
-    if (!isGemRewardTargeting || !_boardConfigured || viewport == null) {
-      return null;
-    }
-    final tiles = _activeTileBounds();
-    final bounds = Rect.fromLTWH(
-      _origin.x + tiles.left * _tileSize,
-      _origin.y + tiles.top * _tileSize,
-      tiles.width * _tileSize,
-      tiles.height * _tileSize,
-    ).inflate(_tileSize * 0.35);
-    final scale = math.min(
-      viewport.width / bounds.width,
-      viewport.height / bounds.height,
-    );
-    return (scale: scale, offset: viewport.center - bounds.center * scale);
-  }
-
   Offset? get gemRewardReplacementAnchor {
     final point = _rewardReplacementPoint;
     final viewport = _gemRewardBoardViewport;
-    final camera = _gemRewardCamera;
-    if (point == null || viewport == null || camera == null) {
+    if (!isGemRewardTargeting ||
+        !_boardConfigured ||
+        point == null ||
+        viewport == null) {
       return null;
     }
     final world = _centerOf(point);
-    final screen = Offset(world.x, world.y) * camera.scale + camera.offset;
+    // 보상 선택 중에도 기존 전장 시점으로 화면 좌표 변환.
+    final center = _boardCenter();
+    final screen = center + (world - center) * _boardZoom + _boardOffset;
     return Offset(
-      (screen.dx - viewport.left) / viewport.width,
-      (screen.dy - viewport.top) / viewport.height,
+      (screen.x - viewport.left) / viewport.width,
+      (screen.y - viewport.top) / viewport.height,
     );
   }
 
@@ -3789,6 +3784,28 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   Vector2 _clampBoardOffsetForZoom(Vector2 offset, double zoom) {
     final limit = _boardPanLimitForZoom(zoom);
+    final viewport = _gemRewardBoardViewport;
+    if (isGemRewardTargeting && viewport != null) {
+      // 보상 설명에 가려진 가장자리 포탑도 직접 드래그로 노출 가능한 범위.
+      final center = _boardCenter();
+      final tiles = _activeTileBounds();
+      final halfWidth = tiles.width * _tileSize * zoom / 2;
+      final halfHeight = tiles.height * _tileSize * zoom / 2;
+      return Vector2(
+        offset.x
+            .clamp(
+              math.min(-limit.x, viewport.right - center.x - halfWidth),
+              math.max(limit.x, viewport.left - center.x + halfWidth),
+            )
+            .toDouble(),
+        offset.y
+            .clamp(
+              math.min(-limit.y, viewport.bottom - center.y - halfHeight),
+              math.max(limit.y, viewport.top - center.y + halfHeight),
+            )
+            .toDouble(),
+      );
+    }
     return Vector2(
       offset.x.clamp(-limit.x, limit.x).toDouble(),
       offset.y.clamp(-limit.y, limit.y).toDouble(),
