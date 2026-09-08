@@ -11,7 +11,7 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    await pumpLoadedApp(tester);
+    await pumpLoadedStageMenu(tester);
 
     expect(find.text('스테이지'), findsOneWidget);
     expect(find.text('코어'), findsOneWidget);
@@ -24,7 +24,7 @@ void main() {
   testWidgets('stage cards keep clear rewards icon-only until details', (
     tester,
   ) async {
-    await pumpLoadedApp(tester);
+    await pumpLoadedStageMenu(tester);
 
     expect(find.text('클리어 보상'), findsNothing);
     expect(find.text('저격+조준경'), findsNothing);
@@ -77,7 +77,7 @@ void main() {
   });
 
   testWidgets('stage details show actual unlock items', (tester) async {
-    await pumpLoadedApp(tester);
+    await pumpLoadedStageMenu(tester);
 
     expect(find.text('전술 명령'), findsNothing);
     expect(find.text('젬 감응'), findsNothing);

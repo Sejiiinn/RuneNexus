@@ -15,6 +15,16 @@ const String stageChapterTwoBannerAsset = 'assets/images/chapter_2_banner.png';
 const String stageChapterThreeBannerAsset =
     'assets/images/chapter_3_banner.png';
 const String mainMenuBackgroundAsset = 'assets/images/main_menu_background.jpg';
+const String lobbyRunePedestalAsset = 'assets/images/lobby_rune_pedestal.png';
+const String lobbyBackgroundAsset =
+    'assets/images/lobby_sanctuary_background.png';
+const String lobbyEventIconAsset = 'assets/images/lobby_event_icon.png';
+const String lobbyLeaderboardIconAsset =
+    'assets/images/lobby_leaderboard_icon.png';
+const String lobbySettingsIconAsset = 'assets/images/lobby_settings_icon.png';
+const String lobbyPrimaryButtonAsset = 'assets/images/lobby_primary_button.png';
+const String lobbySecondaryButtonAsset =
+    'assets/images/lobby_secondary_button.png';
 const String gameLogoAsset = 'assets/images/rune_nexus_logo_serif.png';
 const String stageReferenceShellFillAsset =
     'assets/images/ui/stage_reference/stage_shell_fill.png';
@@ -150,6 +160,9 @@ const Set<String> gameUiMasterImageAssets = {
 };
 
 ImageProvider<Object> gameUiAssetImageProvider(String asset) {
+  if (asset == lobbyPrimaryButtonAsset || asset == lobbySecondaryButtonAsset) {
+    return ExactAssetImage(asset, scale: 3);
+  }
   if (!gameUiMasterImageAssets.contains(asset)) {
     return AssetImage(asset);
   }
@@ -183,6 +196,13 @@ const List<String> stageRewardIconAssets = [
 const List<String> commonUiImageAssets = [
   diamondCurrencyImageAsset,
   mainMenuBackgroundAsset,
+  lobbyRunePedestalAsset,
+  lobbyBackgroundAsset,
+  lobbyEventIconAsset,
+  lobbyLeaderboardIconAsset,
+  lobbySettingsIconAsset,
+  lobbyPrimaryButtonAsset,
+  lobbySecondaryButtonAsset,
   gameLogoAsset,
   resultSuccessEmblemAsset,
   resultFailureEmblemAsset,

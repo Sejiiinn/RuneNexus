@@ -4,7 +4,7 @@ import 'helpers/widget_test_helpers.dart';
 
 void main() {
   testWidgets('Rune Nexus app renders main menu', (tester) async {
-    await pumpLoadedApp(tester);
+    await pumpLoadedStageMenu(tester);
 
     expect(_gameLogoFinder(), findsOneWidget);
     expect(find.text('스테이지'), findsOneWidget);
@@ -32,7 +32,7 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    await pumpLoadedApp(tester);
+    await pumpLoadedStageMenu(tester);
 
     final logoRect = tester.getRect(_gameLogoFinder());
     final currencyRect = tester.getRect(
@@ -199,7 +199,7 @@ void main() {
   });
 
   testWidgets('daily quest entry only appears on stage tab', (tester) async {
-    await pumpLoadedApp(tester);
+    await pumpLoadedStageMenu(tester);
 
     expect(
       find.byKey(const ValueKey('daily-quest-entry-button')),
@@ -430,7 +430,7 @@ void main() {
   testWidgets('main menu keeps the logo on stage and compacts other headers', (
     tester,
   ) async {
-    await pumpLoadedApp(tester);
+    await pumpLoadedStageMenu(tester);
 
     expect(_gameLogoFinder(), findsOneWidget);
     expect(find.byKey(const ValueKey('menu-resource-bar')), findsNothing);
@@ -564,7 +564,7 @@ void main() {
   testWidgets('main menu tabs respond across the whole button area', (
     tester,
   ) async {
-    await pumpLoadedApp(tester);
+    await pumpLoadedStageMenu(tester);
 
     await tester.tapAt(tabLeadingEdge(tester, 'main-menu-tab-research'));
     await pumpGameFrames(tester);

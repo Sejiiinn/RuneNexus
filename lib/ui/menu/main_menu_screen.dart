@@ -42,6 +42,7 @@ part 'main_menu_core_tree_details.dart';
 part 'main_menu_daily_quest.dart';
 part 'main_menu_debug_panel.dart';
 part 'main_menu_frame.dart';
+part 'main_menu_lobby.dart';
 part 'main_menu_permanent_upgrades.dart';
 part 'main_menu_research.dart';
 part 'main_menu_research_slots.dart';
@@ -99,6 +100,8 @@ class MainMenuScreen extends StatefulWidget {
     this.onSignOut,
     this.onClaimWeeklyReward,
     this.onOpenMapEditor,
+    this.showLobby = false,
+    this.onOpenLobby,
     super.key,
   });
 
@@ -117,6 +120,8 @@ class MainMenuScreen extends StatefulWidget {
   final Future<void> Function(WeeklyRewardClaimTarget target)?
   onClaimWeeklyReward;
   final VoidCallback? onOpenMapEditor;
+  final bool showLobby;
+  final VoidCallback? onOpenLobby;
 
   @override
   State<MainMenuScreen> createState() => _MainMenuScreenState();
@@ -162,7 +167,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
 
   void _syncResearchClockTimer() {
     final needsClock =
-        widget.selectedTab != MainMenuTab.research &&
+        (widget.showLobby || widget.selectedTab != MainMenuTab.research) &&
         _currentSnapshot.activeResearches.isNotEmpty;
     if (!needsClock) {
       _researchClockTimer?.cancel();
@@ -176,7 +181,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
       if (!mounted) {
         return;
       }
-      if (widget.selectedTab == MainMenuTab.research ||
+      if ((!widget.showLobby && widget.selectedTab == MainMenuTab.research) ||
           _currentSnapshot.activeResearches.isEmpty) {
         _researchClockTimer?.cancel();
         _researchClockTimer = null;
@@ -188,9 +193,35 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return PopScope(
+      canPop: widget.showLobby || widget.onOpenLobby == null,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) widget.onOpenLobby?.call();
+      },
+      child: widget.showLobby
+          ? _MainLobby(
+              game: widget.game,
+              snapshot: widget.snapshot,
+              snapshotListenable: widget.snapshotListenable,
+              onSelectTab: widget.onSelectTab,
+              onStartStage: widget.onStartStage,
+              onOpenAccount: () => _openAccountDialog(context),
+              onClaimWeeklyReward: widget.onClaimWeeklyReward,
+              onOpenMapEditor: widget.onOpenMapEditor,
+              onOpenDebugPanel: () {
+                setState(() => _showMenuDebugPanel = true);
+                widget.onSelectTab(MainMenuTab.stage);
+              },
+            )
+          : _buildTabs(context),
+    );
+  }
+
+  Widget _buildTabs(BuildContext context) {
     final selectedTab = widget.selectedTab;
     final compactTopBar = MediaQuery.sizeOf(context).width < 430;
-    const debugBarHeight = _showMapEditor ? 44.0 : 0.0;
+    final lobbyBarHeight = widget.onOpenLobby == null ? 0.0 : 40.0;
+    final debugBarHeight = (_showMapEditor ? 44.0 : 0.0) + lobbyBarHeight;
     final menuTopPadding =
         debugBarHeight + (selectedTab == MainMenuTab.stage ? 76.0 : 54.0);
     return Container(
@@ -200,7 +231,7 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
           children: [
             const Positioned.fill(child: _MainMenuBackdrop()),
             if (selectedTab == MainMenuTab.stage)
-              const Positioned(
+              Positioned(
                 top: 10 + debugBarHeight,
                 left: 0,
                 right: 0,
@@ -230,6 +261,17 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                 },
               ),
             ),
+            if (widget.onOpenLobby != null)
+              Positioned(
+                top: _showMapEditor ? 44 : 0,
+                left: 8,
+                child: TextButton.icon(
+                  key: const ValueKey('main-menu-back-to-lobby'),
+                  onPressed: widget.onOpenLobby,
+                  icon: const Icon(Icons.arrow_back, size: 17),
+                  label: const Text('로비'),
+                ),
+              ),
             if (_showMapEditor)
               Positioned(
                 top: 0,

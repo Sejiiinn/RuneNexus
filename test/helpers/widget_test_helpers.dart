@@ -98,6 +98,14 @@ Future<void> pumpLoadedApp(WidgetTester tester) async {
   await pumpUntilLoadedApp(tester);
 }
 
+Future<void> pumpLoadedStageMenu(WidgetTester tester) async {
+  await pumpLoadedApp(tester);
+  await tester.ensureVisible(find.byKey(const ValueKey('lobby-stage-select')));
+  await tester.pump();
+  await tester.tap(find.byKey(const ValueKey('lobby-stage-select')));
+  await tester.pump();
+}
+
 Future<void> pumpUntilLoadedApp(
   WidgetTester tester, {
   int maxFrameCount = 100,
@@ -127,6 +135,13 @@ Finder stageChipText(String text) {
 }
 
 Future<void> tapStageCard(WidgetTester tester, String stageName) async {
+  final lobbyEntry = find.byKey(const ValueKey('lobby-stage-select'));
+  if (lobbyEntry.evaluate().isNotEmpty) {
+    await tester.ensureVisible(lobbyEntry);
+    await tester.pump();
+    await tester.tap(lobbyEntry);
+    await tester.pump();
+  }
   final stageNumber = RegExp(r'\d+').firstMatch(stageName)?.group(0);
   expect(stageNumber, isNotNull);
   final row = find.byKey(ValueKey('stage-selection-row-$stageNumber'));

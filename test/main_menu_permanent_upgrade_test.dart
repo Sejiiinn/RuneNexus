@@ -11,7 +11,7 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    await pumpLoadedApp(tester);
+    await pumpLoadedStageMenu(tester);
 
     await tester.tap(find.text('강화'));
     await pumpGameFrames(tester);

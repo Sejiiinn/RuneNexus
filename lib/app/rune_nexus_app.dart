@@ -96,6 +96,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   Future<void>? _initialLoad;
   _AppScreen _screen = _AppScreen.main;
   MainMenuTab _selectedMainMenuTab = MainMenuTab.stage;
+  bool _showLobby = true;
   _OnlineAccountState? _onlineAccount;
   OnlineAccountSessionController? _onlineSession;
   OnlineSaveCoordinator? _onlineSaveCoordinator;
@@ -288,6 +289,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     setState(() {
       _screen = _AppScreen.main;
       _selectedMainMenuTab = tab;
+      _showLobby = false;
     });
   }
 
@@ -944,6 +946,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       game = readyReplacement;
       _hasGame = true;
       _screen = _AppScreen.main;
+      _showLobby = true;
       _onlineSaveCoordinator = coordinator;
       _economyCoordinator = economyCoordinator;
     });
@@ -973,6 +976,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
       _onlineAccount = _onlineAccountStateFor(credentials, snapshot);
       if (pausesAccountPlay) {
         _screen = _AppScreen.main;
+        _showLobby = true;
       }
     });
     if (pausesAccountPlay) {
@@ -1055,6 +1059,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     setState(() {
       game = replacement;
       _screen = _AppScreen.main;
+      _showLobby = true;
     });
     previous.disposeAppResources();
     coordinator.acknowledgeGameReload();
@@ -1206,6 +1211,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     setState(() {
       game = replacement;
       _screen = _AppScreen.main;
+      _showLobby = true;
       _onlineSaveCoordinator = null;
       _economyCoordinator = null;
     });
@@ -1404,9 +1410,14 @@ class _RuneNexusAppState extends State<RuneNexusApp>
                       snapshot: game.snapshotNotifier.value,
                       snapshotListenable: game.snapshotNotifier,
                       selectedTab: _selectedMainMenuTab,
+                      showLobby: _showLobby,
+                      onOpenLobby: () {
+                        setState(() => _showLobby = true);
+                      },
                       onSelectTab: (tab) {
                         setState(() {
                           _selectedMainMenuTab = tab;
+                          _showLobby = false;
                         });
                       },
                       onStartStage: (stageNumber) => _startStage(
