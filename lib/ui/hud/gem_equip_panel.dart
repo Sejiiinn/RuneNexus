@@ -269,15 +269,58 @@ class _GemEquipPanelState extends State<HudGemEquipPanel> {
           Row(
             children: [
               Expanded(
-                child: Text(
-                  levelUpPreviewActive
-                      ? '${snapshot.selectedTurretName} 포탑  Lv.${snapshot.selectedTurretLevel} -> ${snapshot.selectedTurretNextLevel}'
-                      : '${snapshot.selectedTurretName} 포탑  Lv.${snapshot.selectedTurretLevel}/${snapshot.selectedTurretMaxLevel}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFFE8F8FF),
-                  ),
-                  overflow: TextOverflow.clip,
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 3,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      '${snapshot.selectedTurretName} 포탑',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFFE8F8FF),
+                      ),
+                    ),
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          const TextSpan(
+                            text: 'LV ',
+                            style: TextStyle(
+                              fontSize: 8,
+                              color: Color(0xFF8AA6B8),
+                            ),
+                          ),
+                          TextSpan(
+                            text: '${snapshot.selectedTurretLevel}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFFE7C66A),
+                            ),
+                          ),
+                          TextSpan(
+                            text: levelUpPreviewActive
+                                ? ' → ${snapshot.selectedTurretNextLevel}'
+                                : ' / ${snapshot.selectedTurretMaxLevel}',
+                            style: TextStyle(
+                              fontSize: levelUpPreviewActive ? 14 : 9,
+                              fontWeight: levelUpPreviewActive
+                                  ? FontWeight.w900
+                                  : FontWeight.w600,
+                              color: levelUpPreviewActive
+                                  ? GamePalette.green
+                                  : const Color(0xFF8AA6B8),
+                            ),
+                          ),
+                        ],
+                      ),
+                      semanticsLabel: levelUpPreviewActive
+                          ? '레벨 ${snapshot.selectedTurretLevel}, 다음 레벨 ${snapshot.selectedTurretNextLevel}'
+                          : '레벨 ${snapshot.selectedTurretLevel}, 최대 ${snapshot.selectedTurretMaxLevel}',
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 6),
@@ -983,9 +1026,9 @@ class _TurretStats extends StatelessWidget {
         nextDps + snapshot.selectedTurretNextBurnDamagePerSecond;
     const critColor = Color(0xFFE7C66A);
 
-    // 카드형 1줄 나열 대신 3열 그리드로 정렬해 부가 스탯(치명타)까지 담는다.
+    // 공격 지표와 보조 지표를 짝지은 2열 수치표.
     final cells = <Widget>[
-      HudStatPill(
+      _TurretStatEntry(
         label: '피해',
         value: snapshot.selectedTurretDamage.toStringAsFixed(1),
         valueChild: previewActive
@@ -995,29 +1038,7 @@ class _TurretStats extends StatelessWidget {
               )
             : null,
       ),
-      HudStatPill(
-        label: '초당',
-        value: '${snapshot.selectedTurretAttackRate.toStringAsFixed(2)}회',
-        valueChild: previewActive
-            ? _PreviewStatValue(
-                current:
-                    '${snapshot.selectedTurretAttackRate.toStringAsFixed(2)}회',
-                next:
-                    '${snapshot.selectedTurretNextAttackRate.toStringAsFixed(2)}회',
-              )
-            : null,
-      ),
-      HudStatPill(
-        label: '사거리',
-        value: snapshot.selectedTurretRange.round().toString(),
-        valueChild: previewActive
-            ? _PreviewStatValue(
-                current: snapshot.selectedTurretRange.round().toString(),
-                next: snapshot.selectedTurretNextRange.round().toString(),
-              )
-            : null,
-      ),
-      HudStatPill(
+      _TurretStatEntry(
         label: 'DPS',
         value: totalDps.toStringAsFixed(1),
         valueChild: previewActive
@@ -1027,8 +1048,6 @@ class _TurretStats extends StatelessWidget {
               )
             : burnDps > 0
             ? RichText(
-                maxLines: 1,
-                overflow: TextOverflow.clip,
                 text: TextSpan(
                   style: const TextStyle(
                     fontSize: 12,
@@ -1046,12 +1065,34 @@ class _TurretStats extends StatelessWidget {
               )
             : null,
       ),
-      HudStatPill(
+      _TurretStatEntry(
+        label: '초당',
+        value: '${snapshot.selectedTurretAttackRate.toStringAsFixed(2)}회',
+        valueChild: previewActive
+            ? _PreviewStatValue(
+                current:
+                    '${snapshot.selectedTurretAttackRate.toStringAsFixed(2)}회',
+                next:
+                    '${snapshot.selectedTurretNextAttackRate.toStringAsFixed(2)}회',
+              )
+            : null,
+      ),
+      _TurretStatEntry(
+        label: '사거리',
+        value: snapshot.selectedTurretRange.round().toString(),
+        valueChild: previewActive
+            ? _PreviewStatValue(
+                current: snapshot.selectedTurretRange.round().toString(),
+                next: snapshot.selectedTurretNextRange.round().toString(),
+              )
+            : null,
+      ),
+      _TurretStatEntry(
         label: '치명 확률',
         value: '${(snapshot.selectedTurretCriticalChance * 100).round()}%',
         accent: critColor,
       ),
-      HudStatPill(
+      _TurretStatEntry(
         label: '치명 피해',
         value:
             '${(snapshot.selectedTurretCriticalDamageMultiplier * 100).round()}%',
@@ -1061,7 +1102,7 @@ class _TurretStats extends StatelessWidget {
 
     if (burnDps > 0) {
       cells.add(
-        HudStatPill(
+        _TurretStatEntry(
           label: '화상',
           value: '${snapshot.selectedTurretBurnDuration.toStringAsFixed(1)}초',
           valueChild: previewActive
@@ -1077,7 +1118,7 @@ class _TurretStats extends StatelessWidget {
     }
     if (definition.slowDuration > 0) {
       cells.add(
-        HudStatPill(
+        _TurretStatEntry(
           label: '감속',
           value:
               '${((1 - definition.slowMultiplier) * 100).round()}%/${definition.slowDuration.toStringAsFixed(1)}초',
@@ -1085,28 +1126,89 @@ class _TurretStats extends StatelessWidget {
       );
     }
 
-    const columns = 3;
+    const columns = 2;
     final rows = <Widget>[];
     for (var i = 0; i < cells.length; i += columns) {
       final rowChildren = <Widget>[];
       for (var j = 0; j < columns; j++) {
         if (j > 0) {
-          rowChildren.add(const SizedBox(width: 5));
+          rowChildren.add(const SizedBox(width: 16));
         }
         final index = i + j;
         rowChildren.add(
           index < cells.length
-              ? cells[index]
+              ? Expanded(child: cells[index])
               : const Expanded(child: SizedBox.shrink()),
         );
       }
       if (rows.isNotEmpty) {
-        rows.add(const SizedBox(height: 5));
+        rows.add(
+          const Divider(height: 1, thickness: 1, color: Color(0xFF223442)),
+        );
       }
       rows.add(Row(children: rowChildren));
     }
 
-    return Column(mainAxisSize: MainAxisSize.min, children: rows);
+    // 추가 스탯도 기본 세 줄 안에서 탐색; 시스템 글자 크기는 반영.
+    final rowHeight = (MediaQuery.textScalerOf(context).scale(12) * 1.5 + 6)
+        .clamp(24.0, double.infinity);
+    return SizedBox(
+      height: rowHeight * 3 + 2,
+      child: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+        child: SingleChildScrollView(
+          key: const ValueKey('turret-stats-scroll'),
+          primary: false,
+          child: Column(mainAxisSize: MainAxisSize.min, children: rows),
+        ),
+      ),
+    );
+  }
+}
+
+class _TurretStatEntry extends StatelessWidget {
+  const _TurretStatEntry({
+    required this.label,
+    required this.value,
+    this.valueChild,
+    this.accent,
+  });
+
+  final String label;
+  final String value;
+  final Widget? valueChild;
+  final Color? accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontSize: 10, color: Color(0xFF8AA6B8)),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child:
+                  valueChild ??
+                  Text(
+                    value,
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: accent ?? const Color(0xFFE8F8FF),
+                    ),
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -1119,8 +1221,6 @@ class _PreviewStatValue extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RichText(
-      maxLines: 1,
-      overflow: TextOverflow.clip,
       text: TextSpan(
         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
         children: [
@@ -1129,7 +1229,7 @@ class _PreviewStatValue extends StatelessWidget {
             style: const TextStyle(color: Color(0xFF8AA6B8)),
           ),
           const TextSpan(
-            text: ' -> ',
+            text: ' → ',
             style: TextStyle(color: Color(0xFF63E6A5)),
           ),
           TextSpan(

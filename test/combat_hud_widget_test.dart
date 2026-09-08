@@ -5,6 +5,48 @@ import 'package:rune_nexus/ui/game/game_image_assets.dart';
 import 'helpers/widget_test_helpers.dart';
 
 void main() {
+  testWidgets('additional turret stats scroll without growing the panel', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: GameHud(game: game)),
+      ),
+    );
+    await pumpGameFrames(tester, frameCount: 10);
+    await tester.runAsync(
+      () => game.loaded.timeout(const Duration(seconds: 10)),
+    );
+    game.debugAddGold(1000);
+    game.tryBuildTurret(const GridPoint(2, 0));
+    await pumpGameFrames(tester);
+    final viewport = find.byKey(const ValueKey('turret-stats-scroll'));
+    final initialHeight = tester.getSize(viewport).height;
+    final initialTabY = tester.getTopLeft(find.text('스탯')).dy;
+    game.refundSelectedTurret();
+    game.selectTurretType(TurretType.magic);
+    game.tryBuildTurret(const GridPoint(2, 0));
+    await pumpGameFrames(tester);
+    expect(tester.getSize(viewport).height, initialHeight);
+    expect(tester.getTopLeft(find.text('스탯')).dy, initialTabY);
+    final scrollable = tester.state<ScrollableState>(
+      find.descendant(of: viewport, matching: find.byType(Scrollable)),
+    );
+    expect(scrollable.position.maxScrollExtent, greaterThan(0));
+    await tester.drag(viewport, const Offset(0, -60));
+    await pumpGameFrames(tester);
+    expect(find.text('화상').hitTestable(), findsOneWidget);
+    expect(scrollable.position.pixels, greaterThan(0));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'gem inventory previews before home selection and retains retap equip',
     (tester) async {
