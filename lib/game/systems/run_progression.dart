@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math' as math;
 
 import '../../data/definitions/game_core_passive_tree_data.dart' as core_tree;

@@ -9,7 +9,8 @@ mixin _TurretModuleProgression {
   int turretModuleDrawCount = 0;
   int turretModuleTicketPurchaseCount = 0;
   int turretModuleItemSequence = 0;
-  final Map<String, TurretModuleInventoryItem> turretModules = {};
+  final Map<String, TurretModuleInventoryItem> turretModules =
+      _TurretModuleInventory();
 
   List<TurretModuleInventoryItem> get ownedTurretModules {
     final items = turretModules.values.toList()
@@ -104,14 +105,7 @@ mixin _TurretModuleProgression {
   }
 
   TurretModuleEffect turretModuleEffectFor(TurretType turretType) {
-    var effect = TurretModuleEffect.zero;
-    for (final item in turretModules.values) {
-      if (!item.equipped || item.key.turretType != turretType) {
-        continue;
-      }
-      effect += effectiveTurretModuleEffect(item);
-    }
-    return effect;
+    return (turretModules as _TurretModuleInventory).effectFor(turretType);
   }
 
   List<TurretModuleInventoryItem> drawTurretModules({
@@ -326,6 +320,86 @@ mixin _TurretModuleProgression {
       turretModuleItemSequence++;
     } while (turretModules.containsKey('tm_$turretModuleItemSequence'));
     return 'tm_$turretModuleItemSequence';
+  }
+}
+
+// 공개 Map의 직접 수정도 추적하는 모듈 효과 캐시.
+class _TurretModuleInventory
+    extends MapBase<String, TurretModuleInventoryItem> {
+  final _items = <String, TurretModuleInventoryItem>{};
+  final _effects = <TurretType, _CachedTurretModuleEffect>{};
+
+  @override
+  TurretModuleInventoryItem? operator [](Object? key) => _items[key];
+
+  @override
+  void operator []=(String key, TurretModuleInventoryItem value) {
+    _items[key] = value;
+    _effects.clear();
+  }
+
+  @override
+  Iterable<String> get keys => _items.keys;
+
+  @override
+  int get length => _items.length;
+
+  @override
+  void clear() {
+    _items.clear();
+    _effects.clear();
+  }
+
+  @override
+  TurretModuleInventoryItem? remove(Object? key) {
+    final removed = _items.remove(key);
+    if (removed != null) {
+      _effects.clear();
+    }
+    return removed;
+  }
+
+  TurretModuleEffect effectFor(TurretType type) {
+    final cached = _effects[type];
+    if (cached != null && cached.hasCurrentOptions) {
+      return cached.effect;
+    }
+    final equipped = _items.values
+        .where((item) => item.equipped && item.key.turretType == type)
+        .toList(growable: false);
+    final result = _CachedTurretModuleEffect(equipped);
+    _effects[type] = result;
+    return result.effect;
+  }
+}
+
+class _CachedTurretModuleEffect {
+  _CachedTurretModuleEffect(this.items)
+    : options = [for (final item in items) List.of(item.options)],
+      effect = items.fold(
+        TurretModuleEffect.zero,
+        (effect, item) => effect + effectiveTurretModuleEffect(item),
+      );
+
+  final List<TurretModuleInventoryItem> items;
+  final List<List<TurretModuleOptionRoll>> options;
+  final TurretModuleEffect effect;
+
+  bool get hasCurrentOptions {
+    // 외부에서 전달한 가변 옵션 목록은 장착 항목만 비교.
+    for (var i = 0; i < items.length; i++) {
+      final current = items[i].options;
+      final previous = options[i];
+      if (current.length != previous.length) {
+        return false;
+      }
+      for (var j = 0; j < current.length; j++) {
+        if (!identical(current[j], previous[j])) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 }
 

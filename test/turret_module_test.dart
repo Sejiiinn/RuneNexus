@@ -16,6 +16,131 @@ import 'package:rune_nexus/game/systems/run_progression.dart';
 
 void main() {
   test(
+    'module effects refresh after equip, unequip and restoring inventory',
+    () {
+      final progression = RunProgression();
+      final key = TurretModuleKey(
+        turretType: TurretType.arrow,
+        part: TurretModulePart.barrel,
+        family: turretModuleFamilyFor(
+          TurretType.arrow,
+          TurretModulePart.barrel,
+        ),
+        grade: TurretModuleGrade.rare,
+      );
+      expect(
+        progression.turretModuleEffectFor(TurretType.arrow).damageIncreaseRate,
+        0,
+      );
+      final item = progression.grantTurretModule(
+        key,
+        options: const [
+          TurretModuleOptionRoll(
+            type: TurretModuleOptionType.damageIncrease,
+            value: 10,
+          ),
+        ],
+      );
+      progression.equipTurretModule(item.id);
+      final equippedEffect = progression.turretModuleEffectFor(
+        TurretType.arrow,
+      );
+      expect(equippedEffect.damageIncreaseRate, greaterThan(0));
+      expect(
+        progression.turretModuleEffectFor(TurretType.arrow),
+        same(equippedEffect),
+      );
+      final saved = progression.toTurretModuleSaveData();
+
+      progression.unequipTurretModule(item.id);
+      expect(
+        progression.turretModuleEffectFor(TurretType.arrow).damageIncreaseRate,
+        0,
+      );
+      progression.restoreTurretModulesFromSaveData(saved);
+      expect(
+        progression.turretModuleEffectFor(TurretType.arrow).damageIncreaseRate,
+        equippedEffect.damageIncreaseRate,
+      );
+      progression.restoreTurretModulesFromSaveData(
+        RunProgression().toTurretModuleSaveData(),
+      );
+      expect(
+        progression.turretModuleEffectFor(TurretType.arrow).damageIncreaseRate,
+        0,
+      );
+    },
+  );
+
+  test('module effect cache observes public map and option list mutations', () {
+    final progression = RunProgression();
+    final key = TurretModuleKey(
+      turretType: TurretType.arrow,
+      part: TurretModulePart.barrel,
+      family: turretModuleFamilyFor(TurretType.arrow, TurretModulePart.barrel),
+      grade: TurretModuleGrade.rare,
+    );
+    final options = [
+      const TurretModuleOptionRoll(
+        type: TurretModuleOptionType.damageIncrease,
+        value: 10,
+      ),
+    ];
+    final item = TurretModuleInventoryItem(
+      id: 'external',
+      key: key,
+      options: options,
+      acquiredOrder: 1,
+      equipped: true,
+    );
+    void expectDamage(double damage) {
+      expect(
+        progression.turretModuleEffectFor(TurretType.arrow).damageIncreaseRate,
+        closeTo(damage, 0.000001),
+      );
+    }
+
+    expectDamage(0);
+    progression.turretModules[item.id] = item;
+    expectDamage(0.1);
+    options[0] = const TurretModuleOptionRoll(
+      type: TurretModuleOptionType.damageIncrease,
+      value: 20,
+    );
+    expectDamage(0.2);
+    options.add(
+      const TurretModuleOptionRoll(
+        type: TurretModuleOptionType.damageIncrease,
+        value: 5,
+      ),
+    );
+    expectDamage(0.25);
+    progression.turretModules.update(
+      item.id,
+      (item) => item.copyWith(equipped: false),
+    );
+    expectDamage(0);
+    progression.turretModules.addAll({item.id: item});
+    expectDamage(0.25);
+    progression.turretModules.remove(item.id);
+    expectDamage(0);
+    progression.turretModules.addEntries([MapEntry(item.id, item)]);
+    expectDamage(0.25);
+    progression.turretModules.updateAll(
+      (_, item) => item.copyWith(equipped: false),
+    );
+    expectDamage(0);
+    progression.turretModules[item.id] = item;
+    expectDamage(0.25);
+    progression.turretModules.clear();
+    expectDamage(0);
+    progression.turretModules.putIfAbsent(item.id, () => item);
+    expectDamage(0.25);
+    progression.turretModules.removeWhere((_, item) => item.equipped);
+    expectDamage(0);
+  });
+
+  test(
     'only the configured first clear grants module tickets and persists state',
     () {
       final progression = RunProgression();

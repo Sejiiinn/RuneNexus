@@ -470,8 +470,12 @@ class TurretComponent extends PositionComponent {
   }
 
   bool isEnemyBodyInRange(EnemyComponent enemy) {
+    return _isEnemyBodyInRange(enemy, range);
+  }
+
+  bool _isEnemyBodyInRange(EnemyComponent enemy, double attackRange) {
     final enemyRadius = math.min(enemy.size.x, enemy.size.y) / 2;
-    final rangeWithBody = range + enemyRadius;
+    final rangeWithBody = attackRange + enemyRadius;
     final dx = enemy.position.x - position.x;
     final dy = enemy.position.y - position.y;
     return dx * dx + dy * dy <= rangeWithBody * rangeWithBody;
@@ -931,11 +935,12 @@ class TurretComponent extends PositionComponent {
   }
 
   EnemyComponent? _findTarget() {
+    final attackRange = range;
     EnemyComponent? selectedTarget;
     var selectedDistanceSquared = double.infinity;
     var selectedDurability = 0.0;
     for (final enemy in game.enemies) {
-      if (enemy.isDead || !isEnemyBodyInRange(enemy)) {
+      if (enemy.isDead || !_isEnemyBodyInRange(enemy, attackRange)) {
         continue;
       }
       final distanceSquared = _distanceSquaredTo(enemy);
@@ -999,9 +1004,10 @@ class TurretComponent extends PositionComponent {
   }
 
   List<EnemyComponent> _findTargetsInRange() {
+    final attackRange = range;
     final targets = <EnemyComponent>[];
     for (final enemy in game.enemies) {
-      if (!enemy.isDead && isEnemyBodyInRange(enemy)) {
+      if (!enemy.isDead && _isEnemyBodyInRange(enemy, attackRange)) {
         targets.add(enemy);
       }
     }

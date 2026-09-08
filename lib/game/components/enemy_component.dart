@@ -24,9 +24,10 @@ class EnemyComponent extends PositionComponent {
     this.laneOffsetRatio = 0,
     this.visualPhase = 0,
     int diamondReward = 0,
-    required this.path,
+    required List<Vector2> path,
     required this.game,
-  }) : diamondReward = definition.type.isBoss
+  }) : _path = path,
+       diamondReward = definition.type.isBoss
            ? 0
            : diamondReward.clamp(0, 3).toInt(),
        hp = maxHp,
@@ -36,7 +37,9 @@ class EnemyComponent extends PositionComponent {
          position: path.first.clone(),
          size: Vector2.all(_sizeForTileScale(game.boardDistanceScale)),
          anchor: Anchor.center,
-       );
+       ) {
+    _rebuildPathGeometry();
+  }
 
   final EnemyDefinition definition;
   final double maxHp;
@@ -46,7 +49,18 @@ class EnemyComponent extends PositionComponent {
   final double visualPhase;
   final int diamondReward;
   final RuneNexusGame game;
-  List<Vector2> path;
+  List<Vector2> _path;
+  List<Vector2> get path => _path;
+  // 좌표를 제자리 수정한 경우 updatePath를 통한 경로 캐시 갱신
+  set path(List<Vector2> value) {
+    _path = value;
+    _rebuildPathGeometry();
+  }
+
+  final List<int> _pathSegmentEnds = [];
+  final List<double> _pathSegmentLengths = [];
+  final List<double> _pathCumulativeLengths = [];
+  double _totalPathLength = 0;
   double hp;
   double shield;
   bool shieldBroken = false;
@@ -221,11 +235,11 @@ class EnemyComponent extends PositionComponent {
       return;
     }
 
-    final progressRatio = _pathLength(path) == 0
+    final progressRatio = _totalPathLength == 0
         ? 0.0
-        : (distanceTravelled / _pathLength(path)).clamp(0.0, 1.0).toDouble();
+        : (distanceTravelled / _totalPathLength).clamp(0.0, 1.0).toDouble();
     path = newPath;
-    distanceTravelled = _pathLength(path) * progressRatio;
+    distanceTravelled = _totalPathLength * progressRatio;
     _placeAtDistance(distanceTravelled);
   }
 
@@ -1405,25 +1419,14 @@ class EnemyComponent extends PositionComponent {
   }
 
   void _placeAtDistance(double targetDistance) {
-    var travelled = 0.0;
-    for (var i = 1; i < path.length; i++) {
-      final from = path[i - 1];
-      final to = path[i];
-      final segment = to - from;
-      final segmentLength = segment.length;
-      if (segmentLength == 0) {
-        continue;
-      }
-      if (travelled + segmentLength >= targetDistance) {
-        final ratio = ((targetDistance - travelled) / segmentLength)
-            .clamp(0.0, 1.0)
-            .toDouble();
-        position = from + segment * ratio;
-        _targetIndex = i;
-        _facingAngle = math.atan2(segment.y, segment.x);
-        return;
-      }
-      travelled += segmentLength;
+    final segmentIndex = _segmentAtDistance(targetDistance);
+    if (segmentIndex < _pathSegmentEnds.length) {
+      final endIndex = _pathSegmentEnds[segmentIndex];
+      position = _pointOnSegment(segmentIndex, targetDistance);
+      _targetIndex = endIndex;
+      final segment = path[endIndex] - path[endIndex - 1];
+      _facingAngle = math.atan2(segment.y, segment.x);
+      return;
     }
 
     position = path.last.clone();
@@ -1467,7 +1470,7 @@ class EnemyComponent extends PositionComponent {
     }
     final normal = Vector2(-tangent.y, tangent.x)..normalize();
     final distanceFromStart = distanceTravelled;
-    final distanceFromEnd = _pathLength(path) - distanceTravelled;
+    final distanceFromEnd = _totalPathLength - distanceTravelled;
     final endpointFadeDistance =
         _designTileSize * game.boardDistanceScale * _laneEndpointFadeTiles;
     final endpointFade = endpointFadeDistance <= 0
@@ -1484,34 +1487,59 @@ class EnemyComponent extends PositionComponent {
 
   Vector2 _pointAtDistance(double targetDistance) {
     final clampedDistance = targetDistance
-        .clamp(0.0, _pathLength(path))
+        .clamp(0.0, _totalPathLength)
         .toDouble();
-    var travelled = 0.0;
-    for (var i = 1; i < path.length; i++) {
-      final from = path[i - 1];
-      final to = path[i];
-      final segment = to - from;
-      final segmentLength = segment.length;
-      if (segmentLength == 0) {
-        continue;
-      }
-      if (travelled + segmentLength >= clampedDistance) {
-        final ratio = ((clampedDistance - travelled) / segmentLength)
-            .clamp(0.0, 1.0)
-            .toDouble();
-        return from + segment * ratio;
-      }
-      travelled += segmentLength;
+    final segmentIndex = _segmentAtDistance(clampedDistance);
+    if (segmentIndex == _pathSegmentEnds.length) {
+      return path.last.clone();
     }
-    return path.last.clone();
+    return _pointOnSegment(segmentIndex, clampedDistance);
   }
 
-  double _pathLength(List<Vector2> points) {
-    var length = 0.0;
-    for (var i = 1; i < points.length; i++) {
-      length += points[i].distanceTo(points[i - 1]);
+  void _rebuildPathGeometry() {
+    _pathSegmentEnds.clear();
+    _pathSegmentLengths.clear();
+    _pathCumulativeLengths.clear();
+    _totalPathLength = 0;
+    for (var i = 1; i < path.length; i++) {
+      final length = path[i].distanceTo(path[i - 1]);
+      // 중복 좌표 제외: 경계에서는 앞쪽의 유효 구간 선택
+      if (length == 0) {
+        continue;
+      }
+      _totalPathLength += length;
+      _pathSegmentEnds.add(i);
+      _pathSegmentLengths.add(length);
+      _pathCumulativeLengths.add(_totalPathLength);
     }
-    return length;
+  }
+
+  int _segmentAtDistance(double distance) {
+    var low = 0;
+    var high = _pathCumulativeLengths.length;
+    // 누적 거리가 목표 이상인 첫 구간의 이분 탐색
+    while (low < high) {
+      final middle = low + ((high - low) >> 1);
+      if (_pathCumulativeLengths[middle] < distance) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+    return low;
+  }
+
+  Vector2 _pointOnSegment(int segmentIndex, double distance) {
+    final endIndex = _pathSegmentEnds[segmentIndex];
+    final startDistance = segmentIndex == 0
+        ? 0.0
+        : _pathCumulativeLengths[segmentIndex - 1];
+    final ratio =
+        ((distance - startDistance) / _pathSegmentLengths[segmentIndex])
+            .clamp(0.0, 1.0)
+            .toDouble();
+    final from = path[endIndex - 1];
+    return from + (path[endIndex] - from) * ratio;
   }
 
   double get _bobAmplitudeByType {
