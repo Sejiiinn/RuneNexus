@@ -38,36 +38,40 @@ class _MainLobby extends StatelessWidget {
   }
 
   Widget _buildLobby(BuildContext context, GameSnapshot value) {
-    return ColoredBox(
-      color: GamePalette.backdrop,
-      child: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
-            // 장면의 비율을 보존하며 전체 메뉴를 화면 안에 맞출 기준 높이.
-            final height = math.max(
-              constraints.maxHeight,
-              math.min(constraints.maxWidth, 460) /
-                      _LobbyScene.sourceSize.width *
-                      _LobbyScene.sourceSize.height *
-                      0.5 +
-                  400 +
-                  (textScale - 1).clamp(0, 3) * 250 +
-                  MediaQuery.paddingOf(context).vertical,
-            );
-            return Center(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: SizedBox(
-                  width: math.min(constraints.maxWidth, 460),
-                  height: height,
-                  child: _buildCanvas(context, value),
+    return Stack(
+      key: const ValueKey('main-lobby-screen'),
+      fit: StackFit.expand,
+      children: [
+        const _LobbyScene(),
+        SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
+              // 배경과 독립적으로 메뉴 전체를 안전영역 안에 맞출 기준 높이.
+              final height = math.max(
+                constraints.maxHeight,
+                math.min(constraints.maxWidth, 460) /
+                        _LobbyScene.sourceSize.width *
+                        _LobbyScene.sourceSize.height *
+                        0.5 +
+                    400 +
+                    (textScale - 1).clamp(0, 3) * 250 +
+                    MediaQuery.paddingOf(context).vertical,
+              );
+              return Center(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: SizedBox(
+                    width: math.min(constraints.maxWidth, 460),
+                    height: height,
+                    child: _buildCanvas(context, value),
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -76,275 +80,265 @@ class _MainLobby extends StatelessWidget {
         value.hasStageProgress &&
         value.phase != GamePhase.success &&
         value.phase != GamePhase.failure;
-    return ColoredBox(
-      key: const ValueKey('main-lobby-screen'),
-      color: GamePalette.backdrop,
-      child: Stack(
-        children: [
-          const Positioned.fill(child: _LobbyScene()),
-          SafeArea(
-            child: Column(
-              children: [
-                if (_showMapEditor)
-                  _MenuDebugShortcuts(
-                    testPanelOpen: false,
-                    onToggleTestPanel: onOpenDebugPanel,
-                    onOpenMapEditor: onOpenMapEditor,
-                  ),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final height = constraints.maxHeight;
-                      return SizedBox(
-                        child: Center(
-                          child: SizedBox(
-                            width: math.min(constraints.maxWidth, 460),
-                            height: height,
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  SizedBox(
-                                    height: math.max(
-                                      160,
-                                      constraints.maxWidth /
-                                              _LobbyScene.sourceSize.width *
-                                              _LobbyScene.sourceSize.height *
-                                              0.5 -
-                                          MediaQuery.paddingOf(context).top -
-                                          6,
+    return Stack(
+      children: [
+        SafeArea(
+          child: Column(
+            children: [
+              if (_showMapEditor)
+                _MenuDebugShortcuts(
+                  testPanelOpen: false,
+                  onToggleTestPanel: onOpenDebugPanel,
+                  onOpenMapEditor: onOpenMapEditor,
+                ),
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final height = constraints.maxHeight;
+                    return SizedBox(
+                      child: Center(
+                        child: SizedBox(
+                          width: math.min(constraints.maxWidth, 460),
+                          height: height,
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                SizedBox(
+                                  height: math.max(
+                                    160,
+                                    constraints.maxWidth /
+                                            _LobbyScene.sourceSize.width *
+                                            _LobbyScene.sourceSize.height *
+                                            0.5 -
+                                        MediaQuery.paddingOf(context).top -
+                                        6,
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: TextButton.icon(
+                                          key: const ValueKey('lobby-settings'),
+                                          onPressed: () =>
+                                              _openSettings(context),
+                                          icon: Image.asset(
+                                            lobbySettingsIconAsset,
+                                            width: 28,
+                                            height: 28,
+                                            excludeFromSemantics: true,
+                                          ),
+                                          label: const Text('설정'),
+                                          style: TextButton.styleFrom(
+                                            foregroundColor:
+                                                GamePalette.textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                                      Center(
+                                        child: Image.asset(
+                                          gameLogoAsset,
+                                          width: 208,
+                                          height: 52,
+                                          fit: BoxFit.contain,
+                                          semanticLabel: 'Rune Nexus',
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 28,
+                                  ),
+                                  child: GameAssetSurface(
+                                    frame: GameAssetFrame.panel,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 18,
+                                      vertical: 18,
                                     ),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.stretch,
                                       children: [
-                                        Align(
-                                          alignment: Alignment.centerRight,
-                                          child: TextButton.icon(
+                                        Text(
+                                          activeRun
+                                              ? context.l10n.stageName(
+                                                  value.currentStageNumber,
+                                                )
+                                              : '전투 준비',
+                                          textAlign: TextAlign.center,
+                                          style: GameTextStyles.title,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          activeRun
+                                              ? '${value.round} / ${value.maxRound} 라운드'
+                                              : '도전할 스테이지를 선택하세요',
+                                          textAlign: TextAlign.center,
+                                          style: GameTextStyles.body,
+                                        ),
+                                        if (activeRun) ...[
+                                          const SizedBox(height: 18),
+                                          _LobbyStageButton(
                                             key: const ValueKey(
-                                              'lobby-settings',
+                                              'lobby-continue-run',
                                             ),
-                                            onPressed: () =>
-                                                _openSettings(context),
-                                            icon: Image.asset(
-                                              lobbySettingsIconAsset,
-                                              width: 28,
-                                              height: 28,
-                                              excludeFromSemantics: true,
-                                            ),
-                                            label: const Text('설정'),
-                                            style: TextButton.styleFrom(
-                                              foregroundColor:
-                                                  GamePalette.textSecondary,
+                                            label: '이어서 진행',
+                                            onPressed: () => onStartStage(
+                                              value.currentStageNumber,
                                             ),
                                           ),
-                                        ),
-                                        Center(
-                                          child: Image.asset(
-                                            gameLogoAsset,
-                                            width: 208,
-                                            height: 52,
-                                            fit: BoxFit.contain,
-                                            semanticLabel: 'Rune Nexus',
-                                          ),
-                                        ),
+                                        ],
                                       ],
                                     ),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 28,
-                                    ),
-                                    child: GameAssetSurface(
-                                      frame: GameAssetFrame.panel,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 18,
-                                        vertical: 18,
+                                ),
+                                const Spacer(),
+                                const SizedBox(height: 18),
+                                Center(
+                                  child: SizedBox(
+                                    width:
+                                        248 +
+                                        (MediaQuery.textScalerOf(
+                                                      context,
+                                                    ).scale(12) -
+                                                    12)
+                                                .clamp(0, 36) *
+                                            7,
+                                    child: Material(
+                                      color: const Color(0xAD101A24),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(6),
+                                        side: const BorderSide(
+                                          color: Color(0x407E929F),
+                                        ),
                                       ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
+                                      clipBehavior: Clip.antiAlias,
+                                      child: Row(
                                         children: [
-                                          Text(
-                                            activeRun
-                                                ? context.l10n.stageName(
-                                                    value.currentStageNumber,
-                                                  )
-                                                : '전투 준비',
-                                            textAlign: TextAlign.center,
-                                            style: GameTextStyles.title,
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            activeRun
-                                                ? '${value.round} / ${value.maxRound} 라운드'
-                                                : '도전할 스테이지를 선택하세요',
-                                            textAlign: TextAlign.center,
-                                            style: GameTextStyles.body,
-                                          ),
-                                          if (activeRun) ...[
-                                            const SizedBox(height: 18),
-                                            _LobbyStageButton(
+                                          Expanded(
+                                            child: _LobbyShortcut(
                                               key: const ValueKey(
-                                                'lobby-continue-run',
+                                                'lobby-events',
                                               ),
-                                              label: '이어서 진행',
-                                              onPressed: () => onStartStage(
-                                                value.currentStageNumber,
-                                              ),
+                                              horizontal: true,
+                                              label: '이벤트',
+                                              asset: lobbyEventIconAsset,
+                                              notification:
+                                                  _dailyQuestClaimableCount(
+                                                    value,
+                                                  ) >
+                                                  0,
+                                              onPressed: () =>
+                                                  _openEvents(context),
                                             ),
-                                          ],
+                                          ),
+                                          const SizedBox(
+                                            height: 20,
+                                            child: VerticalDivider(
+                                              width: 1,
+                                              color: Color(0x407E929F),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: _LobbyShortcut(
+                                              key: const ValueKey(
+                                                'lobby-leaderboard',
+                                              ),
+                                              horizontal: true,
+                                              label: '리더보드',
+                                              asset: lobbyLeaderboardIconAsset,
+                                              onPressed: () =>
+                                                  _openLeaderboard(context),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
                                   ),
-                                  const Spacer(),
-                                  const SizedBox(height: 18),
-                                  Center(
-                                    child: SizedBox(
-                                      width:
-                                          248 +
-                                          (MediaQuery.textScalerOf(
-                                                        context,
-                                                      ).scale(12) -
-                                                      12)
-                                                  .clamp(0, 36) *
-                                              7,
-                                      child: Material(
-                                        color: const Color(0xAD101A24),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                          side: const BorderSide(
-                                            color: Color(0x407E929F),
+                                ),
+                                const SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 28,
+                                  ),
+                                  child: _LobbyStageButton(
+                                    key: const ValueKey('lobby-stage-select'),
+                                    label: '스테이지 선택',
+                                    primary: true,
+                                    iconAsset: stageRewardStageIconAsset,
+                                    onPressed: () =>
+                                        onSelectTab(MainMenuTab.stage),
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                GameAssetSurface(
+                                  frame: GameAssetFrame.panel,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 6,
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      for (final item in const [
+                                        (
+                                          MainMenuTab.core,
+                                          'core',
+                                          '넥서스 코어',
+                                          stageRewardCoreIconAsset,
+                                        ),
+                                        (
+                                          MainMenuTab.permanentUpgrades,
+                                          'upgrades',
+                                          '영구 강화',
+                                          stageRewardUpgradeIconAsset,
+                                        ),
+                                        (
+                                          MainMenuTab.research,
+                                          'research',
+                                          '연구',
+                                          stageRewardResearchIconAsset,
+                                        ),
+                                        (
+                                          MainMenuTab.turretModules,
+                                          'modules',
+                                          '포탑 모듈',
+                                          stageRewardTurretIconAsset,
+                                        ),
+                                      ])
+                                        Expanded(
+                                          child: _LobbyShortcut(
+                                            key: ValueKey(
+                                              'lobby-tab-${item.$2}',
+                                            ),
+                                            label: item.$3,
+                                            asset: item.$4,
+                                            onPressed: () =>
+                                                onSelectTab(item.$1),
                                           ),
                                         ),
-                                        clipBehavior: Clip.antiAlias,
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: _LobbyShortcut(
-                                                key: const ValueKey(
-                                                  'lobby-events',
-                                                ),
-                                                horizontal: true,
-                                                label: '이벤트',
-                                                asset: lobbyEventIconAsset,
-                                                notification:
-                                                    _dailyQuestClaimableCount(
-                                                      value,
-                                                    ) >
-                                                    0,
-                                                onPressed: () =>
-                                                    _openEvents(context),
-                                              ),
-                                            ),
-                                            const SizedBox(
-                                              height: 20,
-                                              child: VerticalDivider(
-                                                width: 1,
-                                                color: Color(0x407E929F),
-                                              ),
-                                            ),
-                                            Expanded(
-                                              child: _LobbyShortcut(
-                                                key: const ValueKey(
-                                                  'lobby-leaderboard',
-                                                ),
-                                                horizontal: true,
-                                                label: '리더보드',
-                                                asset:
-                                                    lobbyLeaderboardIconAsset,
-                                                onPressed: () =>
-                                                    _openLeaderboard(context),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 8),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 28,
-                                    ),
-                                    child: _LobbyStageButton(
-                                      key: const ValueKey('lobby-stage-select'),
-                                      label: '스테이지 선택',
-                                      primary: true,
-                                      iconAsset: stageRewardStageIconAsset,
-                                      onPressed: () =>
-                                          onSelectTab(MainMenuTab.stage),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 14),
-                                  GameAssetSurface(
-                                    frame: GameAssetFrame.panel,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                      vertical: 6,
-                                    ),
-                                    child: Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        for (final item in const [
-                                          (
-                                            MainMenuTab.core,
-                                            'core',
-                                            '넥서스 코어',
-                                            stageRewardCoreIconAsset,
-                                          ),
-                                          (
-                                            MainMenuTab.permanentUpgrades,
-                                            'upgrades',
-                                            '영구 강화',
-                                            stageRewardUpgradeIconAsset,
-                                          ),
-                                          (
-                                            MainMenuTab.research,
-                                            'research',
-                                            '연구',
-                                            stageRewardResearchIconAsset,
-                                          ),
-                                          (
-                                            MainMenuTab.turretModules,
-                                            'modules',
-                                            '포탑 모듈',
-                                            stageRewardTurretIconAsset,
-                                          ),
-                                        ])
-                                          Expanded(
-                                            child: _LobbyShortcut(
-                                              key: ValueKey(
-                                                'lobby-tab-${item.$2}',
-                                              ),
-                                              label: item.$3,
-                                              asset: item.$4,
-                                              onPressed: () =>
-                                                  onSelectTab(item.$1),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -586,21 +580,22 @@ class _LobbyScene extends StatelessWidget {
     return IgnorePointer(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // 제단과 장치를 같은 폭 비율로 배치해 접점 유지.
-          final sceneHeight =
-              constraints.maxWidth / sourceSize.width * sourceSize.height;
+          // 배경은 화면을 채우고, 제단과 장치는 같은 배율·원점으로 접점 유지.
+          final scale = math.max(
+            constraints.maxWidth / sourceSize.width,
+            constraints.maxHeight / sourceSize.height,
+          );
+          final sceneWidth = sourceSize.width * scale;
+          final sceneHeight = sourceSize.height * scale;
           final floorY = sceneHeight * 0.417;
-          final deviceSize = constraints.maxWidth * 0.49;
+          final deviceSize = sceneWidth * 0.49;
           return Stack(
             children: [
-              Positioned(
-                left: 0,
-                top: 0,
-                width: constraints.maxWidth,
-                height: sceneHeight,
+              Positioned.fill(
                 child: Image.asset(
                   lobbyBackgroundAsset,
-                  fit: BoxFit.fill,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.topCenter,
                   excludeFromSemantics: true,
                 ),
               ),

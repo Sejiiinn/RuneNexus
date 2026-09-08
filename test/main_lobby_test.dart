@@ -12,8 +12,10 @@ void main() {
     testWidgets('실제 로비 초기 상태와 전투 진행 상태 렌더 캡처', (tester) async {
       tester.view.physicalSize = const Size(390, 844);
       tester.view.devicePixelRatio = 1;
+      tester.view.padding = const FakeViewPadding(top: 24, bottom: 48);
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPadding);
       final boundaryKey = GlobalKey();
       await tester.runAsync(() async {
         final loader = FontLoader('NotoSansKR')
@@ -67,7 +69,7 @@ void main() {
           final image = await boundary.toImage(pixelRatio: 2);
           final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
           final file = File(
-            'design/lobby/implemented_lobby${active ? "_active" : ""}.png',
+            'design/lobby/implemented_lobby_fullbleed${active ? "_active" : ""}.png',
           );
           await file.parent.create(recursive: true);
           await file.writeAsBytes(bytes!.buffer.asUint8List());
@@ -260,14 +262,19 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  for (final viewport in [const Size(320, 568), const Size(844, 390)]) {
+  for (final viewport in [
+    const Size(320, 568),
+    const Size(393, 852),
+    const Size(844, 390),
+  ]) {
     for (final textScale in [1.0, 2.0]) {
       testWidgets(
-        '로비 ${viewport.width}x${viewport.height} 글자 $textScale 배율에서 메뉴 접근 가능',
+        '로비 ${viewport.width}x${viewport.height} 글자 $textScale 배율에서 배경은 화면을 채우고 메뉴 접근 가능',
         (tester) async {
+          final bottomPadding = viewport.height == 852 ? 48.0 : 16.0;
           tester.view.physicalSize = viewport;
           tester.view.devicePixelRatio = 1;
-          tester.view.padding = FakeViewPadding(top: 24, bottom: 16);
+          tester.view.padding = FakeViewPadding(top: 24, bottom: bottomPadding);
           addTearDown(tester.view.resetPadding);
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
@@ -303,11 +310,25 @@ void main() {
             ),
           );
           await pumpGameFrames(tester);
-          expect(
-            find.descendant(
-              of: find.byKey(const ValueKey('main-lobby-screen')),
-              matching: find.byType(Scrollable),
+          final lobby = find.byKey(const ValueKey('main-lobby-screen'));
+          final background = find.descendant(
+            of: lobby,
+            matching: find.byWidgetPredicate(
+              (widget) =>
+                  widget is Image &&
+                  widget.image is AssetImage &&
+                  (widget.image as AssetImage).assetName ==
+                      lobbyBackgroundAsset,
             ),
+          );
+          // 안전영역까지 이어지는 배경과 실제 이미지의 전체 화면 점유.
+          final viewportRect = Offset.zero & viewport;
+          expect(tester.getRect(lobby), viewportRect);
+          expect(background, findsOneWidget);
+          expect(tester.getRect(background), viewportRect);
+          expect(tester.widget<Image>(background).fit, BoxFit.cover);
+          expect(
+            find.descendant(of: lobby, matching: find.byType(Scrollable)),
             findsNothing,
           );
           final stageButton = find.byKey(const ValueKey('lobby-stage-select'));
@@ -333,7 +354,10 @@ void main() {
             expect(rect.left, greaterThanOrEqualTo(0));
             expect(rect.right, lessThanOrEqualTo(viewport.width));
             expect(rect.top, greaterThanOrEqualTo(24));
-            expect(rect.bottom, lessThanOrEqualTo(viewport.height - 16));
+            expect(
+              rect.bottom,
+              lessThanOrEqualTo(viewport.height - bottomPadding),
+            );
           }
           expect(tester.takeException(), isNull);
         },
