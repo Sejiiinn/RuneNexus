@@ -1,6 +1,78 @@
 import 'helpers/game_balance_test_helpers.dart';
 
 void main() {
+  test('claim checks refresh the day before evaluating completed progress', () {
+    final beforeReset = DateTime.utc(2026, 6, 7, 19, 59).millisecondsSinceEpoch;
+    final afterReset = DateTime.utc(2026, 6, 7, 20).millisecondsSinceEpoch;
+    for (final check in <bool Function(RunProgression)>[
+      (progression) => progression.canClaimDailyQuestReward(
+        DailyQuestType.clearWaves,
+        nowMillis: afterReset,
+      ),
+      (progression) => progression.canClaimDailyQuestAllCompleteReward(
+        nowMillis: afterReset,
+      ),
+      (progression) => progression.canClaimWeeklyQuestReward(
+        DailyQuestType.clearWaves,
+        nowMillis: afterReset,
+      ),
+    ]) {
+      final progression = RunProgression();
+      for (final entry in gameWeeklyQuestDefinitions.entries) {
+        progression.recordDailyQuestProgress(
+          entry.key,
+          amount: entry.value.targetCount,
+          nowMillis: beforeReset,
+        );
+      }
+      expect(progression.allDailyQuestsComplete, isTrue);
+      expect(progression.allWeeklyQuestsComplete, isTrue);
+      expect(check(progression), isFalse);
+      expect(progression.dailyQuestProgress, isEmpty);
+      expect(progression.weeklyQuestProgress, isEmpty);
+      expect(progression.freeDiamonds, 0);
+    }
+  });
+
+  test('daily receipts preserve period checks without refreshing time', () {
+    final nowMillis = DateTime.utc(2026, 6, 8).millisecondsSinceEpoch;
+    final progression = RunProgression();
+    for (final entry in gameDailyQuestDefinitions.entries) {
+      progression.recordDailyQuestProgress(
+        entry.key,
+        amount: entry.value.targetCount,
+        nowMillis: nowMillis,
+      );
+    }
+    final dayKey = progression.dailyQuestDayKey;
+    expect(
+      progression.applyDailyQuestRewardReceipt(
+        DailyQuestType.clearWaves,
+        dayKey: dayKey - 1,
+      ),
+      isFalse,
+    );
+    expect(
+      progression.applyDailyQuestAllCompleteRewardReceipt(dayKey: dayKey - 1),
+      isFalse,
+    );
+    expect(progression.claimedDailyQuestRewards, isEmpty);
+    expect(progression.dailyQuestAllCompleteClaimed, isFalse);
+    expect(
+      progression.applyDailyQuestRewardReceipt(
+        DailyQuestType.clearWaves,
+        dayKey: dayKey,
+      ),
+      isTrue,
+    );
+    expect(
+      progression.applyDailyQuestAllCompleteRewardReceipt(dayKey: dayKey),
+      isTrue,
+    );
+    expect(progression.lastDailyQuestSeenMillis, nowMillis);
+    expect(progression.freeDiamonds, 0);
+  });
+
   test('daily quests grant free diamonds once and persist state', () {
     const nowMillis = 1780675200000;
     final progression = RunProgression();

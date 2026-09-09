@@ -49,27 +49,23 @@ class TurretActionController {
     }
 
     final turret = _selectedTurret(selectedPoint, turrets);
-    if (turret == null ||
-        turret.equippedGems.contains(type) ||
-        !canEquipGemOnTurret(type, turret.definition)) {
+    if (turret == null) {
       return null;
     }
 
     final slotIndex = selectedSlotIndex == null
         ? _defaultGemSlotIndex(turret)
         : selectedSlotIndex.clamp(0, turret.slotLimit - 1).toInt();
-    if (!turret.canEquipGemAt(slotIndex)) {
+    if (!canEquipGem(turret: turret, type: type, slotIndex: slotIndex)) {
       return null;
     }
 
-    final returnedGem = turret.equipGem(type, slotIndex);
-    gemInventory[type] = (gemInventory[type] ?? 0) - 1;
-    if ((gemInventory[type] ?? 0) <= 0) {
-      gemInventory.remove(type);
-    }
-    if (returnedGem != null) {
-      gemInventory[returnedGem] = (gemInventory[returnedGem] ?? 0) + 1;
-    }
+    applyGemEquip(
+      turret: turret,
+      gemInventory: gemInventory,
+      type: type,
+      slotIndex: slotIndex,
+    );
 
     return TurretActionResult(
       gold: gold,
@@ -78,6 +74,37 @@ class TurretActionController {
       selectedGemSlotIndex: slotIndex,
       levelUpPreviewPoint: levelUpPreviewPoint,
     );
+  }
+
+  bool canEquipGem({
+    required TurretComponent turret,
+    required GemType type,
+    int? slotIndex,
+  }) {
+    return !turret.hasGem(type) &&
+        canEquipGemOnTurret(type, turret.definition) &&
+        (slotIndex == null || turret.canEquipGemAt(slotIndex));
+  }
+
+  // 장착 조건 확인·보상 지급 이후의 동기 교환. 저장과 화면 갱신은 호출자 책임.
+  void applyGemEquip({
+    required TurretComponent turret,
+    required Map<GemType, int> gemInventory,
+    required GemType type,
+    required int slotIndex,
+  }) {
+    assert(canEquipGem(turret: turret, type: type, slotIndex: slotIndex));
+    assert((gemInventory[type] ?? 0) > 0);
+    final returnedGem = turret.equipGem(type, slotIndex);
+    final remaining = gemInventory[type]! - 1;
+    if (remaining <= 0) {
+      gemInventory.remove(type);
+    } else {
+      gemInventory[type] = remaining;
+    }
+    if (returnedGem != null) {
+      gemInventory[returnedGem] = (gemInventory[returnedGem] ?? 0) + 1;
+    }
   }
 
   TurretActionResult? removeGem({

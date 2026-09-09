@@ -17,6 +17,7 @@ import '../../domain/combat/game_phase.dart';
 import '../../domain/core/core_ability.dart';
 import '../../domain/core/core_passive_tree.dart';
 import '../../domain/daily_quest/daily_quest_type.dart';
+import '../../domain/daily_quest/quest_reward_rules.dart';
 import '../../domain/economy/weekly_reward_claim.dart';
 import '../../domain/gem/gem_type.dart';
 import '../../domain/research/research_definition.dart';

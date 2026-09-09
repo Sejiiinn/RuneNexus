@@ -1022,21 +1022,21 @@ int _dailyQuestClaimableCount(GameSnapshot snapshot) {
 }
 
 bool _canClaimDailyQuestReward(GameSnapshot snapshot, DailyQuestType type) {
-  if (snapshot.dailyQuestClockRollbackDetected ||
-      snapshot.claimedDailyQuestRewards.contains(type)) {
-    return false;
-  }
-  final definition = gameDailyQuestDefinitions[type];
-  if (definition == null) {
-    return false;
-  }
-  return (snapshot.dailyQuestProgress[type] ?? 0) >= definition.targetCount;
+  return QuestRewardRules.canClaim(
+    definition: gameDailyQuestDefinitions[type],
+    progress: snapshot.dailyQuestProgress[type] ?? 0,
+    claimed: snapshot.claimedDailyQuestRewards.contains(type),
+    clockRollbackDetected: snapshot.dailyQuestClockRollbackDetected,
+  );
 }
 
 bool _canClaimAllDailyQuestReward(GameSnapshot snapshot) {
-  return !snapshot.dailyQuestClockRollbackDetected &&
-      snapshot.completedDailyQuestCount == gameDailyQuestDefinitions.length &&
-      !snapshot.dailyQuestAllCompleteClaimed;
+  return QuestRewardRules.canClaimAllComplete(
+    completedCount: snapshot.completedDailyQuestCount,
+    questCount: gameDailyQuestDefinitions.length,
+    claimed: snapshot.dailyQuestAllCompleteClaimed,
+    clockRollbackDetected: snapshot.dailyQuestClockRollbackDetected,
+  );
 }
 
 String _dailyQuestIconAsset(DailyQuestType type) {

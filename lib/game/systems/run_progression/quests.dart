@@ -109,18 +109,20 @@ mixin _QuestProgression {
   }
 
   bool isDailyQuestComplete(DailyQuestType type) {
-    final definition = gameDailyQuestDefinitions[type];
-    if (definition == null) {
-      return false;
-    }
-    return (dailyQuestProgress[type] ?? 0) >= definition.targetCount;
+    return QuestRewardRules.isComplete(
+      definition: gameDailyQuestDefinitions[type],
+      progress: dailyQuestProgress[type] ?? 0,
+    );
   }
 
   bool canClaimDailyQuestReward(DailyQuestType type, {required int nowMillis}) {
     refreshDailyQuests(nowMillis: nowMillis);
-    return !dailyQuestClockRollbackDetected &&
-        isDailyQuestComplete(type) &&
-        !claimedDailyQuestRewards.contains(type);
+    return QuestRewardRules.canClaim(
+      definition: gameDailyQuestDefinitions[type],
+      progress: dailyQuestProgress[type] ?? 0,
+      claimed: claimedDailyQuestRewards.contains(type),
+      clockRollbackDetected: dailyQuestClockRollbackDetected,
+    );
   }
 
   bool claimDailyQuestReward(DailyQuestType type, {required int nowMillis}) {
@@ -139,9 +141,12 @@ mixin _QuestProgression {
     required int dayKey,
   }) {
     if (dailyQuestDayKey != dayKey ||
-        dailyQuestClockRollbackDetected ||
-        !isDailyQuestComplete(type) ||
-        claimedDailyQuestRewards.contains(type)) {
+        !QuestRewardRules.canClaim(
+          definition: gameDailyQuestDefinitions[type],
+          progress: dailyQuestProgress[type] ?? 0,
+          claimed: claimedDailyQuestRewards.contains(type),
+          clockRollbackDetected: dailyQuestClockRollbackDetected,
+        )) {
       return false;
     }
     claimedDailyQuestRewards.add(type);
@@ -150,9 +155,12 @@ mixin _QuestProgression {
 
   bool canClaimDailyQuestAllCompleteReward({required int nowMillis}) {
     refreshDailyQuests(nowMillis: nowMillis);
-    return !dailyQuestClockRollbackDetected &&
-        allDailyQuestsComplete &&
-        !dailyQuestAllCompleteClaimed;
+    return QuestRewardRules.canClaimAllComplete(
+      completedCount: completedDailyQuestCount,
+      questCount: gameDailyQuestDefinitions.length,
+      claimed: dailyQuestAllCompleteClaimed,
+      clockRollbackDetected: dailyQuestClockRollbackDetected,
+    );
   }
 
   bool claimDailyQuestAllCompleteReward({required int nowMillis}) {
@@ -166,9 +174,12 @@ mixin _QuestProgression {
 
   bool applyDailyQuestAllCompleteRewardReceipt({required int dayKey}) {
     if (dailyQuestDayKey != dayKey ||
-        dailyQuestClockRollbackDetected ||
-        !allDailyQuestsComplete ||
-        dailyQuestAllCompleteClaimed) {
+        !QuestRewardRules.canClaimAllComplete(
+          completedCount: completedDailyQuestCount,
+          questCount: gameDailyQuestDefinitions.length,
+          claimed: dailyQuestAllCompleteClaimed,
+          clockRollbackDetected: dailyQuestClockRollbackDetected,
+        )) {
       return false;
     }
     dailyQuestAllCompleteClaimed = true;
@@ -196,11 +207,10 @@ mixin _QuestProgression {
   }
 
   bool isWeeklyQuestComplete(DailyQuestType type) {
-    final definition = gameWeeklyQuestDefinitions[type];
-    if (definition == null) {
-      return false;
-    }
-    return (weeklyQuestProgress[type] ?? 0) >= definition.targetCount;
+    return QuestRewardRules.isComplete(
+      definition: gameWeeklyQuestDefinitions[type],
+      progress: weeklyQuestProgress[type] ?? 0,
+    );
   }
 
   bool canClaimWeeklyQuestReward(
@@ -208,9 +218,12 @@ mixin _QuestProgression {
     required int nowMillis,
   }) {
     refreshDailyQuests(nowMillis: nowMillis);
-    return !dailyQuestClockRollbackDetected &&
-        isWeeklyQuestComplete(type) &&
-        !claimedWeeklyQuestRewards.contains(type);
+    return QuestRewardRules.canClaim(
+      definition: gameWeeklyQuestDefinitions[type],
+      progress: weeklyQuestProgress[type] ?? 0,
+      claimed: claimedWeeklyQuestRewards.contains(type),
+      clockRollbackDetected: dailyQuestClockRollbackDetected,
+    );
   }
 
   bool applyWeeklyQuestRewardReceipt(
@@ -223,9 +236,12 @@ mixin _QuestProgression {
     if (definition == null ||
         rewardDiamonds <= 0 ||
         weeklyQuestWeekKey != weekKey ||
-        dailyQuestClockRollbackDetected ||
-        !isWeeklyQuestComplete(type) ||
-        claimedWeeklyQuestRewards.contains(type)) {
+        !QuestRewardRules.canClaim(
+          definition: definition,
+          progress: weeklyQuestProgress[type] ?? 0,
+          claimed: claimedWeeklyQuestRewards.contains(type),
+          clockRollbackDetected: dailyQuestClockRollbackDetected,
+        )) {
       return false;
     }
     if (grantEconomyRewardsLocally) {
@@ -244,9 +260,12 @@ mixin _QuestProgression {
     if (rewardDiamonds <= 0 ||
         rewardModuleTickets < 0 ||
         weeklyQuestWeekKey != weekKey ||
-        dailyQuestClockRollbackDetected ||
-        !allWeeklyQuestsComplete ||
-        weeklyQuestAllCompleteClaimed) {
+        !QuestRewardRules.canClaimAllComplete(
+          completedCount: completedWeeklyQuestCount,
+          questCount: gameWeeklyQuestDefinitions.length,
+          claimed: weeklyQuestAllCompleteClaimed,
+          clockRollbackDetected: dailyQuestClockRollbackDetected,
+        )) {
       return false;
     }
     if (grantEconomyRewardsLocally) {

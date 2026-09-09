@@ -11,6 +11,7 @@ import '../../domain/core/core_ability.dart';
 import '../../domain/core/core_passive_tree.dart';
 import '../../domain/currency/diamond_wallet.dart';
 import '../../domain/daily_quest/daily_quest_type.dart';
+import '../../domain/daily_quest/quest_reward_rules.dart';
 import '../../domain/economy/economy_snapshot.dart';
 import '../../domain/research/research_progress.dart';
 import '../../domain/research/research_type.dart';

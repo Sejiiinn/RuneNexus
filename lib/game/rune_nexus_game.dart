@@ -35,7 +35,6 @@ import '../domain/enemy/diamond_carrier_rules.dart';
 import '../domain/enemy/enemy_scaling.dart';
 import '../domain/enemy/enemy_type.dart';
 import '../domain/gem/gem_type.dart';
-import '../domain/gem/gem_equip_rules.dart';
 import '../domain/gem/gem_reward_target_status.dart';
 import '../domain/map/grid_point.dart';
 import '../domain/map/map_definition.dart';
@@ -2242,8 +2241,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (!isGemRewardTargeting ||
         type == null ||
         turret == null ||
-        turret.hasGem(type) ||
-        !canEquipGemOnTurret(type, turret.definition)) {
+        !_turretActions.canEquipGem(turret: turret, type: type)) {
       return GemRewardTargetStatus.unavailable;
     }
     return turret.equippedGemSlots.any((gem) => gem == null)
@@ -2312,9 +2310,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }) {
     if (turret != null &&
         (slotIndex == null ||
-            !turret.canEquipGemAt(slotIndex) ||
-            turret.hasGem(type) ||
-            !canEquipGemOnTurret(type, turret.definition) ||
+            !_turretActions.canEquipGem(
+              turret: turret,
+              type: type,
+              slotIndex: slotIndex,
+            ) ||
             _turrets[turret.gridPoint] != turret)) {
       return false;
     }
@@ -2329,16 +2329,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
     // 지급·장착·기존 젬 반환을 한 동기 처리로 완료한 뒤 저장.
     if (turret != null) {
-      final returnedGem = turret.equipGem(type, slotIndex!);
-      final remaining = _gemInventory[type]! - 1;
-      if (remaining == 0) {
-        _gemInventory.remove(type);
-      } else {
-        _gemInventory[type] = remaining;
-      }
-      if (returnedGem != null) {
-        _gemRewards.grantGem(gemInventory: _gemInventory, type: returnedGem);
-      }
+      _turretActions.applyGemEquip(
+        turret: turret,
+        gemInventory: _gemInventory,
+        type: type,
+        slotIndex: slotIndex!,
+      );
       _refreshEfficiencyPassiveBoardState();
       _spawnGemEquipEffect(turret, type);
     }

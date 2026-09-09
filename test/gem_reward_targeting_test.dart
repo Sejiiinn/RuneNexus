@@ -213,6 +213,12 @@ void main() {
     () async {
       final fixture = await _reward(equipped: GemType.attackSpeed);
       final game = fixture.game;
+      for (var i = 0; i < 2; i++) {
+        game.grantGem(GemType.range);
+      }
+      for (var i = 0; i < 3; i++) {
+        game.grantGem(GemType.attackSpeed);
+      }
       expect(game.previewRewardGem(GemType.range), isTrue);
       expect(
         game.gemRewardTargetStatus(_target),
@@ -221,7 +227,10 @@ void main() {
       expect(game.selectRewardGemTarget(_target), isTrue);
       expect(game.snapshotNotifier.value.rewardReplacementPoint, _target);
       expect(game.snapshotNotifier.value.phase, GamePhase.reward);
-      expect(game.snapshotNotifier.value.gemInventory, isEmpty);
+      expect(game.snapshotNotifier.value.gemInventory, {
+        GemType.range: 2,
+        GemType.attackSpeed: 3,
+      });
       expect(game.replaceRewardGem(-1), isFalse);
       expect(game.replaceRewardGem(1), isFalse);
       game.cancelRewardGemReplacement();
@@ -234,7 +243,7 @@ void main() {
 
       final saved = fixture.repository.data!.activeRun!;
       expect(saved.turrets.single.equippedGemSlots, [GemType.range]);
-      expect(saved.gemInventory, {GemType.attackSpeed: 1});
+      expect(saved.gemInventory, {GemType.range: 2, GemType.attackSpeed: 4});
       expect(saved.rewardOptions, isEmpty);
     },
   );

@@ -308,21 +308,21 @@ class _WeeklyQuestRow extends StatelessWidget {
 }
 
 bool _canClaimWeeklyQuestReward(GameSnapshot snapshot, DailyQuestType type) {
-  if (snapshot.dailyQuestClockRollbackDetected ||
-      snapshot.claimedWeeklyQuestRewards.contains(type)) {
-    return false;
-  }
-  final definition = gameWeeklyQuestDefinitions[type];
-  if (definition == null) {
-    return false;
-  }
-  return (snapshot.weeklyQuestProgress[type] ?? 0) >= definition.targetCount;
+  return QuestRewardRules.canClaim(
+    definition: gameWeeklyQuestDefinitions[type],
+    progress: snapshot.weeklyQuestProgress[type] ?? 0,
+    claimed: snapshot.claimedWeeklyQuestRewards.contains(type),
+    clockRollbackDetected: snapshot.dailyQuestClockRollbackDetected,
+  );
 }
 
 bool _canClaimAllWeeklyQuestReward(GameSnapshot snapshot) {
-  return !snapshot.dailyQuestClockRollbackDetected &&
-      snapshot.completedWeeklyQuestCount == gameWeeklyQuestDefinitions.length &&
-      !snapshot.weeklyQuestAllCompleteClaimed;
+  return QuestRewardRules.canClaimAllComplete(
+    completedCount: snapshot.completedWeeklyQuestCount,
+    questCount: gameWeeklyQuestDefinitions.length,
+    claimed: snapshot.weeklyQuestAllCompleteClaimed,
+    clockRollbackDetected: snapshot.dailyQuestClockRollbackDetected,
+  );
 }
 
 int _weeklyQuestClaimableCount(GameSnapshot snapshot) {

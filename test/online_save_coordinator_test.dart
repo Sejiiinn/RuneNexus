@@ -182,52 +182,160 @@ void main() {
     session.dispose();
   });
 
-  test('전송 실패는 같은 본문과 멱등성 key를 Retry-After 뒤 재시도한다', () async {
-    final requests = <OnlineSaveUpdateRequest>[];
-    final timerFactory = _ManualTimerFactory();
-    final client = _FakeOnlineSaveClient(
-      update: (_, request) async {
-        requests.add(request);
-        if (requests.length == 1) {
-          throw const OnlineSaveException(
-            code: 'RATE_LIMIT_EXCEEDED',
-            message: 'limited',
-            statusCode: 429,
-            retryAfter: Duration(seconds: 7),
-          );
+  for (final retryManually in [false, true]) {
+    test(
+      '전송 실패는 ${retryManually ? '수동 재시도' : 'Retry-After 타이머'}로 같은 본문과 멱등성 key를 재전송한다',
+      () async {
+        var claimCount = 0;
+        final requests = <OnlineSaveUpdateRequest>[];
+        final timerFactory = _ManualTimerFactory();
+        final client = _FakeOnlineSaveClient(
+          claimWriter: (_, _) async {
+            claimCount++;
+            return OnlineSaveWriterClaimResult(
+              writerGeneration: 1,
+              claimedAt: DateTime.utc(2026, 8, 24),
+            );
+          },
+          update: (_, request) async {
+            requests.add(request);
+            if (requests.length == 1) {
+              throw const OnlineSaveException(
+                code: 'RATE_LIMIT_EXCEEDED',
+                message: 'limited',
+                statusCode: 429,
+                retryAfter: Duration(seconds: 7),
+              );
+            }
+            return _updateResult(1);
+          },
+        );
+        final session = _session();
+        final coordinator = OnlineSaveCoordinator(
+          accountId: _accountId,
+          client: client,
+          session: session,
+          initialRevision: 0,
+          outboxRepository: MemoryOnlineSaveOutboxRepository(),
+          loadPersistedCheckpoint: () async => null,
+          idempotencyKeyFactory: () => _idempotencyKey(1),
+          timerFactory: timerFactory.create,
+        );
+        addTearDown(coordinator.dispose);
+        addTearDown(session.dispose);
+        await coordinator.initialize();
+
+        await coordinator.enqueuePersistedCheckpoint(_saveData(10));
+        await coordinator.currentAttempt;
+
+        expect(
+          coordinator.snapshot.phase,
+          OnlineSaveCoordinatorPhase.retryWaiting,
+        );
+        expect(timerFactory.lastDuration, const Duration(seconds: 7));
+        final retryTimer = timerFactory.lastTimer!;
+        expect(retryTimer.isActive, isTrue);
+        if (retryManually) {
+          await coordinator.retryNow();
+        } else {
+          retryTimer.fire();
         }
-        return _updateResult(1);
+        await _pumpUntil(() => requests.length == 2);
+        await coordinator.currentAttempt;
+
+        expect(retryTimer.isActive, isFalse);
+        retryTimer.fire();
+        await coordinator.currentAttempt;
+        expect(requests, hasLength(2));
+        expect(claimCount, 1);
+        expect(requests[0].encodedBody, requests[1].encodedBody);
+        expect(requests[0].idempotencyKey, requests[1].idempotencyKey);
+        expect(coordinator.snapshot.remoteRevision, 1);
+        expect(coordinator.snapshot.retryCount, 0);
+        expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
       },
     );
-    final session = _session();
-    final coordinator = OnlineSaveCoordinator(
-      accountId: _accountId,
-      client: client,
-      session: session,
-      initialRevision: 0,
-      outboxRepository: MemoryOnlineSaveOutboxRepository(),
-      loadPersistedCheckpoint: () async => null,
-      idempotencyKeyFactory: () => _idempotencyKey(1),
-      timerFactory: timerFactory.create,
+  }
+
+  for (final dirtyLocal in [false, true]) {
+    test(
+      '원격 304 응답은 동기화 기준을 유지하고 ${dirtyLocal ? '변경된 로컬만 한 번 업로드한다' : '같은 로컬을 재업로드하지 않는다'}',
+      () async {
+        final base = _saveData(5);
+        final local = dirtyLocal ? _saveData(6) : base;
+        final syncedAt = DateTime.utc(2026, 8, 24, 4);
+        final baseHash = onlineSavePayloadHash(base);
+        final repository = _MemoryBackupSaveRepository(local);
+        final outbox = MemoryOnlineSaveOutboxRepository()
+          ..state =
+              OnlineSaveOutboxState.initial(
+                accountId: _accountId,
+                remoteRevision: 7,
+              ).copyWith(
+                lastSyncedPayloadFingerprint: baseHash,
+                lastSyncedAt: syncedAt,
+              );
+        final knownRevisions = <int>[];
+        final requests = <OnlineSaveUpdateRequest>[];
+        final updateCompletion = Completer<OnlineSaveUpdateResult>();
+        final session = _session();
+        final coordinator = OnlineSaveCoordinator(
+          accountId: _accountId,
+          client: _FakeConditionalOnlineSaveClient(
+            loadIfChanged: (_, knownRevision) async {
+              knownRevisions.add(knownRevision);
+              return const OnlineSaveConditionalLoadResult.notModified();
+            },
+            update: (_, request) {
+              requests.add(request);
+              return updateCompletion.future;
+            },
+          ),
+          session: session,
+          initialRevision: 7,
+          outboxRepository: outbox,
+          loadPersistedCheckpoint: repository.load,
+          persistedSaveRepository: repository,
+        );
+        addTearDown(coordinator.dispose);
+        addTearDown(session.dispose);
+
+        await coordinator.initialize();
+        if (dirtyLocal) {
+          await _pumpUntil(() => requests.isNotEmpty);
+        }
+
+        expect(knownRevisions, [7]);
+        expect(outbox.state?.lastSyncedPayloadFingerprint, baseHash);
+        expect(coordinator.snapshot.lastSyncedAt, syncedAt);
+        expect(coordinator.snapshot.remoteRevision, 7);
+        expect(repository.data, same(local));
+        expect(repository.conflictBackups, isEmpty);
+        expect(coordinator.snapshot.requiresGameReload, isFalse);
+        if (dirtyLocal) {
+          expect(requests, hasLength(1));
+          expect(requests.single.expectedRevision, 7);
+          expect(_savedAtMillis(requests.single), 6);
+          updateCompletion.complete(_updateResult(8));
+          await coordinator.currentAttempt;
+          expect(requests, hasLength(1));
+          expect(coordinator.snapshot.remoteRevision, 8);
+          expect(
+            outbox.state?.lastSyncedPayloadFingerprint,
+            onlineSavePayloadHash(local),
+          );
+          expect(
+            coordinator.snapshot.lastSyncedAt,
+            _updateResult(8).serverSavedAt,
+          );
+        } else {
+          expect(requests, isEmpty);
+        }
+        expect(coordinator.snapshot.pendingSaveCount, 0);
+        expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
+      },
     );
-    await coordinator.initialize();
-
-    await coordinator.enqueuePersistedCheckpoint(_saveData(10));
-    await coordinator.currentAttempt;
-
-    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.retryWaiting);
-    expect(timerFactory.lastDuration, const Duration(seconds: 7));
-    timerFactory.lastTimer!.fire();
-    await _pumpUntil(() => requests.length == 2);
-    await coordinator.currentAttempt;
-
-    expect(requests[0].encodedBody, requests[1].encodedBody);
-    expect(requests[0].idempotencyKey, requests[1].idempotencyKey);
-    expect(coordinator.snapshot.remoteRevision, 1);
-    expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
-    coordinator.dispose();
-    session.dispose();
-  });
+  }
 
   test('401은 세션을 한 번 갱신하고 같은 저장 요청을 재전송한다', () async {
     final accessTokens = <String>[];
@@ -1816,6 +1924,30 @@ class _FakeOnlineSaveClient implements OnlineSaveClient {
   ) {
     return _update(accessToken, request);
   }
+}
+
+class _FakeConditionalOnlineSaveClient extends _FakeOnlineSaveClient
+    implements OnlineSaveConditionalClient {
+  _FakeConditionalOnlineSaveClient({
+    required Future<OnlineSaveConditionalLoadResult> Function(
+      String accessToken,
+      int knownRevision,
+    )
+    loadIfChanged,
+    required super.update,
+  }) : _loadIfChanged = loadIfChanged;
+
+  final Future<OnlineSaveConditionalLoadResult> Function(
+    String accessToken,
+    int knownRevision,
+  )
+  _loadIfChanged;
+
+  @override
+  Future<OnlineSaveConditionalLoadResult> loadIfChanged(
+    String accessToken, {
+    required int knownRevision,
+  }) => _loadIfChanged(accessToken, knownRevision);
 }
 
 class _MemoryBackupSaveRepository implements BackupSaveRepository {

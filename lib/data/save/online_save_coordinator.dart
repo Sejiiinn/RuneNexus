@@ -234,9 +234,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
   Future<void> resumeForeground() async {
     _ensureReady();
     var state = _outbox.state;
-    if (state.phase == OnlineSaveOutboxPhase.retryWaiting ||
-        state.phase == OnlineSaveOutboxPhase.rebasing ||
-        state.phase == OnlineSaveOutboxPhase.blocked) {
+    if (_foregroundPausedPhases.contains(state.phase)) {
       return;
     }
     final wasSuspended = state.phase == OnlineSaveOutboxPhase.suspended;
@@ -248,9 +246,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
         return;
       }
       state = _outbox.state;
-      if (state.phase == OnlineSaveOutboxPhase.retryWaiting ||
-          state.phase == OnlineSaveOutboxPhase.rebasing ||
-          state.phase == OnlineSaveOutboxPhase.blocked) {
+      if (_foregroundPausedPhases.contains(state.phase)) {
         return;
       }
     }
@@ -298,14 +294,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
     }
     _retryTimer?.cancel();
     _retryTimer = null;
-    await _outbox.mutate(
-      (current) => current.copyWith(
-        phase: OnlineSaveOutboxPhase.idle,
-        nextRetryAt: null,
-      ),
-    );
-    _publishSnapshot();
-    await _resumeAfterRetry();
+    await _resumeRetry();
   }
 
   void acknowledgeGameReload() {
@@ -428,9 +417,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
     if (_automaticRebaseEnabled && state.rebase != null) {
       await _resumeRebase();
       state = _outbox.state;
-      if (state.phase == OnlineSaveOutboxPhase.retryWaiting ||
-          state.phase == OnlineSaveOutboxPhase.blocked ||
-          state.phase == OnlineSaveOutboxPhase.suspended) {
+      if (_initializationPausedPhases.contains(state.phase)) {
         return;
       }
     }
@@ -453,9 +440,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
     if (_needsRemoteReconciliation) {
       await _reconcileRemote();
       state = _outbox.state;
-      if (state.phase == OnlineSaveOutboxPhase.retryWaiting ||
-          state.phase == OnlineSaveOutboxPhase.blocked ||
-          state.phase == OnlineSaveOutboxPhase.suspended) {
+      if (_initializationPausedPhases.contains(state.phase)) {
         return;
       }
     }
@@ -599,7 +584,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
         _resumingForeground ||
         _drainOperation != null ||
         _retryTimer != null ||
-        _stopsDrain(_outbox.state.phase) ||
+        _drainPausedPhases.contains(_outbox.state.phase) ||
         (_outbox.state.inFlight == null && !_outbox.state.dirty)) {
       return;
     }
@@ -627,7 +612,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
       if (!_disposed &&
           _retryTimer == null &&
           _initialized &&
-          !_stopsDrain(_outbox.state.phase) &&
+          !_drainPausedPhases.contains(_outbox.state.phase) &&
           (_outbox.state.inFlight != null || _outbox.state.dirty)) {
         _startDrain();
       }
@@ -637,7 +622,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
   Future<void> _drainQueue() async {
     while (!_disposed) {
       var state = _outbox.state;
-      if (_stopsDrain(state.phase) ||
+      if (_drainPausedPhases.contains(state.phase) ||
           state.phase == OnlineSaveOutboxPhase.retryWaiting) {
         return;
       }
@@ -755,7 +740,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
           }
           _needsRemoteReconciliation = true;
           await _reconcileRemote();
-          if (_stopsDrain(_outbox.state.phase) ||
+          if (_drainPausedPhases.contains(_outbox.state.phase) ||
               _outbox.state.phase == OnlineSaveOutboxPhase.retryWaiting) {
             return;
           }
@@ -836,73 +821,48 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
           ? OnlineSaveOutboxPhase.suspended
           : OnlineSaveOutboxPhase.idle;
       final reconciledIssueCode = writerSuspended ? state.issueCode : null;
-      if (lookup.notModified) {
-        final updated = await _outbox.mutate(
-          (current) => current.copyWith(
-            dirty: localHash != current.lastSyncedPayloadFingerprint,
-            phase: reconciledPhase,
-            retryCount: 0,
-            nextRetryAt: null,
-            issueCode: reconciledIssueCode,
-            conflictRevision: null,
-          ),
-        );
-        _pendingLatest = updated.dirty ? local : null;
-        _needsRemoteReconciliation = false;
-        _publishSnapshot();
-        _resumeLocalSavesIfSafe();
+      final remote = lookup.notModified ? null : lookup.snapshot;
+      final hasRemoteSave = lookup.notModified || remote != null;
+      if (!hasRemoteSave && state.remoteRevision > 0) {
+        await _markBlocked('REMOTE_SAVE_MISSING');
         return;
       }
-      final remote = lookup.snapshot;
-      if (remote == null) {
-        if (state.remoteRevision > 0) {
-          await _markBlocked('REMOTE_SAVE_MISSING');
+      final remoteHash = remote == null
+          ? null
+          : onlineSavePayloadHash(remote.data);
+      if (remote != null) {
+        if (remote.revision < state.remoteRevision) {
+          await _markBlocked('REMOTE_REVISION_REGRESSION');
           return;
         }
-        final updated = await _outbox.mutate(
-          (current) => current.copyWith(
-            lastSyncedPayloadFingerprint: null,
-            dirty: local != null,
-            phase: reconciledPhase,
-            issueCode: reconciledIssueCode,
-            conflictRevision: null,
-            nextRetryAt: null,
-          ),
-        );
-        _pendingLatest = updated.dirty ? local : null;
-        _needsRemoteReconciliation = false;
-        _publishSnapshot();
-        _resumeLocalSavesIfSafe();
-        return;
+        if (remote.revision > state.remoteRevision) {
+          _needsRemoteReconciliation = false;
+          await _beginRemoteRebase(remote, localHash);
+          return;
+        }
+        final knownBaseHash = state.lastSyncedPayloadFingerprint;
+        if (knownBaseHash != null && knownBaseHash != remoteHash) {
+          await _markBlocked('REMOTE_PAYLOAD_HASH_MISMATCH');
+          return;
+        }
       }
 
-      final remoteHash = onlineSavePayloadHash(remote.data);
-      if (remote.revision < state.remoteRevision) {
-        await _markBlocked('REMOTE_REVISION_REGRESSION');
-        return;
-      }
-      if (remote.revision > state.remoteRevision) {
-        _needsRemoteReconciliation = false;
-        await _beginRemoteRebase(remote, localHash);
-        return;
-      }
-      final knownBaseHash = state.lastSyncedPayloadFingerprint;
-      if (knownBaseHash != null && knownBaseHash != remoteHash) {
-        await _markBlocked('REMOTE_PAYLOAD_HASH_MISMATCH');
-        return;
-      }
-      final updated = await _outbox.mutate(
-        (current) => current.copyWith(
-          lastSyncedPayloadFingerprint: remoteHash,
-          dirty: localHash != remoteHash,
+      final updated = await _outbox.mutate((current) {
+        // 304는 기존 기준을 유지하고, 원격 저장 없음은 기준 해시를 비움.
+        final baseHash = lookup.notModified
+            ? current.lastSyncedPayloadFingerprint
+            : remoteHash;
+        return current.copyWith(
+          lastSyncedPayloadFingerprint: baseHash,
+          dirty: hasRemoteSave ? localHash != baseHash : local != null,
           phase: reconciledPhase,
-          retryCount: 0,
+          retryCount: hasRemoteSave ? 0 : current.retryCount,
           nextRetryAt: null,
-          lastSyncedAt: remote.serverSavedAt,
+          lastSyncedAt: remote?.serverSavedAt ?? current.lastSyncedAt,
           issueCode: reconciledIssueCode,
           conflictRevision: null,
-        ),
-      );
+        );
+      });
       _pendingLatest = updated.dirty ? local : null;
       _needsRemoteReconciliation = false;
       _publishSnapshot();
@@ -1262,7 +1222,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
     if (_needsRemoteReconciliation) {
       await _reconcileRemote();
       if (_outbox.state.phase == OnlineSaveOutboxPhase.retryWaiting ||
-          _stopsDrain(_outbox.state.phase)) {
+          _drainPausedPhases.contains(_outbox.state.phase)) {
         return;
       }
     }
@@ -1430,12 +1390,27 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
 
   bool get _automaticRebaseEnabled => _persistedSaveRepository != null;
 
-  static bool _stopsDrain(OnlineSaveOutboxPhase phase) {
-    return phase == OnlineSaveOutboxPhase.rebasing ||
-        phase == OnlineSaveOutboxPhase.suspended ||
-        phase == OnlineSaveOutboxPhase.conflict ||
-        phase == OnlineSaveOutboxPhase.blocked;
-  }
+  // foreground의 명시적 복귀는 suspended 상태에서도 writer 재획득 허용.
+  static const _foregroundPausedPhases = {
+    OnlineSaveOutboxPhase.retryWaiting,
+    OnlineSaveOutboxPhase.rebasing,
+    OnlineSaveOutboxPhase.blocked,
+  };
+
+  // 초기 복구 중 writer가 중단되면 후속 네트워크 작업도 중단.
+  static const _initializationPausedPhases = {
+    OnlineSaveOutboxPhase.retryWaiting,
+    OnlineSaveOutboxPhase.blocked,
+    OnlineSaveOutboxPhase.suspended,
+  };
+
+  // 전송 재개는 복구 완료 후에만 허용. 재시도 대기는 타이머·루프에서 별도 제어.
+  static const _drainPausedPhases = {
+    OnlineSaveOutboxPhase.rebasing,
+    OnlineSaveOutboxPhase.suspended,
+    OnlineSaveOutboxPhase.conflict,
+    OnlineSaveOutboxPhase.blocked,
+  };
 }
 
 String createOnlineSaveIdempotencyKey() {
