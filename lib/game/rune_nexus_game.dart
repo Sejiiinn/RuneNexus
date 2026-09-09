@@ -2888,42 +2888,19 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       final hitMultiplier = isPrimaryTarget
           ? 1.0
           : attack.splashSecondaryDamageMultiplier;
-      final resolvedDamage = _combatResolver.resolveAttackDamage(
+      _applyAttackHit(
+        owner: owner,
         attack: attack,
         enemy: enemy,
+        sourcePosition: hitPosition,
+        kind: isPrimaryTarget ? directKind : TurretDamageKind.splash,
         baseDamage:
             attack.damage *
             attack.criticalMultiplier *
             damageScale *
             hitMultiplier,
         traitMultiplier: traitMultiplier,
-      );
-      _combatResolver.applyAttackStatuses(
-        attack: attack,
-        enemy: enemy,
-        damageScale: damageScale * hitMultiplier,
-        activeSourceTurretPoint: _isActiveTurret(owner)
-            ? owner.gridPoint
-            : null,
-      );
-      enemy.showHitFlash(owner.definition.color);
-      final actualDamage = enemy.receiveDamage(
-        resolvedDamage.damage,
-        burnTransfer: _burnTransferForHit(owner, attack, enemy),
-        ignoreArmorReduction: attack.ignoresArmorReduction,
-      );
-      showDamageNumber(
-        position: enemy.position.clone(),
-        damage: actualDamage,
-        color: owner.definition.color,
-        sourcePosition: hitPosition,
-        damageMultiplier:
-            resolvedDamage.resistanceMultiplier * attack.criticalMultiplier,
-      );
-      _recordTurretDamage(
-        owner,
-        actualDamage,
-        isPrimaryTarget ? directKind : TurretDamageKind.splash,
+        statusDamageScale: damageScale * hitMultiplier,
       );
       if (ignitionBurstDamage > 0 && !enemy.isDead) {
         enemy.showHitFlash(owner.definition.color);
@@ -3110,34 +3087,56 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
 
     for (final enemy in impacted) {
-      final resolvedDamage = _combatResolver.resolveAttackDamage(
+      _applyAttackHit(
+        owner: owner,
         attack: profile,
         enemy: enemy,
+        sourcePosition: owner.position,
+        kind: TurretDamageKind.splash,
         baseDamage: profile.damage * profile.criticalMultiplier,
       );
-      _combatResolver.applyAttackStatuses(
-        attack: profile,
-        enemy: enemy,
-        activeSourceTurretPoint: _isActiveTurret(owner)
-            ? owner.gridPoint
-            : null,
-      );
-      enemy.showHitFlash(owner.definition.color);
-      final actualDamage = enemy.receiveDamage(
-        resolvedDamage.damage,
-        burnTransfer: _burnTransferForHit(owner, profile, enemy),
-        ignoreArmorReduction: profile.ignoresArmorReduction,
-      );
-      showDamageNumber(
-        position: enemy.position.clone(),
-        damage: actualDamage,
-        color: owner.definition.color,
-        sourcePosition: owner.position,
-        damageMultiplier:
-            resolvedDamage.resistanceMultiplier * profile.criticalMultiplier,
-      );
-      _recordTurretDamage(owner, actualDamage, TurretDamageKind.splash);
     }
+  }
+
+  void _applyAttackHit({
+    required TurretComponent owner,
+    required TurretAttackSnapshot attack,
+    required EnemyComponent enemy,
+    required Vector2 sourcePosition,
+    required TurretDamageKind kind,
+    required double baseDamage,
+    double traitMultiplier = 1,
+    double statusDamageScale = 1,
+  }) {
+    // 이번 명중 피해 확정 후 상태이상 적용: 새 취약 효과의 소급 적용 방지.
+    final resolvedDamage = _combatResolver.resolveAttackDamage(
+      attack: attack,
+      enemy: enemy,
+      baseDamage: baseDamage,
+      traitMultiplier: traitMultiplier,
+    );
+    _combatResolver.applyAttackStatuses(
+      attack: attack,
+      enemy: enemy,
+      // 지속피해에는 타격의 치명타·직접 명중 특성 배율을 적용하지 않음.
+      damageScale: statusDamageScale,
+      activeSourceTurretPoint: _isActiveTurret(owner) ? owner.gridPoint : null,
+    );
+    enemy.showHitFlash(owner.definition.color);
+    final actualDamage = enemy.receiveDamage(
+      resolvedDamage.damage,
+      burnTransfer: _burnTransferForHit(owner, attack, enemy),
+      ignoreArmorReduction: attack.ignoresArmorReduction,
+    );
+    showDamageNumber(
+      position: enemy.position.clone(),
+      damage: actualDamage,
+      color: owner.definition.color,
+      sourcePosition: sourcePosition,
+      damageMultiplier:
+          resolvedDamage.resistanceMultiplier * attack.criticalMultiplier,
+    );
+    _recordTurretDamage(owner, actualDamage, kind);
   }
 
   void recordTurretDamage(GridPoint? sourceTurretPoint, double damage) {

@@ -422,7 +422,7 @@ void main() {
     expect(turret.range, closeTo(baseRange * 1.15, 0.001));
   });
 
-  test('frost crack reduces slowed enemy elemental resistance', () {
+  test('frost crack vulnerability increases subsequent hit damage', () {
     final game = RuneNexusGame();
     final turret = _levelSevenFrost(game)
       ..choosePrimaryTrait(TurretTraitType.coolingCycle);
@@ -436,9 +436,23 @@ void main() {
     expect(turret.chooseSecondaryTrait(TurretTraitType.frostCrack), isTrue);
     expect(turret.appliesFrostCrack, isTrue);
 
-    game.resolveCenteredAreaAttack(owner: turret, targets: [enemy]);
+    final attack = turret.createAttackSnapshot();
+    game.resolveCenteredAreaAttack(
+      owner: turret,
+      attack: attack,
+      targets: [enemy],
+    );
 
+    expect(enemy.hp, closeTo(100 - attack.damage, 0.001));
     expect(enemy.elementalResistanceReduction, closeTo(0.15, 0.001));
+
+    game.resolveCenteredAreaAttack(
+      owner: turret,
+      attack: attack,
+      targets: [enemy],
+    );
+
+    expect(enemy.hp, closeTo(100 - attack.damage * 2.15, 0.001));
   });
 
   test(
