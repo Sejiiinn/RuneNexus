@@ -76,6 +76,9 @@ class GameSnapshotBuilder {
       selectedTurretNextBurnDamagePerSecond:
           selectedTurretSnapshot.nextBurnDamagePerSecond,
       selectedTurretNextBurnDuration: selectedTurretSnapshot.nextBurnDuration,
+      selectedTurretNextSlowMultiplier:
+          selectedTurretSnapshot.nextSlowMultiplier,
+      selectedTurretNextSlowDuration: selectedTurretSnapshot.nextSlowDuration,
       selectedTurretRefundGold: selectedTurret?.refundGold ?? 0,
       selectedTurretDamage: selectedTurret?.damage ?? 0,
       selectedTurretProjectileCount: selectedTurret?.projectileCount ?? 1,
@@ -89,6 +92,8 @@ class GameSnapshotBuilder {
       selectedTurretBurnDamagePerSecond:
           selectedTurretSnapshot.burnDamagePerSecond,
       selectedTurretBurnDuration: selectedTurretSnapshot.burnDuration,
+      selectedTurretSlowMultiplier: selectedTurret?.slowMultiplier ?? 1,
+      selectedTurretSlowDuration: selectedTurret?.slowDuration ?? 0,
       selectedTurretDamageDealt: selectedTurret?.damageDealt ?? 0,
       selectedTurretDirectDamageDealt: selectedTurret?.directDamageDealt ?? 0,
       selectedTurretSplashDamageDealt: selectedTurret?.splashDamageDealt ?? 0,
@@ -336,6 +341,10 @@ class GameSnapshotBuilder {
       nextBurnDamagePerSecond: levelUpPreviewActive
           ? _game._turretBurnDamagePerSecondAtLevel(selectedTurret, nextLevel)
           : 0,
+      nextSlowMultiplier: levelUpPreviewActive
+          ? selectedTurret.slowMultiplierAtLevel(nextLevel)
+          : 1,
+      nextSlowDuration: levelUpPreviewActive ? selectedTurret.slowDuration : 0,
       nextBurnDuration: levelUpPreviewActive
           ? _game._turretBurnDuration(selectedTurret)
           : 0,
@@ -419,6 +428,8 @@ class _SelectedTurretSnapshot {
     required this.burnDuration,
     required this.nextBurnDamagePerSecond,
     required this.nextBurnDuration,
+    required this.nextSlowMultiplier,
+    required this.nextSlowDuration,
   });
 
   final TurretComponent? turret;
@@ -431,6 +442,8 @@ class _SelectedTurretSnapshot {
   final double burnDuration;
   final double nextBurnDamagePerSecond;
   final double nextBurnDuration;
+  final double nextSlowMultiplier;
+  final double nextSlowDuration;
 }
 
 class _CombatSnapshot {

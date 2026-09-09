@@ -55,7 +55,7 @@ const gameTurrets = <TurretType, TurretDefinition>{
     attackRate: 0.4,
     projectileSpeed: 0,
     centeredAreaAttack: true,
-    slowMultiplier: 0.7,
+    slowMultiplier: 0.88,
     slowDuration: 1,
     description: '포탑 중심에서 냉기를 방출해 사거리 안 적 전체를 타격하고 잠시 둔화합니다.',
     damageFamily: DamageFamily.elemental,

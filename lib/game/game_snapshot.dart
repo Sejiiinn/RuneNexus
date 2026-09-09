@@ -66,6 +66,8 @@ class GameSnapshot {
     required this.selectedTurretNextAttackRate,
     required this.selectedTurretNextBurnDamagePerSecond,
     required this.selectedTurretNextBurnDuration,
+    required this.selectedTurretNextSlowMultiplier,
+    required this.selectedTurretNextSlowDuration,
     required this.selectedTurretRefundGold,
     required this.selectedTurretDamage,
     this.selectedTurretProjectileCount = 1,
@@ -76,6 +78,8 @@ class GameSnapshot {
     required this.selectedTurretCriticalDamageMultiplier,
     required this.selectedTurretBurnDamagePerSecond,
     required this.selectedTurretBurnDuration,
+    required this.selectedTurretSlowMultiplier,
+    required this.selectedTurretSlowDuration,
     required this.selectedTurretDamageDealt,
     required this.selectedTurretDirectDamageDealt,
     required this.selectedTurretSplashDamageDealt,
@@ -250,6 +254,8 @@ class GameSnapshot {
   final double selectedTurretNextAttackRate;
   final double selectedTurretNextBurnDamagePerSecond;
   final double selectedTurretNextBurnDuration;
+  final double selectedTurretNextSlowMultiplier;
+  final double selectedTurretNextSlowDuration;
   final int selectedTurretRefundGold;
   final double selectedTurretDamage;
   final int selectedTurretProjectileCount;
@@ -260,6 +266,8 @@ class GameSnapshot {
   final double selectedTurretCriticalDamageMultiplier;
   final double selectedTurretBurnDamagePerSecond;
   final double selectedTurretBurnDuration;
+  final double selectedTurretSlowMultiplier;
+  final double selectedTurretSlowDuration;
   final double selectedTurretDamageDealt;
   final double selectedTurretDirectDamageDealt;
   final double selectedTurretSplashDamageDealt;
