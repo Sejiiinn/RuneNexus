@@ -209,9 +209,9 @@ class _GemInventoryChip extends StatelessWidget {
 String _gemInventoryEffectText(GemType type) {
   return switch (type) {
     GemType.attackSpeed => '공격 속도 40% 증폭',
-    GemType.range => '사거리 +20%',
-    GemType.physicalDamage => '물리 피해 +40%',
-    GemType.elementalDamage => '원소 피해 +40%',
+    GemType.range => '사거리 20% 증폭',
+    GemType.physicalDamage => '물리 피해 40% 증폭',
+    GemType.elementalDamage => '원소 피해 40% 증폭',
     GemType.lightWeapon => '경량화기 강화',
     GemType.heavyWeapon => '피해 30% 증폭\n효과 범위 20% 증가\n중화기 전용',
     GemType.damageOverTime => '지속피해 증가',
@@ -220,7 +220,7 @@ String _gemInventoryEffectText(GemType type) {
     GemType.multipleProjectiles => '투사체 +2\n피해 50% 감폭',
     GemType.criticalChance => '치명 확률 +30%p',
     GemType.aimSpeed => '조준 속도 75% 증폭',
-    GemType.damageAmplifier => '타격 피해 +25%',
+    GemType.damageAmplifier => '타격 피해 25% 증폭',
     GemType.armorPiercing => '방어구 감쇄 무시',
   };
 }

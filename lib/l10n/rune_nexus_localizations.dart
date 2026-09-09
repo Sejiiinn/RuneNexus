@@ -180,8 +180,8 @@ class RuneNexusLocalizations {
             : '포탑 건설 비용 $value 감폭',
       CorePassiveNodeId.efficiencyDiversity =>
         _isEnglish
-            ? 'Turret level-up costs are attenuated by $value per distinct placed turret type after the first, up to 4 stacks.'
-            : '첫 종류 이후 배치된 서로 다른 포탑 종류당 모든 포탑 레벨업 비용 $value 감폭, 최대 4중첩',
+            ? 'Gain 1 stack per distinct placed turret type after the first, up to 4 stacks. All turret level-up costs are attenuated by stacks × $value in total.'
+            : '첫 종류 이후 배치된 서로 다른 포탑 종류당 1중첩, 최대 4중첩. 모든 포탑 레벨업 비용을 중첩 수 × $value만큼 감폭',
       CorePassiveNodeId.efficiencyFirstDeploy =>
         _isEnglish
             ? 'Gem Shard costs for selecting turret traits are attenuated by $value.'
@@ -683,7 +683,9 @@ class RuneNexusLocalizations {
   }
 
   String researchRuneResonanceEffect(int percent) {
-    return _isEnglish ? 'Rune reward boost +$percent%' : '룬 보상 증폭 +$percent%';
+    return _isEnglish
+        ? 'Rune reward amplified by $percent%'
+        : '룬 보상 $percent% 증폭';
   }
 
   String researchRunUpgradeCostOptimizationEffect(int percent) {
@@ -795,8 +797,8 @@ class RuneNexusLocalizations {
     }
     if (title == runeResonance) {
       return _isEnglish
-          ? 'Increases runes gained after a run by 2% per level.'
-          : '레벨마다 런 종료 후 획득하는 룬이 2% 증가합니다.';
+          ? 'Amplifies runes gained after a run by a total of level × 2%.'
+          : '레벨당 2%씩 합산한 비율로 런 종료 후 획득하는 룬을 증폭합니다.';
     }
     if (title == runUpgradeCostOptimization) {
       return _isEnglish
@@ -824,6 +826,10 @@ class RuneNexusLocalizations {
           : '포탑 계열 연구 방향이 확정된 뒤 사용할 영역입니다.';
     }
     return '';
+  }
+
+  String permanentCostAttenuationEffect(int percent) {
+    return _isEnglish ? '$percent% attenuation' : '$percent% 감폭';
   }
 
   String permanentUpgradeDescription(String title) {
@@ -854,13 +860,13 @@ class RuneNexusLocalizations {
     }
     if (title == linkCostOptimization) {
       return _isEnglish
-          ? 'Permanently reduces all turret link expansion costs.'
-          : '모든 포탑의 링크 확장 비용이 영구적으로 감소합니다.';
+          ? 'Permanently attenuates all turret link expansion costs.'
+          : '모든 포탑의 링크 확장 비용을 영구적으로 감폭합니다.';
     }
     if (title == turretLevelUpOptimization) {
       return _isEnglish
-          ? 'Permanently reduces all turret level-up costs.'
-          : '모든 포탑의 레벨업 비용이 영구적으로 감소합니다.';
+          ? 'Permanently attenuates all turret level-up costs.'
+          : '모든 포탑의 레벨업 비용을 영구적으로 감폭합니다.';
     }
     if (title == basicFireTraining) {
       return _isEnglish

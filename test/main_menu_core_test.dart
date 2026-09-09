@@ -979,7 +979,7 @@ void main() {
       ),
     );
 
-    expect(find.text('다음 효과 +25%'), findsOneWidget);
+    expect(find.text('다음 낙인: 받는 피해 25% 증폭 (보스 12.5%)'), findsOneWidget);
     expect(find.text('총 추가 피해 7.25'), findsOneWidget);
   });
 }

@@ -239,8 +239,6 @@ class _CoreInfoText extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           description,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: Color(0xFFB8D4E2),
             fontSize: 10,
@@ -256,7 +254,7 @@ class _CoreInfoText extends StatelessWidget {
 String _coreCombatSkillDescription(CoreCombatSkill skill) {
   return switch (skill) {
     CoreCombatSkill.guardianBeam => '코어에 가까운 적에게 집중 피해',
-    CoreCombatSkill.riftMark => '내구도 높은 적 4명에게 받는 피해 25% 증가 낙인 부여',
+    CoreCombatSkill.riftMark => '내구도 높은 적 4명의 받는 피해 기본 25% 증폭 · 보스는 절반',
   };
 }
 
@@ -295,25 +293,18 @@ Widget _riftMarkMetric(GameSnapshot snapshot) {
     activationNumber: snapshot.coreCombatSkillActivationCount + 1,
   );
   final nextAmplificationPercent = 25.0 * nextActivationMultiplier;
-  return Row(
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      Flexible(
-        child: Text(
-          '다음 효과 +${_formatCoreCombatPercent(nextAmplificationPercent)}%',
-          maxLines: 1,
-          overflow: TextOverflow.clip,
-          style: _coreCombatMetricTextStyle,
-        ),
+      Text(
+        '다음 낙인: 받는 피해 ${_formatCoreCombatPercent(nextAmplificationPercent)}% 증폭 '
+        '(보스 ${_formatCoreCombatPercent(nextAmplificationPercent / 2)}%)',
+        style: _coreCombatMetricTextStyle,
       ),
-      const Spacer(),
-      Flexible(
-        child: Text(
-          '총 추가 피해 ${_formatCoreCombatStat(snapshot.coreCombatSkillBonusDamageDealt)}',
-          maxLines: 1,
-          overflow: TextOverflow.clip,
-          textAlign: TextAlign.right,
-          style: _coreCombatMetricTextStyle,
-        ),
+      Text(
+        '총 추가 피해 ${_formatCoreCombatStat(snapshot.coreCombatSkillBonusDamageDealt)}',
+        textAlign: TextAlign.right,
+        style: _coreCombatMetricTextStyle,
       ),
     ],
   );

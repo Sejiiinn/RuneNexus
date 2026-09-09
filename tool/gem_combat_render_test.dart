@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
+import 'package:rune_nexus/ui/hud/core_info_panel.dart';
 import 'package:flutter/rendering.dart';
 import 'package:rune_nexus/game/components/impact_effect_component.dart';
 import 'package:rune_nexus/data/definitions/game_gem_data.dart';
@@ -75,6 +76,16 @@ void main() {
       gems: [GemType.multipleProjectiles, GemType.chain, GemType.explosion],
       texts: ['다중 투사체', '투사체 +2\n피해 50% 감폭'],
       output: 'design/ux-previews/multiple-projectiles/reward.png',
+    ),
+    (
+      name: 'render corrected amplification reward choices',
+      gems: [
+        GemType.physicalDamage,
+        GemType.elementalDamage,
+        GemType.damageAmplifier,
+      ],
+      texts: ['물리 포탑 피해 40% 증폭', '원소 포탑 피해 40% 증폭', '타격 피해 25% 증폭'],
+      output: 'design/ux-previews/effect-wording/reward.png',
     ),
     (
       name: 'render adjusted gem reward choices',
@@ -165,6 +176,51 @@ void main() {
       });
     });
   }
+
+  testWidgets('render corrected core wording at narrow width', (tester) async {
+    tester.view.physicalSize = const Size(320, 480);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final boundaryKey = GlobalKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark().copyWith(
+          textTheme: ThemeData.dark().textTheme.apply(
+            fontFamily: 'RenderKorean',
+          ),
+        ),
+        home: RepaintBoundary(
+          key: boundaryKey,
+          child: Scaffold(
+            body: Padding(
+              padding: const EdgeInsets.all(12),
+              child: HudCoreInfoPanel(
+                snapshot: resultSnapshot(
+                  phase: GamePhase.preparation,
+                  currentStageNumber: 1,
+                  coreCombatSkill: CoreCombatSkill.riftMark,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    final boundary =
+        boundaryKey.currentContext!.findRenderObject()!
+            as RenderRepaintBoundary;
+    await tester.runAsync(() async {
+      final image = await boundary.toImage(pixelRatio: 2);
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      final output = File('design/ux-previews/effect-wording/core.png');
+      await output.parent.create(recursive: true);
+      await output.writeAsBytes(bytes!.buffer.asUint8List());
+      image.dispose();
+    });
+  });
 
   testWidgets('render implemented gem icons at HUD sizes', (tester) async {
     tester.view.physicalSize = const Size(840, 650);

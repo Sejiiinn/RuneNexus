@@ -181,7 +181,7 @@ class _CoreCombatSkillMenu extends StatelessWidget {
             skill: CoreCombatSkill.riftMark,
             state: riftMarkUnlocked ? '10초마다 자동 발동' : '챕터 2 해금',
             description: riftMarkUnlocked
-                ? '내구도가 높은 적에게 낙인을 부여해 대상이 받는 모든 피해를 증가시킵니다.'
+                ? '내구도가 높은 적 4명의 받는 모든 피해를 기본 25% 증폭합니다. 코어 스킬 위력에 비례하며 보스는 절반입니다.'
                 : '스테이지 6에 도달하면 균열 낙인을 장착할 수 있습니다.',
             accent: const Color(0xFFCFA7FF),
             equipped: snapshot.coreCombatSkill == CoreCombatSkill.riftMark,
@@ -293,8 +293,6 @@ class _CoreCombatSkillCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  maxLines: 3,
-                  overflow: TextOverflow.fade,
                   style: const TextStyle(
                     color: Color(0xFFB4C7D2),
                     fontSize: 10,

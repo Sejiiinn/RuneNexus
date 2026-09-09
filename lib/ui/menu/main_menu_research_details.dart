@@ -401,7 +401,11 @@ _ResearchEffectText _researchEffectText(
     ),
     ResearchType.runeResonance => _ResearchEffectText(
       l10n.researchRuneResonanceEffect(_runeResonancePercent(level)),
-      hasNext ? _signedPercent(_runeResonancePercent(clampedNextLevel)) : null,
+      hasNext
+          ? l10n.researchRuneResonanceEffect(
+              _runeResonancePercent(clampedNextLevel),
+            )
+          : null,
     ),
     ResearchType.runUpgradeCostOptimization => _ResearchEffectText(
       l10n.researchRunUpgradeCostOptimizationEffect(

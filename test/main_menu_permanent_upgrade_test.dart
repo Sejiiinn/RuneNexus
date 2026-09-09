@@ -252,8 +252,8 @@ void main() {
     expect(find.text('연결 공정'), findsOneWidget);
     expect(find.text('강화 공정'), findsOneWidget);
     expect(find.text('Lv.5/20'), findsNWidgets(2));
-    expect(find.text('현재 -5%'), findsNWidgets(2));
-    expect(find.text('다음 -6%'), findsNWidgets(2));
+    expect(find.text('현재 5% 감폭'), findsNWidgets(2));
+    expect(find.text('다음 6% 감폭'), findsNWidgets(2));
   });
 
   testWidgets('critical upgrades are hidden before stage four clear', (

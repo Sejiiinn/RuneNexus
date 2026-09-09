@@ -263,10 +263,18 @@ List<_PermanentUpgradeTileData> _economyUpgradeTiles({
         level: snapshot.linkCostOptimizationUpgradeLevel,
         maxLevel: RunProgression.maxLinkCostOptimizationUpgradeLevel,
         globalMaxLevel: RunProgression.maxLinkCostOptimizationUpgradeLevel,
-        valueText:
-            '-${(snapshot.linkCostOptimizationUpgradeLevel * RunProgression.permanentCostReductionPerUpgradeLevel * 100).round()}%',
-        nextValueText:
-            '-${(nextLinkCostOptimizationLevel * RunProgression.permanentCostReductionPerUpgradeLevel * 100).round()}%',
+        valueText: l10n.permanentCostAttenuationEffect(
+          (snapshot.linkCostOptimizationUpgradeLevel *
+                  RunProgression.permanentCostReductionPerUpgradeLevel *
+                  100)
+              .round(),
+        ),
+        nextValueText: l10n.permanentCostAttenuationEffect(
+          (nextLinkCostOptimizationLevel *
+                  RunProgression.permanentCostReductionPerUpgradeLevel *
+                  100)
+              .round(),
+        ),
         cost: snapshot.linkCostOptimizationUpgradeCost,
         enabled: snapshot.canUpgradeLinkCostOptimization,
         lockText: l10n.maxLevelReached,
@@ -282,10 +290,18 @@ List<_PermanentUpgradeTileData> _economyUpgradeTiles({
         level: snapshot.turretLevelUpOptimizationUpgradeLevel,
         maxLevel: RunProgression.maxTurretLevelUpOptimizationUpgradeLevel,
         globalMaxLevel: RunProgression.maxTurretLevelUpOptimizationUpgradeLevel,
-        valueText:
-            '-${(snapshot.turretLevelUpOptimizationUpgradeLevel * RunProgression.permanentCostReductionPerUpgradeLevel * 100).round()}%',
-        nextValueText:
-            '-${(nextTurretLevelUpOptimizationLevel * RunProgression.permanentCostReductionPerUpgradeLevel * 100).round()}%',
+        valueText: l10n.permanentCostAttenuationEffect(
+          (snapshot.turretLevelUpOptimizationUpgradeLevel *
+                  RunProgression.permanentCostReductionPerUpgradeLevel *
+                  100)
+              .round(),
+        ),
+        nextValueText: l10n.permanentCostAttenuationEffect(
+          (nextTurretLevelUpOptimizationLevel *
+                  RunProgression.permanentCostReductionPerUpgradeLevel *
+                  100)
+              .round(),
+        ),
         cost: snapshot.turretLevelUpOptimizationUpgradeCost,
         enabled: snapshot.canUpgradeTurretLevelUpOptimization,
         lockText: l10n.maxLevelReached,
