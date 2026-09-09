@@ -316,6 +316,24 @@ class _RewardCard extends StatelessWidget {
     final gem = gameGems[type]!;
     final compact = width < 96;
     final dense = width < 88;
+    final textScaler = MediaQuery.textScalerOf(context);
+    final effectLines = hudRewardGemEffectText(type).split('\n');
+    final restriction = type == GemType.heavyWeapon
+        ? effectLines.removeLast()
+        : null;
+    final effectDescription = effectLines.join('\n');
+    final groupedEffects =
+        type == GemType.explosion || type == GemType.heavyWeapon;
+    // 수치·배율은 다음 줄의 한 묶음, 한글 단어 내부 줄바꿈 방지.
+    final effectText = effectDescription
+        .replaceAllMapped(
+          RegExp(r' (\d+% (?:증폭|증가|감폭))'),
+          (match) => '\n${match[1]!.replaceAll(' ', '\u00a0')}',
+        )
+        .replaceAllMapped(
+          RegExp(r'[가-힣]+'),
+          (match) => match[0]!.split('').join('\u2060'),
+        );
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -359,7 +377,7 @@ class _RewardCard extends StatelessWidget {
               ),
               SizedBox(height: compact ? 6 : 8),
               SizedBox(
-                height: compact ? 32 : 36,
+                height: textScaler.scale(compact ? 28 : 32),
                 child: Center(
                   child: Text(
                     gem.name,
@@ -373,37 +391,120 @@ class _RewardCard extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(height: compact ? 4 : 6),
-              SizedBox(
-                height: compact ? 70 : 64,
-                child: Center(
-                  child: Text(
-                    hudRewardGemEffectText(type),
-                    overflow: TextOverflow.clip,
-                    textAlign: TextAlign.center,
-                    style: GameTextStyles.caption.copyWith(
-                      color: GamePalette.textSecondary,
-                      fontSize: dense ? 9 : 10.5,
-                      height: 1.18,
-                    ),
-                  ),
+              const SizedBox(height: 2),
+              ConstrainedBox(
+                key: ValueKey('reward-gem-effects-${type.name}'),
+                constraints: BoxConstraints(minHeight: compact ? 70 : 64),
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: groupedEffects
+                      ? Semantics(
+                          label: effectDescription,
+                          excludeSemantics: true,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: effectLines.indexed.map((entry) {
+                              final (index, line) = entry;
+                              final numericStart = line.indexOf(
+                                RegExp(r'\d+%'),
+                              );
+                              final valueStart = numericStart >= 0
+                                  ? numericStart
+                                  : line.lastIndexOf(' ') + 1;
+                              // 같은 높이의 효과 묶음과 일정한 묶음 사이 간격.
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  top: index == 0 ? 0 : 8,
+                                ),
+                                child: SizedBox(
+                                  height: textScaler.scale(dense ? 28 : 32),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        line.substring(0, valueStart).trim(),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: dense ? 8 : 9.5,
+                                          height: 1.2,
+                                          color: GamePalette.textSecondary,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        line
+                                            .substring(valueStart)
+                                            .replaceAll(' ', '\u00a0'),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: dense ? 8.5 : 10,
+                                          height: 1.2,
+                                          color: GamePalette.textPrimary,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        )
+                      : Text(
+                          effectText,
+                          semanticsLabel: effectDescription,
+                          textAlign: TextAlign.center,
+                          style: GameTextStyles.caption.copyWith(
+                            color: GamePalette.textSecondary,
+                            fontSize: dense ? 8.5 : 10,
+                            height: 1.18,
+                          ),
+                        ),
                 ),
+              ),
+              const SizedBox(height: 6),
+              // 설명 맨 아래 제약사항 줄을 예약하여 보유 표시 위치 정렬.
+              SizedBox(
+                height: textScaler.scale(12),
+                child: restriction == null
+                    ? null
+                    : Text(
+                        restriction,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: dense ? 8 : 9,
+                          height: 1.2,
+                          color: const Color(0xFF9CA3AB),
+                        ),
+                      ),
               ),
               SizedBox(height: compact ? 5 : 7),
               Container(
                 height: 22,
                 padding: const EdgeInsets.symmetric(horizontal: 5),
                 decoration: BoxDecoration(
-                  color: const Color(0x8802070D),
-                  border: Border.all(color: const Color(0x5533D8FF)),
+                  color: ownedCount > 0
+                      ? const Color(0x8802070D)
+                      : const Color(0x88171B20),
+                  border: Border.all(
+                    color: ownedCount > 0
+                        ? const Color(0x5533D8FF)
+                        : const Color(0x556F7780),
+                  ),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  '보유 $ownedCount',
+                  ownedCount > 0 ? '보유 $ownedCount' : '미보유',
                   maxLines: 1,
                   overflow: TextOverflow.clip,
-                  style: GameTextStyles.chip.copyWith(fontSize: dense ? 9 : 10),
+                  style: GameTextStyles.chip.copyWith(
+                    fontSize: dense ? 9 : 10,
+                    color: ownedCount > 0
+                        ? GameTextStyles.chip.color
+                        : const Color(0xFF9CA3AB),
+                  ),
                 ),
               ),
             ],
