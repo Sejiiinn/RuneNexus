@@ -498,6 +498,9 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     ensureCurrentAccount();
     if (coordinator == null) throw syncRequired;
     try {
+      // 복귀 시 writer 재발급·원격 복구 완료 후 순위용 저장 시작.
+      await _onlineSaveResumeOperation;
+      ensureCurrentAccount();
       final before = coordinator.snapshot;
       if (before.hasPendingRemoteRebase || before.requiresGameReload) {
         throw syncRequired;

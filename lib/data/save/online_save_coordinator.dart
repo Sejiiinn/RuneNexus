@@ -153,6 +153,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
   bool _needsRemoteReconciliation = false;
   bool _reconcileAfterInFlightAck = false;
   bool _localSavesQuiesced = false;
+  bool _resumingForeground = false;
 
   OnlineSaveCoordinatorSnapshot get snapshot {
     if (!_initialized) {
@@ -253,28 +254,34 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
         return;
       }
     }
-    final claimed = await _claimWriter(allowSuspended: wasSuspended);
-    if (!claimed || _disposed) {
-      return;
+    // 기존 전송 완료 후 권한·원격 기준 교체 중 신규 전송만 보류.
+    _resumingForeground = true;
+    try {
+      final claimed = await _claimWriter(allowSuspended: wasSuspended);
+      if (!claimed || _disposed) {
+        return;
+      }
+      final local = await _loadPersistedCheckpoint();
+      final localHash = local == null ? null : onlineSavePayloadHash(local);
+      final updated = await _outbox.mutate(
+        (current) => current.copyWith(
+          inFlight: wasSuspended ? null : current.inFlight,
+          dirty: localHash != current.lastSyncedPayloadFingerprint,
+          phase: OnlineSaveOutboxPhase.idle,
+          issueCode: null,
+          conflictRevision: null,
+        ),
+      );
+      _pendingLatest = updated.dirty ? local : null;
+      _needsRemoteReconciliation = _automaticRebaseEnabled;
+      _publishSnapshot();
+      if (_needsRemoteReconciliation) {
+        await _reconcileRemote();
+      }
+      _resumeLocalSavesIfSafe();
+    } finally {
+      _resumingForeground = false;
     }
-    final local = await _loadPersistedCheckpoint();
-    final localHash = local == null ? null : onlineSavePayloadHash(local);
-    final updated = await _outbox.mutate(
-      (current) => current.copyWith(
-        inFlight: wasSuspended ? null : current.inFlight,
-        dirty: localHash != current.lastSyncedPayloadFingerprint,
-        phase: OnlineSaveOutboxPhase.idle,
-        issueCode: null,
-        conflictRevision: null,
-      ),
-    );
-    _pendingLatest = updated.dirty ? local : null;
-    _needsRemoteReconciliation = _automaticRebaseEnabled;
-    _publishSnapshot();
-    if (_needsRemoteReconciliation) {
-      await _reconcileRemote();
-    }
-    _resumeLocalSavesIfSafe();
     _startDrain();
   }
 
@@ -589,6 +596,7 @@ class OnlineSaveCoordinator implements OnlineSaveRepository {
   void _startDrain() {
     if (_disposed ||
         !_initialized ||
+        _resumingForeground ||
         _drainOperation != null ||
         _retryTimer != null ||
         _stopsDrain(_outbox.state.phase) ||

@@ -14,6 +14,86 @@ import 'package:rune_nexus/data/save/online_save_outbox_repository.dart';
 import 'package:rune_nexus/domain/account/online_account_credentials.dart';
 
 void main() {
+  for (final delayClaim in [true, false]) {
+    test(
+      'foreground 복구 중 ${delayClaim ? 'writer 발급' : '원격 조회'} 대기 체크포인트는 새 권한으로 전송한다',
+      () async {
+        final gate = Completer<void>();
+        final base = _saveData(1);
+        final latest = _saveData(2);
+        final repository = _MemoryBackupSaveRepository(base);
+        final outbox = MemoryOnlineSaveOutboxRepository()
+          ..state = OnlineSaveOutboxState.initial(
+            accountId: _accountId,
+            remoteRevision: 1,
+          ).copyWith(lastSyncedPayloadFingerprint: onlineSavePayloadHash(base));
+        var claims = 0;
+        var loads = 0;
+        final requests = <OnlineSaveUpdateRequest>[];
+        final session = _session();
+        final coordinator = OnlineSaveCoordinator(
+          accountId: _accountId,
+          session: session,
+          initialRevision: 1,
+          outboxRepository: outbox,
+          persistedSaveRepository: repository,
+          loadPersistedCheckpoint: repository.load,
+          client: _FakeOnlineSaveClient(
+            claimWriter: (_, _) async {
+              claims++;
+              if (claims == 2 && delayClaim) await gate.future;
+              return OnlineSaveWriterClaimResult(
+                writerGeneration: claims,
+                claimedAt: DateTime.now().toUtc(),
+              );
+            },
+            load: (_) async {
+              loads++;
+              if (loads == 2 && !delayClaim) await gate.future;
+              return OnlineSaveSnapshot(
+                revision: 1,
+                serverSavedAt: DateTime.now().toUtc(),
+                data: base,
+              );
+            },
+            update: (_, request) async {
+              requests.add(request);
+              if (request.writerGeneration != claims) {
+                throw const OnlineSaveException(
+                  code: 'SAVE_WRITER_REPLACED',
+                  message: 'replaced',
+                  statusCode: 409,
+                );
+              }
+              return _updateResult(request.expectedRevision + 1);
+            },
+          ),
+        );
+        addTearDown(coordinator.dispose);
+        addTearDown(session.dispose);
+        await coordinator.initialize();
+        final resume = coordinator.resumeForeground();
+        await _pumpUntil(() => delayClaim ? claims == 2 : loads == 2);
+
+        await repository.save(latest);
+        await coordinator.enqueuePersistedCheckpoint(latest);
+        await coordinator.currentAttempt;
+        expect(requests, isEmpty);
+        expect(coordinator.snapshot.pendingSaveCount, 1);
+
+        gate.complete();
+        await resume;
+        await coordinator.currentAttempt;
+        expect(requests, hasLength(1));
+        expect(requests.single.writerGeneration, 2);
+        expect(_savedAtMillis(requests.single), 2);
+        expect(coordinator.snapshot.phase, OnlineSaveCoordinatorPhase.idle);
+        expect(coordinator.snapshot.pendingSaveCount, 0);
+        expect(coordinator.snapshot.remoteRevision, 2);
+      },
+    );
+  }
+
   test('전송 중 여러 체크포인트를 최신 하나로 병합하고 순서대로 저장한다', () async {
     final completions = <Completer<OnlineSaveUpdateResult>>[];
     final requests = <OnlineSaveUpdateRequest>[];
