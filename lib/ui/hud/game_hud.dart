@@ -140,8 +140,6 @@ class _GameHudState extends State<GameHud> {
             onPointerMove: widget.game.handleBoardPointerMove,
             onPointerUp: widget.game.handleBoardPointerUp,
             onPointerCancel: widget.game.handleBoardPointerCancel,
-            onPointerPanZoomStart: widget.game.handleTrackpadZoomStart,
-            onPointerPanZoomUpdate: widget.game.handleTrackpadZoomUpdate,
             child: GameWidget(
               game: widget.game,
               loadingBuilder: (_) => const _GameLoadingScreen(),
