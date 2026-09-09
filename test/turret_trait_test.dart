@@ -525,6 +525,8 @@ void main() {
     expect(turret.aimDuration, closeTo(1 / 0.96, 0.001));
     expect(turret.aimDuration, greaterThan(baseAimDuration));
     expect(turret.criticalChance, closeTo(baseCriticalChance + 0.2, 0.001));
+    turret.equipGem(GemType.aimSpeed, 0);
+    expect(turret.aimDuration, closeTo(1 / (0.96 * 1.75), 0.001));
   });
 
   test('quick scope trades critical chance for sniper aim speed', () {
@@ -547,6 +549,8 @@ void main() {
     expect(turret.aimDuration, closeTo(1 / 1.56, 0.001));
     expect(turret.aimDuration, lessThan(baseAimDuration));
     expect(turret.criticalChance, closeTo(baseCriticalChance - 0.05, 0.001));
+    turret.equipGem(GemType.aimSpeed, 0);
+    expect(turret.aimDuration, closeTo(1 / (1.56 * 1.75), 0.001));
   });
 
   test('exposed mark lets sniper direct hits apply physical vulnerability', () {

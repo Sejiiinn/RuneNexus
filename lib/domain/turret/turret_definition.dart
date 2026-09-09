@@ -25,6 +25,7 @@ class TurretDefinition {
     this.criticalDamageMultiplier = 1.5,
     this.slowMultiplier = 1,
     this.slowDuration = 0,
+    this.projectileCount = 1,
   });
 
   final TurretType type;
@@ -34,6 +35,7 @@ class TurretDefinition {
   final double range;
   final double attackRate;
   final double projectileSpeed;
+  final int projectileCount;
   final String description;
   final DamageFamily damageFamily;
   final Set<AttackTag> attackTags;

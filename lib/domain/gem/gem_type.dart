@@ -12,4 +12,5 @@ enum GemType {
   aimSpeed,
   damageAmplifier,
   armorPiercing,
+  multipleProjectiles,
 }

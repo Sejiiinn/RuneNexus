@@ -78,6 +78,7 @@ class GameSnapshotBuilder {
       selectedTurretNextBurnDuration: selectedTurretSnapshot.nextBurnDuration,
       selectedTurretRefundGold: selectedTurret?.refundGold ?? 0,
       selectedTurretDamage: selectedTurret?.damage ?? 0,
+      selectedTurretProjectileCount: selectedTurret?.projectileCount ?? 1,
       selectedTurretRange: selectedTurret?.range ?? 0,
       selectedTurretEffectAreaMultiplier:
           selectedTurret?.effectAreaMultiplier ?? 1,

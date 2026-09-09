@@ -1004,7 +1004,8 @@ void main() {
 
     turret.equipGem(GemType.aimSpeed, 0);
 
-    expect(turret.aimDuration, closeTo(1 / 1.91, 0.001));
+    expect(turret.aimDuration, closeTo(1 / (1.16 * 1.75), 0.001));
+    expect(turret.aimDurationAtLevel(10), closeTo(1 / (1.72 * 1.75), 0.001));
   });
 
   test('turret target priority selects the configured combat target', () async {
@@ -1660,16 +1661,19 @@ void main() {
   });
 
   test('staged reward gems are gated by the provided reward pool', () {
-    final generator = GemRewardGenerator();
+    final generator = GemRewardGenerator(random: math.Random(0));
     final lockedPool = GemType.values.where(
       (type) => type != GemType.aimSpeed && type != GemType.armorPiercing,
     );
 
+    final firstStageRewards = <GemType>{};
     for (var i = 0; i < 20; i++) {
       final options = generator.generateOptions(availableGems: lockedPool);
+      firstStageRewards.addAll(options);
       expect(options, isNot(contains(GemType.aimSpeed)));
       expect(options, isNot(contains(GemType.armorPiercing)));
     }
+    expect(firstStageRewards, contains(GemType.multipleProjectiles));
     expect(
       generator.generateOptions(
         availableGems: const [GemType.aimSpeed, GemType.armorPiercing],
@@ -1955,7 +1959,7 @@ void main() {
     expect(fireTurret.damageOverTimeDurationMultiplier, closeTo(1.3, 0.001));
   });
 
-  test('critical chance gem adds twenty percentage points', () {
+  test('critical chance gem adds thirty percentage points', () {
     final arrow = TurretComponent(
       gridPoint: const GridPoint(0, 0),
       definition: gameTurrets[TurretType.arrow]!,
@@ -1974,8 +1978,8 @@ void main() {
     arrow.equipGem(GemType.criticalChance, 0);
     sniper.equipGem(GemType.criticalChance, 0);
 
-    expect(arrow.criticalChance, closeTo(0.25, 0.001));
-    expect(sniper.criticalChance, closeTo(0.35, 0.001));
+    expect(arrow.criticalChance, closeTo(0.35, 0.001));
+    expect(sniper.criticalChance, closeTo(0.45, 0.001));
   });
 
   test('damage amplifier gem boosts burn through hit damage base', () {

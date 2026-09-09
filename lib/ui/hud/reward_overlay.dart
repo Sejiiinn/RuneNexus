@@ -416,7 +416,7 @@ class _RewardCard extends StatelessWidget {
 
 String hudRewardGemEffectText(GemType type) {
   return switch (type) {
-    GemType.attackSpeed => '공격 속도 40% 증가',
+    GemType.attackSpeed => '공격 속도 40% 증폭',
     GemType.range => '사거리 20% 증가',
     GemType.physicalDamage => '물리 포탑 피해 40% 증가',
     GemType.elementalDamage => '원소 포탑 피해 40% 증가',
@@ -425,8 +425,9 @@ String hudRewardGemEffectText(GemType type) {
     GemType.damageOverTime => '지속피해와 시간 증가',
     GemType.explosion => '범위 피해 부여\n효과 범위 25% 증가',
     GemType.chain => '연쇄 횟수 +2',
-    GemType.criticalChance => '치명 확률 +20%p',
-    GemType.aimSpeed => '조준 속도 75% 증가',
+    GemType.multipleProjectiles => '투사체 +2\n피해 50% 감폭',
+    GemType.criticalChance => '치명 확률 +30%p',
+    GemType.aimSpeed => '조준 속도 75% 증폭',
     GemType.damageAmplifier => '타격 피해 25% 증가',
     GemType.armorPiercing => '방어구 감쇄 무시',
   };

@@ -50,8 +50,11 @@ void main() {
     () {
       final providers = runeNexusStartupImageProviders();
 
-      expect(providers, hasLength(108));
-      expect(providers.whereType<ResizeImage>(), hasLength(29));
+      expect(providers, hasLength(108 + GemType.values.length));
+      expect(
+        providers.whereType<ResizeImage>(),
+        hasLength(29 + GemType.values.length),
+      );
       for (final asset in commonUiImageAssets) {
         expect(providers, contains(gameUiAssetImageProvider(asset)));
       }
@@ -79,6 +82,9 @@ void main() {
       for (final type in ResearchType.values) {
         expect(providers, contains(researchIconImageProvider(type)));
       }
+      for (final type in GemType.values) {
+        expect(providers, contains(gemIconImageProvider(type)));
+      }
       for (final skill in CoreCombatSkill.values) {
         expect(providers, contains(coreAbilityIconImageProvider(skill)));
       }
@@ -92,6 +98,38 @@ void main() {
       );
     },
   );
+
+  testWidgets('every gem loads as a transparent image at HUD resolution', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      for (final type in GemType.values) {
+        final provider = gemIconImageProvider(type) as ResizeImage;
+        final asset = (provider.imageProvider as AssetImage).assetName;
+        final data = await rootBundle.load(asset);
+        final codec = await ui.instantiateImageCodec(
+          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+          targetWidth: 24,
+          targetHeight: 24,
+        );
+        final frame = await codec.getNextFrame();
+        try {
+          final rgba = (await frame.image.toByteData())!;
+          var visiblePixels = 0;
+          for (var pixel = 0; pixel < 24 * 24; pixel++) {
+            if (rgba.getUint8(pixel * 4 + 3) > 128) visiblePixels++;
+          }
+          expect(visiblePixels, greaterThan(24), reason: type.name);
+          for (final corner in [0, 23, 24 * 23, 24 * 24 - 1]) {
+            expect(rgba.getUint8(corner * 4 + 3), 0, reason: type.name);
+          }
+        } finally {
+          frame.image.dispose();
+          codec.dispose();
+        }
+      }
+    });
+  });
 
   testWidgets('app loading message follows the active startup stage', (
     tester,
@@ -122,8 +160,13 @@ void main() {
         final source = provider.imageProvider;
         expect(source, isA<AssetImage>());
         final size = await _assetImageSize((source as AssetImage).assetName);
-        expect(size.width, lessThanOrEqualTo(256));
-        expect(size.height, lessThanOrEqualTo(256));
+        final sourceLimit = source.assetName.startsWith('assets/images/gems/')
+            ? 1024
+            : 256;
+        expect(size.width, lessThanOrEqualTo(sourceLimit));
+        expect(size.height, lessThanOrEqualTo(sourceLimit));
+        expect(provider.width, lessThanOrEqualTo(128));
+        expect(provider.height, lessThanOrEqualTo(128));
       }
 
       for (final asset in stageChapterBannerAssets) {

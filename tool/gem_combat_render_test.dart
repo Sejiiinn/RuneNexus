@@ -4,9 +4,14 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/services.dart';
+import 'package:flutter/rendering.dart';
 import 'package:rune_nexus/game/components/impact_effect_component.dart';
+import 'package:rune_nexus/data/definitions/game_gem_data.dart';
+import 'package:rune_nexus/ui/game/game_icons.dart';
 
 import '../test/helpers/game_balance_test_helpers.dart';
+import '../test/helpers/widget_test_helpers.dart'
+    show HudRewardOverlay, resultSnapshot;
 
 class _SelectedGame extends RuneNexusGame {
   _SelectedGame() : super(saveRepository: MemorySaveRepository());
@@ -62,6 +67,195 @@ void main() {
       ..addFont(rootBundle.load('assets/fonts/NotoSansKR-VF.ttf'));
     await loader.load();
     await Directory('design/ux-previews/gem-rules').create(recursive: true);
+  });
+
+  for (final scenario in [
+    (
+      name: 'render multiple projectiles reward choices',
+      gems: [GemType.multipleProjectiles, GemType.chain, GemType.explosion],
+      texts: ['다중 투사체', '투사체 +2\n피해 50% 감폭'],
+      output: 'design/ux-previews/multiple-projectiles/reward.png',
+    ),
+    (
+      name: 'render adjusted gem reward choices',
+      gems: [GemType.criticalChance, GemType.aimSpeed, GemType.attackSpeed],
+      texts: ['치명 확률 +30%p', '조준 속도 75% 증폭'],
+      output: 'design/ux-previews/gem-balance/reward.png',
+    ),
+  ]) {
+    testWidgets(scenario.name, (tester) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await tester.runAsync(() async {
+        for (final family in ['NotoSansKR', 'Ahem', 'Roboto', 'sans-serif']) {
+          await (FontLoader(
+            family,
+          )..addFont(rootBundle.load('assets/fonts/NotoSansKR-VF.ttf'))).load();
+        }
+        await (FontLoader(
+          'MaterialIcons',
+        )..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
+      });
+      final boundaryKey = GlobalKey();
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData.dark().copyWith(
+            textTheme: ThemeData.dark().textTheme.apply(
+              fontFamily: 'NotoSansKR',
+            ),
+          ),
+          home: RepaintBoundary(
+            key: boundaryKey,
+            child: Scaffold(
+              backgroundColor: const Color(0xFF07111D),
+              body: HudRewardOverlay(
+                game: RuneNexusGame(saveRepository: MemorySaveRepository()),
+                snapshot: resultSnapshot(
+                  phase: GamePhase.reward,
+                  currentStageNumber: 1,
+                  completedRounds: 5,
+                  rewardOptions: scenario.gems,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.runAsync(() async {
+        for (final image in tester.widgetList<Image>(find.byType(Image))) {
+          await precacheImage(
+            image.image,
+            tester.element(find.byType(Scaffold)),
+          );
+        }
+      });
+      await tester.pumpAndSettle();
+      // 오프라인 엔진 기본 글꼴 보정, 실제 위젯 레이아웃 유지.
+      for (final element in find.byType(RichText).evaluate()) {
+        final paragraph = element.renderObject! as RenderParagraph;
+        final span = paragraph.text as TextSpan;
+        if (span.style?.fontFamily == null) {
+          paragraph.text = TextSpan(
+            text: span.text,
+            children: span.children,
+            style: (span.style ?? const TextStyle()).copyWith(
+              fontFamily: 'NotoSansKR',
+            ),
+          );
+        }
+      }
+      await tester.pump();
+      for (final text in scenario.texts) {
+        expect(find.text(text), findsOneWidget);
+      }
+      expect(tester.takeException(), isNull);
+      final boundary =
+          boundaryKey.currentContext!.findRenderObject()!
+              as RenderRepaintBoundary;
+      await tester.runAsync(() async {
+        final image = await boundary.toImage(pixelRatio: 2);
+        final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+        final output = File(scenario.output);
+        await output.parent.create(recursive: true);
+        await output.writeAsBytes(bytes!.buffer.asUint8List());
+        image.dispose();
+      });
+    });
+  }
+
+  testWidgets('render implemented gem icons at HUD sizes', (tester) async {
+    tester.view.physicalSize = const Size(840, 650);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final boundaryKey = GlobalKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark().copyWith(
+          textTheme: ThemeData.dark().textTheme.apply(
+            fontFamily: 'RenderKorean',
+          ),
+        ),
+        home: RepaintBoundary(
+          key: boundaryKey,
+          child: Scaffold(
+            backgroundColor: const Color(0xFF07111D),
+            body: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '젬 에셋 적용 · 실제 GemIcon 위젯',
+                    style: TextStyle(fontSize: 22),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text('각 행 왼쪽부터 14 · 24 · 40px / 오프라인 테스트 렌더'),
+                  const SizedBox(height: 20),
+                  for (var row = 0; row < 7; row++)
+                    SizedBox(
+                      height: 73,
+                      child: Row(
+                        children: [
+                          for (var column = 0; column < 2; column++)
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                    width: 140,
+                                    child: Text(
+                                      gameGems[GemType.values[column * 7 +
+                                              row]]!
+                                          .name,
+                                      style: const TextStyle(fontSize: 16),
+                                    ),
+                                  ),
+                                  for (final size in [14.0, 24.0, 40.0])
+                                    SizedBox(
+                                      width: 64,
+                                      child: Center(
+                                        child: GemIcon(
+                                          GemType.values[column * 7 + row],
+                                          size: size,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.runAsync(() async {
+      final context = tester.element(find.byType(Scaffold));
+      for (final type in GemType.values) {
+        await precacheImage(gemIconImageProvider(type), context);
+      }
+    });
+    await tester.pumpAndSettle();
+    expect(find.byType(GemIcon), findsNWidgets(GemType.values.length * 3));
+    expect(tester.takeException(), isNull);
+    final boundary =
+        boundaryKey.currentContext!.findRenderObject()!
+            as RenderRepaintBoundary;
+    await tester.runAsync(() async {
+      final image = await boundary.toImage(pixelRatio: 2);
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      final output = File('design/gem_concepts/implemented-icons-test.png');
+      await output.parent.create(recursive: true);
+      await output.writeAsBytes(bytes!.buffer.asUint8List());
+      image.dispose();
+    });
   });
 
   testWidgets('render actual frost range and chained cannon impacts', (

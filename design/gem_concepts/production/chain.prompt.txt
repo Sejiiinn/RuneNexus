@@ -1,0 +1,6 @@
+Use case: background-extraction. Asset type: production fantasy game gem icon. Edit target: supplied concept board. Extract ONLY the LARGE RIGHT purple CHAIN gem (연쇄): a single tall irregular S-curved jagged violet crystal with three bright energy nodes joined by lightning inside the stone and dark rough mineral base. Keep its exact approved silhouette, orientation, violet palette, faceted weathered material and internal node path; do not redesign, no chain links. Delete all other gems, small duplicate icons, Korean labels, textured backdrop and floor shadow. Output one isolated object centered on a genuinely transparent RGBA PNG background, 1024x1024. Scale the full silhouette to fit within 88% of canvas on its longest dimension, keeping every crystal tip and base intact and clear transparent padding on all sides. No text, no frame, no sheet, no checkerboard painted into pixels, no opaque background, no ground plane.
+
+Alpha correction attempt:
+Remove the background of this purple gem. Keep the gem itself unchanged. Return a transparent PNG cutout with alpha=0 outside the gemstone. No checkerboard pattern. No background. No shadow.
+
+Mode: built-in image_gen.

@@ -68,6 +68,7 @@ class GameSnapshot {
     required this.selectedTurretNextBurnDuration,
     required this.selectedTurretRefundGold,
     required this.selectedTurretDamage,
+    this.selectedTurretProjectileCount = 1,
     required this.selectedTurretRange,
     this.selectedTurretEffectAreaMultiplier = 1,
     required this.selectedTurretAttackRate,
@@ -251,6 +252,7 @@ class GameSnapshot {
   final double selectedTurretNextBurnDuration;
   final int selectedTurretRefundGold;
   final double selectedTurretDamage;
+  final int selectedTurretProjectileCount;
   final double selectedTurretRange;
   final double selectedTurretEffectAreaMultiplier;
   final double selectedTurretAttackRate;

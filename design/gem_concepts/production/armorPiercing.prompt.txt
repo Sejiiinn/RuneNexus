@@ -1,0 +1,3 @@
+Use case: background-extraction. Asset type: fantasy game gem PNG. Extract only the LARGE CENTER SILVER-WHITE gem labeled 장갑 관통 from the reference board, preserving exactly its approved silhouette, long sharp clear silver crystal spike piercing through craggy dark rocky casing, white internal light seam and upper-right orientation. Do not redesign. Remove the background, lettering, miniature duplicates and neighboring objects. Output a SINGLE centered gem, every tip intact with clear padding on every side, genuinely transparent background with real alpha channel. Do not draw a checkerboard pattern. No text, floor, drop shadow or backdrop. Square PNG.
+
+Mode: built-in image_gen. Single extraction attempt. Output: assets/images/gems/armorPiercing.png

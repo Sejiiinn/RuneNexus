@@ -542,10 +542,11 @@ String hudGemEffectText(GemType type, TurretDefinition turret) {
           : '현재 적용되는 지속피해 없음',
     GemType.explosion => '범위 피해 부여, 효과 범위 25% 증가',
     GemType.chain => '연쇄 횟수 +2',
-    GemType.criticalChance => '치명 확률 +20%p',
+    GemType.multipleProjectiles => '투사체 +2 · 피해 50% 감폭',
+    GemType.criticalChance => '치명 확률 +30%p',
     GemType.aimSpeed =>
       turret.instantHit && turret.aimDuration > 0
-          ? '조준 속도 75% 증가'
+          ? '조준 속도 75% 증폭'
           : '현재 적용되는 조준 속도 없음',
     GemType.damageAmplifier => '타격 피해 25% 증폭',
     GemType.armorPiercing => '방어구 감쇄 무시',

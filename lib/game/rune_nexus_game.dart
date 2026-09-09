@@ -665,14 +665,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         maxLevel: runUpgradeMaxLevelFor(RunUpgradeType.waveGold),
       )
       .round();
-  double get _totalTurretDps =>
-      _turrets.values.fold<double>(0, (total, turret) {
-        final directDps = turret.attackRate <= 0
-            ? 0.0
-            : turret.damage * turret.attackRate;
-        final burnDps = _turretBurnDamagePerSecondAtLevel(turret, turret.level);
-        return total + directDps + burnDps;
-      });
+  double get _totalTurretDps => _turrets.values.fold<double>(0, (
+    total,
+    turret,
+  ) {
+    final directDps = turret.attackRate <= 0
+        ? 0.0
+        : turret.damage *
+              turret.attackRate *
+              (turret.definition.firesProjectile ? turret.projectileCount : 1);
+    final burnDps = _turretBurnDamagePerSecondAtLevel(turret, turret.level);
+    return total + directDps + burnDps;
+  });
   double get nexusCoreBeamIntervalSeconds => _coreCombatSkillCooldownInterval;
   double get nexusCoreBeamCooldownSeconds =>
       _coreCombatSkillController.cooldownSeconds(

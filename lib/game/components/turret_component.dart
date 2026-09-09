@@ -148,6 +148,10 @@ class TurretComponent extends PositionComponent {
 
   double get damage => damageAtLevel(_level);
 
+  int get projectileCount =>
+      definition.projectileCount +
+      (hasGem(GemType.multipleProjectiles) ? 2 : 0);
+
   double damageAtLevel(int level) {
     final targetLevel = level.clamp(1, maxLevel).toInt();
     final moduleEffect = _moduleEffect;
@@ -181,7 +185,8 @@ class TurretComponent extends PositionComponent {
     return levelDamage *
         (1 + moduleEffect.damageIncreaseRate) *
         game.towerDamageMultiplierFor(definition.damageFamily) *
-        game.corePassiveTurretDamageMultiplier;
+        game.corePassiveTurretDamageMultiplier *
+        (hasGem(GemType.multipleProjectiles) ? 0.5 : 1);
   }
 
   double get range => rangeAtLevel(_level);
@@ -408,7 +413,8 @@ class TurretComponent extends PositionComponent {
   double get criticalChance {
     final bonus =
         (hasGem(GemType.criticalChance)
-            ? 0.2 * _numericGemEffectMultiplier
+            ? gameGems[GemType.criticalChance]!.value *
+                  _numericGemEffectMultiplier
             : 0.0) +
         game.criticalChanceProgressionBonusRate +
         _moduleEffect.criticalChanceBonusRate +
@@ -431,9 +437,9 @@ class TurretComponent extends PositionComponent {
       return definition.aimDuration;
     }
     final targetLevel = level.clamp(1, maxLevel).toInt();
-    final gemAimSpeedBonus = hasGem(GemType.aimSpeed)
-        ? 0.75 * _numericGemEffectMultiplier
-        : 0.0;
+    final gemAimSpeedMultiplier = hasGem(GemType.aimSpeed)
+        ? 1 + gameGems[GemType.aimSpeed]!.value * _numericGemEffectMultiplier
+        : 1.0;
     final traitAimSpeedBonus = switch (_primaryTrait) {
       TurretTraitType.deadeyeFocus => -0.2,
       TurretTraitType.quickScope => 0.4,
@@ -442,10 +448,11 @@ class TurretComponent extends PositionComponent {
     final aimSpeedMultiplier =
         1 +
         (targetLevel - 1) * _aimSpeedGrowthPerLevel +
-        gemAimSpeedBonus +
         _moduleEffect.aimSpeedIncreaseRate +
         traitAimSpeedBonus;
-    return definition.aimDuration / math.max(0.1, aimSpeedMultiplier);
+    // 레벨·특성·모듈 증가 합산 후 젬의 별도 증폭 적용.
+    return definition.aimDuration /
+        (math.max(0.1, aimSpeedMultiplier) * gemAimSpeedMultiplier);
   }
 
   double get aimProgressRatio {
@@ -851,15 +858,23 @@ class TurretComponent extends PositionComponent {
     final attack = createAttackSnapshot(
       criticalMultiplier: rollCriticalHit() ? criticalDamageMultiplier : 1.0,
     );
-    game.add(
-      ProjectileComponent(
-        origin: projectileOrigin,
-        targetPosition: target.position.clone(),
-        owner: this,
-        attack: attack,
-        game: game,
-      ),
-    );
+    final direction = target.position - projectileOrigin;
+    final centerAngle = math.atan2(direction.y, direction.x);
+    for (var index = 0; index < projectileCount; index++) {
+      // 조준선을 중심으로 10도 간격의 대칭 산개
+      final angle =
+          centerAngle + (index - (projectileCount - 1) / 2) * math.pi / 18;
+      game.add(
+        ProjectileComponent(
+          origin: projectileOrigin.clone(),
+          targetPosition:
+              projectileOrigin + Vector2(math.cos(angle), math.sin(angle)),
+          owner: this,
+          attack: attack,
+          game: game,
+        ),
+      );
+    }
   }
 
   void _updateLightningAttack() {

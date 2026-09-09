@@ -8,6 +8,9 @@ bool canEquipGemOnTurret(GemType type, TurretDefinition turret) {
 }
 
 String? gemEquipBlockReason(GemType type, TurretDefinition turret) {
+  if (type == GemType.multipleProjectiles && !turret.firesProjectile) {
+    return '투사체 공격 포탑에만 장착 가능';
+  }
   if (type == GemType.chain &&
       !turret.firesProjectile &&
       turret.type != TurretType.lightning) {

@@ -1,0 +1,7 @@
+Use case: background-extraction.
+Asset type: production game gem icon.
+Input image is the approved edit target, NOT a style inspiration. Extract ONLY the specified large upper gem from this contact sheet. Preserve its exact silhouette, orientation, material, colors, internal light and rocky base. No redesign.
+Output one isolated gem centered on a genuinely transparent background, PNG RGBA 1024x1024. Longest silhouette dimension occupies 88% of canvas, balanced safe margin, no clipping. Remove dark background completely, all text, labels, other gems and bottom miniature. No ground shadow, no frame, no background-colored matte or checkerboard. Keep clean antialiased alpha edges.
+Subject: LEFT large gold crystal cluster with five bullet-like pointed prisms on a dark rocky base.
+Reference: design/gem_concepts/light-physical-v2.png
+Mode: built-in ImageGen

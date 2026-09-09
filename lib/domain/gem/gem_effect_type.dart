@@ -9,4 +9,5 @@ enum GemEffectType {
   aimSpeedBonus,
   damageAmplifier,
   armorReductionBypass,
+  additionalProjectiles,
 }

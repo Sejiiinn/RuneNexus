@@ -1013,6 +1013,9 @@ class _TurretStats extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final previewActive = snapshot.selectedTurretLevelUpPreviewActive;
+    final multipleProjectiles =
+        definition.firesProjectile &&
+        snapshot.selectedTurretProjectileCount > 1;
     final dps = snapshot.selectedTurretAttackRate <= 0
         ? 0.0
         : snapshot.selectedTurretDamage * snapshot.selectedTurretAttackRate;
@@ -1029,7 +1032,7 @@ class _TurretStats extends StatelessWidget {
     // 공격 지표와 보조 지표를 짝지은 2열 수치표.
     final cells = <Widget>[
       _TurretStatEntry(
-        label: '피해',
+        label: multipleProjectiles ? '탄당 피해' : '피해',
         value: snapshot.selectedTurretDamage.toStringAsFixed(1),
         valueChild: previewActive
             ? _PreviewStatValue(
@@ -1039,7 +1042,7 @@ class _TurretStats extends StatelessWidget {
             : null,
       ),
       _TurretStatEntry(
-        label: 'DPS',
+        label: multipleProjectiles ? '탄당 DPS' : 'DPS',
         value: totalDps.toStringAsFixed(1),
         valueChild: previewActive
             ? _PreviewStatValue(
@@ -1105,6 +1108,14 @@ class _TurretStats extends StatelessWidget {
       ),
     ];
 
+    if (definition.firesProjectile) {
+      cells.add(
+        _TurretStatEntry(
+          label: '투사체',
+          value: '${snapshot.selectedTurretProjectileCount}발',
+        ),
+      );
+    }
     if (burnDps > 0) {
       cells.add(
         _TurretStatEntry(
