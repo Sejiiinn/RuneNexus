@@ -397,7 +397,7 @@ void main() {
 
     expect(turret.chooseSecondaryTrait(TurretTraitType.rapidCooling), isTrue);
 
-    expect(turret.slowMultiplier, closeTo(0.68, 0.001));
+    expect(turret.slowMultiplier, closeTo(0.62, 0.001));
     expect(turret.slowDuration, closeTo(1, 0.001));
   });
 

@@ -1132,20 +1132,12 @@ class _TurretStats extends StatelessWidget {
         ),
       );
     }
-    if (snapshot.selectedTurretSlowDuration > 0) {
-      final currentSlow =
-          '${((1 - snapshot.selectedTurretSlowMultiplier) * 100).round()}%/${snapshot.selectedTurretSlowDuration.toStringAsFixed(1)}초';
+    if (definition.slowDuration > 0) {
       cells.add(
         _TurretStatEntry(
           label: '감속',
-          value: currentSlow,
-          valueChild: previewActive
-              ? _PreviewStatValue(
-                  current: currentSlow,
-                  next:
-                      '${((1 - snapshot.selectedTurretNextSlowMultiplier) * 100).round()}%/${snapshot.selectedTurretNextSlowDuration.toStringAsFixed(1)}초',
-                )
-              : null,
+          value:
+              '${((1 - definition.slowMultiplier) * 100).round()}%/${definition.slowDuration.toStringAsFixed(1)}초',
         ),
       );
     }

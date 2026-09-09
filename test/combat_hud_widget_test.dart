@@ -47,65 +47,6 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('frost slow stats reflect level-up preview and applied level', (
-    tester,
-  ) async {
-    tester.view.physicalSize = const Size(320, 800);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(() {
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(body: GameHud(game: game)),
-      ),
-    );
-    await pumpGameFrames(tester, frameCount: 10);
-    await tester.runAsync(
-      () => game.loaded.timeout(const Duration(seconds: 10)),
-    );
-    game.debugAddGold(1000);
-    game.selectTurretType(TurretType.frost);
-    game.tryBuildTurret(const GridPoint(2, 0));
-    await pumpGameFrames(tester);
-
-    final viewport = find.byKey(const ValueKey('turret-stats-scroll'));
-    await tester.drag(viewport, const Offset(0, -90));
-    await pumpGameFrames(tester);
-    expect(find.text('12%/1.0초').hitTestable(), findsOneWidget);
-    expect(
-      game.snapshotNotifier.value.selectedTurretSlowMultiplier,
-      closeTo(0.88, 0.001),
-    );
-
-    game.previewOrLevelUpSelectedTurret();
-    await pumpGameFrames(tester);
-    final preview = game.snapshotNotifier.value;
-    expect(preview.selectedTurretNextSlowMultiplier, closeTo(0.86, 0.001));
-    expect(preview.selectedTurretNextSlowDuration, 1);
-    expect(
-      find.text('12%/1.0초 → 14%/1.0초', findRichText: true),
-      findsOneWidget,
-    );
-    expect(tester.takeException(), isNull);
-
-    game.previewOrLevelUpSelectedTurret();
-    await pumpGameFrames(tester);
-    final upgraded = game.snapshotNotifier.value;
-    expect(upgraded.selectedTurretLevel, 2);
-    expect(
-      upgraded.selectedTurretSlowMultiplier,
-      closeTo(preview.selectedTurretNextSlowMultiplier, 0.001),
-    );
-    expect(
-      find.text('14%/1.0초 → 16%/1.0초', findRichText: true),
-      findsOneWidget,
-    );
-    expect(tester.takeException(), isNull);
-  });
-
   testWidgets(
     'gem inventory previews before home selection and retains retap equip',
     (tester) async {
@@ -418,12 +359,12 @@ void main() {
     expect(find.text('내구도'), findsOneWidget);
     expect(find.text('전투 스킬'), findsOneWidget);
     expect(find.text('균열 낙인'), findsOneWidget);
-    expect(find.text('내구도 높은 적 4명의 받는 피해 기본 25% 증폭 · 보스는 절반'), findsOneWidget);
+    expect(find.text('내구도 높은 적 4명에게 받는 피해 25% 증가 낙인 부여'), findsOneWidget);
     expect(find.text('전투 스킬 1개 장착'), findsOneWidget);
     expect(find.text('코어'), findsNothing);
     expect(find.text('패시브 트리'), findsNothing);
     expect(find.text('0 / 0pt'), findsNothing);
-    expect(find.text('다음 낙인: 받는 피해 25% 증폭 (보스 12.5%)'), findsOneWidget);
+    expect(find.text('다음 효과 +25%'), findsOneWidget);
     expect(find.text('총 추가 피해 0.00'), findsOneWidget);
     expect(find.text('발동 0회'), findsNothing);
     expect(find.text('포탈 1'), findsNothing);

@@ -66,7 +66,7 @@ extension TurretTraitTypeText on TurretTraitType {
       TurretTraitType.lingeringEmbers => '화상 지속시간 40% 증가',
       TurretTraitType.ignitionBurst => '화상 중인 대상 명중 시 최종 화상 지속시간 30%분 직접 피해',
       TurretTraitType.chainIgnition => '화상 처치 시 주변 1명에게 남은 화상 60% 전이',
-      TurretTraitType.rapidCooling => '둔화 강도 +8%p',
+      TurretTraitType.rapidCooling => '둔화율 강화',
       TurretTraitType.spreadingChill => '사거리 15% 증폭, 피해 10% 감폭',
       TurretTraitType.frostCrack => '둔화 대상 원소 저항 -15%p',
       TurretTraitType.coolingCycle => '공격 속도 20% 증폭, 둔화 지속시간 15% 감폭',

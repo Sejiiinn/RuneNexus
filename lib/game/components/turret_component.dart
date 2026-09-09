@@ -81,7 +81,6 @@ class TurretComponent extends PositionComponent {
   static const double _rangeGrowthPerLevel = 0.033;
   static const double _attackRateGrowthPerLevel = 0.05;
   static const double _aimSpeedGrowthPerLevel = 0.08;
-  static const double _slowStrengthGrowthPerLevel = 0.02;
   static const double _cooldownVariance = 0.05;
   static const double _fireFeedbackDuration = 0.12;
 
@@ -309,24 +308,15 @@ class TurretComponent extends PositionComponent {
     return 1 + bonus;
   }
 
-  double get slowMultiplier => slowMultiplierAtLevel(_level);
-
-  double slowMultiplierAtLevel(int level) {
+  double get slowMultiplier {
     final strengthBonus = _moduleEffect.slowStrengthBonusRate;
-    final base = definition.slowMultiplier;
+    final base = _secondaryTrait == TurretTraitType.rapidCooling
+        ? 0.62
+        : definition.slowMultiplier;
     if (base <= 0) {
       return base;
     }
-    final levelBonus = definition.type == TurretType.frost
-        ? (level.clamp(1, maxLevel) - 1) * _slowStrengthGrowthPerLevel
-        : 0.0;
-    // 둔화 강도 변화량은 레벨·특성·모듈끼리 %p 합산
-    final traitBonus = _secondaryTrait == TurretTraitType.rapidCooling
-        ? 0.08
-        : 0.0;
-    return (base - levelBonus - traitBonus - strengthBonus)
-        .clamp(0.1, 1.0)
-        .toDouble();
+    return (base - strengthBonus).clamp(0.1, 1.0).toDouble();
   }
 
   double get slowDuration =>
