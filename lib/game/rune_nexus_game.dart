@@ -71,6 +71,7 @@ import 'rendering/game_scene_effect_renderer.dart';
 import 'rendering/gem_reward_target_renderer.dart';
 import 'rendering/status_effect_sprite_cache.dart';
 import 'systems/board_camera.dart';
+import 'systems/board_gesture_controller.dart';
 import 'systems/combat_resolver.dart';
 import 'systems/core_combat_skill_controller.dart';
 import 'systems/game_save_adapter.dart';
@@ -533,11 +534,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double _speedMultiplier = 1;
   double _killGoldFractionWallet = 0;
   final BoardCamera _boardCamera = BoardCamera();
-  final Set<int> _boardPointers = {};
-  int? _dragPointer;
-  Vector2? _lastDragPosition;
-  double _dragDistance = 0;
-  bool _suppressNextTap = false;
+  final BoardGestureController _boardGestures = BoardGestureController();
   double _nexusHitAlertTimer = 0;
   double _coreDestructionElapsed = 0;
   double _coreDestructionStartZoom = BoardCamera.minZoom;
@@ -1111,8 +1108,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_phase == GamePhase.reward) {
       return;
     }
-    if (_suppressNextTap) {
-      _suppressNextTap = false;
+    if (_boardGestures.suppressNextTap) {
+      _boardGestures.suppressNextTap = false;
       return;
     }
     if (_phase == GamePhase.restored || _phase == GamePhase.coreDestruction) {
@@ -1177,7 +1174,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void onTapUp(TapUpEvent event) {
-    if (_phase != GamePhase.reward || _suppressNextTap) {
+    if (_phase != GamePhase.reward || _boardGestures.suppressNextTap) {
       return;
     }
     final point = _gridPointAt(_boardCamera.screenToWorld(event.localPosition));
@@ -2210,7 +2207,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _rewardReplacementPoint = null;
     _clearBoardSelection(closePanel: true);
     _levelUpPreviewPoint = null;
-    _suppressNextTap = false;
+    _boardGestures.suppressNextTap = false;
     _publish();
     return true;
   }
@@ -2709,17 +2706,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
             (!isGemRewardTargeting || _rewardReplacementPoint != null))) {
       return;
     }
-    _boardPointers.add(event.pointer);
-    if (_boardPointers.length != 1) {
-      _dragPointer = null;
-      _lastDragPosition = null;
-      _dragDistance = 0;
-      return;
-    }
-
-    _dragPointer = event.pointer;
-    _lastDragPosition = Vector2(event.localPosition.dx, event.localPosition.dy);
-    _dragDistance = 0;
+    _boardGestures.pointerDown(
+      event.pointer,
+      Vector2(event.localPosition.dx, event.localPosition.dy),
+    );
   }
 
   void handleBoardPointerMove(gestures.PointerMoveEvent event) {
@@ -2728,25 +2718,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
             (!isGemRewardTargeting || _rewardReplacementPoint != null))) {
       return;
     }
-    if (_boardPointers.length != 1 || _dragPointer != event.pointer) {
+    final delta = _boardGestures.pointerMove(
+      event.pointer,
+      Vector2(event.localPosition.dx, event.localPosition.dy),
+    );
+    if (delta == null) {
       return;
-    }
-
-    final lastPosition = _lastDragPosition;
-    if (lastPosition == null) {
-      return;
-    }
-
-    final position = Vector2(event.localPosition.dx, event.localPosition.dy);
-    final delta = position - lastPosition;
-    _lastDragPosition = position;
-    _dragDistance += delta.length;
-
-    if (_dragDistance < 4) {
-      return;
-    }
-    if (_dragDistance >= 8) {
-      _suppressNextTap = true;
     }
     _boardCamera.moveBy(
       delta,
@@ -2761,28 +2738,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void handleBoardPointerUp(gestures.PointerUpEvent event) {
-    if (isGemRewardTargeting) {
-      // 탭 완료 판정 이후 종료된 드래그의 억제 상태 해제.
-      _suppressNextTap = false;
-    }
-    _boardPointers.remove(event.pointer);
-    if (_dragPointer == event.pointer) {
-      _dragPointer = null;
-      _lastDragPosition = null;
-      _dragDistance = 0;
-    }
+    _boardGestures.pointerEnd(
+      event.pointer,
+      clearTapSuppression: isGemRewardTargeting,
+    );
   }
 
   void handleBoardPointerCancel(gestures.PointerCancelEvent event) {
-    if (isGemRewardTargeting) {
-      _suppressNextTap = false;
-    }
-    _boardPointers.remove(event.pointer);
-    if (_dragPointer == event.pointer) {
-      _dragPointer = null;
-      _lastDragPosition = null;
-      _dragDistance = 0;
-    }
+    _boardGestures.pointerEnd(
+      event.pointer,
+      clearTapSuppression: isGemRewardTargeting,
+    );
   }
 
   void resolveProjectileHit({
