@@ -74,7 +74,7 @@ void main() {
     final viewport = find.byKey(const ValueKey('turret-stats-scroll'));
     await tester.drag(viewport, const Offset(0, -90));
     await pumpGameFrames(tester);
-    expect(find.text('20%/1.0초').hitTestable(), findsOneWidget);
+    expect(find.text('20%').hitTestable(), findsOneWidget);
     expect(
       game.snapshotNotifier.value.selectedTurretSlowMultiplier,
       closeTo(0.8, 0.001),
@@ -85,10 +85,7 @@ void main() {
     final preview = game.snapshotNotifier.value;
     expect(preview.selectedTurretNextSlowMultiplier, closeTo(0.78, 0.001));
     expect(preview.selectedTurretNextSlowDuration, 1);
-    expect(
-      find.text('20%/1.0초 → 22%/1.0초', findRichText: true),
-      findsOneWidget,
-    );
+    expect(find.text('20% → 22%', findRichText: true), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     game.previewOrLevelUpSelectedTurret();
@@ -99,10 +96,7 @@ void main() {
       upgraded.selectedTurretSlowMultiplier,
       closeTo(preview.selectedTurretNextSlowMultiplier, 0.001),
     );
-    expect(
-      find.text('22%/1.0초 → 24%/1.0초', findRichText: true),
-      findsOneWidget,
-    );
+    expect(find.text('22% → 24%', findRichText: true), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

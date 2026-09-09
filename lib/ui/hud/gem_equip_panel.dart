@@ -1134,7 +1134,7 @@ class _TurretStats extends StatelessWidget {
     }
     if (snapshot.selectedTurretSlowDuration > 0) {
       final currentSlow =
-          '${((1 - snapshot.selectedTurretSlowMultiplier) * 100).round()}%/${snapshot.selectedTurretSlowDuration.toStringAsFixed(1)}초';
+          '${((1 - snapshot.selectedTurretSlowMultiplier) * 100).round()}%';
       cells.add(
         _TurretStatEntry(
           label: '감속',
@@ -1143,7 +1143,7 @@ class _TurretStats extends StatelessWidget {
               ? _PreviewStatValue(
                   current: currentSlow,
                   next:
-                      '${((1 - snapshot.selectedTurretNextSlowMultiplier) * 100).round()}%/${snapshot.selectedTurretNextSlowDuration.toStringAsFixed(1)}초',
+                      '${((1 - snapshot.selectedTurretNextSlowMultiplier) * 100).round()}%',
                 )
               : null,
         ),
