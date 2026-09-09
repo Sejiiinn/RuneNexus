@@ -15,12 +15,12 @@
 | chain | functional-gems-set3-v1.png | 오른쪽 |
 | elementalDamage | functional-gems-set4-v1.png | 가운데 |
 | damageAmplifier | functional-gems-set4-v1.png | 오른쪽 |
-| heavyWeapon | functional-gems-set5-v1.png | 가운데 |
+| heavyWeapon | [heavyWeapon-four-columns-source.png](production/heavyWeapon-four-columns-source.png) | 굵은 주황색 기둥 네 개가 엇물린 원석 |
 | damageOverTime | functional-gems-set5-v1.png | 오른쪽 |
 | lightWeapon | light-physical-v2.png | 왼쪽 |
 | physicalDamage | light-physical-v2.png | 오른쪽 |
 
-최초 연쇄 시안과 set4의 물리 피해, set5의 경량화기는 대체된 역사 자료다.
+최초 연쇄 시안과 set4의 물리 피해, set5의 경량화기·중화기는 대체된 역사 자료다.
 시안의 제목·작은 크기 샘플·배경은 게임 에셋에 포함하지 않는다.
 
 - 최종 게임 경로: `assets/images/gems/<이름>.png`
@@ -36,10 +36,17 @@ ImageGen으로 승인 시안의 개별 젬을 추출했다. 실제 알파가 없
 외부 체크무늬 영역을 분리해 투명화하며, 게임용 축소·여백·PNG 내보내기는 GIMP로 처리한다.
 고해상도 투명 원본은 `production/<이름>-transparent.png`에 보존한다.
 
+중화기 증폭은 2026-09-10 승인된 네 기둥 시안으로 교체했다.
+[생성 프롬프트](production/heavyWeapon-four-columns-prompt.txt)와
+[고해상도 투명 원본](production/heavyWeapon-four-columns-transparent.png)을 보존한다.
+승인 그림을 재생성하지 않고 GIMP에서 외부 연결 배경을 선택해 지우고,
+미세 잔여 픽셀 정리와 자동 크롭 후 464px 이내로 축소하여 512px 투명 캔버스로 내보냈다.
+
 ## 적용 검증
 
 - [공용 GemIcon 14·24·40px 비교](implemented-icons-test.png): 실제 Flutter 위젯의 오프라인 테스트 렌더.
 - [360px 보상 화면](../ux-previews/multiple-projectiles/reward.png): 실제 보상 위젯의 오프라인 테스트 렌더.
 - `test/game_image_assets_test.dart`에서 14종 디코딩·투명 모서리·시작 로딩 확인.
+- [중화기 네 기둥 적용 화면](production/heavyWeapon-four-columns-reward.png): 320px 보상 위젯의 오프라인 테스트 렌더.
 
 Mac 잠금으로 인앱 캡처는 수행하지 못했다. 위 이미지는 실제 앱 스크린샷이 아니다.
