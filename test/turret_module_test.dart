@@ -15,6 +15,63 @@ import 'package:rune_nexus/game/rune_nexus_game.dart';
 import 'package:rune_nexus/game/systems/run_progression.dart';
 
 void main() {
+  test('frost module ranges and legacy options follow the new slow caps', () {
+    for (final entry in [
+      (TurretModuleGrade.normal, 1, 2, 4),
+      (TurretModuleGrade.magic, 3, 4, 7),
+      (TurretModuleGrade.rare, 5, 6, 10),
+      (TurretModuleGrade.unique, 6, 8, 14),
+    ]) {
+      final range = turretModuleOptionRollRangeFor(
+        part: TurretModulePart.core,
+        grade: entry.$1,
+        type: TurretModuleOptionType.slowStrengthBonus,
+      );
+      expect((range.min, range.max), (entry.$2, entry.$3));
+      final progression = RunProgression()
+        ..restoreTurretModulesFromSaveData(
+          SavedTurretModuleInventory(
+            items: [
+              SavedTurretModule(
+                id: 'frost-core',
+                turretType: TurretType.frost,
+                part: TurretModulePart.core,
+                family: turretModuleFamilyFor(
+                  TurretType.frost,
+                  TurretModulePart.core,
+                ),
+                grade: entry.$1,
+                options: [
+                  SavedTurretModuleOption(
+                    type: TurretModuleOptionType.slowStrengthBonus,
+                    value: entry.$4,
+                  ),
+                ],
+                acquiredOrder: 1,
+                equipped: true,
+              ),
+            ],
+          ),
+        );
+      final restored = progression.toTurretModuleSaveData().items.single;
+      expect(restored.id, 'frost-core');
+      expect(restored.equipped, isTrue);
+      expect(restored.options.single.value, entry.$3);
+      expect(
+        progression
+            .turretModuleEffectFor(TurretType.frost)
+            .slowStrengthBonusRate,
+        closeTo(entry.$3 / 100, 1e-8),
+      );
+    }
+    final duration = turretModuleOptionRollRangeFor(
+      part: TurretModulePart.core,
+      grade: TurretModuleGrade.unique,
+      type: TurretModuleOptionType.slowDurationIncrease,
+    );
+    expect((duration.min, duration.max), (23, 34));
+  });
+
   test(
     'module effects refresh after equip, unequip and restoring inventory',
     () {

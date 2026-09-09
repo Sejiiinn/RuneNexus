@@ -12,7 +12,7 @@ import 'package:rune_nexus/ui/game/game_icons.dart';
 
 import '../test/helpers/game_balance_test_helpers.dart';
 import '../test/helpers/widget_test_helpers.dart'
-    show HudRewardOverlay, resultSnapshot;
+    show GameHud, HudRewardOverlay, pumpGameFrames, resultSnapshot;
 
 class _SelectedGame extends RuneNexusGame {
   _SelectedGame() : super(saveRepository: MemorySaveRepository());
@@ -176,6 +176,81 @@ void main() {
       });
     });
   }
+
+  testWidgets('render frost slow level-up preview at narrow width', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      for (final family in ['NotoSansKR', 'Ahem', 'Roboto', 'sans-serif']) {
+        await (FontLoader(
+          family,
+        )..addFont(rootBundle.load('assets/fonts/NotoSansKR-VF.ttf'))).load();
+      }
+      await (FontLoader(
+        'MaterialIcons',
+      )..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
+    });
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final boundaryKey = GlobalKey();
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark().copyWith(
+          textTheme: ThemeData.dark().textTheme.apply(
+            fontFamily: 'RenderKorean',
+          ),
+        ),
+        home: RepaintBoundary(
+          key: boundaryKey,
+          child: Scaffold(body: GameHud(game: game)),
+        ),
+      ),
+    );
+    await pumpGameFrames(tester, frameCount: 10);
+    await tester.runAsync(
+      () => game.loaded.timeout(const Duration(seconds: 10)),
+    );
+    game.debugAddGold(1000);
+    game.selectTurretType(TurretType.frost);
+    game.tryBuildTurret(const GridPoint(2, 0));
+    game.previewOrLevelUpSelectedTurret();
+    await pumpGameFrames(tester);
+    await tester.drag(
+      find.byKey(const ValueKey('turret-stats-scroll')),
+      const Offset(0, -90),
+    );
+    await pumpGameFrames(tester);
+    // 오프라인 엔진 기본 글꼴 보정, 실제 위젯 레이아웃 유지.
+    for (final element in find.byType(RichText).evaluate()) {
+      final paragraph = element.renderObject! as RenderParagraph;
+      final span = paragraph.text as TextSpan;
+      if (span.style?.fontFamily == null) {
+        paragraph.text = TextSpan(
+          text: span.text,
+          children: span.children,
+          style: (span.style ?? const TextStyle()).copyWith(
+            fontFamily: 'NotoSansKR',
+          ),
+        );
+      }
+    }
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    final boundary =
+        boundaryKey.currentContext!.findRenderObject()!
+            as RenderRepaintBoundary;
+    await tester.runAsync(() async {
+      final image = await boundary.toImage(pixelRatio: 2);
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      final output = File('design/ux-previews/frost-slow-growth/preview.png');
+      await output.parent.create(recursive: true);
+      await output.writeAsBytes(bytes!.buffer.asUint8List());
+      image.dispose();
+    });
+  });
 
   testWidgets('render corrected core wording at narrow width', (tester) async {
     tester.view.physicalSize = const Size(320, 480);

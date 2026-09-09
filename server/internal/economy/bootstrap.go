@@ -301,7 +301,20 @@ func decodeLegacyEconomy(
 	cleared := make([]string, 0)
 	seenIDs := make(map[string]struct{}, len(inventory.Items))
 	seenOrders := make(map[int64]struct{}, len(inventory.Items))
+	legacySlowStrengthRanges := map[string]optionRange{
+		"normal": {2, 4}, "magic": {5, 7}, "rare": {8, 10}, "unique": {11, 14},
+	}
 	for _, module := range inventory.Items {
+		// 기존 정상 둔화 옵션만 현행 범위로 보정, 나머지는 기존 카탈로그 검증 유지
+		if oldRange, exists := legacySlowStrengthRanges[module.Grade]; exists {
+			for index, option := range module.Options {
+				if option.Type != "slowStrengthBonus" || option.Value < oldRange.min || option.Value > oldRange.max {
+					continue
+				}
+				currentRange := optionRanges[option.Type][module.Grade]
+				module.Options[index].Value = max(currentRange.min, min(currentRange.max, option.Value))
+			}
+		}
 		reason := ""
 		generated := generatedModule{
 			TurretType: module.TurretType, Part: module.Part, Family: module.Family,

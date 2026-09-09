@@ -2484,7 +2484,7 @@ void main() {
     expect(frost.centeredAreaAttack, isTrue);
     expect(frost.damageFamily, DamageFamily.elemental);
     expect(frost.attackTags, contains(AttackTag.cooling));
-    expect(frost.slowMultiplier, closeTo(0.7, 0.001));
+    expect(frost.slowMultiplier, closeTo(0.8, 0.001));
     expect(frost.slowDuration, closeTo(1, 0.001));
   });
 
@@ -2818,12 +2818,13 @@ void main() {
 
     game.resolveCenteredAreaAttack(
       owner: frostTurret,
+      attack: frostTurret.createAttackSnapshot(),
       targets: [inRangeEnemy, outOfRangeEnemy],
     );
 
     expect(inRangeEnemy.hp, closeTo(96, 0.001));
     expect(inRangeEnemy.isSlowed, isTrue);
-    expect(inRangeEnemy.slowMultiplier, closeTo(0.7, 0.001));
+    expect(inRangeEnemy.slowMultiplier, closeTo(0.8, 0.001));
     expect(inRangeEnemy.slowRemaining, closeTo(1, 0.001));
     expect(outOfRangeEnemy.hp, closeTo(100, 0.001));
     expect(outOfRangeEnemy.isSlowed, isFalse);
@@ -2836,7 +2837,7 @@ void main() {
       closeTo(
         gameEnemies[EnemyType.normal]!.speed *
             game.boardDistanceScale *
-            0.7 *
+            0.8 *
             0.5,
         0.001,
       ),

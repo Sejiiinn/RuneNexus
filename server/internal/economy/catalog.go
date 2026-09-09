@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	CatalogVersion              int32 = 1
+	CatalogVersion              int32 = 2
 	AuthorityVersion            int32 = 1
 	RNGAlgorithmVersion         int32 = 1
 	ModuleTicketDiamondCost     int64 = 40
@@ -92,7 +92,7 @@ var optionRanges = map[string]map[string]optionRange{
 		"normal": {4, 8}, "magic": {9, 14}, "rare": {15, 22}, "unique": {23, 34},
 	},
 	"slowStrengthBonus": {
-		"normal": {2, 4}, "magic": {5, 7}, "rare": {8, 10}, "unique": {11, 14},
+		"normal": {1, 2}, "magic": {3, 4}, "rare": {5, 6}, "unique": {6, 8},
 	},
 	"lightningChainDamageIncrease": {
 		"normal": {5, 8}, "magic": {9, 15}, "rare": {16, 24}, "unique": {25, 36},

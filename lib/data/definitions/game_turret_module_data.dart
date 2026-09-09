@@ -233,10 +233,10 @@ turretModuleOptionRollRanges = {
     TurretModuleGrade.unique: TurretModuleOptionRange(23, 34),
   },
   TurretModuleOptionType.slowStrengthBonus: {
-    TurretModuleGrade.normal: TurretModuleOptionRange(2, 4),
-    TurretModuleGrade.magic: TurretModuleOptionRange(5, 7),
-    TurretModuleGrade.rare: TurretModuleOptionRange(8, 10),
-    TurretModuleGrade.unique: TurretModuleOptionRange(11, 14),
+    TurretModuleGrade.normal: TurretModuleOptionRange(1, 2),
+    TurretModuleGrade.magic: TurretModuleOptionRange(3, 4),
+    TurretModuleGrade.rare: TurretModuleOptionRange(5, 6),
+    TurretModuleGrade.unique: TurretModuleOptionRange(6, 8),
   },
   TurretModuleOptionType.lightningChainDamageIncrease: {
     TurretModuleGrade.normal: TurretModuleOptionRange(5, 8),
