@@ -823,7 +823,11 @@ class TurretComponent extends PositionComponent {
       _triggerFireFeedback();
       game.resolveCenteredAreaAttack(
         owner: this,
-        attack: createAttackSnapshot(),
+        attack: createAttackSnapshot(
+          criticalMultiplier: rollCriticalHit()
+              ? criticalDamageMultiplier
+              : 1.0,
+        ),
         targets: targets,
       );
       return;

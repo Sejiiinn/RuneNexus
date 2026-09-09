@@ -3074,7 +3074,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     TurretAttackSnapshot? attack,
     required Iterable<EnemyComponent> targets,
   }) {
-    final profile = attack ?? owner.createAttackSnapshot();
+    final profile =
+        attack ??
+        owner.createAttackSnapshot(
+          criticalMultiplier: owner.rollCriticalHit()
+              ? owner.criticalDamageMultiplier
+              : 1.0,
+        );
     final impacted = targets
         .where(
           (enemy) =>
@@ -3103,7 +3109,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       final resolvedDamage = _combatResolver.resolveAttackDamage(
         attack: profile,
         enemy: enemy,
-        baseDamage: profile.damage,
+        baseDamage: profile.damage * profile.criticalMultiplier,
       );
       _combatResolver.applyAttackStatuses(
         attack: profile,
@@ -3123,7 +3129,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         damage: actualDamage,
         color: owner.definition.color,
         sourcePosition: owner.position,
-        damageMultiplier: resolvedDamage.resistanceMultiplier,
+        damageMultiplier:
+            resolvedDamage.resistanceMultiplier * profile.criticalMultiplier,
       );
       _recordTurretDamage(owner, actualDamage, TurretDamageKind.splash);
     }

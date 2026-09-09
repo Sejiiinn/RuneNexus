@@ -77,8 +77,10 @@ class EnemyComponent extends PositionComponent {
   double _poisonNumberDamage = 0;
   double _poisonNumberTimer = 0;
   int _poisonStacks = 0;
-  double _slowRemaining = 0;
-  double _slowMultiplier = 1;
+  // 같은 강도만 재갱신, 서로 다른 강도는 독립 만료
+  final Map<double, double> _slowDurations = {};
+  double get _slowMultiplier => _slowDurations.keys.fold(1.0, math.min);
+  double get _slowRemaining => _slowDurations[_slowMultiplier] ?? 0;
   double _physicalVulnerabilityRemaining = 0;
   double _physicalVulnerabilityBonus = 0;
   double _elementalVulnerabilityRemaining = 0;
@@ -164,8 +166,12 @@ class EnemyComponent extends PositionComponent {
       poisonDamagePerSecond: _poisonDamagePerSecond,
       poisonDamageMultiplier: _poisonDamageMultiplier,
       poisonStacks: _poisonStacks,
-      slowRemaining: _slowRemaining,
-      slowMultiplier: _slowMultiplier,
+      slowInstances: List.unmodifiable(
+        _slowDurations.entries.map(
+          (entry) =>
+              SavedSlowInstance(multiplier: entry.key, remaining: entry.value),
+        ),
+      ),
       physicalVulnerabilityRemaining: _physicalVulnerabilityRemaining,
       physicalVulnerabilityBonus: _physicalVulnerabilityBonus,
       elementalVulnerabilityRemaining: _elementalVulnerabilityRemaining,
@@ -198,8 +204,10 @@ class EnemyComponent extends PositionComponent {
     _poisonStacks = math.max(0, data.poisonStacks);
     _poisonNumberDamage = 0;
     _poisonNumberTimer = 0;
-    _slowRemaining = math.max(0, data.slowRemaining);
-    _slowMultiplier = data.slowMultiplier <= 0 ? 1 : data.slowMultiplier;
+    _slowDurations.clear();
+    for (final instance in data.slowInstances) {
+      applySlow(multiplier: instance.multiplier, duration: instance.remaining);
+    }
     _physicalVulnerabilityRemaining = math.max(
       0,
       data.physicalVulnerabilityRemaining,
@@ -547,8 +555,17 @@ class EnemyComponent extends PositionComponent {
   }
 
   void applySlow({required double multiplier, required double duration}) {
-    _slowMultiplier = math.min(_slowMultiplier, multiplier);
-    _slowRemaining = math.max(_slowRemaining, duration);
+    if (!multiplier.isFinite ||
+        multiplier < 0 ||
+        multiplier >= 1 ||
+        !duration.isFinite ||
+        duration <= 0) {
+      return;
+    }
+    _slowDurations[multiplier] = math.max(
+      _slowDurations[multiplier] ?? 0,
+      duration,
+    );
   }
 
   void applyPhysicalVulnerability({
@@ -670,11 +687,9 @@ class EnemyComponent extends PositionComponent {
         _poisonNumberTimer = 0;
       }
     }
-    if (_slowRemaining > 0) {
-      _slowRemaining = math.max(0, _slowRemaining - dt);
-      if (_slowRemaining == 0) {
-        _slowMultiplier = 1;
-      }
+    if (_slowDurations.isNotEmpty) {
+      _slowDurations.updateAll((_, remaining) => remaining - dt);
+      _slowDurations.removeWhere((_, remaining) => remaining <= 0);
     }
     if (_physicalVulnerabilityRemaining > 0) {
       _physicalVulnerabilityRemaining = math.max(

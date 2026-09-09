@@ -3494,8 +3494,6 @@ void main() {
       poisonDamagePerSecond: 0,
       poisonDamageMultiplier: 1,
       poisonStacks: 0,
-      slowRemaining: 0,
-      slowMultiplier: 1,
       physicalVulnerabilityRemaining: 0,
       physicalVulnerabilityBonus: 0,
       elementalVulnerabilityRemaining: 0,

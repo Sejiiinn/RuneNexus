@@ -17,8 +17,7 @@ class SavedEnemy {
     required this.poisonDamagePerSecond,
     required this.poisonDamageMultiplier,
     required this.poisonStacks,
-    required this.slowRemaining,
-    required this.slowMultiplier,
+    this.slowInstances = const [],
     required this.physicalVulnerabilityRemaining,
     required this.physicalVulnerabilityBonus,
     required this.elementalVulnerabilityRemaining,
@@ -44,8 +43,7 @@ class SavedEnemy {
   final double poisonDamagePerSecond;
   final double poisonDamageMultiplier;
   final int poisonStacks;
-  final double slowRemaining;
-  final double slowMultiplier;
+  final List<SavedSlowInstance> slowInstances;
   final double physicalVulnerabilityRemaining;
   final double physicalVulnerabilityBonus;
   final double elementalVulnerabilityRemaining;
@@ -74,8 +72,9 @@ class SavedEnemy {
       'poisonDamagePerSecond': poisonDamagePerSecond,
       'poisonDamageMultiplier': poisonDamageMultiplier,
       'poisonStacks': poisonStacks,
-      'slowRemaining': slowRemaining,
-      'slowMultiplier': slowMultiplier,
+      'slowInstances': slowInstances
+          .map((instance) => instance.toJson())
+          .toList(),
       'physicalVulnerabilityRemaining': physicalVulnerabilityRemaining,
       'physicalVulnerabilityBonus': physicalVulnerabilityBonus,
       'elementalVulnerabilityRemaining': elementalVulnerabilityRemaining,
@@ -140,8 +139,9 @@ class SavedEnemy {
         fallback: 1,
       ),
       poisonStacks: _intValue(json['poisonStacks']),
-      slowRemaining: _doubleValue(json['slowRemaining']),
-      slowMultiplier: _doubleValue(json['slowMultiplier'], fallback: 1),
+      slowInstances: List.unmodifiable(
+        _objectList(json['slowInstances'], SavedSlowInstance.fromJson),
+      ),
       physicalVulnerabilityRemaining: _doubleValue(
         json['physicalVulnerabilityRemaining'],
       ),
@@ -188,5 +188,31 @@ class SavedSpawnRequest {
       enemyType: enemyType,
       delay: _doubleValue(json['delay']),
     );
+  }
+}
+
+class SavedSlowInstance {
+  const SavedSlowInstance({required this.multiplier, required this.remaining});
+
+  final double multiplier;
+  final double remaining;
+
+  Map<String, Object?> toJson() => {
+    'multiplier': multiplier,
+    'remaining': remaining,
+  };
+
+  static SavedSlowInstance? fromJson(Object? json) {
+    if (json is! Map<String, Object?>) return null;
+    final multiplier = _doubleValue(json['multiplier'], fallback: 1);
+    final remaining = _doubleValue(json['remaining']);
+    if (!multiplier.isFinite ||
+        multiplier < 0 ||
+        multiplier >= 1 ||
+        !remaining.isFinite ||
+        remaining <= 0) {
+      return null;
+    }
+    return SavedSlowInstance(multiplier: multiplier, remaining: remaining);
   }
 }
