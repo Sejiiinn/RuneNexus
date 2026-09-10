@@ -11,6 +11,93 @@ import 'app_update_service_test.dart' show manifest, patchManifest;
 
 void main() {
   const channel = MethodChannel('rune_nexus/app_update');
+  for (final size in [const Size(320, 568), const Size(740, 320)]) {
+    for (final textScale in [1.0, 1.6]) {
+      testWidgets('긴 릴리즈 노트 내부 스크롤 $size 글자 $textScale', (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          channel,
+          (_) async => {
+            'versionCode': 1,
+            'packageName': 'com.example.rune_nexus',
+          },
+        );
+        addTearDown(
+          () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+            channel,
+            null,
+          ),
+        );
+        final value = manifest()
+          ..['notes'] = [
+            '- 버전 0.1.12를 준비했습니다. 피해 배율 1.5, 보상 2P를 유지합니다.\r',
+            ...List.generate(20, (i) => '항목 $i: 코어 트리 탐색과 전투 안내를 개선했습니다.'),
+          ].join('\n');
+        await tester.pumpWidget(
+          MaterialApp(
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(textScale)),
+              child: child!,
+            ),
+            home: AppUpdateGate(
+              service: AppUpdateService(
+                manifestUrl: 'https://example.com/update.json',
+                readManifest: (_) async => jsonEncode(value),
+              ),
+              child: const Text('게임 진입'),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.text('버전 0.1.12를 준비했습니다.'), findsOneWidget);
+        expect(find.text('피해 배율 1.5, 보상 2P를 유지합니다.'), findsOneWidget);
+        final notes = find.byKey(const ValueKey('update-release-notes-scroll'));
+        final scrollable = find.descendant(
+          of: notes,
+          matching: find.byType(Scrollable),
+        );
+        final position = tester.state<ScrollableState>(scrollable).position;
+        expect(position.maxScrollExtent, greaterThan(0));
+        final button = find.text('현재 버전으로 계속');
+        await tester.ensureVisible(notes);
+        await tester.pump();
+        final before = tester.getTopLeft(button);
+        if (size.height == 568 && textScale == 1) {
+          expect(button.hitTestable(), findsOneWidget);
+          expect(find.text('업데이트').hitTestable(), findsOneWidget);
+        }
+        await tester.dragFrom(
+          tester.getRect(notes).intersect(Offset.zero & size).center,
+          const Offset(0, -100),
+        );
+        await tester.pumpAndSettle();
+        expect(position.pixels, greaterThan(0));
+        expect(tester.getTopLeft(button), before);
+        position.jumpTo(position.maxScrollExtent);
+        await tester.pump();
+        await tester.ensureVisible(
+          find.text('항목 19: 코어 트리 탐색과 전투 안내를 개선했습니다.'),
+        );
+        await tester.pump();
+        expect(
+          find.text('항목 19: 코어 트리 탐색과 전투 안내를 개선했습니다.').hitTestable(),
+          findsOneWidget,
+        );
+        await tester.ensureVisible(button);
+        await tester.tap(button);
+        await tester.pumpAndSettle();
+        expect(find.text('게임 진입'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      });
+    }
+  }
+
   testWidgets('설치 권한 복귀와 설치 취소 후 재시도는 다운로드를 반복하지 않는다', (tester) async {
     tester.view.physicalSize = const Size(320, 568);
     tester.view.devicePixelRatio = 1;

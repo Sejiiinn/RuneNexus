@@ -34,6 +34,25 @@ void main() {
       await pumpGameFrames(tester);
 
       expect(find.byKey(const ValueKey('core-view-tabs')), findsNothing);
+      final canvas = tester.getRect(
+        find.byKey(const ValueKey('core-passive-tree-canvas')),
+      );
+      final header = tester.getRect(
+        find.byKey(const ValueKey('menu-resource-bar')),
+      );
+      final viewport = tester.view.physicalSize / tester.view.devicePixelRatio;
+      expect(canvas.left, 0);
+      expect(canvas.width, viewport.width);
+      expect(canvas.top, header.bottom);
+      expect(canvas.bottom, viewport.height - 56);
+      expect(
+        find.ancestor(
+          of: find.byKey(const ValueKey('core-passive-point-summary')),
+          matching: find.byKey(const ValueKey('core-passive-tree-canvas')),
+        ),
+        findsOneWidget,
+      );
+
       expect(
         find.byKey(const ValueKey('core-combat-skill-menu')),
         findsNothing,
@@ -137,7 +156,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('core-combat-skill-close')));
       await pumpGameFrames(tester);
       await tester.pump(const Duration(milliseconds: 200));
-      expect(find.text('균열 낙인\n스킬 선택'), findsOneWidget);
+      expect(find.text('균열 낙인'), findsOneWidget);
       expect(
         find.byKey(const ValueKey('core-combat-skill-menu')),
         findsNothing,
@@ -174,7 +193,7 @@ void main() {
       final game = CoreEquipGame();
       await tester.pumpWidget(coreTreeTestApp(game, snapshots));
       await pumpGameFrames(tester);
-      expect(find.text('미장착\n스킬 선택'), findsOneWidget);
+      expect(find.text('스킬 선택'), findsOneWidget);
       await tester.tap(
         find.byKey(const ValueKey('core-passive-center-select')),
       );
@@ -334,10 +353,6 @@ void main() {
       );
       await tester.ensureVisible(connectedNode);
       await pumpGameFrames(tester);
-      await tester.drag(
-        find.byType(SingleChildScrollView).first,
-        const Offset(0, 80),
-      );
       await pumpGameFrames(tester);
       await tester.tap(connectedNode);
       await pumpGameFrames(tester);
@@ -466,10 +481,6 @@ void main() {
     expect(tester.widget<TextButton>(cancel).onPressed, isNotNull);
     await tester.ensureVisible(cancel);
     await pumpGameFrames(tester);
-    await tester.drag(
-      find.byType(SingleChildScrollView).first,
-      const Offset(0, 80),
-    );
     await pumpGameFrames(tester);
     await tester.tap(cancel);
     await pumpGameFrames(tester);
@@ -516,10 +527,6 @@ void main() {
         final node = find.byKey(ValueKey('core-passive-node-${id.name}'));
         await tester.ensureVisible(node);
         await pumpGameFrames(tester);
-        await tester.drag(
-          find.byType(SingleChildScrollView).first,
-          const Offset(0, 80),
-        );
         await pumpGameFrames(tester);
         await tester.tap(node);
         await pumpGameFrames(tester);
@@ -708,10 +715,6 @@ void main() {
     );
     await tester.ensureVisible(startingNode);
     await pumpGameFrames(tester);
-    await tester.drag(
-      find.byType(SingleChildScrollView).first,
-      const Offset(0, 80),
-    );
     await pumpGameFrames(tester);
     await tester.tap(startingNode);
     await pumpGameFrames(tester);

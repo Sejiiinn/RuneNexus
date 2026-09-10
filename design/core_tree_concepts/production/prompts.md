@@ -48,3 +48,9 @@ Use case: background-extraction. Remove the entire gray checkerboard backdrop fr
 ## connection_segment_inactive_v1.png
 
 Generate one reusable game UI metal connector texture sprite. A single plain rectangular horizontal dark gunmetal strip bordered by muted antique bronze, completely unlit, cool subdued dark metallic center. Shape is straight and uniform, perfectly square flat ends. Fill most of canvas width and about one quarter of canvas height so the object is substantial enough to extract. Real RGBA PNG TRANSPARENT BACKGROUND, alpha zero in surrounding empty space. Do NOT draw a checkerboard, white background, gray background, floor, shadow or scene. No glow, no text, no patterns outside object, no ornaments or icons. Front view, no perspective. This is a production transparent sprite that will be displayed as a thin 2–6px connection line in a fantasy skill tree using vertical scaling. Match Rune Nexus antique gold/navy steel aesthetic. One object only. Keep background TRANSPARENT.
+
+## 중앙 명패 — 2026-09-10
+
+내장 ImageGen. 단일 투명 PNG, 얇은 낡은 황동 레일과 작은 좌우 끝 장식, 어두운 남색 중앙, 텍스트 없음. 긴 중앙부는 수평으로 균일하여 9분할 확장 가능. 첫 결과에서 외부 배경·광택 제거를 요청한 뒤 GIMP로 투명 여백을 크롭하고 396×55로 축소했다.
+
+최종 편집 프롬프트: “Keep the antique thin brass rails, pointed caps, dark navy center exactly. Remove all surrounding black backdrop and golden outer glow, genuinely transparent alpha outside the sharp silhouette. Tightly crop canvas to plaque bounds. Navy text bed remains opaque. No text.”

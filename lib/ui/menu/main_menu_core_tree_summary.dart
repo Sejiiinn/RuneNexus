@@ -149,11 +149,18 @@ class _CorePassivePointSummary extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       key: const ValueKey('core-passive-point-summary'),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xE60A1724),
-        border: Border.all(color: const Color(0x665D7182)),
-        borderRadius: BorderRadius.circular(8),
+        color: const Color(0xEB07131E),
+        border: Border.all(color: const Color(0x997B927F)),
+        borderRadius: BorderRadius.circular(4),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x99000000),
+            blurRadius: 16,
+            offset: Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -168,7 +175,7 @@ class _CorePassivePointSummary extends StatelessWidget {
                   '${l10n.corePoints} ${snapshot.totalCorePoints}',
                   style: const TextStyle(
                     color: Color(0xFFE8FBFF),
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
@@ -176,7 +183,7 @@ class _CorePassivePointSummary extends StatelessWidget {
                   '${l10n.corePointsSpent} ${snapshot.spentCorePoints}',
                   style: const TextStyle(
                     color: Color(0xFFFFC66A),
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -185,7 +192,7 @@ class _CorePassivePointSummary extends StatelessWidget {
                   key: const ValueKey('core-passive-planned-points'),
                   style: const TextStyle(
                     color: Color(0xFF8EE6FF),
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -194,7 +201,7 @@ class _CorePassivePointSummary extends StatelessWidget {
                   key: const ValueKey('core-passive-planned-remaining'),
                   style: const TextStyle(
                     color: Color(0xFF72E0A2),
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -209,14 +216,13 @@ class _CorePassivePointSummary extends StatelessWidget {
                 onPressed: onCancelPlan,
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 7),
-                  minimumSize: const Size(0, 27),
+                  minimumSize: const Size(0, 36),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Text(
                   l10n.corePassiveCancelPlan,
-                  maxLines: 1,
                   style: const TextStyle(
-                    fontSize: 9,
+                    fontSize: 11,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
@@ -226,14 +232,13 @@ class _CorePassivePointSummary extends StatelessWidget {
                 onPressed: onReset,
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 7),
-                  minimumSize: const Size(0, 27),
+                  minimumSize: const Size(0, 36),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Text(
                   l10n.corePassiveResetAll,
-                  maxLines: 1,
                   style: const TextStyle(
-                    fontSize: 9,
+                    fontSize: 11,
                     fontWeight: FontWeight.w900,
                   ),
                 ),

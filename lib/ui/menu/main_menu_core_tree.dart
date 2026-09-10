@@ -35,7 +35,11 @@ _corePassiveNodePolarPositions = {
 };
 
 class _CorePassiveTreeMenu extends StatefulWidget {
-  const _CorePassiveTreeMenu({required this.game, required this.snapshot});
+  const _CorePassiveTreeMenu({
+    required this.game,
+    required this.snapshot,
+    super.key,
+  });
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
@@ -122,176 +126,167 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
   Widget build(BuildContext context) {
     final l10n = RuneNexusLocalizations.of(context);
     final selectedNodeId = _selectedNodeId;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _CorePassivePointSummary(
-          snapshot: widget.snapshot,
-          draftSpentPoints: _draftSpentPoints,
-          l10n: l10n,
-          onCancelPlan: _hasDraftChanges && !_isAllocating
-              ? _cancelDraft
-              : null,
-          onReset: widget.snapshot.spentCorePoints > 0 && !_isAllocating
-              ? () => _confirmReset(context, l10n)
-              : null,
-        ),
-        const SizedBox(height: 8),
-        Container(
-          key: const ValueKey('core-passive-tree-canvas'),
-          height: 430,
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            color: const Color(0xFF04111B),
-            border: Border.all(color: const Color(0x775D7182)),
-            borderRadius: BorderRadius.circular(9),
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final viewport = Size(
-                constraints.maxWidth,
-                constraints.maxHeight,
-              );
-              final fitScale =
-                  math.min(
-                    viewport.width / _corePassiveTreeWorldSize,
-                    viewport.height / _corePassiveTreeWorldSize,
-                  ) *
-                  0.92;
-              // InteractiveViewer의 종횡비 기반 자체 축소 하한 보정.
-              final scaleBoundaryMargin = EdgeInsets.symmetric(
-                horizontal: math.max(
-                  0,
-                  (viewport.width / fitScale - _corePassiveTreeWorldSize) / 2,
-                ),
-                vertical: math.max(
-                  0,
-                  (viewport.height / fitScale - _corePassiveTreeWorldSize) / 2,
-                ),
-              );
-              _synchronizeViewport(viewport, fitScale);
-              return Stack(
-                children: [
-                  Positioned.fill(
-                    child: AbsorbPointer(
-                      absorbing: _isAllocating,
-                      child: Listener(
-                        key: const ValueKey('core-passive-tree-empty-space'),
-                        behavior: HitTestBehavior.opaque,
-                        onPointerDown: _handleCanvasPointerDown,
-                        onPointerMove: _handleCanvasPointerMove,
-                        onPointerUp: _handleCanvasPointerUp,
-                        onPointerCancel: _handleCanvasPointerCancel,
-                        child: InteractiveViewer(
-                          key: const ValueKey('core-passive-tree-viewer'),
-                          transformationController: _transformationController,
-                          constrained: false,
-                          panEnabled: true,
-                          scaleEnabled: true,
-                          minScale: fitScale,
-                          maxScale: fitScale * 2.2,
-                          boundaryMargin: scaleBoundaryMargin,
-                          onInteractionUpdate: (_) =>
-                              _clampTransformToViewport(),
-                          onInteractionEnd: (_) {
-                            _clampTransformToViewport();
-                            _centerAtMinimumScale();
-                          },
-                          child: _CorePassiveTreeWorld(
-                            actualRanks: _actualRanksForRendering,
-                            draftRanks: _draftRanksForRendering,
-                            draftLineRanks: _draftLineRanksForRendering,
-                            renderedRanks: _renderedRanks,
-                            selectedNodeId: selectedNodeId,
-                            allocationWaves: _allocationWaves,
-                            allocationElapsedMs: _allocationElapsedMs,
-                            viewportSize: viewport,
-                            fitScale: fitScale,
-                            onSelectNode: _selectNode,
-                            combatSkill: widget.snapshot.coreCombatSkill,
-                            onSelectCore: () {
-                              _selectionInteractionRevision += 1;
-                              setState(() {
-                                _selectedNodeId = null;
-                                _selectingCombatSkill = true;
-                              });
-                            },
-                          ),
-                        ),
+    return Container(
+      key: const ValueKey('core-passive-tree-canvas'),
+      clipBehavior: Clip.hardEdge,
+      decoration: const BoxDecoration(color: Color(0xFF04111B)),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final viewport = Size(constraints.maxWidth, constraints.maxHeight);
+          final fitScale =
+              math.min(
+                viewport.width / _corePassiveTreeWorldSize,
+                viewport.height / _corePassiveTreeWorldSize,
+              ) *
+              0.92;
+          // InteractiveViewer의 종횡비 기반 자체 축소 하한 보정.
+          final scaleBoundaryMargin = EdgeInsets.symmetric(
+            horizontal: math.max(
+              0,
+              (viewport.width / fitScale - _corePassiveTreeWorldSize) / 2,
+            ),
+            vertical: math.max(
+              0,
+              (viewport.height / fitScale - _corePassiveTreeWorldSize) / 2,
+            ),
+          );
+          _synchronizeViewport(viewport, fitScale);
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: AbsorbPointer(
+                  absorbing: _isAllocating,
+                  child: Listener(
+                    key: const ValueKey('core-passive-tree-empty-space'),
+                    behavior: HitTestBehavior.opaque,
+                    onPointerDown: _handleCanvasPointerDown,
+                    onPointerMove: _handleCanvasPointerMove,
+                    onPointerUp: _handleCanvasPointerUp,
+                    onPointerCancel: _handleCanvasPointerCancel,
+                    child: InteractiveViewer(
+                      key: const ValueKey('core-passive-tree-viewer'),
+                      transformationController: _transformationController,
+                      constrained: false,
+                      panEnabled: true,
+                      scaleEnabled: true,
+                      minScale: fitScale,
+                      maxScale: fitScale * 2.2,
+                      boundaryMargin: scaleBoundaryMargin,
+                      onInteractionUpdate: (_) => _clampTransformToViewport(),
+                      onInteractionEnd: (_) {
+                        _clampTransformToViewport();
+                        _centerAtMinimumScale();
+                      },
+                      child: _CorePassiveTreeWorld(
+                        actualRanks: _actualRanksForRendering,
+                        draftRanks: _draftRanksForRendering,
+                        draftLineRanks: _draftLineRanksForRendering,
+                        renderedRanks: _renderedRanks,
+                        selectedNodeId: selectedNodeId,
+                        allocationWaves: _allocationWaves,
+                        allocationElapsedMs: _allocationElapsedMs,
+                        viewportSize: viewport,
+                        fitScale: fitScale,
+                        onSelectNode: _selectNode,
+                        combatSkill: widget.snapshot.coreCombatSkill,
+                        onSelectCore: () {
+                          _selectionInteractionRevision += 1;
+                          setState(() {
+                            _selectedNodeId = null;
+                            _selectingCombatSkill = true;
+                          });
+                        },
                       ),
                     ),
                   ),
-                  Positioned.fill(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 160),
-                      switchInCurve: Curves.easeOut,
-                      switchOutCurve: Curves.easeIn,
-                      transitionBuilder: (child, animation) => FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(0, 0.04),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: child,
-                        ),
-                      ),
-                      child: _selectingCombatSkill
-                          ? Center(
-                              key: const ValueKey(
-                                'core-combat-skill-selection',
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(10),
-                                child: ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: 520,
-                                  ),
-                                  child: SingleChildScrollView(
-                                    child: _CoreCombatSkillMenu(
-                                      game: widget.game,
-                                      snapshot: widget.snapshot,
-                                      onClose: _clearSelectedNode,
-                                    ),
-                                  ),
+                ),
+              ),
+              Positioned(
+                top: 12,
+                left: 12,
+                right: 12,
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 430),
+                    child: _CorePassivePointSummary(
+                      snapshot: widget.snapshot,
+                      draftSpentPoints: _draftSpentPoints,
+                      l10n: l10n,
+                      onCancelPlan: _hasDraftChanges && !_isAllocating
+                          ? _cancelDraft
+                          : null,
+                      onReset:
+                          widget.snapshot.spentCorePoints > 0 && !_isAllocating
+                          ? () => _confirmReset(context, l10n)
+                          : null,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned.fill(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 160),
+                  switchInCurve: Curves.easeOut,
+                  switchOutCurve: Curves.easeIn,
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.04),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  ),
+                  child: _selectingCombatSkill
+                      ? Center(
+                          key: const ValueKey('core-combat-skill-selection'),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 520),
+                              child: SingleChildScrollView(
+                                child: _CoreCombatSkillMenu(
+                                  game: widget.game,
+                                  snapshot: widget.snapshot,
+                                  onClose: _clearSelectedNode,
                                 ),
                               ),
-                            )
-                          : selectedNodeId == null
-                          ? const SizedBox.shrink(
-                              key: ValueKey('core-passive-node-details-closed'),
-                            )
-                          : Align(
-                              key: const ValueKey(
-                                'core-passive-node-details-open',
-                              ),
-                              alignment:
-                                  _corePassiveNodePosition(selectedNodeId).dy >
-                                      _corePassiveTreeCenter.dy
-                                  ? Alignment.topCenter
-                                  : Alignment.bottomCenter,
-                              child: _CorePassiveNodeDetails(
-                                snapshot: widget.snapshot,
-                                draftRanks: _draftRanks,
-                                selectedNodeId: selectedNodeId,
-                                allocating: _isAllocating,
-                                onDecrease: _canDecrease
-                                    ? _decreaseSelectedRank
-                                    : null,
-                                onIncrease: _canIncrease
-                                    ? _increaseSelectedRank
-                                    : null,
-                                onAssign: _canAssign ? _assignDraft : null,
-                              ),
                             ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
-      ],
+                          ),
+                        )
+                      : selectedNodeId == null
+                      ? const SizedBox.shrink(
+                          key: ValueKey('core-passive-node-details-closed'),
+                        )
+                      : Align(
+                          key: const ValueKey('core-passive-node-details-open'),
+                          alignment:
+                              _corePassiveNodePosition(selectedNodeId).dy >
+                                  _corePassiveTreeCenter.dy
+                              ? Alignment.topCenter
+                              : Alignment.bottomCenter,
+                          child: _CorePassiveNodeDetails(
+                            snapshot: widget.snapshot,
+                            draftRanks: _draftRanks,
+                            selectedNodeId: selectedNodeId,
+                            allocating: _isAllocating,
+                            onDecrease: _canDecrease
+                                ? _decreaseSelectedRank
+                                : null,
+                            onIncrease: _canIncrease
+                                ? _increaseSelectedRank
+                                : null,
+                            onAssign: _canAssign ? _assignDraft : null,
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 

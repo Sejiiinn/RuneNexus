@@ -16,7 +16,7 @@ void main() {
       testWidgets('시작 화면 렌더 캡처 ${update ? "update" : "loading"}', (
         tester,
       ) async {
-        tester.view.physicalSize = const Size(390, 844);
+        tester.view.physicalSize = Size(390, update ? 700 : 844);
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
@@ -138,6 +138,7 @@ class _CaptureUpdateService extends AppUpdateService {
     apkUrl: Uri.parse('https://example.com/update.apk'),
     sha256: 'a' * 64,
     sizeBytes: (12.4 * 1024 * 1024).round(),
-    notes: '룬 각인과 넥서스의 시각 효과를 개선했습니다.\n더 안정적인 전투를 위해 게임 환경을 정비했습니다.',
+    notes:
+        '코어 트리를 화면 전체에서 탐색할 수 있습니다. 중앙 코어에서 전투 스킬을 선택할 수 있습니다.\n스테이지 최초 클리어 시 코어 포인트 2P를 획득합니다.\n적의 기본 내구도와 스테이지별 성장률을 조정했습니다.\n업데이트 내용을 항목별로 표시하고, 긴 내용은 이 영역 안에서 스크롤합니다.\n메뉴 상단의 계정 아이콘을 정리했습니다.\n계정 및 저장은 로비 설정에서 확인할 수 있습니다.\n코어 노드의 프레임과 연결선 이미지를 적용했습니다.\n장착한 스킬 이름을 중앙 명패에 표시합니다.',
   );
 }

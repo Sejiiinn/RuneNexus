@@ -179,20 +179,33 @@ class _CorePassiveCenterNode extends StatelessWidget {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xED071521),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Text(
-                    '${equippedSkill?.label ?? '미장착'}\n스킬 선택',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Color(0xFFE8FBFF),
-                      fontSize: 15,
-                      height: 1.15,
-                      fontWeight: FontWeight.w800,
+                child: Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 6,
+                    ),
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: ExactAssetImage(
+                          '$_coreTreeSpriteRoot/skill_nameplate_v1.png',
+                          scale: 2,
+                        ),
+                        fit: BoxFit.fill,
+                        // 양끝 장식과 테두리 보존, 중앙 면만 문구 길이에 맞춰 확장.
+                        centerSlice: Rect.fromLTRB(16, 4, 182, 23.5),
+                      ),
+                    ),
+                    child: Text(
+                      equippedSkill?.label ?? '스킬 선택',
+                      key: const ValueKey('core-passive-center-label'),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFFF4E6C8),
+                        fontSize: 15,
+                        height: 1.15,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ),

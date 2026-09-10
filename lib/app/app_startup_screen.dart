@@ -11,6 +11,7 @@ class AppStartupScreen extends StatelessWidget {
     this.progress,
     this.busy = true,
     this.details,
+    this.boundedDetails = false,
     super.key,
   });
 
@@ -18,6 +19,9 @@ class AppStartupScreen extends StatelessWidget {
   final double? progress;
   final bool busy;
   final Widget? details;
+
+  /// 내부 스크롤을 가진 상세 영역에 남은 화면 높이 전달.
+  final bool boundedDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -51,102 +55,123 @@ class AppStartupScreen extends StatelessWidget {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final compact = details != null;
-                final topSpace = (constraints.maxHeight * 0.09).clamp(
-                  24.0,
-                  72.0,
+                final topSpace = boundedDetails
+                    ? 12.0
+                    : (constraints.maxHeight * 0.09).clamp(24.0, 72.0);
+                final coreSize = boundedDetails
+                    ? (constraints.maxHeight * 0.10).clamp(48.0, 100.0)
+                    : (constraints.maxHeight * (compact ? 0.20 : 0.30)).clamp(
+                        100.0,
+                        compact ? 160.0 : 230.0,
+                      );
+                final textScale =
+                    MediaQuery.textScalerOf(context).scale(13) / 13;
+                // 짧은 가로 화면·글자 확대 시 고정 안내와 버튼의 최소 공간 확보.
+                final contentHeight = constraints.maxHeight.clamp(
+                  520.0 * textScale,
+                  double.infinity,
                 );
-                final coreSize =
-                    (constraints.maxHeight * (compact ? 0.20 : 0.30)).clamp(
-                      100.0,
-                      compact ? 160.0 : 230.0,
-                    );
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 28),
-                      // 긴 업데이트 안내는 실제 줄바꿈 높이만큼 확장하여 스크롤.
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(top: topSpace, bottom: 24),
-                            child: Column(
-                              children: [
-                                ConstrainedBox(
-                                  constraints: const BoxConstraints(
-                                    maxWidth: 310,
-                                  ),
-                                  child: AspectRatio(
-                                    aspectRatio: 355 / 80,
-                                    child: Image.asset(
-                                      gameLogoAsset,
-                                      fit: BoxFit.contain,
-                                      semanticLabel: 'Rune Nexus',
-                                    ),
-                                  ),
+                final content = Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  // 업데이트 상세는 남은 높이 안에서 노트만 스크롤.
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(
+                          top: topSpace,
+                          bottom: boundedDetails ? 12 : 24,
+                        ),
+                        child: Column(
+                          children: [
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: boundedDetails ? 240 : 310,
+                              ),
+                              child: AspectRatio(
+                                aspectRatio: 355 / 80,
+                                child: Image.asset(
+                                  gameLogoAsset,
+                                  fit: BoxFit.contain,
+                                  semanticLabel: 'Rune Nexus',
                                 ),
-                                const SizedBox(height: 18),
-                                Container(
-                                  width: 96,
-                                  height: 1,
-                                  decoration: const BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Color(0x00E7C66A),
-                                        Color(0x99E7C66A),
-                                        Color(0x00E7C66A),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 24),
-                            child: Image.asset(
-                              corePassiveTreeCoreAsset,
-                              width: coreSize,
-                              height: coreSize,
-                              excludeFromSemantics: true,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(bottom: compact ? 28 : 54),
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 420),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(
-                                    status,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      color: GamePalette.textPrimary,
-                                      fontSize: 14,
-                                      height: 1.6,
-                                      fontWeight: FontWeight.w600,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black,
-                                          blurRadius: 8,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (busy) ...[
-                                    const SizedBox(height: 18),
-                                    AppStartupProgressBar(
-                                      value: progress,
-                                      label: status,
-                                    ),
+                            const SizedBox(height: 18),
+                            Container(
+                              width: 96,
+                              height: 1,
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Color(0x00E7C66A),
+                                    Color(0x99E7C66A),
+                                    Color(0x00E7C66A),
                                   ],
-                                  if (details != null) ...[
-                                    const SizedBox(height: 20),
-                                    DefaultTextStyle.merge(
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: boundedDetails ? 8 : 24,
+                        ),
+                        child: Image.asset(
+                          corePassiveTreeCoreAsset,
+                          width: coreSize,
+                          height: coreSize,
+                          excludeFromSemantics: true,
+                        ),
+                      ),
+                      Flexible(
+                        flex: boundedDetails ? 1 : 0,
+                        fit: boundedDetails ? FlexFit.tight : FlexFit.loose,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            bottom: boundedDetails
+                                ? 16
+                                : compact
+                                ? 28
+                                : 54,
+                          ),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 420),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text(
+                                  status,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: GamePalette.textPrimary,
+                                    fontSize: 14,
+                                    height: 1.6,
+                                    fontWeight: FontWeight.w600,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black,
+                                        blurRadius: 8,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (busy) ...[
+                                  const SizedBox(height: 18),
+                                  AppStartupProgressBar(
+                                    value: progress,
+                                    label: status,
+                                  ),
+                                ],
+                                if (details != null) ...[
+                                  const SizedBox(height: 20),
+                                  Flexible(
+                                    flex: boundedDetails ? 1 : 0,
+                                    fit: boundedDetails
+                                        ? FlexFit.tight
+                                        : FlexFit.loose,
+                                    child: DefaultTextStyle.merge(
                                       style: const TextStyle(
                                         color: GamePalette.textSecondary,
                                         fontSize: 13,
@@ -154,15 +179,25 @@ class AppStartupScreen extends StatelessWidget {
                                       ),
                                       child: details!,
                                     ),
-                                  ],
+                                  ),
                                 ],
-                              ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
+                );
+                return SingleChildScrollView(
+                  child: boundedDetails
+                      ? SizedBox(height: contentHeight, child: content)
+                      : ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight,
+                          ),
+                          child: content,
+                        ),
                 );
               },
             ),

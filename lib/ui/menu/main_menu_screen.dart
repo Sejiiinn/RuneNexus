@@ -518,6 +518,18 @@ class _MainMenuSnapshotContent extends StatelessWidget {
               );
             },
           )
+        else if (selectedTab == MainMenuTab.core)
+          Positioned(
+            top: headerTopOffset + 50,
+            bottom: 56,
+            left: 0,
+            right: 0,
+            child: _CorePassiveTreeMenu(
+              key: const ValueKey('core-content'),
+              game: game,
+              snapshot: snapshot,
+            ),
+          )
         else
           Center(
             child: SingleChildScrollView(
@@ -537,14 +549,6 @@ class _MainMenuSnapshotContent extends StatelessWidget {
                       KeyedSubtree(
                         key: const ValueKey('research-content'),
                         child: _ResearchMenu(game: game, snapshot: snapshot),
-                      )
-                    else if (selectedTab == MainMenuTab.core)
-                      KeyedSubtree(
-                        key: const ValueKey('core-content'),
-                        child: _CorePassiveTreeMenu(
-                          game: game,
-                          snapshot: snapshot,
-                        ),
                       )
                     else if (selectedTab == MainMenuTab.permanentUpgrades)
                       KeyedSubtree(

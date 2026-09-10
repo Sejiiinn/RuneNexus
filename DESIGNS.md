@@ -34,7 +34,8 @@
 | 포탑 레벨 | 이름 옆 레벨 텍스트와 색상 강조. 과거 금속 배지 시안은 기본안으로 재도입하지 않는다. | [최종 레벨 표시](design/gem_inventory_concepts/level-text-live.png) |
 | 메인 로비 | 화면 전체 스크롤 없이 고정. 배경은 상하좌우 끝까지 채우고 메뉴만 안전영역 안에서 크기를 맞춘다. 목록·상세 화면 내부의 스크롤까지 금지하는 규칙은 아니다. | [배경 배치 기준](design/lobby/sanctuary/README.md), [안전영역 포함 테스트 렌더](design/lobby/implemented_lobby_fullbleed.png) |
 | 메뉴 탭 상단 | 스테이지·코어·강화·연구·포탑 탭 상단에는 계정 로그인 아이콘을 표시하지 않는다. 계정 및 저장은 로비 설정에서 접근한다. | [공통 메뉴](lib/ui/menu/main_menu_screen.dart) |
-| 코어 스킬트리 | 코어 메뉴는 트리로 바로 진입한다. 별도 전투 스킬/패시브 트리 탭 없이 중앙 코어를 눌러 스킬을 선택하며, 현재 장착 스킬과 선택 안내를 중앙에 표시한다. 선택 패널은 기존 설명·해금 조건·장착/해제 동작을 유지하고 트리의 줌과 투자 초안을 보존한다. 노드 프레임의 승인 방향은 A안이며, 외곽뿐 아니라 중앙 아이콘 공간도 소형→중형→대형으로 커진다. | [코어 현행 기준](docs/core_passive_tree_implementation_plan.md), [승인 A안](design/core_tree_concepts/node-frame-previews/a-family-aperture-ratio-v3.png), [에셋 준비 기록](design/core_tree_concepts/production/README.md) |
+| 업데이트 안내 | 릴리즈 노트는 줄바꿈·문장 단위의 글머리표와 항목 간격으로 표시하고, 전용 영역 안에서 스크롤한다. 일반 세로 화면에서는 버전과 업데이트·계속 버튼을 고정한다. 짧은 가로 화면이나 글자 확대 시에는 고정 안내와 버튼 접근을 위한 바깥 스크롤을 허용한다. | [구현](lib/app/app_update_gate.dart) |
+| 코어 스킬트리 | 코어 메뉴는 트리로 바로 진입하며, 상단 헤더와 하단 탭 사이 전체를 트리 탐색 영역으로 사용한다. 외곽 창·고정 높이·바깥 스크롤 없이 포인트와 변경 취소·초기화는 트리 위의 고정 오버레이로 표시한다. 별도 전투 스킬/패시브 트리 탭 없이 중앙 코어를 눌러 스킬을 선택하며, 중앙 명패에는 장착 스킬명만 표시하고 미장착일 때만 ‘스킬 선택’을 표시한다. 얇은 금속 명패 PNG는 양끝을 보존하고 중앙 면을 문구 길이에 맞춰 늘린다. 선택 패널은 기존 설명·해금 조건·장착/해제 동작을 유지하고 트리의 줌과 투자 초안을 보존한다. 노드 프레임의 승인 방향은 A안이며, 외곽뿐 아니라 중앙 아이콘 공간도 소형→중형→대형으로 커진다. | [코어 현행 기준](docs/core_passive_tree_implementation_plan.md), [승인 A안](design/core_tree_concepts/node-frame-previews/a-family-aperture-ratio-v3.png), [에셋 준비 기록](design/core_tree_concepts/production/README.md) |
 
 기준 이미지는 촬영 당시 상태다. 관련 없는 화면·수치까지 복원하지 않는다. 정확한 픽셀값은 필요한 경우 실제 컴포넌트에서 확인하며 이 문서에 중복 고정하지 않는다.
 

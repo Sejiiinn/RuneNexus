@@ -124,6 +124,7 @@ class _AppUpdateGateState extends State<AppUpdateGate> {
         : '새 버전이 있습니다';
     return AppStartupScreen(
       status: status,
+      boundedDetails: !_checking,
       busy: _checking || _busy,
       details: _checking
           ? null
@@ -143,7 +144,7 @@ class _AppUpdateGateState extends State<AppUpdateGate> {
                     ),
                   if (release.notes.isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    Text(release.notes),
+                    Flexible(child: _ReleaseNotes(notes: release.notes)),
                   ],
                 ],
                 if (_error != null) ...[
@@ -180,6 +181,89 @@ class _AppUpdateGateState extends State<AppUpdateGate> {
                 ),
               ],
             ),
+    );
+  }
+}
+
+class _ReleaseNotes extends StatefulWidget {
+  const _ReleaseNotes({required this.notes});
+
+  final String notes;
+
+  @override
+  State<_ReleaseNotes> createState() => _ReleaseNotesState();
+}
+
+class _ReleaseNotesState extends State<_ReleaseNotes> {
+  final _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 기존 줄바꿈과 문장 끝 기준 분리. 버전·소수점·쉼표는 유지.
+    final entries = widget.notes
+        .split(RegExp(r'\r\n?|\n|(?<=[.!?])\s+'))
+        .map((line) => line.trim().replaceFirst(RegExp(r'^[-*•]\s+'), ''))
+        .where((line) => line.isNotEmpty)
+        .toList();
+    return Container(
+      key: const ValueKey('update-release-notes'),
+      decoration: BoxDecoration(
+        color: const Color(0xD908151E),
+        border: Border.all(color: GamePalette.cyan.withValues(alpha: 0.24)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            '업데이트 내용',
+            style: TextStyle(
+              color: GamePalette.textPrimary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Flexible(
+            child: Scrollbar(
+              controller: _scrollController,
+              thumbVisibility: true,
+              child: SingleChildScrollView(
+                key: const ValueKey('update-release-notes-scroll'),
+                controller: _scrollController,
+                primary: false,
+                padding: const EdgeInsets.only(right: 12),
+                child: Column(
+                  children: [
+                    for (var index = 0; index < entries.length; index++)
+                      Padding(
+                        padding: EdgeInsets.only(top: index == 0 ? 0 : 10),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              '•',
+                              style: TextStyle(color: GamePalette.cyan),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text(entries[index])),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
