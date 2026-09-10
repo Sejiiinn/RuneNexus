@@ -21,6 +21,115 @@ import 'package:rune_nexus/domain/turret_module/turret_module_type.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
 
 void main() {
+  test('우편 수령 응답 유실 후 재시작은 동일 명령을 복구한다', () async {
+    const id = '33333333-3333-4333-8333-333333333333';
+    final transport = _EconomyTransport(
+      getResponse: _economySnapshot(revision: 3),
+      postResponses: [
+        {'economy': _economySnapshot(revision: 2)},
+      ],
+    );
+    final fixture = _Fixture(transport: transport);
+    final pending = EconomyPendingCommand(
+      kind: 'mail_claim',
+      path: 'v1/mailbox/$id/claim',
+      idempotencyKey: id,
+      encodedBody: '{"clientCompatibilityVersion":1}',
+      createdAtMillis: 1,
+    );
+    final repository = MemoryEconomyCommandOutboxRepository()
+      ..state = EconomyCommandOutboxState.fromJson(
+        EconomyCommandOutboxState.initial(
+          _accountId,
+        ).copyWith(inFlight: pending).toJson(),
+      );
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    final coordinator = fixture.economyCoordinator(
+      game,
+      repository: repository,
+    );
+    game.attachAuthoritativeEconomyCommands(coordinator);
+    await coordinator.initialize();
+    expect(transport.postPaths, ['/v1/mailbox/$id/claim']);
+    expect(transport.postKeys, [id]);
+    expect(transport.postBodies, [pending.encodedBody]);
+    expect(repository.state!.inFlight, isNull);
+    expect(coordinator.snapshot!.revision, 3);
+    coordinator.dispose();
+    fixture.dispose();
+  });
+
+  test('미완료 우편이 만료되어도 다음 접속의 경제 복구는 계속된다', () async {
+    const id = '33333333-3333-4333-8333-333333333333';
+    final transport = _EconomyTransport(
+      getResponse: _economySnapshot(revision: 3),
+      postStatuses: [404],
+      postResponses: [
+        {'code': 'MAIL_UNAVAILABLE', 'message': '만료된 우편'},
+      ],
+    );
+    final fixture = _Fixture(transport: transport);
+    final repository = MemoryEconomyCommandOutboxRepository()
+      ..state = EconomyCommandOutboxState.initial(_accountId).copyWith(
+        inFlight: const EconomyPendingCommand(
+          kind: 'mail_claim',
+          path: 'v1/mailbox/$id/claim',
+          idempotencyKey: id,
+          encodedBody: '{"clientCompatibilityVersion":1}',
+          createdAtMillis: 1,
+        ),
+      );
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    final coordinator = fixture.economyCoordinator(
+      game,
+      repository: repository,
+    );
+    game.attachAuthoritativeEconomyCommands(coordinator);
+    await coordinator.initialize();
+    expect(repository.state!.inFlight, isNull);
+    expect(coordinator.snapshot!.revision, 3);
+    coordinator.dispose();
+    fixture.dispose();
+  });
+
+  test('모두 받기의 일부 실패도 성공한 경제 상태와 개별 결과를 반영한다', () async {
+    const one = '33333333-3333-4333-8333-333333333333';
+    const two = '44444444-4444-4444-8444-444444444444';
+    final transport = _EconomyTransport(
+      getResponse: _economySnapshot(revision: 1),
+      postResponses: [
+        {
+          'economy': _economySnapshot(revision: 2),
+          'results': [
+            {'mailId': one, 'claimed': true},
+            {
+              'mailId': two,
+              'claimed': false,
+              'code': 'MAIL_EXPIRED',
+              'message': '기간 만료',
+            },
+          ],
+        },
+      ],
+    );
+    final fixture = _Fixture(transport: transport);
+    final repository = MemoryEconomyCommandOutboxRepository();
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    final coordinator = fixture.economyCoordinator(
+      game,
+      repository: repository,
+    );
+    game.attachAuthoritativeEconomyCommands(coordinator);
+    await coordinator.initialize();
+    final result = await coordinator.claimMails([one, two]);
+    expect(result.results.first.claimed, isTrue);
+    expect(result.results.last.code, 'MAIL_EXPIRED');
+    expect(coordinator.snapshot!.revision, 2);
+    expect(repository.state!.inFlight, isNull);
+    coordinator.dispose();
+    fixture.dispose();
+  });
+
   test('원격 rebase 게임 교체 뒤에도 새 게임만 서버 경제에 연결된다', () async {
     final fixture = _Fixture();
     final first = RuneNexusGame(saveRepository: MemorySaveRepository());
@@ -274,11 +383,18 @@ Future<void> _pumpUntil(bool Function() condition) async {
 }
 
 class _EconomyTransport extends OnlineSaveTransport {
-  _EconomyTransport({required this.getResponse, this.postResponses = const []});
+  _EconomyTransport({
+    required this.getResponse,
+    this.postResponses = const [],
+    this.postStatuses = const [],
+  });
 
   final Map<String, Object?> getResponse;
   final List<Map<String, Object?>> postResponses;
+  final List<int> postStatuses;
   final List<String> postPaths = [];
+  final List<String?> postKeys = [];
+  final List<String> postBodies = [];
   var _postIndex = 0;
 
   @override
@@ -295,8 +411,16 @@ class _EconomyTransport extends OnlineSaveTransport {
     Map<String, String> headers = const {},
   }) async {
     postPaths.add(uri.path);
+    postKeys.add(headers['Idempotency-Key']);
+    postBodies.add(body);
+    final status = _postIndex < postStatuses.length
+        ? postStatuses[_postIndex]
+        : 200;
     final response = postResponses[_postIndex++];
-    return OnlineSaveHTTPResponse(statusCode: 200, body: jsonEncode(response));
+    return OnlineSaveHTTPResponse(
+      statusCode: status,
+      body: jsonEncode(response),
+    );
   }
 }
 

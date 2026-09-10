@@ -311,6 +311,10 @@ func decodeEconomyCommand[T any](handler economyHandler, response http.ResponseW
 
 func compatibilityVersion(value any) *int {
 	switch input := value.(type) {
+	case mailboxClaimRequest:
+		return input.ClientCompatibilityVersion
+	case mailboxBatchRequest:
+		return input.ClientCompatibilityVersion
 	case economyBootstrapRequest:
 		return input.ClientCompatibilityVersion
 	case economyDrawRequest:

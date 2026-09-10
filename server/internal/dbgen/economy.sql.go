@@ -641,7 +641,7 @@ func (q *Queries) ListActivePlayerModules(ctx context.Context, accountID pgtype.
 
 const listEconomyRewardClaimKeys = `-- name: ListEconomyRewardClaimKeys :many
 SELECT reward_key FROM economy_reward_claims
-WHERE account_id = $1
+WHERE account_id = $1 AND reward_key NOT LIKE 'mail:%'
 ORDER BY claimed_at
 `
 

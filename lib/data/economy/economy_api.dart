@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../../domain/economy/economy_snapshot.dart';
+import '../../domain/mailbox/mailbox.dart';
 import '../../domain/turret/turret_type.dart';
 import '../../domain/turret_module/turret_module_type.dart';
 import '../save/online_save_transport_stub.dart'
@@ -104,6 +105,38 @@ class EconomyApi {
       }
     }
     final effectObject = _objectOrNull(decoded['progressionEffect']);
+    final mailboxResults = <MailboxClaimResult>[];
+    if (path == 'v1/mailbox/claim-all') {
+      final rawResults = decoded['results'];
+      final requested = _decodeObject(encodedBody)?['mailIds'];
+      if (rawResults is! List ||
+          requested is! List ||
+          rawResults.length != requested.length ||
+          rawResults.length > 20) {
+        throw _invalidResponse();
+      }
+      final seen = <String>{};
+      for (final value in rawResults) {
+        final item = _object(value);
+        final id = _stringValue(item, 'mailId');
+        final claimed = item['claimed'];
+        if (id == null ||
+            claimed is! bool ||
+            !requested.contains(id) ||
+            !seen.add(id) ||
+            (!claimed && _stringValue(item, 'code') == null)) {
+          throw _invalidResponse();
+        }
+        mailboxResults.add(
+          MailboxClaimResult(
+            mailId: id,
+            claimed: claimed,
+            code: _stringValue(item, 'code'),
+            message: _stringValue(item, 'message'),
+          ),
+        );
+      }
+    }
     return EconomyCommandResult(
       snapshot: _decodeSnapshot(_objectValue(decoded, 'economy')),
       drawnModules: List.unmodifiable(drawn),
@@ -114,6 +147,7 @@ class EconomyApi {
       grantedDiamonds: _nonNegativeInt(decoded['grantedDiamonds']) ?? 0,
       grantedModuleTickets:
           _nonNegativeInt(decoded['grantedModuleTickets']) ?? 0,
+      mailboxResults: List.unmodifiable(mailboxResults),
     );
   }
 

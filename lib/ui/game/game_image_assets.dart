@@ -23,6 +23,7 @@ const String lobbyBackgroundAsset =
 const String lobbyEventIconAsset = 'assets/images/lobby_event_icon.png';
 const String lobbyLeaderboardIconAsset =
     'assets/images/lobby_leaderboard_icon.png';
+const String lobbyMailboxIconAsset = 'assets/images/lobby_mailbox_icon.png';
 const String lobbySettingsIconAsset = 'assets/images/lobby_settings_icon.png';
 const String lobbyPrimaryButtonAsset = 'assets/images/lobby_primary_button.png';
 const String lobbySecondaryButtonAsset =
@@ -202,6 +203,7 @@ const List<String> commonUiImageAssets = [
   lobbyBackgroundAsset,
   lobbyEventIconAsset,
   lobbyLeaderboardIconAsset,
+  lobbyMailboxIconAsset,
   lobbySettingsIconAsset,
   lobbyPrimaryButtonAsset,
   lobbySecondaryButtonAsset,

@@ -2,6 +2,7 @@ part of 'main_menu_screen.dart';
 
 class _MainLobby extends StatelessWidget {
   const _MainLobby({
+    required this.mailboxButton,
     required this.game,
     required this.snapshot,
     required this.snapshotListenable,
@@ -17,6 +18,7 @@ class _MainLobby extends StatelessWidget {
 
   final Future<LeaderboardSnapshot> Function()? loadLeaderboard;
   final Listenable? leaderboardRefresh;
+  final Widget mailboxButton;
   final RuneNexusGame game;
   final GameSnapshot snapshot;
   final ValueListenable<GameSnapshot>? snapshotListenable;
@@ -201,14 +203,7 @@ class _MainLobby extends StatelessWidget {
                                 const SizedBox(height: 18),
                                 Center(
                                   child: SizedBox(
-                                    width:
-                                        248 +
-                                        (MediaQuery.textScalerOf(
-                                                      context,
-                                                    ).scale(12) -
-                                                    12)
-                                                .clamp(0, 36) *
-                                            7,
+                                    width: double.infinity,
                                     child: Material(
                                       color: const Color(0xAD101A24),
                                       shape: RoundedRectangleBorder(
@@ -220,6 +215,25 @@ class _MainLobby extends StatelessWidget {
                                       clipBehavior: Clip.antiAlias,
                                       child: Row(
                                         children: [
+                                          Expanded(
+                                            child: _LobbyShortcut(
+                                              key: const ValueKey(
+                                                'lobby-leaderboard',
+                                              ),
+                                              horizontal: true,
+                                              label: '리더보드',
+                                              asset: lobbyLeaderboardIconAsset,
+                                              onPressed: () =>
+                                                  _openLeaderboard(context),
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            height: 20,
+                                            child: VerticalDivider(
+                                              width: 1,
+                                              color: Color(0x407E929F),
+                                            ),
+                                          ),
                                           Expanded(
                                             child: _LobbyShortcut(
                                               key: const ValueKey(
@@ -244,18 +258,7 @@ class _MainLobby extends StatelessWidget {
                                               color: Color(0x407E929F),
                                             ),
                                           ),
-                                          Expanded(
-                                            child: _LobbyShortcut(
-                                              key: const ValueKey(
-                                                'lobby-leaderboard',
-                                              ),
-                                              horizontal: true,
-                                              label: '리더보드',
-                                              asset: lobbyLeaderboardIconAsset,
-                                              onPressed: () =>
-                                                  _openLeaderboard(context),
-                                            ),
-                                          ),
+                                          Expanded(child: mailboxButton),
                                         ],
                                       ),
                                     ),
@@ -402,7 +405,7 @@ class _LobbyShortcut extends StatelessWidget {
   });
 
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final String asset;
   final bool notification;
   final bool horizontal;

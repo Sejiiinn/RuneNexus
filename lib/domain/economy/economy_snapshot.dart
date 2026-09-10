@@ -1,5 +1,6 @@
 import '../turret/turret_type.dart';
 import '../turret_module/turret_module_type.dart';
+import '../mailbox/mailbox.dart';
 
 class EconomyWallet {
   const EconomyWallet({
@@ -96,6 +97,7 @@ class EconomyCommandResult {
     this.rewardKey,
     this.grantedDiamonds = 0,
     this.grantedModuleTickets = 0,
+    this.mailboxResults = const [],
   });
 
   final EconomySnapshot snapshot;
@@ -104,6 +106,7 @@ class EconomyCommandResult {
   final String? rewardKey;
   final int grantedDiamonds;
   final int grantedModuleTickets;
+  final List<MailboxClaimResult> mailboxResults;
 }
 
 class EconomyBootstrapResult {

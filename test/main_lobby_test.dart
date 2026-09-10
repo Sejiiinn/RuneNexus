@@ -331,6 +331,23 @@ void main() {
             find.descendant(of: lobby, matching: find.byType(Scrollable)),
             findsNothing,
           );
+          final leaderboardRect = tester.getRect(
+            find.byKey(const ValueKey('lobby-leaderboard')),
+          );
+          final eventRect = tester.getRect(
+            find.byKey(const ValueKey('lobby-events')),
+          );
+          final mailboxRect = tester.getRect(
+            find.byKey(const ValueKey('lobby-mailbox')),
+          );
+          expect(leaderboardRect.right, lessThan(eventRect.left));
+          expect(eventRect.right, lessThan(mailboxRect.left));
+          expect(leaderboardRect.center.dy, closeTo(eventRect.center.dy, 0.01));
+          expect(eventRect.center.dy, closeTo(mailboxRect.center.dy, 0.01));
+          expect(leaderboardRect.width, closeTo(mailboxRect.width, 0.01));
+          expect(find.text('리더보드'), findsOneWidget);
+          expect(find.text('이벤트'), findsOneWidget);
+          expect(find.text('우편함'), findsOneWidget);
           final stageButton = find.byKey(const ValueKey('lobby-stage-select'));
           final beforeDrag = tester.getRect(stageButton);
           await tester.drag(stageButton, const Offset(0, -160));
@@ -345,6 +362,7 @@ void main() {
             'lobby-tab-modules',
             'lobby-events',
             'lobby-leaderboard',
+            'lobby-mailbox',
             'lobby-settings',
           ]) {
             final entry = find.byKey(ValueKey(key));

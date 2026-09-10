@@ -38,7 +38,13 @@ class EconomyPendingCommand {
       createdAtMillis: json['createdAtMillis']! as int,
     );
     if (command.kind.isEmpty ||
-        !command.path.startsWith('v1/economy/') ||
+        !(command.path.startsWith('v1/economy/') ||
+            (command.kind == 'mail_claim' &&
+                RegExp(
+                  r'^v1/mailbox/[0-9a-fA-F-]{36}/claim$',
+                ).hasMatch(command.path)) ||
+            (command.kind == 'mail_claim_all' &&
+                command.path == 'v1/mailbox/claim-all')) ||
         command.idempotencyKey.isEmpty ||
         command.encodedBody.isEmpty ||
         command.createdAtMillis < 0) {

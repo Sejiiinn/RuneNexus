@@ -15,6 +15,8 @@ import '../data/economy/economy_api.dart';
 import '../data/economy/economy_coordinator.dart';
 import '../data/economy/local_economy_command_outbox_repository.dart';
 import '../data/economy/weekly_reward_api.dart';
+import '../data/mailbox/mailbox_api.dart';
+import '../domain/mailbox/mailbox.dart';
 import '../data/save/account_save_bootstrap.dart';
 import '../data/save/local_save_repository.dart';
 import '../data/save/local_save_slot.dart';
@@ -92,6 +94,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
   BuildContext? _nicknameDialogContext;
   OnlineSaveApi? _onlineSaveApi;
   EconomyApi? _economyApi;
+  MailboxApi? _mailboxApi;
   WeeklyRewardApi? _weeklyRewardApi;
   LegacySaveTransferApi? _legacySaveTransferApi;
   final ValueNotifier<_AppLoadingProgress> _loadingProgress = ValueNotifier(
@@ -153,6 +156,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
         baseUrl: _googleAuthenticationConfig.apiBaseUrl,
       );
       _economyApi = EconomyApi(baseUrl: _googleAuthenticationConfig.apiBaseUrl);
+      _mailboxApi = MailboxApi(baseUrl: _googleAuthenticationConfig.apiBaseUrl);
       _weeklyRewardApi = WeeklyRewardApi(
         baseUrl: _googleAuthenticationConfig.apiBaseUrl,
       );
@@ -1145,6 +1149,63 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     coordinator.acknowledgeGameReload();
   }
 
+  Future<T> _runMailboxOperation<T>(
+    OnlineAccountSessionController session,
+    Future<T> Function(MailboxApi api, EconomyCoordinator economy) operation,
+  ) async {
+    final api = _mailboxApi;
+    final economy = _economyCoordinator;
+    const changed = MailboxException(
+      code: 'MAILBOX_SESSION_CHANGED',
+      message: '계정 연결이 변경되었습니다. 우편함을 다시 열어 주세요.',
+    );
+    void ensureCurrentAccount() {
+      if (!mounted ||
+          !identical(session, _onlineSession) ||
+          session.credentials == null ||
+          _activeSaveSlot.isGuest ||
+          !identical(economy, _economyCoordinator) ||
+          _sessionTransitionInProgress) {
+        throw changed;
+      }
+    }
+
+    ensureCurrentAccount();
+    if (api == null || economy == null) {
+      throw const MailboxException(
+        code: 'MAILBOX_NOT_READY',
+        message: '계정 연결을 마친 뒤 우편함을 다시 열어 주세요.',
+      );
+    }
+    if (_clientUpdateRequired) {
+      throw const MailboxException(
+        code: 'CLIENT_UPDATE_REQUIRED',
+        message: '최신 버전으로 업데이트한 뒤 우편함을 이용해 주세요.',
+      );
+    }
+    try {
+      final result = await operation(api, economy);
+      ensureCurrentAccount();
+      return result;
+    } on MailboxException {
+      rethrow;
+    } on EconomyException catch (error) {
+      throw MailboxException(
+        code: error.code,
+        message: error.transportFailure
+            ? '수령 결과를 확인하지 못했습니다. 다시 시도하면 중복 지급 없이 확인합니다.'
+            : error.message,
+        statusCode: error.statusCode,
+        transportFailure: error.transportFailure,
+      );
+    } on Object {
+      throw const MailboxException(
+        code: 'MAILBOX_REQUEST_FAILED',
+        message: '우편함 요청을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+      );
+    }
+  }
+
   Future<void> _claimWeeklyReward(WeeklyRewardClaimTarget target) async {
     final api = _weeklyRewardApi;
     final session = _onlineSession;
@@ -1493,6 +1554,57 @@ class _RuneNexusAppState extends State<RuneNexusApp>
                       snapshotListenable: game.snapshotNotifier,
                       selectedTab: _selectedMainMenuTab,
                       showLobby: _showLobby,
+                      loadMailbox:
+                          leaderboardSession == null || _activeSaveSlot.isGuest
+                          ? null
+                          : ({String? cursor}) => _runMailboxOperation(
+                              leaderboardSession,
+                              (api, _) => leaderboardSession.runAuthenticated(
+                                request: (token) =>
+                                    api.load(token, cursor: cursor),
+                                isUnauthorized: (error) =>
+                                    error is MailboxException &&
+                                    error.isUnauthorized,
+                              ),
+                            ),
+                      loadMailboxSummary:
+                          leaderboardSession == null || _activeSaveSlot.isGuest
+                          ? null
+                          : () => _runMailboxOperation(
+                              leaderboardSession,
+                              (api, _) => leaderboardSession.runAuthenticated(
+                                request: api.summary,
+                                isUnauthorized: (error) =>
+                                    error is MailboxException &&
+                                    error.isUnauthorized,
+                              ),
+                            ),
+                      markMailRead:
+                          leaderboardSession == null || _activeSaveSlot.isGuest
+                          ? null
+                          : (id) => _runMailboxOperation(
+                              leaderboardSession,
+                              (api, _) => leaderboardSession.runAuthenticated(
+                                request: (token) => api.markRead(token, id),
+                                isUnauthorized: (error) =>
+                                    error is MailboxException &&
+                                    error.isUnauthorized,
+                              ),
+                            ),
+                      claimMail:
+                          leaderboardSession == null || _activeSaveSlot.isGuest
+                          ? null
+                          : (id) => _runMailboxOperation(
+                              leaderboardSession,
+                              (_, economy) => economy.claimMail(id),
+                            ),
+                      claimMails:
+                          leaderboardSession == null || _activeSaveSlot.isGuest
+                          ? null
+                          : (ids) => _runMailboxOperation(
+                              leaderboardSession,
+                              (_, economy) => economy.claimMails(ids),
+                            ),
                       loadLeaderboard:
                           leaderboardSession == null || _activeSaveSlot.isGuest
                           ? null

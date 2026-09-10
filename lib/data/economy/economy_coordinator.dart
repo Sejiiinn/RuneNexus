@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import '../../domain/economy/authoritative_economy_commands.dart';
 import '../../domain/economy/economy_snapshot.dart';
+import '../../domain/mailbox/mailbox.dart';
 import '../../domain/daily_quest/daily_quest_type.dart';
 import '../../domain/research/research_type.dart';
 import '../../domain/turret/turret_type.dart';
@@ -69,6 +70,37 @@ class EconomyCoordinator implements AuthoritativeEconomyCommands {
     await _applyPendingEffects();
     await _drainPendingRunRewards();
   });
+
+  Future<void> claimMail(String mailId) => _userCommand(() async {
+    await _execute(
+      kind: 'mail_claim',
+      path: 'v1/mailbox/${Uri.encodeComponent(mailId)}/claim',
+      body: {
+        'clientCompatibilityVersion': onlineSaveClientCompatibilityVersion,
+      },
+    );
+  });
+
+  Future<MailboxBatchResult> claimMails(List<String> mailIds) =>
+      _userCommand(() async {
+        if (mailIds.isEmpty ||
+            mailIds.length > 20 ||
+            mailIds.toSet().length != mailIds.length) {
+          throw const MailboxException(
+            code: 'INVALID_MAILBOX_REQUEST',
+            message: '우편은 한 번에 최대 20개까지 받을 수 있습니다.',
+          );
+        }
+        final result = await _execute(
+          kind: 'mail_claim_all',
+          path: 'v1/mailbox/claim-all',
+          body: {
+            'mailIds': mailIds,
+            'clientCompatibilityVersion': onlineSaveClientCompatibilityVersion,
+          },
+        );
+        return MailboxBatchResult(results: result.mailboxResults);
+      });
 
   Future<void> rebindGame(RuneNexusGame replacement) => _serialized(() async {
     _ensureReady();
@@ -367,6 +399,12 @@ class EconomyCoordinator implements AuthoritativeEconomyCommands {
       }
       if (_isDefinitive(error)) {
         await _clearInFlight(command);
+        // 만료·운영 중지된 우편 때문에 다음 접속의 경제 복구를 막지 않음.
+        if (command.kind == 'mail_claim' &&
+            error is EconomyException &&
+            error.code == 'MAIL_UNAVAILABLE') {
+          return;
+        }
         if (command.kind == 'run_settlement') {
           final decoded = jsonDecode(command.encodedBody);
           final runId = decoded is Map<String, dynamic>

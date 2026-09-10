@@ -36,6 +36,31 @@ void main() {
     expect(restored.pendingRewards.single.firstClearModuleTickets, 5);
   });
 
+  test('우편 수령 재시작 복원은 승인된 명령 경로만 허용한다', () {
+    const id = '11111111-1111-4111-8111-111111111111';
+    for (final entry in {
+      'mail_claim': 'v1/mailbox/$id/claim',
+      'mail_claim_all': 'v1/mailbox/claim-all',
+    }.entries) {
+      final command = EconomyPendingCommand(
+        kind: entry.key,
+        path: entry.value,
+        idempotencyKey: 'key',
+        encodedBody: '{"mailIds":["$id"]}',
+        createdAtMillis: 1,
+      );
+      final restored = EconomyPendingCommand.fromJson(command.toJson());
+      expect(restored?.encodedBody, command.encodedBody);
+      expect(
+        EconomyPendingCommand.fromJson({
+          ...command.toJson(),
+          'path': 'v1/mailbox/$id/read',
+        }),
+        isNull,
+      );
+    }
+  });
+
   test('손상된 런 정산 대기는 전체 Outbox 복원을 거부한다', () {
     final json = EconomyCommandOutboxState.initial(accountId).toJson();
     json['pendingRewards'] = [

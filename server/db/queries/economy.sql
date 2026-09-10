@@ -115,7 +115,7 @@ WHERE economy_reward_claims.account_id = $1
 
 -- name: ListEconomyRewardClaimKeys :many
 SELECT reward_key FROM economy_reward_claims
-WHERE account_id = $1
+WHERE account_id = $1 AND reward_key NOT LIKE 'mail:%'
 ORDER BY claimed_at;
 
 -- name: CreateEconomyProgressionEffect :one

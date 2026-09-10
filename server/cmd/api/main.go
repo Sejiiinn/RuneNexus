@@ -140,6 +140,7 @@ func run(logger *slog.Logger) error {
 			SaveService:                           gamesave.NewService(pool),
 			WeeklyRewardService:                   weeklyreward.NewService(pool),
 			EconomyService:                        economy.NewService(pool),
+			MailboxService:                        economy.NewService(pool),
 			LeaderboardService:                    leaderboard.NewService(pool),
 			LegacyTransferService:                 legacyTransferService,
 			MaxSaveBodyBytes:                      cfg.MaxSaveBodyBytes,

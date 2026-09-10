@@ -35,6 +35,8 @@ import '../widgets/rune_balance_card.dart';
 
 import '../../domain/leaderboard/leaderboard.dart';
 import 'leaderboard_dialog.dart';
+import '../../domain/mailbox/mailbox.dart';
+import 'mailbox_dialog.dart';
 
 part 'main_menu_core.dart';
 part 'main_menu_account.dart';
@@ -108,6 +110,11 @@ class MainMenuScreen extends StatefulWidget {
     this.onOpenLobby,
     this.loadLeaderboard,
     this.leaderboardRefresh,
+    this.loadMailbox,
+    this.loadMailboxSummary,
+    this.markMailRead,
+    this.claimMail,
+    this.claimMails,
     super.key,
   });
 
@@ -128,6 +135,11 @@ class MainMenuScreen extends StatefulWidget {
   final VoidCallback? onOpenMapEditor;
   final Future<LeaderboardSnapshot> Function()? loadLeaderboard;
   final Listenable? leaderboardRefresh;
+  final Future<MailboxPage> Function({String? cursor})? loadMailbox;
+  final Future<int> Function()? loadMailboxSummary;
+  final Future<void> Function(String)? markMailRead;
+  final Future<void> Function(String)? claimMail;
+  final Future<MailboxBatchResult> Function(List<String>)? claimMails;
   final bool showLobby;
   final VoidCallback? onOpenLobby;
 
@@ -214,6 +226,26 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
               onSelectTab: widget.onSelectTab,
               onStartStage: widget.onStartStage,
               onOpenAccount: () => _openAccountDialog(context),
+              mailboxButton: MailboxLobbyButton(
+                key: ValueKey(widget.accountSession.accountId),
+                builder: (context, count, onPressed) => Tooltip(
+                  message: count == null ? '우편함' : '미수령 우편 $count건',
+                  child: _LobbyShortcut(
+                    key: const ValueKey('lobby-mailbox'),
+                    horizontal: true,
+                    label: '우편함',
+                    asset: lobbyMailboxIconAsset,
+                    notification: (count ?? 0) > 0,
+                    onPressed: onPressed,
+                  ),
+                ),
+                load: widget.loadMailbox,
+                loadSummary: widget.loadMailboxSummary,
+                markRead: widget.markMailRead,
+                claim: widget.claimMail,
+                claimBatch: widget.claimMails,
+                onOpenAccount: () => _openAccountDialog(context),
+              ),
               loadLeaderboard: widget.loadLeaderboard,
               leaderboardRefresh: widget.leaderboardRefresh,
               onClaimWeeklyReward: widget.onClaimWeeklyReward,

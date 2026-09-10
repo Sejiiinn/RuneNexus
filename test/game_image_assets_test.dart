@@ -50,7 +50,7 @@ void main() {
     () {
       final providers = runeNexusStartupImageProviders();
 
-      expect(providers, hasLength(108 + GemType.values.length));
+      expect(providers, hasLength(109 + GemType.values.length));
       expect(
         providers.whereType<ResizeImage>(),
         hasLength(29 + GemType.values.length),

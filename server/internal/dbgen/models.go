@@ -134,6 +134,42 @@ type LegacySaveTransferReceipt struct {
 	PreviousActiveRun           []byte             `db:"previous_active_run"`
 }
 
+type Mail struct {
+	ID                pgtype.UUID        `db:"id"`
+	DispatchKey       pgtype.UUID        `db:"dispatch_key"`
+	RequestHash       []byte             `db:"request_hash"`
+	Title             string             `db:"title"`
+	Body              string             `db:"body"`
+	FreeDiamonds      int64              `db:"free_diamonds"`
+	ModuleTickets     int64              `db:"module_tickets"`
+	Audience          string             `db:"audience"`
+	EligibilityCutoff pgtype.Timestamptz `db:"eligibility_cutoff"`
+	StartsAt          pgtype.Timestamptz `db:"starts_at"`
+	ExpiresAt         pgtype.Timestamptz `db:"expires_at"`
+	CreatedBy         string             `db:"created_by"`
+	CreatedAt         pgtype.Timestamptz `db:"created_at"`
+	DisabledAt        pgtype.Timestamptz `db:"disabled_at"`
+	DisabledBy        pgtype.Text        `db:"disabled_by"`
+}
+
+type MailClaimBatch struct {
+	AccountID      pgtype.UUID        `db:"account_id"`
+	IdempotencyKey pgtype.UUID        `db:"idempotency_key"`
+	RequestHash    []byte             `db:"request_hash"`
+	CreatedAt      pgtype.Timestamptz `db:"created_at"`
+}
+
+type MailRead struct {
+	AccountID pgtype.UUID        `db:"account_id"`
+	MailID    pgtype.UUID        `db:"mail_id"`
+	ReadAt    pgtype.Timestamptz `db:"read_at"`
+}
+
+type MailTarget struct {
+	AccountID pgtype.UUID `db:"account_id"`
+	MailID    pgtype.UUID `db:"mail_id"`
+}
+
 type PlayerEconomy struct {
 	AccountID                 pgtype.UUID        `db:"account_id"`
 	Revision                  int64              `db:"revision"`

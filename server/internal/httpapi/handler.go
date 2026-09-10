@@ -36,6 +36,7 @@ type Dependencies struct {
 	SaveService                           SaveService
 	WeeklyRewardService                   WeeklyRewardService
 	EconomyService                        EconomyService
+	MailboxService                        MailboxService
 	LeaderboardService                    LeaderboardService
 	LegacyTransferService                 LegacyTransferService
 	MaxSaveBodyBytes                      int64
@@ -126,6 +127,14 @@ func NewHandler(
 		if dependencies.LeaderboardService != nil {
 			leaderboards := leaderboardHandler{logger: logger, leaderboards: dependencies.LeaderboardService}
 			mux.Handle("GET /v1/leaderboards/progression", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(leaderboards.progression)))
+		}
+		if dependencies.MailboxService != nil {
+			mailbox := mailboxHandler{economyHandler: economyHandler{logger: logger, minimumClientCompatibilityVersion: dependencies.MinimumSaveClientCompatibilityVersion}, mailbox: dependencies.MailboxService}
+			mux.Handle("GET /v1/mailbox", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(mailbox.list)))
+			mux.Handle("GET /v1/mailbox/summary", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(mailbox.summary)))
+			mux.Handle("POST /v1/mailbox/{mailId}/read", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(mailbox.read)))
+			mux.Handle("POST /v1/mailbox/{mailId}/claim", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(mailbox.claim)))
+			mux.Handle("POST /v1/mailbox/claim-all", withAccountAuthentication(logger, dependencies.Authenticator, http.HandlerFunc(mailbox.claimAll)))
 		}
 		if dependencies.EconomyService != nil {
 			economyAPI := economyHandler{
