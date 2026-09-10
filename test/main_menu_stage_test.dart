@@ -491,8 +491,13 @@ void main() {
     );
     expect(find.text('전투 스킬 1칸 / 패시브 2칸'), findsNothing);
     expect(find.text('Lv.1'), findsNothing);
-    expect(find.text('전투 스킬'), findsWidgets);
-    expect(find.text('패시브 트리'), findsOneWidget);
+    expect(find.byKey(const ValueKey('core-view-tabs')), findsNothing);
+    expect(
+      find.byKey(const ValueKey('core-passive-tree-canvas')),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const ValueKey('core-passive-center-select')));
+    await pumpGameFrames(tester);
     expect(find.text('수호 광선'), findsOneWidget);
     expect(find.text('균열 낙인'), findsOneWidget);
     expect(find.text('연쇄 광휘'), findsNothing);

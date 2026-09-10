@@ -54,6 +54,7 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
   Map<CorePassiveNodeId, double> _draftLineFromRanks = const {};
   Map<CorePassiveNodeId, double> _draftLineToRanks = const {};
   CorePassiveNodeId? _selectedNodeId;
+  bool _selectingCombatSkill = false;
   Size? _viewportSize;
   double _minimumScale = 1;
   bool _isAllocating = false;
@@ -207,6 +208,14 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
                             viewportSize: viewport,
                             fitScale: fitScale,
                             onSelectNode: _selectNode,
+                            combatSkill: widget.snapshot.coreCombatSkill,
+                            onSelectCore: () {
+                              _selectionInteractionRevision += 1;
+                              setState(() {
+                                _selectedNodeId = null;
+                                _selectingCombatSkill = true;
+                              });
+                            },
                           ),
                         ),
                       ),
@@ -227,7 +236,28 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
                           child: child,
                         ),
                       ),
-                      child: selectedNodeId == null
+                      child: _selectingCombatSkill
+                          ? Center(
+                              key: const ValueKey(
+                                'core-combat-skill-selection',
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(10),
+                                child: ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 520,
+                                  ),
+                                  child: SingleChildScrollView(
+                                    child: _CoreCombatSkillMenu(
+                                      game: widget.game,
+                                      snapshot: widget.snapshot,
+                                      onClose: _clearSelectedNode,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          : selectedNodeId == null
                           ? const SizedBox.shrink(
                               key: ValueKey('core-passive-node-details-closed'),
                             )
@@ -306,7 +336,10 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
 
   void _selectNode(CorePassiveNodeId id) {
     _selectionInteractionRevision += 1;
-    setState(() => _selectedNodeId = id);
+    setState(() {
+      _selectedNodeId = id;
+      _selectingCombatSkill = false;
+    });
   }
 
   void _handleCanvasPointerDown(PointerDownEvent event) {
@@ -358,10 +391,13 @@ class _CorePassiveTreeMenuState extends State<_CorePassiveTreeMenu>
   }
 
   void _clearSelectedNode() {
-    if (_selectedNodeId == null) {
+    if (_selectedNodeId == null && !_selectingCombatSkill) {
       return;
     }
-    setState(() => _selectedNodeId = null);
+    setState(() {
+      _selectedNodeId = null;
+      _selectingCombatSkill = false;
+    });
   }
 
   void _increaseSelectedRank() {

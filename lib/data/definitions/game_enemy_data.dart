@@ -10,7 +10,7 @@ const gameEnemies = <EnemyType, EnemyDefinition>{
   EnemyType.normal: EnemyDefinition(
     type: EnemyType.normal,
     name: '일반',
-    maxHp: 35,
+    maxHp: 31.5,
     speed: 31.5,
     rewardGold: 5,
     coreDamage: 1,
@@ -20,8 +20,8 @@ const gameEnemies = <EnemyType, EnemyDefinition>{
   EnemyType.armored: EnemyDefinition(
     type: EnemyType.armored,
     name: '장갑병',
-    maxHp: 40,
-    maxArmor: 28,
+    maxHp: 36,
+    maxArmor: 25.2,
     speed: 28,
     rewardGold: 7,
     coreDamage: 1,
@@ -31,8 +31,8 @@ const gameEnemies = <EnemyType, EnemyDefinition>{
   EnemyType.shielded: EnemyDefinition(
     type: EnemyType.shielded,
     name: '보호막병',
-    maxHp: 36,
-    maxShield: 42,
+    maxHp: 32.4,
+    maxShield: 37.8,
     shieldRegenRate: 0.04,
     speed: 29,
     rewardGold: 8,
@@ -43,7 +43,7 @@ const gameEnemies = <EnemyType, EnemyDefinition>{
   EnemyType.fast: EnemyDefinition(
     type: EnemyType.fast,
     name: '빠름',
-    maxHp: 22,
+    maxHp: 19.8,
     speed: 54.6,
     rewardGold: 5,
     coreDamage: 1,
@@ -55,7 +55,7 @@ const gameEnemies = <EnemyType, EnemyDefinition>{
   EnemyType.tank: EnemyDefinition(
     type: EnemyType.tank,
     name: '탱커',
-    maxHp: 104,
+    maxHp: 93.6,
     speed: 21,
     rewardGold: 9,
     coreDamage: 2,
@@ -68,7 +68,7 @@ const gameEnemies = <EnemyType, EnemyDefinition>{
   EnemyType.boss: EnemyDefinition(
     type: EnemyType.boss,
     name: '보스',
-    maxHp: 623,
+    maxHp: 560.7,
     speed: 16.8,
     rewardGold: 35,
     coreDamage: 8,
@@ -78,8 +78,8 @@ const gameEnemies = <EnemyType, EnemyDefinition>{
   EnemyType.shieldBoss: EnemyDefinition(
     type: EnemyType.shieldBoss,
     name: '균열 방벽체',
-    maxHp: 820,
-    maxShield: 360,
+    maxHp: 738,
+    maxShield: 324,
     shieldRegenRate: 0.025,
     speed: 15,
     rewardGold: 48,
@@ -90,8 +90,8 @@ const gameEnemies = <EnemyType, EnemyDefinition>{
   EnemyType.forgeBoss: EnemyDefinition(
     type: EnemyType.forgeBoss,
     name: '용광로 파쇄자',
-    maxHp: 760,
-    maxArmor: 520,
+    maxHp: 684,
+    maxArmor: 468,
     speed: 13.5,
     rewardGold: 58,
     coreDamage: 12,

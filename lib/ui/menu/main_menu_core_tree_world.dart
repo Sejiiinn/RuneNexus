@@ -1,5 +1,7 @@
 part of 'main_menu_screen.dart';
 
+const _coreTreeSpriteRoot = 'assets/images/core_passive_tree';
+
 class _CorePassiveTreeWorld extends StatelessWidget {
   const _CorePassiveTreeWorld({
     required this.actualRanks,
@@ -12,6 +14,8 @@ class _CorePassiveTreeWorld extends StatelessWidget {
     required this.viewportSize,
     required this.fitScale,
     required this.onSelectNode,
+    required this.combatSkill,
+    required this.onSelectCore,
   });
 
   final Map<CorePassiveNodeId, int> actualRanks;
@@ -24,6 +28,8 @@ class _CorePassiveTreeWorld extends StatelessWidget {
   final Size viewportSize;
   final double fitScale;
   final ValueChanged<CorePassiveNodeId> onSelectNode;
+  final CoreCombatSkill? combatSkill;
+  final VoidCallback onSelectCore;
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +61,9 @@ class _CorePassiveTreeWorld extends StatelessWidget {
           ),
           Positioned.fill(
             child: IgnorePointer(
-              child: CustomPaint(
-                key: const ValueKey('core-passive-connection-layer'),
-                painter: _CorePassiveConnectionPainter(
+              child: _CorePassiveConnectionLayer(
+                builder: (sprites) => _CorePassiveConnectionPainter(
+                  sprites: sprites,
                   draftRanks: draftRanks,
                   draftLineRanks: draftLineRanks,
                   renderedRanks: renderedRanks,
@@ -67,12 +73,15 @@ class _CorePassiveTreeWorld extends StatelessWidget {
               ),
             ),
           ),
-          const Positioned(
-            left: 301,
-            top: 301,
-            width: 118,
-            height: 118,
-            child: _CorePassiveCenterNode(),
+          Positioned(
+            left: 296,
+            top: 296,
+            width: 128,
+            height: 128,
+            child: _CorePassiveCenterNode(
+              skill: combatSkill,
+              onTap: onSelectCore,
+            ),
           ),
           for (final entry in corePassiveNodeDefinitions.entries)
             _positionedNode(
@@ -128,34 +137,70 @@ class _CorePassiveTreeWorld extends StatelessWidget {
 }
 
 class _CorePassiveCenterNode extends StatelessWidget {
-  const _CorePassiveCenterNode();
+  const _CorePassiveCenterNode({required this.skill, required this.onTap});
+
+  final CoreCombatSkill? skill;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        Container(
-          width: 86,
-          height: 86,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Color(0xAA20CFEF),
-                blurRadius: 32,
-                spreadRadius: 6,
+    final equippedSkill = skill;
+    return Semantics(
+      button: true,
+      label: '코어 스킬 선택, ${equippedSkill?.label ?? '미장착'}',
+      child: Material(
+        color: Colors.transparent,
+        child: InkResponse(
+          key: const ValueKey('core-passive-center-select'),
+          onTap: onTap,
+          containedInkWell: true,
+          customBorder: const CircleBorder(),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Image.asset(
+                '$_coreTreeSpriteRoot/center_socket_v1.png',
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+                excludeFromSemantics: true,
+              ),
+              if (equippedSkill != null)
+                CoreAbilityIcon(equippedSkill, size: 54)
+              else
+                Image.asset(
+                  corePassiveTreeCoreAsset,
+                  width: 54,
+                  height: 54,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                  excludeFromSemantics: true,
+                ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xED071521),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    '${equippedSkill?.label ?? '미장착'}\n스킬 선택',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xFFE8FBFF),
+                      fontSize: 15,
+                      height: 1.15,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
         ),
-        Image.asset(
-          corePassiveTreeCoreAsset,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.high,
-          excludeFromSemantics: true,
-        ),
-      ],
+      ),
     );
   }
 }
@@ -193,27 +238,21 @@ class _CorePassiveNodeButton extends StatelessWidget {
         ? Curves.easeOutCubic.transform(activationProgress! / 0.45)
         : 1 - Curves.easeInCubic.transform((activationProgress! - 0.45) / 0.55);
     final accent = _corePassiveBranchColor(definition.branch);
-    final size = switch (definition.grade) {
-      CorePassiveNodeGrade.normal => 48.0,
-      CorePassiveNodeGrade.notable => 58.0,
-      CorePassiveNodeGrade.keystone => 70.0,
+    final (size, aperture, frameName) = switch (definition.grade) {
+      CorePassiveNodeGrade.normal => (48.0, 32.0, 'small'),
+      CorePassiveNodeGrade.notable => (68.0, 46.0, 'medium'),
+      CorePassiveNodeGrade.keystone => (96.0, 64.0, 'large'),
     };
     final muted = !accessible && !allocated;
-    final framed = definition.grade != CorePassiveNodeGrade.normal;
-    final frameColor = selected
-        ? const Color(0xFFFFFFFF)
-        : muted
-        ? const Color(0xFF75838C)
-        : accent;
-    final nodeColor = allocated
-        ? accent.withValues(alpha: 0.38)
+    final activeOpacity = activating
+        ? 0.6 + activationGlow * 0.4
+        : allocated
+        ? 1.0
         : planningIncrease
-        ? accent.withValues(alpha: 0.2)
-        : const Color(0xF012202C);
+        ? 0.5
+        : 0.0;
     return Material(
-      color: nodeColor,
-      shape: const CircleBorder(),
-      animationDuration: const Duration(milliseconds: 160),
+      color: Colors.transparent,
       child: Semantics(
         button: true,
         selected: selected,
@@ -228,81 +267,63 @@ class _CorePassiveNodeButton extends StatelessWidget {
           splashColor: accent.withAlpha(55),
           highlightColor: accent.withAlpha(32),
           onTap: onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
+          child: SizedBox(
             width: size,
             height: size,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.transparent,
-              border: Border.all(
-                color: framed
-                    ? Colors.transparent
-                    : selected
-                    ? const Color(0xFFE8FBFF)
-                    : muted
-                    ? const Color(0xFF52616A)
-                    : accent.withValues(alpha: accessible ? 0.9 : 0.45),
-                width: selected
-                    ? 3
-                    : allocated || planned
-                    ? 2.2
-                    : 1.5,
-              ),
-              boxShadow: [
-                if (allocated || planned || selected || activating)
-                  BoxShadow(
-                    color: accent.withValues(
-                      alpha: activating
-                          ? 0.18 + activationGlow * 0.6
-                          : selected
-                          ? 0.62
-                          : planned
-                          ? 0.5
-                          : 0.38,
-                    ),
-                    blurRadius: activating
-                        ? 8 + activationGlow * 20
-                        : selected
-                        ? 16
-                        : 10,
-                    spreadRadius: activating
-                        ? activationGlow * 2
-                        : selected
-                        ? 2
-                        : 0,
-                  ),
-              ],
-            ),
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                if (framed)
+                if (selected)
                   Positioned.fill(
-                    child: Transform.scale(
-                      scale: definition.grade == CorePassiveNodeGrade.keystone
-                          ? 1.22
-                          : 1.16,
-                      child: ColorFiltered(
-                        colorFilter: ColorFilter.mode(
-                          frameColor,
-                          BlendMode.modulate,
-                        ),
+                    child: IgnorePointer(
+                      child: Transform.scale(
+                        scale: 1.32,
                         child: Image.asset(
-                          corePassiveTreeFrameAsset,
-                          fit: BoxFit.contain,
-                          filterQuality: FilterQuality.medium,
+                          '$_coreTreeSpriteRoot/selection_ring_v1.png',
+                          key: ValueKey(
+                            'core-passive-selection-${definition.id.name}',
+                          ),
+                          filterQuality: FilterQuality.high,
                           excludeFromSemantics: true,
                         ),
                       ),
                     ),
                   ),
+                Positioned.fill(
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 160),
+                    opacity: muted && !planned ? 0.42 : 1,
+                    child: Image.asset(
+                      '$_coreTreeSpriteRoot/node_frame_${frameName}_a_v1.png',
+                      key: ValueKey('core-passive-frame-${definition.id.name}'),
+                      filterQuality: FilterQuality.high,
+                      excludeFromSemantics: true,
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: AnimatedOpacity(
+                    duration: activating
+                        ? Duration.zero
+                        : const Duration(milliseconds: 160),
+                    opacity: activeOpacity,
+                    child: Image.asset(
+                      '$_coreTreeSpriteRoot/node_frame_${frameName}_a_active_v1.png',
+                      key: ValueKey(
+                        'core-passive-active-frame-${definition.id.name}',
+                      ),
+                      filterQuality: FilterQuality.high,
+                      excludeFromSemantics: true,
+                    ),
+                  ),
+                ),
                 Center(
                   child: Opacity(
                     opacity: muted && !planned ? 0.35 : 1,
                     child: CorePassiveNodeIcon(
                       definition.id,
-                      size: size * 0.46,
+                      // 프레임 중앙 구멍 안쪽 아이콘 여백.
+                      size: aperture * 0.8,
                       color: muted ? const Color(0xFF7B8991) : accent,
                     ),
                   ),

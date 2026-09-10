@@ -555,7 +555,10 @@ class _MainMenuSnapshotContent extends StatelessWidget {
                     else if (selectedTab == MainMenuTab.core)
                       KeyedSubtree(
                         key: const ValueKey('core-content'),
-                        child: _CoreMenu(game: game, snapshot: snapshot),
+                        child: _CorePassiveTreeMenu(
+                          game: game,
+                          snapshot: snapshot,
+                        ),
                       )
                     else if (selectedTab == MainMenuTab.permanentUpgrades)
                       KeyedSubtree(

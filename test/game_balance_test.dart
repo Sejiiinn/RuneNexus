@@ -719,12 +719,12 @@ void main() {
     final normal = gameEnemies[EnemyType.normal]!;
 
     expect(enemyHpMultiplierForStage(1), closeTo(1, 0.001));
-    expect(enemyHpMultiplierForStage(2), closeTo(1.2, 0.001));
-    expect(enemyHpMultiplierForStage(5), closeTo(2.0736, 0.001));
-    expect(enemyHpMultiplierForStage(10), closeTo(5.1598, 0.001));
-    expect(enemyHpMultiplierForStage(15), closeTo(12.8392, 0.001));
-    expect(enemyHpMultiplierForStage(16), closeTo(12.8392, 0.001));
-    expect(scaledEnemyMaxHp(normal, 1, stageNumber: 2), closeTo(42, 0.001));
+    expect(enemyHpMultiplierForStage(2), closeTo(1.15, 0.001));
+    expect(enemyHpMultiplierForStage(5), closeTo(1.7490, 0.001));
+    expect(enemyHpMultiplierForStage(10), closeTo(3.5179, 0.001));
+    expect(enemyHpMultiplierForStage(15), closeTo(7.0757, 0.001));
+    expect(enemyHpMultiplierForStage(16), closeTo(7.0757, 0.001));
+    expect(scaledEnemyMaxHp(normal, 1, stageNumber: 2), closeTo(36.225, 0.001));
   });
 
   test('projectiles are faster for straight-shot combat', () {
@@ -1698,8 +1698,8 @@ void main() {
 
     expect(gameEnemies.keys, containsAll(EnemyType.values));
     expect(shielded.name, '보호막병');
-    expect(shielded.maxHp, 36);
-    expect(shielded.maxShield, 42);
+    expect(shielded.maxHp, 32.4);
+    expect(shielded.maxShield, 37.8);
     expect(shielded.shieldRegenRate, 0.04);
     expect(shielded.maxArmor, 0);
     expect(shielded.coreDamage, 1);
@@ -1747,8 +1747,8 @@ void main() {
     ].expand((wave) => wave.groups).map((group) => group.enemyType);
 
     expect(shieldBoss.name, '균열 방벽체');
-    expect(shieldBoss.maxHp, 820);
-    expect(shieldBoss.maxShield, 360);
+    expect(shieldBoss.maxHp, 738);
+    expect(shieldBoss.maxShield, 324);
     expect(shieldBoss.shieldRegenRate, 0.025);
     expect(shieldBoss.maxArmor, 0);
     expect(shieldBoss.speed, 15);
@@ -1797,8 +1797,8 @@ void main() {
     ].expand((wave) => wave.groups).map((group) => group.enemyType);
 
     expect(forgeBoss.name, '용광로 파쇄자');
-    expect(forgeBoss.maxHp, 760);
-    expect(forgeBoss.maxArmor, 520);
+    expect(forgeBoss.maxHp, 684);
+    expect(forgeBoss.maxArmor, 468);
     expect(forgeBoss.maxShield, 0);
     expect(forgeBoss.speed, 13.5);
     expect(forgeBoss.coreDamage, 12);

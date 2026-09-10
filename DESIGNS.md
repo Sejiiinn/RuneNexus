@@ -33,6 +33,7 @@
 | 보상 젬 장착 | 젬 선택·포탑 지정·교체·장착 완료 시 전장을 자동 이동·축소하지 않는다. 기존 시점을 유지하고, 설명에 가려진 포탑은 대상 선택 중 직접 드래그해 노출한다. | [인게임 UX 변경 범위](docs/in_game_ux_improvement_design.md) |
 | 포탑 레벨 | 이름 옆 레벨 텍스트와 색상 강조. 과거 금속 배지 시안은 기본안으로 재도입하지 않는다. | [최종 레벨 표시](design/gem_inventory_concepts/level-text-live.png) |
 | 메인 로비 | 화면 전체 스크롤 없이 고정. 배경은 상하좌우 끝까지 채우고 메뉴만 안전영역 안에서 크기를 맞춘다. 목록·상세 화면 내부의 스크롤까지 금지하는 규칙은 아니다. | [배경 배치 기준](design/lobby/sanctuary/README.md), [안전영역 포함 테스트 렌더](design/lobby/implemented_lobby_fullbleed.png) |
+| 코어 스킬트리 | 코어 메뉴는 트리로 바로 진입한다. 별도 전투 스킬/패시브 트리 탭 없이 중앙 코어를 눌러 스킬을 선택하며, 현재 장착 스킬과 선택 안내를 중앙에 표시한다. 선택 패널은 기존 설명·해금 조건·장착/해제 동작을 유지하고 트리의 줌과 투자 초안을 보존한다. 노드 프레임의 승인 방향은 A안이며, 외곽뿐 아니라 중앙 아이콘 공간도 소형→중형→대형으로 커진다. | [코어 현행 기준](docs/core_passive_tree_implementation_plan.md), [승인 A안](design/core_tree_concepts/node-frame-previews/a-family-aperture-ratio-v3.png), [에셋 준비 기록](design/core_tree_concepts/production/README.md) |
 
 기준 이미지는 촬영 당시 상태다. 관련 없는 화면·수치까지 복원하지 않는다. 정확한 픽셀값은 필요한 경우 실제 컴포넌트에서 확인하며 이 문서에 중복 고정하지 않는다.
 

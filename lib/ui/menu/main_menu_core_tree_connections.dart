@@ -1,7 +1,69 @@
 part of 'main_menu_screen.dart';
 
+class _CorePassiveConnectionLayer extends StatefulWidget {
+  const _CorePassiveConnectionLayer({required this.builder});
+
+  final _CorePassiveConnectionPainter Function(List<ui.Image>) builder;
+
+  @override
+  State<_CorePassiveConnectionLayer> createState() =>
+      _CorePassiveConnectionLayerState();
+}
+
+class _CorePassiveConnectionLayerState
+    extends State<_CorePassiveConnectionLayer> {
+  static const _assets = [
+    'assets/images/core_passive_tree/connection_segment_inactive_v1.png',
+    'assets/images/core_passive_tree/connection_segment_v1.png',
+    'assets/images/core_passive_tree/connection_junction_v1.png',
+  ];
+  final _images = List<ImageInfo?>.filled(_assets.length, null);
+  final _streams = <ImageStream>[];
+  final _listeners = <ImageStreamListener>[];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_streams.isNotEmpty) return;
+    for (var index = 0; index < _assets.length; index++) {
+      final stream = AssetImage(
+        _assets[index],
+      ).resolve(createLocalImageConfiguration(context));
+      final listener = ImageStreamListener((info, synchronousCall) {
+        _images[index]?.dispose();
+        _images[index] = info;
+        if (!synchronousCall && mounted) setState(() {});
+      });
+      _streams.add(stream);
+      _listeners.add(listener);
+      stream.addListener(listener);
+    }
+  }
+
+  @override
+  void dispose() {
+    for (var index = 0; index < _streams.length; index++) {
+      _streams[index].removeListener(_listeners[index]);
+      _images[index]?.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      key: const ValueKey('core-passive-connection-layer'),
+      painter: widget.builder([
+        for (final image in _images)
+          if (image != null) image.image,
+      ]),
+    );
+  }
+}
+
 class _CorePassiveConnectionPainter extends CustomPainter {
   const _CorePassiveConnectionPainter({
+    required this.sprites,
     required this.draftRanks,
     required this.draftLineRanks,
     required this.renderedRanks,
@@ -9,6 +71,7 @@ class _CorePassiveConnectionPainter extends CustomPainter {
     required this.allocationElapsedMs,
   });
 
+  final List<ui.Image> sprites;
   final Map<CorePassiveNodeId, int> draftRanks;
   final Map<CorePassiveNodeId, double> draftLineRanks;
   final Map<CorePassiveNodeId, int> renderedRanks;
@@ -17,20 +80,15 @@ class _CorePassiveConnectionPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final basePaint = Paint()
-      ..color = const Color(0x88455C6B)
-      ..strokeWidth = 2.2
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
+    if (sprites.length != _CorePassiveConnectionLayerState._assets.length) {
+      return;
+    }
     for (final start in corePassiveStartingNodeIds) {
       final draftProgress = _draftPresence(start);
       _paintConnection(
         canvas,
         _corePassiveTreeCenter,
         _corePassiveNodePosition(start),
-        basePaint,
-        _corePassiveBranchColor(corePassiveNodeById(start).branch),
         renderedLit: (renderedRanks[start] ?? 0) > 0,
         draftLit: (draftRanks[start] ?? 0) > 0 || draftProgress > 0,
         draftProgress: draftProgress,
@@ -41,7 +99,6 @@ class _CorePassiveConnectionPainter extends CustomPainter {
         if (definition.id.index >= neighbor.index) {
           continue;
         }
-        final accent = _corePassiveBranchColor(definition.branch);
         final definitionRendered = (renderedRanks[definition.id] ?? 0) > 0;
         final neighborRendered = (renderedRanks[neighbor] ?? 0) > 0;
         final draftProgress = math.min(
@@ -57,8 +114,6 @@ class _CorePassiveConnectionPainter extends CustomPainter {
           canvas,
           _corePassiveNodePosition(definition.id),
           _corePassiveNodePosition(neighbor),
-          basePaint,
-          accent,
           renderedLit: definitionRendered && neighborRendered,
           draftLit:
               ((draftRanks[definition.id] ?? 0) > 0 &&
@@ -83,7 +138,6 @@ class _CorePassiveConnectionPainter extends CustomPainter {
       if (animatedRank <= (renderedRanks[id] ?? 0)) continue;
       final progress = (animatedRank / 3).clamp(0.0, 1.0);
       final definition = corePassiveNodeById(id);
-      final accent = _corePassiveBranchColor(definition.branch);
       for (final neighbor in definition.neighbors) {
         if (_closerToCenter(id, neighbor) != id) continue;
         final path = _connectionPath(
@@ -94,22 +148,7 @@ class _CorePassiveConnectionPainter extends CustomPainter {
         if (metrics.isEmpty) continue;
         final metric = metrics.first;
         final reach = metric.extractPath(0, metric.length * progress);
-        canvas.drawPath(
-          reach,
-          Paint()
-            ..color = accent.withValues(alpha: 0.24)
-            ..strokeWidth = 8
-            ..style = PaintingStyle.stroke
-            ..strokeCap = StrokeCap.round,
-        );
-        canvas.drawPath(
-          reach,
-          Paint()
-            ..color = const Color(0xFFB9F5FF).withValues(alpha: 0.58)
-            ..strokeWidth = 2.6
-            ..style = PaintingStyle.stroke
-            ..strokeCap = StrokeCap.round,
-        );
+        _paintSpritePath(canvas, reach, lit: true, opacity: 0.58);
       }
     }
   }
@@ -117,29 +156,18 @@ class _CorePassiveConnectionPainter extends CustomPainter {
   void _paintConnection(
     Canvas canvas,
     Offset start,
-    Offset end,
-    Paint basePaint,
-    Color accent, {
+    Offset end, {
     required bool renderedLit,
     required bool draftLit,
     double draftProgress = 1,
     bool draftFromEnd = false,
   }) {
     final path = _connectionPath(start, end);
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = const Color(0x55213F50)
-        ..strokeWidth = 7
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round,
-    );
-    canvas.drawPath(path, basePaint);
+    _paintSpritePath(canvas, path, lit: false);
     final metric = path.computeMetrics().first;
     _paintJunction(
       canvas,
       metric,
-      accent,
       renderedLit
           ? 1
           : draftLit
@@ -154,41 +182,9 @@ class _CorePassiveConnectionPainter extends CustomPainter {
               metric.length,
             )
           : metric.extractPath(0, metric.length * clampedProgress);
-      canvas.drawPath(
-        draftReach,
-        Paint()
-          ..color = accent.withValues(alpha: 0.2)
-          ..strokeWidth = 7
-          ..style = PaintingStyle.stroke
-          ..strokeCap = StrokeCap.round,
-      );
-      canvas.drawPath(
-        draftReach,
-        Paint()
-          ..color = const Color(0xFFB9F5FF).withValues(alpha: 0.34)
-          ..strokeWidth = 2
-          ..style = PaintingStyle.stroke
-          ..strokeCap = StrokeCap.round,
-      );
+      _paintSpritePath(canvas, draftReach, lit: true, opacity: 0.42);
     }
-    if (!renderedLit) return;
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = accent.withValues(alpha: 0.38)
-        ..strokeWidth = 10
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round,
-    );
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = accent.withValues(alpha: 0.96)
-        ..strokeWidth = 3.8
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round,
-    );
+    if (renderedLit) _paintSpritePath(canvas, path, lit: true);
   }
 
   double _draftPresence(CorePassiveNodeId id) {
@@ -223,26 +219,7 @@ class _CorePassiveConnectionPainter extends CustomPainter {
         if (metrics.isEmpty) continue;
         final metric = metrics.first;
         final reach = metric.extractPath(0, metric.length * reachProgress);
-        final accent = _corePassiveBranchColor(
-          corePassiveNodeById(step.nodeId).branch,
-        );
-        canvas.drawPath(
-          reach,
-          Paint()
-            ..color = accent.withValues(alpha: 0.48 * opacity)
-            ..strokeWidth = 12
-            ..style = PaintingStyle.stroke
-            ..strokeCap = StrokeCap.round
-            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
-        );
-        canvas.drawPath(
-          reach,
-          Paint()
-            ..color = const Color(0xFFEFFFFF).withValues(alpha: opacity)
-            ..strokeWidth = 3.6
-            ..style = PaintingStyle.stroke
-            ..strokeCap = StrokeCap.round,
-        );
+        _paintSpritePath(canvas, reach, lit: true, opacity: opacity, height: 9);
       }
     }
   }
@@ -265,46 +242,60 @@ class _CorePassiveConnectionPainter extends CustomPainter {
     return path..quadraticBezierTo(control.dx, control.dy, end.dx, end.dy);
   }
 
-  void _paintJunction(
+  // 경로를 짧은 접선 구간으로 분할하여 곡선에도 동일한 금속·발광 질감 유지.
+  void _paintSpritePath(
     Canvas canvas,
-    ui.PathMetric metric,
-    Color accent,
-    double progress,
-  ) {
-    final junctionOffset = metric.length * 0.52;
-    final tangent = metric.getTangentForOffset(junctionOffset);
-    if (tangent == null) {
-      return;
+    Path path, {
+    required bool lit,
+    double opacity = 1,
+    double? height,
+  }) {
+    final image = sprites[lit ? 1 : 0];
+    final source = lit
+        ? const Rect.fromLTWH(55, 485, 1426, 54)
+        : const Rect.fromLTWH(28, 239, 2120, 238);
+    final paint = Paint()
+      ..filterQuality = FilterQuality.medium
+      ..color = Color.fromRGBO(255, 255, 255, opacity);
+    for (final metric in path.computeMetrics()) {
+      for (var offset = 0.0; offset < metric.length; offset += 6) {
+        final length = math.min(6.0, metric.length - offset);
+        final tangent = metric.getTangentForOffset(offset + length / 2);
+        if (tangent == null) continue;
+        final crop = Rect.fromLTWH(
+          source.left + source.width * offset / metric.length,
+          source.top,
+          source.width * length / metric.length,
+          source.height,
+        );
+        canvas.save();
+        canvas.translate(tangent.position.dx, tangent.position.dy);
+        canvas.rotate(math.atan2(tangent.vector.dy, tangent.vector.dx));
+        canvas.drawImageRect(
+          image,
+          crop,
+          Rect.fromCenter(
+            center: Offset.zero,
+            width: length + 0.4,
+            height: height ?? (lit ? 6 : 3.6),
+          ),
+          paint,
+        );
+        canvas.restore();
+      }
     }
-    final lit = progress >= 0.52;
-    final radius = lit ? 5.2 : 4.1;
-    final point = tangent.position;
-    final diamond = Path()
-      ..moveTo(point.dx, point.dy - radius)
-      ..lineTo(point.dx + radius, point.dy)
-      ..lineTo(point.dx, point.dy + radius)
-      ..lineTo(point.dx - radius, point.dy)
-      ..close();
-    if (lit) {
-      canvas.drawPath(
-        diamond,
-        Paint()
-          ..color = accent.withValues(alpha: 0.28)
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7),
-      );
-    }
-    canvas.drawPath(
-      diamond,
+  }
+
+  void _paintJunction(Canvas canvas, ui.PathMetric metric, double progress) {
+    final tangent = metric.getTangentForOffset(metric.length * 0.52);
+    if (tangent == null) return;
+    canvas.drawImageRect(
+      sprites[2],
+      const Rect.fromLTWH(330, 160, 595, 910),
+      Rect.fromCenter(center: tangent.position, width: 8, height: 12),
       Paint()
-        ..color = lit ? const Color(0xFFEFFFFF) : const Color(0xFF233E4D)
-        ..style = PaintingStyle.fill,
-    );
-    canvas.drawPath(
-      diamond,
-      Paint()
-        ..color = lit ? accent : const Color(0xFF587080)
-        ..strokeWidth = 1.3
-        ..style = PaintingStyle.stroke,
+        ..filterQuality = FilterQuality.medium
+        ..color = Color.fromRGBO(255, 255, 255, progress > 0.5 ? 1 : 0.45),
     );
   }
 
@@ -323,7 +314,8 @@ class _CorePassiveConnectionPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _CorePassiveConnectionPainter oldDelegate) {
-    return !mapEquals(oldDelegate.draftRanks, draftRanks) ||
+    return !listEquals(oldDelegate.sprites, sprites) ||
+        !mapEquals(oldDelegate.draftRanks, draftRanks) ||
         !mapEquals(oldDelegate.draftLineRanks, draftLineRanks) ||
         !mapEquals(oldDelegate.renderedRanks, renderedRanks) ||
         oldDelegate.allocationWaves != allocationWaves ||

@@ -1,0 +1,112 @@
+{
+  "center_socket_v1.png": {
+    "width": 1254,
+    "height": 1254,
+    "contentRect": {
+      "x": 96,
+      "y": 29,
+      "width": 1062,
+      "height": 1181
+    }
+  },
+  "connection_junction_v1.png": {
+    "width": 1254,
+    "height": 1254,
+    "contentRect": {
+      "x": 337,
+      "y": 169,
+      "width": 577,
+      "height": 890
+    }
+  },
+  "connection_segment_inactive_v1.png": {
+    "width": 2172,
+    "height": 724,
+    "contentRect": {
+      "x": 28,
+      "y": 239,
+      "width": 2120,
+      "height": 238
+    }
+  },
+  "connection_segment_v1.png": {
+    "width": 1536,
+    "height": 1024,
+    "contentRect": {
+      "x": 56,
+      "y": 486,
+      "width": 1424,
+      "height": 52
+    }
+  },
+  "node_frame_large_a_active_v1.png": {
+    "width": 1254,
+    "height": 1254,
+    "contentRect": {
+      "x": 53,
+      "y": 28,
+      "width": 1146,
+      "height": 1153
+    }
+  },
+  "node_frame_large_a_v1.png": {
+    "width": 1254,
+    "height": 1254,
+    "contentRect": {
+      "x": 58,
+      "y": 41,
+      "width": 1137,
+      "height": 1131
+    }
+  },
+  "node_frame_medium_a_active_v1.png": {
+    "width": 1254,
+    "height": 1254,
+    "contentRect": {
+      "x": 117,
+      "y": 116,
+      "width": 1018,
+      "height": 993
+    }
+  },
+  "node_frame_medium_a_v1.png": {
+    "width": 1254,
+    "height": 1254,
+    "contentRect": {
+      "x": 108,
+      "y": 110,
+      "width": 1034,
+      "height": 1000
+    }
+  },
+  "node_frame_small_a_active_v1.png": {
+    "width": 1254,
+    "height": 1254,
+    "contentRect": {
+      "x": 97,
+      "y": 87,
+      "width": 1059,
+      "height": 1036
+    }
+  },
+  "node_frame_small_a_v1.png": {
+    "width": 1254,
+    "height": 1254,
+    "contentRect": {
+      "x": 87,
+      "y": 76,
+      "width": 1079,
+      "height": 1062
+    }
+  },
+  "selection_ring_v1.png": {
+    "width": 1254,
+    "height": 1254,
+    "contentRect": {
+      "x": 145,
+      "y": 157,
+      "width": 963,
+      "height": 941
+    }
+  }
+}

@@ -4,7 +4,7 @@ import 'helpers/widget_test_helpers.dart';
 
 void main() {
   testWidgets(
-    'core menu switches between combat skills and 21-node passive tree',
+    'core menu opens the 21-node tree and selects combat skills from its center',
     (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -33,13 +33,16 @@ void main() {
       );
       await pumpGameFrames(tester);
 
-      expect(find.text('전투 스킬'), findsWidgets);
-      expect(find.text('패시브 트리'), findsOneWidget);
-      expect(find.text('수호 광선'), findsOneWidget);
+      expect(find.byKey(const ValueKey('core-view-tabs')), findsNothing);
+      expect(
+        find.byKey(const ValueKey('core-combat-skill-menu')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey('core-passive-center-select')),
+        findsOneWidget,
+      );
       expect(find.textContaining('패시브 슬롯'), findsNothing);
-
-      await tester.tap(find.text('패시브 트리'));
-      await pumpGameFrames(tester);
 
       for (final id in CorePassiveNodeId.values) {
         expect(
@@ -52,14 +55,15 @@ void main() {
       );
       expect(nodeInkResponse.containedInkWell, isTrue);
       expect(nodeInkResponse.customBorder, isA<CircleBorder>());
-      final nodeContainer = tester.widget<AnimatedContainer>(
-        find.descendant(
-          of: find.byKey(const ValueKey('core-passive-node-attackHaste')),
-          matching: find.byType(AnimatedContainer),
-        ),
+      final smallFrame = tester.widget<Image>(
+        find.byKey(const ValueKey('core-passive-frame-attackHaste')),
       );
-      final nodeDecoration = nodeContainer.decoration! as BoxDecoration;
-      expect(nodeDecoration.color, Colors.transparent);
+      expect(
+        (smallFrame.image as AssetImage).assetName,
+        'assets/images/core_passive_tree/node_frame_small_a_v1.png',
+      );
+      expect(nodeInkResponse.child, isA<SizedBox>());
+      expect((nodeInkResponse.child! as SizedBox).width, 48);
       expect(nodeInkResponse.splashColor, const Color(0x37FFB84D));
       expect(find.text('코어 포인트 20'), findsOneWidget);
       expect(find.text('노드를 선택해 효과와 랭크를 확인하세요'), findsNothing);
@@ -71,6 +75,118 @@ void main() {
         find.byKey(const ValueKey('core-passive-node-details')),
         findsNothing,
       );
+    },
+  );
+
+  testWidgets(
+    'center skill selection preserves draft and refreshes equipment',
+    (tester) async {
+      final snapshots = ValueNotifier(
+        resultSnapshot(
+          phase: GamePhase.preparation,
+          currentStageNumber: 1,
+          unlockedStageCount: 6,
+          totalCorePoints: 20,
+        ),
+      );
+      addTearDown(snapshots.dispose);
+      final game = CoreEquipGame();
+      await tester.pumpWidget(coreTreeTestApp(game, snapshots));
+      await pumpGameFrames(tester);
+      await tester.tap(
+        find.byKey(const ValueKey('core-passive-node-attackHaste')),
+      );
+      await pumpGameFrames(tester);
+      await tester.tap(
+        find.byKey(const ValueKey('core-passive-rank-increase')),
+      );
+      await pumpGameFrames(tester);
+      final viewer = tester.widget<InteractiveViewer>(
+        find.byKey(const ValueKey('core-passive-tree-viewer')),
+      );
+      final transform = viewer.transformationController!.value.clone();
+
+      await tester.tap(
+        find.byKey(const ValueKey('core-passive-center-select')),
+      );
+      await pumpGameFrames(tester);
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(
+        find.byKey(const ValueKey('core-passive-node-details')),
+        findsNothing,
+      );
+      expect(find.text('코어 스킬 선택'), findsOneWidget);
+      final riftCard = find.byKey(const ValueKey('core-combat-skill-riftMark'));
+      await tester.tap(
+        find.descendant(of: riftCard, matching: find.text('장착')),
+      );
+      await pumpGameFrames(tester);
+      expect(game.equippedCombatSkill, CoreCombatSkill.riftMark);
+      snapshots.value = resultSnapshot(
+        phase: GamePhase.preparation,
+        currentStageNumber: 1,
+        unlockedStageCount: 6,
+        totalCorePoints: 20,
+        coreCombatSkill: CoreCombatSkill.riftMark,
+      );
+      await pumpGameFrames(tester);
+      await tester.tap(
+        find.descendant(of: riftCard, matching: find.text('해제')),
+      );
+      expect(game.unequippedCombatSkill, isTrue);
+      await tester.tap(find.byKey(const ValueKey('core-combat-skill-close')));
+      await pumpGameFrames(tester);
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.text('균열 낙인\n스킬 선택'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('core-combat-skill-menu')),
+        findsNothing,
+      );
+      expect(viewer.transformationController!.value, transform);
+      expect(
+        tester
+            .widget<Text>(
+              find.byKey(const ValueKey('core-passive-planned-points')),
+            )
+            .data,
+        '예정 1',
+      );
+      expect(game.corePassiveBatchAssignmentCount, 0);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'center skill selector keeps locked skill unavailable on narrow screen',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final snapshots = ValueNotifier(
+        resultSnapshot(
+          phase: GamePhase.preparation,
+          currentStageNumber: 1,
+          coreCombatSkill: null,
+        ),
+      );
+      addTearDown(snapshots.dispose);
+      final game = CoreEquipGame();
+      await tester.pumpWidget(coreTreeTestApp(game, snapshots));
+      await pumpGameFrames(tester);
+      expect(find.text('미장착\n스킬 선택'), findsOneWidget);
+      await tester.tap(
+        find.byKey(const ValueKey('core-passive-center-select')),
+      );
+      await pumpGameFrames(tester);
+      expect(find.text('스테이지 6에 도달하면 균열 낙인을 장착할 수 있습니다.'), findsOneWidget);
+      final lockedButton = find.descendant(
+        of: find.byKey(const ValueKey('core-combat-skill-riftMark')),
+        matching: find.byType(FilledButton),
+      );
+      expect(tester.widget<FilledButton>(lockedButton).onPressed, isNull);
+      expect(game.equippedCombatSkill, isNull);
+      expect(tester.takeException(), isNull);
     },
   );
 
@@ -88,8 +204,6 @@ void main() {
       final game = CoreTreeGame(snapshots);
 
       await tester.pumpWidget(coreTreeTestApp(game, snapshots));
-      await pumpGameFrames(tester);
-      await tester.tap(find.text('패시브 트리'));
       await pumpGameFrames(tester);
 
       final canvas = find.byKey(const ValueKey('core-passive-tree-canvas'));
@@ -159,8 +273,6 @@ void main() {
       ),
     );
     await pumpGameFrames(tester);
-    await tester.tap(find.text('패시브 트리'));
-    await pumpGameFrames(tester);
 
     await tester.tap(
       find.byKey(const ValueKey('core-passive-node-attackHaste')),
@@ -193,8 +305,6 @@ void main() {
       addTearDown(snapshots.dispose);
       final game = CoreTreeGame(snapshots);
       await tester.pumpWidget(coreTreeTestApp(game, snapshots));
-      await pumpGameFrames(tester);
-      await tester.tap(find.text('패시브 트리'));
       await pumpGameFrames(tester);
 
       await tester.tap(
@@ -289,8 +399,6 @@ void main() {
     final game = CoreTreeGame(snapshots);
     await tester.pumpWidget(coreTreeTestApp(game, snapshots));
     await pumpGameFrames(tester);
-    await tester.tap(find.text('패시브 트리'));
-    await pumpGameFrames(tester);
     await tester.tap(
       find.byKey(const ValueKey('core-passive-node-attackHaste')),
     );
@@ -345,8 +453,6 @@ void main() {
     final game = CoreTreeGame(snapshots);
     await tester.pumpWidget(coreTreeTestApp(game, snapshots));
     await pumpGameFrames(tester);
-    await tester.tap(find.text('패시브 트리'));
-    await pumpGameFrames(tester);
 
     await tester.tap(
       find.byKey(const ValueKey('core-passive-node-attackHaste')),
@@ -388,16 +494,21 @@ void main() {
       final game = CoreTreeGame(snapshots);
       await tester.pumpWidget(coreTreeTestApp(game, snapshots));
       await pumpGameFrames(tester);
-      await tester.tap(find.text('패시브 트리'));
-      await pumpGameFrames(tester);
       final increase = find.byKey(const ValueKey('core-passive-rank-increase'));
       Future<void> planRanks(CorePassiveNodeId id, int rank) async {
         if (find
             .byKey(const ValueKey('core-passive-node-details'))
             .evaluate()
             .isNotEmpty) {
-          await tester.tap(
-            find.byKey(const ValueKey('core-passive-tree-empty-space')),
+          await tester.tapAt(
+            tester
+                    .getRect(
+                      find.byKey(
+                        const ValueKey('core-passive-tree-empty-space'),
+                      ),
+                    )
+                    .centerRight -
+                const Offset(10, 0),
           );
           await pumpGameFrames(tester);
           await tester.pump(const Duration(milliseconds: 200));
@@ -525,8 +636,6 @@ void main() {
     final game = CoreTreeGame(snapshots);
     await tester.pumpWidget(coreTreeTestApp(game, snapshots));
     await pumpGameFrames(tester);
-    await tester.tap(find.text('패시브 트리'));
-    await pumpGameFrames(tester);
 
     final lockedNode = find.byKey(
       const ValueKey('core-passive-node-attackPrecompute'),
@@ -584,13 +693,15 @@ void main() {
       '예정 0',
     );
 
-    final selectedNodeContainer = tester.widget<AnimatedContainer>(
-      find.descendant(of: lockedNode, matching: find.byType(AnimatedContainer)),
+    expect(
+      find.descendant(
+        of: lockedNode,
+        matching: find.byKey(
+          const ValueKey('core-passive-selection-attackPrecompute'),
+        ),
+      ),
+      findsOneWidget,
     );
-    final selectedDecoration =
-        selectedNodeContainer.decoration! as BoxDecoration;
-    final selectedBorder = selectedDecoration.border! as Border;
-    expect(selectedBorder.top.color, const Color(0xFFE8FBFF));
 
     final startingNode = find.byKey(
       const ValueKey('core-passive-node-attackHaste'),
@@ -639,8 +750,6 @@ void main() {
     addTearDown(snapshots.dispose);
     final game = CoreTreeGame(snapshots);
     await tester.pumpWidget(coreTreeTestApp(game, snapshots));
-    await pumpGameFrames(tester);
-    await tester.tap(find.text('패시브 트리'));
     await pumpGameFrames(tester);
 
     final connectedNode = find.byKey(
@@ -702,8 +811,6 @@ void main() {
     final game = CoreTreeGame(snapshots);
     await tester.pumpWidget(coreTreeTestApp(game, snapshots));
     await pumpGameFrames(tester);
-    await tester.tap(find.text('패시브 트리'));
-    await pumpGameFrames(tester);
 
     await tester.tap(
       find.byKey(const ValueKey('core-passive-node-attackHaste')),
@@ -738,8 +845,6 @@ void main() {
     addTearDown(snapshots.dispose);
     final game = CoreTreeGame(snapshots);
     await tester.pumpWidget(coreTreeTestApp(game, snapshots));
-    await pumpGameFrames(tester);
-    await tester.tap(find.text('패시브 트리'));
     await pumpGameFrames(tester);
 
     final reset = find.byKey(const ValueKey('core-passive-reset-all'));
@@ -797,8 +902,6 @@ void main() {
         ),
       ),
     );
-    await pumpGameFrames(tester);
-    await tester.tap(find.text('패시브 트리'));
     await pumpGameFrames(tester);
 
     final viewerFinder = find.byKey(const ValueKey('core-passive-tree-viewer'));

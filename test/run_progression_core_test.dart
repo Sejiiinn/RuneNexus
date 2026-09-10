@@ -1090,17 +1090,18 @@ void main() {
     expect(legacyRestored.activeRun!.nexusHp, closeTo(19, 0.0001));
   });
 
-  test('stage core point rewards total twenty and only grant once', () {
+  test('every stage grants two core points once for thirty total', () {
     expect(
       gameStages.fold<int>(
         0,
         (sum, stage) => sum + stage.firstClearCorePointReward,
       ),
-      20,
+      30,
     );
-    expect(gameStages[4].firstClearCorePointReward, 2);
-    expect(gameStages[9].firstClearCorePointReward, 3);
-    expect(gameStages[14].firstClearCorePointReward, 3);
+    expect(
+      gameStages.map((stage) => stage.firstClearCorePointReward),
+      everyElement(2),
+    );
 
     final progression = RunProgression();
     progression.finishRun(
@@ -1125,7 +1126,7 @@ void main() {
       completedRounds: 10,
       success: false,
       stageNumber: 10,
-      firstClearCorePointReward: 3,
+      firstClearCorePointReward: 2,
     );
     expect(progression.totalCorePoints, 2);
     expect(progression.lastRunCorePointReward, 0);
@@ -1187,14 +1188,14 @@ void main() {
     await game.onLoad();
     await game.saveNow();
 
-    expect(game.snapshotNotifier.value.totalCorePoints, 3);
+    expect(game.snapshotNotifier.value.totalCorePoints, 4);
     expect(game.snapshotNotifier.value.lastRunCorePointReward, 0);
     expect(repository.data!.progression.claimedCorePointStageRewards, {1, 5});
 
     final restored = RuneNexusGame(saveRepository: repository);
     restored.onGameResize(Vector2(400, 800));
     await restored.onLoad();
-    expect(restored.snapshotNotifier.value.totalCorePoints, 3);
+    expect(restored.snapshotNotifier.value.totalCorePoints, 4);
     expect(restored.snapshotNotifier.value.lastRunCorePointReward, 0);
   });
 

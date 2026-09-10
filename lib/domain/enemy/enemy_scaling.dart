@@ -1,7 +1,7 @@
 import 'enemy_definition.dart';
 import 'dart:math' as math;
 
-const double stageEnemyDurabilityGrowth = 1.20;
+const double stageEnemyDurabilityGrowth = 1.15;
 
 double enemyHpMultiplierForRound(int round) {
   return math.pow(2, ((round - 1).clamp(0, 49)) / 10).toDouble();

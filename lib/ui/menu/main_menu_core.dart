@@ -1,149 +1,15 @@
 part of 'main_menu_screen.dart';
 
-enum _CoreMenuView { combatSkill, passiveTree }
-
-class _CoreMenu extends StatefulWidget {
-  const _CoreMenu({required this.game, required this.snapshot});
-
-  final RuneNexusGame game;
-  final GameSnapshot snapshot;
-
-  @override
-  State<_CoreMenu> createState() => _CoreMenuState();
-}
-
-class _CoreMenuState extends State<_CoreMenu> {
-  _CoreMenuView _view = _CoreMenuView.combatSkill;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = RuneNexusLocalizations.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _CoreViewTabs(
-          selected: _view,
-          combatSkillLabel: l10n.coreCombatSkills,
-          passiveTreeLabel: l10n.corePassiveTree,
-          onSelected: (view) => setState(() => _view = view),
-        ),
-        const SizedBox(height: 10),
-        switch (_view) {
-          _CoreMenuView.combatSkill => _CoreCombatSkillMenu(
-            game: widget.game,
-            snapshot: widget.snapshot,
-          ),
-          _CoreMenuView.passiveTree => _CorePassiveTreeMenu(
-            game: widget.game,
-            snapshot: widget.snapshot,
-          ),
-        },
-      ],
-    );
-  }
-}
-
-class _CoreViewTabs extends StatelessWidget {
-  const _CoreViewTabs({
-    required this.selected,
-    required this.combatSkillLabel,
-    required this.passiveTreeLabel,
-    required this.onSelected,
-  });
-
-  final _CoreMenuView selected;
-  final String combatSkillLabel;
-  final String passiveTreeLabel;
-  final ValueChanged<_CoreMenuView> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      key: const ValueKey('core-view-tabs'),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xE6091724),
-        border: Border.all(color: const Color(0x775D7182)),
-        borderRadius: BorderRadius.circular(9),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _CoreViewTabButton(
-              label: combatSkillLabel,
-              selected: selected == _CoreMenuView.combatSkill,
-              onTap: () => onSelected(_CoreMenuView.combatSkill),
-            ),
-          ),
-          const SizedBox(width: 5),
-          Expanded(
-            child: _CoreViewTabButton(
-              label: passiveTreeLabel,
-              selected: selected == _CoreMenuView.passiveTree,
-              onTap: () => onSelected(_CoreMenuView.passiveTree),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CoreViewTabButton extends StatelessWidget {
-  const _CoreViewTabButton({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(7),
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 140),
-          height: 38,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            gradient: selected
-                ? const LinearGradient(
-                    colors: [Color(0xFF16465A), Color(0xFF0B2637)],
-                  )
-                : null,
-            border: Border.all(
-              color: selected ? const Color(0xCC8EE6FF) : Colors.transparent,
-            ),
-            borderRadius: BorderRadius.circular(7),
-          ),
-          child: Text(
-            label,
-            maxLines: 1,
-            style: TextStyle(
-              color: selected
-                  ? const Color(0xFFE8FBFF)
-                  : const Color(0xFF8FA8BA),
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _CoreCombatSkillMenu extends StatelessWidget {
-  const _CoreCombatSkillMenu({required this.game, required this.snapshot});
+  const _CoreCombatSkillMenu({
+    required this.game,
+    required this.snapshot,
+    required this.onClose,
+  });
 
   final RuneNexusGame game;
   final GameSnapshot snapshot;
+  final VoidCallback onClose;
 
   @override
   Widget build(BuildContext context) {
@@ -163,6 +29,25 @@ class _CoreCombatSkillMenu extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  '코어 스킬 선택',
+                  style: TextStyle(
+                    color: Color(0xFFE8FBFF),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              GameModalCloseButton(
+                key: const ValueKey('core-combat-skill-close'),
+                onPressed: onClose,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           _CoreCombatSkillCard(
             skill: CoreCombatSkill.guardianBeam,
             state: '5초마다 자동 발동',
@@ -274,7 +159,6 @@ class _CoreCombatSkillCard extends StatelessWidget {
               children: [
                 Text(
                   skill.label,
-                  maxLines: 1,
                   style: const TextStyle(
                     color: Color(0xFFE8FBFF),
                     fontSize: 14,
