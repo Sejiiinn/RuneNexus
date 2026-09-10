@@ -97,7 +97,7 @@ void main() {
       ),
       isFalse,
     );
-    expect(progression.freeDiamonds, 10);
+    expect(progression.freeDiamonds, 20);
     expect(progression.paidDiamonds, 0);
 
     final saved = SavedProgression.fromJson(progression.toSaveData().toJson());
@@ -109,34 +109,53 @@ void main() {
       restored.claimedDailyQuestRewards,
       contains(DailyQuestType.clearWaves),
     );
-    expect(restored.freeDiamonds, 10);
+    expect(restored.freeDiamonds, 20);
   });
 
-  test('daily all complete reward grants twenty free diamonds once', () {
-    const nowMillis = 1780675200000;
-    final progression = RunProgression();
+  test(
+    'daily all complete reward grants diamonds and a module ticket once',
+    () {
+      const nowMillis = 1780675200000;
+      final progression = RunProgression();
 
-    for (final entry in gameDailyQuestDefinitions.entries) {
-      progression.recordDailyQuestProgress(
-        entry.key,
-        amount: entry.value.targetCount,
-        nowMillis: nowMillis,
+      for (final entry in gameDailyQuestDefinitions.entries) {
+        progression.recordDailyQuestProgress(
+          entry.key,
+          amount: entry.value.targetCount,
+          nowMillis: nowMillis,
+        );
+      }
+
+      expect(progression.completedDailyQuestCount, 4);
+      expect(
+        progression.claimDailyQuestAllCompleteReward(nowMillis: nowMillis),
+        isTrue,
       );
-    }
+      expect(
+        progression.claimDailyQuestAllCompleteReward(nowMillis: nowMillis),
+        isFalse,
+      );
+      expect(progression.freeDiamonds, 40);
+      expect(progression.turretModuleTickets, 1);
+      final restored = RunProgression()
+        ..restoreFromSaveData(
+          SavedProgression.fromJson(progression.toSaveData().toJson()),
+        )
+        ..restoreTurretModulesFromSaveData(
+          SavedTurretModuleInventory.fromJson(
+            progression.toTurretModuleSaveData().toJson(),
+          ),
+        );
+      expect(
+        restored.claimDailyQuestAllCompleteReward(nowMillis: nowMillis),
+        isFalse,
+      );
+      expect(restored.freeDiamonds, 40);
+      expect(restored.turretModuleTickets, 1);
+    },
+  );
 
-    expect(progression.completedDailyQuestCount, 4);
-    expect(
-      progression.claimDailyQuestAllCompleteReward(nowMillis: nowMillis),
-      isTrue,
-    );
-    expect(
-      progression.claimDailyQuestAllCompleteReward(nowMillis: nowMillis),
-      isFalse,
-    );
-    expect(progression.freeDiamonds, 20);
-  });
-
-  test('daily attendance grants ten free diamonds once and resets', () {
+  test('daily attendance grants twenty free diamonds once and resets', () {
     final firstDay = DateTime.utc(2026, 6, 8).millisecondsSinceEpoch;
     final nextDay = DateTime.utc(2026, 6, 9).millisecondsSinceEpoch;
     final progression = RunProgression();
@@ -200,8 +219,8 @@ void main() {
       ),
       isFalse,
     );
-    expect(progression.freeDiamonds, 140);
-    expect(progression.turretModuleTickets, 1);
+    expect(progression.freeDiamonds, 260);
+    expect(progression.turretModuleTickets, 4);
 
     final saved = SavedProgression.fromJson(progression.toSaveData().toJson());
     final savedTurretModules = SavedTurretModuleInventory.fromJson(
@@ -216,8 +235,8 @@ void main() {
       progression.claimedWeeklyQuestRewards,
     );
     expect(restored.weeklyQuestAllCompleteClaimed, isTrue);
-    expect(restored.freeDiamonds, 140);
-    expect(restored.turretModuleTickets, 1);
+    expect(restored.freeDiamonds, 260);
+    expect(restored.turretModuleTickets, 4);
   });
 
   test(

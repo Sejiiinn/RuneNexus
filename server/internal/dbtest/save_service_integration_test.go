@@ -288,7 +288,7 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("claim weekly reward: %v", err)
 	}
-	if claimed.Diamonds != 20 || claimed.WeekKey != weekKey ||
+	if claimed.Diamonds != 40 || claimed.WeekKey != weekKey ||
 		claimed.SourceSaveRevision != 1 {
 		t.Fatalf("claimed reward = %#v", claimed)
 	}
@@ -317,7 +317,7 @@ func TestWeeklyRewardClaimUsesCurrentSaveAndIsAccountIdempotent(t *testing.T) {
 		IdempotencyKey: "0198b955-3656-7c40-b3cb-87f427b90bef",
 		RawBody:        dailyBody, Period: "daily", RewardType: weeklyreward.RewardTypeAttendance,
 	})
-	if err != nil || daily.Diamonds != 10 || daily.WeekKey != dayKey || daily.EconomyRevision != 5 {
+	if err != nil || daily.Diamonds != 20 || daily.WeekKey != dayKey || daily.EconomyRevision != 5 {
 		t.Fatalf("daily authoritative reward = %#v, %v", daily, err)
 	}
 	var settledProgression map[string]any

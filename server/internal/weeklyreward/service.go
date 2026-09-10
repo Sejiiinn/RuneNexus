@@ -21,14 +21,15 @@ const (
 	RewardTypeAllComplete = "all_complete"
 	RewardTypeAttendance  = "attendance"
 
-	weeklyQuestRewardDiamonds        int32 = 20
-	weeklyAllCompleteRewardDiamonds  int32 = 60
-	weeklyAllCompleteModuleTickets   int32 = 1
-	weeklyAttendanceRewardDiamonds   int32 = 20
+	weeklyQuestRewardDiamonds        int32 = 40
+	weeklyAllCompleteRewardDiamonds  int32 = 100
+	weeklyAllCompleteModuleTickets   int32 = 4
+	weeklyAttendanceRewardDiamonds   int32 = 40
 	weeklyAttendanceRequiredDayCount       = 5
-	dailyQuestRewardDiamonds         int32 = 10
-	dailyAllCompleteRewardDiamonds   int32 = 20
-	dailyAttendanceRewardDiamonds    int32 = 10
+	dailyQuestRewardDiamonds         int32 = 20
+	dailyAllCompleteRewardDiamonds   int32 = 40
+	dailyAllCompleteModuleTickets    int32 = 1
+	dailyAttendanceRewardDiamonds    int32 = 20
 	resetOffset                            = 4 * time.Hour
 )
 
@@ -382,7 +383,11 @@ func rewardDefinitionForRequest(
 			if request.QuestType != "" {
 				return rewardDefinition{}, ErrInvalidReward
 			}
-			return rewardDefinition{rewardKey: prefix + "all_complete", diamonds: dailyAllCompleteRewardDiamonds}, nil
+			return rewardDefinition{
+				rewardKey:     prefix + "all_complete",
+				diamonds:      dailyAllCompleteRewardDiamonds,
+				moduleTickets: dailyAllCompleteModuleTickets,
+			}, nil
 		case RewardTypeAttendance:
 			if request.QuestType != "" {
 				return rewardDefinition{}, ErrInvalidReward

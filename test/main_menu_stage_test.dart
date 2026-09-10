@@ -129,7 +129,9 @@ void main() {
     expect(find.text('보스 3회 처치'), findsOneWidget);
     expect(find.text('몹 100회 처치'), findsOneWidget);
     expect(find.text('런 강화 5회'), findsOneWidget);
-    expect(find.text('+10'), findsNWidgets(5));
+    expect(find.text('+20'), findsNWidgets(5));
+    expect(find.text('+40'), findsOneWidget);
+    expect(find.text('모듈권 +1'), findsOneWidget);
     expect(find.text('오늘 출석'), findsOneWidget);
     final dailySummary = find.byKey(const ValueKey('daily-quest-summary-card'));
     final todayProgress = find.descendant(
@@ -167,7 +169,9 @@ void main() {
     expect(find.text('몹 500회 처치'), findsOneWidget);
     expect(find.text('런 강화 25회'), findsOneWidget);
     expect(find.text('이번 주 출석'), findsOneWidget);
-    expect(find.text('모듈권 +1'), findsOneWidget);
+    expect(find.text('모듈권 +4'), findsOneWidget);
+    expect(find.text('+40'), findsNWidgets(5));
+    expect(find.text('+100'), findsOneWidget);
     final weeklySummary = find.byKey(
       const ValueKey('weekly-quest-summary-card'),
     );

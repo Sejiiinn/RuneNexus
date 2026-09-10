@@ -131,9 +131,11 @@ class _WeeklyQuestSummaryCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
-                _WeeklyCompletionRewardText(
+                _QuestCompletionRewardText(
                   progressText:
                       '${snapshot.completedWeeklyQuestCount}/${gameWeeklyQuestDefinitions.length} 완료',
+                  diamonds: weeklyQuestAllCompleteRewardDiamonds,
+                  moduleTickets: weeklyQuestAllCompleteRewardModuleTickets,
                 ),
               ],
             ),
@@ -150,10 +152,16 @@ class _WeeklyQuestSummaryCard extends StatelessWidget {
   }
 }
 
-class _WeeklyCompletionRewardText extends StatelessWidget {
-  const _WeeklyCompletionRewardText({required this.progressText});
+class _QuestCompletionRewardText extends StatelessWidget {
+  const _QuestCompletionRewardText({
+    required this.progressText,
+    required this.diamonds,
+    required this.moduleTickets,
+  });
 
   final String progressText;
+  final int diamonds;
+  final int moduleTickets;
 
   @override
   Widget build(BuildContext context) {
@@ -162,10 +170,7 @@ class _WeeklyCompletionRewardText extends StatelessWidget {
       runSpacing: 2,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        _DailyQuestRewardText(
-          amount: weeklyQuestAllCompleteRewardDiamonds,
-          prefix: progressText,
-        ),
+        _DailyQuestRewardText(amount: diamonds, prefix: progressText),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -178,7 +183,7 @@ class _WeeklyCompletionRewardText extends StatelessWidget {
             ),
             const SizedBox(width: 3),
             Text(
-              '모듈권 +$weeklyQuestAllCompleteRewardModuleTickets',
+              '모듈권 +$moduleTickets',
               style: const TextStyle(
                 color: Color(0xFFFFD166),
                 fontSize: 11,

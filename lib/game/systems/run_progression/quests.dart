@@ -168,6 +168,7 @@ mixin _QuestProgression {
       return false;
     }
     addFreeDiamonds(dailyQuestAllCompleteRewardDiamonds);
+    turretModuleTickets += dailyQuestAllCompleteRewardModuleTickets;
     dailyQuestAllCompleteClaimed = true;
     return true;
   }

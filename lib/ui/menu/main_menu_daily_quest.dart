@@ -780,9 +780,10 @@ class _DailyQuestSummaryCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
-                _DailyQuestRewardText(
-                  amount: 20,
-                  prefix:
+                _QuestCompletionRewardText(
+                  diamonds: dailyQuestAllCompleteRewardDiamonds,
+                  moduleTickets: dailyQuestAllCompleteRewardModuleTickets,
+                  progressText:
                       '${snapshot.completedDailyQuestCount}/${gameDailyQuestDefinitions.length} 완료',
                 ),
               ],

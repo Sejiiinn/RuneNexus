@@ -21,27 +21,37 @@ func TestWeeklyPeriodResetsAtMondayFiveKST(t *testing.T) {
 	}
 }
 
-func TestWeeklyRewardDefinitionsDoNotAcceptClientAmounts(t *testing.T) {
-	quest, err := rewardDefinitionForRequest(
-		ClaimRequest{RewardType: RewardTypeQuest, QuestType: "clearWaves"},
-		"2026-W24",
-	)
-	if err != nil {
-		t.Fatalf("quest definition: %v", err)
+func TestRewardDefinitionsUseServerAmounts(t *testing.T) {
+	tests := []struct {
+		name          string
+		period        string
+		rewardType    string
+		questType     string
+		rewardKey     string
+		diamonds      int32
+		moduleTickets int32
+	}{
+		{"daily quest", "daily", RewardTypeQuest, "clearWaves", "daily:period:quest:clearWaves", 20, 0},
+		{"daily all complete", "daily", RewardTypeAllComplete, "", "daily:period:all_complete", 40, 1},
+		{"daily attendance", "daily", RewardTypeAttendance, "", "daily:period:attendance", 20, 0},
+		{"weekly quest", "weekly", RewardTypeQuest, "clearWaves", "weekly:period:quest:clearWaves", 40, 0},
+		{"weekly all complete", "weekly", RewardTypeAllComplete, "", "weekly:period:all_complete", 100, 4},
+		{"weekly attendance", "weekly", RewardTypeAttendance, "", "weekly:period:attendance", 40, 0},
+		{"legacy weekly quest", "", RewardTypeQuest, "clearWaves", "weekly:period:quest:clearWaves", 40, 0},
+		{"legacy weekly all complete", "", RewardTypeAllComplete, "", "weekly:period:all_complete", 100, 4},
 	}
-	if quest.rewardKey != "weekly:2026-W24:quest:clearWaves" ||
-		quest.diamonds != 20 || quest.moduleTickets != 0 {
-		t.Fatalf("quest definition = %#v", quest)
-	}
-	all, err := rewardDefinitionForRequest(
-		ClaimRequest{RewardType: RewardTypeAllComplete},
-		"2026-W24",
-	)
-	if err != nil {
-		t.Fatalf("all-complete definition: %v", err)
-	}
-	if all.diamonds != 60 || all.moduleTickets != 1 {
-		t.Fatalf("all-complete definition = %#v", all)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			reward, err := rewardDefinitionForRequest(ClaimRequest{
+				Period: test.period, RewardType: test.rewardType, QuestType: test.questType,
+			}, "period")
+			if err != nil {
+				t.Fatalf("reward definition: %v", err)
+			}
+			if reward.rewardKey != test.rewardKey || reward.diamonds != test.diamonds || reward.moduleTickets != test.moduleTickets {
+				t.Fatalf("reward definition = %#v", reward)
+			}
+		})
 	}
 	if _, err := rewardDefinitionForRequest(
 		ClaimRequest{RewardType: RewardTypeQuest, QuestType: "unknown"},
