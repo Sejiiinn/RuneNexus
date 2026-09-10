@@ -69,6 +69,7 @@ class _RewardOverlayState extends State<HudRewardOverlay> {
                         : math.min(110.0, availableWidth / optionCount);
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         for (
                           var i = 0;
@@ -394,7 +395,13 @@ class _RewardCard extends StatelessWidget {
               const SizedBox(height: 2),
               ConstrainedBox(
                 key: ValueKey('reward-gem-effects-${type.name}'),
-                constraints: BoxConstraints(minHeight: compact ? 70 : 64),
+                constraints: BoxConstraints(
+                  // 두 효과 묶음과 사이 간격을 모든 카드에 동일하게 예약.
+                  minHeight: math.max(
+                    compact ? 70.0 : 64.0,
+                    textScaler.scale(dense ? 28 : 32) * 2 + 8,
+                  ),
+                ),
                 child: Align(
                   alignment: Alignment.topCenter,
                   child: groupedEffects
