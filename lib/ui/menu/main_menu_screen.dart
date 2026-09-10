@@ -259,8 +259,6 @@ class _MainMenuScreenState extends State<MainMenuScreen> {
                 headerTopOffset: debugBarHeight,
                 menuTopPadding: menuTopPadding,
                 onStartStage: widget.onStartStage,
-                accountSession: widget.accountSession,
-                onOpenAccount: () => _openAccountDialog(context),
                 onClaimWeeklyReward: widget.onClaimWeeklyReward,
                 turretModuleMenuKey: _turretModuleMenuKey,
                 onTurretModuleDrawResults: _showTurretModuleDrawResults,
@@ -378,8 +376,6 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
     required this.headerTopOffset,
     required this.menuTopPadding,
     required this.onStartStage,
-    required this.accountSession,
-    required this.onOpenAccount,
     required this.onClaimWeeklyReward,
     required this.turretModuleMenuKey,
     required this.onTurretModuleDrawResults,
@@ -396,8 +392,6 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
   final double headerTopOffset;
   final double menuTopPadding;
   final ValueChanged<int> onStartStage;
-  final AccountSession accountSession;
-  final VoidCallback onOpenAccount;
   final Future<void> Function(WeeklyRewardClaimTarget target)?
   onClaimWeeklyReward;
   final GlobalKey<_TurretModuleMenuState> turretModuleMenuKey;
@@ -418,8 +412,6 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
         headerTopOffset: headerTopOffset,
         menuTopPadding: menuTopPadding,
         onStartStage: onStartStage,
-        accountSession: accountSession,
-        onOpenAccount: onOpenAccount,
         onClaimWeeklyReward: onClaimWeeklyReward,
         turretModuleMenuKey: turretModuleMenuKey,
         onTurretModuleDrawResults: onTurretModuleDrawResults,
@@ -439,8 +431,6 @@ class _MainMenuSnapshotLayer extends StatelessWidget {
           headerTopOffset: headerTopOffset,
           menuTopPadding: menuTopPadding,
           onStartStage: onStartStage,
-          accountSession: accountSession,
-          onOpenAccount: onOpenAccount,
           onClaimWeeklyReward: onClaimWeeklyReward,
           turretModuleMenuKey: turretModuleMenuKey,
           onTurretModuleDrawResults: onTurretModuleDrawResults,
@@ -462,8 +452,6 @@ class _MainMenuSnapshotContent extends StatelessWidget {
     required this.headerTopOffset,
     required this.menuTopPadding,
     required this.onStartStage,
-    required this.accountSession,
-    required this.onOpenAccount,
     required this.onClaimWeeklyReward,
     required this.turretModuleMenuKey,
     required this.onTurretModuleDrawResults,
@@ -479,8 +467,6 @@ class _MainMenuSnapshotContent extends StatelessWidget {
   final double headerTopOffset;
   final double menuTopPadding;
   final ValueChanged<int> onStartStage;
-  final AccountSession accountSession;
-  final VoidCallback onOpenAccount;
   final Future<void> Function(WeeklyRewardClaimTarget target)?
   onClaimWeeklyReward;
   final GlobalKey<_TurretModuleMenuState> turretModuleMenuKey;
@@ -588,19 +574,10 @@ class _MainMenuSnapshotContent extends StatelessWidget {
           Positioned(
             top: headerTopOffset + (compactTopBar ? 4 : 10),
             left: 16,
-            child: Row(
-              children: [
-                _DailyQuestEntryButton(
-                  snapshot: snapshot,
-                  onPressed: () =>
-                      _openDailyQuestDialog(context, game, onClaimWeeklyReward),
-                ),
-                const SizedBox(width: 8),
-                _AccountEntryButton(
-                  session: accountSession,
-                  onPressed: onOpenAccount,
-                ),
-              ],
+            child: _DailyQuestEntryButton(
+              snapshot: snapshot,
+              onPressed: () =>
+                  _openDailyQuestDialog(context, game, onClaimWeeklyReward),
             ),
           ),
         if (selectedTab == MainMenuTab.stage)
@@ -626,8 +603,6 @@ class _MainMenuSnapshotContent extends StatelessWidget {
               runes: snapshot.runes,
               diamonds: snapshot.diamonds,
               turretModuleTickets: snapshot.turretModuleTickets,
-              accountSession: accountSession,
-              onOpenAccount: onOpenAccount,
             ),
           ),
         if (_showMapEditor && showMenuDebugPanel)

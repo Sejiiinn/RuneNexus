@@ -1,5 +1,3 @@
-import 'package:rune_nexus/ui/game/game_image_assets.dart';
-
 import 'helpers/widget_test_helpers.dart';
 
 void main() {
@@ -16,7 +14,7 @@ void main() {
 
     expect(
       find.byKey(const ValueKey('main-menu-account-button')),
-      findsOneWidget,
+      findsNothing,
     );
 
     await _openAccountDialog(tester);
@@ -148,40 +146,36 @@ void main() {
     expect(transferCount, 1);
   });
 
-  testWidgets('좁은 화면에서도 계정 버튼이 로고와 겹치지 않는다', (tester) async {
+  testWidgets('모든 메뉴 탭에서 계정 아이콘을 숨기고 재화는 유지한다', (tester) async {
     tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1;
-    addTearDown(() {
-      tester.view.resetPhysicalSize();
-      tester.view.resetDevicePixelRatio();
-    });
-
-    await _pumpAccountMenu(tester, session: const AccountSession.guest());
-
-    final accountRect = tester.getRect(
-      find.byKey(const ValueKey('main-menu-account-button')),
-    );
-    final questRect = tester.getRect(
-      find.byKey(const ValueKey('daily-quest-entry-button')),
-    );
-    final logoRect = tester.getRect(
-      find.byWidgetPredicate(
-        (widget) =>
-            widget is Image &&
-            widget.image is AssetImage &&
-            (widget.image as AssetImage).assetName == gameLogoAsset,
-      ),
-    );
-
-    expect(accountRect.overlaps(questRect), isFalse);
-    expect(accountRect.overlaps(logoRect), isFalse);
-    expect(tester.takeException(), isNull);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    for (final tab in MainMenuTab.values) {
+      await _pumpAccountMenu(
+        tester,
+        session: const AccountSession.guest(),
+        showLobby: false,
+        selectedTab: tab,
+      );
+      expect(
+        find.byKey(const ValueKey('main-menu-account-button')),
+        findsNothing,
+      );
+      expect(
+        find.byKey(const ValueKey('menu-currency-balance')),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    }
   });
 }
 
 Future<void> _pumpAccountMenu(
   WidgetTester tester, {
   required AccountSession session,
+  bool showLobby = true,
+  MainMenuTab selectedTab = MainMenuTab.stage,
   VoidCallback? onConnectPlayGames,
   VoidCallback? onConnectGoogle,
   VoidCallback? onCreateLegacyTransfer,
@@ -204,7 +198,8 @@ Future<void> _pumpAccountMenu(
           phase: GamePhase.preparation,
           currentStageNumber: 1,
         ),
-        selectedTab: MainMenuTab.stage,
+        selectedTab: selectedTab,
+        showLobby: showLobby,
         onSelectTab: (_) {},
         onStartStage: (_) {},
         accountSession: session,
@@ -220,6 +215,8 @@ Future<void> _pumpAccountMenu(
 }
 
 Future<void> _openAccountDialog(WidgetTester tester) async {
-  await tester.tap(find.byKey(const ValueKey('main-menu-account-button')));
+  await tester.tap(find.byKey(const ValueKey('lobby-settings')));
+  await tester.pump(const Duration(milliseconds: 250));
+  await tester.tap(find.text('계정 및 저장'));
   await tester.pump(const Duration(milliseconds: 250));
 }

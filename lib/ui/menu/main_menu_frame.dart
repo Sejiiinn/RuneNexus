@@ -68,8 +68,6 @@ class _MenuResourceBar extends StatelessWidget {
     required this.runes,
     required this.diamonds,
     required this.turretModuleTickets,
-    required this.accountSession,
-    required this.onOpenAccount,
     super.key,
   });
 
@@ -77,8 +75,6 @@ class _MenuResourceBar extends StatelessWidget {
   final int runes;
   final int diamonds;
   final int turretModuleTickets;
-  final AccountSession accountSession;
-  final VoidCallback onOpenAccount;
 
   @override
   Widget build(BuildContext context) {
@@ -164,12 +160,6 @@ class _MenuResourceBar extends StatelessWidget {
             ),
           ],
           const Spacer(),
-          _AccountEntryButton(
-            session: accountSession,
-            onPressed: onOpenAccount,
-            compact: true,
-          ),
-          const SizedBox(width: 7),
           RuneBalanceCard(
             key: const ValueKey('menu-currency-balance'),
             runes: runes,
