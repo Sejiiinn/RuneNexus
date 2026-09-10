@@ -76,6 +76,7 @@ import 'systems/combat_resolver.dart';
 import 'systems/core_combat_skill_controller.dart';
 import 'systems/game_save_adapter.dart';
 import 'systems/gem_reward_controller.dart';
+import 'systems/gem_reward_selection_controller.dart';
 import 'systems/run_progression.dart';
 import 'systems/save_scheduler.dart';
 import 'systems/turret_action_controller.dart';
@@ -477,6 +478,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     this,
   );
   final TurretActionController _turretActions = const TurretActionController();
+  late final GemRewardSelectionController _rewardSelection =
+      GemRewardSelectionController(
+        rewards: _gemRewards,
+        turretActions: _turretActions,
+      );
   final RunProgression _progression = RunProgression();
   final CoreCombatSkillController _coreCombatSkillController =
       CoreCombatSkillController(
@@ -517,9 +523,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   GamePhase? _restoredPhase;
   GamePhase? _rewardReturnPhase;
   bool _isPurchasedGemReward = false;
-  // 미확정 선택은 저장하지 않고 기존 보상 후보를 유지.
-  GemType? _pendingRewardGem;
-  GridPoint? _rewardReplacementPoint;
   Rect? _gemRewardBoardViewport;
   TurretType _selectedTurretType = TurretType.arrow;
   RunPanelTab _selectedRunPanelTab = RunPanelTab.turrets;
@@ -561,7 +564,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   bool get isWaveRunning => _phase == GamePhase.wave || _debugCombatActive;
   bool get isGemRewardTargeting =>
-      _phase == GamePhase.reward && _pendingRewardGem != null;
+      _phase == GamePhase.reward && _rewardSelection.pendingGem != null;
   double get boardDistanceScale =>
       _boardConfigured ? _tileSize / _designTileSize : 1;
   bool isTurretSelected(GridPoint point) => _selectedTurretPoint == point;
@@ -1179,7 +1182,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
     final point = _gridPointAt(_boardCamera.screenToWorld(event.localPosition));
     if (point != null &&
-        _rewardReplacementPoint == null &&
+        _rewardSelection.replacementPoint == null &&
         (_gemRewardBoardViewport?.contains(
               Offset(event.localPosition.x, event.localPosition.y),
             ) ??
@@ -2200,11 +2203,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   bool previewRewardGem(GemType type) {
-    if (_phase != GamePhase.reward || !_rewardOptions.contains(type)) {
+    if (!_rewardSelection.preview(
+      phase: _phase,
+      rewardOptions: _rewardOptions,
+      type: type,
+    )) {
       return false;
     }
-    _pendingRewardGem = type;
-    _rewardReplacementPoint = null;
     _clearBoardSelection(closePanel: true);
     _levelUpPreviewPoint = null;
     _boardGestures.suppressNextTap = false;
@@ -2216,44 +2221,35 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_phase != GamePhase.reward) {
       return;
     }
-    _pendingRewardGem = null;
-    _rewardReplacementPoint = null;
+    _rewardSelection.clear();
     _gemRewardBoardViewport = null;
     _clearBoardSelection(closePanel: true);
     _publish();
   }
 
   GemRewardTargetStatus gemRewardTargetStatus(GridPoint point) {
-    final type = _pendingRewardGem;
-    final turret = _turrets[point];
-    if (!isGemRewardTargeting ||
-        type == null ||
-        turret == null ||
-        !_turretActions.canEquipGem(turret: turret, type: type)) {
-      return GemRewardTargetStatus.unavailable;
-    }
-    return turret.equippedGemSlots.any((gem) => gem == null)
-        ? GemRewardTargetStatus.available
-        : GemRewardTargetStatus.replacement;
+    return _rewardSelection.targetStatus(
+      phase: _phase,
+      turret: _turrets[point],
+    );
   }
 
   bool selectRewardGemTarget(GridPoint point) {
-    if (_rewardReplacementPoint != null) {
-      return false;
-    }
-    final status = gemRewardTargetStatus(point);
+    final status = _rewardSelection.selectTarget(
+      phase: _phase,
+      turret: _turrets[point],
+    );
     if (status == GemRewardTargetStatus.unavailable) {
       return false;
     }
     final turret = _turrets[point]!;
     if (status == GemRewardTargetStatus.available) {
       return _confirmRewardGem(
-        _pendingRewardGem!,
+        _rewardSelection.pendingGem!,
         turret: turret,
         slotIndex: turret.equippedGemSlots.indexOf(null),
       );
     }
-    _rewardReplacementPoint = point;
     _selectedTurretPoint = point;
     _selectedTurretType = turret.definition.type;
     _selectedTurretGemSlotIndex = null;
@@ -2262,17 +2258,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void cancelRewardGemReplacement() {
-    if (!isGemRewardTargeting || _rewardReplacementPoint == null) {
+    if (!_rewardSelection.cancelReplacement(phase: _phase)) {
       return;
     }
-    _rewardReplacementPoint = null;
     _clearBoardSelection(closePanel: true);
     _publish();
   }
 
   bool replaceRewardGem(int slotIndex) {
-    final point = _rewardReplacementPoint;
-    final type = _pendingRewardGem;
+    final point = _rewardSelection.replacementPoint;
+    final type = _rewardSelection.pendingGem;
     final turret = point == null ? null : _turrets[point];
     if (type == null ||
         turret == null ||
@@ -2284,7 +2279,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   bool storeRewardGem() {
-    final type = _pendingRewardGem;
+    final type = _rewardSelection.pendingGem;
     return type != null && _confirmRewardGem(type);
   }
 
@@ -2296,33 +2291,19 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     TurretComponent? turret,
     int? slotIndex,
   }) {
-    if (turret != null &&
-        (slotIndex == null ||
-            !_turretActions.canEquipGem(
-              turret: turret,
-              type: type,
-              slotIndex: slotIndex,
-            ) ||
-            _turrets[turret.gridPoint] != turret)) {
-      return false;
-    }
-    final selected = _gemRewards.selectRewardGem(
+    final selected = _rewardSelection.confirm(
       phase: _phase,
       rewardOptions: _rewardOptions,
       gemInventory: _gemInventory,
+      turrets: _turrets,
       type: type,
+      turret: turret,
+      slotIndex: slotIndex,
     );
     if (!selected) {
       return false;
     }
-    // 지급·장착·기존 젬 반환을 한 동기 처리로 완료한 뒤 저장.
     if (turret != null) {
-      _turretActions.applyGemEquip(
-        turret: turret,
-        gemInventory: _gemInventory,
-        type: type,
-        slotIndex: slotIndex!,
-      );
       _refreshEfficiencyPassiveBoardState();
       _spawnGemEquipEffect(turret, type);
     }
@@ -2350,8 +2331,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final nextPhase = _rewardReturnPhase ?? GamePhase.preparation;
     _isPurchasedGemReward = false;
     _rewardReturnPhase = null;
-    _pendingRewardGem = null;
-    _rewardReplacementPoint = null;
+    _rewardSelection.clear();
     _gemRewardBoardViewport = null;
     _clearBoardSelection(closePanel: true);
     _phase = nextPhase;
@@ -2703,7 +2683,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   void handleBoardPointerDown(gestures.PointerDownEvent event) {
     if (_phase == GamePhase.coreDestruction ||
         (_phase == GamePhase.reward &&
-            (!isGemRewardTargeting || _rewardReplacementPoint != null))) {
+            (!isGemRewardTargeting ||
+                _rewardSelection.replacementPoint != null))) {
       return;
     }
     _boardGestures.pointerDown(
@@ -2715,7 +2696,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   void handleBoardPointerMove(gestures.PointerMoveEvent event) {
     if (_phase == GamePhase.coreDestruction ||
         (_phase == GamePhase.reward &&
-            (!isGemRewardTargeting || _rewardReplacementPoint != null))) {
+            (!isGemRewardTargeting ||
+                _rewardSelection.replacementPoint != null))) {
       return;
     }
     final delta = _boardGestures.pointerMove(
@@ -3523,8 +3505,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _clearActiveCombat() {
-    _pendingRewardGem = null;
-    _rewardReplacementPoint = null;
+    _rewardSelection.clear();
     _gemRewardBoardViewport = null;
     for (final enemy in enemies.toList()) {
       enemy.removeFromParent();
@@ -3651,8 +3632,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       for (final entry in _turrets.entries) {
         final status = gemRewardTargetStatus(entry.key);
         if (status == GemRewardTargetStatus.unavailable ||
-            (_rewardReplacementPoint != null &&
-                _rewardReplacementPoint != entry.key)) {
+            (_rewardSelection.replacementPoint != null &&
+                _rewardSelection.replacementPoint != entry.key)) {
           continue;
         }
         // 어둡게 처리한 전장 위에 대상 포탑 본체를 다시 그려 형태 보존.
@@ -3712,7 +3693,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Offset? get gemRewardReplacementAnchor {
-    final point = _rewardReplacementPoint;
+    final point = _rewardSelection.replacementPoint;
     final viewport = _gemRewardBoardViewport;
     if (!isGemRewardTargeting ||
         !_boardConfigured ||
@@ -4611,9 +4592,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   void _publish() {
     if (_phase != GamePhase.reward ||
-        !_rewardOptions.contains(_pendingRewardGem)) {
-      _pendingRewardGem = null;
-      _rewardReplacementPoint = null;
+        !_rewardOptions.contains(_rewardSelection.pendingGem)) {
+      _rewardSelection.clear();
       _gemRewardBoardViewport = null;
     }
     _combatStatsPublishPending = false;

@@ -151,8 +151,7 @@ class GameRestoreController {
   }
 
   void _resetRunPanelSelection() {
-    _game._pendingRewardGem = null;
-    _game._rewardReplacementPoint = null;
+    _game._rewardSelection.clear();
     _game._gemRewardBoardViewport = null;
     _game._selectedTurretType = TurretType.arrow;
     _game._selectedRunPanelTab = RunPanelTab.turrets;
