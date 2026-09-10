@@ -5,6 +5,48 @@ import 'package:rune_nexus/ui/game/game_image_assets.dart';
 import 'helpers/widget_test_helpers.dart';
 
 void main() {
+  testWidgets('area stat follows explosion equip and native area attacks', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: GameHud(game: game)),
+      ),
+    );
+    await pumpGameFrames(tester, frameCount: 10);
+    await tester.runAsync(
+      () => game.loaded.timeout(const Duration(seconds: 10)),
+    );
+    game.debugAddGold(1000);
+    game.tryBuildTurret(const GridPoint(2, 0));
+    await pumpGameFrames(tester);
+    expect(find.text('효과 범위'), findsNothing);
+
+    game.grantGem(GemType.explosion);
+    game.equipSelectedTurret(GemType.explosion);
+    await pumpGameFrames(tester);
+    expect(find.text('효과 범위'), findsOneWidget);
+    expect(find.text('125%'), findsOneWidget);
+
+    game.removeSelectedTurretGemSlot();
+    await pumpGameFrames(tester);
+    expect(find.text('효과 범위'), findsNothing);
+
+    for (final type in [TurretType.cannon, TurretType.frost]) {
+      game.refundSelectedTurret();
+      game.selectTurretType(type);
+      game.tryBuildTurret(const GridPoint(2, 0));
+      await pumpGameFrames(tester);
+      expect(find.text('효과 범위'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
+  });
+
   testWidgets('additional turret stats scroll without growing the panel', (
     tester,
   ) async {
