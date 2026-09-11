@@ -3,8 +3,23 @@ import 'dart:ui' show Canvas, Color, Paint, PictureRecorder, Rect;
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/game/components/impact_effect_component.dart';
+import 'package:rune_nexus/game/rendering/stage1_3d/battlefield_frame.dart';
 
 void main() {
+  test('3D 폭발은 승인된 표시 시간 동안 피해와 독립적으로 진행된다', () {
+    final effect = ImpactEffectComponent(
+      position: Vector2.zero(),
+      color: const Color(0xFFFFB65C),
+      style: ImpactEffectStyle.blast,
+      radius: 42,
+      blastDuration: BattlefieldImpact.duration,
+    );
+    effect.update(0.55);
+    expect(effect.visualProgress, closeTo(0.5, 1e-6));
+    effect.update(0.55);
+    expect(effect.visualProgress, closeTo(1, 1e-6));
+  });
+
   test(
     'impact effect component renders every style during its lifetime',
     () async {

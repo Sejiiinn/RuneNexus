@@ -14,6 +14,8 @@ dependencies:
   flame: ^1.37.0
   path_provider: ^2.1.6
   crypto: ^3.0.7
+  flutter_angle: 0.4.2
+  three_js: 0.3.0
 
 dev_dependencies:
   flutter_test:
@@ -34,6 +36,10 @@ flutter:
     - assets/images/results/
     - assets/images/results/ui/
     - assets/images/stage_details/ui/
+    - assets/images/stage1_3d/environment/
+    - assets/images/stage1_3d/effects/
+    - assets/images/stage1_3d/enemies/
+    - assets/images/stage1_3d/turrets/
     - assets/images/stage_rewards/
     - assets/images/turret_modules/ui/
     - assets/images/ui/components/

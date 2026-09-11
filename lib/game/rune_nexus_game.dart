@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flame/events.dart';
+import 'package:flame/components.dart' show PositionComponent;
 import 'package:flame/game.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' as gestures;
@@ -32,6 +33,7 @@ import '../domain/economy/weekly_reward_claim.dart';
 import '../domain/economy/authoritative_economy_commands.dart';
 import '../domain/economy/economy_snapshot.dart';
 import '../domain/enemy/diamond_carrier_rules.dart';
+import '../domain/enemy/enemy_definition.dart';
 import '../domain/enemy/enemy_scaling.dart';
 import '../domain/enemy/enemy_type.dart';
 import '../domain/gem/gem_type.dart';
@@ -70,6 +72,8 @@ import 'rendering/game_board_selection_renderer.dart';
 import 'rendering/game_scene_effect_renderer.dart';
 import 'rendering/gem_reward_target_renderer.dart';
 import 'rendering/status_effect_sprite_cache.dart';
+import 'rendering/stage1_3d/battlefield_frame.dart';
+import 'rendering/stage1_3d/battlefield_projection.dart';
 import 'systems/board_camera.dart';
 import 'systems/board_gesture_controller.dart';
 import 'systems/combat_resolver.dart';
@@ -85,6 +89,7 @@ import 'systems/wave_spawner.dart';
 
 part 'game_restore_controller.dart';
 part 'game_snapshot_builder.dart';
+part 'game_battlefield_presentation.dart';
 
 const _debugPanelEnabled = bool.fromEnvironment(
   'RUNE_NEXUS_DEBUG_PANEL',
@@ -407,6 +412,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   RuneNexusGame({
+    this.transparentBackground = false,
     StageDefinition? stage,
     List<StageDefinition>? stages,
     MapDefinition? map,
@@ -450,6 +456,50 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   late final String Function() _economyRunIdFactory;
   AuthoritativeEconomyCommands? _authoritativeEconomyCommands;
   late final ValueNotifier<GameSnapshot> snapshotNotifier;
+  final bool transparentBackground;
+  BattlefieldProjection? battlefieldProjection;
+  final _battlefieldIds = Expando<int>('battlefield visual id');
+  int _nextBattlefieldId = 0;
+  final List<BattlefieldProjectile> _finishedProjectiles = [];
+  static const _projectileVisualDuration = 0.14;
+  static const _projectileVisualCapacity = 192;
+
+  BattlefieldFrame? get battlefieldFrame => _buildBattlefieldFrame();
+
+  void retainProjectileVisual(
+    ProjectileComponent projectile, {
+    Vector2? hitTarget,
+  }) {
+    final type = projectile.owner.definition.type;
+    if (battlefieldProjection == null ||
+        _activeStage.id != 1 ||
+        (type != TurretType.arrow && type != TurretType.cannon)) {
+      return;
+    }
+    Offset grid(Offset position) =>
+        (position - Offset(_origin.x, _origin.y)) / _tileSize;
+    if (_finishedProjectiles.length >= _projectileVisualCapacity) {
+      _finishedProjectiles.removeAt(0);
+    }
+    // 즉시 제거된 탄환도 다음 렌더 프레임에서 확인할 수 있는 표시 전용 사본.
+    _finishedProjectiles.add(
+      BattlefieldProjectile(
+        id: _battlefieldIds[projectile] ??= _nextBattlefieldId++,
+        type: type,
+        position: grid(Offset(projectile.position.x, projectile.position.y)),
+        direction: projectile.visualDirection,
+        origin: grid(projectile.visualOrigin),
+        ownerId: _battlefieldIds[projectile.owner] ??= _nextBattlefieldId++,
+        shotSequence: projectile.visualShotSequence,
+        isChain: projectile.isChain,
+        finishedAt: _spaceTime,
+        hitTarget: hitTarget == null
+            ? null
+            : grid(Offset(hitTarget.x, hitTarget.y)),
+      ),
+    );
+  }
+
   final ValueNotifier<bool> readyNotifier = ValueNotifier(false);
   final ValueNotifier<Object?> loadErrorNotifier = ValueNotifier(null);
 
@@ -900,7 +950,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   @override
-  Color backgroundColor() => const Color(0xFF07111D);
+  Color backgroundColor() =>
+      transparentBackground || battlefieldProjection != null
+      ? const Color(0x00000000)
+      : const Color(0xFF07111D);
 
   @override
   Future<void> onLoad() async {
@@ -1023,6 +1076,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _progression.recordPlayTime(dt);
     _updateTimeBasedProgress(dt);
     _spaceTime = (_spaceTime + dt) % 1200;
+    // 표시 시계의 1200초 순환을 고려하며 전투 배속을 적용하지 않음.
+    _finishedProjectiles.removeWhere(
+      (projectile) =>
+          (_spaceTime - projectile.finishedAt! + 1200) % 1200 >=
+          _projectileVisualDuration,
+    );
     _updateVisualAlerts(dt);
     if (_phase == GamePhase.coreDestruction) {
       super.update(dt * _coreDestructionSlowMotionScale);
@@ -1130,7 +1189,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
 
-    final point = _gridPointAt(_boardCamera.screenToWorld(event.localPosition));
+    final point = _gridPointAt(
+      _battlefieldWorldFromScreen(event.localPosition),
+    );
     if (point == null) {
       _clearBoardSelection(closePanel: true);
       _publish();
@@ -1191,7 +1252,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_phase != GamePhase.reward || _boardGestures.suppressNextTap) {
       return;
     }
-    final point = _gridPointAt(_boardCamera.screenToWorld(event.localPosition));
+    final point = _gridPointAt(
+      _battlefieldWorldFromScreen(event.localPosition),
+    );
     if (point != null &&
         _rewardSelection.replacementPoint == null &&
         (_gemRewardBoardViewport?.contains(
@@ -2029,6 +2092,76 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _turrets[point] = turret;
       add(turret);
     }
+    _refreshEfficiencyPassiveBoardState();
+    _publish();
+  }
+
+  void debugShowCannonBarrage() {
+    if (!_debugPanelEnabled || !_boardConfigured || _worldPath.length < 3) {
+      return;
+    }
+    _clearActiveCombat();
+    for (final turret in _turrets.values) {
+      turret.removeFromParent();
+    }
+    _turrets.clear();
+    _phase = GamePhase.preparation;
+    _clearBoardSelection(closePanel: true);
+
+    final middle = _worldPath.length ~/ 2;
+    final target = _worldPath[middle];
+    final buildPoints =
+        <GridPoint>[
+          for (var y = 0; y < _map.rows; y++)
+            for (var x = 0; x < _map.columns; x++)
+              if (_map.canBuildAt(GridPoint(x, y))) GridPoint(x, y),
+        ]..sort(
+          (a, b) => _centerOf(
+            a,
+          ).distanceTo(target).compareTo(_centerOf(b).distanceTo(target)),
+        );
+    for (final point in buildPoints.take(6)) {
+      final turret = TurretComponent(
+        gridPoint: point,
+        definition: gameTurrets[TurretType.cannon]!,
+        game: this,
+        center: _centerOf(point),
+        tileSize: _tileSize,
+      );
+      _turrets[point] = turret;
+      add(turret);
+    }
+
+    final base = gameEnemies[EnemyType.tank]!;
+    final targetDefinition = EnemyDefinition(
+      type: base.type,
+      name: base.name,
+      maxHp: 1000000000,
+      speed: 0,
+      rewardGold: 0,
+      coreDamage: 0,
+      color: base.color,
+      resistanceProfile: base.resistanceProfile,
+    );
+    for (var index = middle - 1; index <= middle + 1; index++) {
+      final enemy = EnemyComponent(
+        definition: targetDefinition,
+        maxHp: targetDefinition.maxHp,
+        path: _worldPath,
+        game: this,
+      );
+      // 전체 경로 진행도 유지: 화면 크기가 바뀌어도 표적 위치 보존.
+      for (var step = 1; step <= index; step++) {
+        enemy.distanceTravelled += _worldPath[step].distanceTo(
+          _worldPath[step - 1],
+        );
+      }
+      enemy.updateLayout(tileSize: _tileSize, newPath: _worldPath);
+      enemies.add(enemy);
+      _debugEnemies.add(enemy);
+      add(enemy);
+    }
+    _debugCombatActive = true;
     _refreshEfficiencyPassiveBoardState();
     _publish();
   }
@@ -2973,9 +3106,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         color: owner.definition.color,
         style: style,
         radius: radius,
-        cannonBlastSpriteSheet: style == ImpactEffectStyle.blast
+        cannonBlastSpriteSheet:
+            style == ImpactEffectStyle.blast && battlefieldProjection == null
             ? _cannonBlastSpriteSheet
             : null,
+        blastDuration: battlefieldProjection == null
+            ? 0.42
+            : BattlefieldImpact.duration,
         // Dart Web의 32비트 shift 오버플로 방지
         randomSeed: _impactEffectRandom.nextInt(0x7FFFFFFF),
       ),
@@ -3325,6 +3462,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _clearActiveCombat() {
+    _finishedProjectiles.clear();
     _rewardSelection.clear();
     _gemRewardBoardViewport = null;
     for (final enemy in enemies.toList()) {
@@ -3394,7 +3532,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   @override
   void render(Canvas canvas) {
     final sceneSize = Size(size.x, size.y);
-    drawGameSpaceBackground(canvas, size: sceneSize, animationTime: _spaceTime);
+    if (battlefieldProjection == null) {
+      drawGameSpaceBackground(
+        canvas,
+        size: sceneSize,
+        animationTime: _spaceTime,
+      );
+    }
     canvas.save();
     if (_phase == GamePhase.coreDestruction) {
       final progress = (_coreDestructionElapsed / _coreDestructionTotalDuration)
@@ -3406,8 +3550,27 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
           boardDistanceScale;
       canvas.translate(shake, -shake * 0.45);
     }
-    _boardCamera.applyTransform(canvas);
-    super.render(canvas);
+    _applyBattlefieldTransform(canvas);
+    if (battlefieldProjection == null) {
+      super.render(canvas);
+    } else {
+      for (final child in children) {
+        if (child is GridComponent ||
+            child is EnemyComponent ||
+            child is ProjectileComponent ||
+            child is DamageNumberComponent ||
+            child is DiamondRewardEffectComponent) {
+          continue;
+        }
+        if (child is ImpactEffectComponent &&
+            child.style == ImpactEffectStyle.blast) {
+          // 새 Blender 착탄은 3D 전장에만 표시하여 이전 폭발과 중복 방지.
+          continue;
+        } else {
+          child.renderTree(canvas);
+        }
+      }
+    }
     _drawNexusCoreCooldownBar(canvas);
     final selectedBuildType = _selectedBuildTurretType;
     drawGameBoardSelection(
@@ -3418,11 +3581,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       buildPoint: _selectedBuildPoint,
       portalPoint: _selectedPortalPoint,
       corePoint: _selectedCorePoint,
+      showBuildGhost: battlefieldProjection == null,
       buildTurret: selectedBuildType == null
           ? null
           : gameTurrets[selectedBuildType]!,
     );
     canvas.restore();
+    if (battlefieldProjection != null) _renderBattlefieldLabels(canvas);
     final hitAlert = (_nexusHitAlertTimer / _nexusHitAlertDuration).clamp(
       0.0,
       1.0,
@@ -3448,7 +3613,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       if (viewport != null) {
         canvas.clipRect(viewport);
       }
-      _boardCamera.applyTransform(canvas);
+      _applyBattlefieldTransform(canvas);
       for (final entry in _turrets.entries) {
         final status = gemRewardTargetStatus(entry.key);
         if (status == GemRewardTargetStatus.unavailable ||
@@ -3523,7 +3688,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
     final world = _centerOf(point);
     // 보상 선택 중에도 기존 전장 시점으로 화면 좌표 변환.
-    final screen = _boardCamera.worldToScreen(world);
+    final projected = battlefieldProjection?.gridToScreen(
+      Offset(point.x + 0.5, point.y + 0.5),
+    );
+    final screen = projected == null
+        ? _boardCamera.worldToScreen(world)
+        : Vector2(projected.dx, projected.dy);
     return Offset(
       (screen.x - viewport.left) / viewport.width,
       (screen.y - viewport.top) / viewport.height,

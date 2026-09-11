@@ -20,6 +20,7 @@ class ImpactEffectComponent extends PositionComponent {
     required this.style,
     required this.radius,
     this.cannonBlastSpriteSheet,
+    this.blastDuration = 0.42,
     int randomSeed = 0,
   }) : _color = color,
        _cannonShockArcs = _createCannonShockArcs(randomSeed),
@@ -42,14 +43,16 @@ class ImpactEffectComponent extends PositionComponent {
 
   final Color _color;
   final Image? cannonBlastSpriteSheet;
+  final double blastDuration;
   final List<_CannonShockArc> _cannonShockArcs;
   final ImpactEffectStyle style;
   final double radius;
   final Paint _cannonBlastSpritePaint = Paint()
     ..filterQuality = FilterQuality.medium;
   double _age = 0;
+  double get visualProgress => (_age / _lifeTime).clamp(0.0, 1.0);
   double get _lifeTime => style == ImpactEffectStyle.blast
-      ? 0.42
+      ? blastDuration
       : _isBlastStyle(style)
       ? 0.36
       : 0.28;

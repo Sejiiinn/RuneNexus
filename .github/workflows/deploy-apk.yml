@@ -111,6 +111,30 @@ jobs:
           flutter test
           python3 -m unittest discover -s scripts -p 'test_apk*.py'
 
+      - name: Prepare Godot renderer
+        run: |
+          python3 - <<'PYGODOT'
+          import hashlib, os, pathlib, urllib.request, zipfile
+          version = "4.7.2-stable"
+          archive_name = f"Godot_v{version}_linux.x86_64.zip"
+          expected = "cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4"
+          folder = pathlib.Path(os.environ["RUNNER_TEMP"]) / "godot"
+          folder.mkdir(exist_ok=True)
+          archive = folder / archive_name
+          urllib.request.urlretrieve(
+              f"https://github.com/godotengine/godot/releases/download/{version}/{archive_name}",
+              archive,
+          )
+          if hashlib.sha256(archive.read_bytes()).hexdigest() != expected:
+              raise SystemExit("Godot archive checksum mismatch")
+          executable = folder / f"Godot_v{version}_linux.x86_64"
+          with zipfile.ZipFile(archive) as package:
+              executable.write_bytes(package.read(executable.name))
+          executable.chmod(0o755)
+          with open(os.environ["GITHUB_ENV"], "a") as environment:
+              environment.write(f"GODOT_EXECUTABLE={executable}\n")
+          PYGODOT
+
       - name: Build signed APK
         env:
           # 입력이 같은 Gradle 작업의 빌드 결과 재사용

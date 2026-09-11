@@ -1,0 +1,28 @@
+; 본게임과 네이티브 검수가 함께 사용하는 스테이지 1 전장.
+config_version=5
+
+[application]
+config/name="RuneNexus Battlefield"
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.7", "Mobile")
+
+[display]
+window/size/viewport_width=880
+window/size/viewport_height=760
+window/size/window_width_override=880
+window/size/window_height_override=760
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[rendering]
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
+textures/vram_compression/import_etc2_astc=true
+textures/default_filters/use_nearest_mipmap_filter=false
+lights_and_shadows/directional_shadow/size=2048
+anti_aliasing/quality/msaa_3d=1
+environment/defaults/default_clear_color=Color(0.063, 0.106, 0.125, 1)
+
+[animation]
+warnings/check_invalid_track_paths=false

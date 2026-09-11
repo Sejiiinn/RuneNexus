@@ -53,6 +53,7 @@ class TurretComponent extends PositionComponent {
   double _cooldown = 0;
   double _aimAngle = -math.pi / 2;
   double _fireFeedbackTimer = 0;
+  int _visualShotSequence = 0;
   double _shapeAnimationTime = 0;
   double _gemRingPhase = 0;
   EnemyComponent? _aimTarget;
@@ -1065,11 +1066,26 @@ class TurretComponent extends PositionComponent {
 
   void _triggerFireFeedback() {
     _fireFeedbackTimer = _fireFeedbackDuration;
+    _visualShotSequence++;
   }
 
   void _clearAim() {
     _aimTarget = null;
     _aimProgress = 0;
+  }
+
+  int get visualShotSequence => _visualShotSequence;
+  double get visualAimAngle => _aimAngle;
+  double get visualFireFeedback =>
+      (_fireFeedbackTimer / _fireFeedbackDuration).clamp(0.0, 1.0);
+
+  void renderBattlefieldLevel(Canvas canvas) {
+    _levelRenderer.drawBadge(
+      canvas,
+      center: Offset(size.x / 2, size.y / 2),
+      tileSize: _tileSize,
+      level: _level,
+    );
   }
 
   @override
@@ -1141,26 +1157,28 @@ class TurretComponent extends PositionComponent {
       );
     }
 
-    drawTurretShape(
-      canvas,
-      size: Size(size.x, size.y),
-      type: definition.type,
-      color: definition.color,
-      aimAngle: _aimAngle,
-      fireFeedback: (_fireFeedbackTimer / _fireFeedbackDuration).clamp(
-        0.0,
-        1.0,
-      ),
-      animationTime: _shapeAnimationTime,
-      strokeWidth: size.x * 0.05,
-    );
+    if (game.battlefieldProjection == null) {
+      drawTurretShape(
+        canvas,
+        size: Size(size.x, size.y),
+        type: definition.type,
+        color: definition.color,
+        aimAngle: _aimAngle,
+        fireFeedback: (_fireFeedbackTimer / _fireFeedbackDuration).clamp(
+          0.0,
+          1.0,
+        ),
+        animationTime: _shapeAnimationTime,
+        strokeWidth: size.x * 0.05,
+      );
 
-    _levelRenderer.drawBadge(
-      canvas,
-      center: center,
-      tileSize: _tileSize,
-      level: _level,
-    );
+      _levelRenderer.drawBadge(
+        canvas,
+        center: center,
+        tileSize: _tileSize,
+        level: _level,
+      );
+    }
   }
 
   void _syncGemSlotLength() {

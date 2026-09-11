@@ -13,11 +13,10 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.ClearCredentialException
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
-class MainActivity : FlutterActivity() {
+class MainActivity : GodotFlutterActivity() {
     private var appUpdater: AppUpdater? = null
     private var signInCancellation: CancellationSignal? = null
 

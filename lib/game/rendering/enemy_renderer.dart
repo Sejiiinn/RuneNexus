@@ -86,6 +86,7 @@ class EnemyRenderer {
     EnemyRenderState state, {
     required StatusEffectSpriteCache? statusEffectSprites,
     required Image? diamondCurrencyImage,
+    bool showBody = true,
   }) {
     final body = Paint()..color = state.color;
     final outline = Paint()
@@ -95,17 +96,25 @@ class EnemyRenderer {
 
     final visualOffset = state.visualOffset;
     canvas.save();
-    canvas.translate(visualOffset.dx, visualOffset.dy);
-    if (state.isDiamondCarrier) {
-      _drawDiamondCarrierRearEffects(canvas, state);
+    if (showBody) canvas.translate(visualOffset.dx, visualOffset.dy);
+    if (showBody) {
+      if (state.isDiamondCarrier) {
+        _drawDiamondCarrierRearEffects(canvas, state);
+      }
+      _drawMotionEffects(canvas, state);
+      _drawBody(canvas, state, body, outline);
+      if (state.isDiamondCarrier) {
+        _drawDiamondCarrierArmor(canvas, state, diamondCurrencyImage);
+      }
+      _drawBodyOverlayEffects(canvas, state);
+      _drawHitFlash(canvas, state);
+    } else if (state.isDiamondCarrier) {
+      drawDiamondCurrencyGlyph(
+        canvas,
+        Size(state.size.width * 0.32, state.size.height * 0.32),
+        diamondCurrencyImage,
+      );
     }
-    _drawMotionEffects(canvas, state);
-    _drawBody(canvas, state, body, outline);
-    if (state.isDiamondCarrier) {
-      _drawDiamondCarrierArmor(canvas, state, diamondCurrencyImage);
-    }
-    _drawBodyOverlayEffects(canvas, state);
-    _drawHitFlash(canvas, state);
 
     if (state.isBurning) {
       _drawBurnStatus(canvas, state, statusEffectSprites!);

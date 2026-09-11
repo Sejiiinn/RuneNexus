@@ -2,10 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'app/rune_nexus_app.dart';
+import 'app/stage1_3d_preview_app.dart';
 import 'data/save/local_save_writer_lock.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // 테스트 전용 메모리 세션: 정식 저장 잠금·계정 서비스 생성 이전 분기.
+  if (const bool.fromEnvironment('RUNE_NEXUS_DEBUG_PANEL') &&
+      Uri.base.queryParameters['stage1_3d'] == '1') {
+    runApp(const Stage1ThreeDPreviewApp());
+    return;
+  }
   final bool acquired;
   try {
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);

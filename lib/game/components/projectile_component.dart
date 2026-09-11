@@ -21,6 +21,8 @@ class ProjectileComponent extends PositionComponent {
     double? maxDistance,
   }) : remainingChainCount = remainingChainCount ?? attack.chainCount,
        directHitEnemies = {...directHitEnemies},
+       visualOrigin = Offset(origin.x, origin.y),
+       visualShotSequence = owner.visualShotSequence,
        _direction = _safeDirection(origin, targetPosition),
        _maxDistance =
            maxDistance ?? attack.range + 64 * game.boardDistanceScale,
@@ -38,10 +40,14 @@ class ProjectileComponent extends PositionComponent {
   final int remainingChainCount;
   final Set<EnemyComponent> directHitEnemies;
   final bool isChain;
+  final Offset visualOrigin;
+  final int visualShotSequence;
   final Vector2 _direction;
   final double _maxDistance;
   double _travelled = 0;
   final List<Vector2> _trail = [];
+
+  Offset get visualDirection => Offset(_direction.x, _direction.y);
 
   @override
   void update(double dt) {
@@ -64,6 +70,7 @@ class ProjectileComponent extends PositionComponent {
 
     if (hit != null) {
       directHitEnemies.add(hit.enemy);
+      game.retainProjectileVisual(this, hitTarget: hit.enemy.position);
       game.resolveProjectileHit(
         owner: owner,
         attack: attack,
@@ -78,6 +85,7 @@ class ProjectileComponent extends PositionComponent {
     }
 
     if (_travelled >= _maxDistance) {
+      game.retainProjectileVisual(this);
       removeFromParent();
     }
   }

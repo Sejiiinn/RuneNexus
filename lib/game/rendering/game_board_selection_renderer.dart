@@ -13,6 +13,7 @@ void drawGameBoardSelection(
   required GridPoint? portalPoint,
   required GridPoint? corePoint,
   required TurretDefinition? buildTurret,
+  bool showBuildGhost = true,
 }) {
   if (portalPoint != null) {
     final rect = _tileRect(origin, portalPoint, tileSize);
@@ -53,6 +54,7 @@ void drawGameBoardSelection(
       tileSize: tileSize,
       boardDistanceScale: boardDistanceScale,
       definition: buildTurret,
+      showBuildGhost: showBuildGhost,
     );
   }
 
@@ -87,6 +89,7 @@ void _drawBuildGhost(
   required double tileSize,
   required double boardDistanceScale,
   required TurretDefinition definition,
+  required bool showBuildGhost,
 }) {
   final rangeFill = Paint()
     ..color = definition.color.withValues(alpha: 0.09)
@@ -99,6 +102,8 @@ void _drawBuildGhost(
   final range = definition.range * boardDistanceScale;
   canvas.drawCircle(center, range, rangeFill);
   canvas.drawCircle(center, range, rangeStroke);
+
+  if (!showBuildGhost) return;
 
   final ghostSize = tileSize * 0.72;
   final ghostBounds = Rect.fromCenter(

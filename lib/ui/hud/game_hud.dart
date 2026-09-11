@@ -1,4 +1,5 @@
 import 'package:flame/game.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/combat/game_phase.dart';
@@ -11,6 +12,8 @@ import 'hud_common.dart';
 import 'gem_reward_target_overlay.dart';
 import 'reward_overlay.dart';
 import 'top_bar.dart';
+import 'stage1_battlefield_view.dart';
+import 'godot_battlefield_view.dart';
 
 const _showDebugPanel = bool.fromEnvironment(
   'RUNE_NEXUS_DEBUG_PANEL',
@@ -22,6 +25,7 @@ class GameHud extends StatefulWidget {
   const GameHud({
     required this.game,
     this.showControls = true,
+    this.stage1ThreeD = false,
     this.onOpenStageSelect,
     this.onOpenPermanentUpgrades,
     this.onStartStage,
@@ -30,6 +34,7 @@ class GameHud extends StatefulWidget {
 
   final RuneNexusGame game;
   final bool showControls;
+  final bool stage1ThreeD;
   final VoidCallback? onOpenStageSelect;
   final VoidCallback? onOpenPermanentUpgrades;
   final ValueChanged<int>? onStartStage;
@@ -40,6 +45,8 @@ class GameHud extends StatefulWidget {
 
 class _GameHudState extends State<GameHud> {
   bool _showGemDebugPanel = false;
+  bool _godotAvailable = false;
+  String _cameraView = 'angled';
   late final AppLifecycleListener _lifecycleListener;
 
   void _handleRewardBoardViewportChanged(Rect globalViewport) {
@@ -132,6 +139,29 @@ class _GameHudState extends State<GameHud> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
+        if (widget.stage1ThreeD)
+          Positioned.fill(child: Stage1BattlefieldView(game: widget.game))
+        else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
+          Positioned.fill(
+            child: ValueListenableBuilder<GameSnapshot>(
+              valueListenable: widget.game.snapshotNotifier,
+              builder: (context, snapshot, _) {
+                if (snapshot.currentStageNumber != 1) {
+                  return const SizedBox.shrink();
+                }
+                return GodotBattlefieldView(
+                  key: ObjectKey(widget.game),
+                  game: widget.game,
+                  cameraView: _cameraView,
+                  onAvailabilityChanged: (available) {
+                    if (mounted && _godotAvailable != available) {
+                      setState(() => _godotAvailable = available);
+                    }
+                  },
+                );
+              },
+            ),
+          ),
         IgnorePointer(
           ignoring: !widget.showControls,
           child: Listener(
@@ -164,6 +194,39 @@ class _GameHudState extends State<GameHud> {
                   topInset: _showDebugPanel ? _hudDebugBarHeight : 0,
                   onOpenMainMenu: _handleOpenMainMenu,
                 ),
+                if (_godotAvailable)
+                  Positioned(
+                    top: 96 + (_showDebugPanel ? _hudDebugBarHeight : 0),
+                    right: 12,
+                    child: ValueListenableBuilder<GameSnapshot>(
+                      valueListenable: widget.game.snapshotNotifier,
+                      builder: (context, snapshot, _) {
+                        if (snapshot.currentStageNumber != 1) {
+                          return const SizedBox.shrink();
+                        }
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (final entry in {
+                              'angled': ('고정 시점', Icons.videocam_outlined),
+                              'drone': ('드론 시점', Icons.grid_view_rounded),
+                            }.entries)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4),
+                                child: GameButton(
+                                  label: entry.value.$1,
+                                  icon: Icon(entry.value.$2, size: 16),
+                                  compact: true,
+                                  selected: _cameraView == entry.key,
+                                  onPressed: () =>
+                                      setState(() => _cameraView = entry.key),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
                 if (_showDebugPanel && _showGemDebugPanel)
                   _HudGemDebugLayer(
                     game: widget.game,

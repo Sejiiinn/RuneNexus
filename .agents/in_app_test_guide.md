@@ -8,6 +8,8 @@
 
 ## 기본 순서
 
+스테이지 1 **3D 렌더·카메라·다중 사격 검수는 웹을 사용하지 않고 Android APK로 진행한다**. 본게임 연결은 일반 `lib/main.dart` 진입의 APK에서 로비·스테이지 1·기존 HUD·건설 입력·시점 전환을 확인한다. 순수 대포 비교는 별도 [Godot 검수 APK](../design/stage1_3d/godot_preview/README.md)를 사용하며, 두 앱은 같은 Godot 런타임을 공유한다. [본게임 실행·공용 빌드](../docs/stage1_3d_preview.md)를 기준으로 하고, 기존 [ThreeJS 검수 APK](../design/stage1_3d/cannon_impact/barrage_runtime/README.md)와 아래 브라우저 경로는 과거 비교·다른 인앱 작업에 한정한다.
+
 1. 53000 포트 서버 상태를 먼저 확인합니다.
 2. HTTP 200이면 재기동보다 cache-bust URL 갱신을 우선합니다.
 3. 개발 서버 세션이 살아 있으면 hot reload 후 인앱 브라우저 새로고침을 우선합니다.

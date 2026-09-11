@@ -721,34 +721,48 @@ class EnemyComponent extends PositionComponent {
         .reduce(math.max);
   }
 
-  @override
-  void render(Canvas canvas) {
-    final visualOffset = _visualRenderOffset();
+  EnemyRenderState get visualRenderState {
+    final offset = _visualRenderOffset();
+    return EnemyRenderState(
+      size: Size(size.x, size.y),
+      type: definition.type,
+      color: definition.color,
+      visualOffset: Offset(offset.x, offset.y),
+      visualPhase: visualPhase,
+      facingAngle: _facingAngle,
+      effectTime: _statusEffectTime,
+      hitFlashRemaining: _hitFlashTimer,
+      hitFlashColor: _hitFlashColor,
+      hp: hp,
+      maxHp: maxHp,
+      shield: shield,
+      maxShield: maxShield,
+      armor: armor,
+      maxArmor: maxArmor,
+      isDiamondCarrier: isDiamondCarrier,
+      isBurning: _burnInstances.isNotEmpty,
+      isPoisoned: _poisonRemaining > 0,
+      isSlowed: isSlowed,
+      hasRiftMark: hasRiftMark,
+      enemyCount: game.enemies.length,
+    );
+  }
+
+  void renderBattlefieldStatus(Canvas canvas) {
     _renderer.render(
       canvas,
-      EnemyRenderState(
-        size: Size(size.x, size.y),
-        type: definition.type,
-        color: definition.color,
-        visualOffset: Offset(visualOffset.x, visualOffset.y),
-        visualPhase: visualPhase,
-        facingAngle: _facingAngle,
-        effectTime: _statusEffectTime,
-        hitFlashRemaining: _hitFlashTimer,
-        hitFlashColor: _hitFlashColor,
-        hp: hp,
-        maxHp: maxHp,
-        shield: shield,
-        maxShield: maxShield,
-        armor: armor,
-        maxArmor: maxArmor,
-        isDiamondCarrier: isDiamondCarrier,
-        isBurning: _burnInstances.isNotEmpty,
-        isPoisoned: _poisonRemaining > 0,
-        isSlowed: isSlowed,
-        hasRiftMark: hasRiftMark,
-        enemyCount: game.enemies.length,
-      ),
+      visualRenderState,
+      statusEffectSprites: game.statusEffectSprites,
+      diamondCurrencyImage: game.diamondCurrencyImage,
+      showBody: false,
+    );
+  }
+
+  @override
+  void render(Canvas canvas) {
+    _renderer.render(
+      canvas,
+      visualRenderState,
       statusEffectSprites: _burnInstances.isNotEmpty || isSlowed
           ? game.statusEffectSprites
           : null,
