@@ -1,64 +1,90 @@
 # 배포 상태와 세션 간 인계
 
 배포 요청은 이 문서와 [파이프라인 지도](deployment_pipeline.md)에서 시작한다.
-서버·DB·운영 설정 또는 그 계약이 바뀌는 경우에만 [API 운영 절차](self_hosted_api_deployment.md)를 추가로 확인한다.
-이 문서는 마지막 검증 이력이며 실시간 운영 상태가 아니다. 배포 대상 구성 요소의 실제 공개 버전과
-커밋을 확인하고, 서버·DB 변경이 있으면 실행 이미지·DB 버전도 확인한다.
+서버·DB·운영 설정 또는 그 계약이 바뀌는 경우 [API 운영 절차](self_hosted_api_deployment.md)를 함께 확인한다.
+이 문서는 마지막 검증 이력이며 실시간 운영 상태가 아니다. 배포 대상의 실제 공개 버전·커밋과
+서버 실행 이미지·DB 버전을 확인한다.
 
 ## 마지막 확인된 운영 상태
 
-2026-09-10, 클라이언트 0.1.12 배포 완료:
+2026-09-12, Android 0.1.13 / code 2002 및 서버 선행 반영을 완료했다.
 
-- 웹·APK 배포 커밋: `a3119b499a459fee4c24a112db5a218836492dbb`.
-- 웹 workflow: [34462502175](https://github.com/Sejiiinn/RuneNexus/actions/runs/34462502175) 성공.
-  [공개 웹](https://sejiiinn.github.io/RuneNexus/)의 index·bootstrap·main.dart.js HTTP 200,
-  JS의 배포 커밋·운영 API 주소와 공개 명패 PNG 해시 일치 확인.
-- Android workflow: [34462499692](https://github.com/Sejiiinn/RuneNexus/actions/runs/34462499692) 성공.
-  공개 release: [apk-13](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-13),
-  versionCode 13, versionName 0.1.12. release 태그의 대상 커밋 일치 확인.
-- latest와 apk-13의 `update.json` 일치. 공개 APK와 apk-10·11·12용 패치의 실제 크기·SHA-256이
-  매니페스트와 일치한다. APK는 100,167,157 bytes, SHA-256은
-  `a05540a6f6af6e7b0ca79a3041e6557fbeb82c07dc48f36b954deb45623a4fb8`이다.
-- API·DB·운영 환경은 이번에 변경하거나 재배포하지 않았다. 마지막 서버 검증은 0.1.11 배포 시점:
-  `rune-nexus-api:de7a878`, DB migration 010, 컨테이너 healthy 및 외부 health 정상.
-  이번 클라이언트 배포에서 서버 런타임·DB 상태를 새로 검증했다는 의미는 아니다.
+- Android 대상: `4ee3e7bf1d26e46f028800b7c8a536de42731f9c`, versionName 0.1.13 / versionCode 2002.
+  로컬 본게임 검증본이 코드 2001을 사용했으므로 기존 설치를 업데이트할 수 있는 2002를 선택했다.
+  [APK workflow 34618596547](https://github.com/Sejiiinn/RuneNexus/actions/runs/34618596547) 성공.
+  [공개 release apk-2002](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-2002)의 태그 대상 커밋도 일치한다.
+  latest와 버전별 `update.json`이 같으며 공개 APK·apk-11/12/13용 패치의 실제 크기·SHA-256이
+  매니페스트와 일치한다. APK는 414,151,176 bytes, SHA-256은
+  `04f522da5db602621864e5b76083c9be5a25bbfbf9da94e79f92f63182bab081`이다.
+- 운영 API: 서버 소스 `54f8d038fe74a6657dd23ba7b5e43c79f2f7ed88`의 `server/`를 빌드한
+  `rune-nexus-api:54f8d03`. 실행 이미지 ID는
+  `sha256:7100b1d48544fee7382e5291cf3e89c12f4bc94b17dfc817b298d432b03164a0`.
+  Android 대상 커밋과 서버 소스는 같다. 운영 DB migration 011 적용, 컨테이너 healthy.
+- 공개 API의 live·ready HTTP 200, economy·mailbox·mailbox/summary의 무인증 요청은
+  `401 ACCESS_TOKEN_INVALID`로 확인했다.
+- 웹은 이번 배포 대상에서 제외했다. 마지막 배포는 0.1.12 / `a3119b499a459fee4c24a112db5a218836492dbb`,
+  [workflow 34462502175](https://github.com/Sejiiinn/RuneNexus/actions/runs/34462502175)이다.
+  이번 Android 배포에서 웹 파일을 새로 배포하거나 재검증하지 않았다.
 
 ## 이번 배포 변경
 
-- 코어 노드·연결선 이미지를 적용하고, 상단 헤더와 하단 탭 사이 전체를 트리 탐색에 사용한다.
-  포인트·취소·초기화는 고정 오버레이로 표시한다.
-- 중앙 코어에서 전투 스킬을 선택하고, 명패에 장착명 또는 미장착 시 ‘스킬 선택’을 표시한다.
-  명패 PNG의 투명 배경을 보존한다.
-- 모든 스테이지 최초 클리어의 코어 포인트를 2P로 통일하고 챕터 마지막 추가분을 제거한다.
-  기존 지급 포인트는 보존하고 소급 회수·차액 지급하지 않는다.
-- 적·보스 기본 체력·보호막·방어구 10% 감소, 스테이지 성장률 20% → 15%.
-  웨이브 성장·스폰 구성은 유지한다.
-- 메뉴 탭 상단 로그인 아이콘 제거. 계정 및 저장은 로비 설정에서 접근한다.
-- 업데이트 내용을 항목별로 표시하고 긴 릴리즈 노트는 전용 영역에서 스크롤한다.
-  일반 세로 화면은 버튼 고정, 짧은 가로 화면·글자 확대 시 버튼 접근용 외부 스크롤을 허용한다.
-- 서버·DB migration·환경값·저장 형식 변경 없음.
+- Android 본게임 스테이지 1에 Godot 3D 지형·포탑·적·발사 및 착탄 효과를 연결한다.
+  일반 `lib/main.dart` 진입과 기존 로그인·웨이브·건설·보상·저장 흐름을 사용한다.
+- 고정·드론 시점을 부드럽게 전환하고, 실제 투영으로 건설 입력과 기존 HUD를 연결한다.
+- 기관총·대포의 총구 효과와 탄체·예광 가독성을 개선한다. 한 프레임 안에 명중한 탄환도
+  짧은 종료 궤적을 표시하며 피해 계산과 저장 형식은 유지한다.
+- 스테이지 2 이후와 Android 이외 플랫폼은 기존 2D 전장을 유지한다.
+- 직전 APK 이후 main에 들어온 로비 우편함을 포함한다. 서버에는 우편함 조회·수령 API와
+  신규 테이블 4개·인덱스를 추가하는 migration 011을 먼저 적용했다.
+- Godot 4.7.2 실행 파일·AAR와 공통 PCK를 배포 빌드에서 준비한다.
+  별도 검수 앱의 고정 대포 배치와 디버그 패널은 본게임 배포에서 사용하지 않는다.
 
 ## 검증 범위와 복구 참고
 
-- 웹·APK CI의 Flutter 정적 분석·전체 테스트 통과. APK 전용 Python·Kotlin 검사,
-  기존 서명 동일성 및 최근 기준 APK의 차등 패치 복원 검증 통과.
-- 관련 코어 메뉴·업데이트 동작 테스트와 실제 위젯 렌더로 UI를 확인했다.
-  Mac 잠금으로 실제 브라우저·기기 화면 검증은 제한됐으며, Android 실제 설치·로그인·저장 유지 검증은 포함하지 않았다.
-- 클라이언트만 변경돼 Go·DB 통합 테스트, DB 백업·복원 및 API 재배포는 반복하지 않았다.
-- 웹 복구 기준은 이전 배포 커밋 `de7a878`. APK는 공개 파일·태그를 덮어쓰거나 버전 코드를
-  낮추지 않고, 수정 또는 복구 코드를 더 높은 versionCode로 배포한다. 서버·DB 롤백은 이번 범위에 없다.
+- 서버: Go 1.26.5 단위 테스트·vet 통과. 격리된 PostgreSQL 18의 DB 통합 테스트
+  31개 통과, 실패·스킵 0건.
+- 운영 DB 백업을 비공개 저장소에 보관하고 별도 PostgreSQL에서 복원 후 010→011을 검증했다.
+  복원 DB의 기존 25개 테이블은 적용 전후 행 수·내용 지문이 모두 같았다.
+- 운영 적용은 011 migration 후 API 컨테이너만 교체했다. PostgreSQL·Caddy·DuckDNS,
+  기존 세션 암호화 키를 포함한 환경값·secret mount와 운영 DB 볼륨을 보존했다.
+- 본게임의 Android 에뮬레이터 진입·건설·웨이브·이어하기·시점 전환과 1·4배속 투사체 검수는
+  [본게임 연결 기록](../design/stage1_3d/main_runtime/README.md)과
+  [투사체 검수 기록](../design/stage1_3d/projectile_visibility/README.md)을 따른다.
+- 첫 CI 34617590541은 분석·전체 테스트·Godot 팩 생성 후 CMake 3.31.4 미설치로 빌드가 중단됐다.
+  배포 환경에 패키지가 요구한 CMake·NDK·Build Tools 설치를 추가해 재실행했다. 공개 릴리스는 생성되지 않았다.
+- 최종 CI의 Flutter 정적 분석·전체 테스트 766개(기존 조건에 따른 11개 생략), Python APK 검사 17개,
+  Android 패치 디코더 및 최근 3개 기준 APK에서의 패치 복원 검증이 통과했다.
+- 공개 APK를 직접 내려받아 ZIP 무결성, 패키지·버전·3D PCK 동봉과 기존 apk-13의 서명 일치를 확인했다.
+  기존 코드 2001 설치본에 `adb install -r`로 업데이트하고 Android ARM64 에뮬레이터에서
+  로비→이어서 진행→Godot 3D 전장 표시를 확인했다. 골드 330·코어 20/20·6/40 웨이브와
+  5웨이브 보상 선택 상태가 동일하게 복원됐다. 실제 기기의 업데이트 설치·장시간 전투·발열과
+  Google 로그인·우편 수령·계정 저장 복원 E2E는 미검증이다.
+- 서버 복구용 `rune-nexus-api:de7a878` 이미지를 보존했다. 011은 추가형 forward-only이며
+  이번에 down migration·계정 삭제·운영 우편 발송 또는 수령은 수행하지 않았다.
+- 공개 APK 파일·태그를 덮어쓰거나 versionCode를 낮추지 않는다. 수정 또는 복구 앱은
+  기존 배포·설치본보다 높은 versionCode로 배포한다.
+
+### 현재 서버 이미지로 재생성
+
+일반 컨테이너 재시작·Docker 자동 재시작은 현재 이미지를 유지한다. API를 재생성할 때는
+이번 배포의 이미지 override를 포함한다. 기본 Compose 두 파일만 사용하면
+`rune-nexus-api:latest`가 선택되므로 배포 이미지 고정이 보장되지 않는다.
+
+저장소 루트에서 다음 명령을 사용한다. override에는 이미지 선택만 있으며 비밀값은 없다.
+
+```bash
+docker compose \
+  --env-file .env.production \
+  -f compose.yaml \
+  -f compose.production.yaml \
+  -f "/Users/sejin/Library/Application Support/RuneNexus/operations/mailbox-release-20260911T153453Z/api-release.override.json" \
+  up -d --no-deps --no-build --wait --wait-timeout 45 api
+```
 
 ## 미배포 항목
 
-2026-09-12 Android 본게임 0.1.13 배포 준비 중이다. 스테이지 1 Godot 3D 전장,
-고정·드론 시점 전환, 기관총·대포 발사 및 투사체 표시를 포함한다.
-일반 `lib/main.dart` 진입을 배포하며 검수 앱의 고정 배치는 포함하지 않는다.
-로컬 본게임 검증본의 versionCode가 2001이므로 배포 코드는 2002로 지정한다.
-Godot 4.7.2 실행 파일·AAR와 공통 PCK를 배포 빌드에서 준비한다.
-
-기존 main의 우편함 커밋 `54f8d03`도 직전 APK 이후 변경이다.
-운영 API의 우편함 및 migration 011 반영 상태를 확인한 뒤 연결 호환성을 기록한다.
-웹은 이번 Android 실기기 검증 배포 대상에 포함하지 않는다.
+이번 Android 실기기 검증 요청 범위의 배포는 완료했다.
+웹의 우편함·3D 관련 코드 반영은 이번 Android 실기기 검증 요청의 배포 범위에 포함하지 않는다.
 
 ## 기록 유지 규칙
 
