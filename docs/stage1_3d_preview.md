@@ -16,6 +16,8 @@ Android 본게임은 기존 `lib/main.dart → RuneNexusApp → GameHud` 진입�
 
 일반 Android Gradle `preBuild`에서 `scripts/build_godot_pack.py`를 실행해 `godot/`와 기존 3D 에셋으로 `build/godot/android-assets/rune_nexus.pck`를 만든다. 입력 해시가 같으면 기존 팩을 재사용한다. Godot 공식 **4.7.2** 실행 파일이 필요하며 `GODOT_EXECUTABLE` 또는 PATH의 `godot`/`godot4`를 사용한다. 기존 macOS 검수 도구 경로도 인식한다. APK 배포 workflow는 체크섬을 확인한 같은 버전의 Linux 실행 파일을 준비한다.
 
+Android SDK에는 기존 `flutter_angle` 0.4.2가 지정한 CMake 3.31.4·NDK 28.2.13676358·Build Tools 35.0.1이 필요하다. APK 배포 workflow가 빌드 전에 이 버전들을 설치한다.
+
 ```sh
 GODOT_EXECUTABLE=/path/to/Godot python3 scripts/build_godot_pack.py
 WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter build apk --release --no-tree-shake-icons
