@@ -1,0 +1,4 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+RuneNexus Godot scene ready; Space: impacts, C: camera, S: shadows, V: volume
+Runtime verification: 0 failures; all 6 turret/enemy/projectile types, authored/fallback terrain, weapon feedback, HUD/input projection, reset

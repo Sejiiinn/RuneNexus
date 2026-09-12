@@ -20,7 +20,7 @@ ENEMY_TYPES = ("normal", "armored", "shielded", "fast", "tank", "boss")
 def prepare() -> Path:
     if not (SOURCE / "project.godot").is_file():
         raise RuntimeError("루트 godot/ 공용 프로젝트를 찾을 수 없습니다.")
-    required = [SOURCE_ASSETS / "environment/terrain.glb"]
+    required = [SOURCE_ASSETS / "environment" / name for name in ("terrain.glb", "dressing.glb")]
     required += [SOURCE_ASSETS / "turrets" / f"{name}.glb" for name in TURRET_TYPES]
     required += [SOURCE_ASSETS / "enemies" / f"{name}.glb" for name in ENEMY_TYPES]
     required += [SOURCE_ASSETS / "effects" / name

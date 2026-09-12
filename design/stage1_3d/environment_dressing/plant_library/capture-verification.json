@@ -1,0 +1,58 @@
+{
+  "source": "forest-plant-masters.blend",
+  "source_sha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+  "image": "plant-masters-review.png",
+  "source_unchanged": true,
+  "camera_direction": [
+    5,
+    -13,
+    27
+  ],
+  "small_pixels_per_tile": 120,
+  "assets": [
+    {
+      "id": "arched_grass",
+      "title": "01  휘어진 풀 포기",
+      "description": "가는 잎 · 높낮이와 방향의 변화",
+      "triangles": 1112,
+      "dimensions": [
+        0.8300000429153442,
+        0.8100000023841858,
+        0.6266466975212097
+      ]
+    },
+    {
+      "id": "layered_fern",
+      "title": "02  다층 고사리",
+      "description": "휘어진 중심 줄기 · 겹치는 잎층",
+      "triangles": 4326,
+      "dimensions": [
+        1.0928094387054443,
+        1.112370491027832,
+        0.5523226261138916
+      ]
+    },
+    {
+      "id": "broadleaf_herb",
+      "title": "03  넓은 잎 식물",
+      "description": "줄기와 잎자루 · 접히고 비틀린 잎",
+      "triangles": 1636,
+      "dimensions": [
+        0.815000057220459,
+        0.7537823915481567,
+        0.517663300037384
+      ]
+    },
+    {
+      "id": "creeping_groundcover",
+      "title": "04  낮은 지피",
+      "description": "옆으로 뻗는 줄기 · 낮은 잎의 연결",
+      "triangles": 1674,
+      "dimensions": [
+        1.1892141103744507,
+        0.9180310964584351,
+        0.11158683896064758
+      ]
+    }
+  ]
+}

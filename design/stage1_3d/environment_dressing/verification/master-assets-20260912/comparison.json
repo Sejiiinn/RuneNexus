@@ -1,0 +1,295 @@
+{
+  "baseline_apk": {
+    "apk_path": "build/apk-preview/rune-nexus-stage1-environment-lush-arm64.apk",
+    "size_bytes": 229798725,
+    "sha256": "974ddfb41ea160d63f3a576a25139ae143a29d124ea07209b2dff78d38c1668d",
+    "abis": [
+      "arm64-v8a"
+    ]
+  },
+  "final_apk": {
+    "apk_path": "build/apk-preview/rune-nexus-stage1-environment-masters-arm64.apk",
+    "size_bytes": 229877189,
+    "sha256": "4d8f692857b34274e780a9590a50646c0e37257728ced794e26942c91bd811e9",
+    "abis": [
+      "arm64-v8a"
+    ]
+  },
+  "main_apk": {
+    "apk_path": "build/apk-main/rune-nexus-stage1-environment-masters-arm64.apk",
+    "size_bytes": 233809541,
+    "sha256": "4e6fb89109f07cfce4e5a79a3a860a49ffa4d97a822fcdabef0891e03a3fe685",
+    "abis": [
+      "arm64-v8a"
+    ]
+  },
+  "shared_pck_sha256": "cbac69c636e334d2b07acd97f500f34ec7cbdf82fb18d20d71209102c1e0bae5",
+  "apk_delta_bytes": 78464,
+  "apk_delta_percent": 0.034144662900104095,
+  "pck_changed_content": {
+    ".godot/imported/dressing.glb-2dbc28f4b6836d1f0f6889e84c441cd4.scn": {
+      "before": {
+        "size": 961202,
+        "md5": "4a695410876b3f7f2057068d219b0c28"
+      },
+      "after": {
+        "size": 1039671,
+        "md5": "7f599337f580916c22257e7354227d59"
+      }
+    }
+  },
+  "design_files": [],
+  "flutter_dressing_duplicates": [],
+  "master_originals_preserved": {
+    "design/stage1_3d/environment_dressing/plant_library/forest-plant-masters.blend": true,
+    "design/stage1_3d/environment_dressing/companion_library/organic/organic-masters.blend": true,
+    "design/stage1_3d/environment_dressing/companion_library/rocks/rock-masters.blend": true
+  },
+  "source_verification": {
+    "failures": [],
+    "revision": "master-assembly-20260912",
+    "masterAssetCount": 11,
+    "masterSourcesUnchanged": true,
+    "sourceMasterHashes": {
+      "plant_library/forest-plant-masters.blend": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "companion_library/organic/organic-masters.blend": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "companion_library/rocks/rock-masters.blend": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341"
+    },
+    "mapTriangles": 23964,
+    "foliageClusters": 45,
+    "removableCenterClusters": 27,
+    "sampledFrames": 7,
+    "maximumShift": 0.021871248989602663,
+    "maximumRootShift": 0.0,
+    "buildClearHalfWidth": 0.35,
+    "windEnvelope": 0.022,
+    "surfaceRoleFaceCounts": {
+      "leaf": 7648,
+      "closed_solid": 8768,
+      "petal": 420
+    },
+    "sourceFrontMismatches": 0,
+    "closedSolidBoundaryEdges": 0,
+    "downFacingFoliageFaces": 3114,
+    "downFacingFoliageFacesAreDiagnostic": true,
+    "hangingVines": [
+      {
+        "name": "033_trailing_vine_c3_r0",
+        "downwardExtent": 0.318370325374417,
+        "wallDistanceRange": [
+          -0.009776592254638672,
+          0.07887887954711914
+        ],
+        "fixedAnchorVertices": 55,
+        "exposedFace": true
+      },
+      {
+        "name": "034_trailing_vine_c7_r7",
+        "downwardExtent": 0.35816661815624684,
+        "wallDistanceRange": [
+          -0.011623859405517578,
+          0.08811330795288086
+        ],
+        "fixedAnchorVertices": 55,
+        "exposedFace": true
+      },
+      {
+        "name": "035_trailing_vine_c0_r7",
+        "downwardExtent": 0.35153387289028615,
+        "wallDistanceRange": [
+          -0.011316061019897461,
+          0.08657455444335938
+        ],
+        "fixedAnchorVertices": 55,
+        "exposedFace": true
+      },
+      {
+        "name": "036_trailing_vine_c0_r9",
+        "downwardExtent": 0.3117376099107787,
+        "wallDistanceRange": [
+          -0.009469032287597656,
+          0.07733964920043945
+        ],
+        "fixedAnchorVertices": 55,
+        "exposedFace": true
+      }
+    ],
+    "neighborBuildTilesChecked": true,
+    "removableNeighborBuildClearanceChecked": true,
+    "pathWindEnvelopeChecked": true,
+    "removableSlots": [
+      0,
+      1,
+      6,
+      7,
+      10,
+      15,
+      16,
+      19,
+      21,
+      22,
+      25,
+      27,
+      28,
+      31
+    ],
+    "windPhases": 45
+  },
+  "export": {
+    "meshes": [
+      {
+        "name": "stage1_dressing_foliage",
+        "vertices": 17953,
+        "triangles": 20496,
+        "boundsBlender": [
+          [
+            -4.129685401916504,
+            -5.0773396492004395,
+            -0.3571666181087494
+          ],
+          [
+            4.112382888793945,
+            5.109323978424072,
+            0.4138389825820923
+          ]
+        ]
+      },
+      {
+        "name": "stage1_dressing_rocks",
+        "vertices": 1856,
+        "triangles": 3468,
+        "boundsBlender": [
+          [
+            -4.145068645477295,
+            -4.842440605163574,
+            -0.014000000432133675
+          ],
+          [
+            4.137365818023682,
+            5.136658668518066,
+            0.16138850152492523
+          ]
+        ]
+      }
+    ],
+    "extraTextureBytes": 0,
+    "windMaximumDisplacement": 0.022,
+    "glbBytes": 1552836
+  },
+  "metrics": {
+    "baseline": {
+      "fixed": [
+        {
+          "timestamp": 1789183295.4272718,
+          "fps": 60.0,
+          "frame_ms": 16.8,
+          "draw_calls": 70.0,
+          "triangles": 166162.0
+        },
+        {
+          "timestamp": 1789183298.4621382,
+          "fps": 59.0,
+          "frame_ms": 16.9,
+          "draw_calls": 70.0,
+          "triangles": 166162.0
+        },
+        {
+          "timestamp": 1789183301.5026271,
+          "fps": 58.0,
+          "frame_ms": 17.2,
+          "draw_calls": 70.0,
+          "triangles": 166162.0
+        }
+      ],
+      "4x": [
+        {
+          "timestamp": 1789183321.613698,
+          "fps": 58.0,
+          "frame_ms": 17.3,
+          "draw_calls": 64.0,
+          "triangles": 166150.0
+        },
+        {
+          "timestamp": 1789183325.490339,
+          "fps": 57.0,
+          "frame_ms": 17.6,
+          "draw_calls": 64.0,
+          "triangles": 166150.0
+        },
+        {
+          "timestamp": 1789183328.484374,
+          "fps": 54.0,
+          "frame_ms": 18.5,
+          "draw_calls": 64.0,
+          "triangles": 166150.0
+        }
+      ]
+    },
+    "final": {
+      "fixed": [
+        {
+          "timestamp": 1789207124.696091,
+          "fps": 60.0,
+          "frame_ms": 16.7,
+          "draw_calls": 70.0,
+          "triangles": 166892.0
+        },
+        {
+          "timestamp": 1789207128.72441,
+          "fps": 59.0,
+          "frame_ms": 17.1,
+          "draw_calls": 70.0,
+          "triangles": 166892.0
+        },
+        {
+          "timestamp": 1789207132.8431292,
+          "fps": 57.0,
+          "frame_ms": 17.7,
+          "draw_calls": 70.0,
+          "triangles": 166892.0
+        }
+      ],
+      "4x": [
+        {
+          "timestamp": 1789207167.948565,
+          "fps": 58.0,
+          "frame_ms": 17.3,
+          "draw_calls": 65.0,
+          "triangles": 166882.0
+        },
+        {
+          "timestamp": 1789207172.930475,
+          "fps": 56.0,
+          "frame_ms": 17.8,
+          "draw_calls": 64.0,
+          "triangles": 166880.0
+        },
+        {
+          "timestamp": 1789207178.668788,
+          "fps": 58.0,
+          "frame_ms": 17.3,
+          "draw_calls": 64.0,
+          "triangles": 166880.0
+        }
+      ]
+    }
+  },
+  "limits": [
+    "Android 17 ARM64 에뮬레이터 UI 표본. 실기기 지속 전투·메모리·발열 수용이 아님."
+  ],
+  "verification": {
+    "godot_environment_failures": 0,
+    "godot_runtime_failures": 0,
+    "android_preview_errors": [],
+    "android_main_errors": [],
+    "main_installed": true,
+    "main_local_build_number": 2002,
+    "pubspec_version_changed": false,
+    "main_lobby_and_stage1_restored": true,
+    "main_build_sell_ui_retested": false,
+    "pending_reward_left_unselected": true
+  },
+  "zip_changed_entries": [
+    "assets/rune_nexus.pck"
+  ]
+}

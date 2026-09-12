@@ -1,0 +1,199 @@
+--------- beginning of main
+09-12 18:58:22.187 12083 12083 I libprocessgroup: Created cgroup /sys/fs/cgroup/apps/uid_10231/pid_12083
+09-12 18:58:22.218 12083 12083 I Zygote  : Process 12083 created for com.example.rune_nexus.godotpreview
+09-12 18:58:22.219 12083 12083 I us.godotpreview: Using generational CollectorTypeCMC GC.
+09-12 18:58:22.247 12083 12083 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+09-12 18:58:22.449 12083 12083 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+09-12 18:58:22.450 12083 12083 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+09-12 18:58:22.464 12083 12083 D nativeloader: Configuring clns-9 for other apk /data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/lib/arm64:/data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.example.rune_nexus.godotpreview
+09-12 18:58:22.478 12083 12083 V GraphicsEnvironment: Currently set values for:
+09-12 18:58:22.478 12083 12083 V GraphicsEnvironment:   angle_gl_driver_selection_pkgs=[]
+09-12 18:58:22.478 12083 12083 V GraphicsEnvironment:   angle_gl_driver_selection_values=[]
+09-12 18:58:22.479 12083 12083 V GraphicsEnvironment: com.example.rune_nexus.godotpreview is not listed in per-application setting
+09-12 18:58:22.479 12083 12083 V GraphicsEnvironment: No special selections for ANGLE, returning default driver choice
+09-12 18:58:22.491 12083 12083 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+--------- beginning of system
+09-12 18:58:22.639 12083 12095 I DisplayManager: Choreographer implicitly registered for the refresh rate.
+09-12 18:58:22.757 12083 12095 I GFXSTREAM: [eglDisplay.cpp(297)] Opening libGLESv1_CM_emulation.so
+09-12 18:58:22.758 12083 12095 I GFXSTREAM: [eglDisplay.cpp(297)] Opening libGLESv2_emulation.so
+09-12 18:58:22.764 12083 12095 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:22.808 12083 12095 W HWUI    : Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED, retrying without...
+09-12 18:58:22.810 12083 12095 W HWUI    : Failed to initialize 101010-2 format, error = EGL_SUCCESS
+09-12 18:58:22.879 12083 12099 D nativeloader: Load /data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk!/lib/arm64-v8a/libflutter.so using class loader ns clns-9 (caller=/data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk): ok
+09-12 18:58:22.920 12083 12107 D skia    : [SkFontMgr Android Parser] '/product/etc/fonts_customization.xml' could not be opened
+09-12 18:58:22.920 12083 12083 W us.godotpreview: type=1400 audit(0.0:163): avc:  denied  { read } for  name="max_map_count" dev="proc" ino=44528 scontext=u:r:untrusted_app_34:s0:c231,c256,c512,c768 tcontext=u:object_r:proc_max_map_count:s0 tclass=file permissive=0 app=com.example.rune_nexus.godotpreview
+09-12 18:58:22.928 12083 12111 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:23.046 12083 12083 D nativeloader: Load /data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk!/lib/arm64-v8a/libEGL_angle.so using class loader ns clns-9 (caller=/data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk): ok
+09-12 18:58:23.054 12083 12083 D nativeloader: Load /data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk!/lib/arm64-v8a/libGLESv2_angle.so using class loader ns clns-9 (caller=/data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk): ok
+09-12 18:58:23.056 12083 12111 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+09-12 18:58:23.062 12083 12083 D nativeloader: Load /data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk!/lib/arm64-v8a/libangle_android_graphic_jni.so using class loader ns clns-9 (caller=/data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk): ok
+09-12 18:58:23.062 12083 12083 I FlutterAnglePlugin: Native ANGLE libraries loaded successfully
+09-12 18:58:23.065 12083 12083 D nativeloader: Load /data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk!/lib/arm64-v8a/libdartjni.so using class loader ns clns-9 (caller=/data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk): ok
+09-12 18:58:23.066 12083 12112 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:23.110 12083 12083 D CompatChangeReporter: Compat change id reported: 377864165; UID 10231; state: ENABLED
+09-12 18:58:23.120 12083 12083 W HWUI    : Unknown dataspace 0
+09-12 18:58:23.132 12083 12119 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:23.213 12083 12083 D WindowOnBackDispatcher: setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@f1198da
+09-12 18:58:23.216 12083 12083 I WindowExtensionsImpl: Initializing Window Extensions, vendor API level=10, activity embedding enabled=true
+09-12 18:58:23.222 12083 12083 W UiContextUtils: Requested context is a non-UI Context. Creating a UI-Context with display: 0. Context: Context=android.app.Application@c7afc41, of which baseContext=android.app.ContextImpl@3d2eb2e
+09-12 18:58:23.227 12083 12083 D VRI[GodotPreviewActivity]: WindowInsets changed: 1080x2424 statusBars:[0,142,0,0] navigationBars:[0,0,0,63] mandatorySystemGestures:[0,174,0,84]
+09-12 18:58:23.251 12083 12083 I Surface : Creating surface for consumer unnamed-12083-0 with slotExpansion=1 for 64 slots
+09-12 18:58:23.252 12083 12083 I Surface : Creating surface for consumer VRI[GodotPreviewActivity]#0(BLAST Consumer)0 with slotExpansion=1 for 64 slots
+09-12 18:58:23.268 12083 12083 I Surface : Creating surface for consumer unnamed-12083-1 with slotExpansion=1 for 64 slots
+09-12 18:58:23.269 12083 12083 I Surface : Creating surface for consumer dba7e48 SurfaceView[com.example.rune_nexus.godotpreview/com.example.rune_nexus.GodotPreviewActivity]#1(BLAST Consumer)1 with slotExpansion=1 for 64 slots
+09-12 18:58:24.479 12083 12083 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.512 12083 12083 I Choreographer: Skipped 76 frames!  The application may be doing too much work on its main thread.
+09-12 18:58:24.519 12083 12083 I Surface : Creating surface for consumer unnamed-12083-2 with slotExpansion=1 for 64 slots
+09-12 18:58:24.520 12083 12083 I Surface : Creating surface for consumer ImageReader-1080x2424f1m3-12083-0 with slotExpansion=1 for 64 slots
+09-12 18:58:24.535 12083 12083 V Godot   : Initializing Godot plugin registry
+09-12 18:58:24.535 12083 12083 I GodotPluginRegistry: Registering runtime plugin AndroidRuntime
+09-12 18:58:24.535 12083 12083 I GodotPluginRegistry: Registering runtime plugin RuneNexusPreview
+09-12 18:58:24.535 12083 12083 V Godot   : InitEngine with params: [--main-pack, res://rune_nexus.pck, --rendering-method, mobile, --disable_godot_splash]
+09-12 18:58:24.549 12083 12083 D nativeloader: Load /data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk!/lib/arm64-v8a/libgodot_android.so using class loader ns clns-9 (caller=/data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk): ok
+09-12 18:58:24.551 12083 12083 V Godot   : Godot native layer initialization completed: true
+09-12 18:58:24.552 12083 12083 V Godot   : Setting up native layer with params: [--main-pack, res://rune_nexus.pck, --rendering-method, mobile]
+09-12 18:58:24.591 12083 12083 V Godot   : Godot native layer setup completed
+09-12 18:58:24.591 12083 12083 V Godot   : OnInitRenderView: f0.d@459befd
+09-12 18:58:24.598 12083 12083 D AutofillManager: Fill dialog is enabled:false, hints=[]
+09-12 18:58:24.599 12083 12083 D Godot   : Render view should be transparent: false
+09-12 18:58:24.604 12083 12083 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.604 12083 12083 W libc    : Access denied finding property "vendor.mesa.log"
+09-12 18:58:24.604 12083 12083 W libc    : Access denied finding property "vendor.mesa.log.level"
+09-12 18:58:24.604 12083 12083 W libc    : Access denied finding property "vendor.mesa.log.prefix"
+09-12 18:58:24.604 12083 12083 W libc    : Access denied finding property "vendor.mesa.gallium.print.options"
+09-12 18:58:24.604 12083 12083 W libc    : Access denied finding property "vendor.mesa.log.file.auto"
+09-12 18:58:24.605 12083 12083 W libc    : Access denied finding property "vendor.mesa.log.file"
+09-12 18:58:24.605 12083 12083 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.605 12083 12083 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.605 12083 12083 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.605 12083 12083 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.611 12083 12083 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.611 12083 12083 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.616 12083 12083 D vulkan  : searching for layers in '/data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/lib/arm64'
+09-12 18:58:24.617 12083 12083 D vulkan  : searching for layers in '/data/app/~~wEm4fI_4hI2d3tKLc0JTng==/com.example.rune_nexus.godotpreview-Gm_Izkps0irqUVD5eiPA5Q==/base.apk!/lib/arm64-v8a'
+09-12 18:58:24.617 12083 12083 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.617 12083 12083 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.617 12083 12083 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.617 12083 12083 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.618 12083 12083 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.618 12083 12083 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.618 12083 12083 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.618 12083 12083 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.618 12083 12083 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.618 12083 12083 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.618 12083 12083 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.618 12083 12083 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.618 12083 12083 W libc    : Access denied finding property "vendor.mesa.vk.trace"
+09-12 18:58:24.618 12083 12083 W libc    : Access denied finding property "vendor.mesa.vk.trace.per.submit"
+09-12 18:58:24.618 12083 12083 W libc    : Access denied finding property "vendor.mesa.vk.trace.frame"
+09-12 18:58:24.619 12083 12083 W libc    : Access denied finding property "vendor.mesa.vk.trace.trigger"
+09-12 18:58:24.630 12083 12083 W libc    : Access denied finding property "vendor.mesa.vk.wsi.debug"
+09-12 18:58:24.630 12083 12083 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.630 12083 12083 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.631 12083 12083 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.631 12083 12083 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.634 12083 12083 W libc    : Access denied finding property "vendor.mesa.vk.wsi.present.mode"
+09-12 18:58:24.634 12083 12083 W libc    : Access denied finding property "vendor.mesa.vk.wsi.headless.swapchain"
+09-12 18:58:24.634 12083 12083 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.634 12083 12083 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.635 12083 12083 E godot   : WARNING: Property not found: 'xr/shaders/enabled'.
+09-12 18:58:24.635 12083 12083 E godot   :    at: get_setting_with_override (core/config/project_settings.cpp:435)
+09-12 18:58:24.636 12083 12083 D Godot   : renderingDevice: vulkan (ProjectSettings)
+09-12 18:58:24.636 12083 12083 D Godot   : 			renderer: mobile (Default)
+09-12 18:58:24.638 12083 12083 V Godot   : OnStart: f0.d@459befd
+09-12 18:58:24.639 12083 12083 V Godot   : OnResume: f0.d@459befd
+09-12 18:58:24.643 12083 12127 V VkRenderer: Renderer resumed
+09-12 18:58:24.762 12083 12083 D WindowLayoutComponentImpl: Register WindowLayoutInfoListener on Context=com.example.rune_nexus.GodotPreviewActivity@ee13206, of which baseContext=android.app.ContextImpl@cdecd95
+09-12 18:58:24.773 12083 12083 I HWUI    : Using FreeType backend (prop=Auto)
+09-12 18:58:24.778 12083 12083 I Surface : Creating surface for consumer unnamed-12083-3 with slotExpansion=1 for 64 slots
+09-12 18:58:24.779 12083 12083 I Surface : Creating surface for consumer 8c67fdd SurfaceView[com.example.rune_nexus.godotpreview/com.example.rune_nexus.GodotPreviewActivity]#2(BLAST Consumer)2 with slotExpansion=1 for 64 slots
+09-12 18:58:24.779 12083 12083 V VkSurfaceView: On surface created
+09-12 18:58:24.779 12083 12083 V VkSurfaceView: On surface changed [4]: 1079 x 1436
+09-12 18:58:24.779 12083 12127 V VkRenderer: Initializing renderer...
+09-12 18:58:24.781 12083 12127 I godot   : Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+09-12 18:58:24.853 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.853 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.853 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.853 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.854 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.855 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.855 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.855 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.858 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.858 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.860 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.861 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.861 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.861 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.863 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.863 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.864 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.864 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.865 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.866 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.869 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.869 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.869 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.869 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.869 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.869 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.870 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.870 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.870 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.870 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.871 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.871 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.871 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.871 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.872 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.872 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.873 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.873 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.873 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.873 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.887 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:24.887 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:24.889 12083 12127 I godot   : Vulkan 1.3.0 - Forward Mobile - Using Device #0: Apple - Goldfish GFXStream (Apple M4)
+09-12 18:58:24.967 12083 12083 D InsetsController: hide(ime())
+09-12 18:58:24.968 12083 12083 I ImeTracker: com.example.rune_nexus.godotpreview:ffad2d08: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+09-12 18:58:25.207 12083 12123 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:25.207 12083 12123 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:25.306 12083 12126 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:25.306 12083 12126 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:25.308 12083 12125 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:25.309 12083 12125 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:25.315 12083 12124 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:25.315 12083 12124 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:25.912 12083 12127 D AudioSystem: onNewServiceWithAdapter: media.audio_flinger service obtained 0xb400007ece576d50
+09-12 18:58:25.913 12083 12127 D AudioSystem: getService: IAudioFlingerService retrieved: 0xb400007dde4c5250  IAudioFlinger cached: 0xb400007ece576d50
+09-12 18:58:25.913 12083 12127 D us.godotpreview: PlayerBase::PlayerBase()
+09-12 18:58:25.913 12083 12127 D us.godotpreview: TrackPlayerBase::TrackPlayerBase()
+09-12 18:58:25.913 12083 12127 I libOpenSLES: Emulating old channel mask behavior (ignoring positional mask 0x3, using default mask 0x3 based on channel count of 2)
+09-12 18:58:25.937 12083 12127 I godot   :
+09-12 18:58:26.211 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:26.211 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:26.212 12083 12127 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:26.212 12083 12127 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:26.247 12083 12127 I SwappyDisplayManager: Using internal com/google/androidgamesdk/SwappyDisplayManager class from dex bytes.
+09-12 18:58:26.253 12083 12144 I SwappyDisplayManager: Starting looper thread
+09-12 18:58:26.282 12083 12145 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 18:58:26.283 12083 12145 E MESA    : Failed to open rendernode: No such file or directory
+09-12 18:58:27.591 12083 12146 D ProfileInstaller: Installing profile for com.example.rune_nexus.godotpreview
+09-12 18:58:28.238 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 96KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2130KB/4260KB, paused 212us,5.626ms total 29.161ms
+09-12 18:58:28.447 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 96KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2130KB/4260KB, paused 135us,6.685ms total 22.401ms
+09-12 18:58:28.671 12083 12127 V Godot   : OnGodotSetupCompleted
+09-12 18:58:29.245 12083 12127 V Godot   : OnGodotMainLoopStarted
+09-12 18:58:31.950 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2166KB/4332KB, paused 268us,12.558ms total 42.530ms
+09-12 18:58:32.129 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 132KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2130KB/4260KB, paused 194us,6.637ms total 62.461ms
+09-12 18:58:34.793 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2162KB/4324KB, paused 214us,146.535ms total 165.953ms
+09-12 18:58:42.795 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2166KB/4332KB, paused 210us,5.100ms total 20.054ms
+09-12 18:58:48.009 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 124KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2122KB/4244KB, paused 333us,14.724ms total 51.326ms
+09-12 18:58:52.437 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2182KB/4364KB, paused 374us,7.032ms total 27.238ms
+09-12 18:58:52.951 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2154KB/4308KB, paused 496us,8.892ms total 65.728ms
+09-12 18:59:00.973 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2150KB/4300KB, paused 1.931ms,7.810ms total 31.602ms
+09-12 18:59:06.145 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 124KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2186KB/4372KB, paused 340us,5.096ms total 34.964ms
+09-12 18:59:08.485 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2186KB/4372KB, paused 239us,14.776ms total 58.499ms
+09-12 18:59:09.470 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2202KB/4404KB, paused 1.447ms,5.385ms total 28.602ms
+09-12 18:59:16.813 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2154KB/4308KB, paused 209us,6.472ms total 35.137ms
+09-12 18:59:20.020 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2122KB/4244KB, paused 412us,5.491ms total 28.307ms
+09-12 18:59:30.432 12083 12087 I us.godotpreview: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2202KB/4404KB, paused 151us,6.374ms total 22.270ms

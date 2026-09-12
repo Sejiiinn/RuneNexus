@@ -1,0 +1,23 @@
+[
+  {
+    "timestamp": 1789183295.4272718,
+    "fps": 60.0,
+    "frame_ms": 16.8,
+    "draw_calls": 70.0,
+    "triangles": 166162.0
+  },
+  {
+    "timestamp": 1789183298.4621382,
+    "fps": 59.0,
+    "frame_ms": 16.9,
+    "draw_calls": 70.0,
+    "triangles": 166162.0
+  },
+  {
+    "timestamp": 1789183301.5026271,
+    "fps": 58.0,
+    "frame_ms": 17.2,
+    "draw_calls": 70.0,
+    "triangles": 166162.0
+  }
+]

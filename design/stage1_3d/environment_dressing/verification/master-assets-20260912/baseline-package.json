@@ -1,0 +1,3994 @@
+{
+  "apk_path": "build/apk-preview/rune-nexus-stage1-environment-lush-arm64.apk",
+  "sha256": "974ddfb41ea160d63f3a576a25139ae143a29d124ea07209b2dff78d38c1668d",
+  "size_bytes": 229798725,
+  "groups": {
+    "other": {
+      "compressed_bytes": 1705244,
+      "uncompressed_bytes": 2573864,
+      "entries": 424
+    },
+    "lib/arm64-v8a": {
+      "compressed_bytes": 95305424,
+      "uncompressed_bytes": 95305424,
+      "entries": 8
+    },
+    "flutter_assets": {
+      "compressed_bytes": 38984692,
+      "uncompressed_bytes": 45190281,
+      "entries": 160
+    },
+    "flutter_stage1_3d": {
+      "compressed_bytes": 36223484,
+      "uncompressed_bytes": 49806058,
+      "entries": 23
+    },
+    "godot_pck": {
+      "compressed_bytes": 57411804,
+      "uncompressed_bytes": 57411804,
+      "entries": 1
+    }
+  },
+  "abis": [
+    "arm64-v8a"
+  ],
+  "native_libraries": [
+    {
+      "name": "lib/arm64-v8a/libEGL_angle.so",
+      "compressed_bytes": 308424,
+      "uncompressed_bytes": 308424
+    },
+    {
+      "name": "lib/arm64-v8a/libGLESv2_angle.so",
+      "compressed_bytes": 6095784,
+      "uncompressed_bytes": 6095784
+    },
+    {
+      "name": "lib/arm64-v8a/libangle_android_graphic_jni.so",
+      "compressed_bytes": 9752,
+      "uncompressed_bytes": 9752
+    },
+    {
+      "name": "lib/arm64-v8a/libapp.so",
+      "compressed_bytes": 4522888,
+      "uncompressed_bytes": 4522888
+    },
+    {
+      "name": "lib/arm64-v8a/libc++_shared.so",
+      "compressed_bytes": 1374336,
+      "uncompressed_bytes": 1374336
+    },
+    {
+      "name": "lib/arm64-v8a/libdartjni.so",
+      "compressed_bytes": 131432,
+      "uncompressed_bytes": 131432
+    },
+    {
+      "name": "lib/arm64-v8a/libflutter.so",
+      "compressed_bytes": 11747864,
+      "uncompressed_bytes": 11747864
+    },
+    {
+      "name": "lib/arm64-v8a/libgodot_android.so",
+      "compressed_bytes": 71114944,
+      "uncompressed_bytes": 71114944
+    }
+  ],
+  "pck": [
+    {
+      "name": "assets/rune_nexus.pck",
+      "compressed_bytes": 57411804,
+      "uncompressed_bytes": 57411804,
+      "sha256": "ed25ec8eb25ef53230c71c15b7397980ae93107d5e7e498e87eca0ca35bf8e6e",
+      "files": [
+        {
+          "name": ".godot/exported/133200997/export-3070c538c03ee49b7677ff960a3f5195-main.scn",
+          "size_bytes": 681,
+          "flags": 0
+        },
+        {
+          "name": ".godot/global_script_class_cache.cfg",
+          "size_bytes": 345,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/armored.glb-c0abd723cf9de60ec713552ef8d77428.scn",
+          "size_bytes": 43139,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/armored_enemy_cast_grain_512.png-0a2afddbf61422e0657a71b1403ead67.etc2.ctex",
+          "size_bytes": 349604,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/arrow.glb-521675f94e1187bf103082238aaca567.scn",
+          "size_bytes": 418314,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/arrow_machine_gun_cast_normal.png-6aa148596b729f4da184c9e2eb088398.etc2.ctex",
+          "size_bytes": 1398180,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/arrow_machine_gun_matte_color.png-e8be743265d4438a079e432c9d048af8.etc2.ctex",
+          "size_bytes": 699116,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/boss.glb-1fa2562f035e2eab731952c674445f02.scn",
+          "size_bytes": 45995,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/boss_enemy_cast_grain_512.png-85e416957ab4aa254b260e67a75de17c.etc2.ctex",
+          "size_bytes": 349604,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/cannon.glb-30ba3123f44deca67ec4e4b8c02153a4.scn",
+          "size_bytes": 440800,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/cannon_cannon_cast_normal.png-972e68294492b48162afe5c9e4e1699c.etc2.ctex",
+          "size_bytes": 349604,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/cannon_cannon_matte_color.png-8c556f57dc09a31c402a4808e0e1d12f.etc2.ctex",
+          "size_bytes": 174828,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/dressing.glb-2dbc28f4b6836d1f0f6889e84c441cd4.scn",
+          "size_bytes": 961202,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/fast.glb-80eff50eeedabfff102d3dd1e02134c1.scn",
+          "size_bytes": 45877,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/fast_enemy_cast_grain_512.png-a10c10330f3261a3c7d3420dce5629f4.etc2.ctex",
+          "size_bytes": 349604,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/frost.glb-a699fabfd704d25fa024fe9be8dac45e.scn",
+          "size_bytes": 71608,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/frost_ice_basecolor.png-9688070b4b2745d05e43edd90851faee.etc2.ctex",
+          "size_bytes": 174828,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/frost_ice_normal.png-8c7c99cc6fd21f76eb9b066e4150f5d0.etc2.ctex",
+          "size_bytes": 349604,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/frost_ice_roughness.png-7e52be52ad8ccd82e9d8aa357fdee0b5.etc2.ctex",
+          "size_bytes": 174828,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/frost_weathered_stone_basecolor.png-bb577c64fac2aea93a7498fd707f783f.etc2.ctex",
+          "size_bytes": 174828,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/frost_weathered_stone_normal.png-9180040334c5b9ad3a43be99c23da9b3.etc2.ctex",
+          "size_bytes": 349604,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/frost_weathered_stone_roughness.png-a95c0fa6cb5f690e974e9819d2cf48f5.etc2.ctex",
+          "size_bytes": 174828,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/gun_smoke.png-55036d9cc2b0737591180e809296722e.ctex",
+          "size_bytes": 98290,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/lightning.glb-734b7f1e2887827a281c311cfe217e29.scn",
+          "size_bytes": 20491,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/machinegun_muzzle.glb-a533850e6dd0cabb2958a44a4ad6d0c9.scn",
+          "size_bytes": 17316,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/magic.glb-51b5a5498319ec4667c663f5ae4c555a.scn",
+          "size_bytes": 17242,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/muzzle_flash.png-280330ce76e92c2fead47dba704e17bf.ctex",
+          "size_bytes": 42304,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/normal.glb-cbdd22edc8c6dd361b94e236805d35a8.scn",
+          "size_bytes": 49531,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/normal_enemy_cast_grain_512.png-e0a0b027f6ab0b2e32f2a1ec23df3a23.etc2.ctex",
+          "size_bytes": 349604,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/shielded.glb-a7086d4f8ee40b4ffd243074010afc94.scn",
+          "size_bytes": 45986,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/shielded_enemy_cast_grain_512.png-2074464dda6d188660f806485d25138d.etc2.ctex",
+          "size_bytes": 349604,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/sniper.glb-ebff0f9c08d9fa6c742c63e9742f17e4.scn",
+          "size_bytes": 31166,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/tank.glb-78a08136c16c7ff21ed1c46a6d695276.scn",
+          "size_bytes": 50033,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/tank_enemy_cast_grain_512.png-3bb3ebbc4184f0afb9a05f7d7ea82d25.etc2.ctex",
+          "size_bytes": 349604,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain.glb-e79ebbb24970aa704a607ec51fe1899a.scn",
+          "size_bytes": 3041357,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_C1_mossy_PBR_stone_basecolor.png-81673e4e351e7d42928634435b38e78d.etc2.ctex",
+          "size_bytes": 699116,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_C1_mossy_PBR_stone_cavity-C1_mossy_PBR_stone_roughness.png-0176d9c506f61faf74ca5492642fd6c5.etc2.ctex",
+          "size_bytes": 699116,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_C1_mossy_PBR_stone_normal.png-9f062d143deca4ba5b2276350e93910d.etc2.ctex",
+          "size_bytes": 1398180,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_C1_natural_rock_faces_basecolor.png-8c95b343bb70546c778ff3e1ec26702e.etc2.ctex",
+          "size_bytes": 699116,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_C1_natural_rock_faces_cavity-C1_natural_rock_faces_roughness.png-51527324fcd96c7e05e8793d096c9c55.etc2.ctex",
+          "size_bytes": 699116,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_C1_natural_rock_faces_normal.png-541fcff862bb33d42d454aaf1777c1a3.etc2.ctex",
+          "size_bytes": 1398180,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_C1_worn_earth_cobbles_basecolor.png-ddce13955b2d9614531d228d193fe58a.etc2.ctex",
+          "size_bytes": 699116,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_C1_worn_earth_cobbles_cavity-C1_worn_earth_cobbles_roughness.png-e75dc2e18c6aafef509bf4ed4edf5a91.etc2.ctex",
+          "size_bytes": 699116,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_C1_worn_earth_cobbles_normal.png-66961e4d82be05b9842a7a477ef7307b.etc2.ctex",
+          "size_bytes": 1398180,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_stage1_build_basecolor.png-8e8be8d2a32296dfc128c34e5402b058.etc2.ctex",
+          "size_bytes": 2796268,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_stage1_build_normal.png-ee1eea95b58e17348019dc40b1b9d7bd.etc2.ctex",
+          "size_bytes": 5592484,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_stage1_build_roughness.png-daf6774198fd1ce6d8b6acade3bab288.etc2.ctex",
+          "size_bytes": 2796268,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_stage1_path_basecolor.png-9bca879c9b4d5c833fa8bdacd6213229.etc2.ctex",
+          "size_bytes": 2796268,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_stage1_path_normal.png-4b92dcfa73695c783ea4b700f4555daf.etc2.ctex",
+          "size_bytes": 5592484,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_stage1_path_roughness.png-2abb6735407d89569d70d51afad3df0c.etc2.ctex",
+          "size_bytes": 2796268,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_weathered_stone_basecolor.png-449b9bed03831eb24940185d5b08ea3b.etc2.ctex",
+          "size_bytes": 174828,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_weathered_stone_normal.png-f6295d451a9db92da3d32d3cbdb5fdf4.etc2.ctex",
+          "size_bytes": 349604,
+          "flags": 0
+        },
+        {
+          "name": ".godot/imported/terrain_weathered_stone_roughness.png-afaccd841956d9402e145c55bc1f65c7.etc2.ctex",
+          "size_bytes": 174828,
+          "flags": 0
+        },
+        {
+          "name": ".godot/uid_cache.bin",
+          "size_bytes": 3683,
+          "flags": 0
+        },
+        {
+          "name": "assets/cannon_field.bin",
+          "size_bytes": 14155776,
+          "flags": 0
+        },
+        {
+          "name": "assets/cannon_field.json",
+          "size_bytes": 1027,
+          "flags": 0
+        },
+        {
+          "name": "assets/effects/gun_smoke.png.import",
+          "size_bytes": 198,
+          "flags": 0
+        },
+        {
+          "name": "assets/effects/machinegun_muzzle.glb.import",
+          "size_bytes": 178,
+          "flags": 0
+        },
+        {
+          "name": "assets/effects/muzzle_flash.png.import",
+          "size_bytes": 200,
+          "flags": 0
+        },
+        {
+          "name": "assets/enemies/armored.glb.import",
+          "size_bytes": 169,
+          "flags": 0
+        },
+        {
+          "name": "assets/enemies/armored_enemy_cast_grain_512.png.import",
+          "size_bytes": 341,
+          "flags": 0
+        },
+        {
+          "name": "assets/enemies/boss.glb.import",
+          "size_bytes": 165,
+          "flags": 0
+        },
+        {
+          "name": "assets/enemies/boss_enemy_cast_grain_512.png.import",
+          "size_bytes": 338,
+          "flags": 0
+        },
+        {
+          "name": "assets/enemies/fast.glb.import",
+          "size_bytes": 166,
+          "flags": 0
+        },
+        {
+          "name": "assets/enemies/fast_enemy_cast_grain_512.png.import",
+          "size_bytes": 337,
+          "flags": 0
+        },
+        {
+          "name": "assets/enemies/normal.glb.import",
+          "size_bytes": 168,
+          "flags": 0
+        },
+        {
+          "name": "assets/enemies/normal_enemy_cast_grain_512.png.import",
+          "size_bytes": 340,
+          "flags": 0
+        },
+        {
+          "name": "assets/enemies/shielded.glb.import",
+          "size_bytes": 170,
+          "flags": 0
+        },
+        {
+          "name": "assets/enemies/shielded_enemy_cast_grain_512.png.import",
+          "size_bytes": 341,
+          "flags": 0
+        },
+        {
+          "name": "assets/enemies/tank.glb.import",
+          "size_bytes": 166,
+          "flags": 0
+        },
+        {
+          "name": "assets/enemies/tank_enemy_cast_grain_512.png.import",
+          "size_bytes": 338,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/dressing.glb.import",
+          "size_bytes": 170,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain.glb.import",
+          "size_bytes": 169,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_C1_mossy_PBR_stone_basecolor.png.import",
+          "size_bytes": 348,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_C1_mossy_PBR_stone_cavity-C1_mossy_PBR_stone_roughness.png.import",
+          "size_bytes": 375,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_C1_mossy_PBR_stone_normal.png.import",
+          "size_bytes": 345,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_C1_natural_rock_faces_basecolor.png.import",
+          "size_bytes": 352,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_C1_natural_rock_faces_cavity-C1_natural_rock_faces_roughness.png.import",
+          "size_bytes": 381,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_C1_natural_rock_faces_normal.png.import",
+          "size_bytes": 349,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_C1_worn_earth_cobbles_basecolor.png.import",
+          "size_bytes": 352,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_C1_worn_earth_cobbles_cavity-C1_worn_earth_cobbles_roughness.png.import",
+          "size_bytes": 380,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_C1_worn_earth_cobbles_normal.png.import",
+          "size_bytes": 349,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_stage1_build_basecolor.png.import",
+          "size_bytes": 343,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_stage1_build_normal.png.import",
+          "size_bytes": 340,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_stage1_build_roughness.png.import",
+          "size_bytes": 343,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_stage1_path_basecolor.png.import",
+          "size_bytes": 342,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_stage1_path_normal.png.import",
+          "size_bytes": 339,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_stage1_path_roughness.png.import",
+          "size_bytes": 341,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_weathered_stone_basecolor.png.import",
+          "size_bytes": 346,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_weathered_stone_normal.png.import",
+          "size_bytes": 343,
+          "flags": 0
+        },
+        {
+          "name": "assets/environment/terrain_weathered_stone_roughness.png.import",
+          "size_bytes": 346,
+          "flags": 0
+        },
+        {
+          "name": "assets/machinegun_muzzle_noise.bin",
+          "size_bytes": 32768,
+          "flags": 0
+        },
+        {
+          "name": "assets/preview_frame.json",
+          "size_bytes": 1312,
+          "flags": 0
+        },
+        {
+          "name": "assets/terrain_manifest.json",
+          "size_bytes": 1247,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/arrow.glb.import",
+          "size_bytes": 166,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/arrow_machine_gun_cast_normal.png.import",
+          "size_bytes": 342,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/arrow_machine_gun_matte_color.png.import",
+          "size_bytes": 342,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/cannon.glb.import",
+          "size_bytes": 166,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/cannon_cannon_cast_normal.png.import",
+          "size_bytes": 338,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/cannon_cannon_matte_color.png.import",
+          "size_bytes": 338,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/frost.glb.import",
+          "size_bytes": 167,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/frost_ice_basecolor.png.import",
+          "size_bytes": 332,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/frost_ice_normal.png.import",
+          "size_bytes": 329,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/frost_ice_roughness.png.import",
+          "size_bytes": 331,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/frost_weathered_stone_basecolor.png.import",
+          "size_bytes": 344,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/frost_weathered_stone_normal.png.import",
+          "size_bytes": 341,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/frost_weathered_stone_roughness.png.import",
+          "size_bytes": 344,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/lightning.glb.import",
+          "size_bytes": 171,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/magic.glb.import",
+          "size_bytes": 167,
+          "flags": 0
+        },
+        {
+          "name": "assets/turrets/sniper.glb.import",
+          "size_bytes": 168,
+          "flags": 0
+        },
+        {
+          "name": "effects/ballistic_projectile.gd.remap",
+          "size_bytes": 55,
+          "flags": 0
+        },
+        {
+          "name": "effects/ballistic_projectile.gdc",
+          "size_bytes": 3805,
+          "flags": 0
+        },
+        {
+          "name": "effects/cannon_impact.gdshader",
+          "size_bytes": 4679,
+          "flags": 0
+        },
+        {
+          "name": "effects/field_cache.gd.remap",
+          "size_bytes": 46,
+          "flags": 0
+        },
+        {
+          "name": "effects/field_cache.gdc",
+          "size_bytes": 2976,
+          "flags": 0
+        },
+        {
+          "name": "effects/godot_impact.gd.remap",
+          "size_bytes": 47,
+          "flags": 0
+        },
+        {
+          "name": "effects/godot_impact.gdc",
+          "size_bytes": 8906,
+          "flags": 0
+        },
+        {
+          "name": "effects/machinegun_flash.gdshader",
+          "size_bytes": 806,
+          "flags": 0
+        },
+        {
+          "name": "effects/machinegun_muzzle.gd.remap",
+          "size_bytes": 52,
+          "flags": 0
+        },
+        {
+          "name": "effects/machinegun_muzzle.gdc",
+          "size_bytes": 6603,
+          "flags": 0
+        },
+        {
+          "name": "effects/machinegun_smoke.gdshader",
+          "size_bytes": 2269,
+          "flags": 0
+        },
+        {
+          "name": "effects/projectile_tracer.gdshader",
+          "size_bytes": 461,
+          "flags": 0
+        },
+        {
+          "name": "effects/weapon_atlas.gd.remap",
+          "size_bytes": 47,
+          "flags": 0
+        },
+        {
+          "name": "effects/weapon_atlas.gdc",
+          "size_bytes": 2037,
+          "flags": 0
+        },
+        {
+          "name": "engine_licenses.txt",
+          "size_bytes": 105702,
+          "flags": 0
+        },
+        {
+          "name": "environment/foliage_wind.gdshader",
+          "size_bytes": 994,
+          "flags": 0
+        },
+        {
+          "name": "main.gd.remap",
+          "size_bytes": 31,
+          "flags": 0
+        },
+        {
+          "name": "main.gdc",
+          "size_bytes": 28438,
+          "flags": 0
+        },
+        {
+          "name": "main.tscn.remap",
+          "size_bytes": 97,
+          "flags": 0
+        },
+        {
+          "name": "project.binary",
+          "size_bytes": 955,
+          "flags": 0
+        }
+      ]
+    }
+  ],
+  "stage1_glb": [
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/effects/machinegun_muzzle.glb",
+      "compressed_bytes": 8640,
+      "uncompressed_bytes": 14796
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/enemies/armored.glb",
+      "compressed_bytes": 228390,
+      "uncompressed_bytes": 308656
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/enemies/boss.glb",
+      "compressed_bytes": 230046,
+      "uncompressed_bytes": 311716
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/enemies/fast.glb",
+      "compressed_bytes": 229105,
+      "uncompressed_bytes": 309868
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/enemies/normal.glb",
+      "compressed_bytes": 229175,
+      "uncompressed_bytes": 310436
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/enemies/shielded.glb",
+      "compressed_bytes": 229203,
+      "uncompressed_bytes": 309812
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/enemies/tank.glb",
+      "compressed_bytes": 229121,
+      "uncompressed_bytes": 309212
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/environment/terrain.glb",
+      "compressed_bytes": 25159525,
+      "uncompressed_bytes": 27957564
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/turrets/arrow.glb",
+      "compressed_bytes": 2137226,
+      "uncompressed_bytes": 2487368
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/turrets/cannon.glb",
+      "compressed_bytes": 676162,
+      "uncompressed_bytes": 1075412
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/turrets/frost.glb",
+      "compressed_bytes": 1519755,
+      "uncompressed_bytes": 1628284
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/turrets/lightning.glb",
+      "compressed_bytes": 10695,
+      "uncompressed_bytes": 52412
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/turrets/magic.glb",
+      "compressed_bytes": 9871,
+      "uncompressed_bytes": 43864
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/turrets/sniper.glb",
+      "compressed_bytes": 17269,
+      "uncompressed_bytes": 85032
+    }
+  ],
+  "largest_entries": [
+    {
+      "name": "lib/arm64-v8a/libgodot_android.so",
+      "compressed_bytes": 71114944,
+      "uncompressed_bytes": 71114944
+    },
+    {
+      "name": "assets/rune_nexus.pck",
+      "compressed_bytes": 57411804,
+      "uncompressed_bytes": 57411804
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/environment/terrain.glb",
+      "compressed_bytes": 25159525,
+      "uncompressed_bytes": 27957564
+    },
+    {
+      "name": "lib/arm64-v8a/libflutter.so",
+      "compressed_bytes": 11747864,
+      "uncompressed_bytes": 11747864
+    },
+    {
+      "name": "lib/arm64-v8a/libGLESv2_angle.so",
+      "compressed_bytes": 6095784,
+      "uncompressed_bytes": 6095784
+    },
+    {
+      "name": "assets/flutter_assets/assets/fonts/NotoSansKR-VF.ttf",
+      "compressed_bytes": 5347537,
+      "uncompressed_bytes": 10415532
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/effects/cannon_field.bin",
+      "compressed_bytes": 4912582,
+      "uncompressed_bytes": 14155776
+    },
+    {
+      "name": "lib/arm64-v8a/libapp.so",
+      "compressed_bytes": 4522888,
+      "uncompressed_bytes": 4522888
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/turrets/arrow.glb",
+      "compressed_bytes": 2137226,
+      "uncompressed_bytes": 2487368
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/lobby_sanctuary_background.png",
+      "compressed_bytes": 2112604,
+      "uncompressed_bytes": 2112604
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/tree_circuit_background.png",
+      "compressed_bytes": 2004751,
+      "uncompressed_bytes": 2004751
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/lobby_background.png",
+      "compressed_bytes": 1914112,
+      "uncompressed_bytes": 1914112
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/turrets/frost.glb",
+      "compressed_bytes": 1519755,
+      "uncompressed_bytes": 1628284
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/diamond_currency.png",
+      "compressed_bytes": 1487376,
+      "uncompressed_bytes": 1487376
+    },
+    {
+      "name": "lib/arm64-v8a/libc++_shared.so",
+      "compressed_bytes": 1374336,
+      "uncompressed_bytes": 1374336
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/center_socket_v1.png",
+      "compressed_bytes": 1240903,
+      "uncompressed_bytes": 1240903
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/node_frame_small_a_active_v1.png",
+      "compressed_bytes": 1187008,
+      "uncompressed_bytes": 1187008
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/node_frame_small_a_v1.png",
+      "compressed_bytes": 1158347,
+      "uncompressed_bytes": 1158347
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/node_frame_medium_a_active_v1.png",
+      "compressed_bytes": 1104517,
+      "uncompressed_bytes": 1104517
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/connection_segment_inactive_v1.png",
+      "compressed_bytes": 1031981,
+      "uncompressed_bytes": 1031981
+    }
+  ],
+  "design_files_in_apk": [],
+  "all_entries": [
+    {
+      "name": "META-INF/com/android/build/gradle/app-metadata.properties",
+      "compressed_bytes": 51,
+      "uncompressed_bytes": 57
+    },
+    {
+      "name": "META-INF/version-control-info.textproto",
+      "compressed_bytes": 48,
+      "uncompressed_bytes": 46
+    },
+    {
+      "name": "assets/dexopt/baseline.prof",
+      "compressed_bytes": 836,
+      "uncompressed_bytes": 836
+    },
+    {
+      "name": "assets/dexopt/baseline.profm",
+      "compressed_bytes": 155,
+      "uncompressed_bytes": 155
+    },
+    {
+      "name": "classes.dex",
+      "compressed_bytes": 637097,
+      "uncompressed_bytes": 1398996
+    },
+    {
+      "name": "lib/arm64-v8a/libEGL_angle.so",
+      "compressed_bytes": 308424,
+      "uncompressed_bytes": 308424
+    },
+    {
+      "name": "lib/arm64-v8a/libGLESv2_angle.so",
+      "compressed_bytes": 6095784,
+      "uncompressed_bytes": 6095784
+    },
+    {
+      "name": "lib/arm64-v8a/libangle_android_graphic_jni.so",
+      "compressed_bytes": 9752,
+      "uncompressed_bytes": 9752
+    },
+    {
+      "name": "lib/arm64-v8a/libapp.so",
+      "compressed_bytes": 4522888,
+      "uncompressed_bytes": 4522888
+    },
+    {
+      "name": "lib/arm64-v8a/libc++_shared.so",
+      "compressed_bytes": 1374336,
+      "uncompressed_bytes": 1374336
+    },
+    {
+      "name": "lib/arm64-v8a/libdartjni.so",
+      "compressed_bytes": 131432,
+      "uncompressed_bytes": 131432
+    },
+    {
+      "name": "lib/arm64-v8a/libflutter.so",
+      "compressed_bytes": 11747864,
+      "uncompressed_bytes": 11747864
+    },
+    {
+      "name": "lib/arm64-v8a/libgodot_android.so",
+      "compressed_bytes": 71114944,
+      "uncompressed_bytes": 71114944
+    },
+    {
+      "name": "assets/flutter_assets/AssetManifest.bin",
+      "compressed_bytes": 2479,
+      "uncompressed_bytes": 18542
+    },
+    {
+      "name": "assets/flutter_assets/FontManifest.json",
+      "compressed_bytes": 99,
+      "uncompressed_bytes": 159
+    },
+    {
+      "name": "assets/flutter_assets/NOTICES.Z",
+      "compressed_bytes": 98234,
+      "uncompressed_bytes": 100073
+    },
+    {
+      "name": "assets/flutter_assets/NativeAssetsManifest.json",
+      "compressed_bytes": 47,
+      "uncompressed_bytes": 45
+    },
+    {
+      "name": "assets/flutter_assets/assets/fonts/NotoSansKR-VF.ttf",
+      "compressed_bytes": 5347537,
+      "uncompressed_bytes": 10415532
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/cannon_blast_core_sheet.png",
+      "compressed_bytes": 236571,
+      "uncompressed_bytes": 236571
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/chapter_1_banner.png",
+      "compressed_bytes": 697657,
+      "uncompressed_bytes": 697657
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/chapter_2_banner.png",
+      "compressed_bytes": 651556,
+      "uncompressed_bytes": 651556
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/chapter_3_banner.png",
+      "compressed_bytes": 711764,
+      "uncompressed_bytes": 711764
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_abilities/guardian_beam.png",
+      "compressed_bytes": 16877,
+      "uncompressed_bytes": 16877
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_abilities/rift_mark.png",
+      "compressed_bytes": 30845,
+      "uncompressed_bytes": 30845
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/center_socket_v1.png",
+      "compressed_bytes": 1240903,
+      "uncompressed_bytes": 1240903
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/connection_junction_v1.png",
+      "compressed_bytes": 539421,
+      "uncompressed_bytes": 539421
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/connection_segment_inactive_v1.png",
+      "compressed_bytes": 1031981,
+      "uncompressed_bytes": 1031981
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/connection_segment_v1.png",
+      "compressed_bytes": 660786,
+      "uncompressed_bytes": 660786
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/nexus_core.png",
+      "compressed_bytes": 160185,
+      "uncompressed_bytes": 160185
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/node_frame_large_a_active_v1.png",
+      "compressed_bytes": 896391,
+      "uncompressed_bytes": 896391
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/node_frame_large_a_v1.png",
+      "compressed_bytes": 892722,
+      "uncompressed_bytes": 892722
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/node_frame_medium_a_active_v1.png",
+      "compressed_bytes": 1104517,
+      "uncompressed_bytes": 1104517
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/node_frame_medium_a_v1.png",
+      "compressed_bytes": 916615,
+      "uncompressed_bytes": 916615
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/node_frame_small_a_active_v1.png",
+      "compressed_bytes": 1187008,
+      "uncompressed_bytes": 1187008
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/node_frame_small_a_v1.png",
+      "compressed_bytes": 1158347,
+      "uncompressed_bytes": 1158347
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/notable_hex_frame.png",
+      "compressed_bytes": 86393,
+      "uncompressed_bytes": 86393
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/selection_ring_v1.png",
+      "compressed_bytes": 530703,
+      "uncompressed_bytes": 530703
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/skill_nameplate_v1.png",
+      "compressed_bytes": 38089,
+      "uncompressed_bytes": 38089
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passive_tree/tree_circuit_background.png",
+      "compressed_bytes": 2004751,
+      "uncompressed_bytes": 2004751
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passives/cost_saving_design.png",
+      "compressed_bytes": 35613,
+      "uncompressed_bytes": 35613
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passives/self_repair.png",
+      "compressed_bytes": 36497,
+      "uncompressed_bytes": 36497
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/core_passives/skill_acceleration.png",
+      "compressed_bytes": 43158,
+      "uncompressed_bytes": 43158
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/diamond_currency.png",
+      "compressed_bytes": 1487376,
+      "uncompressed_bytes": 1487376
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/gems/aimSpeed.png",
+      "compressed_bytes": 386782,
+      "uncompressed_bytes": 386782
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/gems/armorPiercing.png",
+      "compressed_bytes": 224665,
+      "uncompressed_bytes": 224665
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/gems/attackSpeed.png",
+      "compressed_bytes": 257541,
+      "uncompressed_bytes": 257541
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/gems/chain.png",
+      "compressed_bytes": 201937,
+      "uncompressed_bytes": 201937
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/gems/criticalChance.png",
+      "compressed_bytes": 254416,
+      "uncompressed_bytes": 254416
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/gems/damageAmplifier.png",
+      "compressed_bytes": 281473,
+      "uncompressed_bytes": 281473
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/gems/damageOverTime.png",
+      "compressed_bytes": 283456,
+      "uncompressed_bytes": 283456
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/gems/elementalDamage.png",
+      "compressed_bytes": 255548,
+      "uncompressed_bytes": 255548
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/gems/explosion.png",
+      "compressed_bytes": 310054,
+      "uncompressed_bytes": 310054
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/gems/heavyWeapon.png",
+      "compressed_bytes": 342623,
+      "uncompressed_bytes": 342623
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/gems/lightWeapon.png",
+      "compressed_bytes": 279150,
+      "uncompressed_bytes": 279150
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/gems/multipleProjectiles.png",
+      "compressed_bytes": 223684,
+      "uncompressed_bytes": 223684
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/gems/physicalDamage.png",
+      "compressed_bytes": 361235,
+      "uncompressed_bytes": 361235
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/gems/range.png",
+      "compressed_bytes": 192985,
+      "uncompressed_bytes": 192985
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/lobby_background.png",
+      "compressed_bytes": 1914112,
+      "uncompressed_bytes": 1914112
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/lobby_event_icon.png",
+      "compressed_bytes": 108856,
+      "uncompressed_bytes": 108856
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/lobby_leaderboard_icon.png",
+      "compressed_bytes": 110822,
+      "uncompressed_bytes": 110822
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/lobby_mailbox_icon.png",
+      "compressed_bytes": 93878,
+      "uncompressed_bytes": 93878
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/lobby_primary_button.png",
+      "compressed_bytes": 220522,
+      "uncompressed_bytes": 220522
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/lobby_rune_device.png",
+      "compressed_bytes": 319698,
+      "uncompressed_bytes": 319698
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/lobby_rune_pedestal.png",
+      "compressed_bytes": 298903,
+      "uncompressed_bytes": 298903
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/lobby_sanctuary_background.png",
+      "compressed_bytes": 2112604,
+      "uncompressed_bytes": 2112604
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/lobby_secondary_button.png",
+      "compressed_bytes": 73699,
+      "uncompressed_bytes": 73699
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/lobby_settings_icon.png",
+      "compressed_bytes": 124878,
+      "uncompressed_bytes": 124878
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/main_menu_background.jpg",
+      "compressed_bytes": 368886,
+      "uncompressed_bytes": 368886
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/attendance.png",
+      "compressed_bytes": 14607,
+      "uncompressed_bytes": 14607
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/buy_run_upgrades.png",
+      "compressed_bytes": 13661,
+      "uncompressed_bytes": 13661
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/clear_waves.png",
+      "compressed_bytes": 15272,
+      "uncompressed_bytes": 15272
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/close.png",
+      "compressed_bytes": 13735,
+      "uncompressed_bytes": 13735
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/entry_default.jpg",
+      "compressed_bytes": 12848,
+      "uncompressed_bytes": 12848
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/entry_reward_ready.jpg",
+      "compressed_bytes": 13445,
+      "uncompressed_bytes": 13445
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/kill_bosses.png",
+      "compressed_bytes": 19146,
+      "uncompressed_bytes": 19146
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/kill_enemies.png",
+      "compressed_bytes": 18152,
+      "uncompressed_bytes": 18152
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/title_flag_compact.png",
+      "compressed_bytes": 9117,
+      "uncompressed_bytes": 9117
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/ui/action_claim.png",
+      "compressed_bytes": 12197,
+      "uncompressed_bytes": 12197
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/ui/action_idle.png",
+      "compressed_bytes": 8535,
+      "uncompressed_bytes": 8535
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/ui/close_button.png",
+      "compressed_bytes": 7521,
+      "uncompressed_bytes": 7521
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/ui/dialog_frame.png",
+      "compressed_bytes": 229152,
+      "uncompressed_bytes": 229152
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/ui/icon_socket.png",
+      "compressed_bytes": 7478,
+      "uncompressed_bytes": 7478
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/ui/quest_row_frame.png",
+      "compressed_bytes": 41644,
+      "uncompressed_bytes": 41644
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/ui/summary_frame.png",
+      "compressed_bytes": 40045,
+      "uncompressed_bytes": 40045
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/ui/tab_idle.png",
+      "compressed_bytes": 13477,
+      "uncompressed_bytes": 13477
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/ui/tab_selected.png",
+      "compressed_bytes": 24365,
+      "uncompressed_bytes": 24365
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/quests/warning.png",
+      "compressed_bytes": 15311,
+      "uncompressed_bytes": 15311
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/research/boss_bounty.png",
+      "compressed_bytes": 33567,
+      "uncompressed_bytes": 33567
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/research/crystal_recovery.png",
+      "compressed_bytes": 22407,
+      "uncompressed_bytes": 22407
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/research/gem_attunement.png",
+      "compressed_bytes": 26871,
+      "uncompressed_bytes": 26871
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/research/kill_gold_limit_expansion.png",
+      "compressed_bytes": 28336,
+      "uncompressed_bytes": 28336
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/research/link_expansion_one.png",
+      "compressed_bytes": 22654,
+      "uncompressed_bytes": 22654
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/research/link_maintenance.png",
+      "compressed_bytes": 26657,
+      "uncompressed_bytes": 26657
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/research/research_cost_efficiency.png",
+      "compressed_bytes": 25814,
+      "uncompressed_bytes": 25814
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/research/research_efficiency.png",
+      "compressed_bytes": 25075,
+      "uncompressed_bytes": 25075
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/research/run_upgrade_cost_optimization.png",
+      "compressed_bytes": 29992,
+      "uncompressed_bytes": 29992
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/research/rune_resonance.png",
+      "compressed_bytes": 39977,
+      "uncompressed_bytes": 39977
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/research/tower_damage_limit_expansion.png",
+      "compressed_bytes": 22395,
+      "uncompressed_bytes": 22395
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/research/turret_target_priority.png",
+      "compressed_bytes": 21314,
+      "uncompressed_bytes": 21314
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/research/wave_gold_limit_expansion.png",
+      "compressed_bytes": 25955,
+      "uncompressed_bytes": 25955
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/results/result_failure.png",
+      "compressed_bytes": 105186,
+      "uncompressed_bytes": 105186
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/results/result_success.png",
+      "compressed_bytes": 102469,
+      "uncompressed_bytes": 102469
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/results/ui/confirm_button_danger_frame.png",
+      "compressed_bytes": 37502,
+      "uncompressed_bytes": 37502
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/results/ui/confirm_button_frame.png",
+      "compressed_bytes": 30758,
+      "uncompressed_bytes": 30758
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/results/ui/restart_button_frame.png",
+      "compressed_bytes": 21353,
+      "uncompressed_bytes": 21353
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/results/ui/result_panel_frame.png",
+      "compressed_bytes": 119259,
+      "uncompressed_bytes": 119259
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/results/ui/reward_summary_frame.png",
+      "compressed_bytes": 26828,
+      "uncompressed_bytes": 26828
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/results/ui/section_frame.png",
+      "compressed_bytes": 18360,
+      "uncompressed_bytes": 18360
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/results/ui/status_emblem_socket.png",
+      "compressed_bytes": 10094,
+      "uncompressed_bytes": 10094
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/results/ui/unlock_chip_frame.png",
+      "compressed_bytes": 8053,
+      "uncompressed_bytes": 8053
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/rune_nexus_logo.png",
+      "compressed_bytes": 191554,
+      "uncompressed_bytes": 191554
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/rune_nexus_logo_serif.png",
+      "compressed_bytes": 37493,
+      "uncompressed_bytes": 37493
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/effects/cannon_field.bin",
+      "compressed_bytes": 4912582,
+      "uncompressed_bytes": 14155776
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/effects/cannon_field.json",
+      "compressed_bytes": 468,
+      "uncompressed_bytes": 1027
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/effects/gun_smoke.png",
+      "compressed_bytes": 169805,
+      "uncompressed_bytes": 169805
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/effects/machinegun_muzzle.glb",
+      "compressed_bytes": 8640,
+      "uncompressed_bytes": 14796
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/effects/machinegun_muzzle_noise.bin",
+      "compressed_bytes": 30362,
+      "uncompressed_bytes": 32768
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/effects/muzzle_flash.png",
+      "compressed_bytes": 45642,
+      "uncompressed_bytes": 45642
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/enemies/armored.glb",
+      "compressed_bytes": 228390,
+      "uncompressed_bytes": 308656
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/enemies/boss.glb",
+      "compressed_bytes": 230046,
+      "uncompressed_bytes": 311716
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/enemies/fast.glb",
+      "compressed_bytes": 229105,
+      "uncompressed_bytes": 309868
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/enemies/normal.glb",
+      "compressed_bytes": 229175,
+      "uncompressed_bytes": 310436
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/enemies/shielded.glb",
+      "compressed_bytes": 229203,
+      "uncompressed_bytes": 309812
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/enemies/tank.glb",
+      "compressed_bytes": 229121,
+      "uncompressed_bytes": 309212
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/environment/ltc_float_1.bin",
+      "compressed_bytes": 59407,
+      "uncompressed_bytes": 65536
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/environment/ltc_float_2.bin",
+      "compressed_bytes": 42368,
+      "uncompressed_bytes": 65536
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/environment/ltc_half_1.bin",
+      "compressed_bytes": 28680,
+      "uncompressed_bytes": 32768
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/environment/ltc_half_2.bin",
+      "compressed_bytes": 19987,
+      "uncompressed_bytes": 32768
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/environment/terrain.glb",
+      "compressed_bytes": 25159525,
+      "uncompressed_bytes": 27957564
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/turrets/arrow.glb",
+      "compressed_bytes": 2137226,
+      "uncompressed_bytes": 2487368
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/turrets/cannon.glb",
+      "compressed_bytes": 676162,
+      "uncompressed_bytes": 1075412
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/turrets/frost.glb",
+      "compressed_bytes": 1519755,
+      "uncompressed_bytes": 1628284
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/turrets/lightning.glb",
+      "compressed_bytes": 10695,
+      "uncompressed_bytes": 52412
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/turrets/magic.glb",
+      "compressed_bytes": 9871,
+      "uncompressed_bytes": 43864
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage1_3d/turrets/sniper.glb",
+      "compressed_bytes": 17269,
+      "uncompressed_bytes": 85032
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_details/ui/action_button_frame.png",
+      "compressed_bytes": 34575,
+      "uncompressed_bytes": 34575
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_details/ui/close_button_frame.png",
+      "compressed_bytes": 8923,
+      "uncompressed_bytes": 8923
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_details/ui/dialog_frame.png",
+      "compressed_bytes": 97235,
+      "uncompressed_bytes": 97235
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_details/ui/header_icon_socket.png",
+      "compressed_bytes": 10507,
+      "uncompressed_bytes": 10507
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_details/ui/quick_stat_frame.png",
+      "compressed_bytes": 14135,
+      "uncompressed_bytes": 14135
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_details/ui/status_chip_frame.png",
+      "compressed_bytes": 7833,
+      "uncompressed_bytes": 7833
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_details/ui/unlock_chip_frame.png",
+      "compressed_bytes": 8454,
+      "uncompressed_bytes": 8454
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_details/ui/unlock_panel_frame.png",
+      "compressed_bytes": 38633,
+      "uncompressed_bytes": 38633
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_rewards/reward_core.png",
+      "compressed_bytes": 100038,
+      "uncompressed_bytes": 100038
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_rewards/reward_gem.png",
+      "compressed_bytes": 79430,
+      "uncompressed_bytes": 79430
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_rewards/reward_module_ticket.png",
+      "compressed_bytes": 68584,
+      "uncompressed_bytes": 68584
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_rewards/reward_research.png",
+      "compressed_bytes": 60061,
+      "uncompressed_bytes": 60061
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_rewards/reward_stage.png",
+      "compressed_bytes": 32680,
+      "uncompressed_bytes": 32680
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_rewards/reward_turret.png",
+      "compressed_bytes": 70531,
+      "uncompressed_bytes": 70531
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/stage_rewards/reward_upgrade.png",
+      "compressed_bytes": 69496,
+      "uncompressed_bytes": 69496
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/turret_modules/ui/turret_connector_assembly.png",
+      "compressed_bytes": 369678,
+      "uncompressed_bytes": 369678
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/turret_modules/ui/turret_preview_frame.png",
+      "compressed_bytes": 203225,
+      "uncompressed_bytes": 203225
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/button_frame.png",
+      "compressed_bytes": 36199,
+      "uncompressed_bytes": 36199
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/card_frame.png",
+      "compressed_bytes": 235274,
+      "uncompressed_bytes": 235274
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/chip_frame.png",
+      "compressed_bytes": 18444,
+      "uncompressed_bytes": 18444
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/gem_link_active.png",
+      "compressed_bytes": 51376,
+      "uncompressed_bytes": 51376
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/gem_link_locked.png",
+      "compressed_bytes": 49951,
+      "uncompressed_bytes": 49951
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/gem_socket_empty.png",
+      "compressed_bytes": 107393,
+      "uncompressed_bytes": 107393
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/gem_socket_locked.png",
+      "compressed_bytes": 125302,
+      "uncompressed_bytes": 125302
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/gem_socket_selected.png",
+      "compressed_bytes": 115546,
+      "uncompressed_bytes": 115546
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/icon_socket.png",
+      "compressed_bytes": 24243,
+      "uncompressed_bytes": 24243
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/panel_frame.png",
+      "compressed_bytes": 607842,
+      "uncompressed_bytes": 607842
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/row_frame.png",
+      "compressed_bytes": 203709,
+      "uncompressed_bytes": 203709
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/row_frame_locked.png",
+      "compressed_bytes": 283493,
+      "uncompressed_bytes": 283493
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/segment_selected_cyan.png",
+      "compressed_bytes": 12695,
+      "uncompressed_bytes": 12695
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/segment_selected_gold.png",
+      "compressed_bytes": 12280,
+      "uncompressed_bytes": 12280
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/components/segmented_control_frame.png",
+      "compressed_bytes": 41507,
+      "uncompressed_bytes": 41507
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/stage_reference/active_stage_panel.png",
+      "compressed_bytes": 282474,
+      "uncompressed_bytes": 282474
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/stage_reference/chapter_banner_frame.png",
+      "compressed_bytes": 22216,
+      "uncompressed_bytes": 22216
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/stage_reference/chapter_bridge.png",
+      "compressed_bytes": 7234,
+      "uncompressed_bytes": 7234
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/stage_reference/chapter_tab_idle.png",
+      "compressed_bytes": 22769,
+      "uncompressed_bytes": 22769
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/stage_reference/chapter_tab_selected.png",
+      "compressed_bytes": 23728,
+      "uncompressed_bytes": 23728
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/stage_reference/continue_button_idle.png",
+      "compressed_bytes": 78815,
+      "uncompressed_bytes": 78815
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/stage_reference/locked_stage_row.png",
+      "compressed_bytes": 77281,
+      "uncompressed_bytes": 77281
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/stage_reference/stage_number_plate.png",
+      "compressed_bytes": 12678,
+      "uncompressed_bytes": 12678
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/stage_reference/stage_number_socket.png",
+      "compressed_bytes": 38872,
+      "uncompressed_bytes": 38872
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/stage_reference/stage_shell_fill.png",
+      "compressed_bytes": 594161,
+      "uncompressed_bytes": 594161
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/stage_reference/stage_shell_frame.png",
+      "compressed_bytes": 181996,
+      "uncompressed_bytes": 181996
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/ui/stage_reference/stage_stat_strip.png",
+      "compressed_bytes": 50228,
+      "uncompressed_bytes": 50228
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/upgrades/critical_chance.png",
+      "compressed_bytes": 71807,
+      "uncompressed_bytes": 71807
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/upgrades/critical_damage.png",
+      "compressed_bytes": 70889,
+      "uncompressed_bytes": 70889
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/upgrades/elemental_damage.png",
+      "compressed_bytes": 61016,
+      "uncompressed_bytes": 61016
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/upgrades/kill_gold.png",
+      "compressed_bytes": 56774,
+      "uncompressed_bytes": 56774
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/upgrades/link_cost_optimization.png",
+      "compressed_bytes": 54858,
+      "uncompressed_bytes": 54858
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/upgrades/nexus_hp.png",
+      "compressed_bytes": 86446,
+      "uncompressed_bytes": 86446
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/upgrades/physical_damage.png",
+      "compressed_bytes": 65382,
+      "uncompressed_bytes": 65382
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/upgrades/starting_gold.png",
+      "compressed_bytes": 60340,
+      "uncompressed_bytes": 60340
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/upgrades/tower_damage.png",
+      "compressed_bytes": 63054,
+      "uncompressed_bytes": 63054
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/upgrades/turret_level_up_optimization.png",
+      "compressed_bytes": 64804,
+      "uncompressed_bytes": 64804
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/upgrades/turret_refund.png",
+      "compressed_bytes": 60887,
+      "uncompressed_bytes": 60887
+    },
+    {
+      "name": "assets/flutter_assets/assets/images/upgrades/wave_gold.png",
+      "compressed_bytes": 63873,
+      "uncompressed_bytes": 63873
+    },
+    {
+      "name": "assets/flutter_assets/fonts/MaterialIcons-Regular.otf",
+      "compressed_bytes": 556244,
+      "uncompressed_bytes": 1645184
+    },
+    {
+      "name": "assets/flutter_assets/packages/three_js_controls/assets/joystick_background.png",
+      "compressed_bytes": 5477,
+      "uncompressed_bytes": 5477
+    },
+    {
+      "name": "assets/flutter_assets/packages/three_js_controls/assets/joystick_knob.png",
+      "compressed_bytes": 5179,
+      "uncompressed_bytes": 5179
+    },
+    {
+      "name": "assets/flutter_assets/shaders/ink_sparkle.frag",
+      "compressed_bytes": 5275,
+      "uncompressed_bytes": 21856
+    },
+    {
+      "name": "assets/flutter_assets/shaders/stretch_effect.frag",
+      "compressed_bytes": 3503,
+      "uncompressed_bytes": 17616
+    },
+    {
+      "name": "assets/rune_nexus.pck",
+      "compressed_bytes": 57411804,
+      "uncompressed_bytes": 57411804
+    },
+    {
+      "name": "DebugProbesKt.bin",
+      "compressed_bytes": 777,
+      "uncompressed_bytes": 1728
+    },
+    {
+      "name": "META-INF/androidx.activity_activity.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.annotation_annotation-experimental.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.appcompat_appcompat-resources.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.appcompat_appcompat.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.arch.core_core-runtime.version",
+      "compressed_bytes": 61,
+      "uncompressed_bytes": 67
+    },
+    {
+      "name": "META-INF/androidx.biometric_biometric.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.core_core-ktx.version",
+      "compressed_bytes": 9,
+      "uncompressed_bytes": 7
+    },
+    {
+      "name": "META-INF/androidx.core_core.version",
+      "compressed_bytes": 9,
+      "uncompressed_bytes": 7
+    },
+    {
+      "name": "META-INF/androidx.credentials_credentials-play-services-auth.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.credentials_credentials.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.cursoradapter_cursoradapter.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.customview_customview.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.documentfile_documentfile.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.drawerlayout_drawerlayout.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.exifinterface_exifinterface.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.fragment_fragment.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.interpolator_interpolator.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.lifecycle_lifecycle-livedata-core.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.lifecycle_lifecycle-process.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.lifecycle_lifecycle-runtime.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.lifecycle_lifecycle-viewmodel-savedstate.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.lifecycle_lifecycle-viewmodel.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.loader_loader.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.profileinstaller_profileinstaller.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.savedstate_savedstate.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.startup_startup-runtime.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.tracing_tracing.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.vectordrawable_vectordrawable-animated.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.vectordrawable_vectordrawable.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.versionedparcelable_versionedparcelable.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.viewpager_viewpager.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.window.extensions.core_core.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.window_window-java.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/androidx.window_window.version",
+      "compressed_bytes": 8,
+      "uncompressed_bytes": 6
+    },
+    {
+      "name": "META-INF/kotlinx_coroutines_android.version",
+      "compressed_bytes": 7,
+      "uncompressed_bytes": 5
+    },
+    {
+      "name": "META-INF/kotlinx_coroutines_core.version",
+      "compressed_bytes": 7,
+      "uncompressed_bytes": 5
+    },
+    {
+      "name": "META-INF/services/r1.a",
+      "compressed_bytes": 7,
+      "uncompressed_bytes": 5
+    },
+    {
+      "name": "META-INF/services/r1.b",
+      "compressed_bytes": 7,
+      "uncompressed_bytes": 5
+    },
+    {
+      "name": "META-INF/versions/9/OSGI-INF/MANIFEST.MF",
+      "compressed_bytes": 129,
+      "uncompressed_bytes": 145
+    },
+    {
+      "name": "googleid.properties",
+      "compressed_bytes": 38,
+      "uncompressed_bytes": 52
+    },
+    {
+      "name": "kotlin-tooling-metadata.json",
+      "compressed_bytes": 283,
+      "uncompressed_bytes": 625
+    },
+    {
+      "name": "kotlin/annotation/annotation.kotlin_builtins",
+      "compressed_bytes": 533,
+      "uncompressed_bytes": 1006
+    },
+    {
+      "name": "kotlin/collections/collections.kotlin_builtins",
+      "compressed_bytes": 1834,
+      "uncompressed_bytes": 8308
+    },
+    {
+      "name": "kotlin/concurrent/atomics/atomics.kotlin_builtins",
+      "compressed_bytes": 1082,
+      "uncompressed_bytes": 2674
+    },
+    {
+      "name": "kotlin/coroutines/coroutines.kotlin_builtins",
+      "compressed_bytes": 116,
+      "uncompressed_bytes": 137
+    },
+    {
+      "name": "kotlin/internal/internal.kotlin_builtins",
+      "compressed_bytes": 357,
+      "uncompressed_bytes": 590
+    },
+    {
+      "name": "kotlin/kotlin.kotlin_builtins",
+      "compressed_bytes": 5342,
+      "uncompressed_bytes": 29399
+    },
+    {
+      "name": "kotlin/ranges/ranges.kotlin_builtins",
+      "compressed_bytes": 1354,
+      "uncompressed_bytes": 4184
+    },
+    {
+      "name": "kotlin/reflect/reflect.kotlin_builtins",
+      "compressed_bytes": 1435,
+      "uncompressed_bytes": 4827
+    },
+    {
+      "name": "play-services-auth-api-phone.properties",
+      "compressed_bytes": 60,
+      "uncompressed_bytes": 94
+    },
+    {
+      "name": "play-services-auth-base.properties",
+      "compressed_bytes": 56,
+      "uncompressed_bytes": 86
+    },
+    {
+      "name": "play-services-auth-blockstore.properties",
+      "compressed_bytes": 61,
+      "uncompressed_bytes": 96
+    },
+    {
+      "name": "play-services-auth.properties",
+      "compressed_bytes": 48,
+      "uncompressed_bytes": 74
+    },
+    {
+      "name": "play-services-base.properties",
+      "compressed_bytes": 50,
+      "uncompressed_bytes": 74
+    },
+    {
+      "name": "play-services-basement.properties",
+      "compressed_bytes": 53,
+      "uncompressed_bytes": 82
+    },
+    {
+      "name": "play-services-fido.properties",
+      "compressed_bytes": 50,
+      "uncompressed_bytes": 74
+    },
+    {
+      "name": "play-services-identity-credentials.properties",
+      "compressed_bytes": 70,
+      "uncompressed_bytes": 122
+    },
+    {
+      "name": "play-services-tasks.properties",
+      "compressed_bytes": 51,
+      "uncompressed_bytes": 76
+    },
+    {
+      "name": "AndroidManifest.xml",
+      "compressed_bytes": 2976,
+      "uncompressed_bytes": 11448
+    },
+    {
+      "name": "res/-B.png",
+      "compressed_bytes": 281,
+      "uncompressed_bytes": 281
+    },
+    {
+      "name": "res/0B.webp",
+      "compressed_bytes": 8178,
+      "uncompressed_bytes": 8178
+    },
+    {
+      "name": "res/0K.xml",
+      "compressed_bytes": 222,
+      "uncompressed_bytes": 448
+    },
+    {
+      "name": "res/0W.webp",
+      "compressed_bytes": 1394,
+      "uncompressed_bytes": 1394
+    },
+    {
+      "name": "res/0Z.png",
+      "compressed_bytes": 146,
+      "uncompressed_bytes": 146
+    },
+    {
+      "name": "res/0c.9.png",
+      "compressed_bytes": 267,
+      "uncompressed_bytes": 267
+    },
+    {
+      "name": "res/15.png",
+      "compressed_bytes": 328,
+      "uncompressed_bytes": 328
+    },
+    {
+      "name": "res/1I.9.png",
+      "compressed_bytes": 2305,
+      "uncompressed_bytes": 2305
+    },
+    {
+      "name": "res/1J.9.png",
+      "compressed_bytes": 1731,
+      "uncompressed_bytes": 1731
+    },
+    {
+      "name": "res/1e.9.png",
+      "compressed_bytes": 171,
+      "uncompressed_bytes": 171
+    },
+    {
+      "name": "res/27.xml",
+      "compressed_bytes": 174,
+      "uncompressed_bytes": 336
+    },
+    {
+      "name": "res/2D.webp",
+      "compressed_bytes": 2080,
+      "uncompressed_bytes": 2080
+    },
+    {
+      "name": "res/2K.9.png",
+      "compressed_bytes": 225,
+      "uncompressed_bytes": 225
+    },
+    {
+      "name": "res/2d.png",
+      "compressed_bytes": 145,
+      "uncompressed_bytes": 145
+    },
+    {
+      "name": "res/2f.xml",
+      "compressed_bytes": 669,
+      "uncompressed_bytes": 1916
+    },
+    {
+      "name": "res/2j.xml",
+      "compressed_bytes": 803,
+      "uncompressed_bytes": 2072
+    },
+    {
+      "name": "res/2r.xml",
+      "compressed_bytes": 219,
+      "uncompressed_bytes": 448
+    },
+    {
+      "name": "res/2z.png",
+      "compressed_bytes": 513,
+      "uncompressed_bytes": 513
+    },
+    {
+      "name": "res/33.9.png",
+      "compressed_bytes": 541,
+      "uncompressed_bytes": 541
+    },
+    {
+      "name": "res/3A.xml",
+      "compressed_bytes": 500,
+      "uncompressed_bytes": 1056
+    },
+    {
+      "name": "res/3E.webp",
+      "compressed_bytes": 52,
+      "uncompressed_bytes": 52
+    },
+    {
+      "name": "res/46.xml",
+      "compressed_bytes": 353,
+      "uncompressed_bytes": 684
+    },
+    {
+      "name": "res/49.png",
+      "compressed_bytes": 595,
+      "uncompressed_bytes": 595
+    },
+    {
+      "name": "res/4B.xml",
+      "compressed_bytes": 265,
+      "uncompressed_bytes": 452
+    },
+    {
+      "name": "res/4k.png",
+      "compressed_bytes": 201,
+      "uncompressed_bytes": 201
+    },
+    {
+      "name": "res/4l.webp",
+      "compressed_bytes": 6698,
+      "uncompressed_bytes": 6698
+    },
+    {
+      "name": "res/4o.png",
+      "compressed_bytes": 178,
+      "uncompressed_bytes": 178
+    },
+    {
+      "name": "res/4u.xml",
+      "compressed_bytes": 292,
+      "uncompressed_bytes": 756
+    },
+    {
+      "name": "res/5D.9.png",
+      "compressed_bytes": 272,
+      "uncompressed_bytes": 272
+    },
+    {
+      "name": "res/5K.png",
+      "compressed_bytes": 263,
+      "uncompressed_bytes": 263
+    },
+    {
+      "name": "res/5R.png",
+      "compressed_bytes": 467,
+      "uncompressed_bytes": 467
+    },
+    {
+      "name": "res/5c.png",
+      "compressed_bytes": 138,
+      "uncompressed_bytes": 138
+    },
+    {
+      "name": "res/5n.webp",
+      "compressed_bytes": 3024,
+      "uncompressed_bytes": 3024
+    },
+    {
+      "name": "res/5z.xml",
+      "compressed_bytes": 395,
+      "uncompressed_bytes": 1128
+    },
+    {
+      "name": "res/62.9.png",
+      "compressed_bytes": 210,
+      "uncompressed_bytes": 210
+    },
+    {
+      "name": "res/6K.png",
+      "compressed_bytes": 54849,
+      "uncompressed_bytes": 54849
+    },
+    {
+      "name": "res/6Q.xml",
+      "compressed_bytes": 302,
+      "uncompressed_bytes": 688
+    },
+    {
+      "name": "res/6Y.png",
+      "compressed_bytes": 133,
+      "uncompressed_bytes": 133
+    },
+    {
+      "name": "res/6t.png",
+      "compressed_bytes": 227,
+      "uncompressed_bytes": 227
+    },
+    {
+      "name": "res/7C.9.png",
+      "compressed_bytes": 430,
+      "uncompressed_bytes": 430
+    },
+    {
+      "name": "res/7H.xml",
+      "compressed_bytes": 230,
+      "uncompressed_bytes": 464
+    },
+    {
+      "name": "res/7I.9.png",
+      "compressed_bytes": 345,
+      "uncompressed_bytes": 345
+    },
+    {
+      "name": "res/7N.xml",
+      "compressed_bytes": 185,
+      "uncompressed_bytes": 372
+    },
+    {
+      "name": "res/7_.9.png",
+      "compressed_bytes": 813,
+      "uncompressed_bytes": 813
+    },
+    {
+      "name": "res/7i.png",
+      "compressed_bytes": 464,
+      "uncompressed_bytes": 464
+    },
+    {
+      "name": "res/7o.9.png",
+      "compressed_bytes": 525,
+      "uncompressed_bytes": 525
+    },
+    {
+      "name": "res/80.xml",
+      "compressed_bytes": 841,
+      "uncompressed_bytes": 2688
+    },
+    {
+      "name": "res/8F.png",
+      "compressed_bytes": 327,
+      "uncompressed_bytes": 327
+    },
+    {
+      "name": "res/8h.png",
+      "compressed_bytes": 946,
+      "uncompressed_bytes": 946
+    },
+    {
+      "name": "res/9L.png",
+      "compressed_bytes": 364,
+      "uncompressed_bytes": 364
+    },
+    {
+      "name": "res/9N.9.png",
+      "compressed_bytes": 187,
+      "uncompressed_bytes": 187
+    },
+    {
+      "name": "res/9T.xml",
+      "compressed_bytes": 394,
+      "uncompressed_bytes": 932
+    },
+    {
+      "name": "res/9T1.xml",
+      "compressed_bytes": 428,
+      "uncompressed_bytes": 1656
+    },
+    {
+      "name": "res/9T2.xml",
+      "compressed_bytes": 373,
+      "uncompressed_bytes": 1028
+    },
+    {
+      "name": "res/9X.9.png",
+      "compressed_bytes": 192,
+      "uncompressed_bytes": 192
+    },
+    {
+      "name": "res/9k.png",
+      "compressed_bytes": 422,
+      "uncompressed_bytes": 422
+    },
+    {
+      "name": "res/9m.xml",
+      "compressed_bytes": 173,
+      "uncompressed_bytes": 304
+    },
+    {
+      "name": "res/9n.9.png",
+      "compressed_bytes": 178,
+      "uncompressed_bytes": 178
+    },
+    {
+      "name": "res/9w.png",
+      "compressed_bytes": 4342,
+      "uncompressed_bytes": 4342
+    },
+    {
+      "name": "res/9z.png",
+      "compressed_bytes": 593,
+      "uncompressed_bytes": 593
+    },
+    {
+      "name": "res/A1.xml",
+      "compressed_bytes": 388,
+      "uncompressed_bytes": 872
+    },
+    {
+      "name": "res/A4.xml",
+      "compressed_bytes": 301,
+      "uncompressed_bytes": 680
+    },
+    {
+      "name": "res/AF.webp",
+      "compressed_bytes": 5790,
+      "uncompressed_bytes": 5790
+    },
+    {
+      "name": "res/AJ.png",
+      "compressed_bytes": 336,
+      "uncompressed_bytes": 336
+    },
+    {
+      "name": "res/B1.webp",
+      "compressed_bytes": 2812,
+      "uncompressed_bytes": 2812
+    },
+    {
+      "name": "res/BG.9.png",
+      "compressed_bytes": 190,
+      "uncompressed_bytes": 190
+    },
+    {
+      "name": "res/BJ.xml",
+      "compressed_bytes": 392,
+      "uncompressed_bytes": 1128
+    },
+    {
+      "name": "res/BL.9.png",
+      "compressed_bytes": 229,
+      "uncompressed_bytes": 229
+    },
+    {
+      "name": "res/BM.png",
+      "compressed_bytes": 159,
+      "uncompressed_bytes": 159
+    },
+    {
+      "name": "res/BW.xml",
+      "compressed_bytes": 222,
+      "uncompressed_bytes": 448
+    },
+    {
+      "name": "res/BX.png",
+      "compressed_bytes": 310,
+      "uncompressed_bytes": 310
+    },
+    {
+      "name": "res/CC.webp",
+      "compressed_bytes": 44,
+      "uncompressed_bytes": 44
+    },
+    {
+      "name": "res/CF.png",
+      "compressed_bytes": 887,
+      "uncompressed_bytes": 887
+    },
+    {
+      "name": "res/C_.9.png",
+      "compressed_bytes": 215,
+      "uncompressed_bytes": 215
+    },
+    {
+      "name": "res/Ce.png",
+      "compressed_bytes": 243,
+      "uncompressed_bytes": 243
+    },
+    {
+      "name": "res/DL.9.png",
+      "compressed_bytes": 178,
+      "uncompressed_bytes": 178
+    },
+    {
+      "name": "res/DL.png",
+      "compressed_bytes": 253,
+      "uncompressed_bytes": 253
+    },
+    {
+      "name": "res/DZ.xml",
+      "compressed_bytes": 190,
+      "uncompressed_bytes": 320
+    },
+    {
+      "name": "res/D_.9.png",
+      "compressed_bytes": 178,
+      "uncompressed_bytes": 178
+    },
+    {
+      "name": "res/EA.9.png",
+      "compressed_bytes": 200,
+      "uncompressed_bytes": 200
+    },
+    {
+      "name": "res/Eg.xml",
+      "compressed_bytes": 551,
+      "uncompressed_bytes": 1716
+    },
+    {
+      "name": "res/El.png",
+      "compressed_bytes": 461,
+      "uncompressed_bytes": 461
+    },
+    {
+      "name": "res/FE.png",
+      "compressed_bytes": 513,
+      "uncompressed_bytes": 513
+    },
+    {
+      "name": "res/FS.png",
+      "compressed_bytes": 15107,
+      "uncompressed_bytes": 15107
+    },
+    {
+      "name": "res/FW.png",
+      "compressed_bytes": 307,
+      "uncompressed_bytes": 307
+    },
+    {
+      "name": "res/G2.9.png",
+      "compressed_bytes": 1243,
+      "uncompressed_bytes": 1243
+    },
+    {
+      "name": "res/GK.xml",
+      "compressed_bytes": 464,
+      "uncompressed_bytes": 1172
+    },
+    {
+      "name": "res/Gf.png",
+      "compressed_bytes": 984,
+      "uncompressed_bytes": 984
+    },
+    {
+      "name": "res/Gm.png",
+      "compressed_bytes": 668,
+      "uncompressed_bytes": 668
+    },
+    {
+      "name": "res/Gt.9.png",
+      "compressed_bytes": 202,
+      "uncompressed_bytes": 202
+    },
+    {
+      "name": "res/Gw.png",
+      "compressed_bytes": 139,
+      "uncompressed_bytes": 139
+    },
+    {
+      "name": "res/Ho.png",
+      "compressed_bytes": 459,
+      "uncompressed_bytes": 459
+    },
+    {
+      "name": "res/II.webp",
+      "compressed_bytes": 3782,
+      "uncompressed_bytes": 3782
+    },
+    {
+      "name": "res/IX.9.png",
+      "compressed_bytes": 1544,
+      "uncompressed_bytes": 1544
+    },
+    {
+      "name": "res/In.xml",
+      "compressed_bytes": 233,
+      "uncompressed_bytes": 468
+    },
+    {
+      "name": "res/JJ.9.png",
+      "compressed_bytes": 280,
+      "uncompressed_bytes": 280
+    },
+    {
+      "name": "res/JR.png",
+      "compressed_bytes": 398,
+      "uncompressed_bytes": 398
+    },
+    {
+      "name": "res/Jl.xml",
+      "compressed_bytes": 230,
+      "uncompressed_bytes": 464
+    },
+    {
+      "name": "res/K0.png",
+      "compressed_bytes": 991,
+      "uncompressed_bytes": 991
+    },
+    {
+      "name": "res/K5.png",
+      "compressed_bytes": 700,
+      "uncompressed_bytes": 700
+    },
+    {
+      "name": "res/K5.xml",
+      "compressed_bytes": 433,
+      "uncompressed_bytes": 1656
+    },
+    {
+      "name": "res/KG.png",
+      "compressed_bytes": 333,
+      "uncompressed_bytes": 333
+    },
+    {
+      "name": "res/KH.9.png",
+      "compressed_bytes": 618,
+      "uncompressed_bytes": 618
+    },
+    {
+      "name": "res/KL.png",
+      "compressed_bytes": 1291,
+      "uncompressed_bytes": 1291
+    },
+    {
+      "name": "res/KM.png",
+      "compressed_bytes": 415,
+      "uncompressed_bytes": 415
+    },
+    {
+      "name": "res/KS.xml",
+      "compressed_bytes": 199,
+      "uncompressed_bytes": 356
+    },
+    {
+      "name": "res/K_.9.png",
+      "compressed_bytes": 216,
+      "uncompressed_bytes": 216
+    },
+    {
+      "name": "res/Ke.png",
+      "compressed_bytes": 705,
+      "uncompressed_bytes": 705
+    },
+    {
+      "name": "res/Ke.xml",
+      "compressed_bytes": 660,
+      "uncompressed_bytes": 2360
+    },
+    {
+      "name": "res/Ki.png",
+      "compressed_bytes": 215,
+      "uncompressed_bytes": 215
+    },
+    {
+      "name": "res/Ki1.png",
+      "compressed_bytes": 400,
+      "uncompressed_bytes": 400
+    },
+    {
+      "name": "res/Kk.png",
+      "compressed_bytes": 421,
+      "uncompressed_bytes": 421
+    },
+    {
+      "name": "res/L9.png",
+      "compressed_bytes": 585,
+      "uncompressed_bytes": 585
+    },
+    {
+      "name": "res/LK.png",
+      "compressed_bytes": 404,
+      "uncompressed_bytes": 404
+    },
+    {
+      "name": "res/LS.png",
+      "compressed_bytes": 186,
+      "uncompressed_bytes": 186
+    },
+    {
+      "name": "res/Lb.png",
+      "compressed_bytes": 193,
+      "uncompressed_bytes": 193
+    },
+    {
+      "name": "res/Lf.xml",
+      "compressed_bytes": 421,
+      "uncompressed_bytes": 1656
+    },
+    {
+      "name": "res/Li.9.png",
+      "compressed_bytes": 1779,
+      "uncompressed_bytes": 1779
+    },
+    {
+      "name": "res/M1.webp",
+      "compressed_bytes": 4782,
+      "uncompressed_bytes": 4782
+    },
+    {
+      "name": "res/M7.xml",
+      "compressed_bytes": 397,
+      "uncompressed_bytes": 1196
+    },
+    {
+      "name": "res/MF.9.png",
+      "compressed_bytes": 2816,
+      "uncompressed_bytes": 2816
+    },
+    {
+      "name": "res/M_.png",
+      "compressed_bytes": 278,
+      "uncompressed_bytes": 278
+    },
+    {
+      "name": "res/Ma.9.png",
+      "compressed_bytes": 247,
+      "uncompressed_bytes": 247
+    },
+    {
+      "name": "res/NA.9.png",
+      "compressed_bytes": 2505,
+      "uncompressed_bytes": 2505
+    },
+    {
+      "name": "res/NF.xml",
+      "compressed_bytes": 190,
+      "uncompressed_bytes": 328
+    },
+    {
+      "name": "res/NG.png",
+      "compressed_bytes": 322,
+      "uncompressed_bytes": 322
+    },
+    {
+      "name": "res/NM.xml",
+      "compressed_bytes": 222,
+      "uncompressed_bytes": 484
+    },
+    {
+      "name": "res/NT.png",
+      "compressed_bytes": 309,
+      "uncompressed_bytes": 309
+    },
+    {
+      "name": "res/NZ.9.png",
+      "compressed_bytes": 182,
+      "uncompressed_bytes": 182
+    },
+    {
+      "name": "res/Nk.9.png",
+      "compressed_bytes": 776,
+      "uncompressed_bytes": 776
+    },
+    {
+      "name": "res/No.9.png",
+      "compressed_bytes": 199,
+      "uncompressed_bytes": 199
+    },
+    {
+      "name": "res/Nu.xml",
+      "compressed_bytes": 703,
+      "uncompressed_bytes": 1728
+    },
+    {
+      "name": "res/O4.png",
+      "compressed_bytes": 420,
+      "uncompressed_bytes": 420
+    },
+    {
+      "name": "res/OC.png",
+      "compressed_bytes": 152,
+      "uncompressed_bytes": 152
+    },
+    {
+      "name": "res/Oj.png",
+      "compressed_bytes": 396,
+      "uncompressed_bytes": 396
+    },
+    {
+      "name": "res/Ol.xml",
+      "compressed_bytes": 678,
+      "uncompressed_bytes": 1656
+    },
+    {
+      "name": "res/Op.png",
+      "compressed_bytes": 305,
+      "uncompressed_bytes": 305
+    },
+    {
+      "name": "res/PC.png",
+      "compressed_bytes": 376,
+      "uncompressed_bytes": 376
+    },
+    {
+      "name": "res/PS.png",
+      "compressed_bytes": 270,
+      "uncompressed_bytes": 270
+    },
+    {
+      "name": "res/Pa.9.png",
+      "compressed_bytes": 738,
+      "uncompressed_bytes": 738
+    },
+    {
+      "name": "res/Pb.png",
+      "compressed_bytes": 631,
+      "uncompressed_bytes": 631
+    },
+    {
+      "name": "res/Pm.png",
+      "compressed_bytes": 203,
+      "uncompressed_bytes": 203
+    },
+    {
+      "name": "res/Pu.png",
+      "compressed_bytes": 260,
+      "uncompressed_bytes": 260
+    },
+    {
+      "name": "res/QJ.9.png",
+      "compressed_bytes": 189,
+      "uncompressed_bytes": 189
+    },
+    {
+      "name": "res/QZ.xml",
+      "compressed_bytes": 296,
+      "uncompressed_bytes": 704
+    },
+    {
+      "name": "res/Qb.png",
+      "compressed_bytes": 583,
+      "uncompressed_bytes": 583
+    },
+    {
+      "name": "res/R8.png",
+      "compressed_bytes": 262,
+      "uncompressed_bytes": 262
+    },
+    {
+      "name": "res/RF.webp",
+      "compressed_bytes": 736,
+      "uncompressed_bytes": 736
+    },
+    {
+      "name": "res/RJ.png",
+      "compressed_bytes": 31529,
+      "uncompressed_bytes": 31529
+    },
+    {
+      "name": "res/RV.png",
+      "compressed_bytes": 563,
+      "uncompressed_bytes": 563
+    },
+    {
+      "name": "res/Ri.png",
+      "compressed_bytes": 187,
+      "uncompressed_bytes": 187
+    },
+    {
+      "name": "res/Rv.png",
+      "compressed_bytes": 203,
+      "uncompressed_bytes": 203
+    },
+    {
+      "name": "res/Rv1.png",
+      "compressed_bytes": 199,
+      "uncompressed_bytes": 199
+    },
+    {
+      "name": "res/S8.xml",
+      "compressed_bytes": 485,
+      "uncompressed_bytes": 1052
+    },
+    {
+      "name": "res/Sc.xml",
+      "compressed_bytes": 388,
+      "uncompressed_bytes": 1128
+    },
+    {
+      "name": "res/Su.9.png",
+      "compressed_bytes": 178,
+      "uncompressed_bytes": 178
+    },
+    {
+      "name": "res/Sw.png",
+      "compressed_bytes": 310,
+      "uncompressed_bytes": 310
+    },
+    {
+      "name": "res/T6.png",
+      "compressed_bytes": 420,
+      "uncompressed_bytes": 420
+    },
+    {
+      "name": "res/Th.png",
+      "compressed_bytes": 785,
+      "uncompressed_bytes": 785
+    },
+    {
+      "name": "res/Tj.9.png",
+      "compressed_bytes": 327,
+      "uncompressed_bytes": 327
+    },
+    {
+      "name": "res/Tm.xml",
+      "compressed_bytes": 204,
+      "uncompressed_bytes": 400
+    },
+    {
+      "name": "res/Tn.xml",
+      "compressed_bytes": 394,
+      "uncompressed_bytes": 768
+    },
+    {
+      "name": "res/U-.9.png",
+      "compressed_bytes": 223,
+      "uncompressed_bytes": 223
+    },
+    {
+      "name": "res/U8.xml",
+      "compressed_bytes": 831,
+      "uncompressed_bytes": 2660
+    },
+    {
+      "name": "res/V8.webp",
+      "compressed_bytes": 46,
+      "uncompressed_bytes": 46
+    },
+    {
+      "name": "res/VM.xml",
+      "compressed_bytes": 190,
+      "uncompressed_bytes": 328
+    },
+    {
+      "name": "res/Wh.png",
+      "compressed_bytes": 171,
+      "uncompressed_bytes": 171
+    },
+    {
+      "name": "res/Ws.xml",
+      "compressed_bytes": 470,
+      "uncompressed_bytes": 1180
+    },
+    {
+      "name": "res/Wz.png",
+      "compressed_bytes": 196,
+      "uncompressed_bytes": 196
+    },
+    {
+      "name": "res/X4.9.png",
+      "compressed_bytes": 187,
+      "uncompressed_bytes": 187
+    },
+    {
+      "name": "res/XD.png",
+      "compressed_bytes": 905,
+      "uncompressed_bytes": 905
+    },
+    {
+      "name": "res/XK.xml",
+      "compressed_bytes": 241,
+      "uncompressed_bytes": 516
+    },
+    {
+      "name": "res/XV.png",
+      "compressed_bytes": 278,
+      "uncompressed_bytes": 278
+    },
+    {
+      "name": "res/XW.xml",
+      "compressed_bytes": 296,
+      "uncompressed_bytes": 704
+    },
+    {
+      "name": "res/Xk.png",
+      "compressed_bytes": 422,
+      "uncompressed_bytes": 422
+    },
+    {
+      "name": "res/Xx.xml",
+      "compressed_bytes": 244,
+      "uncompressed_bytes": 516
+    },
+    {
+      "name": "res/YG.9.png",
+      "compressed_bytes": 203,
+      "uncompressed_bytes": 203
+    },
+    {
+      "name": "res/YP.png",
+      "compressed_bytes": 32841,
+      "uncompressed_bytes": 32841
+    },
+    {
+      "name": "res/YU.webp",
+      "compressed_bytes": 2242,
+      "uncompressed_bytes": 2242
+    },
+    {
+      "name": "res/YW.xml",
+      "compressed_bytes": 185,
+      "uncompressed_bytes": 372
+    },
+    {
+      "name": "res/Yw.9.png",
+      "compressed_bytes": 186,
+      "uncompressed_bytes": 186
+    },
+    {
+      "name": "res/Yz.png",
+      "compressed_bytes": 752,
+      "uncompressed_bytes": 752
+    },
+    {
+      "name": "res/ZD.xml",
+      "compressed_bytes": 283,
+      "uncompressed_bytes": 668
+    },
+    {
+      "name": "res/ZI.png",
+      "compressed_bytes": 681,
+      "uncompressed_bytes": 681
+    },
+    {
+      "name": "res/Zg.xml",
+      "compressed_bytes": 380,
+      "uncompressed_bytes": 1028
+    },
+    {
+      "name": "res/Zn.xml",
+      "compressed_bytes": 185,
+      "uncompressed_bytes": 344
+    },
+    {
+      "name": "res/_F.png",
+      "compressed_bytes": 262,
+      "uncompressed_bytes": 262
+    },
+    {
+      "name": "res/_G.xml",
+      "compressed_bytes": 222,
+      "uncompressed_bytes": 484
+    },
+    {
+      "name": "res/_g.png",
+      "compressed_bytes": 235,
+      "uncompressed_bytes": 235
+    },
+    {
+      "name": "res/_i.webp",
+      "compressed_bytes": 2102,
+      "uncompressed_bytes": 2102
+    },
+    {
+      "name": "res/_o.xml",
+      "compressed_bytes": 187,
+      "uncompressed_bytes": 316
+    },
+    {
+      "name": "res/_q.png",
+      "compressed_bytes": 173,
+      "uncompressed_bytes": 173
+    },
+    {
+      "name": "res/a-.png",
+      "compressed_bytes": 652,
+      "uncompressed_bytes": 652
+    },
+    {
+      "name": "res/a0.xml",
+      "compressed_bytes": 536,
+      "uncompressed_bytes": 1228
+    },
+    {
+      "name": "res/aG.xml",
+      "compressed_bytes": 287,
+      "uncompressed_bytes": 532
+    },
+    {
+      "name": "res/aU.9.png",
+      "compressed_bytes": 448,
+      "uncompressed_bytes": 448
+    },
+    {
+      "name": "res/aW.xml",
+      "compressed_bytes": 296,
+      "uncompressed_bytes": 704
+    },
+    {
+      "name": "res/ai.xml",
+      "compressed_bytes": 242,
+      "uncompressed_bytes": 472
+    },
+    {
+      "name": "res/ar.png",
+      "compressed_bytes": 391,
+      "uncompressed_bytes": 391
+    },
+    {
+      "name": "res/bL.xml",
+      "compressed_bytes": 424,
+      "uncompressed_bytes": 1408
+    },
+    {
+      "name": "res/bb.xml",
+      "compressed_bytes": 246,
+      "uncompressed_bytes": 516
+    },
+    {
+      "name": "res/bm.png",
+      "compressed_bytes": 899,
+      "uncompressed_bytes": 899
+    },
+    {
+      "name": "res/bn.png",
+      "compressed_bytes": 1269,
+      "uncompressed_bytes": 1269
+    },
+    {
+      "name": "res/bt.xml",
+      "compressed_bytes": 425,
+      "uncompressed_bytes": 840
+    },
+    {
+      "name": "res/c5.xml",
+      "compressed_bytes": 187,
+      "uncompressed_bytes": 316
+    },
+    {
+      "name": "res/c6.xml",
+      "compressed_bytes": 184,
+      "uncompressed_bytes": 372
+    },
+    {
+      "name": "res/cV.xml",
+      "compressed_bytes": 263,
+      "uncompressed_bytes": 440
+    },
+    {
+      "name": "res/ca.png",
+      "compressed_bytes": 197,
+      "uncompressed_bytes": 197
+    },
+    {
+      "name": "res/color-v23/abc_tint_btn_checkable.xml",
+      "compressed_bytes": 273,
+      "uncompressed_bytes": 624
+    },
+    {
+      "name": "res/color-v23/abc_tint_default.xml",
+      "compressed_bytes": 370,
+      "uncompressed_bytes": 1120
+    },
+    {
+      "name": "res/color-v23/abc_tint_edittext.xml",
+      "compressed_bytes": 284,
+      "uncompressed_bytes": 668
+    },
+    {
+      "name": "res/color-v23/abc_tint_seek_thumb.xml",
+      "compressed_bytes": 241,
+      "uncompressed_bytes": 500
+    },
+    {
+      "name": "res/color-v23/abc_tint_spinner.xml",
+      "compressed_bytes": 284,
+      "uncompressed_bytes": 668
+    },
+    {
+      "name": "res/color-v23/abc_tint_switch_track.xml",
+      "compressed_bytes": 281,
+      "uncompressed_bytes": 664
+    },
+    {
+      "name": "res/d3.png",
+      "compressed_bytes": 432,
+      "uncompressed_bytes": 432
+    },
+    {
+      "name": "res/d5.9.png",
+      "compressed_bytes": 851,
+      "uncompressed_bytes": 851
+    },
+    {
+      "name": "res/dO.xml",
+      "compressed_bytes": 1105,
+      "uncompressed_bytes": 3472
+    },
+    {
+      "name": "res/dW.png",
+      "compressed_bytes": 267,
+      "uncompressed_bytes": 267
+    },
+    {
+      "name": "res/dY.png",
+      "compressed_bytes": 404,
+      "uncompressed_bytes": 404
+    },
+    {
+      "name": "res/df.xml",
+      "compressed_bytes": 253,
+      "uncompressed_bytes": 532
+    },
+    {
+      "name": "res/dt.png",
+      "compressed_bytes": 253,
+      "uncompressed_bytes": 253
+    },
+    {
+      "name": "res/eA.xml",
+      "compressed_bytes": 709,
+      "uncompressed_bytes": 1868
+    },
+    {
+      "name": "res/eN.png",
+      "compressed_bytes": 710,
+      "uncompressed_bytes": 710
+    },
+    {
+      "name": "res/eR.png",
+      "compressed_bytes": 356,
+      "uncompressed_bytes": 356
+    },
+    {
+      "name": "res/eT.9.png",
+      "compressed_bytes": 318,
+      "uncompressed_bytes": 318
+    },
+    {
+      "name": "res/ej.9.png",
+      "compressed_bytes": 167,
+      "uncompressed_bytes": 167
+    },
+    {
+      "name": "res/ek.png",
+      "compressed_bytes": 115986,
+      "uncompressed_bytes": 115986
+    },
+    {
+      "name": "res/eu.webp",
+      "compressed_bytes": 1394,
+      "uncompressed_bytes": 1394
+    },
+    {
+      "name": "res/fM.9.png",
+      "compressed_bytes": 825,
+      "uncompressed_bytes": 825
+    },
+    {
+      "name": "res/fN.png",
+      "compressed_bytes": 548,
+      "uncompressed_bytes": 548
+    },
+    {
+      "name": "res/fb.png",
+      "compressed_bytes": 263,
+      "uncompressed_bytes": 263
+    },
+    {
+      "name": "res/g8.png",
+      "compressed_bytes": 599,
+      "uncompressed_bytes": 599
+    },
+    {
+      "name": "res/gK.9.png",
+      "compressed_bytes": 215,
+      "uncompressed_bytes": 215
+    },
+    {
+      "name": "res/gK.png",
+      "compressed_bytes": 1680,
+      "uncompressed_bytes": 1680
+    },
+    {
+      "name": "res/gR.xml",
+      "compressed_bytes": 218,
+      "uncompressed_bytes": 388
+    },
+    {
+      "name": "res/gZ.9.png",
+      "compressed_bytes": 524,
+      "uncompressed_bytes": 524
+    },
+    {
+      "name": "res/gj.9.png",
+      "compressed_bytes": 237,
+      "uncompressed_bytes": 237
+    },
+    {
+      "name": "res/gt.9.png",
+      "compressed_bytes": 205,
+      "uncompressed_bytes": 205
+    },
+    {
+      "name": "res/gv.png",
+      "compressed_bytes": 389,
+      "uncompressed_bytes": 389
+    },
+    {
+      "name": "res/h4.xml",
+      "compressed_bytes": 641,
+      "uncompressed_bytes": 2124
+    },
+    {
+      "name": "res/h7.9.png",
+      "compressed_bytes": 1096,
+      "uncompressed_bytes": 1096
+    },
+    {
+      "name": "res/hE.png",
+      "compressed_bytes": 492,
+      "uncompressed_bytes": 492
+    },
+    {
+      "name": "res/hH.png",
+      "compressed_bytes": 127,
+      "uncompressed_bytes": 127
+    },
+    {
+      "name": "res/hZ.9.png",
+      "compressed_bytes": 167,
+      "uncompressed_bytes": 167
+    },
+    {
+      "name": "res/hk.png",
+      "compressed_bytes": 335,
+      "uncompressed_bytes": 335
+    },
+    {
+      "name": "res/hq.xml",
+      "compressed_bytes": 333,
+      "uncompressed_bytes": 612
+    },
+    {
+      "name": "res/i0.png",
+      "compressed_bytes": 318,
+      "uncompressed_bytes": 318
+    },
+    {
+      "name": "res/i6.9.png",
+      "compressed_bytes": 186,
+      "uncompressed_bytes": 186
+    },
+    {
+      "name": "res/iO.png",
+      "compressed_bytes": 228,
+      "uncompressed_bytes": 228
+    },
+    {
+      "name": "res/iQ.png",
+      "compressed_bytes": 489,
+      "uncompressed_bytes": 489
+    },
+    {
+      "name": "res/iQ.xml",
+      "compressed_bytes": 417,
+      "uncompressed_bytes": 988
+    },
+    {
+      "name": "res/iR.9.png",
+      "compressed_bytes": 484,
+      "uncompressed_bytes": 484
+    },
+    {
+      "name": "res/io.9.png",
+      "compressed_bytes": 1526,
+      "uncompressed_bytes": 1526
+    },
+    {
+      "name": "res/j3.xml",
+      "compressed_bytes": 353,
+      "uncompressed_bytes": 1100
+    },
+    {
+      "name": "res/j4.png",
+      "compressed_bytes": 785,
+      "uncompressed_bytes": 785
+    },
+    {
+      "name": "res/jS.9.png",
+      "compressed_bytes": 167,
+      "uncompressed_bytes": 167
+    },
+    {
+      "name": "res/je.9.png",
+      "compressed_bytes": 212,
+      "uncompressed_bytes": 212
+    },
+    {
+      "name": "res/jq.png",
+      "compressed_bytes": 319,
+      "uncompressed_bytes": 319
+    },
+    {
+      "name": "res/kC.webp",
+      "compressed_bytes": 44,
+      "uncompressed_bytes": 44
+    },
+    {
+      "name": "res/kJ.9.png",
+      "compressed_bytes": 208,
+      "uncompressed_bytes": 208
+    },
+    {
+      "name": "res/ke.png",
+      "compressed_bytes": 263,
+      "uncompressed_bytes": 263
+    },
+    {
+      "name": "res/kf.png",
+      "compressed_bytes": 183,
+      "uncompressed_bytes": 183
+    },
+    {
+      "name": "res/kj.xml",
+      "compressed_bytes": 731,
+      "uncompressed_bytes": 2520
+    },
+    {
+      "name": "res/km.png",
+      "compressed_bytes": 325,
+      "uncompressed_bytes": 325
+    },
+    {
+      "name": "res/kn.xml",
+      "compressed_bytes": 339,
+      "uncompressed_bytes": 816
+    },
+    {
+      "name": "res/kp.png",
+      "compressed_bytes": 224,
+      "uncompressed_bytes": 224
+    },
+    {
+      "name": "res/l6.png",
+      "compressed_bytes": 577,
+      "uncompressed_bytes": 577
+    },
+    {
+      "name": "res/lN.xml",
+      "compressed_bytes": 190,
+      "uncompressed_bytes": 320
+    },
+    {
+      "name": "res/lP.9.png",
+      "compressed_bytes": 194,
+      "uncompressed_bytes": 194
+    },
+    {
+      "name": "res/lR.xml",
+      "compressed_bytes": 260,
+      "uncompressed_bytes": 440
+    },
+    {
+      "name": "res/lX.png",
+      "compressed_bytes": 494,
+      "uncompressed_bytes": 494
+    },
+    {
+      "name": "res/lu.xml",
+      "compressed_bytes": 527,
+      "uncompressed_bytes": 1132
+    },
+    {
+      "name": "res/ly.png",
+      "compressed_bytes": 272,
+      "uncompressed_bytes": 272
+    },
+    {
+      "name": "res/m0.png",
+      "compressed_bytes": 267,
+      "uncompressed_bytes": 267
+    },
+    {
+      "name": "res/mG.png",
+      "compressed_bytes": 178,
+      "uncompressed_bytes": 178
+    },
+    {
+      "name": "res/ma.png",
+      "compressed_bytes": 480,
+      "uncompressed_bytes": 480
+    },
+    {
+      "name": "res/mm.9.png",
+      "compressed_bytes": 345,
+      "uncompressed_bytes": 345
+    },
+    {
+      "name": "res/nI.9.png",
+      "compressed_bytes": 207,
+      "uncompressed_bytes": 207
+    },
+    {
+      "name": "res/nT.xml",
+      "compressed_bytes": 407,
+      "uncompressed_bytes": 1160
+    },
+    {
+      "name": "res/na.png",
+      "compressed_bytes": 189272,
+      "uncompressed_bytes": 189272
+    },
+    {
+      "name": "res/nf.png",
+      "compressed_bytes": 1208,
+      "uncompressed_bytes": 1208
+    },
+    {
+      "name": "res/ni.png",
+      "compressed_bytes": 983,
+      "uncompressed_bytes": 983
+    },
+    {
+      "name": "res/nv.png",
+      "compressed_bytes": 522,
+      "uncompressed_bytes": 522
+    },
+    {
+      "name": "res/nz.xml",
+      "compressed_bytes": 253,
+      "uncompressed_bytes": 532
+    },
+    {
+      "name": "res/o-.png",
+      "compressed_bytes": 52984,
+      "uncompressed_bytes": 52984
+    },
+    {
+      "name": "res/o1.webp",
+      "compressed_bytes": 1122,
+      "uncompressed_bytes": 1122
+    },
+    {
+      "name": "res/o4.png",
+      "compressed_bytes": 202,
+      "uncompressed_bytes": 202
+    },
+    {
+      "name": "res/oC.png",
+      "compressed_bytes": 513,
+      "uncompressed_bytes": 513
+    },
+    {
+      "name": "res/oP.xml",
+      "compressed_bytes": 343,
+      "uncompressed_bytes": 816
+    },
+    {
+      "name": "res/oR.webp",
+      "compressed_bytes": 736,
+      "uncompressed_bytes": 736
+    },
+    {
+      "name": "res/o_.9.png",
+      "compressed_bytes": 252,
+      "uncompressed_bytes": 252
+    },
+    {
+      "name": "res/o_.png",
+      "compressed_bytes": 651,
+      "uncompressed_bytes": 651
+    },
+    {
+      "name": "res/op.9.png",
+      "compressed_bytes": 286,
+      "uncompressed_bytes": 286
+    },
+    {
+      "name": "res/p9.webp",
+      "compressed_bytes": 8178,
+      "uncompressed_bytes": 8178
+    },
+    {
+      "name": "res/pO.webp",
+      "compressed_bytes": 52,
+      "uncompressed_bytes": 52
+    },
+    {
+      "name": "res/pU.xml",
+      "compressed_bytes": 218,
+      "uncompressed_bytes": 364
+    },
+    {
+      "name": "res/pW.png",
+      "compressed_bytes": 753,
+      "uncompressed_bytes": 753
+    },
+    {
+      "name": "res/pY.png",
+      "compressed_bytes": 107,
+      "uncompressed_bytes": 107
+    },
+    {
+      "name": "res/pk.png",
+      "compressed_bytes": 275,
+      "uncompressed_bytes": 275
+    },
+    {
+      "name": "res/pn.png",
+      "compressed_bytes": 251,
+      "uncompressed_bytes": 251
+    },
+    {
+      "name": "res/ps.9.png",
+      "compressed_bytes": 178,
+      "uncompressed_bytes": 178
+    },
+    {
+      "name": "res/pu.png",
+      "compressed_bytes": 909,
+      "uncompressed_bytes": 909
+    },
+    {
+      "name": "res/q6.xml",
+      "compressed_bytes": 395,
+      "uncompressed_bytes": 1128
+    },
+    {
+      "name": "res/q9.webp",
+      "compressed_bytes": 2966,
+      "uncompressed_bytes": 2966
+    },
+    {
+      "name": "res/qA.xml",
+      "compressed_bytes": 265,
+      "uncompressed_bytes": 452
+    },
+    {
+      "name": "res/qD.9.png",
+      "compressed_bytes": 2834,
+      "uncompressed_bytes": 2834
+    },
+    {
+      "name": "res/qp.png",
+      "compressed_bytes": 197,
+      "uncompressed_bytes": 197
+    },
+    {
+      "name": "res/qx.xml",
+      "compressed_bytes": 742,
+      "uncompressed_bytes": 2780
+    },
+    {
+      "name": "res/qz.xml",
+      "compressed_bytes": 430,
+      "uncompressed_bytes": 1656
+    },
+    {
+      "name": "res/rW.xml",
+      "compressed_bytes": 305,
+      "uncompressed_bytes": 688
+    },
+    {
+      "name": "res/rj.9.png",
+      "compressed_bytes": 1098,
+      "uncompressed_bytes": 1098
+    },
+    {
+      "name": "res/rx.xml",
+      "compressed_bytes": 300,
+      "uncompressed_bytes": 680
+    },
+    {
+      "name": "res/s0.png",
+      "compressed_bytes": 403,
+      "uncompressed_bytes": 403
+    },
+    {
+      "name": "res/s4.png",
+      "compressed_bytes": 98,
+      "uncompressed_bytes": 98
+    },
+    {
+      "name": "res/sA.9.png",
+      "compressed_bytes": 212,
+      "uncompressed_bytes": 212
+    },
+    {
+      "name": "res/sA.xml",
+      "compressed_bytes": 230,
+      "uncompressed_bytes": 464
+    },
+    {
+      "name": "res/sg.9.png",
+      "compressed_bytes": 226,
+      "uncompressed_bytes": 226
+    },
+    {
+      "name": "res/sn.xml",
+      "compressed_bytes": 214,
+      "uncompressed_bytes": 400
+    },
+    {
+      "name": "res/tG.png",
+      "compressed_bytes": 476,
+      "uncompressed_bytes": 476
+    },
+    {
+      "name": "res/tL.xml",
+      "compressed_bytes": 323,
+      "uncompressed_bytes": 716
+    },
+    {
+      "name": "res/tS.png",
+      "compressed_bytes": 321,
+      "uncompressed_bytes": 321
+    },
+    {
+      "name": "res/tZ.9.png",
+      "compressed_bytes": 198,
+      "uncompressed_bytes": 198
+    },
+    {
+      "name": "res/tg.webp",
+      "compressed_bytes": 1516,
+      "uncompressed_bytes": 1516
+    },
+    {
+      "name": "res/u0.xml",
+      "compressed_bytes": 397,
+      "uncompressed_bytes": 1196
+    },
+    {
+      "name": "res/u6.webp",
+      "compressed_bytes": 44,
+      "uncompressed_bytes": 44
+    },
+    {
+      "name": "res/uJ.xml",
+      "compressed_bytes": 433,
+      "uncompressed_bytes": 848
+    },
+    {
+      "name": "res/uL.9.png",
+      "compressed_bytes": 966,
+      "uncompressed_bytes": 966
+    },
+    {
+      "name": "res/uj.9.png",
+      "compressed_bytes": 196,
+      "uncompressed_bytes": 196
+    },
+    {
+      "name": "res/ut.9.png",
+      "compressed_bytes": 754,
+      "uncompressed_bytes": 754
+    },
+    {
+      "name": "res/uu.9.png",
+      "compressed_bytes": 204,
+      "uncompressed_bytes": 204
+    },
+    {
+      "name": "res/v2.png",
+      "compressed_bytes": 789,
+      "uncompressed_bytes": 789
+    },
+    {
+      "name": "res/vJ.xml",
+      "compressed_bytes": 284,
+      "uncompressed_bytes": 528
+    },
+    {
+      "name": "res/vL.9.png",
+      "compressed_bytes": 223,
+      "uncompressed_bytes": 223
+    },
+    {
+      "name": "res/vZ.xml",
+      "compressed_bytes": 217,
+      "uncompressed_bytes": 388
+    },
+    {
+      "name": "res/va.png",
+      "compressed_bytes": 311,
+      "uncompressed_bytes": 311
+    },
+    {
+      "name": "res/vq.png",
+      "compressed_bytes": 513,
+      "uncompressed_bytes": 513
+    },
+    {
+      "name": "res/vx.png",
+      "compressed_bytes": 910,
+      "uncompressed_bytes": 910
+    },
+    {
+      "name": "res/vz.9.png",
+      "compressed_bytes": 181,
+      "uncompressed_bytes": 181
+    },
+    {
+      "name": "res/wL.9.png",
+      "compressed_bytes": 437,
+      "uncompressed_bytes": 437
+    },
+    {
+      "name": "res/wN.9.png",
+      "compressed_bytes": 225,
+      "uncompressed_bytes": 225
+    },
+    {
+      "name": "res/w_.png",
+      "compressed_bytes": 214,
+      "uncompressed_bytes": 214
+    },
+    {
+      "name": "res/wo.png",
+      "compressed_bytes": 226,
+      "uncompressed_bytes": 226
+    },
+    {
+      "name": "res/xN.xml",
+      "compressed_bytes": 789,
+      "uncompressed_bytes": 2456
+    },
+    {
+      "name": "res/xR.9.png",
+      "compressed_bytes": 194,
+      "uncompressed_bytes": 194
+    },
+    {
+      "name": "res/xa.9.png",
+      "compressed_bytes": 221,
+      "uncompressed_bytes": 221
+    },
+    {
+      "name": "res/xj.xml",
+      "compressed_bytes": 252,
+      "uncompressed_bytes": 588
+    },
+    {
+      "name": "res/xx.png",
+      "compressed_bytes": 348,
+      "uncompressed_bytes": 348
+    },
+    {
+      "name": "res/yH.9.png",
+      "compressed_bytes": 184,
+      "uncompressed_bytes": 184
+    },
+    {
+      "name": "res/yP.png",
+      "compressed_bytes": 431,
+      "uncompressed_bytes": 431
+    },
+    {
+      "name": "res/yY.9.png",
+      "compressed_bytes": 186,
+      "uncompressed_bytes": 186
+    },
+    {
+      "name": "res/yg.9.png",
+      "compressed_bytes": 395,
+      "uncompressed_bytes": 395
+    },
+    {
+      "name": "res/yn.png",
+      "compressed_bytes": 9041,
+      "uncompressed_bytes": 9041
+    },
+    {
+      "name": "res/yn1.png",
+      "compressed_bytes": 760,
+      "uncompressed_bytes": 760
+    },
+    {
+      "name": "res/z-.9.png",
+      "compressed_bytes": 221,
+      "uncompressed_bytes": 221
+    },
+    {
+      "name": "res/z9.9.png",
+      "compressed_bytes": 417,
+      "uncompressed_bytes": 417
+    },
+    {
+      "name": "res/zE.png",
+      "compressed_bytes": 324,
+      "uncompressed_bytes": 324
+    },
+    {
+      "name": "res/zM.png",
+      "compressed_bytes": 15116,
+      "uncompressed_bytes": 15116
+    },
+    {
+      "name": "res/zV.9.png",
+      "compressed_bytes": 2463,
+      "uncompressed_bytes": 2463
+    },
+    {
+      "name": "resources.arsc",
+      "compressed_bytes": 326888,
+      "uncompressed_bytes": 326888
+    }
+  ]
+}

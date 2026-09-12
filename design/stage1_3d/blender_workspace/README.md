@@ -1,10 +1,13 @@
 # 스테이지 1 Blender 작업 허브
 
-현행 작업 진입점. 확인: 2026-09-11. `rune-nexus-stage1.blend`를 연다.
+현행 작업 진입점. 독립 식물·추가 환경 장식 원본의 맵 조립 경로 반영: 2026-09-12. `rune-nexus-stage1.blend`를 연다.
 
 - **00 Start**: 내부 Text Editor의 시작 안내·원본 목록·수정 절차.
 - **01 Models**: 상단 Scene 선택기로 지형, 현행 포탑, 적, 포구 프레임을 확인한다.
 - Scene **09 Machine Gun Muzzle 3D**: Godot 기관총의 입체 포구 화염 원본. 체적 연기와 불티는 [게임 효과 소스](../machinegun_muzzle_3d/README.md)에서 제어한다.
+- Scene **10 Environment Dressing**: 풀·고사리·넓은 잎·이끼돌·뿌리가 겹치는 비대칭 군락과 바람 미리보기. 기존 지형은 연결 참조이며, [환경 장식 제작·출력](../environment_dressing/README.md)과 내부 `05_환경장식_제작_절차`를 따른다. 게임은 두 병합 메시와 공유 정점 셰이더를 사용한다. [최근 Android 적용 화면·검증](../environment_dressing/verification/master-assets-20260912/README.md)은 Blender 제작 렌더와 구분한다.
+- Scene **11 Grass Master ~ 14 Groundcover Master**: [독립 식물 4종](../environment_dressing/plant_library/README.md). 각 식물의 줄기·잎을 별도로 편집하며 내부 `06_식물_독립원본`을 따른다. 저장된 원본을 맵용으로 복사·배치한 결과가 Scene 10이며, 원본을 직접 바꾸지 않는다.
+- Scene **15 Wildflower Master ~ 21 Exposed Root Master**: [꽃·돌·이끼·덩굴·뿌리 7종](../environment_dressing/companion_library/README.md). 내부 `07_추가환경_독립원본`과 정지 검수 이미지를 따른다. 맵 배치·병합 출력은 Scene 10에서 확인한다.
 - **02 Game Preview**: 게임에 적용된 v5 폭발의 실제 게임 캡처. 이미지 선택기로 승인 시안도 확인한다.
 - **02 Game Preview**의 이미지 선택기에서 `MOVIE`를 선택하면 같은 게임 효과의 두 시점 영상을 확인할 수 있다. Movie Clip 데이터에도 영상을 등록했다.
 

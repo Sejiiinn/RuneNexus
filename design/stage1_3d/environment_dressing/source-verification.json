@@ -1,0 +1,90 @@
+{
+  "failures": [],
+  "revision": "master-assembly-20260912",
+  "masterAssetCount": 11,
+  "masterSourcesUnchanged": true,
+  "sourceMasterHashes": {
+    "plant_library/forest-plant-masters.blend": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+    "companion_library/organic/organic-masters.blend": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+    "companion_library/rocks/rock-masters.blend": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341"
+  },
+  "mapTriangles": 23964,
+  "foliageClusters": 45,
+  "removableCenterClusters": 27,
+  "sampledFrames": 7,
+  "maximumShift": 0.021871248989602663,
+  "maximumRootShift": 0.0,
+  "buildClearHalfWidth": 0.35,
+  "windEnvelope": 0.022,
+  "surfaceRoleFaceCounts": {
+    "leaf": 7648,
+    "closed_solid": 8768,
+    "petal": 420
+  },
+  "sourceFrontMismatches": 0,
+  "closedSolidBoundaryEdges": 0,
+  "downFacingFoliageFaces": 3114,
+  "downFacingFoliageFacesAreDiagnostic": true,
+  "hangingVines": [
+    {
+      "name": "033_trailing_vine_c3_r0",
+      "downwardExtent": 0.318370325374417,
+      "wallDistanceRange": [
+        -0.009776592254638672,
+        0.07887887954711914
+      ],
+      "fixedAnchorVertices": 55,
+      "exposedFace": true
+    },
+    {
+      "name": "034_trailing_vine_c7_r7",
+      "downwardExtent": 0.35816661815624684,
+      "wallDistanceRange": [
+        -0.011623859405517578,
+        0.08811330795288086
+      ],
+      "fixedAnchorVertices": 55,
+      "exposedFace": true
+    },
+    {
+      "name": "035_trailing_vine_c0_r7",
+      "downwardExtent": 0.35153387289028615,
+      "wallDistanceRange": [
+        -0.011316061019897461,
+        0.08657455444335938
+      ],
+      "fixedAnchorVertices": 55,
+      "exposedFace": true
+    },
+    {
+      "name": "036_trailing_vine_c0_r9",
+      "downwardExtent": 0.3117376099107787,
+      "wallDistanceRange": [
+        -0.009469032287597656,
+        0.07733964920043945
+      ],
+      "fixedAnchorVertices": 55,
+      "exposedFace": true
+    }
+  ],
+  "neighborBuildTilesChecked": true,
+  "removableNeighborBuildClearanceChecked": true,
+  "pathWindEnvelopeChecked": true,
+  "removableSlots": [
+    0,
+    1,
+    6,
+    7,
+    10,
+    15,
+    16,
+    19,
+    21,
+    22,
+    25,
+    27,
+    28,
+    31
+  ],
+  "windPhases": 45
+}

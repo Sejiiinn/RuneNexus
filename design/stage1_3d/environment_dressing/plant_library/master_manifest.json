@@ -1,0 +1,109 @@
+{
+  "source": "forest-plant-masters.blend",
+  "units": "1 Blender unit = 1 game tile",
+  "production": "explicit authored control points; editable independent mesh masters",
+  "masters": [
+    {
+      "plantAssetId": "arched_grass",
+      "scene": "01 Grass Master",
+      "collection": "01 Grass",
+      "root": "arched_grass_root",
+      "meshObjects": 28,
+      "triangles": 1112,
+      "bounds": {
+        "min": [
+          -0.38999998569488525,
+          -0.3999999761581421,
+          0.004351430106908083
+        ],
+        "max": [
+          0.4400000274181366,
+          0.4100000262260437,
+          0.6309981346130371
+        ]
+      },
+      "stemObjects": 6,
+      "leafObjects": 22
+    },
+    {
+      "plantAssetId": "layered_fern",
+      "scene": "02 Fern Master",
+      "collection": "02 Fern",
+      "root": "layered_fern_root",
+      "meshObjects": 171,
+      "triangles": 4326,
+      "bounds": {
+        "min": [
+          -0.5513595938682556,
+          -0.5413656234741211,
+          0.005017636343836784
+        ],
+        "max": [
+          0.5414498448371887,
+          0.5710048079490662,
+          0.5573402643203735
+        ]
+      },
+      "stemObjects": 7,
+      "leafObjects": 164
+    },
+    {
+      "plantAssetId": "broadleaf_herb",
+      "scene": "03 Broadleaf Master",
+      "collection": "03 Broadleaf",
+      "root": "broadleaf_herb_root",
+      "meshObjects": 32,
+      "triangles": 1636,
+      "bounds": {
+        "min": [
+          -0.36500003933906555,
+          -0.4171007573604584,
+          -0.0016145581612363458
+        ],
+        "max": [
+          0.4500000476837158,
+          0.33668166399002075,
+          0.5160487294197083
+        ]
+      },
+      "stemObjects": 22,
+      "leafObjects": 10
+    },
+    {
+      "plantAssetId": "creeping_groundcover",
+      "scene": "04 Groundcover Master",
+      "collection": "04 Groundcover",
+      "root": "creeping_groundcover_root",
+      "meshObjects": 39,
+      "triangles": 1674,
+      "bounds": {
+        "min": [
+          -0.5605063438415527,
+          -0.44130659103393555,
+          0.006136061158031225
+        ],
+        "max": [
+          0.628707766532898,
+          0.4767245054244995,
+          0.11772289872169495
+        ]
+      },
+      "stemObjects": 21,
+      "leafObjects": 18
+    }
+  ],
+  "totalTriangles": 8748,
+  "textures": 0,
+  "materials": 2,
+  "animations": 0,
+  "refinement": {
+    "revision": "fuller-pinna-width-20260912",
+    "scope": "mature fern pinna width only; 13 pairs retained",
+    "method": "1.5x cross-section width; root, midrib, tip and length preserved",
+    "unchangedMasterFingerprints": {
+      "01 Grass Master": "1e34595fe11d4629b94936baff8dc891071ba613cf6814b99c505dc294e95559",
+      "03 Broadleaf Master": "849a593608b90406a3b1bb0a1c921a11d38495db8913f74dbee2f8a2f7651c0e",
+      "04 Groundcover Master": "e2f4e88f6600d74f88877f87e902a077d95cd07cac042768d62ab8048bb80965"
+    }
+  }
+}

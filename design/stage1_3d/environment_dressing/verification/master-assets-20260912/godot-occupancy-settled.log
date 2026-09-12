@@ -1,0 +1,11 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward Mobile - Using Device #0: Apple - Apple M4 (Apple9)
+
+RuneNexus Godot scene ready; Space: impacts, C: camera, S: shadows, V: volume
+OCCUPANCY_REGIONS [[P: (412, 66), S: (83, 85)], [P: (358, 348), S: (82, 85)]]
+ERROR: GPU 가림이 다른 건설칸의 풀까지 변경함
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_environment_diagnostic.gd:14)
+       [1] _verify (res://verify_environment_diagnostic.gd:176)
+Environment verification: 1 failures; 2 meshes, 23964 triangles, 0 textures, 45 wind phases; build occupancy/removal/preview, shared resources, reset/re-entry, map isolation

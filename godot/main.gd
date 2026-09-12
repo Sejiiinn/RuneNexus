@@ -6,6 +6,8 @@ const WeaponAtlas = preload("res://effects/weapon_atlas.gd")
 const MachineGunMuzzle = preload("res://effects/machinegun_muzzle.gd")
 const BallisticProjectile = preload("res://effects/ballistic_projectile.gd")
 const Terrain = preload("res://assets/environment/terrain.glb")
+const Dressing = preload("res://assets/environment/dressing.glb")
+const FoliageWind = preload("res://environment/foliage_wind.gdshader")
 const TURRET_MODELS := {
 	"arrow": preload("res://assets/turrets/arrow.glb"),
 	"cannon": preload("res://assets/turrets/cannon.glb"),
@@ -55,6 +57,10 @@ var received_frames := 0
 var standalone_time := 0.0
 var standalone_playing := false
 var _terrain_library: Node3D
+var _dressing_library: Node3D
+var _foliage_material: ShaderMaterial
+var _build_tile_slots := PackedInt32Array()
+var _occupied_build_tiles := Vector2i.ZERO
 var _terrain_manifest := {}
 var _current_map := {}
 var _using_authored := false
@@ -112,6 +118,18 @@ func _ready() -> void:
 		return
 	_terrain_library = Terrain.instantiate()
 	_prepare_vertex_colors(_terrain_library)
+	_dressing_library = Dressing.instantiate()
+	_prepare_vertex_colors(_dressing_library)
+	var foliage := _dressing_library.find_child("stage1_dressing_foliage", true, false) as MeshInstance3D
+	if not foliage:
+		_fail("스테이지 1 환경 GLB의 풀 메시를 찾지 못했습니다.")
+		return
+	# 전장 전체의 바람에 하나의 재질·GPU 시계 공유.
+	_foliage_material = ShaderMaterial.new()
+	_foliage_material.shader = FoliageWind
+	foliage.material_override = _foliage_material
+	foliage.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	foliage.extra_cull_margin = 0.03
 	var manifest = JSON.parse_string(FileAccess.get_file_as_string("res://assets/terrain_manifest.json"))
 	if not (manifest is Dictionary):
 		_fail("지형 원본의 맵 정보를 읽지 못했습니다.")
@@ -136,6 +154,8 @@ func _exit_tree() -> void:
 		RenderingServer.frame_pre_draw.disconnect(_report_presentation)
 	if is_instance_valid(_terrain_library):
 		_terrain_library.free()
+	if is_instance_valid(_dressing_library):
+		_dressing_library.free()
 
 
 func _fail(message: String) -> void:
@@ -381,6 +401,10 @@ func _clear_scene() -> void:
 	standalone_playing = false
 	standalone_time = 0.0
 	_using_authored = false
+	_build_tile_slots.clear()
+	if _occupied_build_tiles != Vector2i.ZERO:
+		_occupied_build_tiles = Vector2i.ZERO
+		_foliage_material.set_shader_parameter("occupied_build_tiles", _occupied_build_tiles)
 
 
 func _build_terrain(map: Dictionary) -> bool:
@@ -399,11 +423,21 @@ func _build_terrain(map: Dictionary) -> bool:
 	var authored := _terrain_library.find_child("stage1_environment", true, false)
 	_using_authored = authored != null and int(_terrain_manifest.get("columns", 0)) == columns \
 		and int(_terrain_manifest.get("rows", 0)) == rows and _terrain_manifest.get("tileTypes", []) == tiles
+	_build_tile_slots.clear()
 	if _using_authored:
 		terrain.add_child(authored.duplicate())
+		# 동일한 맵 원본에 배치된 환경 장식만 지형 수명에 연결.
+		terrain.add_child(_dressing_library.duplicate())
+		_build_tile_slots.resize(tiles.size())
+		_build_tile_slots.fill(-1)
 	var names := {"path": "path_tile", "build": "build_tile", "spawn": "portal", "core": "core"}
+	var build_slot := 0
 	for index in range(tiles.size()):
 		var tile: String = tiles[index]
+		if _using_authored and tile == "build":
+			# Blender UV2와 같은 맵 순회의 건설칸 슬롯.
+			_build_tile_slots[index] = build_slot
+			build_slot += 1
 		if tile == "blocked" or (_using_authored and tile != "spawn" and tile != "core"):
 			continue
 		if not names.has(tile):
@@ -425,7 +459,8 @@ func _build_terrain(map: Dictionary) -> bool:
 			_portals.append(instance)
 		elif tile == "core":
 			_cores.append(instance)
-	_current_map = {"columns": columns, "rows": rows, "tiles": tiles.duplicate()}
+	# JSON 숫자형까지 보존해 같은 맵을 매 프레임 재생성하지 않음.
+	_current_map = map.duplicate(true)
 	return true
 
 
@@ -473,6 +508,7 @@ func _new_turret(type: String) -> Dictionary:
 
 func _sync_turrets(units: Array) -> void:
 	var alive := {}
+	var occupied := Vector2i.ZERO
 	for data: Array in units:
 		var id := int(data[0])
 		# 구 검수 배열에만 cannon 기본값 사용. 명시된 다른 유형은 대체하지 않음.
@@ -481,6 +517,15 @@ func _sync_turrets(units: Array) -> void:
 			_fail("스테이지 1에서 지원하지 않는 포탑: %s" % type)
 			continue
 		alive[id] = true
+		if _using_authored:
+			var x := floori(float(data[1]))
+			var z := floori(float(data[2]))
+			if x >= 0 and x < columns and z >= 0 and z < rows:
+				var slot := _build_tile_slots[z * columns + x]
+				if slot >= 0 and slot < 16:
+					occupied.x |= 1 << slot
+				elif slot >= 16 and slot < 32:
+					occupied.y |= 1 << (slot - 16)
 		if turrets.has(id) and turrets[id]["type"] != type:
 			turrets[id]["root"].free()
 			turrets.erase(id)
@@ -494,6 +539,10 @@ func _sync_turrets(units: Array) -> void:
 		if not alive.has(id):
 			turrets[id]["root"].free()
 			turrets.erase(id)
+	# 확정 포탑의 점유가 바뀔 때만 전장 전체의 중앙 풀 가림을 갱신.
+	if occupied != _occupied_build_tiles:
+		_occupied_build_tiles = occupied
+		_foliage_material.set_shader_parameter("occupied_build_tiles", occupied)
 
 
 func _update_fire(entry: Dictionary, shot_sequence: int, feedback: float) -> void:

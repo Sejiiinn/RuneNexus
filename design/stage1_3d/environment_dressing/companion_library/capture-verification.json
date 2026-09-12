@@ -1,0 +1,65 @@
+{
+  "source_hashes": {
+    "/Users/sejin/Documents/Codex/RuneNexus/design/stage1_3d/environment_dressing/companion_library/organic/organic-masters.blend": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+    "/Users/sejin/Documents/Codex/RuneNexus/design/stage1_3d/environment_dressing/plant_library/forest-plant-masters.blend": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+    "/Users/sejin/Documents/Codex/RuneNexus/design/stage1_3d/environment_dressing/companion_library/rocks/rock-masters.blend": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341"
+  },
+  "source_unchanged": true,
+  "camera_direction": [
+    5,
+    -13,
+    27
+  ],
+  "small_pixels_per_tile": 120,
+  "assets": [
+    {
+      "source": "organic/organic-masters.blend",
+      "scene": "01 Wildflower Master",
+      "title": "01  작은 흰 꽃",
+      "subtitle": "가는 줄기 · 작은 꽃송이",
+      "triangles": 2072
+    },
+    {
+      "source": "rocks/rock-masters.blend",
+      "scene": "02 Mossy Boulder Master",
+      "title": "02  이끼 바위",
+      "subtitle": "회색 노출 면 · 비대칭 이끼",
+      "triangles": 1012
+    },
+    {
+      "source": "rocks/rock-masters.blend",
+      "scene": "03 Flat Stone Master",
+      "title": "03  납작한 돌",
+      "subtitle": "낮은 높이 · 넓은 깨진 면",
+      "triangles": 1158
+    },
+    {
+      "source": "rocks/rock-masters.blend",
+      "scene": "04 Pebbles Master",
+      "title": "04  작은 돌멩이",
+      "subtitle": "크기와 방향이 다른 잔돌",
+      "triangles": 156
+    },
+    {
+      "source": "organic/organic-masters.blend",
+      "scene": "05 Moss Patch Master",
+      "title": "05  낮게 퍼진 이끼",
+      "subtitle": "불규칙한 가장자리 · 낮은 볼륨",
+      "triangles": 3746
+    },
+    {
+      "source": "organic/organic-masters.blend",
+      "scene": "06 Trailing Vine Master",
+      "title": "06  늘어진 덩굴",
+      "subtitle": "가장자리 아래로 흐르는 잎",
+      "triangles": 1818
+    },
+    {
+      "source": "organic/organic-masters.blend",
+      "scene": "07 Exposed Root Master",
+      "title": "07  드러난 뿌리",
+      "subtitle": "갈라지고 비틀린 짧은 뿌리",
+      "triangles": 1322
+    }
+  ]
+}

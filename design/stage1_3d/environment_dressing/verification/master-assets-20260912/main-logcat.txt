@@ -1,0 +1,217 @@
+--------- beginning of main
+09-12 19:01:45.846 12475 12475 I libprocessgroup: Created cgroup /sys/fs/cgroup/apps/uid_10232/pid_12475
+09-12 19:01:45.878 12475 12475 I Zygote  : Process 12475 created for com.example.rune_nexus
+09-12 19:01:45.880 12475 12475 I mple.rune_nexus: Using generational CollectorTypeCMC GC.
+09-12 19:01:45.891 12475 12475 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+09-12 19:01:46.084 12475 12475 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+09-12 19:01:46.114 12475 12475 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+09-12 19:01:46.147 12475 12475 D nativeloader: Configuring clns-9 for other apk /data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/lib/arm64:/data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.example.rune_nexus
+09-12 19:01:46.218 12475 12475 V GraphicsEnvironment: Currently set values for:
+09-12 19:01:46.218 12475 12475 V GraphicsEnvironment:   angle_gl_driver_selection_pkgs=[]
+09-12 19:01:46.218 12475 12475 V GraphicsEnvironment:   angle_gl_driver_selection_values=[]
+09-12 19:01:46.218 12475 12475 V GraphicsEnvironment: com.example.rune_nexus is not listed in per-application setting
+09-12 19:01:46.218 12475 12475 V GraphicsEnvironment: No special selections for ANGLE, returning default driver choice
+09-12 19:01:46.221 12475 12475 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+--------- beginning of system
+09-12 19:01:46.302 12475 12507 I DisplayManager: Choreographer implicitly registered for the refresh rate.
+09-12 19:01:46.601 12475 12515 D nativeloader: Load /data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk!/lib/arm64-v8a/libflutter.so using class loader ns clns-9 (caller=/data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk): ok
+09-12 19:01:46.627 12475 12517 D skia    : [SkFontMgr Android Parser] '/product/etc/fonts_customization.xml' could not be opened
+09-12 19:01:46.649 12475 12507 I GFXSTREAM: [eglDisplay.cpp(297)] Opening libGLESv1_CM_emulation.so
+09-12 19:01:46.650 12475 12507 I GFXSTREAM: [eglDisplay.cpp(297)] Opening libGLESv2_emulation.so
+09-12 19:01:46.650 12475 12507 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:01:46.663 12475 12507 W HWUI    : Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED, retrying without...
+09-12 19:01:46.664 12475 12507 W HWUI    : Failed to initialize 101010-2 format, error = EGL_SUCCESS
+09-12 19:01:46.696 12475 12475 W mple.rune_nexus: type=1400 audit(0.0:181): avc:  denied  { read } for  name="max_map_count" dev="proc" ino=44528 scontext=u:r:untrusted_app_34:s0:c232,c256,c512,c768 tcontext=u:object_r:proc_max_map_count:s0 tclass=file permissive=0 app=com.example.rune_nexus
+09-12 19:01:46.710 12475 12518 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:01:46.911 12475 12518 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+09-12 19:01:46.914 12475 12519 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:01:46.987 12475 12475 D nativeloader: Load /data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk!/lib/arm64-v8a/libEGL_angle.so using class loader ns clns-9 (caller=/data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk): ok
+09-12 19:01:46.990 12475 12475 D nativeloader: Load /data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk!/lib/arm64-v8a/libGLESv2_angle.so using class loader ns clns-9 (caller=/data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk): ok
+09-12 19:01:47.002 12475 12475 D nativeloader: Load /data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk!/lib/arm64-v8a/libangle_android_graphic_jni.so using class loader ns clns-9 (caller=/data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk): ok
+09-12 19:01:47.003 12475 12475 I FlutterAnglePlugin: Native ANGLE libraries loaded successfully
+09-12 19:01:47.006 12475 12475 D nativeloader: Load /data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk!/lib/arm64-v8a/libdartjni.so using class loader ns clns-9 (caller=/data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk): ok
+09-12 19:01:47.060 12475 12475 D CompatChangeReporter: Compat change id reported: 377864165; UID 10232; state: ENABLED
+09-12 19:01:47.069 12475 12475 W HWUI    : Unknown dataspace 0
+09-12 19:01:47.082 12475 12525 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:01:47.114 12475 12475 D WindowOnBackDispatcher: setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@5faebe8
+09-12 19:01:47.121 12475 12475 I WindowExtensionsImpl: Initializing Window Extensions, vendor API level=10, activity embedding enabled=true
+09-12 19:01:47.139 12475 12475 W UiContextUtils: Requested context is a non-UI Context. Creating a UI-Context with display: 0. Context: Context=android.app.Application@c7afc41, of which baseContext=android.app.ContextImpl@5f4385c
+09-12 19:01:47.160 12475 12475 D VRI[MainActivity]: WindowInsets changed: 1080x2424 statusBars:[0,142,0,0] navigationBars:[0,0,0,63] mandatorySystemGestures:[0,174,0,84]
+09-12 19:01:47.191 12475 12475 I Surface : Creating surface for consumer unnamed-12475-0 with slotExpansion=1 for 64 slots
+09-12 19:01:47.195 12475 12475 I Surface : Creating surface for consumer VRI[MainActivity]#0(BLAST Consumer)0 with slotExpansion=1 for 64 slots
+09-12 19:01:47.201 12475 12475 I Surface : Creating surface for consumer unnamed-12475-1 with slotExpansion=1 for 64 slots
+09-12 19:01:47.202 12475 12475 I Surface : Creating surface for consumer ee13206 SurfaceView[com.example.rune_nexus/com.example.rune_nexus.MainActivity]#1(BLAST Consumer)1 with slotExpansion=1 for 64 slots
+09-12 19:01:48.987 12475 12475 I Choreographer: Skipped 108 frames!  The application may be doing too much work on its main thread.
+09-12 19:01:49.001 12475 12475 D WindowLayoutComponentImpl: Register WindowLayoutInfoListener on Context=com.example.rune_nexus.MainActivity@a1d36f4, of which baseContext=android.app.ContextImpl@250ce60
+09-12 19:01:49.204 12475 12475 D InsetsController: hide(ime())
+09-12 19:01:49.204 12475 12475 I ImeTracker: com.example.rune_nexus:ac94222f: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+09-12 19:01:51.632 12475 12532 D ProfileInstaller: Installing profile for com.example.rune_nexus
+09-12 19:02:35.288 12475 12475 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.297 12475 12475 I Surface : Creating surface for consumer unnamed-12475-2 with slotExpansion=1 for 64 slots
+09-12 19:02:35.297 12475 12475 I Surface : Creating surface for consumer ImageReader-1080x2424f1m3-12475-0 with slotExpansion=1 for 64 slots
+09-12 19:02:35.315 12475 12475 V Godot   : Initializing Godot plugin registry
+09-12 19:02:35.316 12475 12475 I GodotPluginRegistry: Registering runtime plugin AndroidRuntime
+09-12 19:02:35.316 12475 12475 I GodotPluginRegistry: Registering runtime plugin RuneNexusPreview
+09-12 19:02:35.316 12475 12475 V Godot   : InitEngine with params: [--main-pack, res://rune_nexus.pck, --rendering-method, mobile, --disable_godot_splash]
+09-12 19:02:35.335 12475 12475 D nativeloader: Load /data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk!/lib/arm64-v8a/libgodot_android.so using class loader ns clns-9 (caller=/data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk): ok
+09-12 19:02:35.337 12475 12475 V Godot   : Godot native layer initialization completed: true
+09-12 19:02:35.337 12475 12475 V Godot   : Setting up native layer with params: [--main-pack, res://rune_nexus.pck, --rendering-method, mobile]
+09-12 19:02:35.379 12475 12475 V Godot   : Godot native layer setup completed
+09-12 19:02:35.380 12475 12475 V Godot   : OnInitRenderView: p0.e@5aba3d8
+09-12 19:02:35.388 12475 12475 D AutofillManager: Fill dialog is enabled:false, hints=[]
+09-12 19:02:35.390 12475 12475 D Godot   : Render view should be transparent: false
+09-12 19:02:35.394 12475 12475 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.394 12475 12475 W libc    : Access denied finding property "vendor.mesa.log"
+09-12 19:02:35.394 12475 12475 W libc    : Access denied finding property "vendor.mesa.log.level"
+09-12 19:02:35.394 12475 12475 W libc    : Access denied finding property "vendor.mesa.log.prefix"
+09-12 19:02:35.394 12475 12475 W libc    : Access denied finding property "vendor.mesa.gallium.print.options"
+09-12 19:02:35.394 12475 12475 W libc    : Access denied finding property "vendor.mesa.log.file.auto"
+09-12 19:02:35.394 12475 12475 W libc    : Access denied finding property "vendor.mesa.log.file"
+09-12 19:02:35.394 12475 12475 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.394 12475 12475 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.394 12475 12475 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.394 12475 12475 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.401 12475 12475 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.401 12475 12475 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.407 12475 12475 D vulkan  : searching for layers in '/data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/lib/arm64'
+09-12 19:02:35.407 12475 12475 D vulkan  : searching for layers in '/data/app/~~b4fWkSRM6WkjnVxPjnHGyg==/com.example.rune_nexus-l5lJboKezilHeLwUm5M3Kw==/base.apk!/lib/arm64-v8a'
+09-12 19:02:35.408 12475 12475 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.408 12475 12475 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.408 12475 12475 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.408 12475 12475 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.409 12475 12475 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.409 12475 12475 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.409 12475 12475 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.409 12475 12475 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.410 12475 12475 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.410 12475 12475 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.410 12475 12475 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.410 12475 12475 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.411 12475 12475 W libc    : Access denied finding property "vendor.mesa.vk.trace"
+09-12 19:02:35.411 12475 12475 W libc    : Access denied finding property "vendor.mesa.vk.trace.per.submit"
+09-12 19:02:35.411 12475 12475 W libc    : Access denied finding property "vendor.mesa.vk.trace.frame"
+09-12 19:02:35.411 12475 12475 W libc    : Access denied finding property "vendor.mesa.vk.trace.trigger"
+09-12 19:02:35.424 12475 12475 W libc    : Access denied finding property "vendor.mesa.vk.wsi.debug"
+09-12 19:02:35.424 12475 12475 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.424 12475 12475 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.427 12475 12475 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.427 12475 12475 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.432 12475 12475 W libc    : Access denied finding property "vendor.mesa.vk.wsi.present.mode"
+09-12 19:02:35.432 12475 12475 W libc    : Access denied finding property "vendor.mesa.vk.wsi.headless.swapchain"
+09-12 19:02:35.432 12475 12475 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.432 12475 12475 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.433 12475 12475 E godot   : WARNING: Property not found: 'xr/shaders/enabled'.
+09-12 19:02:35.433 12475 12475 E godot   :    at: get_setting_with_override (core/config/project_settings.cpp:435)
+09-12 19:02:35.433 12475 12475 D Godot   : renderingDevice: vulkan (ProjectSettings)
+09-12 19:02:35.433 12475 12475 D Godot   : 			renderer: mobile (Default)
+09-12 19:02:35.437 12475 12475 V Godot   : OnStart: p0.e@5aba3d8
+09-12 19:02:35.440 12475 12475 V Godot   : OnResume: p0.e@5aba3d8
+09-12 19:02:35.446 12475 12589 V VkRenderer: Renderer resumed
+09-12 19:02:35.461 12475 12475 I Surface : Creating surface for consumer unnamed-12475-3 with slotExpansion=1 for 64 slots
+09-12 19:02:35.461 12475 12475 I Surface : Creating surface for consumer ImageReader-1080x2424f1m3-12475-1 with slotExpansion=1 for 64 slots
+09-12 19:02:35.686 12475 12475 I HWUI    : Using FreeType backend (prop=Auto)
+09-12 19:02:35.691 12475 12475 I Surface : Creating surface for consumer unnamed-12475-4 with slotExpansion=1 for 64 slots
+09-12 19:02:35.693 12475 12475 I Surface : Creating surface for consumer 5340a9b SurfaceView[com.example.rune_nexus/com.example.rune_nexus.MainActivity]#2(BLAST Consumer)2 with slotExpansion=1 for 64 slots
+09-12 19:02:35.693 12475 12475 V VkSurfaceView: On surface created
+09-12 19:02:35.693 12475 12475 V VkSurfaceView: On surface changed [4]: 1079 x 2424
+09-12 19:02:35.693 12475 12589 V VkRenderer: Initializing renderer...
+09-12 19:02:35.696 12475 12589 I godot   : Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+09-12 19:02:35.775 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.776 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.776 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.776 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.777 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.777 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.777 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.777 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.778 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.778 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.778 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.778 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.779 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.779 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.779 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.779 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.780 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.780 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.780 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.780 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.782 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.782 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.786 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.786 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.786 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.786 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.786 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.786 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.787 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.787 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.787 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.787 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.787 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.787 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.788 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.788 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.788 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.789 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.789 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.789 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.799 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.799 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:35.800 12475 12589 I godot   : Vulkan 1.3.0 - Forward Mobile - Using Device #0: Apple - Goldfish GFXStream (Apple M4)
+09-12 19:02:35.958 12475 12581 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:35.958 12475 12581 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:36.004 12475 12582 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:36.005 12475 12582 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:36.014 12475 12584 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:36.014 12475 12584 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:36.020 12475 12583 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:36.021 12475 12583 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:36.733 12475 12589 D AudioSystem: onNewServiceWithAdapter: media.audio_flinger service obtained 0xb400007ece589140
+09-12 19:02:36.736 12475 12589 D AudioSystem: getService: IAudioFlingerService retrieved: 0xb400007dde4d7450  IAudioFlinger cached: 0xb400007ece589140
+09-12 19:02:36.737 12475 12589 D mple.rune_nexus: PlayerBase::PlayerBase()
+09-12 19:02:36.737 12475 12589 D mple.rune_nexus: TrackPlayerBase::TrackPlayerBase()
+09-12 19:02:36.737 12475 12589 I libOpenSLES: Emulating old channel mask behavior (ignoring positional mask 0x3, using default mask 0x3 based on channel count of 2)
+09-12 19:02:36.764 12475 12589 I godot   :
+09-12 19:02:36.963 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:36.963 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:36.963 12475 12589 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:36.963 12475 12589 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:36.991 12475 12589 I SwappyDisplayManager: Using internal com/google/androidgamesdk/SwappyDisplayManager class from dex bytes.
+09-12 19:02:36.994 12475 12598 I SwappyDisplayManager: Starting looper thread
+09-12 19:02:37.062 12475 12599 W libc    : Access denied finding property "vendor.mesa.virtgpu.kumquat"
+09-12 19:02:37.062 12475 12599 E MESA    : Failed to open rendernode: No such file or directory
+09-12 19:02:40.067 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2259KB/4518KB, paused 152us,741us total 107.494ms
+09-12 19:02:40.286 12475 12589 V Godot   : OnGodotSetupCompleted
+09-12 19:02:40.717 12475 12589 V Godot   : OnGodotMainLoopStarted
+09-12 19:02:41.282 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 96KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2291KB/4582KB, paused 1.262ms,6.321ms total 133.623ms
+09-12 19:02:41.772 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 92KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2295KB/4590KB, paused 181us,1.015ms total 267.744ms
+09-12 19:02:42.149 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 156KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2267KB/4534KB, paused 100us,551us total 212.994ms
+09-12 19:02:46.552 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2295KB/4590KB, paused 168us,6.385ms total 37.773ms
+09-12 19:02:46.793 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2295KB/4590KB, paused 153us,5.256ms total 37.595ms
+09-12 19:02:51.933 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2327KB/4654KB, paused 131us,7.996ms total 21.107ms
+09-12 19:02:53.638 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2263KB/4526KB, paused 157us,5.536ms total 35.053ms
+09-12 19:02:54.104 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2263KB/4526KB, paused 1.812ms,5.890ms total 34.092ms
+09-12 19:02:57.577 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2295KB/4590KB, paused 10.790ms,1.784ms total 55.486ms
+09-12 19:02:59.206 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2295KB/4590KB, paused 191us,6.990ms total 30.095ms
+09-12 19:02:59.463 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2327KB/4654KB, paused 195us,10.705ms total 31.196ms
+09-12 19:03:03.468 12475 12504 I mple.rune_nexus: Waiting for a blocking GC ProfileSaver
+09-12 19:03:03.482 12475 12504 I mple.rune_nexus: WaitForGcToComplete blocked ProfileSaver on NativeAlloc for 13.339ms
+09-12 19:03:08.519 12475 12479 W mple.rune_nexus: Suspending all threads took: 12.251ms
+09-12 19:03:08.526 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2295KB/4590KB, paused 12.586ms,1.111ms total 36.602ms
+09-12 19:03:14.234 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2335KB/4670KB, paused 175us,7.776ms total 24.169ms
+09-12 19:03:15.178 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2299KB/4598KB, paused 258us,7.322ms total 20.739ms
+09-12 19:03:15.568 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2299KB/4598KB, paused 925us,9.971ms total 47.234ms
+09-12 19:03:18.235 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2299KB/4598KB, paused 135us,9.451ms total 37.099ms
+09-12 19:03:19.036 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2299KB/4598KB, paused 118us,10.477ms total 35.922ms
+09-12 19:03:20.178 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2299KB/4598KB, paused 1.283ms,6.231ms total 41.969ms
+09-12 19:03:21.988 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2335KB/4670KB, paused 9.739ms,1.449ms total 54.429ms
+09-12 19:03:24.967 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 132KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2299KB/4598KB, paused 169us,5.167ms total 39.329ms
+09-12 19:03:28.185 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2331KB/4662KB, paused 229us,5.903ms total 25.960ms
+09-12 19:03:34.902 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2267KB/4534KB, paused 212us,7.554ms total 35.232ms
+09-12 19:03:35.233 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2303KB/4606KB, paused 135us,6.797ms total 23.799ms
+09-12 19:03:39.278 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2335KB/4670KB, paused 163us,6.094ms total 23.292ms
+09-12 19:03:43.484 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2331KB/4662KB, paused 214us,8.762ms total 35.814ms
+09-12 19:03:47.000 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2303KB/4606KB, paused 127us,8.247ms total 37.017ms
+09-12 19:03:51.385 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2303KB/4606KB, paused 163us,8.862ms total 35.172ms
+09-12 19:04:03.002 12475 12479 I mple.rune_nexus: NativeAlloc concurrent mark compact GC freed 128KB AllocSpace bytes, 0(0B) LOS objects, 49% free, 2303KB/4606KB, paused 8.816ms,5.369ms total 36.878ms

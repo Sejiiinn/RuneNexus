@@ -1,0 +1,1829 @@
+{
+  "source": "environment-dressing.blend",
+  "revision": "master-assembly-20260912",
+  "sourceConcept": "environment_concepts/01-overgrown-stone-edges.png",
+  "windMaximumDisplacement": 0.022,
+  "buildClearHalfWidth": 0.35,
+  "foliageClusters": 45,
+  "staticClusters": 13,
+  "removableClusters": 27,
+  "totalTriangles": 23964,
+  "sourceMasterFiles": {
+    "plant_library/forest-plant-masters.blend": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+    "companion_library/organic/organic-masters.blend": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+    "companion_library/rocks/rock-masters.blend": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341"
+  },
+  "sourceAssetCounts": {
+    "layered_fern": 4,
+    "broadleaf_herb": 8,
+    "arched_grass": 13,
+    "mossy_boulder": 4,
+    "creeping_moss": 7,
+    "creeping_groundcover": 6,
+    "flat_stone": 3,
+    "wildflower_clump": 3,
+    "trailing_vine": 4,
+    "pebble_scatter": 3,
+    "exposed_root": 3
+  },
+  "placements": [
+    {
+      "name": "000_layered_fern_c3_r0",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "N",
+      "region": "focal_3_0",
+      "sourceAssetId": "layered_fern",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 4326,
+      "lodTriangles": 1114,
+      "lodRatio": 0.2575127138233934,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -0.550000011920929,
+        4.579999923706055,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.68,
+        0.68,
+        0.68
+      ],
+      "rotationZDegrees": 18.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 0.0,
+      "buildSlot": 1
+    },
+    {
+      "name": "001_broadleaf_herb_c3_r0",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "N",
+      "region": "focal_3_0",
+      "sourceAssetId": "broadleaf_herb",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1636,
+      "lodTriangles": 344,
+      "lodRatio": 0.21026894865525672,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -0.6800000071525574,
+        4.659999847412109,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.49,
+        0.49,
+        0.49
+      ],
+      "rotationZDegrees": -17.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 2.399963229728653,
+      "buildSlot": 1
+    },
+    {
+      "name": "002_arched_grass_c3_r0",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "N",
+      "region": "focal_3_0",
+      "sourceAssetId": "arched_grass",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1112,
+      "lodTriangles": 380,
+      "lodRatio": 0.34172661870503596,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -0.24000000953674316,
+        5.0,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.27,
+        0.27,
+        0.27
+      ],
+      "rotationZDegrees": 11.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 4.799926459457306,
+      "buildSlot": 1
+    },
+    {
+      "name": "003_mossy_boulder_c3_r0",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "N",
+      "region": "focal_3_0",
+      "sourceAssetId": "mossy_boulder",
+      "sourceMasterFile": "companion_library/rocks/rock-masters.blend",
+      "sourceMasterSha256": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341",
+      "sourceTriangles": 1012,
+      "lodTriangles": 300,
+      "lodRatio": 0.2964426877470356,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -0.3700000047683716,
+        5.014999866485596,
+        -0.014000000432133675
+      ],
+      "scale": [
+        0.62,
+        0.54,
+        0.44
+      ],
+      "rotationZDegrees": -7.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 0.9167043820063725,
+      "buildSlot": 1
+    },
+    {
+      "name": "004_creeping_moss_c3_r0",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "N",
+      "region": "focal_3_0",
+      "sourceAssetId": "creeping_moss",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 3746,
+      "lodTriangles": 188,
+      "lodRatio": 0.05018686599038975,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -0.6899999976158142,
+        4.986999988555908,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.62,
+        0.45,
+        0.7
+      ],
+      "rotationZDegrees": -5.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 3.316667611735026,
+      "buildSlot": 1
+    },
+    {
+      "name": "005_layered_fern_c5_r1",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "E",
+      "region": "focal_5_1",
+      "sourceAssetId": "layered_fern",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 4326,
+      "lodTriangles": 1114,
+      "lodRatio": 0.2575127138233934,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        1.5800000429153442,
+        3.5799999237060547,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.66,
+        0.66,
+        0.66
+      ],
+      "rotationZDegrees": -112.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 5.7166308414636795,
+      "buildSlot": 6
+    },
+    {
+      "name": "006_broadleaf_herb_c5_r1",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "E",
+      "region": "focal_5_1",
+      "sourceAssetId": "broadleaf_herb",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1636,
+      "lodTriangles": 344,
+      "lodRatio": 0.21026894865525672,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        1.659999966621399,
+        3.2899999618530273,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.48,
+        0.48,
+        0.48
+      ],
+      "rotationZDegrees": -88.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 1.833408764012745,
+      "buildSlot": 6
+    },
+    {
+      "name": "007_arched_grass_c5_r1",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "E",
+      "region": "focal_5_1",
+      "sourceAssetId": "arched_grass",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1112,
+      "lodTriangles": 380,
+      "lodRatio": 0.34172661870503596,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        1.7200000286102295,
+        3.299999952316284,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "rotationZDegrees": -104.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 4.2333719937414,
+      "buildSlot": 6
+    },
+    {
+      "name": "008_mossy_boulder_c5_r1",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "E",
+      "region": "focal_5_1",
+      "sourceAssetId": "mossy_boulder",
+      "sourceMasterFile": "companion_library/rocks/rock-masters.blend",
+      "sourceMasterSha256": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341",
+      "sourceTriangles": 1012,
+      "lodTriangles": 300,
+      "lodRatio": 0.2964426877470356,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        2.0199999809265137,
+        3.6600000858306885,
+        -0.014000000432133675
+      ],
+      "scale": [
+        0.59,
+        0.56,
+        0.47
+      ],
+      "rotationZDegrees": -82.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 0.35014991629046577,
+      "buildSlot": 6
+    },
+    {
+      "name": "009_creeping_moss_c5_r1",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "E",
+      "region": "focal_5_1",
+      "sourceAssetId": "creeping_moss",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 3746,
+      "lodTriangles": 188,
+      "lodRatio": 0.05018686599038975,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        1.9869999885559082,
+        3.319999933242798,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.62,
+        0.45,
+        0.7
+      ],
+      "rotationZDegrees": -87.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 2.7501131460191175,
+      "buildSlot": 6
+    },
+    {
+      "name": "010_creeping_groundcover_c5_r1",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "E",
+      "region": "focal_5_1",
+      "sourceAssetId": "creeping_groundcover",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1674,
+      "lodTriangles": 438,
+      "lodRatio": 0.2616487455197133,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        1.559999942779541,
+        3.6600000858306885,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.44,
+        0.44,
+        0.44
+      ],
+      "rotationZDegrees": -74.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 5.150076375747773,
+      "buildSlot": 6
+    },
+    {
+      "name": "011_broadleaf_herb_c7_r4",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "E",
+      "region": "focal_7_4",
+      "sourceAssetId": "broadleaf_herb",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1636,
+      "lodTriangles": 344,
+      "lodRatio": 0.21026894865525672,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        3.5399999618530273,
+        0.5600000023841858,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.78,
+        0.78,
+        0.78
+      ],
+      "rotationZDegrees": -69.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 1.2668542982968383,
+      "buildSlot": 15
+    },
+    {
+      "name": "012_arched_grass_c7_r4",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "E",
+      "region": "focal_7_4",
+      "sourceAssetId": "arched_grass",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1112,
+      "lodTriangles": 380,
+      "lodRatio": 0.34172661870503596,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        3.7200000286102295,
+        0.30000001192092896,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "rotationZDegrees": -87.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 3.66681752802549,
+      "buildSlot": 15
+    },
+    {
+      "name": "013_flat_stone_c7_r4",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "E",
+      "region": "focal_7_4",
+      "sourceAssetId": "flat_stone",
+      "sourceMasterFile": "companion_library/rocks/rock-masters.blend",
+      "sourceMasterSha256": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341",
+      "sourceTriangles": 1158,
+      "lodTriangles": 208,
+      "lodRatio": 0.17962003454231434,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        4.007999897003174,
+        0.3700000047683716,
+        -0.008999999612569809
+      ],
+      "scale": [
+        0.64,
+        0.57,
+        0.43
+      ],
+      "rotationZDegrees": -96.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 6.066780757754145,
+      "buildSlot": 15
+    },
+    {
+      "name": "014_creeping_moss_c7_r4",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "E",
+      "region": "focal_7_4",
+      "sourceAssetId": "creeping_moss",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 3746,
+      "lodTriangles": 188,
+      "lodRatio": 0.05018686599038975,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        3.986999988555908,
+        0.6899999976158142,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.62,
+        0.45,
+        0.7
+      ],
+      "rotationZDegrees": -95.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 2.1835586803032143,
+      "buildSlot": 15
+    },
+    {
+      "name": "015_wildflower_clump_c7_r4",
+      "tile": [
+        7,
+        4
+      ],
+      "edge": "E",
+      "region": "focal_7_4",
+      "sourceAssetId": "wildflower_clump",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 2072,
+      "lodTriangles": 532,
+      "lodRatio": 0.25675675675675674,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        3.359999895095825,
+        0.32999998331069946,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.76,
+        0.76,
+        0.76
+      ],
+      "rotationZDegrees": -55.99999999999999,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 4.5835219100318625,
+      "buildSlot": 15
+    },
+    {
+      "name": "016_layered_fern_c7_r7",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "E",
+      "region": "focal_7_7",
+      "sourceAssetId": "layered_fern",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 4326,
+      "lodTriangles": 1114,
+      "lodRatio": 0.2575127138233934,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        3.5799999237060547,
+        -2.569999933242798,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ],
+      "rotationZDegrees": -53.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 0.7002998325809315,
+      "buildSlot": 27
+    },
+    {
+      "name": "017_arched_grass_c7_r7",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "E",
+      "region": "focal_7_7",
+      "sourceAssetId": "arched_grass",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1112,
+      "lodTriangles": 380,
+      "lodRatio": 0.34172661870503596,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        4.0,
+        -2.2899999618530273,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.27,
+        0.27,
+        0.27
+      ],
+      "rotationZDegrees": 7.999999999999998,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 3.100263062309587,
+      "buildSlot": 27
+    },
+    {
+      "name": "018_mossy_boulder_c7_r7",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "E",
+      "region": "focal_7_7",
+      "sourceAssetId": "mossy_boulder",
+      "sourceMasterFile": "companion_library/rocks/rock-masters.blend",
+      "sourceMasterSha256": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341",
+      "sourceTriangles": 1012,
+      "lodTriangles": 300,
+      "lodRatio": 0.2964426877470356,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        4.010000228881836,
+        -2.3399999141693115,
+        -0.014000000432133675
+      ],
+      "scale": [
+        0.58,
+        0.55,
+        0.43
+      ],
+      "rotationZDegrees": -94.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 5.500226292038235,
+      "buildSlot": 27
+    },
+    {
+      "name": "019_creeping_moss_c7_r7",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "E",
+      "region": "focal_7_7",
+      "sourceAssetId": "creeping_moss",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 3746,
+      "lodTriangles": 188,
+      "lodRatio": 0.05018686599038975,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        3.986999988555908,
+        -2.680000066757202,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.62,
+        0.45,
+        0.7
+      ],
+      "rotationZDegrees": -87.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 1.617004214587304,
+      "buildSlot": 27
+    },
+    {
+      "name": "020_creeping_groundcover_c7_r7",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "E",
+      "region": "focal_7_7",
+      "sourceAssetId": "creeping_groundcover",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1674,
+      "lodTriangles": 438,
+      "lodRatio": 0.2616487455197133,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        3.559999942779541,
+        -2.3399999141693115,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.44,
+        0.44,
+        0.44
+      ],
+      "rotationZDegrees": -116.00000000000001,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 4.016967444315959,
+      "buildSlot": 27
+    },
+    {
+      "name": "021_layered_fern_c0_r7",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "W",
+      "region": "focal_0_7",
+      "sourceAssetId": "layered_fern",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 4326,
+      "lodTriangles": 1114,
+      "lodRatio": 0.2575127138233934,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -3.5799999237060547,
+        -2.5299999713897705,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.64,
+        0.64,
+        0.64
+      ],
+      "rotationZDegrees": 77.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 0.13374536686502125,
+      "buildSlot": 21
+    },
+    {
+      "name": "022_broadleaf_herb_c0_r7",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "W",
+      "region": "focal_0_7",
+      "sourceAssetId": "broadleaf_herb",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1636,
+      "lodTriangles": 344,
+      "lodRatio": 0.21026894865525672,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -3.6600000858306885,
+        -2.299999952316284,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "rotationZDegrees": 149.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 2.5337085965936765,
+      "buildSlot": 21
+    },
+    {
+      "name": "023_arched_grass_c0_r7",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "W",
+      "region": "focal_0_7",
+      "sourceAssetId": "arched_grass",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1112,
+      "lodTriangles": 380,
+      "lodRatio": 0.34172661870503596,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -4.0,
+        -2.759999990463257,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.27,
+        0.27,
+        0.27
+      ],
+      "rotationZDegrees": 217.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 4.933671826322332,
+      "buildSlot": 21
+    },
+    {
+      "name": "024_mossy_boulder_c0_r7",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "W",
+      "region": "focal_0_7",
+      "sourceAssetId": "mossy_boulder",
+      "sourceMasterFile": "companion_library/rocks/rock-masters.blend",
+      "sourceMasterSha256": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341",
+      "sourceTriangles": 1012,
+      "lodTriangles": 300,
+      "lodRatio": 0.2964426877470356,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -4.013999938964844,
+        -2.369999885559082,
+        -0.014000000432133675
+      ],
+      "scale": [
+        0.64,
+        0.53,
+        0.46
+      ],
+      "rotationZDegrees": 97.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 1.0504497488713938,
+      "buildSlot": 21
+    },
+    {
+      "name": "025_creeping_moss_c0_r7",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "W",
+      "region": "focal_0_7",
+      "sourceAssetId": "creeping_moss",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 3746,
+      "lodTriangles": 188,
+      "lodRatio": 0.05018686599038975,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -3.986999988555908,
+        -2.690000057220459,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.62,
+        0.45,
+        0.7
+      ],
+      "rotationZDegrees": 85.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 3.450412978600049,
+      "buildSlot": 21
+    },
+    {
+      "name": "026_wildflower_clump_c0_r7",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "W",
+      "region": "focal_0_7",
+      "sourceAssetId": "wildflower_clump",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 2072,
+      "lodTriangles": 532,
+      "lodRatio": 0.25675675675675674,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -3.359999895095825,
+        -2.3299999237060547,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.84,
+        0.84,
+        0.84
+      ],
+      "rotationZDegrees": 158.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 5.850376208328704,
+      "buildSlot": 21
+    },
+    {
+      "name": "027_broadleaf_herb_c0_r9",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "W",
+      "region": "focal_0_9",
+      "sourceAssetId": "broadleaf_herb",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1636,
+      "lodTriangles": 344,
+      "lodRatio": 0.21026894865525672,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -3.5399999618530273,
+        -4.559999942779541,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.8,
+        0.8,
+        0.8
+      ],
+      "rotationZDegrees": 167.99999999999997,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 1.9671541308777734,
+      "buildSlot": 31
+    },
+    {
+      "name": "028_arched_grass_c0_r9",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "W",
+      "region": "focal_0_9",
+      "sourceAssetId": "arched_grass",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1112,
+      "lodTriangles": 380,
+      "lodRatio": 0.34172661870503596,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -3.7200000286102295,
+        -4.300000190734863,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.5480635550392063,
+        0.5480635550392063,
+        0.5480635550392063
+      ],
+      "rotationZDegrees": 144.0,
+      "uniformClearanceFit": 0.9786849197128683,
+      "windPhase": 4.367117360606429,
+      "buildSlot": 31
+    },
+    {
+      "name": "029_flat_stone_c0_r9",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "W",
+      "region": "focal_0_9",
+      "sourceAssetId": "flat_stone",
+      "sourceMasterFile": "companion_library/rocks/rock-masters.blend",
+      "sourceMasterSha256": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341",
+      "sourceTriangles": 1158,
+      "lodTriangles": 208,
+      "lodRatio": 0.17962003454231434,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -4.00600004196167,
+        -4.659999847412109,
+        -0.008999999612569809
+      ],
+      "scale": [
+        0.59,
+        0.59,
+        0.48
+      ],
+      "rotationZDegrees": 95.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 0.48389528315548347,
+      "buildSlot": 31
+    },
+    {
+      "name": "030_creeping_moss_c0_r9",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "W",
+      "region": "focal_0_9",
+      "sourceAssetId": "creeping_moss",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 3746,
+      "lodTriangles": 188,
+      "lodRatio": 0.05018686599038975,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -3.986999988555908,
+        -4.320000171661377,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.62,
+        0.45,
+        0.7
+      ],
+      "rotationZDegrees": 93.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 2.8838585128841387,
+      "buildSlot": 31
+    },
+    {
+      "name": "031_creeping_groundcover_c0_r9",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "W",
+      "region": "focal_0_9",
+      "sourceAssetId": "creeping_groundcover",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1674,
+      "lodTriangles": 438,
+      "lodRatio": 0.2616487455197133,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -3.559999942779541,
+        -4.659999847412109,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.44,
+        0.44,
+        0.44
+      ],
+      "rotationZDegrees": 21.999999999999993,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 5.283821742612794,
+      "buildSlot": 31
+    },
+    {
+      "name": "032_wildflower_clump_c0_r9",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "W",
+      "region": "focal_0_9",
+      "sourceAssetId": "wildflower_clump",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 2072,
+      "lodTriangles": 532,
+      "lodRatio": 0.25675675675675674,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -3.359999895095825,
+        -4.329999923706055,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.76,
+        0.76,
+        0.76
+      ],
+      "rotationZDegrees": 175.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 1.400599665161863,
+      "buildSlot": 31
+    },
+    {
+      "name": "033_trailing_vine_c3_r0",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "N",
+      "region": "outer_wall",
+      "sourceAssetId": "trailing_vine",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 1818,
+      "lodTriangles": 702,
+      "lodRatio": 0.38613861386138615,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -0.5799999833106995,
+        5.005000114440918,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.48,
+        0.48,
+        0.48
+      ],
+      "rotationZDegrees": 180.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 3.8005628948905184,
+      "buildSlot": 1
+    },
+    {
+      "name": "034_trailing_vine_c7_r7",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "E",
+      "region": "outer_wall",
+      "sourceAssetId": "trailing_vine",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 1818,
+      "lodTriangles": 702,
+      "lodRatio": 0.38613861386138615,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        4.005000114440918,
+        -2.549999952316284,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.54,
+        0.54,
+        0.54
+      ],
+      "rotationZDegrees": 90.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 6.200526124619174,
+      "buildSlot": 27
+    },
+    {
+      "name": "035_trailing_vine_c0_r7",
+      "tile": [
+        0,
+        7
+      ],
+      "edge": "W",
+      "region": "outer_wall",
+      "sourceAssetId": "trailing_vine",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 1818,
+      "lodTriangles": 702,
+      "lodRatio": 0.38613861386138615,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -4.005000114440918,
+        -2.430000066757202,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.53,
+        0.53,
+        0.53
+      ],
+      "rotationZDegrees": 270.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 2.3173040471682427,
+      "buildSlot": 21
+    },
+    {
+      "name": "036_trailing_vine_c0_r9",
+      "tile": [
+        0,
+        9
+      ],
+      "edge": "S",
+      "region": "outer_wall",
+      "sourceAssetId": "trailing_vine",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 1818,
+      "lodTriangles": 702,
+      "lodRatio": 0.38613861386138615,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -3.4700000286102295,
+        -5.005000114440918,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.47,
+        0.47,
+        0.47
+      ],
+      "rotationZDegrees": 0.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 4.717267276896884,
+      "buildSlot": 31
+    },
+    {
+      "name": "037_pebble_scatter_c3_r0",
+      "tile": [
+        3,
+        0
+      ],
+      "edge": "N",
+      "region": "stone_companion",
+      "sourceAssetId": "pebble_scatter",
+      "sourceMasterFile": "companion_library/rocks/rock-masters.blend",
+      "sourceMasterSha256": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341",
+      "sourceTriangles": 156,
+      "lodTriangles": 156,
+      "lodRatio": 1.0,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -0.6200000047683716,
+        4.989999771118164,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.58,
+        0.32,
+        0.72
+      ],
+      "rotationZDegrees": 0.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 0.8340451994459528,
+      "buildSlot": 1
+    },
+    {
+      "name": "038_pebble_scatter_c5_r1",
+      "tile": [
+        5,
+        1
+      ],
+      "edge": "E",
+      "region": "stone_companion",
+      "sourceAssetId": "pebble_scatter",
+      "sourceMasterFile": "companion_library/rocks/rock-masters.blend",
+      "sourceMasterSha256": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341",
+      "sourceTriangles": 156,
+      "lodTriangles": 156,
+      "lodRatio": 1.0,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        1.9900000095367432,
+        3.380000114440918,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.58,
+        0.32,
+        0.72
+      ],
+      "rotationZDegrees": -90.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 3.234008429174608,
+      "buildSlot": 6
+    },
+    {
+      "name": "039_pebble_scatter_c7_r7",
+      "tile": [
+        7,
+        7
+      ],
+      "edge": "E",
+      "region": "stone_companion",
+      "sourceAssetId": "pebble_scatter",
+      "sourceMasterFile": "companion_library/rocks/rock-masters.blend",
+      "sourceMasterSha256": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341",
+      "sourceTriangles": 156,
+      "lodTriangles": 156,
+      "lodRatio": 1.0,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        3.990000009536743,
+        -2.4100000858306885,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.58,
+        0.32,
+        0.72
+      ],
+      "rotationZDegrees": -90.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 5.633971658903263,
+      "buildSlot": 27
+    },
+    {
+      "name": "040_exposed_root_c2_r0",
+      "tile": [
+        2,
+        0
+      ],
+      "edge": "E",
+      "region": "selected_seam",
+      "sourceAssetId": "exposed_root",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 1322,
+      "lodTriangles": 392,
+      "lodRatio": 0.29652042360060515,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -1.0,
+        4.670000076293945,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.47,
+        0.16,
+        0.6
+      ],
+      "rotationZDegrees": -90.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 1.7507495814523324,
+      "buildSlot": 0
+    },
+    {
+      "name": "041_exposed_root_c2_r3",
+      "tile": [
+        2,
+        3
+      ],
+      "edge": "E",
+      "region": "selected_seam",
+      "sourceAssetId": "exposed_root",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 1322,
+      "lodTriangles": 392,
+      "lodRatio": 0.29652042360060515,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -1.0,
+        1.3799999952316284,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.47,
+        0.16,
+        0.6
+      ],
+      "rotationZDegrees": -90.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 4.150712811180988,
+      "buildSlot": 10
+    },
+    {
+      "name": "042_exposed_root_c2_r7",
+      "tile": [
+        2,
+        7
+      ],
+      "edge": "E",
+      "region": "selected_seam",
+      "sourceAssetId": "exposed_root",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 1322,
+      "lodTriangles": 392,
+      "lodRatio": 0.29652042360060515,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -1.0,
+        -2.369999885559082,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.47,
+        0.16,
+        0.6
+      ],
+      "rotationZDegrees": -90.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 0.2674907337300425,
+      "buildSlot": 22
+    },
+    {
+      "name": "043_broadleaf_herb_c2_r0",
+      "tile": [
+        2,
+        0
+      ],
+      "edge": "N",
+      "region": "connector",
+      "sourceAssetId": "broadleaf_herb",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1636,
+      "lodTriangles": 344,
+      "lodRatio": 0.21026894865525672,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -1.4700000286102295,
+        4.590000152587891,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.66,
+        0.66,
+        0.66
+      ],
+      "rotationZDegrees": 28.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 2.667453963458698,
+      "buildSlot": 0
+    },
+    {
+      "name": "044_arched_grass_c3_r5",
+      "tile": [
+        3,
+        5
+      ],
+      "edge": "W",
+      "region": "connector",
+      "sourceAssetId": "arched_grass",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1112,
+      "lodTriangles": 380,
+      "lodRatio": 0.34172661870503596,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -0.6000000238418579,
+        -0.46000000834465027,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.59,
+        0.59,
+        0.59
+      ],
+      "rotationZDegrees": 138.00000000000003,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 5.067417193187353,
+      "buildSlot": 16
+    },
+    {
+      "name": "045_creeping_groundcover_c3_r5",
+      "tile": [
+        3,
+        5
+      ],
+      "edge": "W",
+      "region": "connector",
+      "sourceAssetId": "creeping_groundcover",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1674,
+      "lodTriangles": 438,
+      "lodRatio": 0.2616487455197133,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -0.6599999666213989,
+        -0.6800000071525574,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.43,
+        0.43,
+        0.43
+      ],
+      "rotationZDegrees": 109.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 1.184195115736422,
+      "buildSlot": 16
+    },
+    {
+      "name": "046_arched_grass_c5_r2",
+      "tile": [
+        5,
+        2
+      ],
+      "edge": "N",
+      "region": "connector",
+      "sourceAssetId": "arched_grass",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1112,
+      "lodTriangles": 380,
+      "lodRatio": 0.34172661870503596,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        1.4299999475479126,
+        2.609999895095825,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.53,
+        0.53,
+        0.53
+      ],
+      "rotationZDegrees": -27.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 3.5841583454650774,
+      "buildSlot": 7
+    },
+    {
+      "name": "047_creeping_groundcover_c7_r5",
+      "tile": [
+        7,
+        5
+      ],
+      "edge": "E",
+      "region": "connector",
+      "sourceAssetId": "creeping_groundcover",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1674,
+      "lodTriangles": 438,
+      "lodRatio": 0.2616487455197133,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        3.6500000953674316,
+        -0.4699999988079071,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.5461606665580836,
+        0.5461606665580836,
+        0.5461606665580836
+      ],
+      "rotationZDegrees": -53.0,
+      "uniformClearanceFit": 0.9581766079966381,
+      "windPhase": 5.984121575193733,
+      "buildSlot": 19
+    },
+    {
+      "name": "048_arched_grass_c0_r8",
+      "tile": [
+        0,
+        8
+      ],
+      "edge": "W",
+      "region": "connector",
+      "sourceAssetId": "arched_grass",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1112,
+      "lodTriangles": 380,
+      "lodRatio": 0.34172661870503596,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -3.619999885559082,
+        -3.5399999618530273,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.51,
+        0.51,
+        0.51
+      ],
+      "rotationZDegrees": 74.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 2.1008994977427875,
+      "buildSlot": 28
+    },
+    {
+      "name": "049_broadleaf_herb_c2_r3",
+      "tile": [
+        2,
+        3
+      ],
+      "edge": "S",
+      "region": "connector",
+      "sourceAssetId": "broadleaf_herb",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1636,
+      "lodTriangles": 344,
+      "lodRatio": 0.21026894865525672,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -1.5499999523162842,
+        1.3799999952316284,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.58,
+        0.58,
+        0.58
+      ],
+      "rotationZDegrees": -145.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 4.500862727471443,
+      "buildSlot": 10
+    },
+    {
+      "name": "050_arched_grass_c2_r7",
+      "tile": [
+        2,
+        7
+      ],
+      "edge": "E",
+      "region": "connector",
+      "sourceAssetId": "arched_grass",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1112,
+      "lodTriangles": 380,
+      "lodRatio": 0.34172661870503596,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        -1.3799999952316284,
+        -2.4700000286102295,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.58,
+        0.58,
+        0.58
+      ],
+      "rotationZDegrees": -126.99999999999999,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 0.6176406500205118,
+      "buildSlot": 22
+    },
+    {
+      "name": "051_creeping_groundcover_c5_r7",
+      "tile": [
+        5,
+        7
+      ],
+      "edge": "S",
+      "region": "connector",
+      "sourceAssetId": "creeping_groundcover",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1674,
+      "lodTriangles": 438,
+      "lodRatio": 0.2616487455197133,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": true,
+      "translation": [
+        1.4800000190734863,
+        -2.609999895095825,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.55,
+        0.55,
+        0.55
+      ],
+      "rotationZDegrees": -159.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 3.017603879749167,
+      "buildSlot": 25
+    },
+    {
+      "name": "052_arched_grass_c0_r1",
+      "tile": [
+        0,
+        1
+      ],
+      "edge": "W",
+      "region": "sparse_rim",
+      "sourceAssetId": "arched_grass",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1112,
+      "lodTriangles": 380,
+      "lodRatio": 0.34172661870503596,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -4.010000228881836,
+        3.4100000858306885,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.25,
+        0.25,
+        0.25
+      ],
+      "rotationZDegrees": 98.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 5.417567109477822,
+      "buildSlot": 2
+    },
+    {
+      "name": "053_broadleaf_herb_c1_r3",
+      "tile": [
+        1,
+        3
+      ],
+      "edge": "S",
+      "region": "sparse_rim",
+      "sourceAssetId": "broadleaf_herb",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1636,
+      "lodTriangles": 344,
+      "lodRatio": 0.21026894865525672,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -2.569999933242798,
+        0.9900000095367432,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.24,
+        0.24,
+        0.24
+      ],
+      "rotationZDegrees": -172.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 1.5343450320268914,
+      "buildSlot": 9
+    },
+    {
+      "name": "054_arched_grass_c3_r8",
+      "tile": [
+        3,
+        8
+      ],
+      "edge": "E",
+      "region": "sparse_rim",
+      "sourceAssetId": "arched_grass",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1112,
+      "lodTriangles": 380,
+      "lodRatio": 0.34172661870503596,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        0.009999990463256836,
+        -3.4000000953674316,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.25,
+        0.25,
+        0.25
+      ],
+      "rotationZDegrees": -82.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 3.9343082617555467,
+      "buildSlot": 30
+    },
+    {
+      "name": "055_arched_grass_c6_r7",
+      "tile": [
+        6,
+        7
+      ],
+      "edge": "S",
+      "region": "sparse_rim",
+      "sourceAssetId": "arched_grass",
+      "sourceMasterFile": "plant_library/forest-plant-masters.blend",
+      "sourceMasterSha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+      "sourceTriangles": 1112,
+      "lodTriangles": 380,
+      "lodRatio": 0.34172661870503596,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        2.3299999237060547,
+        -3.009999990463257,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.25,
+        0.25,
+        0.25
+      ],
+      "rotationZDegrees": -172.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 0.051086184304615756,
+      "buildSlot": 26
+    },
+    {
+      "name": "056_creeping_moss_c2_r3",
+      "tile": [
+        2,
+        3
+      ],
+      "edge": "E",
+      "region": "low_seam",
+      "sourceAssetId": "creeping_moss",
+      "sourceMasterFile": "companion_library/organic/organic-masters.blend",
+      "sourceMasterSha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+      "sourceTriangles": 3746,
+      "lodTriangles": 188,
+      "lodRatio": 0.05018686599038975,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -1.0,
+        1.690000057220459,
+        0.0010000000474974513
+      ],
+      "scale": [
+        0.48,
+        0.42,
+        0.7
+      ],
+      "rotationZDegrees": -90.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 2.451049414033271,
+      "buildSlot": 10
+    },
+    {
+      "name": "057_flat_stone_c2_r3",
+      "tile": [
+        2,
+        3
+      ],
+      "edge": "E",
+      "region": "selected_stone",
+      "sourceAssetId": "flat_stone",
+      "sourceMasterFile": "companion_library/rocks/rock-masters.blend",
+      "sourceMasterSha256": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341",
+      "sourceTriangles": 1158,
+      "lodTriangles": 208,
+      "lodRatio": 0.17962003454231434,
+      "lodMethod": "source-boundary sampling and existing-mesh solid decimation; see master-assembly-manifest.json",
+      "removableOnBuild": false,
+      "translation": [
+        -1.0,
+        1.3300000429153442,
+        -0.008999999612569809
+      ],
+      "scale": [
+        0.45,
+        0.46,
+        0.42
+      ],
+      "rotationZDegrees": -90.0,
+      "uniformClearanceFit": 1.0,
+      "windPhase": 4.851012643761926,
+      "buildSlot": 10
+    }
+  ]
+}

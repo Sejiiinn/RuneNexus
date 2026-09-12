@@ -1,0 +1,226 @@
+{
+  "source": "rock-masters.blend",
+  "sourceConcept": "design/stage1_3d/environment_concepts/01-overgrown-stone-edges.png",
+  "role": "editable_independent_rock_masters",
+  "seedOnly": true,
+  "existingSourceProtected": true,
+  "extraTextures": 0,
+  "materials": [
+    "Companion Stone — vertex color",
+    "Companion Moss — vertex color"
+  ],
+  "assets": [
+    {
+      "assetId": "mossy_boulder",
+      "sourceScene": "02 Mossy Boulder Master",
+      "rootObject": "mossy_boulder",
+      "tileUnits": 1,
+      "rootOrigin": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bounds": [
+        [
+          -0.30778196454048157,
+          -0.2396232634782791,
+          0.0
+        ],
+        [
+          0.3066630959510803,
+          0.23759843409061432,
+          0.3752571940422058
+        ]
+      ],
+      "dimensions": [
+        0.6144450604915619,
+        0.47722169756889343,
+        0.3752571940422058
+      ],
+      "triangles": 1012,
+      "objects": [
+        {
+          "name": "Boulder — rear moss tongue",
+          "role": "moss",
+          "vertices": 97,
+          "triangles": 190,
+          "closedMesh": true,
+          "unappliedModifiers": 0,
+          "sampledTopClearanceMin": 0.0011999905109405518
+        },
+        {
+          "name": "Boulder — separated shoulder moss",
+          "role": "moss",
+          "vertices": 97,
+          "triangles": 190,
+          "closedMesh": true,
+          "unappliedModifiers": 0,
+          "sampledTopClearanceMin": 0.0014895796775817871
+        },
+        {
+          "name": "Boulder — twisted exposed rock faces",
+          "role": "stone",
+          "vertices": 223,
+          "triangles": 442,
+          "closedMesh": true,
+          "unappliedModifiers": 0
+        },
+        {
+          "name": "Boulder — upper-left moss mantle",
+          "role": "moss",
+          "vertices": 97,
+          "triangles": 190,
+          "closedMesh": true,
+          "unappliedModifiers": 0,
+          "sampledTopClearanceMin": 0.002022087574005127
+        }
+      ]
+    },
+    {
+      "assetId": "flat_stone",
+      "sourceScene": "03 Flat Stone Master",
+      "rootObject": "flat_stone",
+      "tileUnits": 1,
+      "rootOrigin": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bounds": [
+        [
+          -0.3083413243293762,
+          -0.20209702849388123,
+          0.0
+        ],
+        [
+          0.3070453405380249,
+          0.20968879759311676,
+          0.14982600510120392
+        ]
+      ],
+      "dimensions": [
+        0.6153866648674011,
+        0.411785826086998,
+        0.14982600510120392
+      ],
+      "triangles": 1158,
+      "objects": [
+        {
+          "name": "Flat Stone — broken offset strata",
+          "role": "stone",
+          "vertices": 486,
+          "triangles": 968,
+          "closedMesh": true,
+          "unappliedModifiers": 0
+        },
+        {
+          "name": "Flat Stone — narrow moss shoulder",
+          "role": "moss",
+          "vertices": 97,
+          "triangles": 190,
+          "closedMesh": true,
+          "unappliedModifiers": 0,
+          "sampledTopClearanceMin": 0.0012000054121017456
+        }
+      ]
+    },
+    {
+      "assetId": "pebble_scatter",
+      "sourceScene": "04 Pebbles Master",
+      "rootObject": "pebble_scatter",
+      "tileUnits": 1,
+      "rootOrigin": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "bounds": [
+        [
+          -0.28566521406173706,
+          -0.16920800507068634,
+          0.0
+        ],
+        [
+          0.2689426839351654,
+          0.1578822284936905,
+          0.07999999821186066
+        ]
+      ],
+      "dimensions": [
+        0.5546078979969025,
+        0.32709023356437683,
+        0.07999999821186066
+      ],
+      "triangles": 156,
+      "objects": [
+        {
+          "name": "Pebble 01 — individual chipped stone",
+          "role": "stone",
+          "vertices": 15,
+          "triangles": 26,
+          "closedMesh": true,
+          "unappliedModifiers": 0
+        },
+        {
+          "name": "Pebble 02 — individual chipped stone",
+          "role": "stone",
+          "vertices": 15,
+          "triangles": 26,
+          "closedMesh": true,
+          "unappliedModifiers": 0
+        },
+        {
+          "name": "Pebble 03 — individual chipped stone",
+          "role": "stone",
+          "vertices": 15,
+          "triangles": 26,
+          "closedMesh": true,
+          "unappliedModifiers": 0
+        },
+        {
+          "name": "Pebble 04 — individual chipped stone",
+          "role": "stone",
+          "vertices": 15,
+          "triangles": 26,
+          "closedMesh": true,
+          "unappliedModifiers": 0
+        },
+        {
+          "name": "Pebble 05 — individual chipped stone",
+          "role": "stone",
+          "vertices": 15,
+          "triangles": 26,
+          "closedMesh": true,
+          "unappliedModifiers": 0
+        },
+        {
+          "name": "Pebble 06 — individual chipped stone",
+          "role": "stone",
+          "vertices": 15,
+          "triangles": 26,
+          "closedMesh": true,
+          "unappliedModifiers": 0
+        }
+      ]
+    }
+  ],
+  "totalTriangles": 2326,
+  "verification": {
+    "closedMeshes": true,
+    "opaqueVertexColors": true,
+    "appliedModifiersOnly": true,
+    "mossTopClearanceSampled": true,
+    "transformedBoundsChecked": true
+  },
+  "manualRefinement": {
+    "assetId": "flat_stone",
+    "method": "existing_mesh_bisect_and_local_deformation",
+    "purpose": "continuous_rim_plate_impression_removed",
+    "sourceRegenerated": false,
+    "unchangedAssetGeometryColorTransformHashes": {
+      "02 Mossy Boulder Master": "577999be9bc279077018092c27af01402fe04c3fe30250ced91939ce29919c29",
+      "04 Pebbles Master": "5c8601d3aac8ab75b10b3a410c5cc7b3ba30af4b8bf34c33c81f117c71d9cc2b"
+    },
+    "mossClearancePreserved": true
+  }
+}

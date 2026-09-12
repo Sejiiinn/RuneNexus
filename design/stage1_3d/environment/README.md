@@ -2,6 +2,8 @@
 
 2026-09-11. 승인된 `design/stage1_3d/actor_refinement/stage1-actors-refined.blend`의 전체 정적 환경을 실제 메시 그대로 런타임 GLB에 포함한다. 실제 스테이지 1에서는 `stage1_environment`를 우선 사용하며, 기존 단위 키트 5개도 보존한다.
 
+2026-09-12 추가된 풀·고사리·이끼돌·뿌리 군락과 바람은 [환경 장식 원본](../environment_dressing/README.md)의 별도 `dressing.glb`를 Godot에서 함께 배치한다. 아래 `terrain.glb`의 원본·메시 수·재질 수치는 기존 지형만을 설명한다.
+
 ## 파일과 제작
 
 - 게임 파일: `assets/images/stage1_3d/environment/terrain.glb`

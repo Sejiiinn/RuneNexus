@@ -1,0 +1,24 @@
+{
+  "target_slot0": {
+    "region": [
+      412,
+      66,
+      83,
+      85
+    ],
+    "changed_pixels": 493,
+    "maximum_channel_delta": 89
+  },
+  "control_slot16": {
+    "region": [
+      358,
+      348,
+      82,
+      85
+    ],
+    "changed_pixels": 2,
+    "maximum_channel_delta": 1
+  },
+  "restored_changed_pixels": 0,
+  "comparison_rule": "target max channel delta >1, control <=1, full restore exact; 8-bit capture"
+}

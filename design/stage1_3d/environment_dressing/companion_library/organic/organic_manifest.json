@@ -1,0 +1,122 @@
+{
+  "source": "organic-masters.blend",
+  "units": "1 Blender unit = 1 game tile",
+  "production": "individual explicit control points and editable mesh geometry",
+  "masters": [
+    {
+      "assetId": "wildflower_clump",
+      "plantAssetId": "wildflower_clump",
+      "scene": "01 Wildflower Master",
+      "collection": "01 Wildflower",
+      "root": "wildflower_clump_root",
+      "meshObjects": 63,
+      "triangles": 2072,
+      "bounds": {
+        "min": [
+          -0.1753092259168625,
+          -0.16670531034469604,
+          0.002011565025895834
+        ],
+        "max": [
+          0.17727234959602356,
+          0.165888249874115,
+          0.41694375872612
+        ]
+      },
+      "parts": {
+        "bloom": 42,
+        "leaf": 14,
+        "stem": 7
+      }
+    },
+    {
+      "assetId": "creeping_moss",
+      "plantAssetId": "creeping_moss",
+      "scene": "05 Moss Patch Master",
+      "collection": "05 Moss Patch",
+      "root": "creeping_moss_root",
+      "meshObjects": 256,
+      "triangles": 3746,
+      "bounds": {
+        "min": [
+          -0.2650453746318817,
+          -0.21184001863002777,
+          0.0007999999797903001
+        ],
+        "max": [
+          0.25307998061180115,
+          0.17440614104270935,
+          0.0248488187789917
+        ]
+      },
+      "parts": {
+        "leaf": 250,
+        "moss_support": 6
+      }
+    },
+    {
+      "assetId": "trailing_vine",
+      "plantAssetId": "trailing_vine",
+      "scene": "06 Trailing Vine Master",
+      "collection": "06 Trailing Vine",
+      "root": "trailing_vine_root",
+      "meshObjects": 83,
+      "triangles": 1818,
+      "bounds": {
+        "min": [
+          -0.3241300582885742,
+          -0.15391366183757782,
+          -0.6632714867591858
+        ],
+        "max": [
+          0.3680027723312378,
+          0.03078523278236389,
+          0.011823564767837524
+        ]
+      },
+      "parts": {
+        "leaf": 40,
+        "stem": 43
+      }
+    },
+    {
+      "assetId": "exposed_root",
+      "plantAssetId": "exposed_root",
+      "scene": "07 Exposed Root Master",
+      "collection": "07 Exposed Root",
+      "root": "exposed_root_root",
+      "meshObjects": 7,
+      "triangles": 1322,
+      "bounds": {
+        "min": [
+          -0.4904070794582367,
+          -0.36989688873291016,
+          -0.018674500286579132
+        ],
+        "max": [
+          0.5802950859069824,
+          0.4505448043346405,
+          0.12091932445764542
+        ]
+      },
+      "parts": {
+        "root": 7
+      }
+    }
+  ],
+  "totalTriangles": 8958,
+  "textures": 0,
+  "materials": 3,
+  "animations": 0,
+  "scope": "independent asset masters only; no map placement or game export",
+  "refinement": {
+    "revision": "low-woven-moss-20260912",
+    "scope": "moss only",
+    "method": "direct saved mesh height/position editing and copies of existing small leaves",
+    "unchangedMasterFingerprints": {
+      "01 Wildflower Master": "29870090e667d0746cbf896c792fc2b7c13e183c7a74135bfda40397269499d4",
+      "06 Trailing Vine Master": "e62934cd1b457c75da307b58afaba1f6407126406594a4e2983e554343935ad6",
+      "07 Exposed Root Master": "a2180bf6af61e0f55133e5c64af4e550ec7c85d75e25242b8d26e9df01dd1037"
+    }
+  }
+}

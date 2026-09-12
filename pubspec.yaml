@@ -36,7 +36,12 @@ flutter:
     - assets/images/results/
     - assets/images/results/ui/
     - assets/images/stage_details/ui/
-    - assets/images/stage1_3d/environment/
+    # Godot 전용 환경 장식은 PCK에만 포함해 원본 GLB의 중복 패키징 방지.
+    - assets/images/stage1_3d/environment/terrain.glb
+    - assets/images/stage1_3d/environment/ltc_float_1.bin
+    - assets/images/stage1_3d/environment/ltc_float_2.bin
+    - assets/images/stage1_3d/environment/ltc_half_1.bin
+    - assets/images/stage1_3d/environment/ltc_half_2.bin
     - assets/images/stage1_3d/effects/
     - assets/images/stage1_3d/enemies/
     - assets/images/stage1_3d/turrets/

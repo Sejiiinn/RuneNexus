@@ -1,0 +1,18 @@
+{
+  "assets/images/stage1_3d/environment/dressing.glb": {
+    "sha256": "4c609652bb8f15c79a7d86cb594a15e15d09dab86ebbc10d2d9b49a7a3a12fbf",
+    "bytes": 1532092
+  },
+  "design/stage1_3d/environment_dressing/plant_library/forest-plant-masters.blend": {
+    "sha256": "4eb09cf6c7503f720c4b5bc69f29a89b3e566e9ce20ed992aa165acaa7a667d7",
+    "bytes": 285767
+  },
+  "design/stage1_3d/environment_dressing/companion_library/organic/organic-masters.blend": {
+    "sha256": "6a8ea5fdca8615c9d3d2ffc132409896016cec9eff888e505e57d96481b043ea",
+    "bytes": 335866
+  },
+  "design/stage1_3d/environment_dressing/companion_library/rocks/rock-masters.blend": {
+    "sha256": "9089ff31bab828796e4c8933e74efe9d0aa8a598c3b3459963c01dc55d669341",
+    "bytes": 141029
+  }
+}

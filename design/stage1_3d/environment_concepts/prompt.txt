@@ -1,0 +1,21 @@
+Use case: precise-object-edit.
+Asset type: Rune Nexus stage 1 environment art proposal, one polished full battlefield image, not an asset sheet. Output opaque PNG, portrait 3:4 approximately 1536x2048, static one frame.
+
+Input image 1 is the CURRENT GAME screenshot and is authoritative for the battlefield geometry, tile arrangement, tower placement, portal and core.
+Input image 2 is supporting reference for the existing approved 3D stone materials, oblique orthographic camera and overall art style only. Do not copy the extra actors or turrets from image 2.
+
+Primary request: show this EXISTING stage 1 3D tiled battlefield enriched with clearly visible grass and small environmental elements, in a restrained, art-directed ruined garden treatment.
+Composition: present the battlefield by itself, tightly but completely framed on the current dark desaturated teal backdrop, using the SAME oblique orthographic camera and EXACT existing irregular board silhouette and winding cobblestone path from image 1. Remove the surrounding phone/HUD from the presentation by reframing to the battlefield. Keep the whole portal-to-core path visible. Preserve the two actual towers and their locations from image 1, and do not add actors.
+
+Only change environmental dressing:
+- Add small groups of slender 3D grass blades, approximately 10-18% of a tile width in height, in varied olive/sage/moss greens with a few dry straw-colored tips.
+- Arrange the vegetation into intentional unequal clusters around outer corners, dark tile joints and the perimeter of buildable stone slabs. Richer clusters near the upper-right, middle-right and lower-left outer edges, connected by sparse accents; do not evenly decorate every tile.
+- Add a few compact low fern fronds and slightly broader ground-cover leaves among the grass, at a lower height than turret bases.
+- Place a few small irregular moss-covered stones and stone chips on OUTER edge strips, with short weathered roots emerging from cracks and subtly draping down the exposed slab side walls.
+- Add soft irregular moss cushions hugging some edges and crevices. Preserve the recognizably stony buildable tile surfaces. Every build tile must retain an uninterrupted open center at least 70% of its width for tower placement, with no big rock or shrub occupying it.
+- Main enemy cobblestone walking lane remains entirely readable and clear across the whole stage. At most tiny weeds in a few paving joints. Keep portal and cyan core completely visible.
+- Environmental elements must look like actual small meshes casting contact shadows in the same 3D rendering style as the board, not flat painted green blobs or cartoon outlines.
+- Match the current stone and tower appearance, colors and lighting closely, with readable warm stone versus subdued natural greens. Slight warm grazing light gives the blades depth while the dark teal setting remains unchanged.
+
+Hard invariants: exact existing path bends, all tile positions and count, board silhouette, tiles' proportions and thickness, the actual two existing towers and their positions, purple spiral portal at start, cyan crystal core at end, current camera azimuth. Do not redesign towers, rearrange or add paving, widen the board, connect empty gaps with terrain, add surrounding ground, add terrain platforms, tall trees, buildings, statues, mushrooms, giant flowers, luminous vegetation, waterfalls, VFX, characters or invented UI. No text, no labels, no diagrams, no collage, no watermark.
+The result should communicate a feasible environment-dressing proposal for the existing game with vegetation clearly visible at gameplay size, more visual composition and depth, with clean gameplay space.

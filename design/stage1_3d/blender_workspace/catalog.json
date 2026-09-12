@@ -1,0 +1,138 @@
+{
+  "sources": [
+    {
+      "name": "01 Terrain",
+      "file": "environment/terrain-approved.blend",
+      "scene": "Scene",
+      "output": "environment/terrain.glb"
+    },
+    {
+      "name": "02 Machine Gun",
+      "file": "turrets/machine-gun-refined.blend",
+      "scene": "Stage1_MachineGun_Refined",
+      "output": "turrets/arrow.glb"
+    },
+    {
+      "name": "03 Cannon",
+      "file": "turrets/cannon_tone_refinement/cannon-muted-orange.blend",
+      "scene": "Scene",
+      "output": "turrets/cannon.glb"
+    },
+    {
+      "name": "04 Frost",
+      "file": "turrets/frost_refinement/frost.blend",
+      "scene": "Scene",
+      "output": "turrets/frost.glb"
+    },
+    {
+      "name": "05 Other Turrets",
+      "file": "turrets/chapter-one-turrets.blend",
+      "scene": "Stage1TurretLibrary",
+      "roots": [
+        "magic_turret_root",
+        "sniper_turret_root",
+        "lightning_turret_root"
+      ],
+      "output": "turrets/{magic,sniper,lightning}.glb"
+    },
+    {
+      "name": "06 Enemies",
+      "file": "enemies/chapter-one-enemies-refined.blend",
+      "scene": "Stage1EnemyRefinement",
+      "output": "enemies/*.glb"
+    },
+    {
+      "name": "07 Muzzle Frames",
+      "file": "weapon_effects/weapon-effects.blend",
+      "scene": "WeaponMuzzleFrames",
+      "output": "effects/muzzle_flash.png"
+    },
+    {
+      "name": "08 Smoke Frames",
+      "file": "weapon_effects/weapon-effects.blend",
+      "scene": "WeaponSmokeFrames",
+      "output": "effects/gun_smoke.png"
+    },
+    {
+      "name": "09 Machine Gun Muzzle 3D",
+      "file": "machinegun_muzzle_3d/production/machinegun-muzzle.blend",
+      "scene": "MachineGunMuzzle3D",
+      "output": "effects/machinegun_muzzle.glb"
+    },
+    {
+      "name": "10 Environment Dressing",
+      "file": "environment_dressing/environment-dressing.blend",
+      "scene": "Stage1EnvironmentDressing",
+      "output": "environment/dressing.glb"
+    },
+    {
+      "name": "11 Grass Master",
+      "file": "environment_dressing/plant_library/forest-plant-masters.blend",
+      "scene": "01 Grass Master",
+      "output": "environment/dressing.glb"
+    },
+    {
+      "name": "12 Fern Master",
+      "file": "environment_dressing/plant_library/forest-plant-masters.blend",
+      "scene": "02 Fern Master",
+      "output": "environment/dressing.glb"
+    },
+    {
+      "name": "13 Broadleaf Master",
+      "file": "environment_dressing/plant_library/forest-plant-masters.blend",
+      "scene": "03 Broadleaf Master",
+      "output": "environment/dressing.glb"
+    },
+    {
+      "name": "14 Groundcover Master",
+      "file": "environment_dressing/plant_library/forest-plant-masters.blend",
+      "scene": "04 Groundcover Master",
+      "output": "environment/dressing.glb"
+    },
+    {
+      "name": "15 Wildflower Master",
+      "file": "environment_dressing/companion_library/organic/organic-masters.blend",
+      "scene": "01 Wildflower Master",
+      "output": "environment/dressing.glb"
+    },
+    {
+      "name": "16 Mossy Boulder Master",
+      "file": "environment_dressing/companion_library/rocks/rock-masters.blend",
+      "scene": "02 Mossy Boulder Master",
+      "output": "environment/dressing.glb"
+    },
+    {
+      "name": "17 Flat Stone Master",
+      "file": "environment_dressing/companion_library/rocks/rock-masters.blend",
+      "scene": "03 Flat Stone Master",
+      "output": "environment/dressing.glb"
+    },
+    {
+      "name": "18 Pebbles Master",
+      "file": "environment_dressing/companion_library/rocks/rock-masters.blend",
+      "scene": "04 Pebbles Master",
+      "output": "environment/dressing.glb"
+    },
+    {
+      "name": "19 Moss Patch Master",
+      "file": "environment_dressing/companion_library/organic/organic-masters.blend",
+      "scene": "05 Moss Patch Master",
+      "output": "environment/dressing.glb"
+    },
+    {
+      "name": "20 Trailing Vine Master",
+      "file": "environment_dressing/companion_library/organic/organic-masters.blend",
+      "scene": "06 Trailing Vine Master",
+      "output": "environment/dressing.glb"
+    },
+    {
+      "name": "21 Exposed Root Master",
+      "file": "environment_dressing/companion_library/organic/organic-masters.blend",
+      "scene": "07 Exposed Root Master",
+      "output": "environment/dressing.glb"
+    }
+  ],
+  "preview": "cannon_impact/shell_runtime/field-cache-v5-0.12.png",
+  "movie": "cannon_impact/shell_runtime/shell-field-cache-v5.mp4",
+  "reference": "cannon_impact/shell_concepts/04-fragmentation-with-fire.png"
+}
