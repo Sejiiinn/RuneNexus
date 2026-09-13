@@ -18,13 +18,6 @@ class GraphicsSettingsControls extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('3D 그래픽', style: GameTextStyles.sectionTitle),
-          const SizedBox(height: 6),
-          const Text(
-            '낮추면 기기의 그래픽 부담을 줄일 수 있습니다.\n이 기기에 자동 저장됩니다.\n앱을 다시 켜고 저장된 전투를 이어서 해도 적용됩니다.',
-            style: GameTextStyles.body,
-          ),
-          const SizedBox(height: 16),
           _choices(
             title: 'MSAA · 테두리 부드럽게',
             description: '끄면 물체의 가장자리가 거칠어질 수 있습니다.',
