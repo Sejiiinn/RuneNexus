@@ -1,0 +1,71 @@
+/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/props/build_props.py:12: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(name);m.use_nodes=True;p=m.node_tree.nodes.get('Principled BSDF');p.inputs['Base Color'].default_value=(*color,1);p.inputs['Roughness'].default_value=rough;p.inputs['Metallic'].default_value=metal
+/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/props/build_props.py:149: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene.world.color=(.17,.17,.17);scene.world.use_nodes=True;wn=scene.world.node_tree.nodes;wl=scene.world.node_tree.links
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+17:08:45 | INFO: Starting glTF 2.0 export
+17:08:45 | INFO: Extracting primitive: crystal_bedrock_00.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: cluster_crystal_0.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: cluster_crystal_0_mineral_layer_0.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: cluster_crystal_1.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: cluster_crystal_1_mineral_layer_0.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: cluster_crystal_2.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: cluster_crystal_2_mineral_layer_0.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: cluster_crystal_3.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: cluster_crystal_3_mineral_layer_0.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: cluster_crystal_4.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: cluster_crystal_4_mineral_layer_0.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: cluster_crystal_5.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: cluster_crystal_5_mineral_layer_0.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: brass_collar_face_0.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: rune_inlay_0.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: pillar_foot_00.001
+17:08:45 | INFO: Primitives created: 2
+17:08:45 | INFO: Extracting primitive: Sphere.009
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: recessed_void_floor.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: void_depth_shard_00.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Extracting primitive: rift_edge_debris_00.001
+17:08:45 | INFO: Primitives created: 1
+17:08:45 | INFO: Finished glTF 2.0 export in 0.042713165283203125 s
+00:12.887  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/props/rune_pillar-studio.png'
+00:24.499  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/props/crystal_cluster-studio.png'
+00:34.763  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/props/void_fissure-studio.png'
+
+Info: Saved as "chapter2_props.blend"
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

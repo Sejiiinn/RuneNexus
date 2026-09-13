@@ -1,0 +1,42 @@
+{
+  "stage1-full": {
+    "samples": 5,
+    "median_of_1s_mean_frame_ms": 28.8722112554102,
+    "draw_calls": [
+      36.0
+    ],
+    "primitives": [
+      139809.0
+    ]
+  },
+  "stage10-empty": {
+    "samples": 5,
+    "median_of_1s_mean_frame_ms": 21.1503888888882,
+    "draw_calls": [
+      0.0
+    ],
+    "primitives": [
+      0.0
+    ]
+  },
+  "stage10-full": {
+    "samples": 12,
+    "median_of_1s_mean_frame_ms": 37.2764197530864,
+    "draw_calls": [
+      192.0
+    ],
+    "primitives": [
+      1019108.0
+    ]
+  },
+  "stage10-no-shadow": {
+    "samples": 5,
+    "median_of_1s_mean_frame_ms": 35.150337164751,
+    "draw_calls": [
+      97.0
+    ],
+    "primitives": [
+      854030.0
+    ]
+  }
+}

@@ -1,0 +1,83 @@
+00:00.327  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/props/chapter2_props.blend"
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+{"preserved_original_meshes": 228, "roots": {"rune_pillar": {"min_blender_xyz": [-0.6014344096183777, -0.5711700320243835, -0.7774339318275452], "max_blender_xyz": [0.5814846754074097, 0.5490108728408813, 1.1488980054855347]}, "crystal_cluster": {"min_blender_xyz": [-0.6004234552383423, -0.5716429352760315, -0.7742421627044678], "max_blender_xyz": [0.5797522068023682, 0.5489340424537659, 0.6450000405311584]}, "void_fissure": {"min_blender_xyz": [-0.6717463731765747, -0.6396188735961914, -0.870745837688446], "max_blender_xyz": [0.6504786014556885, 0.6167058944702148, 0.18990558385849]}}}
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+20:31:44 | INFO: Starting glTF 2.0 export
+20:31:44 | INFO: Extracting primitive: crystal_bedrock_00.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: floating_ground_crystal_cluster_paving_0.002
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: floating_ground_crystal_cluster_course_0_0_1_0.002
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: cluster_crystal_0.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: cluster_crystal_0_mineral_layer_0.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: cluster_crystal_1.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: cluster_crystal_1_mineral_layer_0.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: cluster_crystal_2.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: cluster_crystal_2_mineral_layer_0.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: cluster_crystal_3.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: cluster_crystal_3_mineral_layer_0.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: cluster_crystal_4.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: cluster_crystal_4_mineral_layer_0.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: cluster_crystal_5.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: cluster_crystal_5_mineral_layer_0.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: brass_collar_face_0.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: rune_inlay_0.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: pillar_foot_00.001
+20:31:44 | INFO: Primitives created: 2
+20:31:44 | INFO: Extracting primitive: floating_ground_rune_pillar_paving_0.002
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: floating_ground_rune_pillar_course_0_0_1_0.002
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: Sphere.009
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: recessed_void_floor.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: void_depth_shard_00.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: rift_edge_debris_00.001
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: floating_ground_void_fissure_paving_0.002
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Extracting primitive: floating_ground_void_fissure_course_0_0_1_0.002
+20:31:44 | INFO: Primitives created: 1
+20:31:44 | INFO: Finished glTF 2.0 export in 0.1965961456298828 s
+00:15.821  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/props/rune_pillar-studio.png'
+00:26.352  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/props/crystal_cluster-studio.png'
+00:37.420  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/props/void_fissure-studio.png'
+
+Info: Saved as "chapter2_props.blend"
+20:32:15 | INFO: Data are loaded, start creating Blender stuff
+20:32:15 | INFO: Blender create Mesh node border_0.001
+20:32:15 | INFO: Blender create Mesh node inner_foundation.002
+20:32:15 | INFO: glTF import finished in 0.09s
+00:54.401  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/props/tile-ground-comparison.png'
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

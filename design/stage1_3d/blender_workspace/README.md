@@ -10,6 +10,9 @@
 - Scene **11 Grass Master ~ 14 Groundcover Master**: [독립 식물 4종](../environment_dressing/plant_library/README.md). 각 식물의 줄기·잎을 별도로 편집하며 내부 `06_식물_독립원본`을 따른다. 저장된 원본을 맵용으로 복사·배치한 결과가 Scene 10이며, 원본을 직접 바꾸지 않는다.
 - Scene **15 Wildflower Master ~ 21 Exposed Root Master**: [꽃·돌·이끼·덩굴·뿌리 7종](../environment_dressing/companion_library/README.md). 내부 `07_추가환경_독립원본`과 정지 검수 이미지를 따른다. 맵 배치·병합 출력은 Scene 10에서 확인한다.
 - Scene **22 Portal Master / 23 Core Master**: [A안 공용 포탈·코어](../portal_core_concepts/README.md). 바닥 없는 독립 원본이며 두 장면에서 각각 편집한다. 내부 `08_포탈코어_공용원본`에 내보내기·애니메이션 계약이 있다.
+- Scene **24~27 Chapter 1 Stage 2~5 Dressing**: [2~5 환경 장식](../../chapter1_3d/environment/README.md). 기존 승인 군락을 각 실제 맵에 재배치한 편집 원본이며, 스테이지 1 원본과 독립적으로 보존한다.
+- Scene **28 Cannonball**: [둥근 철구 포탄](../projectiles/README.md)의 `cannonball.blend`. 저장한 수동 편집은 `build_cannonball.py -- --export-only`로 내보낸다. 기본 재생성은 기존 원본을 덮어쓰므로 두 경로를 구분한다. 승인 철구 시안과 원본 검수 렌더는 해당 제작 안내에서 확인한다.
+- Scene **29 Chapter 2 Tiles / 30 Rune Pillar / 31 Crystal Cluster / 32 Void Fissure**: [챕터 2 균열 유적](../../chapter2_3d/README.md)의 길·건설 타일과 독립 외곽 소품. 소품은 각 장면에서 한 종류씩 연결해 확인하며 실제 편집은 안내에 연결된 원본에서 수행한다.
 - **02 Game Preview**: 게임에 적용된 v5 폭발의 실제 게임 캡처. 이미지 선택기로 승인 시안도 확인한다.
 - **02 Game Preview**의 이미지 선택기에서 `MOVIE`를 선택하면 같은 게임 효과의 두 시점 영상을 확인할 수 있다. Movie Clip 데이터에도 영상을 등록했다.
 

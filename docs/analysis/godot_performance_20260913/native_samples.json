@@ -1,0 +1,638 @@
+{
+  "scope": "Android ARM64 emulator, existing debug APK, noncombat preparation, fixed angled camera. NOT physical-device performance results. Godot frame_ms is frame interval, not CPU/GPU execution time. viewport is logical visible rect, not proven physical render-target size. Diagnostic toggles restored afterward.",
+  "samples": [
+    {
+      "label": "stage10-full",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 192.0,
+        "fps": 26.8853608214563,
+        "frame_ms": 37.1949629629643,
+        "max_frame_ms": 50.342,
+        "objects": 192.0,
+        "primitives": 1019108.0,
+        "received_frames": 810,
+        "renderer": "mobile",
+        "sequence": 894,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      },
+      "status": {
+        "ready": true,
+        "error": null,
+        "viewAttached": true,
+        "engineVersion": "4.7.2.stable",
+        "submitted": 3841,
+        "consumed": 3508,
+        "superseded": 332,
+        "engineInitialized": true
+      }
+    },
+    {
+      "label": "stage10-full",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 192.0,
+        "fps": 27.8866778368304,
+        "frame_ms": 35.8594166666667,
+        "max_frame_ms": 44.4734814814451,
+        "objects": 192.0,
+        "primitives": 1019108.0,
+        "received_frames": 835,
+        "renderer": "mobile",
+        "sequence": 921,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      },
+      "status": {
+        "ready": true,
+        "error": null,
+        "viewAttached": true,
+        "engineVersion": "4.7.2.stable",
+        "submitted": 3869,
+        "consumed": 3534,
+        "superseded": 334,
+        "engineInitialized": true
+      }
+    },
+    {
+      "label": "stage10-full",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 192.0,
+        "fps": 29.6391043853031,
+        "frame_ms": 33.7392111111111,
+        "max_frame_ms": 46.176,
+        "objects": 192.0,
+        "primitives": 1019108.0,
+        "received_frames": 860,
+        "renderer": "mobile",
+        "sequence": 947,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      },
+      "status": {
+        "ready": true,
+        "error": null,
+        "viewAttached": true,
+        "engineVersion": "4.7.2.stable",
+        "submitted": 3896,
+        "consumed": 3560,
+        "superseded": 335,
+        "engineInitialized": true
+      }
+    },
+    {
+      "label": "stage10-full",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 192.0,
+        "fps": 26.7681167274962,
+        "frame_ms": 37.3578765432085,
+        "max_frame_ms": 56.262,
+        "objects": 192.0,
+        "primitives": 1019108.0,
+        "received_frames": 881,
+        "renderer": "mobile",
+        "sequence": 969,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      },
+      "status": {
+        "ready": true,
+        "error": null,
+        "viewAttached": true,
+        "engineVersion": "4.7.2.stable",
+        "submitted": 3919,
+        "consumed": 3582,
+        "superseded": 336,
+        "engineInitialized": true
+      }
+    },
+    {
+      "label": "stage10-full",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 192.0,
+        "fps": 28.5014806027758,
+        "frame_ms": 35.0858965517254,
+        "max_frame_ms": 47.6190476190476,
+        "objects": 192.0,
+        "primitives": 1019108.0,
+        "received_frames": 905,
+        "renderer": "mobile",
+        "sequence": 993,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      },
+      "status": {
+        "ready": true,
+        "error": null,
+        "viewAttached": true,
+        "engineVersion": "4.7.2.stable",
+        "submitted": 3945,
+        "consumed": 3607,
+        "superseded": 337,
+        "engineInitialized": true
+      }
+    },
+    {
+      "label": "stage10-full",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 192.0,
+        "fps": 27.371025987703,
+        "frame_ms": 36.5349841269841,
+        "max_frame_ms": 51.385,
+        "objects": 192.0,
+        "primitives": 1019108.0,
+        "received_frames": 927,
+        "renderer": "mobile",
+        "sequence": 1018,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      },
+      "status": {
+        "ready": true,
+        "error": null,
+        "viewAttached": true,
+        "engineVersion": "4.7.2.stable",
+        "submitted": 3970,
+        "consumed": 3630,
+        "superseded": 339,
+        "engineInitialized": true
+      }
+    },
+    {
+      "label": "stage10-full",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 192.0,
+        "fps": 23.9324864557085,
+        "frame_ms": 41.7842083333333,
+        "max_frame_ms": 47.298,
+        "objects": 192.0,
+        "primitives": 1019108.0,
+        "received_frames": 1823,
+        "renderer": "mobile",
+        "sequence": 1986,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      },
+      "status": {
+        "ready": true,
+        "error": null,
+        "viewAttached": true,
+        "engineVersion": "4.7.2.stable",
+        "submitted": 4960,
+        "consumed": 4548,
+        "superseded": 412,
+        "engineInitialized": true
+      }
+    },
+    {
+      "label": "stage10-full",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 192.0,
+        "fps": 32.3229034107846,
+        "frame_ms": 30.9378148148148,
+        "max_frame_ms": 42.1783333333333,
+        "objects": 192.0,
+        "primitives": 1019108.0,
+        "received_frames": 1852,
+        "renderer": "mobile",
+        "sequence": 2016,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      },
+      "status": {
+        "ready": true,
+        "error": null,
+        "viewAttached": true,
+        "engineVersion": "4.7.2.stable",
+        "submitted": 4984,
+        "consumed": 4568,
+        "superseded": 415,
+        "engineInitialized": true
+      }
+    },
+    {
+      "label": "stage10-full",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 192.0,
+        "fps": 25.8593909980808,
+        "frame_ms": 38.6706709401709,
+        "max_frame_ms": 50.5783333333333,
+        "objects": 192.0,
+        "primitives": 1019108.0,
+        "received_frames": 1871,
+        "renderer": "mobile",
+        "sequence": 2038,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      },
+      "status": {
+        "ready": true,
+        "error": null,
+        "viewAttached": true,
+        "engineVersion": "4.7.2.stable",
+        "submitted": 5006,
+        "consumed": 4588,
+        "superseded": 417,
+        "engineInitialized": true
+      }
+    },
+    {
+      "label": "stage10-full",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 192.0,
+        "fps": 21.9287461940343,
+        "frame_ms": 45.6022424242408,
+        "max_frame_ms": 53.719,
+        "objects": 192.0,
+        "primitives": 1019108.0,
+        "received_frames": 1906,
+        "renderer": "mobile",
+        "sequence": 2077,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      },
+      "status": {
+        "ready": true,
+        "error": null,
+        "viewAttached": true,
+        "engineVersion": "4.7.2.stable",
+        "submitted": 5026,
+        "consumed": 4606,
+        "superseded": 419,
+        "engineInitialized": true
+      }
+    },
+    {
+      "label": "stage10-full",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 192.0,
+        "fps": 24.5049136163668,
+        "frame_ms": 40.8081422222237,
+        "max_frame_ms": 48.3716666666307,
+        "objects": 192.0,
+        "primitives": 1019108.0,
+        "received_frames": 1927,
+        "renderer": "mobile",
+        "sequence": 2100,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      },
+      "status": {
+        "ready": true,
+        "error": null,
+        "viewAttached": true,
+        "engineVersion": "4.7.2.stable",
+        "submitted": 5050,
+        "consumed": 4628,
+        "superseded": 421,
+        "engineInitialized": true
+      }
+    },
+    {
+      "label": "stage10-full",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 192.0,
+        "fps": 21.2544847767973,
+        "frame_ms": 47.0488939393939,
+        "max_frame_ms": 57.767,
+        "objects": 192.0,
+        "primitives": 1019108.0,
+        "received_frames": 1945,
+        "renderer": "mobile",
+        "sequence": 2119,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      },
+      "status": {
+        "ready": true,
+        "error": null,
+        "viewAttached": true,
+        "engineVersion": "4.7.2.stable",
+        "submitted": 5069,
+        "consumed": 4647,
+        "superseded": 422,
+        "engineInitialized": true
+      }
+    },
+    {
+      "label": "stage10-no-shadow",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 97.0,
+        "fps": 30.9554065257991,
+        "frame_ms": 32.304534562212,
+        "max_frame_ms": 48.101,
+        "objects": 97.0,
+        "primitives": 854030.0,
+        "received_frames": 2485,
+        "renderer": "mobile",
+        "sequence": 2690,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    },
+    {
+      "label": "stage10-no-shadow",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 97.0,
+        "fps": 30.1300944350903,
+        "frame_ms": 33.1894080901178,
+        "max_frame_ms": 41.815,
+        "objects": 97.0,
+        "primitives": 854030.0,
+        "received_frames": 2505,
+        "renderer": "mobile",
+        "sequence": 2711,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    },
+    {
+      "label": "stage10-no-shadow",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 97.0,
+        "fps": 28.4492292438893,
+        "frame_ms": 35.150337164751,
+        "max_frame_ms": 46.0313333333333,
+        "objects": 97.0,
+        "primitives": 854030.0,
+        "received_frames": 2525,
+        "renderer": "mobile",
+        "sequence": 2731,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    },
+    {
+      "label": "stage10-no-shadow",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 97.0,
+        "fps": 28.0346004972758,
+        "frame_ms": 35.6702068965517,
+        "max_frame_ms": 44.576,
+        "objects": 97.0,
+        "primitives": 854030.0,
+        "received_frames": 2545,
+        "renderer": "mobile",
+        "sequence": 2751,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    },
+    {
+      "label": "stage10-no-shadow",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 97.0,
+        "fps": 27.7672273332652,
+        "frame_ms": 36.0136785714286,
+        "max_frame_ms": 46.9135555555555,
+        "objects": 97.0,
+        "primitives": 854030.0,
+        "received_frames": 2565,
+        "renderer": "mobile",
+        "sequence": 2771,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    },
+    {
+      "label": "stage10-empty",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 0.0,
+        "fps": 48.4161881252856,
+        "frame_ms": 20.6542488932074,
+        "max_frame_ms": 30.634,
+        "objects": 0.0,
+        "primitives": 0.0,
+        "received_frames": 2939,
+        "renderer": "mobile",
+        "sequence": 3150,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    },
+    {
+      "label": "stage10-empty",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 0.0,
+        "fps": 42.3319791944167,
+        "frame_ms": 23.6228028792921,
+        "max_frame_ms": 49.6753333333333,
+        "objects": 0.0,
+        "primitives": 0.0,
+        "received_frames": 2952,
+        "renderer": "mobile",
+        "sequence": 3163,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    },
+    {
+      "label": "stage10-empty",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 0.0,
+        "fps": 48.9271043097969,
+        "frame_ms": 20.438569053018,
+        "max_frame_ms": 24.905,
+        "objects": 0.0,
+        "primitives": 0.0,
+        "received_frames": 2971,
+        "renderer": "mobile",
+        "sequence": 3182,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    },
+    {
+      "label": "stage10-empty",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 0.0,
+        "fps": 45.0417851572719,
+        "frame_ms": 22.2016067193676,
+        "max_frame_ms": 24.4025555555556,
+        "objects": 0.0,
+        "primitives": 0.0,
+        "received_frames": 3009,
+        "renderer": "mobile",
+        "sequence": 3220,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    },
+    {
+      "label": "stage10-empty",
+      "metrics": {
+        "authored_terrain": false,
+        "draw_calls": 0.0,
+        "fps": 47.2804545227711,
+        "frame_ms": 21.1503888888882,
+        "max_frame_ms": 32.5326666666667,
+        "objects": 0.0,
+        "primitives": 0.0,
+        "received_frames": 3028,
+        "renderer": "mobile",
+        "sequence": 3239,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    },
+    {
+      "label": "stage1-full",
+      "metrics": {
+        "authored_terrain": true,
+        "draw_calls": 36.0,
+        "fps": 41.9486397319826,
+        "frame_ms": 23.8386752559601,
+        "max_frame_ms": 28.502,
+        "objects": 36.0,
+        "primitives": 139809.0,
+        "received_frames": 815,
+        "renderer": "mobile",
+        "sequence": 820,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    },
+    {
+      "label": "stage1-full",
+      "metrics": {
+        "authored_terrain": true,
+        "draw_calls": 36.0,
+        "fps": 39.9905063807378,
+        "frame_ms": 25.0059349206358,
+        "max_frame_ms": 32.205,
+        "objects": 36.0,
+        "primitives": 139809.0,
+        "received_frames": 823,
+        "renderer": "mobile",
+        "sequence": 828,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    },
+    {
+      "label": "stage1-full",
+      "metrics": {
+        "authored_terrain": true,
+        "draw_calls": 36.0,
+        "fps": 34.6353797135166,
+        "frame_ms": 28.8722112554102,
+        "max_frame_ms": 45.087,
+        "objects": 36.0,
+        "primitives": 139809.0,
+        "received_frames": 843,
+        "renderer": "mobile",
+        "sequence": 848,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    },
+    {
+      "label": "stage1-full",
+      "metrics": {
+        "authored_terrain": true,
+        "draw_calls": 36.0,
+        "fps": 32.5242908517401,
+        "frame_ms": 30.7462506887063,
+        "max_frame_ms": 41.4387575757933,
+        "objects": 36.0,
+        "primitives": 139809.0,
+        "received_frames": 862,
+        "renderer": "mobile",
+        "sequence": 867,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    },
+    {
+      "label": "stage1-full",
+      "metrics": {
+        "authored_terrain": true,
+        "draw_calls": 36.0,
+        "fps": 32.9994940077586,
+        "frame_ms": 30.3034949494949,
+        "max_frame_ms": 36.8832121212479,
+        "objects": 36.0,
+        "primitives": 139809.0,
+        "received_frames": 879,
+        "renderer": "mobile",
+        "sequence": 884,
+        "viewport": [
+          880.0,
+          1976.0
+        ]
+      }
+    }
+  ]
+}

@@ -26,13 +26,20 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
 
     override fun getPluginName() = "RuneNexusPreview"
 
-    @Synchronized
     fun submitFrame(json: String) {
-        if (epochOf(json) != sceneEpoch) return
+        // 기존 검수 앱의 문자열 계약은 유지하고 파싱은 슬롯 잠금 밖에서 처리.
+        submitFrameV2(epochOf(json), json)
+    }
+
+    @Synchronized
+    fun submitFrameV2(epoch: Long, json: String): String {
+        if (epoch != sceneEpoch) return "{}"
         // 소비가 늦으면 지난 프레임만 교체하고 큐·메모리 누적 방지.
         if (frame.isNotEmpty()) superseded.incrementAndGet()
         frame = json
         submitted.incrementAndGet()
+        // 제출 완료는 적용 ACK가 아님. Godot가 이미 적용한 최신 응답만 반환.
+        return presentation.get()
     }
 
     @Synchronized

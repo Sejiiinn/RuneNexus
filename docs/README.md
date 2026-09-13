@@ -29,11 +29,14 @@
 
 ## 나머지 기능·설계 자료
 
+- 현행 Godot 성능 1차 진단: [2장 타일 작업량·프레임 전달 후보](analysis/godot_performance_20260913.md) — 현재 코드와 Android 에뮬레이터의 비전투 렌더 통계. 테스터 실기기 병목 확정과 구분한다.
+- Godot 최적화 전후 비교: [중복 처리·타일 렌더 작업과 남은 지연](analysis/godot_optimization_20260913.md) — release 에뮬레이터 A/B. Godot 렌더 FPS 개선과 Flutter raster 악화·긴 스파이크를 함께 기록하며 전체 앱·실기기 개선 확정과 구분한다.
+
 - 전장 표시 현행 구조: [Godot 표시 통합 구현과 검증](godot_presentation_migration_plan.md) — labels·selection·effects의 표시 소유권, 적용 확인·이벤트 큐 계약, 단계별 구현 상태와 남은 검증. [실제 적용·검증 기록](../design/stage1_3d/presentation_migration/README.md). 실기기 p95/p99·발열 성능은 미검증이다.
 
 - 스테이지 1 질감·이펙트 개선: [밝기 보존·표면 재질·입체 효과 설계](stage1_surface_effects.md), [제작 원본과 적용 기록](../design/stage1_3d/surface_effects/README.md).
 
-- 스테이지 1 3D 전장: [내장 재질 우선 제작·이관 설계](stage1_native_material_workflow.md) — 대표 재질 실험·채택 기준과 후속 내장 PBR·환경 반사 적용 결과, [본게임 연결·실행](stage1_3d_preview.md), [Godot 연결 테스트 APK](../design/stage1_3d/godot_preview/README.md), [Blender 현행 원본·작업 허브](../design/stage1_3d/blender_workspace/README.md), [S26 Ultra APK 성능 분석·개선 후보](analysis/s26_ultra_cannon_performance_20260911.md).
+- 스테이지 1~10 3D 전장: [내장 재질 우선 제작·이관 설계](stage1_native_material_workflow.md) — 대표 재질 실험·채택 기준과 후속 내장 PBR·환경 반사 적용 결과, [본게임 연결·실행](stage1_3d_preview.md), [챕터 2 균열 타일·환경 3종](../design/chapter2_3d/README.md), [Godot 연결 테스트 APK](../design/stage1_3d/godot_preview/README.md), [Blender 현행 원본·작업 허브](../design/stage1_3d/blender_workspace/README.md), [S26 Ultra APK 성능 분석·개선 후보](analysis/s26_ultra_cannon_performance_20260911.md).
 - 콘텐츠 설계: [챕터 2](chapter2_wave_enemy_design.md), [챕터 3](chapter3_forge_design.md), [젬 파편·특성](gem_shard_trait_design.md), [포탑 공격 명령](turret_target_priority_design.md).
 - 현행 기능과 이전 설계를 함께 확인할 자료: [리더보드](leaderboard_design.md), [인게임 UX 변경 범위](in_game_ux_improvement_design.md).
 - 과거·후속 검토: [긴급 매각 계획](emergency_sale_upgrade_plan.md), [구 코어 슬롯](core_passive_slot_ui_design.md). 현재 구현 여부는 [구현 현황](implementation_status.md)과 해당 코드에서 확인한다.

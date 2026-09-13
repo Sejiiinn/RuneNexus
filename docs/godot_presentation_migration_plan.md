@@ -1,6 +1,6 @@
 # Godot 전장 표시 통합 구현과 검증
 
-역할: Android 본게임 스테이지 1의 **현행 표시 소유권·이관 구현·남은 검증**. 갱신: 2026-09-13. 최초 후속 제안을 바탕으로 `labels`·`selection`·`effects` 세 묶음을 구현하고 공용 Godot 런타임에 연결했다. 구현 상태와 시각·성능 검증 상태는 구분한다. 최종 APK·검사 수치·실제 캡처는 [표시 이관 검증 기록](../design/stage1_3d/presentation_migration/README.md)을 따른다.
+역할: Android 본게임 스테이지 1~5의 **현행 표시 소유권·이관 구현·남은 검증**. 갱신: 2026-09-13. 최초 후속 제안을 바탕으로 `labels`·`selection`·`effects` 세 묶음을 구현하고 공용 Godot 런타임에 연결했다. 구현 상태와 시각·성능 검증 상태는 구분한다. 최초 스테이지 1 이관의 최종 APK·검사 수치·실제 캡처는 [표시 이관 검증 기록](../design/stage1_3d/presentation_migration/README.md)을 따른다. 이후 스테이지 2~5 확장은 [1장 전장 검증](../design/chapter1_3d/README.md)을 따른다.
 
 ## 현행 책임
 

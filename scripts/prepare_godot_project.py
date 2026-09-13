@@ -20,9 +20,45 @@ ENEMY_TYPES = ("normal", "armored", "shielded", "fast", "tank", "boss")
 FOLIAGE_IMPORT_ID = "Dressing Export (temporary)_stage1_dressing_foliage"
 
 
-def _preserve_foliage_geometry() -> None:
+def _prepare_battlefield_verification() -> None:
+    """실제 맵 정의를 검증 입력으로 추출하며 배포 프로젝트 밖에 둔다."""
+    source = (ROOT / "lib/data/definitions/game_stage_maps.dart").read_text()
+    frames = []
+    names = ("gameMap", "gameStage2Map", "stage3Map", "stage4Map", "stage5Map")
+    names += tuple(f"chapterTwoStage{stage}Map" for stage in range(6, 11))
+    for name in names:
+        match = re.search(rf"const {name} = MapDefinition\((.*?)\n\);", source, re.DOTALL)
+        if not match:
+            raise RuntimeError(f"3D 검사 맵 정의를 찾지 못했습니다: {name}")
+        definition = match.group(1)
+        theme = "chapterTwoRift" if "tileTheme: chapterTwoRiftTileTheme" in definition else "chapterOne"
+        columns = int(re.search(r"columns:\s*(\d+)", definition).group(1))
+        rows = int(re.search(r"rows:\s*(\d+)", definition).group(1))
+        tiles = re.findall(r"TileType\.(\w+)", definition.split("path:")[0])
+        path = [(int(x) + .5, int(y) + .5) for x, y in
+                re.findall(r"GridPoint\((\d+),\s*(\d+)\)", definition.split("path:")[1])]
+        if len(tiles) != columns * rows or not path:
+            raise RuntimeError(f"3D 검사 맵 구조가 맞지 않습니다: {name}")
+        build = [(index % columns + .5, index // columns + .5)
+                 for index, tile in enumerate(tiles) if tile == "build"]
+        enemy_types = ENEMY_TYPES + (("shieldBoss",) if theme == "chapterTwoRift" else ())
+        frames.append({
+            "seq": 0, "time": 0,
+            "map": {"columns": columns, "rows": rows, "tiles": tiles, "theme": theme},
+            "turrets": [[index, *build[index % len(build)], 0, 0, 0, kind, 1]
+                        for index, kind in enumerate(TURRET_TYPES)],
+            "enemies": [[index + 10, *path[index % len(path)], 0, 0, 1, 0, kind]
+                        for index, kind in enumerate(enemy_types)],
+            "projectiles": [], "impacts": [], "buildPreview": None,
+            "verificationPath": path,
+        })
+    (PROJECT.parent / "chapter_one_frames.json").write_text(json.dumps(frames[:5]) + "\n")
+    (PROJECT.parent / "chapter_two_frames.json").write_text(json.dumps(frames[5:]) + "\n")
+
+
+def _preserve_foliage_geometry(filename: str = "dressing.glb") -> None:
     # 실제 식생의 잎과 투영 차폐를 유지한다. 같은 GLB의 바위 LOD는 그대로 둔다.
-    path = ASSETS / "environment/dressing.glb.import"
+    path = ASSETS / "environment" / (filename + ".import")
     contents = path.read_text() if path.exists() else '[remap]\n\nimporter="scene"\n\n[params]\n'
     match = re.search(r"^_subresources=", contents, flags=re.MULTILINE)
     if match:
@@ -52,6 +88,45 @@ def _preserve_foliage_geometry() -> None:
     path.write_text(contents)
 
 
+def _prepare_dressing_manifests() -> None:
+    manifests = []
+    for stage in range(2, 6):
+        resource = f"environment/dressing_stage{stage}.glb"
+        glb = (ASSETS / resource).read_bytes()
+        document = json.loads(glb[20:20 + struct.unpack_from("<I", glb, 12)[0]])
+        root = next((node for node in document["nodes"]
+                     if node.get("name") == "stage1_dressing"), {})
+        extras = root.get("extras", {})
+        columns, rows = extras.get("columns", 0), extras.get("rows", 0)
+        tiles = extras.get("tileTypes", [])
+        if columns <= 0 or rows <= 0 or len(tiles) != columns * rows or tiles.count("build") > 32:
+            raise RuntimeError(f"스테이지 {stage} 환경 GLB의 맵·건설칸 계약이 맞지 않습니다.")
+        manifests.append({"columns": columns, "rows": rows, "tileTypes": tiles,
+                          "resource": "res://assets/" + resource})
+    (ASSETS / "dressing_manifests.json").write_text(json.dumps(manifests) + "\n")
+
+
+def _prepare_chapter_environment_manifests() -> None:
+    manifests = []
+    for stage in range(6, 11):
+        glb = (ASSETS / f"environment/chapter2_stage{stage}_geology.glb").read_bytes()
+        document = json.loads(glb[20:20 + struct.unpack_from("<I", glb, 12)[0]])
+        root = next((node for node in document["nodes"]
+                     if node.get("name") == f"stage{stage}_geology"), {})
+        extras = root.get("extras", {})
+        columns, rows = extras.get("columns", 0), extras.get("rows", 0)
+        tiles = extras.get("tileTypes", [])
+        if columns <= 0 or rows <= 0 or len(tiles) != columns * rows:
+            raise RuntimeError(f"스테이지 {stage} 절벽 GLB의 맵 계약이 맞지 않습니다.")
+        manifest = {"stage": stage, "columns": columns, "rows": rows, "tileTypes": tiles}
+        for key in ("cameraPointsGodot", "accentLights"):
+            if key in extras:
+                manifest[key] = extras[key]
+        manifests.append(manifest)
+        (ASSETS / f"chapter2_stage{stage}_manifest.json").write_text(json.dumps(manifest) + "\n")
+    (ASSETS / "chapter2_environment_manifests.json").write_text(json.dumps(manifests) + "\n")
+
+
 def _remove_retired_fern_shadow() -> None:
     # 기존 빌드의 source/import와 이 에셋에 속하는 캐시만 제거한다.
     for name in ("fern_shadow.glb", "fern_shadow.glb.import"):
@@ -67,6 +142,11 @@ def prepare() -> Path:
     if not (SOURCE / "project.godot").is_file():
         raise RuntimeError("루트 godot/ 공용 프로젝트를 찾을 수 없습니다.")
     required = [SOURCE_ASSETS / "environment" / name for name in ("terrain.glb", "dressing.glb", "landmarks.glb")]
+    required += [SOURCE_ASSETS / "environment" / f"dressing_stage{stage}.glb" for stage in range(2, 6)]
+    required += [SOURCE_ASSETS / "environment" / name for name in ("chapter2_tiles.glb", "chapter2_tiles_optimized.glb", "chapter2_props.glb")]
+    required += [SOURCE_ASSETS / "environment" / f"chapter2_stage{stage}_{kind}.glb"
+                 for stage in range(6, 11) for kind in ("geology", "props")]
+    required += [SOURCE_ASSETS / "projectiles" / "cannonball.glb"]
     required += [SOURCE_ASSETS / "turrets" / f"{name}.glb" for name in TURRET_TYPES]
     required += [SOURCE_ASSETS / "enemies" / f"{name}.glb" for name in ENEMY_TYPES]
     required += [SOURCE_ASSETS / "effects" / name
@@ -101,6 +181,10 @@ def prepare() -> Path:
     shutil.copy2(ROOT / "assets/images/diamond_currency.png", ui_target / "diamond_currency.png")
     shutil.copy2(ROOT / "assets/fonts/NotoSansKR-VF.ttf", ui_target / "NotoSansKR-VF.ttf")
     _preserve_foliage_geometry()
+    for stage in range(2, 6):
+        _preserve_foliage_geometry(f"dressing_stage{stage}.glb")
+    _prepare_dressing_manifests()
+    _prepare_chapter_environment_manifests()
     for filename in ("muzzle_flash.png", "gun_smoke.png"):
         target = ASSETS / "effects" / filename
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -133,6 +217,7 @@ def prepare() -> Path:
         "projectiles": [], "impacts": [], "buildPreview": None,
     }
     (ASSETS / "preview_frame.json").write_text(json.dumps(frame) + "\n")
+    _prepare_battlefield_verification()
     (PROJECT.parent / "android-assets").mkdir(parents=True, exist_ok=True)
     return PROJECT
 

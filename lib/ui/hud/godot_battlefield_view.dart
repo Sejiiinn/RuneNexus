@@ -19,11 +19,13 @@ class GodotBattlefieldView extends StatefulWidget {
     required this.game,
     this.cameraView = 'angled',
     this.onAvailabilityChanged,
+    this.onLoadingChanged,
   });
 
   final RuneNexusGame game;
   final String cameraView;
   final ValueChanged<bool>? onAvailabilityChanged;
+  final ValueChanged<bool>? onLoadingChanged;
 
   @override
   State<GodotBattlefieldView> createState() => _GodotBattlefieldViewState();
@@ -77,8 +79,22 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
       );
     }
     widget.game.nativeBattlefieldSceneEpoch = _sceneEpoch;
+    _setLoading(true);
     _clearPresentation(widget.game);
     unawaited(_connect());
+  }
+
+  void _setLoading(bool loading) {
+    widget.game.nativeBattlefieldLoading = loading;
+    final epoch = _sceneEpoch;
+    // 초기 생성·game 교체 도중 부모 HUD를 다시 빌드하지 않는다.
+    scheduleMicrotask(() {
+      if (mounted &&
+          epoch == _sceneEpoch &&
+          widget.game.nativeBattlefieldSceneEpoch == epoch) {
+        widget.onLoadingChanged?.call(loading);
+      }
+    });
   }
 
   void _clearPresentation(RuneNexusGame game) {
@@ -187,9 +203,9 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
     _sending = true;
     final submittedSequence = _sequence++;
     try {
-      await _channel.invokeMethod<void>(
-        'submitFrame',
-        jsonEncode(
+      final json = await _channel.invokeMethod<String>('submitFrameV2', {
+        'sceneEpoch': epoch,
+        'frame': jsonEncode(
           encodeGodotBattlefieldFrame(
             frame,
             sequence: submittedSequence,
@@ -198,14 +214,13 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
             viewport: viewport,
           ),
         ),
-      );
+      });
       if (!mounted || epoch != _sceneEpoch || game != widget.game) return;
       game.markNativeBattlefieldEffectsSubmitted(
         epoch,
         submittedSequence,
         frame.effects?.items.map((effect) => effect.id) ?? const <int>[],
       );
-      final json = await _channel.invokeMethod<String>('getPresentation');
       if (!mounted ||
           epoch != _sceneEpoch ||
           !_foreground ||
@@ -234,6 +249,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
       }
       game.battlefieldProjection = applied.projection;
       if (!_available) {
+        _setLoading(false);
         _available = true;
         widget.onAvailabilityChanged?.call(true);
       }
@@ -253,6 +269,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
     _failed = true;
     _ready = false;
     _statusTimer?.cancel();
+    _setLoading(false);
     _ticker.stop();
     _clearPresentation(widget.game);
     debugPrint('Godot 전장 표시 오류: $error');
@@ -269,6 +286,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
     if (oldWidget.game != widget.game) {
       _clearPresentation(oldWidget.game);
       if (oldWidget.game.nativeBattlefieldSceneEpoch == _sceneEpoch) {
+        oldWidget.game.nativeBattlefieldLoading = false;
         oldWidget.game.nativeBattlefieldSceneEpoch = 0;
       }
       _beginSession();
@@ -304,7 +322,10 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
     final epoch = _sceneEpoch;
     final ownsPresentation = game.nativeBattlefieldSceneEpoch == epoch;
     _clearPresentation(game);
-    if (ownsPresentation) game.nativeBattlefieldSceneEpoch = 0;
+    if (ownsPresentation) {
+      game.nativeBattlefieldLoading = false;
+      game.nativeBattlefieldSceneEpoch = 0;
+    }
     // 전장 종료는 엔진을 파괴하지 않고 다음 화면을 위한 상태만 비움.
     if (_connected) {
       unawaited(

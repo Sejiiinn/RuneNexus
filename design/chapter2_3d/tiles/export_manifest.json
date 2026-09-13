@@ -1,0 +1,14 @@
+{
+  "glbBytes": 10417488,
+  "triangles": 36784,
+  "nodes": [
+    "path_tile",
+    "build_tile"
+  ],
+  "tileFootprint": 1,
+  "bottom": -0.45,
+  "top": 0,
+  "cornerRelief": 0.017,
+  "exportMeshes": 2,
+  "maps": "Blender-baked basecolor/normal/roughness"
+}

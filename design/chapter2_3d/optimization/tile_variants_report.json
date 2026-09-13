@@ -1,0 +1,152 @@
+{
+  "bytes": 24289176,
+  "variantCount": 28,
+  "uniqueTriangles": 250797,
+  "variants": {
+    "build_tile_mask_0": {
+      "triangles": 12845,
+      "surfaces": 2
+    },
+    "build_tile_mask_10": {
+      "triangles": 9971,
+      "surfaces": 2
+    },
+    "build_tile_mask_11": {
+      "triangles": 8545,
+      "surfaces": 2
+    },
+    "build_tile_mask_12": {
+      "triangles": 9983,
+      "surfaces": 2
+    },
+    "build_tile_mask_13": {
+      "triangles": 8557,
+      "surfaces": 2
+    },
+    "build_tile_mask_14": {
+      "triangles": 8545,
+      "surfaces": 2
+    },
+    "build_tile_mask_15": {
+      "triangles": 7119,
+      "surfaces": 2
+    },
+    "build_tile_mask_2": {
+      "triangles": 11407,
+      "surfaces": 2
+    },
+    "build_tile_mask_3": {
+      "triangles": 9981,
+      "surfaces": 2
+    },
+    "build_tile_mask_4": {
+      "triangles": 11419,
+      "surfaces": 2
+    },
+    "build_tile_mask_5": {
+      "triangles": 9993,
+      "surfaces": 2
+    },
+    "build_tile_mask_6": {
+      "triangles": 9981,
+      "surfaces": 2
+    },
+    "build_tile_mask_7": {
+      "triangles": 8555,
+      "surfaces": 2
+    },
+    "build_tile_mask_8": {
+      "triangles": 11409,
+      "surfaces": 2
+    },
+    "build_tile_mask_9": {
+      "triangles": 9983,
+      "surfaces": 2
+    },
+    "path_tile_mask_10": {
+      "triangles": 8196,
+      "surfaces": 2
+    },
+    "path_tile_mask_11": {
+      "triangles": 6780,
+      "surfaces": 2
+    },
+    "path_tile_mask_12": {
+      "triangles": 8210,
+      "surfaces": 2
+    },
+    "path_tile_mask_13": {
+      "triangles": 6794,
+      "surfaces": 2
+    },
+    "path_tile_mask_14": {
+      "triangles": 6780,
+      "surfaces": 2
+    },
+    "path_tile_mask_15": {
+      "triangles": 5364,
+      "surfaces": 2
+    },
+    "path_tile_mask_2": {
+      "triangles": 9636,
+      "surfaces": 2
+    },
+    "path_tile_mask_4": {
+      "triangles": 9650,
+      "surfaces": 2
+    },
+    "path_tile_mask_5": {
+      "triangles": 8234,
+      "surfaces": 2
+    },
+    "path_tile_mask_6": {
+      "triangles": 8220,
+      "surfaces": 2
+    },
+    "path_tile_mask_7": {
+      "triangles": 6804,
+      "surfaces": 2
+    },
+    "path_tile_mask_8": {
+      "triangles": 9626,
+      "surfaces": 2
+    },
+    "path_tile_mask_9": {
+      "triangles": 8210,
+      "surfaces": 2
+    }
+  },
+  "stages": {
+    "6": {
+      "instances": 48,
+      "variants": 15,
+      "expectedBaseDraws": 30,
+      "instanceTriangles": 371183
+    },
+    "7": {
+      "instances": 45,
+      "variants": 17,
+      "expectedBaseDraws": 34,
+      "instanceTriangles": 332084
+    },
+    "8": {
+      "instances": 41,
+      "variants": 15,
+      "expectedBaseDraws": 30,
+      "instanceTriangles": 309942
+    },
+    "9": {
+      "instances": 42,
+      "variants": 18,
+      "expectedBaseDraws": 36,
+      "instanceTriangles": 335922
+    },
+    "10": {
+      "instances": 53,
+      "variants": 22,
+      "expectedBaseDraws": 44,
+      "instanceTriangles": 431324
+    }
+  },
+  "maskBitOrder": "LOCAL W=1 E=2 N=4 S=8; Blender N=+Y, Godot N=-Z; rotate local direction by cell index%4 before querying neighbor"
+}

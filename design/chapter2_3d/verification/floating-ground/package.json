@@ -1,0 +1,24 @@
+{
+  "before": {
+    "apkBytes": 508843030,
+    "pckBytes": 86193760
+  },
+  "apkBytes": 509653734,
+  "pck": [
+    {
+      "name": "assets/rune_nexus.pck",
+      "bytes": 87004464,
+      "compressedBytes": 87004464
+    }
+  ],
+  "compressedGroups": {
+    "Other": 5872025,
+    "lib/arm64-v8a": 126656016,
+    "lib/armeabi-v7a": 75958972,
+    "lib/x86_64": 75498728,
+    "Flutter assets": 66037305,
+    "Godot PCK": 87004464
+  },
+  "unexpectedSourcesOrDuplicateGlb": [],
+  "propsBytes": 4908076
+}

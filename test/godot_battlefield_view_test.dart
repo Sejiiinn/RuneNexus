@@ -49,12 +49,12 @@ void main() {
           shadowSize = options['shadow_map_size'] as int;
           nativeLevels = options['turret_levels'] == true;
           return null;
-        case 'submitFrame':
+        case 'submitFrameV2':
+          final envelope = call.arguments as Map;
           frames.add(
-            jsonDecode(call.arguments as String) as Map<String, dynamic>,
+            jsonDecode(envelope['frame'] as String) as Map<String, dynamic>,
           );
-          return null;
-        case 'getPresentation':
+          expect(envelope['sceneEpoch'], frames.last['sceneEpoch']);
           return jsonEncode({
             'presentationVersion': 2,
             'sceneEpoch': frames.last['sceneEpoch'],
@@ -72,6 +72,9 @@ void main() {
               'heightAxis': [.0, -.025],
             },
           });
+        case 'submitFrame':
+        case 'getPresentation':
+          fail('본게임은 단일 submitFrameV2 왕복으로 전송과 적용 응답을 받는다');
       }
       return null;
     });

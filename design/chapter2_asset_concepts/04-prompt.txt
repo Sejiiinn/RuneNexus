@@ -1,0 +1,13 @@
+Use case: stylized-concept.
+Create ONE isolated modular environment prop concept for RuneNexus Chapter 2, matching the supplied style reference only for tactile fractured blue-grey stone, restrained ancient brass detailing and subtle violet void depth. Do not reproduce the reference's map layout, text or presentation board.
+
+Subject: a single thick, compact, irregular dark blue-grey bedrock terrain piece with a narrow, jagged fissure splitting its upper surface and extending a little down its heavy stone sides. The rock is the dominant solid mass. The fissure is a dark narrow depth, with just a few faint violet star-like points visible deep inside it. Most surfaces are non-emissive stone. A small broken half-ring of weathered ancient brass sealing hardware is partly buried at one edge of the fissure, low and physically embedded, not standing as a portal. A few separate small stone chips sit close around the same asset. This is one contained outer-terrain environment prop, not a whole map or arena.
+
+Materials: premium tactile semi-realistic stylized 3D game concept. Broad readable angular stone masses, chipped thick edges, fine weathered stone texture, deep contact shadows. Dark desaturated blue-grey rock with moderate light-facing planes so its shape is legible. Brass is tarnished and restrained. The only violet light is a very subtle suggestion confined to the deepest fissure, no glowing outlines and no large purple areas.
+
+Composition: orthographic three-quarter view, elevated about 45 degrees, centered isolated full asset with generous margin on all sides. The stone and the nearby few chips form one clearly bounded compact prop. Plain charcoal studio background with subtle grounding shadow. Soft upper-left studio key light reveals stone thickness and brass wear.
+
+Constraints: one image, one prop, no text, no labels, no border, no sheet or collage, no characters, no UI, no cosmic background, no nebula, no neon outline, no luminous stone edges, no giant crater, no wide open chasm, no extra crystals, no large standing ring. The void is decorative non-playable outer terrain; invent no gameplay mechanics.
+
+Reference: design/chapter_battlefield_concepts/chapter2-rift.png (style reference only)
+Tool: built-in image_gen, one image

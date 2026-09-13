@@ -1,0 +1,58 @@
+[
+  {
+    "file": "assets/images/stage1_3d/environment/terrain.glb",
+    "sha256": "fdce7fe0fdb23473b267b4d117c977c2008dbc21f8095d00ccbc9cd2ecad529e",
+    "bytes": 30688776,
+    "mesh_primitives": 29,
+    "base_lod_triangles": 74564,
+    "materials": 15
+  },
+  {
+    "file": "assets/images/stage1_3d/environment/dressing.glb",
+    "sha256": "9544247164e52790b1571b2140d16b1d0ed5c971bff71bfcd0935aecdb0ec658",
+    "bytes": 1552836,
+    "mesh_primitives": 2,
+    "base_lod_triangles": 23964,
+    "materials": 2
+  },
+  {
+    "file": "assets/images/stage1_3d/environment/chapter2_tiles.glb",
+    "sha256": "1aaa1b467d18f99b9aa63f8f1db07dd1ac01fd743314db9458b13cda54bbfcde",
+    "bytes": 10417488,
+    "mesh_primitives": 4,
+    "base_lod_triangles": 36784,
+    "materials": 3
+  },
+  {
+    "file": "assets/images/stage1_3d/environment/chapter2_stage6_geology.glb",
+    "sha256": "0ad019b08a73196d8b99eaa93f551b88ce8a6eda1cd47ff500ffd8b51a14d9d0",
+    "bytes": 6831348,
+    "mesh_primitives": 2,
+    "base_lod_triangles": 22012,
+    "materials": 2
+  },
+  {
+    "file": "assets/images/stage1_3d/environment/chapter2_stage6_props.glb",
+    "sha256": "b165e4de19305fe24010cc1bcb46a5c91f1fb2f369fdc1bc67dd223c8b8b91d5",
+    "bytes": 4162012,
+    "mesh_primitives": 34,
+    "base_lod_triangles": 38818,
+    "materials": 7
+  },
+  {
+    "file": "assets/images/stage1_3d/environment/chapter2_stage10_geology.glb",
+    "sha256": "6205ce2ef4769edf1bf7edadf6b65f7e266020bbde8ca259decdb018ca70d50e",
+    "bytes": 7275416,
+    "mesh_primitives": 2,
+    "base_lod_triangles": 28084,
+    "materials": 2
+  },
+  {
+    "file": "assets/images/stage1_3d/environment/chapter2_stage10_props.glb",
+    "sha256": "c6e3b29acac875cfd1cc3c3ec49f1f5301acfe9bf46b0e3d198ab5e0e4fb1448",
+    "bytes": 4161996,
+    "mesh_primitives": 34,
+    "base_lod_triangles": 38818,
+    "materials": 7
+  }
+]

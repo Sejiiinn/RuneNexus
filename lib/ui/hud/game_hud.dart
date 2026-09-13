@@ -2,6 +2,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../app/app_startup_screen.dart';
 import '../../domain/combat/game_phase.dart';
 import '../../game/game_snapshot.dart';
 import '../../game/rune_nexus_game.dart';
@@ -43,6 +44,7 @@ class GameHud extends StatefulWidget {
 class _GameHudState extends State<GameHud> {
   bool _showGemDebugPanel = false;
   bool _godotAvailable = false;
+  bool _godotLoading = true;
   String _cameraView = 'angled';
   late final AppLifecycleListener _lifecycleListener;
 
@@ -141,13 +143,18 @@ class _GameHudState extends State<GameHud> {
             child: ValueListenableBuilder<GameSnapshot>(
               valueListenable: widget.game.snapshotNotifier,
               builder: (context, snapshot, _) {
-                if (snapshot.currentStageNumber != 1) {
+                if (!widget.game.supportsNativeBattlefield) {
                   return const SizedBox.shrink();
                 }
                 return GodotBattlefieldView(
-                  key: ObjectKey(widget.game),
+                  key: ValueKey((widget.game, snapshot.currentStageNumber)),
                   game: widget.game,
                   cameraView: _cameraView,
+                  onLoadingChanged: (loading) {
+                    if (mounted && _godotLoading != loading) {
+                      setState(() => _godotLoading = loading);
+                    }
+                  },
                   onAvailabilityChanged: (available) {
                     if (mounted && _godotAvailable != available) {
                       setState(() => _godotAvailable = available);
@@ -191,12 +198,12 @@ class _GameHudState extends State<GameHud> {
                 ),
                 if (_godotAvailable)
                   Positioned(
-                    top: 96 + (_showDebugPanel ? _hudDebugBarHeight : 0),
+                    top: 78 + (_showDebugPanel ? _hudDebugBarHeight : 0),
                     right: 12,
                     child: ValueListenableBuilder<GameSnapshot>(
                       valueListenable: widget.game.snapshotNotifier,
                       builder: (context, snapshot, _) {
-                        if (snapshot.currentStageNumber != 1) {
+                        if (!widget.game.supportsNativeBattlefield) {
                           return const SizedBox.shrink();
                         }
                         return Row(
@@ -239,6 +246,21 @@ class _GameHudState extends State<GameHud> {
                   onStartStage: widget.onStartStage,
                 ),
               ],
+            ),
+          ),
+        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
+          Positioned.fill(
+            child: ValueListenableBuilder<GameSnapshot>(
+              valueListenable: widget.game.snapshotNotifier,
+              builder: (context, snapshot, _) {
+                if (!widget.game.supportsNativeBattlefield ||
+                    !(_godotLoading || widget.game.nativeBattlefieldLoading)) {
+                  return const SizedBox.shrink();
+                }
+                return const AbsorbPointer(
+                  child: AppStartupScreen(status: '3D 전장 준비 중'),
+                );
+              },
             ),
           ),
       ],

@@ -156,6 +156,72 @@ void main() {
   );
 
   testWidgets(
+    'combined submit response acknowledges only the previously applied effect frame',
+    (tester) async {
+      const channel = MethodChannel('rune_nexus/godot_preview');
+      final messenger = tester.binding.defaultBinaryMessenger;
+      Map<String, dynamic>? latest;
+      var acknowledge = false;
+      messenger.setMockMethodCallHandler(
+        SystemChannels.platform_views,
+        (_) async => null,
+      );
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'getStatus') return {'ready': true, 'error': ''};
+        if (call.method != 'submitFrameV2') return null;
+        final envelope = call.arguments as Map;
+        final applied = latest;
+        latest = jsonDecode(envelope['frame'] as String) as Map<String, dynamic>;
+        expect(envelope['sceneEpoch'], latest!['sceneEpoch']);
+        if (!acknowledge || applied == null) return '{}';
+        return jsonEncode({
+          'presentationVersion': 2,
+          'sceneEpoch': applied['sceneEpoch'],
+          'viewportRevision': applied['viewportRevision'],
+          'viewport': applied['viewport'],
+          'sequence': applied['seq'],
+          'appliedGroups': ['effects'],
+          'projection': {
+            'origin': [.1, .2],
+            'xAxis': [.1, 0],
+            'yAxis': [0, .1],
+            'heightAxis': [0, -.1],
+          },
+        });
+      });
+      addTearDown(() {
+        messenger.setMockMethodCallHandler(channel, null);
+        messenger.setMockMethodCallHandler(SystemChannels.platform_views, null);
+      });
+      final game = (await tester.runAsync(_fixture))!;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SizedBox(
+            width: 400,
+            height: 800,
+            child: GodotBattlefieldView(game: game),
+          ),
+        ),
+      );
+      final effect = _ShortEffect();
+      game.add(effect);
+      await tester.runAsync(game.ready);
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(latest, isNotNull);
+      expect(game.isNativeBattlefieldEffect(effect), isFalse);
+      acknowledge = true;
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(game.isNativeBattlefieldEffect(effect), isTrue);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
     'background clears orphan delivery and resume starts a new owner epoch',
     (tester) async {
       const channel = MethodChannel('rune_nexus/godot_preview');
@@ -167,8 +233,10 @@ void main() {
       );
       messenger.setMockMethodCallHandler(channel, (call) async {
         if (call.method == 'getStatus') return {'ready': true, 'error': ''};
-        if (call.method == 'submitFrame') {
-          final frame = jsonDecode(call.arguments as String) as Map;
+        if (call.method == 'submitFrameV2') {
+          final envelope = call.arguments as Map;
+          final frame = jsonDecode(envelope['frame'] as String) as Map;
+          expect(envelope['sceneEpoch'], frame['sceneEpoch']);
           submittedEpochs.add(frame['sceneEpoch'] as int);
         }
         return null;

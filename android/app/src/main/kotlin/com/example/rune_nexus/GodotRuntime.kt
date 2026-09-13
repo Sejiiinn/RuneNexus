@@ -61,6 +61,10 @@ internal object GodotRuntime : GodotHost {
     }
 
     fun submitFrame(json: String) { bridge?.submitFrame(json) }
+    fun submitFrameV2(epoch: Long, json: String): String {
+        val applied = bridge?.submitFrameV2(epoch, json) ?: "{}"
+        return if (activeView?.attached == true) applied else "{}"
+    }
     fun setOptions(json: String) { bridge?.setOptions(json) }
     fun clearScene(expectedEpoch: Long? = null) {
         if (expectedEpoch != null && expectedEpoch != sceneEpoch) return

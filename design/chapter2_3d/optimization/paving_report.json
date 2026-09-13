@@ -1,0 +1,57 @@
+[
+  {
+    "stage": 6,
+    "beforeTriangles": 892716,
+    "afterTriangles": 371183,
+    "bytes": 34917912,
+    "materials": 3,
+    "removedLowerBandObjects": 1184,
+    "removedHiddenFaceTriangles": 159489,
+    "reductionPercent": 58.42,
+    "drawPrimitives": 3
+  },
+  {
+    "stage": 7,
+    "beforeTriangles": 830610,
+    "afterTriangles": 332084,
+    "bytes": 32074328,
+    "materials": 3,
+    "removedLowerBandObjects": 1168,
+    "removedHiddenFaceTriangles": 141496,
+    "reductionPercent": 60.02,
+    "drawPrimitives": 3
+  },
+  {
+    "stage": 8,
+    "beforeTriangles": 757042,
+    "afterTriangles": 309942,
+    "bytes": 30457500,
+    "materials": 3,
+    "removedLowerBandObjects": 1024,
+    "removedHiddenFaceTriangles": 133960,
+    "reductionPercent": 59.06,
+    "drawPrimitives": 3
+  },
+  {
+    "stage": 9,
+    "beforeTriangles": 778404,
+    "afterTriangles": 335922,
+    "bytes": 32339976,
+    "materials": 3,
+    "removedLowerBandObjects": 960,
+    "removedHiddenFaceTriangles": 148968,
+    "reductionPercent": 56.84,
+    "drawPrimitives": 3
+  },
+  {
+    "stage": 10,
+    "beforeTriangles": 981706,
+    "afterTriangles": 431324,
+    "bytes": 39273256,
+    "materials": 3,
+    "removedLowerBandObjects": 1168,
+    "removedHiddenFaceTriangles": 193344,
+    "reductionPercent": 56.06,
+    "drawPrimitives": 3
+  }
+]

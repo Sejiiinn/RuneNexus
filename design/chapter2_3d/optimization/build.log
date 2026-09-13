@@ -1,0 +1,50 @@
+00:00.538  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/tiles/chapter2-tiles.blend"
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+Info: Saved as "stage6-paving.blend"
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+22:39:58 | INFO: Starting glTF 2.0 export
+22:39:58 | INFO: Extracting primitive: inner_foundation.050
+22:39:58 | INFO: Primitives created: 3
+22:39:58 | INFO: Finished glTF 2.0 export in 0.31407809257507324 s
+
+PAVING_COMPLETE {"stage": 6, "beforeTriangles": 892716, "afterTriangles": 371183, "bytes": 34917912, "materials": 4, "removedLowerBandObjects": 1184, "removedHiddenFaceTriangles": 159489, "reductionPercent": 58.42}
+00:02.260  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/tiles/chapter2-tiles.blend"
+Info: Saved as "stage7-paving.blend"
+22:39:59 | INFO: Starting glTF 2.0 export
+22:39:59 | INFO: Extracting primitive: inner_foundation.047
+22:39:59 | INFO: Primitives created: 3
+22:39:59 | INFO: Finished glTF 2.0 export in 0.2537961006164551 s
+
+PAVING_COMPLETE {"stage": 7, "beforeTriangles": 830610, "afterTriangles": 332084, "bytes": 32074328, "materials": 4, "removedLowerBandObjects": 1168, "removedHiddenFaceTriangles": 141496, "reductionPercent": 60.02}
+00:03.643  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/tiles/chapter2-tiles.blend"
+Info: Saved as "stage8-paving.blend"
+22:40:00 | INFO: Starting glTF 2.0 export
+22:40:00 | INFO: Extracting primitive: border_0.023
+22:40:01 | INFO: Primitives created: 3
+22:40:01 | INFO: Finished glTF 2.0 export in 0.23946380615234375 s
+
+PAVING_COMPLETE {"stage": 8, "beforeTriangles": 757042, "afterTriangles": 309942, "bytes": 30457500, "materials": 4, "removedLowerBandObjects": 1024, "removedHiddenFaceTriangles": 133960, "reductionPercent": 59.06}
+00:04.917  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/tiles/chapter2-tiles.blend"
+Info: Saved as "stage9-paving.blend"
+22:40:02 | INFO: Starting glTF 2.0 export
+22:40:02 | INFO: Extracting primitive: inner_foundation.044
+22:40:02 | INFO: Primitives created: 3
+22:40:02 | INFO: Finished glTF 2.0 export in 0.24622321128845215 s
+
+PAVING_COMPLETE {"stage": 9, "beforeTriangles": 778404, "afterTriangles": 335922, "bytes": 32339976, "materials": 4, "removedLowerBandObjects": 960, "removedHiddenFaceTriangles": 148968, "reductionPercent": 56.84}
+00:06.272  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/tiles/chapter2-tiles.blend"
+Info: Saved as "stage10-paving.blend"
+22:40:03 | INFO: Starting glTF 2.0 export
+22:40:03 | INFO: Extracting primitive: border_0.031
+22:40:04 | INFO: Primitives created: 3
+22:40:04 | INFO: Finished glTF 2.0 export in 0.28328680992126465 s
+
+PAVING_COMPLETE {"stage": 10, "beforeTriangles": 981706, "afterTriangles": 431324, "bytes": 39273256, "materials": 4, "removedLowerBandObjects": 1168, "removedHiddenFaceTriangles": 193344, "reductionPercent": 56.06}
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

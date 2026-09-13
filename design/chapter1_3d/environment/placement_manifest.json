@@ -1,0 +1,1251 @@
+{
+  "sourceSha256": "dbdc06815e33275116168d4f4f64b2335bfceef48b7cee4ced9904318b1e1156",
+  "stages": [
+    {
+      "stage": 2,
+      "objects": 26,
+      "triangles": 12218,
+      "glbBytes": 685664,
+      "placements": [
+        {
+          "name": "s2_00_layered_fern_c2_r2",
+          "asset": "layered_fern",
+          "tile": [
+            2,
+            2
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s2_01_broadleaf_herb_c2_r2",
+          "asset": "broadleaf_herb",
+          "tile": [
+            2,
+            2
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s2_02_broadleaf_herb_c8_r2",
+          "asset": "broadleaf_herb",
+          "tile": [
+            8,
+            2
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s2_03_arched_grass_c8_r2",
+          "asset": "arched_grass",
+          "tile": [
+            8,
+            2
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s2_04_wildflower_clump_c8_r2",
+          "asset": "wildflower_clump",
+          "tile": [
+            8,
+            2
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s2_05_layered_fern_c5_r3",
+          "asset": "layered_fern",
+          "tile": [
+            5,
+            3
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s2_06_broadleaf_herb_c5_r3",
+          "asset": "broadleaf_herb",
+          "tile": [
+            5,
+            3
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s2_07_arched_grass_c5_r3",
+          "asset": "arched_grass",
+          "tile": [
+            5,
+            3
+          ],
+          "edge": "E",
+          "removable": false
+        },
+        {
+          "name": "s2_08_mossy_boulder_c5_r3",
+          "asset": "mossy_boulder",
+          "tile": [
+            5,
+            3
+          ],
+          "edge": "E",
+          "removable": false
+        },
+        {
+          "name": "s2_09_creeping_moss_c5_r3",
+          "asset": "creeping_moss",
+          "tile": [
+            5,
+            3
+          ],
+          "edge": "E",
+          "removable": false
+        },
+        {
+          "name": "s2_10_wildflower_clump_c5_r3",
+          "asset": "wildflower_clump",
+          "tile": [
+            5,
+            3
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s2_11_trailing_vine_c5_r3",
+          "asset": "trailing_vine",
+          "tile": [
+            5,
+            3
+          ],
+          "edge": "E",
+          "removable": false
+        },
+        {
+          "name": "s2_12_layered_fern_c2_r4",
+          "asset": "layered_fern",
+          "tile": [
+            2,
+            4
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s2_13_creeping_groundcover_c2_r4",
+          "asset": "creeping_groundcover",
+          "tile": [
+            2,
+            4
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s2_14_broadleaf_herb_c6_r6",
+          "asset": "broadleaf_herb",
+          "tile": [
+            6,
+            6
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s2_15_arched_grass_c6_r6",
+          "asset": "arched_grass",
+          "tile": [
+            6,
+            6
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s2_16_flat_stone_c6_r6",
+          "asset": "flat_stone",
+          "tile": [
+            6,
+            6
+          ],
+          "edge": "S",
+          "removable": false
+        },
+        {
+          "name": "s2_17_creeping_moss_c6_r6",
+          "asset": "creeping_moss",
+          "tile": [
+            6,
+            6
+          ],
+          "edge": "S",
+          "removable": false
+        },
+        {
+          "name": "s2_18_creeping_groundcover_c6_r6",
+          "asset": "creeping_groundcover",
+          "tile": [
+            6,
+            6
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s2_19_wildflower_clump_c6_r6",
+          "asset": "wildflower_clump",
+          "tile": [
+            6,
+            6
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s2_20_creeping_groundcover_c7_r2",
+          "asset": "creeping_groundcover",
+          "tile": [
+            7,
+            2
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s2_21_broadleaf_herb_c2_r3",
+          "asset": "broadleaf_herb",
+          "tile": [
+            2,
+            3
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s2_22_arched_grass_c8_r3",
+          "asset": "arched_grass",
+          "tile": [
+            8,
+            3
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s2_23_arched_grass_c3_r4",
+          "asset": "arched_grass",
+          "tile": [
+            3,
+            4
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s2_24_arched_grass_c8_r4",
+          "asset": "arched_grass",
+          "tile": [
+            8,
+            4
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s2_25_arched_grass_c5_r6",
+          "asset": "arched_grass",
+          "tile": [
+            5,
+            6
+          ],
+          "edge": "E",
+          "removable": true
+        }
+      ],
+      "omitted": []
+    },
+    {
+      "stage": 3,
+      "objects": 31,
+      "triangles": 13826,
+      "glbBytes": 824040,
+      "placements": [
+        {
+          "name": "s3_00_layered_fern_c1_r1",
+          "asset": "layered_fern",
+          "tile": [
+            1,
+            1
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s3_01_broadleaf_herb_c1_r1",
+          "asset": "broadleaf_herb",
+          "tile": [
+            1,
+            1
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s3_02_arched_grass_c1_r1",
+          "asset": "arched_grass",
+          "tile": [
+            1,
+            1
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s3_03_creeping_groundcover_c1_r1",
+          "asset": "creeping_groundcover",
+          "tile": [
+            1,
+            1
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s3_04_layered_fern_c5_r2",
+          "asset": "layered_fern",
+          "tile": [
+            5,
+            2
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s3_05_broadleaf_herb_c5_r2",
+          "asset": "broadleaf_herb",
+          "tile": [
+            5,
+            2
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s3_06_arched_grass_c5_r2",
+          "asset": "arched_grass",
+          "tile": [
+            5,
+            2
+          ],
+          "edge": "E",
+          "removable": false
+        },
+        {
+          "name": "s3_07_mossy_boulder_c5_r2",
+          "asset": "mossy_boulder",
+          "tile": [
+            5,
+            2
+          ],
+          "edge": "E",
+          "removable": false
+        },
+        {
+          "name": "s3_08_creeping_moss_c5_r2",
+          "asset": "creeping_moss",
+          "tile": [
+            5,
+            2
+          ],
+          "edge": "E",
+          "removable": false
+        },
+        {
+          "name": "s3_09_trailing_vine_c5_r2",
+          "asset": "trailing_vine",
+          "tile": [
+            5,
+            2
+          ],
+          "edge": "E",
+          "removable": false
+        },
+        {
+          "name": "s3_10_layered_fern_c0_r4",
+          "asset": "layered_fern",
+          "tile": [
+            0,
+            4
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s3_11_broadleaf_herb_c0_r4",
+          "asset": "broadleaf_herb",
+          "tile": [
+            0,
+            4
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s3_12_arched_grass_c0_r4",
+          "asset": "arched_grass",
+          "tile": [
+            0,
+            4
+          ],
+          "edge": "W",
+          "removable": false
+        },
+        {
+          "name": "s3_13_mossy_boulder_c0_r4",
+          "asset": "mossy_boulder",
+          "tile": [
+            0,
+            4
+          ],
+          "edge": "W",
+          "removable": false
+        },
+        {
+          "name": "s3_14_creeping_moss_c0_r4",
+          "asset": "creeping_moss",
+          "tile": [
+            0,
+            4
+          ],
+          "edge": "W",
+          "removable": false
+        },
+        {
+          "name": "s3_15_wildflower_clump_c0_r4",
+          "asset": "wildflower_clump",
+          "tile": [
+            0,
+            4
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s3_16_trailing_vine_c0_r4",
+          "asset": "trailing_vine",
+          "tile": [
+            0,
+            4
+          ],
+          "edge": "W",
+          "removable": false
+        },
+        {
+          "name": "s3_17_broadleaf_herb_c6_r5",
+          "asset": "broadleaf_herb",
+          "tile": [
+            6,
+            5
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s3_18_arched_grass_c6_r5",
+          "asset": "arched_grass",
+          "tile": [
+            6,
+            5
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s3_19_flat_stone_c6_r5",
+          "asset": "flat_stone",
+          "tile": [
+            6,
+            5
+          ],
+          "edge": "S",
+          "removable": false
+        },
+        {
+          "name": "s3_20_creeping_moss_c6_r5",
+          "asset": "creeping_moss",
+          "tile": [
+            6,
+            5
+          ],
+          "edge": "S",
+          "removable": false
+        },
+        {
+          "name": "s3_21_wildflower_clump_c6_r5",
+          "asset": "wildflower_clump",
+          "tile": [
+            6,
+            5
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s3_22_broadleaf_herb_c4_r7",
+          "asset": "broadleaf_herb",
+          "tile": [
+            4,
+            7
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s3_23_arched_grass_c4_r7",
+          "asset": "arched_grass",
+          "tile": [
+            4,
+            7
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s3_24_flat_stone_c4_r7",
+          "asset": "flat_stone",
+          "tile": [
+            4,
+            7
+          ],
+          "edge": "S",
+          "removable": false
+        },
+        {
+          "name": "s3_25_creeping_moss_c4_r7",
+          "asset": "creeping_moss",
+          "tile": [
+            4,
+            7
+          ],
+          "edge": "S",
+          "removable": false
+        },
+        {
+          "name": "s3_26_creeping_groundcover_c4_r7",
+          "asset": "creeping_groundcover",
+          "tile": [
+            4,
+            7
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s3_27_wildflower_clump_c4_r7",
+          "asset": "wildflower_clump",
+          "tile": [
+            4,
+            7
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s3_28_broadleaf_herb_c3_r4",
+          "asset": "broadleaf_herb",
+          "tile": [
+            3,
+            4
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s3_29_creeping_groundcover_c3_r5",
+          "asset": "creeping_groundcover",
+          "tile": [
+            3,
+            5
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s3_30_creeping_groundcover_c3_r7",
+          "asset": "creeping_groundcover",
+          "tile": [
+            3,
+            7
+          ],
+          "edge": "E",
+          "removable": true
+        }
+      ],
+      "omitted": []
+    },
+    {
+      "stage": 4,
+      "objects": 34,
+      "triangles": 14730,
+      "glbBytes": 911988,
+      "placements": [
+        {
+          "name": "s4_00_layered_fern_c3_r2",
+          "asset": "layered_fern",
+          "tile": [
+            3,
+            2
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s4_01_broadleaf_herb_c3_r2",
+          "asset": "broadleaf_herb",
+          "tile": [
+            3,
+            2
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s4_02_arched_grass_c3_r2",
+          "asset": "arched_grass",
+          "tile": [
+            3,
+            2
+          ],
+          "edge": "N",
+          "removable": false
+        },
+        {
+          "name": "s4_03_mossy_boulder_c3_r2",
+          "asset": "mossy_boulder",
+          "tile": [
+            3,
+            2
+          ],
+          "edge": "N",
+          "removable": false
+        },
+        {
+          "name": "s4_04_creeping_moss_c3_r2",
+          "asset": "creeping_moss",
+          "tile": [
+            3,
+            2
+          ],
+          "edge": "N",
+          "removable": false
+        },
+        {
+          "name": "s4_05_trailing_vine_c3_r2",
+          "asset": "trailing_vine",
+          "tile": [
+            3,
+            2
+          ],
+          "edge": "N",
+          "removable": false
+        },
+        {
+          "name": "s4_06_broadleaf_herb_c7_r2",
+          "asset": "broadleaf_herb",
+          "tile": [
+            7,
+            2
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s4_07_arched_grass_c7_r2",
+          "asset": "arched_grass",
+          "tile": [
+            7,
+            2
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s4_08_flat_stone_c7_r2",
+          "asset": "flat_stone",
+          "tile": [
+            7,
+            2
+          ],
+          "edge": "E",
+          "removable": false
+        },
+        {
+          "name": "s4_09_creeping_moss_c7_r2",
+          "asset": "creeping_moss",
+          "tile": [
+            7,
+            2
+          ],
+          "edge": "E",
+          "removable": false
+        },
+        {
+          "name": "s4_10_wildflower_clump_c7_r2",
+          "asset": "wildflower_clump",
+          "tile": [
+            7,
+            2
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s4_11_layered_fern_c4_r5",
+          "asset": "layered_fern",
+          "tile": [
+            4,
+            5
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s4_12_broadleaf_herb_c4_r5",
+          "asset": "broadleaf_herb",
+          "tile": [
+            4,
+            5
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s4_13_arched_grass_c4_r5",
+          "asset": "arched_grass",
+          "tile": [
+            4,
+            5
+          ],
+          "edge": "W",
+          "removable": false
+        },
+        {
+          "name": "s4_14_mossy_boulder_c4_r5",
+          "asset": "mossy_boulder",
+          "tile": [
+            4,
+            5
+          ],
+          "edge": "W",
+          "removable": false
+        },
+        {
+          "name": "s4_15_creeping_moss_c4_r5",
+          "asset": "creeping_moss",
+          "tile": [
+            4,
+            5
+          ],
+          "edge": "W",
+          "removable": false
+        },
+        {
+          "name": "s4_16_wildflower_clump_c4_r5",
+          "asset": "wildflower_clump",
+          "tile": [
+            4,
+            5
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s4_17_trailing_vine_c4_r5",
+          "asset": "trailing_vine",
+          "tile": [
+            4,
+            5
+          ],
+          "edge": "W",
+          "removable": false
+        },
+        {
+          "name": "s4_18_layered_fern_c6_r6",
+          "asset": "layered_fern",
+          "tile": [
+            6,
+            6
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s4_19_broadleaf_herb_c6_r6",
+          "asset": "broadleaf_herb",
+          "tile": [
+            6,
+            6
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s4_20_arched_grass_c6_r6",
+          "asset": "arched_grass",
+          "tile": [
+            6,
+            6
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s4_21_mossy_boulder_c6_r6",
+          "asset": "mossy_boulder",
+          "tile": [
+            6,
+            6
+          ],
+          "edge": "W",
+          "removable": false
+        },
+        {
+          "name": "s4_22_creeping_moss_c6_r6",
+          "asset": "creeping_moss",
+          "tile": [
+            6,
+            6
+          ],
+          "edge": "W",
+          "removable": false
+        },
+        {
+          "name": "s4_23_creeping_groundcover_c6_r6",
+          "asset": "creeping_groundcover",
+          "tile": [
+            6,
+            6
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s4_24_broadleaf_herb_c4_r9",
+          "asset": "broadleaf_herb",
+          "tile": [
+            4,
+            9
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s4_25_arched_grass_c4_r9",
+          "asset": "arched_grass",
+          "tile": [
+            4,
+            9
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s4_26_flat_stone_c4_r9",
+          "asset": "flat_stone",
+          "tile": [
+            4,
+            9
+          ],
+          "edge": "S",
+          "removable": false
+        },
+        {
+          "name": "s4_27_creeping_moss_c4_r9",
+          "asset": "creeping_moss",
+          "tile": [
+            4,
+            9
+          ],
+          "edge": "S",
+          "removable": false
+        },
+        {
+          "name": "s4_28_creeping_groundcover_c4_r9",
+          "asset": "creeping_groundcover",
+          "tile": [
+            4,
+            9
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s4_29_wildflower_clump_c4_r9",
+          "asset": "wildflower_clump",
+          "tile": [
+            4,
+            9
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s4_30_creeping_groundcover_c2_r2",
+          "asset": "creeping_groundcover",
+          "tile": [
+            2,
+            2
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s4_31_creeping_groundcover_c3_r4",
+          "asset": "creeping_groundcover",
+          "tile": [
+            3,
+            4
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s4_32_arched_grass_c2_r7",
+          "asset": "arched_grass",
+          "tile": [
+            2,
+            7
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s4_33_arched_grass_c5_r7",
+          "asset": "arched_grass",
+          "tile": [
+            5,
+            7
+          ],
+          "edge": "W",
+          "removable": true
+        }
+      ],
+      "omitted": []
+    },
+    {
+      "stage": 5,
+      "objects": 30,
+      "triangles": 13124,
+      "glbBytes": 790808,
+      "placements": [
+        {
+          "name": "s5_00_broadleaf_herb_c6_r0",
+          "asset": "broadleaf_herb",
+          "tile": [
+            6,
+            0
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s5_01_arched_grass_c6_r0",
+          "asset": "arched_grass",
+          "tile": [
+            6,
+            0
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s5_02_flat_stone_c6_r0",
+          "asset": "flat_stone",
+          "tile": [
+            6,
+            0
+          ],
+          "edge": "N",
+          "removable": false
+        },
+        {
+          "name": "s5_03_creeping_moss_c6_r0",
+          "asset": "creeping_moss",
+          "tile": [
+            6,
+            0
+          ],
+          "edge": "N",
+          "removable": false
+        },
+        {
+          "name": "s5_04_wildflower_clump_c6_r0",
+          "asset": "wildflower_clump",
+          "tile": [
+            6,
+            0
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s5_05_layered_fern_c2_r1",
+          "asset": "layered_fern",
+          "tile": [
+            2,
+            1
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s5_06_broadleaf_herb_c2_r1",
+          "asset": "broadleaf_herb",
+          "tile": [
+            2,
+            1
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s5_07_arched_grass_c2_r1",
+          "asset": "arched_grass",
+          "tile": [
+            2,
+            1
+          ],
+          "edge": "W",
+          "removable": false
+        },
+        {
+          "name": "s5_08_mossy_boulder_c2_r1",
+          "asset": "mossy_boulder",
+          "tile": [
+            2,
+            1
+          ],
+          "edge": "W",
+          "removable": false
+        },
+        {
+          "name": "s5_09_creeping_moss_c2_r1",
+          "asset": "creeping_moss",
+          "tile": [
+            2,
+            1
+          ],
+          "edge": "W",
+          "removable": false
+        },
+        {
+          "name": "s5_10_trailing_vine_c2_r1",
+          "asset": "trailing_vine",
+          "tile": [
+            2,
+            1
+          ],
+          "edge": "W",
+          "removable": false
+        },
+        {
+          "name": "s5_11_layered_fern_c5_r3",
+          "asset": "layered_fern",
+          "tile": [
+            5,
+            3
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s5_12_broadleaf_herb_c5_r3",
+          "asset": "broadleaf_herb",
+          "tile": [
+            5,
+            3
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s5_13_arched_grass_c5_r3",
+          "asset": "arched_grass",
+          "tile": [
+            5,
+            3
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s5_14_mossy_boulder_c5_r3",
+          "asset": "mossy_boulder",
+          "tile": [
+            5,
+            3
+          ],
+          "edge": "E",
+          "removable": false
+        },
+        {
+          "name": "s5_15_creeping_moss_c5_r3",
+          "asset": "creeping_moss",
+          "tile": [
+            5,
+            3
+          ],
+          "edge": "E",
+          "removable": false
+        },
+        {
+          "name": "s5_16_creeping_groundcover_c5_r3",
+          "asset": "creeping_groundcover",
+          "tile": [
+            5,
+            3
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s5_17_layered_fern_c1_r6",
+          "asset": "layered_fern",
+          "tile": [
+            1,
+            6
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s5_18_broadleaf_herb_c1_r6",
+          "asset": "broadleaf_herb",
+          "tile": [
+            1,
+            6
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s5_19_wildflower_clump_c1_r6",
+          "asset": "wildflower_clump",
+          "tile": [
+            1,
+            6
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s5_20_broadleaf_herb_c6_r7",
+          "asset": "broadleaf_herb",
+          "tile": [
+            6,
+            7
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s5_21_arched_grass_c6_r7",
+          "asset": "arched_grass",
+          "tile": [
+            6,
+            7
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s5_22_flat_stone_c6_r7",
+          "asset": "flat_stone",
+          "tile": [
+            6,
+            7
+          ],
+          "edge": "S",
+          "removable": false
+        },
+        {
+          "name": "s5_23_creeping_moss_c6_r7",
+          "asset": "creeping_moss",
+          "tile": [
+            6,
+            7
+          ],
+          "edge": "S",
+          "removable": false
+        },
+        {
+          "name": "s5_24_creeping_groundcover_c6_r7",
+          "asset": "creeping_groundcover",
+          "tile": [
+            6,
+            7
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s5_25_wildflower_clump_c6_r7",
+          "asset": "wildflower_clump",
+          "tile": [
+            6,
+            7
+          ],
+          "edge": "S",
+          "removable": true
+        },
+        {
+          "name": "s5_26_arched_grass_c5_r2",
+          "asset": "arched_grass",
+          "tile": [
+            5,
+            2
+          ],
+          "edge": "E",
+          "removable": true
+        },
+        {
+          "name": "s5_27_broadleaf_herb_c3_r3",
+          "asset": "broadleaf_herb",
+          "tile": [
+            3,
+            3
+          ],
+          "edge": "N",
+          "removable": true
+        },
+        {
+          "name": "s5_28_creeping_groundcover_c3_r4",
+          "asset": "creeping_groundcover",
+          "tile": [
+            3,
+            4
+          ],
+          "edge": "W",
+          "removable": true
+        },
+        {
+          "name": "s5_29_creeping_groundcover_c3_r5",
+          "asset": "creeping_groundcover",
+          "tile": [
+            3,
+            5
+          ],
+          "edge": "E",
+          "removable": true
+        }
+      ],
+      "omitted": []
+    }
+  ]
+}

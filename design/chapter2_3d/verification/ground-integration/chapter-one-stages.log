@@ -1,0 +1,11 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+RuneNexus Godot scene ready; Space: impacts, C: camera, S: shadows, V: volume
+Stage 1 verified: 8x10, 4 terrain nodes, authored=true
+Stage 2 verified: 11x7, 42 terrain nodes, authored=false
+Stage 3 verified: 8x8, 38 terrain nodes, authored=false
+Stage 4 verified: 9x10, 40 terrain nodes, authored=false
+Stage 5 verified: 9x9, 46 terrain nodes, authored=false
+Stage 2 verified: 11x7, 42 terrain nodes, authored=false
+Stage 1 verified: 8x10, 4 terrain nodes, authored=true
+Chapter one stages verification: 0 failures

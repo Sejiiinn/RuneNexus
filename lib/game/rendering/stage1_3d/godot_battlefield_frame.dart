@@ -34,6 +34,7 @@ Map<String, Object?> encodeGodotBattlefieldFrame(
     },
     'time': frame.time,
     'map': {
+      'theme': frame.map.tileTheme.kind.name,
       'columns': frame.map.columns,
       'rows': frame.map.rows,
       'tiles': [

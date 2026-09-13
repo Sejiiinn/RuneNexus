@@ -141,6 +141,7 @@ void main() {
             )
             as Map<String, dynamic>;
     expect(decoded['seq'], 42);
+    expect(decoded['map']['theme'], 'chapterOne');
     expect(decoded['map']['tiles'], ['build', 'path', 'path', 'build']);
     expect(decoded['turrets'].single, [7, 1.5, 2.5, .25, 9, .4, 'magic', 3]);
     expect(decoded['enemies'].single, [

@@ -88,9 +88,16 @@ func clear() -> void:
 	_effect_nodes.clear()
 
 func present(active_camera: Camera3D, size: Vector2, active_world: Node3D) -> void:
+	prepare_context(active_camera, size, active_world, false)
+
+
+# frame/tween의 deferred draw 전에 투영 참조를 바인딩한다.
+func prepare_context(active_camera: Camera3D, size: Vector2, active_world: Node3D, redraw := true) -> void:
 	camera = active_camera
 	map_size = size
 	world = active_world
+	if not redraw:
+		return
 	for node: EffectSurface in _effect_nodes.values():
 		node.queue_redraw()
 		if node.mix_surface != null:

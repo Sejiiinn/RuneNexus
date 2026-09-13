@@ -1,0 +1,374 @@
+00:00.355  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/stage6/props/stage6-props.blend"
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+Info: Saved as "stage7.blend"
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+21:42:36 | INFO: Starting glTF 2.0 export
+21:42:36 | INFO: Extracting primitive: coast_000_0.001
+21:42:36 | INFO: Primitives created: 2
+21:42:36 | INFO: Finished glTF 2.0 export in 0.10077905654907227 s
+
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+21:42:37 | INFO: Starting glTF 2.0 export
+21:42:37 | INFO: Extracting primitive: crystal_bedrock_00.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_0.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_0_mineral_layer_0.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_1.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_1_mineral_layer_0.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_2.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_2_mineral_layer_0.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_3.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_3_mineral_layer_0.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_4.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_4_mineral_layer_0.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_5.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_5_mineral_layer_0.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: crystal_bedrock_00.002
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_0.002
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_0_mineral_layer_0.002
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_1.002
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_1_mineral_layer_0.002
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_2.002
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_2_mineral_layer_0.002
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_3.002
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_3_mineral_layer_0.002
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_4.002
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_4_mineral_layer_0.002
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_5.002
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: cluster_crystal_5_mineral_layer_0.002
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: brass_collar_face_0.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: rune_inlay_0.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: pillar_foot_00.001
+21:42:37 | INFO: Primitives created: 2
+21:42:37 | INFO: Extracting primitive: Sphere.009
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: recessed_void_floor.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: void_depth_shard_00.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Extracting primitive: rift_edge_debris_00.001
+21:42:37 | INFO: Primitives created: 1
+21:42:37 | INFO: Finished glTF 2.0 export in 0.059953927993774414 s
+
+STAGE6_PROPS_EXPORTED /Users/sejin/Documents/Codex/RuneNexus/assets/images/stage1_3d/environment/chapter2_stage7_props.glb
+STAGE_COMPLETE 7 [('pillar', [-5.054999828338623, 2.0, 0.0]), ('crystal_lower_left', [-4.0, -3.055000066757202, 0.0]), ('crystal_right', [4.0, -3.055000066757202, 0.0]), ('void_fissure', [4.0, 2.1549999713897705, -0.1899999976158142])]
+00:04.493  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/stage6/props/stage6-props.blend"
+Info: Saved as "stage8.blend"
+21:42:41 | INFO: Starting glTF 2.0 export
+21:42:41 | INFO: Extracting primitive: coast_000_0.001
+21:42:41 | INFO: Primitives created: 2
+21:42:41 | INFO: Finished glTF 2.0 export in 0.08640789985656738 s
+
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+21:42:41 | INFO: Starting glTF 2.0 export
+21:42:41 | INFO: Extracting primitive: crystal_bedrock_00.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_0.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_0_mineral_layer_0.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_1.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_1_mineral_layer_0.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_2.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_2_mineral_layer_0.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_3.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_3_mineral_layer_0.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_4.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_4_mineral_layer_0.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_5.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_5_mineral_layer_0.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: crystal_bedrock_00.002
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_0.002
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_0_mineral_layer_0.002
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_1.002
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_1_mineral_layer_0.002
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_2.002
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_2_mineral_layer_0.002
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_3.002
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_3_mineral_layer_0.002
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_4.002
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_4_mineral_layer_0.002
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_5.002
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: cluster_crystal_5_mineral_layer_0.002
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: brass_collar_face_0.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: rune_inlay_0.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: pillar_foot_00.001
+21:42:41 | INFO: Primitives created: 2
+21:42:41 | INFO: Extracting primitive: Sphere.009
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: recessed_void_floor.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: void_depth_shard_00.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Extracting primitive: rift_edge_debris_00.001
+21:42:41 | INFO: Primitives created: 1
+21:42:41 | INFO: Finished glTF 2.0 export in 0.05666208267211914 s
+
+STAGE6_PROPS_EXPORTED /Users/sejin/Documents/Codex/RuneNexus/assets/images/stage1_3d/environment/chapter2_stage8_props.glb
+STAGE_COMPLETE 8 [('pillar', [-3.555000066757202, 3.5, 0.0]), ('crystal_lower_left', [-3.555000066757202, -2.5, 0.0]), ('crystal_right', [3.555000066757202, -3.5, 0.0]), ('void_fissure', [1.5, 2.6549999713897705, -0.1899999976158142])]
+00:08.653  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/stage6/props/stage6-props.blend"
+Info: Saved as "stage9.blend"
+21:42:46 | INFO: Starting glTF 2.0 export
+21:42:46 | INFO: Extracting primitive: coast_000_0.001
+21:42:46 | INFO: Primitives created: 2
+21:42:46 | INFO: Finished glTF 2.0 export in 0.09041070938110352 s
+
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+21:42:47 | INFO: Starting glTF 2.0 export
+21:42:47 | INFO: Extracting primitive: crystal_bedrock_00.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_0.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_0_mineral_layer_0.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_1.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_1_mineral_layer_0.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_2.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_2_mineral_layer_0.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_3.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_3_mineral_layer_0.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_4.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_4_mineral_layer_0.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_5.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_5_mineral_layer_0.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: crystal_bedrock_00.002
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_0.002
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_0_mineral_layer_0.002
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_1.002
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_1_mineral_layer_0.002
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_2.002
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_2_mineral_layer_0.002
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_3.002
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_3_mineral_layer_0.002
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_4.002
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_4_mineral_layer_0.002
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_5.002
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: cluster_crystal_5_mineral_layer_0.002
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: brass_collar_face_0.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: rune_inlay_0.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: pillar_foot_00.001
+21:42:47 | INFO: Primitives created: 2
+21:42:47 | INFO: Extracting primitive: Sphere.009
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: recessed_void_floor.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: void_depth_shard_00.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Extracting primitive: rift_edge_debris_00.001
+21:42:47 | INFO: Primitives created: 1
+21:42:47 | INFO: Finished glTF 2.0 export in 0.05720400810241699 s
+
+STAGE6_PROPS_EXPORTED /Users/sejin/Documents/Codex/RuneNexus/assets/images/stage1_3d/environment/chapter2_stage9_props.glb
+STAGE_COMPLETE 9 [('pillar', [2.0, 3.555000066757202, 0.0]), ('crystal_lower_left', [-4.054999828338623, -3.5, 0.0]), ('crystal_right', [2.055000066757202, -3.5, 0.0]), ('void_fissure', [4.154999732971191, 1.5, -0.1899999976158142])]
+00:14.297  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter2_3d/stage6/props/stage6-props.blend"
+Info: Saved as "stage10.blend"
+21:42:54 | INFO: Starting glTF 2.0 export
+21:42:54 | INFO: Extracting primitive: coast_000_0.001
+21:42:54 | INFO: Primitives created: 2
+21:42:54 | INFO: Finished glTF 2.0 export in 0.09090495109558105 s
+
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+Warning: No mesh data to join
+21:42:55 | INFO: Starting glTF 2.0 export
+21:42:55 | INFO: Extracting primitive: crystal_bedrock_00.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_0.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_0_mineral_layer_0.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_1.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_1_mineral_layer_0.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_2.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_2_mineral_layer_0.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_3.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_3_mineral_layer_0.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_4.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_4_mineral_layer_0.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_5.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_5_mineral_layer_0.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: crystal_bedrock_00.002
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_0.002
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_0_mineral_layer_0.002
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_1.002
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_1_mineral_layer_0.002
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_2.002
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_2_mineral_layer_0.002
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_3.002
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_3_mineral_layer_0.002
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_4.002
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_4_mineral_layer_0.002
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_5.002
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: cluster_crystal_5_mineral_layer_0.002
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: brass_collar_face_0.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: rune_inlay_0.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: pillar_foot_00.001
+21:42:55 | INFO: Primitives created: 2
+21:42:55 | INFO: Extracting primitive: Sphere.009
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: recessed_void_floor.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: void_depth_shard_00.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Extracting primitive: rift_edge_debris_00.001
+21:42:55 | INFO: Primitives created: 1
+21:42:55 | INFO: Finished glTF 2.0 export in 0.06959104537963867 s
+
+STAGE6_PROPS_EXPORTED /Users/sejin/Documents/Codex/RuneNexus/assets/images/stage1_3d/environment/chapter2_stage10_props.glb
+STAGE_COMPLETE 10 [('pillar', [3.0, 4.054999828338623, 0.0]), ('crystal_lower_left', [-5.054999828338623, -4.0, 0.0]), ('crystal_right', [5.054999828338623, -4.0, 0.0]), ('void_fissure', [5.154999732971191, 2.0, -0.1899999976158142])]
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

@@ -15,6 +15,7 @@ const Dressing = preload("res://assets/environment/dressing.glb")
 const PortalVortex = preload("res://environment/portal_vortex.gdshader")
 const ReflectionSky = preload("res://materials/battlefield_reflection_sky.tres")
 const FoliageWind = preload("res://environment/foliage_wind.gdshader")
+const ChapterTwoEnvironment = preload("res://environment/chapter_two_environment.gd")
 const TURRET_MODELS := {
 	"arrow": preload("res://assets/turrets/arrow.glb"),
 	"cannon": preload("res://assets/turrets/cannon.glb"),
@@ -30,6 +31,8 @@ const ENEMY_MODELS := {
 	"fast": preload("res://assets/enemies/fast.glb"),
 	"tank": preload("res://assets/enemies/tank.glb"),
 	"boss": preload("res://assets/enemies/boss.glb"),
+	# 실드/HP/상태 표시는 실제 프레임을 유지하고 기존 보스 본체를 공유한다.
+	"shieldBoss": preload("res://assets/enemies/boss.glb"),
 }
 const PROJECTILE_COLORS := {
 	"arrow": Color("ffe3a3"), "cannon": Color("ffb261"), "magic": Color("d59bff"),
@@ -63,12 +66,25 @@ var projectiles := {}
 var impacts := {}
 var impact_pool: Array[Node3D] = []
 var impact_lights: Array[OmniLight3D] = []
+var _world_environment := Environment.new()
+var _fill_light := DirectionalLight3D.new()
 var field: Dictionary
 var last_frame := {}
 var columns := 8
 var rows := 10
 var options := {"camera": "angled", "zoom": 1.0, "shadows": true, "msaa_samples": 2, "shadow_map_size": 2048, "volume": true, "empty": false, "turret_levels": false}
 var _applied_shadow_map_size := -1
+var _profile_enabled := false
+var _profile_window_id := 0
+var _profile_intervals := PackedFloat64Array()
+var _profile_last_tick := 0
+var _profile_parse_us := 0
+var _profile_parse_count := 0
+var _profile_apply_us := 0
+var _profile_apply_count := 0
+var _profile_render_cpu_ms := 0.0
+var _profile_render_gpu_ms := 0.0
+var _profile_render_count := 0
 var metrics_elapsed := 0.0
 var frame_count := 0
 var frame_time_total := 0.0
@@ -79,14 +95,28 @@ var received_frames := 0
 var standalone_time := 0.0
 var standalone_playing := false
 var _terrain_library: Node3D
+var _chapter_two_terrain_library: Node3D
+var _chapter_two_paving_library: Node3D
+var _chapter_two_props_library: Node3D
+var _environment_geology_library: Node3D
+var _environment_props_library: Node3D
+var _environment_manifest := {}
+var _environment_manifests: Array = []
+var _environment_stage := 0
+var _using_chapter_environment := false
+var _environment_bounds := AABB()
 var _landmark_library: Node3D
 var _portal_material: ShaderMaterial
 var _dressing_library: Node3D
+var _dressing_variants: Array = []
+var _using_dressing := false
 var _foliage_material: ShaderMaterial
 var _build_tile_slots := PackedInt32Array()
 var _occupied_build_tiles := Vector2i.ZERO
 var _terrain_manifest := {}
 var _current_map := {}
+var _camera_layout_revision := 0
+var _camera_layout_key: Array = []
 var _using_authored := false
 var _portals: Array[Node3D] = []
 var _cores: Array[Dictionary] = []
@@ -115,7 +145,7 @@ func _ready() -> void:
 	# 실제 맵·모델·효과 경계로 _fit_camera_depth에서 설정한다.
 	camera.current = true
 	var environment_node := WorldEnvironment.new()
-	var environment := Environment.new()
+	var environment := _world_environment
 	environment.background_mode = Environment.BG_COLOR
 	environment.background_color = Color("101b20")
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
@@ -141,7 +171,8 @@ func _ready() -> void:
 	# Mobile에서도 PCF를 사용해 접촉은 남기고 그림자 경계만 완만하게 한다.
 	sun.shadow_blur = 1.25
 	add_child(sun)
-	var fill := DirectionalLight3D.new()
+	_apply_graphics_options()
+	var fill := _fill_light
 	fill.rotation_degrees = Vector3(-40, 135, 0)
 	fill.light_color = Color(0.65, 0.8, 1.0)
 	fill.light_energy = 0.14
@@ -195,27 +226,26 @@ func _ready() -> void:
 		return
 	crystal.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_dressing_library = Dressing.instantiate()
-	_prepare_vertex_colors(_dressing_library)
 	# 기존 표시 레이어 유지. 모든 PBR 소재는 공용 환경 반사를 수신.
-	for library: Node3D in [_terrain_library, _landmark_library, _dressing_library]:
+	for library: Node3D in [_terrain_library, _landmark_library]:
 		for mesh: MeshInstance3D in library.find_children("*", "MeshInstance3D", true, false):
 			mesh.layers = 1 | REFLECTION_TERRAIN_LAYER
 	crystal.layers = REFLECTION_CRYSTAL_LAYER
-	var foliage := _dressing_library.find_child("stage1_dressing_foliage", true, false) as MeshInstance3D
-	if not foliage:
-		_fail("스테이지 1 환경 GLB의 풀 메시를 찾지 못했습니다.")
-		return
 	# 전장 전체의 바람에 하나의 재질·GPU 시계 공유.
 	_foliage_material = ShaderMaterial.new()
 	_foliage_material.shader = FoliageWind
-	foliage.material_override = _foliage_material
-	foliage.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_DOUBLE_SIDED
-	foliage.extra_cull_margin = 0.03
+	if not _prepare_dressing(_dressing_library):
+		return
 	var manifest = JSON.parse_string(FileAccess.get_file_as_string("res://assets/terrain_manifest.json"))
 	if not (manifest is Dictionary):
 		_fail("지형 원본의 맵 정보를 읽지 못했습니다.")
 		return
 	_terrain_manifest = manifest
+	var dressing_manifests = JSON.parse_string(FileAccess.get_file_as_string("res://assets/dressing_manifests.json"))
+	if not dressing_manifests is Array:
+		_fail("스테이지 환경 원본의 맵 정보를 읽지 못했습니다.")
+		return
+	_dressing_variants = dressing_manifests
 	get_viewport().size_changed.connect(_update_camera)
 	# Tween은 _process 뒤에 진행되므로 실제 렌더 직전의 카메라로 투영을 보고.
 	RenderingServer.frame_pre_draw.connect(_report_presentation)
@@ -235,10 +265,23 @@ func _exit_tree() -> void:
 		RenderingServer.frame_pre_draw.disconnect(_report_presentation)
 	if is_instance_valid(_terrain_library):
 		_terrain_library.free()
+	if is_instance_valid(_chapter_two_terrain_library):
+		_chapter_two_terrain_library.free()
+	if is_instance_valid(_chapter_two_paving_library):
+		_chapter_two_paving_library.free()
+	if is_instance_valid(_chapter_two_props_library):
+		_chapter_two_props_library.free()
+	if is_instance_valid(_environment_geology_library):
+		_environment_geology_library.free()
+	if is_instance_valid(_environment_props_library):
+		_environment_props_library.free()
 	if is_instance_valid(_landmark_library):
 		_landmark_library.free()
 	if is_instance_valid(_dressing_library):
 		_dressing_library.free()
+	for variant: Dictionary in _dressing_variants:
+		if is_instance_valid(variant.get("library")):
+			variant["library"].free()
 
 
 func _fail(message: String) -> void:
@@ -248,6 +291,11 @@ func _fail(message: String) -> void:
 
 
 func _process(delta: float) -> void:
+	if _profile_enabled:
+		var tick := Time.get_ticks_usec()
+		if _profile_last_tick != 0:
+			_profile_intervals.append(float(tick - _profile_last_tick) / 1000.0)
+		_profile_last_tick = tick
 	if bridge:
 		var option_text: String = bridge.take_options()
 		if not option_text.is_empty():
@@ -257,7 +305,11 @@ func _process(delta: float) -> void:
 				_apply_options()
 		var frame_text: String = bridge.take_frame()
 		if not frame_text.is_empty():
+			var parse_start := Time.get_ticks_usec() if _profile_enabled else 0
 			var incoming = JSON.parse_string(frame_text)
+			if _profile_enabled:
+				_profile_parse_us += Time.get_ticks_usec() - parse_start
+				_profile_parse_count += 1
 			if incoming is Dictionary:
 				_apply_frame(incoming)
 	elif standalone_playing and not last_frame.is_empty():
@@ -288,12 +340,73 @@ func _process(delta: float) -> void:
 			"viewport": [viewport.x, viewport.y], "authored_terrain": _using_authored,
 			"renderer": RenderingServer.get_current_rendering_method(),
 		}
+		if _profile_enabled:
+			_profile_window_id += 1
+			_profile_intervals.sort()
+			metrics.merge({
+				"profile": true,
+				"profile_window_id": _profile_window_id,
+				"process_frame": Engine.get_process_frames(),
+				"frame_intervals_ms": Array(_profile_intervals),
+				"video_memory": Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED),
+				"texture_memory": Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED),
+				"frame_interval_p50_ms": _profile_percentile(0.50),
+				"frame_interval_p95_ms": _profile_percentile(0.95),
+				"frame_interval_p99_ms": _profile_percentile(0.99),
+				"profile_frame_samples": _profile_intervals.size(),
+				"json_parse_ms": float(_profile_parse_us) / maxf(1.0, _profile_parse_count) / 1000.0,
+				"apply_frame_ms": float(_profile_apply_us) / maxf(1.0, _profile_apply_count) / 1000.0,
+				"profile_apply_samples": _profile_apply_count,
+				"profile_parse_samples": _profile_parse_count,
+				"render_cpu_ms": _profile_render_cpu_ms / maxf(1.0, _profile_render_count),
+				"render_gpu_ms": _profile_render_gpu_ms / maxf(1.0, _profile_render_count),
+				"profile_render_samples": _profile_render_count,
+			})
+			_reset_profile_window()
 		if bridge:
 			bridge.report_metrics(JSON.stringify(metrics))
 		metrics_elapsed = 0.0
 		frame_count = 0
 		frame_time_total = 0.0
 		frame_time_max = 0.0
+
+
+func _reset_profile_window() -> void:
+	_profile_intervals.clear()
+	_profile_parse_us = 0
+	_profile_parse_count = 0
+	_profile_apply_us = 0
+	_profile_apply_count = 0
+	_profile_render_cpu_ms = 0.0
+	_profile_render_gpu_ms = 0.0
+	_profile_render_count = 0
+
+
+func _profile_percentile(fraction: float) -> float:
+	if _profile_intervals.is_empty():
+		return 0.0
+	return _profile_intervals[clampi(ceili(fraction * _profile_intervals.size()) - 1, 0, _profile_intervals.size() - 1)]
+
+
+func _profile_render_frame() -> void:
+	# 최근 완료된 루트 viewport 렌더만 측정. Script/Flutter/별도 mask viewport는 제외.
+	var rid := get_viewport().get_viewport_rid()
+	_profile_render_cpu_ms += RenderingServer.viewport_get_measured_render_time_cpu(rid)
+	_profile_render_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(rid)
+	_profile_render_count += 1
+
+
+func _set_profile_enabled(enabled: bool) -> void:
+	if enabled == _profile_enabled:
+		return
+	_profile_enabled = enabled
+	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), enabled)
+	if enabled:
+		RenderingServer.frame_post_draw.connect(_profile_render_frame)
+	else:
+		RenderingServer.frame_post_draw.disconnect(_profile_render_frame)
+	_profile_last_tick = 0
+	_reset_profile_window()
 
 
 func _apply_options() -> void:
@@ -304,7 +417,49 @@ func _apply_options() -> void:
 		_update_impacts(last_frame.get("impacts", []))
 
 
+func _apply_stage_lighting() -> void:
+	# 연속 절벽 전장의 기본광을 낮추고 광물 주변의 실제 입사광을 대비시킨다.
+	# 다른 맵으로 이동할 때 공용 조명을 정확히 복원한다.
+	sun.light_energy = 1.20 if _using_chapter_environment else 1.50
+	sun.light_color = Color(0.92, 0.95, 1.0) if _using_chapter_environment else Color(1.0, 0.94, 0.84)
+	sun.shadow_blur = 0.85 if _using_chapter_environment else 1.25
+	_world_environment.ambient_light_energy = 0.115 if _using_chapter_environment else 0.16
+	_fill_light.light_energy = 0.08 if _using_chapter_environment else 0.14
+
+
+func _add_environment_accent_lights() -> void:
+	var accents := Node3D.new()
+	accents.name = "stage%d_mineral_lights" % _environment_stage
+	terrain.add_child(accents)
+	# 원본의 보라색 몸체·청록 끝은 유지하며 주변 암반에도 빛이 닿게 한다.
+	var sources := [
+		[Vector3(-4.35, 0.63, -4.23), Color(0.24, 0.74, 1.0), 0.45, 1.25],
+		[Vector3(-1.65, 0.43, 3.50), Color(0.22, 0.65, 1.0), 0.85, 1.60],
+		[Vector3(3.45, 0.43, 2.35), Color(0.22, 0.65, 1.0), 0.85, 1.60],
+		[Vector3(3.40, -0.02, -2.48), Color(0.55, 0.20, 1.0), 0.65, 1.35],
+	]
+	# 6의 기존 화면은 메타데이터가 없을 때 위 좌표를 그대로 보존한다.
+	if _environment_manifest.has("accentLights") or _environment_stage != 6:
+		sources = []
+		for record: Dictionary in _environment_manifest.get("accentLights", []):
+			var point: Array = record["positionGodot"]
+			var color: Array = record["color"]
+			sources.append([Vector3(float(point[0]), float(point[1]), float(point[2])),
+				Color(float(color[0]), float(color[1]), float(color[2])),
+				float(record.get("energy", 0.85)), float(record.get("range", 1.6))])
+	for source: Array in sources:
+		var light := OmniLight3D.new()
+		light.position = source[0]
+		light.light_color = source[1]
+		light.light_energy = source[2]
+		light.omni_range = source[3]
+		light.light_cull_mask = REFLECTION_TERRAIN_LAYER
+		light.shadow_enabled = false
+		accents.add_child(light)
+
+
 func _apply_graphics_options() -> void:
+	_set_profile_enabled(bool(options.get("profile", false)))
 	# JSON 숫자는 float로 수신될 수 있으므로 숫자 타입과 허용값을 함께 검사.
 	var samples = options.get("msaa_samples", 2)
 	if not (samples is int or samples is float) or (samples != 0 and samples != 2):
@@ -359,11 +514,32 @@ func _update_camera() -> void:
 func _fit_camera_to_frame() -> void:
 	_fit_camera_depth()
 	var visible_size := get_viewport().get_visible_rect().size
+	# 깊이는 움직이는 actor/impact를 따라 매번 갱신하고 평면 fit만 캐시한다.
+	# global_transform은 tween 자세·거리도 포함. world shake는 평면 fit 입력이 아니다.
+	var key: Array = [
+		_camera_layout_revision, camera.global_transform, visible_size,
+		last_frame.get("viewport", []), last_frame.get("screenCenter", []),
+		last_frame.has("pixelsPerTile"), last_frame.get("pixelsPerTile", 0.0),
+		last_frame.get("zoom", 1.0), options.get("zoom", 1.0), columns, rows,
+	]
+	if key == _camera_layout_key:
+		return
+	_camera_layout_key = key
+	_fit_camera_layout(visible_size)
+
+
+func _fit_camera_layout(visible_size: Vector2) -> void:
 	var logical_viewport: Array = last_frame.get("viewport", [])
 	var screen_center: Array = last_frame.get("screenCenter", [])
 	if logical_viewport.size() != 2 or screen_center.size() != 2 or not last_frame.has("pixelsPerTile"):
 		# HUD 없는 검수 화면은 기울어진 지형의 투영 폭·높이까지 포함.
 		var aspect := visible_size.x / maxf(1.0, visible_size.y)
+		if _using_chapter_environment:
+			var rectangle := _environment_camera_rect()
+			camera.size = maxf(rectangle.size.y + 0.16, (rectangle.size.x + 0.16) / aspect) / maxf(0.01, float(options["zoom"]))
+			camera.h_offset = rectangle.get_center().x
+			camera.v_offset = rectangle.get_center().y
+			return
 		var basis := camera.global_basis
 		var width := absf(basis.x.x) * columns + absf(basis.x.z) * rows
 		var height := absf(basis.y.x) * columns + absf(basis.y.z) * rows
@@ -393,6 +569,11 @@ func _fit_camera_to_frame() -> void:
 			var point: Vector3 = inverse * Vector3(float(x) + corner.x - columns / 2.0, 0.0, float(z) + corner.y - rows / 2.0)
 			bounds_min = bounds_min.min(Vector2(point.x, point.y))
 			bounds_max = bounds_max.max(Vector2(point.x, point.y))
+	if _using_chapter_environment:
+		# 절벽의 깊이·외곽과 배치 장식까지 같은 HUD 전장 영역 안에 수용한다.
+		var rectangle := _environment_camera_rect().grow(0.08)
+		bounds_min = bounds_min.min(rectangle.position)
+		bounds_max = bounds_max.max(rectangle.end)
 	if not bounds_min.is_finite():
 		bounds_min = Vector2(-0.5, -0.5)
 		bounds_max = Vector2(0.5, 0.5)
@@ -410,12 +591,33 @@ func _fit_camera_to_frame() -> void:
 	camera.v_offset = center.y + (float(screen_center[1]) - viewport.y / 2.0) / ppu
 
 
+func _environment_camera_rect() -> Rect2:
+	var inverse := camera.global_transform.affine_inverse()
+	var low := Vector2(INF, INF)
+	var high := Vector2(-INF, -INF)
+	# 원본에서 준비한 실제 지형·소품의 지지점만 투영한다. 전체 AABB의 빈 모서리는 제외.
+	var points: Array = _environment_manifest.get("cameraPointsGodot", [])
+	if not points.is_empty():
+		for coordinate: Array in points:
+			var point: Vector3 = inverse * Vector3(float(coordinate[0]), float(coordinate[1]), float(coordinate[2]))
+			low = low.min(Vector2(point.x, point.y))
+			high = high.max(Vector2(point.x, point.y))
+		return Rect2(low, high - low)
+	for index in range(8):
+		var point: Vector3 = inverse * _environment_bounds.get_endpoint(index)
+		low = low.min(Vector2(point.x, point.y))
+		high = high.max(Vector2(point.x, point.y))
+	return Rect2(low, high - low)
+
+
 func _camera_mesh_bounds(node: Node3D, parent_pose := Transform3D.IDENTITY) -> AABB:
 	# 맵 생성·모델 캐시 준비 때만 순회. 매 프레임 메시를 조사하지 않는다.
 	var pose: Transform3D = parent_pose * node.transform
 	var bounds := AABB(pose.origin, Vector3.ZERO)
 	if node is MeshInstance3D:
 		bounds = pose * node.get_aabb()
+	elif node is MultiMeshInstance3D and node.multimesh != null:
+		bounds = pose * node.multimesh.get_aabb()
 	for child in node.get_children():
 		if child is Node3D:
 			bounds = bounds.merge(_camera_mesh_bounds(child, pose))
@@ -493,8 +695,11 @@ func _update_camera_visuals() -> void:
 			effect.update_camera(camera)
 	for entry: Dictionary in turrets.values():
 		_update_weapon_camera(entry)
-	# Tween도 새 카메라로 Canvas redraw를 예약한다. 렌더 직전에는 위치만 재확인.
-	_present_overlays()
+	for entry: Dictionary in projectiles.values():
+		if entry["root"] is BallisticProjectile and entry["root"].visible:
+			entry["root"].update_camera(camera)
+	# 최초 frame과 tween의 deferred Canvas draw에 카메라 참조를 미리 준비한다.
+	_prepare_overlay_context()
 
 
 func _apply_world_shake() -> void:
@@ -513,6 +718,12 @@ func _apply_world_shake() -> void:
 	var actual_size := get_viewport().get_visible_rect().size
 	var units_per_x_pixel := camera.size * actual_size.x / maxf(actual_size.y, 1.0) / maxf(float(viewport[0]), 1.0)
 	world.position = camera.global_basis.x * float(shake[0]) * units_per_x_pixel - camera.global_basis.y * float(shake[1]) * units_per_pixel
+
+
+func _prepare_overlay_context() -> void:
+	var map_size := Vector2(columns, rows)
+	_presentation_nodes["effects"].prepare_context(camera, map_size, world)
+	_presentation_nodes["selection"].prepare_context(camera, map_size, world)
 
 
 func _present_overlays() -> void:
@@ -569,6 +780,16 @@ func _report_presentation() -> void:
 
 
 func _apply_frame(frame: Dictionary) -> void:
+	if not _profile_enabled:
+		_apply_frame_impl(frame)
+		return
+	var started := Time.get_ticks_usec()
+	_apply_frame_impl(frame)
+	_profile_apply_us += Time.get_ticks_usec() - started
+	_profile_apply_count += 1
+
+
+func _apply_frame_impl(frame: Dictionary) -> void:
 	var epoch := int(frame.get("sceneEpoch", 0))
 	if epoch < _scene_epoch:
 		return
@@ -613,7 +834,6 @@ func _apply_frame(frame: Dictionary) -> void:
 		crystal.position = core["rest_position"] + Vector3(0.0, sin(time * 2.5) * 0.018, 0.0)
 		crystal.basis = Basis(Vector3.UP, time * 0.22) * core["rest_basis"]
 		crystal.scale *= 1.0 + core_hit * 0.025
-	_present_overlays()
 
 
 func _clear_scene() -> void:
@@ -650,12 +870,17 @@ func _clear_scene() -> void:
 	_portals.clear()
 	_cores.clear()
 	_current_map = {}
+	_camera_layout_revision += 1
+	_camera_layout_key.clear()
 	last_frame = {}
 	last_sequence = -1
 	received_frames = 0
 	standalone_playing = false
 	standalone_time = 0.0
 	_using_authored = false
+	_using_dressing = false
+	_release_chapter_environment()
+	_apply_stage_lighting()
 	_build_tile_slots.clear()
 	if _occupied_build_tiles != Vector2i.ZERO:
 		_occupied_build_tiles = Vector2i.ZERO
@@ -669,27 +894,82 @@ func _build_terrain(map: Dictionary) -> bool:
 	if next_columns <= 0 or next_rows <= 0 or tiles.size() != next_columns * next_rows:
 		_fail("3D 전장의 맵 크기와 타일 수가 맞지 않습니다.")
 		return false
+	var theme := str(map.get("theme", "chapterOne"))
+	if theme not in ["chapterOne", "chapterTwoRift"]:
+		_fail("지원하지 않는 3D 전장 테마: " + theme)
+		return false
+	var chapter_two := theme == "chapterTwoRift"
+	if chapter_two and not _prepare_chapter_two():
+		return false
+	if chapter_two and _environment_manifests.is_empty():
+		var manifests = JSON.parse_string(FileAccess.get_file_as_string("res://assets/chapter2_environment_manifests.json"))
+		if not manifests is Array:
+			_fail("챕터 2 절벽 원본의 맵 정보를 읽지 못했습니다.")
+			return false
+		_environment_manifests = manifests
+	var matched_manifest: Dictionary = {}
+	if chapter_two:
+		for manifest: Dictionary in _environment_manifests:
+			if int(manifest.get("columns", 0)) == next_columns and int(manifest.get("rows", 0)) == next_rows and manifest.get("tileTypes", []) == tiles:
+				matched_manifest = manifest
+				break
+	var tile_library := _chapter_two_terrain_library if chapter_two else _terrain_library
 	columns = next_columns
 	rows = next_rows
 	for child in terrain.get_children():
 		child.free()
 	_portals.clear()
 	_cores.clear()
+	# 이전 맵의 인스턴스를 해제한 뒤 다음 원본을 읽어 대형 지형 캐시가 누적되지 않게 한다.
+	if matched_manifest.is_empty():
+		_release_chapter_environment()
+	elif not _prepare_chapter_environment(matched_manifest):
+		return false
+	_using_chapter_environment = not matched_manifest.is_empty()
+	_apply_stage_lighting()
+	_environment_bounds = AABB()
+	if _using_chapter_environment:
+		terrain.add_child(_environment_geology_library.duplicate())
+		terrain.add_child(_environment_props_library.duplicate())
+		_add_environment_accent_lights()
+		_environment_bounds = _camera_mesh_bounds(_environment_geology_library).merge(_camera_mesh_bounds(_environment_props_library))
 	var authored := _terrain_library.find_child("stage1_environment", true, false)
-	_using_authored = authored != null and int(_terrain_manifest.get("columns", 0)) == columns \
+	_using_authored = not chapter_two and authored != null and int(_terrain_manifest.get("columns", 0)) == columns \
 		and int(_terrain_manifest.get("rows", 0)) == rows and _terrain_manifest.get("tileTypes", []) == tiles
 	_build_tile_slots.clear()
 	if _using_authored:
 		terrain.add_child(authored.duplicate())
 		# 동일한 맵 원본에 배치된 환경 장식만 지형 수명에 연결.
 		terrain.add_child(_dressing_library.duplicate())
+	_using_dressing = _using_authored
+	if not _using_authored and not chapter_two:
+		for variant: Dictionary in _dressing_variants:
+			if int(variant.get("columns", 0)) != columns or int(variant.get("rows", 0)) != rows or variant.get("tileTypes", []) != tiles:
+				continue
+			# 첫 진입에만 해당 맵 장식을 준비하고 이후 맵 재방문은 자원을 공유.
+			if not is_instance_valid(variant.get("library")):
+				var packed := load(str(variant["resource"])) as PackedScene
+				if packed == null:
+					_fail("스테이지 환경 GLB를 불러오지 못했습니다.")
+					return false
+				var library := packed.instantiate() as Node3D
+				if not _prepare_dressing(library):
+					library.free()
+					return false
+				variant["library"] = library
+			terrain.add_child(variant["library"].duplicate())
+			_using_dressing = true
+			break
+	if _using_dressing:
 		_build_tile_slots.resize(tiles.size())
 		_build_tile_slots.fill(-1)
+	if _using_chapter_environment and not _build_chapter_two_paving(tiles):
+		return false
 	var names := {"path": "path_tile", "build": "build_tile", "spawn": "portal", "core": "core"}
 	var build_slot := 0
 	for index in range(tiles.size()):
 		var tile: String = tiles[index]
-		if _using_authored and tile == "build":
+		if _using_dressing and tile == "build":
 			# Blender UV2와 같은 맵 순회의 건설칸 슬롯.
 			_build_tile_slots[index] = build_slot
 			build_slot += 1
@@ -698,26 +978,216 @@ func _build_terrain(map: Dictionary) -> bool:
 		if not names.has(tile):
 			_fail("지원하지 않는 맵 타일: %s" % tile)
 			return false
+		if _using_chapter_environment and tile in ["path", "build"]:
+			continue
 		var point := Vector3(float(index % columns) + 0.5 - columns / 2.0, 0.0, floor(float(index) / float(columns)) + 0.5 - rows / 2.0)
-		if not _using_authored and (tile == "spawn" or tile == "core"):
-			var foundation: Node3D = _terrain_library.find_child("path_tile", true, false).duplicate()
+		if not _using_authored and not _using_chapter_environment and (tile == "spawn" or tile == "core"):
+			var foundation: Node3D = tile_library.find_child("path_tile", true, false).duplicate()
 			foundation.position = point
+			if chapter_two:
+				foundation.rotation.y = float(index % 4) * PI / 2.0
 			terrain.add_child(foundation)
-		var library := _landmark_library if tile == "spawn" or tile == "core" else _terrain_library
+		var library := _landmark_library if tile == "spawn" or tile == "core" else tile_library
 		var model := library.find_child(names[tile], true, false)
 		if not model:
 			_fail("지형 GLB 노드를 찾지 못했습니다: %s" % names[tile])
 			return false
 		var instance: Node3D = model.duplicate()
 		instance.position = point
+		if chapter_two:
+			if tile in ["path", "build"]:
+				# 원본의 형상·재질을 보존하며 정사각 타일의 반복 방향만 분산.
+				instance.rotation.y = float(index % 4) * PI / 2.0
+			instance.set_meta("tile_type", tile)
+			instance.set_meta("grid_cell", Vector2i(index % columns, floori(float(index) / columns)))
 		terrain.add_child(instance)
 		if tile == "spawn":
 			_portals.append(instance)
 		elif tile == "core":
 			var crystal := instance.find_child("core_crystal", true, false) as Node3D
 			_cores.append({"root": instance, "crystal": crystal, "rest_position": crystal.position, "rest_basis": crystal.basis})
+	if chapter_two and not _using_chapter_environment and not ChapterTwoEnvironment.populate(terrain, _chapter_two_props_library, map):
+		_fail("챕터 2 환경 소품의 배치 계약을 확인하지 못했습니다.")
+		return false
 	# JSON 숫자형까지 보존해 같은 맵을 매 프레임 재생성하지 않음.
 	_current_map = map.duplicate(true)
+	_camera_layout_revision += 1
+	return true
+
+
+func _release_chapter_environment() -> void:
+	if is_instance_valid(_environment_geology_library):
+		_environment_geology_library.free()
+	if is_instance_valid(_environment_props_library):
+		_environment_props_library.free()
+	_environment_geology_library = null
+	_environment_props_library = null
+	_environment_stage = 0
+	_environment_manifest = {}
+	_using_chapter_environment = false
+	_environment_bounds = AABB()
+
+
+func _prepare_chapter_environment(manifest: Dictionary) -> bool:
+	var stage := int(manifest["stage"])
+	if _environment_stage == stage and is_instance_valid(_environment_geology_library) and is_instance_valid(_environment_props_library):
+		return true
+	_release_chapter_environment()
+	var geology := load("res://assets/environment/chapter2_stage%d_geology.glb" % stage) as PackedScene
+	var props := load("res://assets/environment/chapter2_stage%d_props.glb" % stage) as PackedScene
+	if geology == null or props == null:
+		_fail("스테이지 %d 절벽·환경 GLB를 불러오지 못했습니다." % stage)
+		return false
+	_environment_geology_library = geology.instantiate()
+	_environment_props_library = props.instantiate()
+	var geology_name := "stage%d_geology" % stage
+	var props_name := "stage%d_props" % stage
+	var has_geology_root := _environment_geology_library.name == geology_name or _environment_geology_library.find_child(geology_name, true, false) != null
+	var has_props_root := _environment_props_library.name == props_name or _environment_props_library.find_child(props_name, true, false) != null
+	if not has_geology_root or not has_props_root:
+		_fail("스테이지 %d 절벽·환경 GLB의 루트 계약이 맞지 않습니다." % stage)
+		_release_chapter_environment()
+		return false
+	_environment_stage = stage
+	_environment_manifest = manifest
+	for library in [_environment_geology_library, _environment_props_library]:
+		_prepare_vertex_colors(library)
+		_prepare_terrain_surfaces(library)
+		for mesh: MeshInstance3D in library.find_children("*", "MeshInstance3D", true, false):
+			mesh.layers = 1 | REFLECTION_TERRAIN_LAYER
+			for surface in range(mesh.mesh.get_surface_count()):
+				var material := mesh.get_active_material(surface) as StandardMaterial3D
+				if material:
+					material.refraction_enabled = false
+	return true
+
+
+func _prepare_chapter_two() -> bool:
+	if is_instance_valid(_chapter_two_terrain_library) and is_instance_valid(_chapter_two_props_library):
+		return true
+	var tiles := load("res://assets/environment/chapter2_tiles.glb") as PackedScene
+	var props := load("res://assets/environment/chapter2_props.glb") as PackedScene
+	if tiles == null or props == null:
+		_fail("챕터 2 지형·환경 GLB를 불러오지 못했습니다.")
+		return false
+	_chapter_two_terrain_library = tiles.instantiate()
+	_chapter_two_props_library = props.instantiate()
+	for kind in ["path_tile", "build_tile"]:
+		if _chapter_two_terrain_library.find_child(kind, true, false) == null:
+			_fail("챕터 2 지형 GLB 노드 누락: " + kind)
+			_chapter_two_terrain_library.free()
+			_chapter_two_props_library.free()
+			_chapter_two_terrain_library = null
+			_chapter_two_props_library = null
+			return false
+	for library in [_chapter_two_terrain_library, _chapter_two_props_library]:
+		_prepare_vertex_colors(library)
+		_prepare_terrain_surfaces(library)
+		for mesh: MeshInstance3D in library.find_children("*", "MeshInstance3D", true, false):
+			mesh.layers = 1 | REFLECTION_TERRAIN_LAYER
+			for surface in range(mesh.mesh.get_surface_count()):
+				var material := mesh.get_active_material(surface) as StandardMaterial3D
+				if material:
+					# 원본 알파·투과 의도와 PBR는 보존. 공용 내장 굴절 비사용 정책만 적용.
+					material.refraction_enabled = false
+	return true
+
+
+func _prepare_chapter_two_paving() -> bool:
+	if is_instance_valid(_chapter_two_paving_library):
+		return true
+	var packed := load("res://assets/environment/chapter2_tiles_optimized.glb") as PackedScene
+	if packed == null:
+		_fail("챕터 2 병합 타일 GLB를 불러오지 못했습니다.")
+		return false
+	_chapter_two_paving_library = packed.instantiate()
+	_prepare_vertex_colors(_chapter_two_paving_library)
+	_prepare_terrain_surfaces(_chapter_two_paving_library)
+	# 두 GLB의 동일 이름 PBR 재질과 9개 이미지 SHA-256을 오프라인 검증했다.
+	# 근거: docs/analysis/godot_optimization_20260913/texture_identity.json
+	# 이미 준비한 texture를 slot별 공유한다. 로딩 중 GPU readback/이미지 비교는 하지 않는다.
+	var shared_materials := {}
+	for source: MeshInstance3D in _chapter_two_terrain_library.find_children("*", "MeshInstance3D", true, false):
+		for surface in range(source.mesh.get_surface_count()):
+			var material := source.get_active_material(surface) as StandardMaterial3D
+			if material and material.resource_name in ["chapter2_build", "chapter2_path", "chapter2_side"]:
+				shared_materials[material.resource_name] = material
+	var prepared_materials := {}
+	for source: MeshInstance3D in _chapter_two_paving_library.find_children("*", "MeshInstance3D", true, false):
+		for surface in range(source.mesh.get_surface_count()):
+			var material := source.get_active_material(surface) as StandardMaterial3D
+			if material:
+				if not prepared_materials.has(material.get_instance_id()) and shared_materials.has(material.resource_name):
+					var shared: StandardMaterial3D = shared_materials[material.resource_name]
+					for slot in range(BaseMaterial3D.TEXTURE_MAX):
+						material.set_texture(slot, shared.get_texture(slot))
+					prepared_materials[material.get_instance_id()] = true
+				material.refraction_enabled = false
+				material.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+				# MultiMesh는 MeshInstance의 surface override를 읽지 않으므로 공유 mesh에 연결.
+				source.mesh.surface_set_material(surface, material)
+	return true
+
+
+func _chapter_two_paving_mask(index: int, tiles: Array) -> int:
+	var cell := Vector2i(index % columns, floori(float(index) / columns))
+	var inverse := Basis(Vector3.UP, float(index % 4) * PI / 2.0).inverse()
+	var mask := 0
+	for offset: Vector2i in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+		var neighbor := cell + offset
+		if neighbor.x < 0 or neighbor.x >= columns or neighbor.y < 0 or neighbor.y >= rows:
+			continue
+		if tiles[neighbor.y * columns + neighbor.x] == "blocked":
+			continue
+		var local := inverse * Vector3(offset.x, 0, offset.y)
+		if roundi(local.x) == -1: mask |= 1
+		elif roundi(local.x) == 1: mask |= 2
+		elif roundi(local.z) == -1: mask |= 4
+		elif roundi(local.z) == 1: mask |= 8
+	return mask
+
+
+func _build_chapter_two_paving(tiles: Array) -> bool:
+	if not _prepare_chapter_two_paving():
+		return false
+	var groups := {}
+	for index in range(tiles.size()):
+		var tile: String = tiles[index]
+		if tile == "blocked":
+			continue
+		var kind := "build" if tile == "build" else "path"
+		var mask := _chapter_two_paving_mask(index, tiles)
+		var variant := "%s_tile_mask_%d" % [kind, mask]
+		if not groups.has(variant):
+			var root := _chapter_two_paving_library.find_child(variant, true, false) as Node3D
+			if root == null or root.get_child_count() != 1 or not root.get_child(0) is MeshInstance3D:
+				_fail("챕터 2 병합 타일 노드 누락: " + variant)
+				return false
+			var source := root.get_child(0) as MeshInstance3D
+			if root.transform != Transform3D.IDENTITY or source.transform != Transform3D.IDENTITY:
+				_fail("챕터 2 병합 타일 원점 계약 오류: " + variant)
+				return false
+			groups[variant] = {"mesh": source.mesh, "indices": [], "poses": [], "kind": kind, "mask": mask}
+		var point := Vector3(float(index % columns) + 0.5 - columns / 2.0, 0.0, floori(float(index) / columns) + 0.5 - rows / 2.0)
+		groups[variant]["indices"].append(index)
+		groups[variant]["poses"].append(Transform3D(Basis(Vector3.UP, float(index % 4) * PI / 2.0), point))
+	for variant: String in groups:
+		var group: Dictionary = groups[variant]
+		var multimesh := MultiMesh.new()
+		multimesh.transform_format = MultiMesh.TRANSFORM_3D
+		multimesh.mesh = group["mesh"]
+		multimesh.instance_count = group["poses"].size()
+		for slot in range(multimesh.instance_count):
+			multimesh.set_instance_transform(slot, group["poses"][slot])
+		var batch := MultiMeshInstance3D.new()
+		batch.name = variant + "_batch"
+		batch.multimesh = multimesh
+		batch.layers = 1 | REFLECTION_TERRAIN_LAYER
+		batch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		batch.set_meta("tile_type", group["kind"])
+		batch.set_meta("tile_indices", group["indices"])
+		batch.set_meta("neighbor_mask", group["mask"])
+		terrain.add_child(batch)
 	return true
 
 
@@ -732,6 +1202,21 @@ func _prepare_terrain_surfaces(model: Node) -> void:
 			if material.resource_name.begins_with("stage1_authored_"):
 				material.ao_light_affect = 0.8
 				material.normal_scale = 1.2 if material.resource_name.ends_with("build") else 1.0
+
+
+func _prepare_dressing(library: Node3D) -> bool:
+	_prepare_vertex_colors(library)
+	var foliage := library.find_child("stage1_dressing_foliage", true, false) as MeshInstance3D
+	var rocks := library.find_child("stage1_dressing_rocks", true, false) as MeshInstance3D
+	if foliage == null or rocks == null:
+		_fail("환경 GLB의 풀·바위 메시를 찾지 못했습니다.")
+		return false
+	for mesh: MeshInstance3D in library.find_children("*", "MeshInstance3D", true, false):
+		mesh.layers = 1 | REFLECTION_TERRAIN_LAYER
+	foliage.material_override = _foliage_material
+	foliage.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_DOUBLE_SIDED
+	foliage.extra_cull_margin = 0.03
+	return true
 
 
 func _prepare_vertex_colors(model: Node) -> void:
@@ -788,7 +1273,7 @@ func _sync_turrets(units: Array) -> void:
 			_fail("스테이지 1에서 지원하지 않는 포탑: %s" % type)
 			continue
 		alive[id] = true
-		if _using_authored:
+		if _using_dressing:
 			var x := floori(float(data[1]))
 			var z := floori(float(data[2]))
 			if x >= 0 and x < columns and z >= 0 and z < rows:
@@ -1019,6 +1504,7 @@ func _sync_projectiles(units: Array) -> void:
 				if int(owner.get("last_shot", -1)) == int(data[9]):
 					pose = owner.get("shot_pose")
 			root.update_flight(data, float(last_frame.get("time", 0.0)), Vector3(-columns / 2.0, 0.0, -rows / 2.0), pose)
+			root.update_camera(camera)
 			continue
 		root.position = Vector3(float(data[1]) - columns / 2.0, 0.56 if type == "cannon" else 0.45, float(data[2]) - rows / 2.0)
 		root.rotation.y = PI / 2.0 - atan2(float(data[4]), float(data[3]))

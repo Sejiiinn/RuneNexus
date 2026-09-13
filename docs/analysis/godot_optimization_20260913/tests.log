@@ -1,0 +1,21 @@
+00:00 +0: loading /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart
+00:00 +0: /Users/sejin/Documents/Codex/RuneNexus/test/godot_preview_test.dart: Godot 준비 뒤 정지 장면과 실제 사격 프레임을 전달하고 안전하게 종료한다 (variant: TargetPlatform.android)
+00:00 +0 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 엔진 ready 뒤에도 유효한 첫 전장 응답까지 로딩을 유지한다 (variant: TargetPlatform.android)
+00:00 +1 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 본게임 Godot 투영으로 건설하고 전투·카메라 전환 후 실패 시 2D로 복귀한다 (variant: TargetPlatform.android)
+00:00 +1 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 첫 전장 표시 전 초기 오류도 로딩을 해제한다 (variant: TargetPlatform.android)
+Godot 전장 표시 오류: Bad state: renderer unavailable
+00:00 +2 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 본게임 Godot 투영으로 건설하고 전투·카메라 전환 후 실패 시 2D로 복귀한다 (variant: TargetPlatform.android)
+00:00 +3 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 본게임 Godot 투영으로 건설하고 전투·카메라 전환 후 실패 시 2D로 복귀한다 (variant: TargetPlatform.android)
+00:00 +4 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 본게임 Godot 투영으로 건설하고 전투·카메라 전환 후 실패 시 2D로 복귀한다 (variant: TargetPlatform.android)
+00:00 +5 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 본게임 Godot 투영으로 건설하고 전투·카메라 전환 후 실패 시 2D로 복귀한다 (variant: TargetPlatform.android)
+00:00 +6 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 본게임 Godot 투영으로 건설하고 전투·카메라 전환 후 실패 시 2D로 복귀한다 (variant: TargetPlatform.android)
+00:00 +7 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 본게임 Godot 투영으로 건설하고 전투·카메라 전환 후 실패 시 2D로 복귀한다 (variant: TargetPlatform.android)
+00:00 +8 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 본게임 Godot 투영으로 건설하고 전투·카메라 전환 후 실패 시 2D로 복귀한다 (variant: TargetPlatform.android)
+00:00 +9 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 본게임 Godot 투영으로 건설하고 전투·카메라 전환 후 실패 시 2D로 복귀한다 (variant: TargetPlatform.android)
+00:00 +10 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 본게임 Godot 투영으로 건설하고 전투·카메라 전환 후 실패 시 2D로 복귀한다 (variant: TargetPlatform.android)
+00:00 +11 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 본게임 Godot 투영으로 건설하고 전투·카메라 전환 후 실패 시 2D로 복귀한다 (variant: TargetPlatform.android)
+00:00 +12 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 본게임 Godot 투영으로 건설하고 전투·카메라 전환 후 실패 시 2D로 복귀한다 (variant: TargetPlatform.android)
+Godot 전장 표시 오류: Bad state: renderer unavailable
+00:00 +13 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: Godot 채널 없는 Android에서 본게임과 2D 입력을 유지한다 (variant: TargetPlatform.android)
+Godot 전장 표시 오류: MissingPluginException(No implementation found for method beginScene on channel rune_nexus/godot_preview)
+00:01 +14 ~1: All tests passed!

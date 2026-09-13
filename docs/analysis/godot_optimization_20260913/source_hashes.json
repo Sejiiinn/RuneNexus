@@ -1,0 +1,11 @@
+{
+  "godot/main.gd": "e8d3d87b7a2ebb13b5ae5dee464289358b8e4b00d38f88f5c7e060569e3f9558",
+  "godot/ui/battlefield_effects.gd": "2cd15eeb8103bf1e1e8eb6754e3dad065625b2007502d24055d285c42836b627",
+  "godot/ui/battlefield_selection.gd": "f64ff778109a57a116ee560a24decf93508e7da7f8b4d05f87eb656a02b35e4a",
+  "lib/ui/hud/godot_battlefield_view.dart": "04146439bc4fec2e00c9c3249e8da0bd972c266b37b6482cab8af1ba57cb6c89",
+  "tool/godot_performance/main.dart": "27d0a5e5feb7137830af915a9e5612bdb8ccc218fbff9657a2dcea2719ab2235",
+  "assets/images/stage1_3d/environment/chapter2_tiles_optimized.glb": "86d89de9bca5c04964113e00409dcd38357e732864acf419c8039d79c11bb05e",
+  "android/app/src/main/kotlin/com/example/rune_nexus/GodotBridge.kt": "6c274ba58a90784dd166485b4091b863e0a89be0d3b39b908b9f14e4b1888c33",
+  "android/app/src/main/kotlin/com/example/rune_nexus/GodotRuntime.kt": "9acdf8154c012db665e1ab159cc05b948800bfb00b862a4449236f54b6f25bd7",
+  "android/app/src/main/kotlin/com/example/rune_nexus/GodotFlutterActivity.kt": "62bf74d306e364650771c36f8c049d61f718e8b3d82e407c74f0d4d6157da0b2"
+}

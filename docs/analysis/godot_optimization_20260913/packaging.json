@@ -1,0 +1,195 @@
+{
+  "baseline": {
+    "path": "build/apk-preview/rune-performance-baseline.apk",
+    "bytes": 284806109,
+    "sha256": "c737ce02ba20083fda04ccdfba1fa0960b83f98f19847073f5ce16cffbcbc222",
+    "abis": [
+      "arm64-v8a"
+    ],
+    "native_compressed_bytes": 89546824,
+    "pck_bytes": 154444248,
+    "flutter_assets_compressed_bytes": 38972335,
+    "raw_glb_entries": [],
+    "design_entries": [],
+    "optimized_asset_pck_entries": [
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized.glb-d58225123873ea94c653454134f129d5.scn",
+        "bytes": 9446653
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_build_basecolor.png-21fc38b962854565cb49e25380b39406.ctex",
+        "bytes": 740698
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_build_normal.png-41ae3673d987688c657a0e54632f9fd0.ctex",
+        "bytes": 1662678
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_build_roughness.png-45f23f07546264de391245aeb0b284db.ctex",
+        "bytes": 126584
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_path_basecolor.png-a3d1f08c62e3a01ee6f9a7b0627b5f93.ctex",
+        "bytes": 788234
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_path_normal.png-4cf01377acb4749f5b1ae799719cf475.ctex",
+        "bytes": 1662680
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_path_roughness.png-da021eaae76e652d08b3f40fc1afc6ba.ctex",
+        "bytes": 126584
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_side_basecolor.png-40bc9f0faa3a66e2564db72efa7fb03a.ctex",
+        "bytes": 755316
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_side_normal.png-ef4e90fae28ad36145604afc666c8aa7.ctex",
+        "bytes": 1662678
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_side_roughness.png-660b83d64cdaff1ba13fc61fa3b88f6a.ctex",
+        "bytes": 126584
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized.glb.import",
+        "bytes": 186
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_build_basecolor.png.import",
+        "bytes": 305
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_build_normal.png.import",
+        "bytes": 302
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_build_roughness.png.import",
+        "bytes": 305
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_path_basecolor.png.import",
+        "bytes": 304
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_path_normal.png.import",
+        "bytes": 301
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_path_roughness.png.import",
+        "bytes": 304
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_side_basecolor.png.import",
+        "bytes": 304
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_side_normal.png.import",
+        "bytes": 301
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_side_roughness.png.import",
+        "bytes": 303
+      }
+    ],
+    "optimized_asset_pck_bytes": 17101604
+  },
+  "optimized": {
+    "path": "build/apk-preview/rune-performance-optimized.apk",
+    "bytes": 284809981,
+    "sha256": "441935959f26464aee88468a797963447d2146b00324aa6b0c2bbab0b6d68bf5",
+    "abis": [
+      "arm64-v8a"
+    ],
+    "native_compressed_bytes": 89546824,
+    "pck_bytes": 154448120,
+    "flutter_assets_compressed_bytes": 38972335,
+    "raw_glb_entries": [],
+    "design_entries": [],
+    "optimized_asset_pck_entries": [
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized.glb-d58225123873ea94c653454134f129d5.scn",
+        "bytes": 9446653
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_build_basecolor.png-21fc38b962854565cb49e25380b39406.ctex",
+        "bytes": 740698
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_build_normal.png-41ae3673d987688c657a0e54632f9fd0.ctex",
+        "bytes": 1662678
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_build_roughness.png-45f23f07546264de391245aeb0b284db.ctex",
+        "bytes": 126584
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_path_basecolor.png-a3d1f08c62e3a01ee6f9a7b0627b5f93.ctex",
+        "bytes": 788234
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_path_normal.png-4cf01377acb4749f5b1ae799719cf475.ctex",
+        "bytes": 1662680
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_path_roughness.png-da021eaae76e652d08b3f40fc1afc6ba.ctex",
+        "bytes": 126584
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_side_basecolor.png-40bc9f0faa3a66e2564db72efa7fb03a.ctex",
+        "bytes": 755316
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_side_normal.png-ef4e90fae28ad36145604afc666c8aa7.ctex",
+        "bytes": 1662678
+      },
+      {
+        "path": ".godot/imported/chapter2_tiles_optimized_chapter2_side_roughness.png-660b83d64cdaff1ba13fc61fa3b88f6a.ctex",
+        "bytes": 126584
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized.glb.import",
+        "bytes": 186
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_build_basecolor.png.import",
+        "bytes": 305
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_build_normal.png.import",
+        "bytes": 302
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_build_roughness.png.import",
+        "bytes": 305
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_path_basecolor.png.import",
+        "bytes": 304
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_path_normal.png.import",
+        "bytes": 301
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_path_roughness.png.import",
+        "bytes": 304
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_side_basecolor.png.import",
+        "bytes": 304
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_side_normal.png.import",
+        "bytes": 301
+      },
+      {
+        "path": "assets/environment/chapter2_tiles_optimized_chapter2_side_roughness.png.import",
+        "bytes": 303
+      }
+    ],
+    "optimized_asset_pck_bytes": 17101604
+  },
+  "note": "A/B 모두 동일 신규자산을 포함한다. APK간 차이는 신규자산 추가비용이 아니다. 소스 GLB24,289,176bytes이며 PCK내실제기여는 optimized_asset_pck_bytes. 공개배포미수행, 이전공개APK비교미실행."
+}

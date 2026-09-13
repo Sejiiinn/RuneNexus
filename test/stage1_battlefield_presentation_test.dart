@@ -4,6 +4,66 @@ import 'helpers/game_balance_test_helpers.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test('3D 로딩 중 자동 전투와 시계를 멈추고 초기 프레임은 생성한다', () async {
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      waves: const [
+        WaveDefinition(
+          round: 1,
+          previewText: 'empty',
+          groups: [],
+          clearRewardGold: 0,
+        ),
+        WaveDefinition(
+          round: 2,
+          previewText: 'combat',
+          groups: [
+            SpawnGroup(enemyType: EnemyType.normal, count: 5, interval: 1),
+          ],
+          clearRewardGold: 0,
+        ),
+      ],
+    );
+    game.onGameResize(Vector2(400, 800));
+    // ignore: invalid_use_of_internal_member
+    await game.load();
+    // ignore: invalid_use_of_internal_member
+    game.mount();
+    addTearDown(game.disposeAppResources);
+    await game.ready();
+    game.setAutoStartMode(AutoStartMode.fullAuto);
+    game.startNextWave();
+    game.update(.016);
+    expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
+    expect(game.snapshotNotifier.value.round, 2);
+    game.nativeBattlefieldLoading = true;
+    final first = game.battlefieldFrame!;
+    final phase = game.snapshotNotifier.value.phase;
+    game.update(10);
+    expect(game.snapshotNotifier.value.phase, phase);
+    expect(game.enemies, isEmpty);
+    expect(game.battlefieldFrame, isNotNull);
+    expect(game.battlefieldFrame!.time, first.time);
+
+    game.nativeBattlefieldLoading = false;
+    game.update(.1);
+    expect(game.snapshotNotifier.value.phase, GamePhase.wave);
+    game.update(1);
+    await game.ready();
+    expect(game.enemies, isNotEmpty);
+    final enemy = game.enemies.first;
+    final position = enemy.position.clone();
+    final time = game.battlefieldFrame!.time;
+    game.nativeBattlefieldLoading = true;
+    game.update(1);
+    expect(enemy.position, position);
+    expect(game.battlefieldFrame!.time, time);
+    game.nativeBattlefieldLoading = false;
+    game.update(.1);
+    expect(game.battlefieldFrame!.time, greaterThan(time));
+    expect(enemy.position, isNot(position));
+  });
+
   test(
     '3D frame reads combat state without changing progress or saving',
     () async {

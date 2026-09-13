@@ -470,6 +470,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   Set<String> nativeBattlefieldGroups = const {};
   int nativeBattlefieldSceneEpoch = 0;
   bool nativeBattlefieldTurretLevels = false;
+  bool nativeBattlefieldLoading = false;
   final _battlefieldEffectClock = Stopwatch()..start();
   final _battlefieldEffectQueue = BattlefieldEffectQueue();
   final Map<int, Set<int>> _battlefieldEffectSubmissions = {};
@@ -483,13 +484,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   BattlefieldFrame? get battlefieldFrame => _buildBattlefieldFrame();
 
+  /// 1장 공용 지형과 2장 균열 지형을 제공하는 네이티브 표시 범위.
+  bool get supportsNativeBattlefield =>
+      _activeStage.id >= 1 && _activeStage.id <= 10;
+
   void retainProjectileVisual(
     ProjectileComponent projectile, {
     Vector2? hitTarget,
   }) {
     final type = projectile.owner.definition.type;
     if (battlefieldProjection == null ||
-        _activeStage.id != 1 ||
+        !supportsNativeBattlefield ||
         (type != TurretType.arrow && type != TurretType.cannon)) {
       return;
     }
@@ -1097,6 +1102,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void update(double dt) {
+    if (nativeBattlefieldLoading) {
+      // 장면 구성과 프레임 전달은 유지하되, 가려진 전투는 진행하지 않는다.
+      super.update(0);
+      return;
+    }
     _progression.recordPlayTime(dt);
     _updateTimeBasedProgress(dt);
     _spaceTime = (_spaceTime + dt) % 1200;
@@ -4326,7 +4336,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _currentStageNumber = nextStage.id;
       return;
     }
+    final hadNativeScene = nativeBattlefieldSceneEpoch != 0;
+    resetNativeBattlefieldEffects(nativeBattlefieldSceneEpoch);
+    nativeBattlefieldSceneEpoch = 0;
+    battlefieldProjection = null;
+    nativeBattlefieldGroups = const {};
+    nativeBattlefieldTurretLevels = false;
+    _finishedProjectiles.clear();
     _activeStage = nextStage;
+    // 새 HUD가 붙기 전에도 이전 맵의 응답·좌표·효과를 사용하지 않는다.
+    nativeBattlefieldLoading = hadNativeScene && supportsNativeBattlefield;
     _currentStageNumber = nextStage.id;
     if (isLoaded) {
       _rebuildGridComponent();

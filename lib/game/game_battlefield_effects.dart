@@ -9,7 +9,7 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
   void _trackBattlefieldEffect(Component component) {
     if (!_boardConfigured ||
         nativeBattlefieldSceneEpoch == 0 ||
-        _activeStage.id != 1 ||
+        !supportsNativeBattlefield ||
         component is! BattlefieldEffectSource) {
       return;
     }

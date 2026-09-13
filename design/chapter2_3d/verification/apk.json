@@ -1,0 +1,17 @@
+{
+  "apkBytes": 508843030,
+  "previousLocalDebugApkBytes": 497536194,
+  "deltaBytes": 11306836,
+  "pckBytes": 86193760,
+  "previousPckBytes": 74886924,
+  "compressedZipGroups": {
+    "Other": 5872025,
+    "Native arm64-v8a": 126656016,
+    "Native armeabi-v7a": 75958972,
+    "Native x86_64": 75498728,
+    "Flutter assets": 66037305,
+    "Godot PCK": 86193760
+  },
+  "rawChapter2OrSourceFiles": [],
+  "baseline": "same-environment previous local debug APK; not public release comparison"
+}

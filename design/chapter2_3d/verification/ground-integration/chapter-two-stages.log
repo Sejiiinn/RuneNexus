@@ -1,0 +1,16 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+RuneNexus Godot scene ready; Space: impacts, C: camera, S: shadows, V: volume
+Stage 6 props: total=4, rune_pillar=1, crystal_cluster=2, void_fissure=1
+Stage 6 rift verified: 8x10
+Stage 7 props: total=4, rune_pillar=1, crystal_cluster=2, void_fissure=1
+Stage 7 rift verified: 11x7
+Stage 8 props: total=4, rune_pillar=1, crystal_cluster=2, void_fissure=1
+Stage 8 rift verified: 8x8
+Stage 9 props: total=4, rune_pillar=1, crystal_cluster=2, void_fissure=1
+Stage 9 rift verified: 9x10
+Stage 10 props: total=4, rune_pillar=1, crystal_cluster=2, void_fissure=1
+Stage 10 rift verified: 9x9
+Stage 6 props: total=4, rune_pillar=1, crystal_cluster=2, void_fissure=1
+Stage 6 rift verified: 8x10
+Chapter two stages verification: 0 failures

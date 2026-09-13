@@ -1,0 +1,369 @@
+--------- beginning of main
+09-13 17:12:14.352 28391 28391 V Godot   : Initializing Godot plugin registry
+09-13 17:12:14.368 28391 28391 V Godot   : InitEngine with params: [--main-pack, res://rune_nexus.pck, --rendering-method, mobile, --disable_godot_splash]
+09-13 17:12:14.419 28391 28391 V Godot   : Godot native layer initialization completed: true
+09-13 17:12:14.419 28391 28391 V Godot   : Setting up native layer with params: [--main-pack, res://rune_nexus.pck, --rendering-method, mobile]
+09-13 17:12:14.476 28391 28391 V Godot   : Godot native layer setup completed
+09-13 17:12:14.477 28391 28391 V Godot   : OnInitRenderView: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:12:14.497 28391 28391 D Godot   : Render view should be transparent: false
+09-13 17:12:14.596 28391 28391 I godot   : Vulkan Debug Report: object - -5476376603329774064
+09-13 17:12:14.596 28391 28391 I godot   : vkCreateInstance(): Khronos Validation Layer Active:
+09-13 17:12:14.596 28391 28391 I godot   :     Current Enables: None.
+09-13 17:12:14.596 28391 28391 I godot   :     Current Disables: None.
+09-13 17:12:14.596 28391 28391 I godot   :
+09-13 17:12:14.623 28391 28391 E godot   : WARNING: Property not found: 'xr/shaders/enabled'.
+09-13 17:12:14.623 28391 28391 E godot   :    at: get_setting_with_override (core/config/project_settings.cpp:435)
+09-13 17:12:14.624 28391 28391 D Godot   : renderingDevice: vulkan (ProjectSettings)
+09-13 17:12:14.624 28391 28391 D Godot   : 			renderer: mobile (Default)
+09-13 17:12:14.636 28391 28391 V Godot   : OnStart: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:12:14.636 28391 28391 V Godot   : OnResume: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:12:14.982 28391 28467 I godot   : Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+09-13 17:12:15.191 28391 28467 I godot   : Vulkan Debug Report: object - 0
+09-13 17:12:15.191 28391 28467 I godot   : vkCreateDevice(): Cannot open shader validation cache at /tmp/shader_validation_cache-10232.bin for reading (it may not exist yet)
+09-13 17:12:15.195 28391 28467 I godot   : Vulkan 1.3.0 - Forward Mobile - Using Device #0: Apple - Goldfish GFXStream (Apple M4)
+09-13 17:12:16.179 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.179 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 17:12:16.179 28391 28467 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 17:12:16.179 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.179 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.179 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 17:12:16.179 28391 28467 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 17:12:16.179 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.314 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.314 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 17:12:16.314 28391 28467 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 17:12:16.314 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.314 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.314 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 17:12:16.314 28391 28467 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 17:12:16.314 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.325 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.325 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 17:12:16.325 28391 28467 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 17:12:16.325 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.325 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.325 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 17:12:16.325 28391 28467 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 17:12:16.325 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.338 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.338 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 17:12:16.338 28391 28467 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 17:12:16.338 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.338 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.338 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 17:12:16.338 28391 28467 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 17:12:16.338 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.361 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.361 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 17:12:16.361 28391 28467 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 17:12:16.362 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.362 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.362 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 17:12:16.362 28391 28467 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 17:12:16.362 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.476 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.476 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 17:12:16.476 28391 28467 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 17:12:16.478 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.478 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.478 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 17:12:16.478 28391 28467 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 17:12:16.478 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.605 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.605 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 17:12:16.605 28391 28467 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 17:12:16.605 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.605 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.605 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 17:12:16.605 28391 28467 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 17:12:16.605 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.618 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.618 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 17:12:16.618 28391 28467 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 17:12:16.618 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.618 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.618 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 17:12:16.618 28391 28467 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 17:12:16.618 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.638 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.638 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 17:12:16.638 28391 28467 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 17:12:16.638 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.638 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.638 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 17:12:16.638 28391 28467 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 17:12:16.638 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.662 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.662 28391 28467 E godot   : (Warning - This VUID has now been reported 10 times, which is the duplicate_message_limit value, this will be the last time reporting it).
+09-13 17:12:16.662 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 17:12:16.662 28391 28467 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 17:12:16.663 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:16.663 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 17:12:16.663 28391 28467 E godot   : (Warning - This VUID has now been reported 10 times, which is the duplicate_message_limit value, this will be the last time reporting it).
+09-13 17:12:16.663 28391 28467 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 17:12:16.663 28391 28467 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 17:12:16.663 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:18.112 28391 28467 I godot   :
+09-13 17:12:29.583 28391 28467 V Godot   : OnGodotSetupCompleted
+09-13 17:12:32.502 28391 28467 V Godot   : OnGodotMainLoopStarted
+09-13 17:12:39.772 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 1297423720776860
+09-13 17:12:39.772 28391 28467 E godot   : vkQueueSubmit(): pSubmits[0].pSignalSemaphores[0] (VkSemaphore 0x49c000000049c) is being signaled by VkQueue 0xb400007d6e4ea2f0, but it may still be in use by VkSwapchainKHR 0x46e000000046e.
+09-13 17:12:39.772 28391 28467 E godot   : Most recently acquired image indices: [0], 1, 2.
+09-13 17:12:39.772 28391 28467 E godot   : (Brackets mark the last use of VkSemaphore 0x49c000000049c in a presentation operation.)
+09-13 17:12:39.772 28391 28467 E godot   : Swapchain image 0 was presented but was not re-acquired, so VkSemaphore 0x49c000000049c may still be in use and cannot be safely reused with image index 2.
+09-13 17:12:39.772 28391 28467 E godot   : Vulkan insight: See https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html for details on swapchain semaphore reuse. Examples of possible approaches:
+09-13 17:12:39.772 28391 28467 E godot   :    a) Use a separate semaphore per swapchain image. Index these semaphores using the index of the acquired image.
+09-13 17:12:39.772 28391 28467 E godot   :    b) Consider the VK_KHR_swapchain_maintenance1 extension. It allows using a VkFence with the presentation operation.
+09-13 17:12:39.772 28391 28467 E godot   : The Vulkan spec states: Each binary semaphore element of the pSignalSemaphores member of
+09-13 17:12:39.772 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:12:39.977 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 1300722255660191
+09-13 17:12:39.977 28391 28467 E godot   : vkQueueSubmit(): pSubmits[0].pSignalSemaphores[0] (VkSemaphore 0x49f000000049f) is being signaled by VkQueue 0xb400007d6e4ea2f0, but it may still be in use by VkSwapchainKHR 0x46e000000046e.
+09-13 17:12:39.977 28391 28467 E godot   : Most recently acquired image indices: 0, [1], 2, 0.
+09-13 17:12:39.977 28391 28467 E godot   : (Brackets mark the last use of VkSemaphore 0x49f000000049f in a presentation operation.)
+09-13 17:12:39.977 28391 28467 E godot   : Swapchain image 1 was presented but was not re-acquired, so VkSemaphore 0x49f000000049f may still be in use and cannot be safely reused with image index 0.
+09-13 17:12:39.977 28391 28467 E godot   : Vulkan insight: See https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html for details on swapchain semaphore reuse. Examples of possible approaches:
+09-13 17:12:39.977 28391 28467 E godot   :    a) Use a separate semaphore per swapchain image. Index these semaphores using the index of the acquired image.
+09-13 17:12:39.977 28391 28467 E godot   :    b) Consider the VK_KHR_swapchain_maintenance1 extension. It allows using a VkFence with the presentation operation.
+09-13 17:12:39.977 28391 28467 E godot   : The Vulkan spec states: Each binary semaphore element of the pSignalSemaphores member
+09-13 17:12:39.979 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:14:00.612 28391 28391 V Godot   : OnPause: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:14:00.624 28391 28391 V Godot   : OnStop: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:14:01.209 28391 28391 V Godot   : OnStart: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:14:01.209 28391 28391 V Godot   : OnResume: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:14:01.607 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 6743304813156341
+09-13 17:14:01.607 28391 28467 E godot   : vkQueueSubmit(): pSubmits[0].pSignalSemaphores[0] (VkSemaphore 0x17f500000017f5) is being signaled by VkQueue 0xb400007d6e4ea2f0, but it may still be in use by VkSwapchainKHR 0x17e500000017e5.
+09-13 17:14:01.607 28391 28467 E godot   : Most recently acquired image indices: [0], 1, 2.
+09-13 17:14:01.607 28391 28467 E godot   : (Brackets mark the last use of VkSemaphore 0x17f500000017f5 in a presentation operation.)
+09-13 17:14:01.607 28391 28467 E godot   : Swapchain image 0 was presented but was not re-acquired, so VkSemaphore 0x17f500000017f5 may still be in use and cannot be safely reused with image index 2.
+09-13 17:14:01.607 28391 28467 E godot   : Vulkan insight: See https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html for details on swapchain semaphore reuse. Examples of possible approaches:
+09-13 17:14:01.607 28391 28467 E godot   :    a) Use a separate semaphore per swapchain image. Index these semaphores using the index of the acquired image.
+09-13 17:14:01.607 28391 28467 E godot   :    b) Consider the VK_KHR_swapchain_maintenance1 extension. It allows using a VkFence with the presentation operation.
+09-13 17:14:01.607 28391 28467 E godot   : The Vulkan spec states: Each binary semaphore element of the pSignalSemaphores membe
+09-13 17:14:01.607 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:14:01.645 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 6746603348039672
+09-13 17:14:01.645 28391 28467 E godot   : vkQueueSubmit(): pSubmits[0].pSignalSemaphores[0] (VkSemaphore 0x17f800000017f8) is being signaled by VkQueue 0xb400007d6e4ea2f0, but it may still be in use by VkSwapchainKHR 0x17e500000017e5.
+09-13 17:14:01.645 28391 28467 E godot   : Most recently acquired image indices: 0, [1], 2, 0.
+09-13 17:14:01.645 28391 28467 E godot   : (Brackets mark the last use of VkSemaphore 0x17f800000017f8 in a presentation operation.)
+09-13 17:14:01.645 28391 28467 E godot   : Swapchain image 1 was presented but was not re-acquired, so VkSemaphore 0x17f800000017f8 may still be in use and cannot be safely reused with image index 0.
+09-13 17:14:01.645 28391 28467 E godot   : Vulkan insight: See https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html for details on swapchain semaphore reuse. Examples of possible approaches:
+09-13 17:14:01.645 28391 28467 E godot   :    a) Use a separate semaphore per swapchain image. Index these semaphores using the index of the acquired image.
+09-13 17:14:01.645 28391 28467 E godot   :    b) Consider the VK_KHR_swapchain_maintenance1 extension. It allows using a VkFence with the presentation operation.
+09-13 17:14:01.645 28391 28467 E godot   : The Vulkan spec states: Each binary semaphore element of the pSignalSemaphores me
+09-13 17:14:01.645 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:14:12.965 28391 28391 V Godot   : OnPause: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:14:12.966 28391 28391 V Godot   : OnStop: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:14:13.413 28391 28391 V Godot   : OnStart: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:14:13.414 28391 28391 V Godot   : OnResume: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:14:13.784 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 6770792603850766
+09-13 17:14:13.784 28391 28467 E godot   : vkQueueSubmit(): pSubmits[0].pSignalSemaphores[0] (VkSemaphore 0x180e000000180e) is being signaled by VkQueue 0xb400007d6e4ea2f0, but it may still be in use by VkSwapchainKHR 0x17fe00000017fe.
+09-13 17:14:13.784 28391 28467 E godot   : Most recently acquired image indices: [0], 1, 2.
+09-13 17:14:13.784 28391 28467 E godot   : (Brackets mark the last use of VkSemaphore 0x180e000000180e in a presentation operation.)
+09-13 17:14:13.784 28391 28467 E godot   : Swapchain image 0 was presented but was not re-acquired, so VkSemaphore 0x180e000000180e may still be in use and cannot be safely reused with image index 2.
+09-13 17:14:13.784 28391 28467 E godot   : Vulkan insight: See https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html for details on swapchain semaphore reuse. Examples of possible approaches:
+09-13 17:14:13.784 28391 28467 E godot   :    a) Use a separate semaphore per swapchain image. Index these semaphores using the index of the acquired image.
+09-13 17:14:13.784 28391 28467 E godot   :    b) Consider the VK_KHR_swapchain_maintenance1 extension. It allows using a VkFence with the presentation operation.
+09-13 17:14:13.784 28391 28467 E godot   : The Vulkan spec states: Each binary semaphore element of the pSignalSemaphores membe
+09-13 17:14:13.785 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:14:13.810 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 6774091138734097
+09-13 17:14:13.810 28391 28467 E godot   : vkQueueSubmit(): pSubmits[0].pSignalSemaphores[0] (VkSemaphore 0x18110000001811) is being signaled by VkQueue 0xb400007d6e4ea2f0, but it may still be in use by VkSwapchainKHR 0x17fe00000017fe.
+09-13 17:14:13.810 28391 28467 E godot   : Most recently acquired image indices: 0, [1], 2, 0.
+09-13 17:14:13.810 28391 28467 E godot   : (Brackets mark the last use of VkSemaphore 0x18110000001811 in a presentation operation.)
+09-13 17:14:13.810 28391 28467 E godot   : Swapchain image 1 was presented but was not re-acquired, so VkSemaphore 0x18110000001811 may still be in use and cannot be safely reused with image index 0.
+09-13 17:14:13.810 28391 28467 E godot   : Vulkan insight: See https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html for details on swapchain semaphore reuse. Examples of possible approaches:
+09-13 17:14:13.810 28391 28467 E godot   :    a) Use a separate semaphore per swapchain image. Index these semaphores using the index of the acquired image.
+09-13 17:14:13.810 28391 28467 E godot   :    b) Consider the VK_KHR_swapchain_maintenance1 extension. It allows using a VkFence with the presentation operation.
+09-13 17:14:13.810 28391 28467 E godot   : The Vulkan spec states: Each binary semaphore element of the pSignalSemaphores me
+09-13 17:14:13.810 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:14:17.979 28391 28391 V Godot   : OnPause: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:14:17.981 28391 28391 V Godot   : OnStop: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:14:18.461 28391 28391 V Godot   : OnStart: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:14:18.462 28391 28391 V Godot   : OnResume: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:14:18.849 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 6794981859661860
+09-13 17:14:18.849 28391 28467 E godot   : vkQueueSubmit(): pSubmits[0].pSignalSemaphores[0] (VkSemaphore 0x18240000001824) is being signaled by VkQueue 0xb400007d6e4ea2f0, but it may still be in use by VkSwapchainKHR 0x18140000001814.
+09-13 17:14:18.849 28391 28467 E godot   : Most recently acquired image indices: [0], 1, 2.
+09-13 17:14:18.849 28391 28467 E godot   : (Brackets mark the last use of VkSemaphore 0x18240000001824 in a presentation operation.)
+09-13 17:14:18.849 28391 28467 E godot   : Swapchain image 0 was presented but was not re-acquired, so VkSemaphore 0x18240000001824 may still be in use and cannot be safely reused with image index 2.
+09-13 17:14:18.849 28391 28467 E godot   : Vulkan insight: See https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html for details on swapchain semaphore reuse. Examples of possible approaches:
+09-13 17:14:18.849 28391 28467 E godot   :    a) Use a separate semaphore per swapchain image. Index these semaphores using the index of the acquired image.
+09-13 17:14:18.849 28391 28467 E godot   :    b) Consider the VK_KHR_swapchain_maintenance1 extension. It allows using a VkFence with the presentation operation.
+09-13 17:14:18.849 28391 28467 E godot   : The Vulkan spec states: Each binary semaphore element of the pSignalSemaphores membe
+09-13 17:14:18.849 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:14:18.874 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 6798280394545191
+09-13 17:14:18.874 28391 28467 E godot   : vkQueueSubmit(): pSubmits[0].pSignalSemaphores[0] (VkSemaphore 0x18270000001827) is being signaled by VkQueue 0xb400007d6e4ea2f0, but it may still be in use by VkSwapchainKHR 0x18140000001814.
+09-13 17:14:18.874 28391 28467 E godot   : Most recently acquired image indices: 0, [1], 2, 0.
+09-13 17:14:18.874 28391 28467 E godot   : (Brackets mark the last use of VkSemaphore 0x18270000001827 in a presentation operation.)
+09-13 17:14:18.874 28391 28467 E godot   : Swapchain image 1 was presented but was not re-acquired, so VkSemaphore 0x18270000001827 may still be in use and cannot be safely reused with image index 0.
+09-13 17:14:18.874 28391 28467 E godot   : Vulkan insight: See https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html for details on swapchain semaphore reuse. Examples of possible approaches:
+09-13 17:14:18.874 28391 28467 E godot   :    a) Use a separate semaphore per swapchain image. Index these semaphores using the index of the acquired image.
+09-13 17:14:18.874 28391 28467 E godot   :    b) Consider the VK_KHR_swapchain_maintenance1 extension. It allows using a VkFence with the presentation operation.
+09-13 17:14:18.874 28391 28467 E godot   : The Vulkan spec states: Each binary semaphore element of the pSignalSemaphores me
+09-13 17:14:18.874 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:15:14.968 28391 28391 V Godot   : OnPause: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:15:14.969 28391 28391 V Godot   : OnStop: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:15:15.460 28391 28391 V Godot   : OnStart: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:15:15.460 28391 28391 V Godot   : OnResume: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:15:15.829 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 6819171115472954
+09-13 17:15:15.829 28391 28467 E godot   : vkQueueSubmit(): pSubmits[0].pSignalSemaphores[0] (VkSemaphore 0x183a000000183a) is being signaled by VkQueue 0xb400007d6e4ea2f0, but it may still be in use by VkSwapchainKHR 0x182a000000182a.
+09-13 17:15:15.829 28391 28467 E godot   : Most recently acquired image indices: [0], 1, 2.
+09-13 17:15:15.829 28391 28467 E godot   : (Brackets mark the last use of VkSemaphore 0x183a000000183a in a presentation operation.)
+09-13 17:15:15.829 28391 28467 E godot   : Swapchain image 0 was presented but was not re-acquired, so VkSemaphore 0x183a000000183a may still be in use and cannot be safely reused with image index 2.
+09-13 17:15:15.829 28391 28467 E godot   : Vulkan insight: See https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html for details on swapchain semaphore reuse. Examples of possible approaches:
+09-13 17:15:15.829 28391 28467 E godot   :    a) Use a separate semaphore per swapchain image. Index these semaphores using the index of the acquired image.
+09-13 17:15:15.829 28391 28467 E godot   :    b) Consider the VK_KHR_swapchain_maintenance1 extension. It allows using a VkFence with the presentation operation.
+09-13 17:15:15.829 28391 28467 E godot   : The Vulkan spec states: Each binary semaphore element of the pSignalSemaphores membe
+09-13 17:15:15.830 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:15:15.852 28391 28467 E godot   : ERROR: Vulkan Debug Report: object - 6822469650356285
+09-13 17:15:15.852 28391 28467 E godot   : (Warning - This VUID has now been reported 10 times, which is the duplicate_message_limit value, this will be the last time reporting it).
+09-13 17:15:15.852 28391 28467 E godot   : vkQueueSubmit(): pSubmits[0].pSignalSemaphores[0] (VkSemaphore 0x183d000000183d) is being signaled by VkQueue 0xb400007d6e4ea2f0, but it may still be in use by VkSwapchainKHR 0x182a000000182a.
+09-13 17:15:15.852 28391 28467 E godot   : Most recently acquired image indices: 0, [1], 2, 0.
+09-13 17:15:15.852 28391 28467 E godot   : (Brackets mark the last use of VkSemaphore 0x183d000000183d in a presentation operation.)
+09-13 17:15:15.852 28391 28467 E godot   : Swapchain image 1 was presented but was not re-acquired, so VkSemaphore 0x183d000000183d may still be in use and cannot be safely reused with image index 0.
+09-13 17:15:15.852 28391 28467 E godot   : Vulkan insight: See https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html for details on swapchain semaphore reuse. Examples of possible approaches:
+09-13 17:15:15.852 28391 28467 E godot   :    a) Use a separate semaphore per swapchain image. Index these semaphores using the index of the acquired image.
+09-13 17:15:15.852 28391 28467 E godot   :    b) Consider the VK_KHR_swapchain_maintenance1 extension. I
+09-13 17:15:15.852 28391 28467 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 17:15:30.106 28391 28391 V Godot   : OnPause: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:15:30.106 28391 28391 V Godot   : OnStop: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:15:30.490 28391 28391 V Godot   : OnStart: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:15:30.491 28391 28391 V Godot   : OnResume: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:16:10.213 28391 28391 V Godot   : OnPause: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:16:10.214 28391 28391 V Godot   : OnStop: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:16:10.733 28391 28391 V Godot   : OnStart: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:16:10.733 28391 28391 V Godot   : OnResume: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:17:45.437 28391 28391 V Godot   : OnPause: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:17:45.438 28391 28391 V Godot   : OnStop: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:17:59.351 28391 28391 V Godot   : OnStart: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:17:59.351 28391 28391 V Godot   : OnResume: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:18:33.190 28391 28391 V Godot   : OnPause: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:18:33.190 28391 28391 V Godot   : OnStop: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:18:33.759 28391 28391 V Godot   : OnStart: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:18:33.760 28391 28391 V Godot   : OnResume: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:21:37.803 28391 28391 V Godot   : OnPause: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 17:21:37.803 28391 28391 V Godot   : OnStop: com.example.rune_nexus.GodotRuntime@e1413e
+09-13 19:51:24.312 29222 29222 V Godot   : Initializing Godot plugin registry
+09-13 19:51:24.326 29222 29222 V Godot   : InitEngine with params: [--main-pack, res://rune_nexus.pck, --rendering-method, mobile, --disable_godot_splash]
+09-13 19:51:24.357 29222 29222 V Godot   : Godot native layer initialization completed: true
+09-13 19:51:24.357 29222 29222 V Godot   : Setting up native layer with params: [--main-pack, res://rune_nexus.pck, --rendering-method, mobile]
+09-13 19:51:24.402 29222 29222 V Godot   : Godot native layer setup completed
+09-13 19:51:24.403 29222 29222 V Godot   : OnInitRenderView: com.example.rune_nexus.GodotRuntime@442fcc0
+09-13 19:51:24.423 29222 29222 D Godot   : Render view should be transparent: false
+09-13 19:51:24.526 29222 29222 I godot   : Vulkan Debug Report: object - -5476376603329772464
+09-13 19:51:24.526 29222 29222 I godot   : vkCreateInstance(): Khronos Validation Layer Active:
+09-13 19:51:24.526 29222 29222 I godot   :     Current Enables: None.
+09-13 19:51:24.526 29222 29222 I godot   :     Current Disables: None.
+09-13 19:51:24.526 29222 29222 I godot   :
+09-13 19:51:24.552 29222 29222 E godot   : WARNING: Property not found: 'xr/shaders/enabled'.
+09-13 19:51:24.552 29222 29222 E godot   :    at: get_setting_with_override (core/config/project_settings.cpp:435)
+09-13 19:51:24.552 29222 29222 D Godot   : renderingDevice: vulkan (ProjectSettings)
+09-13 19:51:24.552 29222 29222 D Godot   : 			renderer: mobile (Default)
+09-13 19:51:24.560 29222 29222 V Godot   : OnStart: com.example.rune_nexus.GodotRuntime@442fcc0
+09-13 19:51:24.561 29222 29222 V Godot   : OnResume: com.example.rune_nexus.GodotRuntime@442fcc0
+09-13 19:51:24.891 29222 29301 I godot   : Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+09-13 19:51:25.072 29222 29301 I godot   : Vulkan Debug Report: object - 0
+09-13 19:51:25.072 29222 29301 I godot   : vkCreateDevice(): Cannot open shader validation cache at /tmp/shader_validation_cache-10232.bin for reading (it may not exist yet)
+09-13 19:51:25.078 29222 29301 I godot   : Vulkan 1.3.0 - Forward Mobile - Using Device #0: Apple - Goldfish GFXStream (Apple M4)
+09-13 19:51:26.151 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.151 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 19:51:26.151 29222 29301 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 19:51:26.152 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.152 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.152 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 19:51:26.152 29222 29301 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 19:51:26.152 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.275 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.275 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 19:51:26.275 29222 29301 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 19:51:26.275 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.276 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.276 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 19:51:26.276 29222 29301 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 19:51:26.276 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.292 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.292 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 19:51:26.292 29222 29301 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 19:51:26.292 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.293 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.293 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 19:51:26.293 29222 29301 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 19:51:26.293 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.313 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.313 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 19:51:26.313 29222 29301 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 19:51:26.313 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.313 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.313 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 19:51:26.313 29222 29301 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 19:51:26.313 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.339 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.339 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 19:51:26.339 29222 29301 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 19:51:26.339 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.339 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.339 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 19:51:26.339 29222 29301 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 19:51:26.339 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.451 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.451 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 19:51:26.451 29222 29301 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 19:51:26.451 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.451 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.451 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 19:51:26.451 29222 29301 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 19:51:26.451 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.581 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.581 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 19:51:26.581 29222 29301 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 19:51:26.581 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.581 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.581 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 19:51:26.581 29222 29301 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 19:51:26.581 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.607 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.607 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 19:51:26.607 29222 29301 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 19:51:26.608 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.609 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.609 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 19:51:26.609 29222 29301 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 19:51:26.609 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.630 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.630 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 19:51:26.630 29222 29301 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 19:51:26.630 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.630 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.630 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 19:51:26.630 29222 29301 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 19:51:26.630 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.653 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.653 29222 29301 E godot   : (Warning - This VUID has now been reported 10 times, which is the duplicate_message_limit value, this will be the last time reporting it).
+09-13 19:51:26.653 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorSamplers limit (16).
+09-13 19:51:26.653 29222 29301 E godot   : The Vulkan spec states: The total number of descriptors in descriptor set layouts created without the VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT bit set with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceLimits::maxPerStageDescriptorSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03016)
+09-13 19:51:26.653 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:26.654 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 0
+09-13 19:51:26.654 29222 29301 E godot   : (Warning - This VUID has now been reported 10 times, which is the duplicate_message_limit value, this will be the last time reporting it).
+09-13 19:51:26.654 29222 29301 E godot   : vkCreatePipelineLayout(): max per-stage sampler bindings count (18) exceeds device maxPerStageDescriptorUpdateAfterBindSamplers limit (16).
+09-13 19:51:26.654 29222 29301 E godot   : The Vulkan spec states: If the descriptorBindingSampledImageUpdateAfterBind feature is supported on the device, the total number of descriptors with a descriptorType of VK_DESCRIPTOR_TYPE_SAMPLER and VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER accessible to any given shader stage across all elements of pSetLayouts must be less than or equal to VkPhysicalDeviceDescriptorIndexingProperties::maxPerStageDescriptorUpdateAfterBindSamplers (https://docs.vulkan.org/spec/latest/chapters/descriptorsets.html#VUID-VkPipelineLayoutCreateInfo-descriptorType-03022)
+09-13 19:51:26.654 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:28.030 29222 29301 I godot   :
+09-13 19:51:39.526 29222 29301 V Godot   : OnGodotSetupCompleted
+09-13 19:51:42.425 29222 29301 V Godot   : OnGodotMainLoopStarted
+09-13 19:51:53.715 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 1297423720776860
+09-13 19:51:53.715 29222 29301 E godot   : vkQueueSubmit(): pSubmits[0].pSignalSemaphores[0] (VkSemaphore 0x49c000000049c) is being signaled by VkQueue 0xb400007d6e502080, but it may still be in use by VkSwapchainKHR 0x46e000000046e.
+09-13 19:51:53.715 29222 29301 E godot   : Most recently acquired image indices: [0], 1, 2.
+09-13 19:51:53.715 29222 29301 E godot   : (Brackets mark the last use of VkSemaphore 0x49c000000049c in a presentation operation.)
+09-13 19:51:53.715 29222 29301 E godot   : Swapchain image 0 was presented but was not re-acquired, so VkSemaphore 0x49c000000049c may still be in use and cannot be safely reused with image index 2.
+09-13 19:51:53.715 29222 29301 E godot   : Vulkan insight: See https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html for details on swapchain semaphore reuse. Examples of possible approaches:
+09-13 19:51:53.715 29222 29301 E godot   :    a) Use a separate semaphore per swapchain image. Index these semaphores using the index of the acquired image.
+09-13 19:51:53.715 29222 29301 E godot   :    b) Consider the VK_KHR_swapchain_maintenance1 extension. It allows using a VkFence with the presentation operation.
+09-13 19:51:53.715 29222 29301 E godot   : The Vulkan spec states: Each binary semaphore element of the pSignalSemaphores member of
+09-13 19:51:53.715 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)
+09-13 19:51:54.014 29222 29301 E godot   : ERROR: Vulkan Debug Report: object - 1300722255660191
+09-13 19:51:54.014 29222 29301 E godot   : vkQueueSubmit(): pSubmits[0].pSignalSemaphores[0] (VkSemaphore 0x49f000000049f) is being signaled by VkQueue 0xb400007d6e502080, but it may still be in use by VkSwapchainKHR 0x46e000000046e.
+09-13 19:51:54.014 29222 29301 E godot   : Most recently acquired image indices: 0, [1], 2, 0.
+09-13 19:51:54.014 29222 29301 E godot   : (Brackets mark the last use of VkSemaphore 0x49f000000049f in a presentation operation.)
+09-13 19:51:54.014 29222 29301 E godot   : Swapchain image 1 was presented but was not re-acquired, so VkSemaphore 0x49f000000049f may still be in use and cannot be safely reused with image index 0.
+09-13 19:51:54.014 29222 29301 E godot   : Vulkan insight: See https://docs.vulkan.org/guide/latest/swapchain_semaphore_reuse.html for details on swapchain semaphore reuse. Examples of possible approaches:
+09-13 19:51:54.014 29222 29301 E godot   :    a) Use a separate semaphore per swapchain image. Index these semaphores using the index of the acquired image.
+09-13 19:51:54.014 29222 29301 E godot   :    b) Consider the VK_KHR_swapchain_maintenance1 extension. It allows using a VkFence with the presentation operation.
+09-13 19:51:54.014 29222 29301 E godot   : The Vulkan spec states: Each binary semaphore element of the pSignalSemaphores member
+09-13 19:51:54.014 29222 29301 E godot   :    at: _debug_report_callback (drivers/vulkan/rendering_context_driver_vulkan.cpp:680)

@@ -1,0 +1,10 @@
+{
+  "assets/images/stage1_3d/environment/chapter2_tiles.glb": {
+    "bytes": 10417488,
+    "sha256": "1aaa1b467d18f99b9aa63f8f1db07dd1ac01fd743314db9458b13cda54bbfcde"
+  },
+  "assets/images/stage1_3d/environment/chapter2_props.glb": {
+    "bytes": 3620456,
+    "sha256": "3f97732c4a9f36deb26d9dd5b089f694e6d020e58b00b4a6dfa5d416699acea5"
+  }
+}

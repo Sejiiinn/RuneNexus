@@ -1,0 +1,14 @@
+{
+  "bytes": 17024064,
+  "sha256": "98e0760e141d87ae0ad707b56369a6d2dd1addede3c7a2ef68ff3d1b3e2096b0",
+  "mtime": "2026-09-13T20:31:44.302540",
+  "roots": [
+    "crystal_cluster",
+    "rune_pillar",
+    "void_fissure"
+  ],
+  "meshes": 26,
+  "materials": 9,
+  "embedded_images": 9,
+  "triangles": 142860
+}

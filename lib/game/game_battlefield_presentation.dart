@@ -6,7 +6,9 @@ extension _BattlefieldPresentation on RuneNexusGame {
       battlefieldProjection != null && nativeBattlefieldGroups.contains(group);
 
   BattlefieldFrame? _buildBattlefieldFrame() {
-    if (!_boardConfigured || !readyNotifier.value || _activeStage.id != 1) {
+    if (!_boardConfigured ||
+        !readyNotifier.value ||
+        !supportsNativeBattlefield) {
       return null;
     }
     Offset grid(Vector2 position) => Offset(

@@ -2,6 +2,7 @@ extends Node3D
 
 ## 실제 비행 좌표와 짧게 보존된 종료 경로를 탄체·입체 예광으로 표시.
 const TRACER_SHADER = preload("res://effects/projectile_tracer.gdshader")
+const CannonFlight = preload("res://effects/cannon_flight.gd")
 const AFTERIMAGE_SECONDS := 0.14
 static var _templates := {}
 
@@ -14,17 +15,46 @@ var launch_position := Vector3.ZERO
 var initialized := false
 var trail_length := 0.0
 var opacity := 0.0
+var _cannon_model: Node3D
+var _cannon_flight: Node3D
 
 
 func _init(projectile_type: String = "arrow") -> void:
 	type = projectile_type
 	name = "Projectile_" + type
 	var heavy := type == "cannon"
+	if heavy:
+		# 철구의 형태·단조 표면·후방 열기는 승인 원본의 native PBR 그대로 공유.
+		var packed := load("res://assets/projectiles/cannonball.glb") as PackedScene
+		if packed == null:
+			push_error("대포 철구 GLB를 불러오지 못했습니다.")
+			return
+		_cannon_model = packed.instantiate()
+		body.free()
+		nose.free()
+		body = _cannon_model.find_child("cannonball_body", true, false) as MeshInstance3D
+		nose = _cannon_model.find_child("cannonball_heat", true, false) as MeshInstance3D
+		# 공용 지형·포탑과 동일한 glTF COLOR_0 활성화 보정.
+		# 원본 PBR·노멀·발광은 그대로 두고 철색과 후방 열기의 정점색만 수신한다.
+		for mesh: MeshInstance3D in [body, nose]:
+			for surface in range(mesh.mesh.get_surface_count()):
+				var colors = mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_COLOR]
+				var material := mesh.get_active_material(surface) as StandardMaterial3D
+				if material != null and colors != null and not colors.is_empty():
+					material.vertex_color_use_as_albedo = true
+		add_child(_cannon_model)
+		# 기관총 필드 계약을 유지하되 대포에는 긴 예광 메시를 만들지 않는다.
+		tracer.visible = false
+		add_child(tracer)
+		_cannon_flight = CannonFlight.new()
+		add_child(_cannon_flight)
+		reset()
+		return
 	if not _templates.has(type):
-		var radius := 0.052 if heavy else 0.017
-		var length := 0.22 if heavy else 0.13
+		var radius := 0.017
+		var length := 0.13
 		var metal := StandardMaterial3D.new()
-		metal.albedo_color = Color("73797e") if heavy else Color("e9bc73")
+		metal.albedo_color = Color("e9bc73")
 		metal.metallic = 0.5
 		metal.roughness = 0.42
 		var cylinder := CylinderMesh.new()
@@ -40,7 +70,7 @@ func _init(projectile_type: String = "arrow") -> void:
 		tip.radial_segments = 10
 		tip.material = metal
 		var streak := CylinderMesh.new()
-		streak.top_radius = 0.019 if heavy else 0.014
+		streak.top_radius = 0.014
 		streak.bottom_radius = 0.0025
 		streak.height = 1.0
 		streak.radial_segments = 6
@@ -51,7 +81,7 @@ func _init(projectile_type: String = "arrow") -> void:
 	nose.position.z = float(template["length"]) * 0.69
 	tracer.mesh = template["tracer"]
 	tracer_material.shader = TRACER_SHADER
-	tracer_material.set_shader_parameter("u_color", Color("ffac4f") if heavy else Color("ffda78"))
+	tracer_material.set_shader_parameter("u_color", Color("ffda78"))
 	tracer.material_override = tracer_material
 	for mesh: MeshInstance3D in [body, nose, tracer]:
 		mesh.rotation.x = PI / 2.0
@@ -65,6 +95,12 @@ func reset() -> void:
 	visible = false
 	trail_length = 0.0
 	opacity = 0.0
+	if _cannon_model:
+		_cannon_model.visible = false
+		body.visible = false
+		nose.visible = false
+		tracer.visible = false
+		_cannon_flight.reset()
 
 
 func update_flight(data: Array, time: float, map_offset: Vector3, muzzle_pose = null) -> void:
@@ -105,8 +141,19 @@ func update_flight(data: Array, time: float, map_offset: Vector3, muzzle_pose = 
 	# 피해를 준 탄체는 즉시 숨기고 이미 지나간 짧은 궤적만 소멸.
 	body.visible = not finished
 	nose.visible = not finished
-	trail_length = minf(1.10 if type == "cannon" else 0.85, maxf(0.0, offset.length()))
+	if type == "cannon":
+		_cannon_model.visible = not finished
+		trail_length = minf(CannonFlight.MAX_LENGTH, maxf(0.0, offset.length()))
+		tracer.visible = false
+		_cannon_flight.update_flight(time, trail_length, opacity)
+		return
+	trail_length = minf(0.85, maxf(0.0, offset.length()))
 	tracer.scale.y = trail_length
 	tracer.position.z = -trail_length / 2.0
 	tracer.visible = trail_length > 0.01
 	tracer_material.set_shader_parameter("u_opacity", opacity)
+
+
+func update_camera(camera: Camera3D) -> void:
+	if _cannon_flight:
+		_cannon_flight.update_camera(camera)

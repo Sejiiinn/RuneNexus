@@ -1,0 +1,160 @@
+import 'package:rune_nexus/game/components/impact_effect_component.dart';
+import 'package:rune_nexus/game/rendering/stage1_3d/battlefield_projection.dart';
+import 'package:rune_nexus/game/rendering/stage1_3d/godot_battlefield_frame.dart';
+
+import 'helpers/game_balance_test_helpers.dart';
+
+const _projection = BattlefieldProjection(
+  origin: Offset(32, 130),
+  xAxis: Offset(38, 8),
+  yAxis: Offset(-3, 31),
+  heightAxis: Offset(0, -19),
+);
+
+Future<RuneNexusGame> _game(
+  int stageNumber,
+  MemorySaveRepository repository,
+) async {
+  final game = RuneNexusGame(
+    stage: gameStages[stageNumber - 1],
+    stages: gameStages,
+    saveRepository: repository,
+    enableDebugEnemySpawnForTesting: true,
+  );
+  game.onGameResize(Vector2(400, 800));
+  // ignore: invalid_use_of_internal_member
+  await game.load();
+  // ignore: invalid_use_of_internal_member
+  game.mount();
+  addTearDown(game.disposeAppResources);
+  await game.ready();
+  return game;
+}
+
+ImpactEffectComponent _effect() => ImpactEffectComponent(
+  position: Vector2(100, 150),
+  color: const Color(0xff5cf9e9),
+  style: ImpactEffectStyle.spark,
+  radius: 16,
+);
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  for (final stage in gameStages.where(
+    (stage) => stage.id >= 6 && stage.id <= 10,
+  )) {
+    test('스테이지 ${stage.id} 균열 맵·건설 선택·적·짧은 효과를 원본 상태대로 전달한다', () async {
+      final repository = MemorySaveRepository();
+      final game = await _game(stage.id, repository);
+      expect(game.supportsNativeBattlefield, isTrue);
+      expect(game.battlefieldFrame!.map, same(stage.map));
+      expect(stage.map.tileTheme.kind, MapTileThemeKind.chapterTwoRift);
+      game.nativeBattlefieldSceneEpoch = stage.id;
+      game.battlefieldProjection = _projection;
+      final buildPoint = [
+        for (var y = 0; y < stage.map.rows; y++)
+          for (var x = 0; x < stage.map.columns; x++)
+            if (stage.map.canBuildAt(GridPoint(x, y))) GridPoint(x, y),
+      ].first;
+      final screen = _projection.gridToScreen(
+        Offset(buildPoint.x + .5, buildPoint.y + .5),
+      );
+      final event = TapDownEvent(
+        1,
+        game,
+        TapDownDetails(globalPosition: screen),
+      )..renderingTrace.add(Vector2(screen.dx, screen.dy));
+      game.onTapDown(event);
+      expect(game.snapshotNotifier.value.selectedBuildPoint, buildPoint);
+      game.tryBuildTurret(buildPoint);
+      await game.ready();
+      expect(game.battlefieldFrame!.selection!.turrets.single.selected, isTrue);
+      final selected =
+          game.battlefieldFrame!.selection!.turrets.single.position;
+      expect(selected.dx, closeTo(buildPoint.x + .5, 1e-5));
+      expect(selected.dy, closeTo(buildPoint.y + .5, 1e-5));
+      final enemyTypes = stage.waves
+          .expand((wave) => wave.groups)
+          .map((group) => group.enemyType)
+          .toSet();
+      for (final type in enemyTypes) {
+        game.debugSpawnEnemy(type);
+      }
+      await game.ready();
+      expect(
+        game.battlefieldFrame!.enemies.map((enemy) => enemy.type).toSet(),
+        enemyTypes,
+      );
+      final effect = _effect();
+      game.add(effect);
+      await game.ready();
+      effect.update(1);
+      game.processLifecycleEvents();
+      expect(effect.parent, isNull);
+      final frame = game.battlefieldFrame!;
+      expect(frame.effects!.items, hasLength(1));
+      final effectId = frame.effects!.items.single.id;
+      await game.saveNow();
+      final saved = repository.data!.toJson();
+      final encoded = encodeGodotBattlefieldFrame(
+        frame,
+        sequence: 3,
+        sceneEpoch: stage.id,
+      );
+      expect(encoded['map'], {
+        'theme': 'chapterTwoRift',
+        'columns': stage.map.columns,
+        'rows': stage.map.rows,
+        'tiles': [
+          for (final row in stage.map.tiles)
+            for (final tile in row) tile.name,
+        ],
+      });
+      final presentation = encoded['presentation']! as Map;
+      expect((presentation['effects'] as Map)['items'], hasLength(1));
+      expect(
+        (encoded['enemies'] as List).map((enemy) => (enemy as List)[7]).toSet(),
+        enemyTypes.map((type) => type.name).toSet(),
+      );
+      expect(repository.data!.toJson(), saved);
+      game.markNativeBattlefieldEffectsSubmitted(stage.id, 3, [effectId]);
+      game.acknowledgeNativeBattlefieldEffects(stage.id, 3);
+      expect(game.battlefieldFrame!.effects!.items, isEmpty);
+    });
+  }
+
+  test('10→11→1 전환은 2장 투영·효과를 버리고 2D 범위와 1장 테마를 복원한다', () async {
+    final game = await _game(10, MemorySaveRepository());
+    game.debugSetClearedStageCount(10);
+    game.nativeBattlefieldSceneEpoch = 100;
+    game.battlefieldProjection = _projection;
+    game.nativeBattlefieldGroups = {'labels', 'selection', 'effects'};
+    game.nativeBattlefieldTurretLevels = true;
+    final effect = _effect();
+    game.add(effect);
+    await game.ready();
+    effect.update(1);
+    game.processLifecycleEvents();
+    expect(game.battlefieldFrame!.effects!.items, hasLength(1));
+    game.startStage(11);
+    expect(game.snapshotNotifier.value.currentStageNumber, 11);
+    expect(game.supportsNativeBattlefield, isFalse);
+    expect(game.battlefieldFrame, isNull);
+    expect(game.battlefieldProjection, isNull);
+    expect(game.nativeBattlefieldSceneEpoch, 0);
+    expect(game.nativeBattlefieldGroups, isEmpty);
+    expect(game.nativeBattlefieldTurretLevels, isFalse);
+    expect(game.nativeBattlefieldLoading, isFalse);
+    expect(game.backgroundColor().a, 1);
+    game.startStage(1);
+    expect(game.supportsNativeBattlefield, isTrue);
+    expect(game.battlefieldProjection, isNull);
+    expect(game.battlefieldFrame!.effects!.items, isEmpty);
+    final map =
+        encodeGodotBattlefieldFrame(game.battlefieldFrame!, sequence: 0)['map']!
+            as Map;
+    expect(map['theme'], 'chapterOne');
+    expect(game.battlefieldFrame!.map, same(gameStages.first.map));
+  });
+}

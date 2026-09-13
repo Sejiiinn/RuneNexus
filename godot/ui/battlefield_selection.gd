@@ -73,12 +73,18 @@ func clear() -> void:
 	queue_redraw()
 
 func present(camera: Camera3D, map_size: Vector2, world: Node3D) -> void:
+	prepare_context(camera, map_size, world, false)
+	_update_dim()
+
+
+# 초기 frame/tween에서도 draw 입력을 즉시 준비하되 mask 렌더 동기화는 한 번만 한다.
+func prepare_context(camera: Camera3D, map_size: Vector2, world: Node3D, redraw := true) -> void:
 	_camera = camera
 	_world = world
 	_map_size = map_size
 	_tile = maxf(float(_frame.get("logicalTileSize", 48.0)), 1.0)
-	_update_dim()
-	queue_redraw()
+	if redraw:
+		queue_redraw()
 
 func _project(point: Vector2, height: float = 0.04) -> Vector2:
 	return _camera.unproject_position(_world.to_global(Vector3(point.x - _map_size.x / 2.0, height, point.y - _map_size.y / 2.0)))
