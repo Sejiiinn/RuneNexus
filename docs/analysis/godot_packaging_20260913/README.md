@@ -24,3 +24,5 @@
 - CI는 실제 서명 APK 팩 감사 JSON을 workflow 아티팩트로 저장한다. 공개 파일 수치는 [배포 상태](../../deployment_status.md)에서 최종 확인한다.
 
 집계 원자료: [summary.json](summary.json). 전체 항목 감사는 scripts/audit_godot_pack.py로 APK/PCK에서 재생성할 수 있다.
+
+공개 6024 최종 APK는 411,353,104 bytes, PCK는 86,203,724 bytes·217항목·중복 0 bytes다. 로컬 전용 미사용 core_crystal.gdshader는 공개본에 포함되지 않았다. 실제 공개 파일·패치·최신 메타데이터·서명 대조를 완료했다.

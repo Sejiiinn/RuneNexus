@@ -76,5 +76,22 @@
     "python_tests_passed": 23,
     "repeat_pack_bytes": 86206216,
     "repeat_duplicate_bytes": 0
+  },
+  "public_release": {
+    "apk_bytes": 411353104,
+    "apk_sha256": "b69113beeb2aba7b69d055053be0e1d769e603bca3e0f0e0094488d0393599a7",
+    "delta_bytes": 26531716,
+    "delta_percent": 6.894553376539458,
+    "abi_compressed_bytes": {
+      "arm64-v8a": 92823440,
+      "armeabi-v7a": 94085636,
+      "x86_64": 97284016
+    },
+    "flutter_asset_compressed_bytes": 38972335,
+    "pck_bytes": 86203724,
+    "pck_duplicate_bytes": 0,
+    "pck_entry_count": 217,
+    "all_public_asset_hashes_match": true,
+    "latest_manifest_matches": true
   }
 }
