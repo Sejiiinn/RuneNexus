@@ -5,6 +5,26 @@
 이 문서는 마지막 검증 이력이며 실시간 운영 상태가 아니다. 배포 대상의 실제 공개 버전·커밋과
 서버 실행 이미지·DB 버전을 확인한다.
 
+## 2026-09-13 본게임 APK 0.1.14 / code 6023 배포
+
+- 대상 커밋: `84e73936d83b1f3d311e3410459d3338a351bcb1`.
+  [APK workflow 34739180467](https://github.com/Sejiiinn/RuneNexus/actions/runs/34739180467) 전체 성공.
+  [공개 release apk-6023](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6023)의 태그 커밋도 일치한다.
+- 본게임 패키지 `com.example.rune_nexus`와 기존 서명을 유지한 업데이트다.
+  분석·전체 Flutter 테스트·Python 검사·Android 패치 디코더·기존 세 공개 APK와의 서명 일치 및 패치 복원 검증을 통과했다.
+- 실제 공개 APK는 384,821,388 bytes (367.00 MiB), SHA-256
+  `3ceca36394f15b56dea8bc045ccc6ea3d9482e1caf0685f62505ba3e38abdff6`.
+  이전 공개 2002의 414,151,176 bytes 대비 29,329,788 bytes (27.97 MiB, 7.08%) 감소했다.
+- ZIP 압축 후 네이티브 크기는 arm64-v8a 92,692,368 / armeabi-v7a 93,954,564 / x86_64 97,218,480 bytes로 세 ABI를 유지한다.
+  Godot PCK는 59,999,688 bytes. 신규 폰트·상태 표시·효과 모듈이 포함되며,
+  제거한 ANGLE, Flutter GLB 중복, design 제작 원본은 공개 APK에 없다.
+- 차등 패치: 2002 → 6023은 60,555,784 bytes, 13 → 6023은 137,370,986 bytes,
+  12 → 6023은 147,377,144 bytes. 공개 APK와 세 패치를 직접 다운로드해 모든 크기·SHA-256을 확인했다.
+  latest와 버전별 `update.json`의 실제 바이트도 일치한다.
+- 기능·화면 검증은 [표현 이관 검증 기록](../design/stage1_3d/presentation_migration/README.md)을 따른다.
+  공개 6023의 사용자 실기기 설치·로그인·장시간 성능은 아직 확인하지 않았다.
+- 이번 요청은 Android 본게임 배포이며 웹·서버·DB는 배포하지 않았다.
+
 ## 2026-09-13 Godot 표현 이관 테스트 APK
 
 - [Google Drive 테스트 APK](https://drive.google.com/file/d/1AnPBmf9zwRarabn9TWqlU6yHaKPmRUan/view?usp=drivesdk) 업로드 완료. Drive 메타데이터의 이름·크기를 확인했다. 다운로드 접근 문제 후 이 APK에 한해 링크가 있는 모든 사용자의 읽기 권한(검색 노출 없음)을 적용하고 메타데이터로 확인했다.
