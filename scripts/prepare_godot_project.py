@@ -2,11 +2,14 @@
 """공용 Godot 소스와 기존 스테이지 1 자산을 빌드 디렉터리에 준비한다."""
 from __future__ import annotations
 
+import gzip
 import json
 from pathlib import Path
 import re
 import shutil
 import struct
+
+from prepare_shared_gltf_textures import externalize_textures
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -162,6 +165,10 @@ def prepare() -> Path:
             relative = path.relative_to(PROJECT)
             if relative.parts[0] not in (".godot", "assets") and not (SOURCE / relative).exists():
                 path.unlink()
+    # 이 폴더는 빌드 전용이다. 이전 GLB에서 추출된 PNG·import 설정을 남기면
+    # all_resources export가 사용하지 않는 텍스처까지 다시 포함한다.
+    if ASSETS.exists():
+        shutil.rmtree(ASSETS)
     ASSETS.mkdir(parents=True, exist_ok=True)
     _remove_retired_fern_shadow()
     for source in sorted(SOURCE_ASSETS.rglob("*.glb")):
@@ -171,10 +178,26 @@ def prepare() -> Path:
         target = ASSETS / source.relative_to(SOURCE_ASSETS)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
+    texture_manifest = externalize_textures(ASSETS)
+    (PROJECT.parent / "shared_texture_manifest.json").write_text(
+        json.dumps(texture_manifest, ensure_ascii=False, indent=2) + "\n"
+    )
+    # 공개본의 무손실·mipmap 계약을 명시한다. 편집기에서 3D를 열었는지에
+    # 따라 자동으로 VRAM 압축으로 바뀌던 로컬/CI 차이를 방지한다.
+    for texture in (ASSETS / "shared_textures").iterdir():
+        if texture.suffix not in (".png", ".jpg", ".jpeg", ".webp"):
+            continue
+        texture.with_suffix(texture.suffix + ".import").write_text(
+            '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
+            '[params]\ncompress/mode=0\ncompress/normal_map=2\n'
+            'mipmaps/generate=true\ndetect_3d/compress_to=0\n'
+        )
     ui_target = ASSETS / "ui"
     ui_target.mkdir(parents=True, exist_ok=True)
     for source in sorted((SOURCE_ASSETS / "ui").rglob("*")):
         if source.is_file() and source.suffix in (".png", ".ttf", ".txt"):
+            if source.relative_to(SOURCE_ASSETS / "ui").as_posix() == "labels/diamond_currency.png":
+                continue
             target = ui_target / source.relative_to(SOURCE_ASSETS / "ui")
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, target)
@@ -189,8 +212,12 @@ def prepare() -> Path:
         target = ASSETS / "effects" / filename
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(SOURCE_ASSETS / "effects" / filename, target)
-    for filename in ("cannon_field.json", "cannon_field.bin", "machinegun_muzzle_noise.bin"):
+    for filename in ("cannon_field.json", "machinegun_muzzle_noise.bin"):
         shutil.copy2(SOURCE_ASSETS / "effects" / filename, ASSETS / filename)
+    field_bytes = (SOURCE_ASSETS / "effects/cannon_field.bin").read_bytes()
+    (ASSETS / "cannon_field.bin.gz").write_bytes(
+        gzip.compress(field_bytes, compresslevel=9, mtime=0)
+    )
 
     # 같은 빌드의 GLB에서 추출: Godot importer의 extras 보존 여부에 의존하지 않음.
     glb = (ASSETS / "environment/terrain.glb").read_bytes()

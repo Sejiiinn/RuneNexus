@@ -5,6 +5,10 @@ import 'package:rune_nexus/ui/game/game_image_assets.dart';
 import 'helpers/widget_test_helpers.dart';
 
 void main() {
+  // 공통 HUD 입력·레이아웃은 2D 전장에서 검증한다. Android 네이티브
+  // 로딩·투영·입력은 godot_battlefield_view_test.dart에서 따로 검증한다.
+  final platform = TargetPlatformVariant.only(TargetPlatform.linux);
+
   testWidgets('area stat follows explosion equip and native area attacks', (
     tester,
   ) async {
@@ -45,7 +49,7 @@ void main() {
       expect(find.text('효과 범위'), findsOneWidget);
       expect(tester.takeException(), isNull);
     }
-  });
+  }, variant: platform);
 
   testWidgets('additional turret stats scroll without growing the panel', (
     tester,
@@ -87,7 +91,7 @@ void main() {
     expect(find.text('화상').hitTestable(), findsOneWidget);
     expect(scrollable.position.pixels, greaterThan(0));
     expect(tester.takeException(), isNull);
-  });
+  }, variant: platform);
 
   testWidgets('frost slow stats reflect level-up preview and applied level', (
     tester,
@@ -140,7 +144,7 @@ void main() {
     );
     expect(find.text('22% → 24%', findRichText: true), findsOneWidget);
     expect(tester.takeException(), isNull);
-  });
+  }, variant: platform);
 
   testWidgets(
     'gem inventory previews before home selection and retains retap equip',
@@ -294,6 +298,7 @@ void main() {
       );
       expect(tester.takeException(), isNull);
     },
+    variant: platform,
   );
 
   testWidgets('round transitions preserve the panned board position', (
@@ -341,7 +346,7 @@ void main() {
     game.pauseEngine();
     await tester.pump(const Duration(seconds: 3));
     expect(tester.takeException(), isNull);
-  });
+  }, variant: platform);
 
   testWidgets('gem reward choices stay in one row on narrow combat width', (
     tester,
@@ -381,7 +386,7 @@ void main() {
     expect(heavyTop, closeTo(chainTop, 0.1));
     expect(speedTop, closeTo(chainTop, 0.1));
     expect(tester.takeException(), isNull);
-  });
+  }, variant: platform);
 
   testWidgets('combat HUD shows total turret DPS under the home button', (
     tester,
@@ -407,7 +412,7 @@ void main() {
     expect(game.snapshotNotifier.value.totalTurretDps, closeTo(15.89, 0.001));
     expect(find.text('15.9'), findsWidgets);
     expect(tester.takeException(), isNull);
-  });
+  }, variant: platform);
 
   testWidgets('core tile selection shows combat skill contribution in HUD', (
     tester,
@@ -464,7 +469,7 @@ void main() {
     expect(find.text('발동 0회'), findsNothing);
     expect(find.text('포탈 1'), findsNothing);
     expect(tester.takeException(), isNull);
-  });
+  }, variant: platform);
 
   testWidgets(
     'selected turret panel gates target priority selector by research',
@@ -540,6 +545,7 @@ void main() {
       expect(find.text('공격 명령'), findsNothing);
       expect(tester.takeException(), isNull);
     },
+    variant: platform,
   );
 
   testWidgets('trait dialog uses compact tier panel on narrow combat width', (
@@ -591,7 +597,7 @@ void main() {
     expect(find.text('연쇄 소탕'), findsOneWidget);
     expect(find.text('1차 특성 선택 후 후보 카드가 열립니다.'), findsNothing);
     expect(tester.takeException(), isNull);
-  });
+  }, variant: platform);
 
   testWidgets('trait dialog previews first tap and confirms second tap', (
     tester,
@@ -654,5 +660,5 @@ void main() {
       TurretTraitType.overheatMagazine,
     );
     expect(game.snapshotNotifier.value.gemShards, 0);
-  });
+  }, variant: platform);
 }

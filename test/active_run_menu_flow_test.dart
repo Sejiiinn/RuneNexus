@@ -1,6 +1,9 @@
 import 'helpers/widget_test_helpers.dart';
 
 void main() {
+  // 메뉴·저장 흐름은 2D 플랫폼에서 검증한다. Android native 준비 계약은
+  // godot_battlefield_view_test.dart의 브리지 fixture로 별도 검증한다.
+
   testWidgets('home button opens stage menu with end confirmation', (
     tester,
   ) async {
@@ -42,7 +45,7 @@ void main() {
       ),
       findsWidgets,
     );
-  });
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
 
   testWidgets('main menu return preserves active run as restore flow', (
     tester,
@@ -88,7 +91,7 @@ void main() {
     expect(find.text('저장된 진행 발견'), findsNothing);
     expect(find.text('저장된 전투'), findsNothing);
     expect(find.text('이어서 진행'), findsOneWidget);
-  });
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
 
   testWidgets('active run can settle and switch to another stage', (
     tester,
@@ -103,7 +106,7 @@ void main() {
     game.debugSetClearedStageCount(1);
 
     await tester.pumpWidget(RuneNexusApp(game: game));
-    await pumpUntilFound(tester, find.byType(MainMenuScreen));
+    await pumpUntilLoadedApp(tester);
 
     await tapStageCard(tester, '스테이지 1');
     await pumpUntilFound(tester, find.text('시작하기'));
@@ -136,7 +139,7 @@ void main() {
 
     expect(game.snapshotNotifier.value.currentStageNumber, 2);
     expect(find.byIcon(Icons.home_outlined), findsOneWidget);
-  });
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
 
   testWidgets(
     'main menu return before first wave does not create restore flow',
@@ -150,7 +153,7 @@ void main() {
       final game = RuneNexusGame(saveRepository: MemorySaveRepository());
 
       await tester.pumpWidget(RuneNexusApp(game: game));
-      await pumpUntilFound(tester, find.byType(MainMenuScreen));
+      await pumpUntilLoadedApp(tester);
 
       await tapStageCard(tester, '스테이지 1');
       await pumpGameFrames(tester);
@@ -171,6 +174,8 @@ void main() {
       expect(find.text('이어서 진행'), findsNothing);
       expect(find.text('스테이지 1'), findsWidgets);
     },
+
+    variant: TargetPlatformVariant.only(TargetPlatform.linux),
   );
 
   testWidgets('debug panel button is hidden by default', (tester) async {
@@ -180,5 +185,5 @@ void main() {
     await pumpGameFrames(tester);
 
     expect(find.text('테스트 라운드'), findsNothing);
-  });
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
 }

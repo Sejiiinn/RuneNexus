@@ -7,7 +7,7 @@ static var _shared: Dictionary = {}
 
 static func load_shared(
 	manifest_path: String = "res://assets/cannon_field.json",
-	data_path: String = "res://assets/cannon_field.bin"
+	data_path: String = "res://assets/cannon_field.bin.gz"
 ) -> Dictionary:
 	var cache_key: String = manifest_path + "\n" + data_path
 	if _shared.has(cache_key):
@@ -57,12 +57,33 @@ static func load_shared(
 		if not is_finite(value) or value <= 0.0:
 			push_error("포탄 체적 캐시의 복원 배율이 맞지 않습니다.")
 			return {}
-	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(data_path)
 	var slice_bytes: int = width * height * 4
 	var expected_bytes: int = slice_bytes * depth
-	if bytes.size() != expected_bytes or int(manifest.get("byteLength", 0)) != expected_bytes:
+	if int(manifest.get("byteLength", 0)) != expected_bytes:
+		push_error("포탄 체적 캐시의 메타데이터 길이가 격자 크기와 맞지 않습니다.")
+		return {}
+	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(data_path)
+	if data_path.ends_with(".gz"):
+		if bytes.size() < 18 or bytes[0] != 0x1f or bytes[1] != 0x8b or bytes[2] != 8:
+			push_error("포탄 체적 캐시의 gzip 헤더가 유효하지 않습니다.")
+			return {}
+		# Python 표준 gzip을 그대로 복원. static cache miss 때만 실행하며 압축 참조는 즉시 해제.
+		bytes = bytes.decompress(expected_bytes, FileAccess.COMPRESSION_GZIP)
+		if bytes.size() != expected_bytes:
+			push_error("포탄 체적 캐시의 gzip 복원에 실패했거나 복원 길이가 맞지 않습니다.")
+			return {}
+	elif bytes.size() != expected_bytes:
+		# 검증·제작 도구에서 넘기는 기존 raw 경로도 그대로 지원한다.
 		push_error("포탄 체적 캐시의 데이터 길이가 맞지 않습니다.")
 		return {}
+	var expected_hash := str(manifest.get("sha256", ""))
+	if not expected_hash.is_empty():
+		var hash := HashingContext.new()
+		hash.start(HashingContext.HASH_SHA256)
+		hash.update(bytes)
+		if hash.finish().hex_encode() != expected_hash:
+			push_error("포탄 체적 캐시의 원본 체크섬이 일치하지 않습니다.")
+			return {}
 	var slices: Array[Image] = []
 	# x → y → z 순서 보존. 알파는 투명도가 아닌 열도이며 색 공간 변환 없음.
 	for z in range(depth):

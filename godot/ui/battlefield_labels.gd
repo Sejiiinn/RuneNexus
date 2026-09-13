@@ -10,7 +10,7 @@ const ASSET_ROOT := "res://assets/ui/labels/"
 
 func _init() -> void:
 	for name in ["burn_ember", "burn_glow", "burn_smoke", "slow_shard", "diamond_currency"]:
-		var path: String = ASSET_ROOT + name + ".png"
+		var path: String = "res://assets/ui/diamond_currency.png" if name == "diamond_currency" else ASSET_ROOT + name + ".png"
 		if ResourceLoader.exists(path):
 			textures[name] = load(path)
 	core = CoreLabel.new()

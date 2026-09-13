@@ -148,6 +148,21 @@ jobs:
             --dart-define="RUNE_NEXUS_CLIENT_BUILD=android:${{ github.sha }}"
           mkdir -p build/apk-release
           cp build/app/outputs/flutter-apk/app-release.apk build/apk-release/rune-nexus.apk
+      - name: Audit packaged Godot resources
+        run: |
+          python3 scripts/audit_godot_pack.py build/apk-release/rune-nexus.apk --output build/godot-pack-audit.json
+          python3 - <<'PYREPORT'
+          import json
+          report = json.load(open("build/godot-pack-audit.json"))
+          print(f"Godot PCK: {report['pack_bytes']} bytes, {report['entry_count']} entries, exact duplicate payloads: {report['logical_duplicate_bytes']} bytes")
+          PYREPORT
+
+      - name: Save packaged resource audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-pack-audit-${{ inputs.version_code }}
+          path: build/godot-pack-audit.json
+
       - name: Verify Android patch decoder
         run: python3 scripts/run_apk_delta_kotlin_tests.py
 

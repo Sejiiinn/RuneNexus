@@ -19,7 +19,8 @@ VERSION = "4.7.2.stable"
 
 
 def input_digest():
-    inputs = [Path(__file__), ROOT / "scripts/prepare_godot_project.py"]
+    inputs = [Path(__file__), ROOT / "scripts/prepare_godot_project.py",
+              ROOT / "scripts/prepare_shared_gltf_textures.py"]
     inputs += [ROOT / "lib/data/definitions/game_stage_maps.dart"]
     inputs += [ROOT / "assets/images/diamond_currency.png", ROOT / "assets/fonts/NotoSansKR-VF.ttf"]
     for folder in (ROOT / "godot", ROOT / "assets/images/stage1_3d"):

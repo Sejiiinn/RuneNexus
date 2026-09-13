@@ -20,6 +20,10 @@ Future<RuneNexusGame> _mountGame(WidgetTester tester) async {
 }
 
 void main() {
+  // Flame 2D 카메라의 팬·핀치 계약을 검사하므로 네이티브 채널을 요구하지
+  // 않는 플랫폼을 고정한다. Godot 투영 입력 검사는 별도 테스트가 담당한다.
+  final platform = TargetPlatformVariant.only(TargetPlatform.linux);
+
   testWidgets('diagonal pinch keeps zooming out when finger distance shrinks', (
     tester,
   ) async {
@@ -48,7 +52,7 @@ void main() {
     await first.up();
     await second.up();
     await tester.pump(const Duration(milliseconds: 100));
-  });
+  }, variant: platform);
 
   testWidgets('two finger translation follows the moving pinch center', (
     tester,
@@ -73,7 +77,7 @@ void main() {
     await first.up();
     await second.up();
     await tester.pump(const Duration(milliseconds: 100));
-  });
+  }, variant: platform);
 
   testWidgets('pinch resumes from current camera after pointer changes', (
     tester,
@@ -107,7 +111,7 @@ void main() {
     await first.up();
     await replacement.up();
     await tester.pump(const Duration(milliseconds: 100));
-  });
+  }, variant: platform);
 
   testWidgets('trackpad zoom and pan pass through the HUD once', (
     tester,
@@ -133,5 +137,5 @@ void main() {
     expect(game.debugBoardOffset().y, closeTo(offset.y + 20, 0.001));
     await gesture.panZoomEnd();
     await tester.pump(const Duration(milliseconds: 100));
-  });
+  }, variant: platform);
 }

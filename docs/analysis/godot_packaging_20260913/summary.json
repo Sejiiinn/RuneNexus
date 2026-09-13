@@ -1,0 +1,80 @@
+{
+  "packs": {
+    "6023": {
+      "pack_bytes": 59999688,
+      "duplicate_bytes": 3749782,
+      "entry_count": 167,
+      "by_suffix": {
+        ".scn": 5372299,
+        ".res": 977,
+        ".cfg": 345,
+        ".fontdata": 7050968,
+        ".ctex": 33117604,
+        ".bin": 14193110,
+        ".json": 3586,
+        ".import": 15177,
+        ".txt": 114484,
+        ".remap": 691,
+        ".gdc": 99644,
+        ".gdshader": 11762,
+        ".binary": 1283
+      }
+    },
+    "oversized": {
+      "pack_bytes": 154448120,
+      "duplicate_bytes": 45847930,
+      "entry_count": 370,
+      "by_suffix": {
+        ".scn": 36388757,
+        ".res": 977,
+        ".cfg": 345,
+        ".fontdata": 7050968,
+        ".ctex": 96429186,
+        ".bin": 14200781,
+        ".json": 37884,
+        ".import": 43299,
+        ".txt": 114484,
+        ".remap": 801,
+        ".gdc": 118295,
+        ".gdshader": 17233,
+        ".binary": 1283
+      }
+    },
+    "shared": {
+      "pack_bytes": 86206168,
+      "duplicate_bytes": 0,
+      "entry_count": 218,
+      "by_suffix": {
+        ".scn": 36399407,
+        ".res": 977,
+        ".cfg": 345,
+        ".ctex": 37978646,
+        ".fontdata": 7050968,
+        ".bin": 40036,
+        ".gz": 4402221,
+        ".json": 37884,
+        ".import": 17449,
+        ".txt": 114484,
+        ".remap": 801,
+        ".gdc": 119017,
+        ".gdshader": 17233,
+        ".binary": 1283
+      }
+    }
+  },
+  "apk": {
+    "previous_bytes": 384821388,
+    "oversized_bytes": 479597500,
+    "shared_local_bytes": 411355548
+  },
+  "verification": {
+    "real_glbs_unchanged_except_images": 34,
+    "png_pixel_equal": 37,
+    "texture_references": 167,
+    "flutter_tests_passed": 829,
+    "flutter_tests_skipped": 11,
+    "python_tests_passed": 23,
+    "repeat_pack_bytes": 86206216,
+    "repeat_duplicate_bytes": 0
+  }
+}

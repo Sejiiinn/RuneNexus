@@ -8,6 +8,9 @@ import 'package:rune_nexus/ui/game/game_image_assets.dart';
 import 'helpers/widget_test_helpers.dart';
 
 void main() {
+  // 메뉴·저장 흐름은 2D 플랫폼에서 검증한다. Android native 준비 계약은
+  // godot_battlefield_view_test.dart의 브리지 fixture로 별도 검증한다.
+
   if (const bool.fromEnvironment('CAPTURE_LOBBY')) {
     testWidgets('실제 로비 초기 상태와 전투 진행 상태 렌더 캡처', (tester) async {
       tester.view.physicalSize = const Size(390, 844);
@@ -76,7 +79,7 @@ void main() {
           image.dispose();
         });
       }
-    });
+    }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
   }
 
   testWidgets('첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다', (tester) async {
@@ -109,7 +112,7 @@ void main() {
       expect(find.byKey(const ValueKey('main-lobby-screen')), findsOneWidget);
     }
     expect(tester.takeException(), isNull);
-  });
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
 
   testWidgets('로비 이벤트와 설정은 기존 임무와 계정 화면으로 연결된다', (tester) async {
     await pumpLoadedApp(tester);
@@ -133,7 +136,7 @@ void main() {
     await pumpGameFrames(tester);
     expect(find.byKey(const ValueKey('account-summary-card')), findsOneWidget);
     expect(tester.takeException(), isNull);
-  });
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
 
   testWidgets('리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
@@ -156,7 +159,7 @@ void main() {
     expect(find.byKey(const ValueKey('account-summary-card')), findsOneWidget);
     expect(find.byKey(const ValueKey('leaderboard-list')), findsNothing);
     expect(tester.takeException(), isNull);
-  });
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
 
   testWidgets('전투에서 스테이지로 돌아온 뒤 로비에서 저장된 전투를 재개한다', (tester) async {
     tester.view.physicalSize = const Size(411, 720);
@@ -189,7 +192,7 @@ void main() {
     expect(find.byIcon(Icons.home_outlined), findsOneWidget);
     expect(find.byKey(const ValueKey('main-lobby-screen')), findsNothing);
     expect(tester.takeException(), isNull);
-  });
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
 
   testWidgets('연구 탭에서 로비로 돌아와도 연구 완료가 반영된다', (tester) async {
     final startedAt = DateTime.now();
@@ -260,7 +263,7 @@ void main() {
       1,
     );
     expect(tester.takeException(), isNull);
-  });
+  }, variant: TargetPlatformVariant.only(TargetPlatform.linux));
 
   for (final viewport in [
     const Size(320, 568),
@@ -379,6 +382,8 @@ void main() {
           }
           expect(tester.takeException(), isNull);
         },
+
+        variant: TargetPlatformVariant.only(TargetPlatform.linux),
       );
     }
   }

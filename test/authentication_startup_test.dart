@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:rune_nexus/data/settings/graphics_settings_value.dart';
+import 'package:rune_nexus/ui/settings/graphics_settings_scope.dart';
 
 import 'helpers/widget_test_helpers.dart';
 
@@ -14,6 +16,11 @@ void main() {
       directory = await Directory.systemTemp.createTemp('rune_nexus_startup_');
       final saveFile = File('${directory.path}/saves/guest/save_v2.json');
       await saveFile.parent.create(recursive: true);
+      await File('${directory.path}/graphics_settings_v1.json').writeAsString(
+        jsonEncode(
+          const GraphicsSettings(msaaSamples: 0, shadowMapSize: 512).toJson(),
+        ),
+      );
       await saveFile.writeAsString(
         jsonEncode({
           'version': 2,
@@ -47,7 +54,14 @@ void main() {
     await tester.tap(find.text('다시 시도'));
     await pumpUntilLoadedApp(tester);
 
-    expect(pathRequests, 2);
+    // 실패한 진행 읽기 1회 + 재시도 진행 읽기 1회 + 별도 그래픽 설정 읽기 1회.
+    expect(pathRequests, 3);
+    expect(
+      GraphicsSettingsScope.maybeOf(
+        tester.element(find.byType(MainMenuScreen)),
+      )!.value,
+      const GraphicsSettings(msaaSamples: 0, shadowMapSize: 512),
+    );
     final menu = tester.widget<MainMenuScreen>(find.byType(MainMenuScreen));
     expect(menu.game.snapshotNotifier.value.runes, 4321);
     await tester.pumpWidget(const SizedBox.shrink());
