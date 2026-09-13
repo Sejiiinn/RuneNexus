@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+import '../rendering/stage1_3d/battlefield_effects.dart';
 
 enum DamageNumberMotion { rise, fallArc }
 
@@ -178,13 +179,41 @@ class _DamageNumberImageKey {
   int get hashCode => Object.hash(text, color, feedback, width, height);
 }
 
-class DamageNumberComponent extends PositionComponent {
+class DamageNumberComponent extends PositionComponent
+    implements BattlefieldEffectSource {
+  @override
+  BattlefieldEffect? battlefieldEffect(int id, Offset origin, double tileSize) {
+    final key = _imageKey;
+    if (key == null) return null;
+    return BattlefieldEffect(
+      id: id,
+      kind: 'damage',
+      age: _age,
+      duration: _lifeTime,
+      position: battlefieldEffectPosition(
+        Offset(_spawnPosition.x, _spawnPosition.y),
+        origin,
+        tileSize,
+      ),
+      tileSize: tileSize,
+      screenOffset: Offset(
+        position.x - _spawnPosition.x,
+        position.y - _spawnPosition.y,
+      ),
+      text: key.text,
+      color: key.color,
+      feedback: _feedback.name,
+      motion: _motion.name,
+    );
+  }
+
   DamageNumberComponent({
     required Vector2 position,
     required ui.Image textImage,
     DamageNumberMotion motion = DamageNumberMotion.rise,
     DamageNumberFeedback feedback = DamageNumberFeedback.neutral,
   }) : _motion = motion,
+       _spawnPosition = position.clone(),
        _feedback = feedback,
        _arcDirection = position.x.round().isEven ? -1 : 1,
        _textImage = textImage,
@@ -200,6 +229,7 @@ class DamageNumberComponent extends PositionComponent {
     DamageNumberMotion motion = DamageNumberMotion.rise,
     DamageNumberFeedback feedback = DamageNumberFeedback.neutral,
   }) : _motion = motion,
+       _spawnPosition = position.clone(),
        _feedback = feedback,
        _arcDirection = position.x.round().isEven ? -1 : 1,
        _textImage = null,
@@ -213,6 +243,7 @@ class DamageNumberComponent extends PositionComponent {
        ),
        super(position: position, size: Vector2(78, 28), anchor: Anchor.center);
 
+  final Vector2 _spawnPosition;
   final DamageNumberMotion _motion;
   final DamageNumberFeedback _feedback;
   final int _arcDirection;

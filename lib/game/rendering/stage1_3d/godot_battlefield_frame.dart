@@ -1,11 +1,14 @@
 import 'dart:ui';
 
 import 'battlefield_frame.dart';
+import 'battlefield_presentation_state.dart';
 
 /// 본게임과 검수 앱이 공유하는 Godot 표시 입력. 저장·전투 객체는 변경하지 않음.
 Map<String, Object?> encodeGodotBattlefieldFrame(
   BattlefieldFrame frame, {
   required int sequence,
+  int sceneEpoch = 0,
+  int viewportRevision = 0,
   Size? viewport,
 }) {
   List<Object> turretData(BattlefieldTurret turret) => [
@@ -21,6 +24,14 @@ Map<String, Object?> encodeGodotBattlefieldFrame(
 
   return {
     'seq': sequence,
+    'sceneEpoch': sceneEpoch,
+    'viewportRevision': viewportRevision,
+    'presentationVersion': BattlefieldPresentationState.protocolVersion,
+    'presentation': {
+      if (frame.labels != null) 'labels': frame.labels!.toJson(),
+      if (frame.effects != null) 'effects': frame.effects!.toJson(),
+      if (frame.selection != null) 'selection': frame.selection!.toJson(),
+    },
     'time': frame.time,
     'map': {
       'columns': frame.map.columns,

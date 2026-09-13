@@ -111,12 +111,6 @@ jobs:
           flutter test
           python3 -m unittest discover -s scripts -p 'test_apk*.py'
 
-      - name: Prepare Android native build tools
-        run: |
-          # flutter_angle 0.4.2가 지정한 SDK 빌드 도구.
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
-            "cmake;3.31.4" "ndk;28.2.13676358" "build-tools;35.0.1"
-
       - name: Prepare Godot renderer
         run: |
           python3 - <<'PYGODOT'

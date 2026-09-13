@@ -4,8 +4,31 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 
 import 'enemy_component.dart';
+import '../rendering/stage1_3d/battlefield_effects.dart';
 
-class LightningChainBeamComponent extends PositionComponent {
+class LightningChainBeamComponent extends PositionComponent
+    implements BattlefieldEffectSource {
+  @override
+  BattlefieldEffect? battlefieldEffect(int id, Offset origin, double tileSize) {
+    final points = _boltPoints(
+      Offset(_sourcePosition.x, _sourcePosition.y),
+      Offset(_targetPosition.x, _targetPosition.y),
+    );
+    return BattlefieldEffect(
+      id: id,
+      kind: 'chain',
+      age: _elapsed,
+      duration: _duration,
+      position: battlefieldEffectPosition(points.first, origin, tileSize),
+      tileSize: tileSize,
+      color: color,
+      visualScale: visualScale,
+      points: points
+          .map((p) => battlefieldEffectPosition(p, origin, tileSize))
+          .toList(growable: false),
+    );
+  }
+
   LightningChainBeamComponent({
     required Vector2 sourcePosition,
     required this.target,

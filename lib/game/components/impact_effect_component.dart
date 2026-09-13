@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flame/components.dart';
+import '../rendering/stage1_3d/battlefield_effects.dart';
 
 enum ImpactEffectStyle {
   spark,
@@ -13,7 +14,28 @@ enum ImpactEffectStyle {
   lightningBlast,
 }
 
-class ImpactEffectComponent extends PositionComponent {
+class ImpactEffectComponent extends PositionComponent
+    implements BattlefieldEffectSource {
+  @override
+  BattlefieldEffect? battlefieldEffect(int id, Offset origin, double tileSize) {
+    if (style == ImpactEffectStyle.blast) return null;
+    return BattlefieldEffect(
+      id: id,
+      kind: 'impact',
+      age: _age,
+      duration: _lifeTime,
+      position: battlefieldEffectPosition(
+        Offset(position.x, position.y),
+        origin,
+        tileSize,
+      ),
+      tileSize: tileSize,
+      color: _color,
+      radius: radius,
+      style: style.name,
+    );
+  }
+
   ImpactEffectComponent({
     required Vector2 position,
     required Color color,

@@ -1,5 +1,7 @@
 # 네이티브 실제 전투 성능 측정
 
+> 역사 기록: 2026-09-13 ThreeJS 실행 경로를 제거했다. `main.dart`는 `main.dart.txt`로 보존하며 아래 실행 명령은 현재 사용할 수 없다. 현행 검수는 저장소의 `docs/stage1_3d_preview.md`를 따른다.
+
 2026-09-11: 3D 검수는 웹 대신 APK로 진행한다. 바로 설치해 다중 사격을 확인하려면 [별도 설치용 대포 3D APK](../cannon_impact/barrage_runtime/README.md)를 사용한다. 이 문서의 일반 HUD 진입점은 실기기 프로파일 측정용이다.
 
 `main.dart`는 기존 [Stage1ThreeDPreviewApp](../../../lib/app/stage1_3d_preview_app.dart)을 바로 실행하는 개발 전용 진입점이다. URL 쿼리 없이 실제 `RuneNexusGame`·`GameHud`·3D 렌더러를 사용하며, 별도의 전투 시뮬레이션이나 상태를 만들지 않는다. 시험 앱의 `MemorySaveRepository`와 `NoopOnlineSaveRepository`를 그대로 사용하므로 계정·영구 저장을 초기화하지 않고 진행은 앱 종료 시 사라진다.

@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flame/events.dart';
-import 'package:flame/components.dart' show PositionComponent;
+import 'package:flame/components.dart' show Component, PositionComponent;
 import 'package:flame/game.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart' as gestures;
@@ -73,6 +73,10 @@ import 'rendering/game_scene_effect_renderer.dart';
 import 'rendering/gem_reward_target_renderer.dart';
 import 'rendering/status_effect_sprite_cache.dart';
 import 'rendering/stage1_3d/battlefield_frame.dart';
+import 'rendering/stage1_3d/battlefield_effects.dart';
+import 'rendering/stage1_3d/battlefield_effect_queue.dart';
+import 'rendering/stage1_3d/battlefield_labels.dart';
+import 'rendering/stage1_3d/battlefield_selection.dart';
 import 'rendering/stage1_3d/battlefield_projection.dart';
 import 'systems/board_camera.dart';
 import 'systems/board_gesture_controller.dart';
@@ -90,6 +94,9 @@ import 'systems/wave_spawner.dart';
 part 'game_restore_controller.dart';
 part 'game_snapshot_builder.dart';
 part 'game_battlefield_presentation.dart';
+part 'game_battlefield_effects.dart';
+part 'game_battlefield_labels.dart';
+part 'game_battlefield_selection.dart';
 
 const _debugPanelEnabled = bool.fromEnvironment(
   'RUNE_NEXUS_DEBUG_PANEL',
@@ -458,7 +465,16 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   late final ValueNotifier<GameSnapshot> snapshotNotifier;
   final bool transparentBackground;
   BattlefieldProjection? battlefieldProjection;
+
+  /// 실제 Godot 적용 확인을 받은 표시 묶음만 Flame 그리기를 생략한다.
+  Set<String> nativeBattlefieldGroups = const {};
+  int nativeBattlefieldSceneEpoch = 0;
   bool nativeBattlefieldTurretLevels = false;
+  final _battlefieldEffectClock = Stopwatch()..start();
+  final _battlefieldEffectQueue = BattlefieldEffectQueue();
+  final Map<int, Set<int>> _battlefieldEffectSubmissions = {};
+  Set<int> _nativeAppliedEffectIds = const {};
+  int _nativeEffectAppliedSequence = -1;
   final _battlefieldIds = Expando<int>('battlefield visual id');
   int _nextBattlefieldId = 0;
   final List<BattlefieldProjectile> _finishedProjectiles = [];
@@ -955,6 +971,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       transparentBackground || battlefieldProjection != null
       ? const Color(0x00000000)
       : const Color(0xFF07111D);
+
+  @override
+  FutureOr<void> add(Component component) {
+    final result = super.add(component);
+    _trackBattlefieldEffect(component);
+    return result;
+  }
 
   @override
   Future<void> onLoad() async {
@@ -3541,7 +3564,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       );
     }
     canvas.save();
-    if (_phase == GamePhase.coreDestruction) {
+    if (_phase == GamePhase.coreDestruction &&
+        !_usesNativeBattlefieldGroup('effects')) {
       final progress = (_coreDestructionElapsed / _coreDestructionTotalDuration)
           .clamp(0.0, 1.0);
       final shake =
@@ -3556,6 +3580,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       super.render(canvas);
     } else {
       for (final child in children) {
+        if (isNativeBattlefieldEffect(child)) continue;
+        if (child is TurretComponent &&
+            _usesNativeBattlefieldGroup('selection')) {
+          continue;
+        }
         if (child is GridComponent ||
             child is EnemyComponent ||
             child is ProjectileComponent ||
@@ -3573,20 +3602,22 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       }
     }
     _drawNexusCoreCooldownBar(canvas);
-    final selectedBuildType = _selectedBuildTurretType;
-    drawGameBoardSelection(
-      canvas,
-      origin: Offset(_origin.x, _origin.y),
-      tileSize: _tileSize,
-      boardDistanceScale: boardDistanceScale,
-      buildPoint: _selectedBuildPoint,
-      portalPoint: _selectedPortalPoint,
-      corePoint: _selectedCorePoint,
-      showBuildGhost: battlefieldProjection == null,
-      buildTurret: selectedBuildType == null
-          ? null
-          : gameTurrets[selectedBuildType]!,
-    );
+    if (!_usesNativeBattlefieldGroup('selection')) {
+      final selectedBuildType = _selectedBuildTurretType;
+      drawGameBoardSelection(
+        canvas,
+        origin: Offset(_origin.x, _origin.y),
+        tileSize: _tileSize,
+        boardDistanceScale: boardDistanceScale,
+        buildPoint: _selectedBuildPoint,
+        portalPoint: _selectedPortalPoint,
+        corePoint: _selectedCorePoint,
+        showBuildGhost: battlefieldProjection == null,
+        buildTurret: selectedBuildType == null
+            ? null
+            : gameTurrets[selectedBuildType]!,
+      );
+    }
     canvas.restore();
     if (battlefieldProjection != null) _renderBattlefieldLabels(canvas);
     final hitAlert = (_nexusHitAlertTimer / _nexusHitAlertDuration).clamp(
@@ -3604,7 +3635,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       size: sceneSize,
       alert: math.max(hitAlert, destructionAlert),
     );
-    if (isGemRewardTargeting) {
+    if (isGemRewardTargeting && !_usesNativeBattlefieldGroup('selection')) {
       canvas.drawRect(
         Offset.zero & sceneSize,
         Paint()..color = const Color(0xAD02070D),
@@ -3642,7 +3673,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _drawNexusCoreCooldownBar(Canvas canvas) {
-    if (_phase != GamePhase.wave ||
+    if (_usesNativeBattlefieldGroup('labels') ||
+        _phase != GamePhase.wave ||
         _worldPath.isEmpty ||
         !nexusCoreBeamAvailable) {
       return;

@@ -29,6 +29,8 @@
 
 ## 나머지 기능·설계 자료
 
+- 전장 표시 현행 구조: [Godot 표시 통합 구현과 검증](godot_presentation_migration_plan.md) — labels·selection·effects의 표시 소유권, 적용 확인·이벤트 큐 계약, 단계별 구현 상태와 남은 검증. [실제 적용·검증 기록](../design/stage1_3d/presentation_migration/README.md). 실기기 p95/p99·발열 성능은 미검증이다.
+
 - 스테이지 1 질감·이펙트 개선: [밝기 보존·표면 재질·입체 효과 설계](stage1_surface_effects.md), [제작 원본과 적용 기록](../design/stage1_3d/surface_effects/README.md).
 
 - 스테이지 1 3D 전장: [내장 재질 우선 제작·이관 설계](stage1_native_material_workflow.md) — 대표 재질 실험·채택 기준과 후속 내장 PBR·환경 반사 적용 결과, [본게임 연결·실행](stage1_3d_preview.md), [Godot 연결 테스트 APK](../design/stage1_3d/godot_preview/README.md), [Blender 현행 원본·작업 허브](../design/stage1_3d/blender_workspace/README.md), [S26 Ultra APK 성능 분석·개선 후보](analysis/s26_ultra_cannon_performance_20260911.md).

@@ -140,7 +140,12 @@ void main() {
         ..equipGem(GemType.explosion, 0);
       final inside = _enemy(game, turret.range * 1.2);
       final outside = _enemy(game, turret.range * 1.5);
-      game.resolveCenteredAreaAttack(owner: turret, targets: [inside, outside]);
+      game.resolveCenteredAreaAttack(
+        owner: turret,
+        // 범위 검증이 무작위 치명타에 영향받지 않도록 일반 공격을 고정한다.
+        attack: turret.createAttackSnapshot(),
+        targets: [inside, outside],
+      );
       expect(inside.hp, 996);
       expect(inside.isSlowed, isTrue);
       expect(outside.hp, 1000);

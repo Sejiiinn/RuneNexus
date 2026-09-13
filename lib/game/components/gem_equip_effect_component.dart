@@ -2,8 +2,28 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flame/components.dart';
+import '../rendering/stage1_3d/battlefield_effects.dart';
 
-class GemEquipEffectComponent extends PositionComponent {
+class GemEquipEffectComponent extends PositionComponent
+    implements BattlefieldEffectSource {
+  @override
+  BattlefieldEffect? battlefieldEffect(int id, Offset origin, double tileSize) {
+    return BattlefieldEffect(
+      id: id,
+      kind: 'gem',
+      age: _elapsed,
+      duration: _duration,
+      position: battlefieldEffectPosition(
+        Offset(position.x, position.y),
+        origin,
+        tileSize,
+      ),
+      tileSize: tileSize,
+      color: _gemColor,
+      visualScale: _visualScale,
+    );
+  }
+
   GemEquipEffectComponent({
     required Vector2 position,
     required Color gemColor,

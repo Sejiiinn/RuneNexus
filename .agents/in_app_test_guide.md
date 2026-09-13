@@ -6,7 +6,7 @@ UI·게임플레이·렌더링 변경의 실제 화면 검증과 인앱 테스�
 
 스테이지 1 **3D 렌더·카메라·다중 사격 검수는 웹을 사용하지 않고 Android APK로 진행한다**. [본게임 실행·공용 빌드](../docs/stage1_3d_preview.md)를 기준으로, 일반 `lib/main.dart` 진입 APK에서 변경에 관련된 로비·스테이지 1·기존 HUD·건설 입력·시점 전환을 확인한다.
 
-순수 대포 비교는 별도 [Godot 검수 APK](../design/stage1_3d/godot_preview/README.md)를 사용한다. 두 앱은 같은 Godot 런타임을 공유한다. [ThreeJS 검수 APK](../design/stage1_3d/cannon_impact/barrage_runtime/README.md)는 과거 비교용이다.
+순수 대포 비교는 별도 [Godot 검수 APK](../design/stage1_3d/godot_preview/README.md)를 사용한다. 두 앱은 같은 Godot 런타임을 공유한다. ThreeJS 검수 실행 경로는 제거했으며 [과거 소스](../design/legacy_threejs/README.md)만 보관한다.
 
 Godot MCP 편집 연결은 [개발 프로젝트 준비·원본 보존](godot_mcp_guide.md)을 따른다. 데스크톱 편집·실행 결과로 Android 본게임의 HUD·저장·실기기 성능 검증을 대신하지 않는다.
 

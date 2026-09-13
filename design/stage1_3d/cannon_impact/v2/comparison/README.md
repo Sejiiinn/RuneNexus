@@ -1,5 +1,7 @@
 # 시안과 실제 체적 재질 비교
 
+> 역사 기록: 2026-09-13 ThreeJS 실행 경로를 제거했다. `main.dart`는 `main.dart.txt`로 보존하며 아래 실행 명령은 현재 사용할 수 없다. 현행 검수는 저장소의 `docs/stage1_3d_preview.md`를 따른다.
+
 `main.dart`는 실제 `Stage1Scene`을 로드하고 그 착탄 오브젝트를 승인된 Blender 검수 카메라에 놓는 개발용 진입점이다. 게임 재질을 별도로 복제하거나 이미지를 착탄 대신 그리지 않는다.
 
 - 승인 원본: `../preview/impact-review.blend`의 `ImpactReview` 장면

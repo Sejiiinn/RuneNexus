@@ -87,6 +87,11 @@ class TurretComponent extends PositionComponent {
   static const double _fireFeedbackDuration = 0.12;
 
   int get level => _level;
+  double get visualGemRingPhase => _gemRingPhase;
+  Offset? get visualAimTargetPosition =>
+      definition.instantHit && _aimTarget != null
+      ? Offset(_aimTarget!.position.x, _aimTarget!.position.y)
+      : null;
   int get maxLevel => 10;
   double get cooldown => _cooldown;
   double get directDamageDealt => _directDamageDealt;

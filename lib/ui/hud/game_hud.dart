@@ -12,7 +12,6 @@ import 'hud_common.dart';
 import 'gem_reward_target_overlay.dart';
 import 'reward_overlay.dart';
 import 'top_bar.dart';
-import 'stage1_battlefield_view.dart';
 import 'godot_battlefield_view.dart';
 
 const _showDebugPanel = bool.fromEnvironment(
@@ -25,7 +24,6 @@ class GameHud extends StatefulWidget {
   const GameHud({
     required this.game,
     this.showControls = true,
-    this.stage1ThreeD = false,
     this.onOpenStageSelect,
     this.onOpenPermanentUpgrades,
     this.onStartStage,
@@ -34,7 +32,6 @@ class GameHud extends StatefulWidget {
 
   final RuneNexusGame game;
   final bool showControls;
-  final bool stage1ThreeD;
   final VoidCallback? onOpenStageSelect;
   final VoidCallback? onOpenPermanentUpgrades;
   final ValueChanged<int>? onStartStage;
@@ -139,9 +136,7 @@ class _GameHudState extends State<GameHud> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        if (widget.stage1ThreeD)
-          Positioned.fill(child: Stage1BattlefieldView(game: widget.game))
-        else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
+        if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
           Positioned.fill(
             child: ValueListenableBuilder<GameSnapshot>(
               valueListenable: widget.game.snapshotNotifier,

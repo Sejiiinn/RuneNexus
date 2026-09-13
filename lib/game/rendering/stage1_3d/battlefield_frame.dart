@@ -3,6 +3,9 @@ import 'dart:ui';
 import '../../../domain/enemy/enemy_type.dart';
 import '../../../domain/map/map_definition.dart';
 import '../../../domain/turret/turret_type.dart';
+import 'battlefield_labels.dart';
+import 'battlefield_effects.dart';
+import 'battlefield_selection.dart';
 
 /// 전투 규칙과 독립적인 3D 표시 입력. 위치·크기는 타일 단위.
 class BattlefieldFrame {
@@ -21,6 +24,9 @@ class BattlefieldFrame {
     this.buildPreview,
     this.impacts = const [],
     this.finishedProjectiles = const [],
+    this.labels,
+    this.effects,
+    this.selection,
   });
 
   final MapDefinition map;
@@ -39,6 +45,9 @@ class BattlefieldFrame {
   final double nexusHpRatio;
   final double nexusHit;
   final double portalAlert;
+  final BattlefieldLabels? labels;
+  final BattlefieldEffects? effects;
+  final BattlefieldSelection? selection;
 }
 
 class BattlefieldTurret {

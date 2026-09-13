@@ -5,8 +5,38 @@ import 'package:flame/components.dart';
 
 import '../rune_nexus_game.dart';
 import 'enemy_component.dart';
+import '../rendering/stage1_3d/battlefield_effects.dart';
 
-class RiftMarkPulseComponent extends PositionComponent {
+class RiftMarkPulseComponent extends PositionComponent
+    implements BattlefieldEffectSource {
+  @override
+  BattlefieldEffect? battlefieldEffect(int id, Offset origin, double tileSize) {
+    return BattlefieldEffect(
+      id: id,
+      kind: 'rift',
+      age: _elapsed,
+      duration: _duration,
+      position: battlefieldEffectPosition(
+        Offset(_source.x, _source.y),
+        origin,
+        tileSize,
+      ),
+      tileSize: tileSize,
+      color: color,
+      visualScale: game.boardDistanceScale,
+      points: _targets
+          .where((target) => target.isMounted && !target.isDead)
+          .map(
+            (target) => battlefieldEffectPosition(
+              Offset(target.position.x, target.position.y),
+              origin,
+              tileSize,
+            ),
+          )
+          .toList(growable: false),
+    );
+  }
+
   RiftMarkPulseComponent({
     required Vector2 source,
     required Iterable<EnemyComponent> targets,

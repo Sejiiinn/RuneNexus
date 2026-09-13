@@ -29,8 +29,18 @@ open class GodotFlutterActivity : FlutterActivity() {
                     "getMetrics" -> result.success(GodotRuntime.latestMetrics())
                     "getPresentation" -> result.success(GodotRuntime.latestPresentation())
                     "getStatus" -> result.success(GodotRuntime.status())
+                    "beginScene" -> {
+                        val epoch = call.argument<Number>("sceneEpoch")?.toLong()
+                        if (epoch == null || epoch <= 0) {
+                            result.error("invalid_argument", "A positive sceneEpoch is required.", null)
+                        } else {
+                            GodotRuntime.beginScene(epoch)
+                            result.success(null)
+                        }
+                    }
                     "clearScene" -> {
-                        GodotRuntime.clearScene()
+                        val epoch = call.argument<Number>("sceneEpoch")?.toLong()
+                        GodotRuntime.clearScene(epoch)
                         result.success(null)
                     }
                     "submitFrame", "setOptions" -> {
@@ -53,8 +63,10 @@ open class GodotFlutterActivity : FlutterActivity() {
         flutterEngine.platformViewsController.registry.registerViewFactory(
             "rune_nexus/godot_view",
             object : PlatformViewFactory(StandardMessageCodec.INSTANCE) {
-                override fun create(context: Context, viewId: Int, args: Any?): PlatformView =
-                    GodotRuntime.BattlefieldView(context, this@GodotFlutterActivity)
+                override fun create(context: Context, viewId: Int, args: Any?): PlatformView {
+                    val epoch = ((args as? Map<*, *>)?.get("sceneEpoch") as? Number)?.toLong() ?: 0L
+                    return GodotRuntime.BattlefieldView(context, this@GodotFlutterActivity, epoch)
+                }
             },
         )
     }

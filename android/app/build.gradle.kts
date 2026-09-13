@@ -13,11 +13,7 @@ val releaseSigning = mapOf(
 )
 val hasReleaseSigning = releaseSigning.values.all { !it.isNullOrBlank() }
 // 로컬 3D 검수 앱의 설치·데이터 영역 분리. 일반/배포 빌드 기본값 유지.
-val isThreeDPreview = providers.gradleProperty("runeNexus3dPreview").orNull == "true"
 val isGodotPreview = providers.gradleProperty("runeNexusGodotPreview").orNull == "true"
-require(!(isThreeDPreview && isGodotPreview)) {
-    "Select either the ThreeJS preview or the Godot preview, not both."
-}
 require(hasReleaseSigning || releaseSigning.values.all { it.isNullOrBlank() }) {
     "All Android release signing environment variables must be provided together."
 }
@@ -42,11 +38,9 @@ android {
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.rune_nexus"
-        if (isThreeDPreview) applicationIdSuffix = ".preview3d"
         if (isGodotPreview) applicationIdSuffix = ".godotpreview"
         manifestPlaceholders["appLabel"] = when {
             isGodotPreview -> "Rune Nexus Godot 테스트"
-            isThreeDPreview -> "Rune Nexus 3D 테스트"
             else -> "rune_nexus"
         }
         // You can update the following values to match your application needs.
@@ -98,14 +92,6 @@ dependencies {
     implementation("androidx.credentials:credentials:1.6.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.6.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.2.0")
-}
-
-// Godot 동봉 C++ 런타임 하나로 통일. Flutter가 선택한 ABI 목록은 그대로 유지.
-val angleProject = project(":flutter_angle")
-angleProject.plugins.withId("com.android.library") {
-    angleProject.extensions.configure<com.android.build.api.dsl.LibraryExtension> {
-        packaging.jniLibs.excludes += "**/libc++_shared.so"
-    }
 }
 
 val prepareGodotPack by tasks.registering(Exec::class) {

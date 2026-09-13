@@ -1,6 +1,9 @@
 extends Node3D
 
 const TurretLevelLabels = preload("res://ui/turret_level_labels.gd")
+const BattlefieldLabels = preload("res://ui/battlefield_labels.gd")
+const BattlefieldSelection = preload("res://ui/battlefield_selection.gd")
+const BattlefieldEffects = preload("res://ui/battlefield_effects.gd")
 const Impact = preload("res://effects/godot_impact.gd")
 const FieldCache = preload("res://effects/field_cache.gd")
 const WeaponAtlas = preload("res://effects/weapon_atlas.gd")
@@ -52,6 +55,9 @@ var world := Node3D.new()
 var terrain := Node3D.new()
 var turrets := {}
 var _turret_level_labels := TurretLevelLabels.new()
+var _presentation_layer := CanvasLayer.new()
+var _presentation_nodes := {"labels": BattlefieldLabels.new(), "selection": BattlefieldSelection.new(), "effects": BattlefieldEffects.new()}
+var _applied_groups: Array = []
 var enemies := {}
 var projectiles := {}
 var impacts := {}
@@ -67,6 +73,7 @@ var frame_count := 0
 var frame_time_total := 0.0
 var frame_time_max := 0.0
 var last_sequence := -1
+var _scene_epoch := -1
 var received_frames := 0
 var standalone_time := 0.0
 var standalone_playing := false
@@ -94,6 +101,11 @@ func _ready() -> void:
 		_fail("Flutter 전투 브리지가 등록되지 않았습니다.")
 		return
 	add_child(_turret_level_labels)
+	_presentation_layer.layer = 2
+	add_child(_presentation_layer)
+	for node: Node2D in _presentation_nodes.values():
+		_presentation_layer.add_child(node)
+		node.hide()
 	add_child(world)
 	world.add_child(terrain)
 	add_child(camera)
@@ -454,11 +466,49 @@ func _fit_camera_depth() -> void:
 
 
 func _update_camera_visuals() -> void:
+	_apply_world_shake()
 	for effect: Node3D in impacts.values():
 		if effect.visible:
 			effect.update_camera(camera)
 	for entry: Dictionary in turrets.values():
 		_update_weapon_camera(entry)
+	# Tween도 새 카메라로 Canvas redraw를 예약한다. 렌더 직전에는 위치만 재확인.
+	_present_overlays()
+
+
+func _apply_world_shake() -> void:
+	world.position = Vector3.ZERO
+	var payload: Dictionary = last_frame.get("presentation", {})
+	var requested: Array = options.get("presentation_groups", [])
+	if not requested.has("effects") or not _presentation_nodes["effects"].supported_groups().has("effects"):
+		return
+	var effects: Dictionary = payload.get("effects", {})
+	var shake: Array = effects.get("shake", [])
+	var viewport: Array = last_frame.get("viewport", [])
+	if shake.size() != 2 or viewport.size() != 2:
+		return
+	# 기존 Canvas의 logical pixel 이동을 현재 카메라의 화면 평면으로 옮긴다.
+	var units_per_pixel := camera.size / maxf(float(viewport[1]), 1.0)
+	var actual_size := get_viewport().get_visible_rect().size
+	var units_per_x_pixel := camera.size * actual_size.x / maxf(actual_size.y, 1.0) / maxf(float(viewport[0]), 1.0)
+	world.position = camera.global_basis.x * float(shake[0]) * units_per_x_pixel - camera.global_basis.y * float(shake[1]) * units_per_pixel
+
+
+func _present_overlays() -> void:
+	_applied_groups.clear()
+	var payload: Dictionary = last_frame.get("presentation", {})
+	var requested: Array = options.get("presentation_groups", [])
+	for group: String in _presentation_nodes:
+		var node: Node2D = _presentation_nodes[group]
+		var enabled: bool = world.visible and int(last_frame.get("presentationVersion", 0)) == 2 and requested.has(group) and payload.get(group) is Dictionary and node.supported_groups().has(group)
+		node.visible = enabled
+		if enabled:
+			if group == "selection":
+				node.set_turrets(turrets)
+				# 평소 지면 표시는 라벨 뒤, 보상 dim은 남아 있는 모든 효과 앞.
+				node.z_index = 100 if bool(payload[group].get("rewardTargeting", false)) else -100
+			node.present(camera, Vector2(columns, rows), world)
+			_applied_groups.append(group)
 
 
 func presentation() -> Dictionary:
@@ -467,11 +517,16 @@ func presentation() -> Dictionary:
 	var size := get_viewport().get_visible_rect().size
 	if size.x <= 0.0 or size.y <= 0.0:
 		return {}
-	var origin := camera.unproject_position(Vector3(-columns / 2.0, 0.0, -rows / 2.0))
-	var x_axis := camera.unproject_position(Vector3(1.0 - columns / 2.0, 0.0, -rows / 2.0)) - origin
-	var y_axis := camera.unproject_position(Vector3(-columns / 2.0, 0.0, 1.0 - rows / 2.0)) - origin
-	var height_axis := camera.unproject_position(Vector3(-columns / 2.0, 1.0, -rows / 2.0)) - origin
+	var origin := camera.unproject_position(world.to_global(Vector3(-columns / 2.0, 0.0, -rows / 2.0)))
+	var x_axis := camera.unproject_position(world.to_global(Vector3(1.0 - columns / 2.0, 0.0, -rows / 2.0))) - origin
+	var y_axis := camera.unproject_position(world.to_global(Vector3(-columns / 2.0, 0.0, 1.0 - rows / 2.0))) - origin
+	var height_axis := camera.unproject_position(world.to_global(Vector3(-columns / 2.0, 1.0, -rows / 2.0))) - origin
 	return {
+		"presentationVersion": 2,
+		"sceneEpoch": _scene_epoch,
+		"viewportRevision": int(last_frame.get("viewportRevision", 0)),
+		"viewport": last_frame.get("viewport", []),
+		"appliedGroups": _applied_groups.duplicate(),
 		"projection": {
 			"origin": [origin.x / size.x, origin.y / size.y],
 			"xAxis": [x_axis.x / size.x, x_axis.y / size.y],
@@ -486,14 +541,24 @@ func presentation() -> Dictionary:
 
 func _report_presentation() -> void:
 	_turret_level_labels.update(camera, turrets, bool(options["turret_levels"]) and world.visible)
+	_present_overlays()
 	# Android Java 싱글턴은 동적 호출이므로 Object.has_method 검사 생략.
 	if bridge and not last_frame.is_empty():
 		bridge.report_presentation(JSON.stringify(presentation()))
 
 
 func _apply_frame(frame: Dictionary) -> void:
+	var epoch := int(frame.get("sceneEpoch", 0))
+	if epoch < _scene_epoch:
+		return
 	if bool(frame.get("reset", false)):
 		_clear_scene()
+		_scene_epoch = epoch
+		return
+	if epoch > _scene_epoch:
+		_clear_scene()
+		_scene_epoch = epoch
+	if int(frame.get("seq", -1)) < last_sequence:
 		return
 	var map: Dictionary = frame.get("map", {})
 	if map.is_empty():
@@ -503,6 +568,14 @@ func _apply_frame(frame: Dictionary) -> void:
 	last_frame = frame
 	last_sequence = int(frame.get("seq", -1))
 	received_frames += 1
+	var payload: Dictionary = frame.get("presentation", {})
+	for group: String in _presentation_nodes:
+		if payload.get(group) is Dictionary:
+			var group_frame: Dictionary = payload[group].duplicate(true)
+			group_frame["viewport"] = frame.get("viewport", [])
+			_presentation_nodes[group].apply_frame(group_frame)
+		else:
+			_presentation_nodes[group].clear()
 	_update_camera()
 	_sync_turrets(frame.get("turrets", []))
 	_sync_enemies(frame.get("enemies", []))
@@ -519,10 +592,16 @@ func _apply_frame(frame: Dictionary) -> void:
 		crystal.position = core["rest_position"] + Vector3(0.0, sin(time * 2.5) * 0.018, 0.0)
 		crystal.basis = Basis(Vector3.UP, time * 0.22) * core["rest_basis"]
 		crystal.scale *= 1.0 + core_hit * 0.025
+	_present_overlays()
 
 
 func _clear_scene() -> void:
+	world.position = Vector3.ZERO
 	_turret_level_labels.clear()
+	for node: Node2D in _presentation_nodes.values():
+		node.clear()
+		node.hide()
+	_applied_groups.clear()
 	if camera_transition:
 		camera_transition.kill()
 	camera_mode = ""

@@ -37,6 +37,10 @@ class MaterialPresetSyncTest(unittest.TestCase):
                          "cannon_field.bin", "machinegun_muzzle_noise.bin"):
                 write(assets / "effects" / name, b"asset fixture")
             write(assets / "ui/turret_levels.png", b"badge atlas")
+            write(root / "assets/images/diamond_currency.png", b"diamond icon")
+            write(root / "assets/fonts/NotoSansKR-VF.ttf", b"font fixture")
+            write(assets / "ui/labels/slow_shard.png", b"status sprite")
+            write(assets / "ui/Roboto-OFL.txt", b"font license")
             document = json.dumps({"nodes": [{"name": "stage1_environment", "extras": {
                 "columns": 2, "rows": 1, "tileTypes": ["path", "build"],
             }}]}).encode()
@@ -64,6 +68,10 @@ class MaterialPresetSyncTest(unittest.TestCase):
                                 PROJECT=project, ASSETS=project / "assets",
                                 SOURCE_ASSETS=assets):
                 preparation.prepare()
+                self.assertEqual((project / "assets/ui/labels/slow_shard.png").read_bytes(), b"status sprite")
+                self.assertEqual((project / "assets/ui/diamond_currency.png").read_bytes(), b"diamond icon")
+                self.assertEqual((project / "assets/ui/NotoSansKR-VF.ttf").read_bytes(), b"font fixture")
+                self.assertTrue((project / "assets/ui/Roboto-OFL.txt").is_file())
                 copied = project / "materials/core_glass.tres"
                 self.assertEqual(copied.read_bytes(), preset.read_bytes())
                 foliage_import = project / "assets/environment/dressing.glb.import"

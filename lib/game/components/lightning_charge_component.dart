@@ -2,8 +2,30 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flame/components.dart';
+import '../rendering/stage1_3d/battlefield_effects.dart';
 
-class LightningChargeComponent extends PositionComponent {
+class LightningChargeComponent extends PositionComponent
+    implements BattlefieldEffectSource {
+  @override
+  BattlefieldEffect? battlefieldEffect(int id, Offset origin, double tileSize) {
+    if (!isActive()) return null;
+    final center = chargePosition();
+    return BattlefieldEffect(
+      id: id,
+      kind: 'charge',
+      age: _elapsed,
+      duration: duration,
+      position: battlefieldEffectPosition(
+        Offset(center.x, center.y),
+        origin,
+        tileSize,
+      ),
+      tileSize: tileSize,
+      color: color,
+      visualScale: visualScale,
+    );
+  }
+
   LightningChargeComponent({
     required this.chargePosition,
     required this.isActive,

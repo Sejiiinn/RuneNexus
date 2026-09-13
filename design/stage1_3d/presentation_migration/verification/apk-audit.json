@@ -1,0 +1,25 @@
+{
+  "build": 6022,
+  "debug_panel": false,
+  "bytes": 397227684,
+  "sha256": "862b238d383dae40d73fe62d84991357b09780f9dde0b8db4b6541a5cfec39f1",
+  "previous_local_build": 6015,
+  "previous_bytes": 387581280,
+  "delta_bytes": 9646404,
+  "abi": [
+    "arm64-v8a",
+    "armeabi-v7a",
+    "x86_64"
+  ],
+  "native_bytes": {
+    "arm64-v8a": 92692552,
+    "armeabi-v7a": 93954748,
+    "x86_64": 97218664
+  },
+  "angle": [],
+  "duplicate_3d": [],
+  "design": [],
+  "pck": {
+    "assets/rune_nexus.pck": 72405984
+  }
+}

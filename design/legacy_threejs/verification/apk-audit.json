@@ -1,0 +1,36 @@
+{
+  "before_bytes": 426119640,
+  "after_bytes": 387581280,
+  "delta": -38538360,
+  "abi": [
+    "arm64-v8a",
+    "armeabi-v7a",
+    "x86_64"
+  ],
+  "angle_entries": [],
+  "duplicate_3d": [],
+  "pck": {
+    "assets/rune_nexus.pck": {
+      "compressed": 63005340,
+      "bytes": 63005340,
+      "crc": 3869890861
+    }
+  },
+  "removed_native": {
+    "lib/arm64-v8a/libEGL_angle.so": {
+      "compressed": 308424,
+      "bytes": 308424,
+      "crc": 3903965562
+    },
+    "lib/arm64-v8a/libGLESv2_angle.so": {
+      "compressed": 6095784,
+      "bytes": 6095784,
+      "crc": 1846235992
+    },
+    "lib/arm64-v8a/libangle_android_graphic_jni.so": {
+      "compressed": 9752,
+      "bytes": 9752,
+      "crc": 2299418282
+    }
+  }
+}

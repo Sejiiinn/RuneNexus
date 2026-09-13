@@ -5,8 +5,30 @@ import 'package:flame/components.dart';
 
 import '../../domain/enemy/enemy_type.dart';
 import '../rendering/enemy_shape_renderer.dart';
+import '../rendering/stage1_3d/battlefield_effects.dart';
 
-class DeathBurstEffectComponent extends PositionComponent {
+class DeathBurstEffectComponent extends PositionComponent
+    implements BattlefieldEffectSource {
+  @override
+  BattlefieldEffect? battlefieldEffect(int id, Offset origin, double tileSize) {
+    return BattlefieldEffect(
+      id: id,
+      kind: 'death',
+      age: _age,
+      duration: _lifeTime,
+      position: battlefieldEffectPosition(
+        Offset(position.x, position.y),
+        origin,
+        tileSize,
+      ),
+      tileSize: tileSize,
+      color: _color,
+      radius: _radius,
+      enemyType: _type.name,
+      enemyTypeIndex: _type.index,
+    );
+  }
+
   DeathBurstEffectComponent({
     required Vector2 position,
     required Color color,

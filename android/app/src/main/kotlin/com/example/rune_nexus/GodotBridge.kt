@@ -7,12 +7,14 @@ import org.godotengine.godot.plugin.UsedByGodot
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
+import org.json.JSONObject
 
 /** Flutter UI 스레드와 Godot 렌더 스레드 사이의 최신 상태 전달. */
 @Keep
 class GodotBridge(engine: Godot) : GodotPlugin(engine) {
     private var frame = ""
     private var resetPending = false
+    private var sceneEpoch = 0L
     private val options = AtomicReference("")
     private val metrics = AtomicReference("{}")
     private val presentation = AtomicReference("{}")
@@ -26,6 +28,7 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
 
     @Synchronized
     fun submitFrame(json: String) {
+        if (epochOf(json) != sceneEpoch) return
         // 소비가 늦으면 지난 프레임만 교체하고 큐·메모리 누적 방지.
         if (frame.isNotEmpty()) superseded.incrementAndGet()
         frame = json
@@ -33,14 +36,27 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
     }
 
     @Synchronized
-    fun clearScene() {
+    fun clearScene(expectedEpoch: Long? = null) {
+        if (expectedEpoch != null && expectedEpoch != sceneEpoch) return
         frame = ""
         resetPending = true
         options.set("")
         presentation.set("{}")
     }
 
+    @Synchronized
+    fun beginScene(epoch: Long) {
+        if (epoch < sceneEpoch) return
+        sceneEpoch = epoch
+        clearScene()
+    }
+
+    private fun epochOf(json: String): Long =
+        runCatching { JSONObject(json).optLong("sceneEpoch", 0L) }.getOrDefault(-1L)
+
+    @Synchronized
     fun setOptions(json: String) {
+        if (epochOf(json) != sceneEpoch) return
         options.set(json)
     }
 
@@ -64,7 +80,7 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
         // 새 프레임이 즉시 도착해도 장면 초기화 요청은 먼저 한 번 소비.
         if (resetPending) {
             resetPending = false
-            return "{\"reset\":true}"
+            return "{\"reset\":true,\"sceneEpoch\":$sceneEpoch}"
         }
         val current = frame
         frame = ""
@@ -89,7 +105,7 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
     @Synchronized
     @UsedByGodot
     fun report_presentation(json: String) {
-        if (!resetPending) presentation.set(json)
+        if (!resetPending && epochOf(json) == sceneEpoch) presentation.set(json)
     }
 
     @UsedByGodot

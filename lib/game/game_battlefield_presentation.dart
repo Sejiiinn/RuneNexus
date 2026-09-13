@@ -2,6 +2,9 @@ part of 'rune_nexus_game.dart';
 
 /// 타일 단위 표시 입력과 투영만 담당. 전투 객체의 좌표·갱신은 변경하지 않음.
 extension _BattlefieldPresentation on RuneNexusGame {
+  bool _usesNativeBattlefieldGroup(String group) =>
+      battlefieldProjection != null && nativeBattlefieldGroups.contains(group);
+
   BattlefieldFrame? _buildBattlefieldFrame() {
     if (!_boardConfigured || !readyNotifier.value || _activeStage.id != 1) {
       return null;
@@ -36,6 +39,9 @@ extension _BattlefieldPresentation on RuneNexusGame {
       );
     }
     return BattlefieldFrame(
+      labels: _buildBattlefieldLabels(),
+      effects: _buildBattlefieldEffects(),
+      selection: _buildBattlefieldSelection(),
       map: _map,
       buildPreview:
           _selectedBuildPoint != null && _selectedBuildTurretType != null
@@ -130,7 +136,11 @@ extension _BattlefieldPresentation on RuneNexusGame {
     final scale = projection.xAxis.distance / _tileSize;
     for (final child in children) {
       if (child is! PositionComponent || child.isRemoving) continue;
+      if (isNativeBattlefieldEffect(child)) continue;
       if (child is TurretComponent && nativeBattlefieldTurretLevels) continue;
+      if (child is EnemyComponent && _usesNativeBattlefieldGroup('labels')) {
+        continue;
+      }
       if (child is! EnemyComponent &&
           child is! TurretComponent &&
           child is! DamageNumberComponent &&

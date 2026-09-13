@@ -14,8 +14,6 @@ dependencies:
   flame: ^1.37.0
   path_provider: ^2.1.6
   crypto: ^3.0.7
-  flutter_angle: 0.4.2
-  three_js: 0.3.0
 
 dev_dependencies:
   flutter_test:
@@ -36,15 +34,7 @@ flutter:
     - assets/images/results/
     - assets/images/results/ui/
     - assets/images/stage_details/ui/
-    # Godot 전용 환경 장식은 PCK에만 포함해 원본 GLB의 중복 패키징 방지.
-    - assets/images/stage1_3d/environment/terrain.glb
-    - assets/images/stage1_3d/environment/ltc_float_1.bin
-    - assets/images/stage1_3d/environment/ltc_float_2.bin
-    - assets/images/stage1_3d/environment/ltc_half_1.bin
-    - assets/images/stage1_3d/environment/ltc_half_2.bin
-    - assets/images/stage1_3d/effects/
-    - assets/images/stage1_3d/enemies/
-    - assets/images/stage1_3d/turrets/
+    # 3D 에셋은 Godot PCK로만 패키징한다.
     - assets/images/stage_rewards/
     - assets/images/turret_modules/ui/
     - assets/images/ui/components/

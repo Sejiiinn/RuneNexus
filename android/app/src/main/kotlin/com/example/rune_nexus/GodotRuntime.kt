@@ -27,6 +27,7 @@ internal object GodotRuntime : GodotHost {
     private var engineResumed = false
     private var initializing = false
     private var failure: String? = null
+    private var sceneEpoch = 0L
 
     override fun getActivity(): Activity? = hostActivity.get()
     override fun getGodot(): Godot = checkNotNull(engine)
@@ -61,17 +62,27 @@ internal object GodotRuntime : GodotHost {
 
     fun submitFrame(json: String) { bridge?.submitFrame(json) }
     fun setOptions(json: String) { bridge?.setOptions(json) }
-    fun clearScene() { bridge?.clearScene() }
+    fun clearScene(expectedEpoch: Long? = null) {
+        if (expectedEpoch != null && expectedEpoch != sceneEpoch) return
+        bridge?.clearScene(expectedEpoch)
+    }
+    fun beginScene(epoch: Long) {
+        if (epoch < sceneEpoch) return
+        sceneEpoch = epoch
+        bridge?.beginScene(epoch)
+    }
 
     private fun attachRenderer(view: BattlefieldView) {
         if (initializing || failure != null || view.disposed) return
+        if (view.sceneEpoch != sceneEpoch) return
         if (activeView !== view) {
             // 교체 중인 이전 PlatformView의 늦은 dispose가 새 전장을 지우지 않도록 소유권 전환.
             activeView = null
             updateEngineLifecycle()
             hostActivity = WeakReference(view.owner)
             activeView = view
-            clearScene()
+            // 본게임은 beginScene에서 이미 초기화했다. 먼저 보낸 새 옵션을 지우지 않는다.
+            if (view.sceneEpoch == 0L) clearScene(0L)
         }
         try {
             initializing = true
@@ -79,6 +90,7 @@ internal object GodotRuntime : GodotHost {
                 val current = Godot.getInstance(view.owner.applicationContext)
                 engine = current
                 bridge = GodotBridge(current)
+                bridge?.beginScene(sceneEpoch)
                 check(current.initEngine(this, getCommandLine(), getHostPlugins(current))) {
                     "Godot engine initialization failed."
                 }
@@ -189,7 +201,11 @@ internal object GodotRuntime : GodotHost {
         }
     }
 
-    class BattlefieldView(context: Context, val owner: GodotFlutterActivity) :
+    class BattlefieldView(
+        context: Context,
+        val owner: GodotFlutterActivity,
+        val sceneEpoch: Long,
+    ) :
         PlatformView, View.OnAttachStateChangeListener {
         val layout = FrameLayout(context)
         var attached = false
@@ -218,7 +234,7 @@ internal object GodotRuntime : GodotHost {
             attached = false
             if (activeView === this) {
                 updateEngineLifecycle()
-                clearScene()
+                clearScene(sceneEpoch)
                 activeView = null
             }
             layout.removeOnAttachStateChangeListener(this)

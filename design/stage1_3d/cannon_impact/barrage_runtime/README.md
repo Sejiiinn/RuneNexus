@@ -1,5 +1,7 @@
 # 대포 다중 사격 — 실제 3D 전투 검수
 
+> 역사 기록: 2026-09-13 ThreeJS 실행 경로를 제거했다. `main.dart`는 `main.dart.txt`로 보존하며 아래 실행 명령은 현재 사용할 수 없다. 현행 검수는 저장소의 `docs/stage1_3d_preview.md`를 따른다.
+
 2026-09-11. **Android APK로 검수한다. 웹 렌더와 브라우저 검수는 더 이상 사용하지 않는다.** 앱을 실행하면 별도 조작 없이 시작한다.
 
 - 대포 6문, 체력 10억의 정지 표적 3기. `RuneNexusGame.debugShowCannonBarrage()`의 실제 조준·발사·피해 판정을 사용한다.

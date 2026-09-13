@@ -93,7 +93,13 @@ def prepare() -> Path:
         shutil.copy2(source, target)
     ui_target = ASSETS / "ui"
     ui_target.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(SOURCE_ASSETS / "ui/turret_levels.png", ui_target / "turret_levels.png")
+    for source in sorted((SOURCE_ASSETS / "ui").rglob("*")):
+        if source.is_file() and source.suffix in (".png", ".ttf", ".txt"):
+            target = ui_target / source.relative_to(SOURCE_ASSETS / "ui")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+    shutil.copy2(ROOT / "assets/images/diamond_currency.png", ui_target / "diamond_currency.png")
+    shutil.copy2(ROOT / "assets/fonts/NotoSansKR-VF.ttf", ui_target / "NotoSansKR-VF.ttf")
     _preserve_foliage_geometry()
     for filename in ("muzzle_flash.png", "gun_smoke.png"):
         target = ASSETS / "effects" / filename

@@ -5,14 +5,40 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart' show TextPainter, TextSpan, TextStyle;
 
 import '../rendering/diamond_currency_renderer.dart';
+import '../rendering/stage1_3d/battlefield_effects.dart';
 
-class DiamondRewardEffectComponent extends PositionComponent {
+class DiamondRewardEffectComponent extends PositionComponent
+    implements BattlefieldEffectSource {
+  @override
+  BattlefieldEffect? battlefieldEffect(int id, Offset origin, double tileSize) {
+    return BattlefieldEffect(
+      id: id,
+      kind: 'diamond',
+      age: _age,
+      duration: _lifeTime,
+      position: battlefieldEffectPosition(
+        Offset(_spawnPosition.x, _spawnPosition.y),
+        origin,
+        tileSize,
+      ),
+      tileSize: tileSize,
+      screenOffset: Offset(
+        position.x - _spawnPosition.x,
+        position.y - _spawnPosition.y,
+      ),
+      text: '+$_reward',
+      visualScale: _visualScale,
+      hasImage: diamondImage != null,
+    );
+  }
+
   DiamondRewardEffectComponent({
     required Vector2 position,
     required int reward,
     required this.diamondImage,
     double visualScale = 1,
   }) : _reward = reward,
+       _spawnPosition = position.clone(),
        _visualScale = visualScale,
        super(
          position: position,
@@ -21,6 +47,7 @@ class DiamondRewardEffectComponent extends PositionComponent {
          priority: 20,
        );
 
+  final Vector2 _spawnPosition;
   final int _reward;
   final Image? diamondImage;
   final double _visualScale;

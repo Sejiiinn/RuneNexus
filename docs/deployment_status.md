@@ -5,6 +5,19 @@
 이 문서는 마지막 검증 이력이며 실시간 운영 상태가 아니다. 배포 대상의 실제 공개 버전·커밋과
 서버 실행 이미지·DB 버전을 확인한다.
 
+## 2026-09-13 Godot 표현 이관 테스트 APK
+
+- [Google Drive 테스트 APK](https://drive.google.com/file/d/1AnPBmf9zwRarabn9TWqlU6yHaKPmRUan/view?usp=drivesdk) 업로드 완료. Drive 메타데이터의 이름·크기를 확인했다. 다운로드 접근 문제 후 이 APK에 한해 링크가 있는 모든 사용자의 읽기 권한(검색 노출 없음)을 적용하고 메타데이터로 확인했다.
+- 사용자 기기 테스트용 로컬 release code 6022. GitHub 공개 릴리스·자동 업데이트 메타데이터는 갱신하지 않는다.
+- APK: 397,227,684 bytes (378.83 MiB), SHA-256
+  `862b238d383dae40d73fe62d84991357b09780f9dde0b8db4b6541a5cfec39f1`.
+- 현재 공개 `apk-2002`의 실제 릴리스 APK 414,151,176 bytes 대비
+  16,923,492 bytes (16.14 MiB, 4.09%) 감소. 2026-09-13 GitHub 릴리스 자산 메타데이터로 기준 크기를 확인했다.
+- 직전 로컬 6015 대비 9.20 MiB 증가는 Godot PCK에 추가한 원본 폰트·표현 에셋이 주원인이다.
+  arm64-v8a·armeabi-v7a·x86_64를 유지하며, 미사용 ANGLE·Flutter 3D 자산 중복·design 원본의 APK 포함은 없다.
+  ABI별 압축 크기와 남은 실기기 성능 검증은 [검증 기록](../design/stage1_3d/presentation_migration/README.md)에 남겼다.
+- 테스트 APK 전달이므로 차등 패치를 생성하지 않았다.
+
 ## 마지막 확인된 운영 상태
 
 2026-09-12, Android 0.1.13 / code 2002 및 서버 선행 반영을 완료했다.

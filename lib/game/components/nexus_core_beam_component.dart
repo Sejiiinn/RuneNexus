@@ -4,8 +4,34 @@ import 'package:flame/components.dart';
 
 import '../rune_nexus_game.dart';
 import 'enemy_component.dart';
+import '../rendering/stage1_3d/battlefield_effects.dart';
 
-class NexusCoreBeamComponent extends PositionComponent {
+class NexusCoreBeamComponent extends PositionComponent
+    implements BattlefieldEffectSource {
+  @override
+  BattlefieldEffect? battlefieldEffect(int id, Offset origin, double tileSize) {
+    return BattlefieldEffect(
+      id: id,
+      kind: 'coreBeam',
+      age: _elapsed,
+      duration: _duration,
+      position: battlefieldEffectPosition(
+        Offset(_start.x, _start.y),
+        origin,
+        tileSize,
+      ),
+      tileSize: tileSize,
+      color: color,
+      visualScale: game.boardDistanceScale,
+      points: [_start, _targetPosition]
+          .map(
+            (p) =>
+                battlefieldEffectPosition(Offset(p.x, p.y), origin, tileSize),
+          )
+          .toList(growable: false),
+    );
+  }
+
   NexusCoreBeamComponent({
     required Vector2 start,
     required this.target,

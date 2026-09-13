@@ -26,6 +26,7 @@ void main() {
     );
     messenger.setMockMethodCallHandler(channel, (call) async {
       switch (call.method) {
+        case 'beginScene':
         case 'clearScene':
           clears++;
           return null;
@@ -43,6 +44,11 @@ void main() {
           return null;
         case 'getPresentation':
           return jsonEncode({
+            'presentationVersion': 2,
+            'sceneEpoch': frames.last['sceneEpoch'],
+            'viewportRevision': frames.last['viewportRevision'],
+            'viewport': frames.last['viewport'],
+            'appliedGroups': [],
             'sequence': frames.last['seq'],
             'camera': camera,
             'transitioning': transitioning,
