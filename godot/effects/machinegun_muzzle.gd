@@ -166,14 +166,17 @@ func update_effect(muzzle: Node3D, time: float, camera: Camera3D) -> void:
 
 
 func update_camera(camera: Camera3D) -> void:
+	# HUD 맞춤 h/v_offset까지 반영된 실제 렌더 카메라를 사용.
+	var camera_pose := camera.get_camera_transform()
 	for shot in shots:
 		var smoke: MeshInstance3D = shot["smoke"]
 		if not smoke.visible:
 			continue
 		var inverse := smoke.global_transform.affine_inverse()
-		var local_camera := inverse * camera.global_position
+		var local_camera := inverse * camera_pose.origin
 		var material: ShaderMaterial = shot["material"]
+		material.set_shader_parameter("u_view_to_local", inverse * camera_pose)
 		material.set_shader_parameter("u_camera_local", local_camera)
-		material.set_shader_parameter("u_ray_direction", inverse.basis * -camera.global_basis.z)
+		material.set_shader_parameter("u_ray_direction", inverse.basis * -camera_pose.basis.z)
 		material.set_shader_parameter("u_orthographic", camera.projection == Camera3D.PROJECTION_ORTHOGONAL)
 		material.set_shader_parameter("u_camera_inside", absf(local_camera.x) < 0.5 and absf(local_camera.y) < 0.5 and absf(local_camera.z) < 0.5)

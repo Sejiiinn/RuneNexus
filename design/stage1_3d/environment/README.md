@@ -7,7 +7,8 @@
 ## 파일과 제작
 
 - 게임 파일: `assets/images/stage1_3d/environment/terrain.glb`
-- 현행 편집 원본: `terrain-approved.blend`
+- 현행 편집 원본: [../surface_effects/terrain-surface.blend](../surface_effects/terrain-surface.blend). `terrain-approved.blend`는 아래 전체 환경 이식·atlas 생성 단계의 보존 원본이다.
+- 후속 표면 제작: [질감·거칠기·cavity 베이크](../surface_effects/README.md). 기존 제작 스크립트로 지형을 다시 출력하면 이 후속 단계를 적용한 뒤 게임 GLB를 갱신한다.
 - 전체 원본 환경 이식: `append_source_environment.py`
 - 원본 공간 재질 보존: `bake_authored_floor_atlas.py`, `authored_atlas/`의 2048² 이미지 6장
 - 단위 키트 제작: `import_approved_materials.py`, 구조 복원: `restore_source_geometry.py`
@@ -19,7 +20,7 @@ Blender MCP로 원본을 확인하고 독립 Blender 프로세스에서 append·
 
 `stage1_environment`에는 원본 흙기단 58개, 길 26개, 건설석판 32개, 외곽 자연석 150개, 이끼 576개, 풀 576개, 뿌리 11개 — 총 **1,429개 원본 오브젝트**가 포함된다. 원본 Bevel·Weighted Normal 및 곡선 두께를 메시로 적용했다. 임의 타일 재배치나 장식 단순화 없이 재질별 **7개 메시 / 65,624삼각형**으로 병합했다.
 
-포탑·적·포털·코어·카메라·광원은 포함하지 않는다. 포털·코어는 기존 개별 루트를 게임에서 배치한다.
+포탑·적·포털·코어·카메라·광원은 포함하지 않는다. 포털·코어는 지형에서 분리해 배치한다. Godot의 현행 모델은 [A안 공용 원본](../portal_core_concepts/README.md)에서 출력한 `landmarks.glb`의 `portal`·`core`다. 아래 terrain 단위 키트의 기존 포털·코어는 다른 렌더 경로 호환을 위해 보존한다.
 
 - +Y 위, XZ 전장 평면, 타일 1단위.
 - 원본의 `(x, y, z)`를 `(x*.5, (z-.082)*.5, -y*.5)`의 glTF 좌표로 변환했다.
@@ -42,14 +43,14 @@ Blender MCP로 원본을 확인하고 독립 Blender 프로세스에서 append·
 
 ## 재질과 비용
 
-전체 환경의 건설석판·길은 원본 UV에 적용된 Vector Math 스케일과 Geometry.Position/Object 기반 색·이끼 변화까지 원래 위치에서 평가한 전체 스테이지 atlas를 사용한다. 단위 평면을 반복하는 베이크가 원본의 칸별 변화를 잃는 문제를 수정했다. 기존 UVMap은 원본 셰이더 평가용으로 보존한 상태에서 RuntimeAtlas에 bake하고, 런타임에는 RuntimeAtlas만 남겼다. 외곽석재는 기존 C1 PBR을 공유하고 이끼·풀·흙·뿌리 상수재질은 원본값을 보존한다. **내장 이미지18장: 2048²6장 + 1024²9장 + 512²3장.**
+전체 환경의 건설석판·길 상면은 원본 UV에 적용된 Vector Math 스케일과 Geometry.Position/Object 기반 색·이끼 변화까지 원래 위치에서 평가한 전체 스테이지 atlas를 사용한다. 단위 평면을 반복하는 베이크가 원본의 칸별 변화를 잃는 문제를 수정했다. 2026-09-13 후속 작업에서 상면 atlas의 색·노멀·UV를 보존하면서 평면 투영으로 붕괴한 측면 UV는 면 방향별 좌표와 기존 C1 PBR로 복구했다. 외곽석재는 기존 C1 PBR을 공유하고 이끼·풀·흙·뿌리 상수재질은 원본값을 보존한다. 전체맵 ORM R에는 높이 cavity와 실제 지형의 근거리 차폐를, G에는 원본 사진맵·이끼 마스크를 평가한 거칠기를 넣었다. 메시의 실제 삼각형 좌표·노드 변환·맵 계약은 동일하며 측면 재질 분할과 UV만 변경했다. **내장 이미지18장: 2048²6장 + 1024²9장 + 512²3장.**
 
 원천 사진맵은 Poly Haven의 monastery_stone_floor / cobblestone_floor_08 / castle_wall_slates. 출처와 CC0 기록은 `design/high_fidelity_battlefield/production/textures/SOURCES.md`에 있다.
 
-- GLB **27,957,564 bytes(약26.66MiB)**
+- GLB **30,688,776 bytes(약29.27MiB)**. 최초 표면 개선 전 GLB 대비 +2,731,212 bytes이며 전체맵 ORM 정보량 증가와 측면 UV·재질 분할을 포함한다.
 - 전체 GLB **74,564삼각형**: 전체환경65,624 + 보존키트8,940.
 - basecolor=sRGB, normal/ORM=Non-Color. 원본 Coat0, SpecularIORLevel.5, IOR1.5, metal0 유지.
-- cavity는 낮은 홈만 .65~1 범위로 보강하여 ORM R에 포함한다. 전체 밝기를 어둡게 칠하지 않았다.
+- cavity는 단위 키트 .65~1, 전체맵 .55~1 범위로 낮은 홈을 ORM R에 포함한다. 전체맵에는 0.35타일 이내 실제 정적 지형 차폐도 합친다. 중앙값은 1이며 basecolor를 어둡게 칠하지 않는다.
 
 ## 검증 범위
 

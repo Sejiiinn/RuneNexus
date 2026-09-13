@@ -1,0 +1,26 @@
+{
+  "build": {
+    "sourceObjects": 32,
+    "cavity": [
+      0.55,
+      1
+    ],
+    "stoneRoughness": [
+      0.4,
+      0.7
+    ],
+    "mossRoughness": 0.9
+  },
+  "path": {
+    "sourceObjects": 26,
+    "cavity": [
+      0.55,
+      1
+    ],
+    "stoneRoughness": [
+      0.4,
+      0.7
+    ],
+    "mossRoughness": null
+  }
+}

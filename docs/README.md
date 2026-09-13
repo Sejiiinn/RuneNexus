@@ -29,7 +29,9 @@
 
 ## 나머지 기능·설계 자료
 
-- 스테이지 1 3D 전장: [본게임 연결·실행](stage1_3d_preview.md), [Godot 연결 테스트 APK](../design/stage1_3d/godot_preview/README.md), [Blender 현행 원본·작업 허브](../design/stage1_3d/blender_workspace/README.md), [S26 Ultra APK 성능 분석·개선 후보](analysis/s26_ultra_cannon_performance_20260911.md).
+- 스테이지 1 질감·이펙트 개선: [밝기 보존·표면 재질·입체 효과 설계](stage1_surface_effects.md), [제작 원본과 적용 기록](../design/stage1_3d/surface_effects/README.md).
+
+- 스테이지 1 3D 전장: [내장 재질 우선 제작·이관 설계](stage1_native_material_workflow.md) — 대표 재질 실험·채택 기준과 후속 내장 PBR·환경 반사 적용 결과, [본게임 연결·실행](stage1_3d_preview.md), [Godot 연결 테스트 APK](../design/stage1_3d/godot_preview/README.md), [Blender 현행 원본·작업 허브](../design/stage1_3d/blender_workspace/README.md), [S26 Ultra APK 성능 분석·개선 후보](analysis/s26_ultra_cannon_performance_20260911.md).
 - 콘텐츠 설계: [챕터 2](chapter2_wave_enemy_design.md), [챕터 3](chapter3_forge_design.md), [젬 파편·특성](gem_shard_trait_design.md), [포탑 공격 명령](turret_target_priority_design.md).
 - 현행 기능과 이전 설계를 함께 확인할 자료: [리더보드](leaderboard_design.md), [인게임 UX 변경 범위](in_game_ux_improvement_design.md).
 - 과거·후속 검토: [긴급 매각 계획](emergency_sale_upgrade_plan.md), [구 코어 슬롯](core_passive_slot_ui_design.md). 현재 구현 여부는 [구현 현황](implementation_status.md)과 해당 코드에서 확인한다.

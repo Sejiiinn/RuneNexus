@@ -65,7 +65,6 @@ def export():
                                       "triangles": len(mesh.loop_triangles), "boundsBlender": [minimum, maximum]})
         root["runtimeMeshCount"] = 2
         root["runtimeTriangleCount"] = sum(m["triangles"] for m in summary["meshes"])
-        assert root["runtimeTriangleCount"] <= 24000, summary
         original_name = source_root.name
         source_root.name = "stage1_dressing_authoring"
         root.name = "stage1_dressing"

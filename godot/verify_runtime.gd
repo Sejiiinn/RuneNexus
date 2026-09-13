@@ -18,6 +18,80 @@ func _vector(values: Array) -> Vector2:
 	return Vector2(float(values[0]), float(values[1]))
 
 
+func _check_landmarks(scene: Node3D, frame: Dictionary) -> void:
+	var shared_frame := frame.duplicate(true)
+	shared_frame["map"] = {"columns": 3, "rows": 2, "tiles": ["spawn", "build", "core", "core", "path", "spawn"]}
+	shared_frame["time"] = 0.0
+	scene._apply_frame(shared_frame)
+	_check(scene._portals.size() == 2 and scene._cores.size() == 2, "여러 타일의 공용 포탈·코어 누락")
+	var first_portal: Node3D = scene._portals[0]
+	var first_vortex := first_portal.find_child("portal_vortex", true, false) as MeshInstance3D
+	var second_vortex := scene._portals[1].find_child("portal_vortex", true, false) as MeshInstance3D
+	_check(first_vortex != null and second_vortex != null, "독립 공용 GLB 대신 기존 포탈 사용")
+	if first_vortex == null or second_vortex == null:
+		return
+	_check(first_vortex.mesh == second_vortex.mesh and first_vortex.material_override == second_vortex.material_override, "복수 포탈의 메시·재질이 중복 생성됨")
+	var vortex_material := first_vortex.material_override as ShaderMaterial
+	_check(vortex_material != null and vortex_material.shader == scene.PortalVortex, "입체 소용돌이 공유 셰이더 누락")
+	var core: Dictionary = scene._cores[0]
+	var core_root: Node3D = core["root"]
+	var crystal: Node3D = core["crystal"]
+	var crystal_mesh := crystal as MeshInstance3D
+	var other_crystal := scene._cores[1]["crystal"] as MeshInstance3D
+	var environment: Environment = scene.camera.get_world_3d().environment
+	_check(scene.world.find_children("*", "ReflectionProbe", true, false).is_empty(), "공용 sky 반사와 불필요한 probe가 중복됨")
+	_check(environment.sky == scene.ReflectionSky and environment.sky.radiance_size == Sky.RADIANCE_SIZE_128 and environment.reflected_light_source == Environment.REFLECTION_SOURCE_SKY, "공용 128px 환경 반사 누락")
+	var crystal_light := scene.get_node("CoreSpecularLight") as DirectionalLight3D
+	_check(crystal_light != null and crystal_light.light_cull_mask == crystal_mesh.layers and not crystal_light.shadow_enabled, "결정 전용 보조광의 레이어·그림자 비용 계약 오류")
+	var crystal_light_transform := crystal_light.transform
+	var crystal_size := crystal_mesh.get_aabb().size
+	_check(crystal_size.y >= 0.82 and crystal_size.y / maxf(crystal_size.x, crystal_size.z) >= 2.8, "코어 결정의 길쭉한 형태·슬림 비율 누락")
+	var shell_count := 0
+	for surface in range(crystal_mesh.mesh.get_surface_count()):
+		var material := crystal_mesh.get_active_material(surface)
+		var original := crystal_mesh.mesh.surface_get_material(surface)
+		if original.resource_name == "core_crystal_facets":
+			var shell := material as StandardMaterial3D
+			_check(shell != null and other_crystal.get_active_material(surface) == shell, "결정의 내장 PBR 공유 재질 누락")
+			_check(not shell.refraction_enabled and shell.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED, "화면 굴절/알파 혼합이 다시 활성화됨")
+			_check(shell.albedo_color == original.albedo_color and is_equal_approx(shell.roughness, original.roughness) and is_equal_approx(shell.metallic, original.metallic) and shell.emission == original.emission and shell.emission_energy_multiplier == original.emission_energy_multiplier, "내장 결정의 원본 면색/PBR/발광이 변경됨")
+			_check(shell.vertex_color_use_as_albedo and not shell.vertex_color_is_srgb, "결정의 선형 정점 면색 누락")
+			shell_count += 1
+	_check(shell_count == 1 and crystal_mesh.mesh.get_surface_count() == 1 and crystal_mesh.get_child_count() == 0, "단일 결정 내부에 불투명 물체·표면이 남음")
+	_check(crystal_mesh.mesh == other_crystal.mesh, "복수 코어 결정 메시 공유 오류")
+	var rest_crystal := crystal.transform
+	var rest_root := core_root.transform
+	var rest_portal := first_portal.transform
+	var supports := {}
+	for child: Node3D in core_root.get_children():
+		if child != crystal:
+			supports[child] = child.transform
+	# 타일 바닥과 별개인 에셋 경계·추가 조명/애니메이터 예산.
+	for model: Node3D in [first_portal, core_root]:
+		_check(model.find_children("*", "Light3D", true, false).is_empty(), "공용 랜드마크에 개체별 광원 추가")
+		_check(model.find_children("*", "AnimationPlayer", true, false).is_empty(), "공용 랜드마크에 개체별 애니메이터 추가")
+		for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+			var local := model.global_transform.affine_inverse() * mesh.global_transform
+			var bounds := local * mesh.get_aabb()
+			_check(bounds.position.x >= -0.49 and bounds.end.x <= 0.49 and bounds.position.z >= -0.49 and bounds.end.z <= 0.49, "랜드마크가 타일 수평 경계를 침범함: %s" % mesh.name)
+			_check(bounds.position.y >= -0.001 and bounds.end.y <= 1.2, "랜드마크 바닥 원점·높이 계약 오류: %s" % mesh.name)
+	shared_frame["time"] = 2.0
+	shared_frame["portalAlert"] = 1.0
+	shared_frame["nexusHit"] = 1.0
+	scene._apply_frame(shared_frame)
+	_check(first_portal.transform.is_equal_approx(rest_portal) and core_root.transform.is_equal_approx(rest_root), "포탈 석재·코어 받침 전체가 전투 반응으로 변형됨")
+	_check(not crystal.transform.is_equal_approx(rest_crystal), "코어 결정 부유·회전 누락")
+	for support: Node3D in supports:
+		_check(support.transform.is_equal_approx(supports[support]), "결정 애니메이션이 코어 지지 구조를 움직임")
+	var paused_crystal := crystal.transform
+	scene._apply_frame(shared_frame)
+	_check(crystal.transform.is_equal_approx(paused_crystal), "같은 전투 시각의 결정 변형 누적")
+	_check(vortex_material != null and is_equal_approx(float(vortex_material.get_shader_parameter("battle_time")), 2.0), "소용돌이가 정지·배속을 결정하는 전투 시각을 따르지 않음")
+	_check(scene._portals[0] == first_portal and scene._cores[0]["root"] == core_root, "같은 맵 프레임에 공용 랜드마크 재생성")
+	_check(scene.camera.get_world_3d().environment.sky == environment.sky, "전투 프레임에서 공유 반사 환경이 변경됨")
+	_check(crystal_light.transform.is_equal_approx(crystal_light_transform), "보조광이 결정·카메라를 따라 움직임")
+
+
 func _check_projection(scene: Node3D, frame: Dictionary) -> void:
 	var presentation: Dictionary = scene.presentation()
 	var projection: Dictionary = presentation["projection"]
@@ -147,6 +221,7 @@ func _verify() -> void:
 	_check(scene.turrets.is_empty() and scene.enemies.is_empty() and scene.projectiles.is_empty() and scene._build_preview.is_empty(), "삭제된 전투 모델 잔류")
 	_check(scene.impacts.is_empty() and scene.impact_pool.size() == 1, "종료한 착탄 효과 재사용 풀 이동 실패")
 	_check_projection(scene, replacement)
+	_check_landmarks(scene, replacement)
 	var shared_texture: Texture3D = scene.field["texture"]
 	scene._apply_frame({"reset": true})
 	_check(scene.terrain.get_child_count() == 0 and scene.impacts.is_empty() and scene.impact_pool.is_empty(), "세션 초기화 후 전장·착탄 잔류")
@@ -155,7 +230,7 @@ func _verify() -> void:
 	_check(not replacement.is_empty(), "세션 초기화가 전달받은 프레임 원본을 변경함")
 	scene._apply_frame(frame)
 	_check(scene._using_authored and scene.turrets.size() == 6 and scene.enemies.size() == 6, "새 전투 세션의 기존 자산 재사용 실패")
-	print("Runtime verification: %d failures; all 6 turret/enemy/projectile types, authored/fallback terrain, weapon feedback, HUD/input projection, reset" % failures)
+	print("Runtime verification: %d failures; all 6 turret/enemy/projectile types, authored/fallback terrain, shared landmarks, weapon feedback, HUD/input projection, reset" % failures)
 	scene.queue_free()
 	await process_frame
 	quit(0 if failures == 0 else 1)

@@ -67,6 +67,7 @@ add_text("03_포탑_내보내기_절차", (BASE / "turrets/README.md").read_text
 add_text("05_환경장식_제작_절차", (BASE / "environment_dressing/README.md").read_text())
 add_text("06_식물_독립원본", (BASE / "environment_dressing/plant_library/README.md").read_text())
 add_text("07_추가환경_독립원본", (BASE / "environment_dressing/companion_library/README.md").read_text())
+add_text("08_포탈코어_공용원본", (BASE / "portal_core_concepts/README.md").read_text())
 add_text("04_확인기록", "자동 생성 기준 요약 — 직접 편집하지 않습니다.\n게임 적용 여부와 최신 검증은 USER_작업메모에 기록하고 허브를 저장하세요.\n\n2026-09-11: 현행 연결 원본과 실제 게임 v5 캡처/영상 등록.\n이전 v2 폭발은 역사 자료로 제외. 모바일 실기기 성능 수용 검증은 별도 미완료.\n원본/게임 자산을 변경하지 않는 허브 생성.\n")
 for name, body in user_notes.items():
     add_text(name, body)

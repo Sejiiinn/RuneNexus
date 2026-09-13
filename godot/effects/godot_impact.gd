@@ -166,6 +166,7 @@ func update_camera(camera: Camera3D) -> void:
 	# 본게임 HUD 맞춤 오프셋을 포함한 실제 렌더 카메라.
 	var camera_pose: Transform3D = camera.get_camera_transform()
 	var camera_local: Vector3 = inverse * camera_pose.origin
+	_volume_material.set_shader_parameter("u_view_to_local", inverse * camera_pose)
 	_volume_material.set_shader_parameter("u_camera_local", camera_local)
 	_volume_material.set_shader_parameter("u_camera_inside",
 		absf(camera_local.x) < 1.0 and absf(camera_local.y) < 1.0 and absf(camera_local.z) < 1.0)

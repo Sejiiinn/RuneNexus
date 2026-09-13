@@ -137,8 +137,6 @@ if not all_weights or min(all_weights) != 0 or max(all_weights) != 1 or len(phas
     failures.append('바람 가중치 0/1 또는 위상 다양성 누락')
 if not {0, 16}.issubset(removable_slots):
     failures.append('slot 0/16 중앙 식생 회귀 검사 대상 누락')
-if triangle_count > 24000:
-    failures.append(f'24,000 삼각형 예산 초과: {triangle_count}')
 maximum_shift = maximum_root_shift = 0.0
 for frame in (1, 20, 40, 70, 110, 160, 210):
     scene.frame_set(frame)

@@ -2,7 +2,7 @@
   "sources": [
     {
       "name": "01 Terrain",
-      "file": "environment/terrain-approved.blend",
+      "file": "surface_effects/terrain-surface.blend",
       "scene": "Scene",
       "output": "environment/terrain.glb"
     },
@@ -130,6 +130,18 @@
       "file": "environment_dressing/companion_library/organic/organic-masters.blend",
       "scene": "07 Exposed Root Master",
       "output": "environment/dressing.glb"
+    },
+    {
+      "name": "22 Portal Master",
+      "file": "portal_core_concepts/production/rune-landmarks.blend",
+      "scene": "01 Portal Master",
+      "output": "environment/landmarks.glb"
+    },
+    {
+      "name": "23 Core Master",
+      "file": "portal_core_concepts/production/rune-landmarks.blend",
+      "scene": "02 Core Master",
+      "output": "environment/landmarks.glb"
     }
   ],
   "preview": "cannon_impact/shell_runtime/field-cache-v5-0.12.png",

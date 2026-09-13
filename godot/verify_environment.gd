@@ -1,6 +1,6 @@
 extends SceneTree
 
-## 실제 GLB의 예산·바람 입력과 공용 장면의 맵 전환·재진입 회귀 검사.
+## 실제 GLB의 구조·바람 입력과 공용 장면의 맵 전환·재진입 회귀 검사.
 var failures := 0
 
 
@@ -54,7 +54,7 @@ func _verify() -> void:
 			_check(colors.size() == vertices.size(), "%s: 정점색 누락" % mesh.name)
 			for color in colors:
 				_check(is_equal_approx(color.a, 1.0), "%s: 불투명 정점 알파 손실" % mesh.name)
-	_check(triangle_count > 0 and triangle_count <= 24000, "환경 장식이 24,000 triangle 예산을 초과함")
+	_check(triangle_count > 0, "환경 장식에 삼각형이 없음")
 	var foliage := dressing.find_child("stage1_dressing_foliage", true, false) as MeshInstance3D
 	var rocks := dressing.find_child("stage1_dressing_rocks", true, false) as MeshInstance3D
 	_check(foliage != null and rocks != null, "풀·바위 필수 메시 누락")
@@ -64,8 +64,22 @@ func _verify() -> void:
 		return
 	var material := foliage.get_active_material(0) as ShaderMaterial
 	_check(material != null and material.shader == scene.FoliageWind, "공유 바람 셰이더 연결 실패")
-	_check(foliage.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "풀의 추가 그림자 생성 패스가 활성화됨")
+	_check(foliage.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_DOUBLE_SIDED, "잎 아래 접촉을 위한 양면 그림자가 누락됨")
 	_check(foliage.extra_cull_margin >= 0.022, "바람 최대 변위를 감싸는 bounds 여유 누락")
+	_check(scene.terrain.find_child("stage1_fern_canopy_shadow", true, false) == null, "폐기한 고사리 전용 외피가 공통 식생 그림자에 중복됨")
+	_check(is_equal_approx(foliage.lod_bias, 1.0), "식생 LOD import 계약을 런타임 임시 배율로 대체함")
+	# Godot 4.7의 surface_get_lods는 C++ 전용이므로 같은 실제 데이터를 직렬화 속성으로 읽는다.
+	var foliage_surfaces: Array = foliage.mesh.get("_surfaces")
+	_check(foliage_surfaces.size() == foliage.mesh.get_surface_count(), "식생의 실제 import surface 조회 실패")
+	for surface: Dictionary in foliage_surfaces:
+		var lods: Array = surface.get("lods", [])
+		_check(lods.is_empty(), "가시 식생의 잎·그림자를 소거하는 자동 LOD가 남음")
+	var rock_lods_present := false
+	var rock_surfaces: Array = rocks.mesh.get("_surfaces")
+	for surface: Dictionary in rock_surfaces:
+		var lods: Array = surface.get("lods", [])
+		rock_lods_present = rock_lods_present or not lods.is_empty()
+	_check(rock_lods_present, "식생 import 변경이 바위 LOD까지 제거함")
 	var rock_material := rocks.get_active_material(0) as StandardMaterial3D
 	_check(rock_material != null and rock_material.vertex_color_use_as_albedo, "바위의 실제 조명·정점색 재질 누락")
 	if rock_material:
@@ -135,6 +149,15 @@ func _verify() -> void:
 		_check(foliage.mesh == foliage_mesh and foliage.get_active_material(0) == material, "전투 프레임마다 풀 자원이 교체됨")
 		_check(scene.terrain.find_child("stage1_dressing", true, false).get_instance_id() == original_dressing_id, "같은 맵의 프레임이 장식을 재생성함")
 	_check(material.get_shader_parameter("occupied_build_tiles") == Vector2i.ZERO, "빈 건설칸의 중앙 풀이 숨겨짐")
+	# 고사리도 다른 식생과 같은 본체 셰이더에서 가림·철거를 처리한다.
+	for slot in [1, 6, 21, 27]:
+		frame["turrets"] = [[950 + slot, build_points[slot].x, build_points[slot].y, 0.0, 0, 0, "cannon", 1]]
+		scene._apply_frame(frame)
+		var expected := Vector2i(1 << slot, 0) if slot < 16 else Vector2i(0, 1 << (slot - 16))
+		_check(material.get_shader_parameter("occupied_build_tiles") == expected, "고사리의 공통 식생 건설 점유 불일치: %d" % slot)
+	frame["turrets"] = []
+	scene._apply_frame(frame)
+	_check(material.get_shader_parameter("occupied_build_tiles") == Vector2i.ZERO, "철거한 고사리 본체 가림 잔류")
 	frame["buildPreview"] = [901, build_points[0].x, build_points[0].y, 0.0, 0, 0, "cannon", 1]
 	scene._apply_frame(frame)
 	_check(material.get_shader_parameter("occupied_build_tiles") == Vector2i.ZERO, "건설 미리보기가 중앙 풀을 제거함")

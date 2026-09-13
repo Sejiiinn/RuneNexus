@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 import shutil
 import struct
 
@@ -15,12 +16,57 @@ ASSETS = PROJECT / "assets"
 SOURCE_ASSETS = ROOT / "assets/images/stage1_3d"
 TURRET_TYPES = ("arrow", "cannon", "magic", "frost", "sniper", "lightning")
 ENEMY_TYPES = ("normal", "armored", "shielded", "fast", "tank", "boss")
+# Godot 4.7 GLTFDocument는 ImporterMesh 이름에 원본 glTF scene 이름을 앞붙인다.
+FOLIAGE_IMPORT_ID = "Dressing Export (temporary)_stage1_dressing_foliage"
+
+
+def _preserve_foliage_geometry() -> None:
+    # 실제 식생의 잎과 투영 차폐를 유지한다. 같은 GLB의 바위 LOD는 그대로 둔다.
+    path = ASSETS / "environment/dressing.glb.import"
+    contents = path.read_text() if path.exists() else '[remap]\n\nimporter="scene"\n\n[params]\n'
+    match = re.search(r"^_subresources=", contents, flags=re.MULTILINE)
+    if match:
+        start = match.end()
+        while contents[start].isspace():
+            start += 1
+        # 현재 Godot sidecar의 기본 Dictionary는 JSON 호환 값이다.
+        # 읽지 못하는 확장 값은 덮어쓰지 않고 준비를 중단한다.
+        subresources, length = json.JSONDecoder().raw_decode(contents[start:])
+    else:
+        subresources = {}
+    meshes = subresources.setdefault("meshes", {})
+    # 이전 준비에서 쓴 GLB 원명은 실제 import_id가 아니므로 우리 무효 옵션만 제거한다.
+    legacy = meshes.get("stage1_dressing_foliage")
+    if legacy == {"generate/lods": 2}:
+        del meshes["stage1_dressing_foliage"]
+    mesh_options = meshes.setdefault(FOLIAGE_IMPORT_ID, {})
+    # Godot ResourceImporterScene: generate/lods = Default(0), Enable(1), Disable(2).
+    mesh_options["generate/lods"] = 2
+    value = json.dumps(subresources, ensure_ascii=False, indent=2)
+    if match:
+        contents = contents[:start] + value + contents[start + length:]
+    elif "[params]" in contents:
+        contents = contents.replace("[params]", "[params]\n\n_subresources=" + value, 1)
+    else:
+        contents += "\n[params]\n\n_subresources=" + value + "\n"
+    path.write_text(contents)
+
+
+def _remove_retired_fern_shadow() -> None:
+    # 기존 빌드의 source/import와 이 에셋에 속하는 캐시만 제거한다.
+    for name in ("fern_shadow.glb", "fern_shadow.glb.import"):
+        (ASSETS / "environment" / name).unlink(missing_ok=True)
+    for path in (PROJECT / ".godot/imported").glob("fern_shadow.glb-*"):
+        if path.is_file():
+            path.unlink()
+    for name in ("fern_shadow.gdshader.uid", "fern_shadow_outline.gdshaderinc.uid"):
+        (PROJECT / "environment" / name).unlink(missing_ok=True)
 
 
 def prepare() -> Path:
     if not (SOURCE / "project.godot").is_file():
         raise RuntimeError("루트 godot/ 공용 프로젝트를 찾을 수 없습니다.")
-    required = [SOURCE_ASSETS / "environment" / name for name in ("terrain.glb", "dressing.glb")]
+    required = [SOURCE_ASSETS / "environment" / name for name in ("terrain.glb", "dressing.glb", "landmarks.glb")]
     required += [SOURCE_ASSETS / "turrets" / f"{name}.glb" for name in TURRET_TYPES]
     required += [SOURCE_ASSETS / "enemies" / f"{name}.glb" for name in ENEMY_TYPES]
     required += [SOURCE_ASSETS / "effects" / name
@@ -30,20 +76,25 @@ def prepare() -> Path:
             raise RuntimeError(f"필수 3D 자산 누락: {path.relative_to(ROOT)}")
 
     shutil.copytree(SOURCE, PROJECT, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".godot"))
-    # 삭제된 검수·런타임 스크립트가 이전 빌드에 남지 않도록 소스 파일만 동기화.
-    for suffix in ("*.gd", "*.gdshader", "*.tscn"):
+    # 삭제된 스크립트·장면·재질 프리셋이 이전 빌드에 남지 않도록 소스만 동기화.
+    for suffix in ("*.gd", "*.gdshader", "*.gdshaderinc", "*.tscn", "*.tres"):
         for path in PROJECT.rglob(suffix):
             relative = path.relative_to(PROJECT)
             if relative.parts[0] not in (".godot", "assets") and not (SOURCE / relative).exists():
                 path.unlink()
     ASSETS.mkdir(parents=True, exist_ok=True)
+    _remove_retired_fern_shadow()
     for source in sorted(SOURCE_ASSETS.rglob("*.glb")):
+        # 과거 생성기를 실행해 파일이 다시 생겨도 폐기한 외피는 패키징하지 않는다.
+        if source.relative_to(SOURCE_ASSETS) == Path("environment/fern_shadow.glb"):
+            continue
         target = ASSETS / source.relative_to(SOURCE_ASSETS)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
     ui_target = ASSETS / "ui"
     ui_target.mkdir(parents=True, exist_ok=True)
     shutil.copy2(SOURCE_ASSETS / "ui/turret_levels.png", ui_target / "turret_levels.png")
+    _preserve_foliage_geometry()
     for filename in ("muzzle_flash.png", "gun_smoke.png"):
         target = ASSETS / "effects" / filename
         target.parent.mkdir(parents=True, exist_ok=True)

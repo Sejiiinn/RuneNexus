@@ -7,7 +7,10 @@ const WeaponAtlas = preload("res://effects/weapon_atlas.gd")
 const MachineGunMuzzle = preload("res://effects/machinegun_muzzle.gd")
 const BallisticProjectile = preload("res://effects/ballistic_projectile.gd")
 const Terrain = preload("res://assets/environment/terrain.glb")
+const Landmarks = preload("res://assets/environment/landmarks.glb")
 const Dressing = preload("res://assets/environment/dressing.glb")
+const PortalVortex = preload("res://environment/portal_vortex.gdshader")
+const ReflectionSky = preload("res://materials/battlefield_reflection_sky.tres")
 const FoliageWind = preload("res://environment/foliage_wind.gdshader")
 const TURRET_MODELS := {
 	"arrow": preload("res://assets/turrets/arrow.glb"),
@@ -30,11 +33,20 @@ const PROJECTILE_COLORS := {
 	"frost": Color("94e6ff"), "sniper": Color("ffeec4"), "lightning": Color("c7d8ff"),
 }
 const CAMERA_TRANSITION_SECONDS := 0.7
+const CAMERA_DEPTH_MARGIN := 0.5
+const REFLECTION_TERRAIN_LAYER := 1 << 1
+const REFLECTION_CRYSTAL_LAYER := 1 << 2
 
 var bridge: Object
 var camera := Camera3D.new()
 var camera_mode := ""
 var camera_transition: Tween
+var _camera_terrain_id := 0
+var _camera_map_bounds := AABB()
+var _camera_actor_bounds := AABB()
+var _camera_envelope := AABB()
+var _camera_enemy_scale := 1.0
+var _camera_impact_radius := 0.0
 var sun := DirectionalLight3D.new()
 var world := Node3D.new()
 var terrain := Node3D.new()
@@ -59,6 +71,8 @@ var received_frames := 0
 var standalone_time := 0.0
 var standalone_playing := false
 var _terrain_library: Node3D
+var _landmark_library: Node3D
+var _portal_material: ShaderMaterial
 var _dressing_library: Node3D
 var _foliage_material: ShaderMaterial
 var _build_tile_slots := PackedInt32Array()
@@ -67,7 +81,7 @@ var _terrain_manifest := {}
 var _current_map := {}
 var _using_authored := false
 var _portals: Array[Node3D] = []
-var _cores: Array[Node3D] = []
+var _cores: Array[Dictionary] = []
 var _build_preview := {}
 var _projectile_meshes := {}
 var _ballistic_pool := {"arrow": [], "cannon": []}
@@ -85,8 +99,7 @@ func _ready() -> void:
 	add_child(camera)
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	camera.keep_aspect = Camera3D.KEEP_HEIGHT
-	camera.near = 0.1
-	camera.far = 100.0
+	# 실제 맵·모델·효과 경계로 _fit_camera_depth에서 설정한다.
 	camera.current = true
 	var environment_node := WorldEnvironment.new()
 	var environment := Environment.new()
@@ -94,21 +107,41 @@ func _ready() -> void:
 	environment.background_color = Color("101b20")
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color(0.78, 0.86, 1.0)
-	environment.ambient_light_energy = 0.35
+	environment.ambient_light_energy = 0.16
+	# 공용 하늘 반사. 배경과 확산 환경광은 별도 설정을 유지한다.
+	environment.sky = ReflectionSky
+	environment.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	environment_node.environment = environment
 	add_child(environment_node)
-	sun.rotation_degrees = Vector3(-62, -32, 0)
+	# 상면 총광량은 유지하고 약한 환경·보조광으로 그늘의 석재 면을 살린다.
+	sun.rotation_degrees = Vector3(-48, -125, 0)
 	sun.light_color = Color(1.0, 0.94, 0.84)
-	sun.light_energy = 1.45
+	sun.light_energy = 1.50
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 45.0
+	# 작은 직교 전장에 그림자 해상도를 모으고 낮은 기단·잎의 접촉을 보존.
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+	# 낮은 depth bias는 석재 상면에 자기 그림자 줄무늬를 만들어 기존 값을 유지.
+	sun.shadow_bias = 0.03
+	sun.shadow_normal_bias = 0.35
+	# Mobile에서도 PCF를 사용해 접촉은 남기고 그림자 경계만 완만하게 한다.
+	sun.shadow_blur = 1.25
 	add_child(sun)
 	var fill := DirectionalLight3D.new()
 	fill.rotation_degrees = Vector3(-40, 135, 0)
 	fill.light_color = Color(0.65, 0.8, 1.0)
-	fill.light_energy = 0.35
+	fill.light_energy = 0.14
 	add_child(fill)
+	# 낮은 고정 입사각의 결정 전용 보조광: 급경사 면의 실제 반사 하이라이트.
+	var crystal_light := DirectionalLight3D.new()
+	crystal_light.name = "CoreSpecularLight"
+	crystal_light.rotation_degrees = Vector3(10.0, 30.17, 0.0)
+	crystal_light.light_color = Color(0.68, 0.95, 1.0)
+	crystal_light.light_energy = 0.16
+	crystal_light.light_cull_mask = REFLECTION_CRYSTAL_LAYER
+	crystal_light.shadow_enabled = false
+	add_child(crystal_light)
 	for index in range(4):
 		var light := OmniLight3D.new()
 		light.light_color = Color(1.0, 0.42, 0.08)
@@ -121,8 +154,40 @@ func _ready() -> void:
 		return
 	_terrain_library = Terrain.instantiate()
 	_prepare_vertex_colors(_terrain_library)
+	_prepare_terrain_surfaces(_terrain_library)
+	_landmark_library = Landmarks.instantiate()
+	_prepare_vertex_colors(_landmark_library)
+	var vortex := _landmark_library.find_child("portal_vortex", true, false) as MeshInstance3D
+	var crystal := _landmark_library.find_child("core_crystal", true, false) as MeshInstance3D
+	if not vortex or not crystal:
+		_fail("공용 포탈·코어 GLB의 소용돌이·결정 노드를 찾지 못했습니다.")
+		return
+	# 타일별 복사본도 메시·재질을 공유하고 전투 시계만 한 번 전달.
+	_portal_material = ShaderMaterial.new()
+	_portal_material.shader = PortalVortex
+	vortex.material_override = _portal_material
+	vortex.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var has_crystal_shell := false
+	for surface in range(crystal.mesh.get_surface_count()):
+		var material := crystal.mesh.surface_get_material(surface) as StandardMaterial3D
+		if material and material.resource_name == "core_crystal_facets":
+			# 원본 면색·노멀·PBR 데이터를 보존하고 모든 타일이 한 재질을 공유.
+			var crystal_material := material.duplicate() as StandardMaterial3D
+			crystal_material.refraction_enabled = false
+			crystal_material.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
+			crystal.set_surface_override_material(surface, crystal_material)
+			has_crystal_shell = true
+	if not has_crystal_shell:
+		_fail("공용 코어 GLB의 결정 외피 재질을 찾지 못했습니다.")
+		return
+	crystal.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_dressing_library = Dressing.instantiate()
 	_prepare_vertex_colors(_dressing_library)
+	# 기존 표시 레이어 유지. 모든 PBR 소재는 공용 환경 반사를 수신.
+	for library: Node3D in [_terrain_library, _landmark_library, _dressing_library]:
+		for mesh: MeshInstance3D in library.find_children("*", "MeshInstance3D", true, false):
+			mesh.layers = 1 | REFLECTION_TERRAIN_LAYER
+	crystal.layers = REFLECTION_CRYSTAL_LAYER
 	var foliage := _dressing_library.find_child("stage1_dressing_foliage", true, false) as MeshInstance3D
 	if not foliage:
 		_fail("스테이지 1 환경 GLB의 풀 메시를 찾지 못했습니다.")
@@ -131,7 +196,7 @@ func _ready() -> void:
 	_foliage_material = ShaderMaterial.new()
 	_foliage_material.shader = FoliageWind
 	foliage.material_override = _foliage_material
-	foliage.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	foliage.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_DOUBLE_SIDED
 	foliage.extra_cull_margin = 0.03
 	var manifest = JSON.parse_string(FileAccess.get_file_as_string("res://assets/terrain_manifest.json"))
 	if not (manifest is Dictionary):
@@ -157,6 +222,8 @@ func _exit_tree() -> void:
 		RenderingServer.frame_pre_draw.disconnect(_report_presentation)
 	if is_instance_valid(_terrain_library):
 		_terrain_library.free()
+	if is_instance_valid(_landmark_library):
+		_landmark_library.free()
 	if is_instance_valid(_dressing_library):
 		_dressing_library.free()
 
@@ -225,6 +292,7 @@ func _apply_options() -> void:
 
 
 func _update_camera() -> void:
+	_update_camera_envelope()
 	var requested_mode: String = options["camera"]
 	if requested_mode != "drone":
 		requested_mode = "angled"
@@ -256,6 +324,7 @@ func _update_camera() -> void:
 
 
 func _fit_camera_to_frame() -> void:
+	_fit_camera_depth()
 	var visible_size := get_viewport().get_visible_rect().size
 	var logical_viewport: Array = last_frame.get("viewport", [])
 	var screen_center: Array = last_frame.get("screenCenter", [])
@@ -306,6 +375,82 @@ func _fit_camera_to_frame() -> void:
 	# 비대칭 직교 투영을 카메라 수평·수직 오프셋으로 표현.
 	camera.h_offset = center.x + (viewport.x / 2.0 - float(screen_center[0])) / ppu
 	camera.v_offset = center.y + (float(screen_center[1]) - viewport.y / 2.0) / ppu
+
+
+func _camera_mesh_bounds(node: Node3D, parent_pose := Transform3D.IDENTITY) -> AABB:
+	# 맵 생성·모델 캐시 준비 때만 순회. 매 프레임 메시를 조사하지 않는다.
+	var pose: Transform3D = parent_pose * node.transform
+	var bounds := AABB(pose.origin, Vector3.ZERO)
+	if node is MeshInstance3D:
+		bounds = pose * node.get_aabb()
+	for child in node.get_children():
+		if child is Node3D:
+			bounds = bounds.merge(_camera_mesh_bounds(child, pose))
+	return bounds
+
+
+func _update_camera_envelope() -> void:
+	if terrain.get_child_count() == 0:
+		return
+	if _camera_actor_bounds.size == Vector3.ZERO:
+		var models := AABB()
+		for library: Dictionary in [TURRET_MODELS, ENEMY_MODELS]:
+			for packed: PackedScene in library.values():
+				var model: Node3D = packed.instantiate()
+				models = models.merge(_camera_mesh_bounds(model))
+				model.free()
+		# 적·포탑이 모든 방향으로 회전해도 담는 수평 반경.
+		var radius := 0.0
+		for index in range(8):
+			var corner := models.get_endpoint(index)
+			radius = maxf(radius, Vector2(corner.x, corner.z).length())
+		_camera_actor_bounds = AABB(Vector3(-radius, models.position.y, -radius),
+			Vector3(radius * 2.0, models.size.y, radius * 2.0))
+	var terrain_id := terrain.get_child(0).get_instance_id()
+	if terrain_id != _camera_terrain_id:
+		_camera_terrain_id = terrain_id
+		_camera_enemy_scale = 1.0
+		_camera_impact_radius = 0.0
+		_camera_map_bounds = AABB(Vector3(-columns / 2.0, 0.0, -rows / 2.0), Vector3(columns, 0.0, rows))
+		_camera_map_bounds = _camera_map_bounds.merge(_camera_mesh_bounds(terrain).grow(0.05))
+	# 브리지의 실제 크기를 수용하고 효과가 끝나도 맵 수명 동안 범위를 유지한다.
+	# 발사·소멸마다 shadow map 범위가 왕복하는 것을 피한다.
+	for data: Array in last_frame.get("enemies", []):
+		_camera_enemy_scale = maxf(_camera_enemy_scale, absf(float(data[5])))
+	for data: Array in last_frame.get("impacts", []):
+		_camera_impact_radius = maxf(_camera_impact_radius, float(data[3]))
+	for key in ["turrets", "enemies", "projectiles", "impacts"]:
+		for data: Array in last_frame.get(key, []):
+			_camera_map_bounds = _camera_map_bounds.expand(Vector3(float(data[1]) - columns / 2.0, 0.0, float(data[2]) - rows / 2.0))
+			if key == "projectiles" and data.size() >= 12:
+				_camera_map_bounds = _camera_map_bounds.expand(Vector3(float(data[6]) - columns / 2.0, 0.0, float(data[7]) - rows / 2.0))
+				if data.size() >= 14 and data[12] != null and data[13] != null:
+					_camera_map_bounds = _camera_map_bounds.expand(Vector3(float(data[12]) - columns / 2.0, 0.0, float(data[13]) - rows / 2.0))
+	# 포구 연기는 총구에서 최대 0.37 전진 + 반길이 0.35, 위로 0.17 + 반폭 0.22.
+	# 1타일 여유는 포구 화염·반동·건설 미리보기의 0.12 부유도 포함한다.
+	var actor := AABB(_camera_actor_bounds.position * _camera_enemy_scale, _camera_actor_bounds.size * _camera_enemy_scale).grow(1.0)
+	# 1.10타일 예광과 포탄 코끝을 포함. 폭발은 godot_impact.gd의 전체 입자 AABB.
+	var horizontal := maxf(1.35, maxf(actor.end.x, 5.0 * _camera_impact_radius))
+	var low := minf(_camera_map_bounds.position.y, minf(actor.position.y, -0.25 * _camera_impact_radius))
+	var high := maxf(_camera_map_bounds.end.y, maxf(actor.end.y, 3.75 * _camera_impact_radius))
+	_camera_envelope = AABB(Vector3(_camera_map_bounds.position.x - horizontal, low, _camera_map_bounds.position.z - horizontal),
+		Vector3(_camera_map_bounds.size.x + 2.0 * horizontal, high - low, _camera_map_bounds.size.z + 2.0 * horizontal))
+
+
+func _fit_camera_depth() -> void:
+	if _camera_envelope.size == Vector3.ZERO:
+		return
+	# 직교 카메라는 sun.max_distance를 사용하지 않으므로 실제 수신 깊이를 제한.
+	# h/v_offset는 시선에 수직인 이동이어서 깊이에 영향을 주지 않는다.
+	var inverse := camera.global_transform.affine_inverse()
+	var nearest := INF
+	var farthest := -INF
+	for index in range(8):
+		var depth := -(inverse * _camera_envelope.get_endpoint(index)).z
+		nearest = minf(nearest, depth)
+		farthest = maxf(farthest, depth)
+	camera.near = maxf(0.05, nearest - CAMERA_DEPTH_MARGIN)
+	camera.far = maxf(camera.near + 1.0, farthest + CAMERA_DEPTH_MARGIN)
 
 
 func _update_camera_visuals() -> void:
@@ -365,11 +510,15 @@ func _apply_frame(frame: Dictionary) -> void:
 	_sync_build_preview(frame.get("buildPreview"))
 	_update_impacts(frame.get("impacts", []))
 	var time := float(frame.get("time", 0.0))
-	for portal in _portals:
-		var pulse := 1.0 + sin(time * 3.0) * (0.012 + float(frame.get("portalAlert", 0.0)) * 0.018)
-		portal.scale = Vector3(pulse, 1.0, pulse)
+	_portal_material.set_shader_parameter("battle_time", time)
+	_portal_material.set_shader_parameter("alert", clampf(float(frame.get("portalAlert", 0.0)), 0.0, 1.0))
+	var core_hit := clampf(float(frame.get("nexusHit", 0.0)), 0.0, 1.0)
 	for core in _cores:
-		core.scale = Vector3(1.0, 1.0 + sin(time * 2.5) * 0.012 + float(frame.get("nexusHit", 0.0)) * 0.025, 1.0)
+		var crystal: Node3D = core["crystal"]
+		# 석재 받침은 고정하고 결정만 원본 피벗에서 부유·회전.
+		crystal.position = core["rest_position"] + Vector3(0.0, sin(time * 2.5) * 0.018, 0.0)
+		crystal.basis = Basis(Vector3.UP, time * 0.22) * core["rest_basis"]
+		crystal.scale *= 1.0 + core_hit * 0.025
 
 
 func _clear_scene() -> void:
@@ -454,7 +603,8 @@ func _build_terrain(map: Dictionary) -> bool:
 			var foundation: Node3D = _terrain_library.find_child("path_tile", true, false).duplicate()
 			foundation.position = point
 			terrain.add_child(foundation)
-		var model := _terrain_library.find_child(names[tile], true, false)
+		var library := _landmark_library if tile == "spawn" or tile == "core" else _terrain_library
+		var model := library.find_child(names[tile], true, false)
 		if not model:
 			_fail("지형 GLB 노드를 찾지 못했습니다: %s" % names[tile])
 			return false
@@ -464,10 +614,24 @@ func _build_terrain(map: Dictionary) -> bool:
 		if tile == "spawn":
 			_portals.append(instance)
 		elif tile == "core":
-			_cores.append(instance)
+			var crystal := instance.find_child("core_crystal", true, false) as Node3D
+			_cores.append({"root": instance, "crystal": crystal, "rest_position": crystal.position, "rest_basis": crystal.basis})
 	# JSON 숫자형까지 보존해 같은 맵을 매 프레임 재생성하지 않음.
 	_current_map = map.duplicate(true)
 	return true
+
+
+func _prepare_terrain_surfaces(model: Node) -> void:
+	# 원본 atlas의 색·노멀 유지. 틈의 AO와 비스듬한 시점의 필터만 설정.
+	for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+		for surface in range(mesh.mesh.get_surface_count()):
+			var material := mesh.get_active_material(surface) as StandardMaterial3D
+			if material == null:
+				continue
+			material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+			if material.resource_name.begins_with("stage1_authored_"):
+				material.ao_light_affect = 0.8
+				material.normal_scale = 1.2 if material.resource_name.ends_with("build") else 1.0
 
 
 func _prepare_vertex_colors(model: Node) -> void:

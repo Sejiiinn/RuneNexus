@@ -36,8 +36,9 @@ func _check_camera(shot: Dictionary, camera: Camera3D) -> void:
 	var inverse := smoke.global_transform.affine_inverse()
 	var ray: Vector3 = material.get_shader_parameter("u_ray_direction")
 	var eye: Vector3 = material.get_shader_parameter("u_camera_local")
-	_check(ray.is_equal_approx(inverse.basis * -camera.global_basis.z), "카메라 전환 중 연기 볼륨의 광선 방향 불일치")
-	_check(eye.is_equal_approx(inverse * camera.global_position), "카메라 전환 중 연기 볼륨의 시점 위치 불일치")
+	var pose := camera.get_camera_transform()
+	_check(ray.is_equal_approx(inverse.basis * -pose.basis.z), "카메라 전환 중 연기 볼륨의 광선 방향 불일치")
+	_check(eye.is_equal_approx(inverse * pose.origin), "HUD 오프셋을 포함한 연기 볼륨의 시점 위치 불일치")
 	_check(material.get_shader_parameter("u_orthographic") == true, "직교 카메라의 연기 볼륨 투영 모드 누락")
 
 

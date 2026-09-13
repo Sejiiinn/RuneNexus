@@ -2,6 +2,8 @@ shader_type spatial;
 render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, fog_disabled;
 
 uniform sampler3D u_noise : filter_linear, repeat_disable;
+uniform sampler2D u_scene_depth : hint_depth_texture, filter_nearest, repeat_disable;
+uniform mat4 u_view_to_local;
 uniform float u_progress = 1.0;
 uniform float u_seed = 0.0;
 uniform vec3 u_ray_direction = vec3(0.0, -1.0, 0.0);
@@ -25,6 +27,18 @@ void fragment() {
 	vec3 b = (vec3(0.5) - origin) * inverse_direction;
 	vec3 exits = max(a, b);
 	float ray_length = max(0.0, min(exits.x, min(exits.y, exits.z)));
+	// 포신·적·돌 뒤쪽의 체적을 적분하지 않는다. 추가 표본은 픽셀당 깊이 한 번.
+	float scene_depth = texture(u_scene_depth, SCREEN_UV).r;
+	vec3 scene_ndc = vec3(SCREEN_UV * 2.0 - 1.0, scene_depth);
+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY
+	scene_ndc.z = scene_depth * 2.0 - 1.0;
+#endif
+	vec4 scene_view = INV_PROJECTION_MATRIX * vec4(scene_ndc, 1.0);
+	vec3 scene_local = (u_view_to_local * vec4(scene_view.xyz / scene_view.w, 1.0)).xyz;
+	ray_length = min(ray_length, dot(scene_local - origin, direction));
+	if (ray_length <= 0.0) {
+		discard;
+	}
 	float step_size = ray_length / 16.0;
 	float opacity = 0.0;
 	vec3 color = vec3(0.0);

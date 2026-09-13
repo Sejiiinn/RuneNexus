@@ -3,6 +3,8 @@ render_mode unshaded, blend_mix, depth_draw_never, cull_disabled, fog_disabled;
 
 // 색상 텍스처가 아닌 RGBA8 물리량. 공간 선형 보간, 시간 블록 경계 반복 금지.
 uniform sampler3D u_field : filter_linear, repeat_disable;
+uniform sampler2D u_scene_depth : hint_depth_texture, filter_nearest, repeat_disable;
+uniform mat4 u_view_to_local;
 uniform vec3 u_field_frame_0;
 uniform vec3 u_field_frame_1;
 uniform vec3 u_field_uv_scale;
@@ -83,6 +85,16 @@ void fragment() {
 	vec3 far_plane = max(a, b);
 	float begin = max(0.0, max(near_plane.x, max(near_plane.y, near_plane.z)));
 	float end = min(far_plane.x, min(far_plane.y, far_plane.z));
+	// 박스 입구의 깊이 검사만으로는 안쪽 지형·적 뒤의 연기까지 합성된다.
+	// 한 번 읽은 불투명 장면 깊이에서 적분을 끝내 착탄이 돌 표면에 맞물리게 한다.
+	float scene_depth = texture(u_scene_depth, SCREEN_UV).r;
+	vec3 scene_ndc = vec3(SCREEN_UV * 2.0 - 1.0, scene_depth);
+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY
+	scene_ndc.z = scene_depth * 2.0 - 1.0;
+#endif
+	vec4 scene_view = INV_PROJECTION_MATRIX * vec4(scene_ndc, 1.0);
+	vec3 scene_local = (u_view_to_local * vec4(scene_view.xyz / scene_view.w, 1.0)).xyz;
+	end = min(end, dot(scene_local - origin, direction));
 	if (end <= begin) {
 		discard;
 	}

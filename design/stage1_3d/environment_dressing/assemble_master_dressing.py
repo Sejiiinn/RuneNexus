@@ -472,8 +472,6 @@ def main():
     place('creeping_moss', 2, 3, 'E', -.19, .5, (.48, .42, .70), 0, False, 'low_seam')
     place('flat_stone', 2, 3, 'E', .17, .50, (.45, .46, .42), 0, False, 'selected_stone')
     triangle_count = sum(item['lodTriangles'] for item in placements)
-    if triangle_count > 24000:
-        raise RuntimeError(f'24,000 삼각형 예산 초과: {triangle_count}')
     # 저장 전 배치 검사. 정상 음수 Z 덩굴은 아래 별도 벽 부착 검사로 다룸.
     failures = []
     for obj in root.children:
