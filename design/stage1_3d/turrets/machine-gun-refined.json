@@ -1,0 +1,11 @@
+{
+  "bytes": 2487368,
+  "triangles": 12076,
+  "source": "drawMachineGunTurretShape",
+  "root": "turret_root",
+  "head": "turret_head",
+  "barrel": "turret_barrel",
+  "muzzle": "muzzle",
+  "forward": "+Z glTF",
+  "up": "+Y glTF"
+}

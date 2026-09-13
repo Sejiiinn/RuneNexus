@@ -1,0 +1,508 @@
+part of 'stage1_scene.dart';
+
+/// 포탄 파열: 하나의 입체 먼지장, 짧은 중심 화염, 탄도로 분리되는 금속 조각.
+class _CannonImpactVisual {
+  _CannonImpactVisual(three.Data3DTexture noise) {
+    volume =
+        three.Mesh(
+            three.BoxGeometry(2, 2, 2),
+            three.ShaderMaterial.fromMap({
+              'uniforms': {
+                'uNoise': {'value': noise},
+                'uAge': {'value': 0.0},
+                'uProgress': {'value': 0.0},
+                'uAngle': {'value': 0.0},
+                'uOrthographic': {'value': 1.0},
+                'uCameraInside': {'value': 0.0},
+                'uCameraLocal': {'value': three.Vector3()},
+                'uRayDirection': {'value': three.Vector3(0, -1, 0)},
+                'uLightDirection': {'value': three.Vector3(-0.70, 0.45, 0.55)},
+              },
+              'vertexShader': _volumeVertex,
+              'fragmentShader': _volumeFragment,
+              'transparent': true,
+              'depthWrite': false,
+              'side': three.DoubleSide,
+              'toneMapped': true,
+            }),
+          )
+          ..name = 'cannon_impact_volume'
+          ..frustumCulled = false;
+    // 패키지의 map setter에는 없는 공개 속성. 양면 볼륨 중복 패스 방지.
+    volume.material!.forceSinglePass = true;
+    sparks =
+        three.InstancedMesh(
+            _sparkGeometry(),
+            three.MeshBasicMaterial.fromMap({
+              'color': three.Color(6.0, 1.45, 0.14),
+              'toneMapped': true,
+            }),
+            _sparkCount,
+          )
+          ..name = 'cannon_impact_sparks'
+          ..frustumCulled = false;
+    fragments =
+        three.InstancedMesh(
+            _fragmentGeometry(),
+            three.MeshStandardMaterial.fromMap({
+              'color': three.Color(0.019, 0.020, 0.021),
+              'metalness': 0.48,
+              'roughness': 0.72,
+              // 렌더러의 intensity 0 처리와 무관하게 자체 발광 제거.
+              'emissive': 0x000000,
+              'emissiveIntensity': 0.0,
+            }),
+            _fragmentCount,
+          )
+          ..name = 'cannon_impact_fragments'
+          ..frustumCulled = false;
+    root.add(volume);
+    root.add(sparks);
+    root.add(fragments);
+    final random = math.Random(1404);
+    for (var index = 0; index < _sparkCount + _fragmentCount; index++) {
+      final spark = index < _sparkCount;
+      // 굵은 파편 일부와 많은 작은 조각의 비대칭 크기 분포.
+      final large = !spark && index % 5 == 0;
+      _particles.add((
+        angle: random.nextDouble() * math.pi * 2,
+        speed: spark
+            ? 1.8 + random.nextDouble() * 3.8
+            : 1.4 + random.nextDouble() * 3.1,
+        rise: spark
+            ? 1.2 + random.nextDouble() * 3.6
+            : 1.3 + random.nextDouble() * 3.1,
+        death: spark
+            ? 0.19 + random.nextDouble() * 0.39
+            : 0.65 + random.nextDouble() * 0.43,
+        delay: random.nextDouble() * 0.018,
+        width: spark
+            ? 0.0025 + random.nextDouble() * 0.0035
+            : large
+            ? 0.12 + random.nextDouble() * 0.06
+            : 0.032 + random.nextDouble() * 0.052,
+        length: 0.045 + random.nextDouble() * 0.085,
+        stretch: 0.55 + random.nextDouble() * 1.1,
+        spin: 3.0 + random.nextDouble() * 8.0,
+      ));
+    }
+  }
+
+  // 전장당 한 번 생성하는 32³ 난류 조회표. 모든 동시 폭발과 재사용 풀에서 공유.
+  static three.Data3DTexture createNoiseTexture() {
+    const side = 32;
+    final random = math.Random(9041);
+    final data = Uint8List(side * side * side);
+    for (var index = 0; index < data.length; index++) {
+      data[index] = random.nextInt(256);
+    }
+    return three.Data3DTexture(data, side, side, side)
+      ..format = three.RedFormat
+      ..type = three.UnsignedByteType
+      ..wrapS = three.RepeatWrapping
+      ..wrapT = three.RepeatWrapping
+      ..wrapR = three.RepeatWrapping
+      ..needsUpdate = true;
+  }
+
+  static const _sparkCount = 56;
+  static const _fragmentCount = 34;
+  // 게임 타일 반경 단위의 고정 적분 경계. 실제 분출 크기는 밀도장에서 성장.
+  static const _halfWidth = 2.35;
+  static const _halfHeight = 1.45;
+  final root = three.Group()..name = 'cannon_impact';
+  late final three.Mesh volume;
+  late final three.InstancedMesh sparks;
+  late final three.InstancedMesh fragments;
+  final _transform = three.Object3D();
+  final _direction = three.Vector3();
+  final _forward = three.Vector3(0, 0, 1);
+  final _inverse = three.Matrix4.identity();
+  final _particles =
+      <
+        ({
+          double angle,
+          double speed,
+          double rise,
+          double death,
+          double delay,
+          double width,
+          double length,
+          double stretch,
+          double spin,
+        })
+      >[];
+
+  static three.BufferGeometry _sparkGeometry() {
+    const points = [
+      [-1.0, 0.0, 0.0],
+      [1.0, 0.0, 0.0],
+      [0.0, -1.0, 0.0],
+      [0.0, 1.0, 0.0],
+      [0.0, 0.0, -0.5],
+      [0.0, 0.0, 0.5],
+    ];
+    final geometry = three.BufferGeometry();
+    geometry.setAttributeFromString(
+      'position',
+      three.Float32BufferAttribute.fromList([
+        for (final i in [
+          0,
+          3,
+          5,
+          3,
+          1,
+          5,
+          1,
+          2,
+          5,
+          2,
+          0,
+          5,
+          3,
+          0,
+          4,
+          1,
+          3,
+          4,
+          2,
+          1,
+          4,
+          0,
+          2,
+          4,
+        ])
+          ...points[i],
+      ], 3),
+    );
+    geometry.computeVertexNormals();
+    return geometry;
+  }
+
+  static three.BufferGeometry _fragmentGeometry() {
+    // 찢어진 외곽과 두께가 다른 앞뒷면. 삼각형별 법선으로 파단면을 보존.
+    const rim = [
+      [-0.95, -0.50],
+      [-0.20, -0.90],
+      [0.78, -0.64],
+      [0.53, -0.08],
+      [1.0, 0.61],
+      [0.19, 0.38],
+      [-0.35, 0.91],
+      [-0.70, 0.19],
+    ];
+    final positions = <double>[];
+    for (var index = 0; index < rim.length; index++) {
+      final a = rim[index];
+      final b = rim[(index + 1) % rim.length];
+      final frontA = [a[0], a[1], 0.12 + (index % 3) * 0.045];
+      final frontB = [b[0], b[1], 0.12 + ((index + 1) % 3) * 0.045];
+      final backA = [a[0] * 0.87, a[1] * 0.94, -0.17];
+      final backB = [b[0] * 0.87, b[1] * 0.94, -0.17];
+      positions.addAll([
+        0.04,
+        -0.03,
+        0.36,
+        ...frontA,
+        ...frontB,
+        -0.07,
+        0.04,
+        -0.21,
+        ...backB,
+        ...backA,
+        ...frontA,
+        ...backA,
+        ...backB,
+        ...frontA,
+        ...backB,
+        ...frontB,
+      ]);
+    }
+    final geometry = three.BufferGeometry();
+    geometry.setAttributeFromString(
+      'position',
+      three.Float32BufferAttribute.fromList(positions, 3),
+    );
+    geometry.computeVertexNormals();
+    return geometry;
+  }
+
+  void update(BattlefieldImpact impact, three.Camera camera) {
+    final progress = impact.progress.clamp(0.0, 1.0);
+    final age = progress * BattlefieldImpact.duration;
+    final radius = math.max(impact.radius, 0.001);
+    final angle = (impact.id % 23) * 0.317;
+    root.visible = progress < 1;
+    volume.visible = progress < 1;
+    sparks.visible = age < 0.6;
+    fragments.visible = progress < 1;
+    volume.position.setValues(0, _halfHeight * radius, 0);
+    volume.scale.setValues(
+      _halfWidth * radius,
+      _halfHeight * radius,
+      _halfWidth * radius,
+    );
+    root.updateWorldMatrix(true, true);
+    _inverse.setFrom(volume.matrixWorld).invert();
+    final uniforms = volume.material!.uniforms;
+    uniforms['uAge']['value'] = age;
+    uniforms['uProgress']['value'] = progress;
+    uniforms['uAngle']['value'] = angle;
+    uniforms['uOrthographic']['value'] = camera is three.OrthographicCamera
+        ? 1.0
+        : 0.0;
+    final cameraLocal = uniforms['uCameraLocal']['value'] as three.Vector3;
+    cameraLocal
+        .setFromMatrixPosition(camera.matrixWorld)
+        .applyMatrix4(_inverse);
+    uniforms['uCameraInside']['value'] =
+        cameraLocal.x.abs() < 1 &&
+            cameraLocal.y.abs() < 1 &&
+            cameraLocal.z.abs() < 1
+        ? 1.0
+        : 0.0;
+    camera.getWorldDirection(uniforms['uRayDirection']['value']);
+    (uniforms['uRayDirection']['value'] as three.Vector3).transformDirection(
+      _inverse,
+    );
+
+    // 매 프레임 모든 변환을 기록하여 회수·다른 반경 재사용·시간 되감기 대응.
+    for (var index = 0; index < _particles.length; index++) {
+      final particle = _particles[index];
+      final spark = index < _sparkCount;
+      final mesh = spark ? sparks : fragments;
+      final slot = spark ? index : index - _sparkCount;
+      final time = math.max(0.0, age - particle.delay);
+      final drag = spark ? 1.8 : 0.75;
+      final travel = (1 - math.exp(-drag * time)) / drag;
+      final gravity = spark ? 4.8 : 5.4;
+      final height = 0.055 + particle.rise * time - gravity * time * time;
+      final heading = particle.angle + angle;
+      final vx = math.cos(heading) * particle.speed;
+      final vz = math.sin(heading) * particle.speed;
+      _transform.position.setValues(
+        vx * travel * radius,
+        height * radius,
+        vz * travel * radius,
+      );
+      if (age < particle.delay ||
+          time > particle.death ||
+          height < 0.014 ||
+          progress >= 1) {
+        _transform.scale.setValues(0, 0, 0);
+      } else if (spark) {
+        _direction.setValues(
+          vx * math.exp(-drag * time),
+          particle.rise - 2 * gravity * time,
+          vz * math.exp(-drag * time),
+        );
+        _direction.normalize();
+        _transform.quaternion.setFromUnitVectors(_forward, _direction);
+        _transform.scale.setValues(
+          particle.width * radius,
+          particle.width * radius,
+          particle.length * (1 - time / particle.death) * radius,
+        );
+      } else {
+        _transform.rotation.set(
+          time * particle.spin + index,
+          time * particle.spin * 0.73,
+          time * particle.spin * 1.31,
+        );
+        final fade = ((particle.death - time) / 0.11).clamp(0.0, 1.0);
+        _transform.scale.setValues(
+          particle.width * radius * fade,
+          particle.width * particle.stretch * radius * fade,
+          particle.width * radius * fade,
+        );
+      }
+      _transform.updateMatrix();
+      mesh.setMatrixAt(slot, _transform.matrix);
+    }
+    sparks.instanceMatrix!.needsUpdate = true;
+    fragments.instanceMatrix!.needsUpdate = true;
+  }
+
+  static const _volumeVertex = '''
+varying vec3 vVolumePosition;
+void main() {
+  vVolumePosition = position;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+''';
+
+  static const _volumeFragment = '''
+uniform sampler3D uNoise;
+uniform float uAge;
+uniform float uProgress;
+uniform float uAngle;
+uniform float uOrthographic;
+uniform float uCameraInside;
+uniform vec3 uCameraLocal;
+uniform vec3 uRayDirection;
+uniform vec3 uLightDirection;
+varying vec3 vVolumePosition;
+const vec3 HALF_EXTENT = vec3(2.35,1.45,2.35);
+
+float hash3(vec3 p) {
+  p = fract(p * 0.1031);
+  p += dot(p, p.yzx + 33.33);
+  return fract((p.x + p.y) * p.z);
+}
+float noise3(vec3 p) {
+  vec3 i = floor(p), f = fract(p);
+  f = f*f*f*(f*(f*6.0-15.0)+10.0);
+  // 하드웨어 삼선형 보간에 기존 5차 곡선을 적용하여 입체 노이즈의 부드러움 유지.
+  return texture(uNoise,(i+f+0.5)/32.0).r;
+}
+float folds(vec3 p) {
+  const mat3 turn = mat3(0.0,0.8,0.6,-0.8,0.36,-0.48,-0.6,-0.48,0.64);
+  return noise3(p)*0.58+noise3(turn*p*2.13+7.1)*0.28
+    +noise3(turn*p*4.37+19.3)*0.14;
+}
+vec3 jetDirection(int i) {
+  if(i==0) return normalize(vec3(1.0,0.32,0.12));
+  if(i==1) return normalize(vec3(0.68,0.68,0.73));
+  if(i==2) return normalize(vec3(0.12,0.40,1.0));
+  if(i==3) return normalize(vec3(-0.49,0.77,0.81));
+  if(i==4) return normalize(vec3(-0.96,0.27,0.30));
+  if(i==5) return normalize(vec3(-0.84,0.55,-0.43));
+  if(i==6) return normalize(vec3(-0.22,0.36,-0.98));
+  if(i==7) return normalize(vec3(0.37,0.92,-0.76));
+  if(i==8) return normalize(vec3(0.86,0.24,-0.64));
+  return normalize(vec3(0.14,1.0,0.18));
+}
+
+// 밀도와 발광을 같은 3D 입자장에서 계산. 화면 평면 윤곽은 사용하지 않음.
+vec3 field(vec3 p) {
+  float grow = 1.0-exp(-uAge*10.0);
+  float reach = 0.12+2.10*grow;
+  float ageFade = 1.0-smoothstep(0.48,1.1,uAge);
+  float appear = smoothstep(0.0,0.018,uAge);
+  vec3 flow = p*3.1+vec3(0.0,-uAge*1.6,0.0);
+  vec3 warp = vec3(noise3(flow),noise3(flow+vec3(11,3,7)),
+                  noise3(flow+vec3(4,17,2)))-0.5;
+  vec3 q = p+warp*(0.055+0.16*grow);
+  float c=cos(uAngle),s=sin(uAngle);
+  q.xz=mat2(c,-s,s,c)*q.xz;
+  float grain=folds(q*8.0+vec3(0.0,-uAge*2.8,0.0));
+  float jets=0.0;
+  float fireJets=0.0;
+  float outerJets=0.0;
+  float disperse=smoothstep(0.18,0.68,uAge);
+  for(int j=0;j<10;j++) {
+    vec3 axis=jetDirection(j);
+    float lengthScale=0.83+0.17*fract(float(j)*0.618+0.31);
+    float along=dot(q-vec3(0.0,0.045,0.0),axis);
+    float t=along/(reach*lengthScale);
+    vec3 radial=q-vec3(0.0,0.045,0.0)-axis*along;
+    float width=(0.085+0.34*clamp(t,0.0,1.0))*(0.38+0.62*grow);
+    float lobes=0.76+0.31*sin(t*17.0+float(j)*2.1);
+    // 바깥 아홉 분출의 길이만 축소. 중앙 상승 연기와 파편 탄도는 유지.
+    float smokeT=t/(j<9 ? 0.85 : 1.0);
+    // 끝으로 갈수록 좁아지는 분출: 주기적인 구형 마디 대신 찢어진 가는 꼬리.
+    float tip=smoothstep(0.36,0.98,smokeT);
+    float taper=1.0-0.78*tip;
+    float smokeJet=max(0.0,1.0-length(radial)/(width*taper));
+    smokeJet*=smoothstep(-0.06,0.05,t);
+    if(j<9) {
+      // 후기 분출은 구형 마디를 풀고 난류 방향으로 퍼지며 가장자리부터 침식.
+      vec3 scattered=radial+warp*disperse*(0.45+0.80*clamp(t,0.0,1.0));
+      float diffuseWidth=width*taper*(1.0+0.45*disperse);
+      smokeJet=max(0.0,1.0-length(scattered)/diffuseWidth);
+      smokeJet=max(0.0,smokeJet-disperse*(0.12+grain*0.48));
+      smokeJet*=smoothstep(-0.06,0.05,t);
+    }
+    smokeJet=max(0.0,smokeJet-tip*(0.12+grain*0.42));
+    smokeJet*=1.0-smoothstep(0.68,1.0,smokeT);
+    if(j<9) outerJets=max(outerJets,smokeJet);
+    else jets=max(jets,smokeJet);
+    if(uAge<0.30 && (j==0 || j==3 || j==5 || j==8)) {
+      // 연기와 독립적인 화염 폭으로 가려지는 뿌리 부분을 조금 더 노출.
+      float flameJet=max(0.0,1.0-length(radial)/(width*lobes*1.32));
+      flameJet*=smoothstep(-0.06,0.05,t)*(1.0-smoothstep(0.84,1.0,t));
+      fireJets=max(fireJets,flameJet*(1.0-smoothstep(0.462,1.144,along)));
+    }
+  }
+  float coreWidth=0.14+0.46*grow;
+  float coreHeight=0.21+0.64*grow;
+  vec3 corePos=q-vec3(-0.05,0.21+0.24*grow+uAge*0.12,0.025);
+  float core=max(0.0,1.0-length(corePos/vec3(coreWidth,coreHeight,coreWidth*0.88)));
+  float dirt=max(0.0,jets+(grain-0.5)*0.72);
+  // 노이즈만으로 빈 공간이 채워지지 않도록 분출 영역을 먼저 제한.
+  dirt*=smoothstep(0.0,0.13,jets);
+  // 난류 명암 뒤에 감쇠 적용: 양의 노이즈가 사라지는 바깥 연기를 다시 채우지 않도록 제한.
+  float outerDirt=max(0.0,outerJets+(grain-0.5)*0.72);
+  outerDirt*=smoothstep(0.0,0.13,outerJets)*(1.0-0.96*disperse);
+  dirt=max(dirt,outerDirt);
+  float smoke=max(0.0,core+(grain-0.5)*0.50)*smoothstep(0.0,0.10,core);
+  float density=(dirt*18.0+smoke*18.0)*ageFade*appear;
+  float fireLife=(1.0-smoothstep(0.12,0.30,uAge))*appear;
+  float heat=clamp((grain-0.30)*3.3,0.0,1.0);
+  float burning=clamp(fireJets*fireLife*2.6,0.0,1.0);
+  // 뜨거운 분출 통로는 회색 먼지보다 희박하여 내부 화염을 가리지 않음.
+  density*=1.0-burning*0.82;
+  float emission=fireJets*pow(heat,1.8)*24.0*fireLife;
+  // 짧고 작은 기폭 섬광. 넓은 흰 구체가 되지 않도록 반경·수명 제한.
+  float flash=max(0.0,1.0-length(p-vec3(0,0.07,0))/0.085)
+    *(1.0-smoothstep(0.008,0.055,uAge));
+  emission+=flash*35.0;
+  density+=flash*5.0;
+  return vec3(density,emission,heat);
+}
+
+void main() {
+  if(uProgress>=1.0) discard;
+  // 외부 카메라는 입구면, 내부 카메라는 출구면을 한 번만 렌더.
+  if(uCameraInside<0.5 && !gl_FrontFacing) discard;
+  if(uCameraInside>0.5 && gl_FrontFacing) discard;
+  vec3 direction=uOrthographic>0.5 ? normalize(uRayDirection)
+    : normalize(vVolumePosition-uCameraLocal);
+  vec3 origin=uOrthographic>0.5 ? vVolumePosition-direction*4.0 : uCameraLocal;
+  vec3 safeDirection=sign(direction)*max(abs(direction),vec3(0.00001));
+  safeDirection+=vec3(equal(safeDirection,vec3(0.0)))*0.00001;
+  vec3 a=(-vec3(1.0)-origin)/safeDirection;
+  vec3 b=( vec3(1.0)-origin)/safeDirection;
+  vec3 nearPlane=min(a,b),farPlane=max(a,b);
+  float begin=max(0.0,max(nearPlane.x,max(nearPlane.y,nearPlane.z)));
+  float end=min(farPlane.x,min(farPlane.y,farPlane.z));
+  if(end<=begin) discard;
+  float stepSize=(end-begin)/32.0;
+  float metricStep=length(direction*HALF_EXTENT)*stepSize;
+  float jitter=hash3(vec3(gl_FragCoord.xy,17.0));
+  vec3 radiance=vec3(0.0);
+  float transmission=1.0;
+  vec3 light=normalize(uLightDirection);
+  float illumination=0.5;
+  int shadowStep=-4;
+  for(int i=0;i<32;i++) {
+    vec3 local=origin+direction*(begin+(float(i)+jitter)*stepSize);
+    vec3 p=local*HALF_EXTENT+vec3(0,HALF_EXTENT.y,0);
+    if(p.y<0.012) continue;
+    vec3 sampleField=field(p);
+    float density=sampleField.x;
+    if(density<0.005) continue;
+    if(i-shadowStep>=4) {
+      // 완만한 자체 그림자는 네 적분 구간에서 재사용. 단일 광로의 중간 밀도로 차폐 근사.
+      shadowStep=i;
+      float shadowDensity=field(p+light*0.24).x;
+      illumination=0.10+1.15*exp(-shadowDensity*0.63);
+    }
+    vec3 ash=mix(vec3(0.068,0.048,0.030),vec3(0.053,0.050,0.044),
+      smoothstep(0.25,0.9,p.y));
+    ash*=mix(0.60,1.35,sampleField.z);
+    vec3 flame=mix(vec3(1.0,0.018,0.0003),vec3(1.0,0.15,0.006),sampleField.z);
+    vec3 source=ash*illumination+flame*sampleField.y/max(density,0.001);
+    float opacity=1.0-exp(-density*metricStep);
+    radiance+=transmission*opacity*source;
+    transmission*=1.0-opacity;
+    if(transmission<0.015) break;
+  }
+  float alpha=1.0-transmission;
+  if(alpha<0.003) discard;
+  gl_FragColor=vec4(radiance/max(alpha,0.001),alpha);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+}
+''';
+}

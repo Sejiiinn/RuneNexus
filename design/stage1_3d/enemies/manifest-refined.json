@@ -1,0 +1,32 @@
+{
+  "normal": {
+    "bytes": 310436,
+    "width": 1,
+    "triangles": 971
+  },
+  "armored": {
+    "bytes": 308656,
+    "width": 1,
+    "triangles": 953
+  },
+  "shielded": {
+    "bytes": 309812,
+    "width": 1,
+    "triangles": 971
+  },
+  "fast": {
+    "bytes": 309868,
+    "width": 1,
+    "triangles": 971
+  },
+  "tank": {
+    "bytes": 309212,
+    "width": 1,
+    "triangles": 959
+  },
+  "boss": {
+    "bytes": 311716,
+    "width": 1,
+    "triangles": 983
+  }
+}

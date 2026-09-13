@@ -1,0 +1,86 @@
+{
+  "arrow": {
+    "bytes": 64524,
+    "muzzleLocalBlender": [
+      0.0,
+      -0.5400000214576721,
+      0.18000000715255737
+    ],
+    "headLocalBlender": [
+      0.0,
+      0.0,
+      0.27000001072883606
+    ],
+    "triangles": 840
+  },
+  "sniper": {
+    "bytes": 85032,
+    "muzzleLocalBlender": [
+      0.0,
+      -0.5299999713897705,
+      0.18000000715255737
+    ],
+    "headLocalBlender": [
+      0.0,
+      0.0,
+      0.27000001072883606
+    ],
+    "triangles": 1048
+  },
+  "magic": {
+    "bytes": 43864,
+    "muzzleLocalBlender": [
+      0.0,
+      -0.41999998688697815,
+      0.2199999988079071
+    ],
+    "headLocalBlender": [
+      0.0,
+      0.0,
+      0.27000001072883606
+    ],
+    "triangles": 528
+  },
+  "lightning": {
+    "bytes": 52412,
+    "muzzleLocalBlender": [
+      0.0,
+      -0.550000011920929,
+      0.1899999976158142
+    ],
+    "headLocalBlender": [
+      0.0,
+      0.0,
+      0.27000001072883606
+    ],
+    "triangles": 812
+  },
+  "frost": {
+    "bytes": 77560,
+    "muzzleLocalBlender": [
+      0.0,
+      0.0,
+      0.4300000071525574
+    ],
+    "headLocalBlender": [
+      0.0,
+      0.0,
+      0.25999999046325684
+    ],
+    "triangles": 792
+  },
+  "cannon": {
+    "bytes": 1075372,
+    "muzzleLocalBlender": [
+      0.0,
+      -0.6399999856948853,
+      0.27000001072883606
+    ],
+    "headLocalBlender": [
+      0.0,
+      0.0,
+      0.30000001192092896
+    ],
+    "triangles": 11452
+  }
+}

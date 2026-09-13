@@ -1,0 +1,26 @@
+{
+  "material": "cannon_matte_orange.001",
+  "before": {
+    "baseColorTexture": {
+      "index": 3
+    },
+    "metallicFactor": 0.02500000037252903,
+    "roughnessFactor": 0.8899999856948853
+  },
+  "after": {
+    "baseColorTexture": {
+      "index": 3
+    },
+    "metallicFactor": 0.02500000037252903,
+    "roughnessFactor": 0.8899999856948853,
+    "baseColorFactor": [
+      0.82,
+      0.96,
+      1.0,
+      1.0
+    ]
+  },
+  "binaryChunkSha256": "362ecdbdec50524647ced4f4b5e8db4ac13dab58e07ce8becd5e40b521bb8523",
+  "binaryChunkUnchanged": true,
+  "bytes": 1075412
+}
