@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:rune_nexus/data/settings/graphics_settings.dart';
+import 'package:rune_nexus/ui/settings/graphics_settings_scope.dart';
+
 import 'package:flutter/services.dart';
 import 'package:rune_nexus/ui/hud/godot_battlefield_view.dart';
 
@@ -14,6 +17,13 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     final messenger = tester.binding.defaultBinaryMessenger;
+    final graphics = GraphicsSettingsController(
+      repository: _GraphicsRepository(),
+    );
+    await graphics.load();
+    addTearDown(graphics.dispose);
+    var msaa = -1;
+    var shadowSize = -1;
     var camera = 'angled';
     var nativeLevels = false;
     var transitioning = false;
@@ -35,6 +45,8 @@ void main() {
         case 'setOptions':
           final options = jsonDecode(call.arguments as String) as Map;
           camera = options['camera'] as String;
+          msaa = options['msaa_samples'] as int;
+          shadowSize = options['shadow_map_size'] as int;
           nativeLevels = options['turret_levels'] == true;
           return null;
         case 'submitFrame':
@@ -69,8 +81,11 @@ void main() {
     });
     final game = RuneNexusGame(saveRepository: MemorySaveRepository());
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(body: GameHud(game: game)),
+      GraphicsSettingsScope(
+        controller: graphics,
+        child: MaterialApp(
+          home: Scaffold(body: GameHud(game: game)),
+        ),
       ),
     );
     await tester.runAsync(
@@ -79,6 +94,8 @@ void main() {
     game.startStage(1);
     await pumpGameFrames(tester, frameCount: 40);
     expect(find.byType(GodotBattlefieldView), findsOneWidget);
+    expect(msaa, 0);
+    expect(shadowSize, 512);
     expect(find.text('고정 시점'), findsOneWidget);
     expect(find.text('드론 시점'), findsOneWidget);
     expect(game.battlefieldProjection, isNotNull);
@@ -124,6 +141,12 @@ void main() {
     await tester.tap(find.text('드론 시점'));
     await pumpGameFrames(tester);
     expect(camera, 'drone');
+    expect(msaa, 0);
+    expect(shadowSize, 512);
+    await graphics.update(const GraphicsSettings());
+    await pumpGameFrames(tester);
+    expect(msaa, 2);
+    expect(shadowSize, 2048);
     expect(
       game.battlefieldProjection!.origin.dx,
       closeTo(viewSize.width * .12, .001),
@@ -190,4 +213,13 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     expect(tester.takeException(), isNull);
   }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+}
+
+class _GraphicsRepository implements GraphicsSettingsRepository {
+  @override
+  Future<GraphicsSettings?> load() async =>
+      const GraphicsSettings(msaaSamples: 0, shadowMapSize: 512);
+
+  @override
+  Future<void> save(GraphicsSettings settings) async {}
 }

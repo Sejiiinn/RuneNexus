@@ -383,6 +383,10 @@ class _MainLobby extends StatelessWidget {
       builder: (context) => _LobbyDialog(
         title: '설정',
         children: [
+          if (GraphicsSettingsScope.maybeOf(context) case final settings?) ...[
+            GraphicsSettingsControls(controller: settings),
+            const SizedBox(height: 20),
+          ],
           _LobbyStageButton(
             label: context.l10n.accountAndSave,
             onPressed: () => Navigator.of(context).pop(true),

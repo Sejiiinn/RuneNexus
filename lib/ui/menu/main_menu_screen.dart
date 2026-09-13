@@ -32,6 +32,8 @@ import '../../game/systems/run_progression.dart';
 import '../../l10n/rune_nexus_localizations.dart';
 import '../game/game_ui.dart';
 import '../widgets/rune_balance_card.dart';
+import '../settings/graphics_settings_scope.dart';
+import '../settings/graphics_settings_controls.dart';
 
 import '../../domain/leaderboard/leaderboard.dart';
 import 'leaderboard_dialog.dart';

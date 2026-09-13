@@ -50,6 +50,12 @@ WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter build apk --release --no-
 - GLB 원본·검수 산출물은 `design/stage1_3d/`, 게임용 자산은 `assets/images/stage1_3d/`에 둔다. 사진 재질 출처는 `design/high_fidelity_battlefield/production/textures/SOURCES.md`를 따른다.
 - ThreeJS WebGL2 바인딩과 라이선스는 `design/legacy_threejs/web_bindings/`에 보존하며 웹 배포에 포함하지 않는다. 3D 원본 GLB·효과는 기존 경로에 보존하고 Godot PCK로만 패키징한다.
 
+## 기기별 그래픽 설정
+
+로비 설정에서 MSAA(끄기/2배), 그림자 품질(끄기/낮음 512/중간 1024/높음 2048)을 라디오 버튼으로 선택한다. 기본값은 기존과 같은 MSAA 2배·그림자 2048이며, 3D 렌더 해상도는 변경하지 않는다. 앱 지원 디렉터리의 `graphics_settings_v1.json` 또는 웹 전용 localStorage에 저장하며 계정·진행 저장과 동기화하지 않는다. 저장 실패 시 기존 선택을 유지하고 오류를 표시한다.
+
+전장 초기 연결과 재연결·카메라 옵션 전달에 현재 설정을 포함한다. Godot은 MSAA와 방향광 그림자 아틀라스 크기를 런타임에 적용하며 같은 크기의 반복 재생성을 피한다. 해당 옵션은 Android 스테이지 1~10의 3D 전장에 적용된다. [설정 화면·검증 기록](../design/lobby/graphics_settings/README.md).
+
 ## 범위와 제약
 
 2026-09-13 표시 통합은 세 묶음의 구현·런타임 연결과 Android 6018의 실제 3D 전장·라벨·선택·대포 6문 표시까지 확인했다. 최종 숫자 글꼴 반영 APK의 확인 범위·자동 검사 총수·APK 크기·캡처는 [표시 이관 검증 기록](../design/stage1_3d/presentation_migration/README.md)에 남긴다. 연결된 기준 실기기가 없어 p95/p99·발열을 포함한 지속 전투 성능은 미검증이다. 아래 2026-09-11 수치는 최초 연결 당시 기록이며 이번 변경의 검사 총수가 아니다.

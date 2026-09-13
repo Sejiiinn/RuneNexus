@@ -17,6 +17,8 @@ import '../data/economy/local_economy_command_outbox_repository.dart';
 import '../data/economy/weekly_reward_api.dart';
 import '../data/mailbox/mailbox_api.dart';
 import '../domain/mailbox/mailbox.dart';
+import '../data/settings/graphics_settings.dart';
+import '../ui/settings/graphics_settings_scope.dart';
 import '../data/save/account_save_bootstrap.dart';
 import '../data/save/local_save_repository.dart';
 import '../data/save/local_save_slot.dart';
@@ -80,6 +82,7 @@ class RuneNexusApp extends StatefulWidget {
 
 class _RuneNexusAppState extends State<RuneNexusApp>
     with WidgetsBindingObserver {
+  final _graphicsSettings = GraphicsSettingsController();
   late RuneNexusGame game;
   bool _hasGame = false;
   bool _sessionEndRecoveryFailed = false;
@@ -195,6 +198,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     );
     // 세션 판정 전 guest 슬롯은 생성하거나 읽지 않음.
     await Future.wait([
+      _graphicsSettings.load(),
       if (restoresSession) _restoreAccountForAppStart(context),
       precacheRuneNexusStartupImages(
         context,
@@ -312,6 +316,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     _onlineSession?.dispose();
     _loadingProgress.dispose();
     _leaderboardRefresh.dispose();
+    _graphicsSettings.dispose();
     if (_hasGame) game.disposeAppResources();
     super.dispose();
   }
@@ -1481,6 +1486,8 @@ class _RuneNexusAppState extends State<RuneNexusApp>
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Rune Nexus',
+      builder: (context, child) =>
+          GraphicsSettingsScope(controller: _graphicsSettings, child: child!),
       locale: const Locale('ko'),
       supportedLocales: RuneNexusLocalizations.supportedLocales,
       localizationsDelegates: const [

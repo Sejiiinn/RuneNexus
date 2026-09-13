@@ -9,6 +9,8 @@ import 'package:flutter/services.dart';
 import '../../game/rendering/stage1_3d/battlefield_presentation_state.dart';
 import '../../game/rendering/stage1_3d/godot_battlefield_frame.dart';
 import '../../game/rune_nexus_game.dart';
+import '../../data/settings/graphics_settings.dart';
+import '../settings/graphics_settings_scope.dart';
 
 /// 실제 전투 HUD 아래 합성하는 네이티브 전장. 입력·전투 판정은 Dart에 유지.
 class GodotBattlefieldView extends StatefulWidget {
@@ -130,6 +132,21 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
     }
   }
 
+  GraphicsSettings _graphicsSettings = const GraphicsSettings();
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final settings =
+        GraphicsSettingsScope.maybeOf(context)?.value ??
+        const GraphicsSettings();
+    if (settings.msaaSamples != _graphicsSettings.msaaSamples ||
+        settings.shadowMapSize != _graphicsSettings.shadowMapSize) {
+      _graphicsSettings = settings;
+      unawaited(_sendOptions());
+    }
+  }
+
   Future<void> _sendOptions() async {
     if (!_ready || _failed) return;
     final epoch = _sceneEpoch;
@@ -139,6 +156,8 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
         jsonEncode({
           'sceneEpoch': epoch,
           'camera': widget.cameraView,
+          'msaa_samples': _graphicsSettings.msaaSamples,
+          'shadow_map_size': _graphicsSettings.shadowMapSize,
           'turret_levels': true,
           'presentation_groups': ['labels', 'selection', 'effects'],
         }),

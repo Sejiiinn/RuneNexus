@@ -67,7 +67,8 @@ var field: Dictionary
 var last_frame := {}
 var columns := 8
 var rows := 10
-var options := {"camera": "angled", "zoom": 1.0, "shadows": true, "volume": true, "empty": false, "turret_levels": false}
+var options := {"camera": "angled", "zoom": 1.0, "shadows": true, "msaa_samples": 2, "shadow_map_size": 2048, "volume": true, "empty": false, "turret_levels": false}
+var _applied_shadow_map_size := -1
 var metrics_elapsed := 0.0
 var frame_count := 0
 var frame_time_total := 0.0
@@ -297,10 +298,30 @@ func _process(delta: float) -> void:
 
 func _apply_options() -> void:
 	world.visible = not bool(options["empty"])
-	sun.shadow_enabled = bool(options["shadows"])
+	_apply_graphics_options()
 	_update_camera()
 	if not last_frame.is_empty():
 		_update_impacts(last_frame.get("impacts", []))
+
+
+func _apply_graphics_options() -> void:
+	# JSON 숫자는 float로 수신될 수 있으므로 숫자 타입과 허용값을 함께 검사.
+	var samples = options.get("msaa_samples", 2)
+	if not (samples is int or samples is float) or (samples != 0 and samples != 2):
+		samples = 2
+	var shadow_size = options.get("shadow_map_size", 2048)
+	if not (shadow_size is int or shadow_size is float) or (shadow_size != 0 and shadow_size != 512 and shadow_size != 1024 and shadow_size != 2048):
+		shadow_size = 2048
+	var viewport := get_viewport()
+	var msaa := Viewport.MSAA_DISABLED if samples == 0 else Viewport.MSAA_2X
+	if viewport.msaa_3d != msaa:
+		viewport.msaa_3d = msaa
+	# 카메라 등 다른 옵션을 보낼 때 같은 그림자 아틀라스를 다시 만들지 않는다.
+	# 끄기는 광원에서 처리하고 마지막 아틀라스를 유지한다.
+	if shadow_size > 0 and _applied_shadow_map_size != int(shadow_size):
+		RenderingServer.directional_shadow_atlas_set_size(int(shadow_size), bool(ProjectSettings.get_setting("rendering/lights_and_shadows/directional_shadow/16_bits", false)))
+		_applied_shadow_map_size = int(shadow_size)
+	sun.shadow_enabled = bool(options.get("shadows", true)) and shadow_size > 0
 
 
 func _update_camera() -> void:
