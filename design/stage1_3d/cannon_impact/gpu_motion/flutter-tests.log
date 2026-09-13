@@ -1,0 +1,17 @@
+00:00 +0: loading /Users/sejin/Documents/Codex/RuneNexus/test/impact_effect_component_test.dart
+00:00 +0: /Users/sejin/Documents/Codex/RuneNexus/test/impact_effect_component_test.dart: 3D 폭발은 승인된 표시 시간 동안 피해와 독립적으로 진행된다
+00:00 +1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 엔진 ready 뒤에도 유효한 첫 전장 응답까지 로딩을 유지한다 (variant: TargetPlatform.android)
+00:00 +2: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 엔진 ready 뒤에도 유효한 첫 전장 응답까지 로딩을 유지한다 (variant: TargetPlatform.android)
+00:00 +3: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 첫 전장 표시 전 초기 오류도 로딩을 해제한다 (variant: TargetPlatform.android)
+Godot 전장 표시 오류: Bad state: renderer unavailable
+00:00 +4: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 제출 응답이 비어 있으면 ACK로 보지 않고 다음 전송을 허용한다 (variant: TargetPlatform.android)
+00:00 +5: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 같은 적용 sequence의 카메라 투영 변화도 반영한다 (variant: TargetPlatform.android)
+00:00 +6: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 앱 복귀는 새 전장을 기다리며 복귀 전 지연 응답으로 로딩을 해제하지 않는다 (variant: TargetPlatform.android)
+00:00 +7: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 30초 넘게 준비해도 로딩을 유지하고 실제 전장 응답 뒤 해제한다 (variant: TargetPlatform.android)
+00:00 +8: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 로딩 중 view 제거는 게임 정지를 해제한다 (variant: TargetPlatform.android)
+00:00 +9: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 스테이지 2에서 5로 전환하면 이전 투영을 지우고 새 전장을 기다린다 (variant: TargetPlatform.android)
+00:00 +10: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 교체 전 지연 투영은 새 game과 이전 game 어느 쪽에도 적용하지 않는다 (variant: TargetPlatform.android)
+00:00 +11: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 리사이즈 전 반환은 버리고 새 viewport 적용 확인 뒤만 표시한다 (variant: TargetPlatform.android)
+00:00 +12: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 미지원 표시 그룹은 2D에 남기고 지원 철회도 다음 확인에 반영한다 (variant: TargetPlatform.android)
+00:00 +13: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 같은 game 새 view 소유권 취득 후 이전 view 응답은 투영을 덮지 않는다 (variant: TargetPlatform.android)
+00:00 +14: All tests passed!

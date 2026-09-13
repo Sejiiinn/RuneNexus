@@ -9,6 +9,7 @@ const FieldCache = preload("res://effects/field_cache.gd")
 const WeaponAtlas = preload("res://effects/weapon_atlas.gd")
 const MachineGunMuzzle = preload("res://effects/machinegun_muzzle.gd")
 const BallisticProjectile = preload("res://effects/ballistic_projectile.gd")
+const EnemyFrost = preload("res://effects/enemy_frost.gd")
 const Terrain = preload("res://assets/environment/terrain.glb")
 const Landmarks = preload("res://assets/environment/landmarks.glb")
 const Dressing = preload("res://assets/environment/dressing.glb")
@@ -634,6 +635,8 @@ func _update_camera_envelope() -> void:
 				var model: Node3D = packed.instantiate()
 				models = models.merge(_camera_mesh_bounds(model))
 				model.free()
+		# 공통 서리 결정의 최대 부착 길이도 포함한다.
+		models = models.grow(0.2)
 		# 적·포탑이 모든 방향으로 회전해도 담는 수평 반경.
 		var radius := 0.0
 		for index in range(8):
@@ -1392,6 +1395,8 @@ func _sync_enemies(units: Array) -> void:
 			world.add_child(model)
 			enemies[id] = {"root": model, "type": type}
 		var root: Node3D = enemies[id]["root"]
+		# 전투 판정의 기존 slowed 필드를 사용하며 부유·회전·크기는 원본 부모를 따른다.
+		EnemyFrost.apply(enemies[id], data.size() > 9 and bool(data[9]))
 		var hover := 0.025 if type in ["normal", "fast", "shielded"] else 0.008
 		root.position = Vector3(float(data[1]) - columns / 2.0, sin(float(data[4])) * hover, float(data[2]) - rows / 2.0)
 		root.rotation.y = PI / 2.0 - float(data[3])

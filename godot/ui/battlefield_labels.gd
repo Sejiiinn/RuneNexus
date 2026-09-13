@@ -9,7 +9,7 @@ const ASSET_ROOT := "res://assets/ui/labels/"
 
 
 func _init() -> void:
-	for name in ["burn_ember", "burn_glow", "burn_smoke", "slow_shard", "diamond_currency"]:
+	for name in ["burn_ember", "burn_glow", "burn_smoke", "diamond_currency"]:
 		var path: String = "res://assets/ui/diamond_currency.png" if name == "diamond_currency" else ASSET_ROOT + name + ".png"
 		if ResourceLoader.exists(path):
 			textures[name] = load(path)
@@ -19,7 +19,7 @@ func _init() -> void:
 
 
 func supported_groups() -> Array:
-	return ["labels"] if textures.size() == 5 else []
+	return ["labels"] if textures.size() == 4 else []
 
 
 func clear() -> void:
@@ -116,13 +116,6 @@ class EnemyLabel extends Node2D:
 					sprite("burn_smoke", ember + Vector2(w * 0.04, -size.y * 0.1), radius * 1.5, 0.22 * phase)
 		if data.get("poisoned", false):
 			draw_arc(center, w * 0.5, 0, TAU, 64, Color("9dff4a66"), 2.0, true)
-		if data.get("slowed", false):
-			for i in range(2 if crowded else 3):
-				var angle := t * 0.9 + i * TAU / 3.0
-				rounded_arc(center, w * 0.48, angle, angle + PI * 0.34, Color("bfefffcc"), w * 0.077)
-			var offsets := [Vector2(0.34, 0), Vector2(0, 0.34), Vector2(-0.34, 0), Vector2(0, -0.34)]
-			for i in range(2 if crowded else 4):
-				sprite("slow_shard", center + offsets[i] * size, w * 0.075 / 0.34)
 		if data.get("riftMarked", false):
 			var phase := fposmod(t * 1.45, 1.0)
 			var radius := w * (0.55 + phase * 0.08)

@@ -1,0 +1,15 @@
+{
+  "source_enemy": "design/stage1_3d/enemies/chapter-one-enemies-refined.blend",
+  "enemy": "tank",
+  "blender_only": true,
+  "game_assets_modified": false,
+  "frost_shell_faces": 665,
+  "ice_objects": 135,
+  "renders": [
+    "frost-hero.png",
+    "frost-high-angle.png"
+  ],
+  "source_sha256": "43816543a749fab677903215bb5c1410da145756b9fb2bc936de0823443fcaeb",
+  "blender_version": "5.2.1 LTS",
+  "render_engine": "Cycles, 64 samples, denoise"
+}

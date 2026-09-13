@@ -1,0 +1,856 @@
+{
+  "generator_source_sha256": "2dab5fdb3cbb130bf5a618ab76820f4501f58d08c6e8407a380e6e02d3dc3aeb",
+  "shared_mesh_count": 2,
+  "mesh_names": [
+    "FrostShard",
+    "FrostGrain"
+  ],
+  "design_reference_meshes": [
+    "FrostShard00",
+    "FrostShard01",
+    "FrostShard02",
+    "FrostShard03",
+    "FrostShard04",
+    "FrostShard05",
+    "FrostShard06",
+    "FrostShard07",
+    "FrostShard08",
+    "FrostShard09",
+    "FrostShard10",
+    "FrostShard11",
+    "FrostShard12",
+    "FrostShard13",
+    "FrostShard14",
+    "FrostShard15",
+    "FrostShard16",
+    "FrostShard17",
+    "FrostShard18",
+    "FrostShard19",
+    "FrostShard20",
+    "FrostShard21",
+    "FrostShard22",
+    "FrostShard23",
+    "FrostShard24",
+    "FrostShard25",
+    "FrostShard26",
+    "FrostShard27",
+    "FrostShard28",
+    "FrostShard29",
+    "FrostShard30",
+    "FrostShard31",
+    "FrostShard32",
+    "FrostShard33",
+    "FrostShard34",
+    "FrostShard35",
+    "FrostShard36",
+    "FrostShard37",
+    "FrostShard38",
+    "FrostShard39",
+    "FrostGrain"
+  ],
+  "coordinate_contract": "Godot Y-up; Transform3D columns: basis.x, basis.y, basis.z, origin",
+  "materials": [
+    "IceClear",
+    "IcePale",
+    "IceTips"
+  ],
+  "enemies": {
+    "tank": {
+      "shards": 40,
+      "grains": 95,
+      "max_reconstruction_error": 1.6895741925311934e-07
+    },
+    "normal": {
+      "shards": 40,
+      "grains": 95,
+      "max_reconstruction_error": 1.8863363416749483e-07
+    },
+    "armored": {
+      "shards": 40,
+      "grains": 95,
+      "max_reconstruction_error": 1.8863363416749483e-07
+    },
+    "shielded": {
+      "shards": 40,
+      "grains": 95,
+      "max_reconstruction_error": 1.84354827279726e-07
+    },
+    "fast": {
+      "shards": 40,
+      "grains": 95,
+      "max_reconstruction_error": 1.7947240874835705e-07
+    },
+    "boss": {
+      "shards": 40,
+      "grains": 95,
+      "max_reconstruction_error": 1.837138534477048e-07
+    }
+  },
+  "glb_bytes": 5520,
+  "attachments_bytes": 180556,
+  "canonical_mesh": "FrostShard",
+  "canonical_vertex_contract": "Godot x,z ring coordinates undo z factor -0.68, rotate by twist, then restore; tip UV.y=1 stays fixed; UV.x=face_index/13",
+  "variants": [
+    {
+      "mesh": "FrostShard00",
+      "twist": 0.46485510831410837,
+      "face_materials": [
+        1,
+        1,
+        2,
+        1,
+        1,
+        1,
+        2,
+        0,
+        2,
+        0,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "mesh": "FrostShard01",
+      "twist": 5.840042116016268,
+      "face_materials": [
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "mesh": "FrostShard02",
+      "twist": 6.077584446290154,
+      "face_materials": [
+        0,
+        1,
+        1,
+        0,
+        2,
+        0,
+        2,
+        1,
+        2,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "mesh": "FrostShard03",
+      "twist": 1.333395232339737,
+      "face_materials": [
+        1,
+        0,
+        1,
+        1,
+        0,
+        0,
+        2,
+        1,
+        1,
+        0,
+        2,
+        1,
+        1
+      ]
+    },
+    {
+      "mesh": "FrostShard04",
+      "twist": 5.620846161759779,
+      "face_materials": [
+        1,
+        0,
+        0,
+        0,
+        2,
+        0,
+        2,
+        1,
+        1,
+        0,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard05",
+      "twist": 0.562569660881971,
+      "face_materials": [
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        2,
+        0,
+        2,
+        1,
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "mesh": "FrostShard06",
+      "twist": 5.524025617944649,
+      "face_materials": [
+        1,
+        0,
+        2,
+        1,
+        2,
+        1,
+        1,
+        0,
+        2,
+        1,
+        2,
+        1,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard07",
+      "twist": 3.080678782743935,
+      "face_materials": [
+        0,
+        1,
+        2,
+        0,
+        2,
+        1,
+        2,
+        1,
+        1,
+        0,
+        2,
+        1,
+        1
+      ]
+    },
+    {
+      "mesh": "FrostShard08",
+      "twist": 5.8532626417040925,
+      "face_materials": [
+        1,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard09",
+      "twist": 1.2030302562173836,
+      "face_materials": [
+        0,
+        1,
+        2,
+        1,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        1,
+        1,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard10",
+      "twist": 2.7154033469258456,
+      "face_materials": [
+        1,
+        0,
+        2,
+        0,
+        2,
+        1,
+        2,
+        1,
+        0,
+        1,
+        2,
+        1,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard11",
+      "twist": 1.926421424886432,
+      "face_materials": [
+        1,
+        0,
+        2,
+        1,
+        2,
+        1,
+        2,
+        0,
+        2,
+        0,
+        2,
+        1,
+        1
+      ]
+    },
+    {
+      "mesh": "FrostShard12",
+      "twist": 0.24401893494715043,
+      "face_materials": [
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        2,
+        1,
+        0,
+        0,
+        2,
+        0,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard13",
+      "twist": 0.48660218503231595,
+      "face_materials": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard14",
+      "twist": 0.30113988436431777,
+      "face_materials": [
+        0,
+        0,
+        2,
+        1,
+        2,
+        0,
+        0,
+        0,
+        1,
+        0,
+        2,
+        1,
+        1
+      ]
+    },
+    {
+      "mesh": "FrostShard15",
+      "twist": 2.205696372382408,
+      "face_materials": [
+        1,
+        1,
+        2,
+        0,
+        1,
+        0,
+        2,
+        0,
+        2,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard16",
+      "twist": 3.6442535171162667,
+      "face_materials": [
+        1,
+        0,
+        1,
+        1,
+        2,
+        0,
+        2,
+        1,
+        2,
+        0,
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "mesh": "FrostShard17",
+      "twist": 1.4981605367056234,
+      "face_materials": [
+        0,
+        1,
+        2,
+        0,
+        2,
+        1,
+        1,
+        1,
+        2,
+        0,
+        2,
+        0,
+        1
+      ]
+    },
+    {
+      "mesh": "FrostShard18",
+      "twist": 3.5816256568161404,
+      "face_materials": [
+        0,
+        1,
+        0,
+        0,
+        2,
+        1,
+        2,
+        0,
+        1,
+        1,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "mesh": "FrostShard19",
+      "twist": 3.4470928635252895,
+      "face_materials": [
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2,
+        0,
+        2,
+        1,
+        0
+      ]
+    },
+    {
+      "mesh": "FrostShard20",
+      "twist": 2.4784695965698593,
+      "face_materials": [
+        0,
+        0,
+        2,
+        0,
+        1,
+        0,
+        0,
+        1,
+        1,
+        0,
+        2,
+        1,
+        1
+      ]
+    },
+    {
+      "mesh": "FrostShard21",
+      "twist": 3.9557385431725467,
+      "face_materials": [
+        0,
+        0,
+        2,
+        0,
+        0,
+        1,
+        2,
+        1,
+        2,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard22",
+      "twist": 4.637967941305803,
+      "face_materials": [
+        0,
+        1,
+        2,
+        1,
+        2,
+        1,
+        1,
+        0,
+        1,
+        0,
+        2,
+        0,
+        1
+      ]
+    },
+    {
+      "mesh": "FrostShard23",
+      "twist": 1.7485259896864156,
+      "face_materials": [
+        1,
+        1,
+        2,
+        0,
+        1,
+        1,
+        2,
+        0,
+        0,
+        0,
+        2,
+        1,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard24",
+      "twist": 1.1739112479468132,
+      "face_materials": [
+        1,
+        1,
+        2,
+        0,
+        0,
+        0,
+        2,
+        1,
+        0,
+        0,
+        2,
+        1,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard25",
+      "twist": 1.378405028296447,
+      "face_materials": [
+        1,
+        0,
+        2,
+        1,
+        1,
+        0,
+        2,
+        1,
+        0,
+        1,
+        2,
+        1,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard26",
+      "twist": 0.7646434043208861,
+      "face_materials": [
+        0,
+        0,
+        2,
+        0,
+        2,
+        0,
+        1,
+        0,
+        2,
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "mesh": "FrostShard27",
+      "twist": 3.8212374967463116,
+      "face_materials": [
+        1,
+        1,
+        2,
+        1,
+        1,
+        0,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard28",
+      "twist": 1.5009321801615034,
+      "face_materials": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        0,
+        2,
+        1,
+        0,
+        0,
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "mesh": "FrostShard29",
+      "twist": 5.184571004740264,
+      "face_materials": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        1,
+        2,
+        0,
+        2,
+        1,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "mesh": "FrostShard30",
+      "twist": 2.2312483137530754,
+      "face_materials": [
+        0,
+        1,
+        1,
+        1,
+        0,
+        1,
+        0,
+        1,
+        2,
+        1,
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard31",
+      "twist": 4.725762433950264,
+      "face_materials": [
+        0,
+        1,
+        2,
+        0,
+        0,
+        0,
+        1,
+        1,
+        2,
+        1,
+        1,
+        0,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard32",
+      "twist": 1.600570709205001,
+      "face_materials": [
+        1,
+        1,
+        0,
+        0,
+        2,
+        1,
+        2,
+        0,
+        2,
+        1,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "mesh": "FrostShard33",
+      "twist": 5.578164085899637,
+      "face_materials": [
+        0,
+        1,
+        1,
+        1,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        1,
+        1,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard34",
+      "twist": 1.6671458577496336,
+      "face_materials": [
+        1,
+        0,
+        0,
+        0,
+        2,
+        0,
+        2,
+        1,
+        2,
+        0,
+        2,
+        1,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard35",
+      "twist": 2.2417435631172364,
+      "face_materials": [
+        0,
+        1,
+        0,
+        0,
+        2,
+        0,
+        2,
+        1,
+        2,
+        0,
+        2,
+        1,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard36",
+      "twist": 6.147614426839049,
+      "face_materials": [
+        1,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        2,
+        0,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard37",
+      "twist": 6.135874563966829,
+      "face_materials": [
+        1,
+        0,
+        2,
+        1,
+        2,
+        0,
+        1,
+        1,
+        2,
+        1,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "mesh": "FrostShard38",
+      "twist": 0.3363484221590992,
+      "face_materials": [
+        0,
+        0,
+        2,
+        0,
+        2,
+        1,
+        0,
+        1,
+        2,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "mesh": "FrostShard39",
+      "twist": 3.707673869611794,
+      "face_materials": [
+        1,
+        0,
+        2,
+        0,
+        2,
+        1,
+        1,
+        0,
+        1,
+        1,
+        2,
+        1,
+        0
+      ]
+    }
+  ],
+  "canonical_shader_max_unit_vertex_error": 7.502730961706846e-06
+}

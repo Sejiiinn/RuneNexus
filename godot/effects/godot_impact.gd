@@ -7,18 +7,22 @@ const SPARK_COUNT: int = 56
 const FRAGMENT_COUNT: int = 34
 const HALF_EXTENT := Vector3(2.35, 1.45, 2.35)
 const VOLUME_SHADER: Shader = preload("res://effects/cannon_impact.gdshader")
+const SPARK_SHADER: Shader = preload("res://effects/cannon_impact_sparks.gdshader")
+const FRAGMENT_SHADER: Shader = preload("res://effects/cannon_impact_fragments.gdshader")
 
 static var _spark_mesh: ArrayMesh
 static var _fragment_mesh: ArrayMesh
+static var _particle_texture: ImageTexture
 
 var _volume: MeshInstance3D
 var _volume_material: ShaderMaterial
 var _sparks: MultiMeshInstance3D
 var _fragments: MultiMeshInstance3D
+var _spark_material: ShaderMaterial
+var _fragment_material: ShaderMaterial
 var _times := PackedFloat64Array()
 var _grid: int = 48
 var _bricks := Vector3i(4, 4, 2)
-var _particles: Array[Dictionary] = []
 var _configured: bool = false
 var _last_radius: float = -1.0
 
@@ -67,27 +71,18 @@ func configure(field_texture: Texture3D, manifest: Dictionary) -> void:
 		instances.transform_format = MultiMesh.TRANSFORM_3D
 		instances.mesh = _spark_mesh if spark else _fragment_mesh
 		instances.instance_count = SPARK_COUNT if spark else FRAGMENT_COUNT
+		# 인스턴스는 정적 단위행렬. 운동은 절대 age에서 GPU가 재구성한다.
+		for slot in range(instances.instance_count):
+			instances.set_instance_transform(slot, Transform3D.IDENTITY)
 		group.multimesh = instances
 		group.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(group)
-	var random := RandomNumberGenerator.new()
-	random.seed = 1404
-	for index in range(SPARK_COUNT + FRAGMENT_COUNT):
-		var spark: bool = index < SPARK_COUNT
-		var large: bool = not spark and index % 5 == 0
-		_particles.append({
-			"angle": random.randf() * TAU,
-			"speed": 1.8 + random.randf() * 3.8 if spark else 1.4 + random.randf() * 3.1,
-			"rise": 1.2 + random.randf() * 3.6 if spark else 1.3 + random.randf() * 3.1,
-			"death": 0.19 + random.randf() * 0.39 if spark else 0.65 + random.randf() * 0.43,
-			"delay": random.randf() * 0.018,
-			"width": (0.0025 + random.randf() * 0.0035) if spark else (
-				(0.12 + random.randf() * 0.06) if large else (0.032 + random.randf() * 0.052)
-			),
-			"length": 0.045 + random.randf() * 0.085,
-			"stretch": 0.55 + random.randf() * 1.1,
-			"spin": 3.0 + random.randf() * 8.0,
-		})
+	if _particle_texture == null:
+		_initialize_particle_data()
+	_spark_material = _particle_material(SPARK_SHADER)
+	_fragment_material = _particle_material(FRAGMENT_SHADER)
+	_sparks.material_override = _spark_material
+	_fragments.material_override = _fragment_material
 	_configured = true
 	visible = false
 
@@ -123,41 +118,11 @@ func update_impact(progress: float, radius: float, impact_id: int, camera: Camer
 	_volume_material.set_shader_parameter("u_field_frame_0", _frame_offset(frame))
 	_volume_material.set_shader_parameter("u_field_frame_1", _frame_offset(frame + 1))
 	update_camera(camera)
-	for index in range(_particles.size()):
-		var particle: Dictionary = _particles[index]
-		var spark: bool = index < SPARK_COUNT
-		var instances: MultiMesh = _sparks.multimesh if spark else _fragments.multimesh
-		var slot: int = index if spark else index - SPARK_COUNT
-		var time: float = maxf(0.0, age - float(particle["delay"]))
-		var drag: float = 1.8 if spark else 0.75
-		var travel: float = (1.0 - exp(-drag * time)) / drag
-		var gravity: float = 4.8 if spark else 5.4
-		var rise: float = float(particle["rise"])
-		var height: float = 0.055 + rise * time - gravity * time * time
-		var heading: float = float(particle["angle"]) + angle
-		var velocity_x: float = cos(heading) * float(particle["speed"])
-		var velocity_z: float = sin(heading) * float(particle["speed"])
-		var origin := Vector3(velocity_x * travel, height, velocity_z * travel) * radius
-		var rotation_basis := Basis.IDENTITY
-		var particle_scale := Vector3.ZERO
-		var death: float = float(particle["death"])
-		if age >= float(particle["delay"]) and time <= death and height >= 0.014:
-			var width: float = float(particle["width"])
-			if spark:
-				var direction := Vector3(
-					velocity_x * exp(-drag * time), rise - 2.0 * gravity * time,
-					velocity_z * exp(-drag * time)
-				).normalized()
-				rotation_basis = Basis(Quaternion(Vector3.BACK, direction))
-				particle_scale = Vector3(width, width, float(particle["length"]) * (1.0 - time / death)) * radius
-			else:
-				var spin: float = float(particle["spin"])
-				rotation_basis = Basis.from_euler(Vector3(
-					time * spin + float(index), time * spin * 0.73, time * spin * 1.31
-				), EULER_ORDER_XYZ)
-				var fade: float = clampf((death - time) / 0.11, 0.0, 1.0)
-				particle_scale = Vector3(width, width * float(particle["stretch"]), width) * radius * fade
-		instances.set_instance_transform(slot, Transform3D(rotation_basis * Basis.from_scale(particle_scale), origin))
+	# TIME/누적 delta를 쓰지 않아 정지·배속·되감기·풀 재사용이 같은 결과를 낸다.
+	for material in [_spark_material, _fragment_material]:
+		material.set_shader_parameter("u_age", age)
+		material.set_shader_parameter("u_radius", radius)
+		material.set_shader_parameter("u_angle", angle)
 
 
 func update_camera(camera: Camera3D) -> void:
@@ -182,6 +147,49 @@ func _frame_offset(index: int) -> Vector3:
 		(float(floori(float(index) / float(_bricks.x)) % _bricks.y) + 0.5 / float(_grid)) / float(_bricks.y),
 		(float(floori(float(index) / float(_bricks.x * _bricks.y))) + 0.5 / float(_grid)) / float(_bricks.z)
 	)
+
+
+static func _initialize_particle_data() -> void:
+	# seed와 난수 호출 순서는 기존 CPU 탄도의 초기조건과 동일하다.
+	var particles: Array[Dictionary] = []
+	var random := RandomNumberGenerator.new()
+	random.seed = 1404
+	for index in range(SPARK_COUNT + FRAGMENT_COUNT):
+		var spark: bool = index < SPARK_COUNT
+		var large: bool = not spark and index % 5 == 0
+		particles.append({
+			"angle": random.randf() * TAU,
+			"speed": 1.8 + random.randf() * 3.8 if spark else 1.4 + random.randf() * 3.1,
+			"rise": 1.2 + random.randf() * 3.6 if spark else 1.3 + random.randf() * 3.1,
+			"death": 0.19 + random.randf() * 0.39 if spark else 0.65 + random.randf() * 0.43,
+			"delay": random.randf() * 0.018,
+			"width": (0.0025 + random.randf() * 0.0035) if spark else (
+				(0.12 + random.randf() * 0.06) if large else (0.032 + random.randf() * 0.052)
+			),
+			"length": 0.045 + random.randf() * 0.085,
+			"stretch": 0.55 + random.randf() * 1.1,
+			"spin": 3.0 + random.randf() * 8.0,
+		})
+	# 정밀도 손실이 큰 8-bit 색/half 대신 선형 RGBA32F 데이터 텍스처를 공유한다.
+	# 열 0: angle/speed/rise/death, 1: delay/width/length/stretch, 2: spin.
+	var image := Image.create(3, SPARK_COUNT + FRAGMENT_COUNT, false, Image.FORMAT_RGBAF)
+	for index in range(particles.size()):
+		var particle: Dictionary = particles[index]
+		image.set_pixel(0, index, Color(
+			particle["angle"], particle["speed"], particle["rise"], particle["death"]
+		))
+		image.set_pixel(1, index, Color(
+			particle["delay"], particle["width"], particle["length"], particle["stretch"]
+		))
+		image.set_pixel(2, index, Color(particle["spin"], 0.0, 0.0, 0.0))
+	_particle_texture = ImageTexture.create_from_image(image)
+
+
+func _particle_material(shader: Shader) -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = shader
+	material.set_shader_parameter("u_particle_data", _particle_texture)
+	return material
 
 
 static func _build_spark_mesh() -> ArrayMesh:

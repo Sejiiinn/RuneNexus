@@ -1,0 +1,3 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Shared textures verification: 0 failures; 40 GLBs, 170 materials, 179 texture references -> 49 shared objects, 43 opaque PNGs byte-exact, 6 alpha PNGs dimensions checked, labels supported

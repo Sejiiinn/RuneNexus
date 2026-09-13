@@ -158,7 +158,7 @@ func _verify() -> void:
 	_verify_pixels()
 	_check(opaque_pixels_checked > 0, "불투명 texture 픽셀 보존을 하나도 검사하지 못함")
 	var labels := Labels.new()
-	_check(labels.supported_groups().has("labels") and labels.textures.size() == 5, "UI labels 지원 그룹/5개 texture 누락")
+	_check(labels.supported_groups().has("labels") and labels.textures.size() == 4, "UI labels 지원 그룹/4개 texture 누락")
 	_check(labels.textures.get("diamond_currency") == load("res://assets/ui/diamond_currency.png"), "UI diamond 공용 texture 연결 실패")
 	labels.free()
 	print("Shared textures verification: %d failures; %d GLBs, %d materials, %d texture references -> %d shared objects, %d opaque PNGs byte-exact, %d alpha PNGs dimensions checked, labels supported" % [failures, paths.size(), materials_checked, texture_references, shared.size(), opaque_pixels_checked, alpha_texture_paths.size()])

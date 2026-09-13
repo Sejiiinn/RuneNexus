@@ -152,6 +152,8 @@ def prepare() -> Path:
     required += [SOURCE_ASSETS / "projectiles" / "cannonball.glb"]
     required += [SOURCE_ASSETS / "turrets" / f"{name}.glb" for name in TURRET_TYPES]
     required += [SOURCE_ASSETS / "enemies" / f"{name}.glb" for name in ENEMY_TYPES]
+    required += [SOURCE_ASSETS / "effects" / "enemy_frost" / name
+                 for name in ("crystals.glb", "attachments.json", "rime_mask.bin", "grain.png")]
     required += [SOURCE_ASSETS / "effects" / name
                  for name in ("machinegun_muzzle.glb", "machinegun_muzzle_noise.bin")]
     for path in required:
@@ -174,6 +176,9 @@ def prepare() -> Path:
     for source in sorted(SOURCE_ASSETS.rglob("*.glb")):
         # 과거 생성기를 실행해 파일이 다시 생겨도 폐기한 외피는 패키징하지 않는다.
         if source.relative_to(SOURCE_ASSETS) == Path("environment/fern_shadow.glb"):
+            continue
+        # Earlier per-kind baked frost overlays are archival assets, never runtime.
+        if source.parent.name == "enemy_frost" and source.name != "crystals.glb":
             continue
         target = ASSETS / source.relative_to(SOURCE_ASSETS)
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -214,6 +219,18 @@ def prepare() -> Path:
         shutil.copy2(SOURCE_ASSETS / "effects" / filename, target)
     for filename in ("cannon_field.json", "machinegun_muzzle_noise.bin"):
         shutil.copy2(SOURCE_ASSETS / "effects" / filename, ASSETS / filename)
+    frost_source = SOURCE_ASSETS / "effects/enemy_frost"
+    shutil.copy2(frost_source / "attachments.json", ASSETS / "enemy_frost.json")
+    (ASSETS / "enemy_frost_mask.bin.gz").write_bytes(
+        gzip.compress((frost_source / "rime_mask.bin").read_bytes(), compresslevel=9, mtime=0)
+    )
+    frost_grain = ASSETS / "effects/enemy_frost/grain.png"
+    shutil.copy2(frost_source / "grain.png", frost_grain)
+    frost_grain.with_suffix(".png.import").write_text(
+        '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
+        '[params]\ncompress/mode=0\ncompress/normal_map=2\n'
+        'mipmaps/generate=true\ndetect_3d/compress_to=0\n'
+    )
     field_bytes = (SOURCE_ASSETS / "effects/cannon_field.bin").read_bytes()
     (ASSETS / "cannon_field.bin.gz").write_bytes(
         gzip.compress(field_bytes, compresslevel=9, mtime=0)

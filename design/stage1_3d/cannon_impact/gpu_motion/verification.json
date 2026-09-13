@@ -1,0 +1,33 @@
+{
+  "device": "sdk_gphone64_arm64 Android emulator",
+  "build": "debug, lib/main.dart, RUNE_NEXUS_DEBUG_PANEL=true",
+  "script_shader_errors": [],
+  "paused_progress": [
+    0.27272727272727276,
+    0.18181818181818182,
+    0.18181818181818182,
+    0.18181818181818182,
+    0.18181818181818182
+  ],
+  "pause_progress_unchanged": true,
+  "camera_views": [
+    "angled",
+    "drone"
+  ],
+  "barrage_turrets": 6,
+  "playback": [
+    1,
+    4
+  ],
+  "video_seconds": 8,
+  "pck_bytes": 86210120,
+  "test_fixtures_excluded": true,
+  "gpu_frame_time_measured": false,
+  "A34_measured": false,
+  "source_sha256": {
+    "godot/effects/godot_impact.gd": "aab16c26c5e608abb110c3176de89b25cd37181ea7353b55a0d967e02a085345",
+    "godot/effects/cannon_impact_fragments.gdshader": "95f0136cc88ec006f75964fe4db91613f3a03776b83001d64c29809244f4f9dc",
+    "godot/effects/cannon_impact_motion.gdshaderinc": "5ae4f2e16a1676ca706603051ae1e4e53d5650b2620ff01f446e1544c7c0b7aa",
+    "godot/effects/cannon_impact_sparks.gdshader": "03745e97e195af98e45054f8e06acf01c7d627881d6851ee1a14ee6defc94d8d"
+  }
+}

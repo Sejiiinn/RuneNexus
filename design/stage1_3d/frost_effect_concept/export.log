@@ -1,0 +1,92 @@
+/Users/sejin/Documents/Codex/RuneNexus/design/stage1_3d/frost_effect_concept/export_runtime.py:68: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  baked.use_nodes = True
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+01:14:15 | INFO: Starting glTF 2.0 export
+01:14:15 | INFO: Extracting primitive: Shoulder rime 00.00
+01:14:15 | INFO: Primitives created: 3
+01:14:15 | INFO: Extracting primitive: Surface-bound frost shell
+01:14:15 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:14:15 | INFO: Primitives created: 1
+01:14:15 | INFO: Finished glTF 2.0 export in 0.016606807708740234 s
+
+Info: Saved as "runtime-tank.blend"
+EXPORTED_FROST tank {'coat_faces': 665, 'crystal_faces': 2420, 'crystal_objects_before_join': 135, 'bytes': 1256880}
+/Users/sejin/Documents/Codex/RuneNexus/design/stage1_3d/frost_effect_concept/export_runtime.py:68: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  baked.use_nodes = True
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+01:14:16 | INFO: Starting glTF 2.0 export
+01:14:16 | INFO: Extracting primitive: Shoulder rime 00.00
+01:14:16 | INFO: Primitives created: 3
+01:14:16 | INFO: Extracting primitive: Surface-bound frost shell
+01:14:16 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:14:16 | INFO: Primitives created: 1
+01:14:16 | INFO: Finished glTF 2.0 export in 0.011934757232666016 s
+
+Info: Saved as "runtime-normal.blend"
+EXPORTED_FROST normal {'coat_faces': 675, 'crystal_faces': 2420, 'crystal_objects_before_join': 135, 'bytes': 1270920}
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+01:14:17 | INFO: Starting glTF 2.0 export
+01:14:17 | INFO: Extracting primitive: Shoulder rime 00.00
+01:14:17 | INFO: Primitives created: 3
+01:14:17 | INFO: Extracting primitive: Surface-bound frost shell
+01:14:17 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:14:17 | INFO: Primitives created: 1
+01:14:17 | INFO: Finished glTF 2.0 export in 0.011898279190063477 s
+
+Info: Saved as "runtime-armored.blend"
+EXPORTED_FROST armored {'coat_faces': 660, 'crystal_faces': 2420, 'crystal_objects_before_join': 135, 'bytes': 1278472}
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+01:14:18 | INFO: Starting glTF 2.0 export
+01:14:18 | INFO: Extracting primitive: Shoulder rime 00.00
+01:14:18 | INFO: Primitives created: 3
+01:14:18 | INFO: Extracting primitive: Surface-bound frost shell
+01:14:18 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:14:18 | INFO: Primitives created: 1
+01:14:18 | INFO: Finished glTF 2.0 export in 0.01151728630065918 s
+
+Info: Saved as "runtime-shielded.blend"
+EXPORTED_FROST shielded {'coat_faces': 675, 'crystal_faces': 2420, 'crystal_objects_before_join': 135, 'bytes': 1241092}
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+01:14:19 | INFO: Starting glTF 2.0 export
+01:14:19 | INFO: Extracting primitive: Shoulder rime 00.00
+01:14:19 | INFO: Primitives created: 3
+01:14:19 | INFO: Extracting primitive: Surface-bound frost shell
+01:14:19 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:14:19 | INFO: Primitives created: 1
+01:14:19 | INFO: Finished glTF 2.0 export in 0.01166391372680664 s
+
+Info: Saved as "runtime-fast.blend"
+EXPORTED_FROST fast {'coat_faces': 675, 'crystal_faces': 2420, 'crystal_objects_before_join': 135, 'bytes': 1228864}
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+01:14:20 | INFO: Starting glTF 2.0 export
+01:14:20 | INFO: Extracting primitive: Shoulder rime 00.00
+01:14:20 | INFO: Primitives created: 3
+01:14:20 | INFO: Extracting primitive: Surface-bound frost shell
+01:14:20 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:14:20 | INFO: Primitives created: 1
+01:14:20 | INFO: Finished glTF 2.0 export in 0.011898994445800781 s
+
+Info: Saved as "runtime-boss.blend"
+EXPORTED_FROST boss {'coat_faces': 685, 'crystal_faces': 2420, 'crystal_objects_before_join': 135, 'bytes': 1242012}
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

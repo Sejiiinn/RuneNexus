@@ -1,0 +1,17 @@
+/Users/sejin/Documents/Codex/RuneNexus/design/stage1_3d/frost_effect_concept/build_concept.py:39: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m.use_nodes = True
+/Users/sejin/Documents/Codex/RuneNexus/design/stage1_3d/frost_effect_concept/build_concept.py:181: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world.use_nodes = True
+00:29.983  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/design/stage1_3d/frost_effect_concept/frost-hero.png'
+01:00.503  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/design/stage1_3d/frost_effect_concept/frost-high-angle.png'
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Info: Saved as "enemy-frost-concept.blend"
+Info: Saved as "enemy-frost-concept.blend"
+FROST_CONCEPT_COMPLETE /Users/sejin/Documents/Codex/RuneNexus/design/stage1_3d/frost_effect_concept
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

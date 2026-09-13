@@ -1,0 +1,38 @@
+{
+  "tank": {
+    "coat_faces": 665,
+    "crystal_faces": 2420,
+    "crystal_objects_before_join": 135,
+    "bytes": 1256880
+  },
+  "normal": {
+    "coat_faces": 675,
+    "crystal_faces": 2420,
+    "crystal_objects_before_join": 135,
+    "bytes": 1270920
+  },
+  "armored": {
+    "coat_faces": 660,
+    "crystal_faces": 2420,
+    "crystal_objects_before_join": 135,
+    "bytes": 1278472
+  },
+  "shielded": {
+    "coat_faces": 675,
+    "crystal_faces": 2420,
+    "crystal_objects_before_join": 135,
+    "bytes": 1241092
+  },
+  "fast": {
+    "coat_faces": 675,
+    "crystal_faces": 2420,
+    "crystal_objects_before_join": 135,
+    "bytes": 1228864
+  },
+  "boss": {
+    "coat_faces": 685,
+    "crystal_faces": 2420,
+    "crystal_objects_before_join": 135,
+    "bytes": 1242012
+  }
+}

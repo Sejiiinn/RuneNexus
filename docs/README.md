@@ -10,6 +10,7 @@
 | 프로젝트 이해 | [프로젝트 소개](../README.md), [구현 현황](implementation_status.md) | [백엔드 구조](backend_architecture.md) |
 | 다음 작업 선택 | [남은 작업과 우선순위](next_work_priorities.md) | 해당 기능의 설계·현재 코드 |
 | UI·시각 에셋 수정 | [DESIGNS.md](../DESIGNS.md) | 해당 화면의 design/ 기록, [인앱 검증](../.agents/in_app_test_guide.md) |
+| 성능 개선·대량 표시·CPU/GPU 작업 분배 | [최적화 지침](performance_optimization_guidelines.md) | 해당 기능의 코드·측정 기록, [인앱 검증](../.agents/in_app_test_guide.md), [APK 용량 점검](android_apk_distribution.md#용량-점검) |
 | 전투 수치·피해 효과 | [데미지 계층 규칙](damage_calculation_rules.md), [밸런스 기준](gameplay_balance_reference.md) | 해당 데이터 정의·테스트 |
 | 코어·성장 | [코어 트리 현행 기준](core_passive_tree_implementation_plan.md) | [장기 코어 방향](nexus_core_design.md), [모듈](turret_module_design.md), [성장 후보](long_term_progression_direction.md) |
 | 계정·인증·온라인 저장 | [백엔드 구조](backend_architecture.md) | [저장 동기화](multi_device_save_sync_design.md), [닉네임](account_nickname_policy.md) |
