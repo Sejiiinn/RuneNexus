@@ -10,6 +10,15 @@ func _verify() -> void:
 	await process_frame
 	var output := ProjectSettings.globalize_path("res://../captures")
 	DirAccess.make_dir_recursive_absolute(output)
+	if "--turret-labels" in OS.get_cmdline_user_args():
+		scene.options["turret_levels"] = true
+		var labels_frame: Dictionary = scene.last_frame.duplicate(true)
+		var types: Array = scene.TURRET_MODELS.keys()
+		var levels := [1, 2, 4, 6, 8, 10]
+		for index in range(labels_frame["turrets"].size()):
+			labels_frame["turrets"][index][6] = types[index % types.size()]
+			labels_frame["turrets"][index][7] = levels[index % levels.size()]
+		scene._apply_frame(labels_frame)
 	for sample in [{"camera": "angled", "progress": 0.13}, {"camera": "drone", "progress": 0.52}]:
 		scene.options["camera"] = sample["camera"]
 		scene._apply_options()

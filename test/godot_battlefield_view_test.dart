@@ -15,6 +15,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     final messenger = tester.binding.defaultBinaryMessenger;
     var camera = 'angled';
+    var nativeLevels = false;
     var transitioning = false;
     var failed = false;
     var clears = 0;
@@ -31,8 +32,9 @@ void main() {
         case 'getStatus':
           return {'ready': true, 'error': failed ? 'renderer unavailable' : ''};
         case 'setOptions':
-          camera =
-              (jsonDecode(call.arguments as String) as Map)['camera'] as String;
+          final options = jsonDecode(call.arguments as String) as Map;
+          camera = options['camera'] as String;
+          nativeLevels = options['turret_levels'] == true;
           return null;
         case 'submitFrame':
           frames.add(
@@ -44,6 +46,7 @@ void main() {
             'sequence': frames.last['seq'],
             'camera': camera,
             'transitioning': transitioning,
+            'nativeTurretLevels': nativeLevels,
             'projection': {
               'origin': [camera == 'drone' ? .12 : .08, .24],
               'xAxis': [.085, camera == 'drone' ? .0 : .012],
@@ -73,6 +76,7 @@ void main() {
     expect(find.text('고정 시점'), findsOneWidget);
     expect(find.text('드론 시점'), findsOneWidget);
     expect(game.battlefieldProjection, isNotNull);
+    expect(game.nativeBattlefieldTurretLevels, isTrue);
     final viewSize = tester.getSize(find.byType(GodotBattlefieldView));
     expect(
       game.battlefieldProjection!.origin.dx,
@@ -125,6 +129,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump();
     expect(game.battlefieldProjection, isNull);
+    expect(game.nativeBattlefieldTurretLevels, isFalse);
     expect(find.text('드론 시점'), findsNothing);
     expect(game.backgroundColor().a, 1);
     await tester.pumpWidget(const SizedBox.shrink());
@@ -155,6 +160,7 @@ void main() {
     game.startStage(1);
     await pumpGameFrames(tester, frameCount: 40);
     expect(game.battlefieldProjection, isNull);
+    expect(game.nativeBattlefieldTurretLevels, isFalse);
     expect(find.text('드론 시점'), findsNothing);
     expect(find.byType(AndroidViewSurface), findsNothing);
     expect(game.backgroundColor().a, 1);

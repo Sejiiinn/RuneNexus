@@ -90,7 +90,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
     try {
       await _channel.invokeMethod<void>(
         'setOptions',
-        jsonEncode({'camera': widget.cameraView}),
+        jsonEncode({'camera': widget.cameraView, 'turret_levels': true}),
       );
     } on Object catch (error) {
       _fallback(error);
@@ -145,6 +145,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
         heightAxis: axis('heightAxis'),
       );
       if (projection.screenToGrid(projection.origin) == null) return;
+      game.nativeBattlefieldTurretLevels = state['nativeTurretLevels'] == true;
       game.battlefieldProjection = projection;
       if (!_available) {
         _available = true;
@@ -163,6 +164,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
     _ready = false;
     _statusTimer?.cancel();
     _ticker.stop();
+    widget.game.nativeBattlefieldTurretLevels = false;
     widget.game.battlefieldProjection = null;
     debugPrint('Godot 전장 표시 오류: $error');
     if (_available) {
@@ -176,6 +178,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
   void didUpdateWidget(covariant GodotBattlefieldView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.game != widget.game) {
+      oldWidget.game.nativeBattlefieldTurretLevels = false;
       oldWidget.game.battlefieldProjection = null;
       _available = false;
       _sequence = 0;
@@ -197,6 +200,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
     WidgetsBinding.instance.removeObserver(this);
     _statusTimer?.cancel();
     _ticker.dispose();
+    widget.game.nativeBattlefieldTurretLevels = false;
     widget.game.battlefieldProjection = null;
     // 전장 종료는 엔진을 파괴하지 않고 다음 화면을 위한 상태만 비움.
     if (_connected) {

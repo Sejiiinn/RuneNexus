@@ -41,6 +41,9 @@ def prepare() -> Path:
         target = ASSETS / source.relative_to(SOURCE_ASSETS)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
+    ui_target = ASSETS / "ui"
+    ui_target.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(SOURCE_ASSETS / "ui/turret_levels.png", ui_target / "turret_levels.png")
     for filename in ("muzzle_flash.png", "gun_smoke.png"):
         target = ASSETS / "effects" / filename
         target.parent.mkdir(parents=True, exist_ok=True)

@@ -1,5 +1,6 @@
 extends Node3D
 
+const TurretLevelLabels = preload("res://ui/turret_level_labels.gd")
 const Impact = preload("res://effects/godot_impact.gd")
 const FieldCache = preload("res://effects/field_cache.gd")
 const WeaponAtlas = preload("res://effects/weapon_atlas.gd")
@@ -38,6 +39,7 @@ var sun := DirectionalLight3D.new()
 var world := Node3D.new()
 var terrain := Node3D.new()
 var turrets := {}
+var _turret_level_labels := TurretLevelLabels.new()
 var enemies := {}
 var projectiles := {}
 var impacts := {}
@@ -47,7 +49,7 @@ var field: Dictionary
 var last_frame := {}
 var columns := 8
 var rows := 10
-var options := {"camera": "angled", "zoom": 1.0, "shadows": true, "volume": true, "empty": false}
+var options := {"camera": "angled", "zoom": 1.0, "shadows": true, "volume": true, "empty": false, "turret_levels": false}
 var metrics_elapsed := 0.0
 var frame_count := 0
 var frame_time_total := 0.0
@@ -77,6 +79,7 @@ func _ready() -> void:
 	elif OS.get_name() == "Android":
 		_fail("Flutter 전투 브리지가 등록되지 않았습니다.")
 		return
+	add_child(_turret_level_labels)
 	add_child(world)
 	world.add_child(terrain)
 	add_child(camera)
@@ -331,11 +334,13 @@ func presentation() -> Dictionary:
 			"heightAxis": [height_axis.x / size.x, height_axis.y / size.y],
 		},
 		"sequence": last_sequence, "camera": camera_mode,
+		"nativeTurretLevels": bool(options["turret_levels"]),
 		"transitioning": is_instance_valid(camera_transition) and camera_transition.is_running(),
 	}
 
 
 func _report_presentation() -> void:
+	_turret_level_labels.update(camera, turrets, bool(options["turret_levels"]) and world.visible)
 	# Android Java 싱글턴은 동적 호출이므로 Object.has_method 검사 생략.
 	if bridge and not last_frame.is_empty():
 		bridge.report_presentation(JSON.stringify(presentation()))
@@ -368,6 +373,7 @@ func _apply_frame(frame: Dictionary) -> void:
 
 
 func _clear_scene() -> void:
+	_turret_level_labels.clear()
 	if camera_transition:
 		camera_transition.kill()
 	camera_mode = ""
@@ -486,6 +492,7 @@ func _new_turret(type: String) -> Dictionary:
 		"flashes": [], "smokes": [], "smoke_starts": [-INF, -INF],
 		"last_shot": -1, "last_time": -INF, "fire_start": -INF, "active_port": 0,
 	}
+	entry["level_bounds"] = TurretLevelLabels.base_bounds(root, entry["head"], root.transform.affine_inverse())
 	if type == "arrow":
 		var effect := MachineGunMuzzle.new()
 		root.add_child(effect)
@@ -532,6 +539,7 @@ func _sync_turrets(units: Array) -> void:
 		if not turrets.has(id):
 			turrets[id] = _new_turret(type)
 		var entry: Dictionary = turrets[id]
+		entry["level"] = int(data[7]) if data.size() > 7 else 1
 		entry["root"].position = Vector3(float(data[1]) - columns / 2.0, 0.0, float(data[2]) - rows / 2.0)
 		entry["head"].rotation.y = PI / 2.0 - float(data[3])
 		_update_fire(entry, int(data[4]), float(data[5]))

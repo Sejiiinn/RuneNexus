@@ -3,6 +3,11 @@ import 'dart:math' as math;
 import 'package:flutter/painting.dart';
 
 class TurretLevelRenderer {
+  TurretLevelRenderer({this.fontFamily});
+
+  /// 에셋 내보내기는 대상 플랫폼 글꼴을 명시하고, 게임은 기본 글꼴을 사용한다.
+  final String? fontFamily;
+
   TextPainter? _levelLabelPainter;
   int _levelLabelPainterLevel = 0;
   double _levelLabelPainterTileSize = 0;
@@ -321,6 +326,7 @@ class TurretLevelRenderer {
         text: TextSpan(
           text: 'Lv.$_level',
           style: TextStyle(
+            fontFamily: fontFamily,
             color: _level <= 1
                 ? const Color(0xFFE8F8FF)
                 : const Color(0xFFFFF0B0),

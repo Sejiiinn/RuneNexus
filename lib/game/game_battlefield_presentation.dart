@@ -130,6 +130,7 @@ extension _BattlefieldPresentation on RuneNexusGame {
     final scale = projection.xAxis.distance / _tileSize;
     for (final child in children) {
       if (child is! PositionComponent || child.isRemoving) continue;
+      if (child is TurretComponent && nativeBattlefieldTurretLevels) continue;
       if (child is! EnemyComponent &&
           child is! TurretComponent &&
           child is! DamageNumberComponent &&

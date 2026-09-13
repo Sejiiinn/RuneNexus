@@ -458,6 +458,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   late final ValueNotifier<GameSnapshot> snapshotNotifier;
   final bool transparentBackground;
   BattlefieldProjection? battlefieldProjection;
+  bool nativeBattlefieldTurretLevels = false;
   final _battlefieldIds = Expando<int>('battlefield visual id');
   int _nextBattlefieldId = 0;
   final List<BattlefieldProjectile> _finishedProjectiles = [];

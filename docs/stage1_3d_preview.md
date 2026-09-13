@@ -8,7 +8,7 @@ Android 본게임은 기존 `lib/main.dart → RuneNexusApp → GameHud` 진입�
 
 본게임과 [별도 Godot 검수 앱](../design/stage1_3d/godot_preview/README.md)은 `godot/`의 카메라·지형·모델·효과와 공통 프레임 직렬화를 공유한다. 검수 앱의 대포 6문·정지 표적 3기 배치는 검수 앱에만 있다. 본게임은 실제 선택한 스테이지와 포탑·적 상태를 전달하며 시험 배치를 만들지 않는다. 검수 앱은 별도 패키지와 메모리 저장소를 유지한다.
 
-`GameHud` 아래의 `GodotBattlefieldView`가 Flutter/Flame의 `BattlefieldFrame`을 전달한다. Godot은 실제 중간 카메라의 투영을 반환하고, Flutter는 같은 투영으로 건설 입력·선택·범위·체력·상태·피해 수치를 표시한다. 고정↔드론 버튼은 전장 중심을 바라보는 0.7초 cubic ease-out 전환이며, 연속 입력은 현재 위치에서 이어진다. 전투 정지·배속과 독립적으로 움직인다.
+`GameHud` 아래의 `GodotBattlefieldView`가 Flutter/Flame의 `BattlefieldFrame`을 전달한다. Godot은 실제 중간 카메라의 투영을 반환하고, Flutter는 같은 투영으로 건설 입력·선택·범위·체력·상태·피해 수치를 표시한다. 고정↔드론 버튼은 전장 중심을 바라보는 0.7초 cubic ease-out 전환이며, 연속 입력은 현재 위치에서 이어진다. 전투 정지·배속과 독립적으로 움직인다. 포탑 레벨은 기존 Flutter 배지 그림을 재사용해 Godot이 고정 받침의 하단에 화면 정면으로 그린다. 렌더 직전 카메라로 위치를 갱신하여 시점 전환 중에도 포탑과 같은 프레임에 움직인다. Godot이 레벨 표시 기능을 알린 경우에만 Flutter의 중복 배지를 숨기며, 실패·화면 종료 시 기존 표시로 복귀한다. [배지 원본·재생성](../design/stage1_3d/turret_level_labels/README.md).
 
 엔진은 전장을 처음 붙일 때 초기화하고, 화면 이탈·백그라운드에서는 정지하며 재진입 시 재사용한다. 장면 초기화 요청은 최신 프레임에 덮이지 않고 먼저 처리된다. 렌더러 초기화·실행 오류 시 투영을 해제해 기존 2D 전장과 입력으로 복귀한다.
 
