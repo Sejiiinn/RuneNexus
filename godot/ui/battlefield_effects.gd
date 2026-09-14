@@ -4,6 +4,8 @@ extends Node2D
 ## Repeated snapshots replace state; no timer, restart, or damage callback here.
 const WEIGHT_AXIS := 0x77676874 # OpenType wght tag; string keys are ignored.
 var items: Array = []
+# Local diagnostic only; normal rendering is the default.
+var diagnostic_skip := ""
 var camera: Camera3D
 var map_size := Vector2.ZERO
 var world: Node3D
@@ -50,8 +52,13 @@ func supported_groups() -> Array:
 func apply_frame(frame: Dictionary) -> void:
 	items = frame.get("items", []).duplicate(true)
 	var alive := {}
+	var draw_index := 0
 	for index in range(items.size()):
 		var effect: Dictionary = items[index]
+		# 3D 전장의 화염·냉각은 기존 2D 명중 도형을 중복 생성하지 않는다.
+		# items는 유지해 표시 수신 확인 후 Flutter 대체 그리기도 중단한다.
+		if effect.get("kind") == "impact" and effect.get("style") in ["flame", "frost"]:
+			continue
 		var id: int = int(effect.get("id", index))
 		alive[id] = true
 		if not _effect_nodes.has(id):
@@ -61,7 +68,8 @@ func apply_frame(frame: Dictionary) -> void:
 			_effect_nodes[id] = node
 		var node: EffectSurface = _effect_nodes[id]
 		node.effect = effect
-		move_child(node, index)
+		move_child(node, draw_index)
+		draw_index += 1
 		var gem: bool = effect.get("kind") == "gem"
 		node.material = _additive if gem else null
 		if gem:
@@ -158,6 +166,10 @@ func effect_transform(effect: Dictionary) -> Transform2D:
 	return Transform2D(bx, by, origin)
 
 func _draw_effect(effect: Dictionary, surface: Node2D, mix_pass: bool) -> void:
+	if diagnostic_skip == "damage" and effect.get("kind") == "damage":
+		return
+	if diagnostic_skip == "flame" and effect.get("kind") == "impact" and effect.get("style") == "flame":
+		return
 	if camera == null or world == null:
 		return
 	var duration := float(effect.get("duration", 0))

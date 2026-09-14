@@ -231,6 +231,17 @@ def prepare() -> Path:
         '[params]\ncompress/mode=0\ncompress/normal_map=2\n'
         'mipmaps/generate=true\ndetect_3d/compress_to=0\n'
     )
+    burn_source = SOURCE_ASSETS / "effects/enemy_burn"
+    burn_target = ASSETS / "effects/enemy_burn"
+    burn_target.mkdir(parents=True, exist_ok=True)
+    for filename in ("attachments.json", "flame_atlas.png"):
+        shutil.copy2(burn_source / filename, burn_target / filename)
+    # Small padded flipbook: lossless RGB, no mip chain bleeding between frames.
+    (burn_target / "flame_atlas.png.import").write_text(
+        '[remap]\nimporter="texture"\ntype="CompressedTexture2D"\n\n'
+        '[params]\ncompress/mode=0\ncompress/normal_map=2\n'
+        'mipmaps/generate=false\ndetect_3d/compress_to=0\n'
+    )
     field_bytes = (SOURCE_ASSETS / "effects/cannon_field.bin").read_bytes()
     (ASSETS / "cannon_field.bin.gz").write_bytes(
         gzip.compress(field_bytes, compresslevel=9, mtime=0)

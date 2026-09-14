@@ -1097,14 +1097,15 @@ class TurretComponent extends PositionComponent {
   void render(Canvas canvas) {
     final selected = game.isTurretSelected(gridPoint);
     final center = Offset(size.x / 2, size.y / 2);
-    final previewRange = selected
-        ? game.levelUpPreviewRangeFor(gridPoint)
-        : null;
-    // 중심 광역 공격은 사거리 수치와 별개인 실제 효과 반경 표시.
-    final indicatorMultiplier = definition.centeredAreaAttack
-        ? effectAreaMultiplier
-        : 1.0;
-    if (!game.isGemRewardTargeting) {
+    if (!game.isGemRewardTargeting &&
+        (selected || game.isTurretPlacementActive)) {
+      final previewRange = selected
+          ? game.levelUpPreviewRangeFor(gridPoint)
+          : null;
+      // 중심 광역 공격은 사거리 수치와 별개인 실제 효과 반경 표시.
+      final indicatorMultiplier = definition.centeredAreaAttack
+          ? effectAreaMultiplier
+          : 1.0;
       drawTurretRangeIndicator(
         canvas,
         center: center,

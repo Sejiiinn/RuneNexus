@@ -9,7 +9,9 @@ const FieldCache = preload("res://effects/field_cache.gd")
 const WeaponAtlas = preload("res://effects/weapon_atlas.gd")
 const MachineGunMuzzle = preload("res://effects/machinegun_muzzle.gd")
 const BallisticProjectile = preload("res://effects/ballistic_projectile.gd")
+const RunicFire = preload("res://effects/runic_fire.gd")
 const EnemyFrost = preload("res://effects/enemy_frost.gd")
+const EnemyBurn = preload("res://effects/enemy_burn.gd")
 const Terrain = preload("res://assets/environment/terrain.glb")
 const Landmarks = preload("res://assets/environment/landmarks.glb")
 const Dressing = preload("res://assets/environment/dressing.glb")
@@ -36,7 +38,7 @@ const ENEMY_MODELS := {
 	"shieldBoss": preload("res://assets/enemies/boss.glb"),
 }
 const PROJECTILE_COLORS := {
-	"arrow": Color("ffe3a3"), "cannon": Color("ffb261"), "magic": Color("d59bff"),
+	"arrow": Color("ffe3a3"), "cannon": Color("ffb261"), "magic": Color("ff8528"),
 	"frost": Color("94e6ff"), "sniper": Color("ffeec4"), "lightning": Color("c7d8ff"),
 }
 const CAMERA_TRANSITION_SECONDS := 0.7
@@ -124,6 +126,7 @@ var _cores: Array[Dictionary] = []
 var _build_preview := {}
 var _projectile_meshes := {}
 var _ballistic_pool := {"arrow": [], "cannon": []}
+var _fire_projectile_pool: Array[Node3D] = []
 
 
 func _ready() -> void:
@@ -411,6 +414,8 @@ func _set_profile_enabled(enabled: bool) -> void:
 
 
 func _apply_options() -> void:
+	_presentation_nodes["effects"].diagnostic_skip = str(options.get("diagnostic_skip_canvas", ""))
+	RunicFire.set_diagnostic_mode(str(options.get("runic_fire_mode", "all")))
 	world.visible = not bool(options["empty"])
 	_apply_graphics_options()
 	_update_camera()
@@ -857,6 +862,9 @@ func _clear_scene() -> void:
 		for projectile: Node3D in pool:
 			projectile.free()
 		pool.clear()
+	for projectile: Node3D in _fire_projectile_pool:
+		projectile.free()
+	_fire_projectile_pool.clear()
 	if not _build_preview.is_empty():
 		_build_preview["root"].free()
 		_build_preview.clear()
@@ -1245,6 +1253,18 @@ func _new_turret(type: String) -> Dictionary:
 		"last_shot": -1, "last_time": -INF, "fire_start": -INF, "active_port": 0,
 	}
 	entry["level_bounds"] = TurretLevelLabels.base_bounds(root, entry["head"], root.transform.affine_inverse())
+	if type == "magic":
+		# 발광 홈은 금속 반사광으로 희게 날리지 않고 원본 주황색을 유지한다.
+		for mesh: MeshInstance3D in root.find_children("*", "MeshInstance3D", true, false):
+			for surface in range(mesh.mesh.get_surface_count()):
+				var material := mesh.get_active_material(surface) as StandardMaterial3D
+				if material != null and material.resource_name.begins_with("Runes |"):
+					material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		var effect := RunicFire.new(false)
+		root.add_child(effect)
+		entry["fire_effect"] = effect
+		entry["flame_port"] = root.find_child("upper_flame_port", true, false)
+		return entry
 	if type == "arrow":
 		var effect := MachineGunMuzzle.new()
 		root.add_child(effect)
@@ -1291,6 +1311,7 @@ func _sync_turrets(units: Array) -> void:
 		if not turrets.has(id):
 			turrets[id] = _new_turret(type)
 		var entry: Dictionary = turrets[id]
+		entry["root"].visible = not (type == "magic" and options.get("runic_fire_mode", "all") == "no_model")
 		entry["level"] = int(data[7]) if data.size() > 7 else 1
 		entry["root"].position = Vector3(float(data[1]) - columns / 2.0, 0.0, float(data[2]) - rows / 2.0)
 		entry["head"].rotation.y = PI / 2.0 - float(data[3])
@@ -1312,6 +1333,10 @@ func _update_fire(entry: Dictionary, shot_sequence: int, feedback: float) -> voi
 		entry["smoke_starts"] = [-INF, -INF]
 		if entry.has("muzzle_effect"):
 			entry["muzzle_effect"].reset()
+		if entry.has("fire_effect"):
+			entry["fire_effect"].reset()
+			entry["last_shot"] = -1
+			entry.erase("shot_pose")
 	var previous := int(entry["last_shot"])
 	var fired := (previous >= 0 and previous != shot_sequence) or (previous < 0 and shot_sequence > 0 and feedback > 0.0)
 	if fired:
@@ -1327,11 +1352,16 @@ func _update_fire(entry: Dictionary, shot_sequence: int, feedback: float) -> voi
 	var recovery := 0.34 if heavy else (0.075 if machine_gun else 0.14)
 	var kick := age / 0.018 if age < 0.018 else pow(clampf(1.0 - (age - 0.018) / recovery, 0.0, 1.0), 2.0)
 	entry["barrel"].position.z = float(entry["barrel_rest_z"]) - kick * (0.12 if heavy else (0.025 if machine_gun else 0.045))
-	if fired and (heavy or machine_gun):
+	if fired and (heavy or machine_gun or entry["type"] == "magic"):
 		var muzzle: Node3D = entry["muzzle"]
 		var pose := muzzle.global_transform.orthonormalized()
 		pose.origin = muzzle.to_global(Vector3((0.062 if int(entry["active_port"]) == 1 else -0.062) if machine_gun else 0.0, 0.0, 0.018))
 		entry["shot_pose"] = pose
+	if entry.has("fire_effect"):
+		if fired:
+			entry["fire_effect"].fire(entry["muzzle"], time, shot_sequence)
+		entry["fire_effect"].update_turret(entry["flame_port"], entry["muzzle"], time)
+		return
 	if machine_gun:
 		# 최신 조준·반동 위치에서 이번 한 발만 기록. 건너뛴 순번은 재연하지 않음.
 		if fired:
@@ -1363,6 +1393,8 @@ func _update_fire(entry: Dictionary, shot_sequence: int, feedback: float) -> voi
 
 
 func _update_weapon_camera(entry: Dictionary) -> void:
+	if entry.has("fire_effect"):
+		return
 	if entry.has("muzzle_effect"):
 		entry["muzzle_effect"].update_camera(camera)
 		return
@@ -1378,6 +1410,9 @@ func _update_weapon_camera(entry: Dictionary) -> void:
 
 
 func _sync_enemies(units: Array) -> void:
+	var time := float(last_frame.get("time", 0.0))
+	# 공통 GPU 입자 시계는 전투 프레임마다 한 번만 전달한다.
+	EnemyBurn.set_time(time)
 	var alive := {}
 	for data: Array in units:
 		var id := int(data[0])
@@ -1397,6 +1432,8 @@ func _sync_enemies(units: Array) -> void:
 		var root: Node3D = enemies[id]["root"]
 		# 전투 판정의 기존 slowed 필드를 사용하며 부유·회전·크기는 원본 부모를 따른다.
 		EnemyFrost.apply(enemies[id], data.size() > 9 and bool(data[9]))
+		# Diagnostic A/B switch: visual only; incoming combat burn state stays intact.
+		EnemyBurn.apply(enemies[id], data.size() > 8 and bool(data[8]) and bool(options.get("burn_effects", true)), time)
 		var hover := 0.025 if type in ["normal", "fast", "shielded"] else 0.008
 		root.position = Vector3(float(data[1]) - columns / 2.0, sin(float(data[4])) * hover, float(data[2]) - rows / 2.0)
 		root.rotation.y = PI / 2.0 - float(data[3])
@@ -1424,9 +1461,15 @@ func _sync_build_preview(data) -> void:
 	_build_preview["root"].position = Vector3(float(data[1]) - columns / 2.0, 0.10 + sin(float(last_frame.get("time", 0.0)) * 3.0) * 0.02, float(data[2]) - rows / 2.0)
 	_build_preview["head"].rotation.y = PI / 2.0 - float(data[3])
 	_build_preview["barrel"].position.z = _build_preview["barrel_rest_z"]
+	if _build_preview.has("fire_effect"):
+		_build_preview["fire_effect"].update_turret(_build_preview["flame_port"], _build_preview["muzzle"], float(last_frame.get("time", 0.0)))
 
 
 func _new_projectile(type: String) -> Node3D:
+	if type == "magic":
+		if not _fire_projectile_pool.is_empty():
+			return _fire_projectile_pool.pop_back()
+		return RunicFire.new(true)
 	if _ballistic_pool.has(type):
 		var pool: Array = _ballistic_pool[type]
 		if not pool.is_empty():
@@ -1502,6 +1545,9 @@ func _sync_projectiles(units: Array) -> void:
 				world.add_child(model)
 			projectiles[id] = {"root": model, "type": type}
 		var root: Node3D = projectiles[id]["root"]
+		if type == "magic":
+			_update_fire_projectile(projectiles[id], data)
+			continue
 		if root is BallisticProjectile:
 			var pose = null
 			if data.size() >= 12 and data[8] != null and not bool(data[10]):
@@ -1517,12 +1563,56 @@ func _sync_projectiles(units: Array) -> void:
 		if not alive.has(id):
 			var projectile: Node3D = projectiles[id]["root"]
 			var type: String = projectiles[id]["type"]
-			if projectile is BallisticProjectile and _ballistic_pool[type].size() < 64:
+			if type == "magic" and _fire_projectile_pool.size() < 64:
+				projectile.reset()
+				_fire_projectile_pool.append(projectile)
+			elif projectile is BallisticProjectile and _ballistic_pool[type].size() < 64:
 				projectile.reset()
 				_ballistic_pool[type].append(projectile)
 			else:
 				projectile.free()
 			projectiles.erase(id)
+
+
+func _update_fire_projectile(entry: Dictionary, data: Array) -> void:
+	var root: Node3D = entry["root"]
+	var time := float(last_frame.get("time", 0.0))
+	var map_offset := Vector3(-columns / 2.0, 0.0, -rows / 2.0)
+	var point := Vector3(float(data[1]), 0.45, float(data[2])) + map_offset
+	var direction := Vector3(float(data[3]), 0.0, float(data[4])).normalized()
+	if direction.length_squared() < 0.5:
+		direction = Vector3.BACK
+	var metadata := data.size() >= 12
+	var finished_at := float(data[11]) if metadata else -1.0
+	var finished := finished_at >= 0.0
+	if time < float(entry.get("last_time", -INF)):
+		root.reset()
+		entry.erase("launch_position")
+	entry["last_time"] = time
+	if not entry.has("launch_position"):
+		var launch := point - direction * 0.30
+		if metadata:
+			launch = Vector3(float(data[6]), 0.45, float(data[7])) + map_offset
+			if not bool(data[10]):
+				var owner: Dictionary = turrets.get(int(data[8]), {}) if data[8] != null else {}
+				var pose = owner.get("shot_pose")
+				if int(owner.get("last_shot", -1)) == int(data[9]) and pose is Transform3D:
+					launch = pose.origin
+				# magic의 origin에는 이미 Dart 화구 오프셋이 포함된다.
+		entry["launch_position"] = launch
+	if finished and data.size() >= 14 and data[12] != null and data[13] != null:
+		point.x = float(data[12]) + map_offset.x
+		point.z = float(data[13]) + map_offset.z
+	var offset: Vector3 = point - entry["launch_position"]
+	var travelled := offset.dot(direction)
+	if travelled > 0.01:
+		direction = offset.normalized()
+	var right := Vector3.UP.cross(direction).normalized()
+	root.global_transform = Transform3D(Basis(right, direction.cross(right), direction), point)
+	var age := fposmod(time - finished_at, 1200.0) if finished else 0.0
+	var opacity := pow(clampf(1.0 - age / 0.14, 0.0, 1.0), 1.4) if finished else 1.0
+	# 전투 좌표·명중 시점은 그대로 두고 종료 후 짧은 잔불만 표시한다.
+	root.update_projectile(time, not finished and travelled > 0.01, opacity if travelled > 0.01 else 0.0)
 
 
 func _update_impacts(units: Array) -> void:

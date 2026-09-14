@@ -29,7 +29,10 @@ func _verify() -> void:
 	effects.apply_frame({"items": items})
 	effects.present(camera, Vector2(10, 10), world)
 	assert(effects.items.size() == 14)
-	assert(effects._effect_nodes.size() == 14)
+	assert(effects._effect_nodes.size() == 12)
+	assert(not effects._effect_nodes.has(11) and not effects._effect_nodes.has(12), "3D battlefield must not create legacy flame/frost impact canvases")
+	assert(effects.items[10]["style"] == "flame" and effects.items[11]["style"] == "frost", "suppressed effects must remain acknowledged to prevent Flutter fallback")
+	assert(effects.get_child(10) == effects._effect_nodes[13] and effects.get_child(11) == effects._effect_nodes[14], "remaining effects must preserve draw order across skipped impacts")
 	var stable_surface: Node2D = effects._effect_nodes[1]
 	var gem_surface: Node2D = effects._effect_nodes[7]
 	assert(gem_surface.material.blend_mode == CanvasItemMaterial.BLEND_MODE_ADD, "gem seal/sparks/glow must preserve Flutter BlendMode.plus")

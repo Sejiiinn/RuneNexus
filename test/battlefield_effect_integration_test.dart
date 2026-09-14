@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -42,6 +43,25 @@ class _ShortEffect extends PositionComponent
       );
 }
 
+class _CountingImpact extends ImpactEffectComponent {
+  _CountingImpact(ImpactEffectStyle style)
+    : super(
+        position: Vector2(100, 100),
+        color: const Color(0xffff6600),
+        style: style,
+        radius: 16,
+      );
+  int renderCalls = 0;
+  @override
+  void render(Canvas canvas) => renderCalls++;
+}
+
+void _renderOnce(RuneNexusGame game) {
+  final recorder = ui.PictureRecorder();
+  game.render(Canvas(recorder));
+  recorder.endRecording().dispose();
+}
+
 Future<RuneNexusGame> _fixture() async {
   final game = RuneNexusGame(saveRepository: MemorySaveRepository());
   game.onGameResize(Vector2(400, 800));
@@ -59,6 +79,50 @@ Future<RuneNexusGame> _fixture() async {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test(
+    '3D flame and frost impacts stay off before ACK and after reset',
+    () async {
+      final game = await _fixture();
+      game.battlefieldProjection = _projection;
+      game.nativeBattlefieldGroups = {'effects'};
+      final flame = _CountingImpact(ImpactEffectStyle.flame);
+      final frost = _CountingImpact(ImpactEffectStyle.frost);
+      game.add(flame);
+      game.add(frost);
+      await game.ready();
+      _renderOnce(game);
+      expect(
+        flame.renderCalls,
+        0,
+        reason: 'native ACK delay must not restore flame',
+      );
+      expect(
+        frost.renderCalls,
+        0,
+        reason: 'native ACK delay must not restore frost',
+      );
+      final ids = game.battlefieldFrame!.effects!.items
+          .map((e) => e.id)
+          .toList();
+      game.markNativeBattlefieldEffectsSubmitted(10, 1, ids);
+      game.acknowledgeNativeBattlefieldEffects(10, 1);
+      _renderOnce(game);
+      game.resetNativeBattlefieldEffects(10);
+      game.nativeBattlefieldGroups = {};
+      _renderOnce(game);
+      expect(flame.renderCalls, 0);
+      expect(frost.renderCalls, 0);
+      game.battlefieldProjection = null;
+      _renderOnce(game);
+      expect(
+        flame.renderCalls,
+        1,
+        reason: 'original 2D battlefield must retain effects',
+      );
+      expect(frost.renderCalls, 1);
+    },
+  );
 
   test(
     'add captures an effect removed before the first native snapshot',
@@ -171,7 +235,8 @@ void main() {
         if (call.method != 'submitFrameV2') return null;
         final envelope = call.arguments as Map;
         final applied = latest;
-        latest = jsonDecode(envelope['frame'] as String) as Map<String, dynamic>;
+        latest =
+            jsonDecode(envelope['frame'] as String) as Map<String, dynamic>;
         expect(envelope['sceneEpoch'], latest!['sceneEpoch']);
         if (!acknowledge || applied == null) return '{}';
         return jsonEncode({

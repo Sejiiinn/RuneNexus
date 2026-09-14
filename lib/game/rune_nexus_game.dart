@@ -495,7 +495,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final type = projectile.owner.definition.type;
     if (battlefieldProjection == null ||
         !supportsNativeBattlefield ||
-        (type != TurretType.arrow && type != TurretType.cannon)) {
+        (type != TurretType.arrow &&
+            type != TurretType.cannon &&
+            type != TurretType.magic)) {
       return;
     }
     Offset grid(Offset position) =>
@@ -651,6 +653,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   double get boardDistanceScale =>
       _boardConfigured ? _tileSize / _designTileSize : 1;
   bool isTurretSelected(GridPoint point) => _selectedTurretPoint == point;
+
+  bool get isTurretPlacementActive => _selectedBuildPoint != null;
   double? levelUpPreviewRangeFor(GridPoint point) {
     if (_levelUpPreviewPoint != point || _selectedTurretPoint != point) {
       return null;
@@ -2130,7 +2134,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _publish();
   }
 
-  void debugShowCannonBarrage() {
+  void debugShowCannonBarrage({TurretType turretType = TurretType.cannon}) {
     if (!_debugPanelEnabled || !_boardConfigured || _worldPath.length < 3) {
       return;
     }
@@ -2157,7 +2161,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     for (final point in buildPoints.take(6)) {
       final turret = TurretComponent(
         gridPoint: point,
-        definition: gameTurrets[TurretType.cannon]!,
+        definition: gameTurrets[turretType]!,
         game: this,
         center: _centerOf(point),
         tileSize: _tileSize,
@@ -3603,8 +3607,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
           continue;
         }
         if (child is ImpactEffectComponent &&
-            child.style == ImpactEffectStyle.blast) {
-          // 새 Blender 착탄은 3D 전장에만 표시하여 이전 폭발과 중복 방지.
+            (child.style == ImpactEffectStyle.blast ||
+                child.style == ImpactEffectStyle.flame ||
+                child.style == ImpactEffectStyle.frost)) {
+          // 3D에서는 수신 확인 전에도 기존 2D 명중 효과를 복원하지 않는다.
           continue;
         } else {
           child.renderTree(canvas);

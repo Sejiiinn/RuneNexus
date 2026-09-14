@@ -167,34 +167,40 @@ void main() {
     );
   });
 
-  for (final speed in [1.0, 4.0]) {
-    test('최대거리 종료 탄환은 $speed배속에서도 표시 시간 0.14초 뒤 만료된다', () async {
-      final fixture = await _fixture(type: TurretType.cannon);
-      final game = fixture.game;
-      game.setSpeedMultiplier(speed);
-      final projectile = _shortProjectile(game, fixture.turret, isChain: true);
-      await game.add(projectile);
-      await game.ready();
-      final before = game.battlefieldFrame!.projectiles.single;
-      projectile.update(1);
-      final finished = game.battlefieldFrame!.finishedProjectiles.single;
-      expect(projectile.isRemoving, isTrue);
-      expect(finished.id, before.id);
-      expect(finished.ownerId, before.ownerId);
-      expect(finished.origin, before.origin);
-      expect(finished.isChain, isTrue);
-      expect(finished.hitTarget, isNull);
-      expect(game.hitCount, 0);
-      expect(
-        projectile.position.x - projectile.visualOrigin.dx,
-        closeTo(5, 0.00001),
-      );
-      game.update(0.139);
-      expect(game.battlefieldFrame!.finishedProjectiles, hasLength(1));
-      game.update(0.002);
-      expect(game.battlefieldFrame!.finishedProjectiles, isEmpty);
-      expect(game.hitCount, 0);
-    });
+  for (final type in [TurretType.cannon, TurretType.magic]) {
+    for (final speed in [1.0, 4.0]) {
+      test('${type.name} 최대거리 종료 탄환은 $speed배속에서도 표시 시간 0.14초 뒤 만료된다', () async {
+        final fixture = await _fixture(type: type);
+        final game = fixture.game;
+        game.setSpeedMultiplier(speed);
+        final projectile = _shortProjectile(
+          game,
+          fixture.turret,
+          isChain: true,
+        );
+        await game.add(projectile);
+        await game.ready();
+        final before = game.battlefieldFrame!.projectiles.single;
+        projectile.update(1);
+        final finished = game.battlefieldFrame!.finishedProjectiles.single;
+        expect(projectile.isRemoving, isTrue);
+        expect(finished.id, before.id);
+        expect(finished.ownerId, before.ownerId);
+        expect(finished.origin, before.origin);
+        expect(finished.isChain, isTrue);
+        expect(finished.hitTarget, isNull);
+        expect(game.hitCount, 0);
+        expect(
+          projectile.position.x - projectile.visualOrigin.dx,
+          closeTo(5, 0.00001),
+        );
+        game.update(0.139);
+        expect(game.battlefieldFrame!.finishedProjectiles, hasLength(1));
+        game.update(0.002);
+        expect(game.battlefieldFrame!.finishedProjectiles, isEmpty);
+        expect(game.hitCount, 0);
+      });
+    }
   }
 
   test('표시 시계의 1200초 순환을 지나도 종료 탄환 수명을 유지한다', () async {
@@ -232,7 +238,7 @@ void main() {
     expect(frame.finishedProjectiles, hasLength(192));
   });
 
-  test('2D 표시와 기관총·대포 이외의 탄환은 종료 사본을 기록하지 않는다', () async {
+  test('2D 표시와 기관총·대포·화염 이외의 탄환은 종료 사본을 기록하지 않는다', () async {
     final fixture = await _fixture();
     final game = fixture.game;
     game.battlefieldProjection = null;
@@ -240,14 +246,14 @@ void main() {
     expect(game.battlefieldFrame!.finishedProjectiles, isEmpty);
     game.battlefieldProjection = _projection;
     expect(game.battlefieldFrame!.finishedProjectiles, isEmpty);
-    final magic = TurretComponent(
-      definition: gameTurrets[TurretType.magic]!,
+    final frost = TurretComponent(
+      definition: gameTurrets[TurretType.frost]!,
       gridPoint: const GridPoint(3, 0),
       center: fixture.turret.position.clone(),
       tileSize: game.battlefieldFrame!.pixelsPerTile,
       game: game,
     );
-    _shortProjectile(game, magic).update(1);
+    _shortProjectile(game, frost).update(1);
     expect(game.battlefieldFrame!.finishedProjectiles, isEmpty);
     _shortProjectile(game, fixture.turret).update(1);
     expect(game.battlefieldFrame!.finishedProjectiles, hasLength(1));

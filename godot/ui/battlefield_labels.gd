@@ -1,25 +1,24 @@
 extends Node2D
 
-## Flutter EnemyRenderer showBody:false의 크기·순서·자산을 유지한다.
+## 내구도·상태 보조 표시는 Flutter EnemyRenderer의 크기와 순서를 유지한다.
+## 화상과 냉각은 적 본체에 붙는 공통 3D 효과가 담당한다.
 var labels := {}
 var core: CoreLabel
 var tile_size := 48.0
 var textures := {}
-const ASSET_ROOT := "res://assets/ui/labels/"
 
 
 func _init() -> void:
-	for name in ["burn_ember", "burn_glow", "burn_smoke", "diamond_currency"]:
-		var path: String = "res://assets/ui/diamond_currency.png" if name == "diamond_currency" else ASSET_ROOT + name + ".png"
-		if ResourceLoader.exists(path):
-			textures[name] = load(path)
+	var path := "res://assets/ui/diamond_currency.png"
+	if ResourceLoader.exists(path):
+		textures["diamond_currency"] = load(path)
 	core = CoreLabel.new()
 	add_child(core)
 	core.visible = false
 
 
 func supported_groups() -> Array:
-	return ["labels"] if textures.size() == 4 else []
+	return ["labels"] if textures.has("diamond_currency") else []
 
 
 func clear() -> void:
@@ -87,10 +86,6 @@ class EnemyLabel extends Node2D:
 			return Vector3(clampf(float(d["hp"]) / total, 0.0, 1.0), clampf(float(d["armor"]) / total, 0.0, 1.0), clampf(float(d.get("shield", 0.0)) / maxf(0.001, float(d.get("maxShield", 0.0))), 0.0, 1.0))
 		return Vector3(0.0 if maximum <= 0.0 else clampf(float(d["hp"]) / maximum, 0.0, 1.0), 0.0, clampf(float(d.get("shield", 0.0)) / maxf(0.001, float(d.get("maxShield", 0.0))), 0.0, 1.0))
 
-	func sprite(name: String, center: Vector2, radius: float, alpha := 1.0) -> void:
-		if textures.has(name):
-			draw_texture_rect(textures[name], Rect2(center - Vector2.ONE * radius, Vector2.ONE * radius * 2.0), false, Color(1, 1, 1, alpha))
-
 	func _draw() -> void:
 		if data.is_empty():
 			return
@@ -98,22 +93,11 @@ class EnemyLabel extends Node2D:
 		var size := Vector2(float(dimensions[0]), float(dimensions[1]))
 		var w := size.x
 		var t := float(data["effectTime"])
-		var crowded := int(data["enemyCount"]) >= 60
 		# 기존 renderer의 top-left 좌표계를 화면 정면 중심으로 옮긴다.
 		draw_set_transform(-size / 2.0)
 		var center := size / 2.0
 		if data.get("diamondCarrier", false) and textures.has("diamond_currency"):
 			draw_texture_rect(textures["diamond_currency"], Rect2(Vector2.ZERO, size * 0.32), false)
-		if data.get("burning", false):
-			var offsets := [Vector2(-0.31, -0.25), Vector2(-0.11, -0.34), Vector2(0.13, -0.31), Vector2(0.32, -0.19)]
-			for i in range(2 if crowded else 4):
-				var phase := fposmod(t * 3.4 + i * 0.31, 1.0)
-				var ember: Vector2 = center + offsets[i] * size - Vector2(0, phase * size.y * 0.34)
-				var radius := w * (0.045 + (1.0 - phase) * 0.035)
-				sprite("burn_glow", ember, radius * 2.2)
-				sprite("burn_ember", ember, radius)
-				if i % 2 == 0:
-					sprite("burn_smoke", ember + Vector2(w * 0.04, -size.y * 0.1), radius * 1.5, 0.22 * phase)
 		if data.get("poisoned", false):
 			draw_arc(center, w * 0.5, 0, TAU, 64, Color("9dff4a66"), 2.0, true)
 		if data.get("riftMarked", false):

@@ -1,6 +1,11 @@
 extends Node2D
 ## Native camera projection of Dart-resolved selection state. No combat queries.
 var _frame: Dictionary = {}
+var _show_all_ranges := false
+const MAX_RANGE_PATHS := 256
+var _range_paths: Dictionary = {}
+var _range_context: Array = []
+var _range_unit_circle := PackedVector2Array()
 var _camera: Camera3D
 var _world: Node3D
 var _map_size := Vector2.ZERO
@@ -63,9 +68,17 @@ void fragment() {
 
 func apply_frame(frame: Dictionary) -> void:
 	_frame = frame.duplicate(true)
+	_show_all_ranges = false
+	for tile in _frame.get("tiles", []):
+		if tile.get("kind", "") == "build":
+			_show_all_ranges = true
+			break
 
 func clear() -> void:
 	_frame.clear()
+	_show_all_ranges = false
+	_range_paths.clear()
+	_range_context.clear()
 	_turrets = {}
 	material = null
 	if is_instance_valid(_dim): _dim.hide()
@@ -83,6 +96,13 @@ func prepare_context(camera: Camera3D, map_size: Vector2, world: Node3D, redraw 
 	_world = world
 	_map_size = map_size
 	_tile = maxf(float(_frame.get("logicalTileSize", 48.0)), 1.0)
+	# Exact inputs to _project, including camera offsets, zoom, viewport and shake.
+	# Unrelated combat updates do not invalidate static range geometry.
+	var context := [camera.get_camera_transform(), camera.get_camera_projection(),
+		camera.get_viewport().get_visible_rect(), world.global_transform, map_size]
+	if context != _range_context:
+		_range_context = context
+		_range_paths.clear()
 	if redraw:
 		queue_redraw()
 
@@ -112,6 +132,30 @@ func _path(center: Vector2, radius: float, start: float = 0.0, sweep: float = TA
 
 func _ring(p: Vector2, radius: float, color: Color, width: float, fill: bool = false, start: float = 0.0, sweep: float = TAU) -> void:
 	var points := _path(p, radius, start, sweep)
+	_draw_ring_path(points, p, color, width, fill)
+
+func _range_path(center: Vector2, radius: float) -> PackedVector2Array:
+	# Only static full range circles use this cache; animated gem arcs do not.
+	var key := Vector3(center.x, center.y, radius)
+	if _range_paths.has(key):
+		return _range_paths[key]
+	if _range_unit_circle.is_empty():
+		for i in range(97):
+			var angle := TAU * float(i) / 96
+			_range_unit_circle.append(Vector2(cos(angle), sin(angle)))
+	var points := PackedVector2Array()
+	for direction in _range_unit_circle:
+		points.append(_project(center + direction * radius))
+	# Bound obsolete radii/positions retained across upgrades and construction.
+	if _range_paths.size() >= MAX_RANGE_PATHS:
+		_range_paths.clear()
+	_range_paths[key] = points
+	return points
+
+func _range_ring(p: Vector2, radius: float, color: Color, width: float, fill: bool = false) -> void:
+	_draw_ring_path(_range_path(p, radius), p, color, width, fill)
+
+func _draw_ring_path(points: PackedVector2Array, p: Vector2, color: Color, width: float, fill: bool) -> void:
 	if fill: draw_colored_polygon(points, color)
 	else: draw_polyline(points, color, maxf(width * _scale_at(p), 0.3), true)
 
@@ -158,13 +202,14 @@ func _draw_turret(data: Dictionary, rewarding: bool) -> void:
 	var radius := float(data.get("range", 0.0))
 	var selected := bool(data.get("selected", false))
 	if not rewarding:
-		_ring(p, radius, _color(data.get("color"), 0.08), 0, true)
+		if selected or _show_all_ranges:
+			_range_ring(p, radius, _color(data.get("color"), 0.08), 0, true)
 		if selected:
 			var preview: Variant = data.get("previewRange")
 			if preview != null and float(preview) > radius:
-				_ring(p, float(preview), _color(data.get("color"), 0.045), 0, true)
-				_ring(p, float(preview), _color(data.get("color"), 0.34), 1.3)
-			_ring(p, radius, _color(data.get("color"), 0.48), 1.8)
+				_range_ring(p, float(preview), _color(data.get("color"), 0.045), 0, true)
+				_range_ring(p, float(preview), _color(data.get("color"), 0.34), 1.3)
+			_range_ring(p, radius, _color(data.get("color"), 0.48), 1.8)
 			var outline := _tile_path(p, 2.0 / _tile, 0.09)
 			_outline(outline, _color(data.get("color"), 0.2), 8, p)
 			_outline(outline, _color(data.get("color"), 0.95), 3.2, p)
@@ -210,8 +255,8 @@ func _draw_tile(data: Dictionary) -> void:
 	var outline := _tile_path(p, 2.0 / _tile)
 	if kind == "core": draw_colored_polygon(outline, _color(0x228ee6ff))
 	if data.get("range") != null:
-		_ring(p, float(data.range), _color(data.get("color"), 0.09), 0, true)
-		_ring(p, float(data.range), _color(data.get("color"), 0.42), 1.6)
+		_range_ring(p, float(data.range), _color(data.get("color"), 0.09), 0, true)
+		_range_ring(p, float(data.range), _color(data.get("color"), 0.42), 1.6)
 	_outline(outline, _color(0xccb16dff if kind == "portal" else 0xcc8ee6ff if kind == "core" else 0x668ee6ff), 3, p)
 
 func _draw_reward(data: Dictionary) -> void:

@@ -3,8 +3,10 @@ package com.example.rune_nexus
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.os.Build
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.embedding.engine.FlutterShellArgs
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.platform.PlatformView
@@ -12,6 +14,21 @@ import io.flutter.plugin.platform.PlatformViewFactory
 
 /** 본게임과 별도 검수 앱이 공유하는 Flutter·Godot 연결 진입점. */
 open class GodotFlutterActivity : FlutterActivity() {
+    @Suppress("DEPRECATION")
+    override fun getFlutterShellArgs(): FlutterShellArgs {
+        val args = super.getFlutterShellArgs()
+        // ARM64 AVD: Impeller GLES + Godot Vulkan hybrid composition stalls
+        // at ~125 ms/frame; Skia measured ~24 ms with the same battlefield.
+        // Keep device defaults and explicit renderer A/B overrides intact.
+        // Temporary compatibility path: recheck when upgrading Flutter.
+        if (Build.HARDWARE == "ranchu" && Build.MODEL == "sdk_gphone64_arm64" &&
+            !intent.hasExtra(FlutterShellArgs.ARG_KEY_TOGGLE_IMPELLER)
+        ) {
+            args.add(FlutterShellArgs.ARG_DISABLE_IMPELLER)
+        }
+        return args
+    }
+
     private var godotChannel: MethodChannel? = null
     internal var godotActivityStarted = false
         private set
