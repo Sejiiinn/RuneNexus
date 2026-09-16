@@ -1,0 +1,29 @@
+{
+  "date": "2026-09-16",
+  "engine": "Godot 4.7.2 stable",
+  "renderer": "Metal 4.0 / Forward Mobile",
+  "device": "Apple M4 / macOS",
+  "scope": "Standalone Godot art preview; no shipping integration or performance claim",
+  "runtime_errors": 0,
+  "particle_capacity": 9,
+  "maximum_body_triangles": 18,
+  "native_materials": true,
+  "custom_shader": false,
+  "atlas_frame_count": 16,
+  "atlas_loop_seconds": 1.0,
+  "paused_capture_sha256": "08bd2725774ebf4cf66b5fd401cb8b378cac4f7f6012985d580e1d007a566e8c",
+  "paused_png_identical": true,
+  "visual_checks": [
+    "fixed",
+    "drone",
+    "rear",
+    "game-scale preview",
+    "GPU flame animation and embers",
+    "pause and resume",
+    "movie framing"
+  ],
+  "assets": {
+    "flame_flipbook.png": "9248ac7b5b71e809221c9e5324b9785d716584b76f1b232b41f90d78310f32a4",
+    "ember.png": "3a99d3ae81d9936a3d2f8dd628cfe54465127ae02d17dd4d52146c5d0c3bf0ad"
+  }
+}
