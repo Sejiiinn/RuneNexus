@@ -1,0 +1,14 @@
+{
+  "glb_sha256": "c4eb491ef578b6e91219b75b3a854ad4bb3b4b3e565cd0d866d55a5daacd7952",
+  "image": "integrated-v2-glb-mounted.png",
+  "camera": "mounted source hero",
+  "views": 1,
+  "purpose": "source/export combined representative visual review",
+  "visual_status": "PASS",
+  "verified_features": [
+    "upright wall bronze flange and upward open elbow; no shelf",
+    "full-height rounded exhaust housing, short open stack and 3 recessed orange slots",
+    "flush conduit with preserved pipe and heat slit",
+    "native PBR and source silhouette preserved"
+  ]
+}

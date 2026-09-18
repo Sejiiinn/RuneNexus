@@ -1,0 +1,24 @@
+Use case: stylized-concept.
+Create a NEW high quality 3D GAME ENVIRONMENT DESIGN CONCEPT BOARD for Rune Nexus Chapter 3, "공명 용광로". This is a proposed next chapter following the two earlier images visible in conversation: chapter2 integrated jagged thick rock terrain gives the dimensional style continuity; old chapter3 overhead concept gives only theme inspiration. Produce a substantially more dimensional, polished stylized PBR 3D render with readable broad forms, bevels, rich but restrained surface detail. Not flat illustration. Single landscape board, 1536x1024 or higher same ratio.
+
+Composition: left 70% is a large complete battlefield diorama at high three-quarter orthographic game camera, viewed from above toward the back, visible thick front and side cliffs, entire map in frame. Right 30% is three neatly stacked closeup studies on charcoal with thin subdued bronze dividers. Top title exactly "챕터 3 · 공명 용광로". Small subtitle "3D 전장 디자인 시안". Right three labels exactly "식은 합금 통행로", "청회색 건설 기반", "공명 제련시설". No other writing or UI.
+
+World: ruined ancient rune foundry integrated into a single cohesive jagged dark basalt landmass. Heavy irregular fractured rock strata under all connected playable tiles, with occasional embedded iron beams and restrained bronze braces. Natural angular cliff ledges flow into the battlefield foundation; no isolated round prop pedestals. Background subdued charcoal blue underground haze. No lava ocean. Sparse orange heat only deep in two or three exterior cracks and forge mouths. Cool neutral key light makes all top faces readable, crisp deep contact shadows and controlled warm local bounce. Bronze-black machinery is ancient heavy cast metal, no modern factory look.
+
+Board tiles: unmistakable two roles. Walk route light muted warm gray worn alloy rectangular square plates, flush segments with subtle forged grain, chipped bevels, small edge fasteners, never an orange glowing road. Build squares darker blue-gray recessed thick steel framed squares with very subtle central engraved diamond. Broad clean interiors. Distinguish both at thumbnail scale. No repetitive glowing outlines. Tile grids consistent and geometrically aligned.
+Use stage11 8x10 matrix as approximate layout reference; rows run back to front. S=low circular flat purple vortex portal built into floor, C=tall slim translucent turquoise floating crystal in small brass supports, P=walkway, B=empty build squares, X=nonplay basalt.
+SPPPBXXX
+BBBPBBXX
+XXBPPPPB
+XBBBXXPB
+XBPPPPPB
+XBPXXBBB
+XBPPPPXX
+XXXXBPBX
+XBBBBPPP
+XXXXBBBC
+Make a continuous winding path, portal in rear left and core in front right. Portal MUST be low horizontal floor ring, NOT standing gate. Core visibly elongated faceted cyan crystal, not round orb. No towers or enemies: show environment clearly.
+
+Exterior props only, modest scale so battlefield dominates: one broken elbow-shaped thick iron pipe embedded in rear-left cliff with oxidized bronze couplings; one compact rune furnace/heat vent on rear-right connected rock shelf, squat hexagonal black iron with orange inner slots and subtle engraved runes; a few angular cooled slag fragments near front-left exterior. Make props visually distinct and modeled in true volume. No props inside path/build cells, no tall structures obscuring play. Keep interior gaps mostly quiet. Faint teal marks on machinery only, orange heat is sparse, core cyan is strongest focal color.
+
+Right closeups: first a pair of walk tiles showing thickness and brushed/hammered muted alloy; second an empty blue-gray square build platform showing inset and diamond engraving, dark basalt foundation; third pipe plus squat forge vent and cooled slag on integrated broken rock ledge. Same exact material design as hero. Elegant minimal presentation, not dense moodboard. No photoreal micro-noise, no huge flames, no bloom haze over board, no vegetation, no chapter2 crystal clusters, no UI, no characters, no arrows, no watermarks.

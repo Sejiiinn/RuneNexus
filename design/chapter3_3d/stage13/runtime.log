@@ -1,0 +1,29 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward Mobile - Using Device #0: Apple - Apple M4 (Apple9)
+
+RuneNexus Godot scene ready; Space: impacts, C: camera, S: shadows, V: volume
+Forge prop: elbow_pipe cell=(4, 0) side=1 origin=(0.95, 0.0, -4.5)
+Forge prop: side_conduit cell=(5, 9) side=0 origin=(1.5, 0.0, 4.95)
+Forge prop: exhaust_vent cell=(7, 5) side=0 origin=(3.5, 0.0, 0.95)
+Forge prop: elbow_pipe cell=(1, 5) side=3 origin=(-2.95, 0.0, 0.5)
+Forge prop: side_conduit cell=(2, 8) side=0 origin=(-1.5, 0.0, 3.95)
+Chapter three stage11: 8x10, 53 tiles, 5 grates, 5 vents, 5 props, 0 failures
+Forge prop: elbow_pipe cell=(1, 5) side=0 origin=(-4.0, 0.0, 2.45)
+Forge prop: side_conduit cell=(9, 1) side=1 origin=(4.45, 0.0, -2.0)
+Forge prop: exhaust_vent cell=(6, 6) side=0 origin=(1.0, 0.0, 3.45)
+Forge prop: elbow_pipe cell=(4, 1) side=2 origin=(-1.0, 0.0, -2.45)
+Forge prop: side_conduit cell=(8, 5) side=0 origin=(3.0, 0.0, 2.45)
+Chapter three stage12: 11x7, 46 tiles, 6 grates, 4 vents, 5 props, 0 failures
+Forge prop: elbow_pipe cell=(6, 2) side=1 origin=(2.95, 0.0, -1.5)
+Forge prop: side_conduit cell=(3, 7) side=0 origin=(-0.5, 0.0, 3.95)
+Forge prop: exhaust_vent cell=(7, 6) side=0 origin=(3.5, 0.0, 2.95)
+Forge prop: elbow_pipe cell=(1, 1) side=3 origin=(-2.95, 0.0, -2.5)
+Forge prop: side_conduit cell=(5, 0) side=3 origin=(1.05, 0.0, -3.5)
+Chapter three stage13: 8x8, 40 tiles, 3 grates, 4 vents, 5 props, 0 failures
+Forge prop: elbow_pipe cell=(4, 0) side=1 origin=(0.95, 0.0, -4.5)
+Forge prop: side_conduit cell=(5, 9) side=0 origin=(1.5, 0.0, 4.95)
+Forge prop: exhaust_vent cell=(7, 5) side=0 origin=(3.5, 0.0, 0.95)
+Forge prop: elbow_pipe cell=(1, 5) side=3 origin=(-2.95, 0.0, 0.5)
+Forge prop: side_conduit cell=(2, 8) side=0 origin=(-1.5, 0.0, 3.95)
+Chapter three stage11: 8x10, 53 tiles, 5 grates, 5 vents, 5 props, 0 failures
+Chapter three verification: 0 failures

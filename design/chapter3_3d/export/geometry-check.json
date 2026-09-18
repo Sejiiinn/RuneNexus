@@ -1,0 +1,157 @@
+{
+  "source_sha256": "3ff4461556939f8781c3cc65e075cd17b875cd762c3124e3d224cbdb0f831299",
+  "source_unchanged": true,
+  "tiles": {
+    "path_tile": {
+      "source_parts": 64,
+      "triangles": 24416,
+      "max_position_error": 0.0,
+      "bounds": [
+        [
+          -0.5,
+          0.5
+        ],
+        [
+          -0.5,
+          0.5
+        ],
+        [
+          -0.5,
+          0.030500000342726707
+        ]
+      ]
+    },
+    "grate_tile": {
+      "source_parts": 67,
+      "triangles": 30320,
+      "max_position_error": 0.0,
+      "bounds": [
+        [
+          -0.5,
+          0.5
+        ],
+        [
+          -0.5,
+          0.5
+        ],
+        [
+          -0.5,
+          0.030500000342726707
+        ]
+      ]
+    },
+    "build_tile": {
+      "source_parts": 60,
+      "triangles": 24916,
+      "max_position_error": 0.0,
+      "bounds": [
+        [
+          -0.5,
+          0.5
+        ],
+        [
+          -0.5,
+          0.5
+        ],
+        [
+          -0.5,
+          0.05350000038743019
+        ]
+      ]
+    },
+    "plain_build_tile": {
+      "source_parts": 43,
+      "triangles": 16276,
+      "max_position_error": 0.0,
+      "bounds": [
+        [
+          -0.5,
+          0.5
+        ],
+        [
+          -0.5,
+          0.5
+        ],
+        [
+          -0.5,
+          0.030500000342726707
+        ]
+      ]
+    },
+    "panel_solid": {
+      "source_parts": 7,
+      "triangles": 2660,
+      "max_position_error": 0.0,
+      "bounds": [
+        [
+          -0.1459999978542328,
+          0.1459999978542328
+        ],
+        [
+          -0.4569999873638153,
+          -0.35499998927116394
+        ],
+        [
+          -0.40299999713897705,
+          -0.15700000524520874
+        ]
+      ]
+    },
+    "panel_vent": {
+      "source_parts": 12,
+      "triangles": 4048,
+      "max_position_error": 0.0,
+      "bounds": [
+        [
+          -0.1459999978542328,
+          0.1459999978542328
+        ],
+        [
+          -0.48500001430511475,
+          -0.33899998664855957
+        ],
+        [
+          -0.40299999713897705,
+          -0.15700000524520874
+        ]
+      ]
+    }
+  },
+  "reimport": {
+    "path_tile": {
+      "max_position_error": 0.0,
+      "surfaces": 1
+    },
+    "grate_tile": {
+      "max_position_error": 0.0,
+      "surfaces": 1
+    },
+    "build_tile": {
+      "max_position_error": 0.0,
+      "surfaces": 1
+    },
+    "plain_build_tile": {
+      "max_position_error": 0.0,
+      "surfaces": 1
+    },
+    "panel_solid": {
+      "max_position_error": 0.0,
+      "surfaces": 1
+    },
+    "panel_vent": {
+      "max_position_error": 0.0,
+      "surfaces": 1
+    }
+  },
+  "atlas_size": 2048,
+  "channels": [
+    "basecolor",
+    "roughness",
+    "normal",
+    "metallic",
+    "emission"
+  ],
+  "glb_bytes": 18672584,
+  "glb_sha256": "eedef06047fe74d093e8b356fd91dc4c6d88cf039ee364e7d2b60ce48302818f",
+  "source_features": "4 tile tops; 4 true recessed panel seats per tile; independent solid and vent panels; vent heat recessed .020 behind frame, three vertical orange slots; no embedded side panels in tile roots"
+}

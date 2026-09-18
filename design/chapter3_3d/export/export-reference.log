@@ -1,0 +1,50 @@
+00:00.418  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/tiles/chapter3-thick-tiles.blend"
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED basecolor
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED roughness
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED normal
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED metallic
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED emission
+/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/export/export_native.py:100: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  material=bpy.data.materials.new('Chapter3 approved foundry PBR');material.use_nodes=True
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+01:25:11 | INFO: Starting glTF 2.0 export
+01:25:11 | INFO: Extracting primitive: Bottom_flange.005
+01:25:12 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+01:25:12 | INFO: Primitives created: 1
+01:25:12 | INFO: Extracting primitive: Bottom_flange.004
+01:25:12 | INFO: Primitives created: 1
+01:25:12 | INFO: Extracting primitive: Bottom_flange.003
+01:25:12 | INFO: Primitives created: 1
+01:25:12 | INFO: Finished glTF 2.0 export in 0.2660520076751709 s
+
+Info: Saved as "chapter3-native-export.blend"
+01:25:12 | INFO: Data are loaded, start creating Blender stuff
+01:25:12 | INFO: Blender create Mesh node Bottom_flange.005
+01:25:12 | INFO: Blender create Mesh node Bottom_flange.004
+01:25:12 | INFO: Blender create Mesh node Bottom_flange.003
+01:25:12 | INFO: glTF import finished in 0.26s
+EXPORT_READY {"source_sha256": "042071be50d6367c6ae0cee0a43634ea53c5973532685d3d83329ba3599bc00a", "source_unchanged": true, "tiles": {"path_tile": {"source_parts": 64, "triangles": 24352, "max_position_error": 0.0, "bounds": [[-0.5, 0.5], [-0.5, 0.5], [-0.5, 0.030500000342726707]]}, "grate_tile": {"source_parts": 73, "triangles": 32520, "max_position_error": 0.0, "bounds": [[-0.5, 0.5], [-0.5, 0.5], [-0.5, 0.030500000342726707]]}, "build_tile": {"source_parts": 66, "triangles": 27132, "max_position_error": 0.0, "bounds": [[-0.5, 0.5], [-0.5, 0.5], [-0.5, 0.05350000038743019]]}}, "reimport": {"path_tile": {"max_position_error": 0.0, "surfaces": 1}, "grate_tile": {"max_position_error": 0.0, "surfaces": 1}, "build_tile": {"max_position_error": 0.0, "surfaces": 1}}, "atlas_size": 2048, "channels": ["basecolor", "roughness", "normal", "metallic", "emission"], "glb_bytes": 16667400, "glb_sha256": "7825ba07acc4357b5a2b658fc7698234551ea0135b1603a9bae58a07dc8cbf16", "source_features": "5 treads with rim rivets; 25 true grate holes; 4 round bolted ring anchors; localized side vents; exact evaluated source geometry retained"}
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

@@ -1,0 +1,3376 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+RuneNexus Godot scene ready; Space: impacts, C: camera, S: shadows, V: volume
+ERROR: Stage 6 타일 0 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 1 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 2 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 3 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 8 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 9 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 10 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 11 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 12 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 17 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 18 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 19 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 20 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 21 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 25 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 26 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 27 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 29 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 30 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 33 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 34 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 35 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 37 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 38 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 41 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 42 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 43 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 44 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 45 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 50 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 51 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 52 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 53 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 54 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 58 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 59 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 60 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 61 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 62 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 67 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 68 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 69 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 70 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 71 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 76 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 77 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 78 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 79 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 장식 컨테이너 누락
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_props (res://verify_chapter_two_stages.gd:89)
+       [2] _check_stage (res://verify_chapter_two_stages.gd:206)
+       [3] _verify (res://verify_chapter_two_stages.gd:254)
+Stage 6 rift verified: 8x10
+ERROR: Stage 7 타일 12 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 13 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 14 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 15 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 16 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 17 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 18 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 23 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 24 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 25 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 26 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 27 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 29 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 30 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 31 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 34 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 35 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 36 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 37 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 38 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 39 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 40 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 41 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 42 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 45 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 46 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 47 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 48 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 49 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 50 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 51 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 52 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 53 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 56 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 57 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 58 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 59 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 60 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 61 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 62 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 63 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 64 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 70 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 71 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 타일 72 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 7 2장 장식 컨테이너 누락
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_props (res://verify_chapter_two_stages.gd:89)
+       [2] _check_stage (res://verify_chapter_two_stages.gd:206)
+       [3] _verify (res://verify_chapter_two_stages.gd:254)
+Stage 7 rift verified: 11x7
+ERROR: Stage 8 타일 1 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 2 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 8 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 9 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 10 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 11 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 17 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 18 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 19 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 20 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 21 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 25 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 26 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 27 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 28 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 29 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 30 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 32 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 33 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 34 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 35 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 36 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 37 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 38 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 41 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 42 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 43 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 44 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 45 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 46 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 47 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 49 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 50 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 51 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 52 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 53 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 54 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 55 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 59 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 60 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 타일 62 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 8 2장 장식 컨테이너 누락
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_props (res://verify_chapter_two_stages.gd:89)
+       [2] _check_stage (res://verify_chapter_two_stages.gd:206)
+       [3] _verify (res://verify_chapter_two_stages.gd:254)
+Stage 8 rift verified: 8x8
+ERROR: Stage 9 타일 16 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 20 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 21 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 22 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 23 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 24 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 25 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 28 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 29 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 30 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 31 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 32 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 33 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 34 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 37 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 38 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 39 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 41 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 43 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 47 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 48 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 49 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 50 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 52 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 55 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 56 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 57 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 59 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 60 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 61 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 64 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 65 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 66 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 67 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 68 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 69 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 73 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 74 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 75 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 76 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 77 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 타일 85 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 9 2장 장식 컨테이너 누락
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_props (res://verify_chapter_two_stages.gd:89)
+       [2] _check_stage (res://verify_chapter_two_stages.gd:206)
+       [3] _verify (res://verify_chapter_two_stages.gd:254)
+Stage 9 rift verified: 9x10
+ERROR: Stage 10 타일 2 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 6 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 8 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 10 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 11 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 13 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 14 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 15 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 16 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 17 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 19 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 22 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 23 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 24 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 25 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 26 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 28 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 29 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 30 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 31 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 32 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 33 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 35 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 37 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 38 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 39 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 40 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 41 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 42 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 44 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 46 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 47 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 48 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 49 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 50 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 53 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 55 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 56 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 57 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 58 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 59 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 61 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 62 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 63 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 64 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 65 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 66 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 67 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 69 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 71 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 72 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 74 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 타일 80 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 10 2장 장식 컨테이너 누락
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_props (res://verify_chapter_two_stages.gd:89)
+       [2] _check_stage (res://verify_chapter_two_stages.gd:206)
+       [3] _verify (res://verify_chapter_two_stages.gd:254)
+Stage 10 rift verified: 9x9
+ERROR: Stage 6 타일 0 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 1 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 2 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 3 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 8 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 9 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 10 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 11 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 12 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 17 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 18 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 19 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 20 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 21 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 25 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 26 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 27 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 29 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 30 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 33 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 34 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 35 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 37 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 38 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 41 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 42 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 43 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 44 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 45 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 50 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 51 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 52 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 53 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 54 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 58 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 59 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 60 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 61 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 62 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 67 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 68 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 69 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 70 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 71 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 76 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 77 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 78 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 타일 79 배치 수 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:182)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 타일 종류·포탈/코어 받침 불일치
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_stage (res://verify_chapter_two_stages.gd:191)
+       [2] _verify (res://verify_chapter_two_stages.gd:254)
+ERROR: Stage 6 2장 장식 컨테이너 누락
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://verify_chapter_two_stages.gd:13)
+       [1] _check_props (res://verify_chapter_two_stages.gd:89)
+       [2] _check_stage (res://verify_chapter_two_stages.gd:206)
+       [3] _verify (res://verify_chapter_two_stages.gd:254)
+Stage 6 rift verified: 8x10
+Chapter two stages verification: 560 failures

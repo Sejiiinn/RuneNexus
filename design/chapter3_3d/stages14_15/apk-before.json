@@ -1,0 +1,15 @@
+{
+  "apk": "build/app/outputs/flutter-apk/app-arm64-v8a-release.apk",
+  "bytes": 239387745,
+  "sha256": "48c2e9b0fca1a29bed0be65b1bf3ddc81df4a256aa12b22265388b134e71276e",
+  "pck_bytes": 105945632,
+  "pck_compressed": 105945632,
+  "abis": [
+    "arm64-v8a"
+  ],
+  "unwanted_originals": [],
+  "baseline": "Previous local arm64 preview APK, not a public release",
+  "bytes_delta": 224,
+  "pck_bytes_delta": 224,
+  "pck_compressed_delta": 224
+}

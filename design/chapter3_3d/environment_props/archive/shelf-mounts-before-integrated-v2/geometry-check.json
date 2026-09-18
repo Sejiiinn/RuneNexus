@@ -1,0 +1,97 @@
+{
+  "reference": "../environment_concepts/foundry-props-multiview.png",
+  "blender": "5.2.1 LTS",
+  "real_geometry": {
+    "elbow": "96 radial x 38 path stations annular sweep, open mouth into curved bore",
+    "conduit": "96 sided annular body, both ends open, boolean recessed inspection aperture",
+    "exhaust": "open hollow furnace and continuous .182 bore stack, 3 boolean front slots"
+  },
+  "props": {
+    "elbow_pipe": {
+      "objects": 42,
+      "local_min": [
+        -0.20000000298023224,
+        -0.28700000047683716,
+        0.0
+      ],
+      "local_max": [
+        0.20000000298023224,
+        0.20000000298023224,
+        0.4869999885559082
+      ],
+      "dimensions": [
+        0.4000000059604645,
+        0.4870000034570694,
+        0.4869999885559082
+      ],
+      "non_manifold_source_meshes": [],
+      "identity_root": true
+    },
+    "side_conduit": {
+      "objects": 50,
+      "local_min": [
+        -0.43299999833106995,
+        -0.12299999594688416,
+        -0.18000000715255737
+      ],
+      "local_max": [
+        0.43299999833106995,
+        0.13500000536441803,
+        0.18000000715255737
+      ],
+      "dimensions": [
+        0.8659999966621399,
+        0.2580000013113022,
+        0.36000001430511475
+      ],
+      "non_manifold_source_meshes": [],
+      "identity_root": true
+    },
+    "exhaust_vent": {
+      "objects": 49,
+      "local_min": [
+        -0.21299999952316284,
+        -0.19699999690055847,
+        0.0
+      ],
+      "local_max": [
+        0.21299999952316284,
+        0.19699999690055847,
+        0.5389999747276306
+      ],
+      "dimensions": [
+        0.4259999990463257,
+        0.39399999380111694,
+        0.5389999747276306
+      ],
+      "non_manifold_source_meshes": [],
+      "identity_root": true
+    }
+  },
+  "bore_ray_tests": {
+    "conduit_axis_clear": [],
+    "exhaust_open_depth": [
+      [
+        0.625,
+        "exhaust trapezoid furnace housing",
+        [
+          0.0,
+          0.0,
+          0.07499998807907104
+        ]
+      ]
+    ],
+    "elbow_front_depth": [
+      [
+        0.6350651899802076,
+        "elbow continuous hollow cast bend",
+        [
+          0.0,
+          0.0350651741027832,
+          0.3569999933242798
+        ]
+      ]
+    ]
+  },
+  "geometry_status": "PASS"
+}

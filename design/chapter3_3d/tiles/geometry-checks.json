@@ -1,0 +1,42 @@
+{
+  "01_Cast_iron_plate": {
+    "dimensions": [
+      1.0,
+      1.0,
+      0.5305
+    ],
+    "corner_bolts": 4,
+    "side_reinforcements": 8,
+    "mesh_count": 64
+  },
+  "02_Heat_vent_grate": {
+    "dimensions": [
+      1.0,
+      1.0,
+      0.5305
+    ],
+    "corner_bolts": 4,
+    "side_reinforcements": 8,
+    "mesh_count": 73
+  },
+  "03_Construction_foundation": {
+    "dimensions": [
+      1.0,
+      1.0,
+      0.5535
+    ],
+    "corner_bolts": 4,
+    "side_reinforcements": 8,
+    "mesh_count": 66
+  },
+  "checks": {
+    "tread_count": 5,
+    "round_ring_anchors": 4,
+    "ray_verified_through_holes": 25,
+    "solid_grid_crossbar": true,
+    "body_bottom_z": -0.5,
+    "common_plate_surface_z": 0,
+    "external_images": [],
+    "pass": true
+  }
+}

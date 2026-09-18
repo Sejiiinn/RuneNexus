@@ -1,0 +1,9 @@
+{
+  "design/chapter3_3d/environment_concepts/integrated-mounts/multiview-v2.png": "216bac51956cc402bead5f354ec3e922732c40000e725e0587e972875c048387",
+  "assets/images/stage1_3d/environment/chapter3_props.glb": "c4eb491ef578b6e91219b75b3a854ad4bb3b4b3e565cd0d866d55a5daacd7952",
+  "assets/images/stage1_3d/environment/chapter3_tiles.glb": "eedef06047fe74d093e8b356fd91dc4c6d88cf039ee364e7d2b60ce48302818f",
+  "godot/environment/chapter_three_props.gd": "dbfbe372ddf5542587b9e6578b356c836460b76606d9e19d9c503ac268176217",
+  "godot/environment/chapter_three_tiles.gd": "f23006a58026e35c0d5e6456c1b83f4b352313aedb82a9612a412d6c44080036",
+  "godot/main.gd": "b43c1a32cf083a1124fb2b26bdda969db69f283b41ee2b703d7142e929d490f9",
+  "godot/materials/forge_reflection_sky.tres": "808d512f52cdbc9b83702edc01bef089a671f600aa72b172fc1027daea9b179a"
+}

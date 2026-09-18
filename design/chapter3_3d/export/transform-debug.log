@@ -1,0 +1,12 @@
+07:33:40 | INFO: Data are loaded, start creating Blender stuff
+07:33:40 | INFO: Blender create Mesh node Bottom_flange.006
+07:33:40 | INFO: Blender create Mesh node Bottom_flange.005
+07:33:41 | INFO: Blender create Mesh node Panel frame left.002
+07:33:41 | INFO: Blender create Mesh node Panel frame left.003
+07:33:41 | INFO: Blender create Mesh node Bottom_flange.004
+07:33:41 | INFO: Blender create Mesh node Bottom_flange.007
+07:33:41 | INFO: glTF import finished in 0.33s
+[('Cube', 'MESH', [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], 'XYZ', (1.0, 0.0, 0.0, 0.0), False, None), ('Light', 'LIGHT', [4.076245307922363, 1.0054539442062378, 5.903861999511719], [0.6503279805183411, 0.055217113345861435, 1.8663908243179321], 'XYZ', (1.0, 0.0, 0.0, 0.0), False, None), ('Camera', 'CAMERA', [7.358891487121582, -6.925790786743164, 4.958309173583984], [1.1093189716339111, 0.0, 0.8149281740188599], 'XYZ', (1.0, 0.0, 0.0, 0.0), False, None), ('build_tile', 'MESH', [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], 'QUATERNION', (1.0, 0.0, 0.0, 0.0), False, None), ('grate_tile', 'MESH', [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], 'QUATERNION', (1.0, 0.0, 0.0, 0.0), False, None), ('panel_solid', 'MESH', [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], 'QUATERNION', (1.0, 0.0, 0.0, 0.0), False, None), ('panel_vent', 'MESH', [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], 'QUATERNION', (1.0, 0.0, 0.0, 0.0), False, None), ('path_tile', 'MESH', [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], 'QUATERNION', (1.0, 0.0, 0.0, 0.0), False, None), ('plain_build_tile', 'MESH', [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], 'QUATERNION', (1.0, 0.0, 0.0, 0.0), False, None)]
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

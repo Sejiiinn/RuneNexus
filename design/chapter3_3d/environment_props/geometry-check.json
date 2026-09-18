@@ -1,0 +1,97 @@
+{
+  "reference": "../environment_concepts/integrated-mounts/multiview-v2.png",
+  "blender": "5.2.1 LTS",
+  "real_geometry": {
+    "elbow": "wall flange and upward open 90 degree annular bend",
+    "conduit": "96 sided annular body, both ends open, boolean recessed inspection aperture",
+    "exhaust": "integrated full height housing from -.5 to 0 and short open stack to .253, 3 real recessed slots"
+  },
+  "props": {
+    "elbow_pipe": {
+      "objects": 29,
+      "local_min": [
+        -0.14499998092651367,
+        -0.3089999854564667,
+        -0.34999996423721313
+      ],
+      "local_max": [
+        0.14499998092651367,
+        0.0,
+        0.1210000067949295
+      ],
+      "dimensions": [
+        0.28999996185302734,
+        0.3089999854564667,
+        0.47099997103214264
+      ],
+      "non_manifold_source_meshes": [],
+      "identity_root": true
+    },
+    "side_conduit": {
+      "objects": 50,
+      "local_min": [
+        -0.43299999833106995,
+        -0.2580000162124634,
+        -0.4300000071525574
+      ],
+      "local_max": [
+        0.43299999833106995,
+        0.0,
+        -0.06999999284744263
+      ],
+      "dimensions": [
+        0.8659999966621399,
+        0.2580000162124634,
+        0.36000001430511475
+      ],
+      "non_manifold_source_meshes": [],
+      "identity_root": true
+    },
+    "exhaust_vent": {
+      "objects": 41,
+      "local_min": [
+        -0.21799999475479126,
+        -0.26798999309539795,
+        -0.5
+      ],
+      "local_max": [
+        0.21799999475479126,
+        0.0,
+        0.2529999911785126
+      ],
+      "dimensions": [
+        0.4359999895095825,
+        0.26798999309539795,
+        0.7529999911785126
+      ],
+      "non_manifold_source_meshes": [],
+      "identity_root": true
+    }
+  },
+  "bore_ray_tests": {
+    "conduit_axis_clear": [],
+    "exhaust_open_depth": [
+      [
+        0.965000155355016,
+        "exhaust integrated full height rounded housing",
+        [
+          0.0,
+          -0.14300000667572021,
+          -0.4650001525878906
+        ]
+      ]
+    ],
+    "elbow_upward_depth": [
+      [
+        0.7133939873304304,
+        "elbow hollow upward quarter bend",
+        [
+          0.0,
+          -0.2150000035762787,
+          -0.21339398622512817
+        ]
+      ]
+    ]
+  },
+  "geometry_status": "PASS"
+}

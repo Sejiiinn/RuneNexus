@@ -1,10 +1,12 @@
-# 스테이지 1~10 3D 전장
+# 스테이지 1~15 3D 전장
 
-역할: Android 본게임 스테이지 1~10 Godot 연결과 공용 검수 경로의 실행·구조·검증 범위. 갱신: 2026-09-13. 배포는 별도다.
+역할: Android 본게임 스테이지 1~15 Godot 연결과 공용 검수 경로의 실행·구조·검증 범위. 갱신: 2026-09-13. 배포는 별도다.
 
 ## 본게임 진입과 공용 런타임
 
-Android 본게임은 기존 `lib/main.dart → RuneNexusApp → GameHud` 진입을 유지하며 **스테이지 1~10에서 Godot 전장을 기본 사용**한다. 진입 시 기존 공용 로딩 화면에 ‘3D 전장 준비 중’과 청록빛 진행 표시를 노출한다. 엔진 준비 신호만으로 화면을 열지 않고 현재 장면·화면 크기에 맞는 실제 전장 적용 응답을 받을 때까지 2D 전장과 HUD를 가리며 전투 시간·자동 웨이브·입력을 멈춘다. 카메라 버튼은 실제 전장이 준비된 뒤 기존 전투 HUD에 나타난다. 백그라운드 복귀 시에도 새 장면 응답까지 로딩을 표시한다. 스테이지 11 이후와 Android 이외 플랫폼은 기존 2D 전장을 사용한다. 로그인·스테이지 선택·웨이브·건설·보상·저장 흐름은 기존 게임이 담당한다.
+스테이지 11~15는 `chapterThreeForge` 테마의 [승인된 두꺼운 금속 타일](../design/chapter3_3d/tiles/README.md)을 사용한다. 주조 철판·열 배출 격자·건설 기반을 기존 맵 좌표에 배치하며, 포탈·코어 아래는 철판을 유지한다. 외곽에는 승인된 엘보 파이프·측면 연결관·배기구를 드문드문 부착하며 이동·설치 상면을 비운다.  [스테이지 11 이관 및 검수](../design/chapter3_3d/stage11/README.md), [스테이지 12 적용·검수](../design/chapter3_3d/stage12/README.md), [스테이지 13 적용·검수](../design/chapter3_3d/stage13/README.md), [스테이지 14·15 적용·검수](../design/chapter3_3d/stages14_15/README.md).
+
+Android 본게임은 기존 `lib/main.dart → RuneNexusApp → GameHud` 진입을 유지하며 **스테이지 1~15에서 Godot 전장을 기본 사용**한다. 진입 시 기존 공용 로딩 화면에 ‘3D 전장 준비 중’과 청록빛 진행 표시를 노출한다. 엔진 준비 신호만으로 화면을 열지 않고 현재 장면·화면 크기에 맞는 실제 전장 적용 응답을 받을 때까지 2D 전장과 HUD를 가리며 전투 시간·자동 웨이브·입력을 멈춘다. 카메라 버튼은 실제 전장이 준비된 뒤 기존 전투 HUD에 나타난다. 백그라운드 복귀 시에도 새 장면 응답까지 로딩을 표시한다. 스테이지 16 이후와 Android 이외 플랫폼은 기존 2D 전장을 사용한다. 로그인·스테이지 선택·웨이브·건설·보상·저장 흐름은 기존 게임이 담당한다.
 
 스테이지 2~5는 각 실제 맵의 크기와 타일 배열로 공용 `path_tile`·`build_tile`을 배치하고 포탈·코어에 같은 공용 모델을 사용한다. 1장 전체 웨이브는 기존 3D 적 6종으로 표시한다. 2~5의 풀·고사리·이끼 바위·꽃·덩굴은 맵별 `dressing_stage2.glb`~`dressing_stage5.glb`로 배치하며 같은 바람·점유·그림자 계약을 따른다. [원본·배치 규격](../design/chapter1_3d/environment/README.md). 스테이지 1 전용 전체 환경은 맵 배열까지 일치할 때만 사용한다. 스테이지 전환 시 이전 투영·표시 그룹·효과를 즉시 비우고 새 장면 세대의 응답을 기다린다. [2~5 실제 화면·검사 기록](../design/chapter1_3d/README.md).
 
@@ -37,7 +39,7 @@ WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter build apk --release --no-
 
 로그인·저장 동작이 있는 본게임 검수는 실제 앱 진입에서 수행한다. 영상·성능 검수는 Android APK로 진행하며 웹 렌더·브라우저 검수를 사용하지 않는다. 디버그 패널이 필요한 로컬 검수에만 `RUNE_NEXUS_DEBUG_PANEL=true`를 추가하며 일반 빌드·배포에서는 사용하지 않는다. 빌드 성공은 배포 승인을 의미하지 않는다.
 
-이전 `?stage1_3d=1` 분기와 ThreeJS 검수 앱은 제거했다. 해당 URL도 일반 앱으로 진입한다. 과거 렌더러·테스트 소스는 [보관 기록](../design/legacy_threejs/README.md)의 실행되지 않는 텍스트로 보존한다. Android 스테이지 1~10는 Godot을 사용하며 다른 플랫폼·스테이지의 Flame 2D 경로는 유지한다.
+이전 `?stage1_3d=1` 분기와 ThreeJS 검수 앱은 제거했다. 해당 URL도 일반 앱으로 진입한다. 과거 렌더러·테스트 소스는 [보관 기록](../design/legacy_threejs/README.md)의 실행되지 않는 텍스트로 보존한다. Android 스테이지 1~15는 Godot을 사용하며 다른 플랫폼·스테이지의 Flame 2D 경로는 유지한다.
 
 ## 구현과 시각 기준
 
@@ -65,7 +67,7 @@ WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter build apk --release --no-
 
 로비 설정에서 MSAA(끄기/2배), 그림자 품질(끄기/낮음 512/중간 1024/높음 2048)을 라디오 버튼으로 선택한다. 기본값은 기존과 같은 MSAA 2배·그림자 2048이며, 3D 렌더 해상도는 변경하지 않는다. 앱 지원 디렉터리의 `graphics_settings_v1.json` 또는 웹 전용 localStorage에 저장하며 계정·진행 저장과 동기화하지 않는다. 저장 실패 시 기존 선택을 유지하고 오류를 표시한다.
 
-전장 초기 연결과 재연결·카메라 옵션 전달에 현재 설정을 포함한다. Godot은 MSAA와 방향광 그림자 아틀라스 크기를 런타임에 적용하며 같은 크기의 반복 재생성을 피한다. 해당 옵션은 Android 스테이지 1~10의 3D 전장에 적용된다. [설정 화면·검증 기록](../design/lobby/graphics_settings/README.md).
+전장 초기 연결과 재연결·카메라 옵션 전달에 현재 설정을 포함한다. Godot은 MSAA와 방향광 그림자 아틀라스 크기를 런타임에 적용하며 같은 크기의 반복 재생성을 피한다. 해당 옵션은 Android 스테이지 1~15의 3D 전장에 적용된다. [설정 화면·검증 기록](../design/lobby/graphics_settings/README.md).
 
 ## 범위와 제약
 
@@ -79,7 +81,7 @@ WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter build apk --release --no-
 
 4배속은 생성 주기와 `ImpactEffectComponent` 수명 모두에 같은 시간 배율을 적용한다. 같은 전투 조건에서 평균 동시 개수가 단순히 네 배가 되는 구조는 아니지만, 동시 발사·다중 탄환이 집중되는 순간과 프레임당 전투 처리량은 별도 확인해야 한다.
 
-Godot 표시 범위는 Android 스테이지 1~10이며, 스테이지 11 이후는 기존 2D 전장이다. 저장 형식과 전투 수치는 변경하지 않는다. 일반 APK와 검수 APK 모두 공식 Godot AAR·공통 PCK·JNI 보존 규칙을 사용하고 Flutter가 선택한 ABI를 유지한다. 모바일 실기기의 지속 전투·메모리·발열·배포 호환성 검증은 별도로 수행한다.
+Godot 표시 범위는 Android 스테이지 1~15이며, 스테이지 16 이후는 기존 2D 전장이다. 저장 형식과 전투 수치는 변경하지 않는다. 일반 APK와 검수 APK 모두 공식 Godot AAR·공통 PCK·JNI 보존 규칙을 사용하고 Flutter가 선택한 ABI를 유지한다. 모바일 실기기의 지속 전투·메모리·발열·배포 호환성 검증은 별도로 수행한다.
 
 현행 자동 검증은 Godot 프레임 계약·브리지, 표시 입력의 저장 불변성·타일 클릭 역변환, 기존 카메라와 보상 선택 및 적 표시를 포함한다. 표시 통합은 추가로 세 묶음의 DTO·적용 확인·소수 viewport·수명/리셋, 짧은 효과 큐·단일 tick 생성/종료, Godot 라벨·선택·효과 및 보상 dim의 실제 픽셀 클립을 검사한다. ThreeJS 카메라·발사 효과·수명 테스트는 렌더러와 함께 보관했으며 현재 테스트 대상이 아니다. 최초 연결 검수는 `design/stage1_3d/runtime/`, 그래픽 마감과 대포 발사 영상은 `design/stage1_3d/polish_runtime/`, 기관총 이펙트 가독성 수정은 `design/stage1_3d/machinegun_visibility/`에 기록한다. 원본 전체 환경과 반사광 연결 검수는 `design/stage1_3d/material_match/`, 포탄 폭발의 현재 시안은 `design/stage1_3d/cannon_impact/shell_concepts/04-fragmentation-with-fire.png`이며 두 시점의 실제 렌더 검수는 `design/stage1_3d/cannon_impact/shell_runtime/`에 기록한다. `v2/runtime/`는 교체 전 화염구의 기록이다. Blender 시안과 실제 웹 실행 캡처는 구분한다.
 

@@ -1,0 +1,13 @@
+{
+  "apk_bytes": 234997305,
+  "abis": [
+    "arm64-v8a"
+  ],
+  "source_or_design_files": [],
+  "pck": [
+    {
+      "path": "assets/rune_nexus.pck",
+      "bytes": 101555192
+    }
+  ]
+}

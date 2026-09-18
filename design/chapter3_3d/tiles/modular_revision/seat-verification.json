@@ -1,0 +1,48 @@
+{
+  "01_Cast_iron_plate": {
+    "seat_ray_distances": [
+      0.6750000715255737,
+      0.6749999523162842,
+      0.675000011920929,
+      0.6750000715255737
+    ],
+    "corner_hex_bolts": 4
+  },
+  "02_Heat_vent_grate": {
+    "seat_ray_distances": [
+      null,
+      null,
+      null,
+      null
+    ],
+    "corner_hex_bolts": 4
+  },
+  "03_Construction_foundation": {
+    "seat_ray_distances": [
+      0.6750000715255737,
+      0.6749999523162842,
+      0.675000011920929,
+      0.6750000715255737
+    ],
+    "corner_hex_bolts": 4
+  },
+  "04_Plain_construction_foundation": {
+    "seat_ray_distances": [
+      0.6750000715255737,
+      0.6749999523162842,
+      0.675000011920929,
+      0.6750000715255737
+    ],
+    "corner_hex_bolts": 4
+  },
+  "05_Panel_solid": {
+    "front_at_aperture": -0.4520000219345093,
+    "frame_front": -0.457,
+    "recession": 0.00499997806549074
+  },
+  "06_Panel_vent": {
+    "front_at_aperture": -0.4650000333786011,
+    "frame_front": -0.485,
+    "recession": 0.019999966621398912
+  }
+}

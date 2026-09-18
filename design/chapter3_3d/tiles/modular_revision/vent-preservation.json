@@ -1,0 +1,14 @@
+{
+  "unchanged_root_geometry_sha256": {
+    "01_Cast_iron_plate": "908fcbca8ee721886eb0837d2182274c41ddaee59166725d72ecc5cdb4ba0607",
+    "02_Heat_vent_grate": "cd848a5ffa77ce8aa797f23ff921413c4cb734098e42a06952961a89cb9a8b33",
+    "03_Construction_foundation": "b9d75c5a33b51778e9dc34fe2520496b76bb81ecdd9a48bac5c4f6b8e046c7db",
+    "04_Plain_construction_foundation": "acba9da1105d44b686f9c50ec73ff2d56ca2027c24b99f34c2bb960917766d83",
+    "05_Panel_solid": "fdce02c7c622e7ca784568238797877505704322de29ab59b51fafbbc8fae95c"
+  },
+  "frame_front": -0.485,
+  "heat_front": -0.465,
+  "recession": 0.02,
+  "heat_width": 0.044,
+  "heat_height": 0.201
+}

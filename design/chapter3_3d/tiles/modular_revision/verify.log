@@ -1,0 +1,10 @@
+00:00.822  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/tiles/chapter3-thick-tiles.blend"
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+SEAT_VERIFICATION_PASS {"01_Cast_iron_plate": {"seat_ray_distances": [0.6750000715255737, 0.6749999523162842, 0.675000011920929, 0.6750000715255737], "corner_hex_bolts": 4}, "02_Heat_vent_grate": {"seat_ray_distances": [null, null, null, null], "corner_hex_bolts": 4}, "03_Construction_foundation": {"seat_ray_distances": [0.6750000715255737, 0.6749999523162842, 0.675000011920929, 0.6750000715255737], "corner_hex_bolts": 4}, "04_Plain_construction_foundation": {"seat_ray_distances": [0.6750000715255737, 0.6749999523162842, 0.675000011920929, 0.6750000715255737], "corner_hex_bolts": 4}, "05_Panel_solid": {"front_at_aperture": -0.4520000219345093, "frame_front": -0.457, "recession": 0.00499997806549074}, "06_Panel_vent": {"front_at_aperture": -0.36500006914138794, "frame_front": -0.457, "recession": 0.09199993085861208}}
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

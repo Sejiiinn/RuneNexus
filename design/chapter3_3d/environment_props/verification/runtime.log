@@ -1,0 +1,15 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward Mobile - Using Device #0: Apple - Apple M4 (Apple9)
+
+RuneNexus Godot scene ready; Space: impacts, C: camera, S: shadows, V: volume
+Forge prop: elbow_pipe cell=(4, 0) side=1 origin=(1.255, 0.0, -4.5)
+Forge prop: side_conduit cell=(5, 9) side=0 origin=(1.5, -0.25, 5.085)
+Forge prop: exhaust_vent cell=(7, 5) side=0 origin=(3.5, 0.0, 1.255)
+Forge prop: elbow_pipe cell=(1, 5) side=3 origin=(-3.255, 0.0, 0.5)
+Forge prop: side_conduit cell=(2, 8) side=0 origin=(-1.5, -0.25, 4.085)
+Forge prop: elbow_pipe cell=(4, 0) side=1 origin=(1.255, 0.0, -4.5)
+Forge prop: side_conduit cell=(5, 9) side=0 origin=(1.5, -0.25, 5.085)
+Forge prop: exhaust_vent cell=(7, 5) side=0 origin=(3.5, 0.0, 1.255)
+Forge prop: elbow_pipe cell=(1, 5) side=3 origin=(-3.255, 0.0, 0.5)
+Forge prop: side_conduit cell=(2, 8) side=0 origin=(-1.5, -0.25, 4.085)
+Chapter three stage11: 53 tiles, 5 grates, 0 failures

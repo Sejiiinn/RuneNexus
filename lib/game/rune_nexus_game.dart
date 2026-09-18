@@ -484,9 +484,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   BattlefieldFrame? get battlefieldFrame => _buildBattlefieldFrame();
 
-  /// 1장 공용 지형과 2장 균열 지형을 제공하는 네이티브 표시 범위.
+  /// 1·2장과 승인된 3장 11~15 맵 타일을 제공하는 네이티브 표시 범위.
   bool get supportsNativeBattlefield =>
-      _activeStage.id >= 1 && _activeStage.id <= 10;
+      _activeStage.id >= 1 && _activeStage.id <= 15;
 
   void retainProjectileVisual(
     ProjectileComponent projectile, {

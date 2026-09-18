@@ -1,0 +1,47 @@
+{
+  "approved_reference": "design/chapter3_3d_concepts/2026-09-18/tiles-multiview-thick-approved.png",
+  "blender": "5.2.1 LTS",
+  "body_thickness": 0.34,
+  "footprint": [
+    1,
+    1
+  ],
+  "common_top_z": 0,
+  "features": {
+    "cast_treads": 5,
+    "grate_through_holes": [
+      5,
+      5
+    ],
+    "corner_bolts_per_tile": 4,
+    "ring_clamps": 4,
+    "reinforcements_per_side": 2,
+    "recessed_compartments_per_side": 3
+  },
+  "tiles": {
+    "01_Cast_iron_plate": {
+      "mesh_objects": 48,
+      "bounds_dimensions": [
+        1.0,
+        1.0,
+        0.3705000039190054
+      ]
+    },
+    "02_Heat_vent_grate": {
+      "mesh_objects": 51,
+      "bounds_dimensions": [
+        1.0,
+        1.0,
+        0.3705000039190054
+      ]
+    },
+    "03_Construction_foundation": {
+      "mesh_objects": 48,
+      "bounds_dimensions": [
+        1.0,
+        1.0,
+        0.3840000033378601
+      ]
+    }
+  }
+}

@@ -28,7 +28,7 @@ class MaterialPresetSyncTest(unittest.TestCase):
             write(preset, b'[gd_resource type="StandardMaterial3D" format=3]\n')
             for kind, names in (
                 ("environment", ("dressing", "landmarks", "fern_shadow",
-                                 "chapter2_tiles", "chapter2_tiles_optimized", "chapter2_props")
+                                 "chapter2_tiles", "chapter2_tiles_optimized", "chapter2_props", "chapter3_tiles", "chapter3_props")
                  + tuple(f"chapter2_stage{stage}_props" for stage in range(6, 11))),
                 ("projectiles", ("cannonball",)),
                 ("turrets", preparation.TURRET_TYPES),
@@ -65,9 +65,12 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 write_map_glb(assets / f"environment/chapter2_stage{stage}_geology.glb", f"stage{stage}_geology")
             map_names = ("gameMap", "gameStage2Map", "stage3Map", "stage4Map", "stage5Map")
             map_names += tuple(f"chapterTwoStage{stage}Map" for stage in range(6, 11))
+            map_names += tuple(f"chapterThreeStage{stage}Map" for stage in range(11, 16))
             write(root / "lib/data/definitions/game_stage_maps.dart", "\n".join(
                 f"const {name} = MapDefinition(\ncolumns: 2, rows: 1, "
-                "tiles: [TileType.path, TileType.build], path: [GridPoint(0, 0)]\n);"
+                + ("tileTheme: chapterThreeForgeTileTheme, " if name.startswith("chapterThree") else
+                   "tileTheme: chapterTwoRiftTileTheme, " if name.startswith("chapterTwo") else "")
+                + "tiles: [TileType.path, TileType.build], path: [GridPoint(0, 0)]\n);"
                 for name in map_names).encode())
             # Texture staging now parses every GLB, even texture-free fixtures.
             for path in assets.rglob("*.glb"):
@@ -102,6 +105,17 @@ class MaterialPresetSyncTest(unittest.TestCase):
                                 PROJECT=project, ASSETS=project / "assets",
                                 SOURCE_ASSETS=assets):
                 preparation.prepare()
+                self.assertEqual(len(json.loads((project.parent / "chapter_one_frames.json").read_text())), 5)
+                self.assertEqual(len(json.loads((project.parent / "chapter_two_frames.json").read_text())), 5)
+                self.assertEqual(len(json.loads((project.parent / "chapter_three_frames.json").read_text())), 5)
+                for chapter, theme, boss in (("one", "chapterOne", None),
+                                            ("two", "chapterTwoRift", "shieldBoss"),
+                                            ("three", "chapterThreeForge", "forgeBoss")):
+                    frames = json.loads((project.parent / f"chapter_{chapter}_frames.json").read_text())
+                    for frame in frames:
+                        self.assertEqual(frame["map"]["theme"], theme)
+                        expected = set(preparation.ENEMY_TYPES) | ({boss} if boss else set())
+                        self.assertEqual({enemy[7] for enemy in frame["enemies"]}, expected)
                 self.assertEqual((project / "assets/ui/labels/slow_shard.png").read_bytes(), b"status sprite")
                 self.assertEqual((project / "assets/ui/diamond_currency.png").read_bytes(), b"diamond icon")
                 self.assertEqual((project / "assets/ui/NotoSansKR-VF.ttf").read_bytes(), b"font fixture")

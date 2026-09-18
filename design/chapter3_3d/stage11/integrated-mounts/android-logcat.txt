@@ -1,0 +1,601 @@
+--------- beginning of main
+09-18 16:41:26.534   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:26.635   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:26.635   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:26.741   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:26.741   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:26.841   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:26.841   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:26.943   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:26.943   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.043   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.044   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.144   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.144   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.244   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.244   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.345   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.345   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.445   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.445   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.546   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.546   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.646   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.647   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.748   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.748   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.850   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.850   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.950   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:27.950   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.051   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.051   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.152   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.152   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.257   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.258   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.362   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.362   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.418   645   800 D WifiClientModeImpl[3810:wlan0]: updateLinkLayerStatsRssiSpeedFrequencyCapabilities rssi=-50 TxLinkspeed=1 freq=2447 RxLinkSpeed=2
+09-18 16:41:28.418   645   800 D WifiDataStall: tx tput in kbps: 11000
+09-18 16:41:28.418   645   800 D WifiDataStall: rx tput in kbps: 11000
+09-18 16:41:28.418   645   800 V WifiConfigManager: Updating scan detail cache freq=2447 BSSID=00:13:10:85:fe:01 RSSI=-50 for "AndroidWifi"NONE
+09-18 16:41:28.418   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:28.418   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:28.418   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:28.418   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:28.418   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:28.418   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:28.418   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:28.418   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:28.418   645   800 I HalDevMgr: bestIfaceCreationProposal is null, requestIface=STA, existingIface=[name=wlan0 type=STA]
+09-18 16:41:28.418   645   800 D WifiScoreCard: BSSID update SIGNAL_POLL ID: 760286919 SSID: "AndroidWifi", BSSID: 00:13:10:85:fe:01, MAC: 02:15:b2:00:00:00, IP: /10.0.2.16, Security type: 0, Supplicant state: COMPLETED, Wi-Fi standard: legacy, RSSI: -50, Link speed: 1Mbps, Tx Link speed: 1Mbps, Max Supported Tx Link speed: 11Mbps, Calculated Tx : 0Mbps, Rx Link speed: 2Mbps, Max Supported Rx Link speed: 11Mbps, Calculated Rx : 0Mbps, Frequency: 2447MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"AndroidWifi"openMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+09-18 16:41:28.419   645   800 D WifiScoreCard: txRate: 1 txSpeed: 1
+09-18 16:41:28.419   645   800 D WifiScoreCard: network update SIGNAL_POLL "AndroidWifi" ID: 673433585 RSSI -50 txSpeed -1
+09-18 16:41:28.419   645   800 D WifiClientModeImpl[3810:wlan0]:  ClientModeImpl$L2ConnectedState screen=on 26 0 "AndroidWifi" 00:13:10:85:fe:01 rssi=-50 f=2447 sc=100 link=1 tx=0.0, 0.0, 0.0 rx=0.0 bcn=0 [on:0 tx:0 rx:0 period:3003] from screen [on:0 period:-1284074013] score=100
+09-18 16:41:28.460   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.460   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.561   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.561   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.662   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.662   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.762   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.762   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.863   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.863   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.963   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:28.963   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.063   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.063   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.166   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.166   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.263   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.263   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.366   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.366   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.464   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.464   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.566   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.566   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.667   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.667   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.768   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.768   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.868   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.868   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.968   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:29.968   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.069   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.069   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.174   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.174   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.276   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.276   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.377   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.377   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.477   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.477   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.578   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.578   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.678   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.678   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.778   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.779   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.879   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.879   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.979   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:30.979   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.080   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.080   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.182   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.182   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.280   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.280   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.382   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.382   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.423   645   800 D WifiClientModeImpl[3810:wlan0]: updateLinkLayerStatsRssiSpeedFrequencyCapabilities rssi=-50 TxLinkspeed=1 freq=2447 RxLinkSpeed=2
+09-18 16:41:31.423   645   800 D WifiDataStall: tx tput in kbps: 11000
+09-18 16:41:31.423   645   800 D WifiDataStall: rx tput in kbps: 11000
+09-18 16:41:31.423   645   800 V WifiConfigManager: Updating scan detail cache freq=2447 BSSID=00:13:10:85:fe:01 RSSI=-50 for "AndroidWifi"NONE
+09-18 16:41:31.423   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:31.423   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:31.423   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:31.423   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:31.424   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:31.424   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:31.424   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:31.425   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:31.426   645   800 I HalDevMgr: bestIfaceCreationProposal is null, requestIface=STA, existingIface=[name=wlan0 type=STA]
+09-18 16:41:31.426   645   800 D WifiScoreCard: BSSID update SIGNAL_POLL ID: 760286919 SSID: "AndroidWifi", BSSID: 00:13:10:85:fe:01, MAC: 02:15:b2:00:00:00, IP: /10.0.2.16, Security type: 0, Supplicant state: COMPLETED, Wi-Fi standard: legacy, RSSI: -50, Link speed: 1Mbps, Tx Link speed: 1Mbps, Max Supported Tx Link speed: 11Mbps, Calculated Tx : 0Mbps, Rx Link speed: 2Mbps, Max Supported Rx Link speed: 11Mbps, Calculated Rx : 0Mbps, Frequency: 2447MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"AndroidWifi"openMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+09-18 16:41:31.426   645   800 D WifiScoreCard: txRate: 1 txSpeed: 1
+09-18 16:41:31.426   645   800 D WifiScoreCard: network update SIGNAL_POLL "AndroidWifi" ID: 673433585 RSSI -50 txSpeed -1
+09-18 16:41:31.426   645   800 D WifiClientModeImpl[3810:wlan0]:  ClientModeImpl$L2ConnectedState screen=on 26 0 "AndroidWifi" 00:13:10:85:fe:01 rssi=-50 f=2447 sc=100 link=1 tx=0.0, 0.0, 0.0 rx=0.0 bcn=0 [on:0 tx:0 rx:0 period:3007] from screen [on:0 period:-1284071006] score=100
+09-18 16:41:31.482   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.482   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.582   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.582   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.683   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.683   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.783   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.783   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.884   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.884   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.985   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:31.985   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.092   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.092   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.193   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.193   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.294   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.294   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.395   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.395   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.495   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.495   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.595   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.595   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.696   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.696   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.796   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.796   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.897   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.897   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.999   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:32.999   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.099   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.099   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.200   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.200   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.300   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.300   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.402   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.402   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.502   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.502   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.602   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.602   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.708   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.708   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.811   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.811   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.912   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.912   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:33.958  1012  1174 D SatelliteController: isInCarrierRoamingNbIotNtn: satellite is disabled
+09-18 16:41:33.958  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectType: Checking connect type from PLMN config for subId: 1
+09-18 16:41:33.958  1012  1174 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+09-18 16:41:33.958  1012  1174 V SatelliteController: satelliteConfigParser is not ready
+09-18 16:41:33.958  1012  1174 D SatelliteController: isSatelliteAttachSupportedViaConfigupdater: return null (satelliteConfig is null)
+09-18 16:41:33.958  1012  1174 D SatelliteController: getSatellitePerPlmnConfiguration: invalid subId or not supported via carrier.
+09-18 16:41:33.958  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectType: config: null
+09-18 16:41:33.958  1012  1174 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+09-18 16:41:33.958  1012  1174 V SatelliteController: satelliteConfigParser is not ready
+09-18 16:41:33.958  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectTypeViaConfigUpdater: return null (satelliteConfig is null)
+09-18 16:41:33.958  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectType: Falling back to global carrier config connect type: 0
+09-18 16:41:33.958  1012  1174 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+09-18 16:41:33.958  1012  1174 V SatelliteController: satelliteConfigParser is not ready
+09-18 16:41:33.958  1012  1174 D SatelliteController: isSatelliteAttachSupportedViaConfigupdater: return null (satelliteConfig is null)
+09-18 16:41:33.959  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectType: Checking connect type from PLMN config for subId: 1
+09-18 16:41:33.959  1012  1174 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+09-18 16:41:33.959  1012  1174 V SatelliteController: satelliteConfigParser is not ready
+09-18 16:41:33.959  1012  1174 D SatelliteController: isSatelliteAttachSupportedViaConfigupdater: return null (satelliteConfig is null)
+09-18 16:41:33.960  1012  1174 D SatelliteController: getSatellitePerPlmnConfiguration: invalid subId or not supported via carrier.
+09-18 16:41:33.960  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectType: config: null
+09-18 16:41:33.960  1012  1174 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+09-18 16:41:33.960  1012  1174 V SatelliteController: satelliteConfigParser is not ready
+09-18 16:41:33.960  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectTypeViaConfigUpdater: return null (satelliteConfig is null)
+09-18 16:41:33.960  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectType: Falling back to global carrier config connect type: 0
+09-18 16:41:33.960  1012  1174 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+09-18 16:41:33.960  1012  1174 V SatelliteController: satelliteConfigParser is not ready
+09-18 16:41:33.960  1012  1174 D SatelliteController: isSatelliteAttachSupportedViaConfigupdater: return null (satelliteConfig is null)
+09-18 16:41:34.013   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.013   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.114   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.114   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.215   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.215   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.282   645   685 I WifiService: isFeatureSupported uid=1000 returns [WIFI_FEATURE_INFRA, WIFI_FEATURE_P2P, WIFI_FEATURE_MOBILE_HOTSPOT, WIFI_FEATURE_WPA3_SAE, WIFI_FEATURE_WPA3_SUITE_B, WIFI_FEATURE_OWE, WIFI_FEATURE_DPP, WIFI_FEATURE_AP_RAND_MAC, WIFI_FEATURE_MBO, WIFI_FEATURE_FILS_SHA256, WIFI_FEATURE_FILS_SHA384, WIFI_FEATURE_SAE_PK, WIFI_FEATURE_DPP_ENROLLEE_RESPONDER, WIFI_FEATURE_PASSPOINT_TERMS_AND_CONDITIONS, WIFI_FEATURE_WFD_R2, WIFI_FEATURE_DECORATED_IDENTITY, WIFI_FEATURE_TRUST_ON_FIRST_USE, WIFI_FEATURE_SET_TLS_MINIMUM_VERSION, WIFI_FEATURE_TLS_V1_3, WIFI_FEATURE_WEP, WIFI_FEATURE_WPA_PERSONAL]
+09-18 16:41:34.315   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.315   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.417   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.417   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.430   645   800 D WifiClientModeImpl[3810:wlan0]: updateLinkLayerStatsRssiSpeedFrequencyCapabilities rssi=-50 TxLinkspeed=1 freq=2447 RxLinkSpeed=2
+09-18 16:41:34.430   645   800 D WifiDataStall: tx tput in kbps: 11000
+09-18 16:41:34.430   645   800 D WifiDataStall: rx tput in kbps: 11000
+09-18 16:41:34.430   645   800 V WifiConfigManager: Updating scan detail cache freq=2447 BSSID=00:13:10:85:fe:01 RSSI=-50 for "AndroidWifi"NONE
+09-18 16:41:34.430   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:34.430   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:34.430   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:34.430   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:34.430   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:34.430   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:34.430   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:34.430   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:34.430   645   800 I HalDevMgr: bestIfaceCreationProposal is null, requestIface=STA, existingIface=[name=wlan0 type=STA]
+09-18 16:41:34.431   645   800 D WifiScoreCard: BSSID update SIGNAL_POLL ID: 760286919 SSID: "AndroidWifi", BSSID: 00:13:10:85:fe:01, MAC: 02:15:b2:00:00:00, IP: /10.0.2.16, Security type: 0, Supplicant state: COMPLETED, Wi-Fi standard: legacy, RSSI: -50, Link speed: 1Mbps, Tx Link speed: 1Mbps, Max Supported Tx Link speed: 11Mbps, Calculated Tx : 0Mbps, Rx Link speed: 2Mbps, Max Supported Rx Link speed: 11Mbps, Calculated Rx : 0Mbps, Frequency: 2447MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"AndroidWifi"openMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+09-18 16:41:34.431   645   800 D WifiScoreCard: txRate: 1 txSpeed: 1
+09-18 16:41:34.431   645   800 D WifiScoreCard: network update SIGNAL_POLL "AndroidWifi" ID: 673433585 RSSI -50 txSpeed -1
+09-18 16:41:34.431   645   800 D WifiClientModeImpl[3810:wlan0]:  ClientModeImpl$L2ConnectedState screen=on 26 0 "AndroidWifi" 00:13:10:85:fe:01 rssi=-50 f=2447 sc=100 link=1 tx=0.0, 0.0, 0.0 rx=0.0 bcn=0 [on:0 tx:0 rx:0 period:3005] from screen [on:0 period:-1284068001] score=100
+09-18 16:41:34.516   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.516   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.539   892   892 D wpa_supplicant: nl80211: Drv Event 64 (NL80211_CMD_NOTIFY_CQM) received for wlan0
+09-18 16:41:34.539   892   892 D wpa_supplicant: nl80211: Beacon loss event
+09-18 16:41:34.539   892   892 D wpa_supplicant: wlan0: Event BEACON_LOSS (53) received
+09-18 16:41:34.539   892   892 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+09-18 16:41:34.616   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.616   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.717   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.717   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.818   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.818   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.918   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:34.918   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.019   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.019   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.125   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.125   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.225   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.225   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.326   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.326   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.426   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.426   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.527   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.527   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.627   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.627   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.728   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.728   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.828   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.828   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.928   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:35.928   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.029   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.029   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.129   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.129   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.230   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.230   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.330   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.330   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.430   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.430   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.532   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.532   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.633   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.633   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.733   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.733   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.834   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.834   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.934   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:36.934   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.035   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.035   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.136   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.136   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.242   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.242   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.343   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.343   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.434   645   800 D WifiClientModeImpl[3810:wlan0]: updateLinkLayerStatsRssiSpeedFrequencyCapabilities rssi=-50 TxLinkspeed=1 freq=2447 RxLinkSpeed=2
+09-18 16:41:37.434   645   800 D WifiDataStall: tx tput in kbps: 11000
+09-18 16:41:37.434   645   800 D WifiDataStall: rx tput in kbps: 11000
+09-18 16:41:37.434   645   800 V WifiConfigManager: Updating scan detail cache freq=2447 BSSID=00:13:10:85:fe:01 RSSI=-50 for "AndroidWifi"NONE
+09-18 16:41:37.434   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:37.434   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:37.434   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:37.434   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:37.434   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:37.434   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:37.434   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:37.434   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:37.435   645   800 I HalDevMgr: bestIfaceCreationProposal is null, requestIface=STA, existingIface=[name=wlan0 type=STA]
+09-18 16:41:37.435   645   800 D WifiScoreCard: BSSID update SIGNAL_POLL ID: 760286919 SSID: "AndroidWifi", BSSID: 00:13:10:85:fe:01, MAC: 02:15:b2:00:00:00, IP: /10.0.2.16, Security type: 0, Supplicant state: COMPLETED, Wi-Fi standard: legacy, RSSI: -50, Link speed: 1Mbps, Tx Link speed: 1Mbps, Max Supported Tx Link speed: 11Mbps, Calculated Tx : 0Mbps, Rx Link speed: 2Mbps, Max Supported Rx Link speed: 11Mbps, Calculated Rx : 0Mbps, Frequency: 2447MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"AndroidWifi"openMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+09-18 16:41:37.435   645   800 D WifiScoreCard: txRate: 1 txSpeed: 1
+09-18 16:41:37.435   645   800 D WifiScoreCard: network update SIGNAL_POLL "AndroidWifi" ID: 673433585 RSSI -50 txSpeed -1
+09-18 16:41:37.435   645   800 D WifiClientModeImpl[3810:wlan0]:  ClientModeImpl$L2ConnectedState screen=on 26 0 "AndroidWifi" 00:13:10:85:fe:01 rssi=-50 f=2447 sc=100 link=1 tx=0.0, 0.0, 0.0 rx=0.0 bcn=0 [on:0 tx:0 rx:0 period:3004] from screen [on:0 period:-1284064997] score=100
+09-18 16:41:37.443   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.443   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.544   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.544   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.645   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.645   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.745   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.745   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.846   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.846   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.946   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:37.946   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.046   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.046   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.146   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.146   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.247   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.247   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.348   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.348   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.448   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.448   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.549   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.549   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.649   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.649   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.750   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.750   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.851   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.851   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.958   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:38.958   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.061   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.061   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.161   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.161   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.262   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.262   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.362   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.362   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.462   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.462   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.562   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.562   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.664   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.664   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.763   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.763   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.863   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.863   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.964   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:39.964   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.065   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.065   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.165   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.166   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.266   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.266   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.367   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.367   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.440   645   800 D WifiClientModeImpl[3810:wlan0]: updateLinkLayerStatsRssiSpeedFrequencyCapabilities rssi=-50 TxLinkspeed=1 freq=2447 RxLinkSpeed=2
+09-18 16:41:40.440   645   800 D WifiDataStall: tx tput in kbps: 11000
+09-18 16:41:40.440   645   800 D WifiDataStall: rx tput in kbps: 11000
+09-18 16:41:40.440   645   800 V WifiConfigManager: Updating scan detail cache freq=2447 BSSID=00:13:10:85:fe:01 RSSI=-50 for "AndroidWifi"NONE
+09-18 16:41:40.440   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:40.440   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:40.440   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:40.440   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:40.440   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:40.440   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:40.440   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:40.440   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:40.444   645   800 I HalDevMgr: bestIfaceCreationProposal is null, requestIface=STA, existingIface=[name=wlan0 type=STA]
+09-18 16:41:40.444   645   800 D WifiScoreCard: BSSID update SIGNAL_POLL ID: 760286919 SSID: "AndroidWifi", BSSID: 00:13:10:85:fe:01, MAC: 02:15:b2:00:00:00, IP: /10.0.2.16, Security type: 0, Supplicant state: COMPLETED, Wi-Fi standard: legacy, RSSI: -50, Link speed: 1Mbps, Tx Link speed: 1Mbps, Max Supported Tx Link speed: 11Mbps, Calculated Tx : 0Mbps, Rx Link speed: 2Mbps, Max Supported Rx Link speed: 11Mbps, Calculated Rx : 0Mbps, Frequency: 2447MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"AndroidWifi"openMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+09-18 16:41:40.444   645   800 D WifiScoreCard: txRate: 1 txSpeed: 1
+09-18 16:41:40.444   645   800 D WifiScoreCard: network update SIGNAL_POLL "AndroidWifi" ID: 673433585 RSSI -50 txSpeed -1
+09-18 16:41:40.444   645   800 D WifiClientModeImpl[3810:wlan0]:  ClientModeImpl$L2ConnectedState screen=on 26 0 "AndroidWifi" 00:13:10:85:fe:01 rssi=-50 f=2447 sc=100 link=1 tx=0.0, 0.0, 0.0 rx=0.0 bcn=0 [on:0 tx:0 rx:0 period:3009] from screen [on:0 period:-1284061988] score=100
+09-18 16:41:40.467   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.467   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.569   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.569   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.674   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.674   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.777   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.777   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.877   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.877   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.978   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:40.978   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.078   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.078   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.178   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.179   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.279   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.279   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.380   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.380   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.480   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.480   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.582   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.582   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.682   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.682   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.782   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.782   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.883   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.883   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.984   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:41.984   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.084   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.084   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.185   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.185   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.285   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.286   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.391   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.391   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.474   892   892 D wpa_supplicant: nl80211: Drv Event 64 (NL80211_CMD_NOTIFY_CQM) received for wlan0
+09-18 16:41:42.474   892   892 D wpa_supplicant: nl80211: Beacon loss event
+09-18 16:41:42.474   892   892 D wpa_supplicant: wlan0: Event BEACON_LOSS (53) received
+09-18 16:41:42.474   892   892 I wpa_supplicant: wlan0: CTRL-EVENT-BEACON-LOSS 
+09-18 16:41:42.492   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.492   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.592   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.592   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.693   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.693   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.794   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.794   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.895   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.895   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.995   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:42.995   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.096   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.096   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.196   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.196   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.298   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.298   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.397   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.397   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.445   645   800 D WifiClientModeImpl[3810:wlan0]: updateLinkLayerStatsRssiSpeedFrequencyCapabilities rssi=-50 TxLinkspeed=1 freq=2447 RxLinkSpeed=2
+09-18 16:41:43.445   645   800 D WifiDataStall: tx tput in kbps: 11000
+09-18 16:41:43.445   645   800 D WifiDataStall: rx tput in kbps: 11000
+09-18 16:41:43.445   645   800 V WifiConfigManager: Updating scan detail cache freq=2447 BSSID=00:13:10:85:fe:01 RSSI=-50 for "AndroidWifi"NONE
+09-18 16:41:43.445   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:43.445   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:43.445   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:43.445   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:43.445   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:43.445   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:43.445   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:43.445   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:43.447   645   800 I HalDevMgr: bestIfaceCreationProposal is null, requestIface=STA, existingIface=[name=wlan0 type=STA]
+09-18 16:41:43.448   645   800 D WifiScoreCard: BSSID update SIGNAL_POLL ID: 760286919 SSID: "AndroidWifi", BSSID: 00:13:10:85:fe:01, MAC: 02:15:b2:00:00:00, IP: /10.0.2.16, Security type: 0, Supplicant state: COMPLETED, Wi-Fi standard: legacy, RSSI: -50, Link speed: 1Mbps, Tx Link speed: 1Mbps, Max Supported Tx Link speed: 11Mbps, Calculated Tx : 0Mbps, Rx Link speed: 2Mbps, Max Supported Rx Link speed: 11Mbps, Calculated Rx : 0Mbps, Frequency: 2447MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"AndroidWifi"openMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+09-18 16:41:43.448   645   800 D WifiScoreCard: txRate: 1 txSpeed: 1
+09-18 16:41:43.448   645   800 D WifiScoreCard: network update SIGNAL_POLL "AndroidWifi" ID: 673433585 RSSI -50 txSpeed -1
+09-18 16:41:43.448   645   800 D WifiClientModeImpl[3810:wlan0]:  ClientModeImpl$L2ConnectedState screen=on 26 0 "AndroidWifi" 00:13:10:85:fe:01 rssi=-50 f=2447 sc=100 link=1 tx=0.0, 0.0, 0.0 rx=0.0 bcn=0 [on:0 tx:0 rx:0 period:3004] from screen [on:0 period:-1284058984] score=100
+09-18 16:41:43.497   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.497   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.598   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.598   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.698   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.698   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.799   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.799   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.899   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.899   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.965  1012  1174 D SatelliteController: isInCarrierRoamingNbIotNtn: satellite is disabled
+09-18 16:41:43.965  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectType: Checking connect type from PLMN config for subId: 1
+09-18 16:41:43.965  1012  1174 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+09-18 16:41:43.965  1012  1174 V SatelliteController: satelliteConfigParser is not ready
+09-18 16:41:43.965  1012  1174 D SatelliteController: isSatelliteAttachSupportedViaConfigupdater: return null (satelliteConfig is null)
+09-18 16:41:43.966  1012  1174 D SatelliteController: getSatellitePerPlmnConfiguration: invalid subId or not supported via carrier.
+09-18 16:41:43.968  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectType: config: null
+09-18 16:41:43.968  1012  1174 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+09-18 16:41:43.968  1012  1174 V SatelliteController: satelliteConfigParser is not ready
+09-18 16:41:43.968  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectTypeViaConfigUpdater: return null (satelliteConfig is null)
+09-18 16:41:43.968  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectType: Falling back to global carrier config connect type: 0
+09-18 16:41:43.968  1012  1174 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+09-18 16:41:43.968  1012  1174 V SatelliteController: satelliteConfigParser is not ready
+09-18 16:41:43.968  1012  1174 D SatelliteController: isSatelliteAttachSupportedViaConfigupdater: return null (satelliteConfig is null)
+09-18 16:41:43.968  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectType: Checking connect type from PLMN config for subId: 1
+09-18 16:41:43.968  1012  1174 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+09-18 16:41:43.968  1012  1174 V SatelliteController: satelliteConfigParser is not ready
+09-18 16:41:43.968  1012  1174 D SatelliteController: isSatelliteAttachSupportedViaConfigupdater: return null (satelliteConfig is null)
+09-18 16:41:43.968  1012  1174 D SatelliteController: getSatellitePerPlmnConfiguration: invalid subId or not supported via carrier.
+09-18 16:41:43.968  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectType: config: null
+09-18 16:41:43.968  1012  1174 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+09-18 16:41:43.968  1012  1174 V SatelliteController: satelliteConfigParser is not ready
+09-18 16:41:43.968  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectTypeViaConfigUpdater: return null (satelliteConfig is null)
+09-18 16:41:43.968  1012  1174 D SatelliteController: getCarrierRoamingNtnConnectType: Falling back to global carrier config connect type: 0
+09-18 16:41:43.968  1012  1174 D TelephonyConfigUpdateInstallReceiver: getConfigParser: domain=satellite
+09-18 16:41:43.968  1012  1174 V SatelliteController: satelliteConfigParser is not ready
+09-18 16:41:43.968  1012  1174 D SatelliteController: isSatelliteAttachSupportedViaConfigupdater: return null (satelliteConfig is null)
+09-18 16:41:43.999   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:43.999   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.100   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.100   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.202   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.202   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.308   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.308   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.409   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.409   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.509   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.509   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.610   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.610   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.711   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.711   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.812   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.812   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.912   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:44.912   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.012   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.012   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.113   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.113   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.213   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.213   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.314   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.314   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.417   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.417   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.515   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.515   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.616   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.616   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.716   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.716   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.818   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.818   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.917   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:45.917   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.017   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.018   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.118   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.118   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.218   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.218   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.318   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.318   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.419   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.419   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.452   645   800 D WifiClientModeImpl[3810:wlan0]: updateLinkLayerStatsRssiSpeedFrequencyCapabilities rssi=-50 TxLinkspeed=1 freq=2447 RxLinkSpeed=2
+09-18 16:41:46.452   645   800 D WifiDataStall: tx tput in kbps: 11000
+09-18 16:41:46.452   645   800 D WifiDataStall: rx tput in kbps: 11000
+09-18 16:41:46.452   645   800 V WifiConfigManager: Updating scan detail cache freq=2447 BSSID=00:13:10:85:fe:01 RSSI=-50 for "AndroidWifi"NONE
+09-18 16:41:46.452   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:46.452   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:46.452   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:46.452   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:46.452   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:46.452   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:46.452   645   800 D WifiThroughputPredictor:  utilization (LLS) 80 isBluetoothConnected: false final utilization: 80
+09-18 16:41:46.452   645   800 D WifiThroughputPredictor:  BW: 0 RSSI: -50 Nss: 1 Mode: 1 symDur: 4000 snrDb 30 bitPerTone: 4500 rate: 54 throughput: 11
+09-18 16:41:46.454   645   800 I HalDevMgr: bestIfaceCreationProposal is null, requestIface=STA, existingIface=[name=wlan0 type=STA]
+09-18 16:41:46.454   645   800 D WifiScoreCard: BSSID update SIGNAL_POLL ID: 760286919 SSID: "AndroidWifi", BSSID: 00:13:10:85:fe:01, MAC: 02:15:b2:00:00:00, IP: /10.0.2.16, Security type: 0, Supplicant state: COMPLETED, Wi-Fi standard: legacy, RSSI: -50, Link speed: 1Mbps, Tx Link speed: 1Mbps, Max Supported Tx Link speed: 11Mbps, Calculated Tx : 0Mbps, Rx Link speed: 2Mbps, Max Supported Rx Link speed: 11Mbps, Calculated Rx : 0Mbps, Frequency: 2447MHz, Net ID: 0, Metered hint: false, score: 100, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none>"AndroidWifi"openMLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>
+09-18 16:41:46.454   645   800 D WifiScoreCard: txRate: 1 txSpeed: 1
+09-18 16:41:46.454   645   800 D WifiScoreCard: network update SIGNAL_POLL "AndroidWifi" ID: 673433585 RSSI -50 txSpeed -1
+09-18 16:41:46.454   645   800 D WifiClientModeImpl[3810:wlan0]:  ClientModeImpl$L2ConnectedState screen=on 26 0 "AndroidWifi" 00:13:10:85:fe:01 rssi=-50 f=2447 sc=100 link=1 tx=0.0, 0.0, 0.0 rx=0.0 bcn=0 [on:0 tx:0 rx:0 period:3006] from screen [on:0 period:-1284055978] score=100
+09-18 16:41:46.527   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.527   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.627   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.627   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.729   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.729   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.828   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.828   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.929   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:46.929   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:47.030   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:47.030   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:47.130   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:47.130   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:47.232   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:47.232   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:47.331   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:47.331   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:47.432   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:47.432   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:47.532   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:47.532   491   588 W skia    : AGTM parsing failed flags.readFromStream(s) at 159
+09-18 16:41:47.600 14475 14475 I adbd    : adbd service requested 'shell,v2,TERM=dumb:export ANDROID_LOG_TAGS=''; exec logcat '-d' '-t' '600''

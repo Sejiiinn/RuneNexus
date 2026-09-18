@@ -1,0 +1,9 @@
+{
+  "assets/images/stage1_3d/environment/chapter3_tiles.glb": "eedef06047fe74d093e8b356fd91dc4c6d88cf039ee364e7d2b60ce48302818f",
+  "assets/images/stage1_3d/environment/chapter3_props.glb": "a3227d15294f3d09bc3eabb51d1dfd4249fed2e6485bec5085b3c92de4482448",
+  "godot/materials/forge_reflection_sky.tres": "808d512f52cdbc9b83702edc01bef089a671f600aa72b172fc1027daea9b179a",
+  "godot/environment/chapter_three_tiles.gd": "f23006a58026e35c0d5e6456c1b83f4b352313aedb82a9612a412d6c44080036",
+  "godot/main.gd": "b43c1a32cf083a1124fb2b26bdda969db69f283b41ee2b703d7142e929d490f9",
+  "godot/environment/chapter_three_props.gd": "086648f0e1a1d382571a5ad1516ee00d5891ac847b537ef5c77252d2d32fad5e",
+  "scripts/prepare_godot_project.py": "242a6d6e329fbd3b1138617c37baf6f5510bb7d2cb335af49b231b2b99e606ab"
+}

@@ -1,0 +1,1985 @@
+{
+  "source": "build/app/outputs/flutter-apk/app-arm64-v8a-release.apk!assets/rune_nexus.pck",
+  "format_version": 4,
+  "engine_version": "4.7.2",
+  "pack_bytes": 99833456,
+  "entry_count": 261,
+  "logical_payload_bytes": 99803167,
+  "logical_duplicate_bytes": 0,
+  "distinct_range_duplicate_bytes": 0,
+  "duplicate_metric_note": "Logical bytes count every path; distinct-range bytes exclude identical offset aliases. Neither predicts export savings or accounts for partially overlapping ranges.",
+  "duplicate_groups": [],
+  "largest_items": [
+    {
+      "path": ".godot/imported/chapter2_tiles_optimized.glb-d58225123873ea94c653454134f129d5.scn",
+      "bytes": 9447776,
+      "offset": 20415280,
+      "directory_md5": "7ab9130a563b06e9d62887360a1a9773",
+      "sha256": "a29625ab5a9e35d014bbb0d5fb152455fbfafddc0b673011ac43e6472a60dae9"
+    },
+    {
+      "path": ".godot/imported/NotoSansKR-VF.ttf-56ba908a03df83f1db72861fc23858ec.fontdata",
+      "bytes": 6734915,
+      "offset": 87511408,
+      "directory_md5": "59bb62b6d8576555aa5c9b9c1d8aae77",
+      "sha256": "69bf2cdbbe4fc5047297ded837efeeb008b3e9aec41af58d74dc60670a45e445"
+    },
+    {
+      "path": ".godot/imported/chapter2_props.glb-9a4c368066e3dc931d0c7a91ee36d93d.scn",
+      "bytes": 5972925,
+      "offset": 879376,
+      "directory_md5": "542035e5ef8714242fd443b46a5a2ff4",
+      "sha256": "22b6929268d4d3bcae30ee0d775e9ff0554b52921b24eeec2b31a21052854a6f"
+    },
+    {
+      "path": ".godot/imported/chapter3_tiles.glb-91c4910b373fe31c0770cf7e78a98878.scn",
+      "bytes": 5359400,
+      "offset": 29863248,
+      "directory_md5": "af7fd99f5ba05fff5ac6752a2e4bdb2c",
+      "sha256": "754851dd6833849f9ae73b2739f72b01bd173189c90779522049873b200aef25"
+    },
+    {
+      "path": "assets/cannon_field.bin.gz",
+      "bytes": 4402221,
+      "offset": 95248224,
+      "directory_md5": "33b11328462d98690622f114a92c8856",
+      "sha256": "1325cc65c38ac4a191242918e19e61544a684fee45f1821a968b954fe8dd42df"
+    },
+    {
+      "path": ".godot/imported/0428eda8d87a93e324e8484405b3a72ed377ab9988e504d7581cdc2fb2512bac.png-f13a5f3076a1d3c2feea5cebbb82a70a.ctex",
+      "bytes": 3347624,
+      "offset": 51386960,
+      "directory_md5": "1980ba8ba5676b87fbf5646f85aa8522",
+      "sha256": "f025959f6d19142a7d143e2705dad584f86fde11ac6e3ec6298ddc47955f3942"
+    },
+    {
+      "path": ".godot/imported/terrain.glb-e79ebbb24970aa704a607ec51fe1899a.scn",
+      "bytes": 2955068,
+      "offset": 38296864,
+      "directory_md5": "567d2be98538b84caa77ed986e83d50f",
+      "sha256": "f710b42fa0b5e7c82f788ec46d85bc2cc33313deaed8f9e9d8f646a54008c675"
+    },
+    {
+      "path": ".godot/imported/f7d7dd4c089b14644ce9ee5db72d5ddb999714649db2b28c5982918d3b27dfb8.png-86ea4ec5fdaa3d362449c9fb0dd8cc5e.ctex",
+      "bytes": 2927626,
+      "offset": 80009744,
+      "directory_md5": "e93de1a683542ac7b1659594e8641980",
+      "sha256": "a664a32ac2f1160e65ae3815e9caf21ec19207bf5be2292014a952c2914ee349"
+    },
+    {
+      "path": ".godot/imported/magic.glb-51b5a5498319ec4667c663f5ae4c555a.scn",
+      "bytes": 2389213,
+      "offset": 83890944,
+      "directory_md5": "d5428a0e5d79c9f51503749bd9d87b22",
+      "sha256": "ba9c7399d6e78ba115464ed834cb33b5e95926f62ed9256419edacd601bb165e"
+    },
+    {
+      "path": ".godot/imported/c1a186b3c199d90418440545496955bb6e182eefa0b72bff2d1cfcd3f1745953.png-379e6e4e1bec577b11829c107017d929.ctex",
+      "bytes": 2105348,
+      "offset": 67440496,
+      "directory_md5": "417afa7659767458f5e2c232f1a4ca93",
+      "sha256": "11780a4060b0729432d019ca899890cfce099cdd1baf89662bdf70164a9b0144"
+    },
+    {
+      "path": ".godot/imported/d767c52dd36bef635598be9cb6f4e66d2038a9a937269301f287517978444168.png-6cfa8255993f0583ba8251214ed0ff11.ctex",
+      "bytes": 2104158,
+      "offset": 72862160,
+      "directory_md5": "8e6123c0517ab9069d1c29abba077128",
+      "sha256": "5b6ddb08823e1199d43b0ffc64cc0fe634297ff3c6f5890d64da2f9f7f01c392"
+    },
+    {
+      "path": ".godot/imported/3d16b8d5a52cae0fc776e3f44af25321151190ab1ac0d356e5135a48442b33a2.png-992fe36dd65a5c0e128bd946ba846b23.ctex",
+      "bytes": 2017478,
+      "offset": 42905904,
+      "directory_md5": "d3d1ce1341d846899a99dc4f8efc6b43",
+      "sha256": "b3b0b049ff74120438ea7cf2617270af88300a87f6d0748bc89858290b5b5fb4"
+    },
+    {
+      "path": ".godot/imported/9995f9452af9ca71dbefa22d778d0d9a78349465f3467e34dd3e42eba84c9ea8.png-1b3025a2b36d6750e9c45737b692ffcd.ctex",
+      "bytes": 2003232,
+      "offset": 61842576,
+      "directory_md5": "81df09c30d9e82c5e80c18672902b6d1",
+      "sha256": "1e0d1e32a33686c51e43bc4832bc4b587b845ae77f08efccb11d0e2525cdcef5"
+    },
+    {
+      "path": ".godot/imported/c0519f9fc1598270c2a8804e97e8769ce59eb1511b62ee6e5a928247ab4f1765.png-4b2561a0500378325ae0d946d7f0eb28.ctex",
+      "bytes": 1983478,
+      "offset": 69546112,
+      "directory_md5": "f311652ab1be4a8f5144d813ac10d7e4",
+      "sha256": "6c9ac4d2f107a292d379081574338c89b3d126bbc7d3ff6eb8831e58f8051ade"
+    },
+    {
+      "path": ".godot/imported/6356014e7d421a1f4cfc6bb7130d3b6302265a4cd868df7c8e26a527ecf7d651.png-7b754c0e7625a79c06d5add98aec589f.ctex",
+      "bytes": 1711538,
+      "offset": 64121536,
+      "directory_md5": "2e7fee4f56f4130227048378c9960a03",
+      "sha256": "9f0c0dfdd7fb933f06ce41fe1e2d1455758405bc6f22510abda0dc43fcc2086d"
+    },
+    {
+      "path": ".godot/imported/7102fa4254f542612e41f97956af6bf1c1e81fd06e07e4eb65f00a663cc17df2.png-1a8147a011522715441a0ce8d7fba3a8.ctex",
+      "bytes": 1662680,
+      "offset": 60179632,
+      "directory_md5": "a621967565404b575960592a2834d97e",
+      "sha256": "56efe8e414187bd00e8936130cb629e3948f4aa413ea8165dc0a05f0eefd40fb"
+    },
+    {
+      "path": ".godot/imported/07003e82beffdf63a39d9230b42927500fb501411720673c3607fb0ea94b5b3c.png-91010589170c33aaf315435ca92afe46.ctex",
+      "bytes": 1662678,
+      "offset": 58516688,
+      "directory_md5": "980bf5e5094ccfa8fecda9cacccd3c07",
+      "sha256": "a1e866ae76498773fa6bbb11550d9903edeba90b8b121152c24ae45c9cb3f8c9"
+    },
+    {
+      "path": ".godot/imported/6a9a755972b64bfad83da4c37e0b466f952df189555e9bfd30ca5a13c07faf13.png-ca19cac592dc44630bbf54b4e1af1577.ctex",
+      "bytes": 1662678,
+      "offset": 44982752,
+      "directory_md5": "66ed22bd83305ae6ad51f069d6a66988",
+      "sha256": "912f18ae797923c69a577209411541e0500236dd7dd01206795ce09e49b076bf"
+    },
+    {
+      "path": ".godot/imported/chapter2_stage9_props.glb-3a5c0464417321e823aa921096de6397.scn",
+      "bytes": 1589236,
+      "offset": 14656352,
+      "directory_md5": "0feecfb59b9f9836bbdb9f78eb551e10",
+      "sha256": "1ada4ff0463fc9784a567f97f65e4ab97874bfe58d6edbe7891ba60b9c036a36"
+    },
+    {
+      "path": ".godot/imported/chapter2_stage8_props.glb-9838422c4932b1b6ac3f6f5ecac3c937.scn",
+      "bytes": 1588849,
+      "offset": 12218672,
+      "directory_md5": "dc4f760f7abcf2a5235ee22f38c97bd0",
+      "sha256": "4530248a28e515f6eea8e9f7cd2239f5520d76fb01844f866357da3759ab8114"
+    }
+  ],
+  "entries": [
+    {
+      "path": ".godot/exported/133200997/export-3070c538c03ee49b7677ff960a3f5195-main.scn",
+      "bytes": 681,
+      "offset": 95030192,
+      "directory_md5": "0bb39aed0f85c2a28cd80a9d6a8e164f",
+      "sha256": "9dcc02c9eff82d1515e8f11ad6b3f5943904f80b5e6ec3d78c917eaa17e45652"
+    },
+    {
+      "path": ".godot/exported/133200997/export-782f061ce13b592c32656eb5c9b1fb39-forge_reflection_sky.res",
+      "bytes": 971,
+      "offset": 94936176,
+      "directory_md5": "12fb3a436a3028ccf5d564de9817167e",
+      "sha256": "12440c04859e680f3b1bb4473ab67398713cf339a4cfed9f3f44f6e817f99631"
+    },
+    {
+      "path": ".godot/exported/133200997/export-caf787b6eaee3be15754c89acaf5c2eb-battlefield_reflection_sky.res",
+      "bytes": 977,
+      "offset": 94935184,
+      "directory_md5": "9a6fd78dc54a9867e1b12112c767d2a4",
+      "sha256": "cc8b9c2ee58279daf39c7c570ce7670251c4e4ae7c7fb4e946c9ebb3edcb73bc"
+    },
+    {
+      "path": ".godot/global_script_class_cache.cfg",
+      "bytes": 345,
+      "offset": 99794560,
+      "directory_md5": "161939c77db84cbc7d0fda952cfc29d6",
+      "sha256": "b699af20eff265d13b2049b269afa7657e4de9e77a34b0f17ebc07ea7e73b15e"
+    },
+    {
+      "path": ".godot/imported/040df2bf96ef324c4a101d2c181afad710e5dc2f6565ac2d04d10025991c9c09.png-91aa78f57395456531c05f07895f7f00.ctex",
+      "bytes": 1451538,
+      "offset": 47938464,
+      "directory_md5": "bfd05d3e2c91ffe022151ec3727d6728",
+      "sha256": "b42f3315d83fb8b2046e8e93ad9ee63fd9891875e0b242b87e5e36cac683bbc4"
+    },
+    {
+      "path": ".godot/imported/0428eda8d87a93e324e8484405b3a72ed377ab9988e504d7581cdc2fb2512bac.png-f13a5f3076a1d3c2feea5cebbb82a70a.ctex",
+      "bytes": 3347624,
+      "offset": 51386960,
+      "directory_md5": "1980ba8ba5676b87fbf5646f85aa8522",
+      "sha256": "f025959f6d19142a7d143e2705dad584f86fde11ac6e3ec6298ddc47955f3942"
+    },
+    {
+      "path": ".godot/imported/058bfb9b74732459bcbb7aa90b5009defb313f790cbf66fd1a13420441520608.png-ca5a0b28b25ecc250929921d5c377df5.ctex",
+      "bytes": 152406,
+      "offset": 49557808,
+      "directory_md5": "8b839f2c6b598bf2adc5d5aaaa9cff95",
+      "sha256": "f44ce9098ce172e3353bbed4a2b9eac2a5b852fcb0d0c71d0d9c640c12546c6b"
+    },
+    {
+      "path": ".godot/imported/07003e82beffdf63a39d9230b42927500fb501411720673c3607fb0ea94b5b3c.png-91010589170c33aaf315435ca92afe46.ctex",
+      "bytes": 1662678,
+      "offset": 58516688,
+      "directory_md5": "980bf5e5094ccfa8fecda9cacccd3c07",
+      "sha256": "a1e866ae76498773fa6bbb11550d9903edeba90b8b121152c24ae45c9cb3f8c9"
+    },
+    {
+      "path": ".godot/imported/0df4311010237503e17ca74756d32d0ecac602f96e12f14665c59bd25cced527.png-a7a3d2a9d521a2a02c54b4a8ed4c4e80.ctex",
+      "bytes": 75132,
+      "offset": 41342800,
+      "directory_md5": "7ab250981dbf0f0666eab1b5d50071d4",
+      "sha256": "ec1216f8dfb83c6d1d0d08daa7e44c53b0740eb4bfd0c6fc172c566336bb6fe2"
+    },
+    {
+      "path": ".godot/imported/1ef8129dc4728b9b339574d3fd30ff3c290c16944f6150a7a5f17231e2f3e9c7.png-ba58921448d8f9ef24bd5491ecb7d1d2.ctex",
+      "bytes": 1218202,
+      "offset": 41418192,
+      "directory_md5": "7f17bc28c20ad4cc0ae1fedb4a1b4623",
+      "sha256": "aeb45e03d073e10f37c6f1d81d04d20e25f2e73c3927b7025eb1b6bcb86d0bb9"
+    },
+    {
+      "path": ".godot/imported/2074e523d555d3aabfea7046f27a0b634bed4771c65ca42841f20e3457d48ffd.png-ad7dd19d2db8fa6b06dd8d408ab5223e.ctex",
+      "bytes": 232656,
+      "offset": 58248416,
+      "directory_md5": "7954161962d1ee3befffb9588a31d711",
+      "sha256": "6a358232c0cd2ce34b243d1f08b7a227cbbbdfe68c0f88bba1eb8cf954f5215e"
+    },
+    {
+      "path": ".godot/imported/25a107e2d7a0b259bad7e313caa718d657001c6e3b6a22ad159e2400059e47aa.png-ebf371d87fc8c8b561ae2060a6630e46.ctex",
+      "bytes": 265276,
+      "offset": 47672928,
+      "directory_md5": "0479167fbf39848e9f2c2de0a6707841",
+      "sha256": "b7e4d7591d803954c127ea68585a886bc7172f412676ec8ac735d582f7206e6c"
+    },
+    {
+      "path": ".godot/imported/335eab2c778f4d4401fe54c49b7c8655c3a018838347cf67e1762182b405e153.png-04ff5fe32faea04a6af8aee01a92b3d1.ctex",
+      "bytes": 1253860,
+      "offset": 50132832,
+      "directory_md5": "19403d77266138912c5ac6c4301e9611",
+      "sha256": "ea1c4954f376c59b4a1594533401f1fc22df487ba0c68d79d12d291a41e67ae0"
+    },
+    {
+      "path": ".godot/imported/3496aee55abf011ad906d823174350fbc760b427739e26313d61299b36592f33.png-75c69b9e1ae5993d4570d2460b4150e3.ctex",
+      "bytes": 35102,
+      "offset": 58481328,
+      "directory_md5": "0369d276d67f68c15e0fdd2466d33c9d",
+      "sha256": "e8d9d655d5af7f5435adafcf49d515a098be005d3b933dabccb76edc25305163"
+    },
+    {
+      "path": ".godot/imported/3ceb5b9ea78d6b282e4a61d48b95153f09218f187674d32207bcaf39aa3cd452.png-0978f90da87dbbf20da9c59bbfd74170.ctex",
+      "bytes": 268988,
+      "offset": 42636656,
+      "directory_md5": "acc2e75a1010d1f8b952873514a70b0f",
+      "sha256": "e3469435673b837cf86eb1e0d2fe4b4f65106b35e30cb7f11136c09881d02aeb"
+    },
+    {
+      "path": ".godot/imported/3d16b8d5a52cae0fc776e3f44af25321151190ab1ac0d356e5135a48442b33a2.png-992fe36dd65a5c0e128bd946ba846b23.ctex",
+      "bytes": 2017478,
+      "offset": 42905904,
+      "directory_md5": "d3d1ce1341d846899a99dc4f8efc6b43",
+      "sha256": "b3b0b049ff74120438ea7cf2617270af88300a87f6d0748bc89858290b5b5fb4"
+    },
+    {
+      "path": ".godot/imported/46406f57bb808f0787fcc3d3c7ede31fcaa583d33b60a8170a825a85ef046955.png-653b5289de6813aa7d9a1da2354300fb.ctex",
+      "bytes": 275210,
+      "offset": 63846064,
+      "directory_md5": "a907b33097dc5831da91e21d962a0369",
+      "sha256": "ecf46ba5421e8ff531840489a82c2047f126fea22e44788d98f9ec94bd5afa47"
+    },
+    {
+      "path": ".godot/imported/56fe8bed4718c8f0f22685d0718e1386268e70983f0040988653d67723dacb3d.png-4e3805905dbaf9155cd4d05216024149.ctex",
+      "bytes": 167272,
+      "offset": 49390272,
+      "directory_md5": "60fa929ee8bdc9ff12240d35709ba58e",
+      "sha256": "ea4bc606909c1060a6e6f000608a81a47f7c68fc0182decbc2b7dcfbc22dfa65"
+    },
+    {
+      "path": ".godot/imported/5f8ee4f00c73fba63071cfd8102ec434292bfaf5d17b7c5353d5fdbcf6fb0b88.png-a1ec4625e86f222fccb2daea3778e2f2.ctex",
+      "bytes": 58842,
+      "offset": 44923648,
+      "directory_md5": "2a25ca8defa4e8d11d2700927cef9e7a",
+      "sha256": "4f0f3ac2e40274ea3239209e814cd6918ef101f6e2fb9d4590f32b14c585958b"
+    },
+    {
+      "path": ".godot/imported/6356014e7d421a1f4cfc6bb7130d3b6302265a4cd868df7c8e26a527ecf7d651.png-7b754c0e7625a79c06d5add98aec589f.ctex",
+      "bytes": 1711538,
+      "offset": 64121536,
+      "directory_md5": "2e7fee4f56f4130227048378c9960a03",
+      "sha256": "9f0c0dfdd7fb933f06ce41fe1e2d1455758405bc6f22510abda0dc43fcc2086d"
+    },
+    {
+      "path": ".godot/imported/685ee2d44a3ab9bc5ada5e1b9acfbc14642a337a4b8e683de478b54b186d4b5a.png-1a8167cef5dfa377d12a1702835fe0a7.ctex",
+      "bytes": 740698,
+      "offset": 54734848,
+      "directory_md5": "9777ed21660b0a03809bf62e9c344995",
+      "sha256": "c8c084238afe862ca4e0dbfebe96c5d879804876527b42bf05783a7e5122efc1"
+    },
+    {
+      "path": ".godot/imported/6a9a755972b64bfad83da4c37e0b466f952df189555e9bfd30ca5a13c07faf13.png-ca19cac592dc44630bbf54b4e1af1577.ctex",
+      "bytes": 1662678,
+      "offset": 44982752,
+      "directory_md5": "66ed22bd83305ae6ad51f069d6a66988",
+      "sha256": "912f18ae797923c69a577209411541e0500236dd7dd01206795ce09e49b076bf"
+    },
+    {
+      "path": ".godot/imported/7102fa4254f542612e41f97956af6bf1c1e81fd06e07e4eb65f00a663cc17df2.png-1a8147a011522715441a0ce8d7fba3a8.ctex",
+      "bytes": 1662680,
+      "offset": 60179632,
+      "directory_md5": "a621967565404b575960592a2834d97e",
+      "sha256": "56efe8e414187bd00e8936130cb629e3948f4aa413ea8165dc0a05f0eefd40fb"
+    },
+    {
+      "path": ".godot/imported/7ad6562978f36897e541f0839a5e6028413ea7375c23d11a0ff80629d8c4509b.png-8c1c2be79853d215fff76be200051c94.ctex",
+      "bytes": 126584,
+      "offset": 46645696,
+      "directory_md5": "3e0077ec182335d8127d894a0913820d",
+      "sha256": "82286ed36da609880d769c84aaf51110eda77961c405ab0137a5d4e39f811f9b"
+    },
+    {
+      "path": ".godot/imported/83a757f21f5d35f90b8e34caac356650d8438ff2c9ef731e6398c5a61b7a80a5.png-8e8524c890be672034c8dd32975c017b.ctex",
+      "bytes": 422094,
+      "offset": 49710480,
+      "directory_md5": "3cc6df697267e2bd1e72dbf91222ea3f",
+      "sha256": "06c3308f5fabf9449fb06db0c5a09e0783bb2826484966d0a421fc9b5c37b3ab"
+    },
+    {
+      "path": ".godot/imported/873f699b6256b444c0dd97fdee0383b0a6ec3ab2d7f7860bc4c86ee792c9c3ff.png-6aeb037c2c6f0259791effc9d78d2d6b.ctex",
+      "bytes": 755316,
+      "offset": 55475808,
+      "directory_md5": "d22757d0144f2c456f2655bec1055bf1",
+      "sha256": "b8fc6c411bfcf5484d50b0dcca4a6dd6fdfb36bbd6b6d27996758f2f2314a4f4"
+    },
+    {
+      "path": ".godot/imported/899d8f531caee83b9e89b05bdd32f60a17e81e1543bb219234547416bbd2f209.png-8b5f3b479b063807ca87b9c69b1b26cc.ctex",
+      "bytes": 572616,
+      "offset": 56231392,
+      "directory_md5": "6a7000bdfb2b0693314f479362910a65",
+      "sha256": "119bc34ae153c00d477be6bb1440795e1c08bb3700fd9e70689060e14b66da8b"
+    },
+    {
+      "path": ".godot/imported/962b9e7358dd589db1d8984a1348a7892c1cb79d0d8298558c69b015dc6e0e12.png-580d55df855994d0719773743855119f.ctex",
+      "bytes": 1379070,
+      "offset": 56804272,
+      "directory_md5": "8981779be275708bc1f55b3ab7fcbac3",
+      "sha256": "0b83ceed19757a6867ec1f1c3fcdbf698bc4e62a64690b93377862eb03fa12d4"
+    },
+    {
+      "path": ".godot/imported/985f78ec5fd0deec330be032672d873a1c2886f469e0b5d8ca232da3b1949e0a.png-ec4cc71a0de3749194845d889fc0c6e0.ctex",
+      "bytes": 64560,
+      "offset": 58183600,
+      "directory_md5": "c11b6cc804f440a250673b11c5f56db0",
+      "sha256": "648167b34a79e0358082a7d98b56f84960153ffdf021719fac8959fcb158c0d6"
+    },
+    {
+      "path": ".godot/imported/9995f9452af9ca71dbefa22d778d0d9a78349465f3467e34dd3e42eba84c9ea8.png-1b3025a2b36d6750e9c45737b692ffcd.ctex",
+      "bytes": 2003232,
+      "offset": 61842576,
+      "directory_md5": "81df09c30d9e82c5e80c18672902b6d1",
+      "sha256": "1e0d1e32a33686c51e43bc4832bc4b587b845ae77f08efccb11d0e2525cdcef5"
+    },
+    {
+      "path": ".godot/imported/9bf0a49d2e65018d8df4cc16ed6d7c25751680e1779406ac3e9be774095fd0c4.png-d0ae9a2d74028d967a3bf8edcc40f031.ctex",
+      "bytes": 900120,
+      "offset": 46772544,
+      "directory_md5": "2848e95f87741cd4fb4cad4b2247dd01",
+      "sha256": "2553bc41cd47d156323e1edcdb2cb896559a3fafb5f5345cde1174a0227c306f"
+    },
+    {
+      "path": ".godot/imported/NotoSansKR-VF.ttf-56ba908a03df83f1db72861fc23858ec.fontdata",
+      "bytes": 6734915,
+      "offset": 87511408,
+      "directory_md5": "59bb62b6d8576555aa5c9b9c1d8aae77",
+      "sha256": "69bf2cdbbe4fc5047297ded837efeeb008b3e9aec41af58d74dc60670a45e445"
+    },
+    {
+      "path": ".godot/imported/Roboto-VF.ttf-6cbc25db0c1c49d0bbcc4d8e42c86534.fontdata",
+      "bytes": 316053,
+      "offset": 94246512,
+      "directory_md5": "be507eefdb41c855286bac574b332f61",
+      "sha256": "8de064c00cab88bb7e105072b513405603085c8b80ba28649917a567b1d847e9"
+    },
+    {
+      "path": ".godot/imported/a65f1e92b6d7146f67bfcbc259de5435f159ade72f0b1663dcc832a7cf4f8ab4.png-aa6cd09e388d88ce968609290d06b9b0.ctex",
+      "bytes": 577130,
+      "offset": 66455120,
+      "directory_md5": "56d2dd5ac99ad1a8d7079f8c35754f4a",
+      "sha256": "da003558457f54bcffbf7477971228e04934610718aa886c3aa2540e1f57d2a7"
+    },
+    {
+      "path": ".godot/imported/a7d111d9ba2ef62996a6af751e4b21c1e98cc82a4235276e6b16451d897dc363.png-f6d8ac67c7fe3e76ddf9681c82076654.ctex",
+      "bytes": 271276,
+      "offset": 65833344,
+      "directory_md5": "27a01fba20f265e1cb7ce69c81d74915",
+      "sha256": "983f3e7771b3f6b2688abbc68de822f44bece69cff74b7960b6a019d66f29e96"
+    },
+    {
+      "path": ".godot/imported/a9aaf2f9bbc52e6960c9683dfd641ec35ab22b6a8ca5057743afec4bacb10d54.png-59fd6c0fb021241b390a54fe26355db1.ctex",
+      "bytes": 349984,
+      "offset": 66104880,
+      "directory_md5": "e72c5dca8a1a4b7c41182141356f8841",
+      "sha256": "dc132b1fc9849f32cbc20967c29795b5b3ce2f4e7c9a3aa50bb8a8b968aea74e"
+    },
+    {
+      "path": ".godot/imported/armored.glb-c0abd723cf9de60ec713552ef8d77428.scn",
+      "bytes": 43119,
+      "offset": 597616,
+      "directory_md5": "fdd6405c2b07293272a9805641720c83",
+      "sha256": "1c1ae753594a3a6cdf9b99ccf9c34d9f5e3e098c8d50414924c34923564f6da3"
+    },
+    {
+      "path": ".godot/imported/arrow.glb-521675f94e1187bf103082238aaca567.scn",
+      "bytes": 418701,
+      "offset": 82937632,
+      "directory_md5": "1ee7e5fe5a3c74f27e3a73b493dfa683",
+      "sha256": "376e0368c4469b1177d981c78f1cbda4478a8d35d58b11eb44a7ebc2cdaa97d8"
+    },
+    {
+      "path": ".godot/imported/b6fef098ffdd77c86df4dfd7c582f652e4c92f18b076e3073bc918f10675f381.png-39ecabf0afb31949aed3c396c585c552.ctex",
+      "bytes": 158436,
+      "offset": 67032512,
+      "directory_md5": "6e069f93f086e00fa7acff7df1bbb056",
+      "sha256": "17d750a182d5700860afe759b8d330ee0b159631884e3b18db03e1bf31ed00b0"
+    },
+    {
+      "path": ".godot/imported/boss.glb-1fa2562f035e2eab731952c674445f02.scn",
+      "bytes": 45949,
+      "offset": 640912,
+      "directory_md5": "256a80acf81d8a8e4ce89ece0eb79696",
+      "sha256": "76ed4177cb117686ebb2ccda6d881c7fca1d0be88a53800e6add88bb148127f8"
+    },
+    {
+      "path": ".godot/imported/burn_ember.png-392589a7ade2049e75a8e23455662674.ctex",
+      "bytes": 454,
+      "offset": 86311680,
+      "directory_md5": "f7458386108902bce5a79a5b501a80e2",
+      "sha256": "8a2a3908ad0e8f0c2c722beefaab3761750bcc7fc840c1a060309a7456aaaaf5"
+    },
+    {
+      "path": ".godot/imported/burn_glow.png-780830b177a33e32ceaef3cb9c2b7884.ctex",
+      "bytes": 478,
+      "offset": 86312352,
+      "directory_md5": "de1b968aa4f82ee455d6b8cec7bbe36d",
+      "sha256": "a2a1dc013b85879ea7eaf3ee851a726637b3205b9411b0e9b1d840b8945af234"
+    },
+    {
+      "path": ".godot/imported/burn_smoke.png-bfe985e0c3410d787f22bb39d9d3dff2.ctex",
+      "bytes": 482,
+      "offset": 86313040,
+      "directory_md5": "89e67266c9f934dcd57c28359102a585",
+      "sha256": "72ef5f3a40a764400d112c20cbff1c9fda977f27a012345eb7dee8b4ea97ea77"
+    },
+    {
+      "path": ".godot/imported/c0519f9fc1598270c2a8804e97e8769ce59eb1511b62ee6e5a928247ab4f1765.png-4b2561a0500378325ae0d946d7f0eb28.ctex",
+      "bytes": 1983478,
+      "offset": 69546112,
+      "directory_md5": "f311652ab1be4a8f5144d813ac10d7e4",
+      "sha256": "6c9ac4d2f107a292d379081574338c89b3d126bbc7d3ff6eb8831e58f8051ade"
+    },
+    {
+      "path": ".godot/imported/c0abf644091b085ba3fe798ddf6dd64b4c2bc7b28aa6e42f0fd5c0d893daf9fe.png-9c38c517aa1e02004d08796c2177e785.ctex",
+      "bytes": 249018,
+      "offset": 67191216,
+      "directory_md5": "cb3fc2a160cacc55e56a55b9d08fd535",
+      "sha256": "c94a6f9e3ed892c83a549ae01a5de03287c0b4dd419af80f0b82058974460cfc"
+    },
+    {
+      "path": ".godot/imported/c1a186b3c199d90418440545496955bb6e182eefa0b72bff2d1cfcd3f1745953.png-379e6e4e1bec577b11829c107017d929.ctex",
+      "bytes": 2105348,
+      "offset": 67440496,
+      "directory_md5": "417afa7659767458f5e2c232f1a4ca93",
+      "sha256": "11780a4060b0729432d019ca899890cfce099cdd1baf89662bdf70164a9b0144"
+    },
+    {
+      "path": ".godot/imported/cannon.glb-30ba3123f44deca67ec4e4b8c02153a4.scn",
+      "bytes": 441403,
+      "offset": 83356512,
+      "directory_md5": "c37c849bda88872b958726a917664eda",
+      "sha256": "15dbc1064bdca6dfea891d4b3b824ff8f02d98032e803b8f2b92060fadea3406"
+    },
+    {
+      "path": ".godot/imported/cannonball.glb-98ce0b96e9b10445b872537a18cec09b.scn",
+      "bytes": 90499,
+      "offset": 41252112,
+      "directory_md5": "7a983d53ca0a804443bc96e460c1709e",
+      "sha256": "dd896d74696c9afafe872bba35536bbb7e430e52afc40887f3656084d4ed0572"
+    },
+    {
+      "path": ".godot/imported/cdb6e878b38126d489a01e73ddcd6b5b36b1a2f4f337ff5bd3eb843a8ca7e69d.png-63f7ed9cb2baf7b288009982ac2660c6.ctex",
+      "bytes": 243376,
+      "offset": 71529856,
+      "directory_md5": "36c945b494d7f6de0180d3ae5d1f1d18",
+      "sha256": "1bf03bcbeb67656f053ac7bf345d3c225f3accf9a969795c8e8f0e7556ca76cf"
+    },
+    {
+      "path": ".godot/imported/chapter2_props.glb-9a4c368066e3dc931d0c7a91ee36d93d.scn",
+      "bytes": 5972925,
+      "offset": 879376,
+      "directory_md5": "542035e5ef8714242fd443b46a5a2ff4",
+      "sha256": "22b6929268d4d3bcae30ee0d775e9ff0554b52921b24eeec2b31a21052854a6f"
+    },
+    {
+      "path": ".godot/imported/chapter2_stage10_geology.glb-fb7c8a97967e735b41359296f8dcdd94.scn",
+      "bytes": 1051085,
+      "offset": 16245792,
+      "directory_md5": "2b93f0d49272788c07cf32e233bcc614",
+      "sha256": "c8544011f7d19f1f56172848ea50446e66f0b0cb5b595f92c4760407636cc7ed"
+    },
+    {
+      "path": ".godot/imported/chapter2_stage10_props.glb-f6a13779c3cc2de910727afbe6b517b4.scn",
+      "bytes": 1588769,
+      "offset": 17297072,
+      "directory_md5": "96b26bea1a2b778b5432d9080494d29f",
+      "sha256": "bb1dcda8d55e291f23cc223996a0358c66857b92199c9c833809b29a975ad54f"
+    },
+    {
+      "path": ".godot/imported/chapter2_stage6_geology.glb-3e4b907c5dae90b015b9e3528bc9b126.scn",
+      "bytes": 894920,
+      "offset": 6852480,
+      "directory_md5": "4019b7a66341fcff0681dc9e2d7d97ae",
+      "sha256": "f805f74498e543c17f4526372959c7c19a3cc7f5b4a2a088919927b2ee9e4128"
+    },
+    {
+      "path": ".godot/imported/chapter2_stage6_props.glb-0d31570d11aa759d35fe8fbd56039f7c.scn",
+      "bytes": 1588325,
+      "offset": 7747600,
+      "directory_md5": "50462600b9472a176d051d3e4714edc8",
+      "sha256": "66ba8761e35638af3be1b3095cadcf197963025bdf6fd05734c67b782890b417"
+    },
+    {
+      "path": ".godot/imported/chapter2_stage7_geology.glb-7bc9ebf2a9a84bf80463ae1fd4082cc1.scn",
+      "bytes": 635181,
+      "offset": 9336128,
+      "directory_md5": "9b85eb0d2b393093fa889df0b77fbef8",
+      "sha256": "89646d3f405e9d16ea4c40610884d78c422aed963995e2550c6736f2f54d9168"
+    },
+    {
+      "path": ".godot/imported/chapter2_stage7_props.glb-4b258f45cd3cdeb32637f81777e417f2.scn",
+      "bytes": 1588733,
+      "offset": 9971504,
+      "directory_md5": "3092c3166730de39431854a0d4b49e1a",
+      "sha256": "812a93f21bb56613179cc55430c7d40ecc9165048b03aba945d6cdbb3e282dd3"
+    },
+    {
+      "path": ".godot/imported/chapter2_stage8_geology.glb-17034c4c0e11f09595dd417deb60a646.scn",
+      "bytes": 658035,
+      "offset": 11560432,
+      "directory_md5": "ef9fbe71371508002763a79c68ff0346",
+      "sha256": "97c120d77e7411b22fe78c076fdfb62e9fb0807c44b2318e638f3bb7dd7698a0"
+    },
+    {
+      "path": ".godot/imported/chapter2_stage8_props.glb-9838422c4932b1b6ac3f6f5ecac3c937.scn",
+      "bytes": 1588849,
+      "offset": 12218672,
+      "directory_md5": "dc4f760f7abcf2a5235ee22f38c97bd0",
+      "sha256": "4530248a28e515f6eea8e9f7cd2239f5520d76fb01844f866357da3759ab8114"
+    },
+    {
+      "path": ".godot/imported/chapter2_stage9_geology.glb-51335244bef629fc5d4f76413a7e07a8.scn",
+      "bytes": 848432,
+      "offset": 13807728,
+      "directory_md5": "cf1ba72a4a1358aa2e026b4eb6bce7f6",
+      "sha256": "e1fb98d71d1b83f4b9ab4f28cd9d849e73e325750ebffe5e81eda432906f3353"
+    },
+    {
+      "path": ".godot/imported/chapter2_stage9_props.glb-3a5c0464417321e823aa921096de6397.scn",
+      "bytes": 1589236,
+      "offset": 14656352,
+      "directory_md5": "0feecfb59b9f9836bbdb9f78eb551e10",
+      "sha256": "1ada4ff0463fc9784a567f97f65e4ab97874bfe58d6edbe7891ba60b9c036a36"
+    },
+    {
+      "path": ".godot/imported/chapter2_tiles.glb-b598fefff86203eeb5d388e510096730.scn",
+      "bytes": 1529047,
+      "offset": 18886048,
+      "directory_md5": "fcad3b15ffe4d2a418678e471b8d7b71",
+      "sha256": "bc19b4d01ce4059490c76cd4f627ea4820d3196a1907dfcaf4e167d8b282d943"
+    },
+    {
+      "path": ".godot/imported/chapter2_tiles_optimized.glb-d58225123873ea94c653454134f129d5.scn",
+      "bytes": 9447776,
+      "offset": 20415280,
+      "directory_md5": "7ab9130a563b06e9d62887360a1a9773",
+      "sha256": "a29625ab5a9e35d014bbb0d5fb152455fbfafddc0b673011ac43e6472a60dae9"
+    },
+    {
+      "path": ".godot/imported/chapter3_tiles.glb-91c4910b373fe31c0770cf7e78a98878.scn",
+      "bytes": 5359400,
+      "offset": 29863248,
+      "directory_md5": "af7fd99f5ba05fff5ac6752a2e4bdb2c",
+      "sha256": "754851dd6833849f9ae73b2739f72b01bd173189c90779522049873b200aef25"
+    },
+    {
+      "path": ".godot/imported/crystals.glb-60911ae4b7760e895a4fc636ae05ca0e.scn",
+      "bytes": 3278,
+      "offset": 224976,
+      "directory_md5": "1bb1ed61f130b3a63e772825348bfb94",
+      "sha256": "46bf3fbb36ca161ae43830a5aaab02ea8fcf111b85e105ad645d1ae14a4b2bbb"
+    },
+    {
+      "path": ".godot/imported/d0d1904a5d7e0cf6c9bb288f57b7b7d27b310ea9d15cfb876f12aa049476df93.png-39ecae8fe33a58f910a00fef94bdac76.ctex",
+      "bytes": 1088406,
+      "offset": 71773488,
+      "directory_md5": "62b4592b12b509cf657c39bc06fbd6e7",
+      "sha256": "02b5e9e0dde6776b0b99416aae20796457f369c34f7bab95250933b35f7c12fc"
+    },
+    {
+      "path": ".godot/imported/d767c52dd36bef635598be9cb6f4e66d2038a9a937269301f287517978444168.png-6cfa8255993f0583ba8251214ed0ff11.ctex",
+      "bytes": 2104158,
+      "offset": 72862160,
+      "directory_md5": "8e6123c0517ab9069d1c29abba077128",
+      "sha256": "5b6ddb08823e1199d43b0ffc64cc0fe634297ff3c6f5890d64da2f9f7f01c392"
+    },
+    {
+      "path": ".godot/imported/death_silhouettes.png-5ecc9de04610f967de9763bf60c6f4ca.ctex",
+      "bytes": 97898,
+      "offset": 86314176,
+      "directory_md5": "07a696022f4530ae43eab51c97e2e0d7",
+      "sha256": "d4cf06c0ddc72aff238229d6603760cbb8b84b4fda1624a5ff584b425da32ae9"
+    },
+    {
+      "path": ".godot/imported/deb8a47bec40570dec656c9740a2a1d9306c9946e37f98b59c32edfa48f65820.png-a6c8d1d506e5de406e704db83a247220.ctex",
+      "bytes": 788234,
+      "offset": 74966576,
+      "directory_md5": "234702def0ab8e2295aa0833e23048ae",
+      "sha256": "434a78d8aa937779680282eeb3ce2ff738b3af6594c6b549c4c712c2bb78ca37"
+    },
+    {
+      "path": ".godot/imported/diamond_currency.png-74eb31dacb911930ae1d26392714688a.ctex",
+      "bytes": 1098908,
+      "offset": 86412288,
+      "directory_md5": "0daad853f663f06b3bab0389f0f5b354",
+      "sha256": "0ade07f0e833fc39f883db5ea6695aee76426cf45e9659fce53781e2fdccc84b"
+    },
+    {
+      "path": ".godot/imported/dressing.glb-2dbc28f4b6836d1f0f6889e84c441cd4.scn",
+      "bytes": 868391,
+      "offset": 35222832,
+      "directory_md5": "efb7122ebfa92901e5ce46ba0c20378f",
+      "sha256": "77cc2094c15d3b2e58937710c73b8331111b1bc56481a37798df99b0140ca165"
+    },
+    {
+      "path": ".godot/imported/dressing_stage2.glb-21a7e9eccf446845edc80e6e469a3cb2.scn",
+      "bytes": 436142,
+      "offset": 36091408,
+      "directory_md5": "f976748b5fe001271173995f70391eb2",
+      "sha256": "2dee334434c57c1a26389b90b23644a3e1ef6a572583c6a66e5ceb8bad1a580c"
+    },
+    {
+      "path": ".godot/imported/dressing_stage3.glb-3e925a2dd0d4763c804b2716b62fbe85.scn",
+      "bytes": 498773,
+      "offset": 36527744,
+      "directory_md5": "92b35013d870fd35b1c7370561847a34",
+      "sha256": "e3f7c7c388a80c70906c7257e7d74221ac51bbcfbd5649050e91c196d31e3b2b"
+    },
+    {
+      "path": ".godot/imported/dressing_stage4.glb-95a60b8cc2f2fc9a03fa0e5ff04eedca.scn",
+      "bytes": 540227,
+      "offset": 37026720,
+      "directory_md5": "3fdadbeb7733be9f22df0f7a1d3fff71",
+      "sha256": "0e298181794f0794e30e52388df10483524e82f69df06b67a43d8b66937c2f41"
+    },
+    {
+      "path": ".godot/imported/dressing_stage5.glb-43d3989cd260045bf848c32ef8360238.scn",
+      "bytes": 477613,
+      "offset": 37567152,
+      "directory_md5": "cbd6f72b26b442db174263d213454708",
+      "sha256": "055b40c481fc20e62b1a054389d3d647e399890c0b817e6fb97b27e732d4960c"
+    },
+    {
+      "path": ".godot/imported/e464aca98f16fce39d157e8c62742850c633da5e68c32b45cc5a7126a246ce9f.png-9a8b306026408ab2160828aedfbeb267.ctex",
+      "bytes": 703530,
+      "offset": 77099152,
+      "directory_md5": "ec11afe85b630fc15920ae6836c5556c",
+      "sha256": "bad47c2c14b1e820c1f020d7bf7affc1593f491f2a042c83133c02267113c446"
+    },
+    {
+      "path": ".godot/imported/e5b27838b89cc4f5c500f7e69b65d0fc7b41e3e6c2df78c5efbef5eca003ec6b.png-a3bf1abe680d1d488e93adff647ceeb4.ctex",
+      "bytes": 1343814,
+      "offset": 75755072,
+      "directory_md5": "395d0cc045ab017bcc08853876aca501",
+      "sha256": "7979e5ab252eced0003a1c0daa2ec9ef306c25d0dd0d063a7f00fac10a440c67"
+    },
+    {
+      "path": ".godot/imported/eba1f206023924272892f2f48e02018cf80ef609ae5af4b71f7743f081e77331.png-7d80c57fca05587a125efc146938fc77.ctex",
+      "bytes": 1485098,
+      "offset": 77802944,
+      "directory_md5": "452277642be235bfa2dbf75ad9c459ff",
+      "sha256": "f30c3acb12e777b347c04b7d9a80e833b73319fe6edcef66fad74f6973c0c7a2"
+    },
+    {
+      "path": ".godot/imported/ecea73a7472b9253f1e07d01a8a579ea931e0bffb90920951f0305c0f43fe9c4.png-cf6ce9e281295eb8fe67dc9cee76267c.ctex",
+      "bytes": 556206,
+      "offset": 79288304,
+      "directory_md5": "7f1c7162936b9aae1d575000f0e99fad",
+      "sha256": "4fb8ea43c93266dbb0eca395b9899d95d2eccdc4388e179b7513b9cbde055202"
+    },
+    {
+      "path": ".godot/imported/efa85b374e12ecb860de410ce6096c36e7daff70ea40ebdb048522451d505388.png-ce56909f0b67b04a38611fad2a9829c9.ctex",
+      "bytes": 164716,
+      "offset": 79844768,
+      "directory_md5": "6c3ea0e3f93adccfe06f230cf333da82",
+      "sha256": "5ed99c1a16f00b88dbbc892321ef9568f881438399c3f1bf88f38cbfbb6b0efb"
+    },
+    {
+      "path": ".godot/imported/f7d7dd4c089b14644ce9ee5db72d5ddb999714649db2b28c5982918d3b27dfb8.png-86ea4ec5fdaa3d362449c9fb0dd8cc5e.ctex",
+      "bytes": 2927626,
+      "offset": 80009744,
+      "directory_md5": "e93de1a683542ac7b1659594e8641980",
+      "sha256": "a664a32ac2f1160e65ae3815e9caf21ec19207bf5be2292014a952c2914ee349"
+    },
+    {
+      "path": ".godot/imported/fast.glb-80eff50eeedabfff102d3dd1e02134c1.scn",
+      "bytes": 45967,
+      "offset": 687040,
+      "directory_md5": "5c843a3e052ae45075c8c82438de985d",
+      "sha256": "c600089431ffd632bd8b8becb40e57d4823371385c3352ec405cd11fc1d678b1"
+    },
+    {
+      "path": ".godot/imported/flame_atlas.png-490d5113fa8809c4ebd41155e741eab9.ctex",
+      "bytes": 113298,
+      "offset": 111456,
+      "directory_md5": "2d5655d25a5ee7a44047aa1fe24347c3",
+      "sha256": "44ca3e2ec26d64f97074d554e96fca4ce8c0b7d79353309e1e9b650fdc3a701e"
+    },
+    {
+      "path": ".godot/imported/frost.glb-a699fabfd704d25fa024fe9be8dac45e.scn",
+      "bytes": 71992,
+      "offset": 83798096,
+      "directory_md5": "e8780b9c0f15c3e877ba86f027fe1b9b",
+      "sha256": "8a215e8681f58cc0a784f901b5db18338788bc7a05240824c6be618706a285f3"
+    },
+    {
+      "path": ".godot/imported/grain.png-7eea7aabb0c01e532760e6c1611cad8e.ctex",
+      "bytes": 78142,
+      "offset": 228432,
+      "directory_md5": "808dbfdca26cf5a6e872164d40b05ee3",
+      "sha256": "d7ea20d6b671b7a23389685cc1b1f0018b040c3818108e4992f387e3721b6831"
+    },
+    {
+      "path": ".godot/imported/gun_smoke.png-55036d9cc2b0737591180e809296722e.ctex",
+      "bytes": 98290,
+      "offset": 306784,
+      "directory_md5": "9b8132f0f47837700fe8f66b911764ab",
+      "sha256": "cf58008bc4e99aa66aa94a9e1aaf7dbab5330fad40cd9cb4e24021fb09a56518"
+    },
+    {
+      "path": ".godot/imported/landmarks.glb-bcc35d663afa3c887500b076d7ce085f.scn",
+      "bytes": 251714,
+      "offset": 38044960,
+      "directory_md5": "0af9103241ef8187ee06fa102eacd27d",
+      "sha256": "cdc09a96f01b6ad63dd97e76e5cc383acfdd43fa72b64aee3513a67cac0af68b"
+    },
+    {
+      "path": ".godot/imported/lightning.glb-734b7f1e2887827a281c311cfe217e29.scn",
+      "bytes": 20493,
+      "offset": 83870272,
+      "directory_md5": "f2b6d082ce1a28a67bfd3824a0bfd8bc",
+      "sha256": "9ebabf222c0b6a4236306517f6dd743cd587c8df1dcf029260a0673a3f720da5"
+    },
+    {
+      "path": ".godot/imported/machinegun_muzzle.glb-a533850e6dd0cabb2958a44a4ad6d0c9.scn",
+      "bytes": 17312,
+      "offset": 405296,
+      "directory_md5": "c9ae8ca7a44d4b41f5c0c8cfacc6a76b",
+      "sha256": "ce52cadcfc00068e3735d12d63dad865052b8594b13f34f89bcb5e4b9b263b7f"
+    },
+    {
+      "path": ".godot/imported/magic.glb-51b5a5498319ec4667c663f5ae4c555a.scn",
+      "bytes": 2389213,
+      "offset": 83890944,
+      "directory_md5": "d5428a0e5d79c9f51503749bd9d87b22",
+      "sha256": "ba9c7399d6e78ba115464ed834cb33b5e95926f62ed9256419edacd601bb165e"
+    },
+    {
+      "path": ".godot/imported/muzzle_flash.png-280330ce76e92c2fead47dba704e17bf.ctex",
+      "bytes": 42304,
+      "offset": 422800,
+      "directory_md5": "01f77b994ae74eab02892b27bdef2136",
+      "sha256": "03a3d99ec31a5d20db243a01dbf2d47b4e55c9b97427985d15c3c2a9bb3e2d1e"
+    },
+    {
+      "path": ".godot/imported/normal.glb-cbdd22edc8c6dd361b94e236805d35a8.scn",
+      "bytes": 49604,
+      "offset": 733184,
+      "directory_md5": "f43fda7da0c63288d6a539c7c566bbe3",
+      "sha256": "f41b8de6d66fe12ff37212147ffd61f883c621dd7065b840c514948a9acf034e"
+    },
+    {
+      "path": ".godot/imported/runic_fire.glb-f748ecfa9b7f0a60316e94400709a44b.scn",
+      "bytes": 132114,
+      "offset": 465312,
+      "directory_md5": "61ee08ad8b30363ee03a7cf8e400263a",
+      "sha256": "9cd31e56664ef872e6a56c41cd2c07b00e46360cb5d0de4eca51a109ee5fd45c"
+    },
+    {
+      "path": ".godot/imported/shielded.glb-a7086d4f8ee40b4ffd243074010afc94.scn",
+      "bytes": 45957,
+      "offset": 782976,
+      "directory_md5": "a4fd1531ec93515692874401a486838a",
+      "sha256": "16d7305c85623c93492f02e379161e9d5062302a11d1c53890892a03ab804d05"
+    },
+    {
+      "path": ".godot/imported/slow_shard.png-99a3749e25b16e125db98a5da1d2181f.ctex",
+      "bytes": 222,
+      "offset": 86313744,
+      "directory_md5": "3d9ae8186392471c7ebd7ce77a17c95d",
+      "sha256": "215c8236a001c40144f9bf379498f7afa39e9183fbfd3944be69a94d5d71bd17"
+    },
+    {
+      "path": ".godot/imported/sniper.glb-ebff0f9c08d9fa6c742c63e9742f17e4.scn",
+      "bytes": 31164,
+      "offset": 86280336,
+      "directory_md5": "37a1f50b69887b6612e6a4261a95ce54",
+      "sha256": "3cf4639792a53b0f245caffec2d4117de8bc984d023d602b2cb80aed6b32f8a5"
+    },
+    {
+      "path": ".godot/imported/tank.glb-78a08136c16c7ff21ed1c46a6d695276.scn",
+      "bytes": 50066,
+      "offset": 829120,
+      "directory_md5": "a082e4fd20128f4c48132ef59888807e",
+      "sha256": "fb6d654a80cfbc61cbef28fbb4bb9d9e2d95797e0fc0e7fbd5db3e104b786497"
+    },
+    {
+      "path": ".godot/imported/terrain.glb-e79ebbb24970aa704a607ec51fe1899a.scn",
+      "bytes": 2955068,
+      "offset": 38296864,
+      "directory_md5": "567d2be98538b84caa77ed986e83d50f",
+      "sha256": "f710b42fa0b5e7c82f788ec46d85bc2cc33313deaed8f9e9d8f646a54008c675"
+    },
+    {
+      "path": ".godot/imported/turret_levels.png-3ee3e70e233d6df4c4a40929d096d7a9.ctex",
+      "bytes": 70110,
+      "offset": 94562752,
+      "directory_md5": "fd004ab43c8592b284f270a7a2013a47",
+      "sha256": "2c082fe6a038b0d45e77cf055d8f6c56f106e032bfe8d54be6083d62d416c6db"
+    },
+    {
+      "path": ".godot/uid_cache.bin",
+      "bytes": 8790,
+      "offset": 99794912,
+      "directory_md5": "816371ce1e281805ccbd44b4d6a123ee",
+      "sha256": "0c2bcac4f8d125fce2cb6524683d60886d979d2d5a3b1424ab0f200d375e0e71"
+    },
+    {
+      "path": "assets/cannon_field.bin.gz",
+      "bytes": 4402221,
+      "offset": 95248224,
+      "directory_md5": "33b11328462d98690622f114a92c8856",
+      "sha256": "1325cc65c38ac4a191242918e19e61544a684fee45f1821a968b954fe8dd42df"
+    },
+    {
+      "path": "assets/cannon_field.json",
+      "bytes": 1027,
+      "offset": 94633072,
+      "directory_md5": "c5981ff4b91dafc25a9a87cd9529ce50",
+      "sha256": "8c2062d3ab88e48ffef6ddc1642c5f846ad8203d464d021ec135ecf6fba98005"
+    },
+    {
+      "path": "assets/chapter2_environment_manifests.json",
+      "bytes": 15432,
+      "offset": 94634112,
+      "directory_md5": "d957bad13a78b99f78b7a4acb1fd82e0",
+      "sha256": "d3f36389f806777c7398a8c6b45c0702f4ea7650a79341bfd57b58c187fa0162"
+    },
+    {
+      "path": "assets/chapter2_stage10_manifest.json",
+      "bytes": 3036,
+      "offset": 94661968,
+      "directory_md5": "8afb7dd06c5c7cdb1d3deee466b19de0",
+      "sha256": "24ef2cd803c0e07c369abf2f7381017ddff227886817bb10b7c5aad96965549a"
+    },
+    {
+      "path": "assets/chapter2_stage6_manifest.json",
+      "bytes": 2653,
+      "offset": 94649552,
+      "directory_md5": "44b1913cb591fc5dfb9e88ab8c34eaaf",
+      "sha256": "78d6d4e52c51ccd755cd38e852663c2ef94d9c24f3337f0c86bba3627dccbcce"
+    },
+    {
+      "path": "assets/chapter2_stage7_manifest.json",
+      "bytes": 3155,
+      "offset": 94652208,
+      "directory_md5": "69ab687146016fda59fe35376ce542c9",
+      "sha256": "575f9e08a74a4b2527ab869c77756188ef95296203dcdad4b3c462a79a8848e3"
+    },
+    {
+      "path": "assets/chapter2_stage8_manifest.json",
+      "bytes": 3211,
+      "offset": 94655376,
+      "directory_md5": "4ad125c1518a76aee2277cd0ad02ddb5",
+      "sha256": "b3836fc4db566625ccb9e14b797dc2d8038477d9942b9cb2fc7cd90c9ca353a0"
+    },
+    {
+      "path": "assets/chapter2_stage9_manifest.json",
+      "bytes": 3371,
+      "offset": 94658592,
+      "directory_md5": "d8609849d99f8df7a02c04f5ae032f83",
+      "sha256": "439d609b7c78f7d2f702803a4a07d441850cca31180fee48c47352341d540833"
+    },
+    {
+      "path": "assets/dressing_manifests.json",
+      "bytes": 3440,
+      "offset": 94665008,
+      "directory_md5": "483339f41f86f5a95c03c726598cb328",
+      "sha256": "17abab65a899c1334aa9625b6a867cd1b75bfe24767152d64294060ab8235e48"
+    },
+    {
+      "path": "assets/effects/enemy_burn/attachments.json",
+      "bytes": 111341,
+      "offset": 112,
+      "directory_md5": "23a1a5673d5183ba79728567ecbbba35",
+      "sha256": "206abd928a8befd4b8ee5b06508e5332b0d69d2b25a9dfe2d3634f7c62c7a58d"
+    },
+    {
+      "path": "assets/effects/enemy_burn/flame_atlas.png.import",
+      "bytes": 199,
+      "offset": 224768,
+      "directory_md5": "5be601689d0cab35f2edc0a456c1a4c0",
+      "sha256": "de67333145d5a5074cbd55d14f72b838f0181265cab036313be7f67c29873b0b"
+    },
+    {
+      "path": "assets/effects/enemy_frost/crystals.glb.import",
+      "bytes": 170,
+      "offset": 228256,
+      "directory_md5": "fc36b6b0c443b45763991a34ea58e943",
+      "sha256": "0f273b59c9ac683c142b1a33ad5b688faf25f97c597390868181544a32321d0f"
+    },
+    {
+      "path": "assets/effects/enemy_frost/grain.png.import",
+      "bytes": 194,
+      "offset": 306576,
+      "directory_md5": "fbcb41e2d27b845d55f71797dee37426",
+      "sha256": "67148785747b18a1c3e50d84cb070a95a5e647d3e018a8e06cc5566671fed387"
+    },
+    {
+      "path": "assets/effects/gun_smoke.png.import",
+      "bytes": 198,
+      "offset": 405088,
+      "directory_md5": "8a94fdaa3ea2502101af2f171534f452",
+      "sha256": "6d59a0fd0ec26d8f080e47b34a0e1345313ec01a1cd252409e37a50e2aabe3e0"
+    },
+    {
+      "path": "assets/effects/machinegun_muzzle.glb.import",
+      "bytes": 178,
+      "offset": 422608,
+      "directory_md5": "78f5c29cc76f44ea9764cc47f99a9c9d",
+      "sha256": "fc84a990078f407b5285f5dfefa02b2bb8f2d46c8cd982e1861ae71883b26cdf"
+    },
+    {
+      "path": "assets/effects/muzzle_flash.png.import",
+      "bytes": 200,
+      "offset": 465104,
+      "directory_md5": "fd4bec121cc517520750a064c59d6c5c",
+      "sha256": "bc4e914c0be645ce481de8d2bde1c898b634e4914270bef86f92b9c07d1c1ea6"
+    },
+    {
+      "path": "assets/effects/runic_fire.glb.import",
+      "bytes": 172,
+      "offset": 597440,
+      "directory_md5": "1199a77d72b8846166aa0814afdd3754",
+      "sha256": "0a83d483b341944bc49f4e688c74b969a27ec7deb85015f8dcce6bb133a64675"
+    },
+    {
+      "path": "assets/enemies/armored.glb.import",
+      "bytes": 169,
+      "offset": 640736,
+      "directory_md5": "2c51721210c76004df6a75ea16e11071",
+      "sha256": "dd2429ee770de30f6930ae18f4eab7c04082a0bd8fd03e75fdc5c99806ab4df8"
+    },
+    {
+      "path": "assets/enemies/boss.glb.import",
+      "bytes": 166,
+      "offset": 686864,
+      "directory_md5": "b646850a692439d4a080debdf36846fe",
+      "sha256": "73e6f0371f4e9362348843573842c354b8dd4dbb60b8c6b378e57dec9e08054f"
+    },
+    {
+      "path": "assets/enemies/fast.glb.import",
+      "bytes": 166,
+      "offset": 733008,
+      "directory_md5": "cc28c39578d764aef79949aacd0caca0",
+      "sha256": "853c3eb02ba929e341a6c3cef09ef0f385d3fe6be211909834387ae25daa379c"
+    },
+    {
+      "path": "assets/enemies/normal.glb.import",
+      "bytes": 168,
+      "offset": 782800,
+      "directory_md5": "3710467c0943376befd63a5a70fcb43c",
+      "sha256": "e22015f5564b7b0824afecfc8c1c7325bd8c1a2bd951d85f19921035975e91ec"
+    },
+    {
+      "path": "assets/enemies/shielded.glb.import",
+      "bytes": 169,
+      "offset": 828944,
+      "directory_md5": "0874d2efcc45d5564aa9e2e59ca7c113",
+      "sha256": "3cefa9f467e244c61e2c7eed7068ef8bf4689a5adc43492bd644a570a59bd715"
+    },
+    {
+      "path": "assets/enemies/tank.glb.import",
+      "bytes": 166,
+      "offset": 879200,
+      "directory_md5": "45ff3044cfc15b5ecccfe2c03731936d",
+      "sha256": "59cc8e24874bb8e7071808f0d82cdb955ef68a683f83d4433ad59369f4e9ecfb"
+    },
+    {
+      "path": "assets/enemy_frost.json",
+      "bytes": 180556,
+      "offset": 94668448,
+      "directory_md5": "073e6c03c8d9815b7f5a48e7925e5274",
+      "sha256": "c397958568837b1a493721bdc09d447b503ab40dc7539a6b84998762e52177ae"
+    },
+    {
+      "path": "assets/enemy_frost_mask.bin.gz",
+      "bytes": 217331,
+      "offset": 95030880,
+      "directory_md5": "21918727524dd9914a0cecb8c03f2201",
+      "sha256": "e9d0b92872627bc3a4b985d0aee1728f4f587b2888031e7da1c10c873cea5fe4"
+    },
+    {
+      "path": "assets/environment/chapter2_props.glb.import",
+      "bytes": 176,
+      "offset": 6852304,
+      "directory_md5": "d21106a638d844dc97624d7e8c91ee64",
+      "sha256": "1424cd1d6a1d4b54a22348b3d6cd215d4684835b3d34dbdbee7c9439ee987a05"
+    },
+    {
+      "path": "assets/environment/chapter2_stage10_geology.glb.import",
+      "bytes": 186,
+      "offset": 17296880,
+      "directory_md5": "50a6dae50b076cbd764448ce75ad2cc3",
+      "sha256": "f5abf31b6c637894f476d19deaf4ff9035221f0f7ec4fdee7e609737b270f28e"
+    },
+    {
+      "path": "assets/environment/chapter2_stage10_props.glb.import",
+      "bytes": 184,
+      "offset": 18885856,
+      "directory_md5": "2c7a4b08b514c298e71c33929e2e780a",
+      "sha256": "ea4defb4687332a2428d85f7f765823b45b5409d13fcbd6c00a852877bbf074d"
+    },
+    {
+      "path": "assets/environment/chapter2_stage6_geology.glb.import",
+      "bytes": 185,
+      "offset": 7747408,
+      "directory_md5": "94232d92150acf35651ea078eec87950",
+      "sha256": "8bf8c6e7b0eb3e5db024bf44b3beea33ef783a0388f74975e3149af4d995cc1c"
+    },
+    {
+      "path": "assets/environment/chapter2_stage6_props.glb.import",
+      "bytes": 183,
+      "offset": 9335936,
+      "directory_md5": "59c82d65f75345d69e96e9382cbc8c15",
+      "sha256": "c37273ee9f300134219560c10c26337b56201edb638c70d765016b4d4fc8569d"
+    },
+    {
+      "path": "assets/environment/chapter2_stage7_geology.glb.import",
+      "bytes": 185,
+      "offset": 9971312,
+      "directory_md5": "27766daba3f2230bf895b0ec10b7fe1a",
+      "sha256": "a62739f30484107a92b9e37a3ef850add4018b2155eb47bafdf9f5d8257167fe"
+    },
+    {
+      "path": "assets/environment/chapter2_stage7_props.glb.import",
+      "bytes": 183,
+      "offset": 11560240,
+      "directory_md5": "41824c6fd6310db20544cdfe1c9bf57d",
+      "sha256": "c6086df31d87ad5ac58e4bd3842356570553ab691fead4c24a6fea2011c3ffc3"
+    },
+    {
+      "path": "assets/environment/chapter2_stage8_geology.glb.import",
+      "bytes": 184,
+      "offset": 12218480,
+      "directory_md5": "6148c150aa341f20347fd3d77c5af848",
+      "sha256": "0ab97004259c39953e3775c0d49ca247e98d192ee3027cd09cc3e4a1ed7244e1"
+    },
+    {
+      "path": "assets/environment/chapter2_stage8_props.glb.import",
+      "bytes": 183,
+      "offset": 13807536,
+      "directory_md5": "d6b6b973c8fa5399162b6dc356bd44ec",
+      "sha256": "ededb9b5b1873f4cfd7c31f277eb60b614bda36659a7b22a419df91cdb9ae3be"
+    },
+    {
+      "path": "assets/environment/chapter2_stage9_geology.glb.import",
+      "bytes": 185,
+      "offset": 14656160,
+      "directory_md5": "1f8725206c64ddb825b36638828c24a1",
+      "sha256": "0541102300fa5317fa38b7d88f680bebd1aeb14f3d1dbaf79aa488ec3f1c80dd"
+    },
+    {
+      "path": "assets/environment/chapter2_stage9_props.glb.import",
+      "bytes": 183,
+      "offset": 16245600,
+      "directory_md5": "e6b579940a012ba6543efe1c58b1f2e0",
+      "sha256": "15fcf1ece3a25d1ea4fd3b8d53449773029fc9fb1f30c18c2e4ed6a0c9c6f501"
+    },
+    {
+      "path": "assets/environment/chapter2_tiles.glb.import",
+      "bytes": 176,
+      "offset": 20415104,
+      "directory_md5": "310b091012f949e6e45b77c07d94b84c",
+      "sha256": "93694fc7443926d8876f51ec5a34793268140db235bba4f3e21dee8b9ebff379"
+    },
+    {
+      "path": "assets/environment/chapter2_tiles_optimized.glb.import",
+      "bytes": 186,
+      "offset": 29863056,
+      "directory_md5": "aadcee3cbed92f7942e87fb3ea02a2c2",
+      "sha256": "97eec724168082e607fd67a639c00b541d3d6156232d1ee8ce2688f461611364"
+    },
+    {
+      "path": "assets/environment/chapter3_tiles.glb.import",
+      "bytes": 176,
+      "offset": 35222656,
+      "directory_md5": "e89d9c75f37cd1fbc61e957f006341a1",
+      "sha256": "5b7b89cc8b506edb2bca7dc89c064ac10c028fb38908c7f23c6991ce1ec5ea1f"
+    },
+    {
+      "path": "assets/environment/dressing.glb.import",
+      "bytes": 169,
+      "offset": 36091232,
+      "directory_md5": "67e92ed88f17937098d15a35cb9e90ff",
+      "sha256": "c5885614c72a69daa5d24bf3948d2147ce37c787bdfb27d4ac3fd9b890b589fe"
+    },
+    {
+      "path": "assets/environment/dressing_stage2.glb.import",
+      "bytes": 177,
+      "offset": 36527552,
+      "directory_md5": "3cd2ea217702ba536937f425e87d0afa",
+      "sha256": "9d57da792917d2eab0e9df809277870c951a57b86d3a56bb5ce96339ba484dc6"
+    },
+    {
+      "path": "assets/environment/dressing_stage3.glb.import",
+      "bytes": 177,
+      "offset": 37026528,
+      "directory_md5": "64b9ed75560183be32bd5f3bd118e4b4",
+      "sha256": "8881d7ca20d219a4b7b5829037734a22a2f29a9febae63585c6f6a2489ade1d0"
+    },
+    {
+      "path": "assets/environment/dressing_stage4.glb.import",
+      "bytes": 177,
+      "offset": 37566960,
+      "directory_md5": "fdb0291b8e1b2949b719c3415fe45dc5",
+      "sha256": "198acb055c9b76df479137cd3bb63c02340ffdebd641725c581151331aa610c8"
+    },
+    {
+      "path": "assets/environment/dressing_stage5.glb.import",
+      "bytes": 177,
+      "offset": 38044768,
+      "directory_md5": "6c9def699a8a5b43ed8108149c80a70d",
+      "sha256": "6028809ac96b51fd4a20a175b2b14243e212ee8e80771fad65304d8e545556c7"
+    },
+    {
+      "path": "assets/environment/landmarks.glb.import",
+      "bytes": 171,
+      "offset": 38296688,
+      "directory_md5": "fd2d8805def04f41a35483cf9083337b",
+      "sha256": "decab3b83e65752531177ce46fa0da61fbad67a80f1219de6e567d6eaabc7650"
+    },
+    {
+      "path": "assets/environment/terrain.glb.import",
+      "bytes": 169,
+      "offset": 41251936,
+      "directory_md5": "32932663548180f1d88f9938e1407bd8",
+      "sha256": "f43d9d63c0b1f7ffc97e5a069f24637c2f649be7d03a9143c5ac2bf27b08957c"
+    },
+    {
+      "path": "assets/machinegun_muzzle_noise.bin",
+      "bytes": 32768,
+      "offset": 99760560,
+      "directory_md5": "1159a24e0659f4f83b53b471ed603b1b",
+      "sha256": "9530020afe249967556cd2c671a2a20d864182a48714108113abe0e989d37715"
+    },
+    {
+      "path": "assets/preview_frame.json",
+      "bytes": 1312,
+      "offset": 94849008,
+      "directory_md5": "5d48914e68e158ce9d60ef620824092e",
+      "sha256": "4552d6d85f819b5566e3380bb857b776f76d659900e99dde6cc7dac2cf972b39"
+    },
+    {
+      "path": "assets/projectiles/cannonball.glb.import",
+      "bytes": 172,
+      "offset": 41342624,
+      "directory_md5": "35f467a45b0befa019f0011ccbfbad37",
+      "sha256": "0590afcf710998d8adb79920a6818a5a032bd1a64e551d3d40ec0db20b77247a"
+    },
+    {
+      "path": "assets/shared_textures/040df2bf96ef324c4a101d2c181afad710e5dc2f6565ac2d04d10025991c9c09.png.import",
+      "bytes": 253,
+      "offset": 49390016,
+      "directory_md5": "21fd8b7fb201c8fdb3ce594d48716924",
+      "sha256": "f7583d2383d450ab23084912f26ca290b3b77534745575a8e8c5e4e112be4c03"
+    },
+    {
+      "path": "assets/shared_textures/0428eda8d87a93e324e8484405b3a72ed377ab9988e504d7581cdc2fb2512bac.png.import",
+      "bytes": 252,
+      "offset": 54734592,
+      "directory_md5": "27770413a77a85eb3cfbd204cef4c7ea",
+      "sha256": "60becc6eab53dddfff58bf5be15b87d34a6a18ee984e178039e7f98e04a0673f"
+    },
+    {
+      "path": "assets/shared_textures/058bfb9b74732459bcbb7aa90b5009defb313f790cbf66fd1a13420441520608.png.import",
+      "bytes": 252,
+      "offset": 49710224,
+      "directory_md5": "ddc3d219ea9e2fab9e61f21e5b066a97",
+      "sha256": "1773c5a2e6e0058ef3b561cdf446a2d6e703cfdf608d3c6a168ec26be0ab92f1"
+    },
+    {
+      "path": "assets/shared_textures/07003e82beffdf63a39d9230b42927500fb501411720673c3607fb0ea94b5b3c.png.import",
+      "bytes": 253,
+      "offset": 60179376,
+      "directory_md5": "3e6d2b3e92b9724914c4591578d1dd79",
+      "sha256": "0d8d806bb5b9ef7fa6da0c8cf9170f4003e0f743fc468e7cae9013f87e1f707d"
+    },
+    {
+      "path": "assets/shared_textures/0df4311010237503e17ca74756d32d0ecac602f96e12f14665c59bd25cced527.png.import",
+      "bytes": 252,
+      "offset": 41417936,
+      "directory_md5": "00490d0f68e35fe09dd63cb996a23484",
+      "sha256": "6a48b3eb457c4c79d072e4300e84edc6713b1ff5bef68c2179fac877108d26a1"
+    },
+    {
+      "path": "assets/shared_textures/1ef8129dc4728b9b339574d3fd30ff3c290c16944f6150a7a5f17231e2f3e9c7.png.import",
+      "bytes": 253,
+      "offset": 42636400,
+      "directory_md5": "840f4d5a5f19fba9e3a8930fa03fff43",
+      "sha256": "2e88ffd65f18052c4e6b6fef5a6e67ed161df2cf4ba5f1f93b45adf72e9a009a"
+    },
+    {
+      "path": "assets/shared_textures/2074e523d555d3aabfea7046f27a0b634bed4771c65ca42841f20e3457d48ffd.png.import",
+      "bytes": 252,
+      "offset": 58481072,
+      "directory_md5": "52a32172c9b5ffb9a3db870d25073033",
+      "sha256": "9415bb75c06ec9eee2254adb857ccadddfabc5b8271491ade96f0f326dc4a916"
+    },
+    {
+      "path": "assets/shared_textures/25a107e2d7a0b259bad7e313caa718d657001c6e3b6a22ad159e2400059e47aa.png.import",
+      "bytes": 253,
+      "offset": 47938208,
+      "directory_md5": "5c83a0eb2778425fe209b1ce281f6924",
+      "sha256": "10806138b6a67c8001369ea59b32dca99c499a256e481d021c4b67876b06c713"
+    },
+    {
+      "path": "assets/shared_textures/335eab2c778f4d4401fe54c49b7c8655c3a018838347cf67e1762182b405e153.png.import",
+      "bytes": 252,
+      "offset": 51386704,
+      "directory_md5": "88614b5feba3ca74e25e7e3f790783c0",
+      "sha256": "1d39b719a91b18b000d380a8ed0c30d2e1bcbdcb1c983bc84b58cf98e12399e6"
+    },
+    {
+      "path": "assets/shared_textures/3496aee55abf011ad906d823174350fbc760b427739e26313d61299b36592f33.png.import",
+      "bytes": 253,
+      "offset": 58516432,
+      "directory_md5": "02df8325bebe3ba89f4dc55619f8eeea",
+      "sha256": "68500b3e2983777dcf952fc549925619f504c11600564b4035406f931c8be46a"
+    },
+    {
+      "path": "assets/shared_textures/3ceb5b9ea78d6b282e4a61d48b95153f09218f187674d32207bcaf39aa3cd452.png.import",
+      "bytes": 253,
+      "offset": 42905648,
+      "directory_md5": "135bb44110d700caded88b83db45970c",
+      "sha256": "a2a9e55836059f9c95a1e5f9851987e3527e2b14c771b645e7e6b4bcab1b4135"
+    },
+    {
+      "path": "assets/shared_textures/3d16b8d5a52cae0fc776e3f44af25321151190ab1ac0d356e5135a48442b33a2.png.import",
+      "bytes": 253,
+      "offset": 44923392,
+      "directory_md5": "89a4aa9b5a17584b4fa108ea070d6278",
+      "sha256": "7ae0479e3a3a027c7012f8a3c1bb355909b730e87e20c88961f2b5162612e912"
+    },
+    {
+      "path": "assets/shared_textures/46406f57bb808f0787fcc3d3c7ede31fcaa583d33b60a8170a825a85ef046955.png.import",
+      "bytes": 253,
+      "offset": 64121280,
+      "directory_md5": "57e6304f2f7edf05871c7ddf843f37d3",
+      "sha256": "6671e5494a91c95a94ab1d88712b220623bba0d269b20167a17470f62cdf2468"
+    },
+    {
+      "path": "assets/shared_textures/56fe8bed4718c8f0f22685d0718e1386268e70983f0040988653d67723dacb3d.png.import",
+      "bytes": 253,
+      "offset": 49557552,
+      "directory_md5": "8aa0f1257d239032e80318a9473da98e",
+      "sha256": "ca3d6955423a3aec3888ac84e6c1ea8f632a191d31c6db43ad1e89c2e55801cb"
+    },
+    {
+      "path": "assets/shared_textures/5f8ee4f00c73fba63071cfd8102ec434292bfaf5d17b7c5353d5fdbcf6fb0b88.png.import",
+      "bytes": 253,
+      "offset": 44982496,
+      "directory_md5": "c99a1ceee7c6e162eb8ceae6804dd8e4",
+      "sha256": "0600e5bdda60700350bf392d72d1f834f0e2dee4ed35ebbd60b7d5620396b09b"
+    },
+    {
+      "path": "assets/shared_textures/6356014e7d421a1f4cfc6bb7130d3b6302265a4cd868df7c8e26a527ecf7d651.png.import",
+      "bytes": 251,
+      "offset": 65833088,
+      "directory_md5": "a22889f256e114cf4f0b5530e3761b63",
+      "sha256": "f1513d92d9d5a3411fb58c5b50325d7593a9cba35b13daa26806667c60de8808"
+    },
+    {
+      "path": "assets/shared_textures/685ee2d44a3ab9bc5ada5e1b9acfbc14642a337a4b8e683de478b54b186d4b5a.png.import",
+      "bytes": 253,
+      "offset": 55475552,
+      "directory_md5": "5f761dee26539ced354ec6d9dc36a4a8",
+      "sha256": "70553d76d9fbe48d677b2100b8fa70ec981736c6dea39a2ff5dac7d1f2f6cd40"
+    },
+    {
+      "path": "assets/shared_textures/6a9a755972b64bfad83da4c37e0b466f952df189555e9bfd30ca5a13c07faf13.png.import",
+      "bytes": 252,
+      "offset": 46645440,
+      "directory_md5": "587eac6003d98482ed7ae95d7a15e8ae",
+      "sha256": "0ac74d6aec6df53768b1c466aea072c6f863e5808b72fd7acfb859c9c2d4ff0b"
+    },
+    {
+      "path": "assets/shared_textures/7102fa4254f542612e41f97956af6bf1c1e81fd06e07e4eb65f00a663cc17df2.png.import",
+      "bytes": 253,
+      "offset": 61842320,
+      "directory_md5": "738d1a82fb248ad26dbab3d3373a7b74",
+      "sha256": "0ee461450df118a4a7f80ed5e31aac1ed925259f12d50d9ae8a2ed63cb5fe21b"
+    },
+    {
+      "path": "assets/shared_textures/7ad6562978f36897e541f0839a5e6028413ea7375c23d11a0ff80629d8c4509b.png.import",
+      "bytes": 252,
+      "offset": 46772288,
+      "directory_md5": "5d1edf6d4971f18878c196d108c690e3",
+      "sha256": "34541b8e0bca154f15f5d82c472302ec84dea16393f11f692b1952d33544bfe5"
+    },
+    {
+      "path": "assets/shared_textures/83a757f21f5d35f90b8e34caac356650d8438ff2c9ef731e6398c5a61b7a80a5.png.import",
+      "bytes": 252,
+      "offset": 50132576,
+      "directory_md5": "4aef50f5fbf1acb49c86150d26a61c3b",
+      "sha256": "e3ecf83a521c7394e012402aba50151c24c17cd9607df891b48b824a9f808c15"
+    },
+    {
+      "path": "assets/shared_textures/873f699b6256b444c0dd97fdee0383b0a6ec3ab2d7f7860bc4c86ee792c9c3ff.png.import",
+      "bytes": 253,
+      "offset": 56231136,
+      "directory_md5": "184753d28c39c63d938fb540ee5bf2bb",
+      "sha256": "237d84bd0b1f1f5943c2b7dac5aa00b2cc6e5d84584bb90f87b68480b5598785"
+    },
+    {
+      "path": "assets/shared_textures/899d8f531caee83b9e89b05bdd32f60a17e81e1543bb219234547416bbd2f209.png.import",
+      "bytes": 253,
+      "offset": 56804016,
+      "directory_md5": "5bc256422ed203998a41bd8687df16b1",
+      "sha256": "eaec7ce8c435e9465e434186c7b0c6dd4f7d02947b83894b8f2294889c2fcf28"
+    },
+    {
+      "path": "assets/shared_textures/962b9e7358dd589db1d8984a1348a7892c1cb79d0d8298558c69b015dc6e0e12.png.import",
+      "bytes": 253,
+      "offset": 58183344,
+      "directory_md5": "92b00139c19323bb69a9f2cd269f8912",
+      "sha256": "dd7cac98a48bcc30760c85a9519dd9f5ae53c734a9c88cd0f8881c15b5a0a284"
+    },
+    {
+      "path": "assets/shared_textures/985f78ec5fd0deec330be032672d873a1c2886f469e0b5d8ca232da3b1949e0a.png.import",
+      "bytes": 253,
+      "offset": 58248160,
+      "directory_md5": "d148056e158e0fd45d50aa5199824f27",
+      "sha256": "63073eb07967207f4d79b8538cc78533ed0638a42935ec7e9651d6fc77e737c2"
+    },
+    {
+      "path": "assets/shared_textures/9995f9452af9ca71dbefa22d778d0d9a78349465f3467e34dd3e42eba84c9ea8.png.import",
+      "bytes": 253,
+      "offset": 63845808,
+      "directory_md5": "8bf52ee718f7bd1b5cd52f2808f57899",
+      "sha256": "83d6441da46b691d66265e73f082ccee346b879b81859b826574e809490a15be"
+    },
+    {
+      "path": "assets/shared_textures/9bf0a49d2e65018d8df4cc16ed6d7c25751680e1779406ac3e9be774095fd0c4.png.import",
+      "bytes": 253,
+      "offset": 47672672,
+      "directory_md5": "fb09164a06c855eebebcca6cbfac1697",
+      "sha256": "0e1b28fb543f212076a1b41532bbd71502cece05258ea2444e82ad8fd543f363"
+    },
+    {
+      "path": "assets/shared_textures/a65f1e92b6d7146f67bfcbc259de5435f159ade72f0b1663dcc832a7cf4f8ab4.png.import",
+      "bytes": 253,
+      "offset": 67032256,
+      "directory_md5": "d436b83071a22c7a760fa6febc6fe636",
+      "sha256": "84cd32cae55e4b69b8443afac77a5bd2b61eb70dc2b770c08ecee99148c98aa3"
+    },
+    {
+      "path": "assets/shared_textures/a7d111d9ba2ef62996a6af751e4b21c1e98cc82a4235276e6b16451d897dc363.png.import",
+      "bytes": 253,
+      "offset": 66104624,
+      "directory_md5": "d9df55ee09b7ec62f258f8b8eefab8ec",
+      "sha256": "d8d7b1354d6f5beb43f473adff476bba861acc4ded882bff4db95fee6483ff3c"
+    },
+    {
+      "path": "assets/shared_textures/a9aaf2f9bbc52e6960c9683dfd641ec35ab22b6a8ca5057743afec4bacb10d54.png.import",
+      "bytes": 253,
+      "offset": 66454864,
+      "directory_md5": "72b8b7d1f16b97b58f55037df49edcf7",
+      "sha256": "913c6ec6425e0996c5cc094428358401e0478a4be3d1187ca2c35654015e39d1"
+    },
+    {
+      "path": "assets/shared_textures/b6fef098ffdd77c86df4dfd7c582f652e4c92f18b076e3073bc918f10675f381.png.import",
+      "bytes": 252,
+      "offset": 67190960,
+      "directory_md5": "852292319e7afcd0ddb6f0ef1e424341",
+      "sha256": "b0456f0a3ebbe2ec5bf44f3ec85d5a826df2228843eb4be897270fb860a26a43"
+    },
+    {
+      "path": "assets/shared_textures/c0519f9fc1598270c2a8804e97e8769ce59eb1511b62ee6e5a928247ab4f1765.png.import",
+      "bytes": 253,
+      "offset": 71529600,
+      "directory_md5": "212f19199a5b375923a84e4bce07a269",
+      "sha256": "f93d2a9736f8f3634dc3038ee770c49e4c516da9998c73f7b5b93e1217f9d7a8"
+    },
+    {
+      "path": "assets/shared_textures/c0abf644091b085ba3fe798ddf6dd64b4c2bc7b28aa6e42f0fd5c0d893daf9fe.png.import",
+      "bytes": 253,
+      "offset": 67440240,
+      "directory_md5": "b554084b51165e32a5075a8b85e8bfba",
+      "sha256": "89daa40a435a680e5f5fc830a0871b086098e8ebaf73f7cdeac18622f540d70e"
+    },
+    {
+      "path": "assets/shared_textures/c1a186b3c199d90418440545496955bb6e182eefa0b72bff2d1cfcd3f1745953.png.import",
+      "bytes": 253,
+      "offset": 69545856,
+      "directory_md5": "70e76020cf7ec51a1d6976f44e52a1a1",
+      "sha256": "374682ce22cc60e10b059241a9ea669997b351bc96c678383f56c1feb4ad24d0"
+    },
+    {
+      "path": "assets/shared_textures/cdb6e878b38126d489a01e73ddcd6b5b36b1a2f4f337ff5bd3eb843a8ca7e69d.png.import",
+      "bytes": 253,
+      "offset": 71773232,
+      "directory_md5": "ad699d52e86bf9e9c6ed6a0e33b97152",
+      "sha256": "0ba75d5df07c4fd7d0effbb51d53ef441d6b814587ed04ff1627b7ff2ced22a3"
+    },
+    {
+      "path": "assets/shared_textures/d0d1904a5d7e0cf6c9bb288f57b7b7d27b310ea9d15cfb876f12aa049476df93.png.import",
+      "bytes": 253,
+      "offset": 72861904,
+      "directory_md5": "d127f0d2c0af5e455a39a44c8d24e5b3",
+      "sha256": "d32d3d90dc61bcfe8e345c9abe47b3ffdf7ddd26f9aad1eb0e1d9cb6a22c0e87"
+    },
+    {
+      "path": "assets/shared_textures/d767c52dd36bef635598be9cb6f4e66d2038a9a937269301f287517978444168.png.import",
+      "bytes": 253,
+      "offset": 74966320,
+      "directory_md5": "1788d0dcd5bb4ecc4772fd39859e4e9e",
+      "sha256": "91f683e8390002c552549262a15458e65dd6136dba59aba996894f380a11919a"
+    },
+    {
+      "path": "assets/shared_textures/deb8a47bec40570dec656c9740a2a1d9306c9946e37f98b59c32edfa48f65820.png.import",
+      "bytes": 253,
+      "offset": 75754816,
+      "directory_md5": "944c3e4aa75bd4f4c390391d26dda48d",
+      "sha256": "a0dddd823d21f1e0a554862abdba0edfc63f838bdaa36c2daaac86d0fc6c0e89"
+    },
+    {
+      "path": "assets/shared_textures/e464aca98f16fce39d157e8c62742850c633da5e68c32b45cc5a7126a246ce9f.png.import",
+      "bytes": 253,
+      "offset": 77802688,
+      "directory_md5": "24a3feaf251318416e5677f3c5ccc727",
+      "sha256": "aad1f9b671ac908024625983b3d31a882928cc8e67620b820e81d842da865872"
+    },
+    {
+      "path": "assets/shared_textures/e5b27838b89cc4f5c500f7e69b65d0fc7b41e3e6c2df78c5efbef5eca003ec6b.png.import",
+      "bytes": 252,
+      "offset": 77098896,
+      "directory_md5": "e2c60c6ad96a4a07dcf5c66a567ba6a4",
+      "sha256": "b2bbf19cec1a5396d1f11ac68898d92c829a4a83972bd76d8ddcfef4bd5c0323"
+    },
+    {
+      "path": "assets/shared_textures/eba1f206023924272892f2f48e02018cf80ef609ae5af4b71f7743f081e77331.png.import",
+      "bytes": 253,
+      "offset": 79288048,
+      "directory_md5": "235dfe1b26b5935d446672bfa65f18bc",
+      "sha256": "32d5c84f187e7fe9438da824b1dc263dd23bb47c50d91d232c5014e1c6ef1d64"
+    },
+    {
+      "path": "assets/shared_textures/ecea73a7472b9253f1e07d01a8a579ea931e0bffb90920951f0305c0f43fe9c4.png.import",
+      "bytes": 253,
+      "offset": 79844512,
+      "directory_md5": "a067d3bffe56c4e12d1c1e490b3e8440",
+      "sha256": "4fd3b6ca8bcc6e615119188fb23cce509d6638ce550f54eabbf2c4c509713498"
+    },
+    {
+      "path": "assets/shared_textures/efa85b374e12ecb860de410ce6096c36e7daff70ea40ebdb048522451d505388.png.import",
+      "bytes": 252,
+      "offset": 80009488,
+      "directory_md5": "2bd46e64b981dc2695e56d1e1fc8d18e",
+      "sha256": "2492378caf43d0acace5a5a5349d36cefd959a9d6c657193d20355b53e010afd"
+    },
+    {
+      "path": "assets/shared_textures/f7d7dd4c089b14644ce9ee5db72d5ddb999714649db2b28c5982918d3b27dfb8.png.import",
+      "bytes": 252,
+      "offset": 82937376,
+      "directory_md5": "6aaaea7273f6b6c51aa0f11830889052",
+      "sha256": "76f80babeca34f93e99b2901f781e5a8961fbf8701d70cfe46b82a36a48c4642"
+    },
+    {
+      "path": "assets/terrain_manifest.json",
+      "bytes": 1247,
+      "offset": 94850320,
+      "directory_md5": "a3b10477a8e4bba9dd87237afc176b5b",
+      "sha256": "dcd464e2d565cb22b2e3f1c653e7eb5acd818211cbc34ee76ba8cd3d110e506f"
+    },
+    {
+      "path": "assets/turrets/arrow.glb.import",
+      "bytes": 167,
+      "offset": 83356336,
+      "directory_md5": "d4321d2d2c17ed33b2955fc8fe23b8bd",
+      "sha256": "9c4ad07db1de18b50d0d40e096dbd93a3344fb047081fc9ed545e865801b29a1"
+    },
+    {
+      "path": "assets/turrets/cannon.glb.import",
+      "bytes": 168,
+      "offset": 83797920,
+      "directory_md5": "649d8a6c6e7995abd03ef2ffe42a5519",
+      "sha256": "f2e3b600cc9fa8a5440caec48da751fee184fe7a00ec6c7f57f5374cd2c64bba"
+    },
+    {
+      "path": "assets/turrets/frost.glb.import",
+      "bytes": 167,
+      "offset": 83870096,
+      "directory_md5": "8e61dee046a34e974e93df2c523f6e1f",
+      "sha256": "a37f1e70f0bc90aa114e04c30a4bc18c1c32e99ad563b71200227591065d6bca"
+    },
+    {
+      "path": "assets/turrets/lightning.glb.import",
+      "bytes": 170,
+      "offset": 83890768,
+      "directory_md5": "55afa73fb2da0c0e27c8b83c35ac5662",
+      "sha256": "a2281c29078d6b316d3a1e2e9966cb148831f4d5929d4643029b23a0595c4a2a"
+    },
+    {
+      "path": "assets/turrets/magic.glb.import",
+      "bytes": 167,
+      "offset": 86280160,
+      "directory_md5": "f6912dfd43dd133bd087228bd0f97dfb",
+      "sha256": "3987c6001617db8c67ec751f6f8dbbff54170ddb43d8c422fd0431353d16c513"
+    },
+    {
+      "path": "assets/turrets/sniper.glb.import",
+      "bytes": 168,
+      "offset": 86311504,
+      "directory_md5": "55f643d3af0cd8f0bb456630a70e1093",
+      "sha256": "55c4961cea1a8b521341e791f9d3ccd84a2af4963b9fe26ea7af0a19553c9827"
+    },
+    {
+      "path": "assets/ui/NotoSansKR-OFL.txt",
+      "bytes": 4388,
+      "offset": 94975664,
+      "directory_md5": "9e6561baca2756628871baf0c1e23539",
+      "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9"
+    },
+    {
+      "path": "assets/ui/NotoSansKR-VF.ttf.import",
+      "bytes": 170,
+      "offset": 94246336,
+      "directory_md5": "5ad0aa72db0f4b46b8acea9c15333839",
+      "sha256": "d5bf4d26c96eb2252428e4f9d5f891ff766772ea9adbb26050cc7173c89256e8"
+    },
+    {
+      "path": "assets/ui/Roboto-OFL.txt",
+      "bytes": 4394,
+      "offset": 99756160,
+      "directory_md5": "d0d30e4860cc10440e095be065c2b0e3",
+      "sha256": "061402327a96aadb0bfb694a960ed289ecd38d383e396243831ab81feb109c41"
+    },
+    {
+      "path": "assets/ui/Roboto-VF.ttf.import",
+      "bytes": 165,
+      "offset": 94562576,
+      "directory_md5": "fdb3b25fe13f67afe9451647b5719d6c",
+      "sha256": "e9c1d9016e30febf2df7c72b771b0a739db16849038c6f57899c73235886d1a2"
+    },
+    {
+      "path": "assets/ui/death_silhouettes.png.import",
+      "bytes": 206,
+      "offset": 86412080,
+      "directory_md5": "5de07046a71b9d3f7c3c6d7fc2a454d0",
+      "sha256": "e84337599ff2a48f97cf497ca05f29af1de3428297b47ea3c5d72c3805648d99"
+    },
+    {
+      "path": "assets/ui/diamond_currency.png.import",
+      "bytes": 205,
+      "offset": 87511200,
+      "directory_md5": "8e79c23e57a04038a97cf1eada208c1c",
+      "sha256": "70e77252224df92c181a8397cd49c3f63ba6f8fc856bb7d57cc1c3ed476565e7"
+    },
+    {
+      "path": "assets/ui/labels/burn_ember.png.import",
+      "bytes": 199,
+      "offset": 86312144,
+      "directory_md5": "dff2e5327d60a999f954c157f070cc62",
+      "sha256": "83c7d96bf141f64316c6f1447b0a22f7b5ee36bbff3df405715abca97e8bbb60"
+    },
+    {
+      "path": "assets/ui/labels/burn_glow.png.import",
+      "bytes": 198,
+      "offset": 86312832,
+      "directory_md5": "6facdb7bfabbbde8b0ca23b1f39aaf4a",
+      "sha256": "0d54d4b3adec96af6f97f28132626db65fae9d168b77328b46bdf15e4a3235b5"
+    },
+    {
+      "path": "assets/ui/labels/burn_smoke.png.import",
+      "bytes": 199,
+      "offset": 86313536,
+      "directory_md5": "973732e682e17a671b0fb12443336595",
+      "sha256": "1471d8a17d215a84c38dba042717e676e3aaaaf788eb62525851f199ba79bf37"
+    },
+    {
+      "path": "assets/ui/labels/slow_shard.png.import",
+      "bytes": 198,
+      "offset": 86313968,
+      "directory_md5": "6d8b6278c95d62f8927ce519d5bd810f",
+      "sha256": "f70d76de0471d0610eabc129646e6f788117ab8e56e48588b3305c7021ce08de"
+    },
+    {
+      "path": "assets/ui/turret_levels.png.import",
+      "bytes": 201,
+      "offset": 94632864,
+      "directory_md5": "584b8cee5a2e4f93bf23a8c5109d519c",
+      "sha256": "a7f9fd4d9cfb15afb58d716a9c973049a255cded793df0593d61259ee7f96db1"
+    },
+    {
+      "path": "effects/ballistic_projectile.gd.remap",
+      "bytes": 55,
+      "offset": 99793328,
+      "directory_md5": "360c4086c71f6935188224cab740e98b",
+      "sha256": "19260fc97dc913a357218974a69fcebf7fa80896f4534345b043a8565c28bed3"
+    },
+    {
+      "path": "effects/ballistic_projectile.gdc",
+      "bytes": 5026,
+      "offset": 94851568,
+      "directory_md5": "109e3c99f85a2b3b3343f14d8615c590",
+      "sha256": "b7db5d9c2b95fdc8fb83f576a924e885fc46c4925279ba1d7a8a70de5dc6de53"
+    },
+    {
+      "path": "effects/cannon_flight.gd.remap",
+      "bytes": 48,
+      "offset": 99793392,
+      "directory_md5": "063dab795b69187b3e1ba6bb4e713b5c",
+      "sha256": "559be273eb9a1e3f1856b36f7a95d3d683b43841ce332c43617a0ef7d5747561"
+    },
+    {
+      "path": "effects/cannon_flight.gdc",
+      "bytes": 3572,
+      "offset": 94856608,
+      "directory_md5": "30785b1587d398fdbc5ed516149e3b84",
+      "sha256": "bfa3be9791338ae2508624c555dc8478b58ee42f6b3202a47a4834a89de5b513"
+    },
+    {
+      "path": "effects/cannon_flight.gdshader",
+      "bytes": 3191,
+      "offset": 94860192,
+      "directory_md5": "a86756b39b478c5afa576604c95fefa9",
+      "sha256": "046cd56a28495d82b233392a89f875f2d6c5b810a5af72ce990f24f232a959c1"
+    },
+    {
+      "path": "effects/cannon_impact.gdshader",
+      "bytes": 5424,
+      "offset": 94863392,
+      "directory_md5": "9bbcfcf2358e317842dbb4b5f20d3f31",
+      "sha256": "b23bda0ff21e603f4bba25d42ebb9761bee3a9e92d755c06db743eae724f7bec"
+    },
+    {
+      "path": "effects/cannon_impact_fragments.gdshader",
+      "bytes": 494,
+      "offset": 94868816,
+      "directory_md5": "a30e0075884138ac27a01bfeebb48a98",
+      "sha256": "95f0136cc88ec006f75964fe4db91613f3a03776b83001d64c29809244f4f9dc"
+    },
+    {
+      "path": "effects/cannon_impact_motion.gdshaderinc",
+      "bytes": 3235,
+      "offset": 94869312,
+      "directory_md5": "50fead5419174274f48ca432440482fa",
+      "sha256": "5ae4f2e16a1676ca706603051ae1e4e53d5650b2620ff01f446e1544c7c0b7aa"
+    },
+    {
+      "path": "effects/cannon_impact_sparks.gdshader",
+      "bytes": 162,
+      "offset": 94872560,
+      "directory_md5": "dde1aeedcde2ba4d2d5c65495988bf75",
+      "sha256": "03745e97e195af98e45054f8e06acf01c7d627881d6851ee1a14ee6defc94d8d"
+    },
+    {
+      "path": "effects/enemy_burn.gd.remap",
+      "bytes": 45,
+      "offset": 99793440,
+      "directory_md5": "b257391a5ebfd040be860d00780a8a98",
+      "sha256": "f2ec593809a4b2a13a3a72902188958fce71a9eab25d9ac2b90576d6e167169f"
+    },
+    {
+      "path": "effects/enemy_burn.gdc",
+      "bytes": 3162,
+      "offset": 94872736,
+      "directory_md5": "8b2dc2003e0a35448f1d578af8ce6d61",
+      "sha256": "04bd3207208208d712e8f91492456c9d62ae2ae475241d522665f047d23ec734"
+    },
+    {
+      "path": "effects/enemy_burn.gdshader",
+      "bytes": 2095,
+      "offset": 94875904,
+      "directory_md5": "fbb21843eb04f73fdb81184a73e83e1f",
+      "sha256": "f33fd1b123ed4345f724266daec9311f7b29487bcbfdfd9bb8d059295d985e21"
+    },
+    {
+      "path": "effects/enemy_frost.gd.remap",
+      "bytes": 46,
+      "offset": 99793488,
+      "directory_md5": "a0a71a9a1b968d507b057fad85acb94a",
+      "sha256": "738ffb43c1ca61178fbee2fcdd383504e682f0a27e45527e61cf7243b1faea70"
+    },
+    {
+      "path": "effects/enemy_frost.gdc",
+      "bytes": 5044,
+      "offset": 94878000,
+      "directory_md5": "4ea16f2156a484898d602397c55cbcfa",
+      "sha256": "98e3f82c37d575603694cbddf1502aca9c0f4e456d615bde1ada7b9667b08b86"
+    },
+    {
+      "path": "effects/enemy_frost.gdshader",
+      "bytes": 1660,
+      "offset": 94883056,
+      "directory_md5": "06a517e951bb1bedd73c4a6a5f001928",
+      "sha256": "be7c77422e765f31b99f2acb0ce0b248eed13960d3670fee5da4661e4e45c5a1"
+    },
+    {
+      "path": "effects/enemy_frost_crystals.gdshader",
+      "bytes": 1126,
+      "offset": 94884720,
+      "directory_md5": "42937725eb4573db6bacab0ab6e79407",
+      "sha256": "63c81a92fbb71907b224b51b3798f6537edf9bc3ee00e2007c5d17249bf904dc"
+    },
+    {
+      "path": "effects/field_cache.gd.remap",
+      "bytes": 46,
+      "offset": 99793536,
+      "directory_md5": "681dedc7f90ea4a6fd8520917cc9605c",
+      "sha256": "fab7c456b6715fe2faf986cf147f1e75ea3731b17838c082c7f7ca3cf617b599"
+    },
+    {
+      "path": "effects/field_cache.gdc",
+      "bytes": 3673,
+      "offset": 94885856,
+      "directory_md5": "26d0b58d1e3138f7e346264c782b4fa8",
+      "sha256": "6d85f7d147a2c696b49700fe7e4b37aee5c2a376bced26f9df51098150ff8a0a"
+    },
+    {
+      "path": "effects/godot_impact.gd.remap",
+      "bytes": 47,
+      "offset": 99793584,
+      "directory_md5": "d774401297ca23764d7541b2c766374e",
+      "sha256": "4cfe718394ef7c583eeadead50401de66dc6159b34f1d2481b67a926e246444a"
+    },
+    {
+      "path": "effects/godot_impact.gdc",
+      "bytes": 8582,
+      "offset": 94889536,
+      "directory_md5": "c95848321276bf5f35ffdb087a3d1ec2",
+      "sha256": "fe4b2b0c99c80f548086105e9fb9a7c48ac1ad72cd9484109d39af5750397d73"
+    },
+    {
+      "path": "effects/machinegun_flash.gdshader",
+      "bytes": 806,
+      "offset": 94898128,
+      "directory_md5": "efbcf93d3b8c87b80d71780408d67fea",
+      "sha256": "a0e8d5b5255e6372561ff8f6b8d643106961676133e1a50b069c767f406c2771"
+    },
+    {
+      "path": "effects/machinegun_muzzle.gd.remap",
+      "bytes": 52,
+      "offset": 99793632,
+      "directory_md5": "96b1ccfed41123bb8230146fbcfbd7ea",
+      "sha256": "5b649856896cc0ab430404af33666c3e32b8630d9eecf09cde1219cea2c1ee24"
+    },
+    {
+      "path": "effects/machinegun_muzzle.gdc",
+      "bytes": 6665,
+      "offset": 94898944,
+      "directory_md5": "12401f5ed52556fe5a5bc3c3ea4d1483",
+      "sha256": "d46459b86d39b92344429bf12a3a78b708ff18d51aba9fc69127dad898a585dc"
+    },
+    {
+      "path": "effects/machinegun_smoke.gdshader",
+      "bytes": 2965,
+      "offset": 94905616,
+      "directory_md5": "f9fe54d8b9fdd9994a10815b5816a6b8",
+      "sha256": "208734b767e60531e75d817fc6ec410d7b86c8da708dd2115d245e1a1a05c8d9"
+    },
+    {
+      "path": "effects/projectile_tracer.gdshader",
+      "bytes": 461,
+      "offset": 94908592,
+      "directory_md5": "7f1dc3485300bcec8685037abba74aac",
+      "sha256": "a9549fd7a87a19603726780ac3cc65ef9f5f099c2b8c5971ad69faa9d2f455c4"
+    },
+    {
+      "path": "effects/runic_fire.gd.remap",
+      "bytes": 45,
+      "offset": 99793696,
+      "directory_md5": "8f6ee3c18f58ec508f6a8c92f5048408",
+      "sha256": "6f708549db80aca3b0b2a9099377c567bfdb339b9e951ebdb7d64e6048cd5509"
+    },
+    {
+      "path": "effects/runic_fire.gdc",
+      "bytes": 10850,
+      "offset": 94909056,
+      "directory_md5": "3919120475d4ff24c9aa90a5d9992274",
+      "sha256": "9e48a0e1b254ce4615020932a639165637f23ffd65a17960f6bdf40c3ed03951"
+    },
+    {
+      "path": "effects/weapon_atlas.gd.remap",
+      "bytes": 47,
+      "offset": 99793744,
+      "directory_md5": "d72b78efd54043a5e540f917990579b3",
+      "sha256": "fe9a7c1a769374e168071410194ff48d39f3bb673af2eac7d9c23ee8ae6b3887"
+    },
+    {
+      "path": "effects/weapon_atlas.gdc",
+      "bytes": 2037,
+      "offset": 94919920,
+      "directory_md5": "fff725dbaae2e9e992aed0e825e15d83",
+      "sha256": "9aa20dc96a7f60f3e46694f352224c175b2198b6c98af2228045ab780ed5bf29"
+    },
+    {
+      "path": "engine_licenses.txt",
+      "bytes": 105702,
+      "offset": 99650448,
+      "directory_md5": "a0560bba0182a7f5007dcf03df162822",
+      "sha256": "319df830612d2646af6835f1c907b4bd359cd708c8639d4b46a1afb78927d6b3"
+    },
+    {
+      "path": "environment/chapter_three_tiles.gd.remap",
+      "bytes": 58,
+      "offset": 99793792,
+      "directory_md5": "2ce3f85bc9c048ca27c4befb6daa5631",
+      "sha256": "991378a02eae890208aa495c6821d55f2b4ecb083da3028e8333260f84072a13"
+    },
+    {
+      "path": "environment/chapter_three_tiles.gdc",
+      "bytes": 3843,
+      "offset": 94921968,
+      "directory_md5": "5aa5f2b9c37c6526760c5619c6e30f79",
+      "sha256": "8e9b5d4b5bc1d5ed464edf204c515a70ac6d2e15d77b6a34cddc5fa37fda8ce9"
+    },
+    {
+      "path": "environment/chapter_two_environment.gd.remap",
+      "bytes": 62,
+      "offset": 99793856,
+      "directory_md5": "8b3debdd40d5c5b53b4ee66d19d0ec1d",
+      "sha256": "ac1d721857f9bcccad00ae573ddc9671f2281e0348722f5a9e01fe5fe8df7610"
+    },
+    {
+      "path": "environment/chapter_two_environment.gdc",
+      "bytes": 4934,
+      "offset": 94925824,
+      "directory_md5": "b36a4a84dc53cb845d0776566dd3d64e",
+      "sha256": "7a3089cbe2bb8d6db62b518c4c3217de7c1770c4136f08c6b8cec11435547440"
+    },
+    {
+      "path": "environment/core_crystal.gdshader",
+      "bytes": 2280,
+      "offset": 94930768,
+      "directory_md5": "07386672f54e394883f5cc0a8303418a",
+      "sha256": "fc62335573c57eaf7e206c17275578c0c2abc27390d2841b78471d2404069c9e"
+    },
+    {
+      "path": "environment/foliage_wind.gdshader",
+      "bytes": 994,
+      "offset": 94933056,
+      "directory_md5": "267755d2e9364106ae994843308e9b5a",
+      "sha256": "d8b157329ef792d99f6cfc5c78b94094aede2bd65d8d0e77e7f319e3a0ad04aa"
+    },
+    {
+      "path": "environment/portal_vortex.gdshader",
+      "bytes": 1112,
+      "offset": 94934064,
+      "directory_md5": "28c12593e8accebf3d2cd3d844647b99",
+      "sha256": "e6a70240b343ceccbb637ac0fdd05b9b64c3be4cc83b6daac06d5eab1c3e2055"
+    },
+    {
+      "path": "main.gd.remap",
+      "bytes": 31,
+      "offset": 99794416,
+      "directory_md5": "d6a4c35c6eb79bb6f8c182c344ddaeb0",
+      "sha256": "973e0aeab662d1689eadf1dcd3f73cbbb221874786663fb0100c3ad10fb9cd17"
+    },
+    {
+      "path": "main.gdc",
+      "bytes": 50126,
+      "offset": 94980064,
+      "directory_md5": "ff74009536a23059afd9dd092c799385",
+      "sha256": "7777b768b5eae00fb4c22d25ac07f44c0774bd194115ae9557717048f257dad1"
+    },
+    {
+      "path": "main.tscn.remap",
+      "bytes": 97,
+      "offset": 99794448,
+      "directory_md5": "c74a9853779200b38c91a70cebd41c10",
+      "sha256": "d9c97331527c6a3b9104e4fa99f521a20116b428cb40fad052d76a8c7ffd0500"
+    },
+    {
+      "path": "materials/battlefield_reflection_sky.tres.remap",
+      "bytes": 119,
+      "offset": 99793920,
+      "directory_md5": "62112436b8c85277315c85bde611b164",
+      "sha256": "2d720fece5f746c1715496ad7021f72e4246a173a53b7a969ae1c1cd289d2be1"
+    },
+    {
+      "path": "materials/forge_reflection_sky.tres.remap",
+      "bytes": 113,
+      "offset": 99794048,
+      "directory_md5": "ac48dff1a892128cade3465fc799bc6b",
+      "sha256": "b8e18a1547d9993a32fb6ea6709b19a7c74bcdaed59c5f2054d91227c1e3cf95"
+    },
+    {
+      "path": "project.binary",
+      "bytes": 1283,
+      "offset": 99803712,
+      "directory_md5": "2c48c26a495579edc2c234897ad9e7f1",
+      "sha256": "46d1c18c77aa9d8d4f6e8e6017baa63482205b356b0b447efaf8559e6f0ee692"
+    },
+    {
+      "path": "ui/battlefield_effects.gd.remap",
+      "bytes": 49,
+      "offset": 99794176,
+      "directory_md5": "79caeaa8a198746c57b1dc115371131c",
+      "sha256": "b2371f5f46dabeb498ab23a37987ba311cc067262b627d5f7d17451406d4ca3d"
+    },
+    {
+      "path": "ui/battlefield_effects.gdc",
+      "bytes": 16483,
+      "offset": 94937152,
+      "directory_md5": "18fa4337903a64a49fb6db65a5c08f26",
+      "sha256": "103e24a422d6b4046c115bd98b618bb7da39188ce5ed9414f3f5a4509e0d9299"
+    },
+    {
+      "path": "ui/battlefield_labels.gd.remap",
+      "bytes": 48,
+      "offset": 99794240,
+      "directory_md5": "12c8d6cb2bd551bff792453ee2b2a984",
+      "sha256": "64843596dbafa1f4b7a0b28a0e3c363fa9f81173c6a736edde39fd7a0a80a62a"
+    },
+    {
+      "path": "ui/battlefield_labels.gdc",
+      "bytes": 6214,
+      "offset": 94953648,
+      "directory_md5": "15e271b68405171e3684c765820f6f7f",
+      "sha256": "5f2da2b47e6137f11f521bbaf702b251953c81a9b034a3e33442bf823da44209"
+    },
+    {
+      "path": "ui/battlefield_selection.gd.remap",
+      "bytes": 51,
+      "offset": 99794288,
+      "directory_md5": "85690b8b04471b744d067bf7f9940a95",
+      "sha256": "9d61d49edd09afc303c5f046cb97445d0bb28d180aaac849f3a995f46bdad328"
+    },
+    {
+      "path": "ui/battlefield_selection.gdc",
+      "bytes": 13711,
+      "offset": 94959872,
+      "directory_md5": "5351c4e1454c4c41c00b2e6729c133f7",
+      "sha256": "20c20338c03c99555b74a0a1b4b8060f9c99613d8954a3615b71eac58459d9f6"
+    },
+    {
+      "path": "ui/turret_level_labels.gd.remap",
+      "bytes": 49,
+      "offset": 99794352,
+      "directory_md5": "3939c56a9d56f6a3786c390770b4e484",
+      "sha256": "6b6ffd5c0e20dd7cfa774e593236793245da03d728fef325c92c6ef847320cc4"
+    },
+    {
+      "path": "ui/turret_level_labels.gdc",
+      "bytes": 2065,
+      "offset": 94973584,
+      "directory_md5": "fcc7b04b42223dc5bbf4fc448557cfa1",
+      "sha256": "8da75860034f6304e4ac5fdb07e217d53f802bfd9d9d82e46e823ac8932709ac"
+    }
+  ],
+  "archive_bytes": 233275569,
+  "member_compressed_bytes": 99833456
+}

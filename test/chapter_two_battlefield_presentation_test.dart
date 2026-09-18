@@ -124,9 +124,9 @@ void main() {
     });
   }
 
-  test('10→11→1 전환은 2장 투영·효과를 버리고 2D 범위와 1장 테마를 복원한다', () async {
+  test('10→15→1 전환은 이전 장 투영·효과를 버리고 새 3D 테마를 전달한다', () async {
     final game = await _game(10, MemorySaveRepository());
-    game.debugSetClearedStageCount(10);
+    game.debugSetClearedStageCount(15);
     game.nativeBattlefieldSceneEpoch = 100;
     game.battlefieldProjection = _projection;
     game.nativeBattlefieldGroups = {'labels', 'selection', 'effects'};
@@ -137,15 +137,15 @@ void main() {
     effect.update(1);
     game.processLifecycleEvents();
     expect(game.battlefieldFrame!.effects!.items, hasLength(1));
-    game.startStage(11);
-    expect(game.snapshotNotifier.value.currentStageNumber, 11);
-    expect(game.supportsNativeBattlefield, isFalse);
-    expect(game.battlefieldFrame, isNull);
+    game.startStage(15);
+    expect(game.snapshotNotifier.value.currentStageNumber, 15);
+    expect(game.supportsNativeBattlefield, isTrue);
+    expect(game.battlefieldFrame!.map, same(gameStages.last.map));
     expect(game.battlefieldProjection, isNull);
     expect(game.nativeBattlefieldSceneEpoch, 0);
     expect(game.nativeBattlefieldGroups, isEmpty);
     expect(game.nativeBattlefieldTurretLevels, isFalse);
-    expect(game.nativeBattlefieldLoading, isFalse);
+    expect(game.nativeBattlefieldLoading, isTrue);
     expect(game.backgroundColor().a, 1);
     game.startStage(1);
     expect(game.supportsNativeBattlefield, isTrue);

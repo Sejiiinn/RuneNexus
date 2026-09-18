@@ -1,0 +1,22 @@
+Edit the supplied Rune Nexus actual mobile game screenshot into a CHAPTER THREE IN-GAME VISUAL MOCKUP. This must look like the SAME MOBILE GAME running a new chapter, not cinematic environment art. Preserve the portrait aspect ratio, flat dark blue-gray background, restrained orthographic 3D camera, actual in-game small asset scale, and exact HUD visual design/positions from input. Preserve top resource counters, compact health/wave panel, home button and bottom speed/pause/start controls and bottom three menus with existing Korean text. Do not add any title, captions, explanation, device frame, or decorative presentation. Remove the small developer test panel at top but keep the rest of game UI.
+
+Replace only the central battlefield with chapter 3 forge tiles, using the same elevated near-top-down game camera and fitting the complete battlefield neatly between the top HUD and bottom controls. Increase its vertical occupation modestly to make tiles readable, leave clear space around HUD. No cinematic perspective, immense cliffs, distant factories, lava chasms, bridges in background, chains, giant machinery, or depth-of-field. Same practical mobile game geometry complexity as screenshot with stronger modeled bevels and materials.
+
+Chapter 3 tiles must be visually distinct from chapter2 temple stone:
+PATH square tiles: warm gray CAST IRON plates, heavy beveled edge, visible seams, 4 inset corner rivets, 3 or 4 thick parallel non-slip bars across the surface. Every fourth tile has a small inset real iron grill revealing dim amber heat beneath. Keep path light enough to read, never orange lava route.
+BUILD square tiles: dark blue-black cast steel clipped corner chassis, inset low round metal turret mounting ring with 4 bronze fastening lugs, flat center, modest thickness. Empty sockets conspicuously different from square stone diamond slabs. A few occupied by the same small orange cannon / gray machine gun / icy blue turret visible in reference, all fit single tiles with small Lv1 badges.
+BASE: short continuous dark basalt and iron support skirt about 0.4 tile thick, broad angular facets, no exaggerated deep cliffs or independent towering tile pillars. Only a little broken elbow pipe on one outside edge and a compact squat furnace on another edge, each <=1 tile footprint. Their amber accents subdued.
+Purple spawn is a LOW HORIZONTAL FLOOR VORTEX ring. Cyan core a slim small hovering crystal and metal pedestal. Existing small dark faceted enemies with small red healthbars along path.
+
+Use the actual 8-column x 10-row stage11 logical grid, back-to-front rows:
+SPPPBXXX
+BBBPBBXX
+XXBPPPPB
+XBBBXXPB
+XBPPPPPB
+XBPXXBBB
+XBPPPPXX
+XXXXBPBX
+XBBBBPPP
+XXXXBBBC
+S spawn, P connected walkway, B build tile, X empty non-play area, C core. Respect square grid spacing and row/column alignment. Empty X spaces mostly dark background or low outer rock, never fill with new playable tiles. Preserve legibility of continuous path, do not substitute a cinematic serpentine bridge. Limited tiny orange slots in side walls, no orange glow outlines. Main light neutral and soft, broad metal highlights and contact shadows, convincing modest 3D game render, readable at phone size. This image is a proposed in-game reskin, not an actual shipped screenshot. Do not write that statement on image.

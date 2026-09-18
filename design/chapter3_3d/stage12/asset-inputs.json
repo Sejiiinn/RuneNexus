@@ -1,0 +1,11 @@
+{
+  "assets/images/stage1_3d/environment/chapter3_props.glb": "c4eb491ef578b6e91219b75b3a854ad4bb3b4b3e565cd0d866d55a5daacd7952",
+  "assets/images/stage1_3d/environment/chapter3_tiles.glb": "eedef06047fe74d093e8b356fd91dc4c6d88cf039ee364e7d2b60ce48302818f",
+  "lib/data/definitions/game_stage_maps.dart": "c5d217d407b1c292fb4efe4b26e7f58cc0bea2578bb8ad9e7de1a88139376576",
+  "godot/materials/forge_reflection_sky.tres": "808d512f52cdbc9b83702edc01bef089a671f600aa72b172fc1027daea9b179a",
+  "godot/main.gd": "b43c1a32cf083a1124fb2b26bdda969db69f283b41ee2b703d7142e929d490f9",
+  "godot/environment/chapter_three_tiles.gd": "f23006a58026e35c0d5e6456c1b83f4b352313aedb82a9612a412d6c44080036",
+  "godot/environment/chapter_three_props.gd": "d057650509f9ec8b7cd343c22c52d550cc7cddb1193bb710be204867a3c0dfd7",
+  "lib/game/rune_nexus_game.dart": "6d5941af59e7ef0d49acf9ee30fe39555855cce4870e6a6c246831cef42babd7",
+  "scripts/prepare_godot_project.py": "6d6adc888c9657a9dc365269aca0539266f279cb62e97196f385d426c6645982"
+}

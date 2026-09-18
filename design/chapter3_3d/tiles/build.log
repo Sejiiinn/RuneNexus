@@ -1,0 +1,27 @@
+00:00.011  color_management | Using OCIO=/Applications/Blender.app/Contents/Resources/5.2/datafiles/colormanagement/config.ocio
+/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/tiles/build_tiles.py:14: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new(name);m.use_nodes=True
+/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/tiles/build_tiles.py:170: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  ember=bpy.data.materials.new('Deep ember bed | localized orange only');ember.use_nodes=True;p=ember.node_tree.nodes.get('Principled BSDF');p.inputs['Base Color'].default_value=(.018,.012,.009,1);p.inputs['Emission Color'].default_value=(.42,.065,.004,1);p.inputs['Emission Strength'].default_value=.60;p.inputs['Roughness'].default_value=.9;M['ember']=ember
+/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/tiles/build_tiles.py:135: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  s.world=bpy.data.worlds.new('Neutral foundry studio');s.world.use_nodes=True
+/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/tiles/build_tiles.py:140: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  ground=bpy.data.materials.new('Charcoal studio ground');ground.diffuse_color=(.024,.025,.026,1);ground.use_nodes=True;ground.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value=(.024,.025,.026,1);ground.node_tree.nodes.get('Principled BSDF').inputs['Roughness'].default_value=.85
+00:45.241  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/tiles/tiles-hero.png'
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Info: No new files have been packed
+Info: Saved as "chapter3-thick-tiles.blend"
+RENDER_READY hero
+01:22.912  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/tiles/tiles-top.png'
+RENDER_READY top
+01:43.854  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/tiles/tiles-side.png'
+RENDER_READY side
+Info: Saved as "chapter3-thick-tiles.blend"
+CHAPTER3_TILES_READY
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

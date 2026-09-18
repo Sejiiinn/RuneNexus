@@ -1,0 +1,15 @@
+{
+  "apk_bytes": 233238673,
+  "pck_bytes": 99796560,
+  "duplicate_payload_bytes": 0,
+  "abis": [
+    "arm64-v8a"
+  ],
+  "source_or_design_files": [],
+  "inputs": {
+    "assets/images/stage1_3d/environment/chapter3_tiles.glb": "98bcfca732c6eb97a1265c874cc03929b96a0d0c081a43d7da4c800381d4d513",
+    "godot/main.gd": "a9cf7b5007d7ea2fcd17d7945a3a6aa602cf42e4bdfa0eb007ab292faed6c307",
+    "godot/environment/chapter_three_tiles.gd": "d9d1e55f89671177626273767295cbcc70349c7587f3f199b6ed5c80698a18c6",
+    "godot/materials/forge_reflection_sky.tres": "808d512f52cdbc9b83702edc01bef089a671f600aa72b172fc1027daea9b179a"
+  }
+}

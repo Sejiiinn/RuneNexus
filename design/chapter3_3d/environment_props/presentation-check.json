@@ -1,0 +1,71 @@
+{
+  "source_hashes": {
+    "/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/tiles/chapter3-thick-tiles.blend": "3ff4461556939f8781c3cc65e075cd17b875cd762c3124e3d224cbdb0f831299",
+    "/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/environment_props/foundry-props.blend": "70a83f2fb2ec93df4b99b86db946ae9b67aa2facbf1ae0a1a665ef40188700d4"
+  },
+  "props": {
+    "elbow_pipe mounted": {
+      "bounds": [
+        [
+          -0.14499998092651367,
+          0.14499998092651367
+        ],
+        [
+          -0.3089999854564667,
+          0.0
+        ],
+        [
+          -0.34999996423721313,
+          0.1210000067949295
+        ]
+      ],
+      "mount": [
+        0.0,
+        -0.44999998807907104,
+        0.0
+      ]
+    },
+    "side_conduit mounted": {
+      "bounds": [
+        [
+          -0.43299999833106995,
+          0.43299999833106995
+        ],
+        [
+          -0.257999986410141,
+          -2.9802322387695312e-08
+        ],
+        [
+          -0.4300000071525574,
+          -0.06999999284744263
+        ]
+      ],
+      "mount": [
+        0.0,
+        -0.44999998807907104,
+        0.0
+      ]
+    },
+    "exhaust_vent mounted": {
+      "bounds": [
+        [
+          -0.21799999475479126,
+          0.21799999475479126
+        ],
+        [
+          -0.26798999309539795,
+          0.0
+        ],
+        [
+          -0.5,
+          0.2529999911785126
+        ]
+      ],
+      "mount": [
+        0.0,
+        -0.44999998807907104,
+        0.0
+      ]
+    }
+  }
+}

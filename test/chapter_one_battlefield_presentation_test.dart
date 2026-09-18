@@ -122,7 +122,7 @@ void main() {
     );
   });
 
-  test('스테이지 1~5 모든 웨이브 적은 기존 Godot 모델로 표시할 수 있다', () {
+  test('스테이지 1~15 모든 웨이브 적은 기존 Godot 모델로 표시할 수 있다', () {
     final source = File('godot/main.gd').readAsStringSync();
     final modelBlock = RegExp(
       r'const ENEMY_MODELS := \{([^}]+)\}',
@@ -131,7 +131,7 @@ void main() {
     final supported = RegExp(
       r'"([a-zA-Z_]+)": preload',
     ).allMatches(modelBlock).map((match) => match.group(1)!).toSet();
-    for (final stage in gameStages.where((stage) => stage.id <= 5)) {
+    for (final stage in gameStages.where((stage) => stage.id <= 15)) {
       final required = stage.waves
           .expand((wave) => wave.groups)
           .map((group) => group.enemyType.name)
@@ -144,7 +144,15 @@ void main() {
     }
   });
 
-  for (final stage in gameStages.where((stage) => stage.id >= 11)) {
+  for (final stage in [
+    StageDefinition(
+      id: 16,
+      name: 'Unsupported stage',
+      firstClearCorePointReward: 0,
+      map: gameStages.last.map,
+      waves: gameStages.last.waves,
+    ),
+  ]) {
     test('스테이지 ${stage.id}는 기존 2D 전장을 유지한다', () async {
       final game = RuneNexusGame(
         stage: stage,

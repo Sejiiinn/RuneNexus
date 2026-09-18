@@ -1,0 +1,74 @@
+00:00.356  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/tiles/chapter3-thick-tiles.blend"
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED basecolor
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED roughness
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED normal
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED metallic
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+Info: Baking map saved to internal image, save it externally or pack it
+BAKED emission
+/Users/sejin/Documents/Codex/RuneNexus/design/chapter3_3d/export/export_native.py:100: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  material=bpy.data.materials.new('Chapter3 approved foundry PBR');material.use_nodes=True
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+07:38:36 | INFO: Starting glTF 2.0 export
+07:38:36 | INFO: Extracting primitive: Bottom_flange.006
+07:38:36 | WARNING: More than one shader node tex image used for a texture. The resulting glTF sampler will behave like the first shader node tex image.
+07:38:36 | INFO: Primitives created: 1
+07:38:36 | INFO: Extracting primitive: Bottom_flange.005
+07:38:36 | INFO: Primitives created: 1
+07:38:36 | INFO: Extracting primitive: Panel frame left.002
+07:38:36 | INFO: Primitives created: 1
+07:38:36 | INFO: Extracting primitive: Panel frame left.003
+07:38:36 | INFO: Primitives created: 1
+07:38:36 | INFO: Extracting primitive: Bottom_flange.004
+07:38:36 | INFO: Primitives created: 1
+07:38:36 | INFO: Extracting primitive: Bottom_flange.007
+07:38:36 | INFO: Primitives created: 1
+07:38:36 | INFO: Finished glTF 2.0 export in 0.2539961338043213 s
+
+Info: Saved as "chapter3-native-export.blend"
+07:38:36 | INFO: Data are loaded, start creating Blender stuff
+07:38:36 | INFO: Blender create Mesh node Bottom_flange.006
+07:38:36 | INFO: Blender create Mesh node Bottom_flange.005
+07:38:36 | INFO: Blender create Mesh node Panel frame left.002
+07:38:36 | INFO: Blender create Mesh node Panel frame left.003
+07:38:36 | INFO: Blender create Mesh node Bottom_flange.004
+07:38:36 | INFO: Blender create Mesh node Bottom_flange.007
+07:38:36 | INFO: glTF import finished in 0.28s
+EXPORT_READY {"source_sha256": "c34b06f544e09a488cbfaaaadc924d044db318bc90d8d73bdf085ca19b8a3b1f", "source_unchanged": true, "tiles": {"path_tile": {"source_parts": 64, "triangles": 24416, "max_position_error": 0.0, "bounds": [[-0.5, 0.5], [-0.5, 0.5], [-0.5, 0.030500000342726707]]}, "grate_tile": {"source_parts": 67, "triangles": 30320, "max_position_error": 0.0, "bounds": [[-0.5, 0.5], [-0.5, 0.5], [-0.5, 0.030500000342726707]]}, "build_tile": {"source_parts": 60, "triangles": 24916, "max_position_error": 0.0, "bounds": [[-0.5, 0.5], [-0.5, 0.5], [-0.5, 0.05350000038743019]]}, "plain_build_tile": {"source_parts": 43, "triangles": 16276, "max_position_error": 0.0, "bounds": [[-0.5, 0.5], [-0.5, 0.5], [-0.5, 0.030500000342726707]]}, "panel_solid": {"source_parts": 7, "triangles": 2660, "max_position_error": 0.0, "bounds": [[-0.1459999978542328, 0.1459999978542328], [-0.4569999873638153, -0.35499998927116394], [-0.40299999713897705, -0.15700000524520874]]}, "panel_vent": {"source_parts": 12, "triangles": 4560, "max_position_error": 0.0, "bounds": [[-0.1459999978542328, 0.1459999978542328], [-0.4569999873638153, -0.33899998664855957], [-0.40299999713897705, -0.15700000524520874]]}}, "reimport": {"path_tile": {"max_position_error": 0.0, "surfaces": 1}, "grate_tile": {"max_position_error": 0.0, "surfaces": 1}, "build_tile": {"max_position_error": 0.0, "surfaces": 1}, "plain_build_tile": {"max_position_error": 0.0, "surfaces": 1}, "panel_solid": {"max_position_error": 0.0, "surfaces": 1}, "panel_vent": {"max_position_error": 0.0, "surfaces": 1}}, "atlas_size": 2048, "channels": ["basecolor", "roughness", "normal", "metallic", "emission"], "glb_bytes": 18741360, "glb_sha256": "98bcfca732c6eb97a1265c874cc03929b96a0d0c081a43d7da4c800381d4d513", "source_features": "4 tile tops; 4 true recessed panel seats per tile; independent solid and vent panels; vent heat recessed .092 behind frame; no embedded side panels in tile roots"}
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

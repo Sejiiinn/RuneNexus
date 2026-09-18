@@ -17,7 +17,10 @@ const Landmarks = preload("res://assets/environment/landmarks.glb")
 const Dressing = preload("res://assets/environment/dressing.glb")
 const PortalVortex = preload("res://environment/portal_vortex.gdshader")
 const ReflectionSky = preload("res://materials/battlefield_reflection_sky.tres")
+const ForgeReflectionSky = preload("res://materials/forge_reflection_sky.tres")
 const FoliageWind = preload("res://environment/foliage_wind.gdshader")
+const ChapterThreeProps = preload("res://environment/chapter_three_props.gd")
+const ChapterThreeTiles = preload("res://environment/chapter_three_tiles.gd")
 const ChapterTwoEnvironment = preload("res://environment/chapter_two_environment.gd")
 const TURRET_MODELS := {
 	"arrow": preload("res://assets/turrets/arrow.glb"),
@@ -36,6 +39,7 @@ const ENEMY_MODELS := {
 	"boss": preload("res://assets/enemies/boss.glb"),
 	# 실드/HP/상태 표시는 실제 프레임을 유지하고 기존 보스 본체를 공유한다.
 	"shieldBoss": preload("res://assets/enemies/boss.glb"),
+	"forgeBoss": preload("res://assets/enemies/boss.glb"),
 }
 const PROJECTILE_COLORS := {
 	"arrow": Color("ffe3a3"), "cannon": Color("ffb261"), "magic": Color("ff8528"),
@@ -98,6 +102,8 @@ var received_frames := 0
 var standalone_time := 0.0
 var standalone_playing := false
 var _terrain_library: Node3D
+var _chapter_three_props_library: Node3D
+var _chapter_three_terrain_library: Node3D
 var _chapter_two_terrain_library: Node3D
 var _chapter_two_paving_library: Node3D
 var _chapter_two_props_library: Node3D
@@ -107,6 +113,7 @@ var _environment_manifest := {}
 var _environment_manifests: Array = []
 var _environment_stage := 0
 var _using_chapter_environment := false
+var _using_forge := false
 var _environment_bounds := AABB()
 var _landmark_library: Node3D
 var _portal_material: ShaderMaterial
@@ -269,6 +276,10 @@ func _exit_tree() -> void:
 		RenderingServer.frame_pre_draw.disconnect(_report_presentation)
 	if is_instance_valid(_terrain_library):
 		_terrain_library.free()
+	if is_instance_valid(_chapter_three_props_library):
+		_chapter_three_props_library.free()
+	if is_instance_valid(_chapter_three_terrain_library):
+		_chapter_three_terrain_library.free()
 	if is_instance_valid(_chapter_two_terrain_library):
 		_chapter_two_terrain_library.free()
 	if is_instance_valid(_chapter_two_paving_library):
@@ -424,6 +435,15 @@ func _apply_options() -> void:
 
 
 func _apply_stage_lighting() -> void:
+	_world_environment.sky = ForgeReflectionSky if _using_forge else ReflectionSky
+	_world_environment.background_color = Color("203139") if _using_forge else Color("101b20")
+	if _using_forge:
+		sun.light_energy = 1.35
+		sun.light_color = Color(1.0, 0.94, 0.86)
+		sun.shadow_blur = 0.85
+		_world_environment.ambient_light_energy = 0.10
+		_fill_light.light_energy = 0.08
+		return
 	# 연속 절벽 전장의 기본광을 낮추고 광물 주변의 실제 입사광을 대비시킨다.
 	# 다른 맵으로 이동할 때 공용 조명을 정확히 복원한다.
 	sun.light_energy = 1.20 if _using_chapter_environment else 1.50
@@ -492,7 +512,8 @@ func _update_camera() -> void:
 		requested_mode = "angled"
 	if requested_mode != camera_mode:
 		var drone := requested_mode == "drone"
-		var target_position := Vector3(0, 30, 0.001) if drone else Vector3(5, 27, 13)
+		var angled_position := Vector3(5, 20, 13) if _using_forge else Vector3(5, 27, 13)
+		var target_position := Vector3(0, 30, 0.001) if drone else angled_position
 		var target_basis := Basis.looking_at(-target_position, Vector3.FORWARD if drone else Vector3.UP)
 		if camera_mode.is_empty():
 			camera.transform = Transform3D(target_basis, target_position)
@@ -591,10 +612,16 @@ func _fit_camera_layout(visible_size: Vector2) -> void:
 	var fit := clampf(minf(float(max_column - min_column) / maxf(span.x, 0.001), float(max_row - min_row) / maxf(span.y, 0.001)), 0.1, 1.0)
 	var ppu := maxf(1.0, float(last_frame["pixelsPerTile"]) * float(last_frame.get("zoom", 1.0)) * fit)
 	var center := (bounds_min + bounds_max) / 2.0
+	var target_center := Vector2(float(screen_center[0]), float(screen_center[1]))
+	if _using_forge:
+		# Flutter는 전체 격자 중심을 전달하므로 비대칭 빈 테두리의 오프셋을 되돌린다.
+		# 투영 경계는 이미 활성 타일 중심이며, 사용자 팬·줌은 그대로 유지한다.
+		var grid_offset := Vector2(min_column + max_column - columns, min_row + max_row - rows) * 0.5
+		target_center += grid_offset * float(last_frame["pixelsPerTile"]) * float(last_frame.get("zoom", 1.0))
 	camera.size = viewport.y / ppu
 	# 비대칭 직교 투영을 카메라 수평·수직 오프셋으로 표현.
-	camera.h_offset = center.x + (viewport.x / 2.0 - float(screen_center[0])) / ppu
-	camera.v_offset = center.y + (float(screen_center[1]) - viewport.y / 2.0) / ppu
+	camera.h_offset = center.x + (viewport.x / 2.0 - target_center.x) / ppu
+	camera.v_offset = center.y + (target_center.y - viewport.y / 2.0) / ppu
 
 
 func _environment_camera_rect() -> Rect2:
@@ -890,6 +917,8 @@ func _clear_scene() -> void:
 	standalone_time = 0.0
 	_using_authored = false
 	_using_dressing = false
+	_using_forge = false
+	camera_mode = ""
 	_release_chapter_environment()
 	_apply_stage_lighting()
 	_build_tile_slots.clear()
@@ -906,8 +935,11 @@ func _build_terrain(map: Dictionary) -> bool:
 		_fail("3D 전장의 맵 크기와 타일 수가 맞지 않습니다.")
 		return false
 	var theme := str(map.get("theme", "chapterOne"))
-	if theme not in ["chapterOne", "chapterTwoRift"]:
+	if theme not in ["chapterOne", "chapterTwoRift", "chapterThreeForge"]:
 		_fail("지원하지 않는 3D 전장 테마: " + theme)
+		return false
+	var chapter_three := theme == "chapterThreeForge"
+	if chapter_three and (not _prepare_chapter_three() or not _prepare_chapter_three_props()):
 		return false
 	var chapter_two := theme == "chapterTwoRift"
 	if chapter_two and not _prepare_chapter_two():
@@ -924,7 +956,8 @@ func _build_terrain(map: Dictionary) -> bool:
 			if int(manifest.get("columns", 0)) == next_columns and int(manifest.get("rows", 0)) == next_rows and manifest.get("tileTypes", []) == tiles:
 				matched_manifest = manifest
 				break
-	var tile_library := _chapter_two_terrain_library if chapter_two else _terrain_library
+	var tile_library := _chapter_two_terrain_library if chapter_two else (_chapter_three_terrain_library if chapter_three else _terrain_library)
+	var forge_variants := ChapterThreeTiles.variants(map) if chapter_three else {}
 	columns = next_columns
 	rows = next_rows
 	for child in terrain.get_children():
@@ -937,6 +970,9 @@ func _build_terrain(map: Dictionary) -> bool:
 	elif not _prepare_chapter_environment(matched_manifest):
 		return false
 	_using_chapter_environment = not matched_manifest.is_empty()
+	if _using_forge != chapter_three:
+		camera_mode = ""
+	_using_forge = chapter_three
 	_apply_stage_lighting()
 	_environment_bounds = AABB()
 	if _using_chapter_environment:
@@ -945,7 +981,7 @@ func _build_terrain(map: Dictionary) -> bool:
 		_add_environment_accent_lights()
 		_environment_bounds = _camera_mesh_bounds(_environment_geology_library).merge(_camera_mesh_bounds(_environment_props_library))
 	var authored := _terrain_library.find_child("stage1_environment", true, false)
-	_using_authored = not chapter_two and authored != null and int(_terrain_manifest.get("columns", 0)) == columns \
+	_using_authored = not chapter_two and not chapter_three and authored != null and int(_terrain_manifest.get("columns", 0)) == columns \
 		and int(_terrain_manifest.get("rows", 0)) == rows and _terrain_manifest.get("tileTypes", []) == tiles
 	_build_tile_slots.clear()
 	if _using_authored:
@@ -953,7 +989,7 @@ func _build_terrain(map: Dictionary) -> bool:
 		# 동일한 맵 원본에 배치된 환경 장식만 지형 수명에 연결.
 		terrain.add_child(_dressing_library.duplicate())
 	_using_dressing = _using_authored
-	if not _using_authored and not chapter_two:
+	if not _using_authored and not chapter_two and not chapter_three:
 		for variant: Dictionary in _dressing_variants:
 			if int(variant.get("columns", 0)) != columns or int(variant.get("rows", 0)) != rows or variant.get("tileTypes", []) != tiles:
 				continue
@@ -999,7 +1035,8 @@ func _build_terrain(map: Dictionary) -> bool:
 				foundation.rotation.y = float(index % 4) * PI / 2.0
 			terrain.add_child(foundation)
 		var library := _landmark_library if tile == "spawn" or tile == "core" else tile_library
-		var model := library.find_child(names[tile], true, false)
+		var model_name: String = forge_variants.get(index, names[tile])
+		var model := library.find_child(model_name, true, false)
 		if not model:
 			_fail("지형 GLB 노드를 찾지 못했습니다: %s" % names[tile])
 			return false
@@ -1011,18 +1048,69 @@ func _build_terrain(map: Dictionary) -> bool:
 				instance.rotation.y = float(index % 4) * PI / 2.0
 			instance.set_meta("tile_type", tile)
 			instance.set_meta("grid_cell", Vector2i(index % columns, floori(float(index) / columns)))
+		if chapter_three:
+			instance.set_meta("tile_type", tile)
+			instance.set_meta("tile_variant", model_name)
+			instance.set_meta("grid_cell", Vector2i(index % columns, floori(float(index) / columns)))
 		terrain.add_child(instance)
 		if tile == "spawn":
 			_portals.append(instance)
 		elif tile == "core":
 			var crystal := instance.find_child("core_crystal", true, false) as Node3D
 			_cores.append({"root": instance, "crystal": crystal, "rest_position": crystal.position, "rest_basis": crystal.basis})
+	if chapter_three and not ChapterThreeTiles.populate_panels(terrain, _chapter_three_terrain_library, map):
+		_fail("챕터 3 교체형 패널 메시를 확인하지 못했습니다.")
+		return false
+	if chapter_three and not ChapterThreeProps.populate(terrain, _chapter_three_props_library, map):
+		_fail("챕터 3 외곽 소품의 안전한 배치를 확인하지 못했습니다.")
+		return false
 	if chapter_two and not _using_chapter_environment and not ChapterTwoEnvironment.populate(terrain, _chapter_two_props_library, map):
 		_fail("챕터 2 환경 소품의 배치 계약을 확인하지 못했습니다.")
 		return false
 	# JSON 숫자형까지 보존해 같은 맵을 매 프레임 재생성하지 않음.
 	_current_map = map.duplicate(true)
 	_camera_layout_revision += 1
+	return true
+
+
+func _prepare_chapter_three_props() -> bool:
+	if is_instance_valid(_chapter_three_props_library):
+		return true
+	var packed := load("res://assets/environment/chapter3_props.glb") as PackedScene
+	if packed == null:
+		_fail("챕터 3 환경 소품 GLB를 불러오지 못했습니다.")
+		return false
+	_chapter_three_props_library = packed.instantiate()
+	for kind in ChapterThreeProps.KINDS:
+		if _chapter_three_props_library.find_child(kind, true, false) == null:
+			_fail("챕터 3 환경 GLB 노드 누락: " + kind)
+			_chapter_three_props_library.free()
+			_chapter_three_props_library = null
+			return false
+	_prepare_vertex_colors(_chapter_three_props_library)
+	for mesh: MeshInstance3D in _chapter_three_props_library.find_children("*", "MeshInstance3D", true, false):
+		mesh.layers = 1 | REFLECTION_TERRAIN_LAYER
+	return true
+
+
+func _prepare_chapter_three() -> bool:
+	if is_instance_valid(_chapter_three_terrain_library):
+		return true
+	var packed := load("res://assets/environment/chapter3_tiles.glb") as PackedScene
+	if packed == null:
+		_fail("챕터 3 타일 GLB를 불러오지 못했습니다.")
+		return false
+	_chapter_three_terrain_library = packed.instantiate()
+	for kind in ["path_tile", "grate_tile", "build_tile", "plain_build_tile", "panel_solid", "panel_vent"]:
+		if _chapter_three_terrain_library.find_child(kind, true, false) == null:
+			_fail("챕터 3 타일 GLB 노드 누락: " + kind)
+			_chapter_three_terrain_library.free()
+			_chapter_three_terrain_library = null
+			return false
+	_prepare_vertex_colors(_chapter_three_terrain_library)
+	# 승인 원본의 PBR·색·거칠기·형태를 유지한다. 1장 석재 보정은 적용하지 않는다.
+	for mesh: MeshInstance3D in _chapter_three_terrain_library.find_children("*", "MeshInstance3D", true, false):
+		mesh.layers = 1 | REFLECTION_TERRAIN_LAYER
 	return true
 
 

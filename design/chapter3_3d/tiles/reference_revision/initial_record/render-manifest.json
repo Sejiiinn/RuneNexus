@@ -1,0 +1,17 @@
+{
+  "sha256": {
+    "build_tiles.py": "537e83dc365dbe659529b3a3a29bc57513714e2e82d8496a0afbd5c9b5485732",
+    "chapter3-thick-tiles.blend": "bc6803559ef04d23df2952ec44d169939685adc68da74e3a6fcfb4555f10e88d",
+    "tiles-hero.png": "29ffddcc9771febee0848af4c7a9085cbf69aab85baf2ccecc803c9f9c85f29f",
+    "tiles-top.png": "aac0e0821a741d4cfe770b54d76ef032ed0536202ebc5e488312b42c0509858e",
+    "tiles-side.png": "74aa5182982d1cd29e5d958d026d94854fcb74f3d515c3af96bbc08f14bdd484"
+  },
+  "blender": "5.2.1 LTS",
+  "engine": "Cycles",
+  "samples": 80,
+  "denoise": true,
+  "view_transform": "AgX",
+  "look": "Medium High Contrast",
+  "visual_check": "PASS: body depth, rib count, grid hole count, ring/clamps, localized internal heat; remaining brighter metal reflection noted in README",
+  "game_validation": "NOT PERFORMED: source-only Blender scope"
+}

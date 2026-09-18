@@ -1,0 +1,11 @@
+{
+  "path": "build/app/outputs/flutter-apk/app-arm64-v8a-release.apk",
+  "bytes": 221347325,
+  "pck": [
+    {
+      "name": "assets/rune_nexus.pck",
+      "bytes": 90985404,
+      "compressed": 90985404
+    }
+  ]
+}
