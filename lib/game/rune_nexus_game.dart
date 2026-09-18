@@ -75,6 +75,7 @@ import 'rendering/status_effect_sprite_cache.dart';
 import 'rendering/stage1_3d/battlefield_frame.dart';
 import 'rendering/stage1_3d/battlefield_effects.dart';
 import 'rendering/stage1_3d/battlefield_effect_queue.dart';
+import 'rendering/stage1_3d/battlefield_effect_events.dart';
 import 'rendering/stage1_3d/battlefield_labels.dart';
 import 'rendering/stage1_3d/battlefield_selection.dart';
 import 'rendering/stage1_3d/battlefield_projection.dart';
@@ -473,6 +474,33 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   bool nativeBattlefieldLoading = false;
   final _battlefieldEffectClock = Stopwatch()..start();
   final _battlefieldEffectQueue = BattlefieldEffectQueue();
+  final _battlefieldEffectEvents = BattlefieldEffectEvents<Component>();
+  bool _nativeBattlefieldEffectEvents = false;
+  bool get nativeBattlefieldEffectEvents => _nativeBattlefieldEffectEvents;
+  set nativeBattlefieldEffectEvents(bool value) {
+    _nativeBattlefieldEffectEvents = value;
+    if (!value) _restoreBattlefieldEffectEvents();
+  }
+
+  bool _nativeBattlefieldImpactEffectEvents = false;
+  bool get nativeBattlefieldImpactEffectEvents =>
+      _nativeBattlefieldImpactEffectEvents;
+  set nativeBattlefieldImpactEffectEvents(bool value) {
+    final wasEnabled = _nativeBattlefieldImpactEffectEvents;
+    _nativeBattlefieldImpactEffectEvents = value;
+    if (wasEnabled && !value) _restoreBattlefieldEffectEvents();
+  }
+
+  bool _nativeBattlefieldBlastEffectEvents = false;
+  bool get nativeBattlefieldBlastEffectEvents =>
+      _nativeBattlefieldBlastEffectEvents;
+  set nativeBattlefieldBlastEffectEvents(bool value) {
+    final wasEnabled = _nativeBattlefieldBlastEffectEvents;
+    _nativeBattlefieldBlastEffectEvents = value;
+    if (wasEnabled && !value) _restoreBattlefieldEffectEvents();
+  }
+
+  bool _restoringBattlefieldEffects = false;
   final Map<int, Set<int>> _battlefieldEffectSubmissions = {};
   Set<int> _nativeAppliedEffectIds = const {};
   int _nativeEffectAppliedSequence = -1;
@@ -983,6 +1011,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   FutureOr<void> add(Component component) {
+    if (!_restoringBattlefieldEffects &&
+        _transferBattlefieldEffect(component)) {
+      return Future<void>.value();
+    }
     final result = super.add(component);
     _trackBattlefieldEffect(component);
     return result;
@@ -1106,6 +1138,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   @override
   void update(double dt) {
+    if (!nativeBattlefieldEffectEvents ||
+        !_usesNativeBattlefieldGroup('effects')) {
+      _restoreBattlefieldEffectEvents();
+    }
     if (nativeBattlefieldLoading) {
       // 장면 구성과 프레임 전달은 유지하되, 가려진 전투는 진행하지 않는다.
       super.update(0);
@@ -1122,6 +1158,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
     _updateVisualAlerts(dt);
     if (_phase == GamePhase.coreDestruction) {
+      _battlefieldEffectEvents.advance(dt * _coreDestructionSlowMotionScale);
       super.update(dt * _coreDestructionSlowMotionScale);
       _updateCoreDestructionSequence(dt);
       return;
@@ -1131,6 +1168,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
     final scaledDt = dt * _speedMultiplier;
+    _battlefieldEffectEvents.advance(scaledDt);
     super.update(scaledDt);
     _updateCombatStatsPublish(dt);
     if (_phase != GamePhase.wave) {
@@ -3500,6 +3538,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _clearActiveCombat() {
+    _battlefieldEffectEvents.cancelKinds({'damage', 'gem', 'impact', 'blast'});
     _finishedProjectiles.clear();
     _rewardSelection.clear();
     _gemRewardBoardViewport = null;
@@ -4343,7 +4382,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
     final hadNativeScene = nativeBattlefieldSceneEpoch != 0;
-    resetNativeBattlefieldEffects(nativeBattlefieldSceneEpoch);
+    resetNativeBattlefieldEffects(
+      nativeBattlefieldSceneEpoch,
+      restoreLive: false,
+    );
     nativeBattlefieldSceneEpoch = 0;
     battlefieldProjection = null;
     nativeBattlefieldGroups = const {};

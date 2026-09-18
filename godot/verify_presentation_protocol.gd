@@ -52,7 +52,50 @@ func _verify() -> void:
 	frame["seq"] = 0
 	scene._apply_frame(frame)
 	_check(scene.last_sequence == 0 and scene.turrets.is_empty(), "새 장면 초기화/순서 재시작 실패")
-	scene._apply_frame({"reset": true, "sceneEpoch": 101})
+	# Versioned static maps remain valid across many dynamic frames.
+	frame["seq"] = 1
+	frame["mapRevision"] = 1
+	scene._apply_frame(frame)
+	var terrain_id: int = scene.terrain.get_child(0).get_instance_id()
+	var map_snapshot: Dictionary = scene._current_map.duplicate(true)
+	var dynamic: Dictionary = frame.duplicate(true)
+	dynamic.erase("map")
+	dynamic["seq"] = 2
+	dynamic["time"] = 3.0
+	scene._apply_frame(dynamic)
+	_check(scene.last_sequence == 2 and scene.presentation()["mapRevision"] == 1, "동적 프레임 적용/맵 ACK 실패")
+	_check(scene.terrain.get_child(0).get_instance_id() == terrain_id and scene._current_map == map_snapshot, "정적 맵을 다시 만들거나 변경함")
+	dynamic["seq"] = 3
+	dynamic["mapRevision"] = 2
+	scene._apply_frame(dynamic)
+	_check(scene.last_sequence == 2 and scene.presentation().get("mapRequired", false), "맵 불일치 프레임을 적용하거나 복구 요청 누락")
+	frame["seq"] = 4
+	frame["mapRevision"] = 2
+	frame["map"] = map_snapshot.duplicate(true)
+	# Same dimensions/theme, different tile content must rebuild.
+	var changed_index := -1
+	for i in range(frame["map"]["tiles"].size()):
+		if frame["map"]["tiles"][i] == "build":
+			changed_index = i
+			break
+	_check(changed_index >= 0, "맵 변경 검사 타일 없음")
+	if changed_index >= 0:
+		frame["map"]["tiles"][changed_index] = "path"
+	scene._apply_frame(frame)
+	_check(scene.last_sequence == 4 and scene.presentation()["mapRevision"] == 2 and not scene.presentation().has("mapRequired"), "맵 재전송 복구 실패")
+	_check(scene._current_map == frame["map"] and scene._current_map != map_snapshot, "같은 크기/테마의 타일 변경 누락")
+	# A fresh epoch must never reuse the old static map.
+	dynamic["sceneEpoch"] = 102
+	dynamic["seq"] = 0
+	scene._apply_frame(dynamic)
+	_check(scene.last_sequence == -1 and scene.presentation().get("mapRequired", false), "새 epoch에서 이전 맵 재사용")
+	_check(not scene.presentation().has("projection"), "복구 메타데이터가 준비된 프레임을 가장함")
+	frame["sceneEpoch"] = 102
+	frame["seq"] = 1
+	frame.erase("mapRevision")
+	scene._apply_frame(frame)
+	_check(scene.last_sequence == 1 and not scene.presentation().has("mapRequired"), "레거시 전체 프레임 복구 실패")
+	scene._apply_frame({"reset": true, "sceneEpoch": 102})
 	_check(scene.world.position == Vector3.ZERO, "장면 리셋 뒤 흔들림 잔류")
 	_check(scene.presentation().is_empty(), "초기화 후 과거 적용 상태를 보고함")
 	print("Presentation protocol: %d failures" % failures)

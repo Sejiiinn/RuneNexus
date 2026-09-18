@@ -9,11 +9,23 @@ class BattlefieldEffects {
   BattlefieldEffects({
     required List<BattlefieldEffect> items,
     this.shake = Offset.zero,
+    this.events = const [],
+    this.clock = 0,
+    this.generation = 0,
+    this.squaredSteps = 0,
   }) : items = List.unmodifiable(items);
   final List<BattlefieldEffect> items;
   final Offset shake;
+  final List<Map<String, Object>> events;
+  final double clock;
+  final int generation;
+  final double squaredSteps;
   Map<String, Object> toJson() => {
     'shake': [shake.dx, shake.dy],
+    'events': events,
+    'clock': clock,
+    'generation': generation,
+    'squaredSteps': squaredSteps,
     'items': items.map((item) => item.toJson()).toList(growable: false),
   };
 }
@@ -32,6 +44,7 @@ class BattlefieldEffect {
     this.text = '',
     this.feedback = 'neutral',
     this.motion = 'rise',
+    this.arcDirection = 1,
     this.style = '',
     this.enemyType = '',
     this.enemyTypeIndex = 0,
@@ -54,6 +67,7 @@ class BattlefieldEffect {
   final String text;
   final String feedback;
   final String motion;
+  final int arcDirection;
   final String style;
   final String enemyType;
   final int enemyTypeIndex;
@@ -75,6 +89,7 @@ class BattlefieldEffect {
     'text': text,
     'feedback': feedback,
     'motion': motion,
+    'arcDirection': arcDirection,
     'style': style,
     'enemyType': enemyType,
     'enemyTypeIndex': enemyTypeIndex,

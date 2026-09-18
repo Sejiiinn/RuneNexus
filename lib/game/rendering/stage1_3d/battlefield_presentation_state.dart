@@ -9,6 +9,9 @@ class BattlefieldPresentationState {
     required this.projection,
     required this.groups,
     required this.turretLevels,
+    this.effectEvents = false,
+    this.impactEffectEvents = false,
+    this.blastEffectEvents = false,
   });
 
   static const protocolVersion = 2;
@@ -18,6 +21,9 @@ class BattlefieldPresentationState {
   final BattlefieldProjection projection;
   final Set<String> groups;
   final bool turretLevels;
+  final bool effectEvents;
+  final bool impactEffectEvents;
+  final bool blastEffectEvents;
 
   /// 이전 장면/화면 크기나 아직 제출하지 않은 프레임의 응답은 적용하지 않는다.
   static BattlefieldPresentationState? tryDecode(
@@ -83,6 +89,9 @@ class BattlefieldPresentationState {
             : const <String>[],
       ),
       turretLevels: state['nativeTurretLevels'] == true,
+      effectEvents: state['nativeEffectEvents'] == true,
+      impactEffectEvents: state['nativeImpactEffectEvents'] == true,
+      blastEffectEvents: state['nativeBlastEffectEvents'] == true,
     );
   }
 

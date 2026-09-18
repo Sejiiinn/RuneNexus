@@ -29,6 +29,27 @@ void main() {
         lastApplied: 12,
       );
 
+  test(
+    'impact event capability is explicit and independent of old event support',
+    () {
+      final old = decode({...valid(), 'nativeEffectEvents': true})!;
+      expect(old.effectEvents, isTrue);
+      expect(old.impactEffectEvents, isFalse);
+      expect(old.blastEffectEvents, isFalse);
+      final current = decode({
+        ...valid(),
+        'nativeEffectEvents': true,
+        'nativeImpactEffectEvents': true,
+      })!;
+      expect(current.effectEvents, isTrue);
+      expect(current.impactEffectEvents, isTrue);
+      expect(current.blastEffectEvents, isFalse);
+      final blast = decode({...valid(), 'nativeBlastEffectEvents': true})!;
+      expect(blast.blastEffectEvents, isTrue);
+      expect(blast.impactEffectEvents, isFalse);
+    },
+  );
+
   test('실제 적용된 알려진 묶음만 소유권을 넘기고 타일 입력 투영을 보존한다', () {
     final state = decode(valid())!;
     expect(state.sequence, 15);

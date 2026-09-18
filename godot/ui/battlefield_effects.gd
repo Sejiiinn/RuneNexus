@@ -1,9 +1,11 @@
 extends Node2D
 
 ## Presentation-only: every effect uses the authoritative simulation age.
-## Repeated snapshots replace state; no timer, restart, or damage callback here.
+## Creation events use the shared component clock; no wall timer or combat callback.
 const WEIGHT_AXIS := 0x77676874 # OpenType wght tag; string keys are ignored.
 var items: Array = []
+# Routed to main's existing 3D Impact pool; never creates a Canvas surface.
+var blast_impacts: Array = []
 # Local diagnostic only; normal rendering is the default.
 var diagnostic_skip := ""
 var camera: Camera3D
@@ -16,6 +18,11 @@ var _diamond: Texture2D
 var _silhouettes: Texture2D
 var _surface: Node2D
 var _effect_nodes := {}
+var _events := {}
+var _generation := -1
+var _last_event_id := -1
+var _event_clock := 0.0
+var _event_squared := 0.0
 var _additive := CanvasItemMaterial.new()
 
 
@@ -50,7 +57,59 @@ func supported_groups() -> Array:
 	return ["effects"] if _font != null and _diamond != null and _silhouettes != null else []
 
 func apply_frame(frame: Dictionary) -> void:
+	var generation := int(frame.get("generation", 0))
+	if generation < _generation:
+		return
+	if generation != _generation:
+		_events.clear()
+		_last_event_id = -1
+		_generation = generation
+	# Clock only advances with Flame's actual component dt. Camera redraws and
+	# repeated bridge frames never advance it, including pause/reward/reconnect.
+	_event_clock = maxf(_event_clock, float(frame.get("clock", _event_clock)))
+	_event_squared = maxf(_event_squared, float(frame.get("squaredSteps", _event_squared)))
+	for event in frame.get("events", []):
+		var id := int(event.get("id", -1))
+		if id <= _last_event_id or event.get("kind") not in ["damage", "death", "gem", "impact", "blast"]:
+			continue
+		if event.get("kind") == "impact" and event.get("style") not in ["spark", "sniperBlast", "flame", "frost", "lightning", "lightningBlast"]:
+			continue
+		# IDs increase within a scene, so a bounded journal needs no unbounded
+		# tombstones. Retries after expiry or capacity eviction cannot restart.
+		_last_event_id = id
+		_events[id] = event.duplicate(true)
+		if _event_clock - float(event.get("born", 0)) >= float(event.get("duration", 0)):
+			_events[id]["deliverySample"] = true
+		while _events.size() > 256:
+			_events.erase(_events.keys()[0])
 	items = frame.get("items", []).duplicate(true)
+	blast_impacts.clear()
+	for id in _events.keys():
+		var event: Dictionary = _events[id]
+		var age := maxf(0, _event_clock - float(event["born"]))
+		var steps := maxf(0, _event_squared - float(event["bornSquared"]))
+		if age >= float(event["duration"]):
+			if not bool(event.get("deliverySample", false)):
+				_events.erase(id)
+				continue
+			age = float(event.get("retainedAge", 0))
+			steps = float(event.get("retainedSquared", 0))
+			event["deliverySample"] = false
+		event["age"] = age
+		if event.get("kind") == "damage":
+			var offset := Vector2(0, -34 * age)
+			if event.get("motion") == "fallArc":
+				offset = Vector2(float(event.get("arcDirection", 1)) * 42 * age,
+					-28 * age + 48 / float(event["duration"]) * (age * age + steps))
+			event["screenOffset"] = [offset.x, offset.y]
+		if event.get("kind") == "blast":
+			blast_impacts.append([id, float(event.get("x", 0)), float(event.get("y", 0)),
+				float(event.get("radius", 0)) / maxf(0.001, float(event.get("tileSize", 48))),
+				clampf(age / maxf(0.001, float(event["duration"])), 0, 1)])
+		else:
+			items.append(event)
+	# Keep creation order when event-owned and snapshot-owned effects coexist.
+	items.sort_custom(func(a, b): return int(a.get("id", 0)) < int(b.get("id", 0)))
 	var alive := {}
 	var draw_index := 0
 	for index in range(items.size()):
@@ -90,7 +149,13 @@ func apply_frame(frame: Dictionary) -> void:
 			_effect_nodes.erase(id)
 
 func clear() -> void:
+	_events.clear()
+	_generation = -1
+	_last_event_id = -1
+	_event_clock = 0.0
+	_event_squared = 0.0
 	items.clear()
+	blast_impacts.clear()
 	for node: EffectSurface in _effect_nodes.values():
 		node.free()
 	_effect_nodes.clear()

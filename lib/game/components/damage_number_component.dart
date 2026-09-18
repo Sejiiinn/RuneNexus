@@ -204,6 +204,7 @@ class DamageNumberComponent extends PositionComponent
       color: key.color,
       feedback: _feedback.name,
       motion: _motion.name,
+      arcDirection: _arcDirection,
     );
   }
 
@@ -263,6 +264,23 @@ class DamageNumberComponent extends PositionComponent
       _imageLease = null;
     }
     super.onRemove();
+  }
+
+  /// Restore the exact discrete Flame trajectory after native ownership ends.
+  void restorePresentationTime(
+    double age,
+    double squaredSteps, {
+    Vector2? spawnPosition,
+  }) {
+    if (spawnPosition != null) _spawnPosition.setFrom(spawnPosition);
+    _age = age;
+    position.setFrom(_spawnPosition);
+    if (_motion == DamageNumberMotion.rise) {
+      position.y -= 34 * age;
+    } else {
+      position.x += _arcDirection * 42 * age;
+      position.y += -28 * age + 48 / _lifeTime * (age * age + squaredSteps);
+    }
   }
 
   @override

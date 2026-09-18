@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 
 import '../../game/rendering/stage1_3d/battlefield_presentation_state.dart';
 import '../../game/rendering/stage1_3d/godot_battlefield_frame.dart';
+import '../../game/rendering/stage1_3d/godot_battlefield_map_transport.dart';
 import '../../game/rune_nexus_game.dart';
 import '../../data/settings/graphics_settings.dart';
 import '../settings/graphics_settings_scope.dart';
@@ -50,6 +51,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
   int _lastApplied = -1;
   int _sceneEpoch = 0;
   int _viewportRevision = 0;
+  final _mapTransport = GodotBattlefieldMapTransport();
 
   @override
   void initState() {
@@ -212,15 +214,15 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
             sceneEpoch: epoch,
             viewportRevision: revision,
             viewport: viewport,
+            mapTransport: _mapTransport,
           ),
         ),
       });
       if (!mounted || epoch != _sceneEpoch || game != widget.game) return;
-      game.markNativeBattlefieldEffectsSubmitted(
-        epoch,
-        submittedSequence,
-        frame.effects?.items.map((effect) => effect.id) ?? const <int>[],
-      );
+      game.markNativeBattlefieldEffectsSubmitted(epoch, submittedSequence, [
+        ...?frame.effects?.items.map((effect) => effect.id),
+        ...?frame.effects?.events.map((effect) => effect['id'] as int),
+      ], eventGeneration: frame.effects?.generation);
       if (!mounted ||
           epoch != _sceneEpoch ||
           !_foreground ||
@@ -232,6 +234,35 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
         return;
       }
       final state = jsonDecode(json) as Map<String, dynamic>;
+      if (state['mapRequired'] == true) {
+        final sequence = state['sequence'];
+        final size = state['viewport'];
+        if (state['presentationVersion'] ==
+                BattlefieldPresentationState.protocolVersion &&
+            state['sceneEpoch'] == epoch &&
+            state['viewportRevision'] == revision &&
+            sequence is int &&
+            sequence >= _lastApplied &&
+            sequence <= submittedSequence &&
+            size is List &&
+            size.length == 2 &&
+            size[0] is num &&
+            size[1] is num &&
+            (size[0] - viewport.width).abs() < 1e-6 &&
+            (size[1] - viewport.height).abs() < 1e-6) {
+          _mapTransport.requestMap(
+            sceneEpoch: epoch,
+            sequence: sequence,
+            mapRevision: state['mapRevision'],
+          );
+        }
+        return;
+      }
+      // A response for the previous map cannot own the current map's overlays.
+      if (state.containsKey('mapRevision') &&
+          state['mapRevision'] != _mapTransport.revision) {
+        return;
+      }
       final applied = BattlefieldPresentationState.tryDecode(
         state,
         sceneEpoch: epoch,
@@ -241,9 +272,17 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
         lastApplied: _lastApplied,
       );
       if (applied == null) return;
+      _mapTransport.acknowledge(
+        sceneEpoch: epoch,
+        sequence: applied.sequence,
+        mapRevision: state['mapRevision'],
+      );
       _lastApplied = applied.sequence;
       game.nativeBattlefieldTurretLevels = applied.turretLevels;
       game.nativeBattlefieldGroups = applied.groups;
+      game.nativeBattlefieldEffectEvents = applied.effectEvents;
+      game.nativeBattlefieldImpactEffectEvents = applied.impactEffectEvents;
+      game.nativeBattlefieldBlastEffectEvents = applied.blastEffectEvents;
       if (applied.groups.contains('effects')) {
         game.acknowledgeNativeBattlefieldEffects(epoch, applied.sequence);
       }

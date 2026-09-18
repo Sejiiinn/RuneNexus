@@ -125,6 +125,8 @@ var _build_tile_slots := PackedInt32Array()
 var _occupied_build_tiles := Vector2i.ZERO
 var _terrain_manifest := {}
 var _current_map := {}
+var _map_revision := -1
+var _map_request := {}
 var _camera_layout_revision := 0
 var _camera_layout_key: Array = []
 var _using_authored := false
@@ -779,6 +781,8 @@ func _present_overlays() -> void:
 
 
 func presentation() -> Dictionary:
+	if not _map_request.is_empty():
+		return _map_request.duplicate()
 	if last_frame.is_empty():
 		return {}
 	var size := get_viewport().get_visible_rect().size
@@ -790,6 +794,7 @@ func presentation() -> Dictionary:
 	var height_axis := camera.unproject_position(world.to_global(Vector3(-columns / 2.0, 1.0, -rows / 2.0))) - origin
 	return {
 		"presentationVersion": 2,
+		"mapRevision": _map_revision,
 		"sceneEpoch": _scene_epoch,
 		"viewportRevision": int(last_frame.get("viewportRevision", 0)),
 		"viewport": last_frame.get("viewport", []),
@@ -802,6 +807,9 @@ func presentation() -> Dictionary:
 		},
 		"sequence": last_sequence, "camera": camera_mode,
 		"nativeTurretLevels": bool(options["turret_levels"]),
+		"nativeEffectEvents": _applied_groups.has("effects"),
+		"nativeImpactEffectEvents": _applied_groups.has("effects"),
+		"nativeBlastEffectEvents": _applied_groups.has("effects"),
 		"transitioning": is_instance_valid(camera_transition) and camera_transition.is_running(),
 	}
 
@@ -810,7 +818,7 @@ func _report_presentation() -> void:
 	_turret_level_labels.update(camera, turrets, bool(options["turret_levels"]) and world.visible)
 	_present_overlays()
 	# Android Java 싱글턴은 동적 호출이므로 Object.has_method 검사 생략.
-	if bridge and not last_frame.is_empty():
+	if bridge and (not last_frame.is_empty() or not _map_request.is_empty()):
 		bridge.report_presentation(JSON.stringify(presentation()))
 
 
@@ -837,12 +845,24 @@ func _apply_frame_impl(frame: Dictionary) -> void:
 		_scene_epoch = epoch
 	if int(frame.get("seq", -1)) < last_sequence:
 		return
+	var revision := int(frame.get("mapRevision", -1))
 	var map: Dictionary = frame.get("map", {})
 	if map.is_empty():
+		# Legacy frames always require a full map. Revision-only frames reuse
+		# exactly the map already applied in this epoch, never a previous scene.
+		if revision < 0:
+			return
+		if _current_map.is_empty() or revision != _map_revision:
+			_map_request = {"presentationVersion": 2, "sceneEpoch": _scene_epoch,
+				"viewportRevision": int(frame.get("viewportRevision", 0)),
+				"viewport": frame.get("viewport", []), "sequence": int(frame.get("seq", -1)),
+				"mapRevision": revision, "mapRequired": true}
+			return
+	elif map != _current_map and not _build_terrain(map):
 		return
-	if map != _current_map and not _build_terrain(map):
-		return
-	last_frame = frame
+	_map_revision = revision
+	_map_request.clear()
+	last_frame = frame.duplicate()
 	last_sequence = int(frame.get("seq", -1))
 	received_frames += 1
 	var payload: Dictionary = frame.get("presentation", {})
@@ -853,12 +873,21 @@ func _apply_frame_impl(frame: Dictionary) -> void:
 			_presentation_nodes[group].apply_frame(group_frame)
 		else:
 			_presentation_nodes[group].clear()
+	# Native event progress is computed once per authoritative combat-clock frame.
+	# Preserve legacy snapshots (and prefer them on fallback) without retaining
+	# the previous frame's event-derived arrays on the next submission.
+	var merged_impacts := {}
+	for data: Array in _presentation_nodes["effects"].blast_impacts:
+		merged_impacts[int(data[0])] = data
+	for data: Array in frame.get("impacts", []):
+		merged_impacts[int(data[0])] = data
+	last_frame["impacts"] = merged_impacts.values()
 	_update_camera()
 	_sync_turrets(frame.get("turrets", []))
 	_sync_enemies(frame.get("enemies", []))
 	_sync_projectiles(frame.get("projectiles", []))
 	_sync_build_preview(frame.get("buildPreview"))
-	_update_impacts(frame.get("impacts", []))
+	_update_impacts(last_frame.get("impacts", []))
 	var time := float(frame.get("time", 0.0))
 	_portal_material.set_shader_parameter("battle_time", time)
 	_portal_material.set_shader_parameter("alert", clampf(float(frame.get("portalAlert", 0.0)), 0.0, 1.0))
@@ -908,6 +937,8 @@ func _clear_scene() -> void:
 	_portals.clear()
 	_cores.clear()
 	_current_map = {}
+	_map_revision = -1
+	_map_request.clear()
 	_camera_layout_revision += 1
 	_camera_layout_key.clear()
 	last_frame = {}

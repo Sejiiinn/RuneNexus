@@ -36,6 +36,41 @@ class ImpactEffectComponent extends PositionComponent
     );
   }
 
+  /// Creation-only payload for the existing native 3D blast renderer.
+  BattlefieldEffect nativeBlastEffect(int id, Offset origin, double tileSize) =>
+      BattlefieldEffect(
+        id: id,
+        kind: 'blast',
+        age: _age,
+        duration: blastDuration,
+        position: battlefieldEffectPosition(
+          Offset(position.x, position.y),
+          origin,
+          tileSize,
+        ),
+        tileSize: tileSize,
+        radius: radius,
+        style: style.name,
+      );
+
+  void restoreNativePresentation(
+    double age,
+    Vector2 anchor,
+    double restoredRadius,
+  ) {
+    _age = age;
+    position.setFrom(anchor);
+    final extent =
+        restoredRadius *
+        (style == ImpactEffectStyle.blast
+            ? 3.2
+            : _isBlastStyle(style)
+            ? 2.45
+            : 2);
+    size.setValues(extent, extent);
+    radius = restoredRadius;
+  }
+
   ImpactEffectComponent({
     required Vector2 position,
     required Color color,
@@ -45,7 +80,9 @@ class ImpactEffectComponent extends PositionComponent
     this.blastDuration = 0.42,
     int randomSeed = 0,
   }) : _color = color,
-       _cannonShockArcs = _createCannonShockArcs(randomSeed),
+       _cannonShockArcs = style == ImpactEffectStyle.blast
+           ? _createCannonShockArcs(randomSeed)
+           : const [],
        super(
          position: position,
          size: Vector2.all(
@@ -68,7 +105,7 @@ class ImpactEffectComponent extends PositionComponent
   final double blastDuration;
   final List<_CannonShockArc> _cannonShockArcs;
   final ImpactEffectStyle style;
-  final double radius;
+  double radius;
   final Paint _cannonBlastSpritePaint = Paint()
     ..filterQuality = FilterQuality.medium;
   double _age = 0;

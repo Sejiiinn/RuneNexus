@@ -6,6 +6,75 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
       _battlefieldEffectClock.elapsedMicroseconds /
       Duration.microsecondsPerSecond;
 
+  double get battlefieldEffectCombatClock => _battlefieldEffectEvents.clock;
+
+  bool _transferBattlefieldEffect(Component component) {
+    if (!nativeBattlefieldEffectEvents ||
+        !_usesNativeBattlefieldGroup('effects') ||
+        !_boardConfigured ||
+        nativeBattlefieldSceneEpoch == 0 ||
+        (component is! DamageNumberComponent &&
+            component is! DeathBurstEffectComponent &&
+            component is! GemEquipEffectComponent &&
+            !(component is ImpactEffectComponent &&
+                (component.style == ImpactEffectStyle.blast
+                    ? nativeBattlefieldBlastEffectEvents
+                    : nativeBattlefieldImpactEffectEvents)))) {
+      return false;
+    }
+    final id = _battlefieldIds[component] ??= _nextBattlefieldId++;
+    final origin = Offset(_origin.x, _origin.y);
+    final effect =
+        component is ImpactEffectComponent &&
+            component.style == ImpactEffectStyle.blast
+        ? component.nativeBlastEffect(id, origin, _tileSize)
+        : (component as BattlefieldEffectSource).battlefieldEffect(
+            id,
+            origin,
+            _tileSize,
+          );
+    // Image-only numbers cannot be represented by the native text renderer.
+    if (effect == null) return false;
+    _battlefieldEffectEvents.add(effect, component);
+    return true;
+  }
+
+  void _restoreBattlefieldEffectEvents() {
+    final entries = _battlefieldEffectEvents.takeLive();
+    _restoringBattlefieldEffects = true;
+    try {
+      for (final entry in entries) {
+        final age = _battlefieldEffectEvents.clock - entry.born;
+        final source = entry.source;
+        final anchor =
+            _origin +
+            Vector2(
+              entry.effect.position.dx * _tileSize,
+              entry.effect.position.dy * _tileSize,
+            );
+        if (source is DamageNumberComponent) {
+          source.restorePresentationTime(
+            age,
+            _battlefieldEffectEvents.squaredSteps - entry.bornSquared,
+            spawnPosition: anchor,
+          );
+        } else if (source is ImpactEffectComponent) {
+          source.restoreNativePresentation(
+            age,
+            anchor,
+            entry.effect.radius * _tileSize / entry.effect.tileSize,
+          );
+        } else {
+          (source as PositionComponent).position.setFrom(anchor);
+          source.update(age);
+        }
+        add(source);
+      }
+    } finally {
+      _restoringBattlefieldEffects = false;
+    }
+  }
+
   void _trackBattlefieldEffect(Component component) {
     if (!_boardConfigured ||
         nativeBattlefieldSceneEpoch == 0 ||
@@ -50,12 +119,27 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
     return BattlefieldEffects(
       items: _battlefieldEffectQueue.snapshot(live, _battlefieldEffectNow),
       shake: shake,
+      events: _battlefieldEffectEvents.pending(),
+      clock: _battlefieldEffectEvents.clock,
+      generation: _battlefieldEffectEvents.generation,
+      squaredSteps: _battlefieldEffectEvents.squaredSteps,
     );
   }
 
   /// Epoch ownership protects a new native view from an old view's callbacks.
-  void resetNativeBattlefieldEffects(int sceneEpoch) {
+  void resetNativeBattlefieldEffects(
+    int sceneEpoch, {
+    bool restoreLive = true,
+  }) {
     if (nativeBattlefieldSceneEpoch != sceneEpoch) return;
+    if (restoreLive) {
+      _restoreBattlefieldEffectEvents();
+    } else {
+      _battlefieldEffectEvents.takeLive();
+    }
+    nativeBattlefieldEffectEvents = false;
+    nativeBattlefieldImpactEffectEvents = false;
+    nativeBattlefieldBlastEffectEvents = false;
     _battlefieldEffectQueue.clear();
     _battlefieldEffectSubmissions.clear();
     _nativeAppliedEffectIds = const {};
@@ -65,11 +149,17 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
   void markNativeBattlefieldEffectsSubmitted(
     int sceneEpoch,
     int sequence,
-    Iterable<int> ids,
-  ) {
+    Iterable<int> ids, {
+    int? eventGeneration,
+  }) {
     if (nativeBattlefieldSceneEpoch != sceneEpoch) return;
     final submitted = Set<int>.unmodifiable(ids);
     _battlefieldEffectQueue.markSubmitted(sequence, submitted);
+    _battlefieldEffectEvents.markSubmitted(
+      sequence,
+      submitted,
+      submittedGeneration: eventGeneration,
+    );
     _battlefieldEffectSubmissions[sequence] = submitted;
     while (_battlefieldEffectSubmissions.length > 64) {
       _battlefieldEffectSubmissions.remove(
@@ -84,6 +174,7 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
       return;
     }
     _battlefieldEffectQueue.acknowledge(sequence);
+    _battlefieldEffectEvents.acknowledge(sequence);
     if (sequence > _nativeEffectAppliedSequence) {
       _nativeAppliedEffectIds =
           _battlefieldEffectSubmissions[sequence] ?? const {};

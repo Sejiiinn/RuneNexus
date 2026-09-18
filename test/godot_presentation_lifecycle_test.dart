@@ -170,6 +170,90 @@ Future<void> _frames(WidgetTester tester, [int count = 5]) async {
 void main() {
   final android = TargetPlatformVariant.only(TargetPlatform.android);
 
+  testWidgets('맵 ACK 전 재전송과 ACK 후 생략·복구·복귀를 실제 호출 경로로 보존한다', (tester) async {
+    final native = _Native(tester);
+    final game = _SnapshotGame();
+    await tester.pumpWidget(_host(game));
+    await _frames(tester);
+    final first = native.pending.single;
+    first.result.complete('{}');
+    await _frames(tester);
+    expect(native.frames.last, contains('map'));
+    final applied = jsonDecode(first.response()) as Map<String, dynamic>;
+    applied['mapRevision'] = first.frame['mapRevision'];
+    native.pending.last.result.complete(jsonEncode(applied));
+    await _frames(tester);
+    expect(native.frames.last, isNot(contains('map')));
+    final projection = game.battlefieldProjection;
+    final rejected = native.pending.last;
+    rejected.result.complete(
+      jsonEncode({
+        'presentationVersion': 2,
+        'sceneEpoch': rejected.frame['sceneEpoch'],
+        'viewportRevision': rejected.frame['viewportRevision'],
+        'viewport': rejected.frame['viewport'],
+        'sequence': rejected.frame['seq'],
+        'mapRevision': rejected.frame['mapRevision'],
+        'mapRequired': true,
+      }),
+    );
+    await _frames(tester);
+    expect(native.frames.last, contains('map'));
+    expect(game.battlefieldProjection, same(projection));
+    final old = native.pending.last;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await _frames(tester);
+    expect(native.frames.last, contains('map'));
+    expect(native.frames.last['sceneEpoch'], isNot(old.frame['sceneEpoch']));
+    old.result.complete(jsonEncode(applied));
+    await tester.pump();
+    expect(game.nativeBattlefieldLoading, isTrue);
+    await native.finish();
+  }, variant: android);
+
+  testWidgets('맵 복구 메타데이터만으로 로딩을 해제하지 않는다', (tester) async {
+    final native = _Native(tester);
+    final game = _SnapshotGame();
+    await tester.pumpWidget(_host(game));
+    await _frames(tester);
+    final first = native.pending.single;
+    final metadata = jsonDecode(first.response()) as Map<String, dynamic>;
+    metadata['mapRevision'] = first.frame['mapRevision'];
+    metadata['mapRequired'] = true;
+    first.result.complete(jsonEncode(metadata));
+    await _frames(tester);
+    expect(game.nativeBattlefieldLoading, isTrue);
+    expect(game.battlefieldProjection, isNull);
+    expect(native.frames.last, contains('map'));
+    await native.finish();
+  }, variant: android);
+
+  testWidgets('리사이즈 전 맵 ACK는 생략을 허용하지 않고 현재 viewport ACK만 허용한다', (
+    tester,
+  ) async {
+    final native = _Native(tester);
+    final game = _SnapshotGame();
+    await tester.pumpWidget(_host(game));
+    await _frames(tester);
+    final old = native.pending.single;
+    final oldAck = jsonDecode(old.response()) as Map<String, dynamic>;
+    oldAck['mapRevision'] = old.frame['mapRevision'];
+    await tester.pumpWidget(_host(game, width: 320));
+    old.result.complete(jsonEncode(oldAck));
+    await _frames(tester);
+    expect(native.frames.last, contains('map'));
+    expect(game.nativeBattlefieldLoading, isTrue);
+    final current = native.pending.last;
+    final ack = jsonDecode(current.response()) as Map<String, dynamic>;
+    ack['mapRevision'] = current.frame['mapRevision'];
+    current.result.complete(jsonEncode(ack));
+    await _frames(tester);
+    expect(native.frames.last, isNot(contains('map')));
+    expect(game.nativeBattlefieldLoading, isFalse);
+    await native.finish();
+  }, variant: android);
+
   testWidgets('엔진 ready 뒤에도 유효한 첫 전장 응답까지 로딩을 유지한다', (tester) async {
     final native = _Native(tester);
     final game = _SnapshotGame();

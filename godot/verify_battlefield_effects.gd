@@ -73,5 +73,101 @@ func _verify() -> void:
 	assert(effects._effect_nodes.size() == 1 and effects.get_child_count() == 1, "removed effects must free both blend passes")
 	effects.clear()
 	assert(effects.items.is_empty() and effects._effect_nodes.is_empty() and effects.get_child_count() == 0)
+	# Event lifecycle uses combat dt and preserves the old discrete arc formula.
+	var event := {"id": 100, "kind": "damage", "born": 10.0, "bornSquared": 2.0, "duration": 0.75,
+		"x": 5.0, "y": 5.0, "tileSize": 48.0, "text": "12", "motion": "fallArc", "arcDirection": -1}
+	effects.apply_frame({"clock": 10.0, "squaredSteps": 2.0, "events": [event]})
+	var event_surface: Node2D = effects._effect_nodes[100]
+	effects.apply_frame({"clock": 10.15, "squaredSteps": 2.0125, "events": [event]})
+	assert(effects._effect_nodes[100] == event_surface)
+	assert(is_equal_approx(effects.items[0]["age"], 0.15))
+	var offset: Array = effects.items[0]["screenOffset"]
+	assert(is_equal_approx(float(offset[0]), -6.3))
+	assert(is_equal_approx(float(offset[1]), -28 * 0.15 + 64 * (0.15 * 0.15 + 0.0125)))
+	effects.apply_frame({"clock": 10.15, "squaredSteps": 2.0125})
+	assert(effects.items.size() == 1, "ACK removal of event payload must preserve native lifetime")
+	for frame in range(2):
+		await process_frame
+	assert(is_equal_approx(effects.items[0]["age"], 0.15), "wall time never ages native effects")
+	effects.apply_frame({"clock": 11.0, "squaredSteps": 3.0, "events": [event]})
+	assert(effects.items.is_empty(), "expiry frees native event even while an old payload retries")
+	effects.apply_frame({"clock": 11.0, "squaredSteps": 3.0, "events": [event]})
+	assert(effects.items.is_empty(), "expired retry cannot resurrect the event")
+	var short_event := event.duplicate(true)
+	short_event["id"] = 101
+	short_event["retainedAge"] = 0.1
+	short_event["retainedSquared"] = 0.01
+	effects.apply_frame({"clock": 11.0, "events": [short_event]})
+	assert(effects.items.size() == 1 and is_equal_approx(effects.items[0]["age"], 0.1), "coalesced one-tick event retains one drawable delivery")
+	effects.apply_frame({"clock": 11.0, "events": [short_event]})
+	assert(effects.items.is_empty(), "repeated expired delivery is shown only once")
+	var live := event.duplicate(true)
+	live["id"] = 102
+	live["born"] = 11.0
+	effects.apply_frame({"clock": 11.0, "events": [live]})
+	assert(effects.items.size() == 1)
+	effects.apply_frame({"clock": 11.0, "generation": 1})
+	assert(effects.items.is_empty(), "combat cancellation clears native-owned effects without resetting combat clock")
+	effects.clear()
+	# Event and prior snapshot paths must produce identical effect dictionaries.
+	var impact_events := []
+	for style in ["spark", "sniperBlast", "flame", "frost", "lightning", "lightningBlast"]:
+		var duration := 0.36 if style in ["sniperBlast", "lightningBlast"] else 0.28
+		impact_events.append({"id": 200 + impact_events.size(), "kind": "impact", "style": style,
+			"born": 0.0, "bornSquared": 0.0, "duration": duration, "x": 5.0, "y": 5.0,
+			"tileSize": 48.0, "color": 0xffabcdef, "radius": 24.0})
+	effects.apply_frame({"clock": 0.0, "events": impact_events})
+	assert(effects.items.size() == 6 and effects._effect_nodes.size() == 4)
+	assert(not effects._effect_nodes.has(202) and not effects._effect_nodes.has(203))
+	var spark_surface: Node2D = effects._effect_nodes[200]
+	effects.apply_frame({"clock": 0.14})
+	assert(effects._effect_nodes[200] == spark_surface)
+	for item in effects.items:
+		assert(is_equal_approx(item["age"], 0.14))
+		var snapshot: Dictionary = impact_events[int(item["id"]) - 200].duplicate(true)
+		snapshot["age"] = 0.14
+		assert(effects.effect_transform(item).is_equal_approx(effects.effect_transform(snapshot)))
+	effects.apply_frame({"clock": 0.14, "events": impact_events})
+	assert(effects.items.size() == 6 and is_equal_approx(effects.items[0]["age"], 0.14))
+	effects.apply_frame({"clock": 0.28})
+	assert(effects.items.size() == 2)
+	assert(effects.items[0]["style"] == "sniperBlast" and effects.items[1]["style"] == "lightningBlast")
+	effects.apply_frame({"clock": 0.36, "events": impact_events})
+	assert(effects.items.is_empty())
+	effects.apply_frame({"clock": 0.36, "events": [{"id": 300, "kind": "impact", "style": "blast"}]})
+	assert(effects.items.is_empty(), "cannon blast retains its separate native pipeline")
+	# Mixed creation kinds share bounded retries and preserve draw order.
+	var mixed := []
+	for index in range(300):
+		var kind: String = ["impact", "damage", "death", "gem"][index % 4]
+		mixed.append({"id": 400 + index, "kind": kind, "style": "spark", "born": 0.36,
+			"bornSquared": 0.0, "duration": 0.75, "x": 5.0, "y": 5.0, "tileSize": 48.0})
+	effects.apply_frame({"clock": 0.36, "events": mixed})
+	assert(effects.items.size() == 256 and effects.items[0]["id"] == 444)
+	effects.apply_frame({"clock": 0.5, "events": mixed})
+	assert(effects.items.size() == 256 and is_equal_approx(effects.items[0]["age"], 0.14))
+	effects.apply_frame({"clock": 2.0})
+	assert(effects.items.is_empty() and effects._effect_nodes.is_empty())
+	effects.clear()
+	# Blast events share the reliable bounded journal but never the Canvas path.
+	var mixed_blasts := []
+	for index in range(300):
+		mixed_blasts.append({"id": 800 + index, "kind": "blast" if index % 2 == 0 else "gem",
+			"born": 0.0, "bornSquared": 0.0, "duration": 1.7, "x": 5.0, "y": 5.0,
+			"tileSize": 48.0, "radius": 72.0})
+	effects.apply_frame({"clock": 0.0, "events": mixed_blasts})
+	assert(effects._events.size() == 256 and effects.blast_impacts.size() == 128 and effects.items.size() == 128)
+	assert(effects._effect_nodes.size() == 128 and effects.blast_impacts[0][0] == 844)
+	effects.apply_frame({"clock": .425, "events": mixed_blasts})
+	assert(effects._events.size() == 256 and is_equal_approx(effects.blast_impacts[0][4], .25))
+	effects.apply_frame({"clock": 1.7})
+	assert(effects.blast_impacts.is_empty() and effects.items.is_empty())
+	var delayed := {"id": 1200, "kind": "blast", "born": 0.0, "bornSquared": 0.0,
+		"duration": .42, "retainedAge": .1, "tileSize": 48.0, "radius": 24.0}
+	effects.apply_frame({"clock": 2.0, "events": [delayed]})
+	assert(effects.blast_impacts.size() == 1 and is_equal_approx(effects.blast_impacts[0][4], .1 / .42))
+	effects.apply_frame({"clock": 2.0, "events": [delayed]})
+	assert(effects.blast_impacts.is_empty(), "coalesced expired blast draws at most one retained delivery sample")
+	effects.clear()
 	print("Battlefield effects: original ground/billboard transforms, anchor movement, additive gem passes, duplicate frame, pause, copy ownership, camera and all effect kinds passed")
 	quit(0)

@@ -33,6 +33,11 @@
 - 현행 Godot 성능 1차 진단: [2장 타일 작업량·프레임 전달 후보](analysis/godot_performance_20260913.md) — 현재 코드와 Android 에뮬레이터의 비전투 렌더 통계. 테스터 실기기 병목 확정과 구분한다.
 - Godot 최적화 전후 비교: [중복 처리·타일 렌더 작업과 남은 지연](analysis/godot_optimization_20260913.md) — release 에뮬레이터 A/B. Godot 렌더 FPS 개선과 Flutter raster 악화·긴 스파이크를 함께 기록하며 전체 앱·실기기 개선 확정과 구분한다.
 
+- 대포 폭발 수명 이관: [생성 이벤트와 기존 3D 폭발 연결](../design/stage1_3d/presentation_migration/blast_lifecycle/README.md) — 개별 수명·공용 시계·적용 확인·기존 GPU 표현 유지.
+- 착탄 수명 이관: [non-blast 착탄 생성 이벤트](../design/stage1_3d/presentation_migration/impact_lifecycle/README.md) — 별도 지원 확인·2D 복원·반복 갱신/전송 감소.
+- 정적 맵 전송 최적화: [적용 확인 후 맵 생략·복구](../design/stage1_3d/presentation_migration/map_transport/README.md) — 전송량·직렬화 CPU 측정, 맵 변경·재진입 계약.
+- 표시 전용 효과 수명 이관: [피해 숫자·사망 파편·젬 장착](../design/stage1_3d/presentation_migration/native_lifecycle/README.md) — Godot 생성 이벤트·공용 전투 시계, Flame 갱신 및 반복 전송 감소.
+
 - 전장 표시 현행 구조: [Godot 표시 통합 구현과 검증](godot_presentation_migration_plan.md) — labels·selection·effects의 표시 소유권, 적용 확인·이벤트 큐 계약, 단계별 구현 상태와 남은 검증. [실제 적용·검증 기록](../design/stage1_3d/presentation_migration/README.md). 실기기 p95/p99·발열 성능은 미검증이다.
 
 - 스테이지 1 질감·이펙트 개선: [밝기 보존·표면 재질·입체 효과 설계](stage1_surface_effects.md), [제작 원본과 적용 기록](../design/stage1_3d/surface_effects/README.md).

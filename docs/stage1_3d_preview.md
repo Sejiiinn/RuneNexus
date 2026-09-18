@@ -20,7 +20,13 @@ Android 본게임은 기존 `lib/main.dart → RuneNexusApp → GameHud` 진입�
 
 맵의 `theme`은 `MapDefinition.tileTheme.kind.name`을 전달한다. `chapterOne`과 `chapterTwoRift`를 구분하며, 필드가 없는 기존 입력은 1장으로 처리한다. 표시 프레임에만 추가되는 값이며 저장 형식은 변경하지 않는다.
 
-표시 계약 버전 2의 `sceneEpoch`·`viewportRevision`·크기·적용 sequence로 지연 응답과 이전 화면의 투영을 거절한다. viewport 크기는 Godot JSON 소수 반올림 오차 `1e-6` 미만만 허용한다. 짧은 효과는 생성 시 등록하고 최신 age를 유지하는 최대 256개 큐로 전달한다. 종료 효과는 적용 sequence 확인 또는 최대 2초 뒤 제거하며, 전투 판정이나 보상을 다시 실행하지 않는다. 코어 파괴 흔들림은 Godot world 변환으로 이관하고 라벨·선택도 같은 변환을 따른다. Flutter HUD·화면 피격 경고·전투/저장 로직은 유지한다. [현행 책임·구현과 남은 검증](godot_presentation_migration_plan.md)을 참고한다.
+대포 blast 이외의 착탄 효과도 별도 지원 확인 뒤 Godot 생성 이벤트로 전달한다. 기존 화염·냉기 3D 표현과 2D 착탄 억제는 유지한다. [착탄 수명 이관·검증](../design/stage1_3d/presentation_migration/impact_lifecycle/README.md).
+
+대포 폭발은 별도 `nativeBlastEffectEvents` 지원 확인 후 생성 이벤트로 전달하고 공용 전투 시계로 진행한다. 기존 3D 파편·체적 효과·광원·풀은 유지한다. [검증 기록](../design/stage1_3d/presentation_migration/blast_lifecycle/README.md).
+
+정적 맵은 `mapRevision`의 실제 적용 확인 뒤 반복 전송을 생략한다. 맵 변경·새 장면·캐시 복구 때 전체 맵을 다시 전달하며 기존 전체 맵 입력도 지원한다. [전송 최적화 측정·검증](../design/stage1_3d/presentation_migration/map_transport/README.md).
+
+표시 계약 버전 2의 `sceneEpoch`·`viewportRevision`·크기·적용 sequence로 지연 응답과 이전 화면의 투영을 거절한다. viewport 크기는 Godot JSON 소수 반올림 오차 `1e-6` 미만만 허용한다. 짧은 효과는 생성 시 등록하고 최신 age를 유지하는 최대 256개 큐로 전달한다. 종료 효과는 적용 sequence 확인 또는 최대 2초 뒤 제거하며, 전투 판정이나 보상을 다시 실행하지 않는다. 코어 파괴 흔들림은 Godot world 변환으로 이관하고 라벨·선택도 같은 변환을 따른다. Flutter HUD·화면 피격 경고·전투/저장 로직은 유지한다. [현행 책임·구현과 남은 검증](godot_presentation_migration_plan.md)을 참고한다. 피해 숫자·사망 파편·젬 장착은 후속 생성 이벤트 경로에서 Godot이 수명을 관리하며 해당 Flame 컴포넌트 등록과 반복 진행도 전송을 생략한다. 지원 확인 전과 2D 오류 복귀는 기존 경로를 유지한다. [이관 검증](../design/stage1_3d/presentation_migration/native_lifecycle/README.md).
 
 엔진은 전장을 처음 붙일 때 초기화하고, 화면 이탈·백그라운드에서는 정지하며 재진입 시 재사용한다. 장면 초기화 요청은 최신 프레임에 덮이지 않고 먼저 처리된다. 렌더러 초기화·실행 오류 시 로딩과 투영을 해제해 기존 2D 전장과 입력으로 복귀한다.
 
