@@ -8,6 +8,10 @@ static var _meshes: Dictionary = {}
 static var _materials: Dictionary = {}
 static var _flame_noise: NoiseTexture2D
 static var _material_time := -INF
+# Main flames/projectiles share one clock; muzzle tongues use time + 3.
+# Two bounded slots avoid invalidating each other as effects are updated.
+static var _animation_times: Array[float] = [-INF, -INF]
+static var _animation_poses: Array[Array] = [[], []]
 ## Local profiling switch; shipping/default behavior remains all.
 static var _diagnostic_mode := "all"
 static var _diagnostic_instances: Array[WeakRef] = []
@@ -141,7 +145,7 @@ func update_turret(port: Node3D, muzzle: Node3D, time: float) -> void:
 	var pulse := pow(maxf(0.0, 1.0 - age / FLASH_SECONDS), 0.65)
 	_muzzle_flame.global_transform = muzzle.global_transform.orthonormalized()
 	_muzzle_flame.rotate_object_local(Vector3.RIGHT, PI / 2.0)
-	_animate(_muzzle_tongues, time + 3.0, Vector3(0.045 + 0.075 * pulse, 0.14 + 0.31 * pulse, 0.045 + 0.075 * pulse))
+	_animate(_muzzle_tongues, time + 3.0, Vector3(0.045 + 0.075 * pulse, 0.14 + 0.31 * pulse, 0.045 + 0.075 * pulse), 1)
 	_advance(time)
 
 
@@ -209,16 +213,21 @@ func _advance(time: float) -> void:
 				_particle_tails[emitter] = maxf(0.0, remaining - residual)
 
 
-func _animate(tongues: Array[MeshInstance3D], time: float, size: Vector3) -> void:
+func _animate(tongues: Array[MeshInstance3D], time: float, size: Vector3, slot: int = 0) -> void:
+	var poses: Array = _animation_poses[slot]
+	if time != _animation_times[slot]:
+		poses.clear()
+		for index in range(5):
+			var phase := float(index) * 2.39996
+			var strength := 0.57 if index >= 3 else (1.0 if index == 0 else 0.78)
+			var sway := sin(time * 6.8 + phase)
+			var rotation := Vector3(sway * 0.10, phase + sin(time * 2.4 + phase) * 0.20, cos(time * 5.4 + phase) * 0.11)
+			var scale := strength * Vector3(1.0 + sway * 0.08, 1.0 + sin(time * 8.2 + phase) * 0.13, 1.0 - sway * 0.06)
+			poses.append(Transform3D(Basis.from_euler(rotation).scaled_local(scale), Vector3(sin(phase) * 0.13, 0, cos(phase) * 0.13)))
+		_animation_times[slot] = time
 	for index in range(tongues.size()):
-		var tongue := tongues[index]
-		var phase := float(index) * 2.39996
-		var inner := index >= 3
-		var strength := 0.57 if inner else (1.0 if index == 0 else 0.78)
-		var sway := sin(time * 6.8 + phase)
-		tongue.position = Vector3(sin(phase) * size.x * 0.13, 0, cos(phase) * size.z * 0.13)
-		tongue.rotation = Vector3(sway * 0.10, phase + sin(time * 2.4 + phase) * 0.20, cos(time * 5.4 + phase) * 0.11)
-		tongue.scale = size * strength * Vector3(1.0 + sway * 0.08, 1.0 + sin(time * 8.2 + phase) * 0.13, 1.0 - sway * 0.06)
+		var pose: Transform3D = poses[index]
+		tongues[index].transform = Transform3D(pose.basis.scaled_local(size), pose.origin * size)
 
 
 func _add_tongues(parent: Node3D) -> Array[MeshInstance3D]:

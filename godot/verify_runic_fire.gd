@@ -6,6 +6,7 @@ func _initialize() -> void:
 	call_deferred("_visual" if "--visual" in OS.get_cmdline_user_args() else "_verify")
 
 func _verify() -> void:
+	_verify_animation()
 	# 메시 외형은 실제 GLB 화면 검수에서 판정한다. 이 검사는 시계/재사용 계약이다.
 	# GLB가 없는 소스 전용 검사에서도 엔진 API 오류와 수명 계약을 검증한다.
 	if not ResourceLoader.exists(RunicFire.ASSET):
@@ -89,6 +90,44 @@ func _verify() -> void:
 		assert(emitter.emitting)
 	print("RunicFire particles / pause / wrap / seek / residual expiry / pool reuse: PASS")
 	quit()
+
+
+func _reference_animation(tongues: Array[MeshInstance3D], time: float, size: Vector3) -> void:
+	# Original per-node formula: protects Euler order and nonuniform local scale.
+	for index in range(tongues.size()):
+		var tongue := tongues[index]
+		var phase := float(index) * 2.39996
+		var strength := 0.57 if index >= 3 else (1.0 if index == 0 else 0.78)
+		var sway := sin(time * 6.8 + phase)
+		tongue.position = Vector3(sin(phase) * size.x * 0.13, 0, cos(phase) * size.z * 0.13)
+		tongue.rotation = Vector3(sway * 0.10, phase + sin(time * 2.4 + phase) * 0.20, cos(time * 5.4 + phase) * 0.11)
+		tongue.scale = size * strength * Vector3(1.0 + sway * 0.08, 1.0 + sin(time * 8.2 + phase) * 0.13, 1.0 - sway * 0.06)
+
+
+func _verify_animation() -> void:
+	var effect := RunicFire.new()
+	var actual: Array[MeshInstance3D] = []
+	var expected: Array[MeshInstance3D] = []
+	for index in range(5):
+		actual.append(MeshInstance3D.new())
+		expected.append(MeshInstance3D.new())
+	# Alternate slots, then revisit the same clock with different pulse sizes.
+	# Backward seek, wrap, pause, and nonuniform scales retain the old poses.
+	for time in [0.0, 0.016, 5.0, 5.0, 1199.99, 0.01, 20.0, 3.0]:
+		for size in [Vector3(0.28, 0.35, 0.28), Vector3(0.12, 0.30, 0.12), Vector3(0.045, 0.14, 0.045), Vector3(0.12, 0.45, 0.12), Vector3(0.17, 0.39, 0.23)]:
+			for slot in [0, 1, 0]:
+				var clock: float = time + slot * 3.0
+				effect._animate(actual, clock, size, slot)
+				_reference_animation(expected, clock, size)
+				for index in range(5):
+					assert(actual[index].transform.is_equal_approx(expected[index].transform), "Flame pose differs from original formula")
+	assert(RunicFire._animation_poses.size() == 2)
+	for poses in RunicFire._animation_poses:
+		assert(poses.size() == 5)
+	for node in actual + expected:
+		node.free()
+	effect.free()
+	print("RunicFire cached transforms / interleaved clocks: PASS")
 
 
 func _visual() -> void:
