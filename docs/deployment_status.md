@@ -5,6 +5,15 @@
 이 문서는 마지막 검증 이력이며 실시간 운영 상태가 아니다. 배포 대상의 실제 공개 버전·커밋과
 서버 실행 이미지·DB 버전을 확인한다.
 
+
+## 2026-09-19 본게임 APK 0.1.17 / code 6026 배포
+
+- 대상 `af4572a1f233e66519b66f2f3b89600220fb3121`. [workflow](https://github.com/Sejiiinn/RuneNexus/actions/runs/35427499439) 성공, [공개 release](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6026) 대상 커밋 일치. Android만 배포했으며 웹·서버·DB는 변경하지 않았다.
+- 탄환·선택 표시 이관, 화염 MultiMesh, 작은 고정/드론 전환 버튼과 직전 공개 이후 커밋된 변경 포함. 로컬 검사는 반복하지 않았고 CI 필수 검사·서명 빌드·패치 디코더·차등 복원 절차가 통과했다.
+- 공개 APK 431,153,832 bytes, SHA-256 `54cd114d037fe37bb84e47d6760c272ce2ea034d3fc979f85889b6b4d4d4b12e`. 6025 대비 +15,138,296 bytes (+3.64%). ZIP 증가 대부분은 Godot PCK +15,089,144 bytes, armeabi-v7a libapp.so +49,152 bytes. ABI 3종 유지, design/ 제작 파일 포함 없음.
+- PCK 105,955,300 bytes·275항목·완전 중복 0 bytes. 공개 APK·6023/6024/6025 패치의 실제 다운로드 크기·SHA-256 확인 PASS. latest와 버전별 update.json 바이트 일치. 6025 패치는 111,340,276 bytes.
+- 근거: `build/release-verification/apk-6026/`의 release.json·verification.json·audit와 공개 파일. 배포 APK의 실기기 설치/로그인은 별도 수행하지 않았다. 기존 로컬 Android UI 검증과 에뮬레이터 FPS 측정을 실기기 성능 통과로 간주하지 않는다.
+
 ## 2026-09-15 본게임 APK 0.1.16 / code 6025 배포
 
 - 대상 커밋: `7d29895c8c15439a5a35b96eeff0911840798779`. [APK workflow 34907234097](https://github.com/Sejiiinn/RuneNexus/actions/runs/34907234097) 전체 성공. [공개 release apk-6025](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6025)의 태그 커밋도 일치한다.
