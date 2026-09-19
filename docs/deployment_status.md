@@ -6,6 +6,15 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-09-20 업데이트 단일 버튼 APK 0.1.19 / code 6028, 웹 배포
+
+- 대상 `5a1af6627fdf2941aada9cd107251ceb3b900206`. [APK workflow](https://github.com/Sejiiinn/RuneNexus/actions/runs/35462929856)·[웹 workflow](https://github.com/Sejiiinn/RuneNexus/actions/runs/35462931146) 성공, [공개 release](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6028) 커밋 일치. 공개 웹 주요 파일 HTTP 200 및 빌드 SHA 확인. API·DB 추가 변경 없음.
+- 서버 업데이트 요구 안내의 로그아웃을 단일 `업데이트하기`로 교체하고 기존 다운로드·설치 경로로 연결했다. 계정·저장 및 마운트된 게임 상태를 유지한다. 실패 시 같은 버튼을 `다시 시도`로 표시하고, 서버 필수 판정이면 선택 manifest에서도 건너뛰지 못한다. 웹은 페이지 새로고침으로 연결한다.
+- 선택 배포 `required_update=false`, 공개 최신 코드 6028·최소 지원 코드 6027 유지. 기존 APK 화면을 원격 교체한 것은 아니며 서버 응답이 기존 안내를 표시한 것이었다. 새 버튼은 새 APK 설치 후 적용된다.
+- 관련 테스트 23개·analyze·웹 빌드/Wasm dry-run 통과. CI 전체 검사·서명 및 최근 3개 APK 차등 복원 통과. 일반 `lib/main.dart` Android 검수 빌드에서 필수 안내와 다운로드 실패 상태를 직접 확인했다. 버튼 하나·재시도·잘림/겹침 없음. 계정·저장 파일은 동일하고 디버그 코드/프로파일 캐시만 바뀌었다. 검수용 versionCode 6026과 공개 manifest 6027로 재현했으며 실제 서버 차단→gate 전환은 자동 테스트로 확인했다. 근거 `build/update-action-validation/`. 공개 APK 실기기 설치·로그인 및 웹 reload 실브라우저 조작은 별도 미검증이다.
+- 실제 공개 APK 431,317,704 bytes, SHA-256 `3ca0dd20219c21cab056d0ce78cc2be58ce88111d4b508b49982149c2b3319f1`. 6027 대비 +16 bytes(+0.00%), Godot PCK 105,955,332 bytes·275항목·완전 중복 0 bytes. ABI 3종 유지, design 제작 파일·Flutter 원본 GLB 없음.
+- 공개 APK·6025/6026/6027 패치 4개 실제 다운로드 크기·SHA-256 통과. latest/버전별 manifest 바이트 일치와 최소 지원 6027 유지 확인. 6027 패치 114,167,117 bytes. 근거 `build/release-verification/apk-6028/`의 release·verification·web-verification·CI audit.
+
 ## 2026-09-20 성장 조정·필수 업데이트 APK 0.1.18 / code 6027, 웹·API 배포
 
 - 대상 `f7ca3d47897c2e3613aa5c914c0d6631c9bca522`. [APK workflow](https://github.com/Sejiiinn/RuneNexus/actions/runs/35461936191)·[웹 workflow](https://github.com/Sejiiinn/RuneNexus/actions/runs/35461937928) 성공, [공개 release](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6027) 대상 커밋 일치. 공개 웹의 주요 파일 HTTP 200과 빌드 SHA·운영 API 주소를 확인했다.
