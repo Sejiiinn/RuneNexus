@@ -1,11 +1,36 @@
 import 'dart:async';
 
 import 'package:rune_nexus/app/app_startup_screen.dart';
+import 'package:rune_nexus/app/app_update_gate.dart';
 import 'package:rune_nexus/platform/update/app_update_service.dart';
 
 import 'helpers/widget_test_helpers.dart';
 
 void main() {
+  testWidgets('본 앱의 저장 화면 context에서 필수 업데이트로 이동해도 게임과 저장소를 유지한다', (
+    tester,
+  ) async {
+    final service = _ServerRequiredUpdateService();
+    final repository = _CountingSaveRepository();
+    final game = RuneNexusGame(saveRepository: repository);
+    await tester.pumpWidget(RuneNexusApp(game: game, updateService: service));
+    await pumpUntilLoadedApp(tester);
+    final gameContext = tester.element(find.byType(MainMenuScreen));
+    final originalMenu = tester.state(find.byType(MainMenuScreen));
+    expect(repository.loads, 1);
+    await AppUpdateGate.requireUpdate(gameContext);
+    await tester.pump();
+    expect(service.installs, 1);
+    expect(find.text('현재 버전으로 계속'), findsNothing);
+    expect(find.text('설치 계속'), findsOneWidget);
+    expect(repository.loads, 1);
+    expect(
+      tester.state(find.byType(MainMenuScreen, skipOffstage: false)),
+      same(originalMenu),
+    );
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   for (final updateAvailable in [false, true]) {
     testWidgets(
       updateAvailable
@@ -77,5 +102,34 @@ class _CountingSaveRepository extends MemorySaveRepository {
   Future<GameSaveData?> load() {
     loads++;
     return super.load();
+  }
+}
+
+class _ServerRequiredUpdateService extends AppUpdateService {
+  int checks = 0;
+  int installs = 0;
+  @override
+  bool isRequired(AppUpdateRelease release) => false;
+  @override
+  Future<AppUpdateRelease?> check() async => ++checks == 1
+      ? null
+      : AppUpdateRelease(
+          versionCode: 2,
+          versionName: '0.2.0',
+          packageName: 'com.example.rune_nexus',
+          apkUrl: Uri.parse('https://example.com/update.apk'),
+          sha256: 'a' * 64,
+          sizeBytes: 1024,
+          notes: '',
+        );
+  @override
+  Future<void> download(
+    AppUpdateRelease release, {
+    ValueChanged<AppUpdateTransfer>? onTransferChanged,
+  }) async {}
+  @override
+  Future<String> install(AppUpdateRelease release) async {
+    installs++;
+    return 'installerOpened';
   }
 }

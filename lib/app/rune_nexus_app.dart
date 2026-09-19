@@ -1692,9 +1692,7 @@ class _RuneNexusAppState extends State<RuneNexusApp>
                       children: [
                         IgnorePointer(child: content),
                         _ClientUpdateRequiredOverlay(
-                          onSignOut: _onlineSession == null
-                              ? null
-                              : () => _signOut(context),
+                          onUpdate: () => AppUpdateGate.requireUpdate(context),
                         ),
                       ],
                     );
@@ -1745,9 +1743,9 @@ class _RuneNexusAppState extends State<RuneNexusApp>
 }
 
 class _ClientUpdateRequiredOverlay extends StatelessWidget {
-  const _ClientUpdateRequiredOverlay({required this.onSignOut});
+  const _ClientUpdateRequiredOverlay({required this.onUpdate});
 
-  final VoidCallback? onSignOut;
+  final VoidCallback onUpdate;
 
   @override
   Widget build(BuildContext context) {
@@ -1773,15 +1771,12 @@ class _ClientUpdateRequiredOverlay extends StatelessWidget {
                   l10n.clientUpdateRequiredDescription,
                   style: GameTextStyles.body,
                 ),
-                if (onSignOut != null) ...[
-                  const SizedBox(height: 16),
-                  GameButton(
-                    onPressed: onSignOut,
-                    label: l10n.signOut,
-                    icon: const Icon(Icons.logout_rounded, size: 17),
-                    variant: GameButtonVariant.ghost,
-                  ),
-                ],
+                const SizedBox(height: 16),
+                GameButton(
+                  onPressed: onUpdate,
+                  label: '업데이트하기',
+                  icon: const Icon(Icons.system_update_rounded, size: 17),
+                ),
               ],
             ),
           ),

@@ -457,8 +457,8 @@ class RuneNexusLocalizations {
   String get clientUpdateRequiredTitle =>
       _isEnglish ? 'Update required' : '게임 업데이트가 필요합니다';
   String get clientUpdateRequiredDescription => _isEnglish
-      ? 'Account play and cloud saves are paused to protect your progress. Install the latest app version, or refresh the web page, and try again.'
-      : '계정 진행을 보호하기 위해 플레이와 클라우드 저장을 중지했습니다. 최신 앱을 설치하거나 웹 페이지를 새로고침한 뒤 다시 시도해 주세요.';
+      ? 'Your account and saved progress are preserved. Update to the latest version to continue playing.'
+      : '계정과 저장된 진행은 그대로 유지됩니다. 계속 플레이하려면 최신 버전으로 업데이트해 주세요.';
   String get accountNotActive => _isEnglish
       ? 'This account is currently unavailable.'
       : '현재 사용할 수 없는 계정입니다.';

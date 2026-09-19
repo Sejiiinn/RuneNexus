@@ -192,8 +192,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('다시 확인'));
-    await tester.tap(find.text('다시 확인'));
+    await tester.ensureVisible(find.text('다시 시도'));
+    await tester.tap(find.text('다시 시도'));
     await tester.pumpAndSettle();
     expect(checks, 2);
     expect(find.text('현재 버전으로 계속'), findsNothing);

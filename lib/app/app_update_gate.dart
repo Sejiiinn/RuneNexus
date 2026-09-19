@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../platform/update/app_update_service.dart';
+import '../platform/update/app_update_reload_stub.dart'
+    if (dart.library.js_interop) '../platform/update/app_update_reload_web.dart';
 import '../ui/game/game_palette.dart';
 import 'app_startup_screen.dart';
 
@@ -13,6 +15,11 @@ class AppUpdateGate extends StatefulWidget {
     this.enabled = true,
     super.key,
   });
+
+  /// 서버가 요구한 업데이트는 manifest의 선택 여부와 무관하게 완료해야 한다.
+  static Future<void> requireUpdate(BuildContext context) => context
+      .findAncestorStateOfType<_AppUpdateGateState>()!
+      ._startRequiredUpdate();
 
   final Widget child;
   final AppUpdateService? service;
@@ -26,7 +33,8 @@ class _AppUpdateGateState extends State<AppUpdateGate>
     with WidgetsBindingObserver {
   late final AppUpdateService _service = widget.service ?? AppUpdateService();
   AppUpdateRelease? _release;
-  bool _checking = true;
+  bool _checking = false;
+  bool _serverRequired = false;
   bool _busy = false;
   bool _downloaded = false;
   bool _continue = false;
@@ -55,12 +63,22 @@ class _AppUpdateGateState extends State<AppUpdateGate>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed &&
-        widget.enabled &&
+        (widget.enabled || _serverRequired) &&
         !_checking &&
         !_busy) {
       _check();
     }
   }
+
+  Future<void> _startRequiredUpdate() async {
+    if (_busy || _checking) return;
+    setState(() => _serverRequired = true);
+    await _check();
+    if (mounted && _release != null && _error == null) await _update();
+  }
+
+  bool _isRequired(AppUpdateRelease release) =>
+      _serverRequired || _service.isRequired(release);
 
   Future<void> _check() async {
     final previousRelease = _release;
@@ -71,6 +89,12 @@ class _AppUpdateGateState extends State<AppUpdateGate>
       _error = null;
     });
     try {
+      if (_serverRequired &&
+          widget.service == null &&
+          !AppUpdateService.enabled) {
+        if (reloadForAppUpdate()) return;
+        throw UnsupportedError('automatic_update_unavailable');
+      }
       final release = await _service.check();
       if (!mounted) return;
       setState(() {
@@ -81,11 +105,18 @@ class _AppUpdateGateState extends State<AppUpdateGate>
           _transfer = null;
           _installMessage = null;
         }
-        _continue = release == null;
+        _continue = release == null && !_serverRequired;
+        if (release == null && _serverRequired) {
+          _error = '서버에서 새 버전을 요구하고 있습니다. 업데이트 배포를 확인하지 못했으니 잠시 후 다시 시도해 주세요.';
+        }
       });
-    } on Object {
+    } on Object catch (error) {
       if (!mounted) return;
-      setState(() => _error = '업데이트 정보를 확인하지 못했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.');
+      setState(
+        () => _error = error is UnsupportedError
+            ? '이 환경에서는 자동 업데이트를 지원하지 않습니다. 계정과 저장 데이터는 유지됩니다. 최신 배포본으로 업데이트해 주세요.'
+            : '업데이트 정보를 확인하지 못했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.',
+      );
     } finally {
       if (mounted) setState(() => _checking = false);
     }
@@ -165,8 +196,10 @@ class _AppUpdateGateState extends State<AppUpdateGate>
               ? '변경분을 적용하지 못해 전체 앱을 다운로드하는 중'
               : '업데이트를 다운로드하고 확인하는 중'
         : release == null
-        ? '업데이트 확인'
-        : _service.isRequired(release)
+        ? _serverRequired
+              ? '필수 업데이트가 있습니다'
+              : '업데이트 확인'
+        : _isRequired(release)
         ? '필수 업데이트가 있습니다'
         : '새 버전이 있습니다';
     return AppStartupScreen(
@@ -179,7 +212,7 @@ class _AppUpdateGateState extends State<AppUpdateGate>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (release != null) ...[
-                  if (_service.isRequired(release))
+                  if (_isRequired(release))
                     const Padding(
                       padding: EdgeInsets.only(bottom: 12),
                       child: Text(
@@ -218,15 +251,21 @@ class _AppUpdateGateState extends State<AppUpdateGate>
                   onPressed: _busy
                       ? null
                       : release == null
-                      ? _check
+                      ? _serverRequired
+                            ? _startRequiredUpdate
+                            : _check
                       : _update,
-                  label: release == null
-                      ? '다시 확인'
+                  label: _error != null
+                      ? '다시 시도'
+                      : release == null
+                      ? '다시 시도'
                       : _downloaded
                       ? '설치 계속'
+                      : _isRequired(release)
+                      ? '업데이트하기'
                       : '업데이트',
                 ),
-                if (release != null && !_service.isRequired(release)) ...[
+                if (release != null && !_isRequired(release)) ...[
                   const SizedBox(height: 10),
                   AppStartupButton(
                     primary: false,

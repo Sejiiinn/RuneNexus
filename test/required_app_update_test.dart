@@ -103,8 +103,8 @@ void main() {
       tester.state(find.byType(_StatefulGame, skipOffstage: false)),
       same(originalState),
     );
-    await tester.ensureVisible(find.text('업데이트'));
-    await tester.tap(find.text('업데이트'));
+    await tester.ensureVisible(find.text('업데이트하기'));
+    await tester.tap(find.text('업데이트하기'));
     await tester.pumpAndSettle();
     expect(installs, 1);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
@@ -160,13 +160,138 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('현재 버전으로 계속'), findsNothing);
       expect(find.text('Count 0'), findsNothing);
-      await tester.ensureVisible(find.text('다시 확인'));
-      await tester.tap(find.text('다시 확인'));
+      await tester.ensureVisible(find.text('다시 시도'));
+      await tester.tap(find.text('다시 시도'));
       await tester.pumpAndSettle();
       expect(find.text('현재 버전으로 계속'), findsNothing);
       expect(find.text('Count 0'), findsNothing);
     },
   );
+
+  testWidgets('서버 필수 업데이트는 선택 manifest도 즉시 설치하고 실패 시 단일 재시도한다', (tester) async {
+    var failDownload = true;
+    var downloads = 0;
+    var installs = 0;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (
+      call,
+    ) async {
+      switch (call.method) {
+        case 'getInstalledVersion':
+          return {'versionCode': 1, 'packageName': 'com.example.rune_nexus'};
+        case 'downloadUpdate':
+          downloads++;
+          if (failDownload) throw PlatformException(code: 'offline');
+          return null;
+        case 'installUpdate':
+          installs++;
+          return 'permissionRequired';
+      }
+      return null;
+    });
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        channel,
+        null,
+      ),
+    );
+    var available = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AppUpdateGate(
+          service: AppUpdateService(
+            manifestUrl: 'https://example.com/update.json',
+            readManifest: (_) async =>
+                jsonEncode(manifest(version: available ? 3 : 1)),
+          ),
+          child: Builder(
+            builder: (context) => Column(
+              children: [
+                const _StatefulGame(),
+                TextButton(
+                  onPressed: () => AppUpdateGate.requireUpdate(context),
+                  child: const Text('서버 업데이트'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Count 0'));
+    await tester.pump();
+    final original = tester.state(find.byType(_StatefulGame));
+    available = true;
+    await tester.tap(find.text('서버 업데이트'));
+    await tester.pumpAndSettle();
+    expect(downloads, 1);
+    expect(installs, 0);
+    expect(find.text('필수 업데이트가 있습니다'), findsOneWidget);
+    expect(find.text('현재 버전으로 계속'), findsNothing);
+    expect(find.text('다시 확인'), findsNothing);
+    expect(find.text('다시 시도'), findsOneWidget);
+    expect(find.byType(FilledButton), findsOneWidget);
+    expect(
+      tester.state(find.byType(_StatefulGame, skipOffstage: false)),
+      same(original),
+    );
+    failDownload = false;
+    await tester.ensureVisible(find.text('다시 시도'));
+    await tester.tap(find.text('다시 시도'));
+    await tester.pumpAndSettle();
+    expect(downloads, 2);
+    expect(installs, 1);
+    expect(find.text('설치 계속'), findsOneWidget);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(find.text('현재 버전으로 계속'), findsNothing);
+    await tester.ensureVisible(find.text('설치 계속'));
+    await tester.tap(find.text('설치 계속'));
+    await tester.pumpAndSettle();
+    expect(downloads, 2);
+    expect(installs, 2);
+    // 서버 요구가 manifest 반영보다 먼저 도착해도 게임으로 복귀하지 않는다.
+    available = false;
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+    expect(find.text('Count 1'), findsNothing);
+    expect(find.text('다시 시도'), findsOneWidget);
+    expect(find.text('현재 버전으로 계속'), findsNothing);
+    expect(
+      tester.state(find.byType(_StatefulGame, skipOffstage: false)),
+      same(original),
+    );
+    available = true;
+    await tester.ensureVisible(find.text('다시 시도'));
+    await tester.tap(find.text('다시 시도'));
+    await tester.pumpAndSettle();
+    expect(installs, 3);
+  });
+
+  testWidgets('자동 업데이트 미지원 환경도 계정 화면을 보존하고 필수 차단한다', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AppUpdateGate(
+          enabled: false,
+          child: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => AppUpdateGate.requireUpdate(context),
+              child: const Text('서버 업데이트'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('서버 업데이트'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('이 환경에서는 자동 업데이트를 지원하지 않습니다.'), findsOneWidget);
+    expect(find.text('다시 시도'), findsOneWidget);
+    expect(find.text('현재 버전으로 계속'), findsNothing);
+    expect(find.text('서버 업데이트', skipOffstage: false), findsOneWidget);
+  });
 
   for (final installed in [1, 2]) {
     testWidgets(
@@ -213,8 +338,8 @@ void main() {
         if (installed == 1) {
           expect(find.text('필수 업데이트가 있습니다'), findsOneWidget);
           expect(find.text('현재 버전으로 계속'), findsNothing);
-          await tester.ensureVisible(find.text('업데이트'));
-          await tester.tap(find.text('업데이트'));
+          await tester.ensureVisible(find.text('업데이트하기'));
+          await tester.tap(find.text('업데이트하기'));
           await tester.pumpAndSettle();
           expect(installs, 1);
           expect(find.text('게임 진입'), findsNothing);
