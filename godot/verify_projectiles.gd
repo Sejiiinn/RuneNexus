@@ -54,6 +54,65 @@ func _verify_cannon_asset(cannon: Node3D) -> void:
 	second.free()
 
 
+func _verify_events(scene: Node3D, frame: Dictionary) -> void:
+	var launch := [2001, 5.0, 4.5, 1.0, 0.0, "arrow", 4.0, 4.5, 701, 1, true, -1.0, null, null]
+	var packet := {"generation": 1, "clock": 10.0, "events": [{"event": 1, "data": launch, "clock": 10.0, "speed": 2.0, "remaining": 3.0}]}
+	frame["projectiles"] = []
+	frame["projectileEvents"] = packet
+	frame["time"] = 10.0
+	scene._apply_frame(frame)
+	var flight: Node3D = scene.projectiles[2001]["root"]
+	packet["clock"] = 11.0
+	scene._apply_frame(frame)
+	_check(is_equal_approx(flight.position.x + scene.columns / 2.0, 7.0), "이벤트 탄환의 전투시계 이동 불일치")
+	var frozen := flight.position
+	frame["time"] = 10.1
+	scene._apply_frame(frame)
+	_check(flight.position == frozen, "시각 시계만 진행했는데 탄환 이동")
+	packet["clock"] = 14.0
+	packet["events"] = []
+	scene._apply_frame(frame)
+	_check(is_equal_approx(flight.position.x + scene.columns / 2.0, 8.0), "최대거리 초과 이동")
+	var finished := launch.duplicate()
+	finished[1] = 7.3
+	finished[11] = 10.1
+	finished[12] = 7.4
+	finished[13] = 4.5
+	packet["events"] = [{"event": 2, "data": finished, "clock": 14.0, "speed": 0.0}]
+	scene._apply_frame(frame)
+	_check(not flight.body.visible and is_equal_approx(flight.position.x + scene.columns / 2.0, 7.4), "종료 이벤트가 Flame 피격 좌표/탄체 종료를 보존하지 않음")
+	frame["time"] = 10.25
+	scene._apply_frame(frame)
+	_check(scene.projectiles.is_empty(), "종료 이벤트 재전송으로 탄환 부활")
+	packet["generation"] = 2
+	packet["events"] = [{"event": 3, "data": launch, "clock": 14.0, "speed": 2.0}]
+	scene._apply_frame(frame)
+	_check(scene.projectiles.size() == 1, "세대 재시드 실패")
+	frame["projectileEvents"] = {"generation": 1, "clock": 0.0, "events": []}
+	scene._apply_frame(frame)
+	_check(scene.projectiles.size() == 1, "지연된 이전 세대가 현재 비행을 지움")
+	frame["projectileEvents"] = packet
+	packet["events"] = [{"event": 4, "remove": 2001}]
+	scene._apply_frame(frame)
+	_check(scene.projectiles.is_empty(), "강제 제거 이벤트 잔류")
+	frame.erase("projectileEvents")
+	for type in ["sniper", "frost"]:
+		frame["projectiles"] = [[3001, 5.0, 4.5, 1.0, 0.0, type], [3002, 6.0, 4.5, 1.0, 0.0, type]]
+		scene._apply_frame(frame)
+		var first: Node3D = scene.projectiles[3001]["root"]
+		var second: Node3D = scene.projectiles[3002]["root"]
+		_check(first.get_child(0).mesh == second.get_child(0).mesh, "일반 탄환의 공유 메시가 복제됨")
+		var instance_id := second.get_instance_id()
+		frame["projectiles"] = []
+		scene._apply_frame(frame)
+		_check(not first.visible and not second.visible, "풀 반환 탄환 잔류")
+		frame["projectiles"] = [[3003, 7.0, 4.5, 0.0, 1.0, type]]
+		scene._apply_frame(frame)
+		_check(scene.projectiles[3003]["root"].get_instance_id() == instance_id and second.visible, "일반 탄환 풀 재사용 실패")
+		frame["projectiles"] = []
+		scene._apply_frame(frame)
+
+
 func _verify() -> void:
 	var scene: Node3D = load("res://main.tscn").instantiate()
 	root.add_child(scene)
@@ -141,9 +200,10 @@ func _verify() -> void:
 	frame["projectiles"] = []
 	scene._apply_frame(frame)
 	_check(scene._ballistic_pool["arrow"].size() == 64, "발사 수에 따라 숨긴 탄환 모델이 무한히 쌓임")
+	_verify_events(scene, frame)
 	var pooled: WeakRef = weakref(scene._ballistic_pool["arrow"][0])
 	scene._clear_scene()
-	_check(pooled.get_ref() == null and scene._ballistic_pool["arrow"].is_empty() and scene._ballistic_pool["cannon"].is_empty(), "전장 초기화 시 탄환 재사용 풀 잔류")
+	_check(pooled.get_ref() == null and scene._ballistic_pool["arrow"].is_empty() and scene._ballistic_pool["cannon"].is_empty() and scene._generic_projectile_pool["sniper"].is_empty() and scene._generic_projectile_pool["frost"].is_empty(), "전장 초기화 시 탄환 재사용 풀 잔류")
 	print("Projectile verification: %d failures; arrow unchanged, round cannonball, terminal hit, muzzle, 140ms fade, wrap, chain origin, bounded reuse, cleanup" % failures)
 	scene.queue_free()
 	await process_frame

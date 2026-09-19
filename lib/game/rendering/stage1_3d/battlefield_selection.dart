@@ -6,6 +6,7 @@ class BattlefieldSelection {
     required this.logicalTileSize,
     required this.visualScale,
     required this.time,
+    this.clock = 0,
     required this.rewardTargeting,
     this.rewardViewport,
     Iterable<BattlefieldTurretSelection> turrets = const [],
@@ -18,6 +19,7 @@ class BattlefieldSelection {
   final double logicalTileSize;
   final double visualScale;
   final double time;
+  final double clock;
   final bool rewardTargeting;
   final Rect? rewardViewport;
   final List<BattlefieldTurretSelection> turrets;
@@ -51,6 +53,8 @@ class BattlefieldTurretSelection {
     required this.selected,
     this.previewRange,
     required this.auraTier,
+    this.level,
+    this.phaseOrigin,
     required this.animationPhase,
     Iterable<Color> gemColors = const [],
     this.aimTarget,
@@ -62,6 +66,8 @@ class BattlefieldTurretSelection {
   final bool selected;
   final double? previewRange;
   final int auraTier;
+  final int? level;
+  final double? phaseOrigin;
   final double animationPhase;
   final List<Color> gemColors;
   final Offset? aimTarget;

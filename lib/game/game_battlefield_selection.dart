@@ -13,6 +13,7 @@ extension _BattlefieldSelectionPresentation on RuneNexusGame {
       logicalTileSize: _tileSize,
       visualScale: boardDistanceScale,
       time: _spaceTime,
+      clock: battlefieldEffectCombatClock,
       rewardTargeting: isGemRewardTargeting,
       rewardViewport: _gemRewardBoardViewport,
       turrets: [
@@ -36,7 +37,11 @@ extension _BattlefieldSelectionPresentation on RuneNexusGame {
                           : 1) /
                       _tileSize
                 : null,
-            auraTier: turret.level <= 1
+            level: turret.level,
+            phaseOrigin: turret.visualGemRingPhaseOrigin,
+            auraTier: usesNativeSelectionAnimation
+                ? 0
+                : turret.level <= 1
                 ? 0
                 : turret.level >= 10
                 ? 4
@@ -45,7 +50,9 @@ extension _BattlefieldSelectionPresentation on RuneNexusGame {
                 : turret.level >= 5
                 ? 2
                 : 1,
-            animationPhase: turret.visualGemRingPhase,
+            animationPhase: usesNativeSelectionAnimation
+                ? 0
+                : turret.visualGemRingPhase,
             gemColors: turret.equippedGems
                 .take(turret.maxSlotLimit)
                 .map(colorForGem),

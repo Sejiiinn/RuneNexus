@@ -1,0 +1,5 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+RuneNexus Godot scene ready; Space: impacts, C: camera, S: shadows, V: volume
+MultiMesh readback unavailable in dummy renderer; hidden/reset parent state verified
+Projectile verification: 0 failures; arrow unchanged, round cannonball, terminal hit, muzzle, 140ms fade, wrap, chain origin, bounded reuse, cleanup

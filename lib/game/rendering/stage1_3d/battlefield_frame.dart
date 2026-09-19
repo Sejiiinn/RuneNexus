@@ -24,6 +24,7 @@ class BattlefieldFrame {
     this.buildPreview,
     this.impacts = const [],
     this.finishedProjectiles = const [],
+    this.projectileEvents,
     this.labels,
     this.effects,
     this.selection,
@@ -37,6 +38,7 @@ class BattlefieldFrame {
   final List<BattlefieldEnemy> enemies;
   final List<BattlefieldProjectile> projectiles;
   final List<BattlefieldProjectile> finishedProjectiles;
+  final Map<String, Object?>? projectileEvents;
   final List<BattlefieldImpact> impacts;
   final double time;
   final double pixelsPerTile;

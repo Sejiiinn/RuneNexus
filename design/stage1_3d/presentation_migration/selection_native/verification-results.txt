@@ -1,0 +1,21 @@
+Selection migration verification (2026-09-19)
+
+Dart command:
+scripts/in_app_server_macos.sh flutter test test/godot_battlefield_selection_transport_test.dart test/native_selection_animation_test.dart test/battlefield_selection_test.dart test/stage1_battlefield_presentation_test.dart
+Result: 8 tests passed. Full output: flutter-tests.log
+One-turret fixture JSON UTF-8 bytes: legacy selection=331; ACKed dynamic selection=61.
+This is selection payload only, not whole-frame traffic or FPS.
+
+Godot executable: build/godot-preview/tools/Godot.app/Contents/MacOS/Godot (4.7.2)
+Commands used isolated project build/godot/selection-check:
+--headless --path build/godot/selection-check --script res://verify_selection_lifecycle.gd
+Observed: Selection lifecycle verification failures: 0
+--headless --path build/godot/selection-check --script res://verify_battlefield_selection.gd
+Observed: Battlefield selection verification: 0 failures; exact silhouette, shared meshes, camera, reward clip, lifecycle
+--headless --path build/godot/selection-check --script res://verify_range_projection_cache.gd
+Observed: RANGE_CACHE_TEST PASS checks=728 failures=0
+Existing range cache timing is not a measurement of this change.
+
+Limits: no new GPU rendering design; Android final visual verification belongs to parent integration.
+Static DTO collection/comparison still occurs in Dart. Combat aim coordinates and aim progress remain authoritative there.
+Shared combat clock is monotonic across effect cancellation/scene changes; new game uses a new clock and full epoch state.

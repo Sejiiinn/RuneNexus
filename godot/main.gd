@@ -70,6 +70,7 @@ var _presentation_nodes := {"labels": BattlefieldLabels.new(), "selection": Batt
 var _applied_groups: Array = []
 var enemies := {}
 var projectiles := {}
+var _projectile_events = preload("res://effects/projectile_events.gd").new()
 var impacts := {}
 var impact_pool: Array[Node3D] = []
 var impact_lights: Array[OmniLight3D] = []
@@ -136,6 +137,7 @@ var _build_preview := {}
 var _projectile_meshes := {}
 var _ballistic_pool := {"arrow": [], "cannon": []}
 var _fire_projectile_pool: Array[Node3D] = []
+var _generic_projectile_pool := {"sniper": [], "frost": []}
 
 
 func _ready() -> void:
@@ -701,7 +703,7 @@ func _update_camera_envelope() -> void:
 	# 포구 연기는 총구에서 최대 0.37 전진 + 반길이 0.35, 위로 0.17 + 반폭 0.22.
 	# 1타일 여유는 포구 화염·반동·건설 미리보기의 0.12 부유도 포함한다.
 	var actor := AABB(_camera_actor_bounds.position * _camera_enemy_scale, _camera_actor_bounds.size * _camera_enemy_scale).grow(1.0)
-	# 1.10타일 예광과 포탄 코끝을 포함. 폭발은 godot_impact.gd의 전체 입자 AABB.
+	# 1.35타일 예광과 포탄 코끝을 포함. 폭발은 godot_impact.gd의 전체 입자 AABB.
 	var horizontal := maxf(1.35, maxf(actor.end.x, 5.0 * _camera_impact_radius))
 	var low := minf(_camera_map_bounds.position.y, minf(actor.position.y, -0.25 * _camera_impact_radius))
 	var high := maxf(_camera_map_bounds.end.y, maxf(actor.end.y, 3.75 * _camera_impact_radius))
@@ -770,12 +772,13 @@ func _present_overlays() -> void:
 	for group: String in _presentation_nodes:
 		var node: Node2D = _presentation_nodes[group]
 		var enabled: bool = world.visible and int(last_frame.get("presentationVersion", 0)) == 2 and requested.has(group) and payload.get(group) is Dictionary and node.supported_groups().has(group)
+		if group == "selection": enabled = enabled and node.has_frame()
 		node.visible = enabled
 		if enabled:
 			if group == "selection":
 				node.set_turrets(turrets)
 				# 평소 지면 표시는 라벨 뒤, 보상 dim은 남아 있는 모든 효과 앞.
-				node.z_index = 100 if bool(payload[group].get("rewardTargeting", false)) else -100
+				node.z_index = 100 if node.reward_targeting() else -100
 			node.present(camera, Vector2(columns, rows), world)
 			_applied_groups.append(group)
 
@@ -813,6 +816,9 @@ func presentation() -> Dictionary:
 		"nativeLinkedEffectEvents": _applied_groups.has("effects"),
 		"nativeChainEffectEvents": _applied_groups.has("effects"),
 		"nativeChargeEffectEvents": _applied_groups.has("effects"),
+		"nativeProjectileEvents": true,
+		"nativeSelectionAnimation": _applied_groups.has("selection"),
+		"selectionRevision": _presentation_nodes["selection"].selection_revision,
 		"transitioning": is_instance_valid(camera_transition) and camera_transition.is_running(),
 	}
 
@@ -888,10 +894,14 @@ func _apply_frame_impl(frame: Dictionary) -> void:
 	for data: Array in frame.get("impacts", []):
 		merged_impacts[int(data[0])] = data
 	last_frame["impacts"] = merged_impacts.values()
+	if frame.get("projectileEvents") is Dictionary:
+		last_frame["projectiles"] = _projectile_events.sample(frame["projectileEvents"], float(frame.get("time", 0.0)))
+	else:
+		_projectile_events.clear()
 	_update_camera()
 	_sync_turrets(frame.get("turrets", []))
 	_sync_enemies(frame.get("enemies", []))
-	_sync_projectiles(frame.get("projectiles", []))
+	_sync_projectiles(last_frame.get("projectiles", []))
 	_sync_build_preview(frame.get("buildPreview"))
 	_update_impacts(last_frame.get("impacts", []))
 	var time := float(frame.get("time", 0.0))
@@ -907,6 +917,7 @@ func _apply_frame_impl(frame: Dictionary) -> void:
 
 
 func _clear_scene() -> void:
+	_projectile_events.clear()
 	world.position = Vector3.ZERO
 	_turret_level_labels.clear()
 	for node: Node2D in _presentation_nodes.values():
@@ -920,7 +931,7 @@ func _clear_scene() -> void:
 		for entry: Dictionary in collection.values():
 			entry["root"].free()
 		collection.clear()
-	for pool: Array in _ballistic_pool.values():
+	for pool: Array in _ballistic_pool.values() + _generic_projectile_pool.values():
 		for projectile: Node3D in pool:
 			projectile.free()
 		pool.clear()
@@ -1591,6 +1602,10 @@ func _sync_build_preview(data) -> void:
 
 
 func _new_projectile(type: String) -> Node3D:
+	if _generic_projectile_pool.has(type) and not _generic_projectile_pool[type].is_empty():
+		var reused: Node3D = _generic_projectile_pool[type].pop_back()
+		reused.visible = true
+		return reused
 	if type == "magic":
 		if not _fire_projectile_pool.is_empty():
 			return _fire_projectile_pool.pop_back()
@@ -1694,6 +1709,10 @@ func _sync_projectiles(units: Array) -> void:
 			elif projectile is BallisticProjectile and _ballistic_pool[type].size() < 64:
 				projectile.reset()
 				_ballistic_pool[type].append(projectile)
+			elif _generic_projectile_pool.has(type) and _generic_projectile_pool[type].size() < 64:
+				projectile.visible = false
+				projectile.transform = Transform3D.IDENTITY
+				_generic_projectile_pool[type].append(projectile)
 			else:
 				projectile.free()
 			projectiles.erase(id)

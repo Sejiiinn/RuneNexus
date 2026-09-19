@@ -1,0 +1,11 @@
+{
+  "build/godot/validation.apk": "2db539f94d335867ed9596124ab92fd4c5c08a67c0014f5555d1ed4577c735fe",
+  "build/godot/android-assets/rune_nexus.pck": "87b6f6ab25889e1e71b19d53a2a5a4553c84b06d073297063a49b83d5faf1b7e",
+  "tool/godot_performance/validation_baseline.dart": "0833b404296eedd2ddc01d96cc439fab254370f86aff5e26c6bc2b2ad9d14eba",
+  "lib/game/components/projectile_component.dart": "c7f0bc8fa815b2f50f5b83f806a3d0faa298354e78232c4bea104103090fb7f2",
+  "lib/game/rendering/stage1_3d/battlefield_projectile_events.dart": "d602ac60bc048bafabd4a74429279b5835071eb7c4bcb7b906db8b09f421ad8a",
+  "godot/effects/projectile_events.gd": "57c11a32cae756ce5af17f3b598eafdb098efb5cb9204ff82ba1a30937fc6e10",
+  "godot/effects/runic_fire.gd": "2826bcb35a0f89a405872440f6f5618e62bbc8caee7fcd933b540ec6a7b1e3ac",
+  "head": "d1b7cb70ecdec2acfe7d96061a67433cac100c51",
+  "dirty_working_tree": true
+}

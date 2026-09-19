@@ -1,0 +1,12 @@
+{
+  "godot/main.gd": "cebdd61a4e86b1a38b368fd191824b5f6ddf26a7df8cb1a4eb9260f01ff1b7ed",
+  "godot/ui/battlefield_selection.gd": "dd91add63f9ccbb795ba001f5e311d4c56aa89cc58bf23f776199f03148511ba",
+  "godot/effects/runic_fire.gd": "6535e3106084f82fff66f5f9719dd52a3520dfb39e50f31a83d4194f2a564575",
+  "godot/project.godot": "2764a5e200b2ca85a58a61c082df901f3a924df911306e0d206d3edd945ff68e",
+  "assets/images/stage1_3d/effects/runic_fire.glb": "14fdf07a20ffc5101b787ee08e585464b5cb45d9a1cb80e325afe315d8de38c5",
+  "assets/images/stage1_3d/turrets/magic.glb": "1b1e11e6c64f57befd4a873479db46a228f1712a2ae2ae0e4568c7801d872bd8",
+  "lib/game/components/turret_component.dart": "c48f840249e4ef5cb9c0486206f81ab5c26bea422cb66b53924aa094261f0896",
+  "lib/game/game_battlefield_selection.dart": "ed3e4079c92007864e03c5540cac5b2fde8b360b9bb591262504ef2bc068919f",
+  "lib/ui/hud/godot_battlefield_view.dart": "72681ef203d39690d9f96c46f267056499525fab4b7461f9b33e2bed6b1a7bd0",
+  "lib/game/rendering/stage1_3d/godot_battlefield_selection_transport.dart": "48fee8959b74ac56026e46cd99c94881a35609c1cb92673ab6c7ec7b25f32053"
+}

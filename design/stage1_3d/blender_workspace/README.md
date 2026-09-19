@@ -18,6 +18,10 @@
 
 모델은 원본 `.blend`에 연결된 읽기 전용 라이브러리다. 원본을 수정하고 저장한 뒤 허브를 다시 열면 기존 연결 데이터가 갱신된다. 실제 편집은 내부 `01_현행원본`에 적힌 원본 파일을 연다. 허브에서 Make Local로 복제하여 별도 원본을 만들지 않는다. 새 객체·원본 경로·게임 미리보기를 추가하거나 바꾸면 `catalog.json`을 수정하고 허브를 다시 생성한다.
 
+## 룬 화염 포탑 원본
+
+- [룬 화염 포탑](../../fire_tower_concepts/runic_3d/README.md): 사용자가 선택한 14번 시안의 독립 Blender 제작 원본. 길쭉한 팔각 몸체·주황 룬 홈·청동 음각 지지대·작은 상부 화염구를 따른다. 후속 이관 승인으로 `magic.glb`를 교체했다. **33 Runic Fire Turret**는 구운 기본 PBR 이관 원본이며 원형 편집은 링크의 승인 Blender 원본에서 한다. 효과는 Godot 기본 재질·GPU 파티클로 재생한다.
+
 ## 갱신
 
 저장소 루트에서 별도 Blender 백그라운드 프로세스로 다음 스크립트를 실행해야 한다.
@@ -29,6 +33,16 @@
 스크립트는 백그라운드 프로세스의 Scene을 초기화하며, 편집 중인 Blender UI에서의 실행은 차단한다. 재생성 전 허브의 `USER_` 메모를 저장하고, 재생성 후에는 새 허브를 다시 연다. 이전 허브가 열린 창에서 저장하면 새 결과를 덮어쓰므로 재생성 후 기존 창의 내용을 저장하지 않는다. 기존 허브는 `rune-nexus-stage1.previous.blend`로 백업하며 `USER_`로 시작하는 내부 Text 메모는 새 허브에도 보존한다. 원본 모델·게임 에셋을 변경하거나 내보내지 않는다. 전체 폴더 구조를 유지하여 상대 경로를 보존한다.
 
 ## 수정부터 게임 반영까지
+
+반복 이관 경로는 `catalog.json`의 `workflows`에 원본·기존 스크립트의 진입 함수·최종 출력·관련 검사를 연결한다. 현재 룬 화염 포탑과 화상 효과를 등록했다. 저장소 루트에서 다음 명령으로 해당 경로와 출력 크기·해시를 확인한다.
+
+```sh
+python3 scripts/asset_workflow_report.py
+python3 scripts/asset_workflow_report.py runic-fire --json-out build/reports/runic-fire.json
+python3 scripts/asset_workflow_report.py enemy-burn --json-out build/reports/enemy-burn.json
+```
+
+요약은 읽기 전용이며 Blender 제작·패키징·검증을 실행하지 않는다. 기존 검사 기록도 현재 출력에 대한 성공 근거로 자동 승격하지 않는다. 제작 스크립트는 현재 checkout의 절대 `ROOT`와 승인 원본 장면을 전제로 하므로 다른 위치에서 재사용할 때 실제 경로를 확인한다. 등록 경로의 스크립트를 수정했으면 진입점도 함께 갱신한다. 이 메타데이터 변경만으로 Blender 허브를 재생성할 필요는 없다.
 
 과거 `24 Fern Canopy Shadows`는 공통 그림자 전환으로 현행 목록에서 제외했다. 편집 원본은 제작 이력으로 보존하며, 실제 잎의 그림자·LOD 계약은 [환경 장식 안내](../environment_dressing/README.md)를 따른다.
 

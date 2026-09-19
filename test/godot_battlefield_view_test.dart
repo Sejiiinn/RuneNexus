@@ -100,7 +100,7 @@ void main() {
     expect(msaa, 0);
     expect(shadowSize, 512);
     expect(find.text('고정 시점'), findsOneWidget);
-    expect(find.text('드론 시점'), findsOneWidget);
+    expect(find.text('드론 시점'), findsNothing);
     expect(game.battlefieldProjection, isNotNull);
     expect(game.nativeBattlefieldTurretLevels, isTrue);
     final viewSize = tester.getSize(find.byType(GodotBattlefieldView));
@@ -141,9 +141,11 @@ void main() {
     expect(frames.last['time'] as num, greaterThan(beforeWave));
 
     transitioning = true;
-    await tester.tap(find.text('드론 시점'));
+    await tester.tap(find.text('고정 시점'));
     await pumpGameFrames(tester);
     expect(camera, 'drone');
+    expect(find.text('드론 시점'), findsOneWidget);
+    expect(find.text('고정 시점'), findsNothing);
     expect(msaa, 0);
     expect(shadowSize, 512);
     await graphics.update(const GraphicsSettings());

@@ -261,6 +261,7 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
     } else {
       _battlefieldEffectEvents.takeLive();
     }
+    nativeProjectileEvents = false;
     nativeBattlefieldEffectEvents = false;
     nativeBattlefieldImpactEffectEvents = false;
     nativeBattlefieldBlastEffectEvents = false;

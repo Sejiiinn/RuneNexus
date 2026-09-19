@@ -1,0 +1,5 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+RunicFire cached transforms / interleaved clocks: PASS
+RunicFire MultiMesh GPU buffer readback: SKIP (headless Dummy; run with renderer)
+RunicFire particles / pause / wrap / seek / residual expiry / pool reuse: PASS

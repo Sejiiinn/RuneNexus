@@ -1,0 +1,11 @@
+{
+  "godot/main.gd": "39612d66ef4785929acb1eae628c4423cc97643311bdee88fee00b4e49b127c5",
+  "godot/effects/projectile_events.gd": "57c11a32cae756ce5af17f3b598eafdb098efb5cb9204ff82ba1a30937fc6e10",
+  "godot/effects/ballistic_projectile.gd": "5cccde708560fc523c2215e1c2e311563188dabcdac607fcd7f0c3d763e36bdc",
+  "godot/effects/runic_fire.gd": "2826bcb35a0f89a405872440f6f5618e62bbc8caee7fcd933b540ec6a7b1e3ac",
+  "lib/game/components/projectile_component.dart": "c7f0bc8fa815b2f50f5b83f806a3d0faa298354e78232c4bea104103090fb7f2",
+  "lib/game/rune_nexus_game.dart": "0d1ef0e8d08d1a5aabbca0d7f5ee2d50503a9a24db2081e6201e3322ed637690",
+  "apk_bytes": 431463272,
+  "apk_sha256": "3adc6501a55b0c0db785d3c277dc0c07888fe19be25c1d980fa01ab07ba94f29",
+  "local_version_code": 2008
+}

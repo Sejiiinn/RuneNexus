@@ -1,0 +1,357 @@
+Godot 전장 팩 최신: /Users/sejin/Documents/Codex/RuneNexus/build/godot/android-assets/rune_nexus.pck
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started 프로젝트 초기화 (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | 파일 구조 스캔 중...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | 전역 클래스 이름을 불러오는 중...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | GDExtensions 검증 중...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | 오토로드 스크립트를 만드는 중...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | 플러그인을 초기화 중...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | 파일 스캔 시작 중...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | Started 전역 클래스를 등록하는 중... (6 steps)[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  14% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  28% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  42% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  57% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  71% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[92m[ DONE ][39m [1mupdate_scripts_classes[22m
+[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Started 편집기를 불러오는 중 (5 steps)[39m[0m
+[   0% ] [90m[1mloading_editor_layout[22m | 편집기 레이아웃을 불러오는 중...[39m[0m
+[  16% ] [90m[1mloading_editor_layout[22m | 독을 불러오는 중...[39m[0m
+[92m[ DONE ][39m [1mloading_editor_layout[22m
+[0m
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started 프로젝트 초기화 (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | 파일 구조 스캔 중...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | 전역 클래스 이름을 불러오는 중...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | GDExtensions 검증 중...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | 오토로드 스크립트를 만드는 중...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | 플러그인을 초기화 중...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | 파일 스캔 시작 중...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1msavepack[22m | Started 패킹 중 (102 steps)[39m[0m
+[   1% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/effects/enemy_burn/attachments.json[39m[0m
+[   1% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/flame_atlas.png-490d5113fa8809c4ebd41155e741eab9.ctex[39m[0m
+[   1% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/effects/enemy_burn/flame_atlas.png.import[39m[0m
+[   2% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/crystals.glb-60911ae4b7760e895a4fc636ae05ca0e.scn[39m[0m
+[   2% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/effects/enemy_frost/crystals.glb.import[39m[0m
+[   2% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/grain.png-7eea7aabb0c01e532760e6c1611cad8e.ctex[39m[0m
+[   2% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/effects/enemy_frost/grain.png.import[39m[0m
+[   3% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/gun_smoke.png-55036d9cc2b0737591180e809296722e.ctex[39m[0m
+[   3% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/effects/gun_smoke.png.import[39m[0m
+[   4% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/machinegun_muzzle.glb-a533850e6dd0cabb2958a44a4ad6d0c9.scn[39m[0m
+[   4% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/effects/machinegun_muzzle.glb.import[39m[0m
+[   4% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/muzzle_flash.png-280330ce76e92c2fead47dba704e17bf.ctex[39m[0m
+[   4% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/effects/muzzle_flash.png.import[39m[0m
+[   5% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/runic_fire.glb-f748ecfa9b7f0a60316e94400709a44b.scn[39m[0m
+[   5% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/effects/runic_fire.glb.import[39m[0m
+[   5% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/armored.glb-c0abd723cf9de60ec713552ef8d77428.scn[39m[0m
+[   5% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/enemies/armored.glb.import[39m[0m
+[   6% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/boss.glb-1fa2562f035e2eab731952c674445f02.scn[39m[0m
+[   6% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/enemies/boss.glb.import[39m[0m
+[   7% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/fast.glb-80eff50eeedabfff102d3dd1e02134c1.scn[39m[0m
+[   7% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/enemies/fast.glb.import[39m[0m
+[   7% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/normal.glb-cbdd22edc8c6dd361b94e236805d35a8.scn[39m[0m
+[   7% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/enemies/normal.glb.import[39m[0m
+[   8% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/shielded.glb-a7086d4f8ee40b4ffd243074010afc94.scn[39m[0m
+[   8% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/enemies/shielded.glb.import[39m[0m
+[   8% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/tank.glb-78a08136c16c7ff21ed1c46a6d695276.scn[39m[0m
+[   8% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/enemies/tank.glb.import[39m[0m
+[   9% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter2_props.glb-9a4c368066e3dc931d0c7a91ee36d93d.scn[39m[0m
+[   9% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter2_props.glb.import[39m[0m
+[  10% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter2_stage6_geology.glb-3e4b907c5dae90b015b9e3528bc9b126.scn[39m[0m
+[  10% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter2_stage6_geology.glb.import[39m[0m
+[  10% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter2_stage6_props.glb-0d31570d11aa759d35fe8fbd56039f7c.scn[39m[0m
+[  10% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter2_stage6_props.glb.import[39m[0m
+[  11% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter2_stage7_geology.glb-7bc9ebf2a9a84bf80463ae1fd4082cc1.scn[39m[0m
+[  11% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter2_stage7_geology.glb.import[39m[0m
+[  12% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter2_stage7_props.glb-4b258f45cd3cdeb32637f81777e417f2.scn[39m[0m
+[  12% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter2_stage7_props.glb.import[39m[0m
+[  12% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter2_stage8_geology.glb-17034c4c0e11f09595dd417deb60a646.scn[39m[0m
+[  12% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter2_stage8_geology.glb.import[39m[0m
+[  13% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter2_stage8_props.glb-9838422c4932b1b6ac3f6f5ecac3c937.scn[39m[0m
+[  13% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter2_stage8_props.glb.import[39m[0m
+[  13% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter2_stage9_geology.glb-51335244bef629fc5d4f76413a7e07a8.scn[39m[0m
+[  13% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter2_stage9_geology.glb.import[39m[0m
+[  14% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter2_stage9_props.glb-3a5c0464417321e823aa921096de6397.scn[39m[0m
+[  14% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter2_stage9_props.glb.import[39m[0m
+[  15% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter2_stage10_geology.glb-fb7c8a97967e735b41359296f8dcdd94.scn[39m[0m
+[  15% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter2_stage10_geology.glb.import[39m[0m
+[  15% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter2_stage10_props.glb-f6a13779c3cc2de910727afbe6b517b4.scn[39m[0m
+[  15% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter2_stage10_props.glb.import[39m[0m
+[  16% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter2_tiles.glb-b598fefff86203eeb5d388e510096730.scn[39m[0m
+[  16% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter2_tiles.glb.import[39m[0m
+[  16% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter2_tiles_optimized.glb-d58225123873ea94c653454134f129d5.scn[39m[0m
+[  16% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter2_tiles_optimized.glb.import[39m[0m
+[  17% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter3_props.glb-14824abaa47c1a16a4e2a5e246af36ea.scn[39m[0m
+[  17% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter3_props.glb.import[39m[0m
+[  18% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/chapter3_tiles.glb-91c4910b373fe31c0770cf7e78a98878.scn[39m[0m
+[  18% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/chapter3_tiles.glb.import[39m[0m
+[  18% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/dressing.glb-2dbc28f4b6836d1f0f6889e84c441cd4.scn[39m[0m
+[  18% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/dressing.glb.import[39m[0m
+[  19% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/dressing_stage2.glb-21a7e9eccf446845edc80e6e469a3cb2.scn[39m[0m
+[  19% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/dressing_stage2.glb.import[39m[0m
+[  20% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/dressing_stage3.glb-3e925a2dd0d4763c804b2716b62fbe85.scn[39m[0m
+[  20% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/dressing_stage3.glb.import[39m[0m
+[  20% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/dressing_stage4.glb-95a60b8cc2f2fc9a03fa0e5ff04eedca.scn[39m[0m
+[  20% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/dressing_stage4.glb.import[39m[0m
+[  21% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/dressing_stage5.glb-43d3989cd260045bf848c32ef8360238.scn[39m[0m
+[  21% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/dressing_stage5.glb.import[39m[0m
+[  21% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/landmarks.glb-bcc35d663afa3c887500b076d7ce085f.scn[39m[0m
+[  21% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/landmarks.glb.import[39m[0m
+[  22% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/terrain.glb-e79ebbb24970aa704a607ec51fe1899a.scn[39m[0m
+[  22% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/environment/terrain.glb.import[39m[0m
+[  23% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/cannonball.glb-98ce0b96e9b10445b872537a18cec09b.scn[39m[0m
+[  23% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/projectiles/cannonball.glb.import[39m[0m
+[  23% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/0df4311010237503e17ca74756d32d0ecac602f96e12f14665c59bd25cced527.png-a7a3d2a9d521a2a02c54b4a8ed4c4e80.ctex[39m[0m
+[  23% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/0df4311010237503e17ca74756d32d0ecac602f96e12f14665c59bd25cced527.png.import[39m[0m
+[  24% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/1ef8129dc4728b9b339574d3fd30ff3c290c16944f6150a7a5f17231e2f3e9c7.png-ba58921448d8f9ef24bd5491ecb7d1d2.ctex[39m[0m
+[  24% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/1ef8129dc4728b9b339574d3fd30ff3c290c16944f6150a7a5f17231e2f3e9c7.png.import[39m[0m
+[  24% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/2dd1dd63704a18d81208abb8c2acb20f678e40824b80b906e1cf680e18f11709.png-cb171d753e14e3d87df3dc49ea6d5cbd.ctex[39m[0m
+[  24% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/2dd1dd63704a18d81208abb8c2acb20f678e40824b80b906e1cf680e18f11709.png.import[39m[0m
+[  25% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/2fc7282d010ad0b4ec0806a27c6a989b47ae08a047baeeffa3cab0425d3d2564.png-666f73684cb46f224a497fc2a8d7fc04.ctex[39m[0m
+[  25% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/2fc7282d010ad0b4ec0806a27c6a989b47ae08a047baeeffa3cab0425d3d2564.png.import[39m[0m
+[  26% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/3ceb5b9ea78d6b282e4a61d48b95153f09218f187674d32207bcaf39aa3cd452.png-0978f90da87dbbf20da9c59bbfd74170.ctex[39m[0m
+[  26% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/3ceb5b9ea78d6b282e4a61d48b95153f09218f187674d32207bcaf39aa3cd452.png.import[39m[0m
+[  26% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/3d16b8d5a52cae0fc776e3f44af25321151190ab1ac0d356e5135a48442b33a2.png-992fe36dd65a5c0e128bd946ba846b23.ctex[39m[0m
+[  26% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/3d16b8d5a52cae0fc776e3f44af25321151190ab1ac0d356e5135a48442b33a2.png.import[39m[0m
+[  27% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/5f8ee4f00c73fba63071cfd8102ec434292bfaf5d17b7c5353d5fdbcf6fb0b88.png-a1ec4625e86f222fccb2daea3778e2f2.ctex[39m[0m
+[  27% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/5f8ee4f00c73fba63071cfd8102ec434292bfaf5d17b7c5353d5fdbcf6fb0b88.png.import[39m[0m
+[  27% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/6a9a755972b64bfad83da4c37e0b466f952df189555e9bfd30ca5a13c07faf13.png-ca19cac592dc44630bbf54b4e1af1577.ctex[39m[0m
+[  27% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/6a9a755972b64bfad83da4c37e0b466f952df189555e9bfd30ca5a13c07faf13.png.import[39m[0m
+[  28% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/7ad6562978f36897e541f0839a5e6028413ea7375c23d11a0ff80629d8c4509b.png-8c1c2be79853d215fff76be200051c94.ctex[39m[0m
+[  28% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/7ad6562978f36897e541f0839a5e6028413ea7375c23d11a0ff80629d8c4509b.png.import[39m[0m
+[  29% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/9bf0a49d2e65018d8df4cc16ed6d7c25751680e1779406ac3e9be774095fd0c4.png-d0ae9a2d74028d967a3bf8edcc40f031.ctex[39m[0m
+[  29% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/9bf0a49d2e65018d8df4cc16ed6d7c25751680e1779406ac3e9be774095fd0c4.png.import[39m[0m
+[  29% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/9e8e5f7fdd431dfb3b46fcc5684c4a5cd33da77864b014f4130f8d2907dca7fd.png-f61960a5423af03191dc8caf5e3df1ea.ctex[39m[0m
+[  29% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/9e8e5f7fdd431dfb3b46fcc5684c4a5cd33da77864b014f4130f8d2907dca7fd.png.import[39m[0m
+[  30% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/25a107e2d7a0b259bad7e313caa718d657001c6e3b6a22ad159e2400059e47aa.png-ebf371d87fc8c8b561ae2060a6630e46.ctex[39m[0m
+[  30% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/25a107e2d7a0b259bad7e313caa718d657001c6e3b6a22ad159e2400059e47aa.png.import[39m[0m
+[  31% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/040df2bf96ef324c4a101d2c181afad710e5dc2f6565ac2d04d10025991c9c09.png-91aa78f57395456531c05f07895f7f00.ctex[39m[0m
+[  31% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/040df2bf96ef324c4a101d2c181afad710e5dc2f6565ac2d04d10025991c9c09.png.import[39m[0m
+[  31% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/56fe8bed4718c8f0f22685d0718e1386268e70983f0040988653d67723dacb3d.png-4e3805905dbaf9155cd4d05216024149.ctex[39m[0m
+[  31% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/56fe8bed4718c8f0f22685d0718e1386268e70983f0040988653d67723dacb3d.png.import[39m[0m
+[  32% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/058bfb9b74732459bcbb7aa90b5009defb313f790cbf66fd1a13420441520608.png-ca5a0b28b25ecc250929921d5c377df5.ctex[39m[0m
+[  32% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/058bfb9b74732459bcbb7aa90b5009defb313f790cbf66fd1a13420441520608.png.import[39m[0m
+[  32% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/83a757f21f5d35f90b8e34caac356650d8438ff2c9ef731e6398c5a61b7a80a5.png-8e8524c890be672034c8dd32975c017b.ctex[39m[0m
+[  32% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/83a757f21f5d35f90b8e34caac356650d8438ff2c9ef731e6398c5a61b7a80a5.png.import[39m[0m
+[  33% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/335eab2c778f4d4401fe54c49b7c8655c3a018838347cf67e1762182b405e153.png-04ff5fe32faea04a6af8aee01a92b3d1.ctex[39m[0m
+[  33% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/335eab2c778f4d4401fe54c49b7c8655c3a018838347cf67e1762182b405e153.png.import[39m[0m
+[  33% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/0428eda8d87a93e324e8484405b3a72ed377ab9988e504d7581cdc2fb2512bac.png-f13a5f3076a1d3c2feea5cebbb82a70a.ctex[39m[0m
+[  33% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/0428eda8d87a93e324e8484405b3a72ed377ab9988e504d7581cdc2fb2512bac.png.import[39m[0m
+[  33% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/685ee2d44a3ab9bc5ada5e1b9acfbc14642a337a4b8e683de478b54b186d4b5a.png-1a8167cef5dfa377d12a1702835fe0a7.ctex[39m[0m
+[  33% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/685ee2d44a3ab9bc5ada5e1b9acfbc14642a337a4b8e683de478b54b186d4b5a.png.import[39m[0m
+[  34% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/873f699b6256b444c0dd97fdee0383b0a6ec3ab2d7f7860bc4c86ee792c9c3ff.png-6aeb037c2c6f0259791effc9d78d2d6b.ctex[39m[0m
+[  34% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/873f699b6256b444c0dd97fdee0383b0a6ec3ab2d7f7860bc4c86ee792c9c3ff.png.import[39m[0m
+[  34% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/899d8f531caee83b9e89b05bdd32f60a17e81e1543bb219234547416bbd2f209.png-8b5f3b479b063807ca87b9c69b1b26cc.ctex[39m[0m
+[  34% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/899d8f531caee83b9e89b05bdd32f60a17e81e1543bb219234547416bbd2f209.png.import[39m[0m
+[  35% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/962b9e7358dd589db1d8984a1348a7892c1cb79d0d8298558c69b015dc6e0e12.png-580d55df855994d0719773743855119f.ctex[39m[0m
+[  35% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/962b9e7358dd589db1d8984a1348a7892c1cb79d0d8298558c69b015dc6e0e12.png.import[39m[0m
+[  36% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/985f78ec5fd0deec330be032672d873a1c2886f469e0b5d8ca232da3b1949e0a.png-ec4cc71a0de3749194845d889fc0c6e0.ctex[39m[0m
+[  36% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/985f78ec5fd0deec330be032672d873a1c2886f469e0b5d8ca232da3b1949e0a.png.import[39m[0m
+[  36% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/2074e523d555d3aabfea7046f27a0b634bed4771c65ca42841f20e3457d48ffd.png-ad7dd19d2db8fa6b06dd8d408ab5223e.ctex[39m[0m
+[  36% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/2074e523d555d3aabfea7046f27a0b634bed4771c65ca42841f20e3457d48ffd.png.import[39m[0m
+[  37% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/3496aee55abf011ad906d823174350fbc760b427739e26313d61299b36592f33.png-75c69b9e1ae5993d4570d2460b4150e3.ctex[39m[0m
+[  37% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/3496aee55abf011ad906d823174350fbc760b427739e26313d61299b36592f33.png.import[39m[0m
+[  38% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/07003e82beffdf63a39d9230b42927500fb501411720673c3607fb0ea94b5b3c.png-91010589170c33aaf315435ca92afe46.ctex[39m[0m
+[  38% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/07003e82beffdf63a39d9230b42927500fb501411720673c3607fb0ea94b5b3c.png.import[39m[0m
+[  38% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/7102fa4254f542612e41f97956af6bf1c1e81fd06e07e4eb65f00a663cc17df2.png-1a8147a011522715441a0ce8d7fba3a8.ctex[39m[0m
+[  38% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/7102fa4254f542612e41f97956af6bf1c1e81fd06e07e4eb65f00a663cc17df2.png.import[39m[0m
+[  39% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/9995f9452af9ca71dbefa22d778d0d9a78349465f3467e34dd3e42eba84c9ea8.png-1b3025a2b36d6750e9c45737b692ffcd.ctex[39m[0m
+[  39% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/9995f9452af9ca71dbefa22d778d0d9a78349465f3467e34dd3e42eba84c9ea8.png.import[39m[0m
+[  39% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/46406f57bb808f0787fcc3d3c7ede31fcaa583d33b60a8170a825a85ef046955.png-653b5289de6813aa7d9a1da2354300fb.ctex[39m[0m
+[  39% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/46406f57bb808f0787fcc3d3c7ede31fcaa583d33b60a8170a825a85ef046955.png.import[39m[0m
+[  40% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/82080cb44d867373a4059ef882681f768ae26321d7be74d6417971144dd4c6b7.png-af1086cb9825ea069291e3c2a36f079a.ctex[39m[0m
+[  40% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/82080cb44d867373a4059ef882681f768ae26321d7be74d6417971144dd4c6b7.png.import[39m[0m
+[  41% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/6356014e7d421a1f4cfc6bb7130d3b6302265a4cd868df7c8e26a527ecf7d651.png-7b754c0e7625a79c06d5add98aec589f.ctex[39m[0m
+[  41% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/6356014e7d421a1f4cfc6bb7130d3b6302265a4cd868df7c8e26a527ecf7d651.png.import[39m[0m
+[  41% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/a7d111d9ba2ef62996a6af751e4b21c1e98cc82a4235276e6b16451d897dc363.png-f6d8ac67c7fe3e76ddf9681c82076654.ctex[39m[0m
+[  41% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/a7d111d9ba2ef62996a6af751e4b21c1e98cc82a4235276e6b16451d897dc363.png.import[39m[0m
+[  42% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/a9aaf2f9bbc52e6960c9683dfd641ec35ab22b6a8ca5057743afec4bacb10d54.png-59fd6c0fb021241b390a54fe26355db1.ctex[39m[0m
+[  42% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/a9aaf2f9bbc52e6960c9683dfd641ec35ab22b6a8ca5057743afec4bacb10d54.png.import[39m[0m
+[  42% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/a65f1e92b6d7146f67bfcbc259de5435f159ade72f0b1663dcc832a7cf4f8ab4.png-aa6cd09e388d88ce968609290d06b9b0.ctex[39m[0m
+[  42% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/a65f1e92b6d7146f67bfcbc259de5435f159ade72f0b1663dcc832a7cf4f8ab4.png.import[39m[0m
+[  43% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/b6fef098ffdd77c86df4dfd7c582f652e4c92f18b076e3073bc918f10675f381.png-39ecabf0afb31949aed3c396c585c552.ctex[39m[0m
+[  43% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/b6fef098ffdd77c86df4dfd7c582f652e4c92f18b076e3073bc918f10675f381.png.import[39m[0m
+[  44% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/c0abf644091b085ba3fe798ddf6dd64b4c2bc7b28aa6e42f0fd5c0d893daf9fe.png-9c38c517aa1e02004d08796c2177e785.ctex[39m[0m
+[  44% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/c0abf644091b085ba3fe798ddf6dd64b4c2bc7b28aa6e42f0fd5c0d893daf9fe.png.import[39m[0m
+[  44% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/c1a186b3c199d90418440545496955bb6e182eefa0b72bff2d1cfcd3f1745953.png-379e6e4e1bec577b11829c107017d929.ctex[39m[0m
+[  44% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/c1a186b3c199d90418440545496955bb6e182eefa0b72bff2d1cfcd3f1745953.png.import[39m[0m
+[  45% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/c0519f9fc1598270c2a8804e97e8769ce59eb1511b62ee6e5a928247ab4f1765.png-4b2561a0500378325ae0d946d7f0eb28.ctex[39m[0m
+[  45% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/c0519f9fc1598270c2a8804e97e8769ce59eb1511b62ee6e5a928247ab4f1765.png.import[39m[0m
+[  46% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/cdb6e878b38126d489a01e73ddcd6b5b36b1a2f4f337ff5bd3eb843a8ca7e69d.png-63f7ed9cb2baf7b288009982ac2660c6.ctex[39m[0m
+[  46% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/cdb6e878b38126d489a01e73ddcd6b5b36b1a2f4f337ff5bd3eb843a8ca7e69d.png.import[39m[0m
+[  46% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/d0d1904a5d7e0cf6c9bb288f57b7b7d27b310ea9d15cfb876f12aa049476df93.png-39ecae8fe33a58f910a00fef94bdac76.ctex[39m[0m
+[  46% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/d0d1904a5d7e0cf6c9bb288f57b7b7d27b310ea9d15cfb876f12aa049476df93.png.import[39m[0m
+[  47% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/d767c52dd36bef635598be9cb6f4e66d2038a9a937269301f287517978444168.png-6cfa8255993f0583ba8251214ed0ff11.ctex[39m[0m
+[  47% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/d767c52dd36bef635598be9cb6f4e66d2038a9a937269301f287517978444168.png.import[39m[0m
+[  47% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/deb8a47bec40570dec656c9740a2a1d9306c9946e37f98b59c32edfa48f65820.png-a6c8d1d506e5de406e704db83a247220.ctex[39m[0m
+[  47% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/deb8a47bec40570dec656c9740a2a1d9306c9946e37f98b59c32edfa48f65820.png.import[39m[0m
+[  48% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/e5b27838b89cc4f5c500f7e69b65d0fc7b41e3e6c2df78c5efbef5eca003ec6b.png-a3bf1abe680d1d488e93adff647ceeb4.ctex[39m[0m
+[  48% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/e5b27838b89cc4f5c500f7e69b65d0fc7b41e3e6c2df78c5efbef5eca003ec6b.png.import[39m[0m
+[  49% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/e464aca98f16fce39d157e8c62742850c633da5e68c32b45cc5a7126a246ce9f.png-9a8b306026408ab2160828aedfbeb267.ctex[39m[0m
+[  49% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/e464aca98f16fce39d157e8c62742850c633da5e68c32b45cc5a7126a246ce9f.png.import[39m[0m
+[  49% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/eba1f206023924272892f2f48e02018cf80ef609ae5af4b71f7743f081e77331.png-7d80c57fca05587a125efc146938fc77.ctex[39m[0m
+[  49% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/eba1f206023924272892f2f48e02018cf80ef609ae5af4b71f7743f081e77331.png.import[39m[0m
+[  50% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/ecea73a7472b9253f1e07d01a8a579ea931e0bffb90920951f0305c0f43fe9c4.png-cf6ce9e281295eb8fe67dc9cee76267c.ctex[39m[0m
+[  50% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/ecea73a7472b9253f1e07d01a8a579ea931e0bffb90920951f0305c0f43fe9c4.png.import[39m[0m
+[  50% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/efa85b374e12ecb860de410ce6096c36e7daff70ea40ebdb048522451d505388.png-ce56909f0b67b04a38611fad2a9829c9.ctex[39m[0m
+[  50% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/efa85b374e12ecb860de410ce6096c36e7daff70ea40ebdb048522451d505388.png.import[39m[0m
+[  51% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/f7d7dd4c089b14644ce9ee5db72d5ddb999714649db2b28c5982918d3b27dfb8.png-86ea4ec5fdaa3d362449c9fb0dd8cc5e.ctex[39m[0m
+[  51% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/shared_textures/f7d7dd4c089b14644ce9ee5db72d5ddb999714649db2b28c5982918d3b27dfb8.png.import[39m[0m
+[  52% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/arrow.glb-521675f94e1187bf103082238aaca567.scn[39m[0m
+[  52% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/turrets/arrow.glb.import[39m[0m
+[  52% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/cannon.glb-30ba3123f44deca67ec4e4b8c02153a4.scn[39m[0m
+[  52% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/turrets/cannon.glb.import[39m[0m
+[  53% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/frost.glb-a699fabfd704d25fa024fe9be8dac45e.scn[39m[0m
+[  53% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/turrets/frost.glb.import[39m[0m
+[  53% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/lightning.glb-734b7f1e2887827a281c311cfe217e29.scn[39m[0m
+[  53% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/turrets/lightning.glb.import[39m[0m
+[  54% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/magic.glb-51b5a5498319ec4667c663f5ae4c555a.scn[39m[0m
+[  54% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/turrets/magic.glb.import[39m[0m
+[  55% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/sniper.glb-ebff0f9c08d9fa6c742c63e9742f17e4.scn[39m[0m
+[  55% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/turrets/sniper.glb.import[39m[0m
+[  55% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/burn_ember.png-392589a7ade2049e75a8e23455662674.ctex[39m[0m
+[  55% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/ui/labels/burn_ember.png.import[39m[0m
+[  56% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/burn_glow.png-780830b177a33e32ceaef3cb9c2b7884.ctex[39m[0m
+[  56% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/ui/labels/burn_glow.png.import[39m[0m
+[  57% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/burn_smoke.png-bfe985e0c3410d787f22bb39d9d3dff2.ctex[39m[0m
+[  57% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/ui/labels/burn_smoke.png.import[39m[0m
+[  57% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/slow_shard.png-99a3749e25b16e125db98a5da1d2181f.ctex[39m[0m
+[  57% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/ui/labels/slow_shard.png.import[39m[0m
+[  58% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/death_silhouettes.png-5ecc9de04610f967de9763bf60c6f4ca.ctex[39m[0m
+[  58% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/ui/death_silhouettes.png.import[39m[0m
+[  58% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/diamond_currency.png-74eb31dacb911930ae1d26392714688a.ctex[39m[0m
+[  58% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/ui/diamond_currency.png.import[39m[0m
+[  59% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/NotoSansKR-VF.ttf-56ba908a03df83f1db72861fc23858ec.fontdata[39m[0m
+[  59% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/ui/NotoSansKR-VF.ttf.import[39m[0m
+[  60% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/Roboto-VF.ttf-6cbc25db0c1c49d0bbcc4d8e42c86534.fontdata[39m[0m
+[  60% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/ui/Roboto-VF.ttf.import[39m[0m
+[  60% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/imported/turret_levels.png-3ee3e70e233d6df4c4a40929d096d7a9.ctex[39m[0m
+[  60% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/ui/turret_levels.png.import[39m[0m
+[  61% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/cannon_field.json[39m[0m
+[  61% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/chapter2_environment_manifests.json[39m[0m
+[  62% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/chapter2_stage6_manifest.json[39m[0m
+[  63% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/chapter2_stage7_manifest.json[39m[0m
+[  63% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/chapter2_stage8_manifest.json[39m[0m
+[  64% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/chapter2_stage9_manifest.json[39m[0m
+[  65% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/chapter2_stage10_manifest.json[39m[0m
+[  65% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/dressing_manifests.json[39m[0m
+[  66% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/enemy_frost.json[39m[0m
+[  66% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/preview_frame.json[39m[0m
+[  66% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/terrain_manifest.json[39m[0m
+[  67% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/ballistic_projectile.gdc[39m[0m
+[  67% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/cannon_flight.gdc[39m[0m
+[  68% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/cannon_flight.gdshader[39m[0m
+[  68% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/cannon_impact.gdshader[39m[0m
+[  69% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/cannon_impact_fragments.gdshader[39m[0m
+[  70% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/cannon_impact_motion.gdshaderinc[39m[0m
+[  70% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/cannon_impact_sparks.gdshader[39m[0m
+[  71% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/enemy_burn.gdc[39m[0m
+[  72% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/enemy_burn.gdshader[39m[0m
+[  72% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/enemy_frost.gdc[39m[0m
+[  73% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/enemy_frost.gdshader[39m[0m
+[  73% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/enemy_frost_crystals.gdshader[39m[0m
+[  74% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/field_cache.gdc[39m[0m
+[  75% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/godot_impact.gdc[39m[0m
+[  75% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/machinegun_flash.gdshader[39m[0m
+[  76% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/machinegun_muzzle.gdc[39m[0m
+[  76% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/machinegun_smoke.gdshader[39m[0m
+[  77% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/projectile_events.gdc[39m[0m
+[  78% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/projectile_tracer.gdshader[39m[0m
+[  78% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/runic_fire.gdc[39m[0m
+[  79% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/weapon_atlas.gdc[39m[0m
+[  79% ] [90m[1msavepack[22m | 파일 저장 중: res://environment/chapter_three_props.gdc[39m[0m
+[  80% ] [90m[1msavepack[22m | 파일 저장 중: res://environment/chapter_three_tiles.gdc[39m[0m
+[  81% ] [90m[1msavepack[22m | 파일 저장 중: res://environment/chapter_two_environment.gdc[39m[0m
+[  81% ] [90m[1msavepack[22m | 파일 저장 중: res://environment/core_crystal.gdshader[39m[0m
+[  82% ] [90m[1msavepack[22m | 파일 저장 중: res://environment/foliage_wind.gdshader[39m[0m
+[  83% ] [90m[1msavepack[22m | 파일 저장 중: res://environment/portal_vortex.gdshader[39m[0m
+[  83% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/exported/133200997/export-caf787b6eaee3be15754c89acaf5c2eb-battlefield_reflection_sky.res[39m[0m
+[  84% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/exported/133200997/export-782f061ce13b592c32656eb5c9b1fb39-forge_reflection_sky.res[39m[0m
+[  84% ] [90m[1msavepack[22m | 파일 저장 중: res://ui/battlefield_effects.gdc[39m[0m
+[  85% ] [90m[1msavepack[22m | 파일 저장 중: res://ui/battlefield_labels.gdc[39m[0m
+[  86% ] [90m[1msavepack[22m | 파일 저장 중: res://ui/battlefield_selection.gdc[39m[0m
+[  86% ] [90m[1msavepack[22m | 파일 저장 중: res://ui/turret_level_labels.gdc[39m[0m
+[  87% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/fixtures/fire.json[39m[0m
+[  87% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/fixtures/fire_4x.json[39m[0m
+[  88% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/fixtures/normal.json[39m[0m
+[  89% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/fixtures/stress_4x.json[39m[0m
+[  89% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/benchmark.gdc[39m[0m
+[  90% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/exported/133200997/export-7f5ad7a324189276e1d2cfea482fb964-benchmark.scn[39m[0m
+[  91% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/combat_simulation.gdc[39m[0m
+[  91% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/entry.gdc[39m[0m
+[  92% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/exported/133200997/export-fdcdee3b66a8585f333ca4f762ea2ed8-entry.scn[39m[0m
+[  92% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/range_comparison.gdc[39m[0m
+[  93% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/verify_combat_simulation.gdc[39m[0m
+[  94% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/ui/NotoSansKR-OFL.txt[39m[0m
+[  94% ] [90m[1msavepack[22m | 파일 저장 중: res://main.gdc[39m[0m
+[  95% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/exported/133200997/export-3070c538c03ee49b7677ff960a3f5195-main.scn[39m[0m
+[  95% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/enemy_frost_mask.bin.gz[39m[0m
+[  96% ] [90m[1msavepack[22m | 파일 저장 중: res://engine_licenses.txt[39m[0m
+[  97% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/machinegun_muzzle_noise.bin[39m[0m
+[  97% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/ui/Roboto-OFL.txt[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://assets/cannon_field.bin.gz[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/ballistic_projectile.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/cannon_flight.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/enemy_burn.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/enemy_frost.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/field_cache.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/godot_impact.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/machinegun_muzzle.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/projectile_events.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/runic_fire.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://effects/weapon_atlas.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://environment/chapter_three_props.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://environment/chapter_three_tiles.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://environment/chapter_two_environment.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://materials/battlefield_reflection_sky.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://materials/forge_reflection_sky.tres.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://ui/battlefield_effects.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://ui/battlefield_labels.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://ui/battlefield_selection.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://ui/turret_level_labels.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/benchmark.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/benchmark.tscn.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/combat_simulation.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/entry.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/entry.tscn.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/range_comparison.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://validation/verify_combat_simulation.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://main.gd.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://main.tscn.remap[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/global_script_class_cache.cfg[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://.godot/uid_cache.bin[39m[0m
+[  98% ] [90m[1msavepack[22m | 파일 저장 중: res://project.binary[39m[0m
+[92m[ DONE ][39m [1msavepack[22m
+[0m
+cannot connect to daemon at tcp:5037: Connection refused
+Running Gradle task 'assembleRelease'...                        
+Warning: Flutter support for your project's Gradle version (8.14.0) will soon be dropped. Please upgrade your Gradle version to a version of at least 9.1.0 soon.
+Alternatively, use the flag "--android-skip-build-dependency-validation" to bypass this check.
+
+Potential fix: Your project's gradle version is typically defined in the gradle wrapper file. By default, this can be found at /Users/sejin/Documents/Codex/RuneNexus/android/gradle/wrapper/gradle-wrapper.properties. 
+For more information, see https://docs.gradle.org/current/userguide/gradle_wrapper.html.
+
+Warning: Flutter support for your project's Android Gradle Plugin version (Android Gradle Plugin version 8.11.1) will soon be dropped. Please upgrade your Android Gradle Plugin version to a version of at least Android Gradle Plugin version 9.0.1 soon.
+Alternatively, use the flag "--android-skip-build-dependency-validation" to bypass this check.
+
+Potential fix: Your project's AGP version is typically defined in the plugins block of the `settings.gradle` file (/Users/sejin/Documents/Codex/RuneNexus/android/settings.gradle), by a plugin with the id of com.android.application. 
+If you don't see a plugins block, your project was likely created with an older template version. In this case it is most likely defined in the top-level build.gradle file (/Users/sejin/Documents/Codex/RuneNexus/android/build.gradle) by the following line in the dependencies block of the buildscript: "classpath 'com.android.tools.build:gradle:<version>'".
+
+Warning: Flutter support for your project's Kotlin version (2.2.20) will soon be dropped. Please upgrade your Kotlin version to a version of at least 2.3.20 soon.
+Alternatively, use the flag "--android-skip-build-dependency-validation" to bypass this check.
+
+Potential fix: Your project's KGP version is typically defined in the plugins block of the `settings.gradle` file (/Users/sejin/Documents/Codex/RuneNexus/android/settings.gradle), by a plugin with the id of org.jetbrains.kotlin.android. 
+If you don't see a plugins block, your project was likely created with an older template version, in which case it is most likely defined in the top-level build.gradle file (/Users/sejin/Documents/Codex/RuneNexus/android/build.gradle) by the ext.kotlin_version property.
+
+Godot 전장 팩 최신: /Users/sejin/Documents/Codex/RuneNexus/build/godot/android-assets/rune_nexus.pck
+Running Gradle task 'assembleRelease'...                           25.8s
+✓ Built build/app/outputs/flutter-apk/app-arm64-v8a-release.apk (236.6MB)
+/Users/sejin/Documents/Codex/RuneNexus/build/godot/validation.apk

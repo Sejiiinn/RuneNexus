@@ -18,8 +18,8 @@ static var _diagnostic_instances: Array[WeakRef] = []
 var projectile := false
 var _flame: Node3D
 var _muzzle_flame: Node3D
-var _tongues: Array[MeshInstance3D] = []
-var _muzzle_tongues: Array[MeshInstance3D] = []
+var _tongues: Array[MultiMeshInstance3D] = []
+var _muzzle_tongues: Array[MultiMeshInstance3D] = []
 var _particles: Array[GPUParticles3D] = []
 ## Conservative residual lifetime, in battle seconds, for each emitter.
 var _particle_tails: Dictionary = {}
@@ -213,7 +213,7 @@ func _advance(time: float) -> void:
 				_particle_tails[emitter] = maxf(0.0, remaining - residual)
 
 
-func _animate(tongues: Array[MeshInstance3D], time: float, size: Vector3, slot: int = 0) -> void:
+func _animate(tongues: Array[MultiMeshInstance3D], time: float, size: Vector3, slot: int = 0) -> void:
 	var poses: Array = _animation_poses[slot]
 	if time != _animation_times[slot]:
 		poses.clear()
@@ -225,19 +225,28 @@ func _animate(tongues: Array[MeshInstance3D], time: float, size: Vector3, slot: 
 			var scale := strength * Vector3(1.0 + sway * 0.08, 1.0 + sin(time * 8.2 + phase) * 0.13, 1.0 - sway * 0.06)
 			poses.append(Transform3D(Basis.from_euler(rotation).scaled_local(scale), Vector3(sin(phase) * 0.13, 0, cos(phase) * 0.13)))
 		_animation_times[slot] = time
-	for index in range(tongues.size()):
-		var pose: Transform3D = poses[index]
-		tongues[index].transform = Transform3D(pose.basis.scaled_local(size), pose.origin * size)
-
-
-func _add_tongues(parent: Node3D) -> Array[MeshInstance3D]:
-	var result: Array[MeshInstance3D] = []
 	for index in range(5):
-		var tongue := MeshInstance3D.new()
-		var key := "fire_tongue_core" if index >= 3 else "fire_tongue_outer"
-		tongue.name = key + "_%d" % index
-		tongue.mesh = _meshes[key]
+		var pose: Transform3D = poses[index]
+		var batch := tongues[1 if index >= 3 else 0].multimesh
+		batch.set_instance_transform(index - 3 if index >= 3 else index,
+			Transform3D(pose.basis.scaled_local(size), pose.origin * size))
+
+
+func _add_tongues(parent: Node3D) -> Array[MultiMeshInstance3D]:
+	var result: Array[MultiMeshInstance3D] = []
+	# Separate batches retain the shared outer/core native materials. Transform
+	# buffers belong to this flame; sharing them would overwrite other pulses.
+	for key: String in ["fire_tongue_outer", "fire_tongue_core"]:
+		var tongue := MultiMeshInstance3D.new()
+		tongue.name = key
+		var batch := MultiMesh.new()
+		batch.transform_format = MultiMesh.TRANSFORM_3D
+		batch.mesh = _meshes[key]
+		batch.instance_count = 2 if key == "fire_tongue_core" else 3
+		tongue.multimesh = batch
 		tongue.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		# Leave custom_aabb empty: Godot derives the bounds from the mesh and
+		# every CPU-authored instance transform, including nonuniform scales.
 		parent.add_child(tongue)
 		result.append(tongue)
 	return result

@@ -1,0 +1,40 @@
+{
+  "bytes": 431481576,
+  "delta_bytes": 18304,
+  "sha256": "3237df306c9657aac2d98d0399aa3d6fbd8af9ae54eb961016eab7fb2784b389",
+  "largest_zip_deltas": [
+    [
+      16384,
+      "lib/armeabi-v7a/libapp.so"
+    ],
+    [
+      1920,
+      "assets/rune_nexus.pck"
+    ],
+    [
+      0,
+      "resources.arsc"
+    ],
+    [
+      0,
+      "res/zV.9.png"
+    ],
+    [
+      0,
+      "res/zM.png"
+    ],
+    [
+      0,
+      "res/zE.png"
+    ],
+    [
+      0,
+      "res/z9.9.png"
+    ],
+    [
+      0,
+      "res/z-.9.png"
+    ]
+  ],
+  "design_entries": []
+}

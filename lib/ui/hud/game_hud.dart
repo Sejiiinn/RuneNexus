@@ -206,25 +206,20 @@ class _GameHudState extends State<GameHud> {
                         if (!widget.game.supportsNativeBattlefield) {
                           return const SizedBox.shrink();
                         }
-                        return Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            for (final entry in {
-                              'angled': ('고정 시점', Icons.videocam_outlined),
-                              'drone': ('드론 시점', Icons.grid_view_rounded),
-                            }.entries)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 4),
-                                child: GameButton(
-                                  label: entry.value.$1,
-                                  icon: Icon(entry.value.$2, size: 16),
-                                  compact: true,
-                                  selected: _cameraView == entry.key,
-                                  onPressed: () =>
-                                      setState(() => _cameraView = entry.key),
-                                ),
-                              ),
-                          ],
+                        final isDrone = _cameraView == 'drone';
+                        return GameButton(
+                          label: isDrone ? '드론 시점' : '고정 시점',
+                          icon: const Icon(Icons.swap_horiz_rounded, size: 14),
+                          tooltip: isDrone ? '고정 시점으로 전환' : '드론 시점으로 전환',
+                          compact: true,
+                          height: 26,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
+                          onPressed: () => setState(
+                            () => _cameraView = isDrone ? 'angled' : 'drone',
+                          ),
                         );
                       },
                     ),

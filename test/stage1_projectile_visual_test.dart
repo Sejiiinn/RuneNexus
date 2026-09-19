@@ -89,6 +89,121 @@ ProjectileComponent _shortProjectile(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test('탄환 이벤트는 승인까지 재전송하고 이후 좌표 snapshot을 생략한다', () async {
+    final fixture = await _fixture();
+    final game = fixture.game;
+    game.nativeProjectileEvents = true;
+    final projectile = ProjectileComponent(
+      origin: fixture.turret.position.clone(),
+      targetPosition: fixture.turret.position + Vector2(100, 0),
+      owner: fixture.turret,
+      attack: fixture.turret.createAttackSnapshot(),
+      game: game,
+      maxDistance: 1000,
+    );
+    await game.add(projectile);
+    await game.ready();
+    game.update(0.01);
+    final first = game.battlefieldFrame!;
+    final packet = first.projectileEvents!;
+    expect(first.projectiles, isEmpty);
+    expect((packet['events'] as List), hasLength(1));
+    expect(
+      game.battlefieldFrame!.projectileEvents!['events'],
+      packet['events'],
+    );
+    game.acknowledgeProjectileEvents(
+      packet['generation'] as int,
+      packet['through'] as int,
+    );
+    game.update(0.01);
+    expect(game.battlefieldFrame!.projectileEvents!['events'], isEmpty);
+    game.nativeProjectileEvents = false;
+    expect(game.battlefieldFrame!.projectiles, hasLength(1));
+    game.nativeProjectileEvents = true;
+    var reseeded = game.battlefieldFrame!.projectileEvents!;
+    expect(reseeded['events'], hasLength(1));
+    game.acknowledgeProjectileEvents(
+      packet['generation'] as int,
+      packet['through'] as int,
+    );
+    expect(game.battlefieldFrame!.projectileEvents!['events'], hasLength(1));
+    game.onGameResize(Vector2(450, 850));
+    reseeded = game.battlefieldFrame!.projectileEvents!;
+    expect(reseeded['generation'], greaterThan(packet['generation'] as int));
+    expect(reseeded['events'], hasLength(1));
+    game.acknowledgeProjectileEvents(
+      reseeded['generation'] as int,
+      reseeded['through'] as int,
+    );
+    projectile.removeFromParent();
+    game.processLifecycleEvents();
+    expect(
+      (game.battlefieldFrame!.projectileEvents!['events'] as List)
+          .single['remove'],
+      isA<int>(),
+    );
+  });
+
+  test('짧은 연쇄 탄환의 발사·종료를 같은 프레임에 순서대로 보존한다', () async {
+    final fixture = await _fixture();
+    final game = fixture.game;
+    game.nativeProjectileEvents = true;
+    final projectile = _shortProjectile(game, fixture.turret, isChain: true);
+    await game.add(projectile);
+    await game.ready();
+    game.setSpeedMultiplier(4);
+    game.update(0.02);
+    final frame = game.battlefieldFrame!;
+    final events = frame.projectileEvents!['events'] as List;
+    expect(events, hasLength(2));
+    expect(events[0]['data'][10], isTrue);
+    expect(events[0]['data'][11], -1);
+    expect(events[1]['data'][11], frame.time);
+    expect(events[0]['event'], lessThan(events[1]['event'] as int));
+    expect(frame.projectiles, isEmpty);
+    expect(frame.finishedProjectiles, isEmpty);
+    expect(game.hitCount, 0);
+    game.debugSetRound(1);
+    expect(game.battlefieldFrame!.projectileEvents!['events'], isEmpty);
+  });
+
+  test('적용 응답이 오래 없으면 세대를 바꾸고 생존 탄환과 최근 종료만 재시드한다', () async {
+    final fixture = await _fixture();
+    final game = fixture.game;
+    game.nativeProjectileEvents = true;
+    final live = ProjectileComponent(
+      origin: fixture.turret.position.clone(),
+      targetPosition: fixture.turret.position + Vector2(100, 0),
+      owner: fixture.turret,
+      attack: fixture.turret.createAttackSnapshot(),
+      game: game,
+      maxDistance: 1000,
+    );
+    await game.add(live);
+    await game.ready();
+    game.update(0.01);
+    final old = game.battlefieldFrame!.projectileEvents!;
+    for (var index = 0; index < 300; index++) {
+      _shortProjectile(game, fixture.turret).update(1);
+    }
+    final compact = game.battlefieldFrame!.projectileEvents!;
+    expect(compact['generation'], greaterThan(old['generation'] as int));
+    final events = compact['events'] as List;
+    expect(events, hasLength(193));
+    expect(events.where((event) => event['data'][11] == -1), hasLength(1));
+    game.acknowledgeProjectileEvents(
+      old['generation'] as int,
+      old['through'] as int,
+    );
+    expect(game.battlefieldFrame!.projectileEvents!['events'], hasLength(193));
+    game.acknowledgeProjectileEvents(
+      compact['generation'] as int,
+      compact['through'] as int,
+    );
+    expect(game.battlefieldFrame!.projectileEvents!['events'], isEmpty);
+  });
+
   test('첫 갱신에 충돌·제거된 탄환도 판정점과 별도 적 중심을 보존한다', () async {
     final fixture = await _fixture();
     final game = fixture.game;

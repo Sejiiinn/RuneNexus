@@ -1,0 +1,12 @@
+00:00 +0: loading /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_selection_transport_test.dart
+00:00 +0: /Users/sejin/Documents/Codex/RuneNexus/test/battlefield_selection_test.dart: selection freezes display lists and preserves resolved range and clipping
+00:00 +1: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +1: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_selection_transport_test.dart: static state remains pending through coalescing and stale ACKs
+SELECTION_PAYLOAD fixture=1_turret full=331 steady=61
+00:00 +2: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +3: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +4: /Users/sejin/Documents/Codex/RuneNexus/test/stage1_battlefield_presentation_test.dart: 3D 로딩 중 자동 전투와 시계를 멈추고 초기 프레임은 생성한다
+00:00 +5: /Users/sejin/Documents/Codex/RuneNexus/test/stage1_battlefield_presentation_test.dart: 3D frame reads combat state without changing progress or saving
+00:00 +6: /Users/sejin/Documents/Codex/RuneNexus/test/stage1_battlefield_presentation_test.dart: 3D tile taps use the inverse projection and preserve 2D fallback
+00:00 +7: /Users/sejin/Documents/Codex/RuneNexus/test/stage1_battlefield_presentation_test.dart: native collectors forward live statuses and current selection without mutating saves
+00:00 +8: All tests passed!

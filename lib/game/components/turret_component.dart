@@ -56,6 +56,7 @@ class TurretComponent extends PositionComponent {
   int _visualShotSequence = 0;
   double _shapeAnimationTime = 0;
   double _gemRingPhase = 0;
+  double? _nativeGemRingClock;
   EnemyComponent? _aimTarget;
   double _aimProgress = 0;
   int _slotLimit = 1;
@@ -87,7 +88,16 @@ class TurretComponent extends PositionComponent {
   static const double _fireFeedbackDuration = 0.12;
 
   int get level => _level;
-  double get visualGemRingPhase => _gemRingPhase;
+  double get visualGemRingPhase =>
+      (_gemRingPhase +
+          (_nativeGemRingClock == null
+              ? 0
+              : (game.battlefieldEffectCombatClock - _nativeGemRingClock!) *
+                    0.45)) %
+      (math.pi * 2);
+  double get visualGemRingPhaseOrigin =>
+      _gemRingPhase -
+      (_nativeGemRingClock ?? game.battlefieldEffectCombatClock) * 0.45;
   Offset? get visualAimTargetPosition =>
       definition.instantHit && _aimTarget != null
       ? Offset(_aimTarget!.position.x, _aimTarget!.position.y)
@@ -801,7 +811,16 @@ class TurretComponent extends PositionComponent {
     }
     _cooldown = math.max(0, _cooldown - dt);
     _chainCleanupTimer = math.max(0, _chainCleanupTimer - dt);
-    _gemRingPhase = (_gemRingPhase + dt * 0.45) % (math.pi * 2);
+    if (game.usesNativeSelectionAnimation) {
+      _nativeGemRingClock ??= game.battlefieldEffectCombatClock - dt;
+    } else {
+      if (_nativeGemRingClock != null) {
+        _gemRingPhase = visualGemRingPhase;
+        _nativeGemRingClock = null;
+      } else {
+        _gemRingPhase = (_gemRingPhase + dt * 0.45) % (math.pi * 2);
+      }
+    }
     if (_recentHitTimers.isNotEmpty) {
       _recentHitTimers.updateAll((_, timer) => timer - dt);
       _recentHitTimers.removeWhere(
@@ -1142,7 +1161,7 @@ class TurretComponent extends PositionComponent {
         canvas,
         center: center,
         tileSize: _tileSize,
-        animationPhase: _gemRingPhase,
+        animationPhase: visualGemRingPhase,
         gemColors: [
           for (var i = 0; i < visibleGemCount; i++) game.colorForGem(gems[i]),
         ],
@@ -1160,7 +1179,7 @@ class TurretComponent extends PositionComponent {
         color: definition.color,
         tileSize: _tileSize,
         progress: aimProgressRatio,
-        animationPhase: _gemRingPhase,
+        animationPhase: visualGemRingPhase,
       );
     }
 

@@ -85,23 +85,30 @@ extension _BattlefieldPresentation on RuneNexusGame {
           ),
       ],
       enemies: enemyFrames,
-      projectiles: [
-        for (final projectile in children.whereType<ProjectileComponent>())
-          if (!projectile.isRemoving)
-            BattlefieldProjectile(
-              id: id(projectile),
-              type: projectile.owner.definition.type,
-              position: grid(projectile.position),
-              direction: projectile.visualDirection,
-              origin:
-                  (projectile.visualOrigin - Offset(_origin.x, _origin.y)) /
-                  _tileSize,
-              ownerId: id(projectile.owner),
-              shotSequence: projectile.visualShotSequence,
-              isChain: projectile.isChain,
-            ),
-      ],
-      finishedProjectiles: List.unmodifiable(_finishedProjectiles),
+      projectileEvents: nativeProjectileEvents ? _projectileEventFrame() : null,
+      projectiles: nativeProjectileEvents
+          ? const []
+          : [
+              for (final projectile
+                  in children.whereType<ProjectileComponent>())
+                if (!projectile.isRemoving)
+                  BattlefieldProjectile(
+                    id: id(projectile),
+                    type: projectile.owner.definition.type,
+                    position: grid(projectile.position),
+                    direction: projectile.visualDirection,
+                    origin:
+                        (projectile.visualOrigin -
+                            Offset(_origin.x, _origin.y)) /
+                        _tileSize,
+                    ownerId: id(projectile.owner),
+                    shotSequence: projectile.visualShotSequence,
+                    isChain: projectile.isChain,
+                  ),
+            ],
+      finishedProjectiles: nativeProjectileEvents
+          ? const []
+          : List.unmodifiable(_finishedProjectiles),
       impacts: [
         for (final impact in children.whereType<ImpactEffectComponent>())
           if (!impact.isRemoving && impact.style == ImpactEffectStyle.blast)

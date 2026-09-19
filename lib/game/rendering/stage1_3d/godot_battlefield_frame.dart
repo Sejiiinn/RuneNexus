@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'battlefield_frame.dart';
 import 'battlefield_presentation_state.dart';
 import 'godot_battlefield_map_transport.dart';
+import 'godot_battlefield_selection_transport.dart';
 
 /// 본게임과 검수 앱이 공유하는 Godot 표시 입력. 저장·전투 객체는 변경하지 않음.
 Map<String, Object?> encodeGodotBattlefieldFrame(
@@ -12,6 +13,7 @@ Map<String, Object?> encodeGodotBattlefieldFrame(
   int viewportRevision = 0,
   Size? viewport,
   GodotBattlefieldMapTransport? mapTransport,
+  GodotBattlefieldSelectionTransport? selectionTransport,
 }) {
   List<Object> turretData(BattlefieldTurret turret) => [
     turret.id,
@@ -32,7 +34,14 @@ Map<String, Object?> encodeGodotBattlefieldFrame(
     'presentation': {
       if (frame.labels != null) 'labels': frame.labels!.toJson(),
       if (frame.effects != null) 'effects': frame.effects!.toJson(),
-      if (frame.selection != null) 'selection': frame.selection!.toJson(),
+      if (frame.selection != null)
+        'selection':
+            selectionTransport?.prepare(
+              frame.selection!,
+              sceneEpoch: sceneEpoch,
+              sequence: sequence,
+            ) ??
+            frame.selection!.toJson(),
     },
     'time': frame.time,
     if (mapTransport != null)
@@ -76,6 +85,8 @@ Map<String, Object?> encodeGodotBattlefieldFrame(
           ],
         ],
     ],
+    if (frame.projectileEvents != null)
+      'projectileEvents': frame.projectileEvents,
     'projectiles': [
       for (final projectile in [
         ...frame.projectiles,

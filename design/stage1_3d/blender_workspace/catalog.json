@@ -29,11 +29,10 @@
       "file": "turrets/chapter-one-turrets.blend",
       "scene": "Stage1TurretLibrary",
       "roots": [
-        "magic_turret_root",
         "sniper_turret_root",
         "lightning_turret_root"
       ],
-      "output": "turrets/{magic,sniper,lightning}.glb"
+      "output": "turrets/{sniper,lightning}.glb"
     },
     {
       "name": "06 Enemies",
@@ -205,9 +204,70 @@
         "void_fissure"
       ],
       "output": "environment/chapter2_props.glb"
+    },
+    {
+      "name": "33 Runic Fire Turret",
+      "file": "../fire_tower_concepts/runic_3d/migration/runic-native-export.blend",
+      "scene": "Runic Fire Native Export",
+      "output": "turrets/magic.glb"
     }
   ],
   "preview": "cannon_impact/shell_runtime/field-cache-v5-0.12.png",
   "movie": "cannon_impact/shell_runtime/shell-field-cache-v5.mp4",
-  "reference": "cannon_impact/shell_concepts/04-fragmentation-with-fire.png"
+  "reference": "cannon_impact/shell_concepts/04-fragmentation-with-fire.png",
+  "workflows": {
+    "runic-fire": {
+      "source": "design/fire_tower_concepts/runic_3d/runic-flame-turret.blend",
+      "guide": "design/fire_tower_concepts/runic_3d/migration/README.md",
+      "steps": [
+        {
+          "script": "design/fire_tower_concepts/runic_3d/migration/export_native.py",
+          "entrypoint": "bake_export(setup())",
+          "context": "Blender MCP: 승인 원본의 작업 사본에서 함수를 로드한 뒤 호출. 생성기는 원본 재모델링 없이 PBR을 베이크한다."
+        },
+        {
+          "script": "design/fire_tower_concepts/runic_3d/migration/export_flame_meshes.py",
+          "entrypoint": "export()",
+          "context": "Blender MCP: 별도 작업 사본에서 함수 로드 후 호출. 기본 재질용 입체 불꽃 메시 출력."
+        }
+      ],
+      "outputs": [
+        "assets/images/stage1_3d/turrets/magic.glb",
+        "assets/images/stage1_3d/effects/runic_fire.glb"
+      ],
+      "checks": [
+        "godot/verify_runic_fire.gd",
+        "godot/verify_runic_fire_integration.gd"
+      ],
+      "records": [
+        "design/fire_tower_concepts/runic_3d/migration/geometry-check.json",
+        "design/fire_tower_concepts/runic_3d/migration/ANDROID.md"
+      ],
+      "limitation": "Blender 체적 광학은 그대로 이식되지 않는다. 기본 재질·GPU 파티클의 외형 판정은 실제 게임 화면에서 한다."
+    },
+    "enemy-burn": {
+      "source": "design/fire_tower_concepts/enemy_burn/enemy-burn-v3.blend",
+      "guide": "design/fire_tower_concepts/enemy_burn/integration/README.md",
+      "steps": [
+        {
+          "script": "design/fire_tower_concepts/enemy_burn/integration/bake_atlas.py",
+          "entrypoint": "module body",
+          "context": "Blender MCP: 승인 enemy-burn-v3.blend 작업 사본을 열고 실행. 16셀 아틀라스와 부착점을 출력한다."
+        }
+      ],
+      "outputs": [
+        "assets/images/stage1_3d/effects/enemy_burn/flame_atlas.png",
+        "assets/images/stage1_3d/effects/enemy_burn/attachments.json"
+      ],
+      "checks": [
+        "godot/verify_enemy_burn.gd"
+      ],
+      "records": [
+        "design/fire_tower_concepts/enemy_burn/integration/headless-verification.json",
+        "design/fire_tower_concepts/enemy_burn/integration/cpu-measurement.json",
+        "design/fire_tower_concepts/enemy_burn/integration/android-after.json"
+      ],
+      "limitation": "아틀라스는 체적 원형의 베이크다. CPU 측정은 전체 GPU·프레임 성능 검증이 아니며 실제 화면 판정은 별도다."
+    }
+  }
 }

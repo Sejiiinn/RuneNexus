@@ -1,0 +1,38 @@
+{
+  "tool/godot_performance/validation_baseline.dart": {
+    "bytes": 10903,
+    "sha256": "0833b404296eedd2ddc01d96cc439fab254370f86aff5e26c6bc2b2ad9d14eba"
+  },
+  "tool/godot_performance/build_validation.py": {
+    "bytes": 2642,
+    "sha256": "2cc4a60cb6172b6a4ea14aca2cb3260e99f3549845774a0704eef0c147aea955"
+  },
+  "tool/godot_performance/run_baseline.py": {
+    "bytes": 2834,
+    "sha256": "3f6e2a3789bb2b68b9cd93366eb906d5c1aa8a00de73db12a432e4c558249058"
+  },
+  "godot/effects/runic_fire.gd": {
+    "bytes": 14577,
+    "sha256": "6535e3106084f82fff66f5f9719dd52a3520dfb39e50f31a83d4194f2a564575"
+  },
+  "godot/ui/battlefield_selection.gd": {
+    "bytes": 18915,
+    "sha256": "dd91add63f9ccbb795ba001f5e311d4c56aa89cc58bf23f776199f03148511ba"
+  },
+  "lib/ui/hud/godot_battlefield_view.dart": {
+    "bytes": 15666,
+    "sha256": "72681ef203d39690d9f96c46f267056499525fab4b7461f9b33e2bed6b1a7bd0"
+  },
+  "lib/game/rendering/stage1_3d/godot_battlefield_selection_transport.dart": {
+    "bytes": 4510,
+    "sha256": "48fee8959b74ac56026e46cd99c94881a35609c1cb92673ab6c7ec7b25f32053"
+  },
+  "build/godot/validation.apk": {
+    "bytes": 236564793,
+    "sha256": "314ad8ccc064e30948954a1b0c44369b90032b66509827ff00a932c93d74391e"
+  },
+  "build/godot/android-assets/rune_nexus.pck": {
+    "bytes": 105955364,
+    "sha256": "068441d9dd9777c42c06bf8f5e4db9407bf7088edad45a94cf14db40dad54518"
+  }
+}

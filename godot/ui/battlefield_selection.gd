@@ -1,6 +1,10 @@
 extends Node2D
 ## Native camera projection of Dart-resolved selection state. No combat queries.
 var _frame: Dictionary = {}
+var selection_revision := -1
+var _animation_clock := 0.0
+var _selection_time := 0.0
+var _aim: Dictionary = {}
 var _show_all_ranges := false
 const MAX_RANGE_PATHS := 256
 var _range_paths: Dictionary = {}
@@ -66,8 +70,32 @@ void fragment() {
 	_clip_material.shader = clip_shader
 	_create_mask()
 
+func has_frame() -> bool:
+	return not _frame.is_empty()
+
+func reward_targeting() -> bool:
+	return bool(_frame.get("rewardTargeting", false))
+
 func apply_frame(frame: Dictionary) -> void:
-	_frame = frame.duplicate(true)
+	if frame.has("revision"):
+		var revision := int(frame["revision"])
+		if frame.get("state") is Dictionary:
+			_frame = frame["state"].duplicate(true)
+			selection_revision = revision
+		elif revision != selection_revision:
+			clear()
+			return
+		_frame["viewport"] = frame.get("viewport", [])
+		_animation_clock = float(frame.get("clock", 0.0))
+		_selection_time = float(frame.get("time", 0.0))
+		_aim.clear()
+		for aim: Array in frame.get("aim", []):
+			if aim.size() == 4: _aim[int(aim[0])] = aim
+	else:
+		selection_revision = -1
+		_frame = frame.duplicate(true)
+		_selection_time = float(frame.get("time", 0.0))
+		_aim.clear()
 	_show_all_ranges = false
 	for tile in _frame.get("tiles", []):
 		if tile.get("kind", "") == "build":
@@ -76,6 +104,9 @@ func apply_frame(frame: Dictionary) -> void:
 
 func clear() -> void:
 	_frame.clear()
+	selection_revision = -1
+	_animation_clock = 0.0
+	_aim.clear()
 	_show_all_ranges = false
 	_range_paths.clear()
 	_range_context.clear()
@@ -183,9 +214,11 @@ func _draw() -> void:
 	var rewarding := bool(_frame.get("rewardTargeting", false))
 	# Dim is a child drawn behind this node. During targeting only eligible
 	# targets retain their ornaments; the same native models remain in place.
-	for turret in _frame.get("turrets", []):
+	var entries: Array = _frame.get("turrets", [])
+	for index in range(entries.size()):
+		var turret: Dictionary = entries[index]
 		if rewarding and not _is_reward_target(_position(turret)): continue
-		_draw_turret(turret, rewarding)
+		_draw_turret(turret, rewarding, index)
 	if not rewarding:
 		for tile in _frame.get("tiles", []): _draw_tile(tile)
 	else:
@@ -196,7 +229,7 @@ func _is_reward_target(p: Vector2) -> bool:
 		if _position(target).is_equal_approx(p): return true
 	return false
 
-func _draw_turret(data: Dictionary, rewarding: bool) -> void:
+func _draw_turret(data: Dictionary, rewarding: bool, index := -1) -> void:
 	var p := _position(data)
 	var color := _color(data.get("color"))
 	var radius := float(data.get("range", 0.0))
@@ -216,6 +249,9 @@ func _draw_turret(data: Dictionary, rewarding: bool) -> void:
 			_ring(p, 0.42, _color(data.get("color"), 0.95), 3.2)
 			_ring(p, 0.32, Color(1, 1, 1, 238.0 / 255.0), 1.4)
 	var tier := int(data.get("auraTier", 0))
+	if selection_revision >= 0 and data.get("level") != null:
+		var level := int(data["level"])
+		tier = 0 if level <= 1 else 4 if level >= 10 else 3 if level >= 8 else 2 if level >= 5 else 1
 	if tier > 0:
 		var r := 0.28 + tier * 0.015
 		_ring(p, r, _color(0xffffd45a, 0.045 + tier * 0.02), _tile * (0.034 + tier * 0.004))
@@ -224,7 +260,7 @@ func _draw_turret(data: Dictionary, rewarding: bool) -> void:
 			for angle in [-PI / 2, 0.0, PI / 2, PI]:
 				var direction := Vector2(cos(angle), sin(angle))
 				draw_line(_project(p + direction * r), _project(p + direction * (r + 0.035)), _color(0xfffff0b0, 0.92 if tier >= 4 else 0.7), (1.8 if tier >= 4 else 1.45) * _scale_at(p), true)
-	var phase := float(data.get("animationPhase", 0.0))
+	var phase := animation_phase(data)
 	var gems: Array = data.get("gemColors", [])
 	if not gems.is_empty():
 		_ring(p, 0.43, _color(0xff020812, 0.76), _tile * 0.03 * 2.1)
@@ -243,11 +279,20 @@ func _draw_turret(data: Dictionary, rewarding: bool) -> void:
 			draw_line(_project(p + direction * 0.39), _project(p + direction * 0.47), Color(1, 1, 1, 0.72 * pulse), _tile * 0.011 * _scale_at(p), true)
 	var target: Variant = data.get("aimTarget")
 	var progress := float(data.get("aimProgress", 0.0))
+	if selection_revision >= 0:
+		var aim: Array = _aim.get(index, [])
+		target = [aim[1], aim[2]] if aim.size() == 4 else null
+		progress = float(aim[3]) if aim.size() == 4 else 0.0
 	if target != null and progress > 0:
 		color.a = (0.16 + progress * 0.42) * (0.55 + sin(phase * 8) * 0.18)
 		draw_line(_project(p), _project(Vector2(float(target[0]), float(target[1]))), color, _tile * (0.018 + progress * 0.014) * _scale_at(p), true)
 		color.a = 0.16 + progress * 0.16
 		_ring(p, 0.08 + progress * 0.07, color, _tile * 0.025)
+
+func animation_phase(data: Dictionary) -> float:
+	if selection_revision >= 0 and data.get("phaseOrigin") != null:
+		return fposmod(float(data["phaseOrigin"]) + _animation_clock * 0.45, TAU)
+	return float(data.get("animationPhase", 0.0))
 
 func _draw_tile(data: Dictionary) -> void:
 	var p := _position(data)
@@ -264,7 +309,7 @@ func _draw_reward(data: Dictionary) -> void:
 	var scale := minf(float(_frame.get("visualScale", 1.0)), _tile / 24.0)
 	var inset := 2.0 * scale / _tile
 	var outline := _tile_path(p, inset, 3.0 * scale / _tile)
-	var pulse := 0.9 + sin(float(_frame.get("time", 0.0)) * PI / 1.8) * 0.1
+	var pulse := 0.9 + sin(_selection_time * PI / 1.8) * 0.1
 	_outline(outline, _color(0xffffd95c, 0.11 * pulse), 6 * scale, p)
 	_outline(outline, _color(0xffffd95c, 0.22 * pulse), 3.5 * scale, p)
 	_outline(outline, _color(0xffffe989, 0.95), 1.35 * scale, p)

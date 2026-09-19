@@ -1,0 +1,17 @@
+{
+  "engine": "4.7.2.stable.ed1daf0bf",
+  "renderer": "Metal 4 Mobile",
+  "device": "Apple M4 Apple9",
+  "visual_resolution": [
+    720,
+    720
+  ],
+  "visual_time_seconds": 1.14,
+  "hashes": {
+    "assets/images/stage1_3d/effects/runic_fire.glb": "14fdf07a20ffc5101b787ee08e585464b5cb45d9a1cb80e325afe315d8de38c5",
+    "godot/effects/runic_fire.gd": "6535e3106084f82fff66f5f9719dd52a3520dfb39e50f31a83d4194f2a564575",
+    "godot/verify_runic_fire.gd": "8a45676e96a1f465bc9e9a7f1f2929566dc077c456fff6bfcde79ed18724c1df",
+    "build/godot/fire-check/assets/effects/runic_fire.glb.import": "bd1ebe7a86e0da065056908693b385df6eb0a45688ca15b59482ddc351a8ef65",
+    "build/godot/fire-check/project.godot": "1f6a4dcb7de670cda30e9d9dd21c6c6a97a3ad2c00c1f981fe57dcd5df4727dc"
+  }
+}

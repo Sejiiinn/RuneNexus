@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import '../../game/rendering/stage1_3d/battlefield_presentation_state.dart';
 import '../../game/rendering/stage1_3d/godot_battlefield_frame.dart';
 import '../../game/rendering/stage1_3d/godot_battlefield_map_transport.dart';
+import '../../game/rendering/stage1_3d/godot_battlefield_selection_transport.dart';
 import '../../game/rune_nexus_game.dart';
 import '../../data/settings/graphics_settings.dart';
 import '../settings/graphics_settings_scope.dart';
@@ -52,6 +53,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
   int _sceneEpoch = 0;
   int _viewportRevision = 0;
   final _mapTransport = GodotBattlefieldMapTransport();
+  final _selectionTransport = GodotBattlefieldSelectionTransport();
 
   @override
   void initState() {
@@ -104,6 +106,8 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
     game.resetNativeBattlefieldEffects(_sceneEpoch);
     game.nativeBattlefieldTurretLevels = false;
     game.nativeBattlefieldGroups = const {};
+    game.nativeSelectionAnimation = false;
+    _selectionTransport.reset();
     game.battlefieldProjection = null;
   }
 
@@ -215,6 +219,9 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
             viewportRevision: revision,
             viewport: viewport,
             mapTransport: _mapTransport,
+            selectionTransport: game.nativeSelectionAnimation
+                ? _selectionTransport
+                : null,
           ),
         ),
       });
@@ -278,8 +285,26 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
         mapRevision: state['mapRevision'],
       );
       _lastApplied = applied.sequence;
+      game.nativeProjectileEvents = state['nativeProjectileEvents'] == true;
+      final projectileEvents = frame.projectileEvents;
+      if (projectileEvents != null && applied.sequence == submittedSequence) {
+        game.acknowledgeProjectileEvents(
+          projectileEvents['generation'] as int,
+          projectileEvents['through'] as int,
+        );
+      }
       game.nativeBattlefieldTurretLevels = applied.turretLevels;
       game.nativeBattlefieldGroups = applied.groups;
+      game.nativeSelectionAnimation =
+          state['nativeSelectionAnimation'] == true &&
+          applied.groups.contains('selection');
+      _selectionTransport.acknowledge(
+        sceneEpoch: epoch,
+        sequence: applied.sequence,
+        revision: state['selectionRevision'],
+        applied: game.nativeSelectionAnimation,
+      );
+      if (!game.nativeSelectionAnimation) _selectionTransport.reset();
       game.nativeBattlefieldEffectEvents = applied.effectEvents;
       game.nativeBattlefieldImpactEffectEvents = applied.impactEffectEvents;
       game.nativeBattlefieldBlastEffectEvents = applied.blastEffectEvents;

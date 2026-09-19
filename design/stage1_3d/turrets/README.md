@@ -48,3 +48,7 @@ turret_root
 반동은 `turret_barrel.position.z` 음수 방향. 포구는 `muzzle.getWorldPosition` 사용. 냉기 포구는 결정 위쪽이다. `manifest.json`은 제작 원본 Blender 좌표(+Z 위/-Y 전방)를 기록하므로 glTF 해석 시 (x,z,-y)로 변환한다.
 
 각 GLB의 4개 계약 노드 이름·초기 회전·포구 방향과 단일 scene을 파싱해 확인했다. `turret-library-preview.png`는 최초 라이브러리의 Blender 검수 렌더이며 최신 세 후속 개선이나 게임 화면을 나타내지 않는다. 게임 내 클릭·사거리·발사 동기화·가시성은 통합 런타임 검증 대상이다.
+
+## 화염 포탑 현행 원본
+
+2026-09-14 이후 `magic.glb`는 [승인 룬 화염 포탑](../../fire_tower_concepts/runic_3d/migration/README.md)의 평가된 메시·구운 PBR 원본을 사용한다. `build_turrets.py`의 과거 magic 생성 결과로 현행 에셋을 덮어쓰지 않는다.

@@ -10,6 +10,7 @@
 | 프로젝트 이해 | [프로젝트 소개](../README.md), [구현 현황](implementation_status.md) | [백엔드 구조](backend_architecture.md) |
 | 다음 작업 선택 | [남은 작업과 우선순위](next_work_priorities.md) | 해당 기능의 설계·현재 코드 |
 | UI·시각 에셋 수정 | [DESIGNS.md](../DESIGNS.md) | 해당 화면의 design/ 기록, [인앱 검증](../.agents/in_app_test_guide.md) |
+| Blender → Godot 이관 | [현행 제작·이관 기준](stage1_native_material_workflow.md) | [기존 원본·명령 요약](../design/stage1_3d/blender_workspace/README.md#수정부터-게임-반영까지); 과거 실험은 원인 조사 때만 참조 |
 | 성능 개선·대량 표시·CPU/GPU 작업 분배 | [최적화 지침](performance_optimization_guidelines.md) | 해당 기능의 코드·측정 기록, [인앱 검증](../.agents/in_app_test_guide.md), [APK 용량 점검](android_apk_distribution.md#용량-점검) |
 | 전투 수치·피해 효과 | [데미지 계층 규칙](damage_calculation_rules.md), [밸런스 기준](gameplay_balance_reference.md) | 해당 데이터 정의·테스트 |
 | 코어·성장 | [코어 트리 현행 기준](core_passive_tree_implementation_plan.md) | [장기 코어 방향](nexus_core_design.md), [모듈](turret_module_design.md), [성장 후보](long_term_progression_direction.md) |
@@ -30,6 +31,12 @@
 
 ## 나머지 기능·설계 자료
 
+- 화염 지연 최적화: [입자 종료 처리·ARM64 에뮬레이터 합성 호환](analysis/godot_validation_20260915/flame_latency_optimization.md) — 그래픽 유지, 통합 갱신 개선과 실기기 미측정 범위.
+- 선택 이관·화염 MultiMesh 후 FPS: [동일 조건 60초 재측정](analysis/selection_multimesh_fps_20260919/README.md) — 대포 45.24 / 화염 29.93 갱신/초. 화염 성능 개선 미확인, 실기기·GPU 시간 미측정.
+- 화염 잔여 성능 조사: [중복 운동 계산 감소와 효과별 비용 분리](analysis/godot_validation_20260916/README.md) — 외형 유지, 작은 CPU 절감과 전체 FPS 개선 미확인 범위.
+
+- Godot 전체 이관 전 60 FPS 검증: [Android 에뮬레이터 비교와 이관 승인 보류](analysis/godot_validation_20260915/README.md) — 현행 전장 에셋을 재사용한 최소 전투, 실제 표시 FPS, 검증 한계와 실기기 미측정 범위.
+
 - 현행 Godot 성능 1차 진단: [2장 타일 작업량·프레임 전달 후보](analysis/godot_performance_20260913.md) — 현재 코드와 Android 에뮬레이터의 비전투 렌더 통계. 테스터 실기기 병목 확정과 구분한다.
 - Godot 최적화 전후 비교: [중복 처리·타일 렌더 작업과 남은 지연](analysis/godot_optimization_20260913.md) — release 에뮬레이터 A/B. Godot 렌더 FPS 개선과 Flutter raster 악화·긴 스파이크를 함께 기록하며 전체 앱·실기기 개선 확정과 구분한다.
 
@@ -38,11 +45,12 @@
 - 정적 맵 전송 최적화: [적용 확인 후 맵 생략·복구](../design/stage1_3d/presentation_migration/map_transport/README.md) — 전송량·직렬화 CPU 측정, 맵 변경·재진입 계약.
 - 표시 전용 효과 수명 이관: [피해 숫자·사망 파편·젬 장착](../design/stage1_3d/presentation_migration/native_lifecycle/README.md) — Godot 생성 이벤트·공용 전투 시계, Flame 갱신 및 반복 전송 감소.
 
+- Flame 제거를 위한 전투 이관: [단위·의존 순서·검증 경계](godot_combat_migration_boundaries.md) — 후속 구현 설계. 현재 전투 이관 완료와 구분한다.
 - 전장 표시 현행 구조: [Godot 표시 통합 구현과 검증](godot_presentation_migration_plan.md) — labels·selection·effects의 표시 소유권, 적용 확인·이벤트 큐 계약, 단계별 구현 상태와 남은 검증. [실제 적용·검증 기록](../design/stage1_3d/presentation_migration/README.md). 실기기 p95/p99·발열 성능은 미검증이다.
 
 - 스테이지 1 질감·이펙트 개선: [밝기 보존·표면 재질·입체 효과 설계](stage1_surface_effects.md), [제작 원본과 적용 기록](../design/stage1_3d/surface_effects/README.md).
 
-- 스테이지 1~10 3D 전장: [내장 재질 우선 제작·이관 설계](stage1_native_material_workflow.md) — 대표 재질 실험·채택 기준과 후속 내장 PBR·환경 반사 적용 결과, [본게임 연결·실행](stage1_3d_preview.md), [챕터 2 균열 타일·환경 3종](../design/chapter2_3d/README.md), [Godot 연결 테스트 APK](../design/stage1_3d/godot_preview/README.md), [Blender 현행 원본·작업 허브](../design/stage1_3d/blender_workspace/README.md), [S26 Ultra APK 성능 분석·개선 후보](analysis/s26_ultra_cannon_performance_20260911.md).
+- 스테이지 1~10 3D 전장: [현행 제작·이관 기준](stage1_native_material_workflow.md) — 원본·내장 PBR·공용 반사와 기존 실행 경로, [본게임 연결·실행](stage1_3d_preview.md), [챕터 2 균열 타일·환경 3종](../design/chapter2_3d/README.md), [Godot 연결 테스트 APK](../design/stage1_3d/godot_preview/README.md), [Blender 현행 원본·작업 허브](../design/stage1_3d/blender_workspace/README.md), [S26 Ultra APK 성능 분석·개선 후보](analysis/s26_ultra_cannon_performance_20260911.md).
 - 콘텐츠 설계: [챕터 2](chapter2_wave_enemy_design.md), [챕터 3](chapter3_forge_design.md), [젬 파편·특성](gem_shard_trait_design.md), [포탑 공격 명령](turret_target_priority_design.md).
 - 현행 기능과 이전 설계를 함께 확인할 자료: [리더보드](leaderboard_design.md), [인게임 UX 변경 범위](in_game_ux_improvement_design.md).
 - 과거·후속 검토: [긴급 매각 계획](emergency_sale_upgrade_plan.md), [구 코어 슬롯](core_passive_slot_ui_design.md). 현재 구현 여부는 [구현 현황](implementation_status.md)과 해당 코드에서 확인한다.

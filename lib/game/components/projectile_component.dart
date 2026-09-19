@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flame/components.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../domain/turret/turret_type.dart';
 import '../rune_nexus_game.dart';
@@ -45,9 +46,21 @@ class ProjectileComponent extends PositionComponent {
   final Vector2 _direction;
   final double _maxDistance;
   double _travelled = 0;
+  bool _visualRegistered = false;
   final List<Vector2> _trail = [];
 
+  double get visualRemainingDistance => math.max(0, _maxDistance - _travelled);
+
+  @override
+  void onRemove() {
+    game.removeProjectileVisual(this);
+    super.onRemove();
+  }
+
   Offset get visualDirection => Offset(_direction.x, _direction.y);
+
+  @visibleForTesting
+  int get debugTrailLength => _trail.length;
 
   @override
   void update(double dt) {
@@ -63,9 +76,18 @@ class ProjectileComponent extends PositionComponent {
         ? destination
         : origin + (destination - origin) * hit.fraction;
     _travelled += step;
-    _trail.insert(0, position.clone());
-    if (_trail.length > 9) {
-      _trail.removeRange(9, _trail.length);
+    if (!_visualRegistered) {
+      game.registerProjectileVisual(this);
+      _visualRegistered = true;
+    }
+    if (game.battlefieldProjection == null) {
+      _trail.insert(0, position.clone());
+      if (_trail.length > 9) {
+        _trail.removeRange(9, _trail.length);
+      }
+    } else if (_trail.isNotEmpty) {
+      // 3D 표시에서는 사용하지 않으며 2D 복귀 시 과거 잔상을 남기지 않는다.
+      _trail.clear();
     }
 
     if (hit != null) {

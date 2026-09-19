@@ -73,6 +73,7 @@ import 'rendering/game_scene_effect_renderer.dart';
 import 'rendering/gem_reward_target_renderer.dart';
 import 'rendering/status_effect_sprite_cache.dart';
 import 'rendering/stage1_3d/battlefield_frame.dart';
+import 'rendering/stage1_3d/battlefield_projectile_events.dart';
 import 'rendering/stage1_3d/battlefield_effects.dart';
 import 'rendering/stage1_3d/battlefield_effect_queue.dart';
 import 'rendering/stage1_3d/battlefield_effect_events.dart';
@@ -471,6 +472,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   Set<String> nativeBattlefieldGroups = const {};
   int nativeBattlefieldSceneEpoch = 0;
   bool nativeBattlefieldTurretLevels = false;
+  bool nativeSelectionAnimation = false;
+  bool get usesNativeSelectionAnimation =>
+      nativeSelectionAnimation && _usesNativeBattlefieldGroup('selection');
   bool nativeBattlefieldLoading = false;
   final _battlefieldEffectClock = Stopwatch()..start();
   final _battlefieldEffectQueue = BattlefieldEffectQueue();
@@ -546,6 +550,92 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   bool get supportsNativeBattlefield =>
       _activeStage.id >= 1 && _activeStage.id <= 15;
 
+  final _projectileEvents = BattlefieldProjectileEvents();
+  bool _nativeProjectileEvents = false;
+  bool get nativeProjectileEvents => _nativeProjectileEvents;
+  set nativeProjectileEvents(bool value) {
+    if (value == _nativeProjectileEvents) return;
+    _nativeProjectileEvents = value;
+    _projectileEvents.clear();
+    if (value) {
+      for (final projectile in children.whereType<ProjectileComponent>()) {
+        if (!projectile.isRemoving) registerProjectileVisual(projectile);
+      }
+      for (final projectile in _finishedProjectiles) {
+        _projectileEvents.finish(
+          _projectileData(projectile),
+          battlefieldEffectCombatClock,
+        );
+      }
+    }
+  }
+
+  List<Object?> _projectileData(BattlefieldProjectile projectile) => [
+    projectile.id,
+    projectile.position.dx,
+    projectile.position.dy,
+    projectile.direction.dx,
+    projectile.direction.dy,
+    projectile.type.name,
+    projectile.origin!.dx,
+    projectile.origin!.dy,
+    projectile.ownerId,
+    projectile.shotSequence,
+    projectile.isChain,
+    projectile.finishedAt ?? -1,
+    projectile.hitTarget?.dx,
+    projectile.hitTarget?.dy,
+  ];
+
+  BattlefieldProjectile _projectileVisual(
+    ProjectileComponent projectile, {
+    Vector2? hitTarget,
+    bool finished = false,
+  }) {
+    Offset grid(Offset position) =>
+        (position - Offset(_origin.x, _origin.y)) / _tileSize;
+    return BattlefieldProjectile(
+      id: _battlefieldIds[projectile] ??= _nextBattlefieldId++,
+      type: projectile.owner.definition.type,
+      position: grid(Offset(projectile.position.x, projectile.position.y)),
+      direction: projectile.visualDirection,
+      origin: grid(projectile.visualOrigin),
+      ownerId: _battlefieldIds[projectile.owner] ??= _nextBattlefieldId++,
+      shotSequence: projectile.visualShotSequence,
+      isChain: projectile.isChain,
+      finishedAt: finished ? _spaceTime : null,
+      hitTarget: hitTarget == null
+          ? null
+          : grid(Offset(hitTarget.x, hitTarget.y)),
+    );
+  }
+
+  void registerProjectileVisual(ProjectileComponent projectile) {
+    if (!_nativeProjectileEvents) return;
+    _projectileEvents.launch(
+      _projectileData(_projectileVisual(projectile)),
+      battlefieldEffectCombatClock,
+      projectile.attack.projectileSpeed / _tileSize,
+      projectile.visualRemainingDistance / _tileSize,
+    );
+  }
+
+  void removeProjectileVisual(ProjectileComponent projectile) {
+    final id = _battlefieldIds[projectile];
+    if (id != null) _projectileEvents.cancel(id);
+  }
+
+  Map<String, Object?> _projectileEventFrame() {
+    if (_projectileEvents.needsReseed) {
+      nativeProjectileEvents = false;
+      nativeProjectileEvents = true;
+    }
+    return _projectileEvents.snapshot(battlefieldEffectCombatClock);
+  }
+
+  void acknowledgeProjectileEvents(int generation, int through) =>
+      _projectileEvents.acknowledge(generation, through);
+
   void retainProjectileVisual(
     ProjectileComponent projectile, {
     Vector2? hitTarget,
@@ -553,33 +643,27 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     final type = projectile.owner.definition.type;
     if (battlefieldProjection == null ||
         !supportsNativeBattlefield ||
-        (type != TurretType.arrow &&
+        (!_nativeProjectileEvents &&
+            type != TurretType.arrow &&
             type != TurretType.cannon &&
             type != TurretType.magic)) {
       return;
     }
-    Offset grid(Offset position) =>
-        (position - Offset(_origin.x, _origin.y)) / _tileSize;
+    final visual = _projectileVisual(
+      projectile,
+      hitTarget: hitTarget,
+      finished: true,
+    );
+    if (_nativeProjectileEvents) {
+      _projectileEvents.finish(
+        _projectileData(visual),
+        battlefieldEffectCombatClock,
+      );
+    }
     if (_finishedProjectiles.length >= _projectileVisualCapacity) {
       _finishedProjectiles.removeAt(0);
     }
-    // 즉시 제거된 탄환도 다음 렌더 프레임에서 확인할 수 있는 표시 전용 사본.
-    _finishedProjectiles.add(
-      BattlefieldProjectile(
-        id: _battlefieldIds[projectile] ??= _nextBattlefieldId++,
-        type: type,
-        position: grid(Offset(projectile.position.x, projectile.position.y)),
-        direction: projectile.visualDirection,
-        origin: grid(projectile.visualOrigin),
-        ownerId: _battlefieldIds[projectile.owner] ??= _nextBattlefieldId++,
-        shotSequence: projectile.visualShotSequence,
-        isChain: projectile.isChain,
-        finishedAt: _spaceTime,
-        hitTarget: hitTarget == null
-            ? null
-            : grid(Offset(hitTarget.x, hitTarget.y)),
-      ),
-    );
+    _finishedProjectiles.add(visual);
   }
 
   final ValueNotifier<bool> readyNotifier = ValueNotifier(false);
@@ -1163,6 +1247,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (isLoaded) {
       _configureBoard();
       _syncBoardComponents();
+      if (nativeProjectileEvents) {
+        nativeProjectileEvents = false;
+        nativeProjectileEvents = true;
+      }
     }
   }
 
@@ -3578,6 +3666,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       'charge',
     });
     _finishedProjectiles.clear();
+    _projectileEvents.clear();
     _rewardSelection.clear();
     _gemRewardBoardViewport = null;
     for (final enemy in enemies.toList()) {
@@ -4429,6 +4518,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     nativeBattlefieldGroups = const {};
     nativeBattlefieldTurretLevels = false;
     _finishedProjectiles.clear();
+    _projectileEvents.clear();
     _activeStage = nextStage;
     // 새 HUD가 붙기 전에도 이전 맵의 응답·좌표·효과를 사용하지 않는다.
     nativeBattlefieldLoading = hadNativeScene && supportsNativeBattlefield;

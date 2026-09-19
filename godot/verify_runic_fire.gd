@@ -2,16 +2,20 @@ extends SceneTree
 
 const RunicFire = preload("res://effects/runic_fire.gd")
 
+# Dummy rendering does not retain MultiMesh instance buffers.
+var _has_renderer := DisplayServer.get_name() != "headless"
+
 func _initialize() -> void:
 	call_deferred("_visual" if "--visual" in OS.get_cmdline_user_args() else "_verify")
 
 func _verify() -> void:
-	_verify_animation()
 	# 메시 외형은 실제 GLB 화면 검수에서 판정한다. 이 검사는 시계/재사용 계약이다.
 	# GLB가 없는 소스 전용 검사에서도 엔진 API 오류와 수명 계약을 검증한다.
 	if not ResourceLoader.exists(RunicFire.ASSET):
 		for key in ["fire_tongue_outer", "fire_tongue_core", "fire_ember"]:
 			RunicFire._meshes[key] = BoxMesh.new()
+	assert(RunicFire._load_meshes())
+	_verify_animation()
 	var turret := RunicFire.new(false)
 	var projectile := RunicFire.new(true)
 	var port := Node3D.new()
@@ -20,13 +24,28 @@ func _verify() -> void:
 	root.add_child(muzzle)
 	root.add_child(turret)
 	root.add_child(projectile)
+	assert(turret._flame.get_child_count() == 2)
+	assert(turret._muzzle_flame.get_child_count() == 2)
+	assert(projectile._flame.get_child_count() == 2)
+	assert(turret._tongues[0].multimesh != turret._muzzle_tongues[0].multimesh)
+	assert(turret._tongues[0].multimesh != projectile._tongues[0].multimesh)
+	port.transform = Transform3D(Basis.from_euler(Vector3(0.2, 0.7, -0.1)).scaled_local(Vector3(2, 3, 4)), Vector3(1, 2, 3))
+	muzzle.transform = Transform3D(Basis.from_euler(Vector3(-0.4, 0.9, 0.3)), Vector3(-2, 1, 4))
 	turret.update_turret(port, muzzle, 5.0)
-	var paused_pose: Transform3D = turret._tongues[0].transform
+	assert(turret._flame.global_transform.is_equal_approx(port.global_transform.orthonormalized()))
+	assert(projectile._flame.rotation.is_equal_approx(Vector3(-PI / 2.0, 0, 0)))
+	var paused_pose: Transform3D = turret._tongues[0].multimesh.get_instance_transform(0)
 	turret.update_turret(port, muzzle, 5.0)
-	assert(turret._tongues[0].transform.is_equal_approx(paused_pose))
+	assert(turret._tongues[0].multimesh.get_instance_transform(0).is_equal_approx(paused_pose))
 	turret.fire(muzzle, 5.0, 1)
 	turret.update_turret(port, muzzle, 5.02)
 	assert(turret._shot_time == 5.0)
+	var expected_muzzle := muzzle.global_transform.orthonormalized()
+	expected_muzzle.basis = expected_muzzle.basis * Basis(Vector3.RIGHT, PI / 2.0)
+	assert(turret._muzzle_flame.global_transform.is_equal_approx(expected_muzzle))
+	var independent_pose: Transform3D = turret._tongues[0].multimesh.get_instance_transform(0)
+	projectile.update_projectile(6.0)
+	assert(turret._tongues[0].multimesh.get_instance_transform(0).is_equal_approx(independent_pose))
 	for emitter: GPUParticles3D in turret._particles:
 		assert(emitter.speed_scale == 0.0)
 		assert(not emitter.local_coords)
@@ -106,28 +125,42 @@ func _reference_animation(tongues: Array[MeshInstance3D], time: float, size: Vec
 
 func _verify_animation() -> void:
 	var effect := RunicFire.new()
-	var actual: Array[MeshInstance3D] = []
+	var container := Node3D.new()
+	var actual: Array[MultiMeshInstance3D] = effect._add_tongues(container)
 	var expected: Array[MeshInstance3D] = []
 	for index in range(5):
-		actual.append(MeshInstance3D.new())
 		expected.append(MeshInstance3D.new())
+	assert(actual.size() == 2)
+	for index in range(2):
+		var batch := actual[index].multimesh
+		assert(batch.instance_count == (3 if index == 0 else 2))
+		assert(batch.mesh == RunicFire._meshes["fire_tongue_outer" if index == 0 else "fire_tongue_core"])
+		assert(actual[index].cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF)
 	# Alternate slots, then revisit the same clock with different pulse sizes.
 	# Backward seek, wrap, pause, and nonuniform scales retain the old poses.
-	for time in [0.0, 0.016, 5.0, 5.0, 1199.99, 0.01, 20.0, 3.0]:
+	for time in [0.0, 0.016, 0.080, 5.0, 5.0, 1199.99, 0.01, 20.0, 3.0]:
 		for size in [Vector3(0.28, 0.35, 0.28), Vector3(0.12, 0.30, 0.12), Vector3(0.045, 0.14, 0.045), Vector3(0.12, 0.45, 0.12), Vector3(0.17, 0.39, 0.23)]:
 			for slot in [0, 1, 0]:
 				var clock: float = time + slot * 3.0
 				effect._animate(actual, clock, size, slot)
 				_reference_animation(expected, clock, size)
 				for index in range(5):
-					assert(actual[index].transform.is_equal_approx(expected[index].transform), "Flame pose differs from original formula")
+					var batch := actual[1 if index >= 3 else 0].multimesh
+					var transform := batch.get_instance_transform(index - 3 if index >= 3 else index)
+					var pose: Transform3D = RunicFire._animation_poses[slot][index]
+					var cached := Transform3D(pose.basis.scaled_local(size), pose.origin * size)
+					assert(cached.is_equal_approx(expected[index].transform), "Cached flame pose differs from original formula")
+					if _has_renderer:
+						assert(transform.is_equal_approx(expected[index].transform), "MultiMesh flame pose differs from original formula")
 	assert(RunicFire._animation_poses.size() == 2)
 	for poses in RunicFire._animation_poses:
 		assert(poses.size() == 5)
-	for node in actual + expected:
+	for node in expected:
 		node.free()
+	container.free()
 	effect.free()
 	print("RunicFire cached transforms / interleaved clocks: PASS")
+	print("RunicFire MultiMesh instance buffer: PASS" if _has_renderer else "RunicFire MultiMesh instance buffer: SKIP (headless Dummy; run with renderer)")
 
 
 func _visual() -> void:
