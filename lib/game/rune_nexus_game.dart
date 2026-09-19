@@ -500,6 +500,17 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (wasEnabled && !value) _restoreBattlefieldEffectEvents();
   }
 
+  bool _nativeBattlefieldLinkedEffectEvents = false;
+  bool get nativeBattlefieldLinkedEffectEvents =>
+      _nativeBattlefieldLinkedEffectEvents;
+  set nativeBattlefieldLinkedEffectEvents(bool value) {
+    final wasEnabled = _nativeBattlefieldLinkedEffectEvents;
+    _nativeBattlefieldLinkedEffectEvents = value;
+    if (wasEnabled && !value) _restoreBattlefieldEffectEvents();
+  }
+
+  // Shared logical target samples, also used when returning to Flame.
+  final _battlefieldTargetPositions = Expando<Offset>('effect target position');
   bool _restoringBattlefieldEffects = false;
   final Map<int, Set<int>> _battlefieldEffectSubmissions = {};
   Set<int> _nativeAppliedEffectIds = const {};
@@ -3538,7 +3549,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _clearActiveCombat() {
-    _battlefieldEffectEvents.cancelKinds({'damage', 'gem', 'impact', 'blast'});
+    _battlefieldEffectEvents.cancelKinds({
+      'damage',
+      'gem',
+      'impact',
+      'blast',
+      'coreBeam',
+    });
     _finishedProjectiles.clear();
     _rewardSelection.clear();
     _gemRewardBoardViewport = null;

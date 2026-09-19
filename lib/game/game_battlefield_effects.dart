@@ -8,6 +8,23 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
 
   double get battlefieldEffectCombatClock => _battlefieldEffectEvents.clock;
 
+  int battlefieldEffectTargetId(EnemyComponent target) =>
+      _battlefieldIds[target] ??= _nextBattlefieldId++;
+
+  Offset battlefieldEffectTargetPosition(
+    EnemyComponent target,
+    Offset initial,
+  ) {
+    if (target.isMounted && !target.isDead && !target.isRemoving) {
+      return battlefieldEffectPosition(
+        Offset(target.position.x, target.position.y),
+        Offset(_origin.x, _origin.y),
+        _tileSize,
+      );
+    }
+    return _battlefieldTargetPositions[target] ?? initial;
+  }
+
   bool _transferBattlefieldEffect(Component component) {
     if (!nativeBattlefieldEffectEvents ||
         !_usesNativeBattlefieldGroup('effects') ||
@@ -16,6 +33,9 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
         (component is! DamageNumberComponent &&
             component is! DeathBurstEffectComponent &&
             component is! GemEquipEffectComponent &&
+            !((component is NexusCoreBeamComponent ||
+                    component is RiftMarkPulseComponent) &&
+                nativeBattlefieldLinkedEffectEvents) &&
             !(component is ImpactEffectComponent &&
                 (component.style == ImpactEffectStyle.blast
                     ? nativeBattlefieldBlastEffectEvents
@@ -24,9 +44,22 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
     }
     final id = _battlefieldIds[component] ??= _nextBattlefieldId++;
     final origin = Offset(_origin.x, _origin.y);
-    final effect =
-        component is ImpactEffectComponent &&
-            component.style == ImpactEffectStyle.blast
+    final effect = component is NexusCoreBeamComponent
+        ? component.battlefieldEffect(
+            id,
+            origin,
+            _tileSize,
+            includeTargets: true,
+          )
+        : component is RiftMarkPulseComponent
+        ? component.battlefieldEffect(
+            id,
+            origin,
+            _tileSize,
+            includeTargets: true,
+          )
+        : component is ImpactEffectComponent &&
+              component.style == ImpactEffectStyle.blast
         ? component.nativeBlastEffect(id, origin, _tileSize)
         : (component as BattlefieldEffectSource).battlefieldEffect(
             id,
@@ -35,6 +68,9 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
           );
     // Image-only numbers cannot be represented by the native text renderer.
     if (effect == null) return false;
+    if (component is NexusCoreBeamComponent && effect.targetIds.isNotEmpty) {
+      _battlefieldTargetPositions[component.target] = effect.points.last;
+    }
     _battlefieldEffectEvents.add(effect, component);
     return true;
   }
@@ -52,7 +88,21 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
               entry.effect.position.dx * _tileSize,
               entry.effect.position.dy * _tileSize,
             );
-        if (source is DamageNumberComponent) {
+        if (source is NexusCoreBeamComponent) {
+          final endpoint = entry.effect.targetIds.isEmpty
+              ? entry.effect.points.last
+              : battlefieldEffectTargetPosition(
+                  source.target,
+                  entry.effect.points.last,
+                );
+          source.restoreNativePresentation(
+            age,
+            anchor,
+            _origin + Vector2(endpoint.dx * _tileSize, endpoint.dy * _tileSize),
+          );
+        } else if (source is RiftMarkPulseComponent) {
+          source.restoreNativePresentation(age, anchor);
+        } else if (source is DamageNumberComponent) {
           source.restorePresentationTime(
             age,
             _battlefieldEffectEvents.squaredSteps - entry.bornSquared,
@@ -140,6 +190,7 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
     nativeBattlefieldEffectEvents = false;
     nativeBattlefieldImpactEffectEvents = false;
     nativeBattlefieldBlastEffectEvents = false;
+    nativeBattlefieldLinkedEffectEvents = false;
     _battlefieldEffectQueue.clear();
     _battlefieldEffectSubmissions.clear();
     _nativeAppliedEffectIds = const {};

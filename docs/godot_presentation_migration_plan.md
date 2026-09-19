@@ -1,10 +1,10 @@
 # Godot 전장 표시 통합 구현과 검증
 
-역할: Android 본게임 공용 Godot 전장의 **현행 표시 소유권·이관 구현·남은 검증**. 갱신: 2026-09-18(표시 전용 수명·정적 맵 전송 최적화). 최초 후속 제안을 바탕으로 `labels`·`selection`·`effects` 세 묶음을 구현하고 공용 Godot 런타임에 연결했다. 구현 상태와 시각·성능 검증 상태는 구분한다. 최초 스테이지 1 이관의 최종 APK·검사 수치·실제 캡처는 [표시 이관 검증 기록](../design/stage1_3d/presentation_migration/README.md)을 따른다. 이후 스테이지 2~5 확장은 [1장 전장 검증](../design/chapter1_3d/README.md)을 따른다.
+역할: Android 본게임 공용 Godot 전장의 **현행 표시 소유권·이관 구현·남은 검증**. 갱신: 2026-09-19(코어 빔·균열 파동 수명 이관). 최초 후속 제안을 바탕으로 `labels`·`selection`·`effects` 세 묶음을 구현하고 공용 Godot 런타임에 연결했다. 구현 상태와 시각·성능 검증 상태는 구분한다. 최초 스테이지 1 이관의 최종 APK·검사 수치·실제 캡처는 [표시 이관 검증 기록](../design/stage1_3d/presentation_migration/README.md)을 따른다. 이후 스테이지 2~5 확장은 [1장 전장 검증](../design/chapter1_3d/README.md)을 따른다.
 
 ## 현행 책임
 
-Godot은 전장 모델과 전장에 붙는 정보·선택·효과를 같은 카메라로 표시한다. Flutter는 로비·HUD·패널·보상 카드·교체 UI와 화면 전체 피격 경고를 유지한다. Dart/Flame은 전투 갱신·타깃 선택·피해 판정·웨이브·경제·저장과 공용 전투 시계를 결정한다. 피해 숫자·사망 파편·젬 장착과 착탄 효과 및 대포 blast는 지원 확인된 Godot 경로에서 생성 이벤트로 전달하고 Godot이 운동·수명을 관리한다. 그 밖의 효과 진행도는 기존 Flame 컴포넌트가 결정한다. 저장 스키마와 전투 규칙은 변경하지 않았다. 3종의 후속 이관 범위와 검증은 [수명 이관 기록](../design/stage1_3d/presentation_migration/native_lifecycle/README.md)을 따른다.
+Godot은 전장 모델과 전장에 붙는 정보·선택·효과를 같은 카메라로 표시한다. Flutter는 로비·HUD·패널·보상 카드·교체 UI와 화면 전체 피격 경고를 유지한다. Dart/Flame은 전투 갱신·타깃 선택·피해 판정·웨이브·경제·저장과 공용 전투 시계를 결정한다. 피해 숫자·사망 파편·젬 장착과 착탄 효과·대포 blast·코어 빔·균열 파동은 지원 확인된 Godot 경로에서 생성 이벤트로 전달하고 Godot이 운동·수명을 관리한다. 그 밖의 효과 진행도는 기존 Flame 컴포넌트가 결정한다. 저장 스키마와 전투 규칙은 변경하지 않았다. 3종의 후속 이관 범위와 검증은 [수명 이관 기록](../design/stage1_3d/presentation_migration/native_lifecycle/README.md)을 따른다.
 
 Godot이 해당 묶음을 실제 적용했다고 응답한 경우에만 대응하는 Flame 그림을 생략한다. 미지원 묶음은 기존 표시를 유지하며 오류·화면 종료에는 소유권과 투영을 해제한다. 다른 스테이지·플랫폼과 2D 오류 복귀 경로는 유지한다.
 
@@ -47,6 +47,8 @@ Android 본게임은 타일 배열·크기·테마를 캐시하고 `mapRevision`
 착탄의 `spark`·`sniperBlast`·`flame`·`frost`·`lightning`·`lightningBlast`는 별도 `nativeImpactEffectEvents` 지원까지 확인한 뒤 같은 이벤트 경로를 사용한다. 기존 엔진 응답에 이 지원 값이 없으면 최신 age 스냅샷 경로를 유지한다. 화염·냉기의 기존 2D 착탄 억제와 3D 효과는 유지하며 대포 `blast`는 아래 별도 생성 이벤트 계약으로 기존 3D 표시 경로에 연결한다. [착탄 수명 이관 검증](../design/stage1_3d/presentation_migration/impact_lifecycle/README.md).
 
 대포 `blast`는 `nativeBlastEffectEvents` 지원 확인 뒤 생성 위치·반경·개별 수명과 공용 전투 시계로 진행한다. 실제 적용 ACK까지 생성 이벤트를 반복하며, Godot이 기존 3D 폭발 렌더러에 progress를 공급한다. 기존 파편 GPU 운동·체적 효과·광원·풀은 유지한다. 구형 런타임과 기존 미리보기의 `impacts` 입력도 유지한다. [대포 폭발 수명 이관 검증](../design/stage1_3d/presentation_migration/blast_lifecycle/README.md).
+
+코어 빔·균열 파동은 별도 `nativeLinkedEffectEvents` 지원 확인 뒤 생성 이벤트의 대상 ID와 공용 시계로 표시한다. 연결 대상인 적만 기존 enemy 배열에 논리 좌표를 추가하며, 시각 흔들림 좌표를 사용하지 않는다. 빔은 마지막 수신 생존 위치를 유지하고 균열은 사라진 대상의 연결선을 제거한다. 피해·낙인 판정과 기존 그리기 함수는 유지한다. 미지원 경로는 기존 스냅샷을 사용하고 지원 철회 때 살아 있는 효과를 현재 나이·보드 좌표로 복원한다. [검증 기록](../design/stage1_3d/presentation_migration/core_effect_lifecycle/README.md).
 
 ## 프레임 생략과 짧은 효과
 

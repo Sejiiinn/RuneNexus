@@ -10,10 +10,24 @@ import '../rendering/stage1_3d/battlefield_effects.dart';
 class RiftMarkPulseComponent extends PositionComponent
     implements BattlefieldEffectSource {
   @override
-  BattlefieldEffect? battlefieldEffect(int id, Offset origin, double tileSize) {
+  BattlefieldEffect? battlefieldEffect(
+    int id,
+    Offset origin,
+    double tileSize, {
+    bool includeTargets = false,
+  }) {
     return BattlefieldEffect(
       id: id,
       kind: 'rift',
+      targetIds: !includeTargets
+          ? const []
+          : _targets
+                .where(
+                  (target) =>
+                      target.isMounted && !target.isDead && !target.isRemoving,
+                )
+                .map(game.battlefieldEffectTargetId)
+                .toList(growable: false),
       age: _elapsed,
       duration: _duration,
       position: battlefieldEffectPosition(
@@ -54,6 +68,11 @@ class RiftMarkPulseComponent extends PositionComponent
   final RuneNexusGame game;
   final double _duration;
   double _elapsed = 0;
+
+  void restoreNativePresentation(double age, Vector2 source) {
+    _elapsed = age;
+    _source.setFrom(source);
+  }
 
   @override
   void update(double dt) {

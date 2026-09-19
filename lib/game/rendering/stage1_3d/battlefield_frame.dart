@@ -84,6 +84,7 @@ class BattlefieldEnemy {
     required this.slowed,
     required this.poisoned,
     required this.diamondCarrier,
+    this.logicalPosition,
   });
   final int id;
   final EnemyType type;
@@ -96,6 +97,7 @@ class BattlefieldEnemy {
   final bool slowed;
   final bool poisoned;
   final bool diamondCarrier;
+  final Offset? logicalPosition;
 }
 
 class BattlefieldProjectile {

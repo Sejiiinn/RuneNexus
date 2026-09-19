@@ -21,14 +21,25 @@ extension _BattlefieldPresentation on RuneNexusGame {
           Vector2(_map.columns * _tileSize / 2, _map.rows * _tileSize / 2),
     );
     final enemyFrames = <BattlefieldEnemy>[];
+    final linkedTargets = nativeBattlefieldLinkedEffectEvents
+        ? _battlefieldEffectEvents.linkedTargetIds
+        : const <int>{};
     for (final enemy in enemies) {
       if (enemy.isDead) continue;
+      final logicalPosition = grid(enemy.position);
+      final enemyId = id(enemy);
+      final linkedTarget =
+          linkedTargets.contains(enemyId) &&
+          enemy.isMounted &&
+          !enemy.isRemoving;
+      if (linkedTarget) _battlefieldTargetPositions[enemy] = logicalPosition;
       final visual = enemy.visualRenderState;
       enemyFrames.add(
         BattlefieldEnemy(
-          id: id(enemy),
+          id: enemyId,
           type: enemy.definition.type,
-          position: grid(enemy.position) + visual.visualOffset / _tileSize,
+          position: logicalPosition + visual.visualOffset / _tileSize,
+          logicalPosition: linkedTarget ? logicalPosition : null,
           facingAngle: visual.facingAngle,
           scale: enemy.size.x / _tileSize,
           phase: enemy.visualPhase,

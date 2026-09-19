@@ -169,5 +169,47 @@ func _verify() -> void:
 	effects.apply_frame({"clock": 2.0, "events": [delayed]})
 	assert(effects.blast_impacts.is_empty(), "coalesced expired blast draws at most one retained delivery sample")
 	effects.clear()
+	# Linked events share enemy logical positions, not animated visual offsets.
+	var beam := {"id": 1300, "kind": "coreBeam", "born": 0.0, "bornSquared": 0.0,
+		"duration": .14, "x": 5.0, "y": 5.0, "tileSize": 48.0,
+		"points": [[5.0, 5.0], [6.0, 6.0]], "targetIds": [50]}
+	var rift := {"id": 1301, "kind": "rift", "born": 0.0, "bornSquared": 0.0,
+		"duration": .42, "x": 5.0, "y": 5.0, "tileSize": 48.0,
+		"points": [[6.0, 6.0], [7.0, 7.0]], "targetIds": [50, 51]}
+	var target_rows := [[50, 60.0, 60.0, 0, 0, 1, 0, "normal", false, false, false, false, 6.2, 6.3],
+		[51, 70.0, 70.0, 0, 0, 1, 0, "normal", false, false, false, false, 7.2, 7.3]]
+	effects.apply_frame({"clock": .03, "events": [beam, rift], "targets": target_rows})
+	assert(effects.items[0]["points"] == [[5.0, 5.0], [6.2, 6.3]])
+	assert(effects.items[1]["points"] == [[6.2, 6.3], [7.2, 7.3]])
+	assert(is_equal_approx(effects.items[0]["age"], .03))
+	target_rows[0][12] = 6.4
+	effects.apply_frame({"clock": .06, "targets": target_rows})
+	assert(effects.items[0]["points"][1] == [6.4, 6.3], "ACK does not stop target following")
+	assert(effects.items[0]["points"][0] == [5.0, 5.0], "beam source is fixed")
+	effects.apply_frame({"clock": .06, "targets": []})
+	assert(effects.items[0]["points"][1] == [6.4, 6.3], "removed target freezes beam endpoint")
+	assert(effects.items[1]["points"].is_empty(), "dead/unmounted rift links disappear")
+	effects.present(camera, Vector2(10, 10), world)
+	await process_frame
+	assert(is_equal_approx(effects.items[0]["age"], .06), "camera and pause do not age links")
+	effects.apply_frame({"clock": .14})
+	assert(effects.items.size() == 1 and effects.items[0]["kind"] == "rift")
+	effects.apply_frame({"clock": .42})
+	assert(effects.items.is_empty())
+	beam["id"] = 1302
+	rift["id"] = 1303
+	effects.apply_frame({"clock": .5, "events": [beam, rift]})
+	assert(effects.items.size() == 2, "coalesced links get a single delivery sample")
+	assert(effects.items[0]["points"][1] == [6.0, 6.0], "target dead before delivery preserves initial beam endpoint")
+	assert(effects.items[1]["points"].is_empty())
+	effects.apply_frame({"clock": .5, "events": [beam, rift]})
+	assert(effects.items.is_empty(), "late retries cannot resurrect expired links")
+	effects.apply_frame({"generation": 1, "clock": .5, "events": [beam]})
+	assert(effects.items.size() == 1)
+	effects.apply_frame({"generation": 2, "clock": .5})
+	assert(effects.items.is_empty(), "generation reset removes old links")
+	effects.apply_frame({"generation": 1, "clock": .5, "events": [beam]})
+	assert(effects.items.is_empty(), "stale generation cannot resurrect links")
+	effects.clear()
 	print("Battlefield effects: original ground/billboard transforms, anchor movement, additive gem passes, duplicate frame, pause, copy ownership, camera and all effect kinds passed")
 	quit(0)

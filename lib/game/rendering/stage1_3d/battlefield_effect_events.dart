@@ -12,6 +12,12 @@ class BattlefieldEffectEvents<T> {
   final _wallClock = Stopwatch()..start();
   double get _now => _wallClock.elapsedMicroseconds / 1000000;
 
+  Set<int> get linkedTargetIds => {
+    for (final entry in _entries.values)
+      if (entry.effect.kind == 'coreBeam' || entry.effect.kind == 'rift')
+        ...entry.effect.targetIds,
+  };
+
   void advance(double dt) {
     clock += dt;
     squaredSteps += dt * dt;

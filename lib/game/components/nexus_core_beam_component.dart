@@ -9,10 +9,22 @@ import '../rendering/stage1_3d/battlefield_effects.dart';
 class NexusCoreBeamComponent extends PositionComponent
     implements BattlefieldEffectSource {
   @override
-  BattlefieldEffect? battlefieldEffect(int id, Offset origin, double tileSize) {
+  BattlefieldEffect? battlefieldEffect(
+    int id,
+    Offset origin,
+    double tileSize, {
+    bool includeTargets = false,
+  }) {
     return BattlefieldEffect(
       id: id,
       kind: 'coreBeam',
+      targetIds:
+          includeTargets &&
+              target.isMounted &&
+              !target.isDead &&
+              !target.isRemoving
+          ? [game.battlefieldEffectTargetId(target)]
+          : const [],
       age: _elapsed,
       duration: _duration,
       position: battlefieldEffectPosition(
@@ -50,6 +62,12 @@ class NexusCoreBeamComponent extends PositionComponent
   final double _duration;
   Vector2 _targetPosition;
   double _elapsed = 0;
+
+  void restoreNativePresentation(double age, Vector2 start, Vector2 endpoint) {
+    _elapsed = age;
+    _start.setFrom(start);
+    _targetPosition.setFrom(endpoint);
+  }
 
   @override
   void update(double dt) {

@@ -70,7 +70,7 @@ func apply_frame(frame: Dictionary) -> void:
 	_event_squared = maxf(_event_squared, float(frame.get("squaredSteps", _event_squared)))
 	for event in frame.get("events", []):
 		var id := int(event.get("id", -1))
-		if id <= _last_event_id or event.get("kind") not in ["damage", "death", "gem", "impact", "blast"]:
+		if id <= _last_event_id or event.get("kind") not in ["damage", "death", "gem", "impact", "blast", "coreBeam", "rift"]:
 			continue
 		if event.get("kind") == "impact" and event.get("style") not in ["spark", "sniperBlast", "flame", "frost", "lightning", "lightningBlast"]:
 			continue
@@ -84,6 +84,12 @@ func apply_frame(frame: Dictionary) -> void:
 			_events.erase(_events.keys()[0])
 	items = frame.get("items", []).duplicate(true)
 	blast_impacts.clear()
+	# One shared logical-position lookup for all links. Visual enemy offsets
+	# deliberately never enter this table; missing targets are dead/unmounted.
+	var targets := {}
+	for target: Array in frame.get("targets", []):
+		if target.size() >= 14:
+			targets[int(target[0])] = [target[12], target[13]]
 	for id in _events.keys():
 		var event: Dictionary = _events[id]
 		var age := maxf(0, _event_clock - float(event["born"]))
@@ -96,6 +102,16 @@ func apply_frame(frame: Dictionary) -> void:
 			steps = float(event.get("retainedSquared", 0))
 			event["deliverySample"] = false
 		event["age"] = age
+		if event.get("kind") == "coreBeam":
+			var ids: Array = event.get("targetIds", [])
+			if not ids.is_empty() and targets.has(int(ids[0])):
+				event["points"][1] = targets[int(ids[0])]
+		elif event.get("kind") == "rift":
+			var points := []
+			for target_id in event.get("targetIds", []):
+				if targets.has(int(target_id)):
+					points.append(targets[int(target_id)])
+			event["points"] = points
 		if event.get("kind") == "damage":
 			var offset := Vector2(0, -34 * age)
 			if event.get("motion") == "fallArc":

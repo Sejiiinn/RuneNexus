@@ -810,6 +810,7 @@ func presentation() -> Dictionary:
 		"nativeEffectEvents": _applied_groups.has("effects"),
 		"nativeImpactEffectEvents": _applied_groups.has("effects"),
 		"nativeBlastEffectEvents": _applied_groups.has("effects"),
+		"nativeLinkedEffectEvents": _applied_groups.has("effects"),
 		"transitioning": is_instance_valid(camera_transition) and camera_transition.is_running(),
 	}
 
@@ -870,6 +871,8 @@ func _apply_frame_impl(frame: Dictionary) -> void:
 		if payload.get(group) is Dictionary:
 			var group_frame: Dictionary = payload[group].duplicate(true)
 			group_frame["viewport"] = frame.get("viewport", [])
+			if group == "effects":
+				group_frame["targets"] = frame.get("enemies", [])
 			_presentation_nodes[group].apply_frame(group_frame)
 		else:
 			_presentation_nodes[group].clear()

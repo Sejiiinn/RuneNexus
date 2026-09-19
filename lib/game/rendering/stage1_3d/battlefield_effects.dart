@@ -51,7 +51,9 @@ class BattlefieldEffect {
     this.hasImage = false,
     this.screenOffset = Offset.zero,
     List<Offset> points = const [],
-  }) : points = List.unmodifiable(points);
+    List<int> targetIds = const [],
+  }) : points = List.unmodifiable(points),
+       targetIds = List.unmodifiable(targetIds);
 
   final int id;
   final String kind;
@@ -74,9 +76,11 @@ class BattlefieldEffect {
   final bool hasImage;
   final Offset screenOffset;
   final List<Offset> points;
+  final List<int> targetIds;
 
   Map<String, Object> toJson() => {
     'id': id,
+    if (targetIds.isNotEmpty) 'targetIds': targetIds,
     'kind': kind,
     'age': age,
     'duration': duration,

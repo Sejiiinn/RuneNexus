@@ -70,6 +70,10 @@ Map<String, Object?> encodeGodotBattlefieldFrame(
           enemy.slowed,
           enemy.poisoned,
           enemy.diamondCarrier,
+          if (enemy.logicalPosition != null) ...[
+            enemy.logicalPosition!.dx,
+            enemy.logicalPosition!.dy,
+          ],
         ],
     ],
     'projectiles': [

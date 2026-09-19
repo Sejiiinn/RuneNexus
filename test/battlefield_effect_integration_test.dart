@@ -1,3 +1,7 @@
+import 'package:rune_nexus/data/definitions/game_enemy_data.dart';
+import 'package:rune_nexus/game/components/enemy_component.dart';
+import 'package:rune_nexus/game/components/nexus_core_beam_component.dart';
+import 'package:rune_nexus/game/components/rift_mark_pulse_component.dart';
 import 'dart:convert';
 import 'dart:ui' as ui;
 
@@ -96,8 +100,230 @@ Future<RuneNexusGame> _fixture() async {
   return game;
 }
 
+class _CountingCoreBeam extends NexusCoreBeamComponent {
+  _CountingCoreBeam(RuneNexusGame game, EnemyComponent target)
+    : super(
+        game: game,
+        target: target,
+        start: Vector2(100, 120),
+        color: const Color(0xff88ffff),
+      );
+  int updates = 0;
+  int snapshots = 0;
+  @override
+  void update(double dt) {
+    updates++;
+    super.update(dt);
+  }
+
+  @override
+  BattlefieldEffect? battlefieldEffect(
+    int id,
+    Offset origin,
+    double tileSize, {
+    bool includeTargets = false,
+  }) {
+    snapshots++;
+    return super.battlefieldEffect(
+      id,
+      origin,
+      tileSize,
+      includeTargets: includeTargets,
+    );
+  }
+}
+
+class _CountingRift extends RiftMarkPulseComponent {
+  _CountingRift(RuneNexusGame game, List<EnemyComponent> targets)
+    : super(
+        game: game,
+        targets: targets,
+        source: Vector2(100, 120),
+        color: const Color(0xff88ffff),
+      );
+  int updates = 0;
+  int snapshots = 0;
+  @override
+  void update(double dt) {
+    updates++;
+    super.update(dt);
+  }
+
+  @override
+  BattlefieldEffect? battlefieldEffect(
+    int id,
+    Offset origin,
+    double tileSize, {
+    bool includeTargets = false,
+  }) {
+    snapshots++;
+    return super.battlefieldEffect(
+      id,
+      origin,
+      tileSize,
+      includeTargets: includeTargets,
+    );
+  }
+}
+
+Future<EnemyComponent> _linkedTarget(RuneNexusGame game) async {
+  final enemy = EnemyComponent(
+    definition: gameEnemies[EnemyType.normal]!,
+    maxHp: 100,
+    path: [Vector2(150, 150), Vector2(250, 250)],
+    game: game,
+    laneOffsetRatio: .12,
+  );
+  game.enemies.add(enemy);
+  game.add(enemy);
+  await game.ready();
+  return enemy;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test(
+    'linked events remove Flame ticks and snapshots, share logical targets and restore resized anchors',
+    () async {
+      final game = await _fixture();
+      final target = await _linkedTarget(game);
+      final other = await _linkedTarget(game);
+      game.battlefieldProjection = _projection;
+      game.nativeBattlefieldGroups = {'effects'};
+      game.nativeBattlefieldEffectEvents = true;
+      game.nativeBattlefieldLinkedEffectEvents = true;
+      // No linked effect means no enemy payload expansion.
+      expect(
+        (encodeGodotBattlefieldFrame(
+                  game.battlefieldFrame!,
+                  sequence: 0,
+                )['enemies']
+                as List)
+            .first,
+        hasLength(12),
+      );
+      final beam = _CountingCoreBeam(game, target);
+      final rift = _CountingRift(game, [target, other]);
+      game.add(beam);
+      game.add(rift);
+      await game.ready();
+      expect(beam.parent, isNull);
+      expect(rift.parent, isNull);
+      final initial = game.battlefieldFrame!;
+      final events = initial.effects!.events;
+      expect(events.map((e) => e['duration']), [.14, .42]);
+      expect(events.first['targetIds'], [initial.enemies.first.id]);
+      expect(
+        events.last['targetIds'],
+        initial.enemies.map((e) => e.id).toList(),
+      );
+      game.markNativeBattlefieldEffectsSubmitted(
+        10,
+        1,
+        events.map((e) => e['id'] as int),
+      );
+      game.acknowledgeNativeBattlefieldEffects(10, 1);
+      game.update(.03);
+      final moving = game.battlefieldFrame!;
+      expect(moving.effects!.events, isEmpty);
+      expect(moving.effects!.items, isEmpty);
+      expect(beam.updates + rift.updates, 0);
+      expect(beam.snapshots + rift.snapshots, 2);
+      final wire =
+          encodeGodotBattlefieldFrame(moving, sequence: 2)['enemies'] as List;
+      expect(wire.first, hasLength(14));
+      final logical = moving.enemies.first.logicalPosition!;
+      expect((wire.first as List).sublist(12), [logical.dx, logical.dy]);
+      expect(moving.enemies.first.position, isNot(logical));
+      target.hp = 0;
+      other.removeFromParent();
+      await game.ready();
+      game.nativeBattlefieldLoading = true;
+      game.update(2);
+      expect(game.battlefieldEffectCombatClock, moving.effects!.clock);
+      game.onGameResize(Vector2(600, 1000));
+      game.nativeBattlefieldLinkedEffectEvents = false;
+      await game.ready();
+      expect(beam.parent, same(game));
+      expect(rift.parent, same(game));
+      final restored = game.battlefieldFrame!.effects!.items;
+      final beamSnapshot = restored.firstWhere((e) => e.kind == 'coreBeam');
+      final riftSnapshot = restored.firstWhere((e) => e.kind == 'rift');
+      expect(beamSnapshot.age, closeTo(.03, 1e-9));
+      expect(
+        beamSnapshot.position.dx,
+        closeTo(events.first['x'] as double, 1e-6),
+      );
+      expect(beamSnapshot.points.last.dx, closeTo(logical.dx, 1e-6));
+      expect(beamSnapshot.points.last.dy, closeTo(logical.dy, 1e-6));
+      expect(riftSnapshot.points, isEmpty);
+      expect(
+        riftSnapshot.position.dx,
+        closeTo(events.last['x'] as double, 1e-6),
+      );
+      expect(beam.updates + rift.updates, 0);
+    },
+  );
+
+  test(
+    'legacy runtime keeps linked snapshot lifecycle until explicit capability',
+    () async {
+      final game = await _fixture();
+      final target = await _linkedTarget(game);
+      game.battlefieldProjection = _projection;
+      game.nativeBattlefieldGroups = {'effects'};
+      game.nativeBattlefieldEffectEvents = true;
+      final beam = _CountingCoreBeam(game, target);
+      final rift = _CountingRift(game, [target]);
+      game.add(beam);
+      game.add(rift);
+      await game.ready();
+      game.update(.02);
+      expect(beam.parent, same(game));
+      expect(rift.parent, same(game));
+      expect(beam.updates, 1);
+      expect(rift.updates, 1);
+      expect(game.battlefieldFrame!.effects!.events, isEmpty);
+      expect(
+        game.battlefieldFrame!.effects!.items.map((e) => e.kind),
+        containsAll(['coreBeam', 'rift']),
+      );
+    },
+  );
+
+  test(
+    'beam target death before first native delivery restores initial endpoint',
+    () async {
+      final game = await _fixture();
+      final target = await _linkedTarget(game);
+      game.battlefieldProjection = _projection;
+      game.nativeBattlefieldGroups = {'effects'};
+      game.nativeBattlefieldEffectEvents = true;
+      game.nativeBattlefieldLinkedEffectEvents = true;
+      final beam = _CountingCoreBeam(game, target);
+      game.add(beam);
+      target.hp = 0;
+      target.position.setValues(999, 999);
+      final killingBeam = _CountingCoreBeam(game, target);
+      game.add(killingBeam);
+      final events = game.battlefieldFrame!.effects!.events;
+      final event = events.first;
+      expect(events.last.containsKey('targetIds'), isFalse);
+      final endpoint = (event['points'] as List).last as List;
+      game.nativeBattlefieldLinkedEffectEvents = false;
+      await game.ready();
+      final restoredItems = game.battlefieldFrame!.effects!.items;
+      final restored = restoredItems.first;
+      final killingEndpoint = (events.last['points'] as List).last as List;
+      expect(
+        restoredItems.last.points.last.dx,
+        closeTo(killingEndpoint[0] as double, 1e-6),
+      );
+      expect(restored.points.last.dx, closeTo(endpoint[0] as double, 1e-6));
+      expect(restored.points.last.dy, closeTo(endpoint[1] as double, 1e-6));
+    },
+  );
 
   test(
     'blast event keeps exact lifetime, shared clock and resize fallback without ticks',
@@ -736,6 +962,99 @@ void main() {
       expect(game.battlefieldFrame!.effects!.events, isEmpty);
       expect(game.battlefieldFrame!.impacts, isEmpty);
       expect(blast.updateCalls, 0);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'production widget routes and revokes linked capability with live fallback',
+    (tester) async {
+      const channel = MethodChannel('rune_nexus/godot_preview');
+      final messenger = tester.binding.defaultBinaryMessenger;
+      final game = (await tester.runAsync(_fixture))!;
+      var applyEvents = false;
+      var linkedCapability = true;
+      final target = (await tester.runAsync(() => _linkedTarget(game)))!;
+      var eventFrames = 0;
+      int? priorApplied;
+      messenger.setMockMethodCallHandler(
+        SystemChannels.platform_views,
+        (_) async => null,
+      );
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'getStatus') return {'ready': true, 'error': ''};
+        if (call.method != 'submitFrameV2') return null;
+        final frame =
+            jsonDecode((call.arguments as Map)['frame'] as String) as Map;
+        final effects = (frame['presentation'] as Map)['effects'] as Map;
+        if ((effects['events'] as List).isNotEmpty) {
+          eventFrames++;
+          expect((frame['impacts'] as List), isEmpty);
+          if (applyEvents) priorApplied = frame['seq'] as int;
+        } else {
+          priorApplied = frame['seq'] as int;
+        }
+        return jsonEncode({
+          'presentationVersion': 2,
+          'sceneEpoch': frame['sceneEpoch'],
+          'viewportRevision': frame['viewportRevision'],
+          'viewport': frame['viewport'],
+          'sequence': priorApplied,
+          'appliedGroups': ['effects'],
+          'nativeEffectEvents': true,
+          'nativeLinkedEffectEvents': linkedCapability,
+          'projection': {
+            'origin': [.1, .2],
+            'xAxis': [.1, 0],
+            'yAxis': [0, .1],
+            'heightAxis': [0, -.1],
+          },
+        });
+      });
+      addTearDown(() {
+        messenger.setMockMethodCallHandler(channel, null);
+        messenger.setMockMethodCallHandler(SystemChannels.platform_views, null);
+      });
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SizedBox(
+            width: 400,
+            height: 800,
+            child: GodotBattlefieldView(game: game),
+          ),
+        ),
+      );
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(game.nativeBattlefieldLinkedEffectEvents, isTrue);
+      expect(game.nativeBattlefieldImpactEffectEvents, isFalse);
+      final blast = _CountingCoreBeam(game, target);
+      game.add(blast);
+      for (var i = 0; i < 3; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(eventFrames, greaterThan(1));
+      expect(game.battlefieldFrame!.effects!.events, hasLength(1));
+      expect(blast.parent, isNull);
+      applyEvents = true;
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(game.battlefieldFrame!.effects!.events, isEmpty);
+      expect(game.battlefieldFrame!.impacts, isEmpty);
+      expect(blast.updates, 0);
+      linkedCapability = false;
+      await tester.pump(const Duration(milliseconds: 16));
+      await tester.runAsync(game.ready);
+      expect(game.nativeBattlefieldLinkedEffectEvents, isFalse);
+      expect(blast.parent, same(game));
+      expect(game.battlefieldFrame!.effects!.events, isEmpty);
+      expect(
+        game.battlefieldFrame!.effects!.items.any((e) => e.kind == 'coreBeam'),
+        isTrue,
+      );
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
       expect(tester.takeException(), isNull);
