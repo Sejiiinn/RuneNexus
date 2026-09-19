@@ -6,6 +6,18 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-09-20 성장 조정·필수 업데이트 APK 0.1.18 / code 6027, 웹·API 배포
+
+- 대상 `f7ca3d47897c2e3613aa5c914c0d6631c9bca522`. [APK workflow](https://github.com/Sejiiinn/RuneNexus/actions/runs/35461936191)·[웹 workflow](https://github.com/Sejiiinn/RuneNexus/actions/runs/35461937928) 성공, [공개 release](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6027) 대상 커밋 일치. 공개 웹의 주요 파일 HTTP 200과 빌드 SHA·운영 API 주소를 확인했다.
+- 강화 상한 확장·기초 화력 비용 지수 1.06, 치명 집중/긴급 매각 연구 이관 및 토벌 보상 강화 이관. 룬 공명과 나머지 기존 연구는 유지한다. 수치는 [현행 밸런스](gameplay_balance_reference.md)를 따른다. 기존 레벨은 성장 버전 1로 자동 이전하며 비용 차액 환급은 없다.
+- 이번 배포는 `required_update=true`, 공개 `minimumSupportedVersionCode=6027`. 선택 업데이트는 기존 최소 버전을 유지한다. 새 앱은 시작·복귀 시 확인하고 필수 업데이트 설치 취소 및 확인 실패 시 게임 진입을 차단한다. 이미 배포된 구앱의 오프라인 실행 자체를 소급 차단할 수는 없다.
+- API는 `rune-nexus-api:f7ca3d4`, 이미지 `sha256:f1653fa27c1093be711855d635dafe9c64bafb8374a20197cacd45e1c5db7085`. 호환 하한 2로 서버 선반영 후 APK·웹 공개를 확인하고 `MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION=3`으로 올렸다. 실행 환경값·Docker healthy·공개 HTTPS readiness 정상 확인. 구세대 writer/저장/경제 변경을 거절하며 이전된 계정의 성장 버전 회귀도 방어한다.
+- DB 스키마 변경은 없다. 운영 백업 345,934 bytes의 격리 PostgreSQL 복원과 통합 검사를 완료하고 임시 DB 컨테이너·네트워크를 제거했다. 백업·이미지 override·배포 로그는 비공개 `~/Library/Application Support/RuneNexus/operations/growth-release-20260919T183021Z/`에 보관한다. 후속 API 재시작에는 해당 `api-release.override.json`을 base/production Compose에 함께 적용해야 한다. 이전 이미지·백업은 보존했다.
+- 로컬 Flutter 전체 902개 통과·12개 skip, analyze 문제 없음, Python APK 검사 24개 통과. Go 전체 test/vet와 격리 PostgreSQL 통합 검사 통과. CI 분석·전체 검사·서명·최근 3개 APK 차등 복원도 통과했다.
+- Android 일반 앱 debug 6027에서 강화·경제·연구 메뉴를 실제 확인했다. 기초 화력 100/체력 30/토벌 40/긴급 매각 5/치명 집중 10과 레벨당 2%p 표시 정상, 대상 메뉴 잘림·겹침 없음. 검수 전후 저장 파일 97개 SHA-256 동일. 캡처·검증 근거는 `build/growth-validation/`. 초기 로비의 기존 14px 하단 overflow는 이번 메뉴 변경 범위 밖이며, 공개 release APK의 실기기 설치·로그인을 검증한 것은 아니다.
+- 공개 APK 431,317,688 bytes, SHA-256 `1ea465ad36cf9d6ae445819cdd72646922cee0f60cef7604ee7ac9ad294dcd84`. 6026 대비 +163,856 bytes (+0.04%): libapp.so arm64/x86_64 각 +65,536, armeabi-v7a +32,768, Godot PCK +16 bytes. ABI 3종 유지, design 제작 파일·Flutter 원본 GLB 포함 없음.
+- Godot PCK 105,955,316 bytes·275항목·완전 중복 0 bytes. APK·6024/6025/6026 패치의 실제 다운로드 크기·SHA-256 모두 일치, latest와 버전별 update.json 바이트 일치 및 필수 하한 6027 확인. 6026 패치 97,325,997 bytes. 공개 검증·CI audit·웹 확인 근거: `build/release-verification/apk-6027/`.
+
 ## 2026-09-19 본게임 APK 0.1.17 / code 6026 배포
 
 - 대상 `af4572a1f233e66519b66f2f3b89600220fb3121`. [workflow](https://github.com/Sejiiinn/RuneNexus/actions/runs/35427499439) 성공, [공개 release](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6026) 대상 커밋 일치. Android만 배포했으며 웹·서버·DB는 변경하지 않았다.

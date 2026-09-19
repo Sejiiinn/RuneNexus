@@ -14,7 +14,7 @@
 | 웹 | [deploy-pages.yml](../.github/workflows/deploy-pages.yml): 의존성 설치 → Flutter 분석·전체 테스트 → 운영 설정·커밋을 포함한 웹 빌드 → Pages artifact 업로드·배포 | GitHub Pages |
 | APK | [deploy-apk.yml](../.github/workflows/deploy-apk.yml): 입력·기존 버전·서명 설정 검사 → Flutter 분석·전체 테스트 및 Python 테스트 → 서명 빌드 → Android 패치 디코더·최근 최대 3개 기준 APK의 서명·차등 복원 검증 | 모든 자산을 올린 초안을 공개하고 최신 release로 지정 |
 
-APK 입력은 `version_code`, `version_name`, `notes`다. 버전 코드는 초안을 포함한 기존 APK release보다 커야 하며, 별도 배포한 설치본도 고려한다. 안내는 변경 항목별 줄바꿈을 사용한다. 서명·차등 패치·실패한 초안 처리 규칙은 [APK 배포](android_apk_distribution.md#배포-실행)를 따른다.
+APK 입력은 `version_code`, `version_name`, `notes`, `required_update`다. `required_update=true`이면 이번 버전을 최소 지원 버전으로 지정하며, 선택 업데이트는 기존 최소 지원 버전을 유지한다. 버전 코드는 초안을 포함한 기존 APK release보다 커야 하며, 별도 배포한 설치본도 고려한다. 안내는 변경 항목별 줄바꿈을 사용한다. 서명·차등 패치·실패한 초안 처리 규칙은 [APK 배포](android_apk_distribution.md#배포-실행)를 따른다.
 
 웹은 `web:<github.sha>`, APK는 `android:<github.sha>`를 빌드에 포함한다. 현재 workflow에는 별도 대상 SHA 입력이나 공통 검증 job이 없고, 두 workflow 모두 Flutter 분석·전체 테스트를 수행한다. Flutter는 버전 번호 고정 없이 `stable` 채널을 사용한다.
 

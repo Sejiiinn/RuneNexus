@@ -94,7 +94,7 @@ chmod 600 .secrets/duckdns_token
   임시 이전 endpoint별 클라이언트 요청 상한
 - `AUTH_RATE_LIMIT_MAX_CLIENTS`: endpoint마다 메모리에 보관할 최대 클라이언트 수
 
-`MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION`은 writer 획득과 저장 PUT에 허용할 최소
+`MINIMUM_SAVE_CLIENT_COMPATIBILITY_VERSION`은 writer 획득·저장 PUT·경제 명령에 허용할 최소
 클라이언트 호환 세대입니다. 기본값 1을 유지하고, 저장 계약을 깨는 클라이언트 변경을
 배포할 때 서버 보호 규칙을 먼저 배포한 뒤 올립니다. 서버 코드의 현재 호환 버전보다
 크게 설정하면 API가 시작을 거부합니다.
