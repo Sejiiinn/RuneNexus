@@ -14,8 +14,10 @@ class BattlefieldEffectEvents<T> {
 
   Set<int> get linkedTargetIds => {
     for (final entry in _entries.values)
-      if (entry.effect.kind == 'coreBeam' || entry.effect.kind == 'rift')
-        ...entry.effect.targetIds,
+      if (entry.effect.kind == 'coreBeam' ||
+          entry.effect.kind == 'rift' ||
+          entry.effect.kind == 'chain')
+        ...entry.effect.targetIds.where((id) => id >= 0),
   };
 
   void advance(double dt) {
@@ -81,6 +83,20 @@ class BattlefieldEffectEvents<T> {
     if (_entries.isNotEmpty) generation++;
     _entries.clear();
     return result;
+  }
+
+  /// A generation change reliably invalidates cancelled starts, even if a
+  /// start was already submitted but its application ACK has not returned.
+  void cancel(int id) {
+    if (_entries.remove(id) == null) return;
+    _entries.removeWhere(
+      (_, entry) => clock - entry.born >= entry.effect.duration,
+    );
+    generation++;
+    for (final entry in _entries.values) {
+      entry.acknowledged = false;
+      entry.firstSubmitted = null;
+    }
   }
 
   void cancelKinds(Set<String> kinds) {

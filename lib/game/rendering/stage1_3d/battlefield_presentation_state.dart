@@ -13,6 +13,8 @@ class BattlefieldPresentationState {
     this.impactEffectEvents = false,
     this.blastEffectEvents = false,
     this.linkedEffectEvents = false,
+    this.chainEffectEvents = false,
+    this.chargeEffectEvents = false,
   });
 
   static const protocolVersion = 2;
@@ -26,6 +28,8 @@ class BattlefieldPresentationState {
   final bool impactEffectEvents;
   final bool blastEffectEvents;
   final bool linkedEffectEvents;
+  final bool chainEffectEvents;
+  final bool chargeEffectEvents;
 
   /// 이전 장면/화면 크기나 아직 제출하지 않은 프레임의 응답은 적용하지 않는다.
   static BattlefieldPresentationState? tryDecode(
@@ -95,6 +99,8 @@ class BattlefieldPresentationState {
       impactEffectEvents: state['nativeImpactEffectEvents'] == true,
       blastEffectEvents: state['nativeBlastEffectEvents'] == true,
       linkedEffectEvents: state['nativeLinkedEffectEvents'] == true,
+      chainEffectEvents: state['nativeChainEffectEvents'] == true,
+      chargeEffectEvents: state['nativeChargeEffectEvents'] == true,
     );
   }
 

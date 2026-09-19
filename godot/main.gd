@@ -811,6 +811,8 @@ func presentation() -> Dictionary:
 		"nativeImpactEffectEvents": _applied_groups.has("effects"),
 		"nativeBlastEffectEvents": _applied_groups.has("effects"),
 		"nativeLinkedEffectEvents": _applied_groups.has("effects"),
+		"nativeChainEffectEvents": _applied_groups.has("effects"),
+		"nativeChargeEffectEvents": _applied_groups.has("effects"),
 		"transitioning": is_instance_valid(camera_transition) and camera_transition.is_running(),
 	}
 
@@ -873,6 +875,7 @@ func _apply_frame_impl(frame: Dictionary) -> void:
 			group_frame["viewport"] = frame.get("viewport", [])
 			if group == "effects":
 				group_frame["targets"] = frame.get("enemies", [])
+				group_frame["turrets"] = frame.get("turrets", [])
 			_presentation_nodes[group].apply_frame(group_frame)
 		else:
 			_presentation_nodes[group].clear()

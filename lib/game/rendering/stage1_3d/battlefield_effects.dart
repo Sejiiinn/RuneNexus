@@ -41,6 +41,9 @@ class BattlefieldEffect {
     this.color = const Color(0xFFFFFFFF),
     this.radius = 0,
     this.visualScale = 1,
+    this.boltSeed,
+    this.ownerId,
+    this.attachmentRadius,
     this.text = '',
     this.feedback = 'neutral',
     this.motion = 'rise',
@@ -66,6 +69,9 @@ class BattlefieldEffect {
   final Color color;
   final double radius;
   final double visualScale;
+  final double? boltSeed;
+  final int? ownerId;
+  final double? attachmentRadius;
   final String text;
   final String feedback;
   final String motion;
@@ -82,6 +88,9 @@ class BattlefieldEffect {
     'id': id,
     if (targetIds.isNotEmpty) 'targetIds': targetIds,
     'kind': kind,
+    'boltSeed': ?boltSeed,
+    'ownerId': ?ownerId,
+    'attachmentRadius': ?attachmentRadius,
     'age': age,
     'duration': duration,
     'x': position.dx,

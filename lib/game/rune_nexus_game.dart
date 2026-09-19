@@ -509,6 +509,25 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (wasEnabled && !value) _restoreBattlefieldEffectEvents();
   }
 
+  bool _nativeBattlefieldChainEffectEvents = false;
+  bool get nativeBattlefieldChainEffectEvents =>
+      _nativeBattlefieldChainEffectEvents;
+  set nativeBattlefieldChainEffectEvents(bool value) {
+    final wasEnabled = _nativeBattlefieldChainEffectEvents;
+    _nativeBattlefieldChainEffectEvents = value;
+    if (wasEnabled && !value) _restoreBattlefieldEffectEvents();
+  }
+
+  final Set<LightningChargeComponent> _nativeBattlefieldCharges = {};
+  bool _nativeBattlefieldChargeEffectEvents = false;
+  bool get nativeBattlefieldChargeEffectEvents =>
+      _nativeBattlefieldChargeEffectEvents;
+  set nativeBattlefieldChargeEffectEvents(bool value) {
+    final wasEnabled = _nativeBattlefieldChargeEffectEvents;
+    _nativeBattlefieldChargeEffectEvents = value;
+    if (wasEnabled && !value) _restoreBattlefieldEffectEvents();
+  }
+
   // Shared logical target samples, also used when returning to Flame.
   final _battlefieldTargetPositions = Expando<Offset>('effect target position');
   bool _restoringBattlefieldEffects = false;
@@ -3555,6 +3574,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       'impact',
       'blast',
       'coreBeam',
+      'chain',
+      'charge',
     });
     _finishedProjectiles.clear();
     _rewardSelection.clear();

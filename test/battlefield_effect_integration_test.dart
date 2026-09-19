@@ -1,3 +1,10 @@
+import 'package:rune_nexus/game/components/lightning_charge_component.dart';
+import 'package:rune_nexus/game/components/turret_component.dart';
+import 'package:rune_nexus/data/definitions/game_turret_data.dart';
+import 'package:rune_nexus/domain/turret/turret_type.dart';
+import 'package:rune_nexus/domain/map/grid_point.dart';
+import 'dart:math' as math;
+import 'package:rune_nexus/game/components/lightning_chain_beam_component.dart';
 import 'package:rune_nexus/data/definitions/game_enemy_data.dart';
 import 'package:rune_nexus/game/components/enemy_component.dart';
 import 'package:rune_nexus/game/components/nexus_core_beam_component.dart';
@@ -166,6 +173,42 @@ class _CountingRift extends RiftMarkPulseComponent {
   }
 }
 
+class _CountingChain extends LightningChainBeamComponent {
+  _CountingChain(EnemyComponent target, {super.source})
+    : super(
+        sourcePosition: Vector2(100, 120),
+        target: target,
+        color: const Color(0xff8cfff3),
+        duration: .37,
+        visualScale: 1.4,
+      );
+  int updates = 0;
+  int snapshots = 0;
+  int creations = 0;
+  @override
+  void update(double dt) {
+    updates++;
+    super.update(dt);
+  }
+
+  @override
+  BattlefieldEffect? battlefieldEffect(int id, Offset origin, double tileSize) {
+    snapshots++;
+    return super.battlefieldEffect(id, origin, tileSize);
+  }
+
+  @override
+  BattlefieldEffect nativeChainEffect(
+    int id,
+    Offset origin,
+    double tileSize,
+    int Function(EnemyComponent) targetId,
+  ) {
+    creations++;
+    return super.nativeChainEffect(id, origin, tileSize, targetId);
+  }
+}
+
 Future<EnemyComponent> _linkedTarget(RuneNexusGame game) async {
   final enemy = EnemyComponent(
     definition: gameEnemies[EnemyType.normal]!,
@@ -180,8 +223,324 @@ Future<EnemyComponent> _linkedTarget(RuneNexusGame game) async {
   return enemy;
 }
 
+Future<TurretComponent> _chargeOwner(RuneNexusGame game) async {
+  final owner = TurretComponent(
+    gridPoint: const GridPoint(2, 0),
+    definition: gameTurrets[TurretType.lightning]!,
+    game: game,
+    center: Vector2(100, 100),
+    tileSize: game.battlefieldFrame!.pixelsPerTile,
+  );
+  game.add(owner);
+  await game.ready();
+  return owner;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  test(
+    'native charge keeps combat timer, skips display samples, survives resize and revocation',
+    () async {
+      final game = await _fixture();
+      final owner = await _chargeOwner(game);
+      game.battlefieldProjection = _projection;
+      game.nativeBattlefieldGroups = {'effects'};
+      game.nativeBattlefieldEffectEvents = true;
+      game.nativeBattlefieldChargeEffectEvents = true;
+      var releases = 0;
+      var positions = 0;
+      final charge = LightningChargeComponent(
+        owner: owner,
+        chargePosition: () {
+          positions++;
+          return owner.lightningChargePosition;
+        },
+        isActive: () => owner.isMounted,
+        onRelease: () => releases++,
+        color: owner.definition.color,
+      );
+      game.add(charge);
+      await game.ready();
+      final initial = game.battlefieldFrame!.effects!;
+      final event = initial.events.single;
+      expect(
+        charge.parent,
+        same(game),
+        reason: 'the combat timer must remain mounted',
+      );
+      expect(event['ownerId'], game.battlefieldChargeOwnerId(owner));
+      expect(event['attachmentRadius'], closeTo(.82 * .58, 1e-7));
+      expect(initial.items, isEmpty);
+      expect(positions, 1);
+      game.markNativeBattlefieldEffectsSubmitted(10, 2, [event['id'] as int]);
+      game.acknowledgeNativeBattlefieldEffects(10, 2);
+      game.update(.1);
+      game.nativeBattlefieldLoading = true;
+      game.update(5);
+      expect(releases, 0);
+      expect(
+        game.battlefieldEffectCombatClock - initial.clock,
+        closeTo(.1, 1e-10),
+      );
+      game.nativeBattlefieldLoading = false;
+      game.onGameResize(Vector2(600, 1000));
+      expect(game.battlefieldFrame!.effects!.events, isEmpty);
+      expect(
+        positions,
+        1,
+        reason: 'ACK, pause and resize must not resample the charge position',
+      );
+      game.nativeBattlefieldChargeEffectEvents = false;
+      await game.ready();
+      expect(charge.parent, same(game));
+      expect(charge.nativePresentation, isFalse);
+      expect(game.children.whereType<LightningChargeComponent>(), hasLength(1));
+      final fallback = game.battlefieldFrame!.effects!.items.single;
+      expect(
+        fallback.age,
+        closeTo(.1, 1e-10),
+        reason: 'fallback cannot advance or restart the timer',
+      );
+      game.setSpeedMultiplier(4);
+      game.update(.049);
+      expect(releases, 0);
+      game.update(.0011);
+      expect(releases, 1);
+      await game.ready();
+      game.update(.3);
+      expect(releases, 1);
+    },
+  );
+
+  test(
+    'native charge cancellation invalidates unacknowledged starts and preserves other events',
+    () async {
+      final game = await _fixture();
+      final owner = await _chargeOwner(game);
+      game.battlefieldProjection = _projection;
+      game.nativeBattlefieldGroups = {'effects'};
+      game.nativeBattlefieldEffectEvents = true;
+      game.nativeBattlefieldChargeEffectEvents = true;
+      var releases = 0;
+      LightningChargeComponent charge() => LightningChargeComponent(
+        owner: owner,
+        chargePosition: () => owner.lightningChargePosition,
+        isActive: () => owner.isMounted,
+        onRelease: () => releases++,
+        color: owner.definition.color,
+      );
+      final cancelled = charge();
+      final live = charge();
+      game.add(cancelled);
+      game.add(live);
+      await game.ready();
+      final initial = game.battlefieldFrame!.effects!;
+      game.markNativeBattlefieldEffectsSubmitted(
+        10,
+        2,
+        initial.events.map((e) => e['id'] as int),
+        eventGeneration: initial.generation,
+      );
+      cancelled.removeFromParent();
+      await game.ready();
+      final afterCancel = game.battlefieldFrame!.effects!;
+      expect(afterCancel.generation, greaterThan(initial.generation));
+      expect(afterCancel.events, hasLength(1));
+      game.acknowledgeNativeBattlefieldEffects(10, 2);
+      expect(
+        game.battlefieldFrame!.effects!.events,
+        hasLength(1),
+        reason: 'an old ACK cannot consume a new-generation start',
+      );
+      owner.removeFromParent();
+      await game.ready();
+      game.update(.31);
+      await game.ready();
+      expect(
+        releases,
+        0,
+        reason: 'removed tower must not release even when dt exceeds duration',
+      );
+      expect(game.battlefieldFrame!.effects!.events, isEmpty);
+      expect(live.parent, isNull);
+    },
+  );
+
+  test(
+    'normal charge completion does not reset other event generations',
+    () async {
+      final game = await _fixture();
+      final owner = await _chargeOwner(game);
+      game.battlefieldProjection = _projection;
+      game.nativeBattlefieldGroups = {'effects'};
+      game.nativeBattlefieldEffectEvents = true;
+      game.nativeBattlefieldChargeEffectEvents = true;
+      var releases = 0;
+      final charge = LightningChargeComponent(
+        owner: owner,
+        chargePosition: () => owner.lightningChargePosition,
+        isActive: () => true,
+        onRelease: () => releases++,
+        color: owner.definition.color,
+      );
+      game.add(charge);
+      await game.ready();
+      final initial = game.battlefieldFrame!.effects!;
+      game.update(.299);
+      expect(releases, 0);
+      game.update(.002);
+      await game.ready();
+      expect(releases, 1);
+      final expired = game.battlefieldFrame!.effects!;
+      expect(expired.generation, initial.generation);
+      expect(expired.items, isEmpty);
+      expect(
+        expired.events.single['kind'],
+        'charge',
+        reason: 'pending delivery remains bounded and cannot replay in Godot',
+      );
+      game.nativeBattlefieldChargeEffectEvents = false;
+      await game.ready();
+      expect(charge.parent, isNull);
+      expect(releases, 1);
+    },
+  );
+
+  test(
+    'chain creates endpoints once, preserves math and restores both dead endpoints after resize',
+    () async {
+      final game = await _fixture();
+      final source = await _linkedTarget(game);
+      final target = await _linkedTarget(game);
+      final other = await _linkedTarget(game);
+      game.battlefieldProjection = _projection;
+      game.nativeBattlefieldGroups = {'effects'};
+      game.nativeBattlefieldEffectEvents = true;
+      game.nativeBattlefieldChainEffectEvents = true;
+      final chain = _CountingChain(target, source: source);
+      final legacy = chain.battlefieldEffect(90, Offset.zero, 48)!;
+      chain.snapshots = 0;
+      game.add(chain);
+      await game.ready();
+      expect(chain.parent, isNull);
+      final initial = game.battlefieldFrame!;
+      final event = initial.effects!.events.single;
+      expect(event['duration'], .37);
+      expect(event['scale'], 1.4);
+      expect(event['boltSeed'], 100 * 17.0 + 120 * 31.0);
+      expect(event['points'] as List, hasLength(2));
+      expect(legacy.points, hasLength(6));
+      final start = legacy.points.first;
+      final delta = legacy.points.last - start;
+      final normal = Offset(-delta.dy, delta.dx) / delta.distance;
+      for (var i = 1; i < 5; i++) {
+        final expected =
+            start +
+            delta * (i / 5) +
+            normal *
+                (math.sin((event['boltSeed'] as double) + i * 1.7) *
+                    .5 *
+                    math.min(18 * 1.4 / 48, delta.distance * .16));
+        expect((legacy.points[i] - expected).distance, lessThan(1e-12));
+      }
+      final wire =
+          encodeGodotBattlefieldFrame(initial, sequence: 1)['enemies'] as List;
+      expect(wire[0], hasLength(14));
+      expect(wire[1], hasLength(14));
+      expect(wire[2], hasLength(12));
+      expect(other.isMounted, isTrue);
+      game.markNativeBattlefieldEffectsSubmitted(10, 1, [event['id'] as int]);
+      game.acknowledgeNativeBattlefieldEffects(9, 1);
+      expect(game.battlefieldFrame!.effects!.events, hasLength(1));
+      game.acknowledgeNativeBattlefieldEffects(10, 1);
+      game.update(.04);
+      final moving = game.battlefieldFrame!;
+      final startGrid = moving.enemies[0].logicalPosition!;
+      final endGrid = moving.enemies[1].logicalPosition!;
+      expect(moving.effects!.events, isEmpty);
+      expect(moving.effects!.items, isEmpty);
+      expect(chain.updates, 0);
+      expect(chain.snapshots, 0);
+      expect(chain.creations, 1);
+      source.hp = 0;
+      target.removeFromParent();
+      await game.ready();
+      source.position.setValues(999, 999);
+      target.position.setValues(888, 888);
+      game.nativeBattlefieldLoading = true;
+      game.update(1);
+      expect(game.battlefieldEffectCombatClock, .04);
+      game.onGameResize(Vector2(600, 1000));
+      game.nativeBattlefieldChainEffectEvents = false;
+      await game.ready();
+      expect(chain.parent, same(game));
+      final restored = game.battlefieldFrame!.effects!.items.single;
+      expect(restored.age, closeTo(.04, 1e-9));
+      expect((restored.points.first - startGrid).distance, lessThan(1e-6));
+      expect((restored.points.last - endGrid).distance, lessThan(1e-6));
+      expect(restored.toJson().containsKey('boltSeed'), isFalse);
+      expect(
+        game.battlefieldFrame!.effects!.generation,
+        greaterThan(initial.effects!.generation),
+      );
+      chain.update(.33);
+      expect(chain.isRemoving, isTrue);
+    },
+  );
+
+  test(
+    'old linked capability retains chain snapshots and fixed/dead endpoints do not subscribe',
+    () async {
+      final game = await _fixture();
+      final target = await _linkedTarget(game);
+      game.battlefieldProjection = _projection;
+      game.nativeBattlefieldGroups = {'effects'};
+      game.nativeBattlefieldEffectEvents = true;
+      game.nativeBattlefieldLinkedEffectEvents = true;
+      final legacy = _CountingChain(target);
+      game.add(legacy);
+      await game.ready();
+      game.update(.02);
+      expect(legacy.parent, same(game));
+      expect(legacy.updates, 1);
+      expect(game.battlefieldFrame!.effects!.items.single.points, hasLength(6));
+      expect(game.battlefieldFrame!.effects!.events, isEmpty);
+      game.nativeBattlefieldChainEffectEvents = true;
+      target.hp = 0;
+      final dead = _CountingChain(target);
+      game.add(dead);
+      final event = game.battlefieldFrame!.effects!.events.single;
+      expect(event['targetIds'], [-1, -1]);
+      target.position.setValues(999, 999);
+      game.resetNativeBattlefieldEffects(10);
+      await game.ready();
+      final restored = dead.battlefieldEffect(0, Offset.zero, 1)!;
+      expect(restored.points.first, const Offset(100, 120));
+      expect(restored.points.last, isNot(const Offset(999, 999)));
+      expect(game.nativeBattlefieldChainEffectEvents, isFalse);
+    },
+  );
+
+  test(
+    'combat cancellation removes native chain and cannot restore it',
+    () async {
+      final game = await _fixture();
+      final target = await _linkedTarget(game);
+      game.battlefieldProjection = _projection;
+      game.nativeBattlefieldGroups = {'effects'};
+      game.nativeBattlefieldEffectEvents = true;
+      game.nativeBattlefieldChainEffectEvents = true;
+      final chain = _CountingChain(target);
+      game.add(chain);
+      expect(game.battlefieldFrame!.effects!.events.single['kind'], 'chain');
+      game.debugForceDefeat();
+      expect(game.battlefieldFrame!.effects!.events, isEmpty);
+      game.resetNativeBattlefieldEffects(10);
+      await game.ready();
+      expect(chain.parent, isNull);
+    },
+  );
 
   test(
     'linked events remove Flame ticks and snapshots, share logical targets and restore resized anchors',
@@ -1055,6 +1414,206 @@ void main() {
         game.battlefieldFrame!.effects!.items.any((e) => e.kind == 'coreBeam'),
         isTrue,
       );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'production widget routes and revokes chain capability with live fallback',
+    (tester) async {
+      const channel = MethodChannel('rune_nexus/godot_preview');
+      final messenger = tester.binding.defaultBinaryMessenger;
+      final game = (await tester.runAsync(_fixture))!;
+      var applyEvents = false;
+      var chainCapability = true;
+      final target = (await tester.runAsync(() => _linkedTarget(game)))!;
+      var eventFrames = 0;
+      int? priorApplied;
+      messenger.setMockMethodCallHandler(
+        SystemChannels.platform_views,
+        (_) async => null,
+      );
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'getStatus') return {'ready': true, 'error': ''};
+        if (call.method != 'submitFrameV2') return null;
+        final frame =
+            jsonDecode((call.arguments as Map)['frame'] as String) as Map;
+        final effects = (frame['presentation'] as Map)['effects'] as Map;
+        if ((effects['events'] as List).isNotEmpty) {
+          eventFrames++;
+          expect((frame['impacts'] as List), isEmpty);
+          if (applyEvents) priorApplied = frame['seq'] as int;
+        } else {
+          priorApplied = frame['seq'] as int;
+        }
+        return jsonEncode({
+          'presentationVersion': 2,
+          'sceneEpoch': frame['sceneEpoch'],
+          'viewportRevision': frame['viewportRevision'],
+          'viewport': frame['viewport'],
+          'sequence': priorApplied,
+          'appliedGroups': ['effects'],
+          'nativeEffectEvents': true,
+          'nativeLinkedEffectEvents': true,
+          'nativeChainEffectEvents': chainCapability,
+          'projection': {
+            'origin': [.1, .2],
+            'xAxis': [.1, 0],
+            'yAxis': [0, .1],
+            'heightAxis': [0, -.1],
+          },
+        });
+      });
+      addTearDown(() {
+        messenger.setMockMethodCallHandler(channel, null);
+        messenger.setMockMethodCallHandler(SystemChannels.platform_views, null);
+      });
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SizedBox(
+            width: 400,
+            height: 800,
+            child: GodotBattlefieldView(game: game),
+          ),
+        ),
+      );
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(game.nativeBattlefieldChainEffectEvents, isTrue);
+      expect(game.nativeBattlefieldImpactEffectEvents, isFalse);
+      final blast = _CountingChain(target);
+      game.add(blast);
+      for (var i = 0; i < 3; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(eventFrames, greaterThan(1));
+      expect(game.battlefieldFrame!.effects!.events, hasLength(1));
+      expect(blast.parent, isNull);
+      applyEvents = true;
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(game.battlefieldFrame!.effects!.events, isEmpty);
+      expect(game.battlefieldFrame!.impacts, isEmpty);
+      expect(blast.updates, 0);
+      chainCapability = false;
+      await tester.pump(const Duration(milliseconds: 16));
+      await tester.runAsync(game.ready);
+      expect(game.nativeBattlefieldChainEffectEvents, isFalse);
+      expect(blast.parent, same(game));
+      expect(game.battlefieldFrame!.effects!.events, isEmpty);
+      expect(
+        game.battlefieldFrame!.effects!.items.any((e) => e.kind == 'chain'),
+        isTrue,
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+    },
+    variant: TargetPlatformVariant.only(TargetPlatform.android),
+  );
+
+  testWidgets(
+    'production widget routes and revokes charge capability with live fallback',
+    (tester) async {
+      const channel = MethodChannel('rune_nexus/godot_preview');
+      final messenger = tester.binding.defaultBinaryMessenger;
+      final game = (await tester.runAsync(_fixture))!;
+      var applyEvents = false;
+      var chargeCapability = true;
+      final owner = (await tester.runAsync(() => _chargeOwner(game)))!;
+      var eventFrames = 0;
+      int? priorApplied;
+      messenger.setMockMethodCallHandler(
+        SystemChannels.platform_views,
+        (_) async => null,
+      );
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'getStatus') return {'ready': true, 'error': ''};
+        if (call.method != 'submitFrameV2') return null;
+        final frame =
+            jsonDecode((call.arguments as Map)['frame'] as String) as Map;
+        final effects = (frame['presentation'] as Map)['effects'] as Map;
+        if ((effects['events'] as List).isNotEmpty) {
+          eventFrames++;
+          expect((frame['impacts'] as List), isEmpty);
+          if (applyEvents) priorApplied = frame['seq'] as int;
+        } else {
+          priorApplied = frame['seq'] as int;
+        }
+        return jsonEncode({
+          'presentationVersion': 2,
+          'sceneEpoch': frame['sceneEpoch'],
+          'viewportRevision': frame['viewportRevision'],
+          'viewport': frame['viewport'],
+          'sequence': priorApplied,
+          'appliedGroups': ['effects'],
+          'nativeEffectEvents': true,
+          'nativeLinkedEffectEvents': true,
+          'nativeChargeEffectEvents': chargeCapability,
+          'projection': {
+            'origin': [.1, .2],
+            'xAxis': [.1, 0],
+            'yAxis': [0, .1],
+            'heightAxis': [0, -.1],
+          },
+        });
+      });
+      addTearDown(() {
+        messenger.setMockMethodCallHandler(channel, null);
+        messenger.setMockMethodCallHandler(SystemChannels.platform_views, null);
+      });
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SizedBox(
+            width: 400,
+            height: 800,
+            child: GodotBattlefieldView(game: game),
+          ),
+        ),
+      );
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(game.nativeBattlefieldChargeEffectEvents, isTrue);
+      expect(game.nativeBattlefieldImpactEffectEvents, isFalse);
+      var releases = 0;
+      final blast = LightningChargeComponent(
+        owner: owner,
+        chargePosition: () => owner.lightningChargePosition,
+        isActive: () => true,
+        onRelease: () => releases++,
+        color: owner.definition.color,
+      );
+      game.add(blast);
+      for (var i = 0; i < 3; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(eventFrames, greaterThan(1));
+      expect(game.battlefieldFrame!.effects!.events, hasLength(1));
+      await tester.runAsync(game.ready);
+      expect(blast.parent, same(game));
+      applyEvents = true;
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(game.battlefieldFrame!.effects!.events, isEmpty);
+      expect(game.battlefieldFrame!.impacts, isEmpty);
+      expect(releases, 0);
+      chargeCapability = false;
+      await tester.pump(const Duration(milliseconds: 16));
+      await tester.runAsync(game.ready);
+      expect(game.nativeBattlefieldChargeEffectEvents, isFalse);
+      expect(blast.parent, same(game));
+      expect(game.battlefieldFrame!.effects!.events, isEmpty);
+      expect(
+        game.battlefieldFrame!.effects!.items.any((e) => e.kind == 'charge'),
+        isTrue,
+      );
+      game.update(.301);
+      await tester.runAsync(game.ready);
+      game.update(.301);
+      expect(releases, 1);
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();
       expect(tester.takeException(), isNull);

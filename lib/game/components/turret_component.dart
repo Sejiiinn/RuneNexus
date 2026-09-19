@@ -917,6 +917,7 @@ class TurretComponent extends PositionComponent {
     _triggerFireFeedback();
     game.add(
       LightningChargeComponent(
+        owner: this,
         chargePosition: () => lightningChargePosition,
         isActive: () => isMounted,
         onRelease: () => releaseLightningCharge(attack),

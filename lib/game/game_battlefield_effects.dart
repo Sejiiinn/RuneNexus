@@ -25,6 +25,9 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
     return _battlefieldTargetPositions[target] ?? initial;
   }
 
+  int battlefieldChargeOwnerId(TurretComponent owner) =>
+      _battlefieldIds[owner] ??= _nextBattlefieldId++;
+
   bool _transferBattlefieldEffect(Component component) {
     if (!nativeBattlefieldEffectEvents ||
         !_usesNativeBattlefieldGroup('effects') ||
@@ -36,6 +39,11 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
             !((component is NexusCoreBeamComponent ||
                     component is RiftMarkPulseComponent) &&
                 nativeBattlefieldLinkedEffectEvents) &&
+            !(component is LightningChargeComponent &&
+                component.owner != null &&
+                nativeBattlefieldChargeEffectEvents) &&
+            !(component is LightningChainBeamComponent &&
+                nativeBattlefieldChainEffectEvents) &&
             !(component is ImpactEffectComponent &&
                 (component.style == ImpactEffectStyle.blast
                     ? nativeBattlefieldBlastEffectEvents
@@ -44,6 +52,9 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
     }
     final id = _battlefieldIds[component] ??= _nextBattlefieldId++;
     final origin = Offset(_origin.x, _origin.y);
+    if (component is LightningChargeComponent) {
+      component.nativePresentation = true;
+    }
     final effect = component is NexusCoreBeamComponent
         ? component.battlefieldEffect(
             id,
@@ -58,6 +69,13 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
             _tileSize,
             includeTargets: true,
           )
+        : component is LightningChainBeamComponent
+        ? component.nativeChainEffect(
+            id,
+            origin,
+            _tileSize,
+            battlefieldEffectTargetId,
+          )
         : component is ImpactEffectComponent &&
               component.style == ImpactEffectStyle.blast
         ? component.nativeBlastEffect(id, origin, _tileSize)
@@ -67,21 +85,53 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
             _tileSize,
           );
     // Image-only numbers cannot be represented by the native text renderer.
-    if (effect == null) return false;
+    if (effect == null) {
+      if (component is LightningChargeComponent) {
+        component.nativePresentation = false;
+      }
+      return false;
+    }
     if (component is NexusCoreBeamComponent && effect.targetIds.isNotEmpty) {
       _battlefieldTargetPositions[component.target] = effect.points.last;
     }
+    if (component is LightningChainBeamComponent) {
+      if (effect.targetIds[0] >= 0) {
+        _battlefieldTargetPositions[component.source!] = effect.points.first;
+      }
+      if (effect.targetIds[1] >= 0) {
+        _battlefieldTargetPositions[component.target] = effect.points.last;
+      }
+    }
     _battlefieldEffectEvents.add(effect, component);
+    if (component is LightningChargeComponent) {
+      _nativeBattlefieldCharges.add(component);
+      component.finishNativePresentation = (cancelled) {
+        _nativeBattlefieldCharges.remove(component);
+        if (cancelled) _battlefieldEffectEvents.cancel(id);
+      };
+      // Combat stays mounted in Flame; only the display becomes event-owned.
+      return false;
+    }
     return true;
   }
 
   void _restoreBattlefieldEffectEvents() {
+    for (final source in _nativeBattlefieldCharges) {
+      source.nativePresentation = false;
+      source.finishNativePresentation = null;
+    }
+    _nativeBattlefieldCharges.clear();
     final entries = _battlefieldEffectEvents.takeLive();
     _restoringBattlefieldEffects = true;
     try {
       for (final entry in entries) {
         final age = _battlefieldEffectEvents.clock - entry.born;
         final source = entry.source;
+        if (source is LightningChargeComponent) {
+          source.nativePresentation = false;
+          source.finishNativePresentation = null;
+          continue;
+        }
         final anchor =
             _origin +
             Vector2(
@@ -99,6 +149,24 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
             age,
             anchor,
             _origin + Vector2(endpoint.dx * _tileSize, endpoint.dy * _tileSize),
+          );
+        } else if (source is LightningChainBeamComponent) {
+          final start = entry.effect.targetIds[0] < 0
+              ? entry.effect.points.first
+              : battlefieldEffectTargetPosition(
+                  source.source!,
+                  entry.effect.points.first,
+                );
+          final end = entry.effect.targetIds[1] < 0
+              ? entry.effect.points.last
+              : battlefieldEffectTargetPosition(
+                  source.target,
+                  entry.effect.points.last,
+                );
+          source.restoreNativePresentation(
+            age,
+            _origin + Vector2(start.dx * _tileSize, start.dy * _tileSize),
+            _origin + Vector2(end.dx * _tileSize, end.dy * _tileSize),
           );
         } else if (source is RiftMarkPulseComponent) {
           source.restoreNativePresentation(age, anchor);
@@ -126,6 +194,9 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
   }
 
   void _trackBattlefieldEffect(Component component) {
+    if (component is LightningChargeComponent && component.nativePresentation) {
+      return;
+    }
     if (!_boardConfigured ||
         nativeBattlefieldSceneEpoch == 0 ||
         !supportsNativeBattlefield ||
@@ -146,6 +217,9 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
     final live = <BattlefieldEffect>[];
     for (final child in children) {
       if (child.isRemoving || child is! BattlefieldEffectSource) continue;
+      if (child is LightningChargeComponent && child.nativePresentation) {
+        continue;
+      }
       final effect = (child as BattlefieldEffectSource).battlefieldEffect(
         _battlefieldIds[child] ??= _nextBattlefieldId++,
         Offset(_origin.x, _origin.y),
@@ -191,6 +265,8 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
     nativeBattlefieldImpactEffectEvents = false;
     nativeBattlefieldBlastEffectEvents = false;
     nativeBattlefieldLinkedEffectEvents = false;
+    nativeBattlefieldChainEffectEvents = false;
+    nativeBattlefieldChargeEffectEvents = false;
     _battlefieldEffectQueue.clear();
     _battlefieldEffectSubmissions.clear();
     _nativeAppliedEffectIds = const {};
@@ -234,10 +310,14 @@ extension BattlefieldEffectsPresentation on RuneNexusGame {
     }
   }
 
-  /// Only stop Flame drawing after this source reached an applied native frame.
+  /// Snapshot sources stop drawing after their native frame is applied.
+  /// Event-owned charge visuals follow the negotiated event capability.
   /// Image-only damage and the separate 3D cannon blast never enter this set.
   bool isNativeBattlefieldEffect(Component component) {
     if (!_usesNativeBattlefieldGroup('effects')) return false;
+    if (component is LightningChargeComponent && component.nativePresentation) {
+      return true;
+    }
     final id = _battlefieldIds[component];
     return id != null && _nativeAppliedEffectIds.contains(id);
   }

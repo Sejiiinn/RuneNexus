@@ -2,6 +2,8 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flame/components.dart';
+import 'turret_component.dart';
+import '../rune_nexus_game.dart';
 import '../rendering/stage1_3d/battlefield_effects.dart';
 
 class LightningChargeComponent extends PositionComponent
@@ -13,6 +15,12 @@ class LightningChargeComponent extends PositionComponent
     return BattlefieldEffect(
       id: id,
       kind: 'charge',
+      ownerId: nativePresentation
+          ? owner?.game.battlefieldChargeOwnerId(owner!)
+          : null,
+      attachmentRadius: nativePresentation && owner != null
+          ? owner!.size.x * .58 / tileSize
+          : null,
       age: _elapsed,
       duration: duration,
       position: battlefieldEffectPosition(
@@ -27,6 +35,7 @@ class LightningChargeComponent extends PositionComponent
   }
 
   LightningChargeComponent({
+    this.owner,
     required this.chargePosition,
     required this.isActive,
     required this.onRelease,
@@ -35,6 +44,9 @@ class LightningChargeComponent extends PositionComponent
     this.visualScale = 1,
   }) : super(position: Vector2.zero(), size: Vector2.zero());
 
+  final TurretComponent? owner;
+  bool nativePresentation = false;
+  void Function(bool cancelled)? finishNativePresentation;
   final Vector2 Function() chargePosition;
   final bool Function() isActive;
   final void Function() onRelease;
@@ -47,15 +59,26 @@ class LightningChargeComponent extends PositionComponent
   void update(double dt) {
     super.update(dt);
     if (!isActive()) {
+      finishNativePresentation?.call(true);
+      finishNativePresentation = null;
       removeFromParent();
       return;
     }
 
     _elapsed += dt;
     if (_elapsed >= duration) {
+      finishNativePresentation?.call(false);
+      finishNativePresentation = null;
       onRelease();
       removeFromParent();
     }
+  }
+
+  @override
+  void onRemove() {
+    finishNativePresentation?.call(true);
+    finishNativePresentation = null;
+    super.onRemove();
   }
 
   @override

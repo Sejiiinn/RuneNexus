@@ -284,6 +284,8 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
       game.nativeBattlefieldImpactEffectEvents = applied.impactEffectEvents;
       game.nativeBattlefieldBlastEffectEvents = applied.blastEffectEvents;
       game.nativeBattlefieldLinkedEffectEvents = applied.linkedEffectEvents;
+      game.nativeBattlefieldChainEffectEvents = applied.chainEffectEvents;
+      game.nativeBattlefieldChargeEffectEvents = applied.chargeEffectEvents;
       if (applied.groups.contains('effects')) {
         game.acknowledgeNativeBattlefieldEffects(epoch, applied.sequence);
       }

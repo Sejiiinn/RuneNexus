@@ -211,5 +211,90 @@ func _verify() -> void:
 	effects.apply_frame({"generation": 1, "clock": .5, "events": [beam]})
 	assert(effects.items.is_empty(), "stale generation cannot resurrect links")
 	effects.clear()
+	# Chain source and target move independently; the original pixel seed and
+	# amplitude are preserved before applying the battlefield projection.
+	var chain := {"id": 1400, "kind": "chain", "born": 0.0, "bornSquared": 0.0,
+		"duration": .37, "tileSize": 48.0, "scale": 1.4, "boltSeed": 5420.0,
+		"points": [[100.0 / 48, 120.0 / 48], [150.0 / 48, 150.0 / 48]], "targetIds": [50, 51]}
+	var math_points: Array = effects._chain_points(chain)
+	var start_px := Vector2(100, 120)
+	var end_px := Vector2(150, 150)
+	var delta_px := end_px - start_px
+	var normal_px := Vector2(-delta_px.y, delta_px.x).normalized()
+	for i in range(1, 5):
+		var expected := (start_px + delta_px * (i / 5.0) + normal_px *
+			(sin(5420.0 + i * 1.7) * .5 * minf(18.0 * 1.4, delta_px.length() * .16))) / 48.0
+		assert(Vector2(math_points[i][0], math_points[i][1]).distance_to(expected) < .000001, "chain zigzag must preserve original pixel math")
+	effects.apply_frame({"clock": .03, "events": [chain], "targets": target_rows})
+	assert(effects.items[0]["points"].size() == 6)
+	assert(effects.items[0]["points"][0] == [6.4, 6.3])
+	assert(effects.items[0]["x"] == 6.4 and effects.items[0]["y"] == 6.3, "camera anchor follows chain source")
+	assert(effects.items[0]["points"][5] == [7.2, 7.3])
+	assert(chain["points"].size() == 2, "receiver must not mutate sender creation payload")
+	target_rows[1][12] = 7.8
+	effects.apply_frame({"clock": .09, "targets": [target_rows[1]]})
+	assert(effects.items[0]["points"][0] == [6.4, 6.3], "missing source freezes independently")
+	assert(effects.items[0]["points"][5] == [7.8, 7.3], "target still follows after source death and ACK")
+	effects.apply_frame({"clock": .09, "targets": []})
+	assert(effects.items[0]["points"][5] == [7.8, 7.3], "missing target freezes independently")
+	effects.present(camera, Vector2(12, 10), world)
+	await process_frame
+	assert(is_equal_approx(effects.items[0]["age"], .09), "resize/camera cannot age chain")
+	effects.apply_frame({"clock": .37})
+	assert(effects.items.is_empty(), "custom chain duration is authoritative")
+	chain["id"] = 1401
+	chain["retainedAge"] = .05
+	effects.apply_frame({"clock": .5, "events": [chain]})
+	assert(effects.items.size() == 1 and is_equal_approx(effects.items[0]["age"], .05))
+	assert(effects.items[0]["points"][0] == chain["points"][0], "dead before first delivery preserves initial source")
+	assert(effects.items[0]["points"][5] == chain["points"][1], "dead before first delivery preserves initial target")
+	effects.apply_frame({"clock": .5, "events": [chain]})
+	assert(effects.items.is_empty(), "expired retry cannot restart chain")
+	effects.apply_frame({"generation": 1, "clock": .5, "events": [chain]})
+	assert(effects.items.size() == 1)
+	effects.apply_frame({"generation": 2, "clock": .5})
+	effects.apply_frame({"generation": 1, "clock": .5, "events": [chain]})
+	assert(effects.items.is_empty(), "stale generation cannot resurrect chain")
+	chain["points"] = [[2.0, 3.0], [2.0, 3.0]]
+	assert(effects._chain_points(chain) == chain["points"], "zero length remains a two-point spark")
+	effects.clear()
+	var charge := {"id": 1500, "kind": "charge", "born": 0.0, "bornSquared": 0.0,
+		"duration": .3, "tileSize": 48.0, "scale": 1.0, "color": 0xffabcdef,
+		"ownerId": 71, "attachmentRadius": .4756, "x": 0.0, "y": 0.0}
+	var turret := [71, 2.0, 3.0, 0.0]
+	effects.apply_frame({"clock": .1, "events": [charge], "turrets": [turret]})
+	assert(effects.items.size() == 1)
+	assert(is_equal_approx(effects.items[0]["x"], 2.4756))
+	assert(is_equal_approx(effects.items[0]["y"], 3.0))
+	assert(is_equal_approx(effects.items[0]["age"], .1))
+	turret[3] = PI / 2
+	effects.apply_frame({"clock": .1, "turrets": [turret]})
+	assert(is_equal_approx(effects.items[0]["x"], 2.0))
+	assert(is_equal_approx(effects.items[0]["y"], 3.4756), "ACK charge follows existing turret angle")
+	effects.present(camera, Vector2(16, 12), world)
+	assert(is_equal_approx(effects.items[0]["age"], .1), "camera/resize does not advance charge")
+	effects.apply_frame({"clock": .299, "turrets": [turret]})
+	assert(effects.items.size() == 1)
+	effects.apply_frame({"clock": .3, "turrets": [turret]})
+	assert(effects.items.is_empty(), "charge must expire at exact fire time")
+	charge["id"] = 1501
+	charge["retainedAge"] = .1
+	effects.apply_frame({"clock": .4, "events": [charge], "turrets": [turret]})
+	assert(effects.items.is_empty(), "coalesced expired charge must never show before an already released strike")
+	effects.apply_frame({"clock": .4, "events": [charge], "turrets": [turret]})
+	assert(effects.items.is_empty(), "retry must not restart charge")
+	charge["id"] = 1502
+	charge["born"] = .4
+	effects.apply_frame({"clock": .4, "events": [charge], "turrets": [turret]})
+	assert(effects.items.size() == 1)
+	effects.apply_frame({"generation": 1, "clock": .4, "turrets": [turret]})
+	effects.apply_frame({"generation": 0, "clock": .4, "events": [charge], "turrets": [turret]})
+	assert(effects.items.is_empty(), "cancel before ACK rejects old generation start")
+	charge["id"] = 1503
+	effects.apply_frame({"generation": 1, "clock": .4, "events": [charge], "turrets": [turret]})
+	assert(effects.items.size() == 1)
+	effects.apply_frame({"generation": 1, "clock": .4, "turrets": []})
+	assert(effects.items.is_empty(), "removed owner cannot leave charge at stale position")
+	effects.clear()
 	print("Battlefield effects: original ground/billboard transforms, anchor movement, additive gem passes, duplicate frame, pause, copy ownership, camera and all effect kinds passed")
 	quit(0)

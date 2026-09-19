@@ -50,6 +50,22 @@ void main() {
     },
   );
 
+  test(
+    'charge capability is independent of chain and general event support',
+    () {
+      final old = decode({
+        ...valid(),
+        'nativeEffectEvents': true,
+        'nativeChainEffectEvents': true,
+      })!;
+      expect(old.chargeEffectEvents, isFalse);
+      final charge = decode({...valid(), 'nativeChargeEffectEvents': true})!;
+      expect(charge.chargeEffectEvents, isTrue);
+      expect(charge.chainEffectEvents, isFalse);
+      expect(charge.effectEvents, isFalse);
+    },
+  );
+
   test('실제 적용된 알려진 묶음만 소유권을 넘기고 타일 입력 투영을 보존한다', () {
     final state = decode(valid())!;
     expect(state.sequence, 15);

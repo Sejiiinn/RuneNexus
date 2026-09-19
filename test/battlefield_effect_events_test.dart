@@ -17,6 +17,28 @@ BattlefieldEffect effect(int id, {String kind = 'damage'}) => BattlefieldEffect(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test(
+    'single cancellation resends live events without reviving expired acknowledged effects',
+    () {
+      final events = BattlefieldEffectEvents<String>();
+      events.add(effect(1, kind: 'death'), 'old death');
+      events.markSubmitted(1, [1]);
+      events.acknowledge(1);
+      events.advance(.6);
+      events.add(effect(2, kind: 'charge'), 'cancelled charge');
+      events.add(effect(3), 'live');
+      events.markSubmitted(2, [2, 3]);
+      events.advance(.2);
+      events.cancel(2);
+      expect(events.pending().map((event) => event['id']), [3]);
+      events.markSubmitted(2, [3], submittedGeneration: 0);
+      events.acknowledge(2);
+      expect(events.pending().map((event) => event['id']), [3]);
+      events.cancel(2);
+      expect(events.generation, 1, reason: 'duplicate remove is harmless');
+    },
+  );
+
+  test(
     'ACK removes payload but preserves live fallback, pause and bounded capacity',
     () {
       final events = BattlefieldEffectEvents<String>(capacity: 2);

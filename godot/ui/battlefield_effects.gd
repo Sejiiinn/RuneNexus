@@ -70,7 +70,7 @@ func apply_frame(frame: Dictionary) -> void:
 	_event_squared = maxf(_event_squared, float(frame.get("squaredSteps", _event_squared)))
 	for event in frame.get("events", []):
 		var id := int(event.get("id", -1))
-		if id <= _last_event_id or event.get("kind") not in ["damage", "death", "gem", "impact", "blast", "coreBeam", "rift"]:
+		if id <= _last_event_id or event.get("kind") not in ["damage", "death", "gem", "impact", "blast", "coreBeam", "rift", "chain", "charge"]:
 			continue
 		if event.get("kind") == "impact" and event.get("style") not in ["spark", "sniperBlast", "flame", "frost", "lightning", "lightningBlast"]:
 			continue
@@ -79,7 +79,7 @@ func apply_frame(frame: Dictionary) -> void:
 		_last_event_id = id
 		_events[id] = event.duplicate(true)
 		if _event_clock - float(event.get("born", 0)) >= float(event.get("duration", 0)):
-			_events[id]["deliverySample"] = true
+			_events[id]["deliverySample"] = event.get("kind") != "charge"
 		while _events.size() > 256:
 			_events.erase(_events.keys()[0])
 	items = frame.get("items", []).duplicate(true)
@@ -90,6 +90,8 @@ func apply_frame(frame: Dictionary) -> void:
 	for target: Array in frame.get("targets", []):
 		if target.size() >= 14:
 			targets[int(target[0])] = [target[12], target[13]]
+	var turret_positions := {}
+	var turrets_loaded := false
 	for id in _events.keys():
 		var event: Dictionary = _events[id]
 		var age := maxf(0, _event_clock - float(event["born"]))
@@ -102,10 +104,36 @@ func apply_frame(frame: Dictionary) -> void:
 			steps = float(event.get("retainedSquared", 0))
 			event["deliverySample"] = false
 		event["age"] = age
-		if event.get("kind") == "coreBeam":
+		if event.get("kind") == "charge":
+			if not turrets_loaded:
+				for turret: Array in frame.get("turrets", []):
+					if turret.size() >= 4:
+						turret_positions[int(turret[0])] = turret
+				turrets_loaded = true
+			var owner_id := int(event.get("ownerId", -1))
+			if not turret_positions.has(owner_id):
+				_events.erase(id)
+				continue
+			var turret: Array = turret_positions[owner_id]
+			var radius := float(event.get("attachmentRadius", 0))
+			event["x"] = float(turret[1]) + cos(float(turret[3])) * radius
+			event["y"] = float(turret[2]) + sin(float(turret[3])) * radius
+		elif event.get("kind") == "coreBeam":
 			var ids: Array = event.get("targetIds", [])
 			if not ids.is_empty() and targets.has(int(ids[0])):
 				event["points"][1] = targets[int(ids[0])]
+		elif event.get("kind") == "chain":
+			var ids: Array = event.get("targetIds", [-1, -1])
+			# Separate endpoints from the generated drawing points so missing
+			# targets retain their last logical positions independently.
+			if not event.has("endpoints"):
+				event["endpoints"] = event["points"].duplicate(true)
+			for endpoint in range(2):
+				if targets.has(int(ids[endpoint])):
+					event["endpoints"][endpoint] = targets[int(ids[endpoint])]
+			event["points"] = _chain_points(event)
+			event["x"] = event["endpoints"][0][0]
+			event["y"] = event["endpoints"][0][1]
 		elif event.get("kind") == "rift":
 			var points := []
 			for target_id in event.get("targetIds", []):
@@ -495,3 +523,23 @@ func _death(e: Dictionary, p: float, c: Color) -> void:
 		_surface.draw_set_transform_matrix(_basis * Transform2D(angle + p * (0.6 if seed > 0 else -0.6), center))
 		_surface.draw_style_box(rounded, Rect2(-extent / 2, extent))
 	_surface.draw_set_transform_matrix(_basis)
+
+
+func _chain_points(event: Dictionary) -> Array:
+	var endpoints: Array = event.get("endpoints", event["points"])
+	var start := Vector2(float(endpoints[0][0]), float(endpoints[0][1]))
+	var end := Vector2(float(endpoints[1][0]), float(endpoints[1][1]))
+	var delta := end - start
+	var length := delta.length()
+	if length <= 0:
+		return [endpoints[0], endpoints[1]]
+	var normal := Vector2(-delta.y / length, delta.x / length)
+	var amplitude := minf(18.0 * float(event.get("scale", 1)) / float(event["tileSize"]), length * 0.16)
+	var seed := float(event.get("boltSeed", 0))
+	var points := [endpoints[0]]
+	for index in range(1, 5):
+		var wave := sin(seed + index * 1.7) * 0.5 + 0.5
+		var point := start + delta * (index / 5.0) + normal * ((wave - 0.5) * amplitude)
+		points.append([point.x, point.y])
+	points.append(endpoints[1])
+	return points

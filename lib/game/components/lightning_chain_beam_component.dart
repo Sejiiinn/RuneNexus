@@ -29,6 +29,43 @@ class LightningChainBeamComponent extends PositionComponent
     );
   }
 
+  /// Creation data keeps endpoints only; Godot owns tracking and zigzag math.
+  BattlefieldEffect nativeChainEffect(
+    int id,
+    Offset origin,
+    double tileSize,
+    int Function(EnemyComponent) targetId,
+  ) {
+    int liveId(EnemyComponent? enemy) =>
+        enemy != null && enemy.isMounted && !enemy.isDead && !enemy.isRemoving
+        ? targetId(enemy)
+        : -1;
+    final points = [_sourcePosition, _targetPosition]
+        .map(
+          (p) => battlefieldEffectPosition(Offset(p.x, p.y), origin, tileSize),
+        )
+        .toList(growable: false);
+    return BattlefieldEffect(
+      id: id,
+      kind: 'chain',
+      age: _elapsed,
+      duration: _duration,
+      position: points.first,
+      tileSize: tileSize,
+      color: color,
+      visualScale: visualScale,
+      boltSeed: _seed,
+      targetIds: [liveId(source), liveId(target)],
+      points: points,
+    );
+  }
+
+  void restoreNativePresentation(double age, Vector2 start, Vector2 end) {
+    _elapsed = age;
+    _sourcePosition.setFrom(start);
+    _targetPosition.setFrom(end);
+  }
+
   LightningChainBeamComponent({
     required Vector2 sourcePosition,
     required this.target,

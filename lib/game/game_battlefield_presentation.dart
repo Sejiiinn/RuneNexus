@@ -21,7 +21,9 @@ extension _BattlefieldPresentation on RuneNexusGame {
           Vector2(_map.columns * _tileSize / 2, _map.rows * _tileSize / 2),
     );
     final enemyFrames = <BattlefieldEnemy>[];
-    final linkedTargets = nativeBattlefieldLinkedEffectEvents
+    final linkedTargets =
+        (nativeBattlefieldLinkedEffectEvents ||
+            nativeBattlefieldChainEffectEvents)
         ? _battlefieldEffectEvents.linkedTargetIds
         : const <int>{};
     for (final enemy in enemies) {
