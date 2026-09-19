@@ -11,6 +11,11 @@ on:
         description: '표시 버전 (예: 0.2.0)'
         required: true
         type: string
+      required_update:
+        description: '필수 업데이트 (이전 버전의 게임 시작 차단)'
+        required: true
+        default: false
+        type: boolean
       notes:
         description: '업데이트 안내'
         required: true
@@ -32,6 +37,7 @@ jobs:
       VERSION_CODE: ${{ inputs.version_code }}
       VERSION_NAME: ${{ inputs.version_name }}
       RELEASE_NOTES: ${{ inputs.notes }}
+      REQUIRED_UPDATE: ${{ inputs.required_update }}
       GOOGLE_WEB_CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID }}
       RUNE_NEXUS_API_BASE_URL: ${{ vars.RUNE_NEXUS_API_BASE_URL }}
       RUNE_NEXUS_REQUIRE_RELEASE_SIGNING: 'true'
@@ -201,7 +207,11 @@ jobs:
               if certificates(base_dir / "rune-nexus.apk") != target_certs:
                   raise SystemExit(f"Signing certificate mismatch for {tag}; preserve the existing key")
           PY
-          python3 scripts/create_apk_update_manifest.py \
+          UPDATE_POLICY_ARGS=()
+          if [[ "$REQUIRED_UPDATE" == "true" ]]; then
+            UPDATE_POLICY_ARGS+=(--required-update)
+          fi
+          python3 scripts/create_apk_update_manifest.py "${UPDATE_POLICY_ARGS[@]}" \
             --apk build/apk-release/rune-nexus.apk \
             --version-code "$VERSION_CODE" --version-name "$VERSION_NAME" \
             --repository "$GH_REPO" --notes-file "$RUNNER_TEMP/release-notes.md" \

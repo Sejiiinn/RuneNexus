@@ -11,8 +11,12 @@ class ResearchDefinition {
     required this.costMultiplier,
     required this.durationMillis,
     required this.durationMultiplier,
+    this.runeCosts,
+    this.legacyCostLevelsPerRank = 1,
   });
 
+  final List<int>? runeCosts;
+  final int legacyCostLevelsPerRank;
   final ResearchType type;
   final int maxLevel;
   final int requiredClearedStage;
@@ -22,7 +26,20 @@ class ResearchDefinition {
   final double durationMultiplier;
 
   int costForCurrentLevel(int currentLevel) {
-    return (baseRuneCost * math.pow(costMultiplier, currentLevel)).round();
+    if (runeCosts != null) {
+      return runeCosts![currentLevel.clamp(0, runeCosts!.length - 1)];
+    }
+    var cost = 0;
+    for (var offset = 0; offset < legacyCostLevelsPerRank; offset++) {
+      cost +=
+          (baseRuneCost *
+                  math.pow(
+                    costMultiplier,
+                    currentLevel * legacyCostLevelsPerRank + offset,
+                  ))
+              .round();
+    }
+    return cost;
   }
 
   int durationForCurrentLevel(int currentLevel) {

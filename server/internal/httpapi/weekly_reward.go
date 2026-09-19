@@ -74,7 +74,7 @@ func (handler weeklyRewardHandler) claim(response http.ResponseWriter, request *
 	}
 	minimumVersion := max(
 		handler.minimumClientCompatibilityVersion,
-		gamesave.CurrentClientCompatibilityVersion,
+		gamesave.EconomyClientCompatibilityVersion,
 	)
 	if input.ClientCompatibilityVersion == nil ||
 		*input.ClientCompatibilityVersion < minimumVersion {
@@ -93,6 +93,10 @@ func (handler weeklyRewardHandler) claim(response http.ResponseWriter, request *
 			Period:         input.Period,
 		},
 	)
+	if errors.Is(err, gamesave.ErrClientUpdateRequired) {
+		writeAPIError(response, request, http.StatusUpgradeRequired, "CLIENT_UPDATE_REQUIRED", "최신 버전에서 경제 기능을 사용할 수 있습니다.")
+		return
+	}
 	if errors.Is(err, weeklyreward.ErrInvalidIdempotencyKey) {
 		writeAPIError(response, request, http.StatusBadRequest, "INVALID_IDEMPOTENCY_KEY", "유효한 Idempotency-Key UUID가 필요합니다.")
 		return

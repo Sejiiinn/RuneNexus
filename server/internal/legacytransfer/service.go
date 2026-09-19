@@ -336,6 +336,9 @@ func validateImportedData(data gamesave.Data) error {
 }
 
 func validateReplaceableTarget(progression []byte) error {
+	if gamesave.GrowthVersion(progression) >= gamesave.CurrentGrowthVersion {
+		return ErrTargetNotReplaceable
+	}
 	var bounds progressionBounds
 	if err := json.Unmarshal(progression, &bounds); err != nil ||
 		bounds.PaidDiamonds == nil || *bounds.PaidDiamonds != 0 {

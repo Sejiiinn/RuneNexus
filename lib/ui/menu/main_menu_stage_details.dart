@@ -702,8 +702,8 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
       ),
       _StageUnlockItem(
         label: l10n.emergencySale,
-        upgradeIconType: GameUpgradeIconType.turretRefund,
-        category: _StageUnlockCategory.upgrade,
+        researchType: ResearchType.emergencySale,
+        category: _StageUnlockCategory.research,
         highlighted: highlighted,
       ),
     ],
@@ -738,8 +738,8 @@ List<_StageUnlockItem> _stageUnlockItemsFor({
     4 => [
       _StageUnlockItem(
         label: l10n.criticalChanceTraining,
-        upgradeIconType: GameUpgradeIconType.criticalChance,
-        category: _StageUnlockCategory.upgrade,
+        researchType: ResearchType.criticalChance,
+        category: _StageUnlockCategory.research,
         highlighted: highlighted,
       ),
       _StageUnlockItem(

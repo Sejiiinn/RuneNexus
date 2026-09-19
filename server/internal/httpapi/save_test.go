@@ -673,7 +673,7 @@ func newSaveTestHandler(
 		authenticator,
 		saves,
 		maxSaveBodyBytes,
-		gamesave.CurrentClientCompatibilityVersion,
+		gamesave.EconomyClientCompatibilityVersion,
 	)
 }
 

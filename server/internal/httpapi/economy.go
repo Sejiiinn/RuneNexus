@@ -300,7 +300,7 @@ func decodeEconomyCommand[T any](handler economyHandler, response http.ResponseW
 	compatibility := compatibilityVersion(input)
 	minimumVersion := max(
 		handler.minimumClientCompatibilityVersion,
-		gamesave.CurrentClientCompatibilityVersion,
+		gamesave.EconomyClientCompatibilityVersion,
 	)
 	if compatibility == nil || *compatibility < minimumVersion {
 		writeAPIError(response, request, http.StatusUpgradeRequired, "CLIENT_UPDATE_REQUIRED", "최신 버전에서 경제 기능을 사용할 수 있습니다.")
@@ -343,6 +343,8 @@ func (handler economyHandler) writeEconomyError(response http.ResponseWriter, re
 	}
 	status, code, message := http.StatusInternalServerError, "INTERNAL_ERROR", "경제 요청을 처리하지 못했습니다."
 	switch {
+	case errors.Is(err, gamesave.ErrClientUpdateRequired):
+		status, code, message = http.StatusUpgradeRequired, "CLIENT_UPDATE_REQUIRED", "최신 버전에서 경제 기능을 사용할 수 있습니다."
 	case errors.Is(err, economy.ErrInvalidIdempotencyKey):
 		status, code, message = http.StatusBadRequest, "INVALID_IDEMPOTENCY_KEY", "유효한 Idempotency-Key UUID가 필요합니다."
 	case errors.Is(err, economy.ErrIdempotencyKeyReused):

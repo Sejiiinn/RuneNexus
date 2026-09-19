@@ -165,7 +165,7 @@ void main() {
     expect(find.text('게임 진입'), findsOneWidget);
   });
 
-  testWidgets('확인 실패에도 재시도와 현재 버전 진입을 제공한다', (tester) async {
+  testWidgets('확인 실패 시 재시도만 제공하고 게임 시작을 차단한다', (tester) async {
     tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
       channel,
       (_) async => {'versionCode': 1, 'packageName': 'com.example.rune_nexus'},
@@ -196,10 +196,8 @@ void main() {
     await tester.tap(find.text('다시 확인'));
     await tester.pumpAndSettle();
     expect(checks, 2);
-    await tester.ensureVisible(find.text('현재 버전으로 계속'));
-    await tester.tap(find.text('현재 버전으로 계속'));
-    await tester.pumpAndSettle();
-    expect(find.text('게임 진입'), findsOneWidget);
+    expect(find.text('현재 버전으로 계속'), findsNothing);
+    expect(find.text('게임 진입'), findsNothing);
   });
   testWidgets('패치 실패 시 전체 다운로드 전환을 안내하고 전체 실패 때 설치하지 않는다', (tester) async {
     final patchDone = Completer<void>();

@@ -2,6 +2,30 @@ part of '../run_progression.dart';
 
 mixin _PermanentUpgradeProgression {
   abstract int runes;
+  int researchLevel(ResearchType type);
+  int bossBountyUpgradeLevel = 0;
+  int get _cappedBossBountyUpgradeLevel =>
+      bossBountyUpgradeLevel.clamp(0, RunProgression.maxBossBountyUpgradeLevel);
+  int get bossBountyUpgradeCost =>
+      (RunProgression.bossBountyUpgradeBaseCost *
+              math.pow(
+                RunProgression.bossBountyUpgradeCostMultiplier,
+                _cappedBossBountyUpgradeLevel,
+              ))
+          .round();
+  double get bossBountyBonusRate =>
+      _cappedBossBountyUpgradeLevel *
+      RunProgression.bossBountyBonusPerUpgradeLevel;
+  bool get canUpgradeBossBounty =>
+      _cappedBossBountyUpgradeLevel <
+          RunProgression.maxBossBountyUpgradeLevel &&
+      runes >= bossBountyUpgradeCost;
+  bool upgradeBossBounty() {
+    if (!canUpgradeBossBounty) return false;
+    runes -= bossBountyUpgradeCost;
+    bossBountyUpgradeLevel++;
+    return true;
+  }
 
   int startingGoldUpgradeLevel = 0;
   int nexusHpUpgradeLevel = 0;
@@ -111,8 +135,8 @@ mixin _PermanentUpgradeProgression {
       _cappedElementalDamageTrainingUpgradeLevel *
       RunProgression.familyDamageTrainingBonusPerUpgradeLevel;
   double get criticalChanceBonusRate =>
-      _cappedCriticalChanceUpgradeLevel *
-      RunProgression.criticalChanceBonusPerUpgradeLevel;
+      researchLevel(ResearchType.criticalChance) *
+      RunProgression.criticalChanceBonusPerResearchLevel;
   double get criticalDamageBonusRate =>
       _cappedCriticalDamageUpgradeLevel *
       RunProgression.criticalDamageBonusPerUpgradeLevel;
@@ -120,7 +144,7 @@ mixin _PermanentUpgradeProgression {
       _cappedKillGoldUpgradeLevel * RunProgression.killGoldBonusPerUpgradeLevel;
   int get turretRefundPercent =>
       RunProgression.baseTurretRefundPercent +
-      _cappedEmergencySaleUpgradeLevel *
+      researchLevel(ResearchType.emergencySale) *
           RunProgression.emergencySaleRefundPercentPerLevel;
   double get permanentLinkCostMultiplier =>
       1 -
@@ -153,10 +177,7 @@ mixin _PermanentUpgradeProgression {
       _cappedElementalDamageTrainingUpgradeLevel <
           RunProgression.maxElementalDamageTrainingUpgradeLevel &&
       runes >= elementalDamageTrainingUpgradeCost;
-  bool get canUpgradeCriticalChance =>
-      _cappedCriticalChanceUpgradeLevel <
-          RunProgression.maxCriticalChanceUpgradeLevel &&
-      runes >= criticalChanceUpgradeCost;
+  bool get canUpgradeCriticalChance => false;
   bool get canUpgradeCriticalDamage =>
       _cappedCriticalDamageUpgradeLevel <
           RunProgression.maxCriticalDamageUpgradeLevel &&
@@ -164,10 +185,7 @@ mixin _PermanentUpgradeProgression {
   bool get canUpgradeKillGold =>
       _cappedKillGoldUpgradeLevel < RunProgression.maxKillGoldUpgradeLevel &&
       runes >= killGoldUpgradeCost;
-  bool get canUpgradeEmergencySale =>
-      _cappedEmergencySaleUpgradeLevel <
-          RunProgression.maxEmergencySaleUpgradeLevel &&
-      runes >= emergencySaleUpgradeCost;
+  bool get canUpgradeEmergencySale => false;
   bool get canUpgradeLinkCostOptimization =>
       _cappedLinkCostOptimizationUpgradeLevel <
           RunProgression.maxLinkCostOptimizationUpgradeLevel &&

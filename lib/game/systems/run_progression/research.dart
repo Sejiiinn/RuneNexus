@@ -2,6 +2,7 @@ part of '../run_progression.dart';
 
 mixin _ResearchProgression {
   abstract int runes;
+  abstract int bossBountyUpgradeLevel;
 
   bool isStageCleared(int stageNumber);
   bool canSpendDiamonds(int amount);
@@ -33,9 +34,6 @@ mixin _ResearchProgression {
   double get researchCostEfficiencyRate =>
       researchLevel(ResearchType.researchCostEfficiency) *
       RunProgression.researchCostEfficiencyPerLevel;
-  double get bossBountyBonusRate =>
-      researchLevel(ResearchType.bossBounty) *
-      RunProgression.bossBountyBonusPerLevel;
   double get firstLinkUpgradeDiscountRate =>
       researchLevel(ResearchType.linkMaintenance) *
       RunProgression.linkMaintenanceDiscountPerLevel;
@@ -223,6 +221,17 @@ mixin _ResearchProgression {
   }
 
   bool applyResearchCompletionEffect(ResearchType type, int targetLevel) {
+    if (type == ResearchType.bossBounty && targetLevel > 0) {
+      // Previously charged instant-completion receipts can arrive after the
+      // growth migration has removed the old research definition.
+      final resolvedLevel = targetLevel.clamp(0, 20);
+      final changed = bossBountyUpgradeLevel < resolvedLevel;
+      bossBountyUpgradeLevel = math.max(bossBountyUpgradeLevel, resolvedLevel);
+      researchLevels.remove(type);
+      activeResearches.removeWhere((research) => research.type == type);
+      researchElapsedMillis.remove(type);
+      return changed;
+    }
     final definition = gameResearchDefinitions[type];
     if (definition == null || targetLevel <= 0) {
       return false;

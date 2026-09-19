@@ -318,7 +318,8 @@ List<ImageProvider<Object>> runeNexusStartupImageProviders() {
       providers.add(provider);
     }
   }
-  return providers;
+  // Different growth entries can share an icon and therefore a cache key.
+  return providers.toSet().toList(growable: false);
 }
 
 Future<void> precacheRuneNexusStartupImages(

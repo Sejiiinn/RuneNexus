@@ -3,6 +3,8 @@ part of 'game_save_data.dart';
 class SavedProgression {
   const SavedProgression({
     required this.runes,
+    this.growthVersion = 0,
+    this.bossBountyUpgradeLevel = 0,
     this.totalPlayTimeMillis = 0,
     this.freeDiamonds = 0,
     this.paidDiamonds = 0,
@@ -49,6 +51,8 @@ class SavedProgression {
     this.claimedEventIds = const {},
   });
 
+  final int growthVersion;
+  final int bossBountyUpgradeLevel;
   final int runes;
   final int totalPlayTimeMillis;
   final int freeDiamonds;
@@ -98,6 +102,8 @@ class SavedProgression {
   Map<String, Object?> toJson() {
     return {
       'runes': runes,
+      'growthVersion': growthVersion,
+      'bossBountyUpgradeLevel': bossBountyUpgradeLevel,
       'totalPlayTimeMillis': totalPlayTimeMillis,
       'freeDiamonds': freeDiamonds,
       'paidDiamonds': paidDiamonds,
@@ -130,10 +136,12 @@ class SavedProgression {
       'physicalDamageTrainingUpgradeLevel': physicalDamageTrainingUpgradeLevel,
       'elementalDamageTrainingUpgradeLevel':
           elementalDamageTrainingUpgradeLevel,
-      'criticalChanceUpgradeLevel': criticalChanceUpgradeLevel,
+      if (growthVersion < 1)
+        'criticalChanceUpgradeLevel': criticalChanceUpgradeLevel,
       'criticalDamageUpgradeLevel': criticalDamageUpgradeLevel,
       'killGoldUpgradeLevel': killGoldUpgradeLevel,
-      'emergencySaleUpgradeLevel': emergencySaleUpgradeLevel,
+      if (growthVersion < 1)
+        'emergencySaleUpgradeLevel': emergencySaleUpgradeLevel,
       'linkCostOptimizationUpgradeLevel': linkCostOptimizationUpgradeLevel,
       'turretLevelUpOptimizationUpgradeLevel':
           turretLevelUpOptimizationUpgradeLevel,
@@ -173,6 +181,8 @@ class SavedProgression {
     );
     return SavedProgression(
       runes: _intValue(map['runes']),
+      growthVersion: _nonNegativeInt(map['growthVersion']),
+      bossBountyUpgradeLevel: _nonNegativeInt(map['bossBountyUpgradeLevel']),
       totalPlayTimeMillis: _nonNegativeInt(map['totalPlayTimeMillis']),
       freeDiamonds: _intValue(map['freeDiamonds']),
       paidDiamonds: _intValue(map['paidDiamonds']),

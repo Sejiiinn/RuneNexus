@@ -59,6 +59,122 @@ void main() {
     fixture.dispose();
   });
 
+  for (final version in [2, onlineSaveClientCompatibilityVersion]) {
+    test('호환 버전 $version 미처리 소비 요청의 업데이트 거절을 구분한다', () async {
+      final transport = _EconomyTransport(
+        getResponse: _economySnapshot(revision: 3),
+        postStatuses: [426],
+        postResponses: [
+          {'code': 'CLIENT_UPDATE_REQUIRED', 'message': '업데이트 필요'},
+        ],
+      );
+      final fixture = _Fixture(transport: transport);
+      final pending = EconomyPendingCommand(
+        kind: 'complete_research',
+        path: 'v1/economy/researches/bossBounty/complete',
+        idempotencyKey: '33333333-3333-4333-8333-333333333333',
+        encodedBody: jsonEncode({'clientCompatibilityVersion': version}),
+        createdAtMillis: 1,
+      );
+      final repository = MemoryEconomyCommandOutboxRepository()
+        ..state = EconomyCommandOutboxState.initial(
+          _accountId,
+        ).copyWith(inFlight: pending);
+      final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+      final coordinator = fixture.economyCoordinator(
+        game,
+        repository: repository,
+      );
+      if (version < onlineSaveClientCompatibilityVersion) {
+        await coordinator.initialize();
+        expect(coordinator.snapshot!.revision, 3);
+        expect(game.snapshotNotifier.value.bossBountyUpgradeLevel, 0);
+      } else {
+        await expectLater(
+          coordinator.initialize(),
+          throwsA(
+            isA<EconomyException>().having(
+              (error) => error.code,
+              'code',
+              'CLIENT_UPDATE_REQUIRED',
+            ),
+          ),
+        );
+        expect(coordinator.snapshot, isNull);
+      }
+      expect(transport.postBodies, [pending.encodedBody]);
+      expect(transport.postKeys, [pending.idempotencyKey]);
+      expect(repository.state!.inFlight, isNull);
+      coordinator.dispose();
+      fixture.dispose();
+    });
+  }
+
+  test('구버전 미처리 런 정산은 보상을 보존하고 새 버전으로 재요청한다', () async {
+    const runId = '55555555-5555-4555-8555-555555555555';
+    const key = '33333333-3333-4333-8333-333333333333';
+    final transport = _EconomyTransport(
+      getResponse: _economySnapshot(revision: 1),
+      postStatuses: [426, 200],
+      postResponses: [
+        {'code': 'CLIENT_UPDATE_REQUIRED', 'message': '업데이트 필요'},
+        {'economy': _economySnapshot(revision: 2)},
+      ],
+    );
+    final fixture = _Fixture(transport: transport);
+    await fixture.saveCoordinator.initialize();
+    final oldBody = jsonEncode({
+      'runId': runId,
+      'clientCompatibilityVersion': 2,
+    });
+    final repository = MemoryEconomyCommandOutboxRepository()
+      ..state = EconomyCommandOutboxState.initial(_accountId).copyWith(
+        inFlight: EconomyPendingCommand(
+          kind: 'run_settlement',
+          path: 'v1/economy/runs/settle',
+          idempotencyKey: key,
+          encodedBody: oldBody,
+          createdAtMillis: 1,
+        ),
+        pendingRewards: [
+          const EconomyPendingRunReward(
+            runId: runId,
+            stageNumber: 1,
+            completedRounds: 3,
+            success: false,
+            pendingDiamonds: 7,
+            createdAtMillis: 1,
+          ),
+        ],
+      );
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      onlineSaveRepository: fixture.saveCoordinator,
+    );
+    final coordinator = fixture.economyCoordinator(
+      game,
+      repository: repository,
+    );
+    game.attachAuthoritativeEconomyCommands(coordinator);
+    await coordinator.initialize();
+    expect(transport.postBodies.first, oldBody);
+    expect(transport.postKeys.first, key);
+    final replay =
+        jsonDecode(transport.postBodies.last) as Map<String, dynamic>;
+    expect(
+      replay['clientCompatibilityVersion'],
+      onlineSaveClientCompatibilityVersion,
+    );
+    expect(replay['runId'], runId);
+    expect(replay['pendingDiamonds'], 7);
+    expect(transport.postKeys.last, isNot(key));
+    expect(repository.state!.pendingRewards, isEmpty);
+    expect(repository.state!.inFlight, isNull);
+    expect(coordinator.snapshot!.revision, 2);
+    coordinator.dispose();
+    fixture.dispose();
+  });
+
   test('미완료 우편이 만료되어도 다음 접속의 경제 복구는 계속된다', () async {
     const id = '33333333-3333-4333-8333-333333333333';
     final transport = _EconomyTransport(
@@ -151,60 +267,66 @@ void main() {
     fixture.dispose();
   });
 
-  test('연구 명령 응답 유실 복구는 효과 저장과 ack를 먼저 완료한다', () async {
-    final effect = <String, Object?>{
-      'id': '44444444-4444-4444-8444-444444444444',
-      'effectType': 'complete_research',
-      'payload': {'researchType': 'researchEfficiency', 'targetLevel': 1},
-    };
-    final transport = _EconomyTransport(
-      getResponse: _economySnapshot(revision: 3),
-      postResponses: [
-        {
-          'economy': _economySnapshot(revision: 2, effects: [effect]),
-          'progressionEffect': effect,
-        },
-        {'economy': _economySnapshot(revision: 3)},
-      ],
-    );
-    final fixture = _Fixture(transport: transport);
-    await fixture.saveCoordinator.initialize();
-    final repository = MemoryEconomyCommandOutboxRepository()
-      ..state = EconomyCommandOutboxState.initial(_accountId).copyWith(
-        inFlight: const EconomyPendingCommand(
-          kind: 'complete_research',
-          path: 'v1/economy/researches/researchEfficiency/complete',
-          idempotencyKey: '33333333-3333-4333-8333-333333333333',
-          encodedBody: '{"expectedEconomyRevision":1}',
-          createdAtMillis: 1,
-        ),
+  for (final type in [
+    ResearchType.researchEfficiency,
+    ResearchType.bossBounty,
+  ]) {
+    test('${type.name} 명령 응답 유실 복구는 효과 저장과 ack를 먼저 완료한다', () async {
+      final effect = <String, Object?>{
+        'id': '44444444-4444-4444-8444-444444444444',
+        'effectType': 'complete_research',
+        'payload': {'researchType': type.name, 'targetLevel': 1},
+      };
+      final transport = _EconomyTransport(
+        getResponse: _economySnapshot(revision: 3),
+        postResponses: [
+          {
+            'economy': _economySnapshot(revision: 2, effects: [effect]),
+            'progressionEffect': effect,
+          },
+          {'economy': _economySnapshot(revision: 3)},
+        ],
       );
-    final game = RuneNexusGame(
-      saveRepository: MemorySaveRepository(),
-      onlineSaveRepository: fixture.saveCoordinator,
-    );
-    final coordinator = fixture.economyCoordinator(
-      game,
-      repository: repository,
-    );
-    game.attachAuthoritativeEconomyCommands(coordinator);
+      final fixture = _Fixture(transport: transport);
+      await fixture.saveCoordinator.initialize();
+      final repository = MemoryEconomyCommandOutboxRepository()
+        ..state = EconomyCommandOutboxState.initial(_accountId).copyWith(
+          inFlight: EconomyPendingCommand(
+            kind: 'complete_research',
+            path: 'v1/economy/researches/${type.name}/complete',
+            idempotencyKey: '33333333-3333-4333-8333-333333333333',
+            encodedBody: '{"expectedEconomyRevision":1}',
+            createdAtMillis: 1,
+          ),
+        );
+      final game = RuneNexusGame(
+        saveRepository: MemorySaveRepository(),
+        onlineSaveRepository: fixture.saveCoordinator,
+      );
+      final coordinator = fixture.economyCoordinator(
+        game,
+        repository: repository,
+      );
+      game.attachAuthoritativeEconomyCommands(coordinator);
 
-    await coordinator.initialize();
+      await coordinator.initialize();
 
-    expect(repository.state!.inFlight, isNull);
-    expect(
-      game.snapshotNotifier.value.researchLevels[ResearchType
-          .researchEfficiency],
-      1,
-    );
-    expect(transport.postPaths, [
-      '/v1/economy/researches/researchEfficiency/complete',
-      '/v1/economy/progression-effects/${effect['id']}/ack',
-    ]);
+      expect(repository.state!.inFlight, isNull);
+      expect(
+        type == ResearchType.bossBounty
+            ? game.snapshotNotifier.value.bossBountyUpgradeLevel
+            : game.snapshotNotifier.value.researchLevels[type],
+        1,
+      );
+      expect(transport.postPaths, [
+        '/v1/economy/researches/${type.name}/complete',
+        '/v1/economy/progression-effects/${effect['id']}/ack',
+      ]);
 
-    coordinator.dispose();
-    fixture.dispose();
-  });
+      coordinator.dispose();
+      fixture.dispose();
+    });
+  }
 
   test('넥서스 파괴 패배도 런 정산을 정확히 한 번 등록한다', () async {
     final commands = _RecordingEconomyCommands();

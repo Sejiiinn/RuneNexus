@@ -2,6 +2,7 @@ package httpapi
 
 import (
 	"context"
+	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"io"
 	"log/slog"
 	"net/http"
@@ -55,4 +56,13 @@ func economyRequest(method string, path string, body string) *http.Request {
 	)
 	ctx = context.WithValue(ctx, requestIDContextKey{}, "economy-test-request")
 	return request.WithContext(ctx)
+}
+
+func TestGrowthCompatibilityEconomyErrorRequiresClientUpdate(t *testing.T) {
+	response := httptest.NewRecorder()
+	handler := economyHandler{}
+	if !handler.writeEconomyError(response, economyRequest(http.MethodPost, "/v1/economy/researches/criticalChance/complete", `{}`), gamesave.ErrClientUpdateRequired) {
+		t.Fatal("error was not handled")
+	}
+	requireAPIError(t, response, http.StatusUpgradeRequired, "CLIENT_UPDATE_REQUIRED")
 }

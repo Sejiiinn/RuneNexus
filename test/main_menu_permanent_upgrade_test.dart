@@ -130,85 +130,91 @@ void main() {
     expect(find.text('Lv.3/10'), findsNothing);
   });
 
-  testWidgets('emergency sale is hidden before stage one clear', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: const [
-          RuneNexusLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        supportedLocales: RuneNexusLocalizations.supportedLocales,
-        home: MainMenuScreen(
-          game: RuneNexusGame(),
-          snapshot: resultSnapshot(
-            phase: GamePhase.preparation,
-            currentStageNumber: 1,
-            runes: 181,
-            emergencySaleUpgradeLevel: 3,
-            turretRefundPercent: 75,
+  testWidgets(
+    'boss bounty is available from start and emergency sale is absent',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: const [
+            RuneNexusLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: RuneNexusLocalizations.supportedLocales,
+          home: MainMenuScreen(
+            game: RuneNexusGame(),
+            snapshot: resultSnapshot(
+              phase: GamePhase.preparation,
+              currentStageNumber: 1,
+              runes: 181,
+              emergencySaleUpgradeLevel: 3,
+              turretRefundPercent: 75,
+            ),
+            selectedTab: MainMenuTab.permanentUpgrades,
+            onSelectTab: (_) {},
+            onStartStage: (_) {},
           ),
-          selectedTab: MainMenuTab.permanentUpgrades,
-          onSelectTab: (_) {},
-          onStartStage: (_) {},
         ),
-      ),
-    );
-    await pumpGameFrames(tester);
+      );
+      await pumpGameFrames(tester);
 
-    await tester.tap(find.byTooltip('경제'));
-    await pumpGameFrames(tester);
+      await tester.tap(find.byTooltip('경제'));
+      await pumpGameFrames(tester);
 
-    expect(find.text('긴급 매각'), findsNothing);
-    expect(find.text('미해금 업그레이드'), findsNothing);
-    expect(find.text('아직 사용할 수 없음'), findsNothing);
-    expect(find.text('Lv.3/5'), findsNothing);
-  });
+      expect(find.text('긴급 매각'), findsNothing);
+      expect(find.text('미해금 업그레이드'), findsNothing);
+      expect(find.text('아직 사용할 수 없음'), findsNothing);
+      expect(find.text('Lv.3/5'), findsNothing);
+      expect(find.text('토벌 보상'), findsOneWidget);
+      expect(find.text('Lv.0/40'), findsOneWidget);
+    },
+  );
 
-  testWidgets('emergency sale shows refund percent after stage one clear', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: const [
-          RuneNexusLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        supportedLocales: RuneNexusLocalizations.supportedLocales,
-        home: MainMenuScreen(
-          game: RuneNexusGame(),
-          snapshot: resultSnapshot(
-            phase: GamePhase.preparation,
-            currentStageNumber: 1,
-            runes: 181,
-            clearedStageNumbers: const {1},
-            emergencySaleUpgradeLevel: 0,
-            emergencySaleUpgradeCost: 80,
-            canUpgradeEmergencySale: true,
-            turretRefundPercent: 75,
+  testWidgets(
+    'boss bounty shows current and next bonus after stage one clear',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: const [
+            RuneNexusLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: RuneNexusLocalizations.supportedLocales,
+          home: MainMenuScreen(
+            game: RuneNexusGame(),
+            snapshot: resultSnapshot(
+              phase: GamePhase.preparation,
+              currentStageNumber: 1,
+              runes: 181,
+              clearedStageNumbers: const {1},
+              emergencySaleUpgradeLevel: 0,
+              emergencySaleUpgradeCost: 80,
+              canUpgradeEmergencySale: true,
+              turretRefundPercent: 75,
+            ),
+            selectedTab: MainMenuTab.permanentUpgrades,
+            onSelectTab: (_) {},
+            onStartStage: (_) {},
           ),
-          selectedTab: MainMenuTab.permanentUpgrades,
-          onSelectTab: (_) {},
-          onStartStage: (_) {},
         ),
-      ),
-    );
-    await pumpGameFrames(tester);
+      );
+      await pumpGameFrames(tester);
 
-    await tester.tap(find.byTooltip('경제'));
-    await pumpGameFrames(tester);
+      await tester.tap(find.byTooltip('경제'));
+      await pumpGameFrames(tester);
 
-    expect(find.text('긴급 매각'), findsOneWidget);
-    expect(find.text('현재 75%'), findsOneWidget);
-    expect(find.text('다음 76%'), findsOneWidget);
-  });
+      expect(find.text('긴급 매각'), findsNothing);
+      expect(find.text('토벌 보상'), findsOneWidget);
+      expect(find.text('Lv.0/40'), findsOneWidget);
+      expect(find.text('현재 +0.0%'), findsOneWidget);
+      expect(find.text('다음 +2.5%'), findsOneWidget);
+    },
+  );
 
   testWidgets('advanced economy upgrades unlock after stage nine clear', (
     tester,
@@ -251,7 +257,7 @@ void main() {
 
     expect(find.text('연결 공정'), findsOneWidget);
     expect(find.text('강화 공정'), findsOneWidget);
-    expect(find.text('Lv.5/20'), findsNWidgets(2));
+    expect(find.text('Lv.5/30'), findsNWidgets(2));
     expect(find.text('현재 5% 감폭'), findsNWidgets(2));
     expect(find.text('다음 6% 감폭'), findsNWidgets(2));
   });
@@ -293,48 +299,49 @@ void main() {
     expect(find.text('Lv.15/20'), findsNothing);
   });
 
-  testWidgets('critical upgrades unlock after stage four clear', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('ko'),
-        localizationsDelegates: const [
-          RuneNexusLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-        ],
-        supportedLocales: RuneNexusLocalizations.supportedLocales,
-        home: MainMenuScreen(
-          game: RuneNexusGame(),
-          snapshot: resultSnapshot(
-            phase: GamePhase.preparation,
-            currentStageNumber: 1,
-            runes: 200,
-            clearedStageNumbers: const {4},
-            criticalChanceUpgradeLevel: 15,
-            criticalChanceUpgradeCost: 1078,
-            canUpgradeCriticalChance: true,
-            criticalChanceProgressionBonusRate: 0.15,
-            criticalDamageUpgradeLevel: 15,
-            criticalDamageUpgradeCost: 251,
-            canUpgradeCriticalDamage: true,
-            criticalDamageProgressionBonusRate: 0.15,
+  testWidgets(
+    'critical damage unlocks while critical chance stays in research',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('ko'),
+          localizationsDelegates: const [
+            RuneNexusLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: RuneNexusLocalizations.supportedLocales,
+          home: MainMenuScreen(
+            game: RuneNexusGame(),
+            snapshot: resultSnapshot(
+              phase: GamePhase.preparation,
+              currentStageNumber: 1,
+              runes: 200,
+              clearedStageNumbers: const {4},
+              criticalChanceUpgradeLevel: 15,
+              criticalChanceUpgradeCost: 1078,
+              canUpgradeCriticalChance: true,
+              criticalChanceProgressionBonusRate: 0.15,
+              criticalDamageUpgradeLevel: 15,
+              criticalDamageUpgradeCost: 251,
+              canUpgradeCriticalDamage: true,
+              criticalDamageProgressionBonusRate: 0.15,
+            ),
+            selectedTab: MainMenuTab.permanentUpgrades,
+            onSelectTab: (_) {},
+            onStartStage: (_) {},
           ),
-          selectedTab: MainMenuTab.permanentUpgrades,
-          onSelectTab: (_) {},
-          onStartStage: (_) {},
         ),
-      ),
-    );
-    await pumpGameFrames(tester);
+      );
+      await pumpGameFrames(tester);
 
-    expect(find.text('치명 집중'), findsOneWidget);
-    expect(find.text('치명 충격'), findsOneWidget);
-    expect(find.text('현재 +15%p'), findsNWidgets(2));
-    expect(find.text('다음 +16%p'), findsNWidgets(2));
-  });
+      expect(find.text('치명 집중'), findsNothing);
+      expect(find.text('치명 충격'), findsOneWidget);
+      expect(find.text('현재 +15%p'), findsOneWidget);
+      expect(find.text('다음 +16%p'), findsOneWidget);
+    },
+  );
 
   testWidgets('family damage upgrades are hidden before stage seven clear', (
     tester,

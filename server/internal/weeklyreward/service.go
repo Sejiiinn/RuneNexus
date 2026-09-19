@@ -11,6 +11,7 @@ import (
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
 	"github.com/Sejiiinn/RuneNexus/server/internal/economy"
+	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -221,6 +222,9 @@ func (service *Service) Claim(
 		return ClaimResult{}, fmt.Errorf("get weekly reward source save: %w", err)
 	}
 
+	if err := gamesave.ValidateGrowthClient(snapshot.Progression, gamesave.ClientCompatibilityFromBody(request.RawBody)); err != nil {
+		return ClaimResult{}, err
+	}
 	periodKey, weekKey := rewardPeriod(request.Period, service.now().UTC())
 	evidence, err := decodeProgressionEvidence(snapshot.Progression)
 	if err != nil {

@@ -53,6 +53,8 @@ String _researchIconAsset(ResearchType type) {
     ResearchType.linkExpansionOne =>
       '$_researchIconAssetRoot/link_expansion_one.png',
     ResearchType.gemAttunement => '$_researchIconAssetRoot/gem_attunement.png',
+    ResearchType.criticalChance => 'assets/images/upgrades/critical_chance.png',
+    ResearchType.emergencySale => 'assets/images/upgrades/turret_refund.png',
     ResearchType.bossBounty => '$_researchIconAssetRoot/boss_bounty.png',
     ResearchType.linkMaintenance =>
       '$_researchIconAssetRoot/link_maintenance.png',

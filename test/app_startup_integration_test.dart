@@ -61,6 +61,9 @@ class _PendingUpdateService extends AppUpdateService {
   int checks = 0;
 
   @override
+  bool isRequired(AppUpdateRelease release) => false;
+
+  @override
   Future<AppUpdateRelease?> check() {
     checks++;
     return result.future;

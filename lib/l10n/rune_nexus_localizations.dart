@@ -785,6 +785,16 @@ class RuneNexusLocalizations {
           ? 'Allows each turret to set its preferred attack target.'
           : '포탑별로 우선 공격 대상을 지정할 수 있도록 합니다.';
     }
+    if (title == criticalChanceTraining) {
+      return _isEnglish
+          ? 'Adds 2 percentage points of critical chance per level.'
+          : '레벨마다 모든 포탑의 치명타 확률이 2%p 증가합니다.';
+    }
+    if (title == emergencySale) {
+      return _isEnglish
+          ? 'Adds 1 percentage point to turret refunds per level.'
+          : '레벨마다 포탑 환불 비율이 1%p 증가합니다.';
+    }
     if (title == bossBounty) {
       return _isEnglish
           ? 'Increases gold gained from defeating boss enemies by 2.5% per level.'
@@ -828,11 +838,25 @@ class RuneNexusLocalizations {
     return '';
   }
 
+  String currentUpgradeValue(String value) =>
+      _isEnglish ? 'Current $value' : '현재 $value';
+  String nextUpgradeValue(String value) =>
+      _isEnglish ? 'Next $value' : '다음 $value';
+  String researchCriticalChanceEffect(int percent) =>
+      _isEnglish ? 'Critical chance +$percent%p' : '치명타 확률 +$percent%p';
+  String researchEmergencySaleEffect(int percent) =>
+      _isEnglish ? 'Turret refund $percent%' : '포탑 환불 $percent%';
+
   String permanentCostAttenuationEffect(int percent) {
     return _isEnglish ? '$percent% attenuation' : '$percent% 감폭';
   }
 
   String permanentUpgradeDescription(String title) {
+    if (title == bossBounty) {
+      return _isEnglish
+          ? 'Increases boss gold rewards by 2.5% per level.'
+          : '레벨마다 보스 처치 골드가 2.5% 증가합니다.';
+    }
     if (title == startGold) {
       return _isEnglish
           ? 'Increases the gold available at the start of every run.'

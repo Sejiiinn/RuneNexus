@@ -69,7 +69,7 @@ class _ResearchMenuState extends State<_ResearchMenu> {
     final unlockedIncompleteTypes = <ResearchType>[];
     final lockedIncompleteTypes = <ResearchType>[];
     final completedTypes = <ResearchType>[];
-    for (final type in ResearchType.values) {
+    for (final type in gameResearchDefinitions.keys) {
       final definition = gameResearchDefinitions[type]!;
       final complete =
           _researchLevel(widget.snapshot, type) >= definition.maxLevel;

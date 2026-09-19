@@ -58,3 +58,9 @@ func validImportedData(t *testing.T) gamesave.Data {
 		TurretModules: json.RawMessage(`{"tickets":1,"items":[]}`),
 	}
 }
+
+func TestMigratedGrowthCannotBeReplacedByLegacyTransfer(t *testing.T) {
+	if err := validateReplaceableTarget([]byte(`{"growthVersion":1,"paidDiamonds":0}`)); !errors.Is(err, ErrTargetNotReplaceable) {
+		t.Fatalf("migrated target error = %v", err)
+	}
+}

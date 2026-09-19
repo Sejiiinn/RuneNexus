@@ -32,21 +32,27 @@ class RunProgression
         _TurretModuleProgression,
         _QuestProgression,
         _CoreProgression {
+  static const int currentGrowthVersion = 1;
+  static const int maxBossBountyUpgradeLevel = 40;
+  static const int bossBountyUpgradeBaseCost = 30;
+  static const double bossBountyUpgradeCostMultiplier = 1.12;
+  static const double bossBountyBonusPerUpgradeLevel = 0.025;
+  static const double criticalChanceBonusPerResearchLevel = 0.02;
   static const int baseInitialGold = 170;
   static const int baseNexusHp = 20;
   static const int maxStageCount = 15;
-  static const int maxStartingGoldUpgradeLevel = 20;
-  static const int maxNexusHpUpgradeLevel = 10;
-  static const int maxSupplyUpgradeLevel = 20;
-  static const int maxFireTrainingUpgradeLevel = 20;
-  static const int maxPhysicalDamageTrainingUpgradeLevel = 20;
-  static const int maxElementalDamageTrainingUpgradeLevel = 20;
+  static const int maxStartingGoldUpgradeLevel = 50;
+  static const int maxNexusHpUpgradeLevel = 30;
+  static const int maxSupplyUpgradeLevel = 50;
+  static const int maxFireTrainingUpgradeLevel = 100;
+  static const int maxPhysicalDamageTrainingUpgradeLevel = 50;
+  static const int maxElementalDamageTrainingUpgradeLevel = 50;
   static const int maxCriticalChanceUpgradeLevel = 20;
-  static const int maxCriticalDamageUpgradeLevel = 20;
-  static const int maxKillGoldUpgradeLevel = 20;
+  static const int maxCriticalDamageUpgradeLevel = 50;
+  static const int maxKillGoldUpgradeLevel = 50;
   static const int maxEmergencySaleUpgradeLevel = 5;
-  static const int maxLinkCostOptimizationUpgradeLevel = 20;
-  static const int maxTurretLevelUpOptimizationUpgradeLevel = 20;
+  static const int maxLinkCostOptimizationUpgradeLevel = 30;
+  static const int maxTurretLevelUpOptimizationUpgradeLevel = 30;
   static const int researchSlotCount = 1;
   static const int researchSlotTwoUnlockRequiredStage = 10;
   static const int researchSlotTwoUnlockCost = 600;
@@ -83,11 +89,11 @@ class RunProgression
   static const double nexusHpUpgradeCostMultiplier = 1.10;
   static const int supplyUpgradeBaseCost = 7;
   static const int supplyUpgradeCostPerLevel = 2;
-  static const double supplyUpgradeCostMultiplier = 1.10;
+  static const double supplyUpgradeCostMultiplier = 1.09;
   static const int supplyGoldPerUpgradeLevel = 1;
   static const int fireTrainingUpgradeBaseCost = 7;
   static const int fireTrainingUpgradeCostPerLevel = 2;
-  static const double fireTrainingUpgradeCostMultiplier = 1.10;
+  static const double fireTrainingUpgradeCostMultiplier = 1.06;
   static const double fireTrainingDamagePerUpgradeLevel = 0.015;
   static const int familyDamageTrainingUpgradeBaseCost = 55;
   static const int familyDamageTrainingUpgradeCostPerLevel = 6;
@@ -101,7 +107,7 @@ class RunProgression
   static const double criticalDamageBonusPerUpgradeLevel = 0.01;
   static const int killGoldUpgradeBaseCost = 7;
   static const int killGoldUpgradeCostPerLevel = 2;
-  static const double killGoldUpgradeCostMultiplier = 1.10;
+  static const double killGoldUpgradeCostMultiplier = 1.09;
   static const double killGoldBonusPerUpgradeLevel = 0.01;
   static const int emergencySaleUpgradeBaseCost = 80;
   static const int emergencySaleRefundPercentPerLevel = 1;
@@ -296,6 +302,8 @@ class RunProgression
   SavedProgression toSaveData() {
     return SavedProgression(
       runes: runes,
+      growthVersion: currentGrowthVersion,
+      bossBountyUpgradeLevel: _cappedBossBountyUpgradeLevel,
       totalPlayTimeMillis: totalPlayTimeMillis,
       freeDiamonds: freeDiamonds,
       paidDiamonds: paidDiamonds,
@@ -321,10 +329,10 @@ class RunProgression
           _cappedPhysicalDamageTrainingUpgradeLevel,
       elementalDamageTrainingUpgradeLevel:
           _cappedElementalDamageTrainingUpgradeLevel,
-      criticalChanceUpgradeLevel: _cappedCriticalChanceUpgradeLevel,
+      criticalChanceUpgradeLevel: 0,
       criticalDamageUpgradeLevel: _cappedCriticalDamageUpgradeLevel,
       killGoldUpgradeLevel: _cappedKillGoldUpgradeLevel,
-      emergencySaleUpgradeLevel: _cappedEmergencySaleUpgradeLevel,
+      emergencySaleUpgradeLevel: 0,
       linkCostOptimizationUpgradeLevel: _cappedLinkCostOptimizationUpgradeLevel,
       turretLevelUpOptimizationUpgradeLevel:
           _cappedTurretLevelUpOptimizationUpgradeLevel,
@@ -361,6 +369,11 @@ class RunProgression
   }
 
   void restoreFromSaveData(SavedProgression data) {
+    final migrateGrowth = data.growthVersion < currentGrowthVersion;
+    bossBountyUpgradeLevel = data.bossBountyUpgradeLevel.clamp(
+      0,
+      maxBossBountyUpgradeLevel,
+    );
     runes = math.max(0, data.runes);
     totalPlayTimeMillis = math.max(0, data.totalPlayTimeMillis);
     _playTimeRemainderMillis = 0;
@@ -481,6 +494,38 @@ class RunProgression
               );
             }),
       );
+    if (migrateGrowth) {
+      final criticalRank =
+          (data.criticalChanceUpgradeLevel.clamp(0, 20) + 1) ~/ 2;
+      final emergencyRank = data.emergencySaleUpgradeLevel.clamp(0, 5);
+      researchLevels[ResearchType.criticalChance] = math.max(
+        researchLevel(ResearchType.criticalChance),
+        criticalRank,
+      );
+      researchLevels[ResearchType.emergencySale] = math.max(
+        researchLevel(ResearchType.emergencySale),
+        emergencyRank,
+      );
+      var legacyBossLevel = (data.researchLevels[ResearchType.bossBounty] ?? 0)
+          .clamp(0, 20);
+      for (final research in data.activeResearches) {
+        if (research.type == ResearchType.bossBounty) {
+          legacyBossLevel = math.max(
+            legacyBossLevel,
+            research.targetLevel.clamp(0, 20),
+          );
+        }
+      }
+      bossBountyUpgradeLevel = math.max(
+        bossBountyUpgradeLevel,
+        legacyBossLevel,
+      );
+    }
+    researchLevels.removeWhere((type, level) => level <= 0);
+    // Obsolete upgrade fields never contribute after migration. Canceled boss
+    // research already refunded its runes; its elapsed time can be discarded.
+    criticalChanceUpgradeLevel = 0;
+    emergencySaleUpgradeLevel = 0;
     researchElapsedMillis
       ..clear()
       ..addEntries(

@@ -4,7 +4,10 @@ enum ResearchType {
   turretTargetPriority,
   linkExpansionOne,
   gemAttunement,
+  // Legacy save identifier; no longer a research option.
   bossBounty,
+  criticalChance,
+  emergencySale,
   linkMaintenance,
   crystalRecovery,
   runeResonance,

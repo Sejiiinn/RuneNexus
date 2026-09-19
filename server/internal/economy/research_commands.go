@@ -12,9 +12,11 @@ import (
 )
 
 type researchProgression struct {
-	ClearedStageNumbers []int            `json:"clearedStageNumbers"`
-	ResearchLevels      map[string]int   `json:"researchLevels"`
-	ActiveResearches    []activeResearch `json:"activeResearches"`
+	GrowthVersion          int              `json:"growthVersion"`
+	BossBountyUpgradeLevel int              `json:"bossBountyUpgradeLevel"`
+	ClearedStageNumbers    []int            `json:"clearedStageNumbers"`
+	ResearchLevels         map[string]int   `json:"researchLevels"`
+	ActiveResearches       []activeResearch `json:"activeResearches"`
 }
 
 type activeResearch struct {
@@ -57,11 +59,11 @@ func (service *Service) CompleteResearch(
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 	txQueries := dbgen.New(tx)
-	_, saveSnapshot, err := lockWriterAndSave(ctx, txQueries, accountUUID, sessionUUID, request.WriterGeneration, request.SourceSaveRevision)
+	_, saveSnapshot, err := lockWriterAndSave(ctx, txQueries, accountUUID, sessionUUID, request.WriterGeneration, request.SourceSaveRevision, request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
-	economy, err := lockAuthoritativeEconomy(ctx, txQueries, accountUUID)
+	economy, err := lockAuthoritativeEconomy(ctx, txQueries, accountUUID, request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
@@ -190,11 +192,11 @@ func (service *Service) UnlockResearchSlotTwo(
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 	txQueries := dbgen.New(tx)
-	_, saveSnapshot, err := lockWriterAndSave(ctx, txQueries, accountUUID, sessionUUID, request.WriterGeneration, request.SourceSaveRevision)
+	_, saveSnapshot, err := lockWriterAndSave(ctx, txQueries, accountUUID, sessionUUID, request.WriterGeneration, request.SourceSaveRevision, request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
-	economy, err := lockAuthoritativeEconomy(ctx, txQueries, accountUUID)
+	economy, err := lockAuthoritativeEconomy(ctx, txQueries, accountUUID, request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
@@ -300,11 +302,11 @@ func (service *Service) AcknowledgeProgressionEffect(
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 	txQueries := dbgen.New(tx)
-	_, saveSnapshot, err := lockWriterAndSave(ctx, txQueries, accountUUID, sessionUUID, request.WriterGeneration, request.AppliedSaveRevision)
+	_, saveSnapshot, err := lockWriterAndSave(ctx, txQueries, accountUUID, sessionUUID, request.WriterGeneration, request.AppliedSaveRevision, request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
-	economy, err := lockAuthoritativeEconomy(ctx, txQueries, accountUUID)
+	economy, err := lockAuthoritativeEconomy(ctx, txQueries, accountUUID, request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}
@@ -375,10 +377,11 @@ func researchCompletionCost(progressionJSON []byte, researchType string, now tim
 		return activeResearch{}, 0, ErrInvalidCommand
 	}
 	for _, active := range progression.ActiveResearches {
-		if active.Type != researchType || active.TargetLevel <= 0 || active.DurationMillis <= 0 {
+		if active.Type != researchType || active.TargetLevel <= 0 || active.TargetLevel > researchMaxLevel(active.Type, progression.GrowthVersion) || active.TargetLevel <= progression.ResearchLevels[active.Type] || active.DurationMillis <= 0 {
 			continue
 		}
-		elapsed := active.InitialElapsedMillis
+		// DurationMillis already excludes time accumulated before a restart.
+		elapsed := int64(0)
 		if active.StartedAtMillis > 0 {
 			realtime := now.UnixMilli() - active.StartedAtMillis
 			if realtime > 0 {
@@ -389,7 +392,7 @@ func researchCompletionCost(progressionJSON []byte, researchType string, now tim
 		if remaining <= 0 {
 			return activeResearch{}, 0, ErrInvalidCommand
 		}
-		cost := (remaining + ResearchDiamondMillis - 1) / ResearchDiamondMillis
+		cost := 1 + (remaining-1)/ResearchDiamondMillis
 		return active, cost, nil
 	}
 	return activeResearch{}, 0, ErrInvalidCommand
@@ -417,7 +420,13 @@ func effectAppliedToProgression(effectJSON []byte, progressionJSON []byte) bool 
 	if json.Unmarshal(effectJSON, &effect) != nil || json.Unmarshal(progressionJSON, &progression) != nil {
 		return false
 	}
-	if progression.ResearchLevels[effect.ResearchType] < effect.TargetLevel {
+	// A pending generation-2 boss receipt remains acknowledgeable after its
+	// research was converted to the permanent upgrade. No new reward is granted.
+	if effect.ResearchType == "bossBounty" && progression.GrowthVersion >= 1 {
+		if effect.TargetLevel <= 0 || effect.TargetLevel > 20 || progression.BossBountyUpgradeLevel < effect.TargetLevel {
+			return false
+		}
+	} else if effect.TargetLevel <= 0 || effect.TargetLevel > researchMaxLevel(effect.ResearchType, progression.GrowthVersion) || progression.ResearchLevels[effect.ResearchType] < effect.TargetLevel {
 		return false
 	}
 	for _, active := range progression.ActiveResearches {
@@ -426,4 +435,32 @@ func effectAppliedToProgression(effectJSON []byte, progressionJSON []byte) bool 
 		}
 	}
 	return true
+}
+
+// Limits are versioned because old clients remain supported before migration.
+func researchMaxLevel(kind string, growthVersion int) int {
+	switch kind {
+	case "researchEfficiency", "researchCostEfficiency", "runeResonance":
+		return 20
+	case "bossBounty":
+		if growthVersion == 0 {
+			return 20
+		}
+		return 0
+	case "linkMaintenance", "runUpgradeCostOptimization", "towerDamageLimitExpansion", "killGoldLimitExpansion", "waveGoldLimitExpansion":
+		return 10
+	case "gemAttunement", "crystalRecovery":
+		return 5
+	case "turretTargetPriority", "linkExpansionOne":
+		return 1
+	case "criticalChance":
+		if growthVersion >= 1 {
+			return 10
+		}
+	case "emergencySale":
+		if growthVersion >= 1 {
+			return 5
+		}
+	}
+	return 0
 }

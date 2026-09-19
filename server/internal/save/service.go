@@ -18,7 +18,7 @@ import (
 
 const (
 	CurrentSchemaVersion              int32 = 2
-	CurrentClientCompatibilityVersion       = 2
+	CurrentClientCompatibilityVersion       = 3
 )
 
 var (
@@ -207,11 +207,20 @@ func (service *Service) ClaimWriter(
 	}
 	playerEconomy, economyErr := txQueries.GetPlayerEconomyForUpdate(ctx, databaseAccountID)
 	if economyErr == nil && playerEconomy.AuthorityState == "server_authoritative" &&
-		request.ClientCompatibilityVersion < CurrentClientCompatibilityVersion {
+		request.ClientCompatibilityVersion < EconomyClientCompatibilityVersion {
 		return ClaimWriterResult{}, ErrClientUpdateRequired
 	}
 	if economyErr != nil && !errors.Is(economyErr, pgx.ErrNoRows) {
 		return ClaimWriterResult{}, fmt.Errorf("lock authoritative economy for writer claim: %w", economyErr)
+	}
+
+	snapshot, snapshotErr := txQueries.GetSaveSnapshot(ctx, databaseAccountID)
+	if snapshotErr == nil {
+		if err := ValidateGrowthClient(snapshot.Progression, request.ClientCompatibilityVersion); err != nil {
+			return ClaimWriterResult{}, err
+		}
+	} else if !errors.Is(snapshotErr, pgx.ErrNoRows) {
+		return ClaimWriterResult{}, fmt.Errorf("read growth compatibility: %w", snapshotErr)
 	}
 
 	advanced, err := txQueries.AdvanceSaveWriter(ctx, dbgen.AdvanceSaveWriterParams{
@@ -308,7 +317,7 @@ func (service *Service) Update(
 	}
 	playerEconomy, economyErr := txQueries.GetPlayerEconomyForUpdate(ctx, databaseAccountID)
 	if economyErr == nil && playerEconomy.AuthorityState == "server_authoritative" &&
-		request.ClientCompatibilityVersion < CurrentClientCompatibilityVersion {
+		request.ClientCompatibilityVersion < EconomyClientCompatibilityVersion {
 		return UpdateResult{}, ErrClientUpdateRequired
 	}
 	if economyErr != nil && !errors.Is(economyErr, pgx.ErrNoRows) {
@@ -335,6 +344,17 @@ func (service *Service) Update(
 		return UpdateResult{}, &RevisionConflictError{
 			CurrentRevision: header.Revision,
 		}
+	}
+
+	snapshot, snapshotErr := txQueries.GetSaveSnapshot(ctx, databaseAccountID)
+	var currentProgression []byte
+	if snapshotErr == nil {
+		currentProgression = snapshot.Progression
+	} else if !errors.Is(snapshotErr, pgx.ErrNoRows) {
+		return UpdateResult{}, fmt.Errorf("read growth compatibility: %w", snapshotErr)
+	}
+	if err := ValidateGrowthUpdate(currentProgression, request.Data.Progression, request.ClientCompatibilityVersion); err != nil {
+		return UpdateResult{}, err
 	}
 
 	if err := txQueries.UpsertSavePreferences(

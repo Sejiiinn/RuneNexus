@@ -336,6 +336,8 @@ String _researchTitle(RuneNexusLocalizations l10n, ResearchType type) {
     ResearchType.linkExpansionOne => l10n.linkExpansionOne,
     ResearchType.gemAttunement => l10n.gemAttunement,
     ResearchType.bossBounty => l10n.bossBounty,
+    ResearchType.criticalChance => l10n.criticalChanceTraining,
+    ResearchType.emergencySale => l10n.emergencySale,
     ResearchType.linkMaintenance => l10n.linkMaintenance,
     ResearchType.crystalRecovery => l10n.crystalRecovery,
     ResearchType.runeResonance => l10n.runeResonance,
@@ -381,6 +383,23 @@ _ResearchEffectText _researchEffectText(
       ),
       hasNext
           ? '+${clampedNextLevel * RunProgression.gemShardsPerGemAttunementLevel}'
+          : null,
+    ),
+    ResearchType.criticalChance => _ResearchEffectText(
+      l10n.researchCriticalChanceEffect(
+        (level * RunProgression.criticalChanceBonusPerResearchLevel * 100)
+            .round(),
+      ),
+      hasNext
+          ? '+${(clampedNextLevel * RunProgression.criticalChanceBonusPerResearchLevel * 100).round()}%p'
+          : null,
+    ),
+    ResearchType.emergencySale => _ResearchEffectText(
+      l10n.researchEmergencySaleEffect(
+        RunProgression.baseTurretRefundPercent + level,
+      ),
+      hasNext
+          ? '${RunProgression.baseTurretRefundPercent + clampedNextLevel}%'
           : null,
     ),
     ResearchType.bossBounty => _ResearchEffectText(

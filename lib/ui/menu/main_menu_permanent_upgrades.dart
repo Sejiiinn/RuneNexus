@@ -40,9 +40,6 @@ List<_PermanentUpgradeTileData> _combatUpgradeTiles({
       (snapshot.elementalDamageTrainingUpgradeLevel + 1)
           .clamp(0, RunProgression.maxElementalDamageTrainingUpgradeLevel)
           .toInt();
-  final nextCriticalChanceLevel = (snapshot.criticalChanceUpgradeLevel + 1)
-      .clamp(0, RunProgression.maxCriticalChanceUpgradeLevel)
-      .toInt();
   final nextCriticalDamageLevel = (snapshot.criticalDamageUpgradeLevel + 1)
       .clamp(0, RunProgression.maxCriticalDamageUpgradeLevel)
       .toInt();
@@ -119,25 +116,6 @@ List<_PermanentUpgradeTileData> _combatUpgradeTiles({
       ),
     if (stageFourCleared)
       _PermanentUpgradeTileData(
-        upgradeIconType: GameUpgradeIconType.criticalChance,
-        title: l10n.criticalChanceTraining,
-        description: l10n.permanentUpgradeDescription(
-          l10n.criticalChanceTraining,
-        ),
-        level: snapshot.criticalChanceUpgradeLevel,
-        maxLevel: RunProgression.maxCriticalChanceUpgradeLevel,
-        globalMaxLevel: RunProgression.maxCriticalChanceUpgradeLevel,
-        valueText:
-            '+${(snapshot.criticalChanceProgressionBonusRate * 100).round()}%p',
-        nextValueText:
-            '+${(nextCriticalChanceLevel * RunProgression.criticalChanceBonusPerUpgradeLevel * 100).round()}%p',
-        cost: snapshot.criticalChanceUpgradeCost,
-        enabled: snapshot.canUpgradeCriticalChance,
-        lockText: l10n.maxLevelReached,
-        onPressed: game.upgradeCriticalChanceProgression,
-      ),
-    if (stageFourCleared)
-      _PermanentUpgradeTileData(
         upgradeIconType: GameUpgradeIconType.criticalDamage,
         title: l10n.criticalDamageTraining,
         description: l10n.permanentUpgradeDescription(
@@ -172,8 +150,8 @@ List<_PermanentUpgradeTileData> _economyUpgradeTiles({
   final nextKillGoldLevel = (snapshot.killGoldUpgradeLevel + 1)
       .clamp(0, RunProgression.maxKillGoldUpgradeLevel)
       .toInt();
-  final nextEmergencySaleLevel = (snapshot.emergencySaleUpgradeLevel + 1)
-      .clamp(0, RunProgression.maxEmergencySaleUpgradeLevel)
+  final nextBossBountyLevel = (snapshot.bossBountyUpgradeLevel + 1)
+      .clamp(0, RunProgression.maxBossBountyUpgradeLevel)
       .toInt();
   final nextLinkCostOptimizationLevel =
       (snapshot.linkCostOptimizationUpgradeLevel + 1)
@@ -237,22 +215,21 @@ List<_PermanentUpgradeTileData> _economyUpgradeTiles({
         lockText: l10n.maxLevelReached,
         onPressed: game.upgradeKillGoldProgression,
       ),
-    if (economyUpgradeUnlocked)
-      _PermanentUpgradeTileData(
-        upgradeIconType: GameUpgradeIconType.turretRefund,
-        title: l10n.emergencySale,
-        description: l10n.permanentUpgradeDescription(l10n.emergencySale),
-        level: snapshot.emergencySaleUpgradeLevel,
-        maxLevel: RunProgression.maxEmergencySaleUpgradeLevel,
-        globalMaxLevel: RunProgression.maxEmergencySaleUpgradeLevel,
-        valueText: '${snapshot.turretRefundPercent}%',
-        nextValueText:
-            '${RunProgression.baseTurretRefundPercent + nextEmergencySaleLevel * RunProgression.emergencySaleRefundPercentPerLevel}%',
-        cost: snapshot.emergencySaleUpgradeCost,
-        enabled: snapshot.canUpgradeEmergencySale,
-        lockText: l10n.maxLevelReached,
-        onPressed: game.upgradeEmergencySaleProgression,
-      ),
+    _PermanentUpgradeTileData(
+      upgradeIconType: GameUpgradeIconType.bossBounty,
+      title: l10n.bossBounty,
+      description: l10n.permanentUpgradeDescription(l10n.bossBounty),
+      level: snapshot.bossBountyUpgradeLevel,
+      maxLevel: RunProgression.maxBossBountyUpgradeLevel,
+      globalMaxLevel: RunProgression.maxBossBountyUpgradeLevel,
+      valueText: '+${(snapshot.bossBountyBonusRate * 100).toStringAsFixed(1)}%',
+      nextValueText:
+          '+${(nextBossBountyLevel * RunProgression.bossBountyBonusPerUpgradeLevel * 100).toStringAsFixed(1)}%',
+      cost: snapshot.bossBountyUpgradeCost,
+      enabled: snapshot.canUpgradeBossBounty,
+      lockText: l10n.maxLevelReached,
+      onPressed: game.upgradeBossBountyProgression,
+    ),
     if (advancedEconomyUpgradeUnlocked)
       _PermanentUpgradeTileData(
         upgradeIconType: GameUpgradeIconType.linkCost,
@@ -361,7 +338,7 @@ class _PermanentUpgradeBoard extends StatelessWidget {
             for (final tile in tiles)
               SizedBox(
                 width: tileWidth,
-                height: 176,
+                height: 182,
                 child: _PermanentUpgradeTile(data: tile),
               ),
           ],
@@ -600,7 +577,7 @@ class _CompactUpgradeValueSummary extends StatelessWidget {
       runSpacing: 2,
       children: [
         Text(
-          '현재 $currentValueText',
+          context.l10n.currentUpgradeValue(currentValueText),
           style: const TextStyle(
             color: Color(0xFFE8FBFF),
             fontSize: 10,
@@ -608,7 +585,7 @@ class _CompactUpgradeValueSummary extends StatelessWidget {
           ),
         ),
         Text(
-          '다음 $nextValueText',
+          context.l10n.nextUpgradeValue(nextValueText),
           style: TextStyle(
             color: enabled ? const Color(0xFFE7C66A) : const Color(0xFF6D7F8F),
             fontSize: 10,

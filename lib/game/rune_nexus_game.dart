@@ -873,7 +873,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       : 0;
   double get _killGoldTotalBonusRate =>
       _killGoldRunBonusRate + _killGoldProgressionBonusRate;
-  double get _bossKillGoldResearchBonusRate => _progression.bossBountyBonusRate;
+  double get _bossKillGoldProgressionBonusRate =>
+      _progression.bossBountyBonusRate;
   int get _bossKillGemShardResearchBonus => _progression.bossKillGemShardBonus;
   double get _coreCombatSkillCooldownRecoveryMultiplier =>
       1.0 + corePassiveCooldownRecoveryRate(_progression.corePassiveNodeRanks);
@@ -2027,6 +2028,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _requestLocalSave(immediate: true);
   }
 
+  void upgradeBossBountyProgression() {
+    if (!_progression.upgradeBossBounty()) return;
+    _publish();
+    _requestLocalSave(immediate: true);
+  }
+
   void upgradeKillGoldProgression() {
     if (!_progression.isStageCleared(economyUpgradeUnlockStage)) {
       return;
@@ -2167,6 +2174,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _progression.criticalDamageUpgradeLevel = 0;
     _progression.killGoldUpgradeLevel = 0;
     _progression.emergencySaleUpgradeLevel = 0;
+    _progression.bossBountyUpgradeLevel = 0;
     _progression.linkCostOptimizationUpgradeLevel = 0;
     _progression.turretLevelUpOptimizationUpgradeLevel = 0;
     _publish();
@@ -3372,7 +3380,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       }
       final baseReward = enemy.definition.rewardGold;
       final bossBonusRate = enemy.definition.type.isBoss
-          ? _bossKillGoldResearchBonusRate
+          ? _bossKillGoldProgressionBonusRate
           : 0.0;
       final bonusReward =
           baseReward * (_killGoldTotalBonusRate + bossBonusRate);

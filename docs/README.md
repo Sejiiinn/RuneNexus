@@ -31,6 +31,8 @@
 
 ## 나머지 기능·설계 자료
 
+- 강화·연구 밸런스 검토: [개편 전 감사](analysis/growth_balance_20260919.md). 최종 적용 규칙은 [밸런스 기준](gameplay_balance_reference.md#영구-업그레이드)을 따른다.
+
 - 화염 지연 최적화: [입자 종료 처리·ARM64 에뮬레이터 합성 호환](analysis/godot_validation_20260915/flame_latency_optimization.md) — 그래픽 유지, 통합 갱신 개선과 실기기 미측정 범위.
 - 선택 이관·화염 MultiMesh 후 FPS: [동일 조건 60초 재측정](analysis/selection_multimesh_fps_20260919/README.md) — 대포 45.24 / 화염 29.93 갱신/초. 화염 성능 개선 미확인, 실기기·GPU 시간 미측정.
 - 화염 잔여 성능 조사: [중복 운동 계산 감소와 효과별 비용 분리](analysis/godot_validation_20260916/README.md) — 외형 유지, 작은 CPU 절감과 전체 FPS 개선 미확인 범위.

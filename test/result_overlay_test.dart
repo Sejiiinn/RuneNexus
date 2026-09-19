@@ -49,7 +49,7 @@ void main() {
     expect(find.text('보상 획득'), findsOneWidget);
     expect(find.text('+140 룬'), findsOneWidget);
     expect(find.text('+1 코어 포인트'), findsOneWidget);
-    expect(find.text('강화 2개 해금'), findsOneWidget);
+    expect(find.text('강화 1개 · 연구 1개 해금'), findsOneWidget);
     expect(find.text('전투 기록'), findsOneWidget);
     expect(find.text('기록'), findsOneWidget);
     expect(find.text('20R → 40R'), findsOneWidget);

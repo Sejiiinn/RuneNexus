@@ -5,7 +5,7 @@ import 'online_save_transport_stub.dart'
     if (dart.library.html) 'online_save_transport_web.dart'
     if (dart.library.io) 'online_save_transport_io.dart';
 
-const onlineSaveClientCompatibilityVersion = 2;
+const onlineSaveClientCompatibilityVersion = 3;
 
 abstract interface class OnlineSaveClient {
   Future<OnlineSaveWriterClaimResult> claimWriter(

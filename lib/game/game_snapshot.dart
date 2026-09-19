@@ -184,6 +184,10 @@ class GameSnapshot {
     required this.criticalDamageUpgradeCost,
     required this.canUpgradeCriticalDamage,
     required this.criticalDamageProgressionBonusRate,
+    this.bossBountyUpgradeLevel = 0,
+    this.bossBountyUpgradeCost = 30,
+    this.canUpgradeBossBounty = false,
+    this.bossBountyBonusRate = 0,
     required this.killGoldUpgradeLevel,
     required this.killGoldUpgradeCost,
     required this.canUpgradeKillGold,
@@ -372,6 +376,10 @@ class GameSnapshot {
   final int criticalDamageUpgradeCost;
   final bool canUpgradeCriticalDamage;
   final double criticalDamageProgressionBonusRate;
+  final int bossBountyUpgradeLevel;
+  final int bossBountyUpgradeCost;
+  final bool canUpgradeBossBounty;
+  final double bossBountyBonusRate;
   final int killGoldUpgradeLevel;
   final int killGoldUpgradeCost;
   final bool canUpgradeKillGold;

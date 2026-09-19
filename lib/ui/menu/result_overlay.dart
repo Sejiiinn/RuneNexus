@@ -216,7 +216,8 @@ List<_UnlockGroup> _unlockGroupsFor(
   }
   return switch (snapshot.currentStageNumber) {
     1 => [
-      _UnlockGroup('강화', [l10n.killRewardBonus, l10n.emergencySale]),
+      _UnlockGroup('강화', [l10n.killRewardBonus]),
+      _UnlockGroup('연구', [l10n.emergencySale]),
     ],
     2 => [
       _UnlockGroup('연구', [l10n.tacticalCommand, l10n.gemAttunement]),
@@ -226,10 +227,8 @@ List<_UnlockGroup> _unlockGroupsFor(
       _UnlockGroup('젬', [l10n.aimSpeedGem]),
     ],
     4 => [
-      _UnlockGroup('강화', [
-        l10n.criticalChanceTraining,
-        l10n.criticalDamageTraining,
-      ]),
+      _UnlockGroup('강화', [l10n.criticalDamageTraining]),
+      _UnlockGroup('연구', [l10n.criticalChanceTraining]),
     ],
     5 => [
       _UnlockGroup('연구', [l10n.linkExpansionOne, l10n.crystalRecovery]),

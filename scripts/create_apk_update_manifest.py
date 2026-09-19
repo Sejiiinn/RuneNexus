@@ -10,7 +10,7 @@ import tempfile
 
 def create_manifest(
     apk, version_code, version_name, repository, notes, existing_tags,
-    base_releases=(), patch_output_dir=None,
+    base_releases=(), patch_output_dir=None, required_update=False,
 ):
     if not 1 <= version_code <= 2_100_000_000:
         raise ValueError("versionCode must be between 1 and 2100000000")
@@ -25,6 +25,15 @@ def create_manifest(
     ]
     if previous_codes and version_code <= max(previous_codes):
         raise ValueError("versionCode must exceed every existing APK release")
+    minimum_supported = 0
+    for base_dir in base_releases:
+        previous = json.loads((base_dir / "update.json").read_text(encoding="utf-8"))
+        floor = previous.get("minimumSupportedVersionCode", 0)
+        if type(floor) is not int or not 0 <= floor <= previous["versionCode"]:
+            raise ValueError("Invalid previous minimum supported version")
+        minimum_supported = max(minimum_supported, floor)
+    if required_update:
+        minimum_supported = version_code
     size = apk.stat().st_size
     if not 1 <= size <= 512 * 1024 * 1024:
         raise ValueError("APK size must be between 1 byte and 512 MiB")
@@ -35,6 +44,7 @@ def create_manifest(
     manifest = {
         "schemaVersion": 1,
         "versionCode": version_code,
+        "minimumSupportedVersionCode": minimum_supported,
         "versionName": version_name,
         "packageName": "com.example.rune_nexus",
         "apkUrl": f"https://github.com/{repository}/releases/download/apk-{version_code}/rune-nexus.apk",
@@ -139,13 +149,14 @@ if __name__ == "__main__":
     parser.add_argument("--existing-tags-file", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--base-releases-dir", type=Path)
+    parser.add_argument("--required-update", action="store_true")
     args = parser.parse_args()
     bases = sorted(args.base_releases_dir.glob("apk-*")) if args.base_releases_dir else []
     manifest = create_manifest(
         args.apk, args.version_code, args.version_name, args.repository,
         args.notes_file.read_text(encoding="utf-8"),
         args.existing_tags_file.read_text(encoding="utf-8").splitlines(),
-        bases, args.output.parent,
+        bases, args.output.parent, required_update=args.required_update,
     )
     args.output.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"

@@ -9,6 +9,7 @@ import (
 	"sort"
 
 	"github.com/Sejiiinn/RuneNexus/server/internal/dbgen"
+	gamesave "github.com/Sejiiinn/RuneNexus/server/internal/save"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -85,7 +86,7 @@ func (service *Service) Bootstrap(
 	txQueries := dbgen.New(tx)
 	writer, snapshot, err := lockWriterAndSave(
 		ctx, txQueries, databaseAccountID, databaseSessionID,
-		request.WriterGeneration, request.ExpectedSaveRevision,
+		request.WriterGeneration, request.ExpectedSaveRevision, request.RawBody,
 	)
 	if err != nil {
 		return BootstrapResult{}, err
@@ -241,6 +242,7 @@ func lockWriterAndSave(
 	sessionID pgtype.UUID,
 	writerGeneration int64,
 	saveRevision int64,
+	raw []byte,
 ) (dbgen.SaveWriterState, dbgen.GetSaveSnapshotRow, error) {
 	writer, err := queries.GetSaveWriterStateForUpdate(ctx, accountID)
 	if errors.Is(err, pgx.ErrNoRows) || writerGeneration <= 0 {
@@ -265,6 +267,9 @@ func lockWriterAndSave(
 	snapshot, err := queries.GetSaveSnapshot(ctx, accountID)
 	if err != nil {
 		return dbgen.SaveWriterState{}, dbgen.GetSaveSnapshotRow{}, fmt.Errorf("read economy source save: %w", err)
+	}
+	if err := gamesave.ValidateGrowthClient(snapshot.Progression, gamesave.ClientCompatibilityFromBody(raw)); err != nil {
+		return dbgen.SaveWriterState{}, dbgen.GetSaveSnapshotRow{}, err
 	}
 	return writer, snapshot, nil
 }

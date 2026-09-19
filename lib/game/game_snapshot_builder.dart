@@ -246,6 +246,10 @@ class GameSnapshotBuilder {
           _game._progression.canUpgradeCriticalDamage,
       criticalDamageProgressionBonusRate:
           _game.criticalDamageProgressionBonusRate,
+      bossBountyUpgradeLevel: _game._progression.bossBountyUpgradeLevel,
+      bossBountyUpgradeCost: _game._progression.bossBountyUpgradeCost,
+      canUpgradeBossBounty: _game._progression.canUpgradeBossBounty,
+      bossBountyBonusRate: _game._progression.bossBountyBonusRate,
       killGoldUpgradeLevel: _game._progression.killGoldUpgradeLevel,
       killGoldUpgradeCost: _game._progression.killGoldUpgradeCost,
       canUpgradeKillGold:

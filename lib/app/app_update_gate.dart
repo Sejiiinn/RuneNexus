@@ -22,13 +22,15 @@ class AppUpdateGate extends StatefulWidget {
   State<AppUpdateGate> createState() => _AppUpdateGateState();
 }
 
-class _AppUpdateGateState extends State<AppUpdateGate> {
+class _AppUpdateGateState extends State<AppUpdateGate>
+    with WidgetsBindingObserver {
   late final AppUpdateService _service = widget.service ?? AppUpdateService();
   AppUpdateRelease? _release;
   bool _checking = true;
   bool _busy = false;
   bool _downloaded = false;
   bool _continue = false;
+  bool _childMounted = false;
   String? _error;
   String? _installMessage;
   AppUpdateTransfer? _transfer;
@@ -36,6 +38,7 @@ class _AppUpdateGateState extends State<AppUpdateGate> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.enabled) {
       _check();
     } else {
@@ -43,9 +46,28 @@ class _AppUpdateGateState extends State<AppUpdateGate> {
     }
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed &&
+        widget.enabled &&
+        !_checking &&
+        !_busy) {
+      _check();
+    }
+  }
+
   Future<void> _check() async {
+    final previousRelease = _release;
     setState(() {
       _checking = true;
+      _continue = false;
+      _release = null;
       _error = null;
     });
     try {
@@ -53,6 +75,12 @@ class _AppUpdateGateState extends State<AppUpdateGate> {
       if (!mounted) return;
       setState(() {
         _release = release;
+        if (release?.versionCode != previousRelease?.versionCode ||
+            release?.sha256 != previousRelease?.sha256) {
+          _downloaded = false;
+          _transfer = null;
+          _installMessage = null;
+        }
         _continue = release == null;
       });
     } on Object {
@@ -106,7 +134,24 @@ class _AppUpdateGateState extends State<AppUpdateGate> {
 
   @override
   Widget build(BuildContext context) {
-    if (_continue) return widget.child;
+    if (_continue) _childMounted = true;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (_childMounted)
+          Offstage(
+            offstage: !_continue,
+            child: ExcludeFocus(
+              excluding: !_continue,
+              child: TickerMode(enabled: _continue, child: widget.child),
+            ),
+          ),
+        if (!_continue) _buildUpdateScreen(),
+      ],
+    );
+  }
+
+  Widget _buildUpdateScreen() {
     final release = _release;
     final patch = release == null ? null : _service.patchFor(release);
     final status = _checking
@@ -121,6 +166,8 @@ class _AppUpdateGateState extends State<AppUpdateGate> {
               : '업데이트를 다운로드하고 확인하는 중'
         : release == null
         ? '업데이트 확인'
+        : _service.isRequired(release)
+        ? '필수 업데이트가 있습니다'
         : '새 버전이 있습니다';
     return AppStartupScreen(
       status: status,
@@ -132,6 +179,14 @@ class _AppUpdateGateState extends State<AppUpdateGate> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (release != null) ...[
+                  if (_service.isRequired(release))
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        '게임을 시작하려면 업데이트를 완료해 주세요.',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   Text(
                     '${release.versionName} · ${(release.sizeBytes / (1024 * 1024)).toStringAsFixed(1)} MB',
                     textAlign: TextAlign.center,
@@ -171,14 +226,16 @@ class _AppUpdateGateState extends State<AppUpdateGate> {
                       ? '설치 계속'
                       : '업데이트',
                 ),
-                const SizedBox(height: 10),
-                AppStartupButton(
-                  primary: false,
-                  onPressed: _busy
-                      ? null
-                      : () => setState(() => _continue = true),
-                  label: '현재 버전으로 계속',
-                ),
+                if (release != null && !_service.isRequired(release)) ...[
+                  const SizedBox(height: 10),
+                  AppStartupButton(
+                    primary: false,
+                    onPressed: _busy
+                        ? null
+                        : () => setState(() => _continue = true),
+                    label: '현재 버전으로 계속',
+                  ),
+                ],
               ],
             ),
     );

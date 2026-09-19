@@ -72,6 +72,7 @@ class AppUpdateRelease {
     required this.sizeBytes,
     required this.notes,
     this.patches = const [],
+    this.minimumSupportedVersionCode = 0,
   });
 
   factory AppUpdateRelease.parse(String source) {
@@ -93,6 +94,10 @@ class AppUpdateRelease {
         json['notes'] is! String) {
       throw const FormatException('업데이트 정보가 올바르지 않습니다.');
     }
+    final minimum = json['minimumSupportedVersionCode'] ?? 0;
+    if (minimum is! int || minimum < 0 || minimum > json['versionCode']) {
+      throw const FormatException('필수 업데이트 버전 정보가 올바르지 않습니다.');
+    }
     final url = Uri.parse(json['apkUrl'] as String);
     if (url.scheme != 'https' ||
         url.host.isEmpty ||
@@ -102,6 +107,7 @@ class AppUpdateRelease {
     }
     return AppUpdateRelease(
       versionCode: json['versionCode'] as int,
+      minimumSupportedVersionCode: minimum,
       versionName: json['versionName'] as String,
       packageName: json['packageName'] as String,
       apkUrl: url,
@@ -121,6 +127,7 @@ class AppUpdateRelease {
   }
 
   final int versionCode;
+  final int minimumSupportedVersionCode;
   final String versionName;
   final String packageName;
   final Uri apkUrl;
@@ -150,6 +157,10 @@ class AppUpdateService {
   final Future<String> Function(Uri) _readManifest;
   int? _installedVersion;
   String? _installedApkSha256;
+
+  bool isRequired(AppUpdateRelease release) =>
+      _installedVersion == null ||
+      _installedVersion! < release.minimumSupportedVersionCode;
 
   AppUpdatePatch? patchFor(AppUpdateRelease release) {
     AppUpdatePatch? selected;

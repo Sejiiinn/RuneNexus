@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+import 'package:rune_nexus/data/definitions/game_research_data.dart';
 import 'helpers/game_balance_test_helpers.dart';
 
 void main() {
@@ -57,9 +59,9 @@ void main() {
   });
 
   test('permanent starting gold and nexus hp upgrades respect max levels', () {
-    final progression = RunProgression()..runes = 10000;
+    final progression = RunProgression()..runes = 10000000;
 
-    for (var i = 0; i < 25; i++) {
+    for (var i = 0; i < 55; i++) {
       progression.upgradeStartingGold();
       progression.upgradeNexusHp();
     }
@@ -72,15 +74,15 @@ void main() {
       progression.nexusHpUpgradeLevel,
       RunProgression.maxNexusHpUpgradeLevel,
     );
-    expect(progression.initialGold, 370);
-    expect(progression.maxNexusHp, 30);
-    expect(progression.runes, 7530);
+    expect(progression.initialGold, 670);
+    expect(progression.maxNexusHp, 50);
+    expect(progression.runes, lessThan(10000000));
 
     progression.startingGoldUpgradeLevel = 99;
     progression.nexusHpUpgradeLevel = 99;
 
-    expect(progression.initialGold, 370);
-    expect(progression.maxNexusHp, 30);
+    expect(progression.initialGold, 670);
+    expect(progression.maxNexusHp, 50);
   });
 
   test('run tower damage upgrade boosts all turret damage', () {
@@ -338,7 +340,7 @@ void main() {
     );
   });
 
-  test('boss bounty research boosts only boss kill rewards', () async {
+  test('migrated boss bounty upgrade boosts only boss kill rewards', () async {
     final repository = MemorySaveRepository()
       ..data = saveWithResearch(
         clearedStageNumbers: const {},
@@ -541,22 +543,21 @@ void main() {
     );
   });
 
-  test('fire training uses hybrid 20 level progression', () {
-    final progression = RunProgression()..runes = 10000;
-
-    expect(RunProgression.maxFireTrainingUpgradeLevel, 20);
-    expect(progression.fireTrainingUpgradeCost, 7);
-
-    for (var i = 0; i < 20; i++) {
-      expect(progression.upgradeFireTraining(), isTrue);
-    }
-
-    expect(progression.fireTrainingUpgradeLevel, 20);
-    expect(progression.fireTrainingDamageBonusRate, closeTo(0.30, 0.001));
-    expect(progression.fireTrainingUpgradeCost, 316);
-    expect(progression.canUpgradeFireTraining, isFalse);
-    expect(progression.upgradeFireTraining(), isFalse);
-  });
+  test(
+    'fire training grows smoothly to 100 with unchanged effect per level',
+    () {
+      final progression = RunProgression()..runes = 10000000;
+      for (var level = 0; level < 100; level++) {
+        expect(
+          progression.fireTrainingUpgradeCost,
+          ((7 + 2 * level) * math.pow(1.06, level)).round(),
+        );
+        expect(progression.upgradeFireTraining(), isTrue);
+      }
+      expect(progression.fireTrainingDamageBonusRate, closeTo(1.5, 0.001));
+      expect(progression.canUpgradeFireTraining, isFalse);
+    },
+  );
 
   test('family damage training uses stage seven long term cost curve', () {
     final progression = RunProgression()..runes = 20000;
@@ -583,8 +584,8 @@ void main() {
       611,
     ];
 
-    expect(RunProgression.maxPhysicalDamageTrainingUpgradeLevel, 20);
-    expect(RunProgression.maxElementalDamageTrainingUpgradeLevel, 20);
+    expect(RunProgression.maxPhysicalDamageTrainingUpgradeLevel, 50);
+    expect(RunProgression.maxElementalDamageTrainingUpgradeLevel, 50);
     expect(costs.reduce((value, cost) => value + cost), 5129);
 
     for (final cost in costs) {
@@ -598,12 +599,12 @@ void main() {
 
     expect(progression.physicalDamageTrainingUpgradeLevel, 20);
     expect(progression.physicalDamageTrainingBonusRate, closeTo(0.40, 0.001));
-    expect(progression.canUpgradePhysicalDamageTraining, isFalse);
-    expect(progression.upgradePhysicalDamageTraining(), isFalse);
+    expect(progression.canUpgradePhysicalDamageTraining, isTrue);
+    expect(progression.upgradePhysicalDamageTraining(), isTrue);
     expect(progression.elementalDamageTrainingUpgradeLevel, 20);
     expect(progression.elementalDamageTrainingBonusRate, closeTo(0.40, 0.001));
-    expect(progression.canUpgradeElementalDamageTraining, isFalse);
-    expect(progression.upgradeElementalDamageTraining(), isFalse);
+    expect(progression.canUpgradeElementalDamageTraining, isTrue);
+    expect(progression.upgradeElementalDamageTraining(), isTrue);
   });
 
   test('family damage training unlocks after stage seven clear', () async {
@@ -689,28 +690,6 @@ void main() {
 
   test('critical progression uses requested level caps and scaling', () {
     final progression = RunProgression()..runes = 20000;
-    const chanceCosts = [
-      70,
-      84,
-      101,
-      121,
-      145,
-      174,
-      209,
-      251,
-      301,
-      361,
-      433,
-      520,
-      624,
-      749,
-      899,
-      1078,
-      1294,
-      1553,
-      1864,
-      2236,
-    ];
     const damageCosts = [
       60,
       66,
@@ -734,23 +713,20 @@ void main() {
       367,
     ];
 
-    expect(RunProgression.maxCriticalChanceUpgradeLevel, 20);
-    expect(RunProgression.maxCriticalDamageUpgradeLevel, 20);
-    for (final cost in chanceCosts) {
-      expect(progression.criticalChanceUpgradeCost, cost);
-      expect(progression.upgradeCriticalChance(), isTrue);
-    }
+    expect(RunProgression.maxCriticalDamageUpgradeLevel, 50);
+    expect(progression.upgradeCriticalChance(), isFalse);
+    progression.researchLevels[ResearchType.criticalChance] = 10;
     for (final cost in damageCosts) {
       expect(progression.criticalDamageUpgradeCost, cost);
       expect(progression.upgradeCriticalDamage(), isTrue);
     }
 
-    expect(progression.criticalChanceUpgradeLevel, 20);
+    expect(progression.criticalChanceUpgradeLevel, 0);
     expect(progression.criticalChanceBonusRate, closeTo(0.20, 0.001));
     expect(progression.canUpgradeCriticalChance, isFalse);
     expect(progression.criticalDamageUpgradeLevel, 20);
     expect(progression.criticalDamageBonusRate, closeTo(0.20, 0.001));
-    expect(progression.canUpgradeCriticalDamage, isFalse);
+    expect(progression.canUpgradeCriticalDamage, isTrue);
   });
 
   test('critical progression unlocks after stage four clear', () async {
@@ -789,7 +765,8 @@ void main() {
 
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
-    game.upgradeCriticalChanceProgression();
+    game.debugSetInstantResearchCompletion(true);
+    game.startResearch(ResearchType.criticalChance);
     game.upgradeCriticalDamageProgression();
 
     expect(game.snapshotNotifier.value.canUpgradeCriticalChance, isFalse);
@@ -802,44 +779,38 @@ void main() {
       game.startNextWave();
       game.update(0.016);
     }
-    game.upgradeCriticalChanceProgression();
+    game.debugSetInstantResearchCompletion(true);
+    game.startResearch(ResearchType.criticalChance);
     game.upgradeCriticalDamageProgression();
 
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(4));
-    expect(game.snapshotNotifier.value.criticalChanceUpgradeLevel, 1);
+    expect(
+      game.snapshotNotifier.value.researchLevels[ResearchType.criticalChance],
+      1,
+    );
     expect(game.snapshotNotifier.value.criticalDamageUpgradeLevel, 1);
-    expect(arrow.criticalChance, closeTo(0.06, 0.001));
+    expect(arrow.criticalChance, closeTo(0.07, 0.001));
     expect(arrow.criticalDamageMultiplier, closeTo(1.51, 0.001));
-    expect(sniper.criticalChance, closeTo(0.16, 0.001));
+    expect(sniper.criticalChance, closeTo(0.17, 0.001));
     expect(sniper.criticalDamageMultiplier, closeTo(2.01, 0.001));
   });
 
-  test('supply and kill reward use 20 level progression', () {
-    final progression = RunProgression()..runes = 10000;
-
-    expect(RunProgression.maxSupplyUpgradeLevel, 20);
-    expect(RunProgression.maxKillGoldUpgradeLevel, 20);
-    expect(progression.supplyUpgradeCost, 7);
-    expect(progression.killGoldUpgradeCost, 7);
-
-    for (var i = 0; i < 20; i++) {
+  test('supply and kill reward retain effects through level 50', () {
+    final progression = RunProgression()..runes = 10000000;
+    for (var level = 0; level < 50; level++) {
+      final cost = ((7 + 2 * level) * math.pow(1.09, level)).round();
+      expect(progression.supplyUpgradeCost, cost);
+      expect(progression.killGoldUpgradeCost, cost);
       expect(progression.upgradeSupply(), isTrue);
       expect(progression.upgradeKillGold(), isTrue);
     }
-
-    expect(progression.supplyUpgradeLevel, 20);
-    expect(progression.waveClearGoldBonus, 20);
-    expect(progression.supplyUpgradeCost, 316);
-    expect(progression.canUpgradeSupply, isFalse);
+    expect(progression.waveClearGoldBonus, 50);
+    expect(progression.killGoldBonusRate, closeTo(.5, .001));
     expect(progression.upgradeSupply(), isFalse);
-    expect(progression.killGoldUpgradeLevel, 20);
-    expect(progression.killGoldBonusRate, closeTo(0.20, 0.001));
-    expect(progression.killGoldUpgradeCost, 316);
-    expect(progression.canUpgradeKillGold, isFalse);
     expect(progression.upgradeKillGold(), isFalse);
   });
 
-  test('advanced economy upgrades use 20 level progression', () {
+  test('advanced economy upgrades preserve their first twenty costs', () {
     final progression = RunProgression()..runes = 20000;
     const expectedCosts = [
       70,
@@ -874,15 +845,15 @@ void main() {
 
     expect(progression.linkCostOptimizationUpgradeLevel, 20);
     expect(progression.permanentLinkCostMultiplier, closeTo(0.8, 0.001));
-    expect(progression.canUpgradeLinkCostOptimization, isFalse);
-    expect(progression.upgradeLinkCostOptimization(), isFalse);
+    expect(progression.canUpgradeLinkCostOptimization, isTrue);
+    expect(progression.upgradeLinkCostOptimization(), isTrue);
     expect(progression.turretLevelUpOptimizationUpgradeLevel, 20);
     expect(
       progression.permanentTurretLevelUpCostMultiplier,
       closeTo(0.8, 0.001),
     );
-    expect(progression.canUpgradeTurretLevelUpOptimization, isFalse);
-    expect(progression.upgradeTurretLevelUpOptimization(), isFalse);
+    expect(progression.canUpgradeTurretLevelUpOptimization, isTrue);
+    expect(progression.upgradeTurretLevelUpOptimization(), isTrue);
   });
 
   test(
@@ -992,26 +963,25 @@ void main() {
     expect(progression.lastRunRuneReward, 2);
   });
 
-  test('emergency sale uses five level refund progression', () {
+  test('emergency sale research preserves five refund ranks and costs', () {
     final progression = RunProgression()..runes = 10000;
-    const expectedCosts = [80, 120, 180, 260, 360];
-
-    expect(RunProgression.maxEmergencySaleUpgradeLevel, 5);
-    expect(progression.emergencySaleUpgradeCost, expectedCosts.first);
-
-    for (final cost in expectedCosts) {
-      expect(progression.emergencySaleUpgradeCost, cost);
-      expect(progression.upgradeEmergencySale(), isTrue);
+    progression.clearedStageNumbers.add(1);
+    for (final cost in [80, 120, 180, 260, 360]) {
+      expect(
+        progression.researchCostForCurrentLevel(ResearchType.emergencySale),
+        cost,
+      );
+      expect(
+        progression.startResearch(ResearchType.emergencySale, nowMillis: 0),
+        isTrue,
+      );
+      progression.completeFinishedResearches(nowMillis: 999999999);
     }
-
-    expect(progression.emergencySaleUpgradeLevel, 5);
     expect(progression.turretRefundPercent, 80);
-    expect(progression.emergencySaleUpgradeCost, 360);
-    expect(progression.canUpgradeEmergencySale, isFalse);
     expect(progression.upgradeEmergencySale(), isFalse);
   });
 
-  test('permanent emergency sale unlocks after stage one clear', () async {
+  test('emergency sale research unlocks after stage one clear', () async {
     final repository = MemorySaveRepository()
       ..data = saveWithResearch(
         clearedStageNumbers: const {},
@@ -1033,7 +1003,8 @@ void main() {
 
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
-    game.upgradeEmergencySaleProgression();
+    game.debugSetInstantResearchCompletion(true);
+    game.startResearch(ResearchType.emergencySale);
 
     expect(game.snapshotNotifier.value.clearedStageNumbers, isNot(contains(1)));
     expect(game.snapshotNotifier.value.emergencySaleUpgradeLevel, 0);
@@ -1045,10 +1016,17 @@ void main() {
     game.update(0.016);
 
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(1));
-    expect(game.snapshotNotifier.value.canUpgradeEmergencySale, isTrue);
+    expect(game.snapshotNotifier.value.canUpgradeEmergencySale, isFalse);
+    expect(
+      game.snapshotNotifier.value.clearedStageNumbers,
+      contains(
+        gameResearchDefinitions[ResearchType.emergencySale]!
+            .requiredClearedStage,
+      ),
+    );
   });
 
-  test('emergency sale upgrade increases turret refund gold', () async {
+  test('emergency sale research increases turret refund gold', () async {
     final repository = MemorySaveRepository()
       ..data = saveWithResearch(
         clearedStageNumbers: const {1, 2},
@@ -1070,7 +1048,8 @@ void main() {
 
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
-    game.upgradeEmergencySaleProgression();
+    game.debugSetInstantResearchCompletion(true);
+    game.startResearch(ResearchType.emergencySale);
     game.restartRun();
 
     game.tryBuildTurret(const GridPoint(2, 0));
@@ -1111,10 +1090,12 @@ void main() {
     game.upgradeFireTrainingProgression();
     game.upgradePhysicalDamageTrainingProgression();
     game.upgradeElementalDamageTrainingProgression();
-    game.upgradeCriticalChanceProgression();
+    game.debugSetInstantResearchCompletion(true);
+    game.startResearch(ResearchType.criticalChance);
     game.upgradeCriticalDamageProgression();
     game.upgradeKillGoldProgression();
-    game.upgradeEmergencySaleProgression();
+    game.debugSetInstantResearchCompletion(true);
+    game.startResearch(ResearchType.emergencySale);
     game.upgradeLinkCostOptimizationProgression();
     game.upgradeTurretLevelUpOptimizationProgression();
     expect(game.snapshotNotifier.value.linkCostOptimizationUpgradeLevel, 1);
@@ -1138,13 +1119,13 @@ void main() {
     expect(snapshot.physicalDamageTrainingBonusRate, closeTo(0.02, 0.001));
     expect(snapshot.elementalDamageTrainingUpgradeLevel, 1);
     expect(snapshot.elementalDamageTrainingBonusRate, closeTo(0.02, 0.001));
-    expect(snapshot.criticalChanceUpgradeLevel, 1);
-    expect(snapshot.criticalChanceProgressionBonusRate, closeTo(0.01, 0.001));
+    expect(snapshot.researchLevels[ResearchType.criticalChance], 1);
+    expect(snapshot.criticalChanceProgressionBonusRate, closeTo(0.02, 0.001));
     expect(snapshot.criticalDamageUpgradeLevel, 1);
     expect(snapshot.criticalDamageProgressionBonusRate, closeTo(0.01, 0.001));
     expect(snapshot.killGoldUpgradeLevel, 1);
     expect(snapshot.killGoldProgressionBonusRate, closeTo(0.01, 0.001));
-    expect(snapshot.emergencySaleUpgradeLevel, 1);
+    expect(snapshot.researchLevels[ResearchType.emergencySale], 1);
     expect(snapshot.turretRefundPercent, 76);
     expect(snapshot.linkCostOptimizationUpgradeLevel, 1);
     expect(snapshot.turretLevelUpOptimizationUpgradeLevel, 1);

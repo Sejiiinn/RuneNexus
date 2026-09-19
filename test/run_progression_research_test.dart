@@ -100,7 +100,10 @@ void main() {
         isTrue,
       );
       expect(
-        progression.startResearch(ResearchType.bossBounty, nowMillis: 1000),
+        progression.startResearch(
+          ResearchType.linkMaintenance,
+          nowMillis: 1000,
+        ),
         isTrue,
       );
       expect(
@@ -128,7 +131,10 @@ void main() {
         isTrue,
       );
       expect(restored.activeResearches, hasLength(1));
-      expect(restored.activeResearches.single.type, ResearchType.bossBounty);
+      expect(
+        restored.activeResearches.single.type,
+        ResearchType.linkMaintenance,
+      );
       expect(
         restored.startResearch(
           ResearchType.researchCostEfficiency,
@@ -366,41 +372,15 @@ void main() {
     expect(progression.activeResearches.single.durationMillis, 3428571);
   });
 
-  test('boss bounty research is open by default with a light cost curve', () {
+  test('boss bounty is a permanent upgrade without research discounts', () {
     final progression = RunProgression()..runes = 100;
-
-    expect(progression.isResearchUnlocked(ResearchType.bossBounty), isTrue);
-    expect(
-      progression.researchCostForCurrentLevel(ResearchType.bossBounty),
-      30,
-    );
-    expect(
-      progression.researchDurationForCurrentLevel(ResearchType.bossBounty),
-      30 * 60 * 1000,
-    );
-
-    expect(
-      progression.startResearch(ResearchType.bossBounty, nowMillis: 1000),
-      isTrue,
-    );
+    progression.researchLevels[ResearchType.researchCostEfficiency] = 20;
+    expect(progression.isResearchUnlocked(ResearchType.bossBounty), isFalse);
+    expect(progression.bossBountyUpgradeCost, 30);
+    expect(progression.upgradeBossBounty(), isTrue);
     expect(progression.runes, 70);
-    expect(
-      progression.completeFinishedResearches(nowMillis: 1000 + 30 * 60 * 1000),
-      isTrue,
-    );
-    expect(progression.researchLevel(ResearchType.bossBounty), 1);
-    expect(progression.bossBountyBonusRate, closeTo(0.025, 0.001));
-    expect(
-      progression.researchCostForCurrentLevel(ResearchType.bossBounty),
-      34,
-    );
-    expect(
-      progression.researchDurationForCurrentLevel(ResearchType.bossBounty),
-      33 * 60 * 1000,
-    );
-
-    progression.researchLevels[ResearchType.bossBounty] = 20;
-    expect(progression.bossBountyBonusRate, closeTo(0.5, 0.001));
+    expect(progression.bossBountyBonusRate, closeTo(.025, .001));
+    expect(progression.bossBountyUpgradeCost, 34);
   });
 
   test('crystal recovery research unlocks after stage five clear', () {

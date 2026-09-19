@@ -20,6 +20,21 @@ class ApkManifestTest(unittest.TestCase):
             self.assertEqual(manifest["apkUrl"], "https://github.com/Sejiiinn/RuneNexus/releases/download/apk-12/rune-nexus.apk")
             self.assertEqual(manifest["packageName"], "com.example.rune_nexus")
 
+    def test_required_release_sets_floor_and_optional_release_preserves_it(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            base = root / "apk-1"
+            base.mkdir()
+            apk = base / "rune-nexus.apk"
+            apk.write_bytes(b"apk")
+            required = create_manifest(apk, 1, "0.1.0", "owner/repo", "", [], required_update=True)
+            self.assertEqual(required["minimumSupportedVersionCode"], 1)
+            (base / "update.json").write_text(json.dumps(required))
+            from unittest.mock import patch
+            with patch("create_apk_update_manifest.create_release_patches", return_value=[]):
+                optional = create_manifest(apk, 2, "0.2.0", "owner/repo", "", ["apk-1"], [base], root)
+            self.assertEqual(optional["minimumSupportedVersionCode"], 1)
+
     def test_reused_and_lower_version_codes_are_rejected(self):
         for code in [8, 9]:
             with self.subTest(code=code), self.assertRaises(ValueError):

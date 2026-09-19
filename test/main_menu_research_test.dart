@@ -15,6 +15,29 @@ void main() {
     );
   });
 
+  test(
+    'moved research descriptions explain their rank bonuses in both languages',
+    () {
+      const ko = RuneNexusLocalizations(Locale('ko'));
+      const en = RuneNexusLocalizations(Locale('en'));
+      expect(
+        ko.researchDescription(ko.criticalChanceTraining),
+        contains('2%p'),
+      );
+      expect(
+        en.researchDescription(en.criticalChanceTraining),
+        contains('2 percentage points'),
+      );
+      expect(ko.researchDescription(ko.emergencySale), contains('1%p'));
+      expect(
+        en.researchDescription(en.emergencySale),
+        contains('1 percentage point'),
+      );
+      expect(ko.researchCriticalChanceEffect(20), '치명타 확률 +20%p');
+      expect(en.researchEmergencySaleEffect(80), 'Turret refund 80%');
+    },
+  );
+
   testWidgets('research cards keep two columns on narrow menu width', (
     tester,
   ) async {
@@ -41,6 +64,21 @@ void main() {
       const ValueKey('research-tile-researchEfficiency'),
     );
     expect(efficiencyCard, findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('research-tile-bossBounty')),
+      findsNothing,
+    );
+    for (final entry in {
+      'criticalChance': 'Lv.0/10',
+      'emergencySale': 'Lv.0/5',
+    }.entries) {
+      final tile = find.byKey(ValueKey('research-tile-${entry.key}'));
+      expect(tile, findsOneWidget);
+      expect(
+        find.descendant(of: tile, matching: find.text(entry.value)),
+        findsOneWidget,
+      );
+    }
 
     final efficiencyEffect = find.descendant(
       of: efficiencyCard,

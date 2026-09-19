@@ -12,6 +12,7 @@ enum GameUpgradeIconType {
   startingGold,
   waveGold,
   killGold,
+  bossBounty,
   turretRefund,
   linkCost,
   turretLevelUpCost,
@@ -57,6 +58,7 @@ ImageProvider<Object> upgradeIconImageProvider(GameUpgradeIconType type) {
 
 String _upgradeIconAsset(GameUpgradeIconType type) {
   return switch (type) {
+    GameUpgradeIconType.bossBounty => 'assets/images/research/boss_bounty.png',
     GameUpgradeIconType.nexusHp => '$_upgradeIconAssetRoot/nexus_hp.png',
     GameUpgradeIconType.towerDamage =>
       '$_upgradeIconAssetRoot/tower_damage.png',

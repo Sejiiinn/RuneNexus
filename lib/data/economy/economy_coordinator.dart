@@ -393,6 +393,13 @@ class EconomyCoordinator implements AuthoritativeEconomyCommands {
       }
       completed = true;
     } on Object catch (error) {
+      if (_isRejectedLegacyCommand(command, error)) {
+        // Exact receipts were checked by the server before this rejection.
+        // Nothing was charged: retire the old request, retaining queued run
+        // rewards so initialization can submit them with the current version.
+        await _clearInFlight(command);
+        return;
+      }
       if (command.kind == 'run_settlement' && _isRebindableRunError(error)) {
         await _clearInFlight(command);
         return;
@@ -680,6 +687,26 @@ class EconomyCoordinator implements AuthoritativeEconomyCommands {
     return _serialized(operation).whenComplete(() {
       _userCommandPending = false;
     });
+  }
+
+  static bool _isRejectedLegacyCommand(
+    EconomyPendingCommand command,
+    Object error,
+  ) {
+    if (error is! EconomyException ||
+        error.transportFailure ||
+        error.statusCode != 426 ||
+        error.code != 'CLIENT_UPDATE_REQUIRED') {
+      return false;
+    }
+    try {
+      final body = jsonDecode(command.encodedBody);
+      if (body is! Map<String, dynamic>) return false;
+      final version = body['clientCompatibilityVersion'] ?? 1;
+      return version is int && version < onlineSaveClientCompatibilityVersion;
+    } on FormatException {
+      return false;
+    }
   }
 
   static bool _isUnauthorized(Object error) =>

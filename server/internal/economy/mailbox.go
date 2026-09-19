@@ -177,7 +177,7 @@ func (service *Service) ClaimMail(ctx context.Context, accountID string, request
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
 	q := dbgen.New(tx)
-	wallet, err := lockAuthoritativeEconomy(ctx, q, account)
+	wallet, err := lockAuthoritativeEconomy(ctx, q, account, request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}

@@ -72,12 +72,12 @@ func (service *Service) SettleRun(
 	txQueries := dbgen.New(tx)
 	writer, saveSnapshot, err := lockWriterAndSave(
 		ctx, txQueries, accountUUID, sessionUUID,
-		request.WriterGeneration, request.SourceSaveRevision,
+		request.WriterGeneration, request.SourceSaveRevision, request.RawBody,
 	)
 	if err != nil {
 		return CommandResult{}, err
 	}
-	economy, err := lockAuthoritativeEconomy(ctx, txQueries, accountUUID)
+	economy, err := lockAuthoritativeEconomy(ctx, txQueries, accountUUID, request.RawBody)
 	if err != nil {
 		return CommandResult{}, err
 	}

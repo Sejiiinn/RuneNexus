@@ -50,11 +50,34 @@ void main() {
     () {
       final providers = runeNexusStartupImageProviders();
 
-      expect(providers, hasLength(109 + GemType.values.length));
-      expect(
-        providers.whereType<ResizeImage>(),
-        hasLength(29 + GemType.values.length),
-      );
+      final expected = <ImageProvider<Object>>{
+        for (final asset in commonUiImageAssets)
+          gameUiAssetImageProvider(asset),
+        for (final asset in [
+          ...stageUiImageAssets,
+          ...questUiImageAssets,
+          ...upgradeUiImageAssets,
+          ...researchUiImageAssets,
+          ...stageDetailsUiImageAssets,
+          ...resultUiImageAssets,
+          ...stageChapterBannerAssets,
+          ...stageRewardIconAssets,
+          ...corePassiveTreeAssets,
+        ])
+          AssetImage(asset),
+        for (final asset in turretModuleUiImageAssets)
+          gameUiAssetImageProvider(asset),
+        for (final type in GameUpgradeIconType.values)
+          upgradeIconImageProvider(type),
+        for (final type in ResearchType.values) researchIconImageProvider(type),
+        for (final type in GemType.values) gemIconImageProvider(type),
+        for (final skill in CoreCombatSkill.values)
+          coreAbilityIconImageProvider(skill),
+        for (final node in CorePassiveNodeId.values)
+          ?corePassiveNodeIconImageProvider(node),
+      };
+      expect(providers, unorderedEquals(expected));
+      expect(providers.toSet(), hasLength(providers.length));
       for (final asset in commonUiImageAssets) {
         expect(providers, contains(gameUiAssetImageProvider(asset)));
       }

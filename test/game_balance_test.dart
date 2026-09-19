@@ -1494,18 +1494,27 @@ void main() {
     game.upgradeNexusHpProgression();
     game.upgradeSupplyProgression();
     game.upgradeFireTrainingProgression();
-    game.upgradeCriticalChanceProgression();
+    game.debugSetInstantResearchCompletion(true);
+    game.startResearch(ResearchType.criticalChance);
     game.upgradeCriticalDamageProgression();
     game.upgradeKillGoldProgression();
-    game.upgradeEmergencySaleProgression();
+    game.startResearch(ResearchType.emergencySale);
+    game.upgradeBossBountyProgression();
     expect(game.snapshotNotifier.value.startingGoldUpgradeLevel, 1);
     expect(game.snapshotNotifier.value.nexusHpUpgradeLevel, 1);
     expect(game.snapshotNotifier.value.supplyUpgradeLevel, 1);
     expect(game.snapshotNotifier.value.fireTrainingUpgradeLevel, 1);
-    expect(game.snapshotNotifier.value.criticalChanceUpgradeLevel, 1);
+    expect(
+      game.snapshotNotifier.value.researchLevels[ResearchType.criticalChance],
+      1,
+    );
     expect(game.snapshotNotifier.value.criticalDamageUpgradeLevel, 1);
     expect(game.snapshotNotifier.value.killGoldUpgradeLevel, 1);
-    expect(game.snapshotNotifier.value.emergencySaleUpgradeLevel, 1);
+    expect(
+      game.snapshotNotifier.value.researchLevels[ResearchType.emergencySale],
+      1,
+    );
+    expect(game.snapshotNotifier.value.bossBountyUpgradeLevel, 1);
 
     final runesBeforeUpgradeReset = game.snapshotNotifier.value.runes;
     game.debugResetUpgradeProgress();
@@ -1517,7 +1526,18 @@ void main() {
     expect(game.snapshotNotifier.value.criticalDamageUpgradeLevel, 0);
     expect(game.snapshotNotifier.value.killGoldUpgradeLevel, 0);
     expect(game.snapshotNotifier.value.emergencySaleUpgradeLevel, 0);
+    expect(game.snapshotNotifier.value.bossBountyUpgradeLevel, 0);
+    expect(
+      game.snapshotNotifier.value.researchLevels[ResearchType.criticalChance],
+      1,
+    );
+    expect(
+      game.snapshotNotifier.value.researchLevels[ResearchType.emergencySale],
+      1,
+    );
     expect(game.snapshotNotifier.value.runes, runesBeforeUpgradeReset);
+    game.debugResetResearchProgress();
+    expect(game.snapshotNotifier.value.researchLevels, isEmpty);
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(5));
   });
 
