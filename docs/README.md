@@ -9,7 +9,7 @@
 | --- | --- | --- |
 | 프로젝트 이해 | [프로젝트 소개](../README.md), [구현 현황](implementation_status.md) | [백엔드 구조](backend_architecture.md) |
 | 다음 작업 선택 | [남은 작업과 우선순위](next_work_priorities.md) | 해당 기능의 설계·현재 코드 |
-| Flutter 제거·Godot 단일 앱 전환 | [Flutter 제거 실행 로드맵](godot_unified_app_roadmap.md), [다음 세션 실행 인계](godot_next_session_handoff.md) | [현행 전투 책임](godot_combat_migration_boundaries.md), [1단계 구현 검증](analysis/flutter_host_removal_20260921/README.md), [2단계 저장 기반](analysis/godot_save_foundation_20260921/README.md) |
+| Flutter 제거·Godot 단일 앱 전환 | [Flutter 제거 실행 로드맵](godot_unified_app_roadmap.md), [런·성장 이관 결과](analysis/godot_run_growth_20260921/README.md) | [현행 전투 책임](godot_combat_migration_boundaries.md), [1단계 구현 검증](analysis/flutter_host_removal_20260921/README.md), [2단계 저장 기반](analysis/godot_save_foundation_20260921/README.md) |
 | UI·시각 에셋 수정 | [DESIGNS.md](../DESIGNS.md) | 해당 화면의 design/ 기록, [인앱 검증](../.agents/in_app_test_guide.md) |
 | Blender → Godot 이관 | [현행 제작·이관 기준](stage1_native_material_workflow.md) | [기존 원본·명령 요약](../design/stage1_3d/blender_workspace/README.md#수정부터-게임-반영까지); 과거 실험은 원인 조사 때만 참조 |
 | 성능 개선·대량 표시·CPU/GPU 작업 분배 | [최적화 지침](performance_optimization_guidelines.md) | 해당 기능의 코드·측정 기록, [인앱 검증](../.agents/in_app_test_guide.md), [APK 용량 점검](android_apk_distribution.md#용량-점검) |

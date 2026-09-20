@@ -24,26 +24,17 @@ FOLIAGE_IMPORT_ID = "Dressing Export (temporary)_stage1_dressing_foliage"
 
 
 def _prepare_battlefield_verification() -> None:
-    """실제 맵 정의를 검증 입력으로 추출하며 배포 프로젝트 밖에 둔다."""
-    source = (ROOT / "lib/data/definitions/game_stage_maps.dart").read_text()
+    """생성된 콘텐츠의 맵으로 검증 입력을 준비한다. Dart SDK/소스는 읽지 않는다."""
+    content = json.loads((SOURCE / "content/game_content.json").read_text())
     frames = []
-    names = ("gameMap", "gameStage2Map", "stage3Map", "stage4Map", "stage5Map")
-    names += tuple(f"chapterTwoStage{stage}Map" for stage in range(6, 11))
-    names += tuple(f"chapterThreeStage{stage}Map" for stage in range(11, 16))
-    for name in names:
-        match = re.search(rf"const {name} = MapDefinition\((.*?)\n\);", source, re.DOTALL)
-        if not match:
-            raise RuntimeError(f"3D 검사 맵 정의를 찾지 못했습니다: {name}")
-        definition = match.group(1)
-        theme = ("chapterThreeForge" if "tileTheme: chapterThreeForgeTileTheme" in definition else
-                 "chapterTwoRift" if "tileTheme: chapterTwoRiftTileTheme" in definition else "chapterOne")
-        columns = int(re.search(r"columns:\s*(\d+)", definition).group(1))
-        rows = int(re.search(r"rows:\s*(\d+)", definition).group(1))
-        tiles = re.findall(r"TileType\.(\w+)", definition.split("path:")[0])
-        path = [(int(x) + .5, int(y) + .5) for x, y in
-                re.findall(r"GridPoint\((\d+),\s*(\d+)\)", definition.split("path:")[1])]
+    for stage in content["stages"]:
+        definition = stage["map"]
+        theme = definition["tileTheme"]
+        columns, rows = definition["columns"], definition["rows"]
+        tiles = definition["tiles"]
+        path = [(x + .5, y + .5) for x, y in definition["path"]]
         if len(tiles) != columns * rows or not path:
-            raise RuntimeError(f"3D 검사 맵 구조가 맞지 않습니다: {name}")
+            raise RuntimeError(f"3D 검사 맵 구조가 맞지 않습니다: {stage['id']}")
         build = [(index % columns + .5, index // columns + .5)
                  for index, tile in enumerate(tiles) if tile == "build"]
         enemy_types = ENEMY_TYPES + (

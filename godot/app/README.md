@@ -43,3 +43,7 @@ WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter test test/godot_save_code
 하네스는 별도 임시 Godot 프로젝트를 준비해 codec fixture·파일 복구·체크포인트·int64 및 기존 전투 회귀를 실행한다. Godot 바이너리가 없으면 native 검사는 건너뛰므로 그 결과를 통과로 간주하지 않는다. `GODOT_BIN`으로 바이너리를 지정할 수 있다. fixture 기대값은 실제 Dart codec이 생성한다. 의도적으로 저장 계약을 바꿀 때만 `UPDATE_GODOT_SAVE_FIXTURES=1`로 갱신하고 차이를 검토한다.
 
 별도 개발 세션은 [실행 안내](../session/README.md)를 따른다. 계정·경제·전체 콘텐츠 이관의 완료 근거로 사용하지 않는다.
+
+## 런·성장 도메인
+
+독립 세션의 로컬 명령은 [런·성장 모듈](run_commands_README.md)을 따른다. 실제 콘텐츠 런의 본 저장 연결은 후속이며 기존 저장 codec·adapter 계약과 fixture 제한은 유지한다.

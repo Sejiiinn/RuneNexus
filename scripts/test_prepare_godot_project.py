@@ -63,15 +63,13 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 write_map_glb(assets / f"environment/dressing_stage{stage}.glb", "stage1_dressing")
             for stage in range(6, 11):
                 write_map_glb(assets / f"environment/chapter2_stage{stage}_geology.glb", f"stage{stage}_geology")
-            map_names = ("gameMap", "gameStage2Map", "stage3Map", "stage4Map", "stage5Map")
-            map_names += tuple(f"chapterTwoStage{stage}Map" for stage in range(6, 11))
-            map_names += tuple(f"chapterThreeStage{stage}Map" for stage in range(11, 16))
-            write(root / "lib/data/definitions/game_stage_maps.dart", "\n".join(
-                f"const {name} = MapDefinition(\ncolumns: 2, rows: 1, "
-                + ("tileTheme: chapterThreeForgeTileTheme, " if name.startswith("chapterThree") else
-                   "tileTheme: chapterTwoRiftTileTheme, " if name.startswith("chapterTwo") else "")
-                + "tiles: [TileType.path, TileType.build], path: [GridPoint(0, 0)]\n);"
-                for name in map_names).encode())
+            # Preparation consumes the committed catalog with no Dart sources/SDK.
+            catalog = {"stages": [{"id": stage, "map": {
+                "columns": 2, "rows": 1, "tiles": ["path", "build"], "path": [[0, 0]],
+                "tileTheme": "chapterOne" if stage <= 5 else
+                    "chapterTwoRift" if stage <= 10 else "chapterThreeForge",
+            }} for stage in range(1, 16)]}
+            write(source / "content/game_content.json", json.dumps(catalog).encode())
             # Texture staging now parses every GLB, even texture-free fixtures.
             for path in assets.rglob("*.glb"):
                 if path.read_bytes() in (b"asset fixture", b"frost fixture"):

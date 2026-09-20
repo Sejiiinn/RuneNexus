@@ -305,7 +305,7 @@ class GameSnapshotBuilder {
       enemyTypes: RuneNexusGame._enemyTypesFor(wave),
       enemyCounts: RuneNexusGame._enemyCountsFor(wave),
       killRewardGold: RuneNexusGame._killRewardGoldFor(wave),
-      clearRewardGemShards: RuneNexusGame._roundClearGemShardRewardFor(round),
+      clearRewardGemShards: RuneNexusGame.roundClearGemShardRewardFor(round),
     );
   }
 

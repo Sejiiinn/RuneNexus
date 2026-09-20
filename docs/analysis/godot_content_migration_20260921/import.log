@@ -1,0 +1,577 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started 프로젝트 초기화 (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | 파일 구조 스캔 중...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | 전역 클래스 이름을 불러오는 중...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | GDExtensions 검증 중...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | 오토로드 스크립트를 만드는 중...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | 플러그인을 초기화 중...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | 파일 스캔 시작 중...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | Started 전역 클래스를 등록하는 중... (15 steps)[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | LocalSaveStore[39m[0m
+[   6% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  12% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  18% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  25% ] [90m[1mupdate_scripts_classes[22m | WebSaveStore[39m[0m
+[  31% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  37% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  43% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  50% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  56% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  62% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  68% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  75% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  81% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  87% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[92m[ DONE ][39m [1mupdate_scripts_classes[22m
+[0m
+[   0% ] [90m[1m_update_scan_actions[22m | Started 액션 스캔 중... (99 steps)[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | flame_atlas.png[39m[0m
+[   1% ] [90m[1m_update_scan_actions[22m | crystals.glb[39m[0m
+[   2% ] [90m[1m_update_scan_actions[22m | grain.png[39m[0m
+[   3% ] [90m[1m_update_scan_actions[22m | gun_smoke.png[39m[0m
+[   4% ] [90m[1m_update_scan_actions[22m | machinegun_muzzle.glb[39m[0m
+[   5% ] [90m[1m_update_scan_actions[22m | muzzle_flash.png[39m[0m
+[   6% ] [90m[1m_update_scan_actions[22m | runic_fire.glb[39m[0m
+[   7% ] [90m[1m_update_scan_actions[22m | armored.glb[39m[0m
+[   8% ] [90m[1m_update_scan_actions[22m | boss.glb[39m[0m
+[   9% ] [90m[1m_update_scan_actions[22m | fast.glb[39m[0m
+[  10% ] [90m[1m_update_scan_actions[22m | normal.glb[39m[0m
+[  11% ] [90m[1m_update_scan_actions[22m | shielded.glb[39m[0m
+[  12% ] [90m[1m_update_scan_actions[22m | tank.glb[39m[0m
+[  13% ] [90m[1m_update_scan_actions[22m | chapter2_props.glb[39m[0m
+[  14% ] [90m[1m_update_scan_actions[22m | chapter2_stage6_geology.glb[39m[0m
+[  15% ] [90m[1m_update_scan_actions[22m | chapter2_stage6_props.glb[39m[0m
+[  16% ] [90m[1m_update_scan_actions[22m | chapter2_stage7_geology.glb[39m[0m
+[  17% ] [90m[1m_update_scan_actions[22m | chapter2_stage7_props.glb[39m[0m
+[  18% ] [90m[1m_update_scan_actions[22m | chapter2_stage8_geology.glb[39m[0m
+[  19% ] [90m[1m_update_scan_actions[22m | chapter2_stage8_props.glb[39m[0m
+[  20% ] [90m[1m_update_scan_actions[22m | chapter2_stage9_geology.glb[39m[0m
+[  21% ] [90m[1m_update_scan_actions[22m | chapter2_stage9_props.glb[39m[0m
+[  22% ] [90m[1m_update_scan_actions[22m | chapter2_stage10_geology.glb[39m[0m
+[  23% ] [90m[1m_update_scan_actions[22m | chapter2_stage10_props.glb[39m[0m
+[  24% ] [90m[1m_update_scan_actions[22m | chapter2_tiles.glb[39m[0m
+[  25% ] [90m[1m_update_scan_actions[22m | chapter2_tiles_optimized.glb[39m[0m
+[  26% ] [90m[1m_update_scan_actions[22m | chapter3_props.glb[39m[0m
+[  27% ] [90m[1m_update_scan_actions[22m | chapter3_tiles.glb[39m[0m
+[  28% ] [90m[1m_update_scan_actions[22m | dressing.glb[39m[0m
+[  29% ] [90m[1m_update_scan_actions[22m | dressing_stage2.glb[39m[0m
+[  30% ] [90m[1m_update_scan_actions[22m | dressing_stage3.glb[39m[0m
+[  31% ] [90m[1m_update_scan_actions[22m | dressing_stage4.glb[39m[0m
+[  32% ] [90m[1m_update_scan_actions[22m | dressing_stage5.glb[39m[0m
+[  33% ] [90m[1m_update_scan_actions[22m | landmarks.glb[39m[0m
+[  34% ] [90m[1m_update_scan_actions[22m | terrain.glb[39m[0m
+[  35% ] [90m[1m_update_scan_actions[22m | cannonball.glb[39m[0m
+[  36% ] [90m[1m_update_scan_actions[22m | 0df4311010237503e17ca74756d32d0ecac602f96e12f14665c59bd25cced527.png[39m[0m
+[  37% ] [90m[1m_update_scan_actions[22m | 1ef8129dc4728b9b339574d3fd30ff3c290c16944f6150a7a5f17231e2f3e9c7.png[39m[0m
+[  38% ] [90m[1m_update_scan_actions[22m | 2dd1dd63704a18d81208abb8c2acb20f678e40824b80b906e1cf680e18f11709.png[39m[0m
+[  39% ] [90m[1m_update_scan_actions[22m | 2fc7282d010ad0b4ec0806a27c6a989b47ae08a047baeeffa3cab0425d3d2564.png[39m[0m
+[  40% ] [90m[1m_update_scan_actions[22m | 3ceb5b9ea78d6b282e4a61d48b95153f09218f187674d32207bcaf39aa3cd452.png[39m[0m
+[  41% ] [90m[1m_update_scan_actions[22m | 3d16b8d5a52cae0fc776e3f44af25321151190ab1ac0d356e5135a48442b33a2.png[39m[0m
+[  42% ] [90m[1m_update_scan_actions[22m | 5f8ee4f00c73fba63071cfd8102ec434292bfaf5d17b7c5353d5fdbcf6fb0b88.png[39m[0m
+[  43% ] [90m[1m_update_scan_actions[22m | 6a9a755972b64bfad83da4c37e0b466f952df189555e9bfd30ca5a13c07faf13.png[39m[0m
+[  44% ] [90m[1m_update_scan_actions[22m | 7ad6562978f36897e541f0839a5e6028413ea7375c23d11a0ff80629d8c4509b.png[39m[0m
+[  45% ] [90m[1m_update_scan_actions[22m | 9bf0a49d2e65018d8df4cc16ed6d7c25751680e1779406ac3e9be774095fd0c4.png[39m[0m
+[  46% ] [90m[1m_update_scan_actions[22m | 9e8e5f7fdd431dfb3b46fcc5684c4a5cd33da77864b014f4130f8d2907dca7fd.png[39m[0m
+[  47% ] [90m[1m_update_scan_actions[22m | 25a107e2d7a0b259bad7e313caa718d657001c6e3b6a22ad159e2400059e47aa.png[39m[0m
+[  48% ] [90m[1m_update_scan_actions[22m | 040df2bf96ef324c4a101d2c181afad710e5dc2f6565ac2d04d10025991c9c09.png[39m[0m
+[  49% ] [90m[1m_update_scan_actions[22m | 56fe8bed4718c8f0f22685d0718e1386268e70983f0040988653d67723dacb3d.png[39m[0m
+[  50% ] [90m[1m_update_scan_actions[22m | 058bfb9b74732459bcbb7aa90b5009defb313f790cbf66fd1a13420441520608.png[39m[0m
+[  51% ] [90m[1m_update_scan_actions[22m | 83a757f21f5d35f90b8e34caac356650d8438ff2c9ef731e6398c5a61b7a80a5.png[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | 335eab2c778f4d4401fe54c49b7c8655c3a018838347cf67e1762182b405e153.png[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | 0428eda8d87a93e324e8484405b3a72ed377ab9988e504d7581cdc2fb2512bac.png[39m[0m
+[  54% ] [90m[1m_update_scan_actions[22m | 685ee2d44a3ab9bc5ada5e1b9acfbc14642a337a4b8e683de478b54b186d4b5a.png[39m[0m
+[  55% ] [90m[1m_update_scan_actions[22m | 873f699b6256b444c0dd97fdee0383b0a6ec3ab2d7f7860bc4c86ee792c9c3ff.png[39m[0m
+[  56% ] [90m[1m_update_scan_actions[22m | 899d8f531caee83b9e89b05bdd32f60a17e81e1543bb219234547416bbd2f209.png[39m[0m
+[  57% ] [90m[1m_update_scan_actions[22m | 962b9e7358dd589db1d8984a1348a7892c1cb79d0d8298558c69b015dc6e0e12.png[39m[0m
+[  58% ] [90m[1m_update_scan_actions[22m | 985f78ec5fd0deec330be032672d873a1c2886f469e0b5d8ca232da3b1949e0a.png[39m[0m
+[  58% ] [90m[1m_update_scan_actions[22m | 2074e523d555d3aabfea7046f27a0b634bed4771c65ca42841f20e3457d48ffd.png[39m[0m
+[  60% ] [90m[1m_update_scan_actions[22m | 3496aee55abf011ad906d823174350fbc760b427739e26313d61299b36592f33.png[39m[0m
+[  61% ] [90m[1m_update_scan_actions[22m | 07003e82beffdf63a39d9230b42927500fb501411720673c3607fb0ea94b5b3c.png[39m[0m
+[  62% ] [90m[1m_update_scan_actions[22m | 7102fa4254f542612e41f97956af6bf1c1e81fd06e07e4eb65f00a663cc17df2.png[39m[0m
+[  63% ] [90m[1m_update_scan_actions[22m | 9995f9452af9ca71dbefa22d778d0d9a78349465f3467e34dd3e42eba84c9ea8.png[39m[0m
+[  64% ] [90m[1m_update_scan_actions[22m | 46406f57bb808f0787fcc3d3c7ede31fcaa583d33b60a8170a825a85ef046955.png[39m[0m
+[  65% ] [90m[1m_update_scan_actions[22m | 82080cb44d867373a4059ef882681f768ae26321d7be74d6417971144dd4c6b7.png[39m[0m
+[  66% ] [90m[1m_update_scan_actions[22m | 6356014e7d421a1f4cfc6bb7130d3b6302265a4cd868df7c8e26a527ecf7d651.png[39m[0m
+[  67% ] [90m[1m_update_scan_actions[22m | a7d111d9ba2ef62996a6af751e4b21c1e98cc82a4235276e6b16451d897dc363.png[39m[0m
+[  68% ] [90m[1m_update_scan_actions[22m | a9aaf2f9bbc52e6960c9683dfd641ec35ab22b6a8ca5057743afec4bacb10d54.png[39m[0m
+[  69% ] [90m[1m_update_scan_actions[22m | a65f1e92b6d7146f67bfcbc259de5435f159ade72f0b1663dcc832a7cf4f8ab4.png[39m[0m
+[  70% ] [90m[1m_update_scan_actions[22m | b6fef098ffdd77c86df4dfd7c582f652e4c92f18b076e3073bc918f10675f381.png[39m[0m
+[  71% ] [90m[1m_update_scan_actions[22m | c0abf644091b085ba3fe798ddf6dd64b4c2bc7b28aa6e42f0fd5c0d893daf9fe.png[39m[0m
+[  72% ] [90m[1m_update_scan_actions[22m | c1a186b3c199d90418440545496955bb6e182eefa0b72bff2d1cfcd3f1745953.png[39m[0m
+[  73% ] [90m[1m_update_scan_actions[22m | c0519f9fc1598270c2a8804e97e8769ce59eb1511b62ee6e5a928247ab4f1765.png[39m[0m
+[  74% ] [90m[1m_update_scan_actions[22m | cdb6e878b38126d489a01e73ddcd6b5b36b1a2f4f337ff5bd3eb843a8ca7e69d.png[39m[0m
+[  75% ] [90m[1m_update_scan_actions[22m | d0d1904a5d7e0cf6c9bb288f57b7b7d27b310ea9d15cfb876f12aa049476df93.png[39m[0m
+[  76% ] [90m[1m_update_scan_actions[22m | d767c52dd36bef635598be9cb6f4e66d2038a9a937269301f287517978444168.png[39m[0m
+[  77% ] [90m[1m_update_scan_actions[22m | deb8a47bec40570dec656c9740a2a1d9306c9946e37f98b59c32edfa48f65820.png[39m[0m
+[  78% ] [90m[1m_update_scan_actions[22m | e5b27838b89cc4f5c500f7e69b65d0fc7b41e3e6c2df78c5efbef5eca003ec6b.png[39m[0m
+[  79% ] [90m[1m_update_scan_actions[22m | e464aca98f16fce39d157e8c62742850c633da5e68c32b45cc5a7126a246ce9f.png[39m[0m
+[  80% ] [90m[1m_update_scan_actions[22m | eba1f206023924272892f2f48e02018cf80ef609ae5af4b71f7743f081e77331.png[39m[0m
+[  81% ] [90m[1m_update_scan_actions[22m | ecea73a7472b9253f1e07d01a8a579ea931e0bffb90920951f0305c0f43fe9c4.png[39m[0m
+[  82% ] [90m[1m_update_scan_actions[22m | efa85b374e12ecb860de410ce6096c36e7daff70ea40ebdb048522451d505388.png[39m[0m
+[  83% ] [90m[1m_update_scan_actions[22m | f7d7dd4c089b14644ce9ee5db72d5ddb999714649db2b28c5982918d3b27dfb8.png[39m[0m
+[  84% ] [90m[1m_update_scan_actions[22m | arrow.glb[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | cannon.glb[39m[0m
+[  86% ] [90m[1m_update_scan_actions[22m | frost.glb[39m[0m
+[  87% ] [90m[1m_update_scan_actions[22m | lightning.glb[39m[0m
+[  88% ] [90m[1m_update_scan_actions[22m | magic.glb[39m[0m
+[  89% ] [90m[1m_update_scan_actions[22m | sniper.glb[39m[0m
+[  90% ] [90m[1m_update_scan_actions[22m | burn_ember.png[39m[0m
+[  91% ] [90m[1m_update_scan_actions[22m | burn_glow.png[39m[0m
+[  92% ] [90m[1m_update_scan_actions[22m | burn_smoke.png[39m[0m
+[  93% ] [90m[1m_update_scan_actions[22m | slow_shard.png[39m[0m
+[  94% ] [90m[1m_update_scan_actions[22m | death_silhouettes.png[39m[0m
+[  95% ] [90m[1m_update_scan_actions[22m | diamond_currency.png[39m[0m
+[  96% ] [90m[1m_update_scan_actions[22m | NotoSansKR-VF.ttf[39m[0m
+[  97% ] [90m[1m_update_scan_actions[22m | Roboto-VF.ttf[39m[0m
+[  98% ] [90m[1m_update_scan_actions[22m | turret_levels.png[39m[0m
+[92m[ DONE ][39m [1m_update_scan_actions[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started 애셋 (다시) 가져오는 중 (99 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[   1% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[   2% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[   3% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[   4% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[   5% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[   6% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[   7% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[   8% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[   9% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  10% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  11% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  12% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  13% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  14% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  15% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  16% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  17% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  18% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  19% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  20% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  21% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  22% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  23% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  24% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  25% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  26% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  27% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  28% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  29% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  30% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  31% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  32% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  33% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  34% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  35% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  36% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  37% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  38% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  39% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  40% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  41% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  42% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  43% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  44% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  45% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  46% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  47% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  48% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  49% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  50% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  51% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  52% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  52% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  54% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  55% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  56% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  57% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  58% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  58% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  60% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  61% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  62% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  63% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  64% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  65% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  66% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  67% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  68% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  69% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  70% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  71% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  72% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  73% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  74% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  75% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  76% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  77% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  78% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  79% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  80% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  81% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  82% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  83% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  84% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  85% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  86% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  87% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  88% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  89% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  90% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  91% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  92% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  93% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  94% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  95% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  96% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  97% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[  98% ] [90m[1mreimport[22m | 다시 가져올 파일을 준비 중...[39m[0m
+[   0% ] [90m[1mreimport[22m | 다시 가져오기 전 작업을 수행 중...[39m[0m
+[   0% ] [90m[1mpreload_reimporting_scene[22m | Started 다시 불러오기를 위해 씬 준비 중 (1 steps)[39m[0m
+[   0% ] [90m[1mpreload_reimporting_scene[22m | 씬 [비었음] 분석 중[39m[0m
+[  50% ] [90m[1mpreload_reimporting_scene[22m | 준비가 완료되었습니다.[39m[0m
+[92m[ DONE ][39m [1mpreload_reimporting_scene[22m
+[0m
+[   0% ] [90m[1mreimport[22m | 7102fa4254f542612e41f97956af6bf1c1e81fd06e07e4eb65f00a663cc17df2.png[39m[0m
+[   1% ] [90m[1mreimport[22m | 07003e82beffdf63a39d9230b42927500fb501411720673c3607fb0ea94b5b3c.png[39m[0m
+[   2% ] [90m[1mreimport[22m | 3496aee55abf011ad906d823174350fbc760b427739e26313d61299b36592f33.png[39m[0m
+[   3% ] [90m[1mreimport[22m | 2074e523d555d3aabfea7046f27a0b634bed4771c65ca42841f20e3457d48ffd.png[39m[0m
+[   4% ] [90m[1mreimport[22m | 985f78ec5fd0deec330be032672d873a1c2886f469e0b5d8ca232da3b1949e0a.png[39m[0m
+[   5% ] [90m[1mreimport[22m | 962b9e7358dd589db1d8984a1348a7892c1cb79d0d8298558c69b015dc6e0e12.png[39m[0m
+[   6% ] [90m[1mreimport[22m | 899d8f531caee83b9e89b05bdd32f60a17e81e1543bb219234547416bbd2f209.png[39m[0m
+[   7% ] [90m[1mreimport[22m | 873f699b6256b444c0dd97fdee0383b0a6ec3ab2d7f7860bc4c86ee792c9c3ff.png[39m[0m
+[   8% ] [90m[1mreimport[22m | 685ee2d44a3ab9bc5ada5e1b9acfbc14642a337a4b8e683de478b54b186d4b5a.png[39m[0m
+[   9% ] [90m[1mreimport[22m | 0428eda8d87a93e324e8484405b3a72ed377ab9988e504d7581cdc2fb2512bac.png[39m[0m
+[  10% ] [90m[1mreimport[22m | 335eab2c778f4d4401fe54c49b7c8655c3a018838347cf67e1762182b405e153.png[39m[0m
+[  11% ] [90m[1mreimport[22m | 83a757f21f5d35f90b8e34caac356650d8438ff2c9ef731e6398c5a61b7a80a5.png[39m[0m
+[  12% ] [90m[1mreimport[22m | 058bfb9b74732459bcbb7aa90b5009defb313f790cbf66fd1a13420441520608.png[39m[0m
+[  13% ] [90m[1mreimport[22m | 56fe8bed4718c8f0f22685d0718e1386268e70983f0040988653d67723dacb3d.png[39m[0m
+[  14% ] [90m[1mreimport[22m | 040df2bf96ef324c4a101d2c181afad710e5dc2f6565ac2d04d10025991c9c09.png[39m[0m
+[  15% ] [90m[1mreimport[22m | 25a107e2d7a0b259bad7e313caa718d657001c6e3b6a22ad159e2400059e47aa.png[39m[0m
+[  16% ] [90m[1mreimport[22m | 9e8e5f7fdd431dfb3b46fcc5684c4a5cd33da77864b014f4130f8d2907dca7fd.png[39m[0m
+[  17% ] [90m[1mreimport[22m | 9bf0a49d2e65018d8df4cc16ed6d7c25751680e1779406ac3e9be774095fd0c4.png[39m[0m
+[  18% ] [90m[1mreimport[22m | 7ad6562978f36897e541f0839a5e6028413ea7375c23d11a0ff80629d8c4509b.png[39m[0m
+[  19% ] [90m[1mreimport[22m | 6a9a755972b64bfad83da4c37e0b466f952df189555e9bfd30ca5a13c07faf13.png[39m[0m
+[  20% ] [90m[1mreimport[22m | 5f8ee4f00c73fba63071cfd8102ec434292bfaf5d17b7c5353d5fdbcf6fb0b88.png[39m[0m
+[  21% ] [90m[1mreimport[22m | f7d7dd4c089b14644ce9ee5db72d5ddb999714649db2b28c5982918d3b27dfb8.png[39m[0m
+[  22% ] [90m[1mreimport[22m | efa85b374e12ecb860de410ce6096c36e7daff70ea40ebdb048522451d505388.png[39m[0m
+[  23% ] [90m[1mreimport[22m | ecea73a7472b9253f1e07d01a8a579ea931e0bffb90920951f0305c0f43fe9c4.png[39m[0m
+[  24% ] [90m[1mreimport[22m | eba1f206023924272892f2f48e02018cf80ef609ae5af4b71f7743f081e77331.png[39m[0m
+[  25% ] [90m[1mreimport[22m | e464aca98f16fce39d157e8c62742850c633da5e68c32b45cc5a7126a246ce9f.png[39m[0m
+[  26% ] [90m[1mreimport[22m | e5b27838b89cc4f5c500f7e69b65d0fc7b41e3e6c2df78c5efbef5eca003ec6b.png[39m[0m
+[  27% ] [90m[1mreimport[22m | deb8a47bec40570dec656c9740a2a1d9306c9946e37f98b59c32edfa48f65820.png[39m[0m
+[  28% ] [90m[1mreimport[22m | d767c52dd36bef635598be9cb6f4e66d2038a9a937269301f287517978444168.png[39m[0m
+[  29% ] [90m[1mreimport[22m | d0d1904a5d7e0cf6c9bb288f57b7b7d27b310ea9d15cfb876f12aa049476df93.png[39m[0m
+[  30% ] [90m[1mreimport[22m | cdb6e878b38126d489a01e73ddcd6b5b36b1a2f4f337ff5bd3eb843a8ca7e69d.png[39m[0m
+[  31% ] [90m[1mreimport[22m | c0519f9fc1598270c2a8804e97e8769ce59eb1511b62ee6e5a928247ab4f1765.png[39m[0m
+[  32% ] [90m[1mreimport[22m | c1a186b3c199d90418440545496955bb6e182eefa0b72bff2d1cfcd3f1745953.png[39m[0m
+[  33% ] [90m[1mreimport[22m | c0abf644091b085ba3fe798ddf6dd64b4c2bc7b28aa6e42f0fd5c0d893daf9fe.png[39m[0m
+[  34% ] [90m[1mreimport[22m | b6fef098ffdd77c86df4dfd7c582f652e4c92f18b076e3073bc918f10675f381.png[39m[0m
+[  35% ] [90m[1mreimport[22m | a65f1e92b6d7146f67bfcbc259de5435f159ade72f0b1663dcc832a7cf4f8ab4.png[39m[0m
+[  36% ] [90m[1mreimport[22m | a9aaf2f9bbc52e6960c9683dfd641ec35ab22b6a8ca5057743afec4bacb10d54.png[39m[0m
+[  37% ] [90m[1mreimport[22m | a7d111d9ba2ef62996a6af751e4b21c1e98cc82a4235276e6b16451d897dc363.png[39m[0m
+[  38% ] [90m[1mreimport[22m | 6356014e7d421a1f4cfc6bb7130d3b6302265a4cd868df7c8e26a527ecf7d651.png[39m[0m
+[  39% ] [90m[1mreimport[22m | 82080cb44d867373a4059ef882681f768ae26321d7be74d6417971144dd4c6b7.png[39m[0m
+[  40% ] [90m[1mreimport[22m | 46406f57bb808f0787fcc3d3c7ede31fcaa583d33b60a8170a825a85ef046955.png[39m[0m
+[  41% ] [90m[1mreimport[22m | 9995f9452af9ca71dbefa22d778d0d9a78349465f3467e34dd3e42eba84c9ea8.png[39m[0m
+[  42% ] [90m[1mreimport[22m | grain.png[39m[0m
+[  43% ] [90m[1mreimport[22m | flame_atlas.png[39m[0m
+[  44% ] [90m[1mreimport[22m | dressing.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  45% ] [90m[1mreimport[22m | dressing_stage2.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  46% ] [90m[1mreimport[22m | dressing_stage3.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  47% ] [90m[1mreimport[22m | dressing_stage4.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  48% ] [90m[1mreimport[22m | dressing_stage5.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  49% ] [90m[1mreimport[22m | 0df4311010237503e17ca74756d32d0ecac602f96e12f14665c59bd25cced527.png[39m[0m
+[  50% ] [90m[1mreimport[22m | 1ef8129dc4728b9b339574d3fd30ff3c290c16944f6150a7a5f17231e2f3e9c7.png[39m[0m
+[  51% ] [90m[1mreimport[22m | 2dd1dd63704a18d81208abb8c2acb20f678e40824b80b906e1cf680e18f11709.png[39m[0m
+[  52% ] [90m[1mreimport[22m | 2fc7282d010ad0b4ec0806a27c6a989b47ae08a047baeeffa3cab0425d3d2564.png[39m[0m
+[  52% ] [90m[1mreimport[22m | 3d16b8d5a52cae0fc776e3f44af25321151190ab1ac0d356e5135a48442b33a2.png[39m[0m
+[  54% ] [90m[1mreimport[22m | 3ceb5b9ea78d6b282e4a61d48b95153f09218f187674d32207bcaf39aa3cd452.png[39m[0m
+[  55% ] [90m[1mreimport[22m | 7102fa4254f542612e41f97956af6bf1c1e81fd06e07e4eb65f00a663cc17df2.png[39m[0m
+[  56% ] [90m[1mreimport[22m | 07003e82beffdf63a39d9230b42927500fb501411720673c3607fb0ea94b5b3c.png[39m[0m
+[  57% ] [90m[1mreimport[22m | 7102fa4254f542612e41f97956af6bf1c1e81fd06e07e4eb65f00a663cc17df2.png[39m[0m
+[  58% ] [90m[1mreimport[22m | 07003e82beffdf63a39d9230b42927500fb501411720673c3607fb0ea94b5b3c.png[39m[0m
+[  58% ] [90m[1mreimport[22m | 3496aee55abf011ad906d823174350fbc760b427739e26313d61299b36592f33.png[39m[0m
+[  60% ] [90m[1mreimport[22m | 2074e523d555d3aabfea7046f27a0b634bed4771c65ca42841f20e3457d48ffd.png[39m[0m
+[  61% ] [90m[1mreimport[22m | 985f78ec5fd0deec330be032672d873a1c2886f469e0b5d8ca232da3b1949e0a.png[39m[0m
+[  62% ] [90m[1mreimport[22m | 962b9e7358dd589db1d8984a1348a7892c1cb79d0d8298558c69b015dc6e0e12.png[39m[0m
+[  63% ] [90m[1mreimport[22m | 899d8f531caee83b9e89b05bdd32f60a17e81e1543bb219234547416bbd2f209.png[39m[0m
+[  64% ] [90m[1mreimport[22m | 873f699b6256b444c0dd97fdee0383b0a6ec3ab2d7f7860bc4c86ee792c9c3ff.png[39m[0m
+[  65% ] [90m[1mreimport[22m | 685ee2d44a3ab9bc5ada5e1b9acfbc14642a337a4b8e683de478b54b186d4b5a.png[39m[0m
+[  66% ] [90m[1mreimport[22m | cannonball.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  67% ] [90m[1mreimport[22m | terrain.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  68% ] [90m[1mreimport[22m | landmarks.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  69% ] [90m[1mreimport[22m | chapter3_tiles.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  70% ] [90m[1mreimport[22m | chapter3_props.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  71% ] [90m[1mreimport[22m | chapter2_tiles_optimized.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  72% ] [90m[1mreimport[22m | chapter2_tiles.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  73% ] [90m[1mreimport[22m | chapter2_stage10_props.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  74% ] [90m[1mreimport[22m | chapter2_stage10_geology.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  75% ] [90m[1mreimport[22m | sniper.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  76% ] [90m[1mreimport[22m | magic.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  77% ] [90m[1mreimport[22m | lightning.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  78% ] [90m[1mreimport[22m | frost.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  79% ] [90m[1mreimport[22m | cannon.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  80% ] [90m[1mreimport[22m | arrow.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  81% ] [90m[1mreimport[22m | chapter2_stage9_props.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  82% ] [90m[1mreimport[22m | chapter2_stage7_props.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  83% ] [90m[1mreimport[22m | chapter2_stage7_geology.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  84% ] [90m[1mreimport[22m | chapter2_stage6_props.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  85% ] [90m[1mreimport[22m | chapter2_stage6_geology.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  86% ] [90m[1mreimport[22m | chapter2_props.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  87% ] [90m[1mreimport[22m | tank.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  88% ] [90m[1mreimport[22m | shielded.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  89% ] [90m[1mreimport[22m | normal.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  90% ] [90m[1mreimport[22m | fast.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  91% ] [90m[1mreimport[22m | boss.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  92% ] [90m[1mreimport[22m | armored.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  93% ] [90m[1mreimport[22m | runic_fire.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  94% ] [90m[1mreimport[22m | chapter2_stage8_geology.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  95% ] [90m[1mreimport[22m | machinegun_muzzle.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  96% ] [90m[1mreimport[22m | chapter2_stage8_props.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  97% ] [90m[1mreimport[22m | chapter2_stage9_geology.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  98% ] [90m[1mreimport[22m | crystals.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started 씬 가져오기 (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | 씬 가져오는 중...[39m[0m
+[   1% ] [90m[1mimport[22m | 커스텀 스크립트 실행 중...[39m[0m
+[  99% ] [90m[1mimport[22m | 저장 중...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  99% ] [90m[1mreimport[22m | 애셋 가져오기 마무리 중...[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started 애셋 (다시) 가져오는 중 (99 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | 다시 가져오기 후 작업을 수행 중...[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Started 편집기를 불러오는 중 (5 steps)[39m[0m
+[   0% ] [90m[1mloading_editor_layout[22m | 편집기 레이아웃을 불러오는 중...[39m[0m
+[  16% ] [90m[1mloading_editor_layout[22m | 독을 불러오는 중...[39m[0m
+[92m[ DONE ][39m [1mloading_editor_layout[22m
+[0m
+cannot connect to daemon at tcp:5037: Connection refused

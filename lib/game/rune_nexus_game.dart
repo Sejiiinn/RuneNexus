@@ -19,6 +19,7 @@ import '../data/save/online_save_repository.dart';
 import '../data/save/online_save_coordinator.dart'
     show createOnlineSaveIdempotencyKey;
 import '../data/save/save_repository.dart';
+import '../domain/combat/content_spawn_defaults.dart';
 import '../domain/combat/native_combat_protocol.dart';
 import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/game_phase.dart';
@@ -155,8 +156,8 @@ class RuneNexusGame {
   static const double _coreDestructionSlowMotionScale = 0.25;
   static const double _coreDestructionTargetZoom = 1.75;
   static const double _coreDestructionFocusYRatio = 0.56;
-  static const double _portalAlertDuration = 0.55;
-  static const double _postPortalAlertSpawnDelay = 0.15;
+  static const double _portalAlertDuration = portalAlertDuration;
+  static const double _postPortalAlertSpawnDelay = postPortalAlertSpawnDelay;
   static const double _combatStatsPublishInterval = 0.2;
   static const double _timeBasedProgressRefreshInterval = 1;
   static const double _nexusCoreBeamInterval = 5;
@@ -325,7 +326,7 @@ class RuneNexusGame {
       nextWaveEnemyCounts: _enemyCountsFor(firstWave),
       nextWaveClearRewardGold: firstWave.clearRewardGold,
       nextWaveKillRewardGold: _killRewardGoldFor(firstWave),
-      nextWaveClearRewardGemShards: _roundClearGemShardRewardFor(1),
+      nextWaveClearRewardGemShards: roundClearGemShardRewardFor(1),
       autoStartMode: AutoStartMode.pauseEachRound,
       speedMultiplier: 1,
       killGoldFractionWallet: 0,
@@ -432,7 +433,7 @@ class RuneNexusGame {
     return total;
   }
 
-  static int _roundClearGemShardRewardFor(int completedRound) {
+  static int roundClearGemShardRewardFor(int completedRound) {
     if (completedRound <= 0) {
       return 0;
     }
@@ -3365,15 +3366,7 @@ class RuneNexusGame {
   }
 
   double _enemyLaneOffsetRatioFor(EnemyType type) {
-    final amplitude = switch (type) {
-      EnemyType.fast => 0.18,
-      EnemyType.boss => 0.055,
-      EnemyType.shieldBoss => 0.055,
-      EnemyType.forgeBoss => 0.045,
-      EnemyType.tank => 0.12,
-      _ => 0.14,
-    };
-    return (_enemyLaneRandom.nextDouble() * 2 - 1) * amplitude;
+    return enemyLaneOffsetForRoll(type, _enemyLaneRandom.nextDouble());
   }
 
   double _enemyVisualPhase() => _enemyLaneRandom.nextDouble();
@@ -3456,7 +3449,7 @@ class RuneNexusGame {
                   _progression.corePassiveNodeRanks,
                 ))
             .round();
-    _gemShards += _roundClearGemShardRewardFor(completedRound);
+    _gemShards += roundClearGemShardRewardFor(completedRound);
     _roundIndex++;
     _completedRounds = completedRound;
     _progression.recordDailyQuestProgress(

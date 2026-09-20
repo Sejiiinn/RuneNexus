@@ -414,6 +414,15 @@ func _command(c: Dictionary) -> void:
 				for key in ["range","splashRadius","projectileSpeed","lightningChainJumpRange"]: p.attack[key] *= ratio
 		"spawn": _spawn(c.enemy)
 		"turret": _turret(c.turret)
+		"resetTraitState":
+			var turret: Dictionary = turrets.get(str(c.id), {})
+			if not turret.is_empty():
+				if bool(c.get("primary", false)):
+					turret.overheatTarget = 0
+					turret.overheatStacks = 0
+				for key in ["suppressiveTarget", "suppressiveHits"]: turret[key] = 0
+				for key in ["cleanup", "lastBaseCooldown", "lightningElapsed"]: turret[key] = 0.0
+				turret.recent = {}
 		"removeTurret":
 			var removed: Dictionary = turrets.get(str(c.id), {})
 			if not removed.is_empty():

@@ -11,6 +11,7 @@ func _init(directory: String = "user://standalone-session") -> void:
 	store = Store.new(directory)
 
 func save_session(app) -> Error:
+	if app.content_enabled: return _unsupported_content()
 	var runtime = app.scene._native_combat
 	if not runtime.active:
 		message = "No active stage"
@@ -44,6 +45,7 @@ func save_session(app) -> Error:
 	return error
 
 func load_session(app) -> Error:
+	if app.content_enabled: return _unsupported_content()
 	var saved = store.load_save()
 	if saved == null:
 		message = "No checkpoint" if store.last_error == OK else store.last_error_message
@@ -94,6 +96,10 @@ func load_session(app) -> Error:
 	app.next_id = next_turret_id
 	message = "Loaded v2; Pause resumes"
 	return OK
+
+func _unsupported_content() -> Error:
+	message = "Save/load unavailable in content preview"
+	return ERR_UNAVAILABLE
 
 func _unsupported() -> Error:
 	message = "Unsupported by development fixture; checkpoint unchanged"

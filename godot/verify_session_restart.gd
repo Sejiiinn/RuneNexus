@@ -15,6 +15,7 @@ func run() -> void:
 	await process_frame
 	scene.set_process(false)
 	var app = load("res://session/standalone.gd").new()
+	app.content_enabled = false # Explicit legacy save regression, never the default content path.
 	scene._standalone_session = app
 	scene.add_child(app)
 	app.set_process(false)
