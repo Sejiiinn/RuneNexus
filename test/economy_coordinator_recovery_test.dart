@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flame/components.dart';
+import 'package:vector_math/vector_math_64.dart' show Vector2;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/auth/online_account_session_controller.dart';
 import 'package:rune_nexus/data/economy/economy_api.dart';

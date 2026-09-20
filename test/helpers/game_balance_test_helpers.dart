@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flame/events.dart' show TapDownEvent;
-import 'package:flame/game.dart';
+import 'package:vector_math/vector_math_64.dart' show Vector2;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/definitions/game_enemy_data.dart';
@@ -30,8 +29,8 @@ import 'package:rune_nexus/game/components/turret_component.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
 import 'package:rune_nexus/game/systems/game_save_adapter.dart';
 
-export 'package:flame/events.dart' show TapDownEvent;
-export 'package:flame/game.dart' show GameWidget, Vector2;
+export 'package:vector_math/vector_math_64.dart' show Vector2;
+export 'package:rune_nexus/ui/hud/native_game_host.dart' show NativeGameHost;
 export 'package:flutter/material.dart';
 export 'package:flutter_test/flutter_test.dart';
 export 'package:rune_nexus/data/definitions/game_core_passive_tree_data.dart';
@@ -72,12 +71,6 @@ export 'package:rune_nexus/domain/turret/turret_type.dart';
 export 'package:rune_nexus/domain/turret_module/turret_module_type.dart';
 export 'package:rune_nexus/domain/wave/wave_definition.dart';
 export 'package:rune_nexus/game/components/enemy_component.dart';
-export 'package:rune_nexus/game/components/gem_equip_effect_component.dart';
-export 'package:rune_nexus/game/components/lightning_charge_component.dart';
-export 'package:rune_nexus/game/components/lightning_chain_beam_component.dart';
-export 'package:rune_nexus/game/components/projectile_component.dart';
-export 'package:rune_nexus/game/components/rift_mark_pulse_component.dart';
-export 'package:rune_nexus/game/components/sequential_lightning_chain_component.dart';
 export 'package:rune_nexus/game/components/turret_component.dart';
 export 'package:rune_nexus/game/rune_nexus_game.dart';
 export 'package:rune_nexus/game/systems/game_save_adapter.dart';
@@ -92,10 +85,7 @@ void tapBuildTile(RuneNexusGame game, GridPoint point) {
     origin.x + (point.x + 0.5) * tileSize,
     origin.y + (point.y + 0.5) * tileSize,
   );
-  final event = TapDownEvent(1, game, TapDownDetails(globalPosition: position))
-    ..renderingTrace.add(Vector2(position.dx, position.dy));
-
-  game.onTapDown(event);
+  game.onBoardTapDown(Vector2(position.dx, position.dy));
 }
 
 class LinkResearchUnlockedGame extends RuneNexusGame {

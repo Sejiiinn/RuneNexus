@@ -1,4 +1,3 @@
-import 'package:rune_nexus/game/components/impact_effect_component.dart';
 import 'package:rune_nexus/game/rendering/stage1_3d/battlefield_projection.dart';
 import 'package:rune_nexus/game/rendering/stage1_3d/godot_battlefield_frame.dart';
 
@@ -25,18 +24,19 @@ Future<RuneNexusGame> _game(
   // ignore: invalid_use_of_internal_member
   await game.load();
   // ignore: invalid_use_of_internal_member
-  game.mount();
   addTearDown(game.disposeAppResources);
   await game.ready();
   return game;
 }
 
-ImpactEffectComponent _effect() => ImpactEffectComponent(
+int _effect(RuneNexusGame game) => game.emitBattlefieldEffect(
+  kind: 'impact',
   position: Vector2(100, 150),
+  duration: .28,
   color: const Color(0xff5cf9e9),
-  style: ImpactEffectStyle.spark,
+  style: 'spark',
   radius: 16,
-);
+)!;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -60,12 +60,7 @@ void main() {
       final screen = _projection.gridToScreen(
         Offset(buildPoint.x + .5, buildPoint.y + .5),
       );
-      final event = TapDownEvent(
-        1,
-        game,
-        TapDownDetails(globalPosition: screen),
-      )..renderingTrace.add(Vector2(screen.dx, screen.dy));
-      game.onTapDown(event);
+      game.onBoardTapDown(Vector2(screen.dx, screen.dy));
       expect(game.snapshotNotifier.value.selectedBuildPoint, buildPoint);
       game.tryBuildTurret(buildPoint);
       await game.ready();
@@ -83,18 +78,15 @@ void main() {
       }
       await game.ready();
       expect(
-        game.battlefieldFrame!.enemies.map((enemy) => enemy.type).toSet(),
+        game.enemies.map((enemy) => enemy.definition.type).toSet(),
         enemyTypes,
       );
-      final effect = _effect();
-      game.add(effect);
-      await game.ready();
-      effect.update(1);
-      game.processLifecycleEvents();
-      expect(effect.parent, isNull);
+      final effectId = _effect(game);
+      game.update(1);
       final frame = game.battlefieldFrame!;
-      expect(frame.effects!.items, hasLength(1));
-      final effectId = frame.effects!.items.single.id;
+      expect(frame.effects!.items, isEmpty);
+      expect(frame.effects!.events, hasLength(1));
+      expect(frame.effects!.events.single['id'], effectId);
       await game.saveNow();
       final saved = repository.data!.toJson();
       final encoded = encodeGodotBattlefieldFrame(
@@ -112,15 +104,14 @@ void main() {
         ],
       });
       final presentation = encoded['presentation']! as Map;
-      expect((presentation['effects'] as Map)['items'], hasLength(1));
-      expect(
-        (encoded['enemies'] as List).map((enemy) => (enemy as List)[7]).toSet(),
-        enemyTypes.map((type) => type.name).toSet(),
-      );
+      expect((presentation['effects'] as Map)['events'], hasLength(1));
+      // Godot constructs actors from authoritative state; Flutter sends no
+      // duplicate actor list. Model availability is checked headlessly.
+      expect(encoded['enemies'], isEmpty);
       expect(repository.data!.toJson(), saved);
       game.markNativeBattlefieldEffectsSubmitted(stage.id, 3, [effectId]);
       game.acknowledgeNativeBattlefieldEffects(stage.id, 3);
-      expect(game.battlefieldFrame!.effects!.items, isEmpty);
+      expect(game.battlefieldFrame!.effects!.events, isEmpty);
     });
   }
 
@@ -131,12 +122,9 @@ void main() {
     game.battlefieldProjection = _projection;
     game.nativeBattlefieldGroups = {'labels', 'selection', 'effects'};
     game.nativeBattlefieldTurretLevels = true;
-    final effect = _effect();
-    game.add(effect);
-    await game.ready();
-    effect.update(1);
-    game.processLifecycleEvents();
-    expect(game.battlefieldFrame!.effects!.items, hasLength(1));
+    _effect(game);
+    game.update(1);
+    expect(game.battlefieldFrame!.effects!.events, hasLength(1));
     game.startStage(15);
     expect(game.snapshotNotifier.value.currentStageNumber, 15);
     expect(game.supportsNativeBattlefield, isTrue);
@@ -146,11 +134,11 @@ void main() {
     expect(game.nativeBattlefieldGroups, isEmpty);
     expect(game.nativeBattlefieldTurretLevels, isFalse);
     expect(game.nativeBattlefieldLoading, isTrue);
-    expect(game.backgroundColor().a, 1);
+
     game.startStage(1);
     expect(game.supportsNativeBattlefield, isTrue);
     expect(game.battlefieldProjection, isNull);
-    expect(game.battlefieldFrame!.effects!.items, isEmpty);
+    expect(game.battlefieldFrame!.effects!.events, isEmpty);
     final map =
         encodeGodotBattlefieldFrame(game.battlefieldFrame!, sequence: 0)['map']!
             as Map;

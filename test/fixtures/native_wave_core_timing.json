@@ -1,0 +1,669 @@
+{
+  "source": "Dart WaveSpawner/CoreCombatSkillController",
+  "schedule": [
+    {
+      "enemyType": "normal",
+      "delay": 1.4
+    },
+    {
+      "enemyType": "normal",
+      "delay": 1.5799999999999998
+    },
+    {
+      "enemyType": "normal",
+      "delay": 1.7599999999999998
+    },
+    {
+      "enemyType": "fast",
+      "delay": 1.9399999999999997
+    },
+    {
+      "enemyType": "fast",
+      "delay": 2.1199999999999997
+    },
+    {
+      "enemyType": "boss",
+      "delay": 2.4
+    }
+  ],
+  "waveFrames": [
+    {
+      "dt": 0.0,
+      "spawned": [],
+      "remaining": [
+        {
+          "enemyType": "normal",
+          "delay": 1.4
+        },
+        {
+          "enemyType": "normal",
+          "delay": 1.5799999999999998
+        },
+        {
+          "enemyType": "normal",
+          "delay": 1.7599999999999998
+        },
+        {
+          "enemyType": "fast",
+          "delay": 1.9399999999999997
+        },
+        {
+          "enemyType": "fast",
+          "delay": 2.1199999999999997
+        },
+        {
+          "enemyType": "boss",
+          "delay": 2.4
+        }
+      ]
+    },
+    {
+      "dt": 0.7,
+      "spawned": [],
+      "remaining": [
+        {
+          "enemyType": "normal",
+          "delay": 0.7
+        },
+        {
+          "enemyType": "normal",
+          "delay": 0.8799999999999999
+        },
+        {
+          "enemyType": "normal",
+          "delay": 1.0599999999999998
+        },
+        {
+          "enemyType": "fast",
+          "delay": 1.2399999999999998
+        },
+        {
+          "enemyType": "fast",
+          "delay": 1.4199999999999997
+        },
+        {
+          "enemyType": "boss",
+          "delay": 1.7
+        }
+      ]
+    },
+    {
+      "dt": 0.69,
+      "spawned": [],
+      "remaining": [
+        {
+          "enemyType": "normal",
+          "delay": 0.010000000000000009
+        },
+        {
+          "enemyType": "normal",
+          "delay": 0.18999999999999995
+        },
+        {
+          "enemyType": "normal",
+          "delay": 0.3699999999999999
+        },
+        {
+          "enemyType": "fast",
+          "delay": 0.5499999999999998
+        },
+        {
+          "enemyType": "fast",
+          "delay": 0.7299999999999998
+        },
+        {
+          "enemyType": "boss",
+          "delay": 1.01
+        }
+      ]
+    },
+    {
+      "dt": 0.01,
+      "spawned": [
+        "normal"
+      ],
+      "remaining": [
+        {
+          "enemyType": "normal",
+          "delay": 0.17999999999999994
+        },
+        {
+          "enemyType": "normal",
+          "delay": 0.3599999999999999
+        },
+        {
+          "enemyType": "fast",
+          "delay": 0.5399999999999998
+        },
+        {
+          "enemyType": "fast",
+          "delay": 0.7199999999999998
+        },
+        {
+          "enemyType": "boss",
+          "delay": 1.0
+        }
+      ]
+    },
+    {
+      "dt": 0.18,
+      "spawned": [
+        "normal"
+      ],
+      "remaining": [
+        {
+          "enemyType": "normal",
+          "delay": 0.17999999999999994
+        },
+        {
+          "enemyType": "fast",
+          "delay": 0.3599999999999999
+        },
+        {
+          "enemyType": "fast",
+          "delay": 0.5399999999999998
+        },
+        {
+          "enemyType": "boss",
+          "delay": 0.8200000000000001
+        }
+      ]
+    },
+    {
+      "dt": 0.2,
+      "spawned": [
+        "normal"
+      ],
+      "remaining": [
+        {
+          "enemyType": "fast",
+          "delay": 0.15999999999999992
+        },
+        {
+          "enemyType": "fast",
+          "delay": 0.33999999999999986
+        },
+        {
+          "enemyType": "boss",
+          "delay": 0.6200000000000001
+        }
+      ]
+    },
+    {
+      "dt": 0.5,
+      "spawned": [
+        "fast",
+        "fast"
+      ],
+      "remaining": [
+        {
+          "enemyType": "boss",
+          "delay": 0.1200000000000001
+        }
+      ]
+    },
+    {
+      "dt": 2.0,
+      "spawned": [
+        "boss"
+      ],
+      "remaining": []
+    }
+  ],
+  "cores": [
+    {
+      "skill": "guardianBeam",
+      "frames": [
+        {
+          "dt": 10.0,
+          "target": false,
+          "state": {
+            "cooldown": 0.0,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 0.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 0
+          },
+          "ticks": [],
+          "powers": []
+        },
+        {
+          "dt": 0.0,
+          "target": true,
+          "state": {
+            "cooldown": 0.0,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 0.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 0
+          },
+          "ticks": [],
+          "powers": []
+        },
+        {
+          "dt": 0.01,
+          "target": true,
+          "state": {
+            "cooldown": 0.0,
+            "guardianBeamActiveRemaining": 1.0,
+            "guardianBeamTickTimer": 0.1,
+            "guardianBeamTickDamage": 15.0,
+            "attackSyncRemaining": 2.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 1
+          },
+          "ticks": [
+            15.0
+          ],
+          "powers": []
+        },
+        {
+          "dt": 0.09,
+          "target": true,
+          "state": {
+            "cooldown": 0.0,
+            "guardianBeamActiveRemaining": 0.91,
+            "guardianBeamTickTimer": 0.010000000000000009,
+            "guardianBeamTickDamage": 15.0,
+            "attackSyncRemaining": 1.91,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 1
+          },
+          "ticks": [],
+          "powers": []
+        },
+        {
+          "dt": 0.0,
+          "target": true,
+          "state": {
+            "cooldown": 0.0,
+            "guardianBeamActiveRemaining": 0.91,
+            "guardianBeamTickTimer": 0.010000000000000009,
+            "guardianBeamTickDamage": 15.0,
+            "attackSyncRemaining": 1.91,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 1
+          },
+          "ticks": [],
+          "powers": []
+        },
+        {
+          "dt": 0.21,
+          "target": false,
+          "state": {
+            "cooldown": 0.0,
+            "guardianBeamActiveRemaining": 0.7000000000000001,
+            "guardianBeamTickTimer": 2.7755575615628914e-17,
+            "guardianBeamTickDamage": 15.0,
+            "attackSyncRemaining": 1.7,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 1
+          },
+          "ticks": [
+            15.0,
+            15.0
+          ],
+          "powers": []
+        },
+        {
+          "dt": 2.0,
+          "target": true,
+          "state": {
+            "cooldown": 4.0,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 0.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 1
+          },
+          "ticks": [],
+          "powers": []
+        },
+        {
+          "dt": 0.2,
+          "target": true,
+          "emergency": 0.35,
+          "state": {
+            "cooldown": 2.4,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 0.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 1
+          },
+          "ticks": [],
+          "powers": [],
+          "emergencyUsed": true
+        },
+        {
+          "dt": 10.0,
+          "target": true,
+          "state": {
+            "cooldown": 0.0,
+            "guardianBeamActiveRemaining": 1.0,
+            "guardianBeamTickTimer": 0.1,
+            "guardianBeamTickDamage": 15.0,
+            "attackSyncRemaining": 2.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 2
+          },
+          "ticks": [
+            15.0
+          ],
+          "powers": []
+        },
+        {
+          "dt": 1.1,
+          "target": false,
+          "state": {
+            "cooldown": 4.0,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 0.8999999999999999,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 2
+          },
+          "ticks": [],
+          "powers": []
+        },
+        {
+          "dt": 10.0,
+          "target": true,
+          "state": {
+            "cooldown": 0.0,
+            "guardianBeamActiveRemaining": 1.0,
+            "guardianBeamTickTimer": 0.1,
+            "guardianBeamTickDamage": 17.999999999999996,
+            "attackSyncRemaining": 2.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 3
+          },
+          "ticks": [
+            17.999999999999996
+          ],
+          "powers": []
+        },
+        {
+          "dt": 0.1,
+          "target": true,
+          "state": {
+            "cooldown": 0.0,
+            "guardianBeamActiveRemaining": 0.9,
+            "guardianBeamTickTimer": 0.1,
+            "guardianBeamTickDamage": 17.999999999999996,
+            "attackSyncRemaining": 1.9,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 3
+          },
+          "ticks": [
+            17.999999999999996
+          ],
+          "powers": []
+        },
+        {
+          "dt": 0.2,
+          "target": false,
+          "reset": true,
+          "state": {
+            "cooldown": 3.8,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 0.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 3
+          },
+          "ticks": [],
+          "powers": []
+        }
+      ]
+    },
+    {
+      "skill": "riftMark",
+      "frames": [
+        {
+          "dt": 10.0,
+          "target": false,
+          "state": {
+            "cooldown": 0.0,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 0.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 0
+          },
+          "ticks": [],
+          "powers": []
+        },
+        {
+          "dt": 0.0,
+          "target": true,
+          "state": {
+            "cooldown": 0.0,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 0.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 0
+          },
+          "ticks": [],
+          "powers": []
+        },
+        {
+          "dt": 0.01,
+          "target": true,
+          "state": {
+            "cooldown": 8.0,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 2.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 1
+          },
+          "ticks": [],
+          "powers": [
+            1.5
+          ]
+        },
+        {
+          "dt": 0.09,
+          "target": true,
+          "state": {
+            "cooldown": 7.91,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 1.91,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 1
+          },
+          "ticks": [],
+          "powers": []
+        },
+        {
+          "dt": 0.0,
+          "target": true,
+          "state": {
+            "cooldown": 7.91,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 1.91,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 1
+          },
+          "ticks": [],
+          "powers": []
+        },
+        {
+          "dt": 0.21,
+          "target": false,
+          "state": {
+            "cooldown": 7.7,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 1.7,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 1
+          },
+          "ticks": [],
+          "powers": []
+        },
+        {
+          "dt": 2.0,
+          "target": true,
+          "state": {
+            "cooldown": 5.7,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 0.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 1
+          },
+          "ticks": [],
+          "powers": []
+        },
+        {
+          "dt": 0.2,
+          "target": true,
+          "emergency": 0.35,
+          "state": {
+            "cooldown": 2.7,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 0.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 1
+          },
+          "ticks": [],
+          "powers": [],
+          "emergencyUsed": true
+        },
+        {
+          "dt": 10.0,
+          "target": true,
+          "state": {
+            "cooldown": 8.0,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 2.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 2
+          },
+          "ticks": [],
+          "powers": [
+            1.5
+          ]
+        },
+        {
+          "dt": 1.1,
+          "target": false,
+          "state": {
+            "cooldown": 6.9,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 0.8999999999999999,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 2
+          },
+          "ticks": [],
+          "powers": []
+        },
+        {
+          "dt": 10.0,
+          "target": true,
+          "state": {
+            "cooldown": 8.0,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 2.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 3
+          },
+          "ticks": [],
+          "powers": [
+            1.7999999999999998
+          ]
+        },
+        {
+          "dt": 0.1,
+          "target": true,
+          "state": {
+            "cooldown": 7.9,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 1.9,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 3
+          },
+          "ticks": [],
+          "powers": []
+        },
+        {
+          "dt": 0.2,
+          "target": false,
+          "reset": true,
+          "state": {
+            "cooldown": 7.8,
+            "guardianBeamActiveRemaining": 0.0,
+            "guardianBeamTickTimer": 0.0,
+            "guardianBeamTickDamage": 0.0,
+            "attackSyncRemaining": 0.0,
+            "directDamageDealt": 0.0,
+            "bonusDamageDealt": 0.0,
+            "activationCount": 3
+          },
+          "ticks": [],
+          "powers": []
+        }
+      ]
+    }
+  ],
+  "baselineCommit": "0241ef6",
+  "sourceFiles": [
+    "lib/game/systems/wave_spawner.dart",
+    "lib/game/systems/core_combat_skill_controller.dart"
+  ]
+}

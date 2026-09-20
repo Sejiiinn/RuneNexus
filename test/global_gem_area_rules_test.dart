@@ -1,6 +1,4 @@
-import 'dart:ui' show Canvas, Offset, Paint;
-
-import 'package:flame/components.dart';
+import 'package:vector_math/vector_math_64.dart' show Vector2;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/definitions/game_turret_data.dart';
 import 'package:rune_nexus/data/save/game_save_data.dart';
@@ -69,20 +67,6 @@ void main() {
     },
   );
 
-  test('frost selection and upgrade rings match its actual expanded area', () {
-    final game = _RangePreviewGame();
-    final turret = createTurret(game, TurretType.frost);
-    turret.equipGem(GemType.explosion, 0);
-    final canvas = _CircleRecordingCanvas();
-    turret.render(canvas);
-    expect(canvas.radii.take(4), [
-      turret.centeredAreaRadius,
-      200 * 1.25,
-      200 * 1.25,
-      turret.centeredAreaRadius,
-    ]);
-  });
-
   test('chain eligibility follows projectile or native chain capability', () {
     for (final type in TurretType.values) {
       final allowed = type != TurretType.sniper && type != TurretType.frost;
@@ -150,23 +134,3 @@ TurretComponent createTurret(RuneNexusGame game, TurretType type) =>
       center: Vector2.zero(),
       tileSize: 48,
     );
-
-class _RangePreviewGame extends RuneNexusGame {
-  @override
-  bool isTurretSelected(GridPoint point) => true;
-
-  @override
-  double? levelUpPreviewRangeFor(GridPoint point) => 200;
-}
-
-class _CircleRecordingCanvas implements Canvas {
-  final radii = <double>[];
-
-  @override
-  void drawCircle(Offset center, double radius, Paint paint) {
-    radii.add(radius);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => null;
-}

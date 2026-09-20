@@ -1,13 +1,11 @@
-import 'package:flame/components.dart';
+// Runtime trait hit/timer assertions moved to godot/verify_legacy_combat_regressions.gd.
+import 'package:vector_math/vector_math_64.dart' show Vector2;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rune_nexus/data/definitions/game_enemy_data.dart';
 import 'package:rune_nexus/data/definitions/game_turret_data.dart';
-import 'package:rune_nexus/domain/enemy/enemy_type.dart';
 import 'package:rune_nexus/domain/gem/gem_type.dart';
 import 'package:rune_nexus/domain/map/grid_point.dart';
 import 'package:rune_nexus/domain/turret/turret_trait_type.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
-import 'package:rune_nexus/game/components/enemy_component.dart';
 import 'package:rune_nexus/game/components/turret_component.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
 
@@ -211,12 +209,11 @@ void main() {
           ..upgradeLevel()
           ..upgradeLevel();
     final baseAttackRate = turret.attackRate;
-    final enemy = _enemy(game);
 
     turret.choosePrimaryTrait(TurretTraitType.compressedCharge);
 
     expect(turret.attackRate, closeTo(baseAttackRate * 0.9, 0.001));
-    expect(turret.registerDirectHitTraits(enemy), closeTo(1.35, 0.001));
+    // The 1.35 direct-hit multiplier is asserted in the native trait test.
   });
 
   test('expanded blast core improves cannon splash as a secondary trait', () {
@@ -240,35 +237,6 @@ void main() {
     expect(turret.splashRadius, closeTo(baseSplashRadius * 2.15, 0.001));
   });
 
-  test('fracture impact applies attack-local physical vulnerability', () {
-    final game = RuneNexusGame();
-    final turret = _levelSevenCannon(game)
-      ..choosePrimaryTrait(TurretTraitType.shrapnelShell);
-    final directEnemy = _boss(game)..position = Vector2.zero();
-    final splashEnemy = _boss(game)..position = Vector2(1, 0);
-    game.enemies.addAll([directEnemy, splashEnemy]);
-
-    expect(turret.chooseSecondaryTrait(TurretTraitType.fractureImpact), isTrue);
-
-    game.resolveProjectileHit(
-      owner: turret,
-      attack: turret.createAttackSnapshot(),
-      target: directEnemy,
-      hitPosition: directEnemy.position.clone(),
-    );
-
-    expect(directEnemy.hp, closeTo(100 - turret.damage * 1.2, 0.001));
-    expect(
-      splashEnemy.hp,
-      closeTo(
-        100 - turret.damage * turret.splashSecondaryDamageMultiplier * 1.2,
-        0.001,
-      ),
-    );
-    expect(directEnemy.physicalResistanceReduction, 0);
-    expect(splashEnemy.physicalResistanceReduction, 0);
-  });
-
   test('lightweight barrel improves machine gun speed stats', () {
     final game = RuneNexusGame();
     final turret =
@@ -289,27 +257,6 @@ void main() {
     expect(turret.attackRate, closeTo(baseAttackRate * 1.1, 0.001));
     expect(turret.projectileSpeed, closeTo(baseProjectileSpeed * 1.3, 0.001));
     expect(turret.toSaveData().primaryTrait, TurretTraitType.lightweightBarrel);
-  });
-
-  test('overheat magazine stacks on the same target only', () {
-    final game = RuneNexusGame();
-    final turret =
-        TurretComponent(
-            gridPoint: const GridPoint(0, 0),
-            definition: gameTurrets[TurretType.arrow]!,
-            game: game,
-            center: Vector2.zero(),
-            tileSize: 32,
-          )
-          ..upgradeLevel()
-          ..upgradeLevel();
-    turret.choosePrimaryTrait(TurretTraitType.overheatMagazine);
-    final enemyA = _enemy(game);
-    final enemyB = _enemy(game);
-
-    expect(turret.registerDirectHitTraits(enemyA), closeTo(1.02, 0.001));
-    expect(turret.registerDirectHitTraits(enemyA), closeTo(1.04, 0.001));
-    expect(turret.registerDirectHitTraits(enemyB), closeTo(1.02, 0.001));
   });
 
   test('high heat burn improves fire burn damage', () {
@@ -422,39 +369,6 @@ void main() {
     expect(turret.range, closeTo(baseRange * 1.15, 0.001));
   });
 
-  test('frost crack vulnerability increases subsequent hit damage', () {
-    final game = RuneNexusGame();
-    final turret = _levelSevenFrost(game)
-      ..choosePrimaryTrait(TurretTraitType.coolingCycle);
-    final enemy = EnemyComponent(
-      definition: gameEnemies[EnemyType.normal]!,
-      maxHp: 100,
-      path: [Vector2.zero(), Vector2(1, 0)],
-      game: game,
-    );
-
-    expect(turret.chooseSecondaryTrait(TurretTraitType.frostCrack), isTrue);
-    expect(turret.appliesFrostCrack, isTrue);
-
-    final attack = turret.createAttackSnapshot();
-    game.resolveCenteredAreaAttack(
-      owner: turret,
-      attack: attack,
-      targets: [enemy],
-    );
-
-    expect(enemy.hp, closeTo(100 - attack.damage, 0.001));
-    expect(enemy.elementalResistanceReduction, closeTo(0.15, 0.001));
-
-    game.resolveCenteredAreaAttack(
-      owner: turret,
-      attack: attack,
-      targets: [enemy],
-    );
-
-    expect(enemy.hp, closeTo(100 - attack.damage * 2.15, 0.001));
-  });
-
   test(
     'cooling cycle trades frost slow duration for attack speed as a primary trait',
     () {
@@ -478,46 +392,6 @@ void main() {
       expect(turret.slowDuration, closeTo(baseSlowDuration * 0.85, 0.001));
     },
   );
-
-  test('suppressive fire reduces physical resistance every five hits', () {
-    final game = RuneNexusGame();
-    final turret = _levelSevenMachineGun(game)
-      ..choosePrimaryTrait(TurretTraitType.lightweightBarrel);
-    expect(
-      turret.chooseSecondaryTrait(TurretTraitType.suppressiveFire),
-      isTrue,
-    );
-    final enemy = _enemy(game);
-
-    for (var i = 0; i < 4; i++) {
-      turret.registerDirectHitTraits(enemy);
-    }
-
-    expect(enemy.physicalResistanceReduction, 0);
-
-    turret.registerDirectHitTraits(enemy);
-
-    expect(enemy.physicalResistanceReduction, closeTo(0.2, 0.001));
-    expect(turret.toSaveData().secondaryTrait, TurretTraitType.suppressiveFire);
-  });
-
-  test('chain cleanup grants temporary attack speed after assisted kill', () {
-    final game = RuneNexusGame();
-    final turret = _levelSevenMachineGun(game)
-      ..choosePrimaryTrait(TurretTraitType.lightweightBarrel);
-    turret.chooseSecondaryTrait(TurretTraitType.chainCleanup);
-    final baseAttackRate = turret.attackRate;
-    final enemy = _enemy(game);
-
-    turret.registerDirectHitTraits(enemy);
-    turret.handleEnemyKilled(enemy);
-
-    expect(turret.attackRate, closeTo(baseAttackRate * 1.4, 0.001));
-
-    turret.update(3.1);
-
-    expect(turret.attackRate, closeTo(baseAttackRate, 0.001));
-  });
 
   test('deadeye focus trades sniper aim speed for critical chance', () {
     final game = RuneNexusGame();
@@ -567,54 +441,15 @@ void main() {
     expect(turret.aimDuration, closeTo(1 / (1.56 * 1.75), 0.001));
   });
 
-  test('exposed mark lets sniper direct hits apply physical vulnerability', () {
-    final game = RuneNexusGame();
-    final turret = _levelSevenSniper(game)
-      ..choosePrimaryTrait(TurretTraitType.quickScope);
-    final enemy = _enemy(game);
-
-    expect(turret.chooseSecondaryTrait(TurretTraitType.exposedMark), isTrue);
-    expect(turret.registerDirectHitTraits(enemy), closeTo(1, 0.001));
-
-    expect(enemy.physicalResistanceReduction, closeTo(0.15, 0.001));
-  });
-
-  test('finishing shot improves sniper damage against weakened durability', () {
-    final game = RuneNexusGame();
-    final turret = _levelSevenSniper(game)
-      ..choosePrimaryTrait(TurretTraitType.deadeyeFocus);
-    final enemy = EnemyComponent(
-      definition: gameEnemies[EnemyType.armored]!,
-      maxHp: 100,
-      maxArmor: 40,
-      maxShield: 20,
-      path: [Vector2.zero(), Vector2(1, 0)],
-      game: game,
-    );
-
-    expect(turret.chooseSecondaryTrait(TurretTraitType.finishingShot), isTrue);
-    expect(turret.registerDirectHitTraits(enemy), closeTo(1, 0.001));
-
-    enemy
-      ..hp = 30
-      ..armor = 15
-      ..shield = 10;
-
-    expect(turret.registerDirectHitTraits(enemy), closeTo(1.45, 0.001));
-  });
-
   test('chain lightning primary traits adjust chain length and first hit', () {
     final game = RuneNexusGame();
     final branchTurret = _levelSevenLightning(game)
       ..choosePrimaryTrait(TurretTraitType.branchCurrent);
     final focusedTurret = _levelSevenLightning(game)
       ..choosePrimaryTrait(TurretTraitType.focusedLightning);
-    final enemy = _enemy(game);
 
     expect(branchTurret.lightningChainMaxTargets, 4);
-    expect(branchTurret.registerDirectHitTraits(enemy), closeTo(1, 0.001));
     expect(focusedTurret.lightningChainMaxTargets, 2);
-    expect(focusedTurret.registerDirectHitTraits(enemy), closeTo(1.3, 0.001));
   });
 
   test('chain lightning secondary traits amplify chain or recover reload', () {
@@ -628,8 +463,7 @@ void main() {
 
     expect(amplified.lightningChainDamageMultiplier, closeTo(0.7, 0.001));
     expect(recovery.lightningChainDamageMultiplier, closeTo(0.5, 0.001));
-    recovery.recordLightningChainCompletion(usedJumps: 1, maxJumps: 3);
-    expect(recovery.cooldown, closeTo(0, 0.001));
+    expect(recovery.appliesLightningRecovery, isTrue);
   });
 
   test('primary and secondary traits are restored from save data', () {
@@ -710,20 +544,6 @@ TurretComponent _levelSevenFrost(RuneNexusGame game) {
   return turret;
 }
 
-TurretComponent _levelSevenSniper(RuneNexusGame game) {
-  final turret = TurretComponent(
-    gridPoint: const GridPoint(0, 0),
-    definition: gameTurrets[TurretType.sniper]!,
-    game: game,
-    center: Vector2.zero(),
-    tileSize: 32,
-  );
-  for (var i = 0; i < 6; i++) {
-    turret.upgradeLevel();
-  }
-  return turret;
-}
-
 TurretComponent _levelSevenLightning(RuneNexusGame game) {
   final turret = TurretComponent(
     gridPoint: const GridPoint(0, 0),
@@ -736,24 +556,6 @@ TurretComponent _levelSevenLightning(RuneNexusGame game) {
     turret.upgradeLevel();
   }
   return turret;
-}
-
-EnemyComponent _enemy(RuneNexusGame game) {
-  return EnemyComponent(
-    definition: gameEnemies[EnemyType.normal]!,
-    maxHp: 10,
-    path: [Vector2.zero(), Vector2(1, 0)],
-    game: game,
-  );
-}
-
-EnemyComponent _boss(RuneNexusGame game) {
-  return EnemyComponent(
-    definition: gameEnemies[EnemyType.boss]!,
-    maxHp: 100,
-    path: [Vector2.zero(), Vector2(1, 0)],
-    game: game,
-  );
 }
 
 class _LinkResearchUnlockedGame extends RuneNexusGame {

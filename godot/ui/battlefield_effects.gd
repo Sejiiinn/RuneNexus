@@ -64,13 +64,13 @@ func apply_frame(frame: Dictionary) -> void:
 		_events.clear()
 		_last_event_id = -1
 		_generation = generation
-	# Clock only advances with Flame's actual component dt. Camera redraws and
+	# Clock only advances with authoritative combat dt. Camera redraws and
 	# repeated bridge frames never advance it, including pause/reward/reconnect.
 	_event_clock = maxf(_event_clock, float(frame.get("clock", _event_clock)))
 	_event_squared = maxf(_event_squared, float(frame.get("squaredSteps", _event_squared)))
 	for event in frame.get("events", []):
 		var id := int(event.get("id", -1))
-		if id <= _last_event_id or event.get("kind") not in ["damage", "death", "gem", "impact", "blast", "coreBeam", "rift", "chain", "charge"]:
+		if id <= _last_event_id or event.get("kind") not in ["damage", "diamond", "death", "gem", "impact", "blast", "coreBeam", "rift", "chain", "charge"]:
 			continue
 		if event.get("kind") == "impact" and event.get("style") not in ["spark", "sniperBlast", "flame", "frost", "lightning", "lightningBlast"]:
 			continue
@@ -146,6 +146,8 @@ func apply_frame(frame: Dictionary) -> void:
 				offset = Vector2(float(event.get("arcDirection", 1)) * 42 * age,
 					-28 * age + 48 / float(event["duration"]) * (age * age + steps))
 			event["screenOffset"] = [offset.x, offset.y]
+		elif event.get("kind") == "diamond":
+			event["screenOffset"] = [0.0, -24.0 * float(event.get("scale", 1.0)) * age]
 		if event.get("kind") == "blast":
 			blast_impacts.append([id, float(event.get("x", 0)), float(event.get("y", 0)),
 				float(event.get("radius", 0)) / maxf(0.001, float(event.get("tileSize", 48))),

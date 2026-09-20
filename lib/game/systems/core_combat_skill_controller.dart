@@ -123,6 +123,31 @@ class CoreCombatSkillController {
     _activationCount = math.max(0, stats.activationCount);
   }
 
+  /// Runtime mirror only; saved games deliberately still store statistics,
+  /// not the transient skill cycle.
+  Map<String, Object?> nativeRuntimeState() => {
+    'cooldown': _cooldown,
+    'guardianBeamActiveRemaining': _guardianBeamActiveRemaining,
+    'guardianBeamTickTimer': _guardianBeamTickTimer,
+    'guardianBeamTickDamage': _guardianBeamTickDamage,
+    'attackSyncRemaining': _attackSyncRemaining,
+    'directDamageDealt': _directDamageDealt,
+    'bonusDamageDealt': _bonusDamageDealt,
+    'activationCount': _activationCount,
+  };
+
+  void applyNativeRuntimeState(Map<String, dynamic> state) {
+    double number(String key) => (state[key] as num?)?.toDouble() ?? 0;
+    _cooldown = number('cooldown');
+    _guardianBeamActiveRemaining = number('guardianBeamActiveRemaining');
+    _guardianBeamTickTimer = number('guardianBeamTickTimer');
+    _guardianBeamTickDamage = number('guardianBeamTickDamage');
+    _attackSyncRemaining = number('attackSyncRemaining');
+    _directDamageDealt = number('directDamageDealt');
+    _bonusDamageDealt = number('bonusDamageDealt');
+    _activationCount = (state['activationCount'] as num?)?.toInt() ?? 0;
+  }
+
   SavedCoreCombatSkillStats statsToSaveData() {
     return SavedCoreCombatSkillStats(
       directDamageDealt: _directDamageDealt,

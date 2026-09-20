@@ -14,7 +14,7 @@
 
 ## 요약
 
-Rune Nexus는 Flutter + Flame 기반의 플레이 가능한 로그라이트 타워 디펜스 MVP
+Rune Nexus는 Flutter + Godot 기반의 플레이 가능한 로그라이트 타워 디펜스 MVP
 단계다. 기본 전투 루프, 젬/링크, 포탑 성장, 포탑 모듈, 런 한정 젬 파편,
 저장/복구, 스테이지 선택/해금, 결과 화면, 룬 기반 영구 업그레이드 기초가 구현되어
 있다.
@@ -106,7 +106,7 @@ Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개�
 ### 앱/화면 구조
 
 - Flutter 앱 진입점과 `MaterialApp` 구성
-- Flame `GameWidget` 기반 게임 화면
+- Flutter `NativeGameHost`와 Android Godot 기반 게임 화면
 - 메인 화면과 인스테이지 화면 분리
 - 메인 화면 탭
   - 스테이지

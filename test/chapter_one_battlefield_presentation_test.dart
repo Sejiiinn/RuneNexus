@@ -52,14 +52,9 @@ void main() {
       final screen = projection.gridToScreen(
         Offset(buildPoint.x + .5, buildPoint.y + .5),
       );
-      final event = TapDownEvent(
-        1,
-        game,
-        TapDownDetails(globalPosition: screen),
-      )..renderingTrace.add(Vector2(screen.dx, screen.dy));
-      game.onTapDown(event);
+      game.onBoardTapDown(Vector2(screen.dx, screen.dy));
       expect(game.snapshotNotifier.value.selectedBuildPoint, buildPoint);
-      expect(game.backgroundColor().a, 0);
+
       await game.saveNow();
       final saved = repository.data!.toJson();
       for (var i = 0; i < 3; i++) {
@@ -79,7 +74,6 @@ void main() {
     // ignore: invalid_use_of_internal_member
     await game.load();
     // ignore: invalid_use_of_internal_member
-    game.mount();
     addTearDown(game.disposeAppResources);
     await game.ready();
     game.debugSetClearedStageCount(5);
@@ -153,7 +147,7 @@ void main() {
       waves: gameStages.last.waves,
     ),
   ]) {
-    test('스테이지 ${stage.id}는 기존 2D 전장을 유지한다', () async {
+    test('미정의 스테이지 ${stage.id}는 native 표시 프레임을 만들지 않는다', () async {
       final game = RuneNexusGame(
         stage: stage,
         saveRepository: MemorySaveRepository(),
@@ -164,7 +158,6 @@ void main() {
       expect(game.readyNotifier.value, isTrue);
       expect(game.supportsNativeBattlefield, isFalse);
       expect(game.battlefieldFrame, isNull);
-      expect(game.backgroundColor().a, 1);
     });
   }
 }

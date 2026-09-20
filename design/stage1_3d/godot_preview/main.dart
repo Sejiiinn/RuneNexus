@@ -1,7 +1,7 @@
+import 'package:rune_nexus/ui/hud/native_game_host.dart';
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show PlatformViewHitTestBehavior;
 import 'package:flutter/scheduler.dart';
@@ -71,7 +71,7 @@ class _GodotPreviewState extends State<GodotPreview>
     if (started || starting || !game.readyNotifier.value) return;
     starting = true;
     game.debugShowCannonBarrage();
-    await game.lifecycleEventsProcessed;
+    await game.ready();
     if (!mounted) return;
     game.pauseEngine();
     setState(() {
@@ -200,7 +200,10 @@ class _GodotPreviewState extends State<GodotPreview>
                 fit: StackFit.expand,
                 children: [
                   IgnorePointer(
-                    child: Opacity(opacity: 0, child: GameWidget(game: game)),
+                    child: Opacity(
+                      opacity: 0,
+                      child: NativeGameHost(game: game),
+                    ),
                   ),
                   // Godot SurfaceView를 실제 Android 계층에 합성.
                   PlatformViewLink(
@@ -266,7 +269,7 @@ class _GodotPreviewState extends State<GodotPreview>
                               : () async {
                                   game.resumeEngine();
                                   game.debugShowCannonBarrage();
-                                  await game.lifecycleEventsProcessed;
+                                  await game.ready();
                                   if (!playing || !foreground) {
                                     game.pauseEngine();
                                   }

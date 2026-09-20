@@ -11,7 +11,7 @@ import 'helpers/widget_test_helpers.dart';
 void main() {
   const channel = MethodChannel('rune_nexus/godot_preview');
 
-  testWidgets('본게임 Godot 투영으로 건설하고 전투·카메라 전환 후 실패 시 2D로 복귀한다', (tester) async {
+  testWidgets('Godot ACK로 전투를 인수하고 투영·카메라·오류 정지와 저장을 유지한다', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -28,8 +28,24 @@ void main() {
     var nativeLevels = false;
     var transitioning = false;
     var failed = false;
+    var holdCombatAck = true;
     var clears = 0;
     final frames = <Map<String, dynamic>>[];
+    final combatPackets = <Map<String, dynamic>>[];
+    final nativeEnemies = <String, Map<String, dynamic>>{};
+    final nativeTurrets = <String, Map<String, dynamic>>{};
+    Map<String, dynamic>? nativeWave;
+    var eventId = 0;
+    void command(Map command) {
+      if (command['kind'] == 'turret') {
+        final row = Map<String, dynamic>.from(command['turret'] as Map);
+        nativeTurrets['${row['id']}'] = row;
+      }
+      if (command['kind'] == 'waveStart') {
+        nativeWave = Map<String, dynamic>.from(command['wave'] as Map);
+      }
+    }
+
     messenger.setMockMethodCallHandler(
       SystemChannels.platform_views,
       (_) async => null,
@@ -37,11 +53,20 @@ void main() {
     messenger.setMockMethodCallHandler(channel, (call) async {
       switch (call.method) {
         case 'beginScene':
+          nativeEnemies.clear();
+          nativeTurrets.clear();
+          nativeWave = null;
+          clears++;
+          return null;
         case 'clearScene':
           clears++;
           return null;
         case 'getStatus':
-          return {'ready': true, 'error': failed ? 'renderer unavailable' : ''};
+          return {
+            'ready': true,
+            'nativeCombatVersion': 1,
+            'error': failed ? 'renderer unavailable' : '',
+          };
         case 'setOptions':
           final options = jsonDecode(call.arguments as String) as Map;
           camera = options['camera'] as String;
@@ -49,6 +74,59 @@ void main() {
           shadowSize = options['shadow_map_size'] as int;
           nativeLevels = options['turret_levels'] == true;
           return null;
+        case 'submitCombat':
+          final envelope = call.arguments as Map;
+          final packet =
+              jsonDecode(envelope['command'] as String) as Map<String, dynamic>;
+          combatPackets.add(packet);
+          if (holdCombatAck) return null;
+          expect(packet['epoch'], envelope['sceneEpoch']);
+          final bootstrap = packet['bootstrap'] as Map?;
+          if (bootstrap != null) {
+            for (final row in bootstrap['turrets'] as List) {
+              nativeTurrets['${row['id']}'] = Map<String, dynamic>.from(
+                row as Map,
+              );
+            }
+            for (final row in bootstrap['enemies'] as List) {
+              nativeEnemies['${row['id']}'] = Map<String, dynamic>.from(
+                row as Map,
+              );
+            }
+            nativeWave = Map<String, dynamic>.from(bootstrap['wave'] as Map);
+          }
+          for (final step in packet['steps'] as List) {
+            for (final item in (step['commands'] as List? ?? [])) {
+              command(item as Map);
+            }
+            for (final item in (step['commandsAfter'] as List? ?? [])) {
+              command(item as Map);
+            }
+          }
+          if (nativeWave?['active'] == true && nativeEnemies.isEmpty) {
+            final queue = nativeWave!['spawnQueue'] as List;
+            if (queue.isNotEmpty) {
+              final enemy = Map<String, dynamic>.from(
+                queue.first['enemy'] as Map,
+              );
+              nativeEnemies['${enemy['id']}'] = enemy;
+              nativeWave = {
+                ...nativeWave!,
+                'spawnQueue': queue.skip(1).toList(),
+              };
+            }
+          }
+          return jsonEncode({
+            'epoch': packet['epoch'],
+            'ackSequence': packet['sequence'],
+            'accepted': true,
+            'enemies': nativeEnemies.values.toList(),
+            'turrets': nativeTurrets.values.toList(),
+            'wave': nativeWave,
+            'events': [
+              if (bootstrap != null) {'id': ++eventId, 'kind': 'bootstrap'},
+            ],
+          });
         case 'submitFrameV2':
           final envelope = call.arguments as Map;
           frames.add(
@@ -82,7 +160,8 @@ void main() {
       messenger.setMockMethodCallHandler(channel, null);
       messenger.setMockMethodCallHandler(SystemChannels.platform_views, null);
     });
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+    final repository = MemorySaveRepository();
+    final game = RuneNexusGame(saveRepository: repository);
     await tester.pumpWidget(
       GraphicsSettingsScope(
         controller: graphics,
@@ -97,6 +176,11 @@ void main() {
     game.startStage(1);
     await pumpGameFrames(tester, frameCount: 40);
     expect(find.byType(GodotBattlefieldView), findsOneWidget);
+    expect(game.nativeCombatActive, isFalse);
+    expect(combatPackets.map((packet) => packet['sequence']).toSet(), {1});
+    holdCombatAck = false;
+    await pumpGameFrames(tester);
+    expect(game.nativeCombatActive, isTrue);
     expect(msaa, 0);
     expect(shadowSize, 512);
     expect(find.text('고정 시점'), findsOneWidget);
@@ -113,7 +197,7 @@ void main() {
       closeTo(viewSize.height * .24, .001),
     );
 
-    // 게임의 투영 결과를 실제 포인터로 입력하여 Flame까지의 경로 검증.
+    // 게임의 투영 결과를 실제 포인터로 입력하여 앱 건설 명령까지의 경로 검증.
     final local = game.battlefieldProjection!.gridToScreen(
       const Offset(2.5, .5),
     );
@@ -128,16 +212,19 @@ void main() {
     game.previewOrBuildSelectedTile(TurretType.arrow);
     await pumpGameFrames(tester);
     expect(frames.last['buildPreview'], isNotNull);
-    expect(frames.last['turrets'], isEmpty);
+    expect(frames.last['turrets'], isNull);
     game.confirmBuildSelectedTile();
     await pumpGameFrames(tester);
-    expect(frames.last['turrets'], hasLength(1));
+    expect(frames.last['turrets'], isNull);
+    expect(nativeTurrets, hasLength(1));
+    expect(game.nativeCombatActive, isTrue);
     expect(frames.last['buildPreview'], isNull);
     final beforeWave = frames.last['time'] as num;
     game.startNextWave();
     await pumpGameFrames(tester, frameCount: 90);
     expect(game.enemies, isNotEmpty);
-    expect(frames.last['enemies'], isNotEmpty);
+    expect(frames.last['enemies'], isNull);
+    expect(nativeEnemies, isNotEmpty);
     expect(frames.last['time'] as num, greaterThan(beforeWave));
 
     transitioning = true;
@@ -164,8 +251,28 @@ void main() {
     await tester.pump();
     expect(game.battlefieldProjection, isNull);
     expect(game.nativeBattlefieldTurretLevels, isFalse);
-    expect(find.text('드론 시점'), findsNothing);
-    expect(game.backgroundColor().a, 1);
+    expect(game.nativeBattlefieldError, isNotNull);
+    expect(find.text('다시 시도'), findsOneWidget);
+    expect(game.nativeCombatActive, isFalse);
+    await game.saveAccountCheckpoint();
+    expect(repository.data!.activeRun!.turrets, hasLength(1));
+    final oldEpoch = combatPackets.last['epoch'];
+    final savedGold = repository.data!.activeRun!.gold;
+    failed = false;
+    await tester.tap(find.text('다시 시도'));
+    await pumpGameFrames(tester, frameCount: 40);
+    final rebound = combatPackets
+        .where((packet) => packet['epoch'] != oldEpoch)
+        .last;
+    final bootstrap = combatPackets.firstWhere(
+      (packet) => packet['epoch'] == rebound['epoch'],
+    );
+    expect(bootstrap['sequence'], 1);
+    expect((bootstrap['bootstrap'] as Map)['turrets'], hasLength(1));
+    expect(game.nativeCombatActive, isTrue);
+    expect(game.nativeBattlefieldError, isNull);
+    expect(game.snapshotNotifier.value.gold, savedGold);
+    expect(nativeTurrets, hasLength(1));
     await tester.pumpWidget(const SizedBox.shrink());
     game.disposeAppResources();
     final sentAtDispose = frames.length;
@@ -175,49 +282,48 @@ void main() {
     expect(tester.takeException(), isNull);
   }, variant: TargetPlatformVariant.only(TargetPlatform.android));
 
-  testWidgets('Godot 채널 없는 Android에서 본게임과 2D 입력을 유지한다', (tester) async {
-    final messenger = tester.binding.defaultBinaryMessenger;
-    messenger.setMockMethodCallHandler(
-      channel,
-      (_) async => throw MissingPluginException(),
-    );
-    addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(body: GameHud(game: game)),
-      ),
-    );
-    await tester.runAsync(
-      () => game.loaded.timeout(const Duration(seconds: 10)),
-    );
-    game.startStage(1);
-    await pumpGameFrames(tester, frameCount: 40);
-    expect(game.battlefieldProjection, isNull);
-    expect(game.nativeBattlefieldTurretLevels, isFalse);
-    expect(find.text('드론 시점'), findsNothing);
-    expect(find.byType(AndroidViewSurface), findsNothing);
-    expect(game.backgroundColor().a, 1);
-    final frame = game.battlefieldFrame!;
-    final screen =
-        frame.screenCenter +
-        Offset(2.5 - frame.map.columns / 2, .5 - frame.map.rows / 2) *
-            (frame.pixelsPerTile * frame.zoom);
-    await tester.tapAt(game.renderBox.localToGlobal(screen));
-    await pumpGameFrames(tester);
-    expect(
-      game.snapshotNotifier.value.selectedBuildPoint,
-      const GridPoint(2, 0),
-    );
-    game.previewOrBuildSelectedTile(TurretType.arrow);
-    game.confirmBuildSelectedTile();
-    await pumpGameFrames(tester);
-    expect(game.battlefieldFrame!.turrets, hasLength(1));
-    await tester.pumpWidget(const SizedBox.shrink());
-    game.disposeAppResources();
-    await tester.pump(const Duration(seconds: 1));
-    expect(tester.takeException(), isNull);
-  }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+  for (final version in <int?>[null, 0, 2]) {
+    testWidgets('사용할 수 없는 Godot 전투 프로토콜 $version은 오류와 저장을 유지한다', (
+      tester,
+    ) async {
+      final messenger = tester.binding.defaultBinaryMessenger;
+      var combatCalls = 0;
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        if (version == null) throw MissingPluginException();
+        if (call.method == 'getStatus') {
+          return {'ready': true, 'nativeCombatVersion': version, 'error': ''};
+        }
+        if (call.method == 'submitCombat') combatCalls++;
+        return null;
+      });
+      addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+      final repository = MemorySaveRepository();
+      final game = RuneNexusGame(saveRepository: repository);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(body: GameHud(game: game)),
+        ),
+      );
+      await tester.runAsync(
+        () => game.loaded.timeout(const Duration(seconds: 10)),
+      );
+      game.startStage(1);
+      await pumpGameFrames(tester, frameCount: 40);
+      expect(game.battlefieldProjection, isNull);
+      expect(game.nativeBattlefieldError, isNotNull);
+      expect(find.text('전장을 불러오지 못했습니다.'), findsOneWidget);
+      expect(find.text('다시 시도'), findsOneWidget);
+      expect(game.nativeCombatActive, isFalse);
+      expect(game.enemies, isEmpty);
+      expect(combatCalls, 0);
+      await game.saveAccountCheckpoint();
+      expect(repository.data, isNotNull);
+      await tester.pumpWidget(const SizedBox.shrink());
+      game.disposeAppResources();
+      await tester.pump(const Duration(seconds: 1));
+      expect(tester.takeException(), isNull);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.android));
+  }
 }
 
 class _GraphicsRepository implements GraphicsSettingsRepository {

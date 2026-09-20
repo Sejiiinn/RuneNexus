@@ -1,3 +1,4 @@
+import 'package:vector_math/vector_math_64.dart' show Vector2;
 import 'dart:async';
 import 'dart:convert';
 
@@ -13,7 +14,7 @@ import 'package:rune_nexus/game/rendering/stage1_3d/battlefield_frame.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
 import 'package:rune_nexus/ui/hud/godot_battlefield_view.dart';
 
-/// Lifecycle tests use an immutable combat snapshot: no loading, rules or clock.
+/// Presentation frames remain immutable; combat uses the normal ACK protocol.
 class _SnapshotGame extends RuneNexusGame {
   _SnapshotGame({this.stage})
     : super(stage: stage, saveRepository: MemorySaveRepository());
@@ -43,6 +44,13 @@ class _SnapshotGame extends RuneNexusGame {
     nexusHit: 0,
     portalAlert: 0,
   );
+}
+
+Future<_SnapshotGame> _snapshotGame({StageDefinition? stage}) async {
+  final game = _SnapshotGame(stage: stage);
+  game.onGameResize(Vector2(300, 300));
+  await game.onLoad();
+  return game;
 }
 
 class _PendingPresentation {
@@ -104,7 +112,19 @@ class _Native {
         clears.add((call.arguments as Map)['sceneEpoch'] as int);
         return null;
       case 'getStatus':
-        return {'ready': true, 'error': statusError};
+        return {'ready': true, 'nativeCombatVersion': 1, 'error': statusError};
+      case 'submitCombat':
+        final envelope = call.arguments as Map;
+        final packet = jsonDecode(envelope['command'] as String) as Map;
+        expect(packet['epoch'], envelope['sceneEpoch']);
+        return jsonEncode({
+          'epoch': packet['epoch'],
+          'ackSequence': packet['sequence'],
+          'accepted': true,
+          'enemies': [],
+          'turrets': [],
+          'events': [],
+        });
       case 'submitFrameV2':
         final envelope = call.arguments as Map;
         frames.add(
@@ -172,7 +192,7 @@ void main() {
 
   testWidgets('맵 ACK 전 재전송과 ACK 후 생략·복구·복귀를 실제 호출 경로로 보존한다', (tester) async {
     final native = _Native(tester);
-    final game = _SnapshotGame();
+    final game = await _snapshotGame();
     await tester.pumpWidget(_host(game));
     await _frames(tester);
     final first = native.pending.single;
@@ -205,7 +225,11 @@ void main() {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await _frames(tester);
     expect(native.frames.last, contains('map'));
-    expect(native.frames.last['sceneEpoch'], isNot(old.frame['sceneEpoch']));
+    expect(native.frames.last['sceneEpoch'], old.frame['sceneEpoch']);
+    expect(
+      native.frames.last['viewportRevision'],
+      greaterThan(old.frame['viewportRevision'] as int),
+    );
     old.result.complete(jsonEncode(applied));
     await tester.pump();
     expect(game.nativeBattlefieldLoading, isTrue);
@@ -214,7 +238,7 @@ void main() {
 
   testWidgets('맵 복구 메타데이터만으로 로딩을 해제하지 않는다', (tester) async {
     final native = _Native(tester);
-    final game = _SnapshotGame();
+    final game = await _snapshotGame();
     await tester.pumpWidget(_host(game));
     await _frames(tester);
     final first = native.pending.single;
@@ -233,7 +257,7 @@ void main() {
     tester,
   ) async {
     final native = _Native(tester);
-    final game = _SnapshotGame();
+    final game = await _snapshotGame();
     await tester.pumpWidget(_host(game));
     await _frames(tester);
     final old = native.pending.single;
@@ -256,7 +280,7 @@ void main() {
 
   testWidgets('엔진 ready 뒤에도 유효한 첫 전장 응답까지 로딩을 유지한다', (tester) async {
     final native = _Native(tester);
-    final game = _SnapshotGame();
+    final game = await _snapshotGame();
     final loading = <bool>[];
     final availability = <bool>[];
     await tester.pumpWidget(
@@ -282,7 +306,7 @@ void main() {
 
   testWidgets('첫 전장 표시 전 초기 오류도 로딩을 해제한다', (tester) async {
     final native = _Native(tester)..statusError = 'renderer unavailable';
-    final game = _SnapshotGame();
+    final game = await _snapshotGame();
     final loading = <bool>[];
     await tester.pumpWidget(_host(game, onLoadingChanged: loading.add));
     await _frames(tester);
@@ -295,7 +319,7 @@ void main() {
 
   testWidgets('제출 응답이 비어 있으면 ACK로 보지 않고 다음 전송을 허용한다', (tester) async {
     final native = _Native(tester);
-    final game = _SnapshotGame();
+    final game = await _snapshotGame();
     await tester.pumpWidget(_host(game));
     await _frames(tester);
     final first = native.pending.single;
@@ -315,7 +339,7 @@ void main() {
 
   testWidgets('같은 적용 sequence의 카메라 투영 변화도 반영한다', (tester) async {
     final native = _Native(tester);
-    final game = _SnapshotGame();
+    final game = await _snapshotGame();
     await tester.pumpWidget(_host(game));
     await _frames(tester);
     final first = native.pending.single;
@@ -331,14 +355,18 @@ void main() {
 
   testWidgets('앱 복귀는 새 전장을 기다리며 복귀 전 지연 응답으로 로딩을 해제하지 않는다', (tester) async {
     final native = _Native(tester);
-    final game = _SnapshotGame();
+    final game = await _snapshotGame();
     await tester.pumpWidget(_host(game));
     await _frames(tester);
     final old = native.pending.single;
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await _frames(tester);
-    expect(game.nativeBattlefieldSceneEpoch, isNot(old.frame['sceneEpoch']));
+    expect(game.nativeBattlefieldSceneEpoch, old.frame['sceneEpoch']);
+    expect(
+      native.frames.last['viewportRevision'],
+      greaterThan(old.frame['viewportRevision'] as int),
+    );
     expect(game.nativeBattlefieldLoading, isTrue);
     old.result.complete(old.response());
     await tester.pump();
@@ -355,7 +383,7 @@ void main() {
 
   testWidgets('30초 넘게 준비해도 로딩을 유지하고 실제 전장 응답 뒤 해제한다', (tester) async {
     final native = _Native(tester);
-    final game = _SnapshotGame();
+    final game = await _snapshotGame();
     final loading = <bool>[];
     await tester.pumpWidget(_host(game, onLoadingChanged: loading.add));
     await _frames(tester);
@@ -375,7 +403,7 @@ void main() {
 
   testWidgets('로딩 중 view 제거는 게임 정지를 해제한다', (tester) async {
     final native = _Native(tester);
-    final game = _SnapshotGame();
+    final game = await _snapshotGame();
     await tester.pumpWidget(_host(game));
     await _frames(tester);
     expect(game.nativeBattlefieldLoading, isTrue);
@@ -385,8 +413,8 @@ void main() {
 
   testWidgets('스테이지 2에서 5로 전환하면 이전 투영을 지우고 새 전장을 기다린다', (tester) async {
     final native = _Native(tester)..hold = false;
-    final previous = _SnapshotGame(stage: gameStages[1]);
-    final current = _SnapshotGame(stage: gameStages[4]);
+    final previous = await _snapshotGame(stage: gameStages[1]);
+    final current = await _snapshotGame(stage: gameStages[4]);
     await tester.pumpWidget(_host(previous));
     await _frames(tester);
     expect(previous.battlefieldProjection, isNotNull);
@@ -422,8 +450,8 @@ void main() {
 
   testWidgets('교체 전 지연 투영은 새 game과 이전 game 어느 쪽에도 적용하지 않는다', (tester) async {
     final native = _Native(tester);
-    final previous = _SnapshotGame();
-    final current = _SnapshotGame();
+    final previous = await _snapshotGame();
+    final current = await _snapshotGame();
     await tester.pumpWidget(_host(previous));
     await _frames(tester);
     expect(native.pending, hasLength(1));
@@ -461,7 +489,7 @@ void main() {
 
   testWidgets('리사이즈 전 반환은 버리고 새 viewport 적용 확인 뒤만 표시한다', (tester) async {
     final native = _Native(tester);
-    final game = _SnapshotGame();
+    final game = await _snapshotGame();
     await tester.pumpWidget(_host(game));
     await _frames(tester);
     final old = native.pending.single;
@@ -486,9 +514,9 @@ void main() {
     await native.finish();
   }, variant: android);
 
-  testWidgets('미지원 표시 그룹은 2D에 남기고 지원 철회도 다음 확인에 반영한다', (tester) async {
+  testWidgets('응답의 지원 표시 그룹만 반영하고 지원 철회도 다음 확인에 반영한다', (tester) async {
     final native = _Native(tester)..hold = false;
-    final game = _SnapshotGame();
+    final game = await _snapshotGame();
     native.groups = ['labels', 'futureUnsupported'];
     await tester.pumpWidget(_host(game));
     await _frames(tester);
@@ -504,17 +532,23 @@ void main() {
 
   testWidgets('같은 game 새 view 소유권 취득 후 이전 view 응답은 투영을 덮지 않는다', (tester) async {
     final native = _Native(tester);
-    final game = _SnapshotGame();
-    Widget host(bool next) => MaterialApp(
+    final game = await _snapshotGame();
+    Widget host(bool next, {bool includeOld = true}) => MaterialApp(
       home: Stack(
         children: [
-          SizedBox(
-            width: 300,
-            height: 300,
-            child: GodotBattlefieldView(key: const ValueKey('old'), game: game),
-          ),
+          if (includeOld)
+            SizedBox(
+              key: const ValueKey('old-container'),
+              width: 300,
+              height: 300,
+              child: GodotBattlefieldView(
+                key: const ValueKey('old'),
+                game: game,
+              ),
+            ),
           if (next)
             SizedBox(
+              key: const ValueKey('new-container'),
               width: 300,
               height: 300,
               child: GodotBattlefieldView(
@@ -529,6 +563,7 @@ void main() {
     await _frames(tester);
     final old = native.pending.single;
     native.hold = false;
+    game.suspendNativeCombat();
     await tester.pumpWidget(host(true));
     await _frames(tester);
     final currentEpoch = game.nativeBattlefieldSceneEpoch;
@@ -538,6 +573,10 @@ void main() {
     await tester.pump();
     expect(game.battlefieldProjection!.origin.dx, closeTo(120, .001));
     expect(game.nativeBattlefieldGroups, {'labels'});
+    await tester.pumpWidget(host(true, includeOld: false));
+    await _frames(tester);
+    expect(game.nativeBattlefieldSceneEpoch, currentEpoch);
+    expect(game.nativeCombatActive, isTrue);
     await native.finish();
   }, variant: android);
 }

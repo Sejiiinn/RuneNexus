@@ -2,6 +2,9 @@ extends RefCounted
 ## Persistent combat authority. Commands, simulation time and events are ACKed once.
 const Enemy = preload("res://combat/native_enemy_state.gd")
 const Stats = preload("res://combat/turret_stat_calculation.gd")
+const Wave = preload("res://combat/native_wave_state.gd")
+const Defense = preload("res://combat/native_core_defense_state.gd")
+const CoreSkill = preload("res://combat/native_core_skill_state.gd")
 const Attack = preload("res://combat/attack_calculation.gd")
 var epoch: int = -1
 var active: bool = false
@@ -16,6 +19,7 @@ var delayed: Array = []
 var events: Array = []
 var visual_effects: Array = []
 var visual_id: int = 1000000000
+var damage_number_index: int = 0
 var event_id: int = 0
 var projectile_id: int = 0
 var clock: float = 0.0
@@ -24,6 +28,12 @@ var origin := Vector2.ZERO
 var tile_size: float = 1.0
 var board_scale: float = 1.0
 var rng := RandomNumberGenerator.new()
+var wave = Wave.new()
+var core = CoreSkill.new()
+var defense = Defense.new()
+var wave_configured: bool = false
+var terminal: bool = false
+var pending_steps: Array = []
 
 func process_command(packet: Dictionary) -> Dictionary:
 	if epoch != packet.get("epoch"):
@@ -43,25 +53,25 @@ func process_command(packet: Dictionary) -> Dictionary:
 	for command in packet.get("commands", []):
 		_command(command)
 	if packet.has("steps"):
-		for step in packet.steps:
-			running = bool(step.get("running", running))
-			for command in step.get("commands", []):
-				_command(command)
-			if float(step.get("dt", 0)) > 0:
-				_step(float(step.dt))
-			for command in step.get("commandsAfter", []):
-				_command(command)
+		pending_steps.append_array(packet.steps.duplicate(true))
 	elif packet.has("dtSteps"):
 		for dt in packet.dtSteps:
-			if float(dt) > 0: _step(float(dt))
+			pending_steps.append({"dt":dt,"running":running})
 	elif float(packet.get("dt", 0)) > 0:
-		_step(float(packet.dt))
+		pending_steps.append({"dt":packet.dt,"running":running})
+	_drain_steps()
 	sequence = int(packet.sequence)
 	return snapshot()
 
 func _reset(packet: Dictionary) -> void:
 	epoch = int(packet.epoch)
 	active = true
+	wave = Wave.new()
+	core = CoreSkill.new()
+	defense = Defense.new()
+	wave_configured = false
+	terminal = false
+	pending_steps.clear()
 	sequence = -1
 	enemies.clear()
 	turrets.clear()
@@ -71,6 +81,7 @@ func _reset(packet: Dictionary) -> void:
 	visual_effects.clear()
 	event_id = 0
 	clock = 0
+	damage_number_index = 0
 	var b: Dictionary = packet.bootstrap
 	rng.seed = int(b.get("seed", 71423))
 	path = _path(b.get("path", []))
@@ -79,8 +90,168 @@ func _reset(packet: Dictionary) -> void:
 	board_scale = b.get("boardDistanceScale", 1.0)
 	for e in b.get("enemies", []):
 		_spawn(e)
+	if b.has("coreConfig"):
+		core.configure(b.coreConfig,b.get("core",b.coreConfig.get("state",{})))
+	if b.has("defense"):
+		defense.configure(b.defense.get("config",{}),b.defense.get("state",{}))
+		core.emergency_charge_used_this_round = defense.emergency_charge_used_this_round
+		terminal = defense.failed
+	if b.has("wave"):
+		_start_wave(b.wave, false)
+	if defense.configured:
+		core.emergency_charge_used_this_round = defense.emergency_charge_used_this_round
 	for t in b.get("turrets", []):
 		_turret(t)
+
+func _start_wave(raw: Dictionary, reset_core: bool) -> void:
+	if defense.configured and defense.failed: return
+	wave_configured = true
+	wave.start(raw)
+	if wave.active:
+		_emit({"kind":"waveStarted","waveId":wave.id})
+	terminal = false
+	if raw.has("coreConfig"):
+		core.configure(raw.coreConfig,raw.get("core",{}))
+	elif raw.has("core"):
+		core.restore_state(raw.core)
+	elif reset_core:
+		core.reset_cycle()
+	if reset_core and defense.configured:
+		defense.reset_round()
+		core.emergency_charge_used_this_round = false
+	_refresh_turret_stats()
+
+func _drain_steps() -> void:
+	if terminal:
+		pending_steps.clear()
+		return
+	while not pending_steps.is_empty() and not terminal:
+		var step: Dictionary = pending_steps.pop_front()
+		for command in step.get("commands",[]): _command(command)
+		running = bool(step.get("running",running)) and not (wave_configured and wave.completed)
+		var dt := float(step.get("dt",0))
+		if dt > 0: _step(dt)
+		if terminal:
+			pending_steps.clear()
+			break
+		for command in step.get("commandsAfter",[]): _command(command)
+
+func _apply_sync(t: Dictionary) -> void:
+	if not core.configured: return
+	var sync: bool = core.attack_sync_remaining > 0
+	t.statInput.corePassiveTurretDamageMultiplier = float(core.config.get("attackSyncDamageMultiplier",1.0)) if sync else 1.0
+	t.statInput.corePassiveTurretAttackRateMultiplier = float(core.config.get("attackSyncAttackRateMultiplier",1.0)) if sync else 1.0
+
+func _refresh_turret_stats() -> void:
+	if not core.configured: return
+	for t in turrets.values():
+		var old_damage: float = t.statInput.corePassiveTurretDamageMultiplier
+		var old_rate: float = t.statInput.corePassiveTurretAttackRateMultiplier
+		_apply_sync(t)
+		if old_damage != float(t.statInput.corePassiveTurretDamageMultiplier) or old_rate != float(t.statInput.corePassiveTurretAttackRateMultiplier):
+			t.stats = Stats.stats_at(t.statInput,int(t.statInput.level))
+
+func _has_core_target() -> bool:
+	for e in enemies.values():
+		if _alive(e): return true
+	return false
+
+func _core_base_damage() -> float:
+	# Core update already decreased sync before reading activation-time DPS.
+	_refresh_turret_stats()
+	var dps := 0.0
+	for t in turrets.values():
+		var stats: Dictionary = t.stats
+		var definition: Dictionary = t.statInput.definition
+		var projectile: bool = not definition.instantHit and not definition.centeredAreaAttack and definition.type != "lightning"
+		var rate: float = stats.attackRate / (1.4 if t.statInput.chainCleanupActive else 1.0) * (1.4 if t.cleanup>0 else 1.0)
+		dps += float(stats.damage)*maxf(0,rate)*(int(stats.projectileCount) if projectile else 1)
+		if "damageOverTime" in definition.attackTags:
+			dps += float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier)
+	return maxf(float(core.config.get("normalMaxHp",0))*float(core.config.get("guardianMinNormalHpRate",0.1)),dps*float(core.config.get("guardianBeamInterval",5))*float(core.config.get("guardianDpsRate",0.08)))
+
+func _boss(e: Dictionary) -> bool:
+	return bool(e.get("isBoss",false)) or e.get("type","") in ["boss","shieldBoss","forgeBoss"]
+
+func _core_beam_tick(tick_damage: float) -> void:
+	var target: Dictionary = {}
+	var progress := -INF
+	for e in enemies.values():
+		if _alive(e) and float(e.distanceTravelled)>progress:
+			target = e
+			progress = float(e.distanceTravelled)
+	if target.is_empty(): return
+	var cap: float = core.config.get("bossHpCapRate",0.025) if _boss(target) else core.config.get("enemyHpCapRate",0.35)
+	cap *= float(target.maxHp)*float(core.config.get("guardianBeamTickInterval",0.1))/float(core.config.get("guardianBeamDuration",1.0))
+	var damage := minf(tick_damage,cap)
+	if damage <= 0: return
+	target.hitFlashTimer = 0.1
+	var result: Dictionary = Enemy.apply_hit(target,{"damage":damage})
+	_collect(result.events)
+	core.direct_damage_dealt += float(result.actualDamage)
+	core.bonus_damage_dealt += float(result.bonusDamage)
+	if float(result.actualDamage)>0:
+		_core_visual("coreBeam",[target],0xff8ee6ff)
+		_core_damage_number(target,float(result.actualDamage))
+
+func _core_rift_mark(power: float) -> void:
+	var candidates: Array = enemies.values().filter(func(e): return _alive(e))
+	candidates.sort_custom(func(a,b):
+		var durability_a := _durability(a)
+		var durability_b := _durability(b)
+		return float(a.distanceTravelled)>float(b.distanceTravelled) if durability_a == durability_b else durability_a>durability_b)
+	candidates = candidates.slice(0,int(core.config.get("riftMarkTargetCount",4)))
+	for target in candidates:
+		var amp: float = core.config.get("riftMarkBossDamageAmplification",0.125) if _boss(target) else core.config.get("riftMarkDamageAmplification",0.25)
+		Enemy.add_rift_mark(target,amp*power,float(core.config.get("riftMarkDuration",5.0)))
+		target.hitFlashTimer = 0.1
+	_core_visual("rift",candidates,0xffcfa7ff)
+
+func _core_visual(kind: String, targets: Array, color: int) -> void:
+	if targets.is_empty(): return
+	visual_id += 1
+	var start := (_vec(path[-1]) - origin)/tile_size if not path.is_empty() else Vector2.ZERO
+	var points: Array = [[start.x,start.y]] if kind == "coreBeam" else []
+	var ids: Array = []
+	for target in targets:
+		var p := (_pos(target)-origin)/tile_size
+		points.append([p.x,p.y])
+		ids.append(target.id)
+	visual_effects.append({"id":visual_id,"kind":kind,"born":clock,"duration":0.14 if kind == "coreBeam" else 0.42,"x":start.x,"y":start.y,"tileSize":tile_size,"scale":board_scale,"color":color,"points":points,"targetIds":ids,"screenOffset":[0,0]})
+
+func _core_damage_number(target: Dictionary, damage: float) -> void:
+	var at := _pos(target)
+	var source := _vec(path[-1]) if not path.is_empty() else origin
+	var direction := source-at
+	if direction.length_squared()>0.001:
+		direction = direction.normalized()
+		at += Vector2(direction.x*14.0,direction.y*6.0-10.0)*board_scale
+	else:
+		at.y -= 10.0*board_scale
+	var angle := -PI*0.82+float(damage_number_index%7)*PI*0.27
+	damage_number_index += 1
+	at += Vector2.from_angle(angle)*8.0*board_scale
+	at = (at-origin)/tile_size
+	visual_id += 1
+	visual_effects.append({"id":visual_id,"kind":"damage","born":clock,"duration":0.75,"x":at.x,"y":at.y,"tileSize":tile_size,"scale":board_scale,"color":0xff8ee6ff,"text":str(roundi(damage)),"feedback":"neutral","motion":"rise","arcDirection":1,"points":[],"screenOffset":[0,0]})
+
+func _nexus_health_number(change: float) -> void:
+	visual_id += 1
+	var at := (_vec(path[-1])-origin)/tile_size if not path.is_empty() else Vector2.ZERO
+	var value := ("+" if change>0 else "-")+String.num(absf(change),1)
+	visual_effects.append({"id":visual_id,"kind":"damage","born":clock,"duration":0.75,"x":at.x,"y":at.y,"tileSize":tile_size,"scale":board_scale,"color":0xff72e0a2 if change>0 else 0xffff7043,"text":value,"feedback":"neutral","motion":"rise","arcDirection":1,"points":[],"screenOffset":[0,0]})
+
+func _check_native_wave_complete() -> void:
+	if terminal: return
+	if wave.finish_if_empty(_has_core_target()):
+		var recovery: float = defense.recover_round()
+		if recovery>0:
+			_nexus_health_number(recovery)
+			_emit({"kind":"coreRecovered","amount":recovery})
+		running = false
+		core.reset_cycle()
+		_refresh_turret_stats()
+		_emit({"kind":"waveCompleted","waveId":wave.id})
 
 func _path(raw: Array) -> Array:
 	var result: Array = []
@@ -104,11 +275,28 @@ func _turret(raw: Dictionary) -> void:
 	var state: Dictionary = t.get("state", {})
 	for key in ["cooldown", "aimProgress", "aimTargetId", "aimAngle", "shotSequence", "directDamageDealt", "splashDamageDealt", "chainDamageDealt", "burnDamageDealt", "cleanup", "recent", "overheatTarget", "overheatStacks", "suppressiveTarget", "suppressiveHits", "lastBaseCooldown", "lightningElapsed", "fireFeedback"]:
 		t[key] = old.get(key, raw.get(key, state.get(key, {} if key == "recent" else 0)))
+	_apply_sync(t)
 	t.stats = Stats.stats_at(t.statInput, int(t.statInput.level))
 	turrets[id] = t
 
 func _command(c: Dictionary) -> void:
 	match c.get("kind", ""):
+		"waveStart":
+			_start_wave(c.wave, true)
+		"coreConfig":
+			core.configure(c.config,c.get("state",{}))
+			_refresh_turret_stats()
+		"resetCoreCycle":
+			core.reset_cycle()
+			_refresh_turret_stats()
+		"emergencyCharge":
+			core.emergency_charge(float(c.get("recoveryRate",0)))
+		"defenseConfig":
+			defense.configure(c.config)
+		"defenseRestore":
+			defense.restore(c.state)
+			core.emergency_charge_used_this_round = defense.emergency_charge_used_this_round
+			terminal = defense.failed
 		"layout":
 			var old_origin := origin
 			var old_tile := tile_size
@@ -128,6 +316,19 @@ func _command(c: Dictionary) -> void:
 				t.position = [p.x,p.y]
 				t.statInput.boardDistanceScale = board_scale
 				t.stats = Stats.stats_at(t.statInput,int(t.statInput.level))
+			for index in range(wave.next_index,wave.queue.size()):
+				var prepared: Dictionary = wave.queue[index].get("enemy",{})
+				if prepared.is_empty(): continue
+				var at := (_pos(prepared)-old_origin)*ratio+origin
+				prepared.x = at.x
+				prepared.y = at.y
+				prepared.position = {"x":at.x,"y":at.y}
+				prepared.path = path.duplicate(true)
+				prepared.boardDistanceScale = board_scale
+				for key in ["collisionRadius","targetingRadius"]:
+					if prepared.has(key): prepared[key] *= ratio
+				if prepared.has("presentationSize"):
+					prepared.presentationSize = [prepared.presentationSize[0]*ratio,prepared.presentationSize[1]*ratio]
 			for p in projectiles:
 				p.position = (p.position-old_origin)*ratio+origin
 				p.origin = (p.origin-old_origin)*ratio+origin
@@ -157,6 +358,11 @@ func _step(dt: float) -> void:
 	for e in enemies.values():
 		if _alive(e):
 			_collect(Enemy.step(e, dt, path))
+			if terminal: return
+	_finish_step(dt)
+
+func _finish_step(dt: float) -> void:
+	if terminal: return
 	for t in turrets.values():
 		_tick_turret(t, dt)
 	var pending := delayed
@@ -171,6 +377,12 @@ func _step(dt: float) -> void:
 	projectiles = []
 	for p in moving:
 		_move_projectile(p, dt)
+	if running:
+		for request in wave.advance(dt):
+			_spawn(request.enemy)
+		core.update(dt, _has_core_target, _core_base_damage, _core_beam_tick, _core_rift_mark)
+		_refresh_turret_stats()
+		_check_native_wave_complete()
 
 func _tick_turret(t: Dictionary, dt: float) -> void:
 	t.cooldown = maxf(0, float(t.cooldown) - dt)
@@ -324,7 +536,7 @@ func _release(d: Dictionary) -> void:
 	if target.is_empty():
 		_lightning_complete(t, a, used)
 		return
-	_visual("chain", from, t, {"points":[[_pos(target).x, _pos(target).y]], "targetIds":[target.id]})
+	_visual("chain", from, t, {"points":[[from.x,from.y],[_pos(target).x, _pos(target).y]], "targetIds":[-1,target.id]})
 	_impact(t, a, target, _pos(target), 1.0 if d.kind == "charge" else float(a.lightningChainDamageMultiplier), d.kind != "charge")
 	excluded.append(str(target.id))
 	if d.kind != "charge":
@@ -423,6 +635,18 @@ func _collect(items: Array) -> void:
 					t.cleanup = 3.0
 		elif type == "coreArrival":
 			event.kind = "arrival"
+			var enemy: Dictionary = enemies.get(str(event.enemyId),{})
+			var result: Dictionary = defense.arrive(enemy,_boss(enemy),core.emergency_charge)
+			event.merge(result,true)
+			if float(result.damage)>0: _nexus_health_number(-float(result.damage))
+			_emit(event)
+			if result.defeated:
+				terminal = true
+				running = false
+				wave.cancel()
+				pending_steps.clear()
+				_emit({"kind":"coreDefeated","enemyId":event.enemyId})
+			continue
 		else:
 			event.effectKind = raw.get("kind", "")
 			event.kind = type
@@ -455,6 +679,8 @@ func _spread_burn(event: Dictionary) -> void:
 	Enemy.add_burn(target, transfer)
 
 func _emit(event: Dictionary) -> void:
+	if core.configured and event.kind == "coreBonusDamage":
+		core.bonus_damage_dealt += float(event.get("damage",0))
 	event_id += 1
 	event.id = event_id
 	events.append(event)
@@ -469,12 +695,15 @@ func snapshot() -> Dictionary:
 		for key in ["cooldown", "aimAngle", "aimProgress", "aimTargetId", "shotSequence", "directDamageDealt", "splashDamageDealt", "chainDamageDealt", "burnDamageDealt"]:
 			state[key] = t[key]
 		turret_states.append(state)
-	return {"accepted": true, "epoch": epoch, "ackSequence": sequence, "enemies": enemy_states, "turrets": turret_states, "events": events.duplicate(true), "clock": clock}
+	var wave_state: Dictionary = wave.snapshot()
+	return {"defense":defense.snapshot(),"wave":wave_state,"core":core.snapshot(),"accepted": true, "epoch": epoch, "ackSequence": sequence, "enemies": enemy_states, "turrets": turret_states, "events": events.duplicate(true), "clock": clock}
 
 func decorate_frame(base: Dictionary) -> Dictionary:
 	if not active:
 		return base
 	var frame := base.duplicate(true)
+	if defense.configured:
+		frame.nexusHpRatio = defense.hp/maxf(0.000001,defense.max_hp)
 	var rows: Array = []
 	var labels: Array = []
 	for e in enemies.values():
@@ -512,6 +741,27 @@ func decorate_frame(base: Dictionary) -> Dictionary:
 		for v in visual_effects:
 			var item: Dictionary = v.duplicate(true)
 			item.age = clock - float(v.born)
+			if item.kind == "damage":
+				item.screenOffset = [0,-34.0*float(item.age)]
+			elif item.kind == "chain":
+				var linked: Dictionary = enemies.get(str(item.targetIds[-1]),{})
+				if not linked.is_empty() and _alive(linked):
+					var end := (_pos(linked)-origin)/tile_size
+					item.points[-1] = [end.x,end.y]
+					v.points[-1] = [end.x,end.y]
+			elif item.kind == "coreBeam":
+				var linked: Dictionary = enemies.get(str(item.targetIds[0]),{})
+				if not linked.is_empty() and _alive(linked):
+					var end := (_pos(linked)-origin)/tile_size
+					item.points[1] = [end.x,end.y]
+					v.points[1] = [end.x,end.y]
+			elif item.kind == "rift":
+				item.points = []
+				for id in item.targetIds:
+					var linked: Dictionary = enemies.get(str(id),{})
+					if not linked.is_empty() and _alive(linked):
+						var end := (_pos(linked)-origin)/tile_size
+						item.points.append([end.x,end.y])
 			items.append(item)
 		effects.items = items
 	return frame

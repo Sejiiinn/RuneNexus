@@ -1,14 +1,14 @@
 # 스테이지 1~15 3D 전장
 
-역할: Android 본게임 스테이지 1~15 Godot 연결과 공용 검수 경로의 실행·구조·검증 범위. 갱신: 2026-09-13. 배포는 별도다.
+역할: Android 본게임 스테이지 1~15 Godot 연결과 공용 검수 경로의 실행·구조·검증 범위. 갱신: 2026-09-20. 배포는 별도다.
 
 ## 본게임 진입과 공용 런타임
 
-2026-09-20: 본게임의 Android 3D 전투는 초기 상태 인수 응답 뒤 Godot의 적·포탑·탄환 런타임을 사용한다. 기존 표시 전용 경로와 달리 Flame의 대응 전투 갱신과 매 프레임 좌표 전송을 중지한다. 웨이브·앱 UI·경제는 기존 경로를 유지한다. 아래의 Flame 판정·표시 오류 복귀 설명은 전투 인수 전 및 기존 2D 경로에 한정하며, 인수 후 전송 오류에서는 중복 판정을 막기 위해 전투를 정지한다. [현행 전투 책임·검증](godot_combat_migration_boundaries.md#세-번째-묶음--android-3d-실제-전투-소유권)을 참고한다.
+2026-09-20: Android 본게임 스테이지 1~15는 초기 상태의 실제 ACK 뒤 Godot이 적 이동·포탑·탄환·피해·웨이브 생성과 완료·코어 스킬·코어 HP와 방어·패배를 처리한다. Flutter는 정적 전투 설정·성장·경제·보상·저장·HUD를 담당한다. Flame 의존성과 2D 전투·표시 컴포넌트는 제거했다. 연결 오류에서는 전투를 정지하고 재시도하며 2D 전투로 복귀하지 않는다. [현행 전투 책임·검증](godot_combat_migration_boundaries.md)을 참고한다. Android 이외 플랫폼의 Godot 연결은 미완료이며 지원 범위에 대한 사용자 결정이 남아 있다. 이는 해당 플랫폼의 지원 종료 승인이나 전체 이관 완료를 뜻하지 않는다.
 
 스테이지 11~15는 `chapterThreeForge` 테마의 [승인된 두꺼운 금속 타일](../design/chapter3_3d/tiles/README.md)을 사용한다. 주조 철판·열 배출 격자·건설 기반을 기존 맵 좌표에 배치하며, 포탈·코어 아래는 철판을 유지한다. 외곽에는 승인된 엘보 파이프·측면 연결관·배기구를 드문드문 부착하며 이동·설치 상면을 비운다.  [스테이지 11 이관 및 검수](../design/chapter3_3d/stage11/README.md), [스테이지 12 적용·검수](../design/chapter3_3d/stage12/README.md), [스테이지 13 적용·검수](../design/chapter3_3d/stage13/README.md), [스테이지 14·15 적용·검수](../design/chapter3_3d/stages14_15/README.md).
 
-Android 본게임은 기존 `lib/main.dart → RuneNexusApp → GameHud` 진입을 유지하며 **스테이지 1~15에서 Godot 전장을 기본 사용**한다. 진입 시 기존 공용 로딩 화면에 ‘3D 전장 준비 중’과 청록빛 진행 표시를 노출한다. 엔진 준비 신호만으로 화면을 열지 않고 현재 장면·화면 크기에 맞는 실제 전장 적용 응답을 받을 때까지 2D 전장과 HUD를 가리며 전투 시간·자동 웨이브·입력을 멈춘다. 카메라 버튼은 실제 전장이 준비된 뒤 기존 전투 HUD에 나타난다. 백그라운드 복귀 시에도 새 장면 응답까지 로딩을 표시한다. 스테이지 16 이후와 Android 이외 플랫폼은 기존 2D 전장을 사용한다. 로그인·스테이지 선택·웨이브·건설·보상·저장 흐름은 기존 게임이 담당한다.
+Android 본게임은 기존 `lib/main.dart → RuneNexusApp → GameHud` 진입을 유지하며 **스테이지 1~15에서 Godot 전장을 사용**한다. 진입 시 기존 공용 로딩 화면에 ‘3D 전장 준비 중’과 청록빛 진행 표시를 노출한다. 엔진 준비 신호만으로 화면을 열지 않고 현재 장면·화면 크기에 맞는 실제 전장 적용 응답과 전투 프로토콜 1의 초기 ACK를 받을 때까지 전장과 HUD를 가리며 전투 시간·자동 웨이브·입력을 멈춘다. 카메라 버튼은 실제 전장이 준비된 뒤 기존 전투 HUD에 나타난다. 백그라운드 복귀 시에도 새 장면 응답까지 로딩을 표시한다. 현재 콘텐츠는 스테이지 1~15이며 16 이후의 별도 2D 콘텐츠·전환 경로는 없다. 로그인·스테이지 선택·건설 설정·보상·저장은 Flutter가, 실제 웨이브 진행과 전투는 Godot이 담당한다.
 
 스테이지 2~5는 각 실제 맵의 크기와 타일 배열로 공용 `path_tile`·`build_tile`을 배치하고 포탈·코어에 같은 공용 모델을 사용한다. 1장 전체 웨이브는 기존 3D 적 6종으로 표시한다. 2~5의 풀·고사리·이끼 바위·꽃·덩굴은 맵별 `dressing_stage2.glb`~`dressing_stage5.glb`로 배치하며 같은 바람·점유·그림자 계약을 따른다. [원본·배치 규격](../design/chapter1_3d/environment/README.md). 스테이지 1 전용 전체 환경은 맵 배열까지 일치할 때만 사용한다. 스테이지 전환 시 이전 투영·표시 그룹·효과를 즉시 비우고 새 장면 세대의 응답을 기다린다. [2~5 실제 화면·검사 기록](../design/chapter1_3d/README.md).
 
@@ -18,21 +18,21 @@ Android 본게임은 기존 `lib/main.dart → RuneNexusApp → GameHud` 진입�
 
 본게임과 [별도 Godot 검수 앱](../design/stage1_3d/godot_preview/README.md)은 `godot/`의 카메라·지형·모델·효과와 공통 프레임 직렬화를 공유한다. 검수 앱의 대포 6문·정지 표적 3기 배치는 검수 앱에만 있다. 본게임은 실제 선택한 스테이지와 포탑·적 상태를 전달하며 시험 배치를 만들지 않는다. 검수 앱은 별도 패키지와 메모리 저장소를 유지한다.
 
-`GameHud` 아래의 `GodotBattlefieldView`가 Flutter/Flame의 `BattlefieldFrame`을 전달한다. Godot은 모델과 함께 `labels`(내구도·상태·코어 쿨다운), `selection`(범위·선택·보상 대상), `effects`(피해/획득 수치·보조 전투 효과)를 현재 카메라로 표시한다. Flutter는 반환된 같은 투영을 건설·선택 입력과 보상 패널 위치에 사용한다. 세 묶음은 실제 적용 응답을 받은 경우에만 대응하는 Flame 그림을 생략하며, 지원되지 않거나 철회된 묶음은 기존 그림을 유지한다. 고정↔드론 버튼은 전장 중심을 바라보는 0.7초 cubic ease-out 전환이며, 연속 입력은 현재 위치에서 이어진다. 전투 정지·배속과 독립적으로 움직인다. 포탑 레벨은 기존 Flutter 배지 그림을 재사용해 Godot이 고정 받침의 하단에 화면 정면으로 그린다. 렌더 직전 카메라로 위치를 갱신하여 시점 전환 중에도 포탑과 같은 프레임에 움직인다. Godot이 레벨 표시 기능을 알린 경우에만 Flutter의 중복 배지를 숨기며, 실패·화면 종료 시 기존 표시로 복귀한다. [배지 원본·재생성](../design/stage1_3d/turret_level_labels/README.md).
+`GameHud` 아래의 `NativeGameHost`는 배치·터치·화면 경고를, `GodotBattlefieldView`는 Flutter의 `BattlefieldFrame`과 Android 장면 연결을 담당한다. Godot은 실제 전투 상태에서 모델·내구도·상태·코어 쿨다운과 전투 효과를 생성한다. Flutter는 선택·건설·보상 대상 DTO와 앱 생성 효과를 전달하고 반환된 투영을 입력과 보상 패널 위치에 사용한다. 고정↔드론 버튼은 전장 중심을 바라보는 0.7초 cubic ease-out 전환이며, 연속 입력은 현재 위치에서 이어진다. 전투 정지·배속과 독립적으로 움직인다. 포탑 레벨은 공용 배지 원본을 사용해 Godot이 고정 받침의 하단에 화면 정면으로 그린다. 렌더 직전 카메라로 위치를 갱신하여 시점 전환 중에도 포탑과 같은 프레임에 움직인다. Flame의 중복 그림이나 오류 복귀용 표시 경로는 없다. [배지 원본·재생성](../design/stage1_3d/turret_level_labels/README.md).
 
 맵의 `theme`은 `MapDefinition.tileTheme.kind.name`을 전달한다. `chapterOne`과 `chapterTwoRift`를 구분하며, 필드가 없는 기존 입력은 1장으로 처리한다. 표시 프레임에만 추가되는 값이며 저장 형식은 변경하지 않는다.
 
-대포 blast 이외의 착탄 효과도 별도 지원 확인 뒤 Godot 생성 이벤트로 전달한다. 기존 화염·냉기 3D 표현과 2D 착탄 억제는 유지한다. [착탄 수명 이관·검증](../design/stage1_3d/presentation_migration/impact_lifecycle/README.md).
+착탄 효과는 Godot 전투 런타임의 명중에서 생성한다. 화염·냉기의 승인된 3D 표현은 유지하며 기존 2D 착탄 도형은 생성하지 않는다. 이전 표시 이벤트 이관 과정은 [착탄 수명 이관·검증](../design/stage1_3d/presentation_migration/impact_lifecycle/README.md)에 남긴다.
 
-대포 폭발은 별도 `nativeBlastEffectEvents` 지원 확인 후 생성 이벤트로 전달하고 공용 전투 시계로 진행한다. 기존 3D 파편·체적 효과·광원·풀은 유지한다. [검증 기록](../design/stage1_3d/presentation_migration/blast_lifecycle/README.md).
+대포 폭발은 Godot 전투 런타임에서 생성하고 전투 시계로 진행한다. 기존 3D 파편·체적 효과·광원·풀은 유지한다. 이전 표시 이벤트 이관 과정은 [검증 기록](../design/stage1_3d/presentation_migration/blast_lifecycle/README.md)에 남긴다.
 
-공통 탄환은 `nativeProjectileEvents` 지원 확인 뒤 발사·종료 이벤트로 전달하고 Godot이 공용 전투 시계로 비행 표시를 갱신한다. 매 프레임 탄환 좌표 스냅샷 생성을 생략하며 충돌·피해·체인 판정은 Flame에 남는다. 3D에서 사용하지 않는 Flame 잔상 갱신도 생략하고, 2D에서는 유지한다. 저격·냉기의 일반 탄환 노드도 메시·재질 공유를 유지하며 재사용한다. [이벤트·재사용 검증](../design/stage1_3d/presentation_migration/projectile_lifecycle/README.md).
+공통 탄환의 발사·이동·충돌·피해·연쇄 판정과 비행 표시는 Godot이 담당한다. Flutter에서 매 프레임 탄환 좌표를 전송하거나 Flame 잔상을 갱신하지 않는다. 저격·냉기 표시의 메시·재질 공유와 노드 재사용은 유지한다. 표시 전용 단계의 [이벤트·재사용 검증](../design/stage1_3d/presentation_migration/projectile_lifecycle/README.md)은 당시 판정 책임과 구분한다.
 
 정적 맵은 `mapRevision`의 실제 적용 확인 뒤 반복 전송을 생략한다. 맵 변경·새 장면·캐시 복구 때 전체 맵을 다시 전달하며 기존 전체 맵 입력도 지원한다. [전송 최적화 측정·검증](../design/stage1_3d/presentation_migration/map_transport/README.md).
 
-표시 계약 버전 2의 `sceneEpoch`·`viewportRevision`·크기·적용 sequence로 지연 응답과 이전 화면의 투영을 거절한다. viewport 크기는 Godot JSON 소수 반올림 오차 `1e-6` 미만만 허용한다. 짧은 효과는 생성 시 등록하고 최신 age를 유지하는 최대 256개 큐로 전달한다. 종료 효과는 적용 sequence 확인 또는 최대 2초 뒤 제거하며, 전투 판정이나 보상을 다시 실행하지 않는다. 코어 파괴 흔들림은 Godot world 변환으로 이관하고 라벨·선택도 같은 변환을 따른다. Flutter HUD·화면 피격 경고·전투/저장 로직은 유지한다. [현행 책임·구현과 남은 검증](godot_presentation_migration_plan.md)을 참고한다. 피해 숫자·사망 파편·젬 장착은 후속 생성 이벤트 경로에서 Godot이 수명을 관리하며 해당 Flame 컴포넌트 등록과 반복 진행도 전송을 생략한다. 지원 확인 전과 2D 오류 복귀는 기존 경로를 유지한다. [이관 검증](../design/stage1_3d/presentation_migration/native_lifecycle/README.md).
+표시 계약 버전 2의 `sceneEpoch`·`viewportRevision`·크기·적용 sequence로 지연 응답과 이전 화면의 투영을 거절한다. viewport 크기는 Godot JSON 소수 반올림 오차 `1e-6` 미만만 허용한다. Flutter가 생성하는 다이아 획득·젬 장착·안내 효과는 유한 큐로 전달하고 실제 적용 sequence를 확인한 뒤 반복 전송을 끝낸다. 전투의 피해 숫자·사망·코어 효과는 Godot 내부에서 생성한다. 코어 파괴 흔들림은 Godot world 변환으로 처리하고 라벨·선택도 같은 변환을 따른다. Flutter HUD·화면 피격 경고·저장은 유지한다. [현행 책임·구현과 남은 검증](godot_presentation_migration_plan.md)을 참고한다. [이전 생성 이벤트 이관 검증](../design/stage1_3d/presentation_migration/native_lifecycle/README.md)의 Flame 컴포넌트·2D 오류 복귀 설명은 현재 경로가 아니다.
 
-엔진은 전장을 처음 붙일 때 초기화하고, 화면 이탈·백그라운드에서는 정지하며 재진입 시 재사용한다. 장면 초기화 요청은 최신 프레임에 덮이지 않고 먼저 처리된다. 렌더러 초기화·실행 오류 시 로딩과 투영을 해제해 기존 2D 전장과 입력으로 복귀한다.
+엔진은 전장을 처음 붙일 때 초기화하고, 화면 이탈·백그라운드에서는 정지하며 재진입 시 재사용한다. 장면 초기화 요청은 최신 프레임에 덮이지 않고 먼저 처리된다. 렌더러 초기화·실행 오류에서는 전투를 정지하고 오류와 재시도/메인 화면을 표시한다. 재시도는 마지막 확정 상태로 새 epoch를 시작하며 실패한 장면의 투영을 입력에 사용하지 않는다.
 
 ## Android 빌드와 검수
 
@@ -49,7 +49,7 @@ WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter build apk --release --no-
 
 로그인·저장 동작이 있는 본게임 검수는 실제 앱 진입에서 수행한다. 영상·성능 검수는 Android APK로 진행하며 웹 렌더·브라우저 검수를 사용하지 않는다. 디버그 패널이 필요한 로컬 검수에만 `RUNE_NEXUS_DEBUG_PANEL=true`를 추가하며 일반 빌드·배포에서는 사용하지 않는다. 빌드 성공은 배포 승인을 의미하지 않는다.
 
-이전 `?stage1_3d=1` 분기와 ThreeJS 검수 앱은 제거했다. 해당 URL도 일반 앱으로 진입한다. 과거 렌더러·테스트 소스는 [보관 기록](../design/legacy_threejs/README.md)의 실행되지 않는 텍스트로 보존한다. Android 스테이지 1~15는 Godot을 사용하며 다른 플랫폼·스테이지의 Flame 2D 경로는 유지한다.
+이전 `?stage1_3d=1` 분기와 ThreeJS 검수 앱은 제거했다. 해당 URL도 일반 앱으로 진입한다. 과거 렌더러·테스트 소스는 [보관 기록](../design/legacy_threejs/README.md)의 실행되지 않는 텍스트로 보존한다. Android 스테이지 1~15는 Godot을 사용하며 Flame 2D 경로는 제거했다. 다른 플랫폼의 전투 연결은 아직 완료되지 않았다.
 
 ## 구현과 시각 기준
 
@@ -58,11 +58,11 @@ WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter build apk --release --no-
 현재 스테이지 1은 [표면·조명·효과 설계](stage1_surface_effects.md)를 따른다. 상면 색·노멀·형태를 보존하고 측면 UV를 복구했으며 전체맵 ORM에 cavity·실제 지형의 근거리 차폐·소재별 거칠기를 연결했다. 밝은 윗면을 유지하면서 주광 방향과 환경광·보조광을 조절해 측면과 접촉 그림자를 분리한다. 대포·기관총 체적 효과는 실제 장면 깊이와 HUD 카메라 오프셋을 반영한다. [제작·실제 검수 기록](../design/stage1_3d/surface_effects/README.md)을 따른다.
 
 
-- 기존 Flame 전투 갱신·피해 계산·웨이브·Flutter HUD를 유지한다. Godot은 기존 Blender GLB의 포탑 6종·스테이지 1 적 6종과 지형·탄환·건설 미리보기·입체 착탄을 표시한다. 아래 재질·효과 설명에는 제작 기준과 이전 ThreeJS 검수 기록이 포함된다. Godot의 방향광·환경광은 이전 ThreeJS 면광원/AgX와 픽셀 단위로 같지 않다.
-- `BattlefieldFrame`은 타일 단위 위치와 조준·피격·상태를 전달하고 `BattlefieldProjection`은 Flutter 타일 입력과 보상 패널을 실제 Godot 직교 투영에 맞춘다. Godot 라벨·선택·효과는 현재 네이티브 카메라를 직접 사용한다.
-- 포탑·적·탄환·건설 미리보기는 3D로 표시한다. 체력·장갑·보호막·피해 숫자와 상태 효과는 기존 의미·색·공용 원본을 보존하는 Godot 표시 모듈로 이관했다. Flame 그림은 미지원·오류 복귀용으로 유지한다.
+- Godot이 기존 전투 수치와 저장 계약에 맞춰 실제 전투를 처리하고 Flutter는 설정·경제·보상·저장·HUD를 담당한다. Godot은 기존 Blender GLB의 포탑 6종·스테이지 1 적 6종과 지형·탄환·건설 미리보기·입체 착탄을 표시한다. 아래 재질·효과 설명에는 제작 기준과 이전 ThreeJS 검수 기록이 포함된다. Godot의 방향광·환경광은 이전 ThreeJS 면광원/AgX와 픽셀 단위로 같지 않다.
+- `BattlefieldFrame`은 맵·앱 선택·설정·앱 생성 효과를 전달하고 `BattlefieldProjection`은 Flutter 타일 입력과 보상 패널을 실제 Godot 직교 투영에 맞춘다. 실제 전투 개체의 반복 좌표 전송은 하지 않으며 Godot 라벨·선택·효과는 현재 네이티브 카메라를 직접 사용한다.
+- 포탑·적·탄환·건설 미리보기는 3D로 표시한다. 체력·장갑·보호막·피해 숫자와 상태 효과는 기존 의미·색·공용 원본을 보존하는 Godot 표시 모듈로 이관했다. Flame 미지원·오류 복귀용 그림은 제거했다.
 - Godot 기관총은 실제 비행 원점과 발사 순번으로 총구에 연결된 탄체·입체 예광을 표시한다. 대포는 [승인 둥근 철구](../design/stage1_3d/projectiles/README.md)의 불투명 검은 금속 GLB와 뒤쪽의 짧은 화염·회색 체적 연기를 사용한다. 꼬리는 몸체 지름 이내로 제한하고 긴 예광은 제거한다. 실제 비행·명중 좌표를 유지하며, 명중 즉시 몸체를 숨기고 짧은 잔여 효과만 140ms 동안 소멸한다. 기존 기관총 경로와 전투 판정·저장 데이터는 유지한다. 기관총은 [투사체 가독성 기준](../design/stage1_3d/projectile_visibility/README.md), 대포 원본·내보내기·최종 검증 기록은 [철구 제작 안내](../design/stage1_3d/projectiles/README.md)를 따른다.
-- 스테이지 1 지형은 승인된 Blender 원본의 흙기단·석판·외곽 바위·이끼·풀·뿌리를 재질별 7메시로 병합한 전체 환경을 사용한다. 1장 테마이면서 GLB의 맵 크기·타일 배열과 실제 맵이 일치할 때만 적용하며, 다른 맵은 해당 장의 단위 타일을 사용한다. 전체 환경의 길·건설칸은 원본 UV·월드 위치·이끼 변화를 평가한 스테이지 전용 2048² atlas를 사용하여 같은 무늬의 반복을 피한다. 기관총은 현행 2D 본체·탄창의 입체화, 대포는 채도를 낮춘 주황 무광, 냉각은 비대칭 얼음 결정이 기준이다.
+- 스테이지 1 지형은 승인된 Blender 원본의 흙기단·석판·외곽 바위·이끼·풀·뿌리를 재질별 7메시로 병합한 전체 환경을 사용한다. 1장 테마이면서 GLB의 맵 크기·타일 배열과 실제 맵이 일치할 때만 적용하며, 다른 맵은 해당 장의 단위 타일을 사용한다. 전체 환경의 길·건설칸은 원본 UV·월드 위치·이끼 변화를 평가한 스테이지 전용 2048² atlas를 사용하여 같은 무늬의 반복을 피한다. 기관총은 기존 2D 원본 본체·탄창의 입체화, 대포는 채도를 낮춘 주황 무광, 냉각은 비대칭 얼음 결정이 기준이다.
 - 화염 포탑은 [승인 룬 포탑 이관](../design/fire_tower_concepts/runic_3d/migration/README.md)의 원본 메시·구운 기본 PBR을 사용한다. 상부 불꽃·화구·화염 발사체·잔불은 Godot 기본 입체 메시 재질·GPU 파티클로 전투 시계에 맞춰 재생한다.
 - 포탈·코어는 A안의 독립 `environment/landmarks.glb`를 사용한다. 지면·식생 없이 타일 중심에 배치하고 메시·재질을 공유한다. 보라 소용돌이는 오목한 메시의 불투명 공유 셰이더, 코어는 받침을 고정한 채 길쭉한 청록 결정만 부유·회전한다. 내부의 별도 불투명 물체 없이 승인한 Blender 형태와 재질 값을 사용하는 단일 청록 크리스탈에 공용 환경 반사·광원 하이라이트를 적용한다. 화면 굴절·알파 혼합은 사용하지 않는다. 파란 테두리나 모서리 전용 발광은 사용하지 않는다. 128px 공용 하늘 반사를 사용하고 석재·금속도 같은 환경을 수신한다. 코어 전용 반사 프로브는 제거했다. 전투 정지·배속을 따른다. [원본·규격·검수](../design/stage1_3d/portal_core_concepts/README.md)를 따른다.
 - 기본 전장은 비스듬한 직교 시점과 전장 전체 맞춤을 사용한다. `Stage1CameraView.drone`은 같은 3D 전장을 위에서 내려다보며, 시점 변경 때 경계·맞춤 배율과 입력 투영을 함께 갱신한다. 원본 위치·면적의 RectAreaLight 세 개로 위치별 석재 반사를 계산한다. PMREM은 낮은 하늘 반사에만 쓰며, AgX 중간 명도 대비와 지형 그림자를 함께 적용한다. 복제된 실제 인스턴스에 명암 처리와 면광원 방향 행렬 보정을 연결한다. Blender 시안과 웹 렌더러의 광원 계산은 동일하지 않다.
@@ -87,13 +87,13 @@ WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter build apk --release --no-
 
 2026-09-11 일반 `lib/main.dart` release APK를 Android 17 ARM64 에뮬레이터에서 실행해 로비→스테이지 1 진입, 기존 HUD, 기관총·대포의 실제 비용 설치, 건설 위치·범위, 웨이브 진행, 감속 시점 전환, 메인화면에서 이어서 진행, 백그라운드 복귀를 확인했다. [본게임 영상과 검증 기록](../design/stage1_3d/main_runtime/README.md)은 별도 검수 앱의 영상과 구분한다. Flutter 분석과 전체 테스트 758개가 통과했고 11개는 기존 조건에 따라 생략했다. 공용 Godot의 카메라·모델·입력 투영·장면 초기화 검사도 통과했다.
 
-제품 성능과 시각 검수는 모바일 네이티브를 기준으로 하며 APK로 전달한다. 기존 웹 측정과 캡처는 과거 개발 검수 기록이다. 2026-09-13 과거 ThreeJS 경로만 제거했으며 일반 웹 앱의 2D 전장은 유지한다.
+제품 성능과 시각 검수는 모바일 네이티브를 기준으로 하며 APK로 전달한다. 기존 웹 측정과 캡처는 과거 개발 검수 기록이다. 2026-09-13에는 ThreeJS 경로만 제거했으나, 2026-09-20 변경에서는 Flame 의존성과 2D 전장도 제거했다. 웹·iOS·PC의 Godot 연결과 지원 범위 결정은 남아 있으며 지원 포기를 승인받은 상태가 아니다.
 
 모바일 성능 완료 조건은 기준 실기기의 profile/release 빌드에서 실제 전투 4배속·여러 포탑 동시 착탄·지속 전투를 측정하는 것이다. 평균 FPS 외에 프레임 시간 상위 95/99백분위, 순간 지연, 메모리와 발열 후 저하를 함께 확인한다. 목표는 60fps(프레임 예산 약 16.7ms)이며, 지원 하한 기종과 실측 결과는 아직 확정되지 않았다. 현재 밀도·발광·열도 캐시를 공유하지만 폭발별 광선 적분과 투명 중첩 비용은 남아 있으므로 다중 착탄 성능을 통과했다고 간주하지 않는다.
 
-4배속은 생성 주기와 `ImpactEffectComponent` 수명 모두에 같은 시간 배율을 적용한다. 같은 전투 조건에서 평균 동시 개수가 단순히 네 배가 되는 구조는 아니지만, 동시 발사·다중 탄환이 집중되는 순간과 프레임당 전투 처리량은 별도 확인해야 한다.
+4배속은 Godot 전투의 생성 주기와 전투 효과 시계에 같은 시간 배율을 적용한다. 같은 전투 조건에서 평균 동시 개수가 단순히 네 배가 되는 구조는 아니지만, 동시 발사·다중 탄환이 집중되는 순간과 프레임당 전투 처리량은 별도 확인해야 한다.
 
-Godot 표시 범위는 Android 스테이지 1~15이며, 스테이지 16 이후는 기존 2D 전장이다. 저장 형식과 전투 수치는 변경하지 않는다. 일반 APK와 검수 APK 모두 공식 Godot AAR·공통 PCK·JNI 보존 규칙을 사용하고 Flutter가 선택한 ABI를 유지한다. 모바일 실기기의 지속 전투·메모리·발열·배포 호환성 검증은 별도로 수행한다.
+현재 Android Godot 연결 대상은 실제 콘텐츠인 스테이지 1~15다. 스테이지 16 이후의 2D 전장은 없으며 다른 플랫폼의 대체 전투 연결은 미완료다. 저장 형식과 전투 수치 계약은 유지한다. 일반 APK와 검수 APK 모두 공식 Godot AAR·공통 PCK·JNI 보존 규칙을 사용하고 Flutter가 선택한 ABI를 유지한다. 모바일 실기기의 지속 전투·메모리·발열·배포 호환성 검증은 별도로 수행한다.
 
 현행 자동 검증은 Godot 프레임 계약·브리지, 표시 입력의 저장 불변성·타일 클릭 역변환, 기존 카메라와 보상 선택 및 적 표시를 포함한다. 표시 통합은 추가로 세 묶음의 DTO·적용 확인·소수 viewport·수명/리셋, 짧은 효과 큐·단일 tick 생성/종료, Godot 라벨·선택·효과 및 보상 dim의 실제 픽셀 클립을 검사한다. ThreeJS 카메라·발사 효과·수명 테스트는 렌더러와 함께 보관했으며 현재 테스트 대상이 아니다. 최초 연결 검수는 `design/stage1_3d/runtime/`, 그래픽 마감과 대포 발사 영상은 `design/stage1_3d/polish_runtime/`, 기관총 이펙트 가독성 수정은 `design/stage1_3d/machinegun_visibility/`에 기록한다. 원본 전체 환경과 반사광 연결 검수는 `design/stage1_3d/material_match/`, 포탄 폭발의 현재 시안은 `design/stage1_3d/cannon_impact/shell_concepts/04-fragmentation-with-fire.png`이며 두 시점의 실제 렌더 검수는 `design/stage1_3d/cannon_impact/shell_runtime/`에 기록한다. `v2/runtime/`는 교체 전 화염구의 기록이다. Blender 시안과 실제 웹 실행 캡처는 구분한다.
 
@@ -101,4 +101,4 @@ Godot 표시 범위는 Android 스테이지 1~15이며, 스테이지 16 이후�
 
 ### 3D 전장의 화염·냉각 명중 표시
 
-Godot 3D 전장에서는 기존 2D `flame`·`frost` 명중 도형을 생성하지 않는다. 효과 수신 확인은 유지하며, Flutter의 3D 렌더 분기에서도 두 스타일을 제외해 수신 확인 전이나 초기화 중에도 다시 그리지 않게 한다. 포탑의 3D 효과와 적 본체에 붙는 화상·냉각, 피해·지속시간 판정은 유지하며 기존 2D 전장에는 이 생략을 적용하지 않는다. 배경: [명중 도형 재생성 병목 조사](../design/fire_tower_concepts/enemy_burn/integration/performance/render-path-followup.md).
+Godot 3D 전장에서는 기존 2D `flame`·`frost` 명중 도형을 생성하지 않는다. 포탑의 3D 효과와 적 본체에 붙는 화상·냉각 표현을 사용하며 피해·지속시간 판정은 Godot 전투 런타임이 처리한다. Flutter의 2D 렌더 분기와 Flame 명중 컴포넌트는 제거했다. 당시 중복 도형 억제 배경은 [명중 도형 재생성 병목 조사](../design/fire_tower_concepts/enemy_burn/integration/performance/render-path-followup.md)에 남긴다.

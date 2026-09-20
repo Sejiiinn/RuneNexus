@@ -1,120 +1,14 @@
 import 'helpers/game_balance_test_helpers.dart';
+import 'helpers/native_game_test_driver.dart';
 
+// Native simulation coverage moved with its owner:
+// godot/verify_native_wave_core.gd: guardian targeting/cooldown/haste,
+// attack synchronization, rift durability targeting/refresh/tier bonus and
+// saved third-activation power. These no longer call a Dart combat loop.
+// godot/verify_native_core_defense.gd: damage restoration, multiplicative
+// mitigation, emergency charge eligibility/once-per-round and final defense.
+// This file retains app configuration, reward, preset and save contracts.
 void main() {
-  test(
-    'nexus core beam periodically damages enemies from turret DPS',
-    () async {
-      final game = RuneNexusGame(
-        saveRepository: MemorySaveRepository(),
-        waves: const [
-          WaveDefinition(
-            round: 1,
-            previewText: 'test',
-            groups: [],
-            clearRewardGold: 0,
-          ),
-        ],
-      );
-      game.onGameResize(Vector2(400, 800));
-      await game.onLoad();
-      game.tryBuildTurret(const GridPoint(2, 0));
-
-      final arrow = gameTurrets[TurretType.arrow]!;
-      final expectedBeamDamage = arrow.damage * arrow.attackRate * 5 * 0.08;
-      expect(
-        game.snapshotNotifier.value.nexusCoreBeamDamage,
-        closeTo(expectedBeamDamage, 0.001),
-      );
-
-      final backEnemy = EnemyComponent(
-        definition: gameEnemies[EnemyType.normal]!,
-        maxHp: 100,
-        path: [Vector2.zero(), Vector2(200, 0)],
-        game: game,
-      )..distanceTravelled = 10;
-      final frontEnemy = EnemyComponent(
-        definition: gameEnemies[EnemyType.normal]!,
-        maxHp: 100,
-        path: [Vector2.zero(), Vector2(200, 0)],
-        game: game,
-      )..distanceTravelled = 80;
-      await game.add(backEnemy);
-      await game.add(frontEnemy);
-      game.update(0);
-      game.startNextWave();
-      game.enemies.addAll([backEnemy, frontEnemy]);
-
-      game.update(5);
-
-      expect(game.nexusCoreBeamActive, isTrue);
-      expect(game.nexusCoreBeamCooldownSeconds, 0);
-      expect(frontEnemy.hp, lessThan(frontEnemy.maxHp));
-      expect(backEnemy.hp, backEnemy.maxHp);
-      expect(game.coreCombatSkillActivationCount, 1);
-      expect(game.coreCombatSkillDirectDamageDealt, greaterThan(0));
-      expect(game.coreCombatSkillBonusDamageDealt, 0);
-    },
-  );
-
-  test(
-    'attack haste increases guardian beam cooldown recovery speed',
-    () async {
-      final repository = MemorySaveRepository()
-        ..data = saveWithCorePassiveRun(
-          nexusHp: 20,
-          roundIndex: 0,
-          completedRounds: 0,
-          unlockedStageCount: 3,
-          clearedStageNumbers: const {1, 2},
-          totalCorePoints: 20,
-          corePassiveNodeRanks: const {CorePassiveNodeId.attackHaste: 5},
-        );
-      final game = RuneNexusGame(
-        saveRepository: repository,
-        waves: const [
-          WaveDefinition(
-            round: 1,
-            previewText: 'test',
-            groups: [],
-            clearRewardGold: 0,
-          ),
-        ],
-      );
-      game.onGameResize(Vector2(400, 800));
-      await game.onLoad();
-      game.tryBuildTurret(const GridPoint(2, 0));
-
-      final arrow = gameTurrets[TurretType.arrow]!;
-      final expectedBeamDamage = arrow.damage * arrow.attackRate * 5 * 0.08;
-      expect(game.nexusCoreBeamIntervalSeconds, closeTo(5 / 1.1, 0.001));
-      expect(
-        game.snapshotNotifier.value.nexusCoreBeamDamage,
-        closeTo(expectedBeamDamage, 0.001),
-      );
-
-      final enemy = EnemyComponent(
-        definition: gameEnemies[EnemyType.normal]!,
-        maxHp: 100,
-        path: [Vector2.zero(), Vector2(200, 0)],
-        game: game,
-      )..distanceTravelled = 80;
-      await game.add(enemy);
-      game.update(0);
-      game.startNextWave();
-      game.enemies.add(enemy);
-
-      game.update(4.54);
-
-      expect(game.nexusCoreBeamActive, isFalse);
-      expect(enemy.hp, enemy.maxHp);
-
-      game.update(0.02);
-
-      expect(game.nexusCoreBeamActive, isTrue);
-      expect(enemy.hp, lessThan(enemy.maxHp));
-    },
-  );
-
   test('core output passives amplify guardian beam power', () async {
     final repository = MemorySaveRepository()
       ..data = saveWithCorePassiveRun(
@@ -155,80 +49,14 @@ void main() {
     final baseBeamDamage = arrow.damage * arrow.attackRate * 5 * 0.08;
     expect(game.nexusCoreBeamDamage, closeTo(baseBeamDamage * 2.1875, 0.001));
 
-    final enemy = EnemyComponent(
-      definition: gameEnemies[EnemyType.normal]!,
-      maxHp: 10000,
-      path: [Vector2.zero(), Vector2(200, 0)],
-      game: game,
-    )..distanceTravelled = 80;
-    await game.add(enemy);
-    game.enemies.add(enemy);
-    game.update(5);
-
-    expect(game.coreCombatSkillActivationCount, 3);
-    expect(game.nexusCoreBeamActive, isTrue);
-    expect(game.nexusCoreBeamDamage, closeTo(baseBeamDamage * 2.1875, 0.001));
-  });
-
-  testWidgets('core skill activation amplifies turret stats for two seconds', (
-    tester,
-  ) async {
-    final repository = MemorySaveRepository()
-      ..data = saveWithCorePassiveRun(
-        nexusHp: 20,
-        roundIndex: 0,
-        completedRounds: 0,
-        phase: GamePhase.wave,
-        totalCorePoints: 100,
-        corePassiveNodeRanks: const {
-          CorePassiveNodeId.attackHaste: 3,
-          CorePassiveNodeId.attackPrecompute: 5,
-          CorePassiveNodeId.attackOutput: 3,
-          CorePassiveNodeId.attackFocus: 5,
-        },
-      );
-    final game = RuneNexusGame(
-      saveRepository: repository,
-      waves: const [
-        WaveDefinition(
-          round: 1,
-          previewText: 'test',
-          groups: [],
-          clearRewardGold: 0,
-        ),
-      ],
+    final bootstrap = game.buildNativeCombatCommand(9001)['bootstrap'] as Map;
+    final config = bootstrap['coreConfig'] as Map;
+    expect(
+      (config['powerMultiplier'] as num) *
+          (config['powerEveryThirdMultiplier'] as num),
+      closeTo(2.1875, .001),
     );
-    await tester.pumpWidget(GameWidget(game: game));
-    await tester.runAsync(game.ready);
-    game.continueRestoredRun();
-    game.tryBuildTurret(const GridPoint(2, 0));
-    await tester.runAsync(game.ready);
-    final turret = game.children.whereType<TurretComponent>().single;
-    final baseDamage = turret.damage;
-    final baseAttackRate = turret.attackRate;
-
-    final enemy = EnemyComponent(
-      definition: gameEnemies[EnemyType.normal]!,
-      maxHp: 10000,
-      path: [Vector2.zero(), Vector2(200, 0)],
-      game: game,
-    )..distanceTravelled = 80;
-    await game.add(enemy);
-    await tester.runAsync(game.ready);
-    game.enemies.add(enemy);
-    game.update(5 / 1.06 + 0.001);
-
-    expect(turret.damage, closeTo(baseDamage * 1.20, 0.001));
-    expect(turret.attackRate, closeTo(baseAttackRate * 1.15, 0.001));
-
-    game.update(1.99);
-    expect(turret.damage, closeTo(baseDamage * 1.20, 0.001));
-    expect(turret.attackRate, closeTo(baseAttackRate * 1.15, 0.001));
-
-    game.update(0.02);
-    expect(turret.damage, closeTo(baseDamage, 0.001));
-    expect(turret.attackRate, closeTo(baseAttackRate, 0.001));
-    game.disposeAppResources();
+    expect(((bootstrap['wave'] as Map)['core'] as Map)['activationCount'], 2);
   });
 
   test(
@@ -279,7 +107,7 @@ void main() {
 
       game.selectTurretType(TurretType.sniper);
       game.tryBuildTurret(const GridPoint(3, 1));
-      final arrow = game.children.whereType<TurretComponent>().singleWhere(
+      final arrow = game.turrets.singleWhere(
         (turret) => turret.definition.type == TurretType.arrow,
       );
       expect(arrow.levelUpCost, 31);
@@ -377,7 +205,7 @@ void main() {
       await game.onLoad();
 
       game.startNextWave();
-      game.update(0);
+      acknowledgeNativeWaveCompleted(game);
 
       // (기본 10 + 영구 2 + 런 4) * 1.15 = 18.4 -> 18
       expect(game.snapshotNotifier.value.gold, 188);
@@ -407,7 +235,7 @@ void main() {
       lowRankGame.onGameResize(Vector2(400, 800));
       await lowRankGame.onLoad();
       lowRankGame.startNextWave();
-      lowRankGame.update(0);
+      acknowledgeNativeWaveCompleted(lowRankGame);
 
       expect(lowRankGame.snapshotNotifier.value.gold, 194);
     },
@@ -449,10 +277,10 @@ void main() {
         const GridPoint(0, 1),
         GemType.elementalDamage,
       );
-      final arrow = game.children.whereType<TurretComponent>().singleWhere(
+      final arrow = game.turrets.singleWhere(
         (turret) => turret.definition.type == TurretType.arrow,
       );
-      final cannon = game.children.whereType<TurretComponent>().singleWhere(
+      final cannon = game.turrets.singleWhere(
         (turret) => turret.definition.type == TurretType.cannon,
       );
 
@@ -500,7 +328,7 @@ void main() {
         GemType.criticalChance,
       );
       buildWithGem(TurretType.lightning, const GridPoint(4, 1), GemType.chain);
-      final lightning = game.children.whereType<TurretComponent>().singleWhere(
+      final lightning = game.turrets.singleWhere(
         (turret) => turret.definition.type == TurretType.lightning,
       );
       expect(
@@ -553,196 +381,6 @@ void main() {
     expect(chapterTwoProgression.coreCombatSkill, CoreCombatSkill.riftMark);
   });
 
-  test(
-    'rift mark targets highest durability enemies and refreshes mark',
-    () async {
-      final repository = MemorySaveRepository()
-        ..data = saveWithCorePassiveRun(
-          nexusHp: 20,
-          roundIndex: 0,
-          completedRounds: 0,
-          unlockedStageCount: 6,
-          clearedStageNumbers: const {1, 2, 3, 4, 5},
-        );
-      final game = RuneNexusGame(
-        saveRepository: repository,
-        waves: const [
-          WaveDefinition(
-            round: 1,
-            previewText: 'test',
-            groups: [],
-            clearRewardGold: 0,
-          ),
-        ],
-      );
-      game.onGameResize(Vector2(400, 800));
-      await game.onLoad();
-      expect(game.equipCoreCombatSkill(CoreCombatSkill.riftMark), isTrue);
-      game.restartRun();
-      game.startNextWave();
-
-      final enemies = [
-        durabilityEnemy(game, hp: 10, progress: 10),
-        durabilityEnemy(game, hp: 80, progress: 20),
-        durabilityEnemy(game, hp: 40, armor: 30, progress: 30),
-        durabilityEnemy(game, hp: 80, progress: 40),
-        durabilityEnemy(game, hp: 60, progress: 50),
-      ];
-      for (final enemy in enemies) {
-        await game.add(enemy);
-      }
-      game.enemies.addAll(enemies);
-
-      game.update(10);
-
-      expect(enemies[0].hasRiftMark, isFalse);
-      expect(enemies.skip(1).every((enemy) => enemy.hasRiftMark), isTrue);
-      game.update(0);
-      expect(game.children.whereType<RiftMarkPulseComponent>(), hasLength(1));
-      expect(enemies[3].riftMarkRemaining, closeTo(5, 0.001));
-
-      enemies[3].update(2);
-      expect(enemies[3].riftMarkRemaining, closeTo(3, 0.001));
-      enemies[3].applyRiftMark(damageAmplification: 0.25, duration: 5);
-      expect(enemies[3].riftMarkRemaining, closeTo(5, 0.001));
-      expect(enemies[3].riftMarkDamageAmplification, closeTo(0.25, 0.001));
-    },
-  );
-
-  test('rift mark amplifies final damage before durability tiers', () {
-    final game = RuneNexusGame();
-    final normal = EnemyComponent(
-      definition: gameEnemies[EnemyType.normal]!,
-      maxHp: 100,
-      path: [Vector2.zero(), Vector2(100, 0)],
-      game: game,
-    )..applyRiftMark(damageAmplification: 0.25, duration: 5);
-    final boss = EnemyComponent(
-      definition: gameEnemies[EnemyType.boss]!,
-      maxHp: 100,
-      path: [Vector2.zero(), Vector2(100, 0)],
-      game: game,
-    )..applyRiftMark(damageAmplification: 0.125, duration: 5);
-    final armored = EnemyComponent(
-      definition: gameEnemies[EnemyType.armored]!,
-      maxHp: 100,
-      maxArmor: 20,
-      path: [Vector2.zero(), Vector2(100, 0)],
-      game: game,
-    )..applyRiftMark(damageAmplification: 0.25, duration: 5);
-
-    normal.receiveDamage(10);
-    boss.receiveDamage(10);
-    armored.receiveDamage(10);
-
-    expect(normal.hp, closeTo(87.5, 0.001));
-    expect(boss.hp, closeTo(88.75, 0.001));
-    expect(armored.armor, lessThan(20));
-    expect(armored.hp, 100);
-  });
-
-  test('rift mark records actual bonus damage without direct skill damage', () {
-    final game = RuneNexusGame();
-    final enemy = EnemyComponent(
-      definition: gameEnemies[EnemyType.normal]!,
-      maxHp: 100,
-      path: [Vector2.zero(), Vector2(100, 0)],
-      game: game,
-    )..applyRiftMark(damageAmplification: 0.25, duration: 5);
-
-    expect(enemy.receiveDamage(20), closeTo(25, 0.001));
-
-    expect(game.coreCombatSkillBonusDamageDealt, closeTo(5, 0.001));
-    expect(game.coreCombatSkillDirectDamageDealt, 0);
-  });
-
-  test('attack haste increases rift mark cooldown recovery speed', () async {
-    final repository = MemorySaveRepository()
-      ..data = saveWithCorePassiveRun(
-        nexusHp: 20,
-        roundIndex: 0,
-        completedRounds: 0,
-        unlockedStageCount: 6,
-        clearedStageNumbers: const {1, 2, 3, 4, 5},
-        totalCorePoints: 20,
-        corePassiveNodeRanks: const {CorePassiveNodeId.attackHaste: 5},
-        coreCombatSkill: CoreCombatSkill.riftMark,
-      );
-    final game = RuneNexusGame(
-      saveRepository: repository,
-      waves: const [
-        WaveDefinition(
-          round: 1,
-          previewText: 'test',
-          groups: [],
-          clearRewardGold: 0,
-        ),
-      ],
-    );
-    game.onGameResize(Vector2(400, 800));
-    await game.onLoad();
-    game.startNextWave();
-
-    final enemy = durabilityEnemy(game, hp: 100, progress: 10);
-    await game.add(enemy);
-    game.enemies.add(enemy);
-
-    expect(game.nexusCoreBeamIntervalSeconds, closeTo(10 / 1.1, 0.001));
-    game.update(9.08);
-    expect(enemy.hasRiftMark, isFalse);
-
-    game.update(0.02);
-    expect(enemy.hasRiftMark, isTrue);
-    expect(game.coreCombatSkillActivationCount, 1);
-  });
-
-  test('third rift mark activation uses saved critical output count', () async {
-    final repository = MemorySaveRepository()
-      ..data = saveWithCorePassiveRun(
-        nexusHp: 20,
-        roundIndex: 0,
-        completedRounds: 0,
-        phase: GamePhase.wave,
-        unlockedStageCount: 6,
-        clearedStageNumbers: const {1, 2, 3, 4, 5},
-        coreCombatSkill: CoreCombatSkill.riftMark,
-        totalCorePoints: 100,
-        corePassiveNodeRanks: const {
-          CorePassiveNodeId.attackOutput: 5,
-          CorePassiveNodeId.attackFocus: 3,
-          CorePassiveNodeId.attackRiftMark: 3,
-          CorePassiveNodeId.attackOverclock: 1,
-        },
-        coreCombatSkillStats: const SavedCoreCombatSkillStats(
-          directDamageDealt: 0,
-          bonusDamageDealt: 0,
-          activationCount: 2,
-        ),
-      );
-    final game = RuneNexusGame(
-      saveRepository: repository,
-      waves: const [
-        WaveDefinition(
-          round: 1,
-          previewText: 'test',
-          groups: [],
-          clearRewardGold: 0,
-        ),
-      ],
-    );
-    game.onGameResize(Vector2(400, 800));
-    await game.onLoad();
-    game.continueRestoredRun();
-
-    final enemy = durabilityEnemy(game, hp: 1000, progress: 10);
-    await game.add(enemy);
-    game.enemies.add(enemy);
-    game.update(10);
-
-    expect(game.coreCombatSkillActivationCount, 3);
-    expect(enemy.riftMarkDamageAmplification, closeTo(0.25 * 2.1875, 0.001));
-  });
-
   test('rift mark state is saved and restored', () async {
     final repository = MemorySaveRepository()
       ..data = saveWithCorePassiveRun(
@@ -768,10 +406,13 @@ void main() {
     await game.onLoad();
     game.startNextWave();
 
-    final enemy = durabilityEnemy(game, hp: 100, progress: 10)
-      ..applyRiftMark(damageAmplification: 0.25, duration: 5);
-    await game.add(enemy);
-    game.enemies.add(enemy);
+    final enemy = durabilityEnemy(game, hp: 100, progress: 10);
+    enemy.applyNativeCombatState({
+      ...enemy.nativeCombatState(0),
+      'riftMarkDamageAmplification': .25,
+      'riftMarkRemaining': 5.0,
+    });
+    game.registerEnemy(enemy);
     await game.saveNow();
 
     final saved = repository.data!;
@@ -862,15 +503,17 @@ void main() {
         path: [Vector2.zero(), Vector2(200, 0)],
         game: game,
       )..distanceTravelled = 80;
-      await game.add(enemy);
-      game.update(0);
+      game.registerEnemy(enemy);
       game.startNextWave();
-      game.enemies.add(enemy);
+      game.registerEnemy(enemy);
 
-      game.update(5);
+      final nativeConfig =
+          (game.buildNativeCombatCommand(9001)['bootstrap']
+                  as Map)['coreConfig']
+              as Map;
 
       expect(game.snapshotNotifier.value.nexusCoreBeamAvailable, isFalse);
-      expect(game.nexusCoreBeamActive, isFalse);
+      expect(nativeConfig['runSkill'], isNull);
       expect(game.nexusCoreBeamCooldownSeconds, 0);
       expect(enemy.hp, enemy.maxHp);
     },
@@ -905,13 +548,14 @@ void main() {
         path: [Vector2.zero(), Vector2(200, 0)],
         game: game,
       )..distanceTravelled = 80;
-      await game.add(enemy);
-      game.enemies.add(enemy);
+      game.registerEnemy(enemy);
 
-      game.update(5);
+      final nativeConfig =
+          (game.buildNativeCombatCommand(9001)['bootstrap']
+                  as Map)['coreConfig']
+              as Map;
 
-      expect(game.nexusCoreBeamActive, isTrue);
-      expect(enemy.hp, lessThan(enemy.maxHp));
+      expect(nativeConfig['runSkill'], 'guardianBeam');
     },
   );
 
@@ -964,14 +608,15 @@ void main() {
         path: [Vector2.zero(), Vector2(200, 0)],
         game: restored,
       )..distanceTravelled = 80;
-      await restored.add(enemy);
-      restored.enemies.add(enemy);
+      restored.registerEnemy(enemy);
 
-      restored.update(5);
+      final nativeConfig =
+          (restored.buildNativeCombatCommand(9001)['bootstrap']
+                  as Map)['coreConfig']
+              as Map;
 
       expect(restored.snapshotNotifier.value.coreCombatSkill, isNull);
-      expect(restored.nexusCoreBeamActive, isTrue);
-      expect(enemy.hp, lessThan(enemy.maxHp));
+      expect(nativeConfig['runSkill'], 'guardianBeam');
     },
   );
 
@@ -1223,163 +868,11 @@ void main() {
       expect(game.turretBuildCost(TurretType.arrow), 60);
       expect(game.snapshotNotifier.value.maxNexusHp, closeTo(25, 0.0001));
       game.startNextWave();
-      game.update(0.016);
+      acknowledgeNativeWaveCompleted(
+        game,
+        defense: {'hp': 19.75, 'roundHpLost': 0.0},
+      );
       expect(game.snapshotNotifier.value.nexusHp, closeTo(19.75, 0.0001));
-    },
-  );
-
-  test('damage restoration uses actual HP lost during the round', () async {
-    final repository = MemorySaveRepository()
-      ..data = saveWithCorePassiveRun(
-        nexusHp: 10,
-        roundIndex: 0,
-        completedRounds: 0,
-        phase: GamePhase.wave,
-        totalCorePoints: 30,
-        corePassiveNodeRanks: const {
-          CorePassiveNodeId.controlSelfRepair: 3,
-          CorePassiveNodeId.controlRetarget: 3,
-          CorePassiveNodeId.controlBufferShell: 3,
-        },
-      );
-    final game = RuneNexusGame(
-      waves: emptyWaves(1),
-      saveRepository: repository,
-    );
-    game.onGameResize(Vector2(400, 800));
-    await game.onLoad();
-    game.continueRestoredRun();
-
-    final normal = gameEnemies[EnemyType.normal]!;
-    final enemy = EnemyComponent(
-      definition: EnemyDefinition(
-        type: EnemyType.normal,
-        name: 'Damage Restorer Test',
-        maxHp: 100,
-        speed: normal.speed,
-        rewardGold: 0,
-        coreDamage: 2,
-        color: normal.color,
-        resistanceProfile: normal.resistanceProfile,
-      ),
-      maxHp: 100,
-      path: [Vector2.zero(), Vector2(500, 0)],
-      game: game,
-    );
-    game.enemies.add(enemy);
-    await game.add(enemy);
-
-    game.enemyReachedCore(enemy);
-    expect(game.snapshotNotifier.value.nexusHp, closeTo(8, 0.0001));
-
-    game.update(0.016);
-
-    expect(game.snapshotNotifier.value.maxNexusHp, closeTo(23, 0.0001));
-    expect(game.snapshotNotifier.value.nexusHp, closeTo(9.16, 0.0001));
-  });
-
-  test(
-    'damage reduction is multiplicative and emergency charge is once per round',
-    () async {
-      final repository = MemorySaveRepository()
-        ..data = saveWithCorePassiveRun(
-          nexusHp: 20,
-          roundIndex: 0,
-          completedRounds: 0,
-          totalCorePoints: 30,
-          corePassiveNodeRanks: const {
-            CorePassiveNodeId.controlThreatSense: 5,
-            CorePassiveNodeId.controlRearLock: 5,
-            CorePassiveNodeId.controlEmergencyCharge: 3,
-          },
-        );
-      final game = RuneNexusGame(
-        waves: emptyWaves(1),
-        saveRepository: repository,
-      );
-      game.onGameResize(Vector2(400, 800));
-      await game.onLoad();
-      game.startNextWave();
-
-      EnemyComponent halfDurabilityEnemy() {
-        final enemy = EnemyComponent(
-          definition: gameEnemies[EnemyType.normal]!,
-          maxHp: 100,
-          path: [Vector2.zero(), Vector2(500, 0)],
-          game: game,
-        )..hp = 50;
-        game.enemies.add(enemy);
-        return enemy;
-      }
-
-      final firstEnemy = halfDurabilityEnemy();
-      await game.add(firstEnemy);
-      game.enemyReachedCore(firstEnemy);
-
-      expect(game.snapshotNotifier.value.nexusHp, closeTo(19.25625, 0.0001));
-      expect(game.nexusCoreBeamCooldownSeconds, closeTo(3.25, 0.0001));
-      await game.saveNow();
-      expect(
-        repository.data!.activeRun!.roundNexusHpLost,
-        closeTo(0.74375, 0.0001),
-      );
-      expect(repository.data!.activeRun!.emergencyChargeUsedThisRound, isTrue);
-
-      final secondEnemy = halfDurabilityEnemy();
-      await game.add(secondEnemy);
-      game.enemyReachedCore(secondEnemy);
-
-      expect(game.snapshotNotifier.value.nexusHp, closeTo(18.5125, 0.0001));
-      expect(game.nexusCoreBeamCooldownSeconds, closeTo(3.25, 0.0001));
-    },
-  );
-
-  test(
-    'final defense ignores bosses without consuming its round use',
-    () async {
-      final repository = MemorySaveRepository()
-        ..data = saveWithCorePassiveRun(
-          nexusHp: 20,
-          roundIndex: 0,
-          completedRounds: 0,
-          totalCorePoints: 30,
-          corePassiveNodeRanks: const {
-            CorePassiveNodeId.controlThreatSense: 3,
-            CorePassiveNodeId.controlRearLock: 3,
-            CorePassiveNodeId.controlEmergencyCharge: 3,
-            CorePassiveNodeId.controlFinalLine: 1,
-          },
-        );
-      final game = RuneNexusGame(
-        waves: emptyWaves(1),
-        saveRepository: repository,
-      );
-      game.onGameResize(Vector2(400, 800));
-      await game.onLoad();
-      game.startNextWave();
-
-      Future<void> reachCore(EnemyType type) async {
-        final enemy = EnemyComponent(
-          definition: gameEnemies[type]!,
-          maxHp: 100,
-          path: [Vector2.zero(), Vector2(500, 0)],
-          game: game,
-        );
-        game.enemies.add(enemy);
-        await game.add(enemy);
-        game.enemyReachedCore(enemy);
-      }
-
-      await reachCore(EnemyType.boss);
-      expect(game.snapshotNotifier.value.nexusHp, closeTo(12.72, 0.0001));
-
-      await reachCore(EnemyType.normal);
-      expect(game.snapshotNotifier.value.nexusHp, closeTo(12.72, 0.0001));
-      await game.saveNow();
-      expect(repository.data!.activeRun!.finalDefenseUsedThisRound, isTrue);
-
-      await reachCore(EnemyType.normal);
-      expect(game.snapshotNotifier.value.nexusHp, closeTo(11.81, 0.0001));
     },
   );
 
@@ -1414,6 +907,7 @@ void main() {
     expect(game.snapshotNotifier.value.phase, GamePhase.restored);
     game.continueRestoredRun();
 
+    var arrivalIndex = 0;
     Future<void> reachCore() async {
       final enemy = EnemyComponent(
         definition: gameEnemies[EnemyType.normal]!,
@@ -1421,9 +915,26 @@ void main() {
         path: [Vector2.zero(), Vector2(500, 0)],
         game: game,
       );
-      game.enemies.add(enemy);
-      await game.add(enemy);
-      game.enemyReachedCore(enemy);
+      game.registerEnemy(enemy);
+      final hp = [14.09, 15.5685, 14.6585][arrivalIndex];
+      final lost = [2.91, 0.0, .91][arrivalIndex];
+      acknowledgeNativeArrival(
+        game,
+        enemy,
+        defense: {
+          'hp': hp,
+          'roundHpLost': lost,
+          'emergencyChargeUsedThisRound': arrivalIndex != 1,
+          'finalDefenseUsedThisRound': true,
+        },
+      );
+      if (arrivalIndex == 2) {
+        acknowledgeNativeState(
+          game,
+          core: {'cooldown': 3.25, 'emergencyChargeUsedThisRound': true},
+        );
+      }
+      arrivalIndex++;
     }
 
     await reachCore();
@@ -1436,7 +947,15 @@ void main() {
     expect(repository.data!.activeRun!.emergencyChargeUsedThisRound, isTrue);
     expect(repository.data!.activeRun!.finalDefenseUsedThisRound, isTrue);
 
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(
+      game,
+      defense: {
+        'hp': 15.5685,
+        'roundHpLost': 0.0,
+        'emergencyChargeUsedThisRound': false,
+        'finalDefenseUsedThisRound': false,
+      },
+    );
 
     // 복원된 손실량까지 손상 복원에 포함한 뒤 라운드 상태를 초기화한다.
     expect(game.snapshotNotifier.value.phase, GamePhase.preparation);

@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:flame/components.dart' show Vector2;
+import 'package:vector_math/vector_math_64.dart' show Vector2;
 
 /// 전장 시점과 좌표 변환 소유. 입력 허용 여부·게임 단계는 호출자가 결정.
 class BoardCamera {

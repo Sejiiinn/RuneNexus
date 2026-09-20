@@ -126,13 +126,13 @@ void main() {
     }
   });
 
-  test('cleanup expiry immediately changes live attack rate', () {
+  test('native cleanup snapshot immediately changes mirrored attack rate', () {
     final fixture = fixtures.firstWhere((f) => f['config']['cleanup'] == true);
     final built = buildFixture(fixture['config'] as Map<String, dynamic>);
     final boosted = built.turret.attackRate;
     final snapshot = built.turret.createAttackSnapshot();
     final saved = snapshotOutput(snapshot);
-    built.turret.update(3.1);
+    built.turret.applyNativeCombatState({'cleanup': 0.0});
     expect(built.turret.attackRate, closeTo(boosted / 1.4, 1e-10));
     compareValues(snapshotOutput(snapshot), saved, 'cleanup expiry');
   });

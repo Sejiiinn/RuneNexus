@@ -1,4 +1,4 @@
-import 'package:flame/components.dart';
+import 'package:vector_math/vector_math_64.dart' show Vector2;
 
 /// 단일 포인터 드래그 추적과 드래그 이후 탭 억제.
 class BoardGestureController {

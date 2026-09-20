@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:flame/components.dart';
+import 'package:vector_math/vector_math_64.dart';
 import 'package:flutter/painting.dart';
 
 import '../../data/definitions/game_gem_data.dart';
@@ -16,17 +16,11 @@ import '../../domain/turret/turret_definition.dart';
 import '../../domain/turret/turret_target_priority.dart';
 import '../../domain/turret/turret_trait_catalog.dart';
 import '../../domain/turret/turret_trait_type.dart';
-import '../../domain/turret/turret_type.dart';
 import '../../domain/turret_module/turret_module_type.dart';
-import '../rendering/turret_level_renderer.dart';
-import '../rendering/turret_shape_renderer.dart';
-import '../rendering/turret_visual_effect_renderer.dart';
 import '../rune_nexus_game.dart';
-import 'enemy_component.dart';
-import 'lightning_charge_component.dart';
-import 'projectile_component.dart';
 
-class TurretComponent extends PositionComponent {
+/// Build configuration, stat previews and acknowledged native combat mirrors.
+class TurretComponent {
   static const double _visualSizeScale = 0.82;
 
   TurretComponent({
@@ -36,29 +30,52 @@ class TurretComponent extends PositionComponent {
     required Vector2 center,
     required double tileSize,
     int? investedGold,
-  }) : _tileSize = tileSize,
-       _investedGold = investedGold ?? definition.cost,
-       super(
-         position: center,
-         size: Vector2.all(tileSize * _visualSizeScale),
-         anchor: Anchor.center,
-       );
+  }) : _investedGold = investedGold ?? definition.cost,
+       position = center,
+       size = Vector2.all(tileSize * _visualSizeScale);
+
+  Vector2 position;
+  Vector2 size;
+  bool _attached = false;
+  bool _removed = false;
+  void Function()? _onRemove;
+
+  /// Registration only: the coordinator owns the collection, Godot owns time.
+  bool get isMounted => _attached;
+  bool get isRemoving => _removed;
+  void attach({void Function()? onRemove}) {
+    _nativeGemRingClock ??= game.battlefieldEffectCombatClock;
+    _attached = true;
+    _removed = false;
+    _onRemove = onRemove;
+  }
+
+  void detach() {
+    _attached = false;
+    _removed = true;
+    _onRemove = null;
+  }
+
+  void removeFromParent() {
+    if (_removed) return;
+    final remove = _onRemove;
+    detach();
+    remove?.call();
+  }
 
   final GridPoint gridPoint;
   final TurretDefinition definition;
   final RuneNexusGame game;
   final List<GemType?> _gemSlots = [null];
-  final math.Random _cooldownRandom = math.Random();
 
-  double _tileSize;
   double _cooldown = 0;
   double _aimAngle = -math.pi / 2;
   double _fireFeedbackTimer = 0;
   int _visualShotSequence = 0;
-  double _shapeAnimationTime = 0;
-  double _gemRingPhase = 0;
+  final double _gemRingPhase = 0;
   double? _nativeGemRingClock;
-  EnemyComponent? _aimTarget;
+  int _aimTargetId = 0;
+  Offset? _aimTargetPosition;
   double _aimProgress = 0;
   int _slotLimit = 1;
   int _level = 1;
@@ -71,16 +88,14 @@ class TurretComponent extends PositionComponent {
   double _lightningAttackElapsed = 0;
   TurretTraitType? _primaryTrait;
   TurretTraitType? _secondaryTrait;
-  EnemyComponent? _overheatTarget;
+  int _overheatTargetId = 0;
   int _overheatStacks = 0;
-  EnemyComponent? _suppressiveTarget;
+  int _suppressiveTargetId = 0;
   int _suppressiveHits = 0;
-  final TurretLevelRenderer _levelRenderer = TurretLevelRenderer();
-  final Map<EnemyComponent, double> _recentHitTimers = {};
+  final Map<String, double> _recentHitTimers = {};
   double _chainCleanupTimer = 0;
   TurretTargetPriority _targetPriority = TurretTargetPriority.first;
 
-  static const double _cooldownVariance = 0.05;
   static const double _fireFeedbackDuration = 0.12;
 
   int get level => _level;
@@ -95,9 +110,7 @@ class TurretComponent extends PositionComponent {
       _gemRingPhase -
       (_nativeGemRingClock ?? game.battlefieldEffectCombatClock) * 0.45;
   Offset? get visualAimTargetPosition =>
-      definition.instantHit && _aimTarget != null
-      ? Offset(_aimTarget!.position.x, _aimTarget!.position.y)
-      : null;
+      definition.instantHit ? _aimTargetPosition : null;
   int get maxLevel => 10;
   double get cooldown => _cooldown;
   double get directDamageDealt => _directDamageDealt;
@@ -249,7 +262,7 @@ class TurretComponent extends PositionComponent {
 
   double get aimProgressRatio {
     final duration = aimDuration;
-    if (!definition.instantHit || duration <= 0 || _aimTarget == null) {
+    if (!definition.instantHit || duration <= 0 || _aimTargetId == 0) {
       return 0;
     }
     return (_aimProgress / duration).clamp(0.0, 1.0);
@@ -259,25 +272,8 @@ class TurretComponent extends PositionComponent {
     return slotIndex >= 0 && slotIndex < slotLimit;
   }
 
-  bool rollCriticalHit() {
-    final chance = criticalChance;
-    return chance > 0 && _cooldownRandom.nextDouble() < chance;
-  }
-
   void setTargetPriority(TurretTargetPriority priority) {
     _targetPriority = priority;
-  }
-
-  bool isEnemyBodyInRange(EnemyComponent enemy) {
-    return _isEnemyBodyInRange(enemy, range);
-  }
-
-  bool _isEnemyBodyInRange(EnemyComponent enemy, double attackRange) {
-    final enemyRadius = math.min(enemy.size.x, enemy.size.y) / 2;
-    final rangeWithBody = attackRange + enemyRadius;
-    final dx = enemy.position.x - position.x;
-    final dy = enemy.position.y - position.y;
-    return dx * dx + dy * dy <= rangeWithBody * rangeWithBody;
   }
 
   Map<String, Object?> nativeCombatConfiguration(int id) => {
@@ -288,28 +284,63 @@ class TurretComponent extends PositionComponent {
     ).toJson(),
     'state': toSaveData().toJson(),
     'aimProgress': _aimProgress,
-    'aimTargetId': _aimTarget == null
-        ? 0
-        : game.nativeCombatEntityId(_aimTarget!),
+    'aimTargetId': _aimTargetId,
     'aimAngle': _aimAngle,
-    'overheatTarget': _overheatTarget == null
-        ? 0
-        : game.nativeCombatEntityId(_overheatTarget!),
+    'overheatTarget': _overheatTargetId,
     'overheatStacks': _overheatStacks,
-    'suppressiveTarget': _suppressiveTarget == null
-        ? 0
-        : game.nativeCombatEntityId(_suppressiveTarget!),
+    'suppressiveTarget': _suppressiveTargetId,
     'suppressiveHits': _suppressiveHits,
     'cleanup': _chainCleanupTimer,
     'recent': {
-      for (final entry in _recentHitTimers.entries)
-        '${game.nativeCombatEntityId(entry.key)}': entry.value,
+      for (final entry in _recentHitTimers.entries) entry.key: entry.value,
     },
     'lastBaseCooldown': _lastLightningBaseCooldown,
     'lightningElapsed': _lightningAttackElapsed,
   };
 
+  static int? _nativeId(Object? value) => value is num
+      ? value.toInt()
+      : value is String
+      ? int.tryParse(value)
+      : null;
+
   void applyNativeCombatState(Map<String, dynamic> state) {
+    _aimTargetId = _nativeId(state['aimTargetId']) ?? _aimTargetId;
+    _overheatTargetId = _nativeId(state['overheatTarget']) ?? _overheatTargetId;
+    _overheatStacks =
+        (state['overheatStacks'] as num?)?.toInt() ?? _overheatStacks;
+    _suppressiveTargetId =
+        _nativeId(state['suppressiveTarget']) ?? _suppressiveTargetId;
+    _suppressiveHits =
+        (state['suppressiveHits'] as num?)?.toInt() ?? _suppressiveHits;
+    _chainCleanupTimer =
+        (state['cleanup'] as num?)?.toDouble() ?? _chainCleanupTimer;
+    _lastLightningBaseCooldown =
+        (state['lastBaseCooldown'] as num?)?.toDouble() ??
+        _lastLightningBaseCooldown;
+    _lightningAttackElapsed =
+        (state['lightningElapsed'] as num?)?.toDouble() ??
+        _lightningAttackElapsed;
+    _fireFeedbackTimer =
+        (state['fireFeedback'] as num?)?.toDouble() ?? _fireFeedbackTimer;
+    final recent = state['recent'];
+    if (recent is Map) {
+      _recentHitTimers.clear();
+      for (final entry in recent.entries) {
+        if (entry.value is num) {
+          _recentHitTimers['${entry.key}'] = (entry.value as num).toDouble();
+        }
+      }
+    }
+    final aimPosition = state['aimTargetPosition'];
+    if (aimPosition is List && aimPosition.length >= 2) {
+      _aimTargetPosition = Offset(
+        (aimPosition[0] as num).toDouble(),
+        (aimPosition[1] as num).toDouble(),
+      );
+    } else if (_aimTargetId == 0) {
+      _aimTargetPosition = null;
+    }
     _cooldown = (state['cooldown'] as num?)?.toDouble() ?? _cooldown;
     _aimProgress = (state['aimProgress'] as num?)?.toDouble() ?? _aimProgress;
     _aimAngle = (state['aimAngle'] as num?)?.toDouble() ?? _aimAngle;
@@ -411,9 +442,9 @@ class TurretComponent extends PositionComponent {
     }
     _primaryTrait = trait;
     _secondaryTrait = null;
-    _overheatTarget = null;
+    _overheatTargetId = 0;
     _overheatStacks = 0;
-    _suppressiveTarget = null;
+    _suppressiveTargetId = 0;
     _suppressiveHits = 0;
     _recentHitTimers.clear();
     _chainCleanupTimer = 0;
@@ -427,7 +458,7 @@ class TurretComponent extends PositionComponent {
       return false;
     }
     _secondaryTrait = trait;
-    _suppressiveTarget = null;
+    _suppressiveTargetId = 0;
     _suppressiveHits = 0;
     _recentHitTimers.clear();
     _chainCleanupTimer = 0;
@@ -436,103 +467,8 @@ class TurretComponent extends PositionComponent {
     return true;
   }
 
-  double registerDirectHitTraits(
-    EnemyComponent enemy, {
-    TurretAttackSnapshot? attack,
-  }) {
-    final profile = attack ?? createAttackSnapshot();
-    if (profile.appliesChainCleanup) {
-      _recentHitTimers[enemy] = 1.5;
-    }
-    if (profile.appliesSuppressiveFire) {
-      if (identical(_suppressiveTarget, enemy)) {
-        _suppressiveHits++;
-      } else {
-        _suppressiveTarget = enemy;
-        _suppressiveHits = 1;
-      }
-      if (_suppressiveHits >= 5) {
-        enemy.applyPhysicalVulnerability(bonus: 0.2, duration: 2);
-        _suppressiveHits = 0;
-      }
-    }
-    if (profile.appliesExposedMark) {
-      enemy.applyPhysicalVulnerability(bonus: 0.15, duration: 2);
-    }
-    var multiplier = 1.0;
-    if (profile.appliesOverheatMagazine) {
-      if (identical(_overheatTarget, enemy)) {
-        _overheatStacks = math.min(15, _overheatStacks + 1);
-      } else {
-        _overheatTarget = enemy;
-        _overheatStacks = 1;
-      }
-      multiplier *= 1 + _overheatStacks * 0.02;
-    }
-    if (profile.appliesCompressedCharge) {
-      multiplier *= 1.35;
-    }
-    if (profile.appliesFocusedLightning) {
-      multiplier *= 1.3;
-    }
-    if (profile.appliesFinishingShot && _durabilityRatio(enemy) <= 0.35) {
-      multiplier *= 1.45;
-    }
-    return multiplier;
-  }
-
-  void recordLightningChainCompletion({
-    required int usedJumps,
-    required int maxJumps,
-  }) {
-    if (!appliesLightningRecovery) {
-      _lastLightningBaseCooldown = 0;
-      _lightningAttackElapsed = 0;
-      return;
-    }
-    final unusedJumps = math.max(0, maxJumps - usedJumps);
-    final baseCooldown = _lastLightningBaseCooldown > 0
-        ? _lastLightningBaseCooldown
-        : _cooldown;
-    if (unusedJumps <= 0 || baseCooldown <= 0) {
-      _lastLightningBaseCooldown = 0;
-      _lightningAttackElapsed = 0;
-      return;
-    }
-    final reloadEfficiency = unusedJumps * 0.15;
-    final adjustedCooldown = baseCooldown / (1 + reloadEfficiency);
-    _cooldown = math.min(
-      _cooldown,
-      math.max(0.0, adjustedCooldown - _lightningAttackElapsed),
-    );
-    _lastLightningBaseCooldown = 0;
-    _lightningAttackElapsed = 0;
-  }
-
-  double _durabilityRatio(EnemyComponent enemy) {
-    final maxDurability = enemy.maxHp + enemy.maxArmor + enemy.maxShield;
-    if (maxDurability <= 0) {
-      return 1;
-    }
-    final currentDurability =
-        enemy.hp + math.max(0, enemy.armor) + math.max(0, enemy.shield);
-    return (currentDurability / maxDurability).clamp(0.0, 1.0).toDouble();
-  }
-
-  void handleEnemyKilled(EnemyComponent enemy) {
-    if (_secondaryTrait != TurretTraitType.chainCleanup) {
-      return;
-    }
-    if ((_recentHitTimers[enemy] ?? 0) <= 0) {
-      return;
-    }
-    _chainCleanupTimer = 3;
-    _recentHitTimers.remove(enemy);
-  }
-
   void updateLayout({required Vector2 center, required double tileSize}) {
     position = center;
-    _tileSize = tileSize;
     size = Vector2.all(tileSize * _visualSizeScale);
   }
 
@@ -612,412 +548,10 @@ class TurretComponent extends PositionComponent {
     );
   }
 
-  @override
-  void update(double dt) {
-    if (game.nativeCombatOwned) return;
-    super.update(dt);
-    _fireFeedbackTimer = math.max(0, _fireFeedbackTimer - dt);
-    _shapeAnimationTime = (_shapeAnimationTime + dt) % 1000;
-    if (_lastLightningBaseCooldown > 0 && _cooldown > 0) {
-      _lightningAttackElapsed += dt;
-    }
-    _cooldown = math.max(0, _cooldown - dt);
-    _chainCleanupTimer = math.max(0, _chainCleanupTimer - dt);
-    if (game.usesNativeSelectionAnimation) {
-      _nativeGemRingClock ??= game.battlefieldEffectCombatClock - dt;
-    } else {
-      if (_nativeGemRingClock != null) {
-        _gemRingPhase = visualGemRingPhase;
-        _nativeGemRingClock = null;
-      } else {
-        _gemRingPhase = (_gemRingPhase + dt * 0.45) % (math.pi * 2);
-      }
-    }
-    if (_recentHitTimers.isNotEmpty) {
-      _recentHitTimers.updateAll((_, timer) => timer - dt);
-      _recentHitTimers.removeWhere(
-        (enemy, remaining) => remaining <= 0 || enemy.isDead,
-      );
-    }
-    if (!game.isWaveRunning) {
-      _clearAim();
-      return;
-    }
-    if (_cooldown > 0) {
-      _clearAim();
-      return;
-    }
-
-    if (definition.instantHit) {
-      _updateInstantHitAttack(dt);
-      return;
-    }
-
-    if (definition.centeredAreaAttack) {
-      final targets = _findTargetsInRange();
-      if (targets.isEmpty) {
-        return;
-      }
-
-      _cooldown = (1 / attackRate) * _nextCooldownVarianceMultiplier();
-      final leadTarget = targets.reduce(
-        (a, b) => a.distanceTravelled >= b.distanceTravelled ? a : b,
-      );
-      _aimAngle = math.atan2(
-        leadTarget.position.y - position.y,
-        leadTarget.position.x - position.x,
-      );
-      _triggerFireFeedback();
-      game.resolveCenteredAreaAttack(
-        owner: this,
-        attack: createAttackSnapshot(
-          criticalMultiplier: rollCriticalHit()
-              ? criticalDamageMultiplier
-              : 1.0,
-        ),
-        targets: targets,
-      );
-      return;
-    }
-
-    if (definition.type == TurretType.lightning) {
-      _updateLightningAttack();
-      return;
-    }
-
-    final target = _findTarget();
-    if (target == null) {
-      return;
-    }
-
-    _cooldown = (1 / attackRate) * _nextCooldownVarianceMultiplier();
-    _aimAngle = math.atan2(
-      target.position.y - position.y,
-      target.position.x - position.x,
-    );
-    _triggerFireFeedback();
-    final projectileOrigin = definition.type == TurretType.magic
-        ? (() {
-            final origin = fireballOriginForTurret(
-              center: Offset(position.x, position.y),
-              size: size.y,
-              aimAngle: _aimAngle,
-            );
-            return Vector2(origin.dx, origin.dy);
-          })()
-        : position.clone();
-    final attack = createAttackSnapshot(
-      criticalMultiplier: rollCriticalHit() ? criticalDamageMultiplier : 1.0,
-    );
-    final direction = target.position - projectileOrigin;
-    final centerAngle = math.atan2(direction.y, direction.x);
-    for (var index = 0; index < projectileCount; index++) {
-      // 조준선을 중심으로 10도 간격의 대칭 산개
-      final angle =
-          centerAngle + (index - (projectileCount - 1) / 2) * math.pi / 18;
-      game.add(
-        ProjectileComponent(
-          origin: projectileOrigin.clone(),
-          targetPosition:
-              projectileOrigin + Vector2(math.cos(angle), math.sin(angle)),
-          owner: this,
-          attack: attack,
-          game: game,
-        ),
-      );
-    }
-  }
-
-  void _updateLightningAttack() {
-    final target = _findTarget();
-    if (target == null) {
-      return;
-    }
-
-    final attack = createAttackSnapshot(
-      criticalMultiplier: rollCriticalHit() ? criticalDamageMultiplier : 1.0,
-    );
-    final baseCooldown = (1 / attackRate) * _nextCooldownVarianceMultiplier();
-    _cooldown = baseCooldown;
-    _lastLightningBaseCooldown = baseCooldown;
-    _lightningAttackElapsed = 0;
-    _aimAngle = math.atan2(
-      target.position.y - position.y,
-      target.position.x - position.x,
-    );
-    _triggerFireFeedback();
-    game.add(
-      LightningChargeComponent(
-        owner: this,
-        chargePosition: () => lightningChargePosition,
-        isActive: () => isMounted,
-        onRelease: () => releaseLightningCharge(attack),
-        color: definition.color,
-        visualScale: game.boardDistanceScale,
-      ),
-    );
-  }
-
-  void releaseLightningCharge(TurretAttackSnapshot attack) {
-    final target = _findTarget();
-    if (target == null) {
-      recordLightningChainCompletion(
-        usedJumps: 0,
-        maxJumps: attack.lightningChainMaxJumps,
-      );
-      return;
-    }
-
-    _aimAngle = math.atan2(
-      target.position.y - position.y,
-      target.position.x - position.x,
-    );
-    _triggerFireFeedback();
-    game.resolveLightningChainAttack(
-      owner: this,
-      target: target,
-      attack: attack,
-    );
-  }
-
-  void _updateInstantHitAttack(double dt) {
-    var target = _aimTarget;
-    if (target == null || !_isValidAimTarget(target)) {
-      target = _findTarget();
-      _aimTarget = target;
-      _aimProgress = 0;
-    }
-    if (target == null) {
-      return;
-    }
-
-    _aimAngle = math.atan2(
-      target.position.y - position.y,
-      target.position.x - position.x,
-    );
-    _aimProgress += dt;
-    if (_aimProgress < aimDuration) {
-      return;
-    }
-
-    final attack = createAttackSnapshot(
-      criticalMultiplier: rollCriticalHit() ? criticalDamageMultiplier : 1.0,
-    );
-    _cooldown = (1 / attackRate) * _nextCooldownVarianceMultiplier();
-    _triggerFireFeedback();
-    game.resolveInstantHit(owner: this, target: target, attack: attack);
-    _clearAim();
-  }
-
-  EnemyComponent? _findTarget() {
-    final attackRange = range;
-    EnemyComponent? selectedTarget;
-    var selectedDistanceSquared = double.infinity;
-    var selectedDurability = 0.0;
-    for (final enemy in game.enemies) {
-      if (enemy.isDead || !_isEnemyBodyInRange(enemy, attackRange)) {
-        continue;
-      }
-      final distanceSquared = _distanceSquaredTo(enemy);
-      final durability =
-          enemy.hp + math.max(0, enemy.armor) + math.max(0, enemy.shield);
-      if (_isPreferredTarget(
-        candidate: enemy,
-        current: selectedTarget,
-        candidateDistanceSquared: distanceSquared,
-        currentDistanceSquared: selectedDistanceSquared,
-        candidateDurability: durability,
-        currentDurability: selectedDurability,
-      )) {
-        selectedTarget = enemy;
-        selectedDistanceSquared = distanceSquared;
-        selectedDurability = durability;
-      }
-    }
-    return selectedTarget;
-  }
-
-  bool _isPreferredTarget({
-    required EnemyComponent candidate,
-    required EnemyComponent? current,
-    required double candidateDistanceSquared,
-    required double currentDistanceSquared,
-    required double candidateDurability,
-    required double currentDurability,
-  }) {
-    if (current == null) {
-      return true;
-    }
-    return switch (_targetPriority) {
-      TurretTargetPriority.first =>
-        candidate.distanceTravelled > current.distanceTravelled ||
-            (candidate.distanceTravelled == current.distanceTravelled &&
-                candidateDistanceSquared < currentDistanceSquared),
-      TurretTargetPriority.last =>
-        candidate.distanceTravelled < current.distanceTravelled ||
-            (candidate.distanceTravelled == current.distanceTravelled &&
-                candidateDistanceSquared < currentDistanceSquared),
-      TurretTargetPriority.strongest =>
-        candidateDurability > currentDurability ||
-            (candidateDurability == currentDurability &&
-                candidate.distanceTravelled > current.distanceTravelled),
-      TurretTargetPriority.weakest =>
-        candidateDurability < currentDurability ||
-            (candidateDurability == currentDurability &&
-                candidate.distanceTravelled > current.distanceTravelled),
-      TurretTargetPriority.nearest =>
-        candidateDistanceSquared < currentDistanceSquared ||
-            (candidateDistanceSquared == currentDistanceSquared &&
-                candidate.distanceTravelled > current.distanceTravelled),
-    };
-  }
-
-  double _distanceSquaredTo(EnemyComponent enemy) {
-    final dx = enemy.position.x - position.x;
-    final dy = enemy.position.y - position.y;
-    return dx * dx + dy * dy;
-  }
-
-  List<EnemyComponent> _findTargetsInRange() {
-    final attackRange = centeredAreaRadius;
-    final targets = <EnemyComponent>[];
-    for (final enemy in game.enemies) {
-      if (!enemy.isDead && _isEnemyBodyInRange(enemy, attackRange)) {
-        targets.add(enemy);
-      }
-    }
-    return targets;
-  }
-
-  bool _isValidAimTarget(EnemyComponent enemy) {
-    return (enemy.isMounted || game.enemies.contains(enemy)) &&
-        !enemy.isDead &&
-        isEnemyBodyInRange(enemy);
-  }
-
-  double _nextCooldownVarianceMultiplier() {
-    return 1 -
-        _cooldownVariance +
-        _cooldownRandom.nextDouble() * 2 * _cooldownVariance;
-  }
-
-  void _triggerFireFeedback() {
-    _fireFeedbackTimer = _fireFeedbackDuration;
-    _visualShotSequence++;
-  }
-
-  void _clearAim() {
-    _aimTarget = null;
-    _aimProgress = 0;
-  }
-
   int get visualShotSequence => _visualShotSequence;
   double get visualAimAngle => _aimAngle;
   double get visualFireFeedback =>
       (_fireFeedbackTimer / _fireFeedbackDuration).clamp(0.0, 1.0);
-
-  void renderBattlefieldLevel(Canvas canvas) {
-    _levelRenderer.drawBadge(
-      canvas,
-      center: Offset(size.x / 2, size.y / 2),
-      tileSize: _tileSize,
-      level: _level,
-    );
-  }
-
-  @override
-  void render(Canvas canvas) {
-    final selected = game.isTurretSelected(gridPoint);
-    final center = Offset(size.x / 2, size.y / 2);
-    if (!game.isGemRewardTargeting &&
-        (selected || game.isTurretPlacementActive)) {
-      final previewRange = selected
-          ? game.levelUpPreviewRangeFor(gridPoint)
-          : null;
-      // 중심 광역 공격은 사거리 수치와 별개인 실제 효과 반경 표시.
-      final indicatorMultiplier = definition.centeredAreaAttack
-          ? effectAreaMultiplier
-          : 1.0;
-      drawTurretRangeIndicator(
-        canvas,
-        center: center,
-        color: definition.color,
-        range: range * indicatorMultiplier,
-        selected: selected,
-        previewRange: previewRange == null
-            ? null
-            : previewRange * indicatorMultiplier,
-      );
-    }
-
-    if (selected && !game.isGemRewardTargeting) {
-      drawTurretSelectionHighlight(
-        canvas,
-        center: center,
-        tileSize: _tileSize,
-        color: definition.color,
-      );
-    }
-
-    _levelRenderer.drawPowerAura(
-      canvas,
-      center: center,
-      tileSize: _tileSize,
-      level: _level,
-    );
-    _syncGemSlotLength();
-    final gems = equippedGems;
-    if (gems.isNotEmpty) {
-      final visibleGemCount = math.min(gems.length, maxSlotLimit);
-      drawTurretGemReactionRing(
-        canvas,
-        center: center,
-        tileSize: _tileSize,
-        animationPhase: visualGemRingPhase,
-        gemColors: [
-          for (var i = 0; i < visibleGemCount; i++) game.colorForGem(gems[i]),
-        ],
-      );
-    }
-    final aimTarget = _aimTarget;
-    if (aimTarget != null && definition.instantHit) {
-      drawTurretAimBeam(
-        canvas,
-        center: center,
-        target: Offset(
-          center.dx + aimTarget.position.x - position.x,
-          center.dy + aimTarget.position.y - position.y,
-        ),
-        color: definition.color,
-        tileSize: _tileSize,
-        progress: aimProgressRatio,
-        animationPhase: visualGemRingPhase,
-      );
-    }
-
-    if (game.battlefieldProjection == null) {
-      drawTurretShape(
-        canvas,
-        size: Size(size.x, size.y),
-        type: definition.type,
-        color: definition.color,
-        aimAngle: _aimAngle,
-        fireFeedback: (_fireFeedbackTimer / _fireFeedbackDuration).clamp(
-          0.0,
-          1.0,
-        ),
-        animationTime: _shapeAnimationTime,
-        strokeWidth: size.x * 0.05,
-      );
-
-      _levelRenderer.drawBadge(
-        canvas,
-        center: center,
-        tileSize: _tileSize,
-        level: _level,
-      );
-    }
-  }
 
   void _syncGemSlotLength() {
     while (_gemSlots.length < _slotLimit) {

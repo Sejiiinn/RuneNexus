@@ -1,10 +1,9 @@
+import 'package:rune_nexus/ui/hud/native_game_host.dart';
 import 'dart:convert';
 
-import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:rune_nexus/game/rune_nexus_game.dart';
 
 import '../design/stage1_3d/godot_preview/main.dart';
 
@@ -47,13 +46,11 @@ void main() {
       });
 
       await tester.pumpWidget(const MaterialApp(home: GodotPreview()));
-      final game =
-          tester
-                  .widget<GameWidget>(
-                    find.byWidgetPredicate((widget) => widget is GameWidget),
-                  )
-                  .game!
-              as RuneNexusGame;
+      final game = tester
+          .widget<NativeGameHost>(
+            find.byWidgetPredicate((widget) => widget is NativeGameHost),
+          )
+          .game;
       await tester.runAsync(
         () => game.loaded.timeout(const Duration(seconds: 10)),
       );

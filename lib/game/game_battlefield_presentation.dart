@@ -11,49 +11,10 @@ extension _BattlefieldPresentation on RuneNexusGame {
         !supportsNativeBattlefield) {
       return null;
     }
-    Offset grid(Vector2 position) => Offset(
-      (position.x - _origin.x) / _tileSize,
-      (position.y - _origin.y) / _tileSize,
-    );
-    int id(Object object) => _battlefieldIds[object] ??= _nextBattlefieldId++;
     final center = _boardCamera.worldToScreen(
       _origin +
           Vector2(_map.columns * _tileSize / 2, _map.rows * _tileSize / 2),
     );
-    final enemyFrames = <BattlefieldEnemy>[];
-    final linkedTargets =
-        (nativeBattlefieldLinkedEffectEvents ||
-            nativeBattlefieldChainEffectEvents)
-        ? _battlefieldEffectEvents.linkedTargetIds
-        : const <int>{};
-    for (final enemy
-        in nativeCombatOwned ? const <EnemyComponent>[] : enemies) {
-      if (enemy.isDead) continue;
-      final logicalPosition = grid(enemy.position);
-      final enemyId = id(enemy);
-      final linkedTarget =
-          linkedTargets.contains(enemyId) &&
-          enemy.isMounted &&
-          !enemy.isRemoving;
-      if (linkedTarget) _battlefieldTargetPositions[enemy] = logicalPosition;
-      final visual = enemy.visualRenderState;
-      enemyFrames.add(
-        BattlefieldEnemy(
-          id: enemyId,
-          type: enemy.definition.type,
-          position: logicalPosition + visual.visualOffset / _tileSize,
-          logicalPosition: linkedTarget ? logicalPosition : null,
-          facingAngle: visual.facingAngle,
-          scale: enemy.size.x / _tileSize,
-          phase: enemy.visualPhase,
-          hitFlash: visual.hitFlashRemaining,
-          burning: visual.isBurning,
-          slowed: visual.isSlowed,
-          poisoned: visual.isPoisoned,
-          diamondCarrier: visual.isDiamondCarrier,
-        ),
-      );
-    }
     return BattlefieldFrame(
       labels: _buildBattlefieldLabels(),
       effects: _buildBattlefieldEffects(),
@@ -73,54 +34,10 @@ extension _BattlefieldPresentation on RuneNexusGame {
               level: 1,
             )
           : null,
-      turrets: [
-        for (final turret
-            in nativeCombatOwned ? const <TurretComponent>[] : _turrets.values)
-          BattlefieldTurret(
-            id: id(turret),
-            type: turret.definition.type,
-            position: grid(turret.position),
-            aimAngle: turret.visualAimAngle,
-            fireFeedback: turret.visualFireFeedback,
-            shotSequence: turret.visualShotSequence,
-            level: turret.level,
-          ),
-      ],
-      enemies: enemyFrames,
-      projectileEvents: nativeProjectileEvents ? _projectileEventFrame() : null,
-      projectiles: nativeProjectileEvents
-          ? const []
-          : [
-              for (final projectile
-                  in children.whereType<ProjectileComponent>())
-                if (!projectile.isRemoving)
-                  BattlefieldProjectile(
-                    id: id(projectile),
-                    type: projectile.owner.definition.type,
-                    position: grid(projectile.position),
-                    direction: projectile.visualDirection,
-                    origin:
-                        (projectile.visualOrigin -
-                            Offset(_origin.x, _origin.y)) /
-                        _tileSize,
-                    ownerId: id(projectile.owner),
-                    shotSequence: projectile.visualShotSequence,
-                    isChain: projectile.isChain,
-                  ),
-            ],
-      finishedProjectiles: nativeProjectileEvents
-          ? const []
-          : List.unmodifiable(_finishedProjectiles),
-      impacts: [
-        for (final impact in children.whereType<ImpactEffectComponent>())
-          if (!impact.isRemoving && impact.style == ImpactEffectStyle.blast)
-            BattlefieldImpact(
-              id: id(impact),
-              position: grid(impact.position),
-              radius: impact.radius / _tileSize,
-              progress: impact.visualProgress,
-            ),
-      ],
+      // Godot decorates the frame with its authoritative combat actors.
+      turrets: const [],
+      enemies: const [],
+      projectiles: const [],
       time: _spaceTime,
       pixelsPerTile: _tileSize,
       zoom: _boardCamera.zoom,
@@ -140,60 +57,5 @@ extension _BattlefieldPresentation on RuneNexusGame {
     return grid == null
         ? _boardCamera.screenToWorld(position)
         : _origin + Vector2(grid.dx * _tileSize, grid.dy * _tileSize);
-  }
-
-  void _applyBattlefieldTransform(Canvas canvas) {
-    final projection = battlefieldProjection;
-    if (projection == null) {
-      _boardCamera.applyTransform(canvas);
-    } else {
-      projection.applyWorldTransform(
-        canvas,
-        Offset(_origin.x, _origin.y),
-        _tileSize,
-      );
-    }
-  }
-
-  void _renderBattlefieldLabels(Canvas canvas) {
-    final projection = battlefieldProjection!;
-    final scale = projection.xAxis.distance / _tileSize;
-    for (final child in children) {
-      if (child is! PositionComponent || child.isRemoving) continue;
-      if (isNativeBattlefieldEffect(child)) continue;
-      if (child is TurretComponent && nativeBattlefieldTurretLevels) continue;
-      if (child is EnemyComponent && _usesNativeBattlefieldGroup('labels')) {
-        continue;
-      }
-      if (child is! EnemyComponent &&
-          child is! TurretComponent &&
-          child is! DamageNumberComponent &&
-          child is! DiamondRewardEffectComponent) {
-        continue;
-      }
-      final visualOffset = child is EnemyComponent
-          ? child.visualRenderState.visualOffset
-          : Offset.zero;
-      final point = projection.gridToScreen(
-        Offset(
-          (child.position.x + visualOffset.dx - _origin.x) / _tileSize,
-          (child.position.y + visualOffset.dy - _origin.y) / _tileSize,
-        ),
-        height: child is EnemyComponent ? 0.3 : 0,
-      );
-      // 수치·상태 아이콘은 지면 기울기를 적용하지 않는 화면 정면 표시.
-      canvas.save();
-      canvas.translate(point.dx, point.dy);
-      canvas.scale(scale);
-      canvas.translate(-child.size.x / 2, -child.size.y / 2);
-      if (child is EnemyComponent) {
-        child.renderBattlefieldStatus(canvas);
-      } else if (child is TurretComponent) {
-        child.renderBattlefieldLevel(canvas);
-      } else {
-        child.render(canvas);
-      }
-      canvas.restore();
-    }
   }
 }

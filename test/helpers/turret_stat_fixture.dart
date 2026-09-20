@@ -1,11 +1,9 @@
 import 'package:rune_nexus/domain/combat/attack_calculation.dart';
-import 'package:flame/components.dart';
+import 'package:vector_math/vector_math_64.dart' show Vector2;
 import 'package:rune_nexus/data/definitions/game_turret_data.dart';
 import 'package:rune_nexus/data/definitions/game_gem_data.dart';
-import 'package:rune_nexus/data/definitions/game_enemy_data.dart';
 import 'package:rune_nexus/data/save/game_save_data.dart';
 import 'package:rune_nexus/domain/combat/turret_stat_input.dart';
-import 'package:rune_nexus/domain/enemy/enemy_type.dart';
 import 'package:rune_nexus/domain/gem/gem_type.dart';
 import 'package:rune_nexus/domain/map/grid_point.dart';
 import 'package:rune_nexus/domain/turret/turret_type.dart';
@@ -13,7 +11,6 @@ import 'package:rune_nexus/domain/turret/turret_definition.dart';
 import 'package:rune_nexus/domain/turret/damage_family.dart';
 import 'package:rune_nexus/domain/turret_module/turret_module_type.dart';
 import 'package:rune_nexus/game/components/turret_component.dart';
-import 'package:rune_nexus/game/components/enemy_component.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
 
 class StatFixtureGame extends RuneNexusGame {
@@ -226,15 +223,7 @@ Map<String, Object?> componentOutput(TurretComponent t) => {
   save['secondaryTrait'] = config['secondary'];
   t.restoreFromSaveData(SavedTurret.fromJson(save)!);
   final cleanup = config['cleanup'] as bool;
-  if (cleanup) {
-    final e = EnemyComponent(
-      definition: gameEnemies[EnemyType.normal]!,
-      maxHp: 100,
-      path: [Vector2.zero(), Vector2(100, 0)],
-      game: game,
-    );
-    t.registerDirectHitTraits(e);
-    t.handleEnemyKilled(e);
-  }
+  // Mirror native cleanup state; timer execution is covered in Godot.
+  if (cleanup) t.applyNativeCombatState({'cleanup': 3.0});
   return (turret: t, game: game, cleanup: cleanup);
 }

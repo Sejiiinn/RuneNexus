@@ -4,65 +4,36 @@ import 'helpers/game_balance_test_helpers.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('3D 로딩 중 자동 전투와 시계를 멈추고 초기 프레임은 생성한다', () async {
-    final game = RuneNexusGame(
-      saveRepository: MemorySaveRepository(),
-      waves: const [
-        WaveDefinition(
-          round: 1,
-          previewText: 'empty',
-          groups: [],
-          clearRewardGold: 0,
-        ),
-        WaveDefinition(
-          round: 2,
-          previewText: 'combat',
-          groups: [
-            SpawnGroup(enemyType: EnemyType.normal, count: 5, interval: 1),
-          ],
-          clearRewardGold: 0,
-        ),
-      ],
-    );
-    game.onGameResize(Vector2(400, 800));
-    // ignore: invalid_use_of_internal_member
-    await game.load();
-    // ignore: invalid_use_of_internal_member
-    game.mount();
-    addTearDown(game.disposeAppResources);
-    await game.ready();
-    game.setAutoStartMode(AutoStartMode.fullAuto);
-    game.startNextWave();
-    game.update(.016);
-    expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
-    expect(game.snapshotNotifier.value.round, 2);
-    game.nativeBattlefieldLoading = true;
-    final first = game.battlefieldFrame!;
-    final phase = game.snapshotNotifier.value.phase;
-    game.update(10);
-    expect(game.snapshotNotifier.value.phase, phase);
-    expect(game.enemies, isEmpty);
-    expect(game.battlefieldFrame, isNotNull);
-    expect(game.battlefieldFrame!.time, first.time);
-
-    game.nativeBattlefieldLoading = false;
-    game.update(.1);
-    expect(game.snapshotNotifier.value.phase, GamePhase.wave);
-    game.update(1);
-    await game.ready();
-    expect(game.enemies, isNotEmpty);
-    final enemy = game.enemies.first;
-    final position = enemy.position.clone();
-    final time = game.battlefieldFrame!.time;
-    game.nativeBattlefieldLoading = true;
-    game.update(1);
-    expect(enemy.position, position);
-    expect(game.battlefieldFrame!.time, time);
-    game.nativeBattlefieldLoading = false;
-    game.update(.1);
-    expect(game.battlefieldFrame!.time, greaterThan(time));
-    expect(enemy.position, isNot(position));
-  });
+  test(
+    'native loading freezes app clock and acknowledged enemy mirrors',
+    () async {
+      final game = RuneNexusGame(saveRepository: MemorySaveRepository());
+      game.onGameResize(Vector2(400, 800));
+      await game.load();
+      addTearDown(game.disposeAppResources);
+      final enemy = targetPriorityEnemy(
+        game: game,
+        hp: 100,
+        progress: 0,
+        position: Vector2(100, 200),
+      );
+      game.registerEnemy(enemy);
+      final position = enemy.position.clone();
+      game.nativeBattlefieldLoading = true;
+      final first = game.battlefieldFrame!;
+      game.update(10);
+      expect(game.battlefieldFrame, isNotNull);
+      expect(game.battlefieldFrame!.time, first.time);
+      expect(enemy.position, position);
+      game.nativeBattlefieldLoading = false;
+      game.update(.1);
+      expect(game.battlefieldFrame!.time, greaterThan(first.time));
+      // The Dart mirror cannot simulate movement even when the clock resumes.
+      expect(enemy.position, position);
+      enemy.applyNativeCombatState({...enemy.nativeCombatState(1), 'x': 110.0});
+      expect(enemy.position.x, 110);
+    },
+  );
 
   test(
     '3D frame reads combat state without changing progress or saving',
@@ -76,19 +47,23 @@ void main() {
       await game.saveNow();
       final saved = repository.data!.toJson();
       final first = game.battlefieldFrame!;
-      final turret = first.turrets.single;
+      final turret = first.selection!.turrets.single;
       expect(turret.position.dx, closeTo(2.5, 0.00001));
       expect(turret.position.dy, closeTo(0.5, 0.00001));
       for (var i = 0; i < 30; i++) {
-        expect(game.battlefieldFrame!.turrets.single.id, turret.id);
+        expect(
+          game.battlefieldFrame!.selection!.turrets.single.position,
+          turret.position,
+        );
       }
       expect(repository.data!.toJson(), saved);
-      expect(game.battlefieldFrame!.turrets, hasLength(1));
+      expect(game.battlefieldFrame!.turrets, isEmpty);
+      expect(game.turrets, hasLength(1));
     },
   );
 
   test(
-    '3D tile taps use the inverse projection and preserve 2D fallback',
+    '3D tile taps use the inverse projection and preserve logical input before projection',
     () async {
       final game = RuneNexusGame(saveRepository: MemorySaveRepository());
       game.onGameResize(Vector2(400, 800));
@@ -102,25 +77,19 @@ void main() {
       );
       game.battlefieldProjection = projection;
       final screen = projection.gridToScreen(const Offset(2.5, 0.5));
-      final event = TapDownEvent(
-        1,
-        game,
-        TapDownDetails(globalPosition: screen),
-      )..renderingTrace.add(Vector2(screen.dx, screen.dy));
-      game.onTapDown(event);
+      game.onBoardTapDown(Vector2(screen.dx, screen.dy));
       expect(
         game.snapshotNotifier.value.selectedBuildPoint,
         const GridPoint(2, 0),
       );
       // 네이티브 3D 전장 위에 수치·선택 표시만 투명 합성.
-      expect(game.backgroundColor().a, 0);
+
       game.battlefieldProjection = null;
       tapBuildTile(game, const GridPoint(3, 0));
       expect(
         game.snapshotNotifier.value.selectedBuildPoint,
         const GridPoint(3, 0),
       );
-      expect(game.backgroundColor().a, 1);
     },
   );
 
@@ -133,18 +102,17 @@ void main() {
         enableDebugEnemySpawnForTesting: true,
       );
       game.onGameResize(Vector2(400, 800));
-      // Mount real components so this exercises the game's collectors, not DTO fixtures.
+      // Exercise registered mirrors, native payloads and selection collectors.
       // ignore: invalid_use_of_internal_member
       await game.load();
       // ignore: invalid_use_of_internal_member
-      game.mount();
       addTearDown(game.disposeAppResources);
       game.debugAddGold(1000);
       game.selectTurretType(TurretType.frost);
       const point = GridPoint(2, 0);
       game.tryBuildTurret(point);
       await game.ready();
-      final turret = game.children.whereType<TurretComponent>().single;
+      final turret = game.turrets.single;
       turret.equipGem(GemType.explosion, 0);
       game.previewOrLevelUpSelectedTurret();
       expect(game.isTurretSelected(point), isTrue);
@@ -160,10 +128,27 @@ void main() {
         enemy.hp = enemy.maxHp * 0.63;
         enemy.shield = enemy.maxShield * 0.41;
         enemy.armor = enemy.maxArmor * 0.57;
-        enemy.applyBurn(damagePerSecond: 2, duration: 3);
-        enemy.applyPoison(damagePerSecond: 1, duration: 4, maxStacks: 2);
-        enemy.applySlow(multiplier: 0.7, duration: 2);
-        enemy.applyRiftMark(damageAmplification: 0.2, duration: 5);
+        enemy.applyNativeCombatState({
+          ...enemy.nativeCombatState(game.nativeCombatEntityId(enemy)),
+          'burnInstances': [
+            {
+              'remaining': 3.0,
+              'damagePerSecond': 2.0,
+              'damageMultiplier': 1.0,
+              'sourceX': null,
+              'sourceY': null,
+              'ignoreArmorReduction': false,
+            },
+          ],
+          'poisonRemaining': 4.0,
+          'poisonDamagePerSecond': 1.0,
+          'poisonStacks': 1,
+          'slowInstances': [
+            {'multiplier': .7, 'remaining': 2.0},
+          ],
+          'riftMarkRemaining': 5.0,
+          'riftMarkDamageAmplification': .2,
+        });
       }
       expect(game.enemies.any((enemy) => enemy.shield > 0), isTrue);
       expect(game.enemies.any((enemy) => enemy.armor > 0), isTrue);
@@ -174,66 +159,22 @@ void main() {
         for (final enemy in game.enemies) enemy.toSaveData().toJson(),
       ];
       final first = game.battlefieldFrame!;
-      final origin = game.debugBoardOrigin();
       final labels = first.labels!;
-      expect(labels.enemies, hasLength(3));
+      expect(first.enemies, isEmpty);
+      expect(labels.enemies, isEmpty);
       expect(labels.logicalTileSize, first.pixelsPerTile);
-      for (var i = 0; i < game.enemies.length; i++) {
-        final enemy = game.enemies.elementAt(i);
-        final visual = enemy.visualRenderState;
-        final label = labels.enemies[i];
-        expect(label.id, first.enemies[i].id);
-        expect(
-          label.position.dx,
-          closeTo(
-            (enemy.position.x - origin.x + visual.visualOffset.dx) /
-                first.pixelsPerTile,
-            1e-6,
-          ),
+      for (final enemy in game.enemies) {
+        final native = enemy.nativeCombatState(
+          game.nativeCombatEntityId(enemy),
         );
-        expect(
-          label.position.dy,
-          closeTo(
-            (enemy.position.y - origin.y + visual.visualOffset.dy) /
-                first.pixelsPerTile,
-            1e-6,
-          ),
-        );
-        expect(label.size, visual.size);
-        expect(
-          [
-            label.hp,
-            label.maxHp,
-            label.armor,
-            label.maxArmor,
-            label.shield,
-            label.maxShield,
-          ],
-          [
-            visual.hp,
-            visual.maxHp,
-            visual.armor,
-            visual.maxArmor,
-            visual.shield,
-            visual.maxShield,
-          ],
-        );
-        expect(
-          [label.burning, label.poisoned, label.slowed, label.riftMarked],
-          [true, true, true, true],
-        );
-        expect(
-          [label.burning, label.poisoned, label.slowed, label.riftMarked],
-          [
-            visual.isBurning,
-            visual.isPoisoned,
-            visual.isSlowed,
-            visual.hasRiftMark,
-          ],
-        );
-        expect(label.diamondCarrier, visual.isDiamondCarrier);
-        expect(label.effectTime, visual.effectTime);
-        expect(label.enemyCount, visual.enemyCount);
+        expect(native['burnInstances'], hasLength(1));
+        expect(native['poisonRemaining'], 4);
+        expect(native['slowInstances'], hasLength(1));
+        expect(native['riftMarkRemaining'], 5);
+        expect(native['hp'], enemy.hp);
+        expect(native['shield'], enemy.shield);
+        expect(native['armor'], enemy.armor);
+        expect(native['diamondReward'], enemy.diamondReward);
       }
       final selection = first.selection!;
       final selected = selection.turrets.single;

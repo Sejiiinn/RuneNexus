@@ -1,62 +1,70 @@
+import 'helpers/native_game_test_driver.dart';
 import 'dart:math' as math;
 import 'package:rune_nexus/data/definitions/game_research_data.dart';
 import 'helpers/game_balance_test_helpers.dart';
 
 void main() {
-  test('run completion grants runes and progression applies next run', () {
-    final game = RuneNexusGame(
-      waves: const [
-        WaveDefinition(
-          round: 1,
-          previewText: 'test',
-          groups: [],
-          clearRewardGold: 0,
-        ),
-      ],
-    );
+  test(
+    'run completion grants runes and progression applies next run',
+    () async {
+      final game = RuneNexusGame(
+        saveRepository: MemorySaveRepository(),
+        waves: const [
+          WaveDefinition(
+            round: 1,
+            previewText: 'test',
+            groups: [],
+            clearRewardGold: 0,
+          ),
+        ],
+      );
 
-    game.startNextWave();
-    game.update(0.016);
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
 
-    expect(game.snapshotNotifier.value.phase, GamePhase.success);
-    expect(game.snapshotNotifier.value.completedRounds, 1);
-    expect(game.snapshotNotifier.value.lastRunRuneReward, 2);
-    expect(game.snapshotNotifier.value.runes, 2);
-    expect(game.snapshotNotifier.value.unlockedStageCount, 2);
-    expect(game.snapshotNotifier.value.bestRoundsByStage[1], 1);
-    expect(game.snapshotNotifier.value.clearedStageNumbers, contains(1));
-    expect(game.snapshotNotifier.value.lastRunPreviousBestRound, 0);
-    expect(game.snapshotNotifier.value.lastRunWasNewBestRound, isTrue);
-    expect(game.snapshotNotifier.value.lastRunUnlockedStageNumber, 2);
+      game.startNextWave();
+      acknowledgeNativeWaveCompleted(game);
 
-    game.upgradeStartingGoldProgression();
-    game.upgradeNexusHpProgression();
-    game.restartRun();
+      expect(game.snapshotNotifier.value.phase, GamePhase.success);
+      expect(game.snapshotNotifier.value.completedRounds, 1);
+      expect(game.snapshotNotifier.value.lastRunRuneReward, 2);
+      expect(game.snapshotNotifier.value.runes, 2);
+      expect(game.snapshotNotifier.value.unlockedStageCount, 2);
+      expect(game.snapshotNotifier.value.bestRoundsByStage[1], 1);
+      expect(game.snapshotNotifier.value.clearedStageNumbers, contains(1));
+      expect(game.snapshotNotifier.value.lastRunPreviousBestRound, 0);
+      expect(game.snapshotNotifier.value.lastRunWasNewBestRound, isTrue);
+      expect(game.snapshotNotifier.value.lastRunUnlockedStageNumber, 2);
 
-    expect(game.snapshotNotifier.value.gold, 170);
-    expect(game.snapshotNotifier.value.nexusHp, 20);
-    expect(game.snapshotNotifier.value.maxNexusHp, 20);
-    expect(game.snapshotNotifier.value.unlockedStageCount, 2);
+      game.upgradeStartingGoldProgression();
+      game.upgradeNexusHpProgression();
+      game.restartRun();
 
-    game.startNextWave();
-    game.update(0.016);
+      expect(game.snapshotNotifier.value.gold, 170);
+      expect(game.snapshotNotifier.value.nexusHp, 20);
+      expect(game.snapshotNotifier.value.maxNexusHp, 20);
+      expect(game.snapshotNotifier.value.unlockedStageCount, 2);
 
-    expect(game.snapshotNotifier.value.unlockedStageCount, 2);
-    expect(game.snapshotNotifier.value.lastRunWasNewBestRound, isFalse);
-    expect(game.snapshotNotifier.value.lastRunUnlockedStageNumber, isNull);
+      game.startNextWave();
+      acknowledgeNativeWaveCompleted(game);
 
-    game.startStage(2);
-    game.startNextWave();
-    game.update(0.016);
+      expect(game.snapshotNotifier.value.unlockedStageCount, 2);
+      expect(game.snapshotNotifier.value.lastRunWasNewBestRound, isFalse);
+      expect(game.snapshotNotifier.value.lastRunUnlockedStageNumber, isNull);
 
-    expect(game.snapshotNotifier.value.currentStageNumber, 2);
-    expect(game.snapshotNotifier.value.lastRunRuneReward, 2);
-    expect(game.snapshotNotifier.value.unlockedStageCount, 3);
-    expect(game.snapshotNotifier.value.bestRoundsByStage[2], 1);
-    expect(game.snapshotNotifier.value.clearedStageNumbers, contains(2));
-    expect(game.snapshotNotifier.value.lastRunWasNewBestRound, isTrue);
-    expect(game.snapshotNotifier.value.lastRunUnlockedStageNumber, 3);
-  });
+      game.startStage(2);
+      game.startNextWave();
+      acknowledgeNativeWaveCompleted(game);
+
+      expect(game.snapshotNotifier.value.currentStageNumber, 2);
+      expect(game.snapshotNotifier.value.lastRunRuneReward, 2);
+      expect(game.snapshotNotifier.value.unlockedStageCount, 3);
+      expect(game.snapshotNotifier.value.bestRoundsByStage[2], 1);
+      expect(game.snapshotNotifier.value.clearedStageNumbers, contains(2));
+      expect(game.snapshotNotifier.value.lastRunWasNewBestRound, isTrue);
+      expect(game.snapshotNotifier.value.lastRunUnlockedStageNumber, 3);
+    },
+  );
 
   test('permanent starting gold and nexus hp upgrades respect max levels', () {
     final progression = RunProgression()..runes = 10000000;
@@ -211,8 +219,8 @@ void main() {
         path: [Vector2.zero(), Vector2(1, 0)],
         game: game,
       );
-      game.enemies.add(enemy);
-      enemy.receiveDamage(999);
+      game.registerEnemy(enemy);
+      acknowledgeNativeKill(game, enemy);
     }
 
     expect(game.snapshotNotifier.value.gold, 236);
@@ -222,7 +230,7 @@ void main() {
     );
   });
 
-  test('run wave gold upgrade adds clear reward gold', () {
+  test('run wave gold upgrade adds clear reward gold', () async {
     final game = RuneNexusGame(
       saveRepository: MemorySaveRepository(),
       waves: const [
@@ -235,9 +243,12 @@ void main() {
       ],
     );
 
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+
     game.buyRunUpgrade(RunUpgradeType.waveGold);
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
 
     expect(game.snapshotNotifier.value.phase, GamePhase.success);
     expect(game.snapshotNotifier.value.gold, 164);
@@ -289,7 +300,7 @@ void main() {
     game.upgradeSupplyProgression();
     game.restartRun();
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
 
     expect(game.snapshotNotifier.value.phase, GamePhase.success);
     expect(game.snapshotNotifier.value.gold, 171);
@@ -328,8 +339,8 @@ void main() {
         path: [Vector2.zero(), Vector2(1, 0)],
         game: game,
       );
-      game.enemies.add(enemy);
-      enemy.receiveDamage(999);
+      game.registerEnemy(enemy);
+      acknowledgeNativeKill(game, enemy);
     }
 
     expect(game.snapshotNotifier.value.gold, 271);
@@ -359,8 +370,8 @@ void main() {
       path: [Vector2.zero(), Vector2(1, 0)],
       game: game,
     );
-    game.enemies.add(normal);
-    normal.receiveDamage(999);
+    game.registerEnemy(normal);
+    acknowledgeNativeKill(game, normal);
 
     expect(game.snapshotNotifier.value.gold, 175);
     expect(game.snapshotNotifier.value.killGoldFractionWallet, 0);
@@ -371,8 +382,8 @@ void main() {
       path: [Vector2.zero(), Vector2(1, 0)],
       game: game,
     );
-    game.enemies.add(boss);
-    boss.receiveDamage(999);
+    game.registerEnemy(boss);
+    acknowledgeNativeKill(game, boss);
 
     expect(game.snapshotNotifier.value.gold, 227);
     expect(
@@ -386,8 +397,8 @@ void main() {
       path: [Vector2.zero(), Vector2(1, 0)],
       game: game,
     );
-    game.enemies.add(shieldBoss);
-    shieldBoss.receiveDamage(999);
+    game.registerEnemy(shieldBoss);
+    acknowledgeNativeKill(game, shieldBoss);
 
     expect(game.snapshotNotifier.value.gold, 299);
     expect(
@@ -401,8 +412,8 @@ void main() {
       path: [Vector2.zero(), Vector2(1, 0)],
       game: game,
     );
-    game.enemies.add(forgeBoss);
-    forgeBoss.receiveDamage(999);
+    game.registerEnemy(forgeBoss);
+    acknowledgeNativeKill(game, forgeBoss);
 
     expect(game.snapshotNotifier.value.gold, 386);
     expect(
@@ -430,8 +441,8 @@ void main() {
       path: [Vector2.zero(), Vector2(1, 0)],
       game: game,
     );
-    game.enemies.add(normal);
-    normal.receiveDamage(999);
+    game.registerEnemy(normal);
+    acknowledgeNativeKill(game, normal);
 
     expect(game.snapshotNotifier.value.gemShards, 0);
 
@@ -441,8 +452,8 @@ void main() {
       path: [Vector2.zero(), Vector2(1, 0)],
       game: game,
     );
-    game.enemies.add(boss);
-    boss.receiveDamage(999);
+    game.registerEnemy(boss);
+    acknowledgeNativeKill(game, boss);
 
     expect(game.snapshotNotifier.value.gemShards, 5);
 
@@ -452,8 +463,8 @@ void main() {
       path: [Vector2.zero(), Vector2(1, 0)],
       game: game,
     );
-    game.enemies.add(shieldBoss);
-    shieldBoss.receiveDamage(999);
+    game.registerEnemy(shieldBoss);
+    acknowledgeNativeKill(game, shieldBoss);
 
     expect(game.snapshotNotifier.value.gemShards, 10);
 
@@ -463,8 +474,8 @@ void main() {
       path: [Vector2.zero(), Vector2(1, 0)],
       game: game,
     );
-    game.enemies.add(forgeBoss);
-    forgeBoss.receiveDamage(999);
+    game.registerEnemy(forgeBoss);
+    acknowledgeNativeKill(game, forgeBoss);
 
     expect(game.snapshotNotifier.value.gemShards, 15);
   });
@@ -499,7 +510,7 @@ void main() {
 
     game.startStage(1);
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
 
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(1));
     expect(game.snapshotNotifier.value.canUpgradeKillGold, isTrue);
@@ -777,7 +788,7 @@ void main() {
     for (final stageNumber in [1, 2, 3, 4, 4]) {
       game.startStage(stageNumber);
       game.startNextWave();
-      game.update(0.016);
+      acknowledgeNativeWaveCompleted(game);
     }
     game.debugSetInstantResearchCompletion(true);
     game.startResearch(ResearchType.criticalChance);
@@ -1013,7 +1024,7 @@ void main() {
 
     game.startStage(1);
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
 
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(1));
     expect(game.snapshotNotifier.value.canUpgradeEmergencySale, isFalse);
@@ -1147,8 +1158,8 @@ void main() {
         path: [Vector2.zero(), Vector2(1, 0)],
         game: game,
       );
-      game.enemies.add(enemy);
-      enemy.receiveDamage(999);
+      game.registerEnemy(enemy);
+      acknowledgeNativeKill(game, enemy);
       await game.saveNow();
 
       final restoredRepository = MemorySaveRepository()..data = repository.data;

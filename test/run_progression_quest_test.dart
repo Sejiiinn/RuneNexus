@@ -1,3 +1,4 @@
+import 'helpers/native_game_test_driver.dart';
 import 'helpers/game_balance_test_helpers.dart';
 
 void main() {
@@ -427,8 +428,8 @@ void main() {
       path: [Vector2.zero(), Vector2(1, 0)],
       game: game,
     );
-    game.enemies.add(normal);
-    normal.receiveDamage(999);
+    game.registerEnemy(normal);
+    acknowledgeNativeKill(game, normal);
 
     final boss = EnemyComponent(
       definition: gameEnemies[EnemyType.boss]!,
@@ -436,8 +437,8 @@ void main() {
       path: [Vector2.zero(), Vector2(1, 0)],
       game: game,
     );
-    game.enemies.add(boss);
-    boss.receiveDamage(999);
+    game.registerEnemy(boss);
+    acknowledgeNativeKill(game, boss);
 
     expect(
       game.snapshotNotifier.value.dailyQuestProgress[DailyQuestType
@@ -450,7 +451,7 @@ void main() {
     );
 
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
 
     expect(
       game.snapshotNotifier.value.dailyQuestProgress[DailyQuestType.clearWaves],

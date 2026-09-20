@@ -1,4 +1,4 @@
-import 'package:flame/components.dart';
+import 'package:vector_math/vector_math_64.dart' show Vector2;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/save/save_repository.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';

@@ -1,12 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
-import 'package:flame/events.dart';
-import 'package:flame/components.dart' show Component, PositionComponent;
-import 'package:flame/game.dart';
-import 'package:flutter/foundation.dart';
+import 'package:vector_math/vector_math_64.dart' show Vector2;
 import 'package:flutter/gestures.dart' as gestures;
 import 'package:flutter/material.dart';
 
@@ -23,7 +19,6 @@ import '../data/save/online_save_repository.dart';
 import '../data/save/online_save_coordinator.dart'
     show createOnlineSaveIdempotencyKey;
 import '../data/save/save_repository.dart';
-import '../domain/combat/attack_rules.dart';
 import '../domain/combat/native_combat_protocol.dart';
 import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/game_phase.dart';
@@ -53,39 +48,18 @@ import '../domain/turret/turret_trait_type.dart';
 import '../domain/turret/turret_type.dart';
 import '../domain/turret_module/turret_module_type.dart';
 import '../domain/wave/wave_definition.dart';
-import 'components/damage_number_component.dart';
-import 'components/death_burst_effect_component.dart';
-import 'components/diamond_reward_effect_component.dart';
 import 'components/enemy_component.dart';
-import 'components/gem_equip_effect_component.dart';
-import 'components/grid_component.dart';
-import 'components/impact_effect_component.dart';
-import 'components/lightning_chain_beam_component.dart';
-import 'components/lightning_charge_component.dart';
-import 'components/nexus_core_beam_component.dart';
-import 'components/projectile_component.dart';
-import 'components/rift_mark_pulse_component.dart';
-import 'components/sequential_lightning_chain_component.dart';
 import 'components/turret_component.dart';
 import 'game_snapshot.dart';
-import 'rendering/core_skill_cooldown_renderer.dart';
-import 'rendering/diamond_currency_renderer.dart';
-import 'rendering/game_board_selection_renderer.dart';
-import 'rendering/game_scene_effect_renderer.dart';
-import 'rendering/gem_reward_target_renderer.dart';
-import 'rendering/status_effect_sprite_cache.dart';
 import 'rendering/stage1_3d/battlefield_frame.dart';
 import 'rendering/stage1_3d/battlefield_projectile_events.dart';
 import 'rendering/stage1_3d/battlefield_effects.dart';
-import 'rendering/stage1_3d/battlefield_effect_queue.dart';
 import 'rendering/stage1_3d/battlefield_effect_events.dart';
 import 'rendering/stage1_3d/battlefield_labels.dart';
 import 'rendering/stage1_3d/battlefield_selection.dart';
 import 'rendering/stage1_3d/battlefield_projection.dart';
 import 'systems/board_camera.dart';
 import 'systems/board_gesture_controller.dart';
-import 'systems/combat_resolver.dart';
-import 'systems/combat_execution_controller.dart';
 import 'systems/core_combat_skill_controller.dart';
 import 'systems/game_save_adapter.dart';
 import 'systems/gem_reward_controller.dart';
@@ -97,6 +71,7 @@ import 'systems/wave_spawner.dart';
 
 part 'game_restore_controller.dart';
 part 'game_native_combat.dart';
+part 'game_native_wave.dart';
 part 'game_snapshot_builder.dart';
 part 'game_battlefield_presentation.dart';
 part 'game_battlefield_effects.dart';
@@ -108,7 +83,47 @@ const _debugPanelEnabled = bool.fromEnvironment(
   defaultValue: false,
 );
 
-class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
+enum DamageNumberMotion { rise, fallArc }
+
+enum DamageNumberFeedback { neutral, weak, resisted }
+
+class RuneNexusGame {
+  Vector2 size = Vector2.zero();
+  RenderBox? _view;
+  Future<void>? _loading;
+  bool isLoaded = false;
+  bool paused = false;
+  double get nexusScreenAlert => _nexusHitAlertTimer / _nexusHitAlertDuration;
+  double get coreDestructionFade => _phase == GamePhase.coreDestruction
+      ? (_coreDestructionElapsed / _coreDestructionTotalDuration).clamp(0, 1)
+      : 0;
+  bool get isAttached => _view != null;
+  RenderBox get renderBox => _view!;
+  Iterable<TurretComponent> get turrets => _turrets.values;
+  Future<void> get loaded => load();
+  Future<void> load() => _loading ??= onLoad().then((_) => isLoaded = true);
+  Future<void> ready() => load();
+  void attachView(RenderBox view) => _view = view;
+  void detachView() => _view = null;
+  void pauseEngine() => paused = true;
+  void resumeEngine() => paused = false;
+
+  void registerTurret(TurretComponent turret) {
+    _turrets[turret.gridPoint] = turret;
+    turret.attach(
+      onRemove: () {
+        if (identical(_turrets[turret.gridPoint], turret)) {
+          _turrets.remove(turret.gridPoint);
+        }
+      },
+    );
+  }
+
+  void registerEnemy(EnemyComponent enemy) {
+    if (!enemies.contains(enemy)) enemies.add(enemy);
+    enemy.attach(onRemove: () => enemies.remove(enemy));
+  }
+
   static const double _burnDamagePerSecondScale = 0.5;
   static const double _burnDurationSeconds = 2;
   static const int gemShardRewardFallbackAmount = 10;
@@ -471,7 +486,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   final bool transparentBackground;
   BattlefieldProjection? battlefieldProjection;
 
-  /// 실제 Godot 적용 확인을 받은 표시 묶음만 Flame 그리기를 생략한다.
+  /// 실제 Godot 적용이 확인된 표시 묶음을 추적한다.
   Set<String> nativeBattlefieldGroups = const {};
   int nativeBattlefieldSceneEpoch = 0;
   bool nativeBattlefieldTurretLevels = false;
@@ -479,10 +494,23 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   bool get usesNativeSelectionAnimation =>
       nativeSelectionAnimation && _usesNativeBattlefieldGroup('selection');
   bool nativeBattlefieldLoading = false;
+  String? nativeBattlefieldError;
+  void retryNativeBattlefield() {
+    nativeBattlefieldError = null;
+    nativeBattlefieldLoading = true;
+    nativeCombatRevision++;
+    _publish();
+  }
+
   int nativeCombatRevision = 0;
-  GameSaveData? _nativeConfirmedSave;
-  Map<String, Object?>? _nativePendingSave;
-  Map<int, Map<String, Object?>> _nativePendingSavedTurrets = {};
+  int _nativeWaveId = 0;
+  String _nativeCoreConfigFingerprint = '';
+  String _nativeDefenseConfigFingerprint = '';
+  Map<String, Object?>? _nativeDefenseRestoreIntent;
+  int _nativeDefenseRestoreSequence = 0;
+  bool _nativeApplyingResponse = false;
+  bool _nativeSaveRequested = false;
+  bool _nativeSaveImmediate = false;
 
   final NativeCombatProtocol _nativeCombat = NativeCombatProtocol();
   final Set<int> _nativeKnownEnemies = {};
@@ -493,73 +521,24 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   bool get nativeCombatActive =>
       _nativeCombat.active && !_nativeCombat.suspended;
 
-  final _battlefieldEffectClock = Stopwatch()..start();
-  final _battlefieldEffectQueue = BattlefieldEffectQueue();
-  final _battlefieldEffectEvents = BattlefieldEffectEvents<Component>();
-  bool _nativeBattlefieldEffectEvents = false;
-  bool get nativeBattlefieldEffectEvents => _nativeBattlefieldEffectEvents;
-  set nativeBattlefieldEffectEvents(bool value) {
-    _nativeBattlefieldEffectEvents = value;
-    if (!value) _restoreBattlefieldEffectEvents();
-  }
+  final _battlefieldEffectEvents = BattlefieldEffectEvents<BattlefieldEffect>();
+  bool nativeBattlefieldEffectEvents = false;
 
-  bool _nativeBattlefieldImpactEffectEvents = false;
-  bool get nativeBattlefieldImpactEffectEvents =>
-      _nativeBattlefieldImpactEffectEvents;
-  set nativeBattlefieldImpactEffectEvents(bool value) {
-    final wasEnabled = _nativeBattlefieldImpactEffectEvents;
-    _nativeBattlefieldImpactEffectEvents = value;
-    if (wasEnabled && !value) _restoreBattlefieldEffectEvents();
-  }
+  bool nativeBattlefieldImpactEffectEvents = false;
 
-  bool _nativeBattlefieldBlastEffectEvents = false;
-  bool get nativeBattlefieldBlastEffectEvents =>
-      _nativeBattlefieldBlastEffectEvents;
-  set nativeBattlefieldBlastEffectEvents(bool value) {
-    final wasEnabled = _nativeBattlefieldBlastEffectEvents;
-    _nativeBattlefieldBlastEffectEvents = value;
-    if (wasEnabled && !value) _restoreBattlefieldEffectEvents();
-  }
+  bool nativeBattlefieldBlastEffectEvents = false;
 
-  bool _nativeBattlefieldLinkedEffectEvents = false;
-  bool get nativeBattlefieldLinkedEffectEvents =>
-      _nativeBattlefieldLinkedEffectEvents;
-  set nativeBattlefieldLinkedEffectEvents(bool value) {
-    final wasEnabled = _nativeBattlefieldLinkedEffectEvents;
-    _nativeBattlefieldLinkedEffectEvents = value;
-    if (wasEnabled && !value) _restoreBattlefieldEffectEvents();
-  }
+  bool nativeBattlefieldLinkedEffectEvents = false;
 
-  bool _nativeBattlefieldChainEffectEvents = false;
-  bool get nativeBattlefieldChainEffectEvents =>
-      _nativeBattlefieldChainEffectEvents;
-  set nativeBattlefieldChainEffectEvents(bool value) {
-    final wasEnabled = _nativeBattlefieldChainEffectEvents;
-    _nativeBattlefieldChainEffectEvents = value;
-    if (wasEnabled && !value) _restoreBattlefieldEffectEvents();
-  }
+  bool nativeBattlefieldChainEffectEvents = false;
 
-  final Set<LightningChargeComponent> _nativeBattlefieldCharges = {};
-  bool _nativeBattlefieldChargeEffectEvents = false;
-  bool get nativeBattlefieldChargeEffectEvents =>
-      _nativeBattlefieldChargeEffectEvents;
-  set nativeBattlefieldChargeEffectEvents(bool value) {
-    final wasEnabled = _nativeBattlefieldChargeEffectEvents;
-    _nativeBattlefieldChargeEffectEvents = value;
-    if (wasEnabled && !value) _restoreBattlefieldEffectEvents();
-  }
+  bool nativeBattlefieldChargeEffectEvents = false;
 
-  // Shared logical target samples, also used when returning to Flame.
-  final _battlefieldTargetPositions = Expando<Offset>('effect target position');
-  bool _restoringBattlefieldEffects = false;
+  // Track native effect submissions until the scene acknowledges them.
   final Map<int, Set<int>> _battlefieldEffectSubmissions = {};
-  Set<int> _nativeAppliedEffectIds = const {};
   int _nativeEffectAppliedSequence = -1;
   final _battlefieldIds = Expando<int>('battlefield visual id');
   int _nextBattlefieldId = 0;
-  final List<BattlefieldProjectile> _finishedProjectiles = [];
-  static const _projectileVisualDuration = 0.14;
-  static const _projectileVisualCapacity = 192;
 
   BattlefieldFrame? get battlefieldFrame => _buildBattlefieldFrame();
 
@@ -568,120 +547,10 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _activeStage.id >= 1 && _activeStage.id <= 15;
 
   final _projectileEvents = BattlefieldProjectileEvents();
-  bool _nativeProjectileEvents = false;
-  bool get nativeProjectileEvents => _nativeProjectileEvents;
-  set nativeProjectileEvents(bool value) {
-    if (value == _nativeProjectileEvents) return;
-    _nativeProjectileEvents = value;
-    _projectileEvents.clear();
-    if (value) {
-      for (final projectile in children.whereType<ProjectileComponent>()) {
-        if (!projectile.isRemoving) registerProjectileVisual(projectile);
-      }
-      for (final projectile in _finishedProjectiles) {
-        _projectileEvents.finish(
-          _projectileData(projectile),
-          battlefieldEffectCombatClock,
-        );
-      }
-    }
-  }
-
-  List<Object?> _projectileData(BattlefieldProjectile projectile) => [
-    projectile.id,
-    projectile.position.dx,
-    projectile.position.dy,
-    projectile.direction.dx,
-    projectile.direction.dy,
-    projectile.type.name,
-    projectile.origin!.dx,
-    projectile.origin!.dy,
-    projectile.ownerId,
-    projectile.shotSequence,
-    projectile.isChain,
-    projectile.finishedAt ?? -1,
-    projectile.hitTarget?.dx,
-    projectile.hitTarget?.dy,
-  ];
-
-  BattlefieldProjectile _projectileVisual(
-    ProjectileComponent projectile, {
-    Vector2? hitTarget,
-    bool finished = false,
-  }) {
-    Offset grid(Offset position) =>
-        (position - Offset(_origin.x, _origin.y)) / _tileSize;
-    return BattlefieldProjectile(
-      id: _battlefieldIds[projectile] ??= _nextBattlefieldId++,
-      type: projectile.owner.definition.type,
-      position: grid(Offset(projectile.position.x, projectile.position.y)),
-      direction: projectile.visualDirection,
-      origin: grid(projectile.visualOrigin),
-      ownerId: _battlefieldIds[projectile.owner] ??= _nextBattlefieldId++,
-      shotSequence: projectile.visualShotSequence,
-      isChain: projectile.isChain,
-      finishedAt: finished ? _spaceTime : null,
-      hitTarget: hitTarget == null
-          ? null
-          : grid(Offset(hitTarget.x, hitTarget.y)),
-    );
-  }
-
-  void registerProjectileVisual(ProjectileComponent projectile) {
-    if (!_nativeProjectileEvents) return;
-    _projectileEvents.launch(
-      _projectileData(_projectileVisual(projectile)),
-      battlefieldEffectCombatClock,
-      projectile.attack.projectileSpeed / _tileSize,
-      projectile.visualRemainingDistance / _tileSize,
-    );
-  }
-
-  void removeProjectileVisual(ProjectileComponent projectile) {
-    final id = _battlefieldIds[projectile];
-    if (id != null) _projectileEvents.cancel(id);
-  }
-
-  Map<String, Object?> _projectileEventFrame() {
-    if (_projectileEvents.needsReseed) {
-      nativeProjectileEvents = false;
-      nativeProjectileEvents = true;
-    }
-    return _projectileEvents.snapshot(battlefieldEffectCombatClock);
-  }
+  bool nativeProjectileEvents = false;
 
   void acknowledgeProjectileEvents(int generation, int through) =>
       _projectileEvents.acknowledge(generation, through);
-
-  void retainProjectileVisual(
-    ProjectileComponent projectile, {
-    Vector2? hitTarget,
-  }) {
-    final type = projectile.owner.definition.type;
-    if (battlefieldProjection == null ||
-        !supportsNativeBattlefield ||
-        (!_nativeProjectileEvents &&
-            type != TurretType.arrow &&
-            type != TurretType.cannon &&
-            type != TurretType.magic)) {
-      return;
-    }
-    final visual = _projectileVisual(
-      projectile,
-      hitTarget: hitTarget,
-      finished: true,
-    );
-    if (_nativeProjectileEvents) {
-      _projectileEvents.finish(
-        _projectileData(visual),
-        battlefieldEffectCombatClock,
-      );
-    }
-    if (_finishedProjectiles.length >= _projectileVisualCapacity) {
-      _finishedProjectiles.removeAt(0);
-    }
-    _finishedProjectiles.add(visual);
-  }
 
   final ValueNotifier<bool> readyNotifier = ValueNotifier(false);
   final ValueNotifier<Object?> loadErrorNotifier = ValueNotifier(null);
@@ -695,27 +564,8 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   final Map<GemType, int> _gemInventory = {};
   final Map<RunUpgradeType, int> _runUpgradeLevels = {};
   final List<GemType> _rewardOptions = [];
-  final DamageNumberImageCache _damageNumberImages = DamageNumberImageCache();
-  final CombatResolver _combatResolver = const CombatResolver(
-    chainJumpRange: _chainJumpRange,
-    burnDamagePerSecondScale: _burnDamagePerSecondScale,
-    burnDurationSeconds: _burnDurationSeconds,
-  );
-  late final CombatExecutionController _combatExecution =
-      CombatExecutionController(
-        resolver: _combatResolver,
-        enemies: enemies,
-        isActiveTurret: _isActiveTurret,
-        turretForPoint: _turretForPoint,
-        recordTurretDamage: _recordTurretDamage,
-        showDamageNumber: showDamageNumber,
-        showImpact: _showImpact,
-        addEffect: add,
-        burnDurationSeconds: _burnDurationSeconds,
-      );
   final WaveSpawner _waveSpawner = WaveSpawner();
   final math.Random _enemyLaneRandom = math.Random();
-  final math.Random _impactEffectRandom = math.Random();
   final GemRewardController _gemRewards = GemRewardController();
   final GameSaveAdapter _saveAdapter = const GameSaveAdapter();
   late final GameRestoreController _restoreController = GameRestoreController(
@@ -740,12 +590,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     saveNow: _writeLocalSave,
   );
 
-  late GridComponent _gridComponent;
-  late final StatusEffectSpriteCache statusEffectSprites;
-  ui.Image? _cannonBlastSpriteSheet;
-  ui.Image? diamondCurrencyImage;
-  bool _statusEffectSpritesReady = false;
-  bool _gridComponentReady = false;
   late Vector2 _origin;
   late double _tileSize;
   late List<Vector2> _worldPath;
@@ -1135,48 +979,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         : level.clamp(0, runUpgradeMaxLevelFor(type)).toInt();
   }
 
-  @override
-  Color backgroundColor() =>
-      transparentBackground || battlefieldProjection != null
-      ? const Color(0x00000000)
-      : const Color(0xFF07111D);
-
-  @override
-  FutureOr<void> add(Component component) {
-    if (!_restoringBattlefieldEffects &&
-        _transferBattlefieldEffect(component)) {
-      return Future<void>.value();
-    }
-    final result = super.add(component);
-    _trackBattlefieldEffect(component);
-    return result;
-  }
-
-  @override
   Future<void> onLoad() async {
     try {
-      await super.onLoad();
-      _prepareStatusEffectSprites();
       _configureBoard();
-      _gridComponent = GridComponent(
-        map: _map,
-        origin: _origin,
-        tileSize: _tileSize,
-      );
-      _gridComponentReady = true;
-      add(_gridComponent);
-      try {
-        await _restoreSavedDataIfNeeded();
-      } on Object {
-        // 저장 복원 실패 폴백
-      }
+      await _restoreSavedDataIfNeeded();
       _syncBoardComponents();
       _publish();
-      if (!kDebugMode || BindingBase.debugBindingType() != null) {
-        // Flutter 바인딩이 없는 순수 로직 테스트에서는 에셋 디코딩 생략.
-        diamondCurrencyImage = await images.load(diamondCurrencyImageFile);
-        _startCannonBlastSpriteSheetLoad();
-      }
       readyNotifier.value = true;
     } on Object catch (error) {
       loadErrorNotifier.value = error;
@@ -1186,7 +994,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
   Future<void> prepareForAppStart() async {
     try {
-      _prepareStatusEffectSprites();
       await prepareSavedStateForMenu().timeout(
         const Duration(milliseconds: 500),
         onTimeout: () {},
@@ -1196,30 +1003,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       loadErrorNotifier.value = error;
       rethrow;
     }
-  }
-
-  void _startCannonBlastSpriteSheetLoad() {
-    if (_cannonBlastSpriteSheet != null) {
-      return;
-    }
-    unawaited(
-      images
-          .load('cannon_blast_core_sheet.png')
-          .then<void>(
-            (image) => _cannonBlastSpriteSheet = image,
-            onError: (Object error, StackTrace stackTrace) {
-              loadErrorNotifier.value = error;
-              FlutterError.reportError(
-                FlutterErrorDetails(
-                  exception: error,
-                  stack: stackTrace,
-                  library: 'RuneNexusGame',
-                  context: ErrorDescription('대포 폭발 스프라이트 로드 중'),
-                ),
-              );
-            },
-          ),
-    );
   }
 
   Future<void> prepareSavedStateForMenu() async {
@@ -1236,75 +1019,45 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _publish();
   }
 
-  void _prepareStatusEffectSprites() {
-    if (_statusEffectSpritesReady) {
-      return;
-    }
-    statusEffectSprites = StatusEffectSpriteCache.create();
-    _statusEffectSpritesReady = true;
-  }
-
   void disposeAppResources() {
     if (_appResourcesDisposed) {
       return;
     }
     _appResourcesDisposed = true;
-    if (_statusEffectSpritesReady) {
-      statusEffectSprites.dispose();
-      _statusEffectSpritesReady = false;
-    }
-    _damageNumberImages.dispose();
+
     _saveScheduler.dispose();
     readyNotifier.dispose();
     loadErrorNotifier.dispose();
   }
 
-  @override
   void onGameResize(Vector2 size) {
-    super.onGameResize(size);
+    this.size = size;
     if (isLoaded) {
       _configureBoard();
       _syncBoardComponents();
-      if (nativeProjectileEvents) {
-        nativeProjectileEvents = false;
-        nativeProjectileEvents = true;
-      }
     }
   }
 
-  @override
   void update(double dt) {
-    if (!nativeBattlefieldEffectEvents ||
-        !_usesNativeBattlefieldGroup('effects')) {
-      _restoreBattlefieldEffectEvents();
-    }
-    if (nativeBattlefieldLoading ||
+    if (nativeBattlefieldError != null ||
+        nativeBattlefieldLoading ||
         (_nativeCombat.engaged &&
             (!_nativeCombat.active ||
                 _nativeCombat.suspended ||
                 _nativeSteps.length >= 120))) {
       // 장면 구성과 프레임 전달은 유지하되, 가려진 전투는 진행하지 않는다.
-      super.update(0);
       return;
     }
     _progression.recordPlayTime(dt);
     _updateTimeBasedProgress(dt);
     _spaceTime = (_spaceTime + dt) % 1200;
-    // 표시 시계의 1200초 순환을 고려하며 전투 배속을 적용하지 않음.
-    _finishedProjectiles.removeWhere(
-      (projectile) =>
-          (_spaceTime - projectile.finishedAt! + 1200) % 1200 >=
-          _projectileVisualDuration,
-    );
     _updateVisualAlerts(dt);
     if (_phase == GamePhase.coreDestruction) {
       _battlefieldEffectEvents.advance(dt * _coreDestructionSlowMotionScale);
-      super.update(dt * _coreDestructionSlowMotionScale);
       _updateCoreDestructionSequence(dt);
       return;
     }
     if (_phase == GamePhase.restored || _phase == GamePhase.reward) {
-      super.update(0);
       return;
     }
     final scaledDt = dt * _speedMultiplier;
@@ -1312,7 +1065,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         ? _captureNativeCommands()
         : const <Map<String, Object?>>[];
     _battlefieldEffectEvents.advance(scaledDt);
-    super.update(scaledDt);
     _updateCombatStatsPublish(dt);
     if (_phase != GamePhase.wave) {
       if (nativeCombatActive) _recordNativeCombatStep(scaledDt, nativeBefore);
@@ -1322,10 +1074,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
 
-    _updateWaveSpawns(scaledDt);
-    _updateCoreCombatSkill(scaledDt);
     if (nativeCombatActive) _recordNativeCombatStep(scaledDt, nativeBefore);
-    _checkWaveClear();
     _requestLocalSave();
   }
 
@@ -1365,39 +1114,32 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     return true;
   }
 
-  @override
-  void onScaleStart(ScaleStartInfo info) {
+  void onBoardScaleStart(int pointerCount, Vector2 focal) {
     if (_phase == GamePhase.coreDestruction ||
         _phase == GamePhase.reward ||
-        info.pointerCount < 2) {
+        pointerCount < 2) {
       _boardCamera.endGesture();
       return;
     }
-    _boardCamera.beginGesture(info.eventPosition.widget);
+    _boardCamera.beginGesture(focal);
   }
 
-  @override
-  void onScaleUpdate(ScaleUpdateInfo info) {
+  void onBoardScaleUpdate(int pointerCount, double scale, Vector2 focal) {
     if (_phase == GamePhase.coreDestruction ||
         _phase == GamePhase.reward ||
-        info.pointerCount < 2) {
+        pointerCount < 2) {
       _boardCamera.endGesture();
       return;
     }
     // 축별 배율 평균의 회전 오차를 피하는 두 손가락 사이 거리 배율.
-    _boardCamera.updateGesture(
-      scale: info.raw.scale,
-      focal: info.eventPosition.widget,
-    );
+    _boardCamera.updateGesture(scale: scale, focal: focal);
   }
 
-  @override
-  void onScaleEnd(ScaleEndInfo info) {
+  void onBoardScaleEnd() {
     _boardCamera.endGesture();
   }
 
-  @override
-  void onTapDown(TapDownEvent event) {
+  void onBoardTapDown(Vector2 position) {
     // 보상 포탑 선택은 드래그와 구분할 수 있도록 탭 완료 시 처리.
     if (_phase == GamePhase.reward) {
       return;
@@ -1410,9 +1152,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
 
-    final point = _gridPointAt(
-      _battlefieldWorldFromScreen(event.localPosition),
-    );
+    final point = _gridPointAt(_battlefieldWorldFromScreen(position));
     if (point == null) {
       _clearBoardSelection(closePanel: true);
       _publish();
@@ -1468,19 +1208,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _publish();
   }
 
-  @override
-  void onTapUp(TapUpEvent event) {
+  void onBoardTapUp(Vector2 position) {
     if (_phase != GamePhase.reward || _boardGestures.suppressNextTap) {
       return;
     }
-    final point = _gridPointAt(
-      _battlefieldWorldFromScreen(event.localPosition),
-    );
+    final point = _gridPointAt(_battlefieldWorldFromScreen(position));
     if (point != null &&
         _rewardSelection.replacementPoint == null &&
-        (_gemRewardBoardViewport?.contains(
-              Offset(event.localPosition.x, event.localPosition.y),
-            ) ??
+        (_gemRewardBoardViewport?.contains(Offset(position.x, position.y)) ??
             true)) {
       selectRewardGemTarget(point);
     }
@@ -1804,6 +1539,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         ? (_portalAlertDuration + _postPortalAlertSpawnDelay) * _speedMultiplier
         : 0.0;
     _waveSpawner.start(_waves[_roundIndex], initialDelay: initialSpawnDelay);
+    if (nativeCombatOwned) {
+      _nativeCommands.add({
+        'kind': 'waveStart',
+        'wave': _nativeWaveConfiguration(),
+      });
+    }
     _publish();
     _requestLocalSave(immediate: true);
   }
@@ -1983,6 +1724,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _maxNexusHp,
         _nexusHp + (_maxNexusHp - previousMaxNexusHp),
       );
+      _queueNativeDefenseRestore();
     }
     _publish();
     _requestLocalSave(immediate: true);
@@ -2286,7 +2028,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
 
     _clearActiveCombat();
-    for (final turret in _turrets.values) {
+    for (final turret in _turrets.values.toList()) {
       turret.removeFromParent();
     }
     _turrets.clear();
@@ -2318,7 +2060,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       );
       while (turret.level < index + 1 && turret.upgradeLevel()) {}
       _turrets[point] = turret;
-      add(turret);
+      registerTurret(turret);
     }
     _refreshEfficiencyPassiveBoardState();
     _publish();
@@ -2329,7 +2071,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
     _clearActiveCombat();
-    for (final turret in _turrets.values) {
+    for (final turret in _turrets.values.toList()) {
       turret.removeFromParent();
     }
     _turrets.clear();
@@ -2357,7 +2099,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         tileSize: _tileSize,
       );
       _turrets[point] = turret;
-      add(turret);
+      registerTurret(turret);
     }
 
     final base = gameEnemies[EnemyType.tank]!;
@@ -2387,7 +2129,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       enemy.updateLayout(tileSize: _tileSize, newPath: _worldPath);
       enemies.add(enemy);
       _debugEnemies.add(enemy);
-      add(enemy);
+      registerEnemy(enemy);
     }
     _debugCombatActive = true;
     _refreshEfficiencyPassiveBoardState();
@@ -2547,7 +2289,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _selectedCorePoint = null;
     _selectedTurretPoint = point;
     _selectedTurretGemSlotIndex = null;
-    add(turret);
+    registerTurret(turret);
     _publish();
     _requestLocalSave(immediate: true);
   }
@@ -2749,7 +2491,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       );
       _turrets[point] = turret;
       _refreshEfficiencyPassiveBoardState();
-      add(turret);
+      registerTurret(turret);
       entry = MapEntry(point, turret);
     }
 
@@ -2958,12 +2700,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   Color colorForGem(GemType type) => gameGems[type]!.color;
 
   void _spawnGemEquipEffect(TurretComponent turret, GemType type) {
-    add(
-      GemEquipEffectComponent(
-        position: turret.position.clone(),
-        gemColor: colorForGem(type),
-        visualScale: boardDistanceScale,
-      ),
+    emitBattlefieldEffect(
+      kind: 'gem',
+      position: turret.position,
+      duration: 0.78,
+      color: colorForGem(type),
+      visualScale: boardDistanceScale,
     );
   }
 
@@ -2975,21 +2717,18 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     double damageMultiplier = 1,
     Vector2? sourcePosition,
   }) {
-    final text = damage.round().toString();
-    final feedback = _damageFeedbackFor(damageMultiplier);
-    add(
-      DamageNumberComponent.cached(
-        position: _damageNumberStartPosition(
-          position: position,
-          sourcePosition: sourcePosition,
-          motion: motion,
-        ),
-        imageCache: _damageNumberImages,
-        text: text,
-        color: color,
+    emitBattlefieldEffect(
+      kind: 'damage',
+      position: _damageNumberStartPosition(
+        position: position,
+        sourcePosition: sourcePosition,
         motion: motion,
-        feedback: feedback,
       ),
+      duration: 0.75,
+      text: damage.round().toString(),
+      color: color,
+      motion: motion.name,
+      feedback: _damageFeedbackFor(damageMultiplier).name,
     );
   }
 
@@ -3105,168 +2844,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
   }
 
-  void resolveProjectileHit({
-    required TurretComponent owner,
-    TurretAttackSnapshot? attack,
-    required EnemyComponent target,
-    required Vector2 hitPosition,
-    int? remainingChainCount,
-    Set<EnemyComponent>? directHitEnemies,
-    bool isChain = false,
-  }) {
-    final profile =
-        attack ??
-        owner.createAttackSnapshot(
-          criticalMultiplier: owner.rollCriticalHit()
-              ? owner.criticalDamageMultiplier
-              : 1.0,
-        );
-    final visited = {...?directHitEnemies, target};
-    _combatExecution.resolveAttackImpact(
-      owner: owner,
-      attack: profile,
-      target: target,
-      hitPosition: hitPosition,
-      damageScale: isChain ? AttackRules.chainDamageMultiplier : 1,
-      areaScale: isChain ? AttackRules.chainAreaMultiplier : 1,
-      directKind: isChain ? TurretDamageKind.chain : TurretDamageKind.direct,
-    );
-
-    final remaining = remainingChainCount ?? profile.chainCount;
-    if (remaining > 0 &&
-        profile.definition.projectileSpeed > 0 &&
-        !profile.definition.instantHit &&
-        !profile.definition.centeredAreaAttack) {
-      _spawnNextChainProjectile(
-        owner: owner,
-        attack: profile,
-        origin: hitPosition,
-        directHitEnemies: visited,
-        remainingChainCount: remaining,
-      );
-    }
-  }
-
-  void resolveInstantHit({
-    required TurretComponent owner,
-    required EnemyComponent target,
-    TurretAttackSnapshot? attack,
-    double criticalMultiplier = 1,
-  }) {
-    _combatExecution.resolveInstantHit(
-      owner: owner,
-      target: target,
-      attack: attack,
-      criticalMultiplier: criticalMultiplier,
-    );
-  }
-
-  void resolveLightningChainAttack({
-    required TurretComponent owner,
-    required EnemyComponent target,
-    TurretAttackSnapshot? attack,
-  }) {
-    final profile = attack ?? owner.createAttackSnapshot();
-    if ((!target.isMounted && !enemies.contains(target)) ||
-        target.isDead ||
-        !_combatExecution.isEnemyBodyInAttackRange(owner, profile, target)) {
-      return;
-    }
-    add(
-      LightningChainBeamComponent(
-        sourcePosition: owner.lightningChargePosition,
-        target: target,
-        color: owner.definition.color,
-        visualScale: boardDistanceScale,
-      ),
-    );
-    _combatExecution.resolveAttackImpact(
-      owner: owner,
-      attack: profile,
-      target: target,
-      hitPosition: target.position.clone(),
-    );
-    if (profile.lightningChainMaxJumps <= 0) {
-      owner.recordLightningChainCompletion(
-        usedJumps: 0,
-        maxJumps: profile.lightningChainMaxJumps,
-      );
-      return;
-    }
-    add(
-      SequentialLightningChainComponent(
-        owner: owner,
-        attack: profile,
-        source: target,
-        excluded: {target},
-        game: this,
-        maxJumps: profile.lightningChainMaxJumps,
-      ),
-    );
-  }
-
-  EnemyComponent? nextLightningChainTarget({
-    required Vector2 sourcePosition,
-    required Set<EnemyComponent> excluded,
-    required TurretAttackSnapshot attack,
-  }) {
-    return _combatExecution.nextLightningChainTarget(
-      sourcePosition: sourcePosition,
-      excluded: excluded,
-      attack: attack,
-    );
-  }
-
-  void resolveLightningChainJump({
-    required TurretComponent owner,
-    required TurretAttackSnapshot attack,
-    required Vector2 sourcePosition,
-    required EnemyComponent target,
-  }) {
-    _combatExecution.resolveLightningChainJump(
-      owner: owner,
-      attack: attack,
-      sourcePosition: sourcePosition,
-      target: target,
-      boardDistanceScale: boardDistanceScale,
-    );
-  }
-
-  void resolveCenteredAreaAttack({
-    required TurretComponent owner,
-    TurretAttackSnapshot? attack,
-    required Iterable<EnemyComponent> targets,
-  }) {
-    _combatExecution.resolveCenteredAreaAttack(
-      owner: owner,
-      attack: attack,
-      targets: targets,
-    );
-  }
-
-  void recordTurretDamage(GridPoint? sourceTurretPoint, double damage) {
-    if (sourceTurretPoint == null || damage <= 0) {
-      return;
-    }
-    final turret = _turretForPoint(sourceTurretPoint);
-    if (turret == null) {
-      return;
-    }
-    _recordTurretDamage(turret, damage, TurretDamageKind.burn);
-  }
-
-  void _recordTurretDamage(
-    TurretComponent turret,
-    double damage,
-    TurretDamageKind kind,
-  ) {
-    if (damage <= 0 || !_isActiveTurret(turret)) {
-      return;
-    }
-    turret.recordDamageDealt(damage, kind);
-    _requestCombatStatsPublish();
-  }
-
   void _requestCombatStatsPublish() {
     if (_phase != GamePhase.wave) {
       _publish();
@@ -3289,109 +2866,12 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     }
   }
 
-  Color chainColorFor(TurretComponent owner) {
-    if (owner.definition.type == TurretType.lightning) {
-      return owner.definition.color;
-    }
-    return Color.lerp(owner.definition.color, const Color(0xFF02070D), 0.38)!;
-  }
-
-  void _showImpact({
-    required TurretComponent owner,
-    required TurretAttackSnapshot attack,
-    required Vector2 position,
-    double areaScale = 1,
-  }) {
-    final splashRadius = attack.splashRadius * areaScale;
-    final style = splashRadius > 0
-        ? owner.definition.type == TurretType.sniper
-              ? ImpactEffectStyle.sniperBlast
-              : owner.definition.type == TurretType.lightning
-              ? ImpactEffectStyle.lightningBlast
-              : ImpactEffectStyle.blast
-        : switch (owner.definition.type) {
-            TurretType.arrow => ImpactEffectStyle.spark,
-            TurretType.cannon => ImpactEffectStyle.blast,
-            TurretType.magic => ImpactEffectStyle.flame,
-            TurretType.frost => ImpactEffectStyle.frost,
-            TurretType.sniper => ImpactEffectStyle.spark,
-            TurretType.lightning => ImpactEffectStyle.lightning,
-          };
-    final radius = splashRadius > 0
-        ? splashRadius
-        : switch (owner.definition.type) {
-                TurretType.arrow => 11.0,
-                TurretType.cannon => 22.0,
-                TurretType.magic => 16.0,
-                TurretType.frost => 18.0,
-                TurretType.sniper => 13.0,
-                TurretType.lightning => 15.0,
-              } *
-              boardDistanceScale;
-    add(
-      ImpactEffectComponent(
-        position: position,
-        color: owner.definition.color,
-        style: style,
-        radius: radius,
-        cannonBlastSpriteSheet:
-            style == ImpactEffectStyle.blast && battlefieldProjection == null
-            ? _cannonBlastSpriteSheet
-            : null,
-        blastDuration: battlefieldProjection == null
-            ? 0.42
-            : BattlefieldImpact.duration,
-        // Dart Web의 32비트 shift 오버플로 방지
-        randomSeed: _impactEffectRandom.nextInt(0x7FFFFFFF),
-      ),
-    );
-  }
-
-  void _spawnNextChainProjectile({
-    required TurretComponent owner,
-    required TurretAttackSnapshot attack,
-    required Vector2 origin,
-    required Set<EnemyComponent> directHitEnemies,
-    required int remainingChainCount,
-  }) {
-    final target = _combatResolver.nextChainProjectileTarget(
-      enemies: enemies,
-      sourcePosition: origin,
-      excluded: directHitEnemies,
-      boardDistanceScale: boardDistanceScale,
-    );
-    if (target == null) return;
-    add(
-      ProjectileComponent(
-        origin: origin.clone(),
-        targetPosition: target.position.clone(),
-        owner: owner,
-        attack: attack,
-        game: this,
-        isChain: true,
-        remainingChainCount: remainingChainCount - 1,
-        directHitEnemies: directHitEnemies,
-        maxDistance: chainJumpRange,
-      ),
-    );
-  }
-
-  void enemyKilled(EnemyComponent enemy, {BurnTransferPayload? burnTransfer}) {
+  void enemyKilled(EnemyComponent enemy) {
     if (!enemy.isMounted && !enemies.contains(enemy)) {
       return;
     }
-    if (burnTransfer != null) {
-      _combatExecution.spreadChainIgnition(
-        source: enemy,
-        burnTransfer: burnTransfer,
-        boardDistanceScale: boardDistanceScale,
-      );
-    }
     final isDebugEnemy = _debugEnemies.remove(enemy);
     final diamondReward = enemy.diamondReward;
-    for (final turret in _turrets.values) {
-      turret.handleEnemyKilled(enemy);
-    }
     if (!isDebugEnemy) {
       final nowMillis = DateTime.now().millisecondsSinceEpoch;
       _progression.recordDailyQuestProgress(
@@ -3428,81 +2908,23 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         _economyRunId ??= _economyRunIdFactory();
         _pendingEconomyDiamonds += diamondReward;
       }
-      add(
-        DiamondRewardEffectComponent(
-          diamondImage: diamondCurrencyImage,
-          position: enemy.visualPosition.clone(),
-          reward: diamondReward,
-          visualScale: boardDistanceScale,
-        ),
+      emitBattlefieldEffect(
+        kind: 'diamond',
+        position: enemy.visualPosition,
+        duration: 1.05,
+        text: '+$diamondReward',
+        hasImage: true,
+        visualScale: boardDistanceScale,
       );
     }
     enemies.remove(enemy);
     _finishDebugCombatIfIdle();
-    add(
-      DeathBurstEffectComponent(
-        position: enemy.position.clone(),
-        color: enemy.definition.color,
-        type: enemy.definition.type,
-        radius: enemy.size.x,
-      ),
-    );
+
     enemy.removeFromParent();
     _publish();
     if (diamondReward > 0) {
       _requestLocalSave(immediate: true);
     }
-  }
-
-  void enemyReachedCore(EnemyComponent enemy) {
-    if (_phase == GamePhase.coreDestruction ||
-        _phase == GamePhase.success ||
-        _phase == GamePhase.failure) {
-      return;
-    }
-    if (!enemy.isMounted && !enemies.contains(enemy)) {
-      return;
-    }
-    _triggerNexusHitAlert();
-    final isDebugEnemy = _debugEnemies.remove(enemy);
-    if (!isDebugEnemy) {
-      final finalDefenseActive =
-          corePassiveHasFinalDefense(_progression.corePassiveNodeRanks) &&
-          !enemy.definition.type.isBoss &&
-          !_finalDefenseUsedThisRound;
-      if (finalDefenseActive) {
-        _finalDefenseUsedThisRound = true;
-      } else {
-        // 체력·보호막·방어구를 합친 총 내구도 손실률.
-        final lostDurabilityRatio = enemy.maxDurability <= 0
-            ? 0.0
-            : (1.0 - enemy.currentDurability / enemy.maxDurability)
-                  .clamp(0.0, 1.0)
-                  .toDouble();
-        final nexusDamage =
-            enemy.definition.coreDamage.toDouble() *
-            corePassiveNexusDamageMultiplier(
-              _progression.corePassiveNodeRanks,
-              lostDurabilityRatio: lostDurabilityRatio,
-            );
-        final previousNexusHp = _nexusHp;
-        _nexusHp = math.max(0.0, _nexusHp - nexusDamage);
-        final actualNexusHpLost = previousNexusHp - _nexusHp;
-        if (actualNexusHpLost > 0) {
-          _roundNexusHpLost += actualNexusHpLost;
-          _showNexusHealthChange(-actualNexusHpLost);
-          _applyEmergencyCharge();
-        }
-      }
-    }
-    enemies.remove(enemy);
-    _finishDebugCombatIfIdle();
-    enemy.removeFromParent();
-
-    if (!isDebugEnemy && _nexusHp <= 0) {
-      _startCoreDestructionSequence();
-    }
-    _publish();
   }
 
   void _startCoreDestructionSequence() {
@@ -3532,9 +2954,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       focus - boardCenter - (coreCenter - boardCenter) * targetZoom,
       targetZoom,
     );
-    if (_gridComponentReady) {
-      _gridComponent.nexusDestructionProgress = 0;
-    }
     _requestLocalSave(immediate: true);
   }
 
@@ -3561,13 +2980,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         easedCamera,
       ),
     );
-    if (_gridComponentReady) {
-      _gridComponent.nexusDestructionProgress =
-          (_coreDestructionElapsed / _coreDestructionTotalDuration).clamp(
-            0.0,
-            1.0,
-          );
-    }
     if (_coreDestructionElapsed >= _coreDestructionTotalDuration) {
       _completeCoreDestructionSequence();
     }
@@ -3577,13 +2989,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_phase != GamePhase.coreDestruction) {
       return;
     }
-    if (_gridComponentReady) {
-      _gridComponent.nexusDestructionProgress = 1;
-    }
     _clearActiveCombat();
-    if (_gridComponentReady) {
-      _gridComponent.nexusDestructionProgress = 1;
-    }
     _phase = GamePhase.failure;
     _publish();
     unawaited(_saveRoundCheckpoint());
@@ -3677,7 +3083,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   void _syncBoardComponents() {
-    _gridComponent.updateLayout(origin: _origin, tileSize: _tileSize);
     for (final entry in _turrets.entries) {
       entry.value.updateLayout(
         center: _centerOf(entry.key),
@@ -3704,8 +3109,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (_nativeCombat.engaged) {
       nativeCombatRevision++;
       _nativeCombat.reset();
-      _nativeConfirmedSave = null;
-      _nativePendingSave = null;
+      _nativeWaveId = 0;
+      _nativeCoreConfigFingerprint = '';
+      _nativeDefenseConfigFingerprint = '';
+      _nativeDefenseRestoreIntent = null;
+      _nativeDefenseRestoreSequence = 0;
       _nativeKnownEnemies.clear();
       _nativeTurretConfigs.clear();
       _nativeSteps.clear();
@@ -3721,7 +3129,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       'chain',
       'charge',
     });
-    _finishedProjectiles.clear();
     _projectileEvents.clear();
     _rewardSelection.clear();
     _gemRewardBoardViewport = null;
@@ -3736,43 +3143,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _rewardOptions.clear();
     _nexusHitAlertTimer = 0;
     _portalAlertTimer = 0;
-    if (_gridComponentReady) {
-      _gridComponent.nexusDestructionProgress = 0;
-    }
-    _syncVisualAlerts();
 
-    for (final component
-        in children.whereType<ProjectileComponent>().toList()) {
-      component.removeFromParent();
-    }
-    for (final component
-        in children.whereType<SequentialLightningChainComponent>().toList()) {
-      component.removeFromParent();
-    }
-    for (final component
-        in children.whereType<LightningChargeComponent>().toList()) {
-      component.removeFromParent();
-    }
-    for (final component
-        in children.whereType<LightningChainBeamComponent>().toList()) {
-      component.removeFromParent();
-    }
-    for (final component
-        in children.whereType<NexusCoreBeamComponent>().toList()) {
-      component.removeFromParent();
-    }
-    for (final component
-        in children.whereType<ImpactEffectComponent>().toList()) {
-      component.removeFromParent();
-    }
-    for (final component
-        in children.whereType<GemEquipEffectComponent>().toList()) {
-      component.removeFromParent();
-    }
-    for (final component
-        in children.whereType<DamageNumberComponent>().toList()) {
-      component.removeFromParent();
-    }
     _resetNexusCoreBeamCycle();
   }
 
@@ -3784,156 +3155,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (resetCamera) {
       _boardCamera.reset();
     }
-    if (_gridComponentReady) {
-      _gridComponent.nexusDestructionProgress = 0;
-    }
-  }
-
-  @override
-  void render(Canvas canvas) {
-    final sceneSize = Size(size.x, size.y);
-    if (battlefieldProjection == null) {
-      drawGameSpaceBackground(
-        canvas,
-        size: sceneSize,
-        animationTime: _spaceTime,
-      );
-    }
-    canvas.save();
-    if (_phase == GamePhase.coreDestruction &&
-        !_usesNativeBattlefieldGroup('effects')) {
-      final progress = (_coreDestructionElapsed / _coreDestructionTotalDuration)
-          .clamp(0.0, 1.0);
-      final shake =
-          math.sin(_coreDestructionElapsed * 78) *
-          (1 - progress) *
-          3.4 *
-          boardDistanceScale;
-      canvas.translate(shake, -shake * 0.45);
-    }
-    _applyBattlefieldTransform(canvas);
-    if (battlefieldProjection == null) {
-      super.render(canvas);
-    } else {
-      for (final child in children) {
-        if (isNativeBattlefieldEffect(child)) continue;
-        if (child is TurretComponent &&
-            _usesNativeBattlefieldGroup('selection')) {
-          continue;
-        }
-        if (child is GridComponent ||
-            child is EnemyComponent ||
-            child is ProjectileComponent ||
-            child is DamageNumberComponent ||
-            child is DiamondRewardEffectComponent) {
-          continue;
-        }
-        if (child is ImpactEffectComponent &&
-            (child.style == ImpactEffectStyle.blast ||
-                child.style == ImpactEffectStyle.flame ||
-                child.style == ImpactEffectStyle.frost)) {
-          // 3D에서는 수신 확인 전에도 기존 2D 명중 효과를 복원하지 않는다.
-          continue;
-        } else {
-          child.renderTree(canvas);
-        }
-      }
-    }
-    _drawNexusCoreCooldownBar(canvas);
-    if (!_usesNativeBattlefieldGroup('selection')) {
-      final selectedBuildType = _selectedBuildTurretType;
-      drawGameBoardSelection(
-        canvas,
-        origin: Offset(_origin.x, _origin.y),
-        tileSize: _tileSize,
-        boardDistanceScale: boardDistanceScale,
-        buildPoint: _selectedBuildPoint,
-        portalPoint: _selectedPortalPoint,
-        corePoint: _selectedCorePoint,
-        showBuildGhost: battlefieldProjection == null,
-        buildTurret: selectedBuildType == null
-            ? null
-            : gameTurrets[selectedBuildType]!,
-      );
-    }
-    canvas.restore();
-    if (battlefieldProjection != null) _renderBattlefieldLabels(canvas);
-    final hitAlert = (_nexusHitAlertTimer / _nexusHitAlertDuration).clamp(
-      0.0,
-      1.0,
-    );
-    final destructionAlert = _phase == GamePhase.coreDestruction
-        ? (0.36 +
-              0.56 *
-                  (_coreDestructionElapsed / _coreDestructionTotalDuration)
-                      .clamp(0.0, 1.0))
-        : 0.0;
-    drawNexusScreenAlert(
-      canvas,
-      size: sceneSize,
-      alert: math.max(hitAlert, destructionAlert),
-    );
-    if (isGemRewardTargeting && !_usesNativeBattlefieldGroup('selection')) {
-      canvas.drawRect(
-        Offset.zero & sceneSize,
-        Paint()..color = const Color(0xAD02070D),
-      );
-      canvas.save();
-      final viewport = _gemRewardBoardViewport;
-      if (viewport != null) {
-        canvas.clipRect(viewport);
-      }
-      _applyBattlefieldTransform(canvas);
-      for (final entry in _turrets.entries) {
-        final status = gemRewardTargetStatus(entry.key);
-        if (status == GemRewardTargetStatus.unavailable ||
-            (_rewardSelection.replacementPoint != null &&
-                _rewardSelection.replacementPoint != entry.key)) {
-          continue;
-        }
-        // 어둡게 처리한 전장 위에 대상 포탑 본체를 다시 그려 형태 보존.
-        entry.value.renderTree(canvas);
-        drawGemRewardTargetHighlight(
-          canvas,
-          tileRect: Rect.fromLTWH(
-            _origin.x + entry.key.x * _tileSize,
-            _origin.y + entry.key.y * _tileSize,
-            _tileSize,
-            _tileSize,
-          ),
-          requiresReplacement: status == GemRewardTargetStatus.replacement,
-          animationTime: _spaceTime,
-          visualScale: boardDistanceScale,
-        );
-      }
-      canvas.restore();
-    }
-  }
-
-  void _drawNexusCoreCooldownBar(Canvas canvas) {
-    if (_usesNativeBattlefieldGroup('labels') ||
-        _phase != GamePhase.wave ||
-        _worldPath.isEmpty ||
-        !nexusCoreBeamAvailable) {
-      return;
-    }
-
-    final center = _nexusCorePosition();
-    final progress = _coreCombatSkillController.cooldownProgress(
-      cooldownRecoveryMultiplier: _coreCombatSkillCooldownRecoveryMultiplier,
-    );
-    final accent =
-        _coreCombatSkillController.runSkill == CoreCombatSkill.riftMark
-        ? _riftMarkColor
-        : _nexusCoreBeamColor;
-    drawCoreSkillCooldownBar(
-      canvas,
-      center: Offset(center.x, center.y),
-      tileSize: _tileSize,
-      progress: progress,
-      accent: accent,
-      active: nexusCoreBeamActive,
-    );
   }
 
   void setGemRewardBoardViewport(Rect viewport) {
@@ -4035,12 +3256,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
   }
 
-  void _updateWaveSpawns(double dt) {
-    for (final enemyType in _waveSpawner.update(dt)) {
-      _spawnEnemy(enemyType, canBecomeDiamondCarrier: true);
-    }
-  }
-
   void _spawnEnemy(
     EnemyType type, {
     bool debugSpawn = false,
@@ -4088,7 +3303,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     if (debugSpawn) {
       _debugEnemies.add(enemy);
     }
-    add(enemy);
+    registerEnemy(enemy);
   }
 
   double _enemyLaneOffsetRatioFor(EnemyType type) {
@@ -4134,139 +3349,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     cooldownRecoveryMultiplier: _coreCombatSkillCooldownRecoveryMultiplier,
   );
 
-  void _updateCoreCombatSkill(double dt) {
-    final shouldPublish = _coreCombatSkillController.update(
-      dt,
-      cooldownRecoveryMultiplier: _coreCombatSkillCooldownRecoveryMultiplier,
-      hasGuardianBeamTarget: () => _nexusCoreBeamTarget() != null,
-      guardianBeamBaseDamage: _nexusCoreBeamTotalDamage,
-      powerMultiplierForActivation:
-          _coreCombatSkillPowerMultiplierForActivation,
-      applyGuardianBeamTick: _applyNexusCoreBeamTick,
-      hasRiftMarkCandidate: enemies.isNotEmpty,
-      applyRiftMark: _applyRiftMark,
-    );
-    if (shouldPublish) {
-      _requestCombatStatsPublish();
-    }
-  }
-
-  bool _applyRiftMark() {
-    final targets = _riftMarkTargets();
-    if (targets.isEmpty) {
-      return false;
-    }
-    final powerMultiplier = _coreCombatSkillController.activate(
-      powerMultiplierForActivation:
-          _coreCombatSkillPowerMultiplierForActivation,
-    );
-    add(
-      RiftMarkPulseComponent(
-        source: _nexusCorePosition(),
-        targets: targets,
-        color: _riftMarkColor,
-        game: this,
-      ),
-    );
-    for (final target in targets) {
-      final amplification = target.definition.type.isBoss
-          ? _riftMarkBossDamageAmplification
-          : _riftMarkDamageAmplification;
-      if (nativeCombatOwned) {
-        _nativeCommands.add({
-          'kind': 'riftMark',
-          'enemyId': _nativeId(target),
-          'damageAmplification': amplification * powerMultiplier,
-          'duration': _riftMarkDuration,
-        });
-        continue;
-      }
-      target.applyRiftMark(
-        damageAmplification: amplification * powerMultiplier,
-        duration: _riftMarkDuration,
-      );
-      target.showHitFlash(_riftMarkColor);
-    }
-    return true;
-  }
-
-  List<EnemyComponent> _riftMarkTargets() {
-    final candidates = enemies.where((enemy) => !enemy.isDead).toList();
-    candidates.sort((a, b) {
-      final durabilityCompare = b.currentDurability.compareTo(
-        a.currentDurability,
-      );
-      if (durabilityCompare != 0) {
-        return durabilityCompare;
-      }
-      return b.distanceTravelled.compareTo(a.distanceTravelled);
-    });
-    return candidates.take(_riftMarkTargetCount).toList();
-  }
-
-  void _applyNexusCoreBeamTick(double tickDamage) {
-    final target = _nexusCoreBeamTarget();
-    if (target == null) {
-      return;
-    }
-    final capRate = target.definition.type.isBoss
-        ? _nexusCoreBeamBossHpCapRate
-        : _nexusCoreBeamEnemyHpCapRate;
-    final tickCap =
-        target.maxHp *
-        capRate *
-        (_nexusCoreBeamTickInterval / _nexusCoreBeamDuration);
-    final damage = math.min(tickDamage, tickCap);
-    if (damage <= 0) {
-      return;
-    }
-
-    if (nativeCombatOwned) {
-      _nativeCommands.add({
-        'kind': 'coreDamage',
-        'enemyId': _nativeId(target),
-        'damage': damage,
-      });
-      return;
-    }
-    target.showHitFlash(_nexusCoreBeamColor);
-    final actualDamage = target.receiveDamage(damage);
-    if (actualDamage <= 0) {
-      return;
-    }
-    _coreCombatSkillController.recordDirectDamage(actualDamage);
-    add(
-      NexusCoreBeamComponent(
-        start: _nexusCorePosition(),
-        target: target,
-        color: _nexusCoreBeamColor,
-        game: this,
-      ),
-    );
-    showDamageNumber(
-      position: target.position.clone(),
-      damage: actualDamage,
-      color: _nexusCoreBeamColor,
-      sourcePosition: _nexusCorePosition(),
-    );
-    _requestCombatStatsPublish();
-  }
-
-  EnemyComponent? _nexusCoreBeamTarget() {
-    EnemyComponent? selected;
-    var selectedProgress = double.negativeInfinity;
-    for (final enemy in enemies) {
-      if (enemy.isDead) {
-        continue;
-      }
-      if (enemy.distanceTravelled > selectedProgress) {
-        selected = enemy;
-        selectedProgress = enemy.distanceTravelled;
-      }
-    }
-    return selected;
-  }
-
   Vector2 _nexusCorePosition() {
     if (_worldPath.isEmpty) {
       return _boardCamera.center;
@@ -4298,81 +3380,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     );
   }
 
-  void _applyEmergencyCharge() {
-    if (_emergencyChargeUsedThisRound) {
-      return;
-    }
-    final recoveryRate = corePassiveEmergencyChargeRecoveryRate(
-      _progression.corePassiveNodeRanks,
-    );
-    if (!_coreCombatSkillController.applyEmergencyCharge(
-      recoveryRate: recoveryRate,
-      cooldownRecoveryMultiplier: _coreCombatSkillCooldownRecoveryMultiplier,
-    )) {
-      return;
-    }
-    _emergencyChargeUsedThisRound = true;
-    _requestCombatStatsPublish();
-  }
-
-  void _restoreNexusAtRoundEnd() {
-    if (_nexusHp <= 0 || _nexusHp >= _maxNexusHp) {
-      _resetRoundDefenseState();
-      return;
-    }
-    final nodeRanks = _progression.corePassiveNodeRanks;
-    // 최대 체력 비례 수복과 해당 라운드 실제 손실 복원 합산.
-    final recovery =
-        _maxNexusHp * corePassiveRoundRecoveryRate(nodeRanks) +
-        _roundNexusHpLost * corePassiveDamageRestorationRate(nodeRanks);
-    if (recovery > 0) {
-      final previousNexusHp = _nexusHp;
-      _nexusHp = math.min(_maxNexusHp, _nexusHp + recovery);
-      final actualRecovery = _nexusHp - previousNexusHp;
-      if (actualRecovery > 0) {
-        _showNexusHealthChange(actualRecovery);
-      }
-    }
-    _resetRoundDefenseState();
-  }
-
   void _resetRoundDefenseState() {
     _roundNexusHpLost = 0;
     _emergencyChargeUsedThisRound = false;
     _finalDefenseUsedThisRound = false;
   }
 
-  void _showNexusHealthChange(double healthChange) {
-    if (healthChange == 0) {
-      return;
-    }
-    final text =
-        '${healthChange > 0 ? '+' : '-'}${healthChange.abs().toStringAsFixed(1)}';
-    add(
-      DamageNumberComponent.cached(
-        position: _damageNumberStartPosition(
-          position: _nexusCorePosition(),
-          sourcePosition: null,
-          motion: DamageNumberMotion.rise,
-        ),
-        imageCache: _damageNumberImages,
-        text: text,
-        color: healthChange > 0
-            ? const Color(0xFF72E0A2)
-            : const Color(0xFFFF7043),
-      ),
-    );
-  }
-
-  void _checkWaveClear() {
-    if (!_waveSpawner.isEmpty ||
-        enemies.isNotEmpty ||
-        _phase != GamePhase.wave) {
-      return;
-    }
-
+  void _completeWave({bool native = false}) {
     final completedRound = _roundIndex + 1;
-    _restoreNexusAtRoundEnd();
     final clearGoldBeforePassive =
         _waves[_roundIndex].clearRewardGold +
         _progression.waveClearGoldBonus +
@@ -4398,7 +3413,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _rewardOptions.clear();
       _rewardReturnPhase = null;
       _finishRun(GamePhase.success);
-      unawaited(_saveRoundCheckpoint());
+      if (!native) unawaited(_saveRoundCheckpoint());
     } else if (gemRoundReward != null) {
       _phase = GamePhase.reward;
       _isPurchasedGemReward = false;
@@ -4406,13 +3421,13 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       _rewardOptions
         ..clear()
         ..addAll(gemRoundReward.rewardOptions);
-      unawaited(_saveRoundCheckpoint());
+      if (!native) unawaited(_saveRoundCheckpoint());
     } else {
       _phase = GamePhase.preparation;
       _rewardOptions.clear();
       _isPurchasedGemReward = false;
       _rewardReturnPhase = null;
-      unawaited(_saveRoundCheckpoint());
+      if (!native) unawaited(_saveRoundCheckpoint());
     }
     _resetNexusCoreBeamCycle();
     _publish();
@@ -4440,27 +3455,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   void _updateVisualAlerts(double dt) {
     _nexusHitAlertTimer = math.max(0, _nexusHitAlertTimer - dt);
     _portalAlertTimer = math.max(0, _portalAlertTimer - dt);
-    _syncVisualAlerts();
   }
 
   void _triggerNexusHitAlert() {
     _nexusHitAlertTimer = _nexusHitAlertDuration;
-    _syncVisualAlerts();
   }
 
   void _triggerPortalAlert() {
     _portalAlertTimer = _portalAlertDuration;
-    _syncVisualAlerts();
-  }
-
-  void _syncVisualAlerts() {
-    if (!_gridComponentReady) {
-      return;
-    }
-    _gridComponent.nexusHitAlert =
-        (_nexusHitAlertTimer / _nexusHitAlertDuration).clamp(0.0, 1.0);
-    _gridComponent.portalAlert = (_portalAlertTimer / _portalAlertDuration)
-        .clamp(0.0, 1.0);
   }
 
   void _finishRun(GamePhase resultPhase) {
@@ -4590,33 +3592,27 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     battlefieldProjection = null;
     nativeBattlefieldGroups = const {};
     nativeBattlefieldTurretLevels = false;
-    _finishedProjectiles.clear();
     _projectileEvents.clear();
     _activeStage = nextStage;
     // 새 HUD가 붙기 전에도 이전 맵의 응답·좌표·효과를 사용하지 않는다.
     nativeBattlefieldLoading = hadNativeScene && supportsNativeBattlefield;
     _currentStageNumber = nextStage.id;
     if (isLoaded) {
-      _rebuildGridComponent();
+      _refreshBoardLayout();
     }
   }
 
-  void _rebuildGridComponent() {
+  void _refreshBoardLayout() {
     _configureBoard();
-    _gridComponentReady = false;
-    _gridComponent.removeFromParent();
-    _gridComponent = GridComponent(
-      map: _map,
-      origin: _origin,
-      tileSize: _tileSize,
-    );
-    _gridComponentReady = true;
-    add(_gridComponent);
-    _syncVisualAlerts();
     _syncBoardComponents();
   }
 
   void _requestLocalSave({bool immediate = false}) {
+    if (_nativeApplyingResponse) {
+      _nativeSaveRequested = true;
+      _nativeSaveImmediate |= immediate;
+      return;
+    }
     if (immediate && !_savedDataLoaded) {
       _pendingFullSaveData = _buildSaveData();
     }
@@ -4642,6 +3638,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Future<bool> _writeAccountCheckpoint() async {
+    if (_nativeApplyingResponse) await Future<void>.delayed(Duration.zero);
     final data = _buildSaveData();
     if (!await _writeLocalSaveData(data)) {
       return false;
@@ -4656,6 +3653,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   Future<void> _writeLocalSave() async {
+    if (_nativeApplyingResponse) await Future<void>.delayed(Duration.zero);
     final data = _buildSaveData();
     if (!_savedDataLoaded) {
       _pendingFullSaveData = data;
@@ -4706,14 +3704,9 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     _updateResearchProgress();
   }
 
-  GameSaveData _buildSaveData() {
-    if (nativeCombatOwned && _nativeConfirmedSave != null) {
-      return _nativeCombat.suspended
-          ? _nativeCheckpointWithCurrentMeta()
-          : _nativeConfirmedSave!;
-    }
-    return _buildLiveSaveData();
-  }
+  // Native simulation fields are ACK-only mirrors. App configuration and its
+  // economic costs are saved together even while their native command is in flight.
+  GameSaveData _buildSaveData() => _buildLiveSaveData();
 
   GameSaveData _buildLiveSaveData() {
     return _saveAdapter.buildSaveData(
@@ -4755,23 +3748,6 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         pendingFullSaveData: _pendingFullSaveData,
       ),
     );
-  }
-
-  bool _isActiveTurret(TurretComponent turret) {
-    return _turrets[turret.gridPoint] == turret;
-  }
-
-  TurretComponent? _turretForPoint(GridPoint point) {
-    final activeTurret = _turrets[point];
-    if (activeTurret != null) {
-      return activeTurret;
-    }
-    for (final child in children.whereType<TurretComponent>()) {
-      if (child.gridPoint == point) {
-        return child;
-      }
-    }
-    return null;
   }
 
   double _turretBurnDamagePerSecondAtLevel(TurretComponent turret, int level) {

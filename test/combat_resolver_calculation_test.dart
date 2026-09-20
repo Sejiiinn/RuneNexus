@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flame/components.dart';
+import 'package:vector_math/vector_math_64.dart' show Vector2;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/definitions/game_turret_data.dart';
@@ -16,7 +16,6 @@ import 'package:rune_nexus/domain/turret/turret_trait_type.dart';
 import 'package:rune_nexus/game/components/enemy_component.dart';
 import 'package:rune_nexus/game/components/turret_component.dart';
 import 'package:rune_nexus/game/rune_nexus_game.dart';
-import 'package:rune_nexus/game/systems/combat_resolver.dart';
 import '../tool/combat/calculation_fixture.dart';
 import '../tool/verify_combat_calculation.dart' as parity;
 
@@ -47,7 +46,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   for (final type in gameTurrets.keys) {
     test(
-      'real upgraded ${type.name} snapshot keeps resolver and status semantics',
+      'real upgraded ${type.name} snapshot keeps pure damage and status semantics',
       () {
         verifySnapshot(type);
       },
@@ -109,53 +108,43 @@ Map<String, Object?> verifySnapshot(TurretType type) {
   final snapshotDamage = attack.damage;
   turret.upgradeLevel();
   expect(attack.damage, snapshotDamage);
-  final enemy =
-      EnemyComponent(
-          definition: const EnemyDefinition(
-            type: EnemyType.normal,
-            name: 'fixture',
-            maxHp: 10000,
-            speed: 1,
-            rewardGold: 1,
-            coreDamage: 1,
-            color: Colors.white,
-            resistanceProfile: EnemyResistanceProfile(
-              familyResistances: {
-                DamageFamily.physical: .2,
-                DamageFamily.elemental: .3,
-              },
-              tagResistances: {
-                AttackTag.light: .1,
-                AttackTag.heavy: -.2,
-                AttackTag.damageOverTime: .25,
-                AttackTag.cooling: .9,
-              },
-            ),
-          ),
-          maxHp: 10000,
-          path: [Vector2.zero(), Vector2(500, 0)],
-          game: game,
-        )
-        ..applyPhysicalVulnerability(bonus: .35, duration: 4)
-        ..applyElementalVulnerability(bonus: .1, duration: 4);
-  const resolver = CombatResolver(
-    chainJumpRange: 100,
-    burnDamagePerSecondScale: .5,
-    burnDurationSeconds: 2,
+  final enemy = EnemyComponent(
+    definition: const EnemyDefinition(
+      type: EnemyType.normal,
+      name: 'fixture',
+      maxHp: 10000,
+      speed: 1,
+      rewardGold: 1,
+      coreDamage: 1,
+      color: Colors.white,
+      resistanceProfile: EnemyResistanceProfile(
+        familyResistances: {
+          DamageFamily.physical: .2,
+          DamageFamily.elemental: .3,
+        },
+        tagResistances: {
+          AttackTag.light: .1,
+          AttackTag.heavy: -.2,
+          AttackTag.damageOverTime: .25,
+          AttackTag.cooling: .9,
+        },
+      ),
+    ),
+    maxHp: 10000,
+    path: [Vector2.zero(), Vector2(500, 0)],
+    game: game,
   );
+  enemy.applyNativeCombatState({
+    ...enemy.toSaveData().toJson(),
+    'physicalVulnerabilityBonus': .35,
+    'physicalVulnerabilityRemaining': 4.0,
+    'elementalVulnerabilityBonus': .1,
+    'elementalVulnerabilityRemaining': 4.0,
+  });
   const extras = {AttackTag.heavy};
   final multiplier = legacyMultiplier(attack, enemy, extras);
   final burnMultiplier = legacyMultiplier(attack, enemy);
   final base = attack.damage * attack.criticalMultiplier;
-  final hit = resolver.resolveAttackDamage(
-    attack: attack,
-    enemy: enemy,
-    baseDamage: base,
-    traitMultiplier: 1.3,
-    extraTags: extras,
-  );
-  expect(hit.damage, closeTo(base * 1.3 * multiplier, 1e-10));
-  expect(hit.resistanceMultiplier, closeTo(multiplier, 1e-10));
   final input = <String, Object?>{
     'baseDamage': base,
     'traitMultiplier': 1.3,
@@ -219,47 +208,14 @@ Map<String, Object?> verifySnapshot(TurretType type) {
     ],
   ];
   final expected = {
-    'damage': hit.damage,
-    'resistanceMultiplier': hit.resistanceMultiplier,
+    'damage': base * 1.3 * multiplier,
+    'resistanceMultiplier': multiplier,
     'effects': expectedEffects,
   };
   // Same snapshot and oracle feed standalone Godot comparison when requested.
   final serialInput = jsonDecode(jsonEncode(input)) as Map<String, dynamic>;
   compareValues(evaluateFixture(serialInput), expected, type.name);
-  resolver.applyAttackStatuses(
-    attack: attack,
-    enemy: enemy,
-    damageScale: .75,
-    activeSourceTurretPoint: attack.sourceTurretPoint,
-  );
-  expect(enemy.hp, 10000); // Resolver still does not own HP application.
-  if (attack.hasDamageOverTime) {
-    expect(
-      enemy.totalBurnDamagePerSecond,
-      closeTo(
-        attack.damage *
-            .5 *
-            .75 *
-            burnMultiplier *
-            attack.damageOverTimeDamageMultiplier,
-        1e-10,
-      ),
-    );
-    expect(enemy.hasBurnFromSource(attack.sourceTurretPoint), isTrue);
-  }
-  if (attack.slowDuration > 0 && attack.slowMultiplier < 1) {
-    expect(enemy.slowMultiplier, attack.slowMultiplier);
-    expect(enemy.slowRemaining, attack.slowDuration);
-  }
-  if (attack.appliesFrostCrack) {
-    expect(enemy.elementalResistanceReduction, .15);
-    expect(
-      resolver
-          .resolveAttackDamage(attack: attack, enemy: enemy, baseDamage: base)
-          .damage,
-      closeTo(base * legacyMultiplier(attack, enemy), 1e-10),
-    );
-  }
+  // Status application is exercised by native runtime regression tests.
   return {
     'name': 'snapshot-${type.name}',
     'input': input,

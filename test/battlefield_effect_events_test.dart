@@ -1,7 +1,4 @@
-import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flame/components.dart';
-import 'package:rune_nexus/game/components/damage_number_component.dart';
 import 'package:rune_nexus/game/rendering/stage1_3d/battlefield_effect_events.dart';
 import 'package:rune_nexus/game/rendering/stage1_3d/battlefield_effects.dart';
 
@@ -39,7 +36,7 @@ void main() {
   );
 
   test(
-    'ACK removes payload but preserves live fallback, pause and bounded capacity',
+    'ACK removes payload but preserves the live event journal, pause and bounded capacity',
     () {
       final events = BattlefieldEffectEvents<String>(capacity: 2);
       events.add(effect(1), 'one');
@@ -101,32 +98,31 @@ void main() {
   test(
     'native closed form exactly matches discrete fall arc at variable step sizes',
     () {
-      final cache = DamageNumberImageCache();
-      for (final x in [100.0, 101.0]) {
-        final reference = DamageNumberComponent.cached(
-          position: Vector2(x, 110),
-          imageCache: cache,
-          text: '12',
-          color: const Color(0xffffffff),
-          motion: DamageNumberMotion.fallArc,
-        );
-        final restored = DamageNumberComponent.cached(
-          position: Vector2(x, 110),
-          imageCache: cache,
-          text: '12',
-          color: const Color(0xffffffff),
-          motion: DamageNumberMotion.fallArc,
-        );
+      // Frozen 0241ef6 update equation, independent of the removed component.
+      const lifetime = 0.75;
+      for (final direction in [-1, 1]) {
+        var x = 100.0;
+        var y = 110.0;
+        var age = 0.0;
         final events = BattlefieldEffectEvents<String>();
+        events.add(effect(1), 'damage');
         for (final dt in [.016, .04, 0.0, .064, .1, .008]) {
           events.advance(dt);
-          reference.update(dt);
+          age += dt;
+          x += direction * 42 * dt;
+          y += (-28 + 96 * age / lifetime) * dt;
         }
-        restored.restorePresentationTime(events.clock, events.squaredSteps);
-        expect(restored.position.x, closeTo(reference.position.x, 1e-10));
-        expect(restored.position.y, closeTo(reference.position.y, 1e-10));
+        final payload = events.pending().single;
+        final nativeAge = payload['retainedAge']! as double;
+        final nativeSquared = payload['retainedSquared']! as double;
+        expect(100 + direction * 42 * nativeAge, closeTo(x, 1e-10));
+        expect(
+          110 -
+              28 * nativeAge +
+              48 / lifetime * (nativeAge * nativeAge + nativeSquared),
+          closeTo(y, 1e-10),
+        );
       }
-      cache.dispose();
     },
   );
 }

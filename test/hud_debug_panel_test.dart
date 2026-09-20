@@ -1,5 +1,4 @@
 import 'package:rune_nexus/domain/enemy/enemy_type.dart';
-import 'package:rune_nexus/game/components/turret_component.dart';
 import 'package:rune_nexus/ui/hud/top_bar.dart';
 
 import 'helpers/widget_test_helpers.dart';
@@ -62,7 +61,7 @@ void main() {
       await tester.pump();
       game.update(0);
       await tester.pump();
-      final cannons = game.children.whereType<TurretComponent>().toList();
+      final cannons = game.turrets.toList();
       expect(cannons, hasLength(6));
       expect(
         cannons.every((t) => t.definition.type == TurretType.cannon),

@@ -1,0 +1,13 @@
+{
+  "apkBytes": 562387406,
+  "previousDebugApkBytes": 562373954,
+  "packs": [
+    {
+      "path": "assets/rune_nexus.pck",
+      "bytes": 106010940,
+      "compressed": 106010940
+    }
+  ],
+  "previousDebugPckBytes": 105997488,
+  "apkByteDelta": 13452
+}

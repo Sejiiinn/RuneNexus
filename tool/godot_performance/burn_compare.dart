@@ -203,11 +203,11 @@ class _PerformanceRunState extends State<PerformanceRun> {
     started = true;
     try {
       game.startStage(1);
-      await game.lifecycleEventsProcessed;
+      await game.ready();
       await _ready();
       game.debugShowCannonBarrage(turretType: TurretType.magic);
       game.setSpeedMultiplier(4);
-      await game.lifecycleEventsProcessed;
+      await game.ready();
       await _burnVisible(true);
       setState(() => label = '$variant · 초기 워밍업');
       await Future<void>.delayed(const Duration(seconds: 12));

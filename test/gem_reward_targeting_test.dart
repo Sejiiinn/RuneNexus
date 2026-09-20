@@ -1,33 +1,19 @@
-import 'dart:ui' show PictureRecorder;
-
-import 'package:flame/components.dart' show Component;
-import 'package:flame/events.dart' show TapUpEvent;
 import 'package:flutter/gestures.dart';
 import 'package:rune_nexus/domain/gem/gem_reward_target_status.dart';
 
 import 'helpers/game_balance_test_helpers.dart';
+import 'helpers/native_game_test_driver.dart';
 
 const _target = GridPoint(2, 0);
 const _options = [GemType.range, GemType.attackSpeed, GemType.heavyWeapon];
 
-class _BoardTransformProbe extends Component {
-  List<double>? transform;
-
-  @override
-  void render(Canvas canvas) {
-    transform = canvas.getTransform().toList();
-  }
-}
-
-List<double> _renderBoardTransform(
-  RuneNexusGame game,
-  _BoardTransformProbe probe,
-) {
-  final recorder = PictureRecorder();
-  game.render(Canvas(recorder));
-  recorder.endRecording().dispose();
-  return probe.transform!;
-}
+// The host no longer renders a Dart scenegraph. Assert the camera data sent to
+// Godot stays fixed through reward selection and replacement.
+List<double> _boardCameraState(RuneNexusGame game) => [
+  game.debugBoardZoom(),
+  game.debugBoardOffset().x,
+  game.debugBoardOffset().y,
+];
 
 Future<RuneNexusGame> _load(MemorySaveRepository repository) async {
   final game = RuneNexusGame(saveRepository: repository);
@@ -90,51 +76,45 @@ void main() {
       );
       expect(game.debugBoardZoom(), 1.5);
       expect(game.debugBoardOffset().length2, greaterThan(0));
-      final probe = _BoardTransformProbe();
-      await game.add(probe);
-      await game.ready();
-      final before = _renderBoardTransform(game, probe);
+      final before = _boardCameraState(game);
 
       expect(game.purchaseGemChoice(), isTrue);
-      expect(_renderBoardTransform(game, probe), before);
+      expect(_boardCameraState(game), before);
       final gem = game.snapshotNotifier.value.rewardOptions.firstWhere(
         (type) => canEquipGemOnTurret(type, gameTurrets[TurretType.arrow]!),
       );
       expect(game.previewRewardGem(gem), isTrue);
       game.setGemRewardBoardViewport(const Rect.fromLTWH(24, 240, 352, 400));
-      expect(_renderBoardTransform(game, probe), before);
+      expect(_boardCameraState(game), before);
       game.clearRewardGemPreview();
-      expect(_renderBoardTransform(game, probe), before);
+      expect(_boardCameraState(game), before);
 
       expect(game.previewRewardGem(gem), isTrue);
       game.setGemRewardBoardViewport(const Rect.fromLTWH(24, 220, 352, 440));
-      expect(_renderBoardTransform(game, probe), before);
+      expect(_boardCameraState(game), before);
       expect(game.selectRewardGemTarget(_target), isTrue);
-      expect(_renderBoardTransform(game, probe), before);
+      expect(_boardCameraState(game), before);
     },
   );
 
   test(
-    'reward targeting and completion preserve the rendered camera',
+    'reward targeting and completion preserve the native camera state',
     () async {
       final fixture = await _reward();
       final game = fixture.game;
-      final probe = _BoardTransformProbe();
-      await game.add(probe);
-      await game.ready();
-      final before = _renderBoardTransform(game, probe);
+      final before = _boardCameraState(game);
 
       expect(game.previewRewardGem(GemType.range), isTrue);
       game.setGemRewardBoardViewport(const Rect.fromLTWH(24, 240, 352, 400));
-      expect(_renderBoardTransform(game, probe), before);
+      expect(_boardCameraState(game), before);
       game.clearRewardGemPreview();
-      expect(_renderBoardTransform(game, probe), before);
+      expect(_boardCameraState(game), before);
 
       expect(game.previewRewardGem(GemType.range), isTrue);
       game.setGemRewardBoardViewport(const Rect.fromLTWH(24, 220, 352, 440));
-      expect(_renderBoardTransform(game, probe), before);
+      expect(_boardCameraState(game), before);
       expect(game.selectRewardGemTarget(_target), isTrue);
-      expect(_renderBoardTransform(game, probe), before);
+      expect(_boardCameraState(game), before);
     },
   );
 
@@ -154,12 +134,7 @@ void main() {
       game.setGemRewardBoardViewport(viewport);
       tapBuildTile(game, _target);
       expect(game.snapshotNotifier.value.rewardReplacementPoint, isNull);
-      final release = TapUpEvent(
-        1,
-        game,
-        TapUpDetails(globalPosition: screen, kind: PointerDeviceKind.touch),
-      )..renderingTrace.add(Vector2(screen.dx, screen.dy));
-      game.onTapUp(release);
+      game.onBoardTapUp(Vector2(screen.dx, screen.dy));
       expect(game.snapshotNotifier.value.rewardReplacementPoint, _target);
       expect(game.gemRewardReplacementAnchor!.dx, closeTo(0.5, 0.000001));
       expect(game.gemRewardReplacementAnchor!.dy, closeTo(0.5, 0.000001));
@@ -346,8 +321,8 @@ void main() {
           progress: 0,
           position: Vector2.zero(),
         );
-        game.enemies.add(enemy);
-        await game.add(enemy);
+        game.registerEnemy(enemy);
+        acknowledgeNativeState(game);
         if (initiallyPaused) game.pauseEngine();
         expect(game.purchaseGemChoice(), isTrue);
         expect(game.paused, initiallyPaused);
@@ -356,6 +331,15 @@ void main() {
         final before = enemy.distanceTravelled;
         game.update(1);
         expect(enemy.distanceTravelled, before);
+        final rewardPacket = game.buildNativeCombatCommand(9001);
+        expect(
+          (rewardPacket['steps'] as List).where(
+            (step) => (step['dt'] as num) > 0,
+          ),
+          isEmpty,
+          reason: 'reward selection must not enqueue native simulation time',
+        );
+        acknowledgeNativeState(game);
         expect(game.snapshotNotifier.value.gemShards, 20);
         expect(game.snapshotNotifier.value.gemInventory, isEmpty);
         expect(game.storeRewardGem(), isTrue);
@@ -363,6 +347,22 @@ void main() {
         expect(game.paused, initiallyPaused);
         if (!initiallyPaused) {
           game.update(0.1);
+          final resumedPacket = game.buildNativeCombatCommand(9001);
+          expect(
+            (resumedPacket['steps'] as List).any(
+              (step) => (step['dt'] as num) > 0 && step['running'] == true,
+            ),
+            isTrue,
+          );
+          acknowledgeNativeState(
+            game,
+            enemies: [
+              {
+                ...enemy.nativeCombatState(game.nativeCombatEntityId(enemy)),
+                'distanceTravelled': before + 3.15,
+              },
+            ],
+          );
           expect(enemy.distanceTravelled, greaterThan(before));
         }
       },

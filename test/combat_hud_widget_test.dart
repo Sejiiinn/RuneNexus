@@ -3,6 +3,7 @@ import 'package:rune_nexus/ui/hud/gem_socket_section.dart';
 import 'package:rune_nexus/ui/game/game_image_assets.dart';
 
 import 'helpers/widget_test_helpers.dart';
+import 'helpers/native_game_test_driver.dart';
 
 void main() {
   // 공통 HUD 입력·레이아웃은 2D 전장에서 검증한다. Android 네이티브
@@ -333,7 +334,7 @@ void main() {
 
     for (var round = 1; round <= 2; round++) {
       game.startNextWave();
-      game.update(2);
+      acknowledgeNativeWaveCompleted(game);
       // 라운드 전환 후 상위 화면 재빌드에 따른 보드 레이아웃 재계산
       game.onGameResize(game.size.clone());
       await pumpGameFrames(tester);

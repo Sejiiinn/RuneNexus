@@ -1,5 +1,5 @@
+import 'helpers/native_game_test_driver.dart';
 import 'package:rune_nexus/domain/enemy/diamond_carrier_rules.dart';
-import 'package:rune_nexus/game/components/diamond_reward_effect_component.dart';
 
 import 'helpers/game_balance_test_helpers.dart';
 
@@ -99,7 +99,7 @@ void main() {
     await game.onLoad();
 
     game.startNextWave();
-    game.update(1);
+    acknowledgeNativeSpawnQueue(game);
 
     expect(game.enemies, hasLength(1));
     expect(game.enemies.single.isDiamondCarrier, isTrue);
@@ -125,7 +125,7 @@ void main() {
     await game.onLoad();
 
     game.startNextWave();
-    game.update(1);
+    acknowledgeNativeSpawnQueue(game);
 
     expect(game.enemies, hasLength(1));
     expect(game.enemies.single.isDiamondCarrier, isFalse);
@@ -144,11 +144,9 @@ void main() {
       path: [Vector2.zero(), Vector2(500, 0)],
       game: game,
     );
-    game.enemies.add(enemy);
-    await game.add(enemy);
+    game.registerEnemy(enemy);
 
-    enemy.receiveDamage(10);
-    game.update(0);
+    acknowledgeNativeKill(game, enemy);
 
     final after = game.snapshotNotifier.value;
     expect(after.diamonds, before.diamonds + 2);
@@ -157,7 +155,12 @@ void main() {
       after.dailyQuestProgress[DailyQuestType.killEnemies],
       (before.dailyQuestProgress[DailyQuestType.killEnemies] ?? 0) + 1,
     );
-    expect(game.children.whereType<DiamondRewardEffectComponent>(), isNotEmpty);
+    expect(
+      game.battlefieldFrame!.effects!.events.where(
+        (event) => event['kind'] == 'diamond',
+      ),
+      isNotEmpty,
+    );
   });
 
   test('운반체가 코어에 도달하면 다이아를 지급하지 않는다', () async {
@@ -171,14 +174,22 @@ void main() {
       path: [Vector2.zero(), Vector2(500, 0)],
       game: game,
     );
-    game.enemies.add(enemy);
-    await game.add(enemy);
+    game.registerEnemy(enemy);
     final beforeDiamonds = game.snapshotNotifier.value.diamonds;
 
-    game.enemyReachedCore(enemy);
+    acknowledgeNativeArrival(
+      game,
+      enemy,
+      defense: {'hp': 19.0, 'roundHpLost': 1.0},
+    );
 
     expect(game.snapshotNotifier.value.diamonds, beforeDiamonds);
-    expect(game.children.whereType<DiamondRewardEffectComponent>(), isEmpty);
+    expect(
+      game.battlefieldFrame!.effects!.events.where(
+        (event) => event['kind'] == 'diamond',
+      ),
+      isEmpty,
+    );
   });
 
   test('운반체 보상량은 JSON에 저장되고 구버전 누락값은 0이다', () {
@@ -229,7 +240,7 @@ void main() {
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
     game.startNextWave();
-    game.update(1);
+    acknowledgeNativeSpawnQueue(game);
     await game.saveNow();
 
     expect(repository.data!.activeRun!.enemies.single.diamondReward, 2);

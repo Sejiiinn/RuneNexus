@@ -244,7 +244,7 @@ class GameRestoreController {
         }
       }
       _game._turrets[savedTurret.point] = turret;
-      _game.add(turret);
+      _game.registerTurret(turret);
     }
     _game._refreshEfficiencyPassiveBoardState();
   }
@@ -281,7 +281,7 @@ class GameRestoreController {
         game: _game,
       )..restoreFromSaveData(savedEnemy);
       _game.enemies.add(enemy);
-      _game.add(enemy);
+      _game.registerEnemy(enemy);
     }
   }
 

@@ -1,4 +1,4 @@
-import 'package:flame/game.dart';
+import 'native_game_host.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -172,10 +172,7 @@ class _GameHudState extends State<GameHud> {
             onPointerMove: widget.game.handleBoardPointerMove,
             onPointerUp: widget.game.handleBoardPointerUp,
             onPointerCancel: widget.game.handleBoardPointerCancel,
-            child: GameWidget(
-              game: widget.game,
-              loadingBuilder: (_) => const _GameLoadingScreen(),
-            ),
+            child: NativeGameHost(game: widget.game),
           ),
         ),
         if (widget.showControls)
@@ -248,6 +245,26 @@ class _GameHudState extends State<GameHud> {
             child: ValueListenableBuilder<GameSnapshot>(
               valueListenable: widget.game.snapshotNotifier,
               builder: (context, snapshot, _) {
+                if (widget.game.nativeBattlefieldError != null) {
+                  return ColoredBox(
+                    color: const Color(0xFF07111D),
+                    child: Center(child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(widget.game.nativeBattlefieldError!),
+                        const SizedBox(height: 16),
+                        FilledButton(onPressed: widget.game.retryNativeBattlefield,
+                          child: const Text('다시 시도')),
+                        if (widget.onOpenStageSelect != null)
+                          TextButton(onPressed: () async {
+                            widget.game.suspendCurrentRunForMenu();
+                            await widget.game.saveNow();
+                            widget.onOpenStageSelect?.call();
+                          }, child: const Text('메인화면')),
+                      ],
+                    )),
+                  );
+                }
                 if (!widget.game.supportsNativeBattlefield ||
                     !(_godotLoading || widget.game.nativeBattlefieldLoading)) {
                   return const SizedBox.shrink();
@@ -431,34 +448,6 @@ class _HudOverlayLayer extends StatelessWidget {
         }
         return const SizedBox.shrink();
       },
-    );
-  }
-}
-
-class _GameLoadingScreen extends StatelessWidget {
-  const _GameLoadingScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF07111D),
-      child: const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.auto_awesome, color: Color(0xFF8EE6FF), size: 34),
-            SizedBox(height: 14),
-            Text(
-              '전투 준비 중',
-              style: TextStyle(
-                color: Color(0xFFE8FBFF),
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

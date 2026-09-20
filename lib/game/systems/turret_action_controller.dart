@@ -336,9 +336,6 @@ class TurretActionController {
     for (final gem in turret.equippedGems) {
       gemInventory[gem] = (gemInventory[gem] ?? 0) + 1;
     }
-    for (final enemy in enemies) {
-      enemy.clearBurnSource(selectedPoint);
-    }
     turrets.remove(selectedPoint);
     turret.removeFromParent();
 

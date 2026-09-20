@@ -1,7 +1,10 @@
 import 'dart:math' as math;
 
 import 'helpers/game_balance_test_helpers.dart';
+import 'helpers/native_game_test_driver.dart';
 
+// Combat simulation assertions moved to godot/verify_legacy_combat_regressions.gd
+// and godot/verify_native_enemy_state.gd; these tests cover the Flutter state mirror.
 void main() {
   test('game stage uses 40 survival rounds', () {
     expect(gameStages, hasLength(15));
@@ -119,7 +122,7 @@ void main() {
     }
   });
 
-  test('stage definitions select their own wave data', () {
+  test('stage definitions select their own wave data', () async {
     final stage1 = StageDefinition(
       id: 1,
       name: 'Stage 1',
@@ -154,14 +157,19 @@ void main() {
       ],
       firstClearCorePointReward: 1,
     );
-    final game = RuneNexusGame(stages: [stage1, stage2]);
+    final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
+      stages: [stage1, stage2],
+    );
 
     expect(game.snapshotNotifier.value.currentStageNumber, 1);
     expect(game.snapshotNotifier.value.maxRound, 1);
     expect(game.snapshotNotifier.value.previewText, 'stage one');
 
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
     game.startStage(2);
 
     expect(game.snapshotNotifier.value.currentStageNumber, 2);
@@ -175,8 +183,9 @@ void main() {
     expect(game.snapshotNotifier.value.gold, 170);
   });
 
-  test('gem reward appears every five completed rounds', () {
+  test('gem reward appears every five completed rounds', () async {
     final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
       waves: List<WaveDefinition>.generate(
         6,
         (index) => WaveDefinition(
@@ -188,14 +197,16 @@ void main() {
       ),
     );
 
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
     for (var i = 0; i < 4; i++) {
       game.startNextWave();
-      game.update(0.016);
+      acknowledgeNativeWaveCompleted(game);
       expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
     }
 
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
 
     final rewardSnapshot = game.snapshotNotifier.value;
     expect(rewardSnapshot.phase, GamePhase.reward);
@@ -208,8 +219,9 @@ void main() {
     expect(game.snapshotNotifier.value.gemInventory.values.single, 1);
   });
 
-  test('purchased gem choice spends shards immediately', () {
+  test('purchased gem choice spends shards immediately', () async {
     final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
       waves: List<WaveDefinition>.generate(
         21,
         (index) => WaveDefinition(
@@ -228,8 +240,10 @@ void main() {
           completedRound < game.snapshotNotifier.value.maxRound;
       completedRound++
     ) {
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
       game.startNextWave();
-      game.update(0.016);
+      acknowledgeNativeWaveCompleted(game);
       final snapshot = game.snapshotNotifier.value;
       if (snapshot.phase == GamePhase.reward) {
         game.selectRewardGem(snapshot.rewardOptions.first);
@@ -262,8 +276,9 @@ void main() {
     );
   });
 
-  test('purchased gem choice can be selected during combat', () {
+  test('purchased gem choice can be selected during combat', () async {
     final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
       waves: List<WaveDefinition>.generate(
         21,
         (index) => WaveDefinition(
@@ -282,8 +297,10 @@ void main() {
           completedRound < game.snapshotNotifier.value.maxRound;
       completedRound++
     ) {
+      game.onGameResize(Vector2(400, 800));
+      await game.onLoad();
       game.startNextWave();
-      game.update(0.016);
+      acknowledgeNativeWaveCompleted(game);
       final snapshot = game.snapshotNotifier.value;
       if (snapshot.phase == GamePhase.reward) {
         game.selectRewardGem(snapshot.rewardOptions.first);
@@ -331,8 +348,7 @@ void main() {
       path: [Vector2.zero(), Vector2(500, 0)],
       game: game,
     );
-    game.enemies.add(enemy);
-    await game.add(enemy);
+    game.registerEnemy(enemy);
     final previousDistance = enemy.distanceTravelled;
 
     expect(game.purchaseGemChoice(), isTrue);
@@ -364,8 +380,7 @@ void main() {
       path: [Vector2.zero(), Vector2(500, 0)],
       game: game,
     );
-    game.enemies.add(enemy);
-    await game.add(enemy);
+    game.registerEnemy(enemy);
 
     expect(game.purchaseGemChoice(), isTrue);
     await game.saveNow();
@@ -400,12 +415,23 @@ void main() {
 
     restored.selectRewardGem(rewardSnapshot.rewardOptions.first);
     expect(restored.snapshotNotifier.value.phase, GamePhase.wave);
-    restored.update(1);
+    acknowledgeNativeState(
+      restored,
+      enemies: [
+        {
+          ...restoredEnemy.nativeCombatState(
+            restored.nativeCombatEntityId(restoredEnemy),
+          ),
+          'distanceTravelled': pausedDistance + 31.5,
+        },
+      ],
+    );
     expect(restoredEnemy.distanceTravelled, greaterThan(pausedDistance));
   });
 
-  test('auto start can continue non-boss preparation rounds', () {
+  test('auto start can continue non-boss preparation rounds', () async {
     final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
       waves: List<WaveDefinition>.generate(
         2,
         (index) => WaveDefinition(
@@ -426,10 +452,12 @@ void main() {
     game.update(0.016);
     expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
 
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
     game.startNextWave();
     expect(game.snapshotNotifier.value.phase, GamePhase.wave);
 
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
     expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
     expect(game.snapshotNotifier.value.round, 2);
 
@@ -457,7 +485,7 @@ void main() {
     game.tryBuildTurret(selectedPoint);
     game.debugAddGold(200);
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
 
     expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
     expect(game.snapshotNotifier.value.round, 2);
@@ -494,7 +522,7 @@ void main() {
     const buildPoint = GridPoint(2, 0);
     game.tryBuildTurret(buildPoint);
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
 
     expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
     expect(game.snapshotNotifier.value.round, 2);
@@ -512,8 +540,9 @@ void main() {
     expect(snapshot.selectedTurretPoint, isNull);
   });
 
-  test('auto start can pause before boss rounds', () {
+  test('auto start can pause before boss rounds', () async {
     final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
       waves: const [
         WaveDefinition(
           round: 1,
@@ -541,8 +570,10 @@ void main() {
     expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
     expect(game.snapshotNotifier.value.round, 1);
 
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
     game.update(0.016);
 
     expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
@@ -551,6 +582,7 @@ void main() {
 
   test('abandoning an active run settles failure rewards', () async {
     final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
       waves: List<WaveDefinition>.generate(
         3,
         (index) => WaveDefinition(
@@ -562,8 +594,10 @@ void main() {
       ),
     );
 
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
     expect(game.snapshotNotifier.value.phase, GamePhase.preparation);
     expect(game.snapshotNotifier.value.completedRounds, 1);
 
@@ -622,7 +656,7 @@ void main() {
         ),
       ],
     );
-    await tester.pumpWidget(GameWidget(game: game));
+    await tester.pumpWidget(NativeGameHost(game: game));
     await tester.runAsync(game.ready);
     game.startNextWave();
 
@@ -657,13 +691,17 @@ void main() {
       path: [Vector2.zero(), Vector2(500, 0)],
       game: game,
     );
-    game.enemies.add(enemy);
-    game.enemies.add(lingeringEnemy);
-    await game.add(enemy);
-    await game.add(lingeringEnemy);
+    game.registerEnemy(enemy);
+    game.registerEnemy(lingeringEnemy);
+    game.registerEnemy(enemy);
+
     game.update(0);
 
-    game.enemyReachedCore(enemy);
+    acknowledgeNativeArrival(
+      game,
+      enemy,
+      defense: {'hp': 0, 'roundHpLost': 20, 'failed': true},
+    );
 
     expect(game.snapshotNotifier.value.nexusHp, 0);
     expect(game.snapshotNotifier.value.phase, GamePhase.coreDestruction);
@@ -761,30 +799,12 @@ void main() {
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
     game.tryBuildTurret(const GridPoint(2, 0));
-    final turret = game.children.whereType<TurretComponent>().single;
+    final turret = game.turrets.single;
     final expectedTileSize = game.debugBoardSize().x / gameMap.columns;
     final expectedScale = expectedTileSize / 48;
 
     expect(game.boardDistanceScale, closeTo(expectedScale, 0.001));
     expect(turret.range, closeTo(96 * expectedScale, 0.001));
-  });
-
-  test('enemy movement speed scales with board tile size', () async {
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-    final normal = gameEnemies[EnemyType.normal]!;
-
-    game.onGameResize(Vector2(400, 800));
-    await game.onLoad();
-    final enemy = EnemyComponent(
-      definition: normal,
-      maxHp: 100,
-      path: [Vector2.zero(), Vector2(200, 0)],
-      game: game,
-    );
-
-    enemy.update(1);
-
-    expect(enemy.position.x, closeTo(31.5 * game.boardDistanceScale, 0.001));
   });
 
   test('spawned enemies use type-specific board size immediately', () async {
@@ -806,7 +826,7 @@ void main() {
     await game.onLoad();
     game.setSpeedMultiplier(0);
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeSpawnQueue(game);
 
     expect(game.enemies, hasLength(1));
     expect(
@@ -879,8 +899,9 @@ void main() {
     expect(gameTurrets[TurretType.lightning]!.attackRate, 0.55);
   });
 
-  test('sniper turret unlocks after stage three clear', () {
+  test('sniper turret unlocks after stage three clear', () async {
     final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
       stage: StageDefinition(
         id: 3,
         name: 'Stage 3',
@@ -905,8 +926,10 @@ void main() {
     game.selectTurretType(TurretType.sniper);
     expect(game.snapshotNotifier.value.selectedTurretType, TurretType.arrow);
 
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
 
     expect(game.snapshotNotifier.value.phase, GamePhase.success);
     expect(game.snapshotNotifier.value.lastRunUnlockedSniperTurret, isTrue);
@@ -916,8 +939,9 @@ void main() {
     );
   });
 
-  test('chain lightning turret unlocks after stage six clear', () {
+  test('chain lightning turret unlocks after stage six clear', () async {
     final game = RuneNexusGame(
+      saveRepository: MemorySaveRepository(),
       stage: StageDefinition(
         id: 6,
         name: 'Stage 6',
@@ -952,8 +976,10 @@ void main() {
     game.selectTurretType(TurretType.lightning);
     expect(game.snapshotNotifier.value.selectedTurretType, TurretType.arrow);
 
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
 
     expect(game.snapshotNotifier.value.phase, GamePhase.success);
     expect(game.snapshotNotifier.value.clearedStageNumbers, contains(6));
@@ -1006,92 +1032,6 @@ void main() {
 
     expect(turret.aimDuration, closeTo(1 / (1.16 * 1.75), 0.001));
     expect(turret.aimDurationAtLevel(10), closeTo(1 / (1.72 * 1.75), 0.001));
-  });
-
-  test('turret target priority selects the configured combat target', () async {
-    final expectedTargets = {
-      TurretTargetPriority.first: 'front',
-      TurretTargetPriority.last: 'back',
-      TurretTargetPriority.strongest: 'strong',
-      TurretTargetPriority.weakest: 'weak',
-      TurretTargetPriority.nearest: 'near',
-    };
-
-    for (final entry in expectedTargets.entries) {
-      final game = RuneNexusGame(
-        saveRepository: MemorySaveRepository(),
-        waves: const [
-          WaveDefinition(
-            round: 1,
-            previewText: 'test',
-            groups: [],
-            clearRewardGold: 0,
-          ),
-        ],
-      );
-      final turret = TurretComponent(
-        gridPoint: const GridPoint(0, 0),
-        definition: targetPriorityTestTurret,
-        game: game,
-        center: Vector2(100, 100),
-        tileSize: 32,
-      )..setTargetPriority(entry.key);
-      final enemies = {
-        'front': targetPriorityEnemy(
-          game: game,
-          hp: 100,
-          progress: 90,
-          position: turret.position + Vector2(70, 0),
-        ),
-        'back': targetPriorityEnemy(
-          game: game,
-          hp: 100,
-          progress: 10,
-          position: turret.position + Vector2(65, 0),
-        ),
-        'strong': targetPriorityEnemy(
-          game: game,
-          hp: 200,
-          progress: 50,
-          position: turret.position + Vector2(60, 0),
-        ),
-        'weak': targetPriorityEnemy(
-          game: game,
-          hp: 20,
-          progress: 50,
-          position: turret.position + Vector2(55, 0),
-        ),
-        'near': targetPriorityEnemy(
-          game: game,
-          hp: 100,
-          progress: 50,
-          position: turret.position + Vector2(20, 0),
-        ),
-      };
-
-      game.onGameResize(Vector2(400, 800));
-      await game.onLoad();
-      await game.add(turret);
-      for (final enemy in enemies.values) {
-        await game.add(enemy);
-      }
-      game.update(0);
-      game.enemies.addAll(enemies.values);
-      game.startNextWave();
-
-      turret.update(0.016);
-
-      for (final enemyEntry in enemies.entries) {
-        final expectedHp = enemyEntry.key == entry.value
-            ? enemyEntry.value.maxHp - targetPriorityTestTurret.damage
-            : enemyEntry.value.maxHp;
-        expect(
-          enemyEntry.value.hp,
-          closeTo(expectedHp, 0.001),
-          reason: '${entry.key.name} should hit ${entry.value}',
-        );
-      }
-    }
   });
 
   test('selected turret target priority requires completed research', () async {
@@ -1186,29 +1126,6 @@ void main() {
     turret.equipGem(GemType.range, 0);
 
     expect(turret.range, closeTo(115.2, 0.001));
-  });
-
-  test('turret range check includes rough enemy body radius', () {
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-    final turret = TurretComponent(
-      gridPoint: const GridPoint(0, 0),
-      definition: gameTurrets[TurretType.arrow]!,
-      game: game,
-      center: Vector2.zero(),
-      tileSize: 32,
-    );
-    final enemy = EnemyComponent(
-      definition: gameEnemies[EnemyType.normal]!,
-      maxHp: 100,
-      path: [Vector2.zero(), Vector2(300, 0)],
-      game: game,
-    );
-
-    enemy.position = Vector2(turret.range + enemy.size.x / 2 - 0.1, 0);
-    expect(turret.isEnemyBodyInRange(enemy), isTrue);
-
-    enemy.position = Vector2(turret.range + enemy.size.x / 2 + 0.1, 0);
-    expect(turret.isEnemyBodyInRange(enemy), isFalse);
   });
 
   test('turret level up costs scale with turret price', () {
@@ -2159,19 +2076,38 @@ void main() {
     game.equipSelectedTurret(GemType.range);
     game.update(0);
 
-    final effect = game.children.whereType<GemEquipEffectComponent>().single;
-    expect(effect.gemColor, game.colorForGem(GemType.range));
+    final effect = game.battlefieldFrame!.effects!.events
+        .where((event) => event['kind'] == 'gem')
+        .single;
+    expect(effect['color'], game.colorForGem(GemType.range).toARGB32());
 
     game.equipSelectedTurret(GemType.range);
     game.update(0);
-    expect(game.children.whereType<GemEquipEffectComponent>(), hasLength(1));
+    expect(
+      game.battlefieldFrame!.effects!.events.where(
+        (event) => event['kind'] == 'gem',
+      ),
+      hasLength(1),
+    );
 
-    effect.update(1);
-    expect(game.children.whereType<GemEquipEffectComponent>(), isEmpty);
+    game.markNativeBattlefieldEffectsSubmitted(0, 1, {effect['id'] as int});
+    game.acknowledgeNativeBattlefieldEffects(0, 1);
+    game.update(1);
+    expect(
+      game.battlefieldFrame!.effects!.events.where(
+        (event) => event['kind'] == 'gem',
+      ),
+      isEmpty,
+    );
 
     game.removeSelectedTurretGemSlot();
     game.update(0);
-    expect(game.children.whereType<GemEquipEffectComponent>(), isEmpty);
+    expect(
+      game.battlefieldFrame!.effects!.events.where(
+        (event) => event['kind'] == 'gem',
+      ),
+      isEmpty,
+    );
   });
 
   test('removing a gem keeps other gem socket positions fixed', () async {
@@ -2598,136 +2534,6 @@ void main() {
     );
   });
 
-  test('burn deals short duration damage over time', () {
-    final game = RuneNexusGame();
-    final normal = gameEnemies[EnemyType.normal]!;
-    final enemy = EnemyComponent(
-      definition: normal,
-      maxHp: 100,
-      path: [Vector2.zero(), Vector2(100, 0)],
-      game: game,
-    )..applyBurn(damagePerSecond: 10, duration: 2);
-
-    enemy.update(0.25);
-
-    expect(enemy.hp, closeTo(97.5, 0.001));
-  });
-
-  test('enemy damage returns actual hp loss', () {
-    final game = RuneNexusGame();
-    final normal = gameEnemies[EnemyType.normal]!;
-    final enemy = EnemyComponent(
-      definition: normal,
-      maxHp: 12,
-      path: [Vector2.zero(), Vector2(100, 0)],
-      game: game,
-    );
-
-    expect(enemy.receiveDamage(5), closeTo(5, 0.001));
-    expect(enemy.receiveDamage(20), closeTo(7, 0.001));
-    expect(enemy.receiveDamage(20), closeTo(0, 0.001));
-  });
-
-  test('armor mitigates damage before hp and weakens as it breaks', () {
-    final game = RuneNexusGame();
-    final normal = gameEnemies[EnemyType.normal]!;
-    final enemy = EnemyComponent(
-      definition: normal,
-      maxHp: 100,
-      maxArmor: 50,
-      path: [Vector2.zero(), Vector2(100, 0)],
-      game: game,
-    );
-
-    expect(enemy.receiveDamage(20), closeTo(10.940952, 0.001));
-    expect(enemy.armor, closeTo(39.059048, 0.001));
-    expect(enemy.hp, closeTo(100, 0.001));
-
-    expect(enemy.receiveDamage(100), closeTo(84.599352, 0.001));
-    expect(enemy.armor, closeTo(0, 0.001));
-    expect(enemy.hp, closeTo(54.459696, 0.001));
-  });
-
-  test('armor 54 reduces machine gun base damage before hp', () {
-    final game = RuneNexusGame();
-    final armored = gameEnemies[EnemyType.armored]!;
-    final enemy = EnemyComponent(
-      definition: armored,
-      maxHp: 100,
-      maxArmor: 54,
-      path: [Vector2.zero(), Vector2(100, 0)],
-      game: game,
-    );
-
-    expect(enemy.receiveDamage(7), closeTo(2.324572, 0.001));
-    expect(enemy.armor, closeTo(51.675428, 0.001));
-    expect(enemy.hp, closeTo(100, 0.001));
-  });
-
-  test('armor piercing ignores reduction without bypassing armor layer', () {
-    final game = RuneNexusGame();
-    final normal = gameEnemies[EnemyType.normal]!;
-    final enemy = EnemyComponent(
-      definition: normal,
-      maxHp: 100,
-      maxArmor: 50,
-      path: [Vector2.zero(), Vector2(100, 0)],
-      game: game,
-    );
-
-    expect(
-      enemy.receiveDamage(7, ignoreArmorReduction: true),
-      closeTo(7, 0.001),
-    );
-    expect(enemy.armor, closeTo(43, 0.001));
-    expect(enemy.hp, closeTo(100, 0.001));
-
-    expect(
-      enemy.receiveDamage(50, ignoreArmorReduction: true),
-      closeTo(50, 0.001),
-    );
-    expect(enemy.armor, closeTo(0, 0.001));
-    expect(enemy.hp, closeTo(93, 0.001));
-  });
-
-  test(
-    'shield overflow spills into armor and broken shield does not regen',
-    () {
-      final game = RuneNexusGame();
-      const shielded = EnemyDefinition(
-        type: EnemyType.normal,
-        name: '보호막 테스트',
-        maxHp: 100,
-        maxShield: 100,
-        shieldRegenRate: 0.1,
-        maxArmor: 50,
-        speed: 30,
-        rewardGold: 1,
-        coreDamage: 1,
-        color: Color(0xFFFFFFFF),
-        resistanceProfile: EnemyResistanceProfile.neutral,
-      );
-      final enemy = EnemyComponent(
-        definition: shielded,
-        maxHp: 100,
-        maxShield: 100,
-        maxArmor: 50,
-        path: [Vector2.zero(), Vector2(100, 0)],
-        game: game,
-      );
-
-      expect(enemy.receiveDamage(120), closeTo(110.940952, 0.001));
-      expect(enemy.shield, closeTo(0, 0.001));
-      expect(enemy.shieldBroken, isTrue);
-      expect(enemy.armor, closeTo(39.059048, 0.001));
-      expect(enemy.hp, closeTo(100, 0.001));
-
-      enemy.update(1);
-
-      expect(enemy.shield, closeTo(0, 0.001));
-    },
-  );
-
   test('enemy durability state is saved and restored', () {
     final game = RuneNexusGame();
     const shielded = EnemyDefinition(
@@ -2751,7 +2557,13 @@ void main() {
       path: [Vector2.zero(), Vector2(100, 0)],
       game: game,
     );
-    enemy.receiveDamage(120);
+    enemy.applyNativeCombatState({
+      ...enemy.toSaveData().toJson(),
+      'shield': 0,
+      'shieldBroken': true,
+      'armor': 39.059048,
+      'hp': 100,
+    });
 
     final restored = EnemyComponent(
       definition: shielded,
@@ -2786,270 +2598,6 @@ void main() {
     },
   );
 
-  test('burn damage uses only the strongest active burn instance', () {
-    final game = RuneNexusGame();
-    final normal = gameEnemies[EnemyType.normal]!;
-    final enemy = EnemyComponent(
-      definition: normal,
-      maxHp: 100,
-      path: [Vector2.zero(), Vector2(100, 0)],
-      game: game,
-    )..applyBurn(damagePerSecond: 20, duration: 2);
-
-    enemy.update(1);
-    enemy.applyBurn(damagePerSecond: 8, duration: 2);
-    enemy.update(1);
-
-    expect(enemy.hp, closeTo(60, 0.001));
-
-    enemy.update(1);
-
-    expect(enemy.hp, closeTo(52, 0.001));
-  });
-
-  test('frost turret damages and slows enemies in its centered area', () async {
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-
-    game.onGameResize(Vector2(400, 800));
-    await game.onLoad();
-    game.selectTurretType(TurretType.frost);
-    game.tryBuildTurret(const GridPoint(2, 0));
-    final frostTurret = game.children.whereType<TurretComponent>().single;
-    final inRangeEnemy = EnemyComponent(
-      definition: gameEnemies[EnemyType.normal]!,
-      maxHp: 100,
-      path: [Vector2.zero(), Vector2(500, 0)],
-      game: game,
-    );
-    final outOfRangeEnemy = EnemyComponent(
-      definition: gameEnemies[EnemyType.normal]!,
-      maxHp: 100,
-      path: [Vector2.zero(), Vector2(500, 0)],
-      game: game,
-    );
-
-    await game.add(inRangeEnemy);
-    await game.add(outOfRangeEnemy);
-    inRangeEnemy.position =
-        frostTurret.position + Vector2(frostTurret.range, 0);
-    outOfRangeEnemy.position =
-        frostTurret.position + Vector2(frostTurret.range + 80, 0);
-    game.enemies.addAll([inRangeEnemy, outOfRangeEnemy]);
-
-    game.resolveCenteredAreaAttack(
-      owner: frostTurret,
-      attack: frostTurret.createAttackSnapshot(),
-      targets: [inRangeEnemy, outOfRangeEnemy],
-    );
-
-    expect(inRangeEnemy.hp, closeTo(96, 0.001));
-    expect(inRangeEnemy.isSlowed, isTrue);
-    expect(inRangeEnemy.slowMultiplier, closeTo(0.8, 0.001));
-    expect(inRangeEnemy.slowRemaining, closeTo(1, 0.001));
-    expect(outOfRangeEnemy.hp, closeTo(100, 0.001));
-    expect(outOfRangeEnemy.isSlowed, isFalse);
-
-    final previousDistance = inRangeEnemy.distanceTravelled;
-    inRangeEnemy.update(0.5);
-
-    expect(
-      inRangeEnemy.distanceTravelled - previousDistance,
-      closeTo(
-        gameEnemies[EnemyType.normal]!.speed *
-            game.boardDistanceScale *
-            0.8 *
-            0.5,
-        0.001,
-      ),
-    );
-  });
-
-  test(
-    'sniper instant hit applies critical direct damage without projectile',
-    () async {
-      final game = RuneNexusGame(
-        saveRepository: MemorySaveRepository(),
-        waves: const [
-          WaveDefinition(
-            round: 1,
-            previewText: 'test',
-            groups: [],
-            clearRewardGold: 0,
-          ),
-        ],
-      );
-
-      game.onGameResize(Vector2(400, 800));
-      await game.onLoad();
-      game.startNextWave();
-      game.update(0.016);
-      game.restartRun();
-      game.debugSetClearedStageCount(RuneNexusGame.sniperUnlockStage);
-      game.selectTurretType(TurretType.sniper);
-      game.tryBuildTurret(const GridPoint(2, 0));
-
-      final sniperTurret = game.children.whereType<TurretComponent>().single;
-      final enemy = EnemyComponent(
-        definition: gameEnemies[EnemyType.normal]!,
-        maxHp: 100,
-        path: [Vector2.zero(), Vector2(500, 0)],
-        game: game,
-      );
-
-      await game.add(enemy);
-      game.update(0);
-      enemy.position =
-          sniperTurret.position + Vector2(sniperTurret.range * 0.5, 0);
-      game.enemies.add(enemy);
-
-      game.resolveInstantHit(
-        owner: sniperTurret,
-        target: enemy,
-        criticalMultiplier: sniperTurret.criticalDamageMultiplier,
-      );
-
-      expect(enemy.hp, closeTo(20, 0.001));
-      expect(sniperTurret.directDamageDealt, closeTo(80, 0.001));
-      expect(game.children.whereType<ProjectileComponent>(), isEmpty);
-    },
-  );
-
-  testWidgets(
-    'sniper rejects chain gem and does not create follow-up attacks',
-    (tester) async {
-      final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      addTearDown(() => tester.binding.setSurfaceSize(null));
-      await tester.pumpWidget(GameWidget(game: game));
-      await tester.pump();
-      game.debugSetClearedStageCount(RuneNexusGame.sniperUnlockStage);
-      game.selectTurretType(TurretType.sniper);
-      game.tryBuildTurret(const GridPoint(2, 0));
-      game.update(0);
-
-      final sniperTurret = game.children.whereType<TurretComponent>().single;
-      expect(sniperTurret.definition.type, TurretType.sniper);
-      sniperTurret.equipGem(GemType.chain, 0);
-      expect(sniperTurret.hasGem(GemType.chain), isFalse);
-      final sourceEnemy = EnemyComponent(
-        definition: gameEnemies[EnemyType.normal]!,
-        maxHp: 100,
-        path: [Vector2.zero(), Vector2(500, 0)],
-        game: game,
-      );
-      final chainEnemy = EnemyComponent(
-        definition: gameEnemies[EnemyType.normal]!,
-        maxHp: 100,
-        path: [Vector2.zero(), Vector2(500, 0)],
-        game: game,
-      );
-
-      await game.add(sourceEnemy);
-      await game.add(chainEnemy);
-      await tester.pump();
-      game.update(0);
-      sourceEnemy.position =
-          sniperTurret.position + Vector2(sniperTurret.range * 0.5, 0);
-      chainEnemy.position = sourceEnemy.position + Vector2(1, 0);
-      game.enemies.addAll([sourceEnemy, chainEnemy]);
-
-      game.resolveInstantHit(owner: sniperTurret, target: sourceEnemy);
-      game.update(0);
-
-      expect(sourceEnemy.hp, closeTo(60, 0.001));
-      expect(chainEnemy.hp, closeTo(100, 0.001));
-      expect(sniperTurret.chainDamageDealt, 0);
-      expect(game.children.whereType<ProjectileComponent>(), isEmpty);
-    },
-  );
-
-  testWidgets('chain lightning hits sequential targets with delayed jumps', (
-    tester,
-  ) async {
-    final repository = MemorySaveRepository()
-      ..data = saveWithResearch(
-        clearedStageNumbers: const {1, 2, 3, 4, 5, 6},
-        researchLevels: const {},
-        unlockedStageCount: 7,
-      );
-    final game = RuneNexusGame(saveRepository: repository);
-
-    await tester.binding.setSurfaceSize(const Size(400, 800));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    await tester.pumpWidget(GameWidget(game: game));
-    await tester.pump();
-    game.selectTurretType(TurretType.lightning);
-    game.tryBuildTurret(const GridPoint(2, 0));
-    game.update(0);
-
-    final turret = game.children.whereType<TurretComponent>().single;
-    final first = chainEnemy(game, turret.position + Vector2(20, 0), 30);
-    final second = chainEnemy(game, first.position + Vector2(20, 0), 20);
-    final third = chainEnemy(game, second.position + Vector2(20, 0), 10);
-    await game.add(first);
-    await game.add(second);
-    await game.add(third);
-    await tester.pump();
-    game.enemies.addAll([first, second, third]);
-
-    game.resolveLightningChainAttack(owner: turret, target: first);
-    game.update(0);
-
-    expect(first.hp, closeTo(76, 0.001));
-    expect(second.hp, closeTo(100, 0.001));
-    expect(third.hp, closeTo(100, 0.001));
-    expect(
-      game.children.whereType<SequentialLightningChainComponent>(),
-      hasLength(1),
-    );
-
-    game.update(0.069);
-    expect(second.hp, closeTo(100, 0.001));
-
-    game.update(0.002);
-    expect(second.hp, closeTo(88, 0.001));
-    expect(third.hp, closeTo(100, 0.001));
-
-    game.update(0.07);
-    expect(third.hp, closeTo(88, 0.001));
-    expect(turret.directDamageDealt, closeTo(24, 0.001));
-    expect(turret.chainDamageDealt, closeTo(24, 0.001));
-    expect(game.children.whereType<LightningChainBeamComponent>(), isNotEmpty);
-  });
-
-  test('chain lightning charges before the first strike', () {
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-    final turret = TurretComponent(
-      gridPoint: const GridPoint(2, 0),
-      definition: gameTurrets[TurretType.lightning]!,
-      game: game,
-      center: Vector2(100, 100),
-      tileSize: 32,
-    );
-    final target = chainEnemy(game, turret.position + Vector2(20, 0), 30);
-    game.enemies.add(target);
-    var released = false;
-    final charge = LightningChargeComponent(
-      chargePosition: () => turret.lightningChargePosition,
-      isActive: () => true,
-      onRelease: () {
-        released = true;
-        turret.releaseLightningCharge(turret.createAttackSnapshot());
-      },
-      color: turret.definition.color,
-    );
-
-    charge.update(0.299);
-    expect(target.hp, closeTo(100, 0.001));
-    expect(released, isFalse);
-
-    charge.update(0.002);
-    expect(target.hp, closeTo(76, 0.001));
-    expect(released, isTrue);
-    expect(game.children.whereType<LightningChainBeamComponent>(), isNotEmpty);
-  });
-
   test('chain lightning gem and traits set chain target counts', () {
     final game = LinkResearchUnlockedGame();
     final base = TurretComponent(
@@ -3077,336 +2625,27 @@ void main() {
     expect(focused.lightningChainMaxTargets, 2);
   });
 
-  test('current amplification only improves follow-up lightning damage', () {
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-    final turret = levelSevenLightning(game)
-      ..choosePrimaryTrait(TurretTraitType.branchCurrent)
-      ..chooseSecondaryTrait(TurretTraitType.currentAmplification);
-    final first = chainEnemy(game, Vector2(20, 0), 10);
-    final second = chainEnemy(game, Vector2(40, 0), 20);
-    game.enemies.addAll([first, second]);
-
-    game.resolveLightningChainAttack(owner: turret, target: first);
-    game.resolveLightningChainJump(
-      owner: turret,
-      attack: turret.createAttackSnapshot(),
-      sourcePosition: first.position,
-      target: second,
-    );
-
-    expect(first.hp, closeTo(100 - turret.damage, 0.001));
-    expect(
-      second.hp,
-      closeTo(
-        100 - turret.damage * turret.lightningChainDamageMultiplier,
-        0.001,
-      ),
-    );
-  });
-
-  test('lightning recovery shortens the current reload from unused jumps', () {
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-    final turret = levelSevenLightning(game)
-      ..choosePrimaryTrait(TurretTraitType.branchCurrent)
-      ..chooseSecondaryTrait(TurretTraitType.lightningRecovery);
-
-    turret.restoreFromSaveData(
-      SavedTurret(
-        x: 0,
-        y: 0,
-        type: TurretType.lightning,
-        level: 7,
-        slotLimit: 1,
-        cooldown: 1.25,
-        equippedGems: const [],
-        equippedGemSlots: const [null],
-        investedGold: 140,
-        damageDealt: 0,
-        directDamageDealt: 0,
-        splashDamageDealt: 0,
-        chainDamageDealt: 0,
-        burnDamageDealt: 0,
-        targetPriority: TurretTargetPriority.first,
-        primaryTrait: TurretTraitType.branchCurrent,
-        secondaryTrait: TurretTraitType.lightningRecovery,
-      ),
-    );
-
-    turret.recordLightningChainCompletion(usedJumps: 1, maxJumps: 3);
-
-    expect(turret.cooldown, closeTo(1.25 / 1.3, 0.001));
-  });
-
-  test('explosion gem splashes initial and subsequent lightning hits', () {
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-    final turret = TurretComponent(
-      gridPoint: const GridPoint(0, 0),
-      definition: gameTurrets[TurretType.lightning]!,
-      game: game,
-      center: Vector2.zero(),
-      tileSize: 32,
-    )..equipGem(GemType.explosion, 0);
-    final first = chainEnemy(game, Vector2(20, 0), 30);
-    final splash = chainEnemy(game, first.position + Vector2(1, 0), 20);
-    final chainTarget = chainEnemy(game, first.position + Vector2(50, 0), 10);
-    final laterSplash = chainEnemy(
-      game,
-      chainTarget.position + Vector2(10, 0),
-      0,
-    );
-    game.enemies.addAll([first, splash, chainTarget, laterSplash]);
-
-    game.resolveLightningChainAttack(owner: turret, target: first);
-    game.resolveLightningChainJump(
-      owner: turret,
-      attack: turret.createAttackSnapshot(),
-      sourcePosition: first.position,
-      target: chainTarget,
-    );
-
-    expect(first.hp, closeTo(76, 0.001));
-    expect(splash.hp, closeTo(88, 0.001));
-    expect(chainTarget.hp, closeTo(88, 0.001));
-    expect(laterSplash.hp, closeTo(94, 0.001));
-  });
-
-  test('chain hit from fire turret applies scaled burn', () async {
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-    game.onGameResize(Vector2(400, 800));
-    await game.onLoad();
-    game.selectTurretType(TurretType.magic);
-    game.tryBuildTurret(const GridPoint(2, 0));
-    game.grantGem(GemType.chain);
-    game.equipSelectedTurret(GemType.chain);
-    final fireTurret = game.children.whereType<TurretComponent>().single;
+  test('burn instances are saved with their source turret point', () {
+    final game = RuneNexusGame();
     final enemy = EnemyComponent(
       definition: gameEnemies[EnemyType.normal]!,
       maxHp: 100,
       path: [Vector2.zero(), Vector2(100, 0)],
       game: game,
     );
-
-    game.resolveProjectileHit(
-      owner: fireTurret,
-      attack: fireTurret.createAttackSnapshot(),
-      target: enemy,
-      hitPosition: enemy.position.clone(),
-      isChain: true,
-      remainingChainCount: 0,
-    );
-    enemy.update(1);
-
-    expect(enemy.hp, closeTo(88, 0.001));
-    expect(fireTurret.damageDealt, closeTo(12, 0.001));
-  });
-
-  test(
-    'ignition burst deals direct damage against an existing source burn',
-    () async {
-      final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-      game.onGameResize(Vector2(400, 800));
-      await game.onLoad();
-      game.selectTurretType(TurretType.magic);
-      game.tryBuildTurret(const GridPoint(2, 0));
-      final fireTurret = game.children.whereType<TurretComponent>().single;
-      while (fireTurret.level < 7) {
-        fireTurret.upgradeLevel();
-      }
-      fireTurret
-        ..choosePrimaryTrait(TurretTraitType.highHeatBurn)
-        ..chooseSecondaryTrait(TurretTraitType.ignitionBurst);
-      final enemy =
-          EnemyComponent(
-              definition: gameEnemies[EnemyType.normal]!,
-              maxHp: 200,
-              path: [Vector2.zero(), Vector2(100, 0)],
-              game: game,
-            )
-            ..position = fireTurret.position.clone()
-            ..applyBurn(
-              damagePerSecond: 10,
-              duration: 2,
-              sourceTurretPoint: fireTurret.gridPoint,
-            );
-
-      await game.add(enemy);
-      game.enemies.add(enemy);
-      game.update(0);
-      game.resolveProjectileHit(
-        owner: fireTurret,
-        attack: fireTurret.createAttackSnapshot(),
-        target: enemy,
-        hitPosition: enemy.position.clone(),
-      );
-
-      final ignitionBurstDamage = 10 * RuneNexusGame.burnDurationSeconds * 0.3;
-      final expectedDirectDamage = fireTurret.damage + ignitionBurstDamage;
-      expect(enemy.hp, closeTo(200 - expectedDirectDamage, 0.001));
-      expect(
-        fireTurret.directDamageDealt,
-        closeTo(expectedDirectDamage, 0.001),
-      );
-    },
-  );
-
-  test('chain ignition transfers a killing burn to a nearby enemy', () async {
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-    game.onGameResize(Vector2(400, 800));
-    await game.onLoad();
-    game.selectTurretType(TurretType.magic);
-    game.tryBuildTurret(const GridPoint(2, 0));
-    final fireTurret = game.children.whereType<TurretComponent>().single;
-    while (fireTurret.level < 7) {
-      fireTurret.upgradeLevel();
-    }
-    fireTurret
-      ..choosePrimaryTrait(TurretTraitType.lingeringEmbers)
-      ..chooseSecondaryTrait(TurretTraitType.chainIgnition);
-    final source =
-        EnemyComponent(
-            definition: gameEnemies[EnemyType.normal]!,
-            maxHp: 5,
-            path: [Vector2.zero(), Vector2(100, 0)],
-            game: game,
-          )
-          ..position = fireTurret.position.clone()
-          ..applyBurn(
-            damagePerSecond: 10,
-            duration: 2,
-            sourceTurretPoint: fireTurret.gridPoint,
-          );
-    final target =
-        EnemyComponent(
-            definition: gameEnemies[EnemyType.normal]!,
-            maxHp: 100,
-            path: [Vector2.zero(), Vector2(100, 0)],
-            game: game,
-          )
-          ..position = fireTurret.position + Vector2(40, 0)
-          ..distanceTravelled = 1;
-
-    await game.add(source);
-    await game.add(target);
-    game.enemies.addAll([source, target]);
-    game.update(0);
-
-    source.update(1);
-    target.update(0.6);
-
-    expect(source.isDead, isTrue);
-    expect(target.hp, closeTo(94, 0.001));
-  });
-
-  test(
-    'chain ignition transfers when direct fire damage kills a burning enemy',
-    () async {
-      final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-      game.onGameResize(Vector2(400, 800));
-      await game.onLoad();
-      game.selectTurretType(TurretType.magic);
-      game.tryBuildTurret(const GridPoint(2, 0));
-      final fireTurret = game.children.whereType<TurretComponent>().single;
-      while (fireTurret.level < 7) {
-        fireTurret.upgradeLevel();
-      }
-      fireTurret
-        ..choosePrimaryTrait(TurretTraitType.highHeatBurn)
-        ..chooseSecondaryTrait(TurretTraitType.chainIgnition);
-      final source =
-          EnemyComponent(
-              definition: gameEnemies[EnemyType.normal]!,
-              maxHp: 20,
-              path: [Vector2.zero(), Vector2(100, 0)],
-              game: game,
-            )
-            ..position = fireTurret.position.clone()
-            ..applyBurn(
-              damagePerSecond: 10,
-              duration: 2,
-              sourceTurretPoint: fireTurret.gridPoint,
-            );
-      final target =
-          EnemyComponent(
-              definition: gameEnemies[EnemyType.normal]!,
-              maxHp: 100,
-              path: [Vector2.zero(), Vector2(100, 0)],
-              game: game,
-            )
-            ..position = fireTurret.position + Vector2(40, 0)
-            ..distanceTravelled = 1;
-
-      await game.add(source);
-      await game.add(target);
-      game.enemies.addAll([source, target]);
-      game.update(0);
-
-      game.resolveProjectileHit(
-        owner: fireTurret,
-        attack: fireTurret.createAttackSnapshot(),
-        target: source,
-        hitPosition: source.position.clone(),
-      );
-      target.update(0.6);
-
-      final transferredDamage =
-          fireTurret.damage *
-          RuneNexusGame.burnDamagePerSecondScale *
-          fireTurret.damageOverTimeDamageMultiplier *
-          0.6;
-      expect(source.isDead, isTrue);
-      expect(target.hp, closeTo(100 - transferredDamage, 0.001));
-    },
-  );
-
-  test('burn damage is credited to its source turret', () async {
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-
-    game.onGameResize(Vector2(400, 800));
-    await game.onLoad();
-    game.selectTurretType(TurretType.magic);
-    game.tryBuildTurret(const GridPoint(2, 0));
-    final fireTurret = game.children.whereType<TurretComponent>().single;
-    final enemy =
-        EnemyComponent(
-          definition: gameEnemies[EnemyType.normal]!,
-          maxHp: 100,
-          path: [Vector2.zero(), Vector2(100, 0)],
-          game: game,
-        )..applyBurn(
-          damagePerSecond: 10,
-          duration: 2,
-          sourceTurretPoint: fireTurret.gridPoint,
-        );
-
-    enemy.update(1);
-
-    expect(enemy.hp, closeTo(90, 0.001));
-    expect(fireTurret.damageDealt, closeTo(10, 0.001));
-    expect(fireTurret.burnDamageDealt, closeTo(10, 0.001));
-    expect(
-      game.snapshotNotifier.value.selectedTurretDamageDealt,
-      closeTo(10, 0.001),
-    );
-    expect(
-      game.snapshotNotifier.value.selectedTurretBurnDamageDealt,
-      closeTo(10, 0.001),
-    );
-  });
-
-  test('burn instances are saved with their source turret point', () {
-    final game = RuneNexusGame();
-    final enemy =
-        EnemyComponent(
-          definition: gameEnemies[EnemyType.normal]!,
-          maxHp: 100,
-          path: [Vector2.zero(), Vector2(100, 0)],
-          game: game,
-        )..applyBurn(
-          damagePerSecond: 12,
-          duration: 2.5,
-          damageMultiplier: 1.2,
-          sourceTurretPoint: const GridPoint(2, 0),
-        );
+    enemy.applyNativeCombatState({
+      ...enemy.toSaveData().toJson(),
+      'burnInstances': [
+        {
+          'remaining': 2.5,
+          'damagePerSecond': 12.0,
+          'damageMultiplier': 1.2,
+          'sourceX': 2,
+          'sourceY': 0,
+          'ignoreArmorReduction': false,
+        },
+      ],
+    });
 
     final saved = enemy.toSaveData();
     expect(saved.burnInstances, hasLength(1));
@@ -3420,27 +2659,11 @@ void main() {
       game: game,
     )..restoreFromSaveData(saved);
 
-    restored.update(1);
-
-    expect(restored.hp, closeTo(88, 0.001));
-  });
-
-  test('poison stacks as long low damage over time', () {
-    final game = RuneNexusGame();
-    final normal = gameEnemies[EnemyType.normal]!;
-    final enemy =
-        EnemyComponent(
-            definition: normal,
-            maxHp: 100,
-            path: [Vector2.zero(), Vector2(100, 0)],
-            game: game,
-          )
-          ..applyPoison(damagePerSecond: 3, duration: 6, maxStacks: 4)
-          ..applyPoison(damagePerSecond: 3, duration: 6, maxStacks: 4);
-
-    enemy.update(1);
-
-    expect(enemy.hp, closeTo(94, 0.001));
+    expect(
+      restored.toSaveData().burnInstances.single.toJson(),
+      saved.burnInstances.single.toJson(),
+    );
+    expect(restored.hp, 100);
   });
 
   test('enemy keeps path progress when board path is resized', () {
@@ -3453,49 +2676,16 @@ void main() {
       game: game,
     );
 
-    enemy.update(1);
+    enemy.restoreFromSaveData(
+      SavedEnemy.fromJson({
+        ...enemy.toSaveData().toJson(),
+        'distanceTravelled': 31.5,
+      })!,
+    );
     enemy.updatePath([Vector2.zero(), Vector2(200, 0), Vector2(200, 200)]);
 
     expect(enemy.position.x, closeTo(63, 0.001));
     expect(enemy.position.y, closeTo(0, 0.001));
-  });
-
-  test('enemy lane offset changes only visual path position', () {
-    final game = RuneNexusGame();
-    final normal = gameEnemies[EnemyType.normal]!;
-    final enemy = EnemyComponent(
-      definition: normal,
-      maxHp: 100,
-      laneOffsetRatio: 0.12,
-      path: [Vector2.zero(), Vector2(500, 0)],
-      game: game,
-    );
-
-    enemy.update(1);
-
-    expect(enemy.position.x, closeTo(31.5, 0.001));
-    expect(enemy.position.y, closeTo(0, 0.001));
-    expect(enemy.visualPosition.x, closeTo(enemy.position.x, 0.001));
-    expect(enemy.visualPosition.y, closeTo(5.76 + math.sin(3.7) * 2.1, 0.001));
-  });
-
-  test('enemy visual bob is suppressed while moving vertically', () {
-    final game = RuneNexusGame();
-    final normal = gameEnemies[EnemyType.normal]!;
-    final enemy = EnemyComponent(
-      definition: normal,
-      maxHp: 100,
-      laneOffsetRatio: 0.12,
-      path: [Vector2.zero(), Vector2(0, 500)],
-      game: game,
-    );
-
-    enemy.update(1);
-
-    expect(enemy.position.x, closeTo(0, 0.001));
-    expect(enemy.position.y, closeTo(31.5, 0.001));
-    expect(enemy.visualPosition.x, closeTo(-5.76, 0.001));
-    expect(enemy.visualPosition.y, closeTo(enemy.position.y, 0.001));
   });
 
   test('enemy lane offset is saved and restored', () {
@@ -3541,7 +2731,7 @@ void main() {
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
     game.tryBuildTurret(const GridPoint(2, 0));
-    final turret = game.children.whereType<TurretComponent>().single;
+    final turret = game.turrets.single;
     turret.recordDamageDealt(123, TurretDamageKind.direct);
     game.grantGem(GemType.range);
     game.equipSelectedTurret(GemType.range);
@@ -3585,14 +2775,8 @@ void main() {
     expect(restored.snapshotNotifier.value.phase, GamePhase.preparation);
     expect(resumed!.activeRun!.turrets.single.level, 2);
     expect(resumed.activeRun!.turrets.single.slotLimit, 2);
-    expect(
-      restored.children.whereType<TurretComponent>().single.damageDealt,
-      closeTo(123, 0.001),
-    );
-    expect(
-      restored.children.whereType<TurretComponent>().single.directDamageDealt,
-      closeTo(123, 0.001),
-    );
+    expect(restored.turrets.single.damageDealt, closeTo(123, 0.001));
+    expect(restored.turrets.single.directDamageDealt, closeTo(123, 0.001));
   });
 
   test('preparation actions mark stage progress before first wave', () async {
@@ -3757,12 +2941,21 @@ void main() {
       game.onGameResize(Vector2(400, 800));
       await game.onLoad();
       game.startNextWave();
-      game.update(0.9);
+      final bootstrap = game.buildNativeCombatCommand(9001)['bootstrap'] as Map;
+      final wave = Map<String, Object?>.from(bootstrap['wave'] as Map);
+      final queue = List<Map>.from(wave['spawnQueue'] as List);
+      final first = Map<String, Object?>.from(
+        queue.removeAt(0)['enemy'] as Map,
+      );
+      acknowledgeNativeState(
+        game,
+        enemies: [
+          {...first, 'hp': (first['hp'] as num) - 5, 'distanceTravelled': 44.1},
+        ],
+        wave: {...wave, 'spawnQueue': queue},
+      );
       expect(game.enemies, isNotEmpty);
-
       final enemy = game.enemies.first;
-      enemy.receiveDamage(5);
-      game.update(0.5);
       await game.saveNow();
 
       final saved = repository.data;
@@ -3826,7 +3019,7 @@ void main() {
     game.onGameResize(Vector2(400, 800));
     await game.onLoad();
     game.startNextWave();
-    game.update(0.016);
+    acknowledgeNativeWaveCompleted(game);
     expect(game.snapshotNotifier.value.completedRounds, 1);
 
     game.startNextWave();
@@ -3944,55 +3137,6 @@ void main() {
     expect(snapshot.gemInventory[GemType.chain], 1);
   });
 
-  test(
-    'projectile hit keeps launch gem profile after in-combat replacement',
-    () async {
-      final game = LinkResearchUnlockedGame(
-        saveRepository: MemorySaveRepository(),
-      );
-      game.onGameResize(Vector2(400, 800));
-      await game.onLoad();
-
-      game.tryBuildTurret(const GridPoint(2, 0));
-      final turret = game.children.whereType<TurretComponent>().single;
-      turret.equipGem(GemType.explosion, 0);
-      final launchedAttack = turret.createAttackSnapshot();
-      turret
-        ..removeGemAt(0)
-        ..equipGem(GemType.range, 0);
-
-      final target = EnemyComponent(
-        definition: gameEnemies[EnemyType.normal]!,
-        maxHp: 100,
-        path: [Vector2.zero(), Vector2(100, 0)],
-        game: game,
-      )..position = turret.position + Vector2(10, 0);
-      final splashTarget = EnemyComponent(
-        definition: gameEnemies[EnemyType.normal]!,
-        maxHp: 100,
-        path: [Vector2.zero(), Vector2(100, 0)],
-        game: game,
-      )..position = target.position + Vector2(8, 0);
-
-      await game.add(target);
-      await game.add(splashTarget);
-      game.enemies.addAll([target, splashTarget]);
-      game.update(0);
-
-      game.resolveProjectileHit(
-        owner: turret,
-        attack: launchedAttack,
-        target: target,
-        hitPosition: target.position.clone(),
-      );
-
-      expect(turret.hasGem(GemType.range), isTrue);
-      expect(turret.hasGem(GemType.explosion), isFalse);
-      expect(target.hp, lessThan(100));
-      expect(splashTarget.hp, lessThan(100));
-    },
-  );
-
   test('turret refund returns investment and equipped gems', () async {
     final repository = MemorySaveRepository();
     final game = LinkResearchUnlockedGame(saveRepository: repository);
@@ -4033,30 +3177,5 @@ void main() {
     expect(game.snapshotNotifier.value.gold, 155);
     expect(game.snapshotNotifier.value.selectedTurretPoint, isNull);
     expect(repository.data!.activeRun!.turrets, isEmpty);
-  });
-
-  test('turret refund stops later burn credit to a rebuilt turret', () async {
-    final game = RuneNexusGame(saveRepository: MemorySaveRepository());
-    const point = GridPoint(2, 0);
-    final normal = gameEnemies[EnemyType.normal]!;
-
-    game.onGameResize(Vector2(400, 800));
-    await game.onLoad();
-    game.selectTurretType(TurretType.magic);
-    game.tryBuildTurret(point);
-    final enemy = EnemyComponent(
-      definition: normal,
-      maxHp: 1000,
-      path: [Vector2.zero(), Vector2(100, 0)],
-      game: game,
-    )..applyBurn(damagePerSecond: 1, duration: 2, sourceTurretPoint: point);
-    game.enemies.add(enemy);
-
-    game.refundSelectedTurret();
-    game.selectTurretType(TurretType.arrow);
-    game.tryBuildTurret(point);
-    enemy.update(1);
-
-    expect(game.snapshotNotifier.value.selectedTurretDamageDealt, 0);
   });
 }

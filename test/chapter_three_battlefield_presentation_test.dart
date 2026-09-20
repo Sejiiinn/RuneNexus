@@ -18,7 +18,6 @@ void main() {
       // ignore: invalid_use_of_internal_member
       await game.load();
       // ignore: invalid_use_of_internal_member
-      game.mount();
       addTearDown(game.disposeAppResources);
       await game.ready();
       expect(game.supportsNativeBattlefield, isTrue);
@@ -32,7 +31,7 @@ void main() {
       ].first;
       game.tryBuildTurret(build);
       await game.ready();
-      final turret = game.battlefieldFrame!.turrets.single;
+      final turret = game.battlefieldFrame!.selection!.turrets.single;
       expect(turret.position.dx, closeTo(build.x + .5, 1e-5));
       expect(turret.position.dy, closeTo(build.y + .5, 1e-5));
       await game.saveNow();

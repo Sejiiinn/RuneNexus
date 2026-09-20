@@ -1,7 +1,7 @@
 import 'battlefield_effects.dart';
 
 /// Bounded creation journal. The receiver owns animation; retained initial data
-/// is only for reliable delivery and restoring a live 2D fallback.
+/// is only for reliable delivery across native scene updates.
 class BattlefieldEffectEvents<T> {
   BattlefieldEffectEvents({this.capacity = 256}) : assert(capacity > 0);
   final int capacity;

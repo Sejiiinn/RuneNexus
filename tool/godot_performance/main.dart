@@ -169,13 +169,13 @@ class _PerformanceRunState extends State<PerformanceRun> {
     try {
       game.debugSetClearedStageCount(9);
       game.startStage(10);
-      await game.lifecycleEventsProcessed;
+      await game.ready();
       await _ready();
       await _measure('stage10_idle', 12);
       // Same existing six-cannon/three-stationary-target fixture on both builds.
       game.debugShowCannonBarrage();
       game.setSpeedMultiplier(4);
-      await game.lifecycleEventsProcessed;
+      await game.ready();
       await _measure('stage10_cannon4x', 15);
       game.pauseEngine();
       await channel.invokeMethod<void>(

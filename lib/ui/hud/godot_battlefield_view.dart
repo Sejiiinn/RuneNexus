@@ -14,7 +14,7 @@ import '../../game/rune_nexus_game.dart';
 import '../../data/settings/graphics_settings.dart';
 import '../settings/graphics_settings_scope.dart';
 
-/// 실제 전투 HUD 아래 합성하는 네이티브 전장. 입력·전투 판정은 Dart에 유지.
+/// Godot 전투·표시를 합성하고 앱 입력과 확정 상태를 연결하는 네이티브 전장.
 class GodotBattlefieldView extends StatefulWidget {
   const GodotBattlefieldView({
     super.key,
@@ -72,6 +72,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
   }
 
   void _beginSession() {
+    widget.game.nativeBattlefieldError = null;
     _sceneEpoch = ++_nextEpoch;
     widget.game.prepareNativeCombatScene(_sceneEpoch);
     _combatRevision = widget.game.nativeCombatRevision;
@@ -150,8 +151,11 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
       }
       final error = status?['error'];
       if (error is String && error.isNotEmpty) throw StateError(error);
-      if (!_connected) setState(() => _connected = true);
       _combatSupported = status?['nativeCombatVersion'] == 1;
+      if (status?['ready'] == true && !_combatSupported) {
+        throw StateError('Native combat protocol version 1 is required');
+      }
+      if (!_connected) setState(() => _connected = true);
       final becameReady = !_ready && status?['ready'] == true;
       _ready = status?['ready'] == true;
       if (becameReady) await _sendOptions();
@@ -198,7 +202,12 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
   }
 
   Future<void> _syncFrame() async {
-    if (mounted && _combatRevision != widget.game.nativeCombatRevision) {
+    // A superseded view must not reacquire the scene when the new owner resets
+    // the combat revision during checkpoint restoration.
+    if (!mounted || widget.game.nativeBattlefieldSceneEpoch != _sceneEpoch) {
+      return;
+    }
+    if (_combatRevision != widget.game.nativeCombatRevision) {
       _beginSession();
       return;
     }
@@ -338,7 +347,9 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
     } on Object catch (error) {
       if (epoch == _sceneEpoch) _fallback(error);
     } finally {
-      if (epoch == _sceneEpoch) _sending = false;
+      if (epoch == _sceneEpoch && revision == _viewportRevision) {
+        _sending = false;
+      }
     }
   }
 
@@ -381,14 +392,14 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
       return;
     }
     widget.game.suspendNativeCombat();
+    widget.game.nativeBattlefieldError = '전장을 불러오지 못했습니다.';
     _failed = true;
     _ready = false;
     _statusTimer?.cancel();
     _setLoading(false);
-    if (!widget.game.nativeCombatOwned) _ticker.stop();
     _clearPresentation(widget.game);
     debugPrint('Godot 전장 표시 오류: $error');
-    if (_available && !widget.game.nativeCombatOwned) {
+    if (_available) {
       _available = false;
       widget.onAvailabilityChanged?.call(false);
     }
@@ -420,8 +431,16 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
     if (!_foreground) {
       _clearPresentation(widget.game);
     } else if (!wasForeground) {
-      // An old in-flight presentation must not acknowledge a resumed scene.
-      if (!widget.game.nativeCombatOwned) _beginSession();
+      if (!widget.game.nativeCombatOwned) {
+        _beginSession();
+      } else {
+        // Preserve authoritative combat while invalidating presentation work
+        // submitted before backgrounding, including a still-pending response.
+        _viewportRevision++;
+        _sending = false;
+        _available = false;
+        _setLoading(true);
+      }
       if (!_ticker.isActive) _ticker.start();
     } else {
       unawaited(_pollStatus());
@@ -434,9 +453,9 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
     _statusTimer?.cancel();
     _ticker.dispose();
     final game = widget.game;
-    game.suspendNativeCombat();
     final epoch = _sceneEpoch;
     final ownsPresentation = game.nativeBattlefieldSceneEpoch == epoch;
+    if (ownsPresentation) game.suspendNativeCombat();
     _clearPresentation(game);
     if (ownsPresentation) {
       game.nativeBattlefieldLoading = false;
@@ -467,6 +486,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
           if (_viewport != constraints.biggest) {
             _viewport = constraints.biggest;
             _viewportRevision++;
+            _sending = false;
             _clearPresentation(widget.game);
           }
           if (_failed && widget.game.nativeCombatOwned) {

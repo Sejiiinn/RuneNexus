@@ -1,4 +1,4 @@
-import 'package:flame/components.dart';
+import 'package:vector_math/vector_math_64.dart' show Vector2;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rune_nexus/data/save/game_save_data.dart';
@@ -107,13 +107,14 @@ void main() {
   }
 
   test(
-    'native ownership blocks Flame movement and restores compatible save mirror',
+    'native ownership blocks local movement and restores compatible save mirror',
     () async {
       final repository = _Repository();
       final game = RuneNexusGame(saveRepository: repository);
       addTearDown(game.disposeAppResources);
       game.onGameResize(Vector2(400, 800));
       await game.onLoad();
+      game.startNextWave();
       final enemy = EnemyComponent(
         definition: const EnemyDefinition(
           type: EnemyType.normal,
@@ -129,12 +130,17 @@ void main() {
         path: [Vector2.zero(), Vector2(100, 0)],
         game: game,
       );
-      game.enemies.add(enemy);
-      enemy.applySlow(multiplier: .5, duration: 3);
+      game.registerEnemy(enemy);
+      enemy.applyNativeCombatState({
+        ...enemy.nativeCombatState(0),
+        'slowInstances': [
+          {'multiplier': .5, 'remaining': 3.0},
+        ],
+      });
       final bootstrap = game.buildNativeCombatCommand(10);
       final sentEnemy =
           ((bootstrap['bootstrap'] as Map)['enemies'] as List).single as Map;
-      enemy.update(1);
+      game.update(1);
       expect(enemy.distanceTravelled, 0);
       expect(enemy.slowRemaining, 3);
       final state = Map<String, dynamic>.from(sentEnemy)
@@ -191,7 +197,7 @@ void main() {
       expect(repository.data!.activeRun!.enemies, isEmpty);
       expect(repository.data!.activeRun!.gold, goldBefore + 1);
       game.suspendNativeCombat();
-      enemy.update(1);
+      game.update(1);
       expect(enemy.position.x, 12);
       expect(game.nativeCombatOwned, isTrue);
     },

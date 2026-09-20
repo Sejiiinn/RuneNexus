@@ -6,14 +6,13 @@ import 'helpers/game_balance_test_helpers.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   test(
-    'native ring preserves first ACK speed pause fallback and new turret phase',
+    'native ring preserves first ACK speed pause transport reset and new turret phase',
     () async {
       final game = RuneNexusGame(saveRepository: MemorySaveRepository());
       game.onGameResize(Vector2(400, 800));
       // ignore: invalid_use_of_internal_member
       await game.load();
       // ignore: invalid_use_of_internal_member
-      game.mount();
       addTearDown(game.disposeAppResources);
       await game.ready();
       final turret = TurretComponent(
@@ -23,7 +22,7 @@ void main() {
         center: Vector2(100, 100),
         tileSize: 48,
       );
-      await game.add(turret);
+      game.registerTurret(turret);
       await game.ready();
       game.update(.2);
       final before = turret.visualGemRingPhase;
@@ -71,7 +70,7 @@ void main() {
         center: Vector2(100, 100),
         tileSize: 48,
       );
-      await game.add(replacement);
+      game.registerTurret(replacement);
       await game.ready();
       expect(replacement.visualGemRingPhase, 0);
       expect(

@@ -215,13 +215,13 @@ class _PerformanceRunState extends State<PerformanceRun> {
     started = true;
     try {
       game.startStage(1);
-      await game.lifecycleEventsProcessed;
+      await game.ready();
       await _ready();
       game.debugShowCannonBarrage(
         turretType: creationProbe ? TurretType.cannon : TurretType.magic,
       );
       game.setSpeedMultiplier(4);
-      await game.lifecycleEventsProcessed;
+      await game.ready();
       await _fireMode('all');
       setState(() => label = '$variant · 초기 워밍업');
       await Future<void>.delayed(const Duration(seconds: 12));
@@ -243,12 +243,12 @@ class _PerformanceRunState extends State<PerformanceRun> {
       } else if (creationProbe) {
         await _measure('cold_cannon', 'all', profile: false);
         game.debugShowCannonBarrage(turretType: TurretType.magic);
-        await game.lifecycleEventsProcessed;
+        await game.ready();
         await _measure('first_magic', 'all', profile: false);
         record({'event': 'stack_capture_ready'});
         await Future<void>.delayed(const Duration(seconds: 35));
         game.debugShowCannonBarrage(turretType: TurretType.cannon);
-        await game.lifecycleEventsProcessed;
+        await game.ready();
         await _measure('cannon_after_magic', 'all', profile: false);
       } else if (profileProbe) {
         await _measure('profile_on_1', 'all');

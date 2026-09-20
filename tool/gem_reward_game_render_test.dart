@@ -166,7 +166,7 @@ void main() {
       await mount();
       await capture('choices');
       final worldPositions = {
-        for (final turret in game.children.whereType<TurretComponent>())
+        for (final turret in game.turrets)
           turret.gridPoint: turret.position.clone(),
       };
       final originalDistanceScale = game.boardDistanceScale;
@@ -194,7 +194,7 @@ void main() {
       expect(game.boardDistanceScale, originalDistanceScale);
       expect(game.debugBoardOrigin(), originalOrigin);
       expect(game.debugBoardSize(), originalSize);
-      for (final turret in game.children.whereType<TurretComponent>()) {
+      for (final turret in game.turrets) {
         expect(turret.position, worldPositions[turret.gridPoint]);
       }
       await capture('target');
