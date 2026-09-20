@@ -1,6 +1,6 @@
 # Godot 전장 표시와 앱 연결
 
-역할: 현행 표시 책임·전송·복구 계약. 갱신: 2026-09-20.
+역할: 현행 표시 책임·전송·복구 계약. 갱신: 2026-09-21.
 
 Android 스테이지 1~15는 Godot이 전장과 실제 전투를 담당한다. Flame 런타임과 2D fallback은 제거했다. 다른 플랫폼의 Godot 연결은 미완료이며 지원 범위 결정이 남아 있다. [전투 책임·저장 경계](godot_combat_migration_boundaries.md)를 함께 따른다.
 
@@ -13,19 +13,24 @@ Android 스테이지 1~15는 Godot이 전장과 실제 전투를 담당한다. F
 | 사거리·건설 미리보기·선택·젬 교체 대상 | Flutter의 선택 DTO를 Godot 카메라로 표시 |
 | 포탑 레벨·레벨 오라·젬 고리 | Godot 표시·시계, 앱의 레벨/젬 설정 |
 | 앱이 지급한 다이아·젬 장착·앱 안내 숫자 | Flutter 생성 이벤트를 Godot에서 표시 |
-| 로비·HUD·보상 카드·패널·화면 전체 피격 경고 | Flutter |
+| 로비·HUD·보상 카드·패널 | Flutter |
+| 전체 화면 피격 경고·코어 붕괴 연출 | Godot 세션 |
 
 EnemyComponent와 TurretComponent는 앱의 저장·설정·HUD 모델만 남긴다. 피해 숫자·사망·탄환 등 Flame 표시 컴포넌트는 없다. 실제 적·포탑·탄환 좌표를 표시 프레임으로 계속 보내지 않으며 Godot이 전투 상태에서 장면을 갱신한다. 승인된 GLB·재질·VFX·풀과 GPU 표현은 유지한다.
 
 ## 준비·입력·복구
 
-[NativeGameHost](../lib/ui/hud/native_game_host.dart)는 배치·터치·화면 경고를 담당하고 [GodotBattlefieldView](../lib/ui/hud/godot_battlefield_view.dart)는 Android 장면과 전송을 연결한다. 준비 완료 신호만으로 전투를 진행하지 않고 전투 프로토콜 1과 초기 ACK를 확인한다. 표시 계약 버전 2의 epoch·viewport revision·크기·sequence를 검증한 투영만 건설/선택 입력에 사용한다.
+[NativeGameHost](../lib/ui/hud/native_game_host.dart)는 Android 생산 경로에서 크기·초기 로딩만 연결하며 Flutter Ticker·페인트·전장 제스처를 실행하지 않는다. [GodotBattlefieldView](../lib/ui/hud/godot_battlefield_view.dart)는 전투 프로토콜 1, 세션 프로토콜 1과 초기 ACK를 확인한다. Godot이 현재 카메라로 터치·드래그·핀치를 판정하고 선택 타일 이벤트를 앱에 보낸다. Flutter는 HUD 입력과 선택·건설의 도메인 명령을 유지한다. 표시 계약 버전 2의 epoch·viewport revision·크기·sequence 검증은 장면 준비와 복구에 유지한다.
 
 이전 화면 응답·리사이즈 전 투영·미제출 sequence는 거절한다. Godot 소수 직렬화 오차만 1e-6 미만으로 허용한다. 같은 sequence의 새 카메라 투영은 허용한다. 장면 초기화는 최신 표시 프레임에 덮이지 않으며 소유권 변경 때 큐·투영·캐시를 정리한다.
 
-오류·미지원 전투 버전은 전투 정지와 재시도/메인 화면을 표시한다. 실패한 화면의 응답이 새 화면을 덮지 않게 하며 마지막 확정 저장 상태로 새 epoch를 시작한다. 2D로 자동 복귀하지 않는다.
+오류·미지원 전투/세션 버전은 전투 정지와 재시도/메인 화면을 표시한다. 실패한 화면의 응답이 새 화면을 덮지 않게 하며 마지막 확정 저장 상태로 새 epoch를 시작한다. 2D로 자동 복귀하지 않는다.
 
 ## 반복 전송과 시계
+
+Godot `_process`가 전투·효과·코어 붕괴 시간을 진행한다. Flutter는 dt/steps 없이 사용자 명령과 정지·배속·로딩 상태를 전송하고 100ms 간격으로 최신 상태를 읽는다. 동일 ACK의 새 stateRevision은 수신하며 누적 이벤트는 ackEvent로 중복 적용을 막는다. 같은 표시 상태는 재전송하지 않고 적용 메타데이터만 조회한다.
+
+앱 비활성·포커스 상실·표면 이탈은 Android gate로 정지한다. 다시 활성화된 첫 delta는 버려 백그라운드 체류 시간을 전투에 더하지 않는다. Flutter의 TickerMode 차단은 별도의 UI 정지 상태로 전달하며 사용자 일시정지를 덮지 않는다.
 
 정적 맵은 mapRevision의 실제 적용 확인 전까지 재전송하고 이후 생략한다. 새 장면·맵 변경·mapRequired 복구 요청에는 전체 맵을 보낸다. 복구 메타데이터만으로 로딩이나 표시 적용을 인정하지 않는다.
 
@@ -35,4 +40,4 @@ EnemyComponent와 TurretComponent는 앱의 저장·설정·HUD 모델만 남긴
 
 ## 검증 기록
 
-[이번 제거 검증](analysis/flame_removal_20260920/README.md), [기존 검사 대응표](analysis/flame_removal_20260920/legacy_test_coverage.md), [단계별 표시 이관 기록](archive/godot_presentation_before_flame_removal_20260920.md)을 참고한다. 과거 기록의 Flame fallback 설명은 당시 구현이며 현재 지원 경로가 아니다. 전체 FPS·p95/p99·발열 개선은 동일 조건 측정 없이 주장하지 않는다.
+[전투 호스트 대체 검증](analysis/flutter_host_removal_20260921/README.md), [Flame 제거 검증](analysis/flame_removal_20260920/README.md), [기존 검사 대응표](analysis/flame_removal_20260920/legacy_test_coverage.md), [단계별 표시 이관 기록](archive/godot_presentation_before_flame_removal_20260920.md)을 참고한다. 과거 기록의 Flame fallback 설명은 당시 구현이며 현재 지원 경로가 아니다. 전체 FPS·p95/p99·발열 개선은 동일 조건 측정 없이 주장하지 않는다.

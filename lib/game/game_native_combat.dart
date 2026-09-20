@@ -61,17 +61,101 @@ extension NativeCombatGame on RuneNexusGame {
           'origin': [_origin.x, _origin.y],
         },
       'running': isWaveRunning,
-      'steps': [
-        ...steps,
-        if (!bootstrap && commands.isNotEmpty)
-          {'dt': 0.0, 'commandsAfter': commands, 'running': isWaveRunning},
-      ],
+      if (nativeSessionClock)
+        'session': {
+          ..._nativeSessionControl,
+          if (bootstrap) 'effectTime': _battlefieldEffectEvents.clock,
+          if (bootstrap) 'squaredSteps': _battlefieldEffectEvents.squaredSteps,
+        },
+      if (nativeSessionClock) 'commands': commands,
+      if (!nativeSessionClock)
+        'steps': [
+          ...steps,
+          if (!bootstrap && commands.isNotEmpty)
+            {'dt': 0.0, 'commandsAfter': commands, 'running': isWaveRunning},
+        ],
     });
     if (_nativeDefenseRestoreIntent != null &&
         _nativeDefenseRestoreSequence == 0) {
       _nativeDefenseRestoreSequence = packet['sequence']! as int;
     }
     return packet;
+  }
+
+  Map<String, Object?> get _nativeSessionControl => {
+    'clock': 'godot',
+    'paused': paused || nativeSessionUiBlocked,
+    'speed': _speedMultiplier,
+    'running': isWaveRunning,
+    'phase': _phase.name,
+    'loading': nativeBattlefieldLoading,
+  };
+
+  /// Transport is command-driven. Polling state must not enqueue empty ticks.
+  Map<String, Object?>? buildNativeSessionCommand(int epoch) {
+    if (_nativeCombat.pending != null) return _nativeCombat.pending;
+    if (!_nativeCombat.engaged) {
+      _nativeSessionWallElapsed = 0;
+      _nativeSessionEffectTime = _battlefieldEffectEvents.clock;
+      final packet = buildNativeCombatCommand(epoch);
+      _nativeSessionFingerprint = jsonEncode(_nativeSessionControl);
+      return packet;
+    }
+    final commands = _captureNativeCommands();
+    final fingerprint = jsonEncode(_nativeSessionControl);
+    final needsEventAck = nativeLastEvent > _nativeSessionEventAck;
+    if (commands.isEmpty &&
+        fingerprint == _nativeSessionFingerprint &&
+        !needsEventAck) {
+      return null;
+    }
+    _nativeSessionFingerprint = fingerprint;
+    _nativeSessionEventAck = nativeLastEvent;
+    final packet = _nativeCombat.submit({
+      'session': _nativeSessionControl,
+      'running': isWaveRunning,
+      'commands': commands,
+    });
+    if (_nativeDefenseRestoreIntent != null &&
+        _nativeDefenseRestoreSequence == 0) {
+      _nativeDefenseRestoreSequence = packet['sequence']! as int;
+    }
+    return packet;
+  }
+
+  void _applyNativeSessionTime(Map<String, dynamic> response) {
+    final state = response['session'];
+    if (!nativeSessionClock || state is! Map) return;
+    final wall =
+        (state['wallElapsed'] as num?)?.toDouble() ?? _nativeSessionWallElapsed;
+    final elapsed = math.max(0.0, wall - _nativeSessionWallElapsed);
+    _nativeSessionWallElapsed = math.max(wall, _nativeSessionWallElapsed);
+    final effect =
+        (state['effectTime'] as num?)?.toDouble() ?? _nativeSessionEffectTime;
+    _battlefieldEffectEvents.advance(
+      math.max(0.0, effect - _nativeSessionEffectTime),
+    );
+    _nativeSessionEffectTime = math.max(effect, _nativeSessionEffectTime);
+    final squaredSteps = state['squaredSteps'];
+    if (squaredSteps is num) {
+      _battlefieldEffectEvents.squaredSteps = squaredSteps.toDouble();
+    }
+    _spaceTime = wall % 1200;
+    _progression.recordPlayTime(elapsed);
+    _updateTimeBasedProgress(elapsed);
+    _updateVisualAlerts(elapsed);
+    if (_phase == GamePhase.coreDestruction) {
+      _coreDestructionElapsed =
+          (state['coreDestructionElapsed'] as num?)?.toDouble() ?? 0;
+      if (state['phase'] == 'failure' || state['phase'] == 'failed') {
+        _completeCoreDestructionSequence();
+      }
+    }
+    if (_phase == GamePhase.preparation && !_debugCombatActive) {
+      _maybeAutoStartNextWave();
+    }
+    if (_phase == GamePhase.wave) _requestLocalSave();
+    _updateCombatStatsPublish(elapsed);
   }
 
   List<Map<String, Object?>> _captureNativeCommands() {
@@ -212,6 +296,11 @@ extension NativeCombatGame on RuneNexusGame {
         if (!_nativeCombat.acceptEvent((event['id'] as num).toInt())) continue;
         final enemy = byId[(event['enemyId'] as num?)?.toInt()];
         switch (event['kind']) {
+          case 'boardTap':
+            onNativeBoardTap(
+              (event['column'] as num).toInt(),
+              (event['row'] as num).toInt(),
+            );
           case 'kill':
             if (enemy != null) enemyKilled(enemy);
           case 'arrival':
@@ -263,6 +352,7 @@ extension NativeCombatGame on RuneNexusGame {
         scheduleMicrotask(() => unawaited(_saveRoundCheckpoint()));
       }
       _requestCombatStatsPublish();
+      _applyNativeSessionTime(response);
       return true;
     } finally {
       _nativeApplyingResponse = false;

@@ -13,6 +13,7 @@ void main() {
   const scripts = {
     'verify_legacy_combat_regressions.gd': 'PASS legacy combat replacements:',
     'verify_native_combat_runtime.gd': 'PASS native combat runtime:',
+    'verify_native_session.gd': 'PASS native session:',
     'verify_native_wave_core.gd': 'PASS native wave/core:',
     'verify_native_core_defense.gd': 'PASS native core defense:',
     'verify_native_enemy_state.gd': null,

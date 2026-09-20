@@ -11,6 +11,10 @@
 - 로그인 필수화, PGS, identity 연결 등은 개별 기능의 현재 코드와 아래 미검증 항목을 확인한 뒤 범위를 정한다. 닉네임 필수 설정은 [별도 정책](account_nickname_policy.md)이며 로그인 필수화와 혼동하지 않는다.
 - [카카오 진행 이전](legacy_local_save_transfer.md)은 임시 이행 기능이다. 정식 출시 전 제거 체크리스트를 따른다.
 
+## Godot 단일 앱 전환
+
+Flame 제거와 Android 전투·3D 표시의 Godot 이관은 완료된 출발점이다. 남은 Flutter 호스트·HUD·로비·Dart 저장/인증 서비스·패키징의 대체 및 삭제 순서는 [Flutter 제거 실행 로드맵](godot_unified_app_roadmap.md)을 따른다. 방향 재확정을 선행 작업으로 두지 않고 Flutter 전투 호스트 대체부터 시작하며, 기존 기능·외형·서버·저장 계약을 보존한다. 아래 신규 기능 백로그와 기존 Flutter 의존성 제거를 구분한다.
+
 ## 계정·온라인 저장 후속 작업
 
 ### 1. 공개 환경 E2E와 운영 안전장치

@@ -4,6 +4,9 @@ class NativeCombatProtocol {
   int epoch = 0;
   int _sequence = 0;
   int _lastEvent = 0;
+  int _ackSequence = 0;
+  int _stateRevision = -1;
+  int get lastEvent => _lastEvent;
   bool engaged = false;
   bool active = false;
   bool suspended = false;
@@ -13,6 +16,8 @@ class NativeCombatProtocol {
     epoch = 0;
     _sequence = 0;
     _lastEvent = 0;
+    _ackSequence = 0;
+    _stateRevision = -1;
     engaged = false;
     active = false;
     suspended = false;
@@ -40,12 +45,23 @@ class NativeCombatProtocol {
   bool accept(Map<String, dynamic> response) {
     if (suspended ||
         response['epoch'] != epoch ||
-        pending == null ||
-        response['ackSequence'] != pending!['sequence'] ||
         response['accepted'] != true) {
       return false;
     }
-    pending = null;
+    final ack = response['ackSequence'];
+    if (ack is! int || ack < _ackSequence || ack > _sequence) return false;
+    final revision = response['stateRevision'];
+    if (revision is int) {
+      if (revision <= _stateRevision) return false;
+      if (!active && (pending == null || ack != pending!['sequence'])) {
+        return false;
+      }
+      _stateRevision = revision;
+    } else if (pending == null || ack != pending!['sequence']) {
+      return false;
+    }
+    _ackSequence = ack;
+    if (pending?['sequence'] == ack) pending = null;
     active = true;
     return true;
   }

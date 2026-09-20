@@ -36,6 +36,9 @@ void main() {
     final nativeTurrets = <String, Map<String, dynamic>>{};
     Map<String, dynamic>? nativeWave;
     var eventId = 0;
+    var stateRevision = 0;
+    var nativeTime = 0.0;
+    final inputEvents = <Map<String, Object?>>[];
     void command(Map command) {
       if (command['kind'] == 'turret') {
         final row = Map<String, dynamic>.from(command['turret'] as Map);
@@ -65,6 +68,7 @@ void main() {
           return {
             'ready': true,
             'nativeCombatVersion': 1,
+            'nativeSessionVersion': 1,
             'error': failed ? 'renderer unavailable' : '',
           };
         case 'setOptions':
@@ -80,7 +84,7 @@ void main() {
               jsonDecode(envelope['command'] as String) as Map<String, dynamic>;
           combatPackets.add(packet);
           if (holdCombatAck) return null;
-          expect(packet['epoch'], envelope['sceneEpoch']);
+          expectSync(packet['epoch'], envelope['sceneEpoch']);
           final bootstrap = packet['bootstrap'] as Map?;
           if (bootstrap != null) {
             for (final row in bootstrap['turrets'] as List) {
@@ -95,7 +99,13 @@ void main() {
             }
             nativeWave = Map<String, dynamic>.from(bootstrap['wave'] as Map);
           }
-          for (final step in packet['steps'] as List) {
+          expectSync(packet, isNot(contains('steps')));
+          expectSync(packet, isNot(contains('dt')));
+          expectSync((packet['session'] as Map)['clock'], 'godot');
+          for (final item in (packet['commands'] as List? ?? [])) {
+            command(item as Map);
+          }
+          for (final step in packet['steps'] as List? ?? []) {
             for (final item in (step['commands'] as List? ?? [])) {
               command(item as Map);
             }
@@ -117,6 +127,7 @@ void main() {
             }
           }
           return jsonEncode({
+            'stateRevision': ++stateRevision,
             'epoch': packet['epoch'],
             'ackSequence': packet['sequence'],
             'accepted': true,
@@ -127,12 +138,38 @@ void main() {
               if (bootstrap != null) {'id': ++eventId, 'kind': 'bootstrap'},
             ],
           });
+        case 'getSessionState':
+          if (holdCombatAck || combatPackets.isEmpty) return null;
+          nativeTime += .1;
+          final events = List.of(inputEvents);
+          inputEvents.clear();
+          return jsonEncode({
+            'epoch': (call.arguments as Map)['sceneEpoch'],
+            'ackSequence': combatPackets.last['sequence'],
+            'stateRevision': ++stateRevision,
+            'accepted': true,
+            'session': {
+              'wallElapsed': nativeTime,
+              'effectTime': nativeTime,
+              'coreDestructionElapsed': 0.0,
+              'phase': nativeWave?['active'] == true ? 'wave' : 'preparation',
+              'paused': false,
+              'speed': 1.0,
+            },
+            'enemies': nativeEnemies.values.toList(),
+            'turrets': nativeTurrets.values.toList(),
+            'wave': nativeWave,
+            'events': events,
+          });
+        case 'getPresentation':
         case 'submitFrameV2':
           final envelope = call.arguments as Map;
-          frames.add(
-            jsonDecode(envelope['frame'] as String) as Map<String, dynamic>,
-          );
-          expect(envelope['sceneEpoch'], frames.last['sceneEpoch']);
+          if (call.method == 'submitFrameV2') {
+            frames.add(
+              jsonDecode(envelope['frame'] as String) as Map<String, dynamic>,
+            );
+          }
+          expectSync(envelope['sceneEpoch'], frames.last['sceneEpoch']);
           return jsonEncode({
             'presentationVersion': 2,
             'sceneEpoch': frames.last['sceneEpoch'],
@@ -151,7 +188,6 @@ void main() {
             },
           });
         case 'submitFrame':
-        case 'getPresentation':
           fail('본게임은 단일 submitFrameV2 왕복으로 전송과 적용 응답을 받는다');
       }
       return null;
@@ -179,7 +215,7 @@ void main() {
     expect(game.nativeCombatActive, isFalse);
     expect(combatPackets.map((packet) => packet['sequence']).toSet(), {1});
     holdCombatAck = false;
-    await pumpGameFrames(tester);
+    await pumpGameFrames(tester, frameCount: 8);
     expect(game.nativeCombatActive, isTrue);
     expect(msaa, 0);
     expect(shadowSize, 512);
@@ -197,24 +233,24 @@ void main() {
       closeTo(viewSize.height * .24, .001),
     );
 
-    // 게임의 투영 결과를 실제 포인터로 입력하여 앱 건설 명령까지의 경로 검증.
-    final local = game.battlefieldProjection!.gridToScreen(
-      const Offset(2.5, .5),
-    );
-    await tester.tapAt(
-      tester.getTopLeft(find.byType(GodotBattlefieldView)) + local,
-    );
-    await pumpGameFrames(tester);
+    // Godot picking의 의미 이벤트가 앱의 기존 건설 선택 경로로 이어진다.
+    inputEvents.add({
+      'id': ++eventId,
+      'kind': 'boardTap',
+      'column': 2,
+      'row': 0,
+    });
+    await pumpGameFrames(tester, frameCount: 16);
     expect(
       game.snapshotNotifier.value.selectedBuildPoint,
       const GridPoint(2, 0),
     );
     game.previewOrBuildSelectedTile(TurretType.arrow);
-    await pumpGameFrames(tester);
+    await pumpGameFrames(tester, frameCount: 8);
     expect(frames.last['buildPreview'], isNotNull);
     expect(frames.last['turrets'], isNull);
     game.confirmBuildSelectedTile();
-    await pumpGameFrames(tester);
+    await pumpGameFrames(tester, frameCount: 8);
     expect(frames.last['turrets'], isNull);
     expect(nativeTurrets, hasLength(1));
     expect(game.nativeCombatActive, isTrue);
@@ -229,14 +265,14 @@ void main() {
 
     transitioning = true;
     await tester.tap(find.text('고정 시점'));
-    await pumpGameFrames(tester);
+    await pumpGameFrames(tester, frameCount: 8);
     expect(camera, 'drone');
     expect(find.text('드론 시점'), findsOneWidget);
     expect(find.text('고정 시점'), findsNothing);
     expect(msaa, 0);
     expect(shadowSize, 512);
     await graphics.update(const GraphicsSettings());
-    await pumpGameFrames(tester);
+    await pumpGameFrames(tester, frameCount: 8);
     expect(msaa, 2);
     expect(shadowSize, 2048);
     expect(
@@ -282,8 +318,16 @@ void main() {
     expect(tester.takeException(), isNull);
   }, variant: TargetPlatformVariant.only(TargetPlatform.android));
 
-  for (final version in <int?>[null, 0, 2]) {
-    testWidgets('사용할 수 없는 Godot 전투 프로토콜 $version은 오류와 저장을 유지한다', (
+  for (final versions in <(int?, int?)>[
+    (null, null),
+    (0, 1),
+    (2, 1),
+    (1, null),
+    (1, 0),
+    (1, 2),
+  ]) {
+    final (version, sessionVersion) = versions;
+    testWidgets('사용할 수 없는 Godot 전투/세션 프로토콜 $versions은 오류와 저장을 유지한다', (
       tester,
     ) async {
       final messenger = tester.binding.defaultBinaryMessenger;
@@ -291,7 +335,12 @@ void main() {
       messenger.setMockMethodCallHandler(channel, (call) async {
         if (version == null) throw MissingPluginException();
         if (call.method == 'getStatus') {
-          return {'ready': true, 'nativeCombatVersion': version, 'error': ''};
+          return {
+            'ready': true,
+            'nativeCombatVersion': version,
+            'nativeSessionVersion': ?sessionVersion,
+            'error': '',
+          };
         }
         if (call.method == 'submitCombat') combatCalls++;
         return null;

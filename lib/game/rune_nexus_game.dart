@@ -105,8 +105,15 @@ class RuneNexusGame {
   Future<void> ready() => load();
   void attachView(RenderBox view) => _view = view;
   void detachView() => _view = null;
-  void pauseEngine() => paused = true;
-  void resumeEngine() => paused = false;
+  void pauseEngine() {
+    paused = true;
+    nativeHostChanges.value++;
+  }
+
+  void resumeEngine() {
+    paused = false;
+    nativeHostChanges.value++;
+  }
 
   void registerTurret(TurretComponent turret) {
     _turrets[turret.gridPoint] = turret;
@@ -502,6 +509,25 @@ class RuneNexusGame {
     _publish();
   }
 
+  /// True only for the production Godot-owned clock; deterministic test drivers
+  /// may still supply protocol steps directly.
+  bool nativeSessionClock = false;
+  bool nativeSessionUiBlocked = false;
+  List<double>? get nativeRewardViewport => _gemRewardBoardViewport == null
+      ? null
+      : [
+          _gemRewardBoardViewport!.left,
+          _gemRewardBoardViewport!.top,
+          _gemRewardBoardViewport!.width,
+          _gemRewardBoardViewport!.height,
+        ];
+  final nativeHostChanges = ValueNotifier<int>(0);
+  String _nativeSessionFingerprint = '';
+  int _nativeSessionEventAck = 0;
+  double _nativeSessionWallElapsed = 0;
+  double _nativeSessionEffectTime = 0;
+  int get nativeLastEvent => _nativeCombat.lastEvent;
+  bool get nativeCommandPending => _nativeCombat.pending != null;
   int nativeCombatRevision = 0;
   int _nativeWaveId = 0;
   String _nativeCoreConfigFingerprint = '';
@@ -1039,6 +1065,7 @@ class RuneNexusGame {
   }
 
   void update(double dt) {
+    if (nativeSessionClock) return;
     if (nativeBattlefieldError != null ||
         nativeBattlefieldLoading ||
         (_nativeCombat.engaged &&
@@ -1153,6 +1180,10 @@ class RuneNexusGame {
     }
 
     final point = _gridPointAt(_battlefieldWorldFromScreen(position));
+    _selectBoardPoint(point);
+  }
+
+  void _selectBoardPoint(GridPoint? point) {
     if (point == null) {
       _clearBoardSelection(closePanel: true);
       _publish();
@@ -1219,6 +1250,29 @@ class RuneNexusGame {
             true)) {
       selectRewardGemTarget(point);
     }
+  }
+
+  /// Native input already resolves the tile against the actual Godot camera.
+  void onNativeBoardTap(int column, int row) {
+    if (paused ||
+        nativeBattlefieldLoading ||
+        _phase == GamePhase.restored ||
+        _phase == GamePhase.coreDestruction ||
+        _phase == GamePhase.failure ||
+        _phase == GamePhase.success) {
+      return;
+    }
+    final point =
+        column >= 0 && row >= 0 && column < _map.columns && row < _map.rows
+        ? GridPoint(column, row)
+        : null;
+    if (_phase == GamePhase.reward) {
+      if (point != null && _rewardSelection.replacementPoint == null) {
+        selectRewardGemTarget(point);
+      }
+      return;
+    }
+    _selectBoardPoint(point);
   }
 
   void _clearBoardSelection({required bool closePanel}) {
@@ -3118,6 +3172,10 @@ class RuneNexusGame {
       _nativeTurretConfigs.clear();
       _nativeSteps.clear();
       _nativeCommands.clear();
+      _nativeSessionFingerprint = '';
+      _nativeSessionEventAck = 0;
+      _nativeSessionWallElapsed = 0;
+      _nativeSessionEffectTime = 0;
       nativeBattlefieldLoading = true;
     }
     _battlefieldEffectEvents.cancelKinds({
@@ -3793,6 +3851,7 @@ class RuneNexusGame {
     _combatStatsPublishTimer = 0;
     _sanitizeLevelUpPreview();
     snapshotNotifier.value = GameSnapshotBuilder(this).build();
+    if (!_nativeApplyingResponse) nativeHostChanges.value++;
     if (isAttached) {
       // 사용자 일시정지 중에도 후보·대상 변경을 즉시 반영.
       renderBox.markNeedsPaint();

@@ -34,8 +34,66 @@ var defense = Defense.new()
 var wave_configured: bool = false
 var terminal: bool = false
 var pending_steps: Array = []
+# Only the session clock may advance production combat. Legacy step packets are
+# retained for deterministic regression fixtures, never mixed with this clock.
+var session: Dictionary = {}
+var state_revision: int = 0
+var wall_elapsed: float = 0.0
+var effect_time: float = 0.0
+var effect_squared: float = 0.0
+var destruction_elapsed: float = 0.0
+var nexus_alert: float = 0.0
+var portal_alert: float = 0.0
+
+func native_session() -> bool:
+	return session.get("clock", "") == "godot"
+
+func advance_session(delta: float, host_active: bool = true) -> bool:
+	if not active or not native_session() or not host_active or delta <= 0:
+		return false
+	if bool(session.get("paused", false)) or bool(session.get("loading", false)) or bool(session.get("backgrounded", false)):
+		return false
+	var phase: String = session.get("phase", "preparation")
+	if phase in ["ended", "failure", "failed", "success", "restored"]:
+		return false
+	# No catch-up after suspension; the same variable timestep used by the old
+	# host is delivered once, scaled here and nowhere else.
+	nexus_alert = maxf(0, nexus_alert-delta)
+	portal_alert = maxf(0, portal_alert-delta)
+	wall_elapsed += delta
+	if terminal and defense.failed and phase != "coreDestruction":
+		phase = "coreDestruction"
+		session.phase = phase
+	if phase == "coreDestruction":
+		destruction_elapsed = minf(3.2, destruction_elapsed + delta)
+		effect_time += delta * 0.25
+		effect_squared += pow(delta*0.25,2)
+		clock += delta * 0.25
+		if destruction_elapsed >= 3.2: session.phase = "failure"
+	elif phase != "reward":
+		var dt := delta * clampf(float(session.get("speed", 1.0)), 0.1, 4.0)
+		effect_time += dt
+		effect_squared += dt*dt
+		running = bool(session.get("running", phase in ["wave", "running"])) and not (wave_configured and wave.completed)
+		if not terminal: _step(dt)
+		if terminal and defense.failed: session.phase = "coreDestruction"
+	state_revision += 1
+	return true
+
+func submit_input(event: Dictionary) -> void:
+	if not active or not native_session(): return
+	_emit(event)
+	state_revision += 1
+
+func session_snapshot() -> Dictionary:
+	var result := session.duplicate(true)
+	result.merge({"wallElapsed": wall_elapsed, "effectTime": effect_time,"squaredSteps":effect_squared,
+		"coreDestructionElapsed": destruction_elapsed,"nexusAlert":nexus_alert/0.65}, true)
+	return result
 
 func process_command(packet: Dictionary) -> Dictionary:
+	if int(packet.get("epoch", -1)) < epoch:
+		return {"accepted":false,"reason":"staleEpoch","epoch":epoch,"ackSequence":sequence}
 	if epoch != packet.get("epoch"):
 		if not packet.has("bootstrap"):
 			return {"accepted": false, "reason": "bootstrapRequired", "epoch": packet.get("epoch"), "ackSequence": -1}
@@ -49,10 +107,19 @@ func process_command(packet: Dictionary) -> Dictionary:
 		if int(event.id) <= ack_event and event.kind in ["kill","arrival"]:
 			enemies.erase(str(event.enemyId))
 	events = events.filter(func(e): return int(e.id) > ack_event)
+	if packet.get("session") is Dictionary:
+		var incoming: Dictionary = packet.session.duplicate(true)
+		# A delayed host phase must not roll back a native terminal transition.
+		if native_session() and defense.failed and session.get("phase") in ["coreDestruction", "failure"]:
+			incoming.erase("phase")
+		session.merge(incoming, true)
+		pending_steps.clear()
 	running = bool(packet.get("running", running))
 	for command in packet.get("commands", []):
 		_command(command)
-	if packet.has("steps"):
+	if native_session():
+		pass
+	elif packet.has("steps"):
 		pending_steps.append_array(packet.steps.duplicate(true))
 	elif packet.has("dtSteps"):
 		for dt in packet.dtSteps:
@@ -61,10 +128,19 @@ func process_command(packet: Dictionary) -> Dictionary:
 		pending_steps.append({"dt":packet.dt,"running":running})
 	_drain_steps()
 	sequence = int(packet.sequence)
+	state_revision += 1
 	return snapshot()
 
 func _reset(packet: Dictionary) -> void:
 	epoch = int(packet.epoch)
+	session = {}
+	state_revision = 0
+	wall_elapsed = 0.0
+	effect_time = float(packet.get("session", {}).get("effectTime", 0.0))
+	effect_squared = float(packet.get("session", {}).get("squaredSteps", 0.0))
+	destruction_elapsed = 0.0
+	nexus_alert = 0.0
+	portal_alert = 0.0
 	active = true
 	wave = Wave.new()
 	core = CoreSkill.new()
@@ -108,6 +184,7 @@ func _start_wave(raw: Dictionary, reset_core: bool) -> void:
 	wave_configured = true
 	wave.start(raw)
 	if wave.active:
+		portal_alert = 0.55
 		_emit({"kind":"waveStarted","waveId":wave.id})
 	terminal = false
 	if raw.has("coreConfig"):
@@ -638,7 +715,9 @@ func _collect(items: Array) -> void:
 			var enemy: Dictionary = enemies.get(str(event.enemyId),{})
 			var result: Dictionary = defense.arrive(enemy,_boss(enemy),core.emergency_charge)
 			event.merge(result,true)
-			if float(result.damage)>0: _nexus_health_number(-float(result.damage))
+			if float(result.damage)>0:
+				nexus_alert = 0.65
+				_nexus_health_number(-float(result.damage))
 			_emit(event)
 			if result.defeated:
 				terminal = true
@@ -696,12 +775,34 @@ func snapshot() -> Dictionary:
 			state[key] = t[key]
 		turret_states.append(state)
 	var wave_state: Dictionary = wave.snapshot()
-	return {"defense":defense.snapshot(),"wave":wave_state,"core":core.snapshot(),"accepted": true, "epoch": epoch, "ackSequence": sequence, "enemies": enemy_states, "turrets": turret_states, "events": events.duplicate(true), "clock": clock}
+	return {"stateRevision":state_revision,"session":session_snapshot(),"defense":defense.snapshot(),"wave":wave_state,"core":core.snapshot(),"accepted": true, "epoch": epoch, "ackSequence": sequence, "enemies": enemy_states, "turrets": turret_states, "events": events.duplicate(true), "clock": clock}
 
 func decorate_frame(base: Dictionary) -> Dictionary:
 	if not active:
 		return base
 	var frame := base.duplicate(true)
+	if native_session():
+		frame.time = effect_time
+		frame.nexusHit = nexus_alert/0.65
+		frame.portalAlert = portal_alert/0.55
+		if frame.get("presentation") is Dictionary:
+			for group in ["effects", "selection"]:
+				if frame.presentation.get(group) is Dictionary:
+					frame.presentation[group].clock = effect_time
+					frame.presentation[group].time = effect_time
+			if frame.presentation.get("selection") is Dictionary:
+				var aims: Array = []
+				for t in turrets.values():
+					var target: Dictionary = enemies.get(str(t.aimTargetId), {})
+					if not target.is_empty():
+						var point := (_pos(target)-origin)/tile_size
+						aims.append([t.id,point.x,point.y,t.aimProgress])
+				frame.presentation.selection.aim = aims
+			if frame.presentation.get("effects") is Dictionary:
+				# Dart's last sampled shake must never become a permanent offset.
+				var shake := sin(destruction_elapsed*78)*(1.0-destruction_elapsed/3.2)*3.4*board_scale if destruction_elapsed>0 else 0.0
+				frame.presentation.effects.shake = [shake,-shake*0.45]
+				frame.presentation.effects.squaredSteps = effect_squared
 	if defense.configured:
 		frame.nexusHpRatio = defense.hp/maxf(0.000001,defense.max_hp)
 	var rows: Array = []
@@ -725,6 +826,12 @@ func decorate_frame(base: Dictionary) -> Dictionary:
 		if not frame.presentation.has("labels"): frame.presentation.labels = {}
 		frame.presentation.labels.enemies = labels
 		frame.presentation.labels.logicalTileSize = tile_size
+		if native_session():
+			frame.presentation.labels.core = null
+			if session.get("phase") == "wave" and core.configured and core.skill != null and not path.is_empty():
+				var center := (_vec(path[-1])-origin)/tile_size
+				var progress := 1.0 if core.guardian_beam_active_remaining>0 else clampf(1.0-core.cooldown/maxf(0.000001,core.interval()),0,1)
+				frame.presentation.labels.core = {"position":[center.x,center.y],"progress":progress,"accent":0xffcfa7ff if core.skill == "riftMark" else 0xff8ee6ff,"active":core.guardian_beam_active_remaining>0}
 	frame.erase("projectileEvents")
 	frame.projectiles = []
 	frame.impacts = []

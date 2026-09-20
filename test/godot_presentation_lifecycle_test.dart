@@ -102,6 +102,11 @@ class _Native {
   final frames = <Map<String, dynamic>>[];
   final pending = <_PendingPresentation>[];
   final clears = <int>[];
+  final combatPackets = <Map>[];
+  int stateRevision = 0;
+  int sessionPolls = 0;
+  int ackSequence = 0;
+  Map<String, Object?>? combatResponseOverride;
 
   Future<Object?> _call(MethodCall call) async {
     switch (call.method) {
@@ -112,12 +117,22 @@ class _Native {
         clears.add((call.arguments as Map)['sceneEpoch'] as int);
         return null;
       case 'getStatus':
-        return {'ready': true, 'nativeCombatVersion': 1, 'error': statusError};
+        return {
+          'ready': true,
+          'nativeCombatVersion': 1,
+          'nativeSessionVersion': 1,
+          'error': statusError,
+        };
       case 'submitCombat':
         final envelope = call.arguments as Map;
         final packet = jsonDecode(envelope['command'] as String) as Map;
-        expect(packet['epoch'], envelope['sceneEpoch']);
+        expectSync(packet['epoch'], envelope['sceneEpoch']);
+        combatPackets.add(packet);
+        final override = combatResponseOverride;
+        if (override != null) return jsonEncode(override);
+        ackSequence = packet['sequence'] as int;
         return jsonEncode({
+          'stateRevision': ++stateRevision,
           'epoch': packet['epoch'],
           'ackSequence': packet['sequence'],
           'accepted': true,
@@ -125,18 +140,34 @@ class _Native {
           'turrets': [],
           'events': [],
         });
+      case 'getSessionState':
+        sessionPolls++;
+        return jsonEncode({
+          'epoch': (call.arguments as Map)['sceneEpoch'],
+          'ackSequence': ackSequence,
+          'stateRevision': ++stateRevision,
+          'accepted': true,
+          'enemies': [],
+          'turrets': [],
+          'events': [],
+        });
+      case 'getPresentation':
+        if (frames.isEmpty) return null;
+        final query = _PendingPresentation(Map.of(frames.last));
+        if (!hold) return query.response(originX: originX, groups: groups);
+        pending.add(query);
+        return query.result.future;
       case 'submitFrameV2':
         final envelope = call.arguments as Map;
         frames.add(
           jsonDecode(envelope['frame'] as String) as Map<String, dynamic>,
         );
-        expect(envelope['sceneEpoch'], frames.last['sceneEpoch']);
+        expectSync(envelope['sceneEpoch'], frames.last['sceneEpoch']);
         final item = _PendingPresentation(Map.of(frames.last));
         if (!hold) return item.response(originX: originX, groups: groups);
         pending.add(item);
         return item.result.future;
       case 'submitFrame':
-      case 'getPresentation':
         fail('본게임은 단일 submitFrameV2 왕복으로 전송과 적용 응답을 받는다');
     }
     return null;
@@ -164,24 +195,28 @@ class _Native {
 Widget _host(
   RuneNexusGame game, {
   double width = 300,
+  bool tickerEnabled = true,
   ValueChanged<bool>? onLoadingChanged,
   ValueChanged<bool>? onAvailabilityChanged,
 }) => MaterialApp(
-  home: Center(
-    child: SizedBox(
-      width: width,
-      height: 300,
-      child: GodotBattlefieldView(
-        key: const ValueKey('view'),
-        game: game,
-        onLoadingChanged: onLoadingChanged,
-        onAvailabilityChanged: onAvailabilityChanged,
+  home: TickerMode(
+    enabled: tickerEnabled,
+    child: Center(
+      child: SizedBox(
+        width: width,
+        height: 300,
+        child: GodotBattlefieldView(
+          key: const ValueKey('view'),
+          game: game,
+          onLoadingChanged: onLoadingChanged,
+          onAvailabilityChanged: onAvailabilityChanged,
+        ),
       ),
     ),
   ),
 );
 
-Future<void> _frames(WidgetTester tester, [int count = 5]) async {
+Future<void> _frames(WidgetTester tester, [int count = 8]) async {
   for (var i = 0; i < count; i++) {
     await tester.pump(const Duration(milliseconds: 16));
   }
@@ -189,6 +224,69 @@ Future<void> _frames(WidgetTester tester, [int count = 5]) async {
 
 void main() {
   final android = TargetPlatformVariant.only(TargetPlatform.android);
+
+  testWidgets('세션은 100ms 주기로 읽고 제어 변경은 즉시 전송한다', (tester) async {
+    final native = _Native(tester)..hold = false;
+    final game = await _snapshotGame();
+    await tester.pumpWidget(_host(game));
+    await _frames(tester, 16);
+    expect(game.nativeSessionClock, isTrue);
+    final beforePolls = native.sessionPolls;
+    final beforeCommands = native.combatPackets.length;
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(native.sessionPolls - beforePolls, 1);
+    expect(native.combatPackets.length, beforeCommands);
+    game.pauseEngine();
+    await tester.pump();
+    expect((native.combatPackets.last['session'] as Map)['paused'], isTrue);
+    game.setSpeedMultiplier(2);
+    await tester.pump();
+    expect((native.combatPackets.last['session'] as Map)['speed'], 2);
+    final stoppedAt = native.sessionPolls;
+    await native.finish();
+    await tester.pump(const Duration(seconds: 1));
+    expect(native.sessionPolls, stoppedAt);
+    game.disposeAppResources();
+  }, variant: android);
+
+  for (final userPaused in [false, true]) {
+    testWidgets('업데이트 UI 차단은 네이티브 세션을 멈추고 사용자 정지 $userPaused 상태를 보존한다', (
+      tester,
+    ) async {
+      final native = _Native(tester)..hold = false;
+      final game = await _snapshotGame();
+      if (userPaused) game.pauseEngine();
+      await tester.pumpWidget(_host(game));
+      await _frames(tester, 16);
+      expect(
+        (native.combatPackets.last['session'] as Map)['paused'],
+        userPaused,
+      );
+      final initialEpoch = game.nativeBattlefieldSceneEpoch;
+      final before = native.combatPackets.length;
+      await tester.pumpWidget(_host(game, tickerEnabled: false));
+      await tester.pump();
+      expect(game.nativeSessionUiBlocked, isTrue);
+      expect(game.paused, userPaused);
+      expect((native.combatPackets.last['session'] as Map)['paused'], isTrue);
+      expect(native.frames.last['inputBlocked'], isTrue);
+      if (!userPaused) expect(native.combatPackets.length, greaterThan(before));
+      await tester.pumpWidget(_host(game));
+      await tester.pump();
+      expect(game.nativeSessionUiBlocked, isFalse);
+      expect(game.paused, userPaused);
+      expect(
+        (native.combatPackets.last['session'] as Map)['paused'],
+        userPaused,
+      );
+      expect(native.frames.last['inputBlocked'], userPaused);
+      expect(game.nativeBattlefieldSceneEpoch, initialEpoch);
+      expect(game.nativeBattlefieldError, isNull);
+      await native.finish();
+      game.disposeAppResources();
+    }, variant: android);
+  }
 
   testWidgets('맵 ACK 전 재전송과 ACK 후 생략·복구·복귀를 실제 호출 경로로 보존한다', (tester) async {
     final native = _Native(tester);
@@ -380,6 +478,59 @@ void main() {
     expect(game.battlefieldProjection, isNotNull);
     await native.finish();
   }, variant: android);
+
+  for (final staleAck in [false, true]) {
+    testWidgets(
+      '명령 ACK 대기 중 장기 백그라운드 복귀는 ${staleAck ? '구 ACK' : '빈 응답'}에도 재시도와 메뉴 정지를 유지한다',
+      (tester) async {
+        final native = _Native(tester)..hold = false;
+        final game = await _snapshotGame();
+        await tester.pumpWidget(_host(game));
+        await _frames(tester, 16);
+        final previousAck = native.ackSequence;
+        native.combatResponseOverride = staleAck
+            ? {
+                'epoch': game.nativeBattlefieldSceneEpoch,
+                'ackSequence': previousAck,
+                'stateRevision': native.stateRevision,
+                'accepted': true,
+                'enemies': [],
+                'turrets': [],
+                'events': [],
+              }
+            : {};
+        game.pauseEngine();
+        await tester.pump();
+        expect(game.nativeCommandPending, isTrue);
+        final pending = Map.of(native.combatPackets.last);
+        expect((pending['session'] as Map)['paused'], isTrue);
+        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+        // The transport deadline uses DateTime.now(), outside Flutter's fake
+        // scheduler clock. Advance real wall time to exercise that exact path.
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 5100)),
+        );
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+        await _frames(tester);
+        expect(game.nativeBattlefieldError, isNull);
+        expect(game.nativeCommandPending, isTrue);
+        expect(native.combatPackets.last, pending);
+        expect(game.paused, isTrue);
+        native.combatResponseOverride = null;
+        await _frames(tester, 16);
+        expect(game.nativeCombatActive, isTrue);
+        expect(game.nativeCommandPending, isFalse);
+        expect(game.nativeBattlefieldError, isNull);
+        expect(game.paused, isTrue);
+        expect((native.combatPackets.last['session'] as Map)['paused'], isTrue);
+        await native.finish();
+        game.disposeAppResources();
+      },
+      variant: android,
+    );
+  }
 
   testWidgets('30초 넘게 준비해도 로딩을 유지하고 실제 전장 응답 뒤 해제한다', (tester) async {
     final native = _Native(tester);

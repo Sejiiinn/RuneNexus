@@ -76,6 +76,40 @@ void main() {
     },
   );
 
+  test(
+    'autonomous revisions advance without commands and reject stale state',
+    () {
+      final protocol = NativeCombatProtocol()..begin(9);
+      protocol.submit({});
+      Map<String, dynamic> response(
+        int revision, {
+        int epoch = 9,
+        int ack = 1,
+      }) => {
+        'epoch': epoch,
+        'ackSequence': ack,
+        'stateRevision': revision,
+        'accepted': true,
+      };
+      expect(protocol.accept(response(1)), isTrue);
+      expect(protocol.pending, isNull);
+      expect(protocol.accept(response(2)), isTrue);
+      expect(protocol.accept(response(2)), isFalse);
+      expect(protocol.accept(response(1)), isFalse);
+      expect(protocol.accept(response(3, epoch: 8)), isFalse);
+      expect(protocol.accept(response(3, ack: 0)), isFalse);
+      expect(protocol.accept(response(3)), isTrue);
+      expect(protocol.acceptEvent(4), isTrue);
+      expect(protocol.acceptEvent(4), isFalse);
+      expect(protocol.acceptEvent(3), isFalse);
+      final command = protocol.submit({'commands': []});
+      expect(command['ackEvent'], 4);
+      expect(command['sequence'], 2);
+      expect(protocol.accept(response(4, ack: 2)), isTrue);
+      expect(protocol.accept(response(5)), isFalse);
+    },
+  );
+
   test('explicit run reset invalidates previous epoch and event stream', () {
     final protocol = NativeCombatProtocol()..begin(1);
     protocol.submit({});

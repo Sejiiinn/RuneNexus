@@ -150,6 +150,7 @@ class _GameHudState extends State<GameHud> {
                   key: ValueKey((widget.game, snapshot.currentStageNumber)),
                   game: widget.game,
                   cameraView: _cameraView,
+                  inputEnabled: widget.showControls,
                   onLoadingChanged: (loading) {
                     if (mounted && _godotLoading != loading) {
                       setState(() => _godotLoading = loading);
@@ -165,7 +166,9 @@ class _GameHudState extends State<GameHud> {
             ),
           ),
         IgnorePointer(
-          ignoring: !widget.showControls,
+          ignoring:
+              !widget.showControls ||
+              (!kIsWeb && defaultTargetPlatform == TargetPlatform.android),
           child: Listener(
             behavior: HitTestBehavior.opaque,
             onPointerDown: widget.game.handleBoardPointerDown,
@@ -248,21 +251,28 @@ class _GameHudState extends State<GameHud> {
                 if (widget.game.nativeBattlefieldError != null) {
                   return ColoredBox(
                     color: const Color(0xFF07111D),
-                    child: Center(child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(widget.game.nativeBattlefieldError!),
-                        const SizedBox(height: 16),
-                        FilledButton(onPressed: widget.game.retryNativeBattlefield,
-                          child: const Text('다시 시도')),
-                        if (widget.onOpenStageSelect != null)
-                          TextButton(onPressed: () async {
-                            widget.game.suspendCurrentRunForMenu();
-                            await widget.game.saveNow();
-                            widget.onOpenStageSelect?.call();
-                          }, child: const Text('메인화면')),
-                      ],
-                    )),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(widget.game.nativeBattlefieldError!),
+                          const SizedBox(height: 16),
+                          FilledButton(
+                            onPressed: widget.game.retryNativeBattlefield,
+                            child: const Text('다시 시도'),
+                          ),
+                          if (widget.onOpenStageSelect != null)
+                            TextButton(
+                              onPressed: () async {
+                                widget.game.suspendCurrentRunForMenu();
+                                await widget.game.saveNow();
+                                widget.onOpenStageSelect?.call();
+                              },
+                              child: const Text('메인화면'),
+                            ),
+                        ],
+                      ),
+                    ),
                   );
                 }
                 if (!widget.game.supportsNativeBattlefield ||

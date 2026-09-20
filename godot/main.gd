@@ -51,6 +51,12 @@ const CAMERA_DEPTH_MARGIN := 0.5
 const REFLECTION_TERRAIN_LAYER := 1 << 1
 const REFLECTION_CRYSTAL_LAYER := 1 << 2
 
+var _screen_feedback = preload("res://session/screen_feedback.gd").new()
+var _collapse_camera_start: Dictionary = {}
+var _session_activation_revision := -1
+var _session_report_elapsed := 0.0
+var _session_input = preload("res://session/battlefield_input.gd").new(self)
+var _standalone_session: Node
 var bridge: Object
 var _native_combat := NativeCombatRuntime.new()
 var _native_combat_base_frame: Dictionary = {}
@@ -133,6 +139,7 @@ var _map_revision := -1
 var _map_request := {}
 var _camera_layout_revision := 0
 var _camera_layout_key: Array = []
+var _camera_layout_pose := Vector3.ZERO
 var _using_authored := false
 var _portals: Array[Node3D] = []
 var _cores: Array[Dictionary] = []
@@ -146,7 +153,7 @@ var _generic_projectile_pool := {"sniper": [], "frost": []}
 func _ready() -> void:
 	if Engine.has_singleton("RuneNexusPreview"):
 		bridge = Engine.get_singleton("RuneNexusPreview")
-	elif OS.get_name() == "Android":
+	elif OS.get_name() == "Android" and not "--session" in OS.get_cmdline_user_args():
 		_fail("Flutter 전투 브리지가 등록되지 않았습니다.")
 		return
 	add_child(_turret_level_labels)
@@ -155,6 +162,7 @@ func _ready() -> void:
 	for node: Node2D in _presentation_nodes.values():
 		_presentation_layer.add_child(node)
 		node.hide()
+	_presentation_layer.add_child(_screen_feedback)
 	add_child(world)
 	world.add_child(terrain)
 	add_child(camera)
@@ -271,6 +279,10 @@ func _ready() -> void:
 	if bridge:
 		bridge.report_ready()
 	else:
+		if "--session" in OS.get_cmdline_user_args():
+			_standalone_session = load("res://session/standalone.gd").new()
+			add_child(_standalone_session)
+			return
 		# 네이티브 데스크톱 검수 입력. Android에서는 실제 Flutter 전투만 사용.
 		var fixture = JSON.parse_string(FileAccess.get_file_as_string("res://assets/preview_frame.json"))
 		if fixture is Dictionary:
@@ -365,6 +377,16 @@ func _process(delta: float) -> void:
 				var target: Array = frame["enemies"][index]
 				frame["impacts"].append([100 + index, target[1], target[2], 1.2, progress])
 		_apply_frame(frame)
+	if _native_combat.native_session():
+		var host_active: bool = bridge.is_session_active() if bridge else true
+		var activation: int = int(bridge.session_activation_revision()) if bridge else 0
+		var session_delta := _session_frame_delta(delta, host_active, activation)
+		if _native_combat.advance_session(session_delta, host_active) and not _native_combat_base_frame.is_empty():
+			_apply_frame(_native_combat_base_frame)
+		_session_report_elapsed += delta
+		if bridge and _session_report_elapsed >= 0.1:
+			bridge.report_combat(JSON.stringify(_native_combat.snapshot(), "", false, true))
+			_session_report_elapsed = 0.0
 	metrics_elapsed += delta
 	frame_count += 1
 	frame_time_total += delta
@@ -580,9 +602,14 @@ func _fit_camera_to_frame() -> void:
 		last_frame.get("zoom", 1.0), options.get("zoom", 1.0), columns, rows,
 	]
 	if key == _camera_layout_key:
+		if _native_combat.native_session():
+			camera.size = _camera_layout_pose.x
+			camera.h_offset = _camera_layout_pose.y
+			camera.v_offset = _camera_layout_pose.z
 		return
 	_camera_layout_key = key
 	_fit_camera_layout(visible_size)
+	_camera_layout_pose = Vector3(camera.size,camera.h_offset,camera.v_offset)
 
 
 func _fit_camera_layout(visible_size: Vector2) -> void:
@@ -860,6 +887,13 @@ func _report_presentation() -> void:
 func _apply_frame(frame: Dictionary) -> void:
 	if _native_combat.active and not bool(frame.get("reset", false)) and int(frame.get("sceneEpoch", -1)) == _scene_epoch:
 		frame = _native_combat.decorate_frame(frame)
+		if _native_combat.native_session():
+			frame.zoom = _session_input.zoom
+			options.zoom = _session_input.zoom
+			var viewport: Array = frame.get("viewport", [])
+			var center: Array = frame.get("screenCenter", [])
+			if viewport.size() == 2 and center.size() == 2:
+				frame.screenCenter = [center[0] + _session_input.pan.x * viewport[0], center[1] + _session_input.pan.y * viewport[1]]
 	if not _profile_enabled:
 		_apply_frame_impl(frame)
 		return
@@ -927,6 +961,7 @@ func _apply_frame_impl(frame: Dictionary) -> void:
 	else:
 		_projectile_events.clear()
 	_update_camera()
+	_update_session_presentation()
 	_sync_turrets(frame.get("turrets", []))
 	_sync_enemies(frame.get("enemies", []))
 	_sync_projectiles(last_frame.get("projectiles", []))
@@ -946,6 +981,11 @@ func _apply_frame_impl(frame: Dictionary) -> void:
 
 func _clear_scene() -> void:
 	_native_combat = NativeCombatRuntime.new()
+	_session_activation_revision = -1
+	_session_input.reset()
+	_collapse_camera_start.clear()
+	_screen_feedback.hide()
+	_session_report_elapsed = 0.0
 	_native_combat_base_frame.clear()
 	_projectile_events.clear()
 	world.position = Vector3.ZERO
@@ -1834,3 +1874,41 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_S: options["shadows"] = not options["shadows"]
 		KEY_V: options["volume"] = not options["volume"]
 	_apply_options()
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	_session_input.handle(event)
+
+
+func _update_session_presentation() -> void:
+	var logical: Array = last_frame.get("viewport", [])
+	var size := Vector2(logical[0],logical[1]) if logical.size() == 2 else get_viewport().get_visible_rect().size
+	_screen_feedback.update_state(_native_combat, size)
+	if not _native_combat.native_session(): return
+	if logical.is_empty():
+		camera.h_offset -= _session_input.pan.x * camera.size * size.x / size.y
+		camera.v_offset += _session_input.pan.y * camera.size
+	if _native_combat.session.get("phase") in ["coreDestruction", "failure"] and not _cores.is_empty():
+		if _collapse_camera_start.is_empty():
+			_collapse_camera_start = {"size":camera.size,"h":camera.h_offset,"v":camera.v_offset,"zoom":_session_input.zoom}
+		var weight := 1.0 - pow(1.0-clampf(_native_combat.destruction_elapsed/1.15,0,1),3)
+		camera.size = lerpf(_collapse_camera_start.size,_collapse_camera_start.size*_collapse_camera_start.zoom/1.75,weight)
+		camera.h_offset = _collapse_camera_start.h
+		camera.v_offset = _collapse_camera_start.v
+		var core: Vector3 = _cores[0].root.global_position
+		var screen := camera.unproject_position(core)
+		var actual := get_viewport().get_visible_rect().size
+		var offset := screen-actual*Vector2(0.5,0.56)
+		camera.h_offset += offset.x/actual.y*camera.size*weight
+		camera.v_offset -= offset.y/actual.y*camera.size*weight
+		_update_camera_visuals()
+
+
+func _session_frame_delta(delta: float, host_active: bool, activation: int) -> float:
+	if not host_active: return 0.0
+	# A suspended engine may never sample inactive. The platform generation is
+	# observed after resume and discards even an arbitrarily long first delta.
+	if activation != _session_activation_revision:
+		_session_activation_revision = activation
+		return 0.0
+	return delta

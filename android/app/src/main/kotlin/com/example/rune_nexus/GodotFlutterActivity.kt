@@ -35,6 +35,9 @@ open class GodotFlutterActivity : FlutterActivity() {
     internal var godotActivityResumed = false
         private set
 
+    internal var godotWindowFocused = false
+        private set
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         godotChannel = MethodChannel(
@@ -46,6 +49,14 @@ open class GodotFlutterActivity : FlutterActivity() {
                     "getMetrics" -> result.success(GodotRuntime.latestMetrics())
                     "getPresentation" -> result.success(GodotRuntime.latestPresentation())
                     "getStatus" -> result.success(GodotRuntime.status())
+                    "getSessionState" -> {
+                        val epoch = call.argument<Number>("sceneEpoch")?.toLong()
+                        if (epoch == null || epoch <= 0) {
+                            result.error("invalid_argument", "A positive sceneEpoch is required.", null)
+                        } else {
+                            result.success(GodotRuntime.latestSessionState(epoch))
+                        }
+                    }
                     "submitCombat" -> {
                         val epoch = call.argument<Number>("sceneEpoch")?.toLong()
                         val json = call.argument<String>("command")
@@ -116,6 +127,12 @@ open class GodotFlutterActivity : FlutterActivity() {
         super.onResume()
         godotActivityResumed = true
         GodotRuntime.syncActivity(this)
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        godotWindowFocused = hasFocus
+        GodotRuntime.syncActivity(this)
+        super.onWindowFocusChanged(hasFocus)
     }
 
     override fun onPause() {

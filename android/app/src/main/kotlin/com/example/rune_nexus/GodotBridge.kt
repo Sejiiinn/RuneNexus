@@ -22,6 +22,9 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
     private var combatCommand = ""
     private var combatPendingSequence = -1L
     private var combatAppliedSequence = -1L
+    private var combatStateRevision = -1L
+    private val sessionActive = AtomicBoolean(false)
+    private val sessionActivationRevision = AtomicLong()
     private val ready = AtomicBoolean(false)
     private val error = AtomicReference<String?>(null)
     private val submitted = AtomicLong()
@@ -64,6 +67,25 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
     }
 
     @Synchronized
+    fun latestSessionState(epoch: Long): String =
+        if (epoch == sceneEpoch && !resetPending) combatResponse.get() else "{}"
+
+    @Synchronized
+    fun setSessionActive(active: Boolean) {
+        // Publish the generation before opening the gate. Godot discards the
+        // first delta after resume even if its render loop slept through pause.
+        if (active && !sessionActive.get()) sessionActivationRevision.incrementAndGet()
+        sessionActive.set(active)
+    }
+
+    @UsedByGodot
+    fun session_activation_revision(): Long = sessionActivationRevision.get()
+
+    /** Independent of Dart polling: checked before each native simulation tick. */
+    @UsedByGodot
+    fun is_session_active(): Boolean = sessionActive.get()
+
+    @Synchronized
     fun clearScene(expectedEpoch: Long? = null) {
         if (expectedEpoch != null && expectedEpoch != sceneEpoch) return
         frame = ""
@@ -74,6 +96,7 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
         combatCommand = ""
         combatPendingSequence = -1L
         combatAppliedSequence = -1L
+        combatStateRevision = -1L
     }
 
     @Synchronized
@@ -103,6 +126,9 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
         "viewAttached" to viewAttached,
         "engineVersion" to "4.7.2.stable",
         "nativeCombatVersion" to 1,
+        "nativeSessionVersion" to 1,
+        "sessionActive" to sessionActive.get(),
+        "stateRevision" to combatStateRevision,
         "combatSequence" to combatAppliedSequence,
         "submitted" to submitted.get(),
         "consumed" to consumed.get(),
@@ -142,8 +168,11 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
         val sequence = packet.optLong("ackSequence", -1L)
         if (resetPending || packet.optLong("epoch", -1L) != sceneEpoch ||
             sequence < combatAppliedSequence) return
+        val revision = packet.optLong("stateRevision", -1L)
+        if (revision >= 0 && revision < combatStateRevision) return
         combatResponse.set(json)
         combatAppliedSequence = sequence
+        if (revision >= 0) combatStateRevision = revision
         if (combatPendingSequence <= sequence) {
             combatPendingSequence = -1L
             combatCommand = ""
@@ -169,6 +198,7 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
 
     @UsedByGodot
     fun report_error(message: String) {
+        setSessionActive(false)
         error.set(message)
         ready.set(false)
         presentation.set("{}")

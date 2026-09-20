@@ -1,0 +1,16 @@
+{
+  "scope": "Godot standalone desktop verification; Android evidence recorded separately.",
+  "gpu_capture": "standalone-metal.png",
+  "gpu_log": "standalone-metal.log",
+  "activation_log": "standalone-activation-check.log",
+  "native_session_log": "native-session-check.log",
+  "note": "Metal capture predates final activation-generation guard and emulated-mouse filtering; final headless verification includes both. These changes do not alter graphics.",
+  "source_sha256": {
+    "godot/verify_standalone_session.gd": "6ee84eef2c4b6016d3edd0f91b1bd1802c647db1fede88fd78db3b9b1584c0a6",
+    "godot/verify_native_session.gd": "1766c01a5f3f8d9501790a5322b5d9fd798f7cdf9ea69b3e2c166324dae03a69",
+    "godot/main.gd": "a79c96790d6c2dfe7adb8e45e4ab02f4997e2ce71f708f50e8b464dd6bb64cd7",
+    "godot/combat/native_combat_runtime.gd": "39cfe9f562ff4fcc4a1d0f509e182e71ee0c20e0447683b20a9514c71a1d7152",
+    "godot/session/battlefield_input.gd": "ceea87e55fdb0a64695441c6a2164c2c1e4987bb842c6e1eaae17c98a21b10b7",
+    "godot/session/standalone.gd": "d4c080bd43736b69766751215236f0fb3d5cdbc7bab56ea96422f1280fece930"
+  }
+}

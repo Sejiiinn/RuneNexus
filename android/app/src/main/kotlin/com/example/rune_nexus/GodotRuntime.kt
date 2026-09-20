@@ -69,6 +69,10 @@ internal object GodotRuntime : GodotHost {
         if (activeView?.attached != true || epoch != sceneEpoch) return "{}"
         return bridge?.submitCombat(epoch, json) ?: "{}"
     }
+    fun latestSessionState(epoch: Long): String {
+        if (activeView?.attached != true || epoch != sceneEpoch) return "{}"
+        return bridge?.latestSessionState(epoch) ?: "{}"
+    }
     fun setOptions(json: String) { bridge?.setOptions(json) }
     fun clearScene(expectedEpoch: Long? = null) {
         if (expectedEpoch != null && expectedEpoch != sceneEpoch) return
@@ -78,6 +82,7 @@ internal object GodotRuntime : GodotHost {
         if (epoch < sceneEpoch) return
         sceneEpoch = epoch
         bridge?.beginScene(epoch)
+        updateEngineLifecycle()
     }
 
     private fun attachRenderer(view: BattlefieldView) {
@@ -128,6 +133,11 @@ internal object GodotRuntime : GodotHost {
         val shouldStart = failure == null && activity?.godotActivityStarted == true &&
             activeView?.attached == true
         val shouldResume = shouldStart && activity?.godotActivityResumed == true
+        // Publish the gate before engine lifecycle callbacks: Dart need not send a pause command.
+        bridge?.setSessionActive(
+            shouldResume && activity?.godotWindowFocused == true &&
+                activeView?.sceneEpoch == sceneEpoch,
+        )
         try {
             if (engineResumed && !shouldResume) {
                 engineResumed = false

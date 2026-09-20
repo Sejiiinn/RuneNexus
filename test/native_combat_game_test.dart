@@ -14,6 +14,53 @@ import 'package:rune_nexus/game/rune_nexus_game.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  test('native session owns time and sends only changed controls', () async {
+    final game = RuneNexusGame(saveRepository: _Repository())
+      ..nativeSessionClock = true;
+    addTearDown(game.disposeAppResources);
+    game.onGameResize(Vector2(400, 800));
+    await game.onLoad();
+    final bootstrap = game.buildNativeSessionCommand(40)!;
+    expect(bootstrap, isNot(contains('steps')));
+    expect(bootstrap, isNot(contains('dt')));
+    expect((bootstrap['session'] as Map)['clock'], 'godot');
+    expect(
+      game.applyNativeCombatResponse({
+        'epoch': 40,
+        'ackSequence': bootstrap['sequence'],
+        'stateRevision': 1,
+        'accepted': true,
+        'enemies': [],
+        'turrets': [],
+        'events': [],
+      }),
+      isTrue,
+    );
+    game.update(10);
+    expect(game.buildNativeSessionCommand(40), isNull);
+    game.pauseEngine();
+    final paused = game.buildNativeSessionCommand(40)!;
+    expect((paused['session'] as Map)['paused'], isTrue);
+    expect(
+      game.applyNativeCombatResponse({
+        'epoch': 40,
+        'ackSequence': paused['sequence'],
+        'stateRevision': 2,
+        'accepted': true,
+        'enemies': [],
+        'turrets': [],
+        'events': [],
+      }),
+      isTrue,
+    );
+    game.resumeEngine();
+    game.setSpeedMultiplier(2);
+    final resumed = game.buildNativeSessionCommand(40)!;
+    expect((resumed['session'] as Map)['paused'], isFalse);
+    expect((resumed['session'] as Map)['speed'], 2);
+    expect(resumed, isNot(contains('steps')));
+  });
+
   for (final wave in [false, true]) {
     test(
       'menu reentry rebuilds acknowledged ${wave ? 'wave' : 'preparation'} turrets under a new epoch',

@@ -17,7 +17,8 @@ Android 스테이지 1~15의 전투는 Godot으로 이관했다. `pubspec.yaml`�
 | 웨이브 생성·완료, 코어 주기·활성화 | [웨이브](../godot/combat/native_wave_state.gd), [코어 스킬](../godot/combat/native_core_skill_state.gd) |
 | 코어 HP·방어·긴급 방어·회복·패배 | [코어 방어](../godot/combat/native_core_defense_state.gd) |
 | 정적 전투 설정·성장·경제·보상·저장·HUD | Flutter와 [앱 연결](../lib/game/game_native_combat.dart) |
-| 화면 배치·터치·앱 시간·전체 화면 경고 | [NativeGameHost](../lib/ui/hud/native_game_host.dart) |
+| 전투·효과 시간, 전장 터치·카메라, 전체 화면 경고 | Godot 세션·입력 계층 |
+| 화면 배치·초기 로딩 연결 | [NativeGameHost](../lib/ui/hud/native_game_host.dart), Flutter 프레임 공급 없음 |
 
 Dart의 EnemyComponent/TurretComponent 이름은 기존 호출 계약을 유지하지만, 현재는 저장·설정·HUD용 데이터 모델이다. Flame 컴포넌트 트리, 적 이동, 사격, 명중 또는 2D 전장 렌더를 실행하지 않는다. Vector2는 vector_math를 직접 사용한다. 데미지 계층과 수치 기준은 [데미지 규칙](damage_calculation_rules.md)을 따른다.
 

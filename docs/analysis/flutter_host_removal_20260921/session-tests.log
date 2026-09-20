@@ -1,0 +1,134 @@
+Resolving dependencies...
+Downloading packages...
+  clock 1.1.2 (1.1.3 available)
+  code_assets 1.2.1 (2.1.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  jni_flutter 1.0.2 (1.0.3 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  objective_c 9.5.0 (9.6.0 available)
+  platform 3.1.6 (3.2.0 available)
+  pub_semver 2.2.0 (2.2.1 available)
+  record_use 0.6.0 (1.1.1 available)
+  stack_trace 1.12.1 (1.12.2 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.2 (2.4.3 available)
+  vm_service 15.2.0 (15.3.0 available)
+  yaml 3.1.3 (3.1.4 available)
+Got dependencies!
+14 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_protocol_test.dart
+00:00 +0: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_protocol_test.dart: bootstrap freezes Flame ownership before activation acknowledgement
+00:00 +1: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_game_test.dart: native session owns time and sends only changed controls
+00:00 +2: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_game_test.dart: native session owns time and sends only changed controls
+00:00 +3: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_game_test.dart: native session owns time and sends only changed controls
+00:00 +4: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_game_test.dart: native session owns time and sends only changed controls
+00:00 +5: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_game_test.dart: native session owns time and sends only changed controls
+NATIVE_COMBAT_ACTIVE epoch=40 seq=1
+00:00 +6: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_game_test.dart: menu reentry rebuilds acknowledged preparation turrets under a new epoch
+NATIVE_COMBAT_ACTIVE epoch=20 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=20
+NATIVE_COMBAT_RESTORED epoch=21
+NATIVE_COMBAT_ACTIVE epoch=21 seq=1
+00:00 +7: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_game_test.dart: menu reentry rebuilds acknowledged wave turrets under a new epoch
+NATIVE_COMBAT_ACTIVE epoch=20 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=20
+NATIVE_COMBAT_RESTORED epoch=21
+NATIVE_COMBAT_ACTIVE epoch=21 seq=1
+00:00 +8: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_game_test.dart: native ownership blocks local movement and restores compatible save mirror
+NATIVE_COMBAT_ACTIVE epoch=10 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=10
+00:00 +9: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 세션은 100ms 주기로 읽고 제어 변경은 즉시 전송한다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730900 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730900
+00:01 +10: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: Godot ACK로 전투를 인수하고 투영·카메라·오류 정지와 저장을 유지한다 (variant: TargetPlatform.android)
+00:01 +10: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 맵 ACK 전 재전송과 ACK 후 생략·복구·복귀를 실제 호출 경로로 보존한다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730901 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730901
+00:01 +11: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: Godot ACK로 전투를 인수하고 투영·카메라·오류 정지와 저장을 유지한다 (variant: TargetPlatform.android)
+00:01 +11: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 맵 복구 메타데이터만으로 로딩을 해제하지 않는다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730902 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730902
+00:01 +12: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: Godot ACK로 전투를 인수하고 투영·카메라·오류 정지와 저장을 유지한다 (variant: TargetPlatform.android)
+00:01 +12: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 리사이즈 전 맵 ACK는 생략을 허용하지 않고 현재 viewport ACK만 허용한다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730903 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730903
+00:01 +13: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: Godot ACK로 전투를 인수하고 투영·카메라·오류 정지와 저장을 유지한다 (variant: TargetPlatform.android)
+00:01 +13: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 엔진 ready 뒤에도 유효한 첫 전장 응답까지 로딩을 유지한다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730904 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730904
+00:01 +14: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: Godot ACK로 전투를 인수하고 투영·카메라·오류 정지와 저장을 유지한다 (variant: TargetPlatform.android)
+00:01 +14: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 첫 전장 표시 전 초기 오류도 로딩을 해제한다 (variant: TargetPlatform.android)
+Godot 전장 표시 오류: Bad state: renderer unavailable
+00:01 +15: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: Godot ACK로 전투를 인수하고 투영·카메라·오류 정지와 저장을 유지한다 (variant: TargetPlatform.android)
+00:01 +15: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 제출 응답이 비어 있으면 ACK로 보지 않고 다음 전송을 허용한다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730906 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730906
+00:01 +16: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: Godot ACK로 전투를 인수하고 투영·카메라·오류 정지와 저장을 유지한다 (variant: TargetPlatform.android)
+00:01 +16: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 같은 적용 sequence의 카메라 투영 변화도 반영한다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730907 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730907
+00:01 +17: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: Godot ACK로 전투를 인수하고 투영·카메라·오류 정지와 저장을 유지한다 (variant: TargetPlatform.android)
+00:01 +17: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 앱 복귀는 새 전장을 기다리며 복귀 전 지연 응답으로 로딩을 해제하지 않는다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730908 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730908
+00:01 +18: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: Godot ACK로 전투를 인수하고 투영·카메라·오류 정지와 저장을 유지한다 (variant: TargetPlatform.android)
+00:01 +18: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 명령 ACK 대기 중 장기 백그라운드 복귀는 빈 응답에도 재시도와 메뉴 정지를 유지한다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730909 seq=1
+00:01 +18: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: Godot ACK로 전투를 인수하고 투영·카메라·오류 정지와 저장을 유지한다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592733716 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592733716
+Godot 전장 표시 오류: Bad state: renderer unavailable
+NATIVE_COMBAT_RESTORED epoch=1789918592733717
+NATIVE_COMBAT_ACTIVE epoch=1789918592733717 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592733717
+00:02 +19: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 명령 ACK 대기 중 장기 백그라운드 복귀는 빈 응답에도 재시도와 메뉴 정지를 유지한다 (variant: TargetPlatform.android)
+00:02 +19: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 사용할 수 없는 Godot 전투/세션 프로토콜 (null, null)은 오류와 저장을 유지한다 (variant: TargetPlatform.android)
+Godot 전장 표시 오류: MissingPluginException(No implementation found for method beginScene on channel rune_nexus/godot_preview)
+00:02 +20: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 명령 ACK 대기 중 장기 백그라운드 복귀는 빈 응답에도 재시도와 메뉴 정지를 유지한다 (variant: TargetPlatform.android)
+00:02 +20: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 사용할 수 없는 Godot 전투/세션 프로토콜 (0, 1)은 오류와 저장을 유지한다 (variant: TargetPlatform.android)
+Godot 전장 표시 오류: Bad state: Native session protocol version 1 is required
+00:02 +21: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 명령 ACK 대기 중 장기 백그라운드 복귀는 빈 응답에도 재시도와 메뉴 정지를 유지한다 (variant: TargetPlatform.android)
+00:02 +21: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 사용할 수 없는 Godot 전투/세션 프로토콜 (2, 1)은 오류와 저장을 유지한다 (variant: TargetPlatform.android)
+Godot 전장 표시 오류: Bad state: Native session protocol version 1 is required
+00:02 +22: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 명령 ACK 대기 중 장기 백그라운드 복귀는 빈 응답에도 재시도와 메뉴 정지를 유지한다 (variant: TargetPlatform.android)
+00:02 +22: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 사용할 수 없는 Godot 전투/세션 프로토콜 (1, null)은 오류와 저장을 유지한다 (variant: TargetPlatform.android)
+Godot 전장 표시 오류: Bad state: Native session protocol version 1 is required
+00:02 +23: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 명령 ACK 대기 중 장기 백그라운드 복귀는 빈 응답에도 재시도와 메뉴 정지를 유지한다 (variant: TargetPlatform.android)
+00:02 +23: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 사용할 수 없는 Godot 전투/세션 프로토콜 (1, 0)은 오류와 저장을 유지한다 (variant: TargetPlatform.android)
+Godot 전장 표시 오류: Bad state: Native session protocol version 1 is required
+00:02 +24: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 명령 ACK 대기 중 장기 백그라운드 복귀는 빈 응답에도 재시도와 메뉴 정지를 유지한다 (variant: TargetPlatform.android)
+00:02 +24: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 사용할 수 없는 Godot 전투/세션 프로토콜 (1, 2)은 오류와 저장을 유지한다 (variant: TargetPlatform.android)
+Godot 전장 표시 오류: Bad state: Native session protocol version 1 is required
+00:02 +25: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 명령 ACK 대기 중 장기 백그라운드 복귀는 빈 응답에도 재시도와 메뉴 정지를 유지한다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730909
+00:06 +26: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 명령 ACK 대기 중 장기 백그라운드 복귀는 구 ACK에도 재시도와 메뉴 정지를 유지한다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730910 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730910
+00:11 +27: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 30초 넘게 준비해도 로딩을 유지하고 실제 전장 응답 뒤 해제한다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730911 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730911
+00:11 +28: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 로딩 중 view 제거는 게임 정지를 해제한다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730912 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730912
+00:11 +29: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 스테이지 2에서 5로 전환하면 이전 투영을 지우고 새 전장을 기다린다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730913 seq=1
+NATIVE_COMBAT_ACTIVE epoch=1789918592730914 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730914
+00:11 +30: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 교체 전 지연 투영은 새 game과 이전 game 어느 쪽에도 적용하지 않는다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730915 seq=1
+NATIVE_COMBAT_ACTIVE epoch=1789918592730916 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730916
+00:12 +31: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 리사이즈 전 반환은 버리고 새 viewport 적용 확인 뒤만 표시한다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730917 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730917
+00:12 +32: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 응답의 지원 표시 그룹만 반영하고 지원 철회도 다음 확인에 반영한다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730918 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730918
+00:12 +33: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 같은 game 새 view 소유권 취득 후 이전 view 응답은 투영을 덮지 않는다 (variant: TargetPlatform.android)
+NATIVE_COMBAT_ACTIVE epoch=1789918592730919 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730919
+NATIVE_COMBAT_RESTORED epoch=1789918592730920
+NATIVE_COMBAT_ACTIVE epoch=1789918592730920 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=1789918592730920
+00:12 +34: All tests passed!

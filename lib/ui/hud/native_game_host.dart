@@ -7,7 +7,8 @@ import 'package:vector_math/vector_math_64.dart' show Vector2;
 import '../../game/rune_nexus_game.dart';
 import '../../game/rendering/game_scene_effect_renderer.dart';
 
-/// Flutter owns layout and input; Godot owns the battlefield and combat.
+/// Layout/load adapter while Flutter HUD and app services still exist.
+/// Production clock, input and screen feedback belong to Godot.
 class NativeGameHost extends StatefulWidget {
   const NativeGameHost({required this.game, super.key});
 
@@ -32,7 +33,12 @@ class _NativeGameHostState extends State<NativeGameHost>
     _ticker = createTicker((elapsed) {
       final previous = _previous;
       _previous = elapsed;
-      if (previous == null || !_loaded || widget.game.paused) return;
+      if (previous == null ||
+          !_loaded ||
+          widget.game.paused ||
+          widget.game.nativeSessionClock) {
+        return;
+      }
       widget.game.update((elapsed - previous).inMicroseconds / 1000000);
       _frame.value++;
     });
@@ -48,7 +54,7 @@ class _NativeGameHostState extends State<NativeGameHost>
       if (!mounted || widget.game != game) return;
       setState(() => _loaded = true);
       _previous = null;
-      if (!_ticker.isActive) _ticker.start();
+      if (!game.nativeSessionClock && !_ticker.isActive) _ticker.start();
     } on Object catch (error) {
       if (mounted) setState(() => _error = error);
     }
@@ -87,6 +93,7 @@ class _NativeGameHostState extends State<NativeGameHost>
       if (_error != null) {
         return const Center(child: Text('전장을 준비하지 못했습니다.'));
       }
+      if (widget.game.nativeSessionClock) return const SizedBox.expand();
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTapDown: (details) => widget.game.onBoardTapDown(
