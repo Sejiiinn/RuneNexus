@@ -18,7 +18,7 @@ build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --headless --editor --p
 build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --path build/godot/project -- --session
 ```
 
-`Stage`로 1~15 순환 진입, 건설칸 클릭→`Build`로 배치, `Start`로 전투, `Pause`로 정지/재개, `1x/4x`, `Camera`, `Exit`로 종료한다. 드래그·핀치·휠은 네이티브 카메라 입력이다. 개발 세션은 계정·경제·저장을 구현하거나 대체하지 않는다.
+`Stage`로 1~15 순환 진입, 건설칸 클릭→`Build`로 배치, `Start`로 전투, `Pause`로 정지/재개, `1x/4x`, `Camera`, `Exit`로 종료한다. `Save`는 개발 세션을 v2로 저장하고 `Load`는 정지 상태로 복원한다(`Pause`로 재개). 드래그·핀치·휠은 네이티브 카메라 입력이다. 개발 세션은 계정·경제·전체 콘텐츠를 구현하거나 본게임 저장을 대체하지 않는다. 저장은 `user://standalone-session/saves/guest/`로 분리하며 기존 사용자 슬롯을 자동으로 읽지 않는다. 현재 기본 화살포탑/일반 적 fixture만 복원하고 다른 설정은 거절한다. [저장 기반 API](../app/README.md)를 참고한다.
 
 `standalone_fixture.json`은 `lib/data/definitions/game_stage_maps.dart`에서 기존 `prepare_godot_project.py`가 추출한 지도/경로와 `test/fixtures/turret_stat_calculation.json`의 기본 1레벨 화살포탑 입력을 추출한 **개발 검증 자료**다. 게임 콘텐츠의 새 원본이 아니며 3D 자산은 복제하지 않는다. 스테이지 정의가 바뀌면 이 검증 자료도 해당 원본에서 갱신한다.
 
@@ -28,3 +28,12 @@ build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --headless --path build
 ```
 
 두 번째 검사를 headless 없이 실행하면 같은 장면의 Metal 전투 화면을 `build/godot/captures/standalone-session.png`에 저장한다. 데스크톱 통과는 Android 본게임 HUD·실기기 성능·저장 동등성의 완료 근거가 아니다.
+
+실제 프로세스 재시작 검사는 기존 자산 준비 후 서로 다른 프로세스로 실행한다. `<절대 임시 경로>`는 검증용 빈 디렉터리이며 본게임 저장 경로를 지정하지 않는다.
+
+```sh
+build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --headless --path build/godot/project --script verify_session_restart.gd -- write <절대 임시 경로>
+build/godot-preview/tools/Godot.app/Contents/MacOS/Godot --headless --path build/godot/project --script verify_session_restart.gd -- read <같은 절대 임시 경로>
+```
+
+실행 후 검증 디렉터리를 삭제할 수 있다. read를 headless 없이 실행하면 `build/godot/captures/save-restart.png`에 개발 세션 복원 화면을 남긴다.

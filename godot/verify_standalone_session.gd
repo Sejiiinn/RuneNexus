@@ -76,6 +76,40 @@ func run() -> void:
 	app.toggle_speed()
 	runtime.advance_session(0.25)
 	check(is_equal_approx(runtime.clock,before+1.0),"standalone resume/speed")
+	var saved_directory: String = OS.get_environment("TMPDIR").path_join("rune-session-restart-" + str(OS.get_process_id()))
+	check(saved_directory.is_absolute_path(), "isolated checkpoint directory")
+	app.checkpoint = load("res://session/session_checkpoint.gd").new(saved_directory)
+	check(app.checkpoint.save_session(app) == OK, "native session writes compatible v2 checkpoint")
+	var checkpoint: Dictionary = app.checkpoint.store.load_save()
+	var old_epoch: int = app.epoch
+	app.exit_stage()
+	app.queue_free()
+	await process_frame
+	app = load("res://session/standalone.gd").new()
+	scene._standalone_session = app
+	scene.add_child(app)
+	app.set_process(false)
+	app.epoch = old_epoch + 2
+	app.checkpoint = load("res://session/session_checkpoint.gd").new(saved_directory)
+	check(app.checkpoint.load_session(app) == OK, "fresh application restores checkpoint")
+	runtime = scene._native_combat
+	check(runtime.enemies.size() == checkpoint.activeRun.enemies.size(), "restored active enemies")
+	check(runtime.wave.snapshot().spawnQueue == checkpoint.activeRun.spawnQueue, "remaining spawn delays not replayed")
+	check(runtime.turrets.size() == checkpoint.activeRun.turrets.size(), "restored tower layout")
+	check(is_equal_approx(runtime.turrets.values()[0].cooldown, checkpoint.activeRun.turrets[0].cooldown), "restored tower cooldown")
+	check(is_equal_approx(runtime.defense.hp, checkpoint.activeRun.nexusHp), "restored core durability")
+	check(runtime.session.paused and runtime.clock == 0 and runtime.epoch == app.epoch and runtime.events.all(func(event): return event.kind == "waveStarted"), "restore waits for explicit resume with fresh event epoch")
+	app.toggle_pause()
+	runtime.advance_session(0.1)
+	check(runtime.clock > 0, "restored session continues without Flutter")
+	var before_rejected_epoch: int = app.epoch
+	checkpoint.activeRun.turrets[0].type = "cannon"
+	app.checkpoint.store.save_save(checkpoint)
+	check(app.checkpoint.load_session(app) == ERR_UNAVAILABLE and app.epoch == before_rejected_epoch, "unsupported fixture save never replaces active scene")
+	app.checkpoint.store.clear()
+	DirAccess.remove_absolute(saved_directory.path_join("saves/guest"))
+	DirAccess.remove_absolute(saved_directory.path_join("saves"))
+	DirAccess.remove_absolute(saved_directory)
 	scene._apply_frame(scene._native_combat_base_frame)
 	app._process(0)
 	if DisplayServer.get_name() != "headless":
@@ -88,7 +122,7 @@ func run() -> void:
 	check(scene._native_combat.clock == 0 and scene._native_combat.events.is_empty(),"reentry fresh state")
 	scene.queue_free()
 	for i in range(3): await process_frame
-	if failures.is_empty(): print("PASS standalone stages 1/6/11/15, ray projection, selection/build, combat, pause/resume/4x, exit/reentry")
+	if failures.is_empty(): print("PASS standalone stages 1/6/11/15, ray projection, selection/build, combat, pause/resume/4x, exit/reentry, v2 checkpoint/restart")
 	else:
 		for failure in failures: push_error(failure)
 	quit(0 if failures.is_empty() else 1)

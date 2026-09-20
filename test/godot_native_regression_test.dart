@@ -17,6 +17,9 @@ void main() {
     'verify_native_wave_core.gd': 'PASS native wave/core:',
     'verify_native_core_defense.gd': 'PASS native core defense:',
     'verify_native_enemy_state.gd': null,
+    'verify_save_codec.gd': 'SAVE_CODEC_FIXTURES count=',
+    'verify_local_save_store.gd': null,
+    'verify_run_save_adapter.gd': 'failures=[]',
   };
 
   setUpAll(() async {
@@ -24,6 +27,18 @@ void main() {
     temporary = await Directory.systemTemp.createTemp('native-regressions-');
     final root = temporary!.path;
     await Directory('$root/godot/combat').create(recursive: true);
+    await Directory('$root/godot/app').create(recursive: true);
+    await Directory('$root/godot/fixtures').create(recursive: true);
+    for (final source in Directory('godot/app').listSync().whereType<File>()) {
+      if (source.path.endsWith('.gd')) {
+        await source.copy('$root/godot/app/${source.uri.pathSegments.last}');
+      }
+    }
+    for (final name in ['inputs', 'expected']) {
+      await File(
+        'test/fixtures/godot_save_codec_$name.json',
+      ).copy('$root/godot/fixtures/godot_save_codec_$name.json');
+    }
     await Directory('$root/test/fixtures').create(recursive: true);
     // Keep fixture paths identical while isolating caches from editor/builds.
     for (final source in Directory(
@@ -46,6 +61,19 @@ void main() {
       '[application]\nconfig/name="Native regression tests"\n'
       '[rendering]\nrenderer/rendering_method="gl_compatibility"\n',
     );
+    final imported = await Process.run(executable, [
+      '--headless',
+      '--editor',
+      '--import',
+      '--path',
+      '$root/godot',
+      '--quit',
+    ]);
+    expect(
+      imported.exitCode,
+      0,
+      reason: '${imported.stdout}\n${imported.stderr}',
+    );
   });
 
   tearDownAll(() async {
@@ -61,13 +89,17 @@ void main() {
         );
         return;
       }
-      final process = await Process.start(executable, [
-        '--headless',
-        '--path',
-        '${temporary!.path}/godot',
-        '--script',
-        'res://${entry.key}',
-      ]);
+      final process = await Process.start(
+        executable,
+        [
+          '--headless',
+          '--path',
+          '${temporary!.path}/godot',
+          '--script',
+          'res://${entry.key}',
+        ],
+        environment: {'TMPDIR': temporary!.path},
+      );
       final stdout = process.stdout.transform(utf8.decoder).join();
       final stderr = process.stderr.transform(utf8.decoder).join();
       int exitCode;
