@@ -29,6 +29,7 @@ class SequentialLightningChainComponent extends Component {
 
   @override
   void update(double dt) {
+    if (game.nativeCombatOwned) return;
     super.update(dt);
     _timer -= dt;
     if (_timer > 0) {

@@ -64,6 +64,7 @@ class ProjectileComponent extends PositionComponent {
 
   @override
   void update(double dt) {
+    if (game.nativeCombatOwned) return;
     super.update(dt);
     final step = math.min(
       math.max(0.0, attack.projectileSpeed * dt),

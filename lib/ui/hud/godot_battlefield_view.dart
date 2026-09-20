@@ -48,6 +48,10 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
   bool _sending = false;
   bool _polling = false;
   bool _connecting = false;
+  bool _combatSupported = false;
+  int _combatRevision = 0;
+  bool _combatSending = false;
+  DateTime? _combatPendingSince;
   int _sequence = 0;
   int _lastApplied = -1;
   int _sceneEpoch = 0;
@@ -69,6 +73,9 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
 
   void _beginSession() {
     _sceneEpoch = ++_nextEpoch;
+    widget.game.prepareNativeCombatScene(_sceneEpoch);
+    _combatRevision = widget.game.nativeCombatRevision;
+    _combatPendingSince = null;
     _sequence = 0;
     _lastApplied = -1;
     _ready = false;
@@ -144,6 +151,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
       final error = status?['error'];
       if (error is String && error.isNotEmpty) throw StateError(error);
       if (!_connected) setState(() => _connected = true);
+      _combatSupported = status?['nativeCombatVersion'] == 1;
       final becameReady = !_ready && status?['ready'] == true;
       _ready = status?['ready'] == true;
       if (becameReady) await _sendOptions();
@@ -190,6 +198,10 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
   }
 
   Future<void> _syncFrame() async {
+    if (mounted && _combatRevision != widget.game.nativeCombatRevision) {
+      _beginSession();
+      return;
+    }
     if (!mounted ||
         !_ready ||
         !_foreground ||
@@ -201,6 +213,8 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
       return;
     }
     final game = widget.game;
+    if (_combatSupported) await _syncCombat();
+    if (_failed) return;
     final epoch = _sceneEpoch;
     final viewport = _viewport;
     final revision = _viewportRevision;
@@ -214,6 +228,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
         'frame': jsonEncode(
           encodeGodotBattlefieldFrame(
             frame,
+            nativeCombatOwned: game.nativeCombatOwned,
             sequence: submittedSequence,
             sceneEpoch: epoch,
             viewportRevision: revision,
@@ -327,20 +342,53 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
     }
   }
 
+  Future<void> _syncCombat() async {
+    final now = DateTime.now();
+    if (_combatSending) return;
+    final game = widget.game;
+    final epoch = _sceneEpoch;
+    _combatSending = true;
+    _combatPendingSince ??= now;
+    try {
+      final command = game.buildNativeCombatCommand(epoch);
+      final json = await _channel.invokeMethod<String>('submitCombat', {
+        'sceneEpoch': epoch,
+        'command': jsonEncode(command),
+      });
+      if (!mounted || epoch != _sceneEpoch || game != widget.game) return;
+      if (json != null && json.isNotEmpty) {
+        final response = jsonDecode(json) as Map<String, dynamic>;
+        if (response['error'] != null) throw StateError('${response['error']}');
+        if (game.applyNativeCombatResponse(response)) {
+          _combatPendingSince = null;
+        }
+      }
+      if (_combatPendingSince != null &&
+          now.difference(_combatPendingSince!).inSeconds >= 5) {
+        throw StateError('Native combat acknowledgement timed out');
+      }
+    } on Object catch (error) {
+      if (epoch == _sceneEpoch) _fallback(error);
+    } finally {
+      _combatSending = false;
+    }
+  }
+
   void _fallback(Object error) {
     if (!mounted ||
         _failed ||
         widget.game.nativeBattlefieldSceneEpoch != _sceneEpoch) {
       return;
     }
+    widget.game.suspendNativeCombat();
     _failed = true;
     _ready = false;
     _statusTimer?.cancel();
     _setLoading(false);
-    _ticker.stop();
+    if (!widget.game.nativeCombatOwned) _ticker.stop();
     _clearPresentation(widget.game);
     debugPrint('Godot 전장 표시 오류: $error');
-    if (_available) {
+    if (_available && !widget.game.nativeCombatOwned) {
       _available = false;
       widget.onAvailabilityChanged?.call(false);
     }
@@ -373,7 +421,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
       _clearPresentation(widget.game);
     } else if (!wasForeground) {
       // An old in-flight presentation must not acknowledge a resumed scene.
-      _beginSession();
+      if (!widget.game.nativeCombatOwned) _beginSession();
       if (!_ticker.isActive) _ticker.start();
     } else {
       unawaited(_pollStatus());
@@ -386,6 +434,7 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
     _statusTimer?.cancel();
     _ticker.dispose();
     final game = widget.game;
+    game.suspendNativeCombat();
     final epoch = _sceneEpoch;
     final ownsPresentation = game.nativeBattlefieldSceneEpoch == epoch;
     _clearPresentation(game);
@@ -419,6 +468,26 @@ class _GodotBattlefieldViewState extends State<GodotBattlefieldView>
             _viewport = constraints.biggest;
             _viewportRevision++;
             _clearPresentation(widget.game);
+          }
+          if (_failed && widget.game.nativeCombatOwned) {
+            return const Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: EdgeInsets.only(top: 80),
+                child: Material(
+                  color: Color(0xEE241D22),
+                  borderRadius: BorderRadius.all(Radius.circular(8)),
+                  child: Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Text(
+                      '전투 연결이 끊겨 일시정지했습니다.\n메뉴에서 다시 시작할 수 있습니다.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white, fontSize: 13),
+                    ),
+                  ),
+                ),
+              ),
+            );
           }
           if (!_connected ||
               _failed ||

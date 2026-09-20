@@ -5,12 +5,13 @@ import 'package:flutter/painting.dart';
 
 import '../../data/definitions/game_gem_data.dart';
 import '../../data/save/game_save_data.dart';
-import '../../domain/combat/attack_rules.dart';
+import '../../domain/combat/attack_calculation.dart';
+import '../../domain/combat/turret_stat_input.dart';
+import '../../domain/combat/turret_stat_calculation.dart';
 import '../../domain/gem/gem_equip_rules.dart';
 import '../../domain/gem/gem_type.dart';
 import '../../domain/map/grid_point.dart';
 import '../../domain/turret/attack_tag.dart';
-import '../../domain/turret/damage_family.dart';
 import '../../domain/turret/turret_definition.dart';
 import '../../domain/turret/turret_target_priority.dart';
 import '../../domain/turret/turret_trait_catalog.dart';
@@ -79,11 +80,6 @@ class TurretComponent extends PositionComponent {
   double _chainCleanupTimer = 0;
   TurretTargetPriority _targetPriority = TurretTargetPriority.first;
 
-  static const double _damageGrowthPerLevel = 0.2;
-  static const double _rangeGrowthPerLevel = 0.033;
-  static const double _attackRateGrowthPerLevel = 0.05;
-  static const double _aimSpeedGrowthPerLevel = 0.08;
-  static const double _slowStrengthGrowthPerLevel = 0.02;
   static const double _cooldownVariance = 0.05;
   static const double _fireFeedbackDuration = 0.12;
 
@@ -159,273 +155,83 @@ class TurretComponent extends PositionComponent {
       _level >= 7;
   TurretModuleEffect get _moduleEffect =>
       game.turretModuleEffectFor(definition.type);
-  double get _numericGemEffectMultiplier =>
-      (1 + _moduleEffect.gemEffectIncreaseRate) *
-      game.passiveNumericGemEffectMultiplier;
+  late final TurretStatCalculation _stats = TurretStatCalculation(
+    _ComponentTurretStatSource(this),
+  );
 
-  double get damage => damageAtLevel(_level);
-
-  int get projectileCount =>
-      definition.projectileCount +
-      (hasGem(GemType.multipleProjectiles) ? 2 : 0);
-
-  double damageAtLevel(int level) {
-    final targetLevel = level.clamp(1, maxLevel).toInt();
-    final moduleEffect = _moduleEffect;
-    final gemEffectMultiplier = _numericGemEffectMultiplier;
-    var levelDamage =
-        definition.damage *
-        math.pow(1 + _damageGrowthPerLevel, targetLevel - 1).toDouble();
-    if (definition.damageFamily == DamageFamily.physical &&
-        hasGem(GemType.physicalDamage)) {
-      levelDamage *= 1 + 0.4 * gemEffectMultiplier;
-    }
-    if (definition.damageFamily == DamageFamily.elemental &&
-        hasGem(GemType.elementalDamage)) {
-      levelDamage *= 1 + 0.4 * gemEffectMultiplier;
-    }
-    if (definition.attackTags.contains(AttackTag.light) &&
-        hasGem(GemType.lightWeapon)) {
-      levelDamage *= 1 + 0.2 * gemEffectMultiplier;
-    }
-    if (definition.attackTags.contains(AttackTag.heavy) &&
-        hasGem(GemType.heavyWeapon)) {
-      levelDamage *= 1 + 0.3 * gemEffectMultiplier;
-    }
-    if (_primaryTrait == TurretTraitType.spreadingChill) {
-      levelDamage *= 0.9;
-    }
-    if (hasGem(GemType.damageAmplifier)) {
-      levelDamage *= 1 + 0.25 * gemEffectMultiplier;
-    }
-
-    return levelDamage *
-        (1 + moduleEffect.damageIncreaseRate) *
-        game.towerDamageMultiplierFor(definition.damageFamily) *
-        game.corePassiveTurretDamageMultiplier *
-        (hasGem(GemType.multipleProjectiles) ? 0.5 : 1);
-  }
-
-  double get range => rangeAtLevel(_level);
-
-  double rangeAtLevel(int level) {
-    final targetLevel = level.clamp(1, maxLevel).toInt();
-    final levelMultiplier = 1 + (targetLevel - 1) * _rangeGrowthPerLevel;
-    final moduleEffect = _moduleEffect;
-    return definition.range *
-        levelMultiplier *
-        (hasGem(GemType.range) ? 1 + 0.2 * _numericGemEffectMultiplier : 1) *
-        (_primaryTrait == TurretTraitType.spreadingChill ? 1.15 : 1) *
-        (1 + moduleEffect.rangeIncreaseRate) *
-        game.boardDistanceScale;
-  }
-
-  double get attackRate => attackRateAtLevel(_level);
-
-  double attackRateAtLevel(int level) {
-    final targetLevel = level.clamp(1, maxLevel).toInt();
-    final levelMultiplier = math
-        .pow(1 + _attackRateGrowthPerLevel, targetLevel - 1)
-        .toDouble();
-    final moduleEffect = _moduleEffect;
-    final gemEffectMultiplier = _numericGemEffectMultiplier;
-    var rate =
-        definition.attackRate *
-        levelMultiplier *
-        (hasGem(GemType.attackSpeed) ? 1 + 0.4 * gemEffectMultiplier : 1) *
-        (definition.attackTags.contains(AttackTag.light) &&
-                hasGem(GemType.lightWeapon)
-            ? 1 + 0.2 * gemEffectMultiplier
-            : 1) *
-        (_primaryTrait == TurretTraitType.lightweightBarrel ? 1.1 : 1) *
-        (_primaryTrait == TurretTraitType.compressedCharge ? 0.9 : 1) *
-        (_primaryTrait == TurretTraitType.coolingCycle ? 1.2 : 1) *
-        (1 + moduleEffect.attackRateIncreaseRate);
-    if (_chainCleanupTimer > 0) {
-      rate *= 1.4;
-    }
-    return rate * game.corePassiveTurretAttackRateMultiplier;
-  }
-
-  double get projectileSpeed =>
-      definition.projectileSpeed *
-      (_primaryTrait == TurretTraitType.lightweightBarrel ? 1.3 : 1) *
-      (1 + _moduleEffect.projectileSpeedIncreaseRate) *
-      game.boardDistanceScale;
+  double get damage => _stats.damage;
+  int get projectileCount => _stats.projectileCount;
+  double get range => _stats.range;
+  double get attackRate => _stats.attackRate;
+  double get projectileSpeed => _stats.projectileSpeed;
+  double damageAtLevel(int level) => _stats.damageAtLevel(level);
+  double rangeAtLevel(int level) => _stats.rangeAtLevel(level);
+  double attackRateAtLevel(int level) => _stats.attackRateAtLevel(level);
 
   TurretAttackSnapshot createAttackSnapshot({double criticalMultiplier = 1}) {
+    final stats = _stats.createFiringStats(
+      criticalMultiplier: criticalMultiplier,
+    );
     return TurretAttackSnapshot(
       sourceTurretPoint: gridPoint,
       definition: definition,
-      damage: damage,
-      range: range,
-      effectAreaMultiplier: effectAreaMultiplier,
-      centeredAreaRadius: centeredAreaRadius,
-      chainCount: chainCount,
-      splashRadius: splashRadius,
-      splashSecondaryDamageMultiplier: splashSecondaryDamageMultiplier,
-      projectileSpeed: projectileSpeed,
-      criticalMultiplier: criticalMultiplier,
-      physicalResistanceReduction: physicalResistanceReduction,
-      ignoresArmorReduction: ignoresArmorReduction,
-      damageOverTimeDamageMultiplier: damageOverTimeDamageMultiplier,
-      damageOverTimeDurationMultiplier: damageOverTimeDurationMultiplier,
-      slowDuration: slowDuration,
-      slowMultiplier: slowMultiplier,
-      hasChain: hasGem(GemType.chain),
-      appliesFrostCrack: appliesFrostCrack,
-      appliesIgnitionBurst: appliesIgnitionBurst,
-      spreadsChainIgnition: spreadsChainIgnition,
-      appliesChainCleanup: _secondaryTrait == TurretTraitType.chainCleanup,
-      appliesSuppressiveFire:
-          _secondaryTrait == TurretTraitType.suppressiveFire,
-      appliesExposedMark: _secondaryTrait == TurretTraitType.exposedMark,
-      appliesOverheatMagazine:
-          _primaryTrait == TurretTraitType.overheatMagazine,
-      appliesCompressedCharge:
-          _primaryTrait == TurretTraitType.compressedCharge,
-      appliesFinishingShot: _secondaryTrait == TurretTraitType.finishingShot,
-      appliesFocusedLightning:
-          _primaryTrait == TurretTraitType.focusedLightning,
-      lightningChainMaxJumps: lightningChainMaxJumps,
-      lightningChainDamageMultiplier: lightningChainDamageMultiplier,
-      lightningChainJumpRange:
-          game.lightningChainJumpRange *
-          (1 + _moduleEffect.lightningChainRangeIncreaseRate),
+      damage: stats.damage,
+      range: stats.range,
+      effectAreaMultiplier: stats.effectAreaMultiplier,
+      centeredAreaRadius: stats.centeredAreaRadius,
+      chainCount: stats.chainCount,
+      splashRadius: stats.splashRadius,
+      splashSecondaryDamageMultiplier: stats.splashSecondaryDamageMultiplier,
+      projectileSpeed: stats.projectileSpeed,
+      criticalMultiplier: stats.criticalMultiplier,
+      physicalResistanceReduction: stats.physicalResistanceReduction,
+      ignoresArmorReduction: stats.ignoresArmorReduction,
+      damageOverTimeDamageMultiplier: stats.damageOverTimeDamageMultiplier,
+      damageOverTimeDurationMultiplier: stats.damageOverTimeDurationMultiplier,
+      slowDuration: stats.slowDuration,
+      slowMultiplier: stats.slowMultiplier,
+      hasChain: stats.hasChain,
+      appliesFrostCrack: stats.appliesFrostCrack,
+      appliesIgnitionBurst: stats.appliesIgnitionBurst,
+      spreadsChainIgnition: stats.spreadsChainIgnition,
+      appliesChainCleanup: stats.appliesChainCleanup,
+      appliesSuppressiveFire: stats.appliesSuppressiveFire,
+      appliesExposedMark: stats.appliesExposedMark,
+      appliesOverheatMagazine: stats.appliesOverheatMagazine,
+      appliesCompressedCharge: stats.appliesCompressedCharge,
+      appliesFinishingShot: stats.appliesFinishingShot,
+      appliesFocusedLightning: stats.appliesFocusedLightning,
+      lightningChainMaxJumps: stats.lightningChainMaxJumps,
+      lightningChainDamageMultiplier: stats.lightningChainDamageMultiplier,
+      lightningChainJumpRange: stats.lightningChainJumpRange,
     );
   }
 
-  double get damageOverTimeDamageMultiplier {
-    if (!definition.attackTags.contains(AttackTag.damageOverTime)) {
-      return 1;
-    }
-    var bonus = 0.0;
-    if (hasGem(GemType.damageOverTime)) {
-      bonus += 0.3 * _numericGemEffectMultiplier;
-    }
-    if (_primaryTrait == TurretTraitType.highHeatBurn) {
-      bonus += 0.25;
-    }
-    bonus += _moduleEffect.damageOverTimeIncreaseRate;
-    return 1 + bonus;
-  }
-
-  double get damageOverTimeDurationMultiplier {
-    if (!definition.attackTags.contains(AttackTag.damageOverTime)) {
-      return 1;
-    }
-    var bonus = 0.0;
-    if (hasGem(GemType.damageOverTime)) {
-      bonus += 0.3 * _numericGemEffectMultiplier;
-    }
-    if (_primaryTrait == TurretTraitType.lingeringEmbers) {
-      bonus += 0.4;
-    }
-    bonus += _moduleEffect.burnDurationIncreaseRate;
-    return 1 + bonus;
-  }
-
-  double get slowMultiplier => slowMultiplierAtLevel(_level);
-
-  double slowMultiplierAtLevel(int level) {
-    final strengthBonus = _moduleEffect.slowStrengthBonusRate;
-    final base = definition.slowMultiplier;
-    if (base <= 0) {
-      return base;
-    }
-    final levelBonus = definition.type == TurretType.frost
-        ? (level.clamp(1, maxLevel) - 1) * _slowStrengthGrowthPerLevel
-        : 0.0;
-    // 둔화 강도 변화량은 레벨·특성·모듈끼리 %p 합산
-    final traitBonus = _secondaryTrait == TurretTraitType.rapidCooling
-        ? 0.08
-        : 0.0;
-    return (base - levelBonus - traitBonus - strengthBonus)
-        .clamp(0.1, 1.0)
-        .toDouble();
-  }
-
-  double get slowDuration =>
-      definition.slowDuration *
-      (_primaryTrait == TurretTraitType.coolingCycle ? 0.85 : 1) *
-      (1 + _moduleEffect.slowDurationIncreaseRate);
-
-  bool get appliesFrostCrack => _secondaryTrait == TurretTraitType.frostCrack;
-  bool get appliesIgnitionBurst =>
-      _secondaryTrait == TurretTraitType.ignitionBurst;
-  bool get spreadsChainIgnition =>
-      _secondaryTrait == TurretTraitType.chainIgnition;
-  double get physicalResistanceReduction =>
-      _secondaryTrait == TurretTraitType.fractureImpact ? 0.2 : 0;
-
-  double get effectAreaMultiplier =>
-      1 +
-      (hasGem(GemType.explosion) ? 0.25 * _numericGemEffectMultiplier : 0) +
-      (definition.attackTags.contains(AttackTag.heavy) &&
-              hasGem(GemType.heavyWeapon)
-          ? 0.2 * _numericGemEffectMultiplier
-          : 0);
-
-  double get centeredAreaRadius => range * effectAreaMultiplier;
-
+  double get damageOverTimeDamageMultiplier =>
+      _stats.damageOverTimeDamageMultiplier;
+  double get damageOverTimeDurationMultiplier =>
+      _stats.damageOverTimeDurationMultiplier;
+  double get slowMultiplier => _stats.slowMultiplier;
+  double get slowDuration => _stats.slowDuration;
+  bool get appliesFrostCrack => _stats.appliesFrostCrack;
+  bool get appliesIgnitionBurst => _stats.appliesIgnitionBurst;
+  bool get spreadsChainIgnition => _stats.spreadsChainIgnition;
+  double get physicalResistanceReduction => _stats.physicalResistanceReduction;
+  double get effectAreaMultiplier => _stats.effectAreaMultiplier;
+  double get centeredAreaRadius => _stats.centeredAreaRadius;
   double get splashSecondaryDamageMultiplier =>
-      AttackRules.splashDamageMultiplier +
-      (_secondaryTrait == TurretTraitType.expandedBlastCore ? 0.1 : 0) +
-      _moduleEffect.splashSecondaryDamageBonusRate;
-
-  double get splashRadius {
-    // 이미 광역인 냉기 공격에는 별도 폭발을 부여하지 않음.
-    if (definition.centeredAreaAttack) {
-      return 0;
-    }
-    final nativeRadius = definition.splashRadius;
-    final baseRadius = nativeRadius > 0
-        ? nativeRadius
-        : (hasGem(GemType.explosion)
-              ? gameGems[GemType.explosion]!.value
-              : 0.0);
-    final nativeIncrease =
-        (_primaryTrait == TurretTraitType.shrapnelShell ? 0.3 : 0.0) +
-        (_secondaryTrait == TurretTraitType.expandedBlastCore ? 0.4 : 0.0) +
-        _moduleEffect.splashRadiusIncreaseRate;
-    // 기존 폭발 전용 보정의 대상은 유지하고 같은 증가 계층에서 합산.
-    return (baseRadius * effectAreaMultiplier + nativeRadius * nativeIncrease) *
-        game.boardDistanceScale;
-  }
-
-  int get chainCount => definition.type == TurretType.lightning
-      ? lightningChainMaxJumps
-      : (hasGem(GemType.chain) && definition.firesProjectile ? 2 : 0);
-
+      _stats.splashSecondaryDamageMultiplier;
+  double get splashRadius => _stats.splashRadius;
+  int get chainCount => _stats.chainCount;
+  bool get ignoresArmorReduction => _stats.ignoresArmorReduction;
+  int get lightningChainMaxJumps => _stats.lightningChainMaxJumps;
+  double get lightningChainDamageMultiplier =>
+      _stats.lightningChainDamageMultiplier;
+  bool get appliesLightningRecovery => _stats.appliesLightningRecovery;
+  double slowMultiplierAtLevel(int level) =>
+      _stats.slowMultiplierAtLevel(level);
   bool hasGem(GemType type) => equippedGems.contains(type);
-  bool get ignoresArmorReduction => hasGem(GemType.armorPiercing);
   int get lightningChainMaxTargets => lightningChainMaxJumps + 1;
-  int get lightningChainMaxJumps {
-    if (definition.type != TurretType.lightning) {
-      return 0;
-    }
-    var jumps = 2;
-    if (hasGem(GemType.chain)) {
-      jumps += 2;
-    }
-    if (_primaryTrait == TurretTraitType.branchCurrent) {
-      jumps += 1;
-    }
-    if (_primaryTrait == TurretTraitType.focusedLightning) {
-      jumps -= 1;
-    }
-    return math.max(0, jumps);
-  }
-
-  double get lightningChainDamageMultiplier {
-    final base = _secondaryTrait == TurretTraitType.currentAmplification
-        ? 0.7
-        : AttackRules.chainDamageMultiplier;
-    return base * (1 + _moduleEffect.lightningChainDamageIncreaseRate);
-  }
-
-  bool get appliesLightningRecovery =>
-      _secondaryTrait == TurretTraitType.lightningRecovery;
 
   Vector2 get lightningChargePosition {
     final offset = Vector2(math.cos(_aimAngle), math.sin(_aimAngle));
@@ -436,50 +242,10 @@ class TurretComponent extends PositionComponent {
       List.unmodifiable(_gemSlots.whereType<GemType>());
   List<GemType?> get equippedGemSlots =>
       List.unmodifiable(_gemSlots.take(_slotLimit));
-  double get criticalChance {
-    final bonus =
-        (hasGem(GemType.criticalChance)
-            ? gameGems[GemType.criticalChance]!.value *
-                  _numericGemEffectMultiplier
-            : 0.0) +
-        game.criticalChanceProgressionBonusRate +
-        _moduleEffect.criticalChanceBonusRate +
-        (_primaryTrait == TurretTraitType.deadeyeFocus ? 0.2 : 0.0) -
-        (_primaryTrait == TurretTraitType.quickScope ? 0.05 : 0.0);
-    return (definition.criticalChance + bonus).clamp(0.0, 1.0).toDouble();
-  }
-
-  double get criticalDamageMultiplier =>
-      definition.criticalDamageMultiplier +
-      game.criticalDamageProgressionBonusRate +
-      _moduleEffect.criticalDamageBonusRate;
-
-  double get aimDuration {
-    return aimDurationAtLevel(_level);
-  }
-
-  double aimDurationAtLevel(int level) {
-    if (!definition.instantHit || definition.aimDuration <= 0) {
-      return definition.aimDuration;
-    }
-    final targetLevel = level.clamp(1, maxLevel).toInt();
-    final gemAimSpeedMultiplier = hasGem(GemType.aimSpeed)
-        ? 1 + gameGems[GemType.aimSpeed]!.value * _numericGemEffectMultiplier
-        : 1.0;
-    final traitAimSpeedBonus = switch (_primaryTrait) {
-      TurretTraitType.deadeyeFocus => -0.2,
-      TurretTraitType.quickScope => 0.4,
-      _ => 0.0,
-    };
-    final aimSpeedMultiplier =
-        1 +
-        (targetLevel - 1) * _aimSpeedGrowthPerLevel +
-        _moduleEffect.aimSpeedIncreaseRate +
-        traitAimSpeedBonus;
-    // 레벨·특성·모듈 증가 합산 후 젬의 별도 증폭 적용.
-    return definition.aimDuration /
-        (math.max(0.1, aimSpeedMultiplier) * gemAimSpeedMultiplier);
-  }
+  double get criticalChance => _stats.criticalChance;
+  double get criticalDamageMultiplier => _stats.criticalDamageMultiplier;
+  double get aimDuration => _stats.aimDuration;
+  double aimDurationAtLevel(int level) => _stats.aimDurationAtLevel(level);
 
   double get aimProgressRatio {
     final duration = aimDuration;
@@ -512,6 +278,51 @@ class TurretComponent extends PositionComponent {
     final dx = enemy.position.x - position.x;
     final dy = enemy.position.y - position.y;
     return dx * dx + dy * dy <= rangeWithBody * rangeWithBody;
+  }
+
+  Map<String, Object?> nativeCombatConfiguration(int id) => {
+    'id': id,
+    'position': [position.x, position.y],
+    'statInput': TurretStatInput.capture(
+      _ComponentTurretStatSource(this),
+    ).toJson(),
+    'state': toSaveData().toJson(),
+    'aimProgress': _aimProgress,
+    'aimTargetId': _aimTarget == null
+        ? 0
+        : game.nativeCombatEntityId(_aimTarget!),
+    'aimAngle': _aimAngle,
+    'overheatTarget': _overheatTarget == null
+        ? 0
+        : game.nativeCombatEntityId(_overheatTarget!),
+    'overheatStacks': _overheatStacks,
+    'suppressiveTarget': _suppressiveTarget == null
+        ? 0
+        : game.nativeCombatEntityId(_suppressiveTarget!),
+    'suppressiveHits': _suppressiveHits,
+    'cleanup': _chainCleanupTimer,
+    'recent': {
+      for (final entry in _recentHitTimers.entries)
+        '${game.nativeCombatEntityId(entry.key)}': entry.value,
+    },
+    'lastBaseCooldown': _lastLightningBaseCooldown,
+    'lightningElapsed': _lightningAttackElapsed,
+  };
+
+  void applyNativeCombatState(Map<String, dynamic> state) {
+    _cooldown = (state['cooldown'] as num?)?.toDouble() ?? _cooldown;
+    _aimProgress = (state['aimProgress'] as num?)?.toDouble() ?? _aimProgress;
+    _aimAngle = (state['aimAngle'] as num?)?.toDouble() ?? _aimAngle;
+    _visualShotSequence =
+        (state['shotSequence'] as num?)?.toInt() ?? _visualShotSequence;
+    _directDamageDealt =
+        (state['directDamageDealt'] as num?)?.toDouble() ?? _directDamageDealt;
+    _splashDamageDealt =
+        (state['splashDamageDealt'] as num?)?.toDouble() ?? _splashDamageDealt;
+    _chainDamageDealt =
+        (state['chainDamageDealt'] as num?)?.toDouble() ?? _chainDamageDealt;
+    _burnDamageDealt =
+        (state['burnDamageDealt'] as num?)?.toDouble() ?? _burnDamageDealt;
   }
 
   SavedTurret toSaveData() {
@@ -803,6 +614,7 @@ class TurretComponent extends PositionComponent {
 
   @override
   void update(double dt) {
+    if (game.nativeCombatOwned) return;
     super.update(dt);
     _fireFeedbackTimer = math.max(0, _fireFeedbackTimer - dt);
     _shapeAnimationTime = (_shapeAnimationTime + dt) % 1000;
@@ -1289,4 +1101,75 @@ class TurretAttackSnapshot {
 
   bool get hasDamageOverTime =>
       definition.attackTags.contains(AttackTag.damageOverTime);
+}
+
+/// Allocation-free per-stat adapter; progression and module caches remain owned
+/// by the game. Mutable firing state contributes values, never ownership.
+class _ComponentTurretStatSource implements TurretStatSource {
+  @override
+  bool hasGem(GemType type) => turret._gemSlots.contains(type);
+  _ComponentTurretStatSource(this.turret);
+  final TurretComponent turret;
+  RuneNexusGame get game => turret.game;
+  @override
+  late final TurretStatDefinition definition = TurretStatDefinition(
+    type: turret.definition.type,
+    damageFamily: AttackDamageFamily.values.byName(
+      turret.definition.damageFamily.name,
+    ),
+    attackTags: turret.definition.attackTags.map((tag) => tag.name).toSet(),
+    damage: turret.definition.damage,
+    range: turret.definition.range,
+    attackRate: turret.definition.attackRate,
+    projectileSpeed: turret.definition.projectileSpeed,
+    projectileCount: turret.definition.projectileCount,
+    splashRadius: turret.definition.splashRadius,
+    centeredAreaAttack: turret.definition.centeredAreaAttack,
+    instantHit: turret.definition.instantHit,
+    aimDuration: turret.definition.aimDuration,
+    criticalChance: turret.definition.criticalChance,
+    criticalDamageMultiplier: turret.definition.criticalDamageMultiplier,
+    slowMultiplier: turret.definition.slowMultiplier,
+    slowDuration: turret.definition.slowDuration,
+  );
+  @override
+  TurretModuleEffect get moduleEffect => turret._moduleEffect;
+  @override
+  Set<GemType> get gems => turret.equippedGems.toSet();
+  @override
+  TurretTraitType? get primaryTrait => turret.primaryTrait;
+  @override
+  TurretTraitType? get secondaryTrait => turret.secondaryTrait;
+  @override
+  int get level => turret.level;
+  @override
+  bool get chainCleanupActive => turret._chainCleanupTimer > 0;
+  @override
+  double get passiveNumericGemEffectMultiplier =>
+      game.passiveNumericGemEffectMultiplier;
+  @override
+  double get towerDamageMultiplier =>
+      game.towerDamageMultiplierFor(turret.definition.damageFamily);
+  @override
+  double get corePassiveTurretDamageMultiplier =>
+      game.corePassiveTurretDamageMultiplier;
+  @override
+  double get corePassiveTurretAttackRateMultiplier =>
+      game.corePassiveTurretAttackRateMultiplier;
+  @override
+  double get boardDistanceScale => game.boardDistanceScale;
+  @override
+  double get lightningChainJumpRange => game.lightningChainJumpRange;
+  @override
+  double get criticalChanceProgressionBonusRate =>
+      game.criticalChanceProgressionBonusRate;
+  @override
+  double get criticalDamageProgressionBonusRate =>
+      game.criticalDamageProgressionBonusRate;
+  @override
+  double get criticalChanceGemValue => gameGems[GemType.criticalChance]!.value;
+  @override
+  double get aimSpeedGemValue => gameGems[GemType.aimSpeed]!.value;
+  @override
+  double get explosionGemValue => gameGems[GemType.explosion]!.value;
 }

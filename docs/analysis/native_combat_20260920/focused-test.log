@@ -1,0 +1,9 @@
+00:00 +0: loading /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_game_test.dart
+00:00 +0: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_protocol_test.dart: bootstrap freezes Flame ownership before activation acknowledgement
+00:00 +1: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_protocol_test.dart: unacknowledged packet is retried verbatim and duplicate response rejected
+00:00 +2: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_protocol_test.dart: reward event IDs are consumed once and old responses cannot resume errors
+00:00 +3: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_protocol_test.dart: explicit run reset invalidates previous epoch and event stream
+00:00 +4: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_game_test.dart: native ownership blocks Flame movement and restores compatible save mirror
+NATIVE_COMBAT_ACTIVE epoch=10 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=10
+00:00 +5: All tests passed!

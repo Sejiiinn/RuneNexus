@@ -26,7 +26,8 @@ extension _BattlefieldPresentation on RuneNexusGame {
             nativeBattlefieldChainEffectEvents)
         ? _battlefieldEffectEvents.linkedTargetIds
         : const <int>{};
-    for (final enemy in enemies) {
+    for (final enemy
+        in nativeCombatOwned ? const <EnemyComponent>[] : enemies) {
       if (enemy.isDead) continue;
       final logicalPosition = grid(enemy.position);
       final enemyId = id(enemy);
@@ -73,7 +74,8 @@ extension _BattlefieldPresentation on RuneNexusGame {
             )
           : null,
       turrets: [
-        for (final turret in _turrets.values)
+        for (final turret
+            in nativeCombatOwned ? const <TurretComponent>[] : _turrets.values)
           BattlefieldTurret(
             id: id(turret),
             type: turret.definition.type,

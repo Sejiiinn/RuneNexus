@@ -1,0 +1,1362 @@
+00:00 +0: loading /Users/sejin/Documents/Codex/RuneNexus/test/core_passive_tree_test.dart
+00:00 +0: /Users/sejin/Documents/Codex/RuneNexus/test/battlefield_selection_test.dart: selection freezes display lists and preserves resolved range and clipping
+00:00 +1: /Users/sejin/Documents/Codex/RuneNexus/test/game_board_selection_renderer_test.dart: game board selection renderer draws every selection type
+00:00 +2: /Users/sejin/Documents/Codex/RuneNexus/test/game_board_selection_renderer_test.dart: game board selection renderer accepts empty selection
+00:00 +3: /Users/sejin/Documents/Codex/RuneNexus/test/game_save_data_test.dart: v1 평면 저장을 v2 저장 경계로 변환한다
+00:00 +4: /Users/sejin/Documents/Codex/RuneNexus/test/core_passive_tree_test.dart: core passive graph contains the complete valid catalog
+00:00 +5: /Users/sejin/Documents/Codex/RuneNexus/test/game_save_data_test.dart: 진행 중인 런이 없는 v1 저장은 선택 스테이지만 보존한다
+00:00 +6: /Users/sejin/Documents/Codex/RuneNexus/test/core_passive_tree_test.dart: normal rank costs accumulate according to the shared table
+00:00 +7: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +8: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +9: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +10: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +11: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +12: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +13: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +14: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +15: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +16: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +17: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +18: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +19: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +20: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +21: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +22: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +23: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +24: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +25: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: nexus core beam periodically damages enemies from turret DPS
+00:00 +26: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: attack haste increases guardian beam cooldown recovery speed
+00:00 +27: /Users/sejin/Documents/Codex/RuneNexus/test/stage1_battlefield_presentation_test.dart: 3D 로딩 중 자동 전투와 시계를 멈추고 초기 프레임은 생성한다
+00:00 +28: /Users/sejin/Documents/Codex/RuneNexus/test/stage1_battlefield_presentation_test.dart: 3D 로딩 중 자동 전투와 시계를 멈추고 초기 프레임은 생성한다
+00:00 +29: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: core skill activation amplifies turret stats for two seconds
+00:00 +30: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: core skill activation amplifies turret stats for two seconds
+00:00 +31: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: core skill activation amplifies turret stats for two seconds
+00:00 +32: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: core skill activation amplifies turret stats for two seconds
+00:00 +33: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: efficiency build and upgrade discounts follow dynamic turret diversity
+00:00 +34: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: efficiency build and upgrade discounts follow dynamic turret diversity
+00:00 +35: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: efficiency build and upgrade discounts follow dynamic turret diversity
+00:00 +36: /Users/sejin/Documents/Codex/RuneNexus/test/run_progression_core_test.dart: trait engineering updates displayed and paid Gem Shard costs
+00:00 +37: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +38: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +39: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +40: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +41: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +42: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +43: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +44: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +45: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +46: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +47: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +48: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +49: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +50: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +51: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +52: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +53: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +54: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +55: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +56: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +57: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +58: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +59: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +60: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +61: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +62: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +63: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:00 +64: /Users/sejin/Documents/Codex/RuneNexus/test/native_selection_animation_test.dart: native ring preserves first ACK speed pause fallback and new turret phase
+00:01 +65: /Users/sejin/Documents/Codex/RuneNexus/test/play_time_test.dart: 플레이타임은 밀리초 단위로 누적되어 저장과 복원 후 이어진다
+00:01 +66: /Users/sejin/Documents/Codex/RuneNexus/test/play_time_test.dart: 게임 업데이트의 실제 경과 시간이 저장 데이터에 반영된다
+00:01 +67: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +68: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +69: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +70: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +71: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +72: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +73: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +74: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +75: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +76: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +77: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +78: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +79: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +80: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +81: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +82: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +83: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +84: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +85: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +86: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +87: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +88: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +89: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +90: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +91: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +92: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +93: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +94: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +95: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:01 +96: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +97: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +98: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +99: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +100: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +101: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +102: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +103: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +104: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +105: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +106: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +107: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +108: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +109: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +110: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +111: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +112: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +113: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +114: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +115: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +116: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +117: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +118: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +119: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +120: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +121: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +122: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +123: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +124: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +125: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +126: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +127: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +128: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +129: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +130: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +131: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +132: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +133: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +133: /Users/sejin/Documents/Codex/RuneNexus/test/hud_debug_panel_test.dart: debug panel opens and its gold and enemy actions remain usable
+Godot 전장 표시 오류: MissingPluginException(No implementation found for method beginScene on channel rune_nexus/godot_preview)
+00:02 +134: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +134: /Users/sejin/Documents/Codex/RuneNexus/test/main_startup_test.dart: 시작 준비 예외와 재시도 실패에도 오류 화면을 유지한다
+앱 시작 준비 실패: PlatformException(startup_unavailable, null, null, null)
+#0      JSONMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:168:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      SystemChrome.setPreferredOrientations (package:flutter/src/services/system_chrome.dart:548:5)
+<asynchronous suspension>
+#3      main (package:rune_nexus/main.dart:11:5)
+<asynchronous suspension>
+#4      main.<anonymous closure> (file:///Users/sejin/Documents/Codex/RuneNexus/test/main_startup_test.dart:26:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+00:02 +135: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +136: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +137: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +138: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +139: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +140: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +141: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +142: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +143: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +144: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +145: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +146: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +147: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +148: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +149: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +150: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +151: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +152: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +153: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +154: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +155: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +156: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +157: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:02 +158: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +159: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +160: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +161: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +162: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +162: /Users/sejin/Documents/Codex/RuneNexus/test/main_startup_test.dart: 시작 준비 예외와 재시도 실패에도 오류 화면을 유지한다
+앱 시작 준비 실패: PlatformException(startup_unavailable, null, null, null)
+#0      JSONMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:168:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      SystemChrome.setPreferredOrientations (package:flutter/src/services/system_chrome.dart:548:5)
+<asynchronous suspension>
+#3      main (package:rune_nexus/main.dart:11:5)
+<asynchronous suspension>
+#4      _StartupUnavailableAppState._retry (package:rune_nexus/main.dart:43:7)
+<asynchronous suspension>
+00:03 +163: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +163: /Users/sejin/Documents/Codex/RuneNexus/test/main_startup_test.dart: 재시도 중 중복 실행을 막고 성공하면 앱으로 진입한다
+앱 시작 준비 실패: PlatformException(startup_unavailable, null, null, null)
+#0      JSONMethodCodec.decodeEnvelope (package:flutter/src/services/message_codecs.dart:168:7)
+#1      MethodChannel._invokeMethod (package:flutter/src/services/platform_channel.dart:366:18)
+<asynchronous suspension>
+#2      SystemChrome.setPreferredOrientations (package:flutter/src/services/system_chrome.dart:548:5)
+<asynchronous suspension>
+#3      main (package:rune_nexus/main.dart:11:5)
+<asynchronous suspension>
+#4      main.<anonymous closure> (file:///Users/sejin/Documents/Codex/RuneNexus/test/main_startup_test.dart:58:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+00:03 +164: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +165: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +166: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +167: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +168: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +169: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +170: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +171: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +172: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +173: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +174: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +175: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +176: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +177: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +178: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +179: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +180: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +181: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +182: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +183: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +184: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +185: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +186: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +187: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +188: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +189: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +190: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +191: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +192: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +193: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +194: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +195: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +196: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +197: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +198: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +199: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +200: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:03 +201: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+Shell: PASS: 6 cases agree in Dart and Godot (numeric tolerance 1e-10; structure exact).
+00:03 +202: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +203: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +204: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +205: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +206: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +207: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +208: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +209: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +210: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +211: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +212: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +213: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +214: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +215: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +216: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +217: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +218: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +219: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +220: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +221: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +222: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +223: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +224: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +225: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +226: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:04 +227: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:05 +228: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: Rune Nexus app renders main menu
+00:05 +229: /Users/sejin/Documents/Codex/RuneNexus/test/game_image_assets_test.dart: mobile image source dimensions stay bounded
+00:05 +230: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu currency does not overlap logo on narrow viewport
+00:05 +231: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu currency does not overlap logo on narrow viewport
+00:05 +232: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu currency does not overlap logo on narrow viewport
+00:05 +233: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: active stage number socket preserves its source aspect ratio
+00:05 +234: /Users/sejin/Documents/Codex/RuneNexus/test/google_authentication_api_test.dart: Web 갱신은 쿠키를 사용하고 access 정보만 반환한다
+00:05 +235: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +236: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +236 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +237 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +238 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +239 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +240 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +241 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +242 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +243 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +244 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +245 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +246 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +247 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +248 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens daily quest dialog
+00:05 +249 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +249 ~1: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_restore_gate_test.dart: 인증 구성 활성화 시작 경계 닉네임 설정 전 저장 접근을 막고 저장 성공 후 연결한다 (variant: TargetPlatform.android)
+  Skip: GOOGLE_WEB_CLIENT_ID와 RUNE_NEXUS_API_BASE_URL dart-define이 필요한 인증 시작 통합 테스트
+00:06 +249 ~2: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +249 ~2: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_restore_gate_test.dart: 인증 구성 활성화 시작 경계 기존 닉네임 차단 outbox 재개: 설정 완료=false (variant: TargetPlatform.android)
+  Skip: GOOGLE_WEB_CLIENT_ID와 RUNE_NEXUS_API_BASE_URL dart-define이 필요한 인증 시작 통합 테스트
+00:06 +249 ~3: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +249 ~3: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_restore_gate_test.dart: 인증 구성 활성화 시작 경계 기존 닉네임 차단 outbox 재개: 설정 완료=true (variant: TargetPlatform.android)
+  Skip: GOOGLE_WEB_CLIENT_ID와 RUNE_NEXUS_API_BASE_URL dart-define이 필요한 인증 시작 통합 테스트
+00:06 +249 ~4: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +249 ~4: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_restore_gate_test.dart: 인증 구성 활성화 시작 경계 설정된 닉네임 계정은 입력 없이 저장 연결을 시작한다 (variant: TargetPlatform.android)
+  Skip: GOOGLE_WEB_CLIENT_ID와 RUNE_NEXUS_API_BASE_URL dart-define이 필요한 인증 시작 통합 테스트
+00:06 +249 ~5: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +249 ~5: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_restore_gate_test.dart: 인증 구성 활성화 시작 경계 프로필 조회 실패 후 재시도해도 미설정 계정 저장을 읽지 않는다 (variant: TargetPlatform.android)
+  Skip: GOOGLE_WEB_CLIENT_ID와 RUNE_NEXUS_API_BASE_URL dart-define이 필요한 인증 시작 통합 테스트
+00:06 +249 ~6: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +249 ~6: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_restore_gate_test.dart: 인증 구성 활성화 시작 경계 복원 중 닉네임 설정에서 로그아웃하면 게스트로 진입한다 (variant: TargetPlatform.android)
+  Skip: GOOGLE_WEB_CLIENT_ID와 RUNE_NEXUS_API_BASE_URL dart-define이 필요한 인증 시작 통합 테스트
+00:06 +249 ~7: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +249 ~7: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_restore_gate_test.dart: 인증 구성 활성화 시작 경계 닉네임 저장 응답 유실 후 재시도는 같은 태그로 연결한다 (variant: TargetPlatform.android)
+  Skip: GOOGLE_WEB_CLIENT_ID와 RUNE_NEXUS_API_BASE_URL dart-define이 필요한 인증 시작 통합 테스트
+00:06 +249 ~8: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +249 ~8: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_restore_gate_test.dart: 인증 구성 활성화 시작 경계 세션 무효화 뒤 늦은 닉네임 저장 결과는 게스트를 변경하지 않는다 (variant: TargetPlatform.android)
+  Skip: GOOGLE_WEB_CLIENT_ID와 RUNE_NEXUS_API_BASE_URL dart-define이 필요한 인증 시작 통합 테스트
+00:06 +249 ~9: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +249 ~9: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_restore_gate_test.dart: 인증 구성 활성화 시작 경계 세션 판정 전에는 게스트 저장을 읽지 않고 세션 없음 확인 뒤 진입한다 (variant: TargetPlatform.android)
+  Skip: GOOGLE_WEB_CLIENT_ID와 RUNE_NEXUS_API_BASE_URL dart-define이 필요한 인증 시작 통합 테스트
+00:06 +249 ~10: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +249 ~10: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_restore_gate_test.dart: 인증 구성 활성화 시작 경계 세션 저장소 일시 장애와 재시도 중에도 게스트 진입을 막는다 (variant: TargetPlatform.android)
+  Skip: GOOGLE_WEB_CLIENT_ID와 RUNE_NEXUS_API_BASE_URL dart-define이 필요한 인증 시작 통합 테스트
+00:06 +249 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +250 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +251 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +252 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +253 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +254 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +255 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +256 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +257 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +258 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +259 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +260 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +261 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +262 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +263 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +264 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: daily quest entry only appears on stage tab
+00:06 +265 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/frost_growth_test.dart: frost slow grows from 20 to 38 percent with matching attack snapshots
+00:06 +266 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/frost_growth_test.dart: frost slow grows from 20 to 38 percent with matching attack snapshots
+00:06 +267 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/frost_growth_test.dart: frost slow grows from 20 to 38 percent with matching attack snapshots
+00:06 +268 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/frost_growth_test.dart: frost slow grows from 20 to 38 percent with matching attack snapshots
+00:06 +269 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/frost_growth_test.dart: frost slow grows from 20 to 38 percent with matching attack snapshots
+00:06 +270 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/frost_growth_test.dart: frost slow grows from 20 to 38 percent with matching attack snapshots
+00:06 +271 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/frost_growth_test.dart: frost slow grows from 20 to 38 percent with matching attack snapshots
+00:06 +272 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/frost_growth_test.dart: frost slow grows from 20 to 38 percent with matching attack snapshots
+00:06 +273 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/frost_growth_test.dart: frost slow grows from 20 to 38 percent with matching attack snapshots
+00:06 +274 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens chapter two as stages six to ten
+00:06 +275 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens chapter two as stages six to ten
+00:06 +276 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens chapter two as stages six to ten
+00:06 +277 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens chapter two as stages six to ten
+00:06 +278 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens chapter two as stages six to ten
+00:06 +279 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens chapter two as stages six to ten
+00:06 +280 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens chapter two as stages six to ten
+00:06 +281 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens chapter two as stages six to ten
+00:06 +282 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens chapter two as stages six to ten
+00:06 +283 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens chapter two as stages six to ten
+00:06 +284 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu previews chapter two before stage five clear
+00:06 +285 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens chapter three as stages eleven to fifteen
+00:06 +285 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_selection_transport_test.dart: static state remains pending through coalescing and stale ACKs
+SELECTION_PAYLOAD fixture=1_turret full=331 steady=61
+00:06 +286 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens chapter three as stages eleven to fifteen
+00:07 +287 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: stage menu opens chapter three as stages eleven to fifteen
+00:07 +288 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: selected ghost game buttons stay visually restrained
+00:07 +289 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/stage1_projectile_visual_test.dart: 탄환 이벤트는 승인까지 재전송하고 이후 좌표 snapshot을 생략한다
+00:07 +290 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +291 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +292 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +293 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +294 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +295 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +296 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +297 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +298 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +299 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +300 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +301 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +302 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +303 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +304 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +305 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +306 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +307 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:07 +308 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +309 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +310 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +311 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +312 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +313 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +314 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +315 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +316 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +317 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +318 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +319 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +320 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +321 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +322 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +323 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +324 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +325 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +326 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +327 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +328 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +329 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +330 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +331 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +332 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +333 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +334 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +335 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +336 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +337 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +338 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +339 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +340 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +341 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +342 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +343 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +344 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +345 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +346 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:08 +347 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +348 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +349 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +350 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +351 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +352 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +353 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +354 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +355 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +356 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +357 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +358 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +359 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +360 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +361 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +362 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +363 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +364 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +365 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +366 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +367 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +368 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +369 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +370 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +371 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +372 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +373 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +374 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +375 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +376 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +377 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +378 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +379 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +380 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +381 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +382 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +383 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +384 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +385 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +386 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +387 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +388 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +389 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +390 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +391 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +392 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +393 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +394 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +395 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +396 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +397 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +398 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +399 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +400 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +401 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +402 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +403 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +404 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +405 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +406 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +407 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +408 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +409 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +410 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +411 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +412 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +413 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +414 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +415 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +416 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +417 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +418 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +419 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +420 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +421 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +422 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +423 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +424 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +425 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +426 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +427 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +428 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +429 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +430 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +431 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +432 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +433 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +434 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +435 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +436 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +437 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +438 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +439 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +440 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +441 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +442 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_test.dart: main menu keeps the logo on stage and compacts other headers
+00:09 +443 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +444 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +445 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +446 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +447 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +448 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +449 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +450 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +451 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +452 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +453 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +454 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +455 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +456 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +457 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +458 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +459 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +460 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +461 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +462 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +463 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +464 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +465 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +466 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +467 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +468 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +469 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +470 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +471 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +472 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +473 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +474 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +475 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +476 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +477 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +478 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +479 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +480 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:09 +481 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +482 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +483 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +484 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +485 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +486 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +487 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +488 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +489 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +490 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +491 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +492 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +493 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +494 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +495 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +496 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: claim 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +497 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +498 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +499 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +500 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +501 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +502 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +503 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +504 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +505 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +506 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +507 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +508 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +509 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +510 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +511 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +512 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +513 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +514 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +515 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +516 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +517 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +518 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +519 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +520 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +521 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/gem_reward_target_overlay_test.dart: reward card begins target selection without a confirm step
+00:10 +522 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:10 +523 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +524 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +525 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +526 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +527 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +528 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +529 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +530 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +531 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +532 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +533 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +534 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +535 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +536 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +537 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +538 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +539 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +540 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +541 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +542 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +543 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +544 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +544 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/godot_presentation_lifecycle_test.dart: 첫 전장 표시 전 초기 오류도 로딩을 해제한다 (variant: TargetPlatform.android)
+Godot 전장 표시 오류: Bad state: renderer unavailable
+00:11 +545 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +546 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +547 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +548 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +549 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +550 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +551 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +552 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +553 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +554 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +555 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +556 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +557 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +558 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +559 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +560 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:11 +561 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +562 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +563 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +564 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +565 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +566 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +567 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +568 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +569 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +570 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +571 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +572 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +573 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +574 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +575 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +576 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +577 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +578 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +579 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +580 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +581 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +582 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +583 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +584 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +585 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +586 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +587 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +588 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +589 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +590 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +591 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +592 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: load 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +593 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +594 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +595 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +596 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +597 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +598 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +599 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +600 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +601 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +602 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +603 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +604 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +605 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +606 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +607 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +608 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +609 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +610 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:12 +611 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +612 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +613 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +614 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +615 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +616 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +617 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +618 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +619 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +620 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +621 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +622 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +623 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +624 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +625 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +626 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +627 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +628 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +629 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +630 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +631 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +632 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +633 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +634 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +635 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +636 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +637 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +638 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +639 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +640 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +641 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +642 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +643 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +644 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +645 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +646 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +647 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +648 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +649 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +650 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +651 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +652 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +653 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +654 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +655 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:13 +656 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:14 +657 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:14 +658 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/online_save_coordinator_test.dart: update 중 인증 갱신 연결 실패는 exact 요청을 보존하고 복구한다
+00:14 +659 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +660 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +661 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +662 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +663 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +664 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +665 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +666 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +667 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +668 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +669 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +670 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +671 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +672 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +673 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +674 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +675 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +676 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +677 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +678 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +679 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +680 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +681 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +682 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +683 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +684 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +685 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:14 +686 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +687 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +688 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +689 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +690 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +691 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +692 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +693 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +694 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +695 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +696 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +697 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +698 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +699 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +700 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +701 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +702 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +703 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +704 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +705 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +706 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +707 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +708 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +709 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +710 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +711 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +712 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +713 ~11: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +713 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +714 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +715 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +716 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +717 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +718 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +719 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +720 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +721 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +722 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:15 +723 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:16 +724 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:16 +725 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:16 +726 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:16 +727 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:16 +728 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:16 +729 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:16 +730 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:16 +731 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:16 +732 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:16 +733 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:16 +734 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:16 +735 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:16 +736 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:16 +737 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +738 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +739 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +740 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +741 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +742 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +743 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +744 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +745 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +746 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +747 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +748 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +749 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +750 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +751 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +752 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +753 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +754 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/authentication_startup_test.dart: 저장 읽기 실패 후 시작 재시도는 새 게임으로 원래 진행을 다시 읽는다
+00:17 +755 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +756 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +757 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +758 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +759 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +760 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +761 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +762 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +763 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +764 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +765 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +766 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +767 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +768 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +769 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +770 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +771 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:17 +772 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +773 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +774 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +775 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +776 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +777 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +778 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +779 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +780 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +781 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +782 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +783 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +784 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +785 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +786 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +787 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +788 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +789 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +790 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +791 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +792 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:18 +793 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_research_test.dart: research cards keep two columns on narrow menu width
+00:19 +794 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:19 +795 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:19 +796 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:19 +797 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:19 +798 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +799 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +800 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +800 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: 본게임 Godot 투영으로 건설하고 전투·카메라 전환 후 실패 시 2D로 복귀한다 (variant: TargetPlatform.android)
+Godot 전장 표시 오류: Bad state: renderer unavailable
+00:20 +801 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +802 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +802 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/godot_battlefield_view_test.dart: Godot 채널 없는 Android에서 본게임과 2D 입력을 유지한다 (variant: TargetPlatform.android)
+Godot 전장 표시 오류: MissingPluginException(No implementation found for method beginScene on channel rune_nexus/godot_preview)
+00:20 +803 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +804 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +805 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +806 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +807 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +808 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +809 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +810 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +811 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +812 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:20 +813 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/active_run_menu_flow_test.dart: home button opens stage menu with end confirmation (variant: TargetPlatform.linux)
+00:21 +814 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:21 +815 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:21 +816 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:21 +817 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:21 +818 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:21 +819 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:21 +820 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:21 +821 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +822 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +823 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +824 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +825 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +826 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +827 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +828 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +829 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +830 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +831 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +832 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +833 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +834 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +835 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +836 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +837 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +838 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +839 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +840 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +841 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +842 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:22 +843 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:23 +844 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:23 +844 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/native_combat_game_test.dart: native ownership blocks Flame movement and restores compatible save mirror
+NATIVE_COMBAT_ACTIVE epoch=10 seq=1
+NATIVE_COMBAT_SUSPENDED epoch=10
+00:23 +845 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:23 +846 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:23 +847 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:23 +848 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:23 +849 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:23 +850 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:23 +851 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +852 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +853 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +854 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +855 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +856 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +857 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +858 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +859 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +860 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +861 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +862 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +863 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +864 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +865 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +866 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +867 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +868 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +869 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +870 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +871 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +872 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +873 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +874 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +875 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +876 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +877 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:24 +878 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:25 +879 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:25 +880 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:25 +881 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:25 +882 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:25 +883 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 첫 접속은 로비이며 각 메뉴 진입과 로비 복귀를 지원한다 (variant: TargetPlatform.linux)
+00:25 +884 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage cards fit on narrow menu width
+00:25 +885 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage cards fit on narrow menu width
+00:25 +886 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 이벤트와 설정은 기존 임무와 계정 화면으로 연결된다 (variant: TargetPlatform.linux)
+00:25 +887 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 이벤트와 설정은 기존 임무와 계정 화면으로 연결된다 (variant: TargetPlatform.linux)
+00:25 +888 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 이벤트와 설정은 기존 임무와 계정 화면으로 연결된다 (variant: TargetPlatform.linux)
+00:25 +889 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 이벤트와 설정은 기존 임무와 계정 화면으로 연결된다 (variant: TargetPlatform.linux)
+00:25 +890 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 이벤트와 설정은 기존 임무와 계정 화면으로 연결된다 (variant: TargetPlatform.linux)
+00:25 +891 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 이벤트와 설정은 기존 임무와 계정 화면으로 연결된다 (variant: TargetPlatform.linux)
+00:25 +892 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 이벤트와 설정은 기존 임무와 계정 화면으로 연결된다 (variant: TargetPlatform.linux)
+00:25 +893 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 이벤트와 설정은 기존 임무와 계정 화면으로 연결된다 (variant: TargetPlatform.linux)
+00:25 +894 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 이벤트와 설정은 기존 임무와 계정 화면으로 연결된다 (variant: TargetPlatform.linux)
+00:25 +895 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 이벤트와 설정은 기존 임무와 계정 화면으로 연결된다 (variant: TargetPlatform.linux)
+00:25 +896 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 이벤트와 설정은 기존 임무와 계정 화면으로 연결된다 (variant: TargetPlatform.linux)
+00:25 +897 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/turret_stat_calculation_test.dart: fixed original turret output arrow-0
+00:25 +898 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/turret_stat_calculation_test.dart: fixed original turret output arrow-0
+00:25 +899 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/turret_stat_calculation_test.dart: fixed original turret output arrow-0
+00:25 +900 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/turret_stat_calculation_test.dart: fixed original turret output arrow-0
+00:25 +901 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +902 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +903 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +904 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +905 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +906 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +907 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +908 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +909 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +910 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +911 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +912 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +913 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +914 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +915 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +916 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +917 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +918 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +919 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +920 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +921 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +922 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +923 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +924 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +925 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +926 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +927 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +928 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +929 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +930 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +931 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +932 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +933 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +934 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +935 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +936 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +937 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +938 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +939 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +940 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +941 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +942 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +943 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +944 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +945 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +946 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +947 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +948 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +949 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +950 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +951 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +952 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +953 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +954 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +955 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +956 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +957 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +958 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +959 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +960 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +961 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +962 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +963 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +964 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +965 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +966 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +967 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +968 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +969 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +970 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +971 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +972 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +973 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +974 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +975 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +976 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +977 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +978 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +979 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +980 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +981 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +982 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +983 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +984 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +985 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +986 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +987 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +988 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +989 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +990 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +991 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +992 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +993 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +994 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +995 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +996 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +997 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +998 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +999 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +1000 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +1001 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +1002 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +1003 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +1004 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +1005 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +1006 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_stage_detail_test.dart: stage details show actual unlock items
+00:25 +1007 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1008 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1009 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1010 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1011 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1012 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1013 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1014 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1015 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1016 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1017 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1018 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1019 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1020 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1021 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1022 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1023 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1024 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1025 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1026 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1027 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1028 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1029 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1030 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1031 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1032 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1033 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1034 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1035 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1036 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1037 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1038 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1039 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1040 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:25 +1041 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1042 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1043 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1044 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1045 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1046 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1047 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1048 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1049 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1050 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1051 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1052 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1053 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1054 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1055 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1056 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1057 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1058 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1059 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1060 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1061 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1062 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1063 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1064 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1065 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1066 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1067 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1068 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1069 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1070 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1071 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1072 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1073 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1074 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1075 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1076 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1077 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1078 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1079 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1080 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1081 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1082 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1083 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1084 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1085 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1086 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1087 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1088 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1089 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1090 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1091 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1092 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1093 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1094 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1095 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1096 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1097 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1098 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1099 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1100 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1101 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1102 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1103 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1104 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1105 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1106 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1107 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1108 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1109 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1110 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1111 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1112 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1113 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1114 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1115 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1116 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1117 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1118 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1119 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1120 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1121 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1122 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1123 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1124 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1125 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1126 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1127 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1128 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1129 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1130 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1131 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1132 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1133 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1134 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1135 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1136 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1137 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1138 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1139 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1140 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1141 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1142 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1143 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1144 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1145 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1146 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1147 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1148 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1149 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1150 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1151 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1152 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1153 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1154 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1155 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1156 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1157 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1158 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1159 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1160 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1161 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1162 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1163 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1164 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1165 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1166 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1167 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1168 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1169 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1170 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1171 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1172 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1173 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1174 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1175 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1176 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1177 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1178 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1179 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1180 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1181 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1182 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1183 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1184 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1185 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1186 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1187 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1188 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1189 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1190 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1191 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1192 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1193 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1194 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1195 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1196 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1197 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1198 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1199 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1200 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1201 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1202 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1203 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1204 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1205 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1206 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1207 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1208 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1209 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1210 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1211 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1212 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1213 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1214 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1215 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1216 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1217 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1218 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1219 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1220 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1221 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1222 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1223 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1224 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1225 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1226 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1227 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1228 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1229 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1230 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1231 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1232 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1233 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1234 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1235 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 리더보드는 로비 위 모달로 열리고 계정 연결로 이어진다 (variant: TargetPlatform.linux)
+00:26 +1236 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_permanent_upgrade_test.dart: permanent upgrade rows fit on narrow menu width
+Shell: PASS: 318 cases agree in Dart and Godot (numeric tolerance 1e-10; structure exact).
+00:26 +1237 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_permanent_upgrade_test.dart: permanent upgrade rows fit on narrow menu width
+00:26 +1238 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_permanent_upgrade_test.dart: permanent upgrade rows fit on narrow menu width
+00:27 +1239 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_permanent_upgrade_test.dart: permanent upgrade rows fit on narrow menu width
+00:27 +1240 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_permanent_upgrade_test.dart: permanent upgrade rows fit on narrow menu width
+00:27 +1241 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_permanent_upgrade_test.dart: permanent upgrade rows fit on narrow menu width
+00:27 +1242 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_permanent_upgrade_test.dart: permanent upgrade rows fit on narrow menu width
+00:27 +1243 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_permanent_upgrade_test.dart: permanent upgrade rows fit on narrow menu width
+00:27 +1244 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_permanent_upgrade_test.dart: permanent upgrade rows fit on narrow menu width
+00:27 +1245 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_permanent_upgrade_test.dart: permanent upgrade rows fit on narrow menu width
+00:27 +1246 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_permanent_upgrade_test.dart: permanent upgrade rows fit on narrow menu width
+00:27 +1247 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_permanent_upgrade_test.dart: permanent upgrade rows fit on narrow menu width
+00:27 +1248 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_menu_permanent_upgrade_test.dart: permanent upgrade rows fit on narrow menu width
+00:27 +1249 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/app_startup_integration_test.dart: 본 앱의 저장 화면 context에서 필수 업데이트로 이동해도 게임과 저장소를 유지한다
+00:27 +1250 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/app_startup_integration_test.dart: 본 앱의 저장 화면 context에서 필수 업데이트로 이동해도 게임과 저장소를 유지한다
+00:28 +1251 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/app_startup_integration_test.dart: 본 앱의 저장 화면 context에서 필수 업데이트로 이동해도 게임과 저장소를 유지한다
+00:28 +1252 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/app_startup_integration_test.dart: 본 앱의 저장 화면 context에서 필수 업데이트로 이동해도 게임과 저장소를 유지한다
+00:28 +1253 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/app_startup_integration_test.dart: 본 앱의 저장 화면 context에서 필수 업데이트로 이동해도 게임과 저장소를 유지한다
+00:28 +1254 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/app_startup_integration_test.dart: 본 앱의 저장 화면 context에서 필수 업데이트로 이동해도 게임과 저장소를 유지한다
+00:28 +1255 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/app_startup_integration_test.dart: 본 앱의 저장 화면 context에서 필수 업데이트로 이동해도 게임과 저장소를 유지한다
+00:28 +1256 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/app_startup_integration_test.dart: 본 앱의 저장 화면 context에서 필수 업데이트로 이동해도 게임과 저장소를 유지한다
+00:28 +1257 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/app_startup_integration_test.dart: 본 앱의 저장 화면 context에서 필수 업데이트로 이동해도 게임과 저장소를 유지한다
+00:28 +1258 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/app_startup_integration_test.dart: 본 앱의 저장 화면 context에서 필수 업데이트로 이동해도 게임과 저장소를 유지한다
+00:29 +1259 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 연구 탭에서 로비로 돌아와도 연구 완료가 반영된다 (variant: TargetPlatform.linux)
+00:29 +1260 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 연구 탭에서 로비로 돌아와도 연구 완료가 반영된다 (variant: TargetPlatform.linux)
+00:29 +1261 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 연구 탭에서 로비로 돌아와도 연구 완료가 반영된다 (variant: TargetPlatform.linux)
+00:29 +1262 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 320.0x568.0 글자 1.0 배율에서 배경은 화면을 채우고 메뉴 접근 가능 (variant: TargetPlatform.linux)
+00:29 +1263 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 320.0x568.0 글자 2.0 배율에서 배경은 화면을 채우고 메뉴 접근 가능 (variant: TargetPlatform.linux)
+00:29 +1264 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 393.0x852.0 글자 1.0 배율에서 배경은 화면을 채우고 메뉴 접근 가능 (variant: TargetPlatform.linux)
+00:29 +1265 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 393.0x852.0 글자 2.0 배율에서 배경은 화면을 채우고 메뉴 접근 가능 (variant: TargetPlatform.linux)
+00:29 +1266 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 844.0x390.0 글자 1.0 배율에서 배경은 화면을 채우고 메뉴 접근 가능 (variant: TargetPlatform.linux)
+00:29 +1267 ~12: /Users/sejin/Documents/Codex/RuneNexus/test/main_lobby_test.dart: 로비 844.0x390.0 글자 2.0 배율에서 배경은 화면을 채우고 메뉴 접근 가능 (variant: TargetPlatform.linux)
+00:29 +1268 ~12: All tests passed!

@@ -46,6 +46,15 @@ open class GodotFlutterActivity : FlutterActivity() {
                     "getMetrics" -> result.success(GodotRuntime.latestMetrics())
                     "getPresentation" -> result.success(GodotRuntime.latestPresentation())
                     "getStatus" -> result.success(GodotRuntime.status())
+                    "submitCombat" -> {
+                        val epoch = call.argument<Number>("sceneEpoch")?.toLong()
+                        val json = call.argument<String>("command")
+                        if (epoch == null || epoch <= 0 || json.isNullOrEmpty()) {
+                            result.error("invalid_argument", "A positive sceneEpoch and non-empty command are required.", null)
+                        } else {
+                            result.success(GodotRuntime.submitCombat(epoch, json))
+                        }
+                    }
                     "submitFrameV2" -> {
                         val epoch = call.argument<Number>("sceneEpoch")?.toLong()
                         val json = call.argument<String>("frame")

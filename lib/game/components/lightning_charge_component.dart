@@ -57,6 +57,7 @@ class LightningChargeComponent extends PositionComponent
 
   @override
   void update(double dt) {
+    if (owner?.game.nativeCombatOwned == true) return;
     super.update(dt);
     if (!isActive()) {
       finishNativePresentation?.call(true);

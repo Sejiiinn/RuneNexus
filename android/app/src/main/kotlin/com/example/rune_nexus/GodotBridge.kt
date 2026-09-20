@@ -18,6 +18,10 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
     private val options = AtomicReference("")
     private val metrics = AtomicReference("{}")
     private val presentation = AtomicReference("{}")
+    private val combatResponse = AtomicReference("{}")
+    private var combatCommand = ""
+    private var combatPendingSequence = -1L
+    private var combatAppliedSequence = -1L
     private val ready = AtomicBoolean(false)
     private val error = AtomicReference<String?>(null)
     private val submitted = AtomicLong()
@@ -42,6 +46,23 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
         return presentation.get()
     }
 
+    /** Combat commands must never use the lossy presentation-frame mailbox. */
+    @Synchronized
+    fun submitCombat(epoch: Long, json: String): String {
+        if (epoch != sceneEpoch) return "{}"
+        val packet = runCatching { JSONObject(json) }.getOrNull() ?: return "{}"
+        val sequence = packet.optLong("sequence", -1L)
+        if (packet.optLong("epoch", -1L) != epoch || sequence < 0) return "{}"
+        if (sequence <= combatAppliedSequence) return combatResponse.get()
+        val newerBootstrap = packet.has("bootstrap") &&
+            sequence > combatPendingSequence
+        if (combatPendingSequence < 0 || combatPendingSequence == sequence || newerBootstrap) {
+            combatPendingSequence = sequence
+            combatCommand = json
+        }
+        return combatResponse.get()
+    }
+
     @Synchronized
     fun clearScene(expectedEpoch: Long? = null) {
         if (expectedEpoch != null && expectedEpoch != sceneEpoch) return
@@ -49,6 +70,10 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
         resetPending = true
         options.set("")
         presentation.set("{}")
+        combatResponse.set("{}")
+        combatCommand = ""
+        combatPendingSequence = -1L
+        combatAppliedSequence = -1L
     }
 
     @Synchronized
@@ -71,11 +96,14 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
     fun latestMetrics(): String = metrics.get()
     fun latestPresentation(): String = presentation.get()
 
+    @Synchronized
     fun status(viewAttached: Boolean): Map<String, Any?> = mapOf(
         "ready" to ready.get(),
         "error" to error.get(),
         "viewAttached" to viewAttached,
         "engineVersion" to "4.7.2.stable",
+        "nativeCombatVersion" to 1,
+        "combatSequence" to combatAppliedSequence,
         "submitted" to submitted.get(),
         "consumed" to consumed.get(),
         "superseded" to superseded.get(),
@@ -97,6 +125,30 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
 
     @UsedByGodot
     fun take_options(): String = options.getAndSet("")
+
+    @Synchronized
+    @UsedByGodot
+    fun take_combat(): String {
+        if (resetPending) return ""
+        val current = combatCommand
+        combatCommand = ""
+        return current
+    }
+
+    @Synchronized
+    @UsedByGodot
+    fun report_combat(json: String) {
+        val packet = runCatching { JSONObject(json) }.getOrNull() ?: return
+        val sequence = packet.optLong("ackSequence", -1L)
+        if (resetPending || packet.optLong("epoch", -1L) != sceneEpoch ||
+            sequence < combatAppliedSequence) return
+        combatResponse.set(json)
+        combatAppliedSequence = sequence
+        if (combatPendingSequence <= sequence) {
+            combatPendingSequence = -1L
+            combatCommand = ""
+        }
+    }
 
     @UsedByGodot
     fun report_ready() {
@@ -120,6 +172,7 @@ class GodotBridge(engine: Godot) : GodotPlugin(engine) {
         error.set(message)
         ready.set(false)
         presentation.set("{}")
+        combatResponse.set("{}")
     }
 
     override fun onGodotTerminating() {

@@ -1,11 +1,14 @@
 import 'package:flame/components.dart';
 
-import '../../domain/enemy/enemy_resistance_profile.dart';
+import '../../domain/combat/attack_calculation.dart';
+
 import '../../domain/map/grid_point.dart';
 import '../../domain/turret/attack_tag.dart';
 import '../../domain/turret/damage_family.dart';
 import '../components/enemy_component.dart';
 import '../components/turret_component.dart';
+
+export '../../domain/combat/attack_calculation.dart' show ResolvedAttackDamage;
 
 class CombatResolver {
   const CombatResolver({
@@ -27,10 +30,39 @@ class CombatResolver {
     double traitMultiplier = 1,
     Set<AttackTag> extraTags = const {},
   }) {
-    final multiplier = damageMultiplier(attack, enemy, extraTags: extraTags);
-    return ResolvedAttackDamage(
-      damage: baseDamage * traitMultiplier * multiplier,
-      resistanceMultiplier: multiplier,
+    return AttackCalculation.resolveDamage(
+      resistance: _resistanceInput(attack, enemy, extraTags: extraTags),
+      baseDamage: baseDamage,
+      traitMultiplier: traitMultiplier,
+    );
+  }
+
+  AttackResistanceInput _resistanceInput(
+    TurretAttackSnapshot attack,
+    EnemyComponent enemy, {
+    Set<AttackTag> extraTags = const {},
+  }) {
+    final profile = enemy.definition.resistanceProfile;
+    return AttackResistanceInput(
+      family: switch (attack.definition.damageFamily) {
+        DamageFamily.physical => AttackDamageFamily.physical,
+        DamageFamily.elemental => AttackDamageFamily.elemental,
+      },
+      familyResistance: profile.familyResistance(
+        attack.definition.damageFamily,
+      ),
+      tags: attack.definition.attackTags.map((tag) => tag.name),
+      extraTags: extraTags.map((tag) => tag.name),
+      tagResistances: profile.tagResistances.isEmpty
+          ? const {}
+          : {
+              for (final tag in attack.definition.attackTags)
+                tag.name: profile.tagResistance(tag),
+              for (final tag in extraTags) tag.name: profile.tagResistance(tag),
+            },
+      enemyPhysicalReduction: enemy.physicalResistanceReduction,
+      attackPhysicalReduction: attack.physicalResistanceReduction,
+      enemyElementalReduction: enemy.elementalResistanceReduction,
     );
   }
 
@@ -38,33 +70,9 @@ class CombatResolver {
     TurretAttackSnapshot attack,
     EnemyComponent enemy, {
     Set<AttackTag> extraTags = const {},
-  }) {
-    final resistance = enemy.definition.resistanceProfile;
-    final tags = extraTags.isEmpty
-        ? attack.definition.attackTags
-        : {...attack.definition.attackTags, ...extraTags};
-    var familyResistance = resistance.familyResistance(
-      attack.definition.damageFamily,
-    );
-    if (attack.definition.damageFamily == DamageFamily.physical) {
-      familyResistance -=
-          enemy.physicalResistanceReduction +
-          attack.physicalResistanceReduction;
-    }
-    if (attack.definition.damageFamily == DamageFamily.elemental) {
-      familyResistance -= enemy.elementalResistanceReduction;
-    }
-
-    var multiplier = EnemyResistanceProfile.multiplierForResistance(
-      familyResistance,
-    );
-    for (final tag in tags) {
-      multiplier *= EnemyResistanceProfile.multiplierForResistance(
-        resistance.tagResistance(tag),
-      );
-    }
-    return multiplier;
-  }
+  }) => AttackCalculation.damageMultiplier(
+    _resistanceInput(attack, enemy, extraTags: extraTags),
+  );
 
   void applyAttackStatuses({
     required TurretAttackSnapshot attack,
@@ -72,31 +80,47 @@ class CombatResolver {
     double damageScale = 1,
     GridPoint? activeSourceTurretPoint,
   }) {
-    if (attack.hasDamageOverTime) {
-      final burnMultiplier = damageMultiplier(attack, enemy);
-      enemy.applyBurn(
-        damagePerSecond:
-            attack.damage *
-            burnDamagePerSecondScale *
-            damageScale *
-            burnMultiplier *
-            attack.damageOverTimeDamageMultiplier,
-        duration: burnDurationSeconds * attack.damageOverTimeDurationMultiplier,
-        damageMultiplier: burnMultiplier,
-        sourceTurretPoint: activeSourceTurretPoint,
-        ignoreArmorReduction: attack.ignoresArmorReduction,
-      );
+    if (!attack.hasDamageOverTime &&
+        !(attack.slowDuration > 0 && attack.slowMultiplier < 1)) {
+      return;
     }
-    if (attack.slowDuration > 0 && attack.slowMultiplier < 1) {
-      enemy.applySlow(
-        multiplier: attack.slowMultiplier,
-        duration: attack.slowDuration,
-      );
-      if (attack.appliesFrostCrack) {
-        enemy.applyElementalVulnerability(
-          bonus: 0.15,
-          duration: attack.slowDuration,
-        );
+    final effects = AttackCalculation.resolveStatuses(
+      AttackStatusInput(
+        damage: attack.damage,
+        resistance: _resistanceInput(attack, enemy),
+        burnDamagePerSecondScale: burnDamagePerSecondScale,
+        burnDurationSeconds: burnDurationSeconds,
+        hasDamageOverTime: attack.hasDamageOverTime,
+        damageScale: damageScale,
+        damageOverTimeDamageMultiplier: attack.damageOverTimeDamageMultiplier,
+        damageOverTimeDurationMultiplier:
+            attack.damageOverTimeDurationMultiplier,
+        ignoresArmorReduction: attack.ignoresArmorReduction,
+        slowDuration: attack.slowDuration,
+        slowMultiplier: attack.slowMultiplier,
+        appliesFrostCrack: attack.appliesFrostCrack,
+      ),
+    );
+    for (final effect in effects) {
+      switch (effect) {
+        case AttackBurnEffect():
+          enemy.applyBurn(
+            damagePerSecond: effect.damagePerSecond,
+            duration: effect.duration,
+            damageMultiplier: effect.damageMultiplier,
+            sourceTurretPoint: activeSourceTurretPoint,
+            ignoreArmorReduction: effect.ignoreArmorReduction,
+          );
+        case AttackSlowEffect():
+          enemy.applySlow(
+            multiplier: effect.multiplier,
+            duration: effect.duration,
+          );
+        case AttackElementalVulnerabilityEffect():
+          enemy.applyElementalVulnerability(
+            bonus: effect.bonus,
+            duration: effect.duration,
+          );
       }
     }
   }
@@ -156,14 +180,4 @@ class CombatResolver {
     }
     return target;
   }
-}
-
-class ResolvedAttackDamage {
-  const ResolvedAttackDamage({
-    required this.damage,
-    required this.resistanceMultiplier,
-  });
-
-  final double damage;
-  final double resistanceMultiplier;
 }

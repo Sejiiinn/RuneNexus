@@ -10,6 +10,7 @@ Map<String, Object?> encodeGodotBattlefieldFrame(
   BattlefieldFrame frame, {
   required int sequence,
   int sceneEpoch = 0,
+  bool nativeCombatOwned = false,
   int viewportRevision = 0,
   Size? viewport,
   GodotBattlefieldMapTransport? mapTransport,
@@ -60,57 +61,61 @@ Map<String, Object?> encodeGodotBattlefieldFrame(
             for (final tile in row) tile.name,
         ],
       },
-    'turrets': [for (final turret in frame.turrets) turretData(turret)],
+    'nativeCombatOwned': nativeCombatOwned,
+    if (!nativeCombatOwned)
+      'turrets': [for (final turret in frame.turrets) turretData(turret)],
     'buildPreview': frame.buildPreview == null
         ? null
         : turretData(frame.buildPreview!),
-    'enemies': [
-      for (final enemy in frame.enemies)
-        [
-          enemy.id,
-          enemy.position.dx,
-          enemy.position.dy,
-          enemy.facingAngle,
-          enemy.phase,
-          enemy.scale,
-          enemy.hitFlash,
-          enemy.type.name,
-          enemy.burning,
-          enemy.slowed,
-          enemy.poisoned,
-          enemy.diamondCarrier,
-          if (enemy.logicalPosition != null) ...[
-            enemy.logicalPosition!.dx,
-            enemy.logicalPosition!.dy,
+    if (!nativeCombatOwned)
+      'enemies': [
+        for (final enemy in frame.enemies)
+          [
+            enemy.id,
+            enemy.position.dx,
+            enemy.position.dy,
+            enemy.facingAngle,
+            enemy.phase,
+            enemy.scale,
+            enemy.hitFlash,
+            enemy.type.name,
+            enemy.burning,
+            enemy.slowed,
+            enemy.poisoned,
+            enemy.diamondCarrier,
+            if (enemy.logicalPosition != null) ...[
+              enemy.logicalPosition!.dx,
+              enemy.logicalPosition!.dy,
+            ],
           ],
-        ],
-    ],
-    if (frame.projectileEvents != null)
+      ],
+    if (!nativeCombatOwned && frame.projectileEvents != null)
       'projectileEvents': frame.projectileEvents,
-    'projectiles': [
-      for (final projectile in [
-        ...frame.projectiles,
-        ...frame.finishedProjectiles,
-      ])
-        [
-          projectile.id,
-          projectile.position.dx,
-          projectile.position.dy,
-          projectile.direction.dx,
-          projectile.direction.dy,
-          projectile.type.name,
-          if (projectile.origin != null) ...[
-            projectile.origin!.dx,
-            projectile.origin!.dy,
-            projectile.ownerId,
-            projectile.shotSequence,
-            projectile.isChain,
-            projectile.finishedAt ?? -1,
-            projectile.hitTarget?.dx,
-            projectile.hitTarget?.dy,
+    if (!nativeCombatOwned)
+      'projectiles': [
+        for (final projectile in [
+          ...frame.projectiles,
+          ...frame.finishedProjectiles,
+        ])
+          [
+            projectile.id,
+            projectile.position.dx,
+            projectile.position.dy,
+            projectile.direction.dx,
+            projectile.direction.dy,
+            projectile.type.name,
+            if (projectile.origin != null) ...[
+              projectile.origin!.dx,
+              projectile.origin!.dy,
+              projectile.ownerId,
+              projectile.shotSequence,
+              projectile.isChain,
+              projectile.finishedAt ?? -1,
+              projectile.hitTarget?.dx,
+              projectile.hitTarget?.dy,
+            ],
           ],
-        ],
-    ],
+      ],
     'impacts': [
       for (final impact in frame.impacts)
         [

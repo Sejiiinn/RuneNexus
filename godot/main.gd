@@ -12,6 +12,7 @@ const BallisticProjectile = preload("res://effects/ballistic_projectile.gd")
 const RunicFire = preload("res://effects/runic_fire.gd")
 const EnemyFrost = preload("res://effects/enemy_frost.gd")
 const EnemyBurn = preload("res://effects/enemy_burn.gd")
+const NativeCombatRuntime = preload("res://combat/native_combat_runtime.gd")
 const Terrain = preload("res://assets/environment/terrain.glb")
 const Landmarks = preload("res://assets/environment/landmarks.glb")
 const Dressing = preload("res://assets/environment/dressing.glb")
@@ -51,6 +52,8 @@ const REFLECTION_TERRAIN_LAYER := 1 << 1
 const REFLECTION_CRYSTAL_LAYER := 1 << 2
 
 var bridge: Object
+var _native_combat := NativeCombatRuntime.new()
+var _native_combat_base_frame: Dictionary = {}
 var camera := Camera3D.new()
 var camera_mode := ""
 var camera_transition: Tween
@@ -316,6 +319,8 @@ func _process(delta: float) -> void:
 			_profile_intervals.append(float(tick - _profile_last_tick) / 1000.0)
 		_profile_last_tick = tick
 	if bridge:
+		var pending_frame: Dictionary = {}
+		var combat_changed := false
 		var option_text: String = bridge.take_options()
 		if not option_text.is_empty():
 			var incoming = JSON.parse_string(option_text)
@@ -330,7 +335,25 @@ func _process(delta: float) -> void:
 				_profile_parse_us += Time.get_ticks_usec() - parse_start
 				_profile_parse_count += 1
 			if incoming is Dictionary:
-				_apply_frame(incoming)
+				if bool(incoming.get("reset", false)) or int(incoming.get("sceneEpoch", -1)) > _scene_epoch:
+					_apply_frame(incoming)
+				else:
+					pending_frame = incoming
+				if not bool(incoming.get("reset", false)) and int(incoming.get("sceneEpoch", -1)) == _scene_epoch:
+					_native_combat_base_frame = incoming.duplicate(true)
+		# Android Java singleton methods are dynamically exposed.
+		var combat_text: String = bridge.take_combat()
+		if not combat_text.is_empty():
+			var command = JSON.parse_string(combat_text)
+			if command is Dictionary and int(command.get("epoch", -1)) == _scene_epoch:
+				var response: Dictionary = _native_combat.process_command(command)
+				bridge.report_combat(JSON.stringify(response, "", false, true))
+				combat_changed = _native_combat.active
+		# One presentation update consumes the latest combat and UI state together.
+		if not pending_frame.is_empty():
+			_apply_frame(pending_frame)
+		elif combat_changed and not _native_combat_base_frame.is_empty():
+			_apply_frame(_native_combat_base_frame.duplicate(true))
 	elif standalone_playing and not last_frame.is_empty():
 		standalone_time += delta
 		var frame: Dictionary = last_frame.duplicate(true)
@@ -358,6 +381,9 @@ func _process(delta: float) -> void:
 			"received_frames": received_frames, "sequence": last_sequence,
 			"viewport": [viewport.x, viewport.y], "authored_terrain": _using_authored,
 			"renderer": RenderingServer.get_current_rendering_method(),
+			"combat_active": _native_combat.active,
+			"combat_sequence": _native_combat.sequence,
+			"combat_elapsed": _native_combat.elapsed,
 		}
 		if _profile_enabled:
 			_profile_window_id += 1
@@ -832,6 +858,8 @@ func _report_presentation() -> void:
 
 
 func _apply_frame(frame: Dictionary) -> void:
+	if _native_combat.active and not bool(frame.get("reset", false)) and int(frame.get("sceneEpoch", -1)) == _scene_epoch:
+		frame = _native_combat.decorate_frame(frame)
 	if not _profile_enabled:
 		_apply_frame_impl(frame)
 		return
@@ -917,6 +945,8 @@ func _apply_frame_impl(frame: Dictionary) -> void:
 
 
 func _clear_scene() -> void:
+	_native_combat = NativeCombatRuntime.new()
+	_native_combat_base_frame.clear()
 	_projectile_events.clear()
 	world.position = Vector3.ZERO
 	_turret_level_labels.clear()

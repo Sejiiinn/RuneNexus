@@ -164,6 +164,69 @@ class EnemyComponent extends PositionComponent {
     );
   }
 
+  Map<String, Object?> nativeCombatState(int id) => {
+    ...toSaveData().toJson(),
+    'id': id,
+    'x': position.x,
+    'y': position.y,
+    'position': {'x': position.x, 'y': position.y},
+    'presentationScale': size.x / (48 * game.boardDistanceScale),
+    'presentationSize': [size.x, size.y],
+    'visualOffset': [
+      visualPosition.x - position.x,
+      visualPosition.y - position.y,
+    ],
+    'path': [
+      for (final point in path) {'x': point.x, 'y': point.y},
+    ],
+    'speed': definition.speed,
+    'boardDistanceScale': game.boardDistanceScale,
+    'maxShield': maxShield,
+    'maxArmor': maxArmor,
+    'shieldRegenRate': definition.shieldRegenRate,
+    'targetIndex': _targetIndex,
+    'facingAngle': _facingAngle,
+    'collisionRadius': collisionRadius,
+    'targetingRadius': math.min(size.x, size.y) / 2,
+    'visualPhase': visualPhase,
+    'burnNumberDamage': _burnNumberDamage,
+    'burnNumberTimer': _burnNumberTimer,
+    'poisonNumberDamage': _poisonNumberDamage,
+    'poisonNumberTimer': _poisonNumberTimer,
+    'hitFlashTimer': _hitFlashTimer,
+    'statusEffectTime': _statusEffectTime,
+    'familyResistances': {
+      for (final entry
+          in definition.resistanceProfile.familyResistances.entries)
+        entry.key.name: entry.value,
+    },
+    'tagResistances': {
+      for (final entry in definition.resistanceProfile.tagResistances.entries)
+        entry.key.name: entry.value,
+    },
+  };
+
+  void applyNativeCombatState(Map<String, dynamic> state) {
+    final saved = SavedEnemy.fromJson(state);
+    if (saved == null) throw StateError('Invalid native enemy snapshot');
+    restoreFromSaveData(saved);
+    if (state['x'] is num && state['y'] is num) {
+      position.setValues(
+        (state['x'] as num).toDouble(),
+        (state['y'] as num).toDouble(),
+      );
+    }
+    _targetIndex = (state['targetIndex'] as num?)?.toInt() ?? _targetIndex;
+    _facingAngle = (state['facingAngle'] as num?)?.toDouble() ?? _facingAngle;
+    _burnNumberDamage = (state['burnNumberDamage'] as num?)?.toDouble() ?? 0;
+    _burnNumberTimer = (state['burnNumberTimer'] as num?)?.toDouble() ?? 0;
+    _poisonNumberDamage =
+        (state['poisonNumberDamage'] as num?)?.toDouble() ?? 0;
+    _poisonNumberTimer = (state['poisonNumberTimer'] as num?)?.toDouble() ?? 0;
+    _hitFlashTimer = (state['hitFlashTimer'] as num?)?.toDouble() ?? 0;
+    _statusEffectTime = (state['statusEffectTime'] as num?)?.toDouble() ?? 0;
+  }
+
   void restoreFromSaveData(SavedEnemy data) {
     hp = data.hp.clamp(0, maxHp).toDouble();
     shield = maxShield <= 0 ? 0 : data.shield.clamp(0, maxShield).toDouble();
@@ -251,6 +314,7 @@ class EnemyComponent extends PositionComponent {
 
   @override
   void update(double dt) {
+    if (game.nativeCombatOwned) return;
     super.update(dt);
     _hitFlashTimer = math.max(0, _hitFlashTimer - dt);
     _statusEffectTime += dt;

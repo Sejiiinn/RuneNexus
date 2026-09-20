@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -23,6 +24,7 @@ import '../data/save/online_save_coordinator.dart'
     show createOnlineSaveIdempotencyKey;
 import '../data/save/save_repository.dart';
 import '../domain/combat/attack_rules.dart';
+import '../domain/combat/native_combat_protocol.dart';
 import '../domain/combat/auto_start_mode.dart';
 import '../domain/combat/game_phase.dart';
 import '../domain/combat/run_panel_tab.dart';
@@ -94,6 +96,7 @@ import 'systems/turret_action_controller.dart';
 import 'systems/wave_spawner.dart';
 
 part 'game_restore_controller.dart';
+part 'game_native_combat.dart';
 part 'game_snapshot_builder.dart';
 part 'game_battlefield_presentation.dart';
 part 'game_battlefield_effects.dart';
@@ -476,6 +479,20 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   bool get usesNativeSelectionAnimation =>
       nativeSelectionAnimation && _usesNativeBattlefieldGroup('selection');
   bool nativeBattlefieldLoading = false;
+  int nativeCombatRevision = 0;
+  GameSaveData? _nativeConfirmedSave;
+  Map<String, Object?>? _nativePendingSave;
+  Map<int, Map<String, Object?>> _nativePendingSavedTurrets = {};
+
+  final NativeCombatProtocol _nativeCombat = NativeCombatProtocol();
+  final Set<int> _nativeKnownEnemies = {};
+  final Map<int, String> _nativeTurretConfigs = {};
+  final List<Map<String, Object?>> _nativeSteps = [];
+  final List<Map<String, Object?>> _nativeCommands = [];
+  bool get nativeCombatOwned => _nativeCombat.engaged;
+  bool get nativeCombatActive =>
+      _nativeCombat.active && !_nativeCombat.suspended;
+
   final _battlefieldEffectClock = Stopwatch()..start();
   final _battlefieldEffectQueue = BattlefieldEffectQueue();
   final _battlefieldEffectEvents = BattlefieldEffectEvents<Component>();
@@ -1261,7 +1278,11 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
         !_usesNativeBattlefieldGroup('effects')) {
       _restoreBattlefieldEffectEvents();
     }
-    if (nativeBattlefieldLoading) {
+    if (nativeBattlefieldLoading ||
+        (_nativeCombat.engaged &&
+            (!_nativeCombat.active ||
+                _nativeCombat.suspended ||
+                _nativeSteps.length >= 120))) {
       // 장면 구성과 프레임 전달은 유지하되, 가려진 전투는 진행하지 않는다.
       super.update(0);
       return;
@@ -1287,10 +1308,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
     final scaledDt = dt * _speedMultiplier;
+    final nativeBefore = nativeCombatActive
+        ? _captureNativeCommands()
+        : const <Map<String, Object?>>[];
     _battlefieldEffectEvents.advance(scaledDt);
     super.update(scaledDt);
     _updateCombatStatsPublish(dt);
     if (_phase != GamePhase.wave) {
+      if (nativeCombatActive) _recordNativeCombatStep(scaledDt, nativeBefore);
       if (!_debugCombatActive) {
         _maybeAutoStartNextWave();
       }
@@ -1299,6 +1324,7 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
 
     _updateWaveSpawns(scaledDt);
     _updateCoreCombatSkill(scaledDt);
+    if (nativeCombatActive) _recordNativeCombatStep(scaledDt, nativeBefore);
     _checkWaveClear();
     _requestLocalSave();
   }
@@ -3661,9 +3687,31 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
     for (final enemy in enemies) {
       enemy.updateLayout(tileSize: _tileSize, newPath: _worldPath);
     }
+    if (nativeCombatOwned) {
+      _nativeCommands.add({
+        'kind': 'layout',
+        'origin': [_origin.x, _origin.y],
+        'tileSize': _tileSize,
+        'boardDistanceScale': boardDistanceScale,
+        'path': [
+          for (final point in _worldPath) {'x': point.x, 'y': point.y},
+        ],
+      });
+    }
   }
 
   void _clearActiveCombat() {
+    if (_nativeCombat.engaged) {
+      nativeCombatRevision++;
+      _nativeCombat.reset();
+      _nativeConfirmedSave = null;
+      _nativePendingSave = null;
+      _nativeKnownEnemies.clear();
+      _nativeTurretConfigs.clear();
+      _nativeSteps.clear();
+      _nativeCommands.clear();
+      nativeBattlefieldLoading = true;
+    }
     _battlefieldEffectEvents.cancelKinds({
       'damage',
       'gem',
@@ -4124,6 +4172,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       final amplification = target.definition.type.isBoss
           ? _riftMarkBossDamageAmplification
           : _riftMarkDamageAmplification;
+      if (nativeCombatOwned) {
+        _nativeCommands.add({
+          'kind': 'riftMark',
+          'enemyId': _nativeId(target),
+          'damageAmplification': amplification * powerMultiplier,
+          'duration': _riftMarkDuration,
+        });
+        continue;
+      }
       target.applyRiftMark(
         damageAmplification: amplification * powerMultiplier,
         duration: _riftMarkDuration,
@@ -4164,6 +4221,14 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
       return;
     }
 
+    if (nativeCombatOwned) {
+      _nativeCommands.add({
+        'kind': 'coreDamage',
+        'enemyId': _nativeId(target),
+        'damage': damage,
+      });
+      return;
+    }
     target.showHitFlash(_nexusCoreBeamColor);
     final actualDamage = target.receiveDamage(damage);
     if (actualDamage <= 0) {
@@ -4642,6 +4707,15 @@ class RuneNexusGame extends FlameGame with TapCallbacks, ScaleDetector {
   }
 
   GameSaveData _buildSaveData() {
+    if (nativeCombatOwned && _nativeConfirmedSave != null) {
+      return _nativeCombat.suspended
+          ? _nativeCheckpointWithCurrentMeta()
+          : _nativeConfirmedSave!;
+    }
+    return _buildLiveSaveData();
+  }
+
+  GameSaveData _buildLiveSaveData() {
     return _saveAdapter.buildSaveData(
       GameSaveBuildState(
         savedAtMillis: DateTime.now().millisecondsSinceEpoch,

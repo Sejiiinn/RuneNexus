@@ -1,0 +1,538 @@
+[
+  {
+    "name": "neutral",
+    "input": {
+      "resistance": {
+        "family": "physical"
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1
+    },
+    "expected": {
+      "damage": 100,
+      "resistanceMultiplier": 1,
+      "effects": []
+    }
+  },
+  {
+    "name": "family-cap-at",
+    "input": {
+      "resistance": {
+        "family": "physical",
+        "familyResistance": 0.9
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1
+    },
+    "expected": {
+      "damage": 10.0,
+      "resistanceMultiplier": 0.1,
+      "effects": []
+    }
+  },
+  {
+    "name": "family-cap-over",
+    "input": {
+      "resistance": {
+        "family": "physical",
+        "familyResistance": 1.5
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1
+    },
+    "expected": {
+      "damage": 10.0,
+      "resistanceMultiplier": 0.1,
+      "effects": []
+    }
+  },
+  {
+    "name": "family-below-cap",
+    "input": {
+      "resistance": {
+        "family": "physical",
+        "familyResistance": 0.899999
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1
+    },
+    "expected": {
+      "damage": 10.0001,
+      "resistanceMultiplier": 0.100001,
+      "effects": []
+    }
+  },
+  {
+    "name": "negative-unbounded",
+    "input": {
+      "resistance": {
+        "family": "physical",
+        "familyResistance": -1.1
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1
+    },
+    "expected": {
+      "damage": 210.0,
+      "resistanceMultiplier": 2.1,
+      "effects": []
+    }
+  },
+  {
+    "name": "physical-reductions-before-cap",
+    "input": {
+      "resistance": {
+        "family": "physical",
+        "familyResistance": 1.1,
+        "enemyPhysicalReduction": 0.2,
+        "attackPhysicalReduction": 0.3,
+        "enemyElementalReduction": 9
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1
+    },
+    "expected": {
+      "damage": 40.0,
+      "resistanceMultiplier": 0.4,
+      "effects": []
+    }
+  },
+  {
+    "name": "physical-negative",
+    "input": {
+      "resistance": {
+        "family": "physical",
+        "familyResistance": 0.1,
+        "enemyPhysicalReduction": 0.2,
+        "attackPhysicalReduction": 0.3
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1.5
+    },
+    "expected": {
+      "damage": 210.0,
+      "resistanceMultiplier": 1.4,
+      "effects": []
+    }
+  },
+  {
+    "name": "elemental-only-reduction",
+    "input": {
+      "resistance": {
+        "family": "elemental",
+        "familyResistance": 0.2,
+        "enemyElementalReduction": 0.35,
+        "enemyPhysicalReduction": 9,
+        "attackPhysicalReduction": 9
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1
+    },
+    "expected": {
+      "damage": 114.99999999999999,
+      "resistanceMultiplier": 1.15,
+      "effects": []
+    }
+  },
+  {
+    "name": "tag-caps-and-negative",
+    "input": {
+      "resistance": {
+        "family": "physical",
+        "tags": [
+          "light",
+          "heavy",
+          "cooling"
+        ],
+        "tagResistances": {
+          "light": 1.5,
+          "heavy": 0.9,
+          "cooling": -1.1
+        }
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1
+    },
+    "expected": {
+      "damage": 2.1,
+      "resistanceMultiplier": 0.021,
+      "effects": []
+    }
+  },
+  {
+    "name": "duplicate-base-extra-tags",
+    "input": {
+      "resistance": {
+        "family": "physical",
+        "familyResistance": 0.2,
+        "tags": [
+          "heavy",
+          "heavy"
+        ],
+        "extraTags": [
+          "heavy",
+          "cooling",
+          "cooling"
+        ],
+        "tagResistances": {
+          "heavy": 0.25,
+          "cooling": -0.2
+        }
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1
+    },
+    "expected": {
+      "damage": 72.0,
+      "resistanceMultiplier": 0.72,
+      "effects": []
+    }
+  },
+  {
+    "name": "missing-tag-neutral",
+    "input": {
+      "resistance": {
+        "family": "physical",
+        "tags": [
+          "light"
+        ],
+        "extraTags": [
+          "damageOverTime"
+        ],
+        "tagResistances": {
+          "heavy": 0.9
+        }
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1
+    },
+    "expected": {
+      "damage": 100,
+      "resistanceMultiplier": 1,
+      "effects": []
+    }
+  },
+  {
+    "name": "trait-separate",
+    "input": {
+      "resistance": {
+        "family": "physical",
+        "familyResistance": 0.1,
+        "tags": [
+          "heavy"
+        ],
+        "tagResistances": {
+          "heavy": 0.2
+        }
+      },
+      "baseDamage": 37.5,
+      "traitMultiplier": 1.65
+    },
+    "expected": {
+      "damage": 44.55,
+      "resistanceMultiplier": 0.72,
+      "effects": []
+    }
+  },
+  {
+    "name": "zero-base",
+    "input": {
+      "resistance": {
+        "family": "physical"
+      },
+      "baseDamage": 0,
+      "traitMultiplier": 1
+    },
+    "expected": {
+      "damage": 0,
+      "resistanceMultiplier": 1,
+      "effects": []
+    }
+  },
+  {
+    "name": "zero-trait",
+    "input": {
+      "resistance": {
+        "family": "physical"
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 0
+    },
+    "expected": {
+      "damage": 0,
+      "resistanceMultiplier": 1,
+      "effects": []
+    }
+  },
+  {
+    "name": "burn-before-frost-base-tags-only",
+    "input": {
+      "resistance": {
+        "family": "elemental",
+        "familyResistance": 0.2,
+        "enemyElementalReduction": 0.1,
+        "tags": [
+          "damageOverTime"
+        ],
+        "extraTags": [
+          "heavy"
+        ],
+        "tagResistances": {
+          "damageOverTime": 0.25,
+          "heavy": 0.5
+        }
+      },
+      "baseDamage": 120,
+      "traitMultiplier": 2,
+      "status": {
+        "damage": 80,
+        "burnDamagePerSecondScale": 0.25,
+        "burnDurationSeconds": 4,
+        "hasDamageOverTime": true,
+        "damageScale": 0.5,
+        "damageOverTimeDamageMultiplier": 1.4,
+        "damageOverTimeDurationMultiplier": 1.5,
+        "ignoresArmorReduction": true,
+        "slowDuration": 3,
+        "slowMultiplier": 0.6,
+        "appliesFrostCrack": true
+      }
+    },
+    "expected": {
+      "damage": 81.0,
+      "resistanceMultiplier": 0.3375,
+      "effects": [
+        {
+          "type": "burn",
+          "damagePerSecond": 9.45,
+          "duration": 6,
+          "damageMultiplier": 0.675,
+          "ignoreArmorReduction": true
+        },
+        {
+          "type": "slow",
+          "multiplier": 0.6,
+          "duration": 3
+        },
+        {
+          "type": "elementalVulnerability",
+          "bonus": 0.15,
+          "duration": 3
+        }
+      ]
+    }
+  },
+  {
+    "name": "after-frost-existing-vulnerability",
+    "input": {
+      "resistance": {
+        "family": "elemental",
+        "familyResistance": 0.2,
+        "enemyElementalReduction": 0.15,
+        "tags": [
+          "damageOverTime"
+        ],
+        "extraTags": [
+          "heavy"
+        ],
+        "tagResistances": {
+          "damageOverTime": 0.25,
+          "heavy": 0.5
+        }
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1
+    },
+    "expected": {
+      "damage": 35.625,
+      "resistanceMultiplier": 0.35625,
+      "effects": []
+    }
+  },
+  {
+    "name": "slow-zero-duration",
+    "input": {
+      "resistance": {
+        "family": "physical"
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1,
+      "status": {
+        "slowDuration": 0,
+        "slowMultiplier": 0.5,
+        "appliesFrostCrack": true
+      }
+    },
+    "expected": {
+      "damage": 100,
+      "resistanceMultiplier": 1,
+      "effects": []
+    }
+  },
+  {
+    "name": "slow-negative-duration",
+    "input": {
+      "resistance": {
+        "family": "physical"
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1,
+      "status": {
+        "slowDuration": -1,
+        "slowMultiplier": 0.5,
+        "appliesFrostCrack": true
+      }
+    },
+    "expected": {
+      "damage": 100,
+      "resistanceMultiplier": 1,
+      "effects": []
+    }
+  },
+  {
+    "name": "slow-one-multiplier",
+    "input": {
+      "resistance": {
+        "family": "physical"
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1,
+      "status": {
+        "slowDuration": 2,
+        "slowMultiplier": 1,
+        "appliesFrostCrack": true
+      }
+    },
+    "expected": {
+      "damage": 100,
+      "resistanceMultiplier": 1,
+      "effects": []
+    }
+  },
+  {
+    "name": "slow-above-one",
+    "input": {
+      "resistance": {
+        "family": "physical"
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1,
+      "status": {
+        "slowDuration": 2,
+        "slowMultiplier": 1.01,
+        "appliesFrostCrack": true
+      }
+    },
+    "expected": {
+      "damage": 100,
+      "resistanceMultiplier": 1,
+      "effects": []
+    }
+  },
+  {
+    "name": "slow-near-boundary",
+    "input": {
+      "resistance": {
+        "family": "physical"
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1,
+      "status": {
+        "slowDuration": 1e-06,
+        "slowMultiplier": 0.999999
+      }
+    },
+    "expected": {
+      "damage": 100,
+      "resistanceMultiplier": 1,
+      "effects": [
+        {
+          "type": "slow",
+          "multiplier": 0.999999,
+          "duration": 1e-06
+        }
+      ]
+    }
+  },
+  {
+    "name": "invalid-slow-request-remains-enemy-validation",
+    "input": {
+      "resistance": {
+        "family": "physical"
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1,
+      "status": {
+        "slowDuration": 2,
+        "slowMultiplier": -0.1,
+        "appliesFrostCrack": true
+      }
+    },
+    "expected": {
+      "damage": 100,
+      "resistanceMultiplier": 1,
+      "effects": [
+        {
+          "type": "slow",
+          "multiplier": -0.1,
+          "duration": 2
+        },
+        {
+          "type": "elementalVulnerability",
+          "bonus": 0.15,
+          "duration": 2
+        }
+      ]
+    }
+  },
+  {
+    "name": "zero-burn-request-remains-enemy-validation",
+    "input": {
+      "resistance": {
+        "family": "physical"
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1,
+      "status": {
+        "damage": 0,
+        "burnDamagePerSecondScale": 0.25,
+        "burnDurationSeconds": 0,
+        "hasDamageOverTime": true
+      }
+    },
+    "expected": {
+      "damage": 100,
+      "resistanceMultiplier": 1,
+      "effects": [
+        {
+          "type": "burn",
+          "damagePerSecond": 0,
+          "duration": 0,
+          "damageMultiplier": 1,
+          "ignoreArmorReduction": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "dot-disabled-despite-damage",
+    "input": {
+      "resistance": {
+        "family": "physical"
+      },
+      "baseDamage": 100,
+      "traitMultiplier": 1,
+      "status": {
+        "damage": 100,
+        "burnDamagePerSecondScale": 0.25,
+        "burnDurationSeconds": 4,
+        "hasDamageOverTime": false
+      }
+    },
+    "expected": {
+      "damage": 100,
+      "resistanceMultiplier": 1,
+      "effects": []
+    }
+  }
+]

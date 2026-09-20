@@ -47,7 +47,7 @@
 - 정적 맵 전송 최적화: [적용 확인 후 맵 생략·복구](../design/stage1_3d/presentation_migration/map_transport/README.md) — 전송량·직렬화 CPU 측정, 맵 변경·재진입 계약.
 - 표시 전용 효과 수명 이관: [피해 숫자·사망 파편·젬 장착](../design/stage1_3d/presentation_migration/native_lifecycle/README.md) — Godot 생성 이벤트·공용 전투 시계, Flame 갱신 및 반복 전송 감소.
 
-- Flame 제거를 위한 전투 이관: [단위·의존 순서·검증 경계](godot_combat_migration_boundaries.md) — 후속 구현 설계. 현재 전투 이관 완료와 구분한다.
+- Flame 제거를 위한 전투 이관: [단위·의존 순서·검증 경계](godot_combat_migration_boundaries.md) — 명중·스탯 계산과 Android 3D 적·포탑·탄환의 실제 전투 연결, 명령/응답 경계와 남은 웨이브·저장·Flame 제거 순서.
 - 전장 표시 현행 구조: [Godot 표시 통합 구현과 검증](godot_presentation_migration_plan.md) — labels·selection·effects의 표시 소유권, 적용 확인·이벤트 큐 계약, 단계별 구현 상태와 남은 검증. [실제 적용·검증 기록](../design/stage1_3d/presentation_migration/README.md). 실기기 p95/p99·발열 성능은 미검증이다.
 
 - 스테이지 1 질감·이펙트 개선: [밝기 보존·표면 재질·입체 효과 설계](stage1_surface_effects.md), [제작 원본과 적용 기록](../design/stage1_3d/surface_effects/README.md).
