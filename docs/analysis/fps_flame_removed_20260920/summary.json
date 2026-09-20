@@ -1,0 +1,14 @@
+{
+  "layer": "491c9dc SurfaceView[com.example.rune_nexus/com.example.rune_nexus.MainActivity](BLAST)#7391",
+  "frames": 612,
+  "intervals": 611,
+  "durationSeconds": 12.014837839000004,
+  "fps": 50.8537866417724,
+  "p95Ms": 33.905208,
+  "p99Ms": 36.931709,
+  "maxMs": 116.927875,
+  "over50ms": 5,
+  "polls": 18,
+  "startDeviceNs": 776017790000000,
+  "endDeviceNs": 776029850000000
+}
