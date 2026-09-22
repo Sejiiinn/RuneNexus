@@ -1,0 +1,54 @@
+{
+  "assets/images/ui/hud/icons/traits.png": {
+    "bytes": 99737,
+    "sha256": "c9e8d30cec7a721b603cd106d4bd28f0e22edaeb0a2d8e983410adeca1223fac"
+  },
+  "assets/images/ui/hud/icons/gold.png": {
+    "bytes": 12032,
+    "sha256": "d6d0f97f3794a0b2fd2525f58268e055ade3e1182b201118b84d34e49c497de5"
+  },
+  "assets/images/ui/hud/turret_actions/native/header.png": {
+    "bytes": 20867,
+    "sha256": "85cb743edade1a72ba44ab6bd40559e935f7de3b6aac69ca816cf64ba2c2384b"
+  },
+  "assets/images/ui/hud/turret_actions/native/sell.png": {
+    "bytes": 5319,
+    "sha256": "41e0b82a598efdc61fb4455eb2b23a3c3a9bebe8a55bf57905426cc901129ca0"
+  },
+  "assets/images/ui/hud/turret_actions/native/tab_active.png": {
+    "bytes": 7707,
+    "sha256": "a9ca4f41c86adc00a8d86402ec7f12678f453c738af395d9673fff4ba1c49123"
+  },
+  "assets/images/ui/hud/turret_actions/native/tab_idle.png": {
+    "bytes": 6787,
+    "sha256": "0c210babf896f7374abe21edcee7b76b47a8092943202febd3375f555456b66f"
+  },
+  "assets/images/ui/hud/turret_actions/native/traits.png": {
+    "bytes": 11078,
+    "sha256": "9ecd37a934677560a9efbcf5226a38842b1e2260a7712f649d218101447b5519"
+  },
+  "assets/images/ui/hud/turret_actions/native/upgrade.png": {
+    "bytes": 11689,
+    "sha256": "c3dd8973b6add0a0244c41e8be75f666d75b39de79668d304a57aa4d1fed51bf"
+  },
+  "assets/images/ui/hud/turret_actions/ref_divider.png": {
+    "bytes": 3175,
+    "sha256": "92cab270ad57b9bb047c7371863070b8a0817b3c186f4e434ddb8680502fee8e"
+  },
+  "assets/images/ui/hud/turret_actions/ref_identity_divider.png": {
+    "bytes": 2979,
+    "sha256": "4a8e18b9d210b16d7abff7db67e17586ffce106a5f785a2450d46d2192fba563"
+  },
+  "assets/images/ui/hud/turret_actions/ref_sell.png": {
+    "bytes": 19274,
+    "sha256": "1d01d69601e07cc36e8bfe44a1c924bad83bb8b7fc6f7b401b8986f45c774e7b"
+  },
+  "assets/images/ui/hud/turret_actions/ref_trait_divider.png": {
+    "bytes": 3459,
+    "sha256": "9e5cda97b75298dab5a950913d2e254bbd73a5d06f7fa14371643140906f294b"
+  },
+  "assets/images/ui/hud/turret_actions/ref_upgrade.png": {
+    "bytes": 26247,
+    "sha256": "95fb9b58997c15844f15bb56e90f2707e63f51eef6aa6fc10117e6a504cfc16a"
+  }
+}

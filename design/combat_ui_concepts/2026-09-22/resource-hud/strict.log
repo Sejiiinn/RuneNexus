@@ -1,0 +1,22 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward Mobile - Using Device #0: Apple - Apple M4 (Apple9)
+
+320 TEXT 3000 rect=[P: (36.0, 25.0), S: (68.0, 17.0)]
+320 TEXT 100 rect=[P: (36.0, 47.0), S: (68.0, 17.0)]
+320 TEXT 전투력 0.0 rect=[P: (36.0, 69.0), S: (68.0, 14.0)]
+320 TEXT ♡ 20/20 rect=[P: (119.0, 24.0), S: (87.0, 15.0)]
+320 TEXT 웨이브 1/40 rect=[P: (210.0, 25.0), S: (58.0, 14.0)]
+320 TEXT 다음 적 rect=[P: (119.0, 58.0), S: (31.0, 12.0)]
+320 TEXT 예상 보상 rect=[P: (155.0, 58.0), S: (149.0, 12.0)]
+320 TEXT +23 G · 파편 1 rect=[P: (155.0, 70.0), S: (149.0, 24.0)]
+PASS 320 bounds, native frame, label widths, exact wallet, mouse home open/close
+440 TEXT 3000 rect=[P: (36.0, 25.0), S: (68.0, 17.0)]
+440 TEXT 100 rect=[P: (36.0, 47.0), S: (68.0, 17.0)]
+440 TEXT 전투력 0.0 rect=[P: (36.0, 69.0), S: (68.0, 14.0)]
+440 TEXT ♡ 20/20 rect=[P: (119.0, 24.0), S: (207.0, 15.0)]
+440 TEXT 웨이브 1/40 rect=[P: (330.0, 25.0), S: (58.0, 14.0)]
+440 TEXT 다음 적 rect=[P: (119.0, 58.0), S: (31.0, 12.0)]
+440 TEXT 예상 보상 rect=[P: (155.0, 58.0), S: (269.0, 12.0)]
+440 TEXT +23 G · 파편 1 rect=[P: (155.0, 70.0), S: (269.0, 24.0)]
+PASS 440 bounds, native frame, label widths, exact wallet, mouse home open/close
+PASS strict ResourceHUD local audit

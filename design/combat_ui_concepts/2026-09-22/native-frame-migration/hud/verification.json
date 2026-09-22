@@ -1,0 +1,63 @@
+{
+  "engine": "Godot 4.7.2.stable.official.ed1daf0bf",
+  "renderer": "Metal 4.0 Forward Mobile",
+  "device": "Apple M4",
+  "project": "build/godot/frame-hud-review",
+  "user_dir": "RuneNexus-Frame-HUD-review",
+  "viewports": [
+    "320x760",
+    "440x900"
+  ],
+  "fixture": {
+    "stage": 0,
+    "gold": 3000,
+    "turrets": 0,
+    "phase": "preparation; paused wave for resume",
+    "popup_embedding": true
+  },
+  "before_after_geometry": {
+    "320": {
+      "dock": [
+        0,
+        590,
+        320,
+        170
+      ],
+      "start": [
+        236,
+        590,
+        76,
+        36
+      ]
+    },
+    "440": {
+      "dock": [
+        0,
+        730,
+        440,
+        170
+      ],
+      "start": [
+        356,
+        730,
+        76,
+        36
+      ]
+    }
+  },
+  "sha256": {
+    "godot/ui/hud_chrome.gd": "200d7ebeaf0c68216c7f72596eca6521103858e9036fa906a25260e4e85baa24",
+    "godot/ui/battle_hud.gd": "6dacc54a06072f29d968571f0b73fce3fbe2cb42ea41c6396e5b724113656bcb",
+    "godot/ui/lobby_frame.gd": "f442a79221104abcb0e408cda7ae423b6d794dd24b0f6f5bf498288755971e9b",
+    "godot/ui/battle_theme.gd": "67df76eadf5f5b7abafb7e94c366e42926ad6b77e3fd73c2a2e95aac10a56233",
+    "godot/ui/battle_rewards.gd": "f8733681a0e3c58fd12f8d9f9f0785754288e4d4f53f903667f73e6f27108516",
+    "godot/ui/game_button.gd": "6c76f501fa401a7860dfb7047de21063d34bec8fa3c1ea6799ba46ae67d13131",
+    "godot/ui/assets.json": "6090d90593fa42ee80183a8ba2dacd8436dd9ff838b9564faaea45f4d2f0a252",
+    "godot/verify_hud_native_frames.gd": "ac12bdb348f1f265d795c4da0b0943347923be27209f2edbf1407c773867389f",
+    "godot/verify_battle_hud.gd": "c4484b4d03c40252d47644300e46895ac8a97938bef4cc43735b9a159464e2d4",
+    "assets/images/ui/components/panel_frame.png": "3c9b1bef22de4c3434265d0c05133ba4c99971c1d8e378140ebb38b68f219dcd",
+    "assets/images/lobby_primary_button.png": "a95bed72940a07a84688424bf038e06fe939978e81fda77f03da3071b2b2fdd1",
+    "assets/images/ui/hud/dock_panel.png": "63230f6195100068e6eadac7de06bcc245fa994f5f79188c0633a871be575185"
+  },
+  "source_test_copy_mismatch": []
+}

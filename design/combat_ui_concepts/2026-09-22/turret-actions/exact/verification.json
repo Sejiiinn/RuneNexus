@@ -1,0 +1,47 @@
+{
+  "engine": "Godot 4.7.2.stable.official.ed1daf0bf",
+  "renderer": "Metal 4.0 Forward Mobile",
+  "device": "Apple M4",
+  "viewports": [
+    "320x760",
+    "440x900"
+  ],
+  "design_canvas": [
+    1972,
+    418
+  ],
+  "actual_panel_sizes": [
+    [
+      304,
+      65
+    ],
+    [
+      424,
+      90
+    ]
+  ],
+  "project": "build/godot/hud-review-v4",
+  "isolated_user_dir": "RuneNexus-HUD-review-v4",
+  "stage": 0,
+  "turret": "arrow",
+  "level": 7,
+  "gold": 3000,
+  "sha256": {
+    "godot/ui/battle_hud.gd": "d7602a0c00fa8d71249bc11dcf7f37d73e74cd6f260cfdaf347126097db9f093",
+    "godot/verify_battle_hud.gd": "96d6e4966bf4a54eef4d44de682cb6708c9e6691a2f3ec582b9d64d9221d65b6",
+    "assets/images/ui/hud/icons/traits.png": "c9e8d30cec7a721b603cd106d4bd28f0e22edaeb0a2d8e983410adeca1223fac",
+    "assets/images/ui/hud/turret_actions/ref_identity_divider.png": "4a8e18b9d210b16d7abff7db67e17586ffce106a5f785a2450d46d2192fba563",
+    "assets/images/ui/hud/turret_actions/reference_sell.png": "6e8ff26ec6df6197e4868b22eaaf723dc1fc701c40ae1d1b596902cd85596aca",
+    "assets/images/ui/hud/turret_actions/ref_sell.png": "52f6b3aaeb8fc86bc0d3a2c30bede1891262f57e1c3cd2736c6772b4996a8ff8",
+    "assets/images/ui/hud/turret_actions/ref_coin.png": "1e6195f4fd0d0e422aa465ba918b1bf6123265426aae9f3d0b1091322091fee4",
+    "assets/images/ui/hud/turret_actions/ref_divider.png": "92cab270ad57b9bb047c7371863070b8a0817b3c186f4e434ddb8680502fee8e",
+    "assets/images/ui/hud/turret_actions/reference_tab_active.png": "299690131e0891ebc1eb4e2cbb20b2ab14cc59d523b7c7d36f69a3a8316c4c68",
+    "assets/images/ui/hud/turret_actions/reference_traits.png": "38769c18437cfaceee1b832695239414abdd4f91f130416987f07707fbec0bcb",
+    "assets/images/ui/hud/turret_actions/ref_trait_divider.png": "9e5cda97b75298dab5a950913d2e254bbd73a5d06f7fa14371643140906f294b",
+    "assets/images/ui/hud/turret_actions/reference_tab_idle.png": "2251aff5aec34af5dd6ab4c8e41b54947bf1c97e7d6cf574bee55387562139fe",
+    "assets/images/ui/hud/turret_actions/ref_machinegun.png": "732aca01ece94bf1db7b37ebaf0990638523913d26227eabe7a84b6492d5e19a",
+    "assets/images/ui/hud/turret_actions/ref_upgrade.png": "9e528b262d864d533acd580a0d13dd974f55b75b9dc1f8f4bb9cc56db046bc3a",
+    "assets/images/ui/hud/turret_actions/reference_header.png": "a4a2faf69e2d54d0663a8c52d881e3b41471c6099da0ee1a98ff2624eef20342",
+    "assets/images/ui/hud/turret_actions/reference_upgrade.png": "e17a7dfc06611712801b96bfd3fd81a2f265f40538f0b8100c17c9bf8843d43b"
+  }
+}

@@ -3,24 +3,30 @@ extends RefCounted
 const Art = preload("res://ui/app_theme.gd")
 const Frame = preload("res://ui/lobby_frame.gd")
 
-static func panel(padding := 7) -> StyleBox:
+static func install(theme: Theme) -> void:
+	theme.set_type_variation("HudPrimary","Button")
+	for state in ["normal","hover","pressed","disabled","focus"]:
+		theme.set_stylebox(state,"HudPrimary",primary(state))
+	theme.set_type_variation("HudDock","PanelContainer")
+	theme.set_stylebox("panel","HudDock",docked_panel(5))
+	theme.set_type_variation("HudTabs","PanelContainer")
+	theme.set_stylebox("panel","HudTabs",docked_panel(4))
+	theme.set_type_variation("HudPopup","PopupMenu")
+	theme.set_stylebox("panel","HudPopup",panel(10))
+
+static func panel(padding := 7) -> StyleBoxTexture:
 	return Frame.new("ui/components/panel_frame.png",padding)
 
-## Edge-attached dock reuses the panel interior and straight metal top rail.
-## Floating corner caps and opaque exterior pixels are intentionally excluded.
-class DockFrame extends StyleBox:
-	var texture: Texture2D
-	func _draw(item: RID, rect: Rect2) -> void:
-		RenderingServer.canvas_item_add_texture_rect_region(item,rect,texture.get_rid(),Rect2(56,56,1392,528),Color.WHITE,false,true)
-		RenderingServer.canvas_item_add_texture_rect_region(item,Rect2(rect.position,Vector2(rect.size.x,4)),texture.get_rid(),Rect2(56,0,1392,56),Color.WHITE,false,true)
-
-static func docked_panel(padding := 5) -> StyleBox:
-	var frame := DockFrame.new()
-	frame.texture = Art.texture("ui/components/panel_frame.png")
+## One intact dock image preserves the straight top rail and edge attachment.
+static func docked_panel(padding := 5) -> StyleBoxTexture:
+	var frame := StyleBoxTexture.new()
+	frame.texture = Art.texture("ui/hud/dock_panel.png")
+	frame.set_texture_margin_all(0)
+	frame.texture_margin_top = 4
 	frame.set_content_margin_all(padding)
 	return frame
 
-static func primary(state: String) -> StyleBox:
+static func primary(state: String) -> StyleBoxTexture:
 	var frame = Frame.new("lobby_primary_button.png",0)
 	frame.source_scale = 3.0
 	frame.source_center = Rect2(12,14,276,28)

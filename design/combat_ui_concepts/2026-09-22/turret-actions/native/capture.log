@@ -1,0 +1,20 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward Mobile - Using Device #0: Apple - Apple M4 (Apple9)
+
+CAPTURE after-320 panel=[P: (8.0, 509.0), S: (304.0, 65.0)] body=(304.0, 201.0) scroll=(304.0, 201.0) dock=(320.0, 299.0)
+CAPTURE after-preview-320 panel=[P: (8.0, 509.0), S: (304.0, 65.0)] body=(304.0, 201.0) scroll=(304.0, 201.0) dock=(320.0, 299.0)
+CAPTURE disabled-320 panel=[P: (8.0, 509.0), S: (304.0, 65.0)] body=(304.0, 201.0) scroll=(304.0, 201.0) dock=(320.0, 299.0)
+CAPTURE max-level-320 panel=[P: (8.0, 509.0), S: (304.0, 65.0)] body=(304.0, 201.0) scroll=(304.0, 201.0) dock=(320.0, 299.0)
+LABEL 기관총 pos=(0.0, 0.0) size=(48.0, 17.63083) global=[P: (59.0, 637.0), S: (48.0, 17.63083)] font=13
+LABEL Lv.7 pos=(0.0, 18.0) size=(48.0, 17.20081) global=[P: (59.0, 655.0), S: (48.0, 17.20081)] font=13
+LABEL 강화 pos=(0.0, 0.0) size=(54.0, 18.27586) global=[P: (174.0, 637.0), S: (54.0, 18.27586)] font=13
+LABEL 204 G pos=(17.0, 0.0) size=(37.0, 16.12576) global=[P: (191.0, 656.0), S: (37.0, 16.12576)] font=11
+LABEL 특성 pos=(0.0, 0.0) size=(49.0, 18.27586) global=[P: (307.0, 637.0), S: (49.0, 18.27586)] font=13
+LABEL 0/2 선택 pos=(0.0, 19.0) size=(49.0, 16.12576) global=[P: (307.0, 656.0), S: (49.0, 16.12576)] font=11
+LABEL 판매 pos=(0.0, 16.0) size=(23.0, 12.90061) global=[P: (392.0, 657.0), S: (23.0, 12.90061)] font=9
+LABEL 스탯 pos=(0.0, 2.0) size=(161.0, 22.79107) global=[P: (55.0, 688.0), S: (161.0, 22.79107)] font=13
+LABEL 젬 링크 pos=(0.0, 2.0) size=(165.0, 22.79107) global=[P: (219.0, 688.0), S: (165.0, 22.79107)] font=13
+CAPTURE after-440 panel=[P: (8.0, 623.0), S: (424.0, 91.0)] body=(424.0, 227.0) scroll=(424.0, 227.0) dock=(440.0, 325.0)
+CAPTURE traits-one-440 panel=[P: (8.0, 623.0), S: (424.0, 91.0)] body=(424.0, 227.0) scroll=(424.0, 227.0) dock=(440.0, 325.0)
+CAPTURE traits-two-440 panel=[P: (8.0, 623.0), S: (424.0, 91.0)] body=(424.0, 227.0) scroll=(424.0, 227.0) dock=(440.0, 325.0)
+CAPTURE gems-440 panel=[P: (8.0, 619.0), S: (424.0, 91.0)] body=(424.0, 231.0) scroll=(424.0, 231.0) dock=(440.0, 329.0)

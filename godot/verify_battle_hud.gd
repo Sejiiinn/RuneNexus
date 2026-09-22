@@ -56,6 +56,12 @@ func run() -> void:
 	app.hud = hud
 	root.add_child(hud)
 	await process_frame
+	var resource_panel: PanelContainer = hud.top.get_node("ResourceHUD")
+	assert(resource_panel.theme_type_variation == "ResourceHUD")
+	var resource_style: StyleBoxTexture = resource_panel.get_theme_stylebox("panel")
+	assert(resource_style.texture.resource_path.ends_with("ui/hud/resource_panel.png"))
+	assert(resource_style.texture_margin_left == 14 and resource_style.texture_margin_top == 14)
+	assert(resource_style.content_margin_left == 8 and resource_style.content_margin_top == 8)
 	app.run_domain.state.gold = 10000
 	app.run_domain.state.gemShards = 100
 	var map: Dictionary = app.catalog.stage(0).map
@@ -79,7 +85,31 @@ func run() -> void:
 	var level_button := hud.body.find_child("TurretLevelAction",true,false) as Button
 	assert_wallet_refresh(app,hud,level_button,"gold",int(app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).level))
 	assert(hud.top.size.y <= 100)
-	assert(hud.body.get_child(0).size.y <= 38)
+	assert(hud.body.get_child(0).size.y <= 94)
+	for width in [320,440]:
+		root.content_scale_size.x = width; root.size.x = width
+		await process_frame; await process_frame; await process_frame
+		var panel: Control = hud.body.find_child("TurretActionPanel",true,false)
+		var actions: PanelContainer = panel.find_child("TurretActions",true,false)
+		var upgrade := actions.find_child("TurretLevelAction",true,false) as Button
+		var traits := actions.find_child("TurretTraitAction",true,false) as Button
+		var sell := actions.find_child("TurretSellAction",true,false) as Button
+		assert(upgrade.get_theme_stylebox("normal") is StyleBoxTexture)
+		assert(upgrade.get_theme_stylebox("normal").texture_margin_left == 9)
+		assert(actions.get_theme_stylebox("panel") is StyleBoxTexture)
+		assert(upgrade.size.x > sell.size.x and traits.size.x > sell.size.x)
+		assert(upgrade.get_global_rect().position.x < traits.get_global_rect().position.x)
+		assert(traits.get_global_rect().position.x < sell.get_global_rect().position.x)
+		assert(sell.get_global_rect().end.x <= width)
+		assert(is_equal_approx(upgrade.position.y,traits.position.y))
+		assert(absf(upgrade.size.x/traits.size.x-570.0/585.0) < 0.06)
+		for control in [panel]+panel.find_children("*","Control",true,false): assert(control.scale == Vector2.ONE)
+		var turret_art: AtlasTexture = panel.find_child("TurretIdentityIcon",true,false).texture
+		assert(turret_art.atlas.resource_path.ends_with("turrets_3d/arrow.png"))
+		assert(turret_art.region == Rect2(turret_art.atlas.get_image().get_used_rect()))
+		for label in panel.find_children("*","Label",true,false):
+			assert(label.get_theme_font("font").get_string_size(label.text,HORIZONTAL_ALIGNMENT_LEFT,-1,label.get_theme_font_size("font_size")).x <= label.size.x+0.1)
+		assert(hud.scroll.size.y >= hud.body.get_combined_minimum_size().y)
 	app.scene._native_combat.turrets = {str(app.run_domain.state.turrets[0].id): {"directDamageDealt":123.0,"splashDamageDealt":7.0}}
 	hud.refresh()
 	assert(hud.damage_label.text.ends_with("130.0"))
@@ -185,7 +215,7 @@ func run() -> void:
 		assert(hud.top.size.x <= hud.size.x-15,"Resource HUD must stay within its screen margins")
 		assert(hud.enemy_caption.get_line_count() == 1 and hud.reward_caption.get_line_count() == 1)
 		app.selected = Vector2i(index % int(map.columns),index / int(map.columns)); hud.tab = "stats"; hud.body_key = ""; hud.refresh(); await process_frame; await process_frame
-		assert(hud.body.get_child(0).size.y <= 38)
+		assert(hud.body.get_child(0).size.y <= 94)
 		app.selected = Vector2i(-1,-1)
 	# Late-wave enemy counts and larger wallets must not wrap the +N marker.
 	root.content_scale_size = Vector2i(320,844); root.size = Vector2i(320,844)
@@ -279,6 +309,21 @@ func run() -> void:
 	hud._select_main("turrets")
 	await process_frame; await process_frame; await process_frame
 	assert(hud.dock.size.y <= 84,"Closed details must reclaim battlefield space")
+	# Long existing names and dynamic amounts must fit through native label sizing.
+	var dense_panel := preload("res://ui/turret_action_panel.gd").new()
+	root.add_child(dense_panel); dense_panel.size = Vector2(304,0)
+	dense_panel.configure({"title":"라이트닝","icon":"ui/hud/turrets_3d/lightning.png","level":"Lv.7 → 8",
+		"upgrade_title":"강화 확정","price":"123456 G","maximum":false,"trait_count":2,"active_tab":"stats",
+		"upgrade_callback":func(): pass,"trait_callback":func(): pass,"sell_callback":func(): pass,
+		"stats_callback":func(): pass,"gems_callback":func(): pass})
+	await process_frame; await process_frame; await process_frame
+	for label in dense_panel.find_children("*","Label",true,false):
+		assert(label.get_theme_font("font").get_string_size(label.text,HORIZONTAL_ALIGNMENT_LEFT,-1,label.get_theme_font_size("font_size")).x <= label.size.x+0.1)
+	var dense_price := dense_panel.find_child("TurretUpgradePrice",true,false) as Label
+	assert(dense_price.text == "123456", "Gold icon carries currency; preserve all six digits")
+	assert(dense_price.get_theme_font_size("font_size") >= 8, "Do not solve narrow prices with unreadable font shrink")
+	assert(dense_price.tooltip_text == "123456 G")
+	dense_panel.queue_free()
 	print("PASS battle HUD: build, level, trait, slots, equip/remove, run upgrade, reward, results, narrow viewport")
 	hud.queue_free()
 	app.queue_free()

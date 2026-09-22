@@ -1,0 +1,61 @@
+{
+  "engine": "Godot 4.7.2.stable.official.ed1daf0bf",
+  "renderer": "Metal 4.0 Forward Mobile",
+  "device": "Apple M4",
+  "project": "build/godot/hud-review-v4",
+  "user_dir": "RuneNexus-HUD-review-v4",
+  "viewports": [
+    "320x760",
+    "440x900"
+  ],
+  "fixture": {
+    "stage": 0,
+    "gold": 3000,
+    "gemShards": 100,
+    "turrets": 0,
+    "phase": "preparation"
+  },
+  "before_after_geometry": {
+    "320": {
+      "position": [
+        8,
+        8
+      ],
+      "size": [
+        304,
+        94
+      ]
+    },
+    "440": {
+      "position": [
+        8,
+        8
+      ],
+      "size": [
+        424,
+        94
+      ]
+    }
+  },
+  "asset_source": "assets/images/ui/components/panel_frame.png (1504x640)",
+  "derived_asset": "assets/images/ui/hud/resource_panel.png (376x160 RGBA)",
+  "native_frame": {
+    "texture_margin": 14,
+    "content_margin": 8,
+    "theme_variation": "ResourceHUD"
+  },
+  "concurrent_changes": "Four hud_*_panel.gd source extractions appeared after baseline capture. Preserved and copied to isolated project; final source hashes equal tested copies. This task modified only ResourceHUD style binding, UI asset manifest, and related regression checks.",
+  "sha256": {
+    "godot/ui/battle_hud.gd": "300bf5e5606659a06778b3b57b01d8a91721339f2b3a0c3d4cae4f283d4a0044",
+    "godot/ui/assets.json": "c2a9b236da84fda202b264a51dd77792820deede15cfca0457c6d928aacc296f",
+    "godot/verify_battle_hud.gd": "c4484b4d03c40252d47644300e46895ac8a97938bef4cc43735b9a159464e2d4",
+    "assets/images/ui/components/panel_frame.png": "3c9b1bef22de4c3434265d0c05133ba4c99971c1d8e378140ebb38b68f219dcd",
+    "assets/images/ui/hud/resource_panel.png": "79cafea61df4955caffc24bb2ca39bf36b5584cd5e9729bc5aaa646a0c88523b",
+    "godot/ui/lobby_frame.gd": "9ed7fcbb9fbf30d395668ab4c6d78ba0e14368254c220b4da520d702785d3aec",
+    "godot/ui/hud_chrome.gd": "fc9bad0122473c5add5483b95fea7d1cc4e2d98a7fe5b55bc466b80dcd4cc75e",
+    "godot/ui/hud_build_panel.gd": "ac707e0622bf8f4492a5d3a844e1c808fecec4cf090b203ba4edd837a0807e61",
+    "godot/ui/hud_menu_panel.gd": "cf0d9aa2509edbeb23610e51cff72ab977b71ee14d31634a2b07d5e013faf0dc",
+    "godot/ui/hud_gem_panel.gd": "26b7346abb46ddaaf158c9a6f5fe19ed0fc30ad70ffc6f87f30e1e61fe4901cb",
+    "godot/ui/hud_turret_panel.gd": "f51063d9d0c0a6a6ff0e5ee3b987319594b7456e3bb236fe12d90160aec494a8"
+  }
+}

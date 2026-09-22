@@ -79,14 +79,21 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(func(): _insets_valid = false)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	theme = BattleTheme.create()
+	theme = BattleTheme.create(true)
+	HudChrome.install(theme)
 	labels = JSON.parse_string(FileAccess.get_file_as_string("res://ui/battle_labels.json"))
 	top = VBoxContainer.new()
 	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	top.offset_left = 8; top.offset_right = -8; top.offset_top = 8
 	add_child(top)
+	var resource_style := StyleBoxTexture.new()
+	resource_style.texture = AppTheme.texture("ui/hud/resource_panel.png")
+	resource_style.set_texture_margin_all(14)
+	resource_style.set_content_margin_all(8)
+	theme.set_type_variation("ResourceHUD","PanelContainer")
+	theme.set_stylebox("panel","ResourceHUD",resource_style)
 	var top_frame := PanelContainer.new(); top_frame.name = "ResourceHUD"
-	top_frame.add_theme_stylebox_override("panel",HudChrome.panel(8)); top.add_child(top_frame)
+	top_frame.theme_type_variation = "ResourceHUD"; top.add_child(top_frame)
 	var top_row := HBoxContainer.new(); top_row.add_theme_constant_override("separation",7)
 	top_frame.add_child(top_row)
 	var wallet := VBoxContainer.new(); wallet.name = "Wallet"; wallet.custom_minimum_size.x = 88
@@ -166,7 +173,7 @@ func _ready() -> void:
 	auto_start.custom_minimum_size = Vector2(68,36)
 	_style_hud_button(auto_start,"quiet",false,Vector2(5,0))
 	auto_start_popup = PopupMenu.new(); auto_start_popup.name = "AutoStartModes"; add_child(auto_start_popup)
-	auto_start_popup.add_theme_stylebox_override("panel",HudChrome.panel(10))
+	auto_start_popup.theme = theme; auto_start_popup.theme_type_variation = "HudPopup"
 	auto_start_popup.add_theme_font_size_override("font_size",13)
 	auto_start_popup.add_theme_constant_override("v_separation",16)
 	auto_start_popup.about_to_popup.connect(func(): auto_start.text = AUTO_CAPTIONS[maxi(0,AUTO_MODES.find(app.auto_start_mode))]+" ▴")
@@ -185,7 +192,7 @@ func _ready() -> void:
 	body.resized.connect(_queue_dock_layout)
 	bottom.minimum_size_changed.connect(_queue_dock_layout)
 	var tabs_panel := PanelContainer.new(); tabs_panel.name = "RunPanelTabs"; tabs_panel.custom_minimum_size.y = 40
-	tabs_panel.add_theme_stylebox_override("panel",HudChrome.docked_panel(4)); bottom.add_child(tabs_panel)
+	tabs_panel.theme_type_variation = "HudTabs"; bottom.add_child(tabs_panel)
 	var tabs := HBoxContainer.new(); tabs.add_theme_constant_override("separation",0); tabs_panel.add_child(tabs)
 	for spec in [["turrets","포탑"],["upgrades","업그레이드"],["gems","젬"]]:
 		if spec[0] != "turrets": tabs.add_child(HudChrome.divider())
@@ -328,9 +335,10 @@ func _primary_action() -> void:
 
 func _style_hud_button(button: Button, role: String, selected: bool, padding: Vector2, tab_button := false) -> void:
 	button.set_meta("hud_role",role)
+	if role == "primary": button.theme_type_variation = "HudPrimary"
 	for state in ["normal","hover","pressed","disabled","focus"]:
-		var style := HudChrome.primary(state) if role == "primary" else HudChrome.quiet(state,selected,Color("65c9df"),padding)
-		button.add_theme_stylebox_override(state,style)
+		if role == "primary": button.remove_theme_stylebox_override(state)
+		else: button.add_theme_stylebox_override(state,HudChrome.quiet(state,selected,Color("65c9df"),padding))
 	var foreground := Color("b7c8d8") if tab_button and not selected else Color("e8f8ff")
 	for color_role in ["font_color","font_hover_color","font_pressed_color","font_focus_color","icon_normal_color","icon_hover_color","icon_pressed_color"]:
 		button.add_theme_color_override(color_role,foreground)
@@ -344,7 +352,9 @@ func _fit_dock_to_content() -> void:
 	_dock_layout_pending = false
 	if not is_instance_valid(body): return
 	var picker_only := main_tab == "turrets" and _selected_tile() == ""
-	detail_panel.add_theme_stylebox_override("panel",HudChrome.docked_panel(5) if picker_only else BattleTheme.box(Color("0b1b2baa"),Color("33d8ff55"),8))
+	detail_panel.theme_type_variation = "HudDock" if picker_only else ""
+	if picker_only: detail_panel.remove_theme_stylebox_override("panel")
+	else: detail_panel.add_theme_stylebox_override("panel",BattleTheme.box(Color("0b1b2baa"),Color("33d8ff55"),8))
 	# Scroll only when content reaches its limit; an unselected picker has no panel.
 	var limit := 198.0 if main_tab == "upgrades" else clampf(get_viewport_rect().size.y*0.28,150,280)
 	var gem_rows := body.find_child("EquippedSocketRows",true,false)
@@ -414,27 +424,23 @@ func _dps(stats: Dictionary,type: String) -> float:
 
 func _turret(state: Dictionary,turret: Dictionary) -> void:
 	var q: Dictionary = app.run_domain.service.quotes(state,int(turret.id))
-	var heading := HBoxContainer.new(); heading.add_theme_constant_override("separation",4); body.add_child(heading)
-	var identity := VBoxContainer.new(); identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	identity.size_flags_vertical = Control.SIZE_SHRINK_CENTER; identity.add_theme_constant_override("separation",1); heading.add_child(identity)
-	var turret_name := _label(identity,TOWERS.get(turret.type,turret.type),12)
-	turret_name.autowrap_mode = TextServer.AUTOWRAP_OFF
-	var level_name := _label(identity,"Lv.%d%s" % [turret.level," → %d" % (int(turret.level)+1) if app.selection_view.level_preview else ""],11)
-	level_name.modulate = Color("e7c66a"); level_name.autowrap_mode = TextServer.AUTOWRAP_OFF
-	var level := _turret_action(heading,"강화 확정" if app.selection_view.level_preview else "레벨업","최대 레벨" if int(q.level)<=0 else "%d G" % q.level,"ui/hud/icons/upgrades.png",Color("e7c66a"),80,_preview_level)
-	level.name = "TurretLevelAction"
-	_track_purchase_button(level,"gold",int(q.level),int(q.level)<=0)
-	level.tooltip_text = "강화 확정" if app.selection_view.level_preview else "다음 레벨 능력치 미리보기"
-	var sell := _turret_action(heading,"판매","+%d G" % q.sell,"upgrades/turret_refund.png",Color("edab78"),72,func(): _sell_confirm(turret,q))
-	sell.name = "TurretSellAction"; sell.tooltip_text = "판매 금액 확인"
-	var trait_count := int(turret.get("primaryTrait") != null)+int(turret.get("secondaryTrait") != null)
-	var traits := _turret_action(heading,"특성","%d/2 선택" % trait_count,"ui/hud/icons/rune.png",Color("bba5ed"),76,func(): _traits(turret,q))
-	traits.name = "TurretTraitAction"; traits.tooltip_text = "특성 확인 및 선택"
 	var active_tab := "stats" if app.selection_view.level_preview else tab
-	var tabs := HBoxContainer.new(); tabs.add_theme_constant_override("separation",0); body.add_child(tabs)
-	for spec in [["stats","스탯"],["gems","젬 링크"]]:
-		var b := _button(tabs,spec[1],func(): tab = spec[0]; refresh())
-		b.toggle_mode = true; b.button_pressed = active_tab == spec[0]; b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var panel := preload("res://ui/turret_action_panel.gd").new()
+	body.add_child(panel)
+	panel.configure({
+		"title":TOWERS.get(turret.type,turret.type),"icon":"ui/hud/turrets_3d/"+turret.type+".png",
+		"level":"Lv.%d%s" % [turret.level," → %d" % (int(turret.level)+1) if app.selection_view.level_preview else ""],
+		"upgrade_title":"강화 확정" if app.selection_view.level_preview else "강화",
+		"price":"최대 레벨" if int(q.level)<=0 else "%d G" % q.level,"maximum":int(q.level)<=0,
+		"trait_count":int(turret.get("primaryTrait") != null)+int(turret.get("secondaryTrait") != null),
+		"active_tab":active_tab,"upgrade_callback":_preview_level,
+		"trait_callback":func(): _traits(turret,q),"sell_callback":func(): _sell_confirm(turret,q),
+		"stats_callback":func(): tab = "stats"; refresh(),"gems_callback":func(): tab = "gems"; refresh(),
+	})
+	_track_purchase_button(panel.level_action,"gold",int(q.level),int(q.level)<=0)
+	panel.level_action.tooltip_text = ("강화 확정" if app.selection_view.level_preview else "다음 레벨 능력치 미리보기")+(" · %d G" % q.level if int(q.level)>0 else "")
+	panel.trait_action.tooltip_text = "특성 확인 및 선택"
+	panel.sell_action.tooltip_text = "판매 · +%d G · 금액 확인" % q.sell
 	if active_tab == "gems": _gems(state,turret,q); return
 	var damage_row := HBoxContainer.new(); body.add_child(damage_row)
 	_label(damage_row,"물리 · 경량화기" if turret.type == "arrow" else ("원소" if turret.type in ["magic","frost","lightning"] else "물리 · 중화기"),11)
@@ -482,28 +488,6 @@ func _turret(state: Dictionary,turret: Dictionary) -> void:
 			future_value.modulate = Color("8ee6ff")
 		cell.tooltip_text = spec[0]+" · "+_stat_value(stats,spec[1])+(" → "+_stat_value(next,spec[1]) if changed else "")
 		cell.add_child(HSeparator.new())
-
-func _turret_action(parent: Node,title: String,detail: String,icon_path: String,accent: Color,width: float,callback: Callable) -> Button:
-	var button := _button(parent,"",callback)
-	button.custom_minimum_size = Vector2(width,38)
-	for state in ["normal","hover","pressed","disabled","focus"]:
-		var style := HudChrome.quiet(state,false,accent,Vector2(4,3))
-		style.border_color = Color(accent,0.32 if state == "normal" else 0.7)
-		style.border_width_bottom = 1
-		button.add_theme_stylebox_override(state,style)
-	var content := HBoxContainer.new(); content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content.add_theme_constant_override("separation",4); button.add_child(content)
-	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	content.offset_left = 4; content.offset_right = -4; content.offset_top = 3; content.offset_bottom = -3
-	var icon := _icon(content,icon_path,20); icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	if icon_path.ends_with("upgrades.png"): icon.modulate = accent
-	var text := VBoxContainer.new(); text.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL; text.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	text.add_theme_constant_override("separation",0); content.add_child(text)
-	var name_label := _label(text,title,11); name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	var value_label := _label(text,detail,10); value_label.autowrap_mode = TextServer.AUTOWRAP_OFF; value_label.modulate = accent
-	button.set_meta("action_content",content)
-	return button
 
 func _stat_value(stats: Dictionary,key: String) -> String:
 	if key == "slowMultiplier": return "%.0f%%" % ((1.0-float(stats[key]))*100)

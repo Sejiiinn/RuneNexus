@@ -1,0 +1,43 @@
+{
+  "ui/lobby_frame.gd": {
+    "source": "f442a79221104abcb0e408cda7ae423b6d794dd24b0f6f5bf498288755971e9b",
+    "frame-hud-review": "f442a79221104abcb0e408cda7ae423b6d794dd24b0f6f5bf498288755971e9b",
+    "frame-lobby-review": "f442a79221104abcb0e408cda7ae423b6d794dd24b0f6f5bf498288755971e9b",
+    "final_hud_match": true
+  },
+  "ui/hud_chrome.gd": {
+    "source": "200d7ebeaf0c68216c7f72596eca6521103858e9036fa906a25260e4e85baa24",
+    "frame-hud-review": "200d7ebeaf0c68216c7f72596eca6521103858e9036fa906a25260e4e85baa24",
+    "frame-lobby-review": "fc9bad0122473c5add5483b95fea7d1cc4e2d98a7fe5b55bc466b80dcd4cc75e",
+    "final_hud_match": true
+  },
+  "ui/battle_hud.gd": {
+    "source": "6dacc54a06072f29d968571f0b73fce3fbe2cb42ea41c6396e5b724113656bcb",
+    "frame-hud-review": "6dacc54a06072f29d968571f0b73fce3fbe2cb42ea41c6396e5b724113656bcb",
+    "frame-lobby-review": "300bf5e5606659a06778b3b57b01d8a91721339f2b3a0c3d4cae4f283d4a0044",
+    "final_hud_match": true
+  },
+  "ui/battle_theme.gd": {
+    "source": "67df76eadf5f5b7abafb7e94c366e42926ad6b77e3fd73c2a2e95aac10a56233",
+    "frame-hud-review": "67df76eadf5f5b7abafb7e94c366e42926ad6b77e3fd73c2a2e95aac10a56233",
+    "frame-lobby-review": "ade4c3186496711b7a53939dac052e49af251690548215e337735fdeec964dc5",
+    "final_hud_match": true
+  },
+  "ui/battle_rewards.gd": {
+    "source": "f8733681a0e3c58fd12f8d9f9f0785754288e4d4f53f903667f73e6f27108516",
+    "frame-hud-review": "f8733681a0e3c58fd12f8d9f9f0785754288e4d4f53f903667f73e6f27108516",
+    "frame-lobby-review": "f8733681a0e3c58fd12f8d9f9f0785754288e4d4f53f903667f73e6f27108516",
+    "final_hud_match": true
+  },
+  "ui/assets.json": {
+    "source": "6090d90593fa42ee80183a8ba2dacd8436dd9ff838b9564faaea45f4d2f0a252",
+    "frame-hud-review": "6090d90593fa42ee80183a8ba2dacd8436dd9ff838b9564faaea45f4d2f0a252",
+    "frame-lobby-review": "c2a9b236da84fda202b264a51dd77792820deede15cfca0457c6d928aacc296f",
+    "final_hud_match": true
+  },
+  "assets/images/ui/hud/dock_panel.png": {
+    "source": "63230f6195100068e6eadac7de06bcc245fa994f5f79188c0633a871be575185",
+    "frame-hud-review": "63230f6195100068e6eadac7de06bcc245fa994f5f79188c0633a871be575185",
+    "final_hud_match": true
+  }
+}

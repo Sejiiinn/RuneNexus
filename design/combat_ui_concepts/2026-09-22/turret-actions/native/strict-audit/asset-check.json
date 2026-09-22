@@ -1,0 +1,28 @@
+{
+  "manifest_hashes": {
+    "assets/images/ui/hud/icons/traits.png": true,
+    "assets/images/ui/hud/icons/gold.png": true,
+    "assets/images/ui/hud/turret_actions/native/header.png": true,
+    "assets/images/ui/hud/turret_actions/native/sell.png": true,
+    "assets/images/ui/hud/turret_actions/native/tab_active.png": true,
+    "assets/images/ui/hud/turret_actions/native/tab_idle.png": true,
+    "assets/images/ui/hud/turret_actions/native/traits.png": true,
+    "assets/images/ui/hud/turret_actions/native/upgrade.png": true,
+    "assets/images/ui/hud/turret_actions/ref_divider.png": true,
+    "assets/images/ui/hud/turret_actions/ref_identity_divider.png": true,
+    "assets/images/ui/hud/turret_actions/ref_sell.png": true,
+    "assets/images/ui/hud/turret_actions/ref_trait_divider.png": true,
+    "assets/images/ui/hud/turret_actions/ref_upgrade.png": true
+  },
+  "manifest_duplicate_count": 0,
+  "missing_assets": [],
+  "source_hashes": {
+    "godot/ui/turret_action_panel.gd": "9a3e9331bf26dc4a46937504e0316aec62a4c1643e1efbf1836cf82bb9866461",
+    "godot/ui/battle_hud.gd": "4ef3c2c7c9ea42eb5ff61cff5368885975ac45ac57a4873d74b27f1a98733733"
+  },
+  "final_source_hashes": {
+    "godot/ui/turret_action_panel.gd": "b9dbf07c9c37530efc647c243978ede95f8f70d419a6a9b4f5a2b4cc0a150167",
+    "godot/ui/battle_hud.gd": "571056c5b8e959e9e4ef98f906d1d236d7ec2a501c64df207718ba8e8610ff35",
+    "godot/verify_battle_hud.gd": "deaa976bb2d1a2a8db6258d53d4f86996f501558a8a2aa0ac8364d564606957e"
+  }
+}

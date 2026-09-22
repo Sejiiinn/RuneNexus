@@ -169,8 +169,7 @@ func _cards(state: Dictionary, width: float) -> void:
 		shard.expand_icon = true
 		shard.add_theme_constant_override("icon_max_width",24)
 		shard.add_theme_color_override("font_color",Color("e8f8ff"))
-		for state_name in ["normal","hover","pressed","disabled","focus"]:
-			shard.add_theme_stylebox_override(state_name,Art.GameButton.appearance("secondary",state_name))
+		hud.Components.apply(shard)
 		var bar := StyleBoxFlat.new()
 		bar.bg_color = Color("0e3624") if shard_selected else Color("07111d")
 		bar.border_color = Color("28d66f")

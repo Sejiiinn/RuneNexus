@@ -1,0 +1,47 @@
+{
+  "source": "assets/images/ui/components/panel_frame.png",
+  "source_sha256": "3c9b1bef22de4c3434265d0c05133ba4c99971c1d8e378140ebb38b68f219dcd",
+  "interior_crop": [
+    56,
+    56,
+    1392,
+    528
+  ],
+  "interior_size": [
+    348,
+    132
+  ],
+  "rail_crop": [
+    56,
+    0,
+    1392,
+    56
+  ],
+  "rail_size": [
+    348,
+    4
+  ],
+  "rail_offset": [
+    0,
+    0
+  ],
+  "bilinear_source_rows": [
+    [
+      6,
+      7
+    ],
+    [
+      20,
+      21
+    ],
+    [
+      34,
+      35
+    ],
+    [
+      48,
+      49
+    ]
+  ],
+  "asset_sha256": "63230f6195100068e6eadac7de06bcc245fa994f5f79188c0633a871be575185"
+}

@@ -1,0 +1,25 @@
+{
+  "engine": "Godot 4.7.2.stable.official.ed1daf0bf",
+  "renderer": "Metal 4.0 Forward Mobile",
+  "device": "Apple M4",
+  "viewports": [
+    "320x760",
+    "440x900"
+  ],
+  "project": "build/godot/hud-review-v4",
+  "isolated_user_dir": "RuneNexus-HUD-review-v4",
+  "stage": 0,
+  "turret": "arrow",
+  "level": 7,
+  "gold": 3000,
+  "sha256": {
+    "godot/ui/battle_hud.gd": "8483b7f832b911b17da9a0c0dcd750d045a9b56940696c48c14586b3323cdd7f",
+    "godot/verify_battle_hud.gd": "48ecbb1ace974c02141151af3af9362c8b3bdf8e33776421243d760ac0c80401",
+    "assets/images/ui/hud/icons/traits.png": "c9e8d30cec7a721b603cd106d4bd28f0e22edaeb0a2d8e983410adeca1223fac",
+    "assets/images/ui/hud/turret_actions/tab_idle.png": "9d04439a6de5c92168eca0f235bc5905d4654e3629719ca7dc48951def3ab9da",
+    "assets/images/ui/hud/turret_actions/traits.png": "21b5e8f9ad655d5c7fa44fc6535dad168e9df7e4f96d23b1ff08f181f58d8c06",
+    "assets/images/ui/hud/turret_actions/upgrade.png": "bd82e0b1d4587b51de3b1760970797edce608ccd4c6d764907831ba25167ae76",
+    "assets/images/ui/hud/turret_actions/tab_active.png": "c6a250f640af049a45bee6190a6e4b7bbdec47ef28d2bcee2d5333034873679f",
+    "assets/images/ui/hud/turret_actions/sell.png": "0d681222416cd7c2a1a0963d9b6f14e9a4fc287cf59f8be2531ff1f26b8b295f"
+  }
+}

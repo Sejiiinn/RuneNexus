@@ -1,0 +1,65 @@
+{
+  "engine": "Godot 4.7.2.stable.official.ed1daf0bf",
+  "renderer": "Metal 4.0 Forward Mobile",
+  "device": "Apple M4",
+  "viewports": [
+    "320x760",
+    "440x900"
+  ],
+  "reference_design_size": [
+    1972,
+    418
+  ],
+  "actual_panel_sizes": [
+    [
+      304,
+      65
+    ],
+    [
+      424,
+      91
+    ]
+  ],
+  "implementation": "Control+Containers+Theme variants+StyleBoxTexture fixed corners; all Control.scale=(1,1)",
+  "project": "build/godot/hud-review-v4",
+  "isolated_user_dir": "RuneNexus-HUD-review-v4",
+  "stage": 0,
+  "turret": "arrow; additional lightning at 320",
+  "level": 7,
+  "gold": 3000,
+  "sha256": {
+    "godot/ui/battle_hud.gd": "4ef3c2c7c9ea42eb5ff61cff5368885975ac45ac57a4873d74b27f1a98733733",
+    "godot/ui/turret_action_panel.gd": "9a3e9331bf26dc4a46937504e0316aec62a4c1643e1efbf1836cf82bb9866461",
+    "godot/verify_battle_hud.gd": "3a34b4fdc27054670b96da9c8519e2d44c160222e83c8c5e25511eda60ffbc8e",
+    "assets/images/ui/hud/icons/traits.png": "c9e8d30cec7a721b603cd106d4bd28f0e22edaeb0a2d8e983410adeca1223fac",
+    "assets/images/ui/hud/turret_actions/ref_identity_divider.png": "4a8e18b9d210b16d7abff7db67e17586ffce106a5f785a2450d46d2192fba563",
+    "assets/images/ui/hud/turret_actions/ref_sell.png": "1d01d69601e07cc36e8bfe44a1c924bad83bb8b7fc6f7b401b8986f45c774e7b",
+    "assets/images/ui/hud/turret_actions/ref_divider.png": "92cab270ad57b9bb047c7371863070b8a0817b3c186f4e434ddb8680502fee8e",
+    "assets/images/ui/hud/turret_actions/ref_trait_divider.png": "9e5cda97b75298dab5a950913d2e254bbd73a5d06f7fa14371643140906f294b",
+    "assets/images/ui/hud/turret_actions/ref_upgrade.png": "95fb9b58997c15844f15bb56e90f2707e63f51eef6aa6fc10117e6a504cfc16a",
+    "assets/images/ui/hud/turret_actions/native/tab_idle.png": "0c210babf896f7374abe21edcee7b76b47a8092943202febd3375f555456b66f",
+    "assets/images/ui/hud/turret_actions/native/traits.png": "9ecd37a934677560a9efbcf5226a38842b1e2260a7712f649d218101447b5519",
+    "assets/images/ui/hud/turret_actions/native/upgrade.png": "c3dd8973b6add0a0244c41e8be75f666d75b39de79668d304a57aa4d1fed51bf",
+    "assets/images/ui/hud/turret_actions/native/header.png": "85cb743edade1a72ba44ab6bd40559e935f7de3b6aac69ca816cf64ba2c2384b",
+    "assets/images/ui/hud/turret_actions/native/tab_active.png": "a9ca4f41c86adc00a8d86402ec7f12678f453c738af395d9673fff4ba1c49123",
+    "assets/images/ui/hud/turret_actions/native/sell.png": "41e0b82a598efdc61fb4455eb2b23a3c3a9bebe8a55bf57905426cc901129ca0",
+    "assets/images/ui/hud/icons/gold.png": "d6d0f97f3794a0b2fd2525f58268e055ade3e1182b201118b84d34e49c497de5",
+    "godot/ui/assets.json": "63eb9bf0aedf5ba38f0cf59c3641cc4273d9110a2c26ad19f38b20951b3feaf8"
+  },
+  "gold_icon_followup": {
+    "source": "ui/hud/icons/gold.png",
+    "screenshots": [
+      "gold-320.png",
+      "gold-440.png"
+    ],
+    "scope": "투명 공용 골드 아이콘 복구, 동작 변화 없음"
+  },
+  "transparent_icons_followup": {
+    "sources": [
+      "ref_upgrade.png",
+      "ref_sell.png"
+    ],
+    "screenshot": "transparent-icons-440.png",
+    "scope": "승인 화살표·판매 동전 형태 유지, crop 배경 알파 제거 후 대표 스트립 확인"
+  }
+}

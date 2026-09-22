@@ -1,0 +1,68 @@
+{
+  "320-primary": {
+    "roi": [
+      236,
+      590,
+      312,
+      626
+    ],
+    "changed_pixels": 0,
+    "maximum_channel_delta": 0,
+    "mean_channel_delta": 0.0
+  },
+  "320-dock": {
+    "roi": [
+      0,
+      630,
+      320,
+      760
+    ],
+    "changed_pixels": 11795,
+    "maximum_channel_delta": 2,
+    "mean_channel_delta": 0.11623397435897435
+  },
+  "320-rail": {
+    "roi": [
+      0,
+      630,
+      320,
+      634
+    ],
+    "changed_pixels": 502,
+    "maximum_channel_delta": 2,
+    "mean_channel_delta": 0.16822916666666668
+  },
+  "440-primary": {
+    "roi": [
+      356,
+      730,
+      432,
+      766
+    ],
+    "changed_pixels": 0,
+    "maximum_channel_delta": 0,
+    "mean_channel_delta": 0.0
+  },
+  "440-dock": {
+    "roi": [
+      0,
+      770,
+      440,
+      900
+    ],
+    "changed_pixels": 16541,
+    "maximum_channel_delta": 3,
+    "mean_channel_delta": 0.11808275058275058
+  },
+  "440-rail": {
+    "roi": [
+      0,
+      770,
+      440,
+      774
+    ],
+    "changed_pixels": 725,
+    "maximum_channel_delta": 3,
+    "mean_channel_delta": 0.17765151515151514
+  }
+}

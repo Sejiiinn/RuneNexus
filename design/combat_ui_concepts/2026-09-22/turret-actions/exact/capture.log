@@ -1,0 +1,20 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward Mobile - Using Device #0: Apple - Apple M4 (Apple9)
+
+CAPTURE after-320 panel=[P: (8.0, 509.0), S: (304.0, 65.0)] body=(304.0, 201.0) scroll=(304.0, 201.0) dock=(320.0, 299.0)
+CAPTURE after-preview-320 panel=[P: (8.0, 509.0), S: (304.0, 65.0)] body=(304.0, 201.0) scroll=(304.0, 201.0) dock=(320.0, 299.0)
+CAPTURE disabled-320 panel=[P: (8.0, 509.0), S: (304.0, 65.0)] body=(304.0, 201.0) scroll=(304.0, 201.0) dock=(320.0, 299.0)
+CAPTURE max-level-320 panel=[P: (8.0, 509.0), S: (304.0, 65.0)] body=(304.0, 201.0) scroll=(304.0, 201.0) dock=(320.0, 299.0)
+LABEL 기관총 pos=(232.0, 76.0) size=(245.0, 90.0) global=[P: (57.88235, 640.3408), S: (52.67748, 19.35091)] font=60
+LABEL Lv.7 pos=(240.0, 158.0) size=(220.0, 80.0) global=[P: (59.60243, 657.9716), S: (47.30223, 17.20081)] font=60
+LABEL 강화 pos=(285.0, 35.0) size=(235.0, 85.0) global=[P: (176.998, 640.1257), S: (50.52738, 18.27586)] font=60
+LABEL 204 G pos=(341.0, 119.0) size=(190.0, 75.0) global=[P: (189.0385, 658.1866), S: (40.85192, 16.12576)] font=50
+LABEL 특성 pos=(286.0, 35.0) size=(235.0, 85.0) global=[P: (306.4341, 640.1257), S: (50.52738, 18.27586)] font=60
+LABEL 0/2 선택 pos=(286.0, 118.0) size=(240.0, 75.0) global=[P: (306.4341, 657.9716), S: (51.60243, 16.12576)] font=50
+LABEL 판매 pos=(25.0, 103.0) size=(105.0, 60.0) global=[P: (393.2982, 660.7667), S: (22.57607, 12.90061)] font=40
+LABEL 스탯 pos=(0.0, 12.0) size=(754.0, 106.0) global=[P: (54.6572, 688.5031), S: (162.1176, 22.79107)] font=60
+LABEL 젬 링크 pos=(0.0, 12.0) size=(766.0, 106.0) global=[P: (219.14, 688.5031), S: (164.6978, 22.79107)] font=60
+CAPTURE after-440 panel=[P: (8.0, 624.0), S: (424.0, 90.0)] body=(424.0, 226.0) scroll=(424.0, 226.0) dock=(440.0, 324.0)
+CAPTURE traits-one-440 panel=[P: (8.0, 624.0), S: (424.0, 90.0)] body=(424.0, 226.0) scroll=(424.0, 226.0) dock=(440.0, 324.0)
+CAPTURE traits-two-440 panel=[P: (8.0, 624.0), S: (424.0, 90.0)] body=(424.0, 226.0) scroll=(424.0, 226.0) dock=(440.0, 324.0)
+CAPTURE gems-440 panel=[P: (8.0, 620.0), S: (424.0, 90.0)] body=(424.0, 230.0) scroll=(424.0, 230.0) dock=(440.0, 328.0)

@@ -1,0 +1,16 @@
+{
+  "source_sha256": {
+    "godot/ui/battle_theme.gd": "67df76eadf5f5b7abafb7e94c366e42926ad6b77e3fd73c2a2e95aac10a56233",
+    "godot/ui/battle_rewards.gd": "f8733681a0e3c58fd12f8d9f9f0785754288e4d4f53f903667f73e6f27108516",
+    "godot/ui/combat_component_theme.gd": "360ec266c7c37cb9e33a749827b1ffd483a37140761ed9f29ab32516e84854a5"
+  },
+  "runtime": "build/godot/frame-buttons-review",
+  "user_dir": "RuneNexus-Frame-Buttons-Review",
+  "integration_requirement": "battle_hud.gd: BattleTheme.create(true); this caller was applied in the isolated validation copy",
+  "results": {
+    "reward_ui": "PASS 320/440, mouse select and settle",
+    "lobby_theme_boundary": "PASS legacy default retained",
+    "battle_rewards_regression": "PASS",
+    "battle_hud_regression": "PASS"
+  }
+}

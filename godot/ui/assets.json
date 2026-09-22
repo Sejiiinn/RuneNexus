@@ -188,5 +188,19 @@
   "ui/combat_components/native/secondary.png",
   "ui/combat_components/native/danger.png",
   "ui/combat_components/native/selected.png",
-  "ui/combat_components/native/disabled.png"
+  "ui/combat_components/native/disabled.png",
+  "ui/hud/icons/traits.png",
+  "ui/hud/turret_actions/ref_upgrade.png",
+  "ui/hud/turret_actions/ref_sell.png",
+  "ui/hud/turret_actions/ref_identity_divider.png",
+  "ui/hud/turret_actions/ref_divider.png",
+  "ui/hud/turret_actions/ref_trait_divider.png",
+  "ui/hud/turret_actions/native/header.png",
+  "ui/hud/turret_actions/native/upgrade.png",
+  "ui/hud/turret_actions/native/traits.png",
+  "ui/hud/turret_actions/native/sell.png",
+  "ui/hud/turret_actions/native/tab_active.png",
+  "ui/hud/turret_actions/native/tab_idle.png",
+  "ui/hud/resource_panel.png",
+  "ui/hud/dock_panel.png"
 ]

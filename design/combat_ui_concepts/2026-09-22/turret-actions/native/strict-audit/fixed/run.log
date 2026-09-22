@@ -1,0 +1,65 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward Mobile - Using Device #0: Apple - Apple M4 (Apple9)
+
+ISOLATED /Users/sejin/Library/Application Support/RuneNexus-HUD-review-v4
+HIT 440 TurretLevelAction [P: (115.0, 631.0), S: (122.0, 48.37728)]
+HIT 440 TurretTraitAction [P: (244.0, 631.0), S: (125.0, 48.37728)]
+HIT 440 TurretSellAction [P: (388.0, 637.0), S: (31.0, 35.90669)]
+TEXT 440 기관총 font=13 size=(48.0, 17.63083)
+TEXT 440 Lv.7 font=13 size=(48.0, 17.20081)
+TEXT 440 강화 font=13 size=(54.0, 18.27586)
+TEXT 440 204 G font=11 size=(37.0, 16.12576)
+TEXT 440 특성 font=13 size=(49.0, 18.27586)
+TEXT 440 0/2 선택 font=11 size=(49.0, 16.12576)
+TEXT 440 판매 font=9 size=(23.0, 12.90061)
+TEXT 440 스탯 font=13 size=(161.0, 22.79107)
+TEXT 440 젬 링크 font=13 size=(165.0, 22.79107)
+HIT 320 TurretLevelAction [P: (86.0, 514.0), S: (87.0, 34.6856)]
+HIT 320 TurretTraitAction [P: (178.0, 514.0), S: (88.0, 34.6856)]
+HIT 320 TurretSellAction [P: (280.0, 519.0), S: (23.0, 25.74442)]
+TEXT 320 기관총 font=9 size=(34.0, 12.64097)
+TEXT 320 Lv.7 font=9 size=(34.0, 12.33266)
+TEXT 320 강화 font=9 size=(38.0, 13.10345)
+TEXT 320 204 G font=8 size=(25.0, 11.56187)
+TEXT 320 특성 font=9 size=(33.0, 13.10345)
+TEXT 320 0/2 선택 font=8 size=(33.0, 11.56187)
+TEXT 320 판매 font=6 size=(17.0, 9.249494)
+TEXT 320 스탯 font=9 size=(116.0, 16.34077)
+TEXT 320 젬 링크 font=9 size=(118.0, 16.34077)
+HIT 440 TurretLevelAction [P: (115.0, 631.0), S: (122.0, 48.37728)]
+HIT 440 TurretTraitAction [P: (244.0, 631.0), S: (125.0, 48.37728)]
+HIT 440 TurretSellAction [P: (388.0, 637.0), S: (31.0, 35.90669)]
+TEXT 440 기관총 font=13 size=(48.0, 17.63083)
+TEXT 440 Lv.7 font=13 size=(48.0, 17.20081)
+TEXT 440 강화 font=13 size=(54.0, 18.27586)
+TEXT 440 204 G font=11 size=(37.0, 16.12576)
+TEXT 440 특성 font=13 size=(49.0, 18.27586)
+TEXT 440 0/2 선택 font=11 size=(49.0, 16.12576)
+TEXT 440 판매 font=9 size=(23.0, 12.90061)
+TEXT 440 스탯 font=13 size=(161.0, 22.79107)
+TEXT 440 젬 링크 font=13 size=(165.0, 22.79107)
+HIT 280 TurretLevelAction [P: (75.0, 521.0), S: (75.0, 30.1217)]
+HIT 280 TurretTraitAction [P: (155.0, 521.0), S: (76.0, 30.1217)]
+HIT 280 TurretSellAction [P: (244.0, 525.0), S: (20.0, 22.357)]
+TEXT 280 기관총 font=8 size=(29.0, 10.97769)
+TEXT 280 Lv.7 font=8 size=(29.0, 10.70994)
+TEXT 280 강화 font=8 size=(33.0, 11.37931)
+TEXT 280 204 font=8 size=(27.0, 10.04057)
+TEXT 280 특성 font=8 size=(27.0, 11.37931)
+TEXT 280 0/2 선택 font=7 size=(27.0, 10.04057)
+TEXT 280 판매 font=5 size=(14.0, 8.032455)
+TEXT 280 스탯 font=8 size=(100.0, 14.19067)
+TEXT 280 젬 링크 font=8 size=(103.0, 14.19067)
+HIT 320 TurretLevelAction [P: (86.0, 514.0), S: (87.0, 34.6856)]
+HIT 320 TurretTraitAction [P: (178.0, 514.0), S: (88.0, 34.6856)]
+HIT 320 TurretSellAction [P: (280.0, 519.0), S: (23.0, 25.74442)]
+TEXT 320 기관총 font=9 size=(34.0, 12.64097)
+TEXT 320 Lv.7 font=9 size=(34.0, 12.33266)
+TEXT 320 강화 font=9 size=(38.0, 13.10345)
+TEXT 320 204 G font=8 size=(25.0, 11.56187)
+TEXT 320 특성 font=9 size=(33.0, 13.10345)
+TEXT 320 0/2 선택 font=8 size=(33.0, 11.56187)
+TEXT 320 판매 font=6 size=(17.0, 9.249494)
+TEXT 320 스탯 font=9 size=(116.0, 16.34077)
+TEXT 320 젬 링크 font=9 size=(118.0, 16.34077)
+FIXED AUDIT {"checks":449,"failures":[]}

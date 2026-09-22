@@ -1,0 +1,42 @@
+extends StyleBoxTexture
+## Native nine-patch drawing, with master pixels kept at their logical UI size.
+const Art = preload("res://ui/app_theme.gd")
+const CENTERS := {"panel_frame":Rect2(14,14,348,132),"card_frame":Rect2(11,11,149,94),"row_frame":Rect2(11,10,335,24),"row_frame_locked":Rect2(11,11,335,37),"button_frame":Rect2(8,8,135,18),"chip_frame":Rect2(8,7,44,13)}
+static var _logical_textures: Dictionary = {}
+var _master: Texture2D
+var source_center := Rect2():
+	set(value):
+		source_center = value
+		_update_texture()
+var source_scale := 4.0:
+	set(value):
+		source_scale = value
+		_update_texture()
+
+func _init(path: String = "", inset: int = 8) -> void:
+	_master = Art.texture(path) if not path.is_empty() else null
+	if path.begins_with("ui/components/"):
+		source_center = CENTERS.get(path.get_file().get_basename(), Rect2())
+	_update_texture()
+	set_content_margin_all(inset)
+
+func _update_texture() -> void:
+	if not _master:
+		return
+	if source_center.size == Vector2.ZERO:
+		texture = _master
+		set_texture_margin_all(0)
+		return
+	var logical := _master.get_size() / source_scale
+	var key := "%s:%s" % [_master.get_instance_id(), source_scale]
+	if not _logical_textures.has(key):
+		# Size override changes coordinates, never resamples the approved image.
+		# Keep a separate cached RID so other users retain the master's dimensions.
+		var scaled := ImageTexture.create_from_image(_master.get_image())
+		scaled.set_size_override(Vector2i(logical))
+		_logical_textures[key] = scaled
+	texture = _logical_textures[key]
+	set_texture_margin(SIDE_LEFT, source_center.position.x)
+	set_texture_margin(SIDE_TOP, source_center.position.y)
+	set_texture_margin(SIDE_RIGHT, logical.x - source_center.end.x)
+	set_texture_margin(SIDE_BOTTOM, logical.y - source_center.end.y)
