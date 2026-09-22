@@ -94,8 +94,8 @@ func verify() -> void:
 			assert(chips.size() == 3)
 			for chip in chips:
 				assert(chip.get_child(0) is HBoxContainer, "Unlock chip icon and label must be horizontal")
-				assert(chip.custom_minimum_size.y == 34)
-				assert(chip.get_child(0).get_child(1).get_theme_color("font_color") == ui.SECONDARIES[0])
+				assert(chip.custom_minimum_size.y == 52)
+				assert(chip.find_child("RewardName",true,false).get_theme_color("font_color") == ui.SECONDARIES[0])
 	print("PASS stage restoration: reference bounds 320/440, active/list, chapter, locked/start/continue, canonical rewards and unlock lists")
 	host.free()
 	quit()

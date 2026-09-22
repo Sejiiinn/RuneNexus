@@ -1,0 +1,167 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M4
+
+WARNING: 'res://assets/environment/terrain.glb': In external resource #0, invalid UID: 'uid://crrl2ay442c3f' - using text path instead: 'res://assets/shared_textures/962b9e7358dd589db1d8984a1348a7892c1cb79d0d8298558c69b015dc6e0e12.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #1, invalid UID: 'uid://cddl682fqvm06' - using text path instead: 'res://assets/shared_textures/9bf0a49d2e65018d8df4cc16ed6d7c25751680e1779406ac3e9be774095fd0c4.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #2, invalid UID: 'uid://blen6px874g8o' - using text path instead: 'res://assets/shared_textures/3d16b8d5a52cae0fc776e3f44af25321151190ab1ac0d356e5135a48442b33a2.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #3, invalid UID: 'uid://c8qyveul7g235' - using text path instead: 'res://assets/shared_textures/d0d1904a5d7e0cf6c9bb288f57b7b7d27b310ea9d15cfb876f12aa049476df93.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #4, invalid UID: 'uid://bmf8h5swmt5pw' - using text path instead: 'res://assets/shared_textures/985f78ec5fd0deec330be032672d873a1c2886f469e0b5d8ca232da3b1949e0a.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #5, invalid UID: 'uid://ec00xn5jmaq' - using text path instead: 'res://assets/shared_textures/6356014e7d421a1f4cfc6bb7130d3b6302265a4cd868df7c8e26a527ecf7d651.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #6, invalid UID: 'uid://bhibw5iojyix0' - using text path instead: 'res://assets/shared_textures/c0abf644091b085ba3fe798ddf6dd64b4c2bc7b28aa6e42f0fd5c0d893daf9fe.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #7, invalid UID: 'uid://rwqoon21ul4l' - using text path instead: 'res://assets/shared_textures/b6fef098ffdd77c86df4dfd7c582f652e4c92f18b076e3073bc918f10675f381.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #8, invalid UID: 'uid://cqsyhtecw6udn' - using text path instead: 'res://assets/shared_textures/e464aca98f16fce39d157e8c62742850c633da5e68c32b45cc5a7126a246ce9f.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #9, invalid UID: 'uid://bjem60c5skcsu' - using text path instead: 'res://assets/shared_textures/040df2bf96ef324c4a101d2c181afad710e5dc2f6565ac2d04d10025991c9c09.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #10, invalid UID: 'uid://dfw2haoks5r73' - using text path instead: 'res://assets/shared_textures/25a107e2d7a0b259bad7e313caa718d657001c6e3b6a22ad159e2400059e47aa.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #11, invalid UID: 'uid://ccoklmb4qpw02' - using text path instead: 'res://assets/shared_textures/d767c52dd36bef635598be9cb6f4e66d2038a9a937269301f287517978444168.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #12, invalid UID: 'uid://bdp1x1apba73c' - using text path instead: 'res://assets/shared_textures/c1a186b3c199d90418440545496955bb6e182eefa0b72bff2d1cfcd3f1745953.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #13, invalid UID: 'uid://duvy50tl1o25e' - using text path instead: 'res://assets/shared_textures/eba1f206023924272892f2f48e02018cf80ef609ae5af4b71f7743f081e77331.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #14, invalid UID: 'uid://1e8xa7ixuwaw' - using text path instead: 'res://assets/shared_textures/0428eda8d87a93e324e8484405b3a72ed377ab9988e504d7581cdc2fb2512bac.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #15, invalid UID: 'uid://d0ppv3jqqhrmr' - using text path instead: 'res://assets/shared_textures/9995f9452af9ca71dbefa22d778d0d9a78349465f3467e34dd3e42eba84c9ea8.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #16, invalid UID: 'uid://b71mxtyysf143' - using text path instead: 'res://assets/shared_textures/1ef8129dc4728b9b339574d3fd30ff3c290c16944f6150a7a5f17231e2f3e9c7.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/terrain.glb': In external resource #17, invalid UID: 'uid://h64crimctwps' - using text path instead: 'res://assets/shared_textures/f7d7dd4c089b14644ce9ee5db72d5ddb999714649db2b28c5982918d3b27dfb8.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/environment/landmarks.glb': In external resource #0, invalid UID: 'uid://cqsyhtecw6udn' - using text path instead: 'res://assets/shared_textures/e464aca98f16fce39d157e8c62742850c633da5e68c32b45cc5a7126a246ce9f.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/turrets/arrow.glb': In external resource #0, invalid UID: 'uid://dr41t21fbpjtb' - using text path instead: 'res://assets/shared_textures/ecea73a7472b9253f1e07d01a8a579ea931e0bffb90920951f0305c0f43fe9c4.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/turrets/arrow.glb': In external resource #1, invalid UID: 'uid://rwr3wnfnxl42' - using text path instead: 'res://assets/shared_textures/335eab2c778f4d4401fe54c49b7c8655c3a018838347cf67e1762182b405e153.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/turrets/cannon.glb': In external resource #0, invalid UID: 'uid://5lknwioi5nnf' - using text path instead: 'res://assets/shared_textures/efa85b374e12ecb860de410ce6096c36e7daff70ea40ebdb048522451d505388.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/turrets/cannon.glb': In external resource #1, invalid UID: 'uid://cexrjlwcun1xr' - using text path instead: 'res://assets/shared_textures/a9aaf2f9bbc52e6960c9683dfd641ec35ab22b6a8ca5057743afec4bacb10d54.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/turrets/magic.glb': In external resource #0, invalid UID: 'uid://dmd6uk4r4r5yl' - using text path instead: 'res://assets/shared_textures/a65f1e92b6d7146f67bfcbc259de5435f159ade72f0b1663dcc832a7cf4f8ab4.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/turrets/magic.glb': In external resource #1, invalid UID: 'uid://dv5xffgfembo0' - using text path instead: 'res://assets/shared_textures/3ceb5b9ea78d6b282e4a61d48b95153f09218f187674d32207bcaf39aa3cd452.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/turrets/magic.glb': In external resource #2, invalid UID: 'uid://cdqps8mkgveqp' - using text path instead: 'res://assets/shared_textures/899d8f531caee83b9e89b05bdd32f60a17e81e1543bb219234547416bbd2f209.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/turrets/frost.glb': In external resource #0, invalid UID: 'uid://bhibw5iojyix0' - using text path instead: 'res://assets/shared_textures/c0abf644091b085ba3fe798ddf6dd64b4c2bc7b28aa6e42f0fd5c0d893daf9fe.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/turrets/frost.glb': In external resource #1, invalid UID: 'uid://rwqoon21ul4l' - using text path instead: 'res://assets/shared_textures/b6fef098ffdd77c86df4dfd7c582f652e4c92f18b076e3073bc918f10675f381.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/turrets/frost.glb': In external resource #2, invalid UID: 'uid://cqsyhtecw6udn' - using text path instead: 'res://assets/shared_textures/e464aca98f16fce39d157e8c62742850c633da5e68c32b45cc5a7126a246ce9f.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/turrets/frost.glb': In external resource #3, invalid UID: 'uid://6u8tdftbvsfa' - using text path instead: 'res://assets/shared_textures/058bfb9b74732459bcbb7aa90b5009defb313f790cbf66fd1a13420441520608.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/turrets/frost.glb': In external resource #4, invalid UID: 'uid://mowxyed2q3m3' - using text path instead: 'res://assets/shared_textures/0df4311010237503e17ca74756d32d0ecac602f96e12f14665c59bd25cced527.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/turrets/frost.glb': In external resource #5, invalid UID: 'uid://do1jfs8wcqtsy' - using text path instead: 'res://assets/shared_textures/5f8ee4f00c73fba63071cfd8102ec434292bfaf5d17b7c5353d5fdbcf6fb0b88.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/enemies/normal.glb': In external resource #0, invalid UID: 'uid://bvy17dav8uhlj' - using text path instead: 'res://assets/shared_textures/56fe8bed4718c8f0f22685d0718e1386268e70983f0040988653d67723dacb3d.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/enemies/armored.glb': In external resource #0, invalid UID: 'uid://bvy17dav8uhlj' - using text path instead: 'res://assets/shared_textures/56fe8bed4718c8f0f22685d0718e1386268e70983f0040988653d67723dacb3d.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/enemies/shielded.glb': In external resource #0, invalid UID: 'uid://bvy17dav8uhlj' - using text path instead: 'res://assets/shared_textures/56fe8bed4718c8f0f22685d0718e1386268e70983f0040988653d67723dacb3d.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/enemies/fast.glb': In external resource #0, invalid UID: 'uid://bvy17dav8uhlj' - using text path instead: 'res://assets/shared_textures/56fe8bed4718c8f0f22685d0718e1386268e70983f0040988653d67723dacb3d.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/enemies/tank.glb': In external resource #0, invalid UID: 'uid://bvy17dav8uhlj' - using text path instead: 'res://assets/shared_textures/56fe8bed4718c8f0f22685d0718e1386268e70983f0040988653d67723dacb3d.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+WARNING: 'res://assets/enemies/boss.glb': In external resource #0, invalid UID: 'uid://bvy17dav8uhlj' - using text path instead: 'res://assets/shared_textures/56fe8bed4718c8f0f22685d0718e1386268e70983f0040988653d67723dacb3d.png'.
+     at: open (core/io/resource_format_binary.cpp:1025)
+     GDScript backtrace (most recent call first):
+         [0] run (res://strict_live.gd:34)
+REAL APP res://app/app_lifecycle.gd USER /Users/sejin/Library/Application Support/RuneNexus-lobby-modal-review
+CHECK stage=8 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 274.0), S: (390.0, 352.0)]
+CHECK stage=8 physical=(440, 1100) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 1100.0)] frame=[P: (25.0, 374.0), S: (390.0, 352.0)]
+CHECK stage=8 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 274.0), S: (390.0, 352.0)]
+CHECK stage=11 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 295.0), S: (390.0, 310.0)]
+CHECK stage=11 physical=(440, 1100) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 1100.0)] frame=[P: (25.0, 395.0), S: (390.0, 310.0)]
+CHECK stage=11 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 295.0), S: (390.0, 310.0)]
+CHECK stage=1 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 267.0), S: (390.0, 366.0)]
+CHECK stage=1 physical=(440, 1100) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 1100.0)] frame=[P: (25.0, 367.0), S: (390.0, 366.0)]
+CHECK stage=1 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 267.0), S: (390.0, 366.0)]
+PASS actual AppLifecycle started stage1
+PASS independent real AppLifecycle/Lobby modal: animations ON, stage8/11/1, stable geometry, reentry, resize, hit close/start

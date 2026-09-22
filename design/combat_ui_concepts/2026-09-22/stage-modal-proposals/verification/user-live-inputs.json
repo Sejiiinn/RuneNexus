@@ -1,0 +1,26 @@
+{
+  "engine": "Godot 4.7.2.stable.official.ed1daf0bf",
+  "renderer": "Metal 4.0 Forward Mobile",
+  "physical": [
+    440,
+    900
+  ],
+  "modal_rect": [
+    25,
+    255,
+    390,
+    390
+  ],
+  "source_runtime_sha256_equal": {
+    "godot/ui/lobby.gd": "b8ba0365a6a0b6280dee77dc94050065a3051037aeaa62732c61a3b4249cdf92",
+    "godot/ui/lobby_stages.gd": "e692e8f483039129be2137cdabfd1100b1e81466db515d40af372399c0abed44",
+    "godot/ui/stage_detail_theme.gd": "ae0356f6cd9343200e29a3060566979de781f0cee26bcea995aa1584fc9009ac",
+    "godot/ui/assets.json": "925bb57cfca2c46d751516125717a12d1256a532f2cafe7b8a0367f72dc4de6c",
+    "assets/images/stage_details/v2/divider.png": "f46ab571e6126537d48cd98a17e20c8f19a6c2df7c5efa6c226748cd7e4613f2",
+    "assets/images/stage_details/v2/action_button.png": "512e4362f430475e2bf32112f4458e385e413c3ddfb9af67cc281830c6569b83",
+    "assets/images/stage_details/v2/reward_row.png": "8534f6f726841b0af4c971202ffc5a310efcd763c61cd9d584684b6a5befdd1f",
+    "assets/images/stage_details/v2/dialog_frame.png": "f4aecaf513511a07d95200b630b076618246437e2ef5b361ab13a2e3b58ef4d3",
+    "assets/images/stage_details/v2/close_button.png": "9ab183f76b6440f935ed8cafd89b20f7f35fdc790455c42cb34910b6c3d6734b",
+    "assets/images/stage_details/v2/reward_heading.png": "a47cb1b8f24f663d15eae35638ac774fdb1e315863c61642afae340f8a34874d"
+  }
+}

@@ -23,6 +23,8 @@ var core = Core.new()
 var collection = Collection.new()
 var stages = Stages.new()
 var modal: Control
+var modal_position: Control
+var modal_visual: Control
 var modal_frame: PanelContainer
 var modal_body: VBoxContainer
 var modal_scroll: ScrollContainer
@@ -273,38 +275,63 @@ func _header(parent: Node) -> void:
 	inset.resized.connect(arrange)
 	arrange.call_deferred()
 
+func _navigation_style(selected: bool) -> StyleBoxTexture:
+	var style := StyleBoxTexture.new()
+	style.texture = AppTheme.texture("ui/hud/turret_actions/native/tab_active.png" if selected else "ui/hud/turret_actions/native/tab_idle.png")
+	style.set_texture_margin(SIDE_LEFT,8)
+	style.set_texture_margin(SIDE_RIGHT,8)
+	style.set_texture_margin(SIDE_TOP,6)
+	style.set_texture_margin(SIDE_BOTTOM,6)
+	style.set_content_margin_all(0)
+	return style
+
 func _footer(parent: Node) -> void:
 	var panel := PanelContainer.new()
 	panel.name = "MenuTabs"
-	panel.add_theme_stylebox_override("panel", MenuTheme.box(Color("071724"), Color("427e87"), 0))
+	var dock := StyleBoxTexture.new()
+	dock.texture = AppTheme.texture("ui/hud/dock_panel.png")
+	dock.set_texture_margin_all(2)
+	dock.content_margin_left = 4
+	dock.content_margin_right = 4
+	dock.content_margin_top = 4
+	dock.content_margin_bottom = 4
+	panel.add_theme_stylebox_override("panel",dock)
 	parent.add_child(panel)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 0)
+	row.add_theme_constant_override("separation",2)
 	panel.add_child(row)
 	var paths := ["stage", "core", "upgrade", "research", "turret"]
 	var tabs := ["스테이지", "코어", "강화", "연구", "포탑"]
 	for i in range(5):
 		var tab: String = tabs[i]
+		var selected := page == tab
 		var b := _plain_button("", open_page.bind(tab))
 		b.name = "Tab" + paths[i].capitalize()
+		b.tooltip_text = tab
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.custom_minimum_size.y = 56
-		if page == tab:
-			var selected := MenuTheme.box(Color("123443"),Color("8ee6ff"),0)
-			selected.set_corner_radius_all(0)
-			selected.set_border_width_all(0)
-			selected.border_width_bottom = 3
-			b.add_theme_stylebox_override("normal", selected)
+		b.add_theme_stylebox_override("normal",_navigation_style(true) if selected else StyleBoxEmpty.new())
+		b.add_theme_stylebox_override("hover",_navigation_style(selected))
+		b.add_theme_stylebox_override("pressed",_navigation_style(true))
+		b.add_theme_stylebox_override("focus",_navigation_style(true))
 		row.add_child(b)
-		var box := HBoxContainer.new()
+		var box := VBoxContainer.new()
 		box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		box.offset_top = 4
+		box.offset_bottom = -4
 		box.alignment = BoxContainer.ALIGNMENT_CENTER
-		box.add_theme_constant_override("separation", 3)
+		box.add_theme_constant_override("separation",2)
 		box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		b.add_child(box)
-		box.add_child(_image("stage_rewards/reward_%s.png" % paths[i], Vector2.ONE * (18 if size.x < 360 else 21)))
-		var label := _text(tab, 11 if size.x < 360 else 12)
+		var icon := _image("stage_rewards/reward_%s.png" % paths[i],Vector2.ONE*26)
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon.modulate = Color.WHITE if selected else Color("b1c7d2")
+		box.add_child(icon)
+		var label := _text(tab,12)
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.add_theme_font_override("font",AppTheme.font(800 if selected else 700))
+		label.add_theme_color_override("font_color",Color("f1d18a") if selected else Color("aac3ce"))
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		box.add_child(label)
 
 func open_page(value: String) -> void:
@@ -331,6 +358,12 @@ func set_modal_asset(path: String) -> void:
 		modal_frame.add_theme_stylebox_override("panel", MenuTheme.box(Color.TRANSPARENT,Color.TRANSPARENT,16) if modal_asset.texture != null else ModalFrame.create(Color("8fa8ba"),"standard",16))
 		modal_frame.queue_redraw()
 
+func set_modal_stylebox(style: StyleBox) -> void:
+	modal_asset.texture = null
+	modal_fill.hide()
+	modal_frame.add_theme_stylebox_override("panel",style)
+	_layout_modal.call_deferred()
+
 func open_modal(title: String) -> VBoxContainer:
 	close_modal()
 	modal = Control.new()
@@ -344,22 +377,29 @@ func open_modal(title: String) -> VBoxContainer:
 		if event is InputEventMouseButton and event.pressed: close_modal()
 	)
 	modal.add_child(barrier)
+	# Keep container placement separate from the entrance animation's local offset.
+	modal_position = Control.new()
+	modal_position.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	modal.add_child(modal_position)
+	modal_visual = Control.new()
+	modal_visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	modal_position.add_child(modal_visual)
 	modal_frame = PanelContainer.new()
 	modal_frame.name = "ModalFrame"
 	modal_frame.add_theme_stylebox_override("panel", MenuTheme.box(Color("091624"), Color("7493a4"), 16))
-	modal.add_child(modal_frame)
+	modal_visual.add_child(modal_frame)
 	modal_fill = ColorRect.new()
 	modal_fill.color = Color("07111b")
 	modal_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	modal_fill.hide()
-	modal.add_child(modal_fill)
-	modal.move_child(modal_fill,modal_frame.get_index())
+	modal_visual.add_child(modal_fill)
+	modal_visual.move_child(modal_fill,modal_frame.get_index())
 	modal_asset = _image("", Vector2.ZERO)
 	modal_asset.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
 	modal_asset.stretch_mode = TextureRect.STRETCH_SCALE
 	# Top-level avoids PanelContainer assigning the background its content margins.
-	modal.add_child(modal_asset)
-	modal.move_child(modal_asset, modal_frame.get_index())
+	modal_visual.add_child(modal_asset)
+	modal_visual.move_child(modal_asset, modal_frame.get_index())
 	modal_frame.add_theme_stylebox_override("panel", ModalFrame.create(Color("8fa8ba"),"standard",16))
 	var column := VBoxContainer.new()
 	modal_frame.add_child(column)
@@ -383,10 +423,17 @@ func open_modal(title: String) -> VBoxContainer:
 	modal_body.minimum_size_changed.connect(func(): _layout_modal.call_deferred())
 	_layout_modal()
 	_layout_modal.call_deferred()
-	AppTheme.animate_modal(modal_frame)
-	AppTheme.animate_modal(modal_asset)
-	AppTheme.animate_modal(modal_fill)
+	AppTheme.animate_modal(modal_visual)
 	return modal_body
+
+func set_modal_header(header: Control) -> void:
+	var column: Control = modal_frame.get_child(0)
+	var previous := column.get_child(0)
+	column.remove_child(previous)
+	previous.queue_free()
+	column.add_child(header)
+	column.move_child(header,0)
+	_layout_modal.call_deferred()
 
 func _layout_modal() -> void:
 	if not is_instance_valid(modal_frame): return
@@ -397,10 +444,13 @@ func _layout_modal() -> void:
 	var header_height := header.get_combined_minimum_size().y + 8 if header.visible else 0.0
 	var height := minf(maxf(100, modal_body.get_combined_minimum_size().y + 32 + header_height), available.y - 32)
 	modal_frame.size = Vector2(width, height)
-	modal_frame.position = Vector2(inset.x,inset.y) + (available - modal_frame.size) / 2
-	modal_fill.position = modal_frame.position + Vector2.ONE * 6
+	modal_position.position = Vector2(inset.x,inset.y) + (available - modal_frame.size) / 2
+	modal_position.size = modal_frame.size
+	modal_visual.size = modal_frame.size
+	modal_visual.pivot_offset = modal_frame.size / 2
+	modal_fill.position = Vector2.ONE * 6
 	modal_fill.size = modal_frame.size - Vector2.ONE * 12
-	modal_asset.position = modal_frame.position
+	modal_asset.position = Vector2.ZERO
 	modal_asset.size = modal_frame.size
 
 func close_modal() -> bool:

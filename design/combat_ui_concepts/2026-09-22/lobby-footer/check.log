@@ -1,0 +1,5 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward Mobile - Using Device #0: Apple - Apple M4 (Apple9)
+
+PASS footer width=320 five actual tab clicks, 64px dock, labels/icons within touch bounds
+PASS footer width=440 five actual tab clicks, 64px dock, labels/icons within touch bounds

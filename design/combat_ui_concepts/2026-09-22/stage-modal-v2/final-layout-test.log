@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M4
+
+PASS modal width=320 stage=1 rect=[P: (16.0, 255.0), S: (288.0, 390.0)]
+PASS modal width=320 stage=8 rect=[P: (16.0, 247.5), S: (288.0, 405.0)]
+PASS modal width=320 stage=11 rect=[P: (16.0, 282.0), S: (288.0, 336.0)]
+PASS lobby_modal: animations ON, 320/440 physical900 logical760 expand, caption lines, actual stage/start/close hits, resize during tween, short viewport scroll

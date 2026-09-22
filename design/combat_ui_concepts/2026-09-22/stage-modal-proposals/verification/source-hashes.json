@@ -1,0 +1,55 @@
+[
+  {
+    "path": "godot/ui/lobby.gd",
+    "sha256": "b8ba0365a6a0b6280dee77dc94050065a3051037aeaa62732c61a3b4249cdf92",
+    "runtime_match": true
+  },
+  {
+    "path": "godot/ui/lobby_stages.gd",
+    "sha256": "e692e8f483039129be2137cdabfd1100b1e81466db515d40af372399c0abed44",
+    "runtime_match": true
+  },
+  {
+    "path": "godot/ui/stage_detail_theme.gd",
+    "sha256": "ae0356f6cd9343200e29a3060566979de781f0cee26bcea995aa1584fc9009ac",
+    "runtime_match": true
+  },
+  {
+    "path": "godot/ui/assets.json",
+    "sha256": "925bb57cfca2c46d751516125717a12d1256a532f2cafe7b8a0367f72dc4de6c",
+    "runtime_match": true,
+    "entries_match": true,
+    "source_only": [],
+    "runtime_only": []
+  },
+  {
+    "path": "assets/images/stage_details/v2/divider.png",
+    "sha256": "f46ab571e6126537d48cd98a17e20c8f19a6c2df7c5efa6c226748cd7e4613f2",
+    "runtime_match": true
+  },
+  {
+    "path": "assets/images/stage_details/v2/action_button.png",
+    "sha256": "512e4362f430475e2bf32112f4458e385e413c3ddfb9af67cc281830c6569b83",
+    "runtime_match": true
+  },
+  {
+    "path": "assets/images/stage_details/v2/reward_row.png",
+    "sha256": "8534f6f726841b0af4c971202ffc5a310efcd763c61cd9d584684b6a5befdd1f",
+    "runtime_match": true
+  },
+  {
+    "path": "assets/images/stage_details/v2/dialog_frame.png",
+    "sha256": "f4aecaf513511a07d95200b630b076618246437e2ef5b361ab13a2e3b58ef4d3",
+    "runtime_match": true
+  },
+  {
+    "path": "assets/images/stage_details/v2/close_button.png",
+    "sha256": "9ab183f76b6440f935ed8cafd89b20f7f35fdc790455c42cb34910b6c3d6734b",
+    "runtime_match": true
+  },
+  {
+    "path": "assets/images/stage_details/v2/reward_heading.png",
+    "sha256": "a47cb1b8f24f663d15eae35638ac774fdb1e315863c61642afae340f8a34874d",
+    "runtime_match": true
+  }
+]

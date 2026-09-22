@@ -1,6 +1,8 @@
 extends RefCounted
 ## Reference coordinates match main_menu_stage.dart (789 x 1566).
 const T = preload("res://ui/app_theme.gd")
+const DetailTheme = preload("res://ui/stage_detail_theme.gd")
+const RewardArt = preload("res://ui/stage_reward_art.gd")
 const Quests = preload("res://app/quest_progress.gd")
 const REFERENCE := Vector2(789, 1566)
 const STAGE := "ui/stage_reference/"
@@ -297,6 +299,8 @@ func reward_highlighted(stage: int) -> bool:
 
 func _detail_label(value: String, pixels := 12, color := WHITE, weight := 700) -> Label:
 	var label := T.label(value,pixels)
+	# These are compact captions; wrapping gives shrink-to-fit chips zero width.
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	label.add_theme_font_override("font",T.font(weight))
 	label.add_theme_color_override("font_color",color)
 	return label
@@ -313,160 +317,155 @@ func _texture_panel(image: String, padding: Vector4 = Vector4(8,6,8,6)) -> Panel
 	panel.add_theme_stylebox_override("panel",style)
 	return panel
 
+func _detail_divider() -> Control:
+	var divider := PanelContainer.new()
+	divider.custom_minimum_size.y = 10
+	divider.add_theme_stylebox_override("panel",DetailTheme.box("divider"))
+	return divider
+
 func _detail_header(stage: int) -> Control:
+	var panel := PanelContainer.new()
+	panel.name = "StageDetailsHeader"
+	panel.custom_minimum_size.y = 64
+	panel.add_theme_stylebox_override("panel",StyleBoxEmpty.new())
 	var row := HBoxContainer.new()
-	row.name = "StageDetailsHeader"
-	row.add_theme_constant_override("separation",10)
-	var socket := _texture_panel("header_icon_socket", Vector4.ZERO)
-	socket.custom_minimum_size = Vector2(34,34)
-	socket.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	socket.modulate.a = 1.0 if unlocked(stage) else 0.48
-	var icon := _small_icon("material:f07b" if unlocked(stage) else "material:e3b1",18)
-	icon.modulate = GOLD if active(stage) else ACCENTS[(stage-1)/5] if unlocked(stage) else Color("6d7f8f")
-	socket.add_child(icon)
-	row.add_child(socket)
+	row.add_theme_constant_override("separation",4)
+	panel.add_child(row)
+	var balance := Control.new()
+	balance.custom_minimum_size.x = 42
+	row.add_child(balance)
 	var titles := VBoxContainer.new()
+	titles.alignment = BoxContainer.ALIGNMENT_CENTER
 	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	titles.add_theme_constant_override("separation",4)
 	row.add_child(titles)
-	titles.add_child(_detail_label("스테이지 %d" % stage,20,WHITE if unlocked(stage) else Color("667987"),900))
-	var chip := _texture_panel("status_chip_frame", Vector4(7,4,7,4))
-	chip.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	chip.modulate.a = 1.0 if unlocked(stage) else 0.52
-	chip.add_child(_detail_label(status(stage),10,GOLD if active(stage) else ACCENTS[(stage-1)/5] if unlocked(stage) else Color("667987"),800 if active(stage) or stage in lobby._p().get("clearedStageNumbers",[]) else 600))
+	var title := _detail_label("스테이지 %d" % stage,DetailTheme.FONT_TITLE,WHITE if unlocked(stage) else Color("899faa"),900)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	titles.add_child(title)
+	var chip := PanelContainer.new()
+	chip.add_theme_stylebox_override("panel",DetailTheme.status())
+	chip.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var state := _detail_label(status(stage),DetailTheme.FONT_SECONDARY,GOLD if active(stage) else Color("bee9f0"),800)
+	chip.add_child(state)
 	titles.add_child(chip)
 	var close := Button.new()
 	close.name = "CloseStageDetails"
 	close.tooltip_text = "닫기"
-	close.custom_minimum_size = Vector2(36,36)
-	close.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var background := StyleBoxTexture.new()
-	background.texture = T.texture("stage_details/ui/close_button_frame.png")
-	background.modulate_color.a = 1.0 if unlocked(stage) else 0.58
-	for state in ["normal","hover","pressed","focus"]: close.add_theme_stylebox_override(state,background)
-	var close_icon := _small_icon("material:f647",17)
-	close_icon.modulate = Color("ff8a3d") if unlocked(stage) else Color("667987")
-	close_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	close.add_child(close_icon)
-	close_icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	close.custom_minimum_size = Vector2(42,41)
+	close.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	for key in ["normal","hover","pressed","focus"]:
+		close.add_theme_stylebox_override(key,DetailTheme.box("close_button"))
 	close.pressed.connect(lobby.close_modal)
 	row.add_child(close)
-	return row
+	return panel
 
 func details(stage: int) -> void:
 	var box: VBoxContainer = lobby.open_modal("스테이지 %d" % stage)
+	box.add_theme_constant_override("separation",0)
 	if is_instance_valid(lobby.modal): lobby.modal.set_meta("max_width",390)
-	if lobby.has_method("set_modal_asset"): lobby.set_modal_asset("stage_details/ui/dialog_frame.png")
+	if lobby.has_method("set_modal_stylebox"): lobby.set_modal_stylebox(DetailTheme.box("dialog_frame",16))
 	var header := _detail_header(stage)
 	if lobby.has_method("set_modal_header"): lobby.set_modal_header(header)
-	else:
-		if lobby.has_method("set_modal_asset"):
-			var column: Node = box.get_parent().get_parent()
-			column.get_child(0).hide()
-		box.add_child(header)
+	else: box.add_child(header)
+	box.add_child(_detail_divider())
 	var stat_row := HBoxContainer.new()
+	stat_row.name = "StageQuickStats"
+	stat_row.custom_minimum_size.y = 74
 	stat_row.add_theme_constant_override("separation",8)
 	box.add_child(stat_row)
-	var stat_data := [["최고 기록", record(stage), "f06a1"], ["총 라운드", "%d라운드" % lobby.app.catalog.stage(stage - 1).waves.size(), "f07b"], ["룬 보상", "+%d" % rune_reward(stage), "f0610"]]
-	var accent: Color = ACCENTS[(stage-1)/5]
-	for entry in stat_data:
-		var stat := _surface(stat_row, "quick_stat_frame")
-		stat.get_parent().custom_minimum_size.y = 74
-		var icon := _small_icon("material:" + entry[2],17)
-		icon.modulate = accent
+	var stat_data := [["최고 기록", record(stage), "best_record"], ["총 라운드", "%d라운드" % lobby.app.catalog.stage(stage - 1).waves.size(), "total_rounds"], ["룬 보상", "+%d" % rune_reward(stage), "rune_reward"]]
+	for i in range(stat_data.size()):
+		if i > 0:
+			var separator := VSeparator.new()
+			separator.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			separator.custom_minimum_size.y = 48
+			var line := StyleBoxLine.new()
+			line.color = Color("397785")
+			line.vertical = true
+			line.thickness = 1
+			separator.add_theme_stylebox_override("separator",line)
+			stat_row.add_child(separator)
+		var entry: Array = stat_data[i]
+		var stat := VBoxContainer.new()
+		stat.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		stat.alignment = BoxContainer.ALIGNMENT_CENTER
+		stat.add_theme_constant_override("separation",3)
+		stat_row.add_child(stat)
+		var icon := _small_icon("stage_details/stats/" + entry[2] + ".png",22)
+		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		stat.add_child(icon)
-		var caption := _detail_label(entry[0],11,Color("b9d6e4"))
+		var caption := _detail_label(entry[0],DetailTheme.FONT_SECONDARY,Color("b9d6e4"))
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		stat.add_child(caption)
-		var value := _detail_label(entry[1],12,WHITE,900)
+		var value := _detail_label(entry[1],DetailTheme.FONT_PRIMARY,WHITE,900)
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		stat.add_child(value)
+	box.add_child(_detail_divider())
 	if not unlocked(stage):
-		var notice := PanelContainer.new()
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color("3d4d5a18")
-		style.border_color = Color("485b6833")
-		style.set_border_width_all(1)
-		style.set_corner_radius_all(8)
-		style.content_margin_left = 10
-		style.content_margin_right = 10
-		style.content_margin_top = 9
-		style.content_margin_bottom = 9
-		notice.add_theme_stylebox_override("panel",style)
-		box.add_child(notice)
-		var line := HBoxContainer.new()
-		line.add_theme_constant_override("separation",8)
-		notice.add_child(line)
-		var icon := _small_icon("material:e3b1",16)
-		icon.modulate = accent
-		line.add_child(icon)
-		var label := _detail_label("스테이지 %d 클리어 후 입장할 수 있습니다." % (stage-1),12,Color("b9d6e4"))
-		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		line.add_child(label)
+		var label := _detail_label("스테이지 %d 클리어 후 입장할 수 있습니다." % (stage-1),DetailTheme.FONT_SECONDARY,Color("b9d6e4"))
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		box.add_child(label)
 	var items := unlock_items(stage)
 	var highlighted := reward_highlighted(stage)
 	if not items.is_empty():
-		var rewards := _surface(box,"unlock_panel_frame")
+		var heading := PanelContainer.new()
+		heading.custom_minimum_size.y = 33
+		heading.add_theme_stylebox_override("panel",DetailTheme.box("reward_heading",6))
+		box.add_child(heading)
 		var caption := HBoxContainer.new()
-		rewards.add_child(caption)
+		caption.add_theme_constant_override("separation",7)
+		heading.add_child(caption)
 		var icon := _small_icon("material:eea9",16)
-		icon.modulate = accent
+		icon.modulate = Color("ede0bc")
 		caption.add_child(icon)
-		caption.add_child(_detail_label(("수령 완료" if highlighted else "최초 클리어 보상") if stage == 11 else ("해금됨" if highlighted else "클리어 보상"),12,Color("b9d6e4"),800))
-		for category in ["강화", "연구", "포탑", "젬", "코어", "티켓"]:
-			var group: Array = items.filter(func(item): return item[2] == category)
-			if group.is_empty(): continue
-			var title := HBoxContainer.new()
-			title.add_child(_detail_label(category,10,Color("b9d6e4"),900))
-			var divider := HSeparator.new()
-			divider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			title.add_child(divider)
-			rewards.add_child(title)
-			var grid := GridContainer.new()
-			grid.columns = 3
-			grid.add_theme_constant_override("h_separation",6)
-			grid.add_theme_constant_override("v_separation",6)
-			rewards.add_child(grid)
-			for item in group:
-				var chip := _texture_panel("unlock_chip_frame")
-				chip.name = "UnlockChip_%d" % group.find(item)
-				chip.custom_minimum_size.y = 34
-				chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-				grid.add_child(chip)
-				var row := HBoxContainer.new()
-				row.add_theme_constant_override("separation",6)
-				chip.add_child(row)
-				var item_icon := _small_icon(item[1],15)
-				var color: Color = SECONDARIES[(stage-1)/5] if highlighted else WHITE
-				if item[2] not in ["젬","티켓"]: item_icon.modulate = color
-				row.add_child(item_icon)
-				var label := _detail_label(item[0],10,color,800)
-				label.autowrap_mode = TextServer.AUTOWRAP_OFF
-				label.clip_text = true
-				label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-				row.add_child(label)
-				label.resized.connect(func():
-					var natural := T.font(800).get_string_size(label.text,HORIZONTAL_ALIGNMENT_LEFT,-1,10).x
-					label.add_theme_font_size_override("font_size",maxi(1,floori(10 * minf(1,label.size.x/maxf(1,natural)))))
-				)
-			for i in range(group.size(),3):
-				var space := Control.new()
-				space.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-				grid.add_child(space)
+		caption.add_child(_detail_label(("수령 완료" if highlighted else "최초 클리어 보상") if stage == 11 else ("해금됨" if highlighted else "클리어 보상"),DetailTheme.FONT_PRIMARY,WHITE,900))
+		var rewards := VBoxContainer.new()
+		rewards.add_theme_constant_override("separation",2)
+		box.add_child(rewards)
+		for i in range(items.size()):
+			var item: Array = items[i]
+			var reward := PanelContainer.new()
+			reward.name = "UnlockChip_%d" % i
+			reward.custom_minimum_size.y = 52
+			var reward_style := DetailTheme.box("reward_row",8)
+			reward_style.content_margin_top = 5
+			reward_style.content_margin_bottom = 5
+			reward.add_theme_stylebox_override("panel",reward_style)
+			rewards.add_child(reward)
+			var row := HBoxContainer.new()
+			row.add_theme_constant_override("separation",10)
+			reward.add_child(row)
+			var item_icon := _small_icon(RewardArt.for_reward(item[1]),38)
+			if item[1] == "material:f499":
+				var plus := _detail_label("+",20,Color("f4cf70"),900)
+				plus.name = "ResearchSlotPlus"
+				plus.position = Vector2(24,-3)
+				plus.add_theme_color_override("font_outline_color",Color("07151e"))
+				plus.add_theme_constant_override("outline_size",3)
+				plus.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				item_icon.add_child(plus)
+			item_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			row.add_child(item_icon)
+			var text := VBoxContainer.new()
+			text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			text.alignment = BoxContainer.ALIGNMENT_CENTER
+			text.add_theme_constant_override("separation",1)
+			row.add_child(text)
+			text.add_child(_detail_label(item[2],DetailTheme.FONT_SECONDARY,DetailTheme.CYAN,800))
+			var name := _detail_label(item[0],DetailTheme.FONT_PRIMARY,SECONDARIES[(stage-1)/5] if highlighted else WHITE,900)
+			name.name = "RewardName"
+			name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			text.add_child(name)
+			var arrow := _detail_label("›",23,Color("b9d6e4"),600)
+			arrow.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			row.add_child(arrow)
 	var button := T.button("이어서 진행" if active(stage) else ("시작하기" if unlocked(stage) else "시작 불가"), start.bind(stage))
 	button.name = "StageAction"
 	button.disabled = not unlocked(stage)
-	button.custom_minimum_size.y = 40
+	button.custom_minimum_size.y = 53
 	button.add_theme_font_override("font",T.font(900))
-	button.add_theme_font_size_override("font_size",13)
-	var action_style := StyleBoxTexture.new()
-	action_style.texture = T.texture("stage_details/ui/action_button_frame.png")
-	action_style.set_texture_margin_all(0)
-	action_style.set_content_margin_all(8)
-	for state in ["normal","hover","pressed","disabled","focus"]:
-		var style := action_style.duplicate()
-		if state == "disabled": style.modulate_color.a = 0.42
-		button.add_theme_stylebox_override(state,style)
+	button.add_theme_font_size_override("font_size",DetailTheme.FONT_ACTION)
+	DetailTheme.apply_action(button)
 	var action_label := button.text
 	button.text = ""
 	button.tooltip_text = action_label
@@ -476,11 +475,11 @@ func details(stage: int) -> void:
 	action_row.add_theme_constant_override("separation",6)
 	button.add_child(action_row)
 	action_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var action_icon := _small_icon("material:f00a0" if unlocked(stage) else "material:e3b1",16)
+	var action_icon := _small_icon("material:f00a0" if unlocked(stage) else "material:e3b1",18)
 	action_icon.modulate = WHITE if unlocked(stage) else Color("667987")
 	action_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	action_row.add_child(action_icon)
-	action_row.add_child(_detail_label(action_label,13,WHITE if unlocked(stage) else Color("667987"),900))
+	action_row.add_child(_detail_label(action_label,DetailTheme.FONT_ACTION,WHITE if unlocked(stage) else Color("667987"),900))
 	box.add_child(button)
 
 # Static reward icon port of lib/game/rendering/turret_shape_renderer.dart.

@@ -1,0 +1,194 @@
+[
+  {
+    "id": "kill_gold",
+    "name": "처치 보상",
+    "original": "upgrades/kill_gold.png",
+    "category": "강화",
+    "asset": "upgrades/kill_gold.png",
+    "selection": "existing"
+  },
+  {
+    "id": "turret_refund",
+    "name": "긴급 매각",
+    "original": "upgrades/turret_refund.png",
+    "category": "연구",
+    "asset": "upgrades/turret_refund.png",
+    "selection": "existing"
+  },
+  {
+    "id": "target_priority",
+    "name": "전술 명령",
+    "original": "research/turret_target_priority.png",
+    "category": "연구",
+    "asset": "research/turret_target_priority.png",
+    "selection": "existing"
+  },
+  {
+    "id": "gem_attunement",
+    "name": "젬 감응",
+    "original": "research/gem_attunement.png",
+    "category": "연구",
+    "asset": "research/gem_attunement.png",
+    "selection": "existing"
+  },
+  {
+    "id": "sniper_turret",
+    "name": "저격 포탑",
+    "original": "material:ef3a",
+    "category": "포탑",
+    "asset": "ui/hud/turrets_3d/sniper.png",
+    "selection": "existing"
+  },
+  {
+    "id": "aim_speed",
+    "name": "조준경 젬",
+    "original": "gems/aimSpeed.png",
+    "category": "젬",
+    "asset": "gems/aimSpeed.png",
+    "selection": "existing"
+  },
+  {
+    "id": "critical_chance",
+    "name": "치명 집중",
+    "original": "upgrades/critical_chance.png",
+    "category": "연구",
+    "asset": "upgrades/critical_chance.png",
+    "selection": "existing"
+  },
+  {
+    "id": "critical_damage",
+    "name": "치명 충격",
+    "original": "upgrades/critical_damage.png",
+    "category": "강화",
+    "asset": "upgrades/critical_damage.png",
+    "selection": "existing"
+  },
+  {
+    "id": "link_expansion",
+    "name": "링크 확장 I",
+    "original": "research/link_expansion_one.png",
+    "category": "연구",
+    "asset": "research/link_expansion_one.png",
+    "selection": "existing"
+  },
+  {
+    "id": "crystal_recovery",
+    "name": "결정 회수",
+    "original": "research/crystal_recovery.png",
+    "category": "연구",
+    "asset": "research/crystal_recovery.png",
+    "selection": "existing"
+  },
+  {
+    "id": "rift_mark",
+    "name": "균열 낙인",
+    "original": "core_abilities/rift_mark.png",
+    "category": "코어",
+    "asset": "core_abilities/rift_mark.png",
+    "selection": "existing"
+  },
+  {
+    "id": "lightning_turret",
+    "name": "라이트닝 포탑",
+    "original": "material:eedd",
+    "category": "포탑",
+    "asset": "ui/hud/turrets_3d/lightning.png",
+    "selection": "existing"
+  },
+  {
+    "id": "physical_damage",
+    "name": "물리 화력 훈련",
+    "original": "upgrades/physical_damage.png",
+    "category": "강화",
+    "asset": "upgrades/physical_damage.png",
+    "selection": "existing"
+  },
+  {
+    "id": "elemental_damage",
+    "name": "원소 화력 훈련",
+    "original": "upgrades/elemental_damage.png",
+    "category": "강화",
+    "asset": "upgrades/elemental_damage.png",
+    "selection": "existing"
+  },
+  {
+    "id": "rune_resonance",
+    "name": "룬 공명",
+    "original": "research/rune_resonance.png",
+    "category": "연구",
+    "asset": "research/rune_resonance.png",
+    "selection": "existing"
+  },
+  {
+    "id": "run_upgrade_cost",
+    "name": "전투 강화 비용 최적화",
+    "original": "research/run_upgrade_cost_optimization.png",
+    "category": "연구",
+    "asset": "research/run_upgrade_cost_optimization.png",
+    "selection": "existing"
+  },
+  {
+    "id": "link_cost",
+    "name": "연결 공정",
+    "original": "upgrades/link_cost_optimization.png",
+    "category": "강화",
+    "asset": "upgrades/link_cost_optimization.png",
+    "selection": "existing"
+  },
+  {
+    "id": "turret_upgrade_cost",
+    "name": "강화 공정",
+    "original": "upgrades/turret_level_up_optimization.png",
+    "category": "강화",
+    "asset": "upgrades/turret_level_up_optimization.png",
+    "selection": "existing"
+  },
+  {
+    "id": "armor_piercing",
+    "name": "장갑 관통 젬",
+    "original": "gems/armorPiercing.png",
+    "category": "젬",
+    "asset": "gems/armorPiercing.png",
+    "selection": "existing"
+  },
+  {
+    "id": "research_slot",
+    "name": "연구 슬롯 II 구매 권한",
+    "original": "material:f499",
+    "category": "연구",
+    "asset": "stage_rewards/reward_research.png",
+    "selection": "existing"
+  },
+  {
+    "id": "module_ticket",
+    "name": "모듈 티켓",
+    "original": "stage_rewards/reward_module_ticket.png",
+    "category": "티켓",
+    "asset": "stage_rewards/reward_module_ticket.png",
+    "selection": "existing"
+  },
+  {
+    "id": "damage_limit",
+    "name": "화력 한계 확장",
+    "original": "research/tower_damage_limit_expansion.png",
+    "category": "연구",
+    "asset": "research/tower_damage_limit_expansion.png",
+    "selection": "existing"
+  },
+  {
+    "id": "kill_gold_limit",
+    "name": "처치 보상 한계 확장",
+    "original": "research/kill_gold_limit_expansion.png",
+    "category": "연구",
+    "asset": "research/kill_gold_limit_expansion.png",
+    "selection": "existing"
+  },
+  {
+    "id": "wave_gold_limit",
+    "name": "보급 한계 확장",
+    "original": "research/wave_gold_limit_expansion.png",
+    "category": "연구",
+    "asset": "research/wave_gold_limit_expansion.png",
+    "selection": "existing"
+  }
+]

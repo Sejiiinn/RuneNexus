@@ -1,0 +1,21 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M4
+
+REAL APP res://app/app_lifecycle.gd USER /Users/sejin/Library/Application Support/RuneNexus-modal-v2-review
+CHECK stage=8 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 247.5), S: (390.0, 405.0)]
+CHECK stage=8 physical=(320, 900) logicalsetting=(320, 760) viewport=[P: (0.0, 0.0), S: (320.0, 900.0)] frame=[P: (16.0, 247.5), S: (288.0, 405.0)]
+CHECK stage=8 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 247.5), S: (390.0, 405.0)]
+CHECK stage=8 physical=(440, 1100) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 1100.0)] frame=[P: (25.0, 347.5), S: (390.0, 405.0)]
+CHECK stage=8 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 247.5), S: (390.0, 405.0)]
+CHECK stage=11 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 282.0), S: (390.0, 336.0)]
+CHECK stage=11 physical=(320, 900) logicalsetting=(320, 760) viewport=[P: (0.0, 0.0), S: (320.0, 900.0)] frame=[P: (16.0, 282.0), S: (288.0, 336.0)]
+CHECK stage=11 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 282.0), S: (390.0, 336.0)]
+CHECK stage=11 physical=(440, 1100) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 1100.0)] frame=[P: (25.0, 382.0), S: (390.0, 336.0)]
+CHECK stage=11 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 282.0), S: (390.0, 336.0)]
+CHECK stage=1 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 255.0), S: (390.0, 390.0)]
+CHECK stage=1 physical=(320, 900) logicalsetting=(320, 760) viewport=[P: (0.0, 0.0), S: (320.0, 900.0)] frame=[P: (16.0, 255.0), S: (288.0, 390.0)]
+CHECK stage=1 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 255.0), S: (390.0, 390.0)]
+CHECK stage=1 physical=(440, 1100) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 1100.0)] frame=[P: (25.0, 355.0), S: (390.0, 390.0)]
+CHECK stage=1 physical=(440, 900) logicalsetting=(440, 760) viewport=[P: (0.0, 0.0), S: (440.0, 900.0)] frame=[P: (25.0, 255.0), S: (390.0, 390.0)]
+PASS actual AppLifecycle started stage1
+PASS independent real AppLifecycle/Lobby modal: animations ON, stage8/11/1, stable geometry, reentry, resize, hit close/start

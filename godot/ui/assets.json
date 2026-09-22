@@ -202,5 +202,14 @@
   "ui/hud/turret_actions/native/tab_active.png",
   "ui/hud/turret_actions/native/tab_idle.png",
   "ui/hud/resource_panel.png",
-  "ui/hud/dock_panel.png"
+  "ui/hud/dock_panel.png",
+  "stage_details/v2/dialog_frame.png",
+  "stage_details/v2/reward_row.png",
+  "stage_details/v2/action_button.png",
+  "stage_details/v2/close_button.png",
+  "stage_details/v2/divider.png",
+  "stage_details/v2/reward_heading.png",
+  "stage_details/stats/best_record.png",
+  "stage_details/stats/total_rounds.png",
+  "stage_details/stats/rune_reward.png"
 ]

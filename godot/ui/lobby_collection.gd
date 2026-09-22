@@ -159,10 +159,16 @@ func _equipment(parent: Node) -> void:
 	var rim := _image("turret_modules/ui/turret_preview_frame.png", Vector2.ZERO)
 	preview.add_child(rim)
 	rim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var symbol := _image("ui/module_previews/%s_118.png" % turret, Vector2.ZERO)
-	preview.add_child(symbol)
-	symbol.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	preview.move_child(symbol,0)
+	# Preserve the fixed 3D camera/padding and reserve the existing caption band.
+	var preview_content := MarginContainer.new()
+	preview_content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview_content.add_theme_constant_override("margin_bottom",24)
+	preview.add_child(preview_content)
+	preview_content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var symbol := _image("ui/hud/turrets_3d/%s.png" % turret, Vector2.ZERO)
+	symbol.name = "ModuleTurretPreview"
+	preview_content.add_child(symbol)
+	preview.move_child(preview_content,0)
 	var caption := _label(lobby._title(turret), 10)
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	preview.add_child(caption)
@@ -201,7 +207,6 @@ func _equipment(parent: Node) -> void:
 		var socket_width := 116.0 if compact else 128.0
 		var socket_right := 8.0 if compact else 10.0
 		var diameter := 104.0 if compact else 118.0
-		symbol.texture = A.texture("ui/module_previews/%s_%d.png" % [turret,int(diameter)])
 		var left := 14.0 if compact else 20.0
 		preview.position = Vector2(left, 123 - diameter / 2)
 		preview.size = Vector2(diameter, diameter)
@@ -246,21 +251,27 @@ func modules() -> void:
 	if not turret in types: turret = "arrow"
 	for type in types:
 		var token := _asset_button("", select_turret.bind(type), "ui/components/card_frame.png")
+		token.name = "TurretSelect_"+type
 		token.custom_minimum_size = Vector2(0, 54)
 		if type == turret:
 			var style := Frame.new("ui/components/card_frame.png",7)
 			style.modulate_color = Color("ecd17b")
 			token.add_theme_stylebox_override("normal", style)
 		selector.add_child(token)
-		var socket := _image("ui/components/icon_socket.png", Vector2.ZERO)
-		token.add_child(socket)
-		socket.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-		socket.position = Vector2(-13.5, 5)
-		socket.size = Vector2(27, 27)
-		var icon := _image("ui/hud/turrets/%s.png" % type, Vector2.ZERO)
-		socket.add_child(icon)
-		icon.position = Vector2(4, 4)
-		icon.size = Vector2(19, 19)
+		var icon_margin := MarginContainer.new()
+		icon_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon_margin.add_theme_constant_override("margin_top",5)
+		icon_margin.add_theme_constant_override("margin_bottom",22)
+		token.add_child(icon_margin)
+		icon_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		var icon_center := CenterContainer.new()
+		icon_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		icon_margin.add_child(icon_center)
+		var socket := _image("ui/components/icon_socket.png", Vector2(27,27))
+		icon_center.add_child(socket)
+		var icon := _image("ui/hud/turrets_3d/%s.png" % type, Vector2(27,27))
+		icon.name = "TurretIcon_"+type
+		icon_center.add_child(icon)
 		var label := _label(lobby._title(type), 10)
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		token.add_child(label)
@@ -345,9 +356,17 @@ func _layout_inventory(grid: GridContainer, items: Array) -> void:
 				selected.mouse_filter=Control.MOUSE_FILTER_IGNORE
 				selected.add_theme_stylebox_override("panel",B.box(Color("33d8ff16"),Color("33d8ff") if selected_id==str(item.id) else color,7))
 				b.add_child(selected); selected.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			var glyph := PartGlyph.new(); glyph.part=str(item.part); glyph.tint=color; glyph.mouse_filter=Control.MOUSE_FILTER_IGNORE
-			b.add_child(glyph); glyph.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-			glyph.position=Vector2(-14,-14); glyph.size=Vector2(28,28)
+			var glyph_center := CenterContainer.new()
+			glyph_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			b.add_child(glyph_center)
+			glyph_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			var glyph := PartGlyph.new()
+			glyph.name = "ModulePartGlyph"
+			glyph.part = str(item.part)
+			glyph.tint = color
+			glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			glyph.custom_minimum_size = Vector2(28,28)
+			glyph_center.add_child(glyph)
 			var tag := _label({"core":"코","barrel":"포","frame":"프"}.get(item.part,""),8)
 			tag.add_theme_color_override("font_color",color); tag.mouse_filter=Control.MOUSE_FILTER_IGNORE
 			b.add_child(tag); tag.position=Vector2(3,3)
