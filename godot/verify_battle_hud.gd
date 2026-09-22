@@ -118,9 +118,9 @@ func run() -> void:
 	(hud.body.find_child("TurretLevelAction",true,false) as Button).pressed.emit()
 	assert(app.run_domain.state.turrets[0].level == 1)
 	assert(app.selection_view.level_preview)
-	assert(hud._stat_value({"range":96.0},"range") == "2.00칸")
-	assert(hud._stat_value({"projectileCount":3},"projectileCount") == "3발")
-	assert(hud._stat_value({"aimDuration":0.75},"aimDuration") == "0.75초")
+	assert(hud.turret_panel._stat_value({"range":96.0},"range") == "2.00칸")
+	assert(hud.turret_panel._stat_value({"projectileCount":3},"projectileCount") == "3발")
+	assert(hud.turret_panel._stat_value({"aimDuration":0.75},"aimDuration") == "0.75초")
 	var stat_scroll = hud.body.find_child("TurretStatsScroll",true,false)
 	assert(stat_scroll != null and stat_scroll.custom_minimum_size.y == 96)
 	assert(stat_scroll.vertical_scroll_mode == ScrollContainer.SCROLL_MODE_SHOW_NEVER)
@@ -146,7 +146,7 @@ func run() -> void:
 	hud.close_modal()
 	assert(not app.scene._native_combat.session.paused)
 	app.run_domain.state.progression["researchLevels"] = {"turretTargetPriority":1}
-	hud._priority()
+	hud.turret_panel._priority()
 	for button in buttons(hud.modal_body):
 		if button.text.begins_with("최대 체력"):
 			button.pressed.emit(); break

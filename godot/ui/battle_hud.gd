@@ -75,6 +75,13 @@ var dps_key := -1
 var configuration_cache = preload("res://ui/hud_configuration_cache.gd").new()
 var _layout_key: Array = []
 
+## Panel presenters borrow this live owner. Selection, modal lifetime, refresh keys
+## and command dispatch stay here; presenters never duplicate the HUD state.
+var turret_panel = preload("res://ui/hud_turret_panel.gd").new(self)
+var gem_panel = preload("res://ui/hud_gem_panel.gd").new(self)
+var build_panel = preload("res://ui/hud_build_panel.gd").new(self)
+var menu_panel = preload("res://ui/hud_menu_panel.gd").new(self)
+
 func _ready() -> void:
 	get_viewport().size_changed.connect(func(): _insets_valid = false)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -115,7 +122,7 @@ func _ready() -> void:
 	status = _label(health_row,"",12); status.autowrap_mode = TextServer.AUTOWRAP_OFF
 	status.vertical_alignment = VERTICAL_ALIGNMENT_CENTER; status.add_theme_color_override("font_color",Color("e8f8ff"))
 	wave_label = _label(health_row,"",11); wave_label.size_flags_horizontal = Control.SIZE_SHRINK_END; wave_label.autowrap_mode = TextServer.AUTOWRAP_OFF; wave_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	home = _button(health_row,"",_stage_menu); home.tooltip_text = "스테이지 메뉴"
+	home = _button(health_row,"",menu_panel._stage_menu); home.tooltip_text = "스테이지 메뉴"
 	home.custom_minimum_size = Vector2(32,32); home.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	for state in ["normal","hover","pressed","disabled","focus"]:
 		home.add_theme_stylebox_override(state,StyleBoxEmpty.new())
@@ -299,11 +306,11 @@ func refresh() -> void:
 		var picker_offset := old_picker.scroll_horizontal if old_picker != null else 0
 		body_purchase_buttons.clear()
 		_clear(body); damage_label = null; core_label = null; core_bar = null; core_metric = null
-		if main_tab == "upgrades": _upgrades(state)
-		elif main_tab == "gems": _inventory(state)
+		if main_tab == "upgrades": build_panel._upgrades(state)
+		elif main_tab == "gems": gem_panel._inventory(state)
 		elif main_tab == "turrets":
-			if not chosen.is_empty(): _turret(state,chosen)
-			else: _build(state)
+			if not chosen.is_empty(): turret_panel._turret(state,chosen)
+			else: build_panel._build(state)
 		scroll.set_deferred("scroll_vertical",previous_scroll)
 		var picker := body.get_node_or_null("TurretPicker") as ScrollContainer
 		if picker != null: picker.set_deferred("scroll_horizontal",picker_offset)
@@ -316,7 +323,7 @@ func refresh() -> void:
 			damage = 0
 			for field in ["directDamageDealt","splashDamageDealt","chainDamageDealt","burnDamageDealt"]: damage += float(live[str(chosen.id)].get(field,0))
 		damage_label.text = "누적 피해  %.1f" % damage
-	_refresh_core()
+	menu_panel._refresh_core()
 	if rewards != null: rewards.refresh(state)
 	RuntimeProfile.finish("hud", hud_tick)
 
@@ -366,51 +373,6 @@ func _fit_dock_to_content() -> void:
 	dock.offset_top = -safe_insets().w-height
 	dock.offset_bottom = -safe_insets().w
 
-func _build(state: Dictionary) -> void:
-	var tile := _selected_tile()
-	if tile in ["core","spawn"]: _board_detail(tile,state); return
-	var available: Array = configuration_cache.derived(state,app.run_domain.service).get("availableTurretTypes",[])
-	if app.turret_type not in available and not available.is_empty():
-		app.turret_type = available[0]
-		app.refresh_selection()
-	var type := str(app.turret_type)
-	var cost: int = app.run_domain.service.build_cost(state,type)
-	if tile == "build":
-		var heading := HBoxContainer.new(); body.add_child(heading)
-		_label(heading,TOWERS.get(type,type)+" 포탑",14)
-		var install := _button(heading,"설치 · %d 골드" % cost,func(): app.build_selected(); refresh())
-		_track_purchase_button(install,"gold",cost,tile != "build")
-		_label(body,DESCRIPTIONS.get(type,""),11)
-		var definition: Dictionary = app.catalog.data.turrets[type].configuration.statInput.definition
-		_label(body,("물리" if definition.damageFamily == "physical" else "원소")+" · "+str({"arrow":"경량화기","cannon":"중화기 · 폭발","magic":"지속 피해","frost":"감속","sniper":"중화기 · 조준","lightning":"연쇄"}.get(type,"")),10)
-		var stats := _stats(state,{"type":type,"level":1,"equippedGemSlots":[],"primaryTrait":null,"secondaryTrait":null})
-		_label(body,"피해 %.1f     초당 %.2f회     사거리 %.0f" % [stats.damage,stats.attackRate,stats.range],11)
-	var picker_scroll := ScrollContainer.new(); picker_scroll.name = "TurretPicker"
-	picker_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	picker_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
-	picker_scroll.custom_minimum_size.y = 78; body.add_child(picker_scroll)
-	var row := HBoxContainer.new(); row.size_flags_horizontal = Control.SIZE_EXPAND_FILL; row.add_theme_constant_override("separation",0); picker_scroll.add_child(row)
-	for kind in TOWERS:
-		if kind not in available: continue
-		if row.get_child_count() > 0: row.add_child(HudChrome.divider())
-		var b := _button(row,"%s\n%d" % [TOWERS[kind],app.run_domain.service.build_cost(state,kind)],func():
-			if app.turret_type == kind and _selected_tile() == "build": app.build_selected()
-			else: app.turret_type = kind; app.refresh_selection()
-			refresh())
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL; b.add_theme_font_size_override("font_size",10)
-		b.clip_text = true; b.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		b.custom_minimum_size = Vector2(0,78)
-		# Explicit vertical content avoids Button icon/text width arbitration.
-		for color_role in ["font_color","font_hover_color","font_pressed_color","font_focus_color","font_disabled_color"]: b.add_theme_color_override(color_role,Color.TRANSPARENT)
-		var content := VBoxContainer.new(); content.mouse_filter = Control.MOUSE_FILTER_IGNORE; content.add_theme_constant_override("separation",0); b.add_child(content)
-		content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); content.offset_top = 4; content.offset_bottom = -4; content.offset_left = 2; content.offset_right = -2
-		var art := _icon(content,"ui/hud/turrets_3d/"+kind+".png",40); art.size_flags_horizontal = Control.SIZE_SHRINK_CENTER; art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var name_label := _label(content,TOWERS[kind],10); name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; name_label.autowrap_mode = TextServer.AUTOWRAP_OFF; name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		var price_label := _label(content,"%d G" % app.run_domain.service.build_cost(state,kind),9); price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; price_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-		for style in ["normal","hover","pressed","disabled","focus"]:
-			b.add_theme_stylebox_override(style,HudChrome.quiet(style,type == kind,Color("e7c66a"),Vector2(3,3)))
-		b.toggle_mode = true; b.button_pressed = type == kind
-
 func _stat_input(state: Dictionary, turret: Dictionary) -> Dictionary:
 	var input: Dictionary = configuration_cache.derived(state,app.run_domain.service).get("turretStatInputs",{}).get(turret.type,{}).duplicate(true)
 	input.merge({"level":turret.level,"primaryTrait":turret.get("primaryTrait"),"secondaryTrait":turret.get("secondaryTrait"),"gems":turret.get("equippedGemSlots",[]).filter(func(g): return g != null)},true)
@@ -421,248 +383,6 @@ func _stats(state: Dictionary,turret: Dictionary) -> Dictionary:
 
 func _dps(stats: Dictionary,type: String) -> float:
 	return float(stats.damage)*float(stats.attackRate)+(float(stats.damage)*0.5*float(stats.damageOverTimeDamageMultiplier) if type == "magic" else 0.0)
-
-func _turret(state: Dictionary,turret: Dictionary) -> void:
-	var q: Dictionary = app.run_domain.service.quotes(state,int(turret.id))
-	var active_tab := "stats" if app.selection_view.level_preview else tab
-	var panel := preload("res://ui/turret_action_panel.gd").new()
-	body.add_child(panel)
-	panel.configure({
-		"title":TOWERS.get(turret.type,turret.type),"icon":"ui/hud/turrets_3d/"+turret.type+".png",
-		"level":"Lv.%d%s" % [turret.level," → %d" % (int(turret.level)+1) if app.selection_view.level_preview else ""],
-		"upgrade_title":"강화 확정" if app.selection_view.level_preview else "강화",
-		"price":"최대 레벨" if int(q.level)<=0 else "%d G" % q.level,"maximum":int(q.level)<=0,
-		"trait_count":int(turret.get("primaryTrait") != null)+int(turret.get("secondaryTrait") != null),
-		"active_tab":active_tab,"upgrade_callback":_preview_level,
-		"trait_callback":func(): _traits(turret,q),"sell_callback":func(): _sell_confirm(turret,q),
-		"stats_callback":func(): tab = "stats"; refresh(),"gems_callback":func(): tab = "gems"; refresh(),
-	})
-	_track_purchase_button(panel.level_action,"gold",int(q.level),int(q.level)<=0)
-	panel.level_action.tooltip_text = ("강화 확정" if app.selection_view.level_preview else "다음 레벨 능력치 미리보기")+(" · %d G" % q.level if int(q.level)>0 else "")
-	panel.trait_action.tooltip_text = "특성 확인 및 선택"
-	panel.sell_action.tooltip_text = "판매 · +%d G · 금액 확인" % q.sell
-	if active_tab == "gems": _gems(state,turret,q); return
-	var damage_row := HBoxContainer.new(); body.add_child(damage_row)
-	_label(damage_row,"물리 · 경량화기" if turret.type == "arrow" else ("원소" if turret.type in ["magic","frost","lightning"] else "물리 · 중화기"),11)
-	if configuration_cache.derived(state,app.run_domain.service).get("canSetTurretTargetPriority",false):
-		var priority := _button(damage_row,"목표 · "+PRIORITIES.get(turret.get("targetPriority","first"),"선두")+" ▾",_priority)
-		priority.tooltip_text = "공격 목표 변경"
-		priority.add_theme_font_size_override("font_size",11)
-		priority.custom_minimum_size.y = 30
-		_style_hud_button(priority,"quiet",false,Vector2(6,4))
-	damage_label = _label(damage_row,"",10); damage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	damage_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	var stats := _stats(state,turret)
-	var next := {}; var future := turret.duplicate(true); future.level += 1
-	if app.selection_view.level_preview: next = _stats(state,future)
-	var stat_scroll := ScrollContainer.new(); stat_scroll.name = "TurretStatsScroll"; stat_scroll.custom_minimum_size.y = 96; stat_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED; stat_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER; body.add_child(stat_scroll)
-	var grid := GridContainer.new(); grid.columns = 2; grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL; grid.add_theme_constant_override("h_separation",16); grid.add_theme_constant_override("v_separation",0); stat_scroll.add_child(grid)
-	stats.dps = _dps(stats,turret.type)
-	if not next.is_empty(): next.dps = _dps(next,turret.type)
-	var specs := [["피해","damage"],["DPS","dps"],["공격 속도","attackRate"],["사거리","range"],["치명 확률","criticalChance"],["치명 피해","criticalDamageMultiplier"]]
-	if float(stats.splashRadius) > 0 or turret.type == "magic": specs.append(["효과 범위","effectAreaMultiplier"])
-	if float(stats.slowDuration) > 0:
-		specs.append(["감속","slowMultiplier"]); specs.append(["감속 지속","slowDuration"])
-	if turret.type in ["arrow","cannon"]: specs.append(["투사체","projectileCount"])
-	if turret.type == "sniper": specs.append(["조준 시간","aimDuration"])
-	if turret.type == "magic":
-		stats.burnDuration = 2.0*float(stats.damageOverTimeDurationMultiplier)
-		if not next.is_empty(): next.burnDuration = 2.0*float(next.damageOverTimeDurationMultiplier)
-		specs.append(["화상 지속","burnDuration"])
-	if int(stats.chainCount) > 0: specs.append(["연쇄","chainCount"])
-	for spec in specs:
-		var cell := VBoxContainer.new(); cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		cell.add_theme_constant_override("separation",0); grid.add_child(cell)
-		var row := HBoxContainer.new(); row.custom_minimum_size.y = 30; row.add_theme_constant_override("separation",4); cell.add_child(row)
-		var title := _label(row,spec[0],11); title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		title.modulate = Color("a6bcc8")
-		var values := VBoxContainer.new(); values.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		values.size_flags_vertical = Control.SIZE_SHRINK_CENTER; values.add_theme_constant_override("separation",0); row.add_child(values)
-		var changed: bool = not next.is_empty() and not is_equal_approx(float(stats[spec[1]]),float(next[spec[1]]))
-		var current := _label(values,_stat_value(stats,spec[1]),10 if changed else 13)
-		current.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; current.autowrap_mode = TextServer.AUTOWRAP_OFF
-		current.modulate = Color("91a6b2") if changed else Color("e8f8ff")
-		if changed:
-			var future_value := _label(values,"→ "+_stat_value(next,spec[1]),12)
-			future_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; future_value.autowrap_mode = TextServer.AUTOWRAP_OFF
-			future_value.modulate = Color("8ee6ff")
-		cell.tooltip_text = spec[0]+" · "+_stat_value(stats,spec[1])+(" → "+_stat_value(next,spec[1]) if changed else "")
-		cell.add_child(HSeparator.new())
-
-func _stat_value(stats: Dictionary,key: String) -> String:
-	if key == "slowMultiplier": return "%.0f%%" % ((1.0-float(stats[key]))*100)
-	if key in ["criticalChance","criticalDamageMultiplier","effectAreaMultiplier"]: return "%.0f%%" % (float(stats[key])*100)
-	if key == "range": return "%.2f칸" % (float(stats[key])/48.0)
-	if key == "attackRate": return "%.2f회/초" % float(stats[key])
-	if key in ["aimDuration","slowDuration","burnDuration"]: return "%.2f초" % float(stats[key])
-	if key == "projectileCount": return "%d발" % int(stats[key])
-	if key == "chainCount": return "%d회" % int(stats[key])
-	return "%.1f" % float(stats[key])
-
-func _preview_level() -> void:
-	if app.selection_view.level_preview:
-		app.selection_view.level_preview = false; _selected_command("level")
-	else:
-		app.selection_view.level_preview = true; app.refresh_selection(); refresh()
-
-func _sell_confirm(turret: Dictionary,q: Dictionary) -> void:
-	var box := open_modal("포탑 판매")
-	_label(box,"%s Lv.%d 포탑을 판매할까요?\n%d 골드를 돌려받고 장착 젬은 보관함으로 돌아갑니다." % [TOWERS.get(turret.type,turret.type),turret.level,q.sell],13)
-	Components.apply(_button(box,"판매 · +%d 골드" % q.sell,func(): _selected_command("sell"); close_modal()),"danger")
-	_button(box,"취소",close_modal)
-
-func _traits(turret: Dictionary,q: Dictionary,tier: int = 0) -> void:
-	if tier == 0: tier = 2 if turret.get("primaryTrait") != null else 1
-	var box := open_modal(TOWERS.get(turret.type,turret.type)+" 특성",390,false,true,Color("63e6a5"),"reward")
-	var wallet := HBoxContainer.new(); box.add_child(wallet)
-	_icon(wallet,"ui/hud/icons/shard.png",15)
-	_label(wallet,"%d  ·  1차 %d / 2차 %d" % [app.run_domain.state.gemShards,q.primaryTrait,q.secondaryTrait],11)
-	var tabs := HBoxContainer.new(); tabs.add_theme_constant_override("separation",0); box.add_child(tabs)
-	for value in [1,2]:
-		var chosen_trait = turret.get("primaryTrait" if value == 1 else "secondaryTrait")
-		var name: String = str(labels.traitNames.get(chosen_trait,"무기 개조" if value == 1 else "전투 교리"))
-		var button := _button(tabs,"%d차 · %s" % [value,name],func(): trait_preview = ""; _traits(turret,q,value))
-		button.toggle_mode = true; button.button_pressed = value == tier; button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_style_hud_button(button,"secondary",value == tier,Vector2(8,8),true)
-		button.disabled = q.get("primaryTraits" if value == 1 else "secondaryTraits",[]).is_empty()
-	var kind := "primaryTrait" if tier == 1 else "secondaryTrait"
-	var required := 3 if tier == 1 else 7
-	_label(box,"%d차 · %s" % [tier,"무기 개조" if tier == 1 else "전투 교리"],13)
-	if turret.get(kind) != null:
-		_label(box,str(labels.traitNames.get(turret[kind],turret[kind]))+"\n"+str(labels.traitDescriptions.get(turret[kind],"")),12)
-	else:
-		var blocked := ""
-		if tier == 2 and turret.get("primaryTrait") == null: blocked = "2차 특성은 1차 특성을 먼저 선택해야 합니다."
-		elif int(turret.level)<required: blocked = "%d차 특성은 Lv.%d부터 선택할 수 있습니다." % [tier,required]
-		elif int(app.run_domain.state.gemShards)<int(q[kind]): blocked = "젬 파편이 %d개 부족합니다." % (int(q[kind])-int(app.run_domain.state.gemShards))
-		if not blocked.is_empty(): _label(box,blocked,11).modulate = Color("ffa68a")
-		if q[kind+"s"].is_empty(): _label(box,"선택 가능한 특성이 없습니다.",12)
-		for value in q[kind+"s"]:
-			var button := _option_button(box,("✓ " if trait_preview == value else "")+str(labels.traitNames.get(value,value)),str(labels.traitDescriptions.get(value,"")),func():
-				if trait_preview == value: _selected_command(kind,{"type":value}); close_modal()
-				else: trait_preview = value; _traits(turret,q,tier),trait_preview == value)
-			button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			button.disabled = not blocked.is_empty()
-	_label(box,"선택한 특성은 이번 런 동안 변경할 수 없습니다.",10)
-
-func _option_button(parent: Node,title: String,description: String,callback: Callable,selected := false) -> Button:
-	var button := _button(parent,title+"\n"+description,callback)
-	Components.apply(button,"selected" if selected else "secondary")
-	for role in ["font_color","font_hover_color","font_pressed_color","font_focus_color","font_disabled_color"]:
-		button.add_theme_color_override(role,Color.TRANSPARENT)
-	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var content := VBoxContainer.new(); content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content.add_theme_constant_override("separation",5); button.add_child(content)
-	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	content.offset_left = 16; content.offset_right = -16; content.offset_top = 12; content.offset_bottom = -12
-	var heading := _label(content,title,14); heading.add_theme_font_override("font",AppTheme.font(800))
-	heading.modulate = Color("ffe19a") if selected else Color.WHITE
-	var detail := _label(content,description.replace(", ","\n"),12); detail.add_theme_font_override("font",AppTheme.font(500)); detail.modulate = Color("b2c5d0")
-	var fit := func(): button.custom_minimum_size.y = maxf(72,content.get_combined_minimum_size().y+24)
-	content.minimum_size_changed.connect(fit); button.resized.connect(fit); fit.call_deferred()
-	button.draw.connect(func(): content.modulate.a = 0.48 if button.disabled else 1.0)
-	return button
-
-func _priority() -> void:
-	var box := open_modal("공격 목표")
-	var turret: Dictionary = app.run_domain.service.turret(app.run_domain.state,app.run_domain.selected_id(app.selected))
-	for value in PRIORITIES:
-		var b := _option_button(box,PRIORITIES[value],PRIORITY_HELP[value],func(): _selected_command("targetPriority",{"type":value}); close_modal(),str(turret.get("targetPriority","first")) == value)
-		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_button(box,"취소",close_modal)
-
-func _gems(state: Dictionary,turret: Dictionary,q: Dictionary) -> void:
-	var max_slots := int(configuration_cache.derived(state,app.run_domain.service).get("maxTurretLinkSlots",3))
-	var socket_rows := VBoxContainer.new(); socket_rows.name = "EquippedSocketRows"; socket_rows.add_theme_constant_override("separation",6); body.add_child(socket_rows)
-	var sockets: HBoxContainer
-	for i in range(int(turret.slotLimit)):
-		if i % 3 == 0:
-			sockets = HBoxContainer.new(); sockets.add_theme_constant_override("separation",0); socket_rows.add_child(sockets)
-		else:
-			var link := TextureRect.new(); link.texture = AppTheme.texture("ui/components/gem_link_active.png"); link.custom_minimum_size = Vector2(12,12); link.expand_mode = TextureRect.EXPAND_IGNORE_SIZE; link.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED; sockets.add_child(link)
-		var socket := _button(sockets,"",func(): selected_slot = i; selected_gem = ""; refresh())
-		socket.name = "EquippedSlot%d" % i; socket.custom_minimum_size = Vector2(54,54)
-		for style in ["normal","hover","pressed","disabled","focus"]: socket.add_theme_stylebox_override(style,StyleBoxEmpty.new())
-		var file := "gem_socket_selected.png" if i == selected_slot else "gem_socket_empty.png"
-		socket.icon = AppTheme.texture("ui/components/"+file); socket.expand_icon = true
-		var gem = turret.equippedGemSlots[i]
-		if gem != null:
-			var icon := TextureRect.new(); icon.texture = AppTheme.texture("gems/"+str(gem)+".png"); icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE; icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED; icon.mouse_filter = Control.MOUSE_FILTER_IGNORE; socket.add_child(icon); icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); icon.offset_left = 9; icon.offset_right = -9; icon.offset_top = 9; icon.offset_bottom = -9
-	var link_cost := int(q.get("link",0))
-	var buy_caption := "슬롯 추가 · %d G" % link_cost if link_cost > 0 else ("최대 슬롯입니다" if int(turret.slotLimit) >= max_slots else "슬롯 추가 · 포탑 Lv.5 필요")
-	var buy_slot := _button(body,buy_caption,func(): _selected_command("link"))
-	buy_slot.name = "BuyGemSlot"
-	_track_purchase_button(buy_slot,"gold",link_cost,int(turret.slotLimit) >= max_slots or link_cost <= 0)
-	if selected_slot < 0: _label(body,"장착할 소켓을 선택하세요.",11)
-	elif selected_slot < turret.equippedGemSlots.size() and turret.equippedGemSlots[selected_slot] != null:
-		var equipped := str(turret.equippedGemSlots[selected_slot])
-		var equipped_row := HBoxContainer.new(); body.add_child(equipped_row)
-		var equipped_text := VBoxContainer.new(); equipped_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL; equipped_row.add_child(equipped_text)
-		_label(equipped_text,_gem_name(equipped)+" · "+_gem_effect(equipped,turret),11)
-		_gem_rule(equipped_text,equipped)
-		_button(equipped_row,"해제",func(): _selected_command("removeGem",{"slot":selected_slot}))
-	_inventory_strip(body,state,turret)
-	if selected_gem != "" and int(state.gemInventory.get(selected_gem,0))>0:
-		var selected_row := HBoxContainer.new(); body.add_child(selected_row)
-		var detail := VBoxContainer.new(); detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL; selected_row.add_child(detail)
-		_label(detail,_gem_name(selected_gem)+" · "+_gem_effect(selected_gem,turret),11)
-		_gem_rule(detail,selected_gem)
-		var reason := _gem_block_reason(selected_gem,turret)
-		if not reason.is_empty(): _label(detail,reason,10).modulate = Color("ffa68a")
-		var install := _button(selected_row,"장착",func(): _selected_command("equipGem",{"type":selected_gem,"slot":selected_slot}); selected_gem = ""; refresh())
-		install.disabled = not reason.is_empty()
-
-func _inventory_strip(parent: Node,state: Dictionary,turret: Dictionary = {}) -> void:
-	var inv_scroll := ScrollContainer.new(); inv_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED; inv_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER; parent.add_child(inv_scroll)
-	var inventory := HBoxContainer.new(); inv_scroll.add_child(inventory)
-	for type in state.gemInventory:
-		if int(state.gemInventory[type]) <= 0: continue
-		var b := _button(inventory,"%s ×%d" % [_gem_name(type),state.gemInventory[type]],func():
-			if selected_gem == type and not turret.is_empty() and _gem_block_reason(type,turret).is_empty(): _selected_command("equipGem",{"type":type,"slot":selected_slot}); selected_gem = ""
-			else: selected_gem = type
-			refresh())
-		b.icon = AppTheme.texture("gems/"+type+".png"); b.expand_icon = true; b.add_theme_constant_override("icon_max_width",30); b.toggle_mode = true; b.button_pressed = selected_gem == type
-		if not turret.is_empty():
-			b.disabled = state.phase not in ["preparation","wave"]
-			b.tooltip_text = _gem_block_reason(type,turret)
-	if inventory.get_child_count() == 0: _label(parent,"보유 젬이 없습니다.",12)
-
-func _inventory(state: Dictionary) -> void:
-	var heading := HBoxContainer.new(); body.add_child(heading); _label(heading,"젬 보관함",14); _purchase(heading,state)
-	var owned := []
-	for type in app.run_domain.growth.data.gems:
-		if int(state.gemInventory.get(type,0))>0: owned.append(type)
-	if owned.is_empty():
-		_label(body,"보유한 젬이 없습니다. 5라운드 보상 또는 파편 구매로 젬을 획득하세요.",11)
-		return
-	_label(body,"보유 젬",11)
-	var wrap := HFlowContainer.new(); wrap.add_theme_constant_override("h_separation",6); wrap.add_theme_constant_override("v_separation",6); body.add_child(wrap)
-	for type in owned:
-		var accent := Color(str(rewards.GEM_COLORS.get(type,"69D7FF")))
-		var panel := PanelContainer.new(); panel.add_theme_stylebox_override("panel",BattleTheme.box(Color(accent,0.12),Color(accent,0.55),7)); wrap.add_child(panel)
-		var card := VBoxContainer.new(); panel.add_child(card)
-		var title := HBoxContainer.new(); card.add_child(title)
-		_icon(title,"gems/"+type+".png",14)
-		_label(title,"%s x%d" % [_gem_name(type),state.gemInventory[type]],11)
-		var effect := _label(card,_gem_inventory_effect(type),10); effect.custom_minimum_size.x = 112
-		_gem_rule(card,type)
-
-func _upgrades(state: Dictionary) -> void:
-	for type in UPGRADES:
-		var q: Dictionary = app.run_domain.service.run_upgrade_quote(state,type)
-		var values: Array = app.run_domain.growth.data.runUpgrades[type].effects
-		var current := float(values[mini(int(q.level),values.size()-1)])
-		var next := float(values[mini(int(q.level)+1,values.size()-1)])
-		var row := HBoxContainer.new(); body.add_child(row)
-		var effect := "+%.0f → +%.0f 골드" % [current,next] if type == "waveGold" else "+%.0f%% → +%.0f%%" % [current*100,next*100]
-		_label(row,"%s  Lv.%d/%d\n%s" % [UPGRADES[type],q.level,q.maxLevel,effect],12)
-		var b := _button(row,"%d 골드" % q.cost if int(q.cost)>0 else "최대",func(): _command({"kind":"runUpgrade","type":type}))
-		_track_purchase_button(b,"gold",int(q.cost),int(q.cost)<=0)
-
-func _purchase(parent: Node,state: Dictionary) -> void:
-	var cost: int = app.run_domain.growth.data.constants.gemChoicePurchaseCost
-	var b := _button(parent,"젬 구매 · %d 조각" % cost,func(): _command({"kind":"purchaseGemChoice"}))
-	_track_purchase_button(b,"gemShards",cost,state.phase not in ["preparation","wave"])
 
 func _track_purchase_button(button: Button,currency: String,cost: int,blocked: bool) -> void:
 	body_purchase_buttons.append({"button":button,"currency":currency,"cost":cost,"blocked":blocked})
@@ -730,80 +450,7 @@ func close_back() -> bool:
 	if modal_active(): close_modal(); return true
 	if rewards != null and rewards.close_back(): return true
 	if main_tab != "closed": _select_main(main_tab); return true
-	_stage_menu(); return true
-
-func _stage_menu() -> void:
-	if app.run_domain.state.get("phase") == "reward": return
-	var box := open_modal("스테이지 메뉴",390)
-	var header: HBoxContainer = box.get_child(0)
-	var icon := _material_icon(header,0xf107,20); header.move_child(icon,0)
-	var actions: BoxContainer = VBoxContainer.new() if get_viewport_rect().size.x < 380 else HBoxContainer.new(); actions.add_theme_constant_override("separation",8); box.add_child(actions)
-	var end := _action(actions,"스테이지 종료",_end_stage_confirm,"danger")
-	end.size_flags_stretch_ratio = 5
-	end.disabled = not _has_stage_progress() or app.run_domain.state.phase in ["success","failure"]
-	_action(actions,"메인화면으로 이동",_save_to_stage,"primary").size_flags_stretch_ratio = 6
-
-func _has_stage_progress() -> bool:
-	var state: Dictionary = app.run_domain.state
-	if int(state.get("roundIndex",0))>0 or int(state.get("completedRounds",0))>0 or not state.get("turrets",[]).is_empty() or state.get("phase") in ["wave","reward","restored"]: return true
-	if not state.get("runUpgradeLevels",{}).is_empty() or int(state.get("savedTurretCountForMenu",0))>0: return true
-	var runtime = app.scene._native_combat
-	var enemies = runtime.get("enemies")
-	if enemies != null and not enemies.is_empty(): return true
-	var wave = runtime.get("wave")
-	if wave != null and not wave.is_empty(): return true
-	return float(state.get("killGoldFractionWallet",0))>0 or not state.get("rewardOptions",[]).is_empty()
-
-func _projected_failure_reward() -> int:
-	var state: Dictionary = app.run_domain.state
-	var estimate: Dictionary = app.run_domain.quests.finish(state.progression,{"stageNumber":app.stage+1,"completedRounds":int(state.get("completedRounds",0)),"success":false,"runeResonanceBonusRate":float(configuration_cache.derived(state,app.run_domain.service).get("runeResonanceBonusRate",0.0))})
-	return int(estimate.lastRunRuneReward)
-
-func _end_stage_confirm() -> void:
-	var box := open_modal("정말 종료할까요?",340,false,false,Color("ff7043"),"danger")
-	var header: HBoxContainer = box.get_child(0)
-	var flag := _material_icon(header,0xf07b,20); flag.modulate = Color("ff7043"); header.move_child(flag,0)
-	var reward := _projected_failure_reward()
-	_label(box,"스테이지 %d 진행을 종료하고 +%d 룬을 정산합니다." % [app.stage+1,reward],12)
-	var panel := PanelContainer.new(); panel.add_theme_stylebox_override("panel",BattleTheme.box(Color("272116"),Color("88785835"),14)); box.add_child(panel)
-	var summary := VBoxContainer.new(); panel.add_child(summary)
-	var reward_title := HBoxContainer.new(); summary.add_child(reward_title)
-	_rune_icon(reward_title,24)
-	_label(reward_title,"종료 시 보상",12)
-	_stat_pill(reward_title,"정산 예상","",Color("e7c66a"))
-	var reward_row := HBoxContainer.new(); summary.add_child(reward_row)
-	_label(reward_row,"%d웨이브 기준" % int(app.run_domain.state.get("completedRounds",0)),12)
-	_rune_icon(reward_row,22)
-	_label(reward_row,"+%d 룬" % reward,26).modulate = Color("ffd166")
-	var actions: BoxContainer = VBoxContainer.new() if get_viewport_rect().size.x < 380 else HBoxContainer.new(); box.add_child(actions)
-	_action(actions,"계속 진행",close_modal,"ghost")
-	_action(actions,"종료",_end_to_stage,"danger")
-
-func _save_to_stage() -> void:
-	if app.open_stage_menu_destination():
-		modal_resume = false
-		close_modal()
-
-func _end_to_stage() -> void:
-	if app.abandon_run():
-		modal_resume = false
-		close_modal()
-
-func _action(parent: Node,value: String,callback: Callable,variant: String) -> Button:
-	var button := AppTheme.button(value,callback,variant)
-	Components.apply(button,variant)
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	parent.add_child(button)
-	var glyph: int = {"스테이지 종료":0xf07b,"종료":0xf07b,"메인화면으로 이동":0xf107,"계속 진행":0xe092}.get(value,0)
-	if glyph != 0:
-		var content := HBoxContainer.new(); content.mouse_filter = Control.MOUSE_FILTER_IGNORE; content.alignment = BoxContainer.ALIGNMENT_CENTER; button.add_child(content); content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		_material_icon(content,glyph,17)
-		var caption := Label.new(); caption.text = value; caption.mouse_filter = Control.MOUSE_FILTER_IGNORE; caption.add_theme_font_override("font",AppTheme.font(800)); caption.add_theme_font_size_override("font_size",13); content.add_child(caption)
-		for role in ["font_color","font_hover_color","font_pressed_color","font_focus_color","font_disabled_color"]: button.add_theme_color_override(role,Color.TRANSPARENT)
-		button.draw.connect(func():
-			var color := Color("e8f8ff")
-			content.modulate = Color(color,0.48 if button.disabled else 1.0))
-	return button
+	menu_panel._stage_menu(); return true
 
 func _material_icon(parent: Node,codepoint: int,extent: int) -> Label:
 	var icon := Label.new(); icon.text = char(codepoint); icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -817,90 +464,11 @@ func battlefield_rect() -> Rect2:
 	var insets := safe_insets()
 	return Rect2(Vector2(8+insets.x,110+insets.y),Vector2(maxf(1,viewport.x-16-insets.x-insets.z),maxf(1,viewport.y-302-insets.y-insets.w)))
 
-func _board_detail(tile: String,state: Dictionary) -> void:
-	if tile == "core":
-		_label(body,"코어 방어",16)
-		var defense = app.scene._native_combat.defense
-		core_label = _label(body,"체력 %d / %d" % [ceili(defense.hp),ceili(defense.max_hp)],13)
-		var bar := ProgressBar.new(); bar.max_value = maxf(1,defense.max_hp); bar.value = defense.hp; bar.show_percentage = false; bar.custom_minimum_size.y = 10; body.add_child(bar); core_bar = bar
-		core_metric = _label(body,"",12)
-		return
-	var preparing: bool = state.phase == "preparation"
-	var waves: Array = _stage_source().waves
-	var index := int(state.get("completedRounds",0))
-	if index >= waves.size(): _label(body,"모든 웨이브를 완료했습니다.",12); return
-	var wave: Dictionary = waves[index]
-	var summary := _button(body,("포탈 1" if preparing else "전투 진행 중")+"\n"+(str(wave.get("previewText",""))+" · %d/%d" % [index+1,waves.size()] if preparing else "진행 상태 확인"),func(): _portal_details(wave))
-	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	summary.disabled = not preparing
-
-func _portal_details(wave: Dictionary) -> void:
-	var box := open_modal("포탈 1 · %d/%d 웨이브" % [int(app.run_domain.state.get("completedRounds",0))+1,_stage_source().waves.size()],720,true,true,Color("b16dff"))
-	var header: HBoxContainer = box.get_child(0)
-	var icon := _material_icon(header,0xe283,20); icon.modulate = Color("e3b7ff"); header.move_child(icon,0)
-	_label(box,str(wave.get("previewText","")),13)
-	var counts := {}
-	for spawn in wave.get("spawnQueue",[]):
-		var type := str(spawn.get("enemyType","")); counts[type] = int(counts.get(type,0))+1
-	for type in counts:
-		var enemy: Dictionary = app.catalog.data.enemies.get(type,{})
-		var durability: Dictionary = wave.get("enemyDurability",{}).get(type,{})
-		var panel := PanelContainer.new(); box.add_child(panel)
-		var content := VBoxContainer.new(); panel.add_child(content)
-		var heading := HBoxContainer.new(); content.add_child(heading)
-		_icon(heading,"ui/hud/enemies/"+type+".png",28)
-		_label(heading,"%s x%d" % [enemy.get("name",type),counts[type]],12)
-		var pills := HFlowContainer.new(); content.add_child(pills)
-		_stat_pill(pills,"체력",str(roundi(float(durability.get("maxHp",enemy.get("maxHp",0))))))
-		for spec in [["방어구","maxArmor"],["보호막","maxShield"]]:
-			if float(durability.get(spec[1],0))>0: _stat_pill(pills,spec[0],str(roundi(float(durability[spec[1]]))))
-		_stat_pill(pills,"속도",str(roundi(float(enemy.get("speed",0)))))
-		_stat_pill(pills,"넥서스 피해","-%d" % int(enemy.get("coreDamage",0)))
-		_stat_pill(pills,"보상","+%d" % int(enemy.get("rewardGold",0)))
-		var resistances := HFlowContainer.new(); content.add_child(resistances)
-		var names := {"physical":"물리","elemental":"원소","light":"경량화기","heavy":"중화기","damageOverTime":"지속피해","cooling":"냉각"}
-		for field in ["familyResistances","tagResistances"]:
-			for kind in enemy.get(field,{}):
-				var value := float(enemy[field][kind])
-				if value != 0: _stat_pill(resistances,str(names.get(kind,kind))+" 저항",("+" if value>0 else "")+str(roundi(value*100))+"%",Color("ff8a8a") if value>0 else Color("9fffe8"))
-
 func _stat_pill(parent: Node,title: String,value: String,color := Color("e8f8ff")) -> void:
 	var panel := PanelContainer.new(); panel.add_theme_stylebox_override("panel",BattleTheme.box(Color(color,0.12),Color(color,0.55),7)); parent.add_child(panel)
 	var caption := _label(panel,(title+" "+value).strip_edges(),11); caption.modulate = color
 	caption.autowrap_mode = TextServer.AUTOWRAP_OFF
 	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-
-func _gem_name(type: String) -> String:
-	return str(labels.gems.get(type,{}).get("name",type))
-
-func _gem_description(type: String) -> String:
-	var gem: Dictionary = labels.gems.get(type,{})
-	return str(gem.get("description",""))
-
-func _gem_rule(parent: Node,type: String) -> void:
-	if rewards.RULES.has(type):
-		var note := _label(parent,"("+str(rewards.RULES[type])+")",10)
-		note.modulate = Color("939aa4"); note.custom_minimum_size.x = 200
-
-func _gem_block_reason(type: String,turret: Dictionary) -> String:
-	if type in turret.equippedGemSlots: return "이미 이 포탑에 장착됨"
-	if selected_slot<0 or selected_slot>=int(turret.slotLimit): return "링크 홈을 선택하세요"
-	if type not in app.run_domain.growth.data.turretRules[turret.type].compatibleGems:
-		return {"multipleProjectiles":"투사체 공격 포탑에만 장착 가능","chain":"투사체 공격 또는 기본 연쇄 포탑에만 장착 가능","heavyWeapon":"중화기 포탑에만 장착 가능","aimSpeed":"조준 속도 적용 포탑에만 장착 가능"}.get(type,"이 포탑에는 장착할 수 없습니다")
-	return ""
-
-func _gem_effect(type: String,turret: Dictionary) -> String:
-	var definition: Dictionary = app.catalog.data.turrets[turret.type].configuration.statInput.definition
-	var tags: Array = definition.get("attackTags",[])
-	if type == "physicalDamage" and definition.damageFamily != "physical": return "현재 적용되는 물리 피해 없음"
-	if type == "elementalDamage" and definition.damageFamily != "elemental": return "현재 적용되는 원소 피해 없음"
-	if type == "lightWeapon" and "light" not in tags: return "현재 적용되는 경량화기 피해 없음"
-	if type == "damageOverTime" and "damageOverTime" not in tags: return "현재 적용되는 지속피해 없음"
-	if type == "aimSpeed" and (not definition.instantHit or float(definition.aimDuration)<=0): return "현재 적용되는 조준 속도 없음"
-	return {"attackSpeed":"공격 속도 40% 증폭","range":"사거리 20% 증폭","physicalDamage":"물리 피해 40% 증폭","elementalDamage":"원소 피해 40% 증폭","lightWeapon":"경량화기 피해 20% 증폭, 초당 발사 20% 증폭","heavyWeapon":"피해 30% 증폭, 효과 범위 20% 증가 (중화기 전용)","damageOverTime":"지속피해 30% 증가, 지속시간 30% 증가","explosion":"범위 피해 부여, 효과 범위 25% 증가","chain":"연쇄 횟수 +2","multipleProjectiles":"투사체 +2 · 피해 50% 감폭","criticalChance":"치명 확률 +30%p","aimSpeed":"조준 속도 75% 증폭","damageAmplifier":"타격 피해 25% 증폭","armorPiercing":"방어구 감쇄 무시"}.get(type,_gem_description(type))
-
-func _gem_inventory_effect(type: String) -> String:
-	return {"lightWeapon":"경량화기 강화","damageOverTime":"지속피해 증가","multipleProjectiles":"투사체 +2\n피해 50% 감폭"}.get(type,_gem_description(type))
 
 func _command(request: Dictionary) -> void:
 	app.apply_run_command(request)
@@ -942,21 +510,6 @@ func _selected_tile() -> String:
 	if tile.x < 0 or tile.y < 0 or tile.x >= int(map.columns) or tile.y >= int(map.rows): return ""
 	return str(map.tiles[tile.y*int(map.columns)+tile.x])
 
-
-func _refresh_core() -> void:
-	if not is_instance_valid(core_label): return
-	var runtime = app.scene._native_combat
-	core_label.text = "체력 %d / %d" % [ceili(runtime.defense.hp),ceili(runtime.defense.max_hp)]
-	core_bar.max_value = maxf(1,runtime.defense.max_hp); core_bar.value = runtime.defense.hp
-	var core = runtime.get("core")
-	if core == null: core_metric.text = "전투 스킬 없음"; return
-	if core.skill == "guardianBeam":
-		var damage: float = maxf(float(core.config.get("normalMaxHp",0))*float(core.config.get("guardianMinNormalHpRate",0.1)),total_dps*float(core.config.get("guardianBeamInterval",5))*float(core.config.get("guardianDpsRate",0.08)))*core.power_for_activation(core.activation_count+1)
-		core_metric.text = "수호 광선 · 코어에 가까운 적에게 집중 피해\n광선 피해 %.1f    총 피해 %.1f" % [damage,core.direct_damage_dealt]
-	elif core.skill == "riftMark":
-		var power: float = 25.0*core.power_for_activation(core.activation_count+1)
-		core_metric.text = "균열 낙인 · 내구도 높은 적 4명\n다음 낙인 %.1f%% 증폭 (보스 %.1f%%)\n총 추가 피해 %.1f" % [power,power/2.0,core.bonus_damage_dealt]
-	else: core_metric.text = "전투 스킬 없음\n코어 전투 스킬이 장착되어 있지 않습니다."
 
 func _stage_source() -> Dictionary:
 	# Catalog stage() returns a defensive deep copy of all waves/spawn queues.
@@ -1020,3 +573,13 @@ func _rune_icon(parent: Node,extent: float) -> void:
 	var socket := PanelContainer.new(); socket.custom_minimum_size = Vector2.ONE*extent; socket.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var style := BattleTheme.box(Color("221d1233"),Color("e7c66a88"),extent/2); style.set_content_margin_all(extent*0.19); socket.add_theme_stylebox_override("panel",style); parent.add_child(socket)
 	_icon(socket,"ui/hud/icons/rune.png",extent*0.62)
+
+## Gem text is also consumed by the reward presenter.
+func _gem_name(type: String) -> String:
+	return gem_panel._gem_name(type)
+
+func _gem_description(type: String) -> String:
+	return gem_panel._gem_description(type)
+
+func _gem_effect(type: String,turret: Dictionary) -> String:
+	return gem_panel._gem_effect(type,turret)
