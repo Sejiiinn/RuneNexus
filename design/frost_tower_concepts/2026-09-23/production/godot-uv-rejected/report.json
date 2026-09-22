@@ -1,0 +1,19 @@
+{
+	"asset_sha256": "9b88bd254a741bf0ba959b31adb455381626448607bdd0d5e61078cea25d9c7d",
+	"engine": {
+		"build": "official",
+		"hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+		"hex": 263938,
+		"major": 4,
+		"minor": 7,
+		"patch": 2,
+		"status": "stable",
+		"string": "4.7.2-stable (official)",
+		"timestamp": 0
+	},
+	"failures": [],
+	"fired": true,
+	"renderer": "mobile",
+	"slowed_observed": true,
+	"user_directory": "/Users/sejin/Library/Application Support/RuneNexus-Frost-Review-1790094947"
+}

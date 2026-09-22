@@ -1,0 +1,10 @@
+{
+  "assets/images/stage1_3d/turrets/frost.glb": {
+    "sha256": "c79a38590b5da242a29200f6b693470950f31ae3ea5fbd95713016630e3508f3",
+    "bytes": 1628284
+  },
+  "assets/images/ui/hud/turrets_3d/frost.png": {
+    "sha256": "c10ea0f7f91dd305f428e41240c33903bbab25a104cf87425b80c4e08e3df168",
+    "bytes": 52639
+  }
+}
