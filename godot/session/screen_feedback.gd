@@ -1,5 +1,9 @@
 extends ColorRect
+var _last_alert := -1.0
+var _last_fade := -1.0
+var _last_viewport := Vector2(-1, -1)
 func _ready() -> void:
+	hide()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var shader := Shader.new()
@@ -21,8 +25,16 @@ void fragment() {
 	material.shader = shader
 
 func update_state(runtime, logical_size: Vector2) -> void:
-	visible = runtime.native_session()
+	var alert: float = runtime.nexus_alert / 0.65
+	var fade: float = runtime.destruction_elapsed / 3.2
+	visible = runtime.native_session() and (alert > 0.0 or fade > 0.0)
 	if not visible: return
-	material.set_shader_parameter("alert",runtime.nexus_alert / 0.65)
-	material.set_shader_parameter("fade",runtime.destruction_elapsed / 3.2)
-	material.set_shader_parameter("viewport",logical_size)
+	if alert != _last_alert:
+		material.set_shader_parameter("alert", alert)
+		_last_alert = alert
+	if fade != _last_fade:
+		material.set_shader_parameter("fade", fade)
+		_last_fade = fade
+	if logical_size != _last_viewport:
+		material.set_shader_parameter("viewport", logical_size)
+		_last_viewport = logical_size

@@ -1,4 +1,5 @@
 extends Node3D
+const RuntimeProfile = preload("res://app/runtime_profile.gd")
 
 const TurretLevelLabels = preload("res://ui/turret_level_labels.gd")
 const BattlefieldLabels = preload("res://ui/battlefield_labels.gd")
@@ -151,18 +152,23 @@ var _generic_projectile_pool := {"sniper": [], "frost": []}
 
 
 func _ready() -> void:
+	RuntimeProfile.configure()
+	_set_profile_enabled(RuntimeProfile.enabled)
 	if Engine.has_singleton("RuneNexusPreview"):
 		bridge = Engine.get_singleton("RuneNexusPreview")
-	elif OS.get_name() == "Android" and not "--session" in OS.get_cmdline_user_args():
+	elif OS.get_name() == "Android" and not "--session" in OS.get_cmdline_user_args() and not "--app" in OS.get_cmdline_user_args():
 		_fail("Flutter 전투 브리지가 등록되지 않았습니다.")
 		return
 	add_child(_turret_level_labels)
 	_presentation_layer.layer = 2
 	add_child(_presentation_layer)
-	for node: Node2D in _presentation_nodes.values():
+	for group: String in _presentation_nodes:
+		var node: Node2D = _presentation_nodes[group]
+		RuntimeProfile.tag_canvas(node, group)
 		_presentation_layer.add_child(node)
 		node.hide()
 	_presentation_layer.add_child(_screen_feedback)
+	RuntimeProfile.tag_canvas(_screen_feedback, "feedback")
 	add_child(world)
 	world.add_child(terrain)
 	add_child(camera)
@@ -279,8 +285,9 @@ func _ready() -> void:
 	if bridge:
 		bridge.report_ready()
 	else:
-		if "--session" in OS.get_cmdline_user_args():
-			_standalone_session = load("res://session/standalone.gd").new()
+		if "--session" in OS.get_cmdline_user_args() or "--app" in OS.get_cmdline_user_args():
+			var entry := "res://app/app_lifecycle.gd" if "--app" in OS.get_cmdline_user_args() else "res://session/standalone.gd"
+			_standalone_session = load(entry).new()
 			add_child(_standalone_session)
 			return
 		# 네이티브 데스크톱 검수 입력. Android에서는 실제 Flutter 전투만 사용.
@@ -325,6 +332,7 @@ func _fail(message: String) -> void:
 
 
 func _process(delta: float) -> void:
+	RuntimeProfile.apply_render_partition(get_viewport(), _native_combat.session.get("phase", "") == "wave")
 	if _profile_enabled:
 		var tick := Time.get_ticks_usec()
 		if _profile_last_tick != 0:
@@ -381,7 +389,10 @@ func _process(delta: float) -> void:
 		var host_active: bool = bridge.is_session_active() if bridge else true
 		var activation: int = int(bridge.session_activation_revision()) if bridge else 0
 		var session_delta := _session_frame_delta(delta, host_active, activation)
-		if _native_combat.advance_session(session_delta, host_active) and not _native_combat_base_frame.is_empty():
+		var combat_tick := RuntimeProfile.begin()
+		var advanced := _native_combat.advance_session(session_delta, host_active)
+		RuntimeProfile.finish("combat", combat_tick)
+		if advanced and not _native_combat_base_frame.is_empty():
 			_apply_frame(_native_combat_base_frame)
 		_session_report_elapsed += delta
 		if bridge and _session_report_elapsed >= 0.1:
@@ -430,6 +441,14 @@ func _process(delta: float) -> void:
 				"profile_render_samples": _profile_render_count,
 			})
 			_reset_profile_window()
+		if RuntimeProfile.enabled:
+			var costs := RuntimeProfile.drain()
+			for label in costs:
+				print("APP_COST ", label, " ", JSON.stringify(costs[label]))
+			metrics.erase("frame_intervals_ms")
+			metrics["phase"] = _native_combat.session.get("phase", "")
+			metrics["paused"] = _native_combat.session.get("paused", false)
+			print("APP_PROFILE ", JSON.stringify(metrics))
 		if bridge:
 			bridge.report_metrics(JSON.stringify(metrics))
 		metrics_elapsed = 0.0
@@ -537,7 +556,7 @@ func _add_environment_accent_lights() -> void:
 
 
 func _apply_graphics_options() -> void:
-	_set_profile_enabled(bool(options.get("profile", false)))
+	_set_profile_enabled(RuntimeProfile.enabled or bool(options.get("profile", false)))
 	# JSON 숫자는 float로 수신될 수 있으므로 숫자 타입과 허용값을 함께 검사.
 	var samples = options.get("msaa_samples", 2)
 	if not (samples is int or samples is float) or (samples != 0 and samples != 2):
@@ -600,6 +619,7 @@ func _fit_camera_to_frame() -> void:
 		last_frame.get("viewport", []), last_frame.get("screenCenter", []),
 		last_frame.has("pixelsPerTile"), last_frame.get("pixelsPerTile", 0.0),
 		last_frame.get("zoom", 1.0), options.get("zoom", 1.0), columns, rows,
+		_formal_battlefield_rect(),
 	]
 	if key == _camera_layout_key:
 		if _native_combat.native_session():
@@ -612,10 +632,22 @@ func _fit_camera_to_frame() -> void:
 	_camera_layout_pose = Vector3(camera.size,camera.h_offset,camera.v_offset)
 
 
+func _formal_battlefield_rect() -> Rect2:
+	if not "--app" in OS.get_cmdline_user_args() or not is_instance_valid(_standalone_session): return Rect2()
+	var hud = _standalone_session.hud
+	if not is_instance_valid(hud) or not hud.has_method("battlefield_rect"): return Rect2()
+	return hud.battlefield_rect()
+
+
 func _fit_camera_layout(visible_size: Vector2) -> void:
+	var battle_rect := _formal_battlefield_rect()
+	var formal := battle_rect.size.x > 0 and battle_rect.size.y > 0
 	var logical_viewport: Array = last_frame.get("viewport", [])
 	var screen_center: Array = last_frame.get("screenCenter", [])
-	if logical_viewport.size() != 2 or screen_center.size() != 2 or not last_frame.has("pixelsPerTile"):
+	if formal:
+		logical_viewport = [visible_size.x, visible_size.y]
+		screen_center = [battle_rect.get_center().x, battle_rect.get_center().y]
+	if not formal and (logical_viewport.size() != 2 or screen_center.size() != 2 or not last_frame.has("pixelsPerTile")):
 		# HUD 없는 검수 화면은 기울어진 지형의 투영 폭·높이까지 포함.
 		var aspect := visible_size.x / maxf(1.0, visible_size.y)
 		if _using_chapter_environment:
@@ -667,10 +699,12 @@ func _fit_camera_layout(visible_size: Vector2) -> void:
 		max_row = 1
 	var span := bounds_max - bounds_min
 	var fit := clampf(minf(float(max_column - min_column) / maxf(span.x, 0.001), float(max_row - min_row) / maxf(span.y, 0.001)), 0.1, 1.0)
-	var ppu := maxf(1.0, float(last_frame["pixelsPerTile"]) * float(last_frame.get("zoom", 1.0)) * fit)
+	var ppu := maxf(1.0, float(last_frame.get("pixelsPerTile", 1.0)) * float(last_frame.get("zoom", 1.0)) * fit)
+	if formal:
+		ppu = maxf(1.0, minf(battle_rect.size.x / maxf(span.x + 0.7, 1.0), battle_rect.size.y / maxf(span.y + 1.0, 1.0)) * float(options.get("zoom", 1.0)))
 	var center := (bounds_min + bounds_max) / 2.0
 	var target_center := Vector2(float(screen_center[0]), float(screen_center[1]))
-	if _using_forge:
+	if _using_forge and not formal:
 		# Flutter는 전체 격자 중심을 전달하므로 비대칭 빈 테두리의 오프셋을 되돌린다.
 		# 투영 경계는 이미 활성 타일 중심이며, 사용자 팬·줌은 그대로 유지한다.
 		var grid_offset := Vector2(min_column + max_column - columns, min_row + max_row - rows) * 0.5
@@ -826,8 +860,10 @@ func _present_overlays() -> void:
 		var node: Node2D = _presentation_nodes[group]
 		var enabled: bool = world.visible and int(last_frame.get("presentationVersion", 0)) == 2 and requested.has(group) and payload.get(group) is Dictionary and node.supported_groups().has(group)
 		if group == "selection": enabled = enabled and node.has_frame()
-		node.visible = enabled
-		if enabled:
+		var canvas_enabled: bool = enabled and not RuntimeProfile.options.get("hide_canvas", false)
+		node.visible = canvas_enabled
+		if node.has_method("set_canvas_enabled"): node.set_canvas_enabled(canvas_enabled)
+		if canvas_enabled:
 			if group == "selection":
 				node.set_turrets(turrets)
 				# 평소 지면 표시는 라벨 뒤, 보상 dim은 남아 있는 모든 효과 앞.
@@ -885,8 +921,15 @@ func _report_presentation() -> void:
 
 
 func _apply_frame(frame: Dictionary) -> void:
+	var owned_snapshot := false
+	var whole_tick := RuntimeProfile.begin()
 	if _native_combat.active and not bool(frame.get("reset", false)) and int(frame.get("sceneEpoch", -1)) == _scene_epoch:
-		frame = _native_combat.decorate_frame(frame)
+		var decorate_tick := RuntimeProfile.begin()
+		frame = _native_combat.decorate_frame(frame, true)
+		owned_snapshot = true
+		RuntimeProfile.finish("decorate", decorate_tick)
+		if "--app" in OS.get_cmdline_user_args():
+			frame = preload("res://ui/app_presentation.gd").normalize(frame)
 		if _native_combat.native_session():
 			frame.zoom = _session_input.zoom
 			options.zoom = _session_input.zoom
@@ -895,15 +938,16 @@ func _apply_frame(frame: Dictionary) -> void:
 			if viewport.size() == 2 and center.size() == 2:
 				frame.screenCenter = [center[0] + _session_input.pan.x * viewport[0], center[1] + _session_input.pan.y * viewport[1]]
 	if not _profile_enabled:
-		_apply_frame_impl(frame)
+		_apply_frame_impl(frame, owned_snapshot)
 		return
 	var started := Time.get_ticks_usec()
-	_apply_frame_impl(frame)
+	_apply_frame_impl(frame, owned_snapshot)
 	_profile_apply_us += Time.get_ticks_usec() - started
 	_profile_apply_count += 1
+	RuntimeProfile.finish("presentation", whole_tick)
 
 
-func _apply_frame_impl(frame: Dictionary) -> void:
+func _apply_frame_impl(frame: Dictionary, owned_snapshot: bool = false) -> void:
 	var epoch := int(frame.get("sceneEpoch", 0))
 	if epoch < _scene_epoch:
 		return
@@ -939,12 +983,19 @@ func _apply_frame_impl(frame: Dictionary) -> void:
 	var payload: Dictionary = frame.get("presentation", {})
 	for group: String in _presentation_nodes:
 		if payload.get(group) is Dictionary:
-			var group_frame: Dictionary = payload[group].duplicate(true)
+			var group_frame: Dictionary = payload[group].duplicate()
 			group_frame["viewport"] = frame.get("viewport", [])
 			if group == "effects":
 				group_frame["targets"] = frame.get("enemies", [])
 				group_frame["turrets"] = frame.get("turrets", [])
-			_presentation_nodes[group].apply_frame(group_frame)
+			var node: Node2D = _presentation_nodes[group]
+			var canvas_enabled: bool = world.visible and int(frame.get("presentationVersion", 0)) == 2 and options.get("presentation_groups", []).has(group) and node.supported_groups().has(group) and not RuntimeProfile.options.get("hide_canvas", false)
+			if node.has_method("set_canvas_enabled"): node.set_canvas_enabled(canvas_enabled)
+			if group in ["labels", "effects", "selection"]:
+				node.apply_frame(group_frame, owned_snapshot)
+			else:
+				node.apply_frame(group_frame)
+			if RuntimeProfile.options.get("hide_canvas", false): _presentation_nodes[group].hide()
 		else:
 			_presentation_nodes[group].clear()
 	# Native event progress is computed once per authoritative combat-clock frame.
@@ -960,13 +1011,25 @@ func _apply_frame_impl(frame: Dictionary) -> void:
 		last_frame["projectiles"] = _projectile_events.sample(frame["projectileEvents"], float(frame.get("time", 0.0)))
 	else:
 		_projectile_events.clear()
+	var camera_tick := RuntimeProfile.begin()
 	_update_camera()
+	RuntimeProfile.finish("camera", camera_tick)
+	var session_presentation_tick := RuntimeProfile.begin()
 	_update_session_presentation()
+	RuntimeProfile.finish("session_presentation", session_presentation_tick)
+	var turrets_tick := RuntimeProfile.begin()
 	_sync_turrets(frame.get("turrets", []))
+	RuntimeProfile.finish("turrets", turrets_tick)
+	var enemies_tick := RuntimeProfile.begin()
 	_sync_enemies(frame.get("enemies", []))
+	RuntimeProfile.finish("enemies", enemies_tick)
+	var projectiles_tick := RuntimeProfile.begin()
 	_sync_projectiles(last_frame.get("projectiles", []))
+	RuntimeProfile.finish("projectiles", projectiles_tick)
 	_sync_build_preview(frame.get("buildPreview"))
+	var impacts_tick := RuntimeProfile.begin()
 	_update_impacts(last_frame.get("impacts", []))
+	RuntimeProfile.finish("impacts", impacts_tick)
 	var time := float(frame.get("time", 0.0))
 	_portal_material.set_shader_parameter("battle_time", time)
 	_portal_material.set_shader_parameter("alert", clampf(float(frame.get("portalAlert", 0.0)), 0.0, 1.0))
@@ -1866,6 +1929,7 @@ func _update_impacts(units: Array) -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
+	if "--app" in OS.get_cmdline_user_args(): return
 	if bridge or not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 	match event.keycode:
@@ -1877,6 +1941,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_instance_valid(_standalone_session) and "--app" in OS.get_cmdline_user_args():
+		var app = _standalone_session
+		if app.in_lobby: return
+		if is_instance_valid(app.hud) and app.hud.has_method("blocks_board_input") and app.hud.blocks_board_input():
+			_session_input.contacts.clear()
+			return
 	_session_input.handle(event)
 
 
@@ -1885,7 +1955,9 @@ func _update_session_presentation() -> void:
 	var size := Vector2(logical[0],logical[1]) if logical.size() == 2 else get_viewport().get_visible_rect().size
 	_screen_feedback.update_state(_native_combat, size)
 	if not _native_combat.native_session(): return
+	var camera_adjusted := false
 	if logical.is_empty():
+		camera_adjusted = true
 		camera.h_offset -= _session_input.pan.x * camera.size * size.x / size.y
 		camera.v_offset += _session_input.pan.y * camera.size
 	if _native_combat.session.get("phase") in ["coreDestruction", "failure"] and not _cores.is_empty():
@@ -1901,7 +1973,10 @@ func _update_session_presentation() -> void:
 		var offset := screen-actual*Vector2(0.5,0.56)
 		camera.h_offset += offset.x/actual.y*camera.size*weight
 		camera.v_offset -= offset.y/actual.y*camera.size*weight
-		_update_camera_visuals()
+		camera_adjusted = true
+	# Project effects after native drag/collapse offsets, using the final camera.
+	# The base camera update above runs before these session-specific offsets.
+	if camera_adjusted: _update_camera_visuals()
 
 
 func _session_frame_delta(delta: float, host_active: bool, activation: int) -> float:

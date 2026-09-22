@@ -91,7 +91,8 @@ func session_snapshot() -> Dictionary:
 		"coreDestructionElapsed": destruction_elapsed,"nexusAlert":nexus_alert/0.65}, true)
 	return result
 
-func process_command(packet: Dictionary) -> Dictionary:
+# Local application commands only need an ACK; host callers retain full snapshots.
+func process_command(packet: Dictionary, include_snapshot: bool = true) -> Dictionary:
 	if int(packet.get("epoch", -1)) < epoch:
 		return {"accepted":false,"reason":"staleEpoch","epoch":epoch,"ackSequence":sequence}
 	if epoch != packet.get("epoch"):
@@ -99,7 +100,7 @@ func process_command(packet: Dictionary) -> Dictionary:
 			return {"accepted": false, "reason": "bootstrapRequired", "epoch": packet.get("epoch"), "ackSequence": -1}
 		_reset(packet)
 	if int(packet.get("sequence", -1)) <= sequence:
-		return snapshot()
+		return snapshot() if include_snapshot else {"accepted":true,"epoch":epoch,"ackSequence":sequence}
 	if sequence >= 0 and int(packet.sequence) != sequence + 1:
 		return {"accepted": false, "reason": "sequenceGap", "epoch": epoch, "ackSequence": sequence}
 	var ack_event := int(packet.get("ackEvent", 0))
@@ -129,7 +130,7 @@ func process_command(packet: Dictionary) -> Dictionary:
 	_drain_steps()
 	sequence = int(packet.sequence)
 	state_revision += 1
-	return snapshot()
+	return snapshot() if include_snapshot else {"accepted":true,"epoch":epoch,"ackSequence":sequence}
 
 func _reset(packet: Dictionary) -> void:
 	epoch = int(packet.epoch)
@@ -786,10 +787,19 @@ func snapshot() -> Dictionary:
 	var wave_state: Dictionary = wave.snapshot()
 	return {"stateRevision":state_revision,"session":session_snapshot(),"defense":defense.snapshot(),"wave":wave_state,"core":core.snapshot(),"accepted": true, "epoch": epoch, "ackSequence": sequence, "enemies": enemy_states, "turrets": turret_states, "events": events.duplicate(true), "clock": clock}
 
-func decorate_frame(base: Dictionary) -> Dictionary:
+func decorate_frame(base: Dictionary, reuse_static: bool = false) -> Dictionary:
 	if not active:
 		return base
-	var frame := base.duplicate(true)
+	# Internal presentation owns fresh dynamic values; static map/selection is read-only.
+	# Keep the public snapshot isolation default for existing callers.
+	var frame := base.duplicate(not reuse_static)
+	if reuse_static and base.get("presentation") is Dictionary:
+		frame.presentation = base.presentation.duplicate()
+		for group in ["effects", "selection", "labels"]:
+			if frame.presentation.get(group) is Dictionary:
+				frame.presentation[group] = frame.presentation[group].duplicate()
+		if frame.presentation.get("effects", {}).has("events"):
+			frame.presentation.effects.events = frame.presentation.effects.events.duplicate(true)
 	if native_session():
 		frame.time = effect_time
 		frame.nexusHit = nexus_alert/0.65
@@ -799,7 +809,7 @@ func decorate_frame(base: Dictionary) -> Dictionary:
 				if frame.presentation.get(group) is Dictionary:
 					frame.presentation[group].clock = effect_time
 					frame.presentation[group].time = effect_time
-			if frame.presentation.get("selection") is Dictionary:
+			if frame.presentation.get("selection") is Dictionary and not frame.presentation.selection.get("state", frame.presentation.selection).get("preserveLegacyOrnaments", false):
 				var aims: Array = []
 				for t in turrets.values():
 					var target: Dictionary = enemies.get(str(t.aimTargetId), {})

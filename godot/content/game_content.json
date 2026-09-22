@@ -209,7 +209,10 @@
       "familyResistances": {},
       "tagResistances": {},
       "coreDamage": 1,
-      "isDebug": false
+      "isDebug": false,
+      "name": "일반",
+      "color": 4291284694,
+      "rewardGold": 5
     },
     "armored": {
       "type": "armored",
@@ -281,7 +284,10 @@
       "familyResistances": {},
       "tagResistances": {},
       "coreDamage": 1,
-      "isDebug": false
+      "isDebug": false,
+      "name": "장갑병",
+      "color": 4293974136,
+      "rewardGold": 7
     },
     "shielded": {
       "type": "shielded",
@@ -353,7 +359,10 @@
       "familyResistances": {},
       "tagResistances": {},
       "coreDamage": 1,
-      "isDebug": false
+      "isDebug": false,
+      "name": "보호막병",
+      "color": 4284668415,
+      "rewardGold": 8
     },
     "fast": {
       "type": "fast",
@@ -428,7 +437,10 @@
         "heavy": 0.5
       },
       "coreDamage": 1,
-      "isDebug": false
+      "isDebug": false,
+      "name": "빠름",
+      "color": 4288474111,
+      "rewardGold": 5
     },
     "tank": {
       "type": "tank",
@@ -505,7 +517,10 @@
         "heavy": -0.2
       },
       "coreDamage": 2,
-      "isDebug": false
+      "isDebug": false,
+      "name": "탱커",
+      "color": 4289299818,
+      "rewardGold": 9
     },
     "boss": {
       "type": "boss",
@@ -577,7 +592,10 @@
       "familyResistances": {},
       "tagResistances": {},
       "coreDamage": 8,
-      "isDebug": false
+      "isDebug": false,
+      "name": "보스",
+      "color": 4294924902,
+      "rewardGold": 35
     },
     "shieldBoss": {
       "type": "shieldBoss",
@@ -649,7 +667,10 @@
       "familyResistances": {},
       "tagResistances": {},
       "coreDamage": 10,
-      "isDebug": false
+      "isDebug": false,
+      "name": "균열 방벽체",
+      "color": 4288384255,
+      "rewardGold": 48
     },
     "forgeBoss": {
       "type": "forgeBoss",
@@ -721,7 +742,10 @@
       "familyResistances": {},
       "tagResistances": {},
       "coreDamage": 12,
-      "isDebug": false
+      "isDebug": false,
+      "name": "용광로 파쇄자",
+      "color": 4284672214,
+      "rewardGold": 58
     }
   },
   "turrets": {

@@ -1,4 +1,5 @@
 extends Node2D
+const RuntimeProfile = preload("res://app/runtime_profile.gd")
 
 ## Presentation-only: every effect uses the authoritative simulation age.
 ## Creation events use the shared component clock; no wall timer or combat callback.
@@ -11,7 +12,6 @@ var diagnostic_skip := ""
 var camera: Camera3D
 var map_size := Vector2.ZERO
 var world: Node3D
-var _origin := Vector2.ZERO
 var _basis := Transform2D.IDENTITY
 var _font: Font
 var _diamond: Texture2D
@@ -24,6 +24,18 @@ var _last_event_id := -1
 var _event_clock := 0.0
 var _event_squared := 0.0
 var _additive := CanvasItemMaterial.new()
+const MAX_SURFACE_POOL := 64
+var _surface_pool: Array = []
+var _input_order: Array = []
+var _sorted_indices: Array = []
+var _projection_context: Array = []
+var _canvas_enabled := true
+var _materialization_pending := false
+var _unit_oval := PackedVector2Array()
+var _blast_rays := PackedVector2Array()
+var _blast_dust := PackedVector2Array()
+var _text_metrics := {}
+var _chain_waves := {}
 
 
 class EffectSurface extends Node2D:
@@ -31,10 +43,46 @@ class EffectSurface extends Node2D:
 	var effect := {}
 	var mix_pass := false
 	var mix_surface: EffectSurface
+	var glyph: DamageGlyph
+	var draw_key: Array = []
+	var death_styles: Array = []
+	var death_particles: Array = []
+	var death_key: Array = []
+	var geometry_basis := Transform2D.IDENTITY
+	var ground_basis := Transform2D.IDENTITY
+	var projection_key: Array = []
+	var in_front := true
 
 	func _draw() -> void:
 		if owner_effects != null:
+			var tick := RuntimeProfile.begin()
 			owner_effects._draw_effect(effect, self, mix_pass)
+			RuntimeProfile.finish("effects_draw", tick)
+
+
+class DamageGlyph extends Node2D:
+	var font: Font
+	var text := ""
+	var ink := Color.WHITE
+	var key: Array = []
+	var draw_revision := 0
+
+	func configure(value: String, color: Color, source_font: Font) -> void:
+		var next_key := [value, color, source_font]
+		if key == next_key: return
+		key = next_key
+		text = value
+		ink = color
+		font = source_font
+		draw_revision += 1
+		queue_redraw()
+
+	func _draw() -> void:
+		if font == null: return
+		var extent := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 15)
+		var at := Vector2(-extent.x / 2, (font.get_ascent(15) - font.get_descent(15)) / 2)
+		draw_string_outline(font, at + Vector2.ONE, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, 2, Color(2.0/255, 7.0/255, 13.0/255, 0.42))
+		draw_string(font, at, text, HORIZONTAL_ALIGNMENT_LEFT, -1, 15, ink)
 
 
 func _ready() -> void:
@@ -56,7 +104,7 @@ func _ready() -> void:
 func supported_groups() -> Array:
 	return ["effects"] if _font != null and _diamond != null and _silhouettes != null else []
 
-func apply_frame(frame: Dictionary) -> void:
+func apply_frame(frame: Dictionary, owned_snapshot := false) -> void:
 	var generation := int(frame.get("generation", 0))
 	if generation < _generation:
 		return
@@ -82,14 +130,13 @@ func apply_frame(frame: Dictionary) -> void:
 			_events[id]["deliverySample"] = event.get("kind") != "charge"
 		while _events.size() > 256:
 			_events.erase(_events.keys()[0])
-	items = frame.get("items", []).duplicate(true)
+	# main transfers immutable entries; public callers retain snapshot isolation.
+	items = frame.get("items", []).duplicate(not owned_snapshot)
 	blast_impacts.clear()
 	# One shared logical-position lookup for all links. Visual enemy offsets
 	# deliberately never enter this table; missing targets are dead/unmounted.
 	var targets := {}
-	for target: Array in frame.get("targets", []):
-		if target.size() >= 14:
-			targets[int(target[0])] = [target[12], target[13]]
+	var targets_loaded := false
 	var turret_positions := {}
 	var turrets_loaded := false
 	for id in _events.keys():
@@ -104,6 +151,11 @@ func apply_frame(frame: Dictionary) -> void:
 			steps = float(event.get("retainedSquared", 0))
 			event["deliverySample"] = false
 		event["age"] = age
+		if not targets_loaded and event.get("kind") in ["coreBeam", "chain", "rift"]:
+			for target: Array in frame.get("targets", []):
+				if target.size() >= 14:
+					targets[int(target[0])] = [target[12], target[13]]
+			targets_loaded = true
 		if event.get("kind") == "charge":
 			if not turrets_loaded:
 				for turret: Array in frame.get("turrets", []):
@@ -154,29 +206,97 @@ func apply_frame(frame: Dictionary) -> void:
 				clampf(age / maxf(0.001, float(event["duration"])), 0, 1)])
 		else:
 			items.append(event)
-	# Keep creation order when event-owned and snapshot-owned effects coexist.
-	items.sort_custom(func(a, b): return int(a.get("id", 0)) < int(b.get("id", 0)))
+	# Sorting depends on membership/input order, never age or camera movement.
+	var incoming: Array = []
+	for index in range(items.size()): incoming.append(int(items[index].get("id", index)))
+	if incoming != _input_order:
+		_input_order = incoming
+		_sorted_indices = range(items.size())
+		_sorted_indices.sort_custom(func(a, b): return int(items[a].get("id", 0)) < int(items[b].get("id", 0)))
+	var ordered: Array = []
+	for index in _sorted_indices: ordered.append(items[index])
+	items = ordered
+	_materialization_pending = true
+	if _can_materialize(): _sync_surfaces()
+
+
+func set_canvas_enabled(enabled: bool) -> void:
+	if _canvas_enabled == enabled: return
+	_canvas_enabled = enabled
+	_materialization_pending = true
+	if _can_materialize(): _sync_surfaces()
+	else:
+		for id in _effect_nodes.keys(): _release_surface(id)
+
+
+func _can_materialize() -> bool:
+	return _canvas_enabled and is_visible_in_tree()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_VISIBILITY_CHANGED and is_inside_tree():
+		_materialization_pending = true
+		if _can_materialize(): _sync_surfaces()
+		else:
+			for id in _effect_nodes.keys(): _release_surface(id)
+
+
+func _exit_tree() -> void:
+	for surface: EffectSurface in _surface_pool: surface.free()
+	_surface_pool.clear()
+
+
+func _release_surface(id: int) -> void:
+	var surface: EffectSurface = _effect_nodes[id]
+	_effect_nodes.erase(id)
+	remove_child(surface)
+	surface.effect = {}
+	surface.draw_key.clear()
+	surface.projection_key.clear()
+	surface.death_styles.clear()
+	surface.death_particles.clear()
+	surface.death_key.clear()
+	surface.visible = false
+	surface.transform = Transform2D.IDENTITY
+	surface.modulate = Color.WHITE
+	surface.material = null
+	if surface.glyph != null: surface.glyph.hide()
+	if surface.mix_surface != null:
+		surface.mix_surface.effect = {}
+		surface.mix_surface.draw_key.clear()
+		surface.mix_surface.hide()
+	if _surface_pool.size() < MAX_SURFACE_POOL: _surface_pool.append(surface)
+	else: surface.free()
+
+
+func _canvas_effect(effect: Dictionary) -> bool:
+	return effect.get("kind") != "blast" and not (effect.get("kind") == "impact" and effect.get("style") in ["flame", "frost"])
+
+
+func _sync_surfaces() -> void:
+	_materialization_pending = false
 	var alive := {}
+	for index in range(items.size()):
+		if _canvas_effect(items[index]): alive[int(items[index].get("id", index))] = true
+	for id in _effect_nodes.keys():
+		if not alive.has(id): _release_surface(id)
 	var draw_index := 0
 	for index in range(items.size()):
 		var effect: Dictionary = items[index]
-		# 3D 전장의 화염·냉각은 기존 2D 명중 도형을 중복 생성하지 않는다.
-		# items는 유지해 표시 수신 확인 후 Flutter 대체 그리기도 중단한다.
-		if effect.get("kind") == "impact" and effect.get("style") in ["flame", "frost"]:
-			continue
-		var id: int = int(effect.get("id", index))
-		alive[id] = true
+		if not _canvas_effect(effect): continue
+		var id := int(effect.get("id", index))
 		if not _effect_nodes.has(id):
-			var node := EffectSurface.new()
-			node.owner_effects = self
-			add_child(node)
-			_effect_nodes[id] = node
+			var fresh: EffectSurface = _surface_pool.pop_back() if not _surface_pool.is_empty() else EffectSurface.new()
+			fresh.owner_effects = self
+			add_child(fresh)
+			_effect_nodes[id] = fresh
 		var node: EffectSurface = _effect_nodes[id]
 		node.effect = effect
-		move_child(node, draw_index)
+		if node.get_index() != draw_index: move_child(node, draw_index)
 		draw_index += 1
 		var gem: bool = effect.get("kind") == "gem"
-		node.material = _additive if gem else null
+		var wanted_material: Material = _additive if gem else null
+		if node.material != wanted_material: node.material = wanted_material
 		if gem:
 			if node.mix_surface == null:
 				node.mix_surface = EffectSurface.new()
@@ -184,15 +304,64 @@ func apply_frame(frame: Dictionary) -> void:
 				node.mix_surface.mix_pass = true
 				node.add_child(node.mix_surface)
 			node.mix_surface.effect = effect
-			node.mix_surface.queue_redraw()
-		elif node.mix_surface != null:
-			node.mix_surface.free()
-			node.mix_surface = null
+		elif node.mix_surface != null: node.mix_surface.hide()
+		_update_surface(node)
+
+
+# Store only draw inputs, copying the tiny mutable point list of linked events.
+func _draw_key(effect: Dictionary) -> Array:
+	var result: Array = []
+	for field in ["kind", "age", "duration", "x", "y", "tileSize", "color", "scale", "radius", "text", "feedback", "motion", "hasImage", "style", "enemyType", "enemyTypeIndex"]:
+		result.append(effect.get(field))
+	result.append(Vector2(float(effect.get("screenOffset", [0, 0])[0]), float(effect.get("screenOffset", [0, 0])[1])))
+	var points := PackedVector2Array()
+	for point in effect.get("points", []): points.append(Vector2(float(point[0]), float(point[1])))
+	result.append(points)
+	result.append(diagnostic_skip)
+	return result
+
+
+func _update_surface(node: EffectSurface, projection_changed := false) -> void:
+	var key := _draw_key(node.effect)
+	if not projection_changed and node.draw_key == key: return
+	var previous_key := node.draw_key
+	node.draw_key = key
+	var effect := node.effect
+	var valid := camera != null and world != null and float(effect.get("duration", 0)) > 0 and float(effect.get("age", 0)) < float(effect.get("duration", 0))
+	if valid:
+		var projection_key := [effect.get("x", 0), effect.get("y", 0), effect.get("tileSize", 48)]
+		if projection_changed or node.projection_key != projection_key:
+			node.projection_key = projection_key
+			var tile := Vector2(float(effect.get("x", 0)), float(effect.get("y", 0)))
+			node.in_front = not camera.is_position_behind(world.to_global(Vector3(tile.x - map_size.x / 2, 0, tile.y - map_size.y / 2)))
+			if node.in_front: node.ground_basis = _ground_transform(effect)
+		valid = node.in_front
+	node.visible = valid
+	if not valid: return
+	node.geometry_basis = _effect_basis(effect, node.ground_basis)
+	if effect.get("kind") == "damage":
+		if node.glyph == null:
+			node.glyph = DamageGlyph.new()
+			node.add_child(node.glyph)
+		var p := clampf(float(effect.get("age", 0)) / float(effect["duration"]), 0, 1)
+		var feedback := str(effect.get("feedback", "neutral"))
+		var ink := _color(int(effect.get("color", 0xffffffff)))
+		if feedback == "weak": ink = ink.lerp(Color.WHITE, 0.35)
+		elif feedback == "resisted": ink = ink.lerp(_color(0xff7e8b96), 0.72)
+		node.glyph.configure(str(effect.get("text", "")), ink, _font)
+		var scale_factor := (1.0 - p * 0.48 if effect.get("motion") == "fallArc" else 1.0) * (1.14 if feedback == "weak" else 0.82 if feedback == "resisted" else 1.0)
+		node.glyph.transform = node.geometry_basis * Transform2D(0, Vector2.ONE * scale_factor, 0, Vector2(0, p * 5 if feedback == "resisted" else 0))
+		node.glyph.modulate = Color(1, 1, 1, 1 - p)
+		node.glyph.visible = diagnostic_skip != "damage"
+	elif node.glyph != null: node.glyph.hide()
+	# Neutral/resisted damage only changes its retained glyph transform/modulate.
+	# A transition from a previous kind/weak decoration still clears old commands.
+	if effect.get("kind") != "damage" or effect.get("feedback") == "weak" or previous_key.is_empty() or previous_key[0] != "damage" or previous_key[10] == "weak":
 		node.queue_redraw()
-	for id in _effect_nodes.keys():
-		if not alive.has(id):
-			_effect_nodes[id].free()
-			_effect_nodes.erase(id)
+	if node.mix_surface != null and effect.get("kind") == "gem":
+		node.mix_surface.geometry_basis = node.geometry_basis
+		node.mix_surface.visible = true
+		node.mix_surface.queue_redraw()
 
 func clear() -> void:
 	_events.clear()
@@ -205,6 +374,14 @@ func clear() -> void:
 	for node: EffectSurface in _effect_nodes.values():
 		node.free()
 	_effect_nodes.clear()
+	for surface: EffectSurface in _surface_pool: surface.free()
+	_surface_pool.clear()
+	_input_order.clear()
+	_sorted_indices.clear()
+	_projection_context.clear()
+	_text_metrics.clear()
+	_chain_waves.clear()
+	_materialization_pending = false
 
 func present(active_camera: Camera3D, size: Vector2, active_world: Node3D) -> void:
 	prepare_context(active_camera, size, active_world, false)
@@ -215,12 +392,14 @@ func prepare_context(active_camera: Camera3D, size: Vector2, active_world: Node3
 	camera = active_camera
 	map_size = size
 	world = active_world
-	if not redraw:
-		return
-	for node: EffectSurface in _effect_nodes.values():
-		node.queue_redraw()
-		if node.mix_surface != null:
-			node.mix_surface.queue_redraw()
+	var context := [camera.get_camera_transform(), camera.get_camera_projection(), camera.get_viewport().get_visible_rect(), world.global_transform, map_size]
+	var changed := context != _projection_context
+	_projection_context = context
+	if not _can_materialize(): return
+	# The first visible frame may follow hidden ingestion without materialization.
+	if _materialization_pending: _sync_surfaces()
+	if changed:
+		for node: EffectSurface in _effect_nodes.values(): _update_surface(node, true)
 
 func _project(tile: Vector2, height := 0.0) -> Vector2:
 	return camera.unproject_position(world.to_global(Vector3(tile.x - map_size.x / 2.0, height, tile.y - map_size.y / 2.0)))
@@ -255,8 +434,9 @@ func _circle(center: Vector2, radius: float, color: Color) -> void:
 
 func _oval(center: Vector2, size: Vector2, color: Color) -> void:
 	var points := PackedVector2Array()
-	for i in range(48):
-		points.append(center + _polar(i * TAU / 48, 1) * size / 2)
+	if _unit_oval.is_empty():
+		for i in range(48): _unit_oval.append(_polar(i * TAU / 48, 1))
+	for unit in _unit_oval: points.append(center + unit * size / 2)
 	_surface.draw_colored_polygon(points, color)
 
 func _with_alpha(color: Color, alpha: float) -> Color:
@@ -265,16 +445,23 @@ func _with_alpha(color: Color, alpha: float) -> Color:
 ## The glyphs face the screen; their moving anchors still use the source
 ## component's logical board coordinates, as _renderBattlefieldLabels does.
 func effect_transform(effect: Dictionary) -> Transform2D:
+	return _effect_basis(effect, _ground_transform(effect))
+
+
+func _ground_transform(effect: Dictionary) -> Transform2D:
 	var tile := Vector2(float(effect.get("x", 0)), float(effect.get("y", 0)))
 	var origin := _project(tile)
 	var source_tile := maxf(0.001, float(effect.get("tileSize", 48)))
-	var bx := (_project(tile + Vector2.RIGHT) - origin) / source_tile
-	var by := (_project(tile + Vector2.DOWN) - origin) / source_tile
+	return Transform2D((_project(tile + Vector2.RIGHT) - origin) / source_tile,
+		(_project(tile + Vector2.DOWN) - origin) / source_tile, origin)
+
+
+func _effect_basis(effect: Dictionary, ground: Transform2D) -> Transform2D:
 	if effect.get("kind") in ["damage", "diamond"]:
 		var offset: Array = effect.get("screenOffset", [0, 0])
-		var anchor := origin + bx * float(offset[0]) + by * float(offset[1])
-		return Transform2D(Vector2(bx.length(), 0), Vector2(0, bx.length()), anchor)
-	return Transform2D(bx, by, origin)
+		var anchor := ground.origin + ground.x * float(offset[0]) + ground.y * float(offset[1])
+		return Transform2D(Vector2(ground.x.length(), 0), Vector2(0, ground.x.length()), anchor)
+	return ground
 
 func _draw_effect(effect: Dictionary, surface: Node2D, mix_pass: bool) -> void:
 	if diagnostic_skip == "damage" and effect.get("kind") == "damage":
@@ -287,13 +474,8 @@ func _draw_effect(effect: Dictionary, surface: Node2D, mix_pass: bool) -> void:
 	var age := float(effect.get("age", 0))
 	if duration <= 0 or age >= duration:
 		return
-	var tile := Vector2(float(effect.get("x", 0)), float(effect.get("y", 0)))
-	var at := world.to_global(Vector3(tile.x - map_size.x / 2, 0.0, tile.y - map_size.y / 2))
-	if camera.is_position_behind(at):
-		return
 	_surface = surface
-	_origin = _project(tile)
-	_basis = effect_transform(effect)
+	_basis = surface.geometry_basis
 	_surface.draw_set_transform_matrix(_basis)
 	var p := clampf(age / duration, 0, 1)
 	var c := _color(int(effect.get("color", 0xffffffff)))
@@ -309,19 +491,25 @@ func _draw_effect(effect: Dictionary, surface: Node2D, mix_pass: bool) -> void:
 		"death": _death(effect, p, c)
 	_surface.draw_set_transform_matrix(Transform2D.IDENTITY)
 
+func _metrics(text: String, size: int) -> Vector2:
+	var key := [text, size]
+	if not _text_metrics.has(key):
+		if _text_metrics.size() >= 256: _text_metrics.erase(_text_metrics.keys()[0])
+		_text_metrics[key] = Vector2(_font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x, (_font.get_ascent(size) - _font.get_descent(size)) / 2)
+	return _text_metrics[key]
+
+
 func _text(text: String, center: Vector2, size: int, color: Color, shadow: Color, shadow_offset: Vector2) -> void:
 	if _font == null:
 		return
-	var extent := _font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size)
-	var pos := center + Vector2(-extent.x / 2, (_font.get_ascent(size) - _font.get_descent(size)) / 2)
+	var metric := _metrics(text, size)
+	var pos := center + Vector2(-metric.x / 2, metric.y)
 	_surface.draw_string_outline(_font, pos + shadow_offset, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, 2, shadow)
 	_surface.draw_string(_font, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
 
 func _damage(e: Dictionary, p: float, c: Color) -> void:
 	var alpha := 1 - p
 	var feedback := str(e.get("feedback", "neutral"))
-	var motion_scale := 1.0 - p * 0.48 if e.get("motion") == "fallArc" else 1.0
-	var feedback_scale := 1.14 if feedback == "weak" else (0.82 if feedback == "resisted" else 1.0)
 	if feedback == "weak":
 		c = c.lerp(Color.WHITE, 0.35)
 		for i in range(3):
@@ -329,11 +517,6 @@ func _damage(e: Dictionary, p: float, c: Color) -> void:
 			_line(_polar(angle, 8 + p * 2), _polar(angle, 13 + p * 4), _color(0xfffff0a6, alpha * 0.72), 1.1)
 	elif feedback == "resisted":
 		c = c.lerp(_color(0xff7e8b96), 0.72)
-	var scale_factor := motion_scale * feedback_scale
-	var text_basis := _basis * Transform2D(0, Vector2(scale_factor, scale_factor), 0, Vector2(0, p * 5 if feedback == "resisted" else 0))
-	_surface.draw_set_transform_matrix(text_basis)
-	_text(str(e.get("text", "")), Vector2.ZERO, 15, _with_alpha(c, alpha), _color(0xff02070d, 0.42 * alpha), Vector2.ONE)
-	_surface.draw_set_transform_matrix(_basis)
 
 func _reward(e: Dictionary, p: float, s: float) -> void:
 	var appear := clampf(p / 0.16, 0, 1)
@@ -350,7 +533,7 @@ func _reward(e: Dictionary, p: float, s: float) -> void:
 	if _font != null:
 		var size := maxi(1, int(round(22 * s)))
 		var text := str(e.get("text", ""))
-		var extent := _font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size)
+		var extent := _metrics(text, size)
 		_text(text, Vector2(-4 * s + extent.x / 2, 0), size, _color(0xffeafbff, alpha), _color(0xff02070d, 0.9 * alpha), Vector2(1, 1.5) * s)
 
 func _charge(p: float, c: Color, s: float) -> void:
@@ -365,8 +548,9 @@ func _charge(p: float, c: Color, s: float) -> void:
 
 func _local_points(e: Dictionary) -> PackedVector2Array:
 	var result := PackedVector2Array()
+	var inverse := _basis.affine_inverse()
 	for point in e.get("points", []):
-		result.append(_basis.affine_inverse() * _project(Vector2(float(point[0]), float(point[1]))))
+		result.append(inverse * _project(Vector2(float(point[0]), float(point[1]))))
 	return result
 
 func _beam(e: Dictionary, p: float, c: Color, s: float) -> void:
@@ -449,11 +633,14 @@ func _blast(p: float, c: Color, r: float, lightning: bool) -> void:
 	_ring(Vector2.ZERO, r * (0.38 + p * 0.58), _with_alpha(c, alpha * 0.78), 2.2)
 	_circle(Vector2.ZERO, r * (0.22 + p * 0.12), _with_alpha(flash, clampf(1 - p * 1.4, 0, 1)))
 	_circle(Vector2.ZERO, r * (0.2 + p * 0.2), _with_alpha(core, alpha * 0.65))
+	if _blast_rays.is_empty():
+		for i in range(8): _blast_rays.append(_polar(i * TAU / 8 + 0.2, 1))
+		for i in range(7): _blast_dust.append(_polar(i * TAU / 7 + 0.28, 1))
 	for i in range(8):
-		var angle := i * TAU / 8 + 0.2
-		_line(_polar(angle, r * (0.18 + p * 0.18)), _polar(angle, r * (0.42 + p * 0.42)), _with_alpha(flash if i % 2 == 0 else shard, alpha * 0.74), 1.7)
-	for i in range(7):
-		var at := _polar(i * TAU / 7 + 0.28, r * (0.28 + p * 0.76)) * Vector2(1, 0.72)
+		var direction := _blast_rays[i]
+		_line(direction * (r * (0.18 + p * 0.18)), direction * (r * (0.42 + p * 0.42)), _with_alpha(flash if i % 2 == 0 else shard, alpha * 0.74), 1.7)
+	for direction in _blast_dust:
+		var at := direction * (r * (0.28 + p * 0.76)) * Vector2(1, 0.72)
 		_circle(at, r * (0.08 + p * 0.05), _with_alpha(dust, alpha * 0.38))
 
 func _ease_out(value: float) -> float:
@@ -471,17 +658,17 @@ func _gem(p: float, c: Color, s: float, mix_pass := false) -> void:
 	var seal_alpha := alpha * (1 - clampf(p - 0.54, 0, 0.46) / 0.46)
 	var radius := (18 + 24 * _ease_out(clampf(p / 0.62, 0, 1))) * s
 	var rotation_angle := -PI / 2 + p * 0.32
-	_ring(Vector2.ZERO, radius * 0.92, _with_alpha(c, seal_alpha * 0.15), 8 * s)
-	for i in range(6):
-		var angle := rotation_angle + i * PI / 3
+	if seal_alpha > 0: _ring(Vector2.ZERO, radius * 0.92, _with_alpha(c, seal_alpha * 0.15), 8 * s)
+	for i in range(6) if seal_alpha > 0 else []:
+		var angle: float = rotation_angle + i * PI / 3
 		_line(_polar(angle, radius), _polar(angle + PI / 3, radius), _with_alpha(c, seal_alpha * 0.72), 1.5 * s)
 		var at := _polar(angle, radius * 0.72)
 		var tangent := _polar(angle + PI / 2, (3.4 + (1.4 if i % 2 == 0 else 0.0)) * s)
 		_line(at - tangent, at + tangent, Color(1, 1, 1, seal_alpha * 0.84), 1.25 * s, 2)
 	var spark_alpha := alpha * (1 - clampf(p - 0.32, 0, 0.36) / 0.36)
 	var spark_ease := _ease_out(clampf(p / 0.44, 0, 1))
-	for i in range(8):
-		var angle := i * PI / 4 + 0.18
+	for i in range(8) if spark_alpha > 0 else []:
+		var angle: float = i * PI / 4 + 0.18
 		_line(_polar(angle, (42 - 18 * spark_ease) * s), _polar(angle, (26 - 10 * spark_ease) * s), _with_alpha(Color.WHITE if i % 2 == 0 else c, spark_alpha * (0.95 if i % 2 == 0 else 0.72)), 1.8 * s)
 	var bp := clampf((p - 0.24) / 0.34, 0, 1)
 	if bp > 0:
@@ -508,18 +695,29 @@ func _death(e: Dictionary, p: float, c: Color) -> void:
 	var count := 18 if boss else int({"tank": 13, "fast": 10, "shielded": 11, "armored": 12}.get(type, 9))
 	var drift := r * (0.96 if boss else float({"tank": 0.82, "fast": 0.92, "shielded": 0.78, "armored": 0.76}.get(type, 0.68)))
 	var size_factor := 0.3 if boss else float({"tank": 0.28, "fast": 0.2, "shielded": 0.24, "armored": 0.25}.get(type, 0.22))
+	var surface: EffectSurface = _surface
+	var particle_key := [type, type_index, count]
+	if surface.death_key != particle_key:
+		surface.death_key = particle_key
+		surface.death_particles.clear()
+		for i in range(count):
+			var seed := sin((i + 1) * 12.9898 + type_index * 78.233)
+			var angle_origin := i * 2.399963229728653
+			var angle := angle_origin + seed * 0.45
+			surface.death_particles.append([seed, angle, _polar(angle_origin, 1), _polar(angle, 1), absf(cos(angle)) * 0.32 if type == "fast" else 0.0])
 	for i in range(count):
-		var seed := sin((i + 1) * 12.9898 + type_index * 78.233)
-		var angle_origin := i * 2.399963229728653
-		var angle := angle_origin + seed * 0.45
-		var origin := _polar(angle_origin, r) * Vector2(0.2, 0.16)
-		var fast_bias := absf(cos(angle)) * 0.32 if type == "fast" else 0.0
+		var particle: Array = surface.death_particles[i]
+		var seed: float = particle[0]
+		var angle: float = particle[1]
+		var origin: Vector2 = particle[2] * r * Vector2(0.2, 0.16)
+		var fast_bias: float = particle[4]
 		var distance := p * (drift + r * fast_bias)
 		var rise := r * p * (0.2 + absf(seed) * 0.28)
-		var center := origin + _polar(angle, distance) + Vector2(0, rise * 0.08)
+		var center := origin + Vector2(particle[3]) * distance + Vector2(0, rise * 0.08)
 		var pixel_size := r * size_factor * (1 - p * 0.34)
 		var extent := Vector2(pixel_size, pixel_size * (0.72 + absf(seed) * 0.42))
-		var rounded := StyleBoxFlat.new()
+		if surface.death_styles.size() <= i: surface.death_styles.append(StyleBoxFlat.new())
+		var rounded: StyleBoxFlat = surface.death_styles[i]
 		rounded.bg_color = _with_alpha(c if i % 2 == 0 else _color(0xffe8fbff), alpha * 0.74)
 		rounded.set_corner_radius_all(maxi(1, int(pixel_size * 0.18)))
 		_surface.draw_set_transform_matrix(_basis * Transform2D(angle + p * (0.6 if seed > 0 else -0.6), center))
@@ -538,9 +736,14 @@ func _chain_points(event: Dictionary) -> Array:
 	var normal := Vector2(-delta.y / length, delta.x / length)
 	var amplitude := minf(18.0 * float(event.get("scale", 1)) / float(event["tileSize"]), length * 0.16)
 	var seed := float(event.get("boltSeed", 0))
+	if not _chain_waves.has(seed):
+		if _chain_waves.size() >= 256: _chain_waves.erase(_chain_waves.keys()[0])
+		var waves: Array = []
+		for index in range(1, 5): waves.append(sin(seed + index * 1.7) * 0.5 + 0.5)
+		_chain_waves[seed] = waves
 	var points := [endpoints[0]]
 	for index in range(1, 5):
-		var wave := sin(seed + index * 1.7) * 0.5 + 0.5
+		var wave: float = _chain_waves[seed][index - 1]
 		var point := start + delta * (index / 5.0) + normal * ((wave - 0.5) * amplitude)
 		points.append([point.x, point.y])
 	points.append(endpoints[1])

@@ -1,0 +1,613 @@
+{
+  "cases": [
+    {
+      "before": {
+        "runes": 0,
+        "growthVersion": 1,
+        "bossBountyUpgradeLevel": 0,
+        "totalPlayTimeMillis": 0,
+        "freeDiamonds": 0,
+        "paidDiamonds": 0,
+        "dailyQuestDayKey": -1,
+        "lastDailyQuestSeenMillis": 0,
+        "dailyQuestClockRollbackDetected": false,
+        "dailyQuestProgress": {},
+        "claimedDailyQuestRewards": [],
+        "dailyAttendanceRewardClaimed": false,
+        "dailyQuestAllCompleteClaimed": false,
+        "weeklyQuestWeekKey": -1,
+        "weeklyQuestProgress": {},
+        "claimedWeeklyQuestRewards": [],
+        "weeklyQuestAllCompleteClaimed": false,
+        "weeklyAttendanceDayKeys": [],
+        "weeklyAttendanceRewardClaimed": false,
+        "lastRunRuneReward": 0,
+        "startingGoldUpgradeLevel": 0,
+        "nexusHpUpgradeLevel": 0,
+        "supplyUpgradeLevel": 0,
+        "fireTrainingUpgradeLevel": 0,
+        "physicalDamageTrainingUpgradeLevel": 0,
+        "elementalDamageTrainingUpgradeLevel": 0,
+        "criticalDamageUpgradeLevel": 0,
+        "killGoldUpgradeLevel": 0,
+        "linkCostOptimizationUpgradeLevel": 0,
+        "turretLevelUpOptimizationUpgradeLevel": 0,
+        "unlockedStageCount": 1,
+        "bestRoundsByStage": {},
+        "clearedStageNumbers": [],
+        "researchLevels": {},
+        "researchElapsedMillis": {},
+        "activeResearches": [],
+        "researchSlotTwoUnlocked": false,
+        "coreCombatSkill": "guardianBeam",
+        "totalCorePoints": 0,
+        "lastRunCorePointReward": 0,
+        "lastRunTurretModuleTicketReward": 0,
+        "corePassiveTreeRevision": 4,
+        "corePassiveNodeRanks": {},
+        "claimedCorePointStageRewards": [],
+        "claimedEventIds": [],
+        "turretModules": {
+          "tickets": 0,
+          "drawCount": 0,
+          "ticketPurchaseCount": 0,
+          "itemSequence": 1,
+          "items": [
+            {
+              "id": "tm_1",
+              "turretType": "arrow",
+              "part": "core",
+              "family": "rapidCore",
+              "grade": "rare",
+              "options": [
+                {
+                  "type": "damageIncrease",
+                  "value": 16
+                }
+              ],
+              "acquiredOrder": 1,
+              "equipped": true
+            }
+          ]
+        }
+      },
+      "snapshot": {
+        "wallet": {
+          "freeDiamonds": 101,
+          "paidDiamonds": 7,
+          "moduleTickets": 8
+        },
+        "turretModules": {
+          "drawCount": 4,
+          "ticketPurchaseCount": 3,
+          "items": [
+            {
+              "id": "server-1",
+              "legacyItemId": "tm_1",
+              "turretType": "arrow",
+              "part": "core",
+              "family": "rapidCore",
+              "grade": "rare",
+              "acquiredOrder": 10,
+              "options": [
+                {
+                  "type": "damageIncrease",
+                  "value": 9999
+                },
+                {
+                  "type": "damageIncrease",
+                  "value": 1
+                },
+                {
+                  "type": "attackRateIncrease",
+                  "value": 1
+                }
+              ]
+            },
+            {
+              "id": "server-2",
+              "legacyItemId": "tm_1",
+              "turretType": "arrow",
+              "part": "core",
+              "family": "rapidCore",
+              "grade": "rare",
+              "acquiredOrder": 20,
+              "options": [
+                {
+                  "type": "damageIncrease",
+                  "value": 5
+                }
+              ]
+            }
+          ]
+        },
+        "entitlements": {
+          "researchSlotTwoUnlocked": true
+        }
+      },
+      "after": {
+        "runes": 0,
+        "growthVersion": 1,
+        "bossBountyUpgradeLevel": 0,
+        "totalPlayTimeMillis": 0,
+        "freeDiamonds": 101,
+        "paidDiamonds": 7,
+        "dailyQuestDayKey": -1,
+        "lastDailyQuestSeenMillis": 0,
+        "dailyQuestClockRollbackDetected": false,
+        "dailyQuestProgress": {},
+        "claimedDailyQuestRewards": [],
+        "dailyAttendanceRewardClaimed": false,
+        "dailyQuestAllCompleteClaimed": false,
+        "weeklyQuestWeekKey": -1,
+        "weeklyQuestProgress": {},
+        "claimedWeeklyQuestRewards": [],
+        "weeklyQuestAllCompleteClaimed": false,
+        "weeklyAttendanceDayKeys": [],
+        "weeklyAttendanceRewardClaimed": false,
+        "lastRunRuneReward": 0,
+        "startingGoldUpgradeLevel": 0,
+        "nexusHpUpgradeLevel": 0,
+        "supplyUpgradeLevel": 0,
+        "fireTrainingUpgradeLevel": 0,
+        "physicalDamageTrainingUpgradeLevel": 0,
+        "elementalDamageTrainingUpgradeLevel": 0,
+        "criticalDamageUpgradeLevel": 0,
+        "killGoldUpgradeLevel": 0,
+        "linkCostOptimizationUpgradeLevel": 0,
+        "turretLevelUpOptimizationUpgradeLevel": 0,
+        "unlockedStageCount": 1,
+        "bestRoundsByStage": {},
+        "clearedStageNumbers": [],
+        "researchLevels": {},
+        "researchElapsedMillis": {},
+        "activeResearches": [],
+        "researchSlotTwoUnlocked": true,
+        "coreCombatSkill": "guardianBeam",
+        "totalCorePoints": 0,
+        "lastRunCorePointReward": 0,
+        "lastRunTurretModuleTicketReward": 0,
+        "corePassiveTreeRevision": 4,
+        "corePassiveNodeRanks": {},
+        "claimedCorePointStageRewards": [],
+        "claimedEventIds": [],
+        "turretModules": {
+          "tickets": 8,
+          "drawCount": 4,
+          "ticketPurchaseCount": 3,
+          "itemSequence": 20,
+          "items": [
+            {
+              "id": "server-1",
+              "turretType": "arrow",
+              "part": "core",
+              "family": "rapidCore",
+              "grade": "rare",
+              "options": [
+                {
+                  "type": "damageIncrease",
+                  "value": 21
+                },
+                {
+                  "type": "attackRateIncrease",
+                  "value": 7
+                }
+              ],
+              "acquiredOrder": 10,
+              "equipped": true
+            },
+            {
+              "id": "server-2",
+              "turretType": "arrow",
+              "part": "core",
+              "family": "rapidCore",
+              "grade": "rare",
+              "options": [
+                {
+                  "type": "damageIncrease",
+                  "value": 14
+                }
+              ],
+              "acquiredOrder": 20,
+              "equipped": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "before": {
+        "runes": 0,
+        "growthVersion": 1,
+        "bossBountyUpgradeLevel": 0,
+        "totalPlayTimeMillis": 0,
+        "freeDiamonds": 101,
+        "paidDiamonds": 7,
+        "dailyQuestDayKey": -1,
+        "lastDailyQuestSeenMillis": 0,
+        "dailyQuestClockRollbackDetected": false,
+        "dailyQuestProgress": {},
+        "claimedDailyQuestRewards": [],
+        "dailyAttendanceRewardClaimed": false,
+        "dailyQuestAllCompleteClaimed": false,
+        "weeklyQuestWeekKey": -1,
+        "weeklyQuestProgress": {},
+        "claimedWeeklyQuestRewards": [],
+        "weeklyQuestAllCompleteClaimed": false,
+        "weeklyAttendanceDayKeys": [],
+        "weeklyAttendanceRewardClaimed": false,
+        "lastRunRuneReward": 0,
+        "startingGoldUpgradeLevel": 0,
+        "nexusHpUpgradeLevel": 0,
+        "supplyUpgradeLevel": 0,
+        "fireTrainingUpgradeLevel": 0,
+        "physicalDamageTrainingUpgradeLevel": 0,
+        "elementalDamageTrainingUpgradeLevel": 0,
+        "criticalDamageUpgradeLevel": 0,
+        "killGoldUpgradeLevel": 0,
+        "linkCostOptimizationUpgradeLevel": 0,
+        "turretLevelUpOptimizationUpgradeLevel": 0,
+        "unlockedStageCount": 1,
+        "bestRoundsByStage": {},
+        "clearedStageNumbers": [],
+        "researchLevels": {},
+        "researchElapsedMillis": {},
+        "activeResearches": [],
+        "researchSlotTwoUnlocked": true,
+        "coreCombatSkill": "guardianBeam",
+        "totalCorePoints": 0,
+        "lastRunCorePointReward": 0,
+        "lastRunTurretModuleTicketReward": 0,
+        "corePassiveTreeRevision": 4,
+        "corePassiveNodeRanks": {},
+        "claimedCorePointStageRewards": [],
+        "claimedEventIds": [],
+        "turretModules": {
+          "tickets": 8,
+          "drawCount": 4,
+          "ticketPurchaseCount": 3,
+          "itemSequence": 20,
+          "items": [
+            {
+              "id": "server-1",
+              "turretType": "arrow",
+              "part": "core",
+              "family": "rapidCore",
+              "grade": "rare",
+              "options": [
+                {
+                  "type": "damageIncrease",
+                  "value": 21
+                },
+                {
+                  "type": "attackRateIncrease",
+                  "value": 7
+                }
+              ],
+              "acquiredOrder": 10,
+              "equipped": true
+            },
+            {
+              "id": "server-2",
+              "turretType": "arrow",
+              "part": "core",
+              "family": "rapidCore",
+              "grade": "rare",
+              "options": [
+                {
+                  "type": "damageIncrease",
+                  "value": 14
+                }
+              ],
+              "acquiredOrder": 20,
+              "equipped": false
+            }
+          ]
+        }
+      },
+      "snapshot": {
+        "wallet": {
+          "freeDiamonds": 101,
+          "paidDiamonds": 7,
+          "moduleTickets": 8
+        },
+        "turretModules": {
+          "drawCount": 4,
+          "ticketPurchaseCount": 3,
+          "items": [
+            {
+              "id": "server-2",
+              "legacyItemId": "tm_1",
+              "turretType": "arrow",
+              "part": "core",
+              "family": "rapidCore",
+              "grade": "rare",
+              "acquiredOrder": 20,
+              "options": [
+                {
+                  "type": "damageIncrease",
+                  "value": 5
+                }
+              ]
+            },
+            {
+              "id": "server-1",
+              "legacyItemId": "tm_1",
+              "turretType": "arrow",
+              "part": "core",
+              "family": "rapidCore",
+              "grade": "rare",
+              "acquiredOrder": 10,
+              "options": [
+                {
+                  "type": "damageIncrease",
+                  "value": 9999
+                },
+                {
+                  "type": "damageIncrease",
+                  "value": 1
+                },
+                {
+                  "type": "attackRateIncrease",
+                  "value": 1
+                }
+              ]
+            }
+          ]
+        },
+        "entitlements": {
+          "researchSlotTwoUnlocked": true
+        }
+      },
+      "after": {
+        "runes": 0,
+        "growthVersion": 1,
+        "bossBountyUpgradeLevel": 0,
+        "totalPlayTimeMillis": 0,
+        "freeDiamonds": 101,
+        "paidDiamonds": 7,
+        "dailyQuestDayKey": -1,
+        "lastDailyQuestSeenMillis": 0,
+        "dailyQuestClockRollbackDetected": false,
+        "dailyQuestProgress": {},
+        "claimedDailyQuestRewards": [],
+        "dailyAttendanceRewardClaimed": false,
+        "dailyQuestAllCompleteClaimed": false,
+        "weeklyQuestWeekKey": -1,
+        "weeklyQuestProgress": {},
+        "claimedWeeklyQuestRewards": [],
+        "weeklyQuestAllCompleteClaimed": false,
+        "weeklyAttendanceDayKeys": [],
+        "weeklyAttendanceRewardClaimed": false,
+        "lastRunRuneReward": 0,
+        "startingGoldUpgradeLevel": 0,
+        "nexusHpUpgradeLevel": 0,
+        "supplyUpgradeLevel": 0,
+        "fireTrainingUpgradeLevel": 0,
+        "physicalDamageTrainingUpgradeLevel": 0,
+        "elementalDamageTrainingUpgradeLevel": 0,
+        "criticalDamageUpgradeLevel": 0,
+        "killGoldUpgradeLevel": 0,
+        "linkCostOptimizationUpgradeLevel": 0,
+        "turretLevelUpOptimizationUpgradeLevel": 0,
+        "unlockedStageCount": 1,
+        "bestRoundsByStage": {},
+        "clearedStageNumbers": [],
+        "researchLevels": {},
+        "researchElapsedMillis": {},
+        "activeResearches": [],
+        "researchSlotTwoUnlocked": true,
+        "coreCombatSkill": "guardianBeam",
+        "totalCorePoints": 0,
+        "lastRunCorePointReward": 0,
+        "lastRunTurretModuleTicketReward": 0,
+        "corePassiveTreeRevision": 4,
+        "corePassiveNodeRanks": {},
+        "claimedCorePointStageRewards": [],
+        "claimedEventIds": [],
+        "turretModules": {
+          "tickets": 8,
+          "drawCount": 4,
+          "ticketPurchaseCount": 3,
+          "itemSequence": 20,
+          "items": [
+            {
+              "id": "server-1",
+              "turretType": "arrow",
+              "part": "core",
+              "family": "rapidCore",
+              "grade": "rare",
+              "options": [
+                {
+                  "type": "damageIncrease",
+                  "value": 21
+                },
+                {
+                  "type": "attackRateIncrease",
+                  "value": 7
+                }
+              ],
+              "acquiredOrder": 10,
+              "equipped": true
+            },
+            {
+              "id": "server-2",
+              "turretType": "arrow",
+              "part": "core",
+              "family": "rapidCore",
+              "grade": "rare",
+              "options": [
+                {
+                  "type": "damageIncrease",
+                  "value": 14
+                }
+              ],
+              "acquiredOrder": 20,
+              "equipped": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "before": {
+        "runes": 0,
+        "growthVersion": 1,
+        "bossBountyUpgradeLevel": 0,
+        "totalPlayTimeMillis": 0,
+        "freeDiamonds": 101,
+        "paidDiamonds": 7,
+        "dailyQuestDayKey": -1,
+        "lastDailyQuestSeenMillis": 0,
+        "dailyQuestClockRollbackDetected": false,
+        "dailyQuestProgress": {},
+        "claimedDailyQuestRewards": [],
+        "dailyAttendanceRewardClaimed": false,
+        "dailyQuestAllCompleteClaimed": false,
+        "weeklyQuestWeekKey": -1,
+        "weeklyQuestProgress": {},
+        "claimedWeeklyQuestRewards": [],
+        "weeklyQuestAllCompleteClaimed": false,
+        "weeklyAttendanceDayKeys": [],
+        "weeklyAttendanceRewardClaimed": false,
+        "lastRunRuneReward": 0,
+        "startingGoldUpgradeLevel": 0,
+        "nexusHpUpgradeLevel": 0,
+        "supplyUpgradeLevel": 0,
+        "fireTrainingUpgradeLevel": 0,
+        "physicalDamageTrainingUpgradeLevel": 0,
+        "elementalDamageTrainingUpgradeLevel": 0,
+        "criticalDamageUpgradeLevel": 0,
+        "killGoldUpgradeLevel": 0,
+        "linkCostOptimizationUpgradeLevel": 0,
+        "turretLevelUpOptimizationUpgradeLevel": 0,
+        "unlockedStageCount": 1,
+        "bestRoundsByStage": {},
+        "clearedStageNumbers": [],
+        "researchLevels": {},
+        "researchElapsedMillis": {},
+        "activeResearches": [],
+        "researchSlotTwoUnlocked": true,
+        "coreCombatSkill": "guardianBeam",
+        "totalCorePoints": 0,
+        "lastRunCorePointReward": 0,
+        "lastRunTurretModuleTicketReward": 0,
+        "corePassiveTreeRevision": 4,
+        "corePassiveNodeRanks": {},
+        "claimedCorePointStageRewards": [],
+        "claimedEventIds": [],
+        "turretModules": {
+          "tickets": 8,
+          "drawCount": 4,
+          "ticketPurchaseCount": 3,
+          "itemSequence": 20,
+          "items": [
+            {
+              "id": "server-1",
+              "turretType": "arrow",
+              "part": "core",
+              "family": "rapidCore",
+              "grade": "rare",
+              "options": [
+                {
+                  "type": "damageIncrease",
+                  "value": 21
+                },
+                {
+                  "type": "attackRateIncrease",
+                  "value": 7
+                }
+              ],
+              "acquiredOrder": 10,
+              "equipped": true
+            },
+            {
+              "id": "server-2",
+              "turretType": "arrow",
+              "part": "core",
+              "family": "rapidCore",
+              "grade": "rare",
+              "options": [
+                {
+                  "type": "damageIncrease",
+                  "value": 14
+                }
+              ],
+              "acquiredOrder": 20,
+              "equipped": false
+            }
+          ]
+        }
+      },
+      "snapshot": {
+        "wallet": {
+          "freeDiamonds": 101,
+          "paidDiamonds": 7,
+          "moduleTickets": 8
+        },
+        "turretModules": {
+          "drawCount": 4,
+          "ticketPurchaseCount": 3,
+          "items": []
+        },
+        "entitlements": {
+          "researchSlotTwoUnlocked": true
+        }
+      },
+      "after": {
+        "runes": 0,
+        "growthVersion": 1,
+        "bossBountyUpgradeLevel": 0,
+        "totalPlayTimeMillis": 0,
+        "freeDiamonds": 101,
+        "paidDiamonds": 7,
+        "dailyQuestDayKey": -1,
+        "lastDailyQuestSeenMillis": 0,
+        "dailyQuestClockRollbackDetected": false,
+        "dailyQuestProgress": {},
+        "claimedDailyQuestRewards": [],
+        "dailyAttendanceRewardClaimed": false,
+        "dailyQuestAllCompleteClaimed": false,
+        "weeklyQuestWeekKey": -1,
+        "weeklyQuestProgress": {},
+        "claimedWeeklyQuestRewards": [],
+        "weeklyQuestAllCompleteClaimed": false,
+        "weeklyAttendanceDayKeys": [],
+        "weeklyAttendanceRewardClaimed": false,
+        "lastRunRuneReward": 0,
+        "startingGoldUpgradeLevel": 0,
+        "nexusHpUpgradeLevel": 0,
+        "supplyUpgradeLevel": 0,
+        "fireTrainingUpgradeLevel": 0,
+        "physicalDamageTrainingUpgradeLevel": 0,
+        "elementalDamageTrainingUpgradeLevel": 0,
+        "criticalDamageUpgradeLevel": 0,
+        "killGoldUpgradeLevel": 0,
+        "linkCostOptimizationUpgradeLevel": 0,
+        "turretLevelUpOptimizationUpgradeLevel": 0,
+        "unlockedStageCount": 1,
+        "bestRoundsByStage": {},
+        "clearedStageNumbers": [],
+        "researchLevels": {},
+        "researchElapsedMillis": {},
+        "activeResearches": [],
+        "researchSlotTwoUnlocked": true,
+        "coreCombatSkill": "guardianBeam",
+        "totalCorePoints": 0,
+        "lastRunCorePointReward": 0,
+        "lastRunTurretModuleTicketReward": 0,
+        "corePassiveTreeRevision": 4,
+        "corePassiveNodeRanks": {},
+        "claimedCorePointStageRewards": [],
+        "claimedEventIds": [],
+        "turretModules": {
+          "tickets": 8,
+          "drawCount": 4,
+          "ticketPurchaseCount": 3,
+          "itemSequence": 0,
+          "items": []
+        }
+      }
+    }
+  ]
+}

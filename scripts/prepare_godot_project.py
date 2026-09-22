@@ -138,6 +138,20 @@ def _remove_retired_fern_shadow() -> None:
         (PROJECT / "environment" / name).unlink(missing_ok=True)
 
 
+def _prepare_app_ui() -> None:
+    manifest = SOURCE / "ui/assets.json"
+    if not manifest.is_file():
+        return
+    for relative in json.loads(manifest.read_text()):
+        path = Path(relative)
+        if path.is_absolute() or ".." in path.parts:
+            raise RuntimeError(f"잘못된 Godot UI 자산 경로: {relative}")
+        source = ROOT / "assets/images" / path
+        target = ASSETS / "app" / path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+
+
 def prepare() -> Path:
     if not (SOURCE / "project.godot").is_file():
         raise RuntimeError("루트 godot/ 공용 프로젝트를 찾을 수 없습니다.")
@@ -205,6 +219,9 @@ def prepare() -> Path:
             shutil.copy2(source, target)
     shutil.copy2(ROOT / "assets/images/diamond_currency.png", ui_target / "diamond_currency.png")
     shutil.copy2(ROOT / "assets/fonts/NotoSansKR-VF.ttf", ui_target / "NotoSansKR-VF.ttf")
+    for name in ("MaterialIcons-Regular.otf", "MaterialIcons_LICENSE.txt"):
+        shutil.copy2(ROOT / "assets/fonts" / name, ui_target / name)
+    _prepare_app_ui()
     _preserve_foliage_geometry()
     for stage in range(2, 6):
         _preserve_foliage_geometry(f"dressing_stage{stage}.glb")

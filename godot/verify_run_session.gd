@@ -12,6 +12,7 @@ func run() -> void:
 	scene._standalone_session = app
 	scene.add_child(app)
 	app.set_process(false)
+	app.checkpoint = load("res://session/session_checkpoint.gd").new(OS.get_environment("TMPDIR").path_join("rune-run-save-"+str(OS.get_process_id())))
 	var runtime = scene._native_combat
 	check(not app.run_domain.state.is_empty(), "native application domain initialized")
 	if app.run_domain.state.is_empty():
@@ -87,8 +88,10 @@ func run() -> void:
 	var refund: int = app.run_domain.service.quotes(app.run_domain.state,id).sell
 	check(app.selected_run_command("sell"), "sell in combat accepted")
 	check(runtime.turrets.is_empty() and app.run_domain.state.gold==gold_after+refund, "sell removes turret and returns actual invested refund")
-	check(app.checkpoint.save_session(app)==ERR_UNAVAILABLE, "unmigrated full save stays rejected")
+	check(app.checkpoint.save_session(app)==OK, "actual run checkpoint saved")
+	check(app.checkpoint.load_session(app)==OK, "actual run checkpoint restored")
 	app.exit_stage()
+	app.checkpoint.store.clear()
 	scene.queue_free()
 	for i in range(3): await process_frame
 	print("RUN_SESSION failures=",failures)

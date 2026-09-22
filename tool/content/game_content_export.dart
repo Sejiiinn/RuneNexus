@@ -116,7 +116,12 @@ Map<String, Object?> exportGameContent() {
     },
     'enemies': {
       for (final entry in gameEnemies.entries)
-        entry.key.name: contentEnemyState(game, entry.key),
+        entry.key.name: {
+          ...contentEnemyState(game, entry.key),
+          'name': entry.value.name,
+          'color': entry.value.color.toARGB32(),
+          'rewardGold': entry.value.rewardGold,
+        },
     },
     'turrets': {
       for (final entry in gameTurrets.entries)

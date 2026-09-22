@@ -22,7 +22,11 @@ def input_digest():
     inputs = [Path(__file__), ROOT / "scripts/prepare_godot_project.py",
               ROOT / "scripts/prepare_shared_gltf_textures.py"]
     inputs += [ROOT / "lib/data/definitions/game_stage_maps.dart"]
-    inputs += [ROOT / "assets/images/diamond_currency.png", ROOT / "assets/fonts/NotoSansKR-VF.ttf"]
+    inputs += [ROOT / "assets/images/diamond_currency.png", ROOT / "assets/fonts/NotoSansKR-VF.ttf",
+               ROOT / "assets/fonts/MaterialIcons-Regular.otf", ROOT / "assets/fonts/MaterialIcons_LICENSE.txt"]
+    manifest = ROOT / "godot/ui/assets.json"
+    if manifest.is_file():
+        inputs += [ROOT / "assets/images" / relative for relative in json.loads(manifest.read_text())]
     for folder in (ROOT / "godot", ROOT / "assets/images/stage1_3d"):
         inputs.extend(
             path for path in folder.rglob("*")

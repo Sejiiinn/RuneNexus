@@ -90,6 +90,8 @@ func _initialize() -> void:
 	runtime.process_command({"epoch":1,"sequence":1,"dt":0.0,"commands":upgraded.commands})
 	tower = runtime.turrets[str(built.state.turrets[0].id)]
 	check(tower.cooldown == 0.37 and tower.aimProgress == 0.27 and tower.directDamageDealt == 123.0 and tower.recent == {"77":1.3},"upgrading preserves combat clocks and damage")
+	_reward_equip_cases(service,built.state)
+	_reward_slot_purchase_cases(service,built.state)
 	_game_cases(service)
 	print("RUN_COMMANDS checks=",checks," failures=",failures)
 	quit(0 if failures.is_empty() else 1)
@@ -137,3 +139,82 @@ func _game_cases(service) -> void:
 			var actual: Dictionary = Stats.resolve(commands[i].turret.statInput)
 			var expected: Dictionary = Stats.resolve(expected_inputs[i])
 			check(_near(actual,expected),fixture.name+": actual combat all levels and firing snapshot "+str(i))
+
+func _reward_equip_cases(service, built: Dictionary) -> void:
+	var state := built.duplicate(true)
+	state.phase = "reward"
+	state.rewardOptions = ["attackSpeed","range"]
+	state.rewardReturnPhase = "wave"
+	var id: int = state.turrets[0].id
+	var before := state.duplicate(true)
+	var command := {"kind":"chooseRewardGemEquip","type":"attackSpeed","id":id,"slot":0}
+	var result: Dictionary = service.apply(state,command)
+	check(result.ok and result.state.phase == "wave","reward equip resumes wave atomically")
+	check(result.state.turrets[0].equippedGemSlots == ["attackSpeed"] and not result.state.gemInventory.has("attackSpeed"),"reward equip no inventory duplication")
+	check(result.commands.size() == 1 and result.state.rewardOptions.is_empty(),"reward equip updates runtime and consumes choice")
+	check(state == before,"reward equip input immutable")
+	check(not service.apply(result.state,command).ok,"reward cannot settle twice")
+	for change in [{"slot":-1},{"slot":99},{"id":-1},{"type":"missing"}]:
+		var bad := command.duplicate()
+		bad.merge(change,true)
+		var failure: Dictionary = service.apply(state,bad)
+		check(not failure.ok and failure.state == before and failure.commands.is_empty(),"invalid reward equip rolls back "+str(change))
+	state.turrets[0].equippedGemSlots = ["range"]
+	state.turrets[0].equippedGems = ["range"]
+	result = service.apply(state,command)
+	check(result.ok and result.state.gemInventory.get("range") == 1 and result.state.turrets[0].equippedGemSlots == ["attackSpeed"],"reward replacement returns old gem")
+	state.turrets[0].equippedGemSlots = ["attackSpeed"]
+	before = state.duplicate(true)
+	result = service.apply(state,command)
+	check(not result.ok and result.state == before,"duplicate gem preserves choice")
+	state.rewardOptions = ["heavyWeapon"]
+	command.type = "heavyWeapon"
+	result = service.apply(state,command)
+	check(not result.ok and result.state == state,"incompatible reward preserves choice")
+
+func _reward_slot_purchase_cases(service, built: Dictionary) -> void:
+	var state := built.duplicate(true)
+	state.phase = "reward"
+	state.rewardOptions = ["attackSpeed","range","heavyWeapon"]
+	state.rewardReturnPhase = "wave"
+	state.isPurchasedGemReward = true
+	state.turrets[0].equippedGemSlots = ["range"]
+	state.turrets[0].equippedGems = ["range"]
+	var id: int = state.turrets[0].id
+	var cost: int = service.quotes(state,id).link
+	state.gold = cost
+	var command := {"kind":"chooseRewardGemEquip","type":"attackSpeed","id":id,"slot":1,"buySlot":true}
+	var before := state.duplicate(true)
+	var result: Dictionary = service.apply(state,command)
+	check(result.ok and result.state.gold == 0,"reward slot purchase uses exact quoted gold")
+	check(result.state.turrets[0].investedGold == state.turrets[0].investedGold+cost,"reward slot purchase contributes refund investment")
+	check(result.state.turrets[0].slotLimit == 2 and result.state.turrets[0].equippedGemSlots == ["range","attackSpeed"] and result.state.turrets[0].equippedGems == ["range","attackSpeed"],"reward slot purchase preserves old gem and equips new gem")
+	check(result.state.gemInventory == state.gemInventory and state == before,"reward slot purchase preserves inventory and input")
+	check(result.state.phase == "wave" and result.state.rewardOptions.is_empty() and not result.state.isPurchasedGemReward and result.state.rewardReturnPhase == null and result.commands.size() == 1,"reward slot purchase settles reward and runtime together")
+	for change in [{"slot":-1},{"slot":0},{"slot":2},{"id":-1},{"type":"missing"},{"type":"range"},{"type":"heavyWeapon"}]:
+		var bad := command.duplicate()
+		bad.merge(change,true)
+		_check_reward_slot_rejection(service,state,bad,"invalid purchase "+str(change))
+	_check_reward_slot_rejection(service,state,{"kind":"link","id":id},"generic link remains blocked during reward")
+	state.gold = cost-1
+	_check_reward_slot_rejection(service,state,command,"insufficient purchase gold")
+	state.gold = 100000
+	state.phase = "preparation"
+	_check_reward_slot_rejection(service,state,command,"purchase outside reward")
+	state.phase = "reward"
+	state.turrets[0].slotLimit = 2
+	state.turrets[0].equippedGemSlots.append(null)
+	command.slot = 2
+	_check_reward_slot_rejection(service,state,command,"third slot level requirement")
+	state.turrets[0].level = 5
+	result = service.apply(state,command)
+	check(result.ok and result.state.turrets[0].slotLimit == 3 and result.state.turrets[0].equippedGemSlots == ["range",null,"attackSpeed"] and result.state.gold == state.gold-int(service.quotes(state,id).link),"third slot unlock uses existing quote")
+	state.turrets[0].slotLimit = int(service.derived(state).maxTurretLinkSlots)
+	state.turrets[0].equippedGemSlots.resize(state.turrets[0].slotLimit)
+	command.slot = state.turrets[0].slotLimit
+	_check_reward_slot_rejection(service,state,command,"maximum slot requirement")
+
+func _check_reward_slot_rejection(service, state: Dictionary, command: Dictionary, label: String) -> void:
+	var before := state.duplicate(true)
+	var result: Dictionary = service.apply(state,command)
+	check(not result.ok and result.state == before and state == before and result.commands.is_empty(),label+": atomic rejection")

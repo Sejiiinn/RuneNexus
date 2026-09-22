@@ -37,6 +37,7 @@ func _initialize() -> void:
 	b.process_command({"epoch":4,"sequence":2,"dt":0.2})
 	_check(JSON.stringify(a.snapshot().enemies) == JSON.stringify(b.snapshot().enemies), "batched original timestep equivalence")
 	_exact_checks(fixtures)
+	_response_mode_checks()
 	if failures.is_empty():
 		print("PASS native combat runtime: ", count, " configured turret cases, all six types, damage, ACK idempotency, gap rejection, batched timestep preservation")
 		quit(0)
@@ -124,3 +125,23 @@ func _exact_checks(fixtures: Array) -> void:
 	removed.process_command({"epoch":1,"sequence":1,"dt":0.1})
 	removed.process_command({"epoch":1,"sequence":2,"dt":0.2,"commands":[{"kind":"coreDamage","enemyId":1,"damage":100}]})
 	_check(removed.turrets["1"].directDamageDealt == 0, "charge target death produces no ghost damage")
+
+func _response_mode_checks() -> void:
+	var full = Runtime.new()
+	var local = Runtime.new()
+	var setup := {"epoch":44,"sequence":0,"session":{"clock":"godot","phase":"wave"},"bootstrap":{"enemies":[{"id":1,"hp":100,"maxHp":100,"speed":10,"path":[[0,0],[5,0],[50,0]]}],"turrets":[]}}
+	full.process_command(setup)
+	var ack: Dictionary = local.process_command(setup, false)
+	_check(ack == {"accepted":true,"epoch":44,"ackSequence":0}, "local command returns only acknowledgement")
+	for r in [full, local]:
+		r.advance_session(0.2)
+		r.submit_input({"kind":"boardTap","tileX":1,"tileY":2})
+	var packet := {"epoch":44,"sequence":1,"ackEvent":full.event_id,"session":{"paused":true}}
+	full.process_command(packet)
+	local.process_command(packet, false)
+	_check(JSON.stringify(full.snapshot()) == JSON.stringify(local.snapshot()), "snapshot omission preserves state and event acknowledgement")
+	var before := JSON.stringify(local.snapshot())
+	local.process_command(packet, false)
+	_check(before == JSON.stringify(local.snapshot()), "local duplicate command remains idempotent")
+	for rejected in [{"epoch":43,"sequence":2}, {"epoch":44,"sequence":3}, {"epoch":45,"sequence":0}]:
+		_check(full.process_command(rejected) == local.process_command(rejected, false), "response mode preserves rejection")

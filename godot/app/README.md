@@ -10,6 +10,11 @@ Flutter 제거 2단계의 첫 구현이다. **본게임의 Dart 런·성장·저
 | `local_save_store.gd` | v2 원본/백업, v1 가져오기, `.tmp`·`.replace` 복구, 충돌 백업 |
 | `web_save_store.gd` | 같은 origin의 기존 localStorage 키와 Web Locks 계약. 실제 브라우저 연결은 미검증 |
 | `run_save_adapter.gd` | 앱 소유 저장 봉투에 네이티브 전투 상태 투영. 미처리 이벤트와 누락 포탑 설정은 거절 |
+| `content_run_save.gd` | 실제 콘텐츠 런·성장의 v2 저장 및 적·포탑·코어 설정 재구성 |
+| `quest_progress.gd` | 일·주 퀘스트·런 종료 진행·플레이 시간·receipt 플래그 |
+| `reward_outbox.gd` | 계정/게스트별 런 보상 증거와 exact 요청의 영속 큐 |
+| `reward_settlement.gd` | 저장 동기화 후 HTTP 정산·동일 요청 재시도·snapshot 처리 |
+| `reward_snapshot.gd` | 서버 지갑·모듈·연구 슬롯을 로컬 progression에 반영 |
 
 ```gdscript
 const Codec = preload("res://app/save_codec.gd")
@@ -46,4 +51,10 @@ WORK_DIR="$PWD" scripts/in_app_server_macos.sh flutter test test/godot_save_code
 
 ## 런·성장 도메인
 
-독립 세션의 로컬 명령은 [런·성장 모듈](run_commands_README.md)을 따른다. 실제 콘텐츠 런의 본 저장 연결은 후속이며 기존 저장 codec·adapter 계약과 fixture 제한은 유지한다.
+독립 세션의 로컬 명령은 [런·성장 모듈](run_commands_README.md)을 따른다. 실제 콘텐츠 런은 `content_run_save.gd`와 `session_checkpoint.gd`를 통해 로컬 v2 저장에 연결했다. 보상 Outbox와 정산 서비스는 [정산·퀘스트 검증](../../docs/analysis/godot_rewards_quests_20260921/README.md)을 따른다. 런 종료 v2 체크포인트와 영속 보상 Outbox를 먼저 기록한 뒤 Stage/재시도로 이동한다. 쓰기 실패 시 전환을 차단한다. 게스트 큐는 로컬에 격리하고 계정으로 자동 재바인딩하지 않으며, 서버 다이아·모듈권을 로컬에서 확정하지 않는다.
+
+계정 정산은 실제 HTTP 요청 경로·동일 key/본문 바이트 재시도·writer/revision 동기화 선행·snapshot 적용과 저장·단조 증가 캐시를 구현했다. 인증된 context와 실제 저장 업로드 성공을 반환하는 `sync_save`를 `app.settle_pending_rewards(context, sync_save, transport)`에 주입해야 한다. 전체 로그인·온라인 저장 업로더·자동 계정 스케줄링과 실계정 E2E는 미완료이며 운영 서버는 호출하지 않았다. 독립 `--app`에는 자동 저장·시작 시 정지 복원과 Godot HUD·로비를 연결했다. 인증·온라인 저장 업로더·서비스 전용 메뉴, 기존 설치 데이터 인계·정식 패키징·본게임 진입 전환은 남아 있다.
+
+## 앱 수명주기와 UI
+
+`app_lifecycle.gd`는 독립 `--app`의 시작·정지 복원·10초 및 동작 시 저장·로비/전투 전환·종료를 담당한다. UI는 `godot/ui/lobby.gd`와 `battle_hud.gd`에서 도메인 명령을 호출한다. 기기 그래픽 설정은 `device_preferences.gd`에 분리한다. [현행 구현·검증 기록](../../docs/analysis/godot_app_ui_20260921/README.md)을 참고한다.

@@ -251,8 +251,8 @@ func core_config(state: Dictionary, stage: int, round_index: int, catalog) -> Di
 	var p: Dictionary = state.get("progression", state)
 	var effects := core_effects(p)
 	var config: Dictionary = data.coreConfig.duplicate(true)
-	var skill: Variant = p.get("coreCombatSkill", "guardianBeam")
-	if skill == "riftMark" and int(p.get("unlockedStageCount", 1)) < 6: skill = "guardianBeam"
+	var skill: Variant = state.get("runCoreCombatSkill", p.get("coreCombatSkill", "guardianBeam"))
+	if not state.has("runCoreCombatSkill") and skill == "riftMark" and int(p.get("unlockedStageCount", 1)) < 6: skill = "guardianBeam"
 	if skill != null and not skill in ["guardianBeam", "riftMark"]: skill = "guardianBeam"
 	config.runSkill = skill
 	config.cooldownRecoveryMultiplier = 1.0 + effects.cooldownRecoveryRate

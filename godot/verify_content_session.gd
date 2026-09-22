@@ -23,11 +23,9 @@ func run() -> void:
 		push_error(app.catalog.error)
 		quit(1)
 		return
-	var save_directory := OS.get_environment("TMPDIR").path_join("rune-content-save-rejection-" + str(OS.get_process_id()))
+	var save_directory := OS.get_environment("TMPDIR").path_join("rune-content-save-" + str(OS.get_process_id()))
 	check(save_directory.is_absolute_path(), "isolated save directory")
 	app.checkpoint = load("res://session/session_checkpoint.gd").new(save_directory)
-	var sentinel = load("res://app/save_codec.gd").decode({"version":2,"preferences":{},"progression":{},"turretModules":{},"activeRun":null})
-	check(app.checkpoint.store.save_save(sentinel) == OK, "isolated sentinel checkpoint")
 	for stage in [0, 5, 10]:
 		app.enter_stage(stage)
 		app.run_domain.state.gold = 100000 # Test budget; every build still pays the actual cost.
@@ -62,12 +60,11 @@ func run() -> void:
 		app.toggle_speed()
 		runtime.advance_session(0.25)
 		check(is_equal_approx(runtime.clock, before+1.0), "content 4x")
-		var events: Array = runtime.events.duplicate(true)
-		var sequence: int = runtime.sequence
-		check(app.checkpoint.save_session(app) == ERR_UNAVAILABLE, "unsupported content save explicitly rejected")
-		check(app.checkpoint.load_session(app) == ERR_UNAVAILABLE, "fixture checkpoint cannot replace actual content")
-		check(runtime.events == events and runtime.sequence == sequence, "save rejection precedes any ACK or mutation")
-		check(app.checkpoint.store.load_save() == sentinel, "unsupported content preserves existing checkpoint")
+		check(app.checkpoint.save_session(app) == OK, "content checkpoint save")
+		var saved_gold: int = app.run_domain.state.gold
+		check(app.checkpoint.load_session(app) == OK, "content checkpoint load")
+		runtime = scene._native_combat
+		check(app.stage == stage and app.run_domain.state.gold == saved_gold and runtime.session.paused, "content restore preserves stage/economy and pauses")
 		app.command()
 		var settled_gold: int = app.run_domain.state.gold
 		app.command()
@@ -96,11 +93,11 @@ func run() -> void:
 		scene._apply_frame(scene._native_combat_base_frame)
 		app._process(0)
 		await capture("content-boss-stage-%d" % (stage+1))
+	app.exit_stage()
 	app.checkpoint.store.clear()
 	DirAccess.remove_absolute(save_directory.path_join("saves/guest"))
 	DirAccess.remove_absolute(save_directory.path_join("saves"))
 	DirAccess.remove_absolute(save_directory)
-	app.exit_stage()
 	check(not scene._native_combat.active, "content exit")
 	scene.queue_free()
 	for i in range(3): await process_frame

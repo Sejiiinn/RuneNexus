@@ -12,6 +12,29 @@ import prepare_godot_project as preparation
 
 
 class MaterialPresetSyncTest(unittest.TestCase):
+    def test_app_ui_manifest_copies_only_requested_assets_and_rejects_escape(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "godot"
+            (source / "ui").mkdir(parents=True)
+            images = root / "assets/images/ui"
+            images.mkdir(parents=True)
+            (images / "frame.png").write_bytes(b"approved frame")
+            (images / "unused.png").write_bytes(b"unused")
+            manifest = source / "ui/assets.json"
+            manifest.write_text('["ui/frame.png"]')
+            output = root / "build/assets"
+            with patch.multiple(preparation, ROOT=root, SOURCE=source, ASSETS=output):
+                preparation._prepare_app_ui()
+                self.assertEqual((output / "app/ui/frame.png").read_bytes(), b"approved frame")
+                self.assertFalse((output / "app/ui/unused.png").exists())
+                manifest.write_text('["../outside.png"]')
+                with self.assertRaises(RuntimeError):
+                    preparation._prepare_app_ui()
+                manifest.write_text('["ui/missing.png"]')
+                with self.assertRaises(FileNotFoundError):
+                    preparation._prepare_app_ui()
+
     def test_repeated_prepare_updates_and_removes_presets_without_deleting_imports(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -48,6 +71,8 @@ class MaterialPresetSyncTest(unittest.TestCase):
             write(assets / "ui/turret_levels.png", b"badge atlas")
             write(root / "assets/images/diamond_currency.png", b"diamond icon")
             write(root / "assets/fonts/NotoSansKR-VF.ttf", b"font fixture")
+            write(root / "assets/fonts/MaterialIcons-Regular.otf", b"icon font fixture")
+            write(root / "assets/fonts/MaterialIcons_LICENSE.txt", b"icon font license")
             write(assets / "ui/labels/slow_shard.png", b"status sprite")
             write(assets / "ui/Roboto-OFL.txt", b"font license")
             def write_map_glb(path, node_name):
@@ -117,6 +142,8 @@ class MaterialPresetSyncTest(unittest.TestCase):
                 self.assertEqual((project / "assets/ui/labels/slow_shard.png").read_bytes(), b"status sprite")
                 self.assertEqual((project / "assets/ui/diamond_currency.png").read_bytes(), b"diamond icon")
                 self.assertEqual((project / "assets/ui/NotoSansKR-VF.ttf").read_bytes(), b"font fixture")
+                self.assertEqual((project / "assets/ui/MaterialIcons-Regular.otf").read_bytes(), b"icon font fixture")
+                self.assertTrue((project / "assets/ui/MaterialIcons_LICENSE.txt").is_file())
                 self.assertTrue((project / "assets/ui/Roboto-OFL.txt").is_file())
                 burn_target = project / "assets/effects/enemy_burn"
                 for name in ("attachments.json", "flame_atlas.png"):

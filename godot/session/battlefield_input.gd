@@ -18,7 +18,12 @@ func reset() -> void:
 
 func blocked() -> bool:
 	var state: Dictionary = scene._native_combat.session
-	return bool(scene._native_combat_base_frame.get("inputBlocked", false)) or bool(state.get("paused", false)) or bool(state.get("loading", false)) or state.get("phase", "") in ["restored", "coreDestruction", "failure", "success", "ended"]
+	var app = scene._standalone_session
+	var reward_targeting := false
+	if is_instance_valid(app) and app.get("hud") != null:
+		var rewards = app.hud.get("rewards")
+		reward_targeting = rewards != null and rewards.targeting() and not rewards.replacing() and not bool(app.get("save_failed"))
+	return bool(scene._native_combat_base_frame.get("inputBlocked", false)) or (bool(state.get("paused", false)) and not reward_targeting) or bool(state.get("loading", false)) or state.get("phase", "") in ["restored", "coreDestruction", "failure", "success", "ended"]
 
 func handle(event: InputEvent) -> void:
 	# Android touch can also synthesize a mouse event; consume the native touch once.

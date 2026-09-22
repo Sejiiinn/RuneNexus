@@ -20,6 +20,20 @@ void main() {
     'verify_save_codec.gd': 'SAVE_CODEC_FIXTURES count=',
     'verify_local_save_store.gd': null,
     'verify_run_save_adapter.gd': 'failures=[]',
+    'verify_content_run_save.gd': 'CONTENT_RUN_SAVE failures=0',
+    'verify_quest_progress.gd': 'quest progression Dart parity PASS:',
+    'verify_reward_snapshot.gd': 'authoritative snapshot Dart parity PASS:',
+    'verify_reward_settlement.gd': '"ok":true',
+    'verify_run_commands.gd': 'failures=[]',
+    'verify_battle_hud.gd': 'PASS battle HUD:',
+    'verify_battle_rewards.gd': 'PASS battle rewards:',
+    'verify_lobby.gd': 'LOBBY_SMOKE_OK',
+    'verify_lobby_growth.gd': 'PASS growth pages:',
+    'verify_lobby_core.gd': 'PASS lobby core:',
+    'verify_lobby_collection.gd': 'PASS lobby_collection:',
+    'verify_lobby_stages.gd': 'PASS stage restoration:',
+    'verify_app_selection.gd': 'PASS app selection:',
+    'verify_app_presentation.gd': 'PASS independent presentation:',
   };
 
   setUpAll(() async {
@@ -29,6 +43,29 @@ void main() {
     await Directory('$root/godot/combat').create(recursive: true);
     await Directory('$root/godot/app').create(recursive: true);
     await Directory('$root/godot/fixtures').create(recursive: true);
+    await Directory('$root/godot/content').create(recursive: true);
+    for (final folder in ['session', 'ui']) {
+      await Directory('$root/godot/$folder').create(recursive: true);
+      if (!Directory('godot/$folder').existsSync()) continue;
+      for (final source in Directory(
+        'godot/$folder',
+      ).listSync().whereType<File>()) {
+        if (source.path.endsWith('.gd') || source.path.endsWith('.json')) {
+          await source.copy(
+            '$root/godot/$folder/${source.uri.pathSegments.last}',
+          );
+        }
+      }
+    }
+    for (final source in Directory(
+      'godot/content',
+    ).listSync().whereType<File>()) {
+      if (source.path.endsWith('.gd') || source.path.endsWith('.json')) {
+        await source.copy(
+          '$root/godot/content/${source.uri.pathSegments.last}',
+        );
+      }
+    }
     for (final source in Directory('godot/app').listSync().whereType<File>()) {
       if (source.path.endsWith('.gd')) {
         await source.copy('$root/godot/app/${source.uri.pathSegments.last}');
@@ -54,6 +91,10 @@ void main() {
     for (final fixture in [
       'turret_stat_calculation.json',
       'native_wave_core_timing.json',
+      'quest_progress_cases.json',
+      'reward_snapshot_cases.json',
+      'growth_cases.json',
+      'growth_game_cases.json',
     ]) {
       await File('test/fixtures/$fixture').copy('$root/test/fixtures/$fixture');
     }

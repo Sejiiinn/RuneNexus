@@ -83,7 +83,7 @@ func _reject(state: Dictionary, reason: String) -> Dictionary:
 
 func apply(state: Dictionary, command: Dictionary) -> Dictionary:
 	var kind := str(command.get("kind",""))
-	if kind in ["chooseRewardGem","chooseRewardShards"]: return _choose_reward(state,command)
+	if kind in ["chooseRewardGem","chooseRewardShards","chooseRewardGemEquip"]: return _choose_reward(state,command)
 	if kind == "purchaseGemChoice": return _purchase_gem_choice(state)
 	if state.get("phase", "") not in ["preparation","wave"]: return _reject(state,"phase")
 	var next := state.duplicate(true)
@@ -246,12 +246,34 @@ func _choose_reward(state: Dictionary, command: Dictionary) -> Dictionary:
 	else:
 		var gem := str(command.get("type",""))
 		if gem not in state.rewardOptions: return _reject(state,"reward")
-		next.gemInventory[gem] = int(next.gemInventory.get(gem,0))+1
+		if command.kind == "chooseRewardGemEquip":
+			var target := turret(next,int(command.get("id",-1)))
+			if target.is_empty(): return _reject(state,"turret")
+			var slot := int(command.get("slot",-1))
+			var buy_slot := bool(command.get("buySlot",false))
+			if buy_slot:
+				if slot != int(target.slotLimit): return _reject(state,"slot")
+			elif slot < 0 or slot >= int(target.slotLimit): return _reject(state,"slot")
+			if gem in target.equippedGemSlots or gem not in _rule(target.type).get("compatibleGems",[]): return _reject(state,"gem")
+			if buy_slot:
+				var cost := int(quotes(state,int(target.id)).get("link",0))
+				if cost <= 0: return _reject(state,"requirement")
+				if int(state.gold) < cost: return _reject(state,"gold")
+				next.gold -= cost
+				target.investedGold += cost
+				target.slotLimit += 1
+				target.equippedGemSlots.append(null)
+			var old = target.equippedGemSlots[slot]
+			if old != null: next.gemInventory[old] = int(next.gemInventory.get(old,0))+1
+			target.equippedGemSlots[slot] = gem
+			target.equippedGems = target.equippedGemSlots.filter(func(g): return g != null)
+		else:
+			next.gemInventory[gem] = int(next.gemInventory.get(gem,0))+1
 	next.phase = state.get("rewardReturnPhase") if state.get("rewardReturnPhase") != null else "preparation"
 	next.rewardOptions = []
 	next.rewardReturnPhase = null
 	next.isPurchasedGemReward = false
-	return _success(next)
+	return _success(next,runtime_commands(next) if command.kind == "chooseRewardGemEquip" else [])
 
 func refresh(state: Dictionary) -> Dictionary:
 	return _success(state.duplicate(true),runtime_commands(state))

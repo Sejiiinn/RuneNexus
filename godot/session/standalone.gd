@@ -8,6 +8,8 @@ var run_domain = preload("res://session/run_session.gd").new()
 var run_controls
 var applying_events := false
 var next_research_check := 0
+var next_terminal_save := 0
+var reward_worker
 var catalog = Catalog.new()
 var battle_inputs: Dictionary = {}
 var turret_inputs: Dictionary = {}
@@ -75,8 +77,52 @@ func stage_count() -> int:
 func stage_source(index: int) -> Dictionary:
 	return catalog.stage(index) if content_enabled else fixture.stages[index]
 
+func prepare_run_transition() -> bool:
+	if not content_enabled or run_domain.state.is_empty(): return true
+	if not scene._native_combat.active:
+		checkpoint.message = "Load the saved run before replacing it"
+		return false
+	if not command(): return false
+	var previous: Dictionary = run_domain.state.duplicate(true)
+	var abandoning: bool = not run_domain.is_finished()
+	if abandoning:
+		run_domain.finish(false)
+		run_domain.state.phase = "failure"
+	var terminal: Dictionary = run_domain.state.duplicate(true)
+	run_domain.state = previous
+	# Both durable writes precede scene replacement. On failure the live run stays.
+	if checkpoint.persist_state(self, terminal, abandoning) != OK: return false
+	run_domain.state = terminal
+	progression_inputs = terminal.progression.duplicate(true)
+	return true
+
+func _can_replace_run() -> bool:
+	return prepare_run_transition()
+
+func settle_pending_rewards(context: Dictionary, sync_save: Callable, transport: Callable = Callable()) -> Dictionary:
+	var bound_checkpoint = checkpoint
+	var queue = checkpoint.rewards()
+	if not queue.loaded: return {"ok":false,"code":"OUTBOX_READ_FAILED"}
+	if reward_worker == null or reward_worker.outbox != queue:
+		if reward_worker != null:
+			reward_worker.invalidate_binding()
+			if not reward_worker.busy: reward_worker.queue_free()
+		reward_worker = load("res://app/reward_settlement.gd").new(queue)
+		add_child(reward_worker)
+	var apply_snapshot := func(snapshot: Dictionary) -> bool:
+		if checkpoint != bound_checkpoint: return false
+		return bound_checkpoint.apply_economy_snapshot(self, snapshot)
+	return await reward_worker.settle_next(context, sync_save, apply_snapshot, transport)
+
 func enter_next() -> void:
-	if stage_count() > 0: enter_stage((stage + 1) % stage_count())
+	if stage_count() > 0 and _can_replace_run(): enter_stage((stage + 1) % stage_count())
+
+func retry_stage() -> bool:
+	if not _can_replace_run(): return false
+	if content_enabled and not run_domain.state.is_empty():
+		progression_inputs = run_domain.state.progression.duplicate(true)
+	enter_stage(stage)
+	return true
 
 func cycle_turret() -> void:
 	if catalog.stage_count() == 0: return
@@ -94,7 +140,7 @@ func cycle_wave() -> void:
 	next_round = completed + (next_round - completed + 1) % (total - completed)
 
 
-func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictionary = {}) -> void:
+func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictionary = {}, restored_state: Dictionary = {}) -> void:
 	if index < 0 or index >= stage_count(): return
 	stage = index
 	next_round = 0
@@ -113,6 +159,9 @@ func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictiona
 		if not run_domain.initialize(catalog, progression_inputs, stage, epoch):
 			checkpoint.message = run_domain.error
 			return
+		if not restored_state.is_empty():
+			run_domain.restore(restored_state)
+			progression_inputs = run_domain.state.progression.duplicate(true)
 		var inputs := battle_inputs.duplicate(true)
 		inputs.defenseConfig = run_domain.growth.derive(run_domain.state.progression).defenseConfig
 		inputs.coreConfig = run_domain.growth.core_config(run_domain.state, stage, 0, catalog)
@@ -125,24 +174,29 @@ func enter_stage(index: int, bootstrap: Dictionary = {}, session_state: Dictiona
 	control.merge(session_state, true)
 	scene._native_combat.process_command({"epoch":epoch,"sequence":0,"session":control,"bootstrap":initial})
 
-func command(commands: Array = [], patch: Dictionary = {}) -> void:
+func command(commands: Array = [], patch: Dictionary = {}) -> bool:
 	var before: Array = []
 	if content_enabled and not applying_events:
 		applying_events = true
 		var collected: Dictionary = run_domain.collect(scene._native_combat)
 		before = collected.get("commands", [])
 		applying_events = false
+		if not collected.get("ok", false):
+			checkpoint.message = run_domain.error
+			return false
 	var packet := {"epoch":epoch,"sequence":scene._native_combat.sequence+1,"commands":before+commands,"session":patch}
 	if content_enabled:
 		packet.ackEvent = run_domain.event_ack
 		if not patch.has("phase") and not run_domain.state.is_empty(): packet.session.phase = run_domain.state.phase
 	else:
 		packet.ackEvent = scene._native_combat.event_id
-	scene._native_combat.process_command(packet)
+	scene._native_combat.process_command(packet, false)
+	return true
 
 func apply_run_command(request: Dictionary) -> bool:
 	if not content_enabled or not scene._native_combat.active: return false
-	command() # Settle newly observed events before checking affordability/phase.
+	# Settle newly observed events before checking affordability/phase.
+	if not command(): return false
 	var result: Dictionary = run_domain.apply(request)
 	if not result.get("ok", false):
 		checkpoint.message = run_domain.error
@@ -159,7 +213,7 @@ func selected_run_command(kind: String, values: Dictionary = {}) -> bool:
 
 func apply_growth_command(request: Dictionary) -> bool:
 	if not content_enabled or run_domain.state.is_empty() or not scene._native_combat.active: return false
-	command()
+	if not command(): return false
 	var result: Dictionary = run_domain.growth.execute(run_domain.state.progression, request)
 	if not result.get("ok", false):
 		checkpoint.message = str(result.get("error", "Growth rejected"))
@@ -215,7 +269,7 @@ func start_wave() -> void:
 	if not scene._native_combat.active or scene._native_combat.defense.failed: return
 	if scene._native_combat.wave.active: return
 	if content_enabled:
-		command()
+		if not command(): return
 		if run_domain.state.get("phase") != "preparation": return
 		if next_round >= stage_source(stage).waves.size():
 			checkpoint.message = "All content waves complete"
@@ -262,6 +316,8 @@ func load_session() -> void:
 	checkpoint.load_session(self)
 
 func exit_stage() -> void:
+	if content_enabled and scene._native_combat.active:
+		if checkpoint.save_session(self) != OK: return
 	epoch += 1
 	scene._apply_frame({"reset":true,"sceneEpoch":epoch})
 
@@ -278,10 +334,15 @@ func _process(_delta: float) -> void:
 	if content_enabled and runtime.active and not run_domain.state.is_empty():
 		if runtime.event_id > run_domain.event_ack or runtime.session.get("phase") != run_domain.state.phase:
 			command()
+		if run_domain.is_finished() and checkpoint.queued_run_id != str(run_domain.state.economyRunId) and Time.get_ticks_msec() >= next_terminal_save:
+			next_terminal_save = Time.get_ticks_msec() + 1000
+			checkpoint.save_session(self)
+	# The standalone diagnostic label is hidden in the app. Domain work above still runs.
+	if not status.is_visible_in_tree(): return
 	status.text = "Stage %d | %s | %.1fs | HP %.1f | selected %s" % [stage+1, runtime.session.get("phase","ended"),runtime.clock,runtime.defense.hp,selected] + " | " + checkpoint.message
 	if content_enabled:
 		var following := str(next_round + 1) if catalog.stage_count() > stage and next_round < catalog.data.stages[stage].waves.size() else "done"
 		status.text = "Stage %d | Wave %d | %s | HP %.1f | next %s | %s" % [stage+1, runtime.wave.id, runtime.session.get("phase", "ended"), runtime.defense.hp, following, turret_type]
 		if not run_domain.state.is_empty():
-			status.text += "\nGold %d | Shards %d | run commands active; save unavailable" % [run_domain.state.gold, run_domain.state.gemShards]
+			status.text += "\nGold %d | Shards %d | run commands active; local v2 save" % [run_domain.state.gold, run_domain.state.gemShards]
 		if not checkpoint.message.is_empty(): status.text += "\n" + checkpoint.message
