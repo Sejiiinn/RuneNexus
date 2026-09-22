@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M4
+
+delay=0.01 lobby=(440.0, 900.0) frame=[P: (25.0, 267.0), S: (390.0, 366.0)] bodymin=(194.0, 334.0)
+delay=0.1 lobby=(440.0, 900.0) frame=[P: (27.1284, 271.3278), S: (385.7432, 362.0051)] bodymin=(194.0, 334.0)
+delay=0.3 lobby=(440.0, 900.0) frame=[P: (25.0, 267.0), S: (390.0, 366.0001)] bodymin=(194.0, 334.0)

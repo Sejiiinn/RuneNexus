@@ -1,0 +1,163 @@
+{
+  "source": "design/combat_ui_concepts/2026-09-22/modal-components/nine-slice-source-v3.png",
+  "source_sha256": "e74c8d76e1b439266d40c268857f485058af5bc832b40fc479bbb6be8c4b27ba",
+  "method": "Original V3 intact crops; GIMP NoHalo scaling to 25%, rounded integer dimensions. No redraw, no regeneration. Original transparent crop margins retained.",
+  "components": {
+    "modal": {
+      "file": "assets/images/ui/combat_components/native/modal.png",
+      "source_rect": [
+        90,
+        86,
+        1595,
+        389
+      ],
+      "size": [
+        399,
+        97
+      ],
+      "texture_margins": [
+        14,
+        14,
+        14,
+        14
+      ],
+      "safe_padding": [
+        18,
+        16,
+        18,
+        16
+      ],
+      "sha256": "8d95907f99100d569ffd7cec381872d49110580c52596e8356b3ff96378982e2"
+    },
+    "primary": {
+      "file": "assets/images/ui/combat_components/native/primary.png",
+      "source_rect": [
+        64,
+        496,
+        529,
+        145
+      ],
+      "size": [
+        132,
+        36
+      ],
+      "texture_margins": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "safe_padding": [
+        14,
+        7,
+        14,
+        7
+      ],
+      "sha256": "9802798600f1d75e36a5cf4c798b126c030a7541839815ad0cb272b6d799f2ae"
+    },
+    "secondary": {
+      "file": "assets/images/ui/combat_components/native/secondary.png",
+      "source_rect": [
+        624,
+        497,
+        527,
+        144
+      ],
+      "size": [
+        132,
+        36
+      ],
+      "texture_margins": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "safe_padding": [
+        14,
+        7,
+        14,
+        7
+      ],
+      "sha256": "4460e9a959c3d57c50861dc5761fa683cd6c911617591810d7573396bfa89254"
+    },
+    "danger": {
+      "file": "assets/images/ui/combat_components/native/danger.png",
+      "source_rect": [
+        1181,
+        495,
+        533,
+        148
+      ],
+      "size": [
+        133,
+        37
+      ],
+      "texture_margins": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "safe_padding": [
+        14,
+        7,
+        14,
+        7
+      ],
+      "sha256": "19773b89e1ef62d1e5e6318dc7cad2ec9edb60140cac6f37fcb2c91a87c9383e"
+    },
+    "selected": {
+      "file": "assets/images/ui/combat_components/native/selected.png",
+      "source_rect": [
+        345,
+        665,
+        529,
+        141
+      ],
+      "size": [
+        132,
+        35
+      ],
+      "texture_margins": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "safe_padding": [
+        14,
+        7,
+        14,
+        7
+      ],
+      "sha256": "f31bf741ae945628e348ab1d3dfb647fb864d8aa973fd489a04ce113ba1adc1d"
+    },
+    "disabled": {
+      "file": "assets/images/ui/combat_components/native/disabled.png",
+      "source_rect": [
+        900,
+        665,
+        531,
+        141
+      ],
+      "size": [
+        133,
+        35
+      ],
+      "texture_margins": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "safe_padding": [
+        14,
+        7,
+        14,
+        7
+      ],
+      "sha256": "6cb1a4911897557f87dfdef3864f8ae38a03f28ce769114950bf5b8085145ff4"
+    }
+  }
+}

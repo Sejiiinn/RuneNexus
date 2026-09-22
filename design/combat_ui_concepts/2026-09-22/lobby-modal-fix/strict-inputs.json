@@ -1,0 +1,17 @@
+{
+  "ui/lobby.gd": {
+    "source": "4c6aeaf67ab163e150ffedd073201318e51aca1500d23569b50fe5d1614a0a84",
+    "runtime": "4c6aeaf67ab163e150ffedd073201318e51aca1500d23569b50fe5d1614a0a84",
+    "match": true
+  },
+  "ui/lobby_stages.gd": {
+    "source": "5452f7122a839f9cd59ce0781f6e16c4c1eb586d069098f3151399f08d4f3fd6",
+    "runtime": "5452f7122a839f9cd59ce0781f6e16c4c1eb586d069098f3151399f08d4f3fd6",
+    "match": true
+  },
+  "verify_lobby_modal.gd": {
+    "source": "fc534c74679868a8fe7abdb9e8ed68b14de84b5784245683bf0bcd5f3f17f931",
+    "runtime": "aaea51e3da6776bcf8b8b1cd61dd2e31bd6eac6e4f09502dff0d72c0ec65f06e",
+    "match": false
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "tool": "built-in image_gen",
+  "base": "Use case: ui-mockup. Rune Nexus mobile tower defense proposed UI design board. Use attached ACTUAL GAME screenshots as visual reference. CRITICAL every battlefield must look like THIS GAME: small simple stylized turrets, thick mossy square tiles with tan stone path, flat purple ground portal, small cyan crystal core, plain dark teal void, exact reference art direction. No castle scenery, armies, cinematic fantasy landscapes, invented realistic cannons or huge architecture. UI can be thoughtfully redesigned beyond screenshot: deep ink blue surfaces, precise cyan selection lines, restrained brushed blue metal edging, modest chamfered corners, clear readable Korean typography, original gem socket round metal forms and existing icon vocabulary. NO heavy silver medieval frames, no excessive neon, no SaaS pills. Design clean, compact high-quality practical mobile game interface. Output ONE landscape 3072x2304 design board with THREE equally sized portrait mobile screens side by side, clean dark margin, numbered short Korean labels above. Each screen full screen 9:19-ish proportions, comfortably readable, no physical phone shells. Maintain identical reusable UI system across screens. Battlefield contextual background identical game to references; the focal panels can occupy lower 35-45 percent when necessary, modal states dim same battlefield. All in-game screens, no lobby. Preserve functionality described. Values are illustrative not balance changes. No invented functions. Make UI materially improved: strong title-action hierarchy, generous touch targets without oversized panels, fewer nested borders, primary vs secondary buttons clear. Gold for currency, cyan for action, orange only destructive, green reward, violet portal. ",
+  "screens": [
+    [
+      "01-hud",
+      "전투 HUD",
+      "Screens: 1 '전투 준비': reorganized compact top resource HUD gold364 shard5 totalDPS20.0, HP15/20 wave6/40, upcoming enemy small icons. Same stone map in center. Bottom controls 1x 2x 4x, pause, 수동, 시작; compact turret picker icons 기관총60G 대포90G 화염80G 냉각85G; bottom 포탑 업그레이드 젬 tabs. Small single '고정 ↔' camera toggle. 2 '전투 진행': same arrangement wave in progress, actual map a few small dark enemies, progress count; selected 2x, running indicator, no clickable start while wave running; bottom picker retained. 3 '일시정지 · 자동 시작': same HUD paused, small anchored menu immediately above auto-mode button showing three choices 웨이브마다 정지 / 보스 제외 자동 / 전부 자동, one selected check. Resume icon clear. No central huge pause dialog. Emphasize readable resource grouping and reduced UI chrome."
+    ],
+    [
+      "02-turrets",
+      "포탑 설치와 강화",
+      "Screens 1 '설치 미리보기': selected empty tile pale cyan boundary and thin range circle over unchanged map. Bottom sheet cannon icon, 대포, 물리 · 중화기 · 폭발, short description, three aligned stats 피해 24 / 초당 0.7 / 사거리 120, horizontal turret choices, main button '설치 · 90 G', back/cancel selection affordance. 2 '포탑 상세': selected machinegun with thin gold range circle. Bottom panel 기관총 Lv.2, stats/젬 링크 segmented tabs, compact two-column stat grid 피해 DPS 초당 사거리 치명 확률 치명 피해 투사체, current target '선두', accumulated damage, main '강화 · 69 G', secondary '특성', quieter orange '판매 · 76 G'. 3 '강화 미리보기': same panel Lv.2 → Lv.3, aligned before/after numbers cyan increases, cost fixed primary '강화 확정 · 69 G', secondary '취소'. Clearly visually preview not yet purchased. Retain bottom main tabs and combat controls. Include locked 저격 and 라이트닝 turret choices at end of horizontal picker. Include compact disabled cost '골드 부족' variant as inset."
+    ],
+    [
+      "03-decisions",
+      "특성과 전투 선택",
+      "Screens: 1 '특성 선택': dim same battlefield, centered generous panel 기관총 특성, shard balance 5, 1차 무기 개조 / 2차 전투 교리 tabs, three stacked selectable options with icon/name/2-line effect, one selected border, main '선택 확정', footer '이번 런 동안 변경할 수 없습니다'. Show locked 2차 requirement Lv.7 subtle. Trait names/exampleeffects illustrative. 2 '공격 목표': centered compact panel with five roomy radio rows '선두' selected, '후미', '최대 체력', '최저 체력', '가까운 적', short explanation each; close/cancel; selection immediately applies per existing behavior, no new confirmation. 3 '포탑 판매': focused compact modal with machinegun icon 기관총 Lv.2, '+76 G' prominent refund, equipped gem icons arrow inventory, exact '장착 젬은 보관함으로 돌아갑니다', safe button '취소', orange secondary '판매 · +76 G'. Clearly game themed restrained not web form."
+    ],
+    [
+      "04-gems",
+      "젬 보관과 링크",
+      "Screens 1 '젬 보관함': lower sheet visible battlefield, header gems/shards count and '젬 구매', orderly small gem grid using colorful sharp crystalline gems like screenshot, name quantity and concise effect. One selected detail below grid. Bottom global 젬 tab selected. 2 '젬 링크 · 장착': selected machinegun, bottom stats/젬 링크 tabs; three ROUND engraved metal sockets connected by short links, equipped blue gem / empty selected / locked with cost '90 G'. Inventory strip below with quantities, selected gem explanation, primary '장착', compatibility restrictions readable. 3 '해제 · 잠금 · 부족': same panel shows filled selectedsocket with gemdetails '해제', locked nextsocket clearly requirement 'Lv.5', inventory incompatiblegem disabled and reason '이 포탑에는 장착할 수 없습니다', small emptyinventory example note below not invented action. Preserve round socket look not buttons or rectangular chips. Preview numbers examples."
+    ],
+    [
+      "05-rewards",
+      "보상과 장착 대상",
+      "Screens 1 '젬 보상 선택': dim battlefield reward panel '5웨이브 클리어', 3 equal crystal gem choice cards with gemicon/name/effect/ownedcount, footer separate '젬 대신 파편 획득' and current shards. Gem names '물리 피해','사거리','치명 확률'. 2 '장착 대상 선택': undim same actual stone battlefield, top concise chosen gem banner, compatibleturrets marked small cyan diamond, incompatible gray marker, short '장착할 포탑을 선택하세요'; bottom '젬 다시 선택' and '보관'. Preserve drag battlefield. No install-confirm button because tapping allowed empty slot equips immediately. 3 '젬 교체': dim map, centered panel '기관총 Lv.5 · 교체할 젬 선택', new gem at top, arrow towards three original round metal sockets with equippedgems and names, each action '이 젬과 교체', note '교체한 젬은 보관됩니다', bottom '타워 다시 선택'. Bonus compact small state inset below main modal: '젬 구매 선택' same choicecards but NO shard-alternative. This is purchased reward distinction, not extra commerce. Small shard-selected inset must show separate '파편 받기' confirmation; shard alternative not immediate."
+    ],
+    [
+      "06-intel",
+      "코어와 웨이브 정보",
+      "Screens 1 '코어 방어': same map selected cyan core subtly, bottom sheet corecrystal thumbnail, HP15/20 clear bar, skill '수호 광선', concise '코어에 가까운 적에게 집중 피해', aligned '광선 피해' and '총 피해'; no new cast or repair button. 2 '포탈 · 다음 웨이브': selected actual flat purpleportal, compact nextwave sheet '포탈 1 · 6/40 웨이브', short enemy lineup with counts and '상세 정보'; preparation state combat start remains. 3 '웨이브 상세': dim same battlefield, tall readable bottom sheet with enemy thumbnail rows name/count, aligned HP armor shield speed core damage reward, resistances orange and weaknesses cyan labeled text, scrolling limited to list, fixed title close. Examples enemy names and numbers clearly illustration. No invented wave skip actions. Tiny bottom status '전투 중에는 상세 확인 불가' demonstrates existing restriction."
+    ],
+    [
+      "07-menu",
+      "홈과 종료 확인",
+      "Screens 1 '스테이지 메뉴': same battlefield dim paused, polished compact center sheet title '스테이지 메뉴', two distinct large actions '메인화면으로 이동' with helper '진행을 저장하고 이동합니다' cyan primary and '스테이지 종료' with helper '현재 런을 종료하고 보상을 정산합니다' orange quiet; close X returns battle. No new settings button, no quitting app. 2 '종료 확인': focused panel '정말 종료할까요?', '스테이지 1 진행을 종료합니다', concise gold reward area '6웨이브 기준' '+18 룬' labelled '정산 예상'; safe '계속 진행', orange '종료'. 3 '저장 실패': same dimbattle field, compact readable error '저장하지 못했습니다', exact '진행을 유지하고 있습니다', '다시 시도' prominent and no automatic navigation/success. Small note preserving state. No fake cloud success or account login. Clarify safevsdestructive via spatial separation not redfilledentiremodal."
+    ],
+    [
+      "08-results",
+      "결과와 진입 상태",
+      "Screens 1 '방어 성공': dim same game's board, elegant moderately sized cyan/crystal victory emblem, 'Nexus 방어 성공', 스테이지1 클리어, reward +42룬, 코어 포인트 +1 and 모듈 티켓 +1 '정산 대기' clearly separate pending, compactrecords 도달 라운드40R/기록/최고 피해/현재 룬, firstclearunlock small row; bottom '확인' and '다시 시작'. 2 '방어 실패': same composition amber restrained brokencrystalicon, 'Nexus 붕괴', 스테이지1 종료, reward +18룬, records 도달 라운드12R etc, no fake unlock, '확인' and '다시 시작'. 3 '전장 준비 · 복구': portrait split vertically into two distinct labeled UI states: upper half opaque inkblue loading screen cyan small runeprogress '전장 준비 중' no fake percentage; lower half samevisual error '전장을 불러오지 못했습니다' '다시 시도', no fallbackto2D, no fakeprogress. These represent exceptional states not stacked live. No redesigned lobby or home page."
+    ],
+    [
+      "09-recovery",
+      "복구와 상세 기록",
+      "Three portrait screens, residual Flutter flow preservation proposals distinguish from current Godot. Screen1 '저장된 전투': dim same battlefield, resume panel '저장된 진행을 발견했습니다' stage1, '저장된 웨이브 6/40', '이어하기' primary and '메인 메뉴' secondary. Small inset depicting centered cyan '3 → 2 → 1' resume countdown. Screen2 '피해 기록': dim same battlefield, compact modal 기관총 Lv.3, totaldamage large, aligned rows 직접 / 범위 / 연쇄 / 화상 with numbers and modest proportional horizontal bars; no invented analytics. Screen3 '연결 끊김': opaque or dimblockedfield, '전장 연결이 끊겼습니다', '전투가 일시정지되었습니다', '다시 시도' and '메인화면'; no promise of saved progress or reward success; compact inset '기록 저장 대기' vs '서버 보상 정산 대기' clearly distinct. Same shared visual system."
+    ]
+  ],
+  "corrections": [
+    [
+      "04-gems",
+      "Correct this UI proposal board, preserving layout and actual game battlefield. Existing invented fantasy gem names and effects must be REPLACED by Rune Nexus actual gems: inventory six types only '가속' '사거리' '물리 피해 증폭' '원소 피해 증폭' '급소' '장갑 관통'. Descriptions qualitative '공격 속도 증가','사거리 증가','물리 피해 증가','원소 피해 증가','치명타 확률 증가','장갑 관통 증가'. Use supplied actual gem icons as style references. NO 생명 행운 암흑 균형 냉각 화염 gems, NO health or gold or skill gems. Remove invented filter tabs 전체 공격 방어 유틸. In equip pane use '가속', effect '공격 속도 증가'. In unequip pane use '물리 피해 증폭', effect '물리 피해 증가'. In turret detail panels bottom global selectedtab must be 포탑, not 젬. Inventory main pane selectedtab 젬. Keep round socket art and linkedslots. Prices/countsillustrative. Show unlockcost90G beneath second emptysocket and Lv.5 third. No restyling outside these corrections."
+    ],
+    [
+      "06-intel",
+      "Correct just the invented enemies in this board preserving all UI layout and battlefield. REPLACE slime, wolf and skeleton everywhere with attached ACTUAL Rune Nexus reference icons: normal dark armored round automaton, armored gray heavy automaton, shielded cyan shield automaton. Their Korean names exactly '일반', '장갑병', '보호막병'. No organic or fantasy animals, no humanoid wizards. Change all list and preview portraits and names consistently. Existing numbers may be illustrative. Show numeric resistance '물리 저항 +20%' and '원소 저항 -10%' as examples, not generic fire/ice categorical arbitrary weaknesses. Remove Lv.2 from core skill. Keep design."
+    ],
+    [
+      "07-menu",
+      "Correct ONLY third save failure screen on this board: remove network advice, because this can be LOCAL save error. Replace body '네트워크 상태를 확인하고 다시 시도해주세요' with '저장이 완료될 때까지 전투를 정지합니다'. Button label '다시 저장'. Remove close X from save failure panel so it cannot imply resuming unsaved battle. Keep first and second screen unchanged."
+    ],
+    [
+      "08-results",
+      "Correct this design board. Replace green gem rune currency symbols with attached GOLD geometric rune icon; green shards are NOT runes. Record rows exactly 도달 라운드, 기록, 최고 피해, 현재 룬. Replace invented 신규 스탯 슬롯 해금 with simple '해금 항목' placeholder row and no invented socket unlock. Third screen loading and failure must have fully opaque dark navy background hiding battlefield and HUD; keep two separate labeled examples, no blurred battlefield. Remove network advice in failure; use '전장 연결을 확인한 후 다시 시도합니다'. Maintain beautiful restrained cyan game UI. No new mechanics."
+    ],
+    [
+      "09-recovery",
+      "Correct this proposal board only: left resume selection modal must NOT simultaneously show active countdown. Keep 이어하기 and 메인 메뉴; move countdown 3→2→1 into a small separate inset below clearly labelled '이어하기 이후'. Right connectionerror change wifi icon to disconnected engine link icon, remove record-save and server-reward pending boxes from inside connection error (unrelated states). Keep error text 전장 연결이 끊겼습니다, 전투가 일시정지되었습니다, buttons 다시 시도 and 메인화면. Other elements unchanged."
+    ]
+  ]
+}

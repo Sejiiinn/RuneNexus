@@ -1,0 +1,6 @@
+{
+  "ui/hud/dock_panel.png": "63230f6195100068e6eadac7de06bcc245fa994f5f79188c0633a871be575185",
+  "ui/hud/turret_actions/native/tab_active.png": "a9ca4f41c86adc00a8d86402ec7f12678f453c738af395d9673fff4ba1c49123",
+  "ui/hud/turret_actions/native/tab_idle.png": "0c210babf896f7374abe21edcee7b76b47a8092943202febd3375f555456b66f",
+  "godot/ui/lobby.gd": "41ea9c83b7e681cf151aff052f14ea0c7c544b262272b70f15ab043a0c1bb272"
+}

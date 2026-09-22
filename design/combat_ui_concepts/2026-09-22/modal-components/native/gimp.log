@@ -1,0 +1,11 @@
+GIMP is started as MacOS application
+INFO: argument 'palette' (value "Default") of procedure 'script-fu-set-cmap' ignored because resources of type GimpPalette are not loaded.
+INFO: argument 'gradient' (value "Incandescent") of procedure 'script-fu-lava' ignored because resources of type GimpGradient are not loaded.
+INFO: argument 'gradient' (value "Coffee") of procedure 'script-fu-coffee-stain' ignored because resources of type GimpGradient are not loaded.
+EXPORTED modal
+EXPORTED primary
+EXPORTED secondary
+EXPORTED danger
+EXPORTED selected
+EXPORTED disabled
+batch command executed successfully

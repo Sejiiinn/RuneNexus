@@ -1,0 +1,32 @@
+{
+  "existing_count": 23,
+  "additional_count": 1,
+  "additional_asset": "stage_details/rewards/research_slot.png",
+  "runtime_assets_match": true,
+  "assets": {
+    "upgrades/kill_gold.png": "40eca260a5837bfc1ea6d21e5970fd230d9faaa6ce87c4143e927fbc1eeb929f",
+    "upgrades/turret_refund.png": "7c994c5bcc0c45b56a10ac94bd80af264d06bb60ac08d6f65a88c5adb68bc412",
+    "research/turret_target_priority.png": "035eb24bd2bc67ceee26c681ce33e4955305c744b47fa8d01782bdea64635bdb",
+    "research/gem_attunement.png": "22bbde10569a1d11a2ff9ada86b8c81880a69846f67e23ed75125a6773971b98",
+    "ui/hud/turrets_3d/sniper.png": "504f7c0c89d3588f0944f98a340dfc9b72753a48818186a663e15df2ca1aca9d",
+    "gems/aimSpeed.png": "a6e94435d5f1ea0fd3b3ff50597155ccd4e2fba7069421a57a15f41df7d00661",
+    "upgrades/critical_chance.png": "8362d39a5e8b49183639829e43b0d0e36012994834245b9a04fc20d79ae5831e",
+    "upgrades/critical_damage.png": "fd798578d841083e4baae5e1d208518b610331c0f1c06d93bd606dab576af94c",
+    "research/link_expansion_one.png": "754a2267870efa46326c582516f38fecab015b2405cccb46ce68f633eef960eb",
+    "research/crystal_recovery.png": "90c94cf77447ae3772ca52a82dc85518b0f68138cdd2e8f9e82c4a85f904f512",
+    "core_abilities/rift_mark.png": "be2b6bcc97e5760f1edcb38d29f1e22c3c10639ab0ca2eb7a0a37e42e455b8b2",
+    "ui/hud/turrets_3d/lightning.png": "d1959db0104ae003d194a1ee93a729a4c62a1c07632a1a6e13c823cac4bbbbed",
+    "upgrades/physical_damage.png": "25129b578a502d57b575fdd0e73c3d737f9d97bd55979a2739e8ee1f58cdc88e",
+    "upgrades/elemental_damage.png": "09c170cbd6d1464c7ae4c3fc5cc49c8c2d14a3e0114ccc0a9e2f9df9fb04f216",
+    "research/rune_resonance.png": "67c7c3273dc4c8c576eca789d097e7b578dee0b41bef0164f375e4d7d7afc081",
+    "research/run_upgrade_cost_optimization.png": "0addcb87650998c4f1d0974cf768c5903eeb7c01a2088218829f5897711a5aeb",
+    "upgrades/link_cost_optimization.png": "c8f09b1f2c82f7ffcc67098d6fe189f86a9f0c1e9696c0af10df447c0c950a3a",
+    "upgrades/turret_level_up_optimization.png": "4901051defa97c8306e12172febf22b879b86a918c26470c8fe5b54b1a4b7033",
+    "gems/armorPiercing.png": "d142929e2dd15659cbf17e5616a259042f5cb39c59222f446d9d7989de9dc196",
+    "stage_details/rewards/research_slot.png": "3022b2ab61fab2d46ea9132e7b814838f8a7497f6932d2df496db691977db97f",
+    "stage_rewards/reward_module_ticket.png": "eea85cedd1057739b1a9de5c02c790aafeb3c32c41b6ae843b9a8e8030279e1a",
+    "research/tower_damage_limit_expansion.png": "e052eb75f9b1d0861e5c74b64ffb4f9f268010dcd9a2da125a0951d63a6fec73",
+    "research/kill_gold_limit_expansion.png": "02d60918460ccdd67df2c232b0c88304104a6671cc5307bed0daecf2860fc657",
+    "research/wave_gold_limit_expansion.png": "e465ca4030bb711bca8bef8952fe5eddb0ae79e2b3fe4259276fcf2e64a7d82f"
+  }
+}

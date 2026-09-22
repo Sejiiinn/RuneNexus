@@ -1,0 +1,7 @@
+danger.png: 133x37, RGBA8; alpha range 0..254; transparent pixels 632/4921; PASS
+disabled.png: 133x35, RGBA8; alpha range 0..254; transparent pixels 500/4655; PASS
+modal.png: 399x97, RGBA8; alpha range 0..254; transparent pixels 1076/38703; PASS
+primary.png: 132x36, RGBA8; alpha range 0..254; transparent pixels 468/4752; PASS
+secondary.png: 132x36, RGBA8; alpha range 0..254; transparent pixels 505/4752; PASS
+selected.png: 132x35, RGBA8; alpha range 0..254; transparent pixels 442/4620; PASS
+Visual: native-preview.png inspected; all 6 intact silhouettes/corner hardware/colors remain. V3 faint outer colored edge speckles remain from source; no redraw or alpha reconstruction performed.

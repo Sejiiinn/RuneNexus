@@ -1,0 +1,14 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M4
+
+320 stage1 처치 보상 font=10 width=78.0
+320 stage1 긴급 매각 font=10 width=78.0
+320 stage8 룬 공명 font=10 width=199.0
+320 stage8 전투 강화 비용 최적화 font=10 width=199.0
+320 stage11 모듈 티켓 5장 font=10 width=78.0
+440 stage1 처치 보상 font=10 width=72.0
+440 stage1 긴급 매각 font=10 width=72.0
+440 stage8 룬 공명 font=10 width=129.0
+440 stage8 전투 강화 비용 최적화 font=10 width=129.0
+440 stage11 모듈 티켓 5장 font=10 width=72.0
+PASS reward grid: 10px font, natural text widths, 320/440 stages1/8/11, short viewport scroll and close
