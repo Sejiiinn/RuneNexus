@@ -138,14 +138,16 @@ func update_turret(port: Node3D, muzzle: Node3D, time: float) -> void:
 	_flame.global_transform = port.global_transform.orthonormalized()
 	_sparks.global_transform = _flame.global_transform
 	_sparks.emitting = _diagnostic_mode == "all"
-	_animate(_tongues, time, Vector3(0.28, 0.35, 0.28))
+	# Keep marker orientation orthogonal; only attached flame geometry follows
+	# the authored turret size. Detached particles and projectiles stay unchanged.
+	_animate(_tongues, time, Vector3(0.28, 0.35, 0.28) * port.global_basis.get_scale().abs())
 	var age := fposmod(time - _shot_time, 1200.0) if is_finite(_shot_time) else 1.0
 	_burst.emitting = age < 0.24 and _diagnostic_mode == "all"
 	# Small permanent pilot flame, fuller short pulse when the combat model fires.
 	var pulse := pow(maxf(0.0, 1.0 - age / FLASH_SECONDS), 0.65)
 	_muzzle_flame.global_transform = muzzle.global_transform.orthonormalized()
 	_muzzle_flame.rotate_object_local(Vector3.RIGHT, PI / 2.0)
-	_animate(_muzzle_tongues, time + 3.0, Vector3(0.045 + 0.075 * pulse, 0.14 + 0.31 * pulse, 0.045 + 0.075 * pulse), 1)
+	_animate(_muzzle_tongues, time + 3.0, Vector3(0.045 + 0.075 * pulse, 0.14 + 0.31 * pulse, 0.045 + 0.075 * pulse) * muzzle.global_basis.get_scale().abs(), 1)
 	_advance(time)
 
 

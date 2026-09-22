@@ -43,6 +43,27 @@ func _verify() -> void:
 	var expected_muzzle := muzzle.global_transform.orthonormalized()
 	expected_muzzle.basis = expected_muzzle.basis * Basis(Vector3.RIGHT, PI / 2.0)
 	assert(turret._muzzle_flame.global_transform.is_equal_approx(expected_muzzle))
+	if _has_renderer:
+		# Same-clock marker resizing must bypass the shared animation-pose cache.
+		port.scale = Vector3.ONE
+		muzzle.scale = Vector3.ONE
+		turret.update_turret(port, muzzle, 5.02)
+		projectile.update_projectile(5.02)
+		var full_flame := turret._tongues[0].multimesh.get_instance_transform(0)
+		var full_muzzle := turret._muzzle_tongues[0].multimesh.get_instance_transform(0)
+		var full_projectile := projectile._tongues[0].multimesh.get_instance_transform(0)
+		port.scale = Vector3.ONE * 0.9
+		muzzle.scale = Vector3.ONE * 0.9
+		turret.update_turret(port, muzzle, 5.02)
+		projectile.update_projectile(5.02)
+		assert(turret._tongues[0].multimesh.get_instance_transform(0).is_equal_approx(
+			Transform3D(full_flame.basis.scaled_local(Vector3.ONE * 0.9), full_flame.origin * 0.9)))
+		assert(turret._muzzle_tongues[0].multimesh.get_instance_transform(0).is_equal_approx(
+			Transform3D(full_muzzle.basis.scaled_local(Vector3.ONE * 0.9), full_muzzle.origin * 0.9)))
+		assert(projectile._tongues[0].multimesh.get_instance_transform(0).is_equal_approx(full_projectile))
+		assert(turret._flame.global_transform.is_equal_approx(port.global_transform.orthonormalized()))
+		assert(turret._muzzle_flame.global_transform.is_equal_approx(expected_muzzle))
+		print("RunicFire attached 0.9 scale / same-clock cache / unchanged projectile: PASS")
 	var independent_pose: Transform3D = turret._tongues[0].multimesh.get_instance_transform(0)
 	projectile.update_projectile(6.0)
 	assert(turret._tongues[0].multimesh.get_instance_transform(0).is_equal_approx(independent_pose))

@@ -207,7 +207,7 @@
     },
     {
       "name": "33 Runic Fire Turret",
-      "file": "../fire_tower_concepts/runic_3d/migration/runic-native-export.blend",
+      "file": "../fire_tower_concepts/runic_3d/scale-90/runic-native-90.blend",
       "scene": "Runic Fire Native Export",
       "output": "turrets/magic.glb"
     }
@@ -229,6 +229,11 @@
           "script": "design/fire_tower_concepts/runic_3d/migration/export_flame_meshes.py",
           "entrypoint": "export()",
           "context": "Blender MCP: 별도 작업 사본에서 함수 로드 후 호출. 기본 재질용 입체 불꽃 메시 출력."
+        },
+        {
+          "script": "design/fire_tower_concepts/runic_3d/scale-90/resize.py",
+          "entrypoint": "module body",
+          "context": "기존 native 원본을 균일 90%로 내보내고 고정 시점 아이콘을 같은 배율로 렌더한다. 반복 실행해도 축소 누적 없음."
         }
       ],
       "outputs": [

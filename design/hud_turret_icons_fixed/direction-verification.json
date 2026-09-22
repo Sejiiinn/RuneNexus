@@ -1,0 +1,225 @@
+{
+  "arrow": {
+    "source": "assets/images/stage1_3d/turrets/arrow.glb",
+    "sha256": "eda03b4883a8956360d0032daa522e706f9ef7ae5cd821a86b4046524611b31a",
+    "source_forward_blender": [
+      0,
+      -1,
+      0
+    ],
+    "whole_model_rotation_z_rad": -0.0,
+    "screen_forward_xy_down": [
+      -0.8309218883514404,
+      0.5563890933990479
+    ],
+    "screen_angle_deg": 146.19355467315052,
+    "muzzle_horizontal_blender": [
+      0.0,
+      -0.5070000290870667,
+      0.0
+    ],
+    "bounds_uv": [
+      0.10800007730722427,
+      0.033283889293670654,
+      0.8921650052070618,
+      0.7137436270713806
+    ],
+    "camera_position": [
+      4.0,
+      -4.0,
+      5.5
+    ],
+    "camera_target": [
+      0.0,
+      0.0,
+      0.4000000059604645
+    ],
+    "orthographic_scale": 1.4500000476837158
+  },
+  "cannon": {
+    "source": "assets/images/stage1_3d/turrets/cannon.glb",
+    "sha256": "c4e2c2093a653b3aa3b7b1a90945211b0c95d6bec75defc5b63c0a2b12ab1b9e",
+    "source_forward_blender": [
+      0,
+      -1,
+      0
+    ],
+    "whole_model_rotation_z_rad": -0.0,
+    "screen_forward_xy_down": [
+      -0.8309218883514404,
+      0.5563890933990479
+    ],
+    "screen_angle_deg": 146.19355467315052,
+    "muzzle_horizontal_blender": [
+      0.0,
+      -0.6399999856948853,
+      0.0
+    ],
+    "bounds_uv": [
+      0.10329575091600418,
+      0.03285638242959976,
+      0.8962084650993347,
+      0.8141749501228333
+    ],
+    "camera_position": [
+      4.0,
+      -4.0,
+      5.5
+    ],
+    "camera_target": [
+      0.0,
+      0.0,
+      0.4000000059604645
+    ],
+    "orthographic_scale": 1.4500000476837158
+  },
+  "magic": {
+    "source": "assets/images/stage1_3d/turrets/magic.glb",
+    "sha256": "80be26ff3b5932193746df410e513290932ec4687f9f5eb5efed3cf39addd380",
+    "source_forward_blender": [
+      0,
+      -1,
+      0
+    ],
+    "whole_model_rotation_z_rad": -0.0,
+    "screen_forward_xy_down": [
+      -0.8309218883514404,
+      0.5563890933990479
+    ],
+    "screen_angle_deg": 146.19355467315052,
+    "muzzle_horizontal_blender": [
+      0.0,
+      -0.600020706653595,
+      0.0
+    ],
+    "bounds_uv": [
+      0.115990549325943,
+      0.04697951674461365,
+      0.8774489760398865,
+      0.8754730224609375
+    ],
+    "camera_position": [
+      4.0,
+      -4.0,
+      5.5
+    ],
+    "camera_target": [
+      0.0,
+      0.0,
+      0.4000000059604645
+    ],
+    "orthographic_scale": 1.4500000476837158,
+    "model_scale": 0.9
+  },
+  "frost": {
+    "source": "assets/images/stage1_3d/turrets/frost.glb",
+    "sha256": "c79a38590b5da242a29200f6b693470950f31ae3ea5fbd95713016630e3508f3",
+    "source_forward_blender": [
+      0,
+      -1,
+      0
+    ],
+    "whole_model_rotation_z_rad": -0.0,
+    "screen_forward_xy_down": [
+      -0.8309218883514404,
+      0.5563890933990479
+    ],
+    "screen_angle_deg": 146.19355467315052,
+    "muzzle_horizontal_blender": [
+      0.0,
+      -0.11999999731779099,
+      0.0
+    ],
+    "bounds_uv": [
+      0.12999333441257477,
+      0.04735255986452103,
+      0.8700071573257446,
+      0.886841893196106
+    ],
+    "camera_position": [
+      4.0,
+      -4.0,
+      5.5
+    ],
+    "camera_target": [
+      0.0,
+      0.0,
+      0.4000000059604645
+    ],
+    "orthographic_scale": 1.4500000476837158
+  },
+  "sniper": {
+    "source": "assets/images/stage1_3d/turrets/sniper.glb",
+    "sha256": "53df7337a3a3586059846a321de011d7233e1a5478ec967186dcd3dfec7de754",
+    "source_forward_blender": [
+      0,
+      -1,
+      0
+    ],
+    "whole_model_rotation_z_rad": -0.0,
+    "screen_forward_xy_down": [
+      -0.8309218883514404,
+      0.5563890933990479
+    ],
+    "screen_angle_deg": 146.19355467315052,
+    "muzzle_horizontal_blender": [
+      0.0,
+      -0.5299999713897705,
+      0.0
+    ],
+    "bounds_uv": [
+      0.11474896967411041,
+      0.037144873291254044,
+      0.885251522064209,
+      0.8023400902748108
+    ],
+    "camera_position": [
+      4.0,
+      -4.0,
+      5.5
+    ],
+    "camera_target": [
+      0.0,
+      0.0,
+      0.4000000059604645
+    ],
+    "orthographic_scale": 1.4500000476837158
+  },
+  "lightning": {
+    "source": "assets/images/stage1_3d/turrets/lightning.glb",
+    "sha256": "fbd3c028a067cddb224dc9a3f3db124d94d3a8036e8641a11cdd2ff0010f693b",
+    "source_forward_blender": [
+      0,
+      -1,
+      0
+    ],
+    "whole_model_rotation_z_rad": -0.0,
+    "screen_forward_xy_down": [
+      -0.8309218883514404,
+      0.5563890933990479
+    ],
+    "screen_angle_deg": 146.19355467315052,
+    "muzzle_horizontal_blender": [
+      0.0,
+      -0.550000011920929,
+      0.0
+    ],
+    "bounds_uv": [
+      0.11053204536437988,
+      0.06121557205915451,
+      0.8854194283485413,
+      0.7693425416946411
+    ],
+    "camera_position": [
+      4.0,
+      -4.0,
+      5.5
+    ],
+    "camera_target": [
+      0.0,
+      0.0,
+      0.4000000059604645
+    ],
+    "orthographic_scale": 1.4500000476837158
+  }
+}

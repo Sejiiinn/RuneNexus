@@ -20,7 +20,7 @@
 
 ## 룬 화염 포탑 원본
 
-- [룬 화염 포탑](../../fire_tower_concepts/runic_3d/README.md): 사용자가 선택한 14번 시안의 독립 Blender 제작 원본. 길쭉한 팔각 몸체·주황 룬 홈·청동 음각 지지대·작은 상부 화염구를 따른다. 후속 이관 승인으로 `magic.glb`를 교체했다. **33 Runic Fire Turret**는 구운 기본 PBR 이관 원본이며 원형 편집은 링크의 승인 Blender 원본에서 한다. 효과는 Godot 기본 재질·GPU 파티클로 재생한다.
+- [룬 화염 포탑](../../fire_tower_concepts/runic_3d/README.md): 사용자가 선택한 14번 시안의 독립 Blender 제작 원본. 길쭉한 팔각 몸체·주황 룬 홈·청동 음각 지지대·작은 상부 화염구를 따른다. 후속 이관 승인으로 `magic.glb`를 교체했다. **33 Runic Fire Turret**는 [90% 크기 적용 PBR 원본](../../fire_tower_concepts/runic_3d/scale-90/README.md)이며 원형 편집은 링크의 승인 Blender 원본에서 한다. 효과는 Godot 기본 재질·GPU 파티클로 재생한다.
 
 ## 갱신
 

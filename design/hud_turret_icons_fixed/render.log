@@ -1,0 +1,69 @@
+00:00.033  color_management | Using OCIO=/Applications/Blender.app/Contents/Resources/5.2/datafiles/colormanagement/config.ocio
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+07:35:14 | INFO: Data are loaded, start creating Blender stuff
+07:35:14 | INFO: Blender create Mesh node 가공된_포구
+07:35:14 | INFO: Blender create Mesh node 리시버_상판_홈
+07:35:14 | INFO: Blender create Mesh node Cylinder
+07:35:14 | INFO: glTF import finished in 0.02s
+/Users/sejin/Documents/Codex/RuneNexus/design/hud_turret_icons_fixed/render_icons.py:37: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world=bpy.data.worlds.new(kind+'_studio');world.use_nodes=True
+00:01.389  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/assets/images/ui/hud/turrets_3d/arrow.png'
+HUD_RENDER_DONE arrow
+07:35:15 | INFO: Data are loaded, start creating Blender stuff
+07:35:15 | INFO: Blender create Mesh node Cylinder.295
+07:35:15 | INFO: Blender create Mesh node Cube.414
+07:35:15 | INFO: Blender create Mesh node Cylinder.307
+07:35:15 | INFO: glTF import finished in 0.02s
+00:01.798  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/assets/images/ui/hud/turrets_3d/cannon.png'
+HUD_RENDER_DONE cannon
+07:35:15 | INFO: Data are loaded, start creating Blender stuff
+07:35:15 | INFO: Blender create Mesh node Tapered forward octagonal barrel.002
+07:35:15 | INFO: Blender create Mesh node Cylinder.041
+07:35:15 | INFO: Blender create Mesh node Cylinder.039
+07:35:16 | INFO: glTF import finished in 0.11s
+00:02.505  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/assets/images/ui/hud/turrets_3d/magic.png'
+HUD_RENDER_DONE magic
+07:35:16 | INFO: Data are loaded, start creating Blender stuff
+07:35:16 | INFO: Blender create Mesh node Cylinder.002
+07:35:16 | INFO: Blender create Mesh node Cylinder.003
+07:35:16 | INFO: Blender create Mesh node Cylinder
+07:35:16 | INFO: Blender create Mesh node Cylinder.001
+07:35:16 | INFO: Blender create Mesh node Cube.001
+07:35:16 | INFO: Blender create Mesh node Cube.002
+07:35:16 | INFO: Blender create Mesh node Cube.003
+07:35:16 | INFO: Blender create Mesh node Cube.004
+07:35:16 | INFO: Blender create Mesh node Cube.005
+07:35:16 | INFO: Blender create Mesh node front_ice_shard
+07:35:16 | INFO: Blender create Mesh node front_ice_shard_frost_mesh
+07:35:16 | INFO: Blender create Mesh node left_ice_shard
+07:35:16 | INFO: Blender create Mesh node left_ice_shard_frost_mesh
+07:35:16 | INFO: Blender create Mesh node main_fractured_ice
+07:35:16 | INFO: Blender create Mesh node main_fractured_ice_frost_mesh
+07:35:16 | INFO: Blender create Mesh node rear_ice_shard
+07:35:16 | INFO: Blender create Mesh node rear_ice_shard_frost_mesh
+07:35:16 | INFO: glTF import finished in 0.01s
+00:02.899  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/assets/images/ui/hud/turrets_3d/frost.png'
+HUD_RENDER_DONE frost
+07:35:16 | INFO: Data are loaded, start creating Blender stuff
+07:35:16 | INFO: Blender create Mesh node Cylinder.206
+07:35:16 | INFO: Blender create Mesh node Icosphere.2004
+07:35:17 | INFO: Blender create Mesh node Cylinder.208
+07:35:17 | INFO: glTF import finished in 0.01s
+00:03.264  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/assets/images/ui/hud/turrets_3d/sniper.png'
+HUD_RENDER_DONE sniper
+07:35:17 | INFO: Data are loaded, start creating Blender stuff
+07:35:17 | INFO: Blender create Mesh node lightning_base1.001
+07:35:17 | INFO: Blender create Mesh node coil.006
+07:35:17 | INFO: Blender create Mesh node lightning_muzzle7.001
+07:35:17 | INFO: glTF import finished in 0.01s
+00:03.640  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/assets/images/ui/hud/turrets_3d/lightning.png'
+HUD_RENDER_DONE lightning
+Info: Saved as "fixed-camera-turret-icons.blend"
+HUD_ALL_DONE
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit

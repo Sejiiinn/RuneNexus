@@ -1,0 +1,99 @@
+{
+  "arrow": {
+    "alpha_bbox": [
+      49,
+      92,
+      201,
+      228
+    ],
+    "bytes": 47284,
+    "size": [
+      256,
+      256
+    ],
+    "format": "RGBA",
+    "source_unchanged": true,
+    "exact_same_screen_forward": true
+  },
+  "cannon": {
+    "alpha_bbox": [
+      34,
+      64,
+      201,
+      227
+    ],
+    "bytes": 58911,
+    "size": [
+      256,
+      256
+    ],
+    "format": "RGBA",
+    "source_unchanged": true,
+    "exact_same_screen_forward": true
+  },
+  "magic": {
+    "alpha_bbox": [
+      37,
+      44,
+      202,
+      228
+    ],
+    "bytes": 65547,
+    "size": [
+      256,
+      256
+    ],
+    "format": "RGBA",
+    "source_unchanged": false,
+    "exact_same_screen_forward": true,
+    "model_scale": 0.9
+  },
+  "frost": {
+    "alpha_bbox": [
+      59,
+      43,
+      197,
+      226
+    ],
+    "bytes": 52639,
+    "size": [
+      256,
+      256
+    ],
+    "format": "RGBA",
+    "source_unchanged": true,
+    "exact_same_screen_forward": true
+  },
+  "sniper": {
+    "alpha_bbox": [
+      52,
+      79,
+      199,
+      228
+    ],
+    "bytes": 47701,
+    "size": [
+      256,
+      256
+    ],
+    "format": "RGBA",
+    "source_unchanged": true,
+    "exact_same_screen_forward": true
+  },
+  "lightning": {
+    "alpha_bbox": [
+      32,
+      76,
+      206,
+      220
+    ],
+    "bytes": 50255,
+    "size": [
+      256,
+      256
+    ],
+    "format": "RGBA",
+    "source_unchanged": true,
+    "exact_same_screen_forward": true
+  }
+}

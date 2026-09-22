@@ -1,0 +1,25 @@
+00:00.293  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/fire_tower_concepts/runic_3d/migration/runic-native-export.blend"
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+INFO Draco is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_draco_bridge.dylib
+INFO MeshOptimizer is available, use library at /Applications/Blender.app/Contents/Resources/5.2/scripts/addons_core/io_scene_gltf2/libbf_intern_meshopt_bridge.dylib
+22:54:09 | INFO: Starting glTF 2.0 export
+22:54:09 | INFO: Extracting primitive: Tapered forward octagonal barrel.002
+22:54:09 | INFO: Primitives created: 4
+22:54:09 | INFO: Extracting primitive: Cylinder.041
+22:54:09 | INFO: Primitives created: 4
+22:54:09 | INFO: Extracting primitive: Cylinder.039
+22:54:09 | INFO: Primitives created: 3
+22:54:09 | INFO: Finished glTF 2.0 export in 0.2324221134185791 s
+00:00.613  blend            | Read blend: "/Users/sejin/Documents/Codex/RuneNexus/design/hud_turret_icons_fixed/fixed-camera-turret-icons.blend"
+00:01.276  render           | Saved: '/Users/sejin/Documents/Codex/RuneNexus/assets/images/ui/hud/turrets_3d/magic.png'
+
+Info: Saved as "runic-native-90.blend"
+Info: Saved as "fixed-camera-turret-icons.blend"
+FIRE_SCALE_90_PASS {'linear_scale': 0.9, 'vertices_checked': 23576, 'max_position_error': 1.3328003749250113e-07, 'muzzle': [0.0, -0.600020706653595, 0.49446600675582886], 'upper_flame_port': [0.0, 0.22534947097301483, 0.7545849084854126]}
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.2.1 LTS (hash 9e2066aef7ef built 2026-08-25 01:35:57)
+
+Blender quit
