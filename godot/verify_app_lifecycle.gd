@@ -32,6 +32,11 @@ func run() -> void:
 	await process_frame
 	scene.set_process(false)
 	var app = create_app(scene)
+	var initial_camera: String = scene.options.camera
+	app.toggle_camera()
+	check(scene.options.camera != initial_camera, "formal app retains HUD camera toggle")
+	app.toggle_camera()
+	check(scene.options.camera == initial_camera, "camera toggle restores prior mode")
 	check(not auto_accept_quit and not quit_on_go_back, "OS close and Android back use the saving router")
 	check(not app.startup_blocked and app.in_lobby and app.run_domain.state.is_empty(), "new startup is empty lobby")
 	check(not FileAccess.file_exists(app.checkpoint.store.primary_path), "startup does not write")

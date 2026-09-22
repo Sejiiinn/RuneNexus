@@ -104,7 +104,7 @@ func apply_economy_snapshot(app, snapshot: Dictionary) -> bool:
 	return app.command(refresh.get("commands",[]))
 
 func save_session(app) -> Error:
-	if app.content_enabled: return _save_content(app)
+	if app.is_content_session(): return _save_content(app)
 	var runtime = app.scene._native_combat
 	if not runtime.active:
 		message = "No active stage"
@@ -138,7 +138,7 @@ func save_session(app) -> Error:
 	return error
 
 func load_session(app) -> Error:
-	if app.content_enabled: return _load_content(app)
+	if app.is_content_session(): return _load_content(app)
 	var saved = store.load_save()
 	if saved == null:
 		message = "No checkpoint" if store.last_error == OK else store.last_error_message

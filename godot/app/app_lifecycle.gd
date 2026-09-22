@@ -1,4 +1,4 @@
-extends "res://session/standalone.gd"
+extends "res://session/session_controller.gd"
 ## Formal application only. Debug --session deliberately retains its manual lifecycle.
 const SaveJson = preload("res://app/save_json.gd")
 const SaveCodec = preload("res://app/save_codec.gd")
@@ -31,9 +31,6 @@ func _ready() -> void:
 		if argument in ["--camera=angled", "--camera=drone"]:
 			scene.options.camera = argument.trim_prefix("--camera=")
 	scene._apply_options()
-	status = Label.new() # Base diagnostics remain available without the debug toolbar.
-	add_child(status)
-	status.hide()
 	if not catalog.load_catalog() or not run_domain.growth.load_catalog():
 		checkpoint.message = "콘텐츠를 불러오지 못했습니다"
 	else:

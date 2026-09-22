@@ -1,5 +1,8 @@
 # Godot 전투 세션과 독립 개발 경로
 
+`session_controller.gd`는 콘텐츠 전투 명령·이벤트 ACK·시간/연구 처리·체크포인트·정산 연결을 공유한다. 정식 `app/app_lifecycle.gd`와 개발 `standalone.gd`는 이를 각각 상속하며, 개발 툴바·진단 라벨·고정 fixture 상태와 명령은 `standalone.gd`에만 둔다. 공통 책임 회귀는 `verify_session_controller.gd`로 확인한다.
+
+
 `NativeCombatRuntime.advance_session()`을 `main.gd::_process()`에서 호출한다. `session.clock=godot`인 패킷의 `dt`, `steps`, `dtSteps`는 실행하지 않는다. 기존 명시적 step 경로는 회귀 검사에 남긴다.
 
 입력 패킷 `session`: `clock`, `phase`, `running`(디버그 전투 포함), `paused`, `loading`, `backgrounded`, `speed`. 첫 bootstrap에서 `effectTime`, `squaredSteps`로 진행 중인 효과 시계를 인계한다. 일반 Android 본게임에서 성장·골드·저장·보상 권위는 기존 Flutter/Dart 앱 도메인이다. 별도 `--session`에서는 아래 Godot 런·성장 도메인을 사용한다.
