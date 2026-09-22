@@ -176,14 +176,19 @@ func _success(state: Dictionary, commands: Array = []) -> Dictionary:
 	return {"ok":true,"error":"","state":state,"commands":commands}
 
 func award_kill(state: Dictionary, enemy: Dictionary) -> Dictionary:
-	var next := state.duplicate(true)
-	var d := derived(state)
+	var result := award_kill_owned(state.duplicate(true), enemy, derived(state))
+	return result if result.ok else _reject(state, result.error)
+
+## Internal transaction path: only scalar wallet fields are changed after validation.
+## d may be shared while progression growth inputs, turrets and upgrades stay fixed.
+func award_kill_owned(state: Dictionary, enemy: Dictionary, d: Dictionary) -> Dictionary:
 	var type := str(enemy.get("type", enemy.get("enemyType","")))
 	var definition: Dictionary = catalog.data.get("enemyDefinitions",{}).get(type,{})
 	if definition.is_empty(): return _reject(state,"enemy")
 	var boss := bool(definition.get("isBoss",false))
 	var base := int(definition.get("rewardGold",0))
 	if base < 0: return _reject(state,"reward")
+	var next := state
 	var bonus := base * (float(d.get("killGoldBonusRate",0)) + (float(d.get("bossBountyBonusRate",0)) if boss else 0.0))
 	var whole := floori(bonus)
 	var wallet := float(next.get("killGoldFractionWallet",0)) + bonus - whole

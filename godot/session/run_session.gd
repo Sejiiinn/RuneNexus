@@ -89,11 +89,16 @@ func collect(runtime) -> Dictionary:
 	if runtime.epoch != epoch:
 		error = "Stale combat epoch"
 		return {"ok": false, "commands": []}
+	# Detach once per collection. Events only mutate scalar run fields and owned
+	# progression; turret/inventory transactions retain their pure API.
+	state = state.duplicate()
+	state.progression = state.progression.duplicate(true)
+	var kill_derived: Dictionary = {}
 	var wall: float = runtime.wall_elapsed
 	if wall > collected_wall_time:
-		state.progression = quests.record_play_time(state.progression, wall-collected_wall_time)
+		state.progression = quests.record_play_time_owned(state.progression, wall-collected_wall_time)
 		collected_wall_time = wall
-	state.progression = quests.refresh(state.progression, int(now_millis.call()))
+	state.progression = quests.refresh_owned(state.progression, int(now_millis.call()))
 	var commands: Array = []
 	for event in runtime.events:
 		if int(event.id) <= event_ack: continue
@@ -106,7 +111,8 @@ func collect(runtime) -> Dictionary:
 					error = "Missing enemy for reward; event retained"
 					return {"ok": false, "commands": commands}
 				if not bool(enemy.get("isDebug",false)):
-					result = service.award_kill(state, enemy)
+					if kill_derived.is_empty(): kill_derived = service.derived(state)
+					result = service.award_kill_owned(state, enemy, kill_derived)
 					quest_types.append("killEnemies")
 					if service.catalog.data.enemyDefinitions.get(enemy.type,{}).get("isBoss",false): quest_types.append("killBosses")
 			"waveCompleted":
@@ -119,8 +125,11 @@ func collect(runtime) -> Dictionary:
 			error = str(result.get("error", "Event rejected; retained"))
 			return {"ok": false, "commands": commands}
 		if result.has("state"): state = result.state
-		for type in quest_types: state.progression = quests.record(state.progression,type,1,int(now_millis.call()))
-		if state.phase in ["success", "coreDestruction", "failure"]: finish(state.phase == "success")
+		for type in quest_types: state.progression = quests.record_owned(state.progression,type,1,int(now_millis.call()))
+		if state.phase in ["success", "coreDestruction", "failure"]:
+			finish(state.phase == "success")
+			# Finishing can change growth inputs before a later event in this batch.
+			kill_derived = {}
 		commands.append_array(result.get("commands", []))
 		# Advance only after corresponding economy and progression were applied.
 		event_ack = int(event.id)

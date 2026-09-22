@@ -5,7 +5,10 @@ const WEEKLY := {"clearWaves": 150, "killBosses": 15, "killEnemies": 500, "buyRu
 var _play_time_remainder := 0.0
 
 func refresh(progression: Dictionary, now_millis: int) -> Dictionary:
-	var p := progression.duplicate(true)
+	return refresh_owned(progression.duplicate(true), now_millis)
+
+## Internal transaction path: caller exclusively owns p and all nested values.
+func refresh_owned(p: Dictionary, now_millis: int) -> Dictionary:
 	var day := int(float(now_millis + 14400000) / 86400000.0)
 	var day_changed := int(p.get("dailyQuestDayKey", -1)) != day
 	var last := int(p.get("lastDailyQuestSeenMillis", 0))
@@ -33,8 +36,11 @@ func refresh(progression: Dictionary, now_millis: int) -> Dictionary:
 	return p
 
 func record(progression: Dictionary, type: String, amount: int, now_millis: int) -> Dictionary:
-	if amount <= 0: return progression.duplicate(true)
-	var p := refresh(progression, now_millis)
+	return record_owned(progression.duplicate(true), type, amount, now_millis)
+
+func record_owned(p: Dictionary, type: String, amount: int, now_millis: int) -> Dictionary:
+	if amount <= 0: return p
+	refresh_owned(p, now_millis)
 	if not DAILY.has(type): return p
 	for period in ["daily", "weekly"]:
 		var field: String = period + "QuestProgress"
@@ -44,7 +50,9 @@ func record(progression: Dictionary, type: String, amount: int, now_millis: int)
 	return p
 
 func record_play_time(progression: Dictionary, elapsed_seconds: float) -> Dictionary:
-	var p := progression.duplicate(true)
+	return record_play_time_owned(progression.duplicate(true), elapsed_seconds)
+
+func record_play_time_owned(p: Dictionary, elapsed_seconds: float) -> Dictionary:
 	if not is_finite(elapsed_seconds) or elapsed_seconds <= 0: return p
 	_play_time_remainder += elapsed_seconds * 1000.0
 	var elapsed := int(floor(_play_time_remainder))
