@@ -125,6 +125,9 @@ func refresh() -> void:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 4)
 	safe.add_child(column)
+	var back := _plain_button("‹  로비", open_page.bind("로비"))
+	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_margin(column, 12).add_child(back)
 	_header(column)
 	var content := _margin(column, 24 if page == "스테이지" else (0 if page == "코어" else 12))
 	content.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -202,76 +205,49 @@ func _currency(parent: Node, icon: String, value: int) -> void:
 	row.add_child(label)
 
 func _header(parent: Node) -> void:
-	var inset := _margin(parent, 12)
-	inset.name = "MenuHeader"
-	inset.add_theme_constant_override("margin_top", 8)
-	inset.add_theme_constant_override("margin_bottom", 8)
+	var panel := PanelContainer.new()
+	var style := MenuTheme.box(Color("071724e8"), Color("275f6b"), 12)
+	style.set_corner_radius_all(0)
+	style.set_border_width_all(0)
+	style.border_width_bottom = 1
+	if page == "스테이지": style = MenuTheme.box(Color(0,0,0,0),Color(0,0,0,0),12)
+	panel.add_theme_stylebox_override("panel", style)
+	parent.add_child(panel)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
-	inset.add_child(row)
-	var identity := GridContainer.new()
-	identity.name = "MenuIdentity"
-	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	identity.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	identity.add_theme_constant_override("h_separation", 6)
-	identity.add_theme_constant_override("v_separation", 0)
-	row.add_child(identity)
-	var back := _plain_button("‹  로비", open_page.bind("로비"))
-	back.name = "MenuBack"
-	back.custom_minimum_size = Vector2(42,36)
-	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	identity.add_child(back)
-	var heading := HBoxContainer.new()
-	heading.name = "MenuHeading"
-	heading.custom_minimum_size.x = 102
-	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	heading.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	heading.add_theme_constant_override("separation", 6)
-	identity.add_child(heading)
+	panel.add_child(row)
 	if page == "스테이지":
+		var event_slot := CenterContainer.new()
+		event_slot.name = "StageHeaderLeft"
+		event_slot.custom_minimum_size.x = 56
+		row.add_child(event_slot)
 		var event := _plain_button("", open_quests)
 		event.name = "StageQuests"
 		event.custom_minimum_size = Vector2(38,38)
 		event.icon = AppTheme.texture("quests/entry_reward_ready.jpg" if _quest_ready() else "quests/entry_default.jpg")
 		event.expand_icon = true
 		event.add_theme_constant_override("icon_max_width",38)
-		heading.add_child(event)
-		var logo := _image("rune_nexus_logo_serif.png", Vector2(0,44))
+		event_slot.add_child(event)
+		var logo := _image("rune_nexus_logo_serif.png", Vector2(120,44))
 		logo.name = "StageHeaderLogo"
 		logo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		heading.add_child(logo)
+		row.add_child(logo)
 	else:
 		var path: String = {"코어":"core","강화":"upgrade","연구":"research","포탑":"turret"}.get(page,"stage")
-		var icon := _image("stage_rewards/reward_%s.png" % path, Vector2(24,24))
-		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		heading.add_child(icon)
+		row.add_child(_image("stage_rewards/reward_%s.png" % path, Vector2(24,24)))
 		var title := _text({"코어":"넥서스 코어", "강화":"영구 강화", "연구":"연구", "포탑":"포탑 모듈"}.get(page, page), 15)
-		title.name = "MenuTitle"
-		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		heading.add_child(title)
-	var resources := PanelContainer.new()
-	resources.name = "MenuResources"
-	resources.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	resources.add_theme_stylebox_override("panel", preload("res://ui/lobby_frame.gd").new("ui/components/row_frame.png",8))
-	row.add_child(resources)
+		row.add_child(title)
 	var wallet := VBoxContainer.new()
-	wallet.name = "MenuWallet"
 	wallet.alignment = BoxContainer.ALIGNMENT_CENTER
 	wallet.custom_minimum_size.x = 56
-	wallet.add_theme_constant_override("separation", 4)
-	resources.add_child(wallet)
+	row.add_child(wallet)
 	_currency(wallet,"res://assets/ui/diamond_currency.png",int(_p().get("freeDiamonds",0))+int(_p().get("paidDiamonds",0)))
 	if page == "포탑": _currency(wallet,"stage_rewards/reward_module_ticket.png",int(_p().get("turretModules",{}).get("tickets",0)))
 	else: _currency(wallet,"ui/hud/icons/rune.png",int(_p().get("runes",0)))
-	# Keep navigation and title together on one line when both groups fit.
-	# Long balances may wrap only the identity group; the wallet stays complete.
-	var arrange := func():
-		var available := size.x - _insets().x - _insets().z - 24 - 12 - resources.get_combined_minimum_size().x
-		identity.columns = 2 if available >= back.get_combined_minimum_size().x + 6 + 102 else 1
-	inset.resized.connect(arrange)
-	arrange.call_deferred()
+	if page == "스테이지":
+		# Equal side columns keep the logo on the screen axis, even with wide balances.
+		var left := row.get_node("StageHeaderLeft") as Control
+		left.custom_minimum_size.x = maxf(56, wallet.get_combined_minimum_size().x)
 
 func _footer(parent: Node) -> void:
 	var panel := PanelContainer.new()
@@ -500,3 +476,4 @@ func _core_effect_text(definition: Dictionary, rank: int) -> String:
 		var value := "활성" if effect[key] is bool else ("×%.2f" % float(effect[key]) if str(key).ends_with("Multiplier") else "%.1f%%" % (float(effect[key]) * 100))
 		text += "\n%s %s" % [names.get(key, key), value]
 	return text
+
