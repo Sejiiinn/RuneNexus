@@ -6,6 +6,8 @@ const Wave = preload("res://combat/native_wave_state.gd")
 const Defense = preload("res://combat/native_core_defense_state.gd")
 const CoreSkill = preload("res://combat/native_core_skill_state.gd")
 const Attack = preload("res://combat/attack_calculation.gd")
+# Match the authored 1.1-second cannon impact; generic hits last only 0.28s.
+const BLAST_DURATION: float = 1.1
 var epoch: int = -1
 var active: bool = false
 var running: bool = true
@@ -898,6 +900,8 @@ func _visual(kind: String, at: Vector2, t: Dictionary, extra: Dictionary = {}) -
 	var colors := {"arrow":0xffffdf9e, "cannon":0xffffb066, "magic":0xffff713d, "frost":0xff94e6ff, "sniper":0xffffeec4, "lightning":0xffc7d8ff}
 	var v := {"id":visual_id, "kind":kind, "born":clock, "duration":0.28, "x":pos.x, "y":pos.y, "tileSize":tile_size, "scale":board_scale, "color":colors.get(t.statInput.definition.type, 0xffffffff), "points":[], "screenOffset":[0,0], "feedback":"neutral", "motion":"rise", "arcDirection":1}
 	v.merge(extra, true)
+	if kind == "blast" and not extra.has("duration"):
+		v.duration = BLAST_DURATION
 	var points: Array = []
 	for point in v.points:
 		var p := (_vec(point) - origin) / tile_size

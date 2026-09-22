@@ -4,6 +4,7 @@ var failures: Array = []
 func check(ok: bool, label: String) -> void:
 	if not ok: failures.append(label)
 func _initialize() -> void:
+	_verify_blast_timing()
 	var runtime = Runtime.new()
 	var setup := {"epoch":1,"sequence":0,"session":{"clock":"godot","phase":"wave","speed":1.0},"bootstrap":{"enemies":[{"id":1,"hp":100,"maxHp":100,"speed":1,"path":[[0,0],[100,0]]}]}}
 	runtime.process_command(setup)
@@ -43,3 +44,22 @@ func _initialize() -> void:
 	else:
 		for failure in failures: push_error(failure)
 	quit(0 if failures.is_empty() else 1)
+
+func _verify_blast_timing() -> void:
+	for speed in [1.0, 4.0]:
+		var runtime = Runtime.new()
+		runtime.process_command({"epoch":1,"sequence":0,"session":{"clock":"godot","phase":"wave","speed":speed},"bootstrap":{}})
+		var turret := {"statInput":{"definition":{"type":"cannon"}}}
+		runtime._visual("blast", Vector2.ZERO, turret, {"radius":1.0})
+		runtime._visual("impact", Vector2.ZERO, turret)
+		check(is_equal_approx(runtime.visual_effects[0].duration, 1.1), "cannon uses authored 1.1-second lifetime")
+		check(is_equal_approx(runtime.visual_effects[1].duration, 0.28), "ordinary impact lifetime unchanged")
+		runtime.advance_session(0.55 / speed)
+		var frame: Dictionary = runtime.decorate_frame({})
+		check(frame.impacts.size() == 1 and is_equal_approx(frame.impacts[0][4], 0.5), "blast reaches halfway after 0.55 combat seconds at " + str(speed) + "x")
+		runtime.session.paused = true
+		runtime.advance_session(1.0)
+		check(runtime.decorate_frame({}).impacts == frame.impacts, "pause freezes explosion")
+		runtime.session.paused = false
+		runtime.advance_session(0.56 / speed)
+		check(runtime.decorate_frame({}).impacts.is_empty(), "blast expires after 1.1 combat seconds")
