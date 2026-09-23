@@ -156,20 +156,18 @@ func run() -> void:
 	hud.refresh()
 	var sockets := buttons(hud.body).filter(func(button): return str(button.name).begins_with("EquippedSlot"))
 	var link_cost := int(app.run_domain.service.quotes(app.run_domain.state,int(app.run_domain.state.turrets[0].id)).link)
-	assert(sockets.size() == int(app.run_domain.state.turrets[0].slotLimit))
-	var buy_slot := hud.body.find_child("BuyGemSlot",true,false) as Button
+	assert(sockets.size() == int(hud.configuration_cache.derived(app.run_domain.state,app.run_domain.service).get("maxTurretLinkSlots",3)))
+	assert(hud.body.find_child("BuyGemSlot",true,false) == null)
+	(hud.body.find_child("EquippedSlot1",true,false) as Button).pressed.emit()
+	var buy_slot := hud.body.find_child("UnlockGemSlot",true,false) as Button
 	assert(buy_slot != null)
 	assert_wallet_refresh(app,hud,buy_slot,"gold",link_cost)
 	app.run_domain.state.gemInventory = {"attackSpeed":1}
 	hud.refresh()
 	hud.selected_slot = 0; hud.refresh()
-	for button in buttons(hud.body):
-		if button.text.begins_with("가속 ×"):
-			button.pressed.emit(); break
+	(hud.body.find_child("GemInventory_attackSpeed",true,false) as Button).pressed.emit()
 	assert(app.run_domain.state.turrets[0].equippedGemSlots[0] == null)
-	for button in buttons(hud.body):
-		if button.text.begins_with("가속 ×"):
-			button.pressed.emit(); break
+	(hud.body.find_child("GemInventory_attackSpeed",true,false) as Button).pressed.emit()
 	assert(app.run_domain.state.turrets[0].equippedGemSlots[0] == "attackSpeed")
 	hud._selected_command("removeGem",{"slot":0})
 	assert(app.run_domain.state.gemInventory.attackSpeed == 1)

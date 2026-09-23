@@ -364,10 +364,10 @@ func _fit_dock_to_content() -> void:
 	else: detail_panel.add_theme_stylebox_override("panel",BattleTheme.box(Color("0b1b2baa"),Color("33d8ff55"),8))
 	# Scroll only when content reaches its limit; an unselected picker has no panel.
 	var limit := 198.0 if main_tab == "upgrades" else clampf(get_viewport_rect().size.y*0.28,150,280)
-	var gem_rows := body.find_child("EquippedSocketRows",true,false)
-	if gem_rows != null and gem_rows.get_child_count() > 1:
-		limit = clampf(get_viewport_rect().size.y*0.42,220,340)
 	var content_height := body.get_combined_minimum_size().y
+	# Socket tags, the reserved detail row and inventory remain visible together.
+	if main_tab == "turrets" and tab == "gems" and body.find_child("EquippedSocketRows",true,false) != null:
+		limit = maxf(limit,content_height)
 	scroll.custom_minimum_size.y = minf(content_height,limit)
 	var height := bottom.get_combined_minimum_size().y
 	dock.offset_top = -safe_insets().w-height
@@ -391,6 +391,10 @@ func _refresh_purchase_buttons(state: Dictionary) -> void:
 	for entry in body_purchase_buttons:
 		var button: Button = entry.button
 		button.disabled = bool(entry.blocked) or int(state.get(entry.currency,0)) < int(entry.cost)
+		if button.has_meta("gem_unlock_condition"):
+			var condition: Label = button.get_meta("gem_unlock_condition")
+			condition.text = "골드 부족" if int(state.get(entry.currency,0)) < int(entry.cost) else ""
+			condition.visible = not condition.text.is_empty()
 		if button.has_meta("action_content"):
 			button.get_meta("action_content").modulate = Color("78848a") if button.disabled else Color.WHITE
 

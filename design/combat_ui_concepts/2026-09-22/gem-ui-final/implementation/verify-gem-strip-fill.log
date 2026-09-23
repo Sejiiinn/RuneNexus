@@ -1,0 +1,11 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Responsive strip 440px / owned 0: 8 cells, 8 empty, 49.00px square
+Responsive strip 440px / owned 1: 8 cells, 7 empty, 49.00px square
+Responsive strip 440px / owned 6: 8 cells, 2 empty, 49.00px square
+Responsive strip 440px / owned 14: 14 cells, 0 empty, 49.00px square
+Responsive strip 320px / owned 0: 6 cells, 6 empty, 47.00px square
+Responsive strip 320px / owned 1: 6 cells, 5 empty, 47.00px square
+Responsive strip 320px / owned 6: 6 cells, 0 empty, 47.00px square
+Responsive strip 320px / owned 14: 14 cells, 0 empty, 47.00px square
+PASS gem UI changed strip: responsive square tiles filling width, separate quantities, quick equip/remove/compatibility, 14 inventory images at 320/440

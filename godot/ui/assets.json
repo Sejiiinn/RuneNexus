@@ -211,5 +211,6 @@
   "stage_details/v2/reward_heading.png",
   "stage_details/stats/best_record.png",
   "stage_details/stats/total_rounds.png",
-  "stage_details/stats/rune_reward.png"
+  "stage_details/stats/rune_reward.png",
+  "ui/components/gem_unlock_plate.png"
 ]

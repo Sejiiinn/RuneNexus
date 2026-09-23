@@ -1,0 +1,16 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward Mobile - Using Device #0: Apple - Apple M4 (Apple9)
+
+CAPTURE initial-440 body=(424.0, 261.0) scroll=(424.0, 261.0) dock=[P: (0.0, 541.0), S: (440.0, 359.0)]
+CAPTURE unlock-440 body=(424.0, 257.0) scroll=(424.0, 257.0) dock=[P: (0.0, 545.0), S: (440.0, 355.0)]
+CAPTURE opened-440 body=(424.0, 257.0) scroll=(424.0, 257.0) dock=[P: (0.0, 545.0), S: (440.0, 355.0)]
+CAPTURE unlock-320 body=(304.0, 229.0) scroll=(304.0, 229.0) dock=[P: (0.0, 433.0), S: (320.0, 327.0)]
+CAPTURE inventory-320 body=(304.0, 298.0) scroll=(304.0, 213.0) dock=[P: (0.0, 449.0), S: (320.0, 311.0)]
+CAPTURE six-320 body=(304.0, 217.0) scroll=(304.0, 217.0) dock=[P: (0.0, 445.0), S: (320.0, 315.0)]
+CAPTURE inventory-440 body=(424.0, 209.0) scroll=(424.0, 209.0) dock=[P: (0.0, 593.0), S: (440.0, 307.0)]
+CAPTURE six-440 body=(424.0, 261.0) scroll=(424.0, 261.0) dock=[P: (0.0, 541.0), S: (440.0, 359.0)]
+CAPTURE empty-inventory-320 body=(304.0, 68.0) scroll=(304.0, 68.0) dock=[P: (0.0, 594.0), S: (320.0, 166.0)]
+CAPTURE empty-strip-320 body=(304.0, 213.0) scroll=(304.0, 213.0) dock=[P: (0.0, 449.0), S: (320.0, 311.0)]
+CAPTURE empty-inventory-440 body=(424.0, 51.0) scroll=(424.0, 51.0) dock=[P: (0.0, 751.0), S: (440.0, 149.0)]
+CAPTURE empty-strip-440 body=(424.0, 257.0) scroll=(424.0, 257.0) dock=[P: (0.0, 545.0), S: (440.0, 355.0)]
+PASS actual AppLifecycle purchase input, isolated savedata, six-capacity UI fixture
