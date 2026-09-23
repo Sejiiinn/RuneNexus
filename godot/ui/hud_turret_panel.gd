@@ -1,6 +1,9 @@
 extends RefCounted
 ## Turret stats, level preview, traits and target-priority presentation.
 ## Reads the live HUD owner; no selection, snapshot or cache copies.
+const GemPalette = preload("res://ui/battle_rewards.gd")
+const CATEGORY_NAMES := {"physical": "물리", "elemental": "원소", "light": "경량화기", "heavy": "중화기", "damageOverTime": "지속피해", "cooling": "냉각"}
+const CATEGORY_GEMS := {"physical": "physicalDamage", "elemental": "elementalDamage", "light": "lightWeapon", "heavy": "heavyWeapon", "damageOverTime": "damageOverTime"}
 var hud: Control
 
 func _init(owner: Control) -> void:
@@ -13,7 +16,7 @@ func _turret(state: Dictionary,turret: Dictionary) -> void:
 	hud.body.add_child(panel)
 	panel.configure({
 		"title":hud.TOWERS.get(turret.type,turret.type),"icon":"ui/hud/turrets_3d/"+turret.type+".png",
-		"level":"Lv.%d%s" % [turret.level," → %d" % (int(turret.level)+1) if hud.app.selection_view.level_preview else ""],
+		"level":"%d→%d" % [turret.level,int(turret.level)+1] if hud.app.selection_view.level_preview else "Lv.%d" % turret.level,
 		"upgrade_title":"강화 확정" if hud.app.selection_view.level_preview else "강화",
 		"price":"최대 레벨" if int(q.level)<=0 else "%d G" % q.level,"maximum":int(q.level)<=0,
 		"trait_count":int(turret.get("primaryTrait") != null)+int(turret.get("secondaryTrait") != null),
@@ -26,24 +29,29 @@ func _turret(state: Dictionary,turret: Dictionary) -> void:
 	panel.trait_action.tooltip_text = "특성 확인 및 선택"
 	panel.sell_action.tooltip_text = "판매 · +%d G · 금액 확인" % q.sell
 	if active_tab == "gems": hud.gem_panel._gems(state,turret,q); return
-	var damage_row = HBoxContainer.new(); hud.body.add_child(damage_row)
-	hud._label(damage_row,"물리 · 경량화기" if turret.type == "arrow" else ("원소" if turret.type in ["magic","frost","lightning"] else "물리 · 중화기"),11)
+	var category_row := HBoxContainer.new(); category_row.name = "TurretCategoryAndTarget"; category_row.custom_minimum_size.y = 34
+	category_row.add_theme_constant_override("separation",6); hud.body.add_child(category_row)
+	var definition: Dictionary = hud.app.catalog.data.turrets[turret.type].configuration.statInput.definition
+	_category_tag(category_row,str(definition.damageFamily))
+	for tag in definition.get("attackTags",[]): _category_tag(category_row,str(tag))
+	var category_spacer := Control.new(); category_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL; category_row.add_child(category_spacer)
 	if hud.configuration_cache.derived(state,hud.app.run_domain.service).get("canSetTurretTargetPriority",false):
-		var priority = hud._button(damage_row,"목표 · "+hud.PRIORITIES.get(turret.get("targetPriority","first"),"선두")+" ▾",_priority)
+		var priority = hud._button(category_row,"공격 목표 · "+hud.PRIORITIES.get(turret.get("targetPriority","first"),"선두")+"  ▾",_priority)
+		priority.name = "TurretTargetPriority"
 		priority.tooltip_text = "공격 목표 변경"
 		priority.add_theme_font_size_override("font_size",11)
-		priority.custom_minimum_size.y = 30
-		hud._style_hud_button(priority,"quiet",false,Vector2(6,4))
-	hud.damage_label = hud._label(damage_row,"",10); hud.damage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	hud.damage_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		priority.custom_minimum_size.y = 32
+		for state_name in ["normal","hover","pressed","disabled","focus"]:
+			var style: StyleBoxFlat = hud.HudChrome.quiet(state_name,true,Color("65c9df"),Vector2(7,4))
+			priority.add_theme_stylebox_override(state_name,style)
 	var stats = hud._stats(state,turret)
 	var next = {}; var future = turret.duplicate(true); future.level += 1
 	if hud.app.selection_view.level_preview: next = hud._stats(state,future)
-	var stat_scroll = ScrollContainer.new(); stat_scroll.name = "TurretStatsScroll"; stat_scroll.custom_minimum_size.y = 96; stat_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED; stat_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER; hud.body.add_child(stat_scroll)
-	var grid = GridContainer.new(); grid.columns = 2; grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL; grid.add_theme_constant_override("h_separation",16); grid.add_theme_constant_override("v_separation",0); stat_scroll.add_child(grid)
+	var stat_scroll = ScrollContainer.new(); stat_scroll.name = "TurretStatsScroll"; stat_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED; stat_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER; hud.body.add_child(stat_scroll)
+	var grid = GridContainer.new(); grid.name = "TurretStatsGrid"; grid.columns = 2; grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL; grid.add_theme_constant_override("h_separation",22); grid.add_theme_constant_override("v_separation",0); stat_scroll.add_child(grid)
 	stats.dps = hud._dps(stats,turret.type)
 	if not next.is_empty(): next.dps = hud._dps(next,turret.type)
-	var specs = [["피해","damage"],["DPS","dps"],["공격 속도","attackRate"],["사거리","range"],["치명 확률","criticalChance"],["치명 피해","criticalDamageMultiplier"]]
+	var specs = [["피해","damage"],["초당 피해","dps"],["공격 속도","attackRate"],["사거리","range"],["치명 확률","criticalChance"],["치명 피해","criticalDamageMultiplier"]]
 	if float(stats.splashRadius) > 0 or turret.type == "magic": specs.append(["효과 범위","effectAreaMultiplier"])
 	if float(stats.slowDuration) > 0:
 		specs.append(["감속","slowMultiplier"]); specs.append(["감속 지속","slowDuration"])
@@ -56,14 +64,14 @@ func _turret(state: Dictionary,turret: Dictionary) -> void:
 	if int(stats.chainCount) > 0: specs.append(["연쇄","chainCount"])
 	for spec in specs:
 		var cell = VBoxContainer.new(); cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		cell.add_theme_constant_override("separation",0); grid.add_child(cell)
-		var row = HBoxContainer.new(); row.custom_minimum_size.y = 30; row.add_theme_constant_override("separation",4); cell.add_child(row)
-		var title = hud._label(row,spec[0],11); title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		cell.name = "Stat_"+str(spec[1]); cell.add_theme_constant_override("separation",0); grid.add_child(cell)
+		var row = HBoxContainer.new(); row.custom_minimum_size.y = 36; row.add_theme_constant_override("separation",4); cell.add_child(row)
+		var title = hud._label(row,spec[0],12); title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		title.modulate = Color("a6bcc8")
 		var values = VBoxContainer.new(); values.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		values.size_flags_vertical = Control.SIZE_SHRINK_CENTER; values.add_theme_constant_override("separation",0); row.add_child(values)
 		var changed: bool = not next.is_empty() and not is_equal_approx(float(stats[spec[1]]),float(next[spec[1]]))
-		var current = hud._label(values,_stat_value(stats,spec[1]),10 if changed else 13)
+		var current = hud._label(values,_stat_value(stats,spec[1]),12)
 		current.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; current.autowrap_mode = TextServer.AUTOWRAP_OFF
 		current.modulate = Color("91a6b2") if changed else Color("e8f8ff")
 		if changed:
@@ -71,7 +79,28 @@ func _turret(state: Dictionary,turret: Dictionary) -> void:
 			future_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; future_value.autowrap_mode = TextServer.AUTOWRAP_OFF
 			future_value.modulate = Color("8ee6ff")
 		cell.tooltip_text = spec[0]+" · "+_stat_value(stats,spec[1])+(" → "+_stat_value(next,spec[1]) if changed else "")
-		cell.add_child(HSeparator.new())
+		var divider := HSeparator.new(); divider.modulate = Color("70919d66"); cell.add_child(divider)
+	# GridContainer's minimum is stale until its first layout pass. Every pair
+	# occupies one 36 px value row plus its separator and breathing room.
+	stat_scroll.custom_minimum_size.y = minf(ceilf(float(specs.size())/2.0)*40.0,260.0)
+	var total_line := HSeparator.new(); total_line.modulate = Color("70919d88"); hud.body.add_child(total_line)
+	var total := HBoxContainer.new(); total.name = "TurretTotalDamage"; total.custom_minimum_size.y = 34
+	total.add_theme_constant_override("separation",8); hud.body.add_child(total)
+	hud._label(total,"누적 피해",12).modulate = Color("a6bcc8")
+	hud.damage_label = hud._label(total,"0.0",12); hud.damage_label.name = "TurretTotalDamageValue"
+	hud.damage_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT; hud.damage_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+
+func _category_tag(parent: Node,key: String) -> void:
+	if not CATEGORY_NAMES.has(key): return
+	var color := Color(str(GemPalette.GEM_COLORS.get(CATEGORY_GEMS.get(key,""),"7FD8FF")))
+	var chip := PanelContainer.new(); chip.name = "Category_"+key; chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var style := StyleBoxFlat.new(); style.bg_color = Color(color,0.10); style.border_color = Color(color,0.75)
+	style.set_border_width_all(1); style.set_corner_radius_all(3); style.content_margin_left = 7; style.content_margin_right = 7
+	style.content_margin_top = 3; style.content_margin_bottom = 3; chip.add_theme_stylebox_override("panel",style)
+	parent.add_child(chip)
+	var label: Label = hud._label(chip,CATEGORY_NAMES[key],11); label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF; label.add_theme_color_override("font_color",color)
 
 func _stat_value(stats: Dictionary,key: String) -> String:
 	if key == "slowMultiplier": return "%.0f%%" % ((1.0-float(stats[key]))*100)

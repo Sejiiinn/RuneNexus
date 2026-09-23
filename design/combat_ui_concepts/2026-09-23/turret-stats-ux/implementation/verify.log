@@ -1,0 +1,125 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+Metal 4.0 - Forward Mobile - Using Device #0: Apple - Apple M4 (Apple9)
+
+ISOLATED /Users/sejin/Library/Application Support/RuneNexus-TurretStats-Review
+HIT 440 TurretLevelAction [P: (247.0, 515.0), S: (122.0, 48.37728)]
+HIT 440 TurretTraitAction [P: (115.0, 515.0), S: (125.0, 48.37728)]
+HIT 440 TurretSellAction [P: (388.0, 521.0), S: (31.0, 35.90669)]
+TEXT 440 기관총 font=13 size=(48.0, 17.63083)
+TEXT 440 Lv.7 font=13 size=(48.0, 17.20081)
+TEXT 440 특성 font=13 size=(49.0, 18.27586)
+TEXT 440 0/2 선택 font=11 size=(49.0, 16.12576)
+TEXT 440 강화 font=13 size=(54.0, 18.27586)
+TEXT 440 204 G font=11 size=(37.0, 16.12576)
+TEXT 440 판매 font=9 size=(23.0, 12.90061)
+TEXT 440 스탯 font=13 size=(161.0, 22.79107)
+TEXT 440 젬 링크 font=13 size=(165.0, 22.79107)
+HIT gems-preview-440 TurretLevelAction [P: (247.0, 515.0), S: (122.0, 48.37728)]
+HIT gems-preview-440 TurretTraitAction [P: (115.0, 515.0), S: (125.0, 48.37728)]
+HIT gems-preview-440 TurretSellAction [P: (388.0, 521.0), S: (31.0, 35.90669)]
+TEXT gems-preview-440 기관총 font=13 size=(48.0, 17.63083)
+TEXT gems-preview-440 Lv.8 → 9 font=11 size=(48.0, 17.20081)
+TEXT gems-preview-440 특성 font=13 size=(49.0, 18.27586)
+TEXT gems-preview-440 0/2 선택 font=11 size=(49.0, 16.12576)
+TEXT gems-preview-440 강화 확정 font=13 size=(54.0, 18.27586)
+TEXT gems-preview-440 231 G font=11 size=(37.0, 16.12576)
+TEXT gems-preview-440 판매 font=9 size=(23.0, 12.90061)
+TEXT gems-preview-440 스탯 font=13 size=(161.0, 22.79107)
+TEXT gems-preview-440 젬 링크 font=13 size=(165.0, 22.79107)
+HIT 320 TurretLevelAction [P: (180.0, 398.0), S: (86.0, 34.6856)]
+HIT 320 TurretTraitAction [P: (86.0, 398.0), S: (89.0, 34.6856)]
+HIT 320 TurretSellAction [P: (280.0, 403.0), S: (23.0, 25.74442)]
+TEXT 320 라이트닝 font=9 size=(34.0, 12.64097)
+TEXT 320 Lv.7 font=9 size=(34.0, 12.33266)
+TEXT 320 특성 font=9 size=(34.0, 13.10345)
+TEXT 320 0/2 선택 font=8 size=(34.0, 11.56187)
+TEXT 320 강화 font=9 size=(37.0, 13.10345)
+TEXT 320 476 G font=8 size=(24.0, 11.56187)
+TEXT 320 판매 font=6 size=(17.0, 9.249494)
+TEXT 320 스탯 font=9 size=(116.0, 16.34077)
+TEXT 320 젬 링크 font=9 size=(118.0, 16.34077)
+HIT preview-320 TurretLevelAction [P: (180.0, 398.0), S: (86.0, 34.6856)]
+HIT preview-320 TurretTraitAction [P: (86.0, 398.0), S: (89.0, 34.6856)]
+HIT preview-320 TurretSellAction [P: (280.0, 403.0), S: (23.0, 25.74442)]
+TEXT preview-320 라이트닝 font=9 size=(34.0, 12.64097)
+TEXT preview-320 Lv.7 → 8 font=8 size=(34.0, 12.33266)
+TEXT preview-320 특성 font=9 size=(34.0, 13.10345)
+TEXT preview-320 0/2 선택 font=8 size=(34.0, 11.56187)
+TEXT preview-320 강화 확정 font=9 size=(37.0, 13.10345)
+TEXT preview-320 476 G font=8 size=(24.0, 11.56187)
+TEXT preview-320 판매 font=6 size=(17.0, 9.249494)
+TEXT preview-320 스탯 font=9 size=(116.0, 16.34077)
+TEXT preview-320 젬 링크 font=9 size=(118.0, 16.34077)
+HIT arrow TurretLevelAction [P: (180.0, 398.0), S: (86.0, 34.6856)]
+HIT arrow TurretTraitAction [P: (86.0, 398.0), S: (89.0, 34.6856)]
+HIT arrow TurretSellAction [P: (280.0, 403.0), S: (23.0, 25.74442)]
+TEXT arrow 기관총 font=9 size=(34.0, 12.64097)
+TEXT arrow Lv.7 font=9 size=(34.0, 12.33266)
+TEXT arrow 특성 font=9 size=(34.0, 13.10345)
+TEXT arrow 0/2 선택 font=8 size=(34.0, 11.56187)
+TEXT arrow 강화 font=9 size=(37.0, 13.10345)
+TEXT arrow 204 G font=8 size=(24.0, 11.56187)
+TEXT arrow 판매 font=6 size=(17.0, 9.249494)
+TEXT arrow 스탯 font=9 size=(116.0, 16.34077)
+TEXT arrow 젬 링크 font=9 size=(118.0, 16.34077)
+HIT arrow-preview-320 TurretLevelAction [P: (180.0, 398.0), S: (86.0, 34.6856)]
+HIT arrow-preview-320 TurretTraitAction [P: (86.0, 398.0), S: (89.0, 34.6856)]
+HIT arrow-preview-320 TurretSellAction [P: (280.0, 403.0), S: (23.0, 25.74442)]
+TEXT arrow-preview-320 기관총 font=9 size=(34.0, 12.64097)
+TEXT arrow-preview-320 Lv.7 → 8 font=8 size=(34.0, 12.33266)
+TEXT arrow-preview-320 특성 font=9 size=(34.0, 13.10345)
+TEXT arrow-preview-320 0/2 선택 font=8 size=(34.0, 11.56187)
+TEXT arrow-preview-320 강화 확정 font=9 size=(37.0, 13.10345)
+TEXT arrow-preview-320 204 G font=8 size=(24.0, 11.56187)
+TEXT arrow-preview-320 판매 font=6 size=(17.0, 9.249494)
+TEXT arrow-preview-320 스탯 font=9 size=(116.0, 16.34077)
+TEXT arrow-preview-320 젬 링크 font=9 size=(118.0, 16.34077)
+HIT cannon TurretLevelAction [P: (180.0, 398.0), S: (86.0, 34.6856)]
+HIT cannon TurretTraitAction [P: (86.0, 398.0), S: (89.0, 34.6856)]
+HIT cannon TurretSellAction [P: (280.0, 403.0), S: (23.0, 25.74442)]
+TEXT cannon 대포 font=9 size=(34.0, 12.64097)
+TEXT cannon Lv.7 font=9 size=(34.0, 12.33266)
+TEXT cannon 특성 font=9 size=(34.0, 13.10345)
+TEXT cannon 0/2 선택 font=8 size=(34.0, 11.56187)
+TEXT cannon 강화 font=9 size=(37.0, 13.10345)
+TEXT cannon 306 G font=8 size=(24.0, 11.56187)
+TEXT cannon 판매 font=6 size=(17.0, 9.249494)
+TEXT cannon 스탯 font=9 size=(116.0, 16.34077)
+TEXT cannon 젬 링크 font=9 size=(118.0, 16.34077)
+HIT frost TurretLevelAction [P: (180.0, 398.0), S: (86.0, 34.6856)]
+HIT frost TurretTraitAction [P: (86.0, 398.0), S: (89.0, 34.6856)]
+HIT frost TurretSellAction [P: (280.0, 403.0), S: (23.0, 25.74442)]
+TEXT frost 냉각 font=9 size=(34.0, 12.64097)
+TEXT frost Lv.7 font=9 size=(34.0, 12.33266)
+TEXT frost 특성 font=9 size=(34.0, 13.10345)
+TEXT frost 0/2 선택 font=8 size=(34.0, 11.56187)
+TEXT frost 강화 font=9 size=(37.0, 13.10345)
+TEXT frost 289 G font=8 size=(24.0, 11.56187)
+TEXT frost 판매 font=6 size=(17.0, 9.249494)
+TEXT frost 스탯 font=9 size=(116.0, 16.34077)
+TEXT frost 젬 링크 font=9 size=(118.0, 16.34077)
+HIT sniper TurretLevelAction [P: (180.0, 398.0), S: (86.0, 34.6856)]
+HIT sniper TurretTraitAction [P: (86.0, 398.0), S: (89.0, 34.6856)]
+HIT sniper TurretSellAction [P: (280.0, 403.0), S: (23.0, 25.74442)]
+TEXT sniper 저격 font=9 size=(34.0, 12.64097)
+TEXT sniper Lv.7 font=9 size=(34.0, 12.33266)
+TEXT sniper 특성 font=9 size=(34.0, 13.10345)
+TEXT sniper 0/2 선택 font=8 size=(34.0, 11.56187)
+TEXT sniper 강화 font=9 size=(37.0, 13.10345)
+TEXT sniper 408 G font=8 size=(24.0, 11.56187)
+TEXT sniper 판매 font=6 size=(17.0, 9.249494)
+TEXT sniper 스탯 font=9 size=(116.0, 16.34077)
+TEXT sniper 젬 링크 font=9 size=(118.0, 16.34077)
+HIT magic TurretLevelAction [P: (180.0, 398.0), S: (86.0, 34.6856)]
+HIT magic TurretTraitAction [P: (86.0, 398.0), S: (89.0, 34.6856)]
+HIT magic TurretSellAction [P: (280.0, 403.0), S: (23.0, 25.74442)]
+TEXT magic 화염 font=9 size=(34.0, 12.64097)
+TEXT magic Lv.7 font=9 size=(34.0, 12.33266)
+TEXT magic 특성 font=9 size=(34.0, 13.10345)
+TEXT magic 0/2 선택 font=8 size=(34.0, 11.56187)
+TEXT magic 강화 font=9 size=(37.0, 13.10345)
+TEXT magic 272 G font=8 size=(24.0, 11.56187)
+TEXT magic 판매 font=6 size=(17.0, 9.249494)
+TEXT magic 스탯 font=9 size=(116.0, 16.34077)
+TEXT magic 젬 링크 font=9 size=(118.0, 16.34077)
+AUDIT {"checks":1218,"failures":[],"measurements":[{"body_height":343.0,"stat_count":7,"state":"440","stats_height":160.0,"total_visible":true},{"body_height":343.0,"stat_count":7,"state":"gems-preview-440","stats_height":160.0,"total_visible":true},{"body_height":317.0,"stat_count":7,"state":"320","stats_height":160.0,"total_visible":true},{"body_height":317.0,"stat_count":7,"state":"preview-320","stats_height":160.0,"total_visible":true},{"body_height":317.0,"stat_count":7,"state":"arrow","stats_height":160.0,"total_visible":true},{"body_height":317.0,"stat_count":7,"state":"arrow-preview-320","stats_height":160.0,"total_visible":true},{"body_height":317.0,"stat_count":8,"state":"cannon","stats_height":160.0,"total_visible":true},{"body_height":317.0,"stat_count":8,"state":"frost","stats_height":160.0,"total_visible":true},{"body_height":317.0,"stat_count":7,"state":"sniper","stats_height":160.0,"total_visible":true},{"body_height":317.0,"stat_count":8,"state":"magic","stats_height":160.0,"total_visible":true}],"renderer":"mobile","user_dir":"/Users/sejin/Library/Application Support/RuneNexus-TurretStats-Review"}

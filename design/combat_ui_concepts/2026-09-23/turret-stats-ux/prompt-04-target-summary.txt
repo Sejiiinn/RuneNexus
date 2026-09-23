@@ -1,0 +1,11 @@
+Use case: precise-object-edit, ui-mockup.
+Edit the supplied RuneNexus game screenshot concept. Change ONLY content below the 스탯 / 젬 링크 subtabs and above the bottom main navigation. Preserve all surrounding UI, battlefield, top HUD, exact portrait framing, and especially the complete 기관총 Lv.7 / 강화 204 G / 특성 0/2 선택 / 판매 action line without modifications.
+The user likes the clean two-column stat list with breathing room, but requests two changes: move accumulated damage to a separate region, and make targeting control more visible.
+1. Keep the muted 물리 · 경량화기 classification on the left of the utility row. On its right replace the barely visible 목표 · 선두 with a CLEAR medium-sized outlined dark teal dropdown button. Exact button text: "공격 목표   선두  ▾". Give the selected value 선두 brighter white text, the label pale blue, a thin cyan metal edge and adequate padding. This should unmistakably read as a selectable control but remain subordinate to the 강화 action above. No excessive glow, no new icons.
+2. Preserve the tidy two-column stat list, same-size typography, aligned left labels/right values within each column, ample central gutter, restrained hairline row separators. Exact stats:
+row1 left 피해 20.9; right 초당 피해 63.6
+row2 left 공격 속도 3.04 회/초; right 사거리 2.40칸
+row3 left 치명 확률 5%; right 치명 피해 150%
+row4 left 투사체 1발; right EMPTY.
+3. REMOVE 누적 피해 from the right-hand stat list completely. Put it in a visually separate low-profile full-width summary strip BELOW the stats grid, separated by extra whitespace and one subtle top border. Show "누적 피해" on the left and "0.0" on the right. No bulky frame or card. This strip should read as a battle-result counter distinct from turret stats. Do not duplicate it anywhere else.
+Spend the existing panel's lower empty margin on the summary strip. Keep the panel height and the rest of the screenshot unchanged. Keep generous spacing without overlaps. Do not add headings, helper text, hero metrics, individual stat cards, or boxes enclosing each stat. Sharp readable Korean text. Single finished full portrait game UI mockup in the reference's dark navy/teal metal theme.

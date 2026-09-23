@@ -322,7 +322,7 @@ func refresh() -> void:
 		if live.has(str(chosen.get("id"))):
 			damage = 0
 			for field in ["directDamageDealt","splashDamageDealt","chainDamageDealt","burnDamageDealt"]: damage += float(live[str(chosen.id)].get(field,0))
-		damage_label.text = "누적 피해  %.1f" % damage
+		damage_label.text = "%.1f" % damage
 	menu_panel._refresh_core()
 	if rewards != null: rewards.refresh(state)
 	RuntimeProfile.finish("hud", hud_tick)
@@ -360,12 +360,17 @@ func _fit_dock_to_content() -> void:
 	if not is_instance_valid(body): return
 	var picker_only := main_tab == "turrets" and _selected_tile() == ""
 	var integrated_dock := picker_only or main_tab == "upgrades"
+	var turret_stats := main_tab == "turrets" and body.find_child("TurretStatsGrid",true,false) != null
 	detail_panel.theme_type_variation = "HudDock" if integrated_dock else ""
 	if integrated_dock: detail_panel.remove_theme_stylebox_override("panel")
-	else: detail_panel.add_theme_stylebox_override("panel",BattleTheme.box(Color("0b1b2baa"),Color("33d8ff55"),8))
+	else: detail_panel.add_theme_stylebox_override("panel",BattleTheme.box(Color("0b1b2bf5" if turret_stats else "0b1b2baa"),Color("33d8ff55"),8))
 	# Scroll only when content reaches its limit; an unselected picker has no panel.
 	var limit := 198.0 if main_tab == "upgrades" else clampf(get_viewport_rect().size.y*0.28,150,280)
 	var content_height := body.get_combined_minimum_size().y
+	# The selected turret's two-column stat list and cumulative damage need
+	# room below the action strip. Keep the dock bounded on short screens.
+	if turret_stats:
+		limit = maxf(limit,minf(content_height,get_viewport_rect().size.y*0.52))
 	# Socket tags, the reserved detail row and inventory remain visible together.
 	if main_tab == "turrets" and tab == "gems" and body.find_child("EquippedSocketRows",true,false) != null:
 		limit = maxf(limit,content_height)

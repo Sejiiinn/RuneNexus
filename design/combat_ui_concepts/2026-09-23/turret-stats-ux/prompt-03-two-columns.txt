@@ -1,0 +1,9 @@
+Use case: precise-object-edit, ui-mockup.
+Edit the supplied RuneNexus portrait game UI concept. Keep the whole screenshot composition, upper HUD, battlefield, speed controls, bottom navigation, and especially the turret action line (기관총 Lv.7, 강화 204 G, 특성 0/2 선택, 판매) unchanged. Keep 스탯 / 젬 링크 tabs and the small 물리 · 경량화기 / 목표 · 선두 utility row.
+Change ONLY the stats list below that utility row: the user wants TWO SIDE-BY-SIDE COLUMNS with substantially more breathing room. Replace the dense eight-row full-width list with a tidy 2-column by 4-row layout. Do NOT use large hero metrics, individual cards, enclosing nameplates, chunky borders, or new icons. All stat names and values have the SAME restrained font size. Within each column each stat name aligns left and its value aligns right on the SAME baseline. Equal widths, a generous central gutter, generous vertical padding around each of the four rows, comfortable outer side margins. Use only subtle short horizontal hairline separators within each column; no vertical rule. Muted pale blue labels, slightly brighter pale blue values; match existing dark navy/teal metal theme. Preserve the height of the stats area and spend the saved rows on whitespace, do not leave all blank space at the bottom.
+Exact stats grid:
+Row 1 left: 피해   20.9 ; right: 초당 피해   63.6
+Row 2 left: 공격 속도   3.04 회/초 ; right: 사거리   2.40칸
+Row 3 left: 치명 확률   5% ; right: 치명 피해   150%
+Row 4 left: 투사체   1발 ; right: 누적 피해   0.0
+Render all Korean text clearly, no extra headings or helper prose. Show a single full portrait screen, same aspect ratio as reference. Preserve surrounding UI exactly; this is a local stats layout edit.

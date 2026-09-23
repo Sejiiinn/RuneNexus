@@ -1,0 +1,18 @@
+Use case: ui-mockup / precise-object-edit.
+Create ONE corrected Rune Nexus turret stats UI concept by editing this REAL in-game reference screenshot.
+User feedback is definitive: the prior proposal with large primary metrics was disliked. STATS SHOULD BE NEATLY LISTED. No oversized DPS or three-column metric groups. No summary cards, hierarchy of big versus small numbers, dashboards, stat icons or progress bars.
+Preserve the entire existing turret action line exactly in structure, style, relative sizing and content: machinegun icon + '기관총 Lv.7', teal '강화' coin '204 G', purple '특성' / '0/2 선택', small '판매'. User explicitly likes this line. Preserve the upper HUD, battlefield/map/camera, speed/manual/start controls, and bottom main tabs. Only redesign the stats area immediately BELOW the action line. Keep the compact bottom dock footprint and ample battlefield visible.
+Keep the two full-width connected tabs '스탯' | '젬 링크'. 스탯 selected, same restrained dark metal/teal family, thin selected rim. No new categories.
+Below tabs, keep one quiet compact utility line: left '물리 · 경량화기', right small '목표 · 선두 ▾' selector. Then ONE SINGLE VERTICAL LIST, every row exactly the same typographic weight and rhythm: stat name on the LEFT, value and unit RIGHT-ALIGNED at the same right margin. This is one name/value pair per row, NOT two stats per row, NOT multiple columns of metrics. Use subtle thin horizontal dividers, no individual row frames/cards, no shaded alternating rows. Names muted light blue-grey, values soft white. No cyan hero values. Calm clean systematic alignment.
+Exact rows in order:
+피해                    20.9
+공격 속도               3.04 회/초
+초당 피해 (DPS)          63.6
+사거리                  2.40칸
+치명 확률               5%
+치명 피해               150%
+투사체                  1발
+누적 피해               0.0
+All eight rows have equal height and values have uniform font size. Compact legible ~11-12 logical px text at440px width, no exaggerated row padding. Same inset left/right margins throughout. Fit gracefully below existing tabs; don't enlarge the whole dock into half the screen. No new 'more' button, no expansion toggle, no giant heading. Existing stats content can scroll within its fixed area when needed in actual implementation; no visible scrollbar in the concept. Do not omit information to create blank space.
+Theme: continuous near-black navy panel, understated worn thin metal outer frame, teal only in existing action controls; plain open stat list, no internal boxes. Keep actions and numerical information visually separate.
+Bottom footer EXACT order '포탑' | '업그레이드' | '젬', only 포탑 selected. Maintain all original gameplay values, selection and layout outside the edit region. Return a SINGLE full portrait game screenshot concept with crisp readable Korean text, no device mockup, no outside labels, no marketing title. This is a proposal only, not a game implementation.

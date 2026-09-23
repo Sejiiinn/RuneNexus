@@ -1,0 +1,32 @@
+{
+  "renderer": "Godot 4.7.2, Metal 4.0 Forward Mobile, Apple M4",
+  "project": "build/godot/run-upgrades-review",
+  "user_dir": "/Users/sejin/Library/Application Support/RuneNexus-TurretStats-Review",
+  "sources": [
+    {
+      "source": "godot/ui/hud_turret_panel.gd",
+      "sha256": "11d8ee7644c2efd68c11a1b507216ded237e7041e1ad2d9a4b31fe461085d870",
+      "prepared_sha256": "11d8ee7644c2efd68c11a1b507216ded237e7041e1ad2d9a4b31fe461085d870"
+    },
+    {
+      "source": "godot/ui/turret_action_panel.gd",
+      "sha256": "a450a4ef6be042c08b46466f7a59ae560be5aed59e870b1558a02ed425f7ccdf",
+      "prepared_sha256": "a450a4ef6be042c08b46466f7a59ae560be5aed59e870b1558a02ed425f7ccdf"
+    },
+    {
+      "source": "godot/ui/battle_hud.gd",
+      "sha256": "80cdfb3f7ba7c694289fe82b311853db6a33de3883d458f2e2367d988b3a04df",
+      "prepared_sha256": "80cdfb3f7ba7c694289fe82b311853db6a33de3883d458f2e2367d988b3a04df"
+    },
+    {
+      "source": "godot/ui/battle_rewards.gd",
+      "sha256": "f8733681a0e3c58fd12f8d9f9f0785754288e4d4f53f903667f73e6f27108516",
+      "prepared_sha256": "f8733681a0e3c58fd12f8d9f9f0785754288e4d4f53f903667f73e6f27108516"
+    },
+    {
+      "source": "godot/ui/hud_gem_panel.gd",
+      "sha256": "fe9ed4fffc7b8189d1c57370f66bb2d05630027ccfc9dcd8f09a18c1b752c1d9",
+      "prepared_sha256": "fe9ed4fffc7b8189d1c57370f66bb2d05630027ccfc9dcd8f09a18c1b752c1d9"
+    }
+  ]
+}

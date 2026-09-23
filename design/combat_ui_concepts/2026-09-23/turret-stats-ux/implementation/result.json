@@ -1,0 +1,78 @@
+{
+  "checks": 1218,
+  "failures": [],
+  "measurements": [
+    {
+      "body_height": 343.0,
+      "stat_count": 7,
+      "state": "440",
+      "stats_height": 160.0,
+      "total_visible": true
+    },
+    {
+      "body_height": 343.0,
+      "stat_count": 7,
+      "state": "gems-preview-440",
+      "stats_height": 160.0,
+      "total_visible": true
+    },
+    {
+      "body_height": 317.0,
+      "stat_count": 7,
+      "state": "320",
+      "stats_height": 160.0,
+      "total_visible": true
+    },
+    {
+      "body_height": 317.0,
+      "stat_count": 7,
+      "state": "preview-320",
+      "stats_height": 160.0,
+      "total_visible": true
+    },
+    {
+      "body_height": 317.0,
+      "stat_count": 7,
+      "state": "arrow",
+      "stats_height": 160.0,
+      "total_visible": true
+    },
+    {
+      "body_height": 317.0,
+      "stat_count": 7,
+      "state": "arrow-preview-320",
+      "stats_height": 160.0,
+      "total_visible": true
+    },
+    {
+      "body_height": 317.0,
+      "stat_count": 8,
+      "state": "cannon",
+      "stats_height": 160.0,
+      "total_visible": true
+    },
+    {
+      "body_height": 317.0,
+      "stat_count": 8,
+      "state": "frost",
+      "stats_height": 160.0,
+      "total_visible": true
+    },
+    {
+      "body_height": 317.0,
+      "stat_count": 7,
+      "state": "sniper",
+      "stats_height": 160.0,
+      "total_visible": true
+    },
+    {
+      "body_height": 317.0,
+      "stat_count": 8,
+      "state": "magic",
+      "stats_height": 160.0,
+      "total_visible": true
+    }
+  ],
+  "renderer": "mobile",
+  "user_dir": "/Users/sejin/Library/Application Support/RuneNexus-TurretStats-Review"
+}

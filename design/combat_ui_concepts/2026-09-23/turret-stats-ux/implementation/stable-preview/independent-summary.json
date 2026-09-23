@@ -1,0 +1,58 @@
+{
+  "result": "PASS",
+  "transitions": 32,
+  "consecutive_draw_frames_per_transition": 8,
+  "frames": 256,
+  "failures": [],
+  "measurements": {
+    "440": {
+      "level_font": 13,
+      "target_rect": [
+        330.0,
+        604.0,
+        102.0,
+        32.0
+      ],
+      "target_font": 11,
+      "dock": [
+        0.0,
+        459.0,
+        440.0,
+        441.0
+      ]
+    },
+    "320": {
+      "level_font": 9,
+      "target_rect": [
+        210.0,
+        464.0,
+        102.0,
+        32.0
+      ],
+      "target_font": 11,
+      "dock": [
+        0.0,
+        345.0,
+        320.0,
+        415.0
+      ]
+    }
+  },
+  "sources": [
+    {
+      "source": "godot/ui/hud_turret_panel.gd",
+      "sha256": "08c6ae4e8896445e1cbd6bca4aea232da1b374c1a5b22f022b911070b1cb4ff7",
+      "prepared_sha256": "08c6ae4e8896445e1cbd6bca4aea232da1b374c1a5b22f022b911070b1cb4ff7"
+    },
+    {
+      "source": "godot/ui/turret_action_panel.gd",
+      "sha256": "a450a4ef6be042c08b46466f7a59ae560be5aed59e870b1558a02ed425f7ccdf",
+      "prepared_sha256": "a450a4ef6be042c08b46466f7a59ae560be5aed59e870b1558a02ed425f7ccdf"
+    },
+    {
+      "source": "godot/ui/battle_hud.gd",
+      "sha256": "80cdfb3f7ba7c694289fe82b311853db6a33de3883d458f2e2367d988b3a04df",
+      "prepared_sha256": "80cdfb3f7ba7c694289fe82b311853db6a33de3883d458f2e2367d988b3a04df"
+    }
+  ]
+}
