@@ -7,7 +7,7 @@ const Components = preload("res://ui/combat_component_theme.gd")
 const HudChrome = preload("res://ui/hud_chrome.gd")
 const TOWERS := {"arrow":"기관총", "cannon":"대포", "magic":"화염", "frost":"냉각", "sniper":"저격", "lightning":"라이트닝"}
 const DESCRIPTIONS := {"arrow":"빠른 연사로 앞선 적을 집중 공격하는 단일 대상 포탑입니다.","cannon":"느리지만 강한 포탄으로 주변 적까지 함께 타격합니다.","magic":"원소 화염으로 적을 태우는 지속피해 성향의 포탑입니다.","frost":"포탑 중심에서 냉기를 방출해 사거리 안 적 전체를 타격하고 잠시 둔화합니다.","sniper":"긴 사거리에서 1초간 조준한 뒤 즉시 타격하는 단일 대상 포탑입니다.","lightning":"코일 방전을 충전한 뒤 번개가 근처 적에게 이어지는 중화기 원소 포탑입니다."}
-const UPGRADES := {"towerDamage":"포탑 피해", "killGold":"처치 골드", "waveGold":"웨이브 골드"}
+const UPGRADES := {"towerDamage":"포탑 화력", "killGold":"처치 보너스", "waveGold":"정비 보급"}
 const PRIORITIES := {"first":"선두", "last":"후미", "strongest":"최대 체력", "weakest":"최저 체력", "nearest":"가까운 적"}
 const PRIORITY_HELP := {"first":"코어에 가장 가까이 다가간 적을 먼저 공격합니다.","last":"진행 경로의 뒤쪽에 있는 적을 먼저 공격합니다.","strongest":"남은 체력이 가장 높은 적을 공격합니다.","weakest":"남은 체력이 가장 낮은 적을 공격합니다.","nearest":"포탑에서 가장 가까운 적을 공격합니다."}
 var app
@@ -359,8 +359,9 @@ func _fit_dock_to_content() -> void:
 	_dock_layout_pending = false
 	if not is_instance_valid(body): return
 	var picker_only := main_tab == "turrets" and _selected_tile() == ""
-	detail_panel.theme_type_variation = "HudDock" if picker_only else ""
-	if picker_only: detail_panel.remove_theme_stylebox_override("panel")
+	var integrated_dock := picker_only or main_tab == "upgrades"
+	detail_panel.theme_type_variation = "HudDock" if integrated_dock else ""
+	if integrated_dock: detail_panel.remove_theme_stylebox_override("panel")
 	else: detail_panel.add_theme_stylebox_override("panel",BattleTheme.box(Color("0b1b2baa"),Color("33d8ff55"),8))
 	# Scroll only when content reaches its limit; an unselected picker has no panel.
 	var limit := 198.0 if main_tab == "upgrades" else clampf(get_viewport_rect().size.y*0.28,150,280)

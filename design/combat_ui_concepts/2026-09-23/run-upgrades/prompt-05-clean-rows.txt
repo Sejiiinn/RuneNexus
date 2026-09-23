@@ -1,0 +1,13 @@
+Use case: ui-mockup / precise-object-edit.
+Edit this Rune Nexus in-battle run-upgrade UI concept. User likes the metal nameplate variant's information presentation but wants a cleaner result: REMOVE THE METAL NAMEPLATE WRAPPING EACH ROW.
+Preserve the exact portrait screenshot composition, entire top HUD, battlefield, resources, camera button, speed/manual/start controls, overall upgrade dock height, bottom tabs, text content, icon identities, row order and typography hierarchy. Change ONLY the treatment of the three upgrade rows.
+SPECIFIC EDIT:
+Erase all three row-enclosing outer metal shapes, beveled polygon borders, left clipped nameplate endcaps, raised row surfaces, inset row borders and row drop shadows. Icon + name + level + description + effect now sit openly on ONE uninterrupted flat dark navy dock background shared across all three rows. There must be NO visible individual row rectangle/nameplate/card around any row, and NO vertical metal border beside the icon or between text and button. Separate rows only with TWO subtle thin horizontal dark silver/teal hairlines; generous clean alignment, no additional ornament.
+Keep the right-hand purchase buttons as individual compact beveled metal dark-teal game buttons, similar to the reference but slightly quieter/thinner bevel if needed. Buttons keep '구매', gold coin and price. These three small button frames are the ONLY enclosed shapes INSIDE the shared dock. Keep shared dock's thin exterior metal rim and header, without new nested containers.
+Keep same large existing three icons on left, same text alignment in middle and same right purchase-button column. Main names white, descriptions muted blue-grey, current effects white, arrows grey, next effects cyan, gold coin and gold numeric costs. All three names, levels and effects must remain exact:
+header '업그레이드' plus '이번 전투에 적용'
+row1 '포탑 화력', 'Lv.0/20', '모든 포탑 피해', '+0% → +3%', button '구매' with coin and '32 G'
+row2 '처치 보너스', 'Lv.0/20', '적 처치 골드', '+0% → +2%', button '구매' with coin and '20 G'
+row3 '정비 보급', 'Lv.0/20', '웨이브 종료 골드', '+0 G → +4 G', button '구매' with coin and '10 G'
+footer exactly '포탑' | '업그레이드' | '젬', only center selected.
+The result should look like the same metal-themed game dock with its individual row shells peeled away: calmer, cleaner, open, more readable. NOT a table, not three columns, not a different design. Do not remove the purchase buttons' frames. No new features, no extra texts, no loss of descriptions or levels. Do not change terrain, viewport framing or UI positioning. Return a single full portrait screenshot concept, no phone frame, no outside labels.
