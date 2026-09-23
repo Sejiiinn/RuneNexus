@@ -1,0 +1,43 @@
+{
+  "triangles": 72752,
+  "sha256": "18c4a4843673a1092571daa298f201c83a210c8fa5f35c4f5bdcfae178a0c964",
+  "embedded_images": 7,
+  "runtime_nodes": 7,
+  "editable_meshes": 253,
+  "runtime_meshes": 3,
+  "runtime_surfaces": 19,
+  "materials": [
+    "Frost | aged bronze pivot and restraint",
+    "Frost | basalt housing",
+    "Frost | bronze pivot edge",
+    "Frost | cold aluminum fins",
+    "Frost | cold circulating core",
+    "Frost | crystalline rim hoarfrost",
+    "Frost | dark deep coolant column",
+    "Frost | deeply fractured blue ice lens",
+    "Frost | graphite blue-black machined steel",
+    "Frost | recessed cavity",
+    "Frost | submerged branching ice fractures",
+    "Frost | transparent ice outer skin",
+    "Frost | worn edge steel"
+  ],
+  "dimensions_blender_xyz": [
+    0.8182633519172668,
+    0.8182633519172668,
+    0.5344000458717346
+  ],
+  "glb_bytes": 7365020,
+  "rig": [
+    "turret_root",
+    "turret_head",
+    "turret_barrel",
+    "muzzle"
+  ],
+  "structure": {
+    "shutters": 6,
+    "ribs": 6,
+    "cooling_bays": 6,
+    "fins_per_bay": 12,
+    "feet": 4
+  }
+}

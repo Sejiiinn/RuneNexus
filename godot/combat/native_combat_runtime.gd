@@ -842,7 +842,16 @@ func decorate_frame(base: Dictionary, reuse_static: bool = false) -> Dictionary:
 	frame.turrets = []
 	for t in turrets.values():
 		var p := (_vec(t.position)-origin)/tile_size
-		frame.turrets.append([t.id,p.x,p.y,t.aimAngle,t.shotSequence,t.fireFeedback/0.18,t.statInput.definition.type,t.statInput.level])
+		var row := [t.id,p.x,p.y,t.aimAngle,t.shotSequence,t.fireFeedback/0.18,t.statInput.definition.type,t.statInput.level]
+		if t.statInput.definition.type == "frost":
+			# Presentation extension only. Older eight-field consumers remain valid.
+			# Saves retain remaining cooldown but not lastBaseCooldown; derive a safe
+			# denominator from current attack speed without changing saved state.
+			var duration := float(t.get("lastBaseCooldown", 0.0))
+			if duration <= 0.0:
+				duration = maxf(float(t.cooldown), 1.0 / maxf(.001, float(t.stats.attackRate)))
+			row.append({"cooldown":t.cooldown, "duration":duration, "radius":float(t.stats.centeredAreaRadius)/tile_size})
+		frame.turrets.append(row)
 	if frame.has("presentation"):
 		if not frame.presentation.has("labels"): frame.presentation.labels = {}
 		frame.presentation.labels.enemies = labels

@@ -1,0 +1,7 @@
+{
+  "all_material_geometry_equal": true,
+  "node_transforms_equal": true,
+  "material_triangle_sets": 13,
+  "before_sha256": "18c4a4843673a1092571daa298f201c83a210c8fa5f35c4f5bdcfae178a0c964",
+  "after_sha256": "e84d5a97650056d139fd6a61868e621042955937d0584c996416dc6cc59a8544"
+}

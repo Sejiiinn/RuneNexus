@@ -1,0 +1,12 @@
+config_version=5
+[application]
+config/name="Frost charge mist concept"
+run/main_scene="res://main.tscn"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="RuneNexus-frost-charge-concept"
+[display]
+window/size/viewport_width=1100
+window/size/viewport_height=800
+[rendering]
+renderer/rendering_method="mobile"
+textures/default_filters/use_nearest_mipmap_filter=false

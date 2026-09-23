@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>냉각포탑 · 충전과 서리 안개</title>
+<style>
+:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;background:#091519;color:#e6f1f1}body{max-width:1100px;margin:0 auto;padding:28px 22px}h1{font-size:24px;font-weight:600;margin:0 0 9px}p{font-size:15px;color:#a9c1c6;line-height:1.65;margin:0 0 24px}video{display:block;width:100%;max-height:calc(100vh - 220px);object-fit:contain;background:#0b171c;border:1px solid #244149;border-radius:8px}footer{display:flex;gap:18px;flex-wrap:wrap;align-items:center;margin-top:17px;font-size:14px;color:#92b6bf}a{color:#a5e4ef}button{background:#183740;border:1px solid #3f6974;color:#d8f6fb;border-radius:5px;padding:8px 14px;cursor:pointer}button:hover{background:#25505b}
+</style>
+<h1>냉각포탑 · 충전과 서리 안개</h1>
+<p>고정된 냉각핀에 빛이 차오르고, 가까워진 적을 향해 서리 안개가 주변으로 퍼지는 애니메이션 시안입니다.</p>
+<video id="v" controls autoplay muted loop playsinline preload="auto" src="preview.mp4"></video>
+<footer><button id="restart">처음부터</button><button id="speed">0.5배속으로 보기</button><a href="preview.mp4" download>영상 저장</a><span>시안 · 본게임 적용 전</span></footer>
+<script>const v=document.querySelector('#v');document.querySelector('#restart').onclick=()=>{v.currentTime=0;v.play()};document.querySelector('#speed').onclick=e=>{v.playbackRate=v.playbackRate===1?.5:1;e.target.textContent=v.playbackRate===1?'0.5배속으로 보기':'1배속으로 보기'};</script>
+</html>

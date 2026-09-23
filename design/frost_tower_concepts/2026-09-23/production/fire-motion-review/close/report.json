@@ -1,0 +1,539 @@
+{
+	"asset_sha256": "43d87d3eae5fb3ac0867bcf4701e36df17b77570221d00f11dc08785aad26d26",
+	"engine": "4.7.2-stable (official)",
+	"fire_tick": 54,
+	"frame_count": 33,
+	"frames": [
+		{
+			"barrel_z": 0.0,
+			"file": "frame_000.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": 1.57079637050629,
+			"muzzle_world": [
+				-1.47500002384186,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 0,
+			"smoke_visible": false,
+			"tick": 46,
+			"time": 0.783333333333334
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_001.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": 1.57079637050629,
+			"muzzle_world": [
+				-1.47500002384186,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 0,
+			"smoke_visible": false,
+			"tick": 47,
+			"time": 0.800000000000001
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_002.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": 1.57079637050629,
+			"muzzle_world": [
+				-1.47500002384186,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 0,
+			"smoke_visible": false,
+			"tick": 48,
+			"time": 0.816666666666668
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_003.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": 1.57079637050629,
+			"muzzle_world": [
+				-1.47500002384186,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 0,
+			"smoke_visible": false,
+			"tick": 49,
+			"time": 0.833333333333334
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_004.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": 1.57079637050629,
+			"muzzle_world": [
+				-1.47500002384186,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 0,
+			"smoke_visible": false,
+			"tick": 50,
+			"time": 0.850000000000001
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_005.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": 1.57079637050629,
+			"muzzle_world": [
+				-1.47500002384186,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 0,
+			"smoke_visible": false,
+			"tick": 51,
+			"time": 0.866666666666668
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_006.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": 1.57079637050629,
+			"muzzle_world": [
+				-1.47500002384186,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 0,
+			"smoke_visible": false,
+			"tick": 52,
+			"time": 0.883333333333334
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_007.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": 1.57079637050629,
+			"muzzle_world": [
+				-1.47500002384186,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 0,
+			"smoke_visible": false,
+			"tick": 53,
+			"time": 0.900000000000001
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_008.png",
+			"flash_visible": true,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 54,
+			"time": 0.916666666666668
+		},
+		{
+			"barrel_z": -0.0416666679084301,
+			"file": "frame_009.png",
+			"flash_visible": true,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.48333334922791,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 55,
+			"time": 0.933333333333335
+		},
+		{
+			"barrel_z": -0.0356826521456242,
+			"file": "frame_010.png",
+			"flash_visible": true,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.48931729793549,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 56,
+			"time": 0.950000000000001
+		},
+		{
+			"barrel_z": -0.0267795920372009,
+			"file": "frame_011.png",
+			"flash_visible": true,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.4982203245163,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 57,
+			"time": 0.966666666666668
+		},
+		{
+			"barrel_z": -0.0191520415246487,
+			"file": "frame_012.png",
+			"flash_visible": true,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.5058479309082,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 58,
+			"time": 0.983333333333335
+		},
+		{
+			"barrel_z": -0.0127999996766448,
+			"file": "frame_013.png",
+			"flash_visible": true,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.51219999790192,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 59,
+			"time": 1.0
+		},
+		{
+			"barrel_z": -0.00772346928715706,
+			"file": "frame_014.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.51727652549744,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 60,
+			"time": 1.01666666666667
+		},
+		{
+			"barrel_z": -0.00392244895920157,
+			"file": "frame_015.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52107751369476,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 61,
+			"time": 1.03333333333333
+		},
+		{
+			"barrel_z": -0.00139693880919367,
+			"file": "frame_016.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52360308170319,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 62,
+			"time": 1.05
+		},
+		{
+			"barrel_z": -0.000146938778925687,
+			"file": "frame_017.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52485299110413,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 63,
+			"time": 1.06666666666667
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_018.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 64,
+			"time": 1.08333333333333
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_019.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 65,
+			"time": 1.1
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_020.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 66,
+			"time": 1.11666666666667
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_021.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 67,
+			"time": 1.13333333333333
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_022.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 68,
+			"time": 1.15
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_023.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 69,
+			"time": 1.16666666666667
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_024.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 70,
+			"time": 1.18333333333333
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_025.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 71,
+			"time": 1.2
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_026.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 72,
+			"time": 1.21666666666667
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_027.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 73,
+			"time": 1.23333333333333
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_028.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 74,
+			"time": 1.25
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_029.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": true,
+			"tick": 75,
+			"time": 1.26666666666667
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_030.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": false,
+			"tick": 76,
+			"time": 1.28333333333333
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_031.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": false,
+			"tick": 77,
+			"time": 1.3
+		},
+		{
+			"barrel_z": 0.0,
+			"file": "frame_032.png",
+			"flash_visible": false,
+			"frost_projectiles": [],
+			"head_y_radians": -1.57079613208771,
+			"muzzle_world": [
+				-1.52499997615814,
+				0.51199996471405,
+				-4.5
+			],
+			"shot_sequence": 1,
+			"smoke_visible": false,
+			"tick": 78,
+			"time": 1.31666666666667
+		}
+	],
+	"frost_id": 1000,
+	"renderer": "mobile",
+	"user_directory": "/Users/sejin/Library/Application Support/RuneNexus-Frost-Review-1790095363"
+}

@@ -11,6 +11,7 @@ const WeaponAtlas = preload("res://effects/weapon_atlas.gd")
 const MachineGunMuzzle = preload("res://effects/machinegun_muzzle.gd")
 const BallisticProjectile = preload("res://effects/ballistic_projectile.gd")
 const RunicFire = preload("res://effects/runic_fire.gd")
+const FrostTower = preload("res://effects/frost_tower.gd")
 const EnemyFrost = preload("res://effects/enemy_frost.gd")
 const EnemyBurn = preload("res://effects/enemy_burn.gd")
 const NativeCombatRuntime = preload("res://combat/native_combat_runtime.gd")
@@ -1522,6 +1523,12 @@ func _new_turret(type: String) -> Dictionary:
 		"last_shot": -1, "last_time": -INF, "fire_start": -INF, "active_port": 0,
 	}
 	entry["level_bounds"] = TurretLevelLabels.base_bounds(root, entry["head"], root.transform.affine_inverse())
+	if type == "frost":
+		var effect := FrostTower.new()
+		root.add_child(effect)
+		effect.configure(root)
+		entry["frost_effect"] = effect
+		return entry
 	if type == "magic":
 		# 발광 홈은 금속 반사광으로 희게 날리지 않고 원본 주황색을 유지한다.
 		for mesh: MeshInstance3D in root.find_children("*", "MeshInstance3D", true, false):
@@ -1556,6 +1563,7 @@ func _new_turret(type: String) -> Dictionary:
 
 func _sync_turrets(units: Array) -> void:
 	var alive := {}
+	var frost_lights := 0
 	var occupied := Vector2i.ZERO
 	for data: Array in units:
 		var id := int(data[0])
@@ -1583,8 +1591,13 @@ func _sync_turrets(units: Array) -> void:
 		entry["root"].visible = not (type == "magic" and options.get("runic_fire_mode", "all") == "no_model")
 		entry["level"] = int(data[7]) if data.size() > 7 else 1
 		entry["root"].position = Vector3(float(data[1]) - columns / 2.0, 0.0, float(data[2]) - rows / 2.0)
-		entry["head"].rotation.y = PI / 2.0 - float(data[3])
-		_update_fire(entry, int(data[4]), float(data[5]))
+		entry["head"].rotation.y = 0.0 if type == "frost" else PI / 2.0 - float(data[3])
+		if type == "frost":
+			var state: Dictionary = data[8] if data.size() > 8 and data[8] is Dictionary else {}
+			entry["frost_effect"].update_state(float(last_frame.get("time", 0.0)), int(data[4]), float(data[5]), state, bool(options["volume"]), frost_lights < 4)
+			frost_lights += 1
+		else:
+			_update_fire(entry, int(data[4]), float(data[5]))
 	for id in turrets.keys():
 		if not alive.has(id):
 			turrets[id]["root"].free()
@@ -1728,7 +1741,7 @@ func _sync_build_preview(data) -> void:
 		for mesh: GeometryInstance3D in _build_preview["root"].find_children("*", "GeometryInstance3D", true, false):
 			mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_build_preview["root"].position = Vector3(float(data[1]) - columns / 2.0, 0.10 + sin(float(last_frame.get("time", 0.0)) * 3.0) * 0.02, float(data[2]) - rows / 2.0)
-	_build_preview["head"].rotation.y = PI / 2.0 - float(data[3])
+	_build_preview["head"].rotation.y = 0.0 if type == "frost" else PI / 2.0 - float(data[3])
 	_build_preview["barrel"].position.z = _build_preview["barrel_rest_z"]
 	if _build_preview.has("fire_effect"):
 		_build_preview["fire_effect"].update_turret(_build_preview["flame_port"], _build_preview["muzzle"], float(last_frame.get("time", 0.0)))

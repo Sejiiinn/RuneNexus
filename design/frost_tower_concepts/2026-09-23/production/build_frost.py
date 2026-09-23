@@ -5,7 +5,8 @@ import bpy, math, random, json, os, struct, hashlib
 from mathutils import Vector
 from pathlib import Path
 ROOT=Path('/Users/sejin/Documents/Codex/RuneNexus')
-OUT=ROOT/'design/frost_tower_concepts/2026-09-23/production'
+PRODUCTION=ROOT/'design/frost_tower_concepts/2026-09-23/production'
+OUT=Path(globals().get('FROST_OUTPUT_PATH',PRODUCTION))
 OUT.mkdir(parents=True,exist_ok=True)
 SCALE=1.0
 scene=bpy.data.scenes.new('Frost cooling-fin production')
@@ -42,14 +43,14 @@ surface_maps={}
 for m,kind in [(steel,'metal'),(stone,'metal'),(ice,'ice')]:
     for channel in ['basecolor','normal','roughness']:
         n=m.node_tree.nodes;l=m.node_tree.links;p=n.get('Principled BSDF')
-        tex=n.new('ShaderNodeTexImage');path=str(OUT/f'textures/{kind}_{channel}.png')
+        tex=n.new('ShaderNodeTexImage');path=str(PRODUCTION/f'textures/{kind}_{channel}.png')
         if path not in surface_maps:surface_maps[path]=bpy.data.images.load(path,check_existing=False)
         tex.image=surface_maps[path]
         if channel!='basecolor':tex.image.colorspace_settings.name='Non-Color'
         if channel=='normal':
             normal=n.new('ShaderNodeNormalMap');normal.inputs['Strength'].default_value=.6;l.new(tex.outputs[0],normal.inputs[0]);l.new(normal.outputs[0],p.inputs['Normal'])
         else:l.new(tex.outputs[0],p.inputs['Base Color' if channel=='basecolor' else 'Roughness'])
-emtex=ice.node_tree.nodes.new('ShaderNodeTexImage');emtex.image=bpy.data.images.load(str(OUT/'textures/ice_emission.png'),check_existing=False)
+emtex=ice.node_tree.nodes.new('ShaderNodeTexImage');emtex.image=bpy.data.images.load(str(PRODUCTION/'textures/ice_emission.png'),check_existing=False)
 ice.node_tree.links.new(emtex.outputs[0],ice.node_tree.nodes.get('Principled BSDF').inputs['Emission Color']);ice.node_tree.nodes.get('Principled BSDF').inputs['Emission Strength'].default_value=.9
 shellmat=mat('Frost | transparent ice outer skin','196B93',.18,.0)
 shellmat.node_tree.nodes.get('Principled BSDF').inputs['Alpha'].default_value=.13
@@ -119,6 +120,12 @@ for i in range(6):
     sector(f'Load bearing rib {i+1}',.235,.321,.10,.544,a-.285,a+.285,stone,5,bevel=.004)
     sector(f'Rib bronze head restraint {i+1}',.310,.328,.507,.582,a-.087,a+.087,bronze,4,bevel=.002)
     sector(f'Rib bronze lower restraint {i+1}',.310,.327,.087,.119,a-.087,a+.087,bronze,4,bevel=.002)
+    # Narrow continuous restraint rails join the bronze top shoe to its lower
+    # shoe; the broad dark structural rib remains visible between the rails.
+    for side in (-1,1):
+        ra=a+side*.075
+        sector(f'Continuous rib bronze rail {i+1}-{side}',.314,.329,.108,.540,ra-.012,ra+.012,bronze,2,bevel=.0012)
+    sector(f'Rib load-bearing lower socket {i+1}',.277,.325,.060,.098,a-.118,a+.118,steel,4,bevel=.003)
     # Actual narrow, deep bays with free standing stacked fins and shadow gaps.
     ca=a+math.pi/6;x,y,_=polar(.263,ca,0)
     cyl(f'Cooling core {i+1}',.034,.399,.322,coremat,(x,y),32,bevel=.002)
@@ -138,6 +145,16 @@ for i in range(4):
         for r,z in profile:vs.append((r*math.cos(a)-w*math.sin(a),r*math.sin(a)+w*math.cos(a),z))
     k=len(profile);fs=[tuple(reversed(range(k))),tuple(range(k,2*k))]+[(j,(j+1)%k,(j+1)%k+k,j+k) for j in range(k)]
     foot=mesh(f'Outrigger foot {i+1}',vs,fs,stone,bevel=.005)
+    # Four feet retain their cardinal layout. A low load saddle bridges the
+    # six-rib ring into each foot; the two between-rib feet do not gain a tall
+    # fake column across a cooling bay.
+    sector(f'Foot continuous load saddle {i+1}',.284,.343,.083,.166,a-.23,a+.23,steel,8,bevel=.003)
+    for side in (-1,1):
+        # Solid diagonal straps connect the upper foot frame with the saddle.
+        start=Vector(polar(.317,a,.163));end=Vector(polar(.359,a,.161))
+        offset=Vector((-math.sin(a),math.cos(a),0))*side*.039
+        mid=(start+end)*.5+offset
+        box(f'Foot bronze shoulder bridge {i+1}-{side}',mid,(.054,.014,.025),bronze,a,bevel=.002)
     # inset aligned to the outward descending bevel.
     # Four solid frame members surround a physically recessed window.
     origin=Vector(polar(.370,a,.133))
@@ -152,24 +169,37 @@ for i in range(4):
     ob=box(f'Foot aperture shadow {i+1}',origin-normal*.003,(.119,.056,.005),black,a,bevel=.002);ob.rotation_euler=(0,1.11,a)
     ob=box(f'Foot narrow cyan window {i+1}',origin-normal*.0005,(.104,.022,.004),cyan,a,bevel=.001);ob.rotation_euler=(0,1.11,a)
 
-# Curved iris plates: sculpted tapered strips, rising at pivot and overlapping at tips.
+# Six thick, swept blades with a true open gap at every radial cross-section.
+# At a given radius each blade occupies < 60 degrees, so adjacent plates never
+# overlap even in top projection. The inner tip sweeps 57 degrees forward while
+# the outer, broad pivot root stays radial: a spiral of blades, not radial wedges.
 def bez(points,t):return sum((Vector(p)*w for p,w in zip(points,[(1-t)**3,3*(1-t)**2*t,3*(1-t)*t*t,t**3])),Vector((0,0)))
-outer=[(.290,-.048),(.347,.095),(.257,.226),(.055,.170)]
-inner=[(.219,-.048),(.171,-.003),(.148,.101),(.055,.170)]
+def blade_point(v,side):
+    radius=.168+.157*v
+    center=1.0*(1.0-v)**1.25
+    half=.485-.055*(1.0-v)**4
+    angle=center+side*half
+    return Vector((radius*math.cos(angle),radius*math.sin(angle)))
 for j in range(6):
-    a=j*math.tau/6;vs=[];N=24
-    for layer in range(2):
+    a=j*math.tau/6;vs=[];N=28;M=10
+    for z in (.603,.650):
         for i in range(N+1):
-            t=i/N
-            for points in (inner,outer):
-                p=bez(points,t);z=.628-.021*t+layer*.023
+            v=i/N
+            for k in range(M+1):
+                p=blade_point(v,-1+2*k/M)
                 vs.append((p.x*math.cos(a)-p.y*math.sin(a),p.x*math.sin(a)+p.y*math.cos(a),z))
-    K=2*(N+1);fs=[]
+    W=M+1;K=(N+1)*W;fs=[]
     for i in range(N):
-        q=2*i;fs.extend([(q,q+2,q+3,q+1),(K+q+1,K+q+3,K+q+2,K+q),(q,K+q,K+q+2,q+2),(q+1,q+3,K+q+3,K+q+1)])
-    fs.extend([(0,1,K+1,K),(2*N,K+2*N,K+2*N+1,2*N+1)])
-    mesh(f'Iris swept shutter {j+1}',vs,fs,steel,barrel,.0017)
-    x,y,_=polar(.259,a,.65)
+        for k in range(M):
+            q=i*W+k
+            fs.extend([(q,q+1,q+W+1,q+W),(K+q,K+q+W,K+q+W+1,K+q+1)])
+        left=i*W;right=left+M
+        fs.extend([(left,left+W,K+left+W,K+left),(right,K+right,K+right+W,right+W)])
+    for k in range(M):
+        q=N*W+k
+        fs.extend([(k,K+k,K+k+1,k+1),(q,q+1,K+q+1,K+q)])
+    mesh(f'Iris swept shutter {j+1}',vs,fs,steel,barrel,.0035)
+    x,y,_=polar(.284,a+.035,.65)
     cyl(f'Pivot shadow seat {j+1}',.024,.007,.654,black,(x,y),32,barrel)
     cyl(f'Bronze shutter pivot {j+1}',.019,.010,.660,bronzeedge,(x,y),40,barrel)
     cyl(f'Pivot inset face {j+1}',.014,.004,.666,bronze,(x,y),40,barrel,.001)
@@ -209,11 +239,11 @@ for j in range(6):
             fvs.append((q.x*math.cos(a)-q.y*math.sin(a),q.x*math.sin(a)+q.y*math.cos(a),z+dz))
         ffs.extend([(idx,idx+1,idx+3),(idx+1,idx+2,idx+3),(idx+2,idx,idx+3)])
     for k in range(14):
-        t=rng.choice([.59,.73,.86])+rng.uniform(-.034,.034)
-        p=bez([(.219,-.048),(.171,-.003),(.148,.101),(.055,.170)],t)
+        t=rng.uniform(.025,.28)
+        p=blade_point(t,-1)
         radial=p.normalized();tangent=Vector((-radial.y,radial.x))
         length=rng.uniform(.009,.036);end=p+radial*length+tangent*rng.uniform(-.007,.007)
-        z=.652-.021*t+.0008
+        z=.6508
         frost_spike(p,end,rng.uniform(.001,.0027),z)
         for side in (-1,1):
             start=p+(end-p)*rng.uniform(.3,.65)
@@ -251,12 +281,16 @@ camera.location=(1.35,-1.85,1.85);camera.rotation_euler=(Vector((0,0,.25))-camer
 def render(view='hero'):
     camera.location=(1.35,-1.85,1.85) if view=='hero' else (0,-.001,3)
     camera.rotation_euler=(Vector((0,0,.25))-camera.location).to_track_quat('-Z','Y').to_euler()
-    scene.render.filepath=str(OUT/f'stage2f-{view}.png');bpy.ops.render.render(write_still=True)
+    scene.render.filepath=str(OUT/f'detail-{view}.png');bpy.ops.render.render(write_still=True)
 def export():
     displaced=[]
+    displaced_materials=[]
     for m in {m for o in root.children_recursive if o.type=='MESH' for m in o.data.materials}:
-        name=m.name.split('.')[0];old=bpy.data.materials.get(name)
-        if old and old!=m:old.name='Archived prototype '+old.name
+        name=m.name.split('.')[0]
+        while name.startswith('refined_'):name=name[len('refined_'):]
+        old=bpy.data.materials.get(name)
+        if old and old!=m:
+            displaced_materials.append((old,name,m));old.name='Archived prototype '+old.name
         m.name=name
     for o,name in [(root,'turret_root'),(head,'turret_head'),(barrel,'turret_barrel'),(muzzle,'muzzle')]:
         old=bpy.data.objects.get(name)
@@ -289,7 +323,7 @@ def export():
         for o in objects:o.select_set(True)
         bpy.context.view_layer.objects.active=objects[0]
         if len(objects)>1:bpy.ops.object.join()
-        ob=objects[0];ob.name=('Frost fixed body' if parent==root else 'Frost rotating iris')+' '+kind
+        ob=objects[0];ob.name=('Frost fixed body' if parent==root else 'Frost fixed iris')+' '+kind
         merged.append(ob)
     for o in bpy.data.objects:o.select_set(False)
     for o in [root,head,barrel,muzzle]+merged:o.select_set(True)
@@ -301,6 +335,9 @@ def export():
     for o in merged:bpy.data.objects.remove(o,do_unlink=True)
     for old,name in displaced:
         bpy.data.objects[name].name='frost_production_'+name
+        old.name=name
+    for old,name,new in displaced_materials:
+        new.name='refined_'+name
         old.name=name
     bpy.context.view_layer.update()
     coords=[o.matrix_world@Vector(c) for o in originals for c in o.bound_box]

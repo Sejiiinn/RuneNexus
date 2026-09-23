@@ -1,0 +1,35 @@
+{
+  "files": {
+    "design/frost_tower_concepts/2026-09-23/production/frost.blend": {
+      "bytes": 3654529,
+      "sha256": "8d38fccdf3b841858e696b892444902d0db9dcb26017cc8a8e008e5083fd16aa"
+    },
+    "design/frost_tower_concepts/2026-09-23/production/frost.glb": {
+      "bytes": 7365020,
+      "sha256": "18c4a4843673a1092571daa298f201c83a210c8fa5f35c4f5bdcfae178a0c964"
+    },
+    "assets/images/stage1_3d/turrets/frost.glb": {
+      "bytes": 7365020,
+      "sha256": "18c4a4843673a1092571daa298f201c83a210c8fa5f35c4f5bdcfae178a0c964"
+    },
+    "design/frost_tower_concepts/2026-09-23/production/hud-frost.blend": {
+      "bytes": 5254156,
+      "sha256": "7a3272630f6dc352b5030d09de842d4c8176392f385b762e9de93f3e4133dd0d"
+    },
+    "design/frost_tower_concepts/2026-09-23/production/hud-frost.png": {
+      "bytes": 57210,
+      "sha256": "b92c341af5f2d7ec0d8f8742a9a49f405620dad982658148968cf981a44cb090"
+    },
+    "assets/images/ui/hud/turrets_3d/frost.png": {
+      "bytes": 57210,
+      "sha256": "b92c341af5f2d7ec0d8f8742a9a49f405620dad982658148968cf981a44cb090"
+    }
+  },
+  "glb_identical": true,
+  "hud_identical": true,
+  "blade_thickness_before": 0.0184,
+  "blade_thickness_after": 0.0376,
+  "minimum_angular_gap_degrees": 4.423093872310144,
+  "maximum_angular_gap_degrees": 10.725629618749199,
+  "shader_and_combat_code_changed": false
+}
