@@ -6,6 +6,14 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-09-24 Google 로그인 저장소 연결 수정 Android 0.2.3 / code 6032 — 공개 완료
+
+- [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6032) · [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6032/rune-nexus.apk). 대상 `104e191fbd47378389d3ae8962834167282bceb9`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36013367828) 검사·서명·최근 3개 버전 차등 복원·공개 완료. 선택 업데이트이며 최소 지원 코드 6027을 유지한다. 웹·API·DB 변경은 없다.
+- 실제 Android에서 JNI 플러그인의 호출 가능한 메서드도 `has_method()`가 false를 반환하는 것을 재현했다. 계정 서비스가 이를 저장소 부재로 잘못 판단해 Google 인증 HTTP 요청 전에 중단한 것이 이번 로그인 실패 원인이다. 등록된 정확한 네이티브 singleton에는 해당 판정을 적용하지 않도록 수정했고, 같은 판정을 사용하던 기존 저장 경로 연결도 고쳤다. 일반 객체의 메서드 검사와 저장 형식·암호화·시작 화면·업데이트 흐름은 유지한다.
+- 동일 Godot 엔진·실제 네이티브 플러그인의 격리 Android 실행에서 수정 전 `SECURE_STORAGE_UNAVAILABLE` → 수정 후 시험용 잘못된 토큰의 서버 HTTP 401 `GOOGLE_AUTH_REJECTED`를 확인했다. 합성 성공 응답의 암호화 저장·새 세션 복원·시험 레코드 삭제도 통과했다. 실제 사용자 계정·저장은 건드리지 않았다. 별도 Astra가 저장소 경계 9개, 계정·AppServices 회귀, 로그인 복귀 13개 시나리오와 Android 근거를 검토했다. 실계정 Google OAuth·서버 저장 동기화는 직접 수행하지 않았으며 사용자 확인 항목으로 남긴다.
+- APK 372,117,402 bytes, SHA-256 `eb5e1049026bec7ff6360aa926fe31ff4676f73f1218eeb87453a004715ef92b`. 6031 대비 +260 bytes이며 PCK는 +256 bytes(143,909,484 bytes·877항목·완전 중복 0 bytes)다. 서비스 스크립트 수정에 따른 소폭 증가이며 새 에셋·네이티브 의존성 없이 ABI 3종을 유지한다. 6029/6030/6031 기준 차등 패치는 각각 141,721,287 / 141,721,288 / 49,482,800 bytes이며 CI에서 서명 APK로 복원 검증했다.
+- 공개 태그·소스 커밋·최신/버전별 manifest 일치, 업로드 5개 파일의 GitHub SHA-256·크기와 공개 APK 응답을 확인했다. 근거는 `build/login-rootcause-20260924/`의 `root-cause-verification.json`, `android-probe-reflection-logcat.txt`, `android-probe-final-logcat.txt`, `android-probe-final-source-sha256.json`, 독립 검증 로그와 `build/release-verification/apk-6032/`의 `ci-run.json`, `public-verification.json`, `ci-audit/`에 있다. 앞선 6030의 복귀 UI 수정과 별개인 네이티브 저장소 결함을 이번에 실제 Android에서 확인·수정했다.
+
 ## 2026-09-24 시작 화면 복원 Android 0.2.2 / code 6031 — 공개 완료
 
 - [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6031) · [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6031/rune-nexus.apk). 대상 `cb9a4b18cade64d7bb9e1369dbcda1e6fa6da8a5`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36006933404)의 서명 산출물을 Android에서 확인한 뒤 동일 파일을 공개했다. 선택 업데이트이며 최소 지원 코드 6027을 유지한다. 웹·API·DB 변경은 없다.
