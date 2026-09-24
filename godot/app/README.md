@@ -4,6 +4,7 @@
 
 | 모듈 | 역할 |
 | --- | --- |
+| `boot.gd`, `boot.tscn` | 경량 시작 화면·업데이트 게이트, 통과 후 본게임 장면 비동기 로딩 |
 | `app_lifecycle.gd` | 정식 `--app`의 시작·정지 복원, 10초 및 동작 시 저장, 로비·전투 전환·종료 |
 | `save_json.gd` | signed int64를 정밀도 손실 없이 읽고 문자열·실수 타입을 구분 |
 | `save_codec.gd` | 기존 `GameSaveData` v2 정규화·기본값·enum·모듈 ID 및 v1 이전 |
@@ -12,6 +13,8 @@
 | `quest_progress.gd`, `reward_outbox.gd`, `reward_settlement.gd`, `reward_snapshot.gd` | 퀘스트·런 보상 증거·영속 큐·서버 정산 및 snapshot 반영 |
 | `device_preferences.gd` | 계정 저장과 분리한 기기 그래픽 설정 |
 | `res://services/app_services.gd` | 계정 전환·온라인 저장·경제·업데이트의 수명주기와 플레이 차단 |
+
+기본 진입은 `boot.tscn`이다. 기존 배경·로고·코어를 사용하는 `res://ui/startup_screen.gd`가 업데이트 확인·재시도·선택/필수 업데이트·설치 상태를 표시한다. 업데이트를 통과한 뒤에만 `main.tscn`과 전투 리소스를 불러오고 저장·계정 복원을 시작한다. 이 준비가 끝날 때까지 같은 시작 화면을 유지하며, 업데이트 서비스는 앱 수명주기와 공유해 초기 확인을 중복 실행하지 않는다.
 
 Android에서 `RuneNexusPlatform.application_support_path()`가 이전 앱의 `filesDir`를 반환하므로 같은 패키지·서명으로 업데이트할 때 기존 `saves/guest`와 `saves/accounts/<uuid>` 경로를 사용한다. `legacy_save_path()`는 guest v1 임시 파일에만 적용한다. 정식 앱은 저장 원본을 다른 위치로 일괄 복사하거나 기존 파일을 초기화하지 않는다. 다른 플랫폼의 개발 `user://standalone-session` 저장은 Android 설치 데이터와 분리된다.
 

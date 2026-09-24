@@ -27,6 +27,7 @@ var _initializing := false
 var _session_end_pending := false
 var _login_resume_pending := false
 var _login_in_progress := false
+var boot_host
 
 func setup(application, native_platform: Object = null, settings: Dictionary = {}) -> void:
 	app = application
@@ -42,9 +43,14 @@ func setup(application, native_platform: Object = null, settings: Dictionary = {
 		app.checkpoint = Checkpoint.new(root_path)
 		app.checkpoint.allow_progression_only = true
 		if platform.has_method("legacy_save_path"): app.checkpoint.store.legacy_path = platform.legacy_save_path()
-	updates = load("res://services/update_service.gd").new()
-	add_child(updates)
-	updates.setup(platform,str(config.get("updateManifestUrl","")))
+	boot_host=get_tree().get_first_node_in_group("rune_app_boot")
+	if boot_host!=null:
+		updates=boot_host.updates
+		boot_host.attach_services(self)
+	else:
+		updates = load("res://services/update_service.gd").new()
+		add_child(updates)
+		updates.setup(platform,str(config.get("updateManifestUrl","")))
 	updates.changed.connect(_update_changed)
 	if config.get("apiBaseUrl", "").is_empty():
 		_initialize.call_deferred()
@@ -72,6 +78,13 @@ func blocks_play() -> bool:
 func _update_changed() -> void:
 	if online != null: online.set_process(not updates.blocked)
 	if account != null: account.set_process(not updates.blocked)
+	if boot_host!=null:
+		if updates.blocked and not app.startup_blocked: app.pause_and_save()
+		if updates.blocked: app.in_lobby=true
+		app._refresh_ui()
+		if not updates.blocked and _startup_pending and not _initializing: _initialize.call_deferred()
+		changed.emit()
+		return
 	if updates.blocked and app.lobby != null:
 		if not app.startup_blocked: app.pause_and_save()
 		app.in_lobby = true
@@ -135,6 +148,8 @@ func _initialize() -> void:
 		_update_changed()
 		return
 	# No local record, secure session or server state is touched before the gate.
+	changed.emit()
+	await get_tree().process_frame
 	if app.startup_blocked and not app.retry_load():
 		busy = false
 		_initializing = false
@@ -151,6 +166,7 @@ func _initialize() -> void:
 	_initializing = false
 	busy = false
 	issue = "" if result.get("ok",false) else str(result.get("code", ""))
+	app._refresh_ui()
 	changed.emit()
 	if needs_profile() and app.lobby != null: app.lobby._service("계정 및 저장")
 

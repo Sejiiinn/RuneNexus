@@ -48,7 +48,7 @@ class MainActivity : GodotActivity() {
 
     override fun getCommandLine(): MutableList<String> = (super.getCommandLine() + buildList {
         addAll(listOf("--main-pack", "res://rune_nexus.pck", "--rendering-method",
-            "mobile", "--disable_godot_splash", "--", "--app"))
+            "mobile", "--disable_godot_splash", "--background_color", "#101b20", "--", "--app"))
         intent.getStringExtra("camera")?.takeIf { it == "drone" || it == "angled" }
             ?.let { add("--camera=$it") }
         if (intent.getBooleanExtra("profileApp", false)) add("--profile-app")

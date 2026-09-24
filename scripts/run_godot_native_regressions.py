@@ -13,6 +13,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = {
+    "verify_startup_screen.gd": "STARTUP_SCREEN failures=0",
     "verify_economy_service.gd": "ECONOMY_SERVICE failures=0",
     "verify_update_service.gd": "UPDATE_SERVICE failures=0",
     "verify_legacy_combat_regressions.gd": "PASS legacy combat replacements:",

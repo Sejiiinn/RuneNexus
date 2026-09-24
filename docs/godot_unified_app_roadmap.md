@@ -5,7 +5,7 @@
 
 ## 현재 실행 경로와 확정한 전환 방식
 
-`godot/main.tscn` → Godot 앱 수명주기 → 로비·게임 세션이 기본 진입이다. `--app` 없이도 앱을 실행한다. `--session`, `--fixture`, 검증용 `--script`는 명시적 개발 진입이다. Android 호스트는 `android-godot-only/`의 GodotActivity와 `RuneNexusPlatform`이며 Flutter 런타임·플랫폼 합성·프레임 브리지를 사용하지 않는다.
+`godot/app/boot.tscn` → 전용 시작 화면·업데이트 확인 → `godot/main.tscn` 비동기 로딩 → Godot 앱 수명주기 → 로비·게임 세션이 기본 진입이다. 업데이트 통과 전에는 게임 저장·계정 복원을 시작하지 않는다. `--app` 없이도 앱을 실행한다. `--session`, `--fixture`, 검증용 `--script`는 명시적 개발 진입이다. Android 호스트는 `android-godot-only/`의 GodotActivity와 `RuneNexusPlatform`이며 Flutter 런타임·플랫폼 합성·프레임 브리지를 사용하지 않는다.
 
 기존 전투·디자인·저장·API 계약과 서버 권위 경제는 보존한다. Android의 기존 패키지 ID, 저장 지원 경로, Keystore 세션 형식은 유지한다. 검사 패키지는 별도 applicationId로 격리한다. iOS·PC 공개 배포는 이번 범위에 포함하지 않으며 데스크톱 Godot은 개발 검증에 사용한다.
 

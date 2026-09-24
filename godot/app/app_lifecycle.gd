@@ -38,7 +38,7 @@ func _ready() -> void:
 	scene._apply_options()
 	if not catalog.load_catalog() or not run_domain.growth.load_catalog():
 		checkpoint.message = "콘텐츠를 불러오지 못했습니다"
-	elif services == null or services.updates == null or not services.updates.blocked:
+	elif services == null:
 		retry_load()
 	if ui_enabled:
 		var layer := CanvasLayer.new()
@@ -55,11 +55,12 @@ func _ready() -> void:
 	_refresh_ui()
 
 func _refresh_ui() -> void:
+	var gated: bool=services!=null and services.boot_host!=null and services.boot_host.blocks_app_ui()
 	if lobby != null:
-		lobby.visible = in_lobby
+		lobby.visible = in_lobby and not gated
 		lobby.refresh()
 	if hud != null:
-		hud.visible = not in_lobby
+		hud.visible = not in_lobby and not gated
 		hud.refresh()
 
 func refresh_selection() -> void:

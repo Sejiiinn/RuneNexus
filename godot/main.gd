@@ -317,6 +317,8 @@ func _exit_tree() -> void:
 
 func _fail(message: String) -> void:
 	push_error(message)
+	var boot=get_tree().get_first_node_in_group("rune_app_boot")
+	if boot!=null: boot.fail_preparation(message)
 
 
 func _process(delta: float) -> void:

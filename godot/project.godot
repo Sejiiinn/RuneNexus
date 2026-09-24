@@ -3,8 +3,10 @@ config_version=5
 
 [application]
 config/name="RuneNexus Battlefield"
-run/main_scene="res://main.tscn"
+run/main_scene="res://app/boot.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
+boot_splash/show_image=false
+boot_splash/bg_color=Color(0.063, 0.106, 0.125, 1)
 
 [display]
 window/size/viewport_width=880

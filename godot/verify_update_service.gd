@@ -40,6 +40,9 @@ func run():
 	check(updater.blocked,"cannot skip mandatory")
 	var result=await updater.update()
 	check(result.ok and platform.calls==["patch","full","install"] and updater.downloaded,"patch failure falls back to full and permission pending keeps download")
+	var pending_message=updater.message
+	await updater.check()
+	check(updater.downloaded and updater.phase=="install" and updater.message==pending_message,"same release foreground check retains installation permission guidance")
 	platform.calls.clear()
 	platform.install_ok=false
 	await updater.update()
@@ -63,6 +66,13 @@ func run():
 	updater.response={"ok":true,"body":release.duplicate(true)}
 	updater.response.body.packageName="another.package"
 	check(not (await updater.check()).ok and updater.blocked,"wrong package fails closed")
+	check(updater.release.is_empty() and updater.phase=="error","failed check clears stale optional release")
+	updater.skip()
+	check(updater.blocked,"failed check cannot skip stale optional release")
+	updater.response={"ok":true,"body":release.duplicate(true)}
+	updater.response.body.versionCode=3
+	await updater.check()
+	check(not updater.downloaded and updater.install_message.is_empty() and updater.phase=="available","changed release resets installation continuation")
 	check(not Updater.valid_url("http://example.test/update.json"),"HTTPS only")
 	check(not Updater.valid_url("https://user@example.test/update.json"),"userinfo rejected")
 	# Real HTTPRequest with max_redirects=0 returns RESULT_REDIRECT_LIMIT_REACHED

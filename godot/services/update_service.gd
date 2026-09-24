@@ -11,6 +11,10 @@ var blocked := true
 var server_required := false
 var downloaded := false
 var message := "업데이트 정보를 확인하고 있습니다"
+var phase := "checking"
+var error_message := ""
+var transfer := ""
+var install_message := ""
 
 func setup(native_platform, url: String) -> void:
 	platform = native_platform
@@ -52,11 +56,23 @@ func check() -> Dictionary:
 		return {"ok":not blocked}
 	busy = true
 	blocked = true
+	phase = "checking"
+	error_message = ""
 	message = "업데이트 정보를 확인하고 있습니다"
 	changed.emit()
 	var result: Dictionary = await _check()
 	busy = false
-	if not result.get("ok",false): message = "업데이트 정보를 확인하지 못했습니다. 연결 상태를 확인하고 다시 시도해 주세요."
+	phase = "available"
+	if not result.get("ok",false):
+		phase = "error"
+		release = {}
+		message = "업데이트 정보를 확인하지 못했습니다. 연결 상태를 확인하고 다시 시도해 주세요."
+		error_message = message
+	elif blocked and release.is_empty():
+		error_message = message
+	elif downloaded and not install_message.is_empty():
+		phase = "install"
+		message = install_message
 	changed.emit()
 	return result
 
@@ -69,8 +85,13 @@ func _check() -> Dictionary:
 	if not response.get("ok",false): return response
 	var next: Dictionary = response.body
 	if not valid_manifest(next) or next.packageName != installed.get("packageName"): return {"ok":false}
-	if release.get("versionCode") != next.versionCode or release.get("sha256") != next.sha256: downloaded = false
+	if release.get("versionCode") != next.versionCode or release.get("sha256") != next.sha256:
+		downloaded = false
+		install_message = ""
 	release = next if next.versionCode > int(installed.get("versionCode",0)) else {}
+	if release.is_empty():
+		downloaded = false
+		install_message = ""
 	blocked = not release.is_empty() or server_required
 	message = "새 버전이 준비되었습니다" if not release.is_empty() else ("서버에서 새 버전을 요구합니다. 잠시 후 다시 확인해 주세요." if server_required else "최신 버전입니다")
 	return {"ok":true}
@@ -123,33 +144,45 @@ func update() -> Dictionary:
 	if busy: return {"ok":false}
 	if release.is_empty(): return await check()
 	busy = true
+	error_message = ""
+	phase = "install" if downloaded else "download"
 	changed.emit()
 	var result: Dictionary = {"ok":true}
 	if not downloaded:
 		message = "업데이트를 다운로드하고 있습니다"
 		changed.emit()
 		var patch := _patch()
+		transfer = "patch" if not patch.is_empty() else "full"
+		changed.emit()
 		result = {"ok":false}
 		if not patch.is_empty() and platform.download_patch(patch.url,patch.sha256,patch.sizeBytes,release.versionCode,patch.fromSha256,release.sha256,release.sizeBytes):
 			var reply: Array = await platform.update_completed
 			var parsed: Variant = Json.parse(reply[1])
 			if parsed is Dictionary: result = parsed
 		if not result.get("ok",false):
+			transfer = "full_fallback" if not patch.is_empty() else "full"
+			changed.emit()
 			if platform.download_update(release.apkUrl,release.sha256,release.sizeBytes,release.versionCode):
 				var reply: Array = await platform.update_completed
 				var parsed: Variant = Json.parse(reply[1])
 				result = parsed if parsed is Dictionary else {"ok":false}
 		downloaded = result.get("ok",false)
 	if downloaded:
+		phase = "install"
+		changed.emit()
 		if platform.install_update(release.versionCode):
 			var reply: Array = await platform.update_completed
 			var parsed: Variant = Json.parse(reply[1])
 			result = parsed if parsed is Dictionary else {"ok":false}
-			message = "설치 권한을 허용한 뒤 업데이트하기를 다시 눌러 주세요" if result.get("value") == "permissionRequired" else "설치를 완료해 주세요"
+			message = "설정에서 이 앱의 설치를 허용한 뒤 돌아와 ‘설치 계속’을 눌러 주세요." if result.get("value") == "permissionRequired" else "Android 설치 화면에서 업데이트를 완료해 주세요. 설치를 취소했다면 다시 시도할 수 있습니다."
+			install_message = message
 		else: result = {"ok":false}
 	if not result.get("ok",false):
 		downloaded = false
+		install_message = ""
 		message = "업데이트하지 못했습니다. 다시 시도해 주세요."
+		error_message = "설치된 앱과 업데이트의 서명이 다릅니다. 앱을 삭제하지 말고 배포 담당자에게 알려 주세요." if result.get("error",result.get("code","")) == "update_signature_mismatch" else "업데이트를 완료하지 못했습니다. 연결과 저장 공간을 확인하고 다시 시도해 주세요."
+		phase = "error"
 	busy = false
 	changed.emit()
 	return result
