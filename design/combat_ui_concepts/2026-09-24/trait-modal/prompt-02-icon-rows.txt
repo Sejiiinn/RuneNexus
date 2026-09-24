@@ -1,0 +1,22 @@
+Use case: ui-mockup.
+Create exactly ONE revised full portrait RuneNexus trait selection UI concept.
+CRITICAL USER CORRECTION: The user LOVED the ability icons and orderly compact ROW layout in the LEFT SCREEN of image1. They wanted only the TURRET PORTRAIT next to the modal title removed, NOT the ability icons. Restore and preserve the original concept's orderly row-based information hierarchy and distinct trait icons. The image2 redesign overemphasized thick frames and removed all icons, which the user disliked. Do not repeat that mistake.
+Input1: the LEFT THIRD is the PRIMARY UX/layout reference. Ignore its middle and right screens. Input2: current-game navy/cyan/steel palette, modal title and actual two trait texts/cost are supporting references only; DO NOT copy image2's tall heavily framed boxes.
+Output one portrait full game screenshot with a centered modal over dimmed RuneNexus battlefield. Header text "기관총 특성" with a small close X, and NO turret model, turret portrait, turret thumbnail or tower artwork INSIDE the modal header or body. Keep the background gameplay unobtrusive.
+Visual style: deep navy-teal background, restrained chamfered metal outer rim consistent with RuneNexus. Clean thin row dividers, low-profile inset row backgrounds, plenty of useful breathing room but COMPACT orderly rows, NOT large framed cards and NOT nested thick beveled containers. Very subtle cyan highlight selected row, gold selected name, pale blue body text. Metal theme comes through materials and outer frame, not piling thick borders around everything.
+Under title small wallet line green shard icon + "보유 파편 1,000".
+Two aligned compact connected tabs "1차 · 무기 개조" selected, "2차 · 전투 교리" unselected. Small lock and "1차 선택 후" indicate prerequisite, no repeated subsection heading.
+Then EXACTLY TWO NEAT UNIFORM ROWS, each with identical icon footprint at LEFT, text stack in MIDDLE, small radio selector at RIGHT. Match image1 LEFT's alignment, column widths, and ordered readability. Icons must be clear polished fantasy-game ability icons in small circular dark metal sockets, distinct from a turret portrait.
+Row1 selected: icon depicting a cluster of copper ammunition cartridges with orange-red heat glow / heated magazine, NOT a turret. Text:
+"과열 탄창"
+"같은 대상 명중마다 1중첩"
+"직격 피해 (중첩 수 × 2%) 증폭"
+"최대 15중첩"
+Small checked radio at far right. Thin cyan selection line/tint rather than thick glowing frame. Icon centered vertically in its row, moderate size.
+Row2 neutral: icon depicting a sleek silver-blue lightweight gun barrel with a cyan speed streak, NOT a whole turret. Text:
+"경량 총열"
+"공격 속도 10% 증폭"
+"투사체 속도 30% 증폭"
+Small empty radio at far right. The same row height, same icon size, same name baseline offset and same description typography as row1. Leave the absent third description line blank in row2 so alignment stays consistent. Use no extra trait names, keep the real game two-option count.
+At bottom a single wide dark teal metal-edged primary button, labeled "선택 확정", followed by small green shard icon and "12" cost. Under it quiet small text "선택한 특성은 이번 런 동안 변경할 수 없습니다."
+The primary emphasis is USEFUL DISTINCT ABILITY ICONS + CLEAN ALIGNED LIST ROWS + OBVIOUS SELECTION AND CONFIRMATION. Avoid oversized title, giant icons, excessive glow, large empty cards, thick borders enclosing each row, turret portrait in modal, and generic SaaS styling. Keep readable exact Korean. One complete portrait screen, no montage, no explanatory annotations.

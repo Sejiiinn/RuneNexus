@@ -1,0 +1,109 @@
+{
+  "source": {
+    "godot/ui/hud_turret_panel.gd": "74ee5d62a3b0e67db86aee1c146b885e0ac88fc45555cd58c83f4501ef70626c",
+    "godot/ui/battle_hud.gd": "a75b10f3a4e06352477676eef5c14524e4b39735a8792e95344757cdd46352b4",
+    "godot/ui/assets.json": "4a0e0b67b12a6a1e022a266016543778050ac18fce49fee776cd2eae3071760f",
+    "godot/verify_battle_hud.gd": "f42144ae8d2508b400446c747d856e665f00408aec558d6ab3c98edccc651e05"
+  },
+  "traits": [
+    {
+      "id": "overheatMagazine",
+      "sha256": "448ac48d23a91fda05ec9d206038a5a1a2b25e3827a27b5136cf53d0b406f37e"
+    },
+    {
+      "id": "lightweightBarrel",
+      "sha256": "a506de70377e1286934efd6b6cfc34e25b29be6ceec01cb92bd792c21f15b812"
+    },
+    {
+      "id": "suppressiveFire",
+      "sha256": "96f34b601470d148188bbc6b284734066b69b7d3085ed760ea261b17c0ed5871"
+    },
+    {
+      "id": "chainCleanup",
+      "sha256": "d1830d4d0597a173f8fed3ea80a90bcc535ba1d9aad781dfa5a548f880c6f05d"
+    },
+    {
+      "id": "shrapnelShell",
+      "sha256": "bdf327b774a8fbc11af28106973c767a817e959de4dc65279907360aa68d95f1"
+    },
+    {
+      "id": "compressedCharge",
+      "sha256": "e16d68092a412e227e415168ad45f9bfaeba1edff02176833acfb9b8c9801474"
+    },
+    {
+      "id": "expandedBlastCore",
+      "sha256": "38e8bdc35c32bf3ff04421ed1c2ece1f1c4cda938ebc3e47ae6f763956c10b30"
+    },
+    {
+      "id": "fractureImpact",
+      "sha256": "c7f3053fa7487d6e0e31f8310e146f392502ede8f21954f8db7c5f3086a9a520"
+    },
+    {
+      "id": "highHeatBurn",
+      "sha256": "6450ae42a2da1ff78981db56db3db28f1f77cb6e6d2e20fc8ee8b601c644f19b"
+    },
+    {
+      "id": "lingeringEmbers",
+      "sha256": "ffffc6970da40edadaf76ed87c53ceaf8060a1a36f5ffbf37770dba192b07d3d"
+    },
+    {
+      "id": "ignitionBurst",
+      "sha256": "238bce294e4a963f2eb17807b626cb68547cb28ab4e175d8f63a4d9e7b03ba96"
+    },
+    {
+      "id": "chainIgnition",
+      "sha256": "54bccf4e4b12bd1c7041fb27b6b217d9cd23da427df8e49f6d7f17853c4c6891"
+    },
+    {
+      "id": "coolingCycle",
+      "sha256": "fe243e0ca6fefd0294cecc36e86b329828c96f432eda53f2b75629621345e870"
+    },
+    {
+      "id": "spreadingChill",
+      "sha256": "f59a3b613369b830dc3b8670c5f1f3f007596ba07f0b1c23dfaca5fc610d446c"
+    },
+    {
+      "id": "frostCrack",
+      "sha256": "346f7bb14073c9944e11745e4c6742c2128ffb3bd56a82a1a326d5e245be4ca1"
+    },
+    {
+      "id": "rapidCooling",
+      "sha256": "254e9a82860fece8bbe37e7f159b5b27eb36ca00aff393177936f2e7996c6bea"
+    },
+    {
+      "id": "deadeyeFocus",
+      "sha256": "f610eab982965ca6175a0b54eebc26ee829ba87fd5fde675ce22b40ad4d3049a"
+    },
+    {
+      "id": "quickScope",
+      "sha256": "8e245df26ee2d4a37351dfbbe9bff5602865651e321a048c50b6802ccd5313f9"
+    },
+    {
+      "id": "exposedMark",
+      "sha256": "a375b0d1dcc3dc27446db894b78d48fc0f3c512e76b58f0a61a429a87b3f8f18"
+    },
+    {
+      "id": "finishingShot",
+      "sha256": "e528367e658dd2befa590a89edefca1d9e9c5984c1b28bb980d214d262481fc6"
+    },
+    {
+      "id": "branchCurrent",
+      "sha256": "6b8e2ce8c1ed1a9f2a91fa93664ea2a78859e27d9ff1c330d8c127900e9d7e4d"
+    },
+    {
+      "id": "focusedLightning",
+      "sha256": "1ae1473f04a21276204369dcb3e9ff90d9bd5201028bede4ba47565d36f1d166"
+    },
+    {
+      "id": "lightningRecovery",
+      "sha256": "350730f55cf542dd5a2b48820bb902d1e2ad8a2f67f43c2f9f36311032d7b39f"
+    },
+    {
+      "id": "currentAmplification",
+      "sha256": "166006b7a1d755405f601f386cb1f4a4820d22e58a4630bf4e60cbabd53cba32"
+    }
+  ],
+  "renderer": "Godot 4.7.2 Metal Forward Mobile / Apple M4",
+  "test_user_dir": "RuneNexus-TurretStats-Review",
+  "game_scope": "Godot --app; no Android build"
+}

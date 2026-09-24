@@ -126,37 +126,159 @@ func _sell_confirm(turret: Dictionary,q: Dictionary) -> void:
 
 func _traits(turret: Dictionary,q: Dictionary,tier: int = 0) -> void:
 	if tier == 0: tier = 2 if turret.get("primaryTrait") != null else 1
-	var box = hud.open_modal(hud.TOWERS.get(turret.type,turret.type)+" 특성",390,false,true,Color("63e6a5"),"reward")
-	var wallet = HBoxContainer.new(); box.add_child(wallet)
-	hud._icon(wallet,"ui/hud/icons/shard.png",15)
-	hud._label(wallet,"%d  ·  1차 %d / 2차 %d" % [hud.app.run_domain.state.gemShards,q.primaryTrait,q.secondaryTrait],11)
-	var tabs = HBoxContainer.new(); tabs.add_theme_constant_override("separation",0); box.add_child(tabs)
+	var box: VBoxContainer = hud.open_modal(hud.TOWERS.get(turret.type,turret.type)+" 특성",410,false,true,Color("63e6a5"),"reward")
+	box.add_theme_constant_override("separation",10)
+	var wallet := HBoxContainer.new(); wallet.name = "TraitWallet"; wallet.custom_minimum_size.y = 28
+	wallet.add_theme_constant_override("separation",7); box.add_child(wallet)
+	hud._icon(wallet,"ui/hud/icons/shard.png",22)
+	var wallet_title: Label = hud._label(wallet,"보유 파편",12)
+	wallet_title.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	wallet_title.custom_minimum_size.x = 55; wallet_title.autowrap_mode = TextServer.AUTOWRAP_OFF
+	wallet_title.modulate = Color("b7d5e3")
+	var wallet_amount: Label = hud._label(wallet,"%d" % int(hud.app.run_domain.state.gemShards),15)
+	wallet_amount.name = "TraitWalletAmount"; wallet_amount.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	wallet_amount.autowrap_mode = TextServer.AUTOWRAP_OFF
+	wallet_amount.add_theme_font_override("font",hud.AppTheme.font(900))
+	var tabs := HBoxContainer.new(); tabs.name = "TraitTierTabs"
+	tabs.add_theme_constant_override("separation",2); box.add_child(tabs)
 	for value in [1,2]:
-		var chosen_trait = turret.get("primaryTrait" if value == 1 else "secondaryTrait")
-		var name: String = str(hud.labels.traitNames.get(chosen_trait,"무기 개조" if value == 1 else "전투 교리"))
-		var button = hud._button(tabs,"%d차 · %s" % [value,name],func(): hud.trait_preview = ""; _traits(turret,q,value))
+		var caption := "1차 · 무기 개조" if value == 1 else "2차 · 전투 교리"
+		if value == 2 and turret.get("primaryTrait") == null: caption += "\n1차 선택 후"
+		var button: Button = hud._button(tabs,caption,func(): hud.trait_preview = ""; _traits(turret,q,value))
+		button.name = "TraitTier%d" % value; button.custom_minimum_size.y = 43
 		button.toggle_mode = true; button.button_pressed = value == tier; button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		hud._style_hud_button(button,"secondary",value == tier,Vector2(8,8),true)
-		button.disabled = q.get("primaryTraits" if value == 1 else "secondaryTraits",[]).is_empty()
-	var kind = "primaryTrait" if tier == 1 else "secondaryTrait"
-	var required = 3 if tier == 1 else 7
-	hud._label(box,"%d차 · %s" % [tier,"무기 개조" if tier == 1 else "전투 교리"],13)
-	if turret.get(kind) != null:
-		hud._label(box,str(hud.labels.traitNames.get(turret[kind],turret[kind]))+"\n"+str(hud.labels.traitDescriptions.get(turret[kind],"")),12)
-	else:
-		var blocked = ""
-		if tier == 2 and turret.get("primaryTrait") == null: blocked = "2차 특성은 1차 특성을 먼저 선택해야 합니다."
-		elif int(turret.level)<required: blocked = "%d차 특성은 Lv.%d부터 선택할 수 있습니다." % [tier,required]
-		elif int(hud.app.run_domain.state.gemShards)<int(q[kind]): blocked = "젬 파편이 %d개 부족합니다." % (int(q[kind])-int(hud.app.run_domain.state.gemShards))
-		if not blocked.is_empty(): hud._label(box,blocked,11).modulate = Color("ffa68a")
-		if q[kind+"s"].is_empty(): hud._label(box,"선택 가능한 특성이 없습니다.",12)
-		for value in q[kind+"s"]:
-			var button = _option_button(box,("✓ " if hud.trait_preview == value else "")+str(hud.labels.traitNames.get(value,value)),str(hud.labels.traitDescriptions.get(value,"")),func():
-				if hud.trait_preview == value: hud._selected_command(kind,{"type":value}); hud.close_modal()
-				else: hud.trait_preview = value; _traits(turret,q,tier),hud.trait_preview == value)
-			button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			button.disabled = not blocked.is_empty()
-	hud._label(box,"선택한 특성은 이번 런 동안 변경할 수 없습니다.",10)
+		hud._style_hud_button(button,"secondary",value == tier,Vector2(6,5),true)
+		if value == 2 and turret.get("primaryTrait") == null: button.modulate = Color("b5c4d2")
+	var kind := "primaryTrait" if tier == 1 else "secondaryTrait"
+	var chosen: Variant = turret.get(kind)
+	var required := 3 if tier == 1 else 7
+	var cost := int(q[kind])
+	var blocked := ""
+	if chosen != null: blocked = "이번 런에서 이미 선택한 특성입니다."
+	elif tier == 2 and turret.get("primaryTrait") == null: blocked = "2차 특성은 1차 특성을 먼저 선택해야 합니다."
+	elif int(turret.level) < required: blocked = "%d차 특성은 Lv.%d부터 선택할 수 있습니다." % [tier,required]
+	elif int(hud.app.run_domain.state.gemShards) < cost: blocked = "젬 파편이 %d개 부족합니다." % (cost-int(hud.app.run_domain.state.gemShards))
+	var options: Array = q.get(kind+"s",[])
+	if options.is_empty(): hud._label(box,"선택 가능한 특성이 없습니다.",12)
+	for value in options:
+		_trait_row(box,str(value),str(hud.labels.traitNames.get(value,value)),str(hud.labels.traitDescriptions.get(value,"")),hud.trait_preview == value or chosen == value,not blocked.is_empty(),func():
+			if not blocked.is_empty(): return
+			hud.trait_preview = str(value)
+			_traits(turret,q,tier))
+	if not blocked.is_empty():
+		var reason: Label = hud._label(box,blocked,11); reason.name = "TraitBlockedReason"
+		reason.modulate = Color("ffa68a")
+	var confirm: Button = hud._button(box,"",func(): _confirm_trait(turret,kind))
+	confirm.name = "TraitConfirm"; confirm.custom_minimum_size.y = 52
+	confirm.disabled = not blocked.is_empty() or hud.trait_preview not in options
+	hud.Components.apply(confirm,"primary")
+	var confirm_center := CenterContainer.new(); confirm_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	confirm.add_child(confirm_center); confirm_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var confirm_row := HBoxContainer.new(); confirm_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	confirm_row.add_theme_constant_override("separation",8); confirm_center.add_child(confirm_row)
+	var confirm_title: Label = hud._label(confirm_row,"선택 확정",16)
+	confirm_title.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	confirm_title.autowrap_mode = TextServer.AUTOWRAP_OFF
+	confirm_title.add_theme_font_override("font",hud.AppTheme.font(900))
+	var confirm_icon := TextureRect.new(); confirm_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	confirm_icon.texture = hud.AppTheme.texture("ui/hud/icons/shard.png")
+	confirm_icon.custom_minimum_size = Vector2(22,22)
+	confirm_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	confirm_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	confirm_row.add_child(confirm_icon)
+	var confirm_cost: Label = hud._label(confirm_row,"%d" % cost,16)
+	confirm_cost.name = "TraitConfirmCost"; confirm_cost.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	confirm_cost.autowrap_mode = TextServer.AUTOWRAP_OFF
+	confirm_cost.add_theme_font_override("font",hud.AppTheme.font(900))
+	if confirm.disabled: confirm_row.modulate = Color("8d9da9")
+	var notice: Label = hud._label(box,"선택한 특성은 이번 런 동안 변경할 수 없습니다.",11)
+	notice.name = "TraitPermanentNotice"; notice.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	notice.modulate = Color("abc9d8")
+	var bottom_pad := Control.new(); bottom_pad.name = "TraitBottomPad"
+	bottom_pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bottom_pad.custom_minimum_size.y = 14; box.add_child(bottom_pad)
+	# Wrapping changes the minimum after containers assign the actual width.
+	# Follow those changes so both rows and the outer scroll area can shrink again.
+	box.minimum_size_changed.connect(hud._fit_modal,CONNECT_DEFERRED)
+	box.resized.connect(hud._fit_modal,CONNECT_DEFERRED)
+	hud._fit_modal.call_deferred()
+
+func _fit_trait_row(button: Button,content: MarginContainer,minimum_height: float) -> void:
+	if not is_instance_valid(button) or not is_instance_valid(content) or button.size.x <= 0: return
+	var height := maxf(minimum_height,content.get_combined_minimum_size().y)
+	if not is_equal_approx(button.custom_minimum_size.y,height): button.custom_minimum_size.y = height
+
+func _trait_row(parent: Node,id: String,title: String,description: String,selected: bool,locked: bool,on_select: Callable) -> void:
+	var compact := hud.get_viewport_rect().size.x < 360
+	var button: Button = hud._button(parent,"",on_select)
+	button.name = "TraitChoice_"+id; button.custom_minimum_size.y = 126 if compact else 110
+	button.disabled = locked; button.toggle_mode = true; button.button_pressed = selected
+	for state_name in ["normal","hover","pressed","disabled","focus"]:
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color("123549ef") if selected else Color("0b2030e8")
+		style.border_color = Color("42e4f3") if selected else Color("355a6b")
+		if state_name == "hover" and not locked: style.bg_color = Color("1a3d50")
+		style.set_border_width_all(2 if selected else 1); style.set_corner_radius_all(8)
+		button.add_theme_stylebox_override(state_name,style)
+	var content := MarginContainer.new(); content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_theme_constant_override("margin_left",9); content.add_theme_constant_override("margin_right",9)
+	content.add_theme_constant_override("margin_top",8); content.add_theme_constant_override("margin_bottom",8)
+	button.add_child(content); content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var row := HBoxContainer.new(); row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override("separation",8); content.add_child(row)
+	var socket := PanelContainer.new(); socket.name = "TraitSocket"; socket.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	socket.custom_minimum_size = Vector2(48 if compact else 56,48 if compact else 56)
+	socket.size_flags_vertical = Control.SIZE_SHRINK_CENTER; row.add_child(socket)
+	var socket_style := StyleBoxFlat.new(); socket_style.bg_color = Color("09131e")
+	socket_style.border_color = Color("8498a2"); socket_style.set_border_width_all(2)
+	socket_style.set_corner_radius_all(30); socket_style.set_content_margin_all(2)
+	socket.add_theme_stylebox_override("panel",socket_style)
+	var icon := TextureRect.new(); icon.name = "TraitIcon"; icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.texture = hud.AppTheme.texture("ui/traits/"+id+".png")
+	icon.custom_minimum_size = Vector2(44 if compact else 52,44 if compact else 52)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE; icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	socket.add_child(icon)
+	var words := VBoxContainer.new(); words.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL; words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	words.add_theme_constant_override("separation",3); row.add_child(words)
+	var heading: Label = hud._label(words,title,13 if compact else 14)
+	heading.name = "TraitName"; heading.add_theme_font_override("font",hud.AppTheme.font(800))
+	heading.add_theme_color_override("font_color",Color("f4dfaa") if selected else Color("e8f8ff"))
+	var detail: Label = hud._label(words,description.replace(", ","\n"),12)
+	detail.name = "TraitDescription"; detail.modulate = Color("b6d0df")
+	var radio := PanelContainer.new(); radio.name = "TraitRadio"; radio.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	radio.custom_minimum_size = Vector2(22,22); radio.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var ring := StyleBoxFlat.new(); ring.bg_color = Color("092131")
+	ring.border_color = Color("42e4f3") if selected else Color("a3c2d5")
+	ring.set_border_width_all(2); ring.set_corner_radius_all(12); ring.set_content_margin_all(4)
+	radio.add_theme_stylebox_override("panel",ring); row.add_child(radio)
+	if selected:
+		var center := CenterContainer.new(); center.mouse_filter = Control.MOUSE_FILTER_IGNORE; radio.add_child(center)
+		var dot := PanelContainer.new(); dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		dot.custom_minimum_size = Vector2(10,10); center.add_child(dot)
+		var fill := StyleBoxFlat.new(); fill.bg_color = Color("42e4f3"); fill.set_corner_radius_all(5)
+		dot.add_theme_stylebox_override("panel",fill)
+	if locked and not selected: content.modulate.a = 0.52
+	# A Button does not inherit the minimum of its decorative children. Bridge
+	# the native container minimum without estimating text lines or frame timing.
+	var fit := _fit_trait_row.bind(button,content,126.0 if compact else 110.0)
+	content.minimum_size_changed.connect(fit,CONNECT_DEFERRED)
+	button.resized.connect(fit,CONNECT_DEFERRED)
+	fit.call_deferred()
+
+func _confirm_trait(turret: Dictionary,kind: String) -> void:
+	var selected := str(hud.trait_preview)
+	var state: Dictionary = hud.app.run_domain.state
+	var current: Dictionary = hud.app.run_domain.service.turret(state,int(turret.id))
+	if current.is_empty() or current.get(kind) != null: return
+	if kind == "secondaryTrait" and current.get("primaryTrait") == null: return
+	if int(current.level) < (3 if kind == "primaryTrait" else 7): return
+	var quote: Dictionary = hud.app.run_domain.service.quotes(state,int(turret.id))
+	if selected not in quote.get(kind+"s",[]) or int(state.gemShards) < int(quote[kind]): return
+	var confirm: Button = hud.modal_body.find_child("TraitConfirm",true,false)
+	if confirm != null: confirm.disabled = true
+	hud._selected_command(kind,{"type":selected})
+	hud.close_modal()
 
 func _option_button(parent: Node,title: String,description: String,callback: Callable,selected = false) -> Button:
 	var button = hud._button(parent,title+"\n"+description,callback)

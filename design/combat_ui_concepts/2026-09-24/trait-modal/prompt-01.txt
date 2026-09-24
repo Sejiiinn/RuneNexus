@@ -1,0 +1,20 @@
+Use case: ui-mockup, precise-object-edit.
+Create ONE refined RuneNexus trait-selection modal concept shown in its full portrait in-game screen. Image 1 is the actual current game screenshot/edit target: preserve its dimmed battlefield, HUD and screen proportions. Image 2 is the approved current metal UI theme reference only: borrow its restrained beveled steel edge, clipped corners, deep navy inset surfaces, cyan highlights, and modest gold accents. Do not import its stat layout into the modal.
+User request: the previous concept felt generic and did not perfectly match the current game's visual style. Refine it to match this metal/runic game UI. NO turret illustration, portrait, model thumbnail, or turret icon anywhere INSIDE the modal. Use a text-only title "기관총 특성", left aligned, with a small close X at upper right.
+A single centered modal, comfortably wide with clear inner margins. Polished narrow steel frame with chamfered corners and restrained cyan edge, deep opaque navy background, no floating oversized card shadows or neon bloom. Match the actual game's metal materials rather than generic rounded app controls. Clear readable Korean type and calm spacing.
+Modal layout from top to bottom:
+1. Header "기관총 특성" and X. Below it a small green shard icon with "보유 파편 1,000", quiet secondary hierarchy.
+2. Two connected metal tab segments: selected "1차 · 무기 개조", unselected "2차 · 전투 교리". A tiny lock indicator and small "1차 선택 후" on the second tab communicate its prerequisite. Use matching metal tabs from image2, adapted to this modal. Do NOT repeat the selected tab heading below the tabs.
+3. Exactly TWO vertically stacked trait choices. Text-led, modest inset surfaces with thin beveled borders, no turret or ability illustrations, no giant circular icons. Each row has its trait name in a stronger font, description beneath aligned left, and a small selection indicator at far right. First row selected with a fine cyan outline, subtle teal tint and small checked indicator; title in soft pale gold. Second neutral with a hollow indicator. Enough breathing room around text without huge blank panels.
+Exact first option text on separate lines:
+"과열 탄창"
+"같은 대상 명중마다 1중첩"
+"직격 피해 (중첩 수 × 2%) 증폭"
+"최대 15중첩"
+Exact second option:
+"경량 총열"
+"공격 속도 10% 증폭"
+"투사체 속도 30% 증폭"
+4. One broad metal-framed dark teal confirm button at the bottom, using the game's beveled cyan primary-action style rather than flat bright turquoise. On the button show "선택 확정" and a small green shard icon followed by "12" as the cost, legible with good spacing. This is the only confirm action; selected option is previewed until this button is pressed.
+5. Quiet small line under button: "선택한 특성은 이번 런 동안 변경할 수 없습니다."
+Preserve actual names, two-option count, 12 shard first-tier cost and 1,000 wallet. Do not use the old mockup's fictional abilities. No extra heading bar or tutorial text. Keep surrounding battlefield dim and secondary. Single finished high fidelity full portrait UI concept, no side by side alternatives, no annotations, no phone hardware, no watermarks.

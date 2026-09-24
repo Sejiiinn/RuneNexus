@@ -1,0 +1,907 @@
+{
+  "checks": 614,
+  "failures": [],
+  "observations": [
+    {
+      "detail_height": 51.0,
+      "detail_lines": 3,
+      "detail_width": 260.0,
+      "row": "TraitChoice_overheatMagazine",
+      "row_height": 110.0,
+      "state": "(440, 900)arrow-primary",
+      "title_height": 17.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 260.0,
+      "row": "TraitChoice_lightweightBarrel",
+      "row_height": 110.0,
+      "state": "(440, 900)arrow-primary",
+      "title_height": 17.0
+    },
+    {
+      "body_height": 485.0,
+      "modal_size": "(404.0, 525.0)",
+      "scroll_height": 493.0,
+      "state": "(440, 900)arrow-primary"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 260.0,
+      "row": "TraitChoice_suppressiveFire",
+      "row_height": 110.0,
+      "state": "(440, 900)arrow-secondary",
+      "title_height": 17.0
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 260.0,
+      "row": "TraitChoice_chainCleanup",
+      "row_height": 110.0,
+      "state": "(440, 900)arrow-secondary",
+      "title_height": 17.0
+    },
+    {
+      "body_height": 485.0,
+      "modal_size": "(404.0, 525.0)",
+      "scroll_height": 493.0,
+      "state": "(440, 900)arrow-secondary"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 260.0,
+      "row": "TraitChoice_shrapnelShell",
+      "row_height": 110.0,
+      "state": "(440, 900)cannon-primary",
+      "title_height": 17.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 260.0,
+      "row": "TraitChoice_compressedCharge",
+      "row_height": 110.0,
+      "state": "(440, 900)cannon-primary",
+      "title_height": 17.0
+    },
+    {
+      "body_height": 485.0,
+      "modal_size": "(404.0, 525.0)",
+      "scroll_height": 493.0,
+      "state": "(440, 900)cannon-primary"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 260.0,
+      "row": "TraitChoice_expandedBlastCore",
+      "row_height": 110.0,
+      "state": "(440, 900)cannon-secondary",
+      "title_height": 17.0
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 260.0,
+      "row": "TraitChoice_fractureImpact",
+      "row_height": 110.0,
+      "state": "(440, 900)cannon-secondary",
+      "title_height": 17.0
+    },
+    {
+      "body_height": 485.0,
+      "modal_size": "(404.0, 525.0)",
+      "scroll_height": 493.0,
+      "state": "(440, 900)cannon-secondary"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 260.0,
+      "row": "TraitChoice_highHeatBurn",
+      "row_height": 110.0,
+      "state": "(440, 900)magic-primary",
+      "title_height": 17.0
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 260.0,
+      "row": "TraitChoice_lingeringEmbers",
+      "row_height": 110.0,
+      "state": "(440, 900)magic-primary",
+      "title_height": 17.0
+    },
+    {
+      "body_height": 485.0,
+      "modal_size": "(404.0, 525.0)",
+      "scroll_height": 493.0,
+      "state": "(440, 900)magic-primary"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 260.0,
+      "row": "TraitChoice_ignitionBurst",
+      "row_height": 110.0,
+      "state": "(440, 900)magic-secondary",
+      "title_height": 17.0
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 260.0,
+      "row": "TraitChoice_chainIgnition",
+      "row_height": 110.0,
+      "state": "(440, 900)magic-secondary",
+      "title_height": 17.0
+    },
+    {
+      "body_height": 485.0,
+      "modal_size": "(404.0, 525.0)",
+      "scroll_height": 493.0,
+      "state": "(440, 900)magic-secondary"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 260.0,
+      "row": "TraitChoice_coolingCycle",
+      "row_height": 110.0,
+      "state": "(440, 900)frost-primary",
+      "title_height": 17.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 260.0,
+      "row": "TraitChoice_spreadingChill",
+      "row_height": 110.0,
+      "state": "(440, 900)frost-primary",
+      "title_height": 17.0
+    },
+    {
+      "body_height": 485.0,
+      "modal_size": "(404.0, 525.0)",
+      "scroll_height": 493.0,
+      "state": "(440, 900)frost-primary"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 260.0,
+      "row": "TraitChoice_frostCrack",
+      "row_height": 110.0,
+      "state": "(440, 900)frost-secondary",
+      "title_height": 17.0
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 260.0,
+      "row": "TraitChoice_rapidCooling",
+      "row_height": 110.0,
+      "state": "(440, 900)frost-secondary",
+      "title_height": 17.0
+    },
+    {
+      "body_height": 485.0,
+      "modal_size": "(404.0, 525.0)",
+      "scroll_height": 493.0,
+      "state": "(440, 900)frost-secondary"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 260.0,
+      "row": "TraitChoice_deadeyeFocus",
+      "row_height": 110.0,
+      "state": "(440, 900)sniper-primary",
+      "title_height": 17.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 260.0,
+      "row": "TraitChoice_quickScope",
+      "row_height": 110.0,
+      "state": "(440, 900)sniper-primary",
+      "title_height": 17.0
+    },
+    {
+      "body_height": 485.0,
+      "modal_size": "(404.0, 525.0)",
+      "scroll_height": 493.0,
+      "state": "(440, 900)sniper-primary"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 260.0,
+      "row": "TraitChoice_exposedMark",
+      "row_height": 110.0,
+      "state": "(440, 900)sniper-secondary",
+      "title_height": 17.0
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 260.0,
+      "row": "TraitChoice_finishingShot",
+      "row_height": 110.0,
+      "state": "(440, 900)sniper-secondary",
+      "title_height": 17.0
+    },
+    {
+      "body_height": 485.0,
+      "modal_size": "(404.0, 525.0)",
+      "scroll_height": 493.0,
+      "state": "(440, 900)sniper-secondary"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 260.0,
+      "row": "TraitChoice_branchCurrent",
+      "row_height": 110.0,
+      "state": "(440, 900)lightning-primary",
+      "title_height": 17.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 260.0,
+      "row": "TraitChoice_focusedLightning",
+      "row_height": 110.0,
+      "state": "(440, 900)lightning-primary",
+      "title_height": 17.0
+    },
+    {
+      "body_height": 485.0,
+      "modal_size": "(404.0, 525.0)",
+      "scroll_height": 493.0,
+      "state": "(440, 900)lightning-primary"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 260.0,
+      "row": "TraitChoice_lightningRecovery",
+      "row_height": 110.0,
+      "state": "(440, 900)lightning-secondary",
+      "title_height": 17.0
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 260.0,
+      "row": "TraitChoice_currentAmplification",
+      "row_height": 110.0,
+      "state": "(440, 900)lightning-secondary",
+      "title_height": 17.0
+    },
+    {
+      "body_height": 485.0,
+      "modal_size": "(404.0, 525.0)",
+      "scroll_height": 493.0,
+      "state": "(440, 900)lightning-secondary"
+    },
+    {
+      "detail_height": 69.0,
+      "detail_lines": 4,
+      "detail_width": 148.0,
+      "row": "TraitChoice_overheatMagazine",
+      "row_height": 126.0,
+      "state": "(320, 760)arrow-primary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_lightweightBarrel",
+      "row_height": 126.0,
+      "state": "(320, 760)arrow-primary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 557.0)",
+      "scroll_height": 525.0,
+      "state": "(320, 760)arrow-primary"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_suppressiveFire",
+      "row_height": 126.0,
+      "state": "(320, 760)arrow-secondary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_chainCleanup",
+      "row_height": 126.0,
+      "state": "(320, 760)arrow-secondary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 557.0)",
+      "scroll_height": 525.0,
+      "state": "(320, 760)arrow-secondary"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 148.0,
+      "row": "TraitChoice_shrapnelShell",
+      "row_height": 126.0,
+      "state": "(320, 760)cannon-primary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_compressedCharge",
+      "row_height": 126.0,
+      "state": "(320, 760)cannon-primary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 557.0)",
+      "scroll_height": 525.0,
+      "state": "(320, 760)cannon-primary"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_expandedBlastCore",
+      "row_height": 126.0,
+      "state": "(320, 760)cannon-secondary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 148.0,
+      "row": "TraitChoice_fractureImpact",
+      "row_height": 126.0,
+      "state": "(320, 760)cannon-secondary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 557.0)",
+      "scroll_height": 525.0,
+      "state": "(320, 760)cannon-secondary"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 148.0,
+      "row": "TraitChoice_highHeatBurn",
+      "row_height": 126.0,
+      "state": "(320, 760)magic-primary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 148.0,
+      "row": "TraitChoice_lingeringEmbers",
+      "row_height": 126.0,
+      "state": "(320, 760)magic-primary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 557.0)",
+      "scroll_height": 525.0,
+      "state": "(320, 760)magic-primary"
+    },
+    {
+      "detail_height": 51.0,
+      "detail_lines": 3,
+      "detail_width": 148.0,
+      "row": "TraitChoice_ignitionBurst",
+      "row_height": 126.0,
+      "state": "(320, 760)magic-secondary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_chainIgnition",
+      "row_height": 126.0,
+      "state": "(320, 760)magic-secondary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 557.0)",
+      "scroll_height": 525.0,
+      "state": "(320, 760)magic-secondary"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_coolingCycle",
+      "row_height": 126.0,
+      "state": "(320, 760)frost-primary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_spreadingChill",
+      "row_height": 126.0,
+      "state": "(320, 760)frost-primary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 557.0)",
+      "scroll_height": 525.0,
+      "state": "(320, 760)frost-primary"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 148.0,
+      "row": "TraitChoice_frostCrack",
+      "row_height": 126.0,
+      "state": "(320, 760)frost-secondary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 148.0,
+      "row": "TraitChoice_rapidCooling",
+      "row_height": 126.0,
+      "state": "(320, 760)frost-secondary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 557.0)",
+      "scroll_height": 525.0,
+      "state": "(320, 760)frost-secondary"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_deadeyeFocus",
+      "row_height": 126.0,
+      "state": "(320, 760)sniper-primary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_quickScope",
+      "row_height": 126.0,
+      "state": "(320, 760)sniper-primary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 557.0)",
+      "scroll_height": 525.0,
+      "state": "(320, 760)sniper-primary"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_exposedMark",
+      "row_height": 126.0,
+      "state": "(320, 760)sniper-secondary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_finishingShot",
+      "row_height": 126.0,
+      "state": "(320, 760)sniper-secondary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 557.0)",
+      "scroll_height": 525.0,
+      "state": "(320, 760)sniper-secondary"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 148.0,
+      "row": "TraitChoice_branchCurrent",
+      "row_height": 126.0,
+      "state": "(320, 760)lightning-primary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_focusedLightning",
+      "row_height": 126.0,
+      "state": "(320, 760)lightning-primary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 557.0)",
+      "scroll_height": 525.0,
+      "state": "(320, 760)lightning-primary"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_lightningRecovery",
+      "row_height": 126.0,
+      "state": "(320, 760)lightning-secondary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_currentAmplification",
+      "row_height": 126.0,
+      "state": "(320, 760)lightning-secondary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 557.0)",
+      "scroll_height": 525.0,
+      "state": "(320, 760)lightning-secondary"
+    },
+    {
+      "detail_height": 69.0,
+      "detail_lines": 4,
+      "detail_width": 148.0,
+      "row": "TraitChoice_overheatMagazine",
+      "row_height": 126.0,
+      "state": "(320, 480)arrow-primary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_lightweightBarrel",
+      "row_height": 126.0,
+      "state": "(320, 480)arrow-primary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 425.6)",
+      "scroll_height": 393.600006103516,
+      "state": "(320, 480)arrow-primary"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_suppressiveFire",
+      "row_height": 126.0,
+      "state": "(320, 480)arrow-secondary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_chainCleanup",
+      "row_height": 126.0,
+      "state": "(320, 480)arrow-secondary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 425.6)",
+      "scroll_height": 393.600006103516,
+      "state": "(320, 480)arrow-secondary"
+    },
+    {
+      "notice": "[P: (34.0, 399.0), S: (252.0, 14.0)]",
+      "scroll": 123,
+      "state": "arrow-short-bottom",
+      "viewport": "[P: (34.0, 43.0), S: (252.0, 393.6)]"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 148.0,
+      "row": "TraitChoice_shrapnelShell",
+      "row_height": 126.0,
+      "state": "(320, 480)cannon-primary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_compressedCharge",
+      "row_height": 126.0,
+      "state": "(320, 480)cannon-primary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 425.6)",
+      "scroll_height": 393.600006103516,
+      "state": "(320, 480)cannon-primary"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_expandedBlastCore",
+      "row_height": 126.0,
+      "state": "(320, 480)cannon-secondary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 148.0,
+      "row": "TraitChoice_fractureImpact",
+      "row_height": 126.0,
+      "state": "(320, 480)cannon-secondary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 425.6)",
+      "scroll_height": 393.600006103516,
+      "state": "(320, 480)cannon-secondary"
+    },
+    {
+      "notice": "[P: (34.0, 399.0), S: (252.0, 14.0)]",
+      "scroll": 123,
+      "state": "cannon-short-bottom",
+      "viewport": "[P: (34.0, 43.0), S: (252.0, 393.6)]"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 148.0,
+      "row": "TraitChoice_highHeatBurn",
+      "row_height": 126.0,
+      "state": "(320, 480)magic-primary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 148.0,
+      "row": "TraitChoice_lingeringEmbers",
+      "row_height": 126.0,
+      "state": "(320, 480)magic-primary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 425.6)",
+      "scroll_height": 393.600006103516,
+      "state": "(320, 480)magic-primary"
+    },
+    {
+      "detail_height": 51.0,
+      "detail_lines": 3,
+      "detail_width": 148.0,
+      "row": "TraitChoice_ignitionBurst",
+      "row_height": 126.0,
+      "state": "(320, 480)magic-secondary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_chainIgnition",
+      "row_height": 126.0,
+      "state": "(320, 480)magic-secondary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 425.6)",
+      "scroll_height": 393.600006103516,
+      "state": "(320, 480)magic-secondary"
+    },
+    {
+      "notice": "[P: (34.0, 399.0), S: (252.0, 14.0)]",
+      "scroll": 123,
+      "state": "magic-short-bottom",
+      "viewport": "[P: (34.0, 43.0), S: (252.0, 393.6)]"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_coolingCycle",
+      "row_height": 126.0,
+      "state": "(320, 480)frost-primary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_spreadingChill",
+      "row_height": 126.0,
+      "state": "(320, 480)frost-primary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 425.6)",
+      "scroll_height": 393.600006103516,
+      "state": "(320, 480)frost-primary"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 148.0,
+      "row": "TraitChoice_frostCrack",
+      "row_height": 126.0,
+      "state": "(320, 480)frost-secondary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 148.0,
+      "row": "TraitChoice_rapidCooling",
+      "row_height": 126.0,
+      "state": "(320, 480)frost-secondary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 425.6)",
+      "scroll_height": 393.600006103516,
+      "state": "(320, 480)frost-secondary"
+    },
+    {
+      "notice": "[P: (34.0, 399.0), S: (252.0, 14.0)]",
+      "scroll": 123,
+      "state": "frost-short-bottom",
+      "viewport": "[P: (34.0, 43.0), S: (252.0, 393.6)]"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_deadeyeFocus",
+      "row_height": 126.0,
+      "state": "(320, 480)sniper-primary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_quickScope",
+      "row_height": 126.0,
+      "state": "(320, 480)sniper-primary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 425.6)",
+      "scroll_height": 393.600006103516,
+      "state": "(320, 480)sniper-primary"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_exposedMark",
+      "row_height": 126.0,
+      "state": "(320, 480)sniper-secondary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_finishingShot",
+      "row_height": 126.0,
+      "state": "(320, 480)sniper-secondary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 425.6)",
+      "scroll_height": 393.600006103516,
+      "state": "(320, 480)sniper-secondary"
+    },
+    {
+      "notice": "[P: (34.0, 399.0), S: (252.0, 14.0)]",
+      "scroll": 123,
+      "state": "sniper-short-bottom",
+      "viewport": "[P: (34.0, 43.0), S: (252.0, 393.6)]"
+    },
+    {
+      "detail_height": 15.0,
+      "detail_lines": 1,
+      "detail_width": 148.0,
+      "row": "TraitChoice_branchCurrent",
+      "row_height": 126.0,
+      "state": "(320, 480)lightning-primary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_focusedLightning",
+      "row_height": 126.0,
+      "state": "(320, 480)lightning-primary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 425.6)",
+      "scroll_height": 393.600006103516,
+      "state": "(320, 480)lightning-primary"
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_lightningRecovery",
+      "row_height": 126.0,
+      "state": "(320, 480)lightning-secondary",
+      "title_height": 16.0
+    },
+    {
+      "detail_height": 33.0,
+      "detail_lines": 2,
+      "detail_width": 148.0,
+      "row": "TraitChoice_currentAmplification",
+      "row_height": 126.0,
+      "state": "(320, 480)lightning-secondary",
+      "title_height": 16.0
+    },
+    {
+      "body_height": 517.0,
+      "modal_size": "(284.0, 425.6)",
+      "scroll_height": 393.600006103516,
+      "state": "(320, 480)lightning-secondary"
+    },
+    {
+      "notice": "[P: (34.0, 399.0), S: (252.0, 14.0)]",
+      "scroll": 123,
+      "state": "lightning-short-bottom",
+      "viewport": "[P: (34.0, 43.0), S: (252.0, 393.6)]"
+    }
+  ],
+  "user_dir": "/Users/sejin/Library/Application Support/RuneNexus-TurretStats-Review"
+}

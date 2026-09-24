@@ -1,0 +1,439 @@
+{
+  "catalog_match": true,
+  "unique_assets": 24,
+  "asset_bytes": 2023622,
+  "assets": [
+    {
+      "id": "overheatMagazine",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 90104,
+      "sha256": "448ac48d23a91fda05ec9d206038a5a1a2b25e3827a27b5136cf53d0b406f37e"
+    },
+    {
+      "id": "lightweightBarrel",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        253
+      ],
+      "bytes": 80452,
+      "sha256": "a506de70377e1286934efd6b6cfc34e25b29be6ceec01cb92bd792c21f15b812"
+    },
+    {
+      "id": "suppressiveFire",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 98865,
+      "sha256": "96f34b601470d148188bbc6b284734066b69b7d3085ed760ea261b17c0ed5871"
+    },
+    {
+      "id": "chainCleanup",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 91709,
+      "sha256": "d1830d4d0597a173f8fed3ea80a90bcc535ba1d9aad781dfa5a548f880c6f05d"
+    },
+    {
+      "id": "shrapnelShell",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 77269,
+      "sha256": "bdf327b774a8fbc11af28106973c767a817e959de4dc65279907360aa68d95f1"
+    },
+    {
+      "id": "compressedCharge",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 85791,
+      "sha256": "e16d68092a412e227e415168ad45f9bfaeba1edff02176833acfb9b8c9801474"
+    },
+    {
+      "id": "expandedBlastCore",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 78419,
+      "sha256": "38e8bdc35c32bf3ff04421ed1c2ece1f1c4cda938ebc3e47ae6f763956c10b30"
+    },
+    {
+      "id": "fractureImpact",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 96441,
+      "sha256": "c7f3053fa7487d6e0e31f8310e146f392502ede8f21954f8db7c5f3086a9a520"
+    },
+    {
+      "id": "highHeatBurn",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 76549,
+      "sha256": "6450ae42a2da1ff78981db56db3db28f1f77cb6e6d2e20fc8ee8b601c644f19b"
+    },
+    {
+      "id": "lingeringEmbers",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 80507,
+      "sha256": "ffffc6970da40edadaf76ed87c53ceaf8060a1a36f5ffbf37770dba192b07d3d"
+    },
+    {
+      "id": "ignitionBurst",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 75718,
+      "sha256": "238bce294e4a963f2eb17807b626cb68547cb28ab4e175d8f63a4d9e7b03ba96"
+    },
+    {
+      "id": "chainIgnition",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 78467,
+      "sha256": "54bccf4e4b12bd1c7041fb27b6b217d9cd23da427df8e49f6d7f17853c4c6891"
+    },
+    {
+      "id": "coolingCycle",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 90029,
+      "sha256": "fe243e0ca6fefd0294cecc36e86b329828c96f432eda53f2b75629621345e870"
+    },
+    {
+      "id": "spreadingChill",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        253
+      ],
+      "bytes": 80655,
+      "sha256": "f59a3b613369b830dc3b8670c5f1f3f007596ba07f0b1c23dfaca5fc610d446c"
+    },
+    {
+      "id": "frostCrack",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        253
+      ],
+      "bytes": 83431,
+      "sha256": "346f7bb14073c9944e11745e4c6742c2128ffb3bd56a82a1a326d5e245be4ca1"
+    },
+    {
+      "id": "rapidCooling",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 110158,
+      "sha256": "254e9a82860fece8bbe37e7f159b5b27eb36ca00aff393177936f2e7996c6bea"
+    },
+    {
+      "id": "deadeyeFocus",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 88880,
+      "sha256": "f610eab982965ca6175a0b54eebc26ee829ba87fd5fde675ce22b40ad4d3049a"
+    },
+    {
+      "id": "quickScope",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 88140,
+      "sha256": "8e245df26ee2d4a37351dfbbe9bff5602865651e321a048c50b6802ccd5313f9"
+    },
+    {
+      "id": "exposedMark",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 81446,
+      "sha256": "a375b0d1dcc3dc27446db894b78d48fc0f3c512e76b58f0a61a429a87b3f8f18"
+    },
+    {
+      "id": "finishingShot",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 76199,
+      "sha256": "e528367e658dd2befa590a89edefca1d9e9c5984c1b28bb980d214d262481fc6"
+    },
+    {
+      "id": "branchCurrent",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 93945,
+      "sha256": "6b8e2ce8c1ed1a9f2a91fa93664ea2a78859e27d9ff1c330d8c127900e9d7e4d"
+    },
+    {
+      "id": "focusedLightning",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 63341,
+      "sha256": "1ae1473f04a21276204369dcb3e9ff90d9bd5201028bede4ba47565d36f1d166"
+    },
+    {
+      "id": "lightningRecovery",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 83061,
+      "sha256": "350730f55cf542dd5a2b48820bb902d1e2ad8a2f67f43c2f9f36311032d7b39f"
+    },
+    {
+      "id": "currentAmplification",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "size": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "bytes": 74046,
+      "sha256": "166006b7a1d755405f601f386cb1f4a4820d22e58a4630bf4e60cbabd53cba32"
+    }
+  ]
+}

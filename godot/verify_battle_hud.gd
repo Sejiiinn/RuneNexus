@@ -128,13 +128,11 @@ func run() -> void:
 	assert(app.run_domain.state.turrets[0].level == 2)
 	hud._selected_command("level")
 	(hud.body.find_child("TurretTraitAction",true,false) as Button).pressed.emit()
-	for button in buttons(hud.modal_body):
-		if button.text.begins_with("과열 탄창"):
-			button.pressed.emit(); break
+	(hud.modal_body.find_child("TraitChoice_overheatMagazine",true,false) as Button).pressed.emit()
 	assert(app.run_domain.state.turrets[0].primaryTrait == null)
-	for button in buttons(hud.modal_body):
-		if button.text.begins_with("✓ 과열 탄창"):
-			button.pressed.emit(); break
+	(hud.modal_body.find_child("TraitChoice_overheatMagazine",true,false) as Button).pressed.emit()
+	assert(app.run_domain.state.turrets[0].primaryTrait == null)
+	(hud.modal_body.find_child("TraitConfirm",true,false) as Button).pressed.emit()
 	assert(app.run_domain.state.turrets[0].primaryTrait == "overheatMagazine")
 	(hud.body.find_child("TurretSellAction",true,false) as Button).pressed.emit()
 	assert(hud.modal_active() and app.scene._native_combat.session.paused)

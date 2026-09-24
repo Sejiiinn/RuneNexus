@@ -441,7 +441,8 @@ func open_modal(title: String,max_width: float = 410,bottom_sheet := false,show_
 
 func _fit_modal() -> void:
 	if not is_instance_valid(modal) or not is_instance_valid(modal_scroll): return
-	modal_scroll.custom_minimum_size.y = minf(modal_body.get_combined_minimum_size().y+8,get_viewport_rect().size.y*(0.82 if modal_bottom_sheet else 0.82))
+	var content_height := modal_body.get_combined_minimum_size().y+8.0
+	modal_scroll.custom_minimum_size.y = minf(content_height,get_viewport_rect().size.y*0.82)
 
 func close_modal() -> void:
 	if not is_instance_valid(modal): return
