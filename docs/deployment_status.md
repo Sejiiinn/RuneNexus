@@ -6,11 +6,14 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
-## 2026-09-24 Godot 단독 Android 0.2.0 / code 6029 — 배포 진행 중
+## 2026-09-24 Godot 단독 Android 0.2.0 / code 6029 — 공개 완료
 
-Godot 전환 구현·로컬/에뮬레이터 검증 이후 사용자가 Android 공개 배포를 요청했다. 실기기 로그인 검증은 사용자가 직접 담당한다. 웹·API·DB 배포는 포함하지 않는다. 구현 상태는 [전환 상태](godot_unified_app_roadmap.md), 이전 로컬 검증은 [검증 기록](analysis/godot_android_release_20260924/README.md)이 원본이다.
-
-GitHub의 기존 운영 변수와 기존 서명 secrets가 존재함을 확인했다. 현재 공개 최신은 6028이며 6029/0.2.0 선택 업데이트를 준비한다. 먼저 CI에서 서명 빌드·검사를 수행하고, 동일한 검증 산출물의 인증서·설정·패키지·공개 자산을 확인한다. 실제 공개 전까지 이 항목은 배포 완료 기록이 아니다. 실기기·실계정 검증은 미확인 상태로 구분한다.
+- [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6029) · [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6029/rune-nexus.apk). 대상 `1f2bcc27cf877c0727dadd99632db713eb3ec519`, [최종 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/35999656150) 성공. CI에서 검증한 동일 서명 산출물을 초안에 올린 뒤 공개·최신 지정했다. 선택 업데이트이며 최소 지원 코드 6027을 유지한다. 웹·API·DB는 배포하지 않았다.
+- Flutter·Flame 실행 경로를 제거한 Godot 단독 앱이다. 기존 패키지·서명·저장 형식과 계정 보관 경로를 유지한다. 운영 API·Google client ID·업데이트 URL·빌드 식별자를 최종 APK에서 확인했다. 구현 상태는 [전환 상태](godot_unified_app_roadmap.md)를 따른다.
+- 자동 검사·독립 검토·서명 일치·최근 3개 공개 APK의 차등 복원 검사를 통과했다. 배포 검사에서 발견한 Linux int64 변환 차이, GitHub 리다이렉트 처리, 업데이트 완료 후 대기 팝업 잔류를 수정하고 해당 조건으로 재확인했다.
+- 격리 Android API 37 에뮬레이터에서 기존 공개 6028의 게스트 저장을 업데이트 설치로 인계했다. 스테이지 1·웨이브 2/40·HP 17/20·골드 148·젬 조각 1·기관총 1개가 유지됐고, 새 앱의 저장→강제 종료→재실행 복원도 통과했다. 최종 APK의 업데이트 팝업 자동 종료·로비·이어하기 화면까지 확인했다. 실기기 Google 로그인·실계정 동기화는 사용자가 직접 담당하며 통과로 간주하지 않는다.
+- 최종 APK **372,097,698 bytes**, SHA-256 `5b373f12278437f1e9aa99f22905ca2e8302b6f04da189b720af9269cdbe7fe9`. 이전 공개 6028의 431,317,704 bytes보다 **59,220,006 bytes(13.73%) 감소**했다. Godot PCK는 143,889,784 bytes·871항목·완전 중복 0 bytes이며 ABI 3종을 유지한다. 앱 UI·서비스 이관으로 PCK가 늘었지만 Flutter 엔진·Dart 라이브러리·중복 에셋 제거로 전체 크기는 줄었다.
+- 공개 태그의 커밋, latest/버전별 manifest 바이트 일치, 업로드된 5개 파일의 GitHub SHA-256·크기와 검증 산출물 일치, 공개 APK 다운로드 응답을 확인했다. 이미 검증한 대용량 파일의 재다운로드는 반복하지 않았다. 상세 근거는 `build/release-verification/apk-6029/`의 `ci-release-run.json`, `release-candidate-verification.json`, `final-release-review.json`, `public-verification.json`, `emulator/6029-release-after-50s.png`, `emulator/6029-release-restored-battle.png`에 있다. 이전 준비 검증은 [검증 기록](analysis/godot_android_release_20260924/README.md)을 따른다.
 
 이하 내용은 과거 배포 기록이며 Flutter/Web 관련 명령과 상태는 당시 기준이다.
 
