@@ -75,6 +75,11 @@ func _check() -> Dictionary:
 	message = "새 버전이 준비되었습니다" if not release.is_empty() else ("서버에서 새 버전을 요구합니다. 잠시 후 다시 확인해 주세요." if server_required else "최신 버전입니다")
 	return {"ok":true}
 
+static func _is_redirect(response: Array) -> bool:
+	# With automatic redirects disabled, Godot reports the limit result while
+	# retaining the HTTP status and Location header for manual HTTPS validation.
+	return response[0] in [HTTPRequest.RESULT_SUCCESS, HTTPRequest.RESULT_REDIRECT_LIMIT_REACHED] and response[1] in [301,302,303,307,308]
+
 func _manifest() -> Dictionary:
 	var target := manifest_url
 	for redirect in range(6):
@@ -89,8 +94,7 @@ func _manifest() -> Dictionary:
 			return {"ok":false}
 		var response: Array = await request.request_completed
 		request.queue_free()
-		if response[0] != HTTPRequest.RESULT_SUCCESS: return {"ok":false}
-		if response[1] in [301,302,303,307,308]:
+		if _is_redirect(response):
 			var location := ""
 			for header in response[2]:
 				if header.to_lower().begins_with("location:"): location = header.substr(9).strip_edges()
@@ -99,7 +103,7 @@ func _manifest() -> Dictionary:
 				location = match_url.get_string()+location
 			target = location
 			continue
-		if response[1] != 200: return {"ok":false}
+		if response[0] != HTTPRequest.RESULT_SUCCESS or response[1] != 200: return {"ok":false}
 		var value: Variant = Json.parse(response[3].get_string_from_utf8())
 		return {"ok":value is Dictionary,"body":value if value is Dictionary else {}}
 	return {"ok":false}

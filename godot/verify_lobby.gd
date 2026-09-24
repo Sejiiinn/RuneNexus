@@ -18,6 +18,7 @@ class FakeApp extends RefCounted:
 	var run_domain = preload("res://session/run_session.gd").new()
 	var checkpoint = {"message":"", "preferences":{}}
 	var startup_blocked := false
+	var services: Variant = null
 	var commands: Array = []
 	var quit_requested := false
 	var starts: Array = []
@@ -56,6 +57,18 @@ func _verify() -> void:
 	assert(not lobby.home.canvas.has_node("ContinueRun"))
 	for id in ["Settings", "StageSelect", "Leaderboard", "Events", "Mailbox", "Core", "Upgrades", "Research", "Modules"]:
 		assert(lobby.home.canvas.has_node(id), "Missing home action: " + id)
+	app.startup_blocked = true
+	app.services = {"updates":{"blocked":true}}
+	lobby.home._layout()
+	assert(lobby.home.canvas.get_node("StartupStatus").text == "업데이트 확인을 완료하면 저장을 불러옵니다.", "Unopened save during update gate is not a load failure")
+	assert(lobby.home.canvas.has_node("RetryUpdate") and not lobby.home.canvas.has_node("RetryLoad"), "Update gate offers its own recovery action")
+	app.services.updates.blocked = false
+	lobby.home._layout()
+	assert(lobby.home.canvas.get_node("StartupStatus").text == "저장을 불러오지 못했습니다. 기존 저장은 보존됩니다.", "Actual blocked load keeps preservation warning")
+	assert(lobby.home.canvas.has_node("RetryLoad") and not lobby.home.canvas.has_node("RetryUpdate"))
+	app.services = null
+	app.startup_blocked = false
+	lobby.home._layout()
 	lobby.home.open_settings()
 	assert(is_instance_valid(lobby.home.modal))
 	await process_frame

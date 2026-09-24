@@ -205,8 +205,14 @@ func _build_canvas(w: float, h: float) -> void:
 		var e: Array = entries[i]
 		_shortcut(canvas, e[0], e[1], "stage_rewards/reward_%s.png" % e[2], Rect2(20 + (w - 40) / 4 * i, bottom_y + 6, (w - 40) / 4, bottom_h - 12), false, lobby.open_page.bind(e[3]))
 	if blocked:
-		_label(canvas, "저장을 불러오지 못했습니다. 기존 저장은 보존됩니다.", Rect2(44, top + panel_h + 6, w - 88, 32), 12, 700, SECONDARY, true)
-		_stage_button(canvas, "RetryLoad", "다시 불러오기", Rect2(62, top + panel_h + 40, w - 124, 48), false, func(): lobby.app.retry_load())
+		var services = lobby.app.get("services")
+		var waiting_for_update: bool = services != null and services.updates != null and services.updates.blocked
+		var status := "업데이트 확인을 완료하면 저장을 불러옵니다." if waiting_for_update else "저장을 불러오지 못했습니다. 기존 저장은 보존됩니다."
+		_label(canvas, status, Rect2(44, top + panel_h + 6, w - 88, 32), 12, 700, SECONDARY, true).name = "StartupStatus"
+		if waiting_for_update:
+			_stage_button(canvas, "RetryUpdate", "업데이트 확인", Rect2(62, top + panel_h + 40, w - 124, 48), false, func(): lobby._service("업데이트"))
+		else:
+			_stage_button(canvas, "RetryLoad", "다시 불러오기", Rect2(62, top + panel_h + 40, w - 124, 48), false, func(): lobby.app.retry_load())
 	elif not lobby.message.is_empty():
 		_label(canvas, lobby.message, Rect2(44, top + panel_h + 8, w - 88, 45), 12, 700, SECONDARY, true)
 

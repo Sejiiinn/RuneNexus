@@ -65,6 +65,12 @@ func run():
 	check(not (await updater.check()).ok and updater.blocked,"wrong package fails closed")
 	check(not Updater.valid_url("http://example.test/update.json"),"HTTPS only")
 	check(not Updater.valid_url("https://user@example.test/update.json"),"userinfo rejected")
+	# Real HTTPRequest with max_redirects=0 returns RESULT_REDIRECT_LIMIT_REACHED
+	# for GitHub's 302, with its Location intact. It must reach manual validation.
+	check(Updater._is_redirect([HTTPRequest.RESULT_REDIRECT_LIMIT_REACHED,302]),"manual GitHub redirect accepted")
+	check(Updater._is_redirect([HTTPRequest.RESULT_SUCCESS,307]),"successful redirect accepted")
+	check(not Updater._is_redirect([HTTPRequest.RESULT_CANT_CONNECT,302]),"transport failure is not a redirect")
+	check(not Updater._is_redirect([HTTPRequest.RESULT_REDIRECT_LIMIT_REACHED,200]),"redirect-limit error without redirect status rejected")
 	var malformed=release.duplicate(true)
 	malformed.minimumSupportedVersionCode=3
 	check(not Updater.valid_manifest(malformed),"minimum above release rejected")
