@@ -243,7 +243,11 @@ func _write(record: Dictionary) -> Dictionary:
 	return _storage("session_write", JSON.stringify(value, "", false, true))
 
 func _storage(method: String, value: String = "") -> Dictionary:
-	if platform == null or not platform.has_method(method): return Http.failure("SECURE_STORAGE_UNAVAILABLE")
+	if platform == null: return Http.failure("SECURE_STORAGE_UNAVAILABLE")
+	# Android JNISingleton dispatches @UsedByGodot methods through call(), but
+	# Object.has_method() does not list them. Trust our registered plugin contract.
+	var native_plugin := Engine.has_singleton("RuneNexusPlatform") and platform == Engine.get_singleton("RuneNexusPlatform")
+	if not native_plugin and not platform.has_method(method): return Http.failure("SECURE_STORAGE_UNAVAILABLE")
 	var raw: Variant = platform.call(method, value) if method == "session_write" else platform.call(method)
 	var result: Variant = SaveJson.parse(raw) if raw is String else raw
 	if not result is Dictionary: return Http.failure("INVALID_PLATFORM_RESPONSE")

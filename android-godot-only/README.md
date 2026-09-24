@@ -6,6 +6,8 @@ Flutter 없이 공용 `rune_nexus.pck`를 실행한다. `productionRelease`는 �
 
 Godot Android singleton 이름은 `RuneNexusPlatform`이다. 결과 JSON은 `{ok:true,...}` 또는 `{ok:false,error:code}` 형태다.
 
+Godot 4.7.2의 Android `JNISingleton`은 `@UsedByGodot` 메서드를 직접 호출하거나 `call()`로 실행할 수 있지만, `Object.has_method()`는 해당 동적 메서드에 `false`를 반환한다. 아래 필수 API의 호출 가능 여부를 그 결과로 차단하지 않는다. 선택적 테스트 어댑터에도 같은 우회를 적용하지 않도록 `Engine.get_singleton("RuneNexusPlatform")`과 객체가 같은지 확인한다. GDScript 모의 객체만으로 이 경계를 검증하지 않고 Android에서 실제 암호화 저장 호출과 계정 서비스 연결을 확인한다.
+
 | 메서드 | 결과 |
 | --- | --- |
 | `application_support_path()` | 기존 Flutter path_provider Android의 `filesDir` 절대 경로 |

@@ -42,7 +42,9 @@ func setup(application, native_platform: Object = null, settings: Dictionary = {
 	if platform != null:
 		app.checkpoint = Checkpoint.new(root_path)
 		app.checkpoint.allow_progression_only = true
-		if platform.has_method("legacy_save_path"): app.checkpoint.store.legacy_path = platform.legacy_save_path()
+		# JNI plugin methods are callable even when Object.has_method() is false.
+		var native_plugin := Engine.has_singleton("RuneNexusPlatform") and platform == Engine.get_singleton("RuneNexusPlatform")
+		if native_plugin or platform.has_method("legacy_save_path"): app.checkpoint.store.legacy_path = platform.legacy_save_path()
 	boot_host=get_tree().get_first_node_in_group("rune_app_boot")
 	if boot_host!=null:
 		updates=boot_host.updates
