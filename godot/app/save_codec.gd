@@ -592,7 +592,15 @@ static func _map(v: Variant) -> Dictionary:
 	return v if _is_map(v) else {}
 
 static func _int(v: Variant, fallback: Variant = 0) -> Variant:
-	return int(v) if (v is int or v is float) else fallback
+	if v is int: return v
+	if v is float:
+		# Dart double.toInt saturates finite values outside signed int64. Native
+		# float casts differ by CPU, and float(INT64_MAX) rounds up to 2^63.
+		# Compare before casting; return the exact integer bounds directly.
+		if v >= 9223372036854775808.0: return 9223372036854775807
+		if v <= -9223372036854775808.0: return -9223372036854775807 - 1
+		return int(v)
+	return fallback
 
 static func _is_dart_integer_space(code: int) -> bool:
 	return (code >= 9 and code <= 13) or code in [32, 133, 160, 5760, 8232, 8233, 8239, 8287, 12288, 65279] or (code >= 8192 and code <= 8202)
