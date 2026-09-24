@@ -358,12 +358,14 @@ func _notification(what: int) -> void:
 		else: request_quit()
 	elif what == NOTIFICATION_WM_CLOSE_REQUEST: request_quit()
 	elif what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED]:
+		if what == NOTIFICATION_APPLICATION_PAUSED and services != null: services.note_login_pause()
 		pause_and_save()
 	elif what == NOTIFICATION_APPLICATION_RESUMED:
 		_resume_services()
 
 func _resume_services() -> void:
 	if services == null: return
+	if services.consume_login_resume(): return
 	if services.updates != null:
 		if services.updates.busy: return
 		await services.updates.check()

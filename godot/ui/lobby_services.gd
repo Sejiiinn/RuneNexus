@@ -82,6 +82,7 @@ func _account(body: VBoxContainer) -> void:
 		var login := _button(body,"Google 계정 연결",_login)
 		login.disabled = login.disabled or service == null or not service.configured()
 		if service == null or not service.configured(): body.add_child(T.label("이 실행 환경에서는 계정 연결을 사용할 수 없습니다.",12))
+		if service != null and not service.issue.is_empty() and notice.is_empty(): body.add_child(T.label(_error(service.issue),12))
 		return
 	var profile: Dictionary = service.profile
 	if profile.get("nickname") is String and not profile.nickname.is_empty():
@@ -106,10 +107,11 @@ func _show_result(result: Dictionary) -> void:
 	notice = "완료했습니다" if result.get("ok",false) else _error(str(result.get("code","REQUEST_FAILED")))
 
 func _error(code: String) -> String:
-	return {"ACCOUNT_REQUIRED":"계정 연결이 필요합니다.","BUSY":"이전 요청을 처리하고 있습니다.","NICKNAME_REQUIRED":"닉네임을 먼저 설정해 주세요.","NICKNAME_ALREADY_SET":"이미 닉네임이 설정되었습니다. 계정 상태를 다시 확인해 주세요.","SAVE_SYNC_REQUIRED":"진행 상황 동기화 후 다시 시도해 주세요.","SAVE_WRITER_REPLACED":"다른 기기에서 접속했습니다. 동기화 다시 시도를 눌러 주세요.","CLIENT_UPDATE_REQUIRED":"새 버전으로 업데이트해야 합니다.","GOOGLE_SIGN_IN_CANCELLED":"계정 연결을 취소했습니다.","sign_in_cancelled":"계정 연결을 취소했습니다.","SAVE_RELOAD_REQUIRED":"서버 진행 상황을 불러오고 있습니다.","INSUFFICIENT_DIAMONDS":"다이아가 부족합니다.","INSUFFICIENT_MODULE_TICKETS":"모듈권이 부족합니다.","ECONOMY_REVISION_CONFLICT":"재화 정보가 갱신되었습니다. 확인 후 다시 시도해 주세요.","MAIL_UNAVAILABLE":"수령할 수 없는 우편입니다."}.get(code,"요청을 완료하지 못했습니다. 연결 상태를 확인하고 다시 시도해 주세요.")
+	return {"ACCOUNT_REQUIRED":"계정 연결이 필요합니다.","BUSY":"이전 요청을 처리하고 있습니다.","NICKNAME_REQUIRED":"닉네임을 먼저 설정해 주세요.","NICKNAME_ALREADY_SET":"이미 닉네임이 설정되었습니다. 계정 상태를 다시 확인해 주세요.","SAVE_SYNC_REQUIRED":"진행 상황 동기화 후 다시 시도해 주세요.","SAVE_WRITER_REPLACED":"다른 기기에서 접속했습니다. 동기화 다시 시도를 눌러 주세요.","CLIENT_UPDATE_REQUIRED":"새 버전으로 업데이트해야 합니다.","GOOGLE_SIGN_IN_CANCELLED":"계정 연결을 취소했습니다.","sign_in_cancelled":"계정 연결을 취소했습니다.","invalid_credential":"Google 인증 정보를 확인하지 못했습니다. Google 계정을 다시 선택해 주세요.","sign_in_unavailable":"Google 로그인 요청을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.","SAVE_RELOAD_REQUIRED":"서버 진행 상황을 불러오고 있습니다.","INSUFFICIENT_DIAMONDS":"다이아가 부족합니다.","INSUFFICIENT_MODULE_TICKETS":"모듈권이 부족합니다.","ECONOMY_REVISION_CONFLICT":"재화 정보가 갱신되었습니다. 확인 후 다시 시도해 주세요.","MAIL_UNAVAILABLE":"수령할 수 없는 우편입니다."}.get(code,"요청을 완료하지 못했습니다. 연결 상태를 확인하고 다시 시도해 주세요.")
 
 func _login() -> void:
 	var captured := view_epoch
+	notice = ""
 	pending = true
 	_render()
 	var result: Dictionary = await _services().login()

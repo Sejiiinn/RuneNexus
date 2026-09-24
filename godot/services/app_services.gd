@@ -25,6 +25,8 @@ var _background_busy := false
 var _startup_pending := true
 var _initializing := false
 var _session_end_pending := false
+var _login_resume_pending := false
+var _login_in_progress := false
 
 func setup(application, native_platform: Object = null, settings: Dictionary = {}) -> void:
 	app = application
@@ -112,6 +114,16 @@ func _handle_session_end() -> void:
 func configured() -> bool:
 	return platform != null and account != null and not config.get("googleClientId", "").is_empty()
 
+func consume_login_resume() -> bool:
+	# Android may deliver the Credential Manager callback before or after resume.
+	# That return belongs to the current login, not a new foreground sync.
+	var pending := _login_resume_pending or _login_in_progress
+	_login_resume_pending = false
+	return pending
+
+func note_login_pause() -> void:
+	if _login_in_progress: _login_resume_pending = true
+
 func _initialize() -> void:
 	if _initializing or not _startup_pending: return
 	_initializing = true
@@ -148,9 +160,13 @@ func login() -> Dictionary:
 	if not configured(): return {"ok":false,"code":"LOGIN_UNAVAILABLE"}
 	if not app.startup_blocked and not app.pause_and_save(): return {"ok":false,"code":"LOCAL_SAVE_FAILED"}
 	busy = true
+	issue = ""
+	_login_in_progress = true
+	_login_resume_pending = false
 	changed.emit()
 	var result: Dictionary
 	if not platform.sign_in_google(config.googleClientId):
+		_login_resume_pending = false
 		result = {"ok":false,"code":"GOOGLE_SIGN_IN_FAILED"}
 	else:
 		var raw: String = await platform.google_sign_in_completed
@@ -160,7 +176,9 @@ func login() -> Dictionary:
 			result = await account.sign_in(str(native.get("idToken", "")))
 			if result.get("ok",false): result = await _bind(true)
 	busy = false
+	_login_in_progress = false
 	issue = "" if result.get("ok",false) else str(result.get("code","LOGIN_FAILED"))
+	if issue == "CLIENT_UPDATE_REQUIRED" and updates != null: updates.require_update()
 	app._refresh_ui()
 	changed.emit()
 	return result

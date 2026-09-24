@@ -33,6 +33,15 @@ class Platform extends Node:
 		return true
 	func sign_out_google(): return true
 
+class LoginPlatform extends Platform:
+	func sign_in_google(_id): return true # Test controls the Android result timing.
+
+class ResumeLifecycle extends "res://app/app_lifecycle.gd":
+	func _ready(): pass
+
+class ResumeScene extends Node3D:
+	var _native_combat={"active":false}
+
 class GateFixture extends Node:
 	signal changed
 	var blocked := true
@@ -48,7 +57,9 @@ class GateFixture extends Node:
 
 class ModalUpdateFixture extends "res://services/update_service.gd":
 	var accepted := true
+	var checks := 0
 	func _check() -> Dictionary:
+		checks += 1
 		await get_tree().process_frame
 		blocked = not accepted
 		if accepted: message = "최신 버전입니다"
@@ -64,6 +75,7 @@ class FixtureServer extends RefCounted:
 	var save: Variant = null
 	var offline := false
 	var fail_profile := false
+	var auth_status := 200
 	var economy_revision := 0
 	var effects: Array = []
 	var settled: Array = []
@@ -79,6 +91,7 @@ class FixtureServer extends RefCounted:
 		await tree.process_frame
 		if offline: return reply(0,{},"NETWORK_UNAVAILABLE")
 		if path.ends_with("/google") or path.ends_with("/refresh"):
+			if auth_status==426: return reply(426,{},"CLIENT_UPDATE_REQUIRED")
 			if path.ends_with("/google"): active = ACCOUNT_B if body.idToken == "b" else ACCOUNT_A
 			return reply(200,{"account":{"id":active},"accessToken":"fixture-access","refreshToken":"fixture-refresh","accessExpiresAt":"2099-01-01T00:00:00Z"})
 		if path.ends_with("/logout"): return reply(204)
@@ -156,6 +169,7 @@ func check(value: bool, label: String):
 func _run():
 	await _gate_checks()
 	await _update_modal_checks()
+	await _login_resume_checks()
 	app=AppStub.new()
 	app.run_domain.growth.load_catalog()
 	app.checkpoint=Checkpoint.new(folder)
@@ -290,6 +304,86 @@ func _update_modal_checks() -> void:
 	check(not update.blocked and not is_instance_valid(lobby.modal),"Optional skip closes only the update modal")
 	lobby.queue_free();gated.queue_free()
 	await process_frame
+
+func _login_resume_checks() -> void:
+	var initial_failures=failures.size()
+	var scenarios=[["cancel",false],["credential_failure",false],["auth_failure",false],["nickname",false],["success",false],
+		["cancel",true],["credential_failure",true],["auth_failure",true],["nickname",true],["success",true],["no_pause",true],["required",false],["unavailable",false]]
+	for scenario in scenarios:
+		var outcome: String=scenario[0]
+		var callback_first: bool=scenario[1]
+		var login_app=AppStub.new()
+		login_app.catalog.load_catalog();login_app.run_domain.growth.load_catalog()
+		login_app.checkpoint=Checkpoint.new(folder.path_join("login-resume-"+outcome+str(callback_first)));login_app.retry_load()
+		var native=LoginPlatform.new();root.add_child(native)
+		var wire=FixtureServer.new();wire.tree=self
+		wire.nickname=null if outcome=="nickname" else "복원계정"
+		wire.offline=outcome=="auth_failure"
+		wire.auth_status=426 if outcome=="required" else 200
+		var coordinator=Services.new();root.add_child(coordinator);coordinator.set_process(false)
+		coordinator.app=login_app;login_app.services=coordinator
+		coordinator.root_path=login_app.checkpoint.base_directory;coordinator.platform=native
+		coordinator.config={"googleClientId":"fixture-client"};coordinator._startup_pending=false
+		coordinator.account=Auth.new();coordinator.add_child(coordinator.account)
+		coordinator.account.configure("http://127.0.0.1:19764",native,wire)
+		coordinator.economy=Economy.new();coordinator.add_child(coordinator.economy)
+		var update=ModalUpdateFixture.new();coordinator.add_child(update)
+		update.setup(RefCounted.new(),"https://fixture.invalid/update.json");update.blocked=false
+		update.accepted=outcome!="required"
+		coordinator.updates=update;update.changed.connect(coordinator._update_changed)
+		var lobby=load("res://ui/lobby.gd").new();lobby.app=login_app;root.add_child(lobby);login_app.lobby=lobby
+		var lifecycle=ResumeLifecycle.new();root.add_child(lifecycle);lifecycle.set_process(false)
+		var scene_stub=ResumeScene.new();root.add_child(scene_stub);lifecycle.scene=scene_stub;lifecycle.services=coordinator
+		lobby._service("계정 및 저장")
+		lobby._services._login()
+		check(coordinator.busy,"Google picker holds login operation: "+outcome)
+		if outcome!="no_pause": lifecycle._notification(MainLoop.NOTIFICATION_APPLICATION_PAUSED)
+		# Exercise both possible orders of Android resume and native completion.
+		if not callback_first:
+			lifecycle._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
+			check(update.checks==0 and is_instance_valid(lobby.modal) and lobby.modal.get_meta("service_page","")=="계정 및 저장","Picker resume does not replace pending login with update check: "+outcome)
+		await process_frame
+		var reply={"ok":true,"idToken":"a"}
+		if outcome=="cancel": reply={"ok":false,"error":"sign_in_cancelled"}
+		if outcome in ["credential_failure","no_pause"]: reply={"ok":false,"error":"invalid_credential"}
+		if outcome=="unavailable": reply={"ok":false,"error":"sign_in_unavailable"}
+		native.google_sign_in_completed.emit(JSON.stringify(reply))
+		for frame in 30: await process_frame
+		check(not coordinator.busy,"Login completes after resume: "+outcome)
+		if callback_first and outcome!="no_pause":
+			lifecycle._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
+			check(update.checks==0,"Picker resume after native completion preserves its result: "+outcome)
+		check(not coordinator._login_resume_pending,"Login return marker consumed once: "+outcome)
+		if outcome in ["cancel","credential_failure","auth_failure","no_pause","unavailable"]:
+			var error_text=lobby._services._error(coordinator.issue)
+			check(not coordinator.connected() and not coordinator.issue.is_empty(),"Failed login retains reason: "+outcome)
+			check(is_instance_valid(lobby.modal) and error_text in _labels(lobby.modal),"Failed login result remains visible: "+outcome)
+			lobby.close_modal();lobby._service("계정 및 저장")
+			check(error_text in _labels(lobby.modal),"Reopened guest account retains last login failure: "+outcome)
+		elif outcome=="required":
+			check(not coordinator.connected() and update.blocked and update.server_required and coordinator.blocks_play(),"Login server 426 retains mandatory update gate")
+			check(is_instance_valid(lobby.modal) and lobby.modal.get_meta("service_page","")=="업데이트","Login server 426 shows required update instead of account result")
+		else:
+			check(coordinator.connected() and native.value!=null,"Successful login keeps secure account session: "+outcome)
+			check(is_instance_valid(lobby.modal) and lobby.modal.get_meta("service_page","")=="계정 및 저장","Successful login keeps account result visible: "+outcome)
+			check(coordinator.needs_profile() if outcome=="nickname" else coordinator.online_ready,"Nickname or online binding remains intact: "+outcome)
+		# Suppression applies to one picker return only; a later foreground check
+		# and an explicit required gate must still run normally.
+		update.accepted=false
+		var prior_checks=update.checks
+		# Non-login work must retain the preexisting foreground update policy.
+		if outcome=="no_pause": coordinator.busy=true
+		await lifecycle._resume_services()
+		check(update.checks==prior_checks+1 and update.blocked,"Later ordinary resume still checks updates: "+outcome)
+		if outcome=="no_pause":
+			check(coordinator.busy and update.checks==prior_checks+1,"Non-login busy operation does not skip foreground update")
+			coordinator.busy=false
+		update.require_update()
+		await process_frame;await process_frame
+		check(update.blocked and is_instance_valid(lobby.modal) and lobby.modal.get_meta("service_page","")=="업데이트","Explicit required update still replaces account view: "+outcome)
+		lifecycle.scene=null;lifecycle.queue_free();scene_stub.queue_free();lobby.queue_free();coordinator.queue_free();native.queue_free()
+		await process_frame
+	print("LOGIN_RESUME scenarios=",scenarios.size()," failures=",failures.size()-initial_failures)
 
 func _ui_checks() -> void:
 	ProjectSettings.set_setting("accessibility/disable_animations",true)
