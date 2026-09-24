@@ -152,6 +152,7 @@ func refresh() -> void:
 		_page_scroll = scroll
 		scroll.name = "PageScroll"
 		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		if page == "연구": scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 		content.add_child(scroll)
 		scroll.add_child(body)
 		body.size_flags_vertical = Control.SIZE_EXPAND_FILL

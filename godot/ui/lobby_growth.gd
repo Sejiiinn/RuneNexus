@@ -385,12 +385,20 @@ func research() -> void:
 				panel.move_child(active_visual,0)
 			if group == "잠긴 연구": panel.self_modulate.a = 0.58
 			if group != "잠긴 연구" and _active(id).is_empty():
-				panel.mouse_filter = Control.MOUSE_FILTER_STOP
-				panel.focus_mode = Control.FOCUS_ALL
-				panel.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-				panel.gui_input.connect(func(event: InputEvent):
-					if (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed) or event.is_action_pressed("ui_accept"): _details(id)
-				)
+				# BaseButton cancels its release action when the parent starts scrolling.
+				var select := Button.new()
+				select.name = "ResearchSelect_" + id
+				select.action_mode = BaseButton.ACTION_MODE_BUTTON_RELEASE
+				select.mouse_filter = Control.MOUSE_FILTER_PASS
+				select.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+				for state in ["normal", "hover", "pressed", "focus"]:
+					select.add_theme_stylebox_override(state, StyleBoxEmpty.new())
+				panel.add_child(select)
+				select.pressed.connect(_details.bind(id))
+	# Card/section panels must forward touch gestures to the page ScrollContainer.
+	for control in lobby.body.find_children("*", "Control", true, false):
+		if control.mouse_filter == Control.MOUSE_FILTER_STOP:
+			control.mouse_filter = Control.MOUSE_FILTER_PASS
 
 func _submit(kind: String, id: String) -> void:
 	lobby.close_modal()
