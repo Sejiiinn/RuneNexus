@@ -1,0 +1,16 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M4
+
+width=320 area=(276.0, 246.0) pos=(22.0, 237.0) feed=(18.56, 17.38)
+balance=0.64000009607386 branch=(17.44, 12.54)
+PASS width=320 fixed joints, pipe caps, slot alignment, max width, equipment and six turret clicks
+width=440 area=(380.0, 246.0) pos=(30.0, 231.0) feed=(54.39999, 17.38)
+balance=0.64000000138716 branch=(37.6, 12.54)
+PASS width=440 fixed joints, pipe caps, slot alignment, max width, equipment and six turret clicks
+width=900 area=(380.0, 246.0) pos=(256.0, 208.0) feed=(54.39999, 17.38)
+balance=0.63999987515536 branch=(37.6, 12.54)
+PASS width=900 fixed joints, pipe caps, slot alignment, max width, equipment and six turret clicks
+width=320 area=(276.0, 246.0) pos=(22.0, 237.0) feed=(18.56, 17.38)
+balance=0.63999998022009 branch=(17.44, 12.54)
+PASS width=320 fixed joints, pipe caps, slot alignment, max width, equipment and six turret clicks
+PASS MODULE_CONNECTOR: resize down without refresh, empty slot filter

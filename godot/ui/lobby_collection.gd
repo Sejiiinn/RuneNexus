@@ -2,6 +2,7 @@ extends RefCounted
 ## Original module equipment/inventory and period-based quest modal.
 const A = preload("res://ui/app_theme.gd")
 const Frame = preload("res://ui/lobby_frame.gd")
+const Connector = preload("res://ui/module_connector.gd")
 const B = preload("res://ui/battle_theme.gd")
 const Q = preload("res://app/quest_progress.gd")
 const PARTS := {"core":"코어", "barrel":"포신", "frame":"프레임"}
@@ -149,9 +150,13 @@ func _put(control: Control, parent: Control, rect: Rect2) -> void:
 
 func _equipment(parent: Node) -> void:
 	var column := _frame(parent, "ui/components/panel_frame.png", 0)
+	var center := Control.new()
+	center.custom_minimum_size.y = 246
+	column.add_child(center)
 	var area := Control.new()
+	area.name = "ModuleEquipment"
 	area.custom_minimum_size.y = 246
-	column.add_child(area)
+	center.add_child(area)
 	var heading := _label(lobby._title(turret), 14)
 	_put(heading, area, Rect2(10, 9, 120, 22))
 	var preview := Control.new()
@@ -176,8 +181,8 @@ func _equipment(parent: Node) -> void:
 	caption.offset_top = -28
 	caption.offset_bottom = -12
 	caption.add_theme_color_override("font_color", Color("ecd17b"))
-	var connector := _image("turret_modules/ui/turret_connector_assembly.png", Vector2.ZERO)
-	connector.stretch_mode = TextureRect.STRETCH_SCALE
+	var connector := Connector.new()
+	connector.name = "ModuleConnector"
 	area.add_child(connector)
 	var slots: Array[Control] = []
 	for part in PARTS:
@@ -185,6 +190,7 @@ func _equipment(parent: Node) -> void:
 		for item in _items():
 			if item.get("equipped", false) and item.get("turretType") == turret and item.get("part") == part: equipped = item
 		var slot := _asset_button("", select_item.bind(equipped, true) if not equipped.is_empty() else select_part.bind(part), "ui/components/card_frame.png")
+		slot.name = "ModuleSlot_" + part
 		area.add_child(slot)
 		var lines := VBoxContainer.new()
 		lines.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -203,20 +209,22 @@ func _equipment(parent: Node) -> void:
 		lines.add_child(note)
 		slots.append(slot)
 	var layout := func():
+		# A minimum width would prevent this page from shrinking after a resize.
+		area.size = Vector2(minf(center.size.x, 380), 246)
+		area.position.x = (center.size.x - area.size.x) / 2
 		var compact := area.size.x < 360
 		var socket_width := 116.0 if compact else 128.0
 		var socket_right := 8.0 if compact else 10.0
 		var diameter := 104.0 if compact else 118.0
-		var left := 14.0 if compact else 20.0
+		var left := 0.0 if compact else 20.0
 		preview.position = Vector2(left, 123 - diameter / 2)
 		preview.size = Vector2(diameter, diameter)
 		var socket_left: float = area.size.x - socket_right - socket_width
-		connector.position = Vector2(left + diameter - 12, 37)
-		connector.size = Vector2(maxf(5, socket_left - connector.position.x + 5), 172)
 		for i in range(slots.size()):
 			slots[i].position = Vector2(socket_left, 16 + 74 * i)
 			slots[i].size = Vector2(socket_width, 66)
-	area.resized.connect(layout)
+		connector.arrange(left + diameter, socket_left, PackedFloat32Array([49, 123, 197]))
+	center.resized.connect(layout)
 	layout.call()
 
 func modules() -> void:
