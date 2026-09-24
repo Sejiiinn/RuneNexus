@@ -46,6 +46,14 @@ class GateFixture extends Node:
 		blocked=false
 		changed.emit()
 
+class ModalUpdateFixture extends "res://services/update_service.gd":
+	var accepted := true
+	func _check() -> Dictionary:
+		await get_tree().process_frame
+		blocked = not accepted
+		if accepted: message = "최신 버전입니다"
+		return {"ok":accepted}
+
 class FixtureServer extends RefCounted:
 	var tree: SceneTree
 	var calls: Array = []
@@ -111,6 +119,7 @@ class DomainStub extends RefCounted:
 	var now_millis: Callable = func(): return 1800000000000
 class AppStub extends RefCounted:
 	var checkpoint
+	var catalog = preload("res://content/content_catalog.gd").new()
 	var progression_inputs := {}
 	var scene = SceneStub.new()
 	var run_domain = DomainStub.new()
@@ -122,7 +131,8 @@ class AppStub extends RefCounted:
 	var services
 	var persist_count := 0
 	var retry_count := 0
-	func _refresh_ui(): pass
+	func _refresh_ui():
+		if is_instance_valid(lobby): lobby.refresh()
 	func retry_load() -> bool:
 		retry_count+=1
 		var data: Variant = checkpoint.store.load_save()
@@ -145,6 +155,7 @@ func check(value: bool, label: String):
 	if not value: failures.append(label); push_error(label)
 func _run():
 	await _gate_checks()
+	await _update_modal_checks()
 	app=AppStub.new()
 	app.run_domain.growth.load_catalog()
 	app.checkpoint=Checkpoint.new(folder)
@@ -228,6 +239,57 @@ func _labels(node: Node) -> Array[String]:
 	if node is Label or node is Button: result.append(node.text)
 	for child in node.get_children(): result.append_array(_labels(child))
 	return result
+
+func _update_modal_checks() -> void:
+	ProjectSettings.set_setting("accessibility/disable_animations",true)
+	var gated_app=AppStub.new()
+	gated_app.catalog.load_catalog()
+	gated_app.run_domain.growth.load_catalog()
+	gated_app.startup_blocked=true
+	var gated=Services.new();root.add_child(gated)
+	gated.set_process(false);gated.app=gated_app;gated._startup_pending=false
+	gated_app.services=gated
+	# Run the actual home refresh path, including its kept_modal preservation.
+	var lobby=load("res://ui/lobby.gd").new();lobby.app=gated_app;lobby.size=Vector2(440,760);root.add_child(lobby)
+	gated_app.lobby=lobby
+	var update=ModalUpdateFixture.new();gated.add_child(update)
+	update.setup(RefCounted.new(),"https://fixture.invalid/update.json")
+	gated.updates=update;update.changed.connect(gated._update_changed)
+	update.check()
+	check(update.busy and is_instance_valid(lobby.modal) and "업데이트 정보를 확인하고 있습니다" in _labels(lobby.modal),"Initial update check opens busy gate modal")
+	await process_frame;await process_frame
+	check(not update.busy and not update.blocked and not is_instance_valid(lobby.modal),"Automatic initial success removes stale busy modal")
+	lobby.refresh()
+	check(not is_instance_valid(lobby.modal),"Home refresh cannot preserve the finished gate")
+	update.accepted=false
+	await update.check()
+	check(update.blocked and is_instance_valid(lobby.modal) and update.message in _labels(lobby.modal),"Failed check keeps retryable failure modal")
+	lobby.close_modal()
+	check(is_instance_valid(lobby.modal),"Failed gate remains mandatory")
+	update.accepted=true
+	await lobby._services._update_action()
+	check(not is_instance_valid(lobby.modal),"Manual retry success cannot recreate the completed gate after await")
+	lobby._service("업데이트")
+	lobby._services._update_action()
+	lobby.open_modal("다른 화면의 대화상자")
+	var replacement=lobby.modal
+	await process_frame;await process_frame
+	check(lobby.modal==replacement and is_instance_valid(replacement),"Await from an old update view cannot overwrite its replacement")
+	lobby.open_modal("다른 대화상자")
+	var other=lobby.modal
+	update.changed.emit()
+	check(lobby.modal==other and is_instance_valid(other),"Unblocked notification leaves unrelated modal open")
+	update.blocked=true
+	update.release={"versionCode":2,"versionName":"fixture","notes":"","minimumSupportedVersionCode":2}
+	update.installed={"versionCode":1}
+	update.changed.emit()
+	update.skip()
+	check(update.blocked and is_instance_valid(lobby.modal),"Required update still cannot skip its modal")
+	update.release.minimumSupportedVersionCode=0
+	update.skip()
+	check(not update.blocked and not is_instance_valid(lobby.modal),"Optional skip closes only the update modal")
+	lobby.queue_free();gated.queue_free()
+	await process_frame
 
 func _ui_checks() -> void:
 	ProjectSettings.set_setting("accessibility/disable_animations",true)

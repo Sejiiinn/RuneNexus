@@ -34,6 +34,7 @@ func _button(body: Node, text: String, callback: Callable, role := "primary") ->
 func _render() -> void:
 	var body: VBoxContainer = lobby.open_modal(page)
 	lobby.modal.set_meta("service_view_epoch",view_epoch)
+	lobby.modal.set_meta("service_page",page)
 	lobby.modal.set_meta("max_width",480 if page == "우편함" else 420)
 	body.name = "ServiceBody"
 	if page == "업데이트":
@@ -62,8 +63,9 @@ func _update(body: VBoxContainer) -> void:
 		later.disabled = update.busy
 
 func _update_action() -> void:
+	var captured := view_epoch
 	await _services().updates.update()
-	if is_instance_valid(lobby.modal): _render()
+	if _active_view(captured): _render()
 
 func _active_view(captured: int) -> bool:
 	return captured == view_epoch and is_instance_valid(lobby.modal) and lobby.modal.get_meta("service_view_epoch", -1) == captured

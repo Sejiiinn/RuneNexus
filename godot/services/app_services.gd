@@ -75,8 +75,12 @@ func _update_changed() -> void:
 		app.in_lobby = true
 		app._refresh_ui()
 		app.lobby._service("업데이트")
-	elif not updates.blocked and _startup_pending and not _initializing:
-		_initialize.call_deferred()
+	elif not updates.blocked:
+		# Home refresh deliberately preserves open modals. Retire this gate's
+		# stale busy view when the check succeeds, without closing another dialog.
+		if app.lobby != null and is_instance_valid(app.lobby.modal) and app.lobby.modal.get_meta("service_page", "") == "업데이트":
+			app.lobby.close_modal(true)
+		if _startup_pending and not _initializing: _initialize.call_deferred()
 	changed.emit()
 
 func _account_changed() -> void:
