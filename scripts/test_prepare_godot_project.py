@@ -12,6 +12,21 @@ import prepare_godot_project as preparation
 
 
 class MaterialPresetSyncTest(unittest.TestCase):
+    def test_production_config_requires_all_values_and_https(self):
+        variables = {
+            "RUNE_NEXUS_REQUIRE_PRODUCTION_CONFIG": "true",
+            "RUNE_NEXUS_API_BASE_URL": "https://api.example.test",
+            "GOOGLE_WEB_CLIENT_ID": "client-id",
+            "RUNE_NEXUS_UPDATE_MANIFEST_URL": "https://example.test/update.json",
+            "RUNE_NEXUS_CLIENT_BUILD": "android:commit",
+        }
+        with patch.dict("os.environ", variables):
+            self.assertEqual(preparation.app_config()["googleClientId"], "client-id")
+        with patch.dict("os.environ", {**variables, "GOOGLE_WEB_CLIENT_ID": ""}):
+            with self.assertRaises(RuntimeError): preparation.app_config()
+        with patch.dict("os.environ", {**variables, "RUNE_NEXUS_API_BASE_URL": "http://api.example.test"}):
+            with self.assertRaises(RuntimeError): preparation.app_config()
+
     def test_app_ui_manifest_copies_only_requested_assets_and_rejects_escape(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

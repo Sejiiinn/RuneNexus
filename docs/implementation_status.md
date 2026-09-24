@@ -1,571 +1,89 @@
 # Rune Nexus 구현 현황
 
-문서 역할: 구현 범위 요약. 운영 상태는 [배포 인계](deployment_status.md), 남은 작업은 [백로그](next_work_priorities.md)에서 확인한다.
-부분 정합화: 2026-09-09 (코어 트리, 최근 UI·닉네임·리더보드 및 배포 기록 연결).
-기존 상세 목록의 기준은 2026-09-05이며 이번에 모든 기능을 재검증하지 않았다. 수치·API 변경 전 관련 코드와 테스트를 확인한다.
+역할: 기능을 찾기 위한 구현 범위 요약과 계약 안내. Godot 전환 상태는 [실행 로드맵](godot_unified_app_roadmap.md#3-단계와-의존-관계), 공개 버전·운영 검증은 [배포 인계](deployment_status.md), 작업 후보는 [백로그](next_work_priorities.md)가 원본이다.
+
+정리: 2026-09-21. 아래는 기존 구현 기록의 요약이며 이번 문서 정리에서 기능 전체를 다시 실행·검증하지 않았다. 과거 수치·세부 항목·테스트 건수는 [기존 상세 목록](archive/implementation_status_20260921.md)에 보존한다. 수치·API·동작 변경 전 해당 계약과 코드를 확인한다.
+
+## Godot 전환 현황
+
+실행 경로별 책임과 단계별 완료·미완료는 [Godot 전환 상태](godot_unified_app_roadmap.md#3-단계와-의존-관계)를 따른다. Godot 단일 앱이 기본 실행 경로이며 `--session`은 개발 검증용이다. Android 최종 검증과 공개 배포는 별도로 판정한다.
 
 ## 최근 반영된 기능
 
-- 메인 로비와 화면 고정, 포탑 스탯·젬 인벤토리 표현: [디자인 기준](../DESIGNS.md).
-- 로그인 계정의 최초 닉네임 설정: [닉네임 정책](account_nickname_policy.md).
-- 리더보드와 진행 중 저장 기록 반영: [현행 규칙](leaderboard_design.md).
-- 보상 젬의 전장 장착·교체, 글로벌 젬 규칙의 배포·검증 기록: [배포 인계](deployment_status.md).
-- 코어 트리의 확인된 현재 구조: [21노드·revision 4 참조](core_passive_tree_implementation_plan.md).
+날짜순 변경 이력을 이 문서에 누적하지 않는다. 디자인 변경은 [디자인 기준](../DESIGNS.md), 닉네임은 [정책](account_nickname_policy.md), 리더보드는 [현행 규칙](leaderboard_design.md), 배포별 변경은 [배포 인계](deployment_status.md)를 따른다.
 
 ## 요약
 
-Rune Nexus는 Flutter + Godot 기반의 플레이 가능한 로그라이트 타워 디펜스 MVP
-단계다. 기본 전투 루프, 젬/링크, 포탑 성장, 포탑 모듈, 런 한정 젬 파편,
-저장/복구, 스테이지 선택/해금, 결과 화면, 룬 기반 영구 업그레이드 기초가 구현되어
-있다.
-
-별도 Go API와 PostgreSQL에는 Google 인증, 자체 영속 세션, 계정별 온라인 저장 API가
-구현되어 있다. Flutter에는 Web GIS·Android Credential Manager 로그인 UI, 세션 복원·자동 갱신, 원격 저장 클라이언트,
-단일 전송 worker와 계정별 영속 Outbox까지 준비되어 있다. 최초 로그인 시에는 기존
-Outbox 복구를 가장 먼저 판정하고, 새 연결이면 원격 account 진행을 우선해 account
-슬롯을 자동 준비한다. 원격 진행이 없는 최초 연결에서만 guest 진행을 이전하며, 원본은
-backup에 보존한다. account 로컬 저장은 독립 후보가 아닌 계정 기록의 캐시로 취급한다.
-자동 bootstrap이 끝나면 account ID에 결속된 온라인 저장 coordinator를 게임에
-주입한다. 라운드 종료 같은 중요 체크포인트는 로컬 저장 성공 뒤 영속 Outbox에
-등록되며 HTTP 완료를 기다리지 않고 플레이를 계속한다. 오래된 클라이언트 진행이
-원격을 덮어쓰는 것은 막고, 양쪽 진행을 비교해 사용자가 선택하는 UX는 최종 방향에서
-폐기했다. 현재 구현은 exact
-in-flight 요청을 먼저 재전송하고, 실제 다중 기기 충돌이면 로컬 진행을 별도 충돌
-backup에 보존한 뒤 원격 revision을 자동 적용한다. 이 복구는 단일 canonical Outbox의
-rebase journal과 계정 게임 재로딩까지 구현되어 있다. 여러 기기 로그인은 허용하되 한
-번에 한 인증 session만 저장 writer generation을 가지며, 이전 writer는 새 PUT을 쓸 수
-없다. 앱 시작·foreground 재개 시 writer를 획득하고 교체된 writer는 자동 탈환하지 않은
-채 `suspended`로 전환한다. Web은 앱 부팅 전에 Web Locks exclusive lock을 획득하여 같은
-브라우저의 두 번째 탭이 로컬 저장을 시작하지 못하게 한다. writer 획득과 실제 저장
-PUT에는 공통 정수 호환성 게이트가 적용되며, 구버전 실행 중에는 exact Outbox 요청을
-보존한 채 로컬 저장과 계정 플레이를 멈추고 업데이트 안내를 표시한다. 업데이트 뒤에는
-이전 Outbox를 읽어 과거 PUT의 성공 영수증을 먼저 확인하고, 미처리 요청만 현재 버전
-본문으로 재구성해 전송한다. 상세 계약은
-`docs/multi_device_save_sync_design.md`를 따른다.
-
-다이아·모듈권·뽑기 횟수·소유 모듈과 관련 보상 수령은 서버 권위 경제 영역으로
-전환했다. 일반 전투와 진행은 계속 로컬에서 처리하지만, 로그인 account의 가챠·분해,
-연구 다이아 소비, 일·주간 보상, 런 획득 다이아와 스테이지 최초 모듈권은 별도 경제
-명령으로만 확정된다. PostgreSQL 원장, economy revision, account 1회 bootstrap과
-Flutter exact 명령 Outbox가 이를 보장한다. 일반 save의 경제 값은 bootstrap source와
-표시 cache일 뿐 서버 경제 원본을 갱신하지 못하며, 호환성 세대 2보다 오래된
-클라이언트는 전환 account의 새 저장을 쓸 수 없다. 상세 계약은
-`docs/server_authoritative_economy_design.md`를 따른다.
-
-세부 전투 수치와 밸런스 기준은 `docs/gameplay_balance_reference.md`를 기준으로 한다.
+기존 앱에는 전투·젬/링크·런 성장, 스테이지 선택/해금, 룬 성장·연구·코어·모듈, 저장/복구와 계정 서비스가 구현되어 있다. 이 목록은 모든 플랫폼의 제품 동등성이나 실제 계정 E2E 완료 판정이 아니다. 엔진 전환 완료 여부는 로드맵에서 별도로 판단한다.
 
 ## 실행 및 검증 상태
 
-최신 배포별 검증 결과와 미확인 범위는 [배포 인계](deployment_status.md)를 따른다. 아래 결과는 **2026-09-05 당시 인증 세션 변경 검증 이력**이며 현재 미배포 상태를 뜻하지 않는다:
-
-- Flutter 전체 553개 테스트와 정적 분석 통과
-- 인증 설정을 활성화한 시작 경계 테스트 2개 별도 통과 (기본 실행에서는 skip)
-- 최종 Web 빌드와 Android debug APK 빌드 통과
-- Go `go test ./...`, `go vet ./...`, `sqlc vet` 및 격리 PostgreSQL 18 통합·race 검증 통과
-- 동일 갱신 8건 동시 요청, 부모/자식 token 재시도, 서버 재시작, 복구 만료·재사용·로그아웃·계정 정지 확인
-- 실제 Google 로그인·실기기 저장 및 공개 same-site 쿠키 E2E는 미검증
-- 당시 운영 DB 마이그레이션과 배포 설정은 미적용이었다. 이후 적용 기록은 배포 인계로 이동했다.
-
-인증 설정 활성화 테스트는 저장소 루트에서 다음처럼 별도 실행한다. 테스트용 client ID와
-API 주소이며 실제 Google 로그인이나 해당 외부 API 호출을 수행하지 않는다.
-
-```bash
-flutter test test/authentication_restore_gate_test.dart \
-  --dart-define=GOOGLE_WEB_CLIENT_ID=test-client \
-  --dart-define=RUNE_NEXUS_API_BASE_URL=https://api.example.com
-```
-
-클라이언트 전체 검증 권장 명령:
-
-```bash
-flutter analyze
-flutter test
-flutter build web --pwa-strategy=none --no-tree-shake-icons
-```
-
-백엔드 기본 검증 권장 명령:
-
-```bash
-make -C server format
-make -C server test
-make -C server vet
-docker compose config --quiet
-```
-
-PostgreSQL을 포함한 스키마·인증·저장 통합 검증:
-
-```bash
-make -C server integration-test
-```
-
-Flutter Web은 서비스 워커 캐시의 영향을 받을 수 있으므로 개발 중에는 `--pwa-strategy=none` 사용을 권장한다.
-젬 아이콘처럼 데이터에서 동적으로 꺼내 쓰는 Material 아이콘이 있으므로 웹 빌드에서는 아이콘 폰트 트리쉐이킹으로 인한 글리프 누락을 피하기 위해 `--no-tree-shake-icons`를 함께 사용한다.
+[배포 인계](deployment_status.md)의 버전별 결과와 로드맵 각 단계의 검증 기록을 따른다. 이전 전체 테스트 통과 건수를 현재 검증 결과로 재사용하지 않는다. 2026-09-05 인증 세션 검증 이력은 [보관본](archive/implementation_status_20260921.md#실행-및-검증-상태)에 있다. 현행 Godot 검사·앱 빌드의 결과와 미확인 항목은 로드맵에서 연결한 전환 검증 기록을 따른다.
 
 ## 구현된 항목
 
+아래 소제목은 기존 링크를 유지하기 위한 기능별 진입점이다. 실제 상태를 바꿀 때 상세 계약과 검증 근거를 먼저 갱신한다.
+
 ### 앱/화면 구조
 
-- Flutter 앱 진입점과 `MaterialApp` 구성
-- Flutter `NativeGameHost`와 Android Godot 기반 게임 화면
-- 메인 화면과 인스테이지 화면 분리
-- 메인 화면 탭
-  - 스테이지
-  - 영구 업그레이드
-  - 연구
-  - 포탑 모듈
-- 상단 룬 보유 카드
-- 한국어/영어 문구 확장 구조
-- 공통 게임 UI 컴포넌트
-  - `GamePalette`
-  - `GameTextStyles`
-  - `GameButton`
-  - `GamePanel`
-  - `TraitCard`
-  - `HudResourceBar`
-- 메인 메뉴, 결과 화면, 전투 HUD 주요 조작부는 공통 게임 UI 컴포넌트 기반으로 정리
-- 360x800, 390x844급 모바일 화면에서 메인 메뉴 강화/연구 탭 2열 표시와 주요 텍스트 잘림을 점검
-- 디버그 젬 패널 환경 플래그 분리
-- 디버그 전용 맵 에디터 화면
-  - `RUNE_NEXUS_DEBUG_PANEL=true` 빌드에서만 메인 화면 좌상단 버튼으로 진입
-  - 스테이지별 맵 드래프트를 에디터 세션 동안 유지
-  - 맵 크기, 타일 타입, 적 이동 waypoint를 편집
-  - `MapDefinition` Dart 코드 형태로 export 표시
-- 문서/프로토타입 HTML
-  - `docs/prototypes/shielded_enemy_design_preview.html`: 챕터 2 보호막병 실제 몹 설계안
-  - `docs/chapter3_forge_design.md`: 챕터 3 공명 용광로 맵/웨이브 설계 기준
+로비·성장 메뉴·전투 HUD·결과 화면이 있다. 화면별 외형·조작 기준은 [DESIGNS](../DESIGNS.md), Godot 대응 범위는 [UI 복원 기준](godot_ui_restoration_baseline.md)을 따른다.
 
 ### 계정/인증/온라인 저장 기반
 
-- Go 표준 `net/http` API 서버와 PostgreSQL 18 Compose 개발 환경
-- `pgx/v5`, `sqlc`, `tern` 기반 DB 접근·쿼리 생성·마이그레이션
-- 계정, 외부 identity, session, refresh token 스키마
-- Web Google Identity Services·Android Credential Manager 로그인과 ID token 검증
-- 영속 `/v1/auth/{web,native}/{google,refresh,logout}`와 기존 유한 세션 API 유지
-- access Bearer 인증과 refresh token 단일 사용 회전·재사용 감지
-- access 메모리 보관, Web HttpOnly 쿠키·Android Keystore 암호화 refresh 보관
-- 시간 만료 없는 신규 DB 세션, 요청 key 영속화와 10분 암호화 receipt 응답 복구
-- Flutter 앱 시작 세션 복원, single-flight, 인증 실패 시 1회 갱신 재시도
-- 통신·5xx·저장소 일시 오류 시 인증 보존과 backoff; 확정 종료 시 logout 의도 복구
-- 자동 복원에서는 guest를 읽거나 복사하지 않고 account 저장·경제만 연결
-- 복원 실패 시 메인 진입 차단·재시도, guest 저장 읽기 실패 시 로더 재생성
-- 로그아웃 슬롯 전환 중 플레이 차단과 실패 시 실제 account 슬롯 보존
-- Google 로그인·토큰 갱신의 클라이언트별 요청 제한과 `Retry-After` 처리
-- 인증된 `GET /v1/save`, `PUT /v1/save`
-- 전체 `GameSaveData` 스냅샷을 서버 내부에서 영역별 PostgreSQL 행으로 분리 저장
-- revision 기반 동시 수정 감지와 idempotency key 기반 중복 요청 처리
-- 계정당 단일 in-flight 전송과 최신 pending 저장 병합
-- 계정별 영속 Outbox와 앱 재시작 후 미완료 전송 복구
-- 일시적 네트워크·서버 오류 지수 backoff 재시도
-- revision 충돌과 복구 불가능 상태의 명시적 정지
-- 기존 Outbox가 있으면 원격 조회·로컬 교체보다 exact 요청 복구를 우선
-- 원격 account 진행 우선, 원격이 없으면 guest 진행 이전의 자동 bootstrap
-- account 로컬 저장은 독립 후보가 아닌 Google 계정 기록의 로컬 캐시로 처리
-- 복사·적용 전 guest와 account primary의 명시적 backup
-- 연결 중 단계별 overlay와 account 슬롯 자동 적용·게임 상태 재로딩
-- 사용자 저장 선택 dialog와 로컬 진행의 원격 덮어쓰기 분기 제거
-- 로그아웃·세션 종료 시 account 저장을 보존하고 guest 슬롯으로 복귀
-- 자동 연결 account에 `OnlineSaveCoordinator`를 주입하고 라운드 체크포인트를 로컬
-  저장 성공 뒤 계정별 영속 Outbox에 등록
-- 전송 중·재시도 대기·완료·충돌·차단 상태, 마지막 동기화 시각과 대기 건수를 계정
-  화면에 표시
-- 원격 기록 자동 적용 시 revision과 payload fingerprint를 동기화 기준으로 사용해 동일
-  스냅샷의 불필요한 재업로드 방지
-- 기존 Outbox에 미전송 작업이 있으면 새 기준으로 덮지 않고 coordinator가 우선 복구
-- writer claim·PUT의 최소 client compatibility version 검사와 426 업데이트 필요 UX
-- 업데이트 뒤 이전 호환 버전 Outbox의 writer 재획득과 PUT 영수증 hit/miss 롤오버
-- Caddy HTTPS reverse proxy, DuckDNS secret 기반 자동 갱신·상태 감시와 ipTIME 자체 운영 배포 구성
-- GitHub Pages 빌드의 Google Web Client ID·API 주소·Web Git SHA build ID 주입 경로
-- 인증된 `POST /v1/economy/rewards/claim` 주간 보상 수령 API
-  - 현재 save writer와 최신 account 진행 snapshot을 transaction에서 잠근 뒤 검증
-  - 서버 시각 기준 주차와 서버 고정 보상량 사용
-  - reward key와 idempotency key를 함께 보존해 다른 기기·재시도 중복 지급 차단
-  - 응답 유실 뒤 다른 idempotency key로 재요청해도 최초 영수증 복구 가능
-- Flutter 주간 보상 API 연결
-  - 수령 전에 중요 account 체크포인트를 원격 저장하고 idle 상태를 확인
-  - 서버 영수증을 받은 뒤에만 로컬 다이아·모듈권과 수령 상태를 원자적으로 저장
-  - guest·오프라인·저장 동기화 미완료 상태에서는 수령을 확정하지 않음
-- 서버 권위 경제 DB와 API
-  - account별 무료·구매 다이아, 모듈권, 뽑기 횟수와 연구 슬롯 entitlement
-  - economy revision·authority epoch, 불변 명령 영수증과 자산 원장
-  - 소유 모듈 원본, 서버 RNG·카탈로그·분해 가격과 account 1회 bootstrap
-  - 모듈 뽑기·분해, 연구 즉시 완료·슬롯 해금, effect 저장 적용·ack
-  - KST 05:00 기준 일·주간 보상과 stable run ID 기반 런/스테이지 보상 정산
-- Flutter `EconomyCoordinator`와 계정별 영속 경제 Outbox
-  - 소비 명령 단일 직렬화, expected economy revision과 save writer 결속
-  - 응답 유실 exact 재전송, authoritative snapshot 전체 overlay
-  - 런 종료 보상 draft 선기록과 저장 동기화 뒤 FIFO 정산
-  - 원격 rebase 게임 재결속, 저장 재연결 자동 drain과 progression effect 우선 복구
-  - run별 스테이지 최초 보상 증거 보존과 정상 패배 정산
-  - 서버 권위 account에서 로컬 디버그 다이아 지급 및 로컬 경제 소비 차단
-- 기존 카카오 인앱 브라우저 guest 진행의 15분짜리 일회용 이전 링크
-  - canonical v2 저장, 구매 다이아 0, 중요 재화·모듈 상한을 생성 시 검증
-  - 빈 Google account에는 revision 1로 귀속
-  - 기존 account는 구매 다이아 0 확인, 현재 snapshot 백업과 writer generation 무효화 후 다음 revision으로 교체
-  - 소비 완료와 동시에 카카오 원문 삭제, token/payload 해시 영수증으로 동일 account 재시도 복구
-  - 생성·소비 endpoint별 클라이언트 요청 제한
-
-기존 진행 이전은 현재 테스터 데이터 구제용 임시 이행 기능이다. 정식 배포 전
-`docs/legacy_local_save_transfer.md`의 제거 체크리스트에 따라 클라이언트, API,
-설정과 DB 테이블을 모두 제거해야 한다.
-
-`runenexus-api.duckdns.org`에서 DuckDNS 갱신, Caddy의 공개 인증서 발급,
-`/health/live`와 `/health/ready`, GitHub Pages origin의 CORS preflight를 실제 네트워크로
-검증했다. Google OAuth Web Client와 본인 테스트 사용자를 만들고 GitHub Actions
-Variables도 연결했다. 남은 공개 E2E는 실제 Google 계정 선택 뒤 로그인·저장·재조회
-흐름과 장애 복구 검증이다.
-
-브라우저 새로고침·Android 앱 재시작 후 세션 복원은 구현됐다. 운영 활성화에는 007 적용,
-고정 `AUTH_SESSION_RECEIPT_KEY`, Web과 API의 same-site HTTPS 구성, Android OAuth 식별자·서명
-확인이 필요하다. 기존 GitHub Pages 기본 주소와 DuckDNS API 조합은 CORS가 허용돼도
-`SameSite=Lax` 쿠키 조건을 만족하지 않는다. [운영 배포 문서](self_hosted_api_deployment.md)를 따른다.
-시간 경과만으로 신규 세션을 종료하지 않지만 쿠키 삭제·키 손상·세션 폐기·복구 불가 시에는
-재로그인이 필요하다. PGS와 Apple 인증, identity 연결 API, 로그인 필수화는 아직 미구현이다.
+Go API·PostgreSQL의 Google 인증·영속 세션·온라인 저장·서버 권위 경제와 Godot 클라이언트가 구현되어 있다. 계정별 저장 격리·writer generation·exact Outbox·원격 우선 복구는 [저장 계약](multi_device_save_sync_design.md), 재화·모듈·보상 명령은 [경제 계약](server_authoritative_economy_design.md), 구성은 [백엔드](backend_architecture.md)를 따른다. 서비스 통합 검증과 공개 E2E는 로드맵의 상태를 따른다.
 
 ### 스테이지/진행
 
-- 스테이지 1~15 정의
-- 챕터는 5개 스테이지 단위로 구분
-  - 챕터 1: 스테이지 1~5
-  - 챕터 2: 스테이지 6~10
-  - 챕터 3: 스테이지 11~15
-- 스테이지 1~15별 맵 정의 분리
-- 스테이지 1~5 생명력 기반 웨이브, 스테이지 6~10 보호막병 중심 웨이브, 스테이지 11~15 장갑/탱커 중심 공명 용광로 압박 웨이브 분리
-- 스테이지 11~15 공명 용광로 타일 테마와 챕터 배너
-- 스테이지 1 기본 해금
-- 스테이지 클리어 시 다음 스테이지 해금
-- 스테이지별 최고 라운드 기록
-- 40라운드 클리어 시 클리어 기록 표시
-- 스테이지 1~15 최초 클리어 시 코어 포인트 획득(총 20포인트)
-- 기존 클리어 기록의 코어 포인트 1회 소급 지급
-- 진행 중 스테이지 요약 카드
-- 다른 스테이지 시작 시 기존 진행 실패 정산 경고
-- 스테이지 종료 확인에서 예상 룬 보상 표시
-- 저장된 진행이 있을 때 스테이지 선택 화면에 진행 상태 표시
-- 스테이지별 적 체력 보정 적용
-- 스테이지 1 클리어 보상으로 경제 강화 해금
-- 스테이지 2 클리어 보상으로 전술 명령/젬 감응 연구 해금
-- 스테이지 3 클리어 보상으로 저격 포탑과 조준경 젬 해금
-- 스테이지 10 클리어 보상으로 장갑 관통 젬 해금
-- 스테이지 7 클리어 보상으로 물리/원소 화력 훈련 해금
-- 스테이지 8 클리어 보상으로 룬 공명 연구 해금
-- 스테이지 9 클리어 보상으로 연결 공정/강화 공정 영구 강화 해금
-- 스테이지 15 클리어 보상으로 런 강화별 한계 확장 연구 해금
+챕터·스테이지별 웨이브, 클리어·다음 스테이지 해금·기록·보상 기반이 있다. 세부 콘텐츠·해금·보상 수치는 [밸런스 참조](gameplay_balance_reference.md)를 따른다.
 
 ### 전투 기본 루프
 
-- `MapDefinition` 기반 Grid 맵 데이터
-- 타일 타입
-  - 경로
-  - 배치 가능
-  - 배치 불가
-  - Spawn
-  - Core
-- 고정 경로 기반 적 이동
-- 적 이동 경로는 waypoint 리스트를 순서대로 연결
-- 맵 에디터에서는 같은 행/열의 비인접 waypoint를 허용하되 대각선 구간은 차단
-- 화면 크기 기반 사거리/속도/이펙트 거리 보정
-- Core 도착 시 Nexus HP 감소
-- 공격·제어·효율 계통의 21노드 코어 패시브 트리 (revision 4; 상세는 현행 코어 참조)
-- 패시브 트리 할당·무료 회수·전체 초기화와 저장/복원
-- 공격 계통 7개 패시브 노드는 코어 스킬 회복 속도·위력·주기 증폭과
-  발동 후 2초 포탑 공격 속도·화력 증폭에 실제 적용
-- 방위 계통 7개 패시브 노드는 넥서스 최대 체력·라운드 회복·피해 복원,
-  넥서스 피해 감소, 피격 시 코어 스킬 재사용 대기시간 회복,
-  라운드당 비보스 피해 1회 무효화에 실제 적용
-- 넥서스 체력과 피해·회복은 실수로 계산하고 HUD에 소수점 최대 한 자리 표시
-- 효율 계통 7개 패시브 노드는 포탑 건설·레벨업·링크 확장 비용,
-  라운드 클리어 골드, 특성 젬 파편 비용, 장착 젬 효과에 실제 적용
-- 과거 혼합 계통 6개 노드는 제거되었으며 현행 선택 대상으로 제공하지 않음
-- 코어 전투 스킬 `균열 낙인`은 스테이지 5 클리어 후 해금되며, 체력이 높은 적에게 받는 피해 증가 낙인 부여
-- 코어 타일 선택 시 장착 전투 스킬의 현재 효과와 누적 기여 피해 표시
-  - `수호 광선`: 광선 피해, 총 피해
-  - `균열 낙인`: 다음 발동 효과, 총 추가 피해
-- 자동 타겟팅
-- 투사체 이동과 충돌 판정
-- 단일 피해
-- 보호막/방어구/체력 순서의 내구도 계위
-- 방어구는 최대 방어구 기준 공통 감쇄 산식 적용
-- 대포 범위 피해
-- 화염 포탑 화상 지속피해
-- 연쇄 보조 투사체
-- 적 처치 보상 골드
-- 라운드 시작/진행/보상/성공/실패 상태
-- 다음 라운드 적 아이콘 예고와 스테이지 보정 HP 표시
-- 적 미리보기에서 체력, 방어구, 보호막 수치 표시
-- 1x/2x/4x 배속
-- 하단 배속 버튼 라벨 중앙 정렬
-- 발사 후 쿨타임 `-5% ~ +5%` 분산
+맵·경로 이동, 포탑 공격, 내구도 계위, 웨이브·코어·종료 판정을 구현했다. 엔진 책임은 [전투 경계](godot_combat_migration_boundaries.md), 피해·저항 계산은 [데미지 규칙](damage_calculation_rules.md), 코어는 [현행 트리 참조](core_passive_tree_implementation_plan.md)를 따른다.
 
 ### 콘텐츠 데이터
 
-- 포탑 6종
-  - 기관총: 물리/경량화기
-  - 대포: 물리/중화기/범위 피해
-  - 화염: 원소/지속피해
-  - 냉각: 원소/중심 범위 냉각
-  - 저격: 물리/장거리 즉발 치명타
-  - 라이트닝: 원소/중화기/충전 후 순차 연쇄
-- 적 6종
-  - 일반
-  - 장갑병
-  - 보호막병
-  - 빠름
-  - 탱커
-  - 보스
-- 장갑병은 방어구 내구도 계위를 사용
-- 보호막병은 보호막과 보호막 재생 계위를 사용하며, 챕터 2부터 웨이브에 등장
-- 적 저항 프로필
-  - 빠른 적은 경량화기에 약하고 중화기에 강함
-  - 탱커는 물리에 강하고 중화기에 약함
-- 보스는 물리/원소 저항 보유
-- 40라운드 기본 웨이브
-- 스테이지 2~5 전용 생명력 기반 40라운드 웨이브
-- 스테이지 6~10 전용 보호막병 중심 40라운드 웨이브
-- 스테이지 11~15 전용 장갑/탱커 중심 공명 용광로 40라운드 웨이브
-- 보스 웨이브는 10라운드마다 보스 1마리와 전후 호위 몹을 스폰
-- 13종 젬
-  - 가속
-  - 사거리
-  - 물리 피해 증폭
-  - 원소 피해 증폭
-  - 경량화기 증폭
-  - 중화기 증폭
-  - 지속피해 증가
-  - 폭발
-  - 연쇄
-  - 급소
-  - 조준경
-  - 위력 증폭
-  - 장갑 관통
+포탑·적·젬·웨이브의 종류와 수치는 [밸런스 참조](gameplay_balance_reference.md)에 둔다. 독립 Godot 콘텐츠의 원본·생성물 관계는 [콘텐츠 이관 기록](analysis/godot_content_migration_20260921/README.md)을 따른다.
 
 ### 젬/포탑 성장
 
-- 라운드 클리어 후 젬 3장 보상 선택
-- 보상 젬 카드 임시 선택 후 카드 하단 버튼으로 확정
-- 젬 보상에서 젬 대신 파편 10개 선택 가능
-- 젬 파편 대체 선택지는 카드 그리드 아래 가로 바 형태로 표시
-- 젬 인벤토리
-- 젬 탭
-- 젬 탭에서 현재 젬 파편 수 표시
-- 젬 탭에서 파편 20개로 추가 젬 선택지 구매
-- 젬 탭에서 보유 젬 목록 표시
-- 보유 젬 섹션은 구분선형 라벨로 표시
-- 설치된 포탑 선택
-- 포탑 링크 슬롯
-- 준비 단계에서 젬 장착/해제/교체
-- 전투 중 빈 링크 슬롯에 젬 장착 가능
-- 전투 중 젬 해제/교체 불가
-- 링크 선택 전 보유 젬 목록 숨김
-- 골드 소모 2링크/3링크 확장
-- 포탑 레벨업 최대 10
-- 피해/연사 레벨 보정 곱연산 적용
-- 사거리 레벨 보정과 사거리 젬 증폭 적용
-- 선택 포탑 능력치 표시
-- 선택 포탑 타일 테두리와 사거리 테두리 강조
-- 전술 명령 연구 완료 후 선택 포탑 공격 명령 UI 표시
-- 포탑별 공격 명령
-  - 선두 적
-  - 후방 적
-  - 강한 적
-  - 약한 적
-  - 가까운 적
-- 화염 포탑 DPS 표시에 지속피해를 별도 색상으로 표시
-- 지속피해 지속시간 표시
-- 저격 포탑은 내부적으로 조준 시간과 쿨타임을 분리하고, UI에는 초당 발사 정보로 표시
-- 전투 중 포탑 설치, 레벨업, 링크 확장 허용
-- 전투 중 포탑 환불 허용
-- 포탑별 1차/2차 특성 선택
-  - 기관총: 과열 탄창, 경량 총열, 제압 사격, 연쇄 소탕
-  - 대포: 파편 장전, 압축 장약, 확장 폭심, 파쇄 충격
-  - 화염: 고열 연소, 잔불 지속, 점화 폭발, 연쇄 발화
-  - 냉각: 빙결 순환, 확산 냉기, 동상 균열, 급속 냉각
-  - 저격: 백발 조준, 속사 조준, 노출 표식, 마무리 탄환
-- 특성 선택은 젬 파편을 소비하며 포탑 레벨 조건을 요구
-- 특성 후보는 첫 선택 시 선택 상태로 표시되고, 같은 후보 재선택 시 확정
-- 선택 특성은 저장/복구 대상에 포함
+젬 보상·인벤토리·장착/교체, 링크 확장, 포탑 레벨·공격 명령·특성이 있다. 수치는 [밸런스 참조](gameplay_balance_reference.md), 특성 계약은 [젬 파편·특성](gem_shard_trait_design.md), UI 기준은 [DESIGNS](../DESIGNS.md)를 따른다.
 
 ### 젬 효과 세부
 
-- 가속 젬은 연사 속도 40% 증폭
-- 사거리 젬은 사거리 20% 증폭
-- 물리/원소 피해 젬은 해당 피해 계열 40% 증폭
-- 경량화기 젬은 피해와 연사 강화
-- 중화기 젬은 피해와 폭발 반경 강화
-- 지속피해 젬은 화상 피해량과 지속시간 강화
-- 폭발 젬은 기존 폭발 포탑의 반경을 25% 증폭하고, 비폭발 포탑에는 작은 폭발을 추가
-- 폭발 반경 변화는 이펙트 크기에 반영
-- 연쇄 젬은 주변 적 1명에게 보조 타격
-- 연쇄 젬은 중화기 포탑에 장착 불가. 라이트닝 포탑은 전용 연쇄 구조이므로 예외
-- 급소 젬은 치명타 확률을 20%p 증가
-- 조준경 젬은 스테이지 3 클리어 후 보상 풀에 추가되며 조준 속도를 75% 증가
-- 위력 증폭 젬은 태그와 상관없이 타격 피해를 25% 증폭하고, 타격 피해 기반 지속피해에는 간접 반영
-- 장갑 관통 젬은 스테이지 10 클리어 후 보상 풀에 추가되며 방어구 감쇄를 무시하되 방어구 계위는 우회하지 않음
+효과·태그 제한·해금은 [밸런스 참조](gameplay_balance_reference.md), 피해 적용 순서는 [데미지 규칙](damage_calculation_rules.md)에서 관리한다.
 
 ### 환불
 
-- 선택 포탑 환불 버튼
-- 환불 전 확인 팝업
-- 설치 비용, 레벨업 비용, 링크 확장 비용을 포함한 투자 골드의 75% 환급
-- 장착 젬 인벤토리 반환
-- 선택 특성에 사용한 젬 파편은 포탑 환불 시 반환하지 않음
-- 전투 중 환불 시 화상 지속피해 소유 연결 정리
-- 환불 후 선택 상태 초기화와 즉시 저장
+포탑 환불·장착 젬 반환·확인 흐름이 있다. 환급률과 자원별 반환 규칙은 [밸런스 참조](gameplay_balance_reference.md)와 [특성 설계](gem_shard_trait_design.md)를 따른다.
 
 ### 저장/복구
 
-- `GameSaveData` v2 통파일 기반 로컬 진행 저장
-- `preferences`, `progression`, `turretModules`, `activeRun` 최상위 영역 분리
-- guest/account별 로컬 저장 슬롯 분리
-- Web Local Storage와 application support 파일 저장
-- v2 primary/backup과 IO 원자적 교체
-- 배포된 legacy v1을 원본 보존 후 canonical v2로 마이그레이션
-- 미배포 중간 v2 형식은 호환 경로 없이 거부
-- 일반 저장과 라운드 체크포인트를 단일 `LocalSaveCoordinator`로 직렬화
-- 저장 대상
-  - 스테이지 번호
-  - 맵 지문값
-  - 라운드/완료 라운드
-  - 골드/젬 파편/넥서스 HP
-  - 포탑 위치, 레벨, 링크, 장착 젬
-  - 적 HP, 보호막, 보호막 파괴 여부, 방어구, 경로 진행도
-  - 스폰 큐
-  - 보유 젬/보상 후보/젬 구매 보상 상태
-  - 룬/영구 업그레이드/스테이지 기록
-  - 배속과 무관한 실제 누적 플레이타임
-  - 포탑별 공격 명령
-- 저장 제외
-  - 현재 날아가는 투사체
-- 준비 단계 저장은 앱 재시작 시 바로 메인 화면에 진행 정보로 표시
-- 전투 중 저장은 재시작 시 일시정지 상태로 복구되며, 사용자가 `계속 진행`을 눌러야 재개
-- 저장된 활성 런의 맵 지문이 현재 맵과 다르면 기존 포탑은 복원하지 않고 100% 정산한다.
-  - 설치 비용, 레벨업 비용, 링크 확장 비용을 골드로 반환
-  - 장착 젬 반환
-  - 선택 특성에 사용한 젬 파편 반환
-  - 전투 상태는 준비 단계로 되돌리고 즉시 저장
+v2 로컬 저장, legacy v1 이전, guest/account 슬롯, 원자적 교체·백업과 체크포인트 복구가 있다. 로컬·원격 계약은 [저장 설계](multi_device_save_sync_design.md), Godot codec·저장소 계약은 [앱 모듈](../godot/app/README.md)을 따른다. 기존 설치 데이터 인계의 완료 여부는 전환 로드맵에서 관리한다.
 
 ### 영구 성장
 
-- 룬 재화
-- 런 종료/포기 정산 시 룬 지급
-- 메인 화면 영구 업그레이드 탭
-- 시작 골드 업그레이드
-- 넥서스 체력 업그레이드
-- 정비 보급 업그레이드
-- 기초 화력 훈련 업그레이드
-- 물리 화력 훈련 업그레이드
-- 원소 화력 훈련 업그레이드
-- 처치 보상 업그레이드
-- 긴급 매각 업그레이드
-- 영구 업그레이드별 아이콘 표시
-- 연구 탭과 시간 기반 연구 슬롯
-- 연구 효율 연구
-- 연구 비용 효율 연구
-- 전술 명령 연구
-- 젬 감응 연구
-- 링크 확장 I 연구
-- 보스 현상금 연구
-- 결정 회수 연구
-- 룬 공명 연구
-- 포탑 화력 한계 확장 연구
-- 처치 보너스 한계 확장 연구
-- 정비 보급 한계 확장 연구
+룬 기반 강화·시간 기반 연구·코어 투자와 저장이 있다. 현재 수치·조건은 [밸런스 참조](gameplay_balance_reference.md)와 [코어 참조](core_passive_tree_implementation_plan.md)를 따른다.
 
 ### 포탑 모듈
 
-- 메인 메뉴 포탑 모듈 탭
-- 현재 선택한 포탑을 대상으로 하는 1회/5회 모듈 뽑기
-  - 포탑 종류는 선택값으로 고정
-  - 코어/포신/프레임 부위, 일반/마법/희귀/유니크 등급, 옵션은 무작위 결정
-- 스테이지 11 최초 클리어 시 모듈권 5장 지급
-- 다른 스테이지 최초 클리어와 모든 재클리어의 모듈권 지급 제외
-- 모듈권 부족분을 1장당 다이아 40개로 구매한 뒤 뽑기 가능
-- 포탑별 코어/포신/프레임 3부위 장착과 해제
-- 개별 분해와 필터 범위 일괄 분해, 등급별 다이아 환급
-- 모듈 인벤토리, 장착 상태, 화력/비용 효과 저장 및 복구
+선택 포탑 대상 뽑기, 부위별 장착/해제·분해·인벤토리가 있다. 세부 규칙은 [모듈 설계](turret_module_design.md), 서버 확정 범위는 [경제 계약](server_authoritative_economy_design.md)을 따른다.
 
 ### 런 한정 업그레이드
 
-- 하단 바 포탑/업그레이드 탭
-- 하단 바 포탑/업그레이드/젬 탭은 금속 프레임 느낌의 게임 UI 버튼으로 표시
-- 전체 포탑 피해 업그레이드
-- 적 처치 골드 보너스 업그레이드
-- 웨이브 종료 골드 보너스 업그레이드
-- 처치 골드 소수 누적 지갑과 골드 UI 소수 표시
-- 런 업그레이드 저장/복구
-- 업그레이드 패널은 최대 3개 항목을 표시하고 항목 추가 시 내부 스크롤로 확장
-- 인게임 진행 단위 UI 표기는 웨이브 중심으로 정리
+런별 피해·골드 관련 강화와 저장이 있다. 효과·비용·해금은 [밸런스 참조](gameplay_balance_reference.md)에서 관리한다.
 
 ### 결과/메뉴
 
-- 성공/실패 결과 오버레이
-- 획득 룬 표시
-- 도달 라운드/스테이지 기록 표시
-- 신기록 강조
-- 신규 스테이지 해금 강조
-- 최고 피해 포탑 표시
-- 현재 스테이지 재도전
-- 스테이지 선택 이동
-- 영구 업그레이드 탭 이동
-- 성공 후 해금된 다음 스테이지 바로 시작
-- 스테이지 선택 화면에서 진행/잠금/기록 표시
-- 저장된 진행 카드와 이어서 진행 버튼은 과도한 무지개색 강조 없이 절제된 금속/시안 계열로 표시
+성공/실패 결과, 기록·획득 보상, 재도전·스테이지 선택·다음 스테이지 행동이 있다. 화면 기준은 [DESIGNS](../DESIGNS.md), Godot 조작 동등성은 [복원 기준](godot_ui_restoration_baseline.md)을 따른다.
 
 ### 테스트
 
-- 스테이지 정의와 선택
-- 스테이지 클리어 시 다음 스테이지 해금
-- 포기 정산
-- 저장/복구
-- 라운드/웨이브/적 스케일링
-- 포탑 비용/레벨업/링크 비용
-- 젬 효과와 장착 제한
-- 포탑 공격 명령 선택, 저장/복구, 연구 게이트
-- 포탑 특성 선택, 저장/복구, 전투 효과
-- 적 저항 배율
-- 화상 지속피해와 표시용 스냅샷
-- 환불과 젬 반환
-- 메인 메뉴 위젯 렌더링
-- 결과 화면 액션과 다음 스테이지 시작
-- 포탑 모듈 뽑기, 장착/해제, 분해, 저장/복구, 전투 능력치 적용
-- legacy v1 저장 마이그레이션과 canonical v2 guest/account 슬롯 격리
-- Google 인증 API, 세션 회전, 로그아웃, Bearer 인증과 요청 제한
-- 계정별 온라인 저장 revision·멱등성·트랜잭션
-- Flutter 원격 저장 요청 직렬화와 인증 재시도
-- 온라인 저장 단일 in-flight, 최신 pending 병합과 backoff
-- SHA-256 기준값, IO/Web 단일 canonical Outbox와 exact in-flight 우선 복구
-- 별도 충돌 backup, 단계별 rebase journal, 앱 재시작 복구와 계정 게임 재로딩
-- `GET /v1/save` revision ETag와 `If-None-Match` 304 조건부 조회
-- writer claim 영수증, account별 generation, 이전 session/generation 저장 거부
-- Flutter writer claim exact 복구, generation 포함 PUT과 `suspended` foreground 재개
-- writer 교체 감지 시 로컬 저장·게임 입력을 정지하고 최신 원격 진행 복구 UX 표시
-- Web Locks 기반 단일 local save writer와 두 번째 탭 게임 부팅 차단
-- 기존 Outbox 우선 복구와 원격 account 우선 자동 bootstrap
-- guest/account 명시적 backup과 계정 기록 자동 적용
-- 자동 연결 account의 실제 게임 체크포인트와 `OnlineSaveCoordinator` 연결
-- 동기화 상태·마지막 동기화 시각·대기 저장 건수 계정 UI 반영
-- 계정 연결 단계 overlay와 실패 시 guest 보존·재시도
-- 주간 임무·전체 완료·주간 출석의 서버 진행 검증, 고정 보상표와 계정별 중복 수령
-- Flutter 주간 보상 요청 직렬화, 이미 수령 영수증 복구와 현재 주차만 로컬 적용
-- 카카오 인앱 브라우저 guest 진행의 일회용 링크 생성, 기존 account snapshot 백업 후
-  임시 교체, 소비 원문 제거와 재시도 영수증
+기능별 자동 검사와 플랫폼 검증은 해당 변경·배포 기록에 결과·환경·미검증 범위를 남긴다. 실행 방법은 [인앱 검증](../.agents/in_app_test_guide.md), 과거 테스트 항목은 [보관본](archive/implementation_status_20260921.md#테스트)을 참고한다.
 
 ## 아직 구현하지 않은 항목
 
-- Web 다중 탭 종료 알림용 BroadcastChannel과 큰 저장의 실제 용량 검증
-- same-site 공개 HTTPS Web·API와 Android의 실제 Google 계정·세션 복원 E2E 검증
-- Android PGS v2 인증, server auth code 교환과 Google Play Games Player ID 검증
-- 기존 account에 Google/PGS identity를 추가하는 계정 연결 API
-- 배포된 인증의 실제 계정 E2E·키/도메인 설정 검증과 로그인 필수화 후속 결정 (닉네임 필수 설정과 별개)
-- 계정·원격 데이터 삭제와 운영 DB 백업·복원 자동화
-- 저장 v3 경제 cache·모듈 장착 serializer 분리
-- 챕터 2~3 클리어 보상과 연구 조건의 추가 연결·체감 검증
-- 영구 업그레이드 해금 단계 구조
-- 링크/젬/룬 보상 계열 영구 업그레이드 추가 검토
-- 픽셀 스프라이트 에셋
-- 사운드/효과음
-- Android/iOS 실기 실행 검증
-- 인앱 브라우저가 아닌 실제 앱 패키지 기준 QA
+Godot 전환 미완료는 [단계별 상태](godot_unified_app_roadmap.md#3-단계와-의존-관계), 계정 E2E·PGS·identity 연결·운영 자동화·콘텐츠 후보는 [백로그](next_work_priorities.md)를 따른다. 과거 목록의 “Android/iOS 실기 실행 미검증” 같은 포괄 판정을 최신 개별 검증에 덮어쓰지 않으며, 에뮬레이터 검증도 모든 실기기 검증으로 확대하지 않는다.
 
 ## 남은 작업의 우선순위
 
-[다음 작업 우선순위](next_work_priorities.md)에서 관리한다. 이 문서의 구현 목록과 달리 실행 후보·순위를 다루므로 두 곳에 순서를 복제하지 않는다.
+[다음 작업 우선순위](next_work_priorities.md)에서 관리한다. 최신 사용자 요청이 우선한다.

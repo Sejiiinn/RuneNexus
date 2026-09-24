@@ -33,7 +33,7 @@ def plan(repo, baseline, target):
     for name, prefixes in {
         "server_or_contract": ("server/", "api/", "compose", ".env"),
         "migration": ("server/migrations/", "migrations/"),
-        "client": ("lib/", "assets/", "godot/", "android/", "web/", "pubspec"),
+        "client": ("assets/", "godot/", "android-godot-only/"),
         "deployment_or_tooling": ("scripts/", ".github/"),
         "documentation": ("docs/", "design/", "DESIGNS.md", "AGENTS.md", "README.md"),
     }.items():

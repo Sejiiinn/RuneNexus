@@ -20,6 +20,11 @@ on:
         description: '업데이트 안내'
         required: true
         type: string
+      publish:
+        description: '검증 후 GitHub Release 공개 (기본값은 빌드 산출물만 보관)'
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -40,6 +45,9 @@ jobs:
       REQUIRED_UPDATE: ${{ inputs.required_update }}
       GOOGLE_WEB_CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID }}
       RUNE_NEXUS_API_BASE_URL: ${{ vars.RUNE_NEXUS_API_BASE_URL }}
+      RUNE_NEXUS_UPDATE_MANIFEST_URL: https://github.com/${{ github.repository }}/releases/latest/download/update.json
+      RUNE_NEXUS_CLIENT_BUILD: android:${{ github.sha }}
+      RUNE_NEXUS_REQUIRE_PRODUCTION_CONFIG: 'true'
       RUNE_NEXUS_REQUIRE_RELEASE_SIGNING: 'true'
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -100,22 +108,9 @@ jobs:
           java-version: '17'
           cache: gradle
           cache-dependency-path: |
-            android/**/*.gradle*
-            android/gradle.properties
-            android/gradle/wrapper/gradle-wrapper.properties
-            pubspec.lock
-
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Verify
-        run: |
-          flutter pub get
-          flutter analyze
-          flutter test
-          python3 -m unittest discover -s scripts -p 'test_apk*.py'
+            android-godot-only/**/*.gradle*
+            android-godot-only/gradle.properties
+            android-godot-only/gradle/wrapper/gradle-wrapper.properties
 
       - name: Prepare Godot renderer
         run: |
@@ -146,14 +141,15 @@ jobs:
           # 입력이 같은 Gradle 작업의 빌드 결과 재사용
           GRADLE_OPTS: -Dorg.gradle.caching=true
         run: |
-          flutter build apk --release --no-tree-shake-icons \
-            --build-number="$VERSION_CODE" --build-name="$VERSION_NAME" \
-            --dart-define="GOOGLE_WEB_CLIENT_ID=$GOOGLE_WEB_CLIENT_ID" \
-            --dart-define="RUNE_NEXUS_API_BASE_URL=$RUNE_NEXUS_API_BASE_URL" \
-            --dart-define="RUNE_NEXUS_UPDATE_MANIFEST_URL=https://github.com/$GH_REPO/releases/latest/download/update.json" \
-            --dart-define="RUNE_NEXUS_CLIENT_BUILD=android:${{ github.sha }}"
+          python3 -m unittest discover -s scripts -p 'test_*.py'
+          python3 scripts/verify_godot_content.py
+          GODOT_BIN="$GODOT_EXECUTABLE" python3 scripts/run_godot_native_regressions.py
+          GODOT_BIN="$GODOT_EXECUTABLE" python3 scripts/verify_godot_account_services.py
+          GODOT_BIN="$GODOT_EXECUTABLE" python3 scripts/verify_godot_app_services.py
+          python3 scripts/build_godot_pack.py
+          android-godot-only/gradlew -p android-godot-only :app:assembleProductionRelease --console=plain
           mkdir -p build/apk-release
-          cp build/app/outputs/flutter-apk/app-release.apk build/apk-release/rune-nexus.apk
+          cp build/godot-only/app/outputs/apk/production/release/app-production-release.apk build/apk-release/rune-nexus.apk
       - name: Audit packaged Godot resources
         run: |
           python3 scripts/audit_godot_pack.py build/apk-release/rune-nexus.apk --output build/godot-pack-audit.json
@@ -234,6 +230,7 @@ jobs:
           PYCODE
 
       - name: Publish complete release
+        if: ${{ inputs.publish }}
         run: |
           tag="apk-$VERSION_CODE"
           gh release create "$tag" --draft --target "$GITHUB_SHA" \
@@ -241,6 +238,13 @@ jobs:
             --notes-file "$RUNNER_TEMP/release-notes.md" \
             build/apk-release/*
           gh release edit "$tag" --draft=false --latest
+
+      - name: Save build-only release files
+        if: ${{ !inputs.publish }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: rune-nexus-apk-${{ inputs.version_code }}
+          path: build/apk-release/*
 
       - name: Remove signing material
         if: always()

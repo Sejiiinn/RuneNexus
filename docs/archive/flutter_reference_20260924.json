@@ -1,0 +1,10 @@
+{
+  "files": 545,
+  "archive": "docs/archive/flutter_reference_20260924.tar.gz",
+  "bytes": 1537443,
+  "sha256": "8c3e08c78f6b5f0025f61042b8ebf48123d69facb9e12206cccaccb55ce49e99",
+  "preservedWorkingChanges": [
+    "android/gradle.properties",
+    "android/app/src/godotPreview/kotlin/com/example/rune_nexus/GodotBenchmarkActivity.kt"
+  ]
+}

@@ -17,6 +17,7 @@ var fonts: Dictionary = {}
 var modal_scroll: ScrollContainer
 var modal_content: VBoxContainer
 var text_scale := 1.0
+var _platform: Object
 var _android_metrics: Object
 var _typed_value: Object
 var _font_sizes: Dictionary = {}
@@ -24,21 +25,22 @@ var _font_sizes: Dictionary = {}
 # Android's SP conversion includes its nonlinear large-text curves. This reads
 # the actual device configuration, not a game-only accessibility preference.
 func _refresh_text_scale() -> void:
+	_platform = null
 	_android_metrics = null
 	_typed_value = null
 	_font_sizes.clear()
-	if OS.has_feature("android") and Engine.has_singleton("AndroidRuntime"):
-		var runtime = Engine.get_singleton("AndroidRuntime")
-		var activity = runtime.getActivity()
-		if activity != null:
-			_android_metrics = activity.getResources().getDisplayMetrics()
-			_typed_value = JavaClassWrapper.wrap("android.util.TypedValue")
+	if OS.has_feature("android") and Engine.has_singleton("RuneNexusPlatform"):
+		_platform = Engine.get_singleton("RuneNexusPlatform")
 	text_scale = float(_font_size(14)) / 14.0
 
 func _font_size(logical: int) -> int:
 	if not _font_sizes.has(logical):
 		var pixels := float(logical)
-		if _android_metrics != null and _typed_value != null:
+		if _platform != null:
+			var converted := float(_platform.sp_to_logical(float(logical)))
+			if is_finite(converted) and converted > 0:
+				pixels = converted
+		elif _android_metrics != null and _typed_value != null:
 			# Java public fields are not exposed as GDScript properties on Android.
 			# Convert one DP through the same API instead of reading metrics.density.
 			var pixels_per_dp := float(_typed_value.applyDimension(1, 1.0, _android_metrics))

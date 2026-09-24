@@ -1,6 +1,6 @@
 # Rune Nexus
 
-Rune Nexus는 Flutter + Godot 기반 모바일 로그라이트 타워 디펜스입니다.
+Rune Nexus는 Godot 단일 앱 기반 모바일 로그라이트 타워 디펜스입니다. Android 호스트는 `android-godot-only/`에 있습니다.
 
 플레이어는 Nexus로 향하는 적의 경로를 읽고, 제한된 골드로 포탑을 설치하며, 라운드마다 얻는 젬을 포탑 링크에 연결해 빌드를 완성합니다. 같은 포탑이라도 어떤 젬을 연결하느냐에 따라 단일 화력, 범위 피해, 지속피해, 연쇄 타격처럼 전투 역할이 달라지는 것이 핵심입니다.
 
@@ -29,42 +29,14 @@ Rune Nexus는 Flutter + Godot 기반 모바일 로그라이트 타워 디펜스�
 - 밸런스 수치는 실험 가능해야 하며, 현재 기준은 별도 문서로 관리한다.
 - README는 게임 소개와 진입점만 담고, 구현 이력과 세부 수치는 문서로 분리한다.
 
-## 실행
+## 실행·검증
 
-```bash
-flutter pub get
-flutter run
-```
-
-웹 빌드:
-
-```bash
-flutter build web --pwa-strategy=none --no-tree-shake-icons
-```
-
-반복 UI 개발·화면 확인은 [인앱 테스트 진입점](.agents/in_app_test_guide.md)의 53000 서버 재사용·hot reload 경로를 따른다. 플랫폼별 실행 명령도 해당 문서에서 확인한다.
-
-Flutter Web은 서비스 워커 캐시 때문에 변경 사항이 바로 보이지 않을 수 있습니다. 개발 중에는 `--pwa-strategy=none` 빌드를 사용하거나 브라우저 캐시/서비스 워커를 갱신해야 합니다. 젬처럼 데이터에서 동적으로 꺼내 쓰는 아이콘이 있으므로 웹 빌드에서는 `--no-tree-shake-icons`를 함께 사용합니다.
-
-## 검증
-
-```bash
-flutter analyze
-flutter test
-flutter build web --pwa-strategy=none --no-tree-shake-icons
-```
+[변경 대상별 검증](AGENTS.md#변경-대상별-검증)과 [인앱 실행 가이드](.agents/in_app_test_guide.md)에서 Godot·Android·서버에 맞는 경로를 선택합니다. Android 앱 이관의 완료 조건과 남은 검증은 [실행 로드맵](docs/godot_unified_app_roadmap.md), 배포 사실은 [배포 현황](docs/deployment_status.md)을 따릅니다. 이전 Flutter 원본은 [보관본](docs/archive/flutter_reference_20260924.tar.gz)에 있습니다.
 
 ## 문서
 
-- [작업별 문서 지도와 갱신 규칙](docs/README.md)
+- [작업별 문서 지도](docs/README.md)
+- [문서 작성·유지 지침](docs/documentation_guide.md)
 - [디자인 기준과 검증 완료 조건](DESIGNS.md)
-
 - [구현 현황](docs/implementation_status.md)
-- [게임 규칙과 밸런스 기준](docs/gameplay_balance_reference.md)
-- [개발 히스토리](docs/development_history.md)
-- [MVP 작업 계획서](docs/mvp_work_plan.md)
 - [다음 작업 우선순위](docs/next_work_priorities.md)
-- [백엔드 및 온라인 저장 아키텍처](docs/backend_architecture.md)
-- [로컬 PostgreSQL 실행](docs/local_postgresql_setup.md)
-- [배포 상태와 세션 간 인계](docs/deployment_status.md)
-- [자체 운영 API 배포](docs/self_hosted_api_deployment.md)

@@ -387,9 +387,20 @@ func set_period(value: String, parent: VBoxContainer) -> void:
 	quest_notice = ""
 	quests(parent)
 
-func _claim(parent: VBoxContainer) -> void:
-	quest_notice = "보상 수령은 계정 서버 연결 후 이용할 수 있습니다."
-	quests(parent)
+func _claim(parent: VBoxContainer, target: Dictionary = {}) -> void:
+	if lobby.get("app") == null:
+		quest_notice = "보상 수령은 계정 서버 연결 후 이용할 수 있습니다."
+		quests(parent)
+		return
+	if lobby.app.get("services") == null or not lobby.app.services.connected():
+		lobby._service("계정 및 저장")
+		return
+	quest_notice = "보상을 확인하고 있습니다…"
+	var request := target.duplicate(true)
+	request.period = period
+	var result: Dictionary = await lobby.app.services.perform("claim_reward",request)
+	quest_notice = "보상을 수령했습니다" if result.get("ok",false) else "수령하지 못했습니다. 계정 및 저장에서 동기화 상태를 확인해 주세요."
+	if is_instance_valid(parent): quests(parent)
 
 func quests(parent: VBoxContainer) -> void:
 	_clear(parent)
@@ -408,12 +419,12 @@ func quests(parent: VBoxContainer) -> void:
 		if int(progress.get(id, 0)) >= int(targets[id]): complete += 1
 	var blocked: bool = p.get("dailyQuestClockRollbackDetected", false)
 	if blocked: parent.add_child(_label("기기 시간이 변경되어 보상 수령이 잠겼습니다."))
-	_quest_row(parent, "오늘 진행" if not weekly else "이번 주 진행", complete, targets.size(), 100 if weekly else 40, bool(p.get(period + "QuestAllCompleteClaimed", false)), complete == targets.size() and not blocked, "quests/clear_waves.png", 4 if weekly else 1, true)
+	_quest_row(parent, "오늘 진행" if not weekly else "이번 주 진행", complete, targets.size(), 100 if weekly else 40, bool(p.get(period + "QuestAllCompleteClaimed", false)), complete == targets.size() and not blocked, "quests/clear_waves.png", 4 if weekly else 1, true, {"rewardType":"all_complete"})
 	var days: int = p.get("weeklyAttendanceDayKeys", []).size() if weekly else 1
-	_quest_row(parent, "주간 출석" if weekly else "오늘 출석", mini(days, 5) if weekly else 1, 5 if weekly else 1, 40 if weekly else 20, bool(p.get(period + "AttendanceRewardClaimed", false)), (days >= 5 if weekly else true) and not blocked, "quests/attendance.png")
+	_quest_row(parent, "주간 출석" if weekly else "오늘 출석", mini(days, 5) if weekly else 1, 5 if weekly else 1, 40 if weekly else 20, bool(p.get(period + "AttendanceRewardClaimed", false)), (days >= 5 if weekly else true) and not blocked, "quests/attendance.png",0,false,{"rewardType":"attendance"})
 	for id in targets:
 		var amount := int(progress.get(id, 0))
-		_quest_row(parent, QUEST_NAMES[id] % targets[id], mini(amount, int(targets[id])), targets[id], 40 if weekly else 20, id in claimed, amount >= int(targets[id]) and not blocked, "quests/%s.png" % QUEST_ICONS[id])
+		_quest_row(parent, QUEST_NAMES[id] % targets[id], mini(amount, int(targets[id])), targets[id], 40 if weekly else 20, id in claimed, amount >= int(targets[id]) and not blocked, "quests/%s.png" % QUEST_ICONS[id],0,false,{"rewardType":"quest","questType":id})
 
 func _inline(value: String, font_size: int = 12) -> Label:
 	var label := _label(value,font_size)
@@ -433,7 +444,7 @@ func _reward_line(parent: Node, reward: int, tickets: int = 0) -> void:
 		ticket.add_theme_color_override("font_color", Color("f5cb61"))
 		line.add_child(ticket)
 
-func _quest_row(parent: VBoxContainer, title: String, count: int, target: int, reward: int, claimed: bool, can_claim: bool, icon: String, tickets: int = 0, summary: bool = false) -> void:
+func _quest_row(parent: VBoxContainer, title: String, count: int, target: int, reward: int, claimed: bool, can_claim: bool, icon: String, tickets: int = 0, summary: bool = false, claim_target: Dictionary = {}) -> void:
 	var card := _frame(parent, "quests/ui/summary_frame.png" if summary else "quests/ui/quest_row_frame.png", 9)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 7)
@@ -477,7 +488,7 @@ func _quest_row(parent: VBoxContainer, title: String, count: int, target: int, r
 		var progress := _label("%d / %d%s" % [count, target, "일 · 매일 05:00 갱신" if title == "오늘 출석" else ""], 10)
 		progress.add_theme_color_override("font_color", Color("8da9b9"))
 		description.add_child(progress)
-	var button := _asset_button("수령 완료" if claimed else ("수령" if can_claim else ("대기" if summary else "진행중")), _claim.bind(parent), "quests/ui/action_claim.png" if can_claim and not claimed else "quests/ui/action_idle.png")
+	var button := _asset_button("수령 완료" if claimed else ("수령" if can_claim else ("대기" if summary else "진행중")), _claim.bind(parent,claim_target), "quests/ui/action_claim.png" if can_claim and not claimed else "quests/ui/action_idle.png")
 	button.disabled = claimed or not can_claim
 	button.size_flags_horizontal = Control.SIZE_SHRINK_END
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER

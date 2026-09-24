@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-24",
+  "environment": "RuneNexusGodotApi37, Android API 37, emulator-5554, read-only/no-snapshot/no-window",
+  "apk": "build/godot-only/app/outputs/apk/inspection/debug/app-inspection-debug.apk",
+  "apkSha256": "0bda2640756b897fb9ae4a0b2e6af4d5a3baa283e095403c0a71464e812da688",
+  "package": "com.example.rune_nexus.godotonly",
+  "results": {
+    "installAndLaunch": "PASS",
+    "nativePluginRegistration": "PASS: AndroidRuntime and RuneNexusPlatform",
+    "lobbyStageBattle": "PASS: stage 1 opened, turret placed, wave 1/40 started",
+    "touchAndBack": "PASS: turret placement and Android back closed battle dock",
+    "pauseAndBackgroundResume": "PASS: paused wave remained paused after HOME and foreground return",
+    "checkpointAfterForceStop": "PASS: saved stage 1 wave 1/40, one turret, gold 115, HP 20/20 restored; explicit Continue starts play per app lifecycle contract",
+    "runtimeErrors": "PASS: no Godot script error, fatal exception, crash, or black screen observed"
+  },
+  "observations": [
+    "Godot startup warns Property not found: 'xr/shaders/enabled'.",
+    "Godot startup warns 'res://main.tscn': In external resource #0, invalid UID: 'uid://bsx33k4sm13f8' - using text path instead: 'res://main.gd'. Startup and gameplay remain functional.",
+    "Emulator MESA rendernode and ColorBuffer messages occurred; Goldfish GFXStream Vulkan rendering remained visible and app processes stayed alive."
+  ],
+  "notVerified": [
+    "physical Android device and mobile GPU",
+    "production signing or upgrade over existing production package",
+    "live Google login, operational API, cloud storage, real updater installation"
+  ]
+}

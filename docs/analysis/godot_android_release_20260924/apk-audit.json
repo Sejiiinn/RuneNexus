@@ -1,0 +1,45 @@
+{
+  "artifact": "build/godot-only/app/outputs/apk/production/release/app-production-release-unsigned.apk",
+  "distributionReady": false,
+  "reason": "Unsigned local validation APK; production configuration absent",
+  "sizeBytes": 372088818,
+  "sha256": "88b7eec105ff2225a262a70cc40aee6c61081e60427289d33bc85926d1da8647",
+  "abis": [
+    "arm64-v8a",
+    "armeabi-v7a",
+    "x86_64"
+  ],
+  "flutterFiles": [],
+  "flutterDexReferences": [],
+  "packageName": "com.example.rune_nexus",
+  "debuggable": false,
+  "baseline": {
+    "path": "build/release-verification/apk-6028/public/rune-nexus.apk",
+    "sizeBytes": 431317704,
+    "sha256": "3ca0dd20219c21cab056d0ce78cc2be58ce88111d4b508b49982149c2b3319f1"
+  },
+  "deltaBytes": -59228886,
+  "deltaPercent": -13.73,
+  "compressedEntryGroups": {
+    "pck": {
+      "before": 105955332,
+      "after": 143889096,
+      "delta": 37933764
+    },
+    "flutterNative": {
+      "before": 60287340,
+      "after": 0,
+      "delta": -60287340
+    },
+    "otherNative": {
+      "before": 224118744,
+      "after": 223789412,
+      "delta": -329332
+    },
+    "otherEntries": {
+      "before": 40737456,
+      "after": 4325844,
+      "delta": -36411612
+    }
+  }
+}

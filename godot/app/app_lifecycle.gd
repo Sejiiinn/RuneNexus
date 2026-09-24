@@ -16,9 +16,14 @@ var save_failed := false
 var auto_start_mode := "pauseEachRound"
 var _modal_resume_allowed := false
 var selection_view = preload("res://ui/app_selection.gd").new()
+var services
 
 func _ready() -> void:
 	scene = get_parent()
+	if ui_enabled:
+		services = load("res://services/app_services.gd").new()
+		add_child(services)
+		services.setup(self)
 	checkpoint.allow_progression_only = true
 	scene.options.presentation_groups = ["labels", "effects", "selection"]
 	get_tree().auto_accept_quit = false
@@ -33,7 +38,7 @@ func _ready() -> void:
 	scene._apply_options()
 	if not catalog.load_catalog() or not run_domain.growth.load_catalog():
 		checkpoint.message = "콘텐츠를 불러오지 못했습니다"
-	else:
+	elif services == null or services.updates == null or not services.updates.blocked:
 		retry_load()
 	if ui_enabled:
 		var layer := CanvasLayer.new()
@@ -78,6 +83,7 @@ func board_tap(tile: Vector2i) -> void:
 	if hud != null: hud.refresh()
 
 func retry_load() -> bool:
+	if services != null and services.updates != null and services.updates.blocked: return false
 	if not startup_blocked: return true
 	if catalog.data.is_empty() or run_domain.growth.data.is_empty():
 		if not catalog.load_catalog() or not run_domain.growth.load_catalog(): return false
@@ -129,6 +135,11 @@ func retry_load() -> bool:
 	return true
 
 func start_stage(index: int) -> bool:
+	if services != null and services.blocks_play():
+		var update_required: bool = services.updates != null and services.updates.blocked
+		checkpoint.message = "업데이트 확인을 완료해 주세요" if update_required else "계정 연결과 닉네임 설정을 완료해 주세요"
+		if lobby != null: lobby._service("업데이트" if update_required else "계정 및 저장")
+		return false
 	if startup_blocked or index < 0 or index >= stage_count(): return false
 	var progression: Dictionary = progression_inputs if run_domain.state.is_empty() else run_domain.state.progression
 	if int(catalog.stage(index).id) > int(progression.get("unlockedStageCount", 1)):
@@ -147,6 +158,7 @@ func start_stage(index: int) -> bool:
 	return true
 
 func resume_run() -> bool:
+	if services != null and services.blocks_play(): return false
 	if startup_blocked or not scene._native_combat.active or run_domain.state.is_empty(): return false
 	if save_failed and not persist_progression(): return false
 	in_lobby = false
@@ -198,6 +210,7 @@ func persist_progression() -> bool:
 	return result == OK
 
 func apply_growth_command(request: Dictionary) -> bool:
+	if services != null and services.blocks_play(): return false
 	if startup_blocked: return false
 	if save_failed and not persist_progression(): return false
 	var active: bool = scene._native_combat.active and not run_domain.state.is_empty()
@@ -230,6 +243,7 @@ func apply_growth_command(request: Dictionary) -> bool:
 	return true
 
 func apply_run_command(request: Dictionary) -> bool:
+	if services != null and services.blocks_play(): return false
 	if startup_blocked or in_lobby: return false
 	if save_failed and not persist_progression(): return false
 	if not super.apply_run_command(request): return false
@@ -345,8 +359,19 @@ func _notification(what: int) -> void:
 	elif what == NOTIFICATION_WM_CLOSE_REQUEST: request_quit()
 	elif what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED]:
 		pause_and_save()
+	elif what == NOTIFICATION_APPLICATION_RESUMED:
+		_resume_services()
+
+func _resume_services() -> void:
+	if services == null: return
+	if services.updates != null:
+		if services.updates.busy: return
+		await services.updates.check()
+		if services.updates.blocked: return
+	if services.account != null and not services.busy: await services.retry()
 
 func _process(delta: float) -> void:
+	if services != null and services.updates != null and services.updates.blocked: return
 	if startup_blocked: return
 	if save_failed:
 		autosave_elapsed += delta

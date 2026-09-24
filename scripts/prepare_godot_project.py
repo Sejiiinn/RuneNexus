@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import gzip
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -21,6 +22,21 @@ TURRET_TYPES = ("arrow", "cannon", "magic", "frost", "sniper", "lightning")
 ENEMY_TYPES = ("normal", "armored", "shielded", "fast", "tank", "boss")
 # Godot 4.7 GLTFDocument는 ImporterMesh 이름에 원본 glTF scene 이름을 앞붙인다.
 FOLIAGE_IMPORT_ID = "Dressing Export (temporary)_stage1_dressing_foliage"
+
+
+def app_config() -> dict[str, str]:
+    values = {
+        "apiBaseUrl": os.environ.get("RUNE_NEXUS_API_BASE_URL", ""),
+        "googleClientId": os.environ.get("GOOGLE_WEB_CLIENT_ID", ""),
+        "updateManifestUrl": os.environ.get("RUNE_NEXUS_UPDATE_MANIFEST_URL", ""),
+        "clientBuild": os.environ.get("RUNE_NEXUS_CLIENT_BUILD", ""),
+    }
+    if os.environ.get("RUNE_NEXUS_REQUIRE_PRODUCTION_CONFIG") == "true":
+        if any(not value.strip() for value in values.values()):
+            raise RuntimeError("Production Godot app configuration is incomplete")
+        if not values["apiBaseUrl"].startswith("https://") or not values["updateManifestUrl"].startswith("https://"):
+            raise RuntimeError("Production API and update URLs must use HTTPS")
+    return values
 
 
 def _prepare_battlefield_verification() -> None:
@@ -172,6 +188,7 @@ def prepare() -> Path:
             raise RuntimeError(f"필수 3D 자산 누락: {path.relative_to(ROOT)}")
 
     shutil.copytree(SOURCE, PROJECT, dirs_exist_ok=True, ignore=shutil.ignore_patterns(".godot"))
+    (PROJECT / "app_config.json").write_text(json.dumps(app_config()) + "\n")
     # 삭제된 스크립트·장면·재질 프리셋이 이전 빌드에 남지 않도록 소스만 동기화.
     for suffix in ("*.gd", "*.gdshader", "*.gdshaderinc", "*.tscn", "*.tres"):
         for path in PROJECT.rglob(suffix):
@@ -276,7 +293,7 @@ def prepare() -> Path:
     targets = sorted(path, key=lambda point: (point[0] - columns / 2) ** 2 + (point[1] - rows / 2) ** 2)[:3]
     build = [(index % columns + .5, index // columns + .5) for index, tile in enumerate(tiles) if tile == "build"]
     build.sort(key=lambda point: (point[0] - targets[0][0]) ** 2 + (point[1] - targets[0][1]) ** 2)
-    # 단독 네이티브 검수만 사용. Android 본게임은 Flutter의 실제 전투 프레임을 받음.
+    # 네이티브 3D 검수 입력. 정식 앱의 전투 상태는 Godot 세션에서 생성한다.
     frame = {
         "seq": 0, "time": 0,
         "map": {"columns": columns, "rows": rows, "tiles": tiles},

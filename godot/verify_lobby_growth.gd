@@ -10,6 +10,7 @@ class Host extends Control:
 	var service := ""
 	var commands: Array = []
 	func _p() -> Dictionary: return state
+	func diamonds() -> int: return int(state.get("freeDiamonds",0)) + int(state.get("paidDiamonds",0))
 	func _title(id: String) -> String: return {"turretLevelUpOptimization":"포탑 강화 비용 최적화", "researchCostEfficiency":"연구 비용 효율"}.get(id, id)
 	func refresh() -> void: pass
 	func open_modal(_title: String) -> VBoxContainer:
@@ -69,7 +70,8 @@ func verify() -> void:
 	assert(host.state.activeResearches.size() == 1)
 	ui._submit("cancelResearch", "researchEfficiency")
 	assert(host.state.activeResearches.is_empty())
-	host.state.diamonds = 100
+	host.state.freeDiamonds = 80
+	host.state.paidDiamonds = 20
 	ui._submit("startResearch", "researchEfficiency")
 	ui.research()
 	assert(_texts(host.body).contains("즉시 완료"),"Slot exposes direct instant completion")

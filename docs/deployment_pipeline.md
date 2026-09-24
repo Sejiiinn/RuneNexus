@@ -1,36 +1,35 @@
 # 배포 파이프라인과 개선 제안
 
-역할: 배포 조사 범위를 좁히는 절차 지도, 읽기 전용 요약 도구와 후속 자동화 제안.
-확인: 2026-09-14, 읽기 전용 `release_report.py`의 명시 입력 조사·무결성·용량 비교와 fixture 검증. 웹·APK workflow의 배포 구조 설명은 기존 절차를 유지하며 이번 변경에서 workflow를 수정하지 않았다.
-적용 범위: GitHub Pages·Android APK 배포. API·DB 변경 시에는 [API 운영 절차](self_hosted_api_deployment.md)를 추가로 따른다.
+역할: Android APK 배포 조사 절차와 읽기 전용 요약 도구. 2026-09-24에 Godot Android 워크플로 경로를 대조했다. `release_report.py` 명시 입력 검증 근거는 2026-09-14 기록이며, 실제 공개·기기 검증 완료를 뜻하지 않는다.
+적용 범위: Godot Android APK. API·DB 변경 시에는 [API 운영 절차](self_hosted_api_deployment.md)를 추가로 따른다. 과거 웹·Flutter 통합 자동화 제안은 아래 역사 절에 구분한다.
 배포 완료 상태·버전·실행 링크는 [배포 인계](deployment_status.md)에만 기록한다. 이 문서는 기존 문서를 대체하지 않는다.
 
 ## 현행 배포 경로
 
-두 workflow는 수동 실행이며 각각 독립적으로 공개한다. 한쪽 성공이 다른 쪽 성공을 보장하지 않는다.
+배포 워크플로는 [deploy-apk.yml](../.github/workflows/deploy-apk.yml) 하나다. 웹 배포 경로는 폐기했다. 수동 실행의 기본값 `publish=false`는 서명 APK·패치·`update.json`을 검증해 Actions 아티팩트로 보관하며 공개하지 않는다.
 
-| 대상 | 실행과 검증 | 공개 결과 |
-| --- | --- | --- |
-| 웹 | [deploy-pages.yml](../.github/workflows/deploy-pages.yml): 의존성 설치 → Flutter 분석·전체 테스트 → 운영 설정·커밋을 포함한 웹 빌드 → Pages artifact 업로드·배포 | GitHub Pages |
-| APK | [deploy-apk.yml](../.github/workflows/deploy-apk.yml): 입력·기존 버전·서명 설정 검사 → Flutter 분석·전체 테스트 및 Python 테스트 → 서명 빌드 → Android 패치 디코더·최근 최대 3개 기준 APK의 서명·차등 복원 검증 | 모든 자산을 올린 초안을 공개하고 최신 release로 지정 |
+| 입력·검사 | 빌드와 결과 |
+| --- | --- |
+| 버전·서명·API·Google 설정 검사 → Python 콘텐츠·스크립트 검사 → Godot 네이티브 회귀 | Godot 팩과 `android-godot-only`의 `productionRelease`를 빌드하고 Godot 팩·APK 패치 디코더를 감사 |
+| 최근 최대 3개 공개 APK의 서명·차등 복원 검증 | 기본 실행은 APK·패치·`update.json` 아티팩트만 보관. `publish=true`일 때만 초안을 공개·최신 release로 지정 |
 
-APK 입력은 `version_code`, `version_name`, `notes`, `required_update`다. `required_update=true`이면 이번 버전을 최소 지원 버전으로 지정하며, 선택 업데이트는 기존 최소 지원 버전을 유지한다. 버전 코드는 초안을 포함한 기존 APK release보다 커야 하며, 별도 배포한 설치본도 고려한다. 안내는 변경 항목별 줄바꿈을 사용한다. 서명·차등 패치·실패한 초안 처리 규칙은 [APK 배포](android_apk_distribution.md#배포-실행)를 따른다.
+입력은 `version_code`, `version_name`, `notes`, `required_update`, `publish`다. `required_update=true`이면 이번 버전을 최소 지원 버전으로 지정하며, 선택 업데이트는 기존 최소 지원 버전을 유지한다. 버전 코드는 초안을 포함한 기존 APK release보다 커야 하며, 별도 배포한 설치본도 고려한다. 서명·차등 패치·실패한 초안 처리 규칙은 [APK 배포](android_apk_distribution.md#배포-실행)를 따른다.
 
-웹은 `web:<github.sha>`, APK는 `android:<github.sha>`를 빌드에 포함한다. 현재 workflow에는 별도 대상 SHA 입력이나 공통 검증 job이 없고, 두 workflow 모두 Flutter 분석·전체 테스트를 수행한다. Flutter는 버전 번호 고정 없이 `stable` 채널을 사용한다.
+APK 팩은 `android:<github.sha>`를 `app_config.json`에 포함한다. Godot 4.7.2와 Java 17을 사용하며 Flutter/Dart SDK를 설치하지 않는다. API·Google·업데이트 설정은 기존 Actions vars와 서명 secrets에서 주입한다.
 
 ## 배포 때 읽고 확인할 범위
 
-1. [배포 인계](deployment_status.md)의 마지막 확인 결과와 실제 공개 웹·APK를 대조하고, 그 이후 변경에서 이번 배포 대상을 정한다. 문서 기록만으로 미배포 여부를 단정하지 않는다.
-2. 대상 커밋, 구성 요소, APK 버전, 릴리즈 노트를 한 번 확정한다. 두 실행의 실제 `headSha`가 대상과 같은지 확인한다. 실행 사이 브랜치가 이동하면 같은 브랜치명이어도 서로 다른 커밋이 배포될 수 있다.
-3. 변경 영향에 맞는 검증 결과를 확인하고 workflow를 실행한다. 이미 확보한 동일 커밋의 검증 근거를 활용한다. 현재 CI 내부의 중복 검사는 workflow를 수정하기 전까지 그대로 수행된다.
-4. 두 실행 결과를 각각 확인하고 공개 경로를 검사한다. 웹은 주요 파일 응답과 포함된 배포 커밋·API 주소, APK는 release 대상 커밋과 latest/버전별 `update.json` 일치 및 실제 공개 자산의 크기·SHA-256을 확인한다.
+1. [배포 인계](deployment_status.md)의 마지막 확인 결과와 실제 공개 APK를 대조하고, 그 이후 변경에서 이번 배포 대상을 정한다. 문서 기록만으로 미배포 여부를 단정하지 않는다.
+2. 대상 커밋, APK 버전, 릴리스 노트를 확정한다. 워크플로 실행의 `headSha`가 대상과 같은지 확인한다.
+3. 변경 영향에 맞는 검증 결과를 확인하고 기본 build-only 워크플로를 실행한다. 이미 확보한 동일 커밋의 관련 근거를 활용한다.
+4. 공개를 별도로 선택한 뒤 release 대상 커밋과 latest/버전별 `update.json` 일치, 실제 공개 자산의 크기·SHA-256을 확인한다.
 5. 배포 인계에 구성 요소별 성공·실패, 커밋, 실행·release 링크, 검증 범위와 남은 제한을 기록한다. 실제 기기 설치·로그인 검증 여부도 구분한다.
 
 아래는 변경 영향에 따른 수동 확인 범위다. `release_report.py plan`은 경로별 영향 후보를 요약하지만, API·DB 계약 영향과 최종 검증 범위는 작업자가 판단한다.
 
 | 변경 범위 | 필요한 추가 확인 | 반복하지 않아도 되는 작업 |
 | --- | --- | --- |
-| 클라이언트 코드·UI·에셋만 변경, 서버·DB·환경 계약 동일 | 웹·APK 검증, 관련 기능·화면 검증 근거 | API 재배포, DB 백업·복원, Go·DB 통합 테스트. 클라이언트만 바뀌었다는 근거를 먼저 확보한다. |
+| 클라이언트 코드·UI·에셋만 변경, 서버·DB·환경 계약 동일 | Godot·APK 검증, 관련 기능·화면 검증 근거 | API 재배포, DB 백업·복원, Go·DB 통합 테스트. 클라이언트만 바뀌었다는 근거를 먼저 확보한다. |
 | API 코드·서버 지급표·운영 설정 변경 | API 운영 절차와 영향받은 서버 테스트, 클라이언트 호환성·배포 순서 | 변경과 관계없는 화면의 재검증 |
 | DB migration·저장 계약 변경 | 백업·복원, migration·호환성·복구 절차, 영향받은 통합 테스트 | 범위 확인 전 임의 생략 불가 |
 | 문서만 변경 | 링크·내용·diff | 실행 산출물이 바뀌지 않으므로 앱 빌드·배포 |
@@ -61,9 +60,11 @@ manifest에 패치가 있으면 각각 `--patch <fromVersionCode>=<경로또는U
 
 검증: `python3 -m unittest discover -s scripts -p 'test_release_report.py'`는 격리된 Git 저장소·로컬 자산과 모의 HTTP 응답으로 실패 처리·범위 분리·명시 입력·PCK 연동을 검사한다.
 
-## 후속 자동화 제안 — 아직 구현하지 않음
+## 역사: 웹·Flutter 통합 자동화 제안
 
-우선순위는 **공개 상태와 검사 근거 수집 확장 → 통합 workflow**다. 위 요약 도구는 명시 입력 검사까지 구현했으며, 아래 표의 공개 상태 자동 조사·배포 실행 통합·예약 실행은 구현하지 않았다.
+아래는 2026-09-14 당시 웹과 Flutter APK가 별도 workflow였을 때의 제안이다. 웹 경로와 Flutter SDK는 현재 배포 대상이 아니며, 표의 통합 workflow·Flutter 공통 검사를 현행 작업 지시로 사용하지 않는다. 현재 후속 배포 범위는 [배포 현황](deployment_status.md)에서 관리한다.
+
+당시 우선순위는 **공개 상태와 검사 근거 수집 확장 → 통합 workflow**였다. 위 요약 도구는 명시 입력 검사까지 구현했으며, 아래 표의 공개 상태 자동 조사·배포 실행 통합·예약 실행은 구현하지 않았다.
 
 | 단계 | 제안 | 줄어드는 반복 |
 | --- | --- | --- |
@@ -72,8 +73,8 @@ manifest에 패치가 있으면 각각 `--patch <fromVersionCode>=<경로또는U
 | 3. 단일 수동 진입점 | 대상 SHA·배포 구성 요소·버전·노트를 한 번 받고, 동일 SHA를 checkout하는 공통 검증 job 뒤 웹·APK 빌드를 병렬 실행 | 두 workflow 입력·추적과 Flutter 분석·전체 테스트 중복 |
 | 4. 조건부 서버 경로 | 서버·DB 변경이 확인될 때만 기존 API 운영 절차에 연결하고 그 결과를 같은 요약에 포함 | 프론트 배포 때 서버 전체 절차를 다시 조사하는 작업 |
 
-통합 시에도 APK 전용 Python·Kotlin 검사, 서명·차등 복원 검증과 각 플랫폼 빌드는 유지한다. 공통 검증을 재사용하려면 Flutter SDK 버전을 고정하고 동일 SHA·lockfile·SDK의 성공 결과를 기록해야 한다. 현재 두 workflow의 테스트를 먼저 삭제해서는 안 된다.
+당시 제안은 APK 전용 Python·Kotlin 검사, 서명·차등 복원 검증과 각 플랫폼 빌드를 유지하고 Flutter SDK·lockfile·SHA가 같은 공통 검사만 재사용하는 것이었다. 현재 워크플로의 검증 선택 기준은 [작업 기준](../AGENTS.md#변경-대상별-검증)을 따른다.
 
-부분 실패는 `웹 성공 / APK 실패`처럼 표시하고 완료로 합치지 않는다. 웹·APK 동시 공개는 원자적이지 않으므로, 실패 구성 요소만 재실행하되 커밋 일치와 APK 버전 제약을 다시 확인한다. APK 초안이 남았다면 기존 규칙대로 다음 번호를 사용하며 공개 자산을 덮어쓰지 않는다.
+당시 웹·APK 동시 공개가 원자적이지 않은 문제 때문에 부분 실패를 별도로 기록하도록 제안했다. 현재 APK 초안·버전 충돌과 공개 자산 불변 규칙은 [APK 배포 절차](android_apk_distribution.md#배포-실행)를 따른다.
 
 파일 경로에 따른 범위 분류와 릴리즈 노트 생성은 보조 기능으로 둔다. 클라이언트 변경에도 API 계약 영향이 있을 수 있고 별도 설치본의 버전은 GitHub만으로 알 수 없다. 자동화는 공개 결과 검사·근거 수집을 담당하며, 실제 기기 설치와 저장 유지 검증을 대신했다고 보고하지 않는다.

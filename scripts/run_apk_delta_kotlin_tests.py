@@ -44,8 +44,8 @@ def main():
         subprocess.run([
             java, "-cp", classpath, "org.jetbrains.kotlin.cli.jvm.K2JVMCompiler",
             "-no-stdlib", "-no-reflect", "-classpath", classpath, "-d", str(output),
-            str(project / "android/app/src/main/kotlin/com/example/rune_nexus/ApkDelta.kt"),
-            str(project / "android/app/src/test/kotlin/com/example/rune_nexus/ApkDeltaHarness.kt"),
+            str(project / "android-godot-only/app/src/main/kotlin/com/example/rune_nexus/ApkDelta.kt"),
+            str(project / "android-godot-only/app/src/test/kotlin/com/example/rune_nexus/ApkDeltaHarness.kt"),
         ], check=True)
         subprocess.run([
             java, "-cp", classpath + os.pathsep + str(output),

@@ -21,7 +21,6 @@ VERSION = "4.7.2.stable"
 def input_digest():
     inputs = [Path(__file__), ROOT / "scripts/prepare_godot_project.py",
               ROOT / "scripts/prepare_shared_gltf_textures.py"]
-    inputs += [ROOT / "lib/data/definitions/game_stage_maps.dart"]
     inputs += [ROOT / "assets/images/diamond_currency.png", ROOT / "assets/fonts/NotoSansKR-VF.ttf",
                ROOT / "assets/fonts/MaterialIcons-Regular.otf", ROOT / "assets/fonts/MaterialIcons_LICENSE.txt"]
     manifest = ROOT / "godot/ui/assets.json"
@@ -34,6 +33,11 @@ def input_digest():
             and path.suffix != ".import"
         )
     digest = hashlib.sha256(VERSION.encode())
+    for name in ("RUNE_NEXUS_API_BASE_URL", "GOOGLE_WEB_CLIENT_ID",
+                 "RUNE_NEXUS_UPDATE_MANIFEST_URL", "RUNE_NEXUS_CLIENT_BUILD",
+                 "RUNE_NEXUS_REQUIRE_PRODUCTION_CONFIG"):
+        digest.update(name.encode())
+        digest.update(os.environ.get(name, "").encode())
     for path in sorted(inputs):
         digest.update(str(path.relative_to(ROOT)).encode())
         digest.update(path.read_bytes())

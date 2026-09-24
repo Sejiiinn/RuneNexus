@@ -1,0 +1,103 @@
+{
+  "scope": "Independent review by account_gap; production deployment/device validation excluded",
+  "tests": [
+    {
+      "command": "python3 scripts/verify_godot_app_services.py",
+      "exitCode": 0,
+      "observedOutput": "APP_SERVICES failures=0 []"
+    },
+    {
+      "command": "python3 scripts/verify_godot_account_services.py",
+      "exitCode": 0,
+      "observedOutput": "PASS: account auth, durable outbox, bootstrap, rebase, hash and HTTP fixtures"
+    },
+    {
+      "command": "Godot --headless --script res://verify_update_service.gd (isolated project)",
+      "exitCode": 0,
+      "observedOutput": "UPDATE_SERVICE failures=0 []"
+    }
+  ],
+  "mainModeLogs": "/var/folders/87/4g3_qgvn78s0q1l4dckvf9k00000gn/T/rune-independent-main-7x3fs9v4/",
+  "visualReview": {
+    "result": "PASS for visible desktop states only",
+    "files": [
+      "screenshots/lobby.png",
+      "screenshots/account.png",
+      "screenshots/mail-guest.png",
+      "screenshots/research.png",
+      "screenshots/battle.png"
+    ]
+  },
+  "apk": {
+    "path": "build/godot-only/app/outputs/apk/production/release/app-production-release-unsigned.apk",
+    "bytes": 372088818,
+    "sha256": "88b7eec105ff2225a262a70cc40aee6c61081e60427289d33bc85926d1da8647",
+    "packageName": "com.example.rune_nexus",
+    "versionCode": 1,
+    "versionName": "0.1.0",
+    "minSdk": 24,
+    "targetSdk": 36,
+    "abis": [
+      "arm64-v8a",
+      "armeabi-v7a",
+      "x86_64"
+    ],
+    "flutterEntries": [],
+    "flutterDex": [],
+    "pckCount": 1,
+    "pckEntries": 871,
+    "pckEngine": "4.7.2",
+    "pckBytes": 143889096,
+    "serviceBytecode": [
+      "services/account_session.gdc",
+      "services/app_services.gdc",
+      "services/durable_record.gdc",
+      "services/economy_service.gdc",
+      "services/http_transport.gdc",
+      "services/online_save.gdc",
+      "services/save_payload_hash.gdc",
+      "services/update_service.gdc"
+    ],
+    "nonemptyConfigurationKeys": [],
+    "signatureVerification": "DOES NOT VERIFY; Missing META-INF/MANIFEST.MF (expected unsigned local artifact)"
+  },
+  "unverified": [
+    "release signing and version increment",
+    "production configuration and live account E2E",
+    "physical Android upgrade data handoff, touch, lifecycle and installer permissions"
+  ],
+  "androidEmulatorEvidenceReview": {
+    "evidence": [
+      "emulator/paused-wave.png",
+      "emulator/restored-battle.png",
+      "emulator/result.json",
+      "emulator/README.md"
+    ],
+    "method": "Direct image and result review; no emulator rerun performed by reviewer",
+    "environment": "Android API 37 read-only emulator; inspectionDebug com.example.rune_nexus.godotonly",
+    "result": "PASS for evidence-supported battle state and restoration; interaction/lifecycle results reviewed from implementation operator records",
+    "directImageObservations": [
+      "Both images show stage 1 wave 1/40, one turret, gold 115 and core HP 20/20",
+      "Paused image shows Resume; restored image after explicit Continue shows In Progress, consistent with stated lifecycle contract",
+      "Battlefield, enemies, turret and HUD render visibly in both images",
+      "Reinspection of enlarged original bottom regions confirms all three battle tabs, their lower borders and bottom margins are inside the screenshot; initial apparent clipping was the full-image tool display, not the app layout"
+    ],
+    "reportedOperatorChecks": [
+      "install and launch",
+      "native AndroidRuntime/RuneNexusPlatform registration",
+      "turret placement and wave gameplay",
+      "Android back handling",
+      "HOME/foreground preserves paused state",
+      "force-stop followed by launch and explicit Continue restores checkpoint"
+    ],
+    "limitations": [
+      "Resource UID fallback and xr/shaders/enabled warnings are recorded; not treated as fatal errors",
+      "Physical mobile GPU, production-signature upgrade, real Google/API and updater installation remain unverified"
+    ],
+    "bottomNavigationRecheck": {
+      "method": "Direct review of /tmp/restored-battle-bottom.png and /tmp/paused-wave-bottom.png; no rerun or source change",
+      "result": "PASS: complete Turrets/Upgrades/Gems tabs, lower borders and bottom margin visible",
+      "correction": "Withdraws the previous restored-image bottom-navigation clipping limitation"
+    }
+  }
+}

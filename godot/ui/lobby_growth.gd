@@ -322,7 +322,7 @@ func research() -> void:
 				clock.text = "연구 완료" if remain==0 else _time(remain)+" 남음"
 				var cost := ceili(float(remain)/60000)
 				instant.text = "즉시 완료  ◇ %d" % cost
-				instant.disabled = int(lobby._p().get("diamonds",0))<cost or current.is_empty()
+				instant.disabled = lobby.diamonds()<cost or current.is_empty()
 				fill.set_progress(1.0-float(remain)/maxf(1,float(item.durationMillis)))
 			update.call()
 			var timer := Timer.new(); timer.wait_time=1; row.add_child(timer); timer.timeout.connect(update); timer.start()
@@ -423,7 +423,7 @@ func _details(id: String) -> void:
 				var cost := ceili(float(remain)/60000)
 				clock.text = _time(remain)+" 남음" if remain>0 else "연구 완료"
 				instant.text = "즉시 완료 · 다이아 %d" % cost
-				instant.disabled = current.is_empty() or int(lobby._p().get("diamonds",0))<cost
+				instant.disabled = current.is_empty() or lobby.diamonds()<cost
 			update.call()
 			var timer := Timer.new(); timer.wait_time=1; box.add_child(timer); timer.timeout.connect(update); timer.start()
 			_button(box, "연구 취소", _cancel_confirm.bind(id))
@@ -448,13 +448,13 @@ func _instant_confirm(id: String) -> void:
 	var box: VBoxContainer = lobby.open_modal("연구 즉시 완료")
 	lobby.modal.set_meta("max_width",340)
 	box.add_child(T.label("%s 연구를 즉시 완료할까요?" % TITLES.get(id,id),14))
-	box.add_child(T.label("필요 다이아 %d · 보유 %d · 남은 다이아 %d" % [cost,int(lobby._p().get("diamonds",0)),maxi(0,int(lobby._p().get("diamonds",0))-cost)],12))
+	box.add_child(T.label("필요 다이아 %d · 보유 %d · 남은 다이아 %d" % [cost,lobby.diamonds(),maxi(0,lobby.diamonds()-cost)],12))
 	_button(box,"취소",lobby.close_modal)
-	_button(box,"즉시 완료 · 다이아 %d" % cost,func(): lobby.close_modal(); lobby._service("연구 즉시 완료",{"id":id}),int(lobby._p().get("diamonds",0))<cost)
+	_button(box,"즉시 완료 · 다이아 %d" % cost,func(): lobby.close_modal(); lobby._service("연구 즉시 완료",{"id":id}),lobby.diamonds()<cost)
 
 func _slot_confirm() -> void:
 	var cost := int(_growth().data.constants.researchSlotTwoUnlockCost)
-	var diamonds := int(lobby._p().get("diamonds",0))
+	var diamonds: int = lobby.diamonds()
 	var box: VBoxContainer = lobby.open_modal("두 번째 연구 슬롯 해금")
 	lobby.modal.set_meta("max_width",350)
 	box.add_child(T.label("다이아 %d개를 사용해 두 번째 연구 슬롯을 해금할까요?" % cost,14))

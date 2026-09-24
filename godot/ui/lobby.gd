@@ -44,6 +44,7 @@ func _ready() -> void:
 	refresh()
 
 func _p() -> Dictionary: return app.progression_inputs
+func diamonds() -> int: return int(_p().get("freeDiamonds",0)) + int(_p().get("paidDiamonds",0))
 func _title(id: String) -> String: return str(Growth.TITLES.get(id, NAMES.get(id, core_names.get(id,id))))
 
 func _insets() -> Vector4:
@@ -365,7 +366,7 @@ func set_modal_stylebox(style: StyleBox) -> void:
 	_layout_modal.call_deferred()
 
 func open_modal(title: String) -> VBoxContainer:
-	close_modal()
+	close_modal(true)
 	modal = Control.new()
 	modal.name = "LobbyModal"
 	modal.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -453,8 +454,9 @@ func _layout_modal() -> void:
 	modal_asset.position = Vector2.ZERO
 	modal_asset.size = modal_frame.size
 
-func close_modal() -> bool:
+func close_modal(replacing: bool = false) -> bool:
 	if not is_instance_valid(modal): return false
+	if not replacing and app.get("services") != null and (app.services.needs_profile() or app.services.updates.blocked): return true
 	ModalFrame.dismiss(modal)
 	modal = null
 	modal_frame = null
@@ -515,7 +517,7 @@ func _settings() -> void:
 		refresh()
 	))
 	body.add_child(AppTheme.button("계정 및 저장", _service.bind("계정 로그인 · 온라인 저장")))
-	body.add_child(AppTheme.label("자동 저장은 이 기기의 진행 상황을 보관합니다. 계정 로그인과 온라인 저장은 아직 연결되지 않았습니다."))
+	body.add_child(AppTheme.label("진행 상황은 이 기기에 자동 저장됩니다. Google 계정을 연결하면 서버와 동기화해 다른 기기에서도 이어갈 수 있습니다."))
 
 func _radio(title: String, key: String, values: Array, labels: Array, fallback: Variant) -> void:
 	body.add_child(AppTheme.label(title))

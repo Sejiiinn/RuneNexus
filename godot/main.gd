@@ -56,10 +56,9 @@ const REFLECTION_CRYSTAL_LAYER := 1 << 2
 var _screen_feedback = preload("res://session/screen_feedback.gd").new()
 var _collapse_camera_start: Dictionary = {}
 var _session_activation_revision := -1
-var _session_report_elapsed := 0.0
 var _session_input = preload("res://session/battlefield_input.gd").new(self)
 var _standalone_session: Node
-var bridge: Object
+var _app_mode := "--app" in OS.get_cmdline_user_args() or (not "--session" in OS.get_cmdline_user_args() and not "--fixture" in OS.get_cmdline_user_args() and not "--script" in OS.get_cmdline_args() and not "-s" in OS.get_cmdline_args())
 var _native_combat := NativeCombatRuntime.new()
 var _native_combat_base_frame: Dictionary = {}
 var camera := Camera3D.new()
@@ -155,11 +154,6 @@ var _generic_projectile_pool := {"sniper": [], "frost": []}
 func _ready() -> void:
 	RuntimeProfile.configure()
 	_set_profile_enabled(RuntimeProfile.enabled)
-	if Engine.has_singleton("RuneNexusPreview"):
-		bridge = Engine.get_singleton("RuneNexusPreview")
-	elif OS.get_name() == "Android" and not "--session" in OS.get_cmdline_user_args() and not "--app" in OS.get_cmdline_user_args():
-		_fail("Flutter 전투 브리지가 등록되지 않았습니다.")
-		return
 	add_child(_turret_level_labels)
 	_presentation_layer.layer = 2
 	add_child(_presentation_layer)
@@ -283,19 +277,14 @@ func _ready() -> void:
 	# Tween은 _process 뒤에 진행되므로 실제 렌더 직전의 카메라로 투영을 보고.
 	RenderingServer.frame_pre_draw.connect(_report_presentation)
 	_update_camera()
-	if bridge:
-		bridge.report_ready()
-	else:
-		if "--session" in OS.get_cmdline_user_args() or "--app" in OS.get_cmdline_user_args():
-			var entry := "res://app/app_lifecycle.gd" if "--app" in OS.get_cmdline_user_args() else "res://session/standalone.gd"
-			_standalone_session = load(entry).new()
-			add_child(_standalone_session)
-			return
-		# 네이티브 데스크톱 검수 입력. Android에서는 실제 Flutter 전투만 사용.
-		var fixture = JSON.parse_string(FileAccess.get_file_as_string("res://assets/preview_frame.json"))
-		if fixture is Dictionary:
-			_apply_frame(fixture)
-		print("RuneNexus Godot scene ready; Space: impacts, C: camera, S: shadows, V: volume")
+	if _app_mode or "--session" in OS.get_cmdline_user_args():
+		var entry := "res://app/app_lifecycle.gd" if _app_mode else "res://session/standalone.gd"
+		_standalone_session = load(entry).new()
+		add_child(_standalone_session)
+		return
+	# Explicit fixture mode is retained for isolated visual and combat checks.
+	var fixture = JSON.parse_string(FileAccess.get_file_as_string("res://assets/preview_frame.json"))
+	if fixture is Dictionary: _apply_frame(fixture)
 
 
 func _exit_tree() -> void:
@@ -328,8 +317,6 @@ func _exit_tree() -> void:
 
 func _fail(message: String) -> void:
 	push_error(message)
-	if bridge:
-		bridge.report_error(message)
 
 
 func _process(delta: float) -> void:
@@ -339,43 +326,7 @@ func _process(delta: float) -> void:
 		if _profile_last_tick != 0:
 			_profile_intervals.append(float(tick - _profile_last_tick) / 1000.0)
 		_profile_last_tick = tick
-	if bridge:
-		var pending_frame: Dictionary = {}
-		var combat_changed := false
-		var option_text: String = bridge.take_options()
-		if not option_text.is_empty():
-			var incoming = JSON.parse_string(option_text)
-			if incoming is Dictionary:
-				options.merge(incoming, true)
-				_apply_options()
-		var frame_text: String = bridge.take_frame()
-		if not frame_text.is_empty():
-			var parse_start := Time.get_ticks_usec() if _profile_enabled else 0
-			var incoming = JSON.parse_string(frame_text)
-			if _profile_enabled:
-				_profile_parse_us += Time.get_ticks_usec() - parse_start
-				_profile_parse_count += 1
-			if incoming is Dictionary:
-				if bool(incoming.get("reset", false)) or int(incoming.get("sceneEpoch", -1)) > _scene_epoch:
-					_apply_frame(incoming)
-				else:
-					pending_frame = incoming
-				if not bool(incoming.get("reset", false)) and int(incoming.get("sceneEpoch", -1)) == _scene_epoch:
-					_native_combat_base_frame = incoming.duplicate(true)
-		# Android Java singleton methods are dynamically exposed.
-		var combat_text: String = bridge.take_combat()
-		if not combat_text.is_empty():
-			var command = JSON.parse_string(combat_text)
-			if command is Dictionary and int(command.get("epoch", -1)) == _scene_epoch:
-				var response: Dictionary = _native_combat.process_command(command)
-				bridge.report_combat(JSON.stringify(response, "", false, true))
-				combat_changed = _native_combat.active
-		# One presentation update consumes the latest combat and UI state together.
-		if not pending_frame.is_empty():
-			_apply_frame(pending_frame)
-		elif combat_changed and not _native_combat_base_frame.is_empty():
-			_apply_frame(_native_combat_base_frame.duplicate(true))
-	elif standalone_playing and not last_frame.is_empty():
+	if standalone_playing and not last_frame.is_empty():
 		standalone_time += delta
 		var frame: Dictionary = last_frame.duplicate(true)
 		frame["time"] = standalone_time
@@ -387,18 +338,14 @@ func _process(delta: float) -> void:
 				frame["impacts"].append([100 + index, target[1], target[2], 1.2, progress])
 		_apply_frame(frame)
 	if _native_combat.native_session():
-		var host_active: bool = bridge.is_session_active() if bridge else true
-		var activation: int = int(bridge.session_activation_revision()) if bridge else 0
+		var host_active: bool = true
+		var activation: int = 0
 		var session_delta := _session_frame_delta(delta, host_active, activation)
 		var combat_tick := RuntimeProfile.begin()
 		var advanced := _native_combat.advance_session(session_delta, host_active)
 		RuntimeProfile.finish("combat", combat_tick)
 		if advanced and not _native_combat_base_frame.is_empty():
 			_apply_frame(_native_combat_base_frame)
-		_session_report_elapsed += delta
-		if bridge and _session_report_elapsed >= 0.1:
-			bridge.report_combat(JSON.stringify(_native_combat.snapshot(), "", false, true))
-			_session_report_elapsed = 0.0
 	metrics_elapsed += delta
 	frame_count += 1
 	frame_time_total += delta
@@ -450,8 +397,6 @@ func _process(delta: float) -> void:
 			metrics["phase"] = _native_combat.session.get("phase", "")
 			metrics["paused"] = _native_combat.session.get("paused", false)
 			print("APP_PROFILE ", JSON.stringify(metrics))
-		if bridge:
-			bridge.report_metrics(JSON.stringify(metrics))
 		metrics_elapsed = 0.0
 		frame_count = 0
 		frame_time_total = 0.0
@@ -476,7 +421,7 @@ func _profile_percentile(fraction: float) -> float:
 
 
 func _profile_render_frame() -> void:
-	# 최근 완료된 루트 viewport 렌더만 측정. Script/Flutter/별도 mask viewport는 제외.
+	# 최근 완료된 루트 viewport 렌더만 측정. Script/별도 mask viewport는 제외.
 	var rid := get_viewport().get_viewport_rid()
 	_profile_render_cpu_ms += RenderingServer.viewport_get_measured_render_time_cpu(rid)
 	_profile_render_gpu_ms += RenderingServer.viewport_get_measured_render_time_gpu(rid)
@@ -634,7 +579,7 @@ func _fit_camera_to_frame() -> void:
 
 
 func _formal_battlefield_rect() -> Rect2:
-	if not "--app" in OS.get_cmdline_user_args() or not is_instance_valid(_standalone_session): return Rect2()
+	if not _app_mode or not is_instance_valid(_standalone_session): return Rect2()
 	var hud = _standalone_session.hud
 	if not is_instance_valid(hud) or not hud.has_method("battlefield_rect"): return Rect2()
 	return hud.battlefield_rect()
@@ -706,7 +651,7 @@ func _fit_camera_layout(visible_size: Vector2) -> void:
 	var center := (bounds_min + bounds_max) / 2.0
 	var target_center := Vector2(float(screen_center[0]), float(screen_center[1]))
 	if _using_forge and not formal:
-		# Flutter는 전체 격자 중심을 전달하므로 비대칭 빈 테두리의 오프셋을 되돌린다.
+		# 화면 좌표는 전체 격자 중심이므로 비대칭 빈 테두리의 오프셋을 되돌린다.
 		# 투영 경계는 이미 활성 타일 중심이며, 사용자 팬·줌은 그대로 유지한다.
 		var grid_offset := Vector2(min_column + max_column - columns, min_row + max_row - rows) * 0.5
 		target_center += grid_offset * float(last_frame["pixelsPerTile"]) * float(last_frame.get("zoom", 1.0))
@@ -916,9 +861,6 @@ func presentation() -> Dictionary:
 func _report_presentation() -> void:
 	_turret_level_labels.update(camera, turrets, bool(options["turret_levels"]) and world.visible)
 	_present_overlays()
-	# Android Java 싱글턴은 동적 호출이므로 Object.has_method 검사 생략.
-	if bridge and (not last_frame.is_empty() or not _map_request.is_empty()):
-		bridge.report_presentation(JSON.stringify(presentation()))
 
 
 func _apply_frame(frame: Dictionary) -> void:
@@ -929,7 +871,7 @@ func _apply_frame(frame: Dictionary) -> void:
 		frame = _native_combat.decorate_frame(frame, true)
 		owned_snapshot = true
 		RuntimeProfile.finish("decorate", decorate_tick)
-		if "--app" in OS.get_cmdline_user_args():
+		if _app_mode:
 			frame = preload("res://ui/app_presentation.gd").normalize(frame)
 		if _native_combat.native_session():
 			frame.zoom = _session_input.zoom
@@ -1049,7 +991,6 @@ func _clear_scene() -> void:
 	_session_input.reset()
 	_collapse_camera_start.clear()
 	_screen_feedback.hide()
-	_session_report_elapsed = 0.0
 	_native_combat_base_frame.clear()
 	_projectile_events.clear()
 	world.position = Vector3.ZERO
@@ -1942,8 +1883,8 @@ func _update_impacts(units: Array) -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	if "--app" in OS.get_cmdline_user_args(): return
-	if bridge or not (event is InputEventKey) or not event.pressed or event.echo:
+	if _app_mode: return
+	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
 	match event.keycode:
 		KEY_SPACE: standalone_playing = not standalone_playing
@@ -1954,7 +1895,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if is_instance_valid(_standalone_session) and "--app" in OS.get_cmdline_user_args():
+	if is_instance_valid(_standalone_session) and _app_mode:
 		var app = _standalone_session
 		if app.in_lobby: return
 		if is_instance_valid(app.hud) and app.hud.has_method("blocks_board_input") and app.hud.blocks_board_input():

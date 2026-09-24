@@ -41,3 +41,36 @@ ios/.symlinks/
 *.jks
 *.keystore
 android/key.properties
+
+# Rebuildable editor/Python caches and automatic Blender backups
+.godot/
+__pycache__/
+*.pyc
+*.blend[0-9]*
+
+# Rejected map-batch experiments: local originals/exports, per optimization/README.md.
+/design/chapter2_3d/optimization/rejected-map-batches/
+/design/chapter2_3d/optimization/stage[6-9]-paving.blend
+/design/chapter2_3d/optimization/stage10-paving.blend
+
+# Historical local-only measurements; keep their readable summaries in Git.
+/design/stage1_3d/presentation_migration/impact_lifecycle/*
+!/design/stage1_3d/presentation_migration/impact_lifecycle/README.md
+/design/stage1_3d/presentation_migration/native_lifecycle/*
+!/design/stage1_3d/presentation_migration/native_lifecycle/README.md
+/design/stage1_3d/presentation_migration/blast_lifecycle/*
+!/design/stage1_3d/presentation_migration/blast_lifecycle/README.md
+/design/stage1_3d/presentation_migration/map_transport/*
+!/design/stage1_3d/presentation_migration/map_transport/README.md
+/design/stage1_3d/presentation_migration/chain_lifecycle/*
+!/design/stage1_3d/presentation_migration/chain_lifecycle/README.md
+/docs/analysis/godot_save_foundation_20260921/save-restart.png
+
+# Preserved local artifacts from the retired Flutter host
+/ios/Flutter/Generated.xcconfig
+/ios/Flutter/ephemeral/
+/ios/Flutter/flutter_export_environment.sh
+/ios/Runner/GeneratedPluginRegistrant.*
+/linux/flutter/ephemeral/
+/macos/Flutter/ephemeral/
+/windows/flutter/ephemeral/

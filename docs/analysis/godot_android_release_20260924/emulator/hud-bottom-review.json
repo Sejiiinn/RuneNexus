@@ -1,0 +1,57 @@
+{
+  "result": "No bottom-tab clipping observed; no source change",
+  "screenshots": [
+    "docs/analysis/godot_android_release_20260924/emulator/restored-battle.png",
+    "docs/analysis/godot_android_release_20260924/emulator/paused-wave.png"
+  ],
+  "pngSize": [
+    1080,
+    2424
+  ],
+  "pixelComparison": {
+    "identicalFullWidthBottomRows": [
+      2372,
+      2423
+    ],
+    "selectedTabBottomBorderRows": [
+      2411,
+      2413
+    ],
+    "bottomPaddingRows": [
+      2415,
+      2423
+    ]
+  },
+  "headlessGeometry": {
+    "project": "build/godot/release-validation",
+    "script": "/tmp/rune_dock_geometry.gd",
+    "physicalViewport": [
+      1080,
+      2424
+    ],
+    "logicalViewport": [
+      440,
+      987
+    ],
+    "states": [
+      "resume/show: 15 frames",
+      "paused",
+      "hide/show again"
+    ],
+    "tabsRect": [
+      0,
+      945,
+      440,
+      42
+    ],
+    "selectedButtonRect": [
+      4,
+      949,
+      143,
+      34
+    ],
+    "bottomOverflow": 0,
+    "engineErrors": false
+  },
+  "limitations": "No new Android run; original API37 screenshots reviewed. No user save access, APK build or editor mutation."
+}

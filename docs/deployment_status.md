@@ -6,6 +6,14 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-09-24 Godot 단독 Android 0.2.0 / code 6029 — 배포 진행 중
+
+Godot 전환 구현·로컬/에뮬레이터 검증 이후 사용자가 Android 공개 배포를 요청했다. 실기기 로그인 검증은 사용자가 직접 담당한다. 웹·API·DB 배포는 포함하지 않는다. 구현 상태는 [전환 상태](godot_unified_app_roadmap.md), 이전 로컬 검증은 [검증 기록](analysis/godot_android_release_20260924/README.md)이 원본이다.
+
+GitHub의 기존 운영 변수와 기존 서명 secrets가 존재함을 확인했다. 현재 공개 최신은 6028이며 6029/0.2.0 선택 업데이트를 준비한다. 먼저 CI에서 서명 빌드·검사를 수행하고, 동일한 검증 산출물의 인증서·설정·패키지·공개 자산을 확인한다. 실제 공개 전까지 이 항목은 배포 완료 기록이 아니다. 실기기·실계정 검증은 미확인 상태로 구분한다.
+
+이하 내용은 과거 배포 기록이며 Flutter/Web 관련 명령과 상태는 당시 기준이다.
+
 ## 2026-09-20 업데이트 단일 버튼 APK 0.1.19 / code 6028, 웹 배포
 
 - 대상 `5a1af6627fdf2941aada9cd107251ceb3b900206`. [APK workflow](https://github.com/Sejiiinn/RuneNexus/actions/runs/35462929856)·[웹 workflow](https://github.com/Sejiiinn/RuneNexus/actions/runs/35462931146) 성공, [공개 release](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6028) 커밋 일치. 공개 웹 주요 파일 HTTP 200 및 빌드 SHA 확인. API·DB 추가 변경 없음.
