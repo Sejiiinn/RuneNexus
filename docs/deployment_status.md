@@ -6,6 +6,14 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-09-24 Google 로그인 복귀 수정 Android 0.2.1 / code 6030 — 공개 완료
+
+- [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6030) · [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6030/rune-nexus.apk). 대상 `7292d952ac8b0ba0df0fdb0165c987d50fe76ecf`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36003482740) 검사·서명·최근 3개 버전 차등 복원·공개 완료. 선택 업데이트이며 최소 지원 코드 6027을 유지한다. 웹·API·DB 변경은 없다.
+- 사용자 제보의 Google 계정 선택→앱 복귀→업데이트 창→로그인 결과가 사라지는 흐름을 실제 Godot 로비·서비스·수명주기 코드에서 재현했다. 로그인 중 실제 일시정지 후 복귀를 구분해 자동 업데이트 확인과의 충돌을 막고, 게스트 계정 화면을 다시 열어도 취소·실패 안내가 남도록 했다. 일반 복귀 확인과 서버 426 필수 업데이트는 유지한다. Android Google 인증 코드·설정·저장 형식은 변경하지 않았다.
+- 콜백과 복귀의 양순서, 성공·닉네임 대기·취소·인증 실패, 일시정지 없는 콜백, 비로그인 작업 중 복귀, 필수 업데이트 등 관련 13개 시나리오와 독립 검토를 통과했다. 배포 CI도 통과했다. 사용자의 실제 Google 인증 실패 원인 및 실계정 OAuth 성공은 미확인이다. 이번 확인은 재현된 복귀 충돌·결과 누락 수정에 한정하며 실계정 성공으로 표시하지 않는다.
+- APK 372,098,354 bytes, SHA-256 `8c7d835df163025b04ef6b64dc6c7e2396db9884519e97f2fc78416a42888dd4`. 6029 대비 +656 bytes이며 Godot PCK도 +656 bytes(143,890,440 bytes·871항목·완전 중복 0 bytes)다. APK 지원 ABI·네이티브 의존성·에셋 구성은 기존 배포와 같다.
+- 공개 태그·커밋·latest/버전별 manifest 일치, APK와 패치 3개의 GitHub SHA-256·크기, 공개 APK 응답을 확인했다. 검증을 반복하지 않고 기존 서명·패키징·저장 근거와 최종 CI를 재사용했다. 근거는 `build/google-login-fix-20260924/`의 `login-resume-before.log`, `login-resume-after.log`, `independent-login-review.json`과 `build/release-verification/apk-6030/`의 `ci-run.json`, `public-verification.json`, `ci-audit/`에 있다.
+
 ## 2026-09-24 Godot 단독 Android 0.2.0 / code 6029 — 공개 완료
 
 - [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6029) · [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6029/rune-nexus.apk). 대상 `1f2bcc27cf877c0727dadd99632db713eb3ec519`, [최종 CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/35999656150) 성공. CI에서 검증한 동일 서명 산출물을 초안에 올린 뒤 공개·최신 지정했다. 선택 업데이트이며 최소 지원 코드 6027을 유지한다. 웹·API·DB는 배포하지 않았다.
