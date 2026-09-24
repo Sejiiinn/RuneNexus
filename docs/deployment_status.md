@@ -6,6 +6,14 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-09-24 시작 화면 복원 Android 0.2.2 / code 6031 — 공개 완료
+
+- [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6031) · [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6031/rune-nexus.apk). 대상 `cb9a4b18cade64d7bb9e1369dbcda1e6fa6da8a5`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36006933404)의 서명 산출물을 Android에서 확인한 뒤 동일 파일을 공개했다. 선택 업데이트이며 최소 지원 코드 6027을 유지한다. 웹·API·DB 변경은 없다.
+- Godot 기본 로고를 숨기고 기존 Flutter의 배경·로고·코어·금속 진행바를 사용하는 시작 화면을 복원했다. 경량 boot가 먼저 업데이트를 확인하고, 통과 후 본게임을 불러와 저장·계정을 복원한다. 필수/선택 업데이트, 오류 재시도, 노트 스크롤, 설치 권한 복귀 안내와 기존 로그인 복귀 처리를 유지한다.
+- 관련 자동 검사·실제 데스크톱 시작 전환·독립 검토 및 최종 CI를 통과했다. 격리 Android API 37 에뮬레이터에서 기존 6029 위에 설치하고 Godot 로고 없음 → 업데이트 확인 → 게임 준비 → 로비와 기존 스테이지 1·2/40 이어하기 표시를 확인했다. SwiftShader Vulkan 환경에서 초기 준비 지연이 있었으나 정상 로비에 도달했다. 정확한 GPU 비용과 실기기 시작 성능은 미측정이며 실제 Google OAuth는 사용자 담당 미확인 항목으로 유지한다.
+- APK 372,117,142 bytes, SHA-256 `538690028c9b1d7f8f7a9abf58f47fada411661782df8679b36cf2de910edb7d`. 6030 대비 +18,788 bytes이며 Godot PCK도 같은 크기만큼 증가했다(143,909,228 bytes·877항목·완전 중복 0 bytes). 시작 화면 코드 추가에 따른 증가이며 새 대용량 에셋·네이티브 의존성 없이 ABI 3종을 유지한다. 6028/6029/6030 기준 차등 패치는 각각 141,925,573 / 141,721,235 / 141,721,234 bytes이며 모두 서명 APK로 복원 검증했다.
+- 공개 태그·커밋·최신/버전별 manifest 일치, 업로드 5개 파일의 SHA-256·크기와 공개 APK 응답을 확인했다. 근거는 `build/startup-restoration-20260924/independent-startup-review.json`, 같은 폴더의 로그·실제 화면과 `build/release-verification/apk-6031/`의 `ci-run.json`, `candidate-verification.json`, `public-verification.json`, `android/cold-start.mp4`, `android/lobby-final.png`, `android/result.json`에 있다.
+
 ## 2026-09-24 Google 로그인 복귀 수정 Android 0.2.1 / code 6030 — 공개 완료
 
 - [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6030) · [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6030/rune-nexus.apk). 대상 `7292d952ac8b0ba0df0fdb0165c987d50fe76ecf`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36003482740) 검사·서명·최근 3개 버전 차등 복원·공개 완료. 선택 업데이트이며 최소 지원 코드 6027을 유지한다. 웹·API·DB 변경은 없다.
