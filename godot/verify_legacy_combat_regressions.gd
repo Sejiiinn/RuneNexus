@@ -12,6 +12,7 @@ func _initialize() -> void:
 	_path()
 	_frost()
 	_multi()
+	_burn_critical()
 	_projectiles()
 	_global_attacks()
 	_traits()
@@ -229,18 +230,80 @@ func _multi() -> void:
 	burn._impact(burn.turrets["1"],_attack(burn,2),burn.enemies["1"],Vector2.ZERO)
 	near(burn.enemies["1"].hp,984,"multi critical fire direct damage")
 	near(burn.enemies["2"].hp,992,"multi critical fire splash damage")
-	near(Enemy.snapshot(burn.enemies["1"]).burnDamagePerSecond,4,"multi burn excludes critical")
-	near(Enemy.snapshot(burn.enemies["2"]).burnDamagePerSecond,2,"multi splash burn coefficient")
+	near(Enemy.snapshot(burn.enemies["1"]).burnDamagePerSecond,6,"multi burn gets half critical bonus")
+	near(Enemy.snapshot(burn.enemies["2"]).burnDamagePerSecond,3,"multi splash burn coefficient")
 	var chained = _runtime(fire,[_raw(1),_raw(2,10)])
 	chained._impact(chained.turrets["1"],_attack(chained,2),chained.enemies["1"],Vector2.ZERO,0.5,true)
 	near(chained.enemies["1"].hp,992,"multi critical chained direct")
 	near(chained.enemies["2"].hp,996,"multi critical chained splash")
-	near(Enemy.snapshot(chained.enemies["1"]).burnDamagePerSecond,2,"multi chained burn half original")
-	near(Enemy.snapshot(chained.enemies["2"]).burnDamagePerSecond,1,"multi chained splash burn quarter original")
+	near(Enemy.snapshot(chained.enemies["1"]).burnDamagePerSecond,3,"multi chained burn half original")
+	near(Enemy.snapshot(chained.enemies["2"]).burnDamagePerSecond,1.5,"multi chained splash burn quarter original")
 	Enemy.step(chained.enemies["1"],1)
 	Enemy.step(chained.enemies["2"],1)
-	near(chained.enemies["1"].hp,990,"multi chain burn ticks actual native enemy")
-	near(chained.enemies["2"].hp,995,"multi chain splash burn ticks")
+	near(chained.enemies["1"].hp,989,"multi chain burn ticks actual native enemy")
+	near(chained.enemies["2"].hp,994.5,"multi chain splash burn ticks")
+
+func _burn_critical() -> void:
+	# Exercise the shared burn path with a non-magic definition too: no type gate.
+	for type in ["magic", "cannon"]:
+		for critical in [1.0, 1.5, 2.0, 3.0]:
+			for chained in [false, true]:
+				var i := _input(type)
+				i.definition.damage = 100.0
+				i.definition.attackTags = ["damageOverTime"]
+				i.gems = ["explosion"]
+				if type == "cannon": i.primaryTrait = "compressedCharge"
+				var r = _runtime(i, [_raw(1), _raw(2,10)])
+				var a := _attack(r,critical)
+				var scale := 0.5 if chained else 1.0
+				var before: int = r.rng.state
+				r._impact(r.turrets["1"],a,r.enemies["1"],Vector2.ZERO,scale,chained)
+				var expected_burn: float = 50.0 * (1.0 + (critical-1.0)*0.5) * scale
+				var direct_trait := 1.35 if type == "cannon" and not chained else 1.0
+				near(r.enemies["1"].hp,1000.0-100.0*critical*scale*direct_trait,"hit keeps full critical and direct-only trait")
+				near(r.enemies["2"].hp,1000.0-50.0*critical*scale,"splash keeps full critical without direct trait")
+				near(Enemy.snapshot(r.enemies["1"]).burnDamagePerSecond,expected_burn,"burn half critical bonus independent of turret type and direct trait")
+				near(Enemy.snapshot(r.enemies["2"]).burnDamagePerSecond,expected_burn*0.5,"splash burn shares original critical at half area damage")
+				near(Enemy.snapshot(r.enemies["1"]).burnRemaining,2.0,"critical and chain never change burn duration")
+				check(r.rng.state == before,"burn and secondary hits never reroll critical")
+	# A shot already in flight retains its critical result after stats change.
+	var i := _input("magic")
+	i.definition.damage = 100.0
+	i.definition.criticalChance = 1.0
+	i.definition.criticalDamageMultiplier = 2.0
+	var r = _runtime(i,[_raw(1,40)])
+	var t: Dictionary = r.turrets["1"]
+	r._tick_turret(t,0)
+	t.statInput.definition.criticalChance = 0.0
+	t.statInput.definition.criticalDamageMultiplier = 3.0
+	t.stats = Stats.stats_at(t.statInput,1)
+	_move_all(r,0.2)
+	near(r.enemies["1"].hp,800,"in-flight hit preserves original critical")
+	near(Enemy.snapshot(r.enemies["1"]).burnDamagePerSecond,75,"in-flight burn preserves half original critical bonus")
+	Enemy.step(r.enemies["1"],0.5)
+	r._impact(t,_attack(r),r.enemies["1"],Vector2(40,0))
+	near(Enemy.snapshot(r.enemies["1"]).burnDamagePerSecond,75,"normal refresh retains stronger critical burn")
+	near(Enemy.snapshot(r.enemies["1"]).burnRemaining,2,"normal refresh retains existing max-duration policy")
+	var restored := Enemy.create(Enemy.snapshot(r.enemies["1"]))
+	var hp: float = restored.hp
+	Enemy.step(restored,1)
+	near(restored.hp,hp-75,"restored burn stores resolved DPS without applying critical again")
+	# Derived fire effects consume resolved burn DPS, not another critical roll.
+	i = _input("magic")
+	i.definition.damage = 100.0
+	i.secondaryTrait = "ignitionBurst"
+	r = _runtime(i,[_raw(1)])
+	t = r.turrets["1"]
+	r._impact(t,_attack(r,2),r.enemies["1"],Vector2.ZERO)
+	r._impact(t,_attack(r,3),r.enemies["1"],Vector2.ZERO)
+	near(r.enemies["1"].hp,455,"ignition uses prior 75 DPS burn times 2 times .3 without another critical multiplier")
+	i.secondaryTrait = "chainIgnition"
+	var source := _raw(1)
+	source.hp = 100
+	r = _runtime(i,[source,_raw(2,40)])
+	r._impact(r.turrets["1"],_attack(r,2),r.enemies["1"],Vector2.ZERO)
+	near(Enemy.snapshot(r.enemies["2"]).burnDamagePerSecond,75,"spread transfers critical burn without double scaling")
+	near(Enemy.snapshot(r.enemies["2"]).burnRemaining,1.2,"spread keeps existing sixty percent remaining duration")
 func _projectiles() -> void:
 	var r = _runtime(_input("arrow"),[_raw(1,80),_raw(2,40)])
 	r._projectile(r.turrets["1"],_attack(r),Vector2.ZERO,Vector2.RIGHT,2,[],false,200)

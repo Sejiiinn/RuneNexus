@@ -515,6 +515,43 @@
     }
   },
   {
+    "name": "critical-burn-half-bonus-without-direct-trait-or-extra-tag",
+    "input": {
+      "resistance": {
+        "family": "elemental",
+        "familyResistance": 0.2,
+        "tags": ["damageOverTime"],
+        "extraTags": ["heavy"],
+        "tagResistances": {
+          "damageOverTime": 0.25,
+          "heavy": 0.5
+        }
+      },
+      "baseDamage": 200,
+      "traitMultiplier": 2,
+      "status": {
+        "damage": 100,
+        "burnDamagePerSecondScale": 0.5,
+        "burnDurationSeconds": 2,
+        "hasDamageOverTime": true,
+        "criticalMultiplier": 2
+      }
+    },
+    "expected": {
+      "damage": 120,
+      "resistanceMultiplier": 0.3,
+      "effects": [
+        {
+          "type": "burn",
+          "damagePerSecond": 45,
+          "duration": 2,
+          "damageMultiplier": 0.6,
+          "ignoreArmorReduction": false
+        }
+      ]
+    }
+  },
+  {
     "name": "dot-disabled-despite-damage",
     "input": {
       "resistance": {

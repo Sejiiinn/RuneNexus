@@ -170,6 +170,7 @@ Map<String, Object?> verifySnapshot(TurretType type) {
       'burnDurationSeconds': 2,
       'hasDamageOverTime': attack.hasDamageOverTime,
       'damageScale': .75,
+      'criticalMultiplier': attack.criticalMultiplier,
       'damageOverTimeDamageMultiplier': attack.damageOverTimeDamageMultiplier,
       'damageOverTimeDurationMultiplier':
           attack.damageOverTimeDurationMultiplier,
@@ -188,7 +189,8 @@ Map<String, Object?> verifySnapshot(TurretType type) {
             .5 *
             .75 *
             burnMultiplier *
-            attack.damageOverTimeDamageMultiplier,
+            attack.damageOverTimeDamageMultiplier *
+            (1 + (attack.criticalMultiplier - 1) * .5),
         'duration': 2 * attack.damageOverTimeDurationMultiplier,
         'damageMultiplier': burnMultiplier,
         'ignoreArmorReduction': attack.ignoresArmorReduction,

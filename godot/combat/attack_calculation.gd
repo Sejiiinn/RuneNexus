@@ -30,7 +30,9 @@ static func resolve(input: Dictionary) -> Dictionary:
 	var status: Dictionary = input.get("status", {})
 	if status.get("hasDamageOverTime", false):
 		var burn_multiplier := damage_multiplier(resistance, false)
-		effects.append({"type": "burn", "damagePerSecond": float(status["damage"]) * float(status["burnDamagePerSecondScale"]) * float(status.get("damageScale", 1.0)) * burn_multiplier * float(status.get("damageOverTimeDamageMultiplier", 1.0)),
+		# Reuse the firing roll, with half of its bonus; direct-only traits stay separate.
+		var burn_critical_multiplier := 1.0 + (float(status.get("criticalMultiplier", 1.0)) - 1.0) * 0.5
+		effects.append({"type": "burn", "damagePerSecond": float(status["damage"]) * float(status["burnDamagePerSecondScale"]) * float(status.get("damageScale", 1.0)) * burn_multiplier * float(status.get("damageOverTimeDamageMultiplier", 1.0)) * burn_critical_multiplier,
 			"duration": float(status["burnDurationSeconds"]) * float(status.get("damageOverTimeDurationMultiplier", 1.0)),
 			"damageMultiplier": burn_multiplier, "ignoreArmorReduction": status.get("ignoresArmorReduction", false)})
 	var slow_duration: float = status.get("slowDuration", 0.0)

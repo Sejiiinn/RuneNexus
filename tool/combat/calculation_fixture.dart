@@ -33,6 +33,7 @@ Map<String, Object?> evaluateFixture(Map<String, dynamic> input) {
       burnDurationSeconds: number(s, 'burnDurationSeconds'),
       hasDamageOverTime: s['hasDamageOverTime'] == true,
       damageScale: number(s, 'damageScale', 1),
+      criticalMultiplier: number(s, 'criticalMultiplier', 1),
       damageOverTimeDamageMultiplier: number(
         s,
         'damageOverTimeDamageMultiplier',

@@ -41,6 +41,7 @@ class AttackStatusInput {
     required this.burnDurationSeconds,
     this.hasDamageOverTime = false,
     this.damageScale = 1,
+    this.criticalMultiplier = 1,
     this.damageOverTimeDamageMultiplier = 1,
     this.damageOverTimeDurationMultiplier = 1,
     this.ignoresArmorReduction = false,
@@ -54,6 +55,7 @@ class AttackStatusInput {
   final double burnDurationSeconds;
   final bool hasDamageOverTime;
   final double damageScale;
+  final double criticalMultiplier;
   final double damageOverTimeDamageMultiplier;
   final double damageOverTimeDurationMultiplier;
   final bool ignoresArmorReduction;
@@ -139,11 +141,13 @@ abstract final class AttackCalculation {
     final effects = <AttackStatusEffect>[];
     if (input.hasDamageOverTime) {
       // Burn snapshots resistance before this attack applies frost crack, and
-      // uses only base tags (never the direct hit's extra tags/trait/critical).
+      // uses only base tags (never the direct hit's extra tags/trait).
+      // Half of the firing critical bonus also applies to burn damage.
       final multiplier = damageMultiplier(
         input.resistance,
         includeExtraTags: false,
       );
+      final burnCriticalMultiplier = 1 + (input.criticalMultiplier - 1) * 0.5;
       effects.add(
         AttackBurnEffect(
           damagePerSecond:
@@ -151,7 +155,8 @@ abstract final class AttackCalculation {
               input.burnDamagePerSecondScale *
               input.damageScale *
               multiplier *
-              input.damageOverTimeDamageMultiplier,
+              input.damageOverTimeDamageMultiplier *
+              burnCriticalMultiplier,
           duration:
               input.burnDurationSeconds *
               input.damageOverTimeDurationMultiplier,
