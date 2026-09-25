@@ -33,6 +33,7 @@ SCRIPTS = {
     "verify_battle_hud.gd": "PASS battle HUD:",
     "verify_battle_rewards.gd": "PASS battle rewards:",
     "verify_lobby.gd": "LOBBY_SMOKE_OK",
+    "verify_modal_input.gd": "PASS modal input:",
     "verify_leaderboard_ui.gd": "failures=[]",
     "verify_lobby_growth.gd": "PASS growth pages:",
     "verify_research_stop.gd": "PASS research stop:",

@@ -66,7 +66,9 @@ static func dismiss(control: Control) -> void:
 	if not is_instance_valid(control): return
 	if ProjectSettings.get_setting("accessibility/disable_animations",false):
 		control.queue_free(); return
-	control.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Keep the fading overlay as a hit target until it is freed. Ignoring the
+	# overlay itself lets a second click reach buttons behind the dialog.
+	control.mouse_filter = Control.MOUSE_FILTER_STOP
 	_ignore_input(control)
 	var tween := control.create_tween().set_parallel(true)
 	tween.tween_property(control,"modulate:a",0.0,0.21).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
