@@ -6,6 +6,7 @@ class FakeApp extends RefCounted:
 	var run_domain = preload("res://session/run_session.gd").new()
 	var checkpoint = {"message":"", "preferences":{}}
 	var startup_blocked := false
+	var services: Variant = null
 	var commands: Array = []
 	var quit_requested := false
 	var starts: Array = []
@@ -51,7 +52,12 @@ func run() -> void:
 				var bounds := Rect2(Vector2.ZERO,Vector2(width,900))
 				assert(bounds.encloses(header.get_global_rect()),"Header overflow: %s %d long=%s"%[page,width,long_balance])
 				assert(not wallet.get_global_rect().intersects(heading.get_global_rect()),"Wallet and title overlap")
-				assert(back.size.y >=36 and back.size.x >=36,"Back touch dimensions")
+				assert(back.size.y >=26 and back.size.y <=28 and back.size.x >=40,"Compact back dimensions")
+				assert(back.global_position.y >= heading.get_global_rect().end.y + 2,"Back belongs below the title")
+				assert(is_equal_approx(back.global_position.x,heading.global_position.x),"Back aligns to the left title group")
+				assert(not wallet.get_global_rect().intersects(back.get_global_rect()),"Wallet and back overlap")
+				var title := lobby.find_child("MenuTitle",true,false) as Label
+				if title: assert(title.horizontal_alignment == HORIZONTAL_ALIGNMENT_LEFT,"Title is left aligned")
 				for row in wallet.get_child(0).get_children():
 					var label := row.get_child(1) as Label
 					assert(label.size.x+0.1 >= label.get_minimum_size().x,"Balance clipped")
@@ -59,13 +65,25 @@ func run() -> void:
 					await RenderingServer.frame_post_draw
 					root.get_texture().get_image().save_png(OS.get_environment("HEADER_OUT")+"/%d-%s-%s.png"%[width,page,"long" if long_balance else "normal"])
 				if page == "스테이지":
-					lobby.find_child("StageQuests",true,false).pressed.emit()
+					await click(lobby.find_child("StageQuests",true,false))
 					assert(is_instance_valid(lobby.modal))
 					lobby.close_modal()
+					await process_frame
+				await click(lobby.find_child("MenuBack",true,false))
+				assert(lobby.page == "로비" and is_instance_valid(lobby.home),"Back navigates to home")
+				lobby.open_page(page)
 				lobby.find_child("TabResearch",true,false).pressed.emit()
 				assert(lobby.page == "연구", "Footer page transition")
-				lobby.find_child("MenuBack",true,false).pressed.emit()
-				assert(lobby.page == "로비" and is_instance_valid(lobby.home),"Back navigates to home")
-	print("PASS lobby_header: 320/440, five pages, 18-digit balances, bounds/no overlap, back touch/navigation, stage quests")
+	print("PASS lobby_header: 320/440, five pages, 18-digit balances, left title / compact back below, bounds/no overlap, pointer back and stage quests")
 	lobby.free()
 	quit()
+
+func click(button: Button) -> void:
+	var point := button.get_global_rect().get_center()
+	for pressed in [true,false]:
+		var event := InputEventMouseButton.new()
+		event.position = point
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = pressed
+		root.push_input(event,true)
+		await process_frame

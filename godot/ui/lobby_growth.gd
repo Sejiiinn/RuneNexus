@@ -26,7 +26,13 @@ func _growth():
 	return lobby.app.run_domain.growth
 
 func _style(path: String, margin := 9) -> StyleBox:
-	return Frame.new(path,margin)
+	var frame := Frame.new(path,margin)
+	# Upgrade-only frames use symmetric end caps; shared menu art is unchanged.
+	if path == "ui/components/upgrade_levelup_frame_v2.png":
+		frame.source_center = Rect2(12, 5, 127, 24)
+	elif path == "ui/components/upgrade_rune_cost_frame_v2.png":
+		frame.source_center = Rect2(10, 6, 60, 15)
+	return frame
 
 func _surface(parent: Node, path := "ui/components/card_frame.png", margin := 8) -> VBoxContainer:
 	var panel := PanelContainer.new()
@@ -167,7 +173,7 @@ func upgrades_tabs(parent: Node) -> void:
 		b.tooltip_text = tab
 		b.custom_minimum_size = Vector2(64, 33)
 		b.add_theme_stylebox_override("normal", _style("ui/components/segment_selected_cyan.png" if tab == "전투" else "ui/components/segment_selected_gold.png", 0) if tab == category else StyleBoxEmpty.new())
-		var icon: Control = _glyph(0xf379, 23, Color("ff7a7a")) if tab == "전투" else _image("ui/hud/icons/gold.png", 20)
+		var icon := _image("ui/icons/growth_combat_swords.png" if tab == "전투" else "ui/icons/growth_economy_scales.png", 28)
 		var icon_center := CenterContainer.new()
 		icon_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		b.add_child(icon_center)
@@ -196,7 +202,7 @@ func upgrades() -> void:
 		spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		box.add_child(spacer)
 		var b := _button(box, "최대 레벨" if level >= maximum else "", lobby._change.bind({"kind":"upgradePermanent", "id":id}), not enabled)
-		for state in ["normal", "disabled", "hover", "pressed"]: b.add_theme_stylebox_override(state, _style("ui/components/button_frame.png", 7))
+		for state in ["normal", "disabled", "hover", "pressed"]: b.add_theme_stylebox_override(state, _style("ui/components/upgrade_levelup_frame_v2.png", 7))
 		if level < maximum:
 			b.tooltip_text = "레벨업 · 룬 %d" % cost
 			var margin := MarginContainer.new()
@@ -218,12 +224,17 @@ func upgrades() -> void:
 			content.add_child(label)
 			label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 			var chip := PanelContainer.new()
-			chip.add_theme_stylebox_override("panel", _style("ui/components/chip_frame.png", 4))
+			var chip_style := _style("ui/components/upgrade_rune_cost_frame_v2.png", 9)
+			chip_style.content_margin_top = 7
+			chip_style.content_margin_bottom = 7
+			chip.add_theme_stylebox_override("panel", chip_style)
 			chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			content.add_child(chip)
 			_currency(chip, cost)
 			var align_cost := func():
 				chip.size = chip.get_combined_minimum_size()
+				# Anchored children do not contribute to the Button's minimum size.
+				b.custom_minimum_size = Vector2(chip.size.x + label.get_minimum_size().x + 16, maxf(34, chip.size.y + 6))
 				chip.position = Vector2(content.size.x - chip.size.x, (content.size.y - chip.size.y) * 0.5)
 				# Keep the caption centered; reserve the same cost width on both sides.
 				var side := chip.size.x + 2

@@ -1,0 +1,38 @@
+{
+  "assets/images/ui/icons/growth_combat_swords.png": {
+    "sha256": "c5e51e977c864f6ef9bf4aa9a6b74ca49d0021db00a5c555f983298113a364b6",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      14,
+      18,
+      242,
+      237
+    ],
+    "transparent_pixels": 43828,
+    "opaque_pixels": 19056,
+    "edge_alpha_max": 0,
+    "center_gap_alpha": 0
+  },
+  "assets/images/ui/icons/growth_economy_scales.png": {
+    "sha256": "69adc33c007856ca2611b05c7c01ba7bb9d331a6c380a72fbc1a3b68445b8cc0",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "alpha_bbox": [
+      14,
+      27,
+      242,
+      229
+    ],
+    "transparent_pixels": 48815,
+    "opaque_pixels": 13080,
+    "edge_alpha_max": 0,
+    "center_gap_alpha": 0
+  }
+}

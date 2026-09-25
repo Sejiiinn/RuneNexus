@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RuneNexus · 전투 / 경제 아이콘 시안</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#08111a;color:#e2edf1;font-family:Arial,'Apple SD Gothic Neo',sans-serif}main{max-width:1500px;margin:auto;padding:32px 28px}header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:26px}h1{font-size:27px;letter-spacing:-.7px;margin:0 0 10px}header p{margin:0;color:#8fa6b4;font-size:14px;line-height:1.7}.badge{color:#94b4c2;border:1px solid #30434d;padding:8px 12px;border-radius:6px;font-size:12px;white-space:nowrap}.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}.card{background:#0f1c27;border:1px solid #293c49;border-radius:12px;overflow:hidden}.name{padding:18px 16px 16px;border-bottom:1px solid #273a46;min-height:87px}.number{font-size:12px;color:#7399ad;letter-spacing:2px}.name h2{font-size:17px;margin:7px 0 0}.icon{padding:14px 12px 10px;text-align:center}.icon+.icon{border-top:1px solid #243541}.label{font-size:12px;letter-spacing:1px;margin-bottom:6px;color:#a9c8d8}.economy .label{color:#d4b677}.large{display:block;width:100%;height:166px;object-fit:contain;cursor:zoom-in;filter:drop-shadow(0 4px 8px #0005)}.small{display:flex;align-items:center;justify-content:center;gap:12px;background:#09151e;border:1px solid #263a47;border-radius:6px;padding:9px;margin:12px 4px 0;min-height:44px}.small img{width:24px;height:24px;object-fit:contain}.small span{color:#778f9e;font-size:11px}.sample{padding:15px 12px 18px;border-top:1px solid #293c49;text-align:center}.sample p{font-size:11px;color:#94a9b5;margin:0 0 10px}.tabs{display:flex;justify-content:center;gap:0}.tab{width:64px;height:33px;border:1px solid #41636e;display:grid;place-items:center;background:linear-gradient(#153541,#10212d)}.tab:first-child{border-radius:6px 0 0 6px}.tab:last-child{border-color:#6f5a31;border-radius:0 6px 6px 0;background:linear-gradient(#3d331d,#221f18)}.tab img{width:24px;height:24px;object-fit:contain}footer{font-size:12px;line-height:1.8;color:#849eac;margin-top:22px}dialog{padding:24px;background:#0d1a25;color:white;border:1px solid #4e6b7b;border-radius:12px;max-width:90vw}dialog::backdrop{background:#000b}dialog img{width:min(520px,75vw);height:min(520px,65vh);object-fit:contain}dialog button{display:block;margin:12px auto 0;background:#233c4a;color:#e2edf1;border:1px solid #526e7e;padding:9px 22px;border-radius:6px;cursor:pointer}@media(max-width:1000px){.grid{grid-template-columns:repeat(3,1fr)}}@media(max-width:620px){main{padding:20px 12px}.grid{grid-template-columns:repeat(2,1fr)}header{display:block}.badge{display:inline-block;margin-top:14px}.large{height:138px}.name h2{font-size:15px}}
+</style>
+<main>
+<header><div><h1>전투 · 경제 아이콘 시안</h1><p>같은 번호끼리 한 세트 · 전투 5개 / 경제 5개<br>금속 · 룬 테마를 유지하며 재질과 표현을 비교합니다.</p></div><span class="badge">시안 비교 · 게임 미적용</span></header>
+<div class="grid" id="grid"></div>
+<footer>큰 이미지는 형태 비교용입니다. 24px 줄은 소형 가독성, 맨 아래는 탭 크기의 배치 예시입니다.<br>배치 예시는 실제 게임 캡처가 아닙니다. 이미지를 누르면 확대할 수 있습니다.</footer>
+</main>
+<dialog id="zoom"><div id="zoomTitle"></div><img id="zoomImage" alt="확대 시안"><button onclick="this.closest('dialog').close()">닫기</button></dialog>
+<script>
+const styles=['정돈된 베벨 금속','룬 각인','각진 크리스털·금속','고대 단조','매끈한 에나멜'];
+const grid=document.getElementById('grid');
+styles.forEach((name,i)=>{const n=String(i+1).padStart(2,'0');const card=document.createElement('article');card.className='card';card.innerHTML=`<div class="name"><span class="number">${n}</span><h2>${name}</h2></div>`+['combat','economy'].map(kind=>`<div class="icon ${kind}"><div class="label">${kind==='combat'?'전투':'경제'}</div><img class="large" src="${kind}-${n}.png" alt="${name} ${kind==='combat'?'전투':'경제'} 시안" onclick="showZoom(this)"><div class="small"><img src="${kind}-${n}.png" alt="24px"><span>24px</span></div></div>`).join('')+`<div class="sample"><p>탭 크기 배치 예시</p><div class="tabs"><div class="tab"><img src="combat-${n}.png" alt="전투"></div><div class="tab"><img src="economy-${n}.png" alt="경제"></div></div></div>`;grid.append(card)});
+function showZoom(img){document.getElementById('zoomTitle').textContent=img.alt;document.getElementById('zoomImage').src=img.src;document.getElementById('zoom').showModal()}
+</script>
+</html>

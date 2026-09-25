@@ -1,0 +1,44 @@
+{
+  "tool": "built-in image_gen",
+  "reference_images": [
+    "assets/images/stage_rewards/reward_upgrade.png",
+    "design/combat_ui_concepts/2026-09-25/upgrade-cost/remade/frames-440-전투.png"
+  ],
+  "variants": [
+    {
+      "id": "01",
+      "label": "정돈된 베벨 금속",
+      "prompt": "Use case: stylized-concept. Asset type: small combat tab game icon for RuneNexus dark fantasy mobile UI. Create ONE standalone SHIELD icon only on a genuinely transparent alpha background. Theme reference: dark gunmetal and bright silver steel edges, cyan accent, premium restrained dark fantasy UI. Full frontal view centered, no perspective tilt; isolated shield occupies roughly 80 percent of square canvas. Strong coarse silhouette and broad contrasting planes so it remains recognizable at 20 to 24 pixels. Painterly polished game asset, refined dimensional metal shading, not a photograph. Uniform soft upper-left light, no cast shadow outside object. No text, no letters, no numbers, no watermark, no square frame, no socket, no card, no button, no pedestal, no weapon, no swords, no hands, no character, no additional objects. No glow halo, no rays, no particles, no background, no checkerboard pattern. Cyan is a small restrained inset or engraving, not an overpowering glow. Keep midtones and bright steel edges sufficiently luminous against dark navy game UI. Preserve shield meaning.\nVariant design: Classic beveled steel shield, crisp symmetric pentagonal silhouette, thick bright silver steel rim around a dark gunmetal face, one tiny cyan inset near the center, large clean planes.",
+      "source": "/Users/sejin/.codex/generated_images/01a0d8bb-2ab0-7f33-9202-9317c6d95964/exec-3acc10ae-c5b6-4199-9b75-c4bcb4f4ee4b.png",
+      "output": "design/combat_ui_concepts/2026-09-25/growth-tab-icons/combat-01.png"
+    },
+    {
+      "id": "02",
+      "label": "룬 각인",
+      "prompt": "Use case: stylized-concept. Asset type: small combat tab game icon for RuneNexus dark fantasy mobile UI. Create ONE standalone SHIELD icon only on a genuinely transparent alpha background. Theme reference: dark gunmetal and bright silver steel edges, cyan accent, premium restrained dark fantasy UI. Full frontal view centered, no perspective tilt; isolated shield occupies roughly 80 percent of square canvas. Strong coarse silhouette and broad contrasting planes so it remains recognizable at 20 to 24 pixels. Painterly polished game asset, refined dimensional metal shading, not a photograph. Uniform soft upper-left light, no cast shadow outside object. No text, no letters, no numbers, no watermark, no square frame, no socket, no card, no button, no pedestal, no weapon, no swords, no hands, no character, no additional objects. No glow halo, no rays, no particles, no background, no checkerboard pattern. Cyan is a small restrained inset or engraving, not an overpowering glow. Keep midtones and bright steel edges sufficiently luminous against dark navy game UI. Preserve shield meaning.\nVariant design: Heavy flat broad metal shield, bold symmetric silhouette, ONE broad simple angular engraved cyan rune on a dark gunmetal face, restrained silver steel edges, rune is an abstract magical mark not readable writing.",
+      "source": "/Users/sejin/.codex/generated_images/01a0d8bb-2ab0-7f33-9202-9317c6d95964/exec-f1242283-834b-462a-9ba5-86b1053a3bbe.png",
+      "output": "design/combat_ui_concepts/2026-09-25/growth-tab-icons/combat-02.png"
+    },
+    {
+      "id": "03",
+      "label": "각진 크리스털/금속",
+      "prompt": "Use case: stylized-concept. Asset type: small combat tab game icon for RuneNexus dark fantasy mobile UI. Create ONE standalone SHIELD icon only on a genuinely transparent alpha background. Theme reference: dark gunmetal and bright silver steel edges, cyan accent, premium restrained dark fantasy UI. Full frontal view centered, no perspective tilt; isolated shield occupies roughly 80 percent of square canvas. Strong coarse silhouette and broad contrasting planes so it remains recognizable at 20 to 24 pixels. Painterly polished game asset, refined dimensional metal shading, not a photograph. Uniform soft upper-left light, no cast shadow outside object. No text, no letters, no numbers, no watermark, no square frame, no socket, no card, no button, no pedestal, no weapon, no swords, no hands, no character, no additional objects. No glow halo, no rays, no particles, no background, no checkerboard pattern. Cyan is a small restrained inset or engraving, not an overpowering glow. Keep midtones and bright steel edges sufficiently luminous against dark navy game UI. Preserve shield meaning.\nVariant design: Angular faceted shield constructed of a few large gunmetal and silver planes, bold strong shield silhouette with a small cyan crystal core inset, sharp readable planes and generous bright metal edges.",
+      "source": "/Users/sejin/.codex/generated_images/01a0d8bb-2ab0-7f33-9202-9317c6d95964/exec-d4401877-b3a7-49a6-b27f-7a6c34279509.png",
+      "output": "design/combat_ui_concepts/2026-09-25/growth-tab-icons/combat-03.png"
+    },
+    {
+      "id": "04",
+      "label": "고대 단조",
+      "prompt": "Use case: stylized-concept. Asset type: small combat tab game icon for RuneNexus dark fantasy mobile UI. Create ONE standalone SHIELD icon only on a genuinely transparent alpha background. Theme reference: dark gunmetal and bright silver steel edges, cyan accent, premium restrained dark fantasy UI. Full frontal view centered, no perspective tilt; isolated shield occupies roughly 80 percent of square canvas. Strong coarse silhouette and broad contrasting planes so it remains recognizable at 20 to 24 pixels. Painterly polished game asset, refined dimensional metal shading, not a photograph. Uniform soft upper-left light, no cast shadow outside object. No text, no letters, no numbers, no watermark, no square frame, no socket, no card, no button, no pedestal, no weapon, no swords, no hands, no character, no additional objects. No glow halo, no rays, no particles, no background, no checkerboard pattern. Cyan is a small restrained inset or engraving, not an overpowering glow. Keep midtones and bright steel edges sufficiently luminous against dark navy game UI. Preserve shield meaning.\nVariant design: Ancient forged shield, aged hammered steel, subtle bronze joints, a single simple worn abstract rune, low texture noise, broad gunmetal center and bright worn silver rim, compact bold silhouette.",
+      "source": "/Users/sejin/.codex/generated_images/01a0d8bb-2ab0-7f33-9202-9317c6d95964/exec-aed98b9a-7c1d-4022-a005-de91fb428efb.png",
+      "output": "design/combat_ui_concepts/2026-09-25/growth-tab-icons/combat-04.png"
+    },
+    {
+      "id": "05",
+      "label": "매끈한 에나멜",
+      "prompt": "Use case: stylized-concept. Asset type: small combat tab game icon for RuneNexus dark fantasy mobile UI. Create ONE standalone SHIELD icon only on a genuinely transparent alpha background. Theme reference: dark gunmetal and bright silver steel edges, cyan accent, premium restrained dark fantasy UI. Full frontal view centered, no perspective tilt; isolated shield occupies roughly 80 percent of square canvas. Strong coarse silhouette and broad contrasting planes so it remains recognizable at 20 to 24 pixels. Painterly polished game asset, refined dimensional metal shading, not a photograph. Uniform soft upper-left light, no cast shadow outside object. No text, no letters, no numbers, no watermark, no square frame, no socket, no card, no button, no pedestal, no weapon, no swords, no hands, no character, no additional objects. No glow halo, no rays, no particles, no background, no checkerboard pattern. Cyan is a small restrained inset or engraving, not an overpowering glow. Keep midtones and bright steel edges sufficiently luminous against dark navy game UI. Preserve shield meaning.\nVariant design: Rounded compact shield, smooth deep teal enamel face with a thick silver steel rim, clean painted fantasy game icon, minimal tiny cyan accent, broad surfaces, elegant smooth compact silhouette.",
+      "source": "/Users/sejin/.codex/generated_images/01a0d8bb-2ab0-7f33-9202-9317c6d95964/exec-36115121-2b56-4d21-b899-901c90357a38.png",
+      "output": "design/combat_ui_concepts/2026-09-25/growth-tab-icons/combat-05.png"
+    }
+  ]
+}

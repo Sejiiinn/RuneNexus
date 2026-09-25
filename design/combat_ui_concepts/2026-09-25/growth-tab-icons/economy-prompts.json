@@ -1,0 +1,67 @@
+[
+  {
+    "id": "01",
+    "title": "정돈된 베벨 금속",
+    "prompt": "Use case: stylized-concept. Asset type: dark science-fantasy mobile game ECONOMY tab icon, a single standalone transparent sprite.\nCreate ONE coin, centered, filling about 80 percent of a square canvas. Subject is a single large front-facing gold/brass coin with a simple diamond rune. Actual transparent alpha background; absolutely no background color or checkerboard pixels.\nThis belongs beside a matching metallic shield combat tab icon in a dark navy dungeon interface with restrained steel beveled panels and fine gold accents. The coin must have comparable mid-level brightness and visual weight to a steel shield, not dominate the UI.\nPalette: dark gunmetal outer silhouette, warm muted gold/brass face, tiny amber highlights. Readable at 20–24 pixels: very bold broad silhouette, thick simple structural shapes, minimal details.\nDo not include any square frame, socket, button, badge backing, pedestal, surrounding ring outside the physical coin, text, labels, numbers, currency letters, watermark, particles, bloom, halo, exaggerated glow or bright cartoon-yellow saturation. No other objects. No ultra-thin patterning. Render only this new original icon, not a screenshot.\nStyle variant: Classic beveled gold coin, dark steel outer rim, broad embossed diamond at center, crisp bilateral symmetry. Restrained gleaming broad metal faces.",
+    "reference_paths": [
+      "assets/images/ui/hud/icons/gold.png",
+      "assets/images/stage_rewards/reward_upgrade.png",
+      "design/combat_ui_concepts/2026-09-25/upgrade-cost/remade/frames-440-전투.png"
+    ],
+    "built_in_tool": "image_gen.imagegen",
+    "source_path": "/Users/sejin/.codex/generated_images/01a0d8bb-8f4b-7de2-8909-b0d786c3b3ad/exec-24c4756b-2aed-4527-8d53-a65667ec0812.png",
+    "saved_path": "/Users/sejin/Documents/Codex/RuneNexus/design/combat_ui_concepts/2026-09-25/growth-tab-icons/economy-01.png"
+  },
+  {
+    "id": "02",
+    "title": "룬 각인",
+    "prompt": "Use case: stylized-concept. Asset type: dark science-fantasy mobile game ECONOMY tab icon, a single standalone transparent sprite.\nCreate ONE coin, centered, filling about 80 percent of a square canvas. Subject is a single large front-facing gold/brass coin with a simple diamond rune. Actual transparent alpha background; absolutely no background color or checkerboard pixels.\nThis belongs beside a matching metallic shield combat tab icon in a dark navy dungeon interface with restrained steel beveled panels and fine gold accents. The coin must have comparable mid-level brightness and visual weight to a steel shield, not dominate the UI.\nPalette: dark gunmetal outer silhouette, warm muted gold/brass face, tiny amber highlights. Readable at 20–24 pixels: very bold broad silhouette, thick simple structural shapes, minimal details.\nDo not include any square frame, socket, button, badge backing, pedestal, surrounding ring outside the physical coin, text, labels, numbers, currency letters, watermark, particles, bloom, halo, exaggerated glow or bright cartoon-yellow saturation. No other objects. No ultra-thin patterning. Render only this new original icon, not a screenshot.\nStyle variant: Flat dark brass coin with ONE broad simple engraved gold diamond rune. Wide uncluttered face, restrained bevel edges, graphic clarity and slightly occult rune appearance.",
+    "reference_paths": [
+      "assets/images/ui/hud/icons/gold.png",
+      "assets/images/stage_rewards/reward_upgrade.png",
+      "design/combat_ui_concepts/2026-09-25/upgrade-cost/remade/frames-440-전투.png"
+    ],
+    "built_in_tool": "image_gen.imagegen",
+    "source_path": "/Users/sejin/.codex/generated_images/01a0d8bb-8f4b-7de2-8909-b0d786c3b3ad/exec-c9eb0ea5-c5c4-4fd2-855b-306871db8e27.png",
+    "saved_path": "/Users/sejin/Documents/Codex/RuneNexus/design/combat_ui_concepts/2026-09-25/growth-tab-icons/economy-02.png"
+  },
+  {
+    "id": "03",
+    "title": "각진 크리스털·금속",
+    "prompt": "Use case: stylized-concept. Asset type: dark science-fantasy mobile game ECONOMY tab icon, a single standalone transparent sprite.\nCreate ONE coin, centered, filling about 80 percent of a square canvas. Subject is a single large front-facing gold/brass coin with a simple diamond rune. Actual transparent alpha background; absolutely no background color or checkerboard pixels.\nThis belongs beside a matching metallic shield combat tab icon in a dark navy dungeon interface with restrained steel beveled panels and fine gold accents. The coin must have comparable mid-level brightness and visual weight to a steel shield, not dominate the UI.\nPalette: dark gunmetal outer silhouette, warm muted gold/brass face, tiny amber highlights. Readable at 20–24 pixels: very bold broad silhouette, thick simple structural shapes, minimal details.\nDo not include any square frame, socket, button, badge backing, pedestal, surrounding ring outside the physical coin, text, labels, numbers, currency letters, watermark, particles, bloom, halo, exaggerated glow or bright cartoon-yellow saturation. No other objects. No ultra-thin patterning. Render only this new original icon, not a screenshot.\nStyle variant: Faceted polygonal coin with large warm gold planes and a dark metal edge. Bold octagonal silhouette and a broad geometric diamond emboss in center. Low polygon monumental geometry.",
+    "reference_paths": [
+      "assets/images/ui/hud/icons/gold.png",
+      "assets/images/stage_rewards/reward_upgrade.png",
+      "design/combat_ui_concepts/2026-09-25/upgrade-cost/remade/frames-440-전투.png"
+    ],
+    "built_in_tool": "image_gen.imagegen",
+    "source_path": "/Users/sejin/.codex/generated_images/01a0d8bb-8f4b-7de2-8909-b0d786c3b3ad/exec-0418713e-8735-49cf-84d6-8abec5e06b63.png",
+    "saved_path": "/Users/sejin/Documents/Codex/RuneNexus/design/combat_ui_concepts/2026-09-25/growth-tab-icons/economy-03.png"
+  },
+  {
+    "id": "04",
+    "title": "고대 단조",
+    "prompt": "Use case: stylized-concept. Asset type: dark science-fantasy mobile game ECONOMY tab icon, a single standalone transparent sprite.\nCreate ONE coin, centered, filling about 80 percent of a square canvas. Subject is a single large front-facing gold/brass coin with a simple diamond rune. Actual transparent alpha background; absolutely no background color or checkerboard pixels.\nThis belongs beside a matching metallic shield combat tab icon in a dark navy dungeon interface with restrained steel beveled panels and fine gold accents. The coin must have comparable mid-level brightness and visual weight to a steel shield, not dominate the UI.\nPalette: dark gunmetal outer silhouette, warm muted gold/brass face, tiny amber highlights. Readable at 20–24 pixels: very bold broad silhouette, thick simple structural shapes, minimal details.\nDo not include any square frame, socket, button, badge backing, pedestal, surrounding ring outside the physical coin, text, labels, numbers, currency letters, watermark, particles, bloom, halo, exaggerated glow or bright cartoon-yellow saturation. No other objects. No ultra-thin patterning. Render only this new original icon, not a screenshot.\nStyle variant: Aged hammered bronze-gold coin with a broad simple worn diamond rune. Thick hand-forged edge, a few large shallow dents, low texture noise, ancient but readable and dignified.",
+    "reference_paths": [
+      "assets/images/ui/hud/icons/gold.png",
+      "assets/images/stage_rewards/reward_upgrade.png",
+      "design/combat_ui_concepts/2026-09-25/upgrade-cost/remade/frames-440-전투.png"
+    ],
+    "built_in_tool": "image_gen.imagegen",
+    "source_path": "/Users/sejin/.codex/generated_images/01a0d8bb-8f4b-7de2-8909-b0d786c3b3ad/exec-d1e04cac-9dae-4eff-acc3-f16962506271.png",
+    "saved_path": "/Users/sejin/Documents/Codex/RuneNexus/design/combat_ui_concepts/2026-09-25/growth-tab-icons/economy-04.png"
+  },
+  {
+    "id": "05",
+    "title": "매끈한 에나멜",
+    "prompt": "Use case: stylized-concept. Asset type: dark science-fantasy mobile game ECONOMY tab icon, a single standalone transparent sprite.\nCreate ONE coin, centered, filling about 80 percent of a square canvas. Subject is a single large front-facing gold/brass coin with a simple diamond rune. Actual transparent alpha background; absolutely no background color or checkerboard pixels.\nThis belongs beside a matching metallic shield combat tab icon in a dark navy dungeon interface with restrained steel beveled panels and fine gold accents. The coin must have comparable mid-level brightness and visual weight to a steel shield, not dominate the UI.\nPalette: dark gunmetal outer silhouette, warm muted gold/brass face, tiny amber highlights. Readable at 20–24 pixels: very bold broad silhouette, thick simple structural shapes, minimal details.\nDo not include any square frame, socket, button, badge backing, pedestal, surrounding ring outside the physical coin, text, labels, numbers, currency letters, watermark, particles, bloom, halo, exaggerated glow or bright cartoon-yellow saturation. No other objects. No ultra-thin patterning. Render only this new original icon, not a screenshot.\nStyle variant: Rounded compact coin with deep amber enamel face and a thick gold rim. One broad raised gold diamond in center, clear painted game icon styling, smooth generous shapes and controlled shine.",
+    "reference_paths": [
+      "assets/images/ui/hud/icons/gold.png",
+      "assets/images/stage_rewards/reward_upgrade.png",
+      "design/combat_ui_concepts/2026-09-25/upgrade-cost/remade/frames-440-전투.png"
+    ],
+    "built_in_tool": "image_gen.imagegen",
+    "source_path": "/Users/sejin/.codex/generated_images/01a0d8bb-8f4b-7de2-8909-b0d786c3b3ad/exec-2339f50b-fd04-4e22-8c9b-398a68c48f28.png",
+    "saved_path": "/Users/sejin/Documents/Codex/RuneNexus/design/combat_ui_concepts/2026-09-25/growth-tab-icons/economy-05.png"
+  }
+]

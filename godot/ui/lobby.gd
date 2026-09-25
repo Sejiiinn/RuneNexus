@@ -213,24 +213,19 @@ func _header(parent: Node) -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	inset.add_child(row)
-	var identity := GridContainer.new()
+	var identity := VBoxContainer.new()
 	identity.name = "MenuIdentity"
 	identity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	identity.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	identity.add_theme_constant_override("h_separation", 6)
-	identity.add_theme_constant_override("v_separation", 0)
+	identity.add_theme_constant_override("separation", 2)
 	row.add_child(identity)
-	var back := _plain_button("‹  로비", open_page.bind("로비"))
-	back.name = "MenuBack"
-	back.custom_minimum_size = Vector2(42,36)
-	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	identity.add_child(back)
 	var heading := HBoxContainer.new()
 	heading.name = "MenuHeading"
 	heading.custom_minimum_size.x = 102
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	heading.add_theme_constant_override("separation", 6)
+	heading.alignment = BoxContainer.ALIGNMENT_BEGIN
 	identity.add_child(heading)
 	if page == "스테이지":
 		var event := _plain_button("", open_quests)
@@ -243,6 +238,7 @@ func _header(parent: Node) -> void:
 		var logo := _image("rune_nexus_logo_serif.png", Vector2(0,44))
 		logo.name = "StageHeaderLogo"
 		logo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT
 		heading.add_child(logo)
 	else:
 		var path: String = {"코어":"core","강화":"upgrade","연구":"research","포탑":"turret"}.get(page,"stage")
@@ -251,10 +247,19 @@ func _header(parent: Node) -> void:
 		heading.add_child(icon)
 		var title := _text({"코어":"넥서스 코어", "강화":"영구 강화", "연구":"연구", "포탑":"포탑 모듈"}.get(page, page), 15)
 		title.name = "MenuTitle"
+		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		heading.add_child(title)
+	var back := _plain_button("‹ 로비", open_page.bind("로비"))
+	back.name = "MenuBack"
+	back.tooltip_text = "로비로 돌아가기"
+	back.custom_minimum_size = Vector2(40,26)
+	back.add_theme_font_size_override("font_size", 11)
+	back.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	identity.add_child(back)
 	var resources := PanelContainer.new()
 	resources.name = "MenuResources"
 	resources.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -269,13 +274,6 @@ func _header(parent: Node) -> void:
 	_currency(wallet,"res://assets/ui/diamond_currency.png",int(_p().get("freeDiamonds",0))+int(_p().get("paidDiamonds",0)))
 	if page == "포탑": _currency(wallet,"stage_rewards/reward_module_ticket.png",int(_p().get("turretModules",{}).get("tickets",0)))
 	else: _currency(wallet,"ui/hud/icons/rune.png",int(_p().get("runes",0)))
-	# Keep navigation and title together on one line when both groups fit.
-	# Long balances may wrap only the identity group; the wallet stays complete.
-	var arrange := func():
-		var available := size.x - _insets().x - _insets().z - 24 - 12 - resources.get_combined_minimum_size().x
-		identity.columns = 2 if available >= back.get_combined_minimum_size().x + 6 + 102 else 1
-	inset.resized.connect(arrange)
-	arrange.call_deferred()
 
 func _navigation_style(selected: bool) -> StyleBoxTexture:
 	var style := StyleBoxTexture.new()
