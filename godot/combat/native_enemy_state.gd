@@ -91,6 +91,25 @@ static func _place_at_distance(e: Dictionary,distance: float) -> void:
 	e.targetIndex=end
 	e.facingAngle=atan2(dy,dx)
 
+## Read-only sampling for lane presentation, reusing the movement path cache.
+## It must not change position, facing or the next authoritative waypoint.
+static func point_at_distance(e: Dictionary,distance: float) -> Vector2:
+	if e.path.is_empty(): return Vector2.ZERO
+	distance = maxf(0.0,distance)
+	var low := 0
+	var high: int = e._cumulative.size()
+	while low < high:
+		var middle: int = low + ((high-low)>>1)
+		if e._cumulative[middle] < distance: low=middle+1
+		else: high=middle
+	if low == e._ends.size():
+		return Vector2(_px(e.path[-1]),_py(e.path[-1]))
+	var end: int = e._ends[low]
+	var start: float = 0.0 if low == 0 else e._cumulative[low-1]
+	var from := Vector2(_px(e.path[end-1]),_py(e.path[end-1]))
+	var to := Vector2(_px(e.path[end]),_py(e.path[end]))
+	return from.lerp(to,clampf((distance-start)/e._lengths[low],0.0,1.0))
+
 static func _event(e: Dictionary,kind: String,details: Dictionary={}) -> Dictionary:
 	var result := {"type":kind,"enemyId":e.id,"x":e.x,"y":e.y}
 	result.merge(details,true)
@@ -187,6 +206,10 @@ static func add_rift_mark(e: Dictionary,amplification: float,duration: float) ->
 
 static func _dot_hit(e: Dictionary,attack: Dictionary,kind: String,events: Array) -> float:
 	var result := apply_hit(e,attack)
+	if result.killed and kind == "burn":
+		# The per-tick attack borrows the live burn. Only a retained kill event
+		# needs its own transfer snapshot, before subsequent ticks change it.
+		result.events[0].burnTransfer = attack.burnTransfer.duplicate(true)
 	events.append_array(result.events)
 	if result.actualDamage>0:
 		events.append(_event(e,"damage",{"kind":kind,"damage":result.actualDamage,"bonusDamage":result.bonusDamage,"sourceX":attack.get("sourceX"),"sourceY":attack.get("sourceY")}))
@@ -217,9 +240,10 @@ static func step(e: Dictionary,dt: float,path: Array=[]) -> Array:
 				strongest=b
 				tick=duration
 		if not strongest.is_empty():
-			var attack: Dictionary=strongest.duplicate(true)
-			attack.damage=strongest.damagePerSecond*tick
-			attack.burnTransfer=strongest.duplicate(true)
+			var attack := {"damage":strongest.damagePerSecond*tick,
+				"ignoreArmorReduction":strongest.ignoreArmorReduction,
+				"sourceX":strongest.sourceX,"sourceY":strongest.sourceY,
+				"burnTransfer":strongest}
 			e.burnNumberDamage+=_dot_hit(e,attack,"burn",events)
 		e.burnInstances=e.burnInstances.filter(func(b): return b.remaining>0)
 		if e.hp>0 and (e.burnNumberTimer>=0.28 or e.burnInstances.is_empty()) and e.burnNumberDamage>0:
@@ -239,8 +263,9 @@ static func step(e: Dictionary,dt: float,path: Array=[]) -> Array:
 			e.poisonDamagePerSecond=0.0
 			e.poisonNumberDamage=0.0
 			e.poisonNumberTimer=0.0
-	for slow in e.slowInstances: slow.remaining-=dt
-	e.slowInstances=e.slowInstances.filter(func(s): return s.remaining>0)
+	if not e.slowInstances.is_empty():
+		for slow in e.slowInstances: slow.remaining-=dt
+		e.slowInstances=e.slowInstances.filter(func(s): return s.remaining>0)
 	for prefix in ["physicalVulnerability","elementalVulnerability","riftMark"]:
 		if e[prefix+"Remaining"]>0:
 			e[prefix+"Remaining"]=maxf(0,e[prefix+"Remaining"]-dt)

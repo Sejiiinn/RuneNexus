@@ -8,6 +8,7 @@ const CoreSkill = preload("res://combat/native_core_skill_state.gd")
 const Attack = preload("res://combat/attack_calculation.gd")
 # Match the authored 1.1-second cannon impact; generic hits last only 0.28s.
 const BLAST_DURATION: float = 1.1
+const PROJECTILE_RADII: Dictionary = {"arrow":3.5, "cannon":7.0, "magic":4.0}
 var epoch: int = -1
 var active: bool = false
 var running: bool = true
@@ -443,10 +444,13 @@ func _command(c: Dictionary) -> void:
 
 func _step(dt: float) -> void:
 	clock += dt
-	visual_effects = visual_effects.filter(func(v): return clock - float(v.born) < float(v.duration))
+	if not visual_effects.is_empty():
+		visual_effects = visual_effects.filter(func(v): return clock - float(v.born) < float(v.duration))
+	# Local to this step: commands and direct fixture edits cannot stale the index.
+	var burn_sources: Dictionary = {}
 	for e in enemies.values():
 		if _alive(e):
-			_collect(Enemy.step(e, dt, path))
+			_collect(Enemy.step(e, dt, path), burn_sources)
 			if terminal: return
 	_finish_step(dt)
 
@@ -464,8 +468,10 @@ func _finish_step(dt: float) -> void:
 			_release(d)
 	var moving := projectiles
 	projectiles = []
+	# Hits do not move enemies; build only after movement and instant/delayed hits.
+	var broadphase := _projectile_broadphase(moving.size())
 	for p in moving:
-		_move_projectile(p, dt)
+		_move_projectile(p, dt, broadphase)
 	if running:
 		for request in wave.advance(dt):
 			_spawn(request.enemy)
@@ -489,15 +495,20 @@ func _tick_turret(t: Dictionary, dt: float) -> void:
 	var definition: Dictionary = t.statInput.definition
 	var centered: bool = definition.centeredAreaAttack
 	var radius: float = s.centeredAreaRadius if centered else s.range
-	var target := _target(_vec(t.position), radius, t.get("targetPriority", t.state.get("targetPriority", "first")), [], true)
-	if target.is_empty():
-		t.aimProgress = 0
-		return
+	var target: Dictionary = {}
+	var retained_aim := false
 	if definition.instantHit:
 		var existing: Dictionary = enemies.get(str(t.aimTargetId), {})
 		if not existing.is_empty() and _alive(existing) and _vec(t.position).distance_to(_pos(existing)) <= radius + _target_radius(existing):
 			target = existing
-		elif str(t.aimTargetId) != str(target.id):
+			retained_aim = true
+	if target.is_empty():
+		target = _target(_vec(t.position), radius, t.get("targetPriority", t.state.get("targetPriority", "first")), [], true)
+	if target.is_empty():
+		t.aimProgress = 0
+		return
+	if definition.instantHit:
+		if not retained_aim and str(t.aimTargetId) != str(target.id):
 			t.aimProgress = 0
 		t.aimTargetId = target.id
 		t.aimProgress += dt
@@ -569,7 +580,53 @@ func _projectile(t: Dictionary, a: Dictionary, from: Vector2, direction: Vector2
 	projectile_id += 1
 	projectiles.append({"id": projectile_id, "owner": str(t.id), "attack": a, "position": from, "origin": from, "direction": direction.normalized(), "remaining": distance, "chains": chains, "excluded": excluded.duplicate(), "chained": chained, "shot": t.shotSequence})
 
-func _move_projectile(p: Dictionary, dt: float) -> void:
+# A center occupies one cell, so candidates need no deduplication. The maximum
+# enemy radius expands the swept segment bounds; the exact circle test below is
+# still authoritative, including starting overlaps and zero-length movement.
+func _projectile_broadphase(projectile_count: int) -> Dictionary:
+	if projectile_count == 0: return {}
+	var ordered: Array = enemies.values()
+	if projectile_count < 8 or ordered.size() < 32:
+		return {"ordered":ordered}
+	var cells: Dictionary = {}
+	var cell_size := maxf(1.0, 64.0 * absf(board_scale))
+	var maximum_radius := 0.0
+	for index in range(ordered.size()):
+		var e: Dictionary = ordered[index]
+		if not _alive(e): continue
+		maximum_radius = maxf(maximum_radius, absf(_radius(e)))
+		var at := _pos(e)
+		var cell := Vector2i(floori(at.x / cell_size), floori(at.y / cell_size))
+		if not cells.has(cell): cells[cell] = []
+		cells[cell].append(index)
+	return {"ordered":ordered, "cells":cells, "cellSize":cell_size, "radius":maximum_radius}
+
+func _projectile_candidates(from: Vector2, movement: Vector2, radius: float, broadphase: Dictionary) -> Array:
+	if broadphase.is_empty(): return enemies.values()
+	var ordered: Array = broadphase.ordered
+	if not broadphase.has("cells"): return ordered
+	var padding: float = broadphase.radius + absf(radius)
+	var end := from + movement
+	var size: float = broadphase.cellSize
+	# One extra cell protects tangent/boundary candidates from float rounding.
+	var low := Vector2i(floori((minf(from.x, end.x)-padding)/size)-1, floori((minf(from.y, end.y)-padding)/size)-1)
+	var high := Vector2i(floori((maxf(from.x, end.x)+padding)/size)+1, floori((maxf(from.y, end.y)+padding)/size)+1)
+	var cell_count := float(high.x-low.x+1) * float(high.y-low.y+1)
+	# Long steps / large bodies must neither miss collisions nor walk huge grids.
+	if cell_count >= ordered.size(): return ordered
+	var indices: Array = []
+	for y in range(low.y, high.y+1):
+		for x in range(low.x, high.x+1):
+			var cell := Vector2i(x, y)
+			if broadphase.cells.has(cell): indices.append_array(broadphase.cells[cell])
+	if indices.size() * 2 >= ordered.size(): return ordered
+	# Equal fractions retain Dictionary insertion order, as in the full scan.
+	indices.sort()
+	var candidates: Array = []
+	for index in indices: candidates.append(ordered[index])
+	return candidates
+
+func _move_projectile(p: Dictionary, dt: float, broadphase: Dictionary = {}) -> void:
 	var t: Dictionary = turrets.get(p.owner, {})
 	if t.is_empty():
 		return
@@ -578,16 +635,16 @@ func _move_projectile(p: Dictionary, dt: float) -> void:
 	var movement: Vector2 = p.direction * step
 	var first := INF
 	var hit: Dictionary = {}
-	var radii := {"arrow": 3.5, "cannon": 7.0, "magic": 4.0}
-	for e in enemies.values():
+	var projectile_radius: float = float(PROJECTILE_RADII.get(p.attack.definition.type, 3.5)) * board_scale
+	var length_squared := movement.length_squared()
+	for e in _projectile_candidates(from, movement, projectile_radius, broadphase):
 		if not _alive(e) or str(e.id) in p.excluded:
 			continue
 		var offset := from - _pos(e)
-		var radius: float = _radius(e) + float(radii.get(p.attack.definition.type, 3.5)) * board_scale
+		var radius: float = _radius(e) + projectile_radius
 		var c := offset.length_squared() - radius * radius
 		var fraction := 0.0
 		if c > 0:
-			var length_squared := movement.length_squared()
 			if length_squared <= 0:
 				continue
 			var b := offset.dot(movement)
@@ -712,7 +769,25 @@ func _hit(t: Dictionary, a: Dictionary, e: Dictionary, scale: float, kind: Strin
 			_emit({"kind":"coreBonusDamage","enemyId":e.id,"damage":result.bonusDamage})
 		_collect(result.get("events", []))
 
-func _collect(items: Array) -> void:
+# Preserve all turrets at a source coordinate and their insertion order. Numeric
+# coordinates may arrive as JSON floats or native ints; normalize just the keys.
+func _burn_coordinate_key(value: Variant) -> Variant:
+	return float(value) if typeof(value) in [TYPE_INT, TYPE_FLOAT] else value
+
+func _burn_source_turrets(source: Dictionary, index: Dictionary) -> Array:
+	if not index.has("rows"):
+		var rows: Dictionary = {}
+		for t in turrets.values():
+			var x: Variant = _burn_coordinate_key(t.state.get("x"))
+			var y: Variant = _burn_coordinate_key(t.state.get("y"))
+			if not rows.has(x): rows[x] = {}
+			if not rows[x].has(y): rows[x][y] = []
+			rows[x][y].append(t)
+		index.rows = rows
+	var row: Dictionary = index.rows.get(_burn_coordinate_key(source.get("sourceX")), {})
+	return row.get(_burn_coordinate_key(source.get("sourceY")), [])
+
+func _collect(items: Array, burn_sources: Dictionary = {}) -> void:
 	for raw in items:
 		var event: Dictionary = raw.duplicate(true)
 		var type: String = event.get("type", "")
@@ -746,7 +821,7 @@ func _collect(items: Array) -> void:
 				if float(raw.get("bonusDamage", 0)) > 0:
 					_emit({"kind":"coreBonusDamage","enemyId":raw.enemyId,"damage":raw.bonusDamage})
 				if raw.get("kind") == "burn":
-					for t in turrets.values():
+					for t in _burn_source_turrets(raw, burn_sources):
 						if t.state.get("x") == raw.get("sourceX") and t.state.get("y") == raw.get("sourceY"):
 							t.burnDamageDealt += float(raw.get("damage", 0))
 		_emit(event)
@@ -923,24 +998,13 @@ func _visual_enemy_offset(e: Dictionary) -> Vector2:
 	if lane == 0 or e.path.size() < 2: return Vector2.ZERO
 	var distance: float = e.distanceTravelled
 	var sample := 48.0 * board_scale * 0.4
-	var before := _point_at(e.path, distance - sample)
-	var after := _point_at(e.path, distance + sample)
+	var before := Enemy.point_at_distance(e, distance - sample)
+	var after := Enemy.point_at_distance(e, distance + sample)
 	var tangent := after - before
 	if tangent.length_squared() <= 0.001: return Vector2.ZERO
-	var total := 0.0
-	for index in range(1,e.path.size()): total += _vec(e.path[index]).distance_to(_vec(e.path[index-1]))
+	var total: float = e._total
 	var fade := clampf(minf(distance,total-distance)/(48.0*board_scale*0.55),0,1)
 	return Vector2(-tangent.y,tangent.x).normalized()*lane*48.0*board_scale*fade
-
-func _point_at(points: Array, distance: float) -> Vector2:
-	var left := maxf(0,distance)
-	for index in range(1,points.size()):
-		var from := _vec(points[index-1])
-		var to := _vec(points[index])
-		var length := from.distance_to(to)
-		if length > 0 and left <= length: return from.lerp(to,left/length)
-		left -= length
-	return _vec(points[-1])
 
 func _alive(e: Dictionary) -> bool:
 	return float(e.get("hp", 0)) > 0 and not e.get("arrived", false) and not e.get("isDead", false)
