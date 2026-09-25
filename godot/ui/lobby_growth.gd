@@ -434,7 +434,7 @@ func _details(id: String) -> void:
 				instant.disabled = current.is_empty() or lobby.diamonds()<cost
 			update.call()
 			var timer := Timer.new(); timer.wait_time=1; box.add_child(timer); timer.timeout.connect(update); timer.start()
-			_button(box, "연구 취소", _cancel_confirm.bind(id))
+			_button(box, "연구 중단", _cancel_confirm.bind(id, true))
 	else:
 		var status := research_status(id)
 		if int(q.level) < int(d.maxLevel):
@@ -442,12 +442,72 @@ func _details(id: String) -> void:
 			if int(lobby._p().get("researchElapsedMillis", {}).get(id, 0)) > 0: box.add_child(T.label("이전에 진행한 연구 시간이 보존되어 있습니다.", 12))
 		_button(box, "연구 시작" if status == "연구 가능" else status, _submit.bind("startResearch", id), status != "연구 가능")
 
-func _cancel_confirm(id: String) -> void:
-	var box: VBoxContainer = lobby.open_modal("연구 취소")
-	lobby.modal.set_meta("max_width",340)
-	box.add_child(T.label("%s 연구를 취소할까요?\n룬 비용은 반환되고 진행한 연구 시간은 보존됩니다." % str(TITLES.get(id, id)), 14))
-	_button(box, "계속 연구", lobby.close_modal)
-	_button(box, "연구 취소 확인", _submit.bind("cancelResearch", id))
+func _cancel_confirm(id: String, from_details := false) -> void:
+	var active := _active(id)
+	if active.is_empty() or _remaining(active) == 0:
+		_details(id)
+		return
+	var quote: Dictionary = _growth().research_quote(lobby._p(), id)
+	var box: VBoxContainer = lobby.open_modal("연구를 중단할까요?")
+	lobby.modal.set_meta("max_width",360)
+	box.add_theme_constant_override("separation",12)
+	var subject := HBoxContainer.new()
+	subject.add_theme_constant_override("separation",10)
+	box.add_child(subject)
+	subject.add_child(_icon(id,42))
+	var words := VBoxContainer.new()
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	words.add_theme_constant_override("separation",2)
+	subject.add_child(words)
+	words.add_child(_strong(T.label(str(TITLES.get(id,id)),14)))
+	words.add_child(T.label("Lv.%d → %d" % [int(quote.level),int(active.targetLevel)],12))
+	var summary := _surface(box,"ui/components/row_frame.png",10)
+	var refund := HBoxContainer.new()
+	summary.add_child(refund)
+	var caption := T.label("반환 룬",12)
+	caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	refund.add_child(caption)
+	refund.add_child(_image("ui/hud/icons/rune.png",16))
+	var amount := _inline("+%d" % int(quote.cost),14)
+	amount.add_theme_color_override("font_color",Color("e7c66a"))
+	refund.add_child(amount)
+	summary.add_child(T.label("진행 시간 보존 · 연구 슬롯 1칸 확보",12))
+	box.add_child(T.label("다시 시작하면 이어서 진행합니다.",12))
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation",8)
+	box.add_child(actions)
+	var keep := T.button("계속 연구",func():
+		if from_details: _details(id)
+		else: lobby.close_modal()
+	,"secondary")
+	keep.name = "KeepResearch"
+	var stop := T.button("연구 중단",_confirm_cancel.bind(id,int(active.targetLevel)),"danger")
+	stop.name = "StopResearch"
+	for button in [keep,stop]:
+		button.custom_minimum_size.y = 44
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		actions.add_child(button)
+
+func _confirm_cancel(id: String, target_level := -1) -> void:
+	var before_runes := int(lobby._p().get("runes",0))
+	var before_level := int(lobby._p().get("researchLevels",{}).get(id,0))
+	# The lobby's timer can collect this research while its confirmation stays open.
+	if target_level > 0 and before_level >= target_level:
+		lobby.close_modal(true)
+		lobby.message = "%s 연구가 완료되었습니다." % str(TITLES.get(id,id))
+		lobby.refresh()
+		return
+	var success: bool = lobby.app.apply_growth_command({"kind":"cancelResearch","id":id,"nowMillis":int(Time.get_unix_time_from_system()*1000)})
+	lobby.close_modal(true)
+	if not success:
+		lobby.message = "연구를 중단하지 못했습니다. 연구 상태와 저장 상태를 확인하세요."
+	elif int(lobby._p().get("researchLevels",{}).get(id,0)) > before_level:
+		# A research may finish while its confirmation is open; the domain completes it.
+		lobby.message = "%s 연구가 완료되었습니다." % str(TITLES.get(id,id))
+	else:
+		var refunded := int(lobby._p().get("runes",0))-before_runes
+		lobby.message = "연구 중단 · 룬 +%d 반환 · 진행 시간 보존" % refunded
+	lobby.refresh()
 
 func _instant_confirm(id: String) -> void:
 	var active := _active(id)
