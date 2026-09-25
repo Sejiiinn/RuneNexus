@@ -9,7 +9,7 @@ static func box(fill: Color = Color("091624f0"), edge: Color = Color("334957"), 
 	s.set_corner_radius_all(6)
 	s.set_content_margin_all(inset)
 	return s
-## Lobby callers keep their existing defaults; battle HUD opts into native art.
+## Lobby and battle share native art while retaining their content margins.
 static func create(combat_native := false) -> Theme:
 	var t := Theme.new()
 	t.default_font = Assets.create().default_font
@@ -22,6 +22,6 @@ static func create(combat_native := false) -> Theme:
 	t.set_constant("separation","VBoxContainer",5)
 	t.set_constant("separation","HBoxContainer",5)
 	preload("res://ui/combat_component_theme.gd").install(t)
-	for state in ["normal","hover","pressed","disabled","focus"]:
+	for state in preload("res://ui/button_skin.gd").STATES:
 		t.set_stylebox(state,"Button",t.get_stylebox(state,"CombatSecondary") if combat_native else Assets.GameButton.appearance("secondary",state))
 	return t

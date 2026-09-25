@@ -1,0 +1,8 @@
+PASS verify_startup_screen.gd
+PASS verify_lobby.gd
+PASS verify_lobby_growth.gd
+PASS verify_lobby_collection.gd
+PASS verify_modal_input.gd
+PASS verify_ui_layout_stability.gd
+PASS verify_battle_hud.gd
+PASS verify_battle_rewards.gd

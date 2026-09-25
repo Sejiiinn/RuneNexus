@@ -269,7 +269,10 @@ func _open_inline(title: String) -> VBoxContainer:
 	title_label.add_theme_font_override("font",AppTheme.font(900))
 	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title_label)
-	action(header,"×",func(): selected = ""; selecting_skill = false; _close_inline(); view.queue_redraw()).size_flags_horizontal = Control.SIZE_SHRINK_END
+	var close := preload("res://ui/close_button.gd").new()
+	close.name = "CloseCoreDetails"
+	close.pressed.connect(func(): selected = ""; selecting_skill = false; _close_inline(); view.queue_redraw())
+	header.add_child(close)
 	inline_body.minimum_size_changed.connect(_layout_inline.call_deferred)
 	_layout_inline.call_deferred()
 	return inline_body

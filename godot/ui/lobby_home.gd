@@ -362,7 +362,16 @@ func _dialog(title: String, _height: float) -> VBoxContainer:
 	close.name = "Close"
 	close.text = "×"
 	close.custom_minimum_size = Vector2(32,32)
-	for state in ["normal", "focus"]: close.add_theme_stylebox_override(state, StyleBoxEmpty.new())
+	for state in ["normal", "disabled"]: close.add_theme_stylebox_override(state, StyleBoxEmpty.new())
+	for state in ["hover", "pressed", "hover_pressed", "focus"]:
+		var highlight := StyleBoxFlat.new()
+		highlight.bg_color = Color("8ee6ff18") if state == "hover" else Color("8ee6ff30")
+		highlight.set_corner_radius_all(4)
+		if state == "focus":
+			highlight.bg_color = Color.TRANSPARENT
+			highlight.border_color = Color("b5f2ff")
+			highlight.set_border_width_all(1)
+		close.add_theme_stylebox_override(state, highlight)
 	close.pressed.connect(close_modal)
 	header.add_child(close)
 	modal_content.minimum_size_changed.connect(_layout_modal)
@@ -452,7 +461,7 @@ func _choices(frame: Control, title: String, description: String, key: String, v
 		radio.custom_minimum_size = Vector2(maxf(74, _font(700).get_string_size(labels[i], HORIZONTAL_ALIGNMENT_LEFT, -1, _font_size(12)).x + 34), maxf(28, _font_size(12) * 1.25 + 8))
 		radio.add_theme_font_override("font", _font(700))
 		radio.add_theme_font_size_override("font_size", _font_size(12))
-		for state in ["normal", "hover", "pressed", "focus"]:
+		for state in ["normal", "hover", "pressed", "hover_pressed", "disabled", "focus"]:
 			var style := StyleBoxEmpty.new()
 			style.content_margin_left = 26
 			radio.add_theme_stylebox_override(state, style)

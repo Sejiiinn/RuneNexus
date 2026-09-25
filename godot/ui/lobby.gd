@@ -485,7 +485,7 @@ func _service(label_text: String, context: Dictionary = {}) -> void:
 	open_service(label_text,context)
 
 func _change(command: Dictionary) -> void:
-	if app.apply_growth_command(command): message = "저장했습니다."
+	if app.apply_growth_command(command): message = ""
 	else: message = "변경하지 못했습니다. 비용·해금 조건 또는 저장 상태를 확인하세요."
 	refresh()
 
@@ -518,7 +518,7 @@ func _settings() -> void:
 	_radio("MSAA", "msaa", [0, 2], ["끄기", "2배"], 2)
 	_radio("그림자 품질", "shadow", [0, 512, 1024, 2048], ["끄기", "낮음", "중간", "높음"], 2048)
 	body.add_child(AppTheme.button("지금 저장", func():
-		message = "저장했습니다." if app.persist_progression() else "저장 실패. 기존 저장을 유지합니다."
+		message = "" if app.persist_progression() else "저장 실패. 기존 저장을 유지합니다."
 		refresh()
 	))
 	body.add_child(AppTheme.button("계정 및 저장", _service.bind("계정 로그인 · 온라인 저장")))
@@ -542,7 +542,7 @@ func _radio(title: String, key: String, values: Array, labels: Array, fallback: 
 			else:
 				Device.apply(app.scene.options)
 				app.scene._apply_options()
-				message = "설정을 저장하고 적용했습니다."
+				message = ""
 			refresh()
 		)
 		flow.add_child(b)

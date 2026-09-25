@@ -172,7 +172,22 @@ func upgrades_tabs(parent: Node) -> void:
 		var b := _button(tabs, "", func(): category = tab; lobby.refresh())
 		b.tooltip_text = tab
 		b.custom_minimum_size = Vector2(64, 33)
-		b.add_theme_stylebox_override("normal", _style("ui/components/segment_selected_cyan.png" if tab == "전투" else "ui/components/segment_selected_gold.png", 0) if tab == category else StyleBoxEmpty.new())
+		var selected_path := "ui/components/segment_selected_cyan.png" if tab == "전투" else "ui/components/segment_selected_gold.png"
+		for state in ["normal", "hover", "pressed", "hover_pressed", "disabled", "focus"]:
+			var style: StyleBox = StyleBoxEmpty.new()
+			if state != "focus" and (tab == category or state in ["hover", "pressed", "hover_pressed"]):
+				style = _style(selected_path, 0)
+				if style is StyleBoxTexture:
+					if state == "hover": style.modulate_color = Color(1.12,1.12,1.12)
+					elif state in ["pressed", "hover_pressed"]: style.modulate_color = Color(0.82,0.9,0.94)
+					elif state == "disabled": style.modulate_color = Color("71817f")
+			if state == "focus":
+				var focus := StyleBoxFlat.new()
+				focus.bg_color = Color.TRANSPARENT
+				focus.border_color = Color("b5f2ff")
+				focus.set_border_width_all(1)
+				style = focus
+			b.add_theme_stylebox_override(state, style)
 		var icon := _image("ui/icons/growth_combat_swords.png" if tab == "전투" else "ui/icons/growth_economy_scales.png", 28)
 		var icon_center := CenterContainer.new()
 		icon_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
