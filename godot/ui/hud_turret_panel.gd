@@ -197,11 +197,6 @@ func _traits(turret: Dictionary,q: Dictionary,tier: int = 0) -> void:
 	var bottom_pad := Control.new(); bottom_pad.name = "TraitBottomPad"
 	bottom_pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bottom_pad.custom_minimum_size.y = 14; box.add_child(bottom_pad)
-	# Wrapping changes the minimum after containers assign the actual width.
-	# Follow those changes so both rows and the outer scroll area can shrink again.
-	box.minimum_size_changed.connect(hud._fit_modal,CONNECT_DEFERRED)
-	box.resized.connect(hud._fit_modal,CONNECT_DEFERRED)
-	hud._fit_modal.call_deferred()
 
 func _fit_trait_row(button: Button,content: MarginContainer,minimum_height: float) -> void:
 	if not is_instance_valid(button) or not is_instance_valid(content) or button.size.x <= 0: return

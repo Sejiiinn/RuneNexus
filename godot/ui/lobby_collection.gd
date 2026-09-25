@@ -327,7 +327,9 @@ func modules() -> void:
 	else:
 		var info := HBoxContainer.new()
 		inventory.add_child(info)
-		info.add_child(_label("보유 %d개" % items.size()))
+		var count_label := _label("보유 %d개" % items.size())
+		count_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		info.add_child(count_label)
 		info.add_child(_button("일괄 분해", _module_service.bind("모듈 일괄 분해",{"turretType":turret,"part":part_filter,"ids":items.map(func(item):return item.id)})))
 		var grid := GridContainer.new()
 		grid.name = "ModuleInventoryGrid"

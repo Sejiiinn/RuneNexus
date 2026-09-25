@@ -21,6 +21,7 @@ var _platform: Object
 var _android_metrics: Object
 var _typed_value: Object
 var _font_sizes: Dictionary = {}
+var _focus_refresh_pending := false
 
 # Android's SP conversion includes its nonlinear large-text curves. This reads
 # the actual device configuration, not a game-only accessibility preference.
@@ -52,10 +53,18 @@ func _font_size(logical: int) -> int:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_IN and is_instance_valid(canvas):
-		var title := str(modal.get_meta("home_dialog_title", "")) if is_instance_valid(modal) else ""
-		_layout()
-		if title == "설정": open_settings()
-		elif title == "이벤트": open_events()
+		# Focus notifications traverse children; rebuilding here mutates a busy tree.
+		if _focus_refresh_pending: return
+		_focus_refresh_pending = true
+		_refresh_after_focus.call_deferred()
+
+func _refresh_after_focus() -> void:
+	_focus_refresh_pending = false
+	if not is_inside_tree() or not is_instance_valid(canvas): return
+	var title := str(modal.get_meta("home_dialog_title", "")) if is_instance_valid(modal) else ""
+	_layout()
+	if title == "설정": open_settings()
+	elif title == "이벤트": open_events()
 
 
 func _ready() -> void:

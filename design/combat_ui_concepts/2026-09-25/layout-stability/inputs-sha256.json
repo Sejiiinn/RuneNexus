@@ -1,0 +1,10 @@
+{
+  "godot/ui/battle_hud.gd": "1cd6834269a69cd486175a89eaa5c10e558f4d45b235eb895a11260b9b9e70db",
+  "godot/ui/hud_turret_panel.gd": "a8702a8886f0bd4672493804c062c0c005fd1714aea9190d68cfbb24cee78a7f",
+  "godot/ui/lobby_home.gd": "412320d40f79221affeb2491b067f383a47ffc436a270c4f4859bf3e847c48f9",
+  "godot/ui/lobby_collection.gd": "e6db8fe196e2c29786792dcbf181c7a03bcec35dfe3dd308f9d4cd7df1459f10",
+  "godot/ui/game_modal_frame.gd": "7c29ee980580d7a619f5c48d96a44148454047d46ad4f51612a31479978dd306",
+  "godot/ui/app_theme.gd": "0eecc5bb58d394c3571cd77e35472721b2f43ae6230dd7b0ffa8a803b29c80fa",
+  "godot/ui/battle_theme.gd": "67df76eadf5f5b7abafb7e94c366e42926ad6b77e3fd73c2a2e95aac10a56233",
+  "godot/verify_ui_layout_stability.gd": "f6b7d3f91c556c5351cefceda0652ba6b10ee406b3ecdaccbe22f8a5897d3b62"
+}

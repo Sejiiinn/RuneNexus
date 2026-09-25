@@ -68,6 +68,8 @@ var modal_scroll: ScrollContainer
 var modal_resume := false
 var modal_panel: PanelContainer
 var modal_bottom_sheet := false
+var _modal_max_width := 410.0
+var _modal_fit_pending := false
 var trait_preview := ""
 var last_selected := Vector2i(-1,-1)
 var total_dps := 0.0
@@ -84,6 +86,7 @@ var menu_panel = preload("res://ui/hud_menu_panel.gd").new(self)
 
 func _ready() -> void:
 	get_viewport().size_changed.connect(func(): _insets_valid = false)
+	get_viewport().size_changed.connect(_queue_modal_fit)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	theme = BattleTheme.create(true)
@@ -413,9 +416,10 @@ func open_modal(title: String,max_width: float = 410,bottom_sheet := false,show_
 			elif event is InputEventScreenTouch and event.pressed: close_modal())
 	else: _clear(modal)
 	modal_bottom_sheet = bottom_sheet
+	_modal_max_width = max_width
 	modal_panel = PanelContainer.new(); modal_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	modal_panel.theme_type_variation = "CombatModal"
-	modal_panel.custom_minimum_size.x = minf(max_width,get_viewport_rect().size.x-(24 if bottom_sheet else 36))
+	modal_panel.custom_minimum_size.x = maxf(1.0,minf(_modal_max_width,get_viewport_rect().size.x-(24 if bottom_sheet else 36)))
 	if bottom_sheet:
 		var column := VBoxContainer.new(); modal.add_child(column); column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var spacer := Control.new(); spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE; spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL; column.add_child(spacer)
@@ -432,17 +436,37 @@ func open_modal(title: String,max_width: float = 410,bottom_sheet := false,show_
 	var separator := HSeparator.new(); separator.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var line := StyleBoxLine.new(); line.color = Color("51879b88"); line.thickness = 1
 	separator.add_theme_stylebox_override("separator",line); modal_body.add_child(separator)
-	_fit_modal.call_deferred()
-	if not get_tree().process_frame.is_connected(_fit_modal): get_tree().process_frame.connect(_fit_modal,CONNECT_ONE_SHOT)
+	modal_body.minimum_size_changed.connect(_queue_modal_fit)
+	modal_body.resized.connect(_queue_modal_fit)
+	_queue_modal_fit()
 	# Container owns position/size; entrance animation must not overwrite layout.
 	modal_panel.modulate.a = 0
-	modal_panel.create_tween().tween_property(modal_panel,"modulate:a",1.0,0.16)
+	_reveal_modal_after_layout(modal_panel)
 	return modal_body
 
+func _queue_modal_fit() -> void:
+	if _modal_fit_pending or not is_instance_valid(modal): return
+	_modal_fit_pending = true
+	_fit_modal.call_deferred()
+
 func _fit_modal() -> void:
+	_modal_fit_pending = false
 	if not is_instance_valid(modal) or not is_instance_valid(modal_scroll): return
+	var width := maxf(1.0,minf(_modal_max_width,get_viewport_rect().size.x-(24 if modal_bottom_sheet else 36)))
+	if not is_equal_approx(modal_panel.custom_minimum_size.x,width): modal_panel.custom_minimum_size.x = width
 	var content_height := modal_body.get_combined_minimum_size().y+8.0
-	modal_scroll.custom_minimum_size.y = minf(content_height,get_viewport_rect().size.y*0.82)
+	var height := minf(content_height,get_viewport_rect().size.y*0.82)
+	if not is_equal_approx(modal_scroll.custom_minimum_size.y,height): modal_scroll.custom_minimum_size.y = height
+
+func _reveal_modal_after_layout(panel: PanelContainer) -> void:
+	# Content is populated by the caller after open_modal returns. Let width and
+	# wrapping settle before the entrance tween exposes the first rendered frame.
+	await get_tree().process_frame
+	if not is_instance_valid(modal) or not is_instance_valid(panel) or panel.is_queued_for_deletion() or panel != modal_panel: return
+	_fit_modal()
+	await get_tree().process_frame
+	if not is_instance_valid(modal) or not is_instance_valid(panel) or panel.is_queued_for_deletion() or panel != modal_panel: return
+	panel.create_tween().tween_property(panel,"modulate:a",1.0,0.16)
 
 func close_modal() -> void:
 	if not is_instance_valid(modal): return

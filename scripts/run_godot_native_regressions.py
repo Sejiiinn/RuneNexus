@@ -40,6 +40,7 @@ SCRIPTS = {
     "verify_ui_confirmations.gd": "PASS ui confirmations:",
     "verify_lobby_core.gd": "PASS lobby core:",
     "verify_lobby_collection.gd": "PASS lobby_collection:",
+    "verify_ui_layout_stability.gd": "PASS UI_LAYOUT_STABILITY",
     "verify_lobby_stages.gd": "PASS stage restoration:",
     "verify_app_selection.gd": "PASS app selection:",
     "verify_app_presentation.gd": "PASS independent presentation:",

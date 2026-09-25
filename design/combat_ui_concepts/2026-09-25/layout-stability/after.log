@@ -1,0 +1,8 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M4
+
+PASS focus settings modal=(360.0, 315.9999)
+PASS focus events modal=(360.0, 163.0)
+PASS lobby repeated refresh, resize, module inventory row
+PASS battle resize and delayed shrink 770.0 -> 110.0
+PASS UI_LAYOUT_STABILITY
