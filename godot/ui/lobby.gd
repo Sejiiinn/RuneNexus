@@ -458,7 +458,11 @@ func _layout_modal() -> void:
 func close_modal(replacing: bool = false) -> bool:
 	if not is_instance_valid(modal): return false
 	if not replacing and app.get("services") != null and (app.services.needs_profile() or app.services.updates.blocked): return true
-	ModalFrame.dismiss(modal)
+	if replacing:
+		modal.hide()
+		modal.queue_free()
+	else:
+		ModalFrame.dismiss(modal)
 	modal = null
 	modal_frame = null
 	return true
