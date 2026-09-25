@@ -445,6 +445,8 @@ func _layout_modal() -> void:
 	var header: Control = modal_frame.get_child(0).get_child(0)
 	var header_height := header.get_combined_minimum_size().y + 8 if header.visible else 0.0
 	var height := minf(maxf(100, modal_body.get_combined_minimum_size().y + 32 + header_height), available.y - 32)
+	if modal.has_meta("height_fraction"):
+		height = minf(available.y * float(modal.get_meta("height_fraction")), available.y - 32)
 	modal_frame.size = Vector2(width, height)
 	modal_position.position = Vector2(inset.x,inset.y) + (available - modal_frame.size) / 2
 	modal_position.size = modal_frame.size

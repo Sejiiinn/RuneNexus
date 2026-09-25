@@ -1,0 +1,25 @@
+{
+  "date": "2026-09-25",
+  "godot": "4.7.2.stable.official.ed1daf0bf",
+  "renderer": "OpenGL Compatibility / Apple M4",
+  "data": "isolated deterministic server fixture, no live account",
+  "viewports": [
+    "440x900",
+    "320x568",
+    "320x568 fonts 2x"
+  ],
+  "checks": 77,
+  "failures": [],
+  "sha256": {
+    "godot/ui/lobby.gd": "70e81834040f5bf637efe640c6fa085080b1fa53b11326ef139f86358584def5",
+    "godot/ui/lobby_services.gd": "de56d2e4b8c5c4a0b9db1f38d17022a5a9e446e9590d84a98dca71cb186a8292",
+    "godot/ui/leaderboard_view.gd": "6ed051ec1e320b26dbc9f493a013ba97016d8c1210e5a938a2a78052cb25de48",
+    "godot/ui/lobby_home.gd": "412320d40f79221affeb2491b067f383a47ffc436a270c4f4859bf3e847c48f9",
+    "godot/ui/app_theme.gd": "0eecc5bb58d394c3571cd77e35472721b2f43ae6230dd7b0ffa8a803b29c80fa",
+    "godot/ui/game_modal_frame.gd": "7c29ee980580d7a619f5c48d96a44148454047d46ad4f51612a31479978dd306",
+    "godot/verify_leaderboard_ui.gd": "02d99ee6cb007ecf4a705e6b87923d25a9c5a2a222c38f048cbf2e920b947c0c",
+    "assets/fonts/NotoSansKR-VF.ttf": "018174e8cdd366aff67c8d366c7dc806a7babbe7f2819fc23b00d59f7b8353d0",
+    "assets/images/lobby_leaderboard_icon.png": "3198ca181dafeaa258a8f9d89402bb4ab6f6eb17d47cabaa02c170d65d5f791f",
+    "build/leaderboard-review-20260925/godot/project.godot": "d762fc6467349b9c6e2a819e8c2840fe2bc9ee86a1cdd518dc2acd3e30396e8f"
+  }
+}

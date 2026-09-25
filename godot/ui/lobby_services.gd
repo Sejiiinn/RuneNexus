@@ -4,6 +4,7 @@ const T = preload("res://ui/app_theme.gd")
 const Frame = preload("res://ui/lobby_frame.gd")
 const GrowthUI = preload("res://ui/lobby_growth.gd")
 const CollectionUI = preload("res://ui/lobby_collection.gd")
+const LeaderboardView = preload("res://ui/leaderboard_view.gd")
 const MODULE_DIAMONDS := {"normal":2,"magic":5,"rare":20,"unique":50}
 var lobby
 var page := ""
@@ -43,6 +44,17 @@ func _render() -> void:
 	lobby.modal.set_meta("service_page",page)
 	lobby.modal.set_meta("max_width",480 if page == "우편함" else 420)
 	body.name = "ServiceBody"
+	if page == "리더보드":
+		lobby.modal.set_meta("max_width", 680)
+		lobby.modal.set_meta("height_fraction", 0.84)
+		var column: VBoxContainer = lobby.modal_frame.get_child(0)
+		lobby.modal_scroll.remove_child(body)
+		lobby.modal_scroll.queue_free()
+		column.add_child(body)
+		body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		LeaderboardView.build(lobby, body, data, pending, notice, _fetch, open.bind("계정 및 저장"), _connected())
+		lobby._layout_modal.call_deferred()
+		return
 	if page == "업데이트":
 		_update(body)
 	elif page in ["계정 및 저장", "계정 로그인 · 온라인 저장"]:
@@ -51,7 +63,6 @@ func _render() -> void:
 		body.add_child(T.label("계정을 연결하면 이 기능을 사용할 수 있습니다.",12))
 		_button(body,"계정 연결",open.bind("계정 및 저장"))
 	elif page == "우편함": _mailbox(body)
-	elif page == "리더보드": _leaderboard(body)
 	else: _command(body)
 	if pending: body.add_child(T.label("처리 중…",12))
 	if not notice.is_empty(): body.add_child(T.label(notice,12))
@@ -212,15 +223,6 @@ func _mark_read(id: String) -> void:
 	else:
 		_show_result(result)
 		_render()
-
-func _leaderboard(body: VBoxContainer) -> void:
-	body.add_child(T.label("전체 순위 · TOP 100",14))
-	_button(body,"새로고침",_fetch,"secondary")
-	var mine: Variant = data.get("myEntry")
-	if mine is Dictionary: body.add_child(T.label("내 순위: %d위 · %s" % [int(mine.get("rank",0)),str(mine.get("displayName",""))],14))
-	for entry in data.get("entries",[]):
-		body.add_child(T.label("%d위  %s   스테이지 %d · %d라운드" % [int(entry.get("rank",0)),str(entry.get("displayName","")),int(entry.get("stageNumber",0)),int(entry.get("completedRounds",0))],12))
-	if data.get("entries",[]).is_empty() and not pending: body.add_child(T.label("등록된 순위가 없습니다.",12))
 
 func _command(body: VBoxContainer) -> void:
 	var actions := {"모듈 뽑기":"draw_modules","모듈 분해":"disassemble_modules","모듈 일괄 분해":"disassemble_modules","연구 즉시 완료":"complete_research","연구 슬롯 구매":"unlock_research_slot_two"}
