@@ -739,7 +739,7 @@ func _traits(t: Dictionary, a: Dictionary, e: Dictionary) -> float:
 func _hit(t: Dictionary, a: Dictionary, e: Dictionary, scale: float, kind: String, direct: bool) -> void:
 	e.hitFlashTimer = 0.1
 	var source := {"x": int(t.state.get("x", 0)), "y": int(t.state.get("y", 0))}
-	var burn: Dictionary = Enemy.burn_transfer(e, source)
+	var burn: Dictionary = Enemy.burn_transfer(e, source) if direct and a.appliesIgnitionBurst else {}
 	var burst: float = float(burn.get("damagePerSecond", 0)) * 2.0 * float(a.damageOverTimeDurationMultiplier) * 0.3 if direct and a.appliesIgnitionBurst else 0.0
 	var trait_multiplier := _traits(t, a, e) if direct else 1.0
 	var family: String = a.definition.damageFamily

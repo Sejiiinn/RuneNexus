@@ -79,7 +79,8 @@ func _ready() -> void:
 		smoke.visible = false
 		add_child(smoke)
 		shots.append({"smoke": smoke, "material": material, "start": -INF,
-			"pose": Transform3D.IDENTITY, "seed": 0.0})
+			"pose": Transform3D.IDENTITY, "seed": 0.0,
+			"spark_velocities": [], "spark_bases": [], "sparks_visible": false})
 	sparks.multimesh = MultiMesh.new()
 	sparks.multimesh.transform_format = MultiMesh.TRANSFORM_3D
 	sparks.multimesh.use_colors = true
@@ -103,6 +104,7 @@ func reset() -> void:
 		flash.visible = false
 	for shot in shots:
 		shot["start"] = -INF
+		shot["sparks_visible"] = false
 		shot["smoke"].visible = false
 	if sparks.multimesh:
 		for index in range(sparks.multimesh.instance_count):
@@ -121,6 +123,18 @@ func fire(muzzle: Node3D, time: float, sequence: int) -> void:
 	shot["start"] = time
 	shot["pose"] = pose
 	shot["seed"] = float(sequence % 997) * 2.39996
+	# 발사 자세와 난수는 슬롯을 재사용할 때만 바뀐다.
+	var velocities: Array = shot["spark_velocities"]
+	var bases: Array = shot["spark_bases"]
+	velocities.clear()
+	bases.clear()
+	for index in range(SPARKS_PER_SHOT):
+		var seed := float(shot["seed"]) + float(index) * 2.39996
+		var velocity := pose.basis * Vector3(sin(seed) * 0.65, cos(seed * 1.3) * 0.5, 2.2 + sin(seed * 0.7) * 0.6)
+		var direction := velocity.normalized()
+		var right := direction.cross(Vector3.UP).normalized()
+		velocities.append(velocity)
+		bases.append(Basis(right, direction.cross(right), direction))
 	flash_materials[active_port].set_shader_parameter("u_seed", shot["seed"])
 	shot["material"].set_shader_parameter("u_seed", shot["seed"])
 	next_slot = (next_slot + 1) % SHOT_CAPACITY
@@ -149,19 +163,21 @@ func update_effect(muzzle: Node3D, time: float, camera: Camera3D) -> void:
 			smoke.global_transform = Transform3D(pose.basis.scaled_local(Vector3(width, width, 0.42 + progress * 0.28)),
 				pose.origin + pose.basis.z * (0.17 + progress * 0.20) + Vector3.UP * progress * 0.17)
 			shot["material"].set_shader_parameter("u_progress", progress)
-		for index in range(SPARKS_PER_SHOT):
-			var transform := Transform3D(Basis.from_scale(Vector3.ZERO), Vector3.ZERO)
-			if elapsed >= 0.0 and elapsed < SPARK_SECONDS:
-				var seed := float(shot["seed"]) + float(index) * 2.39996
-				var velocity := pose.basis * Vector3(sin(seed) * 0.65, cos(seed * 1.3) * 0.5, 2.2 + sin(seed * 0.7) * 0.6)
-				var direction := velocity.normalized()
-				var right := direction.cross(Vector3.UP).normalized()
-				var basis := Basis(right, direction.cross(right), direction)
-				var fade := 1.0 - elapsed / SPARK_SECONDS
-				transform = Transform3D(basis.scaled_local(Vector3(0.004, 0.004, 0.032 * fade)),
+		var sparks_active := elapsed >= 0.0 and elapsed < SPARK_SECONDS
+		if sparks_active:
+			var fade := 1.0 - elapsed / SPARK_SECONDS
+			for index in range(SPARKS_PER_SHOT):
+				var velocity: Vector3 = shot["spark_velocities"][index]
+				var basis: Basis = shot["spark_bases"][index]
+				var transform := Transform3D(basis.scaled_local(Vector3(0.004, 0.004, 0.032 * fade)),
 					pose.origin + velocity * elapsed + Vector3.DOWN * 1.6 * elapsed * elapsed)
 				sparks.multimesh.set_instance_color(slot * SPARKS_PER_SHOT + index, Color(1.0, 0.66, 0.20, fade))
-			sparks.multimesh.set_instance_transform(slot * SPARKS_PER_SHOT + index, transform)
+				sparks.multimesh.set_instance_transform(slot * SPARKS_PER_SHOT + index, transform)
+		elif shot["sparks_visible"]:
+			# 종료·시간 되감기로 숨겨질 때 한 번만 기록한다.
+			for index in range(SPARKS_PER_SHOT):
+				sparks.multimesh.set_instance_transform(slot * SPARKS_PER_SHOT + index, Transform3D(Basis.from_scale(Vector3.ZERO), Vector3.ZERO))
+		shot["sparks_visible"] = sparks_active
 	update_camera(camera)
 
 
