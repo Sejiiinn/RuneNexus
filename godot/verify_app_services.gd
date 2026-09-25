@@ -420,7 +420,7 @@ func _ui_checks() -> void:
 	ui._render()
 	check("희귀 · 기관총 · 코어" in _labels(lobby.modal) and not "확인" in _labels(lobby.modal),"Draw success shows localized result without duplicate purchase button")
 	ui.open("연구 슬롯 구매")
-	check(_labels(lobby.modal).any(func(text):return text.begins_with("필요 다이아 ") and "보유 44" in text),"Research service displays actual cost and combined balance")
+	check("사용 다이아" in _labels(lobby.modal) and _labels(lobby.modal).any(func(text):return text.begins_with("보유 44")),"Research service displays actual cost and combined balance")
 	lobby.queue_free()
 	await process_frame
 

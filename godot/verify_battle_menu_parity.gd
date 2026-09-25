@@ -31,7 +31,7 @@ func run() -> void:
 	hud.menu_panel._stage_menu()
 	assert(hud.modal.color.is_equal_approx(Color("02070dd9")))
 	var end := button(hud.modal_body,"스테이지 종료"); assert(end.disabled); assert(end.size_flags_stretch_ratio == 5)
-	assert(button(hud.modal_body,"메인화면으로 이동").size_flags_stretch_ratio == 6)
+	assert(button(hud.modal_body,"저장하고 나가기").size_flags_stretch_ratio == 6)
 	assert(app.scene._native_combat.session.paused)
 	hud.close_modal(); assert(not app.scene._native_combat.session.paused)
 	app.run_domain.state.completedRounds = 2
@@ -43,8 +43,8 @@ func run() -> void:
 	assert(button(hud.modal_body,"종료").theme_type_variation == "CombatDanger")
 	button(hud.modal_body,"계속 진행").pressed.emit(); assert(not hud.modal_active()); assert(not app.scene._native_combat.session.paused)
 	hud.menu_panel._stage_menu(); app.allow_destination = false
-	button(hud.modal_body,"메인화면으로 이동").pressed.emit(); assert(hud.modal_active()); assert(app.scene._native_combat.session.paused)
-	app.allow_destination = true; button(hud.modal_body,"메인화면으로 이동").pressed.emit(); assert(not hud.modal_active()); assert(app.destination_count == 1)
+	button(hud.modal_body,"저장하고 나가기").pressed.emit(); assert(hud.modal_active()); assert(app.scene._native_combat.session.paused)
+	app.allow_destination = true; button(hud.modal_body,"저장하고 나가기").pressed.emit(); assert(not hud.modal_active()); assert(app.destination_count == 1)
 	assert(app.scene._native_combat.session.paused,"Leaving battle must not accidentally resume")
 	hud.menu_panel._end_stage_confirm(); button(hud.modal_body,"종료").pressed.emit(); assert(app.abandon_count == 1); assert(not hud.modal_active())
 	app.run_domain.state.completedRounds = 0

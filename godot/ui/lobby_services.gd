@@ -1,6 +1,10 @@
 extends RefCounted
 ## Account-bound services keep requests alive when a modal is dismissed.
 const T = preload("res://ui/app_theme.gd")
+const Frame = preload("res://ui/lobby_frame.gd")
+const GrowthUI = preload("res://ui/lobby_growth.gd")
+const CollectionUI = preload("res://ui/lobby_collection.gd")
+const MODULE_DIAMONDS := {"normal":2,"magic":5,"rare":20,"unique":50}
 var lobby
 var page := ""
 var context := {}
@@ -9,6 +13,7 @@ var data := {}
 var pending := false
 var view_epoch := 0
 var nickname_draft := ""
+var module_confirmation: Array = []
 
 func _services(): return lobby.app.get("services")
 
@@ -17,6 +22,7 @@ func open(title: String, values: Dictionary = {}) -> void:
 	context = values.duplicate(true)
 	notice = ""
 	data = {}
+	module_confirmation = []
 	view_epoch += 1
 	pending = false
 	_render()
@@ -221,63 +227,247 @@ func _command(body: VBoxContainer) -> void:
 	if not actions.has(page):
 		body.add_child(T.label("계정 메뉴에서 이용할 기능을 선택해 주세요.",12))
 		return
-	var values := context.duplicate(true)
 	if data.has("economy"):
-		body.add_child(T.label("서버에 반영했습니다",16))
+		body.add_child(T.label({"모듈 뽑기":"모듈을 획득했습니다.","모듈 분해":"모듈을 분해했습니다.","모듈 일괄 분해":"모듈을 분해했습니다.","연구 즉시 완료":"연구를 즉시 완료했습니다.","연구 슬롯 구매":"연구 슬롯을 해금했습니다."}.get(page,"완료했습니다."),16))
 		if data.has("drawnModules"):
 			for item in data.drawnModules:
-				body.add_child(T.label(str(lobby.collection.GRADES.get(item.get("grade",""),item.get("grade","")))+" · "+str(lobby.NAMES.get(item.get("turretType",""),item.get("turretType","")))+" · "+str(lobby.collection.PARTS.get(item.get("part",""),item.get("part",""))),12))
+				body.add_child(T.label(str(CollectionUI.GRADES.get(item.get("grade",""),item.get("grade","")))+" · "+str(lobby.NAMES.get(item.get("turretType",""),item.get("turretType","")))+" · "+str(CollectionUI.PARTS.get(item.get("part",""),item.get("part",""))),12))
 		if int(data.get("grantedDiamonds",0)) > 0: body.add_child(T.label("다이아 +%d" % int(data.grantedDiamonds),14))
 		if int(data.get("grantedModuleTickets",0)) > 0: body.add_child(T.label("모듈권 +%d" % int(data.grantedModuleTickets),14))
 		_button(body,"닫기",lobby.close_modal,"secondary")
 		return
-	var affordable := true
+	if page == "연구 즉시 완료":
+		_research_confirmation(body)
+		return
+	if page == "연구 슬롯 구매":
+		_slot_confirmation(body)
+		return
+	if page in ["모듈 분해","모듈 일괄 분해"]:
+		_disassembly_confirmation(body)
+		return
+	var values := context.duplicate(true)
 	if page == "모듈 뽑기":
 		var count := int(values.get("count",1))
 		var tickets := int(lobby._p().get("turretModules",{}).get("tickets",0))
 		var diamonds := maxi(0,count-tickets)*40
 		body.add_child(T.label("모듈 %d개를 획득합니다. 모듈권 %d장%s" % [count,mini(tickets,count)," · 다이아 %d개" % diamonds if diamonds > 0 else ""],14))
 		values.buyMissingTicketsWithDiamonds = diamonds > 0
-		affordable = lobby.diamonds() >= diamonds
-	elif page in ["모듈 분해","모듈 일괄 분해"]:
-		if values.has("id"): values.ids = [values.id]
-		var equipped: Array = lobby._p().get("turretModules",{}).get("items",[]).filter(func(item): return item.get("equipped",false)).map(func(item): return item.id)
-		values.ids = values.get("ids",[]).filter(func(id):return not id in equipped)
-		var refund := 0
-		for item in lobby._p().get("turretModules",{}).get("items",[]):
-			if item.id in values.ids: refund += int({"normal":2,"magic":5,"rare":20,"unique":50}.get(item.get("grade","normal"),0))
-		body.add_child(T.label("장착 중인 모듈을 제외한 %d개를 분해합니다. 분해한 모듈은 복구할 수 없습니다." % values.ids.size(),14))
-		body.add_child(T.label("획득 다이아 %d개" % refund,14))
-		affordable = not values.ids.is_empty()
-	else:
-		var cost := 0
-		if page == "연구 슬롯 구매":
-			cost = int(lobby.app.run_domain.growth.data.constants.researchSlotTwoUnlockCost)
-			affordable = not lobby._p().get("researchSlotTwoUnlocked",false)
-		else:
-			var active: Array = lobby._p().get("activeResearches",[]).filter(func(item): return item.type == values.get("id"))
-			affordable = not active.is_empty()
-			if not active.is_empty(): cost = ceili(maxf(0,float(active[0].startedAtMillis)+float(active[0].durationMillis)-Time.get_unix_time_from_system()*1000.0)/60000.0)
-		var diamonds: int = lobby.diamonds()
-		body.add_child(T.label("필요 다이아 %d · 보유 %d · 남은 다이아 %d" % [cost,diamonds,maxi(0,diamonds-cost)],14))
-		affordable = affordable and diamonds >= cost
-	if data.has("drawnModules"):
-		body.add_child(T.label("획득 결과",16))
-		for item in data.drawnModules: body.add_child(T.label(str(item.get("grade",""))+" · "+str(item.get("turretType",""))+" · "+str(item.get("part","")),12))
-	else:
 		var confirm := _button(body,"확인",_perform.bind(actions[page],values))
-		confirm.disabled = confirm.disabled or not affordable
+		confirm.disabled = confirm.disabled or lobby.diamonds() < diamonds
+
+func _framed_row(parent: Node) -> HBoxContainer:
+	var frame := PanelContainer.new()
+	frame.add_theme_stylebox_override("panel",Frame.new("ui/components/row_frame.png",8))
+	parent.add_child(frame)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation",8)
+	frame.add_child(row)
+	return row
+
+func _image(path: String, extent: int) -> TextureRect:
+	var icon := TextureRect.new()
+	icon.texture = T.texture(path)
+	icon.custom_minimum_size = Vector2(extent,extent)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return icon
+
+func _diamond_amount(parent: Node, value: String, pixels := 17) -> void:
+	var row := HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_SHRINK_END
+	row.add_theme_constant_override("separation",4)
+	parent.add_child(row)
+	var icon := _image("res://assets/ui/diamond_currency.png",18 if pixels >= 17 else 13)
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(icon)
+	var amount := T.label(value,pixels)
+	amount.name = "DiamondAmount"
+	amount.autowrap_mode = TextServer.AUTOWRAP_OFF
+	amount.add_theme_color_override("font_color",Color("8ee6ff"))
+	row.add_child(amount)
+
+func _balance(body: VBoxContainer, cost: int) -> void:
+	var diamonds: int = lobby.diamonds()
+	var row := _framed_row(body)
+	var label := T.label("사용 다이아",13)
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(label)
+	_diamond_amount(row,str(cost))
+	body.add_child(T.label("보유 %d  →  사용 후 %d" % [diamonds,diamonds-cost] if diamonds >= cost else "보유 %d · %d 부족" % [diamonds,cost-diamonds],12))
+
+func _confirm_actions(body: VBoxContainer, label: String, callback: Callable, enabled: bool, name: String, role := "primary") -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation",8)
+	body.add_child(row)
+	var cancel := _button(row,"취소",lobby.close_modal,"secondary")
+	cancel.name = "ServiceCancel"
+	var confirm := _button(row,label,callback,role)
+	confirm.name = name
+	if name in ["CompleteResearchConfirm","UnlockResearchSlotConfirm"]:
+		confirm.icon = T.texture("res://assets/ui/diamond_currency.png")
+		confirm.expand_icon = true
+		confirm.icon_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		confirm.add_theme_constant_override("icon_max_width",16)
+	for button in [cancel,confirm]:
+		button.custom_minimum_size.y = 44
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	confirm.disabled = confirm.disabled or not enabled
+
+func _research_state(id: String) -> Dictionary:
+	for active in lobby._p().get("activeResearches",[]):
+		if str(active.get("type","")) == id: return active
+	return {}
+
+func _research_cost(active: Dictionary) -> int:
+	return ceili(maxf(0,float(active.get("startedAtMillis",0))+float(active.get("durationMillis",0))-Time.get_unix_time_from_system()*1000.0)/60000.0)
+
+func _research_confirmation(body: VBoxContainer) -> void:
+	var id := str(context.get("id",""))
+	var active := _research_state(id)
+	if active.is_empty() or _research_cost(active) <= 0:
+		body.add_child(T.label("진행 중인 연구가 없습니다. 완료 상태를 확인해 주세요.",13))
+		_confirm_actions(body,"즉시 완료",Callable(),false,"CompleteResearchConfirm")
+		return
+	var heading := _framed_row(body)
+	heading.add_child(_image(str(GrowthUI.ICONS.get(id,"research/"+id.to_snake_case()+".png")),40))
+	var detail := VBoxContainer.new()
+	detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	heading.add_child(detail)
+	detail.add_child(T.label(str(GrowthUI.TITLES.get(id,id)),15))
+	detail.add_child(T.label("Lv.%d  →  Lv.%d" % [int(active.get("targetLevel",1))-1,int(active.get("targetLevel",1))],12))
+	var cost := _research_cost(active)
+	_balance(body,cost)
+	if lobby.diamonds() < cost: body.add_child(T.label("다이아가 부족합니다.",12))
+	_confirm_actions(body,"즉시 완료 · %d" % cost,_perform.bind("complete_research",{"id":id,"quoted_cost":cost,"target_level":int(active.get("targetLevel",0))}),lobby.diamonds()>=cost,"CompleteResearchConfirm")
+
+func _slot_confirmation(body: VBoxContainer) -> void:
+	if lobby._p().get("researchSlotTwoUnlocked",false):
+		body.add_child(T.label("두 번째 연구 슬롯이 이미 열려 있습니다.",13))
+		_confirm_actions(body,"슬롯 해금",Callable(),false,"UnlockResearchSlotConfirm")
+		return
+	var row := _framed_row(body)
+	var detail := VBoxContainer.new()
+	detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(detail)
+	detail.add_child(T.label("연구 슬롯 1  →  2",15))
+	detail.add_child(T.label("연구 2개를 동시에 진행할 수 있습니다.",12))
+	var cost := int(lobby.app.run_domain.growth.data.constants.researchSlotTwoUnlockCost)
+	_balance(body,cost)
+	if lobby.diamonds() < cost: body.add_child(T.label("다이아가 부족합니다.",12))
+	_confirm_actions(body,"슬롯 해금 · %d" % cost,_perform.bind("unlock_research_slot_two",{"quoted_cost":cost}),lobby.diamonds()>=cost,"UnlockResearchSlotConfirm")
+
+func _module_plan() -> Dictionary:
+	var requested: Array = [context.id] if context.has("id") else context.get("ids",[]).duplicate()
+	var seen := {}
+	var eligible: Array = []
+	var signature: Array = []
+	var excluded := 0
+	var total := 0
+	var counts := {"normal":0,"magic":0,"rare":0,"unique":0}
+	for raw_id in requested:
+		var id := str(raw_id)
+		if seen.has(id): continue
+		seen[id] = true
+		var matched: Dictionary = {}
+		for item in lobby._p().get("turretModules",{}).get("items",[]):
+			if str(item.get("id","")) == id: matched = item; break
+		if matched.is_empty():
+			signature.append([id,"missing"])
+			excluded += 1
+			continue
+		var grade := str(matched.get("grade","normal"))
+		signature.append([id,grade,str(matched.get("turretType","")),str(matched.get("part","")),bool(matched.get("equipped",false))])
+		if matched.get("equipped",false): excluded += 1; continue
+		eligible.append(matched)
+		counts[grade] = int(counts.get(grade,0))+1
+		total += int(MODULE_DIAMONDS.get(grade,0))
+	return {"items":eligible,"signature":signature,"excluded":excluded,"counts":counts,"diamonds":total}
+
+func _disassembly_confirmation(body: VBoxContainer) -> void:
+	var plan := _module_plan()
+	module_confirmation = plan.signature.duplicate(true)
+	var count: int = plan.items.size()
+	body.add_child(T.label("장착 중인 모듈은 제외됩니다. 분해한 모듈은 복구할 수 없습니다.",12))
+	if int(plan.excluded) > 0: body.add_child(T.label("장착 중이거나 없는 대상 %d개 제외" % int(plan.excluded),11))
+	var summary := _framed_row(body)
+	var counts: Array = []
+	for grade in ["normal","magic","rare","unique"]:
+		if int(plan.counts[grade]) > 0: counts.append("%s %d" % [CollectionUI.GRADES[grade],int(plan.counts[grade])])
+	var summary_text := T.label(" · ".join(counts) if not counts.is_empty() else "분해할 모듈이 없습니다.",12)
+	summary_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	summary.add_child(summary_text)
+	if count > 0:
+		var preview := ScrollContainer.new()
+		preview.name = "ModuleDisassemblyPreview"
+		preview.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		preview.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		preview.custom_minimum_size.y = minf(180.0,maxf(54.0,float(count)*54.0))
+		body.add_child(preview)
+		var items := VBoxContainer.new()
+		items.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		items.add_theme_constant_override("separation",5)
+		preview.add_child(items)
+		for item in plan.items:
+			var row := _framed_row(items)
+			row.get_parent().name = "ModulePreview_"+str(item.id)
+			var glyph := CollectionUI.PartGlyph.new()
+			glyph.name = "ModulePartGlyph"
+			glyph.part = str(item.get("part","core"))
+			glyph.tint = CollectionUI.COLORS.get(item.get("grade","normal"),Color.WHITE)
+			glyph.custom_minimum_size = Vector2(28,28)
+			glyph.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			row.add_child(glyph)
+			var names := VBoxContainer.new()
+			names.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			row.add_child(names)
+			var grade := str(item.get("grade","normal"))
+			var key := str(item.get("turretType",""))+"_"+str(item.get("part",""))
+			names.add_child(T.label("%s · %s" % [CollectionUI.GRADES.get(grade,grade),CollectionUI.MODULE_NAMES.get(key,"모듈")],12))
+			names.add_child(T.label("%s · %s" % [lobby.NAMES.get(item.get("turretType",""),item.get("turretType","")),CollectionUI.PARTS.get(item.get("part",""),item.get("part",""))],10))
+			_diamond_amount(row,str(int(MODULE_DIAMONDS.get(grade,0))),12)
+	var reward := _framed_row(body)
+	var reward_title := T.label("획득 다이아",13)
+	reward_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	reward.add_child(reward_title)
+	_diamond_amount(reward,"+%d" % int(plan.diamonds))
+	_confirm_actions(body,"모듈 %d개 분해" % count,_perform.bind("disassemble_modules",{"ids":plan.items.map(func(item): return item.id)}),count>0,"DisassembleModulesConfirm","danger")
 
 func _perform(action: String, values: Dictionary) -> void:
+	if pending or _services() == null or _services().busy: return
+	var request := values.duplicate(true)
+	if action == "disassemble_modules":
+		var current := _module_plan()
+		if current.signature != module_confirmation or current.items.is_empty():
+			notice = "분해 대상이 변경되었습니다. 새 목록을 확인해 주세요."
+			_render()
+			return
+		request = {"ids":current.items.map(func(item): return item.id)}
+	elif action == "complete_research":
+		var active := _research_state(str(values.get("id","")))
+		var cost := _research_cost(active) if not active.is_empty() else 0
+		if cost <= 0 or int(active.get("targetLevel",0)) != int(values.get("target_level",-1)) or cost != int(values.get("quoted_cost",-1)) or lobby.diamonds() < cost:
+			notice = "연구 상태나 비용이 변경되었습니다. 다시 확인해 주세요."
+			_render()
+			return
+		request = {"id":values.id}
+	elif action == "unlock_research_slot_two":
+		var cost := int(lobby.app.run_domain.growth.data.constants.researchSlotTwoUnlockCost)
+		if lobby._p().get("researchSlotTwoUnlocked",false) or cost != int(values.get("quoted_cost",-1)) or lobby.diamonds() < cost:
+			notice = "슬롯 상태나 비용이 변경되었습니다. 다시 확인해 주세요."
+			_render()
+			return
+		request = {}
 	pending = true
 	var captured := view_epoch
 	_render()
-	var result: Dictionary = await _services().perform(action,values)
+	var result: Dictionary = await _services().perform(action,request)
 	if not _active_view(captured): return
 	pending = false
 	_show_result(result)
 	if result.get("ok",false):
 		data = result.get("body",{})
+		if action in ["draw_modules","disassemble_modules","complete_research","unlock_research_slot_two"]: notice = ""
 		if page == "우편함":
 			_fetch()
 			return

@@ -84,7 +84,7 @@ func verify() -> void:
 	assert(_texts(host.modal).contains("즉시 완료 · 다이아 1"),"Open detail recomputes minute-boundary cost")
 	assert(_texts(host.modal)!=clock_before,"Open detail updates remaining time")
 	ui._instant_confirm("researchEfficiency")
-	assert(host.service.is_empty(),"Instant completion requires confirmation")
+	assert(host.service == "연구 즉시 완료","Instant completion opens the single service confirmation")
 	host.close_modal()
 	ui._submit("cancelResearch","researchEfficiency")
 	host.clear()

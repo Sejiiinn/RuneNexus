@@ -15,7 +15,8 @@ func _stage_menu() -> void:
 	var end = _action(actions,"스테이지 종료",_end_stage_confirm,"danger")
 	end.size_flags_stretch_ratio = 5
 	end.disabled = not _has_stage_progress() or hud.app.run_domain.state.phase in ["success","failure"]
-	_action(actions,"메인화면으로 이동",_save_to_stage,"primary").size_flags_stretch_ratio = 6
+	_action(actions,"저장하고 나가기",_save_to_stage,"primary").size_flags_stretch_ratio = 6
+	hud._label(box,"진행 상황을 저장하고 스테이지 선택으로 돌아갑니다.",12)
 
 func _has_stage_progress() -> bool:
 	var state: Dictionary = hud.app.run_domain.state
@@ -68,7 +69,7 @@ func _action(parent: Node,value: String,callback: Callable,variant: String) -> B
 	hud.Components.apply(button,variant)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	parent.add_child(button)
-	var glyph: int = {"스테이지 종료":0xf07b,"종료":0xf07b,"메인화면으로 이동":0xf107,"계속 진행":0xe092}.get(value,0)
+	var glyph: int = {"스테이지 종료":0xf07b,"종료":0xf07b,"저장하고 나가기":0xf107,"계속 진행":0xe092}.get(value,0)
 	if glyph != 0:
 		var content = HBoxContainer.new(); content.mouse_filter = Control.MOUSE_FILTER_IGNORE; content.alignment = BoxContainer.ALIGNMENT_CENTER; button.add_child(content); content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		hud._material_icon(content,glyph,17)

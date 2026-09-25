@@ -512,20 +512,7 @@ func _confirm_cancel(id: String, target_level := -1) -> void:
 func _instant_confirm(id: String) -> void:
 	var active := _active(id)
 	if active.is_empty(): return
-	var cost := ceili(float(_remaining(active))/60000)
-	var box: VBoxContainer = lobby.open_modal("연구 즉시 완료")
-	lobby.modal.set_meta("max_width",340)
-	box.add_child(T.label("%s 연구를 즉시 완료할까요?" % TITLES.get(id,id),14))
-	box.add_child(T.label("필요 다이아 %d · 보유 %d · 남은 다이아 %d" % [cost,lobby.diamonds(),maxi(0,lobby.diamonds()-cost)],12))
-	_button(box,"취소",lobby.close_modal)
-	_button(box,"즉시 완료 · 다이아 %d" % cost,func(): lobby.close_modal(); lobby._service("연구 즉시 완료",{"id":id}),lobby.diamonds()<cost)
+	lobby._service("연구 즉시 완료",{"id":id})
 
 func _slot_confirm() -> void:
-	var cost := int(_growth().data.constants.researchSlotTwoUnlockCost)
-	var diamonds: int = lobby.diamonds()
-	var box: VBoxContainer = lobby.open_modal("두 번째 연구 슬롯 해금")
-	lobby.modal.set_meta("max_width",350)
-	box.add_child(T.label("다이아 %d개를 사용해 두 번째 연구 슬롯을 해금할까요?" % cost,14))
-	box.add_child(T.label("보유 다이아 %d\n사용 다이아 %d\n남은 다이아 %d" % [diamonds,cost,diamonds-cost],12))
-	_button(box,"취소",lobby.close_modal)
-	_button(box,"해금",func(): lobby.close_modal(); lobby._service("연구 슬롯 구매",{}),diamonds<cost)
+	lobby._service("연구 슬롯 구매",{})

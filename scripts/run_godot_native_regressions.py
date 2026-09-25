@@ -35,6 +35,7 @@ SCRIPTS = {
     "verify_lobby.gd": "LOBBY_SMOKE_OK",
     "verify_lobby_growth.gd": "PASS growth pages:",
     "verify_research_stop.gd": "PASS research stop:",
+    "verify_ui_confirmations.gd": "PASS ui confirmations:",
     "verify_lobby_core.gd": "PASS lobby core:",
     "verify_lobby_collection.gd": "PASS lobby_collection:",
     "verify_lobby_stages.gd": "PASS stage restoration:",
