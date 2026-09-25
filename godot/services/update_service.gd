@@ -15,11 +15,40 @@ var phase := "checking"
 var error_message := ""
 var transfer := ""
 var install_message := ""
+var transfer_stage := ""
+var received_bytes := 0
+var total_bytes := 0
+var _download_operation := ""
 
 func setup(native_platform, url: String) -> void:
+	if platform != null and platform.has_signal("update_progress") and platform.is_connected("update_progress",_on_update_progress):
+		platform.disconnect("update_progress",_on_update_progress)
 	platform = native_platform
+	if platform != null and platform.has_signal("update_progress"):
+		platform.connect("update_progress",_on_update_progress)
 	manifest_url = url
 	blocked = platform != null and not url.is_empty()
+
+func _begin_download(operation: String, size_bytes: int) -> void:
+	_download_operation = operation
+	transfer_stage = "download"
+	received_bytes = 0
+	total_bytes = size_bytes
+	changed.emit()
+
+func _on_update_progress(operation: String, payload: String) -> void:
+	if not busy or phase != "download" or operation != _download_operation: return
+	var value: Variant = Json.parse(payload)
+	if not value is Dictionary: return
+	var received: Variant = value.get("receivedBytes")
+	var total: Variant = value.get("totalBytes")
+	var stage: Variant = value.get("stage")
+	if not received is int or not total is int or total != total_bytes or received < received_bytes or received > total or received < 0: return
+	if stage not in ["download","verify","apply"]: return
+	if received_bytes == received and transfer_stage == stage: return
+	received_bytes = received
+	transfer_stage = stage
+	changed.emit()
 
 func require_update() -> void:
 	server_required = true
@@ -57,6 +86,10 @@ func check() -> Dictionary:
 	busy = true
 	blocked = true
 	phase = "checking"
+	_download_operation = ""
+	transfer_stage = ""
+	received_bytes = 0
+	total_bytes = 0
 	error_message = ""
 	message = "업데이트 정보를 확인하고 있습니다"
 	changed.emit()
@@ -155,18 +188,20 @@ func update() -> Dictionary:
 		transfer = "patch" if not patch.is_empty() else "full"
 		changed.emit()
 		result = {"ok":false}
+		if not patch.is_empty(): _begin_download("downloadPatch",patch.sizeBytes)
 		if not patch.is_empty() and platform.download_patch(patch.url,patch.sha256,patch.sizeBytes,release.versionCode,patch.fromSha256,release.sha256,release.sizeBytes):
 			var reply: Array = await platform.update_completed
 			var parsed: Variant = Json.parse(reply[1])
 			if parsed is Dictionary: result = parsed
 		if not result.get("ok",false):
 			transfer = "full_fallback" if not patch.is_empty() else "full"
-			changed.emit()
+			_begin_download("downloadUpdate",release.sizeBytes)
 			if platform.download_update(release.apkUrl,release.sha256,release.sizeBytes,release.versionCode):
 				var reply: Array = await platform.update_completed
 				var parsed: Variant = Json.parse(reply[1])
 				result = parsed if parsed is Dictionary else {"ok":false}
 		downloaded = result.get("ok",false)
+	_download_operation = ""
 	if downloaded:
 		phase = "install"
 		changed.emit()

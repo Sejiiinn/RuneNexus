@@ -116,8 +116,16 @@ func presentation() -> Dictionary:
 	var status="업데이트 확인 중" if checking else ("필수 업데이트가 있습니다" if required else ("업데이트 확인" if release.is_empty() else "새 버전이 있습니다"))
 	if updates.busy and not checking:
 		status="설치 준비 중" if updates.downloaded else ("변경분을 다운로드하고 새 APK를 복원하는 중" if updates.transfer=="patch" else ("변경분을 적용하지 못해 전체 앱을 다운로드하는 중" if updates.transfer=="full_fallback" else "업데이트를 다운로드하고 확인하는 중"))
+		if not updates.downloaded:
+			match updates.transfer_stage:
+				"download": status="변경분 다운로드 중" if updates.transfer=="patch" else ("전체 앱 다시 다운로드 중" if updates.transfer=="full_fallback" else "업데이트 다운로드 중")
+				"verify": status="다운로드 파일 확인 중"
+				"apply": status="변경분 적용 중"
+	var receiving=updates.busy and updates.phase=="download" and updates.transfer_stage=="download" and updates.total_bytes>0
 	var patch: Dictionary=updates._patch() if not release.is_empty() else {}
 	return {"status":status,"busy":updates.busy or checking,"details":not checking,"required":required,
+		"progress":float(updates.received_bytes)/updates.total_bytes if receiving else -1.0,
+		"progress_text":"%.1f / %.1f MB" % [float(updates.received_bytes)/(1024*1024),float(updates.total_bytes)/(1024*1024)] if receiving else "",
 		"version":"%s · %.1f MB" % [str(release.get("versionName","")),float(release.get("sizeBytes",0))/(1024*1024)] if not release.is_empty() else "",
 		"notes":str(release.get("notes","")),"error":updates.error_message,
 		"message":updates.message if updates.phase=="install" and not updates.busy else "",

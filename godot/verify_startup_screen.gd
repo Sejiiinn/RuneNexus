@@ -9,6 +9,8 @@ var native
 var coordinator
 var state_folder: String
 var capture_folder: String
+var primary_calls:=0
+var continue_calls:=0
 class HeldUpdate extends Update:
  signal finish
  var calls:=0
@@ -56,6 +58,10 @@ func capture(label: String):
  if capture_folder.is_empty():return
  await RenderingServer.frame_post_draw
  root.get_texture().get_image().save_png(capture_folder.path_join(label+".png"))
+func pointer(button: Button, pressed: bool):
+ var event=InputEventMouseButton.new();event.button_index=MOUSE_BUTTON_LEFT;event.pressed=pressed;event.position=button.get_global_rect().get_center()
+ Input.parse_input_event(event)
+ await frames()
 func _run():
  ProjectSettings.set_setting("accessibility/disable_animations",true)
  root.size=Vector2i(440,988)
@@ -67,6 +73,9 @@ func _run():
  screen._elapsed=0.9
  await frames()
  check(is_equal_approx(screen._flow.size.x,screen._track.size.x*0.38),"Indeterminate flow retains original 38 percent moving segment")
+ var flow_start=screen._flow.position.x
+ await frames(6)
+ check(screen._flow.position.x!=flow_start,"Indeterminate flow moves over rendered frames")
  await capture("checking")
  ProjectSettings.set_setting("accessibility/disable_animations",true)
  var notes=""
@@ -85,9 +94,44 @@ func _run():
  await frames()
  await capture("required")
  view.required=false;view.can_continue=true;view.status="새 버전이 있습니다";view.action="업데이트"
- screen.present(view);await frames()
+ screen.present(view,func():primary_calls+=1,func():continue_calls+=1);await frames()
  check(screen.continue_button!=null,"Optional update exposes current-version continuation")
  await capture("optional")
+ await pointer(screen.primary_button,true);await capture("primary-pressed")
+ await pointer(screen.primary_button,false)
+ await pointer(screen.continue_button,true);await pointer(screen.continue_button,false)
+ check(primary_calls==1 and continue_calls==1,"Both update actions invoke their own callback through mouse input")
+ view.busy=true;view.progress=0.5;view.status="업데이트 다운로드 중";view.version="0.2.1 · 85.0 MB"
+ view.progress_text="42.5 / 85.0 MB"
+ screen.present(view,func():primary_calls+=1,func():continue_calls+=1);await frames()
+ await pointer(screen.primary_button,true);await pointer(screen.primary_button,false)
+ await pointer(screen.continue_button,true);await pointer(screen.continue_button,false)
+ check(primary_calls==1 and continue_calls==1,"Busy update blocks both action callbacks")
+ await capture("busy-disabled")
+ screen.notes_scroll.scroll_vertical=100;await frames()
+ var notes_control=screen.notes_scroll
+ var notes_offset=notes_control.scroll_vertical
+ var primary_control=screen.primary_button
+ view.progress=0.75;view.progress_text="63.8 / 85.0 MB"
+ screen.present(view,screen.action,screen.continue_action);await frames()
+ check(screen.notes_scroll==notes_control and screen.notes_scroll.scroll_vertical==notes_offset and screen.primary_button==primary_control,"Byte updates preserve notes scroll and button nodes")
+ check(screen.progress_label.text=="63.8 / 85.0 MB" and is_equal_approx(screen._flow.size.x,screen._track.size.x*0.75),"Byte label and bar update together")
+ await capture("download-75")
+ root.size=Vector2i(320,720);screen.text_scale_override=2.0;screen._layout();await frames()
+ check(screen.progress_label.get_global_rect().end.x<=320 and screen.progress_label.text=="63.8 / 85.0 MB","Narrow large text retains downloaded amount")
+ await capture("download-narrow-large-text")
+ root.size=Vector2i(440,988);screen.text_scale_override=0.0
+ view.busy=false
+ for amount in [0.0,0.05,0.5,1.0]:
+  screen.present({"status":"게임 준비 중","busy":true,"progress":amount});await frames()
+  var progress=screen.find_child("StartupProgress",true,false)
+  check(progress.size.y==24 and screen._track.get_global_rect().encloses(screen._flow.get_global_rect()),"Progress fits the compact frame at %s" % amount)
+  check(is_equal_approx(screen._flow.size.x,screen._track.size.x*amount),"Progress represents %s without minimum fill" % amount)
+  await capture("progress-%d" % roundi(amount*100))
+ root.size=Vector2i(320,720);screen.text_scale_override=2.0;screen.present(view);await frames()
+ check(screen.primary_button.get_global_rect().end.x<=320 and screen.continue_button.get_global_rect().end.x<=320,"Narrow large text retains both action labels within viewport")
+ screen.outer.scroll_vertical=int(screen.outer.get_v_scroll_bar().max_value);await frames();await capture("narrow-large-text")
+ root.size=Vector2i(440,988);screen.text_scale_override=0.0
  screen.present({"status":"업데이트 확인","busy":false,"details":true,"error":"업데이트 정보를 확인하지 못했습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.","action":"다시 시도"})
  await frames();await capture("error")
  check(screen.primary_button.text=="다시 시도" and screen.continue_button==null,"Failed check has retry without stale optional skip")
@@ -126,6 +170,19 @@ func _boot_checks():
  check(boot.updates.calls==2,"Boot return checks once and ignores duplicate resume while busy")
  await frames(1);boot.updates.finish.emit();await frames()
  check(created==0 and boot.screen.continue_button!=null,"Optional update waits for explicit continuation")
+ boot.updates.busy=true;boot.updates.phase="download";boot.updates.transfer="full"
+ boot.updates.transfer_stage="download";boot.updates.received_bytes=44564480;boot.updates.total_bytes=89128960
+ boot.updates.changed.emit();await frames()
+ check(boot.screen.progress_label.text=="42.5 / 85.0 MB" and boot.screen._progress==0.5,"Boot maps native byte counts to MB and determinate progress")
+ var calls_before_resume=boot.updates.calls
+ boot._notification(MainLoop.NOTIFICATION_APPLICATION_PAUSED)
+ boot._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
+ check(boot.updates.calls==calls_before_resume and boot.updates.received_bytes==44564480,"App switch during download preserves bytes without a new update check")
+ boot.updates.transfer_stage="verify";boot.updates.changed.emit();await frames()
+ check(boot.screen.status_label.text=="다운로드 파일 확인 중" and boot.screen._progress<0 and not boot.screen.progress_label.visible,"Verification does not pretend downloading or installation completed")
+ boot.updates.transfer_stage="apply";boot.updates.changed.emit();await frames()
+ check(boot.screen.status_label.text=="변경분 적용 중","Patch application has separate status")
+ boot.updates.busy=false
  boot.updates.skip();boot.updates.changed.emit()
  for frame in 90:
   await process_frame

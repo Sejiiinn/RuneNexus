@@ -42,6 +42,7 @@ class RuneNexusPlatform(engine: Godot, private val host: MainActivity) : GodotPl
         SignalInfo("google_sign_in_completed", String::class.java),
         SignalInfo("google_sign_out_completed", String::class.java),
         SignalInfo("installed_version_ready", String::class.java),
+        SignalInfo("update_progress", String::class.java, String::class.java),
         SignalInfo("update_completed", String::class.java, String::class.java),
     )
 
@@ -208,6 +209,16 @@ class RuneNexusPlatform(engine: Godot, private val host: MainActivity) : GodotPl
         if (detached) return false
         worker.execute {
             updater.perform(operation, args, object : AppUpdater.Result {
+                override fun progress(stage: String, receivedBytes: Long, totalBytes: Long) {
+                    val payload = JSONObject().apply {
+                        put("stage", stage)
+                        put("receivedBytes", receivedBytes)
+                        put("totalBytes", totalBytes)
+                    }.toString()
+                    host.runOnUiThread {
+                        if (!detached) emitSignal("update_progress", operation, payload)
+                    }
+                }
                 override fun success(value: Any?) = completeUpdate(operation, json(true, "value" to value))
                 override fun error(code: String, message: String) =
                     completeUpdate(operation, json(false, "error" to code))

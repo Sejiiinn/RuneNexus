@@ -27,3 +27,5 @@ Godot 4.7.2의 Android `JNISingleton`은 `@UsedByGodot` 메서드를 직접 호�
 비동기 결과는 `google_sign_in_completed(result_json)`, `google_sign_out_completed(result_json)`, `update_completed(operation,result_json)` 신호로 전달한다. Google 로그인 성공 JSON에는 `idToken`이 있다. 업데이트 설치 성공의 `value`는 `permissionRequired` 또는 `installerOpened`다. 패치 실패 `error=update_patch_failed` 시 전체 APK로 재시도할 수 있다. APK는 SHA-256, 크기, 버전, 패키지 이름, 현재 앱 서명과 대조한 뒤 설치기로 보낸다.
 
 세션 파일 `noBackupFilesDir/auth_session.enc` 및 Android Keystore 별칭 `rune_nexus_session_v1`, APK 패치 형식 `RNDELTA1`은 기존 호스트와 동일하다. 사용자 데이터 읽기·쓰기·삭제는 Godot 앱 요청으로만 수행한다.
+
+다운로드 진행은 `update_progress(operation,payload_json)` 신호로 전달한다. JSON 필드는 `stage` (`download`, `verify`, `apply`), `receivedBytes`, `totalBytes`다. 실제 파일 쓰기 완료량을 약 100ms 간격으로 보내며 시작 0과 마지막 수신량을 포함한다. 패치의 바이트 수는 패치 전송량이며 복원된 APK 크기가 아니다. 완료된 APK 캐시가 같은 버전·해시·크기와 일치하면 APK 서명까지 다시 검증한 뒤 재다운로드 없이 사용한다. 중단된 부분 파일의 이어받기는 지원하지 않는다.

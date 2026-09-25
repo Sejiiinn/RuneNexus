@@ -22,6 +22,7 @@ class AppUpdater(private val activity: Activity) {
     interface Result {
         fun success(value: Any?)
         fun error(code: String, message: String)
+        fun progress(stage: String, receivedBytes: Long, totalBytes: Long) {}
     }
 
     /** Caller runs this on a serial worker, except installer UI dispatch. */
@@ -59,7 +60,7 @@ class AppUpdater(private val activity: Activity) {
                         require(hash.matches(Regex("[0-9a-fA-F]{64}")))
                         require(size in 1..MAX_APK_SIZE)
                         require(expectedVersion > version(installedPackage()))
-                        download(url, hash, size, expectedVersion)
+                        download(url, hash, size, expectedVersion, result)
                         result.success(null)
                     }
                     "downloadPatch" -> {
@@ -73,7 +74,7 @@ class AppUpdater(private val activity: Activity) {
                             val baseHash = requireNotNull(args["baseSha256"] as? String)
                             require(activity.applicationInfo.splitSourceDirs.isNullOrEmpty())
                             require(expectedVersion > version(installedPackage()))
-                            downloadPatch(url, hash, size, expectedVersion, baseHash, targetHash, targetSize)
+                            downloadPatch(url, hash, size, expectedVersion, baseHash, targetHash, targetSize, result)
                             result.success(null)
                         } catch (_: Exception) {
                             result.error("update_patch_failed", "Unable to apply application patch")
@@ -120,14 +121,15 @@ class AppUpdater(private val activity: Activity) {
             }
     }
 
-    private fun download(address: String, hash: String, size: Long, expectedVersion: Long) {
+    private fun download(address: String, hash: String, size: Long, expectedVersion: Long, result: Result) {
+        if (reuseDownloaded(hash, size, expectedVersion, size, result)) return
         check(directory.mkdirs() || directory.isDirectory)
         val temporary = File(directory, "update.part")
         // 새 다운로드 실패 시 이전 파일이 잘못 설치되지 않도록 메타데이터부터 폐기.
         metadata.delete()
         apk.delete()
         try {
-            downloadFile(address, temporary, hash, size)
+            downloadFile(address, temporary, hash, size, result)
             verifyFile(temporary, hash, size, expectedVersion)
             saveDownloaded(temporary, hash, size, expectedVersion)
         } finally {
@@ -136,8 +138,9 @@ class AppUpdater(private val activity: Activity) {
     }
 
     private fun downloadPatch(address: String, hash: String, size: Long, expectedVersion: Long,
-                              baseHash: String, targetHash: String, targetSize: Long) {
+                              baseHash: String, targetHash: String, targetSize: Long, result: Result) {
         require(targetSize in 1..MAX_APK_SIZE)
+        if (reuseDownloaded(targetHash, targetSize, expectedVersion, size, result)) return
         val base = File(activity.applicationInfo.sourceDir)
         require(base.length() in 1..MAX_APK_SIZE && ApkDelta.sha256(base).equals(baseHash, ignoreCase = true))
         check(directory.mkdirs() || directory.isDirectory)
@@ -146,13 +149,32 @@ class AppUpdater(private val activity: Activity) {
         metadata.delete()
         apk.delete()
         try {
-            downloadFile(address, patch, hash, size)
+            downloadFile(address, patch, hash, size, result)
+            result.progress("apply", size, size)
             ApkDelta.apply(base, patch, temporary, baseHash, targetHash, targetSize)
+            result.progress("verify", size, size)
             verifyFile(temporary, targetHash, targetSize, expectedVersion)
             saveDownloaded(temporary, targetHash, targetSize, expectedVersion)
         } finally {
             patch.delete()
             temporary.delete()
+        }
+    }
+
+    /** Revalidate completed downloads after returning from Android settings or restarting the app. */
+    private fun reuseDownloaded(hash: String, size: Long, expectedVersion: Long,
+                                downloadSize: Long, result: Result): Boolean {
+        if (!apk.isFile || !metadata.isFile) return false
+        return try {
+            val saved = java.util.Properties().apply { metadata.inputStream().use { load(it) } }
+            if (saved.getProperty("versionCode")?.toLongOrNull() != expectedVersion ||
+                saved.getProperty("sizeBytes")?.toLongOrNull() != size ||
+                !saved.getProperty("sha256", "").equals(hash, ignoreCase = true)) return false
+            result.progress("verify", 0, downloadSize)
+            verifyFile(apk, hash, size, expectedVersion)
+            true
+        } catch (_: Exception) {
+            false
         }
     }
 
@@ -166,9 +188,13 @@ class AppUpdater(private val activity: Activity) {
         }
     }
 
-    private fun downloadFile(address: String, destination: File, hash: String, size: Long) {
+    private fun downloadFile(address: String, destination: File, hash: String, size: Long, result: Result) {
         require(hash.matches(Regex("[0-9a-fA-F]{64}")) && size in 1..MAX_APK_SIZE)
         var connection: HttpsURLConnection? = null
+        var received = 0L
+        var lastReported = 0L
+        var lastProgressTime = System.nanoTime()
+        result.progress("download", 0, size)
         try {
             var url = URL(address)
             var redirects = 0
@@ -193,7 +219,6 @@ class AppUpdater(private val activity: Activity) {
                 require(status == 200)
                 val declaredSize = current.getHeaderField("Content-Length")?.toLongOrNull() ?: -1L
                 require(declaredSize == -1L || declaredSize == size)
-                var received = 0L
                 current.inputStream.use { input ->
                     destination.outputStream().use { output ->
                         val buffer = ByteArray(64 * 1024)
@@ -201,18 +226,30 @@ class AppUpdater(private val activity: Activity) {
                             check(System.nanoTime() - started < 10L * 60 * 1_000_000_000)
                             val count = input.read(buffer)
                             if (count < 0) break
-                            received += count
-                            require(received <= size)
+                            require(received + count <= size)
                             output.write(buffer, 0, count)
+                            received += count
                             digest.update(buffer, 0, count)
+                            val now = System.nanoTime()
+                            if (now - lastProgressTime >= 100_000_000L) {
+                                result.progress("download", received, size)
+                                lastReported = received
+                                lastProgressTime = now
+                            }
                         }
                     }
+                }
+                if (lastReported != received) {
+                    result.progress("download", received, size)
+                    lastReported = received
                 }
                 require(received == size)
                 break
             }
+            result.progress("verify", received, size)
             require(digest.digest().joinToString("") { "%02x".format(it) }.equals(hash, ignoreCase = true))
         } finally {
+            if (lastReported != received) result.progress("download", received, size)
             connection?.disconnect()
         }
     }

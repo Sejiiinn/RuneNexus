@@ -1,6 +1,7 @@
 extends Control
 ## Native port of AppStartupScreen/AppUpdateGate. No game or save dependencies.
 const T = preload("res://ui/app_theme.gd")
+const Components = preload("res://ui/combat_component_theme.gd")
 var state: Dictionary = {}
 var action: Callable
 var continue_action: Callable
@@ -10,6 +11,7 @@ var outer: ScrollContainer
 var column: VBoxContainer
 var notes_scroll: ScrollContainer
 var status_label: Label
+var progress_label: Label
 var primary_button: Button
 var continue_button: Button
 var _flow: Control
@@ -19,6 +21,8 @@ var _elapsed := 0.0
 
 func _ready() -> void:
 	name = "StartupScreen"
+	theme = Theme.new()
+	Components.install(theme)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	var black=ColorRect.new();black.color=Color("02070d");black.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);add_child(black)
@@ -36,7 +40,19 @@ func _font_size(value: int) -> int:
 	return value
 
 func present(value: Dictionary, primary: Callable = Callable(), secondary: Callable = Callable()) -> void:
+	var previous_layout=state.duplicate(true)
+	var next_layout=value.duplicate(true)
+	for key in ["progress","progress_text"]:
+		previous_layout.erase(key);next_layout.erase(key)
+	# Byte updates must not rebuild the notes, reset scroll, or replace buttons.
+	var progress_only=previous_layout==next_layout and action==primary and continue_action==secondary and is_instance_valid(_track)
 	state=value.duplicate(true);action=primary;continue_action=secondary
+	if progress_only:
+		_progress=float(state.get("progress",-1))
+		if is_instance_valid(progress_label):
+			progress_label.text=str(state.get("progress_text",""))
+			progress_label.visible=not progress_label.text.is_empty()
+		return
 	if is_instance_valid(column): _layout()
 
 func _insets() -> Vector4:
@@ -68,7 +84,7 @@ func _layout() -> void:
 	outer.offset_left=inset.x;outer.offset_top=inset.y;outer.offset_right=-inset.z;outer.offset_bottom=-inset.w
 	var available=size-Vector2(inset.x+inset.z,inset.y+inset.w)
 	for child in column.get_children(): column.remove_child(child);child.queue_free()
-	notes_scroll=null;primary_button=null;continue_button=null;_flow=null;_track=null
+	notes_scroll=null;primary_button=null;continue_button=null;progress_label=null;_flow=null;_track=null
 	var bounded=state.get("details",false)
 	var scale_factor=float(_font_size(13))/13.0
 	var height=maxf(available.y,520.0*scale_factor) if bounded else available.y
@@ -91,6 +107,8 @@ func _layout() -> void:
 	status_label=_label(details,str(state.get("status","게임 준비 중")),14,Color("e8f8ff"));status_label.name="StartupStatus"
 	if state.get("busy",true):
 		_space(details,18);_progress_bar(details,float(state.get("progress",-1)))
+		progress_label=_label(details,str(state.get("progress_text","")),13,Color("b9d6e4"))
+		progress_label.name="StartupDownloadAmount";progress_label.visible=not progress_label.text.is_empty()
 	if bounded:
 		_space(details,20)
 		if state.get("required",false) and not state.get("version","").is_empty():
@@ -128,12 +146,8 @@ func _label(parent: Node, value: String, points: int, color:=Color("b9d6e4")) ->
 	var label=T.label(value,_font_size(points));label.add_theme_font_override("font",T.font(600));label.add_theme_color_override("font_color",color);label.add_theme_constant_override("line_spacing",roundi(_font_size(points)*0.35));label.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER;parent.add_child(label);return label
 
 func _button(parent: Node, text: String, callback: Callable, primary: bool) -> Button:
-	var button=Button.new();button.text=text;button.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;button.custom_minimum_size.y=52;button.add_theme_font_override("font",T.font(700));button.add_theme_font_size_override("font_size",_font_size(14));button.add_theme_color_override("font_color",Color("bff4ff") if primary else Color("b9d6e4"));button.add_theme_color_override("font_disabled_color",Color("4d606e"))
-	var fill=TextureRect.new();fill.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;fill.texture=_gradient([Color("245567cc"),Color("102530e6"),Color("183f4ecc")] if primary else [Color("111c25cc"),Color("050b11ee")],[0.0,0.5,1.0] if primary else [0.0,1.0]);fill.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT);fill.offset_left=8;fill.offset_top=8;fill.offset_right=-8;fill.offset_bottom=-8;fill.mouse_filter=Control.MOUSE_FILTER_IGNORE;fill.show_behind_parent=true;button.add_child(fill)
-	for state_name in ["normal","hover","pressed","disabled","focus"]:
-		var box=StyleBoxTexture.new();box.texture=T.texture("ui/components/button_frame.png");box.set_texture_margin_all(18);box.content_margin_left=22;box.content_margin_right=22;box.content_margin_top=17;box.content_margin_bottom=17
-		if state_name=="disabled": box.modulate_color.a=0.45
-		button.add_theme_stylebox_override(state_name,box)
+	var button=Button.new();button.text=text;button.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;button.custom_minimum_size.y=52;button.add_theme_font_override("font",T.font(700));button.add_theme_font_size_override("font_size",_font_size(14))
+	Components.apply(button,"primary" if primary else "secondary")
 	if callback.is_valid(): button.pressed.connect(callback)
 	parent.add_child(button);return button
 
@@ -162,7 +176,9 @@ func _notes(parent: Node, notes: String, width: float) -> void:
 func _progress_bar(parent: Node, value: float) -> void:
 	_progress=value
 	var frame=PanelContainer.new();frame.name="StartupProgress";frame.custom_minimum_size.y=24
-	var box=StyleBoxTexture.new();box.texture=T.texture("ui/components/button_frame.png");box.set_texture_margin_all(16);box.set_content_margin_all(8);frame.add_theme_stylebox_override("panel",box);parent.add_child(frame)
+	# The compact complete surface has 11px corners that fit inside a 24px track.
+	# Keep texture corners separate from the inset used for the live progress fill.
+	var box=Components.surface("secondary",Vector2(8,6));frame.add_theme_stylebox_override("panel",box);parent.add_child(frame)
 	_track=ColorRect.new();_track.color=Color("061219");_track.custom_minimum_size.y=8;_track.clip_contents=true;frame.add_child(_track)
 	_flow=TextureRect.new();_flow.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;_flow.texture=_gradient([Color("bff4ff"),Color("50cadd"),Color("146781")],[0.0,0.5,1.0]);_flow.mouse_filter=Control.MOUSE_FILTER_IGNORE;_track.add_child(_flow)
 
@@ -171,6 +187,6 @@ func _process(delta: float) -> void:
 	_elapsed=fposmod(_elapsed+delta,1.8)
 	var reduced=ProjectSettings.get_setting("accessibility/disable_animations",false)
 	var ratio=clampf(_progress,0,1) if _progress>=0 else (1.0 if reduced else 0.38)
-	_flow.size=Vector2(_track.size.x*ratio,8)
+	_flow.size=Vector2(_track.size.x*ratio,_track.size.y)
 	_flow.position=Vector2(0 if _progress>=0 or reduced else _track.size.x*(1.38*_elapsed/1.8-0.38),0)
 	_flow.modulate=Color("183a46") if reduced and _progress<0 else Color.WHITE

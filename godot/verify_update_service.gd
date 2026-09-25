@@ -6,6 +6,7 @@ class Updater extends "res://services/update_service.gd":
 class Platform extends Node:
 	signal installed_version_ready(payload)
 	signal update_completed(operation,payload)
+	signal update_progress(operation,payload)
 	var calls: Array = []
 	var install_ok := true
 	func query_installed_version():
@@ -23,6 +24,15 @@ class Platform extends Node:
 		calls.append("install")
 		update_completed.emit.call_deferred("installUpdate",JSON.stringify({"ok":install_ok,"value":"permissionRequired" if install_ok else "update_install_failed"}))
 		return true
+class ProgressPlatform extends Platform:
+	func download_patch(_url,_hash,_size,_version,_base,_target,_target_size):
+		calls.append("patch")
+		return true
+	func download_update(_url,_hash,_size,_version):
+		calls.append("full")
+		return true
+	func progress(operation: String, stage: String, received: int, total: int):
+		update_progress.emit(operation,JSON.stringify({"stage":stage,"receivedBytes":received,"totalBytes":total}))
 var failures: Array = []
 func check(ok,label):
 	if not ok: failures.append(label)
@@ -84,6 +94,50 @@ func run():
 	var malformed=release.duplicate(true)
 	malformed.minimumSupportedVersionCode=3
 	check(not Updater.valid_manifest(malformed),"minimum above release rejected")
+	await progress_checks(release)
 	print("UPDATE_SERVICE failures=",failures.size()," ",failures)
 	updater.queue_free();platform.queue_free()
 	quit(0 if failures.is_empty() else 1)
+
+func progress_checks(release: Dictionary):
+	var platform=ProgressPlatform.new();root.add_child(platform)
+	var updater=Updater.new();root.add_child(updater)
+	updater.setup(platform,"https://example.test/update.json")
+	updater.response={"ok":true,"body":release.duplicate(true)}
+	await updater.check()
+	updater.update()
+	check(updater.busy and updater.total_bytes==200 and updater.received_bytes==0,"patch starts with actual patch size")
+	platform.progress("downloadPatch","download",80,200)
+	check(updater.received_bytes==80 and updater.transfer_stage=="download","native byte progress received")
+	check(not (await updater.check()).ok and updater.received_bytes==80 and platform.calls==["patch"],"foreground check during download neither resets nor restarts transfer")
+	platform.progress("downloadPatch","download",70,200)
+	platform.progress("downloadUpdate","download",100,1000)
+	platform.progress("downloadPatch","download",250,200)
+	check(updater.received_bytes==80,"stale, mismatched and invalid byte events ignored")
+	platform.progress("downloadPatch","verify",200,200)
+	check(updater.transfer_stage=="verify","verification is separate from byte download")
+	platform.progress("downloadPatch","apply",200,200)
+	check(updater.transfer_stage=="apply","patch application is separate from byte download")
+	platform.update_completed.emit("downloadPatch",JSON.stringify({"ok":false}))
+	await process_frame
+	check(updater.total_bytes==1000 and updater.received_bytes==0 and updater.transfer=="full_fallback","fallback resets numerator and denominator to full APK")
+	platform.progress("downloadPatch","download",200,200)
+	check(updater.received_bytes==0,"late patch event cannot overwrite full transfer")
+	platform.progress("downloadUpdate","download",600,1000)
+	check(updater.received_bytes==600,"full fallback reports its actual bytes")
+	platform.progress("downloadUpdate","verify",1000,1000)
+	platform.update_completed.emit("downloadUpdate",JSON.stringify({"ok":true}))
+	await process_frame;await process_frame
+	check(updater.downloaded and not updater.busy and platform.calls==["patch","full","install"],"progress delivery preserves update completion")
+	platform.progress("downloadUpdate","download",0,1000)
+	check(updater.received_bytes==1000,"late progress cannot reset completed transfer")
+	updater.downloaded=false
+	updater.release.erase("patches")
+	updater.update()
+	platform.progress("downloadUpdate","verify",0,1000)
+	platform.progress("downloadUpdate","download",0,1000)
+	platform.progress("downloadUpdate","download",300,1000)
+	check(updater.received_bytes==300 and updater.transfer_stage=="download","Invalid cached APK verification can restart byte progress from zero")
+	platform.update_completed.emit("downloadUpdate",JSON.stringify({"ok":false}))
+	await process_frame
+	updater.queue_free();platform.queue_free()
