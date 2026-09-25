@@ -6,6 +6,15 @@
 서버 실행 이미지·DB 버전을 확인한다.
 
 
+## 2026-09-26 UI 개선 Android 0.2.4 / code 6033 — 공개 완료
+
+- [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6033) · [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6033/rune-nexus.apk). 대상 `777f24be0e56c9c15cc4ee6ff75444f06d2ee7b5`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36148566717). CI의 build-only 서명 산출물을 검수한 뒤 동일 파일을 공개했다. 선택 업데이트이며 최소 지원 코드 6027을 유지한다. 서버·DB·웹 변경은 없다.
+- 미배포 UI 개선을 포함했다: 강화 레벨업·룬 비용 프레임, 빨강 쌍검/금색 저울 아이콘, 제목 왼쪽 정렬과 작은 로비 버튼, 연구 스크롤·결제·중단 확인, 모듈 분해·개수 표시·연결부, 리더보드와 고정 내 순위, 모달 겹침·퇴장 중 배경 입력·크기 변동 및 앱 포커스 복귀 안정화. 최종 UI 변경은 `428f19dc`와 `777f24be`에 커밋했다. 로컬 과거 캡처 삭제·임시 생성 파일은 배포 대상에서 제외했다.
+- Python 40개, Godot 네이티브 31개, 콘텐츠·계정·AppServices 검사, Android 패치 디코더, 6030/6031/6032 서명 일치와 차등 복원을 CI에서 통과했다. 별도 Astra가 현재 코드·기존 데스크톱 근거·최종 Android 대표 화면을 확인했다.
+- Android API 37 읽기 전용 테스트 AVD에서 기존 정식 6031 → 6033 업데이트 설치를 완료하고 최초 설치 시각과 스테이지 1·2/40 라운드 저장 표시가 유지됨을 확인했다. 강화 전투/경제·연구·모듈 및 설정 화면을 확인했다. 설정 백그라운드 복귀는 검수 입력·캡처가 불확실해 성공으로 판정하지 않았고, 사용자의 추가 검수 중단 요청에 따라 재검사와 기존 런 재개 추가 검사를 중단했다. 실계정 Google 로그인·실기기 성능은 검증하지 않았다.
+- APK 372,339,418 bytes, SHA-256 `91d0715ceec019e8e22b810c8b46081d65482a5a988064bb2befc2cf83587063`. 6032 대비 +222,016 bytes(+0.0597%)이며 실질 증가는 Godot PCK의 UI 텍스처·스크립트다. PCK 144,131,504 bytes·889항목·완전 중복 0 bytes. ABI 3종과 각 네이티브 라이브러리 크기를 유지하며 design 제작 원본은 포함하지 않았다. 차등 패치는 6030 기준 141,936,628 bytes, 6031 기준 123,083,548 bytes, 6032 기준 123,083,559 bytes다.
+- 근거: `build/release-verification/apk-6033/`의 `ci-run.json`, `ci.log`, `artifact-verification.json`, `packaging-review.json`, `ci-audit/godot-pack-audit.json`, `android/`, `public-verification.json`. 공개 태그의 커밋과 latest/버전별 manifest, 업로드 5개 파일의 GitHub SHA-256·크기 및 익명 다운로드 응답을 대조했다. 검수 후 공개 파일 전체를 다시 내려받지는 않았으며 서버가 계산한 업로드 digest와 로컬 검수 파일의 hash를 비교했다.
+
 ## 2026-09-24 Google 로그인 저장소 연결 수정 Android 0.2.3 / code 6032 — 공개 완료
 
 - [공개 릴리스](https://github.com/Sejiiinn/RuneNexus/releases/tag/apk-6032) · [APK 다운로드](https://github.com/Sejiiinn/RuneNexus/releases/download/apk-6032/rune-nexus.apk). 대상 `104e191fbd47378389d3ae8962834167282bceb9`, [CI](https://github.com/Sejiiinn/RuneNexus/actions/runs/36013367828) 검사·서명·최근 3개 버전 차등 복원·공개 완료. 선택 업데이트이며 최소 지원 코드 6027을 유지한다. 웹·API·DB 변경은 없다.
