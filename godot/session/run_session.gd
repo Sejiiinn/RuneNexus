@@ -6,7 +6,12 @@ const QuestProgress = preload("res://app/quest_progress.gd")
 var growth = Growth.new()
 var quests = QuestProgress.new()
 var service
-var state: Dictionary = {}
+# UI polling token, separate from saved state and combat progression.
+var state_revision := 0
+var state: Dictionary = {}:
+	set(value):
+		state = value
+		state_revision += 1
 var error := ""
 var event_ack := 0
 var epoch := -1
@@ -54,6 +59,7 @@ func _mark_finished() -> void:
 
 func finish(success: bool) -> void:
 	if is_finished(): return
+	state_revision += 1
 	var stage: Dictionary = service.catalog.stage(int(state.stage))
 	state.completedRounds = stage.waves.size() if success else int(state.roundIndex)
 	# Presentation-only comparisons; old v2 terminal saves may omit them.

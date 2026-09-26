@@ -220,7 +220,7 @@ func _process(delta: float) -> void:
 	if not visible: return
 	elapsed += delta
 	if elapsed < 0.25: return
-	elapsed = 0; refresh()
+	elapsed = 0; refresh(true)
 
 func on_board_selection() -> void:
 	if app.selected != last_selected:
@@ -236,7 +236,7 @@ func _select_main(value: String) -> void:
 		app.selected = Vector2i(-1,-1); app.selection_view.level_preview = false; app.refresh_selection()
 	body_key = ""; refresh()
 
-func refresh() -> void:
+func refresh(polled := false) -> void:
 	if not is_node_ready() or app == null or app.run_domain.state.is_empty(): return
 	if RuntimeProfile.options.get("hide_hud", false) and app.run_domain.state.get("phase") == "wave":
 		hide()
@@ -257,7 +257,11 @@ func refresh() -> void:
 		scroll.visible = details
 		detail_panel.visible = details
 		_queue_dock_layout()
-	var dk := configuration_cache.sync(state,app.run_domain.growth.data)
+	var dk: int
+	if polled:
+		dk = configuration_cache.sync_polled(state,app.run_domain.growth.data,app.run_domain.get_instance_id(),app.run_domain.state_revision)
+	else:
+		dk = configuration_cache.sync(state,app.run_domain.growth.data)
 	if dk != dps_key:
 		dps_key = dk; total_dps = 0
 		for turret in state.get("turrets",[]):
@@ -299,7 +303,14 @@ func refresh() -> void:
 	message.text = _error(str(app.checkpoint.message)); retry_save.visible = app.get("save_failed") == true
 	if retry_save.visible: message.text = "저장하지 못해 전투를 정지했습니다. 다시 시도해 주세요."
 	message.visible = not message.text.is_empty()
-	var chosen: Dictionary = app.run_domain.service.turret(state,app.run_domain.selected_id(app.selected))
+	var chosen: Dictionary = {}
+	# Closed/other panels do not consume a selected turret. Resolve coordinates
+	# once instead of scanning for an ID and scanning again for its dictionary.
+	if main_tab == "turrets" and app.selected.x >= 0 and app.selected.y >= 0:
+		for turret: Dictionary in state.get("turrets", []):
+			if int(turret.x) == app.selected.x and int(turret.y) == app.selected.y:
+				chosen = turret
+				break
 	# Prices depend on turret/gem diversity and upgrades, but not wallet balances.
 	var key := [viewport.x,app.selected,app.turret_type,dk,state.gemInventory,phase,tab,main_tab,selected_slot,selected_gem,app.selection_view.level_preview]
 	if not body_key is Array or key != body_key:

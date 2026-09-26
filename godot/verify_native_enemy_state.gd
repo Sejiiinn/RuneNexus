@@ -15,6 +15,7 @@ func enemy(extra: Dictionary={}) -> Dictionary:
 	raw.merge(extra,true)
 	return Enemy.create(raw)
 func _initialize() -> void:
+	_path_revision_checks()
 	var e := enemy({"speed":0.0,"maxShield":100.0,"shield":20.0,"shieldRegenRate":0.1,"maxArmor":100.0,"armor":10.0})
 	Enemy.add_burn(e,{"damagePerSecond":30.0,"duration":1.0})
 	Enemy.step(e,1.0)
@@ -115,3 +116,37 @@ func _initialize() -> void:
 	close(result.bonusDamage,25*(0.12+0.88*25/55.0)-20*(0.12+0.88*20/50.0),"rift bonus includes nonlinear armor response")
 	print(JSON.stringify({"checks":checks,"failures":failures}))
 	quit(0 if failures.is_empty() else 1)
+
+
+func _path_revision_checks() -> void:
+	var legacy := enemy({"distanceTravelled":3.0,"x":2.5,"y":0.0})
+	var versioned := legacy.duplicate(true)
+	var route: Array = legacy.path.duplicate(true)
+	for dt in [0.0,0.1,0.4,0.0]:
+		check(Enemy.step(legacy,dt,route) == Enemy.step(versioned,dt,route,1), "versioned unchanged path events")
+		check(Enemy.snapshot(legacy) == Enemy.snapshot(versioned), "versioned unchanged path preserves movement and supplied position")
+	# 같은 길이/시작점/끝점이라도 중간 경유지가 바뀌면 새 경로를 적용한다.
+	route = [{"x":0.0,"y":0.0},{"x":0.0,"y":10.0},{"x":10.0,"y":10.0}]
+	Enemy.step(legacy,0.0,route)
+	Enemy.step(versioned,0.0,route,2)
+	check(Enemy.snapshot(legacy) == Enemy.snapshot(versioned), "revision change preserves reroute progress")
+	check(not Enemy.snapshot(versioned).has("_path_revision"), "revision cache excluded from snapshot")
+	var restored := Enemy.create(Enemy.snapshot(versioned))
+	var raw_restored := Enemy.create(versioned)
+	check(not restored.has("_path_revision") and not raw_restored.has("_path_revision"), "create never trusts saved revision cache")
+	for e in [legacy,versioned,restored]:
+		Enemy.update_path(e,[[0,0],[100,0]])
+	Enemy.step(legacy,0.1,route)
+	Enemy.step(versioned,0.1,route,2)
+	Enemy.step(restored,0.1,route,2)
+	check(Enemy.snapshot(legacy) == Enemy.snapshot(versioned), "explicit path update invalidates cached revision")
+	check(Enemy.snapshot(legacy) == Enemy.snapshot(restored), "restored path resynchronizes on first step")
+	# 기존 3인자 API는 같은 배열의 내용 변경도 계속 감지한다.
+	route[1].x = 5.0
+	Enemy.step(legacy,0.0,route)
+	Enemy.step(versioned,0.0,route,3)
+	check(Enemy.snapshot(legacy) == Enemy.snapshot(versioned), "legacy content comparison remains compatible")
+	for invalid_path in [[], [[0,0]]]:
+		Enemy.step(legacy,0.1,invalid_path)
+		Enemy.step(versioned,0.1,invalid_path,4)
+		check(Enemy.snapshot(legacy) == Enemy.snapshot(versioned), "empty and short path behavior preserved")

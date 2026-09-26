@@ -9,12 +9,16 @@ func _init(owner: Control) -> void:
 func _build(state: Dictionary) -> void:
 	var tile = hud._selected_tile()
 	if tile in ["core","spawn"]: hud.menu_panel._board_detail(tile,state); return
-	var available: Array = hud.configuration_cache.derived(state,hud.app.run_domain.service).get("availableTurretTypes",[])
+	var configuration: Dictionary = hud.configuration_cache.derived(state,hud.app.run_domain.service)
+	var available: Array = configuration.get("availableTurretTypes",[])
+	var costs := {}
+	for kind in available:
+		costs[kind] = hud.app.run_domain.service.build_cost_from_derived(str(kind),configuration)
 	if hud.app.turret_type not in available and not available.is_empty():
 		hud.app.turret_type = available[0]
 		hud.app.refresh_selection()
 	var type = str(hud.app.turret_type)
-	var cost: int = hud.app.run_domain.service.build_cost(state,type)
+	var cost: int = costs[type] if costs.has(type) else hud.app.run_domain.service.build_cost_from_derived(type,configuration)
 	if tile == "build":
 		var heading = HBoxContainer.new(); hud.body.add_child(heading)
 		hud._label(heading,hud.TOWERS.get(type,type)+" 포탑",14)
@@ -33,7 +37,7 @@ func _build(state: Dictionary) -> void:
 	for kind in hud.TOWERS:
 		if kind not in available: continue
 		if row.get_child_count() > 0: row.add_child(hud.HudChrome.divider())
-		var b = hud._button(row,"%s\n%d" % [hud.TOWERS[kind],hud.app.run_domain.service.build_cost(state,kind)],func():
+		var b = hud._button(row,"%s\n%d" % [hud.TOWERS[kind],costs[kind]],func():
 			if hud.app.turret_type == kind and hud._selected_tile() == "build": hud.app.build_selected()
 			else: hud.app.turret_type = kind; hud.app.refresh_selection()
 			hud.refresh())
@@ -46,7 +50,7 @@ func _build(state: Dictionary) -> void:
 		content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT); content.offset_top = 4; content.offset_bottom = -4; content.offset_left = 2; content.offset_right = -2
 		var art = hud._icon(content,"ui/hud/turrets_3d/"+kind+".png",40); art.size_flags_horizontal = Control.SIZE_SHRINK_CENTER; art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var name_label = hud._label(content,hud.TOWERS[kind],10); name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; name_label.autowrap_mode = TextServer.AUTOWRAP_OFF; name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		var price_label = hud._label(content,"%d G" % hud.app.run_domain.service.build_cost(state,kind),9); price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; price_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		var price_label = hud._label(content,"%d G" % costs[kind],9); price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER; price_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 		for style in ["normal","hover","pressed","disabled","focus"]:
 			b.add_theme_stylebox_override(style,hud.HudChrome.quiet(style,type == kind,Color("e7c66a"),Vector2(3,3)))
 		b.toggle_mode = true; b.button_pressed = type == kind

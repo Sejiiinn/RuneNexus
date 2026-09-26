@@ -49,6 +49,7 @@ var _mask_context: Array = []
 var _dim_context: Array = []
 var _mask_observed: Array[Node] = []
 var _turret_roots: Array = []
+var _turret_revision := -1
 var _mask_updates := 0
 var _mask_geometry_dirty := false
 var _mask_resources: Array[Mesh] = []
@@ -63,8 +64,12 @@ func _notification(what: int) -> void:
 		if not is_visible_in_tree(): _clear_mask()
 		else: _layers_dirty = true
 
-func set_turrets(turrets: Dictionary) -> void:
+# Revision is supplied by the model owner. Untracked callers retain content checks.
+func set_turrets(turrets: Dictionary, revision := -1) -> void:
+	if revision >= 0 and revision == _turret_revision and is_same(_turrets, turrets):
+		return
 	_turrets = turrets
+	_turret_revision = revision
 	var roots: Array = []
 	for entry in turrets.values(): roots.append(entry.get("root"))
 	if roots != _turret_roots:
@@ -178,6 +183,7 @@ func clear() -> void:
 	_layers.clear()
 	_turrets = {}
 	_turret_roots.clear()
+	_turret_revision = -1
 	material = null
 	if is_instance_valid(_dim): _dim.hide()
 	_clear_mask()

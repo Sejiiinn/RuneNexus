@@ -46,6 +46,7 @@ static func _py(p) -> float:
 	return float(p[1]) if p is Array else float(p.y)
 
 static func _rebuild_path(e: Dictionary,path: Array) -> void:
+	e.erase("_path_revision")
 	e.path = path.duplicate(true)
 	e._ends=[]
 	e._lengths=[]
@@ -220,10 +221,13 @@ static func _max_burn_multiplier(e: Dictionary) -> float:
 	for b in e.burnInstances: value=maxf(value,b.damageMultiplier)
 	return value
 
-static func step(e: Dictionary,dt: float,path: Array=[]) -> Array:
+static func step(e: Dictionary,dt: float,path: Array=[],path_revision: int=-1) -> Array:
 	var events: Array=[]
 	if dt<0 or not is_finite(dt) or e.arrived: return events
-	if not path.is_empty() and path!=e.path: update_path(e,path)
+	# 런타임은 경로 변경 번호를 전달한다. 기존 외부 호출은 내용 비교를 유지한다.
+	if not path.is_empty() and (path_revision < 0 or int(e.get("_path_revision", -1)) != path_revision):
+		if path != e.path: update_path(e,path)
+		if path_revision >= 0: e._path_revision = path_revision
 	e.hitFlashTimer=maxf(0,e.hitFlashTimer-dt)
 	e.statusEffectTime+=dt
 	if e.hp>0 and e.maxShield>0 and not e.shieldBroken and e.shield<e.maxShield and e.shieldRegenRate>0:
@@ -293,7 +297,7 @@ static func step(e: Dictionary,dt: float,path: Array=[]) -> Array:
 
 static func snapshot(e: Dictionary) -> Dictionary:
 	var result: Dictionary=e.duplicate(true)
-	for key in ["_ends","_lengths","_cumulative","_total"]: result.erase(key)
+	for key in ["_ends","_lengths","_cumulative","_total","_path_revision"]: result.erase(key)
 	result.burnRemaining=0.0
 	result.burnDamagePerSecond=0.0
 	for b in e.burnInstances:

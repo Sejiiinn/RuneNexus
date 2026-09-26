@@ -2,6 +2,13 @@ extends SceneTree
 const Fixture = preload("res://verify_battle_hud.gd")
 const Runtime = preload("res://combat/native_combat_runtime.gd")
 const Normalize = preload("res://ui/app_presentation.gd")
+const ConfigurationCache = preload("res://ui/hud_configuration_cache.gd")
+class CountingCache extends ConfigurationCache:
+	var match_calls := 0
+	func _matches(state: Dictionary) -> bool:
+		match_calls += 1
+		return super._matches(state)
+
 var failures: Array[String] = []
 
 func check(value: bool, message: String) -> void:
@@ -16,6 +23,7 @@ func run() -> void:
 	check(app.run_domain.initialize(app.catalog, {}, 0, 100), "run")
 	root.add_child(app)
 	var hud = load("res://ui/battle_hud.gd").new()
+	hud.configuration_cache = CountingCache.new()
 	hud.app = app
 	app.hud = hud
 	root.add_child(hud)
@@ -33,6 +41,7 @@ func run() -> void:
 	var count: int = hud.configuration_cache.derive_count
 	var power: float = hud.total_dps
 	var body_id: int = hud.body.get_child(0).get_instance_id()
+	var panel_style: StyleBox = hud.overlay.get_theme_stylebox("panel")
 	for i in range(30):
 		app.run_domain.state.gold += 1
 		app.run_domain.state.turrets[0].damageDealt = i * 10.0
@@ -42,11 +51,13 @@ func run() -> void:
 	check(hud.configuration_cache.derive_count == count, "cache hits do not derive")
 	check(hud.body.get_child(0).get_instance_id() == body_id, "wallet/damage reuse body")
 	check(hud.rewards.key is String, "hidden reward panel never constructs a state key")
+	check(hud.overlay.get_theme_stylebox("panel") == panel_style, "hidden rewards reuse panel style across wallet refreshes")
 	var field: String = app.run_domain.growth.data.permanentUpgrades.fireTraining.get("field", "fireTrainingUpgradeLevel")
 	app.run_domain.state.progression[field] = 1
 	hud.refresh()
 	check(hud.total_dps > power, "progression changes invalidate DPS")
 	check(hud.configuration_cache.derive_count == count + 1, "growth refresh derives once")
+	_polling_checks(hud,app)
 	var runtime := Runtime.new()
 	var setup: Dictionary = app.catalog.bootstrap(0)
 	setup.enemies = [app.catalog.enemy(0,0,"normal",1)]
@@ -103,3 +114,42 @@ func _native_pan_projection_check() -> void:
 				check(before.distance_to(expected) > 1.0, "nonzero pan exercises distinct base and final screen positions")
 			check(is_equal_approx(surface.effect.age,0.1), "camera pan preserves paused spark age")
 	scene.free()
+
+
+func _polling_checks(hud, app) -> void:
+	hud.set_process(false)
+	var cache = hud.configuration_cache
+	hud.refresh(true)
+	var scans: int = cache.match_calls
+	var derives: int = cache.derive_count
+	for i in range(20): hud._process(0.25)
+	check(cache.match_calls == scans, "unchanged timer polls skip configuration scans")
+	check(cache.derive_count == derives, "unchanged timer polls reuse derived configuration")
+	var revision: int = app.run_domain.state_revision
+	app.run_domain.state = app.run_domain.state.duplicate(true)
+	app.run_domain.state.gold += 1
+	hud.refresh(true)
+	check(app.run_domain.state_revision > revision and cache.match_calls == scans+1, "state replacement invalidates polling token")
+	check(cache.derive_count == derives, "wallet-only replacement does not rederive configuration")
+	scans = cache.match_calls
+	var field: String = app.run_domain.growth.data.permanentUpgrades.fireTraining.get("field", "fireTrainingUpgradeLevel")
+	app.run_domain.state.progression[field] += 1
+	hud.refresh()
+	check(cache.match_calls == scans+1 and cache.derive_count == derives+1, "explicit refresh detects direct nested mutation after cached polls")
+	var source_id: int = app.run_domain.get_instance_id()
+	cache.sync_polled(app.run_domain.state,app.run_domain.growth.data,source_id,app.run_domain.state_revision)
+	scans = cache.match_calls
+	cache.sync_polled(app.run_domain.state,app.run_domain.growth.data,source_id+1,app.run_domain.state_revision)
+	check(cache.match_calls == scans+1, "new owner cannot reuse an equal revision token")
+	var saved: Dictionary = app.run_domain.state.duplicate(true)
+	revision = app.run_domain.state_revision
+	app.run_domain.restore(saved)
+	check(app.run_domain.state_revision > revision and not app.run_domain.state.has("state_revision"), "restore advances transient token without changing save schema")
+	revision = app.run_domain.state_revision
+	app.run_domain.finish(true)
+	check(app.run_domain.state_revision > revision, "in-place finish invalidates cleared-stage configuration")
+	hud.refresh(true)
+	var after_finish: int = cache.derive_count
+	app.run_domain.finish(true)
+	hud.refresh(true)
+	check(cache.derive_count == after_finish, "idempotent finish retains derived cache")

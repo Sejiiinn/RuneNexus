@@ -28,6 +28,13 @@ const MAX_SURFACE_POOL := 64
 var _surface_pool: Array = []
 var _input_order: Array = []
 var _sorted_indices: Array = []
+var _input_has_ids := PackedByteArray()
+var _sort_swaps: Array = []
+var _canvas_ids: Array = []
+var _canvas_indices: Array = []
+var _canvas_nodes: Array = []
+var _surfaces_dirty := true
+var _duplicate_canvas_ids := false
 var _projection_context: Array = []
 var _canvas_enabled := true
 var _materialization_pending := false
@@ -206,16 +213,40 @@ func apply_frame(frame: Dictionary, owned_snapshot := false) -> void:
 				clampf(age / maxf(0.001, float(event["duration"])), 0, 1)])
 		else:
 			items.append(event)
-	# Sorting depends on membership/input order, never age or camera movement.
-	var incoming: Array = []
-	for index in range(items.size()): incoming.append(int(items[index].get("id", index)))
-	if incoming != _input_order:
-		_input_order = incoming
+	# Compare scalars without assembling a second ID list every frame. Missing
+	# IDs sort as zero, but retain their sorted-slot surface identity.
+	var order_changed := items.size() != _input_order.size()
+	if not order_changed:
+		for index in range(items.size()):
+			if int(items[index].get("id", index)) != _input_order[index] or int(items[index].has("id")) != _input_has_ids[index]:
+				order_changed = true
+				break
+	if order_changed:
+		_input_order.resize(items.size())
+		_input_has_ids.resize(items.size())
+		for index in range(items.size()):
+			_input_order[index] = int(items[index].get("id", index))
+			_input_has_ids[index] = int(items[index].has("id"))
 		_sorted_indices = range(items.size())
 		_sorted_indices.sort_custom(func(a, b): return int(items[a].get("id", 0)) < int(items[b].get("id", 0)))
-	var ordered: Array = []
-	for index in _sorted_indices: ordered.append(items[index])
-	items = ordered
+		# Precompute swaps for this permutation. The fresh public snapshot can
+		# then be ordered in place without another ordered Array allocation.
+		_sort_swaps.clear()
+		var slots: Array = range(items.size())
+		var positions: Array = range(items.size())
+		for index in range(items.size()):
+			var source: int = positions[_sorted_indices[index]]
+			if source == index: continue
+			_sort_swaps.append(Vector2i(index, source))
+			positions[slots[index]] = source
+			positions[slots[source]] = index
+			var slot = slots[index]
+			slots[index] = slots[source]
+			slots[source] = slot
+	for swap: Vector2i in _sort_swaps:
+		var effect = items[swap.x]
+		items[swap.x] = items[swap.y]
+		items[swap.y] = effect
 	_materialization_pending = true
 	if _can_materialize(): _sync_surfaces()
 
@@ -248,6 +279,8 @@ func _exit_tree() -> void:
 
 func _release_surface(id: int) -> void:
 	var surface: EffectSurface = _effect_nodes[id]
+	_surfaces_dirty = true
+	_canvas_nodes.clear()
 	_effect_nodes.erase(id)
 	remove_child(surface)
 	surface.effect = {}
@@ -275,25 +308,50 @@ func _canvas_effect(effect: Dictionary) -> bool:
 
 func _sync_surfaces() -> void:
 	_materialization_pending = false
-	var alive := {}
-	for index in range(items.size()):
-		if _canvas_effect(items[index]): alive[int(items[index].get("id", index))] = true
-	for id in _effect_nodes.keys():
-		if not alive.has(id): _release_surface(id)
-	var draw_index := 0
-	for index in range(items.size()):
-		var effect: Dictionary = items[index]
-		if not _canvas_effect(effect): continue
-		var id := int(effect.get("id", index))
-		if not _effect_nodes.has(id):
-			var fresh: EffectSurface = _surface_pool.pop_back() if not _surface_pool.is_empty() else EffectSurface.new()
-			fresh.owner_effects = self
-			add_child(fresh)
-			_effect_nodes[id] = fresh
-		var node: EffectSurface = _effect_nodes[id]
+	# Duplicate legacy IDs can move the same child more than once per sync.
+	# Preserve that established ordering path; unique IDs take the fast path.
+	var structure_changed := _surfaces_dirty or _duplicate_canvas_ids or _canvas_ids.size() != items.size()
+	if not structure_changed:
+		for index in range(items.size()):
+			var id = int(items[index].get("id", index)) if _canvas_effect(items[index]) else null
+			if _canvas_ids[index] != id:
+				structure_changed = true
+				break
+	if structure_changed:
+		var alive := {}
+		_duplicate_canvas_ids = false
+		_canvas_ids.resize(items.size())
+		for index in range(items.size()):
+			var id = int(items[index].get("id", index)) if _canvas_effect(items[index]) else null
+			_canvas_ids[index] = id
+			if id != null:
+				if alive.has(id): _duplicate_canvas_ids = true
+				alive[id] = true
+		for id in _effect_nodes.keys():
+			if not alive.has(id): _release_surface(id)
+		_canvas_indices.clear()
+		_canvas_nodes.clear()
+		var draw_index := 0
+		for index in range(items.size()):
+			if _canvas_ids[index] == null: continue
+			var id: int = _canvas_ids[index]
+			if not _effect_nodes.has(id):
+				var fresh: EffectSurface = _surface_pool.pop_back() if not _surface_pool.is_empty() else EffectSurface.new()
+				fresh.owner_effects = self
+				add_child(fresh)
+				_effect_nodes[id] = fresh
+			var node: EffectSurface = _effect_nodes[id]
+			if node.get_index() != draw_index: move_child(node, draw_index)
+			draw_index += 1
+			_canvas_indices.append(index)
+			_canvas_nodes.append(node)
+		_surfaces_dirty = false
+	# Keep duplicate-ID updates in their original order: the last entry still
+	# supplies the surface data. Only the structural work is cached.
+	for entry in range(_canvas_indices.size()):
+		var effect: Dictionary = items[_canvas_indices[entry]]
+		var node: EffectSurface = _canvas_nodes[entry]
 		node.effect = effect
-		if node.get_index() != draw_index: move_child(node, draw_index)
-		draw_index += 1
 		var gem: bool = effect.get("kind") == "gem"
 		var wanted_material: Material = _additive if gem else null
 		if node.material != wanted_material: node.material = wanted_material
@@ -378,6 +436,13 @@ func clear() -> void:
 	_surface_pool.clear()
 	_input_order.clear()
 	_sorted_indices.clear()
+	_input_has_ids.clear()
+	_sort_swaps.clear()
+	_canvas_ids.clear()
+	_canvas_indices.clear()
+	_canvas_nodes.clear()
+	_surfaces_dirty = true
+	_duplicate_canvas_ids = false
 	_projection_context.clear()
 	_text_metrics.clear()
 	_chain_waves.clear()

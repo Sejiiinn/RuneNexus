@@ -11,6 +11,8 @@ var shard_selected := false
 var key: Variant = ""
 var _fit_key: Array = []
 var _was_visible := false
+var _panel_style_mode := ""
+var _panel_styles: Dictionary = {}
 var shade: ColorRect
 var target_layer: Control
 var heading: PanelContainer
@@ -19,6 +21,8 @@ var target_hint := ""
 
 func setup(owner) -> void:
 	hud = owner
+	_panel_style_mode = ""
+	_panel_styles.clear()
 	shade = ColorRect.new()
 	shade.color = Color(0.008,0.027,0.05,0.68)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -58,8 +62,15 @@ func refresh(state: Dictionary) -> void:
 	shade.visible = visible and (not targeting() or replacing())
 	target_layer.visible = targeting() and not replacing()
 	hud.overlay.visible = visible and (not targeting() or replacing())
-	if phase == "reward": hud.overlay.add_theme_stylebox_override("panel",hud.Components.surface("modal",Vector2(14,14)) if replacing() else preload("res://ui/battle_theme.gd").box())
-	else: hud.overlay.add_theme_stylebox_override("panel",StyleBoxEmpty.new())
+	var style_mode := ("replacement" if replacing() else "reward") if phase == "reward" else "empty"
+	if style_mode != _panel_style_mode:
+		if not _panel_styles.has(style_mode):
+			match style_mode:
+				"replacement": _panel_styles[style_mode] = hud.Components.surface("modal",Vector2(14,14))
+				"reward": _panel_styles[style_mode] = preload("res://ui/battle_theme.gd").box()
+				_: _panel_styles[style_mode] = StyleBoxEmpty.new()
+		hud.overlay.add_theme_stylebox_override("panel",_panel_styles[style_mode])
+		_panel_style_mode = style_mode
 	if not visible:
 		if _was_visible:
 			hud._clear(hud.overlay_body)

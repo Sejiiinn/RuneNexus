@@ -5,6 +5,12 @@ const Commands = preload("res://app/run_commands.gd")
 const Runtime = preload("res://combat/native_combat_runtime.gd")
 const Stats = preload("res://combat/turret_stat_calculation.gd")
 const Json = preload("res://app/save_json.gd")
+class CountingCommands extends Commands:
+	var derive_calls := 0
+	func derived(state: Dictionary) -> Dictionary:
+		derive_calls += 1
+		return super.derived(state)
+
 var failures: Array = []
 var checks := 0
 func check(ok: bool, label: String) -> void:
@@ -16,6 +22,7 @@ func _initialize() -> void:
 	check(catalog.load_catalog(),"content")
 	check(growth.load_catalog(),"growth")
 	var service = Commands.new(catalog,growth)
+	_build_price_cache_checks(catalog,growth)
 	var path := ProjectSettings.globalize_path("res://../test/fixtures/growth_cases.json")
 	var fixtures: Dictionary = Json.parse(FileAccess.get_file_as_string(path))
 	var kinds := {"levelUp":"level","upgradeLink":"link","choosePrimaryTrait":"primaryTrait","chooseSecondaryTrait":"secondaryTrait","equipGem":"equipGem","removeGem":"removeGem","refund":"sell"}
@@ -218,3 +225,17 @@ func _check_reward_slot_rejection(service, state: Dictionary, command: Dictionar
 	var before := state.duplicate(true)
 	var result: Dictionary = service.apply(state,command)
 	check(not result.ok and result.state == before and state == before and result.commands.is_empty(),label+": atomic rejection")
+
+
+func _build_price_cache_checks(catalog, growth) -> void:
+	var service := CountingCommands.new(catalog,growth)
+	var state: Dictionary = service.initial_state()
+	var configuration: Dictionary = service.derived(state)
+	var previous := service.derive_calls
+	for type in configuration.availableTurretTypes:
+		var quote: int = service.build_cost_from_derived(type,configuration)
+		check(service.derive_calls == previous, "UI price quote reuses derived configuration")
+		check(quote == service.build_cost(state,type), "UI price matches fresh authoritative price")
+		check(service.derive_calls == previous + 1, "authoritative build price derives exactly once")
+		previous = service.derive_calls
+	check(service.build_cost(state,"unsupported") == 0, "unknown turret price remains zero")

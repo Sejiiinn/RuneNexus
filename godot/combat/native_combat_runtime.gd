@@ -27,6 +27,7 @@ var event_id: int = 0
 var projectile_id: int = 0
 var clock: float = 0.0
 var path: Array = []
+var _path_revision := 0
 var origin := Vector2.ZERO
 var tile_size: float = 1.0
 var board_scale: float = 1.0
@@ -165,6 +166,7 @@ func _reset(packet: Dictionary) -> void:
 	var b: Dictionary = packet.bootstrap
 	rng.seed = int(b.get("seed", 71423))
 	path = _path(b.get("path", []))
+	_path_revision += 1
 	origin = _vec(b.get("origin", [0, 0]))
 	tile_size = maxf(0.001, b.get("tileSize", 1.0))
 	board_scale = b.get("boardDistanceScale", 1.0)
@@ -386,6 +388,7 @@ func _command(c: Dictionary) -> void:
 			var ratio := tile_size / maxf(old_tile,0.001)
 			board_scale = float(c.get("boardDistanceScale", board_scale))
 			path = _path(c.get("path", path))
+			_path_revision += 1
 			for e in enemies.values():
 				e.boardDistanceScale = board_scale
 				e.collisionRadius = _radius(e)*ratio
@@ -450,7 +453,7 @@ func _step(dt: float) -> void:
 	var burn_sources: Dictionary = {}
 	for e in enemies.values():
 		if _alive(e):
-			_collect(Enemy.step(e, dt, path), burn_sources)
+			_collect(Enemy.step(e, dt, path, _path_revision), burn_sources)
 			if terminal: return
 	_finish_step(dt)
 

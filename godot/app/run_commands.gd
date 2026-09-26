@@ -31,11 +31,18 @@ func _module(state: Dictionary, type: String) -> Dictionary:
 	return derived(state).get("turretStatInputs", {}).get(type, {}).get("moduleEffect", {})
 
 func build_cost(state: Dictionary, type: String) -> int:
+	if _rule(type).is_empty(): return 0
+	return build_cost_from_derived(type, derived(state))
+
+# UI quotes may reuse their configuration cache. Purchases use build_cost above
+# to derive the current authoritative state again before accepting a command.
+func build_cost_from_derived(type: String, configuration: Dictionary) -> int:
 	var r := _rule(type)
 	if r.is_empty(): return 0
 	var base := int(r.buildCost)
-	var discounted := maxi(roundi(base * (1.0 - clampf(float(_module(state,type).get("buildCostDiscountRate",0)),0,0.8))), roundi(base * 0.8))
-	return maxi(1, roundi(discounted * float(derived(state).get("passiveTurretBuildCostMultiplier",1))))
+	var module: Dictionary = configuration.get("turretStatInputs", {}).get(type, {}).get("moduleEffect", {})
+	var discounted := maxi(roundi(base * (1.0 - clampf(float(module.get("buildCostDiscountRate",0)),0,0.8))), roundi(base * 0.8))
+	return maxi(1, roundi(discounted * float(configuration.get("passiveTurretBuildCostMultiplier",1))))
 
 func quotes(state: Dictionary, id: int) -> Dictionary:
 	var t := turret(state,id)

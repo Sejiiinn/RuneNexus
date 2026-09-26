@@ -32,6 +32,8 @@ const ENEMY_MODELS := {
 var world: Node3D
 var camera: Camera3D
 var turrets := {}
+# Changes only when the rendered turret roots change.
+var turret_revision := 0
 var enemies := {}
 var _build_preview := {}
 var _time := 0.0
@@ -53,6 +55,8 @@ func configure(time: float, map_size: Vector2i, frame_options: Dictionary) -> vo
 
 
 func clear() -> void:
+	if not turrets.is_empty():
+		turret_revision += 1
 	for collection: Dictionary in [turrets, enemies]:
 		for entry: Dictionary in collection.values():
 			entry["root"].free()
@@ -129,6 +133,7 @@ func _new_turret(type: String) -> Dictionary:
 
 
 func _sync_turrets(units: Array) -> void:
+	var membership_changed := false
 	var alive := {}
 	var frost_lights := 0
 	for data: Array in units:
@@ -144,6 +149,7 @@ func _sync_turrets(units: Array) -> void:
 			turrets.erase(id)
 		if not turrets.has(id):
 			turrets[id] = _new_turret(type)
+			membership_changed = true
 		var entry: Dictionary = turrets[id]
 		entry["root"].visible = not (type == "magic" and options.get("runic_fire_mode", "all") == "no_model")
 		entry["level"] = int(data[7]) if data.size() > 7 else 1
@@ -159,6 +165,9 @@ func _sync_turrets(units: Array) -> void:
 		if not alive.has(id):
 			turrets[id]["root"].free()
 			turrets.erase(id)
+			membership_changed = true
+	if membership_changed:
+		turret_revision += 1
 
 
 func _update_fire(entry: Dictionary, shot_sequence: int, feedback: float) -> void:

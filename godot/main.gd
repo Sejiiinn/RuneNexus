@@ -342,7 +342,7 @@ func _present_overlays() -> void:
 		if node.has_method("set_canvas_enabled"): node.set_canvas_enabled(canvas_enabled)
 		if canvas_enabled:
 			if group == "selection":
-				node.set_turrets(turrets)
+				node.set_turrets(turrets, _units.turret_revision)
 				# 평소 지면 표시는 라벨 뒤, 보상 dim은 남아 있는 모든 효과 앞.
 				node.z_index = 100 if node.reward_targeting() else -100
 			node.present(camera, Vector2(columns, rows), world)

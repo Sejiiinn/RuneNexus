@@ -38,6 +38,7 @@ func _initialize() -> void:
 	_check(JSON.stringify(a.snapshot().enemies) == JSON.stringify(b.snapshot().enemies), "batched original timestep equivalence")
 	_exact_checks(fixtures)
 	_response_mode_checks()
+	_path_revision_checks()
 	if failures.is_empty():
 		print("PASS native combat runtime: ", count, " configured turret cases, all six types, damage, ACK idempotency, gap rejection, batched timestep preservation")
 		quit(0)
@@ -145,3 +146,28 @@ func _response_mode_checks() -> void:
 	_check(before == JSON.stringify(local.snapshot()), "local duplicate command remains idempotent")
 	for rejected in [{"epoch":43,"sequence":2}, {"epoch":44,"sequence":3}, {"epoch":45,"sequence":0}]:
 		_check(full.process_command(rejected) == local.process_command(rejected, false), "response mode preserves rejection")
+
+
+func _path_revision_checks() -> void:
+	var r = Runtime.new()
+	var route := [[0,0],[10,0],[10,10]]
+	var custom := [[0,0],[0,10],[10,10]]
+	r.process_command({"epoch":70,"sequence":0,"dt":0.0,"bootstrap":{"path":route,"enemies":[{"id":1,"hp":100,"maxHp":100,"speed":1,"path":custom,"distanceTravelled":3}],"turrets":[]}})
+	var initial: Dictionary = r.enemies["1"]
+	_check(initial.path == r._path(custom), "spawn retains custom path before first simulation step")
+	var revision: int = r._path_revision
+	r.process_command({"epoch":70,"sequence":1,"dt":0.1})
+	_check(initial.path == r.path and initial._path_revision == revision, "first step synchronizes custom path to runtime route")
+	r.process_command({"epoch":70,"sequence":2,"dt":0.1})
+	_check(r._path_revision == revision, "ordinary steps do not advance route revision")
+	var progress: float = initial.distanceTravelled / initial._total
+	r.process_command({"epoch":70,"sequence":3,"dt":0.0,"commands":[{"kind":"layout","path":[[0,0],[0,20],[20,20]]}]})
+	_check(r._path_revision > revision and initial.path == r.path, "layout replaces path and advances revision")
+	_check(is_equal_approx(initial.distanceTravelled / initial._total, progress), "layout keeps normalized path progress")
+	r.process_command({"epoch":70,"sequence":4,"dt":0.1,"commands":[{"kind":"spawn","enemy":{"id":2,"hp":100,"maxHp":100,"speed":1}}]})
+	_check(r.enemies["2"].path == r.path, "spawn after layout receives new path")
+	var saved: Dictionary = r.snapshot().enemies[0]
+	_check(not saved.has("_path_revision"), "runtime snapshot hides route revision")
+	r.process_command({"epoch":71,"sequence":0,"dt":0.0,"bootstrap":{"path":route,"enemies":[saved],"turrets":[]}})
+	r.process_command({"epoch":71,"sequence":1,"dt":0.1})
+	_check(r.enemies["1"].path == r.path, "new epoch restore synchronizes to its own route")

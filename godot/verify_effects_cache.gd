@@ -128,6 +128,44 @@ func _verify() -> void:
 	assert(effects.get_child(0) == effects._effect_nodes[30])
 	assert(effects.get_child(1) == effects._effect_nodes[31])
 	assert(effects.get_child(2) == effects._effect_nodes[33])
+	# Reuse the permutation while producing a fresh, isolated public snapshot.
+	var previous_items: Array = effects.items
+	var previous_swaps: Array = effects._sort_swaps
+	var changed_age := [_effect(33, "damage", 0.2), _effect(31, "gem", 0.2), _effect(32, "blast"), _effect(30)]
+	effects.apply_frame({"items": changed_age})
+	assert(not is_same(previous_items, effects.items) and previous_items[3].age == 0.1)
+	assert(is_same(previous_swaps, effects._sort_swaps))
+	assert(effects.items[3].id == 33 and effects.items[3].age == 0.2)
+	assert(effects._effect_nodes[33].effect.age == 0.2)
+
+	# Same ID can change kind or Canvas eligibility without changing sort order.
+	effects.apply_frame({"items": [_effect(40)]})
+	var same_id: Node2D = effects._effect_nodes[40]
+	effects.apply_frame({"items": [_effect(40, "gem")]})
+	assert(effects._effect_nodes[40] == same_id and same_id.mix_surface.visible and not same_id.glyph.visible)
+	var excluded := _effect(40, "impact")
+	excluded.style = "frost"
+	effects.apply_frame({"items": [excluded]})
+	assert(effects._effect_nodes.is_empty())
+	excluded.style = "spark"
+	effects.apply_frame({"items": [excluded]})
+	assert(effects._effect_nodes.has(40) and effects._effect_nodes[40].effect.style == "spark")
+
+	# A missing ID sorts as zero even when its fallback slot equals an explicit ID.
+	var legacy := _effect(1)
+	legacy.erase("id")
+	effects.apply_frame({"items": [_effect(1), legacy]})
+	assert(not effects.items[0].has("id"))
+	effects.apply_frame({"items": [_effect(1), _effect(1, "blast")]})
+	assert(effects.items[0].kind == "damage")
+	assert(effects._effect_nodes[1].effect.kind == "damage")
+	effects.apply_frame({"items": [_effect(1), legacy]})
+	assert(not effects.items[0].has("id") and effects._effect_nodes.has(0))
+	# Duplicate IDs retain sequential overwrite and legacy child-order behavior.
+	for tick in range(3):
+		effects.apply_frame({"items": [_effect(50), _effect(50, "gem", 0.2), _effect(51)]})
+		assert(effects._effect_nodes.size() == 2 and effects._effect_nodes[50].effect.kind == "gem")
+		assert(effects.get_child(0) == effects._effect_nodes[50] and effects.get_child(1) == effects._effect_nodes[51])
 	var many: Array = []
 	for id in range(100, 200): many.append(_effect(id))
 	effects.apply_frame({"items": many})

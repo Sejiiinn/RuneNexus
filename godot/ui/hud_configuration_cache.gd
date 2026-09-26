@@ -1,6 +1,7 @@
 extends RefCounted
 ## Observe only configuration, not wallets, combat damage or quest journals.
-## This also detects direct state edits used by restore tools and regression tests.
+## Explicit sync also detects direct state edits by tools and regression tests.
+## Timer polling may trust a run-session replacement/finish revision.
 const TURRET_FIELDS := ["id", "type", "x", "y", "level", "slotLimit", "primaryTrait", "secondaryTrait", "equippedGemSlots", "targetPriority", "investedGold"]
 var revision := 0
 var derive_count := 0
@@ -10,8 +11,21 @@ var _upgrades: Dictionary = {}
 var _progression: Dictionary = {}
 var _fields: Array = []
 var _derived: Dictionary = {}
+var _source_id := 0
+var _source_revision := -1
+
+func sync_polled(state: Dictionary, growth_data: Dictionary, source_id: int, source_revision: int) -> int:
+	if revision > 0 and source_id != 0 and source_revision >= 0 and source_id == _source_id and source_revision == _source_revision:
+		return revision
+	var result := sync(state, growth_data)
+	_source_id = source_id
+	_source_revision = source_revision
+	return result
 
 func sync(state: Dictionary, growth_data: Dictionary) -> int:
+	# An explicit refresh always checks contents, even after a tracked poll.
+	_source_id = 0
+	_source_revision = -1
 	if _fields.is_empty():
 		_fields = ["researchLevels", "corePassiveNodeRanks", "turretModules", "clearedStageNumbers"]
 		for key in growth_data.get("permanentUpgrades", {}):

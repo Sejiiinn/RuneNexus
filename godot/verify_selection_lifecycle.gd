@@ -71,6 +71,47 @@ func _verify() -> void:
 	_check(not state.has("viewport"),"Renderer mutated shared state")
 	overlay.clear()
 	_check(state.turrets.size() == 1,"Renderer clear mutated shared state")
+	# Owner revisions skip root collection while preserving model replacement and legacy callers.
+	var units = load("res://presentation/battlefield_units.gd").new(world, camera)
+	var first := [42, 2.5, 3.5, 0.0, 0, 0.0, "cannon", 1]
+	units._sync_turrets([first])
+	var revision: int = units.turret_revision
+	overlay.set_turrets(units.turrets, revision)
+	var roots: Array = overlay._turret_roots
+	var original: Node3D = roots[0]
+	first[3] = 0.5
+	first[7] = 2
+	units._sync_turrets([first])
+	overlay._mask_tree_dirty = false
+	overlay.set_turrets(units.turrets, units.turret_revision)
+	_check(units.turret_revision == revision and is_same(roots, overlay._turret_roots) and not overlay._mask_tree_dirty, "Aim/level updates invalidate root membership")
+	first[6] = "sniper"
+	units._sync_turrets([first])
+	overlay.set_turrets(units.turrets, units.turret_revision)
+	_check(units.turret_revision > revision and not is_instance_valid(original) and overlay._mask_tree_dirty, "Same ID type replacement loses root invalidation")
+	var other := Node3D.new()
+	world.add_child(other)
+	var replacement := {42: {"root": other}}
+	overlay.set_turrets(replacement, units.turret_revision)
+	_check(overlay._turret_roots == [other], "Different owner with same revision retains old roots")
+	replacement[42].root = units.turrets[42].root
+	overlay.set_turrets(replacement)
+	_check(overlay._turret_roots == [units.turrets[42].root], "Untracked in-place replacement is missed")
+	overlay.clear()
+	overlay.set_turrets(units.turrets, units.turret_revision)
+	_check(overlay._turret_roots.size() == 1, "Clear does not invalidate revision")
+	revision = units.turret_revision
+	units._sync_turrets([])
+	overlay.set_turrets(units.turrets, units.turret_revision)
+	_check(units.turret_revision > revision and overlay._turret_roots.is_empty(), "Removal leaves stale roots")
+	units._sync_turrets([first])
+	revision = units.turret_revision
+	units.clear()
+	_check(units.turret_revision > revision, "Owner clear misses membership change")
+	revision = units.turret_revision
+	units.clear()
+	_check(units.turret_revision == revision, "Empty clear invalidates unchanged roots")
+	overlay.clear()
 	world.free()
 	camera.free()
 	overlay.queue_free()
