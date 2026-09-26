@@ -1,0 +1,253 @@
+{
+  "original": {
+    "bytes": 7217824,
+    "sha256": "80be26ff3b5932193746df410e513290932ec4687f9f5eb5efed3cf39addd380",
+    "triangles": 46795,
+    "meshes": 3,
+    "materials": 5,
+    "nodes": [
+      {
+        "name": "muzzle",
+        "translation": [
+          0,
+          0,
+          0.675000011920929
+        ]
+      },
+      {
+        "extras": {
+          "source_object": "Tapered forward octagonal barrel"
+        },
+        "mesh": 0,
+        "name": "turret_barrel_approved_geometry"
+      },
+      {
+        "name": "upper_flame_port",
+        "translation": [
+          0,
+          0.14200003445148468,
+          -0.2760000228881836
+        ]
+      },
+      {
+        "children": [
+          0,
+          1,
+          2
+        ],
+        "name": "turret_barrel",
+        "rotation": [
+          0.07845909148454666,
+          0,
+          0,
+          0.9969173669815063
+        ],
+        "translation": [
+          0,
+          0.6549999713897705,
+          0
+        ]
+      },
+      {
+        "extras": {
+          "source_object": "Sloped turntable"
+        },
+        "mesh": 1,
+        "name": "turret_head_approved_geometry",
+        "translation": [
+          0,
+          0.19300001859664917,
+          0
+        ]
+      },
+      {
+        "children": [
+          3,
+          4
+        ],
+        "name": "turret_head"
+      },
+      {
+        "extras": {
+          "source_object": "Foundation lower armor"
+        },
+        "mesh": 2,
+        "name": "turret_root_approved_geometry",
+        "translation": [
+          0,
+          0.0729999989271164,
+          0
+        ]
+      },
+      {
+        "children": [
+          5,
+          6
+        ],
+        "name": "turret_root",
+        "scale": [
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421
+        ]
+      }
+    ],
+    "material_names": [
+      "Iron | forged charcoal.002",
+      "Bronze | worn warm alloy.002",
+      "Recess | dark gunmetal.002",
+      "Runes | molten orange.002",
+      "Steel | polished bevel detail.002"
+    ]
+  },
+  "optimized": {
+    "bytes": 2856352,
+    "sha256": "b46a8c2089924e73b38ed06f59039b6e85a8fea009ea4e5507144ef3a71c9a5e",
+    "triangles": 11411,
+    "meshes": 3,
+    "materials": 5,
+    "nodes": [
+      {
+        "name": "muzzle",
+        "translation": [
+          0,
+          0,
+          0.6750000715255737
+        ]
+      },
+      {
+        "extras": {
+          "source_object": "Tapered forward octagonal barrel"
+        },
+        "mesh": 0,
+        "name": "turret_barrel_approved_geometry"
+      },
+      {
+        "name": "upper_flame_port",
+        "translation": [
+          0,
+          0.1419999599456787,
+          -0.2760000228881836
+        ]
+      },
+      {
+        "children": [
+          0,
+          1,
+          2
+        ],
+        "name": "turret_barrel",
+        "rotation": [
+          0.07845912128686905,
+          0,
+          0,
+          0.9969174265861511
+        ],
+        "translation": [
+          0,
+          0.6550000309944153,
+          0
+        ]
+      },
+      {
+        "extras": {
+          "source_object": "Sloped turntable"
+        },
+        "mesh": 1,
+        "name": "turret_head_approved_geometry",
+        "translation": [
+          0,
+          0.19300004839897156,
+          0
+        ]
+      },
+      {
+        "children": [
+          3,
+          4
+        ],
+        "name": "turret_head"
+      },
+      {
+        "extras": {
+          "source_object": "Foundation lower armor"
+        },
+        "mesh": 2,
+        "name": "turret_root_approved_geometry",
+        "translation": [
+          0,
+          0.07300000637769699,
+          0
+        ]
+      },
+      {
+        "children": [
+          5,
+          6
+        ],
+        "name": "turret_root",
+        "scale": [
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421
+        ]
+      }
+    ],
+    "material_names": [
+      "Iron | forged charcoal.001",
+      "Bronze | worn warm alloy.001",
+      "Recess | dark gunmetal.001",
+      "Runes | molten orange.001",
+      "Steel | polished bevel detail.001"
+    ]
+  },
+  "triangle_reduction_percent": 75.61491612351747,
+  "file_reduction_percent": 60.42641106239222,
+  "named_control_contracts_exact_float_equal": false,
+  "named_hierarchy_equal": true,
+  "max_transform_component_error": 7.450580596923828e-08,
+  "transform_tolerance": 1e-06,
+  "control_contract_pass": true,
+  "capture_png_dimensions": {
+    "angled-native-pair-left-original-right-optimized.png": [
+      263,
+      154
+    ],
+    "drone-native-pair-left-original-right-optimized.png": [
+      291,
+      180
+    ],
+    "optimized-angled-crop-native.png": [
+      125,
+      154
+    ],
+    "optimized-angled-full.png": [
+      1440,
+      3120
+    ],
+    "optimized-drone-crop-native.png": [
+      139,
+      180
+    ],
+    "optimized-drone-full.png": [
+      1440,
+      3120
+    ],
+    "original-angled-crop-native.png": [
+      126,
+      154
+    ],
+    "original-angled-full.png": [
+      1440,
+      3120
+    ],
+    "original-drone-crop-native.png": [
+      140,
+      180
+    ],
+    "original-drone-full.png": [
+      1440,
+      3120
+    ]
+  }
+}

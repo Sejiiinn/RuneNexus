@@ -1,8 +1,8 @@
 # 화염 포탑 전체 크기 90%
 
-2026-09-22 사용자 요청으로 받침대 기준 전체 모델의 가로·세로·깊이를 기존 대비 90%로 축소했다. 형태·재질·골격·고정 아이콘 카메라는 유지한다.
+2026-09-22 사용자 요청으로 받침대 기준 전체 모델의 가로·세로·깊이를 기존 대비 90%로 축소했다. 형태·재질·골격·고정 아이콘 카메라는 유지한다. 현재 게임용 본체는 이 배율과 계층을 보존한 [경량 모델](../optimized-game-distance/README.md)이며 아래는 축소 당시 원본과 검증 기록이다.
 
-- 현행 내보내기 원본: [runic-native-90.blend](runic-native-90.blend). 이전 승인·PBR 원본은 보존했다.
+- 90% 고해상도 내보내기 원본: [runic-native-90.blend](runic-native-90.blend). 이전 승인·PBR 원본은 보존했다.
 - 재현: Blender background에서 [resize.py](resize.py) 실행. 기존 PBR 원본에서 시작하며, 반복 실행해도 축소가 누적되지 않는다. 기존 전체 아이콘 render_icons.py도 변경된 GLB로 같은 결과를 만든다.
 - 최종 에셋: `assets/images/stage1_3d/turrets/magic.glb`, `assets/images/ui/hud/turrets_3d/magic.png`. 다른 포탑 에셋은 변경하지 않았다.
 - 상부·포구 부착 불꽃은 마커 배율을 따른다. 조준·반동·총구 위치도 모델 계층의 배율을 상속한다. 전투 수치·발사체 크기·분리 불티는 기존 계약을 유지한다.

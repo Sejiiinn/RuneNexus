@@ -1,0 +1,190 @@
+{
+  "original": {
+    "sha256": "80be26ff3b5932193746df410e513290932ec4687f9f5eb5efed3cf39addd380",
+    "bytes": 7217824,
+    "triangles": 46795,
+    "meshes": 3,
+    "materials": 5,
+    "nodes": [
+      {
+        "name": "muzzle",
+        "translation": [
+          0,
+          0,
+          0.675000011920929
+        ]
+      },
+      {
+        "extras": {
+          "source_object": "Tapered forward octagonal barrel"
+        },
+        "mesh": 0,
+        "name": "turret_barrel_approved_geometry"
+      },
+      {
+        "name": "upper_flame_port",
+        "translation": [
+          0,
+          0.14200003445148468,
+          -0.2760000228881836
+        ]
+      },
+      {
+        "children": [
+          0,
+          1,
+          2
+        ],
+        "name": "turret_barrel",
+        "rotation": [
+          0.07845909148454666,
+          0,
+          0,
+          0.9969173669815063
+        ],
+        "translation": [
+          0,
+          0.6549999713897705,
+          0
+        ]
+      },
+      {
+        "extras": {
+          "source_object": "Sloped turntable"
+        },
+        "mesh": 1,
+        "name": "turret_head_approved_geometry",
+        "translation": [
+          0,
+          0.19300001859664917,
+          0
+        ]
+      },
+      {
+        "children": [
+          3,
+          4
+        ],
+        "name": "turret_head"
+      },
+      {
+        "extras": {
+          "source_object": "Foundation lower armor"
+        },
+        "mesh": 2,
+        "name": "turret_root_approved_geometry",
+        "translation": [
+          0,
+          0.0729999989271164,
+          0
+        ]
+      },
+      {
+        "children": [
+          5,
+          6
+        ],
+        "name": "turret_root",
+        "scale": [
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421
+        ]
+      }
+    ]
+  },
+  "optimized": {
+    "sha256": "b46a8c2089924e73b38ed06f59039b6e85a8fea009ea4e5507144ef3a71c9a5e",
+    "bytes": 2856352,
+    "triangles": 11411,
+    "meshes": 3,
+    "materials": 5,
+    "nodes": [
+      {
+        "name": "muzzle",
+        "translation": [
+          0,
+          0,
+          0.6750000715255737
+        ]
+      },
+      {
+        "extras": {
+          "source_object": "Tapered forward octagonal barrel"
+        },
+        "mesh": 0,
+        "name": "turret_barrel_approved_geometry"
+      },
+      {
+        "name": "upper_flame_port",
+        "translation": [
+          0,
+          0.1419999599456787,
+          -0.2760000228881836
+        ]
+      },
+      {
+        "children": [
+          0,
+          1,
+          2
+        ],
+        "name": "turret_barrel",
+        "rotation": [
+          0.07845912128686905,
+          0,
+          0,
+          0.9969174265861511
+        ],
+        "translation": [
+          0,
+          0.6550000309944153,
+          0
+        ]
+      },
+      {
+        "extras": {
+          "source_object": "Sloped turntable"
+        },
+        "mesh": 1,
+        "name": "turret_head_approved_geometry",
+        "translation": [
+          0,
+          0.19300004839897156,
+          0
+        ]
+      },
+      {
+        "children": [
+          3,
+          4
+        ],
+        "name": "turret_head"
+      },
+      {
+        "extras": {
+          "source_object": "Foundation lower armor"
+        },
+        "mesh": 2,
+        "name": "turret_root_approved_geometry",
+        "translation": [
+          0,
+          0.07300000637769699,
+          0
+        ]
+      },
+      {
+        "children": [
+          5,
+          6
+        ],
+        "name": "turret_root",
+        "scale": [
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,112 @@
+{
+  "baseline_muzzle": {
+    "start": [
+      0.0,
+      -0.6197744607925415,
+      0.4913373291492462
+    ],
+    "inward_direction": [
+      -0.0,
+      0.9876883029937744,
+      0.15643444657325745
+    ],
+    "first_surface": [
+      0.0,
+      -0.5422409176826477,
+      0.5036174058914185
+    ],
+    "free_depth_tiles": 0.07849999517202377
+  },
+  "optimized_muzzle": {
+    "start": [
+      0.0,
+      -0.6197744607925415,
+      0.4913373291492462
+    ],
+    "inward_direction": [
+      -0.0,
+      0.9876883029937744,
+      0.15643446147441864
+    ],
+    "first_surface": [
+      0.0,
+      -0.5422409176826477,
+      0.5036174058914185
+    ],
+    "free_depth_tiles": 0.07849999517202377
+  },
+  "muzzle_depth_difference": 0.0,
+  "roundtrip_surface_max_error": 2.6697625798988156e-07,
+  "glb_nodes": [
+    {
+      "name": "turret_root",
+      "parent": null,
+      "world_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421
+      ]
+    },
+    {
+      "name": "turret_head",
+      "parent": "turret_root",
+      "world_position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "turret_barrel",
+      "parent": "turret_head",
+      "world_position": [
+        0.0,
+        0.0,
+        0.5895000100135803
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "muzzle",
+      "parent": "turret_barrel",
+      "world_position": [
+        0.0,
+        -0.600020706653595,
+        0.49446600675582886
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "upper_flame_port",
+      "parent": "turret_barrel",
+      "world_position": [
+        0.0,
+        0.22534947097301483,
+        0.7545849084854126
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  ]
+}

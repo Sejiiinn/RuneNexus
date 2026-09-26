@@ -1,0 +1,1200 @@
+{
+  "baseline_game_asset": "/Users/sejin/Documents/Codex/RuneNexus/assets/images/stage1_3d/turrets/magic.glb",
+  "baseline_game_sha256": "80be26ff3b5932193746df410e513290932ec4687f9f5eb5efed3cf39addd380",
+  "baseline_native_source": "/Users/sejin/Documents/Codex/RuneNexus/design/fire_tower_concepts/runic_3d/scale-90/runic-native-90.blend",
+  "baseline_native_sha256": "d3e9e764c17a9e1b0d7a1acba3e4a43f0f7dabdd47ee66ae48ce79377217fdf5",
+  "editable_finished_source": "/Users/sejin/Documents/Codex/RuneNexus/design/fire_tower_concepts/runic_3d/runic-flame-turret.blend",
+  "editable_finished_sha256": "347ac47b01448503a0dfc7d46f9edb7979e1903e9698b9cf0ba091426da3c54c",
+  "baseline_triangles": 46795,
+  "finished_source_scaled_09_to_native_max_error": 1.9992005206859176e-07,
+  "optimized_triangles": 11411,
+  "parts_before": {
+    "Foundation lower armor": 1020,
+    "Foundation rim": 1020,
+    "Foundation radial seam 00": 188,
+    "Foundation radial seam 01": 188,
+    "Foundation radial seam 02": 188,
+    "Foundation radial seam 03": 188,
+    "Foundation radial seam 04": 188,
+    "Foundation radial seam 05": 188,
+    "Foundation radial seam 06": 188,
+    "Foundation radial seam 07": 188,
+    "Foundation radial seam 08": 188,
+    "Foundation radial seam 09": 188,
+    "Foundation radial seam 10": 188,
+    "Foundation radial seam 11": 188,
+    "Foundation radial seam 12": 188,
+    "Foundation radial seam 13": 188,
+    "Foundation radial seam 14": 188,
+    "Foundation radial seam 15": 188,
+    "Finished trapezoid base clamp 00": 380,
+    "Finished trapezoid base clamp 01": 380,
+    "Finished trapezoid base clamp 02": 380,
+    "Finished trapezoid base clamp 03": 380,
+    "Sloped turntable": 1020,
+    "Turntable bronze seam": 2048,
+    "Rotating pedestal": 764,
+    "Pedestal lower collar": 2048,
+    "Pedestal upper bronze inlay": 2048,
+    "Head spindle": 764,
+    "Spindle warm metal collar": 2048,
+    "Pedestal rivet 00": 380,
+    "Pedestal rivet 04": 380,
+    "Left finished rune support": 1804,
+    "Deep dark support engraving": 188,
+    "Deep dark support engraving.001": 284,
+    "Deep dark support engraving.002": 284,
+    "Inset bronze rune diamond": 188,
+    "Foot bolt recessed dark socket": 764,
+    "Single bronze foot fastener": 508,
+    "Trunnion finished iron ring": 764,
+    "Trunnion faceted steel step": 252,
+    "Trunnion bronze centre": 508,
+    "Axle recessed socket": 380,
+    "Right finished rune support": 1804,
+    "Deep dark support engraving.003": 188,
+    "Deep dark support engraving.004": 284,
+    "Deep dark support engraving.005": 284,
+    "Inset bronze rune diamond.001": 188,
+    "Foot bolt recessed dark socket.001": 764,
+    "Single bronze foot fastener.001": 508,
+    "Trunnion finished iron ring.001": 764,
+    "Trunnion faceted steel step.001": 252,
+    "Trunnion bronze centre.001": 508,
+    "Axle recessed socket.001": 380,
+    "Tapered forward octagonal barrel": 444,
+    "Muzzle eight-sided bronze jacket": 1216,
+    "Muzzle inner black sleeve": 1536,
+    "Muzzle ignition ring": 1536,
+    "Muzzle dark throat": 764,
+    "Forward barrel bronze retaining band": 768,
+    "Receiver interior structural core": 796,
+    "Finished top armour with continuous rune recess": 3104,
+    "Rune continuous luminous floor": 95,
+    "Left shoulder armour": 692,
+    "Left side armour": 700,
+    "Continuous shoulder orange inlay": 4,
+    "Continuous shoulder orange inlay.001": 4,
+    "Lower angled receiver armour": 316,
+    "Right shoulder armour": 692,
+    "Right side armour": 700,
+    "Continuous shoulder orange inlay.002": 4,
+    "Continuous shoulder orange inlay.003": 4,
+    "Lower angled receiver armour.001": 316,
+    "Lower receiver armour": 316,
+    "Chamfered rear cap": 380,
+    "One-piece inset exhaust bezel": 768,
+    "Exhaust socket lining": 768,
+    "Exhaust ignition depth": 188,
+    "Rear full octagonal bronze retaining collar": 768
+  },
+  "parts_after": {
+    "Foundation lower armor": 252,
+    "Foundation rim": 252,
+    "Foundation radial seam 00": 44,
+    "Foundation radial seam 01": 44,
+    "Foundation radial seam 02": 44,
+    "Foundation radial seam 03": 44,
+    "Foundation radial seam 04": 44,
+    "Foundation radial seam 05": 44,
+    "Foundation radial seam 06": 44,
+    "Foundation radial seam 07": 44,
+    "Foundation radial seam 08": 44,
+    "Foundation radial seam 09": 44,
+    "Foundation radial seam 10": 44,
+    "Foundation radial seam 11": 44,
+    "Foundation radial seam 12": 44,
+    "Foundation radial seam 13": 44,
+    "Foundation radial seam 14": 44,
+    "Foundation radial seam 15": 44,
+    "Finished trapezoid base clamp 00": 92,
+    "Finished trapezoid base clamp 01": 92,
+    "Finished trapezoid base clamp 02": 92,
+    "Finished trapezoid base clamp 03": 92,
+    "Sloped turntable": 252,
+    "Turntable bronze seam": 512,
+    "Rotating pedestal": 188,
+    "Pedestal lower collar": 512,
+    "Pedestal upper bronze inlay": 512,
+    "Head spindle": 124,
+    "Spindle warm metal collar": 256,
+    "Pedestal rivet 00": 92,
+    "Pedestal rivet 04": 92,
+    "Left finished rune support": 632,
+    "Deep dark support engraving": 44,
+    "Deep dark support engraving.001": 68,
+    "Deep dark support engraving.002": 68,
+    "Inset bronze rune diamond": 44,
+    "Foot bolt recessed dark socket": 124,
+    "Single bronze foot fastener": 124,
+    "Trunnion finished iron ring": 124,
+    "Trunnion faceted steel step": 124,
+    "Trunnion bronze centre": 124,
+    "Axle recessed socket": 92,
+    "Right finished rune support": 632,
+    "Deep dark support engraving.003": 44,
+    "Deep dark support engraving.004": 68,
+    "Deep dark support engraving.005": 68,
+    "Inset bronze rune diamond.001": 44,
+    "Foot bolt recessed dark socket.001": 124,
+    "Single bronze foot fastener.001": 124,
+    "Trunnion finished iron ring.001": 124,
+    "Trunnion faceted steel step.001": 124,
+    "Trunnion bronze centre.001": 124,
+    "Axle recessed socket.001": 92,
+    "Tapered forward octagonal barrel": 124,
+    "Muzzle eight-sided bronze jacket": 192,
+    "Muzzle inner black sleeve": 256,
+    "Muzzle ignition ring": 256,
+    "Muzzle dark throat": 124,
+    "Forward barrel bronze retaining band": 192,
+    "Receiver interior structural core": 244,
+    "Finished top armour with continuous rune recess": 824,
+    "Rune continuous luminous floor": 95,
+    "Left shoulder armour": 196,
+    "Left side armour": 204,
+    "Continuous shoulder orange inlay": 4,
+    "Continuous shoulder orange inlay.001": 4,
+    "Lower angled receiver armour": 108,
+    "Right shoulder armour": 196,
+    "Right side armour": 204,
+    "Continuous shoulder orange inlay.002": 4,
+    "Continuous shoulder orange inlay.003": 4,
+    "Lower angled receiver armour.001": 108,
+    "Lower receiver armour": 108,
+    "Chamfered rear cap": 92,
+    "One-piece inset exhaust bezel": 192,
+    "Exhaust socket lining": 192,
+    "Exhaust ignition depth": 44,
+    "Rear full octagonal bronze retaining collar": 192
+  },
+  "changes": [
+    [
+      "Foundation lower armor",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation lower armor",
+      "circumference",
+      64,
+      32
+    ],
+    [
+      "Foundation rim",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation rim",
+      "circumference",
+      64,
+      32
+    ],
+    [
+      "Foundation radial seam 00",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 01",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 02",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 03",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 04",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 05",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 06",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 07",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 08",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 09",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 10",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 11",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 12",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 13",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 14",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foundation radial seam 15",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Finished trapezoid base clamp 00",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Finished trapezoid base clamp 01",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Finished trapezoid base clamp 02",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Finished trapezoid base clamp 03",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Sloped turntable",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Sloped turntable",
+      "circumference",
+      64,
+      32
+    ],
+    [
+      "Turntable bronze seam",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Turntable bronze seam",
+      "circumference",
+      64,
+      32
+    ],
+    [
+      "Rotating pedestal",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Rotating pedestal",
+      "circumference",
+      48,
+      24
+    ],
+    [
+      "Pedestal lower collar",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Pedestal lower collar",
+      "circumference",
+      64,
+      32
+    ],
+    [
+      "Pedestal upper bronze inlay",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Pedestal upper bronze inlay",
+      "circumference",
+      64,
+      32
+    ],
+    [
+      "Head spindle",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Head spindle",
+      "circumference",
+      48,
+      16
+    ],
+    [
+      "Spindle warm metal collar",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Spindle warm metal collar",
+      "circumference",
+      64,
+      16
+    ],
+    [
+      "Pedestal rivet 00",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Pedestal rivet 00",
+      "circumference",
+      24,
+      12
+    ],
+    [
+      "Pedestal rivet 04",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Pedestal rivet 04",
+      "circumference",
+      24,
+      12
+    ],
+    [
+      "Left finished rune support",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Deep dark support engraving",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Deep dark support engraving.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Deep dark support engraving.002",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Inset bronze rune diamond",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foot bolt recessed dark socket",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foot bolt recessed dark socket",
+      "circumference",
+      48,
+      16
+    ],
+    [
+      "Single bronze foot fastener",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Single bronze foot fastener",
+      "circumference",
+      32,
+      16
+    ],
+    [
+      "Trunnion finished iron ring",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Trunnion finished iron ring",
+      "circumference",
+      48,
+      16
+    ],
+    [
+      "Trunnion faceted steel step",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Trunnion bronze centre",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Trunnion bronze centre",
+      "circumference",
+      32,
+      16
+    ],
+    [
+      "Axle recessed socket",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Axle recessed socket",
+      "circumference",
+      24,
+      12
+    ],
+    [
+      "Right finished rune support",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Deep dark support engraving.003",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Deep dark support engraving.004",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Deep dark support engraving.005",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Inset bronze rune diamond.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foot bolt recessed dark socket.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Foot bolt recessed dark socket.001",
+      "circumference",
+      48,
+      16
+    ],
+    [
+      "Single bronze foot fastener.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Single bronze foot fastener.001",
+      "circumference",
+      32,
+      16
+    ],
+    [
+      "Trunnion finished iron ring.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Trunnion finished iron ring.001",
+      "circumference",
+      48,
+      16
+    ],
+    [
+      "Trunnion faceted steel step.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Trunnion bronze centre.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Trunnion bronze centre.001",
+      "circumference",
+      32,
+      16
+    ],
+    [
+      "Axle recessed socket.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Axle recessed socket.001",
+      "circumference",
+      24,
+      12
+    ],
+    [
+      "Tapered forward octagonal barrel",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Muzzle eight-sided bronze jacket",
+      "bevel_segments",
+      4,
+      1
+    ],
+    [
+      "Muzzle inner black sleeve",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Muzzle inner black sleeve",
+      "circumference",
+      48,
+      16
+    ],
+    [
+      "Muzzle ignition ring",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Muzzle ignition ring",
+      "circumference",
+      48,
+      16
+    ],
+    [
+      "Muzzle dark throat",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Muzzle dark throat",
+      "circumference",
+      48,
+      16
+    ],
+    [
+      "Forward barrel bronze retaining band",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Receiver interior structural core",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Finished top armour with continuous rune recess",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Left shoulder armour",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Left side armour",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Lower angled receiver armour",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Right shoulder armour",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Right side armour",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Lower angled receiver armour.001",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Lower receiver armour",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Chamfered rear cap",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "One-piece inset exhaust bezel",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Exhaust socket lining",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Exhaust ignition depth",
+      "bevel_segments",
+      3,
+      1
+    ],
+    [
+      "Rear full octagonal bronze retaining collar",
+      "bevel_segments",
+      3,
+      1
+    ]
+  ],
+  "linear_root_scale": [
+    0.8999999761581421,
+    0.8999999761581421,
+    0.8999999761581421
+  ],
+  "controls": {
+    "turret_root": {
+      "world_matrix": [
+        [
+          0.8999999761581421,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.8999999761581421,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.8999999761581421,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "local_location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421
+      ],
+      "parent": null
+    },
+    "turret_head": {
+      "world_matrix": [
+        [
+          0.8999999761581421,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.8999999761581421,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.8999999761581421,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "local_location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "parent": "turret_root"
+    },
+    "turret_barrel": {
+      "world_matrix": [
+        [
+          0.8999999761581421,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.8889195322990417,
+          -0.14079102873802185,
+          0.0
+        ],
+        [
+          0.0,
+          0.14079102873802185,
+          0.8889195322990417,
+          0.5894999504089355
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "local_location": [
+        0.0,
+        0.0,
+        0.6549999713897705
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "parent": "turret_head"
+    },
+    "muzzle": {
+      "world_matrix": [
+        [
+          0.8999999761581421,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.8889195322990417,
+          -0.14079102873802185,
+          -0.600020706653595
+        ],
+        [
+          0.0,
+          0.14079102873802185,
+          0.8889195322990417,
+          0.49446600675582886
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "local_location": [
+        0.0,
+        -0.675000011920929,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "parent": "turret_barrel"
+    },
+    "upper_flame_port": {
+      "world_matrix": [
+        [
+          0.8999999761581421,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.8889195322990417,
+          -0.14079102873802185,
+          0.22534945607185364
+        ],
+        [
+          0.0,
+          0.14079102873802185,
+          0.8889195322990417,
+          0.754584789276123
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "local_location": [
+        0.0,
+        0.2759999930858612,
+        0.1420000046491623
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "parent": "turret_barrel"
+    }
+  },
+  "native_controls": {
+    "turret_root": {
+      "world_matrix": [
+        [
+          0.8999999761581421,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.8999999761581421,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.8999999761581421,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "local_location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421
+      ],
+      "parent": null
+    },
+    "turret_head": {
+      "world_matrix": [
+        [
+          0.8999999761581421,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.8999999761581421,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.8999999761581421,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "local_location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "parent": "turret_root"
+    },
+    "turret_barrel": {
+      "world_matrix": [
+        [
+          0.8999999761581421,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.8889195322990417,
+          -0.14079101383686066,
+          0.0
+        ],
+        [
+          0.0,
+          0.14079101383686066,
+          0.8889195322990417,
+          0.5894999504089355
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "local_location": [
+        0.0,
+        0.0,
+        0.6549999713897705
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "parent": "turret_head"
+    },
+    "muzzle": {
+      "world_matrix": [
+        [
+          0.8999999761581421,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.8889195322990417,
+          -0.14079101383686066,
+          -0.600020706653595
+        ],
+        [
+          0.0,
+          0.14079101383686066,
+          0.8889195322990417,
+          0.49446600675582886
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "local_location": [
+        0.0,
+        -0.675000011920929,
+        1.4901161193847656e-08
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "parent": "turret_barrel"
+    },
+    "upper_flame_port": {
+      "world_matrix": [
+        [
+          0.8999999761581421,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.8889195322990417,
+          -0.14079101383686066,
+          0.22534947097301483
+        ],
+        [
+          0.0,
+          0.14079101383686066,
+          0.8889195322990417,
+          0.7545849084854126
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "local_location": [
+        0.0,
+        0.2760000228881836,
+        0.14200009405612946
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "parent": "turret_barrel"
+    }
+  },
+  "max_control_matrix_error": 1.1920928955078125e-07,
+  "bounds_before": [
+    [
+      -0.3869999945163727,
+      -0.6159993410110474,
+      0.00899999588727951
+    ],
+    [
+      0.3869999945163727,
+      0.40897905826568604,
+      0.7748627662658691
+    ]
+  ],
+  "bounds_after": [
+    [
+      -0.3851364850997925,
+      -0.6159992814064026,
+      0.008999999612569809
+    ],
+    [
+      0.3851364850997925,
+      0.40884771943092346,
+      0.7748627662658691
+    ]
+  ],
+  "decimate_used": false,
+  "source_regenerated": false,
+  "vfx_changed": false,
+  "game_files_changed": false,
+  "material_policy": "Finished original procedural materials retained; native exporter rune strength .8. Reuse native atlas bake workflow.",
+  "glb_file": "runic-fire-optimized.glb",
+  "glb_sha256": "b46a8c2089924e73b38ed06f59039b6e85a8fea009ea4e5507144ef3a71c9a5e",
+  "glb_bytes": 2856352,
+  "glb_triangles": 11411,
+  "glb_meshes": 3,
+  "glb_materials": 5,
+  "triangle_reduction_percent": 75.61491612351747,
+  "baseline_sources_preserved": true,
+  "optimized_editable_sha256": "445ebe39b493e0fe9d0d5592d2520a844622b91a81fcc2870e6a0e01e2c23d35",
+  "bake": "Existing migration exporter:1024 shared color,roughness,tangent-normal; evaluated optimized mesh self-bake, no high-to-low projection. Native rune .8 emission factor. Runtime rune UNSHADED unchanged.",
+  "hero": "1200x1200 Cycles32 source-camera body-only render. QHD game comparison recorded under review/.",
+  "scope": "Static tower body only. No VFX changes, game install, APK or FPS claim.",
+  "export_check": "export-check.json",
+  "muzzle_free_depth_tiles": 0.07849999517202377,
+  "muzzle_depth_change": 0.0,
+  "glb_roundtrip_max_error": 2.6697625798988156e-07
+}

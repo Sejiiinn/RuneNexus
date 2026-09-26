@@ -68,7 +68,7 @@
 
 화염 포탑은 2026-09-22 요청에 따라 모델 전체와 부착 불꽃을 기존 대비 90%로 표시한다([원본·검증](design/fire_tower_concepts/runic_3d/scale-90/README.md)). 형태·재질·고정 아이콘 카메라는 유지한다.
 
-화염 포탑의 3D 디자인은 [14번 룬 기계형 시안](design/fire_tower_concepts/2026-09-14/14-runic-mechanism.png)을 따른다. 길쭉한 팔각 몸체·주황 룬 홈·음각 문양의 청동 지지대·앞쪽 단일 총구·몸체에 매립된 작은 상부 화염구를 유지하고, 숯이나 큰 화로 형태를 넣지 않는다. 승인된 [Blender 원본](design/fire_tower_concepts/runic_3d/README.md)의 최종 메시를 그대로 `magic.glb`로 이관한다. 금속은 색·거칠기·노멀을 구운 기본 PBR 재질을 사용하고, 불꽃·화구·화염 발사체는 입체 메시와 Godot 기본 재질·GPU 파티클로 구성한다. 새 전용 셰이더나 카메라 정면의 평면 효과로 대체하지 않는다. [이관 및 검수 기록](design/fire_tower_concepts/runic_3d/migration/README.md)을 따른다.
+화염 포탑의 3D 디자인은 [14번 룬 기계형 시안](design/fire_tower_concepts/2026-09-14/14-runic-mechanism.png)을 따른다. 길쭉한 팔각 몸체·주황 룬 홈·음각 문양의 청동 지지대·앞쪽 단일 총구·몸체에 매립된 작은 상부 화염구를 유지하고, 숯이나 큰 화로 형태를 넣지 않는다. 게임용 `magic.glb`는 같은 외형과 90% 배율을 보존한 [11,411삼각형 경량본](design/fire_tower_concepts/runic_3d/optimized-game-distance/README.md)을 사용하며, 고해상도 Blender 원본은 제작용으로 보관한다. 금속은 색·거칠기·노멀을 구운 기본 PBR 재질을 사용하고, 불꽃·화구·화염 발사체는 입체 메시와 Godot 기본 재질·GPU 파티클로 구성한다. 새 전용 셰이더나 카메라 정면의 평면 효과로 대체하지 않는다. [이관 및 검수 기록](design/fire_tower_concepts/runic_3d/migration/README.md)을 따른다.
 
 스테이지 1 Blender 작업은 [현행 원본·작업 허브](design/stage1_3d/blender_workspace/README.md)에서 시작한다. 원본·제작 경로·게임 적용 미리보기를 변경하면 해당 목록과 내부 안내도 함께 갱신한다. 이전 폭발 `.blend`를 현재 게임의 필드 캐시 효과 원본으로 취급하지 않는다.
 

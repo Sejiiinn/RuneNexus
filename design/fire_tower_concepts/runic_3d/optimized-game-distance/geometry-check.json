@@ -1,0 +1,19 @@
+{
+  "source": "runic-flame-turret.blend",
+  "geometry_before": {
+    "unique_positions": 5834,
+    "triangles": 11411,
+    "position_sha256": "eb06b1594a5704b6e5f3bb7eb97d4df6a3f8fd632c3c81b57b09c46848706201"
+  },
+  "geometry_after": {
+    "unique_positions": 5834,
+    "triangles": 11411,
+    "position_sha256": "0ea619d89b5e0827ea636318e60685f44904c78146a26ec99032a3fe5f93be65"
+  },
+  "geometry_preserved": true,
+  "max_position_error": 3.480505768038711e-07,
+  "export_meshes": 3,
+  "pbr_atlas_size": 1024,
+  "glb_bytes": 2856352,
+  "rebuild_or_decimation": false
+}
